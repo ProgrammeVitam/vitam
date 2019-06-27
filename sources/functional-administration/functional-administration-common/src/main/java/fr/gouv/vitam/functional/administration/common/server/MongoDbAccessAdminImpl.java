@@ -34,12 +34,12 @@ import com.mongodb.MongoClient;
 import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
 import fr.gouv.vitam.common.database.builder.request.single.Delete;
 import fr.gouv.vitam.common.database.builder.request.single.Insert;
-import fr.gouv.vitam.common.database.collections.VitamCollection;
 import fr.gouv.vitam.common.database.parser.request.single.DeleteParserSingle;
 import fr.gouv.vitam.common.database.parser.request.single.SelectParserSingle;
 import fr.gouv.vitam.common.database.parser.request.single.UpdateParserSingle;
 import fr.gouv.vitam.common.database.server.DbRequestResult;
 import fr.gouv.vitam.common.database.server.DbRequestSingle;
+import fr.gouv.vitam.common.database.server.DocumentValidator;
 import fr.gouv.vitam.common.database.server.mongodb.MongoDbAccess;
 import fr.gouv.vitam.common.database.server.mongodb.VitamDocument;
 import fr.gouv.vitam.common.exception.BadRequestException;
@@ -47,7 +47,6 @@ import fr.gouv.vitam.common.exception.DatabaseException;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.SchemaValidationException;
 import fr.gouv.vitam.common.exception.VitamDBException;
-import fr.gouv.vitam.common.exception.VitamRuntimeException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
@@ -91,7 +90,9 @@ public class MongoDbAccessAdminImpl extends MongoDbAccess implements MongoDbAcce
             final DbRequestSingle dbrequest = new DbRequestSingle(collection.getVitamCollection());
             final Insert insertquery = new Insert();
             insertquery.setData(arrayNode);
-            return dbrequest.execute(insertquery, version);
+
+            DocumentValidator documentValidator = ReferentialDocumentValidators.getValidator(collection);
+            return dbrequest.execute(insertquery, version, documentValidator);
         } catch (MongoBulkWriteException | InvalidParseOperationException | BadRequestException | DatabaseException |
             InvalidCreateOperationException | VitamDBException e) {
             throw new ReferentialException("Insert Documents Exception", e);
@@ -218,7 +219,8 @@ public class MongoDbAccessAdminImpl extends MongoDbAccess implements MongoDbAcce
             final UpdateParserSingle parser = new UpdateParserSingle(collection.getVarNameAdapater());
             parser.parse(update);
             final DbRequestSingle dbrequest = new DbRequestSingle(collection.getVitamCollection());
-            final DbRequestResult result = dbrequest.execute(parser.getRequest(), version);
+            DocumentValidator documentValidator = ReferentialDocumentValidators.getValidator(collection);
+            final DbRequestResult result = dbrequest.execute(parser.getRequest(), version, documentValidator);
             if (result.getDiffs().size() == 0) {
                 throw new BadRequestException("Document was not updated as there is no changes");
             }

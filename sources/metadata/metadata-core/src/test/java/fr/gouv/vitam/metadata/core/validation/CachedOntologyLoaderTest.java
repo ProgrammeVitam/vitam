@@ -1,7 +1,8 @@
-package fr.gouv.vitam.metadata.core.ontology;
+package fr.gouv.vitam.metadata.core.validation;
 
 import fr.gouv.vitam.common.guid.GUID;
 import fr.gouv.vitam.common.guid.GUIDFactory;
+import fr.gouv.vitam.common.model.MetadataType;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.administration.OntologyModel;
 import fr.gouv.vitam.common.model.administration.OntologyType;
@@ -28,7 +29,7 @@ import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
-public class OntologyLoaderTest {
+public class CachedOntologyLoaderTest {
 
     @Rule
     public MockitoRule mockitoRule = MockitoJUnit.rule();
@@ -65,7 +66,8 @@ public class OntologyLoaderTest {
             .when(adminManagementClient).findOntologies(any());
 
         // When
-        OntologyLoader ontologyLoader = new OntologyLoader(adminManagementClientFactory, 10, 60);
+        CachedOntologyLoader ontologyLoader = new CachedOntologyLoader(adminManagementClientFactory, 10, 60,
+            MetadataType.UNIT);
         List<OntologyModel> result = ontologyLoader.loadOntologies();
 
         // Then
@@ -90,7 +92,8 @@ public class OntologyLoaderTest {
             .when(adminManagementClient).findOntologies(any());
 
         // When
-        OntologyLoader ontologyLoader = new OntologyLoader(adminManagementClientFactory, 10, 60);
+        CachedOntologyLoader ontologyLoader = new CachedOntologyLoader(adminManagementClientFactory, 10, 60,
+            MetadataType.UNIT);
 
         List<OntologyModel> result = null;
         for (int i = 0; i < 10; i++) {
@@ -119,7 +122,8 @@ public class OntologyLoaderTest {
             .when(adminManagementClient).findOntologies(any());
 
         // When
-        OntologyLoader ontologyLoader = new OntologyLoader(adminManagementClientFactory, 10, 1);
+        CachedOntologyLoader ontologyLoader = new CachedOntologyLoader(adminManagementClientFactory, 10, 1,
+            MetadataType.UNIT);
         ontologyLoader.loadOntologies();
         TimeUnit.SECONDS.sleep(2);
         List<OntologyModel> result = ontologyLoader.loadOntologies();

@@ -40,6 +40,9 @@ import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.model.administration.AccessContractModel;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
+import fr.gouv.vitam.functional.administration.client.AdminManagementClient;
+import fr.gouv.vitam.functional.administration.client.AdminManagementClientFactory;
+import fr.gouv.vitam.functional.administration.rest.AdminManagementMain;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientNotFoundException;
 import fr.gouv.vitam.logbook.common.parameters.Contexts;
@@ -67,6 +70,7 @@ import fr.gouv.vitam.storage.engine.client.StorageClientFactory;
 import fr.gouv.vitam.storage.engine.client.exception.StorageAlreadyExistsClientException;
 import fr.gouv.vitam.storage.engine.client.exception.StorageNotFoundClientException;
 import fr.gouv.vitam.storage.engine.client.exception.StorageServerClientException;
+import fr.gouv.vitam.storage.engine.common.collection.OfferCollections;
 import fr.gouv.vitam.storage.engine.common.model.DataCategory;
 import fr.gouv.vitam.storage.engine.common.model.OfferLog;
 import fr.gouv.vitam.storage.engine.common.model.Order;
@@ -100,6 +104,7 @@ import retrofit2.http.GET;
 import retrofit2.http.Headers;
 import retrofit2.http.POST;
 
+import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -131,6 +136,7 @@ public class MetadataManagementIT extends VitamRuleRunner {
             elasticsearchRule.getClusterName(),
             Sets.newHashSet(
                 MetadataMain.class,
+                AdminManagementMain.class,
                 LogbookMain.class,
                 WorkspaceMain.class,
                 WorkerMain.class,
@@ -224,8 +230,6 @@ public class MetadataManagementIT extends VitamRuleRunner {
             new SimpleMongoDBAccess(mongoRule.getMongoClient(), mongoRule.getMongoDatabase().getName());
         offsetRepository = new OffsetRepository(mongoDbAccess);
 
-        new DataLoader("integration-ingest-internal").prepareData();
-
     }
 
 
@@ -237,7 +241,7 @@ public class MetadataManagementIT extends VitamRuleRunner {
     }
 
     @Before
-    public void setup() {
+    public void setup() throws Exception {
         VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newRequestIdGUID(TENANT_0));
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_0);
 
@@ -245,6 +249,13 @@ public class MetadataManagementIT extends VitamRuleRunner {
 
         // ReconstructionService delete all unit and GOT without _tenant and older than 1 month.
         VitamConfiguration.setDeleteIncompleteReconstructedUnitDelay(Integer.MAX_VALUE);
+
+        // Reload data before evert test since cleanup is to be done after every test for this test class
+        new DataLoader("integration-ingest-internal").prepareData();
+
+        // Clean offerLog
+        mongoRule.getMongoDatabase().getCollection(OfferCollections.OFFER_LOG.getName()).drop();
+        mongoRule.getMongoDatabase().getCollection(OfferCollections.OFFER_SEQUENCE.getName()).drop();
     }
 
     @After
@@ -610,8 +621,7 @@ public class MetadataManagementIT extends VitamRuleRunner {
     @Test
     @RunWithCustomExecutor
     public void testReconstruction_unit_then_got_then_unitgraph_then_gotgraph_in_one_phase_query_OK() throws Exception {
-        // Clean offerLog
-        VitamThreadUtils.getVitamSession().setTenantId(TENANT_0);
+
         // 0. prepare data
         String container = GUIDFactory.newGUID().getId();
         workspaceClient.createContainer(container);
@@ -1019,7 +1029,6 @@ public class MetadataManagementIT extends VitamRuleRunner {
             classificationLevel.setAuthorizeNotDefined(true);
             AccessInternalResourceImpl accessInternalResource =
                 new AccessInternalResourceImpl(accessInternalConfiguration);
-
             // When attach HOLDING_UNIT -> FILING_UNIT then KO
             VitamThreadUtils.getVitamSession().setRequestId("aedqaaaaacfnrnfpaao4galeht64kaqaaaaq");
             String operation = VitamThreadUtils.getVitamSession().getRequestId();
@@ -1146,7 +1155,6 @@ public class MetadataManagementIT extends VitamRuleRunner {
                 "CHECK_CONCURRENT_WORKFLOW_LOCK.KO");
             assertThat(preparationEvent.get(2).get("evDetData").asText())
                 .contains("Concurrent process(es) found");
-
 
             // 3. Start initial Reclassification en mode continue
             VitamThreadUtils.getVitamSession().setRequestId(operation);

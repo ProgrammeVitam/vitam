@@ -50,7 +50,14 @@ public final class WorkerConfiguration extends DefaultVitamApplicationConfigurat
     private List<String> indexInheritedRulesWithRulesIdByTenant = new ArrayList<>();
     private List<String> indexInheritedRulesWithAPIV2OutputByTenant = new ArrayList<>();
 
+    private int ontologyCacheMaxEntries = 100;
+    private int ontologyCacheTimeoutInSeconds = 300;
 
+    private int archiveUnitProfileCacheMaxEntries = 100;
+    private int archiveUnitProfileCacheTimeoutInSeconds = 300;
+
+    private int schemaValidatorCacheMaxEntries = 100;
+    private int schemaValidatorCacheTimeoutInSeconds = 300;
 
     /**
      * WorkerConfiguration empty constructor for YAMLFactory
@@ -254,5 +261,59 @@ public final class WorkerConfiguration extends DefaultVitamApplicationConfigurat
 
     public void setIndexInheritedRulesWithAPIV2OutputByTenant(List<String> indexInheritedRulesWithAPIV2OutputByTenant) {
         this.indexInheritedRulesWithAPIV2OutputByTenant = indexInheritedRulesWithAPIV2OutputByTenant;
+    }
+
+    public int getOntologyCacheMaxEntries() {
+        return ontologyCacheMaxEntries;
+    }
+
+    public WorkerConfiguration setOntologyCacheMaxEntries(int ontologyCacheMaxEntries) {
+        this.ontologyCacheMaxEntries = ontologyCacheMaxEntries;
+        return this;
+    }
+
+    public int getOntologyCacheTimeoutInSeconds() {
+        return ontologyCacheTimeoutInSeconds;
+    }
+
+    public WorkerConfiguration setOntologyCacheTimeoutInSeconds(int ontologyCacheTimeoutInSeconds) {
+        this.ontologyCacheTimeoutInSeconds = ontologyCacheTimeoutInSeconds;
+        return this;
+    }
+
+    public int getArchiveUnitProfileCacheMaxEntries() {
+        return archiveUnitProfileCacheMaxEntries;
+    }
+
+    public WorkerConfiguration setArchiveUnitProfileCacheMaxEntries(int archiveUnitProfileCacheMaxEntries) {
+        this.archiveUnitProfileCacheMaxEntries = archiveUnitProfileCacheMaxEntries;
+        return this;
+    }
+
+    public int getArchiveUnitProfileCacheTimeoutInSeconds() {
+        return archiveUnitProfileCacheTimeoutInSeconds;
+    }
+
+    public WorkerConfiguration setArchiveUnitProfileCacheTimeoutInSeconds(int archiveUnitProfileCacheTimeoutInSeconds) {
+        this.archiveUnitProfileCacheTimeoutInSeconds = archiveUnitProfileCacheTimeoutInSeconds;
+        return this;
+    }
+
+    public int getSchemaValidatorCacheMaxEntries() {
+        return schemaValidatorCacheMaxEntries;
+    }
+
+    public WorkerConfiguration setSchemaValidatorCacheMaxEntries(int schemaValidatorCacheMaxEntries) {
+        this.schemaValidatorCacheMaxEntries = schemaValidatorCacheMaxEntries;
+        return this;
+    }
+
+    public int getSchemaValidatorCacheTimeoutInSeconds() {
+        return schemaValidatorCacheTimeoutInSeconds;
+    }
+
+    public WorkerConfiguration setSchemaValidatorCacheTimeoutInSeconds(int schemaValidatorCacheTimeoutInSeconds) {
+        this.schemaValidatorCacheTimeoutInSeconds = schemaValidatorCacheTimeoutInSeconds;
+        return this;
     }
 }

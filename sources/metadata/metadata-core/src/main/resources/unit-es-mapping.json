@@ -877,7 +877,7 @@
             "type": "keyword"
           },
           "GpsAltitude": {
-            "type": "keyword"
+            "type": "long"
           },
           "GpsAltitudeRef": {
             "type": "keyword"

@@ -67,6 +67,7 @@ import fr.gouv.vitam.common.database.parser.request.single.SelectParserSingle;
 import fr.gouv.vitam.common.database.parser.request.single.UpdateParserSingle;
 import fr.gouv.vitam.common.database.server.elasticsearch.ElasticsearchNode;
 import fr.gouv.vitam.common.database.utils.AccessContractRestrictionHelper;
+import fr.gouv.vitam.common.error.VitamError;
 import fr.gouv.vitam.common.exception.AccessUnauthorizedException;
 import fr.gouv.vitam.common.exception.BadRequestException;
 import fr.gouv.vitam.common.exception.DatabaseException;
@@ -475,8 +476,10 @@ public class IngestInternalIT extends VitamRuleRunner {
             UpdateMultiQuery updateQuery2 =
                 new UpdateMultiQuery().addActions(new SetAction("ArchiveUnitProfile", "ArchiveUnitProfile"));
             updateQuery.addRoots(unitId);
-            assertThatThrownBy( () -> accessClient.updateUnitbyId(updateQuery2.getFinalUpdate(), unitId))
-                .isInstanceOf(AccessInternalClientException.class);
+            RequestResponse<JsonNode> updateResponse =
+                accessClient.updateUnitbyId(updateQuery2.getFinalUpdate(), unitId);
+            assertThat(updateResponse.isOk()).isFalse();
+            assertThat(((VitamError) updateResponse).getDescription()).contains("Archive Unit Profile not found");
 
             // lets find details for the unit -> AccessRule should have been unset
             RequestResponseOK<JsonNode> responseUnitAfterUpdate =

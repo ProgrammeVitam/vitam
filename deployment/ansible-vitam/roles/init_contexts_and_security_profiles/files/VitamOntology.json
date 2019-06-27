@@ -398,7 +398,7 @@
     "Identifier": "GpsAltitude",
     "SedaField": "GpsAltitude",
     "Description": "Mapping : unit-es-mapping.json",
-    "Type": "KEYWORD",
+    "Type": "LONG",
     "Origin": "INTERNAL",
     "ShortName": "Altitude",
     "Collections": [
@@ -1328,6 +1328,18 @@
       "LogbookOperation",
       "Griffin",
       "PreservationScenario"
+    ]
+  },
+  {
+   "Identifier": "_av",
+   "ApiField": "_av",
+   "Description": "Version interne de l’enregistrement décrit.",
+   "Type": "LONG",
+   "Origin": "INTERNAL",
+   "ShortName": "Version",
+    "Collections": [
+     "Unit",
+      "ObjectGroup"
     ]
   },
   {

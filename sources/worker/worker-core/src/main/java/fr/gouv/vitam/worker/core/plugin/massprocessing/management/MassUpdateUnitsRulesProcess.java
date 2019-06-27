@@ -38,7 +38,6 @@ import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.database.utils.MetadataDocumentHelper;
 import fr.gouv.vitam.common.exception.InvalidGuidOperationException;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
-import fr.gouv.vitam.common.exception.VitamClientException;
 import fr.gouv.vitam.common.exception.VitamException;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.guid.GUIDReader;
@@ -74,22 +73,18 @@ import fr.gouv.vitam.logbook.common.parameters.LogbookParameterName;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParametersFactory;
 import fr.gouv.vitam.logbook.lifecycles.client.LogbookLifeCyclesClient;
 import fr.gouv.vitam.logbook.lifecycles.client.LogbookLifeCyclesClientFactory;
-import fr.gouv.vitam.metadata.api.exception.MetaDataClientServerException;
-import fr.gouv.vitam.metadata.api.exception.MetaDataDocumentSizeException;
-import fr.gouv.vitam.metadata.api.exception.MetaDataExecutionException;
-import fr.gouv.vitam.metadata.api.exception.MetaDataNotFoundException;
 import fr.gouv.vitam.metadata.client.MetaDataClient;
 import fr.gouv.vitam.metadata.client.MetaDataClientFactory;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 import fr.gouv.vitam.storage.engine.client.StorageClient;
 import fr.gouv.vitam.storage.engine.client.StorageClientFactory;
-import fr.gouv.vitam.storage.engine.client.exception.StorageAlreadyExistsClientException;
 import fr.gouv.vitam.storage.engine.common.model.DataCategory;
 import fr.gouv.vitam.storage.engine.common.model.request.ObjectDescription;
 import fr.gouv.vitam.worker.common.HandlerIO;
 import fr.gouv.vitam.worker.core.handler.ActionHandler;
 import fr.gouv.vitam.worker.core.plugin.StoreMetadataObjectActionHandler;
+import fr.gouv.vitam.worker.core.utils.PluginHelper.EventDetails;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
 import fr.gouv.vitam.workspace.api.exception.WorkspaceClientServerException;
 import org.apache.commons.lang3.StringUtils;
@@ -101,13 +96,17 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
+import static fr.gouv.vitam.common.model.StatusCode.FATAL;
+import static fr.gouv.vitam.common.model.StatusCode.KO;
 import static fr.gouv.vitam.common.model.StatusCode.OK;
 import static fr.gouv.vitam.common.model.StatusCode.WARNING;
 import static fr.gouv.vitam.metadata.core.model.UpdateUnit.DIFF;
 import static fr.gouv.vitam.metadata.core.model.UpdateUnit.KEY;
 import static fr.gouv.vitam.metadata.core.model.UpdateUnit.MESSAGE;
 import static fr.gouv.vitam.metadata.core.model.UpdateUnit.STATUS;
+import static fr.gouv.vitam.worker.core.utils.PluginHelper.buildItemStatus;
 
 public class MassUpdateUnitsRulesProcess extends StoreMetadataObjectActionHandler {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(ActionHandler.class);
@@ -125,7 +124,8 @@ public class MassUpdateUnitsRulesProcess extends StoreMetadataObjectActionHandle
 
     public MassUpdateUnitsRulesProcess() {
         this(MetaDataClientFactory.getInstance(), LogbookLifeCyclesClientFactory.getInstance(),
-            StorageClientFactory.getInstance(), AdminManagementClientFactory.getInstance(), BatchReportClientFactory.getInstance());
+            StorageClientFactory.getInstance(), AdminManagementClientFactory.getInstance(),
+            BatchReportClientFactory.getInstance());
     }
 
     @VisibleForTesting
@@ -143,10 +143,10 @@ public class MassUpdateUnitsRulesProcess extends StoreMetadataObjectActionHandle
     /**
      * Execute an action
      *
-     * @param param   {@link WorkerParameters}
+     * @param param {@link WorkerParameters}
      * @param handler the handlerIo
      * @return CompositeItemStatus:response contains a list of functional message and status code
-     * @throws ProcessingException                      if an error is encountered when executing the action
+     * @throws ProcessingException if an error is encountered when executing the action
      * @throws ContentAddressableStorageServerException if a storage exception is encountered when executing the action
      */
     @Override
@@ -167,8 +167,6 @@ public class MassUpdateUnitsRulesProcess extends StoreMetadataObjectActionHandle
     public List<ItemStatus> executeList(WorkerParameters workerParameters, HandlerIO handler)
         throws ProcessingException {
 
-        final List<ItemStatus> itemStatuses = new ArrayList<>();
-
         // Bulk update units && local reports generation
         try (MetaDataClient mdClient = metaDataClientFactory.getClient();
             LogbookLifeCyclesClient lfcClient = lfcClientFactory.getClient();
@@ -183,90 +181,88 @@ public class MassUpdateUnitsRulesProcess extends StoreMetadataObjectActionHandle
             Map<String, DurationData> bindRulesToDuration = checkAndComputeRuleDurationData(ruleActions);
 
             // call update BULK service
-            RequestResponse<JsonNode> requestResponse = mdClient.updateUnitsRulesBulk(units, ruleActions, bindRulesToDuration);
+            RequestResponse<JsonNode> requestResponse =
+                mdClient.updateUnitsRulesBulk(units, ruleActions, bindRulesToDuration);
 
+            // Prepare rapport
             List<UpdateUnitMetadataReportEntry> entries = new ArrayList<>();
             if (requestResponse != null && requestResponse.isOk()) {
-                RequestResponseOK<JsonNode> requestResponseOK = (RequestResponseOK<JsonNode>) requestResponse;
-                requestResponseOK.getResults().forEach(result -> {
-                    final ItemStatus itemStatus = new ItemStatus(MASS_UPDATE_UNITS_RULES);
-                    String unitId = result.get(ID).asText();
-                    StatusCode status = StatusCode.valueOf(result.get(STATUS).asText());
-                    String diff = result.get(DIFF).asText();
-                    String message = result.get(MESSAGE).asText();
-                    String resultKey = result.get(KEY).asText();
+                List<ItemStatus> itemStatuses = ((RequestResponseOK<JsonNode>) requestResponse).getResults()
+                    .stream()
+                    .map(result -> postUpdate(workerParameters, handler, mdClient, lfcClient, storageClient, entries,
+                        result))
+                    .collect(Collectors.toList());
 
-                    if ((!"null".equals(diff) || !StringUtils.isBlank(diff)) && (status.equals(OK) || status.equals(WARNING))) {
-                        // write LFC
-                        try {
-                            writeLfcForUpdateUnit(lfcClient, workerParameters, unitId, diff);
-                        } catch (LogbookClientServerException | LogbookClientNotFoundException |
-                            InvalidParseOperationException | InvalidGuidOperationException e) {
-                            LOGGER.error("Error while updating UNIT LFC ", e);
-                            itemStatus.increment(StatusCode.FATAL);
-                        } catch (LogbookClientBadRequestException e) {
-                            LOGGER.error("Error while updating UNIT LFC ", e);
-                            itemStatus.increment(StatusCode.KO);
-                        }
+                ReportBody<UpdateUnitMetadataReportEntry> reportBody = new ReportBody<>();
+                reportBody.setProcessId(workerParameters.getProcessId());
+                reportBody.setReportType(ReportType.UPDATE_UNIT);
+                reportBody.setEntries(entries);
 
-                        // store unit & LFC
-                        try {
-                            saveUnitWithLfc(mdClient, lfcClient, storageClient, handler, workerParameters, unitId,
-                                unitId + JSON);
-                            itemStatus.increment(OK);
-                        } catch (VitamException e) {
-                            LOGGER.error("Error while storing UNIT with LFC ", e);
+                if (!entries.isEmpty()) {
+                    batchReportClient.appendReportEntries(reportBody);
+                }
 
-                            // update itemStatus
-                            if (e instanceof StorageAlreadyExistsClientException) {
-                                itemStatus.increment(StatusCode.KO);
-                            } else {
-                                itemStatus.increment(StatusCode.FATAL);
-                            }
-
-                            // rollback LFC
-                            try {
-                                lfcClient.rollBackUnitsByOperation(workerParameters.getContainerName());
-                            } catch (LogbookClientNotFoundException | LogbookClientBadRequestException | LogbookClientServerException e1) {
-                                // Unable to rollback LFC => force FATAL
-                                LOGGER.error("Error while storing UNIT with LFC ", e);
-                                itemStatus.increment(StatusCode.FATAL);
-                            }
-                        }
-                    }
-
-                    if (!OK.equals(status)) {
-                        VitamSession vitamSession = VitamThreadUtils.getVitamSession();
-                        UpdateUnitMetadataReportEntry entry = new UpdateUnitMetadataReportEntry(
-                            vitamSession.getTenantId(),
-                            workerParameters.getContainerName(),
-                            unitId,
-                            resultKey,
-                            status,
-                            String.format("%s.%s", MASS_UPDATE_UNITS_RULES, status),
-                            message);
-                        entries.add(entry);
-                    }
-
-                    itemStatuses.add(new ItemStatus(MASS_UPDATE_UNITS_RULES).setItemsStatus(MASS_UPDATE_UNITS_RULES, itemStatus));
-                });
-            } else {
-                throw new ProcessingException("Error when trying to update units.");
+                return itemStatuses;
             }
 
-            // append report data
-            ReportBody<UpdateUnitMetadataReportEntry> reportBody = new ReportBody<>();
-            reportBody.setProcessId(workerParameters.getProcessId());
-            reportBody.setReportType(ReportType.UPDATE_UNIT);
-            reportBody.setEntries(entries);
-            batchReportClient.appendReportEntries(reportBody);
-
-        } catch (InvalidParseOperationException | MetaDataNotFoundException | MetaDataDocumentSizeException |
-            MetaDataClientServerException | MetaDataExecutionException | IllegalStateException | VitamClientException e) {
+            throw new ProcessingException("Error when trying to update units.");
+        } catch (Exception e) {
             throw new ProcessingException(e);
         }
+    }
 
-        return itemStatuses;
+    private ItemStatus postUpdate(WorkerParameters workerParameters, HandlerIO handler, MetaDataClient mdClient,
+        LogbookLifeCyclesClient lfcClient, StorageClient storageClient, List<UpdateUnitMetadataReportEntry> entries,
+        JsonNode result) {
+        String unitId = result.get(ID).asText();
+        String key = result.get(KEY).asText();
+        String statusAsString = result.get(STATUS).asText();
+        StatusCode status = StatusCode.valueOf(statusAsString);
+        String message = result.get(MESSAGE).asText();
+
+        String diff = result.get(DIFF).asText();
+
+        if ((!"null".equals(diff) || !StringUtils.isBlank(diff)) && (status.equals(OK) || status.equals(WARNING))) {
+            try {
+                writeLfcForUpdateUnit(lfcClient, workerParameters, unitId, diff);
+            } catch (LogbookClientServerException | LogbookClientNotFoundException | InvalidParseOperationException | InvalidGuidOperationException e) {
+                return buildItemStatus(MASS_UPDATE_UNITS_RULES, FATAL, EventDetails
+                    .of(String.format("Error '%s' while updating UNIT LFC.", e.getMessage())));
+            } catch (LogbookClientBadRequestException e) {
+                return buildItemStatus(MASS_UPDATE_UNITS_RULES, KO, EventDetails
+                    .of(String.format("Error '%s' while updating UNIT LFC.", e.getMessage())));
+            }
+
+            try {
+                saveUnitWithLfc(mdClient, lfcClient, storageClient, handler, workerParameters, unitId, unitId + JSON);
+            } catch (VitamException e) {
+                // rollback LFC
+                try {
+                    lfcClient.rollBackUnitsByOperation(workerParameters.getContainerName());
+                } catch (LogbookClientNotFoundException | LogbookClientBadRequestException | LogbookClientServerException e1) {
+                    LOGGER.error(String.format("Error while storing UNIT with LFC %s.", e));
+                    return buildItemStatus(MASS_UPDATE_UNITS_RULES, FATAL, EventDetails
+                        .of(String.format("Error while storing UNIT with LFC %s.", e)));
+                }
+            }
+        }
+
+        if (!OK.equals(status)) {
+            VitamSession vitamSession = VitamThreadUtils.getVitamSession();
+            UpdateUnitMetadataReportEntry entry = new UpdateUnitMetadataReportEntry(
+                vitamSession.getTenantId(),
+                workerParameters.getContainerName(),
+                unitId,
+                key,
+                status,
+                String.format("%s.%s", MASS_UPDATE_UNITS_RULES, status),
+                message
+            );
+            entries.add(entry);
+            return buildItemStatus(MASS_UPDATE_UNITS_RULES, KO, EventDetails.of(message));
+        }
+
+        return buildItemStatus(MASS_UPDATE_UNITS_RULES, OK, EventDetails.of("Mass unit rule update OK"));
     }
 
     private Map<String, DurationData> checkAndComputeRuleDurationData(RuleActions ruleActions)
@@ -291,7 +287,8 @@ public class MassUpdateUnitsRulesProcess extends StoreMetadataObjectActionHandle
         return bindRulesToDuration;
     }
 
-    private void computeRuleDurationData(Map.Entry<String, RuleCategoryAction> entry, Map<String, DurationData> bindRuleDuration, Boolean isUpdate) {
+    private void computeRuleDurationData(Map.Entry<String, RuleCategoryAction> entry,
+        Map<String, DurationData> bindRuleDuration, Boolean isUpdate) {
         RuleCategoryAction category = entry.getValue();
 
         for (RuleAction rule : category.getRules()) {
@@ -322,8 +319,10 @@ public class MassUpdateUnitsRulesProcess extends StoreMetadataObjectActionHandle
 
             // save duration and measurement for usage in MongoDbInMemory if needed
             final RuleMeasurementEnum ruleMeasurement = RuleMeasurementEnum.getEnumFromType(measurement);
-            if (bindRuleDuration.get(ruleId) == null && !"unlimited".equalsIgnoreCase(duration) && ruleMeasurement != null) {
-                bindRuleDuration.put(ruleId, new DurationData(Integer.parseInt(duration), (ChronoUnit) ruleMeasurement.getTemporalUnit()));
+            if (bindRuleDuration.get(ruleId) == null && !"unlimited".equalsIgnoreCase(duration) &&
+                ruleMeasurement != null) {
+                bindRuleDuration.put(ruleId,
+                    new DurationData(Integer.parseInt(duration), (ChronoUnit) ruleMeasurement.getTemporalUnit()));
             }
         }
     }
@@ -341,7 +340,8 @@ public class MassUpdateUnitsRulesProcess extends StoreMetadataObjectActionHandle
      * @throws InvalidParseOperationException
      * @throws InvalidGuidOperationException
      */
-    private void writeLfcForUpdateUnit(LogbookLifeCyclesClient lfcClient, WorkerParameters param, String unitId, String diff)
+    private void writeLfcForUpdateUnit(LogbookLifeCyclesClient lfcClient, WorkerParameters param, String unitId,
+        String diff)
         throws LogbookClientNotFoundException, LogbookClientBadRequestException, LogbookClientServerException,
         InvalidParseOperationException, InvalidGuidOperationException {
 

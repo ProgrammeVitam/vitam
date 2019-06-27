@@ -1,0 +1,17 @@
+{
+	"_id": "aefqaaaaaaev4llwabp6walbss2nygaaaaaq",
+	"Name": "ArchivalAgreement0",
+	"Identifier": "ArchivalAgreement0",
+	"Description": "Contrat Vitam 0",
+	"Status": "ACTIVE",
+	"CreationDate": "2016-12-10T00:00:00.000",
+	"LastUpdate": "2018-02-14T14:25:36.273",
+	"ActivationDate": "2016-12-10T00:00:00.000",
+	"DeactivationDate": "2016-12-10T00:00:00.000",
+	"MasterMandatory": true,
+	"EveryDataObjectVersion": false,
+	"FormatUnidentifiedAuthorized": true,
+	"EveryFormatType": false,
+	"_tenant": 0,
+	"_v": 0
+}

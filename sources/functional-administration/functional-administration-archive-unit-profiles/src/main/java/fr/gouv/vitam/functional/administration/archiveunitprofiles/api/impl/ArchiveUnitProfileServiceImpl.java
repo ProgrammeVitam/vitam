@@ -22,9 +22,6 @@ import static fr.gouv.vitam.common.database.builder.query.QueryHelper.eq;
 
 import javax.ws.rs.core.Response;
 import java.io.FileNotFoundException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
@@ -103,7 +100,6 @@ public class ArchiveUnitProfileServiceImpl implements ArchiveUnitProfileService 
 
     private static final String ARCHIVE_UNIT_PROFILE_IS_MANDATORY_PARAMETER =
         "archive unit profiles parameter is mandatory";
-    private static final String ARCHIVE_UNIT_PROFILE_SERVICE_ERROR = "Archive Unit Profile service Error";
     private static final String ARCHIVE_UNIT_PROFILE_NOT_FOUND = "Update a not found archive unit profile";
 
     private static final String ARCHIVE_UNIT_PROFILE_STATUS_MUST_BE_ACTIVE_OR_INACTIVE =
@@ -283,7 +279,7 @@ public class ArchiveUnitProfileServiceImpl implements ArchiveUnitProfileService 
 
                 if (aupm.getControlSchema() != null) {
                     List<String> schemaFields =
-                        new SchemaValidationUtils().extractFieldsFromSchema(aupm.getControlSchema());
+                        SchemaValidationUtils.extractFieldsFromSchema(aupm.getControlSchema());
                     if (checkOntology) {
                         schemaFields.forEach((k) -> {
                             validateFieldInSchemaAgainstOntology(ontologyModelMap, k, error);
@@ -425,7 +421,7 @@ public class ArchiveUnitProfileServiceImpl implements ArchiveUnitProfileService 
                     ObjectNode fieldsObjectNode = JsonHandler.createObjectNode();
                     ArrayNode fieldsNode = JsonHandler.createArrayNode();
                     //Get the list of fields in the json schema
-                    List<String> schemaFields = new SchemaValidationUtils().extractFieldsFromSchema(newSchema);
+                    List<String> schemaFields = SchemaValidationUtils.extractFieldsFromSchema(newSchema);
                     if (checkOntology) {
                         schemaFields.forEach((k) -> {
                             validateFieldInSchemaAgainstOntology(ontologyModelMap, k, error);
@@ -437,7 +433,7 @@ public class ArchiveUnitProfileServiceImpl implements ArchiveUnitProfileService 
                     setFields.set(BuilderToken.UPDATEACTION.SET.exactToken(), fieldsObjectNode);
                     ((ArrayNode) actionNode).add(setFields);
                 }
-            } catch (FileNotFoundException | InvalidParseOperationException | ProcessingException e) {
+            } catch (InvalidParseOperationException e) {
                 LOGGER.error(e);
                 error
                     .addToErrors(new VitamError(VitamCode.ARCHIVE_UNIT_PROFILE_VALIDATION_ERROR.getItem())

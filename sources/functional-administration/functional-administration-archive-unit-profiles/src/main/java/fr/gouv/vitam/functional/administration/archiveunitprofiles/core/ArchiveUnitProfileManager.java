@@ -21,15 +21,15 @@ package fr.gouv.vitam.functional.administration.archiveunitprofiles.core;
 import static com.mongodb.client.model.Filters.and;
 import static com.mongodb.client.model.Filters.eq;
 
-import java.io.FileNotFoundException;
 import java.util.HashMap;
 import java.util.Optional;
 
+import fr.gouv.vitam.common.json.InvalidJsonSchemaException;
+import fr.gouv.vitam.common.json.JsonSchemaValidator;
 import org.bson.conversions.Bson;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import com.github.fge.jsonschema.core.exceptions.ProcessingException;
 
 import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.ParametersChecker;
@@ -40,13 +40,11 @@ import fr.gouv.vitam.common.database.server.mongodb.VitamDocument;
 import fr.gouv.vitam.common.error.VitamCode;
 import fr.gouv.vitam.common.error.VitamError;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
-import fr.gouv.vitam.common.exception.VitamDBException;
 import fr.gouv.vitam.common.exception.VitamException;
 import fr.gouv.vitam.common.guid.GUID;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.i18n.VitamLogbookMessages;
 import fr.gouv.vitam.common.json.JsonHandler;
-import fr.gouv.vitam.common.json.SchemaValidationUtils;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.StatusCode;
@@ -399,9 +397,9 @@ public class ArchiveUnitProfileManager {
         return (profile) -> {
             if (profile.getControlSchema() != null) {
                 try {
-                    new SchemaValidationUtils(profile.getControlSchema(), true);
+                    JsonSchemaValidator.forUserSchema(profile.getControlSchema());
                     return Optional.empty();
-                } catch (ProcessingException | FileNotFoundException | InvalidParseOperationException e) {
+                } catch (InvalidJsonSchemaException e) {
                     return Optional.of(RejectionCause.rejectJsonShema(ArchiveUnitProfile.CONTROLSCHEMA));
                 }
             } else {

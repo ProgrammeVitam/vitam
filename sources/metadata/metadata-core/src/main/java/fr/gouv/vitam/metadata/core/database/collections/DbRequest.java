@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2019)
  * <p>
  * contact.vitam@culture.gouv.fr
@@ -24,15 +24,10 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  */
-/**
- *
- */
 package fr.gouv.vitam.metadata.core.database.collections;
 
-import com.amazonaws.util.CollectionUtils;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import com.github.fge.jsonschema.core.exceptions.ProcessingException;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Stopwatch;
 import com.google.common.collect.Lists;
@@ -44,7 +39,6 @@ import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoCursor;
 import com.mongodb.client.result.DeleteResult;
 import com.mongodb.client.result.UpdateResult;
-import fr.gouv.vitam.common.SedaConstants;
 import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.database.builder.query.Query;
 import fr.gouv.vitam.common.database.builder.query.VitamFieldsHelper;
@@ -73,37 +67,28 @@ import fr.gouv.vitam.common.database.translators.mongodb.QueryToMongodb;
 import fr.gouv.vitam.common.database.translators.mongodb.RequestToMongodb;
 import fr.gouv.vitam.common.database.translators.mongodb.SelectToMongodb;
 import fr.gouv.vitam.common.database.utils.MetadataDocumentHelper;
-import fr.gouv.vitam.common.exception.ArchiveUnitOntologyValidationException;
-import fr.gouv.vitam.common.exception.ArchiveUnitProfileEmptyControlSchemaException;
-import fr.gouv.vitam.common.exception.ArchiveUnitProfileInactiveException;
 import fr.gouv.vitam.common.exception.BadRequestException;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
-import fr.gouv.vitam.common.exception.SchemaValidationException;
 import fr.gouv.vitam.common.exception.VitamDBException;
 import fr.gouv.vitam.common.json.JsonHandler;
-import fr.gouv.vitam.common.json.SchemaValidationStatus;
-import fr.gouv.vitam.common.json.SchemaValidationStatus.SchemaValidationStatusEnum;
-import fr.gouv.vitam.common.json.SchemaValidationUtils;
 import fr.gouv.vitam.common.logging.SysErrLogger;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.DurationData;
-import fr.gouv.vitam.common.model.administration.ArchiveUnitProfileModel;
-import fr.gouv.vitam.common.model.administration.ArchiveUnitProfileStatus;
-import fr.gouv.vitam.common.model.administration.OntologyModel;
 import fr.gouv.vitam.common.model.massupdate.RuleActions;
 import fr.gouv.vitam.common.parameter.ParameterHelper;
 import fr.gouv.vitam.common.performance.PerformanceLogger;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
-import fr.gouv.vitam.functional.administration.client.AdminManagementClientFactory;
 import fr.gouv.vitam.metadata.api.exception.MetaDataAlreadyExistException;
 import fr.gouv.vitam.metadata.api.exception.MetaDataExecutionException;
 import fr.gouv.vitam.metadata.api.exception.MetaDataNotFoundException;
-import fr.gouv.vitam.metadata.core.archiveunitprofile.ArchiveUnitProfileLoader;
 import fr.gouv.vitam.metadata.core.database.configuration.GlobalDatasDb;
 import fr.gouv.vitam.metadata.core.graph.GraphLoader;
 import fr.gouv.vitam.metadata.core.model.UpdatedDocument;
 import fr.gouv.vitam.metadata.core.trigger.FieldHistoryManager;
+import fr.gouv.vitam.metadata.core.validation.MetadataValidationException;
+import fr.gouv.vitam.metadata.core.validation.OntologyValidator;
+import fr.gouv.vitam.metadata.core.validation.UnitValidator;
 import org.apache.commons.lang.StringUtils;
 import org.bson.conversions.Bson;
 import org.elasticsearch.index.query.BoolQueryBuilder;
@@ -112,7 +97,6 @@ import org.elasticsearch.index.query.QueryBuilders;
 import org.elasticsearch.search.aggregations.AggregationBuilder;
 import org.elasticsearch.search.sort.SortBuilder;
 
-import java.io.FileNotFoundException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -155,16 +139,14 @@ public class DbRequest {
 
     private final MongoDbMetadataRepository<Unit> mongoDbUnitRepository;
     private final MongoDbMetadataRepository<ObjectGroup> mongoDbObjectGroupRepository;
-    private final AdminManagementClientFactory adminManagementClientFactory;
     private final FieldHistoryManager fieldHistoryManager;
 
     @VisibleForTesting
     DbRequest(MongoDbMetadataRepository<Unit> mongoDbUnitRepository,
         MongoDbMetadataRepository<ObjectGroup> mongoDbObjectGroupRepository,
-        AdminManagementClientFactory adminManagementClientFactory, FieldHistoryManager fieldHistoryManager) {
+        FieldHistoryManager fieldHistoryManager) {
         this.mongoDbUnitRepository = mongoDbUnitRepository;
         this.mongoDbObjectGroupRepository = mongoDbObjectGroupRepository;
-        this.adminManagementClientFactory = adminManagementClientFactory;
         this.fieldHistoryManager = fieldHistoryManager;
     }
 
@@ -172,33 +154,21 @@ public class DbRequest {
         this(
             new MongoDbMetadataRepository<Unit>(() -> MetadataCollections.UNIT.getCollection()),
             new MongoDbMetadataRepository<ObjectGroup>(() -> MetadataCollections.OBJECTGROUP.getCollection()),
-            AdminManagementClientFactory.getInstance(), new FieldHistoryManager(HISTORY_TRIGGER_NAME));
+            new FieldHistoryManager(HISTORY_TRIGGER_NAME));
     }
 
     /**
      * Execute rule action on unit
-     *  @param documentId the unitId
+     *
+     * @param documentId the unitId
      * @param ruleActions the list of ruleAction (by category)
-     * @param ontologyModels
-     * @param archiveUnitProfileLoader
      */
     public UpdatedDocument execRuleRequest(final String documentId, final RuleActions ruleActions,
-        Map<String, DurationData> bindRuleToDuration, List<OntologyModel> ontologyModels,
-        ArchiveUnitProfileLoader archiveUnitProfileLoader)
-        throws InvalidParseOperationException, MetaDataExecutionException, SchemaValidationException,
-        ArchiveUnitOntologyValidationException, InvalidCreateOperationException, MetaDataNotFoundException,
-        ArchiveUnitProfileInactiveException, ArchiveUnitProfileEmptyControlSchemaException {
+        Map<String, DurationData> bindRuleToDuration, OntologyValidator ontologyValidator, UnitValidator unitValidator)
+        throws InvalidParseOperationException, MetaDataExecutionException, InvalidCreateOperationException,
+        MetaDataNotFoundException, MetadataValidationException {
 
         final Integer tenantId = ParameterHelper.getTenantParameter();
-
-
-        SchemaValidationUtils validator;
-        try {
-            validator = new SchemaValidationUtils();
-        } catch (FileNotFoundException | ProcessingException e) {
-            LOGGER.debug("Unable to initialize Json Validator");
-            throw new MetaDataExecutionException(e);
-        }
 
         int tries = 0;
 
@@ -245,9 +215,12 @@ public class DbRequest {
 
             Unit updatedDocument = new Unit(updatedJsonDocument);
 
-            validateAndUpdateOntology(updatedJsonDocument, validator, ontologyModels);
+            // Ontology checks & format transformation
+            final ObjectNode transformedUpdatedDocument
+                = ontologyValidator.verifyAndReplaceFields(updatedJsonDocument);
 
-            validateArchiveUnitProfile(validator, archiveUnitProfileLoader, updatedJsonDocument);
+            // Unit validation
+            unitValidator.validateUnit(transformedUpdatedDocument);
 
             // Make Update
             final Bson condition;
@@ -263,7 +236,7 @@ public class DbRequest {
                     eq(MetadataDocument.ATOMIC_VERSION, atomicVersion));
             }
 
-            LOGGER.debug("DEBUG update {}", updatedJsonDocument);
+            LOGGER.debug("DEBUG update {}", transformedUpdatedDocument);
             UpdateResult result = collection.replaceOne(condition, updatedDocument);
             if (result.getModifiedCount() == 1) {
                 indexFieldsUpdated(updatedDocument, tenantId);
@@ -275,74 +248,12 @@ public class DbRequest {
         throw new MetaDataExecutionException("Can not modify document " + documentId);
     }
 
-    private void validateArchiveUnitProfile(SchemaValidationUtils validator,
-        ArchiveUnitProfileLoader archiveUnitProfileLoader, ObjectNode updatedJsonDocument)
-        throws ArchiveUnitProfileInactiveException, ArchiveUnitProfileEmptyControlSchemaException,
-        InvalidParseOperationException, MetaDataExecutionException, SchemaValidationException {
-
-        // Internal schema
-        SchemaValidationStatus internalSchemaValidationStatus =
-            validator.validateInsertOrUpdateUnit(updatedJsonDocument.deepCopy());
-
-        if (!SchemaValidationStatusEnum.VALID.equals(internalSchemaValidationStatus.getValidationStatus())) {
-            throw new SchemaValidationException(
-                "Unable to validate updated unit " + internalSchemaValidationStatus.getValidationMessage());
-        }
-
-        // External schema, if any
-        JsonNode archiveUnitProfileNode = updatedJsonDocument.get(SedaConstants.TAG_ARCHIVE_UNIT_PROFILE);
-        if (archiveUnitProfileNode != null) {
-            String aupId = archiveUnitProfileNode.asText();
-            ArchiveUnitProfileModel archiveUnitProfile =
-                archiveUnitProfileLoader.loadArchiveUnitProfile(aupId);
-
-            if (!ArchiveUnitProfileStatus.ACTIVE.equals(archiveUnitProfile.getStatus())) {
-                throw new ArchiveUnitProfileInactiveException("Archive unit profile is inactive");
-            }
-
-            if (isControlSchemaEmpty(archiveUnitProfile)) {
-                throw new ArchiveUnitProfileEmptyControlSchemaException(
-                    "Archive unit profile does not have a controlSchema");
-            }
-
-            try {
-                SchemaValidationUtils externalSchemaValidator =
-                    new SchemaValidationUtils(archiveUnitProfile.getControlSchema(), true);
-
-                SchemaValidationStatus status =
-                    externalSchemaValidator.validateInsertOrUpdateUnit(updatedJsonDocument.deepCopy());
-
-                if (!SchemaValidationStatusEnum.VALID.equals(status.getValidationStatus())) {
-                    throw new SchemaValidationException(
-                        "Unable to validate updated Unit " + status.getValidationMessage());
-                }
-            } catch (FileNotFoundException | ProcessingException e) {
-                LOGGER.debug("Unable to initialize External Json Validator");
-                throw new MetaDataExecutionException(e);
-            }
-        }
-    }
-
-    private static boolean isControlSchemaEmpty(ArchiveUnitProfileModel archiveUnitProfile)
-        throws ArchiveUnitProfileEmptyControlSchemaException {
-
-        try {
-            return archiveUnitProfile.getControlSchema() == null ||
-                JsonHandler.isEmpty(archiveUnitProfile.getControlSchema());
-        } catch (InvalidParseOperationException e) {
-            throw new ArchiveUnitProfileEmptyControlSchemaException(
-                "Archive unit profile controlSchema is invalid");
-        }
-    }
-
     /**
      * The request should be already analyzed.
      *
      * @param requestParser the RequestParserMultiple to execute
-     *
      * @return the Result
-     *
-     * @throws MetaDataExecutionException     when select/update/delete on metadata collection exception occurred
+     * @throws MetaDataExecutionException when select/update/delete on metadata collection exception occurred
      * @throws InvalidParseOperationException when json data exception occurred
      * @throws BadRequestException
      */
@@ -448,14 +359,13 @@ public class DbRequest {
     }
 
     public UpdatedDocument execUpdateRequest(final RequestParserMultiple requestParser, String documentId,
-        List<OntologyModel> ontologyModels, MetadataCollections metadataCollection,
-        ArchiveUnitProfileLoader archiveUnitProfileLoader)
-        throws MetaDataExecutionException, ArchiveUnitOntologyValidationException,
-        InvalidParseOperationException, MetaDataNotFoundException {
+        MetadataCollections metadataCollection, OntologyValidator ontologyValidator, UnitValidator unitValidator)
+        throws MetaDataExecutionException, InvalidParseOperationException, MetaDataNotFoundException,
+        MetadataValidationException {
 
         final UpdatedDocument result =
-            updateDocumentWithRetries(documentId, requestParser, ontologyModels, metadataCollection,
-                archiveUnitProfileLoader);
+            updateDocumentWithRetries(documentId, requestParser, metadataCollection,
+                ontologyValidator, unitValidator);
         if (GlobalDatasDb.PRINT_REQUEST) {
             LOGGER.debug("Results: {}", result);
         }
@@ -466,7 +376,6 @@ public class DbRequest {
      * Check Unit at startup against Roots
      *
      * @param request
-     *
      * @return the valid root ids
      */
     private Result<MetadataDocument<?>> checkUnitStartupRoots(final RequestParserMultiple request) {
@@ -481,7 +390,6 @@ public class DbRequest {
      * Check ObjectGroup at startup against Roots
      *
      * @param request
-     *
      * @return the valid root ids
      */
     private Result<MetadataDocument<?>> checkObjectGroupStartupRoots(final RequestParserMultiple request) {
@@ -493,9 +401,8 @@ public class DbRequest {
     /**
      * Check Unit parents against Roots
      *
-     * @param current         set of result id
+     * @param current set of result id
      * @param defaultStartSet
-     *
      * @return the valid root ids set
      */
     private Set<String> checkUnitAgainstRoots(final Set<String> current,
@@ -525,11 +432,9 @@ public class DbRequest {
      * Execute one request
      *
      * @param requestToMongodb
-     * @param rank             current rank query
-     * @param previous         previous Result from previous level (except in level == 0 where it is the subset of valid roots)
-     *
+     * @param rank current rank query
+     * @param previous previous Result from previous level (except in level == 0 where it is the subset of valid roots)
      * @return the new Result from this request
-     *
      * @throws MetaDataExecutionException
      * @throws InvalidParseOperationException
      * @throws BadRequestException
@@ -635,9 +540,7 @@ public class DbRequest {
      * @param offset
      * @param limit
      * @param facets
-     *
      * @return the associated Result
-     *
      * @throws InvalidParseOperationException
      * @throws MetaDataExecutionException
      * @throws BadRequestException
@@ -685,9 +588,7 @@ public class DbRequest {
      * @param offset
      * @param limit
      * @param facets
-     *
      * @return the associated Result
-     *
      * @throws InvalidParseOperationException
      * @throws MetaDataExecutionException
      * @throws BadRequestException
@@ -747,7 +648,6 @@ public class DbRequest {
      *
      * @param ids
      * @param relativeDepth
-     *
      * @return the aggregate set of multi level parents for this relativeDepth
      */
     protected Set<String> aggregateUnitDepths(Collection<String> ids, int relativeDepth) {
@@ -796,9 +696,7 @@ public class DbRequest {
      * @param offset
      * @param limit
      * @param facets
-     *
      * @return the associated Result
-     *
      * @throws InvalidParseOperationException
      * @throws MetaDataExecutionException
      * @throws BadRequestException
@@ -832,14 +730,12 @@ public class DbRequest {
      * Execute one relative Depth ObjectGroup Query
      *
      * @param realQuery
-     * @param previous  units, Note: only immediate Unit parents are allowed
+     * @param previous units, Note: only immediate Unit parents are allowed
      * @param tenantId
      * @param sorts
      * @param offset
      * @param limit
-     *
      * @return the associated Result
-     *
      * @throws InvalidParseOperationException
      * @throws MetaDataExecutionException
      * @throws BadRequestException
@@ -878,9 +774,7 @@ public class DbRequest {
      *
      * @param requestToMongodb
      * @param last
-     *
      * @return the final Result
-     *
      * @throws InvalidParseOperationException
      */
     protected Result<MetadataDocument<?>> lastSelectFilterProjection(SelectToMongodb requestToMongodb,
@@ -1001,18 +895,10 @@ public class DbRequest {
     }
 
     private UpdatedDocument updateDocumentWithRetries(String documentId,
-        RequestParserMultiple requestParser, List<OntologyModel> ontologyModels, MetadataCollections metadataCollection,
-        ArchiveUnitProfileLoader archiveUnitProfileLoader)
-        throws InvalidParseOperationException, MetaDataExecutionException, ArchiveUnitOntologyValidationException,
-        MetaDataNotFoundException {
+        RequestParserMultiple requestParser, MetadataCollections metadataCollection,
+        OntologyValidator ontologyValidator, UnitValidator unitValidator) throws InvalidParseOperationException, MetaDataExecutionException,
+        MetaDataNotFoundException, MetadataValidationException {
         final Integer tenantId = ParameterHelper.getTenantParameter();
-
-        SchemaValidationUtils validator;
-        try {
-            validator = new SchemaValidationUtils();
-        } catch (FileNotFoundException | ProcessingException e) {
-            throw new MetaDataExecutionException("Unable to initialize Json Validator", e);
-        }
 
         int tries = 0;
         while (tries < 3) {
@@ -1046,17 +932,13 @@ public class DbRequest {
             int newAtomicVersion = atomicVersion == null ? newDocumentVersion : atomicVersion + 1;
             updatedJsonDocument.put(MetadataDocument.ATOMIC_VERSION, newAtomicVersion);
 
+            // Ontology checks & format transformation
+            final ObjectNode transformedUpdatedDocument =
+                ontologyValidator.verifyAndReplaceFields(updatedJsonDocument);
+
             if (metadataCollection == MetadataCollections.UNIT) {
-
-                validateAndUpdateOntology(updatedJsonDocument, validator, ontologyModels);
-
-                try {
-
-                    validateArchiveUnitProfile(validator, archiveUnitProfileLoader, updatedJsonDocument);
-
-                } catch (SchemaValidationException | ArchiveUnitProfileEmptyControlSchemaException | ArchiveUnitProfileInactiveException e) {
-                    throw new MetaDataExecutionException("Unable to validate updated Unit " + documentId, e);
-                }
+                // Unit validation
+                unitValidator.validateUnit(transformedUpdatedDocument);
             }
 
             // Make Update
@@ -1068,8 +950,8 @@ public class DbRequest {
                 condition = and(eq(MetadataDocument.ID, documentId),
                     eq(MetadataDocument.ATOMIC_VERSION, atomicVersion));
             }
-            LOGGER.debug("DEBUG update {}", updatedJsonDocument);
-            MetadataDocument<?> finalDocument = (MetadataDocument<?>) document.newInstance(updatedJsonDocument);
+            LOGGER.debug("DEBUG update {}", transformedUpdatedDocument);
+            MetadataDocument<?> finalDocument = (MetadataDocument<?>) document.newInstance(transformedUpdatedDocument);
 
             UpdateResult result = collection.replaceOne(condition, finalDocument);
             if (result.getModifiedCount() == 1) {
@@ -1080,7 +962,7 @@ public class DbRequest {
                     indexFieldsOGUpdated(finalDocument, tenantId);
                 }
 
-                return new UpdatedDocument(documentId, jsonDocument, updatedJsonDocument);
+                return new UpdatedDocument(documentId, jsonDocument, transformedUpdatedDocument);
 
             }
             tries++;
@@ -1107,31 +989,6 @@ public class DbRequest {
             return documentVersion;
         } else {
             return documentVersion + 1;
-        }
-    }
-
-    private void validateAndUpdateOntology(ObjectNode updatedJsonDocument,
-        SchemaValidationUtils validator, List<OntologyModel> ontologyModels)
-        throws ArchiveUnitOntologyValidationException {
-
-        if (ontologyModels.isEmpty())
-            return;
-
-        Map<String, OntologyModel> ontologiesByIdentifier;
-
-        ontologiesByIdentifier =
-            ontologyModels.stream().collect(Collectors.toMap(OntologyModel::getIdentifier, oM -> oM));
-
-        List<String> errors = new ArrayList<>();
-        // that means a transformation could be done so we need to process the full json
-        validator.verifyAndReplaceFields(updatedJsonDocument, ontologiesByIdentifier, errors);
-
-        if (!errors.isEmpty()) {
-            // archive unit could not be transformed, so the error would be thrown later by the schema
-            // validation verification
-            String error = "Archive unit contains fields declared in ontology with a wrong format : " +
-                CollectionUtils.join(errors, ",");
-            throw new ArchiveUnitOntologyValidationException(error);
         }
     }
 
@@ -1164,7 +1021,6 @@ public class DbRequest {
      * removeOGIndexFields : remove index related to Fields deleted
      *
      * @param last : contains the Result to be removed
-     *
      * @throws Exception
      */
     private void removeOGIndexFields(Result<MetadataDocument<?>> last) throws Exception {
@@ -1181,7 +1037,6 @@ public class DbRequest {
      * removeUnitIndexFields : remove index related to Fields deleted
      *
      * @param last : contains the Result to be removed
-     *
      * @throws Exception
      */
     private void removeUnitIndexFields(Result<MetadataDocument<?>> last) throws Exception {
@@ -1198,11 +1053,10 @@ public class DbRequest {
      * Inserts a unit
      *
      * @param requestParser the InsertParserMultiple to execute
-     *
-     * @throws MetaDataExecutionException     when insert on metadata collection exception occurred
+     * @throws MetaDataExecutionException when insert on metadata collection exception occurred
      * @throws InvalidParseOperationException when json data exception occurred
-     * @throws MetaDataAlreadyExistException  when insert metadata exception
-     * @throws MetaDataNotFoundException      when metadata not found exception
+     * @throws MetaDataAlreadyExistException when insert metadata exception
+     * @throws MetaDataNotFoundException when metadata not found exception
      */
     public void execInsertUnitRequest(InsertParserMultiple requestParser)
         throws MetaDataExecutionException, MetaDataNotFoundException, InvalidParseOperationException,
@@ -1216,10 +1070,9 @@ public class DbRequest {
      * Inserts an object group
      *
      * @param requestParsers the list of InsertParserMultiple to execute
-     *
-     * @throws MetaDataExecutionException     when insert on metadata collection exception occurred
+     * @throws MetaDataExecutionException when insert on metadata collection exception occurred
      * @throws InvalidParseOperationException when json data exception occurred
-     * @throws MetaDataAlreadyExistException  when insert metadata exception
+     * @throws MetaDataAlreadyExistException when insert metadata exception
      */
     public void execInsertObjectGroupRequests(List<InsertParserMultiple> requestParsers)
         throws MetaDataExecutionException, InvalidParseOperationException, MetaDataAlreadyExistException {
@@ -1270,15 +1123,13 @@ public class DbRequest {
      *
      * @param requestToMongodb
      * @param last
-     *
      * @return the final Result
-     *
      * @throws InvalidParseOperationException
      * @throws MetaDataExecutionException
      */
     protected Result<MetadataDocument<?>> lastDeleteFilterProjection(DeleteToMongodb requestToMongodb,
         Result<MetadataDocument<?>> last)
-        throws InvalidParseOperationException, MetaDataExecutionException {
+        throws MetaDataExecutionException {
         final Bson roots = QueryToMongodb.getRoots(MetadataDocument.ID, last.getCurrentIds());
         if (LOGGER.isDebugEnabled()) {
             LOGGER.debug("To Delete: " + MongoDbHelper.bsonToString(roots, false));
@@ -1320,11 +1171,10 @@ public class DbRequest {
      * Inserts a unit
      *
      * @param requestParsers list of InsertParserMultiple to execute
-     *
-     * @throws MetaDataExecutionException     when insert on metadata collection exception occurred
+     * @throws MetaDataExecutionException when insert on metadata collection exception occurred
      * @throws InvalidParseOperationException when json data exception occurred
-     * @throws MetaDataAlreadyExistException  when insert metadata exception
-     * @throws MetaDataNotFoundException      when metadata not found exception
+     * @throws MetaDataAlreadyExistException when insert metadata exception
+     * @throws MetaDataNotFoundException when metadata not found exception
      */
     public void execInsertUnitRequests(Collection<InsertParserMultiple> requestParsers)
         throws MetaDataExecutionException, MetaDataNotFoundException, InvalidParseOperationException,

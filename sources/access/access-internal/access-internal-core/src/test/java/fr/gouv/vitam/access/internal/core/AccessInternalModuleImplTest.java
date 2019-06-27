@@ -1266,21 +1266,6 @@ public class AccessInternalModuleImplTest {
     }
 
     @Test
-    public void should_throw_error_when_malformated_set_request() throws Exception {
-        // Given
-        UpdateParserMultiple parser = new UpdateParserMultiple();
-        String updateFinalAction =
-            "{\"$roots\":[\"aeaqaaaaaaftu7s5aakq6alerwedliqaaabq\"],\"$query\":[],\"$filter\":{},\"$action\":[{\"$set\":{\"#management.StorageRule.Rules.Rule\":\"R2\"}}]}";
-        parser.parse(fromStringToJson(updateFinalAction));
-
-        // When
-        ThrowingCallable checkAndUpdate = () -> accessModuleImpl.checkAndUpdateRuleQuery(parser);
-
-        // Then
-        assertThatThrownBy(checkAndUpdate).isInstanceOf(AccessInternalRuleExecutionException.class);
-    }
-
-    @Test
     public void givenCorrectDslWhenSelectObjectsThenOK()
         throws Exception {
         when(metaDataClient.selectObjectGroups(any())).thenReturn(JsonHandler.createObjectNode());

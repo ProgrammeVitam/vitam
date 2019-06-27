@@ -26,12 +26,12 @@
  *******************************************************************************/
 package fr.gouv.vitam.metadata.api.config;
 
-import java.util.List;
-
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.database.server.elasticsearch.ElasticsearchNode;
 import fr.gouv.vitam.common.server.application.configuration.DbConfigurationImpl;
 import fr.gouv.vitam.common.server.application.configuration.MongoDbNode;
+
+import java.util.List;
 
 /**
  * MetaDataConfiguration contains database access informations
@@ -41,17 +41,22 @@ public class MetaDataConfiguration extends DbConfigurationImpl {
     private String workspaceUrl;
     private String clusterName;
     private List<ElasticsearchNode> elasticsearchNodes;
+
     private int ontologyCacheMaxEntries = 100;
     private int ontologyCacheTimeoutInSeconds = 300;
+
     private int archiveUnitProfileCacheMaxEntries = 100;
     private int archiveUnitProfileCacheTimeoutInSeconds = 300;
+
+    private int schemaValidatorCacheMaxEntries = 100;
+    private int schemaValidatorCacheTimeoutInSeconds = 300;
 
     /**
      * MetaDataConfiguration constructor
      *
-     * @param mongoDbNodes       database server IP addresses and ports
-     * @param dbName             database name
-     * @param clusterName        cluster name
+     * @param mongoDbNodes database server IP addresses and ports
+     * @param dbName database name
+     * @param clusterName cluster name
      * @param elasticsearchNodes elasticsearch nodes
      */
     public MetaDataConfiguration(List<MongoDbNode> mongoDbNodes, String dbName, String clusterName,
@@ -66,13 +71,13 @@ public class MetaDataConfiguration extends DbConfigurationImpl {
     /**
      * MetaDataConfiguration constructor with authentication
      *
-     * @param mongoDbNodes       database server IP addresses and ports
-     * @param dbName             database name
-     * @param clusterName        cluster name
+     * @param mongoDbNodes database server IP addresses and ports
+     * @param dbName database name
+     * @param clusterName cluster name
      * @param elasticsearchNodes elasticsearch nodes
-     * @param dbAuthentication   if authentication mode
-     * @param dbUserName         db user name
-     * @param dbPassword         db password
+     * @param dbAuthentication if authentication mode
+     * @param dbUserName db user name
+     * @param dbPassword db password
      */
     public MetaDataConfiguration(List<MongoDbNode> mongoDbNodes, String dbName, String clusterName,
         List<ElasticsearchNode> elasticsearchNodes, boolean dbAuthentication, String dbUserName, String dbPassword) {
@@ -164,6 +169,24 @@ public class MetaDataConfiguration extends DbConfigurationImpl {
     public MetaDataConfiguration setArchiveUnitProfileCacheTimeoutInSeconds(
         int archiveUnitProfileCacheTimeoutInSeconds) {
         this.archiveUnitProfileCacheTimeoutInSeconds = archiveUnitProfileCacheTimeoutInSeconds;
+        return this;
+    }
+
+    public int getSchemaValidatorCacheMaxEntries() {
+        return schemaValidatorCacheMaxEntries;
+    }
+
+    public MetaDataConfiguration setSchemaValidatorCacheMaxEntries(int schemaValidatorCacheMaxEntries) {
+        this.schemaValidatorCacheMaxEntries = schemaValidatorCacheMaxEntries;
+        return this;
+    }
+
+    public int getSchemaValidatorCacheTimeoutInSeconds() {
+        return schemaValidatorCacheTimeoutInSeconds;
+    }
+
+    public MetaDataConfiguration setSchemaValidatorCacheTimeoutInSeconds(int schemaValidatorCacheTimeoutInSeconds) {
+        this.schemaValidatorCacheTimeoutInSeconds = schemaValidatorCacheTimeoutInSeconds;
         return this;
     }
 }

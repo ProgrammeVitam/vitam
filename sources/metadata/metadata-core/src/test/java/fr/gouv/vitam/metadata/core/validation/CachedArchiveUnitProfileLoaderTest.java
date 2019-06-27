@@ -1,4 +1,4 @@
-package fr.gouv.vitam.metadata.core.archiveunitprofile;
+package fr.gouv.vitam.metadata.core.validation;
 
 import fr.gouv.vitam.common.guid.GUID;
 import fr.gouv.vitam.common.guid.GUIDFactory;
@@ -17,6 +17,7 @@ import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnit;
 import org.mockito.junit.MockitoRule;
 
+import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -25,7 +26,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
-public class ArchiveUnitProfileLoaderTest {
+public class CachedArchiveUnitProfileLoaderTest {
 
     @Rule
     public MockitoRule mockitoRule = MockitoJUnit.rule();
@@ -59,12 +60,12 @@ public class ArchiveUnitProfileLoaderTest {
             .when(adminManagementClient).findArchiveUnitProfilesByID("MyAUP");
 
         // When
-        ArchiveUnitProfileLoader archiveUnitProfileLoader =
-            new ArchiveUnitProfileLoader(adminManagementClientFactory, 10, 60);
-        ArchiveUnitProfileModel result = archiveUnitProfileLoader.loadArchiveUnitProfile("MyAUP");
+        CachedArchiveUnitProfileLoader archiveUnitProfileLoader =
+            new CachedArchiveUnitProfileLoader(adminManagementClientFactory, 10, 60);
+        Optional<ArchiveUnitProfileModel> result = archiveUnitProfileLoader.loadArchiveUnitProfile("MyAUP");
 
         // Then
-        assertThat(result).isEqualTo(archiveUnitProfileModel);
+        assertThat(result.get()).isEqualTo(archiveUnitProfileModel);
         verify(adminManagementClient, times(1)).findArchiveUnitProfilesByID("MyAUP");
     }
 
@@ -85,19 +86,19 @@ public class ArchiveUnitProfileLoaderTest {
             .when(adminManagementClient).findArchiveUnitProfilesByID("MyAUP2");
 
         // When
-        ArchiveUnitProfileLoader archiveUnitProfileLoader =
-            new ArchiveUnitProfileLoader(adminManagementClientFactory, 10, 60);
+        CachedArchiveUnitProfileLoader archiveUnitProfileLoader =
+            new CachedArchiveUnitProfileLoader(adminManagementClientFactory, 10, 60);
 
-        ArchiveUnitProfileModel result1 = null;
-        ArchiveUnitProfileModel result2 = null;
+        Optional<ArchiveUnitProfileModel> result1 = null;
+        Optional<ArchiveUnitProfileModel> result2 = null;
         for (int i = 0; i < 10; i++) {
             result1 = archiveUnitProfileLoader.loadArchiveUnitProfile("MyAUP1");
             result2 = archiveUnitProfileLoader.loadArchiveUnitProfile("MyAUP2");
         }
 
         // Then
-        assertThat(result1).isEqualTo(archiveUnitProfileModel1);
-        assertThat(result2).isEqualTo(archiveUnitProfileModel2);
+        assertThat(result1.get()).isEqualTo(archiveUnitProfileModel1);
+        assertThat(result2.get()).isEqualTo(archiveUnitProfileModel2);
         verify(adminManagementClient, times(1)).findArchiveUnitProfilesByID("MyAUP1");
         verify(adminManagementClient, times(1)).findArchiveUnitProfilesByID("MyAUP2");
     }
@@ -116,14 +117,14 @@ public class ArchiveUnitProfileLoaderTest {
             .when(adminManagementClient).findArchiveUnitProfilesByID("MyAUP");
 
         // When
-        ArchiveUnitProfileLoader archiveUnitProfileLoader =
-            new ArchiveUnitProfileLoader(adminManagementClientFactory, 10, 1);
+        CachedArchiveUnitProfileLoader archiveUnitProfileLoader =
+            new CachedArchiveUnitProfileLoader(adminManagementClientFactory, 10, 1);
         archiveUnitProfileLoader.loadArchiveUnitProfile("MyAUP");
         TimeUnit.SECONDS.sleep(2);
-        ArchiveUnitProfileModel result = archiveUnitProfileLoader.loadArchiveUnitProfile("MyAUP");
+        Optional<ArchiveUnitProfileModel> result = archiveUnitProfileLoader.loadArchiveUnitProfile("MyAUP");
 
         // Then
-        assertThat(result).isEqualTo(archiveUnitProfileModel);
+        assertThat(result.get()).isEqualTo(archiveUnitProfileModel);
         verify(adminManagementClient, times(2)).findArchiveUnitProfilesByID("MyAUP");
     }
 }
