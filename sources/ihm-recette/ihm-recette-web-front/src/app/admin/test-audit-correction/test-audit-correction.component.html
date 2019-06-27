@@ -15,6 +15,14 @@
             </div>
         </div>
 
+        <div class="ui-g-12">
+          <div class="ui-g-4">Contrat: </div>
+          <div class="ui-g-4">
+            <p-dropdown id="contract" [options]="contractsList" [(ngModel)]="selectedContract"
+                        placeholder="Sélectionner un contrat"></p-dropdown>
+          </div>
+        </div>
+
         <div class="ui-g-12" *ngIf="error" (click)="error = false">Un des champs est mal renseigné</div>
 
         <div class="ui-g-12">
