@@ -128,6 +128,7 @@ import static fr.gouv.vitam.common.auth.web.filter.CertUtils.REQUEST_PERSONAL_CE
 @Path("/v1/api")
 public class WebApplicationResource extends ApplicationStatusResource {
 
+    public static final String DEFAULT_CONTRACT_NAME = "default_contract";
     private static final String RESULTS_FIELD = "$results";
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(WebApplicationResource.class);
     /**
@@ -142,12 +143,8 @@ public class WebApplicationResource extends ApplicationStatusResource {
     private static final String ACCESS_CLIENT_NOT_FOUND_EXCEPTION_MSG = "Access client unavailable";
     private static final String ACCESS_SERVER_EXCEPTION_MSG = "Access Server exception";
     private static final String REQUEST_METHOD_UNDEFINED = "Request method undefined for collection";
-
-
     // TODO FIX_TENANT_ID (LFET FOR ONLY stat API)
     private static final Integer TENANT_ID = 0;
-    public static final String DEFAULT_CONTRACT_NAME = "default_contract";
-
     private static final String X_REQUESTED_COLLECTION = "X-Requested-Collection";
     private static final String X_OBJECT_ID = "X-Object-Id";
     private static final String X_REQUEST_ID = "X-Request-Id";
@@ -268,12 +265,12 @@ public class WebApplicationResource extends ApplicationStatusResource {
     @Produces(MediaType.APPLICATION_JSON)
     @Deprecated
     public Response launchAudit(@HeaderParam(GlobalDataRest.X_TENANT_ID) String xTenantId,
+        @HeaderParam(GlobalDataRest.X_ACCESS_CONTRAT_ID) String xAccessContratId,
         @PathParam("operationId") String operationId) {
-        VitamThreadUtils.getVitamSession().setTenantId(Integer.parseInt(xTenantId));
 
         try (AdminExternalClient client = AdminExternalClientFactory.getInstance().getClient()) {
-            VitamContext context = new VitamContext(TENANT_ID);
-            context.setAccessContract(DEFAULT_CONTRACT_NAME).setApplicationSessionId(getAppSessionId());
+            VitamContext context = new VitamContext(Integer.parseInt(xTenantId));
+            context.setAccessContract(xAccessContratId).setApplicationSessionId(getAppSessionId());
 
             RequestResponse requestResponse = client.rectificationAudit(context, operationId);
 
