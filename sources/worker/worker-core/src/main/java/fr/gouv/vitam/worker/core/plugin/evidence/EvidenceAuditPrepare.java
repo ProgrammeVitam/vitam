@@ -30,6 +30,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.annotations.VisibleForTesting;
 
+import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.accesslog.AccessLogUtils;
 import fr.gouv.vitam.common.database.builder.query.VitamFieldsHelper;
 import fr.gouv.vitam.common.database.builder.request.multiple.SelectMultiQuery;
@@ -77,7 +78,6 @@ public class EvidenceAuditPrepare extends ActionHandler {
 
     private static final String EVIDENCE_AUDIT_LIST_OBJECT = "EVIDENCE_AUDIT_LIST_OBJECT";
     private static final String FIELDS_KEY = "$fields";
-    private static final String STRATEGY_ID = "default";
     private static final String OPERATION = "operation";
     private static final String METADA_TYPE = "metadaType";
     private static final String OBJECT = "#object";
@@ -116,7 +116,7 @@ public class EvidenceAuditPrepare extends ActionHandler {
         Response response = null;
         try (StorageClient client = storageClientFactory.getClient()) {
             String name = operationId + ".json";
-            response = client.getContainerAsync(STRATEGY_ID, name, DataCategory.REPORT, AccessLogUtils.getNoLogAccessLog());
+            response = client.getContainerAsync(VitamConfiguration.getDefaultStrategy(), name, DataCategory.REPORT, AccessLogUtils.getNoLogAccessLog());
             inputStream = (InputStream) response.getEntity();
 
             BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream));

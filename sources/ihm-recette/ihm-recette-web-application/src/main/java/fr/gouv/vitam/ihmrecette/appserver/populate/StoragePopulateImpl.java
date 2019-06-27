@@ -400,7 +400,7 @@ public class StoragePopulateImpl implements VitamAutoCloseable {
 
     public static int getNbc() {
         try {
-            return STRATEGY_PROVIDER.getStorageStrategy("default").getCopy();
+            return STRATEGY_PROVIDER.getStorageStrategy(VitamConfiguration.getDefaultStrategy()).getCopy();
         } catch (StorageTechnicalException e) {
             LOGGER.error(e);
             return 0;
@@ -410,7 +410,7 @@ public class StoragePopulateImpl implements VitamAutoCloseable {
     public static List<String> getOfferIds() {
         try {
             List<OfferReference> offerReferences =
-                STRATEGY_PROVIDER.getStorageStrategy("default").getOffers();
+                STRATEGY_PROVIDER.getStorageStrategy(VitamConfiguration.getDefaultStrategy()).getOffers();
             return offerReferences.stream().map(offer -> offer.getId()).collect(Collectors.toList());
         } catch (StorageTechnicalException e) {
             LOGGER.error(e);

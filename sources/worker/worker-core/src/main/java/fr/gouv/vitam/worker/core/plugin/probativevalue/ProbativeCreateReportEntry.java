@@ -635,7 +635,7 @@ public class ProbativeCreateReportEntry extends ActionHandler {
                 return operationTraceabilityFilesFromWorkspace;
             }
 
-            response = storageClient.getContainerAsync("default", traceabilityEvent.getFileName(), LOGBOOK, AccessLogUtils.getNoLogAccessLog());
+            response = storageClient.getContainerAsync(VitamConfiguration.getDefaultStrategy(), traceabilityEvent.getFileName(), LOGBOOK, AccessLogUtils.getNoLogAccessLog());
             return Optional.of(extractZipFiles(response, handlerIO, objectGroupId, evType));
         } catch (Exception e) {
             LOGGER.error(e);
@@ -776,7 +776,7 @@ public class ProbativeCreateReportEntry extends ActionHandler {
 
     private List<String> getOfferDigests(StorageClient storageClient, DbVersionsModel dbVersionsModel) throws StorageNotFoundClientException, StorageServerClientException {
         List<String> offerIds = dbVersionsModel.getStorage().getOfferIds();
-        JsonNode information = storageClient.getInformation("default", OBJECT, dbVersionsModel.getId(), offerIds, true);
+        JsonNode information = storageClient.getInformation(VitamConfiguration.getDefaultStrategy(), OBJECT, dbVersionsModel.getId(), offerIds, true);
         return offerIds.stream()
             .map(information::get)
             .filter(Objects::nonNull)

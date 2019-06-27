@@ -1,5 +1,6 @@
 package fr.gouv.vitam.storage.engine.server.offersynchronization;
 
+import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
@@ -35,7 +36,6 @@ public class OfferSyncServiceTest {
     private static final String TARGET = "target";
     private static final DataCategory DATA_CATEGORY = DataCategory.UNIT;
     private static final int TENANT_ID = 2;
-    private static final String DEFAULT_STRATEGY = "default";
     private static final Long OFFSET = null;
 
     @Rule
@@ -65,10 +65,10 @@ public class OfferSyncServiceTest {
         when(instance.createOfferSyncProcess()).thenReturn(offerSyncProcess);
 
         // When
-        boolean result = instance.startSynchronization(SOURCE, TARGET, DEFAULT_STRATEGY, DATA_CATEGORY, OFFSET);
+        boolean result = instance.startSynchronization(SOURCE, TARGET, VitamConfiguration.getDefaultStrategy(), DATA_CATEGORY, OFFSET);
 
         // Then
-        verify(instance).runSynchronizationAsync(SOURCE, TARGET, DEFAULT_STRATEGY, DATA_CATEGORY, OFFSET, offerSyncProcess);
+        verify(instance).runSynchronizationAsync(SOURCE, TARGET, VitamConfiguration.getDefaultStrategy(), DATA_CATEGORY, OFFSET, offerSyncProcess);
         assertThat(result).isTrue();
     }
 
@@ -86,13 +86,13 @@ public class OfferSyncServiceTest {
         when(instance.createOfferSyncProcess()).thenReturn(offerSyncProcess1, offerSyncProcess2);
 
         // When
-        boolean result1 = instance.startSynchronization(SOURCE, TARGET, DEFAULT_STRATEGY, DATA_CATEGORY, OFFSET);
-        boolean result2 = instance.startSynchronization(SOURCE, TARGET, DEFAULT_STRATEGY, DATA_CATEGORY, OFFSET);
+        boolean result1 = instance.startSynchronization(SOURCE, TARGET, VitamConfiguration.getDefaultStrategy(), DATA_CATEGORY, OFFSET);
+        boolean result2 = instance.startSynchronization(SOURCE, TARGET, VitamConfiguration.getDefaultStrategy(), DATA_CATEGORY, OFFSET);
 
         // Then
-        verify(instance).runSynchronizationAsync(SOURCE, TARGET, DEFAULT_STRATEGY, DATA_CATEGORY, OFFSET, offerSyncProcess1);
+        verify(instance).runSynchronizationAsync(SOURCE, TARGET, VitamConfiguration.getDefaultStrategy(), DATA_CATEGORY, OFFSET, offerSyncProcess1);
         verify(instance, never())
-            .runSynchronizationAsync(SOURCE, TARGET, DEFAULT_STRATEGY, DATA_CATEGORY, OFFSET, offerSyncProcess2);
+            .runSynchronizationAsync(SOURCE, TARGET, VitamConfiguration.getDefaultStrategy(), DATA_CATEGORY, OFFSET, offerSyncProcess2);
         assertThat(result1).isTrue();
         assertThat(result2).isFalse();
     }
@@ -111,12 +111,12 @@ public class OfferSyncServiceTest {
         when(instance.createOfferSyncProcess()).thenReturn(offerSyncProcess1, offerSyncProcess2);
 
         // When
-        boolean result1 = instance.startSynchronization(SOURCE, TARGET, DEFAULT_STRATEGY, DATA_CATEGORY, OFFSET);
-        boolean result2 = instance.startSynchronization(SOURCE, TARGET, DEFAULT_STRATEGY, DATA_CATEGORY, OFFSET);
+        boolean result1 = instance.startSynchronization(SOURCE, TARGET, VitamConfiguration.getDefaultStrategy(), DATA_CATEGORY, OFFSET);
+        boolean result2 = instance.startSynchronization(SOURCE, TARGET, VitamConfiguration.getDefaultStrategy(), DATA_CATEGORY, OFFSET);
 
         // Then
-        verify(instance).runSynchronizationAsync(SOURCE, TARGET, DEFAULT_STRATEGY, DATA_CATEGORY, OFFSET, offerSyncProcess1);
-        verify(instance).runSynchronizationAsync(SOURCE, TARGET, DEFAULT_STRATEGY, DATA_CATEGORY, OFFSET, offerSyncProcess2);
+        verify(instance).runSynchronizationAsync(SOURCE, TARGET, VitamConfiguration.getDefaultStrategy(), DATA_CATEGORY, OFFSET, offerSyncProcess1);
+        verify(instance).runSynchronizationAsync(SOURCE, TARGET, VitamConfiguration.getDefaultStrategy(), DATA_CATEGORY, OFFSET, offerSyncProcess2);
         assertThat(result1).isTrue();
         assertThat(result2).isTrue();
     }
@@ -148,7 +148,7 @@ public class OfferSyncServiceTest {
         when(instance.createOfferSyncProcess()).thenReturn(offerSyncProcess);
 
         // When
-        boolean processStarted = instance.startSynchronization(SOURCE, TARGET, DEFAULT_STRATEGY, DATA_CATEGORY, OFFSET);
+        boolean processStarted = instance.startSynchronization(SOURCE, TARGET, VitamConfiguration.getDefaultStrategy(), DATA_CATEGORY, OFFSET);
         boolean isRunning = instance.isRunning();
 
         // Then
@@ -169,7 +169,7 @@ public class OfferSyncServiceTest {
         when(instance.createOfferSyncProcess()).thenReturn(offerSyncProcess);
 
         // When
-        boolean processStarted = instance.startSynchronization(SOURCE, TARGET, DEFAULT_STRATEGY, DATA_CATEGORY, OFFSET);
+        boolean processStarted = instance.startSynchronization(SOURCE, TARGET, VitamConfiguration.getDefaultStrategy(), DATA_CATEGORY, OFFSET);
         boolean isRunning = instance.isRunning();
 
         // Then
@@ -207,7 +207,7 @@ public class OfferSyncServiceTest {
         when(instance.createOfferSyncProcess()).thenReturn(offerSyncProcess);
 
         // When
-        boolean processStarted = instance.startSynchronization(SOURCE, TARGET, DEFAULT_STRATEGY, DATA_CATEGORY, OFFSET);
+        boolean processStarted = instance.startSynchronization(SOURCE, TARGET, VitamConfiguration.getDefaultStrategy(), DATA_CATEGORY, OFFSET);
         OfferSyncStatus status = instance.getLastSynchronizationStatus();
 
         // Then
@@ -231,7 +231,7 @@ public class OfferSyncServiceTest {
         when(instance.createOfferSyncProcess()).thenReturn(offerSyncProcess);
 
         // When
-        boolean processStarted = instance.startSynchronization(SOURCE, TARGET, DEFAULT_STRATEGY, DATA_CATEGORY, OFFSET);
+        boolean processStarted = instance.startSynchronization(SOURCE, TARGET, VitamConfiguration.getDefaultStrategy(), DATA_CATEGORY, OFFSET);
         OfferSyncStatus status = instance.getLastSynchronizationStatus();
 
         // Then
@@ -254,10 +254,10 @@ public class OfferSyncServiceTest {
         OfferSyncService instance = new OfferSyncService(restoreOfferBackupService, distribution, 1000, 16);
 
         // When
-        instance.runSynchronizationAsync(SOURCE, TARGET, DEFAULT_STRATEGY, DATA_CATEGORY, OFFSET, offerSyncProcess);
+        instance.runSynchronizationAsync(SOURCE, TARGET, VitamConfiguration.getDefaultStrategy(), DATA_CATEGORY, OFFSET, offerSyncProcess);
         countDownLatch.await(1, TimeUnit.MINUTES);
 
         // Then
-        verify(offerSyncProcess).synchronize(SOURCE, TARGET, DEFAULT_STRATEGY, DATA_CATEGORY,OFFSET);
+        verify(offerSyncProcess).synchronize(SOURCE, TARGET, VitamConfiguration.getDefaultStrategy(), DATA_CATEGORY,OFFSET);
     }
 }

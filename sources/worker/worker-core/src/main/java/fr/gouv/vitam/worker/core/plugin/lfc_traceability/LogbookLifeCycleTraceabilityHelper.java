@@ -17,7 +17,6 @@ import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.security.merkletree.MerkleTreeAlgo;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientException;
-import fr.gouv.vitam.logbook.common.exception.LogbookClientNotFoundException;
 import fr.gouv.vitam.logbook.common.exception.TraceabilityException;
 import fr.gouv.vitam.logbook.common.model.TraceabilityEvent;
 import fr.gouv.vitam.logbook.common.model.TraceabilityFile;
@@ -57,7 +56,6 @@ public abstract class LogbookLifeCycleTraceabilityHelper implements LogbookTrace
     private static final VitamLogger LOGGER =
         VitamLoggerFactory.getInstance(LogbookLifeCycleTraceabilityHelper.class);
 
-    //private static final String DEFAULT_STRATEGY = "default";
     private static final String LOGBOOK = "logbook";
     private static final String EVENT_ID = eventIdentifier.getDbname();
     private static final String EVENT_DETAIL_DATA = eventDetailData.getDbname();

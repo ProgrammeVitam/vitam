@@ -27,12 +27,49 @@
 
 package fr.gouv.vitam.storage.engine.client;
 
+import static fr.gouv.vitam.common.PropertiesUtils.readYaml;
+import static fr.gouv.vitam.common.PropertiesUtils.writeYaml;
+import static org.junit.Assert.assertTrue;
+
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.Callable;
+import java.util.concurrent.CancellationException;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
+import javax.ws.rs.core.Response;
+import javax.ws.rs.core.Response.Status;
+
+import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.IOUtils;
+import org.junit.AfterClass;
+import org.junit.Assert;
+import org.junit.BeforeClass;
+import org.junit.ClassRule;
+import org.junit.Ignore;
+import org.junit.Rule;
+import org.junit.Test;
+import org.junit.rules.TemporaryFolder;
+
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+
 import fr.gouv.vitam.common.CharsetUtils;
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.SystemPropertyUtil;
+import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.accesslog.AccessLogUtils;
 import fr.gouv.vitam.common.client.VitamClientFactory;
 import fr.gouv.vitam.common.client.VitamClientFactoryInterface;
@@ -57,12 +94,12 @@ import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClientFactory;
 import fr.gouv.vitam.storage.engine.client.exception.StorageAlreadyExistsClientException;
 import fr.gouv.vitam.storage.engine.client.exception.StorageNotFoundClientException;
 import fr.gouv.vitam.storage.engine.client.exception.StorageServerClientException;
+import fr.gouv.vitam.storage.engine.common.collection.OfferCollections;
 import fr.gouv.vitam.storage.engine.common.exception.StorageNotFoundException;
 import fr.gouv.vitam.storage.engine.common.model.DataCategory;
 import fr.gouv.vitam.storage.engine.common.model.request.ObjectDescription;
 import fr.gouv.vitam.storage.engine.server.rest.StorageConfiguration;
 import fr.gouv.vitam.storage.engine.server.rest.StorageMain;
-import fr.gouv.vitam.storage.engine.common.collection.OfferCollections;
 import fr.gouv.vitam.storage.offers.rest.DefaultOfferMain;
 import fr.gouv.vitam.storage.offers.rest.OfferConfiguration;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageAlreadyExistException;
@@ -71,39 +108,6 @@ import fr.gouv.vitam.workspace.client.WorkspaceClient;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
 import fr.gouv.vitam.workspace.rest.WorkspaceMain;
 import junit.framework.TestCase;
-import org.apache.commons.io.FileUtils;
-import org.apache.commons.io.IOUtils;
-import org.junit.AfterClass;
-import org.junit.Assert;
-import org.junit.BeforeClass;
-import org.junit.ClassRule;
-import org.junit.Ignore;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.TemporaryFolder;
-
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.Response.Status;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.concurrent.Callable;
-import java.util.concurrent.CancellationException;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Future;
-import java.util.concurrent.TimeUnit;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-
-import static fr.gouv.vitam.common.PropertiesUtils.readYaml;
-import static fr.gouv.vitam.common.PropertiesUtils.writeYaml;
-import static org.junit.Assert.assertTrue;
 
 public class StorageTestMultiIT {
 
@@ -332,7 +336,7 @@ public class StorageTestMultiIT {
 
         backupService.backup(fileIS, DataCategory.RULES, FILE_NAME);
 
-        VitamRequestIterator<JsonNode> result = storageClient.listContainer("default", DataCategory.RULES);
+        VitamRequestIterator<JsonNode> result = storageClient.listContainer(VitamConfiguration.getDefaultStrategy(), DataCategory.RULES);
 
         TestCase.assertNotNull(result);
 
@@ -362,7 +366,7 @@ public class StorageTestMultiIT {
         }
         try (StorageClient storageClient = StorageClientFactory.getInstance().getClient()) {
             try {
-                storageClient.storeFileFromWorkspace("default", DataCategory.OBJECT,
+                storageClient.storeFileFromWorkspace(VitamConfiguration.getDefaultStrategy(), DataCategory.OBJECT,
                     GUIDFactory.newObjectGroupGUID(0).getId(), description);
             } catch (StorageAlreadyExistsClientException | StorageNotFoundClientException |
                 StorageServerClientException e) {
@@ -372,7 +376,7 @@ public class StorageTestMultiIT {
 
             // see other test for full listing, here, we only have one object !
             try {
-                VitamRequestIterator<JsonNode> result = storageClient.listContainer("default", DataCategory.OBJECT);
+                VitamRequestIterator<JsonNode> result = storageClient.listContainer(VitamConfiguration.getDefaultStrategy(), DataCategory.OBJECT);
                 TestCase.assertNotNull(result);
                 Assert.assertTrue(result.hasNext());
                 JsonNode node = result.next();
@@ -417,7 +421,7 @@ public class StorageTestMultiIT {
                 break;
             }
             try {
-                storageClient.storeFileFromWorkspace("default", DataCategory.OBJECT, OBJECT_ID, description);
+                storageClient.storeFileFromWorkspace(VitamConfiguration.getDefaultStrategy(), DataCategory.OBJECT, OBJECT_ID, description);
             } catch (StorageAlreadyExistsClientException | StorageNotFoundClientException |
                 StorageServerClientException e) {
                 LOGGER.error("Size: " + size, e);
@@ -427,7 +431,7 @@ public class StorageTestMultiIT {
 
             // see other test for full listing, here, we only have one object !
             try {
-                VitamRequestIterator<JsonNode> result = storageClient.listContainer("default", DataCategory.OBJECT);
+                VitamRequestIterator<JsonNode> result = storageClient.listContainer(VitamConfiguration.getDefaultStrategy(), DataCategory.OBJECT);
                 TestCase.assertNotNull(result);
                 Assert.assertTrue(result.hasNext());
                 JsonNode node = result.next();
@@ -475,7 +479,7 @@ public class StorageTestMultiIT {
             return;
         }
         try {
-            storageClient.storeFileFromWorkspace("default", DataCategory.OBJECT, OBJECT_ID, description);
+            storageClient.storeFileFromWorkspace(VitamConfiguration.getDefaultStrategy(), DataCategory.OBJECT, OBJECT_ID, description);
         } catch (StorageAlreadyExistsClientException | StorageNotFoundClientException |
             StorageServerClientException e) {
             LOGGER.error("Size: " + size, e);
@@ -510,7 +514,7 @@ public class StorageTestMultiIT {
             return;
         }
         try {
-            storageClient.storeFileFromWorkspace("default", DataCategory.OBJECT, OBJECT_ID, description);
+            storageClient.storeFileFromWorkspace(VitamConfiguration.getDefaultStrategy(), DataCategory.OBJECT, OBJECT_ID, description);
         } catch (StorageAlreadyExistsClientException | StorageNotFoundClientException |
             StorageServerClientException e) {
             LOGGER.error("Size: " + size, e);
@@ -544,7 +548,7 @@ public class StorageTestMultiIT {
             return;
         }
         try {
-            storageClient.storeFileFromWorkspace("default", DataCategory.OBJECT, OBJECT_ID, description);
+            storageClient.storeFileFromWorkspace(VitamConfiguration.getDefaultStrategy(), DataCategory.OBJECT, OBJECT_ID, description);
         } catch (StorageAlreadyExistsClientException | StorageNotFoundClientException |
             StorageServerClientException e) {
             LOGGER.error("Size: " + size, e);
@@ -701,7 +705,7 @@ public class StorageTestMultiIT {
             description.setWorkspaceContainerGUID(CONTAINER);
             description.setWorkspaceObjectURI(objectId.getId());
             try (StorageClient storageClient = StorageClientFactory.getInstance().getClient()) {
-                storageClient.storeFileFromWorkspace("default", DataCategory.OBJECT, storageId.getId(),
+                storageClient.storeFileFromWorkspace(VitamConfiguration.getDefaultStrategy(), DataCategory.OBJECT, storageId.getId(),
                     description);
             } catch (StorageAlreadyExistsClientException | StorageNotFoundClientException |
                 StorageServerClientException e) {
@@ -710,7 +714,7 @@ public class StorageTestMultiIT {
             }
             Response response = null;
             try (StorageClient storageClient = StorageClientFactory.getInstance().getClient()) {
-                response = storageClient.getContainerAsync("default", storageId.getId(), DataCategory.OBJECT,
+                response = storageClient.getContainerAsync(VitamConfiguration.getDefaultStrategy(), storageId.getId(), DataCategory.OBJECT,
                     AccessLogUtils.getNoLogAccessLog());
                 final Response.Status status = Response.Status.fromStatusCode(response.getStatus());
                 if (status == Status.OK && response.hasEntity()) {
@@ -749,7 +753,7 @@ public class StorageTestMultiIT {
                 }
                 try {
                     storageClient
-                        .storeFileFromWorkspace("default", DataCategory.OBJECT, OBJECT_ID, description);
+                        .storeFileFromWorkspace(VitamConfiguration.getDefaultStrategy(), DataCategory.OBJECT, OBJECT_ID, description);
                 } catch (StorageAlreadyExistsClientException | StorageNotFoundClientException |
                     StorageServerClientException e) {
                     LOGGER.error("Size: " + size, e);
@@ -760,7 +764,7 @@ public class StorageTestMultiIT {
         }
 
         try (StorageClient storageClient = StorageClientFactory.getInstance().getClient();
-            VitamRequestIterator<JsonNode> result = storageClient.listContainer("default", DataCategory.OBJECT)) {
+            VitamRequestIterator<JsonNode> result = storageClient.listContainer(VitamConfiguration.getDefaultStrategy(), DataCategory.OBJECT)) {
             TestCase.assertNotNull(result);
             int count = 0;
             while (result.hasNext()) {

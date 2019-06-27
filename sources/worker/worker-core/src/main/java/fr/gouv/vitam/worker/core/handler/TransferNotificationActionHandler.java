@@ -142,7 +142,6 @@ public class TransferNotificationActionHandler extends ActionHandler {
     private static final String XSI_URI = "http://www.w3.org/2001/XMLSchema-instance";
 
     private HandlerIO handlerIO;
-    private static final String DEFAULT_STRATEGY = "default";
     private static final String EVENT_ID_PROCESS = "evIdProc";
 
     private List<Class<?>> handlerInitialIOList = new ArrayList<>();
@@ -257,7 +256,7 @@ public class TransferNotificationActionHandler extends ActionHandler {
             description.setWorkspaceObjectURI(handler.getOutput(ATR_RESULT_OUT_RANK).getPath());
             try (final StorageClient storageClient = storageClientFactory.getClient()) {
                 storageClient.storeFileFromWorkspace(
-                    DEFAULT_STRATEGY,
+                    VitamConfiguration.getDefaultStrategy(),
                     DataCategory.REPORT,
                     params.getContainerName() + XML, description);
 
@@ -265,7 +264,7 @@ public class TransferNotificationActionHandler extends ActionHandler {
                     description.setWorkspaceObjectURI(
                         IngestWorkflowConstants.SEDA_FOLDER + "/" + IngestWorkflowConstants.SEDA_FILE);
                     storageClient.storeFileFromWorkspace(
-                        DEFAULT_STRATEGY,
+                        VitamConfiguration.getDefaultStrategy(),
                         DataCategory.MANIFEST,
                         params.getContainerName() + XML, description);
                 }

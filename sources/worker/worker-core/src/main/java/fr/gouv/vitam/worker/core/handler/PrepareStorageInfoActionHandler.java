@@ -33,6 +33,7 @@ import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
 import fr.gouv.vitam.common.SedaConstants;
+import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
@@ -57,8 +58,6 @@ public class PrepareStorageInfoActionHandler extends ActionHandler {
 
     private static final String HANDLER_ID = "PREPARE_STORAGE_INFO";
 
-    private static final String DEFAULT_STRATEGY = "default";
-
     private static final int STORAGE_INFO_OUT_RANK = 0;
 
     /**
@@ -78,7 +77,7 @@ public class PrepareStorageInfoActionHandler extends ActionHandler {
 
             JsonNode storageCapacityNode;
             try (final StorageClient storageClient = storageClientFactory.getClient()) {
-                storageCapacityNode = storageClient.getStorageInformation(DEFAULT_STRATEGY);
+                storageCapacityNode = storageClient.getStorageInformation(VitamConfiguration.getDefaultStrategy());
             }
 
             final StorageInformation[] storageInformation = JsonHandler.getFromJsonNode(storageCapacityNode.get("capacities"),
@@ -108,7 +107,7 @@ public class PrepareStorageInfoActionHandler extends ActionHandler {
             offerIds.add(information.getOfferId());
         }
         storageInfo.set(SedaConstants.OFFER_IDS, offerIds);
-        storageInfo.put(SedaConstants.STRATEGY_ID, DEFAULT_STRATEGY);
+        storageInfo.put(SedaConstants.STRATEGY_ID, VitamConfiguration.getDefaultStrategy());
 
         File tempFile = handlerIO.getNewLocalFile(handlerIO.getOutput(STORAGE_INFO_OUT_RANK).getPath());
         // create json file

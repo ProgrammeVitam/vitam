@@ -39,6 +39,7 @@ import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.SedaConstants;
+import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.accesslog.AccessLogInfoModel;
 import fr.gouv.vitam.common.accesslog.AccessLogUtils;
 import fr.gouv.vitam.common.database.builder.query.VitamFieldsHelper;
@@ -174,7 +175,6 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
     private final MetaDataClientFactory metaDataClientFactory;
 
 
-    private static final String DEFAULT_STORAGE_STRATEGY = "default";
     private static final String ID_CHECK_FAILED = "the unit_id should be filled";
     private static final String STP_UPDATE_UNIT = "STP_UPDATE_UNIT";
     private static final String STP_UPDATE_UNIT_DESC = "STP_UPDATE_UNIT_DESC";
@@ -201,7 +201,6 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
     private static final String BAD_REQUEST = "bad request";
     private static final String DIFF = "#diff";
     private static final String ID = "#id";
-    private static final String DEFAULT_STRATEGY = "default";
     private static final String WORKSPACE_SERVER_EXCEPTION = "workspace server exception";
     private static final String STORAGE_SERVER_EXCEPTION = "Storage server exception";
     private static final String JSON = ".json";
@@ -448,7 +447,7 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
             logInfo =
             AccessLogUtils.getInfoForAccessLog(qualifier, version, VitamThreadUtils.getVitamSession(), size, idUnit);
         try (StorageClient storageClient = storageClientFactory.getClient()) {
-            final Response response = storageClient.getContainerAsync(DEFAULT_STORAGE_STRATEGY, objectId,
+            final Response response = storageClient.getContainerAsync(VitamConfiguration.getDefaultStrategy(), objectId,
                 DataCategory.OBJECT, logInfo);
             Map<String, String> headers = new HashMap<>();
             headers.put(HttpHeaders.CONTENT_TYPE, mimetype);
@@ -499,7 +498,7 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
             WorkspaceClient workspaceClient = workspaceClientFactory.getClient()) {
             // Get Files in accessLog
             Iterator<JsonNode> filesInfo =
-                storageClient.listContainer(DEFAULT_STORAGE_STRATEGY, DataCategory.STORAGEACCESSLOG);
+                storageClient.listContainer(VitamConfiguration.getDefaultStrategy(), DataCategory.STORAGEACCESSLOG);
             if (filesInfo.hasNext()) {
                 workspaceClient.createContainer(containerName);
             }
@@ -548,7 +547,7 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
     private Response getAccessLogFile(String accessLogId)
         throws StorageNotFoundException, AccessInternalExecutionException {
         try (StorageClient storageClient = storageClientFactory.getClient()) {
-            final Response response = storageClient.getContainerAsync(DEFAULT_STORAGE_STRATEGY, accessLogId,
+            final Response response = storageClient.getContainerAsync(VitamConfiguration.getDefaultStrategy(), accessLogId,
                 DataCategory.STORAGEACCESSLOG, AccessLogUtils.getNoLogAccessLog());
             Map<String, String> headers = new HashMap<>();
             return new VitamAsyncInputStreamResponse(response, Status.OK, headers);
@@ -931,7 +930,7 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
     private void storeMetaDataUnit(ObjectDescription description) throws StorageClientException {
         try (StorageClient storageClient = storageClientFactory.getClient()) {
             // store binary data object
-            storageClient.storeFileFromWorkspace(DEFAULT_STRATEGY, description.getType(),
+            storageClient.storeFileFromWorkspace(VitamConfiguration.getDefaultStrategy(), description.getType(),
                 description.getObjectName(),
                 description);
         }
@@ -1724,7 +1723,7 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
     @Override
     public Response findDIPByOperationId(String id) throws AccessInternalExecutionException {
         try (StorageClient storageClient = storageClientFactory.getClient()) {
-            final Response response = storageClient.getContainerAsync(DEFAULT_STORAGE_STRATEGY, id,
+            final Response response = storageClient.getContainerAsync(VitamConfiguration.getDefaultStrategy(), id,
                 DataCategory.DIP, AccessLogUtils.getNoLogAccessLog());
             return new VitamAsyncInputStreamResponse(response, Status.OK, MediaType.APPLICATION_OCTET_STREAM_TYPE);
         } catch (final StorageServerClientException | StorageNotFoundException e) {

@@ -26,15 +26,48 @@
  */
 package fr.gouv.vitam.worker.core.plugin.preservation;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import fr.gouv.vitam.batch.report.model.Report;
+import static fr.gouv.vitam.common.accesslog.AccessLogUtils.getNoLogAccessLog;
+import static fr.gouv.vitam.common.model.StatusCode.OK;
+import static fr.gouv.vitam.storage.engine.common.model.DataCategory.OBJECT;
+import static fr.gouv.vitam.worker.core.plugin.preservation.TestWorkerParameter.TestWorkerParameterBuilder.workerParameterBuilder;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.BDDMockito.given;
+import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.verify;
+
+import java.io.ByteArrayInputStream;
+import java.io.File;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.Collections;
+import java.util.List;
+
+import javax.ws.rs.core.Response;
+
+import org.assertj.core.api.ThrowableAssert.ThrowingCallable;
+import org.junit.Before;
+import org.junit.Rule;
+import org.junit.Test;
+import org.junit.rules.TemporaryFolder;
+import org.mockito.ArgumentCaptor;
+import org.mockito.ArgumentMatchers;
+import org.mockito.Captor;
+import org.mockito.Mock;
+import org.mockito.junit.MockitoJUnit;
+import org.mockito.junit.MockitoRule;
+
 import fr.gouv.vitam.batch.report.model.entry.PreservationReportEntry;
-import fr.gouv.vitam.batch.report.model.entry.ReportEntry;
+import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.exception.VitamClientInternalException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.model.ItemStatus;
-import fr.gouv.vitam.common.model.administration.preservation.ActionPreservation;
 import fr.gouv.vitam.common.model.administration.ActionTypePreservation;
+import fr.gouv.vitam.common.model.administration.preservation.ActionPreservation;
 import fr.gouv.vitam.common.stream.VitamAsyncInputStreamResponse;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
@@ -45,50 +78,10 @@ import fr.gouv.vitam.storage.engine.client.StorageClient;
 import fr.gouv.vitam.storage.engine.client.StorageClientFactory;
 import fr.gouv.vitam.worker.common.HandlerIO;
 import fr.gouv.vitam.worker.core.plugin.preservation.model.PreservationDistributionLine;
-import fr.gouv.vitam.worker.core.plugin.preservation.model.WorkflowBatchResult;
 import fr.gouv.vitam.worker.core.plugin.preservation.model.WorkflowBatchResults;
 import fr.gouv.vitam.worker.core.plugin.preservation.service.PreservationReportService;
 import fr.gouv.vitam.workspace.client.WorkspaceClient;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
-import org.assertj.core.api.Assertions;
-import org.assertj.core.api.ThrowableAssert.ThrowingCallable;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.TemporaryFolder;
-import org.mockito.ArgumentCaptor;
-import org.mockito.ArgumentMatchers;
-import org.mockito.BDDMockito;
-import org.mockito.Captor;
-import org.mockito.Mock;
-import org.mockito.internal.matchers.Any;
-import org.mockito.junit.MockitoJUnit;
-import org.mockito.junit.MockitoRule;
-
-import javax.ws.rs.core.Response;
-import java.io.ByteArrayInputStream;
-import java.io.File;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-
-import static fr.gouv.vitam.common.accesslog.AccessLogUtils.getNoLogAccessLog;
-import static fr.gouv.vitam.common.model.StatusCode.OK;
-import static fr.gouv.vitam.storage.engine.common.model.DataCategory.OBJECT;
-import static fr.gouv.vitam.worker.core.plugin.preservation.PreservationActionPlugin.DEFAULT_STORAGE_STRATEGY;
-import static fr.gouv.vitam.worker.core.plugin.preservation.TestWorkerParameter.TestWorkerParameterBuilder.workerParameterBuilder;
-import static org.assertj.core.api.Assertions.*;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.mockito.BDDMockito.given;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.doNothing;
-import static org.mockito.Mockito.doThrow;
-import static org.mockito.Mockito.verify;
 
 public class PreservationActionPluginTest {
 
@@ -160,21 +153,21 @@ public class PreservationActionPluginTest {
     @RunWithCustomExecutor
     public void should_copy_input_files() throws Exception {
         // Given
-        given(storageClient.getContainerAsync(DEFAULT_STORAGE_STRATEGY, objectId, OBJECT, getNoLogAccessLog()))
+        given(storageClient.getContainerAsync(VitamConfiguration.getDefaultStrategy(), objectId, OBJECT, getNoLogAccessLog()))
             .willReturn(createOkResponse("image-files-with-data"));
 
         // When
         plugin.executeList(parameter, handler);
 
         // Then
-        verify(storageClient).getContainerAsync(DEFAULT_STORAGE_STRATEGY, objectId, OBJECT, getNoLogAccessLog());
+        verify(storageClient).getContainerAsync(VitamConfiguration.getDefaultStrategy(), objectId, OBJECT, getNoLogAccessLog());
     }
 
     @Test
     @RunWithCustomExecutor
     public void should_create_report() throws Exception {
         // Given
-        given(storageClient.getContainerAsync(DEFAULT_STORAGE_STRATEGY, objectId, OBJECT, getNoLogAccessLog()))
+        given(storageClient.getContainerAsync(VitamConfiguration.getDefaultStrategy(), objectId, OBJECT, getNoLogAccessLog()))
             .willReturn(createOkResponse("image-files-with-data"));
 
         plugin.executeList(parameter, handler);
@@ -190,7 +183,7 @@ public class PreservationActionPluginTest {
     @RunWithCustomExecutor
     public void should_delete_batch_files_in_case_of_error() throws Exception {
         // Given
-        given(storageClient.getContainerAsync(DEFAULT_STORAGE_STRATEGY, objectId, OBJECT, getNoLogAccessLog()))
+        given(storageClient.getContainerAsync(VitamConfiguration.getDefaultStrategy(), objectId, OBJECT, getNoLogAccessLog()))
             .willReturn(createOkResponse("image-files-with-data"));
         doThrow(new VitamClientInternalException("error")).when(reportService).appendPreservationEntries(any(), any());
 
@@ -212,7 +205,7 @@ public class PreservationActionPluginTest {
     @RunWithCustomExecutor
     public void should_exec_workflow_and_return_build_status_OK() throws Exception {
         // Given
-        given(storageClient.getContainerAsync(DEFAULT_STORAGE_STRATEGY, objectId, OBJECT, getNoLogAccessLog()))
+        given(storageClient.getContainerAsync(VitamConfiguration.getDefaultStrategy(), objectId, OBJECT, getNoLogAccessLog()))
             .willReturn(createOkResponse("image-files-with-data"));
 
         // When
@@ -226,7 +219,7 @@ public class PreservationActionPluginTest {
     @RunWithCustomExecutor
     public void should_stop_process_when_any_exception() throws Exception {
         // Given
-        given(storageClient.getContainerAsync(DEFAULT_STORAGE_STRATEGY, objectId, OBJECT, getNoLogAccessLog()))
+        given(storageClient.getContainerAsync(VitamConfiguration.getDefaultStrategy(), objectId, OBJECT, getNoLogAccessLog()))
             .willThrow(new IllegalStateException("test"));
 
         // When
@@ -240,7 +233,7 @@ public class PreservationActionPluginTest {
     @RunWithCustomExecutor
     public void should_create_preservation_report_with_binary_guid() throws Exception {
         // Given
-        given(storageClient.getContainerAsync(DEFAULT_STORAGE_STRATEGY, objectId, OBJECT, getNoLogAccessLog()))
+        given(storageClient.getContainerAsync(VitamConfiguration.getDefaultStrategy(), objectId, OBJECT, getNoLogAccessLog()))
             .willReturn(createOkResponse("image-files-with-data"));
         doNothing().when(reportService).appendPreservationEntries(ArgumentMatchers.anyString(), captor.capture());
         // When

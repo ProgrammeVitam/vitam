@@ -29,6 +29,8 @@ package fr.gouv.vitam.worker.core.handler;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.annotations.VisibleForTesting;
+
+import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
@@ -54,8 +56,6 @@ public class CheckStorageAvailabilityActionHandler extends ActionHandler {
         VitamLoggerFactory.getInstance(CheckStorageAvailabilityActionHandler.class);
 
     private static final String HANDLER_ID = "STORAGE_AVAILABILITY_CHECK";
-
-    private static final String DEFAULT_STRATEGY = "default";
 
     private final StorageClientFactory storageClientFactory;
     private final SedaUtils sedaUtils;
@@ -98,7 +98,7 @@ public class CheckStorageAvailabilityActionHandler extends ActionHandler {
             final JsonNode storageCapacityNode;
 
             try (final StorageClient storageClient = storageClientFactory.getClient()) {
-                storageCapacityNode = storageClient.getStorageInformation(DEFAULT_STRATEGY);
+                storageCapacityNode = storageClient.getStorageInformation(VitamConfiguration.getDefaultStrategy());
             }
             // TODO P1 fix getcontainerInformation in storage
             if (storageCapacityNode == null) {

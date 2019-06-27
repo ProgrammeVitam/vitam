@@ -37,6 +37,7 @@ import com.mongodb.util.JSON;
 import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.StringUtils;
+import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.VitamRuleRunner;
 import fr.gouv.vitam.common.VitamServerRunner;
 import fr.gouv.vitam.common.client.VitamClientFactory;
@@ -411,7 +412,7 @@ public class MigrationIT extends VitamRuleRunner {
         VitamThreadUtils.getVitamSession().setTenantId(0);
         RestoreBackupServiceImpl restoreBackupService = new RestoreBackupServiceImpl();
         Iterator<List<OfferLog>> listingIterator =
-            restoreBackupService.getListing("default", DataCategory.ACCESSION_REGISTER_DETAIL, 0L, 100,
+            restoreBackupService.getListing(VitamConfiguration.getDefaultStrategy(), DataCategory.ACCESSION_REGISTER_DETAIL, 0L, 100,
                 Order.ASC);
         List<OfferLog> listing =
             IteratorUtils.toList(listingIterator).stream()

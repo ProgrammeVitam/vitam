@@ -67,7 +67,6 @@ import fr.gouv.vitam.storage.driver.Driver;
 import fr.gouv.vitam.storage.engine.common.model.request.BulkObjectStoreRequest;
 import fr.gouv.vitam.storage.engine.common.model.response.BulkObjectStoreResponse;
 import fr.gouv.vitam.storage.engine.common.referential.model.StorageOffer;
-import fr.gouv.vitam.storage.engine.common.referential.model.StorageStrategy;
 import fr.gouv.vitam.storage.engine.server.distribution.impl.bulk.BulkStorageDistribution;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
 import org.apache.commons.io.IOUtils;
@@ -117,7 +116,6 @@ import org.mockito.junit.MockitoRule;
 public class StorageDistributionImplTest {
     // FIXME P1 Fix Fake Driver
 
-    private static final String STRATEGY_ID = "default";
     private static final String OFFER_ID = "default";
     private static final int TENANT_ID = 0;
 
@@ -214,7 +212,7 @@ public class StorageDistributionImplTest {
         try {
             // Store object
             storedInfoResult =
-                customDistribution.storeDataInAllOffers(STRATEGY_ID, objectId, createObjectDescription, DataCategory.OBJECT,
+                customDistribution.storeDataInAllOffers(VitamConfiguration.getDefaultStrategy(), objectId, createObjectDescription, DataCategory.OBJECT,
                     "testRequester");
         } finally {
             IOUtils.closeQuietly(stream);
@@ -244,7 +242,7 @@ public class StorageDistributionImplTest {
             .thenReturn(Response.status(Status.OK).entity(stream2).build());
         try {
             storedInfoResult =
-                customDistribution.storeDataInAllOffers(STRATEGY_ID, objectId, createObjectDescription, DataCategory.UNIT,
+                customDistribution.storeDataInAllOffers(VitamConfiguration.getDefaultStrategy(), objectId, createObjectDescription, DataCategory.UNIT,
                     "testRequester");
         } finally {
             IOUtils.closeQuietly(stream);
@@ -265,7 +263,7 @@ public class StorageDistributionImplTest {
             .thenReturn(Response.status(Status.OK).entity(stream2).build());
         try {
             storedInfoResult =
-                customDistribution.storeDataInAllOffers(STRATEGY_ID, objectId, createObjectDescription, DataCategory.LOGBOOK,
+                customDistribution.storeDataInAllOffers(VitamConfiguration.getDefaultStrategy(), objectId, createObjectDescription, DataCategory.LOGBOOK,
                     "testRequester");
         } finally {
             IOUtils.closeQuietly(stream);
@@ -286,7 +284,7 @@ public class StorageDistributionImplTest {
             .thenReturn(Response.status(Status.OK).entity(stream2).build());
         try {
             storedInfoResult =
-                customDistribution.storeDataInAllOffers(STRATEGY_ID, objectId, createObjectDescription, DataCategory.STORAGELOG,
+                customDistribution.storeDataInAllOffers(VitamConfiguration.getDefaultStrategy(), objectId, createObjectDescription, DataCategory.STORAGELOG,
                     "testRequester");
         } finally {
             IOUtils.closeQuietly(stream);
@@ -305,7 +303,7 @@ public class StorageDistributionImplTest {
                 .header(VitamHttpHeader.X_CONTENT_LENGTH.getName(), (long) 6349).build())
             .thenReturn(Response.status(Status.OK).entity(stream2).build());
         try {
-            storedInfoResult = customDistribution.storeDataInAllOffers(STRATEGY_ID, objectId, createObjectDescription,
+            storedInfoResult = customDistribution.storeDataInAllOffers(VitamConfiguration.getDefaultStrategy(), objectId, createObjectDescription,
                 DataCategory.OBJECTGROUP, "testRequester");
         } finally {
             IOUtils.closeQuietly(stream);
@@ -320,9 +318,9 @@ public class StorageDistributionImplTest {
             VitamConfiguration.getDefaultDigestType());
         // lets delete the object on offers
 
-        DataContext context = new DataContext(objectId, DataCategory.OBJECT, "192.168.1.1", 0, STRATEGY_ID);
+        DataContext context = new DataContext(objectId, DataCategory.OBJECT, "192.168.1.1", 0, VitamConfiguration.getDefaultStrategy());
 
-        customDistribution.deleteObjectInAllOffers(STRATEGY_ID, context);
+        customDistribution.deleteObjectInAllOffers(VitamConfiguration.getDefaultStrategy(), context);
 
     }
 
@@ -350,7 +348,7 @@ public class StorageDistributionImplTest {
         try {
             // Store object
             customDistribution
-                .storeDataInAllOffers(STRATEGY_ID, objectId, createObjectDescription, DataCategory.OBJECT, "testRequester");
+                .storeDataInAllOffers(VitamConfiguration.getDefaultStrategy(), objectId, createObjectDescription, DataCategory.OBJECT, "testRequester");
         } finally {
             IOUtils.closeQuietly(stream);
             IOUtils.closeQuietly(stream2);
@@ -379,7 +377,7 @@ public class StorageDistributionImplTest {
         // When / Then
         assertThatThrownBy( () ->
             customDistribution
-                .storeDataInAllOffers(STRATEGY_ID, objectId, createObjectDescription, DataCategory.OBJECT, "testRequester")
+                .storeDataInAllOffers(VitamConfiguration.getDefaultStrategy(), objectId, createObjectDescription, DataCategory.OBJECT, "testRequester")
         ).isInstanceOf(StorageTechnicalException.class);
     }
 
@@ -397,7 +395,7 @@ public class StorageDistributionImplTest {
             .header(VitamHttpHeader.X_CONTENT_LENGTH.getName(), (long) 6349).entity(stream).build());
         try {
             customDistribution
-                .storeDataInAllOffers(STRATEGY_ID, objectId, createObjectDescription, DataCategory.OBJECT, "testRequester");
+                .storeDataInAllOffers(VitamConfiguration.getDefaultStrategy(), objectId, createObjectDescription, DataCategory.OBJECT, "testRequester");
         } finally {
             IOUtils.closeQuietly(stream);
         }
@@ -428,7 +426,7 @@ public class StorageDistributionImplTest {
                 .header(VitamHttpHeader.X_CONTENT_LENGTH.getName(), (long) 6349).build());
         // Store object
         customDistribution
-            .storeDataInAllOffers(STRATEGY_ID, objectId, createObjectDescription, DataCategory.OBJECT, "testRequester");
+            .storeDataInAllOffers(VitamConfiguration.getDefaultStrategy(), objectId, createObjectDescription, DataCategory.OBJECT, "testRequester");
     }
 
     @Test
@@ -445,7 +443,7 @@ public class StorageDistributionImplTest {
             .thenThrow(ContentAddressableStorageNotFoundException.class);
         try {
             customDistribution
-                .storeDataInAllOffers(STRATEGY_ID, objectId, createObjectDescription, DataCategory.OBJECT, "testRequester");
+                .storeDataInAllOffers(VitamConfiguration.getDefaultStrategy(), objectId, createObjectDescription, DataCategory.OBJECT, "testRequester");
             fail("Should produce exception");
         } catch (final StorageException exc) {
             // Expection
@@ -456,7 +454,7 @@ public class StorageDistributionImplTest {
             .thenThrow(ContentAddressableStorageServerException.class);
         try {
             customDistribution
-                .storeDataInAllOffers(STRATEGY_ID, objectId, createObjectDescription, DataCategory.OBJECT, "testRequester");
+                .storeDataInAllOffers(VitamConfiguration.getDefaultStrategy(), objectId, createObjectDescription, DataCategory.OBJECT, "testRequester");
             fail("Should produce exception");
         } catch (final StorageTechnicalException exc) {
             // Expection
@@ -470,7 +468,7 @@ public class StorageDistributionImplTest {
                 .header(VitamHttpHeader.X_CONTENT_LENGTH.getName(), (long) 6349).build());
         try {
             customDistribution
-                .storeDataInAllOffers(STRATEGY_ID, objectId, createObjectDescription, DataCategory.OBJECT, "testRequester");
+                .storeDataInAllOffers(VitamConfiguration.getDefaultStrategy(), objectId, createObjectDescription, DataCategory.OBJECT, "testRequester");
             fail("Should produce exception");
         } catch (final StorageTechnicalException exc) {
             // Expection
@@ -513,7 +511,7 @@ public class StorageDistributionImplTest {
 
         // When
         BulkObjectStoreResponse bulkObjectStoreResponse =
-            customDistribution.bulkCreateFromWorkspace(STRATEGY_ID, bulkObjectStoreRequest, requester);
+            customDistribution.bulkCreateFromWorkspace(VitamConfiguration.getDefaultStrategy(), bulkObjectStoreRequest, requester);
 
         // Then
         assertThat(bulkObjectStoreResponse.getDigestType()).isEqualTo(DigestType.SHA1.getName());
@@ -539,7 +537,7 @@ public class StorageDistributionImplTest {
     @Test
     public void getContainerInformationOK() throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(0);
-        final JsonNode jsonNode = simpleDistribution.getContainerInformation(STRATEGY_ID);
+        final JsonNode jsonNode = simpleDistribution.getContainerInformation(VitamConfiguration.getDefaultStrategy());
         assertNotNull(jsonNode);
     }
 
@@ -547,7 +545,7 @@ public class StorageDistributionImplTest {
     @Test(expected = StorageTechnicalException.class)
     public void getContainerInformationTechnicalException() throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(-1);
-        customDistribution.getContainerInformation(STRATEGY_ID);
+        customDistribution.getContainerInformation(VitamConfiguration.getDefaultStrategy());
     }
 
     @RunWithCustomExecutor
@@ -567,7 +565,7 @@ public class StorageDistributionImplTest {
             // nothing, exception needed
         }
         try {
-            simpleDistribution.getContainerByCategory(STRATEGY_ID, null, null, AccessLogUtils.getNoLogAccessLog());
+            simpleDistribution.getContainerByCategory(VitamConfiguration.getDefaultStrategy(), null, null, AccessLogUtils.getNoLogAccessLog());
             fail("Exception excepted");
         } catch (final IllegalArgumentException exc) {
             // nothing, exception needed
@@ -578,23 +576,23 @@ public class StorageDistributionImplTest {
     @Test
     public void testGetContainerByCategoryNotFoundException() throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(0);
-        simpleDistribution.getContainerByCategory(STRATEGY_ID, "0", DataCategory.OBJECT, AccessLogUtils.getNoLogAccessLog());
+        simpleDistribution.getContainerByCategory(VitamConfiguration.getDefaultStrategy(), "0", DataCategory.OBJECT, AccessLogUtils.getNoLogAccessLog());
     }
 
     @RunWithCustomExecutor
     @Test
     public void deleteObjectOK() throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(0);
-        DataContext context = new DataContext("0", DataCategory.OBJECT, "192.168.1.1", 0, STRATEGY_ID);
+        DataContext context = new DataContext("0", DataCategory.OBJECT, "192.168.1.1", 0, VitamConfiguration.getDefaultStrategy());
 
-        customDistribution.deleteObjectInAllOffers(STRATEGY_ID, context);
+        customDistribution.deleteObjectInAllOffers(VitamConfiguration.getDefaultStrategy(), context);
     }
 
     @RunWithCustomExecutor
     @Test
     public void testdeleteObjectIllegalArgumentException() throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(0);
-        DataContext context = new DataContext("0", DataCategory.OBJECT, null, 0, STRATEGY_ID);
+        DataContext context = new DataContext("0", DataCategory.OBJECT, null, 0, VitamConfiguration.getDefaultStrategy());
 
         try {
             customDistribution.deleteObjectInAllOffers(null, context);
@@ -622,7 +620,7 @@ public class StorageDistributionImplTest {
         try {
             // Store object
             TransferThread.setJunitMode(true);
-            customDistribution.storeDataInAllOffers(STRATEGY_ID, TransferThread.TIMEOUT_TEST, createObjectDescription,
+            customDistribution.storeDataInAllOffers(VitamConfiguration.getDefaultStrategy(), TransferThread.TIMEOUT_TEST, createObjectDescription,
                 DataCategory.OBJECTGROUP, "testRequester");
             TransferThread.setJunitMode(false);
         } finally {
@@ -645,26 +643,26 @@ public class StorageDistributionImplTest {
             // nothing
         }
         try {
-            simpleDistribution.listContainerObjects(STRATEGY_ID, null, null);
+            simpleDistribution.listContainerObjects(VitamConfiguration.getDefaultStrategy(), null, null);
             fail("Waiting for an illegal argument exception");
         } catch (IllegalArgumentException exc) {
             // nothing
         }
         try {
-            simpleDistribution.listContainerObjects(STRATEGY_ID, DataCategory.OBJECT, null);
+            simpleDistribution.listContainerObjects(VitamConfiguration.getDefaultStrategy(), DataCategory.OBJECT, null);
             fail("Waiting for an illegal argument exception");
         } catch (IllegalArgumentException exc) {
             // nothing
         }
         try {
-            simpleDistribution.listContainerObjects(STRATEGY_ID, null, "cursorId");
+            simpleDistribution.listContainerObjects(VitamConfiguration.getDefaultStrategy(), null, "cursorId");
             fail("Waiting for an illegal argument exception");
         } catch (IllegalArgumentException exc) {
             // nothing
         }
         try {
             VitamThreadUtils.getVitamSession().setTenantId(0);
-            simpleDistribution.listContainerObjects(STRATEGY_ID, DataCategory.OBJECT, null);
+            simpleDistribution.listContainerObjects(VitamConfiguration.getDefaultStrategy(), DataCategory.OBJECT, null);
         } catch (IllegalArgumentException exc) {
             fail("Waiting for an illegal argument exception");
         }
@@ -675,7 +673,7 @@ public class StorageDistributionImplTest {
     public void listContainerObjectsCustomTest() throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(0);
         RequestResponse<JsonNode> result =
-            customDistribution.listContainerObjects(STRATEGY_ID, DataCategory.OBJECT, null);
+            customDistribution.listContainerObjects(VitamConfiguration.getDefaultStrategy(), DataCategory.OBJECT, null);
         assertNotNull(result);
         assertTrue(result.isOk());
         assertFalse(Boolean.valueOf(result.getHeaderString(GlobalDataRest.X_CURSOR)));
@@ -685,12 +683,12 @@ public class StorageDistributionImplTest {
     @Test
     public void getOfferLogs() throws Exception {
         assertThatCode(() -> {
-            simpleDistribution.getOfferLogs(STRATEGY_ID, DataCategory.OBJECT, 0L, 0, Order.ASC);
+            simpleDistribution.getOfferLogs(VitamConfiguration.getDefaultStrategy(), DataCategory.OBJECT, 0L, 0, Order.ASC);
         }).isInstanceOf(IllegalArgumentException.class);
 
         VitamThreadUtils.getVitamSession().setTenantId(0);
         RequestResponse<OfferLog> result =
-            simpleDistribution.getOfferLogs(STRATEGY_ID, DataCategory.OBJECT, 0L, 0, Order.ASC);
+            simpleDistribution.getOfferLogs(VitamConfiguration.getDefaultStrategy(), DataCategory.OBJECT, 0L, 0, Order.ASC);
         assertNotNull(result);
         assertTrue(result.isOk());
 
@@ -699,7 +697,7 @@ public class StorageDistributionImplTest {
         }).isInstanceOf(IllegalArgumentException.class);
 
         assertThatCode(() -> {
-            simpleDistribution.getOfferLogs(STRATEGY_ID, null, 0L, 0, Order.ASC);
+            simpleDistribution.getOfferLogs(VitamConfiguration.getDefaultStrategy(), null, 0L, 0, Order.ASC);
         }).isInstanceOf(IllegalArgumentException.class);
 
     }
@@ -708,21 +706,21 @@ public class StorageDistributionImplTest {
     @Test
     public void getOfferLogsFromOfferId() throws Exception {
         assertThatCode(() -> {
-            simpleDistribution.getOfferLogsByOfferId(STRATEGY_ID, OFFER_ID, DataCategory.OBJECT, 0L, 0, Order.ASC);
+            simpleDistribution.getOfferLogsByOfferId(VitamConfiguration.getDefaultStrategy(), OFFER_ID, DataCategory.OBJECT, 0L, 0, Order.ASC);
         }).isInstanceOf(IllegalArgumentException.class);
 
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         assertThatCode(() -> {
-            simpleDistribution.getOfferLogsByOfferId(STRATEGY_ID, null, DataCategory.OBJECT, 0L, 0, Order.ASC);
+            simpleDistribution.getOfferLogsByOfferId(VitamConfiguration.getDefaultStrategy(), null, DataCategory.OBJECT, 0L, 0, Order.ASC);
         }).isInstanceOf(IllegalArgumentException.class);
 
         RequestResponse<OfferLog> result =
-            simpleDistribution.getOfferLogsByOfferId(STRATEGY_ID, OFFER_ID, DataCategory.OBJECT, 1L, 2, Order.ASC);
+            simpleDistribution.getOfferLogsByOfferId(VitamConfiguration.getDefaultStrategy(), OFFER_ID, DataCategory.OBJECT, 1L, 2, Order.ASC);
         assertNotNull(result);
         assertTrue(result.isOk());
 
         result =
-            simpleDistribution.getOfferLogsByOfferId(STRATEGY_ID, OFFER_ID, DataCategory.OBJECT, 0L, 1, Order.DESC);
+            simpleDistribution.getOfferLogsByOfferId(VitamConfiguration.getDefaultStrategy(), OFFER_ID, DataCategory.OBJECT, 0L, 1, Order.DESC);
         assertNotNull(result);
         assertTrue(result.isOk());
 
@@ -731,7 +729,7 @@ public class StorageDistributionImplTest {
         }).isInstanceOf(IllegalArgumentException.class);
 
         assertThatCode(() -> {
-            simpleDistribution.getOfferLogsByOfferId(STRATEGY_ID, OFFER_ID, null, 0L, 0, Order.ASC);
+            simpleDistribution.getOfferLogsByOfferId(VitamConfiguration.getDefaultStrategy(), OFFER_ID, null, 0L, 0, Order.ASC);
         }).isInstanceOf(IllegalArgumentException.class);
 
     }

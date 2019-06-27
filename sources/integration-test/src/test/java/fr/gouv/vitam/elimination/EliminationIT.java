@@ -30,6 +30,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import fr.gouv.vitam.common.PropertiesUtils;
+import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.VitamRuleRunner;
 import fr.gouv.vitam.common.VitamServerRunner;
 import fr.gouv.vitam.common.database.api.VitamRepositoryFactory;
@@ -100,7 +101,6 @@ public class EliminationIT extends VitamRuleRunner {
 
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(
         EliminationIT.class);
-    private static final String DEFAULT_STRATEGY = "default";
     private StorageClient storageClient;
     private LogbookLifeCyclesClient logbookLifeCyclesClient;
     private MetaDataClient metaDataClient;
@@ -301,7 +301,7 @@ public class EliminationIT extends VitamRuleRunner {
 
     private void checkDeletedFilesInOfferLogs(DataCategory dataCategory, String... fileNames) throws StorageServerClientException {
         RequestResponse<OfferLog> offerLogRequestResponse =
-            storageClient.getOfferLogs("default", dataCategory, null, 100000, Order.ASC);
+            storageClient.getOfferLogs(VitamConfiguration.getDefaultStrategy(), dataCategory, null, 100000, Order.ASC);
         assertThat(offerLogRequestResponse.isOk()).isTrue();
         List<OfferLog> offerLogs = ((RequestResponseOK<OfferLog>) offerLogRequestResponse).getResults();
 
@@ -402,8 +402,8 @@ public class EliminationIT extends VitamRuleRunner {
         throws StorageNotFoundClientException, StorageServerClientException {
         try (StorageClient storageClient = StorageClientFactory.getInstance().getClient()) {
 
-            List<String> offers = storageClient.getOffers(DEFAULT_STRATEGY);
-            JsonNode information = storageClient.getInformation(DEFAULT_STRATEGY, dataCategory, filename, offers, false);
+            List<String> offers = storageClient.getOffers(VitamConfiguration.getDefaultStrategy());
+            JsonNode information = storageClient.getInformation(VitamConfiguration.getDefaultStrategy(), dataCategory, filename, offers, false);
             boolean fileFound = information.size() > 0;
             assertThat(fileFound).isEqualTo((boolean) shouldExist);
         }

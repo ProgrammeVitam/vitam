@@ -26,10 +26,44 @@
  */
 package fr.gouv.vitam.worker.core.plugin.probativevalue;
 
+import static fr.gouv.vitam.common.database.builder.query.QueryHelper.and;
+import static fr.gouv.vitam.common.database.builder.query.QueryHelper.eq;
+import static fr.gouv.vitam.common.database.builder.query.QueryHelper.exists;
+import static fr.gouv.vitam.common.database.builder.query.QueryHelper.gte;
+import static fr.gouv.vitam.common.database.builder.query.QueryHelper.in;
+import static fr.gouv.vitam.common.database.builder.query.QueryHelper.lte;
+import static fr.gouv.vitam.common.database.builder.query.QueryHelper.ne;
+import static fr.gouv.vitam.common.model.StatusCode.FATAL;
+import static fr.gouv.vitam.common.model.StatusCode.KO;
+import static fr.gouv.vitam.logbook.common.parameters.Contexts.LOGBOOK_TRACEABILITY;
+import static fr.gouv.vitam.logbook.common.parameters.Contexts.OBJECTGROUP_LFC_TRACEABILITY;
+import static fr.gouv.vitam.storage.engine.common.model.DataCategory.OBJECT;
+import static fr.gouv.vitam.worker.core.plugin.StoreObjectGroupActionPlugin.STORING_OBJECT_TASK_ID;
+import static fr.gouv.vitam.worker.core.plugin.preservation.TestWorkerParameter.TestWorkerParameterBuilder.workerParameterBuilder;
+import static fr.gouv.vitam.worker.core.plugin.preservation.model.BinaryEventData.MESSAGE_DIGEST;
+import static fr.gouv.vitam.worker.core.plugin.probativevalue.ProbativeCreateReportEntry.NO_BINARY_ID;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.BDDMockito.given;
+import static org.mockito.Mockito.mock;
+
+import java.io.File;
+import java.util.Collections;
+
+import org.junit.Before;
+import org.junit.Rule;
+import org.junit.Test;
+import org.junit.rules.TemporaryFolder;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.MockitoJUnit;
+import org.mockito.junit.MockitoRule;
+
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+
+import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.database.builder.query.BooleanQuery;
 import fr.gouv.vitam.common.database.builder.request.single.Select;
 import fr.gouv.vitam.common.error.VitamError;
@@ -56,37 +90,6 @@ import fr.gouv.vitam.storage.engine.client.StorageClientFactory;
 import fr.gouv.vitam.worker.core.plugin.evidence.exception.EvidenceStatus;
 import fr.gouv.vitam.worker.core.plugin.preservation.TestHandlerIO;
 import fr.gouv.vitam.worker.core.plugin.probativevalue.pojo.ProbativeReportEntry;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.TemporaryFolder;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnit;
-import org.mockito.junit.MockitoRule;
-
-import java.io.File;
-import java.util.Collections;
-
-import static fr.gouv.vitam.common.database.builder.query.QueryHelper.and;
-import static fr.gouv.vitam.common.database.builder.query.QueryHelper.eq;
-import static fr.gouv.vitam.common.database.builder.query.QueryHelper.exists;
-import static fr.gouv.vitam.common.database.builder.query.QueryHelper.gte;
-import static fr.gouv.vitam.common.database.builder.query.QueryHelper.in;
-import static fr.gouv.vitam.common.database.builder.query.QueryHelper.lte;
-import static fr.gouv.vitam.common.database.builder.query.QueryHelper.ne;
-import static fr.gouv.vitam.common.model.StatusCode.FATAL;
-import static fr.gouv.vitam.common.model.StatusCode.KO;
-import static fr.gouv.vitam.logbook.common.parameters.Contexts.LOGBOOK_TRACEABILITY;
-import static fr.gouv.vitam.logbook.common.parameters.Contexts.OBJECTGROUP_LFC_TRACEABILITY;
-import static fr.gouv.vitam.storage.engine.common.model.DataCategory.OBJECT;
-import static fr.gouv.vitam.worker.core.plugin.StoreObjectGroupActionPlugin.STORING_OBJECT_TASK_ID;
-import static fr.gouv.vitam.worker.core.plugin.preservation.TestWorkerParameter.TestWorkerParameterBuilder.workerParameterBuilder;
-import static fr.gouv.vitam.worker.core.plugin.preservation.model.BinaryEventData.MESSAGE_DIGEST;
-import static fr.gouv.vitam.worker.core.plugin.probativevalue.ProbativeCreateReportEntry.NO_BINARY_ID;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.BDDMockito.given;
-import static org.mockito.Mockito.mock;
 
 public class ProbativeCreateReportEntryTest {
     @Rule
@@ -205,7 +208,7 @@ public class ProbativeCreateReportEntryTest {
         ObjectNode storageInformation = createStorageInformationWithDigest(storageId, "");
 
         given(metaDataClient.getObjectGroupByIdRaw(objectGroupId)).willReturn(getResponseWith(versionId, storageId, usageVersion, "OPI"));
-        given(storageClient.getInformation("default", OBJECT, versionId, Collections.singletonList(storageId), true)).willReturn(storageInformation);
+        given(storageClient.getInformation(VitamConfiguration.getDefaultStrategy(), OBJECT, versionId, Collections.singletonList(storageId), true)).willReturn(storageInformation);
 
         // When
         ItemStatus itemStatus = probativeCreateReportEntry.execute(param, handler);
@@ -238,7 +241,7 @@ public class ProbativeCreateReportEntryTest {
         String usageVersion = "BinaryMaster_25";
 
         given(metaDataClient.getObjectGroupByIdRaw(objectGroupId)).willReturn(getResponseWith(versionId, storageId, usageVersion, "OPI"));
-        given(storageClient.getInformation("default", OBJECT, versionId, Collections.singletonList(storageId), true)).willReturn(createStorageInformationWithDigest(storageId, "DIGEST_FROM_STORAGE"));
+        given(storageClient.getInformation(VitamConfiguration.getDefaultStrategy(), OBJECT, versionId, Collections.singletonList(storageId), true)).willReturn(createStorageInformationWithDigest(storageId, "DIGEST_FROM_STORAGE"));
         given(logbookLifeCyclesClient.getRawObjectGroupLifeCycleById(objectGroupId)).willReturn(objectMapper.valueToTree(new LogbookLifecycle()));
 
         // When
@@ -279,7 +282,7 @@ public class ProbativeCreateReportEntryTest {
 
 
         given(metaDataClient.getObjectGroupByIdRaw(objectGroupId)).willReturn(getResponseWith(versionId, storageId, usageVersion, opi));
-        given(storageClient.getInformation("default", OBJECT, versionId, Collections.singletonList(storageId), true)).willReturn(createStorageInformationWithDigest(storageId, "DIGEST_FROM_STORAGE"));
+        given(storageClient.getInformation(VitamConfiguration.getDefaultStrategy(), OBJECT, versionId, Collections.singletonList(storageId), true)).willReturn(createStorageInformationWithDigest(storageId, "DIGEST_FROM_STORAGE"));
         given(logbookLifeCyclesClient.getRawObjectGroupLifeCycleById(objectGroupId)).willReturn(objectMapper.valueToTree(createObjectGroupLifecycleFrom(versionId, "awesomedigest", logbookLFCDate)));
         given(logbookOperationsClient.selectOperationById(opi)).willReturn(objectMapper.valueToTree(createOperation(createLogBookOperationWith(logbookOperationLastpersiteddate, "INGEST_OPERATION", "opIngest"))));
 

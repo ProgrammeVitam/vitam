@@ -33,6 +33,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import fr.gouv.vitam.common.SedaConstants;
+import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
@@ -57,8 +58,6 @@ public abstract class StoreObjectActionHandler extends ActionHandler {
     private static final VitamLogger LOGGER =
         VitamLoggerFactory.getInstance(StoreObjectActionHandler.class);
 
-    protected static final String DEFAULT_STRATEGY = "default";
-
     private static final String FILE_NAME = "FileName";
     private static final String OFFERS = "Offers";
     private static final String ALGORITHM = "Algorithm";
@@ -82,7 +81,7 @@ public abstract class StoreObjectActionHandler extends ActionHandler {
 
         try (final StorageClient storageClient = storageClientFactory.getClient()) {
             // store binary data object
-            return storageClient.storeFileFromWorkspace(DEFAULT_STRATEGY, description.getType(),
+            return storageClient.storeFileFromWorkspace(VitamConfiguration.getDefaultStrategy(), description.getType(),
                 description.getObjectName(), description);
 
         } catch (StorageAlreadyExistsClientException e) {
@@ -103,7 +102,7 @@ public abstract class StoreObjectActionHandler extends ActionHandler {
 
         try (final StorageClient storageClient = storageClientFactory.getClient()) {
             // store binary data objects
-            return storageClient.bulkStoreFilesFromWorkspace(DEFAULT_STRATEGY, bulkObjectStoreRequest);
+            return storageClient.bulkStoreFilesFromWorkspace(VitamConfiguration.getDefaultStrategy(), bulkObjectStoreRequest);
 
         }
     }

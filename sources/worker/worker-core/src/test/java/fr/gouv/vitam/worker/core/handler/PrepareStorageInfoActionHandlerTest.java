@@ -13,6 +13,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 
 import fr.gouv.vitam.common.SedaConstants;
 import fr.gouv.vitam.common.SystemPropertyUtil;
+import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.StatusCode;
@@ -74,6 +75,6 @@ public class PrepareStorageInfoActionHandlerTest {
         assertThat((storageInfo.get(SedaConstants.OFFER_IDS)).size()).isEqualTo(2);
         assertThat((storageInfo.get(SedaConstants.OFFER_IDS)).get(0).asText()).isEqualTo("offer1");
         assertThat((storageInfo.get(SedaConstants.OFFER_IDS)).get(1).asText()).isEqualTo("offer2");
-        assertThat(storageInfo.get(SedaConstants.STRATEGY_ID).asText()).isEqualTo("default");
+        assertThat(storageInfo.get(SedaConstants.STRATEGY_ID).asText()).isEqualTo(VitamConfiguration.getDefaultStrategy());
     }
 }

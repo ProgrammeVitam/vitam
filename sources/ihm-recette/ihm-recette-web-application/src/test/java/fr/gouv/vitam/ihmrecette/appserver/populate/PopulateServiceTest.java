@@ -1,5 +1,6 @@
 package fr.gouv.vitam.ihmrecette.appserver.populate;
 
+import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.model.unit.DescriptiveMetadataModel;
 import io.reactivex.schedulers.TestScheduler;
 import org.junit.Before;
@@ -62,7 +63,7 @@ public class PopulateServiceTest {
         populateModel.setRuleTemplatePercent(ruleMap);
 
         UnitModel unitModel = new UnitModel();
-        unitModel.setStorageModel(new StorageModel(2, "default", Arrays.asList("offer1", "offer2")));
+        unitModel.setStorageModel(new StorageModel(2, VitamConfiguration.getDefaultStrategy(), Arrays.asList("offer1", "offer2")));
 
         DescriptiveMetadataModel content = new DescriptiveMetadataModel();
         content.setTitle("1234");
@@ -116,7 +117,7 @@ public class PopulateServiceTest {
         populateModel.setRuleTemplatePercent(ruleMap);
 
         UnitModel unitModel = new UnitModel();
-        unitModel.setStorageModel(new StorageModel(2, "default", Arrays.asList("offer1", "offer2")));
+        unitModel.setStorageModel(new StorageModel(2, VitamConfiguration.getDefaultStrategy(), Arrays.asList("offer1", "offer2")));
 
         DescriptiveMetadataModel content = new DescriptiveMetadataModel();
         content.setTitle("1234");
@@ -170,7 +171,7 @@ public class PopulateServiceTest {
         populateModel.setRuleTemplatePercent(ruleMap);
 
         UnitModel unitModel = new UnitModel();
-        unitModel.setStorageModel(new StorageModel(2, "default", Arrays.asList("offer1", "offer2")));
+        unitModel.setStorageModel(new StorageModel(2, VitamConfiguration.getDefaultStrategy(), Arrays.asList("offer1", "offer2")));
 
         DescriptiveMetadataModel content = new DescriptiveMetadataModel();
         content.setTitle("1234");
@@ -216,7 +217,7 @@ public class PopulateServiceTest {
         populateModel.setRuleTemplatePercent(ruleMap);
 
         UnitModel unitModel = new UnitModel();
-        unitModel.setStorageModel(new StorageModel(2, "default", Arrays.asList("offer1", "offer2")));
+        unitModel.setStorageModel(new StorageModel(2, VitamConfiguration.getDefaultStrategy(), Arrays.asList("offer1", "offer2")));
 
         DescriptiveMetadataModel content = new DescriptiveMetadataModel();
         content.setTitle("1234");

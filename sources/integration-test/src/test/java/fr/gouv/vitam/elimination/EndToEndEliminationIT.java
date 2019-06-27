@@ -42,6 +42,7 @@ import fr.gouv.vitam.batch.report.rest.BatchReportMain;
 import fr.gouv.vitam.common.CommonMediaType;
 import fr.gouv.vitam.common.DataLoader;
 import fr.gouv.vitam.common.PropertiesUtils;
+import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.VitamRuleRunner;
 import fr.gouv.vitam.common.VitamServerRunner;
 import fr.gouv.vitam.common.accesslog.AccessLogUtils;
@@ -136,7 +137,6 @@ import static org.junit.Assert.assertNotNull;
  * Ingest Internal integration test
  */
 public class EndToEndEliminationIT extends VitamRuleRunner {
-    private static final String DEFAULT_STRATEGY = "default";
     private static final Integer tenantId = 0;
     private static final long SLEEP_TIME = 20l;
     private static final long NB_TRY = 18000; // equivalent to 16 minute
@@ -432,7 +432,7 @@ public class EndToEndEliminationIT extends VitamRuleRunner {
             Response reportResponse = null;
 
             try {
-                reportResponse = storageClient.getContainerAsync(DEFAULT_STRATEGY,
+                reportResponse = storageClient.getContainerAsync(VitamConfiguration.getDefaultStrategy(),
                     eliminationActionOperationGuid.toString() + ".jsonl", DataCategory.REPORT,
                     AccessLogUtils.getNoLogAccessLog());
 
@@ -586,9 +586,9 @@ public class EndToEndEliminationIT extends VitamRuleRunner {
         throws StorageNotFoundClientException, StorageServerClientException {
         try (StorageClient storageClient = StorageClientFactory.getInstance().getClient()) {
 
-            List<String> offers = storageClient.getOffers(DEFAULT_STRATEGY);
+            List<String> offers = storageClient.getOffers(VitamConfiguration.getDefaultStrategy());
             JsonNode information =
-                storageClient.getInformation(DEFAULT_STRATEGY, dataCategory, filename, offers, false);
+                storageClient.getInformation(VitamConfiguration.getDefaultStrategy(), dataCategory, filename, offers, false);
             boolean fileFound = information.size() > 0;
             assertThat(fileFound).isEqualTo((boolean) shouldExist);
         }

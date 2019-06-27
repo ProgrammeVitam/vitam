@@ -245,7 +245,7 @@ public class BackupAndReconstructionLogbookIT extends VitamRuleRunner {
 
 
         RequestResponse<OfferLog> offerLogResponse1 =
-                storageClient.getOfferLogs("default", DataCategory.BACKUP_OPERATION, 0L, 10, Order.ASC);
+                storageClient.getOfferLogs(VitamConfiguration.getDefaultStrategy(), DataCategory.BACKUP_OPERATION, 0L, 10, Order.ASC);
         assertThat(offerLogResponse1).isNotNull();
         assertThat(offerLogResponse1.isOk()).isTrue();
         assertThat(((RequestResponseOK<OfferLog>) offerLogResponse1).getResults().size()).isEqualTo(9);
@@ -261,7 +261,7 @@ public class BackupAndReconstructionLogbookIT extends VitamRuleRunner {
                 .isEqualTo(LOGBOOK_0_GUID);
 
         RequestResponse<OfferLog> offerLogResponse2 =
-                storageClient.getOfferLogs("default", DataCategory.BACKUP_OPERATION, 1L, 10, Order.DESC);
+                storageClient.getOfferLogs(VitamConfiguration.getDefaultStrategy(), DataCategory.BACKUP_OPERATION, 1L, 10, Order.DESC);
         assertThat(offerLogResponse2).isNotNull();
         assertThat(offerLogResponse2.isOk()).isTrue();
         assertThat(((RequestResponseOK<OfferLog>) offerLogResponse2).getResults().size()).isEqualTo(1);
@@ -270,7 +270,7 @@ public class BackupAndReconstructionLogbookIT extends VitamRuleRunner {
                 .isEqualTo(LOGBOOK_0_GUID);
 
         RequestResponse<OfferLog> offerLogResponse3 =
-                storageClient.getOfferLogs("default", DataCategory.BACKUP_OPERATION, null, 10, Order.DESC);
+                storageClient.getOfferLogs(VitamConfiguration.getDefaultStrategy(), DataCategory.BACKUP_OPERATION, null, 10, Order.DESC);
         assertThat(offerLogResponse3).isNotNull();
         assertThat(offerLogResponse3.isOk()).isTrue();
         assertThat(((RequestResponseOK<OfferLog>) offerLogResponse3).getResults().size()).isEqualTo(9);

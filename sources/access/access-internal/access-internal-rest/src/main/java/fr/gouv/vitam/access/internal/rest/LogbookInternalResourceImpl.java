@@ -34,6 +34,7 @@ import fr.gouv.vitam.access.internal.api.AccessInternalModule;
 import fr.gouv.vitam.access.internal.common.exception.AccessInternalExecutionException;
 import fr.gouv.vitam.access.internal.core.AccessInternalModuleImpl;
 import fr.gouv.vitam.common.ParametersChecker;
+import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.accesslog.AccessLogInfoModel;
 import fr.gouv.vitam.common.accesslog.AccessLogUtils;
 import fr.gouv.vitam.common.client.DefaultClient;
@@ -125,8 +126,6 @@ public class LogbookInternalResourceImpl {
     private static final String EVENT_ID_PROCESS = "evIdProc";
     private static final String DSLQUERY_TO_CHECK_TRACEABILITY_OPERATION_NOT_FOUND =
         "DSL Query to start traceability check was not found.";
-
-    private static final String DEFAULT_STORAGE_STRATEGY = "default";
 
     private static final long SLEEP_TIME = 20l;
     private static final long NB_TRY = 18000;
@@ -511,7 +510,7 @@ public class LogbookInternalResourceImpl {
 
             AccessLogInfoModel logInfo = AccessLogUtils.getNoLogAccessLog();
             final Response response =
-                storageClient.getContainerAsync(DEFAULT_STORAGE_STRATEGY, fileName, dataCategory, logInfo);
+                storageClient.getContainerAsync(VitamConfiguration.getDefaultStrategy(), fileName, dataCategory, logInfo);
             if (response.getStatus() == Status.OK.getStatusCode()) {
                 Map<String, String> headers = new HashMap<>();
                 headers.put(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_OCTET_STREAM);

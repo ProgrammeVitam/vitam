@@ -29,6 +29,7 @@ package fr.gouv.vitam.worker.core.plugin;
 import com.fasterxml.jackson.databind.JsonNode;
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.SedaConstants;
+import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
@@ -36,7 +37,6 @@ import fr.gouv.vitam.common.model.IngestWorkflowConstants;
 import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
-import fr.gouv.vitam.processing.common.exception.StepAlreadyExecutedException;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 import fr.gouv.vitam.storage.engine.client.StorageClientFactory;
 import fr.gouv.vitam.storage.engine.client.exception.StorageClientException;
@@ -124,7 +124,7 @@ public class StoreObjectGroupActionPlugin extends StoreObjectActionHandler {
             // update sub task itemStatus
             updateSubTasksAndTasksFromStorageInfos(result, itemStatusByObjectList, itemStatusList);
 
-            storeStorageInfos(DEFAULT_STRATEGY, mapOfObjectsList, result);
+            storeStorageInfos(VitamConfiguration.getDefaultStrategy(), mapOfObjectsList, result);
 
             for (int i = 0; i < mapOfObjectsList.size(); i++) {
                 handlerIO.transferJsonToWorkspace(IngestWorkflowConstants.OBJECT_GROUP_FOLDER,

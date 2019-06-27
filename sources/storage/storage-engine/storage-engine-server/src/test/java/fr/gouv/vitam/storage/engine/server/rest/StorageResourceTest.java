@@ -792,7 +792,7 @@ public class StorageResourceTest {
         objectDescription.setWorkspaceContainerGUID("fake");
 
         given().header(VitamHttpHeader.TENANT_ID.getName(), TENANT_ID).header(VitamHttpHeader.STRATEGY_ID.getName(),
-            "default").accept(MediaType.APPLICATION_JSON)
+            VitamConfiguration.getDefaultStrategy()).accept(MediaType.APPLICATION_JSON)
             .contentType(MediaType.APPLICATION_JSON).body(objectDescription).when().post(STORAGE_BACKUP_OPERATION +
             STORAGE_BACKUP_OPERATION_ID_URI, "id")
             .then().statusCode(Status.CREATED.getStatusCode());
@@ -1130,8 +1130,8 @@ public class StorageResourceTest {
             } else {
                 Map<String, StorageStrategy> strategies = new HashMap<String, StorageStrategy>();
                 StorageStrategy mockStrategy = new StorageStrategy();
-                mockStrategy.setId("default");
-                strategies.put("default", mockStrategy);
+                mockStrategy.setId(VitamConfiguration.getDefaultStrategy());
+                strategies.put(VitamConfiguration.getDefaultStrategy(), mockStrategy);
                 return strategies;
             }
         }

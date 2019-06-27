@@ -62,6 +62,7 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import fr.gouv.vitam.common.CharsetUtils;
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.SystemPropertyUtil;
+import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.client.VitamClientFactoryInterface;
 import fr.gouv.vitam.common.database.collections.VitamCollection;
 import fr.gouv.vitam.common.guid.GUIDFactory;
@@ -118,7 +119,6 @@ public class RestoreBackupIT {
     private static final String OFFER_FOLDER = "offer";
     private static final String BACKUP_COPY_FOLDER = "backup";
     private static final int TENANT_ID = 0;
-    private static final String STRATEGY_ID = "default";
     private static String CONTAINER = "0_rules";
     private static String containerName = "";
 
@@ -264,7 +264,7 @@ public class RestoreBackupIT {
     public void testRetrievalLastBackupVersion_emptyResult() throws Exception {
         // get the last version of the json backup files.
         Optional<String> lastBackupVersion = recoverBackupService
-            .getLatestSavedFileName(STRATEGY_ID, DataCategory.RULES, FunctionalAdminCollections.RULES);
+            .getLatestSavedFileName(VitamConfiguration.getDefaultStrategy(), DataCategory.RULES, FunctionalAdminCollections.RULES);
 
         LOGGER.debug("No backup version found.");
         Assert.assertEquals(Optional.empty(), lastBackupVersion);
@@ -279,7 +279,7 @@ public class RestoreBackupIT {
 
         // get the last version of the json backup files.
         Optional<String> lastBackupVersion = recoverBackupService
-            .getLatestSavedFileName(STRATEGY_ID, DataCategory.BACKUP, FunctionalAdminCollections.RULES);
+            .getLatestSavedFileName(VitamConfiguration.getDefaultStrategy(), DataCategory.BACKUP, FunctionalAdminCollections.RULES);
 
         Assert.assertTrue(lastBackupVersion.isPresent());
         LOGGER.debug(String.format("Last backup version -> %s", lastBackupVersion.get()));
@@ -293,7 +293,7 @@ public class RestoreBackupIT {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         // get the backup copy file.
         Optional<CollectionBackupModel> collectionBackup = recoverBackupService
-            .readLatestSavedFile(STRATEGY_ID, FunctionalAdminCollections.RULES);
+            .readLatestSavedFile(VitamConfiguration.getDefaultStrategy(), FunctionalAdminCollections.RULES);
 
         LOGGER.debug("No backup copy found.");
         Assert.assertEquals(Optional.empty(), collectionBackup);
@@ -308,7 +308,7 @@ public class RestoreBackupIT {
 
         // get the backup copy file.
         Optional<CollectionBackupModel> collectionBackup = recoverBackupService
-            .readLatestSavedFile(STRATEGY_ID, FunctionalAdminCollections.RULES);
+            .readLatestSavedFile(VitamConfiguration.getDefaultStrategy(), FunctionalAdminCollections.RULES);
 
         Assert.assertTrue(collectionBackup.isPresent());
         Assert.assertEquals(52, collectionBackup.get().getDocuments().size());
@@ -348,7 +348,7 @@ public class RestoreBackupIT {
             final ObjectDescription description = new ObjectDescription();
             description.setWorkspaceContainerGUID(containerName);
             description.setWorkspaceObjectURI(uri);
-            storageClient.storeFileFromWorkspace(STRATEGY_ID, DataCategory.BACKUP, uri, description);
+            storageClient.storeFileFromWorkspace(VitamConfiguration.getDefaultStrategy(), DataCategory.BACKUP, uri, description);
 
         } catch (Exception e) {
             LOGGER.error("ERROR: Exception has been thrown when storing the backup copy.", e);

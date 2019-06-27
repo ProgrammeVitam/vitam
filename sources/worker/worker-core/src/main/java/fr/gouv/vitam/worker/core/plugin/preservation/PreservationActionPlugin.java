@@ -86,7 +86,6 @@ public class PreservationActionPlugin extends ActionHandler {
 
     private static final String INPUT_FILES = "input-files";
     public static final String OUTPUT_FILES = "output-files";
-    public static final String DEFAULT_STORAGE_STRATEGY = "default";
 
     private static final String PLUGIN_NAME = "PRESERVATION_ACTION";
     private static final String PARAMETERS_JSON = "parameters.json";
@@ -184,7 +183,7 @@ public class PreservationActionPlugin extends ActionHandler {
         InputStream src = null;
         try {
             fileResponse = storageClient
-                .getContainerAsync(DEFAULT_STORAGE_STRATEGY, entryParams.getObjectId(), OBJECT, getNoLogAccessLog());
+                .getContainerAsync(VitamConfiguration.getDefaultStrategy(), entryParams.getObjectId(), OBJECT, getNoLogAccessLog());
             src = fileResponse.readEntity(InputStream.class);
             Path target = inputFilesDirectory.resolve(entryParams.getObjectId());
             Files.copy(src, target, REPLACE_EXISTING);

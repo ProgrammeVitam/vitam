@@ -36,6 +36,8 @@ import com.mongodb.client.MongoDatabase;
 import com.mongodb.client.model.BulkWriteOptions;
 import com.mongodb.client.model.Filters;
 import com.mongodb.client.model.InsertOneModel;
+
+import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.database.collections.VitamCollection;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.BsonHelper;
@@ -72,8 +74,6 @@ import static com.mongodb.client.model.Filters.eq;
 public class MetadataRepository {
 
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(MetadataRepository.class);
-
-    public static final String STRATEGY_ID = "default";
 
     private MongoDatabase metadataDb;
     private Client transportClient;
@@ -150,7 +150,7 @@ public class MetadataRepository {
             CompletableFuture<Void> completableFuture = CompletableFuture.runAsync(() -> {
             try {
                 this.storagePopulateService.storeData(
-                    STRATEGY_ID,
+                    VitamConfiguration.getDefaultStrategy(),
                     unitGotModel.getGot().getQualifiers().get(0).getVersions().get(0).getId(),
                     PopulateService.POPULATE_FILE,
                     DataCategory.OBJECT, unitGotModel.getUnit().getTenant()

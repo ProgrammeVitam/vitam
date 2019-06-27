@@ -38,6 +38,7 @@ import fr.gouv.vitam.access.external.common.exception.AccessExternalClientNotFou
 import fr.gouv.vitam.access.external.common.exception.AccessExternalClientServerException;
 import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.ParametersChecker;
+import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.accesslog.AccessLogUtils;
 import fr.gouv.vitam.common.client.VitamContext;
 import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
@@ -163,7 +164,6 @@ public class WebApplicationResource extends ApplicationStatusResource {
     private static final String HTTP_GET = "GET";
     private static final String HTTP_PUT = "PUT";
     private static final String HTTP_DELETE = "DELETE";
-    private static final String DEFAULT = "default";
     private static final String RULE_ACTIONS = "ruleActions";
 
     private final UserInterfaceTransactionManager userInterfaceTransactionManager;
@@ -356,7 +356,7 @@ public class WebApplicationResource extends ApplicationStatusResource {
         try (StorageClient client = StorageClientFactory.getInstance().getClient()) {
             // Should we log it ?
             Response response =
-                client.getContainerAsync(DEFAULT, uid, dataCategory, AccessLogUtils.getNoLogAccessLog());
+                client.getContainerAsync(VitamConfiguration.getDefaultStrategy(), uid, dataCategory, AccessLogUtils.getNoLogAccessLog());
             return new VitamAsyncInputStreamResponse(response);
         } catch (StorageServerClientException | StorageNotFoundException e) {
             return Response.status(Status.INTERNAL_SERVER_ERROR)
@@ -819,7 +819,7 @@ public class WebApplicationResource extends ApplicationStatusResource {
             String fileName = traceabilityEvent.get("FileName").textValue();
             DataCategory documentType = DataCategory.LOGBOOK;
             response =
-                storageClient.getContainerAsync("default", fileName, documentType, AccessLogUtils.getNoLogAccessLog());
+                storageClient.getContainerAsync(VitamConfiguration.getDefaultStrategy(), fileName, documentType, AccessLogUtils.getNoLogAccessLog());
             final AsyncInputStreamHelper helper = new AsyncInputStreamHelper(asyncResponse, response);
             if (response.getStatus() == Status.OK.getStatusCode()) {
                 helper.writeResponse(Response

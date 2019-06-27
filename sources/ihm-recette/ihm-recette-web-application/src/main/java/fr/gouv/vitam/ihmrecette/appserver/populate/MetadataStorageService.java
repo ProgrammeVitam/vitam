@@ -39,6 +39,7 @@ import java.util.stream.Collectors;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import fr.gouv.vitam.common.PropertiesUtils;
+import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.json.CanonicalJsonFormatter;
 import fr.gouv.vitam.common.logging.SysErrLogger;
 import fr.gouv.vitam.common.logging.VitamLogger;
@@ -132,7 +133,7 @@ public class MetadataStorageService {
 
             CanonicalJsonFormatter.serialize(docWithLfc, fos);
 
-            storagePopulateService.storeData("default",
+            storagePopulateService.storeData(VitamConfiguration.getDefaultStrategy(),
                 id + ".json", file, dataCategory, populateModel.getTenant());
 
         } catch (IOException | StorageException e) {
@@ -156,7 +157,7 @@ public class MetadataStorageService {
     public void exportData(Integer tenant, String objectId, DataCategory dataCategory) {
 
         try {
-            storagePopulateService.exportData("default",
+            storagePopulateService.exportData(VitamConfiguration.getDefaultStrategy(),
                     objectId, dataCategory, tenant);
 
         } catch (IOException | StorageException e) {

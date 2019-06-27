@@ -66,7 +66,6 @@ public class AdminOfferSyncResourceTest {
 
     private static final String OFFER_FS_1_SERVICE_CONSUL = "offer-fs-1.service.consul";
     private static final String OFFER_FS_2_SERVICE_CONSUL = "offer-fs-2.service.consul";
-    private static final String STRATEGY_ID = "default";
 
     @Rule
     public MockitoRule mockitoRule = MockitoJUnit.rule();
@@ -87,7 +86,7 @@ public class AdminOfferSyncResourceTest {
         OfferSyncRequest offerSyncRequest = createOfferSyncRequest();
 
         when(offerSyncService
-            .startSynchronization(OFFER_FS_1_SERVICE_CONSUL, OFFER_FS_2_SERVICE_CONSUL, STRATEGY_ID, DataCategory.UNIT, null))
+            .startSynchronization(OFFER_FS_1_SERVICE_CONSUL, OFFER_FS_2_SERVICE_CONSUL, VitamConfiguration.getDefaultStrategy(), DataCategory.UNIT, null))
             .thenReturn(true);
 
         AdminOfferSyncResource instance = new AdminOfferSyncResource(offerSyncService);
@@ -108,7 +107,7 @@ public class AdminOfferSyncResourceTest {
         OfferSyncRequest offerSyncRequest = createOfferSyncRequest();
 
         when(offerSyncService
-            .startSynchronization(OFFER_FS_1_SERVICE_CONSUL, OFFER_FS_2_SERVICE_CONSUL, STRATEGY_ID, DataCategory.UNIT, null))
+            .startSynchronization(OFFER_FS_1_SERVICE_CONSUL, OFFER_FS_2_SERVICE_CONSUL, VitamConfiguration.getDefaultStrategy(), DataCategory.UNIT, null))
             .thenReturn(false);
 
         AdminOfferSyncResource instance = new AdminOfferSyncResource(offerSyncService);
@@ -233,6 +232,6 @@ public class AdminOfferSyncResourceTest {
             .setContainer(DataCategory.UNIT.getCollectionName())
             .setOffset(null)
             .setTenantId(0)
-            .setStrategyId(STRATEGY_ID);
+            .setStrategyId(VitamConfiguration.getDefaultStrategy());
     }
 }

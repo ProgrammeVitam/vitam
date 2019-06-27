@@ -28,6 +28,8 @@ package fr.gouv.vitam.functional.administration.common;
 
 
 import com.google.common.annotations.VisibleForTesting;
+
+import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
@@ -57,7 +59,6 @@ public class BackupService {
 
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(BackupService.class);
 
-    private static final String STRATEGY_ID = "default";
     private final WorkspaceClientFactory workspaceClientFactory;
     private final StorageClientFactory storageClientFactory;
 
@@ -96,7 +97,7 @@ public class BackupService {
                 description.setWorkspaceContainerGUID(containerName);
                 description.setWorkspaceObjectURI(uri);
 
-                return storageClient.storeFileFromWorkspace(STRATEGY_ID, storageCollectionType, uri, description);
+                return storageClient.storeFileFromWorkspace(VitamConfiguration.getDefaultStrategy(), storageCollectionType, uri, description);
             } finally {
                 try {
                     // try delete container

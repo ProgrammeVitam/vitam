@@ -107,7 +107,6 @@ import static fr.gouv.vitam.storage.engine.common.model.response.StoredInfoResul
 public class EvidenceService {
 
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(EvidenceService.class);
-    private static final String DEFAULT_STORAGE_STRATEGY = "default";
     private static final String TMP = "tmp";
     private static final String FILE_NAME = "FileName";
     private static final String LAST_PERSISTED_DATE = "_lastPersistedDate";
@@ -424,13 +423,12 @@ public class EvidenceService {
         Response response = null;
         try (StorageClient storageClient = storageClientFactory.getClient()) {
             response = storageClient
-                .getContainerAsync(DEFAULT_STORAGE_STRATEGY, fileName, DataCategory.LOGBOOK, AccessLogUtils.getNoLogAccessLog());
+                .getContainerAsync(VitamConfiguration.getDefaultStrategy(), fileName, DataCategory.LOGBOOK, AccessLogUtils.getNoLogAccessLog());
             try (InputStream inputStream = response.readEntity(InputStream.class)) {
 
                 final File file = FileUtil.createFileInTempDirectoryWithPathCheck(TMP, extension);
                 Files.copy(inputStream, file.toPath(), StandardCopyOption.REPLACE_EXISTING);
                 response.close();
-
                 return file;
             }
 

@@ -2,6 +2,7 @@ package fr.gouv.vitam.ihmrecette.appserver;
 
 
 
+import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.storage.engine.client.StorageClient;
 import fr.gouv.vitam.storage.engine.common.model.DataCategory;
@@ -39,11 +40,11 @@ public class StorageCRUDUtilsTest {
         ArrayList<String> offers = new ArrayList<>();
         offers.add("offer-fs-1.service.consul");
         given(storageClient
-            .getInformation("default", DataCategory.OBJECT, "aeeaaaaaacew2hcbaafoialcsdnwzyyaaaaq.json", offers, true))
+            .getInformation(VitamConfiguration.getDefaultStrategy(), DataCategory.OBJECT, "aeeaaaaaacew2hcbaafoialcsdnwzyyaaaaq.json", offers, true))
             .willReturn(
                 JsonHandler.getFromString(information));
 
-        given(storageClient.getOffers("default")).willReturn(offers);
+        given(storageClient.getOffers(VitamConfiguration.getDefaultStrategy())).willReturn(offers);
         storageCRUDUtils = new StorageCRUDUtils(storageClient);
 
 

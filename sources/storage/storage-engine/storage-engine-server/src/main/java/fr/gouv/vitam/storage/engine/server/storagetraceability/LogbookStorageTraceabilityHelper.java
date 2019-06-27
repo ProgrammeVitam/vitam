@@ -103,7 +103,6 @@ public class LogbookStorageTraceabilityHelper implements LogbookTraceabilityHelp
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(LogbookStorageTraceabilityHelper.class);
     private static final AlertService alertService = new AlertServiceImpl();
 
-    private static final String STRATEGY_ID = "default";
     private static final String STORAGE_SECURISATION_STORAGE = "STORAGE_SECURISATION_STORAGE";
     private static final String STP_STORAGE_SECURISATION = "STP_STORAGE_SECURISATION";
     private static final String TIMESTAMP = "STORAGE_SECURISATION_TIMESTAMP";
@@ -142,7 +141,7 @@ public class LogbookStorageTraceabilityHelper implements LogbookTraceabilityHelp
     @Override
     public void initialize() throws TraceabilityException {
         this.traceabilityEndDate = LocalDateUtil.now();
-        String fileName = traceabilityLogbookService.getLastTraceabilityZip(STRATEGY_ID);
+        String fileName = traceabilityLogbookService.getLastTraceabilityZip(VitamConfiguration.getDefaultStrategy());
         if (fileName == null) {
             lastTraceabilityData = null;
             this.traceabilityStartDate = INITIAL_START_DATE;
@@ -151,7 +150,7 @@ public class LogbookStorageTraceabilityHelper implements LogbookTraceabilityHelp
 
         Response response = null;
         try {
-            response = traceabilityLogbookService.getObject(STRATEGY_ID, fileName, DataCategory.STORAGETRACEABILITY);
+            response = traceabilityLogbookService.getObject(VitamConfiguration.getDefaultStrategy(), fileName, DataCategory.STORAGETRACEABILITY);
             try (
                 InputStream stream = response.readEntity(InputStream.class);
                 ArchiveInputStream archiveInputStream = new VitamArchiveStreamFactory()
@@ -191,7 +190,7 @@ public class LogbookStorageTraceabilityHelper implements LogbookTraceabilityHelp
         throws IOException, TraceabilityException {
 
         Iterator<OfferLog> traceabilityIterator =
-            traceabilityLogbookService.getLastSavedStorageLogIterator(STRATEGY_ID);
+            traceabilityLogbookService.getLastSavedStorageLogIterator(VitamConfiguration.getDefaultStrategy());
 
         file.initStoreLog();
         while (traceabilityIterator.hasNext()) {
@@ -206,7 +205,7 @@ public class LogbookStorageTraceabilityHelper implements LogbookTraceabilityHelp
             Response response = null;
             InputStream stream = null;
             try {
-                response = traceabilityLogbookService.getObject(STRATEGY_ID, fileName, DataCategory.STORAGELOG);
+                response = traceabilityLogbookService.getObject(VitamConfiguration.getDefaultStrategy(), fileName, DataCategory.STORAGELOG);
                 stream = response.readEntity(InputStream.class);
                 byte[] hash = digest.update(stream).digest();
 

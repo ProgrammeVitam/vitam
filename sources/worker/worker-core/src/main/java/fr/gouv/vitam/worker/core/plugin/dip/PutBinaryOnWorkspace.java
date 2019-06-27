@@ -41,6 +41,7 @@ import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.accesslog.AccessLogInfoModel;
 import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.StatusCode;
@@ -66,7 +67,6 @@ public class PutBinaryOnWorkspace extends ActionHandler {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(PutBinaryOnWorkspace.class);
 
     private static final String PUT_BINARY_ON_WORKSPACE = "PUT_BINARY_ON_WORKSPACE";
-    private static final String DEFAULT_STORAGE_STRATEGY = "default";
 
     static final int GUID_TO_INFO_RANK = 0;
     public static final int NUMBER_OF_RETRY = 3;
@@ -137,7 +137,7 @@ public class PutBinaryOnWorkspace extends ActionHandler {
             AccessLogInfoModel logInfo = AccessLogUtils.getInfoFromWorkerInfo(objectInfo, VitamThreadUtils.getVitamSession(), mustLog);
 
             response = storageClient
-                .getContainerAsync(DEFAULT_STORAGE_STRATEGY, param.getObjectName(), DataCategory.OBJECT, logInfo);
+                .getContainerAsync(VitamConfiguration.getDefaultStrategy(), param.getObjectName(), DataCategory.OBJECT, logInfo);
 
             handler.transferInputStreamToWorkspace((String) objectInfo.get("FILE_NAME"),
                 (InputStream) response.getEntity(), null, false);
