@@ -57,10 +57,10 @@ public class DefaultOfferMain {
         ParametersChecker
             .checkParameter(String.format(CONFIG_FILE_IS_A_MANDATORY_ARGUMENT, CONF_FILE_NAME), configurationFile);
 
-        OfferCommonApplication.getInstance().initialize(configurationFile);
-
         vitamStarter = new VitamStarter(OfferConfiguration.class, configurationFile,
             BusinessApplication.class, AdminOfferApplication.class);
+
+        OfferCommonApplication.getInstance().initialize(configurationFile);
     }
 
     /**

@@ -153,6 +153,7 @@ public class TapeDriveWorkerManager implements TapeDriveOrderConsumer, TapeDrive
         switch (readWritePriority) {
             case BACKUP:
                 readWriteOrder = selectReadWriteOrderWithBackupPriority(driveWorker);
+                break;
             case WRITE:
                 readWriteOrder = selectReadWriteOrderWithWritePriority(driveWorker);
                 break;

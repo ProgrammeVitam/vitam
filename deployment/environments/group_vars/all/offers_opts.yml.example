@@ -75,6 +75,7 @@ vitam_offers:
             ddPath: "/bin/dd"
             tarPath: "/bin/tar"
             timeoutInMilliseconds: 3600000
+            readWritePriority: BACKUP
           -
             index: 1
             device: /dev/tape/by-id/scsi-1IBM_ULT3580-TD6_0951859786-nst
@@ -82,6 +83,7 @@ vitam_offers:
             ddPath: "/bin/dd"
             tarPath: "/bin/tar"
             timeoutInMilliseconds: 3600000
+            readWritePriority: READ
           -
             index: 2
             device: /dev/tape/by-id/scsi-1IBM_ULT3580-TD6_0269493808-nst
