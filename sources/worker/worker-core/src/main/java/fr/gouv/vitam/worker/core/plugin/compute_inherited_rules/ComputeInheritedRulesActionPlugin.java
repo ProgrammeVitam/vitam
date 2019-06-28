@@ -26,30 +26,13 @@
  *******************************************************************************/
 package fr.gouv.vitam.worker.core.plugin.compute_inherited_rules;
 
-import static fr.gouv.vitam.worker.core.utils.PluginHelper.buildBulkItemStatus;
-
-import java.time.Instant;
-import java.time.LocalDate;
-import java.time.ZoneId;
-import java.time.format.DateTimeFormatter;
-import java.util.AbstractMap.SimpleEntry;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
-import java.util.Optional;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
-
 import com.fasterxml.jackson.databind.JsonNode;
 import com.google.common.annotations.VisibleForTesting;
 import fr.gouv.vitam.common.VitamConfiguration;
-import fr.gouv.vitam.common.database.builder.query.BooleanQuery;
-import fr.gouv.vitam.common.database.builder.query.CompareQuery;
+import fr.gouv.vitam.common.database.builder.query.InQuery;
+import fr.gouv.vitam.common.database.builder.query.QueryHelper;
 import fr.gouv.vitam.common.database.builder.query.VitamFieldsHelper;
 import fr.gouv.vitam.common.database.builder.query.action.SetAction;
-import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken;
 import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
 import fr.gouv.vitam.common.database.builder.request.multiple.SelectMultiQuery;
 import fr.gouv.vitam.common.database.builder.request.multiple.UpdateMultiQuery;
@@ -82,6 +65,21 @@ import fr.gouv.vitam.worker.core.plugin.compute_inherited_rules.model.InheritedR
 import fr.gouv.vitam.worker.core.plugin.compute_inherited_rules.model.Properties;
 import fr.gouv.vitam.worker.core.plugin.compute_inherited_rules.model.PropertyValue;
 
+import java.time.Instant;
+import java.time.LocalDate;
+import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
+import java.util.AbstractMap.SimpleEntry;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Optional;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+
+import static fr.gouv.vitam.worker.core.utils.PluginHelper.buildBulkItemStatus;
+
 /**
  * ComputeInheritedRulesActionPlugin
  */
@@ -90,7 +88,7 @@ public class ComputeInheritedRulesActionPlugin extends ActionHandler {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(ComputeInheritedRulesActionPlugin.class);
 
     private static final String PLUGIN_NAME = "COMPUTE_INHERITED_RULES_ACTION_PLUGIN";
-    static final String INHERITED_RULES = "InheritedRules";
+    private static final String INHERITED_RULES = "InheritedRules";
 
     private final MetaDataClientFactory metaDataClientFactory;
     private final DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
@@ -102,7 +100,7 @@ public class ComputeInheritedRulesActionPlugin extends ActionHandler {
     }
 
     @VisibleForTesting
-    public ComputeInheritedRulesActionPlugin(MetaDataClientFactory metaDataClientFactory) {
+    ComputeInheritedRulesActionPlugin(MetaDataClientFactory metaDataClientFactory) {
         this.metaDataClientFactory = metaDataClientFactory;
     }
 
@@ -118,43 +116,45 @@ public class ComputeInheritedRulesActionPlugin extends ActionHandler {
         LOGGER.debug("execute MaxEndDatePlugin");
 
         try (MetaDataClient metaDataClient = metaDataClientFactory.getClient()) {
-            for (String unitId : workerParameters.getObjectNameList()) {
+            SelectMultiQuery select = new SelectMultiQuery();
+            InQuery query =
+                QueryHelper.in(VitamFieldsHelper.id(), workerParameters.getObjectNameList().toArray(new String[0]));
+            select.setQuery(query);
+            JsonNode response = metaDataClient.selectUnitsWithInheritedRules(select.getFinalSelect());
+            RequestResponseOK<JsonNode> requestResponseOK = RequestResponseOK.getFromJsonNode(response);
+            List<JsonNode> archiveWithInheritedRules = requestResponseOK.getResults();
 
-                SelectMultiQuery selectMultiple = new SelectMultiQuery();
-                BooleanQuery query = new BooleanQuery(BuilderToken.QUERY.AND);
-                //TODO bulk request + projection #id
-                query.add(new CompareQuery(BuilderToken.QUERY.EQ, VitamFieldsHelper.id(), unitId));
-                selectMultiple.setQuery(query);
-                JsonNode response = metaDataClient.selectUnitsWithInheritedRules(selectMultiple.getFinalSelect());
-                RequestResponseOK<JsonNode> requestResponseOK = RequestResponseOK.getFromJsonNode(response);
-                List<JsonNode> archiveWithInheritedRules = requestResponseOK.getResults();
-                int tenantId = VitamThreadUtils.getVitamSession().getTenantId();
-                boolean indexAPIOutput = getConfigurationAPIOutPut(tenantId);
-                boolean indexRulesById = getConfigurationRulesById(tenantId);
+            int tenantId = VitamThreadUtils.getVitamSession().getTenantId();
+            boolean indexAPIOutput = getConfigurationAPIOutPut(tenantId);
+            boolean indexRulesById = getConfigurationRulesById(tenantId);
 
-                if (!archiveWithInheritedRules.isEmpty()) {
-                    UnitInheritedRulesResponseModel unitInheritedResponseModel = JsonHandler
-                        .getFromJsonNode(archiveWithInheritedRules.get(0).get(INHERITED_RULES), UnitInheritedRulesResponseModel.class);
-                    //TODO Switch POJO to metadata-common
-                    Map<String, InheritedRuleCategoryResponseModel> rulesCategories = unitInheritedResponseModel.getRuleCategories();
+            for (JsonNode archiveUnit : archiveWithInheritedRules) {
+                UnitInheritedRulesResponseModel unitInheritedResponseModel = JsonHandler
+                    .getFromJsonNode(archiveUnit.get(INHERITED_RULES), UnitInheritedRulesResponseModel.class);
+                String unitId = archiveUnit.get(VitamFieldsHelper.id()).textValue();
 
-                    Map<String, InheritedRule> inheritedRulesWithAllOption = rulesCategories
-                        .entrySet()
-                        .stream()
-                        .flatMap(entry -> mapRulesCategoriesToCategoriesWithEndDateAndProperties(entry.getKey(), entry.getValue(),
-                            indexRulesById))
-                        .collect(Collectors.toMap(Entry::getKey, Entry::getValue));
+                //TODO Switch POJO to metadata-common
+                Map<String, InheritedRuleCategoryResponseModel> rulesCategories =
+                    unitInheritedResponseModel.getRuleCategories();
 
-                    List<InheritedPropertyResponseModel> globalProperties = unitInheritedResponseModel.getGlobalProperties();
-                    Map<String, Object> globalInheritedProperties = globalProperties.stream()
-                        .map(property -> new SimpleEntry<>(property.getPropertyName(), property.getPropertyValue()))
-                        .collect(Collectors.toMap(Entry::getKey, Entry::getValue));
+                Map<String, InheritedRule> inheritedRulesWithAllOption = rulesCategories
+                    .entrySet()
+                    .stream()
+                    .flatMap(entry -> mapRulesCategoriesToCategoriesWithEndDateAndProperties(entry.getKey(),
+                        entry.getValue(),
+                        indexRulesById))
+                    .collect(Collectors.toMap(Entry::getKey, Entry::getValue));
 
-                    //TODO if indexAPIOutput don't serialize unitInheritedResponseModel
-                    indexUnit(unitId, inheritedRulesWithAllOption, globalInheritedProperties, metaDataClient,
-                        JsonHandler.toJsonNode(unitInheritedResponseModel), indexAPIOutput);
+                List<InheritedPropertyResponseModel> globalProperties =
+                    unitInheritedResponseModel.getGlobalProperties();
+                Map<String, Object> globalInheritedProperties = globalProperties.stream()
+                    .map(property -> new SimpleEntry<>(property.getPropertyName(), property.getPropertyValue()))
+                    .collect(Collectors.toMap(Entry::getKey, Entry::getValue));
 
-                }
+                JsonNode inheritedRulesAPIOutput =
+                    (indexAPIOutput) ? JsonHandler.toJsonNode(unitInheritedResponseModel) : null;
+                indexUnit(unitId, inheritedRulesWithAllOption, globalInheritedProperties, metaDataClient,
+                    inheritedRulesAPIOutput, indexAPIOutput);
             }
         } catch (InvalidCreateOperationException | MetaDataException e) {
             throw new ProcessingException(e);
@@ -167,7 +167,8 @@ public class ComputeInheritedRulesActionPlugin extends ActionHandler {
     }
 
     private boolean getConfigurationRulesById(int tenant) {
-        List<String> indexInheritedRulesWithRulesIdByTenant = VitamConfiguration.getIndexInheritedRulesWithRulesIdByTenant();
+        List<String> indexInheritedRulesWithRulesIdByTenant =
+            VitamConfiguration.getIndexInheritedRulesWithRulesIdByTenant();
         if (indexInheritedRulesWithRulesIdByTenant != null && !indexInheritedRulesWithRulesIdByTenant.isEmpty()) {
             List<Integer> allowedTenantOptionRuleId =
                 indexInheritedRulesWithRulesIdByTenant
@@ -181,13 +182,14 @@ public class ComputeInheritedRulesActionPlugin extends ActionHandler {
     }
 
     private boolean getConfigurationAPIOutPut(int tenant) {
-        List<String> indexInheritedRulesWithAPIV2OutputByTenant = VitamConfiguration.getIndexInheritedRulesWithAPIV2OutputByTenant();
-        if (indexInheritedRulesWithAPIV2OutputByTenant != null && !indexInheritedRulesWithAPIV2OutputByTenant.isEmpty()) {
-            List<Integer> allowedTenantOptionsAPIV2Output = indexInheritedRulesWithAPIV2OutputByTenant.stream().map(Integer::valueOf).collect(
-                Collectors.toList());
-            if (allowedTenantOptionsAPIV2Output.contains(tenant)) {
-                return true;
-            }
+        List<String> indexInheritedRulesWithAPIV2OutputByTenant =
+            VitamConfiguration.getIndexInheritedRulesWithAPIV2OutputByTenant();
+        if (indexInheritedRulesWithAPIV2OutputByTenant != null &&
+            !indexInheritedRulesWithAPIV2OutputByTenant.isEmpty()) {
+            List<Integer> allowedTenantOptionsAPIV2Output =
+                indexInheritedRulesWithAPIV2OutputByTenant.stream().map(Integer::valueOf).collect(
+                    Collectors.toList());
+            return allowedTenantOptionsAPIV2Output.contains(tenant);
         }
         return false;
     }
@@ -199,9 +201,8 @@ public class ComputeInheritedRulesActionPlugin extends ActionHandler {
         //TODO refactor because Lotfi don't want zoneId.systemDefault
         Optional<LocalDate> maxEndDateByCategory =
             categoryResponseModel.getRules().stream()
-                .map(rule -> Date.from(ParseToLocalDate(rule.getEndDate()).atStartOfDay(ZoneId.systemDefault()).toInstant()))
-                .max(Date::compareTo)
-                .map(date -> date.toInstant().atZone(ZoneId.systemDefault()).toLocalDate());
+                .map(rule -> parseToLocalDate(rule.getEndDate()))
+                .max(LocalDate::compareTo);
 
         Map<String, LocalDate> ruleIdToRuleMaxEndDate =
             categoryResponseModel.getRules()
@@ -231,7 +232,7 @@ public class ComputeInheritedRulesActionPlugin extends ActionHandler {
     }
 
     private Entry<String, LocalDate> mapToEntryOfRuleIdToMaxEndDate(InheritedRuleResponseModel rule) {
-        return new SimpleEntry<>(rule.getRuleId(), ParseToLocalDate(rule.getEndDate()));
+        return new SimpleEntry<>(rule.getRuleId(), parseToLocalDate(rule.getEndDate()));
     }
 
     private void addToMapAccordingToIndexRulesById(String category, boolean indexRulesById,
@@ -241,36 +242,41 @@ public class ComputeInheritedRulesActionPlugin extends ActionHandler {
         Map<String, PropertyValue> propertyNameToPropertyValue) {
         if (indexRulesById) {
             inheritedRulesWithEndDateAndProperties
-                .put(category, new InheritedRule(maxEndDateByCategory, new Properties(propertyNameToPropertyValue), computedInheritedRules));
+                .put(category, new InheritedRule(maxEndDateByCategory, new Properties(propertyNameToPropertyValue),
+                    computedInheritedRules));
         } else {
             inheritedRulesWithEndDateAndProperties
                 .put(category, new InheritedRule(maxEndDateByCategory, new Properties(propertyNameToPropertyValue)));
         }
     }
 
-    private LocalDate ParseToLocalDate(String dateToParse) {
+    private LocalDate parseToLocalDate(String dateToParse) {
         return LocalDate.parse(dateToParse, formatter);
     }
 
-    private Map<String, PropertyValue> mapInheritedPropertyResponseModelToPropertiesNameValue(List<InheritedPropertyResponseModel> properties) {
+    private Map<String, PropertyValue> mapInheritedPropertyResponseModelToPropertiesNameValue(
+        List<InheritedPropertyResponseModel> properties) {
         return properties.stream()
             .map(property -> mapPropertyToPropertyNameAndValue(property.getPropertyName(), property.getPropertyValue()))
             .collect(Collectors.toMap(
                 Entry::getKey,
                 Entry::getValue,
                 PropertyValue::new
-                ));
+            ));
     }
 
-    private SimpleEntry<String, PropertyValue> mapPropertyToPropertyNameAndValue(String propertyName, Object propertyValue) {
+    private SimpleEntry<String, PropertyValue> mapPropertyToPropertyNameAndValue(String propertyName,
+        Object propertyValue) {
         return new SimpleEntry<>(propertyName, new PropertyValue(propertyValue));
     }
 
-    private void indexUnit(String unitId, Map<String, InheritedRule> inheritedRules,Map<String, Object>  globalInheritedProperties, MetaDataClient metaDataClient,
+    private void indexUnit(String unitId, Map<String, InheritedRule> inheritedRules,
+        Map<String, Object> globalInheritedProperties, MetaDataClient metaDataClient,
         JsonNode inheritedRulesAPIOutput, boolean indexAPIOutput)
         throws ProcessingException {
         ComputedInheritedRules computedInheritedRules =
-            getComputedInheritedRulesAccordingToIndexAPIOutput(inheritedRules, inheritedRulesAPIOutput, globalInheritedProperties, indexAPIOutput);
+            getComputedInheritedRulesAccordingToIndexAPIOutput(inheritedRules, inheritedRulesAPIOutput,
+                globalInheritedProperties, indexAPIOutput);
         try {
             UpdateMultiQuery updateMultiQuery = new UpdateMultiQuery();
             Map<String, JsonNode> action = new HashMap<>();
@@ -285,12 +291,14 @@ public class ComputeInheritedRulesActionPlugin extends ActionHandler {
         }
     }
 
-    private ComputedInheritedRules getComputedInheritedRulesAccordingToIndexAPIOutput(Map<String, InheritedRule> inheritedRules,
-        JsonNode inheritedRulesAPIOutput,Map<String, Object> globalInheritedProperties, boolean indexAPIOutput) {
+    private ComputedInheritedRules getComputedInheritedRulesAccordingToIndexAPIOutput(
+        Map<String, InheritedRule> inheritedRules,
+        JsonNode inheritedRulesAPIOutput, Map<String, Object> globalInheritedProperties, boolean indexAPIOutput) {
         LocalDate indexationDate = Instant.now().atZone(ZoneId.systemDefault()).toLocalDate();
         String dateFormatted = indexationDate.format(formatter);
         if (indexAPIOutput) {
-            return new ComputedInheritedRules(inheritedRules, inheritedRulesAPIOutput, globalInheritedProperties, dateFormatted);
+            return new ComputedInheritedRules(inheritedRules, inheritedRulesAPIOutput, globalInheritedProperties,
+                dateFormatted);
         } else {
             return new ComputedInheritedRules(inheritedRules, dateFormatted);
         }
