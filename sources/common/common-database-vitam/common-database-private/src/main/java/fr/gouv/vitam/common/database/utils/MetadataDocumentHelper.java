@@ -43,6 +43,9 @@ import java.util.stream.Collectors;
  */
 public class MetadataDocumentHelper {
 
+    private static final String STORAGE_KEY = "_storage";
+    private static final String STRATEGY_KEY = "strategyId";
+
     private enum ComputedGraphUnitFields {
         US("_us"),
         SPS("_sps"),
@@ -211,4 +214,23 @@ public class MetadataDocumentHelper {
         ObjectNode objectGroup = (ObjectNode) objectGroupJson;
         objectGroup.remove(computedObjectGroupFields);
     }
+    
+    /**
+     * Retrieve the strategyId from a raw unit json
+     * 
+     * @param unitJson unit json
+     * @return strategyId
+     */
+    public static String getStrategyIdFromRawUnit(JsonNode unitJson) {
+        if (unitJson == null || !unitJson.isObject()) {
+            throw new IllegalArgumentException("Expected unit object json");
+        }
+        ObjectNode unit = (ObjectNode) unitJson;
+        if (!unit.has(STORAGE_KEY) || !unit.get(STORAGE_KEY).has(STRATEGY_KEY)
+                || !unit.get(STORAGE_KEY).get(STRATEGY_KEY).isTextual()) {
+            throw new IllegalArgumentException("Expected storage/strategy information in unit");
+        }
+        return unit.get(STORAGE_KEY).get(STRATEGY_KEY).asText();
+    }
+
 }

@@ -103,6 +103,7 @@ import static io.restassured.RestAssured.given;
 import static io.restassured.RestAssured.with;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.isNull;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.doThrow;
@@ -666,12 +667,12 @@ public class AccessInternalResourceImplTest extends ResteasyTestApplication {
 
     @Test
     @RunWithCustomExecutor
-    public void getObjectStreamNotFound() throws Exception {
+    public void getObjectStreamNotFoundInStorage() throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(0);
+
         when(metaDataClient.selectObjectGrouptbyId(any(), anyString()))
             .thenReturn(new MetaDataClientMock().selectObjectGrouptbyId(JsonHandler.createObjectNode(), "id"));
-
-        when(storageClient.getContainerAsync(anyString(), eq(null), any(), any()))
+        when(storageClient.getContainerAsync(isNull(), isNull(), any(), any()))
             .thenThrow(new StorageNotFoundException("test"));
 
         given().contentType(MediaType.APPLICATION_JSON).accept(MediaType.APPLICATION_OCTET_STREAM)
@@ -679,6 +680,12 @@ public class AccessInternalResourceImplTest extends ResteasyTestApplication {
             .header(GlobalDataRest.X_QUALIFIER, "BinaryMaster_1")
             .headers(getStreamHeaders()).when().get(OBJECTS_URI + OBJECT_ID + "/unitID").then()
             .statusCode(Status.NOT_FOUND.getStatusCode());
+
+    }
+    @Test
+    @RunWithCustomExecutor
+    public void getObjectStreamNotFoundMetadata() throws Exception {
+        VitamThreadUtils.getVitamSession().setTenantId(0);
 
         doThrow(new MetaDataNotFoundException("test")).when(metaDataClient)
             .selectObjectGrouptbyId(any(), anyString());

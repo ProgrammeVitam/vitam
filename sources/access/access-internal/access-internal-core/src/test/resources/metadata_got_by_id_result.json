@@ -1,0 +1,163 @@
+{
+  "httpCode": 200,
+  "$hits": {
+    "total": 1,
+    "offset": 0,
+    "limit": 0,
+    "size": 1
+  },
+  "$results": [
+    {
+      "#qualifiers": [
+        {
+          "qualifier": "PhysicalMaster",
+          "versions": [
+            {
+              "DataObjectVersion": "PhysicalMaster_1",
+              "#id": "aeaaaaaaaabgthlqabqgsalltyqvysiaaaaq"
+            }
+          ]
+        },
+        {
+          "qualifier": "BinaryMaster",
+          "versions": [
+            {
+              "DataObjectVersion": "BinaryMaster_1",
+              "FormatIdentification": {
+                "FormatLitteral": "Plain Text File",
+                "MimeType": "text/plain",
+                "FormatId": "x-fmt/111"
+              },
+              "FileInfo": {
+                "Filename": "Vitam-Sensibilisation-API-V1.0.odp",
+                "CreatingApplicationName": "LibreOffice/Impress",
+                "CreatingApplicationVersion": "5.0.5.2",
+                "CreatingOs": "Windows_X86_64",
+                "CreatingOsVersion": 10,
+                "LastModified": "2016-05-05T20:45:20"
+              },
+              "Size": 100646,
+              "#id": "aeaaaaaaaabgthlqabqgsalltyqvyuaaaaaq",
+              "#storage": {
+                "offerIds": [
+                  "fakeOfferId"
+                ],
+                "strategyId": "default",
+                "#nbc": 1
+              }
+            }
+          ]
+        },
+        {
+          "qualifier": "Dissemination",
+          "versions": [
+            {
+              "DataObjectVersion": "Dissemination_1",
+              "FormatIdentification": {
+                "FormatLitteral": "Plain Text File",
+                "MimeType": "text/plain",
+                "FormatId": "x-fmt/111"
+              },
+              "FileInfo": {
+                "Filename": "Vitam-Sensibilisation-API-V1.0.pdf",
+                "CreatingApplicationName": "LibreOffice 5.0/Impress",
+                "CreatingApplicationVersion": "5.0.5.2",
+                "CreatingOs": "Windows_X86_64",
+                "CreatingOsVersion": 10,
+                "LastModified": "2016-05-05T20:45:32"
+              },
+              "Size": 186536,
+              "#id": "aeaaaaaaaabgthlqabqgsalltyqvyvaaaaaq",
+              "#storage": {
+                "offerIds": [
+                  "fakeOfferId"
+                ],
+                "strategyId": "other_strategy",
+                "#nbc": 1
+              }
+            }
+          ]
+        },
+        {
+          "qualifier": "Thumbnail",
+          "versions": [
+            {
+              "DataObjectVersion": "Thumbnail_1",
+              "FormatIdentification": {
+                "FormatLitteral": "Plain Text File",
+                "MimeType": "text/plain",
+                "FormatId": "x-fmt/111"
+              },
+              "FileInfo": {
+                "Filename": "Vitam-Sensibilisation-API-V1.0.png",
+                "CreatingApplicationName": "LibreOffice/Impress",
+                "CreatingApplicationVersion": "5.0.5.2",
+                "CreatingOs": "Windows_X86_64",
+                "CreatingOsVersion": 10,
+                "LastModified": "2016-06-23T12:45:20"
+              },
+              "Size": 40740,
+              "#id": "aeaaaaaaaabgthlqabqgsalltyqvywiaaaaq",
+              "#storage": {
+                "offerIds": [
+                  "fakeOfferId"
+                ],
+                "strategyId": "default",
+                "#nbc": 1
+              }
+            }
+          ]
+        },
+        {
+          "qualifier": "TextContent",
+          "versions": [
+            {
+              "DataObjectVersion": "TextContent_1",
+              "FormatIdentification": {
+                "FormatLitteral": "Plain Text File",
+                "MimeType": "text/plain",
+                "FormatId": "x-fmt/111",
+                "Encoding": "UTF-8"
+              },
+              "FileInfo": {
+                "Filename": "Vitam-Sensibilisation-API-V1.0.txt",
+                "LastModified": "2016-06-23T12:50:20"
+              },
+              "Size": 17120,
+              "#id": "aeaaaaaaaabgthlqabqgsalltyqvyxiaaaaq",
+              "#storage": {
+                "offerIds": [
+                  "fakeOfferId"
+                ],
+                "strategyId": "default",
+                "#nbc": 1
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "$facetResults": [],
+  "$context": {
+    "$roots": [
+      "aebaaaaaaabgthlqabqgsalltyqvytqaaaaq"
+    ],
+    "$query": [],
+    "$filter": {},
+    "$projection": {
+      "$fields": {
+        "#qualifiers.versions": 1,
+        "#id": 0,
+        "#qualifiers.versions._id": 1,
+        "#qualifiers.qualifier": 1,
+        "#qualifiers.versions.DataObjectVersion": 1,
+        "#qualifiers.versions.FormatIdentification": 1,
+        "#qualifiers.versions.FileInfo": 1,
+        "#qualifiers.versions.Size": 1,
+        "#qualifiers.versions._storage": 1
+      }
+    },
+    "$facets": []
+  }
+}

@@ -26,10 +26,53 @@
  *******************************************************************************/
 package fr.gouv.vitam.access.internal.core;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.junit.Assert.assertArrayEquals;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.isNull;
+import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.reset;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.List;
+
+import javax.ws.rs.ProcessingException;
+import javax.ws.rs.core.Response;
+import javax.ws.rs.core.Response.Status;
+
+import org.apache.commons.io.IOUtils;
+import org.assertj.core.api.Assertions;
+import org.assertj.core.api.ThrowableAssert.ThrowingCallable;
+import org.junit.AfterClass;
+import org.junit.Before;
+import org.junit.BeforeClass;
+import org.junit.Rule;
+import org.junit.Test;
+import org.mockito.ArgumentCaptor;
+import org.mockito.Mock;
+import org.mockito.Mockito;
+import org.mockito.junit.MockitoJUnit;
+import org.mockito.junit.MockitoRule;
+
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.fasterxml.jackson.databind.node.TextNode;
+
 import fr.gouv.vitam.access.internal.common.exception.AccessInternalExecutionException;
 import fr.gouv.vitam.access.internal.common.exception.AccessInternalRuleExecutionException;
 import fr.gouv.vitam.common.PropertiesUtils;
@@ -75,47 +118,10 @@ import fr.gouv.vitam.metadata.client.MetaDataClientFactory;
 import fr.gouv.vitam.storage.engine.client.StorageClient;
 import fr.gouv.vitam.storage.engine.client.StorageClientFactory;
 import fr.gouv.vitam.storage.engine.client.exception.StorageServerClientException;
+import fr.gouv.vitam.storage.engine.common.exception.StorageNotFoundException;
+import fr.gouv.vitam.storage.engine.common.model.DataCategory;
 import fr.gouv.vitam.workspace.client.WorkspaceClient;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
-import org.apache.commons.io.IOUtils;
-import org.assertj.core.api.Assertions;
-import org.assertj.core.api.ThrowableAssert.ThrowingCallable;
-import org.junit.AfterClass;
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.Rule;
-import org.junit.Test;
-import org.mockito.ArgumentCaptor;
-import org.mockito.Mock;
-import org.mockito.Mockito;
-import org.mockito.junit.MockitoJUnit;
-import org.mockito.junit.MockitoRule;
-
-import javax.ws.rs.ProcessingException;
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.Response.Status;
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.List;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.junit.Assert.assertArrayEquals;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.doNothing;
-import static org.mockito.Mockito.doThrow;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.reset;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
 
 public class AccessInternalModuleImplTest {
 
@@ -159,6 +165,8 @@ public class AccessInternalModuleImplTest {
 
     private static final String SAMPLE_OBJECTGROUP_FILENAME = "sample_objectGroup_document.json";
     private static JsonNode sampleObjectGroup;
+    private static final String METADATA_GOT_BY_ID = "metadata_got_by_id_result.json";
+    private static JsonNode metadataObjectGroupResponse;
 
     private static final String ACCESS_CONTRACT_NO_PERMISSION = "access_contract_no_update_allowed.json";
     private static final String ACCESS_CONTRACT_NO_WRITING_RESTRICTED_DESC = "access_contract_no_update_desc_mgt.json";
@@ -263,6 +271,7 @@ public class AccessInternalModuleImplTest {
         junitHelper = JunitHelper.getInstance();
         serverPort = junitHelper.findAvailablePort();
         sampleObjectGroup = JsonHandler.getFromFile(PropertiesUtils.findFile(SAMPLE_OBJECTGROUP_FILENAME));
+        metadataObjectGroupResponse = JsonHandler.getFromFile(PropertiesUtils.findFile(METADATA_GOT_BY_ID));
         updateQuery.addActions(new SetAction("name", "test"));
     }
 
@@ -479,19 +488,13 @@ public class AccessInternalModuleImplTest {
             any());
 
         final String id = "aeaqaaaaaaaaaaabaasdaakxocodoiyaaaaq";
-        JsonNode jsonResult = JsonHandler.getFromString("{\"$hits" +
-            "\":{\"total\":1,\"size\":1,\"limit\":1,\"time_out\":false},\"$context\":{}," +
-            "\"$results\":[{\"_id\":\"aeaqaaaaaaaaaaabaasdaakxocodoiyaaaaq\",\"Title\":\"MyTitle\"," +
-            "\"Description\":\"Ma description est bien détaillée\",\"CreatedDate\":\"2016-09-28T11:44:28.548\"," +
-            "\"MyInt\":20,\"MyBoolean\":false,\"MyFloat\":2.0,\"ArrayVar\":[\"val1\",\"val2\"]," +
-            "\"Array2Var\":[\"val1\",\"val2\"],\"_tenant\":0,\"_max\":1,\"_min\":1,\"_up\":[],\"_nbc\":0}]}");
-        RequestResponse<JsonNode> requestResponseUnit = new RequestResponseOK<JsonNode>()
-            .addResult(jsonResult)
-            .setHttpCode(Status.OK.getStatusCode());
+        JsonNode sampleDataUnitRawResult = JsonHandler.getFromString(PropertiesUtils.getResourceAsString("sample_data_unit_raw.json"));
+        RequestResponse<JsonNode> requestResponseUnit = RequestResponseOK.getFromJsonNode(sampleDataUnitRawResult);
+
 
         // Mock select unit response
         when(metaDataClient.getUnitByIdRaw(any())).thenReturn(requestResponseUnit);
-        when(metaDataClient.selectUnitbyId(any(), any())).thenReturn(jsonResult);
+        when(metaDataClient.selectUnitbyId(any(), any())).thenReturn(sampleDataUnitRawResult);
         // mock get lifecyle
         when(logbookLifeCycleClient.selectUnitLifeCycleById(any(), any(), any()))
             .thenReturn(JsonHandler.getFromString("{\"$hits" +
@@ -516,6 +519,7 @@ public class AccessInternalModuleImplTest {
         assertEquals(
             "-    \"Title\" : \"MyTitle\",\n+    \"Title\" : \"Modified title\",\n-    \"MyBoolean\" : false,\n+    \"MyBoolean\" : true,",
             lfcParams.get("diff").textValue());
+        Mockito.verify(storageClient).storeFileFromWorkspace(eq("other_strategy"), eq(DataCategory.UNIT), eq("aeaqaaaaaaaaaaabaasdaakxocodoiyaaaaq.json"), any());
     }
 
     @Test
@@ -738,15 +742,9 @@ public class AccessInternalModuleImplTest {
             any());
 
         final String id = "aeaqaaaaaaaaaaabaasdaakxocodoiyaaaaq";
-        JsonNode jsonResult = JsonHandler.getFromString("{\"$hits" +
-            "\":{\"total\":1,\"size\":1,\"limit\":1,\"time_out\":false},\"$context\":{}," +
-            "\"$results\":[{\"_id\":\"aeaqaaaaaaaaaaabaasdaakxocodoiyaaaaq\",\"Title\":\"MyTitle\"," +
-            "\"Description\":\"Ma description est bien détaillée\",\"CreatedDate\":\"2016-09-28T11:44:28.548\"," +
-            "\"MyInt\":20,\"MyBoolean\":false,\"MyFloat\":2.0,\"ArrayVar\":[\"val1\",\"val2\"]," +
-            "\"Array2Var\":[\"val1\",\"val2\"],\"_tenant\":0,\"_max\":1,\"_min\":1,\"_up\":[],\"_nbc\":0}]}");
-        RequestResponse<JsonNode> requestResponseUnit = new RequestResponseOK<JsonNode>()
-            .addResult(jsonResult)
-            .setHttpCode(Status.OK.getStatusCode());
+        
+        JsonNode jsonResult = JsonHandler.getFromString(PropertiesUtils.getResourceAsString("sample_data_unit_raw.json"));
+        RequestResponse<JsonNode> requestResponseUnit = RequestResponseOK.getFromJsonNode(jsonResult);
         // Mock select unit response
         when(metaDataClient.getUnitByIdRaw(any())).thenReturn(requestResponseUnit);
         when(metaDataClient.selectUnitbyId(any(), any())).thenReturn(jsonResult);
@@ -770,6 +768,7 @@ public class AccessInternalModuleImplTest {
         assertNotNull(capture.getParameterValue(LogbookParameterName.eventDetailData));
         JsonNode lfcParams = JsonHandler.getFromString(capture.getParameterValue(LogbookParameterName.eventDetailData));
         assertTrue(lfcParams.get("diff").isNull());
+        Mockito.verify(storageClient).storeFileFromWorkspace(eq("other_strategy"), eq(DataCategory.UNIT), eq("aeaqaaaaaaaaaaabaasdaakxocodoiyaaaaq.json"), any());
 
     }
 
@@ -889,15 +888,8 @@ public class AccessInternalModuleImplTest {
         Mockito.doNothing().when(logbookLifeCycleClient).update(logbookLFCUnitParametersArgsCaptor.capture());
 
         final String id = "aeaqaaaaaaaaaaabaasdaakxocodoiyaaaaq";
-        RequestResponse<JsonNode> requestResponseUnit = new RequestResponseOK<JsonNode>()
-            .addResult(JsonHandler.getFromString("{\"$hits" +
-                "\":{\"total\":1,\"size\":1,\"limit\":1,\"time_out\":false},\"$context\":{}," +
-                "\"$results\":[{\"_id\":\"aeaqaaaaaaaaaaabaasdaakxocodoiyaaaaq\",\"Title\":\"MyTitle\"," +
-                "\"Description\":\"Ma description est bien détaillée\",\"CreatedDate\":\"2016-09-28T11:44:28.548\"," +
-                "\"MyInt\":20,\"MyBoolean\":false,\"MyFloat\":2.0,\"ArrayVar\":[\"val1\",\"val2\"]," +
-                "\"Array2Var\":[\"val1\",\"val2\"],\"_tenant\":0,\"_max\":1,\"_min\":1,\"_up\":[],\"_nbc\":0}]}"))
-            .setHttpCode(Status.OK.getStatusCode());
-
+        JsonNode sampleDataUnitRawResult = JsonHandler.getFromString(PropertiesUtils.getResourceAsString("sample_data_unit_raw.json"));
+        RequestResponse<JsonNode> requestResponseUnit = RequestResponseOK.getFromJsonNode(sampleDataUnitRawResult);
         // Mock select unit response
         when(metaDataClient.getUnitByIdRaw(any())).thenReturn(requestResponseUnit);
         // mock get lifecyle
@@ -946,24 +938,85 @@ public class AccessInternalModuleImplTest {
     @Test
     @RunWithCustomExecutor
     public void testGetOneObjectFromObjectGroup_OK() throws Exception {
+
+        // Given
+        String idUnit = "unit0";
+        String idStrategy = VitamConfiguration.getDefaultStrategy();
+        String idObjectGroup = "aebaaaaaaabgthlqabqgsalltyqvytqaaaaq";
+        String idObject = "aeaaaaaaaabgthlqabqgsalltyqvyuaaaaaq";
+        
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         setAccessLogInfoInVitamSession();
-        when(metaDataClient.selectObjectGrouptbyId(any(), any()))
-            .thenReturn(fromStringToJson(FAKE_METADATA_RESULT));
+        when(metaDataClient.selectObjectGrouptbyId(any(), any())).thenReturn(metadataObjectGroupResponse);
+        
         final Response responseMock = mock(Response.class);
-        when(responseMock.readEntity(InputStream.class))
-            .thenReturn(new ByteArrayInputStream(FAKE_METADATA_RESULT.getBytes()));
-        when(storageClient.getContainerAsync(any(), any(), any(), any()))
-            .thenReturn(responseMock);
-        Response reponseFinal = accessModuleImpl.getOneObjectFromObjectGroup(ID, "BinaryMaster", 0, "unit0");
+        when(responseMock.readEntity(InputStream.class)).thenReturn(new ByteArrayInputStream(FAKE_METADATA_RESULT.getBytes()));
+        when(storageClient.getContainerAsync(eq(idStrategy), eq(idObject), eq(DataCategory.OBJECT), any())).thenReturn(responseMock);
+        
+        // When
+        Response reponseFinal = accessModuleImpl.getOneObjectFromObjectGroup(idObjectGroup, "BinaryMaster", 1, idUnit);
+        
+        // Then
         assertNotNull(reponseFinal);
-
         final InputStream stream2 = StreamUtils.toInputStream(FAKE_METADATA_RESULT);
         InputStream entity = (InputStream) reponseFinal.getEntity();
         final ByteArrayOutputStream output = new ByteArrayOutputStream();
         StreamUtils.copy(entity, output);
 
         assertArrayEquals(output.toByteArray(), IOUtils.toByteArray(stream2));
+    }
+
+    @Test
+    @RunWithCustomExecutor
+    public void testGetOneObjectOtherStrategyFromObjectGroup_OK() throws Exception {
+
+        // Given
+        String idUnit = "unit0";
+        String idStrategy = "other_strategy";
+        String idObjectGroup = "aebaaaaaaabgthlqabqgsalltyqvytqaaaaq";
+        String idObject = "aeaaaaaaaabgthlqabqgsalltyqvyvaaaaaq";
+        
+        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
+        setAccessLogInfoInVitamSession();
+        when(metaDataClient.selectObjectGrouptbyId(any(), any())).thenReturn(metadataObjectGroupResponse);
+        
+        final Response responseMock = mock(Response.class);
+        when(responseMock.readEntity(InputStream.class)).thenReturn(new ByteArrayInputStream(FAKE_METADATA_RESULT.getBytes()));
+        when(storageClient.getContainerAsync(eq(idStrategy), eq(idObject), eq(DataCategory.OBJECT), any())).thenReturn(responseMock);
+        
+        // When
+        Response reponseFinal = accessModuleImpl.getOneObjectFromObjectGroup(idObjectGroup, "Dissemination", 1, idUnit);
+        
+        // Then
+        assertNotNull(reponseFinal);
+        final InputStream stream2 = StreamUtils.toInputStream(FAKE_METADATA_RESULT);
+        InputStream entity = (InputStream) reponseFinal.getEntity();
+        final ByteArrayOutputStream output = new ByteArrayOutputStream();
+        StreamUtils.copy(entity, output);
+
+        assertArrayEquals(output.toByteArray(), IOUtils.toByteArray(stream2));
+    }
+
+    @Test
+    @RunWithCustomExecutor
+    public void testGetOneObjectNotFoundFromObjectGroup_KO() throws Exception {
+
+        // Given
+        String idUnit = "unit0";
+        String idStrategy = "default";
+        String idObjectGroup = "aebaaaaaaabgthlqabqgsalltyqvytqaaaaq";
+        String idObject = "aeaaaaaaaabgthlqabqgsalltyqvyuaaaaaq";
+
+        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
+        setAccessLogInfoInVitamSession();
+        when(metaDataClient.selectObjectGrouptbyId(any(), any())).thenReturn(metadataObjectGroupResponse);
+
+        when(storageClient.getContainerAsync(eq(idStrategy), eq(idObject), eq(DataCategory.OBJECT), any()))
+                .thenThrow(new StorageNotFoundException("strategy invalid"));
+
+        // When + then
+        assertThatThrownBy(() -> accessModuleImpl.getOneObjectFromObjectGroup(idObjectGroup, "BinaryMaster", 1, idUnit))
+                .isInstanceOf(StorageNotFoundException.class);
     }
 
     @Test
@@ -1007,7 +1060,7 @@ public class AccessInternalModuleImplTest {
         final Response responseMock = mock(Response.class);
         when(responseMock.readEntity(InputStream.class))
             .thenReturn(PropertiesUtils.getResourceAsStream(REAL_DATA_RESULT_MULTI_PATH));
-        when(storageClient.getContainerAsync(any(), any(), any(), any()))
+        when(storageClient.getContainerAsync(isNull(), any(), any(), any()))
             .thenReturn(responseMock);
         Response reponseFinal = accessModuleImpl.getOneObjectFromObjectGroup(ID, "Thumbnail", 0, "unit0");
         assertNotNull(reponseFinal);
@@ -1066,15 +1119,15 @@ public class AccessInternalModuleImplTest {
         InputStream entity = (InputStream) response.getEntity();
     }
 
-    @Test(expected = AccessInternalExecutionException.class)
+    @Test
     @RunWithCustomExecutor
     public void testGetOneObjectFromObjectGroup_With_Result_Null() throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         when(metaDataClient.selectObjectGrouptbyId(any(), any())).thenReturn(null);
-        accessModuleImpl.getOneObjectFromObjectGroup(ID, "BinaryMaster", 0, "unit0");
+        assertThatThrownBy(() -> accessModuleImpl.getOneObjectFromObjectGroup(ID, "BinaryMaster", 0, "unit0")).isInstanceOf(AccessInternalExecutionException.class);
     }
 
-    @Test(expected = AccessInternalExecutionException.class)
+    @Test
     @RunWithCustomExecutor
     public void testGetOneObjectFromObjectGroup_With_StorageClient_Error() throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
@@ -1083,7 +1136,7 @@ public class AccessInternalModuleImplTest {
             .thenReturn(fromStringToJson(FAKE_METADATA_RESULT));
         when(storageClient.getContainerAsync(any(), any(), any(), any()))
             .thenThrow(new StorageServerClientException("Test wanted exception"));
-        accessModuleImpl.getOneObjectFromObjectGroup(ID, "BinaryMaster", 0, "unit0");
+        assertThatThrownBy(() -> accessModuleImpl.getOneObjectFromObjectGroup(ID, "BinaryMaster", 0, "unit0")).isInstanceOf(AccessInternalExecutionException.class);
     }
 
     @Test
