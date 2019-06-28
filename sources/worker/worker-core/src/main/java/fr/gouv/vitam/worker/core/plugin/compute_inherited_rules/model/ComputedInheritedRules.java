@@ -24,13 +24,13 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  *******************************************************************************/
-package fr.gouv.vitam.worker.core.plugin.computeInheritedRules.model;
+package fr.gouv.vitam.worker.core.plugin.compute_inherited_rules.model;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 import com.fasterxml.jackson.databind.JsonNode;
 
 /**
@@ -69,8 +69,8 @@ public class ComputedInheritedRules {
 
     }
 
-    public ComputedInheritedRules(Map<String, InheritedRule> inheritedRules, JsonNode inheritedRulesAPIOutput,
-        String indexationDate) {
+    public ComputedInheritedRules(Map<String, InheritedRule> inheritedRules,JsonNode inheritedRulesAPIOutput,
+        Map<String, Object> globalInheritedProperties, String indexationDate) {
         this.storageRule = inheritedRules.get(STORAGE_RULE);
         this.appraisalRule = inheritedRules.get(APPRAISAL_RULE);
         this.disseminationRule = inheritedRules.get(DISSEMINATION_RULE);
@@ -78,6 +78,7 @@ public class ComputedInheritedRules {
         this.reuseRule = inheritedRules.get(REUSE_RULE);
         this.classificationRule = inheritedRules.get(CLASSIFICATION_RULE);
         this.inheritedRulesAPIOutput = inheritedRulesAPIOutput;
+        this.needAuthorization = Collections.singletonList((Boolean) globalInheritedProperties.get("NeedAuthorization"));
         this.indexationDate = indexationDate;
     }
 

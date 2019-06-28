@@ -24,41 +24,53 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  *******************************************************************************/
-package fr.gouv.vitam.worker.core.plugin.computeInheritedRules.model;
+package fr.gouv.vitam.worker.core.plugin.compute_inherited_rules;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
+import static fr.gouv.vitam.worker.core.utils.PluginHelper.buildItemStatus;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
+import fr.gouv.vitam.common.logging.VitamLogger;
+import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.common.model.ItemStatus;
+import fr.gouv.vitam.common.model.StatusCode;
+import fr.gouv.vitam.processing.common.exception.ProcessingException;
+import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
+import fr.gouv.vitam.worker.common.HandlerIO;
+import fr.gouv.vitam.worker.core.handler.ActionHandler;
+import fr.gouv.vitam.worker.core.plugin.reclassification.ReclassificationFinalizationHandler;
+import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
 
 /**
- * PropertyValue
+ * ComputeInheritedRulesFinalizationPlugin
  */
-public class PropertyValue {
+public class ComputeInheritedRulesFinalizationPlugin extends ActionHandler {
 
-    @JsonProperty("PropertyValue")
-    private List<Object> values;
+    private static final VitamLogger LOGGER =
+        VitamLoggerFactory.getInstance(ReclassificationFinalizationHandler.class);
 
-    public PropertyValue(Object propertyValue) {
-        this.values = Collections.singletonList(propertyValue);
+    private static final String COMPUTE_INHERITED_RULES_FINALIZATION = "COMPUTE_INHERITED_RULES_FINALIZATION";
+
+    /**
+     * Default constructor
+     */
+    public ComputeInheritedRulesFinalizationPlugin() {
     }
 
-    public PropertyValue(PropertyValue values, PropertyValue value) {
-        if(values != null) {
-            this.values = new ArrayList<>();
-            this.values.addAll(values.getValues());
-            this.values.addAll(value.getValues());
-        } else {
-            this.values = Collections.singletonList(value);
-        }
+    @Override
+    public ItemStatus execute(WorkerParameters param, HandlerIO handler)
+        throws ProcessingException, ContentAddressableStorageServerException {
+
+        // Nothing to cleanup
+
+        LOGGER.info("Reclassification finalization succeeded");
+        return buildItemStatus(COMPUTE_INHERITED_RULES_FINALIZATION, StatusCode.OK, null);
     }
 
-    List<Object> getValues() {
-        return values;
+    @Override
+    public void checkMandatoryIOParameter(HandlerIO handler) throws ProcessingException {
+        // NOP.
     }
 
-    public void setValues(List<Object> values) {
-        this.values = values;
+    public static String getId() {
+        return COMPUTE_INHERITED_RULES_FINALIZATION;
     }
 }

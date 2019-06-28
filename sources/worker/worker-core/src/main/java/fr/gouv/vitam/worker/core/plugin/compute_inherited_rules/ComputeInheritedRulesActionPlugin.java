@@ -24,7 +24,7 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  *******************************************************************************/
-package fr.gouv.vitam.worker.core.plugin.computeInheritedRules;
+package fr.gouv.vitam.worker.core.plugin.compute_inherited_rules;
 
 import static fr.gouv.vitam.worker.core.utils.PluginHelper.buildBulkItemStatus;
 
@@ -33,8 +33,6 @@ import java.time.LocalDate;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.AbstractMap.SimpleEntry;
-import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -79,12 +77,10 @@ import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 import fr.gouv.vitam.worker.common.HandlerIO;
 import fr.gouv.vitam.worker.core.handler.ActionHandler;
-import fr.gouv.vitam.worker.core.plugin.computeInheritedRules.model.ComputedInheritedRules;
-import fr.gouv.vitam.worker.core.plugin.computeInheritedRules.model.InheritedRule;
-import fr.gouv.vitam.worker.core.plugin.computeInheritedRules.model.Properties;
-import fr.gouv.vitam.worker.core.plugin.computeInheritedRules.model.PropertyValue;
-import fr.gouv.vitam.worker.core.plugin.computeInheritedRules.model.RuleMaxEndDate;
-import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
+import fr.gouv.vitam.worker.core.plugin.compute_inherited_rules.model.ComputedInheritedRules;
+import fr.gouv.vitam.worker.core.plugin.compute_inherited_rules.model.InheritedRule;
+import fr.gouv.vitam.worker.core.plugin.compute_inherited_rules.model.Properties;
+import fr.gouv.vitam.worker.core.plugin.compute_inherited_rules.model.PropertyValue;
 
 /**
  * ComputeInheritedRulesActionPlugin
@@ -149,8 +145,13 @@ public class ComputeInheritedRulesActionPlugin extends ActionHandler {
                             indexRulesById))
                         .collect(Collectors.toMap(Entry::getKey, Entry::getValue));
 
+                    List<InheritedPropertyResponseModel> globalProperties = unitInheritedResponseModel.getGlobalProperties();
+                    Map<String, Object> globalInheritedProperties = globalProperties.stream()
+                        .map(property -> new SimpleEntry<>(property.getPropertyName(), property.getPropertyValue()))
+                        .collect(Collectors.toMap(Entry::getKey, Entry::getValue));
+
                     //TODO if indexAPIOutput don't serialize unitInheritedResponseModel
-                    indexUnit(unitId, inheritedRulesWithAllOption, metaDataClient,
+                    indexUnit(unitId, inheritedRulesWithAllOption, globalInheritedProperties, metaDataClient,
                         JsonHandler.toJsonNode(unitInheritedResponseModel), indexAPIOutput);
 
                 }
@@ -265,11 +266,11 @@ public class ComputeInheritedRulesActionPlugin extends ActionHandler {
         return new SimpleEntry<>(propertyName, new PropertyValue(propertyValue));
     }
 
-    private void indexUnit(String unitId, Map<String, InheritedRule> inheritedRules, MetaDataClient metaDataClient,
+    private void indexUnit(String unitId, Map<String, InheritedRule> inheritedRules,Map<String, Object>  globalInheritedProperties, MetaDataClient metaDataClient,
         JsonNode inheritedRulesAPIOutput, boolean indexAPIOutput)
         throws ProcessingException {
         ComputedInheritedRules computedInheritedRules =
-            getComputedInheritedRulesAccordingToIndexAPIOutput(inheritedRules, inheritedRulesAPIOutput, indexAPIOutput);
+            getComputedInheritedRulesAccordingToIndexAPIOutput(inheritedRules, inheritedRulesAPIOutput, globalInheritedProperties, indexAPIOutput);
         try {
             UpdateMultiQuery updateMultiQuery = new UpdateMultiQuery();
             Map<String, JsonNode> action = new HashMap<>();
@@ -285,11 +286,11 @@ public class ComputeInheritedRulesActionPlugin extends ActionHandler {
     }
 
     private ComputedInheritedRules getComputedInheritedRulesAccordingToIndexAPIOutput(Map<String, InheritedRule> inheritedRules,
-        JsonNode inheritedRulesAPIOutput, boolean indexAPIOutput) {
+        JsonNode inheritedRulesAPIOutput,Map<String, Object> globalInheritedProperties, boolean indexAPIOutput) {
         LocalDate indexationDate = Instant.now().atZone(ZoneId.systemDefault()).toLocalDate();
         String dateFormatted = indexationDate.format(formatter);
         if (indexAPIOutput) {
-            return new ComputedInheritedRules(inheritedRules, inheritedRulesAPIOutput, dateFormatted);
+            return new ComputedInheritedRules(inheritedRules, inheritedRulesAPIOutput, globalInheritedProperties, dateFormatted);
         } else {
             return new ComputedInheritedRules(inheritedRules, dateFormatted);
         }

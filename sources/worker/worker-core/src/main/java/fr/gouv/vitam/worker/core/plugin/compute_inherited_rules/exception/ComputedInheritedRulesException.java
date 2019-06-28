@@ -24,12 +24,11 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  *******************************************************************************/
-package fr.gouv.vitam.worker.core.plugin.computeInheritedRules.exception;
+package fr.gouv.vitam.worker.core.plugin.compute_inherited_rules.exception;
 
 import fr.gouv.vitam.common.error.VitamError;
 import fr.gouv.vitam.common.exception.VitamException;
 import fr.gouv.vitam.common.model.StatusCode;
-import fr.gouv.vitam.worker.core.plugin.elimination.model.EliminationEventDetails;
 
 /**
  * ComputedInheritedRulesException
