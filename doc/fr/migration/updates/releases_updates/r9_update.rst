@@ -89,11 +89,19 @@ ou, si ``vault_pass.txt`` n'a pas été renseigné :
 
 .. warning:: Selon la volumétrie des données précédement chargées, le `playbook` peut durer jusqu'à plusieurs heures.
 
+En complément, en lien avec la correction du bug #5911, une migration du modèle de données des contrats d'entrées est également requise. Cette migration s'effectue à l'aide de la commande suivante : 
+
+``ansible-playbook -i environments/<inventaire> ansible-vitam-exploitation/migration_r7_r9_ingestcontracts.yml --vault-password-file vault_pass.txt``
+
+ou, si ``vault_pass.txt`` n'a pas été renseigné :
+
+``ansible-playbook -i environments/<inventaire> ansible-vitam-exploitation/migration_r7_r9_ingestcontracts.yml --ask-vault-pass``
+
 .. note:: Durant la migration, il est fortement recommandé de ne pas procéder à des versements de données. En effet, le `playbook` se charge d'arrêter les composants "ingest-external" et "access-external" avant de réaliser les opérations de migration de données, puis de redémarrer les composants "ingest-external" et "access-external". 
 
 Les opérations de migration réalisées portent, entre autres, sur les éléments suivants :
 
-    - Les registres des fonds (Accession Registers)
+    - Les registres des fonds (Accession Registers) 
         - Diff AccessionRegisterDetail:
             - Suppression du champs ``Identifier``, remplacé par ``Opc`` (Opération courante)
             - Suppression du champs ``OperationGroup``, remplacé par ``Opi`` (Opération d'ingest)
@@ -104,10 +112,13 @@ Les opérations de migration réalisées portent, entre autres, sur les élémen
         - Diff AccessionRegisterSummary:
             - Suppression des champs ``attached``, ``detached``, ``symbolicRemained`` des sous objets (``TotalUnits``, ``TotalObjectGroups``, ``TotalObjects``, ``ObjectSize``)
 
-    - Le journal des opérations
+    - Le journal des opérations 
         - Seules seront disponibles les données du registre des fonds selon le nouveau modèle dans le ``evDetData`` du journal de l'opération d'`ingest`.
 
-.. note:: Se reporter à la documentation du nouveau modèle de données de la *release* R9.
+    - Les contrats d'entrées 
+        - Ajout d'un mécanisme de contrôle pour la vérification du format de fichier DataObject (ajout des champs FormatUnidentifiedAuthorized, EveryFormatType et FormatType) 
+
+.. note:: Se reporter à la documentation du nouveau modèle de données de la release R9.
 
 Procédure de réindexation des registres de fonds 
 -------------------------------------------------
