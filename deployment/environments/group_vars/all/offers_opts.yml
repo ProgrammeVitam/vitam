@@ -20,6 +20,7 @@ vitam_strategy:
 #    status: INACTIVE
 #    vitam_site_name: distant-dc2
 
+# !!! PREVIEW V3 !!! DO NOT DECLARE 'other_strategies' FOR NOW.
 # More strategies can be added but are optional
 # Strategy name must only use [a-z][a-z0-9-]* pattern
 # This list of offers is ordered. It can and has to be completed if more offers are necessary
