@@ -226,6 +226,8 @@ vitam:
         https_enabled: true
         secret_platform: "false"
         antivirus: "clamav"
+        # uncomment if huge files need to be analyzed in more than 60s (default behavior)
+        #scantimeout: 60000 # value in milliseconds
         # Directory where files should be placed for local ingest
         upload_dir: "/vitam/data/ingest-external/upload"
         # Directory where successful ingested files will be moved to
