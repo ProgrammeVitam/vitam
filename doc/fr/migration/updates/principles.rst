@@ -19,7 +19,7 @@ Ce document décrit les chemins de montées de version depuis une version mineur
 
 Les montées de version mineure doivent être réalisées en s'appuyant sur les dernières versions *bugfixes* publiées. 
 
-Les opérations de migration ou de reprises de données propres aux différentes versions releases sont explicitées dans le chapitre :ref:`releases_updates`. 
+Les opérations de migration ou de reprises de données propres aux différentes versions *releases* sont explicitées dans le chapitre :ref:`releases_updates`. 
 
 .. caution:: Parmi les versions mineures publiées au sein d'une même version majeure, seuls les chemins de montées de version depuis une version mineure maintenue, vers la version mineure maintenue suivante sont qualifiés par :term:`VITAM`. 
 
