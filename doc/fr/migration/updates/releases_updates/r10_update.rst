@@ -68,8 +68,14 @@ Où migration_ingest_contract.js contient :
             item.checkParentId = new Array(item.LinkParentId);
         }
 
-        item.CheckParentLink = "AUTHORIZED";
-
     //    printjson(item);
         db.IngestContract.update({_id: item._id}, item);
     });
+
+Afin que les modifications soient sauvegardées dans l'offre de stockage, il est nécessaire d'exécuter le playbook suivant réalisant au passage l'ajout du champ CheckParentLink = "AUTHORIZED" à tous les contrats d'entrées : 
+
+``ansible-playbook -i environments/<inventaire> ansible-vitam-exploitation/migration_r9_r10_ingestcontracts.yml --vault-password-file vault_pass.txt``
+
+ou, si ``vault_pass.txt`` n'a pas été renseigné :
+
+``ansible-playbook -i environments/<inventaire> ansible-vitam-exploitation/migration_r9_r10_ingestcontracts.yml --ask-vault-pass``
