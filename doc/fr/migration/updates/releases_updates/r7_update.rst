@@ -1,7 +1,7 @@
 Notes et procédures spécifiques R7
 ##################################
 
-.. caution:: Rappel : la montée de version vers la release R7 s'effectue depuis la release R6 (V1, *deprecated*) et doit être réalisée en s'appuyant sur les dernières versions bugfixes publiées. 
+.. caution:: Rappel : la montée de version vers la *release* R7 s'effectue depuis la *release* R6 (V1, *deprecated*) et doit être réalisée en s'appuyant sur les dernières versions bugfixes publiées. 
 
 Prérequis à la montée de version
 ================================
@@ -41,7 +41,7 @@ A l'issue de l'exécution du `playbook`, si le `playbook` ne remonte pas d'erreu
 Montée de version
 =================
 
-La montée de version vers la release R7 est réalisée par réinstallation de la solution logicielle :term:`VITAM` grâce aux *playbooks* ansible fournis, et selon la procédure d'installation classique décrite dans le :term:`DIN`. 
+La montée de version vers la *release* R7 est réalisée par réinstallation de la solution logicielle :term:`VITAM` grâce aux *playbooks* ansible fournis, et selon la procédure d'installation classique décrite dans le :term:`DIN`. 
 
 Etapes de migration 
 ===================

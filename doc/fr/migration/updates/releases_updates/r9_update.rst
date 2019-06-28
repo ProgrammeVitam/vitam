@@ -1,7 +1,7 @@
 Notes et procédures spécifiques R9
 ##################################
 
-.. caution:: Rappel : la montée de version vers la release R9 s'effectue depuis la release R7 (:term:`LTS` V1) ou la release R8 (V1, *deprecated*) et doit être réalisée en s'appuyant sur les dernières versions bugfixes publiées. 
+.. caution:: Rappel : la montée de version vers la *release* R9 s'effectue depuis la *release* R7 (:term:`LTS` V1) ou la *release* R8 (V1, *deprecated*) et doit être réalisée en s'appuyant sur les dernières versions bugfixes publiées. 
 
 Prérequis à la montée de version
 ================================
@@ -64,7 +64,7 @@ Les commandes suivantes sont à lancer depuis le répertoire ``deployment`` sur 
 Montée de version
 =================
 
-La montée de version vers la release R9 est réalisée par réinstallation de la solution logicielle :term:`VITAM` grâce aux *playbooks* ansible fournis, et selon la procédure d'installation classique décrite dans le :term:`DIN`. 
+La montée de version vers la *release* R9 est réalisée par réinstallation de la solution logicielle :term:`VITAM` grâce aux *playbooks* ansible fournis, et selon la procédure d'installation classique décrite dans le :term:`DIN`. 
 
 Etapes de migration 
 ===================
@@ -107,7 +107,7 @@ Les opérations de migration réalisées portent, entre autres, sur les élémen
     - Le journal des opérations
         - Seules seront disponibles les données du registre des fonds selon le nouveau modèle dans le ``evDetData`` du journal de l'opération d'`ingest`.
 
-.. note:: Se reporter à la documentation du nouveau modèle de données de la release R9.
+.. note:: Se reporter à la documentation du nouveau modèle de données de la *release* R9.
 
 Procédure de réindexation des registres de fonds 
 -------------------------------------------------
