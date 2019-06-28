@@ -50,7 +50,6 @@ import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnit;
 import org.mockito.junit.MockitoRule;
 
-import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.accesslog.AccessLogUtils;
 import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.StatusCode;
@@ -107,7 +106,7 @@ public class PutBinaryOnWorkspaceTest {
         // Given
         String guid = "aeaaaaaaaaasqm2gaak5wak7uvv55tqaaaaq";
         ByteArrayInputStream entity = new ByteArrayInputStream(new byte[] {1, 2, 3, 4});
-        given(storageClient.getContainerAsync(VitamConfiguration.getDefaultStrategy(), guid, DataCategory.OBJECT, AccessLogUtils.getNoLogAccessLog()))
+        given(storageClient.getContainerAsync(eq("other_strategy"), eq(guid), eq(DataCategory.OBJECT), eq(AccessLogUtils.getNoLogAccessLog())))
             .willReturn(new ServerResponse(entity, 200, new Headers<>()));
         DefaultWorkerParameters param = WorkerParametersFactory.newWorkerParameters();
         param.setObjectName(guid);
@@ -132,7 +131,7 @@ public class PutBinaryOnWorkspaceTest {
         // Given
         String guid = "aeaaaaaaaaasqm2gaak5wak7uvv55tqaaaaq";
         ByteArrayInputStream entity = new ByteArrayInputStream(new byte[] {1, 2, 3, 4});
-        given(storageClient.getContainerAsync(VitamConfiguration.getDefaultStrategy(), guid, DataCategory.OBJECT, AccessLogUtils.getNoLogAccessLog()))
+        given(storageClient.getContainerAsync(eq("other_strategy"), eq(guid), eq(DataCategory.OBJECT), eq(AccessLogUtils.getNoLogAccessLog())))
             .willThrow(new StorageServerClientException("transfer failed"))
             .willReturn(new ServerResponse(entity, 200, new Headers<>()));
         DefaultWorkerParameters param = WorkerParametersFactory.newWorkerParameters();
@@ -158,7 +157,7 @@ public class PutBinaryOnWorkspaceTest {
         // Given
         String guid = "aeaaaaaaaaasqm2gaak5wak7uvv55tqaaaaq";
         ByteArrayInputStream entity = new ByteArrayInputStream(new byte[] {1, 2, 3, 4});
-        given(storageClient.getContainerAsync(VitamConfiguration.getDefaultStrategy(), guid, DataCategory.OBJECT, AccessLogUtils.getNoLogAccessLog()))
+        given(storageClient.getContainerAsync(eq("other_strategy"), eq(guid), eq(DataCategory.OBJECT), eq(AccessLogUtils.getNoLogAccessLog())))
             .willThrow(new StorageServerClientException("transfer failed"));
         DefaultWorkerParameters param = WorkerParametersFactory.newWorkerParameters();
         param.setObjectName(guid);
@@ -171,7 +170,7 @@ public class PutBinaryOnWorkspaceTest {
         verify(handlerIO, never())
             .transferInputStreamToWorkspace("Content/aeaaaaaaaaasqm2gaak5wak7uvv55tqaaaaq", entity, null, false);
         verify(storageClient, times(3)).
-            getContainerAsync(VitamConfiguration.getDefaultStrategy(), guid, DataCategory.OBJECT, AccessLogUtils.getNoLogAccessLog());
+            getContainerAsync(eq("other_strategy"), eq(guid), eq(DataCategory.OBJECT), eq(AccessLogUtils.getNoLogAccessLog()));
     }
 
     @Test
@@ -184,11 +183,11 @@ public class PutBinaryOnWorkspaceTest {
 
         // Given
         String guid = "aeaaaaaaaaasqm2gaak5wak7uvv55tqaaaaq";
-        given(storageClient.getContainerAsync(VitamConfiguration.getDefaultStrategy(), guid, DataCategory.OBJECT, AccessLogUtils.getNoLogAccessLog()))
+        given(storageClient.getContainerAsync(eq("other_strategy"), eq(guid), eq(DataCategory.OBJECT), eq(AccessLogUtils.getNoLogAccessLog())))
             .willAnswer((args) -> new ServerResponse(new ByteArrayInputStream(new byte[] {1, 2, 3, 4}), 200, new Headers<>()));
 
         willThrow(new ProcessingException("transfer failed"))
-            .willNothing()
+            .willDoNothing()
             .given(handlerIO)
             .transferInputStreamToWorkspace(eq("Content/aeaaaaaaaaasqm2gaak5wak7uvv55tqaaaaq"), any(), eq(null), eq(false));
 

@@ -164,7 +164,7 @@
                 "offerIds": [
                   "fakeOfferId"
                 ],
-                "strategyId": "default-fake"
+                "strategyId": "default-fake-2"
               }
             }
           ]

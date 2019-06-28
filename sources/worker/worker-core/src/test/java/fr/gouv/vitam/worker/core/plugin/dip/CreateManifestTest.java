@@ -161,12 +161,18 @@ public class CreateManifestTest {
 
         assertThat(((Map)linkBetweenBinaryIdAndFileName.get("aeaaaaaaaabhu53raawyuak7tm2uapqaaaaq")).get("FILE_NAME"))
             .isEqualTo("Content/aeaaaaaaaabhu53raawyuak7tm2uapqaaaaq.pdf");
-
+        assertThat(((Map)linkBetweenBinaryIdAndFileName.get("aeaaaaaaaabhu53raawyuak7tm2uapqaaaaq")).get("strategyId"))
+            .isEqualTo("default-fake");
+        
         assertThat(((Map)linkBetweenBinaryIdAndFileName.get("aeaaaaaaaabhu53raawyuak7tm2uaqiaaaaq")).get("FILE_NAME"))
             .isEqualTo("Content/aeaaaaaaaabhu53raawyuak7tm2uaqiaaaaq.pdf");
-
+        assertThat(((Map)linkBetweenBinaryIdAndFileName.get("aeaaaaaaaabhu53raawyuak7tm2uaqiaaaaq")).get("strategyId"))
+            .isEqualTo("default-fake");
+        
         assertThat(((Map)linkBetweenBinaryIdAndFileName.get("aeaaaaaaaabhu53raawyuak7tm2uaqqaaaba")).get("FILE_NAME"))
             .isEqualTo("Content/aeaaaaaaaabhu53raawyuak7tm2uaqqaaaba.pdf");
+        assertThat(((Map)linkBetweenBinaryIdAndFileName.get("aeaaaaaaaabhu53raawyuak7tm2uaqqaaaba")).get("strategyId"))
+            .isEqualTo("default-fake-2");
 
         ArrayNode fromFile = (ArrayNode) JsonHandler.getFromFile(binaryFile);
 
