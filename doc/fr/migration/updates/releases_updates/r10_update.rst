@@ -1,7 +1,7 @@
 Notes et procédures spécifiques R10
 ###################################
 
-.. caution:: Rappel : la montée de version vers la release R10 s'effectue depuis la *release* R9 et doit être réalisée en s'appuyant sur les dernières versions *bugfixes* publiées. 
+.. caution:: Rappel : la montée de version vers la *release* R10 s'effectue depuis la *release* R9 et doit être réalisée en s'appuyant sur les dernières versions *bugfixes* publiées. 
 
 Prérequis à la montée de version
 ================================
@@ -11,7 +11,7 @@ Sans objet.
 Montée de version
 =================
 
-La montée de version vers la release R10 est réalisée par réinstallation de la solution logicielle :term:`VITAM` grâce aux *playbooks* ansible fournis, et selon la procédure d'installation classique décrite dans le :term:`DIN`. 
+La montée de version vers la *release* R10 est réalisée par réinstallation de la solution logicielle :term:`VITAM` grâce aux *playbooks* ansible fournis, et selon la procédure d'installation classique décrite dans le :term:`DIN`. 
 
 Etapes de migration 
 ===================
@@ -47,7 +47,7 @@ ou, si ``vault_pass.txt`` n'a pas été renseigné :
 Migration des contrats d'entrée
 --------------------------------
 
-La montée de version vers la release R10 requiert une migration de données (contrats d'entrée) suite à une modification sur les droits relatifs aux rattachements. Cette migration s'effectue à l'aide de la commande suivante, exécutée (une seule fois) sur l'une des machines [hosts-mongod-data] de l'inventaire : 
+La montée de version vers la *release* R10 requiert une migration de données (contrats d'entrée) suite à une modification sur les droits relatifs aux rattachements. Cette migration s'effectue à l'aide de la commande suivante, exécutée (une seule fois) sur l'une des machines [hosts-mongod-data] de l'inventaire : 
 
 .. code-block:: bash
 
