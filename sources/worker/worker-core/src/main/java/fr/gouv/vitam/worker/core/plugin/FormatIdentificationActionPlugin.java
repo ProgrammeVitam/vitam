@@ -199,8 +199,6 @@ public class FormatIdentificationActionPlugin extends ActionHandler implements V
                                                 subTaskItemStatus.setGlobalOutcomeDetailSubcode(SUBSTATUS_UNKNOWN);
                                                 break;
                                             case FILE_FORMAT_NOT_FOUND_REFERENTIAL_ERROR:
-                                                subTaskItemStatus.setGlobalOutcomeDetailSubcode(SUBSTATUS_UNCHARTED);
-                                                break;
                                             case FILE_FORMAT_PUID_NOT_FOUND:
                                                 subTaskItemStatus.setGlobalOutcomeDetailSubcode(SUBSTATUS_UNCHARTED);
                                                 break;
@@ -209,6 +207,7 @@ public class FormatIdentificationActionPlugin extends ActionHandler implements V
                                                 itemStatus.setGlobalOutcomeDetailSubcode(FILE_FORMAT_REJECTED);
                                                 break;
                                         }
+                                        LOGGER.error(JsonHandler.unprettyPrint(result));
                                     }
 
                                     itemStatus.setSubTaskStatus(objectId, subTaskItemStatus);

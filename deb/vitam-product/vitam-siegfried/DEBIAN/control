@@ -10,4 +10,4 @@ XS-Go-Import-Path: github.com/richardlehane/siegfried
 Architecture: amd64
 Depends: vitam-user-vitam
 Description: Signature-based file format identification
-Version: 1.7.10
+Version: 1.7.12
