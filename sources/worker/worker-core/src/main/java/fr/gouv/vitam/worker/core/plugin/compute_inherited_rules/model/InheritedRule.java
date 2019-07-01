@@ -97,7 +97,7 @@ public class InheritedRule {
 
     private List<String> parsePropertiesByName(String propertyName, Properties properties) {
         PropertyValue property = properties.getPropertyValue(propertyName);
-        if(property != null) {
+        if (property != null) {
             return property.getValues().stream()
                 .map(object -> Objects.toString(object, null))
                 .collect(Collectors.toList());
