@@ -24,7 +24,7 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  *******************************************************************************/
-package fr.gouv.vitam.worker.core.plugin.evidence.exception;
+package fr.gouv.vitam.batch.report.model;
 
 /**
  * EvidenceStatus class
@@ -33,5 +33,5 @@ public enum EvidenceStatus {
     OK,
     FATAL,
     KO,
-    WARN;
+    WARN
 }

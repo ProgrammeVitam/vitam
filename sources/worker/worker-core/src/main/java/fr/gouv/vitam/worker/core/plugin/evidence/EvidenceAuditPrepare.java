@@ -115,13 +115,19 @@ public class EvidenceAuditPrepare extends ActionHandler {
         InputStream inputStream = null;
         Response response = null;
         try (StorageClient client = storageClientFactory.getClient()) {
-            String name = operationId + ".json";
+            String name = operationId + ".jsonl";
             response = client.getContainerAsync(VitamConfiguration.getDefaultStrategy(), name, DataCategory.REPORT, AccessLogUtils.getNoLogAccessLog());
             inputStream = (InputStream) response.getEntity();
 
             BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream));
-
+            int skip = 3;
             while (reader.ready()) {
+
+                if(skip != 0) { // count == 0 means the first line
+                    reader.readLine();
+                    skip--;
+                    continue;
+                }
                 String line = reader.readLine();
                 EvidenceAuditReportLine pojo = JsonHandler.getFromString(line, EvidenceAuditReportLine.class);
                 ObjectNode item = createObjectNode();

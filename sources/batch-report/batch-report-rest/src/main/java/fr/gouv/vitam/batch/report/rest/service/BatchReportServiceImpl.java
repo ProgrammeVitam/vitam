@@ -34,6 +34,7 @@ import fr.gouv.vitam.batch.report.model.AuditObjectGroupModel;
 import fr.gouv.vitam.batch.report.model.EliminationActionAccessionRegisterModel;
 import fr.gouv.vitam.batch.report.model.EliminationActionObjectGroupModel;
 import fr.gouv.vitam.batch.report.model.EliminationActionUnitModel;
+import fr.gouv.vitam.batch.report.model.EvidenceAuditObjectModel;
 import fr.gouv.vitam.batch.report.model.MergeSortedIterator;
 import fr.gouv.vitam.batch.report.model.OperationSummary;
 import fr.gouv.vitam.batch.report.model.PreservationStatsModel;
@@ -43,11 +44,13 @@ import fr.gouv.vitam.batch.report.model.ReportSummary;
 import fr.gouv.vitam.batch.report.model.entry.AuditObjectGroupReportEntry;
 import fr.gouv.vitam.batch.report.model.entry.EliminationActionObjectGroupReportEntry;
 import fr.gouv.vitam.batch.report.model.entry.EliminationActionUnitReportEntry;
+import fr.gouv.vitam.batch.report.model.entry.EvidenceAuditReportEntry;
 import fr.gouv.vitam.batch.report.model.entry.PreservationReportEntry;
 import fr.gouv.vitam.batch.report.model.entry.UpdateUnitMetadataReportEntry;
 import fr.gouv.vitam.batch.report.rest.repository.AuditReportRepository;
 import fr.gouv.vitam.batch.report.rest.repository.EliminationActionObjectGroupRepository;
 import fr.gouv.vitam.batch.report.rest.repository.EliminationActionUnitRepository;
+import fr.gouv.vitam.batch.report.rest.repository.EvidenceAuditReportRepository;
 import fr.gouv.vitam.batch.report.rest.repository.InvalidUnitsRepository;
 import fr.gouv.vitam.batch.report.rest.repository.PreservationReportRepository;
 import fr.gouv.vitam.batch.report.rest.repository.UpdateUnitReportRepository;
@@ -93,6 +96,7 @@ import static fr.gouv.vitam.batch.report.model.EliminationActionAccessionRegiste
 import static fr.gouv.vitam.batch.report.model.EliminationActionAccessionRegisterModel.TOTAL_SIZE;
 import static fr.gouv.vitam.batch.report.model.EliminationActionAccessionRegisterModel.TOTAL_UNITS;
 import static fr.gouv.vitam.batch.report.model.ReportType.AUDIT;
+import static fr.gouv.vitam.batch.report.model.ReportType.EVIDENCE_AUDIT;
 
 /**
  * BatchReportService
@@ -109,6 +113,7 @@ public class BatchReportServiceImpl {
     private final UpdateUnitReportRepository updateUnitReportRepository;
     private final AuditReportRepository auditReportRepository;
     private final InvalidUnitsRepository invalidUnitsRepository;
+    private final EvidenceAuditReportRepository evidenceAuditReportRepository;
     private final WorkspaceClientFactory workspaceClientFactory;
     private final BackupService backupService;
 
@@ -118,7 +123,8 @@ public class BatchReportServiceImpl {
         PreservationReportRepository preservationReportRepository,
         AuditReportRepository auditReportRepository,
         UpdateUnitReportRepository updateUnitReportRepository,
-        InvalidUnitsRepository invalidUnitsRepository) {
+        InvalidUnitsRepository invalidUnitsRepository,
+        EvidenceAuditReportRepository evidenceAuditReportRepository) {
 
         this(
             eliminationActionUnitRepository,
@@ -128,11 +134,13 @@ public class BatchReportServiceImpl {
             workspaceClientFactory,
             preservationReportRepository,
             auditReportRepository,
-            invalidUnitsRepository
+            invalidUnitsRepository,
+            evidenceAuditReportRepository
         );
     }
 
-    @VisibleForTesting BatchReportServiceImpl(
+    @VisibleForTesting
+    BatchReportServiceImpl(
         EliminationActionUnitRepository eliminationActionUnitRepository,
         EliminationActionObjectGroupRepository eliminationActionObjectGroupRepository,
         UpdateUnitReportRepository updateUnitReportRepository,
@@ -140,7 +148,8 @@ public class BatchReportServiceImpl {
         WorkspaceClientFactory workspaceClientFactory,
         PreservationReportRepository preservationReportRepository,
         AuditReportRepository auditReportRepository,
-        InvalidUnitsRepository invalidUnitsRepository) {
+        InvalidUnitsRepository invalidUnitsRepository,
+        EvidenceAuditReportRepository evidenceAuditReportRepository) {
         this.eliminationActionUnitRepository = eliminationActionUnitRepository;
         this.eliminationActionObjectGroupRepository = eliminationActionObjectGroupRepository;
         this.updateUnitReportRepository = updateUnitReportRepository;
@@ -149,9 +158,11 @@ public class BatchReportServiceImpl {
         this.auditReportRepository = auditReportRepository;
         this.invalidUnitsRepository = invalidUnitsRepository;
         this.backupService = backupService;
+        this.evidenceAuditReportRepository = evidenceAuditReportRepository;
     }
 
-    public void appendEliminationActionUnitReport(String processId, List<EliminationActionUnitReportEntry> entries, int tenantId) {
+    public void appendEliminationActionUnitReport(String processId, List<EliminationActionUnitReportEntry> entries,
+        int tenantId) {
         List<EliminationActionUnitModel> documents =
             entries.stream()
                 .map(unitEntry -> new EliminationActionUnitModel(
@@ -162,7 +173,8 @@ public class BatchReportServiceImpl {
         eliminationActionUnitRepository.bulkAppendReport(documents);
     }
 
-    public void appendEliminationActionObjectGroupReport(String processId, List<EliminationActionObjectGroupReportEntry> entries, int tenantId) {
+    public void appendEliminationActionObjectGroupReport(String processId,
+        List<EliminationActionObjectGroupReportEntry> entries, int tenantId) {
         List<EliminationActionObjectGroupModel> documents =
             entries.stream()
                 .map(ogEntry -> new EliminationActionObjectGroupModel(
@@ -172,9 +184,12 @@ public class BatchReportServiceImpl {
         eliminationActionObjectGroupRepository.bulkAppendReport(documents);
     }
 
-    public void appendPreservationReport(String processId, List<PreservationReportEntry> preservationEntries, int tenantId) {
+    public void appendPreservationReport(String processId, List<PreservationReportEntry> preservationEntries,
+        int tenantId)
+        throws BatchReportException {
         List<PreservationReportEntry> documents = preservationEntries.stream()
-            .map(preservationEntry -> checkValuesAndGetNewPreservationReportEntry(processId, tenantId, preservationEntry))
+            .map(preservationEntry -> checkValuesAndGetNewPreservationReportEntry(processId, tenantId,
+                preservationEntry))
             .collect(Collectors.toList());
         preservationReportRepository.bulkAppendReport(documents);
     }
@@ -248,6 +263,14 @@ public class BatchReportServiceImpl {
         auditReportRepository.bulkAppendReport(documents);
     }
 
+    public void appendEvidenceAuditReport(String processId, List<EvidenceAuditReportEntry> auditEntries, int tenantId)
+        throws BatchReportException {
+        List<EvidenceAuditObjectModel> documents = auditEntries.stream()
+            .map(auditEntry -> checkValuesAndGetEvidenceAuditObjectGroupModel(processId, tenantId, auditEntry))
+            .collect(Collectors.toList());
+        evidenceAuditReportRepository.bulkAppendReport(documents);
+    }
+
     private AuditObjectGroupModel checkValuesAndGetAuditObjectGroupModel(String processId, int tenantId,
         AuditObjectGroupReportEntry auditEntry) {
         checkIfPresent("DetailId", auditEntry.getDetailId());
@@ -262,7 +285,19 @@ public class BatchReportServiceImpl {
             LocalDateUtil.getFormattedDateForMongo(LocalDateUtil.now()), auditEntry, tenantId);
     }
 
-    private void checkIfPresent(String name, Object value) {
+    private EvidenceAuditObjectModel checkValuesAndGetEvidenceAuditObjectGroupModel(String processId, int tenantId,
+        EvidenceAuditReportEntry evidenceAuditEntry) {
+        checkIfPresent("identifier", evidenceAuditEntry.getIdentifier());
+        checkIfPresent("status", evidenceAuditEntry.getEvidenceStatus());
+        checkIfPresent("message", evidenceAuditEntry.getMessage());
+        checkIfPresent("strategyId", evidenceAuditEntry.getStrategyId());
+        checkIfPresent("objectType", evidenceAuditEntry.getObjectType());
+
+        return new EvidenceAuditObjectModel(GUIDFactory.newGUID().toString(), processId, tenantId, LocalDateUtil.getFormattedDateForMongo(LocalDateUtil.now()),
+            evidenceAuditEntry);
+    }
+
+    private void checkIfPresent(String name, Object value) throws BatchReportException {
         if (value == null) {
             throw new BatchReportException(String.format("field Name mandatory %s", name));
         }
@@ -287,7 +322,12 @@ public class BatchReportServiceImpl {
                     preservationReportRepository.stats(reportInfo.getOperationSummary().getEvId(), reportInfo.getOperationSummary().getTenant()));
             case AUDIT:
                 return JsonHandler.toJsonNode(
-                    auditReportRepository.stats(reportInfo.getOperationSummary().getEvId(), reportInfo.getOperationSummary().getTenant()));
+                    auditReportRepository.stats(reportInfo.getOperationSummary().getEvId(),
+                        reportInfo.getOperationSummary().getTenant()));
+            case EVIDENCE_AUDIT:
+                return JsonHandler.toJsonNode(
+                    evidenceAuditReportRepository.stats(reportInfo.getOperationSummary().getEvId(),
+                        reportInfo.getOperationSummary().getTenant()));
             default:
                 return reportInfo.getReportSummary().getExtendedInfo();
         }
@@ -296,6 +336,9 @@ public class BatchReportServiceImpl {
     private ReportResults getReportResults(Report reportInfo) {
         if (reportInfo.getReportSummary().getReportType() == AUDIT) {
             return auditReportRepository.computeVitamResults(reportInfo.getOperationSummary().getEvId(), reportInfo.getOperationSummary().getTenant());
+        }
+        if (reportInfo.getReportSummary().getReportType() == EVIDENCE_AUDIT) {
+            return evidenceAuditReportRepository.computeVitamResults(reportInfo.getOperationSummary().getEvId(), reportInfo.getOperationSummary().getTenant());
         }
         return reportInfo.getReportSummary().getVitamResults();
     }
@@ -335,6 +378,12 @@ public class BatchReportServiceImpl {
                     MongoCursor<Document> auditIterator =
                         auditReportRepository.findCollectionByProcessIdTenantAndStatus(processId, tenantId, "WARNING", "KO");
                     writeDocumentsInFile(reportWriter, auditIterator);
+                    break;
+                case EVIDENCE_AUDIT:
+                    MongoCursor<Document> evidenceAuditIterator =
+                        evidenceAuditReportRepository
+                            .findCollectionByProcessIdTenantAndStatus(processId, tenantId, "WARN", "KO");
+                    writeDocumentsInFile(reportWriter, evidenceAuditIterator);
                     break;
                 case UPDATE_UNIT:
                     MongoCursor<Document> updates = updateUnitReportRepository.findCollectionByProcessIdTenant(processId, tenantId);
@@ -564,6 +613,10 @@ public class BatchReportServiceImpl {
 
     public void deleteUpdateUnitByIdAndTenant(String processId, int tenantId) {
         updateUnitReportRepository.deleteReportByIdAndTenant(processId, tenantId);
+    }
+
+    public void deleteEvidenceAuditByIdAndTenant(String processId, int tenantId) {
+        evidenceAuditReportRepository.deleteReportByIdAndTenant(processId, tenantId);
     }
 
     private void deleteQuietly(File tempFile) {

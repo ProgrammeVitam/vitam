@@ -26,6 +26,8 @@
  *******************************************************************************/
 package fr.gouv.vitam.worker.core.plugin.evidence;
 
+import fr.gouv.vitam.batch.report.client.BatchReportClient;
+import fr.gouv.vitam.batch.report.client.BatchReportClientFactory;
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.model.ItemStatus;
@@ -34,6 +36,7 @@ import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 import fr.gouv.vitam.worker.common.HandlerIO;
 import fr.gouv.vitam.worker.core.plugin.evidence.exception.EvidenceStatus;
 import fr.gouv.vitam.worker.core.plugin.evidence.report.EvidenceAuditReportLine;
+import fr.gouv.vitam.worker.core.plugin.evidence.report.EvidenceAuditReportService;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -54,19 +57,35 @@ import static org.mockito.Mockito.when;
 public class EvidenceAuditGenerateReportsTest {
     @Rule public MockitoRule mockitoRule = MockitoJUnit.rule();
     @Rule public TemporaryFolder tempFolder = new TemporaryFolder();
-    private EvidenceAuditGenerateReports  evidenceAuditGenerateReports;
     @Mock public HandlerIO handlerIO;
     @Mock
     WorkerParameters defaultWorkerParameters;
+    private EvidenceAuditGenerateReports evidenceAuditGenerateReports;
+    @Mock
+    private BatchReportClientFactory batchReportFactory;
+    @Mock
+    private EvidenceAuditReportService evidenceAuditReportService;
+    @Mock
+    private BatchReportClient batchReportClient;
+
+    private String processId;
 
     @Before
     public void setUp() throws Exception {
-        evidenceAuditGenerateReports = new EvidenceAuditGenerateReports();
+        given(batchReportFactory.getClient()).willReturn(batchReportClient);
+
+        evidenceAuditReportService = new EvidenceAuditReportService(batchReportFactory);
+
+        evidenceAuditGenerateReports = new EvidenceAuditGenerateReports(evidenceAuditReportService);
+
+        processId = "aeaqaaaaaaebta56aaoc4alcdk4hlcqaaaaq";
     }
-    
+
+
     @Test
     public void should_generate_reports_when_line_not_found() throws Exception {
         when(defaultWorkerParameters.getObjectName()).thenReturn("test");
+        when(defaultWorkerParameters.getContainerName()).thenReturn(processId);
         File resourceFile = PropertiesUtils.getResourceFile("evidenceAudit/data.txt");
         when(handlerIO.getFileFromWorkspace("zip/test")).thenReturn(resourceFile);
         File file2 = tempFolder.newFile();
@@ -79,6 +98,7 @@ public class EvidenceAuditGenerateReportsTest {
 
         ItemStatus execute = evidenceAuditGenerateReports.execute(defaultWorkerParameters, handlerIO);
 
+
         assertThat(execute.getGlobalStatus()).isEqualTo(StatusCode.OK);
 
         EvidenceAuditReportLine evidenceAuditReportLine = JsonHandler.getFromFile(report, EvidenceAuditReportLine.class);
@@ -87,7 +107,7 @@ public class EvidenceAuditGenerateReportsTest {
         assertThat(evidenceAuditReportLine.getMessage()).isEqualTo("Could not find matching traceability info in the file");
 
     }
-    
+
     @Test
     public void should_generate_reports_when_digest_invalid() throws Exception {
         when(defaultWorkerParameters.getObjectName()).thenReturn("test");

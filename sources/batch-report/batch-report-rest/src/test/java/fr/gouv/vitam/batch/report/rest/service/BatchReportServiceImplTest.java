@@ -29,6 +29,8 @@ package fr.gouv.vitam.batch.report.rest.service;
 import com.fasterxml.jackson.databind.JsonNode;
 import fr.gouv.vitam.batch.report.model.AuditFullStatusCount;
 import fr.gouv.vitam.batch.report.model.AuditStatsModel;
+import fr.gouv.vitam.batch.report.model.EvidenceAuditFullStatusCount;
+import fr.gouv.vitam.batch.report.model.EvidenceAuditStatsModel;
 import fr.gouv.vitam.batch.report.model.OperationSummary;
 import fr.gouv.vitam.batch.report.model.PreservationStatsModel;
 import fr.gouv.vitam.batch.report.model.PreservationStatus;
@@ -40,10 +42,12 @@ import fr.gouv.vitam.batch.report.model.ReportType;
 import fr.gouv.vitam.batch.report.model.entry.AuditObjectGroupReportEntry;
 import fr.gouv.vitam.batch.report.model.entry.EliminationActionObjectGroupReportEntry;
 import fr.gouv.vitam.batch.report.model.entry.EliminationActionUnitReportEntry;
+import fr.gouv.vitam.batch.report.model.entry.EvidenceAuditReportEntry;
 import fr.gouv.vitam.batch.report.model.entry.PreservationReportEntry;
 import fr.gouv.vitam.batch.report.rest.repository.AuditReportRepository;
 import fr.gouv.vitam.batch.report.rest.repository.EliminationActionObjectGroupRepository;
 import fr.gouv.vitam.batch.report.rest.repository.EliminationActionUnitRepository;
+import fr.gouv.vitam.batch.report.rest.repository.EvidenceAuditReportRepository;
 import fr.gouv.vitam.batch.report.rest.repository.InvalidUnitsRepository;
 import fr.gouv.vitam.batch.report.rest.repository.PreservationReportRepository;
 import fr.gouv.vitam.batch.report.rest.repository.UpdateUnitReportRepository;
@@ -126,6 +130,9 @@ public class BatchReportServiceImplTest {
     private AuditReportRepository auditReportRepository;
 
     @Mock
+    private EvidenceAuditReportRepository evidenceAuditReportRepository;
+
+    @Mock
     private InvalidUnitsRepository invalidUnitsRepository;
 
     @Mock
@@ -164,7 +171,7 @@ public class BatchReportServiceImplTest {
         batchReportServiceImpl = new BatchReportServiceImpl(eliminationActionUnitRepository,
             eliminationActionObjectGroupRepository, updateUnitMetadataReportEntry, backupService,
             workspaceClientFactory,
-            preservationReportRepository, auditReportRepository, invalidUnitsRepository);
+            preservationReportRepository, auditReportRepository, invalidUnitsRepository, evidenceAuditReportRepository);
     }
 
 
@@ -251,6 +258,21 @@ public class BatchReportServiceImplTest {
         // When
         ThrowingCallable append = () -> batchReportServiceImpl
             .appendAuditReport(reportBody.getProcessId(), reportBody.getEntries(), TENANT_ID);
+
+        // Then
+        assertThatCode(append).doesNotThrowAnyException();
+    }
+
+    @Test
+    public void should_append_evidence_audit_report() throws Exception {
+        // Given
+        InputStream stream = getClass().getResourceAsStream("/evidenceAuditObjectReport.json");
+        ReportBody reportBody =
+            JsonHandler.getFromInputStream(stream, ReportBody.class, EvidenceAuditReportEntry.class);
+
+        // When
+        ThrowingCallable append = () -> batchReportServiceImpl
+            .appendEvidenceAuditReport(reportBody.getProcessId(), reportBody.getEntries(), TENANT_ID);
 
         // Then
         assertThatCode(append).doesNotThrowAnyException();
@@ -431,6 +453,51 @@ public class BatchReportServiceImplTest {
     }
 
     @Test
+    public void should_store_evidence_audit_report() throws Exception {
+        // Given
+        String processId = "aeaaaaaaaafpuagsab43oallwisewyaaaaaq";
+        when(workspaceClientFactory.getClient()).thenReturn(workspaceClient);
+        when(workspaceClient.isExistingContainer(processId)).thenReturn(true);
+        String filename = String.format("report.jsonl", processId);
+        Path report = initialisePathWithFileName(filename);
+
+        when(storageClientFactory.getClient()).thenReturn(storageClient);
+        when(storageClient.storeFileFromWorkspace(anyString(), any(), anyString(), any())).thenReturn(null);
+
+        EvidenceAuditStatsModel auditStatus =
+            new EvidenceAuditStatsModel(1, 0, new EvidenceAuditFullStatusCount());
+        Document evidenceAuditData = getEvidenceAuditDocument(processId);
+        FakeMongoCursor<Document> fakeMongoCursor = new FakeMongoCursor<>(Collections.singletonList(evidenceAuditData));
+
+        initialiseMockWhenPutObjectInWorkspace(report);
+        when(evidenceAuditReportRepository.findCollectionByProcessIdTenantAndStatus(processId, TENANT_ID,"WARN","KO"))
+            .thenReturn(fakeMongoCursor);
+        when(evidenceAuditReportRepository.stats(processId, TENANT_ID)).thenReturn(auditStatus);
+
+        OperationSummary operationSummary =
+            new OperationSummary(TENANT_ID, processId, "", "", "", "", JsonHandler.createObjectNode(),
+                JsonHandler.createObjectNode());
+        ReportResults reportResults = new ReportResults(1, 0, 0, 1);
+        ReportSummary reportSummary =
+            new ReportSummary(null, null, ReportType.EVIDENCE_AUDIT, reportResults, JsonHandler.createObjectNode());
+        JsonNode context = JsonHandler.createObjectNode();
+
+        Report reportInfo = new Report(operationSummary, reportSummary, context);
+
+        // When
+        batchReportServiceImpl.storeReport(reportInfo);
+
+        // Then
+        reportSummary.setExtendedInfo(JsonHandler.toJsonNode(auditStatus));
+        String accumulatorExpected = JsonHandler.unprettyPrint(operationSummary)
+            + "\n" + JsonHandler.unprettyPrint(reportSummary)
+            + "\n" + JsonHandler.unprettyPrint(context)
+            + "\n" + BsonHelper.stringify(evidenceAuditData);
+
+        assertThat(new String(Files.readAllBytes(report))).isEqualTo(accumulatorExpected);
+    }
+
+    @Test
     public void should_export_distinct_object_group_of_deleted_units() throws Exception {
         // Given
         when(workspaceClientFactory.getClient()).thenReturn(workspaceClient);
@@ -511,6 +578,13 @@ public class BatchReportServiceImplTest {
         String reportDoc = JsonHandler
             .unprettyPrint(
                 JsonHandler.getFromInputStream(getClass().getResourceAsStream("/auditObjectGroupDocument.json")));
+        return Document.parse(reportDoc);
+    }
+
+    private Document getEvidenceAuditDocument(String processId) throws InvalidParseOperationException, FileNotFoundException {
+        String reportDoc = JsonHandler
+            .unprettyPrint(
+                JsonHandler.getFromInputStream(getClass().getResourceAsStream("/evidenceAuditObjectDocument.json")));
         return Document.parse(reportDoc);
     }
 

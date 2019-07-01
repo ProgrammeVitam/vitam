@@ -30,7 +30,6 @@ import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 import fr.gouv.vitam.worker.common.HandlerIO;
-import fr.gouv.vitam.worker.core.plugin.evidence.exception.EvidenceAuditException;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -40,7 +39,6 @@ import org.mockito.junit.MockitoJUnit;
 import org.mockito.junit.MockitoRule;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -55,12 +53,10 @@ public class EvidenceAuditExtractFromZipTest {
     @Rule
     public TemporaryFolder tempFolder = new TemporaryFolder();
     @Mock
-    private EvidenceService evidenceService;
-
-    private EvidenceAuditExtractFromZip evidenceAuditExtractFromZip;
-
-    @Mock
     public HandlerIO handlerIO;
+    @Mock
+    private EvidenceService evidenceService;
+    private EvidenceAuditExtractFromZip evidenceAuditExtractFromZip;
 
     @Before
     public void setUp() throws Exception {
@@ -71,7 +67,8 @@ public class EvidenceAuditExtractFromZipTest {
     public void should_extract_from_zip() throws Exception {
         WorkerParameters defaultWorkerParameters = mock(WorkerParameters.class);
 
-        when(defaultWorkerParameters.getObjectName()).thenReturn("evidenceAudit/0_LogbookLifecycles_20180220_111512.zip");
+        when(defaultWorkerParameters.getObjectName())
+            .thenReturn("evidenceAudit/0_LogbookLifecycles_20180220_111512.zip");
 
         ItemStatus execute = evidenceAuditExtractFromZip.execute(defaultWorkerParameters, handlerIO);
         assertThat(execute.getGlobalStatus()).isEqualTo(StatusCode.OK);

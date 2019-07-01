@@ -27,7 +27,10 @@
 package fr.gouv.vitam.worker.core.plugin.evidence;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.annotations.VisibleForTesting;
+import fr.gouv.vitam.batch.report.model.EvidenceAuditReportObject;
+import fr.gouv.vitam.batch.report.model.entry.EvidenceAuditReportEntry;
 import fr.gouv.vitam.common.exception.VitamException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
@@ -39,12 +42,18 @@ import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 import fr.gouv.vitam.worker.common.HandlerIO;
 import fr.gouv.vitam.worker.core.handler.ActionHandler;
+import fr.gouv.vitam.worker.core.plugin.evidence.exception.EvidenceAuditException;
 import fr.gouv.vitam.worker.core.plugin.evidence.exception.EvidenceStatus;
 import fr.gouv.vitam.worker.core.plugin.evidence.report.EvidenceAuditParameters;
 import fr.gouv.vitam.worker.core.plugin.evidence.report.EvidenceAuditReportLine;
+import fr.gouv.vitam.worker.core.plugin.evidence.report.EvidenceAuditReportService;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Arrays;
+
+import static fr.gouv.vitam.common.json.JsonHandler.unprettyPrint;
 
 /**
  * EvidenceAuditDatabaseCheck class
@@ -53,17 +62,19 @@ public class EvidenceAuditDatabaseCheck extends ActionHandler {
     private static final String EVIDENCE_AUDIT_CHECK_DATABASE = "EVIDENCE_AUDIT_CHECK_DATABASE";
     private static final String METADA_TYPE = "metadaType";
     private static final String DATA = "data";
-    private EvidenceService evidenceService;
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(EvidenceAuditDatabaseCheck.class);
     private static final String REPORTS = "reports";
+    private EvidenceService evidenceService;
+    private EvidenceAuditReportService evidenceAuditReportService;
 
-
-    @VisibleForTesting EvidenceAuditDatabaseCheck(EvidenceService evidenceService) {
+    @VisibleForTesting
+    EvidenceAuditDatabaseCheck(EvidenceService evidenceService, EvidenceAuditReportService evidenceAuditReportService) {
         this.evidenceService = evidenceService;
+        this.evidenceAuditReportService = evidenceAuditReportService;
     }
 
     public EvidenceAuditDatabaseCheck() {
-        this(new EvidenceService());
+        this(new EvidenceService(), new EvidenceAuditReportService());
     }
 
     @Override
@@ -87,23 +98,76 @@ public class EvidenceAuditDatabaseCheck extends ActionHandler {
             handlerIO.transferFileToWorkspace(DATA + "/" + objectToAuditId,
                 newLocalFile, true, false);
 
-            if (!parameters.getEvidenceStatus().equals(EvidenceStatus.OK)) {
+            if ( parameters.getEvidenceStatus().equals(EvidenceStatus.FATAL) ) {
+                itemStatus.increment(StatusCode.FATAL);
+                ObjectNode infoNode = JsonHandler.createObjectNode();
+                infoNode.put("Message", "Fatal Technical error "+ parameters.getAuditMessage());
+                itemStatus.setEvDetailData(unprettyPrint(infoNode));
+                evidenceAuditReportService.cleanupReport(param.getContainerName());
+                return new ItemStatus(EVIDENCE_AUDIT_CHECK_DATABASE).setItemsStatus(EVIDENCE_AUDIT_CHECK_DATABASE, itemStatus);
+            }
+            if (parameters.getEvidenceStatus().equals(EvidenceStatus.KO) || parameters.getEvidenceStatus().equals(EvidenceStatus.WARN)) {
 
                 EvidenceAuditReportLine evidenceAuditReportLine = null;
                 evidenceAuditReportLine = new EvidenceAuditReportLine(objectToAuditId);
                 evidenceAuditReportLine.setEvidenceStatus(parameters.getEvidenceStatus());
                 evidenceAuditReportLine.setMessage(parameters.getAuditMessage());
+                evidenceAuditReportLine.setStrategyId(parameters.getMdOptimisticStorageInfo().getStrategy());
                 JsonHandler.writeAsFile(evidenceAuditReportLine, file);
                 handlerIO.transferFileToWorkspace(REPORTS + "/" + objectToAuditId + ".report.json",
                     file, true, false);
+                if(!param.getWorkflowIdentifier().equals("RECTIFICATION_AUDIT"))
+                addReportEntry(param.getContainerName(),
+                    createEvidenceReportEntry(parameters, evidenceAuditReportLine));
             }
+
+
         } catch (VitamException | IOException e) {
             LOGGER.error(e);
             itemStatus.increment(StatusCode.FATAL);
+            return new ItemStatus(EVIDENCE_AUDIT_CHECK_DATABASE).setItemsStatus(EVIDENCE_AUDIT_CHECK_DATABASE, itemStatus);
         }
 
         itemStatus.increment(StatusCode.OK);
         return new ItemStatus(EVIDENCE_AUDIT_CHECK_DATABASE).setItemsStatus(EVIDENCE_AUDIT_CHECK_DATABASE, itemStatus);
     }
 
+    private void addReportEntry(String processId, EvidenceAuditReportEntry entry)
+        throws EvidenceAuditException {
+        evidenceAuditReportService.appendEvidenceAuditEntries(processId, Arrays.asList(entry));
+    }
+
+    private EvidenceAuditReportEntry createEvidenceReportEntry(EvidenceAuditParameters parameters,
+        EvidenceAuditReportLine evidenceAuditReportLine) {
+
+        ArrayList<EvidenceAuditReportObject> ListvidEvidenceAuditBatchReport =
+            createEvidenceBatchFromEvidenceWorker(evidenceAuditReportLine);
+
+        return new EvidenceAuditReportEntry(
+            parameters.getId(),
+            parameters.getEvidenceStatus().name(),
+            parameters.getAuditMessage(),
+            parameters.getMetadataType().name(),
+            ListvidEvidenceAuditBatchReport,
+            evidenceAuditReportLine.getSecuredHash(),
+            evidenceAuditReportLine.getStrategyId(),
+            evidenceAuditReportLine.getOffersHashes(),
+            parameters.getAuditMessage());
+    }
+
+    private ArrayList<EvidenceAuditReportObject> createEvidenceBatchFromEvidenceWorker(
+        EvidenceAuditReportLine evidenceAuditReportLine) {
+        ArrayList<EvidenceAuditReportObject> list = new ArrayList<>();
+
+        if (evidenceAuditReportLine.getObjectsReports() != null) {
+            for (fr.gouv.vitam.worker.core.plugin.evidence.report.EvidenceAuditReportObject objects : evidenceAuditReportLine
+                .getObjectsReports()) {
+                list.add(new EvidenceAuditReportObject(objects.getIdentifier(), objects.getEvidenceStatus().name(),
+                    objects.getMessage(), objects.getObjectType(), objects.getSecuredHash(), objects.getStrategyId(),
+                    objects.getOffersHashes()));
+            }
+            return list;
+        }
+        return list;
+    }
 }

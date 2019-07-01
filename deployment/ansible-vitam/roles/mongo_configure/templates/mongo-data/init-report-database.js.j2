@@ -28,3 +28,8 @@ db.AuditObjectGroup.createIndex( { "processId" : 1, "_tenant" : 1, "_metadata.st
 
 // Create indexes InvalidUnits
 db.InvalidUnits.createIndex( { "processId" : 1} )
+
+// Create indexes EvidenceAuditReport
+db.EvidenceAuditReport.createIndex( { "processId" : 1, "_tenant" : 1 } )
+db.EvidenceAuditReport.createIndex( { "processId" : 1, "_tenant" : 1, "_metadata.id" : 1 } )
+db.EvidenceAuditReport.createIndex( { "processId" : 1, "_tenant" : 1, "_metadata.status" : 1 } )

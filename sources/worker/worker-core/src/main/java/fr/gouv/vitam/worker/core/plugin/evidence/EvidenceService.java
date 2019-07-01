@@ -318,7 +318,6 @@ public class EvidenceService {
         }
         evidenceAuditReportLine.setObjectsReports(reportList);
         if (!errorsObjectMessages.isEmpty()) {
-
             errorsMessage.add("There is an  error on the audit of the  linked  object");
         }
     }
@@ -419,9 +418,7 @@ public class EvidenceService {
         return extractFileStreamFromZip(traceabilityFile, fileToExtract,  extension, delele );
     }
 
-    public File downloadFileInTemporaryFolder(String fileName) throws EvidenceAuditException {
-      return   this.downloadFileInTemporaryFolder(fileName,"");
-    }
+
     private File downloadFileInTemporaryFolder(String fileName, String extension) throws EvidenceAuditException {
         // Get zip file
         Response response = null;
@@ -527,6 +524,10 @@ public class EvidenceService {
             int lfcVersion = lifecycle.get(LogbookDocument.VERSION).asInt();
             auditParameters.setLfcVersion(lfcVersion);
 
+            // get storage info
+            JsonNode storageResultsJsonNode = getStorageResultsJsonNode(auditParameters.getMdOptimisticStorageInfo(),
+                getDataCategory(auditParameters.getMetadataType()), auditParameters.getId() + JSON);
+
             // Get most recent traceability operation
             String logbookOperationSecurisationId =
                 getLogbookSecureOperationId(lifecycle, metadataType);
@@ -561,9 +562,7 @@ public class EvidenceService {
 
             auditParameters.setHashMdFromDatabase(hashMdFromDatabase);
             auditParameters.setHashLfcFromDatabase(hashLfcFromDatabase);
-            // get storage info
-            JsonNode storageResultsJsonNode = getStorageResultsJsonNode(auditParameters.getMdOptimisticStorageInfo(),
-                getDataCategory(auditParameters.getMetadataType()), auditParameters.getId() + JSON);
+
 
             auditParameters.setStorageMetadataResultListJsonNode(storageResultsJsonNode);
 

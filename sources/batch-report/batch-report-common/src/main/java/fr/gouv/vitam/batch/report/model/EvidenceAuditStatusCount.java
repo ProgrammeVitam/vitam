@@ -24,14 +24,61 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  *******************************************************************************/
-package fr.gouv.vitam.worker.core.plugin.evidence.exception;
+package fr.gouv.vitam.batch.report.model;
+
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
- * EvidenceStatus class
+ * Contains counter for each statues.
+ *
  */
-public enum EvidenceStatus {
-    OK,
-    FATAL,
-    KO,
-    WARN;
+public class EvidenceAuditStatusCount {
+
+    @JsonProperty("OK")
+    private int nbOK;
+    @JsonProperty("WARNING")
+    private int nbWARNING;
+    @JsonProperty("KO")
+    private int nbKO;
+
+    public int getNbOK() {
+        return nbOK;
+    }
+
+    public void setNbOK(int nbOK) {
+        this.nbOK = nbOK;
+    }
+
+    public int getNbWARNING() {
+        return nbWARNING;
+    }
+
+    public void setNbWARNING(int nbWARNING) {
+        this.nbWARNING = nbWARNING;
+    }
+
+    public int getNbKO() {
+        return nbKO;
+    }
+
+    public void setNbKO(int nbKO) {
+        this.nbKO = nbKO;
+    }
+
+    public void addOneStatus(String status, int nb) {
+        switch (status) {
+        case "OK":
+            this.nbOK = nb;
+            break;
+        case "WARN":
+            this.nbWARNING = nb;
+            break;
+        case "KO":
+            this.nbKO = nb;
+            break;
+        default:
+            throw new IllegalArgumentException("Status invalid " + status);
+        }
+    }
+
 }

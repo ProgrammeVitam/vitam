@@ -26,40 +26,9 @@
  *******************************************************************************/
 package fr.gouv.vitam.audit.test;
 
-import static fr.gouv.vitam.common.VitamServerRunner.NB_TRY;
-import static fr.gouv.vitam.common.VitamServerRunner.PORT_SERVICE_ACCESS_INTERNAL;
-import static fr.gouv.vitam.common.VitamServerRunner.SLEEP_TIME;
-import static fr.gouv.vitam.common.client.VitamClientFactoryInterface.VitamClientType.PRODUCTION;
-import static fr.gouv.vitam.common.guid.GUIDFactory.newOperationLogbookGUID;
-import static fr.gouv.vitam.common.stream.StreamUtils.consumeAnyEntityAndClose;
-import static fr.gouv.vitam.common.thread.VitamThreadUtils.getVitamSession;
-import static fr.gouv.vitam.preservation.ProcessManagementWaiter.waitOperation;
-import static java.util.Collections.singletonList;
-import static org.assertj.core.api.Assertions.assertThat;
-
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-
-import javax.ws.rs.core.Response;
-
-import org.apache.commons.collections4.iterators.PeekingIterator;
-import org.junit.After;
-import org.junit.AfterClass;
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.ClassRule;
-import org.junit.Test;
-
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.google.common.collect.Sets;
-
 import fr.gouv.vitam.access.internal.client.AccessInternalClient;
 import fr.gouv.vitam.access.internal.client.AccessInternalClientFactory;
 import fr.gouv.vitam.access.internal.rest.AccessInternalMain;
@@ -96,6 +65,8 @@ import fr.gouv.vitam.ingest.internal.upload.rest.IngestInternalMain;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClient;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClientFactory;
 import fr.gouv.vitam.logbook.rest.LogbookMain;
+import fr.gouv.vitam.metadata.client.MetaDataClient;
+import fr.gouv.vitam.metadata.client.MetaDataClientFactory;
 import fr.gouv.vitam.metadata.core.database.collections.MetadataCollections;
 import fr.gouv.vitam.metadata.rest.MetadataMain;
 import fr.gouv.vitam.processing.data.core.ProcessDataAccessImpl;
@@ -107,6 +78,34 @@ import fr.gouv.vitam.storage.engine.server.rest.StorageMain;
 import fr.gouv.vitam.storage.offers.rest.DefaultOfferMain;
 import fr.gouv.vitam.worker.server.rest.WorkerMain;
 import fr.gouv.vitam.workspace.rest.WorkspaceMain;
+import org.apache.commons.collections4.iterators.PeekingIterator;
+import org.junit.After;
+import org.junit.AfterClass;
+import org.junit.Before;
+import org.junit.BeforeClass;
+import org.junit.ClassRule;
+import org.junit.Test;
+
+import javax.ws.rs.core.Response;
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+
+import static fr.gouv.vitam.common.VitamServerRunner.NB_TRY;
+import static fr.gouv.vitam.common.VitamServerRunner.PORT_SERVICE_ACCESS_INTERNAL;
+import static fr.gouv.vitam.common.VitamServerRunner.SLEEP_TIME;
+import static fr.gouv.vitam.common.client.VitamClientFactoryInterface.VitamClientType.PRODUCTION;
+import static fr.gouv.vitam.common.guid.GUIDFactory.newOperationLogbookGUID;
+import static fr.gouv.vitam.common.stream.StreamUtils.consumeAnyEntityAndClose;
+import static fr.gouv.vitam.common.thread.VitamThreadUtils.getVitamSession;
+import static fr.gouv.vitam.preservation.ProcessManagementWaiter.waitOperation;
+import static java.util.Collections.singletonList;
+import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * Audit evidence integration test
@@ -212,7 +211,7 @@ public class EvidenceAuditIT extends VitamRuleRunner {
                 Response reportResponse = null;
                 try {
                     reportResponse = storageClient.getContainerAsync(VitamConfiguration.getDefaultStrategy(),
-                            evidenceAuditOperationGUID.toString() + ".json", DataCategory.REPORT,
+                            evidenceAuditOperationGUID.toString() + ".jsonl", DataCategory.REPORT,
                             AccessLogUtils.getNoLogAccessLog());
                     assertThat(reportResponse.getStatus()).isEqualTo(Response.Status.OK.getStatusCode());
                 } finally {
@@ -263,7 +262,7 @@ public class EvidenceAuditIT extends VitamRuleRunner {
                 Response reportResponse = null;
                 try {
                     reportResponse = storageClient.getContainerAsync(VitamConfiguration.getDefaultStrategy(),
-                            evidenceAuditOperationGUID.toString() + ".json", DataCategory.REPORT,
+                            evidenceAuditOperationGUID.toString() + ".jsonl", DataCategory.REPORT,
                             AccessLogUtils.getNoLogAccessLog());
                     assertThat(reportResponse.getStatus()).isEqualTo(Response.Status.OK.getStatusCode());
                     reportLines = getReport(reportResponse);
@@ -271,7 +270,7 @@ public class EvidenceAuditIT extends VitamRuleRunner {
                     consumeAnyEntityAndClose(reportResponse);
                 }
             }
-            assertThat(reportLines.size()).isEqualTo(1);
+            assertThat(reportLines.size()).isEqualTo(4);
             assertThat(reportLines.get(0).get("strategyId").asText()).isEqualTo(VitamConfiguration.getDefaultStrategy());
             
             // CORRECTIVE WORKFLOW
@@ -307,6 +306,127 @@ public class EvidenceAuditIT extends VitamRuleRunner {
                 }
             }
         }
+    }
+
+    @Test
+    @RunWithCustomExecutor
+    public void should_execute_evidence_audit_workflow_with_warning() throws Exception {
+        String ingestOperationId2 = dataLoader.doIngest("preservation/OG_with_3_parents.zip");
+
+        // Given
+        try (AccessInternalClient accessClient = AccessInternalClientFactory.getInstance().getClient();
+            AdminManagementClient adminClient = AdminManagementClientFactory.getInstance().getClient()) {
+            GUID operationGuid = GUIDFactory.newOperationLogbookGUID(tenantId);
+            VitamThreadUtils.getVitamSession().setTenantId(tenantId);
+            VitamThreadUtils.getVitamSession().setContractId(contractId);
+            VitamThreadUtils.getVitamSession().setContextId("Context_IT");
+            VitamThreadUtils.getVitamSession().setRequestId(operationGuid);
+
+            JsonNode evidenceQuery = constructQuery(ingestOperationId2);
+            adminClient.evidenceAudit(evidenceQuery);
+            waitOperation(NB_TRY, SLEEP_TIME, operationGuid.toString());
+
+            // Check report
+            List<JsonNode> reportLines = null;
+            try (StorageClient storageClient = StorageClientFactory.getInstance().getClient()) {
+                Response reportResponse = null;
+                try {
+                    reportResponse = storageClient.getContainerAsync(VitamConfiguration.getDefaultStrategy(),
+                        operationGuid.toString() + ".jsonl", DataCategory.REPORT,
+                        AccessLogUtils.getNoLogAccessLog());
+                    assertThat(reportResponse.getStatus()).isEqualTo(Response.Status.OK.getStatusCode());
+                    reportLines = getReport(reportResponse);
+                } finally {
+                    consumeAnyEntityAndClose(reportResponse);
+                }
+            }
+            assertThat(reportLines.size()).isEqualTo(14);
+            assertThat(reportLines.get(1).get("extendedInfo").get("nbObjectGroups").asInt()).isEqualTo(4);
+            assertThat(reportLines.get(1).get("extendedInfo").get("nbObjects").asInt()).isEqualTo(7);
+            assertThat(reportLines.get(1).get("vitamResults").get("WARNING").asInt()).isEqualTo(11);
+            assertThat(reportLines.get(3).get("message").asText()).contains("No traceability operation found matching date");
+
+        }
+    }
+
+    @Test
+    @RunWithCustomExecutor
+    public void should_execute_evidence_audit_workflow_wit_fatal_error() throws Exception {
+        String ingestOperationId2 = dataLoader.doIngest("preservation/OG_with_3_parents.zip");
+        addOfferInMetadatasUnit();
+
+
+        // Given
+        try (AccessInternalClient accessClient = AccessInternalClientFactory.getInstance().getClient();
+            AdminManagementClient adminClient = AdminManagementClientFactory.getInstance().getClient()) {
+            GUID operationGuid = GUIDFactory.newOperationLogbookGUID(tenantId);
+            VitamThreadUtils.getVitamSession().setTenantId(tenantId);
+            VitamThreadUtils.getVitamSession().setContractId(contractId);
+            VitamThreadUtils.getVitamSession().setContextId("Context_IT");
+            VitamThreadUtils.getVitamSession().setRequestId(operationGuid);
+
+            JsonNode evidenceQuery = constructQuery(ingestOperationId2);
+            adminClient.evidenceAudit(evidenceQuery);
+            waitOperation(NB_TRY, SLEEP_TIME, operationGuid.toString());
+
+            // When
+            ArrayNode jsonNode = (ArrayNode) accessClient
+                .selectOperationById(operationGuid.getId(), new SelectMultiQuery().getFinalSelect()).toJsonNode()
+                .get("$results").get(0).get("events");
+            // Then
+            assertThat(jsonNode.get(jsonNode.size()-2).get("outcome").asText()).isEqualTo(StatusCode.FATAL.name());
+
+        }
+    }
+
+    private void addOfferInMetadatasUnit()
+        throws Exception {
+
+        try (AccessInternalClient accessClient = AccessInternalClientFactory.getInstance().getClient();
+            MetaDataClient metadataClient = MetaDataClientFactory.getInstance().getClient();) {
+            GUID operationGuid = GUIDFactory.newOperationLogbookGUID(tenantId);
+            dataLoader.prepareVitamSession();
+            VitamThreadUtils.getVitamSession().setRequestId(operationGuid);
+
+            //Change offer of an ingested Unit
+            SelectMultiQuery select = new SelectMultiQuery();
+            //select.addQueries(QueryHelper.eq("Title", "monSIP"));
+            select.addQueries(QueryHelper.exists("#id"));
+            RequestResponse<JsonNode> response = accessClient.selectUnits(select.getFinalSelect());
+            if(!response.isOk()) {
+                throw new VitamException("Could not find unit");
+            }
+            JsonNode unit = ((RequestResponseOK<JsonNode>)response).getFirstResult();
+            final String unitId = unit.get("#id").asText();
+            assertThat(unit).isNotNull();
+            final ArrayNode offerIds = (ArrayNode) unit.get("#storage").get("offerIds");
+            offerIds.add("fake-offer");
+            JsonNode queryUpdate = JsonHandler.getFromString(
+                "{\"$action\": [{\"$set\": {\"_storage\" : {\"offerIds\": [ \"offerId1\",\"nonRefOffer\"] }}}]}");
+
+            JsonNode resultUpdate = metadataClient.updateUnitById(queryUpdate, unitId);
+            assertThat(resultUpdate).isNotNull();
+        }
+    }
+
+    private JsonNode constructQuery(String operationGuid) {
+        JsonNode q = null;
+        String query = "{\n" +
+            "  \"$roots\": [],\n" +
+            "  \"$query\": [\n" +
+            "    {\n" +
+            "      \"$and\": [\n" +
+            "        { \"$in\": { \"#operations\": [ \""+operationGuid+"\" ] } }\n" +
+            "      ]\n" +
+            "    }],\n" +
+            "    \"$projection\": { }\n" +
+            "}";
+        try {
+            q = JsonHandler.getFromString(query);
+        } catch (InvalidParseOperationException e) {
+            e.printStackTrace();
+        }
+        return q;
     }
 
     private List<JsonNode> getReport(Response reportResponse) throws IOException, InvalidParseOperationException {

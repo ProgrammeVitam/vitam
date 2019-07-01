@@ -24,14 +24,45 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  *******************************************************************************/
-package fr.gouv.vitam.worker.core.plugin.evidence.exception;
+package fr.gouv.vitam.batch.report.model;
+
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
- * EvidenceStatus class
+ * Counter of different status for all statuses of an object
+ *
  */
-public enum EvidenceStatus {
-    OK,
-    FATAL,
-    KO,
-    WARN;
+public class EvidenceAuditFullStatusCount {
+
+    @JsonProperty("objectGroupsCount")
+    private EvidenceAuditStatusCount objectGroupsCount;
+    @JsonProperty("objectsCount")
+    private EvidenceAuditStatusCount objectsCount;
+
+    public EvidenceAuditFullStatusCount() {
+
+    }
+
+    public EvidenceAuditFullStatusCount(EvidenceAuditStatusCount objectGroupsCount, EvidenceAuditStatusCount objectsCount) {
+        super();
+        this.objectGroupsCount = objectGroupsCount;
+        this.objectsCount = objectsCount;
+    }
+
+    public EvidenceAuditStatusCount getObjectGroupsCount() {
+        return objectGroupsCount;
+    }
+
+    public void setObjectGroupsCount(EvidenceAuditStatusCount objectGroupsCount) {
+        this.objectGroupsCount = objectGroupsCount;
+    }
+
+    public EvidenceAuditStatusCount getObjectsCount() {
+        return objectsCount;
+    }
+
+    public void setObjectsCount(EvidenceAuditStatusCount objectsCount) {
+        this.objectsCount = objectsCount;
+    }
+
 }

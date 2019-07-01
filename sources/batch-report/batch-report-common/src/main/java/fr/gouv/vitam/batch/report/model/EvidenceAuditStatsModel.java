@@ -24,14 +24,59 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  *******************************************************************************/
-package fr.gouv.vitam.worker.core.plugin.evidence.exception;
+package fr.gouv.vitam.batch.report.model;
+
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
- * EvidenceStatus class
+ * Additional statistics for audit report.
  */
-public enum EvidenceStatus {
-    OK,
-    FATAL,
-    KO,
-    WARN;
+public class EvidenceAuditStatsModel {
+
+    @JsonProperty("nbObjectGroups")
+    private int nbObjectGroups;
+
+    @JsonProperty("nbObjects")
+    private int nbObjects;
+
+
+    @JsonProperty("globalResults")
+    private EvidenceAuditFullStatusCount globalResults;
+
+
+    public EvidenceAuditStatsModel() {
+    }
+
+    public EvidenceAuditStatsModel(int nbObjectGroups, int nbObjects, EvidenceAuditFullStatusCount globalResults) {
+        super();
+        this.nbObjectGroups = nbObjectGroups;
+        this.nbObjects = nbObjects;
+        this.globalResults = globalResults;
+    }
+
+    public int getNbObjectGroups() {
+        return nbObjectGroups;
+    }
+
+    public void setNbObjectGroups(int nbObjectGroups) {
+        this.nbObjectGroups = nbObjectGroups;
+    }
+
+    public int getNbObjects() {
+        return nbObjects;
+    }
+
+    public void setNbObjects(int nbObjects) {
+        this.nbObjects = nbObjects;
+    }
+
+    public EvidenceAuditFullStatusCount getGlobalResults() {
+        return globalResults;
+    }
+
+    public void setGlobalResults(EvidenceAuditFullStatusCount globalResults) {
+        this.globalResults = globalResults;
+    }
+
+
 }

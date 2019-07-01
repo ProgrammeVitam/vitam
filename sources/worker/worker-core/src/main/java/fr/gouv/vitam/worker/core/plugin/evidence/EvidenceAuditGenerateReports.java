@@ -28,6 +28,9 @@ package fr.gouv.vitam.worker.core.plugin.evidence;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
+import com.google.common.annotations.VisibleForTesting;
+import fr.gouv.vitam.batch.report.model.EvidenceAuditReportObject;
+import fr.gouv.vitam.batch.report.model.entry.EvidenceAuditReportEntry;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
@@ -38,9 +41,11 @@ import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 import fr.gouv.vitam.worker.common.HandlerIO;
 import fr.gouv.vitam.worker.core.handler.ActionHandler;
+import fr.gouv.vitam.worker.core.plugin.evidence.exception.EvidenceAuditException;
 import fr.gouv.vitam.worker.core.plugin.evidence.exception.EvidenceStatus;
 import fr.gouv.vitam.worker.core.plugin.evidence.report.EvidenceAuditParameters;
 import fr.gouv.vitam.worker.core.plugin.evidence.report.EvidenceAuditReportLine;
+import fr.gouv.vitam.worker.core.plugin.evidence.report.EvidenceAuditReportService;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
 
@@ -49,6 +54,7 @@ import java.io.IOException;
 import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 /**
@@ -63,7 +69,16 @@ public class EvidenceAuditGenerateReports extends ActionHandler {
     public static final String ZIP = "zip";
     private static final String REPORTS = "reports";
     private static final String ALTER = "alter";
+    private EvidenceAuditReportService evidenceAuditReportService;
 
+    @VisibleForTesting
+    EvidenceAuditGenerateReports(EvidenceAuditReportService evidenceAuditReportService) {
+        this.evidenceAuditReportService = evidenceAuditReportService;
+    }
+
+    public EvidenceAuditGenerateReports() {
+        this(new EvidenceAuditReportService());
+    }
     @Override
     public ItemStatus execute(WorkerParameters param, HandlerIO handlerIO)
         throws ProcessingException, ContentAddressableStorageServerException {
@@ -111,6 +126,9 @@ public class EvidenceAuditGenerateReports extends ActionHandler {
                 }
                 JsonHandler.writeAsFile(evidenceAuditReportLine, file);
 
+                if(!correctiveAudit)
+                addReportEntry(param.getContainerName(), createEvidenceReportEntry(evidenceAuditReportLine));
+
                 handlerIO.transferFileToWorkspace(REPORTS + "/" + objectToAuditId + ".report.json",
                     file, !correctiveAudit, false);
 
@@ -124,7 +142,7 @@ public class EvidenceAuditGenerateReports extends ActionHandler {
 
             itemStatus.increment(StatusCode.OK);
 
-        } catch (IOException | ContentAddressableStorageNotFoundException | InvalidParseOperationException e) {
+        } catch (IOException | ContentAddressableStorageNotFoundException | InvalidParseOperationException | EvidenceAuditException e) {
 
             LOGGER.error(e);
 
@@ -134,5 +152,41 @@ public class EvidenceAuditGenerateReports extends ActionHandler {
             .setItemsStatus(EVIDENCE_AUDIT_PREPARE_GENERATE_REPORTS, itemStatus);
     }
 
+        private void addReportEntry(String processId, EvidenceAuditReportEntry entry)
+        throws EvidenceAuditException {
+            evidenceAuditReportService.appendEvidenceAuditEntries(processId, Arrays.asList(entry));
+    }
+
+    private EvidenceAuditReportEntry createEvidenceReportEntry(EvidenceAuditReportLine evidenceAuditReportLine) {
+
+        ArrayList<EvidenceAuditReportObject> ListvidEvidenceAuditBatchReport = createEvidenceBatchFromEvidenceWorker(evidenceAuditReportLine);
+
+       String message =  evidenceAuditReportLine.getMessage() != null ? evidenceAuditReportLine.getMessage() : "audit "+ evidenceAuditReportLine.getEvidenceStatus().name() +" for " + evidenceAuditReportLine.getObjectType().getName();
+        return new EvidenceAuditReportEntry(
+            evidenceAuditReportLine.getIdentifier(),
+            evidenceAuditReportLine.getEvidenceStatus().name(),
+            message,
+            evidenceAuditReportLine.getObjectType().name(),
+            ListvidEvidenceAuditBatchReport,
+            evidenceAuditReportLine.getSecuredHash(),
+            evidenceAuditReportLine.getStrategyId(),
+            evidenceAuditReportLine.getOffersHashes(),
+            evidenceAuditReportLine.getEvidenceStatus().name());
+    }
+
+    private ArrayList<EvidenceAuditReportObject> createEvidenceBatchFromEvidenceWorker(EvidenceAuditReportLine evidenceAuditReportLine) {
+        ArrayList<EvidenceAuditReportObject> list = new ArrayList<>();
+
+        if(evidenceAuditReportLine.getObjectsReports() != null) {
+            for (fr.gouv.vitam.worker.core.plugin.evidence.report.EvidenceAuditReportObject objects : evidenceAuditReportLine
+                .getObjectsReports()) {
+                list.add(new EvidenceAuditReportObject(objects.getIdentifier(), objects.getEvidenceStatus().name(),
+                    objects.getMessage(), objects.getObjectType(), objects.getSecuredHash(), objects.getStrategyId(),
+                    objects.getOffersHashes()));
+            }
+            return list;
+        }
+        return list;
+    }
 
 }
