@@ -27,6 +27,7 @@
 package fr.gouv.vitam.worker.core.plugin.compute_inherited_rules.model;
 
 import java.time.LocalDate;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -95,15 +96,13 @@ public class InheritedRule {
                 .collect(Collectors.toList());
         }
 
-        return null;
+        return Collections.emptyList();
     }
 
-    @JsonAnyGetter
     public Map<String, LocalDate> getRuleIdToRule() {
         return ruleIdToRule;
     }
 
-    @JsonAnySetter
     public void setRuleIdToRule(String ruleId, LocalDate ruleMaxEndDate) {
         this.ruleIdToRule.put(ruleId, ruleMaxEndDate);
     }
