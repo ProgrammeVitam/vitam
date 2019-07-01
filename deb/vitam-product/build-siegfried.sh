@@ -1,6 +1,6 @@
 #!/bin/bash
 
-SIEGFRIED_VERSION="1.7.10"
+SIEGFRIED_VERSION="1.7.12"
 WORKING_FOLDER=$(dirname $0)
 GO_PROGRAM="go"
 #GO_PROGRAM="/usr/bin/go"
