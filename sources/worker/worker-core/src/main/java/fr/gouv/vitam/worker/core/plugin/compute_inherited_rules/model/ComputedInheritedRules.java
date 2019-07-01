@@ -44,6 +44,7 @@ public class ComputedInheritedRules {
     private static final String ACCESS_RULE = "AccessRule";
     private static final String REUSE_RULE = "ReuseRule";
     private static final String CLASSIFICATION_RULE = "ClassificationRule";
+    private static final String NEED_AUTHORIZATION = "NEED_AUTHORIZATION";
 
     @JsonProperty(STORAGE_RULE)
     private InheritedRule storageRule;
@@ -61,7 +62,7 @@ public class ComputedInheritedRules {
     private JsonNode inheritedRulesAPIOutput;
     @JsonProperty("indexationDate")
     private String indexationDate;
-    @JsonProperty("NeedAuthorization")
+    @JsonProperty(NEED_AUTHORIZATION)
     private List<Boolean> needAuthorization;
 
 
@@ -78,7 +79,7 @@ public class ComputedInheritedRules {
         this.reuseRule = inheritedRules.get(REUSE_RULE);
         this.classificationRule = inheritedRules.get(CLASSIFICATION_RULE);
         this.inheritedRulesAPIOutput = inheritedRulesAPIOutput;
-        this.needAuthorization = Collections.singletonList((Boolean) globalInheritedProperties.get("NeedAuthorization"));
+        this.needAuthorization = Collections.singletonList((Boolean) globalInheritedProperties.get(NEED_AUTHORIZATION));
         this.indexationDate = indexationDate;
     }
 

@@ -34,8 +34,6 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
-import com.fasterxml.jackson.annotation.JsonAnyGetter;
-import com.fasterxml.jackson.annotation.JsonAnySetter;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
@@ -44,19 +42,27 @@ import com.fasterxml.jackson.annotation.JsonProperty;
  */
 @JsonInclude(JsonInclude.Include.NON_DEFAULT)
 public class InheritedRule {
-    @JsonProperty("MaxEndDate")
+    private static final String MAX_END_DATE = "MaxEndDate";
+    private static final String END_DATES = "EndDates";
+    private static final String FINAL_ACTION = "FinalAction";
+    private static final String CLASSIFICATION_LEVEL = "ClassificationLevel";
+    private static final String CLASSIFICATION_OWNER = "ClassificationOwner";
+    private static final String CLASSIFICATION_REASSESSING_DATE = "ClassificationReassessingDate";
+    private static final String NEED_REASSESSING_AUTHORIZATION = "NeedReassessingAuthorization";
+
+    @JsonProperty(MAX_END_DATE)
     private LocalDate maxEndDate;
-    @JsonProperty("EndDates")
+    @JsonProperty(END_DATES)
     private Map<String, LocalDate> ruleIdToRule = new HashMap<>();
-    @JsonProperty("FinalAction")
+    @JsonProperty(FINAL_ACTION)
     private List<String> finalAction;
-    @JsonProperty("ClassificationLevel")
+    @JsonProperty(CLASSIFICATION_LEVEL)
     private List<String> classificationLevel;
-    @JsonProperty("ClassificationOwner")
+    @JsonProperty(CLASSIFICATION_OWNER)
     private List<String> classificationOwner;
-    @JsonProperty("ClassificationReassessingDate")
+    @JsonProperty(CLASSIFICATION_REASSESSING_DATE)
     private List<String> classificationReassessingDate;
-    @JsonProperty("NeedReassessingAuthorization")
+    @JsonProperty(NEED_REASSESSING_AUTHORIZATION)
     private List<String> needReassessingAuthorization;
 
     public InheritedRule() {
@@ -82,10 +88,11 @@ public class InheritedRule {
     }
 
     private void parseProperties(Properties properties) {
-        this.finalAction = parsePropertiesByName("FinalAction", properties);
-        this.classificationLevel = parsePropertiesByName("ClassificationLevel", properties);
-        this.classificationOwner = parsePropertiesByName("ClassificationOwner", properties);
-        this.classificationReassessingDate = parsePropertiesByName("NeedReassessingAuthorization", properties);
+        this.finalAction = parsePropertiesByName(FINAL_ACTION, properties);
+        this.classificationLevel = parsePropertiesByName(CLASSIFICATION_LEVEL, properties);
+        this.classificationOwner = parsePropertiesByName(CLASSIFICATION_OWNER, properties);
+        this.classificationReassessingDate = parsePropertiesByName(CLASSIFICATION_REASSESSING_DATE, properties);
+        this.needReassessingAuthorization = parsePropertiesByName(NEED_REASSESSING_AUTHORIZATION, properties);
     }
 
     private List<String> parsePropertiesByName(String propertyName, Properties properties) {
