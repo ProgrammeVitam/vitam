@@ -101,7 +101,7 @@ vitam_offers:
   # THIS PART IS ONLY FOR CLEANING (and mandatory for this use case)
   #    swiftProjectId: related to OS_PROJECT_ID
   #    swiftRegionName: related to OS_REGION_NAME
-  #    swiftInterface: related to OS_INTERFACE    
+  #    swiftInterface: related to OS_INTERFACE
   # example_swift_v3:
   #    provider: openstack-swift-v3
   #    swiftKeystoneAuthUrl: https://keystone/v3
