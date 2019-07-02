@@ -60,10 +60,13 @@ import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 import fr.gouv.vitam.worker.common.HandlerIO;
 import fr.gouv.vitam.worker.core.handler.ActionHandler;
+import fr.gouv.vitam.worker.core.plugin.compute_inherited_rules.model.AppraisalRule;
+import fr.gouv.vitam.worker.core.plugin.compute_inherited_rules.model.ClassificationRule;
 import fr.gouv.vitam.worker.core.plugin.compute_inherited_rules.model.ComputedInheritedRules;
 import fr.gouv.vitam.worker.core.plugin.compute_inherited_rules.model.InheritedRule;
 import fr.gouv.vitam.worker.core.plugin.compute_inherited_rules.model.Properties;
 import fr.gouv.vitam.worker.core.plugin.compute_inherited_rules.model.PropertyValue;
+import fr.gouv.vitam.worker.core.plugin.compute_inherited_rules.model.StorageRule;
 
 import java.time.Instant;
 import java.time.LocalDate;
@@ -198,7 +201,6 @@ public class ComputeInheritedRulesActionPlugin extends ActionHandler {
         InheritedRuleCategoryResponseModel categoryResponseModel, boolean indexRulesById) {
         Map<String, InheritedRule> inheritedRulesWithEndDateAndProperties = new HashMap<>();
 
-        //TODO refactor because Lotfi don't want zoneId.systemDefault
         Optional<LocalDate> maxEndDateByCategory =
             categoryResponseModel.getRules().stream()
                 .map(rule -> parseToLocalDate(rule.getEndDate()))
@@ -240,15 +242,34 @@ public class ComputeInheritedRulesActionPlugin extends ActionHandler {
         LocalDate maxEndDateByCategory,
         Map<String, LocalDate> computedInheritedRules,
         Map<String, PropertyValue> propertyNameToPropertyValue) {
-        if (indexRulesById) {
-            inheritedRulesWithEndDateAndProperties
-                .put(category, new InheritedRule(maxEndDateByCategory, new Properties(propertyNameToPropertyValue),
-                    computedInheritedRules));
-        } else {
-            inheritedRulesWithEndDateAndProperties
-                .put(category, new InheritedRule(maxEndDateByCategory, new Properties(propertyNameToPropertyValue)));
+        InheritedRule rule;
+        switch(category) {
+            case ComputedInheritedRules.CLASSIFICATION_RULE:
+                rule = new ClassificationRule(maxEndDateByCategory,
+                    new Properties(propertyNameToPropertyValue),
+                    (indexRulesById) ? computedInheritedRules:null);
+                break;
+            case ComputedInheritedRules.STORAGE_RULE:
+                rule = new StorageRule(maxEndDateByCategory,
+                    new Properties(propertyNameToPropertyValue),
+                    (indexRulesById) ? computedInheritedRules:null);
+                break;
+            case ComputedInheritedRules.APPRAISAL_RULE:
+                rule = new AppraisalRule(maxEndDateByCategory,
+                    new Properties(propertyNameToPropertyValue),
+                    (indexRulesById) ? computedInheritedRules:null);
+                break;
+            default:
+                rule = new InheritedRule(maxEndDateByCategory,
+                    (indexRulesById) ? computedInheritedRules:null);
+                break;
+
         }
+
+        inheritedRulesWithEndDateAndProperties.put(category, rule);
+
     }
+
 
     private LocalDate parseToLocalDate(String dateToParse) {
         return LocalDate.parse(dateToParse, formatter);

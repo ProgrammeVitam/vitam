@@ -38,12 +38,12 @@ import com.fasterxml.jackson.databind.JsonNode;
  */
 public class ComputedInheritedRules {
 
-    private static final String STORAGE_RULE = "StorageRule";
-    private static final String APPRAISAL_RULE = "AppraisalRule";
-    private static final String DISSEMINATION_RULE = "DisseminationRule";
-    private static final String ACCESS_RULE = "AccessRule";
-    private static final String REUSE_RULE = "ReuseRule";
-    private static final String CLASSIFICATION_RULE = "ClassificationRule";
+    public static final String STORAGE_RULE = "StorageRule";
+    public static final String APPRAISAL_RULE = "AppraisalRule";
+    public static final String DISSEMINATION_RULE = "DisseminationRule";
+    public static final String ACCESS_RULE = "AccessRule";
+    public static final String REUSE_RULE = "ReuseRule";
+    public static final String CLASSIFICATION_RULE = "ClassificationRule";
     private static final String NEED_AUTHORIZATION = "NEED_AUTHORIZATION";
 
     @JsonProperty(STORAGE_RULE)
@@ -57,7 +57,7 @@ public class ComputedInheritedRules {
     @JsonProperty(REUSE_RULE)
     private InheritedRule reuseRule;
     @JsonProperty(CLASSIFICATION_RULE)
-    private InheritedRule classificationRule;
+    private ClassificationRule classificationRule;
     @JsonProperty("inheritedRulesAPIOutput")
     private JsonNode inheritedRulesAPIOutput;
     @JsonProperty("indexationDate")
@@ -77,7 +77,7 @@ public class ComputedInheritedRules {
         this.disseminationRule = inheritedRules.get(DISSEMINATION_RULE);
         this.accessRule = inheritedRules.get(ACCESS_RULE);
         this.reuseRule = inheritedRules.get(REUSE_RULE);
-        this.classificationRule = inheritedRules.get(CLASSIFICATION_RULE);
+        this.classificationRule = (ClassificationRule) inheritedRules.get(CLASSIFICATION_RULE);
         this.inheritedRulesAPIOutput = inheritedRulesAPIOutput;
         this.needAuthorization = Collections.singletonList((Boolean) globalInheritedProperties.get(NEED_AUTHORIZATION));
         this.indexationDate = indexationDate;
@@ -89,7 +89,7 @@ public class ComputedInheritedRules {
         this.disseminationRule = inheritedRules.get(DISSEMINATION_RULE);
         this.accessRule = inheritedRules.get(ACCESS_RULE);
         this.reuseRule = inheritedRules.get(REUSE_RULE);
-        this.classificationRule = inheritedRules.get(CLASSIFICATION_RULE);
+        this.classificationRule = (ClassificationRule) inheritedRules.get(CLASSIFICATION_RULE);
         this.indexationDate = indexationDate;
     }
 
@@ -135,11 +135,11 @@ public class ComputedInheritedRules {
         this.reuseRule = reuseRule;
     }
 
-    public InheritedRule getClassificationRule() {
+    public ClassificationRule getClassificationRule() {
         return classificationRule;
     }
 
-    public void setClassificationRule(InheritedRule classificationRule) {
+    public void setClassificationRule(ClassificationRule classificationRule) {
         this.classificationRule = classificationRule;
     }
 
