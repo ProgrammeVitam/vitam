@@ -402,7 +402,7 @@ public class MetadataManagementIT extends VitamRuleRunner {
 
     private void checkOfferLogSize(DataCategory dataCategory, int size) throws StorageServerClientException {
         RequestResponse<OfferLog> offerLogResponse1 =
-            storageClient.getOfferLogs("default", dataCategory, null, Integer.MAX_VALUE, Order.ASC);
+            storageClient.getOfferLogs(VitamConfiguration.getDefaultStrategy(), dataCategory, null, Integer.MAX_VALUE, Order.ASC);
         assertThat(offerLogResponse1).isNotNull();
         assertThat(offerLogResponse1.isOk()).isTrue();
         assertThat(((RequestResponseOK<OfferLog>) offerLogResponse1).getResults()).hasSize(size);
@@ -538,7 +538,7 @@ public class MetadataManagementIT extends VitamRuleRunner {
 
 
         RequestResponse<OfferLog> offerLogResponse =
-            storageClient.getOfferLogs("default", DataCategory.UNIT, 0L, 10, Order.ASC);
+            storageClient.getOfferLogs(VitamConfiguration.getDefaultStrategy(), DataCategory.UNIT, 0L, 10, Order.ASC);
         assertThat(offerLogResponse).isNotNull();
         assertThat(offerLogResponse.isOk()).isTrue();
         assertThat(((RequestResponseOK<OfferLog>) offerLogResponse).getResults().size()).isEqualTo(4);
@@ -575,7 +575,7 @@ public class MetadataManagementIT extends VitamRuleRunner {
 
 
         offerLogResponse =
-            storageClient.getOfferLogs("default", DataCategory.UNIT_GRAPH, 0L, 10, Order.ASC);
+            storageClient.getOfferLogs(VitamConfiguration.getDefaultStrategy(), DataCategory.UNIT_GRAPH, 0L, 10, Order.ASC);
         assertThat(offerLogResponse).isNotNull();
         assertThat(offerLogResponse.isOk()).isTrue();
         assertThat(((RequestResponseOK<OfferLog>) offerLogResponse).getResults().size()).isEqualTo(1);
@@ -626,13 +626,13 @@ public class MetadataManagementIT extends VitamRuleRunner {
 
 
         RequestResponse<OfferLog> offerLogResponse =
-            storageClient.getOfferLogs("default", DataCategory.UNIT, 0L, 10, Order.ASC);
+            storageClient.getOfferLogs(VitamConfiguration.getDefaultStrategy(), DataCategory.UNIT, 0L, 10, Order.ASC);
         assertThat(offerLogResponse).isNotNull();
         assertThat(offerLogResponse.isOk()).isTrue();
         assertThat(((RequestResponseOK<OfferLog>) offerLogResponse).getResults().size()).isEqualTo(4);
 
         offerLogResponse =
-            storageClient.getOfferLogs("default", DataCategory.OBJECTGROUP, 0L, 10, Order.ASC);
+            storageClient.getOfferLogs(VitamConfiguration.getDefaultStrategy(), DataCategory.OBJECTGROUP, 0L, 10, Order.ASC);
         assertThat(offerLogResponse).isNotNull();
         assertThat(offerLogResponse.isOk()).isTrue();
         assertThat(((RequestResponseOK<OfferLog>) offerLogResponse).getResults().size()).isEqualTo(3);
@@ -643,13 +643,13 @@ public class MetadataManagementIT extends VitamRuleRunner {
         storeFileToOffer(container, got_graph_zip_file_name, "", got_graph_zip_file, DataCategory.OBJECTGROUP_GRAPH);
 
         offerLogResponse =
-            storageClient.getOfferLogs("default", DataCategory.UNIT_GRAPH, 0L, 10, Order.ASC);
+            storageClient.getOfferLogs(VitamConfiguration.getDefaultStrategy(), DataCategory.UNIT_GRAPH, 0L, 10, Order.ASC);
         assertThat(offerLogResponse).isNotNull();
         assertThat(offerLogResponse.isOk()).isTrue();
         assertThat(((RequestResponseOK<OfferLog>) offerLogResponse).getResults().size()).isEqualTo(1);
 
         offerLogResponse =
-            storageClient.getOfferLogs("default", DataCategory.OBJECTGROUP_GRAPH, 0L, 10, Order.ASC);
+            storageClient.getOfferLogs(VitamConfiguration.getDefaultStrategy(), DataCategory.OBJECTGROUP_GRAPH, 0L, 10, Order.ASC);
         assertThat(offerLogResponse).isNotNull();
         assertThat(offerLogResponse.isOk()).isTrue();
         assertThat(((RequestResponseOK<OfferLog>) offerLogResponse).getResults().size()).isEqualTo(1);
@@ -734,13 +734,13 @@ public class MetadataManagementIT extends VitamRuleRunner {
         storeFileToOffer(container, got_graph_zip_file_name, "", got_graph_zip_file, DataCategory.OBJECTGROUP_GRAPH);
 
         RequestResponse<OfferLog> offerLogResponse =
-            storageClient.getOfferLogs("default", DataCategory.UNIT_GRAPH, 0L, 10, Order.ASC);
+            storageClient.getOfferLogs(VitamConfiguration.getDefaultStrategy(), DataCategory.UNIT_GRAPH, 0L, 10, Order.ASC);
         assertThat(offerLogResponse).isNotNull();
         assertThat(offerLogResponse.isOk()).isTrue();
         assertThat(((RequestResponseOK<OfferLog>) offerLogResponse).getResults().size()).isEqualTo(1);
 
         offerLogResponse =
-            storageClient.getOfferLogs("default", DataCategory.OBJECTGROUP_GRAPH, 0L, 10, Order.ASC);
+            storageClient.getOfferLogs(VitamConfiguration.getDefaultStrategy(), DataCategory.OBJECTGROUP_GRAPH, 0L, 10, Order.ASC);
         assertThat(offerLogResponse).isNotNull();
         assertThat(offerLogResponse.isOk()).isTrue();
         assertThat(((RequestResponseOK<OfferLog>) offerLogResponse).getResults().size()).isEqualTo(1);
@@ -794,13 +794,13 @@ public class MetadataManagementIT extends VitamRuleRunner {
 
 
         offerLogResponse =
-            storageClient.getOfferLogs("default", DataCategory.UNIT, 0L, 10, Order.ASC);
+            storageClient.getOfferLogs(VitamConfiguration.getDefaultStrategy(), DataCategory.UNIT, 0L, 10, Order.ASC);
         assertThat(offerLogResponse).isNotNull();
         assertThat(offerLogResponse.isOk()).isTrue();
         assertThat(((RequestResponseOK<OfferLog>) offerLogResponse).getResults().size()).isEqualTo(4);
 
         offerLogResponse =
-            storageClient.getOfferLogs("default", DataCategory.OBJECTGROUP, 0L, 10, Order.ASC);
+            storageClient.getOfferLogs(VitamConfiguration.getDefaultStrategy(), DataCategory.OBJECTGROUP, 0L, 10, Order.ASC);
         assertThat(offerLogResponse).isNotNull();
         assertThat(offerLogResponse.isOk()).isTrue();
         assertThat(((RequestResponseOK<OfferLog>) offerLogResponse).getResults().size()).isEqualTo(3);
@@ -1468,12 +1468,12 @@ public class MetadataManagementIT extends VitamRuleRunner {
         try (FileInputStream stream = new FileInputStream(PropertiesUtils.findFile(file))) {
             workspaceClient.putObject(container, fileName + extension, stream);
         }
-        storageClient.storeFileFromWorkspace("default", type, fileName, objectDescription);
+        storageClient.storeFileFromWorkspace(VitamConfiguration.getDefaultStrategy(), type, fileName, objectDescription);
     }
 
     private void deleteFileFromOffer(String fileName, String extension, DataCategory type)
         throws StorageServerClientException {
-        storageClient.delete("default", type, fileName + extension);
+        storageClient.delete(VitamConfiguration.getDefaultStrategy(), type, fileName + extension);
     }
 
     public interface MetadataManagementResource {

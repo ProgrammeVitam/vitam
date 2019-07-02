@@ -201,7 +201,6 @@ public class RulesManagerFileImpl implements ReferentialFile<FileRules> {
     private static final String DELETED_RULE_IDS = "deletedRuleIds";
     private static final String USED_UPDATED_RULE_IDS = "usedUpdatedRuleIds";
     private static final String RULES_REPORT = "RULES_REPORT";
-    private static final String STRATEGY_ID = "default";
     private static List<String> fileRulesModelToInsertFinal = new ArrayList<>();
     private static List<String> fileRulesModelToDeleteFinal = new ArrayList<>();
     private static List<String> fileRulesModelToUpdateFinal = new ArrayList<>();
@@ -1730,7 +1729,7 @@ public class RulesManagerFileImpl implements ReferentialFile<FileRules> {
 
         RestoreBackupService restoreBackupService = new RestoreBackupServiceImpl();
         Optional<CollectionBackupModel> collectionBackup =
-            restoreBackupService.readLatestSavedFile(STRATEGY_ID, FunctionalAdminCollections.RULES);
+            restoreBackupService.readLatestSavedFile(VitamConfiguration.getDefaultStrategy(), FunctionalAdminCollections.RULES);
         ArrayNode arrayNode = JsonHandler.createArrayNode();
 
         if (collectionBackup.isPresent()) {

@@ -133,7 +133,7 @@ public class StorageTwoOffersIT {
     private static final String DIGEST = "digest";
     private static final String SECOND_OFFER_ID = "default2";
     private static final String OFFER_ID = "default";
-    private static final String STRATEGY_ID = "default";
+    private static final String STRATEGY_ID = VitamConfiguration.getDefaultStrategy();
     private static final String DB_OFFER1 = "vitamoffer1";
     private static final String DB_OFFER2 = "vitamoffer2";
 
@@ -322,7 +322,6 @@ public class StorageTwoOffersIT {
 
         String digestObject1SecondOffer = informationObject1.get(SECOND_OFFER_ID).get(DIGEST).textValue();
         String digestObject2SecondOffer = informationObject2.get(SECOND_OFFER_ID).get(DIGEST).textValue();
-
 
         //WHEN
         //delete object1 in second offer

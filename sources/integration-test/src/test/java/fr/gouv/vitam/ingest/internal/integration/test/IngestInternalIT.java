@@ -41,6 +41,7 @@ import fr.gouv.vitam.access.internal.rest.AccessInternalMain;
 import fr.gouv.vitam.common.CommonMediaType;
 import fr.gouv.vitam.common.DataLoader;
 import fr.gouv.vitam.common.PropertiesUtils;
+import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.VitamRuleRunner;
 import fr.gouv.vitam.common.VitamServerRunner;
 import fr.gouv.vitam.common.accesslog.AccessLogUtils;
@@ -437,7 +438,7 @@ public class IngestInternalIT extends VitamRuleRunner {
                 .containsAll(objectGroup.get(VitamFieldsHelper.unitups(), List.class));
             final String objectId = objectGroup.getId();
             final StorageClient storageClient = StorageClientFactory.getInstance().getClient();
-            Response responseStorage = storageClient.getContainerAsync("default", objectId,
+            Response responseStorage = storageClient.getContainerAsync(VitamConfiguration.getDefaultStrategy(), objectId,
                 DataCategory.OBJECT, AccessLogUtils.getNoLogAccessLog());
             InputStream inputStream = responseStorage.readEntity(InputStream.class);
             SizedInputStream sizedInputStream = new SizedInputStream(inputStream);

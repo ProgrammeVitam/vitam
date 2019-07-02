@@ -30,6 +30,7 @@ import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Iterables;
 import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.ParametersChecker;
+import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.alert.AlertService;
 import fr.gouv.vitam.common.alert.AlertServiceImpl;
 import fr.gouv.vitam.common.database.api.VitamRepositoryProvider;
@@ -74,7 +75,6 @@ public class ReconstructionService {
     private static final String RECONSTRUCTION_TENANT_MONDATORY_MSG = "the tenant to reconstruct is mondatory.";
     private static final String RECONSTRUCTION_LIMIT_POSITIVE_MSG = "the limit to reconstruct is should at least 0.";
 
-    private static final String STRATEGY_ID = "default";
     public static final String LOGBOOK = "logbook";
 
     private RestoreBackupService restoreBackupService;
@@ -174,7 +174,7 @@ public class ReconstructionService {
             // headers)
             VitamThreadUtils.getVitamSession().setTenantId(tenant);
 
-            Iterator<List<OfferLog>> listing = restoreBackupService.getListing(STRATEGY_ID, offset, limit);
+            Iterator<List<OfferLog>> listing = restoreBackupService.getListing(VitamConfiguration.getDefaultStrategy(), offset, limit);
 
             while (listing.hasNext()) {
 
@@ -186,7 +186,7 @@ public class ReconstructionService {
                     try {
 
                         LogbookBackupModel model =
-                            restoreBackupService.loadData(STRATEGY_ID, offerLog.getFileName(), offerLog.getSequence());
+                            restoreBackupService.loadData(VitamConfiguration.getDefaultStrategy(), offerLog.getFileName(), offerLog.getSequence());
 
                         if (model.getLogbookOperation() == null || model.getLogbookId() == null) {
                             throw new StorageException(String.format(

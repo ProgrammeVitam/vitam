@@ -67,7 +67,6 @@ import fr.gouv.vitam.functional.administration.common.api.ReconstructionService;
 import fr.gouv.vitam.functional.administration.common.api.RestoreBackupService;
 import fr.gouv.vitam.functional.administration.common.server.FunctionalAdminCollections;
 import fr.gouv.vitam.storage.engine.common.exception.StorageException;
-import fr.gouv.vitam.storage.engine.common.exception.StorageNotFoundException;
 import fr.gouv.vitam.storage.engine.common.model.DataCategory;
 import fr.gouv.vitam.storage.engine.common.model.OfferLog;
 import fr.gouv.vitam.storage.engine.common.model.Order;
@@ -101,7 +100,6 @@ public class ReconstructionServiceImpl implements ReconstructionService {
      */
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(ReconstructionServiceImpl.class);
 
-    private static final String STRATEGY_ID = "default";
     private static final int ADMIN_TENANT = VitamConfiguration.getAdminTenant();
 
     private RestoreBackupService recoverBuckupService;
@@ -178,7 +176,7 @@ public class ReconstructionServiceImpl implements ReconstructionService {
 
                 // get the last version of the backup copies.
                 Optional<CollectionBackupModel> collectionBackup =
-                        recoverBuckupService.readLatestSavedFile(STRATEGY_ID, collection);
+                        recoverBuckupService.readLatestSavedFile(VitamConfiguration.getDefaultStrategy(), collection);
 
                 // reconstruct Vitam collection from the backup copy.
                 if (collectionBackup.isPresent()) {
@@ -284,7 +282,7 @@ public class ReconstructionServiceImpl implements ReconstructionService {
             }
 
             // get the list of data to backup.
-            Iterator<List<OfferLog>> offerLogIterator = recoverBuckupService.getListing(STRATEGY_ID, type, offset,
+            Iterator<List<OfferLog>> offerLogIterator = recoverBuckupService.getListing(VitamConfiguration.getDefaultStrategy(), type, offset,
                 limit, Order.ASC);
 
             Set<String> originatingAgencies = new HashSet<>();
@@ -297,7 +295,7 @@ public class ReconstructionServiceImpl implements ReconstructionService {
                 for (OfferLog offerLog : listingBulk) {
 
                     AccessionRegisterBackupModel model = recoverBuckupService
-                        .loadData(STRATEGY_ID, collection, offerLog.getFileName(), offerLog.getSequence());
+                        .loadData(VitamConfiguration.getDefaultStrategy(), collection, offerLog.getFileName(), offerLog.getSequence());
                     if (model.getAccessionRegister() != null && model.getOffset() != null) {
                         originatingAgencies.add((model.getAccessionRegister().getString("OriginatingAgency")));
                         dataFromOffer.add(model);

@@ -46,6 +46,7 @@ import org.junit.Test;
 import org.mockito.ArgumentCaptor;
 
 import fr.gouv.vitam.common.PropertiesUtils;
+import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.functional.administration.common.exception.BackupServiceException;
 import fr.gouv.vitam.storage.engine.client.StorageClient;
 import fr.gouv.vitam.storage.engine.client.StorageClientFactory;
@@ -99,7 +100,7 @@ public class BackupServiceTest {
             .putObject(containerArgCaptor.capture(), eq(uri), eq(inputStream));
 
         verify(storageClient)
-            .storeFileFromWorkspace(eq("default"), eq(REPORT), eq(uri),
+            .storeFileFromWorkspace(eq(VitamConfiguration.getDefaultStrategy()), eq(REPORT), eq(uri),
                 objectDescriptionArgumentCaptor.capture());
         ObjectDescription description = objectDescriptionArgumentCaptor.getValue();
         assertThat(description.getWorkspaceContainerGUID()).isEqualTo(containerArgCaptor.getValue());

@@ -40,6 +40,7 @@ import java.util.Map;
 import org.junit.Test;
 
 import fr.gouv.vitam.common.PropertiesUtils;
+import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.storage.engine.common.exception.StorageException;
 import fr.gouv.vitam.storage.engine.common.referential.model.OfferReference;
 import fr.gouv.vitam.storage.engine.common.referential.model.StorageOffer;
@@ -53,8 +54,8 @@ public class FileStorageProviderTest {
     @Test
     public void testGetStorageStrategy() throws Exception {
         final FileStorageProvider fsProvider = new FileStorageProvider();
-        final StorageStrategy strategy = fsProvider.getStorageStrategy("default");
-        assertEquals("default", strategy.getId());
+        final StorageStrategy strategy = fsProvider.getStorageStrategy(VitamConfiguration.getDefaultStrategy());
+        assertEquals(VitamConfiguration.getDefaultStrategy(), strategy.getId());
         final List<OfferReference> offerReferences = strategy.getOffers();
         assertNotNull(offerReferences);
         assertEquals(2, offerReferences.size());
@@ -68,15 +69,15 @@ public class FileStorageProviderTest {
         Map<String, StorageStrategy> strategies = fsProvider.getStorageStrategies();
         assertNotNull(strategies);
         assertEquals(1, strategies.size());
-        assertTrue(strategies.containsKey("default"));
+        assertTrue(strategies.containsKey(VitamConfiguration.getDefaultStrategy()));
     }
 
     @Test
     public void testGetStorageStrategy_ForceReload() throws Exception {
         final FileStorageProvider fsProvider = new FileStorageProvider();
         fsProvider.setStorageStrategies(null);
-        final StorageStrategy strategy = fsProvider.getStorageStrategy("default");
-        assertEquals("default", strategy.getId());
+        final StorageStrategy strategy = fsProvider.getStorageStrategy(VitamConfiguration.getDefaultStrategy());
+        assertEquals(VitamConfiguration.getDefaultStrategy(), strategy.getId());
         final List<OfferReference> offerReferences = strategy.getOffers();
         assertNotNull(offerReferences);
         assertEquals(2, offerReferences.size());
@@ -101,7 +102,7 @@ public class FileStorageProviderTest {
     @Test
     public void testGetStorageOffer() throws Exception {
         final FileStorageProvider fsProvider = new FileStorageProvider();
-        final StorageOffer offer = fsProvider.getStorageOffer("default");
+        final StorageOffer offer = fsProvider.getStorageOffer(VitamConfiguration.getDefaultStrategy());
         assertNotNull(offer);
         assertEquals("default", offer.getId());
         assertEquals("http://workspaceOfferService", offer.getBaseUrl());
@@ -139,9 +140,9 @@ public class FileStorageProviderTest {
     @Test
     public void testDisabledStorageOffer() throws Exception {
         final FileStorageProvider fsProvider = new FileStorageProvider();
-        final StorageStrategy strategy = fsProvider.getStorageStrategy("default");
+        final StorageStrategy strategy = fsProvider.getStorageStrategy(VitamConfiguration.getDefaultStrategy());
         assertNotNull(strategy);
-        assertEquals("default", strategy.getId());
+        assertEquals(VitamConfiguration.getDefaultStrategy(), strategy.getId());
         assertEquals((Integer) 2, strategy.getCopy());
         final List<OfferReference> offerReferences = strategy.getOffers();
         assertEquals(2, offerReferences.size());

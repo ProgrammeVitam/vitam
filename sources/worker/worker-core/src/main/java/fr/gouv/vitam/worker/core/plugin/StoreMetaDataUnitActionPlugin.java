@@ -30,6 +30,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Stopwatch;
 import fr.gouv.vitam.common.StringUtils;
+import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.database.utils.MetadataDocumentHelper;
 import fr.gouv.vitam.common.exception.VitamException;
 import fr.gouv.vitam.common.json.CanonicalJsonFormatter;
@@ -79,7 +80,6 @@ public class StoreMetaDataUnitActionPlugin extends ActionHandler {
 
     private static final String JSON = ".json";
     private static final String UNIT_METADATA_STORAGE = "UNIT_METADATA_STORAGE";
-    private static final String DEFAULT_STRATEGY = "default";
 
     private final MetaDataClientFactory metaDataClientFactory;
     private final LogbookLifeCyclesClientFactory logbookLifeCyclesClientFactory;
@@ -227,7 +227,7 @@ public class StoreMetaDataUnitActionPlugin extends ActionHandler {
             containerName, workspaceURIs, DataCategory.UNIT, objectNames);
 
         try (StorageClient storageClient = storageClientFactory.getClient()) {
-            storageClient.bulkStoreFilesFromWorkspace(DEFAULT_STRATEGY, request);
+            storageClient.bulkStoreFilesFromWorkspace(VitamConfiguration.getDefaultStrategy(), request);
         } catch (StorageAlreadyExistsClientException | StorageNotFoundClientException e) {
             throw new ProcessingException("Bulk storage failed", e);
         }

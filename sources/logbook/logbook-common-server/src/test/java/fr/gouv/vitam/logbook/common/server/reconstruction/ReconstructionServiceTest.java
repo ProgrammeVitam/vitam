@@ -38,6 +38,7 @@ import java.util.List;
 
 import javax.ws.rs.core.Response.Status;
 
+import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.database.api.VitamRepositoryFactory;
 import fr.gouv.vitam.common.database.api.VitamRepositoryProvider;
 import fr.gouv.vitam.common.database.offset.OffsetRepository;
@@ -118,11 +119,11 @@ public class ReconstructionServiceTest {
         // given
         when(offsetRepository.findOffsetBy(10, LOGBOOK)).thenReturn(100L);
 
-        when(restoreBackupService.getListing("default", 100L,
+        when(restoreBackupService.getListing(VitamConfiguration.getDefaultStrategy(), 100L,
             requestItem.getLimit())).thenReturn(IteratorUtils.singletonIterator(Arrays.asList(getOfferLog(100), getOfferLog(101))));
-        when(restoreBackupService.loadData("default", "100", 100L))
+        when(restoreBackupService.loadData(VitamConfiguration.getDefaultStrategy(), "100", 100L))
             .thenReturn(getLogbokBackupModel("100", 100L));
-        when(restoreBackupService.loadData("default", "101", 101L))
+        when(restoreBackupService.loadData(VitamConfiguration.getDefaultStrategy(), "101", 101L))
             .thenReturn(getLogbokBackupModel("101", 101L));
         when(adminManagementClient.createorUpdateAccessionRegister(Mockito.any()))
             .thenReturn(
@@ -147,11 +148,11 @@ public class ReconstructionServiceTest {
         // given
         when(offsetRepository.findOffsetBy(10, LOGBOOK)).thenReturn(100L);
 
-        when(restoreBackupService.getListing("default", 100L,
+        when(restoreBackupService.getListing(VitamConfiguration.getDefaultStrategy(), 100L,
             requestItem.getLimit())).thenReturn(IteratorUtils.singletonIterator(Arrays.asList(getOfferLog(100), getOfferLog(101))));
-        when(restoreBackupService.loadData("default", "100", 100L))
+        when(restoreBackupService.loadData(VitamConfiguration.getDefaultStrategy(), "100", 100L))
             .thenThrow(new StorageNotFoundException(""));
-        when(restoreBackupService.loadData("default", "101", 101L))
+        when(restoreBackupService.loadData(VitamConfiguration.getDefaultStrategy(), "101", 101L))
             .thenReturn(getLogbokBackupModel("101", 101L));
         when(adminManagementClient.createorUpdateAccessionRegister(Mockito.any()))
             .thenReturn(
@@ -176,7 +177,7 @@ public class ReconstructionServiceTest {
         when(offsetRepository.findOffsetBy(10, LOGBOOK)).thenReturn(100L);
 
         requestItem.setLimit(0);
-        when(restoreBackupService.getListing("default", 100L,
+        when(restoreBackupService.getListing(VitamConfiguration.getDefaultStrategy(), 100L,
             requestItem.getLimit())).thenReturn(IteratorUtils.emptyIterator());
 
         ReconstructionService reconstructionService =
@@ -235,11 +236,11 @@ public class ReconstructionServiceTest {
         // given
         when(offsetRepository.findOffsetBy(10, LOGBOOK)).thenReturn(100L);
 
-        when(restoreBackupService.getListing("default", 100L, requestItem.getLimit()))
+        when(restoreBackupService.getListing(VitamConfiguration.getDefaultStrategy(), 100L, requestItem.getLimit()))
             .thenReturn(IteratorUtils.singletonIterator(Arrays.asList(getOfferLog(100), getOfferLog(101))));
-        when(restoreBackupService.loadData("default", "100", 100L))
+        when(restoreBackupService.loadData(VitamConfiguration.getDefaultStrategy(), "100", 100L))
             .thenReturn(getLogbokBackupModel("100", 100L));
-        when(restoreBackupService.loadData("default", "101", 101L))
+        when(restoreBackupService.loadData(VitamConfiguration.getDefaultStrategy(), "101", 101L))
             .thenReturn(getLogbokBackupModel("101", 101L));
         Mockito.doThrow(new DatabaseException("mongo error")).when(mongoRepository).save(Mockito.any(List.class));
         when(adminManagementClient.createorUpdateAccessionRegister(Mockito.any())).thenReturn(
@@ -264,11 +265,11 @@ public class ReconstructionServiceTest {
         throws Exception {
         // given
         when(offsetRepository.findOffsetBy(10, LOGBOOK)).thenReturn(100L);
-        when(restoreBackupService.getListing("default", 100L, requestItem.getLimit()))
+        when(restoreBackupService.getListing(VitamConfiguration.getDefaultStrategy(), 100L, requestItem.getLimit()))
             .thenReturn(IteratorUtils.singletonIterator(Arrays.asList(getOfferLog(100), getOfferLog(101))));
-        when(restoreBackupService.loadData("default", "100", 100L))
+        when(restoreBackupService.loadData(VitamConfiguration.getDefaultStrategy(), "100", 100L))
             .thenReturn(getLogbokBackupModel("100", 100L));
-        when(restoreBackupService.loadData("default", "101", 101L))
+        when(restoreBackupService.loadData(VitamConfiguration.getDefaultStrategy(), "101", 101L))
             .thenReturn(getLogbokBackupModel("101", 101L));
         Mockito.doThrow(new DatabaseException("mongo error")).when(esRepository).save(Mockito.any(List.class));
         when(adminManagementClient.createorUpdateAccessionRegister(Mockito.any()))
@@ -295,11 +296,11 @@ public class ReconstructionServiceTest {
         when(offsetRepository.findOffsetBy(10, LOGBOOK)).thenReturn(100L);
         LogbookBackupModel logbookBackupModel100 = getLogbokBackupModel("100", 100L);
         logbookBackupModel100.setLogbookOperation(null);
-        when(restoreBackupService.getListing("default", 100L,
+        when(restoreBackupService.getListing(VitamConfiguration.getDefaultStrategy(), 100L,
             requestItem.getLimit())).thenReturn(IteratorUtils.singletonIterator(Arrays.asList(getOfferLog(100), getOfferLog(101))));
-        when(restoreBackupService.loadData("default", "100", 100L))
+        when(restoreBackupService.loadData(VitamConfiguration.getDefaultStrategy(), "100", 100L))
             .thenReturn(logbookBackupModel100);
-        when(restoreBackupService.loadData("default", "101", 101L))
+        when(restoreBackupService.loadData(VitamConfiguration.getDefaultStrategy(), "101", 101L))
             .thenReturn(getLogbokBackupModel("101", 101L));
 
         ReconstructionService reconstructionService =

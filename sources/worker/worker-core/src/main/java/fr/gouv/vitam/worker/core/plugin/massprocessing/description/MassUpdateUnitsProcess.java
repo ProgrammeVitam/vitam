@@ -34,6 +34,7 @@ import fr.gouv.vitam.batch.report.client.BatchReportClientFactory;
 import fr.gouv.vitam.batch.report.model.ReportBody;
 import fr.gouv.vitam.batch.report.model.ReportType;
 import fr.gouv.vitam.batch.report.model.entry.UpdateUnitMetadataReportEntry;
+import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.database.builder.query.VitamFieldsHelper;
 import fr.gouv.vitam.common.database.builder.query.action.UpdateActionHelper;
 import fr.gouv.vitam.common.database.builder.request.multiple.UpdateMultiQuery;
@@ -308,7 +309,7 @@ public class MassUpdateUnitsProcess extends StoreMetadataObjectActionHandler {
                 fileName, IngestWorkflowConstants.ARCHIVE_UNIT_FOLDER + File.separator + fileName);
 
         // store metadata object from workspace and set itemStatus
-        storageClient.storeFileFromWorkspace(DEFAULT_STRATEGY, description.getType(),
+        storageClient.storeFileFromWorkspace(VitamConfiguration.getDefaultStrategy(), description.getType(),
             description.getObjectName(),
             description);
     }

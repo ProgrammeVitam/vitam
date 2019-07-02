@@ -29,6 +29,8 @@ package fr.gouv.vitam.worker.core.plugin.migration;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.annotations.VisibleForTesting;
+
+import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.database.builder.request.multiple.UpdateMultiQuery;
 import fr.gouv.vitam.common.database.utils.MetadataDocumentHelper;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
@@ -80,7 +82,6 @@ public class MigrationUnits extends ActionHandler {
     private static final String UNIT_UPDATE_MIGRATION = "UPDATE_MIGRATION_UNITS";
     private static final String JSON = ".json";
     private static final String $RESULTS = "$results";
-    private static final String DEFAULT_STRATEGY = "default";
 
     private static final String MIGRATION_UNITS = "MIGRATION_UNITS";
     private static final String LFC_UPDATE_MIGRATION_UNITS = "LFC.UPDATE_MIGRATION_UNITS";
@@ -153,7 +154,7 @@ public class MigrationUnits extends ActionHandler {
                 new ObjectDescription(DataCategory.UNIT, param.getContainerName(),
                     fileName, IngestWorkflowConstants.ARCHIVE_UNIT_FOLDER + File.separator + fileName);
             // store binary data object
-            storageClient.storeFileFromWorkspace(DEFAULT_STRATEGY, description.getType(),
+            storageClient.storeFileFromWorkspace(VitamConfiguration.getDefaultStrategy(), description.getType(),
                 description.getObjectName(),
                 description);
 

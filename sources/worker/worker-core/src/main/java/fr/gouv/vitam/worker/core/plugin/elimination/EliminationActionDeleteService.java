@@ -27,6 +27,8 @@
 package fr.gouv.vitam.worker.core.plugin.elimination;
 
 import com.google.common.annotations.VisibleForTesting;
+
+import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.database.builder.query.VitamFieldsHelper;
 import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
 import fr.gouv.vitam.common.database.builder.request.multiple.UpdateMultiQuery;
@@ -66,8 +68,6 @@ import static fr.gouv.vitam.worker.core.utils.PluginHelper.createObjectGroupLfcP
  * EliminationActionDeleteService class
  */
 public class EliminationActionDeleteService {
-
-    private static final String DEFAULT_STRATEGY = "default";
 
     final private StorageClientFactory storageClientFactory;
     final private MetaDataClientFactory metaDataClientFactory;
@@ -130,7 +130,7 @@ public class EliminationActionDeleteService {
         try (StorageClient storageClient = storageClientFactory.getClient()) {
 
             for (String id : unitsListOfIdentifiers) {
-                storageClient.delete(DEFAULT_STRATEGY, dataCategory, id + fileExtension);
+                storageClient.delete(VitamConfiguration.getDefaultStrategy(), dataCategory, id + fileExtension);
             }
         }
     }

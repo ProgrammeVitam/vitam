@@ -44,13 +44,14 @@ import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerExce
 
 import static fr.gouv.vitam.common.model.IngestWorkflowConstants.SEDA_FILE;
 
+import fr.gouv.vitam.common.VitamConfiguration;
+
 /**
  * ZIP the dip and move it from workspace to storage
  */
 public class StoreDIP extends ActionHandler {
 
     private static final String STORE_DIP = "STORE_DIP";
-    private static final String DEFAULT_STRATEGY = "default";
     public static final String ARCHIVE_ZIP = "archive.zip";
     public static final String CONTENT = "Content";
 
@@ -88,7 +89,7 @@ public class StoreDIP extends ActionHandler {
             description.setWorkspaceObjectURI(output);
 
             storageClient.storeFileFromWorkspace(
-                DEFAULT_STRATEGY,
+                VitamConfiguration.getDefaultStrategy(),
                 DataCategory.DIP,
                 params.getContainerName(), description);
 

@@ -3,6 +3,7 @@ package fr.gouv.vitam.metadata.core.graph;
 import com.mongodb.client.FindIterable;
 import com.mongodb.client.MongoCursor;
 import fr.gouv.vitam.common.LocalDateUtil;
+import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.database.api.VitamRepositoryProvider;
 import fr.gouv.vitam.common.database.api.impl.VitamMongoRepository;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
@@ -41,8 +42,6 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 public class StoreGraphServiceTest {
-
-    public static final String DEFAULT_STRATEGY = "default";
 
     @Rule
     public RunWithCustomExecutorRule runInThread =
@@ -119,7 +118,7 @@ public class StoreGraphServiceTest {
     public void whenNoGraphInOfferThenGetListingReturnInitialDate() throws StoreGraphException {
         // given
         when(
-            restoreBackupService.getListing(DEFAULT_STRATEGY, DataCategory.UNIT_GRAPH, null, null, Order.DESC,
+            restoreBackupService.getListing(VitamConfiguration.getDefaultStrategy(), DataCategory.UNIT_GRAPH, null, null, Order.DESC,
                 LAST_GRAPHSTORE_OFFERLOG_BATCH_SIZE))
             .thenReturn(IteratorUtils.emptyIterator());
 
@@ -135,7 +134,7 @@ public class StoreGraphServiceTest {
         String startDate = "2018-01-01-00-00-00-000";
         String endDate = "2018-01-01-06-30-10-123";
         when(
-            restoreBackupService.getListing(DEFAULT_STRATEGY, DataCategory.UNIT_GRAPH, null, null, Order.DESC,
+            restoreBackupService.getListing(VitamConfiguration.getDefaultStrategy(), DataCategory.UNIT_GRAPH, null, null, Order.DESC,
                 LAST_GRAPHSTORE_OFFERLOG_BATCH_SIZE))
             .thenReturn(
                 IteratorUtils.singletonIterator(
@@ -152,7 +151,7 @@ public class StoreGraphServiceTest {
     public void whenGetListingThenExceptionOccurs() throws StoreGraphException {
         // given
         when(
-            restoreBackupService.getListing(DEFAULT_STRATEGY, DataCategory.UNIT_GRAPH, null, null, Order.DESC,
+            restoreBackupService.getListing(VitamConfiguration.getDefaultStrategy(), DataCategory.UNIT_GRAPH, null, null, Order.DESC,
                 LAST_GRAPHSTORE_OFFERLOG_BATCH_SIZE))
             .thenThrow(new RuntimeException(""));
         storeGraphService.getLastGraphStoreDate(MetadataCollections.UNIT);
@@ -164,12 +163,12 @@ public class StoreGraphServiceTest {
         // given
         String startDate = "2018-01-01-00-00-00-000";
         String endDate = "2018-01-01-06-30-10-123";
-        when(restoreBackupService.getListing(DEFAULT_STRATEGY, DataCategory.UNIT_GRAPH, null, null,
+        when(restoreBackupService.getListing(VitamConfiguration.getDefaultStrategy(), DataCategory.UNIT_GRAPH, null, null,
             Order.DESC, LAST_GRAPHSTORE_OFFERLOG_BATCH_SIZE))
             .thenReturn(IteratorUtils.singletonIterator(
                 new OfferLog(DataCategory.UNIT_GRAPH.getCollectionName(), startDate + "_" + endDate,
                     OfferLogAction.WRITE)));
-        when(restoreBackupService.getListing(DEFAULT_STRATEGY, DataCategory.OBJECTGROUP_GRAPH, null, null,
+        when(restoreBackupService.getListing(VitamConfiguration.getDefaultStrategy(), DataCategory.OBJECTGROUP_GRAPH, null, null,
             Order.DESC, LAST_GRAPHSTORE_OFFERLOG_BATCH_SIZE))
             .thenReturn(IteratorUtils.emptyIterator());
 
@@ -198,12 +197,12 @@ public class StoreGraphServiceTest {
         // given
         String startDate = "2018-01-01-00-00-00-000";
         String endDate = "2018-01-01-06-30-10-123";
-        when(restoreBackupService.getListing(DEFAULT_STRATEGY, DataCategory.UNIT_GRAPH, null, null,
+        when(restoreBackupService.getListing(VitamConfiguration.getDefaultStrategy(), DataCategory.UNIT_GRAPH, null, null,
             Order.DESC, LAST_GRAPHSTORE_OFFERLOG_BATCH_SIZE))
             .thenReturn(IteratorUtils.singletonIterator(
                     new OfferLog(DataCategory.UNIT_GRAPH.getCollectionName(), startDate + "_" + endDate,
                         OfferLogAction.WRITE)));
-        when(restoreBackupService.getListing(DEFAULT_STRATEGY, DataCategory.OBJECTGROUP_GRAPH, null, null,
+        when(restoreBackupService.getListing(VitamConfiguration.getDefaultStrategy(), DataCategory.OBJECTGROUP_GRAPH, null, null,
             Order.DESC, LAST_GRAPHSTORE_OFFERLOG_BATCH_SIZE))
             .thenReturn(IteratorUtils.emptyIterator());
 

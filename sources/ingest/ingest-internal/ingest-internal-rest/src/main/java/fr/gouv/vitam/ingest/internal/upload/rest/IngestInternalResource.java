@@ -31,6 +31,7 @@ import com.google.common.annotations.VisibleForTesting;
 import fr.gouv.vitam.common.CommonMediaType;
 import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.ParametersChecker;
+import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.accesslog.AccessLogUtils;
 import fr.gouv.vitam.common.error.ServiceName;
 import fr.gouv.vitam.common.error.VitamError;
@@ -125,7 +126,6 @@ public class IngestInternalResource extends ApplicationStatusResource {
     private static final String FOLDER_SIP = "SIP";
     private static final String INGEST_INT_UPLOAD = "STP_UPLOAD_SIP";
     private static final String INGEST_WORKFLOW = "PROCESS_SIP_UNITARY";
-    private static final String DEFAULT_STRATEGY = "default";
     private static final String XML = ".xml";
     private static final String DISTRIBUTIONREPORT_SUFFIX = "_report_error.json";
     private static final String FOLDERNAME = "ATR/";
@@ -556,7 +556,7 @@ public class IngestInternalResource extends ApplicationStatusResource {
             final ObjectDescription description = new ObjectDescription();
             description.setWorkspaceContainerGUID(guid);
             description.setWorkspaceObjectURI(FOLDERNAME + guid + XML);
-            storageClient.storeFileFromWorkspace(DEFAULT_STRATEGY,
+            storageClient.storeFileFromWorkspace(VitamConfiguration.getDefaultStrategy(),
                     DataCategory.REPORT, guid + XML, description);
             workspaceClient.deleteContainer(guid, true);
             return Response.status(Status.OK).build();
@@ -604,7 +604,7 @@ public class IngestInternalResource extends ApplicationStatusResource {
                     return Response.status(Status.METHOD_NOT_ALLOWED).build();
             }
 
-            final Response response = storageClient.getContainerAsync(DEFAULT_STRATEGY,
+            final Response response = storageClient.getContainerAsync(VitamConfiguration.getDefaultStrategy(),
                     objectId, documentType, AccessLogUtils.getNoLogAccessLog());
             return new VitamAsyncInputStreamResponse(response, Status.OK, MediaType.APPLICATION_OCTET_STREAM_TYPE);
         } catch (IllegalArgumentException e) {
@@ -906,7 +906,7 @@ public class IngestInternalResource extends ApplicationStatusResource {
                 // 2- Get ATR file
                 try (final StorageClient storageClient = StorageClientFactory.getInstance().getClient()) {
                     response =
-                            storageClient.getContainerAsync(DEFAULT_STRATEGY,
+                            storageClient.getContainerAsync(VitamConfiguration.getDefaultStrategy(),
                                     containerGUID.getId() + XML,
                                     DataCategory.REPORT, AccessLogUtils.getNoLogAccessLog());
                 }

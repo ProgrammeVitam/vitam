@@ -30,6 +30,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import fr.gouv.vitam.common.CommonMediaType;
 import fr.gouv.vitam.common.SedaConstants;
+import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.accesslog.AccessLogUtils;
 import fr.gouv.vitam.common.client.DefaultClient;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
@@ -73,8 +74,6 @@ public class PrepareTraceabilityCheckProcessActionHandler extends ActionHandler 
         VitamLoggerFactory.getInstance(PrepareTraceabilityCheckProcessActionHandler.class);
 
     private static final String HANDLER_ID = "PREPARE_TRACEABILITY_CHECK";
-
-    private static final String DEFAULT_STORAGE_STRATEGY = "default";
 
     private static final int TRACEABILITY_EVENT_DETAIL_RANK = 0;
 
@@ -152,7 +151,7 @@ public class PrepareTraceabilityCheckProcessActionHandler extends ActionHandler 
             DataCategory dataCategory = getDataCategory(traceabilityEvent);
 
             response =
-                storageClient.getContainerAsync(DEFAULT_STORAGE_STRATEGY, fileName, dataCategory,
+                storageClient.getContainerAsync(VitamConfiguration.getDefaultStrategy(), fileName, dataCategory,
                     AccessLogUtils.getNoLogAccessLog());
 
             // Idempotency - we check if a folder exist

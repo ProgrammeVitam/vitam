@@ -1,5 +1,23 @@
 package fr.gouv.vitam.worker.core.plugin.elimination;
 
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.verify;
+
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.List;
+
+import org.junit.Before;
+import org.junit.Rule;
+import org.junit.Test;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.MockitoJUnit;
+import org.mockito.junit.MockitoRule;
+
+import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.model.LifeCycleStatusCode;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
@@ -16,22 +34,6 @@ import fr.gouv.vitam.storage.engine.client.StorageClient;
 import fr.gouv.vitam.storage.engine.client.StorageClientFactory;
 import fr.gouv.vitam.storage.engine.common.model.DataCategory;
 import fr.gouv.vitam.worker.common.HandlerIO;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnit;
-import org.mockito.junit.MockitoRule;
-
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.List;
-
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.doReturn;
-import static org.mockito.Mockito.verify;
 
 public class EliminationActionDeleteServiceTest {
 
@@ -88,9 +90,9 @@ public class EliminationActionDeleteServiceTest {
 
         instance.deleteObjects(Arrays.asList("id1", "id2", "id3"));
 
-        verify(storageClient).delete("default", DataCategory.OBJECT, "id1");
-        verify(storageClient).delete("default", DataCategory.OBJECT, "id2");
-        verify(storageClient).delete("default", DataCategory.OBJECT, "id3");
+        verify(storageClient).delete(VitamConfiguration.getDefaultStrategy(), DataCategory.OBJECT, "id1");
+        verify(storageClient).delete(VitamConfiguration.getDefaultStrategy(), DataCategory.OBJECT, "id2");
+        verify(storageClient).delete(VitamConfiguration.getDefaultStrategy(), DataCategory.OBJECT, "id3");
     }
 
     @Test
@@ -103,9 +105,9 @@ public class EliminationActionDeleteServiceTest {
         verify(logbookLifeCyclesClient).deleteLifecycleObjectGroupBulk(eq(gotIds));
         verify(metaDataClient).deleteObjectGroupBulk(eq(gotIds));
 
-        verify(storageClient).delete("default", DataCategory.OBJECTGROUP, "got1.json");
-        verify(storageClient).delete("default", DataCategory.OBJECTGROUP, "got2.json");
-        verify(storageClient).delete("default", DataCategory.OBJECTGROUP, "got3.json");
+        verify(storageClient).delete(VitamConfiguration.getDefaultStrategy(), DataCategory.OBJECTGROUP, "got1.json");
+        verify(storageClient).delete(VitamConfiguration.getDefaultStrategy(), DataCategory.OBJECTGROUP, "got2.json");
+        verify(storageClient).delete(VitamConfiguration.getDefaultStrategy(), DataCategory.OBJECTGROUP, "got3.json");
     }
 
     @Test
@@ -118,9 +120,9 @@ public class EliminationActionDeleteServiceTest {
         verify(logbookLifeCyclesClient).deleteLifecycleUnitsBulk(eq(gotIds));
         verify(metaDataClient).deleteUnitsBulk(eq(gotIds));
 
-        verify(storageClient).delete("default", DataCategory.UNIT, "unit1.json");
-        verify(storageClient).delete("default", DataCategory.UNIT, "unit2.json");
-        verify(storageClient).delete("default", DataCategory.UNIT, "unit3.json");
+        verify(storageClient).delete(VitamConfiguration.getDefaultStrategy(), DataCategory.UNIT, "unit1.json");
+        verify(storageClient).delete(VitamConfiguration.getDefaultStrategy(), DataCategory.UNIT, "unit2.json");
+        verify(storageClient).delete(VitamConfiguration.getDefaultStrategy(), DataCategory.UNIT, "unit3.json");
     }
 
     @Test

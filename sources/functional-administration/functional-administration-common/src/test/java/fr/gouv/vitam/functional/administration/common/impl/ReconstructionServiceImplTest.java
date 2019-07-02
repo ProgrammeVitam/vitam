@@ -80,7 +80,7 @@ public class ReconstructionServiceImplTest {
      */
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(ReconstructionServiceImplTest.class);
 
-    private static final String STRATEGY_ID = "default";
+    private static final String STRATEGY_ID = VitamConfiguration.getDefaultStrategy();
     private static final Integer TENANT_ID_0 = 0;
     private static final Integer TENANT_ID_1 = 1;
     private static final Integer TENANT_ID_2 = 2;

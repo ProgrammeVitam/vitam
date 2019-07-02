@@ -1,5 +1,6 @@
 package fr.gouv.vitam.worker.core.plugin.lfc_traceability;
 
+import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.alert.AlertService;
 import fr.gouv.vitam.common.logging.VitamLogLevel;
 import org.junit.Rule;
@@ -20,7 +21,6 @@ import static org.mockito.Mockito.verifyNoMoreInteractions;
 
 public class DigestValidatorTest {
 
-    private static final String STRATEGY_ID = "default";
     private static final String OFFER_1 = "offer1";
     private static final String OFFER_2 = "offer2";
     private static final String DIGEST_1 = "digest1";
@@ -40,12 +40,12 @@ public class DigestValidatorTest {
 
         // When
         DigestValidationDetails digestValidationDetails =
-            instance.validateMetadataDigest("id", STRATEGY_ID, DIGEST_1, offerDigests);
+            instance.validateMetadataDigest("id", VitamConfiguration.getDefaultStrategy(), DIGEST_1, offerDigests);
 
         // Then
         assertThat(digestValidationDetails.hasInconsistencies()).isFalse();
         assertThat(digestValidationDetails.getOfferIds()).containsExactlyInAnyOrder(OFFER_1);
-        assertThat(digestValidationDetails.getStrategyId()).isEqualTo(STRATEGY_ID);
+        assertThat(digestValidationDetails.getStrategyId()).isEqualTo(VitamConfiguration.getDefaultStrategy());
         assertThat(digestValidationDetails.getGlobalDigest()).isEqualTo(DIGEST_1);
         assertThat(digestValidationDetails.getDigestInDb()).isEqualTo(DIGEST_1);
         assertThat(digestValidationDetails.getDigestByOfferId()).isEqualTo(offerDigests);
@@ -65,12 +65,12 @@ public class DigestValidatorTest {
 
         // When
         DigestValidationDetails digestValidationDetails =
-            instance.validateMetadataDigest("id", STRATEGY_ID, DIGEST_1, offerDigests);
+            instance.validateMetadataDigest("id", VitamConfiguration.getDefaultStrategy(), DIGEST_1, offerDigests);
 
         // Then
         assertThat(digestValidationDetails.hasInconsistencies()).isFalse();
         assertThat(digestValidationDetails.getOfferIds()).containsExactlyInAnyOrder(OFFER_1, OFFER_2);
-        assertThat(digestValidationDetails.getStrategyId()).isEqualTo(STRATEGY_ID);
+        assertThat(digestValidationDetails.getStrategyId()).isEqualTo(VitamConfiguration.getDefaultStrategy());
         assertThat(digestValidationDetails.getGlobalDigest()).isEqualTo(DIGEST_1);
         assertThat(digestValidationDetails.getDigestInDb()).isEqualTo(DIGEST_1);
         assertThat(digestValidationDetails.getDigestByOfferId()).isEqualTo(offerDigests);
@@ -90,12 +90,12 @@ public class DigestValidatorTest {
 
         // When
         DigestValidationDetails digestValidationDetails =
-            instance.validateMetadataDigest("id", STRATEGY_ID, DIGEST_1, offerDigests);
+            instance.validateMetadataDigest("id", VitamConfiguration.getDefaultStrategy(), DIGEST_1, offerDigests);
 
         // Then
         assertThat(digestValidationDetails.hasInconsistencies()).isTrue();
         assertThat(digestValidationDetails.getOfferIds()).containsExactlyInAnyOrder(OFFER_1, OFFER_2);
-        assertThat(digestValidationDetails.getStrategyId()).isEqualTo(STRATEGY_ID);
+        assertThat(digestValidationDetails.getStrategyId()).isEqualTo(VitamConfiguration.getDefaultStrategy());
         assertThat(digestValidationDetails.getGlobalDigest()).isEqualTo(DIGEST_1);
         assertThat(digestValidationDetails.getDigestInDb()).isEqualTo(DIGEST_1);
         assertThat(digestValidationDetails.getDigestByOfferId()).isEqualTo(offerDigests);
@@ -117,12 +117,12 @@ public class DigestValidatorTest {
 
         // When
         DigestValidationDetails digestValidationDetails =
-            instance.validateMetadataDigest("id", STRATEGY_ID, DIGEST_1, offerDigests);
+            instance.validateMetadataDigest("id", VitamConfiguration.getDefaultStrategy(), DIGEST_1, offerDigests);
 
         // Then
         assertThat(digestValidationDetails.hasInconsistencies()).isTrue();
         assertThat(digestValidationDetails.getOfferIds()).containsExactlyInAnyOrder(OFFER_1, OFFER_2);
-        assertThat(digestValidationDetails.getStrategyId()).isEqualTo(STRATEGY_ID);
+        assertThat(digestValidationDetails.getStrategyId()).isEqualTo(VitamConfiguration.getDefaultStrategy());
         assertThat(digestValidationDetails.getGlobalDigest()).isEqualTo(INVALID_HASH);
         assertThat(digestValidationDetails.getDigestInDb()).isEqualTo(DIGEST_1);
         assertThat(digestValidationDetails.getDigestByOfferId()).isEqualTo(offerDigests);
@@ -144,12 +144,12 @@ public class DigestValidatorTest {
 
         // When
         DigestValidationDetails digestValidationDetails =
-            instance.validateObjectDigest("id", STRATEGY_ID, DIGEST_1, offerDigests);
+            instance.validateObjectDigest("id", VitamConfiguration.getDefaultStrategy(), DIGEST_1, offerDigests);
 
         // Then
         assertThat(digestValidationDetails.hasInconsistencies()).isFalse();
         assertThat(digestValidationDetails.getOfferIds()).containsExactlyInAnyOrder(OFFER_1);
-        assertThat(digestValidationDetails.getStrategyId()).isEqualTo(STRATEGY_ID);
+        assertThat(digestValidationDetails.getStrategyId()).isEqualTo(VitamConfiguration.getDefaultStrategy());
         assertThat(digestValidationDetails.getGlobalDigest()).isEqualTo(DIGEST_1);
         assertThat(digestValidationDetails.getDigestInDb()).isEqualTo(DIGEST_1);
         assertThat(digestValidationDetails.getDigestByOfferId()).isEqualTo(offerDigests);
@@ -169,12 +169,12 @@ public class DigestValidatorTest {
 
         // When
         DigestValidationDetails digestValidationDetails =
-            instance.validateObjectDigest("id", STRATEGY_ID, DIGEST_1, offerDigests);
+            instance.validateObjectDigest("id", VitamConfiguration.getDefaultStrategy(), DIGEST_1, offerDigests);
 
         // Then
         assertThat(digestValidationDetails.hasInconsistencies()).isFalse();
         assertThat(digestValidationDetails.getOfferIds()).containsExactlyInAnyOrder(OFFER_1, OFFER_2);
-        assertThat(digestValidationDetails.getStrategyId()).isEqualTo(STRATEGY_ID);
+        assertThat(digestValidationDetails.getStrategyId()).isEqualTo(VitamConfiguration.getDefaultStrategy());
         assertThat(digestValidationDetails.getGlobalDigest()).isEqualTo(DIGEST_1);
         assertThat(digestValidationDetails.getDigestInDb()).isEqualTo(DIGEST_1);
         assertThat(digestValidationDetails.getDigestByOfferId()).isEqualTo(offerDigests);
@@ -194,12 +194,12 @@ public class DigestValidatorTest {
 
         // When
         DigestValidationDetails digestValidationDetails =
-            instance.validateObjectDigest("id", STRATEGY_ID, DIGEST_1, offerDigests);
+            instance.validateObjectDigest("id", VitamConfiguration.getDefaultStrategy(), DIGEST_1, offerDigests);
 
         // Then
         assertThat(digestValidationDetails.hasInconsistencies()).isTrue();
         assertThat(digestValidationDetails.getOfferIds()).containsExactlyInAnyOrder(OFFER_1, OFFER_2);
-        assertThat(digestValidationDetails.getStrategyId()).isEqualTo(STRATEGY_ID);
+        assertThat(digestValidationDetails.getStrategyId()).isEqualTo(VitamConfiguration.getDefaultStrategy());
         assertThat(digestValidationDetails.getGlobalDigest()).isEqualTo(DIGEST_1);
         assertThat(digestValidationDetails.getDigestInDb()).isEqualTo(DIGEST_1);
         assertThat(digestValidationDetails.getDigestByOfferId()).isEqualTo(offerDigests);
@@ -221,12 +221,12 @@ public class DigestValidatorTest {
 
         // When
         DigestValidationDetails digestValidationDetails =
-            instance.validateObjectDigest("id", STRATEGY_ID, DIGEST_1, offerDigests);
+            instance.validateObjectDigest("id", VitamConfiguration.getDefaultStrategy(), DIGEST_1, offerDigests);
 
         // Then
         assertThat(digestValidationDetails.hasInconsistencies()).isTrue();
         assertThat(digestValidationDetails.getOfferIds()).containsExactlyInAnyOrder(OFFER_1, OFFER_2);
-        assertThat(digestValidationDetails.getStrategyId()).isEqualTo(STRATEGY_ID);
+        assertThat(digestValidationDetails.getStrategyId()).isEqualTo(VitamConfiguration.getDefaultStrategy());
         assertThat(digestValidationDetails.getGlobalDigest()).isEqualTo(INVALID_HASH);
         assertThat(digestValidationDetails.getDigestInDb()).isEqualTo(DIGEST_1);
         assertThat(digestValidationDetails.getDigestByOfferId()).isEqualTo(offerDigests);

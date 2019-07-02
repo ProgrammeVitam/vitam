@@ -71,6 +71,7 @@ import fr.gouv.vitam.batch.report.rest.BatchReportMain;
 import fr.gouv.vitam.common.CommonMediaType;
 import fr.gouv.vitam.common.DataLoader;
 import fr.gouv.vitam.common.PropertiesUtils;
+import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.VitamRuleRunner;
 import fr.gouv.vitam.common.VitamServerRunner;
 import fr.gouv.vitam.common.accesslog.AccessLogUtils;
@@ -122,7 +123,6 @@ public class AuditIT extends VitamRuleRunner {
     private static final String contractId = "contract";
     private static final String CONTEXT_ID = "DEFAULT_WORKFLOW";
     private static final String WORKFLOW_IDENTIFIER = "PROCESS_SIP_UNITARY";
-    private static final String DEFAULT_STRATEGY = "default";
     private WorkFlow workflow = WorkFlow.of(CONTEXT_ID, WORKFLOW_IDENTIFIER, "INGEST");
 
     private static final HashSet<Class> servers = Sets.newHashSet(AccessInternalMain.class, AdminManagementMain.class,
@@ -249,7 +249,7 @@ public class AuditIT extends VitamRuleRunner {
             try (StorageClient storageClient = StorageClientFactory.getInstance().getClient()) {
                 Response reportResponse = null;
                 try {
-                    reportResponse = storageClient.getContainerAsync(DEFAULT_STRATEGY,
+                    reportResponse = storageClient.getContainerAsync(VitamConfiguration.getDefaultStrategy(),
                             operationGuid.toString() + ".jsonl", DataCategory.REPORT,
                             AccessLogUtils.getNoLogAccessLog());
                     assertThat(reportResponse.getStatus()).isEqualTo(Response.Status.OK.getStatusCode());
@@ -330,7 +330,7 @@ public class AuditIT extends VitamRuleRunner {
             try (StorageClient storageClient = StorageClientFactory.getInstance().getClient()) {
                 Response reportResponse = null;
                 try {
-                    reportResponse = storageClient.getContainerAsync(DEFAULT_STRATEGY,
+                    reportResponse = storageClient.getContainerAsync(VitamConfiguration.getDefaultStrategy(),
                             operationGuid.toString() + ".jsonl", DataCategory.REPORT,
                             AccessLogUtils.getNoLogAccessLog());
                     assertThat(reportResponse.getStatus()).isEqualTo(Response.Status.OK.getStatusCode());

@@ -31,6 +31,7 @@ import com.google.common.annotations.VisibleForTesting;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoCursor;
 import fr.gouv.vitam.common.LocalDateUtil;
+import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.database.builder.query.Query;
 import fr.gouv.vitam.common.database.builder.query.QueryHelper;
 import fr.gouv.vitam.common.database.builder.query.VitamFieldsHelper;
@@ -94,8 +95,6 @@ import static fr.gouv.vitam.logbook.common.server.database.collections.LogbookMo
 public class LogbookOperationsImpl implements LogbookOperations {
 
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(LogbookOperationsImpl.class);
-    // TODO: make storage strategy configurable
-    public static final String STRATEGY_ID = "default";
 
     private final LogbookDbAccess mongoDbAccess;
     private final WorkspaceClientFactory workspaceClientFactory;
@@ -148,7 +147,7 @@ public class LogbookOperationsImpl implements LogbookOperations {
     @Override
     public RequestResponse<LogbookOperation> selectOperations(JsonNode select)
         throws LogbookDatabaseException, LogbookNotFoundException, VitamDBException {
-        VitamMongoCursor cursor = mongoDbAccess.getLogbookOperations(select, true);
+        VitamMongoCursor<LogbookOperation> cursor = mongoDbAccess.getLogbookOperations(select, true);
         List<LogbookOperation> operations = new ArrayList<>();
         while (cursor.hasNext()) {
             LogbookOperation doc = (LogbookOperation) cursor.next();
@@ -389,7 +388,7 @@ public class LogbookOperationsImpl implements LogbookOperations {
                 objectDescription.setObjectName(operationGuid);
                 objectDescription.setType(DataCategory.BACKUP_OPERATION);
                 objectDescription.setWorkspaceObjectURI(operationGuid);
-                storageClient.storeFileFromWorkspace(STRATEGY_ID, DataCategory.BACKUP_OPERATION, operationGuid,
+                storageClient.storeFileFromWorkspace(VitamConfiguration.getDefaultStrategy(), DataCategory.BACKUP_OPERATION, operationGuid,
                     objectDescription);
             } catch (StorageAlreadyExistsClientException | StorageNotFoundClientException | StorageServerClientException e) {
                 throw new LogbookDatabaseException("Cannot backup operation with GUID " + operationGuid, e);

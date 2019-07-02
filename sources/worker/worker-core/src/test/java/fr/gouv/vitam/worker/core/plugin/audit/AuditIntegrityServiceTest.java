@@ -20,6 +20,7 @@ import org.junit.rules.TemporaryFolder;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
 import fr.gouv.vitam.common.SystemPropertyUtil;
+import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.storage.driver.model.StorageMetadataResult;
@@ -63,7 +64,7 @@ public class AuditIntegrityServiceTest {
         offerIdToMetadata.set("offer-fs-1.service.int.consul", JsonHandler.toJsonNode(metaData));
         offerIdToMetadata.set("offer-fs-2.service.int.consul", JsonHandler.toJsonNode(metaData));
         reset(storageClient);
-        when(storageClient.getInformation(eq("default"), eq(DataCategory.OBJECT),
+        when(storageClient.getInformation(eq(VitamConfiguration.getDefaultStrategy()), eq(DataCategory.OBJECT),
                 eq("aeaaaaaaaahgotryaauzialjp5zkhgiaaaaq"), any(), eq(true))).thenReturn(offerIdToMetadata);
 
         JsonLineModel objectGroupLine = getFromInputStream(
@@ -90,7 +91,7 @@ public class AuditIntegrityServiceTest {
         offerIdToMetadata.set("offer-fs-1.service.int.consul", JsonHandler.toJsonNode(metaData));
         offerIdToMetadata.set("offer-fs-2.service.int.consul", JsonHandler.toJsonNode(metaData));
         reset(storageClient);
-        when(storageClient.getInformation(eq("default"), eq(DataCategory.OBJECT),
+        when(storageClient.getInformation(eq(VitamConfiguration.getDefaultStrategy()), eq(DataCategory.OBJECT),
                 eq("aeaaaaaaaahgotryaauzialjp6aa3zyaaaaq"), any(), eq(true))).thenReturn(offerIdToMetadata);
 
         JsonLineModel objectGroupLine = getFromInputStream(
@@ -119,7 +120,7 @@ public class AuditIntegrityServiceTest {
                 6096, "Tue Aug 31 10:20:56 SGT 2016", "Tue Aug 31 10:20:56 SGT 2016");
         offerIdToMetadata.set("offer-fs-2.service.int.consul", JsonHandler.toJsonNode(metaData));
         reset(storageClient);
-        when(storageClient.getInformation(eq("default"), eq(DataCategory.OBJECT),
+        when(storageClient.getInformation(eq(VitamConfiguration.getDefaultStrategy()), eq(DataCategory.OBJECT),
                 eq("aeaaaaaaaahgotryaauzialjp6aa3zyaaaaq"), any(), eq(true))).thenReturn(offerIdToMetadata);
 
         JsonLineModel objectGroupLine = getFromInputStream(
@@ -141,7 +142,7 @@ public class AuditIntegrityServiceTest {
     @Test
     public void storageExceptionThenFatal() throws Exception {
         reset(storageClient);
-        when(storageClient.getInformation(eq("default"), eq(DataCategory.OBJECT),
+        when(storageClient.getInformation(eq(VitamConfiguration.getDefaultStrategy()), eq(DataCategory.OBJECT),
                 eq("aeaaaaaaaahgotryaauzialjp6aa3zyaaaaq"), any(), eq(true)))
                         .thenThrow(StorageServerClientException.class);
 

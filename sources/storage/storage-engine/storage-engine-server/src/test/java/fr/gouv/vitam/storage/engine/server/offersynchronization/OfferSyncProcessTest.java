@@ -1,5 +1,6 @@
 package fr.gouv.vitam.storage.engine.server.offersynchronization;
 
+import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
@@ -46,7 +47,6 @@ public class OfferSyncProcessTest {
     private static final String TARGET = "target";
     private static final DataCategory DATA_CATEGORY = DataCategory.UNIT;
     private static final int TENANT_ID = 2;
-    private static final String DEFAULT_STRATEGY = "default";
     private static final String CONTAINER = "2_unit";
 
     @ClassRule
@@ -88,7 +88,7 @@ public class OfferSyncProcessTest {
                 .collect(Collectors.toList());
 
         }).when(restoreOfferBackupService).getListing(
-            eq(DEFAULT_STRATEGY), eq(SOURCE), eq(DATA_CATEGORY), any(), anyInt(), eq(Order.ASC));
+            eq(VitamConfiguration.getDefaultStrategy()), eq(SOURCE), eq(DATA_CATEGORY), any(), anyInt(), eq(Order.ASC));
 
         doAnswer((args) -> {
 
@@ -99,7 +99,7 @@ public class OfferSyncProcessTest {
             }
             return Response.ok(data).build();
 
-        }).when(distribution).getContainerByCategory(eq(DEFAULT_STRATEGY), anyString(), eq(DATA_CATEGORY), eq(SOURCE));
+        }).when(distribution).getContainerByCategory(eq(VitamConfiguration.getDefaultStrategy()), anyString(), eq(DATA_CATEGORY), eq(SOURCE));
 
         doAnswer((args) -> {
 
@@ -110,7 +110,7 @@ public class OfferSyncProcessTest {
             return null;
 
         }).when(distribution)
-            .storeDataInOffers(eq(DEFAULT_STRATEGY), anyString(), eq(DATA_CATEGORY), eq(null),
+            .storeDataInOffers(eq(VitamConfiguration.getDefaultStrategy()), anyString(), eq(DATA_CATEGORY), eq(null),
                 eq(singletonList(TARGET)), any());
 
         doAnswer((args) -> {
@@ -124,7 +124,7 @@ public class OfferSyncProcessTest {
             return null;
 
         }).when(distribution)
-            .deleteObjectInOffers(eq(DEFAULT_STRATEGY), any(), eq(singletonList(TARGET)));
+            .deleteObjectInOffers(eq(VitamConfiguration.getDefaultStrategy()), any(), eq(singletonList(TARGET)));
     }
 
     @Test
@@ -136,7 +136,7 @@ public class OfferSyncProcessTest {
             distribution, 10, 4);
 
         // When
-        instance.synchronize(SOURCE, TARGET, DEFAULT_STRATEGY, DATA_CATEGORY, null);
+        instance.synchronize(SOURCE, TARGET, VitamConfiguration.getDefaultStrategy(), DATA_CATEGORY, null);
 
         // Then
         assertThat(targetDataFiles).isEqualTo(sourceDataFiles);
@@ -157,7 +157,7 @@ public class OfferSyncProcessTest {
             distribution, 100, 4);
 
         // When
-        instance.synchronize(SOURCE, TARGET, DEFAULT_STRATEGY, DATA_CATEGORY, null);
+        instance.synchronize(SOURCE, TARGET, VitamConfiguration.getDefaultStrategy(), DATA_CATEGORY, null);
 
         // Then
         assertThat(targetDataFiles).isEqualTo(sourceDataFiles);
@@ -181,7 +181,7 @@ public class OfferSyncProcessTest {
             distribution, 10, 4);
 
         // When
-        instance.synchronize(SOURCE, TARGET, DEFAULT_STRATEGY, DATA_CATEGORY, null);
+        instance.synchronize(SOURCE, TARGET, VitamConfiguration.getDefaultStrategy(), DATA_CATEGORY, null);
 
         // Then
         assertThat(targetDataFiles).isEqualTo(sourceDataFiles);
@@ -213,7 +213,7 @@ public class OfferSyncProcessTest {
             distribution, 100, 4);
 
         // When
-        instance.synchronize(SOURCE, TARGET, DEFAULT_STRATEGY, DATA_CATEGORY, null);
+        instance.synchronize(SOURCE, TARGET, VitamConfiguration.getDefaultStrategy(), DATA_CATEGORY, null);
 
         // Then
         verifySynchronizationStatus(instance, null, 2L);
@@ -227,7 +227,7 @@ public class OfferSyncProcessTest {
         givenDataSetInSourceOfferPart2();
 
         // When
-        instance.synchronize(SOURCE, TARGET, DEFAULT_STRATEGY, DATA_CATEGORY, 3L);
+        instance.synchronize(SOURCE, TARGET, VitamConfiguration.getDefaultStrategy(), DATA_CATEGORY, 3L);
 
         // Then
         verifySynchronizationStatus(instance, 3L, 12L);
@@ -248,7 +248,7 @@ public class OfferSyncProcessTest {
             distribution, 100, 4);
 
         // When
-        instance.synchronize(SOURCE, TARGET, DEFAULT_STRATEGY, DATA_CATEGORY, null);
+        instance.synchronize(SOURCE, TARGET, VitamConfiguration.getDefaultStrategy(), DATA_CATEGORY, null);
 
         // Then
         verifySynchronizationStatus(instance, null, 2L);
@@ -261,7 +261,7 @@ public class OfferSyncProcessTest {
         // Given not updates
 
         // When
-        instance.synchronize(SOURCE, TARGET, DEFAULT_STRATEGY, DATA_CATEGORY, 3L);
+        instance.synchronize(SOURCE, TARGET, VitamConfiguration.getDefaultStrategy(), DATA_CATEGORY, 3L);
 
         // Then
         verifySynchronizationStatus(instance, 3L, null);

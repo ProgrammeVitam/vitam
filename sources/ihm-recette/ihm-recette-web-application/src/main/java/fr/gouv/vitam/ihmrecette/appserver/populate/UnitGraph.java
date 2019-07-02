@@ -32,6 +32,7 @@ import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
 import fr.gouv.vitam.common.LocalDateUtil;
+import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.model.logbook.LogbookEvent;
 import fr.gouv.vitam.common.model.logbook.LogbookLifecycle;
@@ -171,7 +172,7 @@ public class UnitGraph {
         UnitModel unitModel = new UnitModel();
 
         List<String> offerIds = StoragePopulateImpl.getOfferIds();
-        unitModel.setStorageModel(new StorageModel(offerIds.size(), "default", offerIds));
+        unitModel.setStorageModel(new StorageModel(offerIds.size(), VitamConfiguration.getDefaultStrategy(), offerIds));
 
         if (rootId != null) {
             rootUnit = cache.getUnchecked(rootId);
@@ -261,7 +262,7 @@ public class UnitGraph {
         ObjectGroupModel gotModel = new ObjectGroupModel();
 
         List<String> offerIds = StoragePopulateImpl.getOfferIds();
-        gotModel.setStorageModel(new StorageModel(offerIds.size(), "default", offerIds));
+        gotModel.setStorageModel(new StorageModel(offerIds.size(), VitamConfiguration.getDefaultStrategy(), offerIds));
 
         gotModel.setId(guid);
         gotModel.setTenant(tenantId);
@@ -294,7 +295,7 @@ public class UnitGraph {
             version.setFormatIdentification(formatIdentificationModel);
             version.setSize(objectSize);
             ObjectStorageJson objectStorageJson = new ObjectStorageJson();
-            objectStorageJson.setStrategyId("default");
+            objectStorageJson.setStrategyId(VitamConfiguration.getDefaultStrategy());
             objectStorageJson.setNbc(StoragePopulateImpl.getNbc());
             objectStorageJson.setOfferIds(StoragePopulateImpl.getOfferIds());
 

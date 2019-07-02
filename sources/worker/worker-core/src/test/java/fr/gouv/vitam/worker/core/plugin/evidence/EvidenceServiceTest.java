@@ -27,9 +27,39 @@
 package fr.gouv.vitam.worker.core.plugin.evidence;
 
 
+import static fr.gouv.vitam.common.database.builder.query.QueryHelper.and;
+import static fr.gouv.vitam.common.database.builder.query.QueryHelper.gte;
+import static fr.gouv.vitam.common.database.builder.query.QueryHelper.lte;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
+
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.InputStream;
+
+import javax.ws.rs.core.Response;
+
+import org.jboss.resteasy.specimpl.BuiltResponse;
+import org.junit.Before;
+import org.junit.ClassRule;
+import org.junit.Rule;
+import org.junit.Test;
+import org.junit.rules.TemporaryFolder;
+import org.mockito.Mock;
+import org.mockito.junit.MockitoJUnit;
+import org.mockito.junit.MockitoRule;
+
 import com.fasterxml.jackson.databind.JsonNode;
+
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.SystemPropertyUtil;
+import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.accesslog.AccessLogUtils;
 import fr.gouv.vitam.common.database.builder.query.BooleanQuery;
 import fr.gouv.vitam.common.database.builder.query.QueryHelper;
@@ -56,32 +86,6 @@ import fr.gouv.vitam.storage.engine.common.model.DataCategory;
 import fr.gouv.vitam.worker.core.plugin.evidence.exception.EvidenceAuditException;
 import fr.gouv.vitam.worker.core.plugin.evidence.exception.EvidenceStatus;
 import fr.gouv.vitam.worker.core.plugin.evidence.report.EvidenceAuditParameters;
-import org.jboss.resteasy.specimpl.BuiltResponse;
-import org.junit.Before;
-import org.junit.ClassRule;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.TemporaryFolder;
-import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnit;
-import org.mockito.junit.MockitoRule;
-
-import javax.ws.rs.core.Response;
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.InputStream;
-
-import static fr.gouv.vitam.common.database.builder.query.QueryHelper.and;
-import static fr.gouv.vitam.common.database.builder.query.QueryHelper.gte;
-import static fr.gouv.vitam.common.database.builder.query.QueryHelper.lte;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.doReturn;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
 
 public class EvidenceServiceTest {
     private static final Integer TENANT_ID = 0;
@@ -287,7 +291,7 @@ public class EvidenceServiceTest {
                 .isNotNull();
 
             when(storageClient
-                .getContainerAsync("default", "test", DataCategory.LOGBOOK, AccessLogUtils.getNoLogAccessLog()))
+                .getContainerAsync(VitamConfiguration.getDefaultStrategy(), "test", DataCategory.LOGBOOK, AccessLogUtils.getNoLogAccessLog()))
                 .thenThrow(StorageNotFoundException.class);
 
             assertThatThrownBy(() -> evidenceService.downloadAndExtractDataFromStorage("test", "data.txt",

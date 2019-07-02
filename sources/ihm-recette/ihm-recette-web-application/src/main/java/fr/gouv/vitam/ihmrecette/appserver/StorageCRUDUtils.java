@@ -55,7 +55,6 @@ import java.util.List;
 public class StorageCRUDUtils {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(StorageCRUDUtils.class);
 
-    private static final String DEFAULT_STRATEGY = "default";
     StorageClient storageClient;
 
     StorageCRUDUtils() {
@@ -76,7 +75,7 @@ public class StorageCRUDUtils {
      */
     public boolean deleteFile(DataCategory dataCategory, String uid, String offerId)
         throws StorageServerClientException {
-        return storageClient.delete(DEFAULT_STRATEGY, dataCategory, uid,  Collections.singletonList(offerId));
+        return storageClient.delete(VitamConfiguration.getDefaultStrategy(), dataCategory, uid,  Collections.singletonList(offerId));
     }
 
     /**

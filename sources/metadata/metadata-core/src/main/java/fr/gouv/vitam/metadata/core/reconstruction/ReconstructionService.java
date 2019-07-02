@@ -120,7 +120,6 @@ public class ReconstructionService {
     private static final String RECONSTRUCTION_TENANT_MANDATORY_MSG = "the tenant to reconstruct is mandatory.";
     private static final String RECONSTRUCTION_LIMIT_POSITIVE_MSG = "the limit to reconstruct is should at least 0.";
 
-    private static final String STRATEGY_ID = "default";
     private static final String $_SET = "$set";
 
     private RestoreBackupService restoreBackupService;
@@ -227,7 +226,7 @@ public class ReconstructionService {
         try {
             // get the list of data to backup.
             Iterator<OfferLog> listing =
-                restoreBackupService.getListing(STRATEGY_ID, dataCategory, offset, limit, Order.ASC,
+                restoreBackupService.getListing(VitamConfiguration.getDefaultStrategy(), dataCategory, offset, limit, Order.ASC,
                     VitamConfiguration.getRestoreBulkSize());
 
             while (listing.hasNext()) {
@@ -239,7 +238,7 @@ public class ReconstructionService {
 
                 // Read zip file from offer
                 try (InputStream zipFileAsStream =
-                    restoreBackupService.loadData(STRATEGY_ID, dataCategory, offerLog.getFileName())) {
+                    restoreBackupService.loadData(VitamConfiguration.getDefaultStrategy(), dataCategory, offerLog.getFileName())) {
 
                     // Copy file to local tmp to prevent risk of broken stream
                     Files.copy(zipFileAsStream, filePath, StandardCopyOption.REPLACE_EXISTING);
@@ -317,7 +316,7 @@ public class ReconstructionService {
                     throw new IllegalArgumentException(String.format("ERROR: Invalid collection {%s}", collection));
             }
 
-            Iterator<OfferLog> listing = restoreBackupService.getListing(STRATEGY_ID, type, offset, limit, Order.ASC,
+            Iterator<OfferLog> listing = restoreBackupService.getListing(VitamConfiguration.getDefaultStrategy(), type, offset, limit, Order.ASC,
                 VitamConfiguration.getRestoreBulkSize());
 
             Iterator<List<OfferLog>> bulkListing = new BulkIterator<>(listing, VitamConfiguration.getRestoreBulkSize());
@@ -431,7 +430,7 @@ public class ReconstructionService {
 
             try {
                 MetadataBackupModel model = restoreBackupService
-                    .loadData(STRATEGY_ID, collection, offerLog.getFileName(), offerLog.getSequence());
+                    .loadData(VitamConfiguration.getDefaultStrategy(), collection, offerLog.getFileName(), offerLog.getSequence());
 
                 if (model.getMetadatas() == null || model.getLifecycle() == null || model.getOffset() == null) {
                     throw new StorageException(String.format(

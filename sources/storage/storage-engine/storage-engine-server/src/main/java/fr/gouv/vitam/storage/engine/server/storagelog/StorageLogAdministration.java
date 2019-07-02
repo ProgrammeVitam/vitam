@@ -60,8 +60,6 @@ import fr.gouv.vitam.storage.engine.client.exception.StorageNotFoundClientExcept
 import fr.gouv.vitam.storage.engine.client.exception.StorageServerClientException;
 import fr.gouv.vitam.storage.engine.common.model.DataCategory;
 import fr.gouv.vitam.storage.engine.common.model.request.ObjectDescription;
-import fr.gouv.vitam.storage.engine.server.storagelog.parameters.AccessLogParameters;
-import fr.gouv.vitam.storage.engine.server.storagelog.parameters.StorageLogbookParameters;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageAlreadyExistException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
@@ -80,7 +78,6 @@ public class StorageLogAdministration {
     private static final String STORAGE_WRITE_BACKUP = "STORAGE_BACKUP";
     private static final String STORAGE_ACCESS_BACKUP = "STORAGE_ACCESS_BACKUP";
 
-    private static final String STRATEGY_ID = "default";
     final StorageLog storageLogService;
 
     public StorageLogAdministration(StorageLog storageLogService) {

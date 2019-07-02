@@ -1,6 +1,7 @@
 package fr.gouv.vitam.storage.engine.client;
 
 import fr.gouv.vitam.common.LocalDateUtil;
+import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.storage.engine.client.exception.StorageServerClientException;
 import fr.gouv.vitam.storage.engine.common.model.DataCategory;
@@ -30,8 +31,6 @@ import static org.mockito.Mockito.verify;
 
 public class OfferLogHelperTest {
 
-    private static final String STRATEGY = "default";
-
     @Rule
     public MockitoRule mockitoRule = MockitoJUnit.rule();
 
@@ -44,7 +43,7 @@ public class OfferLogHelperTest {
     @Before
     public void init() throws Exception {
         doReturn(storageClient).when(storageClientFactory).getClient();
-        doReturn(offerIds).when(storageClient).getOffers(STRATEGY);
+        doReturn(offerIds).when(storageClient).getOffers(VitamConfiguration.getDefaultStrategy());
     }
 
     private void givenOfferLogOffsets(List<Integer> filesOffsets)
@@ -61,7 +60,7 @@ public class OfferLogHelperTest {
                         .map(o -> new OfferLog(o, LocalDateUtil.now(), "0_unit", "file" + o, OfferLogAction.WRITE))
                         .collect(Collectors.toList()));
             }
-        ).when(storageClient).getOfferLogs(eq(STRATEGY), eq(DataCategory.UNIT), anyLong(), anyInt(), eq(Order.ASC));
+        ).when(storageClient).getOfferLogs(eq(VitamConfiguration.getDefaultStrategy()), eq(DataCategory.UNIT), anyLong(), anyInt(), eq(Order.ASC));
     }
 
     @Test
@@ -72,7 +71,7 @@ public class OfferLogHelperTest {
         givenOfferLogOffsets(filesOffsets);
 
         Iterator<OfferLog> offerLogIterator =
-            OfferLogHelper.getListing(storageClientFactory, STRATEGY, DataCategory.UNIT, 20L, Order.ASC, 5, 7);
+            OfferLogHelper.getListing(storageClientFactory, VitamConfiguration.getDefaultStrategy(), DataCategory.UNIT, 20L, Order.ASC, 5, 7);
 
         // When
         assertThat(offerLogIterator)
@@ -80,6 +79,6 @@ public class OfferLogHelperTest {
             .containsExactly("file20", "file30", "file40", "file50", "file60", "file70", "file80");
 
         verify(storageClient, times(2))
-            .getOfferLogs(eq(STRATEGY), eq(DataCategory.UNIT), anyLong(), anyInt(), eq(Order.ASC));
+            .getOfferLogs(eq(VitamConfiguration.getDefaultStrategy()), eq(DataCategory.UNIT), anyLong(), anyInt(), eq(Order.ASC));
     }
 }

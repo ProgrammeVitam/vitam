@@ -46,6 +46,7 @@ import com.google.common.base.Joiner;
 import com.google.common.base.Strings;
 import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.ParametersChecker;
+import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.accesslog.AccessLogUtils;
 import fr.gouv.vitam.common.database.builder.query.VitamFieldsHelper;
 import fr.gouv.vitam.common.database.builder.query.action.UpdateActionHelper;
@@ -104,9 +105,6 @@ import org.apache.commons.io.IOUtils;
  * format (xsd, rng)
  */
 public class ProfileServiceImpl implements ProfileService {
-    private static final String PROFILE_SERVICE_ERROR = "Profile service Error";
-
-    private static final String FUNCTIONAL_MODULE_PROFILE = "FunctionalModule-Profile";
 
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(ProfileServiceImpl.class);
 
@@ -126,7 +124,6 @@ public class ProfileServiceImpl implements ProfileService {
     public static final String PROFILE_IDENTIFIER_MUST_BE_STRING = "Profile identifier shoud be a string ";
     private final MongoDbAccessAdminImpl mongoAccess;
     private final LogbookOperationsClient logbookClient;
-    private static final String DEFAULT_STORAGE_STRATEGY = "default";
     private final VitamCounterService vitamCounterService;
     private final FunctionalBackupService functionalBackupService;
     private static final String _TENANT = "_tenant";
@@ -425,7 +422,7 @@ public class ProfileServiceImpl implements ProfileService {
         // A valid operation found : download the related file
         try (StorageClient storageClient = StorageClientFactory.getInstance().getClient()) {
 
-            final Response response = storageClient.getContainerAsync(DEFAULT_STORAGE_STRATEGY,
+            final Response response = storageClient.getContainerAsync(VitamConfiguration.getDefaultStrategy(),
                 profileMetadata.getPath(), DataCategory.PROFILE, AccessLogUtils.getNoLogAccessLog());
             Map<String, String> headers = new HashMap<>();
             headers.put(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_OCTET_STREAM);

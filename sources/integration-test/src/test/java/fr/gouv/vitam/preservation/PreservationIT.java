@@ -455,7 +455,7 @@ public class PreservationIT extends VitamRuleRunner {
                 .get("events");
 
             // Then
-            try (InputStream inputStream = storageClient.getContainerAsync("default", String.format("%s.jsonl", operationGuid.getId()), DataCategory.REPORT, AccessLogUtils.getNoLogAccessLog()).readEntity(InputStream.class)) {
+            try (InputStream inputStream = storageClient.getContainerAsync(VitamConfiguration.getDefaultStrategy(), String.format("%s.jsonl", operationGuid.getId()), DataCategory.REPORT, AccessLogUtils.getNoLogAccessLog()).readEntity(InputStream.class)) {
                     assertThat(jsonNode.iterator()).extracting(j -> j.get("outcome").asText()).allMatch(outcome -> outcome.equals(StatusCode.OK.name()));
 
                     try (InputStream inputStreamExpected = getClass().getResourceAsStream("/preservation/preservationReport.jsonl")) {
@@ -646,7 +646,7 @@ public class PreservationIT extends VitamRuleRunner {
     }
 
     private GriffinReport getGriffinReport(StorageClient storageClient, String requestId) throws StorageServerClientException, StorageNotFoundException, InvalidParseOperationException {
-        Response response = storageClient.getContainerAsync("default", requestId + ".json", DataCategory.REPORT, AccessLogUtils.getNoLogAccessLog());
+        Response response = storageClient.getContainerAsync(VitamConfiguration.getDefaultStrategy(), requestId + ".json", DataCategory.REPORT, AccessLogUtils.getNoLogAccessLog());
         return getFromInputStream((InputStream) response.getEntity(), GriffinReport.class);
     }
 

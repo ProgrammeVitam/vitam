@@ -91,9 +91,7 @@ public class StoreGraphService {
 
     public static final LocalDateTime INITIAL_START_DATE = LocalDateTime.of(1970, 1, 1, 0, 0);
     public static final DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd-HH-mm-ss-SSS");
-    private static final String STRATEGY_ID = "default";
 
-    private static final String DEFAULT_STRATEGY = "default";
     public static final String GRAPH = "graph";
     public static final String UNDERSCORE = "_";
     public static final String ZIP_EXTENTION = ".zip";
@@ -156,7 +154,7 @@ public class StoreGraphService {
         try {
             DataCategory dataCategory = getDataCategory(metadataCollections);
 
-            Iterator<OfferLog> offerLogIterator = restoreBackupService.getListing(STRATEGY_ID, dataCategory, null,
+            Iterator<OfferLog> offerLogIterator = restoreBackupService.getListing(VitamConfiguration.getDefaultStrategy(), dataCategory, null,
                 null, Order.DESC, LAST_GRAPHSTORE_OFFERLOG_BATCH_SIZE);
 
             if (!offerLogIterator.hasNext()) {
@@ -442,7 +440,7 @@ public class StoreGraphService {
             description.setWorkspaceObjectURI(graphZipName);
 
             storageClient.storeFileFromWorkspace(
-                DEFAULT_STRATEGY,
+                VitamConfiguration.getDefaultStrategy(),
                 dataCategory,
                 graph_store_name, description);
 
