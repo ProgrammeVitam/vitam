@@ -1,20 +1,21 @@
 %define version 6.5.4
+%define epoch 1
 
-Name:          vitam-kibana
+Name:          vitam-logstash
 Version:       %{version}
 Release:       1%{?dist}
-Summary:       A Distributed RESTful Search Engine (with vitam systemd units)
+Summary:       An extensible logging pipeline
 Group:         Applications/Databases
 License:       AGPL 3.0
-BuildArch:     x86_64
+BuildArch:     noarch
 URL:           https://www.elastic.co/products/elasticsearch
 
 BuildRequires: systemd-units
 Requires:      systemd
-Requires:      kibana = %{version}
+Requires:      logstash = %{epoch}:%{version}
 
 %description
-Kibana lets you visualize your Elasticsearch data and navigate the Elastic Stack.
+An extensible logging pipeline.
 
 %prep
 
@@ -36,5 +37,5 @@ rm -rf %{buildroot}
 
 
 %changelog
-* Fri Feb 22 2019 French Prime minister Office/SGMAP/DINSIC/Vitam Program <contact.vitam@culture.gouv.fr>
+* Fri Jun 28 2019 French Prime minister Office/SGMAP/DINSIC/Vitam Program <contact.vitam@culture.gouv.fr>
 - Initial version
