@@ -43,7 +43,7 @@
 
 - name: Install logstash package from repo
   package:
-    name: logstash
+    name: vitam-logstash
     state: latest
   register: result
   retries: "{{ packages_install_retries_number }}"
