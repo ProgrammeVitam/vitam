@@ -28,6 +28,7 @@ package fr.gouv.vitam.worker.core.plugin.massprocessing;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -194,7 +195,7 @@ public class MassUpdateUnitsProcessTest {
         when(lfcClient.getRawUnitLifeCycleById(any())).thenReturn(lfcResponse);
         when(workspaceClient.getObject(CONTAINER_NAME, DataCategory.UNIT.name() + "/" + params.getObjectName()))
             .thenReturn(Response.status(Response.Status.OK).entity(unit).build());
-        when(storageClient.storeFileFromWorkspace(any(), any(), any(), any()))
+        when(storageClient.storeFileFromWorkspace(eq("other_strategy"), any(), any(), any()))
             .thenReturn(getStoredInfoResult());
         when(adminManagementClient.findOntologies(any())).thenReturn(ClientMockResultHelper.getOntologies(Response.Status.OK.getStatusCode()));
 

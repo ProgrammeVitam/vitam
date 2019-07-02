@@ -1,6 +1,14 @@
 [
-  {
-    "Title": "monSip 6",
-    "_tenant": 0
-  }
+	{
+		"Title": "monSip 6",
+		"_storage": {
+			"_nbc": 2,
+			"offerIds": [
+				"offer1",
+				"offer2"
+			],
+			"strategyId": "other_strategy"
+		},
+		"_tenant": 0
+	}
 ]

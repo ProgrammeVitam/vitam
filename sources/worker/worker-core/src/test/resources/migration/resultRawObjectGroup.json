@@ -1,0 +1,211 @@
+{
+  "httpCode": 302,
+  "$hits": {
+    "total": 3,
+    "offset": 0,
+    "limit": 0,
+    "size": 3,
+    "scrollId": null
+  },
+  "$results": [
+    {
+      "FileInfo": {
+        "Filename": "OAIS-2012.pdf",
+        "LastModified": "2012-06-20T18:58:18.000+02:00"
+      },
+      "_id": "aebaaaaaaadf6mc4aathcak7tmtgc7yaaaaq",
+      "#nbobjects": 0,
+      "_qualifiers": [
+        {
+          "qualifier": "BinaryMaster",
+          "_nbc": 1,
+          "versions": [
+            {
+              "_id": "aeaaaaaaaabhu53raawyuak7tm2uapqaaaaq",
+              "DataObjectGroupId": "aebaaaaaaabhu53raawyuak7tm2uaqaaaaaq",
+              "DataObjectVersion": "BinaryMaster_1",
+              "FormatIdentification": {
+                "FormatLitteral": "Plain Text File",
+                "MimeType": "text/plain",
+                "FormatId": "x-fmt/111"
+              },
+              "FileInfo": {
+                "Filename": "OAIS-2012.pdf",
+                "LastModified": "2012-06-20T18:58:18.000+02:00"
+              },
+              "Size": 1903749,
+              "Uri": "Content/ID5.pdf",
+              "MessageDigest": "283827d12876af7da450b13918bba23942f0d8f70f8b92ccff1e1cde1657a6cf86783539b2dac4d47b817fba6cc7a13ba511f1049e0c10ebf19f1e56f586444b",
+              "Algorithm": "SHA-512",
+              "_storage": {
+                "_nbc": 1,
+                "offerIds": [
+                  "fakeOfferId"
+                ],
+                "strategyId": "default-fake"
+              }
+            }
+          ]
+        }
+      ],
+      "#type": "",
+      "_tenant": 0,
+      "_up": [
+        "aeaqaaaaaabhu53raawyuak7tm2ua5aaaaaq"
+      ],
+      "_opi": "aedaaaaaacbhu53raawyuak7tm2twoqaaaba",
+      "_ops": [
+        "aedaaaaaacbhu53raawyuak7tm2twoqaaaba"
+      ],
+      "_sp": "FRAN_NP_005568",
+      "_sps": [
+        "FRAN_NP_005568"
+      ],
+      "_storage": {
+        "_nbc": 1,
+        "offerIds": [
+          "fakeOfferId"
+        ],
+        "strategyId": "default-fake"
+      },
+      "_v": 1
+    },
+    {
+      "FileInfo": {
+        "Filename": "OAIS_dpctw14-02.pdf",
+        "LastModified": "2014-12-07T09:52:56.000+01:00"
+      },
+      "_id": "aebaaaaaaadf6mc4aathcak7tmtgc7qaaaaq",
+      "#nbobjects": 0,
+      "_qualifiers": [
+        {
+          "qualifier": "BinaryMaster",
+          "_nbc": 1,
+          "versions": [
+            {
+              "_id": "aeaaaaaaaabhu53raawyuak7tm2uaqiaaaaq",
+              "DataObjectGroupId": "aebaaaaaaabhu53raawyuak7tm2uaqqaaaaq",
+              "DataObjectVersion": "BinaryMaster_1",
+              "FormatIdentification": {
+                "FormatLitteral": "Plain Text File",
+                "MimeType": "text/plain",
+                "FormatId": "x-fmt/111"
+              },
+              "FileInfo": {
+                "Filename": "OAIS_dpctw14-02.pdf",
+                "LastModified": "2014-12-07T09:52:56.000+01:00"
+              },
+              "Size": 996183,
+              "Uri": "Content/ID9.pdf",
+              "MessageDigest": "7f3ce13b418339cb20218473ddcbc6d308f094ff9e3dd86526e124b216c267a8f46ffa21cc5e4b646ffea725aa75b6dbd1d203331c47110a10ec293383736645",
+              "Algorithm": "SHA-512",
+              "_storage": {
+                "_nbc": 1,
+                "offerIds": [
+                  "fakeOfferId"
+                ],
+                "strategyId": "default-fake"
+              }
+            }
+          ]
+        }
+      ],
+      "#type": "",
+      "_tenant": 0,
+      "_up": [
+        "aeaqaaaaaabhu53raawyuak7tm2ua5qaaaba"
+      ],
+      "_opi": "aedaaaaaacbhu53raawyuak7tm2twoqaaaba",
+      "_ops": [
+        "aedaaaaaacbhu53raawyuak7tm2twoqaaaba"
+      ],
+      "_sp": "FRAN_NP_005568",
+      "_sps": [
+        "FRAN_NP_005568"
+      ],
+      "_storage": {
+        "_nbc":1,
+        "offerIds": [
+          "fakeOfferId"
+        ],
+        "strategyId": "default-fake"
+      },
+      "_v": 1
+    },
+    {
+      "FileInfo": {
+        "Filename": "PAIS.pdf",
+        "LastModified": "2013-11-24T17:52:10.000+01:00"
+      },
+      "_id": "aebaaaaaaadf6mc4aathcak7tmtgc6yaaaaq",
+      "#nbobjects": 0,
+      "_qualifiers": [
+        {
+          "qualifier": "BinaryMaster",
+          "_nbc": 1,
+          "versions": [
+            {
+              "_id": "aeaaaaaaaabhu53raawyuak7tm2uaqqaaaba",
+              "DataObjectGroupId": "aebaaaaaaabhu53raawyuak7tm2uaqyaaaaq",
+              "DataObjectVersion": "BinaryMaster_1",
+              "FormatIdentification": {
+                "FormatLitteral": "Plain Text File",
+                "MimeType": "text/plain",
+                "FormatId": "x-fmt/111"
+              },
+              "FileInfo": {
+                "Filename": "PAIS.pdf",
+                "LastModified": "2013-11-24T17:52:10.000+01:00"
+              },
+              "Size": 579662,
+              "Uri": "Content/ID13.pdf",
+              "MessageDigest": "3afe1b9682dda5c5034ed57bcb1ac42634d0e7ec45969f54484c2fa8ad80510fbb54398db0b22910246aa6ecc339c1f5ddb0c09dcd11d2c0cc28604a72005616",
+              "Algorithm": "SHA-512",
+              "_storage": {
+                "_nbc": 1,
+                "offerIds": [
+                  "fakeOfferId"
+                ],
+                "strategyId": "default-fake"
+              }
+            }
+          ]
+        }
+      ],
+      "#type": "",
+      "_tenant": 0,
+      "_up": [
+        "aeaqaaaaaabhu53raawyuak7tm2ua5yaaaaq"
+      ],
+      "_opi": "aedaaaaaacbhu53raawyuak7tm2twoqaaaba",
+      "_ops": [
+        "aedaaaaaacbhu53raawyuak7tm2twoqaaaba"
+      ],
+      "_sp": "FRAN_NP_005568",
+      "_sps": [
+        "FRAN_NP_005568"
+      ],
+      "_storage": {
+        "_nbc":1,
+        "offerIds": [
+          "fakeOfferId"
+        ],
+        "strategyId": "default-fake"
+      },
+      "_v": 1
+    }
+  ],
+  "$context": {
+    "$query": {
+      "$in": {
+        "#id": [
+          "aebaaaaaaadf6mc4aathcak7tmtgc7yaaaaq",
+          "aebaaaaaaadf6mc4aathcak7tmtgc7qaaaaq",
+          "aebaaaaaaadf6mc4aathcak7tmtgc6yaaaaq"
+        ]
+      }
+    },
+    "$filter": {},
+    "$projection": {}
+  }
+}

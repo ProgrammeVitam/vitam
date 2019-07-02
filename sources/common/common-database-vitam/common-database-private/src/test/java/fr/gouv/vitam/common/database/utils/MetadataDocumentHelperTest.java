@@ -38,30 +38,30 @@ import fr.gouv.vitam.common.json.JsonHandler;
 public class MetadataDocumentHelperTest {
 
     @Test
-    public void should_retrieveStrategyId_when_presentInRawUnit() {
+    public void should_retrieveStrategyId_when_presentInRawDocument() {
         // Given
-        ObjectNode unitJson = JsonHandler.createObjectNode();
+        ObjectNode documentJson = JsonHandler.createObjectNode();
         ObjectNode storageJson = JsonHandler.createObjectNode();
         storageJson.put("strategyId", "strategyIdValue");
-        unitJson.set("_storage", storageJson);
+        documentJson.set("_storage", storageJson);
 
         // When
-        String extractedStrategyId = MetadataDocumentHelper.getStrategyIdFromRawUnit(unitJson);
+        String extractedStrategyId = MetadataDocumentHelper.getStrategyIdFromRawUnitOrGot(documentJson);
 
         // Then
         assertThat(extractedStrategyId).isEqualTo("strategyIdValue");
     }
 
     @Test
-    public void should_throwIllegalArgumentException_when_StrategyIdNotPresentInRawUnit() {
+    public void should_throwIllegalArgumentException_when_StrategyIdNotPresentInRawDocument() {
         // Given
-        ObjectNode unitJson = JsonHandler.createObjectNode();
+        ObjectNode documentJson = JsonHandler.createObjectNode();
         ObjectNode storageJson = JsonHandler.createObjectNode();
-        unitJson.set("_storage", storageJson);
+        documentJson.set("_storage", storageJson);
 
         // When + Then
         assertThatThrownBy(() -> {
-            MetadataDocumentHelper.getStrategyIdFromRawUnit(unitJson);
+            MetadataDocumentHelper.getStrategyIdFromRawUnitOrGot(documentJson);
         }).isInstanceOf(IllegalArgumentException.class);
     }
 
@@ -72,7 +72,7 @@ public class MetadataDocumentHelperTest {
 
         // When + Then
         assertThatThrownBy(() -> {
-            MetadataDocumentHelper.getStrategyIdFromRawUnit(unitJson);
+            MetadataDocumentHelper.getStrategyIdFromRawUnitOrGot(unitJson);
         }).isInstanceOf(IllegalArgumentException.class);
     }
 
