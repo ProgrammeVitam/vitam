@@ -35,11 +35,14 @@ import java.util.Map;
 
 public class StorageRule extends InheritedRule {
 
-
     private static final String FINAL_ACTION = "FinalAction";
 
     @JsonProperty(FINAL_ACTION)
     private List<String> finalAction;
+
+    public StorageRule() {
+
+    }
 
     public StorageRule(LocalDate maxEndDate, Properties properties, Map<String, LocalDate> ruleIdToRule) {
         super(maxEndDate, ruleIdToRule);

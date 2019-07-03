@@ -47,9 +47,9 @@ public class ComputedInheritedRules {
     private static final String NEED_AUTHORIZATION = "NEED_AUTHORIZATION";
 
     @JsonProperty(STORAGE_RULE)
-    private InheritedRule storageRule;
+    private StorageRule storageRule;
     @JsonProperty(APPRAISAL_RULE)
-    private InheritedRule appraisalRule;
+    private AppraisalRule appraisalRule;
     @JsonProperty(DISSEMINATION_RULE)
     private InheritedRule disseminationRule;
     @JsonProperty(ACCESS_RULE)
@@ -72,8 +72,8 @@ public class ComputedInheritedRules {
 
     public ComputedInheritedRules(Map<String, InheritedRule> inheritedRules,JsonNode inheritedRulesAPIOutput,
         Map<String, Object> globalInheritedProperties, String indexationDate) {
-        this.storageRule = inheritedRules.get(STORAGE_RULE);
-        this.appraisalRule = inheritedRules.get(APPRAISAL_RULE);
+        this.storageRule = (StorageRule) inheritedRules.get(STORAGE_RULE);
+        this.appraisalRule = (AppraisalRule) inheritedRules.get(APPRAISAL_RULE);
         this.disseminationRule = inheritedRules.get(DISSEMINATION_RULE);
         this.accessRule = inheritedRules.get(ACCESS_RULE);
         this.reuseRule = inheritedRules.get(REUSE_RULE);
@@ -84,8 +84,8 @@ public class ComputedInheritedRules {
     }
 
     public ComputedInheritedRules(Map<String, InheritedRule> inheritedRules, String indexationDate) {
-        this.storageRule = inheritedRules.get(STORAGE_RULE);
-        this.appraisalRule = inheritedRules.get(APPRAISAL_RULE);
+        this.storageRule = (StorageRule) inheritedRules.get(STORAGE_RULE);
+        this.appraisalRule = (AppraisalRule) inheritedRules.get(APPRAISAL_RULE);
         this.disseminationRule = inheritedRules.get(DISSEMINATION_RULE);
         this.accessRule = inheritedRules.get(ACCESS_RULE);
         this.reuseRule = inheritedRules.get(REUSE_RULE);
@@ -99,7 +99,7 @@ public class ComputedInheritedRules {
         return storageRule;
     }
 
-    public void setStorageRule(InheritedRule storageRule) {
+    public void setStorageRule(StorageRule storageRule) {
         this.storageRule = storageRule;
     }
 
@@ -107,7 +107,7 @@ public class ComputedInheritedRules {
         return appraisalRule;
     }
 
-    public void setAppraisalRule(InheritedRule appraisalRule) {
+    public void setAppraisalRule(AppraisalRule appraisalRule) {
         this.appraisalRule = appraisalRule;
     }
 

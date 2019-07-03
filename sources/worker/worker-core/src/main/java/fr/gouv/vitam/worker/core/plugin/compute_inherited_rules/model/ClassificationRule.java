@@ -49,6 +49,10 @@ public class ClassificationRule extends InheritedRule {
     @JsonProperty(NEED_REASSESSING_AUTHORIZATION)
     private List<String> needReassessingAuthorization;
 
+    public ClassificationRule() {
+
+    }
+
     public ClassificationRule(LocalDate maxEndDate, Properties properties, Map<String, LocalDate> ruleIdToRule) {
         super(maxEndDate, ruleIdToRule);
         parseClassificationProperties(properties);

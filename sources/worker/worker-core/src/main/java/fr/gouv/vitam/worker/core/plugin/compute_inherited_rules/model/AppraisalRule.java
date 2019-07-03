@@ -41,6 +41,10 @@ public class AppraisalRule extends InheritedRule {
     @JsonProperty(FINAL_ACTION)
     private List<String> finalAction;
 
+    public AppraisalRule() {
+
+    }
+
     public AppraisalRule(LocalDate maxEndDate, Properties properties, Map<String, LocalDate> ruleIdToRule) {
         super(maxEndDate, ruleIdToRule);
         parseClassificationProperties(properties);

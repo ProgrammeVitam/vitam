@@ -50,6 +50,10 @@ public class InheritedRule {
     @JsonProperty(END_DATES)
     private Map<String, LocalDate> ruleIdToRule = new HashMap<>();
 
+    public InheritedRule() {
+
+    }
+
     public InheritedRule(LocalDate maxEndDate, Map<String, LocalDate> ruleIdToRule) {
         this.maxEndDate = maxEndDate;
         if(ruleIdToRule == null) {
