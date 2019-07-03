@@ -24,7 +24,7 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  *******************************************************************************/
-package fr.gouv.vitam.worker.core.plugin.compute_inherited_rules;
+package fr.gouv.vitam.worker.core.plugin.computeinheritedrules;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.google.common.annotations.VisibleForTesting;
@@ -60,13 +60,13 @@ import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 import fr.gouv.vitam.worker.common.HandlerIO;
 import fr.gouv.vitam.worker.core.handler.ActionHandler;
-import fr.gouv.vitam.worker.core.plugin.compute_inherited_rules.model.AppraisalRule;
-import fr.gouv.vitam.worker.core.plugin.compute_inherited_rules.model.ClassificationRule;
-import fr.gouv.vitam.worker.core.plugin.compute_inherited_rules.model.ComputedInheritedRules;
-import fr.gouv.vitam.worker.core.plugin.compute_inherited_rules.model.InheritedRule;
-import fr.gouv.vitam.worker.core.plugin.compute_inherited_rules.model.Properties;
-import fr.gouv.vitam.worker.core.plugin.compute_inherited_rules.model.PropertyValue;
-import fr.gouv.vitam.worker.core.plugin.compute_inherited_rules.model.StorageRule;
+import fr.gouv.vitam.worker.core.plugin.computeinheritedrules.model.AppraisalRule;
+import fr.gouv.vitam.worker.core.plugin.computeinheritedrules.model.ClassificationRule;
+import fr.gouv.vitam.worker.core.plugin.computeinheritedrules.model.ComputedInheritedRules;
+import fr.gouv.vitam.worker.core.plugin.computeinheritedrules.model.InheritedRule;
+import fr.gouv.vitam.worker.core.plugin.computeinheritedrules.model.Properties;
+import fr.gouv.vitam.worker.core.plugin.computeinheritedrules.model.PropertyValue;
+import fr.gouv.vitam.worker.core.plugin.computeinheritedrules.model.StorageRule;
 
 import java.time.Instant;
 import java.time.LocalDate;

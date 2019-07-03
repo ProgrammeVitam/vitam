@@ -24,54 +24,32 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  *******************************************************************************/
-package fr.gouv.vitam.worker.core.plugin.compute_inherited_rules.exception;
+package fr.gouv.vitam.worker.core.plugin.computeinheritedrules.model;
 
-import fr.gouv.vitam.common.error.VitamError;
-import fr.gouv.vitam.common.exception.VitamException;
-import fr.gouv.vitam.common.model.StatusCode;
+import java.time.LocalDate;
+
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
- * ComputedInheritedRulesException
+ * Rule
  */
-public class ComputedInheritedRulesException extends VitamException {
+public class RuleMaxEndDate {
+    @JsonProperty("MaxEndDate")
+    private LocalDate maxEndDate;
 
-    private StatusCode statusCode;
-
-
-    /**
-     * @param cause associated cause
-     */
-    public ComputedInheritedRulesException(Throwable cause, StatusCode statusCode) {
-        super(cause);
-        this.statusCode = statusCode;
+    public RuleMaxEndDate() {
     }
 
-    public ComputedInheritedRulesException(StatusCode statusCode, String message, Throwable cause) {
-        super(message, cause);
-        this.statusCode = statusCode;
+    public RuleMaxEndDate(LocalDate endDate) {
+        this.maxEndDate = endDate;
     }
 
-    public ComputedInheritedRulesException(String message, Throwable cause, StatusCode statusCode) {
-        super(message, cause);
-        this.statusCode = statusCode;
+    public LocalDate getMaxEndDate() {
+        return maxEndDate;
     }
 
-    public ComputedInheritedRulesException(VitamError vitamError, StatusCode statusCode) {
-        super(vitamError);
-        this.statusCode = statusCode;
-    }
-
-    public ComputedInheritedRulesException(String message, StatusCode statusCode) {
-        super(message);
-        this.statusCode = statusCode;
-    }
-
-    public StatusCode getStatusCode() {
-        return statusCode;
-    }
-
-    public void setStatusCode(StatusCode statusCode) {
-        this.statusCode = statusCode;
+    public void setMaxEndDate(LocalDate maxEndDate) {
+        this.maxEndDate = maxEndDate;
     }
 
 }

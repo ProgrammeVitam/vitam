@@ -24,53 +24,54 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  *******************************************************************************/
-package fr.gouv.vitam.worker.core.plugin.compute_inherited_rules;
+package fr.gouv.vitam.worker.core.plugin.computeinheritedrules.exception;
 
-import static fr.gouv.vitam.worker.core.utils.PluginHelper.buildItemStatus;
-
-import fr.gouv.vitam.common.logging.VitamLogger;
-import fr.gouv.vitam.common.logging.VitamLoggerFactory;
-import fr.gouv.vitam.common.model.ItemStatus;
+import fr.gouv.vitam.common.error.VitamError;
+import fr.gouv.vitam.common.exception.VitamException;
 import fr.gouv.vitam.common.model.StatusCode;
-import fr.gouv.vitam.processing.common.exception.ProcessingException;
-import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
-import fr.gouv.vitam.worker.common.HandlerIO;
-import fr.gouv.vitam.worker.core.handler.ActionHandler;
-import fr.gouv.vitam.worker.core.plugin.reclassification.ReclassificationFinalizationHandler;
-import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
 
 /**
- * ComputeInheritedRulesFinalizationPlugin
+ * ComputedInheritedRulesException
  */
-public class ComputeInheritedRulesFinalizationPlugin extends ActionHandler {
+public class ComputedInheritedRulesException extends VitamException {
 
-    private static final VitamLogger LOGGER =
-        VitamLoggerFactory.getInstance(ReclassificationFinalizationHandler.class);
+    private StatusCode statusCode;
 
-    private static final String COMPUTE_INHERITED_RULES_FINALIZATION = "COMPUTE_INHERITED_RULES_FINALIZATION";
 
     /**
-     * Default constructor
+     * @param cause associated cause
      */
-    public ComputeInheritedRulesFinalizationPlugin() {
+    public ComputedInheritedRulesException(Throwable cause, StatusCode statusCode) {
+        super(cause);
+        this.statusCode = statusCode;
     }
 
-    @Override
-    public ItemStatus execute(WorkerParameters param, HandlerIO handler)
-        throws ProcessingException, ContentAddressableStorageServerException {
-
-        // Nothing to cleanup
-
-        LOGGER.info("Reclassification finalization succeeded");
-        return buildItemStatus(COMPUTE_INHERITED_RULES_FINALIZATION, StatusCode.OK, null);
+    public ComputedInheritedRulesException(StatusCode statusCode, String message, Throwable cause) {
+        super(message, cause);
+        this.statusCode = statusCode;
     }
 
-    @Override
-    public void checkMandatoryIOParameter(HandlerIO handler) throws ProcessingException {
-        // NOP.
+    public ComputedInheritedRulesException(String message, Throwable cause, StatusCode statusCode) {
+        super(message, cause);
+        this.statusCode = statusCode;
     }
 
-    public static String getId() {
-        return COMPUTE_INHERITED_RULES_FINALIZATION;
+    public ComputedInheritedRulesException(VitamError vitamError, StatusCode statusCode) {
+        super(vitamError);
+        this.statusCode = statusCode;
     }
+
+    public ComputedInheritedRulesException(String message, StatusCode statusCode) {
+        super(message);
+        this.statusCode = statusCode;
+    }
+
+    public StatusCode getStatusCode() {
+        return statusCode;
+    }
+
+    public void setStatusCode(StatusCode statusCode) {
+        this.statusCode = statusCode;
+    }
+
 }

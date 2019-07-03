@@ -1,4 +1,4 @@
-package fr.gouv.vitam.worker.core.plugin.compute_inherited_rules; /*******************************************************************************
+package fr.gouv.vitam.worker.core.plugin.computeinheritedrules; /*******************************************************************************
  * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2019)
  *
  * contact.vitam@culture.gouv.fr
@@ -52,7 +52,7 @@ import fr.gouv.vitam.metadata.client.MetaDataClientFactory;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 import fr.gouv.vitam.processing.common.parameter.WorkerParametersFactory;
 import fr.gouv.vitam.worker.common.HandlerIO;
-import fr.gouv.vitam.worker.core.plugin.compute_inherited_rules.model.ComputedInheritedRules;
+import fr.gouv.vitam.worker.core.plugin.computeinheritedrules.model.ComputedInheritedRules;
 import org.assertj.core.util.Lists;
 import org.junit.Before;
 import org.junit.Rule;

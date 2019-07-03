@@ -25,7 +25,7 @@
  * accept its terms.
  *******************************************************************************/
 
-package fr.gouv.vitam.worker.core.plugin.compute_inherited_rules.model;
+package fr.gouv.vitam.worker.core.plugin.computeinheritedrules.model;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 

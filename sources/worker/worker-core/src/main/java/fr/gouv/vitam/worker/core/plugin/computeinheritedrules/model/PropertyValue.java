@@ -24,32 +24,41 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  *******************************************************************************/
-package fr.gouv.vitam.worker.core.plugin.compute_inherited_rules.model;
-
-import java.time.LocalDate;
+package fr.gouv.vitam.worker.core.plugin.computeinheritedrules.model;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+
 /**
- * Rule
+ * PropertyValue
  */
-public class RuleMaxEndDate {
-    @JsonProperty("MaxEndDate")
-    private LocalDate maxEndDate;
+public class PropertyValue {
 
-    public RuleMaxEndDate() {
+    @JsonProperty("PropertyValue")
+    private List<Object> values;
+
+    public PropertyValue(Object propertyValue) {
+        this.values = Collections.singletonList(propertyValue);
     }
 
-    public RuleMaxEndDate(LocalDate endDate) {
-        this.maxEndDate = endDate;
+    public PropertyValue(PropertyValue values, PropertyValue value) {
+        if(values != null) {
+            this.values = new ArrayList<>();
+            this.values.addAll(values.getValues());
+            this.values.addAll(value.getValues());
+        } else {
+            this.values = Collections.singletonList(value);
+        }
     }
 
-    public LocalDate getMaxEndDate() {
-        return maxEndDate;
+    List<Object> getValues() {
+        return values;
     }
 
-    public void setMaxEndDate(LocalDate maxEndDate) {
-        this.maxEndDate = maxEndDate;
+    public void setValues(List<Object> values) {
+        this.values = values;
     }
-
 }
