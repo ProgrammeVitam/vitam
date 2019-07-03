@@ -26,7 +26,7 @@ public class WriteOrderCreatorTest {
     public MockitoRule mockitoRule = MockitoJUnit.rule();
 
     @Mock
-    private TarReferentialRepository tarReferentialRepository;
+    private ArchiveReferentialRepository archiveReferentialRepository;
 
     @Mock
     private QueueRepository readWriteQueue;
@@ -60,8 +60,8 @@ public class WriteOrderCreatorTest {
         assertThat(countDownLatch.await(1, TimeUnit.MINUTES)).isTrue();
 
         // Verify
-        verify(tarReferentialRepository).updateLocationToReadyOnDisk("tarId", 1000L, "digest");
-        verifyNoMoreInteractions(tarReferentialRepository);
+        verify(archiveReferentialRepository).updateLocationToReadyOnDisk("tarId", 1000L, "digest");
+        verifyNoMoreInteractions(archiveReferentialRepository);
 
         verify(readWriteQueue).addIfAbsent(anyList(), eq(message));
         verifyNoMoreInteractions(readWriteQueue);

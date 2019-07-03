@@ -26,43 +26,20 @@
  *******************************************************************************/
 package fr.gouv.vitam.storage.engine.common.model;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonSubTypes;
+import com.fasterxml.jackson.annotation.JsonTypeInfo;
 
-public class TapeLibraryOnTapeTarStorageLocation extends TapeLibraryTarStorageLocation {
+@JsonTypeInfo(
+    use = JsonTypeInfo.Id.NAME,
+    property = "type")
+@JsonSubTypes({
+    @JsonSubTypes.Type(value = TapeLibraryBuildingOnDiskArchiveStorageLocation.class, name = "building_on_disk"),
+    @JsonSubTypes.Type(value = TapeLibraryReadyOnDiskArchiveStorageLocation.class, name = "ready_on_disk"),
+    @JsonSubTypes.Type(value = TapeLibraryOnTapeArchiveStorageLocation.class, name = "on_tape")
+})
+public abstract class TapeLibraryArchiveStorageLocation {
 
-    public static final String TAPE_CODE = "tapeCode";
-    public static final String FILE_POSITION = "filePosition";
-
-    @JsonProperty(TAPE_CODE)
-    private String tapeCode;
-
-    @JsonProperty(FILE_POSITION)
-    private Integer filePosition;
-
-    public TapeLibraryOnTapeTarStorageLocation() {
+    public TapeLibraryArchiveStorageLocation() {
         // Empty constructor for deserialization
-    }
-
-    public TapeLibraryOnTapeTarStorageLocation(String tapeCode, Integer filePosition) {
-        this.tapeCode = tapeCode;
-        this.filePosition = filePosition;
-    }
-
-    public String getTapeCode() {
-        return tapeCode;
-    }
-
-    public TapeLibraryOnTapeTarStorageLocation setTapeCode(String tapeCode) {
-        this.tapeCode = tapeCode;
-        return this;
-    }
-
-    public Integer getFilePosition() {
-        return filePosition;
-    }
-
-    public TapeLibraryOnTapeTarStorageLocation setFilePosition(Integer filePosition) {
-        this.filePosition = filePosition;
-        return this;
     }
 }

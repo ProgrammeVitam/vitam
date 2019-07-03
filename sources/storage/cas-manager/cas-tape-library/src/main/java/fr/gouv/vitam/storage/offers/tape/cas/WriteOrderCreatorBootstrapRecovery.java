@@ -35,14 +35,14 @@ import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.stream.ExtendedFileOutputStream;
 import fr.gouv.vitam.common.stream.SizedInputStream;
 import fr.gouv.vitam.storage.engine.common.model.QueueMessageType;
-import fr.gouv.vitam.storage.engine.common.model.TapeLibraryBuildingOnDiskTarStorageLocation;
-import fr.gouv.vitam.storage.engine.common.model.TapeLibraryOnTapeTarStorageLocation;
-import fr.gouv.vitam.storage.engine.common.model.TapeLibraryReadyOnDiskTarStorageLocation;
-import fr.gouv.vitam.storage.engine.common.model.TapeTarReferentialEntity;
+import fr.gouv.vitam.storage.engine.common.model.TapeLibraryBuildingOnDiskArchiveStorageLocation;
+import fr.gouv.vitam.storage.engine.common.model.TapeLibraryOnTapeArchiveStorageLocation;
+import fr.gouv.vitam.storage.engine.common.model.TapeLibraryReadyOnDiskArchiveStorageLocation;
+import fr.gouv.vitam.storage.engine.common.model.TapeArchiveReferentialEntity;
 import fr.gouv.vitam.storage.engine.common.model.WriteOrder;
 import fr.gouv.vitam.storage.offers.tape.exception.ObjectReferentialException;
 import fr.gouv.vitam.storage.offers.tape.exception.QueueException;
-import fr.gouv.vitam.storage.offers.tape.exception.TarReferentialException;
+import fr.gouv.vitam.storage.offers.tape.exception.ArchiveReferentialException;
 import fr.gouv.vitam.storage.offers.tape.utils.LocalFileUtils;
 import org.apache.logging.log4j.util.Strings;
 
@@ -61,25 +61,25 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Stream;
 
-import static fr.gouv.vitam.storage.offers.tape.utils.LocalFileUtils.getCreationDateFromTarId;
+import static fr.gouv.vitam.storage.offers.tape.utils.LocalFileUtils.getCreationDateFromArchiveId;
 
 public class WriteOrderCreatorBootstrapRecovery {
 
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(WriteOrderCreatorBootstrapRecovery.class);
 
     private final String inputTarStorageFolder;
-    private final TarReferentialRepository tarReferentialRepository;
+    private final ArchiveReferentialRepository archiveReferentialRepository;
     private final BucketTopologyHelper bucketTopologyHelper;
     private final WriteOrderCreator writeOrderCreator;
     private final TarFileRapairer tarFileRapairer;
 
     public WriteOrderCreatorBootstrapRecovery(
         String inputTarStorageFolder,
-        TarReferentialRepository tarReferentialRepository,
+        ArchiveReferentialRepository archiveReferentialRepository,
         BucketTopologyHelper bucketTopologyHelper,
         WriteOrderCreator writeOrderCreator, TarFileRapairer tarFileRapairer) {
         this.inputTarStorageFolder = inputTarStorageFolder;
-        this.tarReferentialRepository = tarReferentialRepository;
+        this.archiveReferentialRepository = archiveReferentialRepository;
         this.bucketTopologyHelper = bucketTopologyHelper;
         this.writeOrderCreator = writeOrderCreator;
         this.tarFileRapairer = tarFileRapairer;
@@ -110,12 +110,11 @@ public class WriteOrderCreatorBootstrapRecovery {
     }
 
     private void recoverFileBucket(String fileBucket, Path fileBucketArchiveStoragePath)
-        throws IOException, TarReferentialException, ObjectReferentialException, QueueException {
+        throws IOException, ArchiveReferentialException, ObjectReferentialException, QueueException {
 
         Map<String, FileGroup> archiveFileGroups = getFileListGroupedByArchiveId(fileBucketArchiveStoragePath);
 
-        List<String> archiveFileNames = cleanupIncompleteFiles(fileBucketArchiveStoragePath, archiveFileGroups,
-            BucketTopologyHelper.BACKUP_FILE_BUCKET.equals(fileBucket));
+        List<String> archiveFileNames = cleanupIncompleteFiles(fileBucketArchiveStoragePath, archiveFileGroups);
 
         // Sort files by creation date
         sortFilesByCreationDate(archiveFileNames);
@@ -157,7 +156,7 @@ public class WriteOrderCreatorBootstrapRecovery {
     }
 
     private List<String> cleanupIncompleteFiles(Path fileBucketTarStoragePath,
-        Map<String, FileGroup> archiveFileGroups, boolean backupFiles) throws IOException {
+        Map<String, FileGroup> archiveFileGroups) throws IOException {
 
         /* Delete incomplete files
          * > X.tar.tmp + X.tar          : Delete incomplete .tar
@@ -176,6 +175,7 @@ public class WriteOrderCreatorBootstrapRecovery {
 
             if (fileGroup.tmpFileName != null) {
 
+                boolean backupFiles = fileGroup.tmpFileName.endsWith(LocalFileUtils.ZIP_EXTENSION);
                 if (fileGroup.readyFileName == null && backupFiles) {
                     LOGGER.warn("Deleting potential incomplete file " + fileGroup.tmpFileName);
                     Files.delete(fileBucketTarStoragePath.resolve(fileGroup.tmpFileName));
@@ -206,11 +206,11 @@ public class WriteOrderCreatorBootstrapRecovery {
     private void sortFilesByCreationDate(List<String> archiveFileNames) {
         archiveFileNames.sort((filename1, filename2) -> {
 
-            String tarId1 = LocalFileUtils.archiveFileNamePathToArchiveId(filename1);
-            String tarId2 = LocalFileUtils.archiveFileNamePathToArchiveId(filename1);
+            String archiveId1 = LocalFileUtils.archiveFileNamePathToArchiveId(filename1);
+            String archiveId2 = LocalFileUtils.archiveFileNamePathToArchiveId(filename1);
 
-            String creationDate1 = getCreationDateFromTarId(tarId1);
-            String creationDate2 = getCreationDateFromTarId(tarId2);
+            String creationDate1 = getCreationDateFromArchiveId(archiveId1);
+            String creationDate2 = getCreationDateFromArchiveId(archiveId2);
 
             int compare = creationDate1.compareTo(creationDate2);
             if (compare != 0)
@@ -220,24 +220,24 @@ public class WriteOrderCreatorBootstrapRecovery {
     }
 
     private void processReadyArchive(String fileBucket, Path fileBucketArchiveStoragePath, String archiveId)
-        throws TarReferentialException, IOException, ObjectReferentialException, QueueException {
+        throws ArchiveReferentialException, IOException, ObjectReferentialException, QueueException {
 
         Path archiveFile = fileBucketArchiveStoragePath.resolve(archiveId);
 
-        Optional<TapeTarReferentialEntity> tarReferentialEntity = tarReferentialRepository.find(archiveId);
+        Optional<TapeArchiveReferentialEntity> tarReferentialEntity = archiveReferentialRepository.find(archiveId);
         if (!tarReferentialEntity.isPresent()) {
             throw new IllegalStateException(
                 "Unknown archive file in Archive referential '" + archiveFile.toString() + "'");
         }
 
         if (tarReferentialEntity.get()
-            .getLocation() instanceof TapeLibraryOnTapeTarStorageLocation) {
+            .getLocation() instanceof TapeLibraryOnTapeArchiveStorageLocation) {
 
             LOGGER.warn("Archive file {} already written on tape. Deleting it", archiveFile);
             Files.delete(archiveFile);
 
         } else if (tarReferentialEntity.get().getLocation()
-            instanceof TapeLibraryReadyOnDiskTarStorageLocation) {
+            instanceof TapeLibraryReadyOnDiskArchiveStorageLocation) {
 
             // TODO: 10/06/19 check that no write order in the queue else do not enqueue a new WriteOrder
             LOGGER.warn("Rescheduling archive file {} for copy on tape.", archiveFile);
@@ -245,7 +245,7 @@ public class WriteOrderCreatorBootstrapRecovery {
                 tarReferentialEntity.get().getSize(), tarReferentialEntity.get().getDigestValue());
 
         } else if (tarReferentialEntity.get().getLocation()
-            instanceof TapeLibraryBuildingOnDiskTarStorageLocation) {
+            instanceof TapeLibraryBuildingOnDiskArchiveStorageLocation) {
 
             LOGGER.warn("Check archive file & compute size & digest.", archiveFile);
             if (!BucketTopologyHelper.BACKUP_FILE_BUCKET.equals(fileBucket)) {
@@ -276,7 +276,7 @@ public class WriteOrderCreatorBootstrapRecovery {
 
 
     private void repairArchive(Path fileBucketArchiveStoragePath, String tmpFileName, String fileBucket)
-        throws IOException, ObjectReferentialException, QueueException, TarReferentialException {
+        throws IOException, ObjectReferentialException, QueueException, ArchiveReferentialException {
 
         String archiveId = LocalFileUtils.archiveFileNamePathToArchiveId(tmpFileName);
 
@@ -311,7 +311,7 @@ public class WriteOrderCreatorBootstrapRecovery {
     }
 
     private void enqueue(String bucket, String fileBucket, String archiveId, long size, String digest)
-        throws TarReferentialException, QueueException {
+        throws ArchiveReferentialException, QueueException {
         // Add to queue
         WriteOrder message = new WriteOrder(
             bucket,
@@ -331,7 +331,7 @@ public class WriteOrderCreatorBootstrapRecovery {
 
     private void reScheduleArchive(Path fileBucketArchiveStoragePath, String bucket, String fileBucket,
         String archiveId, long size, String digestValue)
-        throws IOException, TarReferentialException, QueueException {
+        throws IOException, ArchiveReferentialException, QueueException {
 
         Path finalFilePath = fileBucketArchiveStoragePath.resolve(archiveId);
 

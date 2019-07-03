@@ -3,13 +3,13 @@ package fr.gouv.vitam.storage.offers.tape.cas;
 import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.digest.Digest;
 import fr.gouv.vitam.common.digest.DigestType;
-import fr.gouv.vitam.storage.engine.common.model.TapeLibraryBuildingOnDiskTarStorageLocation;
+import fr.gouv.vitam.storage.engine.common.model.TapeLibraryBuildingOnDiskArchiveStorageLocation;
 import fr.gouv.vitam.storage.engine.common.model.TapeLibraryTarObjectStorageLocation;
-import fr.gouv.vitam.storage.engine.common.model.TapeTarReferentialEntity;
+import fr.gouv.vitam.storage.engine.common.model.TapeArchiveReferentialEntity;
 import fr.gouv.vitam.storage.engine.common.model.TarEntryDescription;
 import fr.gouv.vitam.storage.engine.common.model.WriteOrder;
 import fr.gouv.vitam.storage.offers.tape.exception.ObjectReferentialException;
-import fr.gouv.vitam.storage.offers.tape.exception.TarReferentialException;
+import fr.gouv.vitam.storage.offers.tape.exception.ArchiveReferentialException;
 import fr.gouv.vitam.storage.offers.tape.inmemoryqueue.QueueProcessingException;
 import fr.gouv.vitam.storage.offers.tape.utils.LocalFileUtils;
 import org.apache.commons.io.input.NullInputStream;
@@ -67,7 +67,7 @@ public class FileBucketTarCreatorTest {
     ObjectReferentialRepository objectReferentialRepository;
 
     @Mock
-    TarReferentialRepository tarReferentialRepository;
+    ArchiveReferentialRepository archiveReferentialRepository;
 
     @Mock
     WriteOrderCreator writeOrderCreator;
@@ -230,7 +230,7 @@ public class FileBucketTarCreatorTest {
     private void runProcessMessageTest(List<ObjectToWrite> objectsToWrite, int expectedSealedTarCount,
         int expectedTmpTarCount,
         int tarBufferingTimeoutInSeconds, long maxTarEntrySize, long maxTarFileSize)
-        throws IOException, QueueProcessingException, InterruptedException, TarReferentialException,
+        throws IOException, QueueProcessingException, InterruptedException, ArchiveReferentialException,
         ObjectReferentialException {
         String bucketId = "test";
         String fileBucketId = "test-metadata";
@@ -240,7 +240,7 @@ public class FileBucketTarCreatorTest {
         Files.createDirectories(fileBucketStoragePath);
 
         FileBucketTarCreator fileBucketTarCreator = new FileBucketTarCreator(
-            basicFileStorage, objectReferentialRepository, tarReferentialRepository,
+            basicFileStorage, objectReferentialRepository, archiveReferentialRepository,
             writeOrderCreator, bucketId, fileBucketId, tarBufferingTimeoutInSeconds,
             TimeUnit.SECONDS, inputTarStoragePath.toString(),
             maxTarEntrySize, maxTarFileSize);
@@ -286,27 +286,27 @@ public class FileBucketTarCreatorTest {
         assertThat(inputTarStoragePath.resolve(fileBucketId).toFile().list())
             .hasSize(expectedSealedTarCount + expectedTmpTarCount);
 
-        ArgumentCaptor<TapeTarReferentialEntity> tarReferentialEntityArgumentCaptor =
-            ArgumentCaptor.forClass(TapeTarReferentialEntity.class);
-        verify(tarReferentialRepository, times(expectedSealedTarCount + expectedTmpTarCount))
+        ArgumentCaptor<TapeArchiveReferentialEntity> tarReferentialEntityArgumentCaptor =
+            ArgumentCaptor.forClass(TapeArchiveReferentialEntity.class);
+        verify(archiveReferentialRepository, times(expectedSealedTarCount + expectedTmpTarCount))
             .insert(tarReferentialEntityArgumentCaptor.capture());
-        verifyNoMoreInteractions(tarReferentialRepository);
-        List<TapeTarReferentialEntity> tarReferentialEntities = tarReferentialEntityArgumentCaptor.getAllValues();
+        verifyNoMoreInteractions(archiveReferentialRepository);
+        List<TapeArchiveReferentialEntity> tarReferentialEntities = tarReferentialEntityArgumentCaptor.getAllValues();
 
         Map<String, Path> tarIdToTarFile = new HashMap<>();
         for (int i = 0; i < expectedSealedTarCount + expectedTmpTarCount; i++) {
 
-            TapeTarReferentialEntity tarReferentialEntity = tarReferentialEntities.get(i);
+            TapeArchiveReferentialEntity tarReferentialEntity = tarReferentialEntities.get(i);
             boolean shouldBeSealed = i < expectedSealedTarCount;
 
-            Path tarFilePath = inputTarStoragePath.resolve(fileBucketId).resolve(tarReferentialEntity.getTarId() +
+            Path tarFilePath = inputTarStoragePath.resolve(fileBucketId).resolve(tarReferentialEntity.getArchiveId() +
                 (shouldBeSealed ? "" : LocalFileUtils.TMP_EXTENSION));
 
-            tarIdToTarFile.put(tarReferentialEntity.getTarId(), tarFilePath);
+            tarIdToTarFile.put(tarReferentialEntity.getArchiveId(), tarFilePath);
 
             assertThat(tarFilePath).exists();
             assertThat(tarReferentialEntity.getLocation())
-                .isInstanceOf(TapeLibraryBuildingOnDiskTarStorageLocation.class);
+                .isInstanceOf(TapeLibraryBuildingOnDiskArchiveStorageLocation.class);
             assertThat(tarReferentialEntity.getSize()).isNull();
             assertThat(tarReferentialEntity.getDigestValue()).isNull();
             assertThat(tarReferentialEntity.getLastUpdateDate()).isNotNull();
@@ -335,7 +335,7 @@ public class FileBucketTarCreatorTest {
 
                 assertThat(tarEntry.getSize()).isEqualTo(objectToWrite.expectedSegments.get(entryIndex).size);
                 assertThat(tarEntry.getTarFileId()).isEqualTo(
-                    tarReferentialEntities.get(objectToWrite.expectedSegments.get(entryIndex).tarIndex).getTarId());
+                    tarReferentialEntities.get(objectToWrite.expectedSegments.get(entryIndex).tarIndex).getArchiveId());
                 assertThat(tarEntry.getEntryName())
                     .isEqualTo(objectToWrite.containerName + "/" + storageIds.get(i) + "-" + entryIndex);
 
@@ -377,14 +377,14 @@ public class FileBucketTarCreatorTest {
         List<WriteOrder> allValues = writeOrderArgCaptor.getAllValues();
         for (int i = 0; i < allValues.size(); i++) {
             WriteOrder writeOrder = allValues.get(i);
-            TapeTarReferentialEntity tarReferentialEntity = tarReferentialEntities.get(i);
+            TapeArchiveReferentialEntity tarReferentialEntity = tarReferentialEntities.get(i);
 
-            Path tarFilePath = tarIdToTarFile.get(tarReferentialEntity.getTarId());
+            Path tarFilePath = tarIdToTarFile.get(tarReferentialEntity.getArchiveId());
             assertThat(writeOrder.getBucket()).isEqualTo(bucketId);
             assertThat(writeOrder.getDigest())
                 .isEqualTo(new Digest(digestType).update(tarFilePath.toFile()).digestHex());
             assertThat(writeOrder.getSize()).isEqualTo(tarFilePath.toFile().length());
-            assertThat(writeOrder.getArchiveId()).isEqualTo(tarReferentialEntity.getTarId());
+            assertThat(writeOrder.getArchiveId()).isEqualTo(tarReferentialEntity.getArchiveId());
             assertThat(inputTarStoragePath.resolve(writeOrder.getFilePath()).toAbsolutePath())
                 .isEqualTo(tarFilePath.toAbsolutePath());
         }

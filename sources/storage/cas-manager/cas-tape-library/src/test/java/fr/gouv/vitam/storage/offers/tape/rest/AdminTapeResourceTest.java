@@ -7,15 +7,14 @@ import fr.gouv.vitam.common.database.server.mongodb.SimpleMongoDBAccess;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.mongo.MongoRule;
 import fr.gouv.vitam.storage.engine.common.collection.OfferCollections;
-import fr.gouv.vitam.storage.engine.common.model.TapeLibraryBuildingOnDiskTarStorageLocation;
-import fr.gouv.vitam.storage.engine.common.model.TapeLibraryReadyOnDiskTarStorageLocation;
-import fr.gouv.vitam.storage.engine.common.model.TapeLibraryTarStorageLocation;
-import fr.gouv.vitam.storage.engine.common.model.TapeTarReferentialEntity;
+import fr.gouv.vitam.storage.engine.common.model.TapeLibraryBuildingOnDiskArchiveStorageLocation;
+import fr.gouv.vitam.storage.engine.common.model.TapeLibraryReadyOnDiskArchiveStorageLocation;
+import fr.gouv.vitam.storage.engine.common.model.TapeArchiveReferentialEntity;
+import fr.gouv.vitam.storage.offers.tape.cas.ArchiveReferentialRepository;
 import fr.gouv.vitam.storage.offers.tape.cas.BackupFileStorage;
 import fr.gouv.vitam.storage.offers.tape.cas.BucketTopologyHelper;
-import fr.gouv.vitam.storage.offers.tape.cas.TarReferentialRepository;
 import fr.gouv.vitam.storage.offers.tape.cas.WriteOrderCreator;
-import fr.gouv.vitam.storage.offers.tape.exception.TarReferentialException;
+import fr.gouv.vitam.storage.offers.tape.exception.ArchiveReferentialException;
 import fr.gouv.vitam.storage.offers.tape.impl.queue.QueueRepositoryImpl;
 import fr.gouv.vitam.storage.offers.tape.spec.QueueRepository;
 import org.assertj.core.api.Assertions;
@@ -36,7 +35,7 @@ import static fr.gouv.vitam.common.database.collections.VitamCollection.getMongo
 public class AdminTapeResourceTest {
 
     public static final String TAPE_TAR_REFERENTIAL_COLLECTION =
-        OfferCollections.TAPE_TAR_REFERENTIAL.getName() + GUIDFactory.newGUID().getId();
+        OfferCollections.TAPE_ARCHIVE_REFERENTIAL.getName() + GUIDFactory.newGUID().getId();
 
     public static final String TAPE_QUEUE_MESSAGE_COLLECTION =
         OfferCollections.TAPE_QUEUE_MESSAGE.getName() + GUIDFactory.newGUID().getId();
@@ -48,7 +47,7 @@ public class AdminTapeResourceTest {
     public static MongoRule mongoRule =
         new MongoRule(getMongoClientOptions(), TAPE_TAR_REFERENTIAL_COLLECTION, TAPE_QUEUE_MESSAGE_COLLECTION);
 
-    private static TarReferentialRepository tarReferentialRepository;
+    private static ArchiveReferentialRepository archiveReferentialRepository;
     private static QueueRepository readWriteQueue;
     private static MongoCollection<Document> tarReferentialCollection;
     private static MongoCollection<Document> queueCollection;
@@ -59,7 +58,7 @@ public class AdminTapeResourceTest {
 
         tarReferentialCollection = mongoDbAccess.getMongoDatabase()
             .getCollection(TAPE_TAR_REFERENTIAL_COLLECTION);
-        tarReferentialRepository = new TarReferentialRepository(tarReferentialCollection);
+        archiveReferentialRepository = new ArchiveReferentialRepository(tarReferentialCollection);
 
         queueCollection = mongoDbAccess.getMongoDatabase().getCollection(
             TAPE_QUEUE_MESSAGE_COLLECTION);
@@ -73,11 +72,11 @@ public class AdminTapeResourceTest {
     }
 
     @Test
-    public void testPutObjectOk() throws IOException, InterruptedException, TarReferentialException {
+    public void testPutObjectOk() throws IOException, InterruptedException, ArchiveReferentialException {
         WriteOrderCreator writeOrderCreator = new WriteOrderCreator(
-            tarReferentialRepository, readWriteQueue);
+            archiveReferentialRepository, readWriteQueue);
         BackupFileStorage backupFileStorage =
-            new BackupFileStorage(tarReferentialRepository, writeOrderCreator, BucketTopologyHelper.BACKUP_BUCKET,
+            new BackupFileStorage(archiveReferentialRepository, writeOrderCreator, BucketTopologyHelper.BACKUP_BUCKET,
                 BucketTopologyHelper.BACKUP_FILE_BUCKET, temporaryFolder.newFolder().getPath());
 
 
@@ -88,12 +87,12 @@ public class AdminTapeResourceTest {
         String objectId = "2019-01-01.backup.mongoc.zip";
         adminTapeResource.putObject(objectId, backupStream);
 
-        Optional<TapeTarReferentialEntity> archiveReference =
-            tarReferentialRepository.find(objectId);
+        Optional<TapeArchiveReferentialEntity> archiveReference =
+            archiveReferentialRepository.find(objectId);
 
         Assertions.assertThat(archiveReference).isPresent();
         Assertions.assertThat(archiveReference.get().getLocation()).isInstanceOf(
-            TapeLibraryBuildingOnDiskTarStorageLocation.class);
+            TapeLibraryBuildingOnDiskArchiveStorageLocation.class);
 
         writeOrderCreator.startListener();
 
@@ -102,11 +101,11 @@ public class AdminTapeResourceTest {
 
         Assertions.assertThat(queueCollection.count()).isEqualTo(1);
 
-        archiveReference = tarReferentialRepository.find(objectId);
+        archiveReference = archiveReferentialRepository.find(objectId);
 
         Assertions.assertThat(archiveReference).isPresent();
         Assertions.assertThat(archiveReference.get().getLocation()).isInstanceOf(
-            TapeLibraryReadyOnDiskTarStorageLocation.class);
+            TapeLibraryReadyOnDiskArchiveStorageLocation.class);
 
     }
 }

@@ -34,7 +34,7 @@ import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.storage.engine.common.model.QueueMessageType;
 import fr.gouv.vitam.storage.engine.common.model.WriteOrder;
 import fr.gouv.vitam.storage.offers.tape.exception.QueueException;
-import fr.gouv.vitam.storage.offers.tape.exception.TarReferentialException;
+import fr.gouv.vitam.storage.offers.tape.exception.ArchiveReferentialException;
 import fr.gouv.vitam.storage.offers.tape.inmemoryqueue.QueueProcessingException;
 import fr.gouv.vitam.storage.offers.tape.inmemoryqueue.QueueProcessor;
 import fr.gouv.vitam.storage.offers.tape.spec.QueueRepository;
@@ -45,13 +45,13 @@ public class WriteOrderCreator extends QueueProcessor<WriteOrder> {
 
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(WriteOrderCreator.class);
 
-    private final TarReferentialRepository tarReferentialRepository;
+    private final ArchiveReferentialRepository archiveReferentialRepository;
     private final QueueRepository readWriteQueue;
 
-    public WriteOrderCreator(TarReferentialRepository tarReferentialRepository,
+    public WriteOrderCreator(ArchiveReferentialRepository archiveReferentialRepository,
         QueueRepository readWriteQueue) {
         super("WriteOrderCreator");
-        this.tarReferentialRepository = tarReferentialRepository;
+        this.archiveReferentialRepository = archiveReferentialRepository;
         this.readWriteQueue = readWriteQueue;
     }
 
@@ -66,12 +66,12 @@ public class WriteOrderCreator extends QueueProcessor<WriteOrder> {
     }
 
     public void sendMessageToQueue(WriteOrder message)
-        throws TarReferentialException, QueueException {
+        throws ArchiveReferentialException, QueueException {
 
         LOGGER.info("Write order generated for tar Id {} [bucket={}]", message.getArchiveId(), message.getBucket());
 
         // Mark tar archive as "ready"
-        this.tarReferentialRepository.updateLocationToReadyOnDisk(
+        this.archiveReferentialRepository.updateLocationToReadyOnDisk(
             message.getArchiveId(),
             message.getSize(),
             message.getDigest()

@@ -39,13 +39,13 @@ import fr.gouv.vitam.storage.engine.common.model.QueueMessageType;
 import fr.gouv.vitam.storage.engine.common.model.QueueState;
 import fr.gouv.vitam.storage.engine.common.model.TapeCatalog;
 import fr.gouv.vitam.storage.engine.common.model.TapeCatalogLabel;
-import fr.gouv.vitam.storage.engine.common.model.TapeLibraryOnTapeTarStorageLocation;
+import fr.gouv.vitam.storage.engine.common.model.TapeLibraryOnTapeArchiveStorageLocation;
 import fr.gouv.vitam.storage.engine.common.model.TapeLocation;
 import fr.gouv.vitam.storage.engine.common.model.TapeLocationType;
 import fr.gouv.vitam.storage.engine.common.model.TapeState;
 import fr.gouv.vitam.storage.engine.common.model.WriteOrder;
 import fr.gouv.vitam.storage.offers.tape.cas.BucketTopologyHelper;
-import fr.gouv.vitam.storage.offers.tape.cas.TarReferentialRepository;
+import fr.gouv.vitam.storage.offers.tape.cas.ArchiveReferentialRepository;
 import fr.gouv.vitam.storage.offers.tape.dto.TapeDriveSpec;
 import fr.gouv.vitam.storage.offers.tape.dto.TapeDriveStatus;
 import fr.gouv.vitam.storage.offers.tape.dto.TapeResponse;
@@ -53,7 +53,7 @@ import fr.gouv.vitam.storage.offers.tape.exception.QueueException;
 import fr.gouv.vitam.storage.offers.tape.exception.ReadWriteErrorCode;
 import fr.gouv.vitam.storage.offers.tape.exception.ReadWriteException;
 import fr.gouv.vitam.storage.offers.tape.exception.TapeCatalogException;
-import fr.gouv.vitam.storage.offers.tape.exception.TarReferentialException;
+import fr.gouv.vitam.storage.offers.tape.exception.ArchiveReferentialException;
 import fr.gouv.vitam.storage.offers.tape.retry.Retry;
 import fr.gouv.vitam.storage.offers.tape.spec.TapeCatalogService;
 import fr.gouv.vitam.storage.offers.tape.spec.TapeDriveService;
@@ -100,7 +100,7 @@ public class WriteTask implements Future<ReadWriteResult> {
     protected boolean done = false;
 
     private TapeCatalog workerCurrentTape;
-    private final TarReferentialRepository tarReferentialRepository;
+    private final ArchiveReferentialRepository archiveReferentialRepository;
     private final TapeRobotPool tapeRobotPool;
     private final TapeDriveService tapeDriveService;
     private final TapeCatalogService tapeCatalogService;
@@ -112,19 +112,19 @@ public class WriteTask implements Future<ReadWriteResult> {
     public WriteTask(
         WriteOrder writeOrder, TapeCatalog workerCurrentTape, TapeRobotPool tapeRobotPool,
         TapeDriveService tapeDriveService, TapeCatalogService tapeCatalogService,
-        TarReferentialRepository tarReferentialRepository, String inputTarPath,
+        ArchiveReferentialRepository archiveReferentialRepository, String inputTarPath,
         boolean forceOverrideNonEmptyCartridges) {
         ParametersChecker.checkParameter("WriteOrder param is required.", writeOrder);
         ParametersChecker.checkParameter("TapeRobotPool param is required.", tapeRobotPool);
         ParametersChecker.checkParameter("TapeDriveService param is required.", tapeDriveService);
         ParametersChecker.checkParameter("TapeCatalogService param is required.", tapeCatalogService);
-        ParametersChecker.checkParameter("TarReferentialRepository param is required.", tarReferentialRepository);
+        ParametersChecker.checkParameter("ArchiveReferentialRepository param is required.", archiveReferentialRepository);
         this.writeOrder = writeOrder;
         this.workerCurrentTape = workerCurrentTape;
         this.tapeRobotPool = tapeRobotPool;
         this.tapeDriveService = tapeDriveService;
         this.tapeCatalogService = tapeCatalogService;
-        this.tarReferentialRepository = tarReferentialRepository;
+        this.archiveReferentialRepository = archiveReferentialRepository;
         this.inputTarPath = inputTarPath;
         this.MSG_PREFIX = String.format("[Library] : %s, [Drive] : %s, ", tapeRobotPool.getLibraryIdentifier(),
             tapeDriveService.getTapeDriveConf().getIndex());
@@ -251,17 +251,17 @@ public class WriteTask implements Future<ReadWriteResult> {
 
     private void updateTarReferential(File file) throws ReadWriteException {
         try {
-            TapeLibraryOnTapeTarStorageLocation onTapeTarStorageLocation =
-                new TapeLibraryOnTapeTarStorageLocation(workerCurrentTape.getCode(),
+            TapeLibraryOnTapeArchiveStorageLocation onTapeTarStorageLocation =
+                new TapeLibraryOnTapeArchiveStorageLocation(workerCurrentTape.getCode(),
                     workerCurrentTape.getFileCount() - 1);
 
-            tarReferentialRepository.updateLocationToOnTape(writeOrder.getArchiveId(), onTapeTarStorageLocation);
+            archiveReferentialRepository.updateLocationToOnTape(writeOrder.getArchiveId(), onTapeTarStorageLocation);
 
             FileUtils.deleteQuietly(file);
 
-        } catch (TarReferentialException e) {
+        } catch (ArchiveReferentialException e) {
             throw new ReadWriteException(
-                MSG_PREFIX + TAPE_MSG + workerCurrentTape.getCode() + ", Error: while update tar referential", e,
+                MSG_PREFIX + TAPE_MSG + workerCurrentTape.getCode() + ", Error: while update archive referential", e,
                 ReadWriteErrorCode.KO_DB_PERSIST);
         }
     }

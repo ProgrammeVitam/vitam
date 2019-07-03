@@ -28,7 +28,7 @@ package fr.gouv.vitam.storage.engine.common.model;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
-public class TapeTarReferentialEntity {
+public class TapeArchiveReferentialEntity {
 
     public static final String ID = "_id";
     public static final String LOCATION = "location";
@@ -38,10 +38,10 @@ public class TapeTarReferentialEntity {
     public static final String ENTRY_TYPE = "entryTape";
 
     @JsonProperty(ID)
-    private String tarId;
+    private String archiveId;
 
     @JsonProperty(LOCATION)
-    private TapeLibraryTarStorageLocation location;
+    private TapeLibraryArchiveStorageLocation location;
 
     @JsonProperty(ENTRY_TYPE)
     private EntryType entryTape = EntryType.DATA;
@@ -55,34 +55,45 @@ public class TapeTarReferentialEntity {
     @JsonProperty(LAST_UPDATE_DATE)
     private String lastUpdateDate;
 
-    public TapeTarReferentialEntity() {
+    public TapeArchiveReferentialEntity() {
         // Empty constructor for deserialization
     }
 
-    public TapeTarReferentialEntity(String tarId,
-        TapeLibraryTarStorageLocation location, Long size, String digestValue, String lastUpdateDate) {
-        this.tarId = tarId;
+    public TapeArchiveReferentialEntity(String archiveId,
+        TapeLibraryArchiveStorageLocation location, Long size, String digestValue, String lastUpdateDate) {
+        this.archiveId = archiveId;
         this.location = location;
         this.size = size;
         this.digestValue = digestValue;
         this.lastUpdateDate = lastUpdateDate;
     }
 
-    public String getTarId() {
-        return tarId;
+    public TapeArchiveReferentialEntity(String archiveId,
+        TapeLibraryArchiveStorageLocation location, EntryType entryTape, Long size, String digestValue,
+        String lastUpdateDate) {
+        this.archiveId = archiveId;
+        this.location = location;
+        this.entryTape = entryTape;
+        this.size = size;
+        this.digestValue = digestValue;
+        this.lastUpdateDate = lastUpdateDate;
     }
 
-    public TapeTarReferentialEntity setTarId(String tarId) {
-        this.tarId = tarId;
+    public String getArchiveId() {
+        return archiveId;
+    }
+
+    public TapeArchiveReferentialEntity setArchiveId(String archiveId) {
+        this.archiveId = archiveId;
         return this;
     }
 
-    public TapeLibraryTarStorageLocation getLocation() {
+    public TapeLibraryArchiveStorageLocation getLocation() {
         return location;
     }
 
-    public TapeTarReferentialEntity setLocation(
-        TapeLibraryTarStorageLocation location) {
+    public TapeArchiveReferentialEntity setLocation(
+        TapeLibraryArchiveStorageLocation location) {
         this.location = location;
         return this;
     }
@@ -91,7 +102,7 @@ public class TapeTarReferentialEntity {
         return size;
     }
 
-    public TapeTarReferentialEntity setSize(Long size) {
+    public TapeArchiveReferentialEntity setSize(Long size) {
         this.size = size;
         return this;
     }
@@ -100,7 +111,7 @@ public class TapeTarReferentialEntity {
         return digestValue;
     }
 
-    public TapeTarReferentialEntity setDigestValue(String digestValue) {
+    public TapeArchiveReferentialEntity setDigestValue(String digestValue) {
         this.digestValue = digestValue;
         return this;
     }
@@ -109,7 +120,7 @@ public class TapeTarReferentialEntity {
         return lastUpdateDate;
     }
 
-    public TapeTarReferentialEntity setLastUpdateDate(String lastUpdateDate) {
+    public TapeArchiveReferentialEntity setLastUpdateDate(String lastUpdateDate) {
         this.lastUpdateDate = lastUpdateDate;
         return this;
     }
@@ -118,7 +129,7 @@ public class TapeTarReferentialEntity {
         return entryTape;
     }
 
-    public TapeTarReferentialEntity setEntryTape(EntryType entryTape) {
+    public TapeArchiveReferentialEntity setEntryTape(EntryType entryTape) {
         this.entryTape = entryTape;
         return this;
     }

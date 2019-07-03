@@ -2,10 +2,10 @@ package fr.gouv.vitam.storage.offers.tape.cas;
 
 import com.google.common.collect.ImmutableSet;
 import fr.gouv.vitam.common.LocalDateUtil;
-import fr.gouv.vitam.storage.engine.common.model.TapeLibraryBuildingOnDiskTarStorageLocation;
-import fr.gouv.vitam.storage.engine.common.model.TapeLibraryOnTapeTarStorageLocation;
-import fr.gouv.vitam.storage.engine.common.model.TapeLibraryReadyOnDiskTarStorageLocation;
-import fr.gouv.vitam.storage.engine.common.model.TapeTarReferentialEntity;
+import fr.gouv.vitam.storage.engine.common.model.TapeLibraryBuildingOnDiskArchiveStorageLocation;
+import fr.gouv.vitam.storage.engine.common.model.TapeLibraryOnTapeArchiveStorageLocation;
+import fr.gouv.vitam.storage.engine.common.model.TapeLibraryReadyOnDiskArchiveStorageLocation;
+import fr.gouv.vitam.storage.engine.common.model.TapeArchiveReferentialEntity;
 import fr.gouv.vitam.storage.engine.common.model.WriteOrder;
 import fr.gouv.vitam.storage.offers.tape.utils.LocalFileUtils;
 import org.junit.Before;
@@ -50,7 +50,7 @@ public class WriteOrderCreatorBootstrapRecoveryTest {
     private TarFileRapairer tarFileRapairer;
 
     @Mock
-    private TarReferentialRepository tarReferentialRepository;
+    private ArchiveReferentialRepository archiveReferentialRepository;
 
     @Mock
     private BucketTopologyHelper bucketTopologyHelper;
@@ -67,7 +67,7 @@ public class WriteOrderCreatorBootstrapRecoveryTest {
         inputTarStorageFolder = temporaryFolder.newFolder("inputTar").toPath();
 
         writeOrderCreatorBootstrapRecovery = new WriteOrderCreatorBootstrapRecovery(
-            inputTarStorageFolder.toString(), tarReferentialRepository,
+            inputTarStorageFolder.toString(), archiveReferentialRepository,
             bucketTopologyHelper, writeOrderCreator, tarFileRapairer);
 
         doReturn(ImmutableSet.of(FILE_BUCKET_1, FILE_BUCKET_2))
@@ -90,7 +90,7 @@ public class WriteOrderCreatorBootstrapRecoveryTest {
 
         // Then
         verify(bucketTopologyHelper).listFileBuckets();
-        verifyNoMoreInteractions(bucketTopologyHelper, tarReferentialRepository, writeOrderCreator, tarFileRapairer);
+        verifyNoMoreInteractions(bucketTopologyHelper, archiveReferentialRepository, writeOrderCreator, tarFileRapairer);
     }
 
     @Test
@@ -103,7 +103,7 @@ public class WriteOrderCreatorBootstrapRecoveryTest {
 
         // Then
         verify(bucketTopologyHelper).listFileBuckets();
-        verifyNoMoreInteractions(bucketTopologyHelper, tarReferentialRepository, writeOrderCreator, tarFileRapairer);
+        verifyNoMoreInteractions(bucketTopologyHelper, archiveReferentialRepository, writeOrderCreator, tarFileRapairer);
     }
 
     @Test
@@ -163,7 +163,7 @@ public class WriteOrderCreatorBootstrapRecoveryTest {
         assertThat(targetFile1).exists();
         assertThat(targetFile2).exists();
 
-        verifyNoMoreInteractions(bucketTopologyHelper, tarReferentialRepository, writeOrderCreator, tarFileRapairer);
+        verifyNoMoreInteractions(bucketTopologyHelper, archiveReferentialRepository, writeOrderCreator, tarFileRapairer);
     }
 
     @Test
@@ -187,19 +187,19 @@ public class WriteOrderCreatorBootstrapRecoveryTest {
         Path tarFile = fileBucketFolder1.resolve(tarId);
         Files.createFile(tarFile);
 
-        doReturn(Optional.of(new TapeTarReferentialEntity(tarId,
-            new TapeLibraryOnTapeTarStorageLocation("tape code", 13), 10L, "digest1", null))
-        ).when(tarReferentialRepository).find(tarId);
+        doReturn(Optional.of(new TapeArchiveReferentialEntity(tarId,
+            new TapeLibraryOnTapeArchiveStorageLocation("tape code", 13), 10L, "digest1", null))
+        ).when(archiveReferentialRepository).find(tarId);
 
         // When
         writeOrderCreatorBootstrapRecovery.initializeOnBootstrap();
 
         // Then : delete file
         verify(bucketTopologyHelper).listFileBuckets();
-        verify(tarReferentialRepository).find(tarId);
+        verify(archiveReferentialRepository).find(tarId);
         assertThat(tarFile).doesNotExist();
 
-        verifyNoMoreInteractions(bucketTopologyHelper, tarReferentialRepository, writeOrderCreator, tarFileRapairer);
+        verifyNoMoreInteractions(bucketTopologyHelper, archiveReferentialRepository, writeOrderCreator, tarFileRapairer);
     }
 
     @Test
@@ -226,16 +226,16 @@ public class WriteOrderCreatorBootstrapRecoveryTest {
         doReturn(new TarFileRapairer.DigestWithSize(10L, "digest1"))
             .when(tarFileRapairer).verifyTarArchive(any());
 
-        doReturn(Optional.of(new TapeTarReferentialEntity(tarId,
-            new TapeLibraryBuildingOnDiskTarStorageLocation(), null, null, null))
-        ).when(tarReferentialRepository).find(tarId);
+        doReturn(Optional.of(new TapeArchiveReferentialEntity(tarId,
+            new TapeLibraryBuildingOnDiskArchiveStorageLocation(), null, null, null))
+        ).when(archiveReferentialRepository).find(tarId);
 
         // When
         writeOrderCreatorBootstrapRecovery.initializeOnBootstrap();
 
         // Then
         verify(bucketTopologyHelper).listFileBuckets();
-        verify(tarReferentialRepository).find(tarId);
+        verify(archiveReferentialRepository).find(tarId);
         verify(tarFileRapairer).verifyTarArchive(any());
 
         verify(bucketTopologyHelper).getBucketFromFileBucket(any());
@@ -250,7 +250,7 @@ public class WriteOrderCreatorBootstrapRecoveryTest {
             );
         assertThat(tarFile).exists();
 
-        verifyNoMoreInteractions(bucketTopologyHelper, tarReferentialRepository, writeOrderCreator, tarFileRapairer);
+        verifyNoMoreInteractions(bucketTopologyHelper, archiveReferentialRepository, writeOrderCreator, tarFileRapairer);
     }
 
     @Test
@@ -274,9 +274,9 @@ public class WriteOrderCreatorBootstrapRecoveryTest {
         Path tarFile = fileBucketFolder2.resolve(tarId);
         Files.createFile(tarFile);
 
-        doReturn(Optional.of(new TapeTarReferentialEntity(tarId,
-            new TapeLibraryReadyOnDiskTarStorageLocation(), 10L, "digest1", null))
-        ).when(tarReferentialRepository).find(tarId);
+        doReturn(Optional.of(new TapeArchiveReferentialEntity(tarId,
+            new TapeLibraryReadyOnDiskArchiveStorageLocation(), 10L, "digest1", null))
+        ).when(archiveReferentialRepository).find(tarId);
 
         // When
         writeOrderCreatorBootstrapRecovery.initializeOnBootstrap();
@@ -284,7 +284,7 @@ public class WriteOrderCreatorBootstrapRecoveryTest {
         // Then
         verify(bucketTopologyHelper).listFileBuckets();
 
-        verify(tarReferentialRepository).find(tarId);
+        verify(archiveReferentialRepository).find(tarId);
 
         verify(bucketTopologyHelper).getBucketFromFileBucket(any());
         ArgumentCaptor<WriteOrder> writeOrderArgCaptor = ArgumentCaptor.forClass(WriteOrder.class);
@@ -299,7 +299,7 @@ public class WriteOrderCreatorBootstrapRecoveryTest {
 
         assertThat(tarFile).exists();
 
-        verifyNoMoreInteractions(bucketTopologyHelper, tarReferentialRepository, writeOrderCreator, tarFileRapairer);
+        verifyNoMoreInteractions(bucketTopologyHelper, archiveReferentialRepository, writeOrderCreator, tarFileRapairer);
     }
 
 
@@ -325,7 +325,7 @@ public class WriteOrderCreatorBootstrapRecoveryTest {
         Files.createFile(tarFile);
 
         doReturn(Optional.empty())
-            .when(tarReferentialRepository).find(tarId);
+            .when(archiveReferentialRepository).find(tarId);
 
         // When / Then
         assertThatThrownBy(() -> writeOrderCreatorBootstrapRecovery.initializeOnBootstrap())
@@ -379,19 +379,19 @@ public class WriteOrderCreatorBootstrapRecoveryTest {
 
 
         // Tar 1 has already been proceeded
-        doReturn(Optional.of(new TapeTarReferentialEntity(tarId1,
-            new TapeLibraryOnTapeTarStorageLocation("tape code", 13), 10L, "digest1", null))
-        ).when(tarReferentialRepository).find(tarId1);
+        doReturn(Optional.of(new TapeArchiveReferentialEntity(tarId1,
+            new TapeLibraryOnTapeArchiveStorageLocation("tape code", 13), 10L, "digest1", null))
+        ).when(archiveReferentialRepository).find(tarId1);
 
         // Tar 2 needs to be verified
-        doReturn(Optional.of(new TapeTarReferentialEntity(tarId2,
-            new TapeLibraryBuildingOnDiskTarStorageLocation(), null, null, null))
-        ).when(tarReferentialRepository).find(tarId2);
+        doReturn(Optional.of(new TapeArchiveReferentialEntity(tarId2,
+            new TapeLibraryBuildingOnDiskArchiveStorageLocation(), null, null, null))
+        ).when(archiveReferentialRepository).find(tarId2);
 
         // Tar 4 is already OK
-        doReturn(Optional.of(new TapeTarReferentialEntity(tarId4,
-            new TapeLibraryReadyOnDiskTarStorageLocation(), 13L, "digest4", null))
-        ).when(tarReferentialRepository).find(tarId4);
+        doReturn(Optional.of(new TapeArchiveReferentialEntity(tarId4,
+            new TapeLibraryReadyOnDiskArchiveStorageLocation(), 13L, "digest4", null))
+        ).when(archiveReferentialRepository).find(tarId4);
 
         // When
         writeOrderCreatorBootstrapRecovery.initializeOnBootstrap();
@@ -399,7 +399,7 @@ public class WriteOrderCreatorBootstrapRecoveryTest {
         // Then
         verify(bucketTopologyHelper).listFileBuckets();
 
-        verify(tarReferentialRepository, times(3)).find(any());
+        verify(archiveReferentialRepository, times(3)).find(any());
 
         // File 3 will be verified
         verify(tarFileRapairer, times(1)).verifyTarArchive(any());
@@ -434,6 +434,6 @@ public class WriteOrderCreatorBootstrapRecoveryTest {
         assertThat(tarFile5).exists();
         assertThat(tmpTarFile5).doesNotExist();
 
-        verifyNoMoreInteractions(bucketTopologyHelper, tarReferentialRepository, writeOrderCreator, tarFileRapairer);
+        verifyNoMoreInteractions(bucketTopologyHelper, archiveReferentialRepository, writeOrderCreator, tarFileRapairer);
     }
 }

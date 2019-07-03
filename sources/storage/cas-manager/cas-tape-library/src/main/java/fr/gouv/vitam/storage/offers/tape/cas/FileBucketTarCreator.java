@@ -33,13 +33,13 @@ import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.stream.ExtendedFileOutputStream;
-import fr.gouv.vitam.storage.engine.common.model.TapeLibraryBuildingOnDiskTarStorageLocation;
+import fr.gouv.vitam.storage.engine.common.model.TapeLibraryBuildingOnDiskArchiveStorageLocation;
 import fr.gouv.vitam.storage.engine.common.model.TapeLibraryTarObjectStorageLocation;
-import fr.gouv.vitam.storage.engine.common.model.TapeTarReferentialEntity;
+import fr.gouv.vitam.storage.engine.common.model.TapeArchiveReferentialEntity;
 import fr.gouv.vitam.storage.engine.common.model.TarEntryDescription;
 import fr.gouv.vitam.storage.engine.common.model.WriteOrder;
 import fr.gouv.vitam.storage.offers.tape.exception.ObjectReferentialException;
-import fr.gouv.vitam.storage.offers.tape.exception.TarReferentialException;
+import fr.gouv.vitam.storage.offers.tape.exception.ArchiveReferentialException;
 import fr.gouv.vitam.storage.offers.tape.inmemoryqueue.QueueProcessingException;
 import fr.gouv.vitam.storage.offers.tape.inmemoryqueue.QueueProcessor;
 import fr.gouv.vitam.storage.offers.tape.utils.LocalFileUtils;
@@ -69,7 +69,7 @@ public class FileBucketTarCreator extends QueueProcessor<TarCreatorMessage> {
 
     private final BasicFileStorage basicFileStorage;
     private final ObjectReferentialRepository objectReferentialRepository;
-    private final TarReferentialRepository tarReferentialRepository;
+    private final ArchiveReferentialRepository archiveReferentialRepository;
     private final WriteOrderCreator writeOrderCreator;
     private final String bucketId;
     private final String fileBucketId;
@@ -89,7 +89,7 @@ public class FileBucketTarCreator extends QueueProcessor<TarCreatorMessage> {
     public FileBucketTarCreator(
         BasicFileStorage basicFileStorage,
         ObjectReferentialRepository objectReferentialRepository,
-        TarReferentialRepository tarReferentialRepository,
+        ArchiveReferentialRepository archiveReferentialRepository,
         WriteOrderCreator writeOrderCreator,
         String bucketId, String fileBucketId, int tarBufferingTimeout, TimeUnit tarBufferingTimeUnit,
         String inputTarStorageFolder, long maxTarEntrySize, long maxTarFileSize) {
@@ -99,7 +99,7 @@ public class FileBucketTarCreator extends QueueProcessor<TarCreatorMessage> {
 
         this.basicFileStorage = basicFileStorage;
         this.objectReferentialRepository = objectReferentialRepository;
-        this.tarReferentialRepository = tarReferentialRepository;
+        this.archiveReferentialRepository = archiveReferentialRepository;
         this.writeOrderCreator = writeOrderCreator;
 
         this.bucketId = bucketId;
@@ -227,10 +227,10 @@ public class FileBucketTarCreator extends QueueProcessor<TarCreatorMessage> {
         LOGGER.info("Creating file {}", this.currentTempTarFilePath);
 
         try {
-            TapeTarReferentialEntity tarReferentialEntity = new TapeTarReferentialEntity(
-                tarFileId, new TapeLibraryBuildingOnDiskTarStorageLocation(), null, null, now.toString());
-            tarReferentialRepository.insert(tarReferentialEntity);
-        } catch (TarReferentialException ex) {
+            TapeArchiveReferentialEntity tarReferentialEntity = new TapeArchiveReferentialEntity(
+                tarFileId, new TapeLibraryBuildingOnDiskArchiveStorageLocation(), null, null, now.toString());
+            archiveReferentialRepository.insert(tarReferentialEntity);
+        } catch (ArchiveReferentialException ex) {
             throw new QueueProcessingException(QueueProcessingException.RetryPolicy.RETRY,
                 "Could not create a new tar file", ex);
         }

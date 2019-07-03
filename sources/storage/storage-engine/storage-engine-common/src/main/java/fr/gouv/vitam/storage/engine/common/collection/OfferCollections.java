@@ -5,7 +5,7 @@ import fr.gouv.vitam.storage.engine.common.model.OfferSequence;
 import fr.gouv.vitam.storage.engine.common.model.QueueMessageEntity;
 import fr.gouv.vitam.storage.engine.common.model.TapeCatalog;
 import fr.gouv.vitam.storage.engine.common.model.TapeObjectReferentialEntity;
-import fr.gouv.vitam.storage.engine.common.model.TapeTarReferentialEntity;
+import fr.gouv.vitam.storage.engine.common.model.TapeArchiveReferentialEntity;
 
 public enum OfferCollections {
     /*
@@ -20,7 +20,7 @@ public enum OfferCollections {
     TAPE_CATALOG(TapeCatalog.class, "TapeCatalog"),
     TAPE_QUEUE_MESSAGE(QueueMessageEntity.class, "TapeQueueMessage"),
     TAPE_OBJECT_REFERENTIAL(TapeObjectReferentialEntity.class, "TapeObjectReferential"),
-    TAPE_TAR_REFERENTIAL(TapeTarReferentialEntity.class, "TapeTarReferential");
+    TAPE_ARCHIVE_REFERENTIAL(TapeArchiveReferentialEntity.class, "TapeArchiveReferential");
 
     private final Class<?> clazz;
     private String name;
