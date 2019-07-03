@@ -26,13 +26,13 @@
  *******************************************************************************/
 package fr.gouv.vitam.storage.offers.tape.exception;
 
-public class TarReferentialException extends Exception {
+public class ArchiveReferentialException extends Exception {
 
-    public TarReferentialException(String message) {
+    public ArchiveReferentialException(String message) {
         super(message);
     }
 
-    public TarReferentialException(String message, Throwable cause) {
+    public ArchiveReferentialException(String message, Throwable cause) {
         super(message, cause);
     }
 }

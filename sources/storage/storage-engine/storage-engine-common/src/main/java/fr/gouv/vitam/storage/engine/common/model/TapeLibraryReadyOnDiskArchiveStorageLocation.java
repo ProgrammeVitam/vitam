@@ -26,20 +26,9 @@
  *******************************************************************************/
 package fr.gouv.vitam.storage.engine.common.model;
 
-import com.fasterxml.jackson.annotation.JsonSubTypes;
-import com.fasterxml.jackson.annotation.JsonTypeInfo;
+public class TapeLibraryReadyOnDiskArchiveStorageLocation extends TapeLibraryArchiveStorageLocation {
 
-@JsonTypeInfo(
-    use = JsonTypeInfo.Id.NAME,
-    property = "type")
-@JsonSubTypes({
-    @JsonSubTypes.Type(value = TapeLibraryBuildingOnDiskTarStorageLocation.class, name = "building_on_disk"),
-    @JsonSubTypes.Type(value = TapeLibraryReadyOnDiskTarStorageLocation.class, name = "ready_on_disk"),
-    @JsonSubTypes.Type(value = TapeLibraryOnTapeTarStorageLocation.class, name = "on_tape")
-})
-public abstract class TapeLibraryTarStorageLocation {
-
-    public TapeLibraryTarStorageLocation() {
+    public TapeLibraryReadyOnDiskArchiveStorageLocation() {
         // Empty constructor for deserialization
     }
 }

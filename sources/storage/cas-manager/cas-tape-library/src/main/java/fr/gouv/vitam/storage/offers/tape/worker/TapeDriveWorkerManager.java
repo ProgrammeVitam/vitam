@@ -38,7 +38,7 @@ import fr.gouv.vitam.storage.engine.common.model.ReadOrder;
 import fr.gouv.vitam.storage.engine.common.model.ReadWriteOrder;
 import fr.gouv.vitam.storage.engine.common.model.TapeCatalog;
 import fr.gouv.vitam.storage.engine.common.model.WriteOrder;
-import fr.gouv.vitam.storage.offers.tape.cas.TarReferentialRepository;
+import fr.gouv.vitam.storage.offers.tape.cas.ArchiveReferentialRepository;
 import fr.gouv.vitam.storage.offers.tape.exception.QueueException;
 import fr.gouv.vitam.storage.offers.tape.spec.QueueRepository;
 import fr.gouv.vitam.storage.offers.tape.spec.TapeDriveService;
@@ -70,20 +70,20 @@ public class TapeDriveWorkerManager implements TapeDriveOrderConsumer, TapeDrive
 
     public TapeDriveWorkerManager(
         QueueRepository readWriteQueue,
-        TarReferentialRepository tarReferentialRepository,
+        ArchiveReferentialRepository archiveReferentialRepository,
         TapeLibraryPool tapeLibraryPool,
         Map<Integer, TapeCatalog> driveTape, String inputTarPath, boolean forceOverrideNonEmptyCartridges) {
 
         ParametersChecker
             .checkParameter("All params is required required", tapeLibraryPool, readWriteQueue,
-                tarReferentialRepository, driveTape);
+                archiveReferentialRepository, driveTape);
         this.readWriteQueue = readWriteQueue;
         this.workers = new ArrayList<>();
 
         for (Map.Entry<Integer, TapeDriveService> driveEntry : tapeLibraryPool.drives()) {
             final TapeDriveWorker tapeDriveWorker =
                 new TapeDriveWorker(tapeLibraryPool, driveEntry.getValue(), tapeLibraryPool.getTapeCatalogService(),
-                    this, tarReferentialRepository, driveTape.get(driveEntry.getKey()), inputTarPath,
+                    this, archiveReferentialRepository, driveTape.get(driveEntry.getKey()), inputTarPath,
                     forceOverrideNonEmptyCartridges);
             workers.add(tapeDriveWorker);
         }

@@ -26,9 +26,9 @@
  *******************************************************************************/
 package fr.gouv.vitam.storage.engine.common.model;
 
-public class TapeLibraryBuildingOnDiskTarStorageLocation extends TapeLibraryTarStorageLocation {
+public class TapeLibraryBuildingOnDiskArchiveStorageLocation extends TapeLibraryArchiveStorageLocation {
 
-    public TapeLibraryBuildingOnDiskTarStorageLocation() {
+    public TapeLibraryBuildingOnDiskArchiveStorageLocation() {
         // Empty constructor for deserialization
     }
 }

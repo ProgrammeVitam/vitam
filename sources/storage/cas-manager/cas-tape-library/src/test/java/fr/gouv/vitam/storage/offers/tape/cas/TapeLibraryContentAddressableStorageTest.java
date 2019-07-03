@@ -47,7 +47,7 @@ public class TapeLibraryContentAddressableStorageTest {
     private ObjectReferentialRepository objectReferentialRepository;
 
     @Mock
-    private TarReferentialRepository tarReferentialRepository;
+    private ArchiveReferentialRepository archiveReferentialRepository;
 
     @Mock
     private FileBucketTarCreatorManager fileBucketTarCreatorManager;
@@ -69,7 +69,7 @@ public class TapeLibraryContentAddressableStorageTest {
 
         tapeLibraryContentAddressableStorage =
             new TapeLibraryContentAddressableStorage(basicFileStorage, objectReferentialRepository,
-                tarReferentialRepository, fileBucketTarCreatorManager, readWriteQueueRepository, tapeCatalogService);
+                archiveReferentialRepository, fileBucketTarCreatorManager, readWriteQueueRepository, tapeCatalogService);
 
     }
 
@@ -83,7 +83,7 @@ public class TapeLibraryContentAddressableStorageTest {
 
         // Then
         Mockito.verifyNoMoreInteractions(basicFileStorage, objectReferentialRepository,
-            tarReferentialRepository, fileBucketTarCreatorManager, readWriteQueueRepository, tapeCatalogService);
+            archiveReferentialRepository, fileBucketTarCreatorManager, readWriteQueueRepository, tapeCatalogService);
     }
 
     @Test
@@ -96,7 +96,7 @@ public class TapeLibraryContentAddressableStorageTest {
         // Then
         assertThat(existingContainer).isTrue();
         Mockito.verifyNoMoreInteractions(basicFileStorage, objectReferentialRepository,
-            tarReferentialRepository, fileBucketTarCreatorManager, readWriteQueueRepository, tapeCatalogService);
+            archiveReferentialRepository, fileBucketTarCreatorManager, readWriteQueueRepository, tapeCatalogService);
     }
 
     @Test
@@ -147,7 +147,7 @@ public class TapeLibraryContentAddressableStorageTest {
         assertThat(inputFileToProcessMessageArgumentCaptor.getValue().getDigestAlgorithm()).isEqualTo("SHA-512");
 
         Mockito.verifyNoMoreInteractions(basicFileStorage, objectReferentialRepository,
-            tarReferentialRepository, fileBucketTarCreatorManager, readWriteQueueRepository, tapeCatalogService);
+            archiveReferentialRepository, fileBucketTarCreatorManager, readWriteQueueRepository, tapeCatalogService);
 
         assertThat(basicFileStorage.readFile("containerName", storageId.get())).hasSameContentAs(
             new ByteArrayInputStream(data));
@@ -180,7 +180,7 @@ public class TapeLibraryContentAddressableStorageTest {
         assertThat(idArgumentCaptor.getValue().getObjectName()).isEqualTo("objectName");
 
         Mockito.verifyNoMoreInteractions(basicFileStorage, objectReferentialRepository,
-            tarReferentialRepository, fileBucketTarCreatorManager, readWriteQueueRepository, tapeCatalogService);
+            archiveReferentialRepository, fileBucketTarCreatorManager, readWriteQueueRepository, tapeCatalogService);
     }
 
     @Test
@@ -201,7 +201,7 @@ public class TapeLibraryContentAddressableStorageTest {
         assertThat(idArgumentCaptor.getValue().getObjectName()).isEqualTo("objectName");
 
         Mockito.verifyNoMoreInteractions(basicFileStorage, objectReferentialRepository,
-            tarReferentialRepository, fileBucketTarCreatorManager, readWriteQueueRepository, tapeCatalogService);
+            archiveReferentialRepository, fileBucketTarCreatorManager, readWriteQueueRepository, tapeCatalogService);
     }
 
     @Test
@@ -219,7 +219,7 @@ public class TapeLibraryContentAddressableStorageTest {
 
         verify(objectReferentialRepository).find("containerName", "objectName");
         Mockito.verifyNoMoreInteractions(basicFileStorage, objectReferentialRepository,
-            tarReferentialRepository, fileBucketTarCreatorManager, readWriteQueueRepository, tapeCatalogService);
+            archiveReferentialRepository, fileBucketTarCreatorManager, readWriteQueueRepository, tapeCatalogService);
     }
 
     @Test
@@ -237,7 +237,7 @@ public class TapeLibraryContentAddressableStorageTest {
 
         verify(objectReferentialRepository).find("containerName", "objectName");
         Mockito.verifyNoMoreInteractions(basicFileStorage, objectReferentialRepository,
-            tarReferentialRepository, fileBucketTarCreatorManager, readWriteQueueRepository, tapeCatalogService);
+            archiveReferentialRepository, fileBucketTarCreatorManager, readWriteQueueRepository, tapeCatalogService);
     }
 
     @Test
@@ -254,7 +254,7 @@ public class TapeLibraryContentAddressableStorageTest {
 
         verify(objectReferentialRepository).find("containerName", "objectName");
         Mockito.verifyNoMoreInteractions(basicFileStorage, objectReferentialRepository,
-            tarReferentialRepository, fileBucketTarCreatorManager, readWriteQueueRepository, tapeCatalogService);
+            archiveReferentialRepository, fileBucketTarCreatorManager, readWriteQueueRepository, tapeCatalogService);
     }
 
     @Test
@@ -274,7 +274,7 @@ public class TapeLibraryContentAddressableStorageTest {
         assertThat(digest).isEqualTo("digest");
         verify(objectReferentialRepository).find("containerName", "objectName");
         Mockito.verifyNoMoreInteractions(basicFileStorage, objectReferentialRepository,
-            tarReferentialRepository, fileBucketTarCreatorManager, readWriteQueueRepository, tapeCatalogService);
+            archiveReferentialRepository, fileBucketTarCreatorManager, readWriteQueueRepository, tapeCatalogService);
     }
 
     @Test
@@ -305,7 +305,7 @@ public class TapeLibraryContentAddressableStorageTest {
 
         verify(objectReferentialRepository).find("0_unit", "objectName");
         Mockito.verifyNoMoreInteractions(basicFileStorage, objectReferentialRepository,
-            tarReferentialRepository, fileBucketTarCreatorManager, readWriteQueueRepository, tapeCatalogService);
+            archiveReferentialRepository, fileBucketTarCreatorManager, readWriteQueueRepository, tapeCatalogService);
     }
 
     @Test
@@ -331,7 +331,7 @@ public class TapeLibraryContentAddressableStorageTest {
 
         verify(objectReferentialRepository).find("0_unit", "objectName");
         Mockito.verifyNoMoreInteractions(basicFileStorage, objectReferentialRepository,
-            tarReferentialRepository, fileBucketTarCreatorManager, readWriteQueueRepository, tapeCatalogService);
+            archiveReferentialRepository, fileBucketTarCreatorManager, readWriteQueueRepository, tapeCatalogService);
     }
 
     @Test

@@ -34,11 +34,12 @@ import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.stream.ExtendedFileOutputStream;
 import fr.gouv.vitam.common.stream.SizedInputStream;
+import fr.gouv.vitam.storage.engine.common.model.EntryType;
 import fr.gouv.vitam.storage.engine.common.model.QueueMessageType;
-import fr.gouv.vitam.storage.engine.common.model.TapeLibraryBuildingOnDiskTarStorageLocation;
-import fr.gouv.vitam.storage.engine.common.model.TapeTarReferentialEntity;
+import fr.gouv.vitam.storage.engine.common.model.TapeLibraryBuildingOnDiskArchiveStorageLocation;
+import fr.gouv.vitam.storage.engine.common.model.TapeArchiveReferentialEntity;
 import fr.gouv.vitam.storage.engine.common.model.WriteOrder;
-import fr.gouv.vitam.storage.offers.tape.exception.TarReferentialException;
+import fr.gouv.vitam.storage.offers.tape.exception.ArchiveReferentialException;
 import fr.gouv.vitam.storage.offers.tape.inmemoryqueue.QueueProcessingException;
 import fr.gouv.vitam.storage.offers.tape.utils.LocalFileUtils;
 import org.apache.commons.io.IOUtils;
@@ -55,7 +56,7 @@ public class BackupFileStorage {
 
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(BackupFileStorage.class);
 
-    private final TarReferentialRepository tarReferentialRepository;
+    private final ArchiveReferentialRepository archiveReferentialRepository;
     private final WriteOrderCreator writeOrderCreator;
     private final String bucketId;
     private final String fileBucketId;
@@ -63,17 +64,17 @@ public class BackupFileStorage {
 
 
     public BackupFileStorage(
-        TarReferentialRepository tarReferentialRepository,
+        ArchiveReferentialRepository archiveReferentialRepository,
         WriteOrderCreator writeOrderCreator,
         String bucketId,
         String fileBucketId,
-        String inputTarStorageFolder) {
-        this.tarReferentialRepository = tarReferentialRepository;
+        String inputArchiveStorageFolder) {
+        this.archiveReferentialRepository = archiveReferentialRepository;
         this.writeOrderCreator = writeOrderCreator;
 
         this.bucketId = bucketId;
         this.fileBucketId = fileBucketId;
-        this.fileBucketStoragePath = fileBuckedInputFilePath(inputTarStorageFolder, fileBucketId);
+        this.fileBucketStoragePath = fileBuckedInputFilePath(inputArchiveStorageFolder, fileBucketId);
 
         // Ensure directories exists
         try {
@@ -110,40 +111,40 @@ public class BackupFileStorage {
     private ExtendedFileOutputStream createBackupFile(String uniqueFileName)
         throws QueueProcessingException, IOException {
 
-        Path currentTarFilePath = fileBucketStoragePath.resolve(uniqueFileName);
-        Path currentTempTarFilePath = fileBucketStoragePath.resolve(uniqueFileName + LocalFileUtils.TMP_EXTENSION);
+        Path currentArchiveFilePath = fileBucketStoragePath.resolve(uniqueFileName);
+        Path currentTmpArchiveFilePath = fileBucketStoragePath.resolve(uniqueFileName + LocalFileUtils.TMP_EXTENSION);
 
-        if (currentTarFilePath.toFile().exists() || currentTempTarFilePath.toFile().exists()) {
+        if (currentArchiveFilePath.toFile().exists() || currentTmpArchiveFilePath.toFile().exists()) {
             throw new IOException("Backup file with same name " + uniqueFileName + " already exists or in progress");
         }
 
 
-        LOGGER.info("Creating file {}", currentTempTarFilePath);
+        LOGGER.info("Creating file {}", currentTmpArchiveFilePath);
 
         try {
-            TapeTarReferentialEntity tarReferentialEntity = new TapeTarReferentialEntity(
-                uniqueFileName, new TapeLibraryBuildingOnDiskTarStorageLocation(), null, null,
+            TapeArchiveReferentialEntity tarReferentialEntity = new TapeArchiveReferentialEntity(
+                uniqueFileName, new TapeLibraryBuildingOnDiskArchiveStorageLocation(), EntryType.BACKUP, null, null,
                 LocalDateUtil.now().toString());
-            tarReferentialRepository.insert(tarReferentialEntity);
-        } catch (TarReferentialException ex) {
+            archiveReferentialRepository.insert(tarReferentialEntity);
+        } catch (ArchiveReferentialException ex) {
             throw new QueueProcessingException(QueueProcessingException.RetryPolicy.RETRY,
-                "Could not create a new tar file", ex);
+                "Could not create a new archive file", ex);
         }
 
-        return new ExtendedFileOutputStream(currentTempTarFilePath, true);
+        return new ExtendedFileOutputStream(currentTmpArchiveFilePath, true);
     }
 
     private void finalizeBackupFile(String uniqueFileName, long size, String digest) throws IOException {
-        Path currentTarFilePath = fileBucketStoragePath.resolve(uniqueFileName);
-        Path currentTempTarFilePath = fileBucketStoragePath.resolve(uniqueFileName + LocalFileUtils.TMP_EXTENSION);
+        Path currentArchiveFilePath = fileBucketStoragePath.resolve(uniqueFileName);
+        Path currentTmpArchiveFilePath = fileBucketStoragePath.resolve(uniqueFileName + LocalFileUtils.TMP_EXTENSION);
 
-        if (!currentTempTarFilePath.toFile().exists()) {
+        if (!currentTmpArchiveFilePath.toFile().exists()) {
             throw new IOException("Backup file with name " + uniqueFileName + " not found");
         }
 
 
         // Mark file as done (remove .tmp extension)
-        Files.move(currentTempTarFilePath, currentTarFilePath, StandardCopyOption.ATOMIC_MOVE);
+        Files.move(currentTmpArchiveFilePath, currentArchiveFilePath, StandardCopyOption.ATOMIC_MOVE);
 
         // Schedule tar for copy on tape
         WriteOrder writeOrder = new WriteOrder(

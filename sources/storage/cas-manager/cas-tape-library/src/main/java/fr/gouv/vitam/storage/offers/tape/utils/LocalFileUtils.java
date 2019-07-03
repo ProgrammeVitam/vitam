@@ -40,8 +40,8 @@ public final class LocalFileUtils {
 
     private static final String CONTAINER_SEPARATOR = "/";
     private static final String SEPARATOR = "-";
-    private static final Pattern TAR_ID_FILENAME_PATTERN =
-        Pattern.compile("^(?<CreationDate>\\d{17})-(?<GUID>[a-z0-9\\-]{36})\\.tar$");
+    private static final Pattern ARCHIVE_ID_FILENAME_PATTERN =
+        Pattern.compile("^(?<CreationDate>\\d{17})-(?<GUID>[a-z0-9\\-]*)\\.(tar|zip)$");
 
     private static final int GUID_LENGTH = 36;
     public static final String TAR_EXTENSION = ".tar";
@@ -108,10 +108,10 @@ public final class LocalFileUtils {
         return fileBucket + "/" + archiveId;
     }
 
-    public static String getCreationDateFromTarId(String tarId) {
-        Matcher matcher = TAR_ID_FILENAME_PATTERN.matcher(tarId);
+    public static String getCreationDateFromArchiveId(String archiveId) {
+        Matcher matcher = ARCHIVE_ID_FILENAME_PATTERN.matcher(archiveId);
         if (!matcher.matches()) {
-            throw new IllegalArgumentException("Invalid tarId '" + tarId + "'");
+            throw new IllegalArgumentException("Invalid archiveId '" + archiveId + "'");
         }
         return matcher.group("CreationDate");
     }

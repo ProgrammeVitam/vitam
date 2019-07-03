@@ -45,7 +45,7 @@ import fr.gouv.vitam.storage.offers.tape.cas.FileBucketTarCreatorManager;
 import fr.gouv.vitam.storage.offers.tape.cas.ObjectReferentialRepository;
 import fr.gouv.vitam.storage.offers.tape.cas.TapeLibraryContentAddressableStorage;
 import fr.gouv.vitam.storage.offers.tape.cas.TarFileRapairer;
-import fr.gouv.vitam.storage.offers.tape.cas.TarReferentialRepository;
+import fr.gouv.vitam.storage.offers.tape.cas.ArchiveReferentialRepository;
 import fr.gouv.vitam.storage.offers.tape.cas.WriteOrderCreator;
 import fr.gouv.vitam.storage.offers.tape.cas.WriteOrderCreatorBootstrapRecovery;
 import fr.gouv.vitam.storage.offers.tape.dto.TapeLibrarySpec;
@@ -108,24 +108,24 @@ public class TapeLibraryFactory {
         ObjectReferentialRepository objectReferentialRepository =
             new ObjectReferentialRepository(mongoDbAccess.getMongoDatabase()
                 .getCollection(OfferCollections.TAPE_OBJECT_REFERENTIAL.getName()));
-        TarReferentialRepository tarReferentialRepository =
-            new TarReferentialRepository(mongoDbAccess.getMongoDatabase()
-                .getCollection(OfferCollections.TAPE_TAR_REFERENTIAL.getName()));
+        ArchiveReferentialRepository archiveReferentialRepository =
+            new ArchiveReferentialRepository(mongoDbAccess.getMongoDatabase()
+                .getCollection(OfferCollections.TAPE_ARCHIVE_REFERENTIAL.getName()));
         QueueRepository readWriteQueue = new QueueRepositoryImpl(mongoDbAccess.getMongoDatabase().getCollection(
             OfferCollections.TAPE_QUEUE_MESSAGE.getName()));
 
         WriteOrderCreator writeOrderCreator = new WriteOrderCreator(
-            tarReferentialRepository, readWriteQueue);
+            archiveReferentialRepository, readWriteQueue);
 
         TarFileRapairer tarFileRapairer = new TarFileRapairer(objectReferentialRepository);
         WriteOrderCreatorBootstrapRecovery
             writeOrderCreatorBootstrapRecovery = new WriteOrderCreatorBootstrapRecovery(
-            configuration.getInputTarStorageFolder(), tarReferentialRepository,
+            configuration.getInputTarStorageFolder(), archiveReferentialRepository,
             bucketTopologyHelper, writeOrderCreator, tarFileRapairer);
 
 
         backupFileStorage =
-            new BackupFileStorage(tarReferentialRepository, writeOrderCreator, BucketTopologyHelper.BACKUP_BUCKET,
+            new BackupFileStorage(archiveReferentialRepository, writeOrderCreator, BucketTopologyHelper.BACKUP_BUCKET,
                 BucketTopologyHelper.BACKUP_FILE_BUCKET,
                 configuration.getInputTarStorageFolder());
 
@@ -134,11 +134,11 @@ public class TapeLibraryFactory {
             new BasicFileStorage(configuration.getInputFileStorageFolder());
         FileBucketTarCreatorManager fileBucketTarCreatorManager =
             new FileBucketTarCreatorManager(configuration, basicFileStorage, bucketTopologyHelper,
-                objectReferentialRepository, tarReferentialRepository, writeOrderCreator);
+                objectReferentialRepository, archiveReferentialRepository, writeOrderCreator);
 
         tapeLibraryContentAddressableStorage =
             new TapeLibraryContentAddressableStorage(basicFileStorage, objectReferentialRepository,
-                tarReferentialRepository, fileBucketTarCreatorManager, readWriteQueue,
+                archiveReferentialRepository, fileBucketTarCreatorManager, readWriteQueue,
                 tapeCatalogService);
 
         // Change all running orders to ready state
@@ -210,7 +210,7 @@ public class TapeLibraryFactory {
             // Start all workers
             tapeDriveWorkerManagers
                 .put(tapeLibraryIdentifier,
-                    new TapeDriveWorkerManager(readWriteQueue, tarReferentialRepository, libraryPool, driveTape,
+                    new TapeDriveWorkerManager(readWriteQueue, archiveReferentialRepository, libraryPool, driveTape,
                         configuration.getInputTarStorageFolder(), configuration.isForceOverrideNonEmptyCartridges()));
         }
 

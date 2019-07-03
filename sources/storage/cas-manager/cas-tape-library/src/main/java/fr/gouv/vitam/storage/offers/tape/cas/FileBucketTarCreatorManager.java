@@ -50,7 +50,7 @@ public class FileBucketTarCreatorManager {
         BasicFileStorage basicFileStorage,
         BucketTopologyHelper bucketTopologyHelper,
         ObjectReferentialRepository objectReferentialRepository,
-        TarReferentialRepository tarReferentialRepository,
+        ArchiveReferentialRepository archiveReferentialRepository,
         WriteOrderCreator writeOrderCreator) {
         this.bucketTopologyHelper = bucketTopologyHelper;
 
@@ -60,7 +60,7 @@ public class FileBucketTarCreatorManager {
                     fileBucket -> new FileBucketTarCreator(
                         basicFileStorage,
                         objectReferentialRepository,
-                        tarReferentialRepository,
+                        archiveReferentialRepository,
                         writeOrderCreator,
                         bucketTopologyHelper.getBucketFromFileBucket(fileBucket),
                         fileBucket,

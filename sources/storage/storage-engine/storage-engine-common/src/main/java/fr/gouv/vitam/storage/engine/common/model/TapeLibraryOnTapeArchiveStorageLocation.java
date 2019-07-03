@@ -26,9 +26,43 @@
  *******************************************************************************/
 package fr.gouv.vitam.storage.engine.common.model;
 
-public class TapeLibraryReadyOnDiskTarStorageLocation extends TapeLibraryTarStorageLocation {
+import com.fasterxml.jackson.annotation.JsonProperty;
 
-    public TapeLibraryReadyOnDiskTarStorageLocation() {
+public class TapeLibraryOnTapeArchiveStorageLocation extends TapeLibraryArchiveStorageLocation {
+
+    public static final String TAPE_CODE = "tapeCode";
+    public static final String FILE_POSITION = "filePosition";
+
+    @JsonProperty(TAPE_CODE)
+    private String tapeCode;
+
+    @JsonProperty(FILE_POSITION)
+    private Integer filePosition;
+
+    public TapeLibraryOnTapeArchiveStorageLocation() {
         // Empty constructor for deserialization
+    }
+
+    public TapeLibraryOnTapeArchiveStorageLocation(String tapeCode, Integer filePosition) {
+        this.tapeCode = tapeCode;
+        this.filePosition = filePosition;
+    }
+
+    public String getTapeCode() {
+        return tapeCode;
+    }
+
+    public TapeLibraryOnTapeArchiveStorageLocation setTapeCode(String tapeCode) {
+        this.tapeCode = tapeCode;
+        return this;
+    }
+
+    public Integer getFilePosition() {
+        return filePosition;
+    }
+
+    public TapeLibraryOnTapeArchiveStorageLocation setFilePosition(Integer filePosition) {
+        this.filePosition = filePosition;
+        return this;
     }
 }
