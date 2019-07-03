@@ -44,7 +44,7 @@ public class ComputedInheritedRules {
     public static final String ACCESS_RULE = "AccessRule";
     public static final String REUSE_RULE = "ReuseRule";
     public static final String CLASSIFICATION_RULE = "ClassificationRule";
-    private static final String NEED_AUTHORIZATION = "NEED_AUTHORIZATION";
+    private static final String NEED_AUTHORIZATION = "NeedAuthorization";
 
     @JsonProperty(STORAGE_RULE)
     private StorageRule storageRule;
