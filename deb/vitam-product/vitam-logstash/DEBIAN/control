@@ -1,0 +1,8 @@
+Package: vitam-logstash
+Version: 6.8.1
+Section: database
+Priority: optional
+Architecture: all
+Depends: bash, vitam-user-vitam, logstash ( =1:6.8.1-1)
+Maintainer: French Prime minister Office/SGMAP/DINSIC/Vitam Program <contact.vitam@culture.gouv.fr>
+Description: An extensible logging pipeline.
