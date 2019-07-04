@@ -70,6 +70,8 @@ import java.time.LocalDate;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.AbstractMap.SimpleImmutableEntry;
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -92,10 +94,22 @@ public class ComputeInheritedRulesActionPlugin extends ActionHandler {
     private static final String INHERITED_RULES = "InheritedRules";
     private static final DateTimeFormatter DATE_TIME_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd");
     private static final BinaryOperator<LocalDate> DATE_MERGER = (date, date2) -> {
-        if (date.isBefore(date2)) {
+        if(date.isBefore(date2)) {
             return date2;
         }
+
         return date;
+    };
+    private static final BinaryOperator<Object> PROPERTY_MERGER = (property, property2) -> {
+        List<Object> list = new ArrayList<>();
+        if (property instanceof Collection<?>) {
+            list.addAll((Collection) property);
+        } else {
+            list.add(property);
+        }
+
+        list.add(property2);
+        return list;
     };
 
     private final MetaDataClientFactory metaDataClientFactory;
@@ -141,7 +155,8 @@ public class ComputeInheritedRulesActionPlugin extends ActionHandler {
 
                 Map<String, Object> globalInheritedProperties = unitInheritedResponseModel.getGlobalProperties()
                     .stream()
-                    .collect(Collectors.toMap(InheritedPropertyResponseModel::getPropertyName, InheritedPropertyResponseModel::getPropertyValue));
+                    .collect(Collectors.toMap(InheritedPropertyResponseModel::getPropertyName, InheritedPropertyResponseModel::getPropertyValue,
+                        PROPERTY_MERGER));
 
                 JsonNode inheritedRulesAPIOutput = isApiIndexable
                     ? JsonHandler.toJsonNode(unitInheritedResponseModel)
@@ -189,12 +204,14 @@ public class ComputeInheritedRulesActionPlugin extends ActionHandler {
     private Entry<String, InheritedRule> mapToCategoriesWithEndDateAndProperties(String category, InheritedRuleCategoryResponseModel categoryResponseModel, boolean isRuleIndexable) {
         LocalDate maxEndDate = categoryResponseModel.getRules()
             .stream()
+            .filter(rule -> rule.getEndDate() != null)
             .map(rule -> parseToLocalDate(rule.getEndDate()))
             .max(LocalDate::compareTo)
             .orElse(null);
 
         Map<String, LocalDate> ruleIdToRuleMaxEndDate = categoryResponseModel.getRules()
             .stream()
+            .filter(rule -> rule.getEndDate() != null)
             .collect(Collectors.toMap(InheritedRuleResponseModel::getRuleId, rule -> parseToLocalDate(rule.getEndDate()), DATE_MERGER));
 
         Map<String, PropertyValue> propertyNameToPropertyValue = mapInheritedPropertyResponseModelToPropertiesNameValue(categoryResponseModel.getProperties());
@@ -229,6 +246,10 @@ public class ComputeInheritedRulesActionPlugin extends ActionHandler {
     }
 
     private LocalDate parseToLocalDate(String dateToParse) {
+        if(dateToParse == null) {
+            return null;
+        }
+
         return LocalDate.parse(dateToParse, DATE_TIME_FORMATTER);
     }
 

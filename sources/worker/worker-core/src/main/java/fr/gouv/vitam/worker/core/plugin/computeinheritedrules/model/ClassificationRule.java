@@ -36,10 +36,14 @@ import java.util.Map;
 public class ClassificationRule extends InheritedRule {
 
     private static final String CLASSIFICATION_LEVEL = "ClassificationLevel";
+    private static final String CLASSIFICATION_AUDIENCE = "ClassificationAudience";
     private static final String CLASSIFICATION_OWNER = "ClassificationOwner";
     private static final String CLASSIFICATION_REASSESSING_DATE = "ClassificationReassessingDate";
     private static final String NEED_REASSESSING_AUTHORIZATION = "NeedReassessingAuthorization";
 
+
+    @JsonProperty(CLASSIFICATION_AUDIENCE)
+    private List<String> classificationAudience;
     @JsonProperty(CLASSIFICATION_LEVEL)
     private List<String> classificationLevel;
     @JsonProperty(CLASSIFICATION_OWNER)
@@ -63,6 +67,7 @@ public class ClassificationRule extends InheritedRule {
         this.classificationOwner = parsePropertiesByName(CLASSIFICATION_OWNER, properties);
         this.classificationReassessingDate = parsePropertiesByName(CLASSIFICATION_REASSESSING_DATE, properties);
         this.needReassessingAuthorization = parsePropertiesByName(NEED_REASSESSING_AUTHORIZATION, properties);
+        this.classificationAudience = parsePropertiesByName(CLASSIFICATION_AUDIENCE, properties);
     }
 
     public List<String> getClassificationLevel() {
@@ -95,5 +100,13 @@ public class ClassificationRule extends InheritedRule {
 
     public void setNeedReassessingAuthorization(List<String> needReassessingAuthorization) {
         this.needReassessingAuthorization = needReassessingAuthorization;
+    }
+
+    public List<String> getClassificationAudience() {
+        return classificationAudience;
+    }
+
+    public void setClassificationAudience(List<String> classificationAudience) {
+        this.classificationAudience = classificationAudience;
     }
 }

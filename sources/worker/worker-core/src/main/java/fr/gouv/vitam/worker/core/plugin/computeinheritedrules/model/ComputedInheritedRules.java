@@ -26,12 +26,15 @@
  *******************************************************************************/
 package fr.gouv.vitam.worker.core.plugin.computeinheritedrules.model;
 
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.JsonNode;
+import fr.gouv.vitam.common.exception.VitamRuntimeException;
 
 /**
  * ComputedInheritedRules
@@ -72,15 +75,9 @@ public class ComputedInheritedRules {
 
     public ComputedInheritedRules(Map<String, InheritedRule> inheritedRules,JsonNode inheritedRulesAPIOutput,
         Map<String, Object> globalInheritedProperties, String indexationDate) {
-        this.storageRule = (StorageRule) inheritedRules.get(STORAGE_RULE);
-        this.appraisalRule = (AppraisalRule) inheritedRules.get(APPRAISAL_RULE);
-        this.disseminationRule = inheritedRules.get(DISSEMINATION_RULE);
-        this.accessRule = inheritedRules.get(ACCESS_RULE);
-        this.reuseRule = inheritedRules.get(REUSE_RULE);
-        this.classificationRule = (ClassificationRule) inheritedRules.get(CLASSIFICATION_RULE);
+        this(inheritedRules, indexationDate);
         this.inheritedRulesAPIOutput = inheritedRulesAPIOutput;
-        this.needAuthorization = Collections.singletonList((Boolean) globalInheritedProperties.get(NEED_AUTHORIZATION));
-        this.indexationDate = indexationDate;
+        this.needAuthorization = parseNeedAuthorizationProperty(globalInheritedProperties.get(NEED_AUTHORIZATION));
     }
 
     public ComputedInheritedRules(Map<String, InheritedRule> inheritedRules, String indexationDate) {
@@ -93,7 +90,15 @@ public class ComputedInheritedRules {
         this.indexationDate = indexationDate;
     }
 
+    private List<Boolean> parseNeedAuthorizationProperty(Object needAuthorizationProperty) {
+        if(needAuthorizationProperty instanceof Boolean) {
+            return Collections.singletonList((Boolean) needAuthorizationProperty);
+        } else if(needAuthorizationProperty instanceof Collection<?>) {
+            return (List<Boolean>) needAuthorizationProperty;
+        }
 
+        throw new VitamRuntimeException("needAuthorization Type invalide : " + needAuthorizationProperty.getClass());
+    }
 
     public InheritedRule getStorageRule() {
         return storageRule;
