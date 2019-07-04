@@ -128,8 +128,8 @@ public class ComputeInheritedRulesActionPlugin extends ActionHandler {
             List<JsonNode> archiveWithInheritedRules = requestResponseOK.getResults();
 
             int tenantId = VitamThreadUtils.getVitamSession().getTenantId();
-            boolean indexAPIOutput = getConfigurationAPIOutPut(tenantId);
-            boolean indexRulesById = getConfigurationRulesById(tenantId);
+            boolean isApiIndexable = getConfigurationAPIOutPut(tenantId);
+            boolean isRuleIndexable = getConfigurationRulesById(tenantId);
 
             for (JsonNode archiveUnit : archiveWithInheritedRules) {
                 UnitInheritedRulesResponseModel unitInheritedResponseModel = JsonHandler
@@ -137,15 +137,15 @@ public class ComputeInheritedRulesActionPlugin extends ActionHandler {
                 String unitId = archiveUnit.get(VitamFieldsHelper.id()).textValue();
 
                 //TODO Switch POJO to metadata-common
-                Map<String, InheritedRuleCategoryResponseModel> rulesCategories =
+                Map<String, InheritedRuleCategoryResponseModel> categoriesByName =
                     unitInheritedResponseModel.getRuleCategories();
 
-                Map<String, InheritedRule> inheritedRulesWithAllOption = rulesCategories
+                Map<String, InheritedRule> inheritedRulesWithAllOption = categoriesByName
                     .entrySet()
                     .stream()
                     .flatMap(entry -> mapRulesCategoriesToCategoriesWithEndDateAndProperties(entry.getKey(),
                         entry.getValue(),
-                        indexRulesById))
+                        isRuleIndexable))
                     .collect(Collectors.toMap(Entry::getKey, Entry::getValue));
 
                 List<InheritedPropertyResponseModel> globalProperties =
@@ -155,9 +155,9 @@ public class ComputeInheritedRulesActionPlugin extends ActionHandler {
                     .collect(Collectors.toMap(Entry::getKey, Entry::getValue));
 
                 JsonNode inheritedRulesAPIOutput =
-                    (indexAPIOutput) ? JsonHandler.toJsonNode(unitInheritedResponseModel) : null;
+                    (isApiIndexable) ? JsonHandler.toJsonNode(unitInheritedResponseModel) : null;
                 indexUnit(unitId, inheritedRulesWithAllOption, globalInheritedProperties, metaDataClient,
-                    inheritedRulesAPIOutput, indexAPIOutput);
+                    inheritedRulesAPIOutput, isApiIndexable);
             }
         } catch (InvalidCreateOperationException | MetaDataException e) {
             throw new ProcessingException(e);
@@ -198,7 +198,7 @@ public class ComputeInheritedRulesActionPlugin extends ActionHandler {
     }
 
     private Stream<Entry<String, InheritedRule>> mapRulesCategoriesToCategoriesWithEndDateAndProperties(String category,
-        InheritedRuleCategoryResponseModel categoryResponseModel, boolean indexRulesById) {
+        InheritedRuleCategoryResponseModel categoryResponseModel, boolean isRuleIndexable) {
         Map<String, InheritedRule> inheritedRulesWithEndDateAndProperties = new HashMap<>();
 
         Optional<LocalDate> maxEndDateByCategory =
@@ -227,7 +227,7 @@ public class ComputeInheritedRulesActionPlugin extends ActionHandler {
             maxEndDate = maxEndDateByCategory.get();
         }
 
-        addToMapAccordingToIndexRulesById(category, indexRulesById, inheritedRulesWithEndDateAndProperties,
+        addToMapAccordingToIndexRulesById(category, isRuleIndexable, inheritedRulesWithEndDateAndProperties,
             maxEndDate,
             ruleIdToRuleMaxEndDate, propertyNameToPropertyValue);
         return inheritedRulesWithEndDateAndProperties.entrySet().stream();
@@ -237,7 +237,7 @@ public class ComputeInheritedRulesActionPlugin extends ActionHandler {
         return new SimpleEntry<>(rule.getRuleId(), parseToLocalDate(rule.getEndDate()));
     }
 
-    private void addToMapAccordingToIndexRulesById(String category, boolean indexRulesById,
+    private void addToMapAccordingToIndexRulesById(String category, boolean isRuleIndexable,
         Map<String, InheritedRule> inheritedRulesWithEndDateAndProperties,
         LocalDate maxEndDateByCategory,
         Map<String, LocalDate> computedInheritedRules,
@@ -247,21 +247,21 @@ public class ComputeInheritedRulesActionPlugin extends ActionHandler {
             case ComputedInheritedRules.CLASSIFICATION_RULE:
                 rule = new ClassificationRule(maxEndDateByCategory,
                     new Properties(propertyNameToPropertyValue),
-                    (indexRulesById) ? computedInheritedRules:null);
+                    (isRuleIndexable) ? computedInheritedRules:null);
                 break;
             case ComputedInheritedRules.STORAGE_RULE:
                 rule = new StorageRule(maxEndDateByCategory,
                     new Properties(propertyNameToPropertyValue),
-                    (indexRulesById) ? computedInheritedRules:null);
+                    (isRuleIndexable) ? computedInheritedRules:null);
                 break;
             case ComputedInheritedRules.APPRAISAL_RULE:
                 rule = new AppraisalRule(maxEndDateByCategory,
                     new Properties(propertyNameToPropertyValue),
-                    (indexRulesById) ? computedInheritedRules:null);
+                    (isRuleIndexable) ? computedInheritedRules:null);
                 break;
             default:
                 rule = new InheritedRule(maxEndDateByCategory,
-                    (indexRulesById) ? computedInheritedRules:null);
+                    (isRuleIndexable) ? computedInheritedRules:null);
                 break;
 
         }
@@ -293,11 +293,11 @@ public class ComputeInheritedRulesActionPlugin extends ActionHandler {
 
     private void indexUnit(String unitId, Map<String, InheritedRule> inheritedRules,
         Map<String, Object> globalInheritedProperties, MetaDataClient metaDataClient,
-        JsonNode inheritedRulesAPIOutput, boolean indexAPIOutput)
+        JsonNode inheritedRulesAPIOutput, boolean isApiIndexable)
         throws ProcessingException {
         ComputedInheritedRules computedInheritedRules =
             getComputedInheritedRulesAccordingToIndexAPIOutput(inheritedRules, inheritedRulesAPIOutput,
-                globalInheritedProperties, indexAPIOutput);
+                globalInheritedProperties, isApiIndexable);
         try {
             UpdateMultiQuery updateMultiQuery = new UpdateMultiQuery();
             Map<String, JsonNode> action = new HashMap<>();
@@ -314,10 +314,10 @@ public class ComputeInheritedRulesActionPlugin extends ActionHandler {
 
     private ComputedInheritedRules getComputedInheritedRulesAccordingToIndexAPIOutput(
         Map<String, InheritedRule> inheritedRules,
-        JsonNode inheritedRulesAPIOutput, Map<String, Object> globalInheritedProperties, boolean indexAPIOutput) {
+        JsonNode inheritedRulesAPIOutput, Map<String, Object> globalInheritedProperties, boolean isApiIndexable) {
         LocalDate indexationDate = Instant.now().atZone(ZoneId.systemDefault()).toLocalDate();
         String dateFormatted = indexationDate.format(formatter);
-        if (indexAPIOutput) {
+        if (isApiIndexable) {
             return new ComputedInheritedRules(inheritedRules, inheritedRulesAPIOutput, globalInheritedProperties,
                 dateFormatted);
         } else {
