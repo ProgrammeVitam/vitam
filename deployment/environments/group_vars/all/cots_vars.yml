@@ -5,6 +5,7 @@ consul:
     retry_interval: 10 # in seconds
     check_internal: 10 # in seconds
     check_timeout: 5 # in seconds
+    network: "ip_admin" # Which network to use for consul communications ? ip_admin or ip_service ?
 
 consul_remote_sites:
     # wan contains the wan addresses of the consul server instances of the external vitam sites
