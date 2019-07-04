@@ -3,7 +3,7 @@
   "node_name": "{{ ansible_hostname }}",
   "log_level": "INFO",
   "enable_syslog": true,
-  "advertise_addr": "{{ ip_admin }}",
+  "advertise_addr": "{{ hostvars[inventory_hostname][consul.network] }}",
   "enable_script_checks": true,
 
 
@@ -23,13 +23,13 @@
       "http": "{{ ip_admin }}"
   },
   {% endif %}
-  "bind_addr": "{{ ip_admin }}",
+  "bind_addr": "{{ hostvars[inventory_hostname][consul.network] }}",
 {% if (dns_servers|length > 0) and ("" not in dns_servers) %}
   "recursors": [ "{{ dns_servers|join('", "') }}" ],
 {% endif %}
   "domain": "{{ consul_domain }}",
   "datacenter": "{{ vitam_site_name }}",
-  "retry_join": [ {% for item in groups['hosts-consul-server'] %}"{{hostvars[item]['ip_admin']}}"{% if not loop.last %},{% endif %}{% endfor %} ],
+  "retry_join": [ {% for item in groups['hosts-consul-server'] %}"{{ hostvars[item][consul.network] }}"{% if not loop.last %},{% endif %}{% endfor %} ],
   "retry_interval": "{{ consul.retry_interval }}s",
   "enable_syslog": true,
   "disable_remote_exec": true,
