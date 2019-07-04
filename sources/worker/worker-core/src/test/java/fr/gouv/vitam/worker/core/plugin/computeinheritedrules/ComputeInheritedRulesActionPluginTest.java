@@ -24,14 +24,6 @@ package fr.gouv.vitam.worker.core.plugin.computeinheritedrules; /***************
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  *******************************************************************************/
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.BDDMockito.given;
-import static org.mockito.Mockito.when;
-
-import java.io.FileNotFoundException;
-import java.util.Arrays;
-import java.util.List;
-
 import com.fasterxml.jackson.databind.JsonNode;
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.VitamConfiguration;
@@ -62,6 +54,14 @@ import org.mockito.ArgumentMatchers;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnit;
 import org.mockito.junit.MockitoRule;
+
+import java.io.FileNotFoundException;
+import java.util.Arrays;
+import java.util.List;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.BDDMockito.given;
+import static org.mockito.Mockito.when;
 
 public class ComputeInheritedRulesActionPluginTest {
 
@@ -102,7 +102,7 @@ public class ComputeInheritedRulesActionPluginTest {
     public void should_launch_plugin_with_multiple_input_then_return_ok() throws Exception {
         // Given
         VitamThreadUtils.getVitamSession().setTenantId(0);
-        JsonNode response = getJsonNodeResponse("computeInheritedRules/InheritedRulesResponse.json");
+        JsonNode response = getJsonNodeResponse();
         given(metaDataClient.selectUnitsWithInheritedRules(ArgumentMatchers.any())).willReturn(response);
         // When
         List<ItemStatus> itemStatus = ComputeInheritedRulesActionPlugin.executeList(workerParameters, HandlerIO);
@@ -116,7 +116,7 @@ public class ComputeInheritedRulesActionPluginTest {
     public void should_assert_max_end_date_by_categories_with_one_rule() throws Exception {
         // Given
         VitamThreadUtils.getVitamSession().setTenantId(0);
-        JsonNode response = getJsonNodeResponse("computeInheritedRules/InheritedRulesResponse.json");
+        JsonNode response = getJsonNodeResponse();
         JsonNode expectedJson = getExpectedJsonNode();
         ComputedInheritedRules expectedComputedInheritedRules =
             getComputedInheritedRules(expectedJson);
@@ -141,7 +141,7 @@ public class ComputeInheritedRulesActionPluginTest {
     @RunWithCustomExecutor
     public void should_max_end_date_by_rule_with_two_rules_in_same_category() throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(0);
-        JsonNode response = getJsonNodeResponse("computeInheritedRules/InheritedRulesResponse.json");
+        JsonNode response = getJsonNodeResponse();
         JsonNode expectedJson = getExpectedJsonNode();
         ComputedInheritedRules expectedComputedInheritedRules =
             getComputedInheritedRules(expectedJson);
@@ -168,7 +168,7 @@ public class ComputeInheritedRulesActionPluginTest {
     @RunWithCustomExecutor
     public void should_max_end_date_by_rule_with_two_same_rules_in_same_category() throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(0);
-        JsonNode response = getJsonNodeResponse("computeInheritedRules/InheritedRulesResponse.json");
+        JsonNode response = getJsonNodeResponse();
         JsonNode expectedJson = getExpectedJsonNode();
         ComputedInheritedRules expectedComputedInheritedRules =
             getComputedInheritedRules(expectedJson);
@@ -194,7 +194,7 @@ public class ComputeInheritedRulesActionPluginTest {
     public void should_assert_properties_by_categories() throws Exception {
         // Given
         VitamThreadUtils.getVitamSession().setTenantId(0);
-        JsonNode response = getJsonNodeResponse("computeInheritedRules/InheritedRulesResponse.json");
+        JsonNode response = getJsonNodeResponse();
         JsonNode expectedJson = getExpectedJsonNode();
         ComputedInheritedRules expectedComputedInheritedRules = getComputedInheritedRules(expectedJson);
 
@@ -224,7 +224,7 @@ public class ComputeInheritedRulesActionPluginTest {
     public void should_assert_inheritedRulesAPIOutput() throws Exception {
         // Given
         VitamThreadUtils.getVitamSession().setTenantId(0);
-        JsonNode response = getJsonNodeResponse("computeInheritedRules/InheritedRulesResponse.json");
+        JsonNode response = getJsonNodeResponse();
         JsonNode expectedJson = getExpectedJsonNode();
         ComputedInheritedRules expectedComputedInheritedRules =
             getComputedInheritedRules(expectedJson);
@@ -252,8 +252,8 @@ public class ComputeInheritedRulesActionPluginTest {
         return objectNodeArgumentCaptor;
     }
 
-    private JsonNode getJsonNodeResponse(String fileName) throws InvalidParseOperationException, FileNotFoundException {
-        return JsonHandler.getFromInputStream(PropertiesUtils.getResourceAsStream(fileName));
+    private JsonNode getJsonNodeResponse() throws InvalidParseOperationException, FileNotFoundException {
+        return JsonHandler.getFromInputStream(PropertiesUtils.getResourceAsStream("computeInheritedRules/InheritedRulesResponse.json"));
     }
 
     private JsonNode getExpectedJsonNode() throws InvalidParseOperationException, FileNotFoundException {
