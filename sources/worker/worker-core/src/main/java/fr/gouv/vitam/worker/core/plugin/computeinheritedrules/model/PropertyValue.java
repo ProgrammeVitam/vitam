@@ -24,41 +24,41 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  *******************************************************************************/
-package fr.gouv.vitam.worker.core.plugin.computeInheritedRules.model;
+package fr.gouv.vitam.worker.core.plugin.computeinheritedrules.model;
 
-import java.util.HashMap;
-import java.util.Map;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
-import com.fasterxml.jackson.annotation.JsonAnyGetter;
-import com.fasterxml.jackson.annotation.JsonAnySetter;
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonInclude;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 
 /**
- * property
+ * PropertyValue
  */
-@JsonInclude(JsonInclude.Include.NON_DEFAULT)
-public class Properties {
+public class PropertyValue {
 
-    @JsonIgnore
-    private Map<String, PropertyValue> propertyNameToPropertyValue = new HashMap<>();
+    @JsonProperty("PropertyValue")
+    private List<Object> values;
 
-
-    public Properties() {
+    public PropertyValue(Object propertyValue) {
+        this.values = Collections.singletonList(propertyValue);
     }
 
-    public Properties(Map<String, PropertyValue> propertyNameToPropertyValue) {
-        this.propertyNameToPropertyValue = propertyNameToPropertyValue;
+    public PropertyValue(PropertyValue values, PropertyValue value) {
+        if(values != null) {
+            this.values = new ArrayList<>();
+            this.values.addAll(values.getValues());
+            this.values.addAll(value.getValues());
+        } else {
+            this.values = Collections.singletonList(value);
+        }
     }
 
-    @JsonAnyGetter
-    public Map<String, PropertyValue> getPropertyNameToPropertyValue() {
-        return this.propertyNameToPropertyValue;
+    List<Object> getValues() {
+        return values;
     }
 
-    @JsonAnySetter
-    public void setPropertyNameToPropertyValue(String propertyName, PropertyValue propertyValue) {
-        this.propertyNameToPropertyValue.put(propertyName, propertyValue);
+    public void setValues(List<Object> values) {
+        this.values = values;
     }
-
 }

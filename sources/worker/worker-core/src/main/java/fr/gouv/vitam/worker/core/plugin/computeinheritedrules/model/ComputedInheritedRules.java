@@ -24,29 +24,35 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  *******************************************************************************/
-package fr.gouv.vitam.worker.core.plugin.computeInheritedRules.model;
+package fr.gouv.vitam.worker.core.plugin.computeinheritedrules.model;
 
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
 import java.util.Map;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.JsonNode;
+import fr.gouv.vitam.common.exception.VitamRuntimeException;
 
 /**
  * ComputedInheritedRules
  */
 public class ComputedInheritedRules {
 
-    private static final String STORAGE_RULE = "StorageRule";
-    private static final String APPRAISAL_RULE = "AppraisalRule";
-    private static final String DISSEMINATION_RULE = "DisseminationRule";
-    private static final String ACCESS_RULE = "AccessRule";
-    private static final String REUSE_RULE = "ReuseRule";
-    private static final String CLASSIFICATION_RULE = "ClassificationRule";
+    public static final String STORAGE_RULE = "StorageRule";
+    public static final String APPRAISAL_RULE = "AppraisalRule";
+    public static final String DISSEMINATION_RULE = "DisseminationRule";
+    public static final String ACCESS_RULE = "AccessRule";
+    public static final String REUSE_RULE = "ReuseRule";
+    public static final String CLASSIFICATION_RULE = "ClassificationRule";
+    private static final String NEED_AUTHORIZATION = "NeedAuthorization";
 
     @JsonProperty(STORAGE_RULE)
-    private InheritedRule storageRule;
+    private StorageRule storageRule;
     @JsonProperty(APPRAISAL_RULE)
-    private InheritedRule appraisalRule;
+    private AppraisalRule appraisalRule;
     @JsonProperty(DISSEMINATION_RULE)
     private InheritedRule disseminationRule;
     @JsonProperty(ACCESS_RULE)
@@ -54,49 +60,51 @@ public class ComputedInheritedRules {
     @JsonProperty(REUSE_RULE)
     private InheritedRule reuseRule;
     @JsonProperty(CLASSIFICATION_RULE)
-    private InheritedRule classificationRule;
-    @JsonProperty("GlobalProperties")
-    private Properties globalProperties;
+    private ClassificationRule classificationRule;
     @JsonProperty("inheritedRulesAPIOutput")
     private JsonNode inheritedRulesAPIOutput;
     @JsonProperty("indexationDate")
     private String indexationDate;
+    @JsonProperty(NEED_AUTHORIZATION)
+    private List<Boolean> needAuthorization;
+
 
     public ComputedInheritedRules() {
 
     }
 
-    public ComputedInheritedRules(Map<String, InheritedRule> inheritedRules, Properties globalProperties,
-        JsonNode inheritedRulesAPIOutput, String indexationDate) {
-        this.storageRule = inheritedRules.get(STORAGE_RULE);
-        this.appraisalRule = inheritedRules.get(APPRAISAL_RULE);
-        this.disseminationRule = inheritedRules.get(DISSEMINATION_RULE);
-        this.accessRule = inheritedRules.get(ACCESS_RULE);
-        this.reuseRule = inheritedRules.get(REUSE_RULE);
-        this.classificationRule = inheritedRules.get(CLASSIFICATION_RULE);
-        this.globalProperties = globalProperties;
+    public ComputedInheritedRules(Map<String, InheritedRule> inheritedRules,JsonNode inheritedRulesAPIOutput,
+        Map<String, Object> globalInheritedProperties, String indexationDate) {
+        this(inheritedRules, indexationDate);
         this.inheritedRulesAPIOutput = inheritedRulesAPIOutput;
-        this.indexationDate = indexationDate;
+        this.needAuthorization = parseNeedAuthorizationProperty(globalInheritedProperties.get(NEED_AUTHORIZATION));
     }
 
-    public ComputedInheritedRules(Map<String, InheritedRule> inheritedRules, Properties globalProperties, String indexationDate) {
-        this.storageRule = inheritedRules.get(STORAGE_RULE);
-        this.appraisalRule = inheritedRules.get(APPRAISAL_RULE);
+    public ComputedInheritedRules(Map<String, InheritedRule> inheritedRules, String indexationDate) {
+        this.storageRule = (StorageRule) inheritedRules.get(STORAGE_RULE);
+        this.appraisalRule = (AppraisalRule) inheritedRules.get(APPRAISAL_RULE);
         this.disseminationRule = inheritedRules.get(DISSEMINATION_RULE);
         this.accessRule = inheritedRules.get(ACCESS_RULE);
         this.reuseRule = inheritedRules.get(REUSE_RULE);
-        this.classificationRule = inheritedRules.get(CLASSIFICATION_RULE);
-        this.globalProperties = globalProperties;
+        this.classificationRule = (ClassificationRule) inheritedRules.get(CLASSIFICATION_RULE);
         this.indexationDate = indexationDate;
     }
 
+    private List<Boolean> parseNeedAuthorizationProperty(Object needAuthorizationProperty) {
+        if(needAuthorizationProperty instanceof Boolean) {
+            return Collections.singletonList((Boolean) needAuthorizationProperty);
+        } else if(needAuthorizationProperty instanceof Collection<?>) {
+            return (List<Boolean>) needAuthorizationProperty;
+        }
 
+        throw new VitamRuntimeException("needAuthorization Type invalide : " + needAuthorizationProperty.getClass());
+    }
 
     public InheritedRule getStorageRule() {
         return storageRule;
     }
 
-    public void setStorageRule(InheritedRule storageRule) {
+    public void setStorageRule(StorageRule storageRule) {
         this.storageRule = storageRule;
     }
 
@@ -104,7 +112,7 @@ public class ComputedInheritedRules {
         return appraisalRule;
     }
 
-    public void setAppraisalRule(InheritedRule appraisalRule) {
+    public void setAppraisalRule(AppraisalRule appraisalRule) {
         this.appraisalRule = appraisalRule;
     }
 
@@ -132,20 +140,12 @@ public class ComputedInheritedRules {
         this.reuseRule = reuseRule;
     }
 
-    public InheritedRule getClassificationRule() {
+    public ClassificationRule getClassificationRule() {
         return classificationRule;
     }
 
-    public void setClassificationRule(InheritedRule classificationRule) {
+    public void setClassificationRule(ClassificationRule classificationRule) {
         this.classificationRule = classificationRule;
-    }
-
-    public Properties getGlobalProperties() {
-        return globalProperties;
-    }
-
-    public void setGlobalProperties(Properties globalProperties) {
-        this.globalProperties = globalProperties;
     }
 
     public JsonNode getInheritedRulesAPIOutput() {
@@ -162,5 +162,14 @@ public class ComputedInheritedRules {
 
     public void setIndexationDate(String indexationDate) {
         this.indexationDate = indexationDate;
+    }
+
+
+    public List<Boolean> getNeedAuthorization() {
+        return needAuthorization;
+    }
+
+    public void setNeedAuthorization(List<Boolean> needAuthorization) {
+        this.needAuthorization = needAuthorization;
     }
 }

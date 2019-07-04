@@ -248,12 +248,12 @@
     "jarName": "hello-world-plugin-1.14.0-SNAPSHOT.jar"
   },
   "COMPUTE_INHERITED_RULES_PREPARATION": {
-    "className": "fr.gouv.vitam.worker.core.plugin.computeInheritedRules.ComputeInheritedRulesPreparationPlugin"
+    "className": "fr.gouv.vitam.worker.core.plugin.computeinheritedrules.ComputeInheritedRulesPreparationPlugin"
   },
   "COMPUTE_INHERITED_RULES_ACTION": {
-    "className": "fr.gouv.vitam.worker.core.plugin.computeInheritedRules.ComputeInheritedRulesActionPlugin"
+    "className": "fr.gouv.vitam.worker.core.plugin.computeinheritedrules.ComputeInheritedRulesActionPlugin"
   },
  "COMPUTE_INHERITED_RULES_FINALIZATION": {
-    "className": "fr.gouv.vitam.worker.core.plugin.computeInheritedRules.ComputeInheritedRulesFinalizationPlugin"
+    "className": "fr.gouv.vitam.worker.core.plugin.computeinheritedrules.ComputeInheritedRulesFinalizationPlugin"
  }
 }

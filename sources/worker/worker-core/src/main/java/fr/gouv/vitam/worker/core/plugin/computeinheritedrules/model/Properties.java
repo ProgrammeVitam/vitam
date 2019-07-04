@@ -24,49 +24,44 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  *******************************************************************************/
-package fr.gouv.vitam.common.model.rules;
+package fr.gouv.vitam.worker.core.plugin.computeinheritedrules.model;
+
+import java.util.HashMap;
+import java.util.Map;
 
 import com.fasterxml.jackson.annotation.JsonAnyGetter;
 import com.fasterxml.jackson.annotation.JsonAnySetter;
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonProperty;
-
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import com.fasterxml.jackson.annotation.JsonInclude;
 
 /**
- * Pojo for computed inherited rules of per category
+ * property
  */
-public class UnitInheritedRulesResponseModel {
+@JsonInclude(JsonInclude.Include.NON_DEFAULT)
+public class Properties {
 
-    /* Serialized via @JsonAnySetter & JsonAnyGetter  */
     @JsonIgnore
-    private Map<String, InheritedRuleCategoryResponseModel> ruleCategories = new HashMap<>();
+    private Map<String, PropertyValue> propertyNameToPropertyValue = new HashMap<>();
 
-    @JsonProperty("GlobalProperties")
-    private List<InheritedPropertyResponseModel> globalProperties;
 
-    public UnitInheritedRulesResponseModel() {
-        // Empty constructor for deserialization
+    public Properties() {
     }
 
-    @JsonAnySetter
-    public void setRuleCategory(String name, InheritedRuleCategoryResponseModel value) {
-        ruleCategories.put(name, value);
+    public Properties(Map<String, PropertyValue> propertyNameToPropertyValue) {
+        this.propertyNameToPropertyValue = propertyNameToPropertyValue;
     }
 
     @JsonAnyGetter
-    public Map<String, InheritedRuleCategoryResponseModel> getRuleCategories() {
-        return ruleCategories;
+    public Map<String, PropertyValue> getPropertyNameToPropertyValue() {
+        return this.propertyNameToPropertyValue;
     }
 
-    public List<InheritedPropertyResponseModel> getGlobalProperties() {
-        return globalProperties;
+    @JsonAnySetter
+    public void setPropertyNameToPropertyValue(String propertyName, PropertyValue propertyValue) {
+        this.propertyNameToPropertyValue.put(propertyName, propertyValue);
     }
 
-    public void setGlobalProperties(List<InheritedPropertyResponseModel> globalProperties) {
-        this.globalProperties = globalProperties;
+    public PropertyValue getPropertyValue(String propertyName) {
+        return this.propertyNameToPropertyValue.get(propertyName);
     }
-
 }

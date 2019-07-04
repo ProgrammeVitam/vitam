@@ -24,55 +24,74 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  *******************************************************************************/
-package fr.gouv.vitam.worker.core.plugin.computeInheritedRules.exception;
+package fr.gouv.vitam.worker.core.plugin.computeinheritedrules.model;
 
-import fr.gouv.vitam.common.error.VitamError;
-import fr.gouv.vitam.common.exception.VitamException;
-import fr.gouv.vitam.common.model.StatusCode;
-import fr.gouv.vitam.worker.core.plugin.elimination.model.EliminationEventDetails;
+import java.time.LocalDate;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.stream.Collectors;
+
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
- * ComputedInheritedRulesException
+ * InheritedRule
  */
-public class ComputedInheritedRulesException extends VitamException {
+@JsonInclude(JsonInclude.Include.NON_DEFAULT)
+public class InheritedRule {
+    private static final String MAX_END_DATE = "MaxEndDate";
+    private static final String END_DATES = "EndDates";
 
-    private StatusCode statusCode;
+    @JsonProperty(MAX_END_DATE)
+    private LocalDate maxEndDate;
+    @JsonProperty(END_DATES)
+    private Map<String, LocalDate> ruleIdToRule = new HashMap<>();
 
+    public InheritedRule() {
 
-    /**
-     * @param cause associated cause
-     */
-    public ComputedInheritedRulesException(Throwable cause, StatusCode statusCode) {
-        super(cause);
-        this.statusCode = statusCode;
     }
 
-    public ComputedInheritedRulesException(StatusCode statusCode, String message, Throwable cause) {
-        super(message, cause);
-        this.statusCode = statusCode;
+    public InheritedRule(LocalDate maxEndDate, Map<String, LocalDate> ruleIdToRule) {
+        this.maxEndDate = maxEndDate;
+        if(ruleIdToRule == null) {
+            this.ruleIdToRule = Collections.emptyMap();
+        } else {
+            this.ruleIdToRule = ruleIdToRule;
+        }
     }
 
-    public ComputedInheritedRulesException(String message, Throwable cause, StatusCode statusCode) {
-        super(message, cause);
-        this.statusCode = statusCode;
+    public InheritedRule(LocalDate maxEndDate) {
+        this.maxEndDate = maxEndDate;
     }
 
-    public ComputedInheritedRulesException(VitamError vitamError, StatusCode statusCode) {
-        super(vitamError);
-        this.statusCode = statusCode;
+    public LocalDate getMaxEndDate() {
+        return maxEndDate;
     }
 
-    public ComputedInheritedRulesException(String message, StatusCode statusCode) {
-        super(message);
-        this.statusCode = statusCode;
+    public void setMaxEndDate(LocalDate maxEndDate) {
+        this.maxEndDate = maxEndDate;
     }
 
-    public StatusCode getStatusCode() {
-        return statusCode;
+    List<String> parsePropertiesByName(String propertyName, Properties properties) {
+        PropertyValue property = properties.getPropertyValue(propertyName);
+        if (property != null) {
+            return property.getValues().stream()
+                .map(object -> Objects.toString(object, null))
+                .collect(Collectors.toList());
+        }
+
+        return Collections.emptyList();
     }
 
-    public void setStatusCode(StatusCode statusCode) {
-        this.statusCode = statusCode;
+    public Map<String, LocalDate> getRuleIdToRule() {
+        return ruleIdToRule;
+    }
+
+    public void setRuleIdToRule(String ruleId, LocalDate ruleMaxEndDate) {
+        this.ruleIdToRule.put(ruleId, ruleMaxEndDate);
     }
 
 }

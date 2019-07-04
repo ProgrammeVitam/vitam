@@ -24,30 +24,41 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  *******************************************************************************/
-package fr.gouv.vitam.worker.core.plugin.computeInheritedRules.model;
+
+package fr.gouv.vitam.worker.core.plugin.computeinheritedrules.model;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
-/**
- * PropertyValue
- */
-public class PropertyValue {
+import java.time.LocalDate;
+import java.util.List;
+import java.util.Map;
 
-    @JsonProperty("PropertyValue")
-    private Object propertyValue;
+public class AppraisalRule extends InheritedRule {
 
-    public PropertyValue() {
+
+    private static final String FINAL_ACTION = "FinalAction";
+
+    @JsonProperty(FINAL_ACTION)
+    private List<String> finalAction;
+
+    public AppraisalRule() {
+
     }
 
-    public PropertyValue(Object propertyValue) {
-        this.propertyValue = propertyValue;
+    public AppraisalRule(LocalDate maxEndDate, Properties properties, Map<String, LocalDate> ruleIdToRule) {
+        super(maxEndDate, ruleIdToRule);
+        parseClassificationProperties(properties);
     }
 
-    public Object getPropertyValue() {
-        return propertyValue;
+    private void parseClassificationProperties(Properties properties) {
+        this.finalAction = parsePropertiesByName(FINAL_ACTION, properties);
     }
 
-    public void setPropertyValue(Object propertyValue) {
-        this.propertyValue = propertyValue;
+    public List<String> getFinalAction() {
+        return finalAction;
+    }
+
+    public void setFinalAction(List<String> finalAction) {
+        this.finalAction = finalAction;
     }
 }

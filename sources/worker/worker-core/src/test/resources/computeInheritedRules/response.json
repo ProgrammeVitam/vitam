@@ -4,67 +4,38 @@
       "$set": {
         "#computedInheritedRules": {
           "StorageRule": {
-            "Properties": {
-              "FinalAction": {
-                "PropertyValue": "Copy"
-              }
-            }
+              "FinalAction": ["Copy"]
           },
           "AppraisalRule": {
-            "Properties": {
-              "FinalAction": {
-                "PropertyValue": "Keep"
-              }
-            }
+              "FinalAction": ["Keep"]
           },
           "DisseminationRule": {
             "MaxEndDate": "2025-01-01",
-            "Properties": {},
-            "DIS-00001": {
-              "MaxEndDate": "2025-01-01"
+            "EndDates": {
+              "DIS-00001": "2025-01-01"
             }
           },
           "AccessRule": {
             "MaxEndDate": "2025-01-01",
-            "Properties": {},
-            "ACC-00003": {
-              "MaxEndDate": "2025-01-01"
-            },
-            "ACC-00002": {
-              "MaxEndDate": "2024-01-01"
+            "EndDates": {
+              "ACC-00003": "2025-01-01",
+              "ACC-00002": "2024-01-01"
             }
           },
           "ReuseRule": {
-            "Properties": {}
           },
           "ClassificationRule": {
             "MaxEndDate": "2026-06-03",
-            "Properties": {
-              "ClassificationOwner": {
-                "PropertyValue": "ClassificationOwner0"
-              },
-              "ClassificationLevel": {
-                "PropertyValue": "Secret D\u00E9fense"
-              },
-              "ClassificationAudience": {
-                "PropertyValue": "ClassificationAudience0"
-              },
-              "NeedReassessingAuthorization": {
-                "PropertyValue": true
-              },
-              "ClassificationReassessingDate": {
-                "PropertyValue": "2016-06-03"
-              }
-            },
-            "CLASS-00001": {
-              "MaxEndDate": "2026-06-03"
+            "ClassificationOwner": ["ClassificationOwner0"],
+            "ClassificationLevel": ["Secret D\u00E9fense"],
+            "NeedReassessingAuthorization": [true],
+            "ClassificationReassessingDate": ["2016-06-03"],
+            "EndDates": {
+              "CLASS-00001": "2026-06-03"
             }
           },
-          "GlobalProperties": {
-            "NeedAuthorization": {
-              "PropertyValue": true
-            }
-          },
+          "NeedAuthorization": [ true ],
+          "indexationDate": "2019-06-28",
           "inheritedRulesAPIOutput": {
             "GlobalProperties": [
               {

@@ -24,33 +24,53 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  *******************************************************************************/
-package fr.gouv.vitam.worker.core.plugin.computeInheritedRules.model;
+package fr.gouv.vitam.worker.core.plugin.computeinheritedrules;
 
-import java.time.LocalDate;
+import static fr.gouv.vitam.worker.core.utils.PluginHelper.buildItemStatus;
 
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import com.fasterxml.jackson.annotation.JsonProperty;
+import fr.gouv.vitam.common.logging.VitamLogger;
+import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.common.model.ItemStatus;
+import fr.gouv.vitam.common.model.StatusCode;
+import fr.gouv.vitam.processing.common.exception.ProcessingException;
+import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
+import fr.gouv.vitam.worker.common.HandlerIO;
+import fr.gouv.vitam.worker.core.handler.ActionHandler;
+import fr.gouv.vitam.worker.core.plugin.reclassification.ReclassificationFinalizationHandler;
+import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
 
 /**
- * Rule
+ * ComputeInheritedRulesFinalizationPlugin
  */
-public class RuleMaxEndDate {
-    @JsonProperty("MaxEndDate")
-    private LocalDate maxEndDate;
+public class ComputeInheritedRulesFinalizationPlugin extends ActionHandler {
 
-    public RuleMaxEndDate() {
+    private static final VitamLogger LOGGER =
+        VitamLoggerFactory.getInstance(ReclassificationFinalizationHandler.class);
+
+    private static final String COMPUTE_INHERITED_RULES_FINALIZATION = "COMPUTE_INHERITED_RULES_FINALIZATION";
+
+    /**
+     * Default constructor
+     */
+    public ComputeInheritedRulesFinalizationPlugin() {
     }
 
-    public RuleMaxEndDate(LocalDate endDate) {
-        this.maxEndDate = endDate;
+    @Override
+    public ItemStatus execute(WorkerParameters param, HandlerIO handler)
+        throws ProcessingException, ContentAddressableStorageServerException {
+
+        // Nothing to cleanup
+
+        LOGGER.info("Reclassification finalization succeeded");
+        return buildItemStatus(COMPUTE_INHERITED_RULES_FINALIZATION, StatusCode.OK, null);
     }
 
-    public LocalDate getMaxEndDate() {
-        return maxEndDate;
+    @Override
+    public void checkMandatoryIOParameter(HandlerIO handler) throws ProcessingException {
+        // NOP.
     }
 
-    public void setMaxEndDate(LocalDate maxEndDate) {
-        this.maxEndDate = maxEndDate;
+    public static String getId() {
+        return COMPUTE_INHERITED_RULES_FINALIZATION;
     }
-
 }

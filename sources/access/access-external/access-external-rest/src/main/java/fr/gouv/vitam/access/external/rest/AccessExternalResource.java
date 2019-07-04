@@ -404,7 +404,7 @@ public class AccessExternalResource extends ApplicationStatusResource {
             int st = result.isOk() ? Status.OK.getStatusCode() : result.getHttpCode();
             // FIXME hack for bug in Metadata when DSL contains unexisting root id without query
             if (((RequestResponseOK<JsonNode>) result).getResults() == null ||
-                ((RequestResponseOK<JsonNode>) result).getResults().size() == 0) {
+                ((RequestResponseOK<JsonNode>) result).getResults().isEmpty()) {
                 throw new AccessInternalClientNotFoundException(UNIT_NOT_FOUND);
             }
 
@@ -520,7 +520,7 @@ public class AccessExternalResource extends ApplicationStatusResource {
             int st = result.isOk() ? Status.OK.getStatusCode() : result.getHttpCode();
             // FIXME hack for bug in Metadata when DSL contains unexisting root id without query
             if (((RequestResponseOK<JsonNode>) result).getResults() == null ||
-                ((RequestResponseOK<JsonNode>) result).getResults().size() == 0) {
+                ((RequestResponseOK<JsonNode>) result).getResults().isEmpty()) {
                 throw new AccessInternalClientNotFoundException(UNIT_NOT_FOUND);
             }
 

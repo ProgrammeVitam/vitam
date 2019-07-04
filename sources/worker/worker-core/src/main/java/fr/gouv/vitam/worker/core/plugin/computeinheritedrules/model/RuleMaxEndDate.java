@@ -24,49 +24,32 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  *******************************************************************************/
-package fr.gouv.vitam.common.model.rules;
+package fr.gouv.vitam.worker.core.plugin.computeinheritedrules.model;
 
-import com.fasterxml.jackson.annotation.JsonAnyGetter;
-import com.fasterxml.jackson.annotation.JsonAnySetter;
-import com.fasterxml.jackson.annotation.JsonIgnore;
+import java.time.LocalDate;
+
 import com.fasterxml.jackson.annotation.JsonProperty;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
 /**
- * Pojo for computed inherited rules of per category
+ * Rule
  */
-public class UnitInheritedRulesResponseModel {
+public class RuleMaxEndDate {
+    @JsonProperty("MaxEndDate")
+    private LocalDate maxEndDate;
 
-    /* Serialized via @JsonAnySetter & JsonAnyGetter  */
-    @JsonIgnore
-    private Map<String, InheritedRuleCategoryResponseModel> ruleCategories = new HashMap<>();
-
-    @JsonProperty("GlobalProperties")
-    private List<InheritedPropertyResponseModel> globalProperties;
-
-    public UnitInheritedRulesResponseModel() {
-        // Empty constructor for deserialization
+    public RuleMaxEndDate() {
     }
 
-    @JsonAnySetter
-    public void setRuleCategory(String name, InheritedRuleCategoryResponseModel value) {
-        ruleCategories.put(name, value);
+    public RuleMaxEndDate(LocalDate endDate) {
+        this.maxEndDate = endDate;
     }
 
-    @JsonAnyGetter
-    public Map<String, InheritedRuleCategoryResponseModel> getRuleCategories() {
-        return ruleCategories;
+    public LocalDate getMaxEndDate() {
+        return maxEndDate;
     }
 
-    public List<InheritedPropertyResponseModel> getGlobalProperties() {
-        return globalProperties;
-    }
-
-    public void setGlobalProperties(List<InheritedPropertyResponseModel> globalProperties) {
-        this.globalProperties = globalProperties;
+    public void setMaxEndDate(LocalDate maxEndDate) {
+        this.maxEndDate = maxEndDate;
     }
 
 }

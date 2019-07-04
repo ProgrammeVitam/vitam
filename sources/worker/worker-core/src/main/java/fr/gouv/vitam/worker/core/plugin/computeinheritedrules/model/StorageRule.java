@@ -24,70 +24,40 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  *******************************************************************************/
-package fr.gouv.vitam.worker.core.plugin.computeInheritedRules.model;
 
-import java.time.LocalDate;
-import java.util.HashMap;
-import java.util.Map;
+package fr.gouv.vitam.worker.core.plugin.computeinheritedrules.model;
 
-import com.fasterxml.jackson.annotation.JsonAnyGetter;
-import com.fasterxml.jackson.annotation.JsonAnySetter;
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
-/**
- * InheritedRule
- */
-@JsonInclude(JsonInclude.Include.NON_DEFAULT)
-public class InheritedRule {
-    @JsonProperty("MaxEndDate")
-    private LocalDate maxEndDate;
-    @JsonProperty("Properties")
-    private Properties properties;
-    //TODO Make POJO
-    @JsonIgnore
-    private Map<String, RuleMaxEndDate> ruleIdToRule = new HashMap<>();
+import java.time.LocalDate;
+import java.util.List;
+import java.util.Map;
 
-    public InheritedRule() {
+public class StorageRule extends InheritedRule {
+
+    private static final String FINAL_ACTION = "FinalAction";
+
+    @JsonProperty(FINAL_ACTION)
+    private List<String> finalAction;
+
+    public StorageRule() {
+
     }
 
-    public InheritedRule(LocalDate maxEndDate, Properties properties, Map<String, RuleMaxEndDate> ruleIdToRule) {
-        this.maxEndDate = maxEndDate;
-        this.properties = properties;
-        this.ruleIdToRule = ruleIdToRule;
+    public StorageRule(LocalDate maxEndDate, Properties properties, Map<String, LocalDate> ruleIdToRule) {
+        super(maxEndDate, ruleIdToRule);
+        parseClassificationProperties(properties);
     }
 
-    public InheritedRule(LocalDate maxEndDate, Properties properties) {
-        this.maxEndDate = maxEndDate;
-        this.properties = properties;
+    private void parseClassificationProperties(Properties properties) {
+        this.finalAction = parsePropertiesByName(FINAL_ACTION, properties);
     }
 
-    public LocalDate getMaxEndDate() {
-        return maxEndDate;
+    public List<String> getFinalAction() {
+        return finalAction;
     }
 
-    public void setMaxEndDate(LocalDate maxEndDate) {
-        this.maxEndDate = maxEndDate;
-    }
-
-
-
-    @JsonAnyGetter
-    public Map<String, RuleMaxEndDate> getRuleIdToRule() {
-        return ruleIdToRule;
-    }
-
-    @JsonAnySetter
-    public void setRuleIdToRule(String ruleId, RuleMaxEndDate ruleMaxEndDate) {
-        this.ruleIdToRule.put(ruleId, ruleMaxEndDate);
-    }
-
-    public Properties getProperties() {
-        return properties;
-    }
-
-    public void setProperties(Properties properties) {
-        this.properties = properties;
+    public void setFinalAction(List<String> finalAction) {
+        this.finalAction = finalAction;
     }
 }
