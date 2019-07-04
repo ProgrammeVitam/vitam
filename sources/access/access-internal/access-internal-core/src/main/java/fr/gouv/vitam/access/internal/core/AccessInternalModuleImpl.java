@@ -208,7 +208,6 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
     private static final String ERROR_ADD_CONDITION = "Error during adding condition of Operations";
     private static final String ERROR_CHECK_PERMISSIONS = "Error during checking permission";
     private static final String ERROR_CHECK_RULES = "Error during checking updated rules";
-    private static final String ERROR_VALIDATE_DT = "Error during validation of the document type";
     private static final String DT_NO_EXTISTING = "Archive unit profile could not be found";
     private static final String ERROR_UPDATE_RULE = "Can't Update Rule: ";
     private static final String ERROR_CREATE_RULE = "Can't Create Rule: ";
@@ -389,7 +388,7 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
         final SelectMultiQuery request = new SelectMultiQuery();
         request.addRoots(idObjectGroup);
         // FIXME P1: we should find a better way to do that than use json, like a POJO.
-        request.setProjectionSliceOnQualifier("FormatIdentification", "FileInfo", "Size");
+        request.setProjectionSliceOnQualifier("FormatIdentification", "FileInfo", "Size", "_storage");
 
         final JsonNode jsonResponse = selectObjectGroupById(request.getFinalSelect(), idObjectGroup);
         if (jsonResponse == null) {
@@ -422,6 +421,7 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
             }
         }
 
+        String strategyId = null;
         String mimetype = MediaType.APPLICATION_OCTET_STREAM;
         String filename = null;
         String objectId = null;
@@ -437,6 +437,9 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
             }
             objectId = finalversionsResponse.getId();
             size = finalversionsResponse.getSize();
+            if (finalversionsResponse.getStorage() != null) {
+                strategyId = finalversionsResponse.getStorage().getStrategyId();
+            }
         }
 
         if (Strings.isNullOrEmpty(filename)) {
@@ -447,8 +450,7 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
             logInfo =
             AccessLogUtils.getInfoForAccessLog(qualifier, version, VitamThreadUtils.getVitamSession(), size, idUnit);
         try (StorageClient storageClient = storageClientFactory.getClient()) {
-            final Response response = storageClient.getContainerAsync(VitamConfiguration.getDefaultStrategy(), objectId,
-                DataCategory.OBJECT, logInfo);
+            final Response response = storageClient.getContainerAsync(strategyId, objectId, DataCategory.OBJECT, logInfo);
             Map<String, String> headers = new HashMap<>();
             headers.put(HttpHeaders.CONTENT_TYPE, mimetype);
             headers.put(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + filename + "\"");
@@ -838,14 +840,15 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
 
         try (WorkspaceClient workspaceClient = workspaceClientFactory.getClient()) {
             final String fileName = idUnit + JSON;
-            JsonNode unit = getUnitRawWithLfc(idUnit);
+            JsonNode unitWithLfc = getUnitRawWithLfc(idUnit);
             workspaceClient.createContainer(requestId);
-            InputStream inputStream = CanonicalJsonFormatter.serialize(unit);
+            InputStream inputStream = CanonicalJsonFormatter.serialize(unitWithLfc);
             workspaceClient.putObject(requestId,
                 IngestWorkflowConstants.ARCHIVE_UNIT_FOLDER + File.separator + fileName,
                 inputStream);
+            String strategyId = MetadataDocumentHelper.getStrategyIdFromRawUnit(MetadataStorageHelper.getUnitFromUnitWithLFC(unitWithLfc));
             // updates (replaces) stored object
-            storeMetaDataUnit(new ObjectDescription(DataCategory.UNIT, requestId, fileName,
+            storeMetaDataUnit(strategyId, new ObjectDescription(DataCategory.UNIT, requestId, fileName,
                 IngestWorkflowConstants.ARCHIVE_UNIT_FOLDER + File.separator + fileName));
 
         } finally {
@@ -921,18 +924,16 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
     /**
      * The function is used for retrieving ObjectGroup in workspace and storing metaData in storage offer
      *
+     * @param strategyId
      * @param description
      * @throws StorageServerClientException
      * @throws StorageNotFoundClientException
      * @throws StorageAlreadyExistsClientException
      * @throws ProcessingException when error in execution
      */
-    private void storeMetaDataUnit(ObjectDescription description) throws StorageClientException {
+    private void storeMetaDataUnit(String strategyId, ObjectDescription description) throws StorageClientException {
         try (StorageClient storageClient = storageClientFactory.getClient()) {
-            // store binary data object
-            storageClient.storeFileFromWorkspace(VitamConfiguration.getDefaultStrategy(), description.getType(),
-                description.getObjectName(),
-                description);
+            storageClient.storeFileFromWorkspace(strategyId, description.getType(), description.getObjectName(), description);
         }
 
     }

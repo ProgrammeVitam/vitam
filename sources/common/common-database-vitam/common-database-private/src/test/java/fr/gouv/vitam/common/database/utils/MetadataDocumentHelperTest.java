@@ -24,65 +24,56 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  *******************************************************************************/
-package fr.gouv.vitam.common.model;
+package fr.gouv.vitam.common.database.utils;
 
-import com.fasterxml.jackson.databind.JsonNode;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+
+import org.junit.Test;
+
 import com.fasterxml.jackson.databind.node.ObjectNode;
+
 import fr.gouv.vitam.common.json.JsonHandler;
 
-/**
- * Helper class for metadata documentation storage.
- */
-public class MetadataStorageHelper {
+public class MetadataDocumentHelperTest {
 
-    private static final String UNIT_KEY = "unit";
-    private static final String GOT_KEY = "got";
-    private static final String LFC_KEY = "lfc";
+    @Test
+    public void should_retrieveStrategyId_when_presentInRawUnit() {
+        // Given
+        ObjectNode unitJson = JsonHandler.createObjectNode();
+        ObjectNode storageJson = JsonHandler.createObjectNode();
+        storageJson.put("strategyId", "strategyIdValue");
+        unitJson.set("_storage", storageJson);
 
-    /**
-     * Create a jsonNode with the unit document and its lfc
-     *
-     * @param document the unit node
-     * @param lfc      the lfc node
-     * @return a new JsonNode with document and lfc inside
-     */
-    public static JsonNode getUnitWithLFC(JsonNode document, JsonNode lfc) {
-        final ObjectNode docWithLFC = JsonHandler.getFactory().objectNode();
-        // get the document
-        docWithLFC.set(UNIT_KEY, document);
-        // get the lfc
-        docWithLFC.set(LFC_KEY, lfc);
-        return docWithLFC;
+        // When
+        String extractedStrategyId = MetadataDocumentHelper.getStrategyIdFromRawUnit(unitJson);
+
+        // Then
+        assertThat(extractedStrategyId).isEqualTo("strategyIdValue");
     }
 
-    /**
-     * Retrieve the unit from the unit + lfc object
-     *
-     * @param document the unit + lfc node
-     * @return the JsonNode of the unit inside the documuent
-     */
-    public static JsonNode getUnitFromUnitWithLFC(JsonNode document) {
-        if(document == null || !document.hasNonNull(UNIT_KEY)) {
-            throw new IllegalArgumentException("Document should contain a "+UNIT_KEY+" object");
-        }
-        return document.get(UNIT_KEY);
+    @Test
+    public void should_throwIllegalArgumentException_when_StrategyIdNotPresentInRawUnit() {
+        // Given
+        ObjectNode unitJson = JsonHandler.createObjectNode();
+        ObjectNode storageJson = JsonHandler.createObjectNode();
+        unitJson.set("_storage", storageJson);
+
+        // When + Then
+        assertThatThrownBy(() -> {
+            MetadataDocumentHelper.getStrategyIdFromRawUnit(unitJson);
+        }).isInstanceOf(IllegalArgumentException.class);
     }
 
-    
-    
-    /**
-     * Create a jsonNode with the got document and its lfc
-     *
-     * @param document the unit node
-     * @param lfc      the lfc node
-     * @return a new JsonNode with document and lfc inside
-     */
-    public static JsonNode getGotWithLFC(JsonNode document, JsonNode lfc) {
-        final ObjectNode docWithLFC = JsonHandler.getFactory().objectNode();
-        // get the document
-        docWithLFC.set(GOT_KEY, document);
-        // get the lfc
-        docWithLFC.set(LFC_KEY, lfc);
-        return docWithLFC;
+    @Test
+    public void should_throwIllegalArgumentException_when_JsonNull() {
+        // Given
+        ObjectNode unitJson = null;
+
+        // When + Then
+        assertThatThrownBy(() -> {
+            MetadataDocumentHelper.getStrategyIdFromRawUnit(unitJson);
+        }).isInstanceOf(IllegalArgumentException.class);
     }
+
 }

@@ -26,63 +26,52 @@
  *******************************************************************************/
 package fr.gouv.vitam.common.model;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+
+import org.junit.Test;
+
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+
 import fr.gouv.vitam.common.json.JsonHandler;
 
-/**
- * Helper class for metadata documentation storage.
- */
-public class MetadataStorageHelper {
+public class MetadataStorageHelperTest {
 
-    private static final String UNIT_KEY = "unit";
-    private static final String GOT_KEY = "got";
-    private static final String LFC_KEY = "lfc";
+    @Test
+    public void shouldGetUnit_when_jsonContainsUnit() {
+        // Given
+        ObjectNode document = JsonHandler.createObjectNode();
+        document.set("unit", JsonHandler.createObjectNode());
+        document.set("lfc", JsonHandler.createObjectNode());
 
-    /**
-     * Create a jsonNode with the unit document and its lfc
-     *
-     * @param document the unit node
-     * @param lfc      the lfc node
-     * @return a new JsonNode with document and lfc inside
-     */
-    public static JsonNode getUnitWithLFC(JsonNode document, JsonNode lfc) {
-        final ObjectNode docWithLFC = JsonHandler.getFactory().objectNode();
-        // get the document
-        docWithLFC.set(UNIT_KEY, document);
-        // get the lfc
-        docWithLFC.set(LFC_KEY, lfc);
-        return docWithLFC;
+        // when
+        JsonNode unit = MetadataStorageHelper.getUnitFromUnitWithLFC(document);
+
+        // then
+        assertThat(unit).isNotNull();
     }
 
-    /**
-     * Retrieve the unit from the unit + lfc object
-     *
-     * @param document the unit + lfc node
-     * @return the JsonNode of the unit inside the documuent
-     */
-    public static JsonNode getUnitFromUnitWithLFC(JsonNode document) {
-        if(document == null || !document.hasNonNull(UNIT_KEY)) {
-            throw new IllegalArgumentException("Document should contain a "+UNIT_KEY+" object");
-        }
-        return document.get(UNIT_KEY);
+    @Test
+    public void shouldThrowIllegalArgumentException_when_jsonDoesNotContainsUnit() {
+        // Given
+        ObjectNode document = JsonHandler.createObjectNode();
+        document.set("lfc", JsonHandler.createObjectNode());
+
+        // when + Then
+        assertThatThrownBy(() -> {
+            MetadataStorageHelper.getUnitFromUnitWithLFC(document);
+        }).isInstanceOf(IllegalArgumentException.class);
     }
 
-    
-    
-    /**
-     * Create a jsonNode with the got document and its lfc
-     *
-     * @param document the unit node
-     * @param lfc      the lfc node
-     * @return a new JsonNode with document and lfc inside
-     */
-    public static JsonNode getGotWithLFC(JsonNode document, JsonNode lfc) {
-        final ObjectNode docWithLFC = JsonHandler.getFactory().objectNode();
-        // get the document
-        docWithLFC.set(GOT_KEY, document);
-        // get the lfc
-        docWithLFC.set(LFC_KEY, lfc);
-        return docWithLFC;
+    @Test
+    public void shouldThrowIllegalArgumentException_when_jsonNull() {
+        // Given
+        ObjectNode document = null;
+
+        // when + Then
+        assertThatThrownBy(() -> {
+            MetadataStorageHelper.getUnitFromUnitWithLFC(document);
+        }).isInstanceOf(IllegalArgumentException.class);
     }
 }
