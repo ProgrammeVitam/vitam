@@ -1,0 +1,208 @@
+<?xml version="1.0" ?>
+<ArchiveTransfer xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="fr:gouv:culture:archivesdefrance:seda:v2.1 ../../Bureau/BA/Sch%D0%92mas/SEDA_2.1_Officiel/seda-2.1-main.xsd"
+    xmlns="fr:gouv:culture:archivesdefrance:seda:v2.1" xmlns:xlink="http://www.w3.org/1999/xlink"
+    xmlns:pr="info:lc/xmlns/premis-v2" xml:id="ID1">
+    <Comment>2eme SIP</Comment>
+    <Date>2016-10-18T14:52:27</Date>
+    <MessageIdentifier>SIP passant contenant 2 groupes d'objets</MessageIdentifier>
+    <ArchivalAgreement>ArchivalAgreement0</ArchivalAgreement>
+    <CodeListVersions>
+        <ReplyCodeListVersion>ReplyCodeListVersion0</ReplyCodeListVersion>
+        <MessageDigestAlgorithmCodeListVersion>MessageDigestAlgorithmCodeListVersion0</MessageDigestAlgorithmCodeListVersion>
+        <MimeTypeCodeListVersion>MimeTypeCodeListVersion0</MimeTypeCodeListVersion>
+        <EncodingCodeListVersion>EncodingCodeListVersion0</EncodingCodeListVersion>
+        <FileFormatCodeListVersion>FileFormatCodeListVersion0</FileFormatCodeListVersion>
+        <CompressionAlgorithmCodeListVersion>CompressionAlgorithmCodeListVersion0</CompressionAlgorithmCodeListVersion>
+        <DataObjectVersionCodeListVersion>DataObjectVersionCodeListVersion0</DataObjectVersionCodeListVersion>
+        <StorageRuleCodeListVersion>StorageRuleCodeListVersion0</StorageRuleCodeListVersion>
+        <AppraisalRuleCodeListVersion>AppraisalRuleCodeListVersion0</AppraisalRuleCodeListVersion>
+        <AccessRuleCodeListVersion>AccessRuleCodeListVersion0</AccessRuleCodeListVersion>
+        <DisseminationRuleCodeListVersion>DisseminationRuleCodeListVersion0</DisseminationRuleCodeListVersion>
+        <ReuseRuleCodeListVersion>ReuseRuleCodeListVersion0</ReuseRuleCodeListVersion>
+        <ClassificationRuleCodeListVersion>ClassificationRuleCodeListVersion0</ClassificationRuleCodeListVersion>
+        <AuthorizationReasonCodeListVersion>AuthorizationReasonCodeListVersion0</AuthorizationReasonCodeListVersion>
+        <RelationshipCodeListVersion>RelationshipCodeListVersion0</RelationshipCodeListVersion>
+    </CodeListVersions>
+    <DataObjectPackage xml:id="ID2">
+        <DataObjectGroup id="ID6">
+            <BinaryDataObject id="ID7">
+                <DataObjectVersion>BinaryMaster</DataObjectVersion>
+                <Uri>Content/GBlNSraIrmIpWQNmJlDzPYLOC8CBk0.pdf</Uri>
+                <MessageDigest algorithm="SHA-512"
+                    >942bb63cc16bf5ca3ba7fabf40ce9be19c3185a36cd87ad17c63d6fad1aa29d4312d73f2d6a1ba1266c3a71fc4119dd476d2d776cf2ad2acd7a9a3dfa1f80dc7</MessageDigest>
+                <Size>29403</Size>
+                <FormatIdentification>
+                    <FormatLitteral>Acrobat PDF 1.4 - Portable Document Format</FormatLitteral>
+                    <MimeType>application/pdf</MimeType>
+                    <FormatId>fmt/18</FormatId>
+                </FormatIdentification>
+                <FileInfo>
+                    <Filename>GBlNSraIrmIpWQNmJlDzPYLOC8CBk0.pdf</Filename>
+                    <LastModified>2016-06-03T15:28:00.000+02:00</LastModified>
+                </FileInfo>
+            </BinaryDataObject>
+        </DataObjectGroup>
+        <DataObjectGroup id="ID10">
+            <BinaryDataObject id="ID11">
+                <DataObjectVersion>BinaryMaster</DataObjectVersion>
+                <Uri>Content/IckGHIhYvJmy2WwNddEBmljXFol4Zd.pdf</Uri>
+                <MessageDigest algorithm="SHA-512"
+                    >942bb63cc16bf5ca3ba7fabf40ce9be19c3185a36cd87ad17c63d6fad1aa29d4312d73f2d6a1ba1266c3a71fc4119dd476d2d776cf2ad2acd7a9a3dfa1f80dc7</MessageDigest>
+                <Size>29403</Size>
+                <FormatIdentification>
+                    <FormatLitteral>Acrobat PDF 1.4 - Portable Document Format</FormatLitteral>
+                    <MimeType>application/pdf</MimeType>
+                    <FormatId>fmt/18</FormatId>
+                </FormatIdentification>
+                <FileInfo>
+                    <Filename>IckGHIhYvJmy2WwNddEBmljXFol4Zd.pdf</Filename>
+                    <LastModified>2016-06-03T15:28:00.000+02:00</LastModified>
+                </FileInfo>
+            </BinaryDataObject>
+        </DataObjectGroup>
+        <DataObjectGroup id="ID16">
+            <BinaryDataObject id="ID17">
+                <DataObjectVersion>BinaryMaster</DataObjectVersion>
+                <Uri>Content/IfTPz6AWS1VwRfNSlhsq83sMNPidvA.pdf</Uri>
+                <MessageDigest algorithm="SHA-512"
+                    >942bb63cc16bf5ca3ba7fabf40ce9be19c3185a36cd87ad17c63d6fad1aa29d4312d73f2d6a1ba1266c3a71fc4119dd476d2d776cf2ad2acd7a9a3dfa1f80dc7</MessageDigest>
+                <Size>29403</Size>
+                <FormatIdentification>
+                    <FormatLitteral>Acrobat PDF 1.4 - Portable Document Format</FormatLitteral>
+                    <MimeType>application/pdf</MimeType>
+                    <FormatId>fmt/18</FormatId>
+                </FormatIdentification>
+                <FileInfo>
+                    <Filename>IfTPz6AWS1VwRfNSlhsq83sMNPidvA.pdf</Filename>
+                    <LastModified>2016-06-03T15:28:00.000+02:00</LastModified>
+                </FileInfo>
+            </BinaryDataObject>
+        </DataObjectGroup>
+        <DataObjectGroup id="ID20">
+            <BinaryDataObject id="ID21">
+                <DataObjectVersion>BinaryMaster</DataObjectVersion>
+                <Uri>Content/JpddOUNiM4SgeBHfZy6fGepG9dV7ca.odt</Uri>
+                <MessageDigest algorithm="SHA-512"
+                    >58e37fa092797145f2a0d063ebf8699b9725ab9955ebc2aa503539c3d7c39ab4f867ffb02595782195f2f94ac23017f9a78c1b10c2fc37287227a7673e2b8c28</MessageDigest>
+                <Size>68438</Size>
+                <FormatIdentification>
+                    <FormatLitteral>OpenDocument Text</FormatLitteral>
+                    <MimeType>application/vnd.oasis.opendocument.text</MimeType>
+                    <FormatId>fmt/291</FormatId>
+                </FormatIdentification>
+                <FileInfo>
+                    <Filename>JpddOUNiM4SgeBHfZy6fGepG9dV7ca.odt</Filename>
+                    <LastModified>2016-06-03T15:28:00.000+02:00</LastModified>
+                </FileInfo>
+            </BinaryDataObject>
+        </DataObjectGroup>
+        <DescriptiveMetadata>
+            <ArchiveUnit id="ID3">
+                <Content>
+                    <DescriptionLevel>RecordGrp</DescriptionLevel>
+                    <Title>monSIP</Title>
+                    <Description>Sed placerat sapien a arcu venenatis ultrices. Sed a eleifend odio, ac tincidunt sem. Fusce luctus in augue nec volutpat. Integer libero elit, aliquet nec dapibus at, dictum feugiat sapien. Quisque feugiat purus id sapien facilisis, nec sodales diam semper. Mauris pretium luctus malesuada</Description>
+                    <StartDate>2016-06-03T15:28:00</StartDate>
+                    <EndDate>2016-06-03T15:28:00</EndDate>
+                </Content>
+                <ArchiveUnit id="ID5">
+                    <ArchiveUnitRefId>ID4</ArchiveUnitRefId>
+                </ArchiveUnit>
+                <ArchiveUnit id="ID15">
+                    <ArchiveUnitRefId>ID14</ArchiveUnitRefId>
+                </ArchiveUnit>
+            </ArchiveUnit>
+            <ArchiveUnit id="ID4">
+                <Content>
+                    <DescriptionLevel>RecordGrp</DescriptionLevel>
+                    <Title>exempleidrissatrois</Title>
+                    <OriginatingSystemId>OriginatingSystemId_02</OriginatingSystemId>
+                    <Description>Sed pellentesque augue tellus, at ultricies ex viverra ut. Vivamus sed orci leo. Phasellus gravida ex quis velit pretium, at hendrerit urna elementum. Nam placerat leo in magna mattis consectetur. Fusce convallis efficitur imperdiet. Phasellus ac interdum dui. Nunc ullamcorper placerat metus</Description>
+                    <StartDate>2016-06-03T15:28:00</StartDate>
+                    <EndDate>2016-06-03T15:28:00</EndDate>
+                </Content>
+                <DataObjectReference>
+                    <DataObjectGroupReferenceId>ID6</DataObjectGroupReferenceId>
+                </DataObjectReference>
+                <ArchiveUnit id="ID9">
+                    <ArchiveUnitRefId>ID8</ArchiveUnitRefId>
+                </ArchiveUnit>
+                <ArchiveUnit id="ID13">
+                    <ArchiveUnitRefId>ID12</ArchiveUnitRefId>
+                </ArchiveUnit>
+            </ArchiveUnit>
+            <ArchiveUnit id="ID8">
+                <Content>
+                    <DescriptionLevel>Item</DescriptionLevel>
+                    <Title>exempleidrissaun</Title>
+                    <Description>Integer lectus elit, maximus eu gravida et, sagittis eu est. Maecenas sodales eleifend suscipit. Fusce vitae magna nec erat bibendum imperdiet in vel eros. Aenean efficitur felis massa, id viverra est pharetra nec. Aenean eros libero, efficitur quis auctor ut, ornare eu risus</Description>
+                    <TransactedDate>2016-06-03T15:28:00</TransactedDate>
+                </Content>
+                <DataObjectReference>
+                    <DataObjectGroupReferenceId>ID6</DataObjectGroupReferenceId>
+                </DataObjectReference>
+            </ArchiveUnit>
+            <ArchiveUnit id="ID12">
+                <Content>
+                    <DescriptionLevel>Item</DescriptionLevel>
+                    <Title>BAD0431E2C5E80E5BD42D547zzzzzA3ED5966.odt</Title>
+                    <Description>Aliquam pharetra diam nec ex sodales varius. Nulla quam lacus, viverra in vulputate vel, lobortis aliquam nulla. Mauris laoreet sem vel accumsan placerat. In ultricies risus id leo viverra, sed tempor elit elementum. Maecenas ac odio et nunc aliquam volutpat</Description>
+                    <TransactedDate>2016-06-03T15:28:00</TransactedDate>
+                </Content>
+                <DataObjectReference>
+                    <DataObjectGroupReferenceId>ID10</DataObjectGroupReferenceId>
+                </DataObjectReference>
+            </ArchiveUnit>
+            <ArchiveUnit id="ID14">
+                <Content>
+                    <DescriptionLevel>RecordGrp</DescriptionLevel>
+                    <Title>exempleidrissadeux</Title>
+                    <Description>Donec luctus vehicula leo ac mollis. Vivamus vitae ipsum pharetra, pharetra sem ut, elementum purus. Praesent eu nunc enim. Donec eu ipsum ac risus finibus condimentum</Description>
+                    <StartDate>2016-06-03T15:28:00</StartDate>
+                    <EndDate>2016-06-03T15:28:00</EndDate>
+                </Content>
+                <DataObjectReference>
+                    <DataObjectGroupReferenceId>ID6</DataObjectGroupReferenceId>
+                </DataObjectReference>
+                <ArchiveUnit id="ID19">
+                    <ArchiveUnitRefId>ID18</ArchiveUnitRefId>
+                </ArchiveUnit>
+                <ArchiveUnit id="ID23">
+                    <ArchiveUnitRefId>ID22</ArchiveUnitRefId>
+                </ArchiveUnit>
+            </ArchiveUnit>
+            <ArchiveUnit id="ID18">
+                <Content>
+                    <DescriptionLevel>Item</DescriptionLevel>
+                    <Title>BAD0431E2C5E80E5BD42D547A3ED5966.odt</Title>
+                    <Description>Ut malesuada pretium enim, eu mattis tellus hendrerit sed. Nulla ac egestas ex. Mauris cursus posuere massa, tincidunt dignissim nisl blandit posuere. Cras pellentesque auctor rutrum. Quisque non tincidunt eros. Morbi malesuada leo sed nunc accumsan, eget placerat ligula tincidunt</Description>
+                    <TransactedDate>2016-06-03T15:28:00</TransactedDate>
+                </Content>
+                <DataObjectReference>
+                    <DataObjectGroupReferenceId>ID16</DataObjectGroupReferenceId>
+                </DataObjectReference>
+            </ArchiveUnit>
+            <ArchiveUnit id="ID22">
+                <Content>
+                    <DescriptionLevel>Item</DescriptionLevel>
+                    <Title>exempleidrissaautre</Title>
+                    <Description>Proin bibendum odio quam, in placerat dui congue nec. Ut congue orci in sem vestibulum mollis. Morbi vel augue dapibus, pellentesque nisl in, dignissim ligula. Sed eget dui tortor. Ut sed orci odio. Praesent ullamcorper pretium ligula quis luctus. Cum sociis natoque penatibus et magnis dis parturient montes, nascetur ridiculus mus.</Description>
+                    <TransactedDate>2016-06-03T15:28:00</TransactedDate>
+                </Content>
+                <DataObjectReference>
+                    <DataObjectGroupReferenceId>ID20</DataObjectGroupReferenceId>
+                </DataObjectReference>
+            </ArchiveUnit>
+        </DescriptiveMetadata>
+        <ManagementMetadata>
+            <OriginatingAgencyIdentifier>FRAN_NP_009913</OriginatingAgencyIdentifier>
+        </ManagementMetadata>
+    </DataObjectPackage>
+    <ArchivalAgency>
+        <Identifier>Identifier4</Identifier>
+    </ArchivalAgency>
+    <TransferringAgency>
+        <Identifier>Identifier5</Identifier>
+    </TransferringAgency>
+</ArchiveTransfer>

@@ -20,8 +20,18 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.apache.commons.io.IOUtils;
+import org.junit.Before;
+import org.junit.Rule;
+import org.junit.Test;
+import org.junit.rules.TemporaryFolder;
+import org.mockito.Mock;
+import org.mockito.junit.MockitoJUnit;
+import org.mockito.junit.MockitoRule;
+
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+
 import fr.gouv.vitam.common.database.builder.request.single.Select;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.model.ItemStatus;
@@ -37,16 +47,9 @@ import fr.gouv.vitam.metadata.client.MetaDataClient;
 import fr.gouv.vitam.metadata.client.MetaDataClientFactory;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 import fr.gouv.vitam.worker.common.HandlerIO;
+import fr.gouv.vitam.worker.core.distribution.JsonLineModel;
 import fr.gouv.vitam.workspace.client.WorkspaceClient;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
-import org.apache.commons.io.IOUtils;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.TemporaryFolder;
-import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnit;
-import org.mockito.junit.MockitoRule;
 
 public class PreservationPreparationPluginTest {
 
@@ -126,6 +129,8 @@ public class PreservationPreparationPluginTest {
 
         List<String> lines = IOUtils.readLines(new FileInputStream(files.get(OBJECT_GROUPS_TO_PRESERVE_JSONL)), "UTF-8");
         assertThat(lines.size()).isEqualTo(5);
+        JsonLineModel firstLine = JsonHandler.getFromString(lines.get(0), JsonLineModel.class);
+        assertThat(firstLine.getParams().get("sourceStrategy").asText()).isEqualTo("default-fake");
     }
 
     @Test
@@ -157,6 +162,8 @@ public class PreservationPreparationPluginTest {
             .isEqualTo(JsonHandler.unprettyPrint(createObjectNode().put("query", JsonHandler.unprettyPrint(finalSelect))));
         List<String> lines = IOUtils.readLines(new FileInputStream(files.get(OBJECT_GROUPS_TO_PRESERVE_JSONL)), "UTF-8");
         assertThat(lines.size()).isEqualTo(5);
+        JsonLineModel firstLine = JsonHandler.getFromString(lines.get(0), JsonLineModel.class);
+        assertThat(firstLine.getParams().get("sourceStrategy").asText()).isEqualTo("default-fake");
     }
 
     @Test

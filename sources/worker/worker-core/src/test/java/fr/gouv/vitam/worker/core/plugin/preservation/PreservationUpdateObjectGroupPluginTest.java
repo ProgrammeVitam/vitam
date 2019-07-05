@@ -725,7 +725,7 @@ public class PreservationUpdateObjectGroupPluginTest {
 
     private WorkflowBatchResults getWorkflowBatchResults(List<OutputExtra> outputExtras) {
         WorkflowBatchResult batchResult =
-            WorkflowBatchResult.of(GOT_ID, "unitId", "BinaryMaster", "requestId", outputExtras, "BinaryMaster");
+            WorkflowBatchResult.of(GOT_ID, "unitId", "BinaryMaster", "requestId", outputExtras, "BinaryMaster", "other_binary_strategy");
         return new WorkflowBatchResults(Paths.get("tmp"), Collections.singletonList(batchResult));
     }
 
@@ -746,7 +746,7 @@ public class PreservationUpdateObjectGroupPluginTest {
         ).collect(Collectors.toList());
 
         WorkflowBatchResult batchResult =
-            WorkflowBatchResult.of(GOT_ID, "unitId", targetUse, "requestId", outputExtras, "BinaryMaster");
+            WorkflowBatchResult.of(GOT_ID, "unitId", targetUse, "requestId", outputExtras, "BinaryMaster", "other_binary_strategy");
         return new WorkflowBatchResults(Paths.get("tmp"), Collections.singletonList(batchResult));
     }
 

@@ -55,6 +55,8 @@ public class PreservationDistributionLine {
     private String targetUse;
     @JsonProperty("sourceUse")
     private String sourceUse;
+    @JsonProperty("sourceStrategy")
+    private String sourceStrategy;
     @JsonProperty("griffinId")
     private String griffinId;
     @JsonProperty("preservationScenarioId")
@@ -67,7 +69,7 @@ public class PreservationDistributionLine {
 
     public PreservationDistributionLine(String formatId, String filename,
         List<ActionPreservation> actionPreservationList, String unitId, String griffinId, String objectId,
-        boolean debug, int timeout, String id, String targetUse, String sourceUse, String scenarioId, String griffinIdentifier) {
+        boolean debug, int timeout, String id, String targetUse, String sourceUse, String sourceStrategy, String scenarioId, String griffinIdentifier) {
         this.formatId = formatId;
         this.filename = filename;
         this.actionPreservationList = actionPreservationList;
@@ -79,6 +81,7 @@ public class PreservationDistributionLine {
         this.id = id;
         this.targetUse = targetUse;
         this.sourceUse = sourceUse;
+        this.sourceStrategy = sourceStrategy;
         this.scenarioId = scenarioId;
         this.griffinIdentifier = griffinIdentifier;
     }
@@ -170,6 +173,14 @@ public class PreservationDistributionLine {
 
     public void setSourceUse(String sourceUse) {
         this.sourceUse = sourceUse;
+    }
+    
+    public String getSourceStrategy() {
+        return sourceStrategy;
+    }
+    
+    public void setSourceStrategy(String sourceStrategy) {
+        this.sourceStrategy = sourceStrategy;
     }
 
     public String getScenarioId() {

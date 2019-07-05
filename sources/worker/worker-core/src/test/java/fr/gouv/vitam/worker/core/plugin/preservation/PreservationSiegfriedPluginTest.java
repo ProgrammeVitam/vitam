@@ -94,7 +94,7 @@ public class PreservationSiegfriedPluginTest {
         List<OutputExtra> outputExtras = Arrays.asList(OutputExtra.of(output));
         List<WorkflowBatchResult> workflowBatchResults =
             Collections.singletonList(WorkflowBatchResult.of("", "", "", "", outputExtras,
-                ""));
+                "", ""));
         WorkflowBatchResults batchResults = new WorkflowBatchResults(Paths.get("tmp"), workflowBatchResults);
         handler.addOutputResult(0, batchResults);
 
@@ -135,7 +135,7 @@ public class PreservationSiegfriedPluginTest {
         List<OutputExtra> outputExtras = Arrays.asList(OutputExtra.of(output));
         List<WorkflowBatchResult> workflowBatchResults =
             Collections.singletonList(WorkflowBatchResult.of("", "", "", "", outputExtras,
-                ""));
+                "", ""));
         Path batchDirectory = Paths.get("tmp");
         WorkflowBatchResults batchResults = new WorkflowBatchResults(batchDirectory, workflowBatchResults);
         handler.addOutputResult(0, batchResults);
@@ -170,7 +170,7 @@ public class PreservationSiegfriedPluginTest {
         List<OutputExtra> outputExtras = Arrays.asList(OutputExtra.of(output));
         List<WorkflowBatchResult> workflowBatchResults =
             Collections.singletonList(WorkflowBatchResult.of("", "", "", "", outputExtras,
-                ""));
+                "", ""));
         Path batchDirectory = Paths.get("tmp");
         WorkflowBatchResults batchResults = new WorkflowBatchResults(batchDirectory, workflowBatchResults);
         handler.addOutputResult(0, batchResults);
@@ -201,7 +201,7 @@ public class PreservationSiegfriedPluginTest {
         List<OutputExtra> outputExtras = Arrays.asList(OutputExtra.of(output));
         List<WorkflowBatchResult> workflowBatchResults =
             Collections.singletonList(WorkflowBatchResult.of("", "", "", "", outputExtras,
-                ""));
+                "", ""));
         Path batchDirectory = Paths.get("tmp");
         WorkflowBatchResults batchResults = new WorkflowBatchResults(batchDirectory, workflowBatchResults);
         handler.addOutputResult(0, batchResults);
@@ -226,7 +226,7 @@ public class PreservationSiegfriedPluginTest {
         List<OutputExtra> outputExtras = Arrays.asList(OutputExtra.of(output));
         List<WorkflowBatchResult> workflowBatchResults =
             Collections.singletonList(WorkflowBatchResult.of("", "", "", "", outputExtras,
-                ""));
+                "", ""));
         Path batchDirectory = Paths.get("tmp");
         WorkflowBatchResults batchResults = new WorkflowBatchResults(batchDirectory, workflowBatchResults);
         handler.addOutputResult(0, batchResults);
@@ -251,7 +251,7 @@ public class PreservationSiegfriedPluginTest {
         List<OutputExtra> outputExtras = Arrays.asList(OutputExtra.of(output));
         List<WorkflowBatchResult> workflowBatchResults =
             Collections.singletonList(WorkflowBatchResult.of("", "", "", "", outputExtras,
-                ""));
+                "", ""));
         Path batchDirectory = Paths.get("tmp");
         WorkflowBatchResults batchResults = new WorkflowBatchResults(batchDirectory, workflowBatchResults);
         handler.addOutputResult(0, batchResults);
@@ -277,7 +277,7 @@ public class PreservationSiegfriedPluginTest {
         List<OutputExtra> outputExtras = Arrays.asList(OutputExtra.of(output));
         List<WorkflowBatchResult> workflowBatchResults =
             Collections.singletonList(WorkflowBatchResult.of("", "", "", "", outputExtras,
-                ""));
+                "", ""));
         Path batchDirectory = Paths.get("tmp");
         WorkflowBatchResults batchResults = new WorkflowBatchResults(batchDirectory, workflowBatchResults);
         handler.addOutputResult(0, batchResults);
@@ -303,7 +303,7 @@ public class PreservationSiegfriedPluginTest {
         List<OutputExtra> outputExtras = Arrays.asList(OutputExtra.of(output));
         List<WorkflowBatchResult> workflowBatchResults =
             Collections.singletonList(WorkflowBatchResult.of("", "", "", "", outputExtras,
-                ""));
+                "", ""));
         Path batchDirectory = Paths.get("tmp");
         WorkflowBatchResults batchResults = new WorkflowBatchResults(batchDirectory, workflowBatchResults);
         handler.addOutputResult(0, batchResults);

@@ -28,6 +28,7 @@ package fr.gouv.vitam.functional.administration.common;
 
 
 import static fr.gouv.vitam.storage.engine.common.model.DataCategory.REPORT;
+import static fr.gouv.vitam.storage.engine.common.model.DataCategory.UNIT;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.BDDMockito.given;
@@ -109,6 +110,32 @@ public class BackupServiceTest {
         verify(workspaceClient).deleteContainer(containerArgCaptor.getValue(), true);
     }
 
+
+    @Test
+    public void should_store_file_strategy() throws Exception {
+
+        //Given
+        final String uri = URI;
+        ArgumentCaptor<ObjectDescription> objectDescriptionArgumentCaptor =
+            ArgumentCaptor.forClass(ObjectDescription.class);
+        //When
+        backupService.backup(inputStream, UNIT, uri,"other_strategy");
+
+        //Then
+        ArgumentCaptor<String> containerArgCaptor = ArgumentCaptor.forClass(String.class);
+        verify(workspaceClient)
+            .putObject(containerArgCaptor.capture(), eq(uri), eq(inputStream));
+
+        verify(storageClient)
+            .storeFileFromWorkspace(eq("other_strategy"), eq(UNIT), eq(uri),
+                objectDescriptionArgumentCaptor.capture());
+        ObjectDescription description = objectDescriptionArgumentCaptor.getValue();
+        assertThat(description.getWorkspaceContainerGUID()).isEqualTo(containerArgCaptor.getValue());
+        assertThat(description.getWorkspaceObjectURI()).isEqualTo(uri);
+
+        verify(workspaceClient).deleteContainer(containerArgCaptor.getValue(), true);
+    }
+    
     @Test
     public void should_fail_when_storing_in_workSpace() throws Exception {
         //Given

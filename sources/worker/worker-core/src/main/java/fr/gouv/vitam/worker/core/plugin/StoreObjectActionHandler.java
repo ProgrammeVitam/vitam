@@ -72,16 +72,17 @@ public abstract class StoreObjectActionHandler extends ActionHandler {
     /**
      * The function is used for retrieving ObjectGroup in workspace and storing metaData in storage offer
      *
+     * @param strategyId the object's storage strategy
      * @param description the object description
      * @param itemStatus item status
      * @return StoredInfoResult
      */
-    protected StoredInfoResult storeObject(ObjectDescription description,
+    protected StoredInfoResult storeObject(String strategyId, ObjectDescription description,
         ItemStatus itemStatus) {
 
         try (final StorageClient storageClient = storageClientFactory.getClient()) {
             // store binary data object
-            return storageClient.storeFileFromWorkspace(VitamConfiguration.getDefaultStrategy(), description.getType(),
+            return storageClient.storeFileFromWorkspace(strategyId, description.getType(),
                 description.getObjectName(), description);
 
         } catch (StorageAlreadyExistsClientException e) {

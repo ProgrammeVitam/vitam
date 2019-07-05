@@ -1,0 +1,629 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ArchiveTransfer xmlns="fr:gouv:culture:archivesdefrance:seda:v2.1"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="fr:gouv:culture:archivesdefrance:seda:v2.1 file:/C:/Users/edouard.vasseur/Desktop/Documentation/SEDA/SEDA_2-1_draft_0.6/seda-2.1-main.xsd">
+    <Date>2017-04-05T08:11:55</Date>
+    <MessageIdentifier>Jeu de test complet SEDA 2.1. avec des règles de gestion</MessageIdentifier>
+    <ArchivalAgreement>ArchivalAgreement0</ArchivalAgreement>
+	<CodeListVersions>
+	<ReplyCodeListVersion>ReplyCodeListVersion0</ReplyCodeListVersion>
+        <MessageDigestAlgorithmCodeListVersion>MessageDigestAlgorithmCodeListVersion0</MessageDigestAlgorithmCodeListVersion>
+        <MimeTypeCodeListVersion>MimeTypeCodeListVersion0</MimeTypeCodeListVersion>
+        <EncodingCodeListVersion>EncodingCodeListVersion0</EncodingCodeListVersion>
+        <FileFormatCodeListVersion>FileFormatCodeListVersion0</FileFormatCodeListVersion>
+        <CompressionAlgorithmCodeListVersion>CompressionAlgorithmCodeListVersion0</CompressionAlgorithmCodeListVersion>
+        <DataObjectVersionCodeListVersion>DataObjectVersionCodeListVersion0</DataObjectVersionCodeListVersion>
+        <StorageRuleCodeListVersion>StorageRuleCodeListVersion0</StorageRuleCodeListVersion>
+        <AppraisalRuleCodeListVersion>AppraisalRuleCodeListVersion0</AppraisalRuleCodeListVersion>
+        <AccessRuleCodeListVersion>AccessRuleCodeListVersion0</AccessRuleCodeListVersion>
+        <DisseminationRuleCodeListVersion>DisseminationRuleCodeListVersion0</DisseminationRuleCodeListVersion>
+        <ReuseRuleCodeListVersion>ReuseRuleCodeListVersion0</ReuseRuleCodeListVersion>
+        <ClassificationRuleCodeListVersion>ClassificationRuleCodeListVersion0</ClassificationRuleCodeListVersion>
+        <AuthorizationReasonCodeListVersion>AuthorizationReasonCodeListVersion0</AuthorizationReasonCodeListVersion>
+        <RelationshipCodeListVersion>RelationshipCodeListVersion0</RelationshipCodeListVersion>
+	</CodeListVersions>
+    <DataObjectPackage xml:id="ID2">
+		<DataObjectGroup id="ID12">
+        <BinaryDataObject id="ID13">
+			<DataObjectVersion>BinaryMaster_1</DataObjectVersion>
+			<Uri>Content/ID13.txt</Uri>
+			<MessageDigest algorithm="SHA-512">86c0bc701ef6b5dd21b080bc5bb2af38097baa6237275da83a52f092c9eae3e4e4b0247391620bd732fe824d18bd3bb6c37e62ec73a8cf3585c6a799399861b1</MessageDigest>
+			<Size>6</Size>
+			<FormatIdentification>
+				<FormatLitteral>Plain Text File</FormatLitteral>
+				<MimeType>text/plain</MimeType>
+				<FormatId>x-fmt/111</FormatId>
+			</FormatIdentification>
+			<FileInfo>
+				<Filename>MontparnasseEtSaintDenisBasilique.txt</Filename>
+			    <CreatingApplicationName>CreatingApplicationName0</CreatingApplicationName>
+			    <CreatingApplicationVersion>CreatingApplicationVersion0</CreatingApplicationVersion>
+			    <DateCreatedByApplication>2006-05-04T18:13:51.0</DateCreatedByApplication>
+			    <CreatingOs>CreatingOs0</CreatingOs>
+			    <CreatingOsVersion>CreatingOsVersion0</CreatingOsVersion>
+				<LastModified>2017-04-04T08:07:06.487+02:00</LastModified>
+			</FileInfo>
+		</BinaryDataObject>
+		<PhysicalDataObject id="ID1000">
+		    <DataObjectVersion>PhysicalMaster_1</DataObjectVersion>
+		    <PhysicalId>12345</PhysicalId>
+		    <PhysicalDimensions>
+		        <Height unit="centimetre">21</Height>
+		        <Length unit="centimetre">29.7</Length>
+		        <Weight unit="kilogram">1</Weight>
+		    </PhysicalDimensions>
+		</PhysicalDataObject>
+		</DataObjectGroup>
+		<DataObjectGroup id="ID34">
+			<BinaryDataObject id="ID35">
+				<DataObjectVersion>BinaryMaster_1</DataObjectVersion>
+				<Uri>Content/ID35.txt</Uri>
+				<MessageDigest algorithm="SHA-512">664ac614a819df2a97d2a5df57dcad91d6ec38b0fffc793e80c56b4553a14ac7a5f0bce3bb71af419b0bb8f151ad3d512867454eeb818e01818a31989c13319b</MessageDigest>
+				<Size>6</Size>
+				<FormatIdentification>
+					<FormatLitteral>Plain Text File</FormatLitteral>
+					<MimeType>text/plain</MimeType>
+					<FormatId>x-fmt/111</FormatId>
+				</FormatIdentification>
+				<FileInfo>
+					<Filename>SaintDenisUniversité.txt</Filename>
+					<LastModified>2017-04-04T08:07:27.825+02:00</LastModified>
+				</FileInfo>
+			</BinaryDataObject>
+		</DataObjectGroup>
+		<DataObjectGroup id="ID54">
+        <BinaryDataObject id="ID55">
+			<DataObjectVersion>BinaryMaster_1</DataObjectVersion>
+			<Uri>Content/ID55.txt</Uri>
+			<MessageDigest algorithm="SHA-512">86c0bc701ef6b5dd21b080bc5bb2af38097baa6237275da83a52f092c9eae3e4e4b0247391620bd732fe824d18bd3bb6c37e62ec73a8cf3585c6a799399861b1</MessageDigest>
+			<Size>6</Size>
+			<FormatIdentification>
+				<FormatLitteral>Plain Text File</FormatLitteral>
+				<MimeType>text/plain</MimeType>
+				<FormatId>x-fmt/111</FormatId>
+			</FormatIdentification>
+			<FileInfo>
+				<Filename>Stalingrad.txt</Filename>
+				<LastModified>2017-04-04T08:07:06.487+02:00</LastModified>
+			</FileInfo>
+		</BinaryDataObject>
+		</DataObjectGroup>
+		<DescriptiveMetadata>
+		    <ArchiveUnit id="ID4">
+		        <Content>
+					<DescriptionLevel>RecordGrp</DescriptionLevel>
+					<Title>1_Saint Denis Université (ligne 13)</Title>
+				    <FilePlanPosition>13.1.</FilePlanPosition>
+				    <FilePlanPosition>RATP.13.1.</FilePlanPosition>
+				    <OriginatingSystemId>123456</OriginatingSystemId>
+				    <OriginatingSystemId>AZERTY</OriginatingSystemId>
+				    <ArchivalAgencyArchiveUnitIdentifier>20170045/1</ArchivalAgencyArchiveUnitIdentifier>
+				    <ArchivalAgencyArchiveUnitIdentifier>AMN.X/12</ArchivalAgencyArchiveUnitIdentifier>
+				    <OriginatingAgencyArchiveUnitIdentifier>7890</OriginatingAgencyArchiveUnitIdentifier>
+				    <OriginatingAgencyArchiveUnitIdentifier>QWERTY</OriginatingAgencyArchiveUnitIdentifier>
+				    <TransferringAgencyArchiveUnitIdentifier>Toto1</TransferringAgencyArchiveUnitIdentifier>
+				    <TransferringAgencyArchiveUnitIdentifier>1Otot</TransferringAgencyArchiveUnitIdentifier>
+					<Description>Cette ArchiveUnit n'a aucune règle propre, mais récupère du ManagementMetadata du SIP un NeedAuthorization à true, une StorageRule avec un FinalAction à Copy, une AppraisalRule avec un FinalAction à Keep, une AccessRule avec la Rule ACC-00002 dont la StartDate est 01/01/2000 et une ClassificationRule dont la Rule est CLASS-00001 avec pour StartDate 03/06/2015, Confidentiel Défense pour ClassificationLevel, ClassificationOwner0 pour ClassificationOwner, ClassificationAudience0 pour ClassificationAudience, 03/06/2016 comme ClassificationReassasingDate et un NeedReassessingAuthorization à true</Description>
+				    <CustodialHistory>
+				        <CustodialHistoryItem>Saint-Denis - Université est une station de la ligne 13 du métro de Paris, située au nord de la commune de Saint-Denis, en limite de celle de Pierrefitte-sur-Seine, dans le département de la Seine-Saint-Denis. C'est le terminus de la ligne 13 sur sa branche nord-est</CustodialHistoryItem>
+				        <CustodialHistoryItem>La station est ouverte le 25 mai 1998. Son nom vient de sa proximité immédiate de l'université de Paris VIII à Saint-Denis.</CustodialHistoryItem>
+				    </CustodialHistory>
+				    <Type>Information de représentation</Type>
+				    <DocumentType>Plan</DocumentType>
+				    <Language>fr</Language>
+				    <DescriptionLanguage>fr</DescriptionLanguage>
+				    <Status>Original</Status>
+				    <Version>2</Version>
+				    <Tag>station</Tag>
+				    <Tag>métropolitain</Tag>
+				    <Keyword>
+				        <KeywordContent>Transport en commun</KeywordContent>
+				        <KeywordReference>ark:/67717/T1-1273</KeywordReference>
+				        <KeywordType>subject</KeywordType>
+				    </Keyword>
+				    <Keyword>
+				        <KeywordContent>Saint-Denis</KeywordContent>
+				        <KeywordReference>93066</KeywordReference>
+				        <KeywordType>geogname</KeywordType>
+				    </Keyword>
+				    <Coverage>
+				        <Spatial>Saint-Denis</Spatial>
+				        <Temporal>20e siècle</Temporal>
+				        <Juridictional>Communauté de communes de Plaine Commune</Juridictional>
+				    </Coverage>
+				    <OriginatingAgency>
+				        <Identifier>RATP</Identifier>
+				    </OriginatingAgency>
+				    <SubmissionAgency>
+				        <Identifier>RATP</Identifier>
+				    </SubmissionAgency>
+				    <AuthorizedAgent>
+				        <FirstName>Fulgence Marie Auguste</FirstName>
+				        <BirthName>Bienvenüe</BirthName>
+				        <FullName>Fulgence Marie Auguste Bienvenüe</FullName>
+				        <GivenName>Le père du métro</GivenName>
+				        <Gender>M</Gender>
+				        <BirthDate>1852-01-27</BirthDate>
+				        <BirthPlace>
+				            <Geogname>Uzel</Geogname>
+				            <Address>Place de la Mairie</Address>
+				            <PostalCode>22460</PostalCode>
+				            <City>Uzel</City>
+				            <Region>Bretagne</Region>
+				            <Country>France</Country>
+				        </BirthPlace>
+				        <DeathDate>1936-08-03</DeathDate>
+				        <DeathPlace>
+				            <Geogname>Paris</Geogname>
+				            <Address>Hôpital Boucicaut</Address>
+				            <PostalCode>75015</PostalCode>
+				            <City>Paris</City>
+				            <Region>Ile de France</Region>
+				            <Country>France</Country>
+				        </DeathPlace>
+				        <Nationality>Française</Nationality>
+				        <Identifier>0000 0000 5488 9547</Identifier>
+				        <Function>Ingénierie</Function>
+				        <Activity>Conception de lignes de métro</Activity>
+				        <Position>Chef de l'inspection des Ponts et Chaussées</Position>
+				        <Role>Directeur des travaux</Role>
+				        <Mandate>Loi du 30 mars 1898</Mandate>
+				    </AuthorizedAgent>
+				    <AuthorizedAgent>
+				        <Corpname>Compagnie du chemin de fer métropolitain de Paris</Corpname>
+				        <Identifier>CMP</Identifier>
+				        <Function>Transport</Function>
+				        <Activity>Transport en commun</Activity>
+				        <Position>Direction</Position>
+				        <Role>Direction</Role>
+				        <Mandate>Statuts de 1899</Mandate>
+				    </AuthorizedAgent>
+				    <Writer>
+				        <FirstName>Fulgence Marie Auguste</FirstName>
+				        <BirthName>Bienvenüe</BirthName>
+				        <FullName>Fulgence Marie Auguste Bienvenüe</FullName>
+				        <GivenName>Le père du métro</GivenName>
+				        <Gender>M</Gender>
+				        <BirthDate>1852-01-27</BirthDate>
+				        <BirthPlace>
+				            <Geogname>Uzel</Geogname>
+				            <Address>Place de la Mairie</Address>
+				            <PostalCode>22460</PostalCode>
+				            <City>Uzel</City>
+				            <Region>Bretagne</Region>
+				            <Country>France</Country>
+				        </BirthPlace>
+				        <DeathDate>1936-08-03</DeathDate>
+				        <DeathPlace>
+				            <Geogname>Paris</Geogname>
+				            <Address>Hôpital Boucicaut</Address>
+				            <PostalCode>75015</PostalCode>
+				            <City>Paris</City>
+				            <Region>Ile de France</Region>
+				            <Country>France</Country>
+				        </DeathPlace>
+				        <Nationality>Française</Nationality>
+				        <Identifier>0000 0000 5488 9547</Identifier>
+				        <Function>Ingénierie</Function>
+				        <Activity>Conception de lignes de métro</Activity>
+				        <Position>Chef de l'inspection des Ponts et Chaussées</Position>
+				        <Role>Directeur des travaux</Role>
+				        <Mandate>Loi du 30 mars 1898</Mandate>
+				    </Writer>
+				    <Addressee>				        
+				        <FirstName>Fulgence Marie Auguste</FirstName>
+				        <BirthName>Bienvenüe</BirthName>
+				        <FullName>Fulgence Marie Auguste Bienvenüe</FullName>
+				        <GivenName>Le père du métro</GivenName>
+				        <Gender>M</Gender>
+				        <BirthDate>1852-01-27</BirthDate>
+				        <BirthPlace>
+				            <Geogname>Uzel</Geogname>
+				            <Address>Place de la Mairie</Address>
+				            <PostalCode>22460</PostalCode>
+				            <City>Uzel</City>
+				            <Region>Bretagne</Region>
+				            <Country>France</Country>
+				        </BirthPlace>
+				        <DeathDate>1936-08-03</DeathDate>
+				        <DeathPlace>
+				            <Geogname>Paris</Geogname>
+				            <Address>Hôpital Boucicaut</Address>
+				            <PostalCode>75015</PostalCode>
+				            <City>Paris</City>
+				            <Region>Ile de France</Region>
+				            <Country>France</Country>
+				        </DeathPlace>
+				        <Nationality>Française</Nationality>
+				        <Identifier>0000 0000 5488 9547</Identifier>
+				        <Function>Ingénierie</Function>
+				        <Activity>Conception de lignes de métro</Activity>
+				        <Position>Chef de l'inspection des Ponts et Chaussées</Position>
+				        <Role>Directeur des travaux</Role>
+				        <Mandate>Loi du 30 mars 1898</Mandate>
+				    </Addressee>
+				    <Recipient>				        
+				        <FirstName>Fulgence Marie Auguste</FirstName>
+				        <BirthName>Bienvenüe</BirthName>
+				        <FullName>Fulgence Marie Auguste Bienvenüe</FullName>
+				        <GivenName>Le père du métro</GivenName>
+				        <Gender>M</Gender>
+				        <BirthDate>1852-01-27</BirthDate>
+				        <BirthPlace>
+				            <Geogname>Uzel</Geogname>
+				            <Address>Place de la Mairie</Address>
+				            <PostalCode>22460</PostalCode>
+				            <City>Uzel</City>
+				            <Region>Bretagne</Region>
+				            <Country>France</Country>
+				        </BirthPlace>
+				        <DeathDate>1936-08-03</DeathDate>
+				        <DeathPlace>
+				            <Geogname>Paris</Geogname>
+				            <Address>Hôpital Boucicaut</Address>
+				            <PostalCode>75015</PostalCode>
+				            <City>Paris</City>
+				            <Region>Ile de France</Region>
+				            <Country>France</Country>
+				        </DeathPlace>
+				        <Nationality>Française</Nationality>
+				        <Identifier>0000 0000 5488 9547</Identifier>
+				        <Function>Ingénierie</Function>
+				        <Activity>Conception de lignes de métro</Activity>
+				        <Position>Chef de l'inspection des Ponts et Chaussées</Position>
+				        <Role>Directeur des travaux</Role>
+				        <Mandate>Loi du 30 mars 1898</Mandate>
+				    </Recipient>
+				    <Transmitter>
+				        <FirstName>Fulgence Marie Auguste</FirstName>
+				        <BirthName>Bienvenüe</BirthName>
+				        <FullName>Fulgence Marie Auguste Bienvenüe</FullName>
+				        <GivenName>Le père du métro</GivenName>
+				        <Gender>M</Gender>
+				        <BirthDate>1852-01-27</BirthDate>
+				        <BirthPlace>
+				            <Geogname>Uzel</Geogname>
+				            <Address>Place de la Mairie</Address>
+				            <PostalCode>22460</PostalCode>
+				            <City>Uzel</City>
+				            <Region>Bretagne</Region>
+				            <Country>France</Country>
+				        </BirthPlace>
+				        <DeathDate>1936-08-03</DeathDate>
+				        <DeathPlace>
+				            <Geogname>Paris</Geogname>
+				            <Address>Hôpital Boucicaut</Address>
+				            <PostalCode>75015</PostalCode>
+				            <City>Paris</City>
+				            <Region>Ile de France</Region>
+				            <Country>France</Country>
+				        </DeathPlace>
+				        <Nationality>Française</Nationality>
+				        <Identifier>0000 0000 5488 9547</Identifier>
+				        <Function>Ingénierie</Function>
+				        <Activity>Conception de lignes de métro</Activity>
+				        <Position>Chef de l'inspection des Ponts et Chaussées</Position>
+				        <Role>Directeur des travaux</Role>
+				        <Mandate>Loi du 30 mars 1898</Mandate>
+				    </Transmitter>
+				    <Sender>
+				        <FirstName>Fulgence Marie Auguste</FirstName>
+				        <BirthName>Bienvenüe</BirthName>
+				        <FullName>Fulgence Marie Auguste Bienvenüe</FullName>
+				        <GivenName>Le père du métro</GivenName>
+				        <Gender>M</Gender>
+				        <BirthDate>1852-01-27</BirthDate>
+				        <BirthPlace>
+				            <Geogname>Uzel</Geogname>
+				            <Address>Place de la Mairie</Address>
+				            <PostalCode>22460</PostalCode>
+				            <City>Uzel</City>
+				            <Region>Bretagne</Region>
+				            <Country>France</Country>
+				        </BirthPlace>
+				        <DeathDate>1936-08-03</DeathDate>
+				        <DeathPlace>
+				            <Geogname>Paris</Geogname>
+				            <Address>Hôpital Boucicaut</Address>
+				            <PostalCode>75015</PostalCode>
+				            <City>Paris</City>
+				            <Region>Ile de France</Region>
+				            <Country>France</Country>
+				        </DeathPlace>
+				        <Nationality>Française</Nationality>
+				        <Identifier>0000 0000 5488 9547</Identifier>
+				        <Function>Ingénierie</Function>
+				        <Activity>Conception de lignes de métro</Activity>
+				        <Position>Chef de l'inspection des Ponts et Chaussées</Position>
+				        <Role>Directeur des travaux</Role>
+				        <Mandate>Loi du 30 mars 1898</Mandate>
+				    </Sender>
+				    <Source>Wikipedia</Source>
+				    <RelatedObjectReference>
+				        <IsVersionOf>
+				            <ArchiveUnitRefId>ID14</ArchiveUnitRefId>
+				        </IsVersionOf>
+				        <Replaces>
+				            <DataObjectReference>
+				                <DataObjectGroupReferenceId>ID12</DataObjectGroupReferenceId>
+				            </DataObjectReference>
+				        </Replaces>
+				        <Requires>
+				            <RepositoryArchiveUnitPID>19850526/6</RepositoryArchiveUnitPID>
+				        </Requires>
+				        <IsPartOf>
+				            <RepositoryObjectPID>12345676890</RepositoryObjectPID>
+				        </IsPartOf>
+				        <References>
+				            <ExternalReference>4-LK18-3389</ExternalReference>
+				        </References>
+				    </RelatedObjectReference>
+				    <CreatedDate>2017-01-01</CreatedDate>
+				    <TransactedDate>2017-01-01</TransactedDate>
+				    <AcquiredDate>2017-01-01</AcquiredDate>
+				    <SentDate>2017-01-01</SentDate>
+				    <ReceivedDate>2017-01-01</ReceivedDate>
+				    <RegisteredDate>2017-01-01</RegisteredDate>
+				    <StartDate>2017-04-04T08:07:06</StartDate>
+					<EndDate>2017-04-04T08:07:06</EndDate>
+				    <Event>
+				        <EventIdentifier>123456</EventIdentifier>
+				        <EventTypeCode>Ligne_ouverture</EventTypeCode>
+				        <EventType>Ouverture</EventType>
+				        <EventDateTime>1998-05-25T08:07:06</EventDateTime>
+				        <EventDetail>Ouverture de la station à l'exploitation</EventDetail>
+				        <Outcome>OK</Outcome>
+				        <OutcomeDetail>Ligne_Ouverture_OK</OutcomeDetail>
+				        <OutcomeDetailMessage>Ouverture de la station effectuée avec succès</OutcomeDetailMessage>
+				        <EventDetailData>500 personnes présentes</EventDetailData>
+				    </Event>
+				    <Signature>
+				        <Signer>
+				            <FirstName>Fulgence Marie Auguste</FirstName>
+				            <BirthName>Bienvenüe</BirthName>
+				            <FullName>Fulgence Marie Auguste Bienvenüe</FullName>
+				            <GivenName>Le père du métro</GivenName>
+				            <Gender>M</Gender>
+				            <BirthDate>1852-01-27</BirthDate>
+				            <BirthPlace>
+				                <Geogname>Uzel</Geogname>
+				                <Address>Place de la Mairie</Address>
+				                <PostalCode>22460</PostalCode>
+				                <City>Uzel</City>
+				                <Region>Bretagne</Region>
+				                <Country>France</Country>
+				            </BirthPlace>
+				            <DeathDate>1936-08-03</DeathDate>
+				            <DeathPlace>
+				                <Geogname>Paris</Geogname>
+				                <Address>Hôpital Boucicaut</Address>
+				                <PostalCode>75015</PostalCode>
+				                <City>Paris</City>
+				                <Region>Ile de France</Region>
+				                <Country>France</Country>
+				            </DeathPlace>
+				            <Nationality>Française</Nationality>
+				            <Identifier>0000 0000 5488 9547</Identifier>
+				            <SigningTime>1998-04-04T08:07:06</SigningTime>
+				            <Function>Ingénierie</Function>
+				            <Activity>Conception de lignes de métro</Activity>
+				            <Position>Chef de l'inspection des Ponts et Chaussées</Position>
+				            <Role>Directeur des travaux</Role>
+				            <Mandate>Loi du 30 mars 1898</Mandate>
+				        </Signer>
+				        <Validator>
+				            <FirstName>Fulgence Marie Auguste</FirstName>
+				            <BirthName>Bienvenüe</BirthName>
+				            <FullName>Fulgence Marie Auguste Bienvenüe</FullName>
+				            <GivenName>Le père du métro</GivenName>
+				            <Gender>M</Gender>
+				            <BirthDate>1852-01-27</BirthDate>
+				            <BirthPlace>
+				                <Geogname>Uzel</Geogname>
+				                <Address>Place de la Mairie</Address>
+				                <PostalCode>22460</PostalCode>
+				                <City>Uzel</City>
+				                <Region>Bretagne</Region>
+				                <Country>France</Country>
+				            </BirthPlace>
+				            <DeathDate>1936-08-03</DeathDate>
+				            <DeathPlace>
+				                <Geogname>Paris</Geogname>
+				                <Address>Hôpital Boucicaut</Address>
+				                <PostalCode>75015</PostalCode>
+				                <City>Paris</City>
+				                <Region>Ile de France</Region>
+				                <Country>France</Country>
+				            </DeathPlace>
+				            <Nationality>Française</Nationality>
+				            <Identifier>0000 0000 5488 9547</Identifier>
+				            <ValidationTime>1998-04-04T08:07:06</ValidationTime>
+				            <Function>Ingénierie</Function>
+				            <Activity>Conception de lignes de métro</Activity>
+				            <Position>Chef de l'inspection des Ponts et Chaussées</Position>
+				            <Role>Directeur des travaux</Role>
+				            <Mandate>Loi du 30 mars 1898</Mandate>
+				        </Validator>
+				        <ReferencedObject>
+				            <SignedObjectId>ID13</SignedObjectId>
+				            <SignedObjectDigest algorithm="SHA-512">86c0bc701ef6b5dd21b080bc5bb2af38097baa6237275da83a52f092c9eae3e4e4b0247391620bd732fe824d18bd3bb6c37e62ec73a8cf3585c6a799399861b1</SignedObjectDigest>
+				        </ReferencedObject>
+				    </Signature>
+				    <Gps>
+				        <GpsVersionID>Système géodésique WGS 84</GpsVersionID>
+				        <GpsAltitude>36</GpsAltitude>
+				        <GpsAltitudeRef>0</GpsAltitudeRef>
+				        <GpsLatitude>48 56 45.395</GpsLatitude>
+				        <GpsLatitudeRef>N</GpsLatitudeRef>
+				        <GpsLongitude>2 21 49.964</GpsLongitude>
+				        <GpsLongitudeRef>E</GpsLongitudeRef>
+				        <GpsDateStamp>2018-03-01T11:04:00</GpsDateStamp>
+				    </Gps>
+					<Arrangement>Hiérarchique</Arrangement>
+				</Content>
+				<ArchiveUnit id="ID7">
+					<ArchiveUnitRefId>ID6</ArchiveUnitRefId>
+				</ArchiveUnit>
+				<DataObjectReference>
+					<DataObjectGroupReferenceId>ID34</DataObjectGroupReferenceId>
+				</DataObjectReference>
+			</ArchiveUnit>
+			<ArchiveUnit id="ID6">
+				<Management>
+					<AppraisalRule>
+						<Rule>APP-00002</Rule>
+						<StartDate>2002-01-01</StartDate>
+						<FinalAction>Destroy</FinalAction>
+					</AppraisalRule>
+					<AccessRule>
+					<PreventInheritance>true</PreventInheritance>
+					</AccessRule>
+				</Management>
+				<Content>
+					<DescriptionLevel>RecordGrp</DescriptionLevel>
+					<Title>Saint Denis Basilique</Title>
+					<Description>Cette ArchiveUnit déclare une AccessRule annulant toutes les règles héritées. Elle hérite de Saint-Denis Université un NeedAuthorization à true, une StorageRule avec un FinalAction à Copy, une AppraisalRule avec un FinalAction à Keep et une ClassificationRule dont la Rule est CLASS-00001 avec pour StartDate 03/06/2015, Confidentiel Défense pour ClassificationLevel, ClassificationOwner0 pour ClassificationOwner, ClassificationAudience0 pour ClassificationAudience, 03/06/2016 comme ClassificationReassasingDate et un NeedReassessingAuthorization à true</Description>
+					<StartDate>2017-04-04T08:07:06</StartDate>
+					<EndDate>2017-04-04T08:07:06</EndDate>
+				</Content>
+				<ArchiveUnit id="ID9">
+					<ArchiveUnitRefId>ID8</ArchiveUnitRefId>
+				</ArchiveUnit>
+				<DataObjectReference>
+					<DataObjectGroupReferenceId>ID12</DataObjectGroupReferenceId>
+				</DataObjectReference>
+			</ArchiveUnit>
+			<ArchiveUnit id="ID8">
+				<Management>
+					<StorageRule>
+					<Rule>STO-00001</Rule>
+					<StartDate>2000-01-01</StartDate>
+					<FinalAction>Copy</FinalAction>
+					</StorageRule>
+					<AppraisalRule>
+						<Rule>APP-00001</Rule>
+						<StartDate>2001-01-01</StartDate>
+						<FinalAction>Destroy</FinalAction>
+					</AppraisalRule>
+					<DisseminationRule>
+					<Rule>DIS-00001</Rule>
+					<StartDate>2000-01-01</StartDate>
+					</DisseminationRule>
+					<ReuseRule>
+					<Rule>REU-00001</Rule>
+					<StartDate>2000-01-01</StartDate>
+					</ReuseRule>
+				</Management>
+				<Content>
+					<DescriptionLevel>RecordGrp</DescriptionLevel>
+					<Title>Carrefour Pleyel</Title>
+					<Description>Cette ArchiveUnit déclare une StorageRule avec STO-00001 comme Rule, 01/01/2000 comme StartDate et Copy comme FinalAction, une AppraisalRule avec APP-00001 comme Rule, 01/01/2001 comme StartDate et Destroy comme FinalAction, une DisseminationRule avec DIS-00001 comme Rule et 01/01/2000 comme StartDate et une ReuseRule avec REU-00001 comme Rule et 01/01/2000 comme StartDate. Elle hérite de Saint-Denis Université un NeedAuthorization à true, et une ClassificationRule dont la Rule est CLASS-00001 avec pour StartDate 03/06/2015, Confidentiel Défense pour ClassificationLevel, ClassificationOwner0 pour ClassificationOwner, ClassificationAudience0 pour ClassificationAudience, 03/06/2016 comme ClassificationReassasingDate et un NeedReassessingAuthorization à true</Description>
+					<StartDate>2017-04-04T08:07:06</StartDate>
+					<EndDate>2017-04-04T08:07:06</EndDate>
+				</Content>
+				<ArchiveUnit id="ID11">
+					<ArchiveUnitRefId>ID10</ArchiveUnitRefId>
+				</ArchiveUnit>
+			</ArchiveUnit>
+			<ArchiveUnit id="ID10">
+				<Management>
+					<StorageRule>
+					<RefNonRuleId>STO-00001</RefNonRuleId>
+					<FinalAction>Copy</FinalAction>
+					</StorageRule>
+					<AppraisalRule>
+						<RefNonRuleId>APP-00001</RefNonRuleId>
+						<FinalAction>Destroy</FinalAction>
+					</AppraisalRule>
+					<DisseminationRule>
+					<PreventInheritance>true</PreventInheritance>
+					</DisseminationRule>
+				</Management>
+				<Content>
+					<DescriptionLevel>RecordGrp</DescriptionLevel>
+					<Title>Saint-Lazare</Title>
+					<Description>Cette ArchiveUnit déclare une StorageRule en annulant la règle STO-00001 et en déclarant Copy comme FinalAction, une AppraisalRule annulant la règle APP-00001 héritée de Carrefour Pleyel ainsi qu'une DisseminationRule annulant toutes les règles héritées. Elle hérite de Carrefour Pleyel un NeedAuthorization à true, une ReuseRule avec REU-00001 comme Rule et 01/01/2000 comme StartDate, une ClassificationRule dont la Rule est CLASS-00001 avec pour StartDate 03/06/2015, Confidentiel Défense pour ClassificationLevel, ClassificationOwner0 pour ClassificationOwner, ClassificationAudience0 pour ClassificationAudience, 03/06/2016 comme ClassificationReassasingDate et un NeedReassessingAuthorization à true. Elle hérite de Marx Dormoy un NeedAuthorization à true, une AppraisalRule avec APP-00002 comme Rule, 01/01/2002 comme StartDate et Destroy comme FinalAction, une AccessRule avec ACC-00002 comme Rule et 01/01/2002 comme StartDate et une ClassificationRule dont la Rule est CLASS-00001 avec pour StartDate 03/06/2015, Confidentiel Défense pour ClassificationLevel, ClassificationOwner0 pour ClassificationOwner, ClassificationAudience0 pour ClassificationAudience, 03/06/2016 comme ClassificationReassasingDate et un NeedReassessingAuthorization à true</Description>
+					<StartDate>2017-04-04T08:07:06</StartDate>
+					<EndDate>2017-04-04T08:07:06</EndDate>
+				</Content>
+				<ArchiveUnit id="ID15">
+					<ArchiveUnitRefId>ID14</ArchiveUnitRefId>
+				</ArchiveUnit>
+			</ArchiveUnit>
+			<ArchiveUnit id="ID14">
+				<Content>
+					<DescriptionLevel>Item</DescriptionLevel>
+					<Title>Montparnasse.txt</Title>
+					<Description>Cette ArchiveUnit ne déclare aucune règle. Elle hérite de Saint-Lazare un NeedAuthorization à true, une StorageRule avec Copy comme FinalAction, une AppraisalRule avec APP-00002 comme Rule, 01/01/2002 comme StartDate et Destroy comme FinalAction (venant de MarxDormoy), une ReuseRule avec REU-00001 comme Rule et 01/01/2000 comme StartDate (venant de Carrefour Pleyel), une AccessRule avec ACC-00002 comme Rule et 01/01/2002 comme StartDate (venant de Marx Dormoy) et une ClassificationRule dont la Rule est CLASS-00001 avec pour StartDate 03/06/2015, Confidentiel Défense pour ClassificationLevel, ClassificationOwner0 pour ClassificationOwner, ClassificationAudience0 pour ClassificationAudience, 03/06/2016 comme ClassificationReassasingDate et un NeedReassessingAuthorization à true</Description>
+					<TransactedDate>2017-04-04T08:07:06</TransactedDate>
+				</Content>
+				<DataObjectReference>
+					<DataObjectGroupReferenceId>ID12</DataObjectGroupReferenceId>
+				</DataObjectReference>
+			</ArchiveUnit>
+			<ArchiveUnit id="ID20">
+				<Management>
+					<AppraisalRule>
+						<Rule>APP-00002</Rule>
+						<StartDate>2002-01-01</StartDate>
+						<FinalAction>Destroy</FinalAction>
+					</AppraisalRule>
+					<AccessRule>
+					<RefNonRuleId>ACC-00003</RefNonRuleId>
+					</AccessRule>
+					<DisseminationRule>
+					<Rule>DIS-00002</Rule>
+					<StartDate>2000-01-01</StartDate>
+					</DisseminationRule>
+				</Management>
+				<Content>
+					<DescriptionLevel>RecordGrp</DescriptionLevel>
+					<Title>Marx Dormoy</Title>
+					<Description>Cette ArchiveUnit déclare une AppraisalRule avec APP-00002 comme Rule, 01/01/2002 comme StartDate et Destroy comme FinalAction, une AccessRule annulant la règle ACC-00003, et une DisseminationRule avec DIS-00002 comme Rule et 01/01/2000 comme StartDate. Elle hérite de Porte de la Chapelle un NeedAuthorization à true, une StorageRule avec Copy comme FinalAction, une AccessRule avec ACC-00002 comme Rule et 01/01/2002 comme StartDate et une ClassificationRule avec CLASS-00001 comme Rule et 03/06/2015 comme StartDate, Confidentiel Défense pour ClassificationLevel, ClassificationOwner0 pour ClassificationOwner, ClassificationAudience0 pour ClassificationAudience, 03/06/2016 comme ClassificationReassasingDate et un NeedReassessingAuthorization à true</Description>
+					<StartDate>2017-04-05T08:11:56</StartDate>
+					<EndDate>2017-04-05T08:11:56</EndDate>
+				</Content>
+				<ArchiveUnit id="ID74">
+					<ArchiveUnitRefId>ID10</ArchiveUnitRefId>
+				</ArchiveUnit>
+				<DataObjectReference>
+					<DataObjectGroupReferenceId>ID54</DataObjectGroupReferenceId>
+				</DataObjectReference>
+			</ArchiveUnit>
+		</DescriptiveMetadata>
+		<ManagementMetadata>
+		    <AcquisitionInformation>Versement</AcquisitionInformation>
+		    <LegalStatus>Public Archive</LegalStatus>
+		    <OriginatingAgencyIdentifier>RATP</OriginatingAgencyIdentifier>
+		    <SubmissionAgencyIdentifier>RATP</SubmissionAgencyIdentifier>
+		    <StorageRule>
+				<FinalAction>Copy</FinalAction>
+			</StorageRule>
+			<AppraisalRule>
+				<Rule>APP-00002</Rule>
+				<StartDate>2002-01-01</StartDate>
+				<FinalAction>Destroy</FinalAction>
+			</AppraisalRule>
+			<AccessRule>
+				<Rule>ACC-00002</Rule>
+				<StartDate>2000-01-01</StartDate>
+			</AccessRule>
+			<ClassificationRule>
+                <Rule>CLASS-00001</Rule>
+                <StartDate>2015-06-03</StartDate>
+                <ClassificationAudience>ClassificationAudience0</ClassificationAudience>
+                <ClassificationLevel>Secret Défense</ClassificationLevel>
+                <ClassificationOwner>ClassificationOwner0</ClassificationOwner>
+                <ClassificationReassessingDate>2016-06-03</ClassificationReassessingDate>
+                <NeedReassessingAuthorization>true</NeedReassessingAuthorization>   
+            </ClassificationRule>
+			<NeedAuthorization>true</NeedAuthorization>
+		</ManagementMetadata>
+	</DataObjectPackage>
+    <ArchivalAgency>
+        <Identifier>Identifier4</Identifier>
+    </ArchivalAgency>
+    <TransferringAgency>
+        <Identifier>Identifier5</Identifier>
+    </TransferringAgency>
+</ArchiveTransfer>

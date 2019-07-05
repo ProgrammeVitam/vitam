@@ -114,6 +114,7 @@ public class PreservationStorageMetadataAndLfc extends StoreMetadataObjectAction
         try (MetaDataClient metaDataClient = metaDataClientFactory.getClient();
             LogbookLifeCyclesClient logbookClient = logbookLifeCyclesClientFactory.getClient()) {
             JsonNode got = selectMetadataDocumentRawById(guid, DataCategory.OBJECTGROUP, metaDataClient);
+            String strategyId = MetadataDocumentHelper.getStrategyIdFromRawUnit(got);
             MetadataDocumentHelper.removeComputedFieldsFromObjectGroup(got);
             JsonNode lfc = getRawLogbookLifeCycleById(guid, DataCategory.OBJECTGROUP, logbookClient);
             JsonNode docWithLfc = MetadataStorageHelper.getGotWithLFC(got, lfc);
@@ -122,7 +123,7 @@ public class PreservationStorageMetadataAndLfc extends StoreMetadataObjectAction
             final ObjectDescription description =
                 new ObjectDescription(DataCategory.OBJECTGROUP, containerName,
                     fileName, IngestWorkflowConstants.OBJECT_GROUP_FOLDER + File.separator + fileName);
-            storeObject(description, itemStatus);
+            storeObject(strategyId, description, itemStatus);
             return buildItemStatus(PRESERVATION_STORAGE_METADATA_LFC, OK,
                 EventDetails.of(String.format("Storage %s", guid)));
         } catch (Exception e) {

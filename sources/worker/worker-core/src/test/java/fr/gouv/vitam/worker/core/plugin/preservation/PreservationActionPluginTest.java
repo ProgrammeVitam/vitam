@@ -132,8 +132,7 @@ public class PreservationActionPluginTest {
 
         PreservationDistributionLine preservationDistributionLine = new PreservationDistributionLine("fmt/43", "photo.jpg",
             Collections.singletonList(new ActionPreservation(ActionTypePreservation.ANALYSE)), "unitId", griffinId, objectId, true, 45, "gotId",
-            "BinaryMaster",
-            "BinaryMaster", "ScenarioId", "griffinIdentifier");
+            "BinaryMaster", "BinaryMaster", "other_binary_strategy", "ScenarioId", "griffinIdentifier");
         parameter.setObjectNameList(Collections.singletonList("gotId"));
         parameter.setObjectMetadataList(Collections.singletonList(JsonHandler.toJsonNode(preservationDistributionLine)));
 
@@ -153,21 +152,21 @@ public class PreservationActionPluginTest {
     @RunWithCustomExecutor
     public void should_copy_input_files() throws Exception {
         // Given
-        given(storageClient.getContainerAsync(VitamConfiguration.getDefaultStrategy(), objectId, OBJECT, getNoLogAccessLog()))
+        given(storageClient.getContainerAsync("other_binary_strategy", objectId, OBJECT, getNoLogAccessLog()))
             .willReturn(createOkResponse("image-files-with-data"));
 
         // When
         plugin.executeList(parameter, handler);
 
         // Then
-        verify(storageClient).getContainerAsync(VitamConfiguration.getDefaultStrategy(), objectId, OBJECT, getNoLogAccessLog());
+        verify(storageClient).getContainerAsync("other_binary_strategy", objectId, OBJECT, getNoLogAccessLog());
     }
 
     @Test
     @RunWithCustomExecutor
     public void should_create_report() throws Exception {
         // Given
-        given(storageClient.getContainerAsync(VitamConfiguration.getDefaultStrategy(), objectId, OBJECT, getNoLogAccessLog()))
+        given(storageClient.getContainerAsync("other_binary_strategy", objectId, OBJECT, getNoLogAccessLog()))
             .willReturn(createOkResponse("image-files-with-data"));
 
         plugin.executeList(parameter, handler);
@@ -205,7 +204,7 @@ public class PreservationActionPluginTest {
     @RunWithCustomExecutor
     public void should_exec_workflow_and_return_build_status_OK() throws Exception {
         // Given
-        given(storageClient.getContainerAsync(VitamConfiguration.getDefaultStrategy(), objectId, OBJECT, getNoLogAccessLog()))
+        given(storageClient.getContainerAsync("other_binary_strategy", objectId, OBJECT, getNoLogAccessLog()))
             .willReturn(createOkResponse("image-files-with-data"));
 
         // When
@@ -233,7 +232,7 @@ public class PreservationActionPluginTest {
     @RunWithCustomExecutor
     public void should_create_preservation_report_with_binary_guid() throws Exception {
         // Given
-        given(storageClient.getContainerAsync(VitamConfiguration.getDefaultStrategy(), objectId, OBJECT, getNoLogAccessLog()))
+        given(storageClient.getContainerAsync("other_binary_strategy", objectId, OBJECT, getNoLogAccessLog()))
             .willReturn(createOkResponse("image-files-with-data"));
         doNothing().when(reportService).appendPreservationEntries(ArgumentMatchers.anyString(), captor.capture());
         // When

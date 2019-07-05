@@ -183,7 +183,7 @@ public class PreservationActionPlugin extends ActionHandler {
         InputStream src = null;
         try {
             fileResponse = storageClient
-                .getContainerAsync(VitamConfiguration.getDefaultStrategy(), entryParams.getObjectId(), OBJECT, getNoLogAccessLog());
+                .getContainerAsync(entryParams.getSourceStrategy(), entryParams.getObjectId(), OBJECT, getNoLogAccessLog());
             src = fileResponse.readEntity(InputStream.class);
             Path target = inputFilesDirectory.resolve(entryParams.getObjectId());
             Files.copy(src, target, REPLACE_EXISTING);
@@ -245,7 +245,7 @@ public class PreservationActionPlugin extends ActionHandler {
             .stream()
             .map(OutputExtra::of)
             .collect(Collectors.toList());
-        return WorkflowBatchResult.of(e.getId(), e.getUnitId(), e.getTargetUse(), result.getRequestId(), outputExtras, e.getSourceUse());
+        return WorkflowBatchResult.of(e.getId(), e.getUnitId(), e.getTargetUse(), result.getRequestId(), outputExtras, e.getSourceUse(), e.getSourceStrategy());
     }
 
     protected void createReport(List<WorkflowBatchResult> workflowResults, List<PreservationDistributionLine> entries, Integer tenantId,
