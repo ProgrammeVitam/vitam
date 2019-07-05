@@ -776,7 +776,8 @@ public class ProbativeCreateReportEntry extends ActionHandler {
 
     private List<String> getOfferDigests(StorageClient storageClient, DbVersionsModel dbVersionsModel) throws StorageNotFoundClientException, StorageServerClientException {
         List<String> offerIds = dbVersionsModel.getStorage().getOfferIds();
-        JsonNode information = storageClient.getInformation(VitamConfiguration.getDefaultStrategy(), OBJECT, dbVersionsModel.getId(), offerIds, true);
+        String strategyId = dbVersionsModel.getStorage().getStrategyId();
+        JsonNode information = storageClient.getInformation(strategyId, OBJECT, dbVersionsModel.getId(), offerIds, true);
         return offerIds.stream()
             .map(information::get)
             .filter(Objects::nonNull)

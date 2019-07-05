@@ -173,7 +173,7 @@ public class ProbativeCreateReportEntryTest {
         TestHandlerIO handler = new TestHandlerIO();
         handler.setNewLocalFile(reportFile);
 
-        given(metaDataClient.getObjectGroupByIdRaw(objectGroupId)).willReturn(getResponseWith("version_id", "storage_id", "BinaryMaster_25", "OPI"));
+        given(metaDataClient.getObjectGroupByIdRaw(objectGroupId)).willReturn(getResponseWith("version_id", "storage_id", "default", "BinaryMaster_25", "OPI"));
 
         // When
         ItemStatus itemStatus = probativeCreateReportEntry.execute(param, handler);
@@ -204,10 +204,11 @@ public class ProbativeCreateReportEntryTest {
 
         String storageId = "storage_id_1";
         String usageVersion = "BinaryMaster_25";
+        String strategyId = "default";
 
         ObjectNode storageInformation = createStorageInformationWithDigest(storageId, "");
 
-        given(metaDataClient.getObjectGroupByIdRaw(objectGroupId)).willReturn(getResponseWith(versionId, storageId, usageVersion, "OPI"));
+        given(metaDataClient.getObjectGroupByIdRaw(objectGroupId)).willReturn(getResponseWith(versionId, storageId, strategyId, usageVersion, "OPI"));
         given(storageClient.getInformation(VitamConfiguration.getDefaultStrategy(), OBJECT, versionId, Collections.singletonList(storageId), true)).willReturn(storageInformation);
 
         // When
@@ -239,9 +240,10 @@ public class ProbativeCreateReportEntryTest {
 
         String storageId = "storage_id_1";
         String usageVersion = "BinaryMaster_25";
+        String strategyId = "other_strategy";
 
-        given(metaDataClient.getObjectGroupByIdRaw(objectGroupId)).willReturn(getResponseWith(versionId, storageId, usageVersion, "OPI"));
-        given(storageClient.getInformation(VitamConfiguration.getDefaultStrategy(), OBJECT, versionId, Collections.singletonList(storageId), true)).willReturn(createStorageInformationWithDigest(storageId, "DIGEST_FROM_STORAGE"));
+        given(metaDataClient.getObjectGroupByIdRaw(objectGroupId)).willReturn(getResponseWith(versionId, storageId, strategyId, usageVersion, "OPI"));
+        given(storageClient.getInformation(strategyId, OBJECT, versionId, Collections.singletonList(storageId), true)).willReturn(createStorageInformationWithDigest(storageId, "DIGEST_FROM_STORAGE"));
         given(logbookLifeCyclesClient.getRawObjectGroupLifeCycleById(objectGroupId)).willReturn(objectMapper.valueToTree(new LogbookLifecycle()));
 
         // When
@@ -273,6 +275,7 @@ public class ProbativeCreateReportEntryTest {
 
         String storageId = "storage_id_1";
         String usageVersion = "BinaryMaster_25";
+        String strategyId = "other_strategy";
         String opi = "OPI";
         String logbookLFCDate = "lastPersistedDate";
         String logbookOperationLastpersiteddate = "LOGBOOK_OPERATION_lastpersiteddate";
@@ -281,8 +284,8 @@ public class ProbativeCreateReportEntryTest {
         LogbookOperation logBookOperationWith1 = createLogBookOperationWith("dateOp2", LOGBOOK_TRACEABILITY.getEventType(), "op2", "fileName");
 
 
-        given(metaDataClient.getObjectGroupByIdRaw(objectGroupId)).willReturn(getResponseWith(versionId, storageId, usageVersion, opi));
-        given(storageClient.getInformation(VitamConfiguration.getDefaultStrategy(), OBJECT, versionId, Collections.singletonList(storageId), true)).willReturn(createStorageInformationWithDigest(storageId, "DIGEST_FROM_STORAGE"));
+        given(metaDataClient.getObjectGroupByIdRaw(objectGroupId)).willReturn(getResponseWith(versionId, storageId, strategyId, usageVersion, opi));
+        given(storageClient.getInformation(strategyId, OBJECT, versionId, Collections.singletonList(storageId), true)).willReturn(createStorageInformationWithDigest(storageId, "DIGEST_FROM_STORAGE"));
         given(logbookLifeCyclesClient.getRawObjectGroupLifeCycleById(objectGroupId)).willReturn(objectMapper.valueToTree(createObjectGroupLifecycleFrom(versionId, "awesomedigest", logbookLFCDate)));
         given(logbookOperationsClient.selectOperationById(opi)).willReturn(objectMapper.valueToTree(createOperation(createLogBookOperationWith(logbookOperationLastpersiteddate, "INGEST_OPERATION", "opIngest"))));
 
@@ -370,7 +373,7 @@ public class ProbativeCreateReportEntryTest {
         return storageInformation;
     }
 
-    private RequestResponseOK<JsonNode> getResponseWith(String versionId, String storageId, String usageVersion, String opi) {
+    private RequestResponseOK<JsonNode> getResponseWith(String versionId, String storageId, String strategyId, String usageVersion, String opi) {
         DbVersionsModel versionsModel = new DbVersionsModel();
         versionsModel.setDataObjectVersion(usageVersion);
         versionsModel.setId(versionId);
@@ -378,6 +381,7 @@ public class ProbativeCreateReportEntryTest {
         versionsModel.setMessageDigest("DIGEST");
         DbStorageModel storage = new DbStorageModel();
         storage.setOfferIds(Collections.singletonList(storageId));
+        storage.setStrategyId(strategyId);
         versionsModel.setStorage(storage);
         RequestResponseOK<JsonNode> responseOK = new RequestResponseOK<>();
         DbObjectGroupModel groupModel = new DbObjectGroupModel();
