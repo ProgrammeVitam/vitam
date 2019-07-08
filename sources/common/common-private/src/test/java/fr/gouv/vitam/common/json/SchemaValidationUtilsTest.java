@@ -24,17 +24,47 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  *******************************************************************************/
-package fr.gouv.vitam.metadata.core.archiveunitprofile;
+package fr.gouv.vitam.common.json;
 
-import fr.gouv.vitam.common.exception.VitamRuntimeException;
+import com.fasterxml.jackson.databind.JsonNode;
+import fr.gouv.vitam.common.PropertiesUtils;
+import fr.gouv.vitam.common.model.administration.ArchiveUnitProfileModel;
+import org.junit.Test;
 
-public class ArchiveUnitProfileException extends VitamRuntimeException {
+import java.util.List;
 
-    public ArchiveUnitProfileException(String message) {
-        super(message);
-    }
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 
-    public ArchiveUnitProfileException(String message, Throwable cause) {
-        super(message, cause);
+public class SchemaValidationUtilsTest {
+
+    private static final String ARCHIVE_UNIT_PROFILE_OK_JSON_FILE = "archive_unit_profile_OK.json";
+
+    @Test
+    public void testExtractFieldsFromSchema() throws Exception {
+        // Given
+        JsonNode jsonArcUnit =
+            JsonHandler.getFromInputStream(PropertiesUtils.getResourceAsStream(ARCHIVE_UNIT_PROFILE_OK_JSON_FILE));
+        ArchiveUnitProfileModel archiveUnitProfile =
+            JsonHandler.getFromJsonNode(jsonArcUnit, ArchiveUnitProfileModel.class);
+        // When
+        List<String> extractFields =
+            SchemaValidationUtils.extractFieldsFromSchema(archiveUnitProfile.getControlSchema());
+
+        // Then
+        assertNotNull(extractFields);
+        assertThat(extractFields.size() > 1).isTrue();
+        assertEquals(extractFields.size(), 80);
+        // assert child fields are present
+        assertTrue(extractFields.contains("Rule"));
+        assertTrue(extractFields.contains("StartDate"));
+        assertTrue(extractFields.contains("PreventRulesId"));
+        // assert parent fields are not present
+        assertFalse(extractFields.contains("Rules"));
+        assertFalse(extractFields.contains("Management"));
+
     }
 }

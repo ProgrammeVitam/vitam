@@ -372,6 +372,7 @@ vitam:
         reconstruction:
         consul_check_business: 10 # value in seconds
         consul_admin_check: 10 # value in seconds
+
         # Ontology cache settings (max entries in cache & retention timeout in seconds)
         ontologyCacheMaxEntries: 100
         ontologyCacheTimeoutInSeconds: 300
@@ -379,6 +380,11 @@ vitam:
         # Archive Unit Profile cache settings (max entries in cache & retention timeout in seconds)
         archiveUnitProfileCacheMaxEntries: 100
         archiveUnitProfileCacheTimeoutInSeconds: 300
+
+        # Schema validator cache settings (max entries in cache & retention timeout in seconds)
+        schemaValidatorCacheMaxEntries: 100
+        schemaValidatorCacheTimeoutInSeconds: 300
+
         acceptableRequestTime: 10 # value in seconds
     processing:
         vitam_component: processing
@@ -487,6 +493,19 @@ vitam:
         consul_check_business: 10 # value in seconds
         consul_admin_check: 10 # value in seconds
         acceptableRequestTime: 60 # value in seconds
+
+        # Ontology cache settings (max entries in cache & retention timeout in seconds)
+        ontologyCacheMaxEntries: 100
+        ontologyCacheTimeoutInSeconds: 300
+
+        # Archive Unit Profile cache settings (max entries in cache & retention timeout in seconds)
+        archiveUnitProfileCacheMaxEntries: 100
+        archiveUnitProfileCacheTimeoutInSeconds: 300
+
+        # Schema validator cache settings (max entries in cache & retention timeout in seconds)
+        schemaValidatorCacheMaxEntries: 100
+        schemaValidatorCacheTimeoutInSeconds: 300
+
     workspace:
         vitam_component: workspace
         host: "workspace.service.{{ consul_domain }}"

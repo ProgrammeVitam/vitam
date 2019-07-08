@@ -51,6 +51,7 @@ import fr.gouv.vitam.metadata.api.model.ObjectGroupPerOriginatingAgency;
 import fr.gouv.vitam.metadata.core.MetaDataImpl;
 import fr.gouv.vitam.metadata.core.model.UpdateUnit;
 import fr.gouv.vitam.metadata.core.rules.MetadataRuleService;
+import fr.gouv.vitam.metadata.core.validation.MetadataValidationException;
 import org.elasticsearch.ElasticsearchParseException;
 
 import javax.ws.rs.Consumes;
@@ -538,7 +539,7 @@ public class MetadataResource extends ApplicationStatusResource {
                     .setMessage(status.getReasonPhrase())
                     .setDescription(e.getMessage()))
                 .build();
-        } catch (final MetaDataExecutionException | ArchiveUnitOntologyValidationException e) {
+        } catch (final MetaDataExecutionException | MetadataValidationException e) {
             return metadataExecutionExceptionTrace(e);
         } catch (MetaDataNotFoundException e) {
             LOGGER.error(e);
@@ -807,7 +808,7 @@ public class MetadataResource extends ApplicationStatusResource {
                     .setHttpCode(Status.CREATED.getStatusCode()))
                 .build();
 
-        } catch (final InvalidParseOperationException e) {
+        } catch (final InvalidParseOperationException  e) {
             LOGGER.error(e);
             status = Status.BAD_REQUEST;
             return Response.status(status)
@@ -817,6 +818,8 @@ public class MetadataResource extends ApplicationStatusResource {
                     .setMessage(status.getReasonPhrase())
                     .setDescription(e.getMessage()))
                 .build();
+        } catch (final MetaDataExecutionException | MetadataValidationException e) {
+            return metadataExecutionExceptionTrace(e);
         } catch (MetaDataNotFoundException e) {
             LOGGER.error("Object group not found " + objectGroupId, e);
             status = Status.NOT_FOUND;
@@ -827,18 +830,7 @@ public class MetadataResource extends ApplicationStatusResource {
                     .setMessage(status.getReasonPhrase())
                     .setDescription(e.getMessage()))
                 .build();
-        } catch (MetaDataExecutionException e) {
-            LOGGER.error(e);
-            status = Status.EXPECTATION_FAILED;
-            return Response.status(status)
-                .entity(new VitamError(status.name()).setHttpCode(status.getStatusCode())
-                    .setContext(METADATA)
-                    .setState(CODE_VITAM)
-                    .setMessage(status.getReasonPhrase())
-                    .setDescription(e.getMessage()))
-                .build();
         }
-
     }
 
     /**

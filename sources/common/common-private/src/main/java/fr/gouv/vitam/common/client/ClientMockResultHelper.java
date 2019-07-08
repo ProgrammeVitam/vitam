@@ -37,12 +37,17 @@ import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.administration.ContextModel;
 import fr.gouv.vitam.common.model.administration.IngestContractModel;
 import fr.gouv.vitam.common.model.administration.OntologyModel;
+import fr.gouv.vitam.common.model.administration.OntologyOrigin;
+import fr.gouv.vitam.common.model.administration.OntologyType;
 import fr.gouv.vitam.common.stream.StreamUtils;
 
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.MultivaluedHashMap;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
 
 /**
  * Results for client mock
@@ -360,20 +365,22 @@ public class ClientMockResultHelper {
             "}";
 
 
-    public static final String ONTOLOGIES = "{" +
-        "\"_id\":\"aeaaaaaaaaaaaaabaa4ikakyetch6mqaaacq\", " +
-        "\"_tenant\":1, " +
-        "\"Identifier\":\"_sps\", " +
-        "\"ApiField\":\"#originating_agencies\", " +
-        "\"SedaField\":\"OriginatingAgencyIdentifier\", " +
-        "\"Description\":\"Internal ontology sample\", " +
-        "\"Origin\":\"INTERNAL\", " +
-        "\"ShortName\":\"Originating Agency Identifier\", " +
-        "\"Collections\":[\"Unit\",\"ObjectGroup\"]," +
-        "\"Type\":\"KEYWORD\", " +
-        "\"CreationDate\":\"2018-02-02\", " +
-        "\"LastUpdate\":\"2018-02-02\"" +
-        "}";
+    public static final List<OntologyModel> ONTOLOGIES = Collections.singletonList(
+        new OntologyModel()
+            .setId("aeaaaaaaaaaaaaabaa4ikakyetch6mqaaacq")
+            .setIdentifier("_sps")
+            .setId("aeaaaaaaaaaaaaabaa4ikakyetcaaaabbbcc")
+            .setTenant(1)
+            .setIdentifier("_sps")
+            .setApiField("#originating_agencies")
+            .setSedaField("OriginatingAgencyIdentifier")
+            .setDescription("Internal ontology sample")
+            .setOrigin(OntologyOrigin.INTERNAL)
+            .setShortName("Originating Agency Identifier")
+            .setCollections(Arrays.asList("Unit", "ObjectGroup"))
+            .setType(OntologyType.KEYWORD));
+
+    private static List<OntologyModel> ontologies = ONTOLOGIES;
 
     private static final String DIP_RESULTS = "{}";
     
@@ -501,6 +508,18 @@ public class ClientMockResultHelper {
         RequestResponseOK responseOK = new RequestResponseOK();
         if (null != s)
             responseOK.addResult(JsonHandler.getFromString(s, clasz));
+        return responseOK.setHttpCode(Status.OK.getStatusCode());
+    }
+
+    /**
+     * @param <T>
+     * @param s the original object to be included in response
+     * @return a default response
+     * @throws InvalidParseOperationException
+     */
+    public static <T> RequestResponse<T> createResponse(List<T> entries) throws InvalidParseOperationException {
+        RequestResponseOK responseOK = new RequestResponseOK();
+        responseOK.addAllResults(entries);
         return responseOK.setHttpCode(Status.OK.getStatusCode());
     }
 
@@ -746,6 +765,16 @@ public class ClientMockResultHelper {
      * @throws InvalidParseOperationException
      */
     public static RequestResponse getOntologies(int statusCode) throws InvalidParseOperationException {
-        return createResponse(ONTOLOGIES, OntologyModel.class);
+        return createResponse(ontologies);
+    }
+
+    public static void setOntologies(List<OntologyModel> ontologies) {
+        //FIXME : We really need to delete mock clients from production
+        ClientMockResultHelper.ontologies = ontologies;
+    }
+
+    public static void resetOntologies() {
+        //FIXME : We really need to delete mock clients from production
+        ClientMockResultHelper.ontologies = ONTOLOGIES;
     }
 }

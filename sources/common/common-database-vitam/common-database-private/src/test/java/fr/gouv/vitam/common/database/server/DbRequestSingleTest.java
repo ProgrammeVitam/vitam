@@ -48,8 +48,17 @@ import java.util.concurrent.TimeUnit;
 
 import static fr.gouv.vitam.common.database.builder.query.QueryHelper.eq;
 import static fr.gouv.vitam.common.database.builder.query.QueryHelper.match;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.mock;
 
 public class DbRequestSingleTest {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(DbRequestSingle.class);
@@ -120,12 +129,13 @@ public class DbRequestSingleTest {
         assertEquals(0, vitamCollection.getCollection().countDocuments());
 
         // init by dbRequest
-        final ArrayNode datas = JsonHandler.createArrayNode();
-        datas.add(getNewDocument(GUIDFactory.newGUID().toString(), "title one", 1));
-        datas.add(getNewDocument(GUIDFactory.newGUID().toString(), "title two", 2));
+        final ArrayNode data = JsonHandler.createArrayNode();
+        data.add(getNewDocument(GUIDFactory.newGUID().toString(), "title one", 1));
+        data.add(getNewDocument(GUIDFactory.newGUID().toString(), "title two", 2));
         final Insert insert = new Insert();
-        insert.setData(datas);
-        final DbRequestResult insertResult = dbRequestSingle.execute(insert);
+        insert.setData(data);
+        final DbRequestResult insertResult = dbRequestSingle.execute(insert, 0,
+            mock(DocumentValidator.class));
         assertEquals(2, insertResult.getCount());
         assertEquals(2, vitamCollection.getCollection().countDocuments());
         insertResult.close();
@@ -179,7 +189,7 @@ public class DbRequestSingleTest {
         final Update update = new Update();
         update.setQuery(eq("Title.keyword", "title one"));
         update.addActions(UpdateActionHelper.set("Title", "new name"));
-        final DbRequestResult updateResult = dbRequestSingle.execute(update);
+        final DbRequestResult updateResult = dbRequestSingle.execute(update, mock(DocumentValidator.class));
         assertEquals(1, updateResult.getCount());
         updateResult.close();
 
@@ -198,6 +208,107 @@ public class DbRequestSingleTest {
         deleteResult.close();
     }
 
+    @Test
+    @RunWithCustomExecutor
+    public void testInsertRequestWithValidationOK() throws Exception {
+
+        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
+        DbRequestSingle dbRequestSingle = new DbRequestSingle(vitamCollection);
+        assertEquals(0, vitamCollection.getCollection().countDocuments());
+
+        // init by dbRequest
+        final ArrayNode data = JsonHandler.createArrayNode();
+        data.add(getNewDocument(GUIDFactory.newGUID().toString(), "title one", 1));
+        data.add(getNewDocument(GUIDFactory.newGUID().toString(), "title two", 2));
+        final Insert insert = new Insert();
+        insert.setData(data);
+
+
+        DocumentValidator documentValidator = mock(DocumentValidator.class);
+        doNothing().when(documentValidator).validateDocument(any());
+
+        final DbRequestResult insertResult = dbRequestSingle.execute(insert, 0, documentValidator);
+        assertEquals(2, insertResult.getCount());
+        assertEquals(2, vitamCollection.getCollection().countDocuments());
+        insertResult.close();
+
+        final Select select = new Select();
+        select.setQuery(eq("Title.keyword", "title one"));
+        final DbRequestResult selectResult = dbRequestSingle.execute(select);
+        final List<VitamDocument> selectCursor = selectResult.getDocuments(VitamDocument.class);
+        assertFalse(selectCursor.isEmpty());
+        assertEquals(1, selectCursor.size());
+        assertThat(selectCursor.get(0).getString("Title")).isEqualTo("title one");
+        assertThat(selectCursor.get(0).getInteger("#version")).isEqualTo(0);
+        selectCursor.clear();
+        selectResult.close();
+    }
+
+    @Test
+    @RunWithCustomExecutor
+    public void testInsertRequestWithValidationFailure() throws Exception {
+
+        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
+        DbRequestSingle dbRequestSingle = new DbRequestSingle(vitamCollection);
+        assertEquals(0, vitamCollection.getCollection().countDocuments());
+
+        // init by dbRequest
+        final ArrayNode data = JsonHandler.createArrayNode();
+        data.add(getNewDocument(GUIDFactory.newGUID().toString(), "title one", 1));
+        final Insert insert = new Insert();
+        insert.setData(data);
+
+
+        DocumentValidator documentValidator = mock(DocumentValidator.class);
+        doThrow(new SchemaValidationException("Prb...")).when(documentValidator).validateDocument(any());
+
+        assertThatThrownBy( () -> dbRequestSingle.execute(insert, 0, documentValidator))
+            .isInstanceOf(SchemaValidationException.class);
+
+        assertEquals(0, vitamCollection.getCollection().countDocuments());
+    }
+
+    @Test
+    @RunWithCustomExecutor
+    public void testUpdateRequestWithValidationFailure() throws Exception {
+
+        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
+        DbRequestSingle dbRequestSingle = new DbRequestSingle(vitamCollection);
+        assertEquals(0, vitamCollection.getCollection().countDocuments());
+
+        // init by dbRequest
+        final ArrayNode data = JsonHandler.createArrayNode();
+        data.add(getNewDocument(GUIDFactory.newGUID().toString(), "title one", 1));
+        final Insert insert = new Insert();
+        insert.setData(data);
+
+        final DbRequestResult insertResult = dbRequestSingle.execute(insert, 0, mock(DocumentValidator.class));
+        assertEquals(1, insertResult.getCount());
+        assertEquals(1, vitamCollection.getCollection().countDocuments());
+        insertResult.close();
+
+        // update
+        final Update update = new Update();
+        update.setQuery(eq("Title.keyword", "title one"));
+        update.addActions(UpdateActionHelper.set("Title", "new name"));
+
+        DocumentValidator documentValidator = mock(DocumentValidator.class);
+        doThrow(new SchemaValidationException("Prb...")).when(documentValidator).validateDocument(any());
+
+        assertThatThrownBy( () -> dbRequestSingle.execute(update, documentValidator))
+            .isInstanceOf(SchemaValidationException.class);
+
+        // Ensure not updated
+        final Select select = new Select();
+        select.setQuery(eq("Title.keyword", "title one"));
+        final DbRequestResult selectResult = dbRequestSingle.execute(select);
+        final List<VitamDocument> selectCursor = selectResult.getDocuments(VitamDocument.class);
+        assertFalse(selectCursor.isEmpty());
+        assertEquals(1, selectCursor.size());
+        assertThat(selectCursor.get(0).getInteger("#version")).isEqualTo(0);
+        selectCursor.clear();
+        selectResult.close();
+    }
 
     @Test
     @RunWithCustomExecutor
@@ -216,7 +327,8 @@ public class DbRequestSingleTest {
         datas.add(getNewDocument(GUIDFactory.newGUID().toString(), "Optimistic lock test", 3));
         final Insert insert = new Insert();
         insert.setData(datas);
-        final DbRequestResult insertResult = new DbRequestSingle(vitamCollection).execute(insert);
+        final DbRequestResult insertResult = new DbRequestSingle(vitamCollection).execute(insert, 0,
+            mock(DocumentValidator.class));
         assertEquals(1, insertResult.getCount());
         assertEquals(1, vitamCollection.getCollection().countDocuments());
         insertResult.close();
@@ -236,8 +348,8 @@ public class DbRequestSingleTest {
         }
 
         Document document = (Document) vitamCollection.getCollection().find(new Document("Numero", 3)).first();
-        Assertions.assertThat(document.getString("Title")).contains("thread_");
-        Assertions.assertThat(document.getInteger("_v")).isEqualTo(5);
+        assertThat(document.getString("Title")).contains("thread_");
+        assertThat(document.getInteger("_v")).isEqualTo(5);
     }
 
 
@@ -248,7 +360,7 @@ public class DbRequestSingleTest {
             update.setQuery(eq("Numero", 3));
             update.addActions(UpdateActionHelper.set("Title", "thread_" + nbr));
 
-            final DbRequestResult updateResult = new DbRequestSingle(vitamCollection).execute(update);
+            final DbRequestResult updateResult = new DbRequestSingle(vitamCollection).execute(update, mock(DocumentValidator.class));
             System.err.println("Thread_" + nbr + " >> " + updateResult.getDiffs());
             assertEquals(1, updateResult.getCount());
             updateResult.close();

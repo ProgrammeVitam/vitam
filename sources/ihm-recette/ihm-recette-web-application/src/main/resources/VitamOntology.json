@@ -398,7 +398,7 @@
     "Identifier": "GpsAltitude",
     "SedaField": "GpsAltitude",
     "Description": "Mapping : unit-es-mapping.json",
-    "Type": "KEYWORD",
+    "Type": "LONG",
     "Origin": "INTERNAL",
     "ShortName": "Altitude",
     "Collections": [
@@ -929,7 +929,8 @@
     "ShortName": "Type",
     "Collections": [
       "Unit",
-      "Ontology"
+      "Ontology",
+      "PreservationScenario"
     ]
   },
   {
@@ -1327,6 +1328,18 @@
       "LogbookOperation",
       "Griffin",
       "PreservationScenario"
+    ]
+  },
+  {
+   "Identifier": "_av",
+   "ApiField": "_av",
+   "Description": "Version interne de l’enregistrement décrit.",
+   "Type": "LONG",
+   "Origin": "INTERNAL",
+   "ShortName": "Version",
+    "Collections": [
+     "Unit",
+      "ObjectGroup"
     ]
   },
   {
@@ -1895,33 +1908,11 @@
     ]
   },
   {
-    "Identifier": "Type",
-    "SedaField": "Type",
-    "Description": "Mapping : preservationscenario-es-mapping.json",
-    "Type": "KEYWORD",
-    "Origin": "INTERNAL",
-    "ShortName": "Type",
-    "Collections": [
-      "PreservationScenario"
-    ]
-  },
-  {
-    "Identifier": "Extension",
-    "SedaField": "Extension",
-    "Description": "Mapping : preservationscenario-es-mapping.json",
-    "Type": "KEYWORD",
-    "Origin": "INTERNAL",
-    "ShortName": "Extension",
-    "Collections": [
-      "PreservationScenario"
-    ]
-  },
-  {
     "Identifier": "Args",
     "SedaField": "Args",
     "Description": "Mapping : preservationscenario-es-mapping.json",
     "Type": "TEXT",
-    "Origin": "Args",
+    "Origin": "INTERNAL",
     "ShortName": "Extension",
     "Collections": [
       "PreservationScenario"
@@ -2181,7 +2172,8 @@
     "Origin": "INTERNAL",
     "ShortName": "Extension(s)",
     "Collections": [
-      "FileFormat"
+      "FileFormat",
+      "PreservationScenario"
     ]
   },
   {

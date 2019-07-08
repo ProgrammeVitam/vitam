@@ -29,7 +29,6 @@ package fr.gouv.vitam.common.database.server;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import com.github.fge.jsonschema.core.exceptions.ProcessingException;
 import com.mongodb.MongoBulkWriteException;
 import com.mongodb.MongoException;
 import com.mongodb.MongoWriteException;
@@ -48,7 +47,6 @@ import fr.gouv.vitam.common.database.builder.request.configuration.GlobalDatas;
 import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
 import fr.gouv.vitam.common.database.builder.request.single.Delete;
 import fr.gouv.vitam.common.database.builder.request.single.Insert;
-import fr.gouv.vitam.common.database.builder.request.single.RequestSingle;
 import fr.gouv.vitam.common.database.builder.request.single.Select;
 import fr.gouv.vitam.common.database.builder.request.single.Update;
 import fr.gouv.vitam.common.database.collections.VitamCollection;
@@ -72,8 +70,6 @@ import fr.gouv.vitam.common.guid.GUID;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.json.BsonHelper;
 import fr.gouv.vitam.common.json.JsonHandler;
-import fr.gouv.vitam.common.json.SchemaValidationStatus;
-import fr.gouv.vitam.common.json.SchemaValidationUtils;
 import fr.gouv.vitam.common.logging.SysErrLogger;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
@@ -97,8 +93,6 @@ import org.elasticsearch.search.SearchHit;
 import org.elasticsearch.search.SearchHits;
 import org.elasticsearch.search.sort.SortBuilder;
 
-import java.io.FileNotFoundException;
-import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -141,58 +135,39 @@ public class DbRequestSingle {
         vaNameAdapter = new SingleVarNameAdapter();
     }
 
-    /**
-     * execute all request
-     *
-     * @param request
-     * @return DbRequestResult
-     * @throws InvalidParseOperationException
-     * @throws DatabaseException
-     * @throws BadRequestException
-     * @throws InvalidCreateOperationException
-     * @throws SecurityException
-     * @throws NoSuchMethodException
-     * @throws InvocationTargetException
-     * @throws IllegalArgumentException
-     * @throws IllegalAccessException
-     * @throws InstantiationException
-     */
-    public DbRequestResult execute(RequestSingle request)
-        throws InvalidParseOperationException, BadRequestException, DatabaseException, InvalidCreateOperationException,
-        VitamDBException, SchemaValidationException {
-        return execute(request, 0);
-    }
-
-    /**
-     * execute all request
-     *
-     * @param request
-     * @param version
-     * @throws InvalidParseOperationException
-     * @throws DatabaseException
-     * @throws BadRequestException
-     * @throws InvalidCreateOperationException
-     * @throws SecurityException
-     * @throws NoSuchMethodException
-     * @throws InvocationTargetException
-     * @throws IllegalArgumentException
-     * @throws IllegalAccessException
-     * @throws InstantiationException
-     */
-    public DbRequestResult execute(RequestSingle request, Integer version)
+    public DbRequestResult execute(Select request)
         throws InvalidParseOperationException, DatabaseException, BadRequestException, InvalidCreateOperationException,
         VitamDBException, SchemaValidationException {
-        if (request instanceof Insert) {
-            ArrayNode data = ((Insert) request).getDatas();
-            return insertDocuments(data, version);
-        } else if (request instanceof Select) {
-            return findDocuments(((Select) request).getFinalSelect());
-        } else if (request instanceof Update) {
-            return updateDocuments(((Update) request).getFinalUpdate());
-        } else if (request instanceof Delete) {
-            return deleteDocuments(((Delete) request).getFinalDelete());
-        }
-        return new DbRequestResult();
+        return findDocuments(request.getFinalSelect());
+    }
+
+    public DbRequestResult execute(Insert request, Integer version,
+        DocumentValidator documentValidator)
+        throws InvalidParseOperationException, DatabaseException, BadRequestException, InvalidCreateOperationException,
+        VitamDBException, SchemaValidationException {
+        ArrayNode data = request.getDatas();
+        return insertDocuments(data, version, documentValidator);
+    }
+
+    public DbRequestResult execute(Delete request)
+        throws InvalidParseOperationException, DatabaseException, BadRequestException, InvalidCreateOperationException,
+        VitamDBException, SchemaValidationException {
+        return deleteDocuments(request.getFinalDelete());
+    }
+
+    public DbRequestResult execute(Update request, DocumentValidator documentValidator)
+        throws InvalidParseOperationException, DatabaseException, BadRequestException, InvalidCreateOperationException,
+        VitamDBException, SchemaValidationException {
+
+
+        return updateDocuments(request.getFinalUpdate(), documentValidator);
+    }
+
+    public DbRequestResult execute(Update request, Integer version, DocumentValidator documentValidator)
+        throws InvalidParseOperationException, DatabaseException, BadRequestException, InvalidCreateOperationException,
+        VitamDBException, SchemaValidationException {
+        // FIXME either use version parameter or delete it
+        return updateDocuments(request.getFinalUpdate(), documentValidator);
     }
 
     /**
@@ -203,15 +178,15 @@ public class DbRequestSingle {
      */
     public static boolean checkInsertOrUpdate(Exception e) {
         if (e instanceof DatabaseException &&
-            (((DatabaseException) e).getCause() instanceof MongoBulkWriteException |
-                ((DatabaseException) e).getCause() instanceof MongoWriteException)) {
+            (e.getCause() instanceof MongoBulkWriteException |
+                e.getCause() instanceof MongoWriteException)) {
             LOGGER.info("Document existed, updating ...");
             return true;
         }
         Throwable d = e.getCause();
         if (d instanceof DatabaseException &&
-            (((DatabaseException) d).getCause() instanceof MongoBulkWriteException |
-                ((DatabaseException) d).getCause() instanceof MongoWriteException)) {
+            (d.getCause() instanceof MongoBulkWriteException |
+                d.getCause() instanceof MongoWriteException)) {
             LOGGER.info("Document existed, updating ...");
             return true;
         }
@@ -224,13 +199,16 @@ public class DbRequestSingle {
      *
      * @param arrayNode
      * @param version
+     * @param documentValidator
      * @return DbRequestResult
      * @throws InvalidParseOperationException
      * @throws DatabaseException
      */
     @SuppressWarnings("unchecked")
-    private DbRequestResult insertDocuments(ArrayNode arrayNode, Integer version)
+    private DbRequestResult insertDocuments(ArrayNode arrayNode, Integer version,
+        DocumentValidator documentValidator)
         throws InvalidParseOperationException, SchemaValidationException, DatabaseException {
+
         final List<VitamDocument<?>> vitamDocumentList = new ArrayList<>();
         for (final JsonNode objNode : arrayNode) {
 
@@ -247,8 +225,7 @@ public class DbRequestSingle {
             }
 
             //Validate the document against the collection's json schema
-            //TODO extends json schema validation to other collections
-            validateDocumentOverJsonSchema(JsonHandler.toJsonNode(obj));
+            documentValidator.validateDocument(JsonHandler.toJsonNode(obj));
 
             vitamDocumentList.add(obj);
         }
@@ -261,37 +238,6 @@ public class DbRequestSingle {
         }
         insertToElasticsearch(vitamDocumentList);
         return new DbRequestResult().setCount(vitamDocumentList.size()).setTotal(vitamDocumentList.size());
-    }
-
-    private void validateDocumentOverJsonSchema(JsonNode jsonDocument)
-        throws InvalidParseOperationException, SchemaValidationException {
-        if (vitamCollection.getName().contains("VitamSequence") ||
-            vitamCollection.getName().contains("AccessionRegisterSymbolic")) {
-            return;
-        }
-        try {
-            SchemaValidationUtils validator = new SchemaValidationUtils();
-            SchemaValidationStatus status =
-                validator.validateJson(jsonDocument, vitamCollection.getClasz().getSimpleName());
-            if (!SchemaValidationStatus.SchemaValidationStatusEnum.VALID.equals(status.getValidationStatus())) {
-                throw new SchemaValidationException(status.getValidationMessage());
-            }
-        } catch (FileNotFoundException | ProcessingException e) {
-            throw new InvalidParseOperationException("Unable to initialize Json Validator : ", e);
-        }
-
-    }
-
-
-    /**
-     * @param arrayNode
-     * @throws InvalidParseOperationException
-     * @throws DatabaseException
-     */
-    @SuppressWarnings("unchecked")
-    private DbRequestResult insertDocuments(ArrayNode arrayNode)
-        throws InvalidParseOperationException, SchemaValidationException, DatabaseException {
-        return insertDocuments(arrayNode, 0);
     }
 
     /**
@@ -565,7 +511,7 @@ public class DbRequestSingle {
      * @throws BadRequestException
      * @throws InvalidCreateOperationException
      */
-    private DbRequestResult updateDocuments(JsonNode request)
+    private DbRequestResult updateDocuments(JsonNode request, DocumentValidator documentValidator)
         throws InvalidParseOperationException, DatabaseException, BadRequestException, InvalidCreateOperationException,
         VitamDBException, SchemaValidationException {
         final UpdateParserSingle parser = new UpdateParserSingle(vaNameAdapter);
@@ -620,7 +566,7 @@ public class DbRequestSingle {
                 ObjectNode updatedJsonDocument =
                     (ObjectNode) mongoInMemory.getUpdateJson(request, false, vaNameAdapter);
 
-                validateDocumentOverJsonSchema(updatedJsonDocument);
+                documentValidator.validateDocument(updatedJsonDocument);
 
                 updatedDocument = document.newInstance(updatedJsonDocument);
                 if (!document.equals(updatedDocument)) {

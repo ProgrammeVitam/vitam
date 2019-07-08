@@ -26,10 +26,12 @@
  *******************************************************************************/
 package fr.gouv.vitam.metadata.rest;
 
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.VitamConfiguration;
+import fr.gouv.vitam.common.client.ClientMockResultHelper;
 import fr.gouv.vitam.common.client.VitamClientFactory;
 import fr.gouv.vitam.common.database.parser.request.GlobalDatasParser;
 import fr.gouv.vitam.common.database.server.elasticsearch.ElasticsearchNode;
@@ -39,6 +41,7 @@ import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.junit.JunitHelper;
 import fr.gouv.vitam.common.logging.SysErrLogger;
+import fr.gouv.vitam.common.model.administration.OntologyModel;
 import fr.gouv.vitam.common.mongo.MongoRule;
 import fr.gouv.vitam.common.server.application.configuration.MongoDbNode;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
@@ -136,6 +139,10 @@ public class UpdateUnitResourceTest {
 
         RestAssured.port = serverPort;
         RestAssured.basePath = DATA_URI;
+
+        ClientMockResultHelper.setOntologies(JsonHandler.getFromInputStreamAsTypeRefence(
+            PropertiesUtils.getResourceAsStream("ontology.json"), new TypeReference<List<OntologyModel>>() {
+            }));
     }
 
     @AfterClass
@@ -149,6 +156,8 @@ public class UpdateUnitResourceTest {
             junitHelper.releasePort(serverPort);
             VitamClientFactory.resetConnections();
         }
+
+        ClientMockResultHelper.resetOntologies();
     }
 
     @After

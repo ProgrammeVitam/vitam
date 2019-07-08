@@ -24,33 +24,41 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  *******************************************************************************/
-package fr.gouv.vitam.metadata.core.archiveunitprofile;
+package fr.gouv.vitam.metadata.core.validation;
 
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
+import fr.gouv.vitam.common.database.builder.query.QueryHelper;
+import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
+import fr.gouv.vitam.common.database.builder.request.single.Select;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamRuntimeException;
+import fr.gouv.vitam.common.model.MetadataType;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
-import fr.gouv.vitam.common.model.administration.ArchiveUnitProfileModel;
+import fr.gouv.vitam.common.model.administration.OntologyModel;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.functional.administration.client.AdminManagementClient;
 import fr.gouv.vitam.functional.administration.client.AdminManagementClientFactory;
 import fr.gouv.vitam.functional.administration.common.exception.AdminManagementClientServerException;
-import fr.gouv.vitam.functional.administration.common.exception.ReferentialNotFoundException;
 
+import java.util.List;
 import java.util.concurrent.TimeUnit;
 
-public class ArchiveUnitProfileLoader {
+public class CachedOntologyLoader implements OntologyLoader {
 
     private final AdminManagementClientFactory adminManagementClientFactory;
-    private final LoadingCache<String, ArchiveUnitProfileModel> archiveUnitProfileCache;
+    private final LoadingCache<String, List<OntologyModel>> ongologyCache;
+    private MetadataType metadataType;
 
-    public ArchiveUnitProfileLoader(
-        AdminManagementClientFactory adminManagementClientFactory, int maxEntriesInCache, int cacheTimeoutInSeconds) {
+    public CachedOntologyLoader(
+        AdminManagementClientFactory adminManagementClientFactory, int maxEntriesInCache, int cacheTimeoutInSeconds,
+        MetadataType metadataType) {
 
         this.adminManagementClientFactory = adminManagementClientFactory;
+        this.metadataType = metadataType;
+
         CacheBuilder<Object, Object> objectObjectCacheBuilder = CacheBuilder.newBuilder();
         // Max entries in cache
         objectObjectCacheBuilder.maximumSize(maxEntriesInCache);
@@ -58,37 +66,38 @@ public class ArchiveUnitProfileLoader {
         objectObjectCacheBuilder.expireAfterAccess(cacheTimeoutInSeconds, TimeUnit.SECONDS);
         // Okay to GC
         objectObjectCacheBuilder.weakValues();
-        this.archiveUnitProfileCache = objectObjectCacheBuilder
-            .build(new CacheLoader<String, ArchiveUnitProfileModel>() {
+        this.ongologyCache = objectObjectCacheBuilder
+            .build(new CacheLoader<String, List<OntologyModel>>() {
                 @Override
-                public ArchiveUnitProfileModel load(String key) {
-                    String aupId = key.substring(key.indexOf('/') + 1);
-                    return loadArchiveUnitProfileFromAdminManagement(aupId);
+                public List<OntologyModel> load(String key) {
+                    return loadOntologiesFromAdminManagement();
                 }
             });
     }
 
-    public ArchiveUnitProfileModel loadArchiveUnitProfile(String aupId) {
+    public List<OntologyModel> loadOntologies() {
         String requestId = VitamThreadUtils.getVitamSession().getRequestId();
-        return this.archiveUnitProfileCache.getUnchecked(requestId + "/" + aupId);
+        return this.ongologyCache.getUnchecked(requestId);
     }
 
-    private ArchiveUnitProfileModel loadArchiveUnitProfileFromAdminManagement(String aupId) {
-
+    private List<OntologyModel> loadOntologiesFromAdminManagement() {
         try (AdminManagementClient adminClient = adminManagementClientFactory.getClient()) {
-            RequestResponse<ArchiveUnitProfileModel> aup = adminClient.findArchiveUnitProfilesByID(aupId);
-            if (!aup.isOk()) {
-                throw new VitamRuntimeException("Could not load ArchiveUnitProfile");
+            Select selectOntologies = new Select();
+            selectOntologies.setQuery(
+                QueryHelper.in(OntologyModel.TAG_COLLECTIONS, metadataType.getName())
+            );
+            selectOntologies.addUsedProjection(OntologyModel.TAG_IDENTIFIER);
+            selectOntologies.addUsedProjection(OntologyModel.TAG_TYPE);
+
+            RequestResponse<OntologyModel> responseOntologies =
+                adminClient.findOntologies(selectOntologies.getFinalSelect());
+            if (!responseOntologies.isOk()) {
+                throw new VitamRuntimeException("Could not load ontologies");
             }
 
-            return ((RequestResponseOK<ArchiveUnitProfileModel>) aup).getFirstResult();
-
-        } catch (ReferentialNotFoundException e) {
-            throw new ArchiveUnitProfileException("ArchiveUnitProfile " + aupId + " not found", e);
-        } catch (AdminManagementClientServerException e) {
-            throw new VitamRuntimeException("Could not load ArchiveUnitProfile", e);
-        } catch (InvalidParseOperationException e) {
-            throw new IllegalStateException("Invalid ArchiveUnitProfile", e);
+            return ((RequestResponseOK<OntologyModel>) responseOntologies).getResults();
+        } catch (InvalidParseOperationException | AdminManagementClientServerException | InvalidCreateOperationException e) {
+            throw new VitamRuntimeException("Could not load ontologies", e);
         }
     }
 }

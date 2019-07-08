@@ -39,6 +39,7 @@ import fr.gouv.vitam.common.database.builder.request.single.Update;
 import fr.gouv.vitam.common.database.collections.VitamCollection;
 import fr.gouv.vitam.common.database.server.DbRequestResult;
 import fr.gouv.vitam.common.database.server.DbRequestSingle;
+import fr.gouv.vitam.common.database.server.DocumentValidator;
 import fr.gouv.vitam.common.database.server.elasticsearch.ElasticsearchNode;
 import fr.gouv.vitam.common.database.server.mongodb.VitamDocument;
 import fr.gouv.vitam.common.elasticsearch.ElasticsearchRule;
@@ -94,6 +95,7 @@ import static fr.gouv.vitam.common.database.builder.query.QueryHelper.match;
 import static fr.gouv.vitam.common.database.builder.query.QueryHelper.or;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.fail;
+import static org.mockito.Mockito.mock;
 
 public class MongoDbAccessAdminImplTest {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(MongoDbAccessAdminImplTest.class);
@@ -323,7 +325,7 @@ public class MongoDbAccessAdminImplTest {
         update.setQuery(match(FileFormat.NAME, "name"));
         update.addActions(UpdateActionHelper.set(FileFormat.COMMENT, "new comment"));
         final DbRequestSingle dbrequest = new DbRequestSingle(formatCollection.getVitamCollection());
-        final DbRequestResult updateResult = dbrequest.execute(update);
+        final DbRequestResult updateResult = dbrequest.execute(update, mock(DocumentValidator.class));
         assertEquals(1, updateResult.getCount());
         formatCollection.getEsClient().refreshIndex(formatCollection);
         updateResult.close();

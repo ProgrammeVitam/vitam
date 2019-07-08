@@ -1,0 +1,27 @@
+{
+  "_id": "aefaaaaaaaed4nrpaas4uak7cxykxiaaaaaq",
+	"OriginatingAgency": "Vitam",
+	"TotalObjects": {
+		"ingested": 292,
+		"deleted": 0,
+		"remained": 292
+	},
+	"TotalObjectGroups": {
+		"ingested": 138,
+		"deleted": 0,
+		"remained": 138
+	},
+	"TotalUnits": {
+		"ingested": 201,
+		"deleted": 0,
+		"remained": 201
+	},
+	"ObjectSize": {
+		"ingested": 35401855,
+		"deleted": 0,
+		"remained": 35401855
+	},
+	"CreationDate": "2017-04-12T17:01:11.764",
+	"_v": 1,
+	"_tenant": 0
+}

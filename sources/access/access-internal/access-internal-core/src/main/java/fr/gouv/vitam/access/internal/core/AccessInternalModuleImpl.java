@@ -1,4 +1,4 @@
-/*******************************************************************************
+/*
  * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2019)
  *
  * contact.vitam@culture.gouv.fr
@@ -23,7 +23,7 @@
  *
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
- *******************************************************************************/
+ */
 package fr.gouv.vitam.access.internal.core;
 
 import com.fasterxml.jackson.databind.JsonNode;
@@ -50,7 +50,6 @@ import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.
 import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
 import fr.gouv.vitam.common.database.builder.request.multiple.SelectMultiQuery;
 import fr.gouv.vitam.common.database.builder.request.multiple.UpdateMultiQuery;
-import fr.gouv.vitam.common.database.builder.request.single.Select;
 import fr.gouv.vitam.common.database.parser.request.multiple.RequestParserHelper;
 import fr.gouv.vitam.common.database.parser.request.multiple.RequestParserMultiple;
 import fr.gouv.vitam.common.database.parser.request.multiple.SelectParserMultiple;
@@ -67,7 +66,6 @@ import fr.gouv.vitam.common.guid.GUIDReader;
 import fr.gouv.vitam.common.i18n.VitamLogbookMessages;
 import fr.gouv.vitam.common.json.CanonicalJsonFormatter;
 import fr.gouv.vitam.common.json.JsonHandler;
-import fr.gouv.vitam.common.json.SchemaValidationUtils;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.IngestWorkflowConstants;
@@ -154,7 +152,6 @@ import java.util.Map;
 import java.util.Set;
 
 import static fr.gouv.vitam.access.internal.core.DslParserHelper.getValueForUpdateDsl;
-import static fr.gouv.vitam.common.error.VitamCode.ACCESS_INTERNAL_UPDATE_UNIT_UPDATE_BAD_FORMAT;
 
 /**
  * AccessModuleImpl implements AccessModule
@@ -1446,12 +1443,6 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
                                 String[] params = ruleToBeChecked.split("\\.");
                                 String mainAtt = params[0];
                                 String subAtt = params[params.length - 1];
-                                Set<String> availableManagementAttributes =
-                                    SchemaValidationUtils.listOfAvailableAttributes();
-                                if (!availableManagementAttributes.contains(subAtt)) {
-                                    throw new AccessInternalRuleExecutionException(
-                                        ACCESS_INTERNAL_UPDATE_UNIT_UPDATE_BAD_FORMAT);
-                                }
                                 objectToPut = JsonHandler.createObjectNode();
                                 objectToPut.set(subAtt, object.get(field));
                                 ruleToBeChecked = mainAtt;
@@ -1467,28 +1458,6 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
 
             }
         }
-    }
-
-    private JsonNode getUnitArchiveUnitProfile(String unitId)
-        throws AccessInternalExecutionException, MetaDataNotFoundException {
-        JsonNode jsonUnit = null;
-        try {
-            Select selectAUPforUnit = new Select();
-            selectAUPforUnit.setProjection(JsonHandler.getFromString("{\"$fields\": { \"ArchiveUnitProfile\": 1}}"));
-            JsonNode response = selectUnitbyId(selectAUPforUnit.getFinalSelect(), unitId);
-            if (response == null || response.get(RESULTS) == null) {
-                throw new AccessInternalExecutionException("Can't get unit by ID: " + unitId);
-            }
-            JsonNode results = response.get(RESULTS);
-            if (results.size() != 1) {
-                throw new AccessInternalExecutionException("Can't get unique unit by ID: " + unitId);
-            }
-            jsonUnit = results.get(0);
-        } catch (AccessInternalExecutionException | IllegalArgumentException | InvalidParseOperationException e) {
-            throw new AccessInternalExecutionException(e);
-        }
-
-        return jsonUnit.get(SedaConstants.TAG_ARCHIVE_UNIT_PROFILE);
     }
 
     private JsonNode getUnitManagement(String unitId)

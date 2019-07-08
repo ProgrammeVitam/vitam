@@ -316,6 +316,23 @@ public final class JsonHandler {
         }
     }
 
+    /**
+     * @param inputStream to transform
+     * @param clasz the instance of target class
+     * @return the object of type clasz
+     * @throws InvalidParseOperationException if parse JsonNode object exception occurred
+     */
+    public static <T> T getFromInputStreamAsTypeRefence(final InputStream inputStream, final TypeReference<T> clasz)
+        throws InvalidParseOperationException, InvalidFormatException {
+        try {
+            ParametersChecker.checkParameter("value or class", inputStream, clasz);
+            return OBJECT_MAPPER.readValue(ByteStreams.toByteArray(inputStream), clasz);
+        } catch (final InvalidFormatException e) {
+            throw new InvalidFormatException(null, e.toString(), inputStream, clasz.getClass());
+        } catch (final IOException | IllegalArgumentException e) {
+            throw new InvalidParseOperationException(e);
+        }
+    }
 
     /**
      * @param value to transform

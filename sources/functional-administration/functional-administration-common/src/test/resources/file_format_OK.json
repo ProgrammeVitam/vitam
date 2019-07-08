@@ -1,0 +1,19 @@
+{
+	"_id": "aeaaaaaaaahbl62nabduoak3jc2zqciaadiq",
+	"CreatedDate": "2016-09-27T15:37:53",
+	"VersionPronom": "88",
+	"PUID": "fmt/961",
+	"Version": "2",
+	"Name": "Mobile eXtensible Music Format",
+	"Extension": [
+		"mxmf"
+	],
+	"HasPriorityOverFileFormatID": [
+		"fmt/714"
+	],
+	"MimeType": "audio/mobile-xmf",
+	"Group": "",
+	"Alert": false,
+	"Comment": "",
+	"_v": 0
+}

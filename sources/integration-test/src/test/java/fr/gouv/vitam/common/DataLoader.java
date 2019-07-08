@@ -27,6 +27,7 @@ import fr.gouv.vitam.common.model.administration.AccessContractModel;
 import fr.gouv.vitam.common.model.administration.ArchiveUnitProfileModel;
 import fr.gouv.vitam.common.model.administration.ContextModel;
 import fr.gouv.vitam.common.model.administration.IngestContractModel;
+import fr.gouv.vitam.common.model.administration.OntologyModel;
 import fr.gouv.vitam.common.model.administration.ProfileModel;
 import fr.gouv.vitam.common.model.administration.SecurityProfileModel;
 import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
@@ -84,6 +85,18 @@ public class DataLoader {
             client.importFormat(
                 PropertiesUtils.getResourceAsStream(dataFodler + "/DROID_SignatureFile_V94.xml"),
                 "DROID_SignatureFile_V94.xml");
+
+            // Import ontologies
+            int initialTenant = VitamThreadUtils.getVitamSession().getTenantId();
+            VitamThreadUtils.getVitamSession().setTenantId(VitamConfiguration.getAdminTenant());
+            VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newOperationLogbookGUID(tenantId));
+            client.importOntologies(true, JsonHandler
+                .getFromFileAsTypeRefence(
+                    PropertiesUtils.getResourceFile("ontology.json"),
+                    new TypeReference<List<OntologyModel>>() {
+                    }));
+            VitamThreadUtils.getVitamSession().setTenantId(initialTenant);
+
             // Import Rules
             VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newOperationLogbookGUID(tenantId));
             client.importRulesFile(
@@ -156,6 +169,7 @@ public class DataLoader {
                     PropertiesUtils.getResourceFile(dataFodler + "/archive-unit-profile.json"),
                     new TypeReference<List<ArchiveUnitProfileModel>>() {
                     }));
+
         } catch (final Exception e) {
             LOGGER.error(e);
         }

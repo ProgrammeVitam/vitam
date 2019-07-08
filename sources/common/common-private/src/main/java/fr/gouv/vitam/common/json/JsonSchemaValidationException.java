@@ -26,45 +26,18 @@
  *******************************************************************************/
 package fr.gouv.vitam.common.json;
 
-import static fr.gouv.vitam.common.json.SchemaValidationUtils.ARCHIVE_UNIT_SCHEMA_FILENAME;
-
-import java.io.FileNotFoundException;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentMap;
-
-import com.github.fge.jsonschema.core.exceptions.ProcessingException;
-
-import fr.gouv.vitam.common.exception.InvalidParseOperationException;
-import fr.gouv.vitam.common.exception.VitamRuntimeException;
+import fr.gouv.vitam.common.exception.VitamException;
 
 /**
- * Factory to create SchemaValidationUtils without recreate instance.
- */
-public class SchemaValidationFactory {
+ * Exception to be thrown when json schema validation fails
+ **/
+public class JsonSchemaValidationException extends VitamException {
 
-    private ConcurrentMap<String, SchemaValidationUtils> instances = new ConcurrentHashMap<>();
-
-    private static SchemaValidationFactory schemaValidationFactory = new SchemaValidationFactory();
-
-    private SchemaValidationFactory() {
+    public JsonSchemaValidationException(String message) {
+        super(message);
     }
 
-    public static SchemaValidationFactory getInstance() {
-        return schemaValidationFactory;
+    public JsonSchemaValidationException(String message, Throwable cause) {
+        super(message, cause);
     }
-
-    public SchemaValidationUtils createSchemaValidator() {
-        return createSchemaValidator(ARCHIVE_UNIT_SCHEMA_FILENAME);
-    }
-
-    public SchemaValidationUtils createSchemaValidator(String schema) {
-        return instances.computeIfAbsent(schema, (s) -> {
-            try {
-                return new SchemaValidationUtils(s);
-            } catch (FileNotFoundException | ProcessingException | InvalidParseOperationException e) {
-                throw new VitamRuntimeException(e);
-            }
-        });
-    }
-
 }

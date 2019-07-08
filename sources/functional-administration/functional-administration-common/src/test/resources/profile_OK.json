@@ -1,0 +1,14 @@
+{
+	"_id": "aegaaaaaaeeu4mlpab6hialbt7tvkjqaaaaq",
+	"Identifier": "PROFIL_INACTIVE_2194",
+	"Name": "PROFIL_INACTIVE_2194",
+	"Description": "PROFIL_INACTIVE_2194",
+	"Status": "INACTIVE",
+	"Format": "RNG",
+	"CreationDate": "2016-12-10T00:00:00.000",
+	"LastUpdate": "2018-02-16T18:36:33.444",
+	"ActivationDate": "2016-12-10T00:00:00.000",
+	"DeactivationDate": "2016-12-10T00:00:00.000",
+	"_tenant": 1,
+	"_v": 0
+}
