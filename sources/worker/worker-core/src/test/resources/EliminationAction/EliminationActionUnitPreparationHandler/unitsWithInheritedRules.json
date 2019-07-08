@@ -13,6 +13,13 @@
       "#originating_agency": "sp_1",
       "#opi": "opi1",
       "#max": 2,
+      "#storage": {
+        "offerIds": [
+          "offer-fs-1.service.consul"
+        ],
+        "strategyId": "default-fake",
+        "#nbc": 1
+      },
       "InheritedRules": {
         "StorageRule": {
           "Rules": [],
@@ -46,6 +53,13 @@
       "#originating_agency": "sp_2",
       "#opi": "opi2",
       "#max": 2,
+      "#storage": {
+        "offerIds": [
+          "offer-fs-1.service.consul"
+        ],
+        "strategyId": "default-fake",
+        "#nbc": 1
+      },
       "InheritedRules": {
         "StorageRule": {
           "Rules": [],
@@ -78,6 +92,13 @@
       "#originating_agency": "sp_3",
       "#opi": "opi3",
       "#max": 1,
+      "#storage": {
+        "offerIds": [
+          "offer-fs-1.service.consul"
+        ],
+        "strategyId": "default-fake",
+        "#nbc": 1
+      },
       "InheritedRules": {
         "StorageRule": {
           "Rules": [],
@@ -111,6 +132,13 @@
       "#originating_agency": "sp_4",
       "#opi": "opi4",
       "#max": 1,
+      "#storage": {
+        "offerIds": [
+          "offer-fs-1.service.consul"
+        ],
+        "strategyId": "default-fake",
+        "#nbc": 1
+      },
       "InheritedRules": {
         "StorageRule": {
           "Rules": [],

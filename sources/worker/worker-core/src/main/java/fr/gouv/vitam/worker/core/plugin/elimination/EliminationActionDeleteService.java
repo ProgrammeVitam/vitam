@@ -26,9 +26,15 @@
  *******************************************************************************/
 package fr.gouv.vitam.worker.core.plugin.elimination;
 
+import static fr.gouv.vitam.common.database.builder.query.action.UpdateActionHelper.add;
+import static fr.gouv.vitam.common.database.builder.query.action.UpdateActionHelper.pull;
+import static fr.gouv.vitam.worker.core.utils.PluginHelper.createObjectGroupLfcParameters;
+
+import java.util.Map;
+import java.util.Set;
+
 import com.google.common.annotations.VisibleForTesting;
 
-import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.database.builder.query.VitamFieldsHelper;
 import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
 import fr.gouv.vitam.common.database.builder.request.multiple.UpdateMultiQuery;
@@ -56,14 +62,6 @@ import fr.gouv.vitam.worker.core.plugin.elimination.exception.EliminationExcepti
 import fr.gouv.vitam.worker.core.plugin.elimination.model.EliminationActionObjectGroupEventDetails;
 import joptsimple.internal.Strings;
 
-import java.util.Collection;
-import java.util.List;
-import java.util.Set;
-
-import static fr.gouv.vitam.common.database.builder.query.action.UpdateActionHelper.add;
-import static fr.gouv.vitam.common.database.builder.query.action.UpdateActionHelper.pull;
-import static fr.gouv.vitam.worker.core.utils.PluginHelper.createObjectGroupLfcParameters;
-
 /**
  * EliminationActionDeleteService class
  */
@@ -87,50 +85,50 @@ public class EliminationActionDeleteService {
             LogbookLifeCyclesClientFactory.getInstance());
     }
 
-    public void deleteObjects(List<String> objectIds) throws StorageServerClientException {
-        storageDelete(objectIds, DataCategory.OBJECT, Strings.EMPTY);
+    public void deleteObjects(Map<String,String> objectsGuidsWithStrategies) throws StorageServerClientException {
+        storageDelete(objectsGuidsWithStrategies, DataCategory.OBJECT, Strings.EMPTY);
     }
 
-    public void deleteObjectGroups(Collection<String> objectGroupListOfIdentifiers)
+    public void deleteObjectGroups(Map<String,String> objectGroupsGuidsWithStrategies)
         throws InvalidParseOperationException, MetaDataExecutionException,
         MetaDataClientServerException, StorageServerClientException, LogbookClientBadRequestException,
         LogbookClientServerException {
 
         try (LogbookLifeCyclesClient logbookLifeCyclesClient = logbookLifeCyclesClientFactory.getClient()) {
-            logbookLifeCyclesClient.deleteLifecycleObjectGroupBulk(objectGroupListOfIdentifiers);
+            logbookLifeCyclesClient.deleteLifecycleObjectGroupBulk(objectGroupsGuidsWithStrategies.keySet());
         }
 
         try (MetaDataClient metaDataClient = metaDataClientFactory.getClient()) {
-            metaDataClient.deleteObjectGroupBulk(objectGroupListOfIdentifiers);
+            metaDataClient.deleteObjectGroupBulk(objectGroupsGuidsWithStrategies.keySet());
         }
 
-        storageDelete(objectGroupListOfIdentifiers, DataCategory.OBJECTGROUP, ".json");
+        storageDelete(objectGroupsGuidsWithStrategies, DataCategory.OBJECTGROUP, ".json");
     }
 
-    public void deleteUnits(Collection<String> unitsListOfIdentifiers)
+    public void deleteUnits(Map<String,String> unitsGuidsWithStrategies)
         throws MetaDataExecutionException,
         MetaDataClientServerException, StorageServerClientException, LogbookClientBadRequestException,
         LogbookClientServerException {
 
         try (LogbookLifeCyclesClient logbookLifeCyclesClient = logbookLifeCyclesClientFactory.getClient()) {
-            logbookLifeCyclesClient.deleteLifecycleUnitsBulk(unitsListOfIdentifiers);
+            logbookLifeCyclesClient.deleteLifecycleUnitsBulk(unitsGuidsWithStrategies.keySet());
         }
 
         try (MetaDataClient metaDataClient = metaDataClientFactory.getClient()) {
-            metaDataClient.deleteUnitsBulk(unitsListOfIdentifiers);
+            metaDataClient.deleteUnitsBulk(unitsGuidsWithStrategies.keySet());
         }
 
-        storageDelete(unitsListOfIdentifiers, DataCategory.UNIT, ".json");
+        storageDelete(unitsGuidsWithStrategies, DataCategory.UNIT, ".json");
     }
 
-    private void storageDelete(Collection<String> unitsListOfIdentifiers, DataCategory dataCategory,
+    private void storageDelete(Map<String,String> idsWithStrategies, DataCategory dataCategory,
         String fileExtension)
         throws StorageServerClientException {
 
         try (StorageClient storageClient = storageClientFactory.getClient()) {
 
-            for (String id : unitsListOfIdentifiers) {
-                storageClient.delete(VitamConfiguration.getDefaultStrategy(), dataCategory, id + fileExtension);
+            for (Map.Entry<String, String> idWithStrategy : idsWithStrategies.entrySet()) {
+                storageClient.delete(idWithStrategy.getValue(), dataCategory, idWithStrategy.getKey() + fileExtension);
             }
         }
     }

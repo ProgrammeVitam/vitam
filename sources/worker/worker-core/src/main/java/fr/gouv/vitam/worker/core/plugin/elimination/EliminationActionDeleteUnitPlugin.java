@@ -26,8 +26,24 @@
  *******************************************************************************/
 package fr.gouv.vitam.worker.core.plugin.elimination;
 
+import static fr.gouv.vitam.worker.core.utils.PluginHelper.buildItemStatus;
+import static java.util.Collections.singletonList;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Set;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
+
+import org.apache.commons.collections4.SetUtils;
+
 import com.fasterxml.jackson.databind.JsonNode;
 import com.google.common.annotations.VisibleForTesting;
+
 import fr.gouv.vitam.batch.report.model.entry.EliminationActionUnitReportEntry;
 import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.database.builder.query.QueryHelper;
@@ -56,17 +72,6 @@ import fr.gouv.vitam.worker.core.handler.ActionHandler;
 import fr.gouv.vitam.worker.core.plugin.elimination.exception.EliminationException;
 import fr.gouv.vitam.worker.core.plugin.elimination.model.EliminationActionUnitStatus;
 import fr.gouv.vitam.worker.core.plugin.elimination.report.EliminationActionReportService;
-import org.apache.commons.collections4.SetUtils;
-
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.stream.Collectors;
-
-import static fr.gouv.vitam.worker.core.utils.PluginHelper.buildItemStatus;
-import static java.util.Collections.singletonList;
 
 
 /**
@@ -117,7 +122,11 @@ public class EliminationActionDeleteUnitPlugin extends ActionHandler {
 
         try {
             Set<String> unitIds = new HashSet<>(param.getObjectNameList());
-            List<ItemStatus> itemStatuses = processUnits(param.getContainerName(), unitIds);
+            Map<String, String> unitIdsWithStrategies = new HashMap<String, String>();
+            IntStream.range(0, param.getObjectNameList().size())
+                    .forEach(i -> unitIdsWithStrategies.put(param.getObjectNameList().get(i),
+                            param.getObjectMetadataList().get(i).get("strategyId").asText()));
+            List<ItemStatus> itemStatuses = processUnits(param.getContainerName(), unitIds, unitIdsWithStrategies);
 
             return itemStatuses;
 
@@ -128,7 +137,7 @@ public class EliminationActionDeleteUnitPlugin extends ActionHandler {
         }
     }
 
-    private List<ItemStatus> processUnits(String processId, Set<String> unitIds)
+    private List<ItemStatus> processUnits(String processId, Set<String> unitIds, Map<String, String> unitIdsWithStrategies)
         throws EliminationException {
 
         Map<String, JsonNode> units = loadUnits(unitIds);
@@ -147,6 +156,9 @@ public class EliminationActionDeleteUnitPlugin extends ActionHandler {
         List<EliminationActionUnitReportEntry> eliminationUnitReportEntries = new ArrayList<>();
 
         Set<String> unitsToDelete = getUnitsToDelete(foundUnitIds);
+        Map<String, String> unitIdsWithStrategiesToDelete = unitIdsWithStrategies.entrySet().stream()
+                .filter(e -> unitsToDelete.contains(e.getKey()))
+                .collect(Collectors.toMap(Entry::getKey, Entry::getValue));
 
         for (String unitId : foundUnitIds) {
 
@@ -175,7 +187,7 @@ public class EliminationActionDeleteUnitPlugin extends ActionHandler {
         eliminationActionReportService.appendUnitEntries(processId, eliminationUnitReportEntries);
 
         try {
-            eliminationActionDeleteService.deleteUnits(unitsToDelete);
+            eliminationActionDeleteService.deleteUnits(unitIdsWithStrategiesToDelete);
         } catch (MetaDataExecutionException | MetaDataClientServerException |
             LogbookClientBadRequestException | StorageServerClientException | LogbookClientServerException e) {
             throw new EliminationException(StatusCode.FATAL,
@@ -194,7 +206,8 @@ public class EliminationActionDeleteUnitPlugin extends ActionHandler {
                 VitamFieldsHelper.id(),
                 VitamFieldsHelper.object(),
                 VitamFieldsHelper.originatingAgency(),
-                VitamFieldsHelper.initialOperation());
+                VitamFieldsHelper.initialOperation(),
+                VitamFieldsHelper.storage());
 
             JsonNode jsonNode = client.selectUnits(selectMultiQuery.getFinalSelect());
             RequestResponseOK<JsonNode> requestResponseOK = RequestResponseOK.getFromJsonNode(jsonNode);
