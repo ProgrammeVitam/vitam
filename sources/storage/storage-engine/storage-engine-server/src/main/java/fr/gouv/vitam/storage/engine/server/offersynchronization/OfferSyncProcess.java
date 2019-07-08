@@ -84,6 +84,10 @@ public class OfferSyncProcess {
             null, null, null, null, null);
     }
 
+    private static OfferLog getLastOfferLog(OfferLog offerLog1, OfferLog offerLog2) {
+        return offerLog1.getSequence() > offerLog2.getSequence() ? offerLog1 : offerLog2;
+    }
+
     /**
      * Synchronize an offer from another using the offset.
      *
@@ -92,7 +96,7 @@ public class OfferSyncProcess {
      * @param strategyId the strategy containing the two offers
      * @param offset the offset of the process of the synchronisation
      */
-    public void synchronize(String sourceOffer, String targetOffer, String strategyId, 
+    public void synchronize(String sourceOffer, String targetOffer, String strategyId,
         DataCategory dataCategory, Long offset) {
 
         this.offerSyncStatus = new OfferSyncStatus(
@@ -128,28 +132,29 @@ public class OfferSyncProcess {
         return LocalDateUtil.getFormattedDateForMongo(LocalDateUtil.now());
     }
 
-    private void synchronize(ExecutorService executor, String sourceOffer, String targetOffer, String strategyId, 
+    private void synchronize(ExecutorService executor, String sourceOffer, String targetOffer, String strategyId,
         DataCategory dataCategory, Long startOffset) throws StorageException {
 
         Long offset = startOffset;
         while (true) {
             // get the data to startSynchronization
             List<OfferLog> rawOfferLogs = restoreOfferBackupService.getListing(
-                    strategyId, sourceOffer, dataCategory, offset, bulkSize, Order.ASC);
+                strategyId, sourceOffer, dataCategory, offset, bulkSize, Order.ASC);
 
             if (rawOfferLogs.isEmpty()) {
                 break;
             }
 
             long lastSequence =
-                synchronizeOfferLogs(executor, sourceOffer, targetOffer, strategyId, dataCategory, rawOfferLogs);
+                synchronizeOfferLogs(executor, sourceOffer, targetOffer, strategyId, dataCategory, rawOfferLogs,
+                    offset);
 
             this.offerSyncStatus.setCurrentOffset(lastSequence);
 
+            offset = lastSequence + 1;
+
             LOGGER.info(String.format("Offer synchronization safe point offset : %s (from %s to %s for category %s)",
                 offset, sourceOffer, targetOffer, dataCategory));
-
-            offset = lastSequence + 1;
 
             if (rawOfferLogs.size() < bulkSize) {
                 break;
@@ -161,7 +166,8 @@ public class OfferSyncProcess {
     }
 
     private long synchronizeOfferLogs(ExecutorService executor, String sourceOffer,
-        String destinationOffer, String strategyId, DataCategory dataCategory, List<OfferLog> rawOfferLogs) throws StorageException {
+        String destinationOffer, String strategyId, DataCategory dataCategory, List<OfferLog> rawOfferLogs, Long offset)
+        throws StorageException {
 
         int tenantId = VitamThreadUtils.getVitamSession().getTenantId();
         String requestId = VitamThreadUtils.getVitamSession().getRequestId();
@@ -177,7 +183,8 @@ public class OfferSyncProcess {
 
                 case WRITE:
                     completableFuture = CompletableFuture.runAsync(
-                        () -> copyObject(sourceOffer, destinationOffer, dataCategory, offerLog, tenantId, strategyId, requestId),
+                        () -> copyObject(sourceOffer, destinationOffer, dataCategory, offerLog, tenantId, strategyId,
+                            requestId),
                         executor);
                     break;
 
@@ -198,7 +205,7 @@ public class OfferSyncProcess {
         if (!allSucceeded) {
             throw new StorageException(
                 "Error(s) occurred during offer synchronization " + sourceOffer + " > " + destinationOffer +
-                    " for container " + dataCategory);
+                    " for container " + dataCategory + " at start offset " + offset);
         }
 
         long lastSequence = Iterables.getLast(rawOfferLogs).getSequence();
@@ -259,7 +266,8 @@ public class OfferSyncProcess {
         }
     }
 
-    private void deleteObject(String destinationOffer, DataCategory dataCategory, OfferLog offerLog, int tenant, String strategyId, 
+    private void deleteObject(String destinationOffer, DataCategory dataCategory, OfferLog offerLog, int tenant,
+        String strategyId,
         String requestId) {
 
         VitamThreadUtils.getVitamSession().setTenantId(tenant);
@@ -290,10 +298,6 @@ public class OfferSyncProcess {
                 offerLog -> offerLog,
                 OfferSyncProcess::getLastOfferLog)
             ).values();
-    }
-
-    private static OfferLog getLastOfferLog(OfferLog offerLog1, OfferLog offerLog2) {
-        return offerLog1.getSequence() > offerLog2.getSequence() ? offerLog1 : offerLog2;
     }
 
     public boolean isRunning() {
