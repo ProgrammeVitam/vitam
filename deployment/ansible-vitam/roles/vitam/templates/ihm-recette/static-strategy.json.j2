@@ -1,10 +1,24 @@
 [
     {
-        "id" : "default"
+        "id" : "default",
         "offers" : [
             {% for item in vitam_strategy %}
             {"id" : "{{ item.name }}.service.{{ item.vitam_site_name |default(vitam_site_name) }}.{{ consul_domain }}"{% if item.referent is defined %}{% if item.referent|lower == "true" %}, "referent" : true{% endif %}{% endif %}{% if item.status is defined %}, "status" :  "{{ item.status| upper }}" {% endif %}}{% if not loop.last %},{% endif %}
             {% endfor %}
         ]
     }
+    {% if other_strategies is defined %}
+    {% for strategy_name, strategy_offers in other_strategies.iteritems() %}
+    ,
+    {
+        "id" : "{{ strategy_name }}",
+        "offers" : [
+            {% for strategy_offer in strategy_offers %}
+            {"id" : "{{ strategy_offer.name }}.service.{{ strategy_offer.vitam_site_name |default(vitam_site_name) }}.{{ consul_domain }}"{% if strategy_offer.status is defined %}, "status" :  "{{ strategy_offer.status| upper }}" {% endif %}}{% if not loop.last %},{% endif %}
+            {% endfor %}
+        ]
+    }
+    {% endfor %}
+    {% endif %}
+
 ]
