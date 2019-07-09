@@ -50,12 +50,13 @@ public class WorkflowBatchResult {
     private final String unitId;
     private final String targetUse;
     private final String sourceUse;
+    private final String sourceStrategy;
     private final String requestId;
     private final List<OutputExtra> outputExtras;
     private final StatusCode globalStatus;
 
     private WorkflowBatchResult(String gotId, String unitId, String targetUse, String requestId, List<OutputExtra> outputExtras,
-        StatusCode globalStatus, String sourceUse) {
+        StatusCode globalStatus, String sourceUse, String sourceStrategy) {
         this.gotId = gotId;
         this.unitId = unitId;
         this.targetUse = targetUse;
@@ -63,12 +64,13 @@ public class WorkflowBatchResult {
         this.outputExtras = outputExtras;
         this.globalStatus = globalStatus;
         this.sourceUse = sourceUse;
+        this.sourceStrategy = sourceStrategy;
     }
 
     public static WorkflowBatchResult of(String gotId, String unitId, String targetUse, String requestId, List<OutputExtra> outputExtras,
-        String sourceUse) {
+        String sourceUse, String sourceStrategy) {
         return new WorkflowBatchResult(gotId, unitId, targetUse, requestId, Collections.unmodifiableList(outputExtras), WorkflowBatchResult.globalStatusFromOutputExtras(outputExtras),
-            sourceUse);
+            sourceUse, sourceStrategy);
     }
 
     public static WorkflowBatchResult of(WorkflowBatchResult workflowBatchResult, List<OutputExtra> outputExtras) {
@@ -79,7 +81,8 @@ public class WorkflowBatchResult {
             workflowBatchResult.getRequestId(),
             Collections.unmodifiableList(outputExtras),
             WorkflowBatchResult.globalStatusFromOutputExtras(outputExtras),
-            workflowBatchResult.getSourceUse());
+            workflowBatchResult.getSourceUse(),
+            workflowBatchResult.getSourceStrategy());
     }
 
     private static StatusCode globalStatusFromOutputExtras(List<OutputExtra> outputExtras) {
@@ -118,6 +121,10 @@ public class WorkflowBatchResult {
 
     public String getSourceUse() {
         return sourceUse;
+    }
+    
+    public String getSourceStrategy() {
+        return sourceStrategy;
     }
 
     public List<OutputExtra> getOutputExtras() {

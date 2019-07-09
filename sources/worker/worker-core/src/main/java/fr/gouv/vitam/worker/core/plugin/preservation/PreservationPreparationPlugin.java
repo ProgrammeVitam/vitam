@@ -26,11 +26,51 @@
  */
 package fr.gouv.vitam.worker.core.plugin.preservation;
 
+import static fr.gouv.vitam.common.database.builder.query.QueryHelper.and;
+import static fr.gouv.vitam.common.database.builder.query.QueryHelper.exists;
+import static fr.gouv.vitam.common.database.builder.query.QueryHelper.in;
+import static fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.PROJECTION.FIELDS;
+import static fr.gouv.vitam.common.database.parser.query.ParserTokens.PROJECTIONARGS.ID;
+import static fr.gouv.vitam.common.database.parser.query.ParserTokens.PROJECTIONARGS.OBJECT;
+import static fr.gouv.vitam.common.json.JsonHandler.createObjectNode;
+import static fr.gouv.vitam.common.json.JsonHandler.getFromJsonNode;
+import static fr.gouv.vitam.common.json.JsonHandler.getFromStringAsTypeRefence;
+import static fr.gouv.vitam.common.json.JsonHandler.writeToInpustream;
+import static fr.gouv.vitam.common.model.PreservationVersion.FIRST;
+import static fr.gouv.vitam.common.model.StatusCode.KO;
+import static fr.gouv.vitam.common.model.administration.preservation.GriffinModel.TAG_IDENTIFIER;
+import static fr.gouv.vitam.worker.core.plugin.ScrollSpliteratorHelper.createUnitScrollSplitIterator;
+import static fr.gouv.vitam.worker.core.utils.PluginHelper.buildItemStatus;
+import static java.util.stream.Collectors.toMap;
+
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
+
+import org.apache.commons.collections4.IteratorUtils;
+import org.apache.commons.collections4.MultiValuedMap;
+import org.apache.commons.collections4.multimap.ArrayListValuedHashMap;
+import org.apache.commons.io.FileUtils;
+import org.apache.commons.lang3.tuple.ImmutablePair;
+import org.apache.commons.lang3.tuple.Pair;
+
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.exc.InvalidFormatException;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.annotations.VisibleForTesting;
+
 import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.database.builder.query.Query;
 import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
@@ -77,45 +117,6 @@ import fr.gouv.vitam.worker.core.utils.GroupByObjectIterator;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
 import fr.gouv.vitam.workspace.client.WorkspaceClient;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
-import org.apache.commons.collections4.IteratorUtils;
-import org.apache.commons.collections4.MultiValuedMap;
-import org.apache.commons.collections4.multimap.ArrayListValuedHashMap;
-import org.apache.commons.io.FileUtils;
-import org.apache.commons.lang3.tuple.ImmutablePair;
-import org.apache.commons.lang3.tuple.Pair;
-
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
-import java.util.stream.Collectors;
-
-import static fr.gouv.vitam.common.database.builder.query.QueryHelper.and;
-import static fr.gouv.vitam.common.database.builder.query.QueryHelper.exists;
-import static fr.gouv.vitam.common.database.builder.query.QueryHelper.in;
-import static fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.PROJECTION.FIELDS;
-import static fr.gouv.vitam.common.database.parser.query.ParserTokens.PROJECTIONARGS.ID;
-import static fr.gouv.vitam.common.database.parser.query.ParserTokens.PROJECTIONARGS.OBJECT;
-import static fr.gouv.vitam.common.json.JsonHandler.createObjectNode;
-import static fr.gouv.vitam.common.json.JsonHandler.getFromJsonNode;
-import static fr.gouv.vitam.common.json.JsonHandler.getFromStringAsTypeRefence;
-import static fr.gouv.vitam.common.json.JsonHandler.writeToInpustream;
-import static fr.gouv.vitam.common.model.PreservationVersion.FIRST;
-import static fr.gouv.vitam.common.model.StatusCode.KO;
-import static fr.gouv.vitam.common.model.administration.preservation.GriffinModel.TAG_IDENTIFIER;
-import static fr.gouv.vitam.worker.core.plugin.ScrollSpliteratorHelper.createUnitScrollSplitIterator;
-import static fr.gouv.vitam.worker.core.utils.PluginHelper.buildItemStatus;
-import static java.util.stream.Collectors.toMap;
 
 public class PreservationPreparationPlugin extends ActionHandler {
 
@@ -345,12 +346,12 @@ public class PreservationPreparationPlugin extends ActionHandler {
 
         return Optional.of(getPreservationDistributionLine(objectGroup.getId(), unitId, versionsModel,
             formatIdentificationModel.getFormatId(), griffinByFormatModel, griffinModel, targetQualifier, sourceQualifier,
-            scenarioModel.getIdentifier()));
+            versionsModel.getStorage().getStrategyId(), scenarioModel.getIdentifier()));
     }
 
     private PreservationDistributionLine getPreservationDistributionLine(String objectGroupId, String unitId,
         VersionsModel version, String format, GriffinByFormat griffinByFormatModel, GriffinModel griffinModel,
-        String targetQualifier, String sourceQualifier, String scenarioId) {
+        String targetQualifier, String sourceQualifier, String sourceStrategy, String scenarioId) {
 
         PreservationDistributionLine preservationDistributionLine = new PreservationDistributionLine();
 
@@ -365,6 +366,7 @@ public class PreservationPreparationPlugin extends ActionHandler {
         preservationDistributionLine.setTimeout(griffinByFormatModel.getTimeOut());
         preservationDistributionLine.setTargetUse(targetQualifier);
         preservationDistributionLine.setSourceUse(sourceQualifier);
+        preservationDistributionLine.setSourceStrategy(sourceStrategy);
         preservationDistributionLine.setScenarioId(scenarioId);
         preservationDistributionLine.setGriffinIdentifier(griffinModel.getIdentifier());
         return preservationDistributionLine;

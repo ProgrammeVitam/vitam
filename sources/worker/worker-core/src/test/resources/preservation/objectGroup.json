@@ -33,7 +33,7 @@
             "offerIds": [
               "offer-fs-1.service.consul"
             ],
-            "strategyId": "default"
+            "strategyId": "other_binary_strategy"
           }
         }
       ]
@@ -56,7 +56,7 @@
     "offerIds": [
       "offer-fs-1.service.consul"
     ],
-    "strategyId": "default"
+    "strategyId": "other_got_strategy"
   },
   "_v": 0,
   "_us": [

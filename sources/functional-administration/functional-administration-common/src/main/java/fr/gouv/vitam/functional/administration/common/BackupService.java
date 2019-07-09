@@ -79,6 +79,15 @@ public class BackupService {
      */
     public StoredInfoResult backup(InputStream stream, DataCategory storageCollectionType, String uri)
         throws BackupServiceException {
+        return backup(stream, storageCollectionType, uri, VitamConfiguration.getDefaultStrategy());
+    }
+    
+
+    /**
+     * Store file in offers with defined strategy
+     */
+    public StoredInfoResult backup(InputStream stream, DataCategory storageCollectionType, String uri, String strategyId)
+        throws BackupServiceException {
         WorkspaceClient workspaceClient = workspaceClientFactory.getClient();
         StorageClient storageClient = storageClientFactory.getClient();
 
@@ -97,7 +106,7 @@ public class BackupService {
                 description.setWorkspaceContainerGUID(containerName);
                 description.setWorkspaceObjectURI(uri);
 
-                return storageClient.storeFileFromWorkspace(VitamConfiguration.getDefaultStrategy(), storageCollectionType, uri, description);
+                return storageClient.storeFileFromWorkspace(strategyId, storageCollectionType, uri, description);
             } finally {
                 try {
                     // try delete container

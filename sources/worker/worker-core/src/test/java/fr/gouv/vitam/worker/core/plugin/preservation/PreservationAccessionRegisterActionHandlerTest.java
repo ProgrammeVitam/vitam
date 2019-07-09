@@ -28,7 +28,6 @@
 
 package fr.gouv.vitam.worker.core.plugin.preservation;
 
-import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.error.ServiceName;
 import fr.gouv.vitam.common.error.VitamError;
 import fr.gouv.vitam.common.guid.GUID;
@@ -38,9 +37,6 @@ import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.model.administration.AccessionRegisterDetailModel;
-import fr.gouv.vitam.common.model.processing.IOParameter;
-import fr.gouv.vitam.common.model.processing.ProcessingUri;
-import fr.gouv.vitam.common.model.processing.UriPrefix;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
 import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
@@ -73,7 +69,6 @@ import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.when;
 
 public class PreservationAccessionRegisterActionHandlerTest {
-    private static final String ATR_GLOBAL_SEDA_PARAMETERS = "globalSEDAParameters.json";
     private static final String FAKE_URL = "http://localhost:8080";
     PreservationAccessionRegisterActionHandler accessionRegisterHandler;
     private static final String HANDLER_ID = "PRESERVATION_ACCESSION_REGISTRATION";

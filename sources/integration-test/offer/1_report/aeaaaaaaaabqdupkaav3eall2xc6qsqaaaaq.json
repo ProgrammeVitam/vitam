@@ -1,0 +1,13 @@
+{
+  "Operation" : {
+    "evType" : "STP_IMPORT_GRIFFIN",
+    "evDateTime" : "2019-07-09T08:07:25.522",
+    "evId" : "aeaaaaaaaabqdupkaav3eall2xc6qsqaaaaq"
+  },
+  "StatusCode" : "OK",
+  "PreviousGriffinsCreationDate" : "2018-11-16T15:55:30.721",
+  "NewGriffinsVersion" : "V1.0.0",
+  "RemovedIdentifiers" : [ ],
+  "AddedIdentifiers" : [ "GRI-000003", "GRI-000002", "GRI-000001", "GRI-000023", "GRI-000012", "GRI-000005" ],
+  "Warnings" : [ ]
+}

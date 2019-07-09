@@ -89,7 +89,7 @@ public class PreservationStorageBinaryPlugin extends ActionHandler {
             List<OutputExtra> outputExtras = workflowBatchResult.getOutputExtras()
                 .stream()
                 .filter(OutputExtra::isOkAndGenerated)
-                .map(a -> getOutputExtra(outputFiles, a))
+                .map(a -> getOutputExtra(outputFiles, a, workflowBatchResult.getSourceStrategy()))
                 .collect(Collectors.toList());
 
             if (outputExtras.isEmpty()) {
@@ -136,11 +136,11 @@ public class PreservationStorageBinaryPlugin extends ActionHandler {
         return buildItemStatusSubItems(ITEM_ID, subItemIds, WARNING, EventDetails.of(error, String.join(", ", digests.keySet())));
     }
 
-    private OutputExtra getOutputExtra(Path outputFiles, OutputExtra extra) {
+    private OutputExtra getOutputExtra(Path outputFiles, OutputExtra extra, String strategyId) {
         Path outputPath = outputFiles.resolve(extra.getOutput().getOutputName());
 
         try (InputStream stream = Files.newInputStream(outputPath)) {
-            StoredInfoResult storedInfo = backupService.backup(stream, OBJECT, extra.getBinaryGUID());
+            StoredInfoResult storedInfo = backupService.backup(stream, OBJECT, extra.getBinaryGUID(), strategyId);
 
             if (!extra.getBinaryHash().isPresent() || !storedInfo.getDigest().equalsIgnoreCase(extra.getBinaryHash().get())) {
                 logger.error("Error with stored digest {} and computed binary digest {}", storedInfo.getDigest(), extra.getBinaryHash());
