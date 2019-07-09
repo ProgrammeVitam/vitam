@@ -41,7 +41,6 @@ import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
-import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.accesslog.AccessLogInfoModel;
 import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.StatusCode;
@@ -132,12 +131,12 @@ public class PutBinaryOnWorkspace extends ActionHandler {
         try (StorageClient storageClient = storageClientFactory.getClient()) {
 
             Map objectInfo = (Map) guidToInfo.get(param.getObjectName());
+            String strategyId = (String) objectInfo.get("strategyId");
 
             Boolean mustLog = Boolean.valueOf(param.getMapParameters().get(WorkerParameterName.mustLogAccessOnObject));
             AccessLogInfoModel logInfo = AccessLogUtils.getInfoFromWorkerInfo(objectInfo, VitamThreadUtils.getVitamSession(), mustLog);
-
             response = storageClient
-                .getContainerAsync(VitamConfiguration.getDefaultStrategy(), param.getObjectName(), DataCategory.OBJECT, logInfo);
+                .getContainerAsync(strategyId, param.getObjectName(), DataCategory.OBJECT, logInfo);
 
             handler.transferInputStreamToWorkspace((String) objectInfo.get("FILE_NAME"),
                 (InputStream) response.getEntity(), null, false);

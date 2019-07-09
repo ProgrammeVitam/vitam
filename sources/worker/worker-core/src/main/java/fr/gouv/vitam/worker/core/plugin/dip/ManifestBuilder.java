@@ -38,7 +38,13 @@ import static fr.gouv.vitam.common.mapping.dip.UnitMapper.buildObjectMapper;
 import static fr.gouv.vitam.worker.common.utils.SedaUtils.XSI_URI;
 
 import java.io.OutputStream;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import javax.xml.bind.JAXBContext;
@@ -51,25 +57,12 @@ import javax.xml.stream.XMLOutputFactory;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamWriter;
 
-import fr.gouv.vitam.common.accesslog.AccessLogUtils;
-import fr.gouv.vitam.common.database.builder.query.Query;
-import fr.gouv.vitam.common.database.builder.query.QueryHelper;
-import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
-import fr.gouv.vitam.common.database.builder.request.single.Select;
-import fr.gouv.vitam.common.exception.InvalidParseOperationException;
-import fr.gouv.vitam.common.model.RequestResponseOK;
-import fr.gouv.vitam.common.model.administration.AccessContractModel;
-import fr.gouv.vitam.common.model.objectgroup.QualifiersModel;
-import fr.gouv.vitam.common.thread.VitamThreadUtils;
-import fr.gouv.vitam.functional.administration.client.AdminManagementClient;
-import fr.gouv.vitam.functional.administration.client.AdminManagementClientFactory;
-import fr.gouv.vitam.functional.administration.common.AccessContract;
-import fr.gouv.vitam.functional.administration.common.exception.AdminManagementClientServerException;
 import org.apache.commons.io.FilenameUtils;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.collect.ListMultimap;
 
 import fr.gouv.culture.archivesdefrance.seda.v2.ArchiveUnitType;
@@ -80,14 +73,29 @@ import fr.gouv.culture.archivesdefrance.seda.v2.DataObjectPackageType;
 import fr.gouv.culture.archivesdefrance.seda.v2.DataObjectRefType;
 import fr.gouv.culture.archivesdefrance.seda.v2.MinimalDataObjectType;
 import fr.gouv.culture.archivesdefrance.seda.v2.ObjectFactory;
+import fr.gouv.vitam.common.accesslog.AccessLogUtils;
+import fr.gouv.vitam.common.database.builder.query.Query;
+import fr.gouv.vitam.common.database.builder.query.QueryHelper;
+import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
+import fr.gouv.vitam.common.database.builder.request.single.Select;
 import fr.gouv.vitam.common.exception.InternalServerException;
+import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.mapping.dip.ArchiveUnitMapper;
 import fr.gouv.vitam.common.mapping.dip.ObjectGroupMapper;
+import fr.gouv.vitam.common.model.RequestResponseOK;
+import fr.gouv.vitam.common.model.administration.AccessContractModel;
 import fr.gouv.vitam.common.model.objectgroup.ObjectGroupResponse;
+import fr.gouv.vitam.common.model.objectgroup.QualifiersModel;
+import fr.gouv.vitam.common.model.objectgroup.VersionsModel;
 import fr.gouv.vitam.common.model.unit.ArchiveUnitModel;
+import fr.gouv.vitam.common.thread.VitamThreadUtils;
+import fr.gouv.vitam.functional.administration.client.AdminManagementClient;
+import fr.gouv.vitam.functional.administration.client.AdminManagementClientFactory;
+import fr.gouv.vitam.functional.administration.common.AccessContract;
+import fr.gouv.vitam.functional.administration.common.exception.AdminManagementClientServerException;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.worker.common.utils.SedaUtils;
 
@@ -190,6 +198,10 @@ public class ManifestBuilder implements AutoCloseable {
             return Collections.emptyMap();
         }
 
+        Map<String, String> strategiesByVersion = objectGroup.getQualifiers().stream()
+                .flatMap(qualifier -> qualifier.getVersions().stream())
+                .collect(Collectors.toMap(VersionsModel::getDataObjectVersion, version -> version.getStorage().getStrategyId()));
+        
         Map<String, JsonNode> maps = new HashMap<>();
 
         final DataObjectPackageType xmlObject;
@@ -215,9 +227,12 @@ public class ManifestBuilder implements AutoCloseable {
                         binaryDataObjectType.setUri(fileName);
 
                         String[] dataObjectVersion = minimalDataObjectType.getDataObjectVersion().split("_");
+                        String xmlQualifier = dataObjectVersion[0];
+                        Integer xmlVersion = Integer.parseInt(dataObjectVersion[1]);
 
-                        maps.put(minimalDataObjectType.getId(),
-                            AccessLogUtils.getWorkerInfo(dataObjectVersion[0], Integer.parseInt(dataObjectVersion[1]), binaryDataObjectType.getSize().longValue(), linkedAU, fileName));
+                        ObjectNode objectInfos = (ObjectNode) AccessLogUtils.getWorkerInfo(xmlQualifier, xmlVersion, binaryDataObjectType.getSize().longValue(), linkedAU, fileName);
+                        objectInfos.put("strategyId", strategiesByVersion.get(minimalDataObjectType.getDataObjectVersion()));
+                        maps.put(minimalDataObjectType.getId(), objectInfos);
                     }
                     marshaller.marshal(minimalDataObjectType, writer);
                 }
