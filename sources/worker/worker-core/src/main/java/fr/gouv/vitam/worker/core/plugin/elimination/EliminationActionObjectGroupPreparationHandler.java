@@ -212,7 +212,7 @@ public class EliminationActionObjectGroupPreparationHandler extends ActionHandle
                 objectsToDelete.forEach((id, strategyId) -> {
                     objectToDeleteArrayNode.add(JsonHandler.createObjectNode().put("id", id).put("strategyId", strategyId));
                 });
-                params.set("objects",objectToDeleteArrayNode);
+                params.set("objects", objectToDeleteArrayNode);
                 params.put("strategyId", objectGroup.getStorage().getStrategyId());
                 
                 JsonLineModel entry = new JsonLineModel(objectGroup.getId(), null, params);

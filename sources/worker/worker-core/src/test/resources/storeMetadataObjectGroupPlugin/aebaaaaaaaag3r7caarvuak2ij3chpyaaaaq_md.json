@@ -57,7 +57,7 @@
             "vitam-iaas-app-02.itrec",
             "vitam-iaas-app-01.itrec"
         ],
-        "strategyId": "default"
+        "strategyId": "default-got-fake"
     },
     "_v": 1
 }

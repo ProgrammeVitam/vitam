@@ -237,7 +237,7 @@ public class MetadataDocumentHelper {
     }
     
     /**
-     * Retrieve the strategyId from a raw unit json
+     * Retrieve the strategyId from a unit json
      * 
      * @param unitJson unit json
      * @return strategyId

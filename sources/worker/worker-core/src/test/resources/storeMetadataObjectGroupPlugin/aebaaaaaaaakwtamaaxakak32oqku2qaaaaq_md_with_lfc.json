@@ -1,1 +1,265 @@
-{"got":{"FileInfo":{"CreatingApplicationName":"CreatingApplicationName0","CreatingApplicationVersion":"CreatingApplicationVersion0","CreatingOs":"CreatingOs0","CreatingOsVersion":"CreatingOsVersion0","DateCreatedByApplication":"2006-05-04T18:13:51.0","Filename":"Filename0","LastModified":"2006-05-04T18:13:51.0"},"OriginatingAgency":"FRAN_NP_050056","_id":"aebaaaaaaaakwtamaaxakak32oqku2qaaaaq","_nbc":2,"_ops":["ExtractSedaActionHandlerTest"],"_profil":"","_qualifiers":[{"_nbc":1,"qualifier":"PhysicalMaster","versions":[{"DataObjectGroupId":"aebaaaaaaaakwtamaaxakak32oqku2qaaaaq","DataObjectVersion":"PhysicalMaster_1","PhysicalDimensions":{"Height":21,"Length":29.7,"Weight":1},"PhysicalId":123456789,"_id":"aeaaaaaaaaakwtamaaxakak32oqku2qaaabq"}]},{"_nbc":1,"qualifier":"BinaryMaster","versions":[{"Algorithm":"SHA-512","DataObjectGroupId":"aebaaaaaaaakwtamaaxakak32oqku2qaaaaq","DataObjectVersion":"BinaryMaster_1","FileInfo":{"CreatingApplicationName":"CreatingApplicationName0","CreatingApplicationVersion":"CreatingApplicationVersion0","CreatingOs":"CreatingOs0","CreatingOsVersion":"CreatingOsVersion0","DateCreatedByApplication":"2006-05-04T18:13:51.0","Filename":"Filename0","LastModified":"2006-05-04T18:13:51.0"},"FormatIdentification":{"FormatId":"fmt/18","FormatLitteral":"Acrobat PDF 1.4 - Portable Document Format","MimeType":"application/pdf"},"MessageDigest":"942bb63cc16bf5ca3ba7fabf40ce9be19c3185a36cd87ad17c63d6fad1aa29d4312d73f2d6a1ba1266c3a71fc4119dd476d2d776cf2ad2acd7a9a3dfa1f80dc7","Size":29403,"Uri":"Content/5zC1uD6CvaYDipUhETOyUWVEbxHmE1.pdf","_id":"aeaaaaaaaaakwtamaaxakak32oqku2iaaaaq"}]}],"_tenant":0,"_up":["aeaqaaaaaaakwtamaaxakak32oqku2yaaaba"],"_work":{"_qualifiers":[{"_nbc":1,"qualifier":"PhysicalMaster","versions":[{"PhysicalId":123456789,"_id":"aeaaaaaaaaakwtamaaxakak32oqku2qaaabq"}]},{"_nbc":1,"qualifier":"BinaryMaster","versions":[{"Algorithm":"SHA-512","MessageDigest":"942bb63cc16bf5ca3ba7fabf40ce9be19c3185a36cd87ad17c63d6fad1aa29d4312d73f2d6a1ba1266c3a71fc4119dd476d2d776cf2ad2acd7a9a3dfa1f80dc7","Size":29403,"Uri":"Content/5zC1uD6CvaYDipUhETOyUWVEbxHmE1.pdf","_id":"aeaaaaaaaaakwtamaaxakak32oqku2iaaaaq"}]}]}},"lfc":{"_id":"aebaaaaaaaakwtamaaxakak32oqku2qaaaaq","_tenant":0,"_v":0,"agId":"{\"Name\":\"84d8f77da467\",\"Role\":\"worker\",\"ServerId\":1815296557,\"SiteId\":1,\"GlobalPlatformId\":204683821}","evDateTime":"2017-09-22T09:51:04.909","evDetData":null,"evId":"aedqaaaaacgdgornaa7veak6vd7wvqiaaaaq","evIdProc":"aedqaaaaacgv4sd5abalyak6vd7wdsqaaaaq","evType":"LFC.LFC_CREATION","evTypeProc":"INGEST","events":[{"agId":"{\"Name\":\"84d8f77da467\",\"Role\":\"worker\",\"ServerId\":1815296557,\"SiteId\":1,\"GlobalPlatformId\":204683821}","evDateTime":"2017-09-22T09:51:04.915","evDetData":null,"evId":"aedqaaaaacgdgornaa7veak6vd7wvqiaaaaq","evIdProc":"aedqaaaaacgv4sd5abalyak6vd7wdsqaaaaq","evParentId":null,"evType":"LFC.CHECK_MANIFEST","evTypeProc":"INGEST","obId":"aebaaaaaaaakwtamaaxakak32oqku2qaaaaq","outDetail":"LFC.CHECK_MANIFEST.OK","outMessg":"Succ\u00e8s de la v\u00e9rification de la coh\u00e9rence du bordereau","outcome":"OK"},{"agId":"{\"Name\":\"84d8f77da467\",\"Role\":\"worker\",\"ServerId\":1815296557,\"SiteId\":1,\"GlobalPlatformId\":204683821}","evDateTime":"2017-09-22T09:51:04.916","evDetData":null,"evId":"aedqaaaaacgdgornaa7veak6vd7wvqiaaaaq","evIdProc":"aedqaaaaacgv4sd5abalyak6vd7wdsqaaaaq","evParentId":"aedqaaaaacgdgornaa7veak6vd7wvqiaaaaq","evType":"LFC.CHECK_MANIFEST.LFC_CREATION","evTypeProc":"INGEST","obId":"aebaaaaaaaakwtamaaxakak32oqku2qaaaaq","outDetail":"LFC.CHECK_MANIFEST.LFC_CREATION.OK","outMessg":"Succ\u00e8s de la cr\u00e9ation du journal du cycle de vie","outcome":"OK"},{"agId":"{\"Name\":\"84d8f77da467\",\"Role\":\"worker\",\"ServerId\":1815296557,\"SiteId\":1,\"GlobalPlatformId\":204683821}","evDateTime":"2017-09-22T09:51:05.579","evDetData":null,"evId":"aedqaaaaacgdgornaa7veak6vd7w22qaaaaq","evIdProc":"aedqaaaaacgv4sd5abalyak6vd7wdsqaaaaq","evParentId":null,"evType":"LFC.CHECK_CONSISTENCY","evTypeProc":"INGEST","obId":"aebaaaaaaaakwtamaaxakak32oqku2qaaaaq","outDetail":"LFC.CHECK_CONSISTENCY.OK","outMessg":"Succ\u00e8s du contr\u00f4le de la coh\u00e9rence entre objets, groupes d'objets et unit\u00e9s archivistiques","outcome":"OK"},{"agId":"{\"Name\":\"84d8f77da467\",\"Role\":\"worker\",\"ServerId\":1815296557,\"SiteId\":1,\"GlobalPlatformId\":204683821}","evDateTime":"2017-09-22T09:51:06.684","evDetData":"{\"MessageDigest\":\"942bb63cc16bf5ca3ba7fabf40ce9be19c3185a36cd87ad17c63d6fad1aa29d4312d73f2d6a1ba1266c3a71fc4119dd476d2d776cf2ad2acd7a9a3dfa1f80dc7\",\"Algorithm\": \"SHA512\", \"SystemMessageDigest\": \"942bb63cc16bf5ca3ba7fabf40ce9be19c3185a36cd87ad17c63d6fad1aa29d4312d73f2d6a1ba1266c3a71fc4119dd476d2d776cf2ad2acd7a9a3dfa1f80dc7\", \"SystemAlgorithm\": \"SHA-512\"} ","evId":"aedqaaaaacgdgornaa7veak6vd7xcpqaaaaq","evIdProc":"aedqaaaaacgv4sd5abalyak6vd7wdsqaaaaq","evParentId":null,"evType":"LFC.CHECK_DIGEST","evTypeProc":"INGEST","obId":"aebaaaaaaaakwtamaaxakak32oqku2qaaaaq","outDetail":"LFC.CHECK_DIGEST.OK","outMessg":"Succ\u00e8s de la v\u00e9rification de l'int\u00e9grit\u00e9 des objets vers\u00e9s","outcome":"OK"},{"agId":"{\"Name\":\"84d8f77da467\",\"Role\":\"worker\",\"ServerId\":1815296557,\"SiteId\":1,\"GlobalPlatformId\":204683821}","evDateTime":"2017-09-22T09:51:06.644","evDetData":"{\"MessageDigest\":\"942bb63cc16bf5ca3ba7fabf40ce9be19c3185a36cd87ad17c63d6fad1aa29d4312d73f2d6a1ba1266c3a71fc4119dd476d2d776cf2ad2acd7a9a3dfa1f80dc7\",\"Algorithm\": \"SHA512\", \"SystemMessageDigest\": \"942bb63cc16bf5ca3ba7fabf40ce9be19c3185a36cd87ad17c63d6fad1aa29d4312d73f2d6a1ba1266c3a71fc4119dd476d2d776cf2ad2acd7a9a3dfa1f80dc7\", \"SystemAlgorithm\": \"SHA-512\"} ","evId":"aedqaaaaacgdgornaa7veak6vd7xcpqaaaaq","evIdProc":"aedqaaaaacgv4sd5abalyak6vd7wdsqaaaaq","evParentId":"aedqaaaaacgdgornaa7veak6vd7xcpqaaaaq","evType":"LFC.CHECK_DIGEST.CALC_CHECK","evTypeProc":"INGEST","obId":"aebaaaaaaaakwtamaaxakak32oqku2qaaaaq","outDetail":"LFC.CHECK_DIGEST.CALC_CHECK.OK","outMessg":"Succ\u00e8s du calcul d'une l'empreinte en SHA-512","outcome":"OK"},{"agId":"{\"Name\":\"84d8f77da467\",\"Role\":\"worker\",\"ServerId\":1815296557,\"SiteId\":1,\"GlobalPlatformId\":204683821}","evDateTime":"2017-09-22T09:51:06.943","evDetData":"{}","evId":"aedqaaaaacgdgornaa7veak6vd7xdtqaaaaq","evIdProc":"aedqaaaaacgv4sd5abalyak6vd7wdsqaaaaq","evParentId":null,"evType":"LFC.OG_OBJECTS_FORMAT_CHECK","evTypeProc":"INGEST","obId":"aebaaaaaaaakwtamaaxakak32oqku2qaaaaq","outDetail":"LFC.OG_OBJECTS_FORMAT_CHECK.OK","outMessg":"Succ\u00e8s de l'identification du format","outcome":"OK"},{"agId":"{\"Name\":\"84d8f77da467\",\"Role\":\"worker\",\"ServerId\":1815296557,\"SiteId\":1,\"GlobalPlatformId\":204683821}","evDateTime":"2017-09-22T09:51:06.918","evDetData":"{}","evId":"aedqaaaaacgdgornaa7veak6vd7xdtqaaaaq","evIdProc":"aedqaaaaacgv4sd5abalyak6vd7wdsqaaaaq","evParentId":"aedqaaaaacgdgornaa7veak6vd7xdtqaaaaq","evType":"LFC.OG_OBJECTS_FORMAT_CHECK.FILE_FORMAT","evTypeProc":"INGEST","obId":"aebaaaaaaaakwtamaaxakak32oqku2qaaaaq","outDetail":"LFC.OG_OBJECTS_FORMAT_CHECK.FILE_FORMAT.OK","outMessg":"Format de l'objet identifi\u00e9, r\u00e9f\u00e9renc\u00e9 dans le r\u00e9f\u00e9rentiel interne et avec des informations coh\u00e9rentes entre le manifeste et le r\u00e9sultat de l'outil d'identification.","outcome":"OK"},{"agId":"{\"Name\":\"84d8f77da467\",\"Role\":\"worker\",\"ServerId\":1815296557,\"SiteId\":1,\"GlobalPlatformId\":204683821}","evDateTime":"2017-09-22T09:51:10.825","evDetData":"{\"FileName\":\"aeaaaaaaaagdgornaa7veak6vd7wvoyaaaaq\",\"Algorithm\":\"SHA-512\",\"MessageDigest\":\"942bb63cc16bf5ca3ba7fabf40ce9be19c3185a36cd87ad17c63d6fad1aa29d4312d73f2d6a1ba1266c3a71fc4119dd476d2d776cf2ad2acd7a9a3dfa1f80dc7\",\"Offers\":\"localhost\"}","evId":"aebaaaaaaaakwtamaaxakak32oqku2qaaaaq","evIdProc":"aedqaaaaacgv4sd5abalyak6vd7wdsqaaaaq","evParentId":null,"evType":"LFC.OBJ_STORAGE","evTypeProc":"INGEST","obId":"aebaaaaaaaakwtamaaxakak32oqku2qaaaaq","outDetail":"LFC.OBJ_STORAGE.OK","outMessg":"Ecriture de l'objet sur les offres de stockage r\u00e9alis\u00e9 avec succ\u00e8s","outcome":"OK"},{"agId":"{\"Name\":\"84d8f77da467\",\"Role\":\"worker\",\"ServerId\":1815296557,\"SiteId\":1,\"GlobalPlatformId\":204683821}","evDateTime":"2017-09-22T09:51:10.803","evDetData":"{\"FileName\":\"aeaaaaaaaagdgornaa7veak6vd7wvoyaaaaq\",\"Algorithm\":\"SHA-512\",\"MessageDigest\":\"942bb63cc16bf5ca3ba7fabf40ce9be19c3185a36cd87ad17c63d6fad1aa29d4312d73f2d6a1ba1266c3a71fc4119dd476d2d776cf2ad2acd7a9a3dfa1f80dc7\",\"Offers\":\"localhost\"}","evId":"aebaaaaaaaakwtamaaxakak32oqku2qaaaaq","evIdProc":"aedqaaaaacgv4sd5abalyak6vd7wdsqaaaaq","evParentId":"aebaaaaaaaakwtamaaxakak32oqku2qaaaaq","evType":"LFC.OBJ_STORAGE.OBJECT_STORAGE_SUB_TASK","evTypeProc":"INGEST","obId":"aebaaaaaaaakwtamaaxakak32oqku2qaaaaq","outDetail":"LFC.OBJ_STORAGE.OBJECT_STORAGE_SUB_TASK.OK","outMessg":"Ecriture de l'objet r\u00e9alis\u00e9 avec succ\u00e8s","outcome":"OK"},{"agId":"{\"Name\":\"84d8f77da467\",\"Role\":\"worker\",\"ServerId\":1815296557,\"SiteId\":1,\"GlobalPlatformId\":204683821}","evDateTime":"2017-09-22T09:51:11.347","evDetData":"{}","evId":"aedqaaaaacgdgornaa7veak6vd7yd6aaaaaq","evIdProc":"aedqaaaaacgv4sd5abalyak6vd7wdsqaaaaq","evParentId":null,"evType":"LFC.OG_METADATA_INDEXATION","evTypeProc":"INGEST","obId":"aebaaaaaaaakwtamaaxakak32oqku2qaaaaq","outDetail":"LFC.OG_METADATA_INDEXATION.OK","outMessg":"Succ\u00e8s de l'indexation des m\u00e9tadonn\u00e9es du groupe d'objets","outcome":"OK"}],"obId":"aebaaaaaaaakwtamaaxakak32oqku2qaaaaq","outDetail":"LFC.LFC_CREATION.OK","outMessg":"Cr\u00e9ation du journal du cycle de vie","outcome":"OK"}}
+{
+	"got": {
+		"FileInfo": {
+			"CreatingApplicationName": "CreatingApplicationName0",
+			"CreatingApplicationVersion": "CreatingApplicationVersion0",
+			"CreatingOs": "CreatingOs0",
+			"CreatingOsVersion": "CreatingOsVersion0",
+			"DateCreatedByApplication": "2006-05-04T18:13:51.0",
+			"Filename": "Filename0",
+			"LastModified": "2006-05-04T18:13:51.0"
+		},
+		"OriginatingAgency": "FRAN_NP_050056",
+		"_id": "aebaaaaaaaakwtamaaxakak32oqku2qaaaaq",
+		"_nbc": 2,
+		"_ops": [
+			"ExtractSedaActionHandlerTest"
+		],
+		"_profil": "",
+		"_qualifiers": [
+			{
+				"_nbc": 1,
+				"qualifier": "PhysicalMaster",
+				"versions": [
+					{
+						"DataObjectGroupId": "aebaaaaaaaakwtamaaxakak32oqku2qaaaaq",
+						"DataObjectVersion": "PhysicalMaster_1",
+						"PhysicalDimensions": {
+							"Height": 21,
+							"Length": 29.7,
+							"Weight": 1
+						},
+						"PhysicalId": 123456789,
+						"_id": "aeaaaaaaaaakwtamaaxakak32oqku2qaaabq"
+					}
+				]
+			},
+			{
+				"_nbc": 1,
+				"qualifier": "BinaryMaster",
+				"versions": [
+					{
+						"Algorithm": "SHA-512",
+						"DataObjectGroupId": "aebaaaaaaaakwtamaaxakak32oqku2qaaaaq",
+						"DataObjectVersion": "BinaryMaster_1",
+						"FileInfo": {
+							"CreatingApplicationName": "CreatingApplicationName0",
+							"CreatingApplicationVersion": "CreatingApplicationVersion0",
+							"CreatingOs": "CreatingOs0",
+							"CreatingOsVersion": "CreatingOsVersion0",
+							"DateCreatedByApplication": "2006-05-04T18:13:51.0",
+							"Filename": "Filename0",
+							"LastModified": "2006-05-04T18:13:51.0"
+						},
+						"FormatIdentification": {
+							"FormatId": "fmt/18",
+							"FormatLitteral": "Acrobat PDF 1.4 - Portable Document Format",
+							"MimeType": "application/pdf"
+						},
+						"MessageDigest": "942bb63cc16bf5ca3ba7fabf40ce9be19c3185a36cd87ad17c63d6fad1aa29d4312d73f2d6a1ba1266c3a71fc4119dd476d2d776cf2ad2acd7a9a3dfa1f80dc7",
+						"Size": 29403,
+						"Uri": "Content/5zC1uD6CvaYDipUhETOyUWVEbxHmE1.pdf",
+						"_id": "aeaaaaaaaaakwtamaaxakak32oqku2iaaaaq"
+					}
+				]
+			}
+		],
+		"_storage": {
+			"_nbc": 2,
+			"offerIds": [
+				"vitam-iaas-app-02.itrec",
+				"vitam-iaas-app-01.itrec"
+			],
+			"strategyId": "default-got-fake"
+		},
+		"_tenant": 0,
+		"_up": [
+			"aeaqaaaaaaakwtamaaxakak32oqku2yaaaba"
+		],
+		"_work": {
+			"_qualifiers": [
+				{
+					"_nbc": 1,
+					"qualifier": "PhysicalMaster",
+					"versions": [
+						{
+							"PhysicalId": 123456789,
+							"_id": "aeaaaaaaaaakwtamaaxakak32oqku2qaaabq"
+						}
+					]
+				},
+				{
+					"_nbc": 1,
+					"qualifier": "BinaryMaster",
+					"versions": [
+						{
+							"Algorithm": "SHA-512",
+							"MessageDigest": "942bb63cc16bf5ca3ba7fabf40ce9be19c3185a36cd87ad17c63d6fad1aa29d4312d73f2d6a1ba1266c3a71fc4119dd476d2d776cf2ad2acd7a9a3dfa1f80dc7",
+							"Size": 29403,
+							"Uri": "Content/5zC1uD6CvaYDipUhETOyUWVEbxHmE1.pdf",
+							"_id": "aeaaaaaaaaakwtamaaxakak32oqku2iaaaaq"
+						}
+					]
+				}
+			]
+		}
+	},
+	"lfc": {
+		"_id": "aebaaaaaaaakwtamaaxakak32oqku2qaaaaq",
+		"_tenant": 0,
+		"_v": 0,
+		"agId": "{\"Name\":\"84d8f77da467\",\"Role\":\"worker\",\"ServerId\":1815296557,\"SiteId\":1,\"GlobalPlatformId\":204683821}",
+		"evDateTime": "2017-09-22T09:51:04.909",
+		"evDetData": null,
+		"evId": "aedqaaaaacgdgornaa7veak6vd7wvqiaaaaq",
+		"evIdProc": "aedqaaaaacgv4sd5abalyak6vd7wdsqaaaaq",
+		"evType": "LFC.LFC_CREATION",
+		"evTypeProc": "INGEST",
+		"events": [
+			{
+				"agId": "{\"Name\":\"84d8f77da467\",\"Role\":\"worker\",\"ServerId\":1815296557,\"SiteId\":1,\"GlobalPlatformId\":204683821}",
+				"evDateTime": "2017-09-22T09:51:04.915",
+				"evDetData": null,
+				"evId": "aedqaaaaacgdgornaa7veak6vd7wvqiaaaaq",
+				"evIdProc": "aedqaaaaacgv4sd5abalyak6vd7wdsqaaaaq",
+				"evParentId": null,
+				"evType": "LFC.CHECK_MANIFEST",
+				"evTypeProc": "INGEST",
+				"obId": "aebaaaaaaaakwtamaaxakak32oqku2qaaaaq",
+				"outDetail": "LFC.CHECK_MANIFEST.OK",
+				"outMessg": "Succ\u00e8s de la v\u00e9rification de la coh\u00e9rence du bordereau",
+				"outcome": "OK"
+			},
+			{
+				"agId": "{\"Name\":\"84d8f77da467\",\"Role\":\"worker\",\"ServerId\":1815296557,\"SiteId\":1,\"GlobalPlatformId\":204683821}",
+				"evDateTime": "2017-09-22T09:51:04.916",
+				"evDetData": null,
+				"evId": "aedqaaaaacgdgornaa7veak6vd7wvqiaaaaq",
+				"evIdProc": "aedqaaaaacgv4sd5abalyak6vd7wdsqaaaaq",
+				"evParentId": "aedqaaaaacgdgornaa7veak6vd7wvqiaaaaq",
+				"evType": "LFC.CHECK_MANIFEST.LFC_CREATION",
+				"evTypeProc": "INGEST",
+				"obId": "aebaaaaaaaakwtamaaxakak32oqku2qaaaaq",
+				"outDetail": "LFC.CHECK_MANIFEST.LFC_CREATION.OK",
+				"outMessg": "Succ\u00e8s de la cr\u00e9ation du journal du cycle de vie",
+				"outcome": "OK"
+			},
+			{
+				"agId": "{\"Name\":\"84d8f77da467\",\"Role\":\"worker\",\"ServerId\":1815296557,\"SiteId\":1,\"GlobalPlatformId\":204683821}",
+				"evDateTime": "2017-09-22T09:51:05.579",
+				"evDetData": null,
+				"evId": "aedqaaaaacgdgornaa7veak6vd7w22qaaaaq",
+				"evIdProc": "aedqaaaaacgv4sd5abalyak6vd7wdsqaaaaq",
+				"evParentId": null,
+				"evType": "LFC.CHECK_CONSISTENCY",
+				"evTypeProc": "INGEST",
+				"obId": "aebaaaaaaaakwtamaaxakak32oqku2qaaaaq",
+				"outDetail": "LFC.CHECK_CONSISTENCY.OK",
+				"outMessg": "Succ\u00e8s du contr\u00f4le de la coh\u00e9rence entre objets, groupes d'objets et unit\u00e9s archivistiques",
+				"outcome": "OK"
+			},
+			{
+				"agId": "{\"Name\":\"84d8f77da467\",\"Role\":\"worker\",\"ServerId\":1815296557,\"SiteId\":1,\"GlobalPlatformId\":204683821}",
+				"evDateTime": "2017-09-22T09:51:06.684",
+				"evDetData": "{\"MessageDigest\":\"942bb63cc16bf5ca3ba7fabf40ce9be19c3185a36cd87ad17c63d6fad1aa29d4312d73f2d6a1ba1266c3a71fc4119dd476d2d776cf2ad2acd7a9a3dfa1f80dc7\",\"Algorithm\": \"SHA512\", \"SystemMessageDigest\": \"942bb63cc16bf5ca3ba7fabf40ce9be19c3185a36cd87ad17c63d6fad1aa29d4312d73f2d6a1ba1266c3a71fc4119dd476d2d776cf2ad2acd7a9a3dfa1f80dc7\", \"SystemAlgorithm\": \"SHA-512\"} ",
+				"evId": "aedqaaaaacgdgornaa7veak6vd7xcpqaaaaq",
+				"evIdProc": "aedqaaaaacgv4sd5abalyak6vd7wdsqaaaaq",
+				"evParentId": null,
+				"evType": "LFC.CHECK_DIGEST",
+				"evTypeProc": "INGEST",
+				"obId": "aebaaaaaaaakwtamaaxakak32oqku2qaaaaq",
+				"outDetail": "LFC.CHECK_DIGEST.OK",
+				"outMessg": "Succ\u00e8s de la v\u00e9rification de l'int\u00e9grit\u00e9 des objets vers\u00e9s",
+				"outcome": "OK"
+			},
+			{
+				"agId": "{\"Name\":\"84d8f77da467\",\"Role\":\"worker\",\"ServerId\":1815296557,\"SiteId\":1,\"GlobalPlatformId\":204683821}",
+				"evDateTime": "2017-09-22T09:51:06.644",
+				"evDetData": "{\"MessageDigest\":\"942bb63cc16bf5ca3ba7fabf40ce9be19c3185a36cd87ad17c63d6fad1aa29d4312d73f2d6a1ba1266c3a71fc4119dd476d2d776cf2ad2acd7a9a3dfa1f80dc7\",\"Algorithm\": \"SHA512\", \"SystemMessageDigest\": \"942bb63cc16bf5ca3ba7fabf40ce9be19c3185a36cd87ad17c63d6fad1aa29d4312d73f2d6a1ba1266c3a71fc4119dd476d2d776cf2ad2acd7a9a3dfa1f80dc7\", \"SystemAlgorithm\": \"SHA-512\"} ",
+				"evId": "aedqaaaaacgdgornaa7veak6vd7xcpqaaaaq",
+				"evIdProc": "aedqaaaaacgv4sd5abalyak6vd7wdsqaaaaq",
+				"evParentId": "aedqaaaaacgdgornaa7veak6vd7xcpqaaaaq",
+				"evType": "LFC.CHECK_DIGEST.CALC_CHECK",
+				"evTypeProc": "INGEST",
+				"obId": "aebaaaaaaaakwtamaaxakak32oqku2qaaaaq",
+				"outDetail": "LFC.CHECK_DIGEST.CALC_CHECK.OK",
+				"outMessg": "Succ\u00e8s du calcul d'une l'empreinte en SHA-512",
+				"outcome": "OK"
+			},
+			{
+				"agId": "{\"Name\":\"84d8f77da467\",\"Role\":\"worker\",\"ServerId\":1815296557,\"SiteId\":1,\"GlobalPlatformId\":204683821}",
+				"evDateTime": "2017-09-22T09:51:06.943",
+				"evDetData": "{}",
+				"evId": "aedqaaaaacgdgornaa7veak6vd7xdtqaaaaq",
+				"evIdProc": "aedqaaaaacgv4sd5abalyak6vd7wdsqaaaaq",
+				"evParentId": null,
+				"evType": "LFC.OG_OBJECTS_FORMAT_CHECK",
+				"evTypeProc": "INGEST",
+				"obId": "aebaaaaaaaakwtamaaxakak32oqku2qaaaaq",
+				"outDetail": "LFC.OG_OBJECTS_FORMAT_CHECK.OK",
+				"outMessg": "Succ\u00e8s de l'identification du format",
+				"outcome": "OK"
+			},
+			{
+				"agId": "{\"Name\":\"84d8f77da467\",\"Role\":\"worker\",\"ServerId\":1815296557,\"SiteId\":1,\"GlobalPlatformId\":204683821}",
+				"evDateTime": "2017-09-22T09:51:06.918",
+				"evDetData": "{}",
+				"evId": "aedqaaaaacgdgornaa7veak6vd7xdtqaaaaq",
+				"evIdProc": "aedqaaaaacgv4sd5abalyak6vd7wdsqaaaaq",
+				"evParentId": "aedqaaaaacgdgornaa7veak6vd7xdtqaaaaq",
+				"evType": "LFC.OG_OBJECTS_FORMAT_CHECK.FILE_FORMAT",
+				"evTypeProc": "INGEST",
+				"obId": "aebaaaaaaaakwtamaaxakak32oqku2qaaaaq",
+				"outDetail": "LFC.OG_OBJECTS_FORMAT_CHECK.FILE_FORMAT.OK",
+				"outMessg": "Format de l'objet identifi\u00e9, r\u00e9f\u00e9renc\u00e9 dans le r\u00e9f\u00e9rentiel interne et avec des informations coh\u00e9rentes entre le manifeste et le r\u00e9sultat de l'outil d'identification.",
+				"outcome": "OK"
+			},
+			{
+				"agId": "{\"Name\":\"84d8f77da467\",\"Role\":\"worker\",\"ServerId\":1815296557,\"SiteId\":1,\"GlobalPlatformId\":204683821}",
+				"evDateTime": "2017-09-22T09:51:10.825",
+				"evDetData": "{\"FileName\":\"aeaaaaaaaagdgornaa7veak6vd7wvoyaaaaq\",\"Algorithm\":\"SHA-512\",\"MessageDigest\":\"942bb63cc16bf5ca3ba7fabf40ce9be19c3185a36cd87ad17c63d6fad1aa29d4312d73f2d6a1ba1266c3a71fc4119dd476d2d776cf2ad2acd7a9a3dfa1f80dc7\",\"Offers\":\"localhost\"}",
+				"evId": "aebaaaaaaaakwtamaaxakak32oqku2qaaaaq",
+				"evIdProc": "aedqaaaaacgv4sd5abalyak6vd7wdsqaaaaq",
+				"evParentId": null,
+				"evType": "LFC.OBJ_STORAGE",
+				"evTypeProc": "INGEST",
+				"obId": "aebaaaaaaaakwtamaaxakak32oqku2qaaaaq",
+				"outDetail": "LFC.OBJ_STORAGE.OK",
+				"outMessg": "Ecriture de l'objet sur les offres de stockage r\u00e9alis\u00e9 avec succ\u00e8s",
+				"outcome": "OK"
+			},
+			{
+				"agId": "{\"Name\":\"84d8f77da467\",\"Role\":\"worker\",\"ServerId\":1815296557,\"SiteId\":1,\"GlobalPlatformId\":204683821}",
+				"evDateTime": "2017-09-22T09:51:10.803",
+				"evDetData": "{\"FileName\":\"aeaaaaaaaagdgornaa7veak6vd7wvoyaaaaq\",\"Algorithm\":\"SHA-512\",\"MessageDigest\":\"942bb63cc16bf5ca3ba7fabf40ce9be19c3185a36cd87ad17c63d6fad1aa29d4312d73f2d6a1ba1266c3a71fc4119dd476d2d776cf2ad2acd7a9a3dfa1f80dc7\",\"Offers\":\"localhost\"}",
+				"evId": "aebaaaaaaaakwtamaaxakak32oqku2qaaaaq",
+				"evIdProc": "aedqaaaaacgv4sd5abalyak6vd7wdsqaaaaq",
+				"evParentId": "aebaaaaaaaakwtamaaxakak32oqku2qaaaaq",
+				"evType": "LFC.OBJ_STORAGE.OBJECT_STORAGE_SUB_TASK",
+				"evTypeProc": "INGEST",
+				"obId": "aebaaaaaaaakwtamaaxakak32oqku2qaaaaq",
+				"outDetail": "LFC.OBJ_STORAGE.OBJECT_STORAGE_SUB_TASK.OK",
+				"outMessg": "Ecriture de l'objet r\u00e9alis\u00e9 avec succ\u00e8s",
+				"outcome": "OK"
+			},
+			{
+				"agId": "{\"Name\":\"84d8f77da467\",\"Role\":\"worker\",\"ServerId\":1815296557,\"SiteId\":1,\"GlobalPlatformId\":204683821}",
+				"evDateTime": "2017-09-22T09:51:11.347",
+				"evDetData": "{}",
+				"evId": "aedqaaaaacgdgornaa7veak6vd7yd6aaaaaq",
+				"evIdProc": "aedqaaaaacgv4sd5abalyak6vd7wdsqaaaaq",
+				"evParentId": null,
+				"evType": "LFC.OG_METADATA_INDEXATION",
+				"evTypeProc": "INGEST",
+				"obId": "aebaaaaaaaakwtamaaxakak32oqku2qaaaaq",
+				"outDetail": "LFC.OG_METADATA_INDEXATION.OK",
+				"outMessg": "Succ\u00e8s de l'indexation des m\u00e9tadonn\u00e9es du groupe d'objets",
+				"outcome": "OK"
+			}
+		],
+		"obId": "aebaaaaaaaakwtamaaxakak32oqku2qaaaaq",
+		"outDetail": "LFC.LFC_CREATION.OK",
+		"outMessg": "Cr\u00e9ation du journal du cycle de vie",
+		"outcome": "OK"
+	}
+}

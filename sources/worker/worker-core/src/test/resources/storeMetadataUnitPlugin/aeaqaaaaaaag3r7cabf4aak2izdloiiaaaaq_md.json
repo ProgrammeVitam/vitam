@@ -93,5 +93,13 @@
   },
   "_ops": [
     "aedqaaaaacag3r7caayaqak2izdj7ciaaaaq"
-  ]
+  ],
+    "_storage": {
+        "_nbc": 2,
+        "offerIds": [
+            "vitam-iaas-app-02.itrec",
+            "vitam-iaas-app-01.itrec"
+        ],
+        "strategyId": "default-unit-fake"
+    }
 }

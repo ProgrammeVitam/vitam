@@ -205,7 +205,7 @@ public class StoreMetaDataUnitActionPluginTest {
         when(logbookLifeCyclesClient.getRawUnitLifeCycleByIds(Arrays.asList(UNIT_GUID, UNIT_GUID_2)))
             .thenReturn(Arrays.asList(lfcUnit1, lfcUnit2));
 
-        when(storageClient.bulkStoreFilesFromWorkspace(any(), any()))
+        when(storageClient.bulkStoreFilesFromWorkspace(eq("default-unit-fake"), any()))
             .thenReturn(new BulkObjectStoreResponse(
                 Arrays.asList("offer1", "offer2"), DigestType.SHA512.getName(),
                 ImmutableMap.of(UNIT_GUID + ".json", "digest1", UNIT_GUID_2, "digest2")
@@ -220,10 +220,12 @@ public class StoreMetaDataUnitActionPluginTest {
         // Then
         checkItemStatus(response, StatusCode.OK);
 
-        assertThat(getSavedFile(IngestWorkflowConstants.ARCHIVE_UNIT_FOLDER + "/" + UNIT_GUID + ".json")).hasSameContentAs(
-            unitWithLfc1);
-        assertThat(getSavedFile(IngestWorkflowConstants.ARCHIVE_UNIT_FOLDER + "/" + UNIT_GUID_2 + ".json")).hasSameContentAs(
-            unitWithLfc2);
+        JsonNode unitWithLfc1CreatedFile = JsonHandler.getFromFile(getSavedFile(IngestWorkflowConstants.ARCHIVE_UNIT_FOLDER + "/" + UNIT_GUID + ".json"));
+        JsonNode unitWithLfc1MockFile = JsonHandler.getFromFile(unitWithLfc1);
+        JsonNode unitWithLfc2CreatedFile = JsonHandler.getFromFile(getSavedFile(IngestWorkflowConstants.ARCHIVE_UNIT_FOLDER + "/" + UNIT_GUID_2 + ".json"));
+        JsonNode unitWithLfc2MockFile = JsonHandler.getFromFile(unitWithLfc2);
+        assertThat(unitWithLfc1CreatedFile).isEqualTo(unitWithLfc1MockFile);
+        assertThat(unitWithLfc2CreatedFile).isEqualTo(unitWithLfc2MockFile);
     }
 
     private File getSavedFile(String filename) {
