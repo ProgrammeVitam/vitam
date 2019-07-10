@@ -26,15 +26,34 @@
  */
 package fr.gouv.vitam.worker.core.plugin.massprocessing.description;
 
+import static fr.gouv.vitam.common.model.StatusCode.FATAL;
+import static fr.gouv.vitam.common.model.StatusCode.KO;
+import static fr.gouv.vitam.common.model.StatusCode.OK;
+import static fr.gouv.vitam.common.model.StatusCode.WARNING;
+import static fr.gouv.vitam.metadata.core.model.UpdateUnit.DIFF;
+import static fr.gouv.vitam.metadata.core.model.UpdateUnit.ID;
+import static fr.gouv.vitam.metadata.core.model.UpdateUnit.KEY;
+import static fr.gouv.vitam.metadata.core.model.UpdateUnit.MESSAGE;
+import static fr.gouv.vitam.metadata.core.model.UpdateUnit.STATUS;
+import static fr.gouv.vitam.worker.core.utils.PluginHelper.buildItemStatus;
+
+import java.io.File;
+import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.stream.Collectors;
+
+import org.apache.commons.lang3.StringUtils;
+
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.annotations.VisibleForTesting;
+
 import fr.gouv.vitam.batch.report.client.BatchReportClient;
 import fr.gouv.vitam.batch.report.client.BatchReportClientFactory;
 import fr.gouv.vitam.batch.report.model.ReportBody;
 import fr.gouv.vitam.batch.report.model.ReportType;
 import fr.gouv.vitam.batch.report.model.entry.UpdateUnitMetadataReportEntry;
-import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.database.builder.query.VitamFieldsHelper;
 import fr.gouv.vitam.common.database.builder.query.action.UpdateActionHelper;
 import fr.gouv.vitam.common.database.builder.request.multiple.UpdateMultiQuery;
@@ -82,24 +101,6 @@ import fr.gouv.vitam.worker.core.plugin.StoreMetadataObjectActionHandler;
 import fr.gouv.vitam.worker.core.utils.PluginHelper.EventDetails;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
 import fr.gouv.vitam.workspace.api.exception.WorkspaceClientServerException;
-import org.apache.commons.lang3.StringUtils;
-
-import java.io.File;
-import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.stream.Collectors;
-
-import static fr.gouv.vitam.common.model.StatusCode.FATAL;
-import static fr.gouv.vitam.common.model.StatusCode.KO;
-import static fr.gouv.vitam.common.model.StatusCode.OK;
-import static fr.gouv.vitam.common.model.StatusCode.WARNING;
-import static fr.gouv.vitam.metadata.core.model.UpdateUnit.DIFF;
-import static fr.gouv.vitam.metadata.core.model.UpdateUnit.ID;
-import static fr.gouv.vitam.metadata.core.model.UpdateUnit.KEY;
-import static fr.gouv.vitam.metadata.core.model.UpdateUnit.MESSAGE;
-import static fr.gouv.vitam.metadata.core.model.UpdateUnit.STATUS;
-import static fr.gouv.vitam.worker.core.utils.PluginHelper.buildItemStatus;
 
 public class MassUpdateUnitsProcess extends StoreMetadataObjectActionHandler {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(ActionHandler.class);
@@ -277,12 +278,26 @@ public class MassUpdateUnitsProcess extends StoreMetadataObjectActionHandler {
         return JsonHandler.writeAsString(diffObject);
     }
 
-    private void saveUnitWithLfc(MetaDataClient mdClient, LogbookLifeCyclesClient lfcClient,
-        StorageClient storageClient,
-        HandlerIO handler, WorkerParameters params, String guid, String fileName) throws VitamException {
+    /**
+     * Store Unit with LFC by storing UNIT+LFC in workspace then storing in offers.
+     * 
+     * @param mdClient      metadataClient
+     * @param lfcClient     logbook lifecycle client
+     * @param storageClient storage client
+     * @param handler       handler IO
+     * @param params        handler parameters
+     * @param guid          unit guid
+     * @param fileName      stored unit file name
+     * @throws VitamException when an error occurs
+     */
+    protected void saveUnitWithLfc(MetaDataClient mdClient, LogbookLifeCyclesClient lfcClient,
+            StorageClient storageClient, HandlerIO handler, WorkerParameters params, String guid, String fileName)
+            throws VitamException {
 
         //// get metadata
         JsonNode unit = selectMetadataDocumentRawById(guid, DataCategory.UNIT, mdClient);
+        String strategyId = MetadataDocumentHelper.getStrategyIdFromRawUnitOrGot(unit);
+        
         MetadataDocumentHelper.removeComputedFieldsFromUnit(unit);
 
         //// get lfc
@@ -294,8 +309,7 @@ public class MassUpdateUnitsProcess extends StoreMetadataObjectActionHandler {
         // transfer json to workspace
         try {
             InputStream is = CanonicalJsonFormatter.serialize(docWithLfc);
-            handler
-                .transferInputStreamToWorkspace(IngestWorkflowConstants.ARCHIVE_UNIT_FOLDER + "/" + fileName, is,
+            handler.transferInputStreamToWorkspace(IngestWorkflowConstants.ARCHIVE_UNIT_FOLDER + "/" + fileName, is,
                     null, false);
         } catch (ProcessingException e) {
             LOGGER.error(params.getObjectName(), e);
@@ -304,13 +318,12 @@ public class MassUpdateUnitsProcess extends StoreMetadataObjectActionHandler {
 
         // call storage (save in offers)
         // object Description
-        final ObjectDescription description =
-            new ObjectDescription(DataCategory.UNIT, params.getContainerName(),
+        final ObjectDescription description = new ObjectDescription(DataCategory.UNIT, params.getContainerName(),
                 fileName, IngestWorkflowConstants.ARCHIVE_UNIT_FOLDER + File.separator + fileName);
 
         // store metadata object from workspace and set itemStatus
-        storageClient.storeFileFromWorkspace(VitamConfiguration.getDefaultStrategy(), description.getType(),
-            description.getObjectName(),
-            description);
+        storageClient.storeFileFromWorkspace(strategyId, description.getType(), description.getObjectName(),
+                description);
     }
+
 }

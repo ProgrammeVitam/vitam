@@ -216,21 +216,21 @@ public class MetadataDocumentHelper {
     }
     
     /**
-     * Retrieve the strategyId from a raw unit json
+     * Retrieve the strategyId from a raw unit or got json
      * 
-     * @param unitJson unit json
+     * @param documentJson unit or got json
      * @return strategyId
      */
-    public static String getStrategyIdFromRawUnit(JsonNode unitJson) {
-        if (unitJson == null || !unitJson.isObject()) {
-            throw new IllegalArgumentException("Expected unit object json");
+    public static String getStrategyIdFromRawUnitOrGot(JsonNode documentJson) {
+        if (documentJson == null || !documentJson.isObject()) {
+            throw new IllegalArgumentException("Expected object json");
         }
-        ObjectNode unit = (ObjectNode) unitJson;
-        if (!unit.has(STORAGE_KEY) || !unit.get(STORAGE_KEY).has(STRATEGY_KEY)
-                || !unit.get(STORAGE_KEY).get(STRATEGY_KEY).isTextual()) {
-            throw new IllegalArgumentException("Expected storage/strategy information in unit");
+        ObjectNode document = (ObjectNode) documentJson;
+        if (!document.has(STORAGE_KEY) || !document.get(STORAGE_KEY).has(STRATEGY_KEY)
+                || !document.get(STORAGE_KEY).get(STRATEGY_KEY).isTextual()) {
+            throw new IllegalArgumentException("Expected storage/strategy information in MD document");
         }
-        return unit.get(STORAGE_KEY).get(STRATEGY_KEY).asText();
+        return document.get(STORAGE_KEY).get(STRATEGY_KEY).asText();
     }
-
+    
 }

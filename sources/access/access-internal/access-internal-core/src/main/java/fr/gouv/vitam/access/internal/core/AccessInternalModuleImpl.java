@@ -843,7 +843,7 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
             workspaceClient.putObject(requestId,
                 IngestWorkflowConstants.ARCHIVE_UNIT_FOLDER + File.separator + fileName,
                 inputStream);
-            String strategyId = MetadataDocumentHelper.getStrategyIdFromRawUnit(MetadataStorageHelper.getUnitFromUnitWithLFC(unitWithLfc));
+            String strategyId = MetadataDocumentHelper.getStrategyIdFromRawUnitOrGot(MetadataStorageHelper.getUnitFromUnitWithLFC(unitWithLfc));
             // updates (replaces) stored object
             storeMetaDataUnit(strategyId, new ObjectDescription(DataCategory.UNIT, requestId, fileName,
                 IngestWorkflowConstants.ARCHIVE_UNIT_FOLDER + File.separator + fileName));

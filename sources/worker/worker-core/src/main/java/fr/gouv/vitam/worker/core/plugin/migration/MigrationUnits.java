@@ -30,7 +30,6 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.annotations.VisibleForTesting;
 
-import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.database.builder.request.multiple.UpdateMultiQuery;
 import fr.gouv.vitam.common.database.utils.MetadataDocumentHelper;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
@@ -138,7 +137,7 @@ public class MigrationUnits extends ActionHandler {
 
             //// get metadata
             JsonNode unit = getUnitMetadata(unitId);
-
+            String strategyId = MetadataDocumentHelper.getStrategyIdFromRawUnitOrGot(unit);
             MetadataDocumentHelper.removeComputedFieldsFromUnit(unit);
 
             //// create file for storage (in workspace or temp or memory)
@@ -154,9 +153,7 @@ public class MigrationUnits extends ActionHandler {
                 new ObjectDescription(DataCategory.UNIT, param.getContainerName(),
                     fileName, IngestWorkflowConstants.ARCHIVE_UNIT_FOLDER + File.separator + fileName);
             // store binary data object
-            storageClient.storeFileFromWorkspace(VitamConfiguration.getDefaultStrategy(), description.getType(),
-                description.getObjectName(),
-                description);
+            storageClient.storeFileFromWorkspace(strategyId, description.getType(), description.getObjectName(), description);
 
         } catch (VitamException e) {
             LOGGER.error(e);

@@ -82,14 +82,13 @@ public class MigrationUnitsTest {
             //GIVEN
             GUID guid = GUIDFactory.newGUID();
 
-
             MigrationUnits migrationUnits =
                 new MigrationUnits(metaDataClientFactory, logbookLifeCyclesClientFactory, storageClientFactory);
             BDDMockito.given(defaultWorkerParameters.getContainerName()).willReturn(guid.getId());
             BDDMockito.given(defaultWorkerParameters.getObjectName()).willReturn(guid.getId());
 
             RequestResponseOK unitResponse = JsonHandler
-                .getFromInputStream(getClass().getResourceAsStream("/migration/resultMetadata.json"),
+                .getFromInputStream(getClass().getResourceAsStream("/migration/resultRawMetadata.json"),
                     RequestResponseOK.class);
             when(metaDataClient.getUnitByIdRaw(guid.getId())).thenReturn(unitResponse);
             JsonNode lfcResponse = JsonHandler
@@ -103,13 +102,9 @@ public class MigrationUnitsTest {
             ItemStatus execute = migrationUnits.execute(defaultWorkerParameters, handlerIO);
 
             //THEN
-
             assertThat(execute.getGlobalStatus()).isEqualTo(StatusCode.OK);
-
-
             verify(metaDataClient).updateUnitById(any(JsonNode.class), eq(guid.getId()));
-
-            verify(storageClient).storeFileFromWorkspace(eq(VitamConfiguration.getDefaultStrategy()), eq(DataCategory.UNIT),
+            verify(storageClient).storeFileFromWorkspace(eq("default-fake"), eq(DataCategory.UNIT),
                 eq(guid.getId() + ".json"),
                 any(ObjectDescription.class));
 
