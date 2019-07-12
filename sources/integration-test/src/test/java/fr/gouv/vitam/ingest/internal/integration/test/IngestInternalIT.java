@@ -304,6 +304,8 @@ public class IngestInternalIT extends VitamRuleRunner {
     private static String OK_OBIDIN_MESSAGE_IDENTIFIER =
         "integration-ingest-internal/SIP-ingest-internal-ok.zip";
 
+    private static String SIP_ALGO_INCORRECT_IN_MANIFEST = "integration-ingest-internal/SIP_INCORRECT_ALGORITHM.zip";
+
     private static LogbookElasticsearchAccess esClient;
 
     @BeforeClass
@@ -2601,4 +2603,56 @@ public class IngestInternalIT extends VitamRuleRunner {
 
         assertEquals(element.get("obIdIn").asText(),"vitam");
     }
+
+    @RunWithCustomExecutor
+    @Test
+    public void testIngestWithManifestIncorrectAlgorithm() throws Exception {
+        prepareVitamSession();
+        final GUID operationGuid = GUIDFactory.newOperationLogbookGUID(tenantId);
+        VitamThreadUtils.getVitamSession().setRequestId(operationGuid);
+
+        final GUID objectGuid = GUIDFactory.newManifestGUID(0);
+        // workspace client unzip SIP in workspace
+        final InputStream zipInputStreamSipObject =
+                PropertiesUtils.getResourceAsStream(SIP_ALGO_INCORRECT_IN_MANIFEST);
+
+        final List<LogbookOperationParameters> params = new ArrayList<>();
+        final LogbookOperationParameters initParameters = LogbookParametersFactory.newLogbookOperationParameters(
+                operationGuid, "STP_INGEST_CONTROL_SIP", operationGuid,
+                LogbookTypeProcess.INGEST, StatusCode.STARTED,
+                operationGuid != null ? operationGuid.toString() : "outcomeDetailMessage",
+                operationGuid);
+        params.add(initParameters);
+        LOGGER.error(initParameters.toString());
+
+        // call ingest
+        IngestInternalClientFactory.getInstance().changeServerPort(runner.PORT_SERVICE_INGEST_INTERNAL);
+        final IngestInternalClient client = IngestInternalClientFactory.getInstance().getClient();
+        client.uploadInitialLogbook(params);
+
+        // init workflow before execution
+        client.initWorkflow(ingestSip);
+
+        client.upload(zipInputStreamSipObject, CommonMediaType.ZIP_TYPE, ingestSip, ProcessAction.RESUME.name());
+
+        awaitForWorkflowTerminationWithStatus(operationGuid, StatusCode.KO);
+
+        final AccessInternalClient accessClient = AccessInternalClientFactory.getInstance().getClient();
+        JsonNode logbookOperation =
+            accessClient.selectOperationById(operationGuid.getId(), new SelectMultiQuery().getFinalSelect())
+                .toJsonNode();
+
+
+        logbookOperation.get("$results").get(0).get("events").forEach(event -> {
+            if (event.get("evType").asText().contains("CHECK_DATAOBJECTPACKAGE.CHECK_MANIFEST_DATAOBJECT_VERSION")) {
+                assertThat(event.get("outDetail").textValue()).
+                    contains("CHECK_DATAOBJECTPACKAGE.CHECK_MANIFEST_DATAOBJECT_VERSION.INVALIDE_ALGO.KO");
+            }
+        });
+
+
+
+
+    }
+
 }

@@ -297,4 +297,13 @@ public class SedaUtilsTest {
         assertTrue(CheckSedaValidationStatus.MORE_THAN_ONE_FOLDER_CONTENT.equals(status));
     }
 
+
+    @Test(expected = SedaUtilsException.class)
+    public void givenWrongAlgorithThenReturnInvalidAlgo() throws Exception {
+
+        final XMLInputFactory factory = XMLInputFactoryUtils.newInstance();
+        XMLEventReader evenReader = factory.createXMLEventReader(new FileReader("src/test/resources/SIP_mauvais_algorithm_sha512.xml"));
+        Map<String, Map<String, String>> versionMap = utils.compareVersionList(evenReader);
+    }
+
 }
