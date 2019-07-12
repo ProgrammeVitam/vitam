@@ -24,61 +24,11 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  *******************************************************************************/
-package fr.gouv.vitam.common.digest;
+package fr.gouv.vitam.worker.common.utils;
 
-import fr.gouv.vitam.worker.common.utils.DigestTypeException;
+public class DigestTypeException extends  IllegalArgumentException {
 
-/**
- * Digest Type (supported algorithms)
- */
-public enum DigestType {
-    /**
-     * MD5
-     */
-    MD5("MD5"),
-    /**
-     * SHA-1
-     */
-    SHA1("SHA-1"),
-    /**
-     * SHA 256
-     */
-    SHA256("SHA-256"),
-    /**
-     * SHA 386
-     */
-    SHA384("SHA-384"),
-    /**
-     * SHA 512
-     */
-    SHA512("SHA-512");
-    /**
-     * Name
-     */
-    private String name;
-
-    private DigestType(String name) {
-        this.name = name;
-    }
-
-    /**
-     * @return the Digest name
-     */
-    public String getName() {
-        return name;
-    }
-
-    /**
-     * @param v the value to get
-     * @return the enum type based on String representation
-     */
-
-    public static DigestType fromValue(String v) {
-        for (final DigestType c : DigestType.values()) {
-            if (c.name.equals(v)) {
-                return c;
-            }
-        }
-        throw new DigestTypeException("Unknown DigestType : " + v);
+    public DigestTypeException(String v) {
+        super(v);
     }
 }

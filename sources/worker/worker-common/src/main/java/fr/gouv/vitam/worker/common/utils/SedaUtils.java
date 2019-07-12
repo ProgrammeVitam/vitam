@@ -304,7 +304,7 @@ public class SedaUtils {
             }
             return CheckSedaValidationStatus.NOT_XML_FILE;
         } finally {
-        	IOUtils.closeQuietly(input);
+            IOUtils.closeQuietly(input);
         }
     }
 
@@ -600,15 +600,15 @@ public class SedaUtils {
                                 startElement = event.asStartElement();
 
                                 final String tag = startElement.getName().getLocalPart();
+
                                 switch (tag) {
                                     case SedaConstants.TAG_URI:
-                                        try {
-                                            final String uri = evenReader.getElementText();
-                                            dataObjectInfo.setUri(uri);
-                                        } catch (IllegalArgumentException e) {
-                                            // this exception will be treated after, in order to detect every errors
-                                            LOGGER.error("Missing required field", e);
+                                        final String uri = evenReader.getElementText();
+                                        if (StringUtils.isBlank(uri)) {
+                                            LOGGER.debug("Erreur Emply URI");
+                                            break;
                                         }
+                                        dataObjectInfo.setUri(uri);
                                         break;
                                     case SedaConstants.TAG_DO_VERSION:
                                         final String version = evenReader.getElementText();
@@ -627,8 +627,6 @@ public class SedaUtils {
                                         final long size = Long.parseLong(evenReader.getElementText());
                                         dataObjectInfo.setSize(size);
                                         break;
-                                    default:
-                                        break;
                                 }
                             }
 
@@ -639,7 +637,6 @@ public class SedaUtils {
                                 dataObjectInfo = new DataObjectInfo();
                                 break;
                             }
-
                         }
                     }
                     if (SedaConstants.TAG_PHYSICAL_DATA_OBJECT.equals(startElement.getName().getLocalPart())) {
@@ -668,13 +665,15 @@ public class SedaUtils {
                                 dataObjectInfo = new DataObjectInfo();
                                 break;
                             }
-
                         }
                     }
                 }
             } catch (final XMLStreamException e) {
                 LOGGER.error("Can not get DataObject info");
                 throw new ProcessingException(e);
+            } catch (DigestTypeException d) {
+                throw new SedaUtilsException(d);
+
             }
         }
         return sedaUtilInfo;
@@ -892,8 +891,8 @@ public class SedaUtils {
      * Retrieve information about an object.
      *
      * @param workspaceClient workspace connector
-     * @param containerId     container id
-     * @param pathToObject    path to the object
+     * @param containerId container id
+     * @param pathToObject path to the object
      * @return JsonNode containing information about the object
      * @throws ProcessingException throws when error occurs
      */
