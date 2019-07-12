@@ -64,7 +64,7 @@ public class ProfileManagerTest {
         final VitamError vitamError = new VitamError("");
 
         boolean isValide =
-            profileManager.validateProfileFile(modelMock, FileUtils.readFileToByteArray(fileProfileXsd), vitamError);
+            profileManager.validateProfileFile(modelMock, fileProfileXsd, vitamError);
 
         assertThat(isValide).isTrue();
     }
@@ -81,7 +81,7 @@ public class ProfileManagerTest {
         final VitamError vitamError = new VitamError("");
 
         boolean isValide =
-            profileManager.validateProfileFile(modelMock, FileUtils.readFileToByteArray(fileProfileXsd), vitamError);
+            profileManager.validateProfileFile(modelMock, fileProfileXsd, vitamError);
 
         assertThat(isValide).isFalse();
     }
@@ -99,7 +99,7 @@ public class ProfileManagerTest {
         final VitamError vitamError = new VitamError("");
 
         boolean isValide =
-            profileManager.validateProfileFile(modelMock, FileUtils.readFileToByteArray(fileProfileXsd), vitamError);
+            profileManager.validateProfileFile(modelMock, fileProfileXsd, vitamError);
 
         assertThat(isValide).isTrue();
     }
@@ -116,7 +116,7 @@ public class ProfileManagerTest {
         final VitamError vitamError = new VitamError("");
 
         boolean isValide =
-            profileManager.validateProfileFile(modelMock, FileUtils.readFileToByteArray(fileProfileXsd), vitamError);
+            profileManager.validateProfileFile(modelMock, fileProfileXsd, vitamError);
 
         assertThat(isValide).isFalse();
     }

@@ -27,22 +27,6 @@
 
 package fr.gouv.vitam.functional.administration.profile.core;
 
-import static com.mongodb.client.model.Filters.and;
-import static com.mongodb.client.model.Filters.eq;
-
-import java.io.ByteArrayInputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-
-import javax.xml.parsers.DocumentBuilder;
-import javax.xml.parsers.DocumentBuilderFactory;
-import javax.xml.parsers.ParserConfigurationException;
-
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.ParametersChecker;
@@ -63,19 +47,38 @@ import fr.gouv.vitam.common.model.administration.ProfileModel;
 import fr.gouv.vitam.common.model.administration.ProfileStatus;
 import fr.gouv.vitam.common.parameter.ParameterHelper;
 import fr.gouv.vitam.common.security.SanityChecker;
+import fr.gouv.vitam.common.xml.ValidationXsdUtils;
+import fr.gouv.vitam.common.xml.XMLInputFactoryUtils;
 import fr.gouv.vitam.functional.administration.common.AccessContract;
 import fr.gouv.vitam.functional.administration.common.Profile;
 import fr.gouv.vitam.functional.administration.common.server.FunctionalAdminCollections;
 import fr.gouv.vitam.functional.administration.profile.core.ProfileValidator.RejectionCause;
 import fr.gouv.vitam.logbook.common.parameters.LogbookOperationParameters;
-import fr.gouv.vitam.logbook.common.parameters.LogbookOperationsClientHelper;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParameterName;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParametersFactory;
 import fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClient;
 import org.bson.conversions.Bson;
-import org.w3c.dom.Document;
 import org.xml.sax.SAXException;
+
+import javax.xml.XMLConstants;
+import javax.xml.stream.XMLEventReader;
+import javax.xml.stream.XMLInputFactory;
+import javax.xml.stream.XMLStreamException;
+import javax.xml.stream.events.XMLEvent;
+import javax.xml.validation.SchemaFactory;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
+
+import static com.mongodb.client.model.Filters.and;
+import static com.mongodb.client.model.Filters.eq;
 
 /**
  * This class manage validation and log operation of profile service
@@ -122,9 +125,9 @@ public class ProfileManager {
             Optional<RejectionCause> result = validator.validate(profile);
             if (result.isPresent()) {
                 // there is a validation error on this profile
-                    /* profile is valid, add it to the list to persist */
+                /* profile is valid, add it to the list to persist */
                 error.addToErrors(getVitamError(result.get().getReason()).setDescription(result.get().getReason())
-                .setMessage(validators.get(validator)));
+                    .setMessage(validators.get(validator)));
                 // once a validation error is detected on a profile, jump to next profile
                 return false;
             }
@@ -139,13 +142,12 @@ public class ProfileManager {
      * RNG => if file rng is xml valide, rng valide, check default values if already exists in vitam
      *
      * @param profileModel
-     * @param byteArray
+     * @param file
      * @param error
      * @return boolean true/false
      */
-    public boolean validateProfileFile(ProfileModel profileModel, byte[] byteArray, VitamError error) {
-
-        InputStream inputStream = new ByteArrayInputStream(byteArray);
+    public boolean validateProfileFile(ProfileModel profileModel, File file, VitamError error)
+        throws Exception {
 
         if (null == profileModel) {
             error.addToErrors(getVitamError("Profile metadata not found for the corresponding inputstream"));
@@ -154,9 +156,9 @@ public class ProfileManager {
 
         switch (profileModel.getFormat()) {
             case XSD:
-                return validateXSD(inputStream, error);
+                return validateXSD(file, error);
             case RNG:
-                return validateRNG(inputStream, error);
+                return validateRNG(file, error);
             default:
                 error.addToErrors(getVitamError("Profile format not supported"));
                 return false;
@@ -167,31 +169,46 @@ public class ProfileManager {
     /**
      * Just check if inputStream is xml valid
      *
-     * @param inputStream
+     * @param file
      * @param error
      * @return boolean true/false
      */
-    public boolean validateXSD(InputStream inputStream, VitamError error) {
+    public boolean validateXSD(File file, VitamError error) throws Exception {
 
+        // Check xml valid
         try {
-            // parse an XML document into a DOM tree
-            DocumentBuilder parser = DocumentBuilderFactory.newInstance().newDocumentBuilder();
-            Document document = parser.parse(inputStream);
-
-            final String tagName = document.getDocumentElement().getTagName();
-            if (null == tagName || !String.valueOf(XSD_SCHEMA).equals(tagName)) {
-                error.addToErrors(getVitamError("Profile file xsd have not the xsd:schema tag name"));
-                return false;
-            }
-
-            return true;
-        } catch (SAXException | IOException e) {
-            error.addToErrors(getVitamError("Profile file xsd is not xml valide >> " + e.getMessage()));
-            return false;
-        } catch (ParserConfigurationException e) {
-            error.addToErrors(getVitamError("Profile file xsd ParserConfigurationException >> " + e.getMessage()));
+            SchemaFactory.newInstance(ValidationXsdUtils.HTTP_WWW_W3_ORG_XML_XML_SCHEMA_V1_1).newSchema(file);
+        } catch (SAXException e) {
+            LOGGER.error("Malformed profile xsd file", e);
             return false;
         }
+
+
+        return checkTag(file, "xsd", "schema", error);
+    }
+
+    private boolean checkTag(File file, String prefix, String element, VitamError error)
+        throws FileNotFoundException, XMLStreamException {
+
+        final XMLInputFactory xmlInputFactory = XMLInputFactoryUtils.newInstance();
+        final XMLEventReader eventReader = xmlInputFactory.createXMLEventReader(new FileInputStream(file));
+        while (eventReader.hasNext()) {
+            XMLEvent event = eventReader.nextEvent();
+            if (event.isStartDocument()) {
+                continue;
+            }
+
+            if (event.isStartElement()) {
+                String elementName = event.asStartElement().getName().getLocalPart();
+                String elementPrefix = event.asStartElement().getName().getPrefix();
+
+                if (Objects.equals(element, elementName) || Objects.equals(prefix, elementPrefix)) {
+                    error.addToErrors(getVitamError("Profile file xsd have not the xsd:schema tag name"));
+                    return true;
+                }
+            }
+        }
+        return false;
     }
 
     private VitamError getVitamError(String error) {
@@ -205,31 +222,22 @@ public class ProfileManager {
      * 2. Validate if rng is rng valide
      * 3. Validate if data in rng is valide
      *
-     * @param inputStream
+     * @param file
      * @param error
      * @return boolean true/false
      */
-    public boolean validateRNG(InputStream inputStream, VitamError error) {
+    public boolean validateRNG(File file, VitamError error) throws Exception {
 
         try {
-            // parse an XML document into a DOM tree
-            DocumentBuilder parser = DocumentBuilderFactory.newInstance().newDocumentBuilder();
-            Document document = parser.parse(inputStream);
-
-            final String tagName = document.getDocumentElement().getTagName();
-            if (null == tagName || !String.valueOf(RNG_GRAMMAR).equals(tagName)) {
-                error.addToErrors(getVitamError("Profile file rng have not the rng:grammar tag name"));
-                return false;
-            }
-            // TODO: 5/12/17 parse rng and validate RG and OriginatingAgencies
-            return true;
-        } catch (SAXException | IOException e) {
-            error.addToErrors(getVitamError("Profile file rng is not xml valide >> " + e.getMessage()));
-            return false;
-        } catch (ParserConfigurationException e) {
-            error.addToErrors(getVitamError("Profile file rng ParserConfigurationException >> " + e.getMessage()));
+            System.setProperty(ValidationXsdUtils.RNG_PROPERTY_KEY, ValidationXsdUtils.RNG_FACTORY);
+             SchemaFactory.newInstance(XMLConstants.RELAXNG_NS_URI).newSchema(file);
+        } catch (SAXException e) {
+            LOGGER.error("Malformed profile rng file", e);
             return false;
         }
+
+        return checkTag(file, "rng", "grammar", error);
+
     }
 
     /**
@@ -241,7 +249,7 @@ public class ProfileManager {
      * @param KOEventType
      */
     public void logValidationError(String eventType, String objectId, String errorsDetails,
-                                   String KOEventType) throws VitamException {
+        String KOEventType) throws VitamException {
         LOGGER.error("There validation errors on the input file {}", errorsDetails);
         final GUID eipId = GUIDFactory.newOperationLogbookGUID(ParameterHelper.getTenantParameter());
         final LogbookOperationParameters logbookParameters = LogbookParametersFactory
@@ -274,7 +282,7 @@ public class ProfileManager {
     }
 
     private void logbookMessageError(String objectId, String errorsDetails,
-                                     LogbookOperationParameters logbookParameters, String KOEventType) {
+        LogbookOperationParameters logbookParameters, String KOEventType) {
         if (null != errorsDetails && !errorsDetails.isEmpty()) {
             try {
                 final ObjectNode object = JsonHandler.createObjectNode();
@@ -388,7 +396,7 @@ public class ProfileManager {
             }
 
             return (missingParams.size() == 0) ? Optional.empty() :
-                    Optional.of(RejectionCause.rejectSeveralMandatoryMissing(missingParams));
+                Optional.of(RejectionCause.rejectSeveralMandatoryMissing(missingParams));
         };
     }
 
