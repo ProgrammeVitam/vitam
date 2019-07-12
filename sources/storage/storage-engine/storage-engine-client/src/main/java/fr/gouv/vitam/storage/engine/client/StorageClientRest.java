@@ -626,7 +626,7 @@ class StorageClientRest extends DefaultClient implements StorageClient {
 
     @Override
     public RequestResponseOK copyObjectToOneOfferAnother(String objectId, DataCategory category, String source,
-        String destination)
+        String destination, String strategyId)
         throws StorageServerClientException, InvalidParseOperationException {
 
         Response response = null;

@@ -250,12 +250,13 @@ public interface StorageClient extends BasicClient {
      * @param category category
      * @param source source
      * @param destination destination
+     * @param strategyId strategyId
      * @return RequestResponseOK
      * @throws StorageServerClientException StorageServerClientException
      * @throws InvalidParseOperationException StorageServerClientException
      */
     RequestResponseOK copyObjectToOneOfferAnother(String objectId, DataCategory category, String source,
-        String destination)
+        String destination, String strategyId)
         throws StorageServerClientException, InvalidParseOperationException;
 
     /**

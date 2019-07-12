@@ -183,6 +183,7 @@ public class EvidenceServiceTest {
         assertThat(parameters.getLfcVersion()).isEqualTo(expected.getLfcVersion());
 
         assertThat(parameters.getObjectStorageMetadataResultMap()).isNull();
+        assertThat(parameters.getMdOptimisticStorageInfo().getStrategy()).isEqualTo("default");
 
 
     }
@@ -223,6 +224,7 @@ public class EvidenceServiceTest {
 
         assertThat(parameters.getEvidenceStatus()).isEqualTo(EvidenceStatus.WARN);
         assertThat(parameters.getAuditMessage()).contains("No traceability operation found matching date");
+        assertThat(parameters.getMdOptimisticStorageInfo().getStrategy()).isEqualTo("default");
 
     }
 
@@ -284,7 +286,7 @@ public class EvidenceServiceTest {
         try (InputStream in = PropertiesUtils.getResourceAsStream("evidenceAudit/0_LogbookLifecycles_20180220_111512.zip")) {
             Response responseMock = mock(BuiltResponse.class);
             doReturn(in).when(responseMock).readEntity(eq(InputStream.class));
-            when(storageClient.getContainerAsync(anyString(), anyString(), eq(DataCategory.LOGBOOK), any()))
+            when(storageClient.getContainerAsync(eq(VitamConfiguration.getDefaultStrategy()), anyString(), eq(DataCategory.LOGBOOK), any()))
                 .thenReturn(responseMock);
             assertThat(evidenceService.downloadAndExtractDataFromStorage("0_LogbookLifecycles_20180220_111512.zip",
                 "data.txt", ".zip", true))

@@ -196,6 +196,7 @@ public class EvidenceService {
             Map<String, String> offerHashes = new HashMap<>();
             for (String offerId : mdOptimisticStorageInfo.getOfferIds()) {
 
+                String strategyId = mdOptimisticStorageInfo.getStrategy();
                 JsonNode metadataResultJsonNode = parameters.getStorageMetadataResultListJsonNode().get(offerId);
                 StorageMetadataResult storageMetadataResult = null;
                 if (metadataResultJsonNode != null && metadataResultJsonNode.isObject()) {
@@ -227,6 +228,7 @@ public class EvidenceService {
                 }
                 offerHashes.put(offerId, digest);
                 evidenceAuditReportLine.setOffersHashes(offerHashes);
+                evidenceAuditReportLine.setStrategyId(strategyId);
             }
 
             if (parameters.getMetadataType().equals(MetadataType.OBJECTGROUP)) {
@@ -269,6 +271,7 @@ public class EvidenceService {
             String objectVersionId = objectGroupDocumentHash.getId();
             String objectVersionHash = objectGroupDocumentHash.gethObject();
             JsonNode objectVersionStorageMetadataResult = objectStorageMetadataResultMap.get(objectVersionId);
+            
 
             final StoredInfoResult storedInfoResult =
                 parameters.getMdOptimisticStorageInfoMap().get(objectVersionId);
@@ -303,6 +306,7 @@ public class EvidenceService {
             }
             evidenceAuditReportObject.setOffersHashes(offerHashes);
             evidenceAuditReportObject.setSecuredHash(objectGroupDocumentHash.gethObject());
+            evidenceAuditReportObject.setStrategyId(storedInfoResult.getStrategy());
 
             if (!errorsObjectMessage.isEmpty()) {
 
