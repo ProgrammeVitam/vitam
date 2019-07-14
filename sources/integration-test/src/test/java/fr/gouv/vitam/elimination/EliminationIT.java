@@ -27,7 +27,7 @@
 package fr.gouv.vitam.elimination;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import com.google.common.collect.Lists;
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Sets;
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.VitamConfiguration;
@@ -82,6 +82,7 @@ import org.junit.Test;
 import javax.ws.rs.core.Response;
 import java.io.ByteArrayInputStream;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
@@ -191,7 +192,8 @@ public class EliminationIT extends VitamRuleRunner {
         checkFileInStorage(UNIT, id_3 + ".json", true);
 
         //when delete units
-        eliminationActionDeleteService.deleteUnits(Lists.newArrayList(id_1, id_2, id_3));
+        Map<String, String> unitIdsWithStrategies = ImmutableMap.of(id_1, "default", id_2, "default", id_3, "default");
+        eliminationActionDeleteService.deleteUnits(unitIdsWithStrategies);
 
         //then nothing in units mongo
         assertThatMongoRawUnitNotExists(id_1);
@@ -274,7 +276,8 @@ public class EliminationIT extends VitamRuleRunner {
         checkFileInStorage(OBJECTGROUP, id_3 + ".json", true);
 
         //when deletion
-        eliminationActionDeleteService.deleteObjectGroups(Lists.newArrayList(id_1, id_2, id_3));
+        Map<String, String> gotIdsWithStrategies = ImmutableMap.of(id_1, "default", id_2, "default", id_3, "default");
+        eliminationActionDeleteService.deleteObjectGroups(gotIdsWithStrategies);
 
         //then nothing in units mongo
         assertThatMongoRawObjectGroupNotExists(id_1);

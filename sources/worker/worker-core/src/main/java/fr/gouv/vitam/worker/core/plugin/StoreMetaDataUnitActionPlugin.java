@@ -26,9 +26,25 @@
  */
 package fr.gouv.vitam.worker.core.plugin;
 
+import static fr.gouv.vitam.worker.core.utils.PluginHelper.buildItemStatus;
+
+import java.io.File;
+import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
+
+import org.apache.commons.collections4.MultiValuedMap;
+import org.apache.commons.collections4.multimap.HashSetValuedHashMap;
+
 import com.fasterxml.jackson.databind.JsonNode;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Stopwatch;
+import com.google.common.collect.Lists;
+
 import fr.gouv.vitam.common.StringUtils;
 import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.database.utils.MetadataDocumentHelper;
@@ -59,16 +75,6 @@ import fr.gouv.vitam.storage.engine.common.model.request.BulkObjectStoreRequest;
 import fr.gouv.vitam.worker.common.HandlerIO;
 import fr.gouv.vitam.worker.core.handler.ActionHandler;
 import fr.gouv.vitam.workspace.api.exception.WorkspaceClientServerException;
-
-import java.io.File;
-import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.concurrent.TimeUnit;
-import java.util.stream.Collectors;
-
-import static fr.gouv.vitam.worker.core.utils.PluginHelper.buildItemStatus;
 
 /**
  * Stores MetaData unit plugin.
@@ -133,19 +139,22 @@ public class StoreMetaDataUnitActionPlugin extends ActionHandler {
 
     public void storeDocumentsWithLfc(WorkerParameters params, HandlerIO handlerIO, List<String> unitIds)
         throws VitamException {
-        saveDocumentWithLfcInWorkspace(handlerIO, unitIds);
+        MultiValuedMap<String, String> unitIdsByStrategies = saveDocumentWithLfcInWorkspace(handlerIO, unitIds);
 
-        saveDocumentWithLfcInStorage(params.getContainerName(), unitIds);
+        saveDocumentWithLfcInStorage(params.getContainerName(), unitIdsByStrategies);
     }
 
-    private void saveDocumentWithLfcInWorkspace(HandlerIO handlerIO, List<String> unitIds)
+    private MultiValuedMap<String, String> saveDocumentWithLfcInWorkspace(HandlerIO handlerIO, List<String> unitIds)
         throws VitamException {
 
         // Get metadata
         Stopwatch loadAU = Stopwatch.createStarted();
+        MultiValuedMap<String, String> unitIdsByStrategie = new HashSetValuedHashMap<>();
         Map<String, JsonNode> units = getUnitsByIdsRaw(unitIds);
         for (JsonNode unit : units.values()) {
             MetadataDocumentHelper.removeComputedFieldsFromUnit(unit);
+            String strategyId = MetadataDocumentHelper.getStrategyIdFromRawUnitOrGot(unit);
+            unitIdsByStrategie.put(strategyId, unit.get("_id").asText());
         }
         PerformanceLogger.getInstance()
             .log("STP_UNIT_STORING", "UNIT_METADATA_STORAGE", "loadAU", loadAU.elapsed(TimeUnit.MILLISECONDS));
@@ -176,6 +185,7 @@ public class StoreMetaDataUnitActionPlugin extends ActionHandler {
                 throw new WorkspaceClientServerException("Could not backup file for " + guid, e);
             }
         }
+        return unitIdsByStrategie;
     }
 
     private Map<String, JsonNode> getUnitsByIdsRaw(List<String> documentIds)
@@ -196,17 +206,17 @@ public class StoreMetaDataUnitActionPlugin extends ActionHandler {
         }
     }
 
-    private Map<String, JsonNode> getRawLogbookLifeCycleByIds(List<String> documentIds)
+    private Map<String, JsonNode> getRawLogbookLifeCycleByIds(Collection<String> documentIds)
         throws VitamException {
 
         try (LogbookLifeCyclesClient logbookClient = logbookLifeCyclesClientFactory.getClient()) {
 
-            List<JsonNode> results = logbookClient.getRawUnitLifeCycleByIds(documentIds);
+            List<JsonNode> results = logbookClient.getRawUnitLifeCycleByIds(Lists.newArrayList(documentIds));
             return mapById(results);
         }
     }
 
-    private void saveDocumentWithLfcInStorage(String containerName, List<String> unitIds)
+    private void saveDocumentWithLfcInStorage(String containerName, MultiValuedMap<String, String> unitIdsByStrategies)
         throws VitamException {
 
         List<String> workspaceURIs = new ArrayList<>();
@@ -214,24 +224,30 @@ public class StoreMetaDataUnitActionPlugin extends ActionHandler {
 
         Stopwatch storeStorage = Stopwatch.createStarted();
 
-        for (String unitId : unitIds) {
+        for (String strategy : unitIdsByStrategies.keySet()) {
 
-            String filename = unitId + JSON;
-            String workspaceURI = IngestWorkflowConstants.ARCHIVE_UNIT_FOLDER + File.separator + filename;
+            Collection<String> unitIds = unitIdsByStrategies.get(strategy);
 
-            workspaceURIs.add(workspaceURI);
-            objectNames.add(filename);
+            for (String unitId : unitIds) {
+
+                String filename = unitId + JSON;
+                String workspaceURI = IngestWorkflowConstants.ARCHIVE_UNIT_FOLDER + File.separator + filename;
+
+                workspaceURIs.add(workspaceURI);
+                objectNames.add(filename);
+            }
+
+            BulkObjectStoreRequest request = new BulkObjectStoreRequest(containerName, workspaceURIs, DataCategory.UNIT,
+                    objectNames);
+
+            try (StorageClient storageClient = storageClientFactory.getClient()) {
+                storageClient.bulkStoreFilesFromWorkspace(VitamConfiguration.getDefaultStrategy(), request);
+            } catch (StorageAlreadyExistsClientException | StorageNotFoundClientException e) {
+                throw new ProcessingException("Bulk storage failed", e);
+            }
+        
         }
-
-        BulkObjectStoreRequest request = new BulkObjectStoreRequest(
-            containerName, workspaceURIs, DataCategory.UNIT, objectNames);
-
-        try (StorageClient storageClient = storageClientFactory.getClient()) {
-            storageClient.bulkStoreFilesFromWorkspace(VitamConfiguration.getDefaultStrategy(), request);
-        } catch (StorageAlreadyExistsClientException | StorageNotFoundClientException e) {
-            throw new ProcessingException("Bulk storage failed", e);
-        }
-
+        
         PerformanceLogger.getInstance().log("STP_UNIT_STORING", "UNIT_METADATA_STORAGE", "storeStorage",
             storeStorage.elapsed(TimeUnit.MILLISECONDS));
     }

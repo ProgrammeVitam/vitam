@@ -29,7 +29,7 @@
       "offer-fs-1.service.int.consul",
       "offer-fs-2.service.int.consul"
     ],
-    "strategyId": "default"
+    "strategyId": "default-unit-fake"
   },
   "_sps": [
     "RATP"

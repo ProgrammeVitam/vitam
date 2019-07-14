@@ -7,7 +7,7 @@ import static org.mockito.Mockito.verify;
 
 import java.util.Arrays;
 import java.util.HashSet;
-import java.util.List;
+import java.util.Map;
 
 import org.junit.Before;
 import org.junit.Rule;
@@ -16,6 +16,8 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnit;
 import org.mockito.junit.MockitoRule;
+
+import com.google.common.collect.ImmutableMap;
 
 import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.guid.GUIDFactory;
@@ -28,12 +30,9 @@ import fr.gouv.vitam.logbook.lifecycles.client.LogbookLifeCyclesClient;
 import fr.gouv.vitam.logbook.lifecycles.client.LogbookLifeCyclesClientFactory;
 import fr.gouv.vitam.metadata.client.MetaDataClient;
 import fr.gouv.vitam.metadata.client.MetaDataClientFactory;
-import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
-import fr.gouv.vitam.processing.common.parameter.WorkerParametersFactory;
 import fr.gouv.vitam.storage.engine.client.StorageClient;
 import fr.gouv.vitam.storage.engine.client.StorageClientFactory;
 import fr.gouv.vitam.storage.engine.common.model.DataCategory;
-import fr.gouv.vitam.worker.common.HandlerIO;
 
 public class EliminationActionDeleteServiceTest {
 
@@ -62,11 +61,6 @@ public class EliminationActionDeleteServiceTest {
     @InjectMocks
     private EliminationActionDeleteService instance;
 
-    @Mock
-    private HandlerIO handler;
-
-    private WorkerParameters params;
-
     @Before
     public void setUp() throws Exception {
 
@@ -77,18 +71,13 @@ public class EliminationActionDeleteServiceTest {
         doReturn(storageClient).when(storageClientFactory).getClient();
         doReturn(logbookLifeCyclesClient).when(logbookLifeCyclesClientFactory).getClient();
 
-        params = WorkerParametersFactory.newWorkerParameters().setWorkerGUID(GUIDFactory
-            .newGUID()).setContainerName(VitamThreadUtils.getVitamSession().getRequestId())
-            .setRequestId(VitamThreadUtils.getVitamSession().getRequestId())
-            .setObjectNameList(Arrays.asList("id_got_1", "id_got_2"))
-            .setCurrentStep("StepName");
     }
 
     @Test
     @RunWithCustomExecutor
     public void deleteObjects() throws Exception {
-
-        instance.deleteObjects(Arrays.asList("id1", "id2", "id3"));
+        instance.deleteObjects(ImmutableMap.of("id1", VitamConfiguration.getDefaultStrategy(), "id2",
+                VitamConfiguration.getDefaultStrategy(), "id3", VitamConfiguration.getDefaultStrategy()));
 
         verify(storageClient).delete(VitamConfiguration.getDefaultStrategy(), DataCategory.OBJECT, "id1");
         verify(storageClient).delete(VitamConfiguration.getDefaultStrategy(), DataCategory.OBJECT, "id2");
@@ -98,12 +87,12 @@ public class EliminationActionDeleteServiceTest {
     @Test
     @RunWithCustomExecutor
     public void deleteObjectGroups() throws Exception {
+        Map<String, String> gotIdsWithStrategies = ImmutableMap.of("got1", VitamConfiguration.getDefaultStrategy(),
+                "got2", VitamConfiguration.getDefaultStrategy(), "got3", VitamConfiguration.getDefaultStrategy());
+        instance.deleteObjectGroups(gotIdsWithStrategies);
 
-        List<String> gotIds = Arrays.asList("got1", "got2", "got3");
-        instance.deleteObjectGroups(gotIds);
-
-        verify(logbookLifeCyclesClient).deleteLifecycleObjectGroupBulk(eq(gotIds));
-        verify(metaDataClient).deleteObjectGroupBulk(eq(gotIds));
+        verify(logbookLifeCyclesClient).deleteLifecycleObjectGroupBulk(eq(gotIdsWithStrategies.keySet()));
+        verify(metaDataClient).deleteObjectGroupBulk(eq(gotIdsWithStrategies.keySet()));
 
         verify(storageClient).delete(VitamConfiguration.getDefaultStrategy(), DataCategory.OBJECTGROUP, "got1.json");
         verify(storageClient).delete(VitamConfiguration.getDefaultStrategy(), DataCategory.OBJECTGROUP, "got2.json");
@@ -113,12 +102,12 @@ public class EliminationActionDeleteServiceTest {
     @Test
     @RunWithCustomExecutor
     public void deleteUnits() throws Exception {
+        Map<String, String> unitIdsWithStrategies = ImmutableMap.of("unit1", VitamConfiguration.getDefaultStrategy(),
+                "unit2", VitamConfiguration.getDefaultStrategy(), "unit3", VitamConfiguration.getDefaultStrategy());
+        instance.deleteUnits(unitIdsWithStrategies);
 
-        List<String> gotIds = Arrays.asList("unit1", "unit2", "unit3");
-        instance.deleteUnits(gotIds);
-
-        verify(logbookLifeCyclesClient).deleteLifecycleUnitsBulk(eq(gotIds));
-        verify(metaDataClient).deleteUnitsBulk(eq(gotIds));
+        verify(logbookLifeCyclesClient).deleteLifecycleUnitsBulk(eq(unitIdsWithStrategies.keySet()));
+        verify(metaDataClient).deleteUnitsBulk(eq(unitIdsWithStrategies.keySet()));
 
         verify(storageClient).delete(VitamConfiguration.getDefaultStrategy(), DataCategory.UNIT, "unit1.json");
         verify(storageClient).delete(VitamConfiguration.getDefaultStrategy(), DataCategory.UNIT, "unit2.json");

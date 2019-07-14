@@ -26,8 +26,28 @@
  *******************************************************************************/
 package fr.gouv.vitam.worker.core.plugin.elimination;
 
+import static fr.gouv.vitam.worker.core.utils.PluginHelper.buildItemStatus;
+
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.OutputStream;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
+
+import org.apache.commons.collections4.ListUtils;
+import org.apache.commons.collections4.SetUtils;
+
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.annotations.VisibleForTesting;
+
 import fr.gouv.vitam.batch.report.model.entry.EliminationActionObjectGroupObjectVersion;
 import fr.gouv.vitam.batch.report.model.entry.EliminationActionObjectGroupReportEntry;
 import fr.gouv.vitam.common.collection.CloseableIterator;
@@ -58,22 +78,6 @@ import fr.gouv.vitam.worker.core.plugin.elimination.exception.EliminationExcepti
 import fr.gouv.vitam.worker.core.plugin.elimination.model.EliminationActionObjectGroupStatus;
 import fr.gouv.vitam.worker.core.plugin.elimination.report.EliminationActionReportService;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
-import org.apache.commons.collections4.ListUtils;
-import org.apache.commons.collections4.SetUtils;
-
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.OutputStream;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.stream.Collectors;
-
-import static fr.gouv.vitam.worker.core.utils.PluginHelper.buildItemStatus;
 
 
 /**
@@ -200,16 +204,23 @@ public class EliminationActionObjectGroupPreparationHandler extends ActionHandle
 
                 LOGGER.debug("Object group " + objectGroup.getId() + " will be deleted");
 
-                List<String> objectsToDelete = getBinaryObjectIds(objectGroup);
+                Map<String, String> objectsToDelete = getBinaryObjectIdsWithStrategies(objectGroup);
                 List<EliminationActionObjectGroupObjectVersion> objectVersions = getObjectVersions(objectGroup);
 
-                JsonLineModel entry =
-                    new JsonLineModel(objectGroup.getId(), null, JsonHandler.toJsonNode(objectsToDelete));
+                ObjectNode params = JsonHandler.createObjectNode();
+                ArrayNode objectToDeleteArrayNode = JsonHandler.createArrayNode();
+                objectsToDelete.forEach((id, strategyId) -> {
+                    objectToDeleteArrayNode.add(JsonHandler.createObjectNode().put("id", id).put("strategyId", strategyId));
+                });
+                params.set("objects", objectToDeleteArrayNode);
+                params.put("strategyId", objectGroup.getStorage().getStrategyId());
+                
+                JsonLineModel entry = new JsonLineModel(objectGroup.getId(), null, params);
                 objectGroupsToDeleteWriter.addEntry(entry);
 
                 eliminationObjectGroupReportEntries.add(new EliminationActionObjectGroupReportEntry(objectGroup.getId(),
                     objectGroup.getOriginatingAgency(), objectGroup.getOpi(), null,
-                    new HashSet<>(objectsToDelete), EliminationActionObjectGroupStatus.DELETED.name(), objectVersions, "Outcome - TO BE DEFINED")); // FIXME : Put correct value
+                    new HashSet<>(objectsToDelete.keySet()), EliminationActionObjectGroupStatus.DELETED.name(), objectVersions, "Outcome - TO BE DEFINED")); // FIXME : Put correct value
             } else {
 
                 if (LOGGER.isDebugEnabled()) {
@@ -231,13 +242,12 @@ public class EliminationActionObjectGroupPreparationHandler extends ActionHandle
         eliminationActionReportService.appendObjectGroupEntries(processId, eliminationObjectGroupReportEntries);
     }
 
-    private List<String> getBinaryObjectIds(ObjectGroupResponse objectGroup) {
+    private Map<String, String> getBinaryObjectIdsWithStrategies(ObjectGroupResponse objectGroup) {
 
         return ListUtils.emptyIfNull(objectGroup.getQualifiers()).stream()
             .flatMap(qualifier -> ListUtils.emptyIfNull(qualifier.getVersions()).stream())
             .filter(version -> version.getPhysicalId() == null)
-            .map(VersionsModel::getId)
-            .collect(Collectors.toList());
+            .collect(Collectors.toMap(VersionsModel::getId, version -> version.getStorage().getStrategyId()));
     }
 
     private List<EliminationActionObjectGroupObjectVersion> getObjectVersions(ObjectGroupResponse objectGroup) {

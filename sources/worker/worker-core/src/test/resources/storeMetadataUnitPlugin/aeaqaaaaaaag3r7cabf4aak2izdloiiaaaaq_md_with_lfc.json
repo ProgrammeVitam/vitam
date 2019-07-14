@@ -1,1 +1,191 @@
-{"lfc":{"_id":"aeaqaaaaaaag3r7cabf4aak2izdloiiaaaaq","_tenant":0,"_v":0,"agId":"{\"Name\":\"84d8f77da467\",\"Role\":\"worker\",\"ServerId\":1815296557,\"SiteId\":1,\"GlobalPlatformId\":204683821}","evDateTime":"2017-09-22T09:51:05.085","evDetData":null,"evId":"aedqaaaaacgdgornaa7veak6vd7ww7iaaaaq","evIdProc":"aedqaaaaacgv4sd5abalyak6vd7wdsqaaaaq","evType":"LFC.LFC_CREATION","evTypeProc":"INGEST","events":[{"agId":"{\"Name\":\"84d8f77da467\",\"Role\":\"worker\",\"ServerId\":1815296557,\"SiteId\":1,\"GlobalPlatformId\":204683821}","evDateTime":"2017-09-22T09:51:05.253","evDetData":null,"evId":"aedqaaaaacgdgornaa7veak6vd7ww7iaaaaq","evIdProc":"aedqaaaaacgv4sd5abalyak6vd7wdsqaaaaq","evParentId":null,"evType":"LFC.CHECK_MANIFEST","evTypeProc":"INGEST","obId":"aeaqaaaaaaag3r7cabf4aak2izdloiiaaaaq","outDetail":"LFC.CHECK_MANIFEST.OK","outMessg":"Succ\u00e8s de la v\u00e9rification de la coh\u00e9rence du bordereau","outcome":"OK"},{"agId":"{\"Name\":\"84d8f77da467\",\"Role\":\"worker\",\"ServerId\":1815296557,\"SiteId\":1,\"GlobalPlatformId\":204683821}","evDateTime":"2017-09-22T09:51:05.253","evDetData":null,"evId":"aedqaaaaacgdgornaa7veak6vd7ww7iaaaaq","evIdProc":"aedqaaaaacgv4sd5abalyak6vd7wdsqaaaaq","evParentId":"aedqaaaaacgdgornaa7veak6vd7ww7iaaaaq","evType":"LFC.CHECK_MANIFEST.LFC_CREATION","evTypeProc":"INGEST","obId":"aeaqaaaaaaag3r7cabf4aak2izdloiiaaaaq","outDetail":"LFC.CHECK_MANIFEST.LFC_CREATION.OK","outMessg":"Succ\u00e8s de la cr\u00e9ation du journal du cycle de vie","outcome":"OK"},{"agId":"{\"Name\":\"84d8f77da467\",\"Role\":\"worker\",\"ServerId\":1815296557,\"SiteId\":1,\"GlobalPlatformId\":204683821}","evDateTime":"2017-09-22T09:51:08.663","evDetData":"{}","evId":"aedqaaaaacgdgornaa7veak6vd7xnniaaaaq","evIdProc":"aedqaaaaacgv4sd5abalyak6vd7wdsqaaaaq","evParentId":null,"evType":"LFC.CHECK_UNIT_SCHEMA","evTypeProc":"INGEST","obId":"aeaqaaaaaaag3r7cabf4aak2izdloiiaaaaq","outDetail":"LFC.CHECK_UNIT_SCHEMA.OK","outMessg":"Succ\u00e8s de la v\u00e9rification globale de l'unit\u00e9 archivistique","outcome":"OK"},{"agId":"{\"Name\":\"84d8f77da467\",\"Role\":\"worker\",\"ServerId\":1815296557,\"SiteId\":1,\"GlobalPlatformId\":204683821}","evDateTime":"2017-09-22T09:51:08.725","evDetData":"{}","evId":"aedqaaaaacgdgornaa7veak6vd7xtdiaaaaq","evIdProc":"aedqaaaaacgv4sd5abalyak6vd7wdsqaaaaq","evParentId":null,"evType":"LFC.UNITS_RULES_COMPUTE","evTypeProc":"INGEST","obId":"aeaqaaaaaaag3r7cabf4aak2izdloiiaaaaq","outDetail":"LFC.UNITS_RULES_COMPUTE.OK","outMessg":"Succ\u00e8s du calcul des dates d'\u00e9ch\u00e9ance","outcome":"OK"},{"agId":"{\"Name\":\"84d8f77da467\",\"Role\":\"worker\",\"ServerId\":1815296557,\"SiteId\":1,\"GlobalPlatformId\":204683821}","evDateTime":"2017-09-22T09:51:12.694","evDetData":"{}","evId":"aedqaaaaacgdgornaa7veak6vd7yozyaaaaq","evIdProc":"aedqaaaaacgv4sd5abalyak6vd7wdsqaaaaq","evParentId":null,"evType":"LFC.UNIT_METADATA_INDEXATION","evTypeProc":"INGEST","obId":"aeaqaaaaaaag3r7cabf4aak2izdloiiaaaaq","outDetail":"LFC.UNIT_METADATA_INDEXATION.OK","outMessg":"Succ\u00e8s de l'indexation des m\u00e9tadonn\u00e9es de l'unit\u00e9 archivistique","outcome":"OK"}],"obId":"aeaqaaaaaaag3r7cabf4aak2izdloiiaaaaq","outDetail":"LFC.LFC_CREATION.OK","outMessg":"Cr\u00e9ation du journal du cycle de vie","outcome":"OK"},"unit":{"ArchivalAgencyArchiveUnitIdentifier":"ArchivalAgencyArchiveUnitIdentifier0","ArchiveUnitProfile":"PresentationType","CreatedDate":"2016-05-05T20:45:20","Description":"Sensibilisation au Technical Design et \u00e0 l'API Design Java et REST de la solution logicielle Vitam","DescriptionLevel":"Item","FilePlanPosition":"FilePlanPosition0","Language":"fr-FR","OriginatingAgency":{"Identifier":"Identifier0"},"OriginatingAgencyArchiveUnitIdentifier":"OriginatingAgencyArchiveUnitIdentifier0","OriginatingSystemId":"OriginatingSystemId0","SubmissionAgency":{"Identifier":"Identifier1"},"Title":"Sensibilisation API","TransactedDate":"2016-05-05","TransferringAgencyArchiveUnitIdentifier":"TransferringAgencyArchiveUnitIdentifier0","Writer":{"BirthName":"BirthName0","FirstName":"FirstName0"},"_id":"aeaqaaaaaaag3r7cabf4aak2izdloiiaaaaq","_mgt":{"AccessRule":{"Rules":[{"EndDate":"2016-01-01","Rule":"ACC-00001","StartDate":"2016-01-01"}]},"AppraisalRule":{"FinalAction":"Keep","Rules":[{"EndDate":"2026-01-01","Rule":"APP-00001","StartDate":"2016-01-01"}]},"ClassificationRule":{"Rules":[{"ClassificationLevel":"ClassificationLevel0","ClassificationOwner":"ClassificationOwner0","EndDate":"2026-01-01","Rule":"CLASS-00001","StartDate":"2016-01-01"}]},"DisseminationRule":{"Rules":[{"EndDate":"2116-01-01","Rule":"DIS-00004","StartDate":"2016-01-01"}]},"NeedAuthorization":false,"ReuseRule":{"Rules":[{"EndDate":"2026-01-01","Rule":"REU-00001","StartDate":"2016-01-01"}]},"StorageRule":{"FinalAction":"RestrictAccess","Rules":[{"EndDate":"2017-01-01","Rule":"STO-00001","StartDate":"2016-01-01"}]}},"_nbc":0,"_og":"aebaaaaaaaag3r7cabf4aak2izdlnwiaaaaq","_ops":["aedqaaaaacag3r7caayaqak2izdj7ciaaaaq"],"_tenant":0,"_up":[]}}
+{
+	"lfc": {
+		"_id": "aeaqaaaaaaag3r7cabf4aak2izdloiiaaaaq",
+		"_tenant": 0,
+		"_v": 0,
+		"agId": "{\"Name\":\"84d8f77da467\",\"Role\":\"worker\",\"ServerId\":1815296557,\"SiteId\":1,\"GlobalPlatformId\":204683821}",
+		"evDateTime": "2017-09-22T09:51:05.085",
+		"evDetData": null,
+		"evId": "aedqaaaaacgdgornaa7veak6vd7ww7iaaaaq",
+		"evIdProc": "aedqaaaaacgv4sd5abalyak6vd7wdsqaaaaq",
+		"evType": "LFC.LFC_CREATION",
+		"evTypeProc": "INGEST",
+		"events": [
+			{
+				"agId": "{\"Name\":\"84d8f77da467\",\"Role\":\"worker\",\"ServerId\":1815296557,\"SiteId\":1,\"GlobalPlatformId\":204683821}",
+				"evDateTime": "2017-09-22T09:51:05.253",
+				"evDetData": null,
+				"evId": "aedqaaaaacgdgornaa7veak6vd7ww7iaaaaq",
+				"evIdProc": "aedqaaaaacgv4sd5abalyak6vd7wdsqaaaaq",
+				"evParentId": null,
+				"evType": "LFC.CHECK_MANIFEST",
+				"evTypeProc": "INGEST",
+				"obId": "aeaqaaaaaaag3r7cabf4aak2izdloiiaaaaq",
+				"outDetail": "LFC.CHECK_MANIFEST.OK",
+				"outMessg": "Succ\u00e8s de la v\u00e9rification de la coh\u00e9rence du bordereau",
+				"outcome": "OK"
+			},
+			{
+				"agId": "{\"Name\":\"84d8f77da467\",\"Role\":\"worker\",\"ServerId\":1815296557,\"SiteId\":1,\"GlobalPlatformId\":204683821}",
+				"evDateTime": "2017-09-22T09:51:05.253",
+				"evDetData": null,
+				"evId": "aedqaaaaacgdgornaa7veak6vd7ww7iaaaaq",
+				"evIdProc": "aedqaaaaacgv4sd5abalyak6vd7wdsqaaaaq",
+				"evParentId": "aedqaaaaacgdgornaa7veak6vd7ww7iaaaaq",
+				"evType": "LFC.CHECK_MANIFEST.LFC_CREATION",
+				"evTypeProc": "INGEST",
+				"obId": "aeaqaaaaaaag3r7cabf4aak2izdloiiaaaaq",
+				"outDetail": "LFC.CHECK_MANIFEST.LFC_CREATION.OK",
+				"outMessg": "Succ\u00e8s de la cr\u00e9ation du journal du cycle de vie",
+				"outcome": "OK"
+			},
+			{
+				"agId": "{\"Name\":\"84d8f77da467\",\"Role\":\"worker\",\"ServerId\":1815296557,\"SiteId\":1,\"GlobalPlatformId\":204683821}",
+				"evDateTime": "2017-09-22T09:51:08.663",
+				"evDetData": "{}",
+				"evId": "aedqaaaaacgdgornaa7veak6vd7xnniaaaaq",
+				"evIdProc": "aedqaaaaacgv4sd5abalyak6vd7wdsqaaaaq",
+				"evParentId": null,
+				"evType": "LFC.CHECK_UNIT_SCHEMA",
+				"evTypeProc": "INGEST",
+				"obId": "aeaqaaaaaaag3r7cabf4aak2izdloiiaaaaq",
+				"outDetail": "LFC.CHECK_UNIT_SCHEMA.OK",
+				"outMessg": "Succ\u00e8s de la v\u00e9rification globale de l'unit\u00e9 archivistique",
+				"outcome": "OK"
+			},
+			{
+				"agId": "{\"Name\":\"84d8f77da467\",\"Role\":\"worker\",\"ServerId\":1815296557,\"SiteId\":1,\"GlobalPlatformId\":204683821}",
+				"evDateTime": "2017-09-22T09:51:08.725",
+				"evDetData": "{}",
+				"evId": "aedqaaaaacgdgornaa7veak6vd7xtdiaaaaq",
+				"evIdProc": "aedqaaaaacgv4sd5abalyak6vd7wdsqaaaaq",
+				"evParentId": null,
+				"evType": "LFC.UNITS_RULES_COMPUTE",
+				"evTypeProc": "INGEST",
+				"obId": "aeaqaaaaaaag3r7cabf4aak2izdloiiaaaaq",
+				"outDetail": "LFC.UNITS_RULES_COMPUTE.OK",
+				"outMessg": "Succ\u00e8s du calcul des dates d'\u00e9ch\u00e9ance",
+				"outcome": "OK"
+			},
+			{
+				"agId": "{\"Name\":\"84d8f77da467\",\"Role\":\"worker\",\"ServerId\":1815296557,\"SiteId\":1,\"GlobalPlatformId\":204683821}",
+				"evDateTime": "2017-09-22T09:51:12.694",
+				"evDetData": "{}",
+				"evId": "aedqaaaaacgdgornaa7veak6vd7yozyaaaaq",
+				"evIdProc": "aedqaaaaacgv4sd5abalyak6vd7wdsqaaaaq",
+				"evParentId": null,
+				"evType": "LFC.UNIT_METADATA_INDEXATION",
+				"evTypeProc": "INGEST",
+				"obId": "aeaqaaaaaaag3r7cabf4aak2izdloiiaaaaq",
+				"outDetail": "LFC.UNIT_METADATA_INDEXATION.OK",
+				"outMessg": "Succ\u00e8s de l'indexation des m\u00e9tadonn\u00e9es de l'unit\u00e9 archivistique",
+				"outcome": "OK"
+			}
+		],
+		"obId": "aeaqaaaaaaag3r7cabf4aak2izdloiiaaaaq",
+		"outDetail": "LFC.LFC_CREATION.OK",
+		"outMessg": "Cr\u00e9ation du journal du cycle de vie",
+		"outcome": "OK"
+	},
+	"unit": {
+		"ArchivalAgencyArchiveUnitIdentifier": "ArchivalAgencyArchiveUnitIdentifier0",
+		"ArchiveUnitProfile": "PresentationType",
+		"CreatedDate": "2016-05-05T20:45:20",
+		"Description": "Sensibilisation au Technical Design et \u00e0 l'API Design Java et REST de la solution logicielle Vitam",
+		"DescriptionLevel": "Item",
+		"FilePlanPosition": "FilePlanPosition0",
+		"Language": "fr-FR",
+		"OriginatingAgency": {
+			"Identifier": "Identifier0"
+		},
+		"OriginatingAgencyArchiveUnitIdentifier": "OriginatingAgencyArchiveUnitIdentifier0",
+		"OriginatingSystemId": "OriginatingSystemId0",
+		"SubmissionAgency": {
+			"Identifier": "Identifier1"
+		},
+		"Title": "Sensibilisation API",
+		"TransactedDate": "2016-05-05",
+		"TransferringAgencyArchiveUnitIdentifier": "TransferringAgencyArchiveUnitIdentifier0",
+		"Writer": {
+			"BirthName": "BirthName0",
+			"FirstName": "FirstName0"
+		},
+		"_id": "aeaqaaaaaaag3r7cabf4aak2izdloiiaaaaq",
+		"_mgt": {
+			"AccessRule": {
+				"Rules": [
+					{
+						"EndDate": "2016-01-01",
+						"Rule": "ACC-00001",
+						"StartDate": "2016-01-01"
+					}
+				]
+			},
+			"AppraisalRule": {
+				"FinalAction": "Keep",
+				"Rules": [
+					{
+						"EndDate": "2026-01-01",
+						"Rule": "APP-00001",
+						"StartDate": "2016-01-01"
+					}
+				]
+			},
+			"ClassificationRule": {
+				"Rules": [
+					{
+						"ClassificationLevel": "ClassificationLevel0",
+						"ClassificationOwner": "ClassificationOwner0",
+						"EndDate": "2026-01-01",
+						"Rule": "CLASS-00001",
+						"StartDate": "2016-01-01"
+					}
+				]
+			},
+			"DisseminationRule": {
+				"Rules": [
+					{
+						"EndDate": "2116-01-01",
+						"Rule": "DIS-00004",
+						"StartDate": "2016-01-01"
+					}
+				]
+			},
+			"NeedAuthorization": false,
+			"ReuseRule": {
+				"Rules": [
+					{
+						"EndDate": "2026-01-01",
+						"Rule": "REU-00001",
+						"StartDate": "2016-01-01"
+					}
+				]
+			},
+			"StorageRule": {
+				"FinalAction": "RestrictAccess",
+				"Rules": [
+					{
+						"EndDate": "2017-01-01",
+						"Rule": "STO-00001",
+						"StartDate": "2016-01-01"
+					}
+				]
+			}
+		},
+		"_nbc": 0,
+		"_og": "aebaaaaaaaag3r7cabf4aak2izdlnwiaaaaq",
+		"_ops": [
+			"aedqaaaaacag3r7caayaqak2izdj7ciaaaaq"
+		],
+		"_storage": {
+			"_nbc": 2,
+			"offerIds": [
+				"vitam-iaas-app-02.itrec",
+				"vitam-iaas-app-01.itrec"
+			],
+			"strategyId": "default-unit-fake"
+		},
+		"_tenant": 0,
+		"_up": []
+	}
+}

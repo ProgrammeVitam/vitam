@@ -209,7 +209,7 @@ public class StoreMetaDataObjectGroupActionPluginTest {
         when(logbookLifeCyclesClient.getRawObjectGroupLifeCycleByIds(Arrays.asList(OG_GUID, OG_GUID_2)))
             .thenReturn(Arrays.asList(lfcObjectGroup1, lfcObjectGroup2));
 
-        when(storageClient.bulkStoreFilesFromWorkspace(any(), any()))
+        when(storageClient.bulkStoreFilesFromWorkspace(eq("default-got-fake"), any()))
             .thenReturn(new BulkObjectStoreResponse(
                 Arrays.asList("offer1", "offer2"), DigestType.SHA512.getName(),
                 ImmutableMap.of(OG_GUID + ".json", "digest1", OG_GUID_2, "digest2")
@@ -224,10 +224,12 @@ public class StoreMetaDataObjectGroupActionPluginTest {
         // Then
         checkItemStatus(response, StatusCode.OK);
 
-        assertThat(getSavedFile(IngestWorkflowConstants.OBJECT_GROUP_FOLDER + "/" + OG_GUID + ".json")).hasSameContentAs(
-            objectGroupWithLfc1);
-        assertThat(getSavedFile(IngestWorkflowConstants.OBJECT_GROUP_FOLDER + "/" + OG_GUID_2 + ".json")).hasSameContentAs(
-            objectGroupWithLfc2);
+        JsonNode objectGroupWithLfc1CreatedFile = JsonHandler.getFromFile(getSavedFile(IngestWorkflowConstants.OBJECT_GROUP_FOLDER + "/" + OG_GUID + ".json"));
+        JsonNode objectGroupWithLfc1MockFile = JsonHandler.getFromFile(objectGroupWithLfc1);
+        JsonNode objectGroupWithLfc2CreatedFile = JsonHandler.getFromFile(getSavedFile(IngestWorkflowConstants.OBJECT_GROUP_FOLDER + "/" + OG_GUID_2 + ".json"));
+        JsonNode objectGroupWithLfc2MockFile = JsonHandler.getFromFile(objectGroupWithLfc2);
+        assertThat(objectGroupWithLfc1CreatedFile).isEqualTo(objectGroupWithLfc1MockFile);
+        assertThat(objectGroupWithLfc2CreatedFile).isEqualTo(objectGroupWithLfc2MockFile);
     }
 
     private File getSavedFile(String filename) {

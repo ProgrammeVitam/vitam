@@ -66,13 +66,52 @@ public class MetadataDocumentHelperTest {
     }
 
     @Test
-    public void should_throwIllegalArgumentException_when_JsonNull() {
+    public void should_throwIllegalArgumentException_when_JsonNullRawUnit() {
         // Given
         ObjectNode unitJson = null;
 
         // When + Then
         assertThatThrownBy(() -> {
             MetadataDocumentHelper.getStrategyIdFromRawUnitOrGot(unitJson);
+        }).isInstanceOf(IllegalArgumentException.class);
+    }
+
+    @Test
+    public void should_retrieveStrategyId_when_presentInUnit() {
+        // Given
+        ObjectNode unitJson = JsonHandler.createObjectNode();
+        ObjectNode storageJson = JsonHandler.createObjectNode();
+        storageJson.put("strategyId", "strategyIdValue");
+        unitJson.set("#storage", storageJson);
+
+        // When
+        String extractedStrategyId = MetadataDocumentHelper.getStrategyIdFromUnit(unitJson);
+
+        // Then
+        assertThat(extractedStrategyId).isEqualTo("strategyIdValue");
+    }
+
+    @Test
+    public void should_throwIllegalArgumentException_when_StrategyIdNotPresentInUnit() {
+        // Given
+        ObjectNode unitJson = JsonHandler.createObjectNode();
+        ObjectNode storageJson = JsonHandler.createObjectNode();
+        unitJson.set("#storage", storageJson);
+
+        // When + Then
+        assertThatThrownBy(() -> {
+            MetadataDocumentHelper.getStrategyIdFromUnit(unitJson);
+        }).isInstanceOf(IllegalArgumentException.class);
+    }
+
+    @Test
+    public void should_throwIllegalArgumentException_when_JsonNullUnit() {
+        // Given
+        ObjectNode unitJson = null;
+
+        // When + Then
+        assertThatThrownBy(() -> {
+            MetadataDocumentHelper.getStrategyIdFromUnit(unitJson);
         }).isInstanceOf(IllegalArgumentException.class);
     }
 

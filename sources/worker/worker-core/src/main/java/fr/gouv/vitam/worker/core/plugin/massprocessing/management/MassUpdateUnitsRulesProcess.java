@@ -26,21 +26,6 @@
  */
 package fr.gouv.vitam.worker.core.plugin.massprocessing.management;
 
-import static fr.gouv.vitam.common.model.StatusCode.OK;
-import static fr.gouv.vitam.common.model.StatusCode.WARNING;
-import static fr.gouv.vitam.metadata.core.model.UpdateUnit.DIFF;
-import static fr.gouv.vitam.metadata.core.model.UpdateUnit.KEY;
-import static fr.gouv.vitam.metadata.core.model.UpdateUnit.MESSAGE;
-import static fr.gouv.vitam.metadata.core.model.UpdateUnit.STATUS;
-
-import java.io.File;
-import java.io.InputStream;
-import java.time.temporal.ChronoUnit;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
 import org.apache.commons.lang3.StringUtils;
 
 import com.fasterxml.jackson.databind.JsonNode;

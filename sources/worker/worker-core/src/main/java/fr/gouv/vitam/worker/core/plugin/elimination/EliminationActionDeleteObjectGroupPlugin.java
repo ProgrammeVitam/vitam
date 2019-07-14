@@ -26,8 +26,19 @@
  *******************************************************************************/
 package fr.gouv.vitam.worker.core.plugin.elimination;
 
+import static fr.gouv.vitam.worker.core.utils.PluginHelper.buildBulkItemStatus;
+import static fr.gouv.vitam.worker.core.utils.PluginHelper.buildItemStatus;
+import static java.util.Collections.singletonList;
+
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.IntStream;
+
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.google.common.annotations.VisibleForTesting;
+
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
@@ -44,15 +55,6 @@ import fr.gouv.vitam.storage.engine.client.exception.StorageServerClientExceptio
 import fr.gouv.vitam.worker.common.HandlerIO;
 import fr.gouv.vitam.worker.core.handler.ActionHandler;
 import fr.gouv.vitam.worker.core.plugin.elimination.exception.EliminationException;
-
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-
-import static fr.gouv.vitam.worker.core.utils.PluginHelper.buildBulkItemStatus;
-import static fr.gouv.vitam.worker.core.utils.PluginHelper.buildItemStatus;
-import static java.util.Collections.singletonList;
 
 /**
  * Elimination action delete object group plugin.
@@ -93,12 +95,17 @@ public class EliminationActionDeleteObjectGroupPlugin extends ActionHandler {
 
         try {
 
-            Set<String> objectGroupIds = new HashSet<>(param.getObjectNameList());
-            List<String> objectIds = loadObjectsToDelete(param);
+            
+            Map<String, String> objectGroupIdsWithStrategies = new HashMap<String, String>();
+            IntStream.range(0, param.getObjectNameList().size())
+            .forEach(i -> objectGroupIdsWithStrategies.put(param.getObjectNameList().get(i),
+                    param.getObjectMetadataList().get(i).get("strategyId").asText()));
+            
+            Map<String, String> objectIdsWithStrategies = loadObjectsToDelete(param);
 
-            processObjectGroups(objectGroupIds);
+            processObjectGroups(objectGroupIdsWithStrategies);
 
-            processObjects(objectIds);
+            processObjects(objectIdsWithStrategies);
 
             return buildBulkItemStatus(param, ELIMINATION_ACTION_DELETE_OBJECT_GROUP, StatusCode.OK);
 
@@ -110,50 +117,54 @@ public class EliminationActionDeleteObjectGroupPlugin extends ActionHandler {
 
     }
 
-    private void processObjectGroups(Set<String> objectGroupIds)
+    private void processObjectGroups(Map<String, String> objectGroupIdsWithStrategies)
         throws EliminationException {
 
-        LOGGER.info("Deleting object groups [" + String.join(", ", objectGroupIds) + "]");
+        LOGGER.info("Deleting object groups [" + String.join(", ", objectGroupIdsWithStrategies.keySet()) + "]");
 
         try {
 
-            eliminationActionDeleteService.deleteObjectGroups(objectGroupIds);
+            eliminationActionDeleteService.deleteObjectGroups(objectGroupIdsWithStrategies);
 
         } catch (InvalidParseOperationException | MetaDataExecutionException | MetaDataClientServerException |
             LogbookClientBadRequestException | StorageServerClientException | LogbookClientServerException e) {
             throw new EliminationException(StatusCode.FATAL,
-                "Could not delete object groups [" + String.join(", ", objectGroupIds) + "]", e);
+                "Could not delete object groups [" + String.join(", ", objectGroupIdsWithStrategies.keySet()) + "]", e);
         }
     }
 
-    private void processObjects(List<String> objectIds) throws EliminationException {
+    private void processObjects(Map<String, String> objectIdsWithStrategies) throws EliminationException {
 
         if (LOGGER.isDebugEnabled()) {
-            LOGGER.debug("Deleting object binaries [" + String.join(", ", objectIds) + "]");
+            LOGGER.debug("Deleting object binaries [" + String.join(", ", objectIdsWithStrategies.keySet()) + "]");
         }
 
         try {
 
-            eliminationActionDeleteService.deleteObjects(objectIds);
+            eliminationActionDeleteService.deleteObjects(objectIdsWithStrategies);
 
         } catch (StorageServerClientException e) {
             throw new EliminationException(StatusCode.FATAL,
-                "Could not delete object groups [" + String.join(", ", objectIds) + "]", e);
+                "Could not delete object groups [" + String.join(", ", objectIdsWithStrategies.keySet()) + "]", e);
         }
 
     }
 
-    private List<String> loadObjectsToDelete(WorkerParameters param) throws EliminationException {
+    private Map<String, String> loadObjectsToDelete(WorkerParameters param) throws EliminationException {
 
-        try {
-            List<String> objectsToDelete = new ArrayList<>();
-            for (JsonNode jsonNode : param.getObjectMetadataList()) {
-                objectsToDelete.addAll((List<String>) JsonHandler.getFromJsonNode(jsonNode, List.class));
+        Map<String, String> objectsWithStrategiesToDelete = new HashMap<String, String>();
+        for (JsonNode jsonNode : param.getObjectMetadataList()) {
+            if (jsonNode.has("objects") && !jsonNode.get("objects").isArray()) {
+                throw new EliminationException(StatusCode.FATAL, "Could not retrieve object ids to delete");
             }
-            return objectsToDelete;
-        } catch (InvalidParseOperationException e) {
-            throw new EliminationException(StatusCode.FATAL, "Could not retrieve object ids to delete", e);
+            ArrayNode objectDetails = (ArrayNode) jsonNode.get("objects");
+            for (JsonNode objectDetail : objectDetails) {
+                objectsWithStrategiesToDelete.put(objectDetail.get("id").asText(),
+                        objectDetail.get("strategyId").asText());
+            }
         }
+        return objectsWithStrategiesToDelete;
+        
     }
 
     @Override
