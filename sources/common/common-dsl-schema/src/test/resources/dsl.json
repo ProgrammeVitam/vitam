@@ -1,9 +1,7 @@
 {
-  // Élément principal
   "DSL": {
     "format": "object",
     "elements": {
-      // Racine de recherche
       "$roots": {
         "format": "array",
         "itemtype": "guid",
