@@ -40,7 +40,7 @@ import java.util.Map;
  * SchemaBuilder
  */
 public class SchemaBuilder {
-    private static final TypeReference<Map<String, Format>> typeReference = new TypeReference<Map<String, Format>>() {};
+    private static final TypeReference<Map<String, Format>> MAP_TYPE_REFERENCE = new TypeReference<Map<String, Format>>() {};
     private Map<String, Format> types = new HashMap<>();
 
     protected SchemaBuilder() {
@@ -48,7 +48,7 @@ public class SchemaBuilder {
 
     public SchemaBuilder loadTypes(InputStream schemaStream) {
         try {
-            Map<String, Format> loaded = JsonHandler.getFromInputStreamWithCommentAllow(schemaStream, typeReference);
+            Map<String, Format> loaded = JsonHandler.getFromInputStreamLowerCamelCase(schemaStream, MAP_TYPE_REFERENCE);
 
             for (Map.Entry<String, Format> entry : loaded.entrySet()) {
                 Format format = entry.getValue();
