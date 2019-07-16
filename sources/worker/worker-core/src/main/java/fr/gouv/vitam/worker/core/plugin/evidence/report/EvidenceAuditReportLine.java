@@ -32,7 +32,6 @@ import fr.gouv.vitam.worker.core.plugin.evidence.exception.EvidenceStatus;
 
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 /**
@@ -56,6 +55,9 @@ public class EvidenceAuditReportLine {
 
     @JsonProperty("securedHash")
     private String securedHash;
+
+    @JsonProperty("strategyId")
+    private String strategyId;
 
     @JsonProperty("offersHashes")
     private Map<String, String> offersHashes;
@@ -167,5 +169,19 @@ public class EvidenceAuditReportLine {
      **/
     public void setOffersHashes(Map<String, String> offersHashes) {
         this.offersHashes = offersHashes;
+    }
+
+    /**
+     * getter for strategyId
+     **/
+    public String getStrategyId() {
+        return strategyId;
+    }
+
+    /**
+     * setter for strategyId
+     **/
+    public void setStrategyId(String strategyId) {
+        this.strategyId = strategyId;
     }
 }

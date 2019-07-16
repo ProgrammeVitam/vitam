@@ -281,7 +281,7 @@ public class StorageTwoOffersIT {
         assertThat(information.get(OFFER_ID).get(DIGEST)).isNotEqualTo(information.get(SECOND_OFFER_ID).get(DIGEST));
 
         // correct the offer 2
-        storageClient.copyObjectToOneOfferAnother(id, DataCategory.OBJECT, OFFER_ID, SECOND_OFFER_ID);
+        storageClient.copyObjectToOneOfferAnother(id, DataCategory.OBJECT, OFFER_ID, SECOND_OFFER_ID, STRATEGY_ID);
 
         // verify That the copy has been correctly done
         information =

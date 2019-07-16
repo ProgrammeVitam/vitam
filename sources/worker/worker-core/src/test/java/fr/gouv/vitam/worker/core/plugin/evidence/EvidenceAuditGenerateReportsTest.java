@@ -30,14 +30,10 @@ import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.StatusCode;
-import fr.gouv.vitam.functional.administration.common.BackupService;
-import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 import fr.gouv.vitam.worker.common.HandlerIO;
 import fr.gouv.vitam.worker.core.plugin.evidence.exception.EvidenceStatus;
 import fr.gouv.vitam.worker.core.plugin.evidence.report.EvidenceAuditReportLine;
-import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
-import org.assertj.core.api.Assertions;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -47,7 +43,6 @@ import org.mockito.junit.MockitoJUnit;
 import org.mockito.junit.MockitoRule;
 
 import java.io.File;
-import java.nio.file.Files;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.BDDMockito.given;
@@ -68,8 +63,9 @@ public class EvidenceAuditGenerateReportsTest {
     public void setUp() throws Exception {
         evidenceAuditGenerateReports = new EvidenceAuditGenerateReports();
     }
+    
     @Test
-    public void should_generate_reports() throws Exception {
+    public void should_generate_reports_when_line_not_found() throws Exception {
         when(defaultWorkerParameters.getObjectName()).thenReturn("test");
         File resourceFile = PropertiesUtils.getResourceFile("evidenceAudit/data.txt");
         when(handlerIO.getFileFromWorkspace("zip/test")).thenReturn(resourceFile);
@@ -89,6 +85,31 @@ public class EvidenceAuditGenerateReportsTest {
         assertThat(evidenceAuditReportLine.getIdentifier()).isEqualTo("aeaqaaaaaaebta56aaoc4alcdk4hlcqaaaaq");
         assertThat(evidenceAuditReportLine.getEvidenceStatus()).isEqualTo(EvidenceStatus.KO);
         assertThat(evidenceAuditReportLine.getMessage()).isEqualTo("Could not find matching traceability info in the file");
+
+    }
+    
+    @Test
+    public void should_generate_reports_when_digest_invalid() throws Exception {
+        when(defaultWorkerParameters.getObjectName()).thenReturn("test");
+        File resourceFile = PropertiesUtils.getResourceFile("evidenceAudit/data_ko_unit.txt");
+        when(handlerIO.getFileFromWorkspace("zip/test")).thenReturn(resourceFile);
+        File file2 = tempFolder.newFile();
+        File report = tempFolder.newFile();
+        JsonHandler.writeAsFile( "aeaqaaaaaaebta56aaoc4alcdk4hlcqaaaaq", file2);
+        when(handlerIO.getFileFromWorkspace("fileNames/test")).thenReturn(file2);
+        when(handlerIO.getFileFromWorkspace("data/aeaqaaaaaaebta56aaoc4alcdk4hlcqaaaaq" )).thenReturn(PropertiesUtils.getResourceFile("evidenceAudit/test.json"));
+        when(handlerIO.getNewLocalFile("aeaqaaaaaaebta56aaoc4alcdk4hlcqaaaaq")).thenReturn(report);
+        given(handlerIO.getJsonFromWorkspace("evidenceOptions")).willReturn(JsonHandler.createObjectNode().put("correctiveOption",false));
+
+        ItemStatus execute = evidenceAuditGenerateReports.execute(defaultWorkerParameters, handlerIO);
+
+        assertThat(execute.getGlobalStatus()).isEqualTo(StatusCode.OK);
+
+        EvidenceAuditReportLine evidenceAuditReportLine = JsonHandler.getFromFile(report, EvidenceAuditReportLine.class);
+        assertThat(evidenceAuditReportLine.getIdentifier()).isEqualTo("aeaqaaaaaaebta56aaoc4alcdk4hlcqaaaaq");
+        assertThat(evidenceAuditReportLine.getEvidenceStatus()).isEqualTo(EvidenceStatus.KO);
+        assertThat(evidenceAuditReportLine.getMessage()).contains("Traceability audit KO  Database check failure");
+        assertThat(evidenceAuditReportLine.getStrategyId()).contains("default");
 
     }
 }

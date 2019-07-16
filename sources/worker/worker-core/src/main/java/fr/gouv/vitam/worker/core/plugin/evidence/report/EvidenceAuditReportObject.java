@@ -27,7 +27,6 @@
 package fr.gouv.vitam.worker.core.plugin.evidence.report;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import fr.gouv.vitam.common.model.LifeCycleTraceabilitySecureFileObject;
 import fr.gouv.vitam.worker.core.plugin.evidence.exception.EvidenceStatus;
 
 import java.util.Map;
@@ -51,6 +50,9 @@ public class EvidenceAuditReportObject {
     @JsonProperty("securedHash")
     private String securedHash;
 
+    @JsonProperty("strategyId")
+    private String strategyId;
+
     @JsonProperty("offersHashes")
     private Map<String,String>offersHashes;
 
@@ -58,9 +60,10 @@ public class EvidenceAuditReportObject {
     EvidenceAuditReportObject(){
 
     }
+    
     public EvidenceAuditReportObject(String id ){
         this.identifier = id;
-        evidenceStatus=EvidenceStatus.OK;
+        evidenceStatus = EvidenceStatus.OK;
     }
     /**
      * getter for identifier
@@ -144,5 +147,19 @@ public class EvidenceAuditReportObject {
      **/
     public void setOffersHashes(Map<String, String> offersHashes) {
         this.offersHashes = offersHashes;
+    }
+
+    /**
+     * getter for strategyId
+     **/
+    public String getStrategyId() {
+        return strategyId;
+    }
+
+    /**
+     * setter for strategyId
+     **/
+    public void setStrategyId(String strategyId) {
+        this.strategyId = strategyId;
     }
 }
