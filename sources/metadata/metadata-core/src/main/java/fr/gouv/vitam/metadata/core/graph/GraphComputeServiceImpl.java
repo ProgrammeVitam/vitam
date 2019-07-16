@@ -69,11 +69,11 @@ import fr.gouv.vitam.common.model.GraphComputeResponse;
 import fr.gouv.vitam.common.model.GraphComputeResponse.GraphComputeAction;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
-import fr.gouv.vitam.metadata.api.MetaData;
 import fr.gouv.vitam.metadata.api.exception.MetaDataDocumentSizeException;
 import fr.gouv.vitam.metadata.api.exception.MetaDataException;
 import fr.gouv.vitam.metadata.api.exception.MetaDataExecutionException;
 import fr.gouv.vitam.metadata.api.exception.MetaDataNotFoundException;
+import fr.gouv.vitam.metadata.core.MetaDataImpl;
 import fr.gouv.vitam.metadata.core.database.collections.MetadataCollections;
 import fr.gouv.vitam.metadata.core.database.collections.Unit;
 import fr.gouv.vitam.metadata.core.database.configuration.GlobalDatasDb;
@@ -96,7 +96,7 @@ public class GraphComputeServiceImpl implements GraphComputeService {
     private final Map<Integer, AtomicBoolean> lockers = new HashMap<>();
     private VitamCache<String, Document> cache;
     private VitamRepositoryProvider vitamRepositoryProvider;
-    private MetaData metaData;
+    private MetaDataImpl metaData;
 
     private String currentOperation = null;
 
@@ -108,7 +108,7 @@ public class GraphComputeServiceImpl implements GraphComputeService {
      */
     private GraphComputeServiceImpl(
         VitamRepositoryProvider vitamRepositoryProvider,
-        MetaData metaData,
+        MetaDataImpl metaData,
         VitamCache<String, Document> cache,
         List<Integer> tenants) {
         this.vitamRepositoryProvider = vitamRepositoryProvider;
@@ -127,7 +127,7 @@ public class GraphComputeServiceImpl implements GraphComputeService {
     @VisibleForTesting
     public static synchronized GraphComputeService initialize(
         VitamRepositoryProvider vitamRepositoryProvider,
-        MetaData metaData,
+        MetaDataImpl metaData,
         VitamCache<String, Document> cache,
         List<Integer> tenants) {
         if (instance == null) {
@@ -147,7 +147,7 @@ public class GraphComputeServiceImpl implements GraphComputeService {
      */
     public static synchronized GraphComputeService initialize(
         VitamRepositoryProvider vitamRepositoryProvider,
-        MetaData metaData) {
+        MetaDataImpl metaData) {
         return initialize(
             vitamRepositoryProvider,
             metaData,

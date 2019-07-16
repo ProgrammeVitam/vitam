@@ -34,7 +34,6 @@ import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.databind.module.SimpleModule;
 import fr.gouv.culture.archivesdefrance.seda.v2.IdentifierType;
 import fr.gouv.culture.archivesdefrance.seda.v2.LevelType;
-import fr.gouv.vitam.access.internal.common.exception.AccessInternalExecutionException;
 import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.client.VitamClientFactory;
 import fr.gouv.vitam.common.client.VitamRequestIterator;
@@ -68,7 +67,6 @@ import fr.gouv.vitam.logbook.lifecycles.client.LogbookLifeCyclesClientFactory;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClient;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClientFactory;
 import fr.gouv.vitam.metadata.api.exception.MetaDataClientServerException;
-import fr.gouv.vitam.metadata.api.exception.MetaDataDocumentSizeException;
 import fr.gouv.vitam.metadata.api.exception.MetaDataExecutionException;
 import fr.gouv.vitam.metadata.api.exception.MetaDataNotFoundException;
 import fr.gouv.vitam.metadata.client.MetaDataClient;
@@ -78,10 +76,8 @@ import fr.gouv.vitam.processing.management.client.ProcessingManagementClient;
 import fr.gouv.vitam.processing.management.client.ProcessingManagementClientFactory;
 import fr.gouv.vitam.storage.engine.client.StorageClient;
 import fr.gouv.vitam.storage.engine.client.StorageClientFactory;
-import fr.gouv.vitam.storage.engine.client.StorageClientMock;
 import fr.gouv.vitam.storage.engine.client.exception.StorageServerClientException;
 import fr.gouv.vitam.storage.engine.common.exception.StorageNotFoundException;
-import fr.gouv.vitam.storage.engine.common.model.DataCategory;
 import fr.gouv.vitam.workspace.client.WorkspaceClient;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
 import io.restassured.RestAssured;
@@ -97,7 +93,6 @@ import javax.ws.rs.NotFoundException;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response.Status;
 import java.io.InputStream;
-import java.text.ParseException;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -108,6 +103,7 @@ import static io.restassured.RestAssured.given;
 import static io.restassured.RestAssured.with;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.isNull;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.doThrow;
@@ -266,7 +262,7 @@ public class AccessInternalResourceImplTest extends ResteasyTestApplication {
      */
     @Test
     public void givenStartedServer_WhenUpdateUnitError_ThenReturnError() throws Exception {
-        when(metaDataClient.updateUnitbyId(any(), any()))
+        when(metaDataClient.updateUnitById(any(), any()))
             .thenThrow(new MetaDataExecutionException("Wanted exception"));
 
         given().contentType(ContentType.JSON).body(buildDSLWithOptions(QUERY_SIMPLE_TEST, DATA))
@@ -673,6 +669,7 @@ public class AccessInternalResourceImplTest extends ResteasyTestApplication {
     @RunWithCustomExecutor
     public void getObjectStreamNotFound() throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(0);
+
         when(metaDataClient.selectObjectGrouptbyId(any(), anyString()))
             .thenReturn(new MetaDataClientMock().selectObjectGrouptbyId(JsonHandler.createObjectNode(), "id"));
 
@@ -684,6 +681,12 @@ public class AccessInternalResourceImplTest extends ResteasyTestApplication {
             .header(GlobalDataRest.X_QUALIFIER, "BinaryMaster_1")
             .headers(getStreamHeaders()).when().get(OBJECTS_URI + OBJECT_ID + "/unitID").then()
             .statusCode(Status.NOT_FOUND.getStatusCode());
+
+    }
+    @Test
+    @RunWithCustomExecutor
+    public void getObjectStreamNotFoundMetadata() throws Exception {
+        VitamThreadUtils.getVitamSession().setTenantId(0);
 
         doThrow(new MetaDataNotFoundException("test")).when(metaDataClient)
             .selectObjectGrouptbyId(any(), anyString());

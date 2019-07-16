@@ -28,6 +28,7 @@ package fr.gouv.vitam.batch.report.rest.resource;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import fr.gouv.vitam.batch.report.exception.BatchReportException;
+import fr.gouv.vitam.batch.report.model.Report;
 import fr.gouv.vitam.batch.report.model.ReportBody;
 import fr.gouv.vitam.batch.report.model.ReportExportRequest;
 import fr.gouv.vitam.batch.report.model.ReportType;
@@ -42,6 +43,7 @@ import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.server.application.resources.ApplicationStatusResource;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
+import fr.gouv.vitam.functional.administration.common.exception.BackupServiceException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
 
 import javax.ws.rs.BadRequestException;
@@ -76,7 +78,7 @@ public class BatchReportResource extends ApplicationStatusResource {
     @POST
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
-    public Response appendReport(ReportBody reportBody,
+    public Response appendReport(ReportBody<JsonNode> reportBody,
         @HeaderParam(GlobalDataRest.X_TENANT_ID) int tenantId) {
 
         switch (reportBody.getReportType()) {
@@ -147,6 +149,29 @@ public class BatchReportResource extends ApplicationStatusResource {
 
         } catch (InvalidParseOperationException | IllegalArgumentException e) {
             throw new BadRequestException(e);
+        }
+    }
+
+    @Path("/store")
+    @POST
+    @Produces(MediaType.APPLICATION_JSON)
+    @Consumes(MediaType.APPLICATION_JSON)
+    public Response storeReport(Report reportInfo) {
+        int tenantId = VitamThreadUtils.getVitamSession().getTenantId();
+
+        ParametersChecker.checkParameter("processId should be filed", reportInfo.getOperationSummary().getEvId());
+        ParametersChecker.checkParameter("tenantId should be filed", reportInfo.getOperationSummary().getTenant());
+        if (tenantId != reportInfo.getOperationSummary().getTenant()) {
+            throw new IllegalArgumentException("Tenant id in request should match header. Header: " + tenantId + ", request: " + reportInfo.getOperationSummary().getTenant() + ".");
+        }
+
+        try {
+            batchReportServiceImpl.storeReport(reportInfo);
+            return Response.status(Response.Status.OK).build();
+        } catch (InvalidParseOperationException | IllegalArgumentException e) {
+            return Response.status(Response.Status.BAD_REQUEST).entity(e.getMessage()).build();
+        } catch (BackupServiceException | IOException e) {
+            return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(e.getMessage()).build();
         }
     }
 
@@ -246,15 +271,17 @@ public class BatchReportResource extends ApplicationStatusResource {
                 case PRESERVATION:
                     batchReportServiceImpl.deletePreservationByIdAndTenant(processId, tenantId);
                     break;
+                case UPDATE_UNIT:
+                    batchReportServiceImpl.deleteUpdateUnitByIdAndTenant(processId, tenantId);
+                    break;
                 default:
                     Response.Status status = Response.Status.BAD_REQUEST;
                     VitamError vitamError = new VitamError(status.name()).setHttpCode(status.getStatusCode())
-                        .setMessage("Report type not find")
-                        .setDescription("Report type not find");
+                        .setMessage("Report type not found")
+                        .setDescription("Report type not found");
                     return Response.status(status).entity(vitamError).build();
             }
-            Response.Status status = Response.Status.NO_CONTENT;
-            return Response.status(status).build();
+            return Response.status(Response.Status.NO_CONTENT).build();
 
         } catch (IllegalArgumentException e) {
             throw new BadRequestException(e);

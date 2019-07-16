@@ -82,13 +82,13 @@ import static org.mockito.Mockito.verify;
 @RunWithCustomExecutor
 public class FunctionalBackupServiceTest {
     public static final String DOC1_TENANT0 =
-        "{ \"_id\" : \"aeaaaaaaaadw44zlabowqalanjdt5laaaaaq\" , \"_tenant\" : 0 , \"Name\" : \"A\" , \"Identifier\" : \"ID-008\"}";
+        "{\"_id\":\"aeaaaaaaaadw44zlabowqalanjdt5laaaaaq\",\"_tenant\":0,\"Name\":\"A\",\"Identifier\":\"ID-008\"}";
     public static final String DOC2_TENANT1 =
-        "{ \"_id\" : \"aeaaaaaaaadw44zlabowqalanjdt5maaaaaq\" , \"_tenant\" : 1 , \"Name\" : \"B\" , \"Identifier\" : \"ID-123\"}";
+        "{\"_id\":\"aeaaaaaaaadw44zlabowqalanjdt5maaaaaq\",\"_tenant\":1,\"Name\":\"B\",\"Identifier\":\"ID-123\"}";
     public static final String SEQUENCE_DOC =
-        "{ \"_id\" : \"aeaaaaaaaadw44zlabowqalanjdt5naaaaaq\" , \"Counter\" : 0 , \"Name\" : \"A\" , \"_tenant\" : 0}";
+        "{\"_id\":\"aeaaaaaaaadw44zlabowqalanjdt5naaaaaq\",\"Counter\":0,\"Name\":\"A\",\"_tenant\":0}";
     public static final String BACKUP_SEQUENCE_DOC =
-        "{ \"_id\" : \"aeaaaaaaaadw44zlabowqalanjdt5oaaaaaq\" , \"Counter\" : 10 , \"Name\" : \"BACKUP_A\" , \"_tenant\" : 0}";
+        "{\"_id\":\"aeaaaaaaaadw44zlabowqalanjdt5oaaaaaq\",\"Counter\":10,\"Name\":\"BACKUP_A\",\"_tenant\":0}";
 
     private static String PREFIX = GUIDFactory.newGUID().getId();
     @ClassRule

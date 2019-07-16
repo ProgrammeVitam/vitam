@@ -64,7 +64,7 @@ public enum IngestCollection {
     /**
      * Ugly hack hack for homogeneity download batch update reports
      */
-    PRESERVATION("preservation");
+    BATCH_REPORT("batch_report");
 
     /**
      * Name

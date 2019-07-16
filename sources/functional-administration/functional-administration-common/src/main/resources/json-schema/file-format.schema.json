@@ -1,0 +1,85 @@
+{
+  "$schema": "http://json-schema.org/draft-04/schema#",
+  "id": "http://example.com/root.json",
+  "additionalProperties": false,
+  "type": "object",
+  "properties": {
+    "_id": {
+      "type": "string"
+    },
+    "_v": {
+      "type": "integer"
+    },
+    "CreatedDate": {
+      "description": "pattern: Date",
+      "anyOf": [
+        {
+          "type": "string",
+          "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}$"
+        },
+        {
+          "type": "string",
+          "format": "date-time"
+        },
+        {
+          "type": "string",
+          "format": "date-time-vitam"
+        }
+      ]
+    },
+    "UpdateDate": {
+      "description": "pattern: Date",
+      "anyOf": [
+        {
+          "type": "string",
+          "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}$"
+        },
+        {
+          "type": "string",
+          "format": "date-time"
+        },
+        {
+          "type": "string",
+          "format": "date-time-vitam"
+        }
+      ]
+    },
+    "VersionPronom": {
+      "type": "string"
+    },
+    "Version": {
+      "type": "string"
+    },
+    "HasPriorityOverFileFormatID": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "MimeType": {
+      "type": "string"
+    },
+    "Name": {
+      "type": "string"
+    },
+    "Group": {
+      "type": "string"
+    },
+    "Alert": {
+      "type": "boolean"
+    },
+    "Comment": {
+      "type": "string"
+    },
+    "Extension": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "PUID": {
+      "type": "string"
+    }
+  },
+  "required": ["_id", "_v", "PUID", "Name", "CreatedDate", "VersionPronom"]
+}

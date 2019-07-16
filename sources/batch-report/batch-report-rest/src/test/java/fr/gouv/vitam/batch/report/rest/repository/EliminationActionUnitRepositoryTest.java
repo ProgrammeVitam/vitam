@@ -24,7 +24,9 @@ package fr.gouv.vitam.batch.report.rest.repository; /***************************
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  *******************************************************************************/
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.exc.InvalidFormatException;
 import com.mongodb.client.FindIterable;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoCursor;
@@ -43,6 +45,7 @@ import org.junit.Rule;
 import org.junit.Test;
 
 import java.io.InputStream;
+import java.lang.reflect.Type;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -80,7 +83,7 @@ public class EliminationActionUnitRepositoryTest {
 
     @Test
     public void should_bulk_append_unit_report_and_check_metadata_id_unicity()
-        throws InvalidParseOperationException {
+        throws Exception {
         // Given
         List<EliminationActionUnitModel> eliminationActionUnitModels = getDocuments("/eliminationUnitModel.json");
         // When
@@ -103,7 +106,7 @@ public class EliminationActionUnitRepositoryTest {
 
     @Test
     public void should_bulk_append_unit_report_and_check_no_duplicate()
-        throws InvalidParseOperationException {
+        throws Exception {
         // Given
         List<EliminationActionUnitModel> eliminationActionUnitModels =
             getDocuments("/eliminationUnitWithDuplicateUnit.json");
@@ -122,7 +125,7 @@ public class EliminationActionUnitRepositoryTest {
 
     @Test
     public void compute_own_accession_register_ok()
-        throws InvalidParseOperationException {
+        throws Exception {
         // Given
         List<EliminationActionUnitModel> eliminationActionUnitModels =
             getDocuments("/eliminationUnitWithDuplicateUnit.json");
@@ -150,9 +153,12 @@ public class EliminationActionUnitRepositoryTest {
             );
     }
 
-    private List<EliminationActionUnitModel> getDocuments(String filename) throws InvalidParseOperationException {
+    private List<EliminationActionUnitModel> getDocuments(String filename)
+        throws Exception {
         InputStream stream = getClass().getResourceAsStream(filename);
-        ReportBody reportBody = JsonHandler.getFromInputStream(stream, ReportBody.class);
+        ReportBody<JsonNode> reportBody = JsonHandler.getFromInputStreamAsTypeRefence(stream,
+            new TypeReference<ReportBody<JsonNode>>() {
+            });
         return reportBody.getEntries().stream()
             .map(md -> {
                 EliminationActionUnitModel eliminationActionUnitModel = new EliminationActionUnitModel();

@@ -26,12 +26,14 @@
  *******************************************************************************/
 package fr.gouv.vitam.worker.core.handler;
 
+import fr.gouv.vitam.common.SedaConstants;
 import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 import fr.gouv.vitam.processing.common.parameter.WorkerParametersFactory;
 import fr.gouv.vitam.worker.common.utils.SedaUtils;
+import fr.gouv.vitam.worker.common.utils.SedaUtilsException;
 import fr.gouv.vitam.worker.common.utils.SedaUtilsFactory;
 import fr.gouv.vitam.worker.core.impl.HandlerIOImpl;
 import org.assertj.core.util.Lists;
@@ -114,5 +116,15 @@ public class CheckVersionActionHandlerTest {
         assertEquals(CheckVersionActionHandler.getId(), HANDLER_ID);
         final ItemStatus response = handlerVersion.execute(params, handlerIO);
         assertEquals(StatusCode.FATAL, response.getGlobalStatus());
+    }
+
+
+    @Test
+    public void givenWrongAlgorithmThenReturnResponseError()
+        throws ProcessingException {
+        Mockito.doThrow(new SedaUtilsException(new ProcessingException(""))).when(sedaUtils).checkSupportedDataObjectVersion(any());
+        assertEquals(CheckVersionActionHandler.getId(), HANDLER_ID);
+        final ItemStatus response = handlerVersion.execute(params, handlerIO);
+        assertEquals(StatusCode.KO, response.getGlobalStatus());
     }
 }

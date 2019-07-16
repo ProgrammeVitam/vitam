@@ -1,0 +1,22 @@
+{
+  "$schema": "http://json-schema.org/draft-04/schema#",
+  "id": "http://example.com/root.json",
+  "type": "object",
+  "additionalProperties": true,
+  "anyOf": [
+    {
+      "required": [
+        "_id",
+        "Title"
+      ]
+    }
+  ],
+  "properties": {
+    "_id": {
+      "type": "string"
+    },
+    "Title": {
+      "type": "string"
+    }
+  }
+}

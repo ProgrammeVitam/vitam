@@ -27,6 +27,7 @@
 package fr.gouv.vitam.batch.report.client;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import fr.gouv.vitam.batch.report.model.Report;
 import fr.gouv.vitam.batch.report.model.ReportBody;
 import fr.gouv.vitam.batch.report.model.ReportExportRequest;
 import fr.gouv.vitam.batch.report.model.ReportType;
@@ -81,7 +82,9 @@ public interface BatchReportClient extends BasicClient {
      * @param reportBody the given entry document.
      * @return RequestResponse
      */
-    RequestResponse<JsonNode> appendReportEntries(ReportBody reportBody) throws VitamClientInternalException;
+    <T> RequestResponse<JsonNode> appendReportEntries(ReportBody<T> reportBody) throws VitamClientInternalException;
+
+    RequestResponse<JsonNode> storeReport(Report reportInfo) throws VitamClientInternalException;
 
     /**
      * Generate elimination action accession register for deleted units by status and process Id.

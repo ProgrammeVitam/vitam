@@ -1,0 +1,14 @@
+{
+  "$roots": [
+    "unitId1", "unitId2"
+  ],
+  "$query": [],
+  "$filter": {},
+  "$action": [
+    {
+      "$set": {
+        "field": "value v2"
+      }
+    }
+  ]
+}

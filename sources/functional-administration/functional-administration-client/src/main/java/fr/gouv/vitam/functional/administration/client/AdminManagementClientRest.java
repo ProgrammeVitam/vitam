@@ -53,12 +53,12 @@ import fr.gouv.vitam.common.model.administration.AgenciesModel;
 import fr.gouv.vitam.common.model.administration.ArchiveUnitProfileModel;
 import fr.gouv.vitam.common.model.administration.ContextModel;
 import fr.gouv.vitam.common.model.administration.FileFormatModel;
-import fr.gouv.vitam.common.model.administration.preservation.GriffinModel;
 import fr.gouv.vitam.common.model.administration.IngestContractModel;
 import fr.gouv.vitam.common.model.administration.OntologyModel;
-import fr.gouv.vitam.common.model.administration.preservation.PreservationScenarioModel;
 import fr.gouv.vitam.common.model.administration.ProfileModel;
 import fr.gouv.vitam.common.model.administration.SecurityProfileModel;
+import fr.gouv.vitam.common.model.administration.preservation.GriffinModel;
+import fr.gouv.vitam.common.model.administration.preservation.PreservationScenarioModel;
 import fr.gouv.vitam.functional.administration.common.AccessContract;
 import fr.gouv.vitam.functional.administration.common.Context;
 import fr.gouv.vitam.functional.administration.common.IngestContract;
@@ -1714,8 +1714,8 @@ class AdminManagementClientRest extends DefaultClient implements AdminManagement
             JsonNode queryDsl = getIdentifierQuery(GriffinModel.TAG_IDENTIFIER, id);
             RequestResponse<GriffinModel> requestResponse = findGriffin(queryDsl);
 
-            if (((RequestResponseOK)requestResponse).getResults() == null ||
-                ((RequestResponseOK)requestResponse).getResults().isEmpty()) {
+            if (((RequestResponseOK) requestResponse).getResults() == null ||
+                ((RequestResponseOK) requestResponse).getResults().isEmpty()) {
                 throw new ReferentialNotFoundException("Griffin not found ");
             }
             return requestResponse;
@@ -1733,11 +1733,11 @@ class AdminManagementClientRest extends DefaultClient implements AdminManagement
 
             RequestResponse<PreservationScenarioModel> requestResponseOK = findPreservation(queryDsl);
 
-            if (((RequestResponseOK)requestResponseOK).getResults() == null ||
-                ((RequestResponseOK)requestResponseOK).isEmpty()) {
+            if (((RequestResponseOK) requestResponseOK).getResults() == null ||
+                ((RequestResponseOK) requestResponseOK).isEmpty()) {
                 throw new ReferentialNotFoundException(String.format("Preservation Scenario not found %s", id));
             }
-           return requestResponseOK;
+            return requestResponseOK;
         } catch (InvalidCreateOperationException e) {
             throw new IllegalStateException(e);
         }

@@ -19,6 +19,7 @@ import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.DurationData;
 import fr.gouv.vitam.common.model.GraphComputeResponse;
 import fr.gouv.vitam.common.model.RequestResponse;
+import fr.gouv.vitam.common.model.massupdate.RuleActions;
 import fr.gouv.vitam.metadata.api.exception.MetaDataAlreadyExistException;
 import fr.gouv.vitam.metadata.api.exception.MetaDataClientServerException;
 import fr.gouv.vitam.metadata.api.exception.MetaDataDocumentSizeException;
@@ -27,7 +28,6 @@ import fr.gouv.vitam.metadata.api.exception.MetaDataNotFoundException;
 import fr.gouv.vitam.metadata.api.exception.MetadataInvalidSelectException;
 import fr.gouv.vitam.metadata.api.model.ObjectGroupPerOriginatingAgency;
 import fr.gouv.vitam.metadata.api.model.UnitPerOriginatingAgency;
-import org.bson.Document;
 
 /**
  * Mock client implementation for metadata
@@ -84,7 +84,7 @@ public class MetaDataClientMock extends AbstractMockClient implements MetaDataCl
     }
 
     @Override
-    public JsonNode updateUnitbyId(JsonNode updateQuery, String unitId)
+    public JsonNode updateUnitById(JsonNode updateQuery, String unitId)
         throws MetaDataExecutionException, MetaDataDocumentSizeException, InvalidParseOperationException,
         MetaDataClientServerException {
         return ClientMockResultHelper.getMetaDataResult().toJsonNode();
@@ -196,7 +196,7 @@ public class MetaDataClientMock extends AbstractMockClient implements MetaDataCl
     }
 
     @Override
-    public RequestResponse<JsonNode> updateUnitsRulesBulk(JsonNode query, JsonNode actions, Map<String, DurationData> rulesToDurationData) throws InvalidParseOperationException, MetaDataExecutionException, MetaDataNotFoundException, MetaDataDocumentSizeException, MetaDataClientServerException {
+    public RequestResponse<JsonNode> updateUnitsRulesBulk(List<String> unitsIds, RuleActions actions, Map<String, DurationData> rulesToDurationData) throws InvalidParseOperationException, MetaDataExecutionException, MetaDataNotFoundException, MetaDataDocumentSizeException, MetaDataClientServerException {
         return ClientMockResultHelper.getMetaDataResult();
     }
 

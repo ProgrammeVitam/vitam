@@ -47,6 +47,7 @@ import fr.gouv.vitam.common.model.processing.LifecycleState;
 import fr.gouv.vitam.common.model.processing.Step;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
+import fr.gouv.vitam.common.xml.XMLInputFactoryUtils;
 import fr.gouv.vitam.functional.administration.client.AdminManagementClientFactory;
 import fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess;
 import fr.gouv.vitam.logbook.rest.LogbookMain;
@@ -199,7 +200,7 @@ public class WorkerIT extends VitamRuleRunner {
                 "\n\tjavax.xml.datatype.DatatypeFactory: " +
                 javax.xml.datatype.DatatypeFactory.newInstance().getClass() +
                 "\n\tjavax.xml.stream.XMLEventFactory: " + javax.xml.stream.XMLEventFactory.newFactory().getClass() +
-                "\n\tjavax.xml.stream.XMLInputFactory: " + javax.xml.stream.XMLInputFactory.newInstance().getClass() +
+                "\n\tjavax.xml.stream.XMLInputFactory: " + XMLInputFactoryUtils.newInstance().getClass() +
                 "\n\tjavax.xml.stream.XMLOutputFactory: " + javax.xml.stream.XMLOutputFactory.newInstance().getClass() +
                 "\n\tjavax.xml.transform.TransformerFactory: " +
                 javax.xml.transform.TransformerFactory.newInstance().getClass() +

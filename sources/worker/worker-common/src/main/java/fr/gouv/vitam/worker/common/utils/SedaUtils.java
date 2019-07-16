@@ -64,6 +64,7 @@ import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.parameter.ParameterHelper;
 import fr.gouv.vitam.common.stream.StreamUtils;
 import fr.gouv.vitam.common.xml.ValidationXsdUtils;
+import fr.gouv.vitam.common.xml.XMLInputFactoryUtils;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 import fr.gouv.vitam.worker.common.HandlerIO;
@@ -193,7 +194,7 @@ public class SedaUtils {
                 throw new ProcessingException(e);
             }
 
-            final XMLInputFactory xmlInputFactory = XMLInputFactory.newInstance();
+            final XMLInputFactory xmlInputFactory = XMLInputFactoryUtils.newInstance();
             final QName messageObjectName = new QName(NAMESPACE_URI, SedaConstants.TAG_MESSAGE_IDENTIFIER);
             final QName originatingAgencyName = new QName(NAMESPACE_URI, SedaConstants.TAG_ORIGINATINGAGENCYIDENTIFIER);
             final QName submissionAgencyName = new QName(NAMESPACE_URI, SedaConstants.TAG_SUBMISSIONAGENCYIDENTIFIER);
@@ -303,7 +304,7 @@ public class SedaUtils {
             }
             return CheckSedaValidationStatus.NOT_XML_FILE;
         } finally {
-        	IOUtils.closeQuietly(input);
+            IOUtils.closeQuietly(input);
         }
     }
 
@@ -436,7 +437,7 @@ public class SedaUtils {
         extractUriResponse.setErrorNumber(listMessages.size());
 
         // Create the XML input factory
-        final XMLInputFactory xmlInputFactory = XMLInputFactory.newInstance();
+        final XMLInputFactory xmlInputFactory = XMLInputFactoryUtils.newInstance();
         // Create the XML output factory
         final XMLOutputFactory xmlOutputFactory = XMLOutputFactory.newInstance();
 
@@ -550,7 +551,7 @@ public class SedaUtils {
                 throw new ProcessingException(e);
             }
 
-            final XMLInputFactory xmlInputFactory = XMLInputFactory.newInstance();
+            final XMLInputFactory xmlInputFactory = XMLInputFactoryUtils.newInstance();
             reader = xmlInputFactory.createXMLEventReader(xmlFile);
             versionMap = compareVersionList(reader);
         } catch (final XMLStreamException e) {
@@ -599,15 +600,15 @@ public class SedaUtils {
                                 startElement = event.asStartElement();
 
                                 final String tag = startElement.getName().getLocalPart();
+
                                 switch (tag) {
                                     case SedaConstants.TAG_URI:
-                                        try {
-                                            final String uri = evenReader.getElementText();
-                                            dataObjectInfo.setUri(uri);
-                                        } catch (IllegalArgumentException e) {
-                                            // this exception will be treated after, in order to detect every errors
-                                            LOGGER.error("Missing required field", e);
+                                        final String uri = evenReader.getElementText();
+                                        if (StringUtils.isBlank(uri)) {
+                                            LOGGER.debug("Erreur Emply URI");
+                                            break;
                                         }
+                                        dataObjectInfo.setUri(uri);
                                         break;
                                     case SedaConstants.TAG_DO_VERSION:
                                         final String version = evenReader.getElementText();
@@ -626,8 +627,6 @@ public class SedaUtils {
                                         final long size = Long.parseLong(evenReader.getElementText());
                                         dataObjectInfo.setSize(size);
                                         break;
-                                    default:
-                                        break;
                                 }
                             }
 
@@ -638,7 +637,6 @@ public class SedaUtils {
                                 dataObjectInfo = new DataObjectInfo();
                                 break;
                             }
-
                         }
                     }
                     if (SedaConstants.TAG_PHYSICAL_DATA_OBJECT.equals(startElement.getName().getLocalPart())) {
@@ -667,13 +665,15 @@ public class SedaUtils {
                                 dataObjectInfo = new DataObjectInfo();
                                 break;
                             }
-
                         }
                     }
                 }
             } catch (final XMLStreamException e) {
                 LOGGER.error("Can not get DataObject info");
                 throw new ProcessingException(e);
+            } catch (DigestTypeException d) {
+                throw new SedaUtilsException(d);
+
             }
         }
         return sedaUtilInfo;
@@ -806,7 +806,7 @@ public class SedaUtils {
                 throw new ProcessingException(e);
             }
 
-            final XMLInputFactory xmlInputFactory = XMLInputFactory.newInstance();
+            final XMLInputFactory xmlInputFactory = XMLInputFactoryUtils.newInstance();
             reader = xmlInputFactory.createXMLEventReader(xmlFile);
             sedaUtilInfo = getDataObjectInfo(reader);
             return sedaUtilInfo;
@@ -891,8 +891,8 @@ public class SedaUtils {
      * Retrieve information about an object.
      *
      * @param workspaceClient workspace connector
-     * @param containerId     container id
-     * @param pathToObject    path to the object
+     * @param containerId container id
+     * @param pathToObject path to the object
      * @return JsonNode containing information about the object
      * @throws ProcessingException throws when error occurs
      */

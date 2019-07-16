@@ -76,7 +76,7 @@ public class PreservationReportService {
             .collect(Collectors.toList());
 
         try (BatchReportClient batchReportClient = batchReportClientFactory.getClient()) {
-            ReportBody reportBody = new ReportBody(processId, PRESERVATION, metadata);
+            ReportBody<JsonNode> reportBody = new ReportBody<>(processId, PRESERVATION, metadata);
             batchReportClient.appendReportEntries(reportBody);
         }
     }

@@ -127,7 +127,7 @@ public class MigrationUnits extends ActionHandler {
 
             UpdateMultiQuery updateMultiQuery = new UpdateMultiQuery();
 
-            metaDataClient.updateUnitbyId(updateMultiQuery.getFinalUpdate(), unitId);
+            metaDataClient.updateUnitById(updateMultiQuery.getFinalUpdate(), unitId);
 
             LogbookLifeCycleUnitParameters logbookLCParam =
                 createParameters(GUIDReader.getGUID(param.getContainerName()), StatusCode.OK,

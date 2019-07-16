@@ -53,7 +53,6 @@ import fr.gouv.vitam.common.database.parser.request.multiple.UpdateParserMultipl
 import fr.gouv.vitam.common.database.parser.request.single.UpdateParserSingle;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
-import fr.gouv.vitam.common.json.SchemaValidationUtils;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.DurationData;
@@ -62,6 +61,7 @@ import fr.gouv.vitam.common.model.massupdate.ManagementMetadataAction;
 import fr.gouv.vitam.common.model.massupdate.RuleAction;
 import fr.gouv.vitam.common.model.massupdate.RuleActions;
 import fr.gouv.vitam.common.model.massupdate.RuleCategoryAction;
+import org.apache.commons.lang.StringUtils;
 
 /**
  * Tools to update a Mongo document (as json) with a dsl query.
@@ -190,7 +190,7 @@ public class MongoDbInMemory {
             applyUpdateRuleAction(ruleActions.getUpdate(), initialMgt, bindRuleToDuration);
             applyDeleteRuleAction(ruleActions.getDelete(), initialMgt);
 
-            checkAndApplyAUPIfNeeded(ruleActions);
+            updateArchiveUnitProfile(ruleActions);
 
             JsonHandler.setNodeInPath((ObjectNode) updatedDocument, MANAGEMENT_KEY, initialMgt, true);
         }
@@ -213,7 +213,7 @@ public class MongoDbInMemory {
             initialRuleCategory = handleInheritanceProperties(initialRuleCategory, ruleCategoryAction);
 
             // add rules
-            if (ruleCategoryAction.getRules() != null && !ruleCategoryAction.getRules().isEmpty()) {
+            if (!ruleCategoryAction.getRules().isEmpty()) {
                 ArrayNode initialRules = (ArrayNode) getOrCreateEmptyNodeByName(initialRuleCategory, RULES_KEY, true);
                 ruleCategoryAction.getRules().forEach(ruleAction -> {
                     if (!hasRuleDefined(ruleAction.getRule(), initialRules)) {
@@ -254,7 +254,7 @@ public class MongoDbInMemory {
             initialRuleCategory = handleClassificationProperties(initialRuleCategory, ruleCategoryAction, category);
             initialRuleCategory = handleInheritanceProperties(initialRuleCategory, ruleCategoryAction);
 
-            if (ruleCategoryAction.getRules() != null && !ruleCategoryAction.getRules().isEmpty()) {
+            if (!ruleCategoryAction.getRules().isEmpty()) {
                 Map<String, RuleAction> rulesToUpdate = ruleCategoryAction.getRules().stream().collect(Collectors.toMap(RuleAction::getOldRule, Function.identity()));
                 ArrayNode initialRules = (ArrayNode) getOrCreateEmptyNodeByName(initialRuleCategory, RULES_KEY, true);
                 Iterator<JsonNode> it = initialRules.iterator();
@@ -285,7 +285,7 @@ public class MongoDbInMemory {
             initialRuleCategory = handleClassificationPropertiesDeletion(initialRuleCategory, ruleCategoryAction, category);
             initialRuleCategory = handleInheritancePropertiesDeletion(initialRuleCategory, ruleCategoryAction);
 
-            if (ruleCategoryAction.getRules() != null && !ruleCategoryAction.getRules().isEmpty()) {
+            if (!ruleCategoryAction.getRules().isEmpty()) {
                 List<String> rulesToDelete = ruleCategoryAction.getRules().stream().map(RuleAction::getRule).collect(Collectors.toList());
                 ArrayNode initialRules = (ArrayNode) getOrCreateEmptyNodeByName(initialRuleCategory, RULES_KEY, true);
                 ArrayNode filteredRules = JsonHandler.createArrayNode();
@@ -306,49 +306,22 @@ public class MongoDbInMemory {
         return parent.hasNonNull(fieldName) ? parent.get(fieldName) : (acceptArray ? JsonHandler.createArrayNode() : JsonHandler.createObjectNode());
     }
 
-    private void checkAndApplyAUPIfNeeded(RuleActions ruleActions) {
-
-        // If updated from request, no need to check old values in Unit
-        if (updateFromRequest(ruleActions)) {
-            return;
-        }
-
-        JsonNode aupInfo = updatedDocument.get(SedaConstants.TAG_ARCHIVE_UNIT_PROFILE);
-        if (aupInfo == null) {
-            return;
-        }
-
-        String originalAupIdentifier = aupInfo.isArray() ? aupInfo.get(0).asText() : aupInfo.asText();
-        if (originalAupIdentifier != null && !originalAupIdentifier.isEmpty()) {
-            ((ObjectNode) updatedDocument).put(SchemaValidationUtils.TAG_SCHEMA_VALIDATION, originalAupIdentifier);
-        }
-    }
-
     private Boolean shouldDeleteAUP(RuleActions ruleActions) {
         ManagementMetadataAction deleteActions = ruleActions.getDeleteMetadata();
         return deleteActions != null && deleteActions.getArchiveUnitProfile() != null;
     }
 
-    private Boolean updateFromRequest(RuleActions ruleActions) {
+    private void updateArchiveUnitProfile(RuleActions ruleActions) {
+
         if (shouldDeleteAUP(ruleActions) ) {
             ((ObjectNode) updatedDocument).remove(SedaConstants.TAG_ARCHIVE_UNIT_PROFILE);
-            return true;
+            return;
         }
 
         ManagementMetadataAction newMetadata = ruleActions.getAddOrUpdateMetadata();
-
-        if (newMetadata == null) {
-            return false;
+        if (newMetadata != null && StringUtils.isNotBlank(newMetadata.getArchiveUnitProfile())) {
+            ((ObjectNode) updatedDocument).put(SedaConstants.TAG_ARCHIVE_UNIT_PROFILE, newMetadata.getArchiveUnitProfile());
         }
-
-        String archiveUnitProfileIdentifier = newMetadata.getArchiveUnitProfile();
-        if (archiveUnitProfileIdentifier != null && !archiveUnitProfileIdentifier.isEmpty()) {
-            ((ObjectNode) updatedDocument).put(SedaConstants.TAG_ARCHIVE_UNIT_PROFILE, archiveUnitProfileIdentifier);
-            ((ObjectNode) updatedDocument).put(SchemaValidationUtils.TAG_SCHEMA_VALIDATION, archiveUnitProfileIdentifier);
-            return true;
-        }
-
-        return false;
     }
 
     private ObjectNode handleFinalAction(ObjectNode initialRuleCategory, RuleCategoryAction ruleCategoryAction, String category) {
@@ -534,7 +507,7 @@ public class MongoDbInMemory {
                 unitRule.put(RULE_KEY, ruleAction.getRule());
             }
 
-            if (ruleAction.isDeleteStartDate()) {
+            if (ruleAction.isDeleteStartDate() != null && ruleAction.isDeleteStartDate()) {
                 unitRule.remove(START_DATE_KEY);
                 unitRule.remove(END_DATE_KEY);
                 return;

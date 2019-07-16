@@ -671,7 +671,9 @@ public class ExtractSedaActionHandler extends ActionHandler {
     private String getMessageItemStatusAULinkingException(ProcessingUnitLinkingException e) {
         ObjectNode error = JsonHandler.createObjectNode();
         error.put(SedaConstants.TAG_ARCHIVE_UNIT, e.getManifestId());
-        error.put("ExistingUnitType", e.getUnitType().name());
+        if (e.getUnitType() != null) {
+            error.put("ExistingUnitType", e.getUnitType().name());
+        }
         error.put("IngestUnitType", e.getIngestType().name());
         error.put("message", e.getMessage());
 

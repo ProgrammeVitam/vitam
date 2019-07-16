@@ -1,4 +1,4 @@
-/*******************************************************************************
+/*
  * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2019)
  *
  * contact.vitam@culture.gouv.fr
@@ -23,23 +23,20 @@
  *
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
- *******************************************************************************/
+ */
 package fr.gouv.vitam.metadata.core;
 
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Lists;
 import com.mongodb.client.AggregateIterable;
 import com.mongodb.client.MongoCollection;
-import fr.gouv.vitam.common.SedaConstants;
 import fr.gouv.vitam.common.database.builder.facet.Facet;
 import fr.gouv.vitam.common.database.builder.facet.FacetHelper;
 import fr.gouv.vitam.common.database.builder.query.BooleanQuery;
-import fr.gouv.vitam.common.database.builder.query.QueryHelper;
-import fr.gouv.vitam.common.database.builder.query.action.Action;
-import fr.gouv.vitam.common.database.builder.query.action.SetAction;
 import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken;
 import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.GLOBAL;
 import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.PROJECTION;
@@ -47,8 +44,6 @@ import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.
 import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
 import fr.gouv.vitam.common.database.builder.request.multiple.RequestMultiple;
 import fr.gouv.vitam.common.database.builder.request.multiple.SelectMultiQuery;
-import fr.gouv.vitam.common.database.builder.request.multiple.UpdateMultiQuery;
-import fr.gouv.vitam.common.database.builder.request.single.Select;
 import fr.gouv.vitam.common.database.facet.model.FacetOrder;
 import fr.gouv.vitam.common.database.index.model.IndexationResult;
 import fr.gouv.vitam.common.database.parameter.IndexParameters;
@@ -59,40 +54,30 @@ import fr.gouv.vitam.common.database.parser.request.multiple.UpdateParserMultipl
 import fr.gouv.vitam.common.database.server.elasticsearch.IndexationHelper;
 import fr.gouv.vitam.common.database.server.elasticsearch.model.ElasticsearchCollections;
 import fr.gouv.vitam.common.database.server.mongodb.VitamDocument;
-import fr.gouv.vitam.common.exception.ArchiveUnitOntologyValidationException;
-import fr.gouv.vitam.common.exception.ArchiveUnitProfileEmptyControlSchemaException;
-import fr.gouv.vitam.common.exception.ArchiveUnitProfileInactiveException;
-import fr.gouv.vitam.common.exception.ArchiveUnitProfileNotFoundException;
 import fr.gouv.vitam.common.exception.BadRequestException;
 import fr.gouv.vitam.common.exception.DatabaseException;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
-import fr.gouv.vitam.common.exception.SchemaValidationException;
 import fr.gouv.vitam.common.exception.VitamDBException;
 import fr.gouv.vitam.common.exception.VitamRuntimeException;
 import fr.gouv.vitam.common.exception.VitamThreadAccessException;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.json.JsonHandler;
-import fr.gouv.vitam.common.json.SchemaValidationUtils;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.DatabaseCursor;
 import fr.gouv.vitam.common.model.DurationData;
 import fr.gouv.vitam.common.model.FacetBucket;
 import fr.gouv.vitam.common.model.FacetResult;
+import fr.gouv.vitam.common.model.MetadataType;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
+import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.model.UnitType;
-import fr.gouv.vitam.common.model.administration.ArchiveUnitProfileModel;
-import fr.gouv.vitam.common.model.administration.ArchiveUnitProfileStatus;
 import fr.gouv.vitam.common.model.massupdate.RuleActions;
 import fr.gouv.vitam.common.parameter.ParameterHelper;
-import fr.gouv.vitam.functional.administration.client.AdminManagementClient;
 import fr.gouv.vitam.functional.administration.client.AdminManagementClientFactory;
 import fr.gouv.vitam.functional.administration.common.AccessionRegisterDetail;
-import fr.gouv.vitam.functional.administration.common.ArchiveUnitProfile;
-import fr.gouv.vitam.functional.administration.common.exception.AdminManagementClientServerException;
 import fr.gouv.vitam.functional.administration.common.server.AccessionRegisterSymbolic;
-import fr.gouv.vitam.metadata.api.MetaData;
 import fr.gouv.vitam.metadata.api.exception.MetaDataAlreadyExistException;
 import fr.gouv.vitam.metadata.api.exception.MetaDataDocumentSizeException;
 import fr.gouv.vitam.metadata.api.exception.MetaDataExecutionException;
@@ -104,10 +89,20 @@ import fr.gouv.vitam.metadata.core.database.collections.MetadataDocument;
 import fr.gouv.vitam.metadata.core.database.collections.MongoDbAccessMetadataImpl;
 import fr.gouv.vitam.metadata.core.database.collections.MongoDbVarNameAdapter;
 import fr.gouv.vitam.metadata.core.database.collections.Result;
-import fr.gouv.vitam.metadata.core.trigger.ChangesTriggerConfigFileException;
+import fr.gouv.vitam.metadata.core.model.UpdateUnit;
+import fr.gouv.vitam.metadata.core.model.UpdateUnitKey;
+import fr.gouv.vitam.metadata.core.model.UpdatedDocument;
 import fr.gouv.vitam.metadata.core.utils.MetadataJsonResponseUtils;
 import fr.gouv.vitam.metadata.core.utils.OriginatingAgencyBucketResult;
+import fr.gouv.vitam.metadata.core.validation.CachedArchiveUnitProfileLoader;
+import fr.gouv.vitam.metadata.core.validation.CachedOntologyLoader;
+import fr.gouv.vitam.metadata.core.validation.CachedSchemaValidatorLoader;
+import fr.gouv.vitam.metadata.core.validation.MetadataValidationException;
+import fr.gouv.vitam.metadata.core.validation.OntologyLoader;
+import fr.gouv.vitam.metadata.core.validation.OntologyValidator;
+import fr.gouv.vitam.metadata.core.validation.UnitValidator;
 import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.lang.StringUtils;
 import org.bson.Document;
 import org.elasticsearch.index.query.QueryBuilders;
 import org.elasticsearch.search.aggregations.AggregationBuilder;
@@ -117,7 +112,6 @@ import org.elasticsearch.search.aggregations.bucket.MultiBucketsAggregation;
 import org.elasticsearch.search.aggregations.bucket.terms.Terms;
 import org.elasticsearch.search.aggregations.bucket.terms.TermsAggregationBuilder;
 
-import javax.ws.rs.core.Response;
 import java.io.IOException;
 import java.io.InputStream;
 import java.time.LocalDateTime;
@@ -125,7 +119,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -137,17 +130,20 @@ import static fr.gouv.vitam.common.database.builder.query.QueryHelper.eq;
 import static fr.gouv.vitam.common.database.builder.query.QueryHelper.ne;
 import static fr.gouv.vitam.common.database.server.mongodb.VitamDocument.ID;
 import static fr.gouv.vitam.common.json.JsonHandler.toArrayList;
+import static fr.gouv.vitam.common.model.StatusCode.FATAL;
+import static fr.gouv.vitam.common.model.StatusCode.KO;
 import static fr.gouv.vitam.metadata.core.database.collections.MetadataCollections.OBJECTGROUP;
 import static fr.gouv.vitam.metadata.core.database.collections.MetadataCollections.UNIT;
 import static fr.gouv.vitam.metadata.core.database.collections.MetadataDocument.OPS;
 import static fr.gouv.vitam.metadata.core.database.collections.MetadataDocument.QUALIFIERS;
+import static fr.gouv.vitam.metadata.core.model.UpdateUnitKey.CHECK_UNIT_SCHEMA;
+import static fr.gouv.vitam.metadata.core.model.UpdateUnitKey.UNIT_METADATA_NO_CHANGES;
+import static fr.gouv.vitam.metadata.core.model.UpdateUnitKey.UNIT_METADATA_UPDATE;
+import static fr.gouv.vitam.metadata.core.model.UpdateUnitKey.UNIT_UNKNOWN_OR_FORBIDDEN;
 import static java.time.format.DateTimeFormatter.ISO_LOCAL_DATE_TIME;
 import static java.util.Collections.singletonList;
 
-/**
- * MetaDataImpl implements a MetaData interface
- */
-public class MetaDataImpl implements MetaData {
+public class MetaDataImpl {
 
     private static final VitamLogger LOGGER =
         VitamLoggerFactory.getInstance(MetaDataImpl.class);
@@ -159,33 +155,75 @@ public class MetaDataImpl implements MetaData {
     public static final String TOTAL_SIZE = "totalSize";
     public static final String TOTAL_OBJECT = "totalObject";
     private static final String LIST_GOT = "listGOT";
-    private static final String RESULTS = "$results";
     public static final String TOTAL_GOT = "totalGOT";
     public static final String SP = "sp";
     private final MongoDbAccessMetadataImpl mongoDbAccess;
     private final IndexationHelper indexationHelper;
     private final AdminManagementClientFactory adminManagementClientFactory;
-    private final DbRequestFactory dbRequestFactory;
-
-    private static final String HISTORY_FILE_NAME_TRIGGERS_CONFIG = "history-triggers.json";
-
+    private final DbRequest dbRequest;
+    private final UnitValidator unitValidator;
+    private final OntologyValidator unitOntologyValidator;
+    private final OntologyValidator objectGroupOntologyValidator;
 
     /**
      * @param mongoDbAccess
      */
-    public MetaDataImpl(MongoDbAccessMetadataImpl mongoDbAccess) {
+    public MetaDataImpl(MongoDbAccessMetadataImpl mongoDbAccess,
+        int ontologyCacheMaxEntries, int ontologyCacheTimeoutInSeconds,
+        int archiveUnitProfileCacheMaxEntries, int archiveUnitProfileCacheTimeoutInSeconds,
+        int schemaValidatorCacheMaxEntries, int schemaValidatorCacheTimeoutInSeconds) {
+
         this(mongoDbAccess, AdminManagementClientFactory.getInstance(), IndexationHelper.getInstance(),
-            DbRequestFactoryImpl.getInstance());
+            new DbRequest(), ontologyCacheMaxEntries, ontologyCacheTimeoutInSeconds,
+            archiveUnitProfileCacheMaxEntries, archiveUnitProfileCacheTimeoutInSeconds,
+            schemaValidatorCacheMaxEntries, schemaValidatorCacheTimeoutInSeconds);
     }
 
+    @VisibleForTesting
     public MetaDataImpl(MongoDbAccessMetadataImpl mongoDbAccess,
         AdminManagementClientFactory adminManagementClientFactory,
         IndexationHelper indexationHelper,
-        DbRequestFactory dbRequestFactory) {
+        DbRequest dbRequest, int ontologyCacheMaxEntries, int ontologyCacheTimeoutInSeconds,
+        int archiveUnitProfileCacheMaxEntries, int archiveUnitProfileCacheTimeoutInSeconds,
+        int schemaValidatorCacheMaxEntries, int schemaValidatorCacheTimeoutInSeconds) {
         this.mongoDbAccess = mongoDbAccess;
         this.adminManagementClientFactory = adminManagementClientFactory;
         this.indexationHelper = indexationHelper;
-        this.dbRequestFactory = dbRequestFactory;
+        this.dbRequest = dbRequest;
+
+        CachedArchiveUnitProfileLoader archiveUnitProfileLoader = new CachedArchiveUnitProfileLoader(
+            adminManagementClientFactory, archiveUnitProfileCacheMaxEntries, archiveUnitProfileCacheTimeoutInSeconds);
+
+        CachedSchemaValidatorLoader schemaValidatorLoader = new CachedSchemaValidatorLoader(
+            schemaValidatorCacheMaxEntries, schemaValidatorCacheTimeoutInSeconds);
+
+        OntologyLoader unitOntologyLoader = new CachedOntologyLoader(
+            this.adminManagementClientFactory, ontologyCacheMaxEntries, ontologyCacheTimeoutInSeconds,
+            MetadataType.UNIT);
+        OntologyLoader objectGroupOntologyLoader = new CachedOntologyLoader(
+            this.adminManagementClientFactory, ontologyCacheMaxEntries, ontologyCacheTimeoutInSeconds,
+            MetadataType.OBJECTGROUP);
+
+        this.unitOntologyValidator = new OntologyValidator(unitOntologyLoader);
+        this.objectGroupOntologyValidator = new OntologyValidator(objectGroupOntologyLoader);
+
+        this.unitValidator = new UnitValidator(archiveUnitProfileLoader, schemaValidatorLoader);
+    }
+
+    /**
+     * Get a new MetaDataImpl instance
+     *
+     * @param mongoDbAccessMetadata
+     * @return a new instance of MetaDataImpl
+     */
+    public static MetaDataImpl newMetadata(MongoDbAccessMetadataImpl mongoDbAccessMetadata,
+        int ontologyCacheMaxEntries, int ontologyCacheTimeoutInSeconds,
+        int archiveUnitProfileCacheMaxEntries, int archiveUnitProfileCacheTimeoutInSeconds,
+        int schemaValidatorCacheMaxEntries, int schemaValidatorCacheTimeoutInSeconds) {
+
+        return new MetaDataImpl(mongoDbAccessMetadata, ontologyCacheMaxEntries, ontologyCacheTimeoutInSeconds,
+            archiveUnitProfileCacheMaxEntries, archiveUnitProfileCacheTimeoutInSeconds,
+            schemaValidatorCacheMaxEntries, schemaValidatorCacheTimeoutInSeconds);
     }
 
     /**
@@ -195,17 +233,6 @@ public class MetaDataImpl implements MetaData {
         return mongoDbAccess;
     }
 
-    /**
-     * Get a new MetaDataImpl instance
-     *
-     * @param mongoDbAccessMetadata
-     * @return a new instance of MetaDataImpl
-     */
-    public static MetaData newMetadata(MongoDbAccessMetadataImpl mongoDbAccessMetadata) {
-        return new MetaDataImpl(mongoDbAccessMetadata);
-    }
-
-    @Override
     public void insertUnit(JsonNode insertRequest)
         throws InvalidParseOperationException, MetaDataExecutionException,
         MetaDataAlreadyExistException, MetaDataNotFoundException {
@@ -214,12 +241,10 @@ public class MetaDataImpl implements MetaData {
         insertUnits(requests);
     }
 
-    @Override
     public void insertUnits(List<JsonNode> insertRequests)
         throws InvalidParseOperationException, MetaDataExecutionException,
         MetaDataAlreadyExistException, MetaDataNotFoundException {
         try {
-            DbRequest dbRequest = dbRequestFactory.create();
             List<InsertParserMultiple> collect = insertRequests.stream().map(insertRequest -> {
                     InsertParserMultiple insertParser = new InsertParserMultiple(DEFAULT_VARNAME_ADAPTER);
                     try {
@@ -241,42 +266,35 @@ public class MetaDataImpl implements MetaData {
         }
     }
 
-    @Override
     public void deleteUnits(List<String> idList)
         throws IllegalArgumentException, MetaDataExecutionException {
 
-        DbRequest dbRequest = dbRequestFactory.create();
         dbRequest.deleteUnits(idList);
 
     }
 
-    @Override
     public void deleteObjectGroups(List<String> idList)
         throws IllegalArgumentException, MetaDataExecutionException {
 
-        DbRequest dbRequest = dbRequestFactory.create();
         dbRequest.deleteObjectGroups(idList);
 
     }
 
-    @Override
     public void insertObjectGroup(JsonNode objectGroupRequest)
         throws InvalidParseOperationException, MetaDataExecutionException,
         MetaDataAlreadyExistException {
         final InsertParserMultiple insertParser = new InsertParserMultiple(DEFAULT_VARNAME_ADAPTER);
         insertParser.parse(objectGroupRequest);
         insertParser.getRequest().addHintFilter(BuilderToken.FILTERARGS.OBJECTGROUPS.exactToken());
-        dbRequestFactory.create().execInsertObjectGroupRequests(singletonList(insertParser));
+        dbRequest.execInsertObjectGroupRequests(singletonList(insertParser));
 
     }
 
-    @Override
     public void insertObjectGroups(List<JsonNode> objectGroupRequest)
         throws InvalidParseOperationException, MetaDataExecutionException,
         MetaDataAlreadyExistException {
 
         try {
-            DbRequest dbRequest = dbRequestFactory.create();
             List<InsertParserMultiple> collect = objectGroupRequest.stream().map(insertRequest -> {
                     InsertParserMultiple insertParser = new InsertParserMultiple(DEFAULT_VARNAME_ADAPTER);
                     try {
@@ -302,7 +320,6 @@ public class MetaDataImpl implements MetaData {
      * @param operationId operation id
      * @return List of FacetBucket
      */
-    @Override
     public List<FacetBucket> selectOwnAccessionRegisterOnUnitByOperationId(String operationId)
         throws MetaDataExecutionException {
 
@@ -333,7 +350,7 @@ public class MetaDataImpl implements MetaData {
 
         try {
 
-            Result result = dbRequestFactory.create().execRequest(request);
+            Result result = dbRequest.execRequest(request);
             List<FacetResult> facetResults = (result != null) ? result.getFacet() : new ArrayList<>();
 
             if (!CollectionUtils.isEmpty(facetResults)) {
@@ -343,14 +360,13 @@ public class MetaDataImpl implements MetaData {
                 }
             }
 
-        } catch (InvalidParseOperationException | BadRequestException | VitamDBException | ArchiveUnitOntologyValidationException e) {
+        } catch (InvalidParseOperationException | BadRequestException | VitamDBException e) {
             throw new MetaDataExecutionException(e);
         }
 
         return new ArrayList<>();
     }
 
-    @Override
     public List<Document> createAccessionRegisterSymbolic(Integer tenant) {
         Aggregations aUAccessionRegisterInfo = selectArchiveUnitAccessionRegisterInformation(tenant);
         Aggregations oGAccessionRegisterInfo = selectObjectGroupAccessionRegisterInformation(tenant);
@@ -506,7 +522,6 @@ public class MetaDataImpl implements MetaData {
             .getAggregations();
     }
 
-    @Override
     public List<ObjectGroupPerOriginatingAgency> selectOwnAccessionRegisterOnObjectGroupByOperationId(
         String operationId) {
         AggregateIterable<Document> aggregate =
@@ -582,7 +597,6 @@ public class MetaDataImpl implements MetaData {
         return new ArrayList<>(totalByOriginatingAgencies.values());
     }
 
-    @Override
     public RequestResponse<JsonNode> selectUnitsByQuery(JsonNode selectQuery)
         throws MetaDataExecutionException, InvalidParseOperationException,
         MetaDataDocumentSizeException, MetaDataNotFoundException, BadRequestException, VitamDBException {
@@ -591,7 +605,6 @@ public class MetaDataImpl implements MetaData {
 
     }
 
-    @Override
     public RequestResponse<JsonNode> selectObjectGroupsByQuery(JsonNode selectQuery)
         throws MetaDataExecutionException, InvalidParseOperationException,
         MetaDataDocumentSizeException, MetaDataNotFoundException, BadRequestException, VitamDBException {
@@ -600,7 +613,6 @@ public class MetaDataImpl implements MetaData {
 
     }
 
-    @Override
     public RequestResponse<JsonNode> selectUnitsById(JsonNode selectQuery, String unitId)
         throws InvalidParseOperationException, MetaDataExecutionException,
         MetaDataDocumentSizeException, MetaDataNotFoundException, BadRequestException, VitamDBException {
@@ -608,7 +620,6 @@ public class MetaDataImpl implements MetaData {
         return selectMetadataObject(selectQuery, unitId, singletonList(BuilderToken.FILTERARGS.UNITS));
     }
 
-    @Override
     public RequestResponse<JsonNode> selectObjectGroupById(JsonNode selectQuery, String objectGroupId)
         throws InvalidParseOperationException, MetaDataDocumentSizeException, MetaDataExecutionException,
         MetaDataNotFoundException, BadRequestException, VitamDBException {
@@ -617,7 +628,6 @@ public class MetaDataImpl implements MetaData {
         return selectMetadataObject(selectQuery, objectGroupId,
             singletonList(BuilderToken.FILTERARGS.OBJECTGROUPS));
     }
-
 
     private RequestResponseOK<JsonNode> selectMetadataObject(JsonNode selectQuery, String unitOrObjectGroupId,
         List<BuilderToken.FILTERARGS> filters)
@@ -672,12 +682,8 @@ public class MetaDataImpl implements MetaData {
             fieldsProjection.removeAll();
         }
 
-        try {
-            result = dbRequestFactory.create().execRequest(selectRequest);
-            arrayNodeResponse = MetadataJsonResponseUtils.populateJSONObjectResponse(result, selectRequest);
-        } catch (ArchiveUnitOntologyValidationException e) {
-            throw new MetaDataExecutionException(e);
-        }
+        result = dbRequest.execRequest(selectRequest);
+        arrayNodeResponse = MetadataJsonResponseUtils.populateJSONObjectResponse(result, selectRequest);
 
         // Compute Rule for unit(only with search by Id)
         if (shouldComputeUnitRule && result.hasFinalResult()) {
@@ -694,41 +700,24 @@ public class MetaDataImpl implements MetaData {
             .addAllResults(res).addAllFacetResults(facetResults).setHits(hits);
     }
 
-    // TODO : handle version
-    @Override
     public void updateObjectGroupId(JsonNode updateQuery, String objectId)
-        throws InvalidParseOperationException, MetaDataExecutionException, VitamDBException {
-        Result result;
+        throws InvalidParseOperationException, MetaDataExecutionException, MetaDataNotFoundException,
+        MetadataValidationException {
+
         if (updateQuery.isNull()) {
             throw new InvalidParseOperationException(REQUEST_IS_NULL);
         }
-        try {
-            final RequestParserMultiple updateRequest = new UpdateParserMultiple(new MongoDbVarNameAdapter());
-            updateRequest.parse(updateQuery);
 
-            // Reset $roots (add or override unit_id on roots)
-            if (objectId != null && !objectId.isEmpty()) {
-                final RequestMultiple request = updateRequest.getRequest();
-                request.addHintFilter(BuilderToken.FILTERARGS.OBJECTGROUPS.exactToken());
-                if (request != null) {
-                    LOGGER.debug("Reset $roots objectId by :" + objectId);
-                    request.resetRoots().addRoots(objectId);
-                    LOGGER.debug("DEBUG: {}", request);
-                }
-            }
+        final RequestParserMultiple updateRequest = new UpdateParserMultiple(new MongoDbVarNameAdapter());
+        updateRequest.parse(updateQuery);
 
-            // Execute DSL request
-            result = dbRequestFactory.create().execRequest(updateRequest);
-            if (result.getNbResult() == 0) {
-                throw new MetaDataNotFoundException("ObjectGroup not found: " + objectId);
-            }
-        } catch (final BadRequestException | MetaDataNotFoundException | ArchiveUnitOntologyValidationException e) {
-            throw new MetaDataExecutionException(e);
-        }
+        // FIXME : Object group ontology to be implemented in INGEST workflows
+        // Execute DSL request
+        dbRequest.execUpdateRequest(updateRequest, objectId, OBJECTGROUP, this.objectGroupOntologyValidator, null);
+
     }
 
-    @Override
-    public RequestResponse<JsonNode> updateUnits(JsonNode updateQuery)
+    public RequestResponse<UpdateUnit> updateUnits(JsonNode updateQuery)
         throws InvalidParseOperationException {
         Set<String> unitIds;
         final UpdateParserMultiple updateRequest = new UpdateParserMultiple(DEFAULT_VARNAME_ADAPTER);
@@ -736,188 +725,109 @@ public class MetaDataImpl implements MetaData {
         final RequestMultiple request = updateRequest.getRequest();
         unitIds = request.getRoots();
 
-        List<JsonNode> collect = unitIds.stream().map(unit -> {
-            try {
+        List<UpdateUnit> updatedUnits = unitIds.stream()
+            .map(unitId -> updateAndTransformUnit(updateRequest, unitId))
+            .collect(Collectors.toList());
 
-                checkArchiveUnitProfileQuery(updateRequest, unit);
-                RequestResponse<JsonNode> jsonNodeRequestResponse =
-                    updateUnitbyId(updateRequest.getRequest().getFinalUpdate(), unit);
-                List<JsonNode> results = ((RequestResponseOK<JsonNode>) jsonNodeRequestResponse).getResults();
-
-                if (results != null && results.size() > 0) {
-                    ObjectNode result = (ObjectNode) results.get(0);
-                    result.put("#status", "OK");
-                    return result;
-                } else {
-                    return objectNodeResultForUpdateError(unit, "KO");
-                }
-
-            } catch (SchemaValidationException | ArchiveUnitProfileInactiveException
-                | ArchiveUnitProfileNotFoundException | ArchiveUnitProfileEmptyControlSchemaException e) {
-                LOGGER.warn("error while updating management metadata for unit " + unit + "; cant validate schema", e);
-                return objectNodeResultForUpdateError(unit, "WARNING");
-            } catch (MetaDataNotFoundException | InvalidParseOperationException | MetaDataDocumentSizeException
-                | VitamDBException | MetaDataExecutionException | ArchiveUnitOntologyValidationException e) {
-                LOGGER.error(e);
-                return objectNodeResultForUpdateError(unit, "KO");
-            }
-
-        }).collect(Collectors.toList());
-
-        return new RequestResponseOK<JsonNode>(updateQuery)
-            .addAllResults(collect)
-            .setTotal(collect.size());
+        return new RequestResponseOK<UpdateUnit>(updateQuery)
+            .addAllResults(updatedUnits)
+            .setTotal(updatedUnits.size());
     }
 
-    @Override
-    public RequestResponse<JsonNode> updateUnitsRules(JsonNode updateQuery,
-        Map<String, DurationData> bindRuleToDuration)
-        throws InvalidParseOperationException {
-        Set<String> unitIds;
+    private UpdateUnit updateAndTransformUnit(UpdateParserMultiple updateRequest, String unitId) {
+
+        try {
+
+            UpdatedDocument updatedDocument = dbRequest
+                .execUpdateRequest(updateRequest, unitId, UNIT, this.unitOntologyValidator, this.unitValidator);
+
+            String diffs = String.join("\n", VitamDocument.getConcernedDiffLines(
+                VitamDocument.getUnifiedDiff(JsonHandler.prettyPrint(updatedDocument.getBeforeUpdate()),
+                    JsonHandler.prettyPrint(updatedDocument.getAfterUpdate()))));
+
+            if (diffs.isEmpty()) {
+                LOGGER.warn("No updates found for unit update " + unitId);
+                // FIXME : Return OK for idempotency?
+                return error(unitId, KO, UNIT_METADATA_NO_CHANGES, "No updates.");
+            }
+
+            return new UpdateUnit(unitId, StatusCode.OK, UNIT_METADATA_UPDATE, "Update unit OK.", diffs);
+
+        } catch (MetadataValidationException e) {
+            LOGGER.error("An error occurred during unit update " + unitId, e);
+            return error(unitId, KO, CHECK_UNIT_SCHEMA, e.getMessage());
+        } catch (MetaDataNotFoundException e) {
+            LOGGER.error("Unit not found during unit update " + unitId, e);
+            return error(unitId, KO, UNIT_UNKNOWN_OR_FORBIDDEN, e.getMessage());
+        } catch (Exception e) {
+            LOGGER.error("An error occurred during unit update " + unitId, e);
+            return error(unitId, FATAL, UNIT_METADATA_UPDATE, e.getMessage());
+        }
+    }
+
+    public RequestResponse<UpdateUnit> updateUnitsRules(List<String> unitIds, RuleActions ruleActions,
+        Map<String, DurationData> bindRuleToDuration) {
+
+        List<UpdateUnit> unitRules = unitIds.stream()
+            .map(unitId -> updateAndTransformUnitRules(unitId, ruleActions, bindRuleToDuration))
+            .collect(Collectors.toList());
+
+        return new RequestResponseOK<UpdateUnit>()
+            .addAllResults(unitRules)
+            .setTotal(unitRules.size());
+    }
+
+    private UpdateUnit updateAndTransformUnitRules(String unitId, RuleActions ruleActions,
+        Map<String, DurationData> bindRuleToDuration) {
+        try {
+            UpdatedDocument updatedDocument =
+                dbRequest.execRuleRequest(unitId, ruleActions, bindRuleToDuration, this.unitOntologyValidator,
+                    unitValidator);
+
+            String diffs = String.join("\n", VitamDocument.getConcernedDiffLines(
+                VitamDocument.getUnifiedDiff(JsonHandler.prettyPrint(updatedDocument.getBeforeUpdate()),
+                    JsonHandler.prettyPrint(updatedDocument.getAfterUpdate()))));
+
+            if (diffs.isEmpty()) {
+                // FIXME : Return OK for idempotency?
+                return error(unitId, KO, UNIT_METADATA_NO_CHANGES, "No updates.");
+            }
+
+            return new UpdateUnit(unitId, StatusCode.OK, UNIT_METADATA_UPDATE, "Update unit rules OK.", diffs);
+
+        } catch (MetadataValidationException e) {
+            LOGGER.error("An error occurred during unit update " + unitId, e);
+            return error(unitId, KO, CHECK_UNIT_SCHEMA, e.getMessage());
+        } catch (MetaDataNotFoundException e) {
+            LOGGER.error("Unit not found during unit update " + unitId, e);
+            return error(unitId, KO, UNIT_UNKNOWN_OR_FORBIDDEN, e.getMessage());
+        } catch (Exception e) {
+            LOGGER.error("An error occurred during unit update " + unitId, e);
+            return error(unitId, FATAL, UNIT_METADATA_UPDATE, e.getMessage());
+        }
+    }
+
+    private UpdateUnit error(String unitId, StatusCode status, UpdateUnitKey key, String message) {
+        return new UpdateUnit(unitId, status, key,
+            StringUtils.defaultIfBlank(message, "Unknown error"), "no diff");
+    }
+
+    public UpdateUnit updateUnitById(JsonNode updateQuery, String unitId)
+        throws MetaDataNotFoundException, InvalidParseOperationException, MetaDataExecutionException,
+        MetadataValidationException {
+
+        // parse Update request
         final RequestParserMultiple updateRequest = new UpdateParserMultiple(DEFAULT_VARNAME_ADAPTER);
-        updateRequest.parse(updateQuery.get("query"));
-        final RequestMultiple request = updateRequest.getRequest();
-        unitIds = request.getRoots();
+        updateRequest.parse(updateQuery);
 
-        List<JsonNode> collect = unitIds.stream().map(unitId -> {
-            try {
-                RequestResponse<JsonNode> jsonNodeRequestResponse =
-                    updateUnitRulesbyId(updateQuery.get("actions"), unitId, bindRuleToDuration);
-                List<JsonNode> results = ((RequestResponseOK<JsonNode>) jsonNodeRequestResponse).getResults();
+        UpdatedDocument updatedDocument = dbRequest
+            .execUpdateRequest(updateRequest, unitId, UNIT, this.unitOntologyValidator, this.unitValidator);
 
-                if (results != null && results.size() > 0) {
-                    ObjectNode result = (ObjectNode) results.get(0);
-                    result.put("#status", "OK");
-                    return result;
-                } else {
-                    return objectNodeResultForUpdateError(unitId, "KO");
-                }
-            } catch (SchemaValidationException e) {
-                LOGGER
-                    .warn("error while updating management metadata for unit " + unitId + "; cant validate schema", e);
-                return objectNodeResultForUpdateError(unitId, "WARNING");
-            } catch (ArchiveUnitOntologyValidationException e) {
-                LOGGER
-                    .warn("error while updating management metadata for unit " + unitId + "; cant validate ontologies",
-                        e);
-                return objectNodeResultForUpdateError(unitId, "WARNING");
-            } catch (MetaDataNotFoundException | InvalidParseOperationException | MetaDataDocumentSizeException | MetaDataExecutionException | VitamDBException e) {
-                LOGGER.error(e);
-                return objectNodeResultForUpdateError(unitId, "KO");
-            }
+        String diffs = String.join("\n", VitamDocument.getConcernedDiffLines(
+            VitamDocument.getUnifiedDiff(JsonHandler.prettyPrint(updatedDocument.getBeforeUpdate()),
+                JsonHandler.prettyPrint(updatedDocument.getAfterUpdate()))));
 
-        }).collect(Collectors.toList());
-
-        return new RequestResponseOK<JsonNode>(updateQuery)
-            .addAllResults(collect)
-            .setTotal(collect.size());
-    }
-
-    private ObjectNode objectNodeResultForUpdateError(String unitId, String status) {
-        final ObjectNode diffNode = JsonHandler.createObjectNode();
-        diffNode.put("#id", unitId);
-        diffNode.putNull("#diff");
-        diffNode.put("#status", status);
-        return diffNode;
-    }
-
-    // TODO : in order to deal with selection (update from the root) in the query, the code should be modified
-    @Override
-    public RequestResponse<JsonNode> updateUnitbyId(JsonNode updateQuery, String unitId)
-        throws MetaDataNotFoundException, InvalidParseOperationException, MetaDataExecutionException,
-        MetaDataDocumentSizeException, VitamDBException, ArchiveUnitOntologyValidationException,
-        SchemaValidationException {
-        Result result;
-        ArrayNode arrayNodeResponse;
-        if (updateQuery.isNull()) {
-            throw new InvalidParseOperationException(REQUEST_IS_NULL);
-        }
-        JsonNode queryCopy = updateQuery.deepCopy();
-
-        try {
-            // parse Update request
-            final RequestParserMultiple updateRequest = new UpdateParserMultiple(DEFAULT_VARNAME_ADAPTER);
-            updateRequest.parse(updateQuery);
-            // Reset $roots (add or override unit_id on roots)
-            if (unitId != null && !unitId.isEmpty()) {
-                final RequestMultiple request = updateRequest.getRequest();
-                if (request != null) {
-                    LOGGER.debug("Reset $roots unit_id by :" + unitId);
-                    request.resetRoots().addRoots(unitId);
-                    LOGGER.debug("DEBUG: {}", request);
-                }
-            }
-
-            final String unitBeforeUpdate = JsonHandler.prettyPrint(getUnitById(unitId));
-
-            // Execute DSL request
-            result =
-                dbRequestFactory.create(HISTORY_FILE_NAME_TRIGGERS_CONFIG).execRequest(updateRequest);
-
-            final String unitAfterUpdate = JsonHandler.prettyPrint(getUnitById(unitId));
-
-            final Map<String, List<String>> diffs = new HashMap<>();
-            diffs.put(unitId,
-                VitamDocument.getConcernedDiffLines(VitamDocument.getUnifiedDiff(unitBeforeUpdate, unitAfterUpdate)));
-
-            arrayNodeResponse = MetadataJsonResponseUtils.populateJSONObjectResponse(result, diffs);
-        } catch (final InvalidParseOperationException | MetaDataNotFoundException e) {
-            throw e;
-        } catch (final BadRequestException | ChangesTriggerConfigFileException | MetaDataExecutionException e) {
-            throw new MetaDataExecutionException(e);
-        }
-
-        List res = toArrayList(arrayNodeResponse);
-        Long total = result != null ? result.getTotal() : res.size();
-        return new RequestResponseOK<JsonNode>(queryCopy)
-            .addAllResults(toArrayList(arrayNodeResponse))
-            .setTotal(total)
-            .setHttpCode(Response.Status.OK.getStatusCode());
-    }
-
-    private RequestResponse<JsonNode> updateUnitRulesbyId(JsonNode updateActions, String unitId,
-        Map<String, DurationData> bindRuleToDuration)
-        throws MetaDataNotFoundException, InvalidParseOperationException, MetaDataExecutionException,
-        MetaDataDocumentSizeException, VitamDBException, SchemaValidationException,
-        ArchiveUnitOntologyValidationException {
-        Result result;
-        ArrayNode arrayNodeResponse;
-        if (updateActions.isNull()) {
-            throw new InvalidParseOperationException(REQUEST_IS_NULL);
-        }
-        JsonNode queryCopy = updateActions.deepCopy();
-
-        try {
-            RuleActions ruleActions = JsonHandler.getFromJsonNode(updateActions, RuleActions.class);
-            final String unitBeforeUpdate = JsonHandler.prettyPrint(getUnitById(unitId));
-
-            // Execute DSL request
-            result =
-                dbRequestFactory.create().execRuleRequest(unitId, ruleActions, bindRuleToDuration);
-
-            final String unitAfterUpdate = JsonHandler.prettyPrint(getUnitById(unitId));
-
-            final Map<String, List<String>> diffs = new HashMap<>();
-            diffs.put(unitId,
-                VitamDocument.getConcernedDiffLines(VitamDocument.getUnifiedDiff(unitBeforeUpdate, unitAfterUpdate)));
-
-            arrayNodeResponse = MetadataJsonResponseUtils.populateJSONObjectResponse(result, diffs);
-        } catch (final BadRequestException | InvalidCreateOperationException e) {
-            throw new MetaDataExecutionException(e);
-        }
-        List res = toArrayList(arrayNodeResponse);
-        Long total = result != null ? result.getTotal() : res.size();
-        return new RequestResponseOK<JsonNode>(queryCopy)
-            .addAllResults(res)
-            .setTotal(total)
-            .setHttpCode(Response.Status.OK.getStatusCode());
-    }
-
-    private RequestResponse getUnitById(String id)
-        throws MetaDataDocumentSizeException, MetaDataExecutionException, InvalidParseOperationException,
-        MetaDataNotFoundException, BadRequestException, VitamDBException {
-        final SelectMultiQuery select = new SelectMultiQuery();
-        return selectUnitsById(select.getFinalSelect(), id);
+        return new UpdateUnit(unitId, StatusCode.OK, UNIT_METADATA_UPDATE, "Update unit OK.", diffs);
     }
 
     private SelectMultiQuery createSearchParentSelect(List<String> unitList) throws InvalidParseOperationException {
@@ -967,19 +877,16 @@ public class MetaDataImpl implements MetaData {
         ((ObjectNode) arrayNodeResponse.get(0)).set(UnitInheritedRule.INHERITED_RULE, rule);
     }
 
-    @Override
     public void refreshUnit() throws IllegalArgumentException, VitamThreadAccessException {
         final Integer tenantId = ParameterHelper.getTenantParameter();
         mongoDbAccess.getEsClient().refreshIndex(UNIT, tenantId);
     }
 
-    @Override
     public void refreshObjectGroup() throws IllegalArgumentException, VitamThreadAccessException {
         final Integer tenantId = ParameterHelper.getTenantParameter();
         mongoDbAccess.getEsClient().refreshIndex(MetadataCollections.OBJECTGROUP, tenantId);
     }
 
-    @Override
     public IndexationResult reindex(IndexParameters indexParam) {
         MetadataCollections collection;
         try {
@@ -1003,139 +910,12 @@ public class MetaDataImpl implements MetaData {
         }
     }
 
-    @Override
     public void switchIndex(String alias, String newIndexName) throws DatabaseException {
         try {
             indexationHelper.switchIndex(alias, newIndexName, mongoDbAccess.getEsClient());
         } catch (DatabaseException exc) {
             LOGGER.error("Cannot switch alias {} to index {}", alias, newIndexName);
             throw exc;
-        }
-    }
-
-    private void checkArchiveUnitProfileQuery(UpdateParserMultiple updateParser, String unitId)
-        throws ArchiveUnitProfileNotFoundException, ArchiveUnitProfileInactiveException,
-        MetaDataExecutionException, InvalidParseOperationException,
-        ArchiveUnitProfileEmptyControlSchemaException {
-        boolean updateAupValue = false;
-        String originalAupIdentifier = null;
-        // first get aup information for the unit
-        JsonNode aupInfo = getUnitArchiveUnitProfile(unitId);
-        if (aupInfo != null) {
-            originalAupIdentifier = aupInfo.isArray() ?
-                (aupInfo.get(0) != null ? aupInfo.get(0).asText() : null)
-                : aupInfo.asText();
-        }
-
-        UpdateMultiQuery request = updateParser.getRequest();
-        List<Action> actions = new ArrayList<>(request.getActions());
-        Iterator<Action> iterator = actions.iterator();
-
-        while (iterator.hasNext()) {
-            Action action = iterator.next();
-            JsonNode object = action.getCurrentObject();
-            Iterator<String> fields = object.fieldNames();
-            while (fields.hasNext()) {
-                String field = fields.next();
-                if (!SedaConstants.TAG_ARCHIVE_UNIT_PROFILE.equals(field)) {
-                    continue;
-                }
-
-                updateAupValue = true;
-                if (object.get(field) == null) {
-                    continue; // error ?
-                }
-
-                String archiveUnitProfileIdentifier =
-                    object.get(field).isArray() ?
-                        (aupInfo.get(0) != null ? aupInfo.get(0).asText() : null) :
-                        object.get(field).asText();
-
-                if (archiveUnitProfileIdentifier != null && !archiveUnitProfileIdentifier.isEmpty()) {
-                    addActionAUProfileSchema(archiveUnitProfileIdentifier, request);
-                }
-            }
-        }
-
-        if (!updateAupValue && originalAupIdentifier != null && !originalAupIdentifier.isEmpty()) {
-            addActionAUProfileSchema(originalAupIdentifier, request);
-        }
-    }
-
-    private JsonNode getUnitArchiveUnitProfile(String unitId) throws MetaDataExecutionException {
-        JsonNode jsonUnit;
-        try {
-            ObjectNode projection = JsonHandler.createObjectNode();
-            ObjectNode aupField = JsonHandler.createObjectNode();
-            aupField.put("ArchiveUnitProfile", 1);
-            projection.set("$fields", aupField);
-
-            Select selectAUPforUnit = new Select();
-            selectAUPforUnit.setProjection(projection);
-            JsonNode response = selectUnitsById(selectAUPforUnit.getFinalSelect(), unitId).toJsonNode();
-            if (response == null || response.get(RESULTS) == null) {
-                throw new MetaDataExecutionException("Can't get unit by ID: " + unitId);
-            }
-            JsonNode results = response.get(RESULTS);
-            if (results.size() != 1) {
-                throw new MetaDataExecutionException("Can't get unique unit by ID: " + unitId);
-            }
-            jsonUnit = results.get(0);
-        } catch (MetaDataDocumentSizeException | IllegalArgumentException | InvalidParseOperationException |
-            VitamDBException | BadRequestException | MetaDataNotFoundException e) {
-            throw new MetaDataExecutionException(e);
-        }
-
-        return jsonUnit.get(SedaConstants.TAG_ARCHIVE_UNIT_PROFILE);
-    }
-
-    private void addActionAUProfileSchema(String archiveUnitProfileIdentifier,
-        UpdateMultiQuery request)
-        throws ArchiveUnitProfileNotFoundException, ArchiveUnitProfileInactiveException,
-        InvalidParseOperationException, MetaDataExecutionException,
-        ArchiveUnitProfileEmptyControlSchemaException {
-        try (AdminManagementClient adminClient = adminManagementClientFactory.getClient()) {
-            Select select = new Select();
-            select.setQuery(QueryHelper.eq(ArchiveUnitProfile.IDENTIFIER, archiveUnitProfileIdentifier));
-            RequestResponse<ArchiveUnitProfileModel> response =
-                adminClient.findArchiveUnitProfiles(select.getFinalSelect());
-            ArchiveUnitProfileModel archiveUnitProfile;
-
-            List<ArchiveUnitProfileModel> results =
-                ((RequestResponseOK<ArchiveUnitProfileModel>) response).getResults();
-            if (!response.isOk() || results.size() == 0) {
-                throw new ArchiveUnitProfileNotFoundException("Archive unit profile could not be found");
-            }
-
-
-            archiveUnitProfile = results.get(0);
-            if (!ArchiveUnitProfileStatus.ACTIVE.equals(archiveUnitProfile.getStatus())) {
-                throw new ArchiveUnitProfileInactiveException("Archive unit profile is inactive");
-            }
-
-            if (controlSchemaIsEmpty(archiveUnitProfile)) {
-                throw new ArchiveUnitProfileEmptyControlSchemaException(
-                    "Archive unit profile does not have a controlSchema");
-            }
-
-            Action action =
-                new SetAction(SchemaValidationUtils.TAG_SCHEMA_VALIDATION,
-                    archiveUnitProfile.getControlSchema());
-            request.addActions(action);
-        } catch (InvalidCreateOperationException | AdminManagementClientServerException e) {
-            throw new MetaDataExecutionException("Unable to make request for ArchiveUnitProfile", e);
-        }
-    }
-
-    private static boolean controlSchemaIsEmpty(ArchiveUnitProfileModel archiveUnitProfile)
-        throws ArchiveUnitProfileEmptyControlSchemaException {
-
-        try {
-            return archiveUnitProfile.getControlSchema() == null ||
-                JsonHandler.isEmpty(archiveUnitProfile.getControlSchema());
-        } catch (InvalidParseOperationException e) {
-            throw new ArchiveUnitProfileEmptyControlSchemaException(
-                "Archive unit profile controlSchema is invalid");
         }
     }
 }

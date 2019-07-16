@@ -95,7 +95,7 @@ public class EliminationActionReportService {
             .map(EliminationActionReportService::pojoToJson).collect(Collectors.toList());
 
         try (BatchReportClient batchReportClient = batchReportClientFactory.getClient()) {
-            ReportBody reportBody = new ReportBody();
+            ReportBody<JsonNode> reportBody = new ReportBody<>();
             reportBody.setProcessId(processId);
             reportBody.setReportType(reportType);
             reportBody.setEntries(metadataEntries);

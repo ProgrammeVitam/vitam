@@ -45,6 +45,7 @@ import javax.xml.stream.XMLStreamConstants;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamReader;
 
+import fr.gouv.vitam.common.xml.XMLInputFactoryUtils;
 import org.apache.commons.io.IOUtils;
 import org.owasp.esapi.Validator;
 import org.owasp.esapi.errors.IntrusionException;
@@ -328,11 +329,7 @@ public class SanityChecker {
         throws InvalidParseOperationException, IOException {
         try (final InputStream xmlStream = new FileInputStream(xmlFile)) {
 
-            final XMLInputFactory xmlInputFactory = XMLInputFactory.newInstance();
-            // Prevent XSS
-            xmlInputFactory.setProperty(XMLInputFactory.SUPPORT_DTD, Boolean.FALSE);
-            xmlInputFactory.setProperty("javax.xml.stream.isReplacingEntityReferences", Boolean.FALSE);
-            xmlInputFactory.setProperty("javax.xml.stream.isSupportingExternalEntities", Boolean.FALSE);
+            final XMLInputFactory xmlInputFactory = XMLInputFactoryUtils.newInstance();
             // read XML input stream
             XMLStreamReader reader = null;
             try {

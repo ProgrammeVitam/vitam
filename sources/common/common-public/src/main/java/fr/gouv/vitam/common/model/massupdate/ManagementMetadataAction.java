@@ -12,7 +12,8 @@ public class ManagementMetadataAction {
         return archiveUnitProfile;
     }
 
-    public void setArchiveUnitProfile(String archiveUnitProfile) {
+    public ManagementMetadataAction setArchiveUnitProfile(String archiveUnitProfile) {
         this.archiveUnitProfile = archiveUnitProfile;
+        return this;
     }
 }

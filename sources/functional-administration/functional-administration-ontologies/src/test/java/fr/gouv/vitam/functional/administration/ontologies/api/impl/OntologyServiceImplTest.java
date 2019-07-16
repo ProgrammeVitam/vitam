@@ -28,12 +28,14 @@
 package fr.gouv.vitam.functional.administration.ontologies.api.impl;
 
 import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.google.common.collect.Lists;
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.database.server.elasticsearch.ElasticsearchNode;
 import fr.gouv.vitam.common.elasticsearch.ElasticsearchRule;
 import fr.gouv.vitam.common.error.VitamError;
+import fr.gouv.vitam.common.exception.VitamException;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.model.RequestResponse;
@@ -66,6 +68,7 @@ import org.mockito.Mockito;
 
 import javax.ws.rs.core.Response;
 import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -536,6 +539,7 @@ public class OntologyServiceImplTest {
         RequestResponse response = ontologyService.importOntologies(true, ontologyModelListKo);
 
         // Then
+        assertThat(response.toString()).contains("Import ontologies schema error");
         assertThat(response.toString()).contains("instance value (\\\\\\\"BlablaCollection\\\\\\\") not found in enum");
 
         assertThat(response).isNotInstanceOf(RequestResponseOK.class);

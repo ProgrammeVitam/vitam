@@ -53,6 +53,7 @@ import fr.gouv.vitam.common.database.builder.query.VitamFieldsHelper;
 import fr.gouv.vitam.common.database.builder.query.action.SetAction;
 import fr.gouv.vitam.common.database.builder.query.action.UnsetAction;
 import fr.gouv.vitam.common.database.builder.query.action.UpdateActionHelper;
+import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken;
 import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
 import fr.gouv.vitam.common.database.builder.request.multiple.SelectMultiQuery;
 import fr.gouv.vitam.common.database.builder.request.multiple.UpdateMultiQuery;
@@ -63,6 +64,7 @@ import fr.gouv.vitam.common.database.parser.request.single.SelectParserSingle;
 import fr.gouv.vitam.common.database.parser.request.single.UpdateParserSingle;
 import fr.gouv.vitam.common.database.server.elasticsearch.ElasticsearchNode;
 import fr.gouv.vitam.common.database.utils.AccessContractRestrictionHelper;
+import fr.gouv.vitam.common.error.VitamError;
 import fr.gouv.vitam.common.exception.AccessUnauthorizedException;
 import fr.gouv.vitam.common.exception.BadRequestException;
 import fr.gouv.vitam.common.exception.DatabaseException;
@@ -302,6 +304,8 @@ public class IngestInternalIT extends VitamRuleRunner {
     private static String SIP_SIP_ALL_METADATA_WITH_CUSTODIALHISTORYFILE =
         "integration-ingest-internal/sip_all_metadata_with_custodialhistoryfile.zip";
 
+    private static String SIP_ALGO_INCORRECT_IN_MANIFEST = "integration-ingest-internal/SIP_INCORRECT_ALGORITHM.zip";
+
     private static LogbookElasticsearchAccess esClient;
 
     @BeforeClass
@@ -396,7 +400,6 @@ public class IngestInternalIT extends VitamRuleRunner {
                 operationGuid != null ? operationGuid.toString() : "outcomeDetailMessage",
                 operationGuid);
             params.add(initParameters);
-            LOGGER.error(initParameters.toString());
 
             // call ingest
             IngestInternalClientFactory.getInstance().changeServerPort(runner.PORT_SERVICE_INGEST_INTERNAL);
@@ -476,9 +479,10 @@ public class IngestInternalIT extends VitamRuleRunner {
             UpdateMultiQuery updateQuery2 =
                 new UpdateMultiQuery().addActions(new SetAction("ArchiveUnitProfile", "ArchiveUnitProfile"));
             updateQuery.addRoots(unitId);
-            RequestResponse response3 = accessClient
-                .updateUnitbyId(updateQuery2.getFinalUpdate(), unitId);
-            assertTrue(!response3.isOk());
+            RequestResponse<JsonNode> updateResponse =
+                accessClient.updateUnitbyId(updateQuery2.getFinalUpdate(), unitId);
+            assertThat(updateResponse.isOk()).isFalse();
+            assertThat(((VitamError) updateResponse).getDescription()).contains("Archive Unit Profile not found");
 
             // lets find details for the unit -> AccessRule should have been unset
             RequestResponseOK<JsonNode> responseUnitAfterUpdate =
@@ -798,12 +802,17 @@ public class IngestInternalIT extends VitamRuleRunner {
             final AccessInternalClient accessClient = AccessInternalClientFactory.getInstance().getClient();
             JsonNode lfc = retrieveLfcForUnit(unit.get("#id").asText(), accessClient);
             assertNotNull(lfc);
+
+            JsonNode unitups = unit.get(BuilderToken.PROJECTIONARGS.UNITUPS.exactToken());
+            assertTrue(unitups.isArray());
+            assertTrue(unitups.toString().contains(linkParentId));
+
             // check evDetData of checkManifest event
             JsonNode checkManifestEvent = lfc.get(LogbookDocument.EVENTS).get(0);
-            assertTrue(checkManifestEvent.get("evType").asText().equals("LFC.CHECK_MANIFEST"));
+            assertEquals(checkManifestEvent.get("evType").asText(), "LFC.CHECK_MANIFEST");
             assertNotNull(checkManifestEvent.get("_lastPersistedDate"));
-            assertTrue(
-                checkManifestEvent.get("evDetData").asText().equals("{\n  \"_up\" : [ \"" + linkParentId + "\" ]\n}"));
+            assertEquals(checkManifestEvent.get("evDetData").asText(),
+                "{\n  \"_up\" : [ \"" + linkParentId + "\" ]\n}");
         } catch (final Exception e) {
             LOGGER.error(e);
             try (LogbookOperationsClient logbookClient = LogbookOperationsClientFactory.getInstance().getClient()) {
@@ -2547,4 +2556,56 @@ public class IngestInternalIT extends VitamRuleRunner {
         assertNull(reference.getDataObjectGroupReferenceId());
 
     }
+
+    @RunWithCustomExecutor
+    @Test
+    public void testIngestWithManifestIncorrectAlgorithm() throws Exception {
+        prepareVitamSession();
+        final GUID operationGuid = GUIDFactory.newOperationLogbookGUID(tenantId);
+        VitamThreadUtils.getVitamSession().setRequestId(operationGuid);
+
+        final GUID objectGuid = GUIDFactory.newManifestGUID(0);
+        // workspace client unzip SIP in workspace
+        final InputStream zipInputStreamSipObject =
+                PropertiesUtils.getResourceAsStream(SIP_ALGO_INCORRECT_IN_MANIFEST);
+
+        final List<LogbookOperationParameters> params = new ArrayList<>();
+        final LogbookOperationParameters initParameters = LogbookParametersFactory.newLogbookOperationParameters(
+                operationGuid, "STP_INGEST_CONTROL_SIP", operationGuid,
+                LogbookTypeProcess.INGEST, StatusCode.STARTED,
+                operationGuid != null ? operationGuid.toString() : "outcomeDetailMessage",
+                operationGuid);
+        params.add(initParameters);
+        LOGGER.error(initParameters.toString());
+
+        // call ingest
+        IngestInternalClientFactory.getInstance().changeServerPort(runner.PORT_SERVICE_INGEST_INTERNAL);
+        final IngestInternalClient client = IngestInternalClientFactory.getInstance().getClient();
+        client.uploadInitialLogbook(params);
+
+        // init workflow before execution
+        client.initWorkflow(ingestSip);
+
+        client.upload(zipInputStreamSipObject, CommonMediaType.ZIP_TYPE, ingestSip, ProcessAction.RESUME.name());
+
+        awaitForWorkflowTerminationWithStatus(operationGuid, StatusCode.KO);
+
+        final AccessInternalClient accessClient = AccessInternalClientFactory.getInstance().getClient();
+        JsonNode logbookOperation =
+            accessClient.selectOperationById(operationGuid.getId(), new SelectMultiQuery().getFinalSelect())
+                .toJsonNode();
+
+
+        logbookOperation.get("$results").get(0).get("events").forEach(event -> {
+            if (event.get("evType").asText().contains("CHECK_DATAOBJECTPACKAGE.CHECK_MANIFEST_DATAOBJECT_VERSION")) {
+                assertThat(event.get("outDetail").textValue()).
+                    contains("CHECK_DATAOBJECTPACKAGE.CHECK_MANIFEST_DATAOBJECT_VERSION.INVALIDE_ALGO.KO");
+            }
+        });
+
+
+
+
+    }
+
 }

@@ -239,4 +239,9 @@ public class AccessExtAPI {
     public static final String GRIFFIN = "griffin";
 
     public static final String PRESERVATION_SCENARIO = "preservationScenario";
+
+    /**
+     * Objects
+     */
+    public static final String OBJECTS = "/objects";
 }

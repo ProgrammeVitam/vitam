@@ -27,6 +27,7 @@
 package fr.gouv.vitam.worker.core.mapping;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import java.io.InputStream;
 import java.util.List;
@@ -40,6 +41,7 @@ import fr.gouv.vitam.common.model.unit.AgentTypeModel;
 import fr.gouv.vitam.common.model.unit.ArchiveUnitModel;
 import fr.gouv.vitam.common.model.unit.ArchiveUnitRoot;
 import fr.gouv.vitam.common.model.unit.DescriptiveMetadataModel;
+import fr.gouv.vitam.processing.common.exception.ProcessingObjectReferenceException;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -84,13 +86,13 @@ public class ArchiveUnitMapperTest {
 
         final List<AgentTypeModel> transmitters = archiveUnit.getDescriptiveMetadataModel().getTransmitter();
         assertThat(transmitters).hasSize(2);
-        for(AgentTypeModel transmitter : transmitters){
+        for (AgentTypeModel transmitter : transmitters) {
             assertAgentTypeModelProperties(transmitter);
         }
 
         final List<AgentTypeModel> senders = archiveUnit.getDescriptiveMetadataModel().getSender();
         assertThat(senders).hasSize(2);
-        for(AgentTypeModel sender : senders){
+        for (AgentTypeModel sender : senders) {
             assertAgentTypeModelProperties(sender);
         }
 
@@ -103,7 +105,7 @@ public class ArchiveUnitMapperTest {
 
     }
 
-    private void assertAgentTypeModelProperties(AgentTypeModel agentTypeModel){
+    private void assertAgentTypeModelProperties(AgentTypeModel agentTypeModel) {
 
         assertThat(agentTypeModel.getFirstName()).isEqualTo("John");
         assertThat(agentTypeModel.getBirthName()).isEqualTo("Doe");
@@ -248,5 +250,18 @@ public class ArchiveUnitMapperTest {
         final DescriptiveMetadataModel descriptiveMetadataModel = archiveUnit.getDescriptiveMetadataModel();
         assertThat(descriptiveMetadataModel.getRegisteredDate())
             .isEqualTo("2012-11-15T00:00:00+03:00");
+    }
+
+    @Test
+    public void should_throw_processing_object_reference_exception() throws Exception {
+        // Given
+        Unmarshaller unmarshaller = jaxbContext.createUnmarshaller();
+        ArchiveUnitType archiveUnitType = (ArchiveUnitType) unmarshaller.unmarshal(getClass().getResourceAsStream(
+            "/archiveUnit_multiple_objectreference.xml"));
+
+        // When
+        assertThatThrownBy(() -> archiveUnitMapper.map(archiveUnitType, "", ""))
+            .isInstanceOf(ProcessingObjectReferenceException.class)
+            .hasMessageContaining("references more than one technical object group");
     }
 }

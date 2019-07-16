@@ -51,13 +51,13 @@ import fr.gouv.vitam.common.model.administration.AgenciesModel;
 import fr.gouv.vitam.common.model.administration.ArchiveUnitProfileModel;
 import fr.gouv.vitam.common.model.administration.ContextModel;
 import fr.gouv.vitam.common.model.administration.FileFormatModel;
-import fr.gouv.vitam.common.model.administration.preservation.GriffinModel;
 import fr.gouv.vitam.common.model.administration.IngestContractModel;
 import fr.gouv.vitam.common.model.administration.OntologyModel;
-import fr.gouv.vitam.common.model.administration.preservation.PreservationScenarioModel;
 import fr.gouv.vitam.common.model.administration.ProfileModel;
 import fr.gouv.vitam.common.model.administration.RegisterValueDetailModel;
 import fr.gouv.vitam.common.model.administration.SecurityProfileModel;
+import fr.gouv.vitam.common.model.administration.preservation.GriffinModel;
+import fr.gouv.vitam.common.model.administration.preservation.PreservationScenarioModel;
 import fr.gouv.vitam.common.stream.StreamUtils;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.functional.administration.common.exception.AdminManagementClientServerException;
@@ -72,7 +72,6 @@ import fr.gouv.vitam.functional.administration.common.server.AccessionRegisterSy
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
-
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.List;
@@ -513,11 +512,13 @@ public class AdminManagementClientMock extends AbstractMockClient implements Adm
         return new RequestResponseOK().setHttpCode(Status.OK.getStatusCode());
     }
 
-    @Override public RequestResponse<JsonNode> exportProbativeValue(ProbativeValueRequest queryDsl) {
+    @Override
+    public RequestResponse<JsonNode> exportProbativeValue(ProbativeValueRequest queryDsl) {
         return new RequestResponseOK();
     }
 
-    @Override public RequestResponse importOntologies(boolean forceUpdate, List<OntologyModel> ontologyModelList)
+    @Override
+    public RequestResponse importOntologies(boolean forceUpdate, List<OntologyModel> ontologyModelList)
         throws InvalidParseOperationException, AdminManagementClientServerException {
         return new RequestResponseOK().setHttpCode(Status.CREATED.getStatusCode());
     }
@@ -529,7 +530,8 @@ public class AdminManagementClientMock extends AbstractMockClient implements Adm
         return ClientMockResultHelper.getOntologies(Status.OK.getStatusCode());
     }
 
-    @Override public RequestResponse<OntologyModel> findOntologyByID(String requestedId)
+    @Override
+    public RequestResponse<OntologyModel> findOntologyByID(String requestedId)
         throws InvalidParseOperationException, AdminManagementClientServerException, ReferentialNotFoundException {
         LOGGER.debug("find Ontology by id: " + requestedId);
         RequestResponse responses = ClientMockResultHelper.getOntologies(Status.OK.getStatusCode());
@@ -588,12 +590,14 @@ public class AdminManagementClientMock extends AbstractMockClient implements Adm
         throw new IllegalStateException("Cannot be used");
     }
 
-    @Override public RequestResponse<PreservationScenarioModel> findPreservation(JsonNode dslQuery)
+    @Override
+    public RequestResponse<PreservationScenarioModel> findPreservation(JsonNode dslQuery)
         throws AdminManagementClientServerException, InvalidParseOperationException, ReferentialNotFoundException {
         throw new IllegalStateException("Cannot be used");
     }
 
-    @Override public RequestResponse findGriffin(JsonNode dslQuery) {
+    @Override
+    public RequestResponse findGriffin(JsonNode dslQuery) {
         throw new IllegalStateException("Cannot be used");
     }
 }

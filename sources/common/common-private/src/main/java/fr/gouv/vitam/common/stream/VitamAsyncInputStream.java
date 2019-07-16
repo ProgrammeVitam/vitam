@@ -57,7 +57,7 @@ public class VitamAsyncInputStream extends InputStream {
             if (entity instanceof InputStream) {
                 this.inputStream = (InputStream) entity;
             } else {
-            this.inputStream = response.readEntity(InputStream.class);
+                this.inputStream = response.readEntity(InputStream.class);
             }
         } catch (IllegalStateException e) {
             // Not an InputStream

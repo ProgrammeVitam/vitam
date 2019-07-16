@@ -42,7 +42,6 @@ import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.database.api.VitamRepositoryFactory;
 import fr.gouv.vitam.common.database.offset.OffsetRepository;
 import fr.gouv.vitam.common.serverv2.application.AdminApplication;
-import fr.gouv.vitam.metadata.api.MetaData;
 import fr.gouv.vitam.metadata.api.config.MetaDataConfiguration;
 import fr.gouv.vitam.metadata.core.MetaDataImpl;
 import fr.gouv.vitam.metadata.core.MongoDbAccessMetadataFactory;
@@ -86,7 +85,13 @@ public class AdminMetadataApplication extends Application {
 
             VitamRepositoryFactory vitamRepositoryProvider = VitamRepositoryFactory.get();
 
-            MetaData metadata = MetaDataImpl.newMetadata(mongoDbAccessMetadata);
+            MetaDataImpl metadata = MetaDataImpl.newMetadata(mongoDbAccessMetadata,
+                metaDataConfiguration.getOntologyCacheMaxEntries(),
+                metaDataConfiguration.getOntologyCacheTimeoutInSeconds(),
+                metaDataConfiguration.getArchiveUnitProfileCacheMaxEntries(),
+                metaDataConfiguration.getArchiveUnitProfileCacheTimeoutInSeconds(),
+                metaDataConfiguration.getSchemaValidatorCacheMaxEntries(),
+                metaDataConfiguration.getSchemaValidatorCacheTimeoutInSeconds());
 
             GraphFactory.initialize(vitamRepositoryProvider, metadata);
 

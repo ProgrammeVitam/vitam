@@ -38,28 +38,28 @@ public class ChangesTriggerTest {
 
     @Test
     public void testAddTriggersFromConfig() throws Exception {
-        new ChangesTrigger("Trigger/history-triggers-test.json");
+        new FieldHistoryManager("Trigger/history-triggers-test.json");
     }
 
     @Test(expected = ChangesTriggerConfigFileException.class)
     public void testAddTriggersFromConfigWithBabFile() throws Exception {
-        new ChangesTrigger("Trigger/history-triggers-bad-test.json");
+        new FieldHistoryManager("Trigger/history-triggers-bad-test.json");
     }
 
     @Test(expected = ChangesTriggerConfigFileException.class)
     public void testAddTriggersFromConfigFileNotFound() throws Exception {
-        new ChangesTrigger("Trigger/missing-file.json");
+        new FieldHistoryManager("Trigger/missing-file.json");
     }
 
 
     @Test
     public void testTriggerUpdateClassificationRule() throws Exception {
-        ChangesTrigger changesTrigger = new ChangesTrigger("Trigger/history-triggers-test.json");
+        FieldHistoryManager fieldHistoryManager = new FieldHistoryManager("Trigger/history-triggers-test.json");
 
         JsonNode before = JsonHandler.getFromFile(PropertiesUtils.getResourceFile("Trigger/history_unit_before_update.json"));
         JsonNode after = JsonHandler.getFromFile(PropertiesUtils.getResourceFile("Trigger/history_unit_after_update.json"));
 
-        changesTrigger.trigger(before, after);
+        fieldHistoryManager.trigger(before, after);
 
         String unitAfterUpdateString = after.toString();
         JsonPath path = JsonPath.from(unitAfterUpdateString);
@@ -70,12 +70,12 @@ public class ChangesTriggerTest {
 
     @Test
     public void testTriggerAddingClassificationRule() throws Exception {
-        ChangesTrigger changesTrigger = new ChangesTrigger("Trigger/history-triggers-test.json");
+        FieldHistoryManager fieldHistoryManager = new FieldHistoryManager("Trigger/history-triggers-test.json");
 
         JsonNode before = JsonHandler.getFromFile(PropertiesUtils.getResourceFile("Trigger/history_unit_before_update.json"));
         JsonNode after = JsonHandler.getFromFile(PropertiesUtils.getResourceFile("Trigger/history_unit_after_update.json"));
 
-        changesTrigger.trigger(before, after);
+        fieldHistoryManager.trigger(before, after);
 
         String unitAfterUpdateString = after.toString();
         JsonPath path = JsonPath.from(unitAfterUpdateString);
@@ -87,12 +87,12 @@ public class ChangesTriggerTest {
 
     @Test
     public void testTriggerRemovingClassificationRule() throws Exception {
-        ChangesTrigger changesTrigger = new ChangesTrigger("Trigger/history-triggers-test.json");
+        FieldHistoryManager fieldHistoryManager = new FieldHistoryManager("Trigger/history-triggers-test.json");
 
         JsonNode before = JsonHandler.getFromFile(PropertiesUtils.getResourceFile("Trigger/history_unit_before_remove.json"));
         JsonNode after = JsonHandler.getFromFile(PropertiesUtils.getResourceFile("Trigger/history_unit_after_remove.json"));
 
-        changesTrigger.trigger(before, after);
+        fieldHistoryManager.trigger(before, after);
 
         String unitAfterUpdateString = after.toString();
         JsonPath path = JsonPath.from(unitAfterUpdateString);

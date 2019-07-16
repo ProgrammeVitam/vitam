@@ -27,14 +27,12 @@
 package fr.gouv.vitam.functional.administration.common;
 
 import static com.mongodb.client.model.Filters.eq;
-import static com.mongodb.client.model.Filters.regex;
 import static fr.gouv.vitam.common.json.JsonHandler.createJsonGenerator;
 import static fr.gouv.vitam.functional.administration.common.counter.SequenceType.fromFunctionalAdminCollections;
 
 import java.io.*;
 
-import com.mongodb.util.JSON;
-import fr.gouv.vitam.common.json.CanonicalJsonFormatter;
+import fr.gouv.vitam.common.json.BsonHelper;
 import fr.gouv.vitam.common.stream.StreamUtils;
 import org.bson.BsonDocument;
 import org.bson.Document;
@@ -171,7 +169,7 @@ public class FunctionalBackupService {
 
             try {
                 // Force storage tenant to 1 for cross-tenant collections (impersonate admin tenant)
-                is = new ByteArrayInputStream( JSON.serialize(document).getBytes());
+                is = new ByteArrayInputStream( BsonHelper.stringify(document).getBytes());
                 VitamThreadUtils.getVitamSession().setTenantId(storageTenant);
                 switch (collection) {
                     case ACCESSION_REGISTER_DETAIL:
@@ -296,7 +294,7 @@ public class FunctionalBackupService {
 
             while (mongoCursor.hasNext()) {
                 Document document = (Document) mongoCursor.next();
-                jsonGenerator.writeRawValue(JSON.serialize(document));
+                jsonGenerator.writeRawValue(BsonHelper.stringify(document));
             }
 
             jsonGenerator.writeEndArray();
@@ -304,10 +302,10 @@ public class FunctionalBackupService {
             jsonGenerator.writeFieldName(FIELD_SEQUENCE);
             VitamSequence sequence = vitamCounterService
                 .getSequenceDocument(tenant, fromFunctionalAdminCollections(collectionToSave));
-            jsonGenerator.writeRawValue(JSON.serialize(sequence));
+            jsonGenerator.writeRawValue(BsonHelper.stringify(sequence));
 
             jsonGenerator.writeFieldName(FIELD_BACKUP_SEQUENCE);
-            jsonGenerator.writeRawValue(JSON.serialize(backupSequence));
+            jsonGenerator.writeRawValue(BsonHelper.stringify(backupSequence));
 
             jsonGenerator.writeEndObject();
 

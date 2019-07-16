@@ -27,6 +27,9 @@
 
 package fr.gouv.vitam.worker.server.rest;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import fr.gouv.vitam.common.configuration.ClassificationLevel;
 import fr.gouv.vitam.common.server.application.configuration.DefaultVitamApplicationConfiguration;
 
@@ -45,6 +48,14 @@ public final class WorkerConfiguration extends DefaultVitamApplicationConfigurat
     private int capacity = 1;
     private String workerFamily = "DefaultWorker";
 
+    private int ontologyCacheMaxEntries = 100;
+    private int ontologyCacheTimeoutInSeconds = 300;
+
+    private int archiveUnitProfileCacheMaxEntries = 100;
+    private int archiveUnitProfileCacheTimeoutInSeconds = 300;
+
+    private int schemaValidatorCacheMaxEntries = 100;
+    private int schemaValidatorCacheTimeoutInSeconds = 300;
 
     /**
      * WorkerConfiguration empty constructor for YAMLFactory
@@ -196,7 +207,7 @@ public final class WorkerConfiguration extends DefaultVitamApplicationConfigurat
 
     /**
      * Return the capacity (number of parallel steps that can handle the worker)
-     * 
+     *
      * @return the capacity
      */
     public int getCapacity() {
@@ -205,9 +216,8 @@ public final class WorkerConfiguration extends DefaultVitamApplicationConfigurat
 
     /**
      * Set the capacity (number of parallel steps that can handle the worker)
-     * 
-     * @param capacity the capacity to set
      *
+     * @param capacity the capacity to set
      * @return this
      */
     public WorkerConfiguration setCapacity(int capacity) {
@@ -217,7 +227,7 @@ public final class WorkerConfiguration extends DefaultVitamApplicationConfigurat
 
     /**
      * Return the workerFamily name
-     * 
+     *
      * @return workerFamily
      */
     public String getWorkerFamily() {
@@ -226,7 +236,7 @@ public final class WorkerConfiguration extends DefaultVitamApplicationConfigurat
 
     /**
      * Set the workerFamily name of this worker (Default Value : DefaultWorker)
-     * 
+     *
      * @param workerFamily the worker family as String
      * @return this
      */
@@ -235,4 +245,57 @@ public final class WorkerConfiguration extends DefaultVitamApplicationConfigurat
         return this;
     }
 
+    public int getOntologyCacheMaxEntries() {
+        return ontologyCacheMaxEntries;
+    }
+
+    public WorkerConfiguration setOntologyCacheMaxEntries(int ontologyCacheMaxEntries) {
+        this.ontologyCacheMaxEntries = ontologyCacheMaxEntries;
+        return this;
+    }
+
+    public int getOntologyCacheTimeoutInSeconds() {
+        return ontologyCacheTimeoutInSeconds;
+    }
+
+    public WorkerConfiguration setOntologyCacheTimeoutInSeconds(int ontologyCacheTimeoutInSeconds) {
+        this.ontologyCacheTimeoutInSeconds = ontologyCacheTimeoutInSeconds;
+        return this;
+    }
+
+    public int getArchiveUnitProfileCacheMaxEntries() {
+        return archiveUnitProfileCacheMaxEntries;
+    }
+
+    public WorkerConfiguration setArchiveUnitProfileCacheMaxEntries(int archiveUnitProfileCacheMaxEntries) {
+        this.archiveUnitProfileCacheMaxEntries = archiveUnitProfileCacheMaxEntries;
+        return this;
+    }
+
+    public int getArchiveUnitProfileCacheTimeoutInSeconds() {
+        return archiveUnitProfileCacheTimeoutInSeconds;
+    }
+
+    public WorkerConfiguration setArchiveUnitProfileCacheTimeoutInSeconds(int archiveUnitProfileCacheTimeoutInSeconds) {
+        this.archiveUnitProfileCacheTimeoutInSeconds = archiveUnitProfileCacheTimeoutInSeconds;
+        return this;
+    }
+
+    public int getSchemaValidatorCacheMaxEntries() {
+        return schemaValidatorCacheMaxEntries;
+    }
+
+    public WorkerConfiguration setSchemaValidatorCacheMaxEntries(int schemaValidatorCacheMaxEntries) {
+        this.schemaValidatorCacheMaxEntries = schemaValidatorCacheMaxEntries;
+        return this;
+    }
+
+    public int getSchemaValidatorCacheTimeoutInSeconds() {
+        return schemaValidatorCacheTimeoutInSeconds;
+    }
+
+    public WorkerConfiguration setSchemaValidatorCacheTimeoutInSeconds(int schemaValidatorCacheTimeoutInSeconds) {
+        this.schemaValidatorCacheTimeoutInSeconds = schemaValidatorCacheTimeoutInSeconds;
+        return this;
+    }
 }

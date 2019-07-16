@@ -222,7 +222,7 @@ public class MongoDbAccessMetadataImplTest {
                 esClient, tenantList);
 
         // Given
-        final MetaDataImpl metaData = new MetaDataImpl(mongoDbAccess);
+        final MetaDataImpl metaData = new MetaDataImpl(mongoDbAccess, 100, 300, 100, 300, 100, 300);
 
         final String operationId = "1234";
         ArrayList<Document> units = Lists.newArrayList(
@@ -294,7 +294,7 @@ public class MongoDbAccessMetadataImplTest {
         // Given
         final MongoCollection objectGroup = MetadataCollections.OBJECTGROUP.getCollection();
 
-        final MetaDataImpl metaData = new MetaDataImpl(mongoDbAccess);
+        final MetaDataImpl metaData = new MetaDataImpl(mongoDbAccess, 100, 300, 100, 300, 100, 300);
 
         final String operationId = "aedqaaaaacgbcaacaar3kak4tr2o3wqaaaaq";
         objectGroup.insertOne(new ObjectGroup(JsonHandler.getFromInputStream(getClass().getResourceAsStream(
@@ -343,7 +343,7 @@ public class MongoDbAccessMetadataImplTest {
                 true,
                 client,
                 tenantList
-            )
+            ), 100, 300, 100, 300, 100, 300
         );
 
         // When
@@ -376,7 +376,7 @@ public class MongoDbAccessMetadataImplTest {
                 true,
                 client,
                 tenantList
-            )
+            ), 100, 300, 100, 300, 100, 300
         );
 
         // When
@@ -424,7 +424,7 @@ public class MongoDbAccessMetadataImplTest {
                 true,
                 client,
                 tenantList
-            )
+            ), 100, 300, 100, 300, 100, 300
         );
 
         // When
@@ -471,7 +471,7 @@ public class MongoDbAccessMetadataImplTest {
                 true,
                 client,
                 tenantList
-            )
+            ), 100, 300, 100, 300, 100, 300
         );
 
         // When
@@ -519,7 +519,7 @@ public class MongoDbAccessMetadataImplTest {
                 true,
                 client,
                 tenantList
-            )
+            ), 100, 300, 100, 300, 100, 300
         );
 
         // When
@@ -560,7 +560,7 @@ public class MongoDbAccessMetadataImplTest {
                 true,
                 client,
                 tenantList
-            )
+            ), 100, 300, 100, 300, 100, 300
         );
 
         // When

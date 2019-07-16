@@ -310,5 +310,16 @@ public final class LocalDateUtil {
         return date.format(INDEX_DATE_TIME_FORMAT);
     }
 
-
+    /**
+     * return a DateTimeFormatter suitable for filename in the format yyyyMMddHHmmssSSS
+     * @return
+     */
+    public static DateTimeFormatter getDateTimeFormatterForFileNames() {
+        // Cannot use yyyyMMddHHmmssSSS due to Java 8 bug https://bugs.java.com/view_bug.do?bug_id=8031085
+        return new DateTimeFormatterBuilder()
+            .appendPattern("yyyyMMddHHmmss")
+            .appendValue(ChronoField.MILLI_OF_SECOND, 3)
+            .toFormatter()
+            .withZone(ZoneOffset.UTC);
+    }
 }

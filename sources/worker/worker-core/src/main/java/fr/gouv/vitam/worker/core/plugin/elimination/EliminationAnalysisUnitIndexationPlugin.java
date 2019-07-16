@@ -114,7 +114,7 @@ public class EliminationAnalysisUnitIndexationPlugin extends ActionHandler {
                 new PushAction(VitamFieldsHelper.elimination(),
                     JsonHandler.toJsonNode(eliminationAnalysisResult)));
 
-            client.updateUnitbyId(updateMultiQuery.getFinalUpdateById(), unitId);
+            client.updateUnitById(updateMultiQuery.getFinalUpdateById(), unitId);
 
         } catch (InvalidParseOperationException | InvalidCreateOperationException | MetaDataExecutionException | MetaDataDocumentSizeException | MetaDataClientServerException | MetaDataNotFoundException e) {
             throw new EliminationException(StatusCode.FATAL, "Could not index unit " + unitId, e);

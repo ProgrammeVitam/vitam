@@ -54,7 +54,6 @@ import fr.gouv.vitam.logbook.common.exception.LogbookClientServerException;
 import fr.gouv.vitam.storage.engine.common.model.DataCategory;
 
 import javax.ws.rs.HttpMethod;
-import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.MultivaluedHashMap;
 import javax.ws.rs.core.MultivaluedMap;
 import javax.ws.rs.core.Response;
@@ -262,12 +261,7 @@ class AccessInternalClientRest extends DefaultClient implements AccessInternalCl
             if (response.getStatus() == Status.INTERNAL_SERVER_ERROR.getStatusCode()) {
                 throw new AccessInternalClientServerException(INTERNAL_SERVER_ERROR); // access-common
             } else if (response.getStatus() == Status.BAD_REQUEST.getStatusCode()) {
-                try {
-                    return RequestResponse.parseVitamError(response);
-                } catch (final InvalidParseOperationException e) {
-                    LOGGER.info("Cant parse error as vitamError, throw a new exception");
-                }
-                throw new InvalidParseOperationException(INVALID_PARSE_OPERATION);// common
+                return RequestResponse.parseVitamError(response);
             } else if (response.getStatus() == Status.METHOD_NOT_ALLOWED.getStatusCode()) {
                 throw new NoWritingPermissionException(NO_WRITING_PERMISSION);
             } else if (response.getStatus() == Status.UNAUTHORIZED.getStatusCode()) {
@@ -429,35 +423,6 @@ class AccessInternalClientRest extends DefaultClient implements AccessInternalCl
 
         try {
             response = performRequest(HttpMethod.GET, LOGBOOK_UNIT_LIFECYCLE_URL + "/" + idUnit, null, queryDsl,
-                APPLICATION_JSON_TYPE, APPLICATION_JSON_TYPE, false);
-
-            if (response.getStatus() == Response.Status.NOT_FOUND.getStatusCode()) {
-                LOGGER.error(ErrorMessage.LOGBOOK_NOT_FOUND.getMessage());
-                throw new LogbookClientNotFoundException(ErrorMessage.LOGBOOK_NOT_FOUND.getMessage());
-            } else if (response.getStatus() == Response.Status.PRECONDITION_FAILED.getStatusCode()) {
-                LOGGER.error(ILLEGAL_ENTRY_PARAMETER);
-                throw new LogbookClientException(REQUEST_PRECONDITION_FAILED);
-            } else if (response.getStatus() == Status.UNAUTHORIZED.getStatusCode()) {
-                throw new AccessUnauthorizedException(ACCESS_CONTRACT_EXCEPTION);
-            }
-
-            return RequestResponse.parseFromResponse(response);
-        } catch (final VitamClientInternalException e) {
-            LOGGER.error(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage(), e);
-            throw new LogbookClientServerException(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage(), e);
-        } finally {
-            consumeAnyEntityAndClose(response);
-        }
-    }
-
-    @Override
-    public RequestResponse<JsonNode> selectUnitLifeCycle(JsonNode queryDsl)
-        throws LogbookClientException, InvalidParseOperationException, AccessUnauthorizedException {
-        VitamThreadUtils.getVitamSession().checkValidRequestId();
-        Response response = null;
-
-        try {
-            response = performRequest(HttpMethod.GET, LOGBOOK_UNIT_LIFECYCLE_URL, null, queryDsl,
                 APPLICATION_JSON_TYPE, APPLICATION_JSON_TYPE, false);
 
             if (response.getStatus() == Response.Status.NOT_FOUND.getStatusCode()) {

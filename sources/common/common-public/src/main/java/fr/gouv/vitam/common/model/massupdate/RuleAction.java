@@ -49,39 +49,44 @@ public class RuleAction {
         return oldRule;
     }
 
-    public void setOldRule(String oldRule) {
+    public RuleAction setOldRule(String oldRule) {
         this.oldRule = oldRule;
+        return this;
     }
 
     public String getRule() {
         return rule;
     }
 
-    public void setRule(String rule) {
+    public RuleAction setRule(String rule) {
         this.rule = rule;
+        return this;
     }
 
     public String getStartDate() {
         return startDate;
     }
 
-    public void setStartDate(String startDate) {
+    public RuleAction setStartDate(String startDate) {
         this.startDate = startDate;
+        return this;
     }
 
     public String getEndDate() {
         return endDate;
     }
 
-    public void setEndDate(String endDate) {
+    public RuleAction setEndDate(String endDate) {
         this.endDate = endDate;
+        return this;
     }
 
     public Boolean isDeleteStartDate() {
         return deleteStartDate;
     }
 
-    public void setDeleteStartDate(Boolean deleteStartDate) {
+    public RuleAction setDeleteStartDate(Boolean deleteStartDate) {
         this.deleteStartDate = deleteStartDate;
+        return this;
     }
 }

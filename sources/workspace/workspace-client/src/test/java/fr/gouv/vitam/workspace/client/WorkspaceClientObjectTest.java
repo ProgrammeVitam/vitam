@@ -207,7 +207,6 @@ public class WorkspaceClientObjectTest extends ResteasyTestApplication {
         stream = getInputStream("file1");
         when(mock.post()).thenReturn(Response.status(Status.CREATED).build());
         client.putObject(CONTAINER_NAME, OBJECT_NAME, stream);
-        assertTrue(true);
     }
 
     // delete
@@ -237,7 +236,6 @@ public class WorkspaceClientObjectTest extends ResteasyTestApplication {
     public void givenObjectAlreadyExistsWhenDeleteObjectThenReturnNotContent() throws Exception {
         when(mock.delete()).thenReturn(Response.status(Status.NO_CONTENT).build());
         client.deleteObject(CONTAINER_NAME, OBJECT_NAME);
-        assertTrue(true);
     }
 
     // get
@@ -267,7 +265,6 @@ public class WorkspaceClientObjectTest extends ResteasyTestApplication {
     public void givenObjectAlreadyExistsWhenGetObjectThenReturnObject() throws Exception {
         when(mock.get()).thenReturn(Response.status(Status.OK).build());
         client.getObject(CONTAINER_NAME, OBJECT_NAME);
-        assertTrue(true);
     }
 
     // check existence

@@ -200,7 +200,6 @@ public class CreateManifest extends ActionHandler {
                     ArrayNode objects = (ArrayNode) response.get("$results");
 
                     for (JsonNode object : objects) {
-                        // FIXME Use nicely VarName or any constant for #id field
                         List<String> linkedUnits = unitsForObjectGroupId.get(
                             object.get(ParserTokens.PROJECTIONARGS.ID.exactToken()).textValue());
                         for (String linkedUnit: linkedUnits) {

@@ -94,10 +94,9 @@ public class MultiplePipedInputStream implements VitamAutoCloseable {
      *
      * @param rank between 0 and nbCopy-1
      * @return the rank-th linked InputStream
-     * @throws IOException if any error in IO occurs
      * @throws IllegalArgumentException if rank < 0 or rank >= nbCopy
      */
-    public InputStream getInputStream(int rank) throws IOException {
+    public InputStream getInputStream(int rank) {
         if (rank < 0 || rank >= nbCopy) {
             throw new IllegalArgumentException("Rank is invalid");
         }
@@ -128,6 +127,7 @@ public class MultiplePipedInputStream implements VitamAutoCloseable {
             writer.writeEOF();
 
         } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
             throw new IOException("Interrupted thread", e);
         }
     }

@@ -31,9 +31,9 @@ import com.google.common.annotations.VisibleForTesting;
 import com.mongodb.client.FindIterable;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.result.DeleteResult;
-import com.mongodb.util.JSON;
 import fr.gouv.vitam.common.database.server.mongodb.MongoDbAccess;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
+import fr.gouv.vitam.common.json.BsonHelper;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
@@ -105,7 +105,7 @@ public class PersonalRepository implements CertificateCRLCheckStateUpdater<Perso
             return Optional.empty();
         }
 
-        return Optional.of(JsonHandler.getFromString(JSON.serialize(first), PersonalCertificateModel.class));
+        return Optional.of(JsonHandler.getFromString(BsonHelper.stringify(first), PersonalCertificateModel.class));
     }
 
     /**

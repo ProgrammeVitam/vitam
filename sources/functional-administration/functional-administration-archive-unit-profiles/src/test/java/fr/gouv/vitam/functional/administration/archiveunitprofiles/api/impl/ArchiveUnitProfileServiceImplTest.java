@@ -27,6 +27,7 @@ import fr.gouv.vitam.common.database.parser.request.adapter.SingleVarNameAdapter
 import fr.gouv.vitam.common.database.parser.request.single.SelectParserSingle;
 import fr.gouv.vitam.common.database.server.elasticsearch.ElasticsearchNode;
 import fr.gouv.vitam.common.elasticsearch.ElasticsearchRule;
+import fr.gouv.vitam.common.error.VitamError;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.model.RequestResponse;
@@ -204,6 +205,26 @@ public class ArchiveUnitProfileServiceImplTest {
 
         assertThat(response.isOk()).isFalse();
         verifyZeroInteractions(functionalBackupService);
+    }
+
+    @Test
+    @RunWithCustomExecutor
+    public void importAnAUPWithInvalidControlSchemaThenKO() throws Exception {
+        VitamThreadUtils.getVitamSession().setTenantId(EXTERNAL_TENANT);
+        final File fileMetadataProfile = PropertiesUtils.getResourceFile("AUP_invalid_schema.json");
+        final List<ArchiveUnitProfileModel> profileModelList =
+            JsonHandler
+                .getFromFileAsTypeRefence(fileMetadataProfile, new TypeReference<List<ArchiveUnitProfileModel>>() {
+                });
+        final RequestResponse<ArchiveUnitProfileModel> response = archiveUnitProfileService.createArchiveUnitProfiles(profileModelList);
+
+        List<VitamError> errors = ((VitamError) response).getErrors();
+        assertThat(errors.get(0).getDescription().equals(
+            "The field ControlSchema is not a json schema")).isTrue();
+        assertThat(errors.get(0).getMessage().equals(
+            "IMPORT_ARCHIVEUNITPROFILE.INVALID_JSON_SCHEMA.KO")).isTrue();
+
+        assertThat(response.isOk()).isFalse();
     }
 
     @Test

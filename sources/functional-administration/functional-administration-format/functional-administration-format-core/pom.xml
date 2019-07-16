@@ -58,7 +58,6 @@
         <dependency>
             <groupId>xml-resolver</groupId>
             <artifactId>xml-resolver</artifactId>
-            <scope>test</scope>
         </dependency>
     </dependencies>
 </project>

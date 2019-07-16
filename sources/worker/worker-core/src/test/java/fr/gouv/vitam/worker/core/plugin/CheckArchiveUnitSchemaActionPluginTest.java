@@ -39,6 +39,7 @@ import fr.gouv.vitam.common.model.processing.UriPrefix;
 import fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess;
 import fr.gouv.vitam.logbook.lifecycles.client.LogbookLifeCyclesClient;
 import fr.gouv.vitam.logbook.lifecycles.client.LogbookLifeCyclesClientFactory;
+import fr.gouv.vitam.metadata.core.validation.UnitValidator;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 import fr.gouv.vitam.processing.common.parameter.WorkerParametersFactory;
 import fr.gouv.vitam.worker.core.impl.HandlerIOImpl;
@@ -53,7 +54,6 @@ import org.junit.rules.TemporaryFolder;
 
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
-import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.InputStream;
@@ -119,8 +119,7 @@ public class CheckArchiveUnitSchemaActionPluginTest {
     private List<IOParameter> out;
     private List<IOParameter> in;
 
-    private CheckArchiveUnitSchemaActionPlugin plugin = new CheckArchiveUnitSchemaActionPlugin();
-
+    private CheckArchiveUnitSchemaActionPlugin plugin;
 
     private HandlerIOImpl action;
     private GUID guid = GUIDFactory.newGUID();
@@ -163,6 +162,8 @@ public class CheckArchiveUnitSchemaActionPluginTest {
         logbookLifeCyclesClientFactory = mock(LogbookLifeCyclesClientFactory.class);
         when(logbookLifeCyclesClientFactory.getClient()).thenReturn(logbookLifeCyclesClient);
 
+        UnitValidator unitValidator = new UnitValidator(null, null);
+        plugin = new CheckArchiveUnitSchemaActionPlugin(unitValidator);
 
         String objectId = "objectId";
         action = new HandlerIOImpl(workspaceClientFactory, logbookLifeCyclesClientFactory, guid.getId(), "workerId",
@@ -177,7 +178,8 @@ public class CheckArchiveUnitSchemaActionPluginTest {
         in.add(new IOParameter().setUri(new ProcessingUri(UriPrefix.WORKSPACE, "Ontology/ontology.json")));
 
         when(workspaceClient.getObject(any(), eq("Ontology/ontology.json")))
-            .thenReturn(Response.status(Status.OK).entity(new ByteArrayInputStream("[]".getBytes())).build());
+            .thenReturn(Response.status(Status.OK)
+                .entity(PropertiesUtils.getResourceAsStream("ontology.json")).build());
         action.addInIOParameters(in);
 
         File tempFolder = temporaryFolder.newFolder();
@@ -242,8 +244,8 @@ public class CheckArchiveUnitSchemaActionPluginTest {
             .thenReturn(Response.status(Status.OK).entity(archiveUnitInvalid).build());
         final ItemStatus response = plugin.execute(params, action);
         assertEquals(response.getGlobalStatus(), StatusCode.KO);
-        assertThat(response.getGlobalOutcomeDetailSubcode()).isEqualTo(
-            CheckArchiveUnitSchemaActionPlugin.CheckUnitSchemaStatus.INVALID_UNIT.name());
+        assertEquals(response.getItemId(), "CHECK_UNIT_SCHEMA");
+        assertEquals(response.getItemsStatus().get("CHECK_UNIT_SCHEMA").getItemId(), "ONTOLOGY_VALIDATION");
     }
 
     @Test
@@ -263,11 +265,8 @@ public class CheckArchiveUnitSchemaActionPluginTest {
         when(workspaceClient.getObject(any(), eq("Units/archiveUnit.json")))
             .thenReturn(Response.status(Status.OK).entity(archiveUnitInvalidXml).build());
         final ItemStatus response = plugin.execute(params, action);
-        assertEquals(response.getGlobalStatus(), StatusCode.KO);
-        assertTrue(response.getGlobalOutcomeDetailSubcode().equals(
-            CheckArchiveUnitSchemaActionPlugin.CheckUnitSchemaStatus.INVALID_UNIT.name()));
+        assertEquals(response.getGlobalStatus(), StatusCode.FATAL);
     }
-
 
     @Test
     public void givenInvalidDateArchiveUnitJsonWhenExecuteThenReturnResponseKO() throws Exception {
@@ -277,10 +276,9 @@ public class CheckArchiveUnitSchemaActionPluginTest {
             .thenReturn(Response.status(Status.OK).entity(archiveUnitInvalidDate).build());
         final ItemStatus response = plugin.execute(params, action);
         assertEquals(response.getGlobalStatus(), StatusCode.KO);
-        assertTrue(response.getGlobalOutcomeDetailSubcode().equals(
-            CheckArchiveUnitSchemaActionPlugin.CheckUnitSchemaStatus.RULE_DATE_FORMAT.name()));
+        assertEquals(response.getGlobalOutcomeDetailSubcode(),
+            CheckArchiveUnitSchemaActionPlugin.INVALID_UNIT);
     }
-
 
     @Test
     public void givenInvalidContentArchiveUnitJsonWhenExecuteThenReturnResponseKO() throws Exception {
@@ -289,8 +287,8 @@ public class CheckArchiveUnitSchemaActionPluginTest {
             .thenReturn(Response.status(Status.OK).entity(archiveUnitInvalidContent).build());
         final ItemStatus response = plugin.execute(params, action);
         assertEquals(response.getGlobalStatus(), StatusCode.KO);
-        assertThat(response.getGlobalOutcomeDetailSubcode())
-            .isEqualTo(CheckArchiveUnitSchemaActionPlugin.CheckUnitSchemaStatus.INVALID_UNIT.name());
+        assertEquals(response.getGlobalOutcomeDetailSubcode(),
+            CheckArchiveUnitSchemaActionPlugin.INVALID_UNIT);
     }
 
     @Test
@@ -300,8 +298,8 @@ public class CheckArchiveUnitSchemaActionPluginTest {
             .thenReturn(Response.status(Status.OK).entity(archiveUnitInvalidDescLevel).build());
         final ItemStatus response = plugin.execute(params, action);
         assertEquals(response.getGlobalStatus(), StatusCode.KO);
-        assertTrue(response.getGlobalOutcomeDetailSubcode().equals(
-            CheckArchiveUnitSchemaActionPlugin.CheckUnitSchemaStatus.INVALID_UNIT.name()));
+        assertEquals(response.getGlobalOutcomeDetailSubcode(),
+            CheckArchiveUnitSchemaActionPlugin.INVALID_UNIT);
     }
 
     @Test
@@ -311,8 +309,8 @@ public class CheckArchiveUnitSchemaActionPluginTest {
             .thenReturn(Response.status(Status.OK).entity(archiveUnitStartDateAfterEndDate).build());
         final ItemStatus response = plugin.execute(params, action);
         assertEquals(response.getGlobalStatus(), StatusCode.KO);
-        assertTrue(response.getGlobalOutcomeDetailSubcode().equals(
-            CheckArchiveUnitSchemaActionPlugin.CheckUnitSchemaStatus.CONSISTENCY.name()));
+        assertEquals(response.getGlobalOutcomeDetailSubcode(),
+            CheckArchiveUnitSchemaActionPlugin.CONSISTENCY);
     }
 
 }

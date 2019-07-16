@@ -104,9 +104,6 @@ import org.apache.commons.io.IOUtils;
  * format (xsd, rng)
  */
 public class ProfileServiceImpl implements ProfileService {
-    private static final String PROFILE_SERVICE_ERROR = "Profile service Error";
-
-    private static final String FUNCTIONAL_MODULE_PROFILE = "FunctionalModule-Profile";
 
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(ProfileServiceImpl.class);
 

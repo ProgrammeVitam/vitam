@@ -26,24 +26,22 @@
  *******************************************************************************/
 package fr.gouv.vitam.common.dsl.schema;
 
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.junit.Assert.fail;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import fr.gouv.vitam.common.PropertiesUtils;
+import fr.gouv.vitam.common.dsl.schema.meta.Format;
+import fr.gouv.vitam.common.dsl.schema.meta.Schema;
+import fr.gouv.vitam.common.exception.InvalidParseOperationException;
+import fr.gouv.vitam.common.json.JsonHandler;
+import org.junit.Test;
 
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 
-import org.junit.Test;
-
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
-
-import fr.gouv.vitam.common.PropertiesUtils;
-import fr.gouv.vitam.common.dsl.schema.meta.Schema;
-import fr.gouv.vitam.common.dsl.schema.meta.Format;
-import fr.gouv.vitam.common.exception.InvalidParseOperationException;
-import fr.gouv.vitam.common.json.JsonHandler;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.junit.Assert.fail;
 
 /**
  * Tests of update by id schema for Metadata, Masterdata and logbook DSL query
@@ -54,7 +52,7 @@ public class ValidatorUpdateByIdQueryTest {
     private Schema loadSchema(ObjectMapper objectMapper, File dslSource)
         throws IOException, InvalidParseOperationException {
         try (InputStream inputStream = new FileInputStream(dslSource)) {
-            final Schema schema = Schema.withMapper(objectMapper).loadTypes(inputStream).build();
+            final Schema schema = Schema.getSchema().loadTypes(inputStream).build();
             Format dslType = schema.getType("DSL");
             System.out.println(dslType.toString());
             Format actionType = schema.getType("ACTION");

@@ -35,6 +35,7 @@ import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.RequestResponseOK;
+import fr.gouv.vitam.common.xml.XMLInputFactoryUtils;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 import fr.gouv.vitam.processing.common.parameter.WorkerParametersFactory;
@@ -158,7 +159,7 @@ public class SedaUtilsTest {
     @Test
     public void givenManifestWhenGetInfoThenGetVersionList()
         throws Exception {
-        final XMLInputFactory factory = XMLInputFactory.newInstance();
+        final XMLInputFactory factory = XMLInputFactoryUtils.newInstance();
         final XMLEventReader evenReader = factory.createXMLEventReader(
             new FileReader(PropertiesUtils.getResourcePath("sip.xml").toString()));
         Map<String, List<DataObjectInfo>> versionList;
@@ -180,7 +181,7 @@ public class SedaUtilsTest {
     @Test
     public void givenCompareVersionList() throws Exception {
 
-        final XMLInputFactory factory = XMLInputFactory.newInstance();
+        final XMLInputFactory factory = XMLInputFactoryUtils.newInstance();
 
         XMLEventReader evenReader = factory.createXMLEventReader(new FileReader("src/test/resources/sip.xml"));
         Map<String, Map<String, String>> versionMap = utils.compareVersionList(evenReader);
@@ -294,6 +295,15 @@ public class SedaUtilsTest {
         when(handlerIO.getUriList(any(), any())).thenReturn(listUri);
         final CheckSedaValidationStatus status = utils.checkSedaValidation(params, new ItemStatus());
         assertTrue(CheckSedaValidationStatus.MORE_THAN_ONE_FOLDER_CONTENT.equals(status));
+    }
+
+
+    @Test(expected = SedaUtilsException.class)
+    public void givenWrongAlgorithThenReturnInvalidAlgo() throws Exception {
+
+        final XMLInputFactory factory = XMLInputFactoryUtils.newInstance();
+            XMLEventReader evenReader = factory.createXMLEventReader(new FileReader("src/test/resources/SIP_mauvais_algorithm_sha512.xml"));
+        Map<String, Map<String, String>> versionMap = utils.compareVersionList(evenReader);
     }
 
 }

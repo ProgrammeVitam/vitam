@@ -37,7 +37,9 @@ public enum OntologyType {
     LONG ("LONG", false),
     DOUBLE ("DOUBLE", false),
     BOOLEAN ("BOOLEAN", false),
+    @Deprecated
     GEO_POINT ("GEO_POINT", false),
+    @Deprecated
     ENUM ("ENUM", false);
 
     private String type;

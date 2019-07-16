@@ -56,6 +56,7 @@ import fr.gouv.vitam.common.database.builder.request.multiple.SelectMultiQuery;
 import fr.gouv.vitam.common.database.parser.request.multiple.SelectParserMultiple;
 import fr.gouv.vitam.common.exception.InvalidGuidOperationException;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
+import fr.gouv.vitam.common.exception.VitamRuntimeException;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.guid.GUIDReader;
 import fr.gouv.vitam.common.json.JsonHandler;
@@ -102,6 +103,7 @@ import fr.gouv.vitam.processing.common.exception.ProcessingMalformedDataExceptio
 import fr.gouv.vitam.processing.common.exception.ProcessingManifestReferenceException;
 import fr.gouv.vitam.processing.common.exception.ProcessingNotFoundException;
 import fr.gouv.vitam.processing.common.exception.ProcessingObjectGroupLinkingException;
+import fr.gouv.vitam.processing.common.exception.ProcessingObjectReferenceException;
 import fr.gouv.vitam.processing.common.exception.ProcessingTooManyUnitsFoundException;
 import fr.gouv.vitam.processing.common.exception.ProcessingUnitLinkingException;
 import fr.gouv.vitam.worker.common.HandlerIO;
@@ -319,8 +321,8 @@ public class ArchiveUnitListener extends Unmarshaller.Listener {
             ArchiveUnitRoot archiveUnitRoot;
             try {
                 archiveUnitRoot = archiveUnitMapper.map(archiveUnitType, elementGUID, groupId);
-            } catch (ProcessingMalformedDataException e) {
-                throw new RuntimeException(e);
+            } catch (ProcessingMalformedDataException | ProcessingObjectReferenceException e) {
+                throw new VitamRuntimeException(e);
             }
 
             DescriptiveMetadataModel descriptiveMetadataModel =

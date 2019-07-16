@@ -49,7 +49,7 @@ public class ValidatorReclassificationQueryTest {
     private Schema loadSchema(ObjectMapper objectMapper, File dslSource)
         throws Exception {
         try (InputStream inputStream = new FileInputStream(dslSource)) {
-            final Schema schema = Schema.withMapper(objectMapper).loadTypes(inputStream).build();
+            final Schema schema = Schema.getSchema().loadTypes(inputStream).build();
             Format dslType = schema.getType("DSL");
             System.out.println(dslType.toString());
             Format actionType = schema.getType("ACTION");
