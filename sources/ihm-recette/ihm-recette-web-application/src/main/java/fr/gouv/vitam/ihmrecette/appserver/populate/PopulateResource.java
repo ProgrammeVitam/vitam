@@ -55,9 +55,9 @@ public class PopulateResource {
     @Path("/objects/export")
     @POST
     @Consumes(MediaType.APPLICATION_JSON)
-    public void exportData(Integer tenant, String objectId, DataCategory dataCategory) {
+    public void exportData(Integer tenant, String strategyId, String objectId, DataCategory dataCategory) {
 
-        populateService.exportDataFromOffer(tenant, objectId, dataCategory);
+        populateService.exportDataFromOffer(tenant, strategyId, objectId, dataCategory);
     }
 
     /**

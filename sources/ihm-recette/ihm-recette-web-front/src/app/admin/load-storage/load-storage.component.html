@@ -8,9 +8,19 @@
       </div>
     </div>
     <div class="ui-g-12">
+      <div class="ui-g-4">Sur quelle Stratégie: </div>
+      <div class="ui-g-4">
+        <p-dropdown [options]="strategyList" [(ngModel)]="selectedStrategy"
+                    [style.width]="'100%'" placeholder="Sélectionner une stratégie" (onChange)="selectStrategy()">
+        </p-dropdown>
+      </div>
+    </div>
+    <div class="ui-g-12">
       <div class="ui-g-4">Sur quel Offre: </div>
-      <div class="ui-g-4 ui-g-nopad">
-        <input id="offerId" class="fs-1-1em" size="45" pInputText [(ngModel)]="offerId" placeholder="Identifiant de l'offre"/>
+      <div class="ui-g-4">
+        <p-dropdown id="offerId" [options]="offerList" [(ngModel)]="offerId"
+                    [style.width]="'100%'" placeholder="Sélectionner une offre">
+        </p-dropdown>
       </div>
     </div>
     <div class="ui-g-12">

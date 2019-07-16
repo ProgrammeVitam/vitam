@@ -10,16 +10,16 @@ export class LoadStorageService {
 
   constructor(public resourcesService: ResourcesService) { }
 
-  download(fileName, category, offerId): Observable<any> {
-    return this.resourcesService.get(`${this.DOWNLOAD_API}/${offerId}/${category}/${fileName}`, null, 'blob');
+  download(fileName, category, strategyId, offerId): Observable<any> {
+    return this.resourcesService.get(`${this.DOWNLOAD_API}/${strategyId}/${offerId}/${category}/${fileName}`, null, 'blob');
   }
 
-  uploadFile(newFile, fileName, size,category,offerId): Observable<any> {
-    return this.resourcesService.post(`${this.UPLOAD_API}/${category}/${offerId}/${fileName}/${size}`, null, newFile)
+  uploadFile(newFile, fileName, size, category, strategyId ,offerId): Observable<any> {
+    return this.resourcesService.post(`${this.UPLOAD_API}/${category}/${strategyId}/${offerId}/${fileName}/${size}`, null, newFile)
   }
 
-  delete(fileName, category, offerId): Observable<any> {
-    return this.resourcesService.delete(`${this.DELETE_API}/${category}/${offerId}/${fileName}`, null)
+  delete(fileName, category, strategyId, offerId): Observable<any> {
+    return this.resourcesService.delete(`${this.DELETE_API}/${category}/${strategyId}/${offerId}/${fileName}`, null)
   }
 
 }

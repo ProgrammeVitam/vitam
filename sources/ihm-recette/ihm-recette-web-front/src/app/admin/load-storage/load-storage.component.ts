@@ -1,4 +1,5 @@
 import { Component } from '@angular/core';
+import {HttpHeaders} from '@angular/common/http';
 import {SelectItem} from 'primeng/api';
 import {ResourcesService} from '../../common/resources.service';
 import {LoadStorageService} from './load-storage.service';
@@ -9,7 +10,7 @@ import {BreadcrumbElement, BreadcrumbService} from '../../common/breadcrumb.serv
 import {Title} from '@angular/platform-browser';
 
 class FileData {
-  constructor(public file: string, public category: string,offerId:String ) { }
+  constructor(public file: string, public category: string, strategyId:String, offerId:String ) { }
 }
 
 const breadcrumb: BreadcrumbElement[] = [
@@ -25,6 +26,7 @@ const breadcrumb: BreadcrumbElement[] = [
 export class LoadStorageComponent extends PageComponent {
   error = false;
   fileName: string;
+  strategyId: string;
   offerId: string;
   category: string;
   tenant: string = this.resourcesService.getTenant();
@@ -41,6 +43,10 @@ export class LoadStorageComponent extends PageComponent {
   displayErrorImport = false;
   displaySuccessImport = false;
 
+  selectedStrategy: any = {};
+
+  strategyList: Array<SelectItem>;
+  offerList: Array<SelectItem>;
   categoryOptions: SelectItem[] = [
     { label: 'Unités Archivistiques', value: 'UNIT' },
     { label: 'Objet binaires', value: 'OBJECT' },
@@ -55,23 +61,46 @@ export class LoadStorageComponent extends PageComponent {
   pageOnInit() {
     return this.tenantService.getState().subscribe((value) => {
       this.tenant = value;
+      if (this.tenant) {
+        this.getStrategies();
+      }
       this.dataState = 'KO';
       delete this.savedData;
     });
   }
 
+  getStrategies() {
+    return this.resourcesService.get("strategies",new HttpHeaders().set('X-Tenant-Id', this.tenant)).subscribe(
+      (response) => {
+        this.strategyList = response.map(
+          (strategy) => {
+            return {label: strategy.id, value: strategy}
+          }
+        );
+      }
+    )
+  }
+
+  selectStrategy(){
+    this.strategyId = this.selectedStrategy.id;
+    this.offerList = this.selectedStrategy.offers.map(
+      (offer) => {
+        return {label: offer.id, value: offer.id}
+      });
+  }
+
   getObject() {
 
-    if (!this.fileName || !this.category || !this.tenant|| !this.offerId) {
+    if (!this.fileName || !this.category || !this.tenant || !this.strategyId || !this.offerId) {
       this.error = true;
       return;
     }
 
     this.dataState = 'RUNNING';
 
-    this.savedData = new FileData(this.fileName, this.category,this.offerId);
+    this.savedData = new FileData(this.fileName, this.category, this.strategyId, this.offerId);
 
-    this.loadStorageService.download(this.fileName, this.category, this.offerId).subscribe(
+    this.loadStorageService.download(this.fileName, this.category, this.strategyId, this.offerId).subscribe(
       (response) => {
         if(response.status === 202) {
             // asynchronous download
@@ -95,12 +124,12 @@ export class LoadStorageComponent extends PageComponent {
   }
   deleteObject() {
 
-    if (!this.fileName || !this.category || !this.tenant|| !this.offerId) {
+    if (!this.fileName || !this.category || !this.tenant || !this.strategyId || !this.offerId) {
       this.error = true;
       return;
     }
 
-    this.loadStorageService.delete(this.fileName, this.category,this.offerId).subscribe(
+    this.loadStorageService.delete(this.fileName, this.category, this.strategyId, this.offerId).subscribe(
       (response) => {
 
           this.displayMessageDelete = true;
@@ -131,7 +160,7 @@ export class LoadStorageComponent extends PageComponent {
 
   uploadFile() {
 
-    this.loadStorageService.uploadFile(this.fileUpload, this.fileName,this.fileUpload.size, this.category, this.offerId).subscribe(
+    this.loadStorageService.uploadFile(this.fileUpload, this.fileName,this.fileUpload.size, this.category, this.strategyId, this.offerId).subscribe(
       (response) => {
         delete this.fileUpload;
         this.displaySuccessImport = true;

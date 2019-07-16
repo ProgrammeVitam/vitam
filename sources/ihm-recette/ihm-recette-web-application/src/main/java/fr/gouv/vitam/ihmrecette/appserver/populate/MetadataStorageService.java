@@ -30,6 +30,7 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
@@ -49,6 +50,7 @@ import fr.gouv.vitam.common.thread.VitamThreadFactory;
 import fr.gouv.vitam.storage.engine.common.exception.StorageException;
 import fr.gouv.vitam.storage.engine.common.model.DataCategory;
 import fr.gouv.vitam.storage.engine.common.referential.model.StorageOffer;
+import fr.gouv.vitam.storage.engine.common.referential.model.StorageStrategy;
 
 /**
  * Handles metadata backup for populate service
@@ -154,11 +156,10 @@ public class MetadataStorageService {
         }
     }
 
-    public void exportData(Integer tenant, String objectId, DataCategory dataCategory) {
+    public void exportData(Integer tenant, String strategyId, String objectId, DataCategory dataCategory) {
 
         try {
-            storagePopulateService.exportData(VitamConfiguration.getDefaultStrategy(),
-                    objectId, dataCategory, tenant);
+            storagePopulateService.exportData(strategyId, objectId, dataCategory, tenant);
 
         } catch (IOException | StorageException e) {
             LOGGER.error("Could not export data from offer", e);
@@ -167,5 +168,9 @@ public class MetadataStorageService {
 
     public StorageOffer getOffer(String offerId) throws StorageException {
         return storagePopulateService.getOffer(offerId);
+    }
+
+    public Collection<StorageStrategy> getStrategies() throws StorageException {
+        return storagePopulateService.getStrategies();
     }
 }

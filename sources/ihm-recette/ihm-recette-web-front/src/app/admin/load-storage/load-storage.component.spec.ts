@@ -30,10 +30,12 @@ const BreadcrumbServiceStub = {
 const cookies = {'tenant': 0};
 const ResourcesServiceStub = {
   getTenants: () => Observable.of(['0', '1', '2']),
-  getTenant: () => cookies['tenant']
+  getTenant: () => cookies['tenant'],
+  get: (url, header?: Headers) => Observable.of([{'id':'default', 'offers':[{'id':'offer1'}]}])
+
 };
 
-const TeantServiceStub = {
+const TenantServiceStub = {
   changeState:  (myChange: string) => Observable.of('OK'),
   getState: () => Observable.of('OK')
 };
@@ -51,7 +53,7 @@ describe('LoadStorageComponent', () => {
         { provide: LoadStorageService, useValue: LoadStorageServiceStub },
         { provide: BreadcrumbService, useValue: BreadcrumbServiceStub },
         { provide: ResourcesService, useValue: ResourcesServiceStub },
-        { provide: TenantService, useValue: TeantServiceStub }
+        { provide: TenantService, useValue: TenantServiceStub }
       ],
       imports: [
         RouterTestingModule.withRoutes([

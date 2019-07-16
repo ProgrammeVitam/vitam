@@ -38,6 +38,7 @@ import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.storage.engine.common.exception.StorageException;
 import fr.gouv.vitam.storage.engine.common.model.DataCategory;
 import fr.gouv.vitam.storage.engine.common.referential.model.StorageOffer;
+import fr.gouv.vitam.storage.engine.common.referential.model.StorageStrategy;
 import io.reactivex.Flowable;
 import io.reactivex.Scheduler;
 import io.reactivex.schedulers.Schedulers;
@@ -47,6 +48,7 @@ import org.bson.Document;
 import java.io.File;
 import java.io.IOException;
 import java.io.RandomAccessFile;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -176,12 +178,16 @@ public class PopulateService {
             });
     }
 
-    public void exportDataFromOffer(Integer tenant, String objectId, DataCategory dataCategory) {
-        metadataStorageService.exportData(tenant, objectId, dataCategory);
+    public void exportDataFromOffer(Integer tenant, String strategyId, String objectId, DataCategory dataCategory) {
+        metadataStorageService.exportData(tenant, strategyId, objectId, dataCategory);
     }
 
     public StorageOffer getOffer(String offerId) throws StorageException {
         return metadataStorageService.getOffer(offerId);
+    }
+    
+    public Collection<StorageStrategy> getStrategies() throws StorageException {
+        return metadataStorageService.getStrategies();
     }
 
     private boolean bulkPersist(PopulateModel populateModel, List<UnitGotModel> unitGotList) {
