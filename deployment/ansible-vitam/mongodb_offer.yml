@@ -17,6 +17,7 @@
     - { role: mongoc, when: "inventory_hostname != 'localhost'" }
   vars:
     mongo_bin: mongod
+    mongod: "hosts-mongod-offer"
     group_name: "hosts-mongoc-offer"
 
 # Mongod replicas configuration
@@ -26,6 +27,7 @@
     - { role: mongod, when: "inventory_hostname != 'localhost'" }
   vars:
     mongo_bin: mongod
+    mongoc: "hosts-mongoc-offer"
     group_name: "hosts-mongod-offer"
 
 # Mongos configuration

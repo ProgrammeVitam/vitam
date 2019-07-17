@@ -1,0 +1,56 @@
+// PreRestore
+//===========
+// Start all mongoc as a simple mongod without --configsvr nor --replSet
+// For more information @see https://docs.mongodb.com/manual/tutorial/restore-sharded-cluster/
+// In Mongo Config instance Only
+
+use admin
+
+// Authenticate as root user
+db.auth("{{ mongodb[mongo_cluster_name].admin.user }}", "{{ mongodb[mongo_cluster_name].admin.password }}")
+
+// Create system user
+db.createUser({user: "{{ mongodb[mongo_cluster_name].system.user }}", pwd: "{{ mongodb[mongo_cluster_name].system.password }}", roles: [ "__system" ]})
+
+// Authenticate as system user
+db.auth("{{ mongodb[mongo_cluster_name].system.user }}", "{{ mongodb[mongo_cluster_name].system.password }}")
+
+
+// Drop local data base
+use local
+db.dropDatabase()
+
+// Remove system user
+use admin
+// Authenticate as root user
+db.auth("{{ mongodb[mongo_cluster_name].admin.user }}","{{ mongodb[mongo_cluster_name].admin.password }}")
+db.removeUser("{{ mongodb[mongo_cluster_name].system.user }}")
+
+// For each mongoc instance
+use config
+
+var aMap = {};
+function addValueToKey(key, value) {
+    aMap[key] = aMap[key] || [];
+    aMap[key].push(value);
+}
+
+
+// Loop over all shard and get corresponding information
+{% for host in groups[mongod] %}
+    {% if hostvars[host]['mongo_shard_id'] is defined %}
+    {% if mongo_cluster_name == hostvars[host]['mongo_cluster_name'] %}
+addValueToKey("shard{{ hostvars[host]['mongo_shard_id'] }}", "{{ hostvars[host]['ip_service'] }}:{{ mongodb.mongod_port }}")
+    {% endif %}
+    {% endif %}
+{% endfor %}
+
+
+Object.keys(aMap).forEach(key => db.shards.updateOne({ "_id" : key},  { $set : { "host" : key + "/" + aMap[key].join(",")}}))
+
+// PostRestore
+//===========
+// Start all mongoc with --configsvr and --replSet corresponding the configuration 
+// Init replicatSet rs.initiate() on a given mongoc instance
+// Should waite until election of a primary mongoc instance
+

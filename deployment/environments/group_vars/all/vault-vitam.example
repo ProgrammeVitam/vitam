@@ -16,6 +16,9 @@ mongodb:
     localadmin:
       user: vitamdb-localadmin
       password: change_it_HycFEVD74g397iRe
+    system:
+      user: vitamdb-system
+      password: change_it_HycFEVD74g397iRe
     metadata:
       user: metadata
       password: change_it_37b97KVaDV8YbCwt

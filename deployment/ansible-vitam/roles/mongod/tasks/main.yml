@@ -146,6 +146,16 @@
       tags:
         - update_mongodb_configuration
 
+    - name: Copy script that restore configuration of mongod sharded cluster
+      template:
+        src: "restore-mongod.js.j2"
+        dest: "{{ vitam_defaults.folder.root_path }}/app/mongod/restore-mongod.js"
+        owner: "{{ vitam_defaults.users.vitamdb }}"
+        group: "{{ vitam_defaults.users.group }}"
+        mode: "{{ vitam_defaults.folder.conf_permission }}"
+      tags:
+        - update_mongodb_configuration
+
     - name: Initiate the replica set
       command: mongo --host {{ ip_service }} --port {{ mongodb.mongod_port }} {{ vitam_defaults.folder.root_path }}/app/mongod/init-replica.js
       tags:

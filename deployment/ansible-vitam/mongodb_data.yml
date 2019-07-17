@@ -4,7 +4,7 @@
 - hosts: hosts-mongodb-data
   any_errors_fatal: true
   roles:
-  - mongo_common
+    - mongo_common
 
 # Mongoc replicas configuration
 - hosts: hosts-mongoc-data
@@ -13,6 +13,7 @@
     - mongoc
   vars:
     mongo_bin: mongod
+    mongod: "hosts-mongod-data"
     group_name: "hosts-mongoc-data"
 
 # Mongod replicas configuration
@@ -22,6 +23,7 @@
     - mongod
   vars:
     mongo_bin: mongod
+    mongoc: "hosts-mongoc-data"
     group_name: "hosts-mongod-data"
 
 # Mongos configuration

@@ -142,6 +142,16 @@
       tags:
         - update_mongodb_configuration
 
+    - name: Copy script that restore configuration of mongoc replicaSet
+      template:
+        src: "restore-mongoc.js.j2"
+        dest: "{{ vitam_defaults.folder.root_path }}/app/mongoc/restore-mongoc.js"
+        owner: "{{ vitam_defaults.users.vitamdb }}"
+        group: "{{ vitam_defaults.users.group }}"
+        mode: "{{ vitam_defaults.folder.conf_permission }}"
+      tags:
+        - update_mongodb_configuration
+
     - name: Initiate the replica set
       command: mongo --host {{ ip_service }} --port {{ mongodb.mongoc_port }} {{ vitam_defaults.folder.root_path }}/app/mongoc/init-replica-config.js
       tags:
