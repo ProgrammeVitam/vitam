@@ -53,6 +53,42 @@
               }
             ]
           }
+        },
+        {
+          "action": {
+            "actionKey": "COMPUTE_INHERITED_RULES_PROGENY_IDENTIFIER",
+            "behavior": "BLOCKING",
+            "in": [
+              {
+                "name": "units_to_update",
+                "uri": "WORKSPACE:massUpdateUnits/unitsToUpdate.jsonl"
+              }
+            ],
+            "out": [
+              {
+                "name": "units_to_invalidate",
+                "uri": "WORKSPACE:massUpdateUnits/unitsToInvalidate.jsonl"
+              }
+            ],
+            "lifecycleLog": "DISABLED"
+          }
+        }
+      ]
+    },
+    {
+      "workerGroupId": "DefaultWorker",
+      "stepName": "STP_INVALIDATE",
+      "behavior": "BLOCKING",
+      "distribution": {
+        "kind": "LIST_IN_JSONL_FILE",
+        "element": "massUpdateUnits/unitsToInvalidate.jsonl"
+      },
+      "actions": [
+        {
+          "action": {
+            "actionKey": "COMPUTE_INHERITED_RULES_INVALIDATOR",
+            "behavior": "BLOCKING"
+          }
         }
       ]
     },

@@ -45,6 +45,7 @@ import static fr.gouv.vitam.common.database.builder.request.configuration.Builde
 import static fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.PROJECTIONARGS.ID;
 import static fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.PROJECTIONARGS.IMPLEMENTATIONVERSION;
 import static fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.PROJECTIONARGS.INITIAL_OPERATION;
+import static fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.PROJECTIONARGS.VALID_COMPUTED_INHERITED_RULES;
 import static fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.PROJECTIONARGS.LAST_PERSISTED_DATE;
 import static fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.PROJECTIONARGS.MANAGEMENT;
 import static fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.PROJECTIONARGS.MAX;
@@ -87,264 +88,264 @@ public class VitamFieldsHelper {
     /**
      * @return #id
      */
-    public static final String id() {
+    public static String id() {
         return ID.exactToken();
     }
 
     /**
      * @return #nbunits
      */
-    public static final String nbunits() {
+    public static String nbunits() {
         return NBUNITS.exactToken();
     }
 
     /**
      * @return #nbobjects
      */
-    public static final String nbobjects() {
+    public static String nbobjects() {
         return NBOBJECTS.exactToken();
     }
 
     /**
      * @return #nbc
      */
-    public static final String nbc() {
+    public static String nbc() {
         return NBCHILD.exactToken();
     }
 
     /**
      * @return #all
      */
-    public static final String all() {
+    public static String all() {
         return ALL.exactToken();
     }
 
     /**
      * @return #size
      */
-    public static final String size() {
+    public static String size() {
         return SIZE.exactToken();
     }
 
     /**
      * @return #format
      */
-    public static final String format() {
+    public static String format() {
         return FORMAT.exactToken();
     }
 
     /**
      * @return #type
      */
-    public static final String type() {
+    public static String type() {
         return TYPE.exactToken();
     }
 
     /**
      * @return #tenant
      */
-    public static final String tenant() {
+    public static String tenant() {
         return TENANT.exactToken();
     }
 
     /**
      * @return #dua
      */
-    public static final String dua() {
+    public static String dua() {
         return DUA.exactToken();
     }
 
     /**
      * @return #units
      */
-    public static final String units() {
+    public static String units() {
         return UNITS.exactToken();
     }
 
     /**
      * @return #objectgroups
      */
-    public static final String objectgroups() {
+    public static String objectgroups() {
         return OBJECTGROUPS.exactToken();
     }
 
     /**
      * @return #cache
      */
-    public static final String cache() {
+    public static String cache() {
         return CACHE.exactToken();
     }
 
     /**
      * @return #nocache
      */
-    public static final String nocache() {
+    public static String nocache() {
         return NOCACHE.exactToken();
     }
 
     /**
      * @return #qualifiers
      */
-    public static final String qualifiers() {
+    public static String qualifiers() {
         return QUALIFIERS.exactToken();
     }
 
     /**
      * @return #object
      */
-    public static final String object() {
+    public static String object() {
         return OBJECT.exactToken();
     }
 
     /**
      * @return #unitups
      */
-    public static final String unitups() {
+    public static String unitups() {
         return UNITUPS.exactToken();
     }
 
     /**
      * @return #allunitups
      */
-    public static final String allunitups() {
+    public static String allunitups() {
         return ALLUNITUPS.exactToken();
     }
 
     /**
      * @return #min
      */
-    public static final String min() {
+    public static String min() {
         return MIN.exactToken();
     }
 
     /**
      * @return #max
      */
-    public static final String max() {
+    public static String max() {
         return MAX.exactToken();
     }
 
     /**
      * @return #max
      */
-    public static final String uds() {
+    public static String uds() {
         return PARENTS.exactToken();
     }
 
     /**
      * @return #graph
      */
-    public static final String graph() {
+    public static String graph() {
         return GRAPH.exactToken();
     }
 
     /**
      * @return #graph_last_persisted_date
      */
-    public static final String graph_last_persisted_date() {
+    public static String graph_last_persisted_date() {
         return GRAPH_LAST_PERSISTED_DATE.exactToken();
     }
 
     /**
      * @return #management
      */
-    public static final String management() {
+    public static String management() {
         return MANAGEMENT.exactToken();
     }
 
     /**
      * @return #operations
      */
-    public static final String operations() {
+    public static String operations() {
         return OPERATIONS.exactToken();
     }
 
     /**
      * @return #unitType
      */
-    public static final String unitType() {
+    public static String unitType() {
         return UNITTYPE.exactToken();
     }
 
     /**
      * @return #originating_agency
      */
-    public static final String originatingAgency() {
+    public static String originatingAgency() {
         return ORIGINATING_AGENCY.exactToken();
     }
 
     /**
      * @return #originating_agencies
      */
-    public static final String originatingAgencies() {
+    public static String originatingAgencies() {
         return ORIGINATING_AGENCIES.exactToken();
     }
 
     /**
      * @return #parent_originating_agencies
      */
-    public static final String parentOriginatingAgencies() {
+    public static String parentOriginatingAgencies() {
         return PARENT_ORIGINATING_AGENCIES.exactToken();
     }
 
     /**
      * @return #version
      */
-    public static final String version() {
+    public static String version() {
         return VERSION.exactToken();
     }
 
     /**
      * @return #storage
      */
-    public static final String storage() {
+    public static String storage() {
         return STORAGE.exactToken();
     }
 
     /**
      * @return #usage
      */
-    public static final String usage() {
+    public static String usage() {
         return USAGE.exactToken();
     }
 
     /**
      * @return #score
      */
-    public static final String score() {
+    public static String score() {
         return SCORE.exactToken();
     }
 
     /**
      * @return #lastPersistedDate
      */
-    public static final String lastPersistedDate() {
+    public static String lastPersistedDate() {
         return LAST_PERSISTED_DATE.exactToken();
     }
 
     /**
      * @return #opi
      */
-    public static final String initialOperation() {
+    public static String initialOperation() {
         return INITIAL_OPERATION.exactToken();
     }
 
     /**
      * @return #history
      */
-    public static final String history() {
+    public static String history() {
         return HISTORY.exactToken();
     }
     /**
      * @return #version
      */
-    public static final String sedaVersion() {
+    public static String sedaVersion() {
         return SEDAVERSION.exactToken();
     }
     /**
      * @return #version
      */
-    public static final String implementationVersion() {
+    public static String implementationVersion() {
         return IMPLEMENTATIONVERSION.exactToken();
     }
 
@@ -352,16 +353,18 @@ public class VitamFieldsHelper {
         return COMPUTED_INHERITED_RULES.exactToken();
     }
 
+    public static String validComputedInheritedRules() { return VALID_COMPUTED_INHERITED_RULES.exactToken(); }
+
 
 
     /**
      * @return #elimination
      */
-    public static final String elimination() {
+    public static String elimination() {
         return ELIMINATION.exactToken();
     }
 
-    public static final JsonNode removeHash(JsonNode jsonNode) {
+    public static JsonNode removeHash(JsonNode jsonNode) {
         ObjectNode objectNode = (ObjectNode) jsonNode;
         JsonNode hashId = objectNode.remove(VitamFieldsHelper.id());
         if (hashId != null) {

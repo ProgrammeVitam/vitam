@@ -24,8 +24,9 @@
 127.0.0.1       ihm-recette.service.consul
 127.0.0.1       offer.service.consul
 127.0.0.1       ihm-demo.service.consul
-127.0.0.1	worker.service.consul
-127.0.0.1	security-internal.service.consul
+127.0.0.1       worker.service.consul
+127.0.0.1       security-internal.service.consul
+127.0.0.1       batch-report.service.consul
 127.0.0.1       offer-fs-1.service.consul' > /etc/hosts`
 
 Should be usefull: Add 'export VITAMDEV_GIT_REPO=/path/to/git/vitam/repo' in .bashrc before launch run_cots

@@ -28,3 +28,5 @@ report.json
 proxy.conf.json
 **styles.css.map
 vitam-griffins
+.directory
+.gitignore

@@ -51,11 +51,11 @@ public class MongoDbMetadataResponseFilter {
      * @param document  the document to update
      * @param fieldName the field to remove
      */
-    private static final void remove(Document document, String fieldName) {
+    private static void remove(Document document, String fieldName) {
         document.remove(fieldName);
     }
 
-    private static final void replace(Document document, String originalFieldName, String targetFieldName) {
+    private static void replace(Document document, String originalFieldName, String targetFieldName) {
         final Object value = document.remove(originalFieldName);
         if (value != null) {
             document.append(targetFieldName, value);
@@ -68,10 +68,9 @@ public class MongoDbMetadataResponseFilter {
      *
      * @param document of type Document to be modified
      */
-    public static final void filterFinalResponse(MetadataDocument<?> document) {
+    static void filterFinalResponse(MetadataDocument<?> document) {
         final boolean isUnit = document instanceof Unit;
-        // Fix me change versions
-        // filterVersions(document);
+        // TODO Fix me change versions (??)
         for (final PROJECTIONARGS projection : ParserTokens.PROJECTIONARGS.values()) {
             switch (projection) {
                 case ID:
@@ -168,6 +167,9 @@ public class MongoDbMetadataResponseFilter {
                 case COMPUTEDINHERITEDRULES:
                     replace(document, Unit.COMPUTED_INHERITED_RULES, PROJECTIONARGS.COMPUTEDINHERITEDRULES.exactToken());
                     break;
+                case VALIDCOMPUTEDINHERITEDRULES:
+                    replace(document, Unit.VALID_COMPUTED_INHERITED_RULES, PROJECTIONARGS.VALIDCOMPUTEDINHERITEDRULES.exactToken());
+                    break;
                 case SEDAVERSION:
                     replace(document, MetadataDocument.SEDAVERSION, VitamFieldsHelper.sedaVersion());
                     break;
@@ -182,15 +184,15 @@ public class MongoDbMetadataResponseFilter {
         }
     }
 
-    private static final void filterStorage(MetadataDocument<?> document) {
+    private static void filterStorage(MetadataDocument<?> document) {
         if (document.get(ObjectGroup.STORAGE) != null) {
-            Object storage = ((Document) document).get(ObjectGroup.STORAGE);
+            Object storage = document.get(ObjectGroup.STORAGE);
             replace((Document) storage, MetadataDocument.NBCHILD, VitamFieldsHelper.nbc());
             replace(document, ObjectGroup.STORAGE, VitamFieldsHelper.storage());
         }
     }
 
-    private static final void filterQualifiers(MetadataDocument<?> document) {
+    private static void filterQualifiers(MetadataDocument<?> document) {
         if (document.get(MetadataDocument.QUALIFIERS) != null) {
             replace(document, MetadataDocument.QUALIFIERS, VitamFieldsHelper.qualifiers());
             for (Object qualifier : (List) document.get(VitamFieldsHelper.qualifiers())) {

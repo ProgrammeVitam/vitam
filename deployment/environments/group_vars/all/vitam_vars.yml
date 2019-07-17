@@ -493,6 +493,8 @@ vitam:
         consul_check_business: 10 # value in seconds
         consul_admin_check: 10 # value in seconds
         acceptableRequestTime: 60 # value in seconds
+        api_output_index_tenants: [0,1,2,3,4,5,6,7,8,9]
+        rules_index_tenants: [0,1,2,3,4,5,6,7,8,9]
 
         # Ontology cache settings (max entries in cache & retention timeout in seconds)
         ontologyCacheMaxEntries: 100

@@ -26,15 +26,14 @@
  *******************************************************************************/
 package fr.gouv.vitam.worker.core.plugin.computeinheritedrules.model;
 
-import java.util.ArrayList;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.JsonNode;
+import fr.gouv.vitam.common.exception.VitamRuntimeException;
+
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
-
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.databind.JsonNode;
-import fr.gouv.vitam.common.exception.VitamRuntimeException;
 
 /**
  * ComputedInheritedRules

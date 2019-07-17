@@ -47,15 +47,19 @@ import fr.gouv.vitam.batch.report.model.entry.UpdateUnitMetadataReportEntry;
 import fr.gouv.vitam.batch.report.rest.repository.AuditReportRepository;
 import fr.gouv.vitam.batch.report.rest.repository.EliminationActionObjectGroupRepository;
 import fr.gouv.vitam.batch.report.rest.repository.EliminationActionUnitRepository;
+import fr.gouv.vitam.batch.report.rest.repository.InvalidUnitsRepository;
 import fr.gouv.vitam.batch.report.rest.repository.PreservationReportRepository;
 import fr.gouv.vitam.batch.report.rest.repository.UpdateUnitReportRepository;
 import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
+import fr.gouv.vitam.common.exception.VitamRuntimeException;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.common.model.RequestResponse;
+import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.functional.administration.common.BackupService;
 import fr.gouv.vitam.functional.administration.common.exception.BackupServiceException;
 import fr.gouv.vitam.storage.engine.common.model.DataCategory;
@@ -75,6 +79,7 @@ import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.function.BiFunction;
@@ -95,8 +100,6 @@ public class BatchReportServiceImpl {
 
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(BatchReportServiceImpl.class);
     private static final String JSONL_EXTENSION = ".jsonl";
-    private static final String OPI_GOT = "opi_got";
-    private static final String STATUS = "status";
     private static final String REPORT_JSONL = "report.jsonl";
 
     private final EliminationActionUnitRepository eliminationActionUnitRepository;
@@ -104,6 +107,7 @@ public class BatchReportServiceImpl {
     private final PreservationReportRepository preservationReportRepository;
     private final UpdateUnitReportRepository updateUnitReportRepository;
     private final AuditReportRepository auditReportRepository;
+    private final InvalidUnitsRepository invalidUnitsRepository;
     private final WorkspaceClientFactory workspaceClientFactory;
     private final BackupService backupService;
 
@@ -112,7 +116,8 @@ public class BatchReportServiceImpl {
         WorkspaceClientFactory workspaceClientFactory,
         PreservationReportRepository preservationReportRepository,
         AuditReportRepository auditReportRepository,
-        UpdateUnitReportRepository updateUnitReportRepository) {
+        UpdateUnitReportRepository updateUnitReportRepository,
+        InvalidUnitsRepository invalidUnitsRepository) {
 
         this(
             eliminationActionUnitRepository,
@@ -121,7 +126,8 @@ public class BatchReportServiceImpl {
             new BackupService(),
             workspaceClientFactory,
             preservationReportRepository,
-            auditReportRepository
+            auditReportRepository,
+            invalidUnitsRepository
         );
     }
 
@@ -132,13 +138,15 @@ public class BatchReportServiceImpl {
         BackupService backupService,
         WorkspaceClientFactory workspaceClientFactory,
         PreservationReportRepository preservationReportRepository,
-        AuditReportRepository auditReportRepository) {
+        AuditReportRepository auditReportRepository,
+        InvalidUnitsRepository invalidUnitsRepository) {
         this.eliminationActionUnitRepository = eliminationActionUnitRepository;
         this.eliminationActionObjectGroupRepository = eliminationActionObjectGroupRepository;
         this.updateUnitReportRepository = updateUnitReportRepository;
         this.workspaceClientFactory = workspaceClientFactory;
         this.preservationReportRepository = preservationReportRepository;
         this.auditReportRepository = auditReportRepository;
+        this.invalidUnitsRepository = invalidUnitsRepository;
         this.backupService = backupService;
     }
 
@@ -163,20 +171,51 @@ public class BatchReportServiceImpl {
         eliminationActionObjectGroupRepository.bulkAppendReport(documents);
     }
 
-    public void appendPreservationReport(String processId, List<PreservationReportEntry> preservationEntries, int tenantId)
-        throws BatchReportException {
+    public void appendPreservationReport(String processId, List<PreservationReportEntry> preservationEntries, int tenantId) {
         List<PreservationReportEntry> documents = preservationEntries.stream()
             .map(preservationEntry -> checkValuesAndGetNewPreservationReportEntry(processId, tenantId, preservationEntry))
             .collect(Collectors.toList());
         preservationReportRepository.bulkAppendReport(documents);
     }
 
-    public void appendUnitReport(List<UpdateUnitMetadataReportEntry> unitEntries) throws BatchReportException {
+    public void appendUnitReport(List<UpdateUnitMetadataReportEntry> unitEntries) {
         updateUnitReportRepository.bulkAppendReport(unitEntries);
     }
 
-    private PreservationReportEntry checkValuesAndGetNewPreservationReportEntry(String processId, int tenantId, PreservationReportEntry entry)
-        throws BatchReportException {
+    public void appendUnitsProgeny(List<String> unitsId, String processId) {
+        invalidUnitsRepository.bulkAppendUnits(unitsId, processId);
+    }
+
+    public void deleteUnitsAndProgeny(String processId) {
+        invalidUnitsRepository.deleteUnitsAndProgeny(processId);
+    }
+
+    private List<String> findUnitsToInvalidate(String processId) {
+        MongoCursor<Document> units = invalidUnitsRepository.findUnitsByProcessId(processId);
+        List<String> unitsToInvalidate = new ArrayList<>();
+        while(units.hasNext()) {
+            Document unit = units.next();
+            unitsToInvalidate.add((String) unit.get("_id"));
+        }
+
+        return unitsToInvalidate;
+    }
+
+    public RequestResponse<JsonNode> findUnits(String processId) {
+        List<String> units = findUnitsToInvalidate(processId);
+        List<JsonNode> results = units.stream()
+            .map(u -> {
+                try {
+                    return JsonHandler.toJsonNode(u);
+                } catch (InvalidParseOperationException e) {
+                    throw new VitamRuntimeException(e);
+                }
+            })
+            .collect(Collectors.toList());
+        return new RequestResponseOK<JsonNode>().addAllResults(results);
+    }
+
+    private PreservationReportEntry checkValuesAndGetNewPreservationReportEntry(String processId, int tenantId, PreservationReportEntry entry) {
 
         checkIfPresent("UnitId", entry.getUnitId());
         checkIfPresent("ObjectGroupId", entry.getObjectGroupId());
@@ -202,8 +241,7 @@ public class BatchReportServiceImpl {
             entry.getPreservationScenarioId());
     }
 
-    public void appendAuditReport(String processId, List<AuditObjectGroupReportEntry> auditEntries, int tenantId)
-        throws BatchReportException {
+    public void appendAuditReport(String processId, List<AuditObjectGroupReportEntry> auditEntries, int tenantId) {
         List<AuditObjectGroupModel> documents = auditEntries.stream()
             .map(auditEntry -> checkValuesAndGetAuditObjectGroupModel(processId, tenantId, auditEntry))
             .collect(Collectors.toList());
@@ -224,7 +262,7 @@ public class BatchReportServiceImpl {
             LocalDateUtil.getFormattedDateForMongo(LocalDateUtil.now()), auditEntry, tenantId);
     }
 
-    private void checkIfPresent(String name, Object value) throws BatchReportException {
+    private void checkIfPresent(String name, Object value) {
         if (value == null) {
             throw new BatchReportException(String.format("field Name mandatory %s", name));
         }
@@ -239,7 +277,7 @@ public class BatchReportServiceImpl {
     }
 
     private void storeReport(String operationId, File report) throws IOException, BackupServiceException {
-        backupService.backup(new FileInputStream(report), DataCategory.REPORT, operationId + ".jsonl");
+        backupService.backup(new FileInputStream(report), DataCategory.REPORT, operationId + JSONL_EXTENSION);
     }
 
     private JsonNode getExtendedInfo(Report reportInfo) throws InvalidParseOperationException {
@@ -262,8 +300,7 @@ public class BatchReportServiceImpl {
         return new ReportResults();
     }
 
-    public void storeReport(Report reportInfo)
-        throws IllegalArgumentException, IOException, BackupServiceException, InvalidParseOperationException {
+    public void storeReport(Report reportInfo) throws IOException, BackupServiceException, InvalidParseOperationException {
 
         String processId = reportInfo.getOperationSummary().getEvId();
         Integer tenantId = reportInfo.getOperationSummary().getTenant();
@@ -312,7 +349,7 @@ public class BatchReportServiceImpl {
         storeReport(reportInfo.getOperationSummary().getEvId(), tempReport);
     }
 
-    public void exportEliminationActionObjectGroupReport(String processId, String fileName, int tenantId)
+    void exportEliminationActionObjectGroupReport(String processId, String fileName, int tenantId)
         throws InvalidParseOperationException, ContentAddressableStorageServerException, IOException {
 
         File tempFile = File.createTempFile(fileName, JSONL_EXTENSION, new File(VitamConfiguration.getVitamTmpFolder()));
@@ -345,7 +382,7 @@ public class BatchReportServiceImpl {
         try {
             return JsonHandler.getFromJsonNode(JsonHandler.toJsonNode(document), PreservationReportEntry.class);
         } catch (InvalidParseOperationException e) {
-            throw new RuntimeException(e);
+            throw new VitamRuntimeException(e);
         }
     }
 
@@ -368,7 +405,7 @@ public class BatchReportServiceImpl {
             writer.append(JsonHandler.unprettyPrint(d));
             writer.append("\n");
         } catch (IOException e) {
-            throw new RuntimeException(e);
+            throw new VitamRuntimeException(e);
         }
     }
 
@@ -531,8 +568,11 @@ public class BatchReportServiceImpl {
     }
 
     private void deleteQuietly(File tempFile) {
-        if (!tempFile.delete()) {
+        try {
+            Files.delete(tempFile.toPath());
+        } catch (IOException e) {
             LOGGER.warn("Could not delete file " + tempFile.getAbsolutePath());
+            throw new VitamRuntimeException(e);
         }
     }
 }

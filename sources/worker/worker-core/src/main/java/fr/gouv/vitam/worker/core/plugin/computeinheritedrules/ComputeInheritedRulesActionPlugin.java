@@ -185,6 +185,7 @@ public class ComputeInheritedRulesActionPlugin extends ActionHandler {
     private ObjectNode getUpdateQuery(ComputedInheritedRules computedInheritedRules) throws InvalidParseOperationException, InvalidCreateOperationException {
         Map<String, JsonNode> action = new HashMap<>();
         action.put(VitamFieldsHelper.computedInheritedRules(), JsonHandler.toJsonNode(computedInheritedRules));
+        action.put(VitamFieldsHelper.validComputedInheritedRules(), JsonHandler.toJsonNode(true));
 
         SetAction setComputedInheritedRules = new SetAction(action);
 

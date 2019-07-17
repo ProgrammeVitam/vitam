@@ -68,7 +68,8 @@ public class ArchiveUnitRulesUpdateActionPlugin extends ActionHandler implements
 
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(ArchiveUnitRulesUpdateActionPlugin.class);
 
-    public static final String UPDATE_UNIT_RULES_TASK_ID = "UPDATE_UNIT_RULES";
+    private static final String UPDATE_UNIT_RULES_TASK_ID = "UPDATE_UNIT_RULES";
+    private static final String RULE_TYPE = "RuleType";
 
     private static final String RESULTS = "$results";
     private static final String ARCHIVE_UNIT_NOT_FOUND = "Archive unit not found";
@@ -117,45 +118,42 @@ public class ArchiveUnitRulesUpdateActionPlugin extends ActionHandler implements
 
             UpdateMultiQuery query = new UpdateMultiQuery();
 
-            Map<String, List<JsonNode>> updatedRulesByType = new HashMap<String, List<JsonNode>>();
+            Map<String, List<JsonNode>> updatedRulesByType = new HashMap<>();
 
             final JsonNode rulesForAU = handler.getJsonFromWorkspace(
                 UpdateWorkflowConstants.UNITS_FOLDER + "/" + params.getObjectName());
-            if (rulesForAU.isArray() && rulesForAU.size() > 0) {
-                for (final JsonNode rule : rulesForAU) {
-                    if (!updatedRulesByType.containsKey(rule.get("RuleType").asText())) {
-                        List<JsonNode> listRulesByType = new ArrayList<JsonNode>();
-                        listRulesByType.add(rule);
-                        updatedRulesByType.put(rule.get("RuleType").asText(), listRulesByType);
-                    } else {
-                        List<JsonNode> listRulesByType = updatedRulesByType.get(rule.get("RuleType").asText());
-                        listRulesByType.add(rule);
-                        updatedRulesByType.put(rule.get("RuleType").asText(), listRulesByType);
-                    }
+
+            for (final JsonNode rule : rulesForAU) {
+                if (!updatedRulesByType.containsKey(rule.get(RULE_TYPE).asText())) {
+                    List<JsonNode> listRulesByType = new ArrayList<>();
+                    listRulesByType.add(rule);
+                    updatedRulesByType.put(rule.get(RULE_TYPE).asText(), listRulesByType);
+                } else {
+                    List<JsonNode> listRulesByType = updatedRulesByType.get(rule.get(RULE_TYPE).asText());
+                    listRulesByType.add(rule);
+                    updatedRulesByType.put(rule.get(RULE_TYPE).asText(), listRulesByType);
                 }
-                int nbUpdates = 0;
-                for (String key : updatedRulesByType.keySet()) {
-                    List<JsonNode> listRulesUpdatedByType = updatedRulesByType.get(key);
-                    JsonNode categoryNode = managementNode.get(key);
-                    if (categoryNode != null && categoryNode.get(RULES_KEY) != null) {
-                        if (archiveUnitUpdateUtils.updateCategoryRules((ArrayNode) categoryNode.get(RULES_KEY),
-                            listRulesUpdatedByType, query,
-                            key)) {
-                            nbUpdates++;
-                        }
-                    }
+            }
+            int nbUpdates = 0;
+            for (Map.Entry<String, List<JsonNode>> entry : updatedRulesByType.entrySet()) {
+                JsonNode categoryNode = managementNode.get(entry.getKey());
+                if (categoryNode != null && categoryNode.get(RULES_KEY) != null
+                    && archiveUnitUpdateUtils.updateCategoryRules((ArrayNode) categoryNode.get(RULES_KEY),
+                    entry.getValue(), query,
+                    entry.getKey())) {
+                    nbUpdates++;
                 }
-                // if at least one action is set
-                if (nbUpdates > 0) {
-                    query
-                        .addActions(UpdateActionHelper.push(VitamFieldsHelper.operations(), params.getContainerName()));
-                    JsonNode updateResultJson = metaDataClient.updateUnitById(query.getFinalUpdate(), archiveUnitId);
-                    String diffMessage = archiveUnitUpdateUtils.getDiffMessageFor(updateResultJson, archiveUnitId);
-                    archiveUnitUpdateUtils.logLifecycle(params, archiveUnitId, StatusCode.OK, diffMessage,
-                        handler.getLifecyclesClient());
-                    archiveUnitUpdateUtils.commitLifecycle(params.getContainerName(), archiveUnitId,
-                        handler.getLifecyclesClient());
-                }
+            }
+            // if at least one action is set
+            if (nbUpdates > 0) {
+                query
+                    .addActions(UpdateActionHelper.push(VitamFieldsHelper.operations(), params.getContainerName()));
+                JsonNode updateResultJson = metaDataClient.updateUnitById(query.getFinalUpdate(), archiveUnitId);
+                String diffMessage = archiveUnitUpdateUtils.getDiffMessageFor(updateResultJson, archiveUnitId);
+                archiveUnitUpdateUtils.logLifecycle(params, archiveUnitId, StatusCode.OK, diffMessage,
+                    handler.getLifecyclesClient());
+                archiveUnitUpdateUtils.commitLifecycle(params.getContainerName(), archiveUnitId,
+                    handler.getLifecyclesClient());
             }
             itemStatus.increment(StatusCode.OK);
         } catch (ProcessingException e) {

@@ -44,6 +44,7 @@ import fr.gouv.vitam.batch.report.model.entry.PreservationReportEntry;
 import fr.gouv.vitam.batch.report.rest.repository.AuditReportRepository;
 import fr.gouv.vitam.batch.report.rest.repository.EliminationActionObjectGroupRepository;
 import fr.gouv.vitam.batch.report.rest.repository.EliminationActionUnitRepository;
+import fr.gouv.vitam.batch.report.rest.repository.InvalidUnitsRepository;
 import fr.gouv.vitam.batch.report.rest.repository.PreservationReportRepository;
 import fr.gouv.vitam.batch.report.rest.repository.UpdateUnitReportRepository;
 import fr.gouv.vitam.common.database.server.mongodb.EmptyMongoCursor;
@@ -125,6 +126,9 @@ public class BatchReportServiceImplTest {
     private AuditReportRepository auditReportRepository;
 
     @Mock
+    private InvalidUnitsRepository invalidUnitsRepository;
+
+    @Mock
     private WorkspaceClientFactory workspaceClientFactory;
 
     @Mock
@@ -160,7 +164,7 @@ public class BatchReportServiceImplTest {
         batchReportServiceImpl = new BatchReportServiceImpl(eliminationActionUnitRepository,
             eliminationActionObjectGroupRepository, updateUnitMetadataReportEntry, backupService,
             workspaceClientFactory,
-            preservationReportRepository, auditReportRepository);
+            preservationReportRepository, auditReportRepository, invalidUnitsRepository);
     }
 
 

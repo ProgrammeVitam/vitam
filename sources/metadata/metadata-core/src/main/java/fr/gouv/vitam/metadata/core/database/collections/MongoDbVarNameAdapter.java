@@ -1,4 +1,4 @@
-/*******************************************************************************
+/*
  * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2019)
  *
  * contact.vitam@culture.gouv.fr
@@ -23,7 +23,7 @@
  *
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
- *******************************************************************************/
+ */
 package fr.gouv.vitam.metadata.core.database.collections;
 
 import fr.gouv.vitam.common.database.parser.query.ParserTokens;
@@ -151,6 +151,8 @@ public class MongoDbVarNameAdapter extends VarNameAdapter {
                         return Unit.ELIMINATION + extension;
                     case COMPUTEDINHERITEDRULES:
                         return Unit.COMPUTED_INHERITED_RULES + extension;
+                    case VALIDCOMPUTEDINHERITEDRULES:
+                        return Unit.VALID_COMPUTED_INHERITED_RULES;
                     case GRAPH_LAST_PERISTED_DATE:
                         return MetadataDocument.GRAPH_LAST_PERSISTED_DATE;
                     case PARENT_ORIGINATING_AGENCIES:

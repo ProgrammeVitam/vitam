@@ -25,3 +25,6 @@ db.PreservationReport.createIndex({"processId" : 1, "_tenant" : 1, "status" : 1 
 db.AuditObjectGroup.createIndex( { "processId" : 1, "_tenant" : 1 } )
 db.AuditObjectGroup.createIndex( { "processId" : 1, "_tenant" : 1, "_metadata.id" : 1 } )
 db.AuditObjectGroup.createIndex( { "processId" : 1, "_tenant" : 1, "_metadata.status" : 1 } )
+
+// Create indexes InvalidUnits
+db.InvalidUnits.createIndex( { "processId" : 1} )

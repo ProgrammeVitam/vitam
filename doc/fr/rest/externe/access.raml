@@ -94,6 +94,14 @@ documentation:
         La requête utilise un POJO spécifique pour effectuer la mise à jour des éléments de gestion.
       is: [AccessTraits.UnitBatchUpdateResponse]
 
+  /computedInheritedRules:
+    displayName: Calcul des computedInheritedRules
+    description: |
+      Request Calcule les règles héritées pour les unités archivistiques répondant aux critères de la requête DSL.
+    post:
+      description: |
+        Request that will launch the computation
+
   /{idu}:
     uriParameters:
         idu:
