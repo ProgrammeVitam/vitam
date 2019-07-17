@@ -68,7 +68,7 @@ public abstract class BuilderToken {
     /**
      * Global model
      */
-    public static enum GLOBAL {
+    public enum GLOBAL {
 
         /**
          * Roots part (departure of the request)
@@ -133,7 +133,7 @@ public abstract class BuilderToken {
     /**
      * Query model
      */
-    public static enum QUERY {
+    public enum QUERY {
         /**
          * NOP expression, used to represent nop (Null Operation) query '{'$nop':'1'}'
          */
@@ -323,7 +323,7 @@ public abstract class BuilderToken {
         /**
          * Constructor Add DEFAULT_PREFIX before the exactToken ($+exactToken)
          */
-        private QUERY(String realName) {
+        QUERY(String realName) {
             exactToken = DEFAULT_PREFIX + realName;
         }
 
@@ -340,7 +340,7 @@ public abstract class BuilderToken {
     /**
      * SelectFilter model
      */
-    public static enum SELECTFILTER {
+    public enum SELECTFILTER {
         /**
          * Limit the elements returned to the nth first elements $limit : n
          */
@@ -375,7 +375,7 @@ public abstract class BuilderToken {
         /**
          * Constructor Add DEFAULT_PREFIX before the exactToken ($+exactToken)
          */
-        private SELECTFILTER(String realName) {
+        SELECTFILTER(String realName) {
             exactToken = DEFAULT_PREFIX + realName;
         }
 
@@ -391,7 +391,7 @@ public abstract class BuilderToken {
     /**
      * Projection model
      */
-    public static enum PROJECTION {
+    public enum PROJECTION {
         /**
          * Specify the fields to return $fields : {name1 : 0/1, name2 : 0/1, ...}
          */
@@ -422,7 +422,7 @@ public abstract class BuilderToken {
     /**
      * FACET model
      */
-    public static enum FACET {
+    public enum FACET {
 
         TERMS("terms"),
         DATE_RANGE("date_range"),
@@ -434,7 +434,7 @@ public abstract class BuilderToken {
         /**
          * Constructor Add DEFAULT_PREFIX before the exactToken ($+exactToken)
          */
-        private FACET(String realName) {
+        FACET(String realName) {
             exactToken = DEFAULT_PREFIX + realName;
         }
 
@@ -450,7 +450,7 @@ public abstract class BuilderToken {
     /**
      * Query args model
      */
-    public static enum QUERYARGS {
+    public enum QUERYARGS {
         /**
          * Used in MLT queries
          */
@@ -477,7 +477,7 @@ public abstract class BuilderToken {
         /**
          * Constructor Add DEFAULT_PREFIX before the exactToken ($+exactToken)
          */
-        private QUERYARGS(String realName) {
+        QUERYARGS(String realName) {
             exactToken = DEFAULT_PREFIX + realName;
         }
 
@@ -493,7 +493,7 @@ public abstract class BuilderToken {
     /**
      * FACET args model
      */
-    public static enum FACETARGS {
+    public enum FACETARGS {
         /**
          * Used in all facets
          */
@@ -541,7 +541,7 @@ public abstract class BuilderToken {
         /**
          * Constructor Add DEFAULT_PREFIX before the exactToken ($+exactToken)
          */
-        private FACETARGS(String realName) {
+        FACETARGS(String realName) {
             exactToken = DEFAULT_PREFIX + realName;
         }
 
@@ -557,7 +557,7 @@ public abstract class BuilderToken {
     /**
      * Range args model
      */
-    public static enum RANGEARGS {
+    public enum RANGEARGS {
         /**
          * Comparison operator $gt : value
          */
@@ -580,7 +580,7 @@ public abstract class BuilderToken {
         /**
          * Constructor Add DEFAULT_PREFIX before the exactToken ($+exactToken)
          */
-        private RANGEARGS(String realName) {
+        RANGEARGS(String realName) {
             exactToken = DEFAULT_PREFIX + realName;
         }
 
@@ -603,7 +603,7 @@ public abstract class BuilderToken {
      * #all:1 means all, while #all:0 means none
      */
 
-    public static enum PROJECTIONARGS {
+    public enum PROJECTIONARGS {
         /**
          * Id of the item
          */
@@ -747,7 +747,9 @@ public abstract class BuilderToken {
         /**
          * computedInheritedRules
          */
-        COMPUTED_INHERITED_RULES("computedInheritedRules");
+        COMPUTED_INHERITED_RULES("computedInheritedRules"),
+
+        VALID_COMPUTED_INHERITED_RULES("validComputedInheritedRules");
 
 
         private final String exactToken;
@@ -772,7 +774,7 @@ public abstract class BuilderToken {
     /**
      * Specific values for Filter arguments
      */
-    public static enum FILTERARGS {
+    public enum FILTERARGS {
         /**
          * Cache could be used for this request
          */
@@ -804,7 +806,7 @@ public abstract class BuilderToken {
         /**
          * Constructor
          */
-        private FILTERARGS(String realName) {
+        FILTERARGS(String realName) {
             exactToken = realName;
         }
 
@@ -816,7 +818,7 @@ public abstract class BuilderToken {
         }
     }
 
-    /**
+    /*
      *
      * Update model
      *
@@ -847,7 +849,7 @@ public abstract class BuilderToken {
     /**
      * Update model
      */
-    public static enum UPDATEACTION {
+    public enum UPDATEACTION {
         /**
          * $set : { name : value, name : value, ... }
          */
@@ -906,7 +908,7 @@ public abstract class BuilderToken {
         /**
          * Constructor Add DEFAULT_PREFIX before the exactToken ($+exactToken)
          */
-        private UPDATEACTION(String realName) {
+        UPDATEACTION(String realName) {
             exactToken = DEFAULT_PREFIX + realName;
         }
 
@@ -922,7 +924,7 @@ public abstract class BuilderToken {
     /**
      * Action Filter model
      */
-    public static enum MULTIFILTER {
+    public enum MULTIFILTER {
         /**
          * True to allow multiple update if multiple elements are found through the QUERY, else False will return an
          * error if multiple elements are found. $mult : true/false
@@ -934,7 +936,7 @@ public abstract class BuilderToken {
         /**
          * Constructor Add DEFAULT_PREFIX before the exactToken ($+exactToken)
          */
-        private MULTIFILTER(String realName) {
+        MULTIFILTER(String realName) {
             exactToken = DEFAULT_PREFIX + realName;
         }
 

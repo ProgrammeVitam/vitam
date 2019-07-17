@@ -58,7 +58,8 @@ public class MetadataDocumentHelper {
         MIN("_min"),
         MAX("_max"),
         UDS("_uds"),
-        COMPUTEDINHERITEDRULES("_computedInheritedRules");
+        COMPUTEDINHERITEDRULES("_computedInheritedRules"),
+        VALIDCOMPUTEDINHERITEDRULES("_validComputedInheritedRules");
 
 
         private final String fieldName;
@@ -76,6 +77,7 @@ public class MetadataDocumentHelper {
 
         ELIMINATION("_elimination"),
         COMPUTEDINHERITEDRULES("_computedInheritedRules"),
+        VALIDCOMPUTEDINHERITEDRULES("_validComputedInheritedRules"),
         ATOMIC_VERSION("_av");
 
         private final String fieldName;

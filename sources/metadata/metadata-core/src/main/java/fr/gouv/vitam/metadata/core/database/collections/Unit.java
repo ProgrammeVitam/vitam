@@ -1,4 +1,4 @@
-/*******************************************************************************
+/*
  * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2019)
  *
  * contact.vitam@culture.gouv.fr
@@ -23,19 +23,12 @@
  *
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
- *******************************************************************************/
+ */
 package fr.gouv.vitam.metadata.core.database.collections;
 
-import fr.gouv.vitam.common.LocalDateUtil;
-import fr.gouv.vitam.common.SingletonUtils;
-
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
 import com.fasterxml.jackson.databind.JsonNode;
-import com.mongodb.BasicDBObject;
 import com.mongodb.client.MongoCollection;
+import fr.gouv.vitam.common.LocalDateUtil;
 import org.bson.Document;
 
 /**
@@ -70,20 +63,21 @@ public class Unit extends MetadataDocument<Unit> {
     /**
      * Management : { various rules per themes }
      */
-    public static final String MANAGEMENT = "_mgt";
+    static final String MANAGEMENT = "_mgt";
 
     /**
      * elimination
      */
     public static final String ELIMINATION = "_elimination";
-    public static final String COMPUTED_INHERITED_RULES = "_computedInheritedRules";
+    static final String COMPUTED_INHERITED_RULES = "_computedInheritedRules";
+    static final String VALID_COMPUTED_INHERITED_RULES = "_validComputedInheritedRules";
     /**
      * UnitType : normal or holding scheme
      */
-    public static final String UNIT_TYPE = "_unitType";
+    static final String UNIT_TYPE = "_unitType";
     public static final String GRAPH = "_graph";
     public static final String PARENT_ORIGINATING_AGENCIES = "_us_sp";
-    public static final String HISTORY = "_history";
+    static final String HISTORY = "_history";
 
     @Override
     public MetadataDocument<Unit> newInstance(JsonNode content) {
@@ -93,64 +87,64 @@ public class Unit extends MetadataDocument<Unit> {
     /**
      * Storage Rule
      */
-    public static final String STORAGERULE = MANAGEMENT + ".StorageRule";
+    static final String STORAGERULE = MANAGEMENT + ".StorageRule";
     /**
      * Appraisal Rule
      */
-    public static final String APPRAISALRULE = MANAGEMENT + ".AppraisalRule";
+    static final String APPRAISALRULE = MANAGEMENT + ".AppraisalRule";
     /**
      * Access Rule
      */
-    public static final String ACCESSRULE = MANAGEMENT + ".AccessRule";
+    static final String ACCESSRULE = MANAGEMENT + ".AccessRule";
     /**
      * Dissemination Rule
      */
-    public static final String DISSEMINATIONRULE = MANAGEMENT + ".DisseminationRule";
+    static final String DISSEMINATIONRULE = MANAGEMENT + ".DisseminationRule";
     /**
      * Reuse Rule
      */
-    public static final String REUSERULE = MANAGEMENT + ".ReuseRule";
+    static final String REUSERULE = MANAGEMENT + ".ReuseRule";
     /**
      * Classification Rule
      */
-    public static final String CLASSIFICATIONRULE = MANAGEMENT + ".ClassificationRule";
+    static final String CLASSIFICATIONRULE = MANAGEMENT + ".ClassificationRule";
 
     /**
      * Rule
      */
-    public static final String RULE = ".Rules.Rule";
+    static final String RULE = ".Rules.Rule";
     /**
      * Rule end date (computed)
      */
-    public static final String END = ".Rules._end";
+    static final String END = ".Rules._end";
 
 
 
 
     @SuppressWarnings("javadoc")
-    public static final String STORAGERULES = STORAGERULE + RULE;
+    static final String STORAGERULES = STORAGERULE + RULE;
     @SuppressWarnings("javadoc")
-    public static final String STORAGEEND = STORAGERULE + END;
+    static final String STORAGEEND = STORAGERULE + END;
     @SuppressWarnings("javadoc")
-    public static final String APPRAISALRULES = APPRAISALRULE + RULE;
+    static final String APPRAISALRULES = APPRAISALRULE + RULE;
     @SuppressWarnings("javadoc")
-    public static final String APPRAISALEND = APPRAISALRULE + END;
+    static final String APPRAISALEND = APPRAISALRULE + END;
     @SuppressWarnings("javadoc")
-    public static final String ACCESSRULES = ACCESSRULE + RULE;
+    static final String ACCESSRULES = ACCESSRULE + RULE;
     @SuppressWarnings("javadoc")
-    public static final String ACCESSEND = ACCESSRULE + END;
+    static final String ACCESSEND = ACCESSRULE + END;
     @SuppressWarnings("javadoc")
-    public static final String DISSEMINATIONRULES = DISSEMINATIONRULE + RULE;
+     static final String DISSEMINATIONRULES = DISSEMINATIONRULE + RULE;
     @SuppressWarnings("javadoc")
-    public static final String DISSEMINATIONEND = DISSEMINATIONRULE + END;
+    static final String DISSEMINATIONEND = DISSEMINATIONRULE + END;
     @SuppressWarnings("javadoc")
-    public static final String REUSERULES = REUSERULE + RULE;
+    static final String REUSERULES = REUSERULE + RULE;
     @SuppressWarnings("javadoc")
-    public static final String REUSEEND = REUSERULE + END;
+    static final String REUSEEND = REUSERULE + END;
     @SuppressWarnings("javadoc")
-    public static final String CLASSIFICATIONRULES = CLASSIFICATIONRULE + RULE;
+    static final String CLASSIFICATIONRULES = CLASSIFICATIONRULE + RULE;
     @SuppressWarnings("javadoc")
-    public static final String CLASSIFICATIONEND = CLASSIFICATIONRULE + END;
+    static final String CLASSIFICATIONEND = CLASSIFICATIONRULE + END;
 
     /**
      * Empty constructor

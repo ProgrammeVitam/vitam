@@ -46,6 +46,7 @@ import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.server.application.resources.ApplicationStatusResource;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.functional.administration.common.exception.BackupServiceException;
@@ -54,6 +55,7 @@ import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerExce
 import javax.ws.rs.BadRequestException;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
+import javax.ws.rs.GET;
 import javax.ws.rs.HeaderParam;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
@@ -62,6 +64,7 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import java.io.IOException;
+import java.util.List;
 
 /**
  * public resource to mass-report
@@ -70,11 +73,16 @@ import java.io.IOException;
 public class BatchReportResource extends ApplicationStatusResource {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(BatchReportResource.class);
 
-    private final static TypeReference<ReportBody<AuditObjectGroupReportEntry>> reportAuditType = new TypeReference<ReportBody<AuditObjectGroupReportEntry>>() {};
-    private final static TypeReference<ReportBody<EliminationActionUnitReportEntry>> reportEliminationActionUnitType = new TypeReference<ReportBody<EliminationActionUnitReportEntry>>() {};
-    private final static TypeReference<ReportBody<EliminationActionObjectGroupReportEntry>> reportEliminationActionObjectGroupType = new TypeReference<ReportBody<EliminationActionObjectGroupReportEntry>>() {};
-    private final static TypeReference<ReportBody<PreservationReportEntry>> reportPreservationType = new TypeReference<ReportBody<PreservationReportEntry>>() {};
-    private final static TypeReference<ReportBody<UpdateUnitMetadataReportEntry>> reportMassUpdateType = new TypeReference<ReportBody<UpdateUnitMetadataReportEntry>>() {};
+    private static final String EMPTY_PROCESSID_ERROR_MESSAGE = "processId should be filed";
+    private static final TypeReference<ReportBody<AuditObjectGroupReportEntry>> reportAuditType = new TypeReference<ReportBody<AuditObjectGroupReportEntry>>() {};
+    private static final TypeReference<ReportBody<EliminationActionUnitReportEntry>> reportEliminationActionUnitType =
+        new TypeReference<ReportBody<EliminationActionUnitReportEntry>>() {};
+    private static final TypeReference<ReportBody<EliminationActionObjectGroupReportEntry>> reportEliminationActionObjectGroupType =
+        new TypeReference<ReportBody<EliminationActionObjectGroupReportEntry>>() {};
+    private static final TypeReference<ReportBody<PreservationReportEntry>> reportPreservationType = new TypeReference<ReportBody<PreservationReportEntry>>() {};
+    private static final TypeReference<ReportBody<UpdateUnitMetadataReportEntry>> reportMassUpdateType = new TypeReference<ReportBody<UpdateUnitMetadataReportEntry>>() {};
+    private static final String COMPUTE_INHERITED_RULES_INVALIDATION = "/computedInheritedRulesInvalidation";
+    private final TypeReference<List<String>> typeReference = new TypeReference<List<String>>() {};
 
     private BatchReportServiceImpl batchReportServiceImpl;
 
@@ -132,7 +140,7 @@ public class BatchReportResource extends ApplicationStatusResource {
     public Response storeReport(Report reportInfo) {
         int tenantId = VitamThreadUtils.getVitamSession().getTenantId();
 
-        ParametersChecker.checkParameter("processId should be filed", reportInfo.getOperationSummary().getEvId());
+        ParametersChecker.checkParameter(EMPTY_PROCESSID_ERROR_MESSAGE, reportInfo.getOperationSummary().getEvId());
         ParametersChecker.checkParameter("tenantId should be filed", reportInfo.getOperationSummary().getTenant());
         if (tenantId != reportInfo.getOperationSummary().getTenant()) {
             throw new IllegalArgumentException("Tenant id in request should match header. Header: " + tenantId + ", request: " + reportInfo.getOperationSummary().getTenant() + ".");
@@ -156,28 +164,65 @@ public class BatchReportResource extends ApplicationStatusResource {
         throws ContentAddressableStorageServerException, IOException {
 
         try {
-
-            ParametersChecker.checkParameter("processId should be filed",
-                processId);
+            ParametersChecker.checkParameter(EMPTY_PROCESSID_ERROR_MESSAGE, processId);
 
             ReportExportRequest reportExportRequest = parseEliminationReportRequest(body);
             int tenantId = VitamThreadUtils.getVitamSession().getTenantId();
 
-            batchReportServiceImpl.exportEliminationActionDistinctObjectGroupOfDeletedUnits(
-                processId, reportExportRequest.getFilename(), tenantId);
+            batchReportServiceImpl.exportEliminationActionDistinctObjectGroupOfDeletedUnits(processId, reportExportRequest.getFilename(), tenantId);
             return Response.status(Response.Status.OK).build();
         } catch (InvalidParseOperationException | IllegalArgumentException e) {
             throw new BadRequestException(e);
         }
     }
 
+    @Path(COMPUTE_INHERITED_RULES_INVALIDATION + "/{processId}")
+    @POST
+    @Produces(MediaType.APPLICATION_JSON)
+    @Consumes(MediaType.APPLICATION_JSON)
+    public Response appendUnitsProgeny(@PathParam("processId") String processId, JsonNode body) {
+        try {
+            List<String> unitsToTag = JsonHandler.getFromJsonNode(body, typeReference);
+            batchReportServiceImpl.appendUnitsProgeny(unitsToTag, processId);
+            return Response.status(Response.Status.OK).build();
+        } catch (InvalidParseOperationException e) {
+            LOGGER.error("Error : " + e.getMessage());
+        }
+
+        return Response.status(Response.Status.BAD_REQUEST).build();
+    }
+
+    @Path(COMPUTE_INHERITED_RULES_INVALIDATION + "/{processId}")
+    @DELETE
+    @Produces(MediaType.APPLICATION_JSON)
+    @Consumes(MediaType.APPLICATION_JSON)
+    public Response deleteUnitsProgeny(@PathParam("processId") String processId) {
+        batchReportServiceImpl.deleteUnitsAndProgeny(processId);
+
+        return Response.status(Response.Status.ACCEPTED).build();
+    }
+
+    @Path(COMPUTE_INHERITED_RULES_INVALIDATION + "/{processId}")
+    @GET
+    @Produces(MediaType.APPLICATION_JSON)
+    @Consumes(MediaType.APPLICATION_JSON)
+    public Response getUnitsToInvalidate(@PathParam("processId") String processId) {
+        RequestResponse<JsonNode> result = batchReportServiceImpl.findUnits(processId);
+
+        if(result.isOk()) {
+            return Response.status(Response.Status.OK).entity(result.setHttpCode(Response.Status.FOUND.getStatusCode())).build();
+        }
+
+        return Response.status(Response.Status.BAD_REQUEST).entity(result.setHttpCode(Response.Status.BAD_REQUEST.getStatusCode())).build();
+    }
+
     @Path("/preservation/export/{processId}")
     @POST
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
-    public Response exportPreservation(@PathParam("processId") String processId, JsonNode body) throws Exception {
+    public Response exportPreservation(@PathParam("processId") String processId, JsonNode body) throws IOException, ContentAddressableStorageServerException {
         try {
-            ParametersChecker.checkParameter("processId should be filed", processId);
+            ParametersChecker.checkParameter(EMPTY_PROCESSID_ERROR_MESSAGE, processId);
             ReportExportRequest reportExportRequest = JsonHandler.getFromJsonNode(body, ReportExportRequest.class);
             ParametersChecker.checkParameter(reportExportRequest.getFilename());
 
@@ -199,14 +244,12 @@ public class BatchReportResource extends ApplicationStatusResource {
 
         try {
 
-            ParametersChecker.checkParameter("processId should be filed",
-                processId);
+            ParametersChecker.checkParameter(EMPTY_PROCESSID_ERROR_MESSAGE, processId);
 
             ReportExportRequest reportExportRequest = parseEliminationReportRequest(body);
             int tenantId = VitamThreadUtils.getVitamSession().getTenantId();
 
-            batchReportServiceImpl.exportEliminationActionAccessionRegister(
-                processId, reportExportRequest.getFilename(), tenantId);
+            batchReportServiceImpl.exportEliminationActionAccessionRegister(processId, reportExportRequest.getFilename(), tenantId);
 
             return Response.status(Response.Status.OK).build();
         } catch (InvalidParseOperationException | IllegalArgumentException e) {

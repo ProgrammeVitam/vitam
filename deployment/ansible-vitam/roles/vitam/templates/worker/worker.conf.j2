@@ -14,6 +14,9 @@ capacity: {{vitam_worker_capacity}}
 workerFamily: {{vitam_worker_workerFamily}}
 {% endif %}
 
+indexInheritedRulesWithAPIV2OutputByTenant: [ "{{  vitam.worker.api_output_index_tenants | join('", "') }}" ]
+indexInheritedRulesWithRulesIdByTenant: [ "{{  vitam.worker.rules_index_tenants | join('", "') }}" ]
+
 # Ontology cache settings (max entries in cache & retention timeout in seconds)
 ontologyCacheMaxEntries: {{ vitam.metadata.ontologyCacheMaxEntries }}
 ontologyCacheTimeoutInSeconds: {{ vitam.worker.ontologyCacheTimeoutInSeconds }}

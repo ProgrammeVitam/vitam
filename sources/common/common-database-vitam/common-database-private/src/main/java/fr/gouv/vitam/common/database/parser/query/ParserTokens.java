@@ -79,7 +79,7 @@ public class ParserTokens extends BuilderToken {
         "Algorithm", "DataObjectGroupId", "DataObjectVersion", "strategyId",
         "EndDate", "Rule", "PreventInheritance", "StartDate", "FinalAction",
         "ClassificationLevel", "ClassificationOwner", "ClassificationAudience", "ClassificationReassessingDate",
-        "NeedReassessingAuthorization"
+        "NeedReassessingAuthorization", "_validComputedInheritedRules"
     );
 
     /**
@@ -233,6 +233,7 @@ public class ParserTokens extends BuilderToken {
         "_computedInheritedRules.ClassificationRule.MaxEndDate",
         "_computedInheritedRules.indexationDate",
         "_computedInheritedRules.NeedAuthorization",
+        "_validComputedInheritedRules",
         "_glpd",
         "_graph",
         "_max",
@@ -537,8 +538,7 @@ public class ParserTokens extends BuilderToken {
         "_implementationVersion",
         "_sedaVersion"));
 
-    private static AdminManagementOntologiesClientFactory ONTOLOGY_MGT_FACTORY =
-        AdminManagementOntologiesClientFactory.getInstance();
+    private static AdminManagementOntologiesClientFactory ONTOLOGY_MGT_FACTORY = AdminManagementOntologiesClientFactory.getInstance();
     private static ConcurrentMap<String, Boolean> analyzedOntologyCache = new ConcurrentHashMap<>();
 
     static {
@@ -756,7 +756,8 @@ public class ParserTokens extends BuilderToken {
         /**
          * Vitam computedInheritedRules field
          */
-        COMPUTEDINHERITEDRULES("computedInheritedRules");
+        COMPUTEDINHERITEDRULES("computedInheritedRules"),
+        VALIDCOMPUTEDINHERITEDRULES("validComputedInheritedRules");
 
 
         private static final String NOT_FOUND = "Not found";
@@ -888,6 +889,8 @@ public class ParserTokens extends BuilderToken {
                         return ELIMINATION;
                     case "_computedInheritedRules":
                         return COMPUTEDINHERITEDRULES;
+                    case "_validComputedInheritedRules":
+                        return VALIDCOMPUTEDINHERITEDRULES;
                     case "_glpd":
                         return GRAPH_LAST_PERISTED_DATE;
                     case "_history":

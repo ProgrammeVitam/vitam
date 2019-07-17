@@ -786,7 +786,7 @@ class AccessInternalClientRest extends DefaultClient implements AccessInternalCl
         headers.add(X_ACCESS_CONTRAT_ID, VitamThreadUtils.getVitamSession().getContractId());
         Response response = null;
         try {
-            response = performRequest(HttpMethod.POST, "/computeInheritedRules", headers, dslQuery,
+            response = performRequest(HttpMethod.POST, "/units/computedInheritedRules", headers, dslQuery,
                 APPLICATION_JSON_TYPE, APPLICATION_JSON_TYPE);
             return RequestResponse.parseFromResponse(response);
         } catch (VitamClientInternalException e) {

@@ -35,6 +35,9 @@ import fr.gouv.vitam.common.exception.VitamClientInternalException;
 import fr.gouv.vitam.common.external.client.BasicClient;
 import fr.gouv.vitam.common.model.RequestResponse;
 
+import javax.ws.rs.core.Response;
+import java.util.List;
+
 /**
  * BatchReportClient
  */
@@ -61,6 +64,12 @@ public interface BatchReportClient extends BasicClient {
     RequestResponse<JsonNode> appendReportEntries(ReportBody reportBody) throws VitamClientInternalException;
 
     RequestResponse<JsonNode> storeReport(Report reportInfo) throws VitamClientInternalException;
+
+    RequestResponse<JsonNode> saveUnitsAndProgeny(String processId, List<String> unitsId) throws VitamClientInternalException;
+
+    RequestResponse<JsonNode> deleteUnitsAndProgeny(String processId) throws VitamClientInternalException;
+
+    JsonNode getUnitsToInvalidate(String processId) throws VitamClientInternalException;
 
     /**
      * Generate elimination action accession register for deleted units by status and process Id.
