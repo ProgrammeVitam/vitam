@@ -59,6 +59,10 @@
             <version>${project.version}</version>
         </dependency>
         <dependency>
+            <groupId>com.thaiopensource</groupId>
+            <artifactId>jing</artifactId>
+        </dependency>
+        <dependency>
             <groupId>fr.gouv.vitam</groupId>
             <artifactId>common-junit</artifactId>
             <version>${project.version}</version>
