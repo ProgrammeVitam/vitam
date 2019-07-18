@@ -28,6 +28,7 @@
 package fr.gouv.vitam.worker.server.rest;
 
 import fr.gouv.vitam.common.PropertiesUtils;
+import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.serverv2.application.CommonBusinessApplication;
 import fr.gouv.vitam.functional.administration.client.AdminManagementClientFactory;
@@ -76,8 +77,8 @@ public class BusinessApplication extends Application {
 
             MetadataValidationProvider.getInstance().initialize(
                 AdminManagementClientFactory.getInstance(),
-                configuration.getOntologyCacheMaxEntries(),
-                configuration.getOntologyCacheTimeoutInSeconds(),
+                VitamConfiguration.getOntologyCacheMaxEntries(),
+                VitamConfiguration.getOntologyCacheTimeoutInSeconds(),
                 configuration.getArchiveUnitProfileCacheMaxEntries(),
                 configuration.getArchiveUnitProfileCacheTimeoutInSeconds(),
                 configuration.getSchemaValidatorCacheMaxEntries(),

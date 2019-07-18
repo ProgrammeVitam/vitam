@@ -41,7 +41,6 @@ import fr.gouv.vitam.common.elasticsearch.ElasticsearchRule;
 import fr.gouv.vitam.common.exception.DatabaseException;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.SchemaValidationException;
-import fr.gouv.vitam.common.exception.VitamDBException;
 import fr.gouv.vitam.common.guid.GUID;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.json.JsonHandler;
@@ -112,6 +111,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -131,7 +131,6 @@ import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.doNothing;
-import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -241,7 +240,7 @@ public class RulesManagerFileImplTest {
         nodes.add(new MongoDbNode("localhost", mongoRule.getDataBasePort()));
 
         LogbookOperationsClientFactory.changeMode(null);
-        dbImpl = create(new DbConfigurationImpl(nodes, mongoRule.getMongoDatabase().getName()));
+        dbImpl = create(new DbConfigurationImpl(nodes, mongoRule.getMongoDatabase().getName()), Collections::emptyList);
         List<Integer> tenants = new ArrayList<>();
         Integer tenantsList[] = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12};
         tenants.addAll(Arrays.asList(tenantsList));
@@ -253,7 +252,7 @@ public class RulesManagerFileImplTest {
     @Before
     public void setUp() {
         MongoDbAccessAdminImpl dbAccess = create(
-            new DbConfigurationImpl(nodes, mongoRule.getMongoDatabase().getName()));
+            new DbConfigurationImpl(nodes, mongoRule.getMongoDatabase().getName()), Collections::emptyList);
 
         when(workspaceClientFactory.getClient()).thenReturn(workspaceClient);
         when(metaDataClientFactory.getClient()).thenReturn(metaDataClient);
@@ -261,8 +260,16 @@ public class RulesManagerFileImplTest {
         when(processingManagementClientFactory.getClient()).thenReturn(processingManagementClient);
 
         rulesFileManager =
-            new RulesManagerFileImpl(dbAccess,
-                vitamCounterService, functionalBackupService, logbookOperationsClientFactory, metaDataClientFactory, processingManagementClientFactory, workspaceClientFactory);
+            new RulesManagerFileImpl(
+                dbAccess,
+                vitamCounterService,
+                functionalBackupService,
+                logbookOperationsClientFactory,
+                metaDataClientFactory,
+                processingManagementClientFactory,
+                workspaceClientFactory,
+                Collections::emptyList
+            );
         FunctionalAdminCollections.afterTestClass(false);
         FunctionalAdminCollections.resetVitamSequenceCounter();
     }
@@ -536,7 +543,7 @@ public class RulesManagerFileImplTest {
         int tenantId = 5;
         VitamThreadUtils.getVitamSession().setTenantId(tenantId);
         MongoDbAccessAdminImpl dbAccess = create(
-            new DbConfigurationImpl(nodes, mongoRule.getMongoDatabase().getName()));
+            new DbConfigurationImpl(nodes, mongoRule.getMongoDatabase().getName()), Collections::emptyList);
         dbAccess.deleteCollection(FunctionalAdminCollections.RULES);
         final Select select = new Select();
         try {

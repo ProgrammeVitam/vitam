@@ -43,7 +43,6 @@ import fr.gouv.vitam.common.model.administration.OntologyModel;
 import fr.gouv.vitam.common.performance.PerformanceLogger;
 import fr.gouv.vitam.common.security.SanityChecker;
 import fr.gouv.vitam.metadata.core.validation.MetadataValidationException;
-import fr.gouv.vitam.metadata.core.validation.OntologyLoader;
 import fr.gouv.vitam.metadata.core.validation.OntologyValidator;
 import fr.gouv.vitam.metadata.core.validation.UnitValidator;
 import fr.gouv.vitam.processing.common.exception.ArchiveUnitContainSpecialCharactersException;
@@ -94,6 +93,7 @@ public class CheckArchiveUnitSchemaActionPlugin extends ActionHandler {
      */
     static final String CONSISTENCY = "CONSISTENCY";
 
+    private static final TypeReference<List<OntologyModel>> LIST_TYPE_REFERENCE = new TypeReference<List<OntologyModel>>() {};
 
     private final UnitValidator unitValidator;
 
@@ -253,12 +253,8 @@ public class CheckArchiveUnitSchemaActionPlugin extends ActionHandler {
                 throw new IllegalStateException("Ontology file not found");
             }
 
-            List<OntologyModel> ontologies =
-                JsonHandler.getFromFileAsTypeRefence(ontologyFile, new TypeReference<List<OntologyModel>>() {
-                });
-
-            OntologyLoader staticOntologyLoader = () -> ontologies;
-            OntologyValidator ontologyValidator = new OntologyValidator(staticOntologyLoader);
+            List<OntologyModel> ontologies = JsonHandler.getFromFileAsTypeRefence(ontologyFile, LIST_TYPE_REFERENCE);
+            OntologyValidator ontologyValidator = new OntologyValidator(() -> ontologies);
 
             return ontologyValidator.verifyAndReplaceFields(archiveUnitJson);
 

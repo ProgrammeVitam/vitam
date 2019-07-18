@@ -37,7 +37,6 @@ import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.database.server.elasticsearch.ElasticsearchAccess;
 import fr.gouv.vitam.common.database.server.mongodb.VitamDocument;
 import fr.gouv.vitam.common.database.translators.mongodb.VitamDocumentCodec;
-import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import org.bson.codecs.configuration.CodecRegistries;
 import org.bson.codecs.configuration.CodecRegistry;
 
@@ -51,6 +50,7 @@ import static com.mongodb.client.model.Indexes.hashed;
  */
 public class VitamCollection {
     private final Class<?> clasz;
+    private final VitamDescriptionLoader descriptionLoader;
     private String name;
     private MongoCollection<?> collection;
     private ElasticsearchAccess esClient;
@@ -92,8 +92,9 @@ public class VitamCollection {
         return TYPEUNIQUE;
     }
 
-    protected VitamCollection(final Class<?> clasz, final boolean isMultiTenant, final boolean useScore, String prefix) {
+    protected VitamCollection(final Class<?> clasz, final boolean isMultiTenant, final boolean useScore, String prefix, VitamDescriptionLoader descriptionLoader) {
         this.clasz = clasz;
+        this.descriptionLoader = descriptionLoader;
         name = prefix + clasz.getSimpleName();
         this.isMultiTenant = isMultiTenant;
         this.useScore = useScore;
@@ -235,5 +236,9 @@ public class VitamCollection {
 
     public void setCreateIndexByTenant(boolean createIndexByTenant) {
         this.createIndexByTenant = createIndexByTenant;
+    }
+
+    public VitamDescriptionLoader getDescriptionLoader() {
+        return descriptionLoader;
     }
 }

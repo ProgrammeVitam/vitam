@@ -36,6 +36,7 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.fasterxml.jackson.databind.node.TextNode;
 import fr.gouv.vitam.common.CharsetUtils;
 import fr.gouv.vitam.common.VitamConfiguration;
+import fr.gouv.vitam.common.client.OntologyLoader;
 import fr.gouv.vitam.common.model.administration.OntologyModel;
 import org.apache.commons.lang3.BooleanUtils;
 

@@ -26,16 +26,16 @@
  *******************************************************************************/
 package fr.gouv.vitam.functional.administration.common.server;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import com.mongodb.MongoClient;
-
 import fr.gouv.vitam.common.ParametersChecker;
+import fr.gouv.vitam.common.client.OntologyLoader;
 import fr.gouv.vitam.common.database.collections.VitamCollection;
 import fr.gouv.vitam.common.database.server.elasticsearch.ElasticsearchNode;
 import fr.gouv.vitam.common.database.server.mongodb.MongoDbAccess;
 import fr.gouv.vitam.common.server.application.configuration.DbConfiguration;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Factory to get MongoDbAccess for Admin
@@ -50,10 +50,11 @@ public final class MongoDbAccessAdminFactory {
      * Creation of one MongoDbAccess
      *
      * @param configuration config of MongoDbAcess
+     * @param ontologyLoader
      * @return the MongoDbAccess
      * @throws IllegalArgumentException if argument is null
      */
-    public static final MongoDbAccessAdminImpl create(DbConfiguration configuration) {
+    public static final MongoDbAccessAdminImpl create(DbConfiguration configuration, OntologyLoader ontologyLoader) {
         ParametersChecker.checkParameter("configuration is a mandatory parameter", configuration);
         final List<Class<?>> classList = new ArrayList<>();
         for (final FunctionalAdminCollections e : FunctionalAdminCollections.class.getEnumConstants()) {
@@ -64,7 +65,7 @@ public final class MongoDbAccessAdminFactory {
         final MongoClient mongoClient =
             MongoDbAccess.createMongoClient(configuration, VitamCollection.getMongoClientOptions(classList));
 
-        return new MongoDbAccessAdminImpl(mongoClient, configuration.getDbName(), false);
+        return new MongoDbAccessAdminImpl(mongoClient, configuration.getDbName(), false, ontologyLoader);
     }
     
     /**
@@ -73,12 +74,13 @@ public final class MongoDbAccessAdminFactory {
      * @param configuration config of MongoDbAcess
      * @param clusterName the cluster name
      * @param nodes the list of Elasticsearch nodes
+     * @param ontologyLoader
      * @return the MongoDbAccess
      * @throws IllegalArgumentException if argument is null
      */
-    public static final MongoDbAccessAdminImpl create(DbConfiguration configuration, String clusterName, List<ElasticsearchNode> nodes) {
+    public static final MongoDbAccessAdminImpl create(DbConfiguration configuration, String clusterName, List<ElasticsearchNode> nodes, OntologyLoader ontologyLoader) {
         ElasticsearchAccessAdminFactory.create(clusterName, nodes);
-        return create(configuration);
+        return create(configuration, ontologyLoader);
     }
 
 }

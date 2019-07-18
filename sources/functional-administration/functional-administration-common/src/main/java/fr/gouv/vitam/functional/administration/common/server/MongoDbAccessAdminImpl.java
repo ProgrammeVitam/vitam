@@ -31,6 +31,7 @@ import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.google.common.annotations.VisibleForTesting;
 import com.mongodb.MongoBulkWriteException;
 import com.mongodb.MongoClient;
+import fr.gouv.vitam.common.client.OntologyLoader;
 import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
 import fr.gouv.vitam.common.database.builder.request.single.Delete;
 import fr.gouv.vitam.common.database.builder.request.single.Insert;
@@ -63,18 +64,20 @@ import static com.mongodb.client.model.Filters.eq;
 public class MongoDbAccessAdminImpl extends MongoDbAccess implements MongoDbAccessReferential {
 
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(MongoDbAccessAdminImpl.class);
-
+    private final OntologyLoader ontologyLoader;
 
     /**
      * @param mongoClient client of mongo
      * @param dbname      name of database
      * @param recreate    true if recreate type
+     * @param ontologyLoader
      */
-    protected MongoDbAccessAdminImpl(MongoClient mongoClient, String dbname, boolean recreate) {
+    protected MongoDbAccessAdminImpl(MongoClient mongoClient, String dbname, boolean recreate, OntologyLoader ontologyLoader) {
         super(mongoClient, dbname, recreate);
         for (final FunctionalAdminCollections collection : FunctionalAdminCollections.values()) {
             collection.initialize(super.getMongoDatabase(), recreate);
         }
+        this.ontologyLoader = ontologyLoader;
     }
 
     @Override
@@ -87,7 +90,7 @@ public class MongoDbAccessAdminImpl extends MongoDbAccess implements MongoDbAcce
     public DbRequestResult insertDocuments(ArrayNode arrayNode, FunctionalAdminCollections collection, Integer version)
         throws ReferentialException, SchemaValidationException {
         try {
-            final DbRequestSingle dbrequest = new DbRequestSingle(collection.getVitamCollection());
+            final DbRequestSingle dbrequest = new DbRequestSingle(collection.getVitamCollection(), this.ontologyLoader);
             final Insert insertquery = new Insert();
             insertquery.setData(arrayNode);
 
@@ -116,7 +119,7 @@ public class MongoDbAccessAdminImpl extends MongoDbAccess implements MongoDbAcce
         }
         if (count > 0) {
 
-            final DbRequestSingle dbrequest = new DbRequestSingle(collection.getVitamCollection());
+            final DbRequestSingle dbrequest = new DbRequestSingle(collection.getVitamCollection(), this.ontologyLoader);
             try (DbRequestResult result = dbrequest.execute(delete)) {
                 if (LOGGER.isDebugEnabled()) {
                     LOGGER.debug(collection.getName() + " result.result.getDeletedCount(): " + result.getCount());
@@ -148,7 +151,7 @@ public class MongoDbAccessAdminImpl extends MongoDbAccess implements MongoDbAcce
         }
         if (count > 0) {
             Delete delete = new Delete();
-            final DbRequestSingle dbrequest = new DbRequestSingle(collection.getVitamCollection());
+            final DbRequestSingle dbrequest = new DbRequestSingle(collection.getVitamCollection(), this.ontologyLoader);
             try (DbRequestResult result = dbrequest.execute(delete)) {
                 if (LOGGER.isDebugEnabled()) {
                     LOGGER.debug(collection.getName() + " result.result.getDeletedCount(): " + result.getCount());
@@ -189,7 +192,7 @@ public class MongoDbAccessAdminImpl extends MongoDbAccess implements MongoDbAcce
         try {
             final SelectParserSingle parser = new SelectParserSingle(collection.getVarNameAdapater());
             parser.parse(select);
-            final DbRequestSingle dbrequest = new DbRequestSingle(collection.getVitamCollection());
+            final DbRequestSingle dbrequest = new DbRequestSingle(collection.getVitamCollection(), this.ontologyLoader);
             return dbrequest.execute(parser.getRequest());
         } catch (final DatabaseException | BadRequestException | InvalidParseOperationException |
             InvalidCreateOperationException | VitamDBException | SchemaValidationException e) {
@@ -203,7 +206,7 @@ public class MongoDbAccessAdminImpl extends MongoDbAccess implements MongoDbAcce
         try {
             final DeleteParserSingle parser = new DeleteParserSingle(collection.getVarNameAdapater());
             parser.parse(delete);
-            final DbRequestSingle dbrequest = new DbRequestSingle(collection.getVitamCollection());
+            final DbRequestSingle dbrequest = new DbRequestSingle(collection.getVitamCollection(), this.ontologyLoader);
             return dbrequest.execute(parser.getRequest());
         } catch (InvalidParseOperationException | InvalidCreateOperationException e) {
             throw new BadRequestException(e);
@@ -218,7 +221,7 @@ public class MongoDbAccessAdminImpl extends MongoDbAccess implements MongoDbAcce
         try {
             final UpdateParserSingle parser = new UpdateParserSingle(collection.getVarNameAdapater());
             parser.parse(update);
-            final DbRequestSingle dbrequest = new DbRequestSingle(collection.getVitamCollection());
+            final DbRequestSingle dbrequest = new DbRequestSingle(collection.getVitamCollection(), this.ontologyLoader);
             DocumentValidator documentValidator = ReferentialDocumentValidators.getValidator(collection);
             final DbRequestResult result = dbrequest.execute(parser.getRequest(), version, documentValidator);
             if (result.getDiffs().size() == 0) {
@@ -235,7 +238,7 @@ public class MongoDbAccessAdminImpl extends MongoDbAccess implements MongoDbAcce
     @Override
     public void replaceDocument(JsonNode document, String identifierValue, String identifierKey,
         FunctionalAdminCollections vitamCollection) throws DatabaseException {
-        final DbRequestSingle dbRequest = new DbRequestSingle(vitamCollection.getVitamCollection());
+        final DbRequestSingle dbRequest = new DbRequestSingle(vitamCollection.getVitamCollection(), this.ontologyLoader);
 
         dbRequest.replaceDocument(document, identifierValue, identifierKey, vitamCollection.getVitamCollection());
     }

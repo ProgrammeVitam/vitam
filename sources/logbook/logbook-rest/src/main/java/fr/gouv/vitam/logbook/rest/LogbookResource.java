@@ -34,6 +34,7 @@ import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.ServerIdentity;
+import fr.gouv.vitam.common.client.OntologyLoader;
 import fr.gouv.vitam.common.database.builder.query.QueryHelper;
 import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
 import fr.gouv.vitam.common.database.builder.request.single.Select;
@@ -149,8 +150,9 @@ public class LogbookResource extends ApplicationStatusResource {
      * Constructor
      *
      * @param configuration of type LogbookConfiguration
+     * @param ontologyLoader
      */
-    public LogbookResource(LogbookConfiguration configuration) {
+    public LogbookResource(LogbookConfiguration configuration, OntologyLoader ontologyLoader) {
         if (configuration.isDbAuthentication()) {
             logbookConfiguration =
                 new LogbookConfiguration(configuration.getMongoDbNodes(), configuration.getDbName(),
@@ -162,7 +164,7 @@ public class LogbookResource extends ApplicationStatusResource {
                 new LogbookConfiguration(configuration.getMongoDbNodes(), configuration.getDbName(),
                     configuration.getClusterName(), configuration.getElasticsearchNodes());
         }
-        mongoDbAccess = LogbookMongoDbAccessFactory.create(logbookConfiguration);
+        mongoDbAccess = LogbookMongoDbAccessFactory.create(logbookConfiguration, ontologyLoader);
 
         logbookOperation = new AlertLogbookOperationsDecorator(new LogbookOperationsImpl(mongoDbAccess),
             configuration.getAlertEvents());

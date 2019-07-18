@@ -26,19 +26,9 @@
  *******************************************************************************/
 package fr.gouv.vitam.metadata.rest;
 
-import static fr.gouv.vitam.common.serverv2.application.ApplicationParameter.CONFIGURATION_FILE_APPLICATION;
-
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.HashSet;
-import java.util.Set;
-
-import javax.servlet.ServletConfig;
-import javax.ws.rs.core.Application;
-import javax.ws.rs.core.Context;
-
 import com.google.common.base.Throwables;
 import fr.gouv.vitam.common.PropertiesUtils;
+import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.database.api.VitamRepositoryFactory;
 import fr.gouv.vitam.common.database.offset.OffsetRepository;
 import fr.gouv.vitam.common.serverv2.application.AdminApplication;
@@ -50,6 +40,16 @@ import fr.gouv.vitam.metadata.core.graph.GraphFactory;
 import fr.gouv.vitam.security.internal.filter.AdminRequestIdFilter;
 import fr.gouv.vitam.security.internal.filter.BasicAuthenticationFilter;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
+
+import javax.servlet.ServletConfig;
+import javax.ws.rs.core.Application;
+import javax.ws.rs.core.Context;
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.HashSet;
+import java.util.Set;
+
+import static fr.gouv.vitam.common.serverv2.application.ApplicationParameter.CONFIGURATION_FILE_APPLICATION;
 
 /**
  * Admin application.
@@ -85,13 +85,15 @@ public class AdminMetadataApplication extends Application {
 
             VitamRepositoryFactory vitamRepositoryProvider = VitamRepositoryFactory.get();
 
-            MetaDataImpl metadata = MetaDataImpl.newMetadata(mongoDbAccessMetadata,
-                metaDataConfiguration.getOntologyCacheMaxEntries(),
-                metaDataConfiguration.getOntologyCacheTimeoutInSeconds(),
+            MetaDataImpl metadata = MetaDataImpl.newMetadata(
+                mongoDbAccessMetadata,
+                VitamConfiguration.getOntologyCacheMaxEntries(),
+                VitamConfiguration.getOntologyCacheTimeoutInSeconds(),
                 metaDataConfiguration.getArchiveUnitProfileCacheMaxEntries(),
                 metaDataConfiguration.getArchiveUnitProfileCacheTimeoutInSeconds(),
                 metaDataConfiguration.getSchemaValidatorCacheMaxEntries(),
-                metaDataConfiguration.getSchemaValidatorCacheTimeoutInSeconds());
+                metaDataConfiguration.getSchemaValidatorCacheTimeoutInSeconds()
+            );
 
             GraphFactory.initialize(vitamRepositoryProvider, metadata);
 

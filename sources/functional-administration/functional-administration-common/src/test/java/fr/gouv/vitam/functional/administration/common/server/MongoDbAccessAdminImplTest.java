@@ -52,8 +52,8 @@ import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.administration.ActivationStatus;
-import fr.gouv.vitam.common.model.administration.IngestContractCheckState;
 import fr.gouv.vitam.common.model.administration.ContextStatus;
+import fr.gouv.vitam.common.model.administration.IngestContractCheckState;
 import fr.gouv.vitam.common.model.administration.ProfileFormat;
 import fr.gouv.vitam.common.model.administration.ProfileStatus;
 import fr.gouv.vitam.common.model.administration.RegisterValueDetailModel;
@@ -85,6 +85,7 @@ import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -153,7 +154,7 @@ public class MongoDbAccessAdminImplTest {
         final List<MongoDbNode> nodes = new ArrayList<>();
         nodes.add(new MongoDbNode("localhost", mongoRule.getDataBasePort()));
         mongoAccess =
-            MongoDbAccessAdminFactory.create(new DbConfigurationImpl(nodes, mongoRule.getMongoDatabase().getName()));
+            MongoDbAccessAdminFactory.create(new DbConfigurationImpl(nodes, mongoRule.getMongoDatabase().getName()), Collections::emptyList);
 
         final List<String> testList = new ArrayList<>();
         testList.add("test1");
@@ -294,7 +295,7 @@ public class MongoDbAccessAdminImplTest {
         final Select selectWithSortName = new Select();
         selectWithSortName.setQuery(and().add(match(FileFormat.NAME, "acrobat")));
         selectWithSortName.addOrderByDescFilter(FileFormat.NAME);
-        final DbRequestSingle dbrequestSort = new DbRequestSingle(formatCollection.getVitamCollection());
+        final DbRequestSingle dbrequestSort = new DbRequestSingle(formatCollection.getVitamCollection(), Collections::emptyList);
         final DbRequestResult selectSortResult = dbrequestSort.execute(selectWithSortName);
         final List<FileFormat> selectSortList = selectSortResult.getDocuments(FileFormat.class);
         assertEquals(true, !selectSortList.isEmpty());
@@ -309,7 +310,7 @@ public class MongoDbAccessAdminImplTest {
         final Select selectWithSortId = new Select();
         selectWithSortId.setQuery(match(FileFormat.NAME, "acrobat"));
         selectWithSortName.addOrderByAscFilter(FileFormat.PUID);
-        final DbRequestSingle dbrequestSortId = new DbRequestSingle(formatCollection.getVitamCollection());
+        final DbRequestSingle dbrequestSortId = new DbRequestSingle(formatCollection.getVitamCollection(), Collections::emptyList);
         final DbRequestResult selectSortIdResult = dbrequestSortId.execute(selectWithSortId);
         final List<FileFormat> selectSortIdList = selectSortIdResult.getDocuments(FileFormat.class);
         assertEquals(true, !selectSortIdList.isEmpty());
@@ -324,7 +325,7 @@ public class MongoDbAccessAdminImplTest {
         final Update update = new Update();
         update.setQuery(match(FileFormat.NAME, "name"));
         update.addActions(UpdateActionHelper.set(FileFormat.COMMENT, "new comment"));
-        final DbRequestSingle dbrequest = new DbRequestSingle(formatCollection.getVitamCollection());
+        final DbRequestSingle dbrequest = new DbRequestSingle(formatCollection.getVitamCollection(), Collections::emptyList);
         final DbRequestResult updateResult = dbrequest.execute(update, mock(DocumentValidator.class));
         assertEquals(1, updateResult.getCount());
         formatCollection.getEsClient().refreshIndex(formatCollection);

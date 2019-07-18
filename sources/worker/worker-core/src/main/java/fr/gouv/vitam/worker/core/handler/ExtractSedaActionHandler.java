@@ -79,7 +79,6 @@ import fr.gouv.vitam.common.performance.PerformanceLogger;
 import fr.gouv.vitam.common.xml.XMLInputFactoryUtils;
 import fr.gouv.vitam.functional.administration.client.AdminManagementClient;
 import fr.gouv.vitam.functional.administration.client.AdminManagementClientFactory;
-import fr.gouv.vitam.functional.administration.common.exception.AdminManagementClientServerException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientAlreadyExistsException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientBadRequestException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientNotFoundException;
@@ -2922,8 +2921,7 @@ public class ExtractSedaActionHandler extends ActionHandler {
             JsonHandler.writeAsFile(ontologyModelList, tempFile);
             // put file in workspace
             handlerIO.addOutputResult(ONTOLOGY_IO_RANK, tempFile, true, false);
-        } catch (InvalidCreateOperationException | AdminManagementClientServerException |
-            InvalidParseOperationException e) {
+        } catch (InvalidCreateOperationException | InvalidParseOperationException e) {
             LOGGER.error("Could not get ontology", e);
             throw new ProcessingException(e);
         }

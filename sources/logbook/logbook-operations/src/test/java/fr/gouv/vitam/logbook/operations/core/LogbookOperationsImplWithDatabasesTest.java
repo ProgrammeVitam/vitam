@@ -74,7 +74,6 @@ import org.junit.ClassRule;
 import org.junit.Rule;
 import org.junit.Test;
 import org.mockito.Mock;
-import org.mockito.Mockito;
 import org.mockito.junit.MockitoJUnit;
 import org.mockito.junit.MockitoRule;
 
@@ -161,7 +160,7 @@ public class LogbookOperationsImplWithDatabasesTest {
                 esNodes);
         VitamConfiguration.setTenants(tenantList);
 
-        mongoDbAccess = LogbookMongoDbAccessFactory.create(logbookConfiguration);
+        mongoDbAccess = LogbookMongoDbAccessFactory.create(logbookConfiguration, Collections::emptyList);
 
         final String datestring1 = "2015-01-01";
         final String datestring2 = "2016-12-12";

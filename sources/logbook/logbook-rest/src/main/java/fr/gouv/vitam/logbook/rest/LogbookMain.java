@@ -72,6 +72,7 @@ public class LogbookMain {
                 throw new IllegalArgumentException(String.format(VitamServer.CONFIG_FILE_IS_A_MANDATORY_ARGUMENT,
                     CONF_FILE_NAME));
             }
+
             LogbookMain main = new LogbookMain(args[0]);
             VitamServiceRegistry serviceRegistry = new VitamServiceRegistry();
             // Database dependency

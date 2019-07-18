@@ -94,6 +94,7 @@ import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -399,7 +400,7 @@ public class OntologyServiceImpl implements OntologyService {
             createOntologies(ontologiesToCreate);
             if (toDelete.size() > 0) {
                 for (OntologyModel ontology : toDelete) {
-                    deleteOntology(ontology, FunctionalAdminCollections.ONTOLOGY);
+                    deleteOntology(ontology);
                 }
             }
             if (toUpdate.size() > 0) {
@@ -595,14 +596,13 @@ public class OntologyServiceImpl implements OntologyService {
 
     /**
      * Delete an ontology by id
+     *  @param ontologyModel the ontologyModel to delete
      *
-     * @param ontologyModel the ontologyModel to delete
-     * @param collection the given FunctionalAdminCollections
      */
-    private void deleteOntology(OntologyModel ontologyModel, FunctionalAdminCollections collection) {
+    private void deleteOntology(OntologyModel ontologyModel) {
         final Delete delete = new Delete();
         DbRequestResult result = null;
-        DbRequestSingle dbRequest = new DbRequestSingle(collection.getVitamCollection());
+        DbRequestSingle dbRequest = new DbRequestSingle(FunctionalAdminCollections.ONTOLOGY.getVitamCollection(), Collections::emptyList);
         try {
             delete.setQuery(eq(OntologyModel.TAG_IDENTIFIER, ontologyModel.getIdentifier()));
             result = dbRequest.execute(delete);

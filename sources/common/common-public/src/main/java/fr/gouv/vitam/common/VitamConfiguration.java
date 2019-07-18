@@ -26,19 +26,18 @@
  *******************************************************************************/
 package fr.gouv.vitam.common;
 
+import com.google.common.annotations.VisibleForTesting;
+import com.google.common.base.Strings;
+import fr.gouv.vitam.common.configuration.ClassificationLevel;
+import fr.gouv.vitam.common.digest.DigestType;
+import fr.gouv.vitam.common.logging.SysErrLogger;
+
 import java.io.File;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
-
-import com.google.common.annotations.VisibleForTesting;
-import com.google.common.base.Strings;
-
-import fr.gouv.vitam.common.configuration.ClassificationLevel;
-import fr.gouv.vitam.common.digest.DigestType;
-import fr.gouv.vitam.common.logging.SysErrLogger;
 
 /**
  * This class contains default values shared among all services in Vitam
@@ -413,6 +412,8 @@ public class VitamConfiguration {
      * Threshold for elimination action
      */
     private static long eliminationActionThreshold = 10_000L;
+    private static int ontologyCacheMaxEntries = 100;
+    private static int ontologyCacheTimeoutInSeconds = 300;
     /**
      * Default OriginatingAgency for DIP export with multiple originating agencies
      */
@@ -592,6 +593,22 @@ public class VitamConfiguration {
      */
     public static void setIntervalDelayLogInProgressWorker(int intervalDelayLogInProgressWorker) {
         VitamConfiguration.intervalDelayLogInProgressWorker = intervalDelayLogInProgressWorker;
+    }
+
+    public static int getOntologyCacheMaxEntries() {
+        return ontologyCacheMaxEntries;
+    }
+
+    public static void setOntologyCacheMaxEntries(int ontologyCacheMaxEntries) {
+        VitamConfiguration.ontologyCacheMaxEntries = ontologyCacheMaxEntries;
+    }
+
+    public static int getOntologyCacheTimeoutInSeconds() {
+        return ontologyCacheTimeoutInSeconds;
+    }
+
+    public static void setOntologyCacheTimeoutInSeconds(int ontologyCacheTimeoutInSeconds) {
+        VitamConfiguration.ontologyCacheTimeoutInSeconds = ontologyCacheTimeoutInSeconds;
     }
 
     /**
@@ -966,6 +983,14 @@ public class VitamConfiguration {
 
         if (null != parameters.getIndexInheritedRulesWithRulesIdByTenant()) {
             setIndexInheritedRulesWithRulesIdByTenant(parameters.getIndexInheritedRulesWithRulesIdByTenant());
+        }
+
+        if (null != parameters.getOntologyCacheMaxEntries()) {
+            setOntologyCacheMaxEntries(parameters.getOntologyCacheMaxEntries());
+        }
+
+        if (null != parameters.getOntologyCacheTimeoutInSeconds()) {
+            setOntologyCacheTimeoutInSeconds(parameters.getOntologyCacheTimeoutInSeconds());
         }
     }
 

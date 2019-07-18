@@ -1,0 +1,44 @@
+[
+  {
+    "path": "_id",
+    "type": "keyword",
+    "indexed": true,
+    "cardinality": "one"
+  },
+  {
+    "path": "Identifier",
+    "type": "keyword",
+    "indexed": true,
+    "cardinality": "one"
+  },
+  {
+    "path": "_v",
+    "type": "signed_long",
+    "indexed": true,
+    "cardinality": "one"
+  },
+  {
+    "path": "Permissions",
+    "type": "keyword",
+    "indexed": true,
+    "cardinality": "many"
+  },
+  {
+    "path": "FullAccess",
+    "type": "bool",
+    "indexed": true,
+    "cardinality": "one"
+  },
+  {
+    "path": "_score",
+    "type": "object",
+    "indexed": false,
+    "cardinality": "one"
+  },
+  {
+    "path": "Name",
+    "type": "text",
+    "indexed": true,
+    "cardinality": "one"
+  }
+]

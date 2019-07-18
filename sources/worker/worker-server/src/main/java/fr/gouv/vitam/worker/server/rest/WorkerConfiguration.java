@@ -27,11 +27,10 @@
 
 package fr.gouv.vitam.worker.server.rest;
 
+import fr.gouv.vitam.common.server.application.configuration.DefaultVitamApplicationConfiguration;
+
 import java.util.ArrayList;
 import java.util.List;
-
-import fr.gouv.vitam.common.configuration.ClassificationLevel;
-import fr.gouv.vitam.common.server.application.configuration.DefaultVitamApplicationConfiguration;
 
 /**
  * Worker configuration class mapping
@@ -49,9 +48,6 @@ public final class WorkerConfiguration extends DefaultVitamApplicationConfigurat
     private String workerFamily = "DefaultWorker";
     private List<String> indexInheritedRulesWithRulesIdByTenant = new ArrayList<>();
     private List<String> indexInheritedRulesWithAPIV2OutputByTenant = new ArrayList<>();
-
-    private int ontologyCacheMaxEntries = 100;
-    private int ontologyCacheTimeoutInSeconds = 300;
 
     private int archiveUnitProfileCacheMaxEntries = 100;
     private int archiveUnitProfileCacheTimeoutInSeconds = 300;
@@ -261,24 +257,6 @@ public final class WorkerConfiguration extends DefaultVitamApplicationConfigurat
 
     public void setIndexInheritedRulesWithAPIV2OutputByTenant(List<String> indexInheritedRulesWithAPIV2OutputByTenant) {
         this.indexInheritedRulesWithAPIV2OutputByTenant = indexInheritedRulesWithAPIV2OutputByTenant;
-    }
-
-    public int getOntologyCacheMaxEntries() {
-        return ontologyCacheMaxEntries;
-    }
-
-    public WorkerConfiguration setOntologyCacheMaxEntries(int ontologyCacheMaxEntries) {
-        this.ontologyCacheMaxEntries = ontologyCacheMaxEntries;
-        return this;
-    }
-
-    public int getOntologyCacheTimeoutInSeconds() {
-        return ontologyCacheTimeoutInSeconds;
-    }
-
-    public WorkerConfiguration setOntologyCacheTimeoutInSeconds(int ontologyCacheTimeoutInSeconds) {
-        this.ontologyCacheTimeoutInSeconds = ontologyCacheTimeoutInSeconds;
-        return this;
     }
 
     public int getArchiveUnitProfileCacheMaxEntries() {

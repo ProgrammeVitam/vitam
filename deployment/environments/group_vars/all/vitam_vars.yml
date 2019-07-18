@@ -120,6 +120,9 @@ vitam_griffins: []
 ### Composants Vitam ###
 
 vitam:
+    # Ontology cache settings (max entries in cache & retention timeout in seconds)
+    ontologyCacheMaxEntries: 100
+    ontologyCacheTimeoutInSeconds: 300
     accessexternal:
         # Component name: do not modify
         vitam_component: access-external
@@ -372,11 +375,6 @@ vitam:
         reconstruction:
         consul_check_business: 10 # value in seconds
         consul_admin_check: 10 # value in seconds
-
-        # Ontology cache settings (max entries in cache & retention timeout in seconds)
-        ontologyCacheMaxEntries: 100
-        ontologyCacheTimeoutInSeconds: 300
-
         # Archive Unit Profile cache settings (max entries in cache & retention timeout in seconds)
         archiveUnitProfileCacheMaxEntries: 100
         archiveUnitProfileCacheTimeoutInSeconds: 300
@@ -495,10 +493,6 @@ vitam:
         acceptableRequestTime: 60 # value in seconds
         api_output_index_tenants: [0,1,2,3,4,5,6,7,8,9]
         rules_index_tenants: [0,1,2,3,4,5,6,7,8,9]
-
-        # Ontology cache settings (max entries in cache & retention timeout in seconds)
-        ontologyCacheMaxEntries: 100
-        ontologyCacheTimeoutInSeconds: 300
 
         # Archive Unit Profile cache settings (max entries in cache & retention timeout in seconds)
         archiveUnitProfileCacheMaxEntries: 100

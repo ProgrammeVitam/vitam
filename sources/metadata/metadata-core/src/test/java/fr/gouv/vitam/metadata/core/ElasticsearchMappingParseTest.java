@@ -26,23 +26,25 @@
  *******************************************************************************/
 package fr.gouv.vitam.metadata.core;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.fail;
-
-import java.util.Iterator;
-import java.util.Map;
-import java.util.TreeMap;
-
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import fr.gouv.vitam.common.database.parser.query.ParserTokens;
+import fr.gouv.vitam.common.database.collections.DynamicParserTokens;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.metadata.core.database.collections.ElasticsearchAccessMetadata;
+import fr.gouv.vitam.metadata.core.database.collections.MetadataCollections;
 import fr.gouv.vitam.metadata.core.database.collections.ObjectGroup;
 import org.junit.Test;
+
+import java.util.Collections;
+import java.util.Iterator;
+import java.util.Map;
+import java.util.TreeMap;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.fail;
 
 public class ElasticsearchMappingParseTest {
 
@@ -51,24 +53,26 @@ public class ElasticsearchMappingParseTest {
     @Test
     public void testObjectGroupElasticsearchMapping() throws Exception {
 
-        parseAndValidateMappingFile(ElasticsearchAccessMetadata.MAPPING_OBJECT_GROUP_FILE);
+        parseAndValidateMappingFile(ElasticsearchAccessMetadata.MAPPING_OBJECT_GROUP_FILE, MetadataCollections.OBJECTGROUP);
     }
 
     @Test
     public void testUnitElasticsearchMapping() throws Exception {
-        parseAndValidateMappingFile(ElasticsearchAccessMetadata.MAPPING_UNIT_FILE);
+        parseAndValidateMappingFile(ElasticsearchAccessMetadata.MAPPING_UNIT_FILE, MetadataCollections.UNIT);
     }
 
-    private void parseAndValidateMappingFile(String resourceFileName) throws InvalidParseOperationException {
+    private void parseAndValidateMappingFile(String resourceFileName, MetadataCollections collection) throws InvalidParseOperationException {
 
         Map<String, String> result = parseMapping(resourceFileName);
+
+        DynamicParserTokens parserTokens = new DynamicParserTokens(collection.getVitamDescriptionLoader().getDescriptionTypeByName(), Collections.emptyList());
 
         for (Map.Entry<String, String> entry : result.entrySet()) {
 
             String fieldName = entry.getKey();
             String fieldType = entry.getValue();
 
-            boolean isNotAnalyzed = ParserTokens.PROJECTIONARGS.isNotAnalyzed(fieldName);
+            boolean isNotAnalyzed = parserTokens.isNotAnalyzed(fieldName);
             switch (fieldType) {
                 case "text":
                     assertThat(isNotAnalyzed)
@@ -87,7 +91,7 @@ public class ElasticsearchMappingParseTest {
                     break;
                 case "object":
                 case "nested":
-                    assertThat(ParserTokens.PROJECTIONARGS.isNotAnalyzed(fieldName + ".Any")).isFalse();
+                    assertThat(parserTokens.isNotAnalyzed(fieldName + ".Any")).isFalse();
                     break;
                 default:
                     fail("Unexpected type " + fieldType);

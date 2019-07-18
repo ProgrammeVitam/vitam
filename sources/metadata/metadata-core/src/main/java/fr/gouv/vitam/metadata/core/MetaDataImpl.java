@@ -32,6 +32,7 @@ import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.annotations.VisibleForTesting;
 import com.mongodb.client.MongoCollection;
+import fr.gouv.vitam.common.client.OntologyLoader;
 import fr.gouv.vitam.common.database.builder.facet.Facet;
 import fr.gouv.vitam.common.database.builder.facet.FacetHelper;
 import fr.gouv.vitam.common.database.builder.query.BooleanQuery;
@@ -42,6 +43,7 @@ import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.
 import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
 import fr.gouv.vitam.common.database.builder.request.multiple.RequestMultiple;
 import fr.gouv.vitam.common.database.builder.request.multiple.SelectMultiQuery;
+import fr.gouv.vitam.common.database.collections.CachedOntologyLoader;
 import fr.gouv.vitam.common.database.facet.model.FacetOrder;
 import fr.gouv.vitam.common.database.index.model.IndexationResult;
 import fr.gouv.vitam.common.database.parameter.IndexParameters;
@@ -71,9 +73,11 @@ import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.model.UnitType;
+import fr.gouv.vitam.common.model.administration.OntologyModel;
 import fr.gouv.vitam.common.model.massupdate.RuleActions;
 import fr.gouv.vitam.common.parameter.ParameterHelper;
 import fr.gouv.vitam.functional.administration.client.AdminManagementClientFactory;
+import fr.gouv.vitam.functional.administration.client.AdminManagementOntologyLoader;
 import fr.gouv.vitam.functional.administration.common.AccessionRegisterDetail;
 import fr.gouv.vitam.functional.administration.common.server.AccessionRegisterSymbolic;
 import fr.gouv.vitam.metadata.api.exception.MetaDataAlreadyExistException;
@@ -92,10 +96,8 @@ import fr.gouv.vitam.metadata.core.model.UpdatedDocument;
 import fr.gouv.vitam.metadata.core.utils.MetadataJsonResponseUtils;
 import fr.gouv.vitam.metadata.core.utils.OriginatingAgencyBucketResult;
 import fr.gouv.vitam.metadata.core.validation.CachedArchiveUnitProfileLoader;
-import fr.gouv.vitam.metadata.core.validation.CachedOntologyLoader;
 import fr.gouv.vitam.metadata.core.validation.CachedSchemaValidatorLoader;
 import fr.gouv.vitam.metadata.core.validation.MetadataValidationException;
-import fr.gouv.vitam.metadata.core.validation.OntologyLoader;
 import fr.gouv.vitam.metadata.core.validation.OntologyValidator;
 import fr.gouv.vitam.metadata.core.validation.UnitValidator;
 import org.apache.commons.collections.CollectionUtils;
@@ -128,6 +130,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -138,7 +141,6 @@ import static fr.gouv.vitam.common.json.JsonHandler.toArrayList;
 import static fr.gouv.vitam.common.model.StatusCode.FATAL;
 import static fr.gouv.vitam.common.model.StatusCode.KO;
 import static fr.gouv.vitam.metadata.core.database.collections.MetadataCollections.OBJECTGROUP;
-import static fr.gouv.vitam.metadata.core.database.collections.MetadataCollections.UNIT;
 import static fr.gouv.vitam.metadata.core.model.UpdateUnitKey.CHECK_UNIT_SCHEMA;
 import static fr.gouv.vitam.metadata.core.model.UpdateUnitKey.UNIT_METADATA_NO_CHANGES;
 import static fr.gouv.vitam.metadata.core.model.UpdateUnitKey.UNIT_METADATA_UPDATE;
@@ -154,15 +156,13 @@ public class MetaDataImpl {
 
     private final MongoDbAccessMetadataImpl mongoDbAccess;
     private final IndexationHelper indexationHelper;
-    private final AdminManagementClientFactory adminManagementClientFactory;
     private final DbRequest dbRequest;
     private final UnitValidator unitValidator;
     private final OntologyValidator unitOntologyValidator;
     private final OntologyValidator objectGroupOntologyValidator;
+    private final OntologyLoader unitOntologyLoader;
+    private final OntologyLoader objectGroupOntologyLoader;
 
-    /**
-     * @param mongoDbAccess
-     */
     public MetaDataImpl(MongoDbAccessMetadataImpl mongoDbAccess,
         int ontologyCacheMaxEntries, int ontologyCacheTimeoutInSeconds,
         int archiveUnitProfileCacheMaxEntries, int archiveUnitProfileCacheTimeoutInSeconds,
@@ -182,25 +182,33 @@ public class MetaDataImpl {
         int archiveUnitProfileCacheMaxEntries, int archiveUnitProfileCacheTimeoutInSeconds,
         int schemaValidatorCacheMaxEntries, int schemaValidatorCacheTimeoutInSeconds) {
         this.mongoDbAccess = mongoDbAccess;
-        this.adminManagementClientFactory = adminManagementClientFactory;
         this.indexationHelper = indexationHelper;
         this.dbRequest = dbRequest;
 
+        this.unitOntologyLoader = new CachedOntologyLoader(
+            ontologyCacheMaxEntries,
+            ontologyCacheTimeoutInSeconds,
+            new AdminManagementOntologyLoader(adminManagementClientFactory, Optional.of(MetadataType.UNIT.getName()))
+        );
+        this.objectGroupOntologyLoader = new CachedOntologyLoader(
+            ontologyCacheMaxEntries,
+            ontologyCacheTimeoutInSeconds,
+            new AdminManagementOntologyLoader(adminManagementClientFactory, Optional.of(MetadataType.OBJECTGROUP.getName()))
+        );
+
+        this.unitOntologyValidator = new OntologyValidator(this.unitOntologyLoader);
+        this.objectGroupOntologyValidator = new OntologyValidator(this.objectGroupOntologyLoader);
+
         CachedArchiveUnitProfileLoader archiveUnitProfileLoader = new CachedArchiveUnitProfileLoader(
-            adminManagementClientFactory, archiveUnitProfileCacheMaxEntries, archiveUnitProfileCacheTimeoutInSeconds);
+            adminManagementClientFactory,
+            archiveUnitProfileCacheMaxEntries,
+            archiveUnitProfileCacheTimeoutInSeconds
+        );
 
         CachedSchemaValidatorLoader schemaValidatorLoader = new CachedSchemaValidatorLoader(
-            schemaValidatorCacheMaxEntries, schemaValidatorCacheTimeoutInSeconds);
-
-        OntologyLoader unitOntologyLoader = new CachedOntologyLoader(
-            this.adminManagementClientFactory, ontologyCacheMaxEntries, ontologyCacheTimeoutInSeconds,
-            MetadataType.UNIT);
-        OntologyLoader objectGroupOntologyLoader = new CachedOntologyLoader(
-            this.adminManagementClientFactory, ontologyCacheMaxEntries, ontologyCacheTimeoutInSeconds,
-            MetadataType.OBJECTGROUP);
-
-        this.unitOntologyValidator = new OntologyValidator(unitOntologyLoader);
-        this.objectGroupOntologyValidator = new OntologyValidator(objectGroupOntologyLoader);
+            schemaValidatorCacheMaxEntries,
+            schemaValidatorCacheTimeoutInSeconds
+        );
 
         this.unitValidator = new UnitValidator(archiveUnitProfileLoader, schemaValidatorLoader);
     }
@@ -344,8 +352,13 @@ public class MetaDataImpl {
         }
 
         try {
-
-            Result result = dbRequest.execRequest(request);
+            List<OntologyModel> ontologies;
+            if (request.model() == BuilderToken.FILTERARGS.UNITS) {
+                ontologies = this.unitOntologyLoader.loadOntologies();
+            } else {
+                ontologies = this.objectGroupOntologyLoader.loadOntologies();
+            }
+            Result result = dbRequest.execRequest(request, ontologies);
             List<FacetResult> facetResults = (result != null) ? result.getFacet() : new ArrayList<>();
 
             if (!CollectionUtils.isEmpty(facetResults)) {
@@ -512,8 +525,8 @@ public class MetaDataImpl {
             AggregationBuilders.terms("originatingAgency").field("_sp"),
             AggregationBuilders.terms("originatingAgencies").field("_sps")
         );
-        return UNIT.getEsClient()
-            .basicSearch(UNIT, tenant, aggregations, QueryBuilders.termQuery("_tenant", tenant))
+        return MetadataCollections.UNIT.getEsClient()
+            .basicSearch(MetadataCollections.UNIT, tenant, aggregations, QueryBuilders.termQuery("_tenant", tenant))
             .getAggregations();
     }
 
@@ -668,7 +681,14 @@ public class MetaDataImpl {
             fieldsProjection.removeAll();
         }
 
-        result = dbRequest.execRequest(selectRequest);
+        List<OntologyModel> ontologies;
+        if (selectRequest.model() == BuilderToken.FILTERARGS.UNITS) {
+            ontologies = this.unitOntologyLoader.loadOntologies();
+        } else {
+            ontologies = this.objectGroupOntologyLoader.loadOntologies();
+        }
+
+        result = dbRequest.execRequest(selectRequest, ontologies);
         arrayNodeResponse = MetadataJsonResponseUtils.populateJSONObjectResponse(result, selectRequest);
 
         // Compute Rule for unit(only with search by Id)
@@ -699,7 +719,7 @@ public class MetaDataImpl {
 
         // FIXME : Object group ontology to be implemented in INGEST workflows
         // Execute DSL request
-        dbRequest.execUpdateRequest(updateRequest, objectId, OBJECTGROUP, this.objectGroupOntologyValidator, null);
+        dbRequest.execUpdateRequest(updateRequest, objectId, OBJECTGROUP, this.objectGroupOntologyValidator, null, this.objectGroupOntologyLoader.loadOntologies());
 
     }
 
@@ -725,7 +745,7 @@ public class MetaDataImpl {
         try {
 
             UpdatedDocument updatedDocument = dbRequest
-                .execUpdateRequest(updateRequest, unitId, UNIT, this.unitOntologyValidator, this.unitValidator);
+                .execUpdateRequest(updateRequest, unitId, MetadataCollections.UNIT, this.unitOntologyValidator, this.unitValidator, this.unitOntologyLoader.loadOntologies());
 
             String diffs = String.join("\n", VitamDocument.getConcernedDiffLines(
                 VitamDocument.getUnifiedDiff(JsonHandler.prettyPrint(updatedDocument.getBeforeUpdate()),
@@ -768,7 +788,7 @@ public class MetaDataImpl {
         try {
             UpdatedDocument updatedDocument =
                 dbRequest.execRuleRequest(unitId, ruleActions, bindRuleToDuration, this.unitOntologyValidator,
-                    unitValidator);
+                    unitValidator, this.unitOntologyLoader.loadOntologies());
 
             String diffs = String.join("\n", VitamDocument.getConcernedDiffLines(
                 VitamDocument.getUnifiedDiff(JsonHandler.prettyPrint(updatedDocument.getBeforeUpdate()),
@@ -807,7 +827,7 @@ public class MetaDataImpl {
         updateRequest.parse(updateQuery);
 
         UpdatedDocument updatedDocument = dbRequest
-            .execUpdateRequest(updateRequest, unitId, UNIT, this.unitOntologyValidator, this.unitValidator);
+            .execUpdateRequest(updateRequest, unitId, MetadataCollections.UNIT, this.unitOntologyValidator, this.unitValidator, this.unitOntologyLoader.loadOntologies());
 
         String diffs = String.join("\n", VitamDocument.getConcernedDiffLines(
             VitamDocument.getUnifiedDiff(JsonHandler.prettyPrint(updatedDocument.getBeforeUpdate()),
@@ -865,7 +885,7 @@ public class MetaDataImpl {
 
     public void refreshUnit() throws IllegalArgumentException, VitamThreadAccessException {
         final Integer tenantId = ParameterHelper.getTenantParameter();
-        mongoDbAccess.getEsClient().refreshIndex(UNIT, tenantId);
+        mongoDbAccess.getEsClient().refreshIndex(MetadataCollections.UNIT, tenantId);
     }
 
     public void refreshObjectGroup() throws IllegalArgumentException, VitamThreadAccessException {
