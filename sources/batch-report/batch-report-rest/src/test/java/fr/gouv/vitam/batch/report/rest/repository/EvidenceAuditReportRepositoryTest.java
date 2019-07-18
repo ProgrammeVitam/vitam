@@ -88,12 +88,12 @@ public class EvidenceAuditReportRepositoryTest {
         offerHashesObject.put("offer-fs-1.service.consul","664ac614a819df2a97d2a5df57dcad91d6ec38b0fffc793e80c56b4553a14ac7a5f0bce3bb71af419b0bb8f151ad3d512867454eeb818e01818a31989c13319b");
         ArrayList<EvidenceAuditReportObject> listEvidenceAuditReportObject = new ArrayList<>();
         EvidenceAuditReportObject evidenceAuditReportObject = new EvidenceAuditReportObject("aebaaaaaaeg7sn7vabtioallotfxytyaaaaq",EvidenceStatus.OK.name(),"audit OK for ObjectGroup",
-            "ObjectGroup","664ac614a819df2a97d2a5df57dcad91d6ec38b0fffc793e80c56b4553a14ac7a5f0bce3bb71af419b0bb8f151ad3d512867454eeb818e01818a31989c13319b", DEFAULT_STRATEGY,offerHashesObject);
+            "OBJECTGROUP","664ac614a819df2a97d2a5df57dcad91d6ec38b0fffc793e80c56b4553a14ac7a5f0bce3bb71af419b0bb8f151ad3d512867454eeb818e01818a31989c13319b", DEFAULT_STRATEGY,offerHashesObject);
         listEvidenceAuditReportObject.add(evidenceAuditReportObject);
         Map<String,String> offerHashesUnit = new HashMap<>();
         offerHashesObject.put("offer-fs-1.service.consul","cc9221173b12e75f7a8f629d49632ffbb87538b13d82ab7cc02e8b3486131fb609c6303bb7b5f67962e45b068e74cb40aa8c8906bcbb9db9fd6ebbe89929d655");
         EvidenceAuditReportEntry evidenceAuditReportEntry1 = new EvidenceAuditReportEntry("Id1",
-            EvidenceStatus.OK.name(), "audit OK for aebaaaaaaeg7sn7vabtioallotfxytyaaaaq", "ObjectGroup",
+            EvidenceStatus.OK.name(), "audit OK for aebaaaaaaeg7sn7vabtioallotfxytyaaaaq", "OBJECTGROUP",
             listEvidenceAuditReportObject, "cc9221173b12e75f7a8f629d49632ffbb87538b13d82ab7cc02e8b3486131fb609c6303bb7b5f67962e45b068e74cb40aa8c8906bcbb9db9fd6ebbe89929d655", DEFAULT_STRATEGY, offerHashesUnit,EvidenceStatus.OK
         .name());
         evidenceAuditReportEntryOK = new EvidenceAuditObjectModel(GUIDFactory.newGUID().toString(), processId, TENANT_ID,
@@ -104,12 +104,12 @@ public class EvidenceAuditReportRepositoryTest {
         offerHashesObject2.put("offer-fs-1.service.consul","664ac614a819df2a97d2a5df57dcad91d6ec38b0fffc793e80c56b4553a14ac7a5f0bce3bb71af419b0bb8f151ad3d512867454eeb818e01818a31989c13319b");
         ArrayList<EvidenceAuditReportObject> listEvidenceAuditReportObject2 = new ArrayList<>();
         EvidenceAuditReportObject evidenceAuditReportObject2 = new EvidenceAuditReportObject("aebaaaaaaeg7sn7vabtioallotfxytyaaaaq",EvidenceStatus.KO.name(),"audit OK for ObjectGroup",
-            "ObjectGroup","664ac614a819df2a97d2a5df57dcad91d6ec38b0fffc793e80c56b4553a14ac7a5f0bce3bb71af419b0bb8f151ad3d512867454eeb818e01818a31989c13319b", DEFAULT_STRATEGY, offerHashesObject2);
+            "OBJECTGROUP","664ac614a819df2a97d2a5df57dcad91d6ec38b0fffc793e80c56b4553a14ac7a5f0bce3bb71af419b0bb8f151ad3d512867454eeb818e01818a31989c13319b", DEFAULT_STRATEGY, offerHashesObject2);
         listEvidenceAuditReportObject2.add(evidenceAuditReportObject2);
         Map<String,String> offerHashesUnit2 = new HashMap<>();
         offerHashesObject.put("offer-fs-1.service.consul","cc9221173b12e75f7a8f629d49632ffbb87538b13d82ab7cc02e8b3486131fb609c6303bb7b5f67962e45b068e74cb40aa8c8906bcbb9db9fd6ebbe89929d655");
         EvidenceAuditReportEntry evidenceAuditReportEntry2 = new EvidenceAuditReportEntry("Id2",
-            EvidenceStatus.KO.name(), "audit OK for aebaaaaaaeg7sn7vabtioallotfxytyaaaaq", "ObjectGroup",
+            EvidenceStatus.KO.name(), "audit OK for aebaaaaaaeg7sn7vabtioallotfxytyaaaaq", "OBJECTGROUP",
             listEvidenceAuditReportObject2, "cc9221173b12e75f7a8f629d49632ffbb87538b13d82ab7cc02e8b3486131fb609c6303bb7b5f67962e45b068e74cb40aa8c8906bcbb9db9fd6ebbe89929d655", DEFAULT_STRATEGY, offerHashesUnit2,EvidenceStatus.KO
             .name());
         evidenceAuditReportEntryKO = new EvidenceAuditObjectModel(GUIDFactory.newGUID().toString(), processId, TENANT_ID,
@@ -119,7 +119,7 @@ public class EvidenceAuditReportRepositoryTest {
         offerHashesObject3.put("offer-fs-1.service.consul","664ac614a819df2a97d2a5df57dcad91d6ec38b0fffc793e80c56b4553a14ac7a5f0bce3bb71af419b0bb8f151ad3d512867454eeb818e01818a31989c13319b");
         ArrayList<EvidenceAuditReportObject> listEvidenceAuditReportObject3 = new ArrayList<>();
         EvidenceAuditReportObject evidenceAuditReportObject3 = new EvidenceAuditReportObject("aebaaaaaaeg7sn7vabtioallotfxytyaaaaq",EvidenceStatus.WARN.name(),"audit OK for ObjectGroup",
-            "ObjectGroup","664ac614a819df2a97d2a5df57dcad91d6ec38b0fffc793e80c56b4553a14ac7a5f0bce3bb71af419b0bb8f151ad3d512867454eeb818e01818a31989c13319b", DEFAULT_STRATEGY, offerHashesObject3);
+            "OBJECTGROUP","664ac614a819df2a97d2a5df57dcad91d6ec38b0fffc793e80c56b4553a14ac7a5f0bce3bb71af419b0bb8f151ad3d512867454eeb818e01818a31989c13319b", DEFAULT_STRATEGY, offerHashesObject3);
         listEvidenceAuditReportObject3.add(evidenceAuditReportObject3);
 
 
@@ -128,7 +128,7 @@ public class EvidenceAuditReportRepositoryTest {
 
 
         EvidenceAuditReportEntry evidenceAuditReportEntry3 = new EvidenceAuditReportEntry("Id3",
-            EvidenceStatus.WARN.name(), "audit OK for aebaaaaaaeg7sn7vabtioallotfxytyaaaaq", "ObjectGroup",
+            EvidenceStatus.WARN.name(), "audit OK for aebaaaaaaeg7sn7vabtioallotfxytyaaaaq", "OBJECTGROUP",
             listEvidenceAuditReportObject3, "cc9221173b12e75f7a8f629d49632ffbb87538b13d82ab7cc02e8b3486131fb609c6303bb7b5f67962e45b068e74cb40aa8c8906bcbb9db9fd6ebbe89929d655", DEFAULT_STRATEGY, offerHashesUnit3,EvidenceStatus.WARN
             .name());
 

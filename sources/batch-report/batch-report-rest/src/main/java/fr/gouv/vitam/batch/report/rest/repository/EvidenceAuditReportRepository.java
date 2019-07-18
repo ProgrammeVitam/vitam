@@ -224,10 +224,10 @@ public class EvidenceAuditReportRepository extends ReportCommonRepository {
             Document result = objectGroupsStatusCountResult.next();
             String status = result.getString("_id");
             switch (status) {
-                case "ObjectGroup":
+                case "OBJECTGROUP":
                     counter.setNbObjectGroups(result.getInteger("result"));
                     break;
-                case "Unit":
+                case "UNIT":
                     counter.setNbObjects(result.getInteger("result"));
                     break;
                 default:
