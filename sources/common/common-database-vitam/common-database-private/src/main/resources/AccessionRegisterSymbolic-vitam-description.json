@@ -1,0 +1,50 @@
+[
+  {
+    "path": "_id",
+    "type": "keyword",
+    "indexed": true,
+    "cardinality": "one"
+  },
+  {
+    "path": "_tenant",
+    "type": "signed_long",
+    "indexed": true,
+    "cardinality": "one"
+  },
+  {
+    "path": "OriginatingAgency",
+    "type": "keyword",
+    "indexed": true,
+    "cardinality": "one"
+  },
+  {
+    "path": "BinaryObjectSize",
+    "type": "signed_double",
+    "indexed": true,
+    "cardinality": "one"
+  },
+  {
+    "path": "ArchiveUnit",
+    "type": "signed_long",
+    "indexed": true,
+    "cardinality": "one"
+  },
+  {
+    "path": "ObjectGroup",
+    "type": "signed_long",
+    "indexed": true,
+    "cardinality": "one"
+  },
+  {
+    "path": "BinaryObject",
+    "type": "signed_long",
+    "indexed": true,
+    "cardinality": "one"
+  },
+  {
+    "path": "CreationDate",
+    "type": "datetime",
+    "indexed": true,
+    "cardinality": "one"
+  }
+]

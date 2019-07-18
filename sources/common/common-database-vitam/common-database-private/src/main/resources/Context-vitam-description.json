@@ -1,0 +1,98 @@
+[
+  {
+    "path": "_id",
+    "type": "keyword",
+    "indexed": true,
+    "cardinality": "one"
+  },
+  {
+    "path": "Status",
+    "type": "keyword",
+    "cardinality": "one",
+    "indexed": true
+  },
+  {
+    "path": "CreationDate",
+    "type": "datetime",
+    "cardinality": "one",
+    "indexed": true
+  },
+  {
+    "path": "LastUpdate",
+    "type": "datetime",
+    "cardinality": "one",
+    "indexed": true
+  },
+  {
+    "path": "SecurityProfile",
+    "type": "keyword",
+    "cardinality": "one",
+    "indexed": true
+  },
+  {
+    "path": "EnableControl",
+    "type": "bool",
+    "cardinality": "one",
+    "indexed": true
+  },
+  {
+    "path": "_score",
+    "type": "object",
+    "cardinality": "one",
+    "indexed": false
+  },
+  {
+    "path": "DeactivationDate",
+    "type": "datetime",
+    "cardinality": "one",
+    "indexed": true
+  },
+  {
+    "path": "Name",
+    "type": "text",
+    "cardinality": "one",
+    "indexed": true
+  },
+  {
+    "path": "Permissions.IngestContracts",
+    "type": "keyword",
+    "cardinality": "many",
+    "indexed": true
+  },
+  {
+    "path": "Permissions.tenant",
+    "type": "signed_long",
+    "cardinality": "one",
+    "indexed": true
+  },
+  {
+    "path": "Identifier",
+    "type": "keyword",
+    "cardinality": "one",
+    "indexed": true
+  },
+  {
+    "path": "_v",
+    "type": "signed_long",
+    "cardinality": "one",
+    "indexed": true
+  },
+  {
+    "path": "Permissions",
+    "type": "object",
+    "cardinality": "many",
+    "indexed": true
+  },
+  {
+    "path": "Permissions.AccessContracts",
+    "type": "keyword",
+    "cardinality": "many",
+    "indexed": true
+  },
+  {
+    "path": "ActivationDate",
+    "type": "datetime",
+    "cardinality": "one",
+    "indexed": true
+  }
+]

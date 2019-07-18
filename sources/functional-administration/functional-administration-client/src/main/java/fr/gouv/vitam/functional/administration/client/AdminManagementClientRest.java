@@ -26,22 +26,7 @@
  *******************************************************************************/
 package fr.gouv.vitam.functional.administration.client;
 
-import static fr.gouv.vitam.common.json.JsonHandler.getFromString;
-import static javax.ws.rs.HttpMethod.GET;
-import static javax.ws.rs.HttpMethod.POST;
-import static javax.ws.rs.core.MediaType.APPLICATION_JSON_TYPE;
-
-import java.io.InputStream;
-import java.util.List;
-
-import javax.ws.rs.HttpMethod;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.MultivaluedHashMap;
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.Response.Status;
-
 import com.fasterxml.jackson.databind.JsonNode;
-
 import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.client.DefaultClient;
@@ -55,6 +40,7 @@ import fr.gouv.vitam.common.exception.AccessUnauthorizedException;
 import fr.gouv.vitam.common.exception.BadRequestException;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamClientInternalException;
+import fr.gouv.vitam.common.exception.VitamRuntimeException;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.AuditOptions;
@@ -93,6 +79,19 @@ import fr.gouv.vitam.functional.administration.common.exception.ReferentialNotFo
 import fr.gouv.vitam.functional.administration.common.server.AccessionRegisterSymbolic;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientAlreadyExistsException;
 import fr.gouv.vitam.logbook.common.parameters.LogbookOperationParameters;
+
+import javax.ws.rs.HttpMethod;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.MultivaluedHashMap;
+import javax.ws.rs.core.Response;
+import javax.ws.rs.core.Response.Status;
+import java.io.InputStream;
+import java.util.List;
+
+import static fr.gouv.vitam.common.json.JsonHandler.getFromString;
+import static javax.ws.rs.HttpMethod.GET;
+import static javax.ws.rs.HttpMethod.POST;
+import static javax.ws.rs.core.MediaType.APPLICATION_JSON_TYPE;
 
 /**
  * AdminManagement client
@@ -1515,7 +1514,7 @@ class AdminManagementClientRest extends DefaultClient implements AdminManagement
 
     @Override
     public RequestResponse<OntologyModel> findOntologies(JsonNode query)
-        throws InvalidParseOperationException, AdminManagementClientServerException {
+        throws InvalidParseOperationException {
         ParametersChecker.checkParameter("The input queryDsl json is mandatory", query);
         Response response = null;
         try {
@@ -1532,7 +1531,7 @@ class AdminManagementClientRest extends DefaultClient implements AdminManagement
 
         } catch (VitamClientInternalException e) {
             LOGGER.error("Internal Server Error", e);
-            throw new AdminManagementClientServerException("Internal Server Error", e);
+            throw new VitamRuntimeException("Internal Server Error", e);
         } finally {
             consumeAnyEntityAndClose(response);
         }

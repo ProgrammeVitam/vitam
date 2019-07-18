@@ -26,28 +26,32 @@
  *******************************************************************************/
 package fr.gouv.vitam.logbook.rest;
 
-import static fr.gouv.vitam.common.serverv2.application.ApplicationParameter.CONFIGURATION_FILE_APPLICATION;
-
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.HashSet;
-import java.util.Set;
-
-import javax.servlet.ServletConfig;
-import javax.ws.rs.core.Application;
-import javax.ws.rs.core.Context;
-
 import com.google.common.base.Throwables;
 import fr.gouv.vitam.common.PropertiesUtils;
+import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.database.api.VitamRepositoryFactory;
 import fr.gouv.vitam.common.database.api.VitamRepositoryProvider;
+import fr.gouv.vitam.common.database.collections.CachedOntologyLoader;
 import fr.gouv.vitam.common.database.offset.OffsetRepository;
 import fr.gouv.vitam.common.serverv2.application.AdminApplication;
+import fr.gouv.vitam.functional.administration.client.AdminManagementClientFactory;
+import fr.gouv.vitam.functional.administration.client.AdminManagementOntologyLoader;
 import fr.gouv.vitam.logbook.common.server.LogbookConfiguration;
 import fr.gouv.vitam.logbook.common.server.database.collections.LogbookMongoDbAccessFactory;
 import fr.gouv.vitam.logbook.common.server.database.collections.LogbookMongoDbAccessImpl;
 import fr.gouv.vitam.security.internal.filter.AdminRequestIdFilter;
 import fr.gouv.vitam.security.internal.filter.BasicAuthenticationFilter;
+
+import javax.servlet.ServletConfig;
+import javax.ws.rs.core.Application;
+import javax.ws.rs.core.Context;
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.HashSet;
+import java.util.Optional;
+import java.util.Set;
+
+import static fr.gouv.vitam.common.serverv2.application.ApplicationParameter.CONFIGURATION_FILE_APPLICATION;
 
 /**
  * Admin application.
@@ -70,8 +74,13 @@ public class AdminLogbookApplication extends Application {
             final LogbookConfiguration logbookConfiguration =
                 PropertiesUtils.readYaml(yamlIS, LogbookConfiguration.class);
             adminApplication = new AdminApplication();
+            CachedOntologyLoader ontologyLoader = new CachedOntologyLoader(
+                VitamConfiguration.getOntologyCacheMaxEntries(),
+                VitamConfiguration.getOntologyCacheTimeoutInSeconds(),
+                new AdminManagementOntologyLoader(AdminManagementClientFactory.getInstance(), Optional.empty())
+            );
             // hack to init collections and clients
-            LogbookMongoDbAccessImpl logbookMongoDbAccess = LogbookMongoDbAccessFactory.create(logbookConfiguration);
+            LogbookMongoDbAccessImpl logbookMongoDbAccess = LogbookMongoDbAccessFactory.create(logbookConfiguration, ontologyLoader);
 
             OffsetRepository offsetRepository = new OffsetRepository(logbookMongoDbAccess);
 

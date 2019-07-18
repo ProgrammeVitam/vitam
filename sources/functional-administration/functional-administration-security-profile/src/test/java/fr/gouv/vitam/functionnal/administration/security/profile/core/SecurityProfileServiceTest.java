@@ -78,6 +78,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -131,7 +132,7 @@ public class SecurityProfileServiceTest {
 
         final List<MongoDbNode> nodes = new ArrayList<>();
         nodes.add(new MongoDbNode("localhost", mongoRule.getDataBasePort()));
-        dbImpl = MongoDbAccessAdminFactory.create(new DbConfigurationImpl(nodes, mongoRule.getMongoDatabase().getName()));
+        dbImpl = MongoDbAccessAdminFactory.create(new DbConfigurationImpl(nodes, mongoRule.getMongoDatabase().getName()), Collections::emptyList);
     }
 
     @Before
@@ -158,7 +159,7 @@ public class SecurityProfileServiceTest {
 
         securityProfileService =
             new SecurityProfileService(
-                MongoDbAccessAdminFactory.create(new DbConfigurationImpl(nodes, mongoRule.getMongoDatabase().getName())),
+                MongoDbAccessAdminFactory.create(new DbConfigurationImpl(nodes, mongoRule.getMongoDatabase().getName()), Collections::emptyList),
                 vitamCounterService, functionalBackupService, adminManagementClient);
     }
 

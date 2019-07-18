@@ -48,7 +48,6 @@ import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.functional.administration.common.Context;
 import fr.gouv.vitam.functional.administration.common.FunctionalBackupService;
 import fr.gouv.vitam.functional.administration.common.counter.VitamCounterService;
-import fr.gouv.vitam.functional.administration.common.server.ElasticsearchAccessAdminFactory;
 import fr.gouv.vitam.functional.administration.common.server.ElasticsearchAccessFunctionalAdmin;
 import fr.gouv.vitam.functional.administration.common.server.FunctionalAdminCollections;
 import fr.gouv.vitam.functional.administration.common.server.MongoDbAccessAdminFactory;
@@ -83,7 +82,6 @@ import static fr.gouv.vitam.common.guid.GUIDFactory.newOperationLogbookGUID;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
-import static org.junit.Assume.assumeTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.reset;
@@ -134,7 +132,7 @@ public class ContextServiceImplTest {
         nodes.add(new MongoDbNode("localhost", mongoRule.getDataBasePort()));
 
         dbImpl =
-            MongoDbAccessAdminFactory.create(new DbConfigurationImpl(nodes, mongoRule.getMongoDatabase().getName()));
+            MongoDbAccessAdminFactory.create(new DbConfigurationImpl(nodes, mongoRule.getMongoDatabase().getName()), Collections::emptyList);
 
         final List tenants = new ArrayList<>();
         tenants.add(new Integer(TENANT_ID));
@@ -161,7 +159,7 @@ public class ContextServiceImplTest {
 
         contextService =
             new ContextServiceImpl(MongoDbAccessAdminFactory
-                .create(new DbConfigurationImpl(nodes, mongoRule.getMongoDatabase().getName())),
+                .create(new DbConfigurationImpl(nodes, mongoRule.getMongoDatabase().getName()), Collections::emptyList),
                 vitamCounterService, ingestContractService, accessContractService, securityProfileService,
                 functionalBackupService);
     }

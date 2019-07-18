@@ -26,30 +26,11 @@
  *******************************************************************************/
 package fr.gouv.vitam.functional.administration.rest;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.List;
-
-import javax.servlet.ServletConfig;
-import javax.validation.Valid;
-import javax.ws.rs.ApplicationPath;
-import javax.ws.rs.Consumes;
-import javax.ws.rs.POST;
-import javax.ws.rs.Path;
-import javax.ws.rs.PathParam;
-import javax.ws.rs.Produces;
-import javax.ws.rs.core.Context;
-import javax.ws.rs.core.HttpHeaders;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
-
 import fr.gouv.vitam.common.ParametersChecker;
-import fr.gouv.vitam.common.PropertiesUtils;
+import fr.gouv.vitam.common.client.OntologyLoader;
 import fr.gouv.vitam.common.database.api.VitamRepositoryProvider;
 import fr.gouv.vitam.common.database.offset.OffsetRepository;
 import fr.gouv.vitam.common.exception.DatabaseException;
-import fr.gouv.vitam.common.exception.VitamException;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.AuthenticationLevel;
@@ -66,7 +47,19 @@ import fr.gouv.vitam.functional.administration.common.server.FunctionalAdminColl
 import fr.gouv.vitam.functional.administration.common.server.MongoDbAccessAdminFactory;
 import fr.gouv.vitam.functional.administration.common.server.MongoDbAccessAdminImpl;
 
-import static fr.gouv.vitam.common.serverv2.application.ApplicationParameter.CONFIGURATION_FILE_APPLICATION;
+import javax.validation.Valid;
+import javax.ws.rs.ApplicationPath;
+import javax.ws.rs.Consumes;
+import javax.ws.rs.POST;
+import javax.ws.rs.Path;
+import javax.ws.rs.PathParam;
+import javax.ws.rs.Produces;
+import javax.ws.rs.core.Context;
+import javax.ws.rs.core.HttpHeaders;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * reconstruction Service.
@@ -105,9 +98,9 @@ public class AdminReconstructionResource {
      * Constructor
      * 
      * @param reconstructionFactory
+     * @param ontologyLoader
      */
-    public AdminReconstructionResource(AdminManagementConfiguration configuration, VitamRepositoryProvider reconstructionFactory) {
-
+    public AdminReconstructionResource(AdminManagementConfiguration configuration, VitamRepositoryProvider reconstructionFactory, OntologyLoader ontologyLoader) {
         DbConfigurationImpl adminConfiguration;
         if (configuration.isDbAuthentication()) {
             adminConfiguration =
@@ -118,7 +111,7 @@ public class AdminReconstructionResource {
                     new DbConfigurationImpl(configuration.getMongoDbNodes(),
                             configuration.getDbName());
         }
-        mongoAccess = MongoDbAccessAdminFactory.create(adminConfiguration);
+        this.mongoAccess = MongoDbAccessAdminFactory.create(adminConfiguration, ontologyLoader);
         this.reconstructionService = new ReconstructionServiceImpl(reconstructionFactory, new OffsetRepository(mongoAccess));
     }
 

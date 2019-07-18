@@ -26,8 +26,6 @@
  *******************************************************************************/
 package fr.gouv.vitam.functional.administration.rest;
 
-import static fr.gouv.vitam.common.server.VitamServer.*;
-
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.ServerIdentity;
 import fr.gouv.vitam.common.VitamConfiguration;
@@ -38,6 +36,9 @@ import fr.gouv.vitam.common.server.application.resources.VitamServiceRegistry;
 import fr.gouv.vitam.common.serverv2.VitamStarter;
 import fr.gouv.vitam.functional.administration.common.server.AdminManagementConfiguration;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClientFactory;
+
+import static fr.gouv.vitam.common.server.VitamServer.CONFIG_FILE_IS_A_MANDATORY_ARGUMENT;
+import static fr.gouv.vitam.common.server.VitamServer.SERVER_CAN_NOT_START;
 
 /**
  * Admininstration management web application

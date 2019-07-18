@@ -26,18 +26,12 @@
  *******************************************************************************/
 package fr.gouv.vitam.common.database.translators.elasticsearch;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
-
-import java.util.List;
-
 import com.fasterxml.jackson.databind.JsonNode;
 import fr.gouv.vitam.common.database.builder.query.PathQuery;
 import fr.gouv.vitam.common.database.builder.query.Query;
 import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
 import fr.gouv.vitam.common.database.builder.request.multiple.SelectMultiQuery;
+import fr.gouv.vitam.common.database.collections.DynamicParserTokens;
 import fr.gouv.vitam.common.database.collections.VitamCollection;
 import fr.gouv.vitam.common.database.parser.request.multiple.SelectParserMultiple;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
@@ -51,6 +45,14 @@ import org.elasticsearch.search.sort.SortBuilder;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
+
+import java.util.Collections;
+import java.util.List;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 public class QueryToElasticsearchTest {
     private static final VitamLogger LOGGER =
@@ -173,9 +175,10 @@ public class QueryToElasticsearchTest {
             final SelectParserMultiple parser = createSelect(example);
             final SelectMultiQuery select = parser.getRequest();
             final QueryBuilder queryBuilderRoot = QueryToElasticsearch.getRoots("_up", select.getRoots());
+            DynamicParserTokens parserTokens = new DynamicParserTokens(Collections.emptyMap(), Collections.emptyList());
             final List<SortBuilder> sortBuilders = QueryToElasticsearch.getSorts(parser,
-                parser.hasFullTextQuery() || VitamCollection.containMatch(), true);
-            final List<AggregationBuilder> facetBuilders = QueryToElasticsearch.getFacets(parser);
+                parser.hasFullTextQuery() || VitamCollection.containMatch(), true, parserTokens);
+            final List<AggregationBuilder> facetBuilders = QueryToElasticsearch.getFacets(parser, parserTokens);
             VitamCollection.setMatch(false);
             assertEquals(4, sortBuilders.size());
             assertEquals(2, facetBuilders.size());
@@ -183,7 +186,7 @@ public class QueryToElasticsearchTest {
             final List<Query> list = select.getQueries();
             for (int i = 0; i < list.size(); i++) {
                 System.out.println(i + " = " + list.get(i).toString());
-                final QueryBuilder queryBuilderCommand = QueryToElasticsearch.getCommand(list.get(i), new FakeMetadataVarNameAdapter());
+                final QueryBuilder queryBuilderCommand = QueryToElasticsearch.getCommand(list.get(i), new FakeMetadataVarNameAdapter(), parserTokens);
                 final QueryBuilder queryBuilderseudoRequest =
                     QueryToElasticsearch.getFullCommand(queryBuilderCommand, queryBuilderRoot);
                 System.out.println(i + " = " + ElasticsearchHelper.queryBuilderToString(queryBuilderseudoRequest));
@@ -238,9 +241,10 @@ public class QueryToElasticsearchTest {
 
             final SelectMultiQuery select = parser.getRequest();
             final QueryBuilder queryBuilderRoot = QueryToElasticsearch.getRoots("_up", select.getRoots());
+            DynamicParserTokens parserTokens = new DynamicParserTokens(Collections.emptyMap(), Collections.emptyList());
             final List<SortBuilder> sortBuilders = QueryToElasticsearch.getSorts(parser,
-                parser.hasFullTextQuery() || VitamCollection.containMatch(), true);
-            final List<AggregationBuilder> facetBuilders = QueryToElasticsearch.getFacets(parser);
+                parser.hasFullTextQuery() || VitamCollection.containMatch(), true, parserTokens);
+            final List<AggregationBuilder> facetBuilders = QueryToElasticsearch.getFacets(parser, parserTokens);
             VitamCollection.setMatch(false);
             assertEquals(4, sortBuilders.size());
             assertEquals(3, facetBuilders.size());
@@ -249,7 +253,7 @@ public class QueryToElasticsearchTest {
             // exists #id
             {
                 int i = 0;
-                final QueryBuilder queryBuilderCommand = QueryToElasticsearch.getCommand(list.get(i), new FakeMetadataVarNameAdapter());
+                final QueryBuilder queryBuilderCommand = QueryToElasticsearch.getCommand(list.get(i), new FakeMetadataVarNameAdapter(), parserTokens);
                 final QueryBuilder queryBuilderseudoRequest =
                     QueryToElasticsearch.getFullCommand(queryBuilderCommand, queryBuilderRoot);
                 assertEquals(true, ElasticsearchHelper.queryBuilderToString(queryBuilderseudoRequest).contains("_uid"));
@@ -257,7 +261,7 @@ public class QueryToElasticsearchTest {
             // missing #id
             {
                 int i = 1;
-                final QueryBuilder queryBuilderCommand = QueryToElasticsearch.getCommand(list.get(i), new FakeMetadataVarNameAdapter());
+                final QueryBuilder queryBuilderCommand = QueryToElasticsearch.getCommand(list.get(i), new FakeMetadataVarNameAdapter(), parserTokens);
                 final QueryBuilder queryBuilderseudoRequest =
                     QueryToElasticsearch.getFullCommand(queryBuilderCommand, queryBuilderRoot);
                 assertEquals(true, ElasticsearchHelper.queryBuilderToString(queryBuilderseudoRequest).contains("_uid"));
@@ -265,7 +269,7 @@ public class QueryToElasticsearchTest {
             // isNull #id
             {
                 int i = 2;
-                final QueryBuilder queryBuilderCommand = QueryToElasticsearch.getCommand(list.get(i), new FakeMetadataVarNameAdapter());
+                final QueryBuilder queryBuilderCommand = QueryToElasticsearch.getCommand(list.get(i), new FakeMetadataVarNameAdapter(), parserTokens);
                 final QueryBuilder queryBuilderseudoRequest =
                     QueryToElasticsearch.getFullCommand(queryBuilderCommand, queryBuilderRoot);
                 assertEquals(true, ElasticsearchHelper.queryBuilderToString(queryBuilderseudoRequest).contains("_uid"));
@@ -273,7 +277,7 @@ public class QueryToElasticsearchTest {
             // lt #id
             {
                 int i = 3;
-                final QueryBuilder queryBuilderCommand = QueryToElasticsearch.getCommand(list.get(i), new FakeMetadataVarNameAdapter());
+                final QueryBuilder queryBuilderCommand = QueryToElasticsearch.getCommand(list.get(i), new FakeMetadataVarNameAdapter(), parserTokens);
                 final QueryBuilder queryBuilderseudoRequest =
                     QueryToElasticsearch.getFullCommand(queryBuilderCommand, queryBuilderRoot);
                 assertEquals(true, ElasticsearchHelper.queryBuilderToString(queryBuilderseudoRequest).contains("_uid"));
@@ -282,7 +286,7 @@ public class QueryToElasticsearchTest {
             // eq #id
             {
                 int i = 4;
-                final QueryBuilder queryBuilderCommand = QueryToElasticsearch.getCommand(list.get(i), new FakeMetadataVarNameAdapter());
+                final QueryBuilder queryBuilderCommand = QueryToElasticsearch.getCommand(list.get(i), new FakeMetadataVarNameAdapter(), parserTokens);
                 final QueryBuilder queryBuilderseudoRequest =
                     QueryToElasticsearch.getFullCommand(queryBuilderCommand, queryBuilderRoot);
                 assertEquals(false, ElasticsearchHelper.queryBuilderToString(queryBuilderseudoRequest).contains("_uid"));
@@ -321,7 +325,8 @@ public class QueryToElasticsearchTest {
     public void shouldNotRaiseException_whenPathAllowed()
         throws InvalidParseOperationException, InvalidCreateOperationException {
         final Query query = new PathQuery("id0");
-        QueryToElasticsearch.getCommand(query, new FakeMetadataVarNameAdapter());
+        DynamicParserTokens parserTokens = new DynamicParserTokens(Collections.emptyMap(), Collections.emptyList());
+        QueryToElasticsearch.getCommand(query, new FakeMetadataVarNameAdapter(), parserTokens);
     }
 
     @Test
@@ -331,19 +336,20 @@ public class QueryToElasticsearchTest {
             final SelectParserMultiple parser = createSelect(nestedSearchQuery);
             final SelectMultiQuery select = parser.getRequest();
             assertTrue(select.getFacets().get(0).getCurrentFacet().get("$terms").get("$subobject").asText().equals("#qualifiers.versions"));
-            final List<AggregationBuilder> facetBuilders = QueryToElasticsearch.getFacets(parser);
+            DynamicParserTokens parserTokens = new DynamicParserTokens(Collections.emptyMap(), Collections.emptyList());
+            final List<AggregationBuilder> facetBuilders = QueryToElasticsearch.getFacets(parser, parserTokens);
             assertEquals(1, facetBuilders.size());
             assertTrue(facetBuilders.get(0) instanceof NestedAggregationBuilder);
             final QueryBuilder queryBuilderRoot = QueryToElasticsearch.getRoots("_up", select.getRoots());
             final List<SortBuilder> sortBuilders = QueryToElasticsearch.getSorts(parser,
-                    parser.hasFullTextQuery() || VitamCollection.containMatch(), true);
+                    parser.hasFullTextQuery() || VitamCollection.containMatch(), true, parserTokens);
             VitamCollection.setMatch(false);
             assertEquals(1, sortBuilders.size());
 
             final List<Query> list = select.getQueries();
             for (int i = 0; i < list.size(); i++) {
                 System.out.println(i + " = " + list.get(i).toString());
-                final QueryBuilder queryBuilderCommand = QueryToElasticsearch.getCommand(list.get(i), new FakeMetadataVarNameAdapter());
+                final QueryBuilder queryBuilderCommand = QueryToElasticsearch.getCommand(list.get(i), new FakeMetadataVarNameAdapter(), parserTokens);
                 final QueryBuilder queryBuilderseudoRequest =
                         QueryToElasticsearch.getFullCommand(queryBuilderCommand, queryBuilderRoot);
                 System.out.println(i + " = " + ElasticsearchHelper.queryBuilderToString(queryBuilderseudoRequest));
@@ -352,7 +358,7 @@ public class QueryToElasticsearchTest {
             {
                 final List<Query> queries = select.getQueries();
                 assertEquals(1, queries.size());
-                final QueryBuilder queryBuilderCommand = QueryToElasticsearch.getCommand(list.get(0), new FakeMetadataVarNameAdapter());
+                final QueryBuilder queryBuilderCommand = QueryToElasticsearch.getCommand(list.get(0), new FakeMetadataVarNameAdapter(), parserTokens);
                 final QueryBuilder queryBuilderseudoRequest =
                         QueryToElasticsearch.getFullCommand(queryBuilderCommand, queryBuilderRoot);
                 assertEquals(true, ElasticsearchHelper.queryBuilderToString(queryBuilderseudoRequest).contains("nested"));

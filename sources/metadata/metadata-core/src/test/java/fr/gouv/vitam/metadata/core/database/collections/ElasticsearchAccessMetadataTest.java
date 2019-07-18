@@ -29,6 +29,7 @@ package fr.gouv.vitam.metadata.core.database.collections;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.google.common.collect.Lists;
 import fr.gouv.vitam.common.database.builder.query.Query;
+import fr.gouv.vitam.common.database.collections.DynamicParserTokens;
 import fr.gouv.vitam.common.database.collections.VitamCollection;
 import fr.gouv.vitam.common.database.parser.request.multiple.SelectParserMultiple;
 import fr.gouv.vitam.common.database.server.elasticsearch.ElasticsearchNode;
@@ -56,6 +57,7 @@ import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
@@ -170,12 +172,13 @@ public class ElasticsearchAccessMetadataTest {
         parser.parse(queryNode);
         List<SortBuilder> sorts = new ArrayList<>();
         List<Query> queries = parser.getRequest().getQueries();
+        DynamicParserTokens parserTokens = new DynamicParserTokens(Collections.emptyMap(), Collections.emptyList());
         for (Query elasticQuery : queries) {
             SortBuilder sortBuilder = new FieldSortBuilder("_max");
             sortBuilder.order(SortOrder.DESC);
             sorts.add(sortBuilder);
             BoolQueryBuilder queryBuilder = new BoolQueryBuilder()
-                .must(QueryToElasticsearch.getCommand(elasticQuery, new MongoDbVarNameAdapter()));
+                .must(QueryToElasticsearch.getCommand(elasticQuery, new MongoDbVarNameAdapter(), parserTokens));
             // When
             Result result = elasticsearchAccessMetadata
                 .search(MetadataCollections.UNIT, TENANT_ID_0, VitamCollection.getTypeunique(), queryBuilder, sorts, 0,

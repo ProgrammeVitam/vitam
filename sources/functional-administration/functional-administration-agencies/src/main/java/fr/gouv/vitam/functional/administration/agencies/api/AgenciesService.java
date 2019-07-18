@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2019)
  * <p>
  * contact.vitam@culture.gouv.fr
@@ -32,6 +32,7 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.annotations.VisibleForTesting;
 import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.PropertiesUtils;
+import fr.gouv.vitam.common.client.OntologyLoader;
 import fr.gouv.vitam.common.database.builder.query.QueryHelper;
 import fr.gouv.vitam.common.database.builder.query.VitamFieldsHelper;
 import fr.gouv.vitam.common.database.builder.query.action.SetAction;
@@ -166,6 +167,7 @@ public class AgenciesService implements VitamAutoCloseable {
     private final VitamCounterService vitamCounterService;
     private final LogbookOperationsClientFactory logbookOperationsClientFactory;
     private final FunctionalBackupService backupService;
+    private final OntologyLoader ontologyLoader;
     private AgenciesManager manager;
     private Map<Integer, List<ErrorReportAgencies>> errorsMap;
     private List<AgenciesModel> usedAgenciesByContracts;
@@ -179,56 +181,32 @@ public class AgenciesService implements VitamAutoCloseable {
     private GUID eip;
     private ContractsFinder finder;
 
-    /**
-     * Constructor
-     *
-     * @param mongoAccess MongoDB client
-     * @param vitamCounterService the vitam counter service
-     * @param backupService the FunctionalBackupService
-     */
     public AgenciesService(MongoDbAccessAdminImpl mongoAccess,
-        VitamCounterService vitamCounterService, FunctionalBackupService backupService)
+        VitamCounterService vitamCounterService, FunctionalBackupService backupService, OntologyLoader ontologyLoader)
         throws InvalidGuidOperationException {
         this.mongoAccess = mongoAccess;
         this.vitamCounterService = vitamCounterService;
         this.backupService = backupService;
-        logbookOperationsClientFactory = LogbookOperationsClientFactory.getInstance();
-        logBookclient = LogbookOperationsClientFactory.getInstance().getClient();
-        errorsMap = new HashMap<>();
-        usedAgenciesByContracts = new ArrayList<>();
-        usedAgenciesByAU = new ArrayList<>();
-        unusedAgenciesToDelete = new ArrayList<>();
-        agenciesToInsert = new ArrayList<>();
-        agenciesToUpdate = new ArrayList<>();
-        agenciesToDelete = new ArrayList<>();
-        agenciesToImport = new ArrayList<>();
-        agenciesInDb = new ArrayList<>();
-        finder = new ContractsFinder(mongoAccess, vitamCounterService);
-        String operationId = VitamThreadUtils.getVitamSession().getRequestId();
-
-        eip = GUIDReader.getGUID(operationId);
-
-        manager = new AgenciesManager(logBookclient, eip);
-
+        this.logbookOperationsClientFactory = LogbookOperationsClientFactory.getInstance();
+        this.logBookclient = LogbookOperationsClientFactory.getInstance().getClient();
+        this.errorsMap = new HashMap<>();
+        this.usedAgenciesByContracts = new ArrayList<>();
+        this.usedAgenciesByAU = new ArrayList<>();
+        this.unusedAgenciesToDelete = new ArrayList<>();
+        this.agenciesToInsert = new ArrayList<>();
+        this.agenciesToUpdate = new ArrayList<>();
+        this.agenciesToDelete = new ArrayList<>();
+        this.agenciesToImport = new ArrayList<>();
+        this.agenciesInDb = new ArrayList<>();
+        this.finder = new ContractsFinder(mongoAccess, vitamCounterService);
+        this.eip = GUIDReader.getGUID(VitamThreadUtils.getVitamSession().getRequestId());
+        this.manager = new AgenciesManager(logBookclient, eip);
+        this.ontologyLoader = ontologyLoader;
     }
 
-    /**
-     * Constructor for test purposes
-     *
-     * @param mongoAccess MongoDB client
-     * @param vitamCounterService the vitam counter service
-     * @param backupService the FunctionalBackupService
-     * @param logbookOperationsClientFactory the logbook operaction client factory
-     * @param manager the agency manager
-     * @param agenciesInDb the list of agencies in DB
-     * @param agenciesToDelete the list of agencies to be deleted
-     * @param agenciesToInsert the list of agencies to be inserted
-     * @param agenciesToUpdate the list of agencies to be updated
-     * @param usedAgenciesByAU the list of agencies used in AU
-     * @param usedAgenciesByContracts the list of agencies used in contracts
-     */
     @VisibleForTesting
-    public AgenciesService(MongoDbAccessAdminImpl mongoAccess,
+    public AgenciesService(
+        MongoDbAccessAdminImpl mongoAccess,
         VitamCounterService vitamCounterService,
         FunctionalBackupService backupService,
         LogbookOperationsClientFactory logbookOperationsClientFactory,
@@ -239,22 +217,24 @@ public class AgenciesService implements VitamAutoCloseable {
         List<AgenciesModel> agenciesToUpdate,
         List<AgenciesModel> usedAgenciesByAU,
         List<AgenciesModel> usedAgenciesByContracts,
-        List <AgenciesModel> unusedAgenciesToDelete ) {
+        List <AgenciesModel> unusedAgenciesToDelete,
+        OntologyLoader ontologyLoader) {
         this.mongoAccess = mongoAccess;
         this.vitamCounterService = vitamCounterService;
         this.backupService = backupService;
         this.logbookOperationsClientFactory = logbookOperationsClientFactory;
-        logBookclient = this.logbookOperationsClientFactory.getClient();
-        errorsMap = new HashMap<>();
+        this.logBookclient = this.logbookOperationsClientFactory.getClient();
+        this.errorsMap = new HashMap<>();
         this.agenciesInDb = agenciesInDb;
         this.agenciesToDelete = agenciesToDelete;
         this.agenciesToInsert = agenciesToInsert;
         this.agenciesToUpdate = agenciesToUpdate;
         this.usedAgenciesByAU = usedAgenciesByAU;
         this.usedAgenciesByContracts = usedAgenciesByContracts;
-        finder = new ContractsFinder(mongoAccess, vitamCounterService);
+        this.finder = new ContractsFinder(mongoAccess, vitamCounterService);
         this.manager = manager;
         this.unusedAgenciesToDelete = unusedAgenciesToDelete;
+        this.ontologyLoader = ontologyLoader;
     }
 
     /**
@@ -775,7 +755,7 @@ public class AgenciesService implements VitamAutoCloseable {
             updateAgency(agency, sequence);
         }
 
-        unusedAgenciesToDelete.stream().forEach(agency -> deleteAgency(agency, AGENCIES));
+        unusedAgenciesToDelete.stream().forEach(agency -> deleteAgency(agency));
 
         if (!agenciesToInsert.isEmpty()) {
             insertDocuments(agenciesToInsert, sequence);
@@ -817,14 +797,14 @@ public class AgenciesService implements VitamAutoCloseable {
 
     /**
      * Delete agency by id in case it's not used somewhere
+     *  @param fileAgenciesModel fileAgenciesModel to delete
      *
-     * @param fileAgenciesModel fileAgenciesModel to delete
-     * @param collection the given FunctionalAdminCollections
      */
-    private void deleteAgency(AgenciesModel fileAgenciesModel, FunctionalAdminCollections collection) {
+    private void deleteAgency(AgenciesModel fileAgenciesModel) {
         final Delete delete = new Delete();
-        DbRequestResult result = null;
-        DbRequestSingle dbRequest = new DbRequestSingle(collection.getVitamCollection());
+        DbRequestResult result;
+
+        DbRequestSingle dbRequest = new DbRequestSingle(FunctionalAdminCollections.AGENCIES.getVitamCollection(), ontologyLoader);
         try {
             delete.setQuery(eq(AgenciesModel.TAG_IDENTIFIER, fileAgenciesModel.getIdentifier()));
             result = dbRequest.execute(delete);

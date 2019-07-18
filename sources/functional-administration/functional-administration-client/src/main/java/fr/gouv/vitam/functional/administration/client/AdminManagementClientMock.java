@@ -26,19 +26,10 @@
  *******************************************************************************/
 package fr.gouv.vitam.functional.administration.client;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.List;
-
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.Response.Status;
-
 import com.fasterxml.jackson.core.JsonGenerationException;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.client.AbstractMockClient;
 import fr.gouv.vitam.common.client.ClientMockResultHelper;
@@ -81,6 +72,13 @@ import fr.gouv.vitam.functional.administration.common.exception.ReferentialNotFo
 import fr.gouv.vitam.functional.administration.common.server.AccessionRegisterSymbolic;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientAlreadyExistsException;
 import fr.gouv.vitam.logbook.common.parameters.LogbookOperationParameters;
+
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
+import javax.ws.rs.core.Response.Status;
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.List;
 
 
 /**
@@ -531,7 +529,7 @@ public class AdminManagementClientMock extends AbstractMockClient implements Adm
 
     @Override
     public RequestResponse<OntologyModel> findOntologies(JsonNode query)
-        throws InvalidParseOperationException, AdminManagementClientServerException {
+        throws InvalidParseOperationException {
         LOGGER.debug("find Ontologies");
         return ClientMockResultHelper.getOntologies(Status.OK.getStatusCode());
     }

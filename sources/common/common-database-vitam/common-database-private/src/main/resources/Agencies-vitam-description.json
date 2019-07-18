@@ -1,0 +1,44 @@
+[
+  {
+    "path": "Description",
+    "type": "text",
+    "cardinality": "one",
+    "indexed": true
+  },
+  {
+    "path": "Identifier",
+    "type": "keyword",
+    "cardinality": "one",
+    "indexed": true
+  },
+  {
+    "path": "_v",
+    "type": "signed_long",
+    "cardinality": "one",
+    "indexed": true
+  },
+  {
+    "path": "_id",
+    "type": "keyword",
+    "cardinality": "one",
+    "indexed": true
+  },
+  {
+    "path": "_tenant",
+    "type": "signed_long",
+    "cardinality": "one",
+    "indexed": true
+  },
+  {
+    "path": "_score",
+    "type": "object",
+    "cardinality": "one",
+    "indexed": false
+  },
+  {
+    "path": "Name",
+    "type": "text",
+    "cardinality": "one",
+    "indexed": true
+  }
+]

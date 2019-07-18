@@ -47,6 +47,7 @@ import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 import static fr.gouv.vitam.common.database.collections.VitamCollection.getMongoClientOptions;
@@ -97,9 +98,10 @@ public class VitamCollectionTest {
     public void shouldCreateVitamCollection() {
         final List<Class<?>> classList = new ArrayList<>();
         classList.add(CollectionSample.class);
+        VitamDescriptionLoader descriptionLoader = new VitamDescriptionLoader(Collections.emptyMap());
         final VitamCollection vitamCollection =
             VitamCollectionHelper
-                .getCollection(CollectionSample.class, true, false, PREFIX + CollectionSample.class.getSimpleName());
+                .getCollection(CollectionSample.class, true, false, PREFIX + CollectionSample.class.getSimpleName(), descriptionLoader);
 
         assertEquals(vitamCollection.getClasz(), CollectionSample.class);
         vitamCollection.initialize(esClient);

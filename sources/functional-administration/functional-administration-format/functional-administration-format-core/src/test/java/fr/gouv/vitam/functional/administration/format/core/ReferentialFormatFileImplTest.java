@@ -53,8 +53,6 @@ import fr.gouv.vitam.functional.administration.common.AccessContract;
 import fr.gouv.vitam.functional.administration.common.FileFormat;
 import fr.gouv.vitam.functional.administration.common.FunctionalBackupService;
 import fr.gouv.vitam.functional.administration.common.exception.ReferentialException;
-import fr.gouv.vitam.functional.administration.common.server.AdminManagementConfiguration;
-import fr.gouv.vitam.functional.administration.common.server.ElasticsearchAccessAdminFactory;
 import fr.gouv.vitam.functional.administration.common.server.ElasticsearchAccessFunctionalAdmin;
 import fr.gouv.vitam.functional.administration.common.server.FunctionalAdminCollections;
 import fr.gouv.vitam.functional.administration.common.server.MongoDbAccessAdminFactory;
@@ -78,6 +76,7 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.InputStream;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 import static fr.gouv.vitam.common.database.collections.VitamCollection.getMongoClientOptions;
@@ -127,7 +126,7 @@ public class ReferentialFormatFileImplTest {
         LogbookOperationsClientFactory.changeMode(null);
         formatFile = new ReferentialFormatFileImpl(
             MongoDbAccessAdminFactory.create(
-                new DbConfigurationImpl(mongoDbNodes, mongoRule.getMongoDatabase().getName())), functionalBackupService,
+                new DbConfigurationImpl(mongoDbNodes, mongoRule.getMongoDatabase().getName()), Collections::emptyList), functionalBackupService,
             logbookOperationsClient);
     }
 

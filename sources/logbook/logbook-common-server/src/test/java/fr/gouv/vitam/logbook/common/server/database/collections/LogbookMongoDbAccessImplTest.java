@@ -22,6 +22,7 @@ import org.junit.Rule;
 import org.junit.Test;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 import static com.mongodb.client.model.Filters.eq;
@@ -50,7 +51,7 @@ public class LogbookMongoDbAccessImplTest {
 
     private LogbookMongoDbAccessImpl logbookMongoDbAccess =
         new LogbookMongoDbAccessImpl(mongoRule.getMongoClient(), "vitam-test", true, null, new ArrayList<>(),
-            new LogbookTransformData());
+            new LogbookTransformData(), Collections::emptyList);
 
 
     @Test

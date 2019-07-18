@@ -17,10 +17,6 @@ workerFamily: {{vitam_worker_workerFamily}}
 indexInheritedRulesWithAPIV2OutputByTenant: [ "{{  vitam.worker.api_output_index_tenants | join('", "') }}" ]
 indexInheritedRulesWithRulesIdByTenant: [ "{{  vitam.worker.rules_index_tenants | join('", "') }}" ]
 
-# Ontology cache settings (max entries in cache & retention timeout in seconds)
-ontologyCacheMaxEntries: {{ vitam.metadata.ontologyCacheMaxEntries }}
-ontologyCacheTimeoutInSeconds: {{ vitam.worker.ontologyCacheTimeoutInSeconds }}
-
 # Archive Unit Profile cache settings (max entries in cache & retention timeout in seconds)
 archiveUnitProfileCacheMaxEntries: {{ vitam.metadata.archiveUnitProfileCacheMaxEntries }}
 archiveUnitProfileCacheTimeoutInSeconds: {{ vitam.worker.archiveUnitProfileCacheTimeoutInSeconds }}

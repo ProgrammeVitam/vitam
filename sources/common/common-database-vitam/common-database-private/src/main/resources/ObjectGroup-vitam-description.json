@@ -1,0 +1,567 @@
+[
+  {
+    "path": "_id",
+    "type": "keyword",
+    "indexed": true,
+    "cardinality": "one"
+  },
+  {
+    "path": "FileInfo",
+    "type": "object",
+    "indexed": true,
+    "cardinality": "one"
+  },
+  {
+    "path": "FileInfo.CreatingApplicationName",
+    "type": "text",
+    "indexed": true,
+    "cardinality": "one"
+  },
+  {
+    "path": "FileInfo.CreatingApplicationVersion",
+    "type": "text",
+    "indexed": true,
+    "cardinality": "one"
+  },
+  {
+    "path": "FileInfo.CreatingOs",
+    "type": "text",
+    "indexed": true,
+    "cardinality": "one"
+  },
+  {
+    "path": "FileInfo.CreatingOsVersion",
+    "type": "text",
+    "indexed": true,
+    "cardinality": "one"
+  },
+  {
+    "path": "FileInfo.DateCreatedByApplication",
+    "type": "datetime",
+    "indexed": true,
+    "cardinality": "one"
+  },
+  {
+    "path": "FileInfo.Filename",
+    "type": "text",
+    "indexed": true,
+    "cardinality": "one"
+  },
+  {
+    "path": "FileInfo.LastModified",
+    "type": "datetime",
+    "indexed": true,
+    "cardinality": "one"
+  },
+  {
+    "path": "Metadata",
+    "type": "object",
+    "indexed": true,
+    "cardinality": "many"
+  },
+  {
+    "path": "Metadata.Text",
+    "type": "object",
+    "indexed": true,
+    "cardinality": "one"
+  },
+  {
+    "path": "Metadata.Document",
+    "type": "object",
+    "indexed": true,
+    "cardinality": "one"
+  },
+  {
+    "path": "Metadata.Image",
+    "type": "object",
+    "indexed": true,
+    "cardinality": "one"
+  },
+  {
+    "path": "Metadata.Audio",
+    "type": "object",
+    "indexed": true,
+    "cardinality": "one"
+  },
+  {
+    "path": "Metadata.Video",
+    "type": "object",
+    "indexed": true,
+    "cardinality": "one"
+  },
+  {
+    "path": "Metadata.OtherCoreTechnicalMetadataAbstract",
+    "type": "object",
+    "indexed": true,
+    "visibility": "external",
+    "cardinality": "one"
+  },
+  {
+    "path": "OtherMetadata",
+    "type": "object",
+    "indexed": true,
+    "cardinality": "many"
+  },
+  {
+    "path": "_glpd",
+    "type": "keyword",
+    "indexed": true,
+    "cardinality": "one"
+  },
+  {
+    "path": "_nbc",
+    "type": "signed_long",
+    "indexed": true,
+    "cardinality": "one"
+  },
+  {
+    "path": "_opi",
+    "type": "keyword",
+    "indexed": true,
+    "cardinality": "one"
+  },
+  {
+    "path": "_ops",
+    "type": "keyword",
+    "indexed": true,
+    "cardinality": "many"
+  },
+  {
+    "path": "_profil",
+    "type": "keyword",
+    "indexed": true,
+    "cardinality": "one"
+  },
+  {
+    "path": "_qualifiers",
+    "type": "object",
+    "indexed": true,
+    "cardinality": "many"
+  },
+  {
+    "path": "_qualifiers._nbc",
+    "type": "signed_long",
+    "indexed": true,
+    "cardinality": "one"
+  },
+  {
+    "path": "_qualifiers.qualifier",
+    "type": "keyword",
+    "indexed": true,
+    "cardinality": "one"
+  },
+  {
+    "path": "_qualifiers.versions",
+    "type": "nested_object",
+    "indexed": true,
+    "cardinality": "many"
+  },
+  {
+    "path": "_qualifiers.versions.DataObjectSystemId",
+    "type": "keyword",
+    "indexed": true,
+    "cardinality": "one"
+  },
+  {
+    "path": "_qualifiers.versions.DataObjectGroupSystemId",
+    "type": "keyword",
+    "indexed": true,
+    "cardinality": "one"
+  },
+  {
+    "path": "_qualifiers.versions.Relationship",
+    "type": "keyword",
+    "indexed": true,
+    "cardinality": "many"
+  },
+  {
+    "path": "_qualifiers.versions.Algorithm",
+    "type": "keyword",
+    "indexed": true,
+    "cardinality": "one"
+  },
+  {
+    "path": "_qualifiers.versions.DataObjectGroupId",
+    "type": "keyword",
+    "indexed": true,
+    "cardinality": "one"
+  },
+  {
+    "path": "_qualifiers.versions.DataObjectVersion",
+    "type": "keyword",
+    "indexed": true,
+    "cardinality": "one"
+  },
+  {
+    "path": "_qualifiers.versions.FileInfo.CreatingApplicationName",
+    "type": "text",
+    "indexed": true,
+    "cardinality": "one"
+  },
+  {
+    "path": "_qualifiers.versions.FileInfo.CreatingApplicationVersion",
+    "type": "text",
+    "indexed": true,
+    "cardinality": "one"
+  },
+  {
+    "path": "_qualifiers.versions.FileInfo.CreatingOs",
+    "type": "text",
+    "indexed": true,
+    "cardinality": "one"
+  },
+  {
+    "path": "_qualifiers.versions.FileInfo.CreatingOsVersion",
+    "type": "text",
+    "indexed": true,
+    "cardinality": "one"
+  },
+  {
+    "path": "_qualifiers.versions.FileInfo.DateCreatedByApplication",
+    "type": "datetime",
+    "indexed": true,
+    "cardinality": "one"
+  },
+  {
+    "path": "_qualifiers.versions.FileInfo.Filename",
+    "type": "text",
+    "indexed": true,
+    "cardinality": "one"
+  },
+  {
+    "path": "_qualifiers.versions.FileInfo.LastModified",
+    "type": "datetime",
+    "indexed": true,
+    "cardinality": "one"
+  },
+  {
+    "path": "_qualifiers.versions.FormatIdentification",
+    "type": "object",
+    "indexed": true,
+    "cardinality": "one"
+  },
+  {
+    "path": "_qualifiers.versions.FormatIdentification.Encoding",
+    "type": "keyword",
+    "indexed": true,
+    "cardinality": "one"
+  },
+  {
+    "path": "_qualifiers.versions.FormatIdentification.FormatId",
+    "type": "keyword",
+    "indexed": true,
+    "cardinality": "one"
+  },
+  {
+    "path": "_qualifiers.versions.FormatIdentification.FormatLitteral",
+    "type": "keyword",
+    "indexed": true,
+    "cardinality": "one"
+  },
+  {
+    "path": "_qualifiers.versions.FormatIdentification.MimeType",
+    "type": "keyword",
+    "indexed": true,
+    "cardinality": "one"
+  },
+  {
+    "path": "_qualifiers.versions.Compressed",
+    "type": "keyword",
+    "indexed": true,
+    "cardinality": "one"
+  },
+  {
+    "path": "_qualifiers.versions.MessageDigest",
+    "type": "keyword",
+    "indexed": true,
+    "cardinality": "one"
+  },
+  {
+    "path": "_qualifiers.versions.PhysicalDimensions",
+    "type": "object",
+    "indexed": true,
+    "cardinality": "one"
+  },
+  {
+    "path": "_qualifiers.versions.PhysicalDimensions.Depth",
+    "type": "object",
+    "indexed": true,
+    "cardinality": "one"
+  },
+  {
+    "path": "_qualifiers.versions.PhysicalDimensions.Depth.dValue",
+    "type": "signed_double",
+    "indexed": true,
+    "cardinality": "one"
+  },
+  {
+    "path": "_qualifiers.versions.PhysicalDimensions.Depth.unit",
+    "type": "keyword",
+    "indexed": true,
+    "cardinality": "one"
+  },
+  {
+    "path": "_qualifiers.versions.PhysicalDimensions.Diameter",
+    "type": "object",
+    "indexed": true,
+    "cardinality": "one"
+  },
+  {
+    "path": "_qualifiers.versions.PhysicalDimensions.Diameter.dValue",
+    "type": "signed_double",
+    "indexed": true,
+    "cardinality": "one"
+  },
+  {
+    "path": "_qualifiers.versions.PhysicalDimensions.Diameter.unit",
+    "type": "keyword",
+    "indexed": true,
+    "cardinality": "one"
+  },
+  {
+    "path": "_qualifiers.versions.PhysicalDimensions.Height",
+    "type": "object",
+    "indexed": true,
+    "cardinality": "one"
+  },
+  {
+    "path": "_qualifiers.versions.PhysicalDimensions.Height.dValue",
+    "type": "signed_double",
+    "indexed": true,
+    "cardinality": "one"
+  },
+  {
+    "path": "_qualifiers.versions.PhysicalDimensions.Height.unit",
+    "type": "keyword",
+    "indexed": true,
+    "cardinality": "one"
+  },
+  {
+    "path": "_qualifiers.versions.PhysicalDimensions.Length",
+    "type": "object",
+    "indexed": true,
+    "cardinality": "one"
+  },
+  {
+    "path": "_qualifiers.versions.PhysicalDimensions.Length.dValue",
+    "type": "signed_double",
+    "indexed": true,
+    "cardinality": "one"
+  },
+  {
+    "path": "_qualifiers.versions.PhysicalDimensions.Length.unit",
+    "type": "keyword",
+    "indexed": true,
+    "cardinality": "one"
+  },
+  {
+    "path": "_qualifiers.versions.PhysicalDimensions.NumberOfPage",
+    "type": "signed_long",
+    "indexed": true,
+    "cardinality": "one"
+  },
+  {
+    "path": "_qualifiers.versions.PhysicalDimensions.Shape",
+    "type": "keyword",
+    "indexed": true,
+    "cardinality": "one"
+  },
+  {
+    "path": "_qualifiers.versions.PhysicalDimensions.Thickness",
+    "type": "object",
+    "indexed": true,
+    "cardinality": "one"
+  },
+  {
+    "path": "_qualifiers.versions.PhysicalDimensions.Thickness.dValue",
+    "type": "signed_double",
+    "indexed": true,
+    "cardinality": "one"
+  },
+  {
+    "path": "_qualifiers.versions.PhysicalDimensions.Thickness.unit",
+    "type": "keyword",
+    "indexed": true,
+    "cardinality": "one"
+  },
+  {
+    "path": "_qualifiers.versions.PhysicalDimensions.Weight",
+    "type": "object",
+    "indexed": true,
+    "cardinality": "one"
+  },
+  {
+    "path": "_qualifiers.versions.PhysicalDimensions.Weight.dValue",
+    "type": "signed_double",
+    "indexed": true,
+    "cardinality": "one"
+  },
+  {
+    "path": "_qualifiers.versions.PhysicalDimensions.Weight.unit",
+    "type": "keyword",
+    "indexed": true,
+    "cardinality": "one"
+  },
+  {
+    "path": "_qualifiers.versions.PhysicalDimensions.Width",
+    "type": "object",
+    "indexed": true,
+    "cardinality": "one"
+  },
+  {
+    "path": "_qualifiers.versions.PhysicalDimensions.Width.dValue",
+    "type": "signed_double",
+    "indexed": true,
+    "cardinality": "one"
+  },
+  {
+    "path": "_qualifiers.versions.PhysicalDimensions.Width.unit",
+    "type": "keyword",
+    "indexed": true,
+    "cardinality": "one"
+  },
+  {
+    "path": "_qualifiers.versions.PhysicalId",
+    "type": "keyword",
+    "indexed": true,
+    "cardinality": "one"
+  },
+  {
+    "path": "_qualifiers.versions.OtherDimensionsAbstract",
+    "type": "object",
+    "indexed": true,
+    "cardinality": "one"
+  },
+  {
+    "path": "_qualifiers.versions.Size",
+    "type": "signed_long",
+    "indexed": true,
+    "cardinality": "one"
+  },
+  {
+    "path": "_qualifiers.versions.Uri",
+    "type": "keyword",
+    "indexed": true,
+    "cardinality": "one"
+  },
+  {
+    "path": "_qualifiers.versions._id",
+    "type": "keyword",
+    "indexed": true,
+    "cardinality": "one"
+  },
+  {
+    "path": "_qualifiers.versions._opi",
+    "type": "keyword",
+    "indexed": true,
+    "cardinality": "one"
+  },
+  {
+    "path": "_qualifiers.versions._storage",
+    "type": "object",
+    "indexed": true,
+    "cardinality": "one"
+  },
+  {
+    "path": "_qualifiers.versions._storage._nbc",
+    "type": "signed_long",
+    "indexed": true,
+    "cardinality": "one"
+  },
+  {
+    "path": "_qualifiers.versions._storage.offerIds",
+    "type": "keyword",
+    "indexed": true,
+    "cardinality": "many"
+  },
+  {
+    "path": "_qualifiers.versions._storage.strategyId",
+    "type": "keyword",
+    "indexed": true,
+    "cardinality": "one"
+  },
+  {
+    "path": "_score",
+    "type": "object",
+    "indexed": false,
+    "cardinality": "one"
+  },
+  {
+    "path": "_sp",
+    "type": "keyword",
+    "indexed": true,
+    "cardinality": "one"
+  },
+  {
+    "path": "_sps",
+    "type": "keyword",
+    "indexed": true,
+    "cardinality": "many"
+  },
+  {
+    "path": "_storage",
+    "type": "object",
+    "indexed": true,
+    "cardinality": "one"
+  },
+  {
+    "path": "_storage._nbc",
+    "type": "signed_long",
+    "indexed": true,
+    "cardinality": "one"
+  },
+  {
+    "path": "_storage.offerIds",
+    "type": "keyword",
+    "indexed": true,
+    "cardinality": "many"
+  },
+  {
+    "path": "_storage.strategyId",
+    "type": "keyword",
+    "indexed": true,
+    "cardinality": "one"
+  },
+  {
+    "path": "_tenant",
+    "type": "signed_long",
+    "indexed": true,
+    "cardinality": "one"
+  },
+  {
+    "path": "_uds",
+    "type": "object",
+    "indexed": false,
+    "cardinality": "one"
+  },
+  {
+    "path": "_unused",
+    "type": "object",
+    "indexed": false,
+    "cardinality": "one"
+  },
+  {
+    "path": "_up",
+    "type": "keyword",
+    "indexed": true,
+    "cardinality": "many"
+  },
+  {
+    "path": "_us",
+    "type": "keyword",
+    "indexed": true,
+    "cardinality": "many"
+  },
+  {
+    "path": "_v",
+    "type": "signed_long",
+    "indexed": true,
+    "cardinality": "one"
+  },
+  {
+    "path": "_av",
+    "type": "signed_long",
+    "indexed": true,
+    "cardinality": "one"
+  }
+]

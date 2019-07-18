@@ -26,14 +26,17 @@
  *******************************************************************************/
 package fr.gouv.vitam.worker.core.validation;
 
+import fr.gouv.vitam.common.client.OntologyLoader;
+import fr.gouv.vitam.common.database.collections.CachedOntologyLoader;
 import fr.gouv.vitam.common.model.MetadataType;
 import fr.gouv.vitam.functional.administration.client.AdminManagementClientFactory;
+import fr.gouv.vitam.functional.administration.client.AdminManagementOntologyLoader;
 import fr.gouv.vitam.metadata.core.validation.CachedArchiveUnitProfileLoader;
-import fr.gouv.vitam.metadata.core.validation.CachedOntologyLoader;
 import fr.gouv.vitam.metadata.core.validation.CachedSchemaValidatorLoader;
-import fr.gouv.vitam.metadata.core.validation.OntologyLoader;
 import fr.gouv.vitam.metadata.core.validation.OntologyValidator;
 import fr.gouv.vitam.metadata.core.validation.UnitValidator;
+
+import java.util.Optional;
 
 public final class MetadataValidationProvider {
 
@@ -63,11 +66,16 @@ public final class MetadataValidationProvider {
             archiveUnitProfileCacheMaxEntries, archiveUnitProfileCacheTimeoutInSeconds);
 
         OntologyLoader unitOntologyLoader = new CachedOntologyLoader(
-            adminManagementClientFactory, ontologyCacheMaxEntries, ontologyCacheTimeoutInSeconds,
-            MetadataType.UNIT);
+            ontologyCacheMaxEntries,
+            ontologyCacheTimeoutInSeconds,
+            new AdminManagementOntologyLoader(adminManagementClientFactory, Optional.of(MetadataType.UNIT.getName()))
+        );
+
         OntologyLoader objectGroupOntologyLoader = new CachedOntologyLoader(
-            adminManagementClientFactory, ontologyCacheMaxEntries, ontologyCacheTimeoutInSeconds,
-            MetadataType.OBJECTGROUP);
+            ontologyCacheMaxEntries,
+            ontologyCacheTimeoutInSeconds,
+            new AdminManagementOntologyLoader(adminManagementClientFactory, Optional.of(MetadataType.OBJECTGROUP.getName()))
+        );
 
         this.unitOntologyValidator = new OntologyValidator(unitOntologyLoader);
         this.objectGroupOntologyValidator = new OntologyValidator(objectGroupOntologyLoader);

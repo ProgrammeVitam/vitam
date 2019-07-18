@@ -72,6 +72,7 @@ import org.junit.Test;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map.Entry;
@@ -87,6 +88,7 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.isA;
@@ -150,6 +152,10 @@ public class MetaDataImplTest {
         adminManagementClientFactory = mock(AdminManagementClientFactory.class);
         adminManagementClient = mock(AdminManagementClient.class);
         when(adminManagementClientFactory.getClient()).thenReturn(adminManagementClient);
+
+        RequestResponseOK<OntologyModel> responseOK = new RequestResponseOK<>();
+        responseOK.addAllResults(Collections.emptyList());
+        when(adminManagementClient.findOntologies(any())).thenReturn(responseOK);
 
         metaDataImpl =
             new MetaDataImpl(mongoDbAccessFactory, adminManagementClientFactory, indexationHelper, request,
@@ -220,7 +226,7 @@ public class MetaDataImplTest {
     @Test(expected = InvalidParseOperationException.class)
     public void given_selectUnitquery_When_search_units_Then_Throw_InvalidParseOperationException() throws Exception {
 
-        when(request.execRequest(any())).thenThrow(new InvalidParseOperationException(""));
+        when(request.execRequest(any(), anyList())).thenThrow(new InvalidParseOperationException(""));
         metaDataImpl.selectUnitsByQuery(JsonHandler.getFromString(QUERY));
     }
 
@@ -239,7 +245,7 @@ public class MetaDataImplTest {
             .thenReturn(new RequestResponseOK<OntologyModel>().addAllResults(ontologyModels));
 
         when(request.execUpdateRequest(any(), eq("unitId"), eq(MetadataCollections.UNIT), any(OntologyValidator.class),
-            any(UnitValidator.class)))
+            any(UnitValidator.class), anyList()))
             .thenReturn(new UpdatedDocument("unitId",
                 JsonHandler.createObjectNode().put("x", "v1"),
                 JsonHandler.createObjectNode().put("x", "v2")));
@@ -253,7 +259,7 @@ public class MetaDataImplTest {
 
     @Test(expected = MetaDataExecutionException.class)
     public void given_selectUnits_ThenThrow_MetaDataExecutionException() throws Exception {
-        when(request.execRequest(any())).thenThrow(new MetaDataExecutionException(""));
+        when(request.execRequest(any(), anyList())).thenThrow(new MetaDataExecutionException(""));
         metaDataImpl.selectUnitsByQuery(JsonHandler.getFromString(QUERY));
     }
 
@@ -299,11 +305,11 @@ public class MetaDataImplTest {
         unit.put("description", "description");
         selectResult.addFinal(unit);
 
-        when(request.execRequest(isA(RequestParserMultiple.class)))
+        when(request.execRequest(isA(RequestParserMultiple.class), eq(ontologyModels)))
             .thenReturn(selectResult);
 
         when(request.execUpdateRequest(any(), eq("unitId"), eq(MetadataCollections.UNIT), any(OntologyValidator.class),
-            any(UnitValidator.class)))
+            any(UnitValidator.class), anyList()))
             .thenThrow(new MetaDataExecutionException(""));
         metaDataImpl.updateUnitById(JsonHandler.getFromString(QUERY), "unitId");
     }
@@ -333,11 +339,11 @@ public class MetaDataImplTest {
         unit.put("description", "description");
         selectResult.addFinal(unit);
 
-        when(request.execRequest(isA(RequestParserMultiple.class)))
+        when(request.execRequest(isA(RequestParserMultiple.class), eq(ontologyModels)))
             .thenReturn(selectResult);
 
         when(request.execUpdateRequest(any(), eq("unitId"), eq(MetadataCollections.UNIT), any(OntologyValidator.class),
-            any(UnitValidator.class)))
+            any(UnitValidator.class), anyList()))
             .thenThrow(new InvalidParseOperationException(""));
         metaDataImpl.updateUnitById(JsonHandler.getFromString(QUERY), "unitId");
     }
@@ -347,7 +353,7 @@ public class MetaDataImplTest {
         final Result result = new ResultDefault(FILTERARGS.OBJECTGROUPS);
         result.addId("ogId", (float) 1);
         result.addFinal(new ObjectGroup(sampleObjectGroup));
-        when(request.execRequest(any())).thenReturn(result);
+        when(request.execRequest(any(), anyList())).thenReturn(result);
         RequestResponse<JsonNode> requestResponse =
             metaDataImpl.selectObjectGroupById(JsonHandler.getFromString(QUERY), "ogId");
         assertTrue(requestResponse.isOk());
@@ -404,7 +410,7 @@ public class MetaDataImplTest {
         final JsonNode updateRequest = JsonHandler.getFromFile(PropertiesUtils.findFile("updateQuery.json"));
 
         when(request.execUpdateRequest(any(), eq("unitId"), eq(MetadataCollections.UNIT), any(OntologyValidator.class),
-            any(UnitValidator.class)))
+            any(UnitValidator.class), anyList()))
             .thenReturn(
                 new UpdatedDocument("unitId", JsonHandler.toJsonNode(unit), JsonHandler.toJsonNode(secondUnit)));
 
@@ -432,12 +438,12 @@ public class MetaDataImplTest {
         final Unit unit2Before = createSelectUnitResult("unitId2", "value v1");
         final Unit unit2After = createSelectUnitResult("unitId2", "value v2");
 
-        when(request.execRequest(isA(SelectParserMultiple.class))).thenReturn(
+        when(request.execRequest(isA(SelectParserMultiple.class), eq(ontologyModels))).thenReturn(
             new ResultDefault(FILTERARGS.UNITS).addFinal(unit1Before),
             new ResultDefault(FILTERARGS.UNITS).addFinal(unit2Before));
 
         when(request.execUpdateRequest(any(), any(), eq(MetadataCollections.UNIT), any(OntologyValidator.class),
-            any(UnitValidator.class)))
+            any(UnitValidator.class), anyList()))
             .thenReturn(
                 new UpdatedDocument("unit1", JsonHandler.toJsonNode(unit1Before), JsonHandler.toJsonNode(unit1After)),
                 new UpdatedDocument("unit2", JsonHandler.toJsonNode(unit2Before), JsonHandler.toJsonNode(unit2After)));

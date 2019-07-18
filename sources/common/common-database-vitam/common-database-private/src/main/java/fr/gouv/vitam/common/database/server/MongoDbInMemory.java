@@ -27,14 +27,6 @@
 
 package fr.gouv.vitam.common.database.server;
 
-import java.text.ParseException;
-import java.time.LocalDate;
-import java.time.temporal.TemporalUnit;
-import java.util.*;
-import java.util.function.Function;
-import java.util.regex.Pattern;
-import java.util.stream.Collectors;
-
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.NullNode;
@@ -45,7 +37,7 @@ import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.SedaConstants;
 import fr.gouv.vitam.common.database.builder.query.action.Action;
 import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken;
-import fr.gouv.vitam.common.database.parser.query.ParserTokens;
+import fr.gouv.vitam.common.database.collections.DynamicParserTokens;
 import fr.gouv.vitam.common.database.parser.request.AbstractParser;
 import fr.gouv.vitam.common.database.parser.request.GlobalDatasParser;
 import fr.gouv.vitam.common.database.parser.request.adapter.VarNameAdapter;
@@ -62,6 +54,20 @@ import fr.gouv.vitam.common.model.massupdate.RuleAction;
 import fr.gouv.vitam.common.model.massupdate.RuleActions;
 import fr.gouv.vitam.common.model.massupdate.RuleCategoryAction;
 import org.apache.commons.lang.StringUtils;
+
+import java.text.ParseException;
+import java.time.LocalDate;
+import java.time.temporal.TemporalUnit;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.function.Function;
+import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 /**
  * Tools to update a Mongo document (as json) with a dsl query.
@@ -81,16 +87,18 @@ public class MongoDbInMemory {
     private static final String PREVENT_RULES_ID = "PreventRulesId";
 
     private final JsonNode originalDocument;
+    private final DynamicParserTokens parserTokens;
 
     private JsonNode updatedDocument;
-
     private Set<String> updatedFields;
 
     /**
      * @param originalDocument
+     * @param parserTokens
      */
-    public MongoDbInMemory(JsonNode originalDocument) {
+    public MongoDbInMemory(JsonNode originalDocument, DynamicParserTokens parserTokens) {
         this.originalDocument = originalDocument;
+        this.parserTokens = parserTokens;
         updatedDocument = originalDocument.deepCopy();
         updatedFields = new HashSet<>();
     }
@@ -590,7 +598,7 @@ public class MongoDbInMemory {
         while (iterator.hasNext()) {
             final Map.Entry<String, JsonNode> element = iterator.next();
             String fieldName = element.getKey();
-            if (ParserTokens.PROJECTIONARGS.isAnArray(fieldName)) {
+            if (parserTokens.isAnArray(fieldName)) {
                 ArrayNode arrayNode = GlobalDatasParser.getArray(element.getValue());
                 JsonHandler.setNodeInPath((ObjectNode) updatedDocument, fieldName, arrayNode, true);
             } else {

@@ -26,12 +26,11 @@
  */
 package fr.gouv.vitam.common;
 
+import com.google.common.base.Strings;
+import fr.gouv.vitam.common.configuration.ClassificationLevel;
+
 import java.util.List;
 import java.util.Map;
-
-import com.google.common.base.Strings;
-
-import fr.gouv.vitam.common.configuration.ClassificationLevel;
 
 
 /**
@@ -336,6 +335,9 @@ public class VitamConfigurationParameters {
      */
     private Long operationMaxSizeForExternal;
 
+    private Integer ontologyCacheMaxEntries = 100;
+
+    private Integer ontologyCacheTimeoutInSeconds = 300;
 
     /**
      * VitamData empty constructor for YAMLFactory
@@ -1366,5 +1368,21 @@ public class VitamConfigurationParameters {
 
     public void setIndexInheritedRulesWithAPIV2OutputByTenant(List<String> indexInheritedRulesWithAPIV2OutputByTenant) {
         this.indexInheritedRulesWithAPIV2OutputByTenant = indexInheritedRulesWithAPIV2OutputByTenant;
+    }
+
+    public Integer getOntologyCacheMaxEntries() {
+        return ontologyCacheMaxEntries;
+    }
+
+    public void setOntologyCacheMaxEntries(int ontologyCacheMaxEntries) {
+        this.ontologyCacheMaxEntries = ontologyCacheMaxEntries;
+    }
+
+    public Integer getOntologyCacheTimeoutInSeconds() {
+        return ontologyCacheTimeoutInSeconds;
+    }
+
+    public void setOntologyCacheTimeoutInSeconds(int ontologyCacheTimeoutInSeconds) {
+        this.ontologyCacheTimeoutInSeconds = ontologyCacheTimeoutInSeconds;
     }
 }

@@ -29,6 +29,7 @@ import org.junit.Test;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 import static org.junit.Assert.assertNotNull;
@@ -86,7 +87,7 @@ public class LogbookMongoDbAccessFactoryAuthenticationTest {
                 esNodes, true, user, pwd);
         VitamConfiguration.setTenants(tenantList);
         new LogbookMongoDbAccessFactory();
-        mongoDbAccess = LogbookMongoDbAccessFactory.create(config);
+        mongoDbAccess = LogbookMongoDbAccessFactory.create(config, Collections::emptyList);
         assertNotNull(mongoDbAccess);
         final LogbookOperationParameters parameters = LogbookParametersFactory.newLogbookOperationParameters();
         for (final LogbookParameterName name : LogbookParameterName.values()) {

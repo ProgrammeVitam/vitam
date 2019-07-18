@@ -26,7 +26,6 @@
         <module>functional-administration-agencies-contracts</module>
         <module>functional-administration-archive-unit-profiles</module>
         <module>functional-administration-ontologies</module>
-        <module>functional-administration-ontologies-client</module>
         <module>functional-administration-griffins</module>
     </modules>
 
