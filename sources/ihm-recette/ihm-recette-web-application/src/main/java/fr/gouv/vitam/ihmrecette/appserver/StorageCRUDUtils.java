@@ -26,27 +26,21 @@
  *******************************************************************************/
 package fr.gouv.vitam.ihmrecette.appserver;
 
-import com.fasterxml.jackson.databind.JsonNode;
+import java.io.InputStream;
+import java.util.Collections;
+
 import com.google.common.annotations.VisibleForTesting;
-import fr.gouv.vitam.common.VitamConfiguration;
-import fr.gouv.vitam.common.digest.Digest;
-import fr.gouv.vitam.common.digest.DigestType;
+
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
-import fr.gouv.vitam.functional.administration.common.BackupService;
+import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.functional.administration.common.exception.BackupServiceException;
 import fr.gouv.vitam.storage.engine.client.StorageClient;
 import fr.gouv.vitam.storage.engine.client.StorageClientFactory;
-import fr.gouv.vitam.storage.engine.client.exception.StorageNotFoundClientException;
 import fr.gouv.vitam.storage.engine.client.exception.StorageServerClientException;
-import fr.gouv.vitam.storage.engine.common.exception.StorageNotFoundException;
 import fr.gouv.vitam.storage.engine.common.model.DataCategory;
-
-import javax.ws.rs.core.Response;
-import java.io.InputStream;
-import java.util.Collections;
-import java.util.List;
+import fr.gouv.vitam.storage.engine.common.referential.model.StorageStrategy;
 
 /**
  * StorageCRUDUtils class
@@ -68,29 +62,43 @@ public class StorageCRUDUtils {
     }
 
     /**
+     * get the list of strategies containing the offers
+     *
+     * @param return          result of strategies
+     */
+    public RequestResponse<StorageStrategy> getStrategies()
+        throws StorageServerClientException {
+        return storageClient.getStorageStrategies();
+    }
+
+    
+    /**
      * deleteFile
      *
      * @param dataCategory category
      * @param uid          uid of file
+     * @param strategyId   strategy identifier
+     * @param offerId      offer identifier
      */
-    public boolean deleteFile(DataCategory dataCategory, String uid, String offerId)
+    public boolean deleteFile(DataCategory dataCategory, String uid, String strategyId, String offerId)
         throws StorageServerClientException {
-        return storageClient.delete(VitamConfiguration.getDefaultStrategy(), dataCategory, uid,  Collections.singletonList(offerId));
+        return storageClient.delete(strategyId, dataCategory, uid,  Collections.singletonList(offerId));
     }
 
     /**
      * Create file or erase it if exists
      *  @param dataCategory dataCategory
-     * @param offerId offerID
      * @param uid          uid
+     * @param strategyId strategyID
+     * @param offerId offerID
      * @param stream       stream
      */
-    public void storeInOffer(DataCategory dataCategory, String uid, String offerId, Long size, InputStream stream)
+    public void storeInOffer(DataCategory dataCategory, String uid, String strategyId, String offerId, Long size, InputStream stream)
         throws BackupServiceException {
         boolean delete = false;
 
         try {
-            delete = deleteFile(dataCategory, uid,offerId);
+            delete = deleteFile(dataCategory, uid, strategyId, offerId);
             if (!delete) {
                 throw new BackupServiceException("file do not exits or can not deleted ");
             }
@@ -100,7 +108,7 @@ public class StorageCRUDUtils {
         }
 
         try {
-            storageClient.create(VitamConfiguration.getDefaultStrategy(), uid, dataCategory, stream, size, Collections.singletonList(offerId));
+            storageClient.create(strategyId, uid, dataCategory, stream, size, Collections.singletonList(offerId));
         } catch (StorageServerClientException | InvalidParseOperationException e) {
             LOGGER.error("error when deleting file ", e);
             throw new BackupServiceException("fail to create");

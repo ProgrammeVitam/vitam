@@ -48,7 +48,7 @@ public class StorageCRUDUtilsTest {
         storageCRUDUtils = new StorageCRUDUtils(storageClient);
 
 
-        boolean result = storageCRUDUtils.deleteFile(DataCategory.OBJECT, "aeeaaaaaacew2hcbaafoialcsdnwzyyaaaaq.json","offer-fs-1.service.consul");
+        boolean result = storageCRUDUtils.deleteFile(DataCategory.OBJECT, VitamConfiguration.getDefaultStrategy(), "aeeaaaaaacew2hcbaafoialcsdnwzyyaaaaq.json","offer-fs-1.service.consul");
 
         assertThat(result).isFalse();
 
