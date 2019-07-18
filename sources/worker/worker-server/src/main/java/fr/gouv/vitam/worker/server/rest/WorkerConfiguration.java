@@ -27,11 +27,10 @@
 
 package fr.gouv.vitam.worker.server.rest;
 
+import fr.gouv.vitam.common.server.application.configuration.DefaultVitamApplicationConfiguration;
+
 import java.util.ArrayList;
 import java.util.List;
-
-import fr.gouv.vitam.common.configuration.ClassificationLevel;
-import fr.gouv.vitam.common.server.application.configuration.DefaultVitamApplicationConfiguration;
 
 /**
  * Worker configuration class mapping
@@ -47,9 +46,6 @@ public final class WorkerConfiguration extends DefaultVitamApplicationConfigurat
     private int registerRetry = 5;
     private int capacity = 1;
     private String workerFamily = "DefaultWorker";
-
-    private int ontologyCacheMaxEntries = 100;
-    private int ontologyCacheTimeoutInSeconds = 300;
 
     private int archiveUnitProfileCacheMaxEntries = 100;
     private int archiveUnitProfileCacheTimeoutInSeconds = 300;
@@ -242,24 +238,6 @@ public final class WorkerConfiguration extends DefaultVitamApplicationConfigurat
      */
     public WorkerConfiguration setWorkerFamily(String workerFamily) {
         this.workerFamily = workerFamily;
-        return this;
-    }
-
-    public int getOntologyCacheMaxEntries() {
-        return ontologyCacheMaxEntries;
-    }
-
-    public WorkerConfiguration setOntologyCacheMaxEntries(int ontologyCacheMaxEntries) {
-        this.ontologyCacheMaxEntries = ontologyCacheMaxEntries;
-        return this;
-    }
-
-    public int getOntologyCacheTimeoutInSeconds() {
-        return ontologyCacheTimeoutInSeconds;
-    }
-
-    public WorkerConfiguration setOntologyCacheTimeoutInSeconds(int ontologyCacheTimeoutInSeconds) {
-        this.ontologyCacheTimeoutInSeconds = ontologyCacheTimeoutInSeconds;
         return this;
     }
 

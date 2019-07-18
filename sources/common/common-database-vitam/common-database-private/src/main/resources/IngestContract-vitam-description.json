@@ -1,0 +1,134 @@
+[
+  {
+    "path": "_id",
+    "type": "keyword",
+    "indexed": true,
+    "cardinality": "one"
+  },
+  {
+    "path": "Status",
+    "type": "keyword",
+    "cardinality": "one",
+    "indexed": true
+  },
+  {
+    "path": "CreationDate",
+    "type": "datetime",
+    "cardinality": "one",
+    "indexed": true
+  },
+  {
+    "path": "Description",
+    "type": "text",
+    "cardinality": "one",
+    "indexed": true
+  },
+  {
+    "path": "LastUpdate",
+    "type": "datetime",
+    "cardinality": "one",
+    "indexed": true
+  },
+  {
+    "path": "LinkParentId",
+    "type": "keyword",
+    "cardinality": "one",
+    "indexed": true
+  },
+  {
+    "path": "FormatUnidentifiedAuthorized",
+    "type": "bool",
+    "cardinality": "one",
+    "indexed": true
+  },
+  {
+    "path": "_score",
+    "type": "object",
+    "cardinality": "one",
+    "indexed": false
+  },
+  {
+    "path": "DataObjectVersion",
+    "type": "keyword",
+    "cardinality": "many",
+    "indexed": true
+  },
+  {
+    "path": "DeactivationDate",
+    "type": "datetime",
+    "cardinality": "one",
+    "indexed": true
+  },
+  {
+    "path": "_tenant",
+    "type": "signed_long",
+    "cardinality": "one",
+    "indexed": true
+  },
+  {
+    "path": "FormatType",
+    "type": "keyword",
+    "cardinality": "many",
+    "indexed": true
+  },
+  {
+    "path": "EveryDataObjectVersion",
+    "type": "bool",
+    "cardinality": "one",
+    "indexed": true
+  },
+  {
+    "path": "EveryFormatType",
+    "type": "bool",
+    "cardinality": "one",
+    "indexed": true
+  },
+  {
+    "path": "MasterMandatory",
+    "type": "bool",
+    "cardinality": "one",
+    "indexed": true
+  },
+  {
+    "path": "Name",
+    "type": "text",
+    "cardinality": "one",
+    "indexed": true
+  },
+  {
+    "path": "Identifier",
+    "type": "keyword",
+    "cardinality": "one",
+    "indexed": true
+  },
+  {
+    "path": "CheckParentLink",
+    "type": "keyword",
+    "cardinality": "one",
+    "indexed": true
+  },
+  {
+    "path": "_v",
+    "type": "signed_long",
+    "cardinality": "one",
+    "indexed": true
+  },
+  {
+    "path": "ArchiveProfiles",
+    "type": "keyword",
+    "cardinality": "many",
+    "indexed": true
+  },
+  {
+    "path": "CheckParentId",
+    "type": "keyword",
+    "cardinality": "many",
+    "indexed": true
+  },
+  {
+    "path": "ActivationDate",
+    "type": "datetime",
+    "cardinality": "one",
+    "indexed": true
+  }
+]

@@ -64,6 +64,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 
@@ -146,7 +147,7 @@ public class AgenciesServiceTest {
         nodes.add(new MongoDbNode("localhost", mongoRule.getDataBasePort()));
 
         dbImpl =
-            MongoDbAccessAdminFactory.create(new DbConfigurationImpl(nodes, mongoRule.getMongoDatabase().getName()));
+            MongoDbAccessAdminFactory.create(new DbConfigurationImpl(nodes, mongoRule.getMongoDatabase().getName()), Collections::emptyList);
 
         final List<Integer> tenants = new ArrayList<>();
         tenants.add(TENANT_ID);
@@ -372,7 +373,8 @@ public class AgenciesServiceTest {
 
     private void instantiateAgencyService() {
         agencyService =
-            new AgenciesService(dbImpl,
+            new AgenciesService(
+                dbImpl,
                 vitamCounterService,
                 functionalBackupService,
                 logbookOperationsClientFactory,
@@ -383,6 +385,8 @@ public class AgenciesServiceTest {
                 agenciesToUpdate,
                 usedAgenciesByAU,
                 usedAgenciesByContracts,
-                unusedAgenciesToDelete);
+                unusedAgenciesToDelete,
+                Collections::emptyList
+            );
     }
 }

@@ -1,0 +1,80 @@
+[
+  {
+    "path": "Identifier",
+    "type": "keyword",
+    "indexed": true,
+    "cardinality": "one"
+  },
+  {
+    "path": "_v",
+    "type": "signed_long",
+    "indexed": true,
+    "cardinality": "one"
+  },
+  {
+    "path": "_tenant",
+    "type": "signed_long",
+    "indexed": true,
+    "cardinality": "one"
+  },
+  {
+    "path": "_id",
+    "type": "keyword",
+    "indexed": true,
+    "cardinality": "one"
+  },
+  {
+    "path": "Description",
+    "type": "text",
+    "indexed": true,
+    "cardinality": "one"
+  },
+  {
+    "path": "Status",
+    "type": "keyword",
+    "indexed": true,
+    "cardinality": "one"
+  },
+  {
+    "path": "CreationDate",
+    "type": "datetime",
+    "indexed": true,
+    "cardinality": "one"
+  },
+  {
+    "path": "LastUpdate",
+    "type": "datetime",
+    "indexed": true,
+    "cardinality": "one"
+  },
+  {
+    "path": "ActivationDate",
+    "type": "datetime",
+    "indexed": true,
+    "cardinality": "one"
+  },
+  {
+    "path": "DeactivationDate",
+    "type": "datetime",
+    "indexed": true,
+    "cardinality": "one"
+  },
+  {
+    "path": "ControlSchema",
+    "type": "keyword",
+    "indexed": true,
+    "cardinality": "one"
+  },
+  {
+    "path": "Fields",
+    "type": "keyword",
+    "indexed": true,
+    "cardinality": "many"
+  },
+  {
+    "path": "Name",
+    "type": "text",
+    "indexed": true,
+    "cardinality": "one"
+  }
+]

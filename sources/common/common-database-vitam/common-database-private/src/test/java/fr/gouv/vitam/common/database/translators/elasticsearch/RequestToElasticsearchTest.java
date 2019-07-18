@@ -26,22 +26,23 @@
  *******************************************************************************/
 package fr.gouv.vitam.common.database.translators.elasticsearch;
 
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
-
+import com.fasterxml.jackson.databind.JsonNode;
+import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
+import fr.gouv.vitam.common.database.collections.DynamicParserTokens;
+import fr.gouv.vitam.common.database.parser.request.multiple.DeleteParserMultiple;
+import fr.gouv.vitam.common.database.parser.request.multiple.SelectParserMultiple;
+import fr.gouv.vitam.common.exception.VitamException;
+import fr.gouv.vitam.common.json.JsonHandler;
 import org.elasticsearch.index.query.QueryBuilder;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
-import com.fasterxml.jackson.databind.JsonNode;
+import java.util.Collections;
 
-import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
-import fr.gouv.vitam.common.database.parser.request.multiple.DeleteParserMultiple;
-import fr.gouv.vitam.common.database.parser.request.multiple.SelectParserMultiple;
-import fr.gouv.vitam.common.exception.VitamException;
-import fr.gouv.vitam.common.json.JsonHandler;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 public class RequestToElasticsearchTest {
 
@@ -145,13 +146,14 @@ public class RequestToElasticsearchTest {
             final SelectToElasticsearch rte = createSelect(exampleSelectElasticsearch);
             final QueryBuilder queryBuilderRoot = rte.getInitialRoots("_up");
             final int size = rte.getNbQueries();
+            DynamicParserTokens parserTokens = new DynamicParserTokens(Collections.emptyMap(), Collections.emptyList());
             for (int i = 0; i < size; i++) {
-                final QueryBuilder queryBuilderCommand = rte.getNthQueries(i, new FakeMetadataVarNameAdapter());
+                final QueryBuilder queryBuilderCommand = rte.getNthQueries(i, new FakeMetadataVarNameAdapter(), parserTokens);
                 final QueryBuilder queryBuilderseudoRequest = rte.getRequest(queryBuilderCommand, queryBuilderRoot);
                 System.out.println(i + " = " + ElasticsearchHelper.queryBuilderToString(queryBuilderseudoRequest));
             }
             try {
-                rte.getNthQueries(size, new FakeMetadataVarNameAdapter());
+                rte.getNthQueries(size, new FakeMetadataVarNameAdapter(), parserTokens);
                 fail("Should failed");
             } catch (final IllegalAccessError e) {
 
@@ -195,13 +197,14 @@ public class RequestToElasticsearchTest {
             final SelectToElasticsearch rte = createSelect(nestedSearchQuery);
             final QueryBuilder queryBuilderRoot = rte.getInitialRoots("_up");
             final int size = rte.getNbQueries();
+            DynamicParserTokens parserTokens = new DynamicParserTokens(Collections.emptyMap(), Collections.emptyList());
             for (int i = 0; i < size; i++) {
-                final QueryBuilder queryBuilderCommand = rte.getNthQueries(i, new FakeMetadataVarNameAdapter());
+                final QueryBuilder queryBuilderCommand = rte.getNthQueries(i, new FakeMetadataVarNameAdapter(), parserTokens);
                 final QueryBuilder queryBuilderseudoRequest = rte.getRequest(queryBuilderCommand, queryBuilderRoot);
                 System.out.println(i + " = " + ElasticsearchHelper.queryBuilderToString(queryBuilderseudoRequest));
             }
             try {
-                rte.getNthQueries(size, new FakeMetadataVarNameAdapter());
+                rte.getNthQueries(size, new FakeMetadataVarNameAdapter(), parserTokens);
                 fail("Should failed");
             } catch (final IllegalAccessError e) {
 

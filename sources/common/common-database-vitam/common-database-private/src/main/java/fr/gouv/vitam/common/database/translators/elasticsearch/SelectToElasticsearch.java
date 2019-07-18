@@ -26,15 +26,13 @@
  *******************************************************************************/
 package fr.gouv.vitam.common.database.translators.elasticsearch;
 
-import java.util.List;
-
-import org.elasticsearch.search.aggregations.AggregationBuilder;
-import org.elasticsearch.search.sort.SortBuilder;
-
+import fr.gouv.vitam.common.database.collections.DynamicParserTokens;
 import fr.gouv.vitam.common.database.collections.VitamCollection;
 import fr.gouv.vitam.common.database.parser.request.AbstractParser;
-import fr.gouv.vitam.common.database.parser.request.adapter.VarNameAdapter;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
+import org.elasticsearch.search.sort.SortBuilder;
+
+import java.util.List;
 
 /**
  * Select To Elasticsearch
@@ -55,15 +53,11 @@ public class SelectToElasticsearch extends RequestToElasticsearch {
      * @return the orderBy Elasticsearch command
      * @throws InvalidParseOperationException
      */
-    public List<SortBuilder> getFinalOrderBy(boolean score) throws InvalidParseOperationException {
+    public List<SortBuilder> getFinalOrderBy(boolean score, DynamicParserTokens parserTokens) throws InvalidParseOperationException {
         List<SortBuilder> list = QueryToElasticsearch.getSorts(requestParser,
-            requestParser.hasFullTextQuery() || VitamCollection.containMatch(), score);
+            requestParser.hasFullTextQuery() || VitamCollection.containMatch(), score, parserTokens);
         VitamCollection.setMatch(false);
         return list;
-    }
-
-    public List<AggregationBuilder> getFacets() throws InvalidParseOperationException {
-        return QueryToElasticsearch.getFacets(requestParser);
     }
 }
 

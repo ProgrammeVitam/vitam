@@ -30,13 +30,17 @@ import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.database.api.VitamRepositoryFactory;
 import fr.gouv.vitam.common.database.api.VitamRepositoryProvider;
+import fr.gouv.vitam.common.database.collections.CachedOntologyLoader;
 import fr.gouv.vitam.common.exception.VitamException;
 import fr.gouv.vitam.common.serverv2.application.CommonBusinessApplication;
 import fr.gouv.vitam.functional.administration.client.AdminManagementClient;
 import fr.gouv.vitam.functional.administration.client.AdminManagementClientFactory;
+import fr.gouv.vitam.functional.administration.client.AdminManagementOntologyLoader;
 import fr.gouv.vitam.functional.administration.common.FunctionalBackupService;
+import fr.gouv.vitam.functional.administration.common.client.FunctionAdministrationOntologyLoader;
 import fr.gouv.vitam.functional.administration.common.counter.VitamCounterService;
 import fr.gouv.vitam.functional.administration.common.server.AdminManagementConfiguration;
+import fr.gouv.vitam.functional.administration.common.server.FunctionalAdminCollections;
 import fr.gouv.vitam.functional.administration.common.server.MongoDbAccessAdminImpl;
 import fr.gouv.vitam.functional.administration.griffin.GriffinService;
 import fr.gouv.vitam.functional.administration.griffin.PreservationScenarioService;
@@ -49,9 +53,11 @@ import java.io.InputStream;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 
 import static fr.gouv.vitam.common.serverv2.application.ApplicationParameter.CONFIGURATION_FILE_APPLICATION;
+import static fr.gouv.vitam.functional.administration.common.server.FunctionalAdminCollections.RULES;
 
 /**
  * Business application for function administration declaring resources and filters
@@ -77,7 +83,24 @@ public class BusinessApplication extends Application {
             final AdminManagementConfiguration configuration =
                 PropertiesUtils.readYaml(yamlIS, AdminManagementConfiguration.class);
 
-            final AdminManagementResource resource = new AdminManagementResource(configuration);
+            CachedOntologyLoader ontologyLoader = new CachedOntologyLoader(
+                VitamConfiguration.getOntologyCacheMaxEntries(),
+                VitamConfiguration.getOntologyCacheTimeoutInSeconds(),
+                new FunctionAdministrationOntologyLoader()
+            );
+            CachedOntologyLoader agenciesOntologyLoader = new CachedOntologyLoader(
+                VitamConfiguration.getOntologyCacheMaxEntries(),
+                VitamConfiguration.getOntologyCacheTimeoutInSeconds(),
+                new AdminManagementOntologyLoader(AdminManagementClientFactory.getInstance(), Optional.of(FunctionalAdminCollections.AGENCIES.getName()))
+            );
+
+            CachedOntologyLoader rulesOntologyLoader = new CachedOntologyLoader(
+                VitamConfiguration.getOntologyCacheMaxEntries(),
+                VitamConfiguration.getOntologyCacheTimeoutInSeconds(),
+                new AdminManagementOntologyLoader(AdminManagementClientFactory.getInstance(), Optional.of(RULES.getName()))
+            );
+
+            final AdminManagementResource resource = new AdminManagementResource(configuration, ontologyLoader, rulesOntologyLoader);
 
             final MongoDbAccessAdminImpl mongoDbAccess = resource.getLogbookDbAccess();
             Map<Integer, List<String>> externalIdentifiers = configuration.getListEnableExternalIdentifiers();
@@ -86,30 +109,22 @@ public class BusinessApplication extends Application {
             resource.setVitamCounterService(vitamCounterService);
             FunctionalBackupService functionalBackupService = new FunctionalBackupService(vitamCounterService);
 
-            final ProfileResource profileResource =
-                new ProfileResource(configuration, mongoDbAccess, vitamCounterService, functionalBackupService);
-
             final VitamRepositoryProvider vitamRepositoryProvider = VitamRepositoryFactory.get();
 
             AdminManagementClient adminManagementClient = AdminManagementClientFactory.getInstance().getClient();
 
             singletons.add(resource);
-            singletons.add(new ArchiveUnitProfileResource(mongoDbAccess, vitamCounterService,
-                functionalBackupService));
-            singletons.add(new OntologyResource(mongoDbAccess, vitamCounterService,
-                functionalBackupService));
+            singletons.add(new ArchiveUnitProfileResource(mongoDbAccess, vitamCounterService, functionalBackupService));
+            singletons.add(new OntologyResource(mongoDbAccess, vitamCounterService, functionalBackupService));
             singletons.add(new ContractResource(mongoDbAccess, vitamCounterService));
-            singletons.add(new ContextResource(mongoDbAccess, vitamCounterService, functionalBackupService,
-                adminManagementClient));
-            singletons.add(new SecurityProfileResource(mongoDbAccess, vitamCounterService, functionalBackupService,
-                adminManagementClient));
-            singletons.add(new AgenciesResource(mongoDbAccess, vitamCounterService));
+            singletons.add(new ContextResource(mongoDbAccess, vitamCounterService, functionalBackupService, adminManagementClient));
+            singletons.add(new SecurityProfileResource(mongoDbAccess, vitamCounterService, functionalBackupService, adminManagementClient));
+            singletons.add(new AgenciesResource(mongoDbAccess, vitamCounterService, agenciesOntologyLoader));
             singletons.add(new ReindexationResource());
             singletons.add(new EvidenceResource(mongoDbAccess, vitamCounterService));
-            singletons.add(new AdminReconstructionResource(configuration, vitamRepositoryProvider));
+            singletons.add(new AdminReconstructionResource(configuration, vitamRepositoryProvider, ontologyLoader));
             singletons.add(new ProbativeValueResource());
-
-            singletons.add(profileResource);
+            singletons.add(new ProfileResource(configuration, mongoDbAccess, vitamCounterService, functionalBackupService));
 
             PreservationScenarioService preservationScenarioService =
                 new PreservationScenarioService(mongoDbAccess, functionalBackupService);

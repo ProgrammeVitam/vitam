@@ -1,4 +1,4 @@
-/*******************************************************************************
+/*
  * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2019)
  *
  * contact.vitam@culture.gouv.fr
@@ -23,7 +23,7 @@
  *
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
- *******************************************************************************/
+ */
 package fr.gouv.vitam.functional.administration.rest;
 
 import com.fasterxml.jackson.databind.JsonNode;
@@ -34,6 +34,7 @@ import fr.gouv.vitam.common.CharsetUtils;
 import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.VitamConfiguration;
+import fr.gouv.vitam.common.client.OntologyLoader;
 import fr.gouv.vitam.common.database.builder.query.Query;
 import fr.gouv.vitam.common.database.builder.query.QueryHelper;
 import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
@@ -114,6 +115,7 @@ import fr.gouv.vitam.processing.management.client.ProcessingManagementClientFact
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
 import org.apache.commons.lang3.StringUtils;
 
+import javax.ws.rs.ApplicationPath;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
@@ -147,54 +149,33 @@ import static javax.ws.rs.core.Response.Status.INTERNAL_SERVER_ERROR;
 import static javax.ws.rs.core.Response.Status.NO_CONTENT;
 import static javax.ws.rs.core.Response.Status.OK;
 
-/**
- * FormatManagementResourceImpl implements AccessResource
- */
 @Path("/adminmanagement/v1")
-@javax.ws.rs.ApplicationPath("webresources")
+@ApplicationPath("webresources")
 public class AdminManagementResource extends ApplicationStatusResource {
-
-    private static final String ATTACHEMENT_FILENAME = "attachment; filename=ErrorReport.json";
-
-    private static final String SELECT_IS_A_MANDATORY_PARAMETER = "select is a mandatory parameter";
-
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(AdminManagementResource.class);
-    private static final String AUDIT_URI = "/audit";
-    private static final String AUDIT_RULE_URI = "/auditRule";
-    private static final String OPTIONS_IS_MANDATORY_PARAMETER =
-        "The json option is mandatory";
-
-    private final static String ORIGINATING_AGENCY = "OriginatingAgency";
 
     private static final SingleVarNameAdapter DEFAULT_VARNAME_ADAPTER = new SingleVarNameAdapter();
-
+    private static final String ATTACHMENT_FILENAME = "attachment; filename=ErrorReport.json";
+    private static final String SELECT_IS_A_MANDATORY_PARAMETER = "select is a mandatory parameter";
+    private static final String AUDIT_URI = "/audit";
+    private static final String AUDIT_RULE_URI = "/auditRule";
+    private static final String OPERATIONS_PATH = "logbookoperations";
+    private static final String OPTIONS_IS_MANDATORY_PARAMETER = "The json option is mandatory";
+    private static final String ORIGINATING_AGENCY = "OriginatingAgency";
     private static final String ACCESS_CONTRACT = "AccessContract";
+    private static final String AUDIT_TYPE = "auditType";
+    private static final String OBJECT_ID = "objectId";
+    private static final String AUDIT_ACTIONS = "auditActions";
 
-    /**
-     * Audit type constant
-     */
-    public static final String AUDIT_TYPE = "auditType";
-    /**
-     * Object id constant
-     */
-    public static final String OBJECT_ID = "objectId";
-    /**
-     * Audit actions constant
-     */
-    public static final String ACTION_LIST = "auditActions";
     private final MongoDbAccessAdminImpl mongoAccess;
     private final ElasticsearchAccessFunctionalAdmin elasticsearchAccess;
+    private final OntologyLoader rulesOntologyLoader;
     private VitamCounterService vitamCounterService;
-    // TODO: this is not a real service, this should be improved
     private VitamRuleService vitamRuleService;
 
-    /**
-     * Constructor
-     *
-     * @param configuration config for constructing AdminManagement
-     */
-    public AdminManagementResource(AdminManagementConfiguration configuration) {
+    public AdminManagementResource(AdminManagementConfiguration configuration, OntologyLoader ontologyLoader, OntologyLoader rulesOntologyLoader) {
         super(new BasicVitamStatusServiceImpl());
+        this.rulesOntologyLoader = rulesOntologyLoader;
         DbConfigurationImpl adminConfiguration;
         if (configuration.isDbAuthentication()) {
             adminConfiguration =
@@ -207,7 +188,7 @@ public class AdminManagementResource extends ApplicationStatusResource {
         }
         // / FIXME: 3/31/17 Factories mustn't be created here !!!
         elasticsearchAccess = ElasticsearchAccessAdminFactory.create(configuration);
-        mongoAccess = MongoDbAccessAdminFactory.create(adminConfiguration);
+        mongoAccess = MongoDbAccessAdminFactory.create(adminConfiguration, ontologyLoader);
         WorkspaceClientFactory.changeMode(configuration.getWorkspaceUrl());
         ProcessingManagementClientFactory.changeConfigurationUrl(configuration.getProcessingUrl());
         vitamRuleService = new VitamRuleService(configuration.getListMinimumRuleDuration());
@@ -401,7 +382,7 @@ public class AdminManagementResource extends ApplicationStatusResource {
         Set<String> notUsedDeletedRules = new HashSet<>();
         Set<String> notUsedUpdatedRules = new HashSet<>();
         try {
-            RulesManagerFileImpl rulesManagerFileImpl = new RulesManagerFileImpl(mongoAccess, vitamCounterService);
+            RulesManagerFileImpl rulesManagerFileImpl = new RulesManagerFileImpl(mongoAccess, vitamCounterService, this.rulesOntologyLoader);
 
             try {
                 rulesManagerFileImpl
@@ -417,12 +398,12 @@ public class AdminManagementResource extends ApplicationStatusResource {
                     null);
             Map<String, String> headers = new HashMap<>();
             headers.put(HttpHeaders.CONTENT_TYPE, APPLICATION_OCTET_STREAM);
-            headers.put(HttpHeaders.CONTENT_DISPOSITION, ATTACHEMENT_FILENAME);
+            headers.put(HttpHeaders.CONTENT_DISPOSITION, ATTACHMENT_FILENAME);
             return new VitamAsyncInputStreamResponse(errorReportInputStream,
                 Status.OK, headers);
         } catch (Exception e) {
             LOGGER.error("Error while checking file ", e);
-            return handleGenerateReport(errors, usedDeletedRules, usedUpdatedRules);
+            return handleGenerateReport(errors, usedDeletedRules, usedUpdatedRules, rulesOntologyLoader);
         }
     }
 
@@ -433,18 +414,19 @@ public class AdminManagementResource extends ApplicationStatusResource {
      * @param usedDeletedRules
      * @param usedDeletedRules
      * @param usedUpdatedRules
+     * @param ontologyLoader
      * @return response
      */
     private Response handleGenerateReport(Map<Integer, List<ErrorReport>> errors,
-        List<FileRulesModel> usedDeletedRules, List<FileRulesModel> usedUpdatedRules) {
+        List<FileRulesModel> usedDeletedRules, List<FileRulesModel> usedUpdatedRules, OntologyLoader ontologyLoader) {
         InputStream errorReportInputStream;
-        RulesManagerFileImpl rulesManagerFileImpl = new RulesManagerFileImpl(mongoAccess, vitamCounterService);
+        RulesManagerFileImpl rulesManagerFileImpl = new RulesManagerFileImpl(mongoAccess, vitamCounterService, ontologyLoader);
         errorReportInputStream =
             rulesManagerFileImpl.generateErrorReport(errors, usedDeletedRules, usedUpdatedRules, StatusCode.KO,
                 null);
         Map<String, String> headers = new HashMap<>();
         headers.put(HttpHeaders.CONTENT_TYPE, APPLICATION_OCTET_STREAM);
-        headers.put(HttpHeaders.CONTENT_DISPOSITION, ATTACHEMENT_FILENAME);
+        headers.put(HttpHeaders.CONTENT_DISPOSITION, ATTACHMENT_FILENAME);
         return new VitamAsyncInputStreamResponse(errorReportInputStream,
             Status.BAD_REQUEST, headers);
     }
@@ -464,7 +446,7 @@ public class AdminManagementResource extends ApplicationStatusResource {
         ParametersChecker.checkParameter("rulesStream is a mandatory parameter", rulesStream);
         String filename = headers.getHeaderString(GlobalDataRest.X_FILENAME);
         try {
-            RulesManagerFileImpl rulesFileManagement = new RulesManagerFileImpl(mongoAccess, vitamCounterService);
+            RulesManagerFileImpl rulesFileManagement = new RulesManagerFileImpl(mongoAccess, vitamCounterService, this.rulesOntologyLoader);
 
             rulesFileManagement.importFile(rulesStream, filename);
             return Response.status(Status.CREATED).entity(Status.CREATED.getReasonPhrase()).build();
@@ -503,7 +485,7 @@ public class AdminManagementResource extends ApplicationStatusResource {
         ParametersChecker.checkParameter("ruleId is a mandatory parameter", ruleId);
         FileRules fileRules;
         try {
-            RulesManagerFileImpl rulesFileManagement = new RulesManagerFileImpl(mongoAccess, vitamCounterService);
+            RulesManagerFileImpl rulesFileManagement = new RulesManagerFileImpl(mongoAccess, vitamCounterService, this.rulesOntologyLoader);
 
             SanityChecker.checkJsonAll(JsonHandler.toJsonNode(ruleId));
             fileRules = rulesFileManagement.findDocumentById(ruleId);
@@ -552,7 +534,7 @@ public class AdminManagementResource extends ApplicationStatusResource {
         ParametersChecker.checkParameter(SELECT_IS_A_MANDATORY_PARAMETER, select);
         RequestResponseOK<FileRules> filerulesList;
         try {
-            RulesManagerFileImpl rulesFileManagement = new RulesManagerFileImpl(mongoAccess, vitamCounterService);
+            RulesManagerFileImpl rulesFileManagement = new RulesManagerFileImpl(mongoAccess, vitamCounterService, this.rulesOntologyLoader);
             SanityChecker.checkJsonAll(select);
             filerulesList = rulesFileManagement.findDocuments(select).setQuery(select);
             return Response.status(Status.OK)
@@ -752,7 +734,7 @@ public class AdminManagementResource extends ApplicationStatusResource {
     @Consumes(APPLICATION_JSON)
     @Produces(APPLICATION_JSON)
     public Response launchRuleAudit() {
-        RulesManagerFileImpl rulesManagerFileImpl = new RulesManagerFileImpl(mongoAccess, vitamCounterService);
+        RulesManagerFileImpl rulesManagerFileImpl = new RulesManagerFileImpl(mongoAccess, vitamCounterService, rulesOntologyLoader);
         int tenant = VitamThreadUtils.getVitamSession().getTenantId();
         try {
             rulesManagerFileImpl.checkRuleConformity(rulesManagerFileImpl.getRuleFromCollection(tenant),
@@ -830,7 +812,7 @@ public class AdminManagementResource extends ApplicationStatusResource {
             createAuditLogbookOperation();
             entry.getExtraParams().put(OBJECT_ID, options.get(OBJECT_ID).textValue());
             entry.getExtraParams().put(AUDIT_TYPE, options.get(AUDIT_TYPE).textValue());
-            entry.getExtraParams().put(ACTION_LIST, options.get(ACTION_LIST).textValue());
+            entry.getExtraParams().put(AUDIT_ACTIONS, options.get(AUDIT_ACTIONS).textValue());
             processingClient.initVitamProcess(entry);
             processingClient.updateOperationActionProcess(ProcessAction.RESUME.getValue(),
                 VitamThreadUtils.getVitamSession().getRequestId());

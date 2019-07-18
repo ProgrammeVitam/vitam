@@ -90,10 +90,8 @@ import fr.gouv.vitam.metadata.core.model.UpdatedDocument;
 import fr.gouv.vitam.metadata.core.trigger.FieldHistoryManager;
 import fr.gouv.vitam.metadata.core.trigger.History;
 import fr.gouv.vitam.metadata.core.validation.CachedArchiveUnitProfileLoader;
-import fr.gouv.vitam.metadata.core.validation.CachedOntologyLoader;
 import fr.gouv.vitam.metadata.core.validation.CachedSchemaValidatorLoader;
 import fr.gouv.vitam.metadata.core.validation.MetadataValidationException;
-import fr.gouv.vitam.metadata.core.validation.OntologyLoader;
 import fr.gouv.vitam.metadata.core.validation.OntologyValidator;
 import fr.gouv.vitam.metadata.core.validation.UnitValidator;
 import net.javacrumbs.jsonunit.JsonAssert;
@@ -148,7 +146,6 @@ import static fr.gouv.vitam.common.database.builder.query.action.UpdateActionHel
 import static fr.gouv.vitam.common.database.builder.query.action.UpdateActionHelper.push;
 import static fr.gouv.vitam.common.database.builder.query.action.UpdateActionHelper.set;
 import static fr.gouv.vitam.common.database.builder.query.action.UpdateActionHelper.unset;
-import static java.util.Collections.emptyList;
 import static java.util.Collections.emptyMap;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -371,7 +368,7 @@ public class DbRequestTest {
             doAnswer((args) -> args.getArgument(0)).when(ontologyValidator).verifyAndReplaceFields(any());
 
             dbRequest.execUpdateRequest(updateParser, uuid.toString(), MetadataCollections.UNIT, ontologyValidator,
-                mock(UnitValidator.class));
+                mock(UnitValidator.class), Collections.emptyList());
 
             // SELECT ALL
             selectRequest = createSelectAllRequestWithUUID(uuid);
@@ -443,7 +440,7 @@ public class DbRequestTest {
             LOGGER.debug("selectParser: {}", selectParser);
 
             // get query's results
-            final Result<MetadataDocument<?>> result = dbRequest.execRequest(selectParser);
+            final Result<MetadataDocument<?>> result = dbRequest.execRequest(selectParser, Collections.emptyList());
 
             LOGGER.debug("result size: {}", result.getNbResult());
             assertEquals(1L, result.getNbResult());
@@ -455,7 +452,7 @@ public class DbRequestTest {
                     JsonHandler.getFromFile(PropertiesUtils.getResourceFile(AU_INCORRECT_OFF_LIMIT));
                 selectParser.parse(selectIncorrectQuery);
                 LOGGER.debug("selectParser: {}", selectParser);
-                dbRequest.execRequest(selectParser);
+                dbRequest.execRequest(selectParser, Collections.emptyList());
                 fail("Should throw an exception as offset limit are incorrect");
             } catch (BadRequestException e) {
                 // do nothing
@@ -525,7 +522,7 @@ public class DbRequestTest {
             LOGGER.debug("selectParser: {}", selectParser);
 
             // get query's results
-            final Result<MetadataDocument<?>> result = dbRequest.execRequest(selectParser);
+            final Result<MetadataDocument<?>> result = dbRequest.execRequest(selectParser, Collections.emptyList());
 
             LOGGER.debug("result size: {}", result.getNbResult());
             assertEquals(2L, result.getNbResult());
@@ -589,7 +586,7 @@ public class DbRequestTest {
             doAnswer((args) -> args.getArgument(0)).when(ontologyValidator).verifyAndReplaceFields(any());
 
             dbRequest.execUpdateRequest(requestParser, uuid.toString(), MetadataCollections.UNIT, ontologyValidator,
-                mock(UnitValidator.class));
+                mock(UnitValidator.class), Collections.emptyList());
 
             // SELECT ALL
             selectRequest = createSelectAllRequestWithUUID(uuid);
@@ -663,7 +660,7 @@ public class DbRequestTest {
             doAnswer((args) -> args.getArgument(0)).when(ontologyValidator).verifyAndReplaceFields(any());
 
             dbRequest.execUpdateRequest(requestParser, uuid.toString(), MetadataCollections.UNIT, ontologyValidator,
-                mock(UnitValidator.class));
+                mock(UnitValidator.class), Collections.emptyList());
 
             // SELECT ALL
             selectRequest = createSelectAllRequestWithUUID(uuid);
@@ -787,7 +784,7 @@ public class DbRequestTest {
             doAnswer((args) -> args.getArgument(0)).when(ontologyValidator).verifyAndReplaceFields(any());
 
             dbRequest.execUpdateRequest(requestParser, uuid.toString(), MetadataCollections.UNIT, ontologyValidator,
-                mock(UnitValidator.class));
+                mock(UnitValidator.class), Collections.emptyList());
 
             // SELECT ALL
             selectRequest = createSelectAllRequestWithUUID(uuid);
@@ -872,14 +869,11 @@ public class DbRequestTest {
 
         CachedSchemaValidatorLoader schemaValidatorLoader = new CachedSchemaValidatorLoader(100, 300);
 
-        OntologyLoader ontologyLoader = mock(OntologyLoader.class);
-        doReturn(ontologyModels).when(ontologyLoader).loadOntologies();
-
-        OntologyValidator ontologyValidator = new OntologyValidator(ontologyLoader);
+        OntologyValidator ontologyValidator = new OntologyValidator(() -> ontologyModels);
         UnitValidator unitValidator = new UnitValidator(archiveUnitProfileLoader, schemaValidatorLoader);
 
         UpdatedDocument updatedDocument =
-            dbRequest.execUpdateRequest(updateParser, uuid, MetadataCollections.UNIT, ontologyValidator, unitValidator);
+            dbRequest.execUpdateRequest(updateParser, uuid, MetadataCollections.UNIT, ontologyValidator, unitValidator, Collections.emptyList());
 
         // Then
         ObjectNode expectedUnit = (ObjectNode) JsonHandler.getFromString(BsonHelper.stringify(initialUnit));
@@ -942,15 +936,12 @@ public class DbRequestTest {
 
         CachedSchemaValidatorLoader schemaValidatorLoader = new CachedSchemaValidatorLoader(100, 300);
 
-        CachedOntologyLoader ontologyLoader = mock(CachedOntologyLoader.class);
-        doReturn(ontologyModels).when(ontologyLoader).loadOntologies();
-
-        OntologyValidator ontologyValidator = new OntologyValidator(ontologyLoader);
+        OntologyValidator ontologyValidator = new OntologyValidator(() -> ontologyModels);
         UnitValidator unitValidator = new UnitValidator(archiveUnitProfileLoader, schemaValidatorLoader);
 
         // Then
         assertThatThrownBy(() ->
-            dbRequest.execUpdateRequest(updateParser, uuid, MetadataCollections.UNIT, ontologyValidator, unitValidator)
+            dbRequest.execUpdateRequest(updateParser, uuid, MetadataCollections.UNIT, ontologyValidator, unitValidator, Collections.emptyList())
         ).isInstanceOf(MetadataValidationException.class);
 
         String expected = BsonHelper.stringify(initialUnit);
@@ -1000,15 +991,12 @@ public class DbRequestTest {
 
         CachedSchemaValidatorLoader schemaValidatorLoader = new CachedSchemaValidatorLoader(100, 300);
 
-        CachedOntologyLoader ontologyLoader = mock(CachedOntologyLoader.class);
-        doReturn(ontologyModels).when(ontologyLoader).loadOntologies();
-
-        OntologyValidator ontologyValidator = new OntologyValidator(ontologyLoader);
+        OntologyValidator ontologyValidator = new OntologyValidator(() -> ontologyModels);
         UnitValidator unitValidator = new UnitValidator(archiveUnitProfileLoader, schemaValidatorLoader);
 
         // Then
         assertThatThrownBy(() ->
-            dbRequest.execUpdateRequest(updateParser, uuid, MetadataCollections.UNIT, ontologyValidator, unitValidator)
+            dbRequest.execUpdateRequest(updateParser, uuid, MetadataCollections.UNIT, ontologyValidator, unitValidator, Collections.emptyList())
         ).isInstanceOf(MetadataValidationException.class);
 
         String expected = BsonHelper.stringify(initialUnit);
@@ -1051,15 +1039,12 @@ public class DbRequestTest {
 
         CachedSchemaValidatorLoader schemaValidatorLoader = new CachedSchemaValidatorLoader(100, 300);
 
-        CachedOntologyLoader ontologyLoader = mock(CachedOntologyLoader.class);
-        doReturn(ontologyModels).when(ontologyLoader).loadOntologies();
-
-        OntologyValidator ontologyValidator = new OntologyValidator(ontologyLoader);
+        OntologyValidator ontologyValidator = new OntologyValidator(() -> ontologyModels);
         UnitValidator unitValidator = new UnitValidator(archiveUnitProfileLoader, schemaValidatorLoader);
 
         // Then
         assertThatThrownBy(() ->
-            dbRequest.execUpdateRequest(updateParser, uuid, MetadataCollections.UNIT, ontologyValidator, unitValidator)
+            dbRequest.execUpdateRequest(updateParser, uuid, MetadataCollections.UNIT, ontologyValidator, unitValidator, Collections.emptyList())
         ).isInstanceOf(MetadataValidationException.class);
 
         String expected = BsonHelper.stringify(initialUnit);
@@ -1109,7 +1094,7 @@ public class DbRequestTest {
             selectRequest.addOrderByDescFilter(TITLE);
             selectParser.parse(selectRequest.getFinalSelect());
             LOGGER.debug("SelectParser: {}", selectParser);
-            final Result result0 = dbRequest.execRequest(selectParser);
+            final Result result0 = dbRequest.execRequest(selectParser, Collections.emptyList());
             assertEquals(2L, result0.getNbResult());
             final List<MetadataDocument<?>> list = result0.getFinal();
             LOGGER.warn(list.toString());
@@ -1125,7 +1110,7 @@ public class DbRequestTest {
             selectRequest.addOrderByDescFilter(TITLE);
             selectParser.parse(selectRequest.getFinalSelect());
             LOGGER.debug("SelectParser: {}", selectParser);
-            final Result result1 = dbRequest.execRequest(selectParser);
+            final Result result1 = dbRequest.execRequest(selectParser, Collections.emptyList());
             assertEquals(2L, result1.getNbResult());
             final List<MetadataDocument<?>> list1 = result1.getFinal();
             assertEquals("mon titreB Complet", ((Document) list1.get(0)).getString(TITLE));
@@ -1139,7 +1124,7 @@ public class DbRequestTest {
             selectRequest.addOrderByDescFilter(TITLE);
             selectParser.parse(selectRequest.getFinalSelect());
             LOGGER.debug("SelectParser: {}", selectParser);
-            final Result result2 = dbRequest.execRequest(selectParser);
+            final Result result2 = dbRequest.execRequest(selectParser, Collections.emptyList());
             assertEquals(2L, result2.getNbResult());
             final List<MetadataDocument<?>> list2 = result2.getFinal();
             assertEquals("mon titreB Complet", list2.get(0).getString(TITLE));
@@ -1219,7 +1204,7 @@ public class DbRequestTest {
         InvalidParseOperationException, BadRequestException,
         VitamDBException {
 
-        final Result result = dbRequest.execRequest(requestParser);
+        final Result result = dbRequest.execRequest(requestParser, Collections.emptyList());
         LOGGER.warn("XXXXXXXX " + requestParser.getClass().getSimpleName() + " Result XXXXXXXX: " + result);
         assertEquals("Must have 1 result", result.getNbResult(), 1);
         assertEquals("Must have 1 result", result.getCurrentIds().size(), 1);
@@ -1537,7 +1522,7 @@ public class DbRequestTest {
         }
         final SelectParserMultiple selectParser = new SelectParserMultiple(mongoDbVarNameAdapter);
         selectParser.parse(select.getFinalSelect());
-        return dbRequest.execRequest(selectParser);
+        return dbRequest.execRequest(selectParser, Collections.emptyList());
     }
 
     @Test
@@ -1629,7 +1614,7 @@ public class DbRequestTest {
         final SelectParserMultiple selectParser = new SelectParserMultiple(mongoDbVarNameAdapter);
         selectParser.parse(selectRequest);
         LOGGER.debug("SelectParser: {}", selectRequest);
-        final Result result = dbRequest.execRequest(selectParser);
+        final Result result = dbRequest.execRequest(selectParser, Collections.emptyList());
         assertEquals("[]", result.getFinal().toString());
 
     }
@@ -1652,7 +1637,7 @@ public class DbRequestTest {
         final SelectParserMultiple selectParser = new SelectParserMultiple(mongoDbVarNameAdapter);
         selectParser.parse(selectRequest);
         LOGGER.debug("SelectParser: {}", selectRequest);
-        final Result result2 = dbRequest.execRequest(selectParser);
+        final Result result2 = dbRequest.execRequest(selectParser, Collections.emptyList());
         assertEquals(1, result2.nbResult);
     }
 
@@ -1673,7 +1658,7 @@ public class DbRequestTest {
         final SelectParserMultiple selectParser = new SelectParserMultiple(mongoDbVarNameAdapter);
         selectParser.parse(selectRequest);
         LOGGER.debug("SelectParser: {}", selectRequest);
-        final Result result2 = dbRequest.execRequest(selectParser);
+        final Result result2 = dbRequest.execRequest(selectParser, Collections.emptyList());
         assertEquals(0, result2.nbResult);
     }
 
@@ -1697,35 +1682,35 @@ public class DbRequestTest {
         selectParser1.parse(selectRequest1);
         LOGGER.debug("SelectParser: {}", selectRequest1);
         MetadataCollections.UNIT.getEsClient().refreshIndex(MetadataCollections.UNIT, TENANT_ID_2);
-        final Result resultSelect1 = dbRequest.execRequest(selectParser1);
+        final Result resultSelect1 = dbRequest.execRequest(selectParser1, Collections.emptyList());
         assertEquals(1, resultSelect1.nbResult);
 
         final JsonNode selectRequest2 = JsonHandler.getFromString(REQUEST_SELECT_TEST_ES_2);
         final SelectParserMultiple selectParser2 = new SelectParserMultiple(mongoDbVarNameAdapter);
         selectParser2.parse(selectRequest2);
         LOGGER.debug("SelectParser: {}", selectRequest2);
-        final Result resultSelect2 = dbRequest.execRequest(selectParser2);
+        final Result resultSelect2 = dbRequest.execRequest(selectParser2, Collections.emptyList());
         assertEquals(1, resultSelect2.nbResult);
 
         final JsonNode selectRequest3 = JsonHandler.getFromString(REQUEST_SELECT_TEST_ES_3);
         final SelectParserMultiple selectParser3 = new SelectParserMultiple(mongoDbVarNameAdapter);
         selectParser3.parse(selectRequest3);
         LOGGER.debug("SelectParser: {}", selectRequest3);
-        final Result resultSelect3 = dbRequest.execRequest(selectParser3);
+        final Result resultSelect3 = dbRequest.execRequest(selectParser3, Collections.emptyList());
         assertEquals(1, resultSelect3.nbResult);
 
         final JsonNode selectRequest4 = JsonHandler.getFromString(REQUEST_SELECT_TEST_ES_4);
         final SelectParserMultiple selectParser4 = new SelectParserMultiple(mongoDbVarNameAdapter);
         selectParser4.parse(selectRequest4);
         LOGGER.debug("SelectParser: {}", selectRequest4);
-        final Result resultSelect4 = dbRequest.execRequest(selectParser4);
+        final Result resultSelect4 = dbRequest.execRequest(selectParser4, Collections.emptyList());
         assertEquals(1, resultSelect4.nbResult);
 
         final JsonNode selectRequest5 = JsonHandler.getFromString(REQUEST_SELECT_TEST_ES_5);
         final SelectParserMultiple selectParser5 = new SelectParserMultiple(mongoDbVarNameAdapter);
         selectParser5.parse(selectRequest5);
         LOGGER.debug("SelectParser: {}", selectRequest5);
-        final Result resultSelect5 = dbRequest.execRequest(selectParser5);
+        final Result resultSelect5 = dbRequest.execRequest(selectParser5, Collections.emptyList());
         assertEquals(1, resultSelect5.nbResult);
         assertEquals(1, resultSelect5.facetResult.size());
 
@@ -1734,7 +1719,7 @@ public class DbRequestTest {
         final SelectParserMultiple selectParser6 = new SelectParserMultiple(mongoDbVarNameAdapter);
         selectParser6.parse(selectRequest6);
         LOGGER.debug("SelectParser: {}", selectRequest6);
-        final Result resultSelect6 = dbRequest.execRequest(selectParser6);
+        final Result resultSelect6 = dbRequest.execRequest(selectParser6, Collections.emptyList());
         assertEquals(1, resultSelect6.nbResult);
         assertEquals(1, resultSelect6.facetResult.size());
         FacetResult result = (FacetResult) resultSelect6.facetResult.get(0);
@@ -1747,7 +1732,7 @@ public class DbRequestTest {
         final SelectParserMultiple selectParser7 = new SelectParserMultiple(mongoDbVarNameAdapter);
         selectParser7.parse(selectRequest7);
         LOGGER.debug("SelectParser: {}", selectRequest7);
-        final Result resultSelect7 = dbRequest.execRequest(selectParser7);
+        final Result resultSelect7 = dbRequest.execRequest(selectParser7, Collections.emptyList());
         assertEquals(1, resultSelect7.nbResult);
         assertEquals(1, resultSelect7.facetResult.size());
         FacetResult facetResult7 = (FacetResult) resultSelect7.facetResult.get(0);
@@ -1767,7 +1752,7 @@ public class DbRequestTest {
             .addRoots(UUID2);
         selectParser1.parse(select.getFinalSelect());
         LOGGER.debug("SelectParser: {}", selectParser1.getRequest());
-        final Result resultSelectRel0 = dbRequest.execRequest(selectParser1);
+        final Result resultSelectRel0 = dbRequest.execRequest(selectParser1, Collections.emptyList());
         assertEquals(1, resultSelectRel0.nbResult);
         assertEquals("aeaqaaaaaet33ntwablhaaku6z67pzqaaaar",
             resultSelectRel0.getCurrentIds().iterator().next().toString());
@@ -1777,7 +1762,7 @@ public class DbRequestTest {
             .addRoots(UUID2);
         selectParser1.parse(select.getFinalSelect());
         LOGGER.debug("SelectParser: {}", selectParser1.getRequest());
-        final Result resultSelectRel1 = dbRequest.execRequest(selectParser1);
+        final Result resultSelectRel1 = dbRequest.execRequest(selectParser1, Collections.emptyList());
         assertEquals(1, resultSelectRel1.nbResult);
         assertEquals("aeaqaaaaaet33ntwablhaaku6z67pzqaaaar",
             resultSelectRel1.getCurrentIds().iterator().next().toString());
@@ -1787,7 +1772,7 @@ public class DbRequestTest {
             .addRoots(UUID2);
         selectParser1.parse(select.getFinalSelect());
         LOGGER.debug("SelectParser: {}", selectParser1.getRequest());
-        final Result<MetadataDocument<?>> resultSelectRel3 = dbRequest.execRequest(selectParser1);
+        final Result<MetadataDocument<?>> resultSelectRel3 = dbRequest.execRequest(selectParser1, Collections.emptyList());
 
         assertEquals(1, resultSelectRel3.nbResult);
         assertEquals("aeaqaaaaaet33ntwablhaaku6z67pzqaaaar",
@@ -1800,7 +1785,7 @@ public class DbRequestTest {
         dbRequest.execInsertUnitRequest(insertParser);
         MetadataCollections.UNIT.getEsClient().refreshIndex(MetadataCollections.UNIT, TENANT_ID_2);
 
-        final Result<MetadataDocument<?>> resultSelectRel4 = dbRequest.execRequest(selectParser1);
+        final Result<MetadataDocument<?>> resultSelectRel4 = dbRequest.execRequest(selectParser1, Collections.emptyList());
         assertEquals(2, resultSelectRel4.nbResult);
         for (final String root : resultSelectRel4.getCurrentIds()) {
             assertTrue(root.equalsIgnoreCase("aeaqaaaaaet33ntwablhaaku6z67pzqaaaat") ||
@@ -1819,7 +1804,7 @@ public class DbRequestTest {
             .addRoots(UUID2);
         selectParser1.parse(select.getFinalSelect());
         LOGGER.debug("SelectParser: {}", selectParser1.getRequest());
-        final Result<MetadataDocument<?>> resultSelectRel5 = dbRequest.execRequest(selectParser1);
+        final Result<MetadataDocument<?>> resultSelectRel5 = dbRequest.execRequest(selectParser1, Collections.emptyList());
         assertEquals(1, resultSelectRel5.nbResult);
         assertEquals("aeaqaaaaaet33ntwablhaaku6z67pzqaaaas",
             resultSelectRel5.getCurrentIds().iterator().next().toString());
@@ -1829,7 +1814,7 @@ public class DbRequestTest {
         select.addRoots(UUID2).addQueries(match("Title", "Frânce").setDepthLimit(1));
         selectParser1.parse(select.getFinalSelect());
         LOGGER.debug("SelectParser: {}", selectParser1.getRequest());
-        final Result resultSelectRel6 = dbRequest.execRequest(selectParser1);
+        final Result resultSelectRel6 = dbRequest.execRequest(selectParser1, Collections.emptyList());
         assertEquals(1, resultSelectRel6.nbResult);
         assertEquals("aeaqaaaaaet33ntwablhaaku6z67pzqaaaas",
             resultSelectRel6.getCurrentIds().iterator().next().toString());
@@ -1839,7 +1824,7 @@ public class DbRequestTest {
         select.addRoots(UUID2).addQueries(match("Title", "social").setDepthLimit(1));
         selectParser1.parse(select.getFinalSelect());
         LOGGER.debug("SelectParser: {}", selectParser1.getRequest());
-        final Result resultSelectRel7 = dbRequest.execRequest(selectParser1);
+        final Result resultSelectRel7 = dbRequest.execRequest(selectParser1, Collections.emptyList());
         assertEquals(1, resultSelectRel7.nbResult);
         assertEquals("aeaqaaaaaet33ntwablhaaku6z67pzqaaaas",
             resultSelectRel7.getCurrentIds().iterator().next().toString());
@@ -1850,7 +1835,7 @@ public class DbRequestTest {
             .addQueries(match("Title", "abcd").setDepthLimit(1));
         selectParser1.parse(select.getFinalSelect());
         LOGGER.debug("SelectParser: {}", selectParser1.getRequest());
-        final Result resultSelectRel8 = dbRequest.execRequest(selectParser1);
+        final Result resultSelectRel8 = dbRequest.execRequest(selectParser1, Collections.emptyList());
         assertEquals(1, resultSelectRel8.nbResult);
         assertEquals("aeaqaaaaaet33ntwablhaaku6z67pzqaaaas",
             resultSelectRel8.getCurrentIds().iterator().next().toString());
@@ -1872,7 +1857,7 @@ public class DbRequestTest {
         selectParser1.parse(selectRequest1);
         LOGGER.debug("SelectParser: {}", selectRequest1);
         MetadataCollections.UNIT.getEsClient().refreshIndex(MetadataCollections.UNIT, TENANT_ID_1);
-        final Result resultSelect1 = dbRequest.execRequest(selectParser1);
+        final Result resultSelect1 = dbRequest.execRequest(selectParser1, Collections.emptyList());
         assertEquals(1, resultSelect1.nbResult);
     }
 
@@ -1893,7 +1878,7 @@ public class DbRequestTest {
         LOGGER.debug("SelectParser: {}", selectRequest1);
         MetadataCollections.UNIT.getEsClient().refreshIndex(MetadataCollections.UNIT, TENANT_ID_0);
         MetadataCollections.UNIT.getEsClient().refreshIndex(MetadataCollections.UNIT, TENANT_ID_1);
-        final Result resultSelect1 = dbRequest.execRequest(selectParser1);
+        final Result resultSelect1 = dbRequest.execRequest(selectParser1, Collections.emptyList());
         assertEquals(1, resultSelect1.nbResult);
     }
 
@@ -1919,7 +1904,7 @@ public class DbRequestTest {
         SelectMultiQuery select1 = new SelectMultiQuery();
         select1.addQueries(match("Title", "Archive").setDepthLimit(0)).addRoots(UUID1);
         selectParser2.parse(select1.getFinalSelect());
-        Result resultSelectRel6 = dbRequest.execRequest(selectParser2);
+        Result resultSelectRel6 = dbRequest.execRequest(selectParser2, Collections.emptyList());
         assertEquals(1, resultSelectRel6.nbResult);
         String unitId = (String) resultSelectRel6.getCurrentIds().get(0);
 
@@ -1933,7 +1918,7 @@ public class DbRequestTest {
         doAnswer((args) -> args.getArgument(0)).when(dummyOntologyValidator).verifyAndReplaceFields(any());
 
         dbRequest.execUpdateRequest(updateParser, unitId, MetadataCollections.UNIT, dummyOntologyValidator,
-            mock(UnitValidator.class));
+            mock(UnitValidator.class), Collections.emptyList());
         MetadataCollections.UNIT.getEsClient().refreshIndex(MetadataCollections.UNIT, TENANT_ID_0);
 
         // check new value
@@ -1941,7 +1926,7 @@ public class DbRequestTest {
         SelectMultiQuery select3 = new SelectMultiQuery();
         select3.addQueries(match("Title", "ArchiveDoubleTest").setDepthLimit(0)).addRoots(UUID1);
         selectParser3.parse(select3.getFinalSelect());
-        Result resultSelectRel3 = dbRequest.execRequest(selectParser3);
+        Result resultSelectRel3 = dbRequest.execRequest(selectParser3, Collections.emptyList());
         assertEquals(1, resultSelectRel3.nbResult);
         assertEquals(UUID1, resultSelectRel3.getCurrentIds().iterator().next().toString());
         assertEquals(
@@ -1954,7 +1939,7 @@ public class DbRequestTest {
         LOGGER.debug("UpdateParser: {}", updateParser5.getRequest());
 
         dbRequest.execUpdateRequest(updateParser5, unitId, MetadataCollections.UNIT, dummyOntologyValidator,
-            mock(UnitValidator.class));
+            mock(UnitValidator.class), Collections.emptyList());
         MetadataCollections.UNIT.getEsClient().refreshIndex(MetadataCollections.UNIT, TENANT_ID_0);
 
         // check new value
@@ -1962,7 +1947,7 @@ public class DbRequestTest {
         SelectMultiQuery select4 = new SelectMultiQuery();
         select4.addQueries(exists("Title").setDepthLimit(0)).addRoots(UUID1);
         selectParser4.parse(select4.getFinalSelect());
-        Result resultSelectRel4 = dbRequest.execRequest(selectParser4);
+        Result resultSelectRel4 = dbRequest.execRequest(selectParser4, Collections.emptyList());
         assertEquals(1, resultSelectRel4.nbResult);
         assertEquals(UUID1, resultSelectRel4.getCurrentIds().iterator().next().toString());
         // Still 1, not incremented to 2
@@ -1976,10 +1961,7 @@ public class DbRequestTest {
 
         CachedSchemaValidatorLoader schemaValidatorLoader = new CachedSchemaValidatorLoader(100, 300);
 
-        CachedOntologyLoader ontologyLoader = mock(CachedOntologyLoader.class);
-        doReturn(emptyList()).when(ontologyLoader).loadOntologies();
-
-        OntologyValidator ontologyValidator = new OntologyValidator(ontologyLoader);
+        OntologyValidator ontologyValidator = new OntologyValidator(Collections::emptyList);
         UnitValidator unitValidator = new UnitValidator(archiveUnitProfileLoader, schemaValidatorLoader);
 
         try {
@@ -1988,7 +1970,7 @@ public class DbRequestTest {
             updateParser2.parse(updateRequest2);
             LOGGER.debug("UpdateParser: {}", updateParser2.getRequest());
             dbRequest
-                .execUpdateRequest(updateParser2, unitId, MetadataCollections.UNIT, ontologyValidator, unitValidator);
+                .execUpdateRequest(updateParser2, unitId, MetadataCollections.UNIT, ontologyValidator, unitValidator, Collections.emptyList());
             fail("should throw an exception cause of the additional schema");
         } catch (MetadataValidationException e) {
             assertTrue(e.getCause().getMessage().contains("\"missing\":[\"specificField\"]"));
@@ -2000,7 +1982,7 @@ public class DbRequestTest {
         updateParserSchema.parse(updateRequestSchema);
         LOGGER.debug("UpdateParser: {}", updateParserSchema.getRequest());
         dbRequest
-            .execUpdateRequest(updateParserSchema, unitId, MetadataCollections.UNIT, ontologyValidator, unitValidator);
+            .execUpdateRequest(updateParserSchema, unitId, MetadataCollections.UNIT, ontologyValidator, unitValidator, Collections.emptyList());
         MetadataCollections.UNIT.getEsClient().refreshIndex(MetadataCollections.UNIT, TENANT_ID_0);
 
         // check new value that should exist in the collection
@@ -2008,7 +1990,7 @@ public class DbRequestTest {
         select1 = new SelectMultiQuery();
         select1.addQueries(exists("specificField").setDepthLimit(0)).addRoots(UUID1);
         selectParser2.parse(select1.getFinalSelect());
-        resultSelectRel6 = dbRequest.execRequest(selectParser2);
+        resultSelectRel6 = dbRequest.execRequest(selectParser2, Collections.emptyList());
         assertEquals(1, resultSelectRel6.nbResult);
         assertEquals(UUID1,
             resultSelectRel6.getCurrentIds().iterator().next().toString());
@@ -2018,7 +2000,7 @@ public class DbRequestTest {
         select1 = new SelectMultiQuery();
         select1.addQueries(match("Title", "ArchiveTest").setDepthLimit(0)).addRoots(UUID1);
         selectParser2.parse(select1.getFinalSelect());
-        resultSelectRel6 = dbRequest.execRequest(selectParser2);
+        resultSelectRel6 = dbRequest.execRequest(selectParser2, Collections.emptyList());
         assertEquals(0, resultSelectRel6.nbResult);
 
         // check new value should exist in the collection
@@ -2028,7 +2010,7 @@ public class DbRequestTest {
         select.addQueries(match("Title", "ArchiveDoubleTest").setDepthLimit(0)).addRoots(UUID1);
         selectParser1.parse(select.getFinalSelect());
         LOGGER.debug("SelectParser: {}", selectRequest1);
-        final Result resultSelectRel5 = dbRequest.execRequest(selectParser1);
+        final Result resultSelectRel5 = dbRequest.execRequest(selectParser1, Collections.emptyList());
         assertEquals(1, resultSelectRel5.nbResult);
         assertEquals(UUID1,
             resultSelectRel5.getCurrentIds().iterator().next().toString());
@@ -2058,7 +2040,7 @@ public class DbRequestTest {
         doAnswer((args) -> args.getArgument(0)).when(ontologyValidator).verifyAndReplaceFields(any());
 
         dbRequest.execUpdateRequest(updateParser, "aeaqaaaaaagbcaacabg44ak45e54criaaaaq",
-            MetadataCollections.UNIT, ontologyValidator, mock(UnitValidator.class));
+            MetadataCollections.UNIT, ontologyValidator, mock(UnitValidator.class), Collections.emptyList());
     }
 
     private static final JsonNode buildQueryJsonWithOptions(String query, String data)
@@ -2086,7 +2068,7 @@ public class DbRequestTest {
         selectParser.parse(selectRequest);
         LOGGER.debug("SelectParser: {}", selectRequest);
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID_1);
-        final Result result3 = dbRequest.execRequest(selectParser);
+        final Result result3 = dbRequest.execRequest(selectParser, Collections.emptyList());
         assertEquals(0, result3.nbResult);
     }
 
@@ -2123,11 +2105,11 @@ public class DbRequestTest {
         select.addHintFilter(BuilderToken.FILTERARGS.OBJECTGROUPS.exactToken());
         final SelectParserMultiple selectParser = new SelectParserMultiple(mongoDbVarNameAdapter);
         selectParser.parse(select.getFinalSelect());
-        final Result result = dbRequest.execRequest(selectParser);
+        final Result result = dbRequest.execRequest(selectParser, Collections.emptyList());
         assertEquals(1, result.nbResult);
 
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID_1);
-        final Result result2 = dbRequest.execRequest(selectParser);
+        final Result result2 = dbRequest.execRequest(selectParser, Collections.emptyList());
         assertEquals(0, result2.nbResult);
     }
 
@@ -2202,7 +2184,7 @@ public class DbRequestTest {
             "\"$projection\": {\"$fields\": {\"TransactedDate\": 1,\"#id\": 1,\"Title\": 1,\"#object\": 1,\"Description\": 1}}}";
         final SelectParserMultiple selectParser = new SelectParserMultiple(mongoDbVarNameAdapter);
         selectParser.parse(JsonHandler.getFromString(query));
-        final Result result = dbRequest.execRequest(selectParser);
+        final Result result = dbRequest.execRequest(selectParser, Collections.emptyList());
 
         // Clean
         final DeleteMultiQuery delete = new DeleteMultiQuery();
@@ -2211,7 +2193,7 @@ public class DbRequestTest {
         delete.setMult(true);
         final DeleteParserMultiple deleteParser = new DeleteParserMultiple(mongoDbVarNameAdapter);
         deleteParser.parse(delete.getFinalDelete());
-        dbRequest.execRequest(deleteParser);
+        dbRequest.execRequest(deleteParser, Collections.emptyList());
         assertEquals(2, result.nbResult);
     }
 
@@ -2376,10 +2358,7 @@ public class DbRequestTest {
 
         CachedSchemaValidatorLoader schemaValidatorLoader = new CachedSchemaValidatorLoader(100, 300);
 
-        CachedOntologyLoader ontologyLoader = mock(CachedOntologyLoader.class);
-        doReturn(ontologyModels).when(ontologyLoader).loadOntologies();
-
-        OntologyValidator ontologyValidator = new OntologyValidator(ontologyLoader);
+        OntologyValidator ontologyValidator = new OntologyValidator(() -> ontologyModels);
         UnitValidator unitValidator = new UnitValidator(archiveUnitProfileLoader, schemaValidatorLoader);
 
         // When
@@ -2388,7 +2367,7 @@ public class DbRequestTest {
             new MongoDbMetadataRepository<ObjectGroup>(() -> MetadataCollections.OBJECTGROUP.getCollection()),
             fieldHistoryManager);
         UpdatedDocument updatedDocument =
-            dbRequest.execRuleRequest(uuid, ruleActions, ruleDurationByRuleId, ontologyValidator, unitValidator);
+            dbRequest.execRuleRequest(uuid, ruleActions, ruleDurationByRuleId, ontologyValidator, unitValidator, Collections.emptyList());
 
         // Then
         final Unit expectedUnit = new Unit(
@@ -2457,10 +2436,7 @@ public class DbRequestTest {
 
         CachedSchemaValidatorLoader schemaValidatorLoader = new CachedSchemaValidatorLoader(100, 300);
 
-        CachedOntologyLoader ontologyLoader = mock(CachedOntologyLoader.class);
-        doReturn(ontologyModels).when(ontologyLoader).loadOntologies();
-
-        OntologyValidator ontologyValidator = new OntologyValidator(ontologyLoader);
+        OntologyValidator ontologyValidator = new OntologyValidator(() -> ontologyModels);
         UnitValidator unitValidator = new UnitValidator(archiveUnitProfileLoader, schemaValidatorLoader);
 
         // When
@@ -2469,7 +2445,7 @@ public class DbRequestTest {
             new MongoDbMetadataRepository<ObjectGroup>(() -> MetadataCollections.OBJECTGROUP.getCollection()),
             fieldHistoryManager);
         assertThatThrownBy(
-            () -> dbRequest.execRuleRequest(uuid, ruleActions, ruleDurationByRuleId, ontologyValidator, unitValidator))
+            () -> dbRequest.execRuleRequest(uuid, ruleActions, ruleDurationByRuleId, ontologyValidator, unitValidator, Collections.emptyList()))
             .isInstanceOf(MetadataValidationException.class);
 
         // Then
@@ -2527,10 +2503,7 @@ public class DbRequestTest {
 
         CachedSchemaValidatorLoader schemaValidatorLoader = new CachedSchemaValidatorLoader(100, 300);
 
-        CachedOntologyLoader ontologyLoader = mock(CachedOntologyLoader.class);
-        doReturn(ontologyModels).when(ontologyLoader).loadOntologies();
-
-        OntologyValidator ontologyValidator = new OntologyValidator(ontologyLoader);
+        OntologyValidator ontologyValidator = new OntologyValidator(() -> ontologyModels);
         UnitValidator unitValidator = new UnitValidator(archiveUnitProfileLoader, schemaValidatorLoader);
 
         // When
@@ -2539,7 +2512,7 @@ public class DbRequestTest {
             new MongoDbMetadataRepository<ObjectGroup>(() -> MetadataCollections.OBJECTGROUP.getCollection()),
             fieldHistoryManager);
         assertThatThrownBy(
-            () -> dbRequest.execRuleRequest(uuid, ruleActions, emptyMap(), ontologyValidator, unitValidator))
+            () -> dbRequest.execRuleRequest(uuid, ruleActions, emptyMap(), ontologyValidator, unitValidator, Collections.emptyList()))
             .isInstanceOf(MetadataValidationException.class);
 
         // Then
@@ -2586,16 +2559,13 @@ public class DbRequestTest {
 
         CachedSchemaValidatorLoader schemaValidatorLoader = new CachedSchemaValidatorLoader(100, 300);
 
-        CachedOntologyLoader ontologyLoader = mock(CachedOntologyLoader.class);
-        doReturn(ontologyModels).when(ontologyLoader).loadOntologies();
-
-        OntologyValidator ontologyValidator = new OntologyValidator(ontologyLoader);
+        OntologyValidator ontologyValidator = new OntologyValidator(() -> ontologyModels);
         UnitValidator unitValidator = new UnitValidator(archiveUnitProfileLoader, schemaValidatorLoader);
 
         // When
         final DbRequest dbRequest = new DbRequest();
         assertThatThrownBy(
-            () -> dbRequest.execRuleRequest(uuid, ruleActions, emptyMap(), ontologyValidator, unitValidator))
+            () -> dbRequest.execRuleRequest(uuid, ruleActions, emptyMap(), ontologyValidator, unitValidator, Collections.emptyList()))
             .isInstanceOf(MetadataValidationException.class);
 
         // Then
@@ -2664,7 +2634,7 @@ public class DbRequestTest {
 
         // When
         UpdatedDocument updatedDocument = dbRequest.execRuleRequest(uuid, ruleActions, ruleDurationByRuleId,
-            ontologyValidator, mock(UnitValidator.class));
+            ontologyValidator, mock(UnitValidator.class), Collections.emptyList());
 
         // Then
         assertThat(updatedDocument.getAfterUpdate().get("_history").get(0).get("data").get("BatmanHistory"))

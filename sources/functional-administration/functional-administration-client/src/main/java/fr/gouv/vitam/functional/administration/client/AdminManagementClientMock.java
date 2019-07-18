@@ -76,6 +76,13 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.List;
 
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
+import javax.ws.rs.core.Response.Status;
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.List;
+
 
 /**
  * Mock client implementation for AdminManagement
@@ -525,7 +532,7 @@ public class AdminManagementClientMock extends AbstractMockClient implements Adm
 
     @Override
     public RequestResponse<OntologyModel> findOntologies(JsonNode query)
-        throws InvalidParseOperationException, AdminManagementClientServerException {
+        throws InvalidParseOperationException {
         LOGGER.debug("find Ontologies");
         return ClientMockResultHelper.getOntologies(Status.OK.getStatusCode());
     }

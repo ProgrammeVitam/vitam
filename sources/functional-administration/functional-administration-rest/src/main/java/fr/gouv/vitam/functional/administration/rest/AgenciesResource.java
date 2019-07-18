@@ -18,6 +18,31 @@
  */
 package fr.gouv.vitam.functional.administration.rest;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.google.common.annotations.VisibleForTesting;
+import fr.gouv.vitam.common.GlobalDataRest;
+import fr.gouv.vitam.common.ParametersChecker;
+import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
+import fr.gouv.vitam.common.database.collections.CachedOntologyLoader;
+import fr.gouv.vitam.common.database.server.DbRequestResult;
+import fr.gouv.vitam.common.error.VitamError;
+import fr.gouv.vitam.common.exception.InvalidParseOperationException;
+import fr.gouv.vitam.common.exception.VitamException;
+import fr.gouv.vitam.common.logging.VitamLogger;
+import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.common.model.RequestResponse;
+import fr.gouv.vitam.common.model.RequestResponseOK;
+import fr.gouv.vitam.common.model.administration.AgenciesModel;
+import fr.gouv.vitam.common.security.SanityChecker;
+import fr.gouv.vitam.common.stream.VitamAsyncInputStreamResponse;
+import fr.gouv.vitam.functional.administration.agencies.api.AgenciesService;
+import fr.gouv.vitam.functional.administration.common.Agencies;
+import fr.gouv.vitam.functional.administration.common.ErrorReportAgencies;
+import fr.gouv.vitam.functional.administration.common.FunctionalBackupService;
+import fr.gouv.vitam.functional.administration.common.counter.VitamCounterService;
+import fr.gouv.vitam.functional.administration.common.exception.ReferentialException;
+import fr.gouv.vitam.functional.administration.common.server.MongoDbAccessAdminImpl;
+
 import javax.ws.rs.ApplicationPath;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;
@@ -26,7 +51,6 @@ import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
-
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
@@ -38,31 +62,6 @@ import java.io.InputStream;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
-import com.fasterxml.jackson.databind.JsonNode;
-import com.google.common.annotations.VisibleForTesting;
-import fr.gouv.vitam.common.GlobalDataRest;
-import fr.gouv.vitam.common.ParametersChecker;
-import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
-import fr.gouv.vitam.common.database.server.DbRequestResult;
-import fr.gouv.vitam.common.error.VitamError;
-import fr.gouv.vitam.common.exception.InvalidGuidOperationException;
-import fr.gouv.vitam.common.exception.InvalidParseOperationException;
-import fr.gouv.vitam.common.exception.VitamException;
-import fr.gouv.vitam.common.logging.VitamLogger;
-import fr.gouv.vitam.common.logging.VitamLoggerFactory;
-import fr.gouv.vitam.common.model.RequestResponse;
-import fr.gouv.vitam.common.model.RequestResponseOK;
-import fr.gouv.vitam.common.model.administration.AgenciesModel;
-import fr.gouv.vitam.common.security.SanityChecker;
-import fr.gouv.vitam.common.stream.VitamAsyncInputStreamResponse;
-import fr.gouv.vitam.functional.administration.common.Agencies;
-import fr.gouv.vitam.functional.administration.common.ErrorReportAgencies;
-import fr.gouv.vitam.functional.administration.common.FunctionalBackupService;
-import fr.gouv.vitam.functional.administration.common.exception.ReferentialException;
-import fr.gouv.vitam.functional.administration.common.server.MongoDbAccessAdminImpl;
-import fr.gouv.vitam.functional.administration.agencies.api.AgenciesService;
-import fr.gouv.vitam.functional.administration.common.counter.VitamCounterService;
 
 
 
@@ -87,30 +86,26 @@ public class AgenciesResource {
 
     private final MongoDbAccessAdminImpl mongoAccess;
     private final FunctionalBackupService functionalBackupService;
+    private final CachedOntologyLoader agenciesOntologyLoader;
     private VitamCounterService vitamCounterService;
-    /**
-     * @param mongoAccess
-     * @param vitamCounterService
-     */
+
     public AgenciesResource(MongoDbAccessAdminImpl mongoAccess,
-        VitamCounterService vitamCounterService) {
+        VitamCounterService vitamCounterService, CachedOntologyLoader agenciesOntologyLoader) {
         this.mongoAccess = mongoAccess;
         this.vitamCounterService = vitamCounterService;
         this.functionalBackupService = new FunctionalBackupService(vitamCounterService);
+        this.agenciesOntologyLoader = agenciesOntologyLoader;
         LOGGER.debug("init Admin Management Resource server");
     }
 
-    /**
-     * @param mongoAccess
-     * @param vitamCounterService
-     */
     @VisibleForTesting
     public AgenciesResource(MongoDbAccessAdminImpl mongoAccess,
         VitamCounterService vitamCounterService,
-        FunctionalBackupService functionalBackupService) {
+        FunctionalBackupService functionalBackupService, CachedOntologyLoader agenciesOntologyLoader) {
         this.mongoAccess = mongoAccess;
         this.vitamCounterService = vitamCounterService;
         this.functionalBackupService = functionalBackupService;
+        this.agenciesOntologyLoader = agenciesOntologyLoader;
         LOGGER.debug("init Admin Management Resource server");
     }
 
@@ -122,7 +117,7 @@ public class AgenciesResource {
         ParametersChecker.checkParameter(AGENCIES_FILES_IS_MANDATORY_PATAMETER, inputStream);
 
         try (AgenciesService agencies = new AgenciesService(mongoAccess, vitamCounterService,
-            functionalBackupService)) {
+            functionalBackupService, this.agenciesOntologyLoader)) {
 
             String filename = headers.getHeaderString(GlobalDataRest.X_FILENAME);
 
@@ -175,7 +170,7 @@ public class AgenciesResource {
     @Produces(MediaType.APPLICATION_JSON)
     public Response getAgencies(JsonNode queryDsl) {
         try (AgenciesService agencyService = new AgenciesService(mongoAccess, vitamCounterService,
-            functionalBackupService)) {
+            functionalBackupService, this.agenciesOntologyLoader)) {
             SanityChecker.checkJsonAll(queryDsl);
             final DbRequestResult agenciesModelList = agencyService.findAgencies(queryDsl);
             RequestResponseOK reponse =
@@ -215,7 +210,7 @@ public class AgenciesResource {
     private Response downloadErrorReport(InputStream document) {
         Map<Integer, List<ErrorReportAgencies>> errors = new HashMap<>();
         try (AgenciesService agenciesService = new AgenciesService(mongoAccess, vitamCounterService,
-            functionalBackupService)) {
+            functionalBackupService, this.agenciesOntologyLoader)) {
             agenciesService.checkFile(document);
             InputStream errorReportInputStream =
                 agenciesService.generateErrorReport();
@@ -239,7 +234,7 @@ public class AgenciesResource {
         Map<Integer, List<ErrorReportAgencies>> errors) {
         InputStream errorReportInputStream = null;
         try (AgenciesService agenciesService = new AgenciesService(mongoAccess, vitamCounterService,
-            functionalBackupService)) {
+            functionalBackupService, this.agenciesOntologyLoader)) {
             errorReportInputStream =
                 agenciesService.generateErrorReport();
             Map<String, String> headers = new HashMap<>();

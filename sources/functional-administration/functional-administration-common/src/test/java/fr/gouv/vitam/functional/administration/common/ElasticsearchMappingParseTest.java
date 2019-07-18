@@ -26,21 +26,24 @@
  *******************************************************************************/
 package fr.gouv.vitam.functional.administration.common;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Java6Assertions.fail;
-
-import java.util.Iterator;
-import java.util.Map;
-import java.util.TreeMap;
-
 import com.fasterxml.jackson.databind.JsonNode;
-import fr.gouv.vitam.common.database.parser.query.ParserTokens;
+import fr.gouv.vitam.common.database.collections.DynamicParserTokens;
+import fr.gouv.vitam.common.database.collections.VitamDescriptionLoader;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.functional.administration.common.server.ElasticsearchAccessFunctionalAdmin;
+import fr.gouv.vitam.functional.administration.common.server.FunctionalAdminCollections;
 import org.junit.Test;
+
+import java.util.Collections;
+import java.util.Iterator;
+import java.util.Map;
+import java.util.TreeMap;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Java6Assertions.fail;
 
 
 public class ElasticsearchMappingParseTest {
@@ -49,55 +52,60 @@ public class ElasticsearchMappingParseTest {
 
     @Test
     public void testAccessContractElasticsearchMapping() throws Exception {
-        parseAndValidateMappingFile(ElasticsearchAccessFunctionalAdmin.MAPPING_ACCESSCONTRACT_FILE);
+        parseAndValidateMappingFile(ElasticsearchAccessFunctionalAdmin.MAPPING_ACCESSCONTRACT_FILE, FunctionalAdminCollections.ACCESS_CONTRACT);
     }
 
     @Test
     public void testAgenciesElasticsearchMapping() throws Exception {
-        parseAndValidateMappingFile(ElasticsearchAccessFunctionalAdmin.MAPPING_AGENCIES_FILE);
+        parseAndValidateMappingFile(ElasticsearchAccessFunctionalAdmin.MAPPING_AGENCIES_FILE, FunctionalAdminCollections.AGENCIES);
     }
 
     @Test
     public void testContextElasticsearchMapping() throws Exception {
-        parseAndValidateMappingFile(ElasticsearchAccessFunctionalAdmin.MAPPING_CONTEXT_FILE);
+        parseAndValidateMappingFile(ElasticsearchAccessFunctionalAdmin.MAPPING_CONTEXT_FILE, FunctionalAdminCollections.CONTEXT);
     }
 
     @Test
     public void testFormatElasticsearchMapping() throws Exception {
-        parseAndValidateMappingFile(ElasticsearchAccessFunctionalAdmin.MAPPING_FORMAT_FILE);
+        parseAndValidateMappingFile(ElasticsearchAccessFunctionalAdmin.MAPPING_FORMAT_FILE, FunctionalAdminCollections.FORMATS);
     }
 
     @Test
     public void testIngestContractElasticsearchMapping() throws Exception {
-        parseAndValidateMappingFile(ElasticsearchAccessFunctionalAdmin.MAPPING_INGESTCONTRACT_FILE);
+        parseAndValidateMappingFile(ElasticsearchAccessFunctionalAdmin.MAPPING_INGESTCONTRACT_FILE, FunctionalAdminCollections.INGEST_CONTRACT);
     }
 
     @Test
     public void testProfilesElasticsearchMapping() throws Exception {
-        parseAndValidateMappingFile(ElasticsearchAccessFunctionalAdmin.MAPPING_PROFILE_FILE);
+        parseAndValidateMappingFile(ElasticsearchAccessFunctionalAdmin.MAPPING_PROFILE_FILE, FunctionalAdminCollections.PROFILE);
     }
 
     @Test
     public void testRulesElasticsearchMapping() throws Exception {
-        parseAndValidateMappingFile(ElasticsearchAccessFunctionalAdmin.MAPPING_RULE_FILE);
+        parseAndValidateMappingFile(ElasticsearchAccessFunctionalAdmin.MAPPING_RULE_FILE, FunctionalAdminCollections.RULES);
     }
 
     @Test
     public void testSecurityProfilesElasticsearchMapping() throws Exception {
-        parseAndValidateMappingFile(ElasticsearchAccessFunctionalAdmin.MAPPING_SECURITY_PROFILE_FILE);
+        parseAndValidateMappingFile(ElasticsearchAccessFunctionalAdmin.MAPPING_SECURITY_PROFILE_FILE, FunctionalAdminCollections.SECURITY_PROFILE);
     }
 
     @Test
     public void testAccessionRegisterSummaryElasticsearchMapping() throws Exception {
-        parseAndValidateMappingFile(ElasticsearchAccessFunctionalAdmin.MAPPING_ACCESSION_REGISTER_SUMMARY_FILE);
+        parseAndValidateMappingFile(ElasticsearchAccessFunctionalAdmin.MAPPING_ACCESSION_REGISTER_SUMMARY_FILE, FunctionalAdminCollections.ACCESSION_REGISTER_SUMMARY);
     }
 
     @Test
     public void testAccessionRegisterDetailElasticsearchMapping() throws Exception {
-        parseAndValidateMappingFile(ElasticsearchAccessFunctionalAdmin.MAPPING_ACCESSION_REGISTER_DETAIL_FILE);
+        parseAndValidateMappingFile(ElasticsearchAccessFunctionalAdmin.MAPPING_ACCESSION_REGISTER_DETAIL_FILE, FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL);
     }
 
-    private void parseAndValidateMappingFile(String resourceFileName) throws InvalidParseOperationException {
+    private void parseAndValidateMappingFile(String resourceFileName,
+        FunctionalAdminCollections collections) throws InvalidParseOperationException {
+
+        VitamDescriptionLoader descriptionLoader = collections.getVitamCollection().getDescriptionLoader();
+
+        DynamicParserTokens parserTokens = new DynamicParserTokens(descriptionLoader.getDescriptionTypeByName(), Collections.emptyList());
 
         Map<String, String> result = parseMapping(resourceFileName);
 
@@ -106,7 +114,7 @@ public class ElasticsearchMappingParseTest {
             String fieldName = entry.getKey();
             String fieldType = entry.getValue();
 
-            boolean isNotAnalyzed = ParserTokens.PROJECTIONARGS.isNotAnalyzed(fieldName);
+            boolean isNotAnalyzed = parserTokens.isNotAnalyzed(fieldName);
             switch (fieldType) {
                 case "text":
                     assertThat(isNotAnalyzed)
@@ -124,7 +132,7 @@ public class ElasticsearchMappingParseTest {
                         .isTrue();
                     break;
                 case "object":
-                    assertThat(ParserTokens.PROJECTIONARGS.isNotAnalyzed(fieldName + ".Any")).isFalse();
+                    assertThat(parserTokens.isNotAnalyzed(fieldName + ".Any")).isFalse();
                     break;
                 default:
                     fail("Unexpected type " + fieldType);

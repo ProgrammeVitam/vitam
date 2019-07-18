@@ -37,6 +37,7 @@ import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.alert.AlertService;
 import fr.gouv.vitam.common.alert.AlertServiceImpl;
+import fr.gouv.vitam.common.client.OntologyLoader;
 import fr.gouv.vitam.common.database.builder.query.action.SetAction;
 import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken;
 import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
@@ -153,6 +154,7 @@ import java.util.stream.Collectors;
 
 import static fr.gouv.vitam.common.database.builder.query.QueryHelper.eq;
 import static fr.gouv.vitam.functional.administration.common.ReportConstants.ADDITIONAL_INFORMATION;
+import static fr.gouv.vitam.functional.administration.common.server.FunctionalAdminCollections.RULES;
 
 
 /**
@@ -220,10 +222,11 @@ public class RulesManagerFileImpl implements ReferentialFile<FileRules> {
     private final FunctionalBackupService backupService;
     // event in logbook
     private final String UPDATE_RULES_ARCHIVE_UNITS = Contexts.UPDATE_RULES_ARCHIVE_UNITS.name();
+    private final OntologyLoader ontologyLoader;
 
 
     public RulesManagerFileImpl(MongoDbAccessAdminImpl dbConfiguration,
-        VitamCounterService vitamCounterService) {
+        VitamCounterService vitamCounterService, OntologyLoader ontologyLoader) {
         backupService = new FunctionalBackupService(vitamCounterService);
         this.mongoAccess = dbConfiguration;
         this.vitamCounterService = vitamCounterService;
@@ -231,6 +234,7 @@ public class RulesManagerFileImpl implements ReferentialFile<FileRules> {
         metaDataClientFactory = MetaDataClientFactory.getInstance();
         workspaceClientFactory = WorkspaceClientFactory.getInstance();
         processingManagementClientFactory = ProcessingManagementClientFactory.getInstance();
+        this.ontologyLoader = ontologyLoader;
     }
 
     @VisibleForTesting
@@ -239,7 +243,8 @@ public class RulesManagerFileImpl implements ReferentialFile<FileRules> {
         FunctionalBackupService backupService, LogbookOperationsClientFactory logbookOperationsClientFactory,
         MetaDataClientFactory metaDataClientFactory,
         ProcessingManagementClientFactory processingManagementClientFactory,
-        WorkspaceClientFactory workspaceClientFactory) {
+        WorkspaceClientFactory workspaceClientFactory,
+        OntologyLoader ontologyLoader) {
         this.mongoAccess = dbConfiguration;
         this.vitamCounterService = vitamCounterService;
         this.logbookOperationsClientFactory = logbookOperationsClientFactory;
@@ -247,7 +252,7 @@ public class RulesManagerFileImpl implements ReferentialFile<FileRules> {
         this.processingManagementClientFactory = processingManagementClientFactory;
         this.workspaceClientFactory = workspaceClientFactory;
         this.backupService = backupService;
-
+        this.ontologyLoader = ontologyLoader;
     }
 
     /**
@@ -408,7 +413,7 @@ public class RulesManagerFileImpl implements ReferentialFile<FileRules> {
             backupService.saveFile(fileInputStream, eip, STP_IMPORT_RULES_BACKUP_CSV,
                 DataCategory.RULES, (eip != null ? eip.getId() : "default") + CSV);
 
-            backupService.saveCollectionAndSequence(eip, STP_IMPORT_RULES_BACKUP, FunctionalAdminCollections.RULES,
+            backupService.saveCollectionAndSequence(eip, STP_IMPORT_RULES_BACKUP, RULES,
                 eip.toString());
 
             updateStpImportRulesLogbookOperation(eip, eip1, StatusCode.OK, filename);
@@ -473,7 +478,7 @@ public class RulesManagerFileImpl implements ReferentialFile<FileRules> {
             backupService.saveFile(fileInputStream, eip, STP_IMPORT_RULES_BACKUP_CSV,
                 DataCategory.RULES, (eip != null ? eip.getId() : "default") + CSV);
 
-            backupService.saveCollectionAndSequence(eip, STP_IMPORT_RULES_BACKUP, FunctionalAdminCollections.RULES,
+            backupService.saveCollectionAndSequence(eip, STP_IMPORT_RULES_BACKUP, RULES,
                 eip.toString());
 
             if (!usedUpdateRulesForUpdateUnit.isEmpty()) {
@@ -710,7 +715,7 @@ public class RulesManagerFileImpl implements ReferentialFile<FileRules> {
                 }
             }
             for (FileRulesModel fileRulesModel : fileRulesModelToDelete) {
-                deleteFileRules(fileRulesModel, FunctionalAdminCollections.RULES);
+                deleteFileRules(fileRulesModel);
             }
             updateCommitFileRulesLogbookOperationOkOrKo(COMMIT_RULES, StatusCode.OK, eipMaster,
                 fileRulesModelToUpdate, fileRulesModelToDelete, fileRulesModelToInsert);
@@ -730,7 +735,7 @@ public class RulesManagerFileImpl implements ReferentialFile<FileRules> {
         if (validatedRules.size() > 0) {
             Integer sequence = vitamCounterService
                 .getNextSequence(ParameterHelper.getTenantParameter(), SequenceType.RULES_SEQUENCE);
-            mongoAccess.insertDocuments(validatedRules, FunctionalAdminCollections.RULES, sequence);
+            mongoAccess.insertDocuments(validatedRules, RULES, sequence);
         }
 
     }
@@ -1220,19 +1225,18 @@ public class RulesManagerFileImpl implements ReferentialFile<FileRules> {
         updateFileRules.addActions(actions.toArray(new SetAction[actions.size()]));
         updateParser.parse(updateFileRules.getFinalUpdate());
         JsonNode queryDslForUpdate = updateParser.getRequest().getFinalUpdate();
-        mongoAccess.updateData(queryDslForUpdate, FunctionalAdminCollections.RULES, sequence);
+        mongoAccess.updateData(queryDslForUpdate, RULES, sequence);
     }
 
     /**
      * Delete fileRules by id
+     *  @param fileRulesModel fileRulesModel to delete
      *
-     * @param fileRulesModel fileRulesModel to delete
-     * @param collection the given FunctionalAdminCollections
      */
-    private void deleteFileRules(FileRulesModel fileRulesModel, FunctionalAdminCollections collection) {
+    private void deleteFileRules(FileRulesModel fileRulesModel) {
         final Delete delete = new Delete();
         DbRequestResult result = null;
-        DbRequestSingle dbRequest = new DbRequestSingle(collection.getVitamCollection());
+        DbRequestSingle dbRequest = new DbRequestSingle(RULES.getVitamCollection(), this.ontologyLoader);
         try {
             delete.setQuery(eq(FileRulesModel.TAG_RULE_ID, fileRulesModel.getRuleId()));
             result = dbRequest.execute(delete);
@@ -1463,13 +1467,13 @@ public class RulesManagerFileImpl implements ReferentialFile<FileRules> {
 
     @Override
     public FileRules findDocumentById(String id) {
-        return (FileRules) mongoAccess.getDocumentByUniqueId(id, FunctionalAdminCollections.RULES, FileRules.RULEID);
+        return (FileRules) mongoAccess.getDocumentByUniqueId(id, RULES, FileRules.RULEID);
     }
 
     @Override
     public RequestResponseOK<FileRules> findDocuments(JsonNode select) throws ReferentialException {
         try (DbRequestResult result =
-            mongoAccess.findDocuments(select, FunctionalAdminCollections.RULES)) {
+            mongoAccess.findDocuments(select, RULES)) {
             return result.getRequestResponseOK(select, FileRules.class);
         }
     }
@@ -1715,7 +1719,7 @@ public class RulesManagerFileImpl implements ReferentialFile<FileRules> {
      */
     public ArrayNode getRuleFromCollection(int tenant) throws InvalidParseOperationException {
         return backupService
-            .getCollectionInJson(backupService.getCurrentCollection(FunctionalAdminCollections.RULES, tenant));
+            .getCollectionInJson(backupService.getCurrentCollection(RULES, tenant));
     }
 
     /**

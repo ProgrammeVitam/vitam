@@ -1,0 +1,362 @@
+[
+  {
+    "path": "_id",
+    "type": "keyword",
+    "indexed": true,
+    "cardinality": "one"
+  },
+  {
+    "path": "events.evDetData.SecurisationVersion",
+    "type": "text",
+    "cardinality": "one",
+    "indexed": true
+  },
+  {
+    "path": "events.outMessg",
+    "type": "text",
+    "cardinality": "one",
+    "indexed": true
+  },
+  {
+    "path": "events.agIdExt.submissionAgency",
+    "type": "keyword",
+    "cardinality": "one",
+    "indexed": true
+  },
+  {
+    "path": "evId",
+    "type": "keyword",
+    "cardinality": "one",
+    "indexed": true
+  },
+  {
+    "path": "events.evTypeProc",
+    "type": "keyword",
+    "cardinality": "one",
+    "indexed": true
+  },
+  {
+    "path": "events.evDetData.FileName",
+    "type": "text",
+    "cardinality": "one",
+    "indexed": true
+  },
+  {
+    "path": "outDetail",
+    "type": "keyword",
+    "cardinality": "one",
+    "indexed": true
+  },
+  {
+    "path": "evType",
+    "type": "keyword",
+    "cardinality": "one",
+    "indexed": true
+  },
+  {
+    "path": "events.outDetail",
+    "type": "keyword",
+    "cardinality": "one",
+    "indexed": true
+  },
+  {
+    "path": "_score",
+    "type": "object",
+    "cardinality": "one",
+    "indexed": true
+  },
+  {
+    "path": "evTypeProc",
+    "type": "keyword",
+    "cardinality": "one",
+    "indexed": true
+  },
+  {
+    "path": "evIdProc",
+    "type": "keyword",
+    "cardinality": "one",
+    "indexed": true
+  },
+  {
+    "path": "events.agId",
+    "type": "text",
+    "cardinality": "one",
+    "indexed": true
+  },
+  {
+    "path": "events.evDetData.ArchivalAgreement",
+    "type": "keyword",
+    "cardinality": "one",
+    "indexed": true
+  },
+  {
+    "path": "events.agIdExt.ArchivalAgency",
+    "type": "keyword",
+    "cardinality": "one",
+    "indexed": true
+  },
+  {
+    "path": "events.evDetData.TimeStampToken",
+    "type": "keyword",
+    "cardinality": "one",
+    "indexed": true
+  },
+  {
+    "path": "events.agIdExt.originatingAgency",
+    "type": "keyword",
+    "cardinality": "one",
+    "indexed": true
+  },
+  {
+    "path": "events",
+    "type": "object",
+    "cardinality": "many",
+    "indexed": true
+  },
+  {
+    "path": "events.obId",
+    "type": "keyword",
+    "cardinality": "one",
+    "indexed": true
+  },
+  {
+    "path": "events.evDetData.errors",
+    "type": "object",
+    "cardinality": "one",
+    "indexed": true
+  },
+  {
+    "path": "events.rightsStatementIdentifier.ArchivalAgreement",
+    "type": "text",
+    "cardinality": "one",
+    "indexed": true
+  },
+  {
+    "path": "events.evDetData.validateUnitReport",
+    "type": "object",
+    "cardinality": "one",
+    "indexed": true
+  },
+  {
+    "path": "events.evDetData.validateUnitReport.schema",
+    "type": "object",
+    "cardinality": "one",
+    "indexed": true
+  },
+  {
+    "path": "events.evDetData.EndDate",
+    "type": "datetime",
+    "cardinality": "one",
+    "indexed": true
+  },
+  {
+    "path": "events.evDetData.MinusOneMonthLogbookTraceabilityDate",
+    "type": "datetime",
+    "cardinality": "one",
+    "indexed": true
+  },
+  {
+    "path": "events.rightsStatementIdentifier",
+    "type": "object",
+    "cardinality": "one",
+    "indexed": true
+  },
+  {
+    "path": "evIdReq",
+    "type": "keyword",
+    "cardinality": "one",
+    "indexed": true
+  },
+  {
+    "path": "events.evDetData.Hash",
+    "type": "keyword",
+    "cardinality": "one",
+    "indexed": true
+  },
+  {
+    "path": "events.outcome",
+    "type": "keyword",
+    "cardinality": "one",
+    "indexed": true
+  },
+  {
+    "path": "events.evDetData.Size",
+    "type": "signed_long",
+    "cardinality": "one",
+    "indexed": true
+  },
+  {
+    "path": "events.agIdExt",
+    "type": "object",
+    "cardinality": "one",
+    "indexed": true
+  },
+  {
+    "path": "events.evDetData.AgIfTrans",
+    "type": "keyword",
+    "cardinality": "one",
+    "indexed": true
+  },
+  {
+    "path": "events.evDetData.ServiceLevel",
+    "type": "keyword",
+    "cardinality": "one",
+    "indexed": true
+  },
+  {
+    "path": "events.evDetData.MaxEntriesReached",
+    "type": "bool",
+    "cardinality": "one",
+    "indexed": true
+  },
+  {
+    "path": "_lastPersistedDate",
+    "type": "datetime",
+    "cardinality": "one",
+    "indexed": true
+  },
+  {
+    "path": "events.evDetData.EvDateTimeReq",
+    "type": "datetime",
+    "cardinality": "one",
+    "indexed": true
+  },
+  {
+    "path": "events.evDetData.validateUnitReport.schema.loadingURI",
+    "type": "text",
+    "cardinality": "one",
+    "indexed": true
+  },
+  {
+    "path": "agId",
+    "type": "text",
+    "cardinality": "one",
+    "indexed": true
+  },
+  {
+    "path": "evDateTime",
+    "type": "datetime",
+    "cardinality": "one",
+    "indexed": true
+  },
+  {
+    "path": "events.agIdExt.TransferringAgency",
+    "type": "keyword",
+    "cardinality": "one",
+    "indexed": true
+  },
+  {
+    "path": "evParentId",
+    "type": "keyword",
+    "cardinality": "one",
+    "indexed": true
+  },
+  {
+    "path": "outcome",
+    "type": "keyword",
+    "cardinality": "one",
+    "indexed": true
+  },
+  {
+    "path": "events.evType",
+    "type": "keyword",
+    "cardinality": "one",
+    "indexed": true
+  },
+  {
+    "path": "LegalStatus",
+    "type": "keyword",
+    "cardinality": "one",
+    "indexed": true
+  },
+  {
+    "path": "events.evDetData.LogType",
+    "type": "keyword",
+    "cardinality": "one",
+    "indexed": true
+  },
+  {
+    "path": "_tenant",
+    "type": "signed_long",
+    "cardinality": "one",
+    "indexed": true
+  },
+  {
+    "path": "events.evDetData",
+    "type": "object",
+    "cardinality": "one",
+    "indexed": true
+  },
+  {
+    "path": "events.evDetData.NumberOfElements",
+    "type": "signed_long",
+    "cardinality": "one",
+    "indexed": true
+  },
+  {
+    "path": "events.evDetData.StartDate",
+    "type": "datetime",
+    "cardinality": "one",
+    "indexed": true
+  },
+  {
+    "path": "events.evDetData.PreviousLogbookTraceabilityDate",
+    "type": "datetime",
+    "cardinality": "one",
+    "indexed": true
+  },
+  {
+    "path": "_v",
+    "type": "signed_long",
+    "cardinality": "one",
+    "indexed": true
+  },
+  {
+    "path": "events.evDetData.evDetDataType",
+    "type": "keyword",
+    "cardinality": "one",
+    "indexed": true
+  },
+  {
+    "path": "events.evDetData.validateUnitReport.schema.pointer",
+    "type": "text",
+    "cardinality": "one",
+    "indexed": true
+  },
+  {
+    "path": "outMessg",
+    "type": "text",
+    "cardinality": "one",
+    "indexed": true
+  },
+  {
+    "path": "events.evDateTime",
+    "type": "datetime",
+    "cardinality": "one",
+    "indexed": true
+  },
+  {
+    "path": "obId",
+    "type": "keyword",
+    "cardinality": "one",
+    "indexed": true
+  },
+  {
+    "path": "events.evDetData.DigestAlgorithm",
+    "type": "text",
+    "cardinality": "one",
+    "indexed": true
+  },
+  {
+    "path": "events.evDetData.EvDetailReq",
+    "type": "keyword",
+    "cardinality": "one",
+    "indexed": true
+  },
+  {
+    "path": "events.evDetData.MinusOneYearLogbookTraceabilityDate",
+    "type": "datetime",
+    "cardinality": "one",
+    "indexed": true
+  }
+]

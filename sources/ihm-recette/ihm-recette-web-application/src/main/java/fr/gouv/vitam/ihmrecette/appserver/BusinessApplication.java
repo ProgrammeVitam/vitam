@@ -26,35 +26,20 @@
  */
 package fr.gouv.vitam.ihmrecette.appserver;
 
-import static fr.gouv.vitam.common.serverv2.application.ApplicationParameter.CONFIGURATION_FILE_APPLICATION;
-import static java.lang.String.format;
-
-import javax.servlet.ServletConfig;
-import javax.ws.rs.core.Application;
-import javax.ws.rs.core.Context;
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.io.InputStream;
-import java.net.InetAddress;
-import java.net.UnknownHostException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-
 import com.google.common.base.Throwables;
 import com.mongodb.MongoClient;
 import com.mongodb.MongoClientOptions;
 import com.mongodb.client.MongoDatabase;
 import fr.gouv.vitam.common.PropertiesUtils;
+import fr.gouv.vitam.common.VitamConfiguration;
+import fr.gouv.vitam.common.database.collections.CachedOntologyLoader;
 import fr.gouv.vitam.common.database.collections.VitamCollection;
 import fr.gouv.vitam.common.database.server.elasticsearch.ElasticsearchAccess;
 import fr.gouv.vitam.common.database.server.elasticsearch.ElasticsearchNode;
 import fr.gouv.vitam.common.database.server.mongodb.MongoDbAccess;
 import fr.gouv.vitam.common.exception.VitamException;
 import fr.gouv.vitam.common.serverv2.application.CommonBusinessApplication;
+import fr.gouv.vitam.functional.administration.common.client.FunctionAdministrationOntologyLoader;
 import fr.gouv.vitam.ihmdemo.common.pagination.PaginationHelper;
 import fr.gouv.vitam.ihmdemo.core.DslQueryHelper;
 import fr.gouv.vitam.ihmdemo.core.UserInterfaceTransactionManager;
@@ -75,6 +60,24 @@ import org.elasticsearch.client.transport.TransportClient;
 import org.elasticsearch.common.settings.Settings;
 import org.elasticsearch.common.transport.TransportAddress;
 import org.elasticsearch.transport.client.PreBuiltTransportClient;
+
+import javax.servlet.ServletConfig;
+import javax.ws.rs.core.Application;
+import javax.ws.rs.core.Context;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.InputStream;
+import java.net.InetAddress;
+import java.net.UnknownHostException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+
+import static fr.gouv.vitam.common.serverv2.application.ApplicationParameter.CONFIGURATION_FILE_APPLICATION;
+import static java.lang.String.format;
 
 /**
  * Business Application for ihm recette declaring resources and filters
@@ -103,7 +106,13 @@ public class BusinessApplication extends Application {
             singletons = new HashSet<>();
             singletons.addAll(commonBusinessApplication.getResources());
 
-            final WebApplicationResourceDelete deleteResource = new WebApplicationResourceDelete(configuration);
+            CachedOntologyLoader ontologyLoader = new CachedOntologyLoader(
+                VitamConfiguration.getOntologyCacheMaxEntries(),
+                VitamConfiguration.getOntologyCacheTimeoutInSeconds(),
+                new FunctionAdministrationOntologyLoader()
+            );
+
+            final WebApplicationResourceDelete deleteResource = new WebApplicationResourceDelete(configuration, ontologyLoader);
             final WebApplicationResource resource =
                 new WebApplicationResource(configuration, UserInterfaceTransactionManager.getInstance(),
                     PaginationHelper.getInstance(), DslQueryHelper.getInstance());
@@ -150,7 +159,6 @@ public class BusinessApplication extends Application {
                     PropertiesUtils.readYaml(storageYamlIS, StorageConfiguration.class);
                 storagePopulateService = new StoragePopulateImpl(storageConfiguration);
             }
-
 
             MetadataRepository metadataRepository = new MetadataRepository(metadataDb, esClient, storagePopulateService);
             MasterdataRepository masterdataRepository = new MasterdataRepository(masterdataDb, esClient);

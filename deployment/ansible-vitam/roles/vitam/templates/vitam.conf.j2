@@ -37,3 +37,7 @@ classificationLevel :
 environmentName: {{ vitam_prefix_offer|default(vitam_site_name) }}
 
 acceptableRequestTime: {{ vitam_struct.vitam_component.acceptableRequestTime|default(10) }}
+
+# Ontology cache settings (max entries in cache & retention timeout in seconds)
+ontologyCacheMaxEntries: {{ vitam.ontologyCacheMaxEntries }}
+ontologyCacheTimeoutInSeconds: {{ vitam.ontologyCacheTimeoutInSeconds }}

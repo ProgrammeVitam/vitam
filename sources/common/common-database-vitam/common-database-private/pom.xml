@@ -20,11 +20,6 @@
 			<artifactId>common-database-public</artifactId>
 			<version>${project.version}</version>
 		</dependency>
-        <dependency>
-            <groupId>fr.gouv.vitam</groupId>
-            <artifactId>functional-administration-ontologies-client</artifactId>
-            <version>${project.version}</version>
-        </dependency>
 		<dependency>
 			<groupId>org.elasticsearch</groupId>
 			<artifactId>elasticsearch</artifactId>

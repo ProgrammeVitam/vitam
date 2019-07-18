@@ -26,21 +26,6 @@
  *******************************************************************************/
 package fr.gouv.vitam.logbook.common.server.database.collections;
 
-import static fr.gouv.vitam.common.database.builder.query.QueryHelper.exists;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
-
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-
 import com.fasterxml.jackson.databind.JsonNode;
 import com.google.common.collect.Lists;
 import com.mongodb.client.MongoCursor;
@@ -87,6 +72,22 @@ import org.junit.ClassRule;
 import org.junit.Rule;
 import org.junit.Test;
 
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
+
+import static fr.gouv.vitam.common.database.builder.query.QueryHelper.exists;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
+
 /**
  * MongoDbAccess Test
  */
@@ -96,7 +97,7 @@ public class LogbookMongoDbAccessTest {
 
     @ClassRule
     public static MongoRule mongoRule =
-            new MongoRule(VitamCollection.getMongoClientOptions());
+        new MongoRule(VitamCollection.getMongoClientOptions());
 
     @ClassRule
     public static ElasticsearchRule elasticsearchRule = new ElasticsearchRule();
@@ -114,8 +115,8 @@ public class LogbookMongoDbAccessTest {
     public static void setUpBeforeClass() throws IOException, VitamException {
 
         LogbookCollections.beforeTestClass(mongoRule.getMongoDatabase(), PREFIX,
-                new LogbookElasticsearchAccess(ElasticsearchRule.VITAM_CLUSTER,
-                        Lists.newArrayList(new ElasticsearchNode("localhost", ElasticsearchRule.TCP_PORT))), TENANT_ID);
+            new LogbookElasticsearchAccess(ElasticsearchRule.VITAM_CLUSTER,
+                Lists.newArrayList(new ElasticsearchNode("localhost", ElasticsearchRule.TCP_PORT))), TENANT_ID);
 
         final List<MongoDbNode> nodes = new ArrayList<>();
         nodes.add(new MongoDbNode("localhost", mongoRule.getDataBasePort()));
@@ -123,12 +124,13 @@ public class LogbookMongoDbAccessTest {
         esNodes.add(new ElasticsearchNode("localhost", ElasticsearchRule.TCP_PORT));
 
         LogbookConfiguration logbookConfiguration =
-            new LogbookConfiguration(nodes, mongoRule.getMongoDatabase().getName(), ElasticsearchRule.VITAM_CLUSTER, esNodes);
+            new LogbookConfiguration(nodes, mongoRule.getMongoDatabase().getName(), ElasticsearchRule.VITAM_CLUSTER,
+                esNodes);
         VitamConfiguration.setTenants(tenantList);
 
         mongoDbAccess =
             LogbookMongoDbAccessFactory
-                .create(logbookConfiguration);
+                .create(logbookConfiguration, Collections::emptyList);
     }
 
     @AfterClass
@@ -202,7 +204,8 @@ public class LogbookMongoDbAccessTest {
 
         assertTrue(LogbookOperation.getIdName().equals(LogbookMongoDbName.eventIdentifierProcess));
         assertTrue(LogbookOperation.getIdParameterName().equals(LogbookParameterName.eventIdentifierProcess));
-        final LogbookLifeCycleObjectGroup lifeCycleObjectGroup = new LogbookLifeCycleObjectGroup(JSON.serialize(operation));
+        final LogbookLifeCycleObjectGroup lifeCycleObjectGroup =
+            new LogbookLifeCycleObjectGroup(JSON.serialize(operation));
         assertTrue(LogbookLifeCycle.getIdName().equals(LogbookMongoDbName.objectIdentifier));
         assertTrue(LogbookLifeCycle.getIdParameterName().equals(LogbookParameterName.objectIdentifier));
         final LogbookLifeCycleUnit lifeCycleUnit = new LogbookLifeCycleUnit(JSON.serialize(operation));
@@ -1256,7 +1259,7 @@ public class LogbookMongoDbAccessTest {
 
     /**
      * @param eventIdentifierProcess
-     * @param unit  true for unit parameters, false for object group parameters
+     * @param unit true for unit parameters, false for object group parameters
      * @return parameters
      */
     private LogbookLifeCycleParameters getLogbookLifecyleParameters(GUID eventIdentifierProcess, boolean unit) {

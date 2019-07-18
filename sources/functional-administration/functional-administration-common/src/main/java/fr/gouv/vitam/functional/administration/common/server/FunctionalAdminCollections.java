@@ -36,6 +36,7 @@ import com.mongodb.client.model.Updates;
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.database.collections.VitamCollection;
 import fr.gouv.vitam.common.database.collections.VitamCollectionHelper;
+import fr.gouv.vitam.common.database.collections.VitamDescriptionLoader;
 import fr.gouv.vitam.common.database.parser.request.adapter.SingleVarNameAdapter;
 import fr.gouv.vitam.common.database.parser.request.adapter.VarNameAdapter;
 import fr.gouv.vitam.functional.administration.common.AccessContract;
@@ -137,6 +138,7 @@ public enum FunctionalAdminCollections {
      */
     ONTOLOGY(Ontology.class, false, false);
 
+    private final VitamDescriptionLoader vitamDescriptionLoader;
     private VitamCollection vitamCollection;
 
     @VisibleForTesting
@@ -227,7 +229,9 @@ public enum FunctionalAdminCollections {
     FunctionalAdminCollections(final Class<?> clasz, boolean multiTenant, boolean usingScore) {
         this.multitenant = multiTenant;
         this.usingScore = usingScore;
-        vitamCollection = VitamCollectionHelper.getCollection(clasz, multiTenant, usingScore, "");
+        vitamDescriptionLoader = new VitamDescriptionLoader(clasz.getSimpleName());
+        vitamCollection = VitamCollectionHelper.getCollection(clasz, multiTenant, usingScore, "", vitamDescriptionLoader);
+
     }
 
 
@@ -368,4 +372,7 @@ public enum FunctionalAdminCollections {
         return false;
     }
 
+    public VitamDescriptionLoader getVitamDescriptionLoader() {
+        return vitamDescriptionLoader;
+    }
 }

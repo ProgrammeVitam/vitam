@@ -26,19 +26,19 @@
  *******************************************************************************/
 package fr.gouv.vitam.common.database.translators.elasticsearch;
 
-import java.util.List;
-import java.util.Set;
-
-import fr.gouv.vitam.common.database.parser.request.adapter.VarNameAdapter;
-import org.elasticsearch.index.query.QueryBuilder;
-
 import fr.gouv.vitam.common.database.builder.query.Query;
+import fr.gouv.vitam.common.database.collections.DynamicParserTokens;
 import fr.gouv.vitam.common.database.parser.request.AbstractParser;
+import fr.gouv.vitam.common.database.parser.request.adapter.VarNameAdapter;
 import fr.gouv.vitam.common.database.parser.request.multiple.SelectParserMultiple;
 import fr.gouv.vitam.common.database.parser.request.single.SelectParserSingle;
 import fr.gouv.vitam.common.database.translators.RequestToAbstract;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamException;
+import org.elasticsearch.index.query.QueryBuilder;
+
+import java.util.List;
+import java.util.Set;
 
 /**
  * Request To Elasticsearch
@@ -94,18 +94,19 @@ public abstract class RequestToElasticsearch extends RequestToAbstract {
      * find(query)
      *
      * @param nth int
+     * @param parserTokens DynamicParserTokens
      * @return the associated query for find (missing the source however, as initialRoots)
      * @throws IllegalAccessError if nth exceed the size of list
      * @throws InvalidParseOperationException if could not get command by query
      */
-    public QueryBuilder getNthQueries(final int nth, VarNameAdapter adapter) throws IllegalAccessError, InvalidParseOperationException {
+    public QueryBuilder getNthQueries(final int nth, VarNameAdapter adapter, DynamicParserTokens parserTokens) throws IllegalAccessError, InvalidParseOperationException {
         final List<Query> list = requestParser.getRequest().getQueries();
         if (nth >= list.size()) {
             throw new IllegalAccessError(
                 "This Query has not enough item to get the position: " + nth);
         }
         final Query query = list.get(nth);
-        return QueryToElasticsearch.getCommand(query, adapter);
+        return QueryToElasticsearch.getCommand(query, adapter, parserTokens);
     }
 }
 
