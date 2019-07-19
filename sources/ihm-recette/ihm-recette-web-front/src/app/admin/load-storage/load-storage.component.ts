@@ -122,16 +122,16 @@ export class LoadStorageComponent extends PageComponent {
 
   exportObject() {
 
-    if (!this.fileName || !this.category || !this.tenant|| !this.offerId) {
+    if (!this.fileName || !this.category || !this.tenant || !this.strategyId || !this.offerId) {
       this.error = true;
       return;
     }
 
     this.dataState = 'RUNNING';
 
-    this.savedData = new FileData(this.fileName, this.category,this.offerId);
+    this.savedData = new FileData(this.fileName, this.category, this.strategyId, this.offerId);
 
-    this.loadStorageService.export(this.fileName, this.category, this.offerId).subscribe(
+    this.loadStorageService.export(this.fileName, this.category, this.strategyId, this.offerId).subscribe(
       (response) => {
         this.exportID = response.ReadOrderId;
         this.displayAsyncGetMessage = true;
@@ -146,14 +146,14 @@ export class LoadStorageComponent extends PageComponent {
 
   checkExportStatus() {
 
-    if (!this.fileName) {
+    if (!this.fileName || !this.tenant || !this.strategyId ) {
       this.error = true;
       return;
     }
 
     this.dataState = 'RUNNING';
 
-    this.loadStorageService.checkExport(this.fileName).subscribe(
+    this.loadStorageService.checkExport(this.fileName, this.strategyId).subscribe(
       (response) => {
         this.displayExportStatusOK = true;
         this.dataState = 'OK';
