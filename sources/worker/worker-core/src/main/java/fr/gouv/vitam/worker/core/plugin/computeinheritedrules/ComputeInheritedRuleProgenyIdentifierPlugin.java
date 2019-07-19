@@ -29,8 +29,6 @@ package fr.gouv.vitam.worker.core.plugin.computeinheritedrules;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.node.ArrayNode;
-import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.annotations.VisibleForTesting;
 import fr.gouv.vitam.batch.report.client.BatchReportClient;
 import fr.gouv.vitam.batch.report.client.BatchReportClientFactory;
@@ -68,7 +66,9 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.Arrays;
 import java.util.List;
+import java.util.Objects;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
@@ -110,16 +110,15 @@ public class ComputeInheritedRuleProgenyIdentifierPlugin extends ActionHandler {
         try(InputStream inputStream = new FileInputStream((File) handler.getInput(0));
             JsonLineGenericIterator<JsonLineModel> lines = new JsonLineGenericIterator<>(inputStream, TYPE_REFERENCE);
             BatchReportClient batchReportClient = batchReportClientFactory.getClient()) {
-            final AtomicInteger counter = new AtomicInteger();
+            AtomicInteger counter = new AtomicInteger();
             lines.stream()
                 .collect(Collectors.groupingBy(line -> counter.getAndIncrement() / bulkSize))
                 .forEach((it, unitsToBatch) -> findAndSaveUnitsProgeny(unitsToBatch, processId)); // don't care about "it", but "it" is mandatory...
 
-            final String distribFileName = handler.getOutput(DISTRIBUTION_FILE_RANK).getPath();
-            final File distribFile = handler.getNewLocalFile(distribFileName);
+            String distribFileName = handler.getOutput(DISTRIBUTION_FILE_RANK).getPath();
+            File distribFile = handler.getNewLocalFile(distribFileName);
 
-            final ScrollSpliterator<JsonNode> scrollRequest = ScrollSpliteratorHelper
-                .createUnitsToInvalidateScrollSpliterator(batchReportClient, processId, bulkSize);
+            ScrollSpliterator<JsonNode> scrollRequest = ScrollSpliteratorHelper.createUnitsToInvalidateScrollSpliterator(batchReportClient, processId, bulkSize);
 
             createDistributionFile(scrollRequest, distribFile);
             batchReportClient.deleteUnitsAndProgeny(processId);
@@ -141,25 +140,28 @@ public class ComputeInheritedRuleProgenyIdentifierPlugin extends ActionHandler {
     private void findAndSaveUnitsProgeny(List<JsonLineModel> unitsToBatch, String operationId) {
         SelectMultiQuery select = new SelectMultiQuery();
 
-        ObjectNode projectionNode = JsonHandler.createObjectNode();
-        ObjectNode objectNode = JsonHandler.createObjectNode();
-        objectNode.put(VitamFieldsHelper.id(), 1);
-        projectionNode.set("$fields", objectNode);
-        select.addProjection(projectionNode);
+        JsonNode projection = JsonHandler.createObjectNode()
+            .set("$fields", JsonHandler.createObjectNode().put(VitamFieldsHelper.id(), 1));
+
+        select.addProjection(projection);
 
         String[] parentsIds = unitsToBatch.stream()
             .map(JsonLineModel::getId)
             .toArray(String[]::new);
 
         try (MetaDataClient metaDataClient = metaDataClientFactory.getClient();
-            BatchReportClient batchReportClient = batchReportClientFactory.getClient()) {
+             BatchReportClient batchReportClient = batchReportClientFactory.getClient()) {
+
             InQuery childrenUnitsQuery = QueryHelper.in(VitamFieldsHelper.allunitups(), parentsIds);
             select.setQuery(childrenUnitsQuery);
             JsonNode response = metaDataClient.selectUnits(select.getFinalSelect());
             List<JsonNode> results = RequestResponseOK.getFromJsonNode(response).getResults();
+
             List<String> unitsIds = results.stream()
-                .map(JsonNode::asText)
+                .map(result -> Objects.requireNonNull(result.get(VitamFieldsHelper.id()).asText()))
                 .collect(Collectors.toList());
+
+            unitsIds.addAll(Arrays.asList(parentsIds));
 
             batchReportClient.saveUnitsAndProgeny(operationId, unitsIds);
         } catch (InvalidCreateOperationException | MetaDataException | InvalidParseOperationException | VitamClientInternalException e) {

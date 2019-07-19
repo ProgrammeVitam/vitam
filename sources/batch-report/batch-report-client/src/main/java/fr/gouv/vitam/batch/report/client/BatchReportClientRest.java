@@ -59,7 +59,7 @@ public class BatchReportClientRest extends DefaultClient implements BatchReportC
         "elimination_action_unit/objectgroup_export/";
     private static final String EXPORT_ELIMINATION_ACTION_ACCESSION_REGISTER =
         "elimination_action/accession_register_export/";
-    private static final String UNITS_AND_PROGENY_INVALIDATION = "/computeInheritedRulesInvalidation/";
+    private static final String UNITS_AND_PROGENY_INVALIDATION = "/computedInheritedRulesInvalidation/";
     private static final String EMPTY_BODY_ERROR_MESSAGE = "Body should be filled";
 
     /**
