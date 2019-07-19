@@ -4,7 +4,7 @@
 	<parent>
 		<groupId>fr.gouv.vitam</groupId>
 		<artifactId>common</artifactId>
-		<version>2.1.9</version>
+		<version>2.1.10-SNAPSHOT</version>
 	</parent>
 	<artifactId>common-junit</artifactId>
 	<name>Common for Junit</name>
