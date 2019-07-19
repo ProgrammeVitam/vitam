@@ -90,10 +90,15 @@ public class ComputedInheritedRules {
     }
 
     private List<Boolean> parseNeedAuthorizationProperty(Object needAuthorizationProperty) {
-        if(needAuthorizationProperty instanceof Boolean) {
-            return Collections.singletonList((Boolean) needAuthorizationProperty);
-        } else if(needAuthorizationProperty instanceof Collection<?>) {
-            return (List<Boolean>) needAuthorizationProperty;
+
+        if (needAuthorizationProperty == null) {
+            return null;
+        }
+        if (needAuthorizationProperty instanceof Boolean) {
+            return this.needAuthorization = Collections.singletonList((Boolean) needAuthorizationProperty);
+
+        } else if (needAuthorizationProperty instanceof Collection<?>) {
+            return this.needAuthorization = (List<Boolean>) needAuthorizationProperty;
         }
 
         throw new VitamRuntimeException("needAuthorization Type invalide : " + needAuthorizationProperty.getClass());

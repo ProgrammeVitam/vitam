@@ -117,6 +117,7 @@ import org.apache.shiro.authc.UsernamePasswordToken;
 import org.apache.shiro.authz.annotation.RequiresPermissions;
 import org.apache.shiro.subject.Subject;
 import org.apache.shiro.util.ThreadContext;
+import org.owasp.esapi.Logger;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -527,7 +528,8 @@ public class WebApplicationResource extends ApplicationStatusResource {
         try {
             SanityChecker.checkJsonAll(query);
             result =
-                userInterfaceTransactionManager.selectOperation(query, userInterfaceTransactionManager.getVitamContext(request));
+                userInterfaceTransactionManager
+                    .selectOperation(query, userInterfaceTransactionManager.getVitamContext(request));
         } catch (final IllegalArgumentException | InvalidParseOperationException e) {
             LOGGER.error(e);
             return Response.status(Status.BAD_REQUEST).entity(e.getMessage()).build();
@@ -1406,7 +1408,8 @@ public class WebApplicationResource extends ApplicationStatusResource {
             userInterfaceTransactionManager.getObjectAsInputStream(asyncResponse, unitId, usageAndVersion[0],
                 Integer.parseInt(usageAndVersion[1]), filename,
                 new VitamContext(tenantId).setAccessContract(contractId)
-                    .setApplicationSessionId(userInterfaceTransactionManager.getAppSessionId()), this.allowedToVisualizeMediaTypes);
+                    .setApplicationSessionId(userInterfaceTransactionManager.getAppSessionId()),
+                this.allowedToVisualizeMediaTypes);
         } catch (final VitamClientException exc) {
             LOGGER.error(ACCESS_SERVER_EXCEPTION_MSG, exc);
             AsyncInputStreamHelper.asyncResponseResume(asyncResponse,
@@ -3514,7 +3517,8 @@ public class WebApplicationResource extends ApplicationStatusResource {
         ParametersChecker.checkParameter(SEARCH_CRITERIA_MANDATORY_MSG, criteria);
         try {
             ProbativeValueRequest queryDSL = JsonHandler.getFromString(criteria, ProbativeValueRequest.class);
-            RequestResponse response = userInterfaceTransactionManager.exportProbativeValue(queryDSL, userInterfaceTransactionManager.getVitamContext(request));
+            RequestResponse response = userInterfaceTransactionManager
+                .exportProbativeValue(queryDSL, userInterfaceTransactionManager.getVitamContext(request));
             return Response.status(Status.OK).entity(response).build();
         } catch (VitamClientException e) {
             LOGGER.error(ACCESS_SERVER_EXCEPTION_MSG, e);
@@ -3596,6 +3600,49 @@ public class WebApplicationResource extends ApplicationStatusResource {
         }
     }
 
+    /**
+     * Compute inherated rules from basket
+     *
+     * @param request HTTP request
+     * @param Query contains updated field
+     * @return archive unit details
+     */
+    @POST
+    @Path("/archiveunit/computedinheritedrules")
+    @Produces(MediaType.APPLICATION_JSON)
+    @Consumes(MediaType.APPLICATION_JSON)
+    @RequiresPermissions("archiveupdate:units:update")
+    public Response computedInheritedRules(@Context HttpServletRequest request, String Query) {
+        try {
+            SanityChecker.checkJsonAll(JsonHandler.toJsonNode(Query));
+        } catch (final IllegalArgumentException | InvalidParseOperationException e) {
+            LOGGER.error(e);
+            return Response.status(Status.BAD_REQUEST).entity(e.getMessage()).build();
+        }
+        try {
+            final JsonNode idFields = JsonHandler.getFromString(Query);
+            RequestResponse<JsonNode> metadataUpdateResponse = null;
+            RequestResponse<JsonNode> rulesUpdateResponse = null;
+
+            metadataUpdateResponse =
+                userInterfaceTransactionManager.computinheritedrules(idFields,
+                    userInterfaceTransactionManager.getVitamContext(request));
+
+            return metadataUpdateResponse == null ?
+                rulesUpdateResponse == null ?
+                    Response.status(Status.BAD_REQUEST).build() : rulesUpdateResponse.toResponse() :
+                metadataUpdateResponse.toResponse();
+        } catch (final InvalidParseOperationException e) {
+            LOGGER.error(BAD_REQUEST_EXCEPTION_MSG, e);
+            return Response.status(Status.BAD_REQUEST).build();
+        } catch (final VitamClientException e) {
+            LOGGER.error(ACCESS_SERVER_EXCEPTION_MSG, e);
+            return Response.status(Status.INTERNAL_SERVER_ERROR).build();
+        } catch (final Exception e) {
+            LOGGER.error(INTERNAL_SERVER_ERROR_MSG, e);
+            return Response.status(Status.INTERNAL_SERVER_ERROR).build();
+        }
+    }
 
     /**
      * Return authentication mode

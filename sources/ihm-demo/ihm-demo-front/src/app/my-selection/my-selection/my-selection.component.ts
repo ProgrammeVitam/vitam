@@ -46,7 +46,8 @@ export class MySelectionComponent extends PageComponent {
     {label: 'Mise à jour de masse', value: 'MASS_UPDATE'},
     {label: 'Préservation ', value: 'PRESERVATION'},
     {label: 'Relevé de valeur probante ', value: 'PROBATIVE_VALUE'},
-    {label: 'Vider le panier', value: 'DELETE'}
+    {label: 'Vider le panier', value: 'DELETE'},
+    {label: 'Calcul des échéances', value: 'COMPUTED_INHERITED_RULES'}
   ];
 
   frLocale = DateService.vitamFrLocale;
@@ -290,6 +291,15 @@ export class MySelectionComponent extends PageComponent {
           message = 'Erreur lors du lancement du process de preservation';
         }
         break;
+      case 'COMPUTED_INHERITED_RULES':
+          if (isOK) {
+            title = 'Calcul des échéances';
+            message = 'Le processus de Calcul des échéances  est en cours';
+          } else {
+            title = 'Erreur de lancement du process de Calcul des échéances';
+            message = 'Erreur lors du lancement du process de Calcul des échéances';
+          }
+          break;
       default:
         break;
     }
@@ -323,6 +333,25 @@ export class MySelectionComponent extends PageComponent {
       $filter: {},
       $projection: {}
     };
+  }
+
+  getQueryComputedInheritedRules(archiveUnits: ArchiveUnitSelection[]) {
+    const {ids, roots} = archiveUnits.reduce(
+      (finalIds: { ids: string[], roots: string[] }, currentArchiveUnit: ArchiveUnitSelection) => {
+        if (currentArchiveUnit.haveChildren) {
+          finalIds.roots.push(currentArchiveUnit.archiveUnitMetadata['#id']);
+        }
+        finalIds.ids.push(currentArchiveUnit.archiveUnitMetadata['#id']);
+        return finalIds;
+      }, {ids: [], roots: []});
+
+      return {
+        $query: [                   
+              {
+                $in: {'#id': ids}
+              }         
+        ]
+      };
   }
 
   actionOnBasket(isOnSelection: boolean = false) {
@@ -443,6 +472,16 @@ export class MySelectionComponent extends PageComponent {
           }
         );
         break;
+     case 'COMPUTED_INHERITED_RULES':
+        query = this.getQueryComputedInheritedRules(this.selectedArchiveUnits);
+        this.archiveUnitService.COMPUTEDINHERITEDRULES_SERVICE(query).subscribe(
+          () => {
+            this.displayActionEnded(this.selectedOption, true);
+          }, () => {
+            this.displayActionEnded(this.selectedOption, false);
+          }
+        );       
+        break;
       default:
         // TODO Display error ?
         console.log('No action selected');
@@ -453,6 +492,7 @@ export class MySelectionComponent extends PageComponent {
     switch (this.selectedOption) {
       case 'EXPORT':
       case 'AUDIT':
+      case 'COMPUTED_INHERITED_RULES':
       case 'DELETE':
         return;
       case 'PROBATIVE_VALUE':
@@ -505,6 +545,7 @@ export class MySelectionComponent extends PageComponent {
     switch (this.selectedOption) {
       case 'EXPORT':
       case 'AUDIT':
+      case 'COMPUTED_INHERITED_RULES':
       case 'DELETE':
         return true;
       case 'PROBATIVE_VALUE':

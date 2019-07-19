@@ -22,6 +22,8 @@ export class ArchiveUnitService {
   ELIMINATION_ANALYSIS = 'elimination/analysis';
   ELIMINATION_ACTION = 'elimination/action';
   PRESERVATION = 'preservation';
+  COMPUTED_INHERITED_RULES = 'computedinheritedrules';
+  
 
   static setInputRequest(request) {
     this.inputRequest = request ;
@@ -105,6 +107,9 @@ export class ArchiveUnitService {
 
   preservation(updateRequest: any) {
     return this.resourceService.post(`${this.PRESERVATION}`, undefined, updateRequest);
+  }
+  COMPUTEDINHERITEDRULES_SERVICE(body: any): Observable<VitamResponse> {
+    return this.resourceService.post(`${this.ARCHIVE_UNIT_API}/${this.COMPUTED_INHERITED_RULES}`, undefined, body);
   }
 
 }

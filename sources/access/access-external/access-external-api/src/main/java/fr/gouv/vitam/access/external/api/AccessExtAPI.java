@@ -249,6 +249,11 @@ public class AccessExtAPI {
      * Logbook external Operations
      */
     public static final String LOGBOOK_OPERATIONS = "/logbookoperations";
+
+    /**
+     * computedinheritedrules external Operations
+     */
+    public static final String COMPUTEDINHERITEDRULES = "computedInheritedRules";
     
     
 }

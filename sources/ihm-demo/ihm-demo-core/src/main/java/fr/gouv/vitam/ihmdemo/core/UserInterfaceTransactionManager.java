@@ -232,6 +232,21 @@ public class UserInterfaceTransactionManager {
     }
 
     /**
+     * computinheritedrules
+     *
+     * @param parameters search criteria as DSL query
+     * @param context Vitamcontext
+     * @return result
+     * @throws VitamClientException
+     */
+    public RequestResponse<JsonNode> computinheritedrules(JsonNode parameters, VitamContext context)
+        throws VitamClientException {
+        try (AccessExternalClient client = accessExternalClientFactory.getClient()) {
+            return client.computedInheritedRules(context, parameters);
+        }
+    }
+
+    /**
      * Massive Rules update
      *
      * @param parameters search criteria as DSL query

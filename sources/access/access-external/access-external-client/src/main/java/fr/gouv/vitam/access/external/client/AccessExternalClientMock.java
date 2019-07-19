@@ -129,6 +129,12 @@ class AccessExternalClientMock extends AbstractMockClient implements AccessExter
             MediaType.APPLICATION_OCTET_STREAM_TYPE, null);
     }
 
+    @Override
+    public RequestResponse<JsonNode> computedInheritedRules(VitamContext vitamContext, JsonNode updateRulesQuery)
+        throws VitamClientException {
+        throw new UnsupportedOperationException("Will not be implemented");
+    }
+
     @Override public RequestResponse<JsonNode> launchPreservation(VitamContext vitamContext,
         PreservationRequest preservationRequest) {
         throw new UnsupportedOperationException("Will not be implemented");
