@@ -350,7 +350,7 @@ public class WebApplicationResource extends ApplicationStatusResource {
      * Create read order (read object from tape to local FS) for the given offerId, dataType and uid.
      */
     @POST
-    @Path("/readorder/{offerId}/{dataType}/{uid}")
+    @Path("/readorder/{strategyId}/{offerId}/{dataType}/{uid}")
     @Produces(MediaType.APPLICATION_JSON)
     public Response createReadOrder(@HeaderParam(GlobalDataRest.X_TENANT_ID) String xTenantId,
         @PathParam("uid") String uid,
@@ -373,11 +373,12 @@ public class WebApplicationResource extends ApplicationStatusResource {
      * Check if the read order @readOrder is completed.
      */
     @HEAD
-    @Path("/readorder/{readOrderId}")
+    @Path("/readorder/{strategyId}/{readOrderId}")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     public Response isReadOrderCompleted(@HeaderParam(GlobalDataRest.X_TENANT_ID) String xTenantId,
-        @PathParam("readOrderId") String readOrderId, @PathParam("strategyId") String strategyId) {
+        @PathParam("readOrderId") String readOrderId,
+        @PathParam("strategyId") String strategyId) {
         VitamThreadUtils.getVitamSession().setTenantId(Integer.parseInt(xTenantId));
 
         if (populateService.isReadOrderCompleted(Integer.parseInt(xTenantId), strategyId, readOrderId)) {

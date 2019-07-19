@@ -15,12 +15,12 @@ export class LoadStorageService {
     return this.resourcesService.get(`${this.DOWNLOAD_API}/${strategyId}/${offerId}/${category}/${fileName}`, null, 'blob');
   }
 
-  export(fileName, category, offerId): Observable<any> {
-    return this.resourcesService.post(`${this.READ_ORDER_API}/${offerId}/${category}/${fileName}`, null, 'json');
+  export(fileName, category, strategyId, offerId): Observable<any> {
+    return this.resourcesService.post(`${this.READ_ORDER_API}/${strategyId}/${offerId}/${category}/${fileName}`, null, 'json');
   }
 
-  checkExport(readOrderId): Observable<any> {
-    return this.resourcesService.head(`${this.READ_ORDER_API}/${readOrderId}`, null, 'json');
+  checkExport(readOrderId, strategyId): Observable<any> {
+    return this.resourcesService.head(`${this.READ_ORDER_API}/${strategyId}/${readOrderId}`, null, 'json');
   }
 
   uploadFile(newFile, fileName, size, category, strategyId ,offerId): Observable<any> {
