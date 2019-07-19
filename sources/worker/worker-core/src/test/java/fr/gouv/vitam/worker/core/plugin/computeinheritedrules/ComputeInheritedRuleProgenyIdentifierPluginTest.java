@@ -29,8 +29,10 @@ package fr.gouv.vitam.worker.core.plugin.computeinheritedrules;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.TextNode;
 import fr.gouv.vitam.batch.report.client.BatchReportClient;
 import fr.gouv.vitam.batch.report.client.BatchReportClientFactory;
+import fr.gouv.vitam.common.database.builder.query.VitamFieldsHelper;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamClientInternalException;
 import fr.gouv.vitam.common.json.JsonHandler;
@@ -47,10 +49,12 @@ import fr.gouv.vitam.worker.common.HandlerIO;
 import fr.gouv.vitam.worker.core.distribution.JsonLineGenericIterator;
 import fr.gouv.vitam.worker.core.distribution.JsonLineModel;
 import org.apache.commons.io.FileUtils;
+import org.assertj.core.api.ThrowableAssert.ThrowingCallable;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
+import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnit;
 import org.mockito.junit.MockitoRule;
@@ -63,30 +67,41 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatCode;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 public class ComputeInheritedRuleProgenyIdentifierPluginTest {
 
-    @Rule public MockitoRule mockitoRule = MockitoJUnit.rule();
+    @Rule
+    public MockitoRule mockitoRule = MockitoJUnit.rule();
 
-    @Rule public TemporaryFolder temporaryFolder = new TemporaryFolder();
+    @Rule
+    public TemporaryFolder temporaryFolder = new TemporaryFolder();
 
-    @Mock private MetaDataClientFactory metaDataClientFactory;
+    @Mock
+    private MetaDataClientFactory metaDataClientFactory;
 
-    @Mock private MetaDataClient metaDataClient;
+    @Mock
+    private MetaDataClient metaDataClient;
 
-    @Mock private BatchReportClientFactory batchReportClientFactory;
+    @Mock
+    private BatchReportClientFactory batchReportClientFactory;
 
-    @Mock private BatchReportClient batchReportClient;
+    @Mock
+    private BatchReportClient batchReportClient;
 
     private ComputeInheritedRuleProgenyIdentifierPlugin computeInheritedRuleProgenyIdentifierPlugin;
-    private static final TypeReference<JsonLineModel> jsonLineModelTypeReference = new TypeReference<JsonLineModel>() {};
+    private static final TypeReference<JsonLineModel> TYPE_REFERENCE = new TypeReference<JsonLineModel>() {};
 
     @Before
     public void setUp() throws Exception {
@@ -106,11 +121,74 @@ public class ComputeInheritedRuleProgenyIdentifierPluginTest {
 
         computeInheritedRuleProgenyIdentifierPlugin.executeList(workerParameters, handlerIO);
 
-        JsonLineGenericIterator<JsonLineModel> lines = new JsonLineGenericIterator<>(new FileInputStream(unitToInvalidateFile), jsonLineModelTypeReference);
+        JsonLineGenericIterator<JsonLineModel> lines = new JsonLineGenericIterator<>(new FileInputStream(unitToInvalidateFile), TYPE_REFERENCE);
         List<String> unitIdsInResultingFile = lines.stream().map(JsonLineModel::getId).collect(Collectors.toList());
 
         assertThat(unitIdsInResultingFile.size()).isEqualTo(parentsAndProgenyUnitsList.size());
         assertThat(unitIdsInResultingFile).containsAll(parentsAndProgenyUnitsList);
+    }
+
+    @Test
+    public void should_continue_process_when_no_children_in_units() throws Exception {
+        // Given
+        HandlerIO handlerIO = givenHandlerIo("aeaqaaaaaeehslhxaanxoallxuao7dyaaaaq", temporaryFolder.newFile());
+        WorkerParameters workerParameters = givenWorkerParameters();
+        JsonNode emptyResponse = JsonHandler.toJsonNode(new RequestResponseOK<JsonNode>());
+
+        when(metaDataClient.selectUnits(any())).thenReturn(emptyResponse);                                               // <--- response with no children
+        when(batchReportClient.getUnitsToInvalidate(anyString())).thenReturn(JsonHandler.toJsonNode(emptyResponse));
+
+        given(batchReportClient.saveUnitsAndProgeny(anyString(), eq(Collections.emptyList()))).willThrow(new VitamClientInternalException("save empty list fails"));
+
+        // When
+        ThrowingCallable executePlugin = () -> computeInheritedRuleProgenyIdentifierPlugin.executeList(workerParameters, handlerIO);
+
+        // Then
+        assertThatCode(executePlugin).doesNotThrowAnyException();
+    }
+
+    @Test
+    public void should_add_parents_in_list() throws Exception {
+        // Given
+        HandlerIO handlerIO = givenHandlerIo("BATMAN_UNIT", temporaryFolder.newFile());
+        WorkerParameters workerParameters = givenWorkerParameters();
+        JsonNode emptyResponse = JsonHandler.toJsonNode(new RequestResponseOK<JsonNode>());
+
+        when(metaDataClient.selectUnits(any())).thenReturn(emptyResponse);
+        when(batchReportClient.getUnitsToInvalidate(anyString())).thenReturn(emptyResponse);                   // <--- here return response with parent
+
+        ArgumentCaptor<List<String>> listArgumentCaptor = ArgumentCaptor.forClass(List.class);
+        when(batchReportClient.saveUnitsAndProgeny(anyString(), listArgumentCaptor.capture())).thenReturn(null);
+
+        // When
+        computeInheritedRuleProgenyIdentifierPlugin.executeList(workerParameters, handlerIO);
+
+        // Then
+        assertThat(listArgumentCaptor.getValue()).containsExactly("BATMAN_UNIT");
+    }
+
+    @Test
+    public void should_throw_exception_when_result_no_id_projection() throws Exception {
+        // Given
+        HandlerIO handlerIO = givenHandlerIo("BATMAN_UNIT", temporaryFolder.newFile());
+        WorkerParameters workerParameters = givenWorkerParameters();
+
+        List<JsonNode> unitJsonList = Stream.of("JOKER_ID")
+            .map(object -> JsonHandler.createObjectNode().put("#BATMAN_PROJECTION", object))
+            .collect(Collectors.toList());
+
+        RequestResponse<JsonNode> results = new RequestResponseOK<JsonNode>().addAllResults(unitJsonList);
+        Object response = Response.status(Response.Status.OK).entity(results.setHttpCode(200)).build().getEntity();
+        when(metaDataClient.selectUnits(any(JsonNode.class))).thenReturn(JsonHandler.toJsonNode(response));                 // <--- here no #id field
+
+        JsonNode emptyResponse = JsonHandler.toJsonNode(new RequestResponseOK<JsonNode>());
+        when(batchReportClient.getUnitsToInvalidate(anyString())).thenReturn(emptyResponse);
+
+        // When
+        ThrowingCallable pluginExecution = () -> computeInheritedRuleProgenyIdentifierPlugin.executeList(workerParameters, handlerIO);
+
+        // Then
+        assertThatThrownBy(pluginExecution).isInstanceOf(NullPointerException.class);
     }
 
     private WorkerParameters givenWorkerParameters() {
@@ -123,17 +201,21 @@ public class ComputeInheritedRuleProgenyIdentifierPluginTest {
         throws MetaDataExecutionException, MetaDataDocumentSizeException, InvalidParseOperationException, MetaDataClientServerException, VitamClientInternalException {
         String daughterUnitId = "aeaqaaaaaeehslhxaanxoallxuao67yaaaba";
         List<String> parentsAndProgenyUnitsList = Arrays.asList(unitId, daughterUnitId);
-        List<JsonNode> unitJsonList = parentsAndProgenyUnitsList.stream().map(object -> {
-            try {
-                return JsonHandler.toJsonNode(object);
-            } catch (InvalidParseOperationException e) {
-                throw new RuntimeException(e);
-            }
-        }).collect(Collectors.toList());
+        List<JsonNode> unitJsonList = parentsAndProgenyUnitsList.stream()
+            .map(object -> JsonHandler.createObjectNode().put(VitamFieldsHelper.id(), object))
+            .collect(Collectors.toList());
+
         RequestResponse<JsonNode> results = new RequestResponseOK<JsonNode>().addAllResults(unitJsonList);
         Object response = Response.status(Response.Status.OK).entity(results.setHttpCode(200)).build().getEntity();
         when(metaDataClient.selectUnits(any(JsonNode.class))).thenReturn(JsonHandler.toJsonNode(response)); // return all units (parents + children)
-        when(batchReportClient.getUnitsToInvalidate(anyString())).thenReturn(JsonHandler.toJsonNode(response)); // where are not here to test batchReportClient
+
+        List<JsonNode> unitJsonListWithId = parentsAndProgenyUnitsList.stream()
+            .map(TextNode::new)
+            .collect(Collectors.toList());
+        RequestResponse<JsonNode> resultsWithId = new RequestResponseOK<JsonNode>().addAllResults(unitJsonListWithId);
+        Object responseWithId = Response.status(Response.Status.OK).entity(resultsWithId.setHttpCode(200)).build().getEntity();
+        when(batchReportClient.getUnitsToInvalidate(anyString())).thenReturn(JsonHandler.toJsonNode(responseWithId)); // where are not here to test batchReportClient
+
         return parentsAndProgenyUnitsList;
     }
 
