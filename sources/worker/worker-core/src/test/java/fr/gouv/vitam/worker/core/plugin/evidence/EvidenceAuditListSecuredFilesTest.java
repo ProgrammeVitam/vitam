@@ -70,7 +70,6 @@ public class EvidenceAuditListSecuredFilesTest {
 
         List<URI> uriListObjectsWorkspace = new ArrayList<>();
         uriListObjectsWorkspace.add(new URI("aeaqaaaaaaebta56aaoc4alcdk4hlcqaaaaq"));
-        //    uriListObjectsWorkspace.add(new URI("aeaqaaaaaaebta56aam5ualcdnzc4wiaaabq"));
         when(handlerIO.getUriList(handlerIO.getContainerName(), "data")).thenReturn(uriListObjectsWorkspace);
 
         when(handlerIO.getFileFromWorkspace("data/aeaqaaaaaaebta56aaoc4alcdk4hlcqaaaaq"))
@@ -80,7 +79,6 @@ public class EvidenceAuditListSecuredFilesTest {
         File resourceFile = PropertiesUtils.getResourceFile("evidenceAudit/data.txt");
         when(handlerIO.getFileFromWorkspace("zip/test")).thenReturn(resourceFile);
         File report = tempFolder.newFile();
-        //   JsonHandler.writeAsFile( "aeaqaaaaaaebta56aaoc4alcdk4hlcqaaaaq", file2);
         when(handlerIO.getNewLocalFile("aeaqaaaaaaebta56aaoc4alcdk4hlcqaaaaq")).thenReturn(report);
         ItemStatus execute = evidenceAuditListSecuredFiles.execute(defaultWorkerParameters, handlerIO);
         Assertions.assertThat(execute.getGlobalStatus()).isEqualTo(StatusCode.OK);

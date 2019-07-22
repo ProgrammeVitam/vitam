@@ -32,7 +32,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import java.util.Map;
 
 /**
- * EvidenceAuditReportLine class
+ * EvidenceAuditReportObject class
  */
 public class EvidenceAuditReportObject {
     @JsonProperty("identifier")

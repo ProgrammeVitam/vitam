@@ -78,7 +78,6 @@ public class EvidenceAuditFinalizeTest {
     @Before
     public void setUp() throws Exception {
         when(logbookOperationsClientFactory.getClient()).thenReturn(logbookClient);
-        //when(logbookOperationsClientFactory.getClient()).thenReturn(mock(LogbookOperationsClient.class));
         evidenceAuditFinalize = new EvidenceAuditFinalize(evidenceAuditReportService,logbookOperationsClientFactory);
     }
 

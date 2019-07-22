@@ -120,10 +120,9 @@ public class EvidenceAuditPrepare extends ActionHandler {
             inputStream = (InputStream) response.getEntity();
 
             BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream));
-            int skip = 3;
+            int skip = 3; // skip the three first lines of the report ( report head, report summary and report context)
             while (reader.ready()) {
-
-                if(skip != 0) { // count == 0 means the first line
+                if(skip != 0) {
                     reader.readLine();
                     skip--;
                     continue;

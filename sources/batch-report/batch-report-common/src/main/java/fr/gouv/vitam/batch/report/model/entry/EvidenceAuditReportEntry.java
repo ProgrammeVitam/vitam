@@ -34,7 +34,7 @@ import java.util.ArrayList;
 import java.util.Map;
 
 /**
- * EvidenceAuditReportLine class
+ * EvidenceAuditReportEntry class
  */
 public class EvidenceAuditReportEntry extends ReportEntry {
 

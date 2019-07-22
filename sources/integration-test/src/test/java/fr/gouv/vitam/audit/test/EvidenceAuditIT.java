@@ -46,6 +46,8 @@ import fr.gouv.vitam.common.accesslog.AccessLogUtils;
 import fr.gouv.vitam.common.client.VitamClientFactory;
 import fr.gouv.vitam.common.database.builder.query.QueryHelper;
 import fr.gouv.vitam.common.database.builder.query.VitamFieldsHelper;
+import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken;
+import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
 import fr.gouv.vitam.common.database.builder.request.multiple.SelectMultiQuery;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamException;
@@ -104,6 +106,7 @@ import static fr.gouv.vitam.common.VitamServerRunner.NB_TRY;
 import static fr.gouv.vitam.common.VitamServerRunner.PORT_SERVICE_ACCESS_INTERNAL;
 import static fr.gouv.vitam.common.VitamServerRunner.SLEEP_TIME;
 import static fr.gouv.vitam.common.client.VitamClientFactoryInterface.VitamClientType.PRODUCTION;
+import static fr.gouv.vitam.common.database.builder.query.QueryHelper.and;
 import static fr.gouv.vitam.common.guid.GUIDFactory.newOperationLogbookGUID;
 import static fr.gouv.vitam.common.stream.StreamUtils.consumeAnyEntityAndClose;
 import static fr.gouv.vitam.common.thread.VitamThreadUtils.getVitamSession;
@@ -409,24 +412,12 @@ public class EvidenceAuditIT extends VitamRuleRunner {
         assertEquals(updateResult.getModifiedCount(),1);
     }
 
-    private JsonNode constructQuery(String operationGuid) {
-        JsonNode q = null;
-        String query = "{\n" +
-            "  \"$roots\": [],\n" +
-            "  \"$query\": [\n" +
-            "    {\n" +
-            "      \"$and\": [\n" +
-            "        { \"$in\": { \"#operations\": [ \""+operationGuid+"\" ] } }\n" +
-            "      ]\n" +
-            "    }],\n" +
-            "    \"$projection\": { }\n" +
-            "}";
-        try {
-            q = JsonHandler.getFromString(query);
-        } catch (InvalidParseOperationException e) {
-            e.printStackTrace();
-        }
-        return q;
+    private JsonNode constructQuery(String operationGuid) throws InvalidCreateOperationException {
+        final SelectMultiQuery select = new SelectMultiQuery();
+        select.addRoots(JsonHandler.createArrayNode());
+        select.setQuery(and().add(QueryHelper.in(BuilderToken.PROJECTIONARGS.OPERATIONS.exactToken(),operationGuid)));
+        select.addProjection(JsonHandler.createObjectNode());
+        return select.getFinalSelect();
     }
 
     private List<JsonNode> getReport(Response reportResponse) throws IOException, InvalidParseOperationException {

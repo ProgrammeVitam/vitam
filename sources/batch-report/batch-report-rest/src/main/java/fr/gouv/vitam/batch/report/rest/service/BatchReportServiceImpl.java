@@ -35,6 +35,7 @@ import fr.gouv.vitam.batch.report.model.EliminationActionAccessionRegisterModel;
 import fr.gouv.vitam.batch.report.model.EliminationActionObjectGroupModel;
 import fr.gouv.vitam.batch.report.model.EliminationActionUnitModel;
 import fr.gouv.vitam.batch.report.model.EvidenceAuditObjectModel;
+import fr.gouv.vitam.batch.report.model.EvidenceStatus;
 import fr.gouv.vitam.batch.report.model.MergeSortedIterator;
 import fr.gouv.vitam.batch.report.model.OperationSummary;
 import fr.gouv.vitam.batch.report.model.PreservationStatsModel;
@@ -382,7 +383,7 @@ public class BatchReportServiceImpl {
                 case EVIDENCE_AUDIT:
                     MongoCursor<Document> evidenceAuditIterator =
                         evidenceAuditReportRepository
-                            .findCollectionByProcessIdTenantAndStatus(processId, tenantId, "WARN", "KO");
+                            .findCollectionByProcessIdTenantAndStatus(processId, tenantId, EvidenceStatus.WARN.name(), EvidenceStatus.KO.name());
                     writeDocumentsInFile(reportWriter, evidenceAuditIterator);
                     break;
                 case UPDATE_UNIT:

@@ -31,6 +31,7 @@ import fr.gouv.vitam.batch.report.model.AuditFullStatusCount;
 import fr.gouv.vitam.batch.report.model.AuditStatsModel;
 import fr.gouv.vitam.batch.report.model.EvidenceAuditFullStatusCount;
 import fr.gouv.vitam.batch.report.model.EvidenceAuditStatsModel;
+import fr.gouv.vitam.batch.report.model.EvidenceStatus;
 import fr.gouv.vitam.batch.report.model.OperationSummary;
 import fr.gouv.vitam.batch.report.model.PreservationStatsModel;
 import fr.gouv.vitam.batch.report.model.PreservationStatus;
@@ -470,7 +471,8 @@ public class BatchReportServiceImplTest {
         FakeMongoCursor<Document> fakeMongoCursor = new FakeMongoCursor<>(Collections.singletonList(evidenceAuditData));
 
         initialiseMockWhenPutObjectInWorkspace(report);
-        when(evidenceAuditReportRepository.findCollectionByProcessIdTenantAndStatus(processId, TENANT_ID,"WARN","KO"))
+        when(evidenceAuditReportRepository.findCollectionByProcessIdTenantAndStatus(processId, TENANT_ID,
+            EvidenceStatus.WARN.name(),EvidenceStatus.KO.name()))
             .thenReturn(fakeMongoCursor);
         when(evidenceAuditReportRepository.stats(processId, TENANT_ID)).thenReturn(auditStatus);
 

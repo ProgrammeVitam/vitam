@@ -33,7 +33,7 @@ import org.apache.commons.lang3.StringUtils;
 import java.util.Objects;
 
 /**
- * ReportListModel
+ * EvidenceAuditObjectModel
  */
 public class EvidenceAuditObjectModel {
 

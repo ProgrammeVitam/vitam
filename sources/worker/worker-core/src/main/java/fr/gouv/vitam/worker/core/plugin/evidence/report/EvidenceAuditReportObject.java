@@ -32,7 +32,7 @@ import fr.gouv.vitam.worker.core.plugin.evidence.exception.EvidenceStatus;
 import java.util.Map;
 
 /**
- * EvidenceAuditReportLine class
+ * EvidenceAuditReportObject class
  */
 public class EvidenceAuditReportObject {
     @JsonProperty("identifier")
