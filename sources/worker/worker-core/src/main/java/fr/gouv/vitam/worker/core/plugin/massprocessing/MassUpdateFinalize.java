@@ -162,8 +162,11 @@ public class MassUpdateFinalize extends ActionHandler {
 
         Map<StatusCode, Integer> codesNumber = getStatusStatistic(logbookEvent.get());
         int total = codesNumber.values().stream().mapToInt(i -> i).sum();
+        int nbOk = codesNumber.get(OK) == null ? 0 : codesNumber.get(OK);
+        int nbKo = codesNumber.get(KO) == null ? 0 : codesNumber.get(KO);
+        int nbWarning = codesNumber.get(WARNING) == null ? 0 : codesNumber.get(WARNING);
 
-        ReportResults results = new ReportResults(codesNumber.get(OK), codesNumber.get(KO), codesNumber.get(WARNING), total);
+        ReportResults results = new ReportResults(nbOk, nbKo, nbWarning, total);
         return new ReportSummary(startDate, endDate, UPDATE_UNIT, results, null);
     }
 

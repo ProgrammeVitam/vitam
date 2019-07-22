@@ -98,6 +98,7 @@ public class UpdateUnitMetadataReportEntry extends ReportEntry {
         UpdateUnitMetadataReportEntry that = (UpdateUnitMetadataReportEntry) o;
         return processId.equals(that.processId) &&
             tenantId.equals(that.tenantId) &&
+            getDetailId().equals(that.getDetailId()) &&
             resultKey.equals(that.resultKey) &&
             status == that.status &&
             message.equals(that.message);
@@ -105,6 +106,6 @@ public class UpdateUnitMetadataReportEntry extends ReportEntry {
 
     @Override
     public int hashCode() {
-        return Objects.hash(processId, tenantId, resultKey, status, message);
+        return Objects.hash(processId, tenantId, resultKey, status, message, getDetailId());
     }
 }
