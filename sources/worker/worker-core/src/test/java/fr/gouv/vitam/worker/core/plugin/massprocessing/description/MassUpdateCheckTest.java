@@ -79,4 +79,18 @@ public class MassUpdateCheckTest {
         // Then
         assertThat(itemStatus.getGlobalStatus()).isEqualTo(OK);
     }
+
+    @Test
+    public void should_return_KO_regex() throws Exception {
+        // Given
+        TestHandlerIO handlerIO = new TestHandlerIO();
+        JsonNode query = JsonHandler.getFromInputStream(getClass().getResourceAsStream("/MassUpdateUnitsProcess/queryActionSetInternalFieldREGEX.json"));
+        handlerIO.setJsonFromWorkspace("query.json", query);
+
+        // When
+        ItemStatus itemStatus = massUpdateCheck.execute(EMPTY_WORKER_PARAMETER, handlerIO);
+
+        // Then
+        assertThat(itemStatus.getGlobalStatus()).isEqualTo(KO);
+    }
 }

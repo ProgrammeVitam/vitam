@@ -1,0 +1,32 @@
+{
+  "$roots": [],
+  "$query": [
+    {
+      "$or": [
+        {
+          "$in": {
+            "#id": [
+              "aeaqaaaaaaf74pdjabv4galmbi5kq6yaaaba"
+            ]
+          }
+        },
+        {
+          "$in": {
+            "#allunitups": []
+          }
+        }
+      ],
+      "$depth": 1000
+    }
+  ],
+  "$filter": {},
+  "$action": [
+    {
+      "$setregex": {
+        "$target": "_sedaVersion",
+        "$controlPattern": "YEAH",
+        "$updatePattern": "Toto"
+      }
+    }
+  ]
+}
