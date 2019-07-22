@@ -1062,7 +1062,7 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
             SanityChecker.checkJsonAll(queryDsl);
 
             // Check the writing rights
-            if (!getVitamSession().getContract().getWritingPermission()) {
+            if (getVitamSession().getContract().getWritingPermission() == null || !getVitamSession().getContract().getWritingPermission()) {
                 status = Status.UNAUTHORIZED;
                 return Response.status(status).entity(getErrorEntity(status, "Write permission not allowed")).build();
             }
@@ -1141,7 +1141,8 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
             SanityChecker.checkJsonAll(queryDsl);
 
             // Check the writing rights
-            if (!getVitamSession().getContract().getWritingPermission() || getVitamSession().getContract().getWritingRestrictedDesc()) {
+
+            if (!isAuthorized()) {
                 status = Status.UNAUTHORIZED;
                 return Response.status(status).entity(getErrorEntity(status, "Write permission not allowed")).build();
             }
@@ -1191,6 +1192,13 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
             status = Status.BAD_REQUEST;
             return Response.status(status).entity(getErrorEntity(status, e.getMessage())).build();
         }
+    }
+
+    private boolean isAuthorized() {
+        if (getVitamSession().getContract().getWritingPermission() == null || getVitamSession().getContract().getWritingRestrictedDesc() == null) {
+            return false;
+        }
+        return getVitamSession().getContract().getWritingPermission() && !getVitamSession().getContract().getWritingRestrictedDesc();
     }
 
 
