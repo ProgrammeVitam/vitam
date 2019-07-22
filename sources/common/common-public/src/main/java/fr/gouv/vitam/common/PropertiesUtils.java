@@ -75,7 +75,7 @@ public final class PropertiesUtils {
      * @return the associated File
      * @throws FileNotFoundException if the resource file not found
      */
-    public static final InputStream getConfigAsStream(String resourcesFile) throws FileNotFoundException {
+    public static InputStream getConfigAsStream(String resourcesFile) throws FileNotFoundException {
         File file = new File(resourcesFile);
         if (!file.canRead()) {
             file = PropertiesUtils.fileFromConfigFolder(resourcesFile);
@@ -90,7 +90,7 @@ public final class PropertiesUtils {
      * @return the associated File
      * @throws FileNotFoundException if the resource file not found
      */
-    public static final InputStream getResourceAsStream(String resourcesFile) throws FileNotFoundException {
+    public static InputStream getResourceAsStream(String resourcesFile) throws FileNotFoundException {
         if (resourcesFile == null) {
             throw new FileNotFoundException(FILE_NOT_FOUND_IN_RESOURCES + resourcesFile);
         }
@@ -122,7 +122,7 @@ public final class PropertiesUtils {
      * @return the associated File
      * @throws FileNotFoundException if the resource file not found
      */
-    public static final File getResourceFile(String resourcesFile) throws FileNotFoundException {
+    public static File getResourceFile(String resourcesFile) throws FileNotFoundException {
         if (resourcesFile == null) {
             throw new FileNotFoundException(FILE_NOT_FOUND_IN_RESOURCES + resourcesFile);
         }
@@ -160,7 +160,7 @@ public final class PropertiesUtils {
      * @return the associated Path
      * @throws FileNotFoundException if resource file not found
      */
-    public static final Path getResourcePath(String resourcesFile) throws FileNotFoundException {
+    public static Path getResourcePath(String resourcesFile) throws FileNotFoundException {
         return getResourceFile(resourcesFile).toPath();
     }
 
@@ -180,25 +180,26 @@ public final class PropertiesUtils {
             dirURL = clazz.getClassLoader().getResource(me);
         }
 
-        if (dirURL.getProtocol().equals("jar")) {
+        if (dirURL != null && dirURL.getProtocol().equals("jar")) {
             /* A JAR path */
-            String jarPath = dirURL.getPath().substring(5, dirURL.getPath().indexOf("!")); //strip out only the JAR file
-            JarFile jar = new JarFile(URLDecoder.decode(jarPath, "UTF-8"));
-            Enumeration<JarEntry> entries = jar.entries(); //gives ALL entries in jar
-            Set<String> result = new HashSet<>(); //avoid duplicates in case it is a subdirectory
-            while (entries.hasMoreElements()) {
-                String name = entries.nextElement().getName();
-                if (name.startsWith(path)) { //filter according to the path
-                    String entry = name.substring(path.length());
-                    int checkSubdir = entry.indexOf("/");
-                    if (checkSubdir >= 0) {
-                        // if it is a subdirectory, we just return the directory name
-                        entry = entry.substring(0, checkSubdir);
+            String jarPath = dirURL.getPath().substring(5, dirURL.getPath().indexOf('!')); //strip out only the JAR file
+            try (JarFile jar = new JarFile(URLDecoder.decode(jarPath, "UTF-8"))) {
+                Enumeration<JarEntry> entries = jar.entries(); //gives ALL entries in jar
+                Set<String> result = new HashSet<>(); //avoid duplicates in case it is a subdirectory
+                while (entries.hasMoreElements()) {
+                    String name = entries.nextElement().getName();
+                    if (name.startsWith(path)) { //filter according to the path
+                        String entry = name.substring(path.length());
+                        int checkSubdir = entry.indexOf('/');
+                        if (checkSubdir >= 0) {
+                            // if it is a subdirectory, we just return the directory name
+                            entry = entry.substring(0, checkSubdir);
+                        }
+                        result.add(entry);
                     }
-                    result.add(entry);
                 }
+                return result.stream();
             }
-            return result.stream();
         }
 
         throw new UnsupportedOperationException("Cannot list files for URL " + dirURL);
@@ -212,7 +213,7 @@ public final class PropertiesUtils {
      * @return the File if found
      * @throws FileNotFoundException if not fount
      */
-    public static final File findFile(String filename) throws FileNotFoundException {
+    public static File findFile(String filename) throws FileNotFoundException {
         // First try as full path
         File file = new File(filename);
         try {
@@ -242,7 +243,7 @@ public final class PropertiesUtils {
      * @param subpath the subpath under Config folder
      * @return the full file path (no check on existing is done)
      */
-    public static final File fileFromConfigFolder(String subpath) {
+    public static File fileFromConfigFolder(String subpath) {
         return new File(VitamConfiguration.getVitamConfigFolder(), subpath);
     }
 
@@ -252,7 +253,7 @@ public final class PropertiesUtils {
      * @param subpath the subpath under Data folder
      * @return the full file path (no check on existing is done)
      */
-    public static final File fileFromDataFolder(String subpath) {
+    public static File fileFromDataFolder(String subpath) {
         return new File(VitamConfiguration.getVitamDataFolder(), subpath);
     }
 
@@ -262,7 +263,7 @@ public final class PropertiesUtils {
      * @param subpath the subpath under Log folder
      * @return the full file path (no check on existing is done)
      */
-    public static final File fileFromLogFolder(String subpath) {
+    static File fileFromLogFolder(String subpath) {
         return new File(VitamConfiguration.getVitamLogFolder(), subpath);
     }
 
@@ -272,7 +273,7 @@ public final class PropertiesUtils {
      * @param subpath the subpath under Tmp folder
      * @return the full file path (no check on existing is done)
      */
-    public static final File fileFromTmpFolder(String subpath) {
+    public static File fileFromTmpFolder(String subpath) {
         try {
             String canonicalPath = new File(VitamConfiguration.getVitamTmpFolder()).getCanonicalPath();
             File file = new File(VitamConfiguration.getVitamTmpFolder(), subpath);
@@ -296,7 +297,7 @@ public final class PropertiesUtils {
      * @return the associated Properties
      * @throws IOException if cannot load file
      */
-    public static final Properties readProperties(File propertiesFile) throws IOException {
+    public static Properties readProperties(File propertiesFile) throws IOException {
         if (propertiesFile == null) {
             throw new FileNotFoundException(FILE_NOT_FOUND_IN_RESOURCES + propertiesFile);
         }
@@ -315,7 +316,7 @@ public final class PropertiesUtils {
      * @return the object read
      * @throws IOException if read yaml input stream to class template exception occurred
      */
-    public static final <C> C readYaml(File yamlFile, Class<C> clasz) throws IOException {
+    public static <C> C readYaml(File yamlFile, Class<C> clasz) throws IOException {
         if (yamlFile == null || clasz == null) {
             throw new FileNotFoundException(ARGUMENTS_MUST_BE_NON_NULL);
         }
@@ -335,7 +336,7 @@ public final class PropertiesUtils {
      * @return the object read
      * @throws IOException if read yaml input stream to class template exception occurred
      */
-    public static final <C> C readYaml(File yamlFile, TypeReference<C> typeReference) throws IOException {
+    public static <C> C readYaml(File yamlFile, TypeReference<C> typeReference) throws IOException {
         if (yamlFile == null || typeReference == null) {
             throw new FileNotFoundException(ARGUMENTS_MUST_BE_NON_NULL);
         }
@@ -355,7 +356,7 @@ public final class PropertiesUtils {
      * @return the object read
      * @throws IOException if read yaml input stream to class template exception occurred
      */
-    public static final <C> C readYaml(InputStream yamlInputStream, Class<C> clasz) throws IOException {
+    public static <C> C readYaml(InputStream yamlInputStream, Class<C> clasz) throws IOException {
         if (yamlInputStream == null || clasz == null) {
             throw new FileNotFoundException(ARGUMENTS_MUST_BE_NON_NULL);
         }
@@ -375,7 +376,7 @@ public final class PropertiesUtils {
      * @return the object read
      * @throws IOException if file not found exception
      */
-    public static final <C> C readYaml(Path yamlPath, Class<C> clasz) throws IOException {
+    public static <C> C readYaml(Path yamlPath, Class<C> clasz) throws IOException {
         if (yamlPath == null || clasz == null) {
             throw new FileNotFoundException(ARGUMENTS_MUST_BE_NON_NULL);
         }
@@ -390,7 +391,7 @@ public final class PropertiesUtils {
      * @param config      the configuration object to write using Yaml format
      * @throws IOException if write object config exception occurred
      */
-    public static final void writeYaml(File destination, Object config) throws IOException {
+    public static void writeYaml(File destination, Object config) throws IOException {
         try (FileOutputStream outputStream = new FileOutputStream(destination)) {
             final ObjectMapper mapper = new ObjectMapper(new YAMLFactory());
             mapper.writeValue(outputStream, config);
@@ -404,7 +405,7 @@ public final class PropertiesUtils {
      * @return the associated File content as a String
      * @throws FileNotFoundException if the resource file not found
      */
-    public static final String getResourceAsString(String resourcesFile) throws FileNotFoundException {
+    public static String getResourceAsString(String resourcesFile) throws FileNotFoundException {
         if (resourcesFile == null) {
             throw new FileNotFoundException(FILE_NOT_FOUND_IN_RESOURCES + resourcesFile);
         }

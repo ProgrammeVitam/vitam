@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2019)
  *
  * contact.vitam@culture.gouv.fr
@@ -244,6 +244,7 @@ public class DbRequestSingle {
             throw new DatabaseException(e);
         }
         insertToElasticsearch(vitamDocumentList);
+
         return new DbRequestResult().setCount(vitamDocumentList.size()).setTotal(vitamDocumentList.size());
     }
 
@@ -278,11 +279,12 @@ public class DbRequestSingle {
                 mapIdJson.clear();
             }
         }
+
         if (!mapIdJson.isEmpty()) {
             final BulkResponse bulkResponse = addEntryIndexes(mapIdJson);
             if (bulkResponse.hasFailures()) {
                 // Add usefull information
-                StringBuffer sb = new StringBuffer();
+                StringBuilder sb = new StringBuilder();
                 for (BulkItemResponse bulkItemResponse : bulkResponse) {
                     if (bulkItemResponse.getFailure() != null) {
                         sb.append(bulkItemResponse.getFailure().getCause());
@@ -302,7 +304,7 @@ public class DbRequestSingle {
      * @param mapIdJson
      * @return the listener on bulk insert
      */
-    private final BulkResponse addEntryIndexes(final Map<String, String> mapIdJson) {
+    private BulkResponse addEntryIndexes(final Map<String, String> mapIdJson) {
 
         Client client = vitamCollection.getEsClient().getClient();
         final BulkRequestBuilder bulkRequest = client.prepareBulk();
@@ -415,7 +417,7 @@ public class DbRequestSingle {
      */
     private MongoCursor<VitamDocument<?>> selectMongoDbExecute(SelectParserSingle parser, List<String> list,
         List<Float> score)
-        throws InvalidParseOperationException, InvalidCreateOperationException, VitamDBException {
+        throws InvalidParseOperationException, VitamDBException {
         return DbRequestHelper.selectMongoDbExecuteThroughFakeMongoCursor(vitamCollection, parser,
             list, score);
     }
@@ -432,15 +434,14 @@ public class DbRequestSingle {
         throws InvalidParseOperationException {
         final SelectToMongodb selectToMongoDb = new SelectToMongodb(parser);
         Bson initialCondition = QueryToMongodb.getCommand(selectToMongoDb.getSingleSelect().getQuery());
-        Bson condition = initialCondition;
         final Bson projection = selectToMongoDb.getFinalProjection();
         final Bson orderBy = selectToMongoDb.getFinalOrderBy();
         final int offset2 = selectToMongoDb.getFinalOffset();
         final int limit2 = selectToMongoDb.getFinalLimit();
         MongoCollection collection = vitamCollection.getCollection();
         FindIterable<VitamDocument<?>> find =
-            (FindIterable<VitamDocument<?>>) collection.find(condition).skip(offset2);
-        total = collection.count(condition);
+            (FindIterable<VitamDocument<?>>) collection.find(initialCondition).skip(offset2);
+        total = collection.count(initialCondition);
 
         if (projection != null) {
             find = find.projection(projection);
@@ -481,7 +482,7 @@ public class DbRequestSingle {
      * @throws DatabaseException
      * @throws BadRequestException
      */
-    private final SearchResponse search(final QueryBuilder query,
+    private SearchResponse search(final QueryBuilder query,
         final QueryBuilder filter, List<SortBuilder> sorts, final int offset, final int limit)
         throws DatabaseException, BadRequestException {
         final SearchRequestBuilder request =
@@ -491,7 +492,7 @@ public class DbRequestSingle {
                 .setSize(GlobalDatas.LIMIT_LOAD < limit ? GlobalDatas.LIMIT_LOAD : limit)
                 .setFetchSource(VitamDocument.ES_FILTER_OUT, null);
         if (sorts != null) {
-            sorts.stream().forEach(sort -> request.addSort(sort));
+            sorts.forEach(request::addSort);
         }
         if (filter != null) {
             request.setQuery(QueryBuilders.boolQuery().must(query).must(filter));
@@ -626,9 +627,8 @@ public class DbRequestSingle {
         if (!listUpdatedDocuments.isEmpty()) {
             insertToElasticsearch(listUpdatedDocuments);
         }
-        return new DbRequestResult()
-            .setCount(listUpdatedDocuments.size()).setTotal(listUpdatedDocuments.size())
-            .setDiffs(diffs);
+
+        return new DbRequestResult().setCount(listUpdatedDocuments.size()).setTotal(listUpdatedDocuments.size()).setDiffs(diffs);
     }
 
     /**

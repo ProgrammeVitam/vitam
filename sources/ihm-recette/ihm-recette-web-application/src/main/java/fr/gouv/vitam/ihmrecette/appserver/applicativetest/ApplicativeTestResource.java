@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2019)
  * <p>
  * contact.vitam@culture.gouv.fr
@@ -183,12 +183,11 @@ public class ApplicativeTestResource {
      *
      * @param fileName name of the report
      * @return 200 if report is ok, 404 if exception occurs
-     * @throws IOException
      */
     @GET
     @Path("/{report}")
     @Produces(MediaType.APPLICATION_OCTET_STREAM)
-    public Response reportByName(@PathParam("report") String fileName) throws IOException {
+    public Response reportByName(@PathParam("report") String fileName) {
         InputStream inputStream;
         try {
             inputStream = applicativeTestService.readReport(fileName);
@@ -222,8 +221,8 @@ public class ApplicativeTestResource {
 
     }
 
-    private Response synchronizeGit(String tnr_master) throws IOException, InterruptedException {
-        applicativeTestService.checkout(Paths.get(testSystemSipDirectory), tnr_master);
+    private Response synchronizeGit(String tnrMaster) throws IOException, InterruptedException {
+        applicativeTestService.checkout(Paths.get(testSystemSipDirectory), tnrMaster);
         int status = applicativeTestService.synchronizedTestDirectory(Paths.get(testSystemSipDirectory));
         return Response.ok().entity(status).build();
     }

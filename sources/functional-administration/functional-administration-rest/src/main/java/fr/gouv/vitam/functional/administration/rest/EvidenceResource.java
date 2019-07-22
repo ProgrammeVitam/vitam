@@ -1,4 +1,4 @@
-/*******************************************************************************
+/*
  * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2019)
  *
  * contact.vitam@culture.gouv.fr
@@ -23,27 +23,14 @@
  *
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
- *******************************************************************************/
+ */
 package fr.gouv.vitam.functional.administration.rest;
-
-import static javax.ws.rs.core.Response.Status.INTERNAL_SERVER_ERROR;
-
-import javax.ws.rs.ApplicationPath;
-import javax.ws.rs.Consumes;
-import javax.ws.rs.POST;
-import javax.ws.rs.Path;
-import javax.ws.rs.Produces;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.annotations.VisibleForTesting;
 import fr.gouv.vitam.common.ParametersChecker;
-import fr.gouv.vitam.common.database.builder.query.Query;
-import fr.gouv.vitam.common.database.builder.query.QueryHelper;
 import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
-import fr.gouv.vitam.common.database.builder.request.single.Select;
 import fr.gouv.vitam.common.database.parser.request.multiple.SelectParserMultiple;
 import fr.gouv.vitam.common.database.utils.AccessContractRestrictionHelper;
 import fr.gouv.vitam.common.error.VitamCode;
@@ -63,15 +50,10 @@ import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.ProcessAction;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseError;
-import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.model.administration.AccessContractModel;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
-import fr.gouv.vitam.functional.administration.client.AdminManagementClient;
-import fr.gouv.vitam.functional.administration.client.AdminManagementClientFactory;
-import fr.gouv.vitam.functional.administration.common.AccessContract;
 import fr.gouv.vitam.functional.administration.common.counter.VitamCounterService;
-import fr.gouv.vitam.functional.administration.common.exception.AdminManagementClientServerException;
 import fr.gouv.vitam.functional.administration.common.exception.ReferentialException;
 import fr.gouv.vitam.functional.administration.common.server.MongoDbAccessAdminImpl;
 import fr.gouv.vitam.functional.administration.contract.core.AccessContractImpl;
@@ -92,6 +74,16 @@ import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageAlreadyExi
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
 import fr.gouv.vitam.workspace.client.WorkspaceClient;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
+
+import javax.ws.rs.ApplicationPath;
+import javax.ws.rs.Consumes;
+import javax.ws.rs.POST;
+import javax.ws.rs.Path;
+import javax.ws.rs.Produces;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
+
+import static javax.ws.rs.core.Response.Status.INTERNAL_SERVER_ERROR;
 
 
 /**
@@ -120,7 +112,7 @@ public class EvidenceResource {
     private VitamCounterService vitamCounterService;
 
     @VisibleForTesting
-    public EvidenceResource(
+    EvidenceResource(
         ProcessingManagementClientFactory processingManagementClientFactory,
         LogbookOperationsClientFactory logbookOperationsClientFactory,
         WorkspaceClientFactory workspaceClientFactory,
@@ -177,58 +169,56 @@ public class EvidenceResource {
         Response.Status status;
         LOGGER.debug("DEBUG: start selectUnits {}", queryDsl);
         String operationId = VitamThreadUtils.getVitamSession().getRequestId();
-        try {
+        try (ProcessingManagementClient processingClient = processingManagementClientFactory.getClient();
+            WorkspaceClient workspaceClient = workspaceClientFactory.getClient();
+            AccessContractImpl accessContractService = new AccessContractImpl(mongoDbAccess, vitamCounterService)) {
             checkEmptyQuery(queryDsl);
 
-            try (ProcessingManagementClient processingClient = processingManagementClientFactory.getClient();
-                WorkspaceClient workspaceClient = workspaceClientFactory.getClient()) {
-
-                AccessContractImpl accessContractService = new AccessContractImpl(mongoDbAccess, vitamCounterService);
-                AccessContractModel contract = accessContractService
-                        .findByIdentifier(VitamThreadUtils.getVitamSession().getContractId());
-                if(contract == null) {
-                    throw new AccessUnauthorizedException("Contract Not Found");
-                }
-
-                JsonNode finalQuery = AccessContractRestrictionHelper.
-                        applyAccessContractRestrictionForUnitForSelect(queryDsl, contract);
-
-                workspaceClient.createContainer(operationId);
-
-                createEvidenceAuditOperation(operationId, contract);
-
-                ObjectNode options =
-                    JsonHandler.createObjectNode().put("correctiveOption", false);
-                workspaceClient.putObject(operationId, "evidenceOptions", JsonHandler.writeToInpustream(options));
-
-                workspaceClient.putObject(operationId, "query.json", JsonHandler.writeToInpustream(finalQuery));
-
-                processingClient.initVitamProcess(operationId, Contexts.EVIDENCE_AUDIT.name());
-
-                RequestResponse<JsonNode> jsonNodeRequestResponse =
-                    processingClient.executeOperationProcess(operationId, Contexts.EVIDENCE_AUDIT.name(),  ProcessAction.RESUME.getValue());
-                return jsonNodeRequestResponse.toResponse();
-
-            } catch (ContentAddressableStorageServerException | ContentAddressableStorageAlreadyExistException |
-
-                VitamClientException | InternalServerException | InvalidGuidOperationException | ReferentialException e) {
-                LOGGER.error("Error while auditing", e);
-
-                return Response.status(INTERNAL_SERVER_ERROR)
-                    .entity(getErrorEntity(INTERNAL_SERVER_ERROR, e.getMessage())).build();
-
-            } catch (LogbookClientServerException |LogbookClientBadRequestException
-                    | LogbookClientAlreadyExistsException e) {
-                return Response.status(INTERNAL_SERVER_ERROR)
-                    .entity(getErrorEntity(INTERNAL_SERVER_ERROR, e.getMessage())).build();
+            AccessContractModel contract = accessContractService
+                .findByIdentifier(VitamThreadUtils.getVitamSession().getContractId());
+            if (contract == null) {
+                throw new AccessUnauthorizedException("Contract Not Found");
             }
+
+            JsonNode finalQuery = AccessContractRestrictionHelper.
+                applyAccessContractRestrictionForUnitForSelect(queryDsl, contract);
+
+            workspaceClient.createContainer(operationId);
+
+            createEvidenceAuditOperation(operationId, contract);
+
+            ObjectNode options =
+                JsonHandler.createObjectNode().put("correctiveOption", false);
+            workspaceClient.putObject(operationId, "evidenceOptions", JsonHandler.writeToInpustream(options));
+
+            workspaceClient.putObject(operationId, "query.json", JsonHandler.writeToInpustream(finalQuery));
+
+            processingClient.initVitamProcess(operationId, Contexts.EVIDENCE_AUDIT.name());
+
+            RequestResponse<JsonNode> jsonNodeRequestResponse =
+                processingClient.executeOperationProcess(operationId, Contexts.EVIDENCE_AUDIT.name(), ProcessAction.RESUME.getValue());
+            return jsonNodeRequestResponse.toResponse();
+
+        } catch (ContentAddressableStorageServerException | ContentAddressableStorageAlreadyExistException |
+
+            VitamClientException | InternalServerException | InvalidGuidOperationException | ReferentialException e) {
+            LOGGER.error("Error while auditing", e);
+
+            return Response.status(INTERNAL_SERVER_ERROR)
+                .entity(getErrorEntity(INTERNAL_SERVER_ERROR, e.getMessage())).build();
+
+        } catch (LogbookClientServerException | LogbookClientBadRequestException
+            | LogbookClientAlreadyExistsException e) {
+            return Response.status(INTERNAL_SERVER_ERROR)
+                .entity(getErrorEntity(INTERNAL_SERVER_ERROR, e.getMessage())).build();
+
         } catch (final InvalidParseOperationException | InvalidCreateOperationException e) {
             LOGGER.error(BAD_REQUEST_EXCEPTION, e);
             status = Response.Status.BAD_REQUEST;
             return Response.status(status).entity(getErrorEntity(status, e.getMessage())).build();
         } catch (BadRequestException e) {
             LOGGER.error("Empty query is impossible", e);
-            return buildErrorResponse(VitamCode.GLOBAL_EMPTY_QUERY);
+            return buildErrorResponse();
         }
 
     }
@@ -240,46 +230,43 @@ public class EvidenceResource {
     public Response rectificationAudit(String operation) {
 
         String operationId = VitamThreadUtils.getVitamSession().getRequestId();
-        try {
+        try (ProcessingManagementClient processingClient = processingManagementClientFactory.getClient();
+            WorkspaceClient workspaceClient = workspaceClientFactory.getClient();
+            AccessContractImpl accessContractService = new AccessContractImpl(mongoDbAccess, vitamCounterService)) {
             ParametersChecker.checkParameter(OPERATION_ID_MANDATORY, operation);
+            workspaceClient.createContainer(operationId);
+            ObjectNode option =
+                JsonHandler.createObjectNode().put("operation", operation).put("correctiveOption", true);
 
-            try (
-                ProcessingManagementClient processingClient = processingManagementClientFactory.getClient();
-                WorkspaceClient workspaceClient = workspaceClientFactory.getClient()
-            ) {
-                workspaceClient.createContainer(operationId);
-                ObjectNode option =
-                    JsonHandler.createObjectNode().put("operation", operation).put("correctiveOption", true);
+            workspaceClient.putObject(operationId, "evidenceOptions", JsonHandler.writeToInpustream(option));
 
-                workspaceClient.putObject(operationId, "evidenceOptions", JsonHandler.writeToInpustream(option));
 
-                AccessContractImpl accessContractService = new AccessContractImpl(mongoDbAccess, vitamCounterService);
-                AccessContractModel contract = accessContractService
-                        .findByIdentifier(VitamThreadUtils.getVitamSession().getContractId());
-                if(contract == null) {
-                    throw new AccessUnauthorizedException("Contract Not Found");
-                }
-
-                createRectificationAuditOperation(operationId, contract);
-
-                processingClient
-                    .initVitamProcess(operationId, Contexts.RECTIFICATION_AUDIT.name());
-
-                RequestResponse<JsonNode> jsonNodeRequestResponse =
-                    processingClient.executeOperationProcess(operationId, Contexts.RECTIFICATION_AUDIT.name(), ProcessAction.RESUME.getValue());
-                return jsonNodeRequestResponse.toResponse();
-
-            } catch (ContentAddressableStorageServerException |InvalidParseOperationException |LogbookClientException
-                    | ContentAddressableStorageAlreadyExistException | VitamClientException  | InternalServerException
-                    | InvalidGuidOperationException | ReferentialException e) {
-                LOGGER.error("Error while auditing", e);
-
-                return Response.status(INTERNAL_SERVER_ERROR)
-                    .entity(getErrorEntity(INTERNAL_SERVER_ERROR, e.getMessage())).build();
+            AccessContractModel contract = accessContractService
+                .findByIdentifier(VitamThreadUtils.getVitamSession().getContractId());
+            if (contract == null) {
+                throw new AccessUnauthorizedException("Contract Not Found");
             }
+
+            createRectificationAuditOperation(operationId, contract);
+
+            processingClient
+                .initVitamProcess(operationId, Contexts.RECTIFICATION_AUDIT.name());
+
+            RequestResponse<JsonNode> jsonNodeRequestResponse =
+                processingClient.executeOperationProcess(operationId, Contexts.RECTIFICATION_AUDIT.name(), ProcessAction.RESUME.getValue());
+            return jsonNodeRequestResponse.toResponse();
+
+        } catch (ContentAddressableStorageServerException | InvalidParseOperationException | LogbookClientException
+            | ContentAddressableStorageAlreadyExistException | VitamClientException | InternalServerException
+            | InvalidGuidOperationException | ReferentialException e) {
+            LOGGER.error("Error while auditing", e);
+
+            return Response.status(INTERNAL_SERVER_ERROR)
+                .entity(getErrorEntity(INTERNAL_SERVER_ERROR, e.getMessage())).build();
+
         } catch (BadRequestException e) {
             LOGGER.error("Empty query is impossible", e);
-            return buildErrorResponse(VitamCode.GLOBAL_EMPTY_QUERY);
+            return buildErrorResponse();
         }
 
     }
@@ -311,7 +298,8 @@ public class EvidenceResource {
             client.create(initParameters);
         }
     }
-    private Response buildErrorResponse(VitamCode vitamCode) {
+    private Response buildErrorResponse() {
+        VitamCode vitamCode = VitamCode.GLOBAL_EMPTY_QUERY;
         return Response.status(vitamCode.getStatus())
             .entity(new RequestResponseError().setError(new VitamError(VitamCodeHelper.getCode(vitamCode))
                 .setContext(vitamCode.getService().getName()).setState(vitamCode.getDomain().getName())
@@ -320,9 +308,10 @@ public class EvidenceResource {
     }
 
     private VitamError getErrorEntity(Response.Status status, String message) {
-        String aMessage =
-            (message != null && !message.trim().isEmpty()) ? message
-                : (status.getReasonPhrase() != null ? status.getReasonPhrase() : status.name());
+        String reasonPhrase = status.getReasonPhrase() != null ? status.getReasonPhrase() : status.name();
+        String aMessage = (message != null && !message.trim().isEmpty()) ?
+            message
+            : reasonPhrase;
         return new VitamError(status.name()).setHttpCode(status.getStatusCode())
             .setMessage(status.getReasonPhrase()).setDescription(aMessage);
     }

@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2019)
  * <p>
  * contact.vitam@culture.gouv.fr
@@ -28,6 +28,7 @@ package fr.gouv.vitam.ihmrecette.appserver.applicativetest;
 
 import com.google.common.base.Throwables;
 import fr.gouv.vitam.common.VitamConfiguration;
+import fr.gouv.vitam.common.exception.VitamRuntimeException;
 import fr.gouv.vitam.common.logging.SysErrLogger;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
@@ -69,6 +70,7 @@ public class ApplicativeTestService {
      * name of the package
      */
     private static final String GLUE_CODE_PACKAGE = "fr.gouv.vitam.functionaltest.cucumber";
+    private static final String PROCESS_EXIT_STATUS = "process exit status ";
 
     /**
      * flag to indicate if a test is in progress or not.
@@ -110,9 +112,9 @@ public class ApplicativeTestService {
      *
      * @param featurePath path to the feature
      */
-    public String launchCucumberTest(Path featurePath) {
-        if (!Files.exists(featurePath)) {
-            throw new RuntimeException("path does not exist: " + featurePath);
+    String launchCucumberTest(Path featurePath) {
+        if (!featurePath.toFile().exists()) {
+            throw new VitamRuntimeException("path does not exist: " + featurePath);
         }
         String fileName = String.format("report_%s.json", LocalDateTime.now().format(DATE_TIME_FORMATTER));
 
@@ -131,7 +133,7 @@ public class ApplicativeTestService {
     }
 
 
-    public String launchPiecesCucumberTest(String pieces) throws IOException {
+    String launchPiecesCucumberTest(String pieces) throws IOException {
 
 
         File reportFile = File.createTempFile("tmp", ".json", new File(VitamConfiguration.getVitamTmpFolder()));
@@ -142,9 +144,7 @@ public class ApplicativeTestService {
             List<String> arguments = cucumberLauncher
                 .buildCucumberArgument(GLUE_CODE_PACKAGE, featureFile.toPath(), reportFile.getAbsolutePath());
             cucumberLauncher.launchCucumberTest(arguments);
-            final String result = String.join(System.lineSeparator(), Files.readAllLines(reportFile.toPath()));
-
-            return result;
+            return String.join(System.lineSeparator(), Files.readAllLines(reportFile.toPath()));
         } finally {
             Files.deleteIfExists(featureFile.toPath());
             Files.deleteIfExists(reportFile.toPath());
@@ -154,15 +154,17 @@ public class ApplicativeTestService {
     /**
      * @return if a tnr is in progress.
      */
-    public boolean inProgress() {
+    boolean inProgress() {
         return inProgress.get();
     }
 
     /**
      * @return the list of reports.
      */
-    public List<Path> reports() throws IOException {
-        return Files.list(tnrReportDirectory).collect(Collectors.toList());
+    List<Path> reports() throws IOException {
+        try(Stream<Path> pathStream = Files.list(tnrReportDirectory)) {
+            return pathStream.collect(Collectors.toList());
+        }
     }
 
     /**
@@ -170,18 +172,18 @@ public class ApplicativeTestService {
      * @return stream on the report.
      * @throws IOException if the report is not found.
      */
-    public InputStream readReport(String fileName) throws IOException {
+    InputStream readReport(String fileName) throws IOException {
         return Files.newInputStream(tnrReportDirectory.resolve(fileName));
     }
 
-    public int synchronizedTestDirectory(Path featurePath) throws IOException, InterruptedException {
+    int synchronizedTestDirectory(Path featurePath) throws IOException, InterruptedException {
         LOGGER.debug("git pull rebase on " + featurePath);
 
         ProcessBuilder pb = new ProcessBuilder("git", "pull", "--rebase");
         pb.directory(featurePath.toFile());
         Process p = pb.start();
         p.waitFor();
-        LOGGER.debug("process exit status " + p.exitValue());
+        LOGGER.debug(PROCESS_EXIT_STATUS + p.exitValue());
 
         return p.exitValue();
     }
@@ -202,7 +204,7 @@ public class ApplicativeTestService {
         pb.directory(featurePath.toFile());
         Process p = pb.start();
         p.waitFor();
-        LOGGER.debug("process exit status " + p.exitValue());
+        LOGGER.debug(PROCESS_EXIT_STATUS + p.exitValue());
 
         return p.exitValue();
     }
@@ -249,7 +251,7 @@ public class ApplicativeTestService {
         processBuilder.directory(featurePath.toFile());
         Process process = processBuilder.start();
         process.waitFor();
-        LOGGER.debug("process exit status " + process.exitValue());
+        LOGGER.debug(PROCESS_EXIT_STATUS + process.exitValue());
         return process.exitValue();
     }
 
@@ -258,23 +260,23 @@ public class ApplicativeTestService {
         processBuilder.directory(featurePath.toFile());
         Process process = processBuilder.start();
         process.waitFor();
-        LOGGER.debug("process exit status " + process.exitValue());
+        LOGGER.debug(PROCESS_EXIT_STATUS + process.exitValue());
         process.exitValue();
     }
 
-    public void setIsTnrMasterActived(AtomicBoolean isTnrMasterActived) {
+    void setIsTnrMasterActived(AtomicBoolean isTnrMasterActived) {
         this.isTnrMasterActived = isTnrMasterActived;
     }
 
-    public AtomicBoolean getIsTnrMasterActived() {
+    AtomicBoolean getIsTnrMasterActived() {
         return isTnrMasterActived;
     }
 
-    public String getTnrBranch() {
+    String getTnrBranch() {
         return tnrBranch;
     }
 
-    public void setTnrBranch(String tnrBranch) {
+    void setTnrBranch(String tnrBranch) {
         this.tnrBranch = tnrBranch;
     }
 }

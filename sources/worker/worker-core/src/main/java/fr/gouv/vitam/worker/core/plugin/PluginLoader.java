@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2019)
  * <p>
  * contact.vitam@culture.gouv.fr
@@ -57,8 +57,8 @@ import static java.lang.String.format;
 public class PluginLoader {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(PluginLoader.class);
 
-    private final static String PLUGIN_CONFIG_FILE = "plugins.json";
-    public static final String WORKER_PLUGIN_WORKSPACE = "plugins-workspace/";
+    private static final String PLUGIN_CONFIG_FILE = "plugins.json";
+    private static final String WORKER_PLUGIN_WORKSPACE = "plugins-workspace/";
 
     /**
      * list of plugins
@@ -82,7 +82,7 @@ public class PluginLoader {
      *
      * @param pluginsConfigFile path of the custom configuration file.
      */
-    public PluginLoader(String pluginsConfigFile) throws IOException {
+    PluginLoader(String pluginsConfigFile) throws IOException {
         LOGGER.debug("Load plugin files : " + pluginsConfigFile);
         SafeFileChecker.checkSafePluginsFilesPath(pluginsConfigFile);
         this.pluginsConfigFile = pluginsConfigFile;
@@ -112,19 +112,18 @@ public class PluginLoader {
     public void loadConfiguration() throws FileNotFoundException, InvalidParseOperationException, PluginNotFoundException {
         Map<String, PluginProperties> mapFromInputStream =
                 JsonHandler.getMapFromInputStream(getConfigAsStream(pluginsConfigFile), PluginProperties.class);
-
-        for (String handlerID : mapFromInputStream.keySet()) {
-            PluginProperties pluginProperties = mapFromInputStream.get(handlerID);
+        for (Map.Entry<String, PluginProperties> pluginPropertiesEntry : mapFromInputStream.entrySet()) {
+            PluginProperties pluginProperties = pluginPropertiesEntry.getValue();
             final Optional<Class<ActionHandler>> actionHandlerClazz;
 
             if (Strings.isNullOrEmpty(pluginProperties.getJarName())) {
-                actionHandlerClazz = loadInternalPlugins(handlerID, pluginProperties);
+                actionHandlerClazz = loadInternalPlugins(pluginPropertiesEntry.getKey(), pluginProperties);
             } else {
-                actionHandlerClazz = loadExternalPlugins(handlerID, pluginProperties);
+                actionHandlerClazz = loadExternalPlugins(pluginPropertiesEntry.getKey(), pluginProperties);
                 LOGGER.debug("Load external plugin name : {}", actionHandlerClazz.isPresent() ? actionHandlerClazz.get().getName() : "null");
             }
             if (actionHandlerClazz.isPresent()) {
-                plugins.put(handlerID, new PluginConfiguration(pluginProperties.getPropertiesFile(), actionHandlerClazz.get()));
+                plugins.put(pluginPropertiesEntry.getKey(), new PluginConfiguration(pluginProperties.getPropertiesFile(), actionHandlerClazz.get()));
             }
         }
     }
@@ -206,8 +205,7 @@ public class PluginLoader {
     public Map<String, ActionHandler> loadAllPlugins() throws InvocationPluginException {
         Map<String, ActionHandler> actionHandlers = new HashMap<>();
         for (Map.Entry<String, PluginConfiguration> configurationEntry : plugins.entrySet()) {
-            try {
-                ActionHandler actionHandler = configurationEntry.getValue().newInstance();
+            try (ActionHandler actionHandler = configurationEntry.getValue().newInstance()) {
                 actionHandlers.put(configurationEntry.getKey(), actionHandler);
                 // Exception is used here because Class.newInstance propagate the exception launched by the constructor.
             } catch (Exception e) {

@@ -1,4 +1,4 @@
-/*******************************************************************************
+/*
  * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2019)
  *
  * contact.vitam@culture.gouv.fr
@@ -23,7 +23,7 @@
  *
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
- *******************************************************************************/
+ */
 package fr.gouv.vitam.ingest.external.core;
 
 import com.fasterxml.jackson.databind.node.ObjectNode;
@@ -164,50 +164,47 @@ public class IngestExternalImpl implements IngestExternal {
         throws IngestExternalException, WorkspaceClientServerException, VitamClientException {
         ParametersChecker.checkParameter("input is a mandatory parameter", input);
         VitamThreadUtils.getVitamSession().setRequestId(guid);
-        // Store in local
-        final GUID objectName = guid;
-        final GUID operationId = guid;
 
         LogbookOperationsClientHelper helper = new LogbookOperationsClientHelper();
         WorkspaceFileSystem workspaceFileSystem;
         LogbookOperationParameters startedParameters;
         WorkFlow workflow;
         try (IngestInternalClient ingestClient = ingestInternalClientFactory.getClient()) {
-
             // Load workflow information from processing
             Optional<WorkFlow> optional = ingestClient.getWorkflowDetails(workflowIdentifier);
             if (!optional.isPresent()) {
                 throw new WorkflowNotFoundException("Workflow " + workflowIdentifier + " not found");
             }
             workflow = optional.get();
+
             LogbookTypeProcess logbookTypeProcess = LogbookTypeProcess.valueOf(workflow.getTypeProc());
             MessageLogbookEngineHelper messageLogbookEngineHelper = new MessageLogbookEngineHelper(logbookTypeProcess);
 
             startedParameters = LogbookParametersFactory.newLogbookOperationParameters(
-                operationId, workflow.getIdentifier(), operationId,
+                guid, workflow.getIdentifier(), guid,
                 logbookTypeProcess, StatusCode.STARTED,
                 messageLogbookEngineHelper.getLabelOp(workflow.getIdentifier(), StatusCode.STARTED) + " : " +
-                    operationId.toString(),
-                operationId);
+                    guid.toString(),
+                guid);
 
-            startedParameters.getMapParameters().put(LogbookParameterName.objectIdentifierIncome, objectName.getId());
+            startedParameters.getMapParameters().put(LogbookParameterName.objectIdentifierIncome, guid.getId());
 
             helper.createDelegate(startedParameters);
 
             String eventTypeStarted = VitamLogbookMessages.getEventTypeStarted(INGEST_EXT);
             LogbookOperationParameters sipSanityParameters =
                 LogbookParametersFactory.newLogbookOperationParameters(
-                    GUIDFactory.newEventGUID(operationId),
+                    GUIDFactory.newEventGUID(guid),
                     eventTypeStarted,
-                    operationId,
+                    guid,
                     logbookTypeProcess,
                     StatusCode.OK,
                     messageLogbookEngineHelper.getLabelOp(eventTypeStarted, StatusCode.OK),
-                    operationId);
+                    guid);
             helper.updateDelegate(sipSanityParameters);
 
             try {
-                LOGGER.debug("Initialize Workflow operation (" + operationId + ") ... ");
+                LOGGER.debug("Initialize Workflow operation (" + guid + ") ... ");
                 ingestClient.initWorkflow(workflow);
             } catch (WorkspaceClientServerException e) {
                 LOGGER.error("Workspace Server error", e);
@@ -216,40 +213,31 @@ public class IngestExternalImpl implements IngestExternal {
             } catch (VitamException e) {
                 throw new IngestExternalException(e);
             }
-            LOGGER.debug("Workflow initialized operation (" + operationId + ") ... ");
-
+            LOGGER.debug("Workflow initialized operation (" + guid + ") ... ");
 
             workspaceFileSystem = new WorkspaceFileSystem(new StorageConfiguration().setStoragePath(config.getPath()));
+            workspaceFileSystem.createContainer(guid.toString());
 
-            try {
-                workspaceFileSystem.createContainer(operationId.toString());
-            } catch (final ContentAddressableStorageAlreadyExistException |
-                ContentAddressableStorageServerException e) {
-                LOGGER.error(CAN_NOT_STORE_FILE, e);
-                throw new IngestExternalException(e);
-            }
-
-            try {
-                LOGGER.debug("Put file in local disk to be analysed operation (" + operationId + ")");
-                workspaceFileSystem.putObject(operationId.getId(), objectName.getId(), input);
-                // Implementation of asynchrone
-                LOGGER.debug("Responds to asyncResponse the continue in background operation (" + operationId + ")");
-                AsyncInputStreamHelper.asyncResponseResume(asyncResponse, Response.status(Status.ACCEPTED)
-                    .header(GlobalDataRest.X_REQUEST_ID, guid.getId())
-                    .header(GlobalDataRest.X_GLOBAL_EXECUTION_STATE, ProcessState.PAUSE)
-                    .header(GlobalDataRest.X_GLOBAL_EXECUTION_STATUS, StatusCode.UNKNOWN)
-                    .build(), input);
-            } catch (final ContentAddressableStorageException e) {
-                LOGGER.error(CAN_NOT_STORE_FILE, e);
-                throw new IngestExternalException(e);
-            }
+            LOGGER.debug("Put file in local disk to be analysed operation (" + guid + ")");
+            workspaceFileSystem.putObject(guid.getId(), guid.getId(), input);
+            // Implementation of asynchrone
+            LOGGER.debug("Responds to asyncResponse the continue in background operation (" + guid + ")");
+            AsyncInputStreamHelper.asyncResponseResume(asyncResponse, Response.status(Status.ACCEPTED)
+                .header(GlobalDataRest.X_REQUEST_ID, guid.getId())
+                .header(GlobalDataRest.X_GLOBAL_EXECUTION_STATE, ProcessState.PAUSE)
+                .header(GlobalDataRest.X_GLOBAL_EXECUTION_STATUS, StatusCode.UNKNOWN)
+                .build(), input);
 
         } catch (LogbookClientNotFoundException | LogbookClientAlreadyExistsException ex) {
             throw new IngestExternalException(ex);
         } catch (IOException ex) {
             LOGGER.error("Cannot load WorkspaceFileSystem ", ex);
             throw new IllegalStateException(ex);
+        }   catch (final ContentAddressableStorageException e) {
+            LOGGER.error(CAN_NOT_STORE_FILE, e);
+            throw new IngestExternalException(e);
         }
+
         return new PreUploadResume(
             helper,
             workflow,
@@ -260,9 +248,6 @@ public class IngestExternalImpl implements IngestExternal {
     @Override
     public StatusCode upload(PreUploadResume preUploadResume, String xAction, GUID guid)
         throws IngestExternalException {
-        final GUID containerName = guid;
-        final GUID objectName = guid;
-        final GUID operationId = guid;
         final GUID ingestExtGuid = GUIDFactory.newEventGUID(guid);
         LogbookTypeProcess logbookTypeProcess = LogbookTypeProcess.valueOf(preUploadResume.getWorkFlow().getTypeProc());
         WorkspaceFileSystem workspaceFileSystem = preUploadResume.getWorkspaceFileSystem();
@@ -272,8 +257,8 @@ public class IngestExternalImpl implements IngestExternal {
 
             final String antiVirusScriptName = config.getAntiVirusScriptName();
             final long timeoutScanDelay = config.getTimeoutScanDelay();
-            final String containerNamePath = containerName != null ? containerName.getId() : "containerName";
-            final String objectNamePath = objectName != null ? objectName.getId() : "objectName";
+            final String containerNamePath = guid != null ? guid.getId() : "containerName";
+            final String objectNamePath = guid != null ? guid.getId() : "objectName";
             final String filePath = config.getPath() + "/" + containerNamePath + "/" + objectNamePath;
             final File file = new File(filePath);
             if (!file.canRead()) {
@@ -283,13 +268,13 @@ public class IngestExternalImpl implements IngestExternal {
             ExecutionOutput executionOutput;
             final LogbookOperationParameters antivirusParameters =
                 LogbookParametersFactory.newLogbookOperationParameters(
-                    GUIDFactory.newEventGUID(operationId),
+                    GUIDFactory.newEventGUID(guid),
                     SANITY_CHECK_SIP,
-                    containerName,
+                    guid,
                     logbookTypeProcess,
                     StatusCode.OK,
                     messageLogbookEngineHelper.getLabelOp(SANITY_CHECK_SIP, StatusCode.OK),
-                    containerName);
+                    guid);
             antivirusParameters.putParameterValue(LogbookParameterName.parentEventIdentifier, ingestExtGuid.getId());
             // SANITY_CHECK_SIP.STARTED
             try {
@@ -334,16 +319,18 @@ public class IngestExternalImpl implements IngestExternal {
                         messageLogbookEngineHelper.getLabelOp(SANITY_CHECK_SIP, StatusCode.FATAL));
                     isFileInfected = true;
                     break;
+                default:
+                    break;
             }
 
             final LogbookOperationParameters endParameters = LogbookParametersFactory.newLogbookOperationParameters(
                 ingestExtGuid,
                 INGEST_EXT,
-                containerName,
+                guid,
                 logbookTypeProcess,
                 StatusCode.UNKNOWN,
                 VitamLogbookMessages.getCodeOp(INGEST_EXT, StatusCode.UNKNOWN),
-                containerName);
+                guid);
             // update end step param
             if (antivirusParameters.getStatus().compareTo(endParameters.getStatus()) > 1) {
                 endParameters.setStatus(antivirusParameters.getStatus());
@@ -355,13 +342,13 @@ public class IngestExternalImpl implements IngestExternal {
 
                 final LogbookOperationParameters formatParameters =
                     LogbookParametersFactory.newLogbookOperationParameters(
-                        GUIDFactory.newEventGUID(operationId),
+                        GUIDFactory.newEventGUID(guid),
                         CHECK_CONTAINER,
-                        containerName,
+                        guid,
                         logbookTypeProcess,
                         StatusCode.OK,
                         VitamLogbookMessages.getCodeOp(CHECK_CONTAINER, StatusCode.OK),
-                        containerName);
+                        guid);
                 formatParameters.putParameterValue(LogbookParameterName.parentEventIdentifier, ingestExtGuid.getId());
                 // CHECK_CONTAINER.STARTED
 
@@ -421,23 +408,23 @@ public class IngestExternalImpl implements IngestExternal {
                 InputStream inputStreamTmp = null;
                 if (isSupportedMedia) {
                     manifestFileNameCheck = LogbookParametersFactory.newLogbookOperationParameters(
-                        GUIDFactory.newEventGUID(operationId),
+                        GUIDFactory.newEventGUID(guid),
                         MANIFEST_FILE_NAME_CHECK,
-                        containerName,
+                        guid,
                         logbookTypeProcess,
                         StatusCode.OK,
                         VitamLogbookMessages.getCodeOp(MANIFEST_FILE_NAME_CHECK, StatusCode.OK),
-                        containerName);
+                        guid);
                     manifestFileNameCheck
                         .putParameterValue(LogbookParameterName.parentEventIdentifier, ingestExtGuid.getId());
                     try {
                         // check manifest file name by regex
                         inputStreamTmp = (InputStream) workspaceFileSystem
-                            .getObject(containerName.getId(), objectName.getId(), null, null).getEntity();
+                            .getObject(guid.getId(), guid.getId(), null, null).getEntity();
                         manifestFileName = checkManifestFileName(inputStreamTmp, mimeType);
                         if (manifestFileName.isManifestFile()) {
                             inputStream = (InputStream) workspaceFileSystem
-                                .getObject(containerName.getId(), objectName.getId(), null, null).getEntity();
+                                .getObject(guid.getId(), guid.getId(), null, null).getEntity();
                         } else {
                             LOGGER.error("Nom du fichier manifest n'est pas conforme");
 
@@ -482,7 +469,7 @@ public class IngestExternalImpl implements IngestExternal {
                     helper.updateDelegate(manifestFileNameCheck);
 
                     if (manifestFileNameCheck.getStatus().compareTo(StatusCode.OK) > 0) {
-                        logbookAndGenerateATR(preUploadResume, operationId, manifestFileNameCheck.getStatus(),
+                        logbookAndGenerateATR(preUploadResume, guid, manifestFileNameCheck.getStatus(),
                             isFileInfected, helper,
                             MANIFEST_FILE_NAME_CHECK, "");
                     }
@@ -492,7 +479,7 @@ public class IngestExternalImpl implements IngestExternal {
                     helper.updateDelegate(antivirusParameters);
                     helper.updateDelegate(formatParameters);
 
-                    logbookAndGenerateATR(preUploadResume, operationId, StatusCode.KO, isFileInfected,
+                    logbookAndGenerateATR(preUploadResume, guid, StatusCode.KO, isFileInfected,
                         helper, CHECK_CONTAINER, ". Format non supporté : " + mimeType);
                 }
             } else {
@@ -504,7 +491,7 @@ public class IngestExternalImpl implements IngestExternal {
                 helper.updateDelegate(endParameters);
                 helper.updateDelegate(antivirusParameters);
 
-                logbookAndGenerateATR(preUploadResume, operationId, antivirusParameters.getStatus(),
+                logbookAndGenerateATR(preUploadResume, guid, antivirusParameters.getStatus(),
                     isFileInfected, helper,
                     SANITY_CHECK_SIP, "");
             }
@@ -517,7 +504,7 @@ public class IngestExternalImpl implements IngestExternal {
                 // and in async mode add LogbookOperationParameters as Ingest-External-ATR-Forward START
                 // and LogbookOperationParameters as Ingest-External-ATR-Forward OK
                 // then call back ingestClient with updateFinalLogbook
-                ingestClient.uploadInitialLogbook(helper.removeCreateDelegate(containerName.getId()));
+                ingestClient.uploadInitialLogbook(helper.removeCreateDelegate(guid.getId()));
                 if (!isFileInfected && isSupportedMedia && manifestFileName != null &&
                     manifestFileName.isManifestFile()) {
 
@@ -531,12 +518,12 @@ public class IngestExternalImpl implements IngestExternal {
             } catch (ZipFilesNameNotAllowedException e) {
                 helper = new LogbookOperationsClientHelper();
 
-                logbookAndGenerateATR(preUploadResume, operationId, StatusCode.KO, isFileInfected, helper,
+                logbookAndGenerateATR(preUploadResume, guid, StatusCode.KO, isFileInfected, helper,
                     INGEST_INT_UPLOAD, "");
 
                 try (IngestInternalClient ingestClient =
                     ingestInternalClientFactory.getClient()) {
-                    ingestClient.uploadFinalLogbook(helper.removeUpdateDelegate(containerName.getId()));
+                    ingestClient.uploadFinalLogbook(helper.removeUpdateDelegate(guid.getId()));
                 } catch (VitamException ex) {
                     throw new IngestExternalException(ex);
                 } finally {
@@ -545,11 +532,11 @@ public class IngestExternalImpl implements IngestExternal {
 
                 return StatusCode.KO;
             } catch (WorkspaceClientServerException e) {
-                logbookAndGenerateATR(preUploadResume, operationId, StatusCode.FATAL, isFileInfected, helper,
+                logbookAndGenerateATR(preUploadResume, guid, StatusCode.FATAL, isFileInfected, helper,
                     INGEST_INT_UPLOAD, "");
                 try (IngestInternalClient ingestClient =
                     ingestInternalClientFactory.getClient()) {
-                    ingestClient.uploadFinalLogbook(helper.removeUpdateDelegate(containerName.getId()));
+                    ingestClient.uploadFinalLogbook(helper.removeUpdateDelegate(guid.getId()));
                 } catch (VitamException ex) {
                     throw new IngestExternalException(ex);
                 }
@@ -557,20 +544,20 @@ public class IngestExternalImpl implements IngestExternal {
             } catch (final VitamException e) {
                 throw new IngestExternalException(e);
             }
-        } catch (LogbookClientNotFoundException | InvalidGuidOperationException e) {
+        } catch (LogbookClientNotFoundException e) {
             throw new IngestExternalException(e);
         } finally {
             if (workspaceFileSystem != null) {
                 try {
-                    if (containerName != null) {
-                        workspaceFileSystem.deleteObject(containerName.getId(), objectName.getId());
+                    if (guid != null) {
+                        workspaceFileSystem.deleteObject(guid.getId(), guid.getId());
                     }
                 } catch (final ContentAddressableStorageException e) {
                     LOGGER.warn(e);
                 }
                 try {
-                    if (containerName != null) {
-                        workspaceFileSystem.deleteContainer(containerName.getId(), true);
+                    if (guid != null) {
+                        workspaceFileSystem.deleteContainer(guid.getId(), true);
                     }
                 } catch (final ContentAddressableStorageException e) {
                     LOGGER.warn(e);
@@ -601,7 +588,7 @@ public class IngestExternalImpl implements IngestExternal {
     private void logbookAndGenerateATR(PreUploadResume preUploadResume, GUID operationId, StatusCode statusCode,
         boolean isFileInfected,
         LogbookOperationsClientHelper helper, String atrEventType, String additionalMessage)
-        throws InvalidGuidOperationException, LogbookClientNotFoundException {
+        throws LogbookClientNotFoundException {
 
         LogbookTypeProcess logbookTypeProcess = LogbookTypeProcess.valueOf(preUploadResume.getWorkFlow().getTypeProc());
 
@@ -850,23 +837,22 @@ public class IngestExternalImpl implements IngestExternal {
     private ManifestFileName checkManifestFileName(InputStream in, String mimeType)
         throws IOException, ArchiveException {
         ManifestFileName manifestFileName = new ManifestFileName();
-        final ArchiveInputStream archiveInputStream = new VitamArchiveStreamFactory()
-            .createArchiveInputStream(CommonMediaType.valueOf(mimeType), in);
-        ArchiveEntry entry;
-        while ((entry = archiveInputStream.getNextEntry()) != null) {
-            if (archiveInputStream.canReadEntryData(entry)) {
-                LOGGER.info("SIP Files : " + entry.getName());
-                if (!entry.isDirectory() && entry.getName().split("/").length == 1) {
-                    manifestFileName.setFileName(entry.getName());
-                    if (entry.getName().matches(VitamConstants.MANIFEST_FILE_NAME_REGEX)) {
-                        manifestFileName.setManifestFile(true);
-                        break;
+        try (final ArchiveInputStream archiveInputStream = new VitamArchiveStreamFactory()
+            .createArchiveInputStream(CommonMediaType.valueOf(mimeType), in)) {
+            ArchiveEntry entry;
+            while ((entry = archiveInputStream.getNextEntry()) != null) {
+                if (archiveInputStream.canReadEntryData(entry)) {
+                    LOGGER.info("SIP Files : " + entry.getName());
+                    if (!entry.isDirectory() && entry.getName().split("/").length == 1) {
+                        manifestFileName.setFileName(entry.getName());
+                        if (entry.getName().matches(VitamConstants.MANIFEST_FILE_NAME_REGEX)) {
+                            manifestFileName.setManifestFile(true);
+                            break;
+                        }
                     }
                 }
             }
         }
         return manifestFileName;
     }
-
-
 }

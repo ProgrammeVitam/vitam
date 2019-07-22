@@ -30,6 +30,7 @@ package fr.gouv.vitam.worker.server.rest;
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
+import fr.gouv.vitam.common.exception.VitamRuntimeException;
 import fr.gouv.vitam.common.serverv2.application.CommonBusinessApplication;
 import fr.gouv.vitam.functional.administration.client.AdminManagementClientFactory;
 import fr.gouv.vitam.processing.common.exception.PluginException;
@@ -95,7 +96,7 @@ public class BusinessApplication extends Application {
             }
 
         } catch (PluginException | IOException | InvalidParseOperationException e) {
-            throw new RuntimeException(e);
+            throw new VitamRuntimeException(e);
         }
 
     }

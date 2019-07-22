@@ -28,6 +28,7 @@ package fr.gouv.vitam.common.elasticsearch;
 
 import com.google.common.collect.Sets;
 import fr.gouv.vitam.common.VitamConfiguration;
+import fr.gouv.vitam.common.exception.VitamRuntimeException;
 import org.elasticsearch.action.bulk.BulkRequestBuilder;
 import org.elasticsearch.action.bulk.BulkResponse;
 import org.elasticsearch.action.search.SearchResponse;
@@ -59,14 +60,15 @@ public class ElasticsearchRule extends ExternalResource {
     public static final int TCP_PORT = 9300;
     public static final String VITAM_CLUSTER = "elasticsearch-data";
     private boolean clientClosed = false;
-
+    private Client client;
+    private Set<String> indexesToBePurged = new HashSet<>();
 
     public ElasticsearchRule(String... indexesToBePurged) {
         try {
             client = new PreBuiltTransportClient(getClientSettings()).addTransportAddress(
                 new TransportAddress(InetAddress.getByName("localhost"), TCP_PORT));
         } catch (final UnknownHostException e) {
-            throw new RuntimeException(e);
+            throw new VitamRuntimeException(e);
         }
 
         if (null != indexesToBePurged) {
@@ -87,9 +89,6 @@ public class ElasticsearchRule extends ExternalResource {
             .build();
     }
 
-
-    private Client client;
-    private Set<String> indexesToBePurged = new HashSet<>();
 
     @Override
     protected void after() {
@@ -135,7 +134,7 @@ public class ElasticsearchRule extends ExternalResource {
                 BulkResponse bulkResponse = bulkRequest.get();
 
                 if (bulkResponse.hasFailures()) {
-                    throw new RuntimeException(
+                    throw new VitamRuntimeException(
                         String.format("DatabaseException when calling purge by bulk Request %s",
                             bulkResponse.buildFailureMessage()));
                 }

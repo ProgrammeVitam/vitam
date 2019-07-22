@@ -1,4 +1,4 @@
-/*******************************************************************************
+/*
  * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2019)
  *
  * contact.vitam@culture.gouv.fr
@@ -23,12 +23,11 @@
  *
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
- *******************************************************************************/
+ */
 package fr.gouv.vitam.worker.core.plugin.migration;
 
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import fr.gouv.vitam.common.database.builder.query.VitamFieldsHelper;
 import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
@@ -58,6 +57,7 @@ class MigrationHelper {
     private static final String FIELDS_KEY = "$fields";
     private static final String CHAINED_FILE = "chainedFile.json";
     private static final String ID = "#id";
+    private static final String EVENTS_FIELDNAME = "events";
 
     /**
      * Create SelectMultiQuery for selecting Id
@@ -93,9 +93,8 @@ class MigrationHelper {
         File report = handler.getNewLocalFile("report.json");
 
         try (ChainedFileWriter chainedFileWriter = new ChainedFileWriter(handler, folder + "/" + CHAINED_FILE, bachSize);
-            OutputStream outputStream = new FileOutputStream(report)) {
-
-            JsonGenerator jsonGenerator = createJsonGenerator(outputStream);
+            OutputStream outputStream = new FileOutputStream(report);
+            JsonGenerator jsonGenerator = createJsonGenerator(outputStream)) {
             jsonGenerator.writeStartArray();
 
             StreamSupport.stream(scrollRequest, false).forEach(
@@ -109,7 +108,6 @@ class MigrationHelper {
                     }
                 });
             jsonGenerator.writeEndArray();
-            jsonGenerator.close();
         } catch (IOException | InvalidParseOperationException e) {
             throw new ProcessingException("Could not save linked files", e);
         }
@@ -119,13 +117,10 @@ class MigrationHelper {
 
     static boolean checkMigrationEvents(JsonNode lfc, String eventType ) {
         JsonNode lastEvent = null;
-        if (lfc!=null && lfc.get("events")!= null  ){
+        if (lfc!=null && lfc.get(EVENTS_FIELDNAME)!= null) {
+            lastEvent =  lfc.get(EVENTS_FIELDNAME).get((lfc.get(EVENTS_FIELDNAME)).size() - 1);
+        }
 
-            lastEvent =  ((ArrayNode) lfc.get("events")).get(((ArrayNode) lfc.get("events")).size() - 1);
-        }
-        if (lastEvent != null && !lastEvent.get("evType").asText().equals(eventType)) {
-            return true;
-        }
-        return false;
+        return (lastEvent != null && !lastEvent.get("evType").asText().equals(eventType));
     }
 }

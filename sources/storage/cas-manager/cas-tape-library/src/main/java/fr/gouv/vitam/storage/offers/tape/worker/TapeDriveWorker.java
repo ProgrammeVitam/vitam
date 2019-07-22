@@ -1,4 +1,4 @@
-/*******************************************************************************
+/*
  * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2019)
  *
  * contact.vitam@culture.gouv.fr
@@ -23,12 +23,13 @@
  *
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
- *******************************************************************************/
+ */
 package fr.gouv.vitam.storage.offers.tape.worker;
 
 import com.google.common.annotations.VisibleForTesting;
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.VitamConfiguration;
+import fr.gouv.vitam.common.exception.VitamRuntimeException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.SysErrLogger;
 import fr.gouv.vitam.common.logging.VitamLogger;
@@ -57,12 +58,12 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 public class TapeDriveWorker implements Runnable {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(TapeDriveWorker.class);
-    public static final int MAX_ATTEMPTS = 3;
-    public static final int RETRY_WAIT_SECONDS = 1000;
-    public static long SLEEP_TIME = 10_000;
-    public static long intervalDelayLogInProgressWorker = VitamConfiguration.getIntervalDelayLogInProgressWorker();
+    private static final int MAX_ATTEMPTS = 3;
+    private static final int RETRY_WAIT_SECONDS = 1000;
+    private static long sleepTime = 10_000;
+    private static long intervalDelayLogInProgressWorker = VitamConfiguration.getIntervalDelayLogInProgressWorker();
 
-    public final String MSG_PREFIX;
+    private final String msgPrefix;
 
     private final TapeDriveOrderConsumer receiver;
     private final TapeRobotPool tapeRobotPool;
@@ -78,7 +79,7 @@ public class TapeDriveWorker implements Runnable {
     private String inputTarPath;
 
     @VisibleForTesting
-    public TapeDriveWorker(
+    TapeDriveWorker(
         TapeRobotPool tapeRobotPool,
         TapeDriveService tapeDriveService,
         TapeCatalogService tapeCatalogService,
@@ -100,19 +101,19 @@ public class TapeDriveWorker implements Runnable {
         this.receiver = receiver;
         this.shutdownSignal = new CountDownLatch(1);
         this.pauseSignal = new CountDownLatch(1);
-        SLEEP_TIME = sleepTime;
+        TapeDriveWorker.sleepTime = sleepTime;
 
         if (null != currentTape) {
             readWriteResult = new ReadWriteResult();
             readWriteResult.setCurrentTape(currentTape);
         }
 
-        this.MSG_PREFIX = String.format("[Library] : %s, [Drive] : %s, ", tapeRobotPool.getLibraryIdentifier(),
+        this.msgPrefix = String.format("[Library] : %s, [Drive] : %s, ", tapeRobotPool.getLibraryIdentifier(),
             tapeDriveService.getTapeDriveConf().getIndex());
 
     }
 
-    public TapeDriveWorker(
+    TapeDriveWorker(
         TapeRobotPool tapeRobotPool,
         TapeDriveService tapeDriveService,
         TapeCatalogService tapeCatalogService,
@@ -121,7 +122,7 @@ public class TapeDriveWorker implements Runnable {
         TapeCatalog currentTape,
         String inputTarPath, boolean forceOverrideNonEmptyCartridges) {
         this(tapeRobotPool, tapeDriveService, tapeCatalogService, receiver, archiveReferentialRepository, currentTape,
-            inputTarPath, SLEEP_TIME, forceOverrideNonEmptyCartridges);
+            inputTarPath, sleepTime, forceOverrideNonEmptyCartridges);
     }
 
     @Override
@@ -131,7 +132,7 @@ public class TapeDriveWorker implements Runnable {
             final StopWatch loopStopWatch = StopWatch.createStarted();
             final StopWatch inProgressWorkerStopWatch = StopWatch.createStarted();
             while (!stop.get()) {
-                LOGGER.debug(MSG_PREFIX + "Start take readWriteOrder from queue ");
+                LOGGER.debug(msgPrefix + "Start take readWriteOrder from queue ");
 
                 ReadWriteOrder readWriteOrder = null;
                 loopStopWatch.reset();
@@ -142,7 +143,7 @@ public class TapeDriveWorker implements Runnable {
 
                     if (order.isPresent()) {
                         if (LOGGER.isDebugEnabled()) {
-                            LOGGER.debug(MSG_PREFIX + "Process write order :" + JsonHandler.unprettyPrint(order.get()));
+                            LOGGER.debug(msgPrefix + "Process write order :" + JsonHandler.unprettyPrint(order.get()));
                         }
                         readWriteOrder = order.get();
                     }
@@ -154,9 +155,9 @@ public class TapeDriveWorker implements Runnable {
 
                     } else {
                         if (LOGGER.isDebugEnabled()) {
-                            LOGGER.debug(MSG_PREFIX + "Sleep " + SLEEP_TIME + " ms because of exception : ", e);
+                            LOGGER.debug(msgPrefix + "Sleep " + sleepTime + " ms because of exception : ", e);
                         }
-                        Thread.sleep(SLEEP_TIME);
+                        Thread.sleep(sleepTime);
 
                         // Log every one minute
                         if (exceptionStopWatch.getTime(TimeUnit.MINUTES) >= 1) {
@@ -206,7 +207,7 @@ public class TapeDriveWorker implements Runnable {
 
                         default:
                             throw new IllegalStateException(
-                                MSG_PREFIX + "Order should have state Completed, Ready or Error");
+                                msgPrefix + "Order should have state Completed, Ready or Error");
                     }
 
                     PerformanceLogger
@@ -236,14 +237,14 @@ public class TapeDriveWorker implements Runnable {
                         inProgressWorkerStopWatch.start();
 
                         LOGGER.warn(
-                            MSG_PREFIX + "No read/write to tape order found. waiting (" + SLEEP_TIME + ") Sec ...");
+                            msgPrefix + "No read/write to tape order found. waiting (" + sleepTime + ") Sec ...");
                     }
-                    Thread.sleep(SLEEP_TIME);
+                    Thread.sleep(sleepTime);
                 }
 
             }
         } catch (Exception e) {
-            throw new RuntimeException(e);
+            throw new VitamRuntimeException(e);
         } finally {
             this.shutdownSignal.countDown();
             this.pauseSignal.countDown();
@@ -307,7 +308,9 @@ public class TapeDriveWorker implements Runnable {
             LOGGER.warn(String.format(
                 "[Library] : %s, [Drive] : %s, [Tape]: %s, already started",
                 tapeRobotPool.getLibraryIdentifier(),
-                tapeDriveService.getTapeDriveConf().getIndex()));
+                tapeDriveService.getTapeDriveConf().getIndex(),
+                ""  // FIXME missing tape informations
+                ));
         }
 
     }
@@ -349,7 +352,7 @@ public class TapeDriveWorker implements Runnable {
             tapeDriveService.getTapeDriveConf().getIndex()));
     }
 
-    public boolean isRunning() {
+    boolean isRunning() {
         return shutdownSignal.getCount() != 0;
     }
 
@@ -358,15 +361,15 @@ public class TapeDriveWorker implements Runnable {
     }
 
 
-    public ReadWritePriority getPriority() {
+    ReadWritePriority getPriority() {
         return tapeDriveService.getTapeDriveConf().getReadWritePriority();
     }
 
-    public ReadWriteResult getReadWriteResult() {
+    ReadWriteResult getReadWriteResult() {
         return readWriteResult;
     }
 
-    public TapeCatalog getCurrentTape() {
+    TapeCatalog getCurrentTape() {
         return readWriteResult == null ? null : readWriteResult.getCurrentTape();
     }
 }

@@ -144,8 +144,7 @@ public class RulesManagerFileImplTest {
     private static final String PREFIX = GUIDFactory.newGUID().getId();
 
     @ClassRule
-    public static MongoRule mongoRule =
-        new MongoRule(VitamCollection.getMongoClientOptions());
+    public static MongoRule mongoRule = new MongoRule(VitamCollection.getMongoClientOptions());
 
     @ClassRule
     public static ElasticsearchRule elasticsearchRule = new ElasticsearchRule();
@@ -160,10 +159,8 @@ public class RulesManagerFileImplTest {
     private static final String FILE_TO_TEST_RULES_DURATION_KO = "jeu_donnees_KO_regles_CSV_test.csv";
     private static final String FILE_TO_COMPARE = "jeu_donnees_OK_regles_CSV.csv";
     private static final String FILE_UPDATE_RULE_TYPE = "jeu_donnees_OK_regles_CSV_update_ruleType.csv";
-
     private static final String FILE_UPDATE_RULE_DURATION = "jeu_donnees_OK_regles_CSV_update_ruleDuration.csv";
     private static final String FILE_UPDATE_RULE_DESC = "jeu_donnees_OK_regles_CSV_update_ruleDesc.csv";
-
     private static final String FILE_DELETE_RULE = "jeu_donnees_OK_regles_CSV_delete_rule.csv";
     private static final String FILE_TO_TEST_KO_INVALID_FORMAT = "jeu_donnees_KO_regles_CSV_invalid_format.csv";
     private static final String FILE_TO_TEST_KO_MISSING_COLUMN = "jeu_donnees_KO_regles_CSV_missing_column.csv";

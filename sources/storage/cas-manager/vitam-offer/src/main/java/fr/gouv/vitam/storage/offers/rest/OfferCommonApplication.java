@@ -1,4 +1,4 @@
-/*******************************************************************************
+/*
  * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2019)
  *
  * contact.vitam@culture.gouv.fr
@@ -23,7 +23,7 @@
  *
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
- *******************************************************************************/
+ */
 package fr.gouv.vitam.storage.offers.rest;
 
 import com.google.common.base.Strings;
@@ -35,6 +35,7 @@ import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.database.collections.VitamCollection;
 import fr.gouv.vitam.common.database.server.mongodb.MongoDbAccess;
 import fr.gouv.vitam.common.database.server.mongodb.SimpleMongoDBAccess;
+import fr.gouv.vitam.common.exception.VitamRuntimeException;
 import fr.gouv.vitam.common.storage.StorageConfiguration;
 import fr.gouv.vitam.storage.offers.core.DefaultOfferService;
 import fr.gouv.vitam.storage.offers.core.DefaultOfferServiceImpl;
@@ -50,10 +51,10 @@ import java.security.cert.CertificateException;
 
 public class OfferCommonApplication {
 
-    private static OfferCommonApplication INSTANCE = new OfferCommonApplication();
+    private static OfferCommonApplication instance = new OfferCommonApplication();
 
     public static OfferCommonApplication getInstance() {
-        return INSTANCE;
+        return instance;
     }
 
     private MongoDbAccess mongoDbAccess;
@@ -61,8 +62,7 @@ public class OfferCommonApplication {
 
     private DefaultOfferService defaultOfferService;
 
-    public synchronized void initialize(String configurationFile) {
-
+    synchronized void initialize(String configurationFile) {
         try (final InputStream yamlIS = PropertiesUtils.getConfigAsStream(configurationFile)) {
 
             final OfferConfiguration configuration = PropertiesUtils.readYaml(yamlIS, OfferConfiguration.class);
@@ -76,7 +76,6 @@ public class OfferCommonApplication {
 
             mongoDbAccess = new SimpleMongoDBAccess(mongoClient, configuration.getDbName());
 
-
             storageConfiguration = PropertiesUtils
                 .readYaml(PropertiesUtils.findFile(DefaultOfferService.STORAGE_CONF_FILE_NAME),
                     StorageConfiguration.class);
@@ -86,11 +85,8 @@ public class OfferCommonApplication {
             }
 
             defaultOfferService = new DefaultOfferServiceImpl(offerDatabaseService, mongoDbAccess);
-
-
-
         } catch (IOException | KeyManagementException | NoSuchAlgorithmException | KeyStoreException | CertificateException e) {
-            throw new RuntimeException(e);
+            throw new VitamRuntimeException(e);
         }
     }
 
@@ -98,7 +94,7 @@ public class OfferCommonApplication {
         this.defaultOfferService = null;
     }
 
-    public DefaultOfferService getDefaultOfferService() {
+    DefaultOfferService getDefaultOfferService() {
         return defaultOfferService;
     }
 
@@ -106,7 +102,7 @@ public class OfferCommonApplication {
         return mongoDbAccess;
     }
 
-    public StorageConfiguration getStorageConfiguration() {
+    StorageConfiguration getStorageConfiguration() {
         return storageConfiguration;
     }
 

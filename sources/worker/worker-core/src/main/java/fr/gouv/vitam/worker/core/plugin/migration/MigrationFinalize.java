@@ -57,14 +57,14 @@ import static fr.gouv.vitam.worker.core.plugin.migration.MigrationUnitPrepare.MI
  * MigrationFinalize class
  */
 public class MigrationFinalize extends ActionHandler {
-    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(MigrationUnitPrepare.class);
     private static final String MIGRATION_FINALIZE = "MIGRATION_FINALIZE";
+    private static final String JSON_FILE_EXTENSION = ".json";
     private BackupService backupService;
 
     private static final String REPORTS = "reports";
 
     @VisibleForTesting
-    public MigrationFinalize(BackupService backupService) {
+    private MigrationFinalize(BackupService backupService) {
         this.backupService = backupService;
     }
 
@@ -81,9 +81,9 @@ public class MigrationFinalize extends ActionHandler {
         try {
 
             File unitsIdentifierFile =
-                handlerIO.getFileFromWorkspace(REPORTS + "/" + MIGRATION_UNITS_LIST_IDS + ".json");
+                handlerIO.getFileFromWorkspace(REPORTS + "/" + MIGRATION_UNITS_LIST_IDS + JSON_FILE_EXTENSION);
             File objectIdentifierFile =
-                handlerIO.getFileFromWorkspace(REPORTS + "/" + MIGRATION_OBJECT_LIST_IDS + ".json");
+                handlerIO.getFileFromWorkspace(REPORTS + "/" + MIGRATION_OBJECT_LIST_IDS + JSON_FILE_EXTENSION);
 
             File report = handlerIO.getNewLocalFile("report.json");
 
@@ -97,10 +97,10 @@ public class MigrationFinalize extends ActionHandler {
                 os.write(",\"objectGroups:\":".getBytes(StandardCharsets.UTF_8));
                 IOUtils.copy(objectsReportInputStream, os);
                 os.write("}".getBytes(StandardCharsets.UTF_8));
+                backupService.backup(new FileInputStream(report), DataCategory.REPORT,
+                    handlerIO.getContainerName() + JSON_FILE_EXTENSION);
             }
 
-            backupService.backup(new FileInputStream(report), DataCategory.REPORT,
-                handlerIO.getContainerName() + ".json");
 
         } catch (IOException | BackupServiceException | ContentAddressableStorageNotFoundException e) {
             throw new ProcessingException(e);
