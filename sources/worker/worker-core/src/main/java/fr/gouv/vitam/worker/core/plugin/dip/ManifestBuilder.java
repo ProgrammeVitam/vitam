@@ -200,6 +200,7 @@ public class ManifestBuilder implements AutoCloseable {
 
         Map<String, String> strategiesByVersion = objectGroup.getQualifiers().stream()
                 .flatMap(qualifier -> qualifier.getVersions().stream())
+                .filter(version -> version.getStorage() != null && version.getStorage().getStrategyId() != null)
                 .collect(Collectors.toMap(VersionsModel::getDataObjectVersion, version -> version.getStorage().getStrategyId()));
         
         Map<String, JsonNode> maps = new HashMap<>();

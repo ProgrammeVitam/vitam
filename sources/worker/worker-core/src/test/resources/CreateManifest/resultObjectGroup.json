@@ -82,29 +82,16 @@
           "#nbc": 1,
           "versions": [
             {
-              "#id": "aeaaaaaaaabhu53raawyuak7tm2uaqiaaaaq",
               "DataObjectGroupId": "aebaaaaaaabhu53raawyuak7tm2uaqqaaaaq",
-              "DataObjectVersion": "BinaryMaster_1",
-              "FormatIdentification": {
-                "FormatLitteral": "Plain Text File",
-                "MimeType": "text/plain",
-                "FormatId": "x-fmt/111"
-              },
-              "FileInfo": {
-                "Filename": "OAIS_dpctw14-02.pdf",
-                "LastModified": "2014-12-07T09:52:56.000+01:00"
-              },
-              "Size": 996183,
-              "Uri": "Content/ID9.pdf",
-              "MessageDigest": "7f3ce13b418339cb20218473ddcbc6d308f094ff9e3dd86526e124b216c267a8f46ffa21cc5e4b646ffea725aa75b6dbd1d203331c47110a10ec293383736645",
-              "Algorithm": "SHA-512",
-              "#storage": {
-                "#nbc": 1,
-                "offerIds": [
-                  "fakeOfferId"
-                ],
-                "strategyId": "default-fake"
-              }
+              "PhysicalId": "1 Num 1/204-4",
+              "Extent": "1 carte imprimée",
+              "Dimensions": "10,5cm x 14,8cm",
+              "Color": "Noir et blanc",
+              "Framing": "Paysage",
+              "Technique": "Phototypie",
+              "DataObjectVersion": "PhysicalMaster_1",
+              "#id": "aeaaaaaaaabhu53raawyuak7tm2uaqiaaaaq",
+              "#opi": "aeeaaaaaacfpjh3zabnyealmdf5ffsaaaaaq"
             }
           ]
         }

@@ -156,19 +156,16 @@ public class CreateManifestTest {
 
         assertThat(linkBetweenBinaryIdAndFileName)
             .containsKey("aeaaaaaaaabhu53raawyuak7tm2uapqaaaaq")
-            .containsKey("aeaaaaaaaabhu53raawyuak7tm2uaqiaaaaq")
-            .containsKey("aeaaaaaaaabhu53raawyuak7tm2uaqqaaaba");
+            .containsKey("aeaaaaaaaabhu53raawyuak7tm2uaqqaaaba")
+            .doesNotContainKey("aeaaaaaaaabhu53raawyuak7tm2uaqiaaaaq");
 
         assertThat(((Map)linkBetweenBinaryIdAndFileName.get("aeaaaaaaaabhu53raawyuak7tm2uapqaaaaq")).get("FILE_NAME"))
             .isEqualTo("Content/aeaaaaaaaabhu53raawyuak7tm2uapqaaaaq.pdf");
         assertThat(((Map)linkBetweenBinaryIdAndFileName.get("aeaaaaaaaabhu53raawyuak7tm2uapqaaaaq")).get("strategyId"))
             .isEqualTo("default-fake");
-        
-        assertThat(((Map)linkBetweenBinaryIdAndFileName.get("aeaaaaaaaabhu53raawyuak7tm2uaqiaaaaq")).get("FILE_NAME"))
-            .isEqualTo("Content/aeaaaaaaaabhu53raawyuak7tm2uaqiaaaaq.pdf");
-        assertThat(((Map)linkBetweenBinaryIdAndFileName.get("aeaaaaaaaabhu53raawyuak7tm2uaqiaaaaq")).get("strategyId"))
-            .isEqualTo("default-fake");
-        
+
+        assertThat(((Map)linkBetweenBinaryIdAndFileName.get("aeaaaaaaaabhu53raawyuak7tm2uaqiaaaaq"))).isNull();
+
         assertThat(((Map)linkBetweenBinaryIdAndFileName.get("aeaaaaaaaabhu53raawyuak7tm2uaqqaaaba")).get("FILE_NAME"))
             .isEqualTo("Content/aeaaaaaaaabhu53raawyuak7tm2uaqqaaaba.pdf");
         assertThat(((Map)linkBetweenBinaryIdAndFileName.get("aeaaaaaaaabhu53raawyuak7tm2uaqqaaaba")).get("strategyId"))
@@ -176,9 +173,9 @@ public class CreateManifestTest {
 
         ArrayNode fromFile = (ArrayNode) JsonHandler.getFromFile(binaryFile);
 
-        assertThat(fromFile).hasSize(3).extracting(JsonNode::asText)
-            .containsExactlyInAnyOrder("aeaaaaaaaabhu53raawyuak7tm2uapqaaaaq", "aeaaaaaaaabhu53raawyuak7tm2uaqiaaaaq",
-                "aeaaaaaaaabhu53raawyuak7tm2uaqqaaaba");
+        assertThat(fromFile).hasSize(2).extracting(JsonNode::asText)
+            .containsExactlyInAnyOrder("aeaaaaaaaabhu53raawyuak7tm2uapqaaaaq", "aeaaaaaaaabhu53raawyuak7tm2uaqqaaaba")
+            .doesNotContain("aeaaaaaaaabhu53raawyuak7tm2uaqiaaaaq");
 
         Assert.assertThat(Input.fromFile(manifestFile), hasXPath("//vitam:ArchiveDeliveryRequestReply/vitam:DataObjectPackage/vitam:DataObjectGroup/vitam:BinaryDataObject/vitam:Uri",
             equalTo("Content/aeaaaaaaaabhu53raawyuak7tm2uapqaaaaq.pdf"))
@@ -186,7 +183,12 @@ public class CreateManifestTest {
         Assert.assertThat(Input.fromFile(manifestFile), hasXPath("//vitam:ArchiveDeliveryRequestReply/vitam:DataObjectPackage/vitam:ManagementMetadata/vitam:OriginatingAgencyIdentifier",
             equalTo("FRAN_NP_005568"))
             .withNamespaceContext(prefix2Uri));
+        Assert.assertThat(Input.fromFile(manifestFile), hasXPath("//vitam:ArchiveDeliveryRequestReply/vitam:DataObjectPackage/vitam:DataObjectGroup/vitam:PhysicalDataObject/vitam:PhysicalId",
+                equalTo("1 Num 1/204-4"))
+                .withNamespaceContext(prefix2Uri));
     }
+
+
 
     @Test
     @RunWithCustomExecutor
