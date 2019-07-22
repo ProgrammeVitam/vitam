@@ -51,6 +51,7 @@ public class MassUpdateCheck extends ActionHandler {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(MassUpdateCheck.class);
     private static final String PLUGIN_NAME = "MASS_UPDATE_CHECK";
     private static final String FORBIDDEN_PREFIX = "#";
+    private static final String FORBIDDEN_PREFIX_INTERNAL = "_";
 
     @Override
     public ItemStatus execute(WorkerParameters param, HandlerIO handler) throws ProcessingException {
@@ -76,25 +77,28 @@ public class MassUpdateCheck extends ActionHandler {
         return getInternalKeyFields(action);
     }
 
-    private List<String> getInternalKeyFields(JsonNode query) {
+    private List<String> getInternalKeyFields(JsonNode action) {
         List<String> internalKeyFields = new ArrayList<>();
 
-        if (query.isObject()) {
-            Iterator<Map.Entry<String, JsonNode>> fields = query.fields();
+        if (action.isObject()) {
+            Iterator<Map.Entry<String, JsonNode>> fields = action.fields();
             while (fields.hasNext()) {
                 Map.Entry<String, JsonNode> field = fields.next();
                 JsonNode value = field.getValue();
                 if (value.isObject() || value.isArray()) {
                     return getInternalKeyFields(value);
                 }
+
                 String key = field.getKey().toLowerCase();
-                if (key.startsWith(FORBIDDEN_PREFIX)) {
+                addInternalFieldFromSetRegex(internalKeyFields, value, key);
+
+                if (key.startsWith(FORBIDDEN_PREFIX) || key.startsWith(FORBIDDEN_PREFIX_INTERNAL)) {
                     internalKeyFields.add(key);
                 }
             }
         }
-        if (query.isArray()) {
-            Iterator<JsonNode> elements = query.elements();
+        if (action.isArray()) {
+            Iterator<JsonNode> elements = action.elements();
             while (elements.hasNext()) {
                 JsonNode element = elements.next();
                 if (element.isObject() || element.isArray()) {
@@ -104,5 +108,12 @@ public class MassUpdateCheck extends ActionHandler {
         }
 
         return internalKeyFields;
+    }
+
+    private void addInternalFieldFromSetRegex(List<String> internalKeyFields, JsonNode value, String key) {
+        // When we use '$setregex' DSL operator we must check if a forbidden field is use, so we check the value of '$target'.
+        if (key.equalsIgnoreCase("$target") && (value.asText().startsWith(FORBIDDEN_PREFIX) || value.asText().startsWith(FORBIDDEN_PREFIX_INTERNAL))) {
+            internalKeyFields.add(value.asText());
+        }
     }
 }
