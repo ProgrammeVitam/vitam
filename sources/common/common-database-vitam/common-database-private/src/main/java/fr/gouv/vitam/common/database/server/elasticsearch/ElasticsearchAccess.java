@@ -1,4 +1,4 @@
-/*******************************************************************************
+/*
  * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2019)
  *
  * contact.vitam@culture.gouv.fr
@@ -23,7 +23,7 @@
  *
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
- *******************************************************************************/
+ */
 package fr.gouv.vitam.common.database.server.elasticsearch;
 
 import fr.gouv.vitam.common.LocalDateUtil;
@@ -31,6 +31,7 @@ import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.exception.DatabaseException;
 import fr.gouv.vitam.common.exception.VitamException;
+import fr.gouv.vitam.common.exception.VitamRuntimeException;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.server.application.configuration.DatabaseConnection;
@@ -77,7 +78,7 @@ public class ElasticsearchAccess implements DatabaseConnection {
     /**
      * The ES Builder
      */
-    public Builder default_builder;
+    private Builder default_builder;
 
     private static String ES_CONFIGURATION_FILE = "/elasticsearch-configuration.json";
     private AtomicReference<Client> esClient = new AtomicReference<>();
@@ -141,7 +142,7 @@ public class ElasticsearchAccess implements DatabaseConnection {
                 BulkResponse bulkResponse = bulkRequest.get();
 
                 if (bulkResponse.hasFailures()) {
-                    throw new RuntimeException(
+                    throw new VitamRuntimeException(
                         String.format("DatabaseException when calling purge by bulk Request %s",
                             bulkResponse.buildFailureMessage()));
                 }
@@ -220,7 +221,7 @@ public class ElasticsearchAccess implements DatabaseConnection {
                         client = getClient(getSettings(clusterName));
                         esClient.set(client);
                     } catch (VitamException e) {
-                        throw new RuntimeException("Error while get ES client", e);
+                        throw new VitamRuntimeException("Error while get ES client", e);
                     }
                 }
             }
@@ -372,7 +373,7 @@ public class ElasticsearchAccess implements DatabaseConnection {
      * @return the builder
      * @throws IOException
      */
-    public Builder settings() throws IOException {
+    private Builder settings() throws IOException {
         return Settings.builder().loadFromStream(ES_CONFIGURATION_FILE,
             ElasticsearchAccess.class.getResourceAsStream(ES_CONFIGURATION_FILE), true);
     }

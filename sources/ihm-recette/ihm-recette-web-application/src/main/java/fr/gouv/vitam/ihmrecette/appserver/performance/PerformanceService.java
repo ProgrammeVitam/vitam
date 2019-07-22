@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2019)
  * <p>
  * contact.vitam@culture.gouv.fr
@@ -47,6 +47,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
+import java.util.stream.Stream;
 
 import fr.gouv.vitam.access.external.client.AdminExternalClient;
 import fr.gouv.vitam.access.external.client.AdminExternalClientFactory;
@@ -73,11 +74,13 @@ import io.reactivex.schedulers.Schedulers;
 public class PerformanceService {
 
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(PerformanceService.class);
-    public static final String DEFAULT_CONTRACT_NAME = "test_perf";
-    public static final int NUMBER_OF_RETRY = 100;
+    private static final String DEFAULT_CONTRACT_NAME = "test_perf";
+    private static final int NUMBER_OF_RETRY = 100;
+    private static final String APP_SESSION_ID = "MyApplicationId-ChangeIt";
     private final IngestExternalClientFactory ingestClientFactory;
     private final AdminExternalClientFactory adminClientFactory;
     private final UserInterfaceTransactionManager userInterfaceTransactionManager;
+    private static final String UNABLE_TO_UPLOAD_SIP = "unable to upload sip";
     private AtomicBoolean performanceTestInProgress = new AtomicBoolean(false);
 
     /**
@@ -99,7 +102,7 @@ public class PerformanceService {
             performanceReportDirectory, UserInterfaceTransactionManager.getInstance());
     }
 
-    public PerformanceService(IngestExternalClientFactory ingestClientFactory,
+    PerformanceService(IngestExternalClientFactory ingestClientFactory,
         AdminExternalClientFactory adminClientFactory, Path sipDirectory,
         Path performanceReportDirectory, UserInterfaceTransactionManager userInterfaceTransactionManager) {
         this.sipDirectory = sipDirectory;
@@ -114,7 +117,7 @@ public class PerformanceService {
      *
      * @return boolean true/false
      */
-    public boolean inProgress() {
+    boolean inProgress() {
         return performanceTestInProgress.get();
     }
 
@@ -124,7 +127,7 @@ public class PerformanceService {
      * @param tenantId tenant
      * @throws IOException
      */
-    public void launchPerformanceTest(PerformanceModel model, String fileName, int tenantId) throws IOException {
+    void launchPerformanceTest(PerformanceModel model, String fileName, int tenantId) throws IOException {
 
         if (model.getParallelIngest() != null) {
             launchTestInParallel(model, fileName, tenantId);
@@ -136,76 +139,76 @@ public class PerformanceService {
     }
 
     private void launchTestInSequence(PerformanceModel model, String fileName, int tenantId) throws IOException {
-        ReportGenerator reportGenerator = new ReportGenerator(performanceReportDirectory.resolve(fileName));
-        int numberOfRetry = model.getNumberOfRetry() == null ? NUMBER_OF_RETRY : model.getNumberOfRetry();
+        try (ReportGenerator reportGenerator = new ReportGenerator(performanceReportDirectory.resolve(fileName))) {
+            int numberOfRetry = model.getNumberOfRetry() == null ? NUMBER_OF_RETRY : model.getNumberOfRetry();
 
-        performanceTestInProgress.set(true);
+            performanceTestInProgress.set(true);
 
-        Flowable.interval(0, model.getDelay(), TimeUnit.MILLISECONDS)
-            .take(model.getNumberOfIngest())
-            .map(i -> upload(model, tenantId))
-            .flatMap(
-                operationId -> Flowable.just(operationId)
-                    .observeOn(Schedulers.io())
-                    .map(id -> waitEndOfIngest(tenantId, numberOfRetry, id)))
-            .subscribe(operationId -> generateReport(reportGenerator, operationId, tenantId),
-                throwable -> {
-                    LOGGER.error("end performance test with error", throwable);
+            Flowable.interval(0, model.getDelay(), TimeUnit.MILLISECONDS)
+                .take(model.getNumberOfIngest())
+                .map(i -> upload(model, tenantId))
+                .flatMap(
+                    operationId -> Flowable.just(operationId)
+                        .observeOn(Schedulers.io())
+                        .map(id -> waitEndOfIngest(tenantId, numberOfRetry, id)))
+                .subscribe(operationId -> generateReport(reportGenerator, operationId, tenantId),
+                    throwable -> {
+                LOGGER.error("end performance test with error", throwable);
                     performanceTestInProgress.set(false);
-                }, () -> {
-                    try {
-                        reportGenerator.close();
-                        performanceTestInProgress.set(false);
-                        LOGGER.info("end performance test");
-                    } catch (IOException e) {
-                        LOGGER.error("unable to close report", e);
-                    }
-                });
-    }
-
-    private void launchTestInParallel(PerformanceModel model, String fileName, int tenantId) throws IOException {
-        ExecutorService launcherPerformanceExecutor =
-            Executors.newFixedThreadPool(model.getParallelIngest(), VitamThreadFactory.getInstance());
-        ExecutorService reportExecutor = Executors.newSingleThreadExecutor(VitamThreadFactory.getInstance());
-
-        LOGGER.info("start performance test");
-
-        ReportGenerator reportGenerator = new ReportGenerator(performanceReportDirectory.resolve(fileName));
-
-        performanceTestInProgress.set(true);
-
-        List<CompletableFuture<Void>> collect = IntStream.range(0, model.getNumberOfIngest())
-            .mapToObj(
-                i -> CompletableFuture.supplyAsync(() -> uploadSIP(model, tenantId), launcherPerformanceExecutor))
-            .map(
-                future -> future.thenAcceptAsync((id) -> generateReport(reportGenerator, id, tenantId),
-                    reportExecutor))
-            .collect(Collectors.toList());
-
-        CompletableFuture<List<Void>> allDone = sequence(collect);
-
-        allDone.thenRun(() -> {
+        }, () -> {
             try {
                 reportGenerator.close();
-                launcherPerformanceExecutor.shutdown();
-                reportExecutor.shutdown();
                 performanceTestInProgress.set(false);
                 LOGGER.info("end performance test");
             } catch (IOException e) {
                 LOGGER.error("unable to close report", e);
             }
-        }).exceptionally((e) -> {
-            LOGGER.error("end performance test with error", e);
-            performanceTestInProgress.set(false);
-            return null;
-        });
+                    });
+        }
+    }
+
+    private void launchTestInParallel(PerformanceModel model, String fileName, int tenantId) throws IOException {
+        ExecutorService launcherPerformanceExecutor = Executors.newFixedThreadPool(model.getParallelIngest(), VitamThreadFactory.getInstance());
+        ExecutorService reportExecutor = Executors.newSingleThreadExecutor(VitamThreadFactory.getInstance());
+
+        LOGGER.info("start performance test");
+
+        try (ReportGenerator reportGenerator = new ReportGenerator(performanceReportDirectory.resolve(fileName))) {
+            performanceTestInProgress.set(true);
+
+            List<CompletableFuture<Void>> collect = IntStream.range(0, model.getNumberOfIngest())
+                .mapToObj(
+                    i -> CompletableFuture.supplyAsync(() -> uploadSIP(model, tenantId), launcherPerformanceExecutor))
+                .map(
+                    future -> future.thenAcceptAsync((id) -> generateReport(reportGenerator, id, tenantId),
+                        reportExecutor))
+                .collect(Collectors.toList());
+
+            CompletableFuture<List<Void>> allDone = sequence(collect);
+
+            allDone.thenRun(() -> {
+                try {
+                    reportGenerator.close();
+                    launcherPerformanceExecutor.shutdown();
+                    reportExecutor.shutdown();
+                    performanceTestInProgress.set(false);
+                    LOGGER.info("end performance test");
+                } catch (IOException e) {
+                    LOGGER.error("unable to close report", e);
+                }
+            }).exceptionally((e) -> {
+                LOGGER.error("end performance test with error", e);
+                performanceTestInProgress.set(false);
+                return null;
+            });
+        }
     }
 
     private void generateReport(ReportGenerator reportGenerator, String operationId, int tenantId) {
         try {
             LOGGER.debug("generate report");
             VitamContext context = new VitamContext(tenantId);
-            context.setAccessContract(DEFAULT_CONTRACT_NAME).setApplicationSessionId(getAppSessionId());
+            context.setAccessContract(DEFAULT_CONTRACT_NAME).setApplicationSessionId(APP_SESSION_ID);
             final RequestResponse<LogbookOperation> requestResponse =
                 userInterfaceTransactionManager.selectOperationbyId(operationId, context);
 
@@ -242,7 +245,7 @@ public class PerformanceService {
             LOGGER.debug("finish unitary test");
             return operationId;
         } catch (final Exception e) {
-            LOGGER.error("unable to upload sip", e);
+            LOGGER.error(UNABLE_TO_UPLOAD_SIP, e);
             return null;
         }
     }
@@ -256,7 +259,7 @@ public class PerformanceService {
             LOGGER.debug("finish unitary test");
             return operationId;
         } catch (final Exception e) {
-            LOGGER.error("unable to upload sip", e);
+            LOGGER.error(UNABLE_TO_UPLOAD_SIP, e);
             return null;
         }
     }
@@ -273,7 +276,7 @@ public class PerformanceService {
 
             return response.getHeaderString(GlobalDataRest.X_REQUEST_ID);
         } catch (final Exception e) {
-            LOGGER.error("unable to upload sip", e);
+            LOGGER.error(UNABLE_TO_UPLOAD_SIP, e);
             return null;
         }
     }
@@ -287,7 +290,7 @@ public class PerformanceService {
      */
     private <T> CompletableFuture<List<T>> sequence(List<CompletableFuture<T>> futures) {
         CompletableFuture<Void> allDoneFuture =
-            CompletableFuture.allOf(futures.toArray(new CompletableFuture[futures.size()]));
+            CompletableFuture.allOf(futures.toArray(new CompletableFuture[0]));
         return allDoneFuture
             .thenApply(v -> futures.stream().map(CompletableFuture::join).collect(Collectors.<T>toList()));
     }
@@ -298,7 +301,7 @@ public class PerformanceService {
      * @return list of Path
      * @throws IOException
      */
-    public List<Path> listSipDirectory() throws IOException {
+    List<Path> listSipDirectory() throws IOException {
         List<Path> paths = new ArrayList<>();
 
         Files.walkFileTree(sipDirectory, new SimpleFileVisitor<Path>() {
@@ -319,12 +322,12 @@ public class PerformanceService {
      * @return list of path
      * @throws IOException
      */
-    public List<Path> listReportDirectory() throws IOException {
+    List<Path> listReportDirectory() throws IOException {
         return listDirectory(performanceReportDirectory);
     }
 
-    public boolean sipExist(String sipPath) {
-        return Files.exists(sipDirectory.resolve(sipPath));
+    boolean sipExist(String sipPath) {
+        return sipDirectory.resolve(sipPath).toFile().exists();
     }
 
     /**
@@ -334,16 +337,13 @@ public class PerformanceService {
      * @return InputStream
      * @throws IOException
      */
-    public InputStream readReport(String reportName) throws IOException {
+    InputStream readReport(String reportName) throws IOException {
         return Files.newInputStream(performanceReportDirectory.resolve(reportName));
     }
 
     private List<Path> listDirectory(Path directory) throws IOException {
-        return Files.list(directory)
-            .collect(Collectors.toList());
-    }
-
-    private static String getAppSessionId() {
-        return "MyApplicationId-ChangeIt";
+        try (Stream<Path> pathStream = Files.list(directory)) {
+            return pathStream.collect(Collectors.toList());
+        }
     }
 }

@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2019)
  * <p>
  * contact.vitam@culture.gouv.fr
@@ -58,11 +58,11 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 public class PopulateService {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(PopulateService.class);
-    private static String POPULATE_FILE_DIGEST;
+    private static String populateFileDigest;
 
-    public static final String TENANT = "_tenant";
-    public static final String CONTRACT_POPULATE = "ContractPopulate";
-    public static final File POPULATE_FILE = PropertiesUtils.fileFromTmpFolder("PopulateFile");
+    static final String TENANT = "_tenant";
+    static final String CONTRACT_POPULATE = "ContractPopulate";
+    static final File POPULATE_FILE = PropertiesUtils.fileFromTmpFolder("PopulateFile");
 
     private final AtomicBoolean populateInProgress = new AtomicBoolean(false);
     private final Scheduler io;
@@ -75,7 +75,7 @@ public class PopulateService {
     private final int nbThreads;
 
     @VisibleForTesting
-    public PopulateService(MetadataRepository metadataRepository, MasterdataRepository masterdataRepository, LogbookRepository logbookRepository, UnitGraph unitGraph, int nThreads, MetadataStorageService metadataStorageService, Scheduler io) {
+    PopulateService(MetadataRepository metadataRepository, MasterdataRepository masterdataRepository, LogbookRepository logbookRepository, UnitGraph unitGraph, int nThreads, MetadataStorageService metadataStorageService, Scheduler io) {
         this.metadataRepository = metadataRepository;
         this.masterdataRepository = masterdataRepository;
         this.logbookRepository = logbookRepository;
@@ -90,7 +90,7 @@ public class PopulateService {
         this(metadataRepository, masterdataRepository, logbookRepository, unitGraph, nThreads, metadataStorageService, Schedulers.io());
     }
 
-    public void populateVitam(PopulateModel populateModel) {
+    void populateVitam(PopulateModel populateModel) {
 
         if (populateInProgress.get()) {
             return;
@@ -135,12 +135,10 @@ public class PopulateService {
             }
         }
         if (populateModel.getObjectSize() > 0) {
-            try {
-                String text = RandomStringUtils.random(populateModel.getObjectSize());
-                RandomAccessFile file = new RandomAccessFile(POPULATE_FILE, "rw");
+            String text = RandomStringUtils.random(populateModel.getObjectSize());
+            try (RandomAccessFile file = new RandomAccessFile(POPULATE_FILE, "rw")) {
                 file.writeChars(text);
-                file.close();
-                POPULATE_FILE_DIGEST = new Digest(digestType).update(text).digestHex();
+                populateFileDigest = new Digest(digestType).update(text).digestHex();
             } catch (IOException e) {
                 LOGGER.error(e);
             }
@@ -204,12 +202,12 @@ public class PopulateService {
         return true;
     }
 
-    public boolean inProgress() {
+    boolean inProgress() {
         return populateInProgress.get();
     }
 
-    public static String getPopulateFileDigest() {
-        return POPULATE_FILE_DIGEST;
+    static String getPopulateFileDigest() {
+        return populateFileDigest;
     }
 
 }

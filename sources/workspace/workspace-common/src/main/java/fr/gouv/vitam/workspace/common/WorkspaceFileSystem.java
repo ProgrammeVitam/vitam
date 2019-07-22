@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2019)
  * <p>
  * contact.vitam@culture.gouv.fr
@@ -79,7 +79,6 @@ import java.io.InputStream;
 import java.net.URI;
 import java.net.URLEncoder;
 import java.nio.channels.Channels;
-import java.nio.channels.FileChannel;
 import java.nio.channels.SeekableByteChannel;
 import java.nio.file.DirectoryNotEmptyException;
 import java.nio.file.FileVisitOption;
@@ -173,7 +172,7 @@ public class WorkspaceFileSystem implements WorkspaceContentAddressableStorage {
         Path containerPath = null;
         try {
             containerPath = getContainerPath(containerName, true);
-            if (!Files.exists(containerPath)) {
+            if (!containerPath.toFile().exists()) {
                 LOGGER.error(ErrorMessage.CONTAINER_NOT_FOUND.getMessage() + containerName);
                 throw new ContentAddressableStorageNotFoundException(
                     ErrorMessage.CONTAINER_NOT_FOUND.getMessage() + containerName);
@@ -631,7 +630,7 @@ public class WorkspaceFileSystem implements WorkspaceContentAddressableStorage {
                     final Path target = Paths.get(folderPath.toString(), entryName);
                     final Path parent = target.getParent();
 
-                    if (parent != null && !Files.exists(parent)) {
+                    if (parent != null && !parent.toFile().exists()) {
                         Files.createDirectories(parent);
                     }
                     if (!entry.isDirectory()) {
@@ -644,7 +643,6 @@ public class WorkspaceFileSystem implements WorkspaceContentAddressableStorage {
                 }
                 entryInputStream.setClosed(false);
             }
-            archiveInputStream.close();
             if (isEmpty) {
                 throw new ContentAddressableStorageCompressedFileException("File is empty");
             }

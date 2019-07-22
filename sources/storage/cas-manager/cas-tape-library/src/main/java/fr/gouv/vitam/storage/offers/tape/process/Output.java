@@ -1,4 +1,4 @@
-/*******************************************************************************
+/*
  * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2019)
  *
  * contact.vitam@culture.gouv.fr
@@ -23,7 +23,7 @@
  *
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
- *******************************************************************************/
+ */
 package fr.gouv.vitam.storage.offers.tape.process;
 
 import fr.gouv.vitam.common.logging.SysErrLogger;
@@ -37,12 +37,13 @@ import java.io.InputStreamReader;
 import java.nio.file.Files;
 import java.util.List;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
 
 public class Output {
 
-    public static final int EXIT_CODE_WAIT_FOR_TIMEOUT = -1;
+    static final int EXIT_CODE_WAIT_FOR_TIMEOUT = -1;
     private final List<String> command;
     private final Exception exception;
     private final String stdout;
@@ -77,7 +78,6 @@ public class Output {
         String msgToReturn = "";
         InputStream std = null;
         try {
-
             if (stdFile != null) {
                 std = Files.newInputStream(stdFile.toPath());
             } else {
@@ -88,18 +88,17 @@ public class Output {
                 }
             }
 
-
-            msgToReturn =
-                new BufferedReader(new InputStreamReader(std, UTF_8)).lines().collect(Collectors.joining(" | "));
-
-            return msgToReturn;
-
+            return getLinesFromInputStream(std).collect(Collectors.joining(" | "));
         } catch (IOException e) {
             SysErrLogger.FAKE_LOGGER.ignoreLog(e);
             return msgToReturn + "|" + e.getMessage();
         } finally {
             StreamUtils.closeSilently(std);
         }
+    }
+
+    private static Stream<String> getLinesFromInputStream(InputStream std) {
+        return new BufferedReader(new InputStreamReader(std, UTF_8)).lines();
     }
 
     public Exception getException() {

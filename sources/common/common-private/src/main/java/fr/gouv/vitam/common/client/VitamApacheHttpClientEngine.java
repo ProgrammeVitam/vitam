@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2019)
  *
  * contact.vitam@culture.gouv.fr
@@ -123,8 +123,8 @@ public class VitamApacheHttpClientEngine implements ClientHttpEngine {
                 if (value != null && "timeout".equalsIgnoreCase(param)) {
                     try {
                         return Long.parseLong(value) * 1000;
-                    } catch (NumberFormatException ignore) {
-                        LOGGER.warn(ignore);
+                    } catch (NumberFormatException e) {
+                        LOGGER.warn(e);
                     }
                 }
             }
@@ -195,7 +195,7 @@ public class VitamApacheHttpClientEngine implements ClientHttpEngine {
         final RequestConfig.Builder requestConfigBuilder = RequestConfig.custom();
 
         final Object credentialsProvider = VitamRestEasyConfiguration.CREDENTIALS_PROVIDER.getObject(config);
-        if (credentialsProvider != null && credentialsProvider instanceof CredentialsProvider) {
+        if (credentialsProvider instanceof CredentialsProvider) {
             clientBuilder.setDefaultCredentialsProvider((CredentialsProvider) credentialsProvider);
         }
 
@@ -380,7 +380,7 @@ public class VitamApacheHttpClientEngine implements ClientHttpEngine {
 
     private static CaseInsensitiveMap<String> extractHeaders(
         HttpResponse response) {
-        final CaseInsensitiveMap<String> headers = new CaseInsensitiveMap<String>();
+        final CaseInsensitiveMap<String> headers = new CaseInsensitiveMap<>();
 
         for (Header header : response.getAllHeaders()) {
             headers.add(header.getName(), header.getValue());
@@ -655,9 +655,6 @@ public class VitamApacheHttpClientEngine implements ClientHttpEngine {
                         final String token = ti.nextToken();
                         if (HTTP.CONN_CLOSE.equalsIgnoreCase(token)) {
                             return false;
-                        } else if (HTTP.CONN_KEEP_ALIVE.equalsIgnoreCase(token)) {
-                            // continue the loop, there may be a "close" afterwards
-                            keepalive = true;
                         }
                     }
                     return keepalive;

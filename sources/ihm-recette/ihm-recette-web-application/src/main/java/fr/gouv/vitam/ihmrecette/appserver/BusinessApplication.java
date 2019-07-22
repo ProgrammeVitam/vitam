@@ -26,7 +26,6 @@
  */
 package fr.gouv.vitam.ihmrecette.appserver;
 
-import com.google.common.base.Throwables;
 import com.mongodb.MongoClient;
 import com.mongodb.MongoClientOptions;
 import com.mongodb.client.MongoDatabase;
@@ -38,6 +37,7 @@ import fr.gouv.vitam.common.database.server.elasticsearch.ElasticsearchAccess;
 import fr.gouv.vitam.common.database.server.elasticsearch.ElasticsearchNode;
 import fr.gouv.vitam.common.database.server.mongodb.MongoDbAccess;
 import fr.gouv.vitam.common.exception.VitamException;
+import fr.gouv.vitam.common.exception.VitamRuntimeException;
 import fr.gouv.vitam.common.serverv2.application.CommonBusinessApplication;
 import fr.gouv.vitam.functional.administration.common.client.FunctionAdministrationOntologyLoader;
 import fr.gouv.vitam.ihmdemo.common.pagination.PaginationHelper;
@@ -69,7 +69,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
-import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.HashSet;
@@ -109,16 +108,12 @@ public class BusinessApplication extends Application {
             Path sipDirectory = Paths.get(configuration.getSipDirectory());
             Path reportDirectory = Paths.get(configuration.getPerformanceReportDirectory());
 
-            if (!Files.exists(sipDirectory)) {
-                Exception sipNotFound =
-                    new FileNotFoundException(String.format("directory %s does not exist", sipDirectory));
-                throw Throwables.propagate(sipNotFound);
+            if (!sipDirectory.toFile().exists()) {
+                throw new FileNotFoundException(String.format("directory %s does not exist", sipDirectory));
             }
 
-            if (!Files.exists(reportDirectory)) {
-                Exception reportNotFound =
-                    new FileNotFoundException(format("directory %s does not exist", reportDirectory));
-                throw Throwables.propagate(reportNotFound);
+            if (!reportDirectory.toFile().exists()) {
+                throw new FileNotFoundException(format("directory %s does not exist", reportDirectory));
             }
 
             PerformanceService performanceService = new PerformanceService(sipDirectory, reportDirectory);
@@ -147,6 +142,7 @@ public class BusinessApplication extends Application {
                 storagePopulateService = new StoragePopulateImpl(storageConfiguration);
             }
 
+
             MetadataRepository metadataRepository = new MetadataRepository(metadataDb, esClient, storagePopulateService);
             MasterdataRepository masterdataRepository = new MasterdataRepository(masterdataDb, esClient);
             LogbookRepository logbookRepository = new LogbookRepository(logbookDb);
@@ -173,13 +169,12 @@ public class BusinessApplication extends Application {
             singletons.add(resource);
 
         } catch (IOException | VitamException e) {
-            throw new RuntimeException(e);
+            throw new VitamRuntimeException(e);
         }
     }
 
     private TransportClient getClient(Settings settings, List<ElasticsearchNode> nodes) throws VitamException {
-        try {
-            final TransportClient clientNew = new PreBuiltTransportClient(settings);
+        try (final TransportClient clientNew = new PreBuiltTransportClient(settings)) {
             for (final ElasticsearchNode node : nodes) {
                 clientNew.addTransportAddress(
                     new TransportAddress(InetAddress.getByName(node.getHostName()), node.getTcpPort()));

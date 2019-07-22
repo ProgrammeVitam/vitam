@@ -1,4 +1,4 @@
-/*******************************************************************************
+/*
  * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2019)
  *
  * contact.vitam@culture.gouv.fr
@@ -23,7 +23,7 @@
  *
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
- *******************************************************************************/
+ */
 package fr.gouv.vitam.worker.core.plugin.evidence;
 
 import fr.gouv.vitam.common.exception.VitamException;
@@ -58,7 +58,7 @@ public class DataRectificationStep extends ActionHandler {
 
     public static final String ZIP = "zip";
     private static final String CORRECTIVE_AUDIT = "CORRECTIVE_AUDIT";
-    public static final String CORRECT = "correct" + File.separator;
+    private static final String CORRECT = "correct" + File.separator;
     private DataRectificationService dataRectificationService;
     private static final String ALTER = "alter";
 
@@ -77,8 +77,8 @@ public class DataRectificationStep extends ActionHandler {
 
         ItemStatus itemStatus = new ItemStatus(CORRECTIVE_AUDIT);
 
-        try {
-
+        try (StoreMetaDataObjectGroupActionPlugin storeMetaDataObjectGroupActionPlugin = new StoreMetaDataObjectGroupActionPlugin();
+            StoreMetaDataUnitActionPlugin storeMetaDataUnitActionPlugin = new StoreMetaDataUnitActionPlugin()) {
             List<IdentifierType> identifierTypes = new ArrayList<>();
 
             File file = handler.getFileFromWorkspace(ALTER + File.separator + param.getObjectName());
@@ -114,8 +114,7 @@ public class DataRectificationStep extends ActionHandler {
                     if (type.getType().equals(DataCategory.OBJECTGROUP.name()) ||
                         type.getType().equals(DataCategory.OBJECT.name())
                         ) {
-                        StoreMetaDataObjectGroupActionPlugin storeMetaDataObjectGroupActionPlugin =
-                            new StoreMetaDataObjectGroupActionPlugin();
+
 
                         storeMetaDataObjectGroupActionPlugin.storeDocumentsWithLfc(
                             param, handler, Collections.singletonList(type.getId())
@@ -123,8 +122,7 @@ public class DataRectificationStep extends ActionHandler {
                     }
 
                     if (type.getType().equals(DataCategory.UNIT.name())) {
-                        StoreMetaDataUnitActionPlugin storeMetaDataUnitActionPlugin =
-                            new StoreMetaDataUnitActionPlugin();
+
 
                         storeMetaDataUnitActionPlugin.storeDocumentsWithLfc(
                             param, handler, Collections.singletonList(type.getId()));
