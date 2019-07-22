@@ -1,0 +1,52 @@
+// PreRestore
+//===========
+// Start all mongod as a simple mongod without --shardsvr nor --replSet as explained in official documentation
+// For more information @see https://docs.mongodb.com/manual/tutorial/restore-sharded-cluster/
+// In Mongo Shard instance Only
+
+use admin
+
+// Authenticate as root user
+db.auth("{{ mongodb[mongo_cluster_name].admin.user }}", "{{ mongodb[mongo_cluster_name].admin.password }}")
+
+// Create system user
+db.createUser({user: "{{ mongodb[mongo_cluster_name].system.user }}", pwd: "{{ mongodb[mongo_cluster_name].system.password }}", roles: [ "__system" ]})
+
+// Authenticate as system user
+db.auth("{{ mongodb[mongo_cluster_name].system.user }}", "{{ mongodb[mongo_cluster_name].system.password }}")
+
+// Update system.version collections
+db.system.version.deleteOne( { "_id": "minOpTimeRecovery" } )
+
+var mongocList = [];
+
+// Loop over all mongoc and get corresponding ip and port number
+{% for host in groups[mongoc] %}
+    {% if mongo_cluster_name == hostvars[host]['mongo_cluster_name'] %}
+mongocList.push("{{ hostvars[host]['ip_service'] }}:{{ mongodb.mongoc_port }}")
+    {% endif %}
+{% endfor %}
+
+
+db.system.version.updateOne(
+        { "_id" : "shardIdentity" },
+        { $set : { "configsvrConnectionString" : "configserver/" + mongocList.join(",") }}
+    )
+
+// Drop local data base
+use local
+db.dropDatabase()
+
+// Remove system user
+use admin
+// Authenticate as root user
+db.auth("{{ mongodb[mongo_cluster_name].admin.user }}","{{ mongodb[mongo_cluster_name].admin.password }}")
+db.removeUser("{{ mongodb[mongo_cluster_name].system.user }}")
+
+
+// PostRestore
+//===========
+// Start all mongod with --shardsvr and --replSet corresponding the configuration
+// Init replicatSet rs.initiate() on a given mongod instance for each shard
+// Should waite until election of a primary mongod instance for each shard replicatSet
+
