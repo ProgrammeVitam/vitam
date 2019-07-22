@@ -432,7 +432,7 @@ public class AdminExternalClientMock extends AbstractMockClient implements Admin
     }
 
     @Override
-    public Response downloadPreservationReport(VitamContext vitamContext, String opId) throws VitamClientException {
+    public Response downloadBatchReport(VitamContext vitamContext, String opId) throws VitamClientException {
         return ClientMockResultHelper.getObjectStream();
     }
 

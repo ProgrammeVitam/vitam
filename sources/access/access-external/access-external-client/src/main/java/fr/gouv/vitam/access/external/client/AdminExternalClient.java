@@ -699,14 +699,14 @@ public interface AdminExternalClient extends BasicClient, OperationStatusClient 
         throws VitamClientException;
 
     /**
-     * Download preservation reports
+     * Download batch reports
      *
      * @param vitamContext the vitam context
      * @param opId the op (logbook) ID
-     * @return preservation report
+     * @return batch report file
      * @throws VitamClientException
      */
-    Response downloadPreservationReport(VitamContext vitamContext, String opId)
+    Response downloadBatchReport(VitamContext vitamContext, String opId)
         throws VitamClientException;
 
     /**
