@@ -292,7 +292,14 @@
     "type": "bool",
     "indexed": true,
     "cardinality": "one"
-  },  {
+  },
+  {
+    "path": "_computedInheritedRules",
+    "type": "object",
+    "indexed": true,
+    "cardinality": "one"
+  },
+  {
     "path": "_computedInheritedRules.StorageRule",
     "type": "object",
     "indexed": true,
