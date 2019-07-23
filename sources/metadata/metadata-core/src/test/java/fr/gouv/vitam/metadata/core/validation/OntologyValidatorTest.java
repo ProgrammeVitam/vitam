@@ -11,6 +11,7 @@ import fr.gouv.vitam.common.model.administration.OntologyModel;
 import fr.gouv.vitam.common.model.administration.OntologyType;
 import net.javacrumbs.jsonunit.JsonAssert;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import java.util.Arrays;
@@ -572,7 +573,7 @@ public class OntologyValidatorTest {
     }
 
     @Deprecated
-    @Test
+    @Ignore("Skipped defaulting to Text node to avoid forced migration of ontology in R9")
     public void ontologyWhenBooleanAsEnumConversionThenOK() throws Exception {
 
         // Given
@@ -765,6 +766,7 @@ public class OntologyValidatorTest {
     }
 
     @Test
+    @Ignore("Skipped test in R9 : unknown fields won't be converted to text by default")
     public void ontologyWhenUnknownBooleanAsTextConversionThenOK() throws Exception {
 
         // Given
@@ -781,6 +783,7 @@ public class OntologyValidatorTest {
     }
 
     @Test
+    @Ignore("Skipped test in R9 : unknown fields won't be converted to text by default")
     public void ontologyWhenUnknownLongAsTextConversionThenOK() throws Exception {
 
         // Given
@@ -825,6 +828,7 @@ public class OntologyValidatorTest {
     }
 
     @Test
+    @Ignore("Skipped test in R9 : unknown fields won't be converted to text by default")
     public void ontologyWhenUnknownDoubleAsTextConversionThenOK() throws Exception {
 
         // Given

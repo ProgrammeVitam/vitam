@@ -186,7 +186,7 @@ public class OntologyValidator {
         OntologyModel ontologyModel) {
         // In case where no ontology is provided
         if (null == ontologyModel) {
-            return validateValueLength(fieldName, fieldValueNode, VitamConfiguration.getTextMaxLength(),
+            return validateValueLengthForUnkownOntology(fieldName, fieldValueNode, VitamConfiguration.getTextMaxLength(),
                 "Not accepted value for the text field (%s) whose UTF8 encoding is longer than the max length " +
                     VitamConfiguration.getTextMaxLength());
         }
@@ -227,6 +227,34 @@ public class OntologyValidator {
                 throw new IllegalStateException(
                     String.format("Not implemented for type %s", fieldValueNode.asText()));
         }
+    }
+
+    /**
+     * Check if value length is accepted or is longer than expected
+     *
+     * @param fieldName fieldName
+     * @param fieldValueNode fieldValueNode
+     * @param maxUtf8Length maxUtf8Length
+     * @param message message
+     * @return JsonNode
+     * @deprecated Skipped defaulting to Text node to avoid forced migration of ontology in R9
+     */
+    private JsonNode validateValueLengthForUnkownOntology(String fieldName, JsonNode fieldValueNode, int maxUtf8Length,
+        String message) {
+        if (null == fieldValueNode) {
+            return null;
+        }
+        String textValue = fieldValueNode.asText();
+
+        if (textValue.length() * maxBytesPerCharUtf8 - 1 >= maxUtf8Length) {
+            if (textValue.getBytes(CharsetUtils.UTF8).length > maxUtf8Length) {
+                throw new IllegalArgumentException(String.format(
+                    message,
+                    fieldName));
+            }
+        }
+
+        return fieldValueNode;
     }
 
     /**
