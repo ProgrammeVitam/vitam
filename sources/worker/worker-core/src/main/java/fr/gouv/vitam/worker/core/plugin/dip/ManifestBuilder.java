@@ -26,45 +26,11 @@
  */
 package fr.gouv.vitam.worker.core.plugin.dip;
 
-import static fr.gouv.vitam.common.SedaConstants.ATTRIBUTE_ID;
-import static fr.gouv.vitam.common.SedaConstants.NAMESPACE_URI;
-import static fr.gouv.vitam.common.SedaConstants.TAG_ARCHIVE_DELIVERY_REQUEST_REPLY;
-import static fr.gouv.vitam.common.SedaConstants.TAG_DATA_OBJECT_GROUP;
-import static fr.gouv.vitam.common.SedaConstants.TAG_DATA_OBJECT_PACKAGE;
-import static fr.gouv.vitam.common.SedaConstants.TAG_DESCRIPTIVE_METADATA;
-import static fr.gouv.vitam.common.SedaConstants.TAG_MANAGEMENT_METADATA;
-import static fr.gouv.vitam.common.SedaConstants.TAG_ORIGINATINGAGENCYIDENTIFIER;
-import static fr.gouv.vitam.common.mapping.dip.UnitMapper.buildObjectMapper;
-import static fr.gouv.vitam.worker.common.utils.SedaUtils.XSI_URI;
-
-import java.io.OutputStream;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
-import java.util.stream.Collectors;
-
-import javax.xml.bind.JAXBContext;
-import javax.xml.bind.JAXBElement;
-import javax.xml.bind.JAXBException;
-import javax.xml.bind.Marshaller;
-import javax.xml.datatype.DatatypeConfigurationException;
-import javax.xml.namespace.QName;
-import javax.xml.stream.XMLOutputFactory;
-import javax.xml.stream.XMLStreamException;
-import javax.xml.stream.XMLStreamWriter;
-
-import org.apache.commons.io.FilenameUtils;
-
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.collect.ListMultimap;
-
 import fr.gouv.culture.archivesdefrance.seda.v2.ArchiveUnitType;
 import fr.gouv.culture.archivesdefrance.seda.v2.BinaryDataObjectType;
 import fr.gouv.culture.archivesdefrance.seda.v2.DataObjectGroupType;
@@ -98,6 +64,37 @@ import fr.gouv.vitam.functional.administration.common.AccessContract;
 import fr.gouv.vitam.functional.administration.common.exception.AdminManagementClientServerException;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.worker.common.utils.SedaUtils;
+import org.apache.commons.io.FilenameUtils;
+
+import javax.xml.bind.JAXBContext;
+import javax.xml.bind.JAXBElement;
+import javax.xml.bind.JAXBException;
+import javax.xml.bind.Marshaller;
+import javax.xml.datatype.DatatypeConfigurationException;
+import javax.xml.namespace.QName;
+import javax.xml.stream.XMLOutputFactory;
+import javax.xml.stream.XMLStreamException;
+import javax.xml.stream.XMLStreamWriter;
+import java.io.OutputStream;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
+import java.util.stream.Collectors;
+
+import static fr.gouv.vitam.common.SedaConstants.ATTRIBUTE_ID;
+import static fr.gouv.vitam.common.SedaConstants.NAMESPACE_URI;
+import static fr.gouv.vitam.common.SedaConstants.TAG_ARCHIVE_DELIVERY_REQUEST_REPLY;
+import static fr.gouv.vitam.common.SedaConstants.TAG_DATA_OBJECT_GROUP;
+import static fr.gouv.vitam.common.SedaConstants.TAG_DATA_OBJECT_PACKAGE;
+import static fr.gouv.vitam.common.SedaConstants.TAG_DESCRIPTIVE_METADATA;
+import static fr.gouv.vitam.common.SedaConstants.TAG_MANAGEMENT_METADATA;
+import static fr.gouv.vitam.common.SedaConstants.TAG_ORIGINATINGAGENCYIDENTIFIER;
+import static fr.gouv.vitam.common.mapping.dip.UnitMapper.buildObjectMapper;
+import static fr.gouv.vitam.worker.common.utils.SedaUtils.XSI_URI;
 
 /**
  * build a SEDA manifest with JAXB.

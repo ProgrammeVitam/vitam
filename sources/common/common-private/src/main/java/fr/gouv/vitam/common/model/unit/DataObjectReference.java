@@ -31,6 +31,7 @@ package fr.gouv.vitam.common.model.unit;
 public class DataObjectReference {
 
     private String dataObjectGroupReferenceId;
+    private String dataObjectReferenceId;
 
     /**
      * Get DataObjectGroupReferenceId
@@ -46,5 +47,20 @@ public class DataObjectReference {
      */
     public void setDataObjectGroupReferenceId(String dataObjectGroupReferenceId) {
         this.dataObjectGroupReferenceId = dataObjectGroupReferenceId;
+    }
+
+    /**
+     * get DataObjectGroupReferenceId
+     * @eturn dataObjectGroupReferenceId
+     */
+    public String getDataObjectReferenceId() {
+        return dataObjectReferenceId;
+    }
+    /**
+     * Set DataObjectGroupReferenceId
+     * @param dataObjectReferenceId
+     */
+    public void setDataObjectReferenceId(String dataObjectReferenceId) {
+        this.dataObjectReferenceId = dataObjectReferenceId;
     }
 }
