@@ -26,8 +26,11 @@
  *******************************************************************************/
 package fr.gouv.vitam.common.mapping.dip;
 
+import fr.gouv.culture.archivesdefrance.seda.v2.CustodialHistoryItemType;
 import fr.gouv.culture.archivesdefrance.seda.v2.DescriptiveMetadataContentType;
 import fr.gouv.culture.archivesdefrance.seda.v2.TextType;
+import fr.gouv.vitam.common.model.unit.CustodialHistoryModel;
+import fr.gouv.vitam.common.model.unit.DataObjectReference;
 import fr.gouv.vitam.common.model.unit.DescriptiveMetadataModel;
 import fr.gouv.vitam.common.model.unit.TextByLang;
 import org.junit.Rule;
@@ -38,6 +41,8 @@ import org.mockito.junit.MockitoRule;
 
 import javax.xml.datatype.DatatypeConfigurationException;
 import java.util.ArrayList;
+import java.util.List;
+import java.util.stream.Collectors;
 
 import static java.util.Collections.singletonList;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -64,7 +69,8 @@ public class DescriptiveMetadataMapperTest {
         descriptiveMetadataModel.setTitle_(title_);
 
         // When
-        DescriptiveMetadataContentType contentType = descriptiveMetadataMapper.map(descriptiveMetadataModel, new ArrayList<>());
+        DescriptiveMetadataContentType contentType =
+            descriptiveMetadataMapper.map(descriptiveMetadataModel, new ArrayList<>());
 
         // Then
         assertThat(contentType.getTitle())
@@ -87,7 +93,8 @@ public class DescriptiveMetadataMapperTest {
         descriptiveMetadataModel.setDescription_(description_);
 
         // When
-        DescriptiveMetadataContentType contentType = descriptiveMetadataMapper.map(descriptiveMetadataModel, new ArrayList<>());
+        DescriptiveMetadataContentType contentType =
+            descriptiveMetadataMapper.map(descriptiveMetadataModel, new ArrayList<>());
 
         // Then
         assertThat(contentType.getDescription())
@@ -95,6 +102,42 @@ public class DescriptiveMetadataMapperTest {
             .extracting("lang", "value")
             .contains(tuple(null, "description_default"))
             .contains(tuple("en", "description"));
+    }
+
+    @Test
+    public void should_fill_custodialHistoryFile_field() throws DatatypeConfigurationException {
+        // Given
+        DescriptiveMetadataModel descriptiveMetadataModel = new DescriptiveMetadataModel();
+
+        CustodialHistoryItemType custodialHistoryItemType = new CustodialHistoryItemType();
+        custodialHistoryItemType.setValue("Ce champ est une description de la balise CustodialHistoryItem");
+        CustodialHistoryItemType custodialHistoryItemType2 = new CustodialHistoryItemType();
+        custodialHistoryItemType2.setValue("Ce champ est une autre description de la balise CustodialHistoryItem");
+
+        List<CustodialHistoryItemType> listeCustodialHistoryItemType = new ArrayList<>();
+        listeCustodialHistoryItemType.add(custodialHistoryItemType);
+        listeCustodialHistoryItemType.add(custodialHistoryItemType2);
+
+        List<String> custodialHistoryItem =
+            listeCustodialHistoryItemType.stream().map(x -> x.getValue()).collect(Collectors.toList());
+
+        DataObjectReference reference = new DataObjectReference();
+        reference.setDataObjectReferenceId("ID222");
+
+        CustodialHistoryModel custodialHistoryModel = new CustodialHistoryModel();
+        custodialHistoryModel.setCustodialHistoryItem(custodialHistoryItem);
+        custodialHistoryModel.setCustodialHistoryFile(reference);
+
+        descriptiveMetadataModel.setCustodialHistory(custodialHistoryModel);
+
+        // When
+        DescriptiveMetadataContentType contentType =
+            descriptiveMetadataMapper.map(descriptiveMetadataModel, new ArrayList<>());
+
+        // Then
+        assertThat(contentType.getCustodialHistory().getCustodialHistoryFile().getDataObjectReferenceId())
+            .isEqualTo(reference.getDataObjectReferenceId());
+        assertThat(contentType.getCustodialHistory().getCustodialHistoryItem().size()).isEqualTo(2);
     }
 
 }

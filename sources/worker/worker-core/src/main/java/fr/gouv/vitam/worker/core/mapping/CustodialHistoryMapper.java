@@ -25,15 +25,14 @@
  */
 package fr.gouv.vitam.worker.core.mapping;
 
-import java.util.List;
-import java.util.stream.Collectors;
-
-import fr.gouv.culture.archivesdefrance.seda.v2.DataObjectRefType;
-import fr.gouv.culture.archivesdefrance.seda.v2.DescriptiveMetadataContentType;
 import fr.gouv.culture.archivesdefrance.seda.v2.CustodialHistoryType;
+import fr.gouv.culture.archivesdefrance.seda.v2.DataObjectRefType;
 import fr.gouv.culture.archivesdefrance.seda.v2.TextType;
 import fr.gouv.vitam.common.model.unit.CustodialHistoryModel;
 import fr.gouv.vitam.common.model.unit.DataObjectReference;
+
+import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * Custodial History Mapper
@@ -60,8 +59,12 @@ public class CustodialHistoryMapper {
         DataObjectRefType dataObjectRefType = custodialHistory.getCustodialHistoryFile();
         if (dataObjectRefType != null) {
             DataObjectReference custodialHistoryFile = new DataObjectReference();
-            custodialHistoryFile.setDataObjectGroupReferenceId(dataObjectRefType.getDataObjectGroupReferenceId());
-
+            if(dataObjectRefType.getDataObjectGroupReferenceId() != null){
+                custodialHistoryFile.setDataObjectGroupReferenceId(dataObjectRefType.getDataObjectGroupReferenceId());
+            }
+            if(dataObjectRefType.getDataObjectReferenceId() != null){
+                custodialHistoryFile.setDataObjectReferenceId(dataObjectRefType.getDataObjectReferenceId());
+            }
             custodialHistoryModel.setCustodialHistoryFile(custodialHistoryFile);
         }
 

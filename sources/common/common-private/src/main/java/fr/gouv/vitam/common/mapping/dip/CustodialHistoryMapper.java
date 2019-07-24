@@ -27,13 +27,13 @@
 package fr.gouv.vitam.common.mapping.dip;
 
 
-import java.util.List;
-
 import fr.gouv.culture.archivesdefrance.seda.v2.CustodialHistoryItemType;
-import fr.gouv.culture.archivesdefrance.seda.v2.DataObjectRefType;
 import fr.gouv.culture.archivesdefrance.seda.v2.CustodialHistoryType;
+import fr.gouv.culture.archivesdefrance.seda.v2.DataObjectRefType;
 import fr.gouv.vitam.common.model.unit.CustodialHistoryModel;
 import fr.gouv.vitam.common.model.unit.DataObjectReference;
+
+import java.util.List;
 
 /**
  * Custodial History Mapper
@@ -68,7 +68,12 @@ public class CustodialHistoryMapper {
         DataObjectReference dataObjectReference = custodialHistoryModel.getCustodialHistoryFile();
         if (dataObjectReference != null) {
             DataObjectRefType custodialHistoryFile = new DataObjectRefType();
-            custodialHistoryFile.setDataObjectGroupReferenceId(dataObjectReference.getDataObjectGroupReferenceId());
+            if (dataObjectReference.getDataObjectGroupReferenceId() != null) {
+                custodialHistoryFile.setDataObjectGroupReferenceId(dataObjectReference.getDataObjectGroupReferenceId());
+            }
+            if (dataObjectReference.getDataObjectReferenceId() != null) {
+                custodialHistoryFile.setDataObjectReferenceId(dataObjectReference.getDataObjectReferenceId());
+            }
 
             custodialHistory.setCustodialHistoryFile(custodialHistoryFile);
         }

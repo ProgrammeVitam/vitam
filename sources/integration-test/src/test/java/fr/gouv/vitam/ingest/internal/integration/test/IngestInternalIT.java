@@ -33,9 +33,7 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.collect.Sets;
 import fr.gouv.vitam.access.internal.client.AccessInternalClient;
 import fr.gouv.vitam.access.internal.client.AccessInternalClientFactory;
-import fr.gouv.vitam.access.internal.common.exception.AccessInternalClientException;
 import fr.gouv.vitam.access.internal.common.exception.AccessInternalClientNotFoundException;
-import fr.gouv.vitam.access.internal.common.exception.AccessInternalClientServerException;
 import fr.gouv.vitam.access.internal.core.AccessInternalModuleImpl;
 import fr.gouv.vitam.access.internal.rest.AccessInternalMain;
 import fr.gouv.vitam.common.CommonMediaType;
@@ -94,6 +92,10 @@ import fr.gouv.vitam.common.model.administration.AccessContractModel;
 import fr.gouv.vitam.common.model.administration.IngestContractModel;
 import fr.gouv.vitam.common.model.elimination.EliminationRequestBody;
 import fr.gouv.vitam.common.model.processing.WorkFlow;
+import fr.gouv.vitam.common.model.rules.InheritedRuleCategoryResponseModel;
+import fr.gouv.vitam.common.model.rules.UnitInheritedRulesResponseModel;
+import fr.gouv.vitam.common.model.unit.CustodialHistoryModel;
+import fr.gouv.vitam.common.model.unit.DataObjectReference;
 import fr.gouv.vitam.common.stream.SizedInputStream;
 import fr.gouv.vitam.common.stream.StreamUtils;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
@@ -125,8 +127,6 @@ import fr.gouv.vitam.metadata.client.MetaDataClientFactory;
 import fr.gouv.vitam.metadata.core.database.collections.MetadataCollections;
 import fr.gouv.vitam.metadata.core.database.collections.ObjectGroup;
 import fr.gouv.vitam.metadata.core.database.collections.Unit;
-import fr.gouv.vitam.common.model.rules.InheritedRuleCategoryResponseModel;
-import fr.gouv.vitam.common.model.rules.UnitInheritedRulesResponseModel;
 import fr.gouv.vitam.metadata.rest.MetadataMain;
 import fr.gouv.vitam.processing.common.model.ProcessWorkflow;
 import fr.gouv.vitam.processing.engine.core.monitoring.ProcessMonitoringImpl;
@@ -160,6 +160,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
@@ -173,9 +174,9 @@ import static fr.gouv.vitam.common.guid.GUIDFactory.newOperationLogbookGUID;
 import static fr.gouv.vitam.preservation.ProcessManagementWaiter.waitOperation;
 import static io.restassured.RestAssured.get;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
@@ -183,34 +184,15 @@ import static org.junit.Assert.fail;
  * Ingest Internal integration test
  */
 public class IngestInternalIT extends VitamRuleRunner {
-    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(IngestInternalIT.class);
     public static final String HOLDING_SCHEME = "HOLDING_SCHEME";
+    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(IngestInternalIT.class);
     private static final String HOLDING_SCHEME_IDENTIFIER = "HOLDINGSCHEME";
-    private WorkFlow holding = WorkFlow.of(HOLDING_SCHEME, HOLDING_SCHEME_IDENTIFIER, "MASTERDATA");
-
-    @ClassRule
-    public static VitamServerRunner runner =
-        new VitamServerRunner(IngestInternalIT.class, mongoRule.getMongoDatabase().getName(),
-            elasticsearchRule.getClusterName(),
-            Sets.newHashSet(
-                MetadataMain.class,
-                WorkerMain.class,
-                AdminManagementMain.class,
-                LogbookMain.class,
-                WorkspaceMain.class,
-                ProcessManagementMain.class,
-                AccessInternalMain.class,
-                IngestInternalMain.class));
-
     private static final String LINE_3 = "line 3";
     private static final String LINE_2 = "line 2";
     private static final String JEU_DONNEES_OK_REGLES_CSV_CSV = "jeu_donnees_OK_regles_CSV.csv";
     private static final Integer tenantId = 0;
-
     private static final long SLEEP_TIME = 20l;
     private static final long NB_TRY = 18000; // equivalent to 16 minute
-
-
     private static final String METADATA_PATH = "/metadata/v1";
     private static final String PROCESSING_PATH = "/processing/v1";
     private static final String WORKER_PATH = "/worker/v1";
@@ -220,37 +202,9 @@ public class IngestInternalIT extends VitamRuleRunner {
     private static final String ACCESS_INTERNAL_PATH = "/access-internal/v1";
     private static final String WORKFLOW_ID = "DEFAULT_WORKFLOW";
     private static final String CONTEXT_ID = "PROCESS_SIP_UNITARY";
-    private WorkFlow ingestSip = WorkFlow.of(WORKFLOW_ID, CONTEXT_ID, "INGEST");
-
-    private static String CONFIG_SIEGFRIED_PATH = "";
-
-    private static String SIP_TREE = "integration-ingest-internal/test_arbre.zip";
-    private static String SIP_FILE_OK_NAME = "integration-ingest-internal/SIP-ingest-internal-ok.zip";
-    private static String SIP_NB_OBJ_INCORRECT_IN_MANIFEST = "integration-ingest-internal/SIP_Conformity_KO.zip";
-    private static String SIP_OK_WITH_MGT_META_DATA_ONLY_RULES = "integration-ingest-internal/SIP-MGTMETADATA-ONLY.zip";
-    private static String SIP_OK_WITH_ADDRESSEE = "integration-ingest-internal/SIP_MAIL.zip";
-    private static String SIP_OK_WITH_BOTH_UNITMGT_MGTMETADATA_RULES =
-        "integration-ingest-internal/SIP-BOTH-UNITMGT-MGTMETADATA.zip";
-    private static String SIP_OK_WITH_BOTH_UNITMGT_MGTMETADATA_RULES_WiTHOUT_OBJECTS =
-        "integration-ingest-internal/SIP-BOTH-RULES-TYPES-WITHOUT-OBJECTS.zip";
-
-    private static String SIP_KO_WITH_EMPTY_TITLE =
-        "integration-processing/SIP_FILE_1791_CA1.zip";
-
-    private static String SIP_KO_WITH_SPECIAL_CHARS =
-        "integration-processing/SIP-2182-KO.zip";
-
-    private static String SIP_KO_WITH_INCORRECT_DATE =
-        "integration-processing/SIP_FILE_1791_CA2.zip";
-
-    private static String SIP_OK_WITH_SERVICE_LEVEL =
-        "integration-processing/SIP_2467_SERVICE_LEVEL.zip";
-    private static String SIP_OK_WITHOUT_SERVICE_LEVEL =
-        "integration-processing/SIP_2467_WITHOUT_SERVICE_LEVEL.zip";
     private static final String FILE_RULES_OK = "functional-admin/file-rules/jeu_donnees_OK_regles_CSV.csv";
     private static final String FILE_AGENCIES_OK = "functional-admin/agencies/agencies.csv";
     private static final String FILE_AGENCIES_AU_update = "functional-admin/agencies/agencies_update.csv";
-
     private static final String FILE_RULES_KO_DUPLICATED_REFERENCE =
         "functional-admin/file-rules/jeu_donnees_KO_regles_CSV_DuplicatedReference.csv";
     private static final String FILE_RULES_KO_UNKNOWN_DURATION =
@@ -267,7 +221,6 @@ public class IngestInternalIT extends VitamRuleRunner {
         "functional-admin/file-rules/jeu_donnees_KO_regles_CSV_90000_YEAR.csv";
     private static final String FILE_RULES_KO_600000_DAY =
         "functional-admin/file-rules/jeu_donnees_KO_regles_600000_DAY.csv";
-
     private static final String ERROR_REPORT_CONTENT = "functional-admin/file-rules/error_report_content.json";
     private static final String ERROR_REPORT_6000_DAYS = "functional-admin/file-rules/error_report_6000_days.json";
     private static final String ERROR_REPORT_9000_YEARS = "functional-admin/file-rules/error_report_9000_years.json";
@@ -281,7 +234,41 @@ public class IngestInternalIT extends VitamRuleRunner {
         "functional-admin/file-rules/error_report_reference_with_wrong_coma.json";
     private static final String ERROR_REPORT_UNKNOW_DURATION =
         "functional-admin/file-rules/error_report_unknow_duration.json";
-
+    @ClassRule
+    public static VitamServerRunner runner =
+        new VitamServerRunner(IngestInternalIT.class, mongoRule.getMongoDatabase().getName(),
+            elasticsearchRule.getClusterName(),
+            Sets.newHashSet(
+                MetadataMain.class,
+                WorkerMain.class,
+                AdminManagementMain.class,
+                LogbookMain.class,
+                WorkspaceMain.class,
+                ProcessManagementMain.class,
+                AccessInternalMain.class,
+                IngestInternalMain.class));
+    private static String CONFIG_SIEGFRIED_PATH = "";
+    private static String SIP_TREE = "integration-ingest-internal/test_arbre.zip";
+    private static String SIP_FILE_OK_NAME = "integration-ingest-internal/SIP-ingest-internal-ok.zip";
+    private static String SIP_SIP_ALL_METADATA_WITH_CUSTODIALHISTORYFILE =
+        "integration-ingest-internal/sip_all_metadata_with_custodialhistoryfile.zip";
+    private static String SIP_NB_OBJ_INCORRECT_IN_MANIFEST = "integration-ingest-internal/SIP_Conformity_KO.zip";
+    private static String SIP_OK_WITH_MGT_META_DATA_ONLY_RULES = "integration-ingest-internal/SIP-MGTMETADATA-ONLY.zip";
+    private static String SIP_OK_WITH_ADDRESSEE = "integration-ingest-internal/SIP_MAIL.zip";
+    private static String SIP_OK_WITH_BOTH_UNITMGT_MGTMETADATA_RULES =
+        "integration-ingest-internal/SIP-BOTH-UNITMGT-MGTMETADATA.zip";
+    private static String SIP_OK_WITH_BOTH_UNITMGT_MGTMETADATA_RULES_WiTHOUT_OBJECTS =
+        "integration-ingest-internal/SIP-BOTH-RULES-TYPES-WITHOUT-OBJECTS.zip";
+    private static String SIP_KO_WITH_EMPTY_TITLE =
+        "integration-processing/SIP_FILE_1791_CA1.zip";
+    private static String SIP_KO_WITH_SPECIAL_CHARS =
+        "integration-processing/SIP-2182-KO.zip";
+    private static String SIP_KO_WITH_INCORRECT_DATE =
+        "integration-processing/SIP_FILE_1791_CA2.zip";
+    private static String SIP_OK_WITH_SERVICE_LEVEL =
+        "integration-processing/SIP_2467_SERVICE_LEVEL.zip";
+    private static String SIP_OK_WITHOUT_SERVICE_LEVEL =
+        "integration-processing/SIP_2467_WITHOUT_SERVICE_LEVEL.zip";
     private static String SIP_OK_PHYSICAL_ARCHIVE = "integration-ingest-internal/OK_ArchivesPhysiques.zip";
     private static String SIP_OK_PHYSICAL_ARCHIVE_FOR_LFC =
         "integration-ingest-internal/OK_ArchivesPhysiques_for_LFC.zip";
@@ -291,22 +278,18 @@ public class IngestInternalIT extends VitamRuleRunner {
         "integration-ingest-internal/KO_ArchivesPhysiques_PhysicalInBinary.zip";
     private static String SIP_KO_PHYSICAL_ARCHIVE_PHYSICAL_ID_EMPTY =
         "integration-ingest-internal/KO_ArchivesPhysiques_EmptyPhysicalId.zip";
-
     private static String SIP_OK_PHYSICAL_ARCHIVE_WITH_ATTACHMENT_FROM_CONTARCT =
         "integration-ingest-internal/OK_ArchivesPhysiques_With_Attachment_Contract.zip";
     private static String SIP_ARBRE = "integration-ingest-internal/arbre_simple.zip";
-
     private static String SIP_4396 = "integration-ingest-internal/OK_SIP_ClassificationRule_noRuleID.zip";
-
     private static String OK_RULES_COMPLEX_COMPLETE_SIP =
         "integration-ingest-internal/1069_OK_RULES_COMPLEXE_COMPLETE.zip";
-
     private static String OK_OBIDIN_MESSAGE_IDENTIFIER =
         "integration-ingest-internal/SIP-ingest-internal-ok.zip";
-
     private static String SIP_ALGO_INCORRECT_IN_MANIFEST = "integration-ingest-internal/SIP_INCORRECT_ALGORITHM.zip";
-
     private static LogbookElasticsearchAccess esClient;
+    private WorkFlow holding = WorkFlow.of(HOLDING_SCHEME, HOLDING_SCHEME_IDENTIFIER, "MASTERDATA");
+    private WorkFlow ingestSip = WorkFlow.of(WORKFLOW_ID, CONTEXT_ID, "INGEST");
 
     @BeforeClass
     public static void setUpBeforeClass() throws Exception {
@@ -335,17 +318,15 @@ public class IngestInternalIT extends VitamRuleRunner {
         VitamClientFactory.resetConnections();
     }
 
-    @Before
-    public void setUpBefore() throws Exception {
-        VitamThreadUtils.getVitamSession().setRequestId(newOperationLogbookGUID(0));
-    }
-
-
-
     public static void prepareVitamSession() {
         VitamThreadUtils.getVitamSession().setTenantId(tenantId);
         VitamThreadUtils.getVitamSession().setContractId("aName3");
         VitamThreadUtils.getVitamSession().setContextId("Context_IT");
+    }
+
+    @Before
+    public void setUpBefore() throws Exception {
+        VitamThreadUtils.getVitamSession().setRequestId(newOperationLogbookGUID(0));
     }
 
     @RunWithCustomExecutor
@@ -441,8 +422,9 @@ public class IngestInternalIT extends VitamRuleRunner {
                 .containsAll(objectGroup.get(VitamFieldsHelper.unitups(), List.class));
             final String objectId = objectGroup.getId();
             final StorageClient storageClient = StorageClientFactory.getInstance().getClient();
-            Response responseStorage = storageClient.getContainerAsync(VitamConfiguration.getDefaultStrategy(), objectId,
-                DataCategory.OBJECT, AccessLogUtils.getNoLogAccessLog());
+            Response responseStorage =
+                storageClient.getContainerAsync(VitamConfiguration.getDefaultStrategy(), objectId,
+                    DataCategory.OBJECT, AccessLogUtils.getNoLogAccessLog());
             InputStream inputStream = responseStorage.readEntity(InputStream.class);
             SizedInputStream sizedInputStream = new SizedInputStream(inputStream);
             final long size = StreamUtils.closeSilently(sizedInputStream);
@@ -1720,7 +1702,8 @@ public class IngestInternalIT extends VitamRuleRunner {
         // import contrat
         File fileAccessContracts = PropertiesUtils.getResourceFile("access_contrats.json");
         List<AccessContractModel> accessContractModelList = JsonHandler
-            .getFromFileAsTypeRefence(fileAccessContracts, new TypeReference<List<AccessContractModel>>() {});
+            .getFromFileAsTypeRefence(fileAccessContracts, new TypeReference<List<AccessContractModel>>() {
+            });
         client.importAccessContracts(accessContractModelList);
         VitamThreadUtils.getVitamSession().setRequestId(newOperationLogbookGUID(tenantId));
 
@@ -1988,7 +1971,8 @@ public class IngestInternalIT extends VitamRuleRunner {
         final List<Document> unitList =
             JsonHandler.getFromFileAsTypeRefence(PropertiesUtils
                     .getResourceFile("integration-ingest-internal/data/units_tree_access_contract_test.json"),
-                new TypeReference<List<Unit>>() {});
+                new TypeReference<List<Unit>>() {
+                });
 
         // Save units in Mongo
         VitamRepositoryFactory.get().getVitamMongoRepository(MetadataCollections.UNIT.getVitamCollection())
@@ -2448,7 +2432,7 @@ public class IngestInternalIT extends VitamRuleRunner {
         }
     }
 
-    private void awaitForWorkflowTerminationWithStatus(GUID operationGuid, StatusCode ok) {
+    private void awaitForWorkflowTerminationWithStatus(GUID operationGuid, StatusCode status) {
 
         waitOperation(NB_TRY, SLEEP_TIME, operationGuid.toString());
 
@@ -2457,7 +2441,7 @@ public class IngestInternalIT extends VitamRuleRunner {
 
         assertNotNull(processWorkflow);
         assertEquals(ProcessState.COMPLETED, processWorkflow.getState());
-        assertEquals(ok, processWorkflow.getStatus());
+        assertEquals(status, processWorkflow.getStatus());
     }
 
 
@@ -2601,7 +2585,7 @@ public class IngestInternalIT extends VitamRuleRunner {
         boolean checkServiceLevel = false;
         final JsonNode element = logbookOperation.get("$results").get(0);
 
-        assertEquals(element.get("obIdIn").asText(),"vitam");
+        assertEquals(element.get("obIdIn").asText(), "vitam");
     }
 
     @RunWithCustomExecutor
@@ -2614,14 +2598,14 @@ public class IngestInternalIT extends VitamRuleRunner {
         final GUID objectGuid = GUIDFactory.newManifestGUID(0);
         // workspace client unzip SIP in workspace
         final InputStream zipInputStreamSipObject =
-                PropertiesUtils.getResourceAsStream(SIP_ALGO_INCORRECT_IN_MANIFEST);
+            PropertiesUtils.getResourceAsStream(SIP_ALGO_INCORRECT_IN_MANIFEST);
 
         final List<LogbookOperationParameters> params = new ArrayList<>();
         final LogbookOperationParameters initParameters = LogbookParametersFactory.newLogbookOperationParameters(
-                operationGuid, "STP_INGEST_CONTROL_SIP", operationGuid,
-                LogbookTypeProcess.INGEST, StatusCode.STARTED,
-                operationGuid != null ? operationGuid.toString() : "outcomeDetailMessage",
-                operationGuid);
+            operationGuid, "STP_INGEST_CONTROL_SIP", operationGuid,
+            LogbookTypeProcess.INGEST, StatusCode.STARTED,
+            operationGuid != null ? operationGuid.toString() : "outcomeDetailMessage",
+            operationGuid);
         params.add(initParameters);
         LOGGER.error(initParameters.toString());
 
@@ -2652,6 +2636,61 @@ public class IngestInternalIT extends VitamRuleRunner {
 
 
 
+    }
+
+    @RunWithCustomExecutor
+    @Test
+    public void testIngestWithCustodialHistoryFileContainingDataObjectReferenceId() throws Exception {
+        final GUID operationGuid = GUIDFactory.newOperationLogbookGUID(tenantId);
+        prepareVitamSession();
+        VitamThreadUtils.getVitamSession().setRequestId(operationGuid);
+
+        // workspace client unzip SIP in workspace
+        final InputStream zipInputStreamSipObject =
+            PropertiesUtils.getResourceAsStream(SIP_SIP_ALL_METADATA_WITH_CUSTODIALHISTORYFILE);
+
+        // init default logbook operation
+        final List<LogbookOperationParameters> params = new ArrayList<>();
+        final LogbookOperationParameters initParameters = LogbookParametersFactory.newLogbookOperationParameters(
+            operationGuid, "Process_SIP_unitary", operationGuid,
+            LogbookTypeProcess.INGEST, StatusCode.STARTED,
+            operationGuid != null ? operationGuid.toString() : "outcomeDetailMessage",
+            operationGuid);
+        params.add(initParameters);
+
+        // call ingest
+        IngestInternalClientFactory.getInstance().changeServerPort(runner.PORT_SERVICE_INGEST_INTERNAL);
+        final IngestInternalClient client = IngestInternalClientFactory.getInstance().getClient();
+        client.uploadInitialLogbook(params);
+
+        // init workflow before execution
+        client.initWorkflow(ingestSip);
+
+        client.upload(zipInputStreamSipObject, CommonMediaType.ZIP_TYPE, ingestSip, ProcessAction.RESUME.name());
+
+        awaitForWorkflowTerminationWithStatus(operationGuid, StatusCode.WARNING);
+
+        // Try to check AU and custodialHistoryModel
+        final MetaDataClient metadataClient = MetaDataClientFactory.getInstance().getClient();
+        SelectMultiQuery select = new SelectMultiQuery();
+        select.addQueries(
+            QueryHelper.eq("Title", "Les ruines de la Grande Guerre. - Belleau. - Une tranchée près de la gare."));
+        final JsonNode node = metadataClient.selectUnits(select.getFinalSelect());
+
+        final JsonNode result = node.get("$results");
+        assertNotNull(result);
+
+        CustodialHistoryModel model =
+            JsonHandler.getFromJsonNode(result.get(0).get("CustodialHistory"), CustodialHistoryModel.class);
+        assertNotNull(model);
+        String expectedTitleOfCustodialItem = "Ce champ est obligatoire";
+        assertThat(model.getCustodialHistoryItem()).isEqualTo(Arrays.asList(expectedTitleOfCustodialItem));
+
+        DataObjectReference reference = model.getCustodialHistoryFile();
+        assertNotNull(reference);
+        String expectedDataObjectReference = "ID22";
+        assertThat(reference.getDataObjectReferenceId()).isEqualTo(expectedDataObjectReference);
+        assertNull(reference.getDataObjectGroupReferenceId());
 
     }
 
