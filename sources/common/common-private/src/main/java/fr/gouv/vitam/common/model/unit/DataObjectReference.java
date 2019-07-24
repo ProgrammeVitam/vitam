@@ -25,6 +25,7 @@
  * accept its terms.
  *******************************************************************************/
 package fr.gouv.vitam.common.model.unit;
+
 /**
  * Data Object Reference POJO
  */
@@ -35,6 +36,7 @@ public class DataObjectReference {
 
     /**
      * Get DataObjectGroupReferenceId
+     *
      * @return dataObjectGroupReferenceId
      */
     public String getDataObjectGroupReferenceId() {
@@ -43,6 +45,7 @@ public class DataObjectReference {
 
     /**
      * Set DataObjectGroupReferenceId
+     *
      * @param dataObjectGroupReferenceId
      */
     public void setDataObjectGroupReferenceId(String dataObjectGroupReferenceId) {
@@ -50,14 +53,17 @@ public class DataObjectReference {
     }
 
     /**
-     * get DataObjectGroupReferenceId
-     * @eturn dataObjectGroupReferenceId
+     * get DataObjectReferenceId
+     *
+     * @eturn dataObjectReferenceId
      */
     public String getDataObjectReferenceId() {
         return dataObjectReferenceId;
     }
+
     /**
-     * Set DataObjectGroupReferenceId
+     * Set DataObjectReferenceId
+     *
      * @param dataObjectReferenceId
      */
     public void setDataObjectReferenceId(String dataObjectReferenceId) {

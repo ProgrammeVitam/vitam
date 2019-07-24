@@ -68,10 +68,10 @@ public class CustodialHistoryMapper {
         DataObjectReference dataObjectReference = custodialHistoryModel.getCustodialHistoryFile();
         if (dataObjectReference != null) {
             DataObjectRefType custodialHistoryFile = new DataObjectRefType();
-            if(dataObjectReference.getDataObjectGroupReferenceId() != null){
+            if (dataObjectReference.getDataObjectGroupReferenceId() != null) {
                 custodialHistoryFile.setDataObjectGroupReferenceId(dataObjectReference.getDataObjectGroupReferenceId());
             }
-            if(dataObjectReference.getDataObjectReferenceId() != null){
+            if (dataObjectReference.getDataObjectReferenceId() != null) {
                 custodialHistoryFile.setDataObjectReferenceId(dataObjectReference.getDataObjectReferenceId());
             }
 
