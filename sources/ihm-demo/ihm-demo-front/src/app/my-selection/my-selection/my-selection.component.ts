@@ -17,6 +17,7 @@ import {SelectItem} from 'primeng/api';
 import {ReferentialHelper} from '../../referentials/referential.helper';
 import {ReferentialsService} from '../../referentials/referentials.service';
 import {escape} from 'querystring';
+import {ResourcesService} from "../../common/resources.service";
 
 const breadcrumb: BreadcrumbElement[] = [
   {label: 'Panier', routerLink: 'basket'}
@@ -60,7 +61,7 @@ export class MySelectionComponent extends PageComponent {
 
   constructor(public titleService: Title, public breadcrumbService: BreadcrumbService, public activatedRoute: ActivatedRoute,
               public archiveUnitHelper: ArchiveUnitHelper, public mySelectionService: MySelectionService,
-              public archiveUnitService: ArchiveUnitService, private router: Router, private dialogService: DialogService, public referentialsService: ReferentialsService) {
+              public archiveUnitService: ArchiveUnitService, private router: Router, private dialogService: DialogService, public referentialsService: ReferentialsService, public resourceService: ResourcesService) {
     super('Ma selection', breadcrumb, titleService, breadcrumbService);
   }
 
@@ -70,7 +71,8 @@ export class MySelectionComponent extends PageComponent {
     this.activatedRoute.params.subscribe(
       params => {
         this.basketId = params['id'];
-        this.mySelectionService.getResults(this.firstItem, 50, this.basketId).subscribe(
+        const limit = this.mySelectionService.getBasketFromLocalStorage(this.resourceService.getTenant(), this.basketId).length;
+        this.mySelectionService.getResults(this.firstItem, limit, this.basketId).subscribe(
           (response: VitamResponse) => {
             this.selectedArchiveUnits = this.getFromResponse(response);
             this.hits = response.$hits;
