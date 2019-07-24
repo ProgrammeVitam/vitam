@@ -629,7 +629,8 @@
         "RecordGrp",
         "SubGrp",
         "File",
-        "Item"
+        "Item",
+        "OtherLevel"
       ]
     },
     "Title": {
