@@ -89,6 +89,8 @@ import fr.gouv.vitam.common.model.administration.AccessContractModel;
 import fr.gouv.vitam.common.model.administration.IngestContractModel;
 import fr.gouv.vitam.common.model.elimination.EliminationRequestBody;
 import fr.gouv.vitam.common.model.processing.WorkFlow;
+import fr.gouv.vitam.common.model.unit.CustodialHistoryModel;
+import fr.gouv.vitam.common.model.unit.DataObjectReference;
 import fr.gouv.vitam.common.stream.SizedInputStream;
 import fr.gouv.vitam.common.stream.StreamUtils;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
@@ -153,6 +155,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -167,6 +170,7 @@ import static io.restassured.RestAssured.get;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
@@ -294,6 +298,9 @@ public class IngestInternalIT extends VitamRuleRunner {
 
     private static String OK_OBIDIN_MESSAGE_IDENTIFIER =
         "integration-ingest-internal/SIP-ingest-internal-ok.zip";
+
+    private static String SIP_SIP_ALL_METADATA_WITH_CUSTODIALHISTORYFILE =
+        "integration-ingest-internal/sip_all_metadata_with_custodialhistoryfile.zip";
 
     private static LogbookElasticsearchAccess esClient;
 
@@ -2483,5 +2490,61 @@ public class IngestInternalIT extends VitamRuleRunner {
         final JsonNode element = logbookOperation.get("$results").get(0);
 
         assertEquals(element.get("obIdIn").asText(),"vitam");
+    }
+
+    @RunWithCustomExecutor
+    @Test
+    public void testIngestWithCustodialHistoryFileContainingDataObjectReferenceId() throws Exception {
+        final GUID operationGuid = GUIDFactory.newOperationLogbookGUID(tenantId);
+        prepareVitamSession();
+        VitamThreadUtils.getVitamSession().setRequestId(operationGuid);
+
+        // workspace client unzip SIP in workspace
+        final InputStream zipInputStreamSipObject =
+            PropertiesUtils.getResourceAsStream(SIP_SIP_ALL_METADATA_WITH_CUSTODIALHISTORYFILE);
+
+        // init default logbook operation
+        final List<LogbookOperationParameters> params = new ArrayList<>();
+        final LogbookOperationParameters initParameters = LogbookParametersFactory.newLogbookOperationParameters(
+            operationGuid, "Process_SIP_unitary", operationGuid,
+            LogbookTypeProcess.INGEST, StatusCode.STARTED,
+            operationGuid != null ? operationGuid.toString() : "outcomeDetailMessage",
+            operationGuid);
+        params.add(initParameters);
+
+        // call ingest
+        IngestInternalClientFactory.getInstance().changeServerPort(runner.PORT_SERVICE_INGEST_INTERNAL);
+        final IngestInternalClient client = IngestInternalClientFactory.getInstance().getClient();
+        client.uploadInitialLogbook(params);
+
+        // init workflow before execution
+        client.initWorkflow(ingestSip);
+
+        client.upload(zipInputStreamSipObject, CommonMediaType.ZIP_TYPE, ingestSip, ProcessAction.RESUME.name());
+
+        awaitForWorkflowTerminationWithStatus(operationGuid, StatusCode.WARNING);
+
+        // Try to check AU and custodialHistoryModel
+        final MetaDataClient metadataClient = MetaDataClientFactory.getInstance().getClient();
+        SelectMultiQuery select = new SelectMultiQuery();
+        select.addQueries(
+            QueryHelper.eq("Title", "Les ruines de la Grande Guerre. - Belleau. - Une tranchée près de la gare."));
+        final JsonNode node = metadataClient.selectUnits(select.getFinalSelect());
+
+        final JsonNode result = node.get("$results");
+        assertNotNull(result);
+
+        CustodialHistoryModel model =
+            JsonHandler.getFromJsonNode(result.get(0).get("CustodialHistory"), CustodialHistoryModel.class);
+        assertNotNull(model);
+        String expectedTitleOfCustodialItem = "Ce champ est obligatoire";
+        assertThat(model.getCustodialHistoryItem()).isEqualTo(Arrays.asList(expectedTitleOfCustodialItem));
+
+        DataObjectReference reference = model.getCustodialHistoryFile();
+        assertNotNull(reference);
+        String expectedDataObjectReference = "ID22";
+        assertThat(reference.getDataObjectReferenceId()).isEqualTo(expectedDataObjectReference);
+        assertNull(reference.getDataObjectGroupReferenceId());
+
     }
 }
