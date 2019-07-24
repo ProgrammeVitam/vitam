@@ -42,6 +42,9 @@ mongodb:
     localadmin:
       user: vitamdb-localadmin
       password: change_it_QeH8q4e16ah4QKXS
+    system:
+      user: vitamdb-system
+      password: change_it_HycFEVD74g397iRe
     offer:
       user: offer
       password: change_it_pQi1T1yT9LAF8au8
@@ -53,6 +56,9 @@ mongodb:
     localadmin:
       user: vitamdb-localadmin
       password: change_it_Am1B37tGY1w5VfvX
+    system:
+      user: vitamdb-system
+      password: change_it_HycFEVD74g397iRe
     offer:
       user: offer
       password: change_it_mLDYds957sNQ53mA
@@ -64,6 +70,9 @@ mongodb:
     localadmin:
       user: vitamdb-localadmin
       password: change_it_QeH8q4e16ah4QKXS
+    system:
+      user: vitamdb-system
+      password: change_it_HycFEVD74g397iRe
     offer:
       user: offer
       password: change_it_pQi1T1yT9LAF8au8
@@ -75,6 +84,9 @@ mongodb:
     localadmin:
       user: vitamdb-localadmin
       password: change_it_QB8857SJrGrQh2yu
+    system:
+      user: vitamdb-system
+      password: change_it_HycFEVD74g397iRe
     offer:
       user: offer
       password: change_it_AWJg2Bp3s69P6nMe
@@ -86,6 +98,9 @@ mongodb:
     localadmin:
       user: vitamdb-localadmin
       password: change_it_S9jE24rxHwUZP6y5
+    system:
+      user: vitamdb-system
+      password: change_it_HycFEVD74g397iRe
     offer:
       user: offer
       password: change_it_TuTB1i2k7iQW3zL2
@@ -97,6 +112,9 @@ mongodb:
     localadmin:
       user: vitamdb-localadmin
       password: change_it_S9jE24rxHwUZP5a6
+    system:
+      user: vitamdb-system
+      password: change_it_HycFEVD74g397iRe
     offer:
       user: offer
       password: change_it_TuTB1i2k7iQW3c2a
