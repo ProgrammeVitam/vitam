@@ -26,19 +26,31 @@ package fr.gouv.vitam.batch.report.rest.service; /******************************
  *******************************************************************************/
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
+import fr.gouv.vitam.batch.report.model.EvidenceAuditFullStatusCount;
+import fr.gouv.vitam.batch.report.model.EvidenceAuditStatsModel;
+import fr.gouv.vitam.batch.report.model.EvidenceStatus;
+import fr.gouv.vitam.batch.report.model.OperationSummary;
 import fr.gouv.vitam.batch.report.model.PreservationReportModel;
 import fr.gouv.vitam.batch.report.model.PreservationStatsModel;
 import fr.gouv.vitam.batch.report.model.PreservationStatus;
+import fr.gouv.vitam.batch.report.model.Report;
 import fr.gouv.vitam.batch.report.model.ReportBody;
+import fr.gouv.vitam.batch.report.model.ReportResults;
+import fr.gouv.vitam.batch.report.model.ReportSummary;
+import fr.gouv.vitam.batch.report.model.ReportType;
 import fr.gouv.vitam.batch.report.rest.repository.EliminationActionObjectGroupRepository;
 import fr.gouv.vitam.batch.report.rest.repository.EliminationActionUnitRepository;
+import fr.gouv.vitam.batch.report.rest.repository.EvidenceAuditReportRepository;
 import fr.gouv.vitam.batch.report.rest.repository.PreservationReportRepository;
 import fr.gouv.vitam.batch.report.rest.repository.UpdateUnitReportRepository;
 import fr.gouv.vitam.common.database.server.mongodb.EmptyMongoCursor;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
+import fr.gouv.vitam.common.json.BsonHelper;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.mongo.FakeMongoCursor;
 import fr.gouv.vitam.functional.administration.common.BackupService;
+import fr.gouv.vitam.storage.engine.client.StorageClient;
+import fr.gouv.vitam.storage.engine.client.StorageClientFactory;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
 import fr.gouv.vitam.workspace.client.WorkspaceClient;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
@@ -55,10 +67,10 @@ import org.mockito.junit.MockitoRule;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.lang.reflect.Type;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -95,7 +107,16 @@ public class BatchReportServiceImplTest {
     private WorkspaceClient workspaceClient;
 
     @Mock
+    private EvidenceAuditReportRepository evidenceAuditReportRepository;
+
+    @Mock
     public UpdateUnitReportRepository updateUnitMetadataReportEntry;
+
+    @Mock
+    private StorageClientFactory storageClientFactory;
+
+    @Mock
+    private StorageClient storageClient;
 
     @Mock
     private BackupService backupService;
@@ -113,9 +134,10 @@ public class BatchReportServiceImplTest {
 
     @Before
     public void setUp() throws Exception {
+        backupService = new BackupService(workspaceClientFactory, storageClientFactory);
         batchReportServiceImpl = new BatchReportServiceImpl(eliminationActionUnitRepository,
             eliminationActionObjectGroupRepository, updateUnitMetadataReportEntry, backupService,
-            workspaceClientFactory, preservationReportRepository);
+            workspaceClientFactory, preservationReportRepository, evidenceAuditReportRepository);
     }
 
 
@@ -155,6 +177,21 @@ public class BatchReportServiceImplTest {
 
         // When
         ThrowingCallable append = () -> batchReportServiceImpl.appendPreservationReport(reportBody.getProcessId(), reportBody.getEntries(), TENANT_ID);
+
+        // Then
+        assertThatCode(append).doesNotThrowAnyException();
+    }
+
+    @Test
+    public void should_append_evidence_audit_report() throws Exception {
+        // Given
+        InputStream stream = getClass().getResourceAsStream("/evidenceAuditObjectReport.json");
+        ReportBody reportBody = JsonHandler.getFromInputStreamAsTypeRefence(stream,
+            new TypeReference<ReportBody<JsonNode>>() {});
+
+        // When
+        ThrowingCallable append = () -> batchReportServiceImpl
+            .appendEvidenceAuditReport(reportBody.getProcessId(), reportBody.getEntries(), TENANT_ID);
 
         // Then
         assertThatCode(append).doesNotThrowAnyException();
@@ -270,7 +307,7 @@ public class BatchReportServiceImplTest {
         when(workspaceClient.isExistingContainer(PROCESS_ID)).thenReturn(true);
         // When
         batchReportServiceImpl.exportEliminationActionDistinctObjectGroupOfDeletedUnits(PROCESS_ID, "distinct_objectgroup_report",
-                TENANT_ID);
+            TENANT_ID);
         // Then
         try (BufferedReader reader = new BufferedReader(new InputStreamReader(new FileInputStream(report.toFile())))) {
             while (reader.ready()) {
@@ -278,6 +315,52 @@ public class BatchReportServiceImplTest {
                 assertThat(line).isNotNull();
             }
         }
+    }
+
+    @Test
+    public void should_store_evidence_audit_report() throws Exception {
+        // Given
+        String processId = "aeaaaaaaaafpuagsab43oallwisewyaaaaaq";
+        when(workspaceClientFactory.getClient()).thenReturn(workspaceClient);
+        when(workspaceClient.isExistingContainer(processId)).thenReturn(true);
+        String filename = String.format("report.jsonl", processId);
+        Path report = initialisePathWithFileName(filename);
+
+        when(storageClientFactory.getClient()).thenReturn(storageClient);
+        when(storageClient.storeFileFromWorkspace(anyString(), any(), anyString(), any())).thenReturn(null);
+
+        EvidenceAuditStatsModel auditStatus =
+            new EvidenceAuditStatsModel(1, 0, new EvidenceAuditFullStatusCount());
+        Document evidenceAuditData = getEvidenceAuditDocument(processId);
+        FakeMongoCursor<Document> fakeMongoCursor = new FakeMongoCursor<>(Collections.singletonList(evidenceAuditData));
+
+        initialiseMockWhenPutObjectInWorkspace(report);
+        when(evidenceAuditReportRepository.findCollectionByProcessIdTenantAndStatus(processId, TENANT_ID,
+            EvidenceStatus.WARN.name(),EvidenceStatus.KO.name()))
+            .thenReturn(fakeMongoCursor);
+        when(evidenceAuditReportRepository.stats(processId, TENANT_ID)).thenReturn(auditStatus);
+
+        OperationSummary operationSummary =
+            new OperationSummary(TENANT_ID, processId, "", "", "", "", JsonHandler.createObjectNode(),
+                JsonHandler.createObjectNode());
+        ReportResults reportResults = new ReportResults(1, 0, 0, 1);
+        ReportSummary reportSummary =
+            new ReportSummary(null, null, ReportType.EVIDENCE_AUDIT, reportResults, JsonHandler.createObjectNode());
+        JsonNode context = JsonHandler.createObjectNode();
+
+        Report reportInfo = new Report(operationSummary, reportSummary, context);
+
+        // When
+        batchReportServiceImpl.storeReport(reportInfo);
+
+        // Then
+        reportSummary.setExtendedInfo(JsonHandler.toJsonNode(auditStatus));
+        String accumulatorExpected = JsonHandler.unprettyPrint(operationSummary)
+            + "\n" + JsonHandler.unprettyPrint(reportSummary)
+            + "\n" + JsonHandler.unprettyPrint(context)
+            + "\n" + BsonHelper.stringify(evidenceAuditData);
+
+        assertThat(new String(Files.readAllBytes(report))).isEqualTo(accumulatorExpected);
     }
 
     private Document getUnitDocument() {
@@ -307,6 +390,14 @@ public class BatchReportServiceImplTest {
         );
         return document;
     }
+    private Document getEvidenceAuditDocument(String processId) throws InvalidParseOperationException,
+        FileNotFoundException {
+        String reportDoc = JsonHandler
+            .unprettyPrint(
+                JsonHandler.getFromInputStream(getClass().getResourceAsStream("/evidenceAuditObjectDocument.json")));
+        return Document.parse(reportDoc);
+    }
+
 
     private void initialiseMockWhenPutObjectInWorkspace(Path report) throws ContentAddressableStorageServerException {
         doAnswer(invocation -> {

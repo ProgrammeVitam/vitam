@@ -26,12 +26,14 @@
  *******************************************************************************/
 package fr.gouv.vitam.batch.report.rest.resource;
 
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import fr.gouv.vitam.batch.report.exception.BatchReportException;
 import fr.gouv.vitam.batch.report.model.Report;
 import fr.gouv.vitam.batch.report.model.ReportBody;
 import fr.gouv.vitam.batch.report.model.ReportExportRequest;
 import fr.gouv.vitam.batch.report.model.ReportType;
+import fr.gouv.vitam.batch.report.model.entry.EvidenceAuditReportEntry;
 import fr.gouv.vitam.batch.report.rest.repository.EliminationActionUnitRepository;
 import fr.gouv.vitam.batch.report.rest.service.BatchReportServiceImpl;
 import fr.gouv.vitam.common.GlobalDataRest;
@@ -68,6 +70,7 @@ public class BatchReportResource extends ApplicationStatusResource {
     private static final String BATCH_REPORT = "batchReportModule";
     private static final String CODE_VITAM = "code_vitam";
     private BatchReportServiceImpl batchReportServiceImpl;
+    private final static TypeReference<ReportBody<EvidenceAuditReportEntry>> reportEvidenceAuditType = new TypeReference<ReportBody<EvidenceAuditReportEntry>>() {};
 
 
     public BatchReportResource(BatchReportServiceImpl batchReportServiceImpl) {
@@ -88,7 +91,7 @@ public class BatchReportResource extends ApplicationStatusResource {
                 break;
             case ELIMINATION_ACTION_OBJECTGROUP:
                 batchReportServiceImpl.appendEliminationActionObjectGroupReport(reportBody.getProcessId(), reportBody.getEntries(),
-                        tenantId);
+                    tenantId);
                 break;
             case PRESERVATION:
                 try {
@@ -98,6 +101,10 @@ public class BatchReportResource extends ApplicationStatusResource {
                     Response.status(Response.Status.PRECONDITION_FAILED).entity(e.getMessage()).build();
                 }
                 break;
+            case EVIDENCE_AUDIT:
+                    batchReportServiceImpl.appendEvidenceAuditReport(reportBody.getProcessId(), reportBody.getEntries(), tenantId);
+                break;
+
             default:
                 throw new IllegalStateException("Unsupported report type " + reportBody.getReportType());
         }
@@ -274,6 +281,10 @@ public class BatchReportResource extends ApplicationStatusResource {
                 case UPDATE_UNIT:
                     batchReportServiceImpl.deleteUpdateUnitByIdAndTenant(processId, tenantId);
                     break;
+                case EVIDENCE_AUDIT:
+                    batchReportServiceImpl.deleteEvidenceAuditByIdAndTenant(processId, tenantId);
+                    break;
+
                 default:
                     Response.Status status = Response.Status.BAD_REQUEST;
                     VitamError vitamError = new VitamError(status.name()).setHttpCode(status.getStatusCode())

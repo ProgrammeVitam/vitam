@@ -1,0 +1,17 @@
+{
+    "_id": "aeaaaaaaaafpuagsab43oallwisewyaaaaaq",
+    "_metadata": {
+        "identifier": "aebaaaaaaeg7sn7vabtioallotfxytyaaaaq",
+        "status": "WARN",
+        "message": "No traceability operation found matching date 2019-07-04T22:27:59.466",
+        "objectType": "ObjectGroup",
+        "objectsReports": [],
+        "offersHashes": {},
+        "outcome": "WARN",
+        "detailType": "evidenceAudit",
+        "id": "aebaaaaaaeg7sn7vabtioallotfxytyaaaaq"
+    },
+    "_tenant": 1,
+    "processId": "aeeaaaaaagfpuagsaauscallwiscoaiaaaaq",
+    "creationDateTime": "2019-07-02T10:04:11.488"
+}

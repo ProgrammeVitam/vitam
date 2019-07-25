@@ -24,31 +24,30 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  *******************************************************************************/
-package fr.gouv.vitam.worker.core.plugin.evidence.report;
+package fr.gouv.vitam.batch.report.model.entry;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import fr.gouv.vitam.common.model.MetadataType;
-import fr.gouv.vitam.worker.core.plugin.evidence.exception.EvidenceStatus;
+import fr.gouv.vitam.batch.report.model.EvidenceAuditReportObject;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.Map;
 
 /**
- * EvidenceAuditReportLine class
+ * EvidenceAuditReportEntry class
  */
-public class EvidenceAuditReportLine {
+public class EvidenceAuditReportEntry extends ReportEntry {
 
     @JsonProperty("identifier")
     private String identifier;
     @JsonProperty("status")
-    private EvidenceStatus evidenceStatus;
+    private String evidenceStatus;
 
     @JsonProperty("message")
     private String message;
 
     @JsonProperty("objectType")
-    private MetadataType objectType;
+    private String objectType;
 
     @JsonProperty("objectsReports")
     private ArrayList<EvidenceAuditReportObject> objectsReports;
@@ -62,15 +61,29 @@ public class EvidenceAuditReportLine {
     @JsonProperty("offersHashes")
     private Map<String, String> offersHashes;
 
-    public EvidenceAuditReportLine() {
-        offersHashes = new HashMap<>();
+
+    @JsonCreator
+    public EvidenceAuditReportEntry(
+        @JsonProperty("identifier") String identifier,
+        @JsonProperty("status") String  evidenceStatus,
+        @JsonProperty("message") String message,
+        @JsonProperty("objectType") String objectType,
+        @JsonProperty("objectsReports") ArrayList<EvidenceAuditReportObject> objectsReports,
+        @JsonProperty("securedHash") String securedHash,
+        @JsonProperty("strategyId") String strategyId,
+        @JsonProperty("offersHashes") Map<String, String> offersHashes,
+        @JsonProperty(OUTCOME) String outcome) {
+        super(evidenceStatus, "evidenceAudit", identifier);
+        this.identifier = identifier;
+        this.evidenceStatus = evidenceStatus;
+        this.message = message;
+        this.objectType = objectType;
+        this.objectsReports = objectsReports;
+        this.securedHash = securedHash;
+        this.strategyId = strategyId;
+        this.offersHashes = offersHashes;
     }
 
-    public EvidenceAuditReportLine(String id) {
-        this.identifier = id;
-        evidenceStatus = EvidenceStatus.OK;
-        offersHashes = new HashMap<>();
-    }
 
     /**
      * getter for identifier
@@ -89,14 +102,14 @@ public class EvidenceAuditReportLine {
     /**
      * getter for evidenceStatus
      **/
-    public EvidenceStatus getEvidenceStatus() {
+    public String getEvidenceStatus() {
         return evidenceStatus;
     }
 
     /**
      * setter for evidenceStatus
      **/
-    public void setEvidenceStatus(EvidenceStatus evidenceStatus) {
+    public void setEvidenceStatus(String evidenceStatus) {
         this.evidenceStatus = evidenceStatus;
     }
 
@@ -117,14 +130,14 @@ public class EvidenceAuditReportLine {
     /**
      * getter for objectType
      **/
-    public MetadataType getObjectType() {
+    public String getObjectType() {
         return objectType;
     }
 
     /**
      * setter for objectType
      **/
-    public void setObjectType(MetadataType objectType) {
+    public void setObjectType(String objectType) {
         this.objectType = objectType;
     }
 

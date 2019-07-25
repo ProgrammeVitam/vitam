@@ -33,6 +33,8 @@ import fr.gouv.vitam.batch.report.exception.BatchReportException;
 import fr.gouv.vitam.batch.report.model.EliminationActionAccessionRegisterModel;
 import fr.gouv.vitam.batch.report.model.EliminationActionObjectGroupModel;
 import fr.gouv.vitam.batch.report.model.EliminationActionUnitModel;
+import fr.gouv.vitam.batch.report.model.EvidenceAuditObjectModel;
+import fr.gouv.vitam.batch.report.model.EvidenceStatus;
 import fr.gouv.vitam.batch.report.model.MergeSortedIterator;
 import fr.gouv.vitam.batch.report.model.OperationSummary;
 import fr.gouv.vitam.batch.report.model.PreservationReportModel;
@@ -41,8 +43,11 @@ import fr.gouv.vitam.batch.report.model.PreservationStatus;
 import fr.gouv.vitam.batch.report.model.Report;
 import fr.gouv.vitam.batch.report.model.ReportResults;
 import fr.gouv.vitam.batch.report.model.ReportSummary;
+import fr.gouv.vitam.batch.report.model.ReportType;
+import fr.gouv.vitam.batch.report.model.entry.EvidenceAuditReportEntry;
 import fr.gouv.vitam.batch.report.rest.repository.EliminationActionObjectGroupRepository;
 import fr.gouv.vitam.batch.report.rest.repository.EliminationActionUnitRepository;
+import fr.gouv.vitam.batch.report.rest.repository.EvidenceAuditReportRepository;
 import fr.gouv.vitam.batch.report.rest.repository.PreservationReportRepository;
 import fr.gouv.vitam.batch.report.rest.repository.UpdateUnitReportRepository;
 import fr.gouv.vitam.common.LocalDateUtil;
@@ -99,6 +104,8 @@ public class BatchReportServiceImpl {
     private EliminationActionObjectGroupRepository eliminationActionObjectGroupRepository;
     private PreservationReportRepository preservationReportRepository;
     private final UpdateUnitReportRepository updateUnitReportRepository;
+    private final EvidenceAuditReportRepository evidenceAuditReportRepository;
+
     private WorkspaceClientFactory workspaceClientFactory;
     private final BackupService backupService;
 
@@ -106,7 +113,9 @@ public class BatchReportServiceImpl {
         EliminationActionObjectGroupRepository eliminationActionObjectGroupRepository,
         WorkspaceClientFactory workspaceClientFactory,
         PreservationReportRepository preservationReportRepository,
-        UpdateUnitReportRepository updateUnitReportRepository) {
+        UpdateUnitReportRepository updateUnitReportRepository,
+        EvidenceAuditReportRepository evidenceAuditReportRepository
+    ) {
 
         this(
             eliminationActionUnitRepository,
@@ -114,7 +123,8 @@ public class BatchReportServiceImpl {
             updateUnitReportRepository,
             new BackupService(),
             workspaceClientFactory,
-            preservationReportRepository
+            preservationReportRepository,
+            evidenceAuditReportRepository
         );
     }
 
@@ -125,12 +135,14 @@ public class BatchReportServiceImpl {
         UpdateUnitReportRepository updateUnitReportRepository,
         BackupService backupService,
         WorkspaceClientFactory workspaceClientFactory,
-        PreservationReportRepository preservationReportRepository) {
+        PreservationReportRepository preservationReportRepository,
+        EvidenceAuditReportRepository evidenceAuditReportRepository) {
         this.eliminationActionUnitRepository = eliminationActionUnitRepository;
         this.eliminationActionObjectGroupRepository = eliminationActionObjectGroupRepository;
         this.updateUnitReportRepository = updateUnitReportRepository;
         this.workspaceClientFactory = workspaceClientFactory;
         this.preservationReportRepository = preservationReportRepository;
+        this.evidenceAuditReportRepository = evidenceAuditReportRepository;
         this.backupService = backupService;
     }
 
@@ -164,6 +176,33 @@ public class BatchReportServiceImpl {
         preservationReportRepository.bulkAppendReport(documents);
     }
 
+    public void appendEvidenceAuditReport(String processId, List<JsonNode> auditEntries, int tenantId)
+        throws BatchReportException {
+
+        List<EvidenceAuditObjectModel> documents = auditEntries.stream()
+            .map(auditEntry -> checkValuesAndGetEvidenceAuditObjectGroupModel(processId, tenantId, auditEntry))
+            .collect(Collectors.toList());
+        evidenceAuditReportRepository.bulkAppendReport(documents);
+    }
+
+    private EvidenceAuditObjectModel checkValuesAndGetEvidenceAuditObjectGroupModel(String processId, int tenantId,
+        JsonNode entry) {
+        EvidenceAuditReportEntry evidenceAuditEntry = null;
+        try {
+            evidenceAuditEntry = JsonHandler.getFromJsonNode(entry, EvidenceAuditReportEntry.class);
+        } catch (InvalidParseOperationException e) {
+            throw new IllegalStateException(e);
+        }
+        checkIfPresent("identifier", evidenceAuditEntry.getIdentifier());
+        checkIfPresent("status", evidenceAuditEntry.getEvidenceStatus());
+        checkIfPresent("message", evidenceAuditEntry.getMessage());
+        checkIfPresent("strategyId", evidenceAuditEntry.getStrategyId());
+        checkIfPresent("objectType", evidenceAuditEntry.getObjectType());
+
+        return new EvidenceAuditObjectModel(GUIDFactory.newGUID().toString(), processId, tenantId, LocalDateUtil.getFormattedDateForMongo(LocalDateUtil.now()),
+            evidenceAuditEntry);
+    }
+
     private PreservationReportModel createPreservationReportModel(String processId, int tenantId, JsonNode entry)
         throws BatchReportException {
         JsonNode outputName = entry.get("outputName");
@@ -191,6 +230,11 @@ public class BatchReportServiceImpl {
         return entry.get(fieldName);
     }
 
+    private void checkIfPresent(String name, Object value) throws BatchReportException {
+        if (value == null) {
+            throw new BatchReportException(String.format("field Name mandatory %s", name));
+        }
+    }
 
     public void exportEliminationActionUnitReport(String processId, String fileName, int tenantId)
         throws InvalidParseOperationException, IOException, ContentAddressableStorageServerException {
@@ -220,12 +264,21 @@ public class BatchReportServiceImpl {
 
     private JsonNode getExtendedInfo(Report reportInfo) throws InvalidParseOperationException {
         switch (reportInfo.getReportSummary().getReportType()) {
+            case EVIDENCE_AUDIT:
+                return JsonHandler.toJsonNode(
+                    evidenceAuditReportRepository.stats(reportInfo.getOperationSummary().getEvId(),
+                        reportInfo.getOperationSummary().getTenant()));
             default:
                 return reportInfo.getReportSummary().getExtendedInfo();
+
         }
     }
 
     private ReportResults getReportResults(Report reportInfo) {
+        if (reportInfo.getReportSummary().getReportType() == ReportType.EVIDENCE_AUDIT) {
+            return evidenceAuditReportRepository.computeVitamResults(reportInfo.getOperationSummary().getEvId(), reportInfo.getOperationSummary().getTenant());
+        }
+
         return reportInfo.getReportSummary().getVitamResults();
     }
 
@@ -253,6 +306,13 @@ public class BatchReportServiceImpl {
                     MongoCursor<Document> updates = updateUnitReportRepository.findCollectionByProcessIdTenant(processId, tenantId);
                     writeDocumentsInFile(reportWriter, updates);
                     break;
+                case EVIDENCE_AUDIT:
+                    MongoCursor<Document> evidenceAuditIterator =
+                        evidenceAuditReportRepository
+                            .findCollectionByProcessIdTenantAndStatus(processId, tenantId, EvidenceStatus.WARN.name(), EvidenceStatus.KO.name());
+                    writeDocumentsInFile(reportWriter, evidenceAuditIterator);
+                    break;
+
                 default:
                     throw new UnsupportedOperationException(String.format("Unsupported report type : '%s'.", reportSummary.getReportType()));
             }
@@ -466,6 +526,10 @@ public class BatchReportServiceImpl {
 
     public void deleteUpdateUnitByIdAndTenant(String processId, int tenantId) {
         updateUnitReportRepository.deleteReportByIdAndTenant(processId, tenantId);
+    }
+
+    public void deleteEvidenceAuditByIdAndTenant(String processId, int tenantId) {
+        evidenceAuditReportRepository.deleteReportByIdAndTenant(processId, tenantId);
     }
 
     private void deleteQuietly(File tempFile) {

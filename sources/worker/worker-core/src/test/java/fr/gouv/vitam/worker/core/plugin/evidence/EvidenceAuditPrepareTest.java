@@ -33,7 +33,6 @@ import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.metadata.client.MetaDataClient;
 import fr.gouv.vitam.metadata.client.MetaDataClientFactory;
-import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 import fr.gouv.vitam.worker.common.HandlerIO;
 import org.assertj.core.api.Assertions;
@@ -45,8 +44,8 @@ import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnit;
 import org.mockito.junit.MockitoRule;
 
-import static org.mockito.BDDMockito.given;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -54,13 +53,6 @@ import static org.mockito.Mockito.when;
  * EvidenceAuditPrepareTest class
  */
 public class EvidenceAuditPrepareTest {
-    @Rule public MockitoRule mockitoRule = MockitoJUnit.rule();
-
-    @Rule public TemporaryFolder tempFolder = new TemporaryFolder();
-    @Mock private EvidenceService evidenceService;
-    @Mock private MetaDataClientFactory metaDataClientFactory;
-    @Mock private MetaDataClient metaDataClient;
-    @Mock public HandlerIO handlerIO;
     private static String query = "{\n" +
         "  \"$roots\" : [ ],\n" +
         "  \"$query\" : [ {\n" +
@@ -74,8 +66,14 @@ public class EvidenceAuditPrepareTest {
         "    }\n" +
         "  }\n" +
         "}";
-    private static  String query2 = "{\"$roots\":[],\"$query\":[{\"$eq\":{\"Title\":\"monsip\"},\"$depth\":1000}],\"$filter\":{\"$scrollId\":\"START\",\"$limit\":10000,\"$scrollTimeout\":60000},\"$projection\":{\"$fields\":{\"#id\":1,\"#object\":1}},\"$facets\":[]}";
-
+    private static String query2 =
+        "{\"$roots\":[],\"$query\":[{\"$eq\":{\"Title\":\"monsip\"},\"$depth\":1000}],\"$filter\":{\"$scrollId\":\"START\",\"$limit\":10000,\"$scrollTimeout\":60000},\"$projection\":{\"$fields\":{\"#id\":1,\"#object\":1}},\"$facets\":[]}";
+    @Rule public MockitoRule mockitoRule = MockitoJUnit.rule();
+    @Rule public TemporaryFolder tempFolder = new TemporaryFolder();
+    @Mock public HandlerIO handlerIO;
+    @Mock private EvidenceService evidenceService;
+    @Mock private MetaDataClientFactory metaDataClientFactory;
+    @Mock private MetaDataClient metaDataClient;
     private EvidenceAuditPrepare evidenceAuditPrepare;
 
     @Before
@@ -98,14 +96,11 @@ public class EvidenceAuditPrepareTest {
 
         given(handlerIO.getNewLocalFile("aeaqaaaaaaebta56aaoc4alcdk4hlcqaaaaq")).willReturn(tempFolder.newFile());
         given(handlerIO.getNewLocalFile("aeaqaaaaaaebta56aam5ualcdnzc4wiaaabq")).willReturn(tempFolder.newFile());
-        given(handlerIO.getJsonFromWorkspace("evidenceOptions")).willReturn(JsonHandler.createObjectNode().put("correctiveOption",false));
+        given(handlerIO.getJsonFromWorkspace("evidenceOptions"))
+            .willReturn(JsonHandler.createObjectNode().put("correctiveOption", false));
 
         ItemStatus execute = evidenceAuditPrepare.execute(defaultWorkerParameters, handlerIO);
         Assertions.assertThat(execute.getGlobalStatus()).isEqualTo(StatusCode.OK);
-//
-//        execute = evidenceAuditPrepare.execute(defaultWorkerParameters, handlerIO);
-//        Assertions.assertThat(execute.getGlobalStatus()).isEqualTo(StatusCode.OK);
-
 
     }
 }

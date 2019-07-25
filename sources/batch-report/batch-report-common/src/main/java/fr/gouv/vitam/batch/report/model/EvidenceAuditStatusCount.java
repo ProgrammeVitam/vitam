@@ -24,56 +24,61 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  *******************************************************************************/
-package fr.gouv.vitam.worker.core.plugin.evidence;
+package fr.gouv.vitam.batch.report.model;
 
-import fr.gouv.vitam.common.model.ItemStatus;
-import fr.gouv.vitam.common.model.StatusCode;
-import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
-import fr.gouv.vitam.worker.common.HandlerIO;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.TemporaryFolder;
-import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnit;
-import org.mockito.junit.MockitoRule;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
- * EvidenceAuditExtractFromZipTest
+ * Contains counter for each statues.
+ *
  */
-public class EvidenceAuditExtractFromZipTest {
+public class EvidenceAuditStatusCount {
 
-    @Rule
-    public MockitoRule mockitoRule = MockitoJUnit.rule();
+    @JsonProperty("OK")
+    private int nbOK;
+    @JsonProperty("WARNING")
+    private int nbWARNING;
+    @JsonProperty("KO")
+    private int nbKO;
 
-    @Rule
-    public TemporaryFolder tempFolder = new TemporaryFolder();
-    @Mock
-    public HandlerIO handlerIO;
-    @Mock
-    private EvidenceService evidenceService;
-    private EvidenceAuditExtractFromZip evidenceAuditExtractFromZip;
-
-    @Before
-    public void setUp() throws Exception {
-        evidenceAuditExtractFromZip = new EvidenceAuditExtractFromZip(evidenceService);
+    public int getNbOK() {
+        return nbOK;
     }
 
-    @Test
-    public void should_extract_from_zip() throws Exception {
-        WorkerParameters defaultWorkerParameters = mock(WorkerParameters.class);
-
-        when(defaultWorkerParameters.getObjectName())
-            .thenReturn("evidenceAudit/0_LogbookLifecycles_20180220_111512.zip");
-
-        ItemStatus execute = evidenceAuditExtractFromZip.execute(defaultWorkerParameters, handlerIO);
-        assertThat(execute.getGlobalStatus()).isEqualTo(StatusCode.OK);
+    public void setNbOK(int nbOK) {
+        this.nbOK = nbOK;
     }
 
+    public int getNbWARNING() {
+        return nbWARNING;
+    }
 
+    public void setNbWARNING(int nbWARNING) {
+        this.nbWARNING = nbWARNING;
+    }
+
+    public int getNbKO() {
+        return nbKO;
+    }
+
+    public void setNbKO(int nbKO) {
+        this.nbKO = nbKO;
+    }
+
+    public void addOneStatus(String status, int nb) {
+        switch (status) {
+        case "OK":
+            this.nbOK = nb;
+            break;
+        case "WARN":
+            this.nbWARNING = nb;
+            break;
+        case "KO":
+            this.nbKO = nb;
+            break;
+        default:
+            throw new IllegalArgumentException("Status invalid " + status);
+        }
+    }
 
 }

@@ -107,7 +107,7 @@ import static fr.gouv.vitam.storage.engine.common.model.response.StoredInfoResul
 public class EvidenceService {
 
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(EvidenceService.class);
-    private static final String DEFAULT_STORAGE_STRATEGY = "default";
+    public static String DEFAULT_STORAGE_STRATEGY = "default";
     private static final String TMP = "tmp";
     private static final String FILE_NAME = "FileName";
     private static final String LAST_PERSISTED_DATE = "_lastPersistedDate";
@@ -197,6 +197,7 @@ public class EvidenceService {
             Map<String, String> offerHashes = new HashMap<>();
             for (String offerId : mdOptimisticStorageInfo.getOfferIds()) {
 
+                String strategyId = mdOptimisticStorageInfo.getStrategy();
                 JsonNode metadataResultJsonNode = parameters.getStorageMetadataResultListJsonNode().get(offerId);
                 StorageMetadataResult storageMetadataResult = null;
                 if (metadataResultJsonNode != null && metadataResultJsonNode.isObject()) {
@@ -228,6 +229,7 @@ public class EvidenceService {
                 }
                 offerHashes.put(offerId, digest);
                 evidenceAuditReportLine.setOffersHashes(offerHashes);
+                evidenceAuditReportLine.setStrategyId(strategyId);
             }
 
             if (parameters.getMetadataType().equals(MetadataType.OBJECTGROUP)) {
@@ -282,8 +284,8 @@ public class EvidenceService {
                 if (objectVersionResultJsonNode == null) {
 
                     errorsObjectMessage.add(String.format(
-                            "The digest '%s' for the offer '%s' is null ",
-                            objectVersionHash, offerId));
+                        "The digest '%s' for the offer '%s' is null ",
+                        objectVersionHash, offerId));
                     offerHashes.put(offerId, null);
                     continue;
 
@@ -304,6 +306,7 @@ public class EvidenceService {
             }
             evidenceAuditReportObject.setOffersHashes(offerHashes);
             evidenceAuditReportObject.setSecuredHash(objectGroupDocumentHash.gethObject());
+            evidenceAuditReportObject.setStrategyId(storedInfoResult.getStrategy());
 
             if (!errorsObjectMessage.isEmpty()) {
 
@@ -315,7 +318,6 @@ public class EvidenceService {
         }
         evidenceAuditReportLine.setObjectsReports(reportList);
         if (!errorsObjectMessages.isEmpty()) {
-
             errorsMessage.add("There is an  error on the audit of the  linked  object");
         }
     }
@@ -416,9 +418,7 @@ public class EvidenceService {
         return extractFileStreamFromZip(traceabilityFile, fileToExtract,  extension, delele );
     }
 
-    public File downloadFileInTemporaryFolder(String fileName) throws EvidenceAuditException {
-      return   this.downloadFileInTemporaryFolder(fileName,"");
-    }
+
     private File downloadFileInTemporaryFolder(String fileName, String extension) throws EvidenceAuditException {
         // Get zip file
         Response response = null;
@@ -430,7 +430,6 @@ public class EvidenceService {
                 final File file = FileUtil.createFileInTempDirectoryWithPathCheck(TMP, extension);
                 Files.copy(inputStream, file.toPath(), StandardCopyOption.REPLACE_EXISTING);
                 response.close();
-
                 return file;
             }
 
@@ -525,6 +524,10 @@ public class EvidenceService {
             int lfcVersion = lifecycle.get(LogbookDocument.VERSION).asInt();
             auditParameters.setLfcVersion(lfcVersion);
 
+            // get storage info
+            JsonNode storageResultsJsonNode = getStorageResultsJsonNode(auditParameters.getMdOptimisticStorageInfo(),
+                getDataCategory(auditParameters.getMetadataType()), auditParameters.getId() + JSON);
+
             // Get most recent traceability operation
             String logbookOperationSecurisationId =
                 getLogbookSecureOperationId(lifecycle, metadataType);
@@ -559,9 +562,7 @@ public class EvidenceService {
 
             auditParameters.setHashMdFromDatabase(hashMdFromDatabase);
             auditParameters.setHashLfcFromDatabase(hashLfcFromDatabase);
-            // get storage info
-            JsonNode storageResultsJsonNode = getStorageResultsJsonNode(auditParameters.getMdOptimisticStorageInfo(),
-                getDataCategory(auditParameters.getMetadataType()), auditParameters.getId() + JSON);
+
 
             auditParameters.setStorageMetadataResultListJsonNode(storageResultsJsonNode);
 
