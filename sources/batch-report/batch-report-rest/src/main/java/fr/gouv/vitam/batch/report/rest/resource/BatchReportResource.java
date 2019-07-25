@@ -36,6 +36,7 @@ import fr.gouv.vitam.batch.report.model.ReportType;
 import fr.gouv.vitam.batch.report.model.entry.AuditObjectGroupReportEntry;
 import fr.gouv.vitam.batch.report.model.entry.EliminationActionObjectGroupReportEntry;
 import fr.gouv.vitam.batch.report.model.entry.EliminationActionUnitReportEntry;
+import fr.gouv.vitam.batch.report.model.entry.EvidenceAuditReportEntry;
 import fr.gouv.vitam.batch.report.model.entry.PreservationReportEntry;
 import fr.gouv.vitam.batch.report.model.entry.UpdateUnitMetadataReportEntry;
 import fr.gouv.vitam.batch.report.rest.service.BatchReportServiceImpl;
@@ -83,6 +84,7 @@ public class BatchReportResource extends ApplicationStatusResource {
     private static final TypeReference<ReportBody<UpdateUnitMetadataReportEntry>> reportMassUpdateType = new TypeReference<ReportBody<UpdateUnitMetadataReportEntry>>() {};
     private static final String COMPUTE_INHERITED_RULES_INVALIDATION = "/computedInheritedRulesInvalidation";
     private final TypeReference<List<String>> typeReference = new TypeReference<List<String>>() {};
+    private final static TypeReference<ReportBody<EvidenceAuditReportEntry>> reportEvidenceAuditType = new TypeReference<ReportBody<EvidenceAuditReportEntry>>() {};
 
     private BatchReportServiceImpl batchReportServiceImpl;
 
@@ -119,6 +121,10 @@ public class BatchReportResource extends ApplicationStatusResource {
                 case UPDATE_UNIT:
                     ReportBody<UpdateUnitMetadataReportEntry> unitReportBody = JsonHandler.getFromJsonNode(body, reportMassUpdateType);
                     batchReportServiceImpl.appendUnitReport(unitReportBody.getEntries());
+                    break;
+                case EVIDENCE_AUDIT:
+                    ReportBody<EvidenceAuditReportEntry> evidenceAuditReportBody = JsonHandler.getFromJsonNode(body, reportEvidenceAuditType);
+                    batchReportServiceImpl.appendEvidenceAuditReport(evidenceAuditReportBody.getProcessId(), evidenceAuditReportBody.getEntries(), tenantId);
                     break;
                 default:
                     throw new IllegalStateException("Unsupported report type " + reportType);
@@ -292,6 +298,9 @@ public class BatchReportResource extends ApplicationStatusResource {
                     break;
                 case UPDATE_UNIT:
                     batchReportServiceImpl.deleteUpdateUnitByIdAndTenant(processId, tenantId);
+                    break;
+                case EVIDENCE_AUDIT:
+                    batchReportServiceImpl.deleteEvidenceAuditByIdAndTenant(processId, tenantId);
                     break;
                 default:
                     Response.Status status = Response.Status.BAD_REQUEST;

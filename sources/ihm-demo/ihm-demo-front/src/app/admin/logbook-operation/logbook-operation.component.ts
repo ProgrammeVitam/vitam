@@ -228,11 +228,15 @@ export class LogbookOperationComponent extends PageComponent {
           break;
         }
         if(item.evType === "EVIDENCE_AUDIT") {
-          logbookService.downloadReport(item.evIdProc);
+          logbookService.downloadBatchReport(item.evIdProc);
           break;
         }
         if(item.evType === "PROCESS_AUDIT") {
           logbookService.downloadBatchReport(item.evIdProc);
+          break;
+        }
+        if(item.evType === "RECTIFICATION_AUDIT") {
+          logbookService.downloadReport(item.evIdProc);
           break;
         }
         break;

@@ -24,10 +24,10 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  *******************************************************************************/
-package fr.gouv.vitam.worker.core.plugin.evidence.report;
+package fr.gouv.vitam.batch.report.model;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import fr.gouv.vitam.worker.core.plugin.evidence.exception.EvidenceStatus;
 
 import java.util.Map;
 
@@ -39,7 +39,7 @@ public class EvidenceAuditReportObject {
     private String identifier ;
 
     @JsonProperty("status")
-    private EvidenceStatus evidenceStatus;
+    private String evidenceStatus;
 
     @JsonProperty("message")
     private String message;
@@ -47,11 +47,11 @@ public class EvidenceAuditReportObject {
     @JsonProperty("objectType")
     private String objectType;
 
-    @JsonProperty("securedHash")
-    private String securedHash;
-
     @JsonProperty("strategyId")
     private String strategyId;
+
+    @JsonProperty("securedHash")
+    private String securedHash;
 
     @JsonProperty("offersHashes")
     private Map<String,String>offersHashes;
@@ -60,10 +60,26 @@ public class EvidenceAuditReportObject {
     EvidenceAuditReportObject(){
 
     }
-    
+    @JsonCreator
+    public EvidenceAuditReportObject(
+        @JsonProperty("identifier") String identifier,
+        @JsonProperty("status") String  evidenceStatus,
+        @JsonProperty("message") String message,
+        @JsonProperty("objectType") String objectType,
+        @JsonProperty("securedHash") String securedHash,
+        @JsonProperty("strategyId") String strategyId,
+        @JsonProperty("offersHashes") Map<String, String> offersHashes) {
+        this.identifier = identifier;
+        this.evidenceStatus = evidenceStatus;
+        this.message = message;
+        this.objectType = objectType;
+        this.securedHash = securedHash;
+        this.strategyId = strategyId;
+        this.offersHashes = offersHashes;
+    }
     public EvidenceAuditReportObject(String id ){
         this.identifier = id;
-        evidenceStatus = EvidenceStatus.OK;
+        evidenceStatus=EvidenceStatus.OK.name();
     }
     /**
      * getter for identifier
@@ -82,14 +98,14 @@ public class EvidenceAuditReportObject {
     /**
      * getter for evidenceStatus
      **/
-    public EvidenceStatus getEvidenceStatus() {
+    public String getEvidenceStatus() {
         return evidenceStatus;
     }
 
     /**
      * setter for evidenceStatus
      **/
-    public void setEvidenceStatus(EvidenceStatus evidenceStatus) {
+    public void setEvidenceStatus(String evidenceStatus) {
         this.evidenceStatus = evidenceStatus;
     }
 
@@ -135,6 +151,20 @@ public class EvidenceAuditReportObject {
         this.securedHash = securedHash;
     }
 
+
+    /**
+     * getter for strategyId
+     **/
+    public String getStrategyId() {
+        return strategyId;
+    }
+    /**
+     * setter for strategyId
+     **/
+    public void setStrategyId(String strategyId) {
+        this.strategyId = strategyId;
+    }
+
     /**
      * getter for offersHashes
      **/
@@ -147,19 +177,5 @@ public class EvidenceAuditReportObject {
      **/
     public void setOffersHashes(Map<String, String> offersHashes) {
         this.offersHashes = offersHashes;
-    }
-
-    /**
-     * getter for strategyId
-     **/
-    public String getStrategyId() {
-        return strategyId;
-    }
-
-    /**
-     * setter for strategyId
-     **/
-    public void setStrategyId(String strategyId) {
-        this.strategyId = strategyId;
     }
 }

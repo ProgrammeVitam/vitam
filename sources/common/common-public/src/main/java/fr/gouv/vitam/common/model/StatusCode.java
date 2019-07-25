@@ -79,7 +79,14 @@ public enum StatusCode {
     }
 
     /**
-     * @return True if the status is greater or equal to OK
+     * @return True if the status is greater or equal to WARN
+     */
+    public boolean isGreaterOrEqualToWarn() {
+        return compareTo(WARNING) >= 0;
+    }
+
+    /**
+     * @return True if the status is greater or equal to KO
      */
     public boolean isGreaterOrEqualToKo() {
         return compareTo(KO) >= 0;
