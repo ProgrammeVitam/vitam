@@ -1005,7 +1005,7 @@
           "type": "string"
         },
         "GpsAltitude": {
-          "type": "integer"
+          "type": ["integer", "string"]
         },
         "GpsAltitudeRef": {
           "type": "string"
