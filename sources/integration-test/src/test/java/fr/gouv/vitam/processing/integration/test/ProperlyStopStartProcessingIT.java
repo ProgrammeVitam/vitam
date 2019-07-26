@@ -230,10 +230,11 @@ public class ProperlyStopStartProcessingIT extends VitamRuleRunner {
         ProcessWorkflow processWorkflow =
             ProcessMonitoringImpl.getInstance().findOneProcessWorkflow(containerName, TENANT_ID);
 
-        RequestResponse<JsonNode> resp = ProcessingManagementClientFactory.getInstance().getClient()
+        RequestResponse<ItemStatus> resp = ProcessingManagementClientFactory.getInstance().getClient()
             .executeOperationProcess(containerName, Contexts.DEFAULT_WORKFLOW.name(), ProcessAction.RESUME.getValue());
         // wait a little bit
         assertThat(resp).isNotNull();
+        assertThat(resp.isOk()).isTrue();
         assertThat(resp.getStatus()).isEqualTo(Response.Status.ACCEPTED.getStatusCode());
 
         waitStep(processWorkflow, 2);

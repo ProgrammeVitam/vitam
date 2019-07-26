@@ -390,7 +390,7 @@ class IngestInternalClientRest extends DefaultClient implements IngestInternalCl
     }
 
     @Override
-    public ItemStatus cancelOperationProcessExecution(String id)
+    public RequestResponse<ItemStatus>  cancelOperationProcessExecution(String id)
             throws VitamClientException, BadRequestException {
         ParametersChecker.checkParameter(BLANK_OPERATION_ID, id);
         Response response = null;
@@ -412,7 +412,7 @@ class IngestInternalClientRest extends DefaultClient implements IngestInternalCl
                 LOGGER.warn("SIP Warning : " + Response.Status.INTERNAL_SERVER_ERROR.getReasonPhrase());
                 throw new VitamClientInternalException(INTERNAL_SERVER_ERROR);
             }
-            return response.readEntity(ItemStatus.class);
+            return RequestResponse.parseFromResponse(response, ItemStatus.class);
         } catch (VitamClientInternalException e) {
             LOGGER.error("VitamClientInternalException: ", e);
             throw new VitamClientException(e);

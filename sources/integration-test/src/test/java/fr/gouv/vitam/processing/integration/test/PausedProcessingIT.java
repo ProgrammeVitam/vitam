@@ -27,6 +27,7 @@
 
 package fr.gouv.vitam.processing.integration.test;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
@@ -196,11 +197,11 @@ public class PausedProcessingIT extends VitamRuleRunner {
             .initVitamProcess(containerName, Contexts.DEFAULT_WORKFLOW.name());
         // wait a little bit
 
-        RequestResponse<JsonNode> resp = ProcessingManagementClientFactory.getInstance().getClient()
+        RequestResponse<ItemStatus> resp = ProcessingManagementClientFactory.getInstance().getClient()
             .executeOperationProcess(containerName, Contexts.DEFAULT_WORKFLOW.name(), ProcessAction.NEXT.getValue());
         // wait a little bit
         assertNotNull(resp);
-
+        assertThat(resp.isOk()).isTrue();
         assertEquals(Response.Status.ACCEPTED.getStatusCode(), resp.getStatus());
 
         wait(containerName);
@@ -325,9 +326,10 @@ public class PausedProcessingIT extends VitamRuleRunner {
                 .initVitamProcess(containerName, Contexts.DEFAULT_WORKFLOW.name());
 
             // process execute
-            RequestResponse<JsonNode> resp = ProcessingManagementClientFactory.getInstance().getClient()
+            RequestResponse<ItemStatus> resp = ProcessingManagementClientFactory.getInstance().getClient()
                 .executeOperationProcess(containerName, Contexts.DEFAULT_WORKFLOW.name(), ProcessAction.NEXT.getValue());
             assertNotNull(resp);
+            assertThat(resp.isOk()).isTrue();
             assertEquals(Response.Status.ACCEPTED.getStatusCode(), resp.getStatus());
 
             // check process

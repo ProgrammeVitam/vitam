@@ -27,10 +27,12 @@
 package fr.gouv.vitam.ingest.external.core;
 
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.mongodb.util.JSON;
 import fr.gouv.vitam.common.CharsetUtils;
 import fr.gouv.vitam.common.CommonMediaType;
 import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.ParametersChecker;
+import fr.gouv.vitam.common.error.VitamError;
 import fr.gouv.vitam.common.exception.InvalidGuidOperationException;
 import fr.gouv.vitam.common.exception.VitamClientException;
 import fr.gouv.vitam.common.exception.VitamException;
@@ -50,7 +52,9 @@ import fr.gouv.vitam.common.i18n.VitamLogbookMessages;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.ProcessState;
+import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.model.VitamConstants;
 import fr.gouv.vitam.common.model.processing.WorkFlow;
@@ -231,7 +235,7 @@ public class IngestExternalImpl implements IngestExternal {
         } catch (IOException ex) {
             LOGGER.error("Cannot load WorkspaceFileSystem ", ex);
             throw new IllegalStateException(ex);
-        }   catch (final ContentAddressableStorageException e) {
+        } catch (final ContentAddressableStorageException e) {
             LOGGER.error(CAN_NOT_STORE_FILE, e);
             throw new IngestExternalException(e);
         }
@@ -566,10 +570,20 @@ public class IngestExternalImpl implements IngestExternal {
 
     private void cancelOperation(GUID guid) throws IngestExternalException {
         try (IngestInternalClient ingestClient = ingestInternalClientFactory.getClient()) {
-            ingestClient.cancelOperationProcessExecution(guid.getId());
-        } catch (final Exception e) {
+            RequestResponse<ItemStatus> requestResponse =
+                ingestClient.cancelOperationProcessExecution(guid.getId());
+
+            if (!requestResponse.isOk()) {
+                VitamError error = (VitamError) requestResponse;
+                throw new IngestExternalException("Error occurs while cancel operation : " + error.getMessage());
+            }
+        } catch (IngestExternalException e) {
+            throw e;
+        } catch (
+            final Exception e) {
             throw new IngestExternalException(e);
         }
+
     }
 
     /**

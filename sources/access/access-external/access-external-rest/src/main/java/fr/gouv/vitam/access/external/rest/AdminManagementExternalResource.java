@@ -131,7 +131,6 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.ResponseBuilder;
 import javax.ws.rs.core.Response.Status;
 import javax.ws.rs.core.UriInfo;
-
 import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileInputStream;
@@ -492,7 +491,8 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
         checkParameter(JSON_SELECT_IS_MANDATORY, select);
         try (AdminManagementClient client = adminManagementClientFactory.getClient()) {
             Status status = client.importIngestContracts(getFromStringAsTypeRefence(select.toString(),
-                new TypeReference<List<IngestContractModel>>() {}));
+                new TypeReference<List<IngestContractModel>>() {
+                }));
 
             if (Status.BAD_REQUEST.getStatusCode() == status.getStatusCode()) {
                 return Response.status(Status.BAD_REQUEST)
@@ -537,7 +537,8 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
         checkParameter(JSON_SELECT_IS_MANDATORY, contract);
         try (AdminManagementClient client = adminManagementClientFactory.getClient()) {
             Status status = client.importAccessContracts(getFromStringAsTypeRefence(contract.toString(),
-                new TypeReference<List<AccessContractModel>>() {}));
+                new TypeReference<List<AccessContractModel>>() {
+                }));
 
             if (Status.BAD_REQUEST.getStatusCode() == status.getStatusCode()) {
                 return Response.status(Status.BAD_REQUEST)
@@ -582,7 +583,8 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
         checkParameter(JSON_SELECT_IS_MANDATORY, contract);
         try (AdminManagementClient client = adminManagementClientFactory.getClient()) {
             Status status = client.importManagementContracts(getFromStringAsTypeRefence(contract.toString(),
-                new TypeReference<List<ManagementContractModel>>() {}));
+                new TypeReference<List<ManagementContractModel>>() {
+                }));
 
             if (Status.BAD_REQUEST.getStatusCode() == status.getStatusCode()) {
                 return Response.status(Status.BAD_REQUEST)
@@ -627,7 +629,8 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
         checkParameter(JSON_SELECT_IS_MANDATORY, select);
         try (AdminManagementClient client = adminManagementClientFactory.getClient()) {
             Status status = client.importContexts(getFromStringAsTypeRefence(select.toString(),
-                new TypeReference<List<ContextModel>>() {}));
+                new TypeReference<List<ContextModel>>() {
+                }));
 
             // Send the http response with the entity and the status got from internalService;
             ResponseBuilder ResponseBuilder = Response.status(status)
@@ -665,7 +668,8 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
                 SanityChecker.checkJsonAll(json);
                 RequestResponse requestResponse =
                     client.createProfiles(getFromStringAsTypeRefence(json.toString(),
-                        new TypeReference<List<ProfileModel>>() {}));
+                        new TypeReference<List<ProfileModel>>() {
+                        }));
                 return Response.status(requestResponse.getStatus())
                     .entity(requestResponse).build();
 
@@ -721,7 +725,8 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
             SanityChecker.checkJsonAll(select);
             RequestResponse requestResponse =
                 client.createProfiles(getFromStringAsTypeRefence(select.toString(),
-                    new TypeReference<List<ProfileModel>>() {}));
+                    new TypeReference<List<ProfileModel>>() {
+                    }));
             return Response.status(requestResponse.getStatus())
                 .entity(requestResponse).build();
 
@@ -758,7 +763,8 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
                 SanityChecker.checkJsonAll(json);
                 RequestResponse requestResponse =
                     client.createArchiveUnitProfiles(getFromStringAsTypeRefence(json.toString(),
-                        new TypeReference<List<ArchiveUnitProfileModel>>() {}));
+                        new TypeReference<List<ArchiveUnitProfileModel>>() {
+                        }));
                 return Response.status(requestResponse.getStatus())
                     .entity(requestResponse).build();
 
@@ -815,7 +821,8 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
             SanityChecker.checkJsonAll(select);
             RequestResponse requestResponse =
                 client.createArchiveUnitProfiles(getFromStringAsTypeRefence(select.toString(),
-                    new TypeReference<List<ArchiveUnitProfileModel>>() {}));
+                    new TypeReference<List<ArchiveUnitProfileModel>>() {
+                    }));
             return Response.status(requestResponse.getStatus())
                 .entity(requestResponse).build();
 
@@ -1569,13 +1576,14 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
                 .entity(getErrorEntity(Status.PRECONDITION_FAILED, e.getMessage(), null)).build();
         }
     }
+
     /**
      * findManagementContractsByID
      *
      * @param documentId the document id to find
      * @return Response
      */
-    @Path(AccessExtAPI.MANAGEMENT_CONTRACT_API+"/{id_document:.+}")
+    @Path(AccessExtAPI.MANAGEMENT_CONTRACT_API + "/{id_document:.+}")
     @GET
     @Produces(APPLICATION_JSON)
     @Secured(permission = "managementcontracts:id:read", description = "Lire un contrat de gestion donné")
@@ -1585,7 +1593,8 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
             checkParameter(FORMAT_ID_MANDATORY, documentId);
             SanityChecker.checkParameter(documentId);
             try (AdminManagementClient client = adminManagementClientFactory.getClient()) {
-                RequestResponse<ManagementContractModel> requestResponse = client.findManagementContractsByID(documentId);
+                RequestResponse<ManagementContractModel> requestResponse =
+                    client.findManagementContractsByID(documentId);
                 int st = requestResponse.isOk() ? Status.OK.getStatusCode() : requestResponse.getHttpCode();
                 return Response.status(st).entity(requestResponse).build();
             } catch (ReferentialNotFoundException e) {
@@ -1945,7 +1954,7 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
      * @throws AdminManagementClientServerException
      * @throws InvalidParseOperationException
      */
-    @Path(AccessExtAPI.MANAGEMENT_CONTRACT_API_UPDATE+"/{identifier:.+}")
+    @Path(AccessExtAPI.MANAGEMENT_CONTRACT_API_UPDATE + "/{identifier:.+}")
     @PUT
     @Consumes(APPLICATION_JSON)
     @Produces(APPLICATION_JSON)
@@ -1968,11 +1977,13 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
                 .toResponse();
         } catch (InvalidCreateOperationException | InvalidParseOperationException e) {
             LOGGER.error(e);
-            return VitamCodeHelper.toVitamError(VitamCode.ADMIN_EXTERNAL_UPDATE_MANAGEMENT_CONTRACT_ERROR, e.getMessage())
+            return VitamCodeHelper
+                .toVitamError(VitamCode.ADMIN_EXTERNAL_UPDATE_MANAGEMENT_CONTRACT_ERROR, e.getMessage())
                 .toResponse();
         } catch (IllegalArgumentException e) {
             LOGGER.error(e);
-            return VitamCodeHelper.toVitamError(VitamCode.ADMIN_EXTERNAL_UPDATE_MANAGEMENT_CONTRACT_ERROR, e.getMessage())
+            return VitamCodeHelper
+                .toVitamError(VitamCode.ADMIN_EXTERNAL_UPDATE_MANAGEMENT_CONTRACT_ERROR, e.getMessage())
                 .setHttpCode(Status.PRECONDITION_FAILED.getStatusCode())
                 .toResponse();
         }
@@ -2099,9 +2110,9 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
                 .setMessage(status.getReasonPhrase())
                 .setDescription(e.getMessage())).build();
         } catch (IOException e) {
-            LOGGER.error("Technical exception",e);
+            LOGGER.error("Technical exception", e);
             return Response.status(Status.INTERNAL_SERVER_ERROR)
-                    .entity(getErrorEntity(Status.INTERNAL_SERVER_ERROR, e.getLocalizedMessage())).build();
+                .entity(getErrorEntity(Status.INTERNAL_SERVER_ERROR, e.getLocalizedMessage())).build();
         }
     }
 
@@ -2123,7 +2134,8 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
         try (AdminManagementClient client = adminManagementClientFactory.getClient()) {
             SanityChecker.checkJsonAll(document);
             Status status = client.importSecurityProfiles(getFromStringAsTypeRefence(document.toString(),
-                new TypeReference<List<SecurityProfileModel>>() {}));
+                new TypeReference<List<SecurityProfileModel>>() {
+                }));
 
             // Send the http response with no entity and the status got from internalService;
             ResponseBuilder ResponseBuilder = Response.status(status);
@@ -2522,9 +2534,8 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
             SanityChecker.checkParameter(id);
             VitamThreadUtils.getVitamSession().setRequestId(id);
 
-            final ItemStatus itemStatus = ingestInternalClient.cancelOperationProcessExecution(id);
-            return new RequestResponseOK<ItemStatus>().addResult(itemStatus).setHttpCode(Status.OK.getStatusCode())
-                .toResponse();
+            final RequestResponse requestResponse = ingestInternalClient.cancelOperationProcessExecution(id);
+            return requestResponse.toResponse();
         } catch (final IllegalArgumentException | InvalidParseOperationException e) {
             LOGGER.error("Illegal argument: ", e);
             vitamError =
@@ -2737,7 +2748,8 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
             SanityChecker.checkJsonAll(ontologies);
             RequestResponse requestResponse =
                 client.importOntologies(forceUpdate, getFromStringAsTypeRefence(ontologies.toString(),
-                    new TypeReference<List<OntologyModel>>() {}));
+                    new TypeReference<List<OntologyModel>>() {
+                    }));
             return Response.status(requestResponse.getStatus())
                 .entity(requestResponse).build();
 
@@ -2901,7 +2913,8 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
 
             RequestResponse requestResponse =
                 client.importGriffins(getFromStringAsTypeRefence(griffins.toString(),
-                    new TypeReference<List<GriffinModel>>() {}));
+                    new TypeReference<List<GriffinModel>>() {
+                    }));
 
             return Response.status(requestResponse.getStatus())
                 .entity(requestResponse).build();
@@ -2980,7 +2993,8 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
 
             RequestResponse requestResponse =
                 client.importPreservationScenarios(getFromStringAsTypeRefence(preservationScenarios.toString(),
-                    new TypeReference<List<PreservationScenarioModel>>() {}));
+                    new TypeReference<List<PreservationScenarioModel>>() {
+                    }));
 
             return Response.status(requestResponse.getStatus())
                 .entity(requestResponse).build();

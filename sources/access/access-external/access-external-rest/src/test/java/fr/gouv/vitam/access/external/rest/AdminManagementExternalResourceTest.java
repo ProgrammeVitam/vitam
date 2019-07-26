@@ -24,6 +24,7 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
+import fr.gouv.vitam.common.model.StatusCode;
 import org.hamcrest.CoreMatchers;
 import org.junit.AfterClass;
 import org.junit.Before;
@@ -1890,7 +1891,15 @@ public class AdminManagementExternalResourceTest extends ResteasyTestApplication
 
     @Test
     public void cancelOperationTest() throws Exception {
-        when(ingestInternalClient.cancelOperationProcessExecution(any())).thenReturn(new ItemStatus());
+        ItemStatus result = new ItemStatus();
+        result.setGlobalState(ProcessState.COMPLETED);
+        result.increment(StatusCode.FATAL);
+        result.setItemId("Itzm");
+
+        RequestResponseOK<ItemStatus> responseOK = new RequestResponseOK<ItemStatus>().addResult(result);
+        responseOK.setHttpCode(Status.ACCEPTED.getStatusCode());
+
+        when(ingestInternalClient.cancelOperationProcessExecution(any())).thenReturn(responseOK);
         RestAssured.given()
             .accept(MediaType.APPLICATION_JSON)
             .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)

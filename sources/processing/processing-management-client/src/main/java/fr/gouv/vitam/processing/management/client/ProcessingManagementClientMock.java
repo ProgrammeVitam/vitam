@@ -112,7 +112,7 @@ public class ProcessingManagementClientMock extends AbstractMockClient implement
 
 
     @Override
-    public ItemStatus cancelOperationProcessExecution(String id)
+    public RequestResponse<ItemStatus> cancelOperationProcessExecution(String id)
         throws InternalServerException, VitamClientException {
         final List<Integer> status = new ArrayList<>();
         status.add(0);
@@ -125,7 +125,7 @@ public class ProcessingManagementClientMock extends AbstractMockClient implement
             new ItemStatus("FakeId", "FakeMessage", StatusCode.OK, status, SingletonUtils.singletonMap(), null,
                 null, null);
 
-        return itemStatus;
+        return new RequestResponseOK<ItemStatus>().addResult(itemStatus);
     }
 
 
@@ -139,9 +139,9 @@ public class ProcessingManagementClientMock extends AbstractMockClient implement
 
 
     @Override
-    public RequestResponse<JsonNode> executeOperationProcess(String operationId, String workflow, String actionId)
+    public RequestResponse<ItemStatus> executeOperationProcess(String operationId, String workflow, String actionId)
         throws InternalServerException, VitamClientException {
-        return new RequestResponseOK<JsonNode>().addHeader(GlobalDataRest.X_GLOBAL_EXECUTION_STATE,
+        return new RequestResponseOK<ItemStatus>().addHeader(GlobalDataRest.X_GLOBAL_EXECUTION_STATE,
             FAKE_EXECUTION_STATUS);
 
     }
@@ -166,7 +166,8 @@ public class ProcessingManagementClientMock extends AbstractMockClient implement
 
     @Override
     public void initVitamProcess(String container, String workflowId)
-        throws InternalServerException, BadRequestException {}
+        throws InternalServerException, BadRequestException {
+    }
 
 
 
@@ -180,10 +181,10 @@ public class ProcessingManagementClientMock extends AbstractMockClient implement
     }
 
     @Override
-    public Response executeCheckTraceabilityWorkFlow(String checkOperationId, JsonNode query, String workflowId, String actionId)
+    public RequestResponse<ItemStatus> executeCheckTraceabilityWorkFlow(String checkOperationId, JsonNode query,
+        String workflowId, String actionId)
         throws InternalServerException, WorkflowNotFoundException {
-        // TODO Add headers to response
-        return Response.ok().build();
+        return new RequestResponseOK<>();
     }
 
     @Override
@@ -193,7 +194,7 @@ public class ProcessingManagementClientMock extends AbstractMockClient implement
 
         List<Action> actions = new ArrayList<>();
         actions.add(getAction("CHECK_DIGEST", ProcessBehavior.BLOCKING, new ArrayList<IOParameter>(
-            Arrays.asList(new IOParameter().setName("algo").setUri(new ProcessingUri("VALUE", "SHA-512")))),
+                Arrays.asList(new IOParameter().setName("algo").setUri(new ProcessingUri("VALUE", "SHA-512")))),
             null));
         actions.add(getAction("OG_OBJECTS_FORMAT_CHECK", ProcessBehavior.BLOCKING, null, null));
 
@@ -202,7 +203,8 @@ public class ProcessingManagementClientMock extends AbstractMockClient implement
             .setWorkerGroupId("DefaultWorker")
             .setStepName("STP_OG_CHECK_AND_TRANSFORME")
             .setBehavior(ProcessBehavior.BLOCKING)
-            .setDistribution(new Distribution().setKind(DistributionKind.LIST_ORDERING_IN_FILE).setElement("ObjectGroup"))
+            .setDistribution(
+                new Distribution().setKind(DistributionKind.LIST_ORDERING_IN_FILE).setElement("ObjectGroup"))
             .setActions(actions));
 
         workflow.setId("DefaultIngestWorkflow");
@@ -218,7 +220,7 @@ public class ProcessingManagementClientMock extends AbstractMockClient implement
 
     @Override
     public Optional<WorkFlow> getWorkflowDetails(String WorkflowIdentifier) throws VitamClientException {
-       throw new IllegalStateException("Method getWorkflowDetails not implemented");
+        throw new IllegalStateException("Method getWorkflowDetails not implemented");
     }
 
     @Override
@@ -229,7 +231,7 @@ public class ProcessingManagementClientMock extends AbstractMockClient implement
 
     /**
      * Create a POJO action
-     * 
+     *
      * @param actionKey action key
      * @param actionBehavior action behavior
      * @param in list of IO ins

@@ -152,7 +152,7 @@ public interface IngestInternalClient extends MockOrRestClient {
      * @throws InternalServerException
      * @throws BadRequestException
      */
-    ItemStatus cancelOperationProcessExecution(String id)
+    RequestResponse<ItemStatus>  cancelOperationProcessExecution(String id)
             throws InternalServerException, BadRequestException, VitamClientException;
 
     /**

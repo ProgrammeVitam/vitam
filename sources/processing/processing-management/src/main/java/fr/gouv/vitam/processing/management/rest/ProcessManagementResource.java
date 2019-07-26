@@ -270,27 +270,24 @@ public class ProcessManagementResource extends ApplicationStatusResource {
                     break;
 
                 default:
-                    return this.buildResponse(Status.UNAUTHORIZED,
-                        getErrorEntity(Status.UNAUTHORIZED, "UNAUTHORIZED_ACTION " + xAction, "The action " + xAction +
+                    return this.buildResponse(Status.CONFLICT,
+                        getErrorEntity(Status.CONFLICT, "NOT_ALLOWED_ACTION " + xAction, "The action " + xAction +
                             " is not allowed! Only INIT, NEXT and RESUME are allowed for this endpoint"));
             }
 
             return this.buildResponse(itemStatus);
 
         } catch (StateNotAllowedException e) {
-            // if there is an unauthorized action
             LOGGER.error(e);
-            return this.buildResponse(Status.UNAUTHORIZED,
-                getErrorEntity(Status.UNAUTHORIZED, "UNAUTHORIZED_ACTION " + xAction,
+            return this.buildResponse(Status.CONFLICT,
+                getErrorEntity(Status.CONFLICT, "NOT_ALLOWED_ACTION " + xAction,
                     "The action " + xAction + " is not allowed! The engine exception is :" + e.getMessage()));
         } catch (final ProcessingException e) {
-            // if there is an unauthorized action
             LOGGER.error(e);
             return this.buildResponse(Status.PRECONDITION_FAILED,
                 getErrorEntity(Status.PRECONDITION_FAILED, "Error processing the action :" + xAction,
                     "The action " + xAction + " cause an error :" + e.getMessage()));
         } catch (final Exception e) {
-            // if there is an unauthorized action
             LOGGER.error(e);
             return this.buildResponse(Status.INTERNAL_SERVER_ERROR,
                 getErrorEntity(Status.INTERNAL_SERVER_ERROR, "Internal error while processing the action :" + xAction,
@@ -393,27 +390,24 @@ public class ProcessManagementResource extends ApplicationStatusResource {
 
                     break;
                 default:
-                    return this.buildResponse(Status.UNAUTHORIZED,
-                        getErrorEntity(Status.UNAUTHORIZED, "UNAUTHORIZED_ACTION " + xAction, "The action " + xAction +
+                    return this.buildResponse(Status.CONFLICT,
+                        getErrorEntity(Status.CONFLICT, "NOT_ALLOWED_ACTION " + xAction, "The action " + xAction +
                             " is not allowed! Only INIT, NEXT, REPLAY and RESUME are allowed for this endpoint"));
             }
 
             return this.buildResponse(itemStatus);
 
         } catch (StateNotAllowedException e) {
-            // if there is an unauthorized action
             LOGGER.error(e);
-            return this.buildResponse(Status.UNAUTHORIZED,
-                getErrorEntity(Status.UNAUTHORIZED, "UNAUTHORIZED_ACTION " + xAction,
+            return this.buildResponse(Status.CONFLICT,
+                getErrorEntity(Status.CONFLICT, "NOT_ALLOWED_ACTION " + xAction,
                     "The action " + xAction + " is not allowed! The engine exception is :" + e.getMessage()));
         } catch (final ProcessingException e) {
-            // if there is an unauthorized action
             LOGGER.error(e);
             return this.buildResponse(Status.PRECONDITION_FAILED,
                 getErrorEntity(Status.PRECONDITION_FAILED, "Error processing the action :" + xAction,
                     "The action " + xAction + " cause an error :" + e.getMessage()));
         } catch (final Exception e) {
-            // if there is an unauthorized action
             LOGGER.error(e);
             return this.buildResponse(Status.INTERNAL_SERVER_ERROR,
                 getErrorEntity(Status.INTERNAL_SERVER_ERROR, "Internal error while processing the action :" + xAction,
@@ -441,18 +435,15 @@ public class ProcessManagementResource extends ApplicationStatusResource {
             return this.buildResponse(itemStatus);
 
         } catch (StateNotAllowedException e) {
-            // if there is an unauthorized action
             LOGGER.error(e);
-            return this.buildResponse(Status.UNAUTHORIZED,
-                getErrorEntity(Status.UNAUTHORIZED, "UNAUTHORIZED_ACTION  CANCEL",
+            return this.buildResponse(Status.CONFLICT,
+                getErrorEntity(Status.CONFLICT, "NOT_ALLOWED_ACTION  CANCEL",
                     "The action cancel is not allowed! The engine exception is :" + e.getMessage()));
         } catch (final ProcessingException e) {
-            // if there is an unauthorized action
             LOGGER.error(e);
             return this.buildResponse(Status.PRECONDITION_FAILED, getErrorEntity(Status.PRECONDITION_FAILED,
                 "Error processing the action : CANCEL", "The action cancel cause an error :" + e.getMessage()));
         } catch (final Exception e) {
-            // if there is an unauthorized action
             LOGGER.error(e);
             return this.buildResponse(Status.INTERNAL_SERVER_ERROR,
                 getErrorEntity(Status.INTERNAL_SERVER_ERROR, "Internal error while processing the action : CANCEL",

@@ -1864,9 +1864,12 @@ public class IngestInternalIT extends VitamRuleRunner {
             assertNotNull(client2.getWorkflowDefinitions());
 
             // then finally we cancel the ingest
-            ItemStatus itemStatusFinal = client2.cancelOperationProcessExecution(operationGuid.toString());
-            // FATAL is thrown but this could be a bug somewher, so when it is fixed, change the value here
-            assertEquals(StatusCode.FATAL, itemStatusFinal.getGlobalStatus());
+            RequestResponse<ItemStatus> response = client2.cancelOperationProcessExecution(operationGuid.toString());
+            assertThat(response.isOk()).isTrue();
+            RequestResponseOK<ItemStatus> responseOK = (RequestResponseOK<ItemStatus>) response;
+            assertThat(responseOK.getResults().iterator().hasNext()).isTrue();
+            assertThat(responseOK.getResults().iterator().next().getGlobalStatus()).isEqualTo(StatusCode.FATAL);
+            assertThat(responseOK.getResults().iterator().next().getGlobalState()).isEqualTo(ProcessState.COMPLETED);
 
         } catch (final Exception e) {
             LOGGER.error(e);

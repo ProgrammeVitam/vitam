@@ -60,6 +60,7 @@ import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.ProcessAction;
+import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.security.SanityChecker;
@@ -372,7 +373,6 @@ public class LogbookInternalResourceImpl {
 
         // Get TenantID
         Integer tenantId = VitamThreadUtils.getVitamSession().getTenantId();
-        Response response = null;
         GUID checkOperationGUID = null;
         LOGGER.debug("Start Check in Resource");
         try (LogbookOperationsClient logbookOperationsClient = logbookOperationsClientFactory.getClient();
@@ -391,10 +391,10 @@ public class LogbookInternalResourceImpl {
 
             LOGGER.debug("Started Check in Resource");
             // Run the WORKFLOW
-            response =
+            RequestResponse<ItemStatus> response =
                 processingClient.executeCheckTraceabilityWorkFlow(checkOperationGUID.getId(), query,
                     LogbookTypeProcess.CHECK.name(), ProcessAction.RESUME.getValue());
-            LOGGER.debug("Check in Resource launched");
+            LOGGER.debug("Check in Resource launched"+response.toString());
 
 
             int nbTry = 0;
@@ -442,8 +442,6 @@ public class LogbookInternalResourceImpl {
             LOGGER.error(e);
             final Status status = Status.NOT_FOUND;
             return Response.status(status).entity(getErrorEntity(status, e.getMessage())).build();
-        } finally {
-            DefaultClient.staticConsumeAnyEntityAndClose(response);
         }
     }
 

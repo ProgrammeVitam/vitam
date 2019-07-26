@@ -27,6 +27,7 @@ import fr.gouv.vitam.common.guid.GUID;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.administration.AccessContractModel;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
@@ -115,7 +116,7 @@ public class EvidenceResourceTest {
 
         when(processingManagementClient
             .executeOperationProcess(anyString(), eq("EVIDENCE_AUDIT"), anyString()))
-            .thenReturn(new RequestResponseOK<JsonNode>(new Select().getFinalSelect()).setHttpCode(200));
+            .thenReturn(new RequestResponseOK<ItemStatus>(new Select().getFinalSelect()).setHttpCode(200));
         Response audit = evidenceResource.audit(selectMultiQuery.getFinalSelect());
 
         //then

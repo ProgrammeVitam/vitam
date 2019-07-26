@@ -54,6 +54,7 @@ import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.AuthenticationLevel;
 import fr.gouv.vitam.common.model.GraphComputeResponse;
 import fr.gouv.vitam.common.model.GraphComputeResponse.GraphComputeAction;
+import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseError;
 import fr.gouv.vitam.common.model.StatusCode;
@@ -539,8 +540,7 @@ public class MetadataManagementResource {
             processingClient
                 .initVitamProcess(new ProcessingEntry(operationGuid.getId(), COMPUTE_INHERITED_RULES.name()));
 
-            RequestResponse<JsonNode> response = processingClient
-                .executeOperationProcess(operationGuid.getId(), COMPUTE_INHERITED_RULES.name(), RESUME.getValue());
+            RequestResponse<ItemStatus> response = processingClient.executeOperationProcess(operationGuid.getId(), COMPUTE_INHERITED_RULES.name(), RESUME.getValue());
             return response.setHttpCode(Response.Status.OK.getStatusCode()).toResponse();
         } catch (BadRequestException e) {
             return buildErrorResponse(VitamCode.GLOBAL_EMPTY_QUERY, null);

@@ -34,6 +34,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import fr.gouv.vitam.common.client.MockOrRestClient;
 import fr.gouv.vitam.common.exception.BadRequestException;
 import fr.gouv.vitam.common.exception.InternalServerException;
+import fr.gouv.vitam.common.exception.StateNotAllowedException;
 import fr.gouv.vitam.common.exception.VitamClientException;
 import fr.gouv.vitam.common.exception.WorkflowNotFoundException;
 import fr.gouv.vitam.common.model.ItemStatus;
@@ -97,7 +98,7 @@ public interface ProcessingManagementClient extends MockOrRestClient {
      * @throws BadRequestException
      * @throws WorkflowNotFoundException
      */
-    Response executeCheckTraceabilityWorkFlow(String checkOperationId, JsonNode query, String workflowId, String actionId)
+    RequestResponse<ItemStatus> executeCheckTraceabilityWorkFlow(String checkOperationId, JsonNode query, String workflowId, String actionId)
         throws InternalServerException, WorkflowNotFoundException;
 
     /**
@@ -178,7 +179,7 @@ public interface ProcessingManagementClient extends MockOrRestClient {
      * @throws InternalServerException
      * @throws BadRequestException
      */
-    ItemStatus cancelOperationProcessExecution(String id)
+    RequestResponse<ItemStatus> cancelOperationProcessExecution(String id)
             throws InternalServerException, VitamClientException;
 
     /**
@@ -208,7 +209,7 @@ public interface ProcessingManagementClient extends MockOrRestClient {
      * @throws VitamClientException
      * @throws WorkflowNotFoundException
      */
-    RequestResponse<JsonNode> executeOperationProcess(String operationId, String workflowId, String actionId)
+    RequestResponse<ItemStatus> executeOperationProcess(String operationId, String workflowId, String actionId)
             throws InternalServerException, VitamClientException, WorkflowNotFoundException;
 
     /**
