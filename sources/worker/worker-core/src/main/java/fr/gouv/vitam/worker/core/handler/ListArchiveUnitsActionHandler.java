@@ -48,11 +48,14 @@ import fr.gouv.vitam.metadata.client.MetaDataClientFactory;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 import fr.gouv.vitam.worker.common.HandlerIO;
+import fr.gouv.vitam.worker.core.distribution.JsonLineModel;
+import fr.gouv.vitam.worker.core.distribution.JsonLineWriter;
 import fr.gouv.vitam.worker.core.plugin.ScrollSpliteratorHelper;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
 
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
@@ -178,15 +181,23 @@ public class ListArchiveUnitsActionHandler extends ActionHandler {
     }
 
     private void exportToWorkspace(HandlerIO handlerIO) throws ProcessingException {
-        File tempFile = handlerIO.getNewLocalFile(handlerIO.getOutput(AU_TO_BE_UPDATED_RANK).getPath());
-        try {
+        String distribFileName = handlerIO.getOutput(AU_TO_BE_UPDATED_RANK).getPath();
+        File distribFile = handlerIO.getNewLocalFile(distribFileName);
+
+        try (JsonLineWriter jsonLineWriter = new JsonLineWriter(new FileOutputStream(distribFile))) {
             final ArrayNode guidArrayNode = JsonHandler.createArrayNode();
             for (String guid : archiveUnitsToBeUpdated) {
                 guidArrayNode.add(guid);
+                jsonLineWriter.addEntry(new JsonLineModel(guid));
             }
-            JsonHandler.writeAsFile(guidArrayNode, tempFile);
+        } catch (IOException e) {
+            throw new ProcessingException(e);
+        }
+
             // list of archive units to be updated
-            handlerIO.addOutputResult(AU_TO_BE_UPDATED_RANK, tempFile, true, asyncIO);
+            handlerIO.addOutputResult(AU_TO_BE_UPDATED_RANK, distribFile, true, asyncIO);
+
+        try  {
             for (String key : archiveUnitGuidAndRulesToBeUpdated.keySet()) {
                 final File archiveUnitTempFile = handlerIO.getNewLocalFile(
                     UpdateWorkflowConstants.UNITS_FOLDER + "/" + key + JSON);
@@ -210,8 +221,6 @@ public class ListArchiveUnitsActionHandler extends ActionHandler {
             LOGGER.error("Metadata error: Cannot request Metadata", e);
             throw new ProcessingException(e);
         }
-
-
     }
 
     @Override

@@ -250,5 +250,11 @@
   },
  "COMPUTE_INHERITED_RULES_FINALIZATION": {
     "className": "fr.gouv.vitam.worker.core.plugin.computeinheritedrules.ComputeInheritedRulesFinalizationPlugin"
- }
+ },
+  "COMPUTE_INHERITED_RULES_PROGENY_IDENTIFIER": {
+    "className": "fr.gouv.vitam.worker.core.plugin.computeinheritedrules.ComputeInheritedRuleProgenyIdentifierPlugin"
+  },
+  "COMPUTE_INHERITED_RULES_INVALIDATOR": {
+    "className": "fr.gouv.vitam.worker.core.plugin.computeinheritedrules.ComputeInheritedRulesInvalidatorPlugin"
+  }
 }
