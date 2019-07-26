@@ -2961,5 +2961,15 @@
     "Collections": [
       "Unit"
     ]
+  },
+  {
+    "Identifier": "_validComputedInheritedRules",
+    "Description": "Indique si les règles calculées sont valides",
+    "Type": "BOOLEAN",
+    "Origin": "INTERNAL",
+    "ShortName": "validComputedInheritedRules",
+    "Collections": [
+      "Unit"
+    ]
   }
 ]

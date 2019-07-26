@@ -1,4 +1,4 @@
-/*******************************************************************************
+/*
  * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2019)
  *
  * contact.vitam@culture.gouv.fr
@@ -23,7 +23,7 @@
  *
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
- *******************************************************************************/
+ */
 
 package fr.gouv.vitam.worker.core.plugin.computeinheritedrules;
 
@@ -34,14 +34,10 @@ import fr.gouv.vitam.batch.report.client.BatchReportClient;
 import fr.gouv.vitam.batch.report.client.BatchReportClientFactory;
 import fr.gouv.vitam.common.database.builder.query.VitamFieldsHelper;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
-import fr.gouv.vitam.common.exception.VitamClientInternalException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.processing.ProcessingUri;
-import fr.gouv.vitam.metadata.api.exception.MetaDataClientServerException;
-import fr.gouv.vitam.metadata.api.exception.MetaDataDocumentSizeException;
-import fr.gouv.vitam.metadata.api.exception.MetaDataExecutionException;
 import fr.gouv.vitam.metadata.client.MetaDataClient;
 import fr.gouv.vitam.metadata.client.MetaDataClientFactory;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
@@ -62,22 +58,23 @@ import org.mockito.junit.MockitoRule;
 import javax.ws.rs.core.Response;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.IOException;
 import java.nio.charset.Charset;
-import java.util.Arrays;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
+import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 public class ComputeInheritedRuleProgenyIdentifierPluginTest {
@@ -111,52 +108,21 @@ public class ComputeInheritedRuleProgenyIdentifierPluginTest {
     }
 
     @Test
-    public void should_generate_invalid_distribution_file() throws Exception {
-        String unitId = "aeaqaaaaaeehslhxaanxoallxuao7dyaaaaq";
+    public void should_generate_invalidation_distribution_file() throws Exception {
+        // Given
+        List<String> distributedUnits = Collections.singletonList("momaUnit");
         File unitToInvalidateFile = temporaryFolder.newFile();
 
-        HandlerIO handlerIO = givenHandlerIo(unitId, unitToInvalidateFile);
-        List<String> parentsAndProgenyUnitsList = givenMetaDataClient(unitId);
+        HandlerIO handlerIO = givenHandlerIo(distributedUnits, unitToInvalidateFile);
         WorkerParameters workerParameters = givenWorkerParameters();
 
-        computeInheritedRuleProgenyIdentifierPlugin.executeList(workerParameters, handlerIO);
+        List<String> progenyUnits = Collections.singletonList("daughter");
+        List<String> allUnitsToInvalidate = new ArrayList<>();
+        allUnitsToInvalidate.addAll(distributedUnits);
+        allUnitsToInvalidate.addAll(progenyUnits);
 
-        JsonLineGenericIterator<JsonLineModel> lines = new JsonLineGenericIterator<>(new FileInputStream(unitToInvalidateFile), TYPE_REFERENCE);
-        List<String> unitIdsInResultingFile = lines.stream().map(JsonLineModel::getId).collect(Collectors.toList());
-
-        assertThat(unitIdsInResultingFile.size()).isEqualTo(parentsAndProgenyUnitsList.size());
-        assertThat(unitIdsInResultingFile).containsAll(parentsAndProgenyUnitsList);
-    }
-
-    @Test
-    public void should_continue_process_when_no_children_in_units() throws Exception {
-        // Given
-        HandlerIO handlerIO = givenHandlerIo("aeaqaaaaaeehslhxaanxoallxuao7dyaaaaq", temporaryFolder.newFile());
-        WorkerParameters workerParameters = givenWorkerParameters();
-        JsonNode emptyResponse = JsonHandler.toJsonNode(new RequestResponseOK<JsonNode>());
-
-        when(metaDataClient.selectUnits(any())).thenReturn(emptyResponse);                                               // <--- response with no children
-        when(batchReportClient.getUnitsToInvalidate(anyString())).thenReturn(JsonHandler.toJsonNode(emptyResponse));
-
-        given(batchReportClient.saveUnitsAndProgeny(anyString(), eq(Collections.emptyList()))).willThrow(new VitamClientInternalException("save empty list fails"));
-
-        // When
-        ThrowingCallable executePlugin = () -> computeInheritedRuleProgenyIdentifierPlugin.executeList(workerParameters, handlerIO);
-
-        // Then
-        assertThatCode(executePlugin).doesNotThrowAnyException();
-    }
-
-    @Test
-    public void should_add_parents_in_list() throws Exception {
-        // Given
-        HandlerIO handlerIO = givenHandlerIo("BATMAN_UNIT", temporaryFolder.newFile());
-        WorkerParameters workerParameters = givenWorkerParameters();
-        JsonNode emptyResponse = JsonHandler.toJsonNode(new RequestResponseOK<JsonNode>());
-
-        when(metaDataClient.selectUnits(any())).thenReturn(emptyResponse);
-        when(batchReportClient.getUnitsToInvalidate(anyString())).thenReturn(emptyResponse);                   // <--- here return response with parent
-
+        when(metaDataClient.selectUnits(any(JsonNode.class))).thenReturn(createMetadataResponseFromList(allUnitsToInvalidate));
+        when(batchReportClient.getUnitsToInvalidate(anyString())).thenReturn(createBatchReportResponseFromList(allUnitsToInvalidate));
         ArgumentCaptor<List<String>> listArgumentCaptor = ArgumentCaptor.forClass(List.class);
         when(batchReportClient.saveUnitsAndProgeny(anyString(), listArgumentCaptor.capture())).thenReturn(null);
 
@@ -164,13 +130,35 @@ public class ComputeInheritedRuleProgenyIdentifierPluginTest {
         computeInheritedRuleProgenyIdentifierPlugin.executeList(workerParameters, handlerIO);
 
         // Then
-        assertThat(listArgumentCaptor.getValue()).containsExactly("BATMAN_UNIT");
+        JsonLineGenericIterator<JsonLineModel> lines = new JsonLineGenericIterator<>(new FileInputStream(unitToInvalidateFile), TYPE_REFERENCE);
+        List<String> unitIdsInResultingFile = lines.stream().map(JsonLineModel::getId).collect(Collectors.toList());
+
+        assertThat(listArgumentCaptor.getValue()).containsAll(allUnitsToInvalidate);
+        assertThat(unitIdsInResultingFile.size()).isEqualTo(allUnitsToInvalidate.size());
+        assertThat(unitIdsInResultingFile).containsAll(allUnitsToInvalidate);
+    }
+
+    @Test
+    public void should_not_save_units_when_no_children() throws Exception {
+        // Given
+        HandlerIO handlerIO = givenHandlerIo(Collections.singletonList("BATMAN_UNIT"), temporaryFolder.newFile());
+        WorkerParameters workerParameters = givenWorkerParameters();
+        JsonNode emptyResponse = JsonHandler.toJsonNode(new RequestResponseOK<JsonNode>());
+
+        when(metaDataClient.selectUnits(any())).thenReturn(emptyResponse);
+        when(batchReportClient.getUnitsToInvalidate(anyString())).thenReturn(emptyResponse);                   // <--- here return response with parent
+
+        // When
+        computeInheritedRuleProgenyIdentifierPlugin.executeList(workerParameters, handlerIO);
+
+        // Then
+        verify(batchReportClient, never()).saveUnitsAndProgeny(anyString(), anyList());
     }
 
     @Test
     public void should_throw_exception_when_result_no_id_projection() throws Exception {
         // Given
-        HandlerIO handlerIO = givenHandlerIo("BATMAN_UNIT", temporaryFolder.newFile());
+        HandlerIO handlerIO = givenHandlerIo(Collections.singletonList("BATMAN_UNIT"), temporaryFolder.newFile());
         WorkerParameters workerParameters = givenWorkerParameters();
 
         List<JsonNode> unitJsonList = Stream.of("JOKER_ID")
@@ -197,39 +185,42 @@ public class ComputeInheritedRuleProgenyIdentifierPluginTest {
         return workerParameters;
     }
 
-    private List<String> givenMetaDataClient(String unitId)
-        throws MetaDataExecutionException, MetaDataDocumentSizeException, InvalidParseOperationException, MetaDataClientServerException, VitamClientInternalException {
-        String daughterUnitId = "aeaqaaaaaeehslhxaanxoallxuao67yaaaba";
-        List<String> parentsAndProgenyUnitsList = Arrays.asList(unitId, daughterUnitId);
-        List<JsonNode> unitJsonList = parentsAndProgenyUnitsList.stream()
+    private JsonNode createMetadataResponseFromList(List<String> unitsIds) throws InvalidParseOperationException {
+        List<JsonNode> unitJsonList = unitsIds.stream()
             .map(object -> JsonHandler.createObjectNode().put(VitamFieldsHelper.id(), object))
             .collect(Collectors.toList());
-
         RequestResponse<JsonNode> results = new RequestResponseOK<JsonNode>().addAllResults(unitJsonList);
         Object response = Response.status(Response.Status.OK).entity(results.setHttpCode(200)).build().getEntity();
-        when(metaDataClient.selectUnits(any(JsonNode.class))).thenReturn(JsonHandler.toJsonNode(response)); // return all units (parents + children)
-
-        List<JsonNode> unitJsonListWithId = parentsAndProgenyUnitsList.stream()
-            .map(TextNode::new)
-            .collect(Collectors.toList());
-        RequestResponse<JsonNode> resultsWithId = new RequestResponseOK<JsonNode>().addAllResults(unitJsonListWithId);
-        Object responseWithId = Response.status(Response.Status.OK).entity(resultsWithId.setHttpCode(200)).build().getEntity();
-        when(batchReportClient.getUnitsToInvalidate(anyString())).thenReturn(JsonHandler.toJsonNode(responseWithId)); // where are not here to test batchReportClient
-
-        return parentsAndProgenyUnitsList;
+        return JsonHandler.toJsonNode(response);
     }
 
-    private HandlerIO givenHandlerIo(String unitId, File unitToInvalidateFile) throws Exception {
+    private JsonNode createBatchReportResponseFromList(List<String> unitsIds) throws InvalidParseOperationException {
+        List<JsonNode> unitJsonList = unitsIds.stream()
+            .map(TextNode::new)
+            .collect(Collectors.toList());
+        RequestResponse<JsonNode> results = new RequestResponseOK<JsonNode>().addAllResults(unitJsonList);
+        Object response = Response.status(Response.Status.OK).entity(results.setHttpCode(200)).build().getEntity();
+        return JsonHandler.toJsonNode(response);
+    }
+
+    private HandlerIO givenHandlerIo(List<String> unitsIds, File unitToInvalidateFile) throws Exception {
         HandlerIO handlerIO = mock(HandlerIO.class);
         ProcessingUri processingUri = mock(ProcessingUri.class);
 
         File distributionFile = temporaryFolder.newFile();
-        FileUtils.writeStringToFile(distributionFile, "{\"id\":\"" + unitId + "\"}", Charset.defaultCharset());
+        unitsIds.forEach(unit -> {
+            try {
+                FileUtils.writeStringToFile(distributionFile, "{\"id\":\"" + unit + "\"}", Charset.defaultCharset());
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        });
 
         when(handlerIO.getInput(anyInt())).thenReturn(distributionFile);
         when(handlerIO.getNewLocalFile(anyString())).thenReturn(unitToInvalidateFile);
         when(processingUri.getPath()).thenReturn("");
         when(handlerIO.getOutput(anyInt())).thenReturn(processingUri);
+        when(handlerIO.getContainerName()).thenReturn("processId");
 
         return handlerIO;
     }

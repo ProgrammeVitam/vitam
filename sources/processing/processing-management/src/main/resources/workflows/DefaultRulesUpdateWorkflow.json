@@ -34,9 +34,46 @@
             "out": [
               {
                 "name": "updatedarchiveunits.file",
-                "uri": "WORKSPACE:PROCESSING/auToBeUpdated.json"
+                "uri": "WORKSPACE:PROCESSING/auToBeUpdated.jsonl"
               }
             ]
+          }
+        },
+        {
+          "action": {
+            "actionKey": "COMPUTE_INHERITED_RULES_PROGENY_IDENTIFIER",
+            "behavior": "BLOCKING",
+            "in": [
+              {
+                "name": "updatedarchiveunits.file",
+                "uri": "WORKSPACE:PROCESSING/auToBeUpdated.jsonl"
+              }
+            ],
+            "out": [
+              {
+                "name": "units_to_invalidate",
+                "uri": "WORKSPACE:PROCESSING/unitsToInvalidate.jsonl"
+              }
+            ],
+            "lifecycleLog": "DISABLED"
+          }
+        }
+      ]
+    },
+    {
+      "workerGroupId": "DefaultWorker",
+      "stepName": "STP_INVALIDATE",
+      "behavior": "BLOCKING",
+      "distribution": {
+        "kind": "LIST_IN_JSONL_FILE",
+        "element": "PROCESSING/unitsToInvalidate.jsonl"
+      },
+      "actions": [
+        {
+          "action": {
+            "actionKey": "COMPUTE_INHERITED_RULES_INVALIDATOR",
+            "behavior": "BLOCKING",
+            "lifecycleLog": "DISABLED"
           }
         }
       ]

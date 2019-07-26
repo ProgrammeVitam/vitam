@@ -69,7 +69,7 @@ public class ComputeInheritedRulesInvalidatorPlugin extends ActionHandler {
     }
 
     @Override
-    public List<ItemStatus> executeList(WorkerParameters workerParameters, HandlerIO handler) throws ProcessingException {
+    public List<ItemStatus> executeList(WorkerParameters workerParameters, HandlerIO handler) {
         LOGGER.debug(String.format("executeList from plugin '%s'", PLUGIN_NAME));
         List<String> units = workerParameters.getObjectNameList();
 

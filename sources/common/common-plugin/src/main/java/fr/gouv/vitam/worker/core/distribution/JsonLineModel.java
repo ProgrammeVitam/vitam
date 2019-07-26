@@ -50,6 +50,10 @@ public class JsonLineModel {
         // Empty constructor for deserialization
     }
 
+    public JsonLineModel(String id) {
+        this(id, null, null);
+    }
+
     public JsonLineModel(String id, Integer distribGroup, JsonNode params) {
         this.id = id;
         this.distribGroup = distribGroup;

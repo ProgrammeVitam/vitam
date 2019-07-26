@@ -27,6 +27,7 @@
 
 package fr.gouv.vitam.worker.core.handler;
 
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.google.common.collect.Lists;
 import fr.gouv.vitam.common.PropertiesUtils;
@@ -49,6 +50,8 @@ import fr.gouv.vitam.metadata.client.MetaDataClient;
 import fr.gouv.vitam.metadata.client.MetaDataClientFactory;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 import fr.gouv.vitam.processing.common.parameter.WorkerParametersFactory;
+import fr.gouv.vitam.worker.core.distribution.JsonLineGenericIterator;
+import fr.gouv.vitam.worker.core.distribution.JsonLineModel;
 import fr.gouv.vitam.worker.core.impl.HandlerIOImpl;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
@@ -64,6 +67,7 @@ import org.junit.rules.TemporaryFolder;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
@@ -92,6 +96,7 @@ public class ListArchiveUnitsActionHandlerTest {
     private GUID guid = GUIDFactory.newGUID();
     private List<IOParameter> out;
 
+    private static final TypeReference<JsonLineModel> TYPE_REFERENCE = new TypeReference<JsonLineModel>() {};
     private static final String UPDATED_RULES_JSON = "ListArchiveUnitsActionPlugin/updatedRules.json";
     private static final String UPDATED_AU = "ListArchiveUnitsActionPlugin/archiveUnitsToBeUpdated.json";
     private ListArchiveUnitsActionHandler plugin;
@@ -148,40 +153,27 @@ public class ListArchiveUnitsActionHandlerTest {
     public void givenRunningProcessWhenExecuteThenReturnResponseOK() throws Exception {
         action.addOutIOParameters(out);
 
-        final InputStream updatedRules =
-            PropertiesUtils.getResourceAsStream(UPDATED_RULES_JSON);
-        final JsonNode archiveUnitsToBeUpdated =
-            JsonHandler.getFromInputStream(PropertiesUtils.getResourceAsStream(UPDATED_AU));
-        try {
-            when(workspaceClient.getObject(any(), eq("PROCESSING/updatedRules.json")))
-                .thenReturn(Response.status(Status.OK).entity(updatedRules).build());
+        try (InputStream updatedRules = PropertiesUtils.getResourceAsStream(UPDATED_RULES_JSON)) {
+            final JsonNode archiveUnitsToBeUpdated = JsonHandler.getFromInputStream(PropertiesUtils.getResourceAsStream(UPDATED_AU));
+            when(workspaceClient.getObject(any(), eq("PROCESSING/updatedRules.json"))).thenReturn(Response.status(Status.OK).entity(updatedRules).build());
             when(metadataClient.selectUnits(any())).thenReturn(archiveUnitsToBeUpdated);
 
-            saveWorkspacePutObject(
-                UpdateWorkflowConstants.PROCESSING_FOLDER + "/" + UpdateWorkflowConstants.AU_TO_BE_UPDATED_JSON);
-            saveWorkspacePutObject(
-                UpdateWorkflowConstants.UNITS_FOLDER + "/" + "aeaqaaaaaagds5zjaabmaak5mlsoesaaaaba.json");
+            saveWorkspacePutObject(UpdateWorkflowConstants.PROCESSING_FOLDER + "/" + UpdateWorkflowConstants.AU_TO_BE_UPDATED_JSON);
+            saveWorkspacePutObject(UpdateWorkflowConstants.UNITS_FOLDER + "/" + "aeaqaaaaaagds5zjaabmaak5mlsoesaaaaba.json");
             final ItemStatus response = plugin.execute(params, action);
             assertEquals(StatusCode.OK, response.getGlobalStatus());
 
-            JsonNode auToBeUpdated = getSavedWorkspaceObject(
-                UpdateWorkflowConstants.PROCESSING_FOLDER + "/" + UpdateWorkflowConstants.AU_TO_BE_UPDATED_JSON);
-            int numberOfAu = 0;
-            for (final JsonNode objNode : auToBeUpdated) {
-                numberOfAu++;
-            }
-            assertEquals(3, numberOfAu);
+            String filename = UpdateWorkflowConstants.PROCESSING_FOLDER + "/" + UpdateWorkflowConstants.AU_TO_BE_UPDATED_JSON;
+            JsonLineGenericIterator<JsonLineModel> lines = new JsonLineGenericIterator<>(new FileInputStream(getFullPath(filename)), TYPE_REFERENCE);
+            assertEquals(3, lines.stream().count());
 
-            JsonNode aeaqaaaaaagds5zjaabmaak5mlsoesaaaaba = getSavedWorkspaceObject(
-                UpdateWorkflowConstants.UNITS_FOLDER + "/" + "aeaqaaaaaagds5zjaabmaak5mlsoesaaaaba.json");
+            JsonNode aeaqaaaaaagds5zjaabmaak5mlsoesaaaaba = getSavedWorkspaceObject(UpdateWorkflowConstants.UNITS_FOLDER + "/" + "aeaqaaaaaagds5zjaabmaak5mlsoesaaaaba.json");
             assertNotNull(aeaqaaaaaagds5zjaabmaak5mlsoesaaaaba);
             int numberOfRulesInvolved = 0;
             for (final JsonNode objNode : aeaqaaaaaagds5zjaabmaak5mlsoesaaaaba) {
                 numberOfRulesInvolved++;
             }
             assertEquals(3, numberOfRulesInvolved);
-        } finally {
-            updatedRules.close();
         }
 
     }
@@ -196,6 +188,10 @@ public class ListArchiveUnitsActionHandlerTest {
             return null;
         }).when(workspaceClient).putObject(org.mockito.ArgumentMatchers.anyString(),
             org.mockito.ArgumentMatchers.eq(filename), org.mockito.ArgumentMatchers.any(InputStream.class));
+    }
+
+    private String getFullPath(String filename) {
+        return System.getProperty("vitam.tmp.folder") + "/" + action.getContainerName() + "_" + action.getWorkerId() + "/" + filename.replaceAll("/", "_");
     }
 
     private JsonNode getSavedWorkspaceObject(String filename) throws InvalidParseOperationException {

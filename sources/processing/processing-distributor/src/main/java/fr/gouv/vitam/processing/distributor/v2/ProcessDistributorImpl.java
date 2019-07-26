@@ -293,6 +293,7 @@ public class ProcessDistributorImpl implements ProcessDistributor {
                     for (URI uri : objectsListUri) {
                         objectsList.add(uri.getPath());
                     }
+                    workParams.setObjectMetadataList(Collections.emptyList());
                     // Iterate over Objects List
                     distributeOnList(workParams, step, NOLEVEL, objectsList, useDistributorIndex, tenantId);
                 }

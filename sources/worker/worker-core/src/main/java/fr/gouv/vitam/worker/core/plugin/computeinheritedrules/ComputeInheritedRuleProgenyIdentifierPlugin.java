@@ -32,6 +32,8 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.google.common.annotations.VisibleForTesting;
 import fr.gouv.vitam.batch.report.client.BatchReportClient;
 import fr.gouv.vitam.batch.report.client.BatchReportClientFactory;
+import fr.gouv.vitam.common.database.builder.query.BooleanQuery;
+import fr.gouv.vitam.common.database.builder.query.ExistsQuery;
 import fr.gouv.vitam.common.database.builder.query.InQuery;
 import fr.gouv.vitam.common.database.builder.query.QueryHelper;
 import fr.gouv.vitam.common.database.builder.query.VitamFieldsHelper;
@@ -66,7 +68,6 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -99,14 +100,14 @@ public class ComputeInheritedRuleProgenyIdentifierPlugin extends ActionHandler {
 
     @Override
     public List<ItemStatus> executeList(WorkerParameters workerParameters, HandlerIO handler) throws ProcessingException {
-        String processId = workerParameters.getObjectNameList().get(0);
+        String processId = handler.getContainerName();
 
         if(StringUtils.isEmpty(processId)) {
             LOGGER.error("processId null or empty.");
             return buildBulkItemStatus(workerParameters, PLUGIN_NAME, StatusCode.FATAL);
         }
 
-        handler.setCurrentObjectId(processId);
+        handler.setCurrentObjectId(workerParameters.getObjectNameList().get(0));
         try(InputStream inputStream = new FileInputStream((File) handler.getInput(0));
             JsonLineGenericIterator<JsonLineModel> lines = new JsonLineGenericIterator<>(inputStream, TYPE_REFERENCE);
             BatchReportClient batchReportClient = batchReportClientFactory.getClient()) {
@@ -125,16 +126,11 @@ public class ComputeInheritedRuleProgenyIdentifierPlugin extends ActionHandler {
 
             // move file to workspace
             handler.transferFileToWorkspace(distribFileName, distribFile, true, false);
-
         } catch (IOException | VitamClientInternalException e) {
             throw new ProcessingException(e);
         }
 
         return buildBulkItemStatus(workerParameters, PLUGIN_NAME, StatusCode.OK);
-    }
-
-    private JsonLineModel getJsonLineForItem(JsonNode item) {
-        return new JsonLineModel(item.textValue(), null, null);
     }
 
     private void findAndSaveUnitsProgeny(List<JsonLineModel> unitsToBatch, String operationId) {
@@ -151,22 +147,31 @@ public class ComputeInheritedRuleProgenyIdentifierPlugin extends ActionHandler {
 
         try (MetaDataClient metaDataClient = metaDataClientFactory.getClient();
              BatchReportClient batchReportClient = batchReportClientFactory.getClient()) {
-
             InQuery childrenUnitsQuery = QueryHelper.in(VitamFieldsHelper.allunitups(), parentsIds);
-            select.setQuery(childrenUnitsQuery);
+            InQuery parentsUnitsQuery = QueryHelper.in(VitamFieldsHelper.id(), parentsIds);
+            BooleanQuery parentsAndProgenyUnits = QueryHelper.or().add(childrenUnitsQuery, parentsUnitsQuery);
+
+            ExistsQuery unitsToIndex = QueryHelper.exists(VitamFieldsHelper.validComputedInheritedRules());
+            BooleanQuery unitsToInvalidate = QueryHelper.and().add(unitsToIndex, parentsAndProgenyUnits);
+
+            select.setQuery(unitsToInvalidate);
             JsonNode response = metaDataClient.selectUnits(select.getFinalSelect());
-            List<JsonNode> results = RequestResponseOK.getFromJsonNode(response).getResults();
+            List<String> unitsIds = getIdsFromResponse(response);
 
-            List<String> unitsIds = results.stream()
-                .map(result -> Objects.requireNonNull(result.get(VitamFieldsHelper.id()).asText()))
-                .collect(Collectors.toList());
-
-            unitsIds.addAll(Arrays.asList(parentsIds));
-
-            batchReportClient.saveUnitsAndProgeny(operationId, unitsIds);
+            if(!unitsIds.isEmpty()) {
+                batchReportClient.saveUnitsAndProgeny(operationId, unitsIds);
+            }
         } catch (InvalidCreateOperationException | MetaDataException | InvalidParseOperationException | VitamClientInternalException e) {
             throw new VitamRuntimeException(e);
         }
+    }
+
+    private List<String> getIdsFromResponse(JsonNode response) throws InvalidParseOperationException {
+        List<JsonNode> results = RequestResponseOK.getFromJsonNode(response).getResults();
+
+        return results.stream()
+            .map(result -> Objects.requireNonNull(result.get(VitamFieldsHelper.id()).asText()))
+            .collect(Collectors.toList());
     }
 
     private void createDistributionFile(final ScrollSpliterator<JsonNode> scrollRequest, File distribFile)
@@ -176,7 +181,7 @@ public class ComputeInheritedRuleProgenyIdentifierPlugin extends ActionHandler {
             StreamSupport.stream(scrollRequest, false).forEach(
                 item -> {
                     try {
-                        jsonLineWriter.addEntry(getJsonLineForItem(item));
+                        jsonLineWriter.addEntry(new JsonLineModel(item.textValue()));
                     } catch (IOException e) {
                         throw new VitamRuntimeException(e);
                     }
