@@ -412,8 +412,8 @@ public class VitamConfiguration {
      * Threshold for elimination action
      */
     private static long eliminationActionThreshold = 10_000L;
-    private static int ontologyCacheMaxEntries = 100;
-    private static int ontologyCacheTimeoutInSeconds = 300;
+    private static int ontologyCacheMaxEntries = 1000000;
+    private static int ontologyCacheTimeoutInSeconds = 100;
     /**
      * Default OriginatingAgency for DIP export with multiple originating agencies
      */

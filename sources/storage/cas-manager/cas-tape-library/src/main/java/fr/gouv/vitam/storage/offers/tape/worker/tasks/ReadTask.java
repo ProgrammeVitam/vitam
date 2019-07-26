@@ -33,6 +33,7 @@ import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.StatusCode;
+import fr.gouv.vitam.common.model.tape.TarLocation;
 import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
 import fr.gouv.vitam.storage.engine.common.model.QueueMessageType;
 import fr.gouv.vitam.storage.engine.common.model.QueueState;
@@ -70,6 +71,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import static com.mongodb.client.model.Filters.and;
 import static com.mongodb.client.model.Filters.eq;
 import static com.mongodb.client.model.Filters.ne;
+import static com.mongodb.client.model.Filters.regex;
 import static fr.gouv.vitam.common.model.StatusCode.FATAL;
 import static fr.gouv.vitam.common.model.StatusCode.KO;
 import static fr.gouv.vitam.common.model.StatusCode.OK;
@@ -89,12 +91,13 @@ public class ReadTask implements Future<ReadWriteResult> {
 
     protected AtomicBoolean done = new AtomicBoolean(false);
 
-    public ReadTask(ReadOrder readOrder, TapeCatalog workerCurrentTape, TapeLibraryService tapeLibraryService, 
-                    TapeCatalogService tapeCatalogService, ReadRequestReferentialRepository readRequestReferentialRepository) {
+    public ReadTask(ReadOrder readOrder, TapeCatalog workerCurrentTape, TapeLibraryService tapeLibraryService,
+        TapeCatalogService tapeCatalogService, ReadRequestReferentialRepository readRequestReferentialRepository) {
         ParametersChecker.checkParameter("WriteOrder param is required.", readOrder);
         ParametersChecker.checkParameter("TapeLibraryService param is required.", tapeLibraryService);
         ParametersChecker.checkParameter("TapeCatalogService param is required.", tapeCatalogService);
-        ParametersChecker.checkParameter("ReadRequestReferentialRepository param is required.", readRequestReferentialRepository);
+        ParametersChecker
+            .checkParameter("ReadRequestReferentialRepository param is required.", readRequestReferentialRepository);
         this.readOrder = readOrder;
         this.workerCurrentTape = workerCurrentTape;
         this.tapeLibraryService = tapeLibraryService;
@@ -150,7 +153,7 @@ public class ReadTask implements Future<ReadWriteResult> {
                     return new ReadWriteResult(FATAL, QueueState.ERROR, null);
                 case KO_ON_GO_TO_POSITION:
                 case KO_ON_READ_FROM_TAPE:
-                case KO_ON_REWIND_TAPE :
+                case KO_ON_REWIND_TAPE:
                     return new ReadWriteResult(FATAL, QueueState.ERROR, workerCurrentTape);
 
                 // Drive UP, Order Ready
@@ -167,7 +170,7 @@ public class ReadTask implements Future<ReadWriteResult> {
                     return new ReadWriteResult(KO, QueueState.ERROR, workerCurrentTape);
 
                 default:
-                        return new ReadWriteResult(FATAL, QueueState.ERROR, workerCurrentTape);
+                    return new ReadWriteResult(FATAL, QueueState.ERROR, workerCurrentTape);
             }
         } finally {
             done.set(true);
@@ -201,8 +204,11 @@ public class ReadTask implements Future<ReadWriteResult> {
 
     private void readFromTape() throws ReadWriteException {
         try {
-            Path sourcePath = Paths.get(tapeLibraryService.getOutputDirectory()).resolve(readOrder.getFileName() + TEMP_EXT).toAbsolutePath();
-            Path targetPath = Paths.get(tapeLibraryService.getOutputDirectory()).resolve(readOrder.getFileName()).toAbsolutePath();
+            Path sourcePath =
+                Paths.get(tapeLibraryService.getOutputDirectory()).resolve(readOrder.getFileName() + TEMP_EXT)
+                    .toAbsolutePath();
+            Path targetPath =
+                Paths.get(tapeLibraryService.getOutputDirectory()).resolve(readOrder.getFileName()).toAbsolutePath();
 
             if (targetPath.toFile().exists()) {
                 // TODO: 17/06/19 augmenter la durée de rétention du fichier ?
@@ -210,24 +216,33 @@ public class ReadTask implements Future<ReadWriteResult> {
 
             if (!targetPath.toFile().exists()) {
                 Files.deleteIfExists(sourcePath);
-                tapeLibraryService.read(workerCurrentTape, readOrder.getFilePosition(),readOrder.getFileName() + TEMP_EXT);
+                tapeLibraryService
+                    .read(workerCurrentTape, readOrder.getFilePosition(), readOrder.getFileName() + TEMP_EXT);
                 // Mark file as done (remove .tmp extension)
                 Files.move(sourcePath, targetPath, StandardCopyOption.ATOMIC_MOVE);
             }
 
-            readRequestReferentialRepository.updateReadRequestInProgress(readOrder.getReadRequestId());
+            readRequestReferentialRepository
+                .updateReadRequestInProgress(
+                    readOrder.getReadRequestId(),
+                    readOrder.getFileName(),
+                    TarLocation.DISK);
+
         } catch (IOException e) {
             LOGGER.error(MSG_PREFIX + TAPE_MSG + workerCurrentTape.getCode() +
                 " Action : Read, Order: " + JsonHandler.unprettyPrint(readOrder) + ", Entity: " +
                 e);
-            throw  new ReadWriteException(MSG_PREFIX + TAPE_MSG + workerCurrentTape.getCode() +
-                    " Action : Read, Order: " + JsonHandler.unprettyPrint(readOrder) + " : Error when writing TAR on file system ", e, ReadWriteErrorCode.KO_ON_WRITE_TO_FS);
+            throw new ReadWriteException(MSG_PREFIX + TAPE_MSG + workerCurrentTape.getCode() +
+                " Action : Read, Order: " + JsonHandler.unprettyPrint(readOrder) +
+                " : Error when writing TAR on file system ", e, ReadWriteErrorCode.KO_ON_WRITE_TO_FS);
         } catch (ReadRequestReferentialException e) {
             LOGGER.error(MSG_PREFIX + TAPE_MSG + workerCurrentTape.getCode() +
-                    " Action : Read, Order: " + JsonHandler.unprettyPrint(readOrder) + ", Entity: " +
-                    e);
-            throw  new ReadWriteException(MSG_PREFIX + TAPE_MSG + workerCurrentTape.getCode() +
-                    " Action : Read, Order: " + JsonHandler.unprettyPrint(readOrder) + " : Error when updating read request in repository ", e, ReadWriteErrorCode.KO_ON_UPDATE_READ_REQUEST_REPOSITORY);
+                " Action : Read, Order: " + JsonHandler.unprettyPrint(readOrder) + ", Entity: " +
+                e);
+            throw new ReadWriteException(MSG_PREFIX + TAPE_MSG + workerCurrentTape.getCode() +
+                " Action : Read, Order: " + JsonHandler.unprettyPrint(readOrder) +
+                " : Error when updating read request in repository ", e,
+                ReadWriteErrorCode.KO_ON_UPDATE_READ_REQUEST_REPOSITORY);
         }
     }
 
@@ -238,43 +253,47 @@ public class ReadTask implements Future<ReadWriteResult> {
      */
     private CatalogResponse getTapeFromCatalog() throws ReadWriteException, QueueException, TapeCatalogException {
         Bson query = and(
-                eq(TapeCatalog.CODE, readOrder.getTapeCode()),
-                ne(TapeCatalog.TAPE_STATE, TapeState.CONFLICT)
+            eq(TapeCatalog.CODE, readOrder.getTapeCode()),
+            ne(TapeCatalog.TAPE_STATE, TapeState.CONFLICT)
         );
         Optional<TapeCatalog> found = tapeCatalogService.receive(query, QueueMessageType.TapeCatalog);
         if (!found.isPresent()) {
             List<TapeCatalog> tapes = tapeCatalogService.find(Arrays
-                    .asList(new QueryCriteria(TapeCatalog.CODE, readOrder.getTapeCode(), QueryCriteriaOperator.EQ)));
+                .asList(new QueryCriteria(TapeCatalog.CODE, readOrder.getTapeCode(), QueryCriteriaOperator.EQ)));
             if (tapes.size() == 0) {
                 LOGGER.error(MSG_PREFIX + TAPE_MSG +
-                                " Action : LoadTapeFromCatalog, Order: " + JsonHandler.unprettyPrint(readOrder) +
-                                ", Error: no tape found in the catalog with expected library and/or bucket",
-                        ReadWriteErrorCode.TAPE_NOT_FOUND_IN_CATALOG);
+                        " Action : LoadTapeFromCatalog, Order: " + JsonHandler.unprettyPrint(readOrder) +
+                        ", Error: no tape found in the catalog with expected library and/or bucket",
+                    ReadWriteErrorCode.TAPE_NOT_FOUND_IN_CATALOG);
                 throw new ReadWriteException(MSG_PREFIX + TAPE_MSG +
-                        " Action : Read, Order: " + JsonHandler.unprettyPrint(readOrder) + " : Unknown tape in catalog ", ReadWriteErrorCode.TAPE_NOT_FOUND_IN_CATALOG);
+                    " Action : Read, Order: " + JsonHandler.unprettyPrint(readOrder) + " : Unknown tape in catalog ",
+                    ReadWriteErrorCode.TAPE_NOT_FOUND_IN_CATALOG);
             } else if (tapes.get(0).getTapeState().equals(TapeState.CONFLICT)) {
                 LOGGER.error(MSG_PREFIX + TAPE_MSG +
-                                " Action : LoadTapeFromCatalog, Order: " + JsonHandler.unprettyPrint(readOrder) +
-                                ", Warn: tape is in conflict state",
-                        ReadWriteErrorCode.KO_TAPE_CONFLICT_STATE);
+                        " Action : LoadTapeFromCatalog, Order: " + JsonHandler.unprettyPrint(readOrder) +
+                        ", Warn: tape is in conflict state",
+                    ReadWriteErrorCode.KO_TAPE_CONFLICT_STATE);
                 throw new ReadWriteException(MSG_PREFIX + TAPE_MSG +
-                        " Action : Read, Order: " + JsonHandler.unprettyPrint(readOrder) + " : tape is in conflict state ", ReadWriteErrorCode.KO_TAPE_CONFLICT_STATE);
+                    " Action : Read, Order: " + JsonHandler.unprettyPrint(readOrder) + " : tape is in conflict state ",
+                    ReadWriteErrorCode.KO_TAPE_CONFLICT_STATE);
             } else {
                 LOGGER.error(MSG_PREFIX + TAPE_MSG +
-                                " Action : LoadTapeFromCatalog, Order: " + JsonHandler.unprettyPrint(readOrder) +
-                                ", Warn: tape is busy",
-                        ReadWriteErrorCode.KO_TAPE_IS_BUSY);
+                        " Action : LoadTapeFromCatalog, Order: " + JsonHandler.unprettyPrint(readOrder) +
+                        ", Warn: tape is busy",
+                    ReadWriteErrorCode.KO_TAPE_IS_BUSY);
                 throw new ReadWriteException(MSG_PREFIX + TAPE_MSG +
-                        " Action : Read, Order: " + JsonHandler.unprettyPrint(readOrder) + " : tape is busy ", ReadWriteErrorCode.KO_TAPE_IS_BUSY);
+                    " Action : Read, Order: " + JsonHandler.unprettyPrint(readOrder) + " : tape is busy ",
+                    ReadWriteErrorCode.KO_TAPE_IS_BUSY);
             }
         }
         if (found.get().getCurrentLocation().getLocationType().equals(TapeLocationType.OUTSIDE)) {
             LOGGER.error(MSG_PREFIX + TAPE_MSG + found.get().getCode() +
-                            " Action : LoadTapeFromCatalog, Order: " + JsonHandler.unprettyPrint(readOrder) +
-                            ", Error: tape is outside",
-                    ReadWriteErrorCode.KO_TAPE_IS_OUTSIDE);
+                    " Action : LoadTapeFromCatalog, Order: " + JsonHandler.unprettyPrint(readOrder) +
+                    ", Error: tape is outside",
+                ReadWriteErrorCode.KO_TAPE_IS_OUTSIDE);
             throw new ReadWriteException(MSG_PREFIX + TAPE_MSG + found.get().getCode() +
-                    " Action : Read, Order: " + JsonHandler.unprettyPrint(readOrder) + " : tape is busy ", ReadWriteErrorCode.KO_TAPE_IS_OUTSIDE);
+                " Action : Read, Order: " + JsonHandler.unprettyPrint(readOrder) + " : tape is busy ",
+                ReadWriteErrorCode.KO_TAPE_IS_OUTSIDE);
         }
 
         return new CatalogResponse(OK, found.get());

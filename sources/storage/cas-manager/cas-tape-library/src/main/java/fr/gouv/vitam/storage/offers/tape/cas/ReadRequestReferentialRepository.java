@@ -36,6 +36,7 @@ import com.mongodb.util.JSON;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.model.tape.TapeReadRequestReferentialEntity;
+import fr.gouv.vitam.common.model.tape.TarLocation;
 import fr.gouv.vitam.storage.offers.tape.exception.ReadRequestReferentialException;
 import org.bson.Document;
 
@@ -56,7 +57,8 @@ public class ReadRequestReferentialRepository {
             collection.insertOne(toBson(tapeReadRequestReferentialEntity));
         } catch (MongoException ex) {
             throw new ReadRequestReferentialException(
-                "Could not insert or update read requests referential for id " + tapeReadRequestReferentialEntity.getRequestId(), ex);
+                "Could not insert or update read requests referential for id " +
+                    tapeReadRequestReferentialEntity.getRequestId(), ex);
         }
     }
 
@@ -84,18 +86,20 @@ public class ReadRequestReferentialRepository {
         }
     }
 
-    public void updateReadRequestInProgress(String requestId)
+    public void updateReadRequestInProgress(String requestId, String tarId, TarLocation tarLocation)
         throws ReadRequestReferentialException {
 
         try {
             UpdateResult updateResult = collection.updateOne(
                 Filters.eq(TapeReadRequestReferentialEntity.ID, requestId),
-                Updates.inc(TapeReadRequestReferentialEntity.CURRENT_READ_TARS_COUNT, 1),
+                Updates.set(TapeReadRequestReferentialEntity.TAR_LOCATIONS + "." + tarId,
+                    tarLocation.name()),
                 new UpdateOptions().upsert(false)
             );
 
             if (updateResult.getMatchedCount() != 1) {
-                throw new ReadRequestReferentialException("Could not update read request for " + requestId + ". No such read request");
+                throw new ReadRequestReferentialException(
+                    "Could not update read request for " + requestId + ". No such read request");
             }
         } catch (MongoException ex) {
             throw new ReadRequestReferentialException("Could not update read request for " + requestId, ex);

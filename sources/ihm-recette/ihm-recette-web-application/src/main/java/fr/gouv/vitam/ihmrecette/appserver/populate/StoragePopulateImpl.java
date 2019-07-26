@@ -28,28 +28,6 @@
 package fr.gouv.vitam.ihmrecette.appserver.populate;
 
 import fr.gouv.vitam.common.GlobalDataRest;
-import java.io.BufferedInputStream;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.io.InputStream;
-import java.security.DigestInputStream;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Future;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
-import java.util.stream.Collectors;
-
-import javax.ws.rs.core.Response.Status;
-
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.digest.Digest;
@@ -90,6 +68,27 @@ import fr.gouv.vitam.storage.engine.server.distribution.impl.TransferThread;
 import fr.gouv.vitam.storage.engine.server.rest.StorageConfiguration;
 import fr.gouv.vitam.storage.engine.server.spi.DriverManager;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
+
+import javax.ws.rs.core.Response.Status;
+import java.io.BufferedInputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.InputStream;
+import java.security.DigestInputStream;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
+import java.util.stream.Collectors;
 
 /**
  * StoragePopulateImpl populate binary file
@@ -137,12 +136,12 @@ public class StoragePopulateImpl implements VitamAutoCloseable {
         digestType = VitamConfiguration.getDefaultDigestType();
     }
 
-    private static StorageOffer apply(OfferReference offerReference) {
+    private static StorageOffer getStorageOffer(OfferReference offerReference) {
         StorageOffer storageOffer = null;
         try {
             storageOffer = OFFER_PROVIDER.getStorageOffer(offerReference.getId());
         } catch (StorageException e) {
-           LOGGER.error(e);
+            LOGGER.error(e);
         }
         return storageOffer;
     }
@@ -153,12 +152,12 @@ public class StoragePopulateImpl implements VitamAutoCloseable {
      * create 2 methods
      *
      * @param strategyId strategyId
-     * @param objectId   objectId
-     * @param file       file
-     * @param category   category
-     * @param tenantId   tenantId
+     * @param objectId objectId
+     * @param file file
+     * @param category category
+     * @param tenantId tenantId
      * @return StoredInfoResult
-     * @throws StorageException      StorageException
+     * @throws StorageException StorageException
      * @throws FileNotFoundException FileNotFoundException
      */
     public void storeData(String strategyId, String objectId, File file,
@@ -172,7 +171,7 @@ public class StoragePopulateImpl implements VitamAutoCloseable {
         }
 
         List<StorageOffer> storageOffers = offerReferences.stream()
-            .map(StoragePopulateImpl::apply)
+            .map(StoragePopulateImpl::getStorageOffer)
             .collect(Collectors.toList());
         OffersToCopyIn offers = new OffersToCopyIn(storageOffers);
 
@@ -180,7 +179,7 @@ public class StoragePopulateImpl implements VitamAutoCloseable {
     }
 
     public String createReadOrder(Integer tenantId, String strategyId, String objectId, DataCategory category)
-            throws StorageException, FileNotFoundException {
+        throws StorageException, FileNotFoundException {
         checkStoreDataParams(strategyId, objectId, category);
 
         final List<OfferReference> offerReferences = getOffersReferences(strategyId);
@@ -189,17 +188,17 @@ public class StoragePopulateImpl implements VitamAutoCloseable {
         }
 
         List<StorageOffer> storageOffers = offerReferences.stream()
-                .map(StoragePopulateImpl::apply)
-                .collect(Collectors.toList());
+            .map(StoragePopulateImpl::getStorageOffer)
+            .collect(Collectors.toList());
         OffersToCopyIn offers = new OffersToCopyIn(storageOffers);
 
-        tryAndRetry(objectId, category, null, tenantId, offers, 1, StorageAction.POST);
+        execute(objectId, category, null, tenantId, offers, StorageAction.POST);
 
         return offers.getReadRequestID();
     }
 
     public boolean isReadOrderCompleted(Integer tenantId, String strategyId, String exportId)
-            throws StorageException, FileNotFoundException {
+        throws StorageException, FileNotFoundException {
         ParametersChecker.checkParameter(EXPORT_ID_IS_MANDATORY, exportId);
 
         final List<OfferReference> offerReferences = getOffersReferences(strategyId);
@@ -208,27 +207,36 @@ public class StoragePopulateImpl implements VitamAutoCloseable {
         }
 
         List<StorageOffer> storageOffers = offerReferences.stream()
-                .map(StoragePopulateImpl::apply)
-                .collect(Collectors.toList());
+            .map(StoragePopulateImpl::getStorageOffer)
+            .collect(Collectors.toList());
         OffersToCopyIn offers = new OffersToCopyIn(storageOffers);
 
-        tryAndRetry(exportId, null, null, tenantId, offers, 1, StorageAction.HEAD);
+        execute(exportId, null, null, tenantId, offers, StorageAction.HEAD);
 
         return offers.isReadOrderCompleted();
     }
+
+    private void execute(String objectId, DataCategory category, File file,
+        Integer tenantId, OffersToCopyIn data, StorageAction action)
+        throws StorageTechnicalException, FileNotFoundException {
+        // To retry, attempts should be < NB_RETRY
+        tryAndRetry(objectId, category, file, tenantId, data, NB_RETRY + 1, action);
+    }
+
 
     private void tryAndRetry(String objectId, DataCategory category, File file,
         Integer tenantId, OffersToCopyIn data, int attempt, StorageAction action)
         throws StorageTechnicalException, FileNotFoundException {
         Digest globalDigest = new Digest(digestType);
-        InputStream digestInputStream = file != null ? globalDigest.getDigestInputStream(new FileInputStream(file)) : null;
+        InputStream digestInputStream =
+            file != null ? globalDigest.getDigestInputStream(new FileInputStream(file)) : null;
         Digest digest = new Digest(digestType);
         long finalTimeout = file != null ? getTransferTimeout(file.getTotalSpace()) : DEFAULT_MINIMUM_TIMEOUT;
         MultiplePipedInputStream streams;
         try {
-            streams = action == StorageAction.PUT ? 
-                        getMultipleInputStreamFromWorkspace(digestInputStream, data.getKoOffers().size(), digest) : 
-                        null;
+            streams = action == StorageAction.PUT ?
+                getMultipleInputStreamFromWorkspace(digestInputStream, data.getKoOffers().size(), digest) :
+                null;
             // init thread and make future map
             // Map here to keep offerId linked to Future
             Map<String, Future<ThreadResponseData>> futureMap = new HashMap<>();
@@ -243,24 +251,26 @@ public class StoragePopulateImpl implements VitamAutoCloseable {
                         case PUT:
                             InputStream inputStream = new BufferedInputStream(streams.getInputStream(rank));
                             StoragePutRequest request =
-                                    new StoragePutRequest(tenantId, category.getFolder(), objectId, digestType.getName(),
-                                            inputStream);
+                                new StoragePutRequest(tenantId, category.getFolder(), objectId, digestType.getName(),
+                                    inputStream);
                             futureMap.put(offerReference.getId(),
-                                    executor
-                                            .submit(new TransferThread(driver, offerReference, request, globalDigest, file.length())));
+                                executor
+                                    .submit(new TransferThread(driver, offerReference, request, globalDigest,
+                                        file.length())));
                             rank++;
                             break;
                         case POST:
                             futureMap.put(offerReference.getId(),
-                                    executor
-                                            .submit(new ReadOrderThread(driver, offerReference,
-                                                    new StorageObjectRequest(tenantId, category.getFolder(), objectId), ReadOrderAction.CREATE)));
+                                executor
+                                    .submit(new ReadOrderThread(driver, offerReference,
+                                        new StorageObjectRequest(tenantId, category.getFolder(), objectId),
+                                        ReadOrderAction.CREATE)));
                             break;
                         case HEAD:
                             futureMap.put(offerReference.getId(),
-                                    executor
-                                            .submit(new ReadOrderThread(driver, offerReference,
-                                                    new StorageObjectRequest(tenantId, objectId), ReadOrderAction.CHECK)));
+                                executor
+                                    .submit(new ReadOrderThread(driver, offerReference,
+                                        new StorageObjectRequest(tenantId, objectId), ReadOrderAction.CHECK)));
                             break;
                         default:
                             throw new IllegalArgumentException("Action not implemented");
@@ -291,7 +301,8 @@ public class StoragePopulateImpl implements VitamAutoCloseable {
                     }
 
                     if (action == StorageAction.POST) {
-                        data.setReadRequestID(((StorageGetResult) threadResponseData.getResponse()).getObject().getHeaderString(GlobalDataRest.READ_REQUEST_ID));
+                        data.setReadRequestID(((StorageGetResult) threadResponseData.getResponse()).getObject()
+                            .getHeaderString(GlobalDataRest.READ_REQUEST_ID));
                     } else if (action == StorageAction.HEAD) {
                         data.setReadOrderCompleted(threadResponseData.getStatus().equals(Status.FOUND) ? true : false);
                     }
@@ -353,7 +364,7 @@ public class StoragePopulateImpl implements VitamAutoCloseable {
 
     private MultiplePipedInputStream getMultipleInputStreamFromWorkspace(InputStream stream, int nbCopy,
         Digest digest)
-        throws  IOException {
+        throws IOException {
         DigestInputStream digestOriginalStream = (DigestInputStream) digest.getDigestInputStream(stream);
         return new MultiplePipedInputStream(digestOriginalStream, nbCopy);
     }
@@ -462,13 +473,15 @@ public class StoragePopulateImpl implements VitamAutoCloseable {
         return new ArrayList<>();
     }
 
+
     enum StorageAction {
         PUT,
         HEAD,
         POST
     }
 
-    public List<OfferReference> getOffersReferences(String strategyId) throws StorageNotFoundException, StorageTechnicalException {
+    public List<OfferReference> getOffersReferences(String strategyId)
+        throws StorageNotFoundException, StorageTechnicalException {
         final StorageStrategy storageStrategy = STRATEGY_PROVIDER.getStorageStrategy(strategyId);
         if (storageStrategy == null) {
             throw new StorageNotFoundException(VitamCodeHelper.getLogMessage(VitamCode.STORAGE_STRATEGY_NOT_FOUND));

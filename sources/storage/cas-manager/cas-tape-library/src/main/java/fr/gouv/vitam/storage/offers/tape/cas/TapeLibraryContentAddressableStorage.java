@@ -40,6 +40,7 @@ import fr.gouv.vitam.common.model.MetadatasObject;
 import fr.gouv.vitam.common.model.tape.FileInTape;
 import fr.gouv.vitam.common.model.tape.TapeReadRequestReferentialEntity;
 import fr.gouv.vitam.common.model.tape.TarEntryDescription;
+import fr.gouv.vitam.common.model.tape.TarLocation;
 import fr.gouv.vitam.common.storage.ContainerInformation;
 import fr.gouv.vitam.common.storage.cas.container.api.ContentAddressableStorage;
 import fr.gouv.vitam.common.storage.cas.container.api.MetadatasStorageObject;
@@ -82,10 +83,10 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.HashSet;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
-import java.util.Set;
 import java.util.Vector;
 import java.util.stream.Collectors;
 
@@ -133,7 +134,7 @@ public class TapeLibraryContentAddressableStorage implements ContentAddressableS
 
     @Override
     public String putObject(String containerName, String objectName, InputStream stream, DigestType digestType,
-                            Long size) throws ContentAddressableStorageException {
+        Long size) throws ContentAddressableStorageException {
         LOGGER.debug(String.format("Upload object %s in container %s", objectName, containerName));
 
 
@@ -188,7 +189,8 @@ public class TapeLibraryContentAddressableStorage implements ContentAddressableS
         }
 
         if (!objectReferentialEntity.isPresent()) {
-            throw new ContentAddressableStorageNotFoundException(ErrorMessage.OBJECT_NOT_FOUND + containerName + "/" + objectName);
+            throw new ContentAddressableStorageNotFoundException(
+                ErrorMessage.OBJECT_NOT_FOUND + containerName + "/" + objectName);
         }
 
         // get TARs containing the object segments
@@ -198,7 +200,8 @@ public class TapeLibraryContentAddressableStorage implements ContentAddressableS
             throw new UnsupportedOperationException("Object stored in tar. Not implemented yet");
         }
 
-        List<TarEntryDescription> tarEntryDescriptions = ((TapeLibraryTarObjectStorageLocation) location).getTarEntries();
+        List<TarEntryDescription> tarEntryDescriptions =
+            ((TapeLibraryTarObjectStorageLocation) location).getTarEntries();
 
         if (tarEntryDescriptions == null || tarEntryDescriptions.isEmpty()) {
             throw new IllegalStateException("empty TAR description for object : " + containerName + "/" + objectName);
@@ -222,7 +225,8 @@ public class TapeLibraryContentAddressableStorage implements ContentAddressableS
         }
     }
 
-    private InputStream entryInputStreamSupplier(String containerName, String objectName, TarEntryDescription tarEntry) {
+    private InputStream entryInputStreamSupplier(String containerName, String objectName,
+        TarEntryDescription tarEntry) {
         try {
             return loadEntryInputStream(containerName, objectName, tarEntry);
         } catch (ContentAddressableStorageServerException e) {
@@ -233,9 +237,12 @@ public class TapeLibraryContentAddressableStorage implements ContentAddressableS
     private InputStream loadEntryInputStream(String containerName, String objectName, TarEntryDescription tarEntry)
         throws ContentAddressableStorageServerException {
         try {
-            Optional<TapeArchiveReferentialEntity> tapeLibraryTarReferentialEntity = archiveReferentialRepository.find(tarEntry.getTarFileId());
+            Optional<TapeArchiveReferentialEntity> tapeLibraryTarReferentialEntity =
+                archiveReferentialRepository.find(tarEntry.getTarFileId());
             if (!tapeLibraryTarReferentialEntity.isPresent()) {
-                throw new IllegalStateException("TAR information not found for tarId : " + tarEntry.getTarFileId() + " object :" + containerName + "/" + objectName);
+                throw new IllegalStateException(
+                    "TAR information not found for tarId : " + tarEntry.getTarFileId() + " object :" + containerName +
+                        "/" + objectName);
             }
 
             TapeLibraryArchiveStorageLocation tarLocation = tapeLibraryTarReferentialEntity.get().getLocation();
@@ -248,7 +255,8 @@ public class TapeLibraryContentAddressableStorage implements ContentAddressableS
             if (targetPath.toFile().exists()) {
                 return TarHelper.readEntryAtPos(targetPath, tarEntry);
             } else {
-                throw new UnavailableFileException("File temporarily unavailable : " + containerName + "/" + objectName);
+                throw new UnavailableFileException(
+                    "File temporarily unavailable : " + containerName + "/" + objectName);
             }
 
         } catch (IOException | ArchiveReferentialException e) {
@@ -260,16 +268,19 @@ public class TapeLibraryContentAddressableStorage implements ContentAddressableS
     public TapeReadRequestReferentialEntity createReadOrder(String containerName, List<String> objectsIds)
         throws ContentAddressableStorageServerException, ContentAddressableStorageNotFoundException {
         TapeReadRequestReferentialEntity tapeReadRequestReferentialEntity;
-        Set<String> tarIds = new HashSet<>();
         List<FileInTape> filesInTape = new ArrayList<>();
         String readRequestId = GUIDFactory.newGUID().getId();
+
+        Map<String, TarLocation> tarLocationMap = new HashMap<>();
 
         try {
             for (String objectName : objectsIds) {
 
-                Optional<TapeObjectReferentialEntity> object = objectReferentialRepository.find(containerName, objectName);
+                Optional<TapeObjectReferentialEntity> object =
+                    objectReferentialRepository.find(containerName, objectName);
                 if (!object.isPresent()) {
-                    throw new ContentAddressableStorageNotFoundException(ErrorMessage.OBJECT_NOT_FOUND + containerName + "/" + objectName);
+                    throw new ContentAddressableStorageNotFoundException(
+                        ErrorMessage.OBJECT_NOT_FOUND + containerName + "/" + objectName);
                 }
 
                 // get TARs containing the object segments
@@ -279,24 +290,29 @@ public class TapeLibraryContentAddressableStorage implements ContentAddressableS
                     throw new UnsupportedOperationException("Object stored in tar. Not implemented yet");
                 }
 
-                List<TarEntryDescription> tarEntryDescriptions = ((TapeLibraryTarObjectStorageLocation) location).getTarEntries();
+                List<TarEntryDescription> tarEntryDescriptions =
+                    ((TapeLibraryTarObjectStorageLocation) location).getTarEntries();
 
                 if (tarEntryDescriptions == null || tarEntryDescriptions.isEmpty()) {
-                    throw new IllegalStateException("empty TAR description for object : " + containerName + "/" + objectName);
+                    throw new IllegalStateException(
+                        "empty TAR description for object : " + containerName + "/" + objectName);
                 }
 
-                tarIds.addAll(tarEntryDescriptions.stream()
-                    .map(TarEntryDescription::getTarFileId)
-                    .collect(Collectors.toSet()));
+                for (TarEntryDescription o : tarEntryDescriptions) {
+                    tarLocationMap.putIfAbsent(o.getTarFileId(), TarLocation.TAPE);
+                }
 
-                filesInTape.add(new FileInTape(objectName, tarEntryDescriptions));
+
+                filesInTape.add(new FileInTape(objectName, object.get().getStorageId(), tarEntryDescriptions));
             }
 
-            tapeReadRequestReferentialEntity = new TapeReadRequestReferentialEntity(readRequestId, tarIds.size(), filesInTape);
+            tapeReadRequestReferentialEntity =
+                new TapeReadRequestReferentialEntity(readRequestId, containerName, tarLocationMap, filesInTape);
             readRequestReferentialRepository.insert(tapeReadRequestReferentialEntity);
 
-            for (String tarId : tarIds) {
-                Optional<TapeArchiveReferentialEntity> tapeLibraryTarReferentialEntity = archiveReferentialRepository.find(tarId);
+            for (String tarId : tarLocationMap.keySet()) {
+                Optional<TapeArchiveReferentialEntity> tapeLibraryTarReferentialEntity =
+                    archiveReferentialRepository.find(tarId);
                 if (!tapeLibraryTarReferentialEntity.isPresent()) {
                     throw new IllegalStateException("TAR information not found for tarId : " + tarId);
                 }
@@ -338,11 +354,13 @@ public class TapeLibraryContentAddressableStorage implements ContentAddressableS
         throws ContentAddressableStorageServerException, ContentAddressableStorageNotFoundException {
 
         try {
-            Optional<TapeReadRequestReferentialEntity> readRequestEntity = readRequestReferentialRepository.find(readRequestID);
+            Optional<TapeReadRequestReferentialEntity> readRequestEntity =
+                readRequestReferentialRepository.find(readRequestID);
             if (readRequestEntity.isPresent()) {
                 return readRequestEntity.get().isCompleted();
             } else {
-                throw new ContentAddressableStorageNotFoundException("the read request order " + readRequestID + " not found");
+                throw new ContentAddressableStorageNotFoundException(
+                    "the read request order " + readRequestID + " not found");
             }
         } catch (ReadRequestReferentialException e) {
             throw new ContentAddressableStorageServerException(
