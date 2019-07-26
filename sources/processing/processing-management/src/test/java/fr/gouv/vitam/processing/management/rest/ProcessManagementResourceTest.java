@@ -215,7 +215,7 @@ public class ProcessManagementResourceTest extends ResteasyTestApplication {
      */
 
     @Test
-    public void shouldReturnResponseUauthorized() throws Exception {
+    public void shouldReturnResponseConflict() throws Exception {
         ItemStatus itemStatus = new ItemStatus();
         itemStatus.increment(StatusCode.OK);
         itemStatus.setGlobalState(ProcessState.RUNNING);
@@ -249,7 +249,7 @@ public class ProcessManagementResourceTest extends ResteasyTestApplication {
                 GlobalDataRest.X_REQUEST_ID, processId.toString(), GlobalDataRest.X_TENANT_ID, TENANT_ID)
             .body(new ProcessingEntry(processId.getId(), EXITS_WORKFLOW_ID)).when()
             .post(operationByIdURI).then()
-            .statusCode(Status.UNAUTHORIZED.getStatusCode());
+            .statusCode(Status.CONFLICT.getStatusCode());
     }
 
     @Test

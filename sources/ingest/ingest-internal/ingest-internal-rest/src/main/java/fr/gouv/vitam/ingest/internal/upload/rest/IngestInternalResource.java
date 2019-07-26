@@ -492,10 +492,8 @@ public class IngestInternalResource extends ApplicationStatusResource {
         Status status;
         try (ProcessingManagementClient processManagementClient = processingManagementClientFactory.getClient()) {
             SanityChecker.checkParameter(id);
-            ItemStatus itemStatus = processManagementClient.cancelOperationProcessExecution(id);
-            return Response.status(Status.OK)
-                    .entity(itemStatus)
-                    .build();
+            RequestResponse<ItemStatus> response = processManagementClient.cancelOperationProcessExecution(id);
+            return response.toResponse();
         } catch (final IllegalArgumentException | InvalidParseOperationException e) {
             LOGGER.error(e);
             status = Status.PRECONDITION_FAILED;
@@ -775,7 +773,7 @@ public class IngestInternalResource extends ApplicationStatusResource {
         String containerName = containerGUID.getId();
         try (ProcessingManagementClient processingClient = processingManagementClientFactory.getClient()) {
 
-            RequestResponse<JsonNode> response =
+            RequestResponse<ItemStatus> response =
                     processingClient.executeOperationProcess(containerName, contextId, actionId);
 
             // Check global execution status

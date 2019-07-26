@@ -7,6 +7,7 @@ import fr.gouv.vitam.common.database.builder.request.single.Select;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.guid.GUID;
 import fr.gouv.vitam.common.guid.GUIDFactory;
+import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.ProbativeValueRequest;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.administration.AccessContractModel;
@@ -112,7 +113,7 @@ public class ProbativeValueResourceTest {
 
         when(processingManagementClient
             .executeOperationProcess(anyString(), eq("EXPORT_PROBATIVE_VALUE"), anyString()))
-            .thenReturn(new RequestResponseOK<JsonNode>(new Select().getFinalSelect()).setHttpCode(200));
+            .thenReturn(new RequestResponseOK<ItemStatus>(new Select().getFinalSelect()).setHttpCode(200));
         probativeValue = probativeValueResource.exportProbativeValue(probativeValueRequest);
         assertThat(probativeValue.getStatus()).isEqualTo(Response.Status.OK.getStatusCode());
     }

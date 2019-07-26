@@ -113,14 +113,15 @@ public class IngestInternalClientMock extends AbstractMockClient implements Inge
     }
 
     @Override
-    public ItemStatus cancelOperationProcessExecution(String id) throws VitamClientException {
+    public RequestResponse<ItemStatus> cancelOperationProcessExecution(String id) throws VitamClientException {
         final List<Integer> status = new ArrayList<>();
         status.add(Status.OK.getStatusCode());
         final ItemStatus itemStatus =
             new ItemStatus(id, "FakeMessage - The operation has been canceled", StatusCode.OK, status,
                 SingletonUtils.singletonMap(), null,
                 null, null);
-        return itemStatus;
+        return new RequestResponseOK<ItemStatus>().addResult(itemStatus).addHeader(GlobalDataRest.X_GLOBAL_EXECUTION_STATE,
+            FAKE_EXECUTION_STATUS).setHttpCode(Status.ACCEPTED.getStatusCode());
     }
 
     @Override

@@ -77,6 +77,7 @@ import java.util.Set;
 import static io.restassured.RestAssured.get;
 import static io.restassured.RestAssured.given;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
@@ -372,11 +373,19 @@ public class IngestInternalResourceTest extends ResteasyTestApplication {
     @Test
     public void givenOperationIdWhenDeleteOperationProcessThenOK()
         throws Exception {
-        when(processingClient.cancelOperationProcessExecution(any())).thenReturn(new ItemStatus());
+        ItemStatus result = new ItemStatus();
+        result.setGlobalState(ProcessState.COMPLETED);
+        result.increment(StatusCode.FATAL);
+        result.setItemId("Itzm");
+
+        RequestResponseOK<ItemStatus> responseOK = new RequestResponseOK<ItemStatus>().addResult(result);
+        responseOK.setHttpCode(Status.ACCEPTED.getStatusCode());
+
+        when(processingClient.cancelOperationProcessExecution(anyString())).thenReturn(responseOK);
         given()
             .headers(GlobalDataRest.X_REQUEST_ID, ingestGuid.getId())
             .when().delete(OPERATION_URL)
-            .then().statusCode(Status.OK.getStatusCode());
+            .then().statusCode(Status.ACCEPTED.getStatusCode());
     }
 
     @Test

@@ -73,6 +73,7 @@ import fr.gouv.vitam.common.mapping.dip.UnitDipServiceImpl;
 import fr.gouv.vitam.common.mapping.serializer.IdentifierTypeDeserializer;
 import fr.gouv.vitam.common.mapping.serializer.LevelTypeDeserializer;
 import fr.gouv.vitam.common.mapping.serializer.TextByLangDeserializer;
+import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.PreservationRequest;
 import fr.gouv.vitam.common.model.ProcessAction;
 import fr.gouv.vitam.common.model.RequestResponse;
@@ -141,7 +142,6 @@ import static fr.gouv.vitam.common.json.JsonHandler.writeToInpustream;
 import static fr.gouv.vitam.common.model.ProcessAction.RESUME;
 import static fr.gouv.vitam.common.model.StatusCode.STARTED;
 import static fr.gouv.vitam.common.thread.VitamThreadUtils.getVitamSession;
-import static fr.gouv.vitam.logbook.common.parameters.Contexts.COMPUTE_INHERITED_RULES;
 import static fr.gouv.vitam.logbook.common.parameters.Contexts.COMPUTE_INHERITED_RULES_DELETE;
 import static fr.gouv.vitam.logbook.common.parameters.Contexts.PRESERVATION;
 import static javax.ws.rs.core.Response.Status.INTERNAL_SERVER_ERROR;
@@ -175,7 +175,8 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
     private DipService objectDipService;
 
     private static final String END_OF_EXECUTION_OF_DSL_VITAM_FROM_ACCESS = "End of execution of DSL Vitam from Access";
-    private static final String EXECUTION_OF_DSL_VITAM_FROM_ACCESS_ONGOING = "Execution of DSL Vitam from Access ongoing...";
+    private static final String EXECUTION_OF_DSL_VITAM_FROM_ACCESS_ONGOING =
+        "Execution of DSL Vitam from Access ongoing...";
     private static final String BAD_REQUEST_EXCEPTION = "Bad request Exception ";
     private static final String NOT_FOUND_EXCEPTION = "Not Found Exception ";
     private static final String ACCESS_MODULE = "ACCESS";
@@ -370,10 +371,11 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
 
             ProcessingEntry processingEntry = new ProcessingEntry(operationId, Contexts.EXPORT_DIP.name());
             Boolean mustLog = ActivationStatus.ACTIVE.equals(getVitamSession().getContract().getAccessLog());
-            processingEntry.getExtraParams().put(WorkerParameterName.mustLogAccessOnObject.name(), Boolean.toString(mustLog));
+            processingEntry.getExtraParams()
+                .put(WorkerParameterName.mustLogAccessOnObject.name(), Boolean.toString(mustLog));
             processingClient.initVitamProcess(processingEntry);
 
-            RequestResponse<JsonNode> jsonNodeRequestResponse =
+            RequestResponse<ItemStatus> jsonNodeRequestResponse =
                 processingClient
                     .executeOperationProcess(operationId, Contexts.EXPORT_DIP.name(), RESUME.getValue());
             return jsonNodeRequestResponse.toResponse();
@@ -449,8 +451,8 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
                 WorkerParameterName.mustLogAccessOnObject.name(), Boolean.toString(mustLog));
             processingClient.initVitamProcess(processingEntry);
 
-            // When
-            RequestResponse<JsonNode> jsonNodeRequestResponse = processingClient.executeOperationProcess(operationId, Contexts.EXPORT_DIP.name(), RESUME.getValue());
+            RequestResponse<ItemStatus> jsonNodeRequestResponse = processingClient.executeOperationProcess(
+                operationId, Contexts.EXPORT_DIP.name(), RESUME.getValue());
             return jsonNodeRequestResponse.toResponse();
 
 
@@ -548,7 +550,7 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
 
                 processingClient.initVitamProcess(operationId, Contexts.RECLASSIFICATION.name());
 
-                RequestResponse<JsonNode> jsonNodeRequestResponse =
+                RequestResponse<ItemStatus> jsonNodeRequestResponse =
                     processingClient.executeOperationProcess(operationId, Contexts.RECLASSIFICATION.name(),
                         processAction.getValue());
                 return jsonNodeRequestResponse.toResponse();
@@ -644,7 +646,7 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
 
                 processingClient.initVitamProcess(new ProcessingEntry(operationId, eliminationWorkflowContext.name()));
 
-                RequestResponse<JsonNode> jsonNodeRequestResponse =
+                RequestResponse<ItemStatus> jsonNodeRequestResponse =
                     processingClient
                         .executeOperationProcess(operationId, eliminationWorkflowContext.name(), RESUME.getValue());
                 return jsonNodeRequestResponse.toResponse();
@@ -1046,7 +1048,8 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
             SanityChecker.checkJsonAll(queryDsl);
 
             // Check the writing rights
-            if (getVitamSession().getContract().getWritingPermission() == null || !getVitamSession().getContract().getWritingPermission()) {
+            if (getVitamSession().getContract().getWritingPermission() == null ||
+                !getVitamSession().getContract().getWritingPermission()) {
                 status = Status.UNAUTHORIZED;
                 return Response.status(status).entity(getErrorEntity(status, WRITE_PERMISSION_NOT_ALLOWED)).build();
             }
@@ -1083,7 +1086,7 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
                             getVitamSession().getContract())));
             processingClient.initVitamProcess(operationId, Contexts.MASS_UPDATE_UNIT_DESC.name());
 
-            RequestResponse<JsonNode> requestResponse =
+            RequestResponse<ItemStatus> requestResponse =
                 processingClient
                     .executeOperationProcess(operationId, Contexts.MASS_UPDATE_UNIT_DESC.name(), RESUME.getValue());
             return requestResponse.toResponse();
@@ -1151,7 +1154,7 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
                 .putObject(operationId, "actions.json", writeToInpustream(ruleActions));
             processingClient.initVitamProcess(operationId, Contexts.MASS_UPDATE_UNIT_RULE.name());
 
-            RequestResponse<JsonNode> requestResponse =
+            RequestResponse<ItemStatus> requestResponse =
                 processingClient
                     .executeOperationProcess(operationId, Contexts.MASS_UPDATE_UNIT_RULE.name(), RESUME.getValue());
             return requestResponse.toResponse();
@@ -1260,7 +1263,8 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
             LOGGER.error("Error on computedInheritedRules delete request", e);
             return Response.status(INTERNAL_SERVER_ERROR)
                 .entity(getErrorEntity(INTERNAL_SERVER_ERROR,
-                    String.format("An error occurred during %s workflow", COMPUTE_INHERITED_RULES_DELETE.getEventType())))
+                    String
+                        .format("An error occurred during %s workflow", COMPUTE_INHERITED_RULES_DELETE.getEventType())))
                 .build();
         }
     }

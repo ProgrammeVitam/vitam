@@ -38,6 +38,7 @@ import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.junit.JunitHelper;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.server.application.junit.ResteasyTestApplication;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
 import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
@@ -214,7 +215,7 @@ public class LogbookInternalResourceImplTest extends ResteasyTestApplication {
         when(logbookOperationsClient.selectOperationById(any()))
             .thenReturn(ClientMockResultHelper.getLogbookOperation());
         when(processingManagementClient.executeCheckTraceabilityWorkFlow(any(), any(),
-            any(), any())).thenReturn(Response.ok().build());
+            any(), any())).thenReturn(new RequestResponseOK<>());
         when(processingManagementClient.isOperationCompleted(any())).thenReturn(true);
         when(workspaceClient.isExistingContainer(any())).thenReturn(true);
         doNothing().when(workspaceClient).deleteContainer(any(), anyBoolean());

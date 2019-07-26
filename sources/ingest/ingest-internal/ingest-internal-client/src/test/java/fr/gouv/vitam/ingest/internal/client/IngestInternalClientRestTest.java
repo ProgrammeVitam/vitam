@@ -553,11 +553,23 @@ public class IngestInternalClientRestTest extends ResteasyTestApplication {
     @Test
     public void givenDeleteOKThenOK()
         throws Exception {
-        when(mock.delete())
-            .thenReturn(Response.status(Status.OK).entity(new ItemStatus().increment(StatusCode.OK)).build());
-        ItemStatus status = client.cancelOperationProcessExecution(ID);
-        assertEquals(status.getGlobalStatus(), StatusCode.OK);
+        ItemStatus result = new ItemStatus();
+        result.setGlobalState(ProcessState.COMPLETED);
+        result.increment(StatusCode.FATAL);
+        result.setItemId("Itzm");
 
+        RequestResponseOK<ItemStatus> responseOK = new RequestResponseOK<ItemStatus>().addResult(result);
+        responseOK.setHttpCode(Status.ACCEPTED.getStatusCode());
+
+
+        when(mock.delete())
+            .thenReturn(Response.status(Status.ACCEPTED).entity(responseOK).build());
+        RequestResponse<ItemStatus> response = client.cancelOperationProcessExecution(ID);
+        assertEquals(response.isOk(), true);
+        RequestResponseOK<ItemStatus> respOK = (RequestResponseOK<ItemStatus>) response;
+        assertEquals(respOK.getResults().iterator().hasNext(), true);
+        assertEquals(respOK.getResults().iterator().next().getGlobalStatus(), StatusCode.FATAL);
+        assertEquals(respOK.getResults().iterator().next().getGlobalState(), ProcessState.COMPLETED);
     }
 
     @Test(expected = VitamClientException.class)

@@ -290,7 +290,7 @@ public class WorkflowProcessingManagementClientTest extends ResteasyTestApplicat
         when(mock.post()).thenReturn(Response.status(Status.BAD_REQUEST).entity(desired).build());
         try (ProcessingManagementClientRest client = (ProcessingManagementClientRest) vitamServerTestRunner
             .getClient()) {
-            final RequestResponse<JsonNode> ret = client.executeOperationProcess(ID, WORKFLOWID, ACTION_ID);
+            final RequestResponse<ItemStatus> ret = client.executeOperationProcess(ID, WORKFLOWID, ACTION_ID);
             assertNotNull(ret);
             assertTrue(ret.isOk());
             assertEquals(Status.BAD_REQUEST.getStatusCode(), ret.getHttpCode());
@@ -303,7 +303,7 @@ public class WorkflowProcessingManagementClientTest extends ResteasyTestApplicat
         when(mock.post()).thenReturn(Response.status(Status.OK).entity(desired).build());
         try (ProcessingManagementClientRest client = (ProcessingManagementClientRest) vitamServerTestRunner
             .getClient()) {
-            final RequestResponse<JsonNode> ret = client.executeOperationProcess(ID, WORKFLOWID, ACTION_ID);
+            final RequestResponse<ItemStatus> ret = client.executeOperationProcess(ID, WORKFLOWID, ACTION_ID);
             assertNotNull(ret);
             assertTrue(ret.isOk());
         }
@@ -364,8 +364,9 @@ public class WorkflowProcessingManagementClientTest extends ResteasyTestApplicat
         when(mock.delete()).thenReturn(Response.status(Status.OK).entity(desired).build());
         try (ProcessingManagementClientRest client = (ProcessingManagementClientRest) vitamServerTestRunner
             .getClient()) {
-            final ItemStatus ret = client.cancelOperationProcessExecution(ID);
+            final RequestResponse<ItemStatus> ret = client.cancelOperationProcessExecution(ID);
             assertNotNull(ret);
+            assertTrue(ret.isOk());
         }
     }
 
