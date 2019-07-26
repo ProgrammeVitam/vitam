@@ -816,7 +816,10 @@ documentation:
       application/json:
         description: Requête DSL de sélection d'unité archivistique
         type: object
-        example: !include libraries/examples/evidenceAuditQuery.json
+        examples: 
+          -audit-aus: !include libraries/examples/evidenceAuditQuery.json
+          -audit-opi: !include libraries/examples/evidenceAuditQueryOp.json
+          -audit-tenant: !include libraries/examples/evidenceAuditQueryTenant.json
     responses:
       202:
         description: Succès
