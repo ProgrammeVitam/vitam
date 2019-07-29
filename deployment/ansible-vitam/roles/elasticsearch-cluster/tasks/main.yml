@@ -1,5 +1,7 @@
 ---
 #### Compute variables ####
+- name: Populate service facts
+  service_facts:
 
 - name: Set command for CentOS
   set_fact:
@@ -128,13 +130,6 @@
     name: elasticsearch
     state: stopped
     enabled: no
-
-- name: Add vitam-{{ composant.cluster_name }} autostart at boot
-  service:
-    name: "vitam-{{composant.cluster_name}}"
-    enabled: yes
-  notify:
-    - restart elasticsearch
 
 - name: ensure defautl config file is readable for anyone
   file:
@@ -271,18 +266,19 @@
   notify:
    - reload consul configuration
 
+# Force flush handlers to be sure previous role handlers have been run (for index templates)
+- meta: flush_handlers
+
 - name: Ensure consul service is started
   service:
     name: "vitam-consul"
     state: started
 
-- name: Ensure service is started
+- name: Ensure service vitam-{{ composant.cluster_name }} is started and autostart at boot
   service:
     name: "vitam-{{ composant.cluster_name }}"
     state: started
+    enabled: yes
 
 - import_tasks: post_migration.yml
   when: is_installed.stdout.find('5.6.') != -1
-
-# Force flush handlers to be sure previus role handlers have been run (for index templates)
-- meta: flush_handlers
