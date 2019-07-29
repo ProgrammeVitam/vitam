@@ -113,7 +113,7 @@ public class ArchiveUnitProfileServiceImplTest {
         tenants.add(new Integer(EXTERNAL_TENANT));
         Map<Integer, List<String>> listEnableExternalIdentifiers = new HashMap<>();
         List<String> list_tenant = new ArrayList<>();
-        list_tenant.add("PROFILE");
+        list_tenant.add(FunctionalAdminCollections.ARCHIVE_UNIT_PROFILE.name());
         listEnableExternalIdentifiers.put(EXTERNAL_TENANT, list_tenant);
 
         vitamCounterService = new VitamCounterService(dbImpl, tenants, listEnableExternalIdentifiers);
@@ -411,7 +411,7 @@ public class ArchiveUnitProfileServiceImplTest {
         assertThat(responseCast.getResults()).hasSize(1);
 
         VitamThreadUtils.getVitamSession().setTenantId(EXTERNAL_TENANT);
-        String id3 = "aIdentifier3";
+        String id3 = ((RequestResponseOK<ArchiveUnitProfileModel>) response).getResults().iterator().next().getIdentifier();
         final ArchiveUnitProfileModel acm = archiveUnitProfileService.findByIdentifier(id3);
         assertThat(acm).isNotNull();
         assertThat(acm.getFields()).isNotNull();
@@ -452,7 +452,7 @@ public class ArchiveUnitProfileServiceImplTest {
     @RunWithCustomExecutor
     public void givenTestImportExternalIdentifier() throws Exception {
 
-        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
+        VitamThreadUtils.getVitamSession().setTenantId(EXTERNAL_TENANT);
         final File fileMetadataProfile = PropertiesUtils.getResourceFile("AUP_ok_id.json");
         final List<ArchiveUnitProfileModel> profileModelList =
             JsonHandler
@@ -468,9 +468,8 @@ public class ArchiveUnitProfileServiceImplTest {
         final ArchiveUnitProfileModel acm = responseCast.getResults().iterator().next();
         assertThat(acm).isNotNull();
 
-        String id1 = acm.getIdentifier();
-        assertThat(id1).isNotNull();
-
+        // External identifier
+        String id1 = "aIdentifier2";
 
         ArchiveUnitProfileModel one = archiveUnitProfileService.findByIdentifier(id1);
 
