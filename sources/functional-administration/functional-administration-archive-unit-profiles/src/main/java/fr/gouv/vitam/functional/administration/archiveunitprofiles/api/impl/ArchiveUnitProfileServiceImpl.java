@@ -177,7 +177,7 @@ public class ArchiveUnitProfileServiceImpl implements ArchiveUnitProfileService 
 
 
         boolean slaveMode = vitamCounterService
-            .isSlaveFunctionnalCollectionOnTenant(SequenceType.PROFILE_SEQUENCE.getCollection(),
+            .isSlaveFunctionnalCollectionOnTenant(SequenceType.ARCHIVE_UNIT_PROFILE_SEQUENCE.getCollection(),
                 ParameterHelper.getTenantParameter());
 
         ArchiveUnitProfileManager manager = new ArchiveUnitProfileManager(logbookClient, metaDataClient, eip);
