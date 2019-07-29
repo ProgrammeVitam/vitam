@@ -35,7 +35,9 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 public class TarsOutputRetention implements Runnable {
 
@@ -54,8 +56,8 @@ public class TarsOutputRetention implements Runnable {
     @Override
     public void run() {
         while (true) {
-            try {
-                List<Path> filesToDelete = Files.list(tarsOutputPath)
+            try (Stream<Path> list = Files.list(tarsOutputPath)) {
+                List<Path> filesToDelete = list
                     .filter(path -> fileEligibleToDelete(path)).collect(Collectors.toList());
 
                 filesToDelete.forEach(file -> {
@@ -71,7 +73,7 @@ public class TarsOutputRetention implements Runnable {
 
             // wait 5 minutes before the next check
             try {
-                Thread.sleep(18000);
+                TimeUnit.MINUTES.sleep(5);
             } catch (InterruptedException e) {
 
             }
@@ -80,7 +82,8 @@ public class TarsOutputRetention implements Runnable {
 
     private boolean fileEligibleToDelete(Path path) {
         try {
-            return Files.readAttributes(path, BasicFileAttributes.class).creationTime().toMillis() <= MAX_RETENTION_DURATION_IN_MILISECONDS;
+            return Files.readAttributes(path, BasicFileAttributes.class).creationTime().toMillis() <=
+                MAX_RETENTION_DURATION_IN_MILISECONDS;
         } catch (IOException e) {
             LOGGER.error("Error when reading attributes of file " + path);
             return false;
