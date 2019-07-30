@@ -81,7 +81,8 @@
       "behavior": "BLOCKING",
       "distribution": {
         "kind": "LIST_IN_JSONL_FILE",
-        "element": "massUpdateUnits/unitsToInvalidate.jsonl"
+        "element": "massUpdateUnits/unitsToInvalidate.jsonl",
+        "statusOnEmptyDistribution": "OK"
       },
       "actions": [
         {
