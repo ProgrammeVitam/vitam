@@ -19,7 +19,7 @@ package fr.gouv.vitam.metadata.core.graph;
 
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.database.api.VitamRepositoryProvider;
-import fr.gouv.vitam.metadata.api.MetaData;
+import fr.gouv.vitam.metadata.core.MetaDataImpl;
 import fr.gouv.vitam.metadata.core.graph.api.GraphComputeService;
 
 /**
@@ -36,7 +36,7 @@ public class GraphFactory {
      * @return current instance of GraphFactory, create if null
      */
     public static synchronized GraphFactory initialize(VitamRepositoryProvider vitamRepositoryProvider,
-        MetaData metaData) {
+        MetaDataImpl metaData) {
 
         if (instance == null) {
             instance = new GraphFactory();

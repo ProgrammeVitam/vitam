@@ -405,6 +405,8 @@ public class VitamConfiguration {
      * Threshold for elimination action
      */
     private static long eliminationActionThreshold = 10_000L;
+    private static int ontologyCacheMaxEntries = 100;
+    private static int ontologyCacheTimeoutInSeconds = 300;
     /**
      * Default OriginatingAgency for DIP export with multiple originating agencies
      */
@@ -552,6 +554,22 @@ public class VitamConfiguration {
 
     public static void setPurgeTemporaryLFC(boolean purgeTemporaryLFC) {
         VitamConfiguration.purgeTemporaryLFC = purgeTemporaryLFC;
+    }
+
+    public static int getOntologyCacheMaxEntries() {
+        return ontologyCacheMaxEntries;
+    }
+
+    public static void setOntologyCacheMaxEntries(int ontologyCacheMaxEntries) {
+        VitamConfiguration.ontologyCacheMaxEntries = ontologyCacheMaxEntries;
+    }
+
+    public static int getOntologyCacheTimeoutInSeconds() {
+        return ontologyCacheTimeoutInSeconds;
+    }
+
+    public static void setOntologyCacheTimeoutInSeconds(int ontologyCacheTimeoutInSeconds) {
+        VitamConfiguration.ontologyCacheTimeoutInSeconds = ontologyCacheTimeoutInSeconds;
     }
 
     /**
@@ -912,6 +930,14 @@ public class VitamConfiguration {
 
         if (null != parameters.getEnvironmentName()) {
             setEnvironmentName(parameters.getEnvironmentName());
+        }
+
+        if (null != parameters.getOntologyCacheMaxEntries()) {
+            setOntologyCacheMaxEntries(parameters.getOntologyCacheMaxEntries());
+        }
+
+        if (null != parameters.getOntologyCacheTimeoutInSeconds()) {
+            setOntologyCacheTimeoutInSeconds(parameters.getOntologyCacheTimeoutInSeconds());
         }
     }
 

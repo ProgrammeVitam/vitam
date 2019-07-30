@@ -26,11 +26,6 @@
  *******************************************************************************/
 package fr.gouv.vitam.metadata.core.database.collections;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.Map;
-
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Lists;
 import com.mongodb.client.MongoCollection;
@@ -38,7 +33,13 @@ import com.mongodb.client.MongoDatabase;
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.database.collections.VitamCollection;
 import fr.gouv.vitam.common.database.collections.VitamCollectionHelper;
+import fr.gouv.vitam.common.database.collections.VitamDescriptionLoader;
 import org.bson.Document;
+
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+import java.util.Map;
 
 /**
  * Metadata Collection
@@ -54,6 +55,7 @@ public enum MetadataCollections {
      */
     OBJECTGROUP(ObjectGroup.class);
 
+    private final VitamDescriptionLoader vitamDescriptionLoader;
     private VitamCollection vitamCollection;
 
     @VisibleForTesting
@@ -129,7 +131,8 @@ public enum MetadataCollections {
     }
 
     MetadataCollections(final Class<?> clasz) {
-        vitamCollection = VitamCollectionHelper.getCollection(clasz, true, clasz.equals(Unit.class), "");
+        vitamDescriptionLoader = new VitamDescriptionLoader(clasz.getSimpleName());
+        vitamCollection = VitamCollectionHelper.getCollection(clasz, true, clasz.equals(Unit.class), "", vitamDescriptionLoader);
     }
 
     public static List<Class<?>> getClasses() {
@@ -219,5 +222,8 @@ public enum MetadataCollections {
         throw new IllegalArgumentException(collection + " is not in enum MetadataCollections.");
     }
 
+    public VitamDescriptionLoader getVitamDescriptionLoader() {
+        return vitamDescriptionLoader;
+    }
 }
 

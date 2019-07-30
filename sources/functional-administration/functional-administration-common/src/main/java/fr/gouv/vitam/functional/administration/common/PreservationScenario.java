@@ -1,4 +1,4 @@
-package fr.gouv.vitam.functional.administration.common; /*******************************************************************************
+ /*
  * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2019)
  *
  * contact.vitam@culture.gouv.fr
@@ -23,14 +23,14 @@ package fr.gouv.vitam.functional.administration.common; /***********************
  *
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
- *******************************************************************************/
-
+ */
+ package fr.gouv.vitam.functional.administration.common;
 
  import com.fasterxml.jackson.databind.JsonNode;
- import com.mongodb.util.JSON;
  import fr.gouv.vitam.common.database.server.mongodb.VitamDocument;
  import fr.gouv.vitam.common.exception.InvalidParseOperationException;
  import fr.gouv.vitam.common.exception.VitamRuntimeException;
+ import fr.gouv.vitam.common.json.BsonHelper;
  import fr.gouv.vitam.common.json.JsonHandler;
  import fr.gouv.vitam.common.model.administration.preservation.PreservationScenarioModel;
  import org.bson.Document;
@@ -74,7 +74,7 @@ public class PreservationScenario extends VitamDocument<PreservationScenario> {
 
     public PreservationScenarioModel toModel() {
         try {
-            return JsonHandler.getFromString(JSON.serialize(this), PreservationScenarioModel.class);
+            return JsonHandler.getFromString(BsonHelper.stringify(this), PreservationScenarioModel.class);
         } catch (InvalidParseOperationException e) {
             throw new VitamRuntimeException(e);
         }

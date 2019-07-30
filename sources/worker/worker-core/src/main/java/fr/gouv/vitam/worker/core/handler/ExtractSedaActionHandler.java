@@ -77,7 +77,6 @@ import fr.gouv.vitam.common.parameter.ParameterHelper;
 import fr.gouv.vitam.common.performance.PerformanceLogger;
 import fr.gouv.vitam.functional.administration.client.AdminManagementClient;
 import fr.gouv.vitam.functional.administration.client.AdminManagementClientFactory;
-import fr.gouv.vitam.functional.administration.common.exception.AdminManagementClientServerException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientAlreadyExistsException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientBadRequestException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientNotFoundException;
@@ -94,7 +93,6 @@ import fr.gouv.vitam.logbook.common.parameters.LogbookParametersFactory;
 import fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess;
 import fr.gouv.vitam.logbook.common.server.database.collections.LogbookMongoDbName;
 import fr.gouv.vitam.logbook.lifecycles.client.LogbookLifeCyclesClient;
-import fr.gouv.vitam.logbook.lifecycles.client.LogbookLifeCyclesClientFactory;
 import fr.gouv.vitam.metadata.client.MetaDataClientFactory;
 import fr.gouv.vitam.processing.common.exception.ArchiveUnitContainDataObjectException;
 import fr.gouv.vitam.processing.common.exception.ArchiveUnitContainSpecialCharactersException;
@@ -671,7 +669,9 @@ public class ExtractSedaActionHandler extends ActionHandler {
     private String getMessageItemStatusAULinkingException(ProcessingUnitLinkingException e) {
         ObjectNode error = JsonHandler.createObjectNode();
         error.put(SedaConstants.TAG_ARCHIVE_UNIT, e.getManifestId());
-        error.put("ExistingUnitType", e.getUnitType().name());
+        if (e.getUnitType() != null) {
+            error.put("ExistingUnitType", e.getUnitType().name());
+        }
         error.put("IngestUnitType", e.getIngestType().name());
         error.put("message", e.getMessage());
 
@@ -2880,8 +2880,7 @@ public class ExtractSedaActionHandler extends ActionHandler {
             JsonHandler.writeAsFile(ontologyModelList, tempFile);
             // put file in workspace
             handlerIO.addOutputResult(ONTOLOGY_IO_RANK, tempFile, true, false);
-        } catch (InvalidCreateOperationException | AdminManagementClientServerException |
-                InvalidParseOperationException e) {
+        } catch (InvalidCreateOperationException | InvalidParseOperationException e) {
             LOGGER.error("Could not get ontology", e);
             throw new ProcessingException(e);
         }

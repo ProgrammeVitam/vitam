@@ -28,17 +28,6 @@
 package fr.gouv.vitam.ihmrecette.appserver;
 
 
-import static io.restassured.RestAssured.given;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
-
-import javax.ws.rs.core.Response.Status;
-import java.io.File;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
@@ -84,7 +73,6 @@ import fr.gouv.vitam.functional.administration.common.server.ElasticsearchAccess
 import fr.gouv.vitam.functional.administration.common.server.FunctionalAdminCollections;
 import fr.gouv.vitam.functional.administration.common.server.MongoDbAccessAdminFactory;
 import fr.gouv.vitam.functional.administration.common.server.MongoDbAccessAdminImpl;
-import fr.gouv.vitam.functional.administration.ontologies.client.AdminManagementOntologiesClientFactory;
 import fr.gouv.vitam.logbook.common.server.LogbookConfiguration;
 import fr.gouv.vitam.logbook.common.server.database.collections.LogbookCollections;
 import fr.gouv.vitam.logbook.common.server.database.collections.LogbookElasticsearchAccess;
@@ -110,6 +98,18 @@ import org.junit.BeforeClass;
 import org.junit.ClassRule;
 import org.junit.Rule;
 import org.junit.Test;
+
+import javax.ws.rs.core.Response.Status;
+import java.io.File;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
+
+import static io.restassured.RestAssured.given;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 public class WebApplicationResourceDeleteTest {
 
@@ -171,7 +171,6 @@ public class WebApplicationResourceDeleteTest {
                 new LogbookElasticsearchAccess(ElasticsearchRule.VITAM_CLUSTER,
                         Lists.newArrayList(new ElasticsearchNode("localhost", ElasticsearchRule.TCP_PORT))), TENANT_ID, 1);
 
-        AdminManagementOntologiesClientFactory.changeMode(null);
         junitHelper = JunitHelper.getInstance();
         serverPort = junitHelper.findAvailablePort();
 
@@ -203,14 +202,14 @@ public class WebApplicationResourceDeleteTest {
         final DbConfigurationImpl adminConfiguration =
             new DbConfigurationImpl(realAdminConfig.getMongoDbNodes(), realAdminConfig.getMasterdataDbName(), false,
                 realAdminConfig.getDbUserName(), realAdminConfig.getDbPassword());
-        mongoDbAccessAdmin = MongoDbAccessAdminFactory.create(adminConfiguration);
+        mongoDbAccessAdmin = MongoDbAccessAdminFactory.create(adminConfiguration, Collections::emptyList);
 
         final LogbookConfiguration logbookConfiguration =
             new LogbookConfiguration(realAdminConfig.getMongoDbNodes(), realAdminConfig.getLogbookDbName(),
                 realAdminConfig.getClusterName(), realAdminConfig.getElasticsearchNodes(), false,
                 realAdminConfig.getDbUserName(), realAdminConfig.getDbPassword());
 
-        mongoDbAccessLogbook = LogbookMongoDbAccessFactory.create(logbookConfiguration);
+        mongoDbAccessLogbook = LogbookMongoDbAccessFactory.create(logbookConfiguration, Collections::emptyList);
 
         final MetaDataConfiguration metaDataConfiguration =
             new MetaDataConfiguration(realAdminConfig.getMongoDbNodes(), realAdminConfig.getMetadataDbName(),

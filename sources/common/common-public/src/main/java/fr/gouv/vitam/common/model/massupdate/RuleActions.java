@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2019)
  *
  * contact.vitam@culture.gouv.fr
@@ -26,21 +26,24 @@
  */
 package fr.gouv.vitam.common.model.massupdate;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import org.apache.commons.lang3.StringUtils;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
 public class RuleActions {
 
     @JsonProperty("add")
-    List<Map<String, RuleCategoryAction>> add;
+    List<Map<String, RuleCategoryAction>> add = new ArrayList<>();
 
     @JsonProperty("update")
-    List<Map<String, RuleCategoryAction>> update;
+    List<Map<String, RuleCategoryAction>> update = new ArrayList<>();
 
     @JsonProperty("delete")
-    List<Map<String, RuleCategoryAction>> delete;
+    List<Map<String, RuleCategoryAction>> delete = new ArrayList<>();
 
     @JsonProperty("addOrUpdateMetadata")
     ManagementMetadataAction addOrUpdateMetadata;
@@ -86,5 +89,14 @@ public class RuleActions {
 
     public void setDeleteMetadata(ManagementMetadataAction deleteMetadata) {
         this.deleteMetadata = deleteMetadata;
+    }
+
+    @JsonIgnore
+    public boolean isRuleActionsEmpty() {
+        return add.isEmpty()
+            && update.isEmpty()
+            && delete.isEmpty()
+            && (addOrUpdateMetadata == null || StringUtils.isBlank(addOrUpdateMetadata.getArchiveUnitProfile()))
+            && (deleteMetadata == null || StringUtils.isBlank(deleteMetadata.getArchiveUnitProfile()));
     }
 }

@@ -171,7 +171,8 @@ public class MongoDbAccessMetadataImpl extends MongoDbAccess {
                 Map<String, String> map = esClient.addIndex(MetadataCollections.UNIT, tenantId);
                 if (map.isEmpty()) {
                     throw new RuntimeException(
-                        "Index not created for the collection " + MetadataCollections.UNIT.getName() + " and tenant :" + tenantId);
+                        "Index not created for the collection " + MetadataCollections.UNIT.getName() + " and tenant :" +
+                            tenantId);
                 }
             }
         }
@@ -202,7 +203,8 @@ public class MongoDbAccessMetadataImpl extends MongoDbAccess {
                 Map<String, String> map = esClient.addIndex(MetadataCollections.OBJECTGROUP, tenantId);
                 if (map.isEmpty()) {
                     throw new RuntimeException(
-                        "Index not created for the collection " + MetadataCollections.OBJECTGROUP.getName() + " and tenant :" + tenantId);
+                        "Index not created for the collection " + MetadataCollections.OBJECTGROUP.getName() +
+                            " and tenant :" + tenantId);
                 }
             }
         }

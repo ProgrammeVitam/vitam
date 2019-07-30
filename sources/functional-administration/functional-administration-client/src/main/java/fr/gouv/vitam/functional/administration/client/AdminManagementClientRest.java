@@ -39,6 +39,7 @@ import fr.gouv.vitam.common.error.VitamError;
 import fr.gouv.vitam.common.exception.AccessUnauthorizedException;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamClientInternalException;
+import fr.gouv.vitam.common.exception.VitamRuntimeException;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.ProbativeValueRequest;
@@ -53,12 +54,12 @@ import fr.gouv.vitam.common.model.administration.AgenciesModel;
 import fr.gouv.vitam.common.model.administration.ArchiveUnitProfileModel;
 import fr.gouv.vitam.common.model.administration.ContextModel;
 import fr.gouv.vitam.common.model.administration.FileFormatModel;
-import fr.gouv.vitam.common.model.administration.preservation.GriffinModel;
 import fr.gouv.vitam.common.model.administration.IngestContractModel;
 import fr.gouv.vitam.common.model.administration.OntologyModel;
-import fr.gouv.vitam.common.model.administration.preservation.PreservationScenarioModel;
 import fr.gouv.vitam.common.model.administration.ProfileModel;
 import fr.gouv.vitam.common.model.administration.SecurityProfileModel;
+import fr.gouv.vitam.common.model.administration.preservation.GriffinModel;
+import fr.gouv.vitam.common.model.administration.preservation.PreservationScenarioModel;
 import fr.gouv.vitam.functional.administration.common.AccessContract;
 import fr.gouv.vitam.functional.administration.common.Context;
 import fr.gouv.vitam.functional.administration.common.IngestContract;
@@ -74,6 +75,19 @@ import fr.gouv.vitam.functional.administration.common.exception.ProfileNotFoundE
 import fr.gouv.vitam.functional.administration.common.exception.ReferentialException;
 import fr.gouv.vitam.functional.administration.common.exception.ReferentialNotFoundException;
 import fr.gouv.vitam.functional.administration.common.server.AccessionRegisterSymbolic;
+
+import javax.ws.rs.HttpMethod;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.MultivaluedHashMap;
+import javax.ws.rs.core.Response;
+import javax.ws.rs.core.Response.Status;
+import java.io.InputStream;
+import java.util.List;
+
+import static fr.gouv.vitam.common.json.JsonHandler.getFromString;
+import static javax.ws.rs.HttpMethod.GET;
+import static javax.ws.rs.HttpMethod.POST;
+import static javax.ws.rs.core.MediaType.APPLICATION_JSON_TYPE;
 
 import javax.ws.rs.HttpMethod;
 import javax.ws.rs.core.MediaType;
@@ -1495,7 +1509,7 @@ class AdminManagementClientRest extends DefaultClient implements AdminManagement
 
     @Override
     public RequestResponse<OntologyModel> findOntologies(JsonNode query)
-        throws InvalidParseOperationException, AdminManagementClientServerException {
+        throws InvalidParseOperationException {
         ParametersChecker.checkParameter("The input queryDsl json is mandatory", query);
         Response response = null;
         try {
@@ -1512,7 +1526,7 @@ class AdminManagementClientRest extends DefaultClient implements AdminManagement
 
         } catch (VitamClientInternalException e) {
             LOGGER.error("Internal Server Error", e);
-            throw new AdminManagementClientServerException("Internal Server Error", e);
+            throw new VitamRuntimeException("Internal Server Error", e);
         } finally {
             consumeAnyEntityAndClose(response);
         }
@@ -1714,8 +1728,8 @@ class AdminManagementClientRest extends DefaultClient implements AdminManagement
             JsonNode queryDsl = getIdentifierQuery(GriffinModel.TAG_IDENTIFIER, id);
             RequestResponse<GriffinModel> requestResponse = findGriffin(queryDsl);
 
-            if (((RequestResponseOK)requestResponse).getResults() == null ||
-                ((RequestResponseOK)requestResponse).getResults().isEmpty()) {
+            if (((RequestResponseOK) requestResponse).getResults() == null ||
+                ((RequestResponseOK) requestResponse).getResults().isEmpty()) {
                 throw new ReferentialNotFoundException("Griffin not found ");
             }
             return requestResponse;
@@ -1733,11 +1747,11 @@ class AdminManagementClientRest extends DefaultClient implements AdminManagement
 
             RequestResponse<PreservationScenarioModel> requestResponseOK = findPreservation(queryDsl);
 
-            if (((RequestResponseOK)requestResponseOK).getResults() == null ||
-                ((RequestResponseOK)requestResponseOK).isEmpty()) {
+            if (((RequestResponseOK) requestResponseOK).getResults() == null ||
+                ((RequestResponseOK) requestResponseOK).isEmpty()) {
                 throw new ReferentialNotFoundException(String.format("Preservation Scenario not found %s", id));
             }
-           return requestResponseOK;
+            return requestResponseOK;
         } catch (InvalidCreateOperationException e) {
             throw new IllegalStateException(e);
         }

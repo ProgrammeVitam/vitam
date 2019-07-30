@@ -42,6 +42,7 @@ import java.util.Queue;
 
 import fr.gouv.vitam.access.external.client.AdminExternalClient;
 import fr.gouv.vitam.access.external.client.AdminExternalClientFactory;
+import fr.gouv.vitam.common.client.OntologyLoader;
 import fr.gouv.vitam.common.client.VitamContext;
 import fr.gouv.vitam.common.database.builder.query.Query;
 import fr.gouv.vitam.common.database.builder.query.QueryHelper;
@@ -130,8 +131,9 @@ public class WebApplicationResourceDelete {
      * Default constructor
      *
      * @param webApplicationConfig application configuration
+     * @param ontologyLoader
      */
-    public WebApplicationResourceDelete(WebApplicationConfig webApplicationConfig) {
+    public WebApplicationResourceDelete(WebApplicationConfig webApplicationConfig, OntologyLoader ontologyLoader) {
         DbConfigurationImpl adminConfiguration;
         LogbookConfiguration logbookConfiguration;
         MetaDataConfiguration metaDataConfiguration;
@@ -163,9 +165,8 @@ public class WebApplicationResourceDelete {
                 webApplicationConfig.getMetadataDbName(), webApplicationConfig.getClusterName(), webApplicationConfig
                 .getElasticsearchNodes());
         }
-        mongoDbAccessAdmin = MongoDbAccessAdminFactory.create(adminConfiguration, webApplicationConfig.getClusterName(),
-            webApplicationConfig.getElasticsearchNodes());
-        mongoDbAccessLogbook = LogbookMongoDbAccessFactory.create(logbookConfiguration);
+        mongoDbAccessAdmin = MongoDbAccessAdminFactory.create(adminConfiguration, webApplicationConfig.getClusterName(), webApplicationConfig.getElasticsearchNodes(), ontologyLoader);
+        mongoDbAccessLogbook = LogbookMongoDbAccessFactory.create(logbookConfiguration, ontologyLoader);
         mongoDbAccessMetadata = MongoDbAccessMetadataFactory.create(metaDataConfiguration);
         LOGGER.debug("init Admin Management Resource server");
     }

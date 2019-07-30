@@ -40,11 +40,11 @@ import fr.gouv.vitam.common.database.parameter.IndexParameters;
 import fr.gouv.vitam.common.database.parameter.SwitchIndexParameters;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamClientException;
-import fr.gouv.vitam.common.exception.VitamDBException;
 import fr.gouv.vitam.common.model.DurationData;
 import fr.gouv.vitam.common.model.GraphComputeResponse;
 import fr.gouv.vitam.common.model.GraphComputeResponse.GraphComputeAction;
 import fr.gouv.vitam.common.model.RequestResponse;
+import fr.gouv.vitam.common.model.massupdate.RuleActions;
 import fr.gouv.vitam.metadata.api.exception.MetaDataAlreadyExistException;
 import fr.gouv.vitam.metadata.api.exception.MetaDataClientServerException;
 import fr.gouv.vitam.metadata.api.exception.MetaDataDocumentSizeException;
@@ -53,7 +53,6 @@ import fr.gouv.vitam.metadata.api.exception.MetaDataNotFoundException;
 import fr.gouv.vitam.metadata.api.exception.MetadataInvalidSelectException;
 import fr.gouv.vitam.metadata.api.model.ObjectGroupPerOriginatingAgency;
 import fr.gouv.vitam.metadata.api.model.UnitPerOriginatingAgency;
-import org.bson.Document;
 
 /**
  * Metadata client interface
@@ -146,7 +145,7 @@ public interface MetaDataClient extends BasicClient {
      * @throws MetaDataNotFoundException
      * @throws MetaDataClientServerException
      */
-    JsonNode updateUnitbyId(JsonNode updateQuery, String unitId)
+    JsonNode updateUnitById(JsonNode updateQuery, String unitId)
         throws MetaDataNotFoundException, MetaDataExecutionException,
         MetaDataDocumentSizeException, InvalidParseOperationException, MetaDataClientServerException;
 
@@ -315,14 +314,14 @@ public interface MetaDataClient extends BasicClient {
 
     /**
      * Update units rules Bulk.
-     * @param query
+     * @param unitsIds the bulk unit ids to update
      * @param actions
      * @return
      * @throws InvalidParseOperationException
      * @throws MetaDataExecutionException
      * @throws MetaDataNotFoundException
      */
-    RequestResponse<JsonNode> updateUnitsRulesBulk(JsonNode query, JsonNode actions, Map<String, DurationData> rulesToDurationData)
+    RequestResponse<JsonNode> updateUnitsRulesBulk(List<String> unitsIds, RuleActions actions, Map<String, DurationData> rulesToDurationData)
             throws InvalidParseOperationException, MetaDataExecutionException, MetaDataNotFoundException,
             MetaDataDocumentSizeException, MetaDataClientServerException;
 

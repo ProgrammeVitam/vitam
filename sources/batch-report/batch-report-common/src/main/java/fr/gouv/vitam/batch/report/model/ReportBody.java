@@ -27,14 +27,14 @@
 package fr.gouv.vitam.batch.report.model;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.databind.JsonNode;
+import fr.gouv.vitam.batch.report.model.entry.ReportEntry;
 
 import java.util.List;
 
 /**
  * ReportBody
  */
-public class ReportBody {
+public class ReportBody<T> {
 
     @JsonProperty("processId")
     private String processId;
@@ -43,13 +43,13 @@ public class ReportBody {
     private ReportType reportType;
 
     @JsonProperty("entries")
-    private List<JsonNode> entries;
+    private List<T> entries;
 
     public ReportBody() {
         // Empty constructor for deserialization
     }
 
-    public ReportBody(String processId, ReportType reportType, List<JsonNode> entries) {
+    public ReportBody(String processId, ReportType reportType, List<T> entries) {
         this.processId = processId;
         this.reportType = reportType;
         this.entries = entries;
@@ -71,11 +71,11 @@ public class ReportBody {
         this.reportType = reportType;
     }
 
-    public List<JsonNode> getEntries() {
+    public List<T> getEntries() {
         return entries;
     }
 
-    public void setEntries(List<JsonNode> entries) {
+    public void setEntries(List<T> entries) {
         this.entries = entries;
     }
 }

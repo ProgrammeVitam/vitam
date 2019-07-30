@@ -26,6 +26,7 @@
  *******************************************************************************/
 package fr.gouv.vitam.worker.core.mapping;
 
+import fr.gouv.vitam.common.xml.XMLInputFactoryUtils;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -138,7 +139,7 @@ public class ElementMapperTest {
 
     private <T> T getXMLFromString(String input, Class<T> clazz) throws Exception {
         XMLStreamReader parser =
-            XMLInputFactory.newInstance().createXMLStreamReader(new ByteArrayInputStream(input.getBytes(UTF_8)));
+                XMLInputFactoryUtils.newInstance().createXMLStreamReader(new ByteArrayInputStream(input.getBytes(UTF_8)));
         JAXBElement<T> element = unmarshaller.unmarshal(parser, clazz);
         return element.getValue();
     }

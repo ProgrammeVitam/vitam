@@ -1,5 +1,13 @@
 workspaceUrl: {{vitam.workspace | client_url}}
 
+# Archive Unit Profile cache settings (max entries in cache & retention timeout in seconds)
+archiveUnitProfileCacheMaxEntries: {{ vitam.metadata.archiveUnitProfileCacheMaxEntries }}
+archiveUnitProfileCacheTimeoutInSeconds: {{ vitam.metadata.archiveUnitProfileCacheTimeoutInSeconds }}
+
+# Schema validator cache settings (max entries in cache & retention timeout in seconds)
+schemaValidatorCacheMaxEntries: {{ vitam.metadata.schemaValidatorCacheMaxEntries }}
+schemaValidatorCacheTimeoutInSeconds: {{ vitam.metadata.schemaValidatorCacheTimeoutInSeconds }}
+
 # Configuration MongoDB
 mongoDbNodes:
 {% for server in groups['hosts-mongos-data'] %}

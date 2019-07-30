@@ -83,6 +83,7 @@ import java.util.concurrent.TimeUnit;
 public class ProcessEngineImpl implements ProcessEngine {
 
     private static PerformanceLogger PERFORMANCE_LOGGER = PerformanceLogger.getInstance();
+    public final static String DETAILS = " Detail= ";
 
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(ProcessEngineImpl.class);
     private static final String AGENCY_DETAIL = "agIdExt";
@@ -438,7 +439,7 @@ public class ProcessEngineImpl implements ProcessEngine {
                         GUIDReader.getGUID(workParams.getContainerName()),
                         logbookTypeProcess,
                         itemStatus.getGlobalStatus(),
-                        itemId, " Detail= " + itemStatus.computeStatusMeterMessage(),
+                        itemId, DETAILS + itemStatus.computeStatusMeterMessage(),
                         GUIDReader.getGUID(workParams.getRequestId()));
                 actionLogBookParameters
                     .putParameterValue(LogbookParameterName.parentEventIdentifier, stepEventIdentifier);
@@ -451,7 +452,7 @@ public class ProcessEngineImpl implements ProcessEngine {
                     actionLogBookParameters.putParameterValue(LogbookParameterName.outcomeDetailMessage,
                         messageLogbookEngineHelper.getLabelOp(
                             handlerId + "." + itemStatus.getGlobalOutcomeDetailSubcode(),
-                            itemStatus.getGlobalStatus()) + " Detail= " + itemStatus.computeStatusMeterMessage());
+                            itemStatus.getGlobalStatus()) + DETAILS + itemStatus.computeStatusMeterMessage());
                 }
 
                 if (itemStatus.getMasterData() != null) {
@@ -475,7 +476,7 @@ public class ProcessEngineImpl implements ProcessEngine {
                             GUIDReader.getGUID(workParams.getContainerName()),
                             logbookTypeProcess,
                             sub.getGlobalStatus(),
-                            null, " Detail= " + sub.computeStatusMeterMessage(),
+                            null, DETAILS + sub.computeStatusMeterMessage(),
                             GUIDReader.getGUID(workParams.getRequestId()));
                     subLogBookParameters.putParameterValue(LogbookParameterName.parentEventIdentifier,
                         actionEventIdentifier.getId());
@@ -488,7 +489,7 @@ public class ProcessEngineImpl implements ProcessEngine {
                         subLogBookParameters.putParameterValue(LogbookParameterName.outcomeDetailMessage,
                             messageLogbookEngineHelper.getLabelOp(
                                 handlerId + "." + sub.getItemId() + "." + sub.getGlobalOutcomeDetailSubcode(),
-                                sub.getGlobalStatus()) + " Detail= " + sub.computeStatusMeterMessage());
+                                sub.getGlobalStatus()) + DETAILS + sub.computeStatusMeterMessage());
                     }
                     if (sub.getData(LogbookMongoDbName.rightsStatementIdentifier.getDbname()) != null) {
                         subLogBookParameters.putParameterValue(LogbookParameterName.rightsStatementIdentifier,

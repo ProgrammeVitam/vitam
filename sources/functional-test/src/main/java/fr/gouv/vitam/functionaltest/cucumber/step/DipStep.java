@@ -38,6 +38,7 @@ import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.model.ProcessState;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.dip.DipExportRequest;
+import fr.gouv.vitam.common.xml.XMLInputFactoryUtils;
 import org.apache.commons.collections.EnumerationUtils;
 import org.apache.commons.compress.archivers.zip.ZipArchiveEntry;
 import org.apache.commons.compress.archivers.zip.ZipFile;
@@ -169,7 +170,7 @@ public class DipStep {
 
     private int countElements(InputStream inputStream, String path) throws XMLStreamException {
         int cpt = 0;
-        final XMLInputFactory xmlInputFactory = XMLInputFactory.newInstance();
+        final XMLInputFactory xmlInputFactory = XMLInputFactoryUtils.newInstance();
         Stack<String> elementNames = new Stack<>();
         final XMLEventReader eventReader = xmlInputFactory.createXMLEventReader(inputStream);
         while (eventReader.hasNext()) {

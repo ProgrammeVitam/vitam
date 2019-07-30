@@ -16,26 +16,8 @@
       "actions": [
         {
           "action": {
-            "actionKey": "UNIT_METADATA_UPDATE_CHECK_PERMISSION",
-            "behavior": "BLOCKING",
-            "in": [
-              {
-                "name": "checkContract",
-                "uri": "VALUE:true"
-              },
-              {
-                "name": "checkManagement",
-                "uri": "VALUE:true"
-              },
-              {
-                "name": "checkGraph",
-                "uri": "VALUE:true"
-              },
-              {
-                "name": "checkMDD",
-                "uri": "VALUE:true"
-              }
-            ]
+            "actionKey": "MASS_UPDATE_RULES_CHECK",
+            "behavior": "BLOCKING"
           }
         },
         {

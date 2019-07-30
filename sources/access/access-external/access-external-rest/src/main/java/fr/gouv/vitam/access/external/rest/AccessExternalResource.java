@@ -42,6 +42,7 @@ import fr.gouv.vitam.common.dsl.schema.Dsl;
 import fr.gouv.vitam.common.dsl.schema.DslSchema;
 import fr.gouv.vitam.common.dsl.schema.ValidationException;
 import fr.gouv.vitam.common.dsl.schema.validator.BatchProcessingQuerySchemaValidator;
+import fr.gouv.vitam.common.dsl.schema.validator.DslValidator;
 import fr.gouv.vitam.common.error.VitamCode;
 import fr.gouv.vitam.common.error.VitamCodeHelper;
 import fr.gouv.vitam.common.error.VitamError;
@@ -402,8 +403,8 @@ public class AccessExternalResource extends ApplicationStatusResource {
             RequestResponse<JsonNode> result = client.selectUnitbyId(selectMultiQuery.getFinalSelect(), idUnit);
             int st = result.isOk() ? Status.OK.getStatusCode() : result.getHttpCode();
             // FIXME hack for bug in Metadata when DSL contains unexisting root id without query
-            if (((RequestResponseOK<JsonNode>) result).getResults() == null ||
-                ((RequestResponseOK<JsonNode>) result).getResults().size() == 0) {
+            if (result.isOk() && (((RequestResponseOK<JsonNode>) result).getResults() == null ||
+                ((RequestResponseOK<JsonNode>) result).getResults().isEmpty())) {
                 throw new AccessInternalClientNotFoundException(UNIT_NOT_FOUND);
             }
 
@@ -518,8 +519,8 @@ public class AccessExternalResource extends ApplicationStatusResource {
             RequestResponse<JsonNode> result = client.selectObjectbyId(queryJson, idObjectGroup);
             int st = result.isOk() ? Status.OK.getStatusCode() : result.getHttpCode();
             // FIXME hack for bug in Metadata when DSL contains unexisting root id without query
-            if (((RequestResponseOK<JsonNode>) result).getResults() == null ||
-                ((RequestResponseOK<JsonNode>) result).getResults().size() == 0) {
+            if (result.isOk() && (((RequestResponseOK<JsonNode>) result).getResults() == null ||
+                ((RequestResponseOK<JsonNode>) result).getResults().isEmpty())) {
                 throw new AccessInternalClientNotFoundException(UNIT_NOT_FOUND);
             }
 
@@ -684,7 +685,7 @@ public class AccessExternalResource extends ApplicationStatusResource {
         Status status;
         // Manually schema validation of DSL Query
         try {
-            BatchProcessingQuerySchemaValidator validator = new BatchProcessingQuerySchemaValidator();
+            DslValidator validator = new BatchProcessingQuerySchemaValidator();
             validator.validate(massUpdateUnitRuleRequest.getDslRequest());
         } catch (ValidationException e) {
             LOGGER.warn("Could not validate request", e);

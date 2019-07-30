@@ -28,8 +28,6 @@ package fr.gouv.vitam.common.dsl.schema.meta;
 
 import java.util.Map;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-
 /**
  * DSL Schema Class
  */
@@ -54,13 +52,7 @@ public class Schema {
         return definitions.get(typeName);
     }
 
-    /**
-     * Get Schema Builder
-     * 
-     * @param mapper
-     * @return the Schema Builder
-     */
-    public static SchemaBuilder withMapper(ObjectMapper mapper) {
-        return new SchemaBuilder(mapper);
+    public static SchemaBuilder getSchema() {
+        return new SchemaBuilder();
     }
 }

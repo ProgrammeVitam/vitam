@@ -26,17 +26,6 @@
  *******************************************************************************/
 package fr.gouv.vitam.common.database.translators.elasticsearch;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
-import java.util.Set;
-
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.NullNode;
@@ -52,7 +41,7 @@ import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.
 import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
 import fr.gouv.vitam.common.database.builder.request.multiple.SelectMultiQuery;
 import fr.gouv.vitam.common.database.collections.VitamCollection;
-import fr.gouv.vitam.common.database.parser.query.ParserTokens;
+import fr.gouv.vitam.common.database.collections.DynamicParserTokens;
 import fr.gouv.vitam.common.database.parser.query.QueryParserHelper;
 import fr.gouv.vitam.common.database.parser.request.AbstractParser;
 import fr.gouv.vitam.common.database.parser.request.GlobalDatasParser;
@@ -79,6 +68,17 @@ import org.elasticsearch.search.sort.FieldSortBuilder;
 import org.elasticsearch.search.sort.SortBuilder;
 import org.elasticsearch.search.sort.SortBuilders;
 import org.elasticsearch.search.sort.SortOrder;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Set;
 
 /**
  * Elasticsearch Translator
@@ -152,10 +152,11 @@ public class QueryToElasticsearch {
      * @param requestParser the original parser
      * @param hasFullText True to add scoreSort
      * @param score True will add score first
+     * @param parserTokens
      * @return list of order by as sort objects
      * @throws InvalidParseOperationException if the orderBy is not valid
      */
-    public static List<SortBuilder> getSorts(final AbstractParser<?> requestParser, boolean hasFullText, boolean score)
+    public static List<SortBuilder> getSorts(final AbstractParser<?> requestParser, boolean hasFullText, boolean score, DynamicParserTokens parserTokens)
         throws InvalidParseOperationException {
         final JsonNode orderby = requestParser.getRequest().getFilter()
             .get(SELECTFILTER.ORDERBY.exactToken());
@@ -188,7 +189,7 @@ public class QueryToElasticsearch {
                 key = UNDERSCORE_UID;
             }
             if (scoreNotAdded && score && requestParser.hasFullTextQuery() &&
-                !ParserTokens.PROJECTIONARGS.isNotAnalyzed(entry.getKey())) {
+                !parserTokens.isNotAnalyzed(entry.getKey())) {
                 // First time we get an analyzed sort by
                 scoreNotAdded = false;
                 if ("_score".equals(entry.getKey()) || "#score".equals(entry.getKey())) {
@@ -223,10 +224,11 @@ public class QueryToElasticsearch {
 
     /**
      * @param query Query
+     * @param parserTokens
      * @return the associated QueryBuilder
      * @throws InvalidParseOperationException if query could not parse to command
      */
-    public static QueryBuilder getCommand(final Query query, VarNameAdapter adapter)
+    public static QueryBuilder getCommand(final Query query, VarNameAdapter adapter, DynamicParserTokens parserTokens)
         throws InvalidParseOperationException {
         final QUERY req = query.getQUERY();
         final JsonNode content = query.getNode(req.exactToken());
@@ -234,7 +236,7 @@ public class QueryToElasticsearch {
             case AND:
             case NOT:
             case OR:
-                return andOrNotCommand(req, query, adapter);
+                return andOrNotCommand(req, query, adapter, parserTokens);
             case EXISTS:
             case MISSING:
                 return existsMissingCommand(req, content);
@@ -245,30 +247,30 @@ public class QueryToElasticsearch {
             case MATCH_ALL:
             case MATCH_PHRASE:
             case MATCH_PHRASE_PREFIX:
-                return matchCommand(req, content);
+                return matchCommand(req, content, parserTokens);
             case SEARCH:
-                return searchCommand(req, content);
+                return searchCommand(req, content, parserTokens);
             case SUBOBJECT:
-                return nestedSearchCommand(req, content, adapter);
+                return nestedSearchCommand(req, content, adapter, parserTokens);
             case NIN:
             case IN:
-                return inCommand(req, content);
+                return inCommand(req, content, parserTokens);
             case RANGE:
-                return rangeCommand(req, content);
+                return rangeCommand(req, content, parserTokens);
             case REGEX:
-                return regexCommand(req, content);
+                return regexCommand(req, content, parserTokens);
             case TERM:
-                return termCommand(req, content);
+                return termCommand(req, content, parserTokens);
             case WILDCARD:
-                return wildcardCommand(req, content);
+                return wildcardCommand(req, content, parserTokens);
             case EQ:
             case NE:
-                return eqCommand(req, content);
+                return eqCommand(req, content, parserTokens);
             case GT:
             case GTE:
             case LT:
             case LTE:
-                return compareCommand(req, content);
+                return compareCommand(req, content, parserTokens);
             case ISNULL:
                 return isNullCommand(req, content);
             case SIZE:
@@ -336,13 +338,13 @@ public class QueryToElasticsearch {
      * @return the compare Command
      * @throws InvalidParseOperationException if check unicity is in error
      */
-    private static QueryBuilder compareCommand(final QUERY query, final JsonNode content)
+    private static QueryBuilder compareCommand(final QUERY query, final JsonNode content, DynamicParserTokens parserTokens)
         throws InvalidParseOperationException {
         final Entry<String, JsonNode> element = JsonHandler.checkUnicity(query.exactToken(), content);
 
         String key = element.getKey();
 
-        if (!ParserTokens.PROJECTIONARGS.isNotAnalyzed(key)) {
+        if (!parserTokens.isNotAnalyzed(key)) {
             // Unsupported mode. May be updated without prior notice.
             logUnsupportedCommand(query, content, "Analyzed field: '" + key + "'");
         } else {
@@ -436,13 +438,13 @@ public class QueryToElasticsearch {
      * @return the search Command
      * @throws InvalidParseOperationException if check unicity is in error
      */
-    private static QueryBuilder searchCommand(final QUERY query, final JsonNode content)
+    private static QueryBuilder searchCommand(final QUERY query, final JsonNode content, DynamicParserTokens parserTokens)
         throws InvalidParseOperationException {
 
         final Entry<String, JsonNode> element = JsonHandler.checkUnicity(query.exactToken(), content);
         final String attribute = element.getKey();
 
-        if (ParserTokens.PROJECTIONARGS.isNotAnalyzed(attribute)) {
+        if (parserTokens.isNotAnalyzed(attribute)) {
             // Unsupported mode. May be updated without prior notice.
             logUnsupportedCommand(query, content, "Not_analyzed field: '" + attribute + "'");
         } else {
@@ -460,13 +462,13 @@ public class QueryToElasticsearch {
      * @return the search Command
      * @throws InvalidParseOperationException if check unicity is in error
      */
-    private static QueryBuilder nestedSearchCommand(final QUERY query, final JsonNode content, VarNameAdapter adapter)
+    private static QueryBuilder nestedSearchCommand(final QUERY query, final JsonNode content, VarNameAdapter adapter, DynamicParserTokens parserTokens)
             throws InvalidParseOperationException {
 
         final Entry<String, JsonNode> element = JsonHandler.checkUnicity(query.exactToken(), content);
         final String attribute = element.getKey();
 
-        if (ParserTokens.PROJECTIONARGS.isNotAnalyzed(attribute)) {
+        if (parserTokens.isNotAnalyzed(attribute)) {
             // Unsupported mode. May be updated without prior notice.
             logUnsupportedCommand(query, content, "Not_analyzed field: '" + attribute + "'");
         } else {
@@ -485,7 +487,7 @@ public class QueryToElasticsearch {
         } catch (InvalidCreateOperationException e) {
             throw new InvalidParseOperationException("$subobject query is not valid");
         }
-        return QueryBuilders.nestedQuery(path, getCommand(subQuery, adapter), ScoreMode.Avg);
+        return QueryBuilders.nestedQuery(path, getCommand(subQuery, adapter, parserTokens), ScoreMode.Avg);
     }
 
     /**
@@ -496,7 +498,7 @@ public class QueryToElasticsearch {
      * @return the match Command
      * @throws InvalidParseOperationException if check unicity is in error
      */
-    private static QueryBuilder matchCommand(final QUERY query, final JsonNode content)
+    private static QueryBuilder matchCommand(final QUERY query, final JsonNode content, DynamicParserTokens parserTokens)
         throws InvalidParseOperationException {
 
         final JsonNode max = ((ObjectNode) content).remove(QUERYARGS.MAX_EXPANSIONS.exactToken());
@@ -504,7 +506,7 @@ public class QueryToElasticsearch {
         final String attribute = element.getKey();
 
         // Unsupported match over analyzed field
-        if (ParserTokens.PROJECTIONARGS.isNotAnalyzed(attribute)) {
+        if (parserTokens.isNotAnalyzed(attribute)) {
             return matchCommandOverNonAnalyzedField(query, content, element, attribute);
         }
 
@@ -597,13 +599,13 @@ public class QueryToElasticsearch {
      * @return the in Command
      * @throws InvalidParseOperationException if check unicity is in error
      */
-    private static QueryBuilder inCommand(final QUERY query, final JsonNode content)
+    private static QueryBuilder inCommand(final QUERY query, final JsonNode content, DynamicParserTokens parserTokens)
         throws InvalidParseOperationException {
         final Entry<String, JsonNode> element = JsonHandler.checkUnicity(query.exactToken(), content);
         String key = element.getKey();
 
         // Unsupported command for analyzed field
-        if (!ParserTokens.PROJECTIONARGS.isNotAnalyzed(key)) {
+        if (!parserTokens.isNotAnalyzed(key)) {
             return inCommandOverAnalyzedField(query, content);
         }
 
@@ -688,13 +690,13 @@ public class QueryToElasticsearch {
      * @return the range Command
      * @throws InvalidParseOperationException if check unicity is in error
      */
-    private static QueryBuilder rangeCommand(final QUERY query, final JsonNode content)
+    private static QueryBuilder rangeCommand(final QUERY query, final JsonNode content, DynamicParserTokens parserTokens)
         throws InvalidParseOperationException {
         final Entry<String, JsonNode> element = JsonHandler.checkUnicity(query.exactToken(), content);
 
         String key = element.getKey();
 
-        if (!ParserTokens.PROJECTIONARGS.isNotAnalyzed(key)) {
+        if (!parserTokens.isNotAnalyzed(key)) {
             // Unsupported mode. May be updated without prior notice.
             logUnsupportedCommand(query, content, "Analyzed field: '" + key + "'");
         } else {
@@ -748,13 +750,13 @@ public class QueryToElasticsearch {
      * @return the regex Command
      * @throws InvalidParseOperationException if check unicity is in error
      */
-    private static QueryBuilder regexCommand(final QUERY query, final JsonNode content)
+    private static QueryBuilder regexCommand(final QUERY query, final JsonNode content, DynamicParserTokens parserTokens)
         throws InvalidParseOperationException {
         final Entry<String, JsonNode> entry = JsonHandler.checkUnicity(query.exactToken(), content);
         String key = entry.getKey();
 
         // Analyzed fields are not supported
-        if (!ParserTokens.PROJECTIONARGS.isNotAnalyzed(key)) {
+        if (!parserTokens.isNotAnalyzed(key)) {
             return regexCommandOverAnalyzedField(query, content);
         }
 
@@ -823,7 +825,7 @@ public class QueryToElasticsearch {
      * @return the term Command
      * @throws InvalidParseOperationException if check unicity is in error
      */
-    private static QueryBuilder termCommand(final QUERY query, final JsonNode content)
+    private static QueryBuilder termCommand(final QUERY query, final JsonNode content, DynamicParserTokens parserTokens)
         throws InvalidParseOperationException {
 
         // Unsupported command. May be deleted without prior notice.
@@ -851,7 +853,7 @@ public class QueryToElasticsearch {
             } else {
                 final String val = node.asText();
                 QueryBuilder query3;
-                if (ParserTokens.PROJECTIONARGS.isNotAnalyzed(key)) {
+                if (parserTokens.isNotAnalyzed(key)) {
                     query3 = QueryBuilders.termQuery(key, val);
                 } else {
                     query3 = QueryBuilders.matchQuery(key, val).operator(Operator.AND);
@@ -874,14 +876,14 @@ public class QueryToElasticsearch {
      * @param content JsonNode
      * @return the wildcard Command
      */
-    private static QueryBuilder wildcardCommand(final QUERY query, final JsonNode content)
+    private static QueryBuilder wildcardCommand(final QUERY query, final JsonNode content, DynamicParserTokens parserTokens)
         throws InvalidParseOperationException {
         final Entry<String, JsonNode> entry = JsonHandler.checkUnicity(query.exactToken(), content);
         String key = entry.getKey();
         final JsonNode node = entry.getValue();
         String val = node.asText();
 
-        if (!ParserTokens.PROJECTIONARGS.isNotAnalyzed(key)) {
+        if (!parserTokens.isNotAnalyzed(key)) {
             // Unsupported wildcard with analyzed field
             logUnsupportedCommand(query, content, "Analyzed field: '" + key + "'");
         } else {
@@ -917,7 +919,7 @@ public class QueryToElasticsearch {
      * @return the eq Command
      * @throws InvalidParseOperationException if check unicity is in error
      */
-    private static QueryBuilder eqCommand(final QUERY query, final JsonNode content)
+    private static QueryBuilder eqCommand(final QUERY query, final JsonNode content, DynamicParserTokens parserTokens)
         throws InvalidParseOperationException {
         final Entry<String, JsonNode> entry = JsonHandler.checkUnicity(query.exactToken(), content);
 
@@ -925,7 +927,7 @@ public class QueryToElasticsearch {
         JsonNode node = entry.getValue();
 
         // Unsupported use case.
-        if (!ParserTokens.PROJECTIONARGS.isNotAnalyzed(key)) {
+        if (!parserTokens.isNotAnalyzed(key)) {
             return eqCommandOverAnalyzedField(query, content);
         }
 
@@ -1033,7 +1035,7 @@ public class QueryToElasticsearch {
      * @return the and Or Not Command
      * @throws InvalidParseOperationException if check unicity is in error
      */
-    private static QueryBuilder andOrNotCommand(final QUERY query, final Query req, VarNameAdapter adapter)
+    private static QueryBuilder andOrNotCommand(final QUERY query, final Query req, VarNameAdapter adapter, DynamicParserTokens parserTokens)
         throws InvalidParseOperationException {
 
         logCommand(query, req.getCurrentObject());
@@ -1044,14 +1046,14 @@ public class QueryToElasticsearch {
         for (int i = 0; i < sub.size(); i++) {
             switch (query) {
                 case AND:
-                    boolQueryBuilder.must(getCommand(sub.get(i), adapter));
+                    boolQueryBuilder.must(getCommand(sub.get(i), adapter, parserTokens));
                     break;
                 case NOT:
-                    boolQueryBuilder.mustNot(getCommand(sub.get(i), adapter));
+                    boolQueryBuilder.mustNot(getCommand(sub.get(i), adapter, parserTokens));
                     break;
                 case OR:
                 default:
-                    boolQueryBuilder.minimumShouldMatch(1).should(getCommand(sub.get(i), adapter));
+                    boolQueryBuilder.minimumShouldMatch(1).should(getCommand(sub.get(i), adapter, parserTokens));
             }
         }
         return boolQueryBuilder;
@@ -1064,7 +1066,7 @@ public class QueryToElasticsearch {
      * @return list of facets
      * @throws InvalidParseOperationException if could not create ES facets
      */
-    public static List<AggregationBuilder> getFacets(final AbstractParser<?> requestParser)
+    public static List<AggregationBuilder> getFacets(final AbstractParser<?> requestParser, DynamicParserTokens parserTokens)
         throws InvalidParseOperationException {
         List<AggregationBuilder> builders = new ArrayList<>();
         if (requestParser.getRequest() instanceof SelectMultiQuery) {
@@ -1078,7 +1080,7 @@ public class QueryToElasticsearch {
                         dateRangeFacet(builders, facet);
                         break;
                     case FILTERS:
-                        filtersFacet(builders, facet, requestParser.getAdapter());
+                        filtersFacet(builders, facet, requestParser.getAdapter(), parserTokens);
                         break;
                     default:
                         break;
@@ -1154,7 +1156,7 @@ public class QueryToElasticsearch {
      * @param builders es facets
      * @param facet facet
      */
-    private static void filtersFacet(List<AggregationBuilder> builders, Facet facet, VarNameAdapter adapter)
+    private static void filtersFacet(List<AggregationBuilder> builders, Facet facet, VarNameAdapter adapter, DynamicParserTokens parserTokens )
         throws InvalidParseOperationException {
         JsonNode filtersFacetNode = facet.getCurrentFacet().get(facet.getCurrentTokenFACET().exactToken());
 
@@ -1175,7 +1177,7 @@ public class QueryToElasticsearch {
 
         List<KeyedFilter> keyFilters = new ArrayList<>();
         for (Map.Entry<String, Query> entry : filtersMap.entrySet()) {
-            keyFilters.add(new KeyedFilter(entry.getKey(), getCommand(entry.getValue(), adapter)));
+            keyFilters.add(new KeyedFilter(entry.getKey(), getCommand(entry.getValue(), adapter, parserTokens)));
         }
         KeyedFilter[] keyFiltersArray = keyFilters.stream().toArray(KeyedFilter[]::new);
         FiltersAggregationBuilder filtersBuilder = AggregationBuilders.filters(facet.getName(), keyFiltersArray);

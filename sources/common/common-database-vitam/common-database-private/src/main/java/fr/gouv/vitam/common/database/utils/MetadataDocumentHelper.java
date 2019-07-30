@@ -135,7 +135,7 @@ public class MetadataDocumentHelper {
                 Collectors.toSet()));
 
         temporaryObjectGroupFields = SetUtils.unmodifiableSet(
-            Arrays.stream(TemporaryUnitFields.values()).map(TemporaryUnitFields::getFieldName).collect(
+            Arrays.stream(TemporaryObjectGroupFields.values()).map(TemporaryObjectGroupFields::getFieldName).collect(
                 Collectors.toSet()));
 
         computedUnitFields = SetUtils.unmodifiableSet(new HashSet<>(

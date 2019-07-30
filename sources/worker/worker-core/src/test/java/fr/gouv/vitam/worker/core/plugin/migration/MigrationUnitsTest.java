@@ -104,7 +104,7 @@ public class MigrationUnitsTest {
             assertThat(execute.getGlobalStatus()).isEqualTo(StatusCode.OK);
 
 
-            verify(metaDataClient).updateUnitbyId(any(JsonNode.class), eq(guid.getId()));
+            verify(metaDataClient).updateUnitById(any(JsonNode.class), eq(guid.getId()));
 
             verify(storageClient).storeFileFromWorkspace(eq("default"), eq(DataCategory.UNIT),
                 eq(guid.getId() + ".json"),

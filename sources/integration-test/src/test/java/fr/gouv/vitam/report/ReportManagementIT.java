@@ -30,11 +30,13 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.lang.reflect.Type;
 import java.util.HashMap;
 import java.util.Map;
 
 import javax.ws.rs.core.Response;
 
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.google.common.collect.Sets;
 import fr.gouv.vitam.batch.report.client.BatchReportClient;
@@ -128,7 +130,8 @@ public class ReportManagementIT extends VitamRuleRunner {
     public void should_append_unit_report() throws Exception {
         // Given
         InputStream stream = getClass().getResourceAsStream("/report/eliminationUnitModel.json");
-        ReportBody reportBody = JsonHandler.getFromInputStream(stream, ReportBody.class);
+        ReportBody<JsonNode> reportBody = JsonHandler.getFromInputStreamAsTypeRefence(stream,
+            new TypeReference<ReportBody<JsonNode>>() {});
         // When
         // Then
         RequestResponse<JsonNode> requestResponse = batchReportClient.appendReportEntries(reportBody);
@@ -140,7 +143,8 @@ public class ReportManagementIT extends VitamRuleRunner {
     public void should_append_objectGroup_report() throws Exception {
         // Given
         InputStream stream = getClass().getResourceAsStream("/report/eliminationObjectGroupModel.json");
-        ReportBody reportBody = JsonHandler.getFromInputStream(stream, ReportBody.class);
+        ReportBody reportBody = JsonHandler.getFromInputStreamAsTypeRefence(stream,
+            new TypeReference<ReportBody<JsonNode>>() {});
         // When
         // Then
         RequestResponse<JsonNode> requestResponse = batchReportClient.appendReportEntries(reportBody);
@@ -153,7 +157,8 @@ public class ReportManagementIT extends VitamRuleRunner {
     public void should_export_objectGroup_report() throws Exception {
         // Given
         InputStream stream = getClass().getResourceAsStream("/report/eliminationObjectGroupModel.json");
-        ReportBody reportBody = JsonHandler.getFromInputStream(stream, ReportBody.class);
+        ReportBody reportBody = JsonHandler.getFromInputStreamAsTypeRefence(stream,
+            new TypeReference<ReportBody<JsonNode>>() {});
         ReportExportRequest reportExportRequest = new ReportExportRequest("test.json");
         batchReportClient.appendReportEntries(reportBody);
         // When
@@ -170,7 +175,8 @@ public class ReportManagementIT extends VitamRuleRunner {
     public void should_export_unit_report() throws Exception {
         // Given
         InputStream stream = getClass().getResourceAsStream("/report/eliminationUnitModel.json");
-        ReportBody reportBody = JsonHandler.getFromInputStream(stream, ReportBody.class);
+        ReportBody reportBody = JsonHandler.getFromInputStreamAsTypeRefence(stream,
+            new TypeReference<ReportBody<JsonNode>>() {});
         ReportExportRequest reportExportRequest = new ReportExportRequest("test.json");
         batchReportClient.appendReportEntries(reportBody);
         // When
@@ -187,7 +193,8 @@ public class ReportManagementIT extends VitamRuleRunner {
     public void should_export_distinct_objectgroup_in_unit_report() throws Exception {
         // Given
         InputStream stream = getClass().getResourceAsStream("/report/eliminationUnitModel.json");
-        ReportBody reportBody = JsonHandler.getFromInputStream(stream, ReportBody.class);
+        ReportBody reportBody = JsonHandler.getFromInputStreamAsTypeRefence(stream,
+            new TypeReference<ReportBody<JsonNode>>() {});
         ReportExportRequest reportExportRequest = new ReportExportRequest("test.json");
         batchReportClient.appendReportEntries(reportBody);
         // When
@@ -206,7 +213,8 @@ public class ReportManagementIT extends VitamRuleRunner {
     public void should_export_accession_register() throws Exception {
         // Given
         InputStream stream = getClass().getResourceAsStream("/report/eliminationUnitWithDuplicateUnit.json");
-        ReportBody reportBody = JsonHandler.getFromInputStream(stream, ReportBody.class);
+        ReportBody reportBody = JsonHandler.getFromInputStreamAsTypeRefence(stream,
+            new TypeReference<ReportBody<JsonNode>>() {});
         ReportExportRequest reportExportRequest = new ReportExportRequest("test_1.json");
         batchReportClient.appendReportEntries(reportBody);
         // When
@@ -220,7 +228,8 @@ public class ReportManagementIT extends VitamRuleRunner {
 
         // Given
         stream = getClass().getResourceAsStream("/report/eliminationObjectGroupWithDuplicateObjectGroup.json");
-        reportBody = JsonHandler.getFromInputStream(stream, ReportBody.class);
+        reportBody = JsonHandler.getFromInputStreamAsTypeRefence(stream,
+            new TypeReference<ReportBody<JsonNode>>() {});
         reportExportRequest = new ReportExportRequest("test_2.json");
         batchReportClient.appendReportEntries(reportBody);
         // When
@@ -250,7 +259,8 @@ public class ReportManagementIT extends VitamRuleRunner {
     public void should_clean_unit_report() throws Exception {
         // Given
         InputStream stream = getClass().getResourceAsStream("/report/eliminationUnitModel.json");
-        ReportBody reportBody = JsonHandler.getFromInputStream(stream, ReportBody.class);
+        ReportBody reportBody = JsonHandler.getFromInputStreamAsTypeRefence(stream,
+            new TypeReference<ReportBody<JsonNode>>() {});
         batchReportClient.appendReportEntries(reportBody);
         // When
         RequestResponse<JsonNode> response =

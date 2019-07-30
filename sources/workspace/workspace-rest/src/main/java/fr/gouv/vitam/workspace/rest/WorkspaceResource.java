@@ -138,7 +138,7 @@ public class WorkspaceResource extends ApplicationStatusResource {
      * deletes a container in the workspace
      *
      * @param containerName path param of container name
-     * @param recursive     true if the container should be deleted recursively
+     * @param recursive true if the container should be deleted recursively
      * @return Response
      */
     @Path("/containers/{containerName}")
@@ -255,7 +255,7 @@ public class WorkspaceResource extends ApplicationStatusResource {
      * creates a folder into a container
      *
      * @param containerName path param of container name
-     * @param folderName    path param of folder
+     * @param folderName path param of folder
      * @return Response
      */
     @Path("/containers/{containerName}/folders/{folderName:.*}")
@@ -288,7 +288,7 @@ public class WorkspaceResource extends ApplicationStatusResource {
      * deletes a folder in a container
      *
      * @param containerName path param for container name
-     * @param folderName    path param for folder name
+     * @param folderName path param for folder name
      * @return Response
      */
     @Path("/containers/{containerName}/folders/{folderName:.*}")
@@ -319,7 +319,7 @@ public class WorkspaceResource extends ApplicationStatusResource {
      * checks if a folder exists in a container
      *
      * @param containerName path param for container name
-     * @param folderName    path param for folder name
+     * @param folderName path param for folder name
      * @return Response
      */
     @Path("/containers/{containerName}/folders/{folderName:.*}")
@@ -348,15 +348,16 @@ public class WorkspaceResource extends ApplicationStatusResource {
     /**
      * uncompress a sip into the workspace
      *
-     * @param stream        data input stream
+     * @param stream data input stream
      * @param containerName name of container
-     * @param folderName    name of folder
-     * @param archiveType   the type of archive
+     * @param folderName name of folder
+     * @param archiveType the type of archive
      * @return Response
      */
     @Path("/containers/{containerName}/folders/{folderName:.*}")
     @PUT
-    @Consumes({CommonMediaType.ZIP, CommonMediaType.XGZIP, CommonMediaType.GZIP, CommonMediaType.TAR, CommonMediaType.BZIP2})
+    @Consumes({CommonMediaType.ZIP, CommonMediaType.XGZIP, CommonMediaType.GZIP, CommonMediaType.TAR,
+        CommonMediaType.BZIP2})
     @Produces(MediaType.APPLICATION_JSON)
     public Response uncompressObject(InputStream stream,
         @PathParam(CONTAINER_NAME) String containerName,
@@ -437,7 +438,7 @@ public class WorkspaceResource extends ApplicationStatusResource {
      * gets the list of object from folder
      *
      * @param containerName name of container
-     * @param folderName    name of folder
+     * @param folderName name of folder
      * @return Response
      */
     @Path("/containers/{containerName}/folders/{folderName:.*}")
@@ -473,8 +474,8 @@ public class WorkspaceResource extends ApplicationStatusResource {
     /**
      * puts an object into a container
      *
-     * @param stream        data input stream
-     * @param objectName    name of data object
+     * @param stream data input stream
+     * @param objectName name of data object
      * @param containerName name of container
      * @return Response
      */
@@ -507,7 +508,7 @@ public class WorkspaceResource extends ApplicationStatusResource {
      * Deletes an objects in a container *
      *
      * @param containerName container name
-     * @param objectName    object name
+     * @param objectName object name
      * @return Response
      */
     @Path("/containers/{containerName}/objects/{objectName:.*}")
@@ -538,7 +539,7 @@ public class WorkspaceResource extends ApplicationStatusResource {
      * gets an objects from a container in the workspace
      *
      * @param containerName name of container
-     * @param objectName    name of object
+     * @param objectName name of object
      * @return response
      * @throws IOException when there is an error of get object
      */
@@ -556,7 +557,7 @@ public class WorkspaceResource extends ApplicationStatusResource {
      * gets an objects from a container in the workspace
      *
      * @param containerName name of container
-     * @param objectName    name of object
+     * @param objectName name of object
      * @return Response
      * @throws IOException when there is an error of get object
      */
@@ -588,8 +589,8 @@ public class WorkspaceResource extends ApplicationStatusResource {
      * checks if a object exists in an container or compute object Digest
      *
      * @param containerName name of container
-     * @param objectName    name of object
-     * @param algo          path parameter of algo
+     * @param objectName name of object
+     * @param algo path parameter of algo
      * @return Response
      */
     @Path("/containers/{containerName}/objects/{objectName:.*}")
@@ -672,4 +673,3 @@ public class WorkspaceResource extends ApplicationStatusResource {
     }
 
 }
-

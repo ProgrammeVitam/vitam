@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2019)
  * <p>
  * contact.vitam@culture.gouv.fr
@@ -24,14 +24,10 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  */
-/**
- *
- */
 package fr.gouv.vitam.metadata.core.database.collections;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import com.github.fge.jsonschema.core.exceptions.ProcessingException;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Stopwatch;
 import com.google.common.collect.Lists;
@@ -45,7 +41,6 @@ import com.mongodb.client.result.DeleteResult;
 import com.mongodb.client.result.UpdateResult;
 import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.database.builder.query.Query;
-import fr.gouv.vitam.common.database.builder.query.QueryHelper;
 import fr.gouv.vitam.common.database.builder.query.VitamFieldsHelper;
 import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken;
 import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.FILTERARGS;
@@ -55,7 +50,7 @@ import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOper
 import fr.gouv.vitam.common.database.builder.request.multiple.DeleteMultiQuery;
 import fr.gouv.vitam.common.database.builder.request.multiple.RequestMultiple;
 import fr.gouv.vitam.common.database.builder.request.multiple.UpdateMultiQuery;
-import fr.gouv.vitam.common.database.builder.request.single.Select;
+import fr.gouv.vitam.common.database.collections.DynamicParserTokens;
 import fr.gouv.vitam.common.database.collections.VitamCollection;
 import fr.gouv.vitam.common.database.parser.query.PathQuery;
 import fr.gouv.vitam.common.database.parser.query.helper.QueryDepthHelper;
@@ -72,41 +67,30 @@ import fr.gouv.vitam.common.database.translators.mongodb.MongoDbHelper;
 import fr.gouv.vitam.common.database.translators.mongodb.QueryToMongodb;
 import fr.gouv.vitam.common.database.translators.mongodb.RequestToMongodb;
 import fr.gouv.vitam.common.database.translators.mongodb.SelectToMongodb;
-import fr.gouv.vitam.common.database.translators.mongodb.UpdateToMongodb;
 import fr.gouv.vitam.common.database.utils.MetadataDocumentHelper;
-import fr.gouv.vitam.common.exception.ArchiveUnitOntologyValidationException;
 import fr.gouv.vitam.common.exception.BadRequestException;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
-import fr.gouv.vitam.common.exception.SchemaValidationException;
 import fr.gouv.vitam.common.exception.VitamDBException;
 import fr.gouv.vitam.common.json.JsonHandler;
-import fr.gouv.vitam.common.json.SchemaValidationStatus;
-import fr.gouv.vitam.common.json.SchemaValidationStatus.SchemaValidationStatusEnum;
-import fr.gouv.vitam.common.json.SchemaValidationUtils;
 import fr.gouv.vitam.common.logging.SysErrLogger;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.DurationData;
-import fr.gouv.vitam.common.model.RequestResponse;
-import fr.gouv.vitam.common.model.RequestResponseOK;
-import fr.gouv.vitam.common.model.administration.ArchiveUnitProfileModel;
 import fr.gouv.vitam.common.model.administration.OntologyModel;
 import fr.gouv.vitam.common.model.massupdate.RuleActions;
 import fr.gouv.vitam.common.parameter.ParameterHelper;
 import fr.gouv.vitam.common.performance.PerformanceLogger;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
-import fr.gouv.vitam.functional.administration.client.AdminManagementClient;
-import fr.gouv.vitam.functional.administration.client.AdminManagementClientFactory;
-import fr.gouv.vitam.functional.administration.common.ArchiveUnitProfile;
-import fr.gouv.vitam.functional.administration.common.exception.AdminManagementClientServerException;
 import fr.gouv.vitam.metadata.api.exception.MetaDataAlreadyExistException;
 import fr.gouv.vitam.metadata.api.exception.MetaDataExecutionException;
 import fr.gouv.vitam.metadata.api.exception.MetaDataNotFoundException;
-import fr.gouv.vitam.metadata.api.exception.MetadataInvalidUpdateException;
 import fr.gouv.vitam.metadata.core.database.configuration.GlobalDatasDb;
 import fr.gouv.vitam.metadata.core.graph.GraphLoader;
-import fr.gouv.vitam.metadata.core.trigger.ChangesTrigger;
-import fr.gouv.vitam.metadata.core.trigger.ChangesTriggerConfigFileException;
+import fr.gouv.vitam.metadata.core.model.UpdatedDocument;
+import fr.gouv.vitam.metadata.core.trigger.FieldHistoryManager;
+import fr.gouv.vitam.metadata.core.validation.MetadataValidationException;
+import fr.gouv.vitam.metadata.core.validation.OntologyValidator;
+import fr.gouv.vitam.metadata.core.validation.UnitValidator;
 import org.apache.commons.lang.StringUtils;
 import org.bson.conversions.Bson;
 import org.elasticsearch.index.query.BoolQueryBuilder;
@@ -115,11 +99,9 @@ import org.elasticsearch.index.query.QueryBuilders;
 import org.elasticsearch.search.aggregations.AggregationBuilder;
 import org.elasticsearch.search.sort.SortBuilder;
 
-import java.io.FileNotFoundException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -141,94 +123,68 @@ import static fr.gouv.vitam.common.database.builder.query.action.UpdateActionHel
  * DB Request using MongoDB only
  */
 public class DbRequest {
-    private static final String QUERY2 = "query: ";
-
-    private static final String WHERE_PREVIOUS_RESULT_WAS = "where_previous_result_was: ";
-
-    private static final String FROM2 = "from: ";
-
-    private static final String NO_RESULT_AT_RANK2 = "no_result_at_rank: ";
-
-    private static final String NO_RESULT_TRUE = "no_result: true";
-
-    private static final String WHERE_PREVIOUS_IS = " \n\twhere previous is ";
-
-    private static final String FROM = " from ";
-
-    private static final String NO_RESULT_AT_RANK = "No result at rank: ";
-
-    private static final String DEPTH_ARRAY = "deptharray";
-
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(DbRequest.class);
+
+    private static final String HISTORY_TRIGGER_NAME = "history-triggers.json";
+    private static final String QUERY2 = "query: ";
+    private static final String WHERE_PREVIOUS_RESULT_WAS = "where_previous_result_was: ";
+    private static final String FROM2 = "from: ";
+    private static final String NO_RESULT_AT_RANK2 = "no_result_at_rank: ";
+    private static final String NO_RESULT_TRUE = "no_result: true";
+    private static final String WHERE_PREVIOUS_IS = " \n\twhere previous is ";
+    private static final String FROM = " from ";
+    private static final String NO_RESULT_AT_RANK = "No result at rank: ";
+    private static final String DEPTH_ARRAY = "deptharray";
     private static final String
         CONSISTENCY_ERROR_THE_DOCUMENT_GUID_S_IN_ES_IS_NOT_IN_MONGO_DB_ANYMORE_TENANT_S_REQUEST_ID_S =
         "[Consistency Error] : The document guid=%s in ES is not in MongoDB anymore, tenant : %s, requestId : %s";
 
     private final MongoDbMetadataRepository<Unit> mongoDbUnitRepository;
-
-    private MongoDbMetadataRepository<ObjectGroup> mongoDbObjectGroupRepository;
-
-    private ChangesTrigger changesTrigger = null;
+    private final MongoDbMetadataRepository<ObjectGroup> mongoDbObjectGroupRepository;
+    private final FieldHistoryManager fieldHistoryManager;
 
     @VisibleForTesting
     DbRequest(MongoDbMetadataRepository<Unit> mongoDbUnitRepository,
-        MongoDbMetadataRepository<ObjectGroup> mongoDbObjectGroupRepository) {
+        MongoDbMetadataRepository<ObjectGroup> mongoDbObjectGroupRepository,
+        FieldHistoryManager fieldHistoryManager) {
         this.mongoDbUnitRepository = mongoDbUnitRepository;
         this.mongoDbObjectGroupRepository = mongoDbObjectGroupRepository;
+        this.fieldHistoryManager = fieldHistoryManager;
     }
 
-    /**
-     * Constructor
-     */
-    // TODO JE finish to refactor
     public DbRequest() {
         this(
-            new MongoDbMetadataRepository<Unit>(() -> MetadataCollections.UNIT.getCollection()),
-            new MongoDbMetadataRepository<ObjectGroup>(() -> MetadataCollections.OBJECTGROUP.getCollection()));
-    }
-
-    /**
-     * Constructor
-     */
-    public DbRequest(String fileNameTriggersConfig) throws ChangesTriggerConfigFileException {
-        this(new MongoDbMetadataRepository<Unit>(() -> MetadataCollections.UNIT.getCollection()),
-            new MongoDbMetadataRepository<ObjectGroup>(() -> MetadataCollections.OBJECTGROUP.getCollection()));
-        this.changesTrigger = new ChangesTrigger(fileNameTriggersConfig);
+            new MongoDbMetadataRepository<Unit>(MetadataCollections.UNIT::getCollection),
+            new MongoDbMetadataRepository<ObjectGroup>(MetadataCollections.OBJECTGROUP::getCollection),
+            new FieldHistoryManager(HISTORY_TRIGGER_NAME));
     }
 
     /**
      * Execute rule action on unit
      *
+     * @param ontologyModels
      * @param documentId the unitId
      * @param ruleActions the list of ruleAction (by category)
-     * @return the result
      */
-    public Result execRuleRequest(final String documentId, final RuleActions ruleActions,
-        Map<String, DurationData> bindRuleToDuration)
-        throws InvalidParseOperationException, MetaDataExecutionException, SchemaValidationException,
-        ArchiveUnitOntologyValidationException,
-        InvalidCreateOperationException {
+    public UpdatedDocument execRuleRequest(final String documentId, final RuleActions ruleActions,
+        Map<String, DurationData> bindRuleToDuration, OntologyValidator ontologyValidator, UnitValidator unitValidator, List<OntologyModel> ontologyModels)
+        throws InvalidParseOperationException, MetaDataExecutionException, InvalidCreateOperationException,
+        MetaDataNotFoundException, MetadataValidationException {
 
         final Integer tenantId = ParameterHelper.getTenantParameter();
-
-        MongoCollection<MetadataDocument<?>> collection = MetadataCollections.UNIT.getCollection();
-
-        SchemaValidationUtils validator;
-        try {
-            validator = new SchemaValidationUtils();
-        } catch (FileNotFoundException | ProcessingException e) {
-            LOGGER.debug("Unable to initialize Json Validator");
-            throw new MetaDataExecutionException(e);
-        }
 
         int tries = 0;
 
         while (tries < 3) {
+            MetadataCollections metadataCollections = MetadataCollections.UNIT;
 
-            final Bson roots = QueryToMongodb.getRoots(MetadataDocument.ID, Collections.singletonList(documentId));
-            MetadataDocument<?> document = collection.find(roots).first();
+            MongoCollection<MetadataDocument<?>> collection = metadataCollections.getCollection();
+            MetadataDocument<?> document = collection.find(and(
+                eq(MetadataDocument.ID, documentId),
+                eq(MetadataDocument.TENANT_ID, VitamThreadUtils.getVitamSession().getTenantId())
+            )).first();
             if (document == null) {
-                throw new MetaDataExecutionException("Document not found by id " + documentId);
+                throw new MetaDataNotFoundException("Document not found by id " + documentId);
             }
 
             final JsonNode jsonDocument = JsonHandler.toJsonNode(document);
@@ -236,7 +192,10 @@ public class DbRequest {
                 LOGGER.debug("DEBUG update {} to update to {}", jsonDocument,
                     JsonHandler.prettyPrint(ruleActions));
             }
-            final MongoDbInMemory mongoInMemory = new MongoDbInMemory(jsonDocument);
+            DynamicParserTokens parserTokens = new DynamicParserTokens(metadataCollections.getVitamDescriptionLoader().getDescriptionTypeByName(),
+                ontologyModels);
+            final MongoDbInMemory mongoInMemory = new MongoDbInMemory(jsonDocument,
+                parserTokens);
 
             // Add operationId to #operations
             UpdateMultiQuery updateQuery = new UpdateMultiQuery();
@@ -250,62 +209,45 @@ public class DbRequest {
             // Update rules
             final ObjectNode updatedJsonDocument =
                 (ObjectNode) mongoInMemory.getUpdateJsonForRule(ruleActions, bindRuleToDuration);
-            Unit updatedDocument = new Unit(updatedJsonDocument);
+
+            fieldHistoryManager.trigger(jsonDocument, updatedJsonDocument);
 
             Integer documentVersion = document.getVersion();
             int newDocumentVersion = documentVersion + 1;
             Integer atomicVersion = document.getAtomicVersion();
             int newAtomicVersion = atomicVersion == null ? newDocumentVersion : atomicVersion + 1;
 
-            updatedDocument.put(VitamDocument.VERSION, newDocumentVersion);
+            updatedJsonDocument.put(VitamDocument.VERSION, newDocumentVersion);
             updatedJsonDocument.put(MetadataDocument.ATOMIC_VERSION, newAtomicVersion);
 
-            JsonNode aupSchemaIdNode =
-                updatedJsonDocument.remove(SchemaValidationUtils.TAG_SCHEMA_VALIDATION);
-            JsonNode ontologyFields =
-                updatedJsonDocument.remove(SchemaValidationUtils.TAG_ONTOLOGY_FIELDS);
-            if (ontologyFields != null && ontologyFields.size() > 0) {
-                validateAndUpdateOntology(updatedJsonDocument, ontologyFields, validator);
-            }
-            SchemaValidationStatus status = validator.validateInsertOrUpdateUnit(updatedJsonDocument.deepCopy());
+            Unit updatedDocument = new Unit(updatedJsonDocument);
 
-            if (!SchemaValidationStatusEnum.VALID.equals(status.getValidationStatus())) {
-                throw new SchemaValidationException("Unable to validate updated Unit " + status.getValidationMessage());
-            }
+            // Ontology checks & format transformation
+            final ObjectNode transformedUpdatedDocument
+                = ontologyValidator.verifyAndReplaceFields(updatedJsonDocument);
 
-            if (aupSchemaIdNode != null) {
-                String aupSchemaId = aupSchemaIdNode.isArray() ?
-                    (aupSchemaIdNode.get(0) != null ? aupSchemaIdNode.get(0).asText() : null)
-                    : aupSchemaIdNode.asText();
-
-                if (aupSchemaId != null && !aupSchemaId.isEmpty()) {
-                    // Call AdminClient to get AUP info
-                    JsonNode aupSchema = extractAUPSchema(aupSchemaId);
-                    validateOtherExternalSchema(updatedJsonDocument, aupSchema);
-                    updatedDocument.remove(SchemaValidationUtils.TAG_SCHEMA_VALIDATION);
-                }
-            }
+            // Unit validation
+            unitValidator.validateUnit(transformedUpdatedDocument);
 
             // Make Update
             final Bson condition;
             if (atomicVersion == null) {
-                condition = and(eq(MetadataDocument.ID, documentId),
+                condition = and(
+                    eq(MetadataDocument.ID, documentId),
+                    eq(MetadataDocument.TENANT_ID, VitamThreadUtils.getVitamSession().getTenantId()),
                     exists(MetadataDocument.ATOMIC_VERSION, false));
             } else {
-                condition = and(eq(MetadataDocument.ID, documentId),
+                condition = and(
+                    eq(MetadataDocument.ID, documentId),
+                    eq(MetadataDocument.TENANT_ID, VitamThreadUtils.getVitamSession().getTenantId()),
                     eq(MetadataDocument.ATOMIC_VERSION, atomicVersion));
             }
 
-            LOGGER.debug("DEBUG update {}", updatedJsonDocument);
+            LOGGER.debug("DEBUG update {}", transformedUpdatedDocument);
             UpdateResult result = collection.replaceOne(condition, updatedDocument);
             if (result.getModifiedCount() == 1) {
-
                 indexFieldsUpdated(updatedDocument, tenantId);
-
-                Result<MetadataDocument<?>> last =
-                    new ResultDefault(FILTERARGS.UNITS, Collections.singletonList(documentId));
-                last.setTotal(last.getNbResult());
-                return last;
+                return new UpdatedDocument(documentId, jsonDocument, JsonHandler.toJsonNode(updatedDocument));
             }
             tries++;
         }
@@ -313,45 +255,17 @@ public class DbRequest {
         throw new MetaDataExecutionException("Can not modify document " + documentId);
     }
 
-    private JsonNode extractAUPSchema(String archiveUnitProfileIdentifier)
-        throws MetaDataExecutionException {
-
-        try (AdminManagementClient adminClient = AdminManagementClientFactory.getInstance().getClient()) {
-            Select select = new Select();
-            select.setQuery(QueryHelper.eq(ArchiveUnitProfile.IDENTIFIER, archiveUnitProfileIdentifier));
-            RequestResponse<ArchiveUnitProfileModel> response =
-                adminClient.findArchiveUnitProfiles(select.getFinalSelect());
-
-            List<ArchiveUnitProfileModel> results =
-                ((RequestResponseOK<ArchiveUnitProfileModel>) response).getResults();
-
-            if (!response.isOk() || results.isEmpty()) {
-                throw new MetaDataExecutionException("Archive unit profile could not be found");
-            }
-
-            ArchiveUnitProfileModel archiveUnitProfile = results.get(0);
-            return JsonHandler.getFromString(archiveUnitProfile.getControlSchema());
-
-        } catch (AdminManagementClientServerException | InvalidParseOperationException | InvalidCreateOperationException e) {
-            throw new MetaDataExecutionException(e);
-        }
-
-    }
-
-
     /**
      * The request should be already analyzed.
      *
      * @param requestParser the RequestParserMultiple to execute
-     *
      * @return the Result
-     *
-     * @throws MetaDataExecutionException     when select/update/delete on metadata collection exception occurred
+     * @throws MetaDataExecutionException when select/update/delete on metadata collection exception occurred
      * @throws InvalidParseOperationException when json data exception occurred
      * @throws BadRequestException
      */
-    public Result execRequest(final RequestParserMultiple requestParser)
-        throws MetaDataExecutionException, ArchiveUnitOntologyValidationException,
+    public Result execRequest(final RequestParserMultiple requestParser, List<OntologyModel> ontologies)
+        throws MetaDataExecutionException,
         InvalidParseOperationException, BadRequestException,
         VitamDBException {
         final RequestMultiple request = requestParser.getRequest();
@@ -359,21 +273,26 @@ public class DbRequest {
         final int maxQuery = request.getNbQueries();
         boolean checkConsistency = false;
         Result<MetadataDocument<?>> roots;
+
+        MetadataCollections metadataCollections;
         if (requestParser.model() == FILTERARGS.UNITS) {
             roots = checkUnitStartupRoots(requestParser);
+            metadataCollections = MetadataCollections.UNIT;
         } else {
-            // OBJECTGROUPS:
+            metadataCollections = MetadataCollections.OBJECTGROUP;
             if (LOGGER.isDebugEnabled()) {
                 LOGGER.debug(String.format("OBJECTGROUPS DbRequest: %s", requestParser.toString()));
             }
             roots = checkObjectGroupStartupRoots(requestParser);
         }
 
+        DynamicParserTokens parserTokens = new DynamicParserTokens(metadataCollections.getVitamDescriptionLoader().getDescriptionTypeByName(), ontologies);
+
         Result<MetadataDocument<?>> result = roots;
         int rank = 0;
         // if roots is empty, check if first query gives a non empty roots (empty query allowed for insert)
         if (result.getCurrentIds().isEmpty() && maxQuery > 0) {
-            final Result<MetadataDocument<?>> newResult = executeQuery(requestParser, requestToMongodb, rank, result);
+            final Result<MetadataDocument<?>> newResult = executeQuery(requestParser, requestToMongodb, rank, result, parserTokens);
 
             if (newResult != null && !newResult.getCurrentIds().isEmpty() && !newResult.isError()) {
                 result = newResult;
@@ -393,7 +312,7 @@ public class DbRequest {
         }
         // Stops if no result (empty)
         for (; !result.getCurrentIds().isEmpty() && rank < maxQuery; rank++) {
-            final Result<MetadataDocument<?>> newResult = executeQuery(requestParser, requestToMongodb, rank, result);
+            final Result<MetadataDocument<?>> newResult = executeQuery(requestParser, requestToMongodb, rank, result, parserTokens);
             if (newResult == null) {
                 LOGGER.debug(
                     NO_RESULT_AT_RANK + rank + FROM + requestParser + WHERE_PREVIOUS_IS + result);
@@ -428,13 +347,7 @@ public class DbRequest {
                 .addError(WHERE_PREVIOUS_RESULT_WAS + result);
             return result;
         }
-        if (request instanceof UpdateMultiQuery) {
-            final Result<MetadataDocument<?>> newResult =
-                lastUpdateFilterProjection((UpdateToMongodb) requestToMongodb, result, requestParser);
-            if (newResult != null) {
-                result = newResult;
-            }
-        } else if (request instanceof DeleteMultiQuery) {
+        if (request instanceof DeleteMultiQuery) {
             final Result<MetadataDocument<?>> newResult =
                 lastDeleteFilterProjection((DeleteToMongodb) requestToMongodb, result);
             if (newResult != null) {
@@ -457,15 +370,27 @@ public class DbRequest {
         return result;
     }
 
+    public UpdatedDocument execUpdateRequest(final RequestParserMultiple requestParser, String documentId,
+        MetadataCollections metadataCollection, OntologyValidator ontologyValidator, UnitValidator unitValidator, List<OntologyModel> ontologyModels)
+        throws MetaDataExecutionException, InvalidParseOperationException, MetaDataNotFoundException,
+        MetadataValidationException {
+
+        final UpdatedDocument result =
+            updateDocumentWithRetries(documentId, requestParser, metadataCollection,
+                ontologyValidator, unitValidator, ontologyModels);
+        if (GlobalDatasDb.PRINT_REQUEST) {
+            LOGGER.debug("Results: {}", result);
+        }
+        return result;
+    }
 
     /**
      * Check Unit at startup against Roots
      *
      * @param request
-     *
      * @return the valid root ids
      */
-    protected Result<MetadataDocument<?>> checkUnitStartupRoots(final RequestParserMultiple request) {
+    private Result<MetadataDocument<?>> checkUnitStartupRoots(final RequestParserMultiple request) {
         final Set<String> roots = request.getRequest().getRoots();
         if (roots.isEmpty()) {
             return MongoDbMetadataHelper.createOneResult(FILTERARGS.UNITS);
@@ -477,10 +402,9 @@ public class DbRequest {
      * Check ObjectGroup at startup against Roots
      *
      * @param request
-     *
      * @return the valid root ids
      */
-    protected Result<MetadataDocument<?>> checkObjectGroupStartupRoots(final RequestParserMultiple request) {
+    private Result<MetadataDocument<?>> checkObjectGroupStartupRoots(final RequestParserMultiple request) {
         // TODO P1 add unit tests
         final Set<String> roots = request.getRequest().getRoots();
         return MongoDbMetadataHelper.createOneResult(FILTERARGS.OBJECTGROUPS, roots);
@@ -489,12 +413,11 @@ public class DbRequest {
     /**
      * Check Unit parents against Roots
      *
-     * @param current         set of result id
+     * @param current set of result id
      * @param defaultStartSet
-     *
      * @return the valid root ids set
      */
-    protected Set<String> checkUnitAgainstRoots(final Set<String> current,
+    private Set<String> checkUnitAgainstRoots(final Set<String> current,
         final Result<MetadataDocument<?>> defaultStartSet) {
         // roots
         if (defaultStartSet == null || defaultStartSet.getCurrentIds().isEmpty()) {
@@ -521,18 +444,16 @@ public class DbRequest {
      * Execute one request
      *
      * @param requestToMongodb
-     * @param rank             current rank query
-     * @param previous         previous Result from previous level (except in level == 0 where it is the subset of valid roots)
-     *
+     * @param rank current rank query
+     * @param previous previous Result from previous level (except in level == 0 where it is the subset of valid roots)
      * @return the new Result from this request
-     *
      * @throws MetaDataExecutionException
      * @throws InvalidParseOperationException
      * @throws BadRequestException
      */
     protected Result<MetadataDocument<?>> executeQuery(final RequestParserMultiple requestParser,
         final RequestToAbstract requestToMongodb, final int rank,
-        final Result<MetadataDocument<?>> previous)
+        final Result<MetadataDocument<?>> previous, DynamicParserTokens parserTokens)
         throws MetaDataExecutionException, InvalidParseOperationException, BadRequestException {
         final Query realQuery = requestToMongodb.getNthQuery(rank);
         final boolean isLastQuery = requestToMongodb.getNbQueries() == rank + 1;
@@ -549,9 +470,9 @@ public class DbRequest {
             sorts =
                 QueryToElasticsearch.getSorts(requestParser, realQuery.isFullText() || VitamCollection.containMatch(),
                     collectionType.equals(FILTERARGS.UNITS) ? MetadataCollections.UNIT.useScore()
-                        : MetadataCollections.OBJECTGROUP.useScore());
+                        : MetadataCollections.OBJECTGROUP.useScore(), parserTokens);
             if (FILTERARGS.UNITS.equals(collectionType) || FILTERARGS.OBJECTGROUPS.equals(collectionType)) {
-                facets = QueryToElasticsearch.getFacets(requestParser);
+                facets = QueryToElasticsearch.getFacets(requestParser, parserTokens);
             }
             VitamCollection.setMatch(false);
             limit = requestToMongodb.getFinalLimit();
@@ -593,18 +514,18 @@ public class DbRequest {
                     // Exact Depth request (descending)
                     LOGGER.debug("Unit Exact Depth request (descending)");
                     result = exactDepthUnitQuery(realQuery, previous, exactDepth, tenantId, sorts,
-                        offset, limit, facets, scrollId, scrollTimeout);
+                        offset, limit, facets, scrollId, scrollTimeout, parserTokens);
                 } else if (relativeDepth != 0) {
                     // Relative Depth request (ascending or descending)
                     LOGGER.debug("Unit Relative Depth request (ascending or descending)");
                     result =
                         relativeDepthUnitQuery(realQuery, previous, relativeDepth, tenantId, sorts,
-                            offset, limit, facets, scrollId, scrollTimeout);
+                            offset, limit, facets, scrollId, scrollTimeout, parserTokens);
                 } else {
                     // Current sub level request
                     LOGGER.debug("Unit Current sub level request");
                     result = sameDepthUnitQuery(realQuery, previous, tenantId, sorts, offset,
-                        limit, facets, scrollId, scrollTimeout);
+                        limit, facets, scrollId, scrollTimeout, parserTokens);
                 }
             } else {
                 // OBJECTGROUPS
@@ -612,7 +533,7 @@ public class DbRequest {
                 // FIXME later on see if we should support depth
                 LOGGER.debug("ObjectGroup No depth at all");
                 result = objectGroupQuery(realQuery, previous, tenantId, sorts, offset,
-                    limit, scrollId, scrollTimeout, facets);
+                    limit, scrollId, scrollTimeout, facets, parserTokens);
             }
         } finally {
             previous.clear();
@@ -631,16 +552,14 @@ public class DbRequest {
      * @param offset
      * @param limit
      * @param facets
-     *
      * @return the associated Result
-     *
      * @throws InvalidParseOperationException
      * @throws MetaDataExecutionException
      * @throws BadRequestException
      */
     protected Result<MetadataDocument<?>> exactDepthUnitQuery(Query realQuery, Result<MetadataDocument<?>> previous,
         int exactDepth, Integer tenantId, final List<SortBuilder> sorts, final int offset, final int limit,
-        final List<AggregationBuilder> facets, final String scrollId, final Integer scrollTimeout)
+        final List<AggregationBuilder> facets, final String scrollId, final Integer scrollTimeout, DynamicParserTokens parserTokens)
         throws InvalidParseOperationException, MetaDataExecutionException, BadRequestException {
         // ES only
         final BoolQueryBuilder roots =
@@ -649,10 +568,11 @@ public class DbRequest {
         if (!previous.getCurrentIds().isEmpty()) {
             roots.must(QueryToElasticsearch.getRoots(MetadataDocument.UP, previous.getCurrentIds()));
         }
+        MetadataCollections metadataCollections = MetadataCollections.UNIT;
 
         // lets add the query on the tenant
         BoolQueryBuilder query = new BoolQueryBuilder()
-            .must(QueryToElasticsearch.getCommand(realQuery, new MongoDbVarNameAdapter()))
+            .must(QueryToElasticsearch.getCommand(realQuery, new MongoDbVarNameAdapter(), parserTokens))
             .filter(QueryBuilders.termQuery(MetadataDocument.TENANT_ID, tenantId))
             .filter(QueryBuilders.termQuery(Unit.UNITUPS + "." + exactDepth, previous.getCurrentIds()));
 
@@ -661,7 +581,7 @@ public class DbRequest {
         }
 
         final Result<MetadataDocument<?>> result =
-            MetadataCollections.UNIT.getEsClient().search(MetadataCollections.UNIT, tenantId,
+            metadataCollections.getEsClient().search(metadataCollections, tenantId,
                 VitamCollection.getTypeunique(), query, sorts, offset, limit, facets, scrollId, scrollTimeout);
 
         if (GlobalDatasDb.PRINT_REQUEST) {
@@ -681,23 +601,21 @@ public class DbRequest {
      * @param offset
      * @param limit
      * @param facets
-     *
      * @return the associated Result
-     *
      * @throws InvalidParseOperationException
      * @throws MetaDataExecutionException
      * @throws BadRequestException
      */
     protected Result<MetadataDocument<?>> relativeDepthUnitQuery(Query realQuery, Result<MetadataDocument<?>> previous,
         int relativeDepth, Integer tenantId, final List<SortBuilder> sorts, final int offset,
-        final int limit, final List<AggregationBuilder> facets, final String scrollId, final Integer scrollTimeout)
+        final int limit, final List<AggregationBuilder> facets, final String scrollId, final Integer scrollTimeout, DynamicParserTokens parserTokens)
         throws InvalidParseOperationException, MetaDataExecutionException, BadRequestException {
         // ES only
         QueryBuilder roots;
 
         // lets add the query on the tenant
         BoolQueryBuilder query = new BoolQueryBuilder()
-            .must(QueryToElasticsearch.getCommand(realQuery, new MongoDbVarNameAdapter()));
+            .must(QueryToElasticsearch.getCommand(realQuery, new MongoDbVarNameAdapter(), parserTokens));
 
         if (previous.getCurrentIds().isEmpty()) {
             if (relativeDepth < 1) {
@@ -743,7 +661,6 @@ public class DbRequest {
      *
      * @param ids
      * @param relativeDepth
-     *
      * @return the aggregate set of multi level parents for this relativeDepth
      */
     protected Set<String> aggregateUnitDepths(Collection<String> ids, int relativeDepth) {
@@ -792,19 +709,17 @@ public class DbRequest {
      * @param offset
      * @param limit
      * @param facets
-     *
      * @return the associated Result
-     *
      * @throws InvalidParseOperationException
      * @throws MetaDataExecutionException
      * @throws BadRequestException
      */
     protected Result<MetadataDocument<?>> sameDepthUnitQuery(Query realQuery, Result<MetadataDocument<?>> previous,
         Integer tenantId, final List<SortBuilder> sorts, final int offset, final int limit,
-        final List<AggregationBuilder> facets, final String scrollId, final Integer scrollTimeout)
+        final List<AggregationBuilder> facets, final String scrollId, final Integer scrollTimeout, DynamicParserTokens parserTokens)
         throws InvalidParseOperationException, MetaDataExecutionException, BadRequestException {
         // ES
-        final QueryBuilder query = QueryToElasticsearch.getCommand(realQuery, new MongoDbVarNameAdapter());
+        final QueryBuilder query = QueryToElasticsearch.getCommand(realQuery, new MongoDbVarNameAdapter(), parserTokens);
         QueryBuilder finalQuery;
         LOGGER.debug("DEBUG prev {} RealQuery {}", previous.getCurrentIds(), realQuery);
         if (previous.getCurrentIds().isEmpty()) {
@@ -828,24 +743,22 @@ public class DbRequest {
      * Execute one relative Depth ObjectGroup Query
      *
      * @param realQuery
-     * @param previous  units, Note: only immediate Unit parents are allowed
+     * @param previous units, Note: only immediate Unit parents are allowed
      * @param tenantId
      * @param sorts
      * @param offset
      * @param limit
-     *
      * @return the associated Result
-     *
      * @throws InvalidParseOperationException
      * @throws MetaDataExecutionException
      * @throws BadRequestException
      */
     protected Result<MetadataDocument<?>> objectGroupQuery(Query realQuery, Result<MetadataDocument<?>> previous,
         Integer tenantId, final List<SortBuilder> sorts, final int offset, final int limit,
-        final String scrollId, final Integer scrollTimeout, final List<AggregationBuilder> facets)
+        final String scrollId, final Integer scrollTimeout, final List<AggregationBuilder> facets, DynamicParserTokens parserTokens)
         throws InvalidParseOperationException, MetaDataExecutionException, BadRequestException {
         // ES
-        final QueryBuilder query = QueryToElasticsearch.getCommand(realQuery, new MongoDbVarNameAdapter());
+        final QueryBuilder query = QueryToElasticsearch.getCommand(realQuery, new MongoDbVarNameAdapter(), parserTokens);
         QueryBuilder finalQuery;
         if (previous.getCurrentIds().isEmpty()) {
             finalQuery = query;
@@ -874,9 +787,7 @@ public class DbRequest {
      *
      * @param requestToMongodb
      * @param last
-     *
      * @return the final Result
-     *
      * @throws InvalidParseOperationException
      */
     protected Result<MetadataDocument<?>> lastSelectFilterProjection(SelectToMongodb requestToMongodb,
@@ -909,11 +820,11 @@ public class DbRequest {
                 if (unit != null) {
                     if (VitamConfiguration.isExportScore() && MetadataCollections.UNIT.useScore() &&
                         requestToMongodb.isScoreIncluded()) {
-                        Float score = Float.valueOf(1);
+                        Float score = 1F;
                         try {
                             score = last.scores.get(i);
                             if (score.isNaN()) {
-                                score = Float.valueOf(1);
+                                score = 1F;
                             }
                         } catch (IndexOutOfBoundsException e) {
                             SysErrLogger.FAKE_LOGGER.ignoreLog(e);
@@ -956,18 +867,17 @@ public class DbRequest {
                 obMap.put(og.getId(), og);
             }
         }
-        int nbScore = last.scores == null ? -1 : last.scores.size();
         for (int i = 0; i < last.getCurrentIds().size(); i++) {
             final String id = last.getCurrentIds().get(i);
             ObjectGroup og = obMap.get(id);
             if (og != null) {
                 if (VitamConfiguration.isExportScore() && MetadataCollections.OBJECTGROUP.useScore() &&
                     requestToMongodb.isScoreIncluded()) {
-                    Float score = Float.valueOf(1);
+                    Float score = 1F;
                     try {
                         score = last.scores.get(i);
                         if (score.isNaN()) {
-                            score = Float.valueOf(1);
+                            score = 1F;
                         }
                     } catch (IndexOutOfBoundsException e) {
                         SysErrLogger.FAKE_LOGGER.ignoreLog(e);
@@ -997,93 +907,52 @@ public class DbRequest {
         return last;
     }
 
-    /**
-     * Finalize the queries with last True Update
-     *
-     * @param requestToMongodb
-     * @param last
-     * @param requestParser
-     *
-     * @return the final Result
-     *
-     * @throws InvalidParseOperationException
-     * @throws MetaDataExecutionException
-     * @throws MetadataInvalidUpdateException
-     */
-    protected Result<MetadataDocument<?>> lastUpdateFilterProjection(UpdateToMongodb requestToMongodb,
-        Result<MetadataDocument<?>> last,
-        RequestParserMultiple requestParser)
-        throws InvalidParseOperationException, MetaDataExecutionException, ArchiveUnitOntologyValidationException {
+    private UpdatedDocument updateDocumentWithRetries(String documentId,
+        RequestParserMultiple requestParser, MetadataCollections metadataCollection,
+        OntologyValidator ontologyValidator, UnitValidator unitValidator, List<OntologyModel> ontologyModels) throws InvalidParseOperationException, MetaDataExecutionException,
+        MetaDataNotFoundException, MetadataValidationException {
         final Integer tenantId = ParameterHelper.getTenantParameter();
-        final FILTERARGS model = requestToMongodb.model();
-
-        MongoCollection<MetadataDocument<?>> collection;
-        if (model == FILTERARGS.UNITS) {
-            collection = MetadataCollections.UNIT.getCollection();
-        } else {
-            collection = MetadataCollections.OBJECTGROUP.getCollection();
-        }
-
-        if (!requestToMongodb.isMultiple() && last.getNbResult() > 1) {
-            throw new MetadataInvalidUpdateException(
-                "Update Request is not multiple but found multiples entities to update");
-        }
-
-        String documentId = last.getCurrentIds().get(0);
-
-        SchemaValidationUtils validator;
-        try {
-            validator = new SchemaValidationUtils();
-        } catch (FileNotFoundException | ProcessingException e) {
-            throw new MetaDataExecutionException("Unable to initialize Json Validator", e);
-        }
 
         int tries = 0;
         while (tries < 3) {
 
-            final Bson roots = QueryToMongodb.getRoots(MetadataDocument.ID, Collections.singletonList(documentId));
-            MetadataDocument document = collection.find(roots).first();
+            MongoCollection<MetadataDocument<?>> collection = metadataCollection.getCollection();
+
+            MetadataDocument<?> document = collection.find(and(
+                eq(MetadataDocument.ID, documentId),
+                eq(MetadataDocument.TENANT_ID, VitamThreadUtils.getVitamSession().getTenantId())
+            )).first();
+
             if (document == null) {
-                throw new MetaDataExecutionException("Document not found by id " + documentId);
+                throw new MetaDataNotFoundException("Document not found by id " + documentId);
             }
 
             final Integer documentVersion = document.getVersion();
 
             final JsonNode jsonDocument = JsonHandler.toJsonNode(document);
-            final MongoDbInMemory mongoInMemory = new MongoDbInMemory(jsonDocument);
+            DynamicParserTokens parserTokens = new DynamicParserTokens(metadataCollection.getVitamDescriptionLoader().getDescriptionTypeByName(), ontologyModels);
+            final MongoDbInMemory mongoInMemory = new MongoDbInMemory(jsonDocument, parserTokens);
             final ObjectNode updatedJsonDocument = (ObjectNode) mongoInMemory.getUpdateJson(requestParser);
 
-            if (model == FILTERARGS.UNITS && changesTrigger != null) {
-                changesTrigger.trigger(jsonDocument, updatedJsonDocument);
+            if (metadataCollection == MetadataCollections.UNIT) {
+                fieldHistoryManager.trigger(jsonDocument, updatedJsonDocument);
             }
 
-            int newDocumentVersion = incrementDocumentVersionIfRequired(model, mongoInMemory, documentVersion);
+            int newDocumentVersion =
+                incrementDocumentVersionIfRequired(metadataCollection, mongoInMemory, documentVersion);
             updatedJsonDocument.put(VitamDocument.VERSION, newDocumentVersion);
 
             Integer atomicVersion = document.getAtomicVersion();
             int newAtomicVersion = atomicVersion == null ? newDocumentVersion : atomicVersion + 1;
             updatedJsonDocument.put(MetadataDocument.ATOMIC_VERSION, newAtomicVersion);
 
-            if (model == FILTERARGS.UNITS) {
-                JsonNode externalSchema =
-                    updatedJsonDocument.remove(SchemaValidationUtils.TAG_SCHEMA_VALIDATION);
-                JsonNode ontologyFields =
-                    updatedJsonDocument.remove(SchemaValidationUtils.TAG_ONTOLOGY_FIELDS);
-                if (ontologyFields != null && ontologyFields.size() > 0) {
-                    validateAndUpdateOntology(updatedJsonDocument, ontologyFields, validator);
-                }
-                SchemaValidationStatus status = validator.validateInsertOrUpdateUnit(updatedJsonDocument.deepCopy());
-                if (!SchemaValidationStatusEnum.VALID.equals(status.getValidationStatus())) {
-                    throw new MetaDataExecutionException(
-                        "Unable to validate updated Unit " + status.getValidationMessage());
-                }
-                if (externalSchema != null && externalSchema.size() > 0) {
-                    try {
-                        validateOtherExternalSchema(updatedJsonDocument, externalSchema);
-                    } catch (SchemaValidationException e) {
-                        throw new MetaDataExecutionException(e);
-                    }
-                }
+            // Ontology checks & format transformation
+            final ObjectNode transformedUpdatedDocument =
+                ontologyValidator.verifyAndReplaceFields(updatedJsonDocument);
+
+            if (metadataCollection == MetadataCollections.UNIT) {
+                // Unit validation
+                unitValidator.validateUnit(transformedUpdatedDocument);
             }
 
             // Make Update
@@ -1095,22 +964,19 @@ public class DbRequest {
                 condition = and(eq(MetadataDocument.ID, documentId),
                     eq(MetadataDocument.ATOMIC_VERSION, atomicVersion));
             }
-            LOGGER.debug("DEBUG update {}", updatedJsonDocument);
-            MetadataDocument<?> finalDocument = (MetadataDocument<?>) document.newInstance(updatedJsonDocument);
+            LOGGER.debug("DEBUG update {}", transformedUpdatedDocument);
+            MetadataDocument<?> finalDocument = (MetadataDocument<?>) document.newInstance(transformedUpdatedDocument);
 
             UpdateResult result = collection.replaceOne(condition, finalDocument);
             if (result.getModifiedCount() == 1) {
 
-                if (model == FILTERARGS.UNITS) {
+                if (metadataCollection == MetadataCollections.UNIT) {
                     indexFieldsUpdated(finalDocument, tenantId);
                 } else {
                     indexFieldsOGUpdated(finalDocument, tenantId);
                 }
 
-                last.clear();
-                last.addId(documentId, (float) 1);
-                last.setTotal(last.getNbResult());
-                return last;
+                return new UpdatedDocument(documentId, jsonDocument, transformedUpdatedDocument);
 
             }
             tries++;
@@ -1119,14 +985,17 @@ public class DbRequest {
         throw new MetaDataExecutionException("Can not modify document " + documentId);
     }
 
-    private int incrementDocumentVersionIfRequired(FILTERARGS model, MongoDbInMemory mongoInMemory,
+    private int incrementDocumentVersionIfRequired(MetadataCollections metadataCollection,
+        MongoDbInMemory mongoInMemory,
         int documentVersion) {
 
-        // FIXME : To avoid potential update loss for computed fields, we should make version field "non persisted" and always increment document version (DbRequest, and any other document update like graph computation, indexation, reconstruction...)
+        // FIXME : To avoid potential update loss for computed fields, we should make version field "non persisted"
+        //  and always increment document version (DbRequest, and any other document update like graph computation,
+        //  indexation, reconstruction...)
 
         Set<String> updatedFields = mongoInMemory.getUpdatedFields();
 
-        Set<String> computedFields = (model == FILTERARGS.UNITS) ?
+        Set<String> computedFields = (metadataCollection == MetadataCollections.UNIT) ?
             MetadataDocumentHelper.getComputedUnitFields() :
             MetadataDocumentHelper.getComputedObjectGroupFields();
 
@@ -1134,56 +1003,6 @@ public class DbRequest {
             return documentVersion;
         } else {
             return documentVersion + 1;
-        }
-    }
-
-
-    private void validateOtherExternalSchema(ObjectNode updatedJsonDocument, JsonNode schema)
-        throws InvalidParseOperationException, MetaDataExecutionException, SchemaValidationException {
-        try {
-            SchemaValidationUtils validatorSecond =
-                new SchemaValidationUtils(
-                    schema.isArray()
-                        ? schema.get(0).asText()
-                        : schema.toString(),
-                    true);
-            updatedJsonDocument.remove(SchemaValidationUtils.TAG_SCHEMA_VALIDATION);
-            SchemaValidationStatus status =
-                validatorSecond.validateInsertOrUpdateUnit(updatedJsonDocument.deepCopy());
-            if (!SchemaValidationStatusEnum.VALID.equals(status.getValidationStatus())) {
-                throw new SchemaValidationException(
-                    "Unable to validate updated Unit " + status.getValidationMessage());
-            }
-        } catch (FileNotFoundException | ProcessingException e) {
-            LOGGER.debug("Unable to initialize External Json Validator");
-            throw new MetaDataExecutionException(e);
-        }
-    }
-
-    private void validateAndUpdateOntology(ObjectNode updatedJsonDocument, JsonNode ontologyList,
-        SchemaValidationUtils validator)
-        throws ArchiveUnitOntologyValidationException, MetaDataExecutionException {
-        String finalOntologyAsString = ontologyList.isArray() ? ontologyList.get(0).asText() : ontologyList.asText();
-        Map<String, OntologyModel> ontologiesByIdentifier;
-        try {
-            List<OntologyModel> ontologies =
-                JsonHandler.getFromString(finalOntologyAsString, List.class, OntologyModel.class);
-            ontologiesByIdentifier =
-                ontologies.stream().collect(Collectors.toMap(OntologyModel::getIdentifier, oM -> oM));
-
-        } catch (InvalidParseOperationException e) {
-            throw new MetaDataExecutionException("Could not parse ontologies", e);
-        }
-        List<String> errors = new ArrayList<>();
-        // that means a transformation could be done so we need to process the full json
-        validator.verifyAndReplaceFields(updatedJsonDocument, ontologiesByIdentifier, errors);
-
-        if (!errors.isEmpty()) {
-            // archive unit could not be transformed, so the error would be thrown later by the schema
-            // validation verification
-            String error = "Archive unit contains fields declared in ontology with a wrong format : " +
-                String.join(",", errors.toString());
-            throw new ArchiveUnitOntologyValidationException(error);
         }
     }
 
@@ -1216,7 +1035,6 @@ public class DbRequest {
      * removeOGIndexFields : remove index related to Fields deleted
      *
      * @param last : contains the Result to be removed
-     *
      * @throws Exception
      */
     private void removeOGIndexFields(Result<MetadataDocument<?>> last) throws Exception {
@@ -1233,7 +1051,6 @@ public class DbRequest {
      * removeUnitIndexFields : remove index related to Fields deleted
      *
      * @param last : contains the Result to be removed
-     *
      * @throws Exception
      */
     private void removeUnitIndexFields(Result<MetadataDocument<?>> last) throws Exception {
@@ -1250,11 +1067,10 @@ public class DbRequest {
      * Inserts a unit
      *
      * @param requestParser the InsertParserMultiple to execute
-     *
-     * @throws MetaDataExecutionException     when insert on metadata collection exception occurred
+     * @throws MetaDataExecutionException when insert on metadata collection exception occurred
      * @throws InvalidParseOperationException when json data exception occurred
-     * @throws MetaDataAlreadyExistException  when insert metadata exception
-     * @throws MetaDataNotFoundException      when metadata not found exception
+     * @throws MetaDataAlreadyExistException when insert metadata exception
+     * @throws MetaDataNotFoundException when metadata not found exception
      */
     public void execInsertUnitRequest(InsertParserMultiple requestParser)
         throws MetaDataExecutionException, MetaDataNotFoundException, InvalidParseOperationException,
@@ -1268,10 +1084,9 @@ public class DbRequest {
      * Inserts an object group
      *
      * @param requestParsers the list of InsertParserMultiple to execute
-     *
-     * @throws MetaDataExecutionException     when insert on metadata collection exception occurred
+     * @throws MetaDataExecutionException when insert on metadata collection exception occurred
      * @throws InvalidParseOperationException when json data exception occurred
-     * @throws MetaDataAlreadyExistException  when insert metadata exception
+     * @throws MetaDataAlreadyExistException when insert metadata exception
      */
     public void execInsertObjectGroupRequests(List<InsertParserMultiple> requestParsers)
         throws MetaDataExecutionException, InvalidParseOperationException, MetaDataAlreadyExistException {
@@ -1322,15 +1137,13 @@ public class DbRequest {
      *
      * @param requestToMongodb
      * @param last
-     *
      * @return the final Result
-     *
      * @throws InvalidParseOperationException
      * @throws MetaDataExecutionException
      */
     protected Result<MetadataDocument<?>> lastDeleteFilterProjection(DeleteToMongodb requestToMongodb,
         Result<MetadataDocument<?>> last)
-        throws InvalidParseOperationException, MetaDataExecutionException {
+        throws MetaDataExecutionException {
         final Bson roots = QueryToMongodb.getRoots(MetadataDocument.ID, last.getCurrentIds());
         if (LOGGER.isDebugEnabled()) {
             LOGGER.debug("To Delete: " + MongoDbHelper.bsonToString(roots, false));
@@ -1372,11 +1185,10 @@ public class DbRequest {
      * Inserts a unit
      *
      * @param requestParsers list of InsertParserMultiple to execute
-     *
-     * @throws MetaDataExecutionException     when insert on metadata collection exception occurred
+     * @throws MetaDataExecutionException when insert on metadata collection exception occurred
      * @throws InvalidParseOperationException when json data exception occurred
-     * @throws MetaDataAlreadyExistException  when insert metadata exception
-     * @throws MetaDataNotFoundException      when metadata not found exception
+     * @throws MetaDataAlreadyExistException when insert metadata exception
+     * @throws MetaDataNotFoundException when metadata not found exception
      */
     public void execInsertUnitRequests(Collection<InsertParserMultiple> requestParsers)
         throws MetaDataExecutionException, MetaDataNotFoundException, InvalidParseOperationException,

@@ -62,7 +62,7 @@ public class MetaDataClientMockTest {
     public void updateUnitbyIdTest()
         throws MetaDataExecutionException, MetaDataDocumentSizeException, MetaDataClientServerException,
         InvalidParseOperationException, MetaDataNotFoundException {
-        assertNotNull(client.updateUnitbyId(JsonHandler.getFromString(VALID_QUERY), "unitId"));
+        assertNotNull(client.updateUnitById(JsonHandler.getFromString(VALID_QUERY), "unitId"));
     }
 
     @Test

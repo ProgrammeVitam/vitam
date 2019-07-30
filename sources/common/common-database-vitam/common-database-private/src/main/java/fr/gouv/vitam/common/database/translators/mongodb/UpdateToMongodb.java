@@ -26,16 +26,7 @@
  *******************************************************************************/
 package fr.gouv.vitam.common.database.translators.mongodb;
 
-import java.util.ArrayList;
-import java.util.List;
-
-import org.bson.conversions.Bson;
-
-import com.mongodb.client.model.Updates;
-
-import fr.gouv.vitam.common.database.builder.query.action.Action;
 import fr.gouv.vitam.common.database.parser.request.AbstractParser;
-import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 
 /**
  * Update to MongoDb

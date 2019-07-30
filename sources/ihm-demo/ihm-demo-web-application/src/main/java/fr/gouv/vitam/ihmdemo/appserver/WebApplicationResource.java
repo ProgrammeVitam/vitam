@@ -186,7 +186,7 @@ public class WebApplicationResource extends ApplicationStatusResource {
     private static final String JSON = ".json";
     private static final String JSONL = ".jsonl";
     private static final String DISTRIBUTION = "distribution";
-    private static final String PRESERVATION = "preservation";
+    private static final String BATCH_REPORT = "batchreport";
     private static final String AGENCIES = "agencies";
     private static final String RULES = "rules";
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(WebApplicationResource.class);
@@ -1551,12 +1551,12 @@ public class WebApplicationResource extends ApplicationStatusResource {
     }
 
     @GET
-    @Path("/report/preservation/download/{id}")
+    @Path("/report/batchreport/download/{id}")
     @Produces(MediaType.APPLICATION_OCTET_STREAM)
-    public Response downloadPreservationReport(@Context HttpServletRequest request, @PathParam("id") String id) {
+    public Response downloadBatchReport(@Context HttpServletRequest request, @PathParam("id") String id) {
         try {
             SanityChecker.checkParameter(id);
-            File file = downloadReportOrCsv(id, request, PRESERVATION);
+            File file = downloadReportOrCsv(id, request, BATCH_REPORT);
             if (file != null) {
                 return Response.ok().entity(new FileInputStream(file))
                     .type(MediaType.APPLICATION_OCTET_STREAM_TYPE)
@@ -1609,9 +1609,9 @@ public class WebApplicationResource extends ApplicationStatusResource {
                         userInterfaceTransactionManager.getVitamContext(request), guid);
                 file = getFileFromResponse(response.readEntity(InputStream.class), guid, JSON);
             }
-            if (PRESERVATION.equals(typeOfDownload)) {
+            if (BATCH_REPORT.equals(typeOfDownload)) {
                 response = adminExternalClient
-                    .downloadPreservationReport(
+                    .downloadBatchReport(
                         userInterfaceTransactionManager.getVitamContext(request), guid);
                 file = getFileFromResponse(response.readEntity(InputStream.class), guid, JSONL);
             }

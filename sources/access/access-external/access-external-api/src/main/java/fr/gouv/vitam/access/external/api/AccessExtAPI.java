@@ -197,7 +197,7 @@ public class AccessExtAPI {
     /**
      * Preservation report
      */
-    public static final String PRESERVATION_REPORT_API = "/preservationreport/";
+    public static final String BATCH_REPORT_API = "/batchreport/";
     /**
      * referential base uri
      */
@@ -239,4 +239,9 @@ public class AccessExtAPI {
     public static final String GRIFFIN = "griffin";
 
     public static final String PRESERVATION_SCENARIO = "preservationScenario";
+
+    /**
+     * Objects
+     */
+    public static final String OBJECTS = "/objects";
 }

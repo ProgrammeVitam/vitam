@@ -91,7 +91,7 @@ public class UnitAttachmentPluginTest {
         unitAttachmentPlugin.execute(parameters, handlerIO);
 
         // Then
-        verify(metaDataClient).updateUnitbyId(any(), eq(unitId));
+        verify(metaDataClient).updateUnitById(any(), eq(unitId));
 
         ArgumentCaptor<LogbookLifeCycleUnitParameters> logbookLCParam =
             ArgumentCaptor.forClass(LogbookLifeCycleUnitParameters.class);

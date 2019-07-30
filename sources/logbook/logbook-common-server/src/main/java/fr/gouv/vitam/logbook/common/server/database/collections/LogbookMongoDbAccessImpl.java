@@ -53,9 +53,11 @@ import com.mongodb.client.result.UpdateResult;
 import com.mongodb.util.JSON;
 import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.ParametersChecker;
+import fr.gouv.vitam.common.client.OntologyLoader;
 import fr.gouv.vitam.common.database.builder.query.NopQuery;
 import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
 import fr.gouv.vitam.common.database.builder.request.single.Select;
+import fr.gouv.vitam.common.database.collections.DynamicParserTokens;
 import fr.gouv.vitam.common.database.parser.request.single.SelectParserSingle;
 import fr.gouv.vitam.common.database.server.DbRequestHelper;
 import fr.gouv.vitam.common.database.server.mongodb.EmptyMongoCursor;
@@ -174,10 +176,12 @@ public final class LogbookMongoDbAccessImpl extends MongoDbAccess implements Log
 
     private final LogbookElasticsearchAccess esClient;
     private final LogbookTransformData logbookTransformData;
+    private final OntologyLoader ontologyLoader;
 
     /**
      * Constructor
      *
+     * @param ontologyLoader
      * @param mongoClient MongoClient
      * @param dbname MongoDB database name
      * @param recreate True to recreate the index
@@ -186,10 +190,11 @@ public final class LogbookMongoDbAccessImpl extends MongoDbAccess implements Log
      * @throws IllegalArgumentException if mongoClient or dbname is null
      */
     public LogbookMongoDbAccessImpl(MongoClient mongoClient, final String dbname, final boolean recreate,
-        LogbookElasticsearchAccess esClient, List<Integer> tenants, LogbookTransformData logbookTransformData) {
+        LogbookElasticsearchAccess esClient, List<Integer> tenants, LogbookTransformData logbookTransformData, OntologyLoader ontologyLoader) {
         super(mongoClient, dbname, recreate);
         this.esClient = esClient;
         this.logbookTransformData = logbookTransformData;
+        this.ontologyLoader = ontologyLoader;
 
         // FIXME : externalize initialization of collections to avoid being dependant of current class instanciation
         // when using the static LogbookCollections
@@ -1539,10 +1544,12 @@ public final class LogbookMongoDbAccessImpl extends MongoDbAccess implements Log
         throws InvalidParseOperationException, InvalidCreateOperationException, LogbookException, VitamDBException {
         Integer tenantId = HeaderIdHelper.getTenantId();
         final SelectToElasticsearch requestToEs = new SelectToElasticsearch(parser);
-        List<SortBuilder> sorts = requestToEs.getFinalOrderBy(collection.getVitamCollection().isUseScore());
+        DynamicParserTokens parserTokens =
+            new DynamicParserTokens(collection.getVitamDescriptionLoader().getDescriptionTypeByName(), ontologyLoader.loadOntologies());
+        List<SortBuilder> sorts = requestToEs.getFinalOrderBy(collection.getVitamCollection().isUseScore(), parserTokens);
         SearchResponse elasticSearchResponse =
             collection.getEsClient()
-                .search(collection, tenantId, requestToEs.getNthQueries(0, new LogbookVarNameAdapter()), null,
+                .search(collection, tenantId, requestToEs.getNthQueries(0, new LogbookVarNameAdapter(), parserTokens), null,
                     sorts, requestToEs.getFinalOffset(),
                     requestToEs.getFinalLimit());
         if (elasticSearchResponse.status() != RestStatus.OK) {

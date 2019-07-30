@@ -139,7 +139,7 @@ public class IndexUnitActionPlugin extends ActionHandler {
                         ItemStatus itemsStatus = new ItemStatus(HANDLER_PROCESS).setItemsStatus(HANDLER_PROCESS, itemStatus);
                         itemStatuses.add(itemsStatus);
                     } else {
-                        metadataClient.updateUnitbyId(((UpdateMultiQuery) query.requestMultiple).getFinalUpdate(), query.unitId);
+                        metadataClient.updateUnitById(((UpdateMultiQuery) query.requestMultiple).getFinalUpdate(), query.unitId);
                         itemStatus.increment(StatusCode.OK);
                         ItemStatus itemsStatus = new ItemStatus(HANDLER_PROCESS).setItemsStatus(HANDLER_PROCESS, itemStatus);
                         itemStatuses.add(itemsStatus);

@@ -26,31 +26,30 @@
  *******************************************************************************/
 package fr.gouv.vitam.metadata.rest;
 
-import static fr.gouv.vitam.common.serverv2.application.ApplicationParameter.CONFIGURATION_FILE_APPLICATION;
-
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.HashSet;
-import java.util.Set;
-
-import javax.servlet.ServletConfig;
-import javax.ws.rs.core.Application;
-import javax.ws.rs.core.Context;
-
 import com.google.common.base.Throwables;
 import fr.gouv.vitam.common.PropertiesUtils;
+import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.database.api.VitamRepositoryFactory;
 import fr.gouv.vitam.common.database.offset.OffsetRepository;
 import fr.gouv.vitam.common.security.waf.SanityCheckerCommonFilter;
 import fr.gouv.vitam.common.security.waf.SanityDynamicFeature;
 import fr.gouv.vitam.common.serverv2.application.CommonBusinessApplication;
-import fr.gouv.vitam.metadata.api.MetaData;
 import fr.gouv.vitam.metadata.api.config.MetaDataConfiguration;
 import fr.gouv.vitam.metadata.core.MetaDataImpl;
 import fr.gouv.vitam.metadata.core.MongoDbAccessMetadataFactory;
 import fr.gouv.vitam.metadata.core.database.collections.MongoDbAccessMetadataImpl;
 import fr.gouv.vitam.metadata.core.graph.GraphFactory;
 import fr.gouv.vitam.metadata.core.rules.MetadataRuleService;
+
+import javax.servlet.ServletConfig;
+import javax.ws.rs.core.Application;
+import javax.ws.rs.core.Context;
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.HashSet;
+import java.util.Set;
+
+import static fr.gouv.vitam.common.serverv2.application.ApplicationParameter.CONFIGURATION_FILE_APPLICATION;
 
 /**
  * Metadata resources and filter
@@ -76,11 +75,18 @@ public class BusinessApplication extends Application {
 
             MongoDbAccessMetadataImpl mongoAccessMetadata = MongoDbAccessMetadataFactory.create(metaDataConfiguration);
 
-
             OffsetRepository offsetRepository = new OffsetRepository(mongoAccessMetadata);
 
             VitamRepositoryFactory vitamRepositoryProvider = VitamRepositoryFactory.get();
-            MetaData metadata = MetaDataImpl.newMetadata(mongoAccessMetadata);
+            MetaDataImpl metadata = MetaDataImpl.newMetadata(
+                mongoAccessMetadata,
+                VitamConfiguration.getOntologyCacheMaxEntries(),
+                VitamConfiguration.getOntologyCacheTimeoutInSeconds(),
+                metaDataConfiguration.getArchiveUnitProfileCacheMaxEntries(),
+                metaDataConfiguration.getArchiveUnitProfileCacheTimeoutInSeconds(),
+                metaDataConfiguration.getSchemaValidatorCacheMaxEntries(),
+                metaDataConfiguration.getSchemaValidatorCacheTimeoutInSeconds()
+            );
 
             GraphFactory.initialize(vitamRepositoryProvider, metadata);
 

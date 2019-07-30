@@ -236,10 +236,8 @@ export class LogbookOperationComponent extends PageComponent {
         logbookService.downloadReport(item.evIdProc);
         break;
       case 'PRESERVATION':
-        logbookService.downloadPreservationReport(item.evIdProc);
-        break;
       case 'MASS_UPDATE':
-        logbookService.downloadMassUpdateReport(item.evIdProc);
+        logbookService.downloadBatchReport(item.evIdProc);
         break;
       case 'INGEST':
         logbookService.downloadObject(item.evIdProc);

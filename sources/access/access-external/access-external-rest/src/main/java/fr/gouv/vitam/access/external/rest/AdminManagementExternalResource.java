@@ -142,6 +142,43 @@ import static fr.gouv.vitam.common.json.JsonHandler.getFromStringAsTypeRefence;
 import static javax.ws.rs.core.MediaType.APPLICATION_JSON;
 import static javax.ws.rs.core.Response.Status.INTERNAL_SERVER_ERROR;
 
+import javax.ws.rs.Consumes;
+import javax.ws.rs.DELETE;
+import javax.ws.rs.GET;
+import javax.ws.rs.HEAD;
+import javax.ws.rs.HeaderParam;
+import javax.ws.rs.OPTIONS;
+import javax.ws.rs.POST;
+import javax.ws.rs.PUT;
+import javax.ws.rs.Path;
+import javax.ws.rs.PathParam;
+import javax.ws.rs.ProcessingException;
+import javax.ws.rs.Produces;
+import javax.ws.rs.core.Context;
+import javax.ws.rs.core.HttpHeaders;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
+import javax.ws.rs.core.Response.ResponseBuilder;
+import javax.ws.rs.core.Response.Status;
+import javax.ws.rs.core.UriInfo;
+import java.io.ByteArrayInputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.List;
+import java.util.Map;
+
+import static fr.gouv.vitam.access.external.api.AccessExtAPI.RECTIFICATION_AUDIT;
+import static fr.gouv.vitam.common.ParametersChecker.checkParameter;
+import static fr.gouv.vitam.common.dsl.schema.DslSchema.SELECT_SINGLE;
+import static fr.gouv.vitam.common.error.VitamCode.ACCESS_EXTERNAL_GET_ACCESSION_REGISTER_SYMBOLIC_ERROR;
+import static fr.gouv.vitam.common.error.VitamCodeHelper.getCode;
+import static fr.gouv.vitam.common.json.JsonHandler.getFromStringAsTypeRefence;
+import static javax.ws.rs.core.MediaType.APPLICATION_JSON;
+import static javax.ws.rs.core.Response.Status.INTERNAL_SERVER_ERROR;
+
 /**
  * Admin Management External Resource
  */
@@ -479,8 +516,7 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
         checkParameter(JSON_SELECT_IS_MANDATORY, select);
         try (AdminManagementClient client = adminManagementClientFactory.getClient()) {
             Status status = client.importIngestContracts(getFromStringAsTypeRefence(select.toString(),
-                new TypeReference<List<IngestContractModel>>() {
-                }));
+                new TypeReference<List<IngestContractModel>>() {}));
 
             if (Status.BAD_REQUEST.getStatusCode() == status.getStatusCode()) {
                 return Response.status(Status.BAD_REQUEST)
@@ -525,8 +561,7 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
         checkParameter(JSON_SELECT_IS_MANDATORY, contract);
         try (AdminManagementClient client = adminManagementClientFactory.getClient()) {
             Status status = client.importAccessContracts(getFromStringAsTypeRefence(contract.toString(),
-                new TypeReference<List<AccessContractModel>>() {
-                }));
+                new TypeReference<List<AccessContractModel>>() {}));
 
             if (Status.BAD_REQUEST.getStatusCode() == status.getStatusCode()) {
                 return Response.status(Status.BAD_REQUEST)
@@ -571,8 +606,7 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
         checkParameter(JSON_SELECT_IS_MANDATORY, select);
         try (AdminManagementClient client = adminManagementClientFactory.getClient()) {
             Status status = client.importContexts(getFromStringAsTypeRefence(select.toString(),
-                new TypeReference<List<ContextModel>>() {
-                }));
+                new TypeReference<List<ContextModel>>() {}));
 
             // Send the http response with the entity and the status got from internalService;
             ResponseBuilder ResponseBuilder = Response.status(status)
@@ -610,8 +644,7 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
                 SanityChecker.checkJsonAll(json);
                 RequestResponse requestResponse =
                     client.createProfiles(getFromStringAsTypeRefence(json.toString(),
-                        new TypeReference<List<ProfileModel>>() {
-                        }));
+                        new TypeReference<List<ProfileModel>>() {}));
                 return Response.status(requestResponse.getStatus())
                     .entity(requestResponse).build();
 
@@ -667,8 +700,7 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
             SanityChecker.checkJsonAll(select);
             RequestResponse requestResponse =
                 client.createProfiles(getFromStringAsTypeRefence(select.toString(),
-                    new TypeReference<List<ProfileModel>>() {
-                    }));
+                    new TypeReference<List<ProfileModel>>() {}));
             return Response.status(requestResponse.getStatus())
                 .entity(requestResponse).build();
 
@@ -705,8 +737,7 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
                 SanityChecker.checkJsonAll(json);
                 RequestResponse requestResponse =
                     client.createArchiveUnitProfiles(getFromStringAsTypeRefence(json.toString(),
-                        new TypeReference<List<ArchiveUnitProfileModel>>() {
-                        }));
+                        new TypeReference<List<ArchiveUnitProfileModel>>() {}));
                 return Response.status(requestResponse.getStatus())
                     .entity(requestResponse).build();
 
@@ -763,8 +794,7 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
             SanityChecker.checkJsonAll(select);
             RequestResponse requestResponse =
                 client.createArchiveUnitProfiles(getFromStringAsTypeRefence(select.toString(),
-                    new TypeReference<List<ArchiveUnitProfileModel>>() {
-                    }));
+                    new TypeReference<List<ArchiveUnitProfileModel>>() {}));
             return Response.status(requestResponse.getStatus())
                 .entity(requestResponse).build();
 
@@ -1947,8 +1977,7 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
         try (AdminManagementClient client = adminManagementClientFactory.getClient()) {
             SanityChecker.checkJsonAll(document);
             Status status = client.importSecurityProfiles(getFromStringAsTypeRefence(document.toString(),
-                new TypeReference<List<SecurityProfileModel>>() {
-                }));
+                new TypeReference<List<SecurityProfileModel>>() {}));
 
             // Send the http response with no entity and the status got from internalService;
             ResponseBuilder ResponseBuilder = Response.status(status);
@@ -2413,12 +2442,12 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
     }
 
     @GET
-    @Path("/preservationreport/{opId}")
+    @Path("/batchreport/{opId}")
     @Produces(MediaType.APPLICATION_OCTET_STREAM)
-    @Secured(permission = "preservationreport:id:read",
-        description = "Récupérer le rapport pour une opération d'import de règles de gestion")
-    public Response downloadPreservationAsStream(@PathParam("opId") String opId) {
-        return downloadObjectAsync(opId, IngestCollection.PRESERVATION);
+    @Secured(permission = "batchreport:id:read",
+        description = "Récupérer le rapport pour un traitement de masse (Elimination, Audit, Mise à jour)")
+    public Response downloadBatchReportAsStream(@PathParam("opId") String opId) {
+        return downloadObjectAsync(opId, IngestCollection.BATCH_REPORT);
     }
 
     @GET
@@ -2517,7 +2546,7 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
     }
 
     /**
-     * launch a rectification  audit for the operation
+     * launch a rectification audit for the operation
      *
      * @param operationId the operation id
      * @return Response
@@ -2562,8 +2591,7 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
             SanityChecker.checkJsonAll(ontologies);
             RequestResponse requestResponse =
                 client.importOntologies(forceUpdate, getFromStringAsTypeRefence(ontologies.toString(),
-                    new TypeReference<List<OntologyModel>>() {
-                    }));
+                    new TypeReference<List<OntologyModel>>() {}));
             return Response.status(requestResponse.getStatus())
                 .entity(requestResponse).build();
 
@@ -2604,10 +2632,6 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
                 RequestResponse result = client.findOntologies(select);
                 int st = result.isOk() ? Status.OK.getStatusCode() : result.getHttpCode();
                 return Response.status(st).entity(result).build();
-            } catch (ReferentialException e) {
-                LOGGER.error(e);
-                final Status status = INTERNAL_SERVER_ERROR;
-                return Response.status(status).entity(getErrorEntity(status, e.getMessage(), null)).build();
             } catch (final InvalidParseOperationException e) {
                 LOGGER.error(e);
                 final Status status = Status.BAD_REQUEST;
@@ -2671,7 +2695,8 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
     @POST
     @Consumes(APPLICATION_JSON)
     @Produces(APPLICATION_JSON)
-    @Secured(permission = "forcepause:check", description = "Force la pause sur un type d'operation et/ou sur un tenant")
+    @Secured(permission = "forcepause:check",
+        description = "Force la pause sur un type d'operation et/ou sur un tenant")
     public Response forcePause(ProcessPause info) {
 
         checkParameter("Json ProcessPause is a mandatory parameter", info);
@@ -2698,7 +2723,8 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
     @POST
     @Consumes(APPLICATION_JSON)
     @Produces(APPLICATION_JSON)
-    @Secured(permission = "removeforcepause:check", description = "Retire la pause sur un type d'operation et/ou sur un tenant")
+    @Secured(permission = "removeforcepause:check",
+        description = "Retire la pause sur un type d'operation et/ou sur un tenant")
     public Response removeForcePause(ProcessPause info) {
 
         checkParameter("Json ProcessPause is a mandatory parameter", info);
@@ -2729,8 +2755,7 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
 
             RequestResponse requestResponse =
                 client.importGriffins(getFromStringAsTypeRefence(griffins.toString(),
-                    new TypeReference<List<GriffinModel>>() {
-                    }));
+                    new TypeReference<List<GriffinModel>>() {}));
 
             return Response.status(requestResponse.getStatus())
                 .entity(requestResponse).build();
@@ -2769,7 +2794,8 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
     @GET
     @Consumes(APPLICATION_JSON)
     @Produces(APPLICATION_JSON)
-    @Secured(permission = "preservationScenarios:read", description = "Lister le contenu du référentiel des préservation scénarios")
+    @Secured(permission = "preservationScenarios:read",
+        description = "Lister le contenu du référentiel des préservation scénarios")
     public Response findPreservationScenarios(@Dsl(value = SELECT_SINGLE) JsonNode select) {
 
         try {
@@ -2808,8 +2834,7 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
 
             RequestResponse requestResponse =
                 client.importPreservationScenarios(getFromStringAsTypeRefence(preservationScenarios.toString(),
-                    new TypeReference<List<PreservationScenarioModel>>() {
-                    }));
+                    new TypeReference<List<PreservationScenarioModel>>() {}));
 
             return Response.status(requestResponse.getStatus())
                 .entity(requestResponse).build();

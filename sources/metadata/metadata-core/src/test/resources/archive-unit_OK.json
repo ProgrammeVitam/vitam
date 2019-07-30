@@ -1,0 +1,125 @@
+{
+	"ArchiveUnit": {
+		"_id": "aeaqaaaaaahfrfvaaahrgak25v5fttiaaaaq",
+
+		"FilePlanPosition": [
+			"&lt;0d63ae2b-6d1d-ccd0-0ef5-c2c7f71b1780@programmevitam.fr&gt;",
+			"&lt;0d63ae2b-6d1d-ccd0-0ef5-c3fee4908acd@programmevitam.fr&gt;"
+		],
+		"SystemId": [
+			"aeaqaaaaaadd4sjaaa34yak66ewcooyaaaaq",
+			"aeaqaaaaaadd4sjaaa34yak66ewcqkalet45"
+		],
+		"OriginatingSystemId": [
+			"&lt;0d63ae2b-6d1d-ccd0-0ef5-c2c7f71b1780@programmevitam.fr&gt;",
+			"&lt;0d63ae2b-6d1d-ccd0-0ef5-c3fee4908acd@programmevitam.fr&gt;"
+		],
+		"ArchivalAgencyArchiveUnitIdentifier":[
+			"&lt;0d63ae2b-6d1d-ccd0-0ef5-c2c7f71b1780@programmevitam.fr&gt;",
+			"&lt;0d63ae2b-6d1d-ccd0-0ef5-c3fee4908acd@programmevitam.fr&gt;"
+		],
+		"OriginatingAgencyArchiveUnitIdentifier": [
+			"&lt;0d63ae2b-6d1d-ccd0-0ef5-c2c7f71b1780@archivedefrance.fr&gt;",
+			"&lt;0d63ae2b-6d1d-ccd0-0ef5-c3fee4908acd@archivedefrance.fr&gt;"
+		],
+		"TransferringAgencyArchiveUnitIdentifier": [
+			"&lt;0d63ae2b-6d1d-ccd0-0ef5-c2c7f71b1780@ratp.frr&gt;",
+			"&lt;0d63ae2b-6d1d-ccd0-0ef5-c3fee4908acd@ratp.fr&gt;"
+		],
+		"Management": {
+			"StorageRule": {
+				"Rules": [
+					{
+						"Rule": "STR001",
+						"StartDate": "2012-11-15"
+					}
+				],
+				"FinalAction": "Copy"
+			},
+			"AppraisalRule": {
+				"Rules": [
+					{
+						"Rule": "APR001",
+						"StartDate": "2012-11-15"
+					}
+				],
+				"Inheritance": {
+					"PreventRulesId": [
+						"ID42"
+					]
+				},
+				"FinalAction": "Keep"
+			},
+			"ReuseRule": {
+				"Rules": [
+					{
+						"Rule": "ID",
+						"StartDate": "2012-11-15"
+					}
+				],
+				"Inheritance": {
+					"PreventRulesId": [
+						"ID42"
+					]
+				}
+			},
+			"ClassificationRule": {
+				"Rules": [
+					{
+						"Rule": "CLR001",
+						"StartDate": "2012-11-15"
+					},
+					{
+						"Rule": "CLR001",
+						"StartDate": "2012-11-15"
+					},
+					{
+						"Rule": "CLR002",
+						"StartDate": "2012-11-15"
+					}
+				],
+				"ClassificationLevel":"ClassificationLevel",
+				"ClassificationOwner":"ClassificationOwner",
+				"Inheritance": {
+					"PreventInheritance": true
+				}
+			},
+			"NeedAuthorization": true,
+			"AnyOtherField": "AnyOtherValue",
+			"UpdateOperation": {
+				"SystemId": "",
+				"ToDelete": {
+					"ArchiveUnitRefId": [
+						"DEL001",
+						"DEL002"
+					],
+					"FullUpdate": false
+				}
+			},
+			"ArchiveUnit": {
+				"ArchiveUnitRefId": "ID_CHILD"
+			}
+		},
+		"AnyOtherField": "AnyOtherValue",
+		"DescriptionLevel": "Item",
+		"Title": "My title",
+		"AuthorizedAgent": [
+			{
+			"FirstName": "Ludovic",
+			"GivenName": "BLANCHET",
+			"BirthName": "1990-10-01",
+			"BirthPlace": {
+				"City": "Lagny sur Marne"
+			}
+			},
+			{
+				"FirstName": "AuthorizedAgentFirstName02",
+				"GivenName": "AuthorizedAgentGivenName02",
+				"BirthName": "1980-01-01",
+				"BirthPlace": {
+					"City": "Gannevilliers"
+				}
+			}
+		]
+	}
+}

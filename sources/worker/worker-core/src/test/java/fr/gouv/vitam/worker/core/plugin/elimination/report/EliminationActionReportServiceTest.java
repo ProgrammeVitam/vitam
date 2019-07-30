@@ -1,5 +1,6 @@
 package fr.gouv.vitam.worker.core.plugin.elimination.report;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import fr.gouv.vitam.batch.report.client.BatchReportClient;
 import fr.gouv.vitam.batch.report.client.BatchReportClientFactory;
 import fr.gouv.vitam.batch.report.model.ReportBody;
@@ -96,7 +97,7 @@ public class EliminationActionReportServiceTest {
         ArgumentCaptor<ReportBody> reportBodyArgumentCaptor = ArgumentCaptor.forClass(ReportBody.class);
         verify(batchReportClient).appendReportEntries(reportBodyArgumentCaptor.capture());
 
-        ReportBody reportBody = reportBodyArgumentCaptor.getValue();
+        ReportBody<JsonNode> reportBody = reportBodyArgumentCaptor.getValue();
         assertThat(reportBody.getReportType()).isEqualTo(ReportType.ELIMINATION_ACTION_UNIT);
         assertThat(reportBody.getProcessId()).isEqualTo(PROC_ID);
         assertThat(reportBody.getEntries()).hasSize(2);
@@ -129,10 +130,10 @@ public class EliminationActionReportServiceTest {
         instance.appendObjectGroupEntries(PROC_ID, entries);
 
         // Then
-        ArgumentCaptor<ReportBody> reportBodyArgumentCaptor = ArgumentCaptor.forClass(ReportBody.class);
+        ArgumentCaptor<ReportBody<JsonNode>> reportBodyArgumentCaptor = ArgumentCaptor.forClass(ReportBody.class);
         verify(batchReportClient).appendReportEntries(reportBodyArgumentCaptor.capture());
 
-        ReportBody reportBody = reportBodyArgumentCaptor.getValue();
+        ReportBody<JsonNode> reportBody = reportBodyArgumentCaptor.getValue();
         assertThat(reportBody.getReportType()).isEqualTo(ReportType.ELIMINATION_ACTION_OBJECTGROUP);
         assertThat(reportBody.getProcessId()).isEqualTo(PROC_ID);
         assertThat(reportBody.getEntries()).hasSize(2);

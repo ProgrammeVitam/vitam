@@ -27,25 +27,26 @@
 
 package fr.gouv.vitam.worker.server.rest;
 
-import static fr.gouv.vitam.common.serverv2.application.ApplicationParameter.CONFIGURATION_FILE_APPLICATION;
+import fr.gouv.vitam.common.PropertiesUtils;
+import fr.gouv.vitam.common.VitamConfiguration;
+import fr.gouv.vitam.common.exception.InvalidParseOperationException;
+import fr.gouv.vitam.common.serverv2.application.CommonBusinessApplication;
+import fr.gouv.vitam.functional.administration.client.AdminManagementClientFactory;
+import fr.gouv.vitam.processing.common.exception.PluginException;
+import fr.gouv.vitam.worker.core.api.Worker;
+import fr.gouv.vitam.worker.core.plugin.PluginLoader;
+import fr.gouv.vitam.worker.core.validation.MetadataValidationProvider;
+import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
 
-import java.io.FileNotFoundException;
+import javax.servlet.ServletConfig;
+import javax.ws.rs.core.Application;
+import javax.ws.rs.core.Context;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.HashSet;
 import java.util.Set;
 
-import javax.servlet.ServletConfig;
-import javax.ws.rs.core.Application;
-import javax.ws.rs.core.Context;
-
-import fr.gouv.vitam.common.PropertiesUtils;
-import fr.gouv.vitam.common.exception.InvalidParseOperationException;
-import fr.gouv.vitam.common.serverv2.application.CommonBusinessApplication;
-import fr.gouv.vitam.processing.common.exception.PluginException;
-import fr.gouv.vitam.worker.core.api.Worker;
-import fr.gouv.vitam.worker.core.plugin.PluginLoader;
-import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
+import static fr.gouv.vitam.common.serverv2.application.ApplicationParameter.CONFIGURATION_FILE_APPLICATION;
 
 /**
  * Business Application for Worker
@@ -62,7 +63,7 @@ public class BusinessApplication extends Application {
 
     /**
      * BusinessApplication Constructor
-     * 
+     *
      * @param servletConfig
      */
     public BusinessApplication(@Context ServletConfig servletConfig) {
@@ -73,6 +74,16 @@ public class BusinessApplication extends Application {
             checkPluginsCreation();
             final WorkerConfiguration configuration =
                 PropertiesUtils.readYaml(yamlIS, WorkerConfiguration.class);
+
+            MetadataValidationProvider.getInstance().initialize(
+                AdminManagementClientFactory.getInstance(),
+                VitamConfiguration.getOntologyCacheMaxEntries(),
+                VitamConfiguration.getOntologyCacheTimeoutInSeconds(),
+                configuration.getArchiveUnitProfileCacheMaxEntries(),
+                configuration.getArchiveUnitProfileCacheTimeoutInSeconds(),
+                configuration.getSchemaValidatorCacheMaxEntries(),
+                configuration.getSchemaValidatorCacheTimeoutInSeconds());
+
             commonBusinessApplication = new CommonBusinessApplication();
             singletons = new HashSet<>();
             singletons.addAll(commonBusinessApplication.getResources());

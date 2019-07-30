@@ -263,7 +263,7 @@ public class RunningIngestsUpdateActionPlugin extends ActionHandler {
                                         UpdateActionHelper
                                             .push(VitamFieldsHelper.operations(), params.getContainerName()));
                                     JsonNode updateResultJson =
-                                        metaDataClient.updateUnitbyId(query.getFinalUpdate(), auGuid);
+                                        metaDataClient.updateUnitById(query.getFinalUpdate(), auGuid);
                                     archiveUnitUpdateUtils.logLifecycle(params, auGuid, StatusCode.OK,
                                         archiveUnitUpdateUtils.getDiffMessageFor(updateResultJson, auGuid),
                                         handlerIO.getLifecyclesClient());

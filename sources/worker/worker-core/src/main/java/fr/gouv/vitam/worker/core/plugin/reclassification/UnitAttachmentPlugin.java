@@ -142,7 +142,7 @@ public class UnitAttachmentPlugin extends ActionHandler {
                 add(VitamFieldsHelper.unitups(), parentUnitsToAdd.toArray(new String[0])),
                 add(VitamFieldsHelper.operations(), VitamThreadUtils.getVitamSession().getRequestId())
             );
-            metaDataClient.updateUnitbyId(updateMultiQuery.getFinalUpdate(), unitId);
+            metaDataClient.updateUnitById(updateMultiQuery.getFinalUpdate(), unitId);
 
         } catch (MetaDataDocumentSizeException | MetaDataClientServerException | MetaDataExecutionException | MetaDataNotFoundException | InvalidParseOperationException | InvalidCreateOperationException e) {
             throw new ReclassificationException(StatusCode.FATAL, "An error occurred during unit attachment", e);

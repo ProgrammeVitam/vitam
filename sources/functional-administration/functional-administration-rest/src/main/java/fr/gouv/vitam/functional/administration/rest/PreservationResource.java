@@ -66,9 +66,7 @@ public class PreservationResource {
 
     private final GriffinService griffinService;
 
-    PreservationResource(
-        PreservationScenarioService preservationScenarioService,
-        GriffinService griffinService) {
+    PreservationResource(PreservationScenarioService preservationScenarioService, GriffinService griffinService) {
 
         this.preservationScenarioService = preservationScenarioService;
         this.griffinService = griffinService;

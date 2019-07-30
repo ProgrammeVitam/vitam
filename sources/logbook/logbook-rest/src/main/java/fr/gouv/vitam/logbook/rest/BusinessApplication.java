@@ -26,25 +26,29 @@
  *******************************************************************************/
 package fr.gouv.vitam.logbook.rest;
 
-import static fr.gouv.vitam.common.serverv2.application.ApplicationParameter.CONFIGURATION_FILE_APPLICATION;
-
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.HashSet;
-import java.util.Set;
+import fr.gouv.vitam.common.PropertiesUtils;
+import fr.gouv.vitam.common.VitamConfiguration;
+import fr.gouv.vitam.common.database.api.VitamRepositoryFactory;
+import fr.gouv.vitam.common.database.api.VitamRepositoryProvider;
+import fr.gouv.vitam.common.database.collections.CachedOntologyLoader;
+import fr.gouv.vitam.common.database.offset.OffsetRepository;
+import fr.gouv.vitam.common.serverv2.application.CommonBusinessApplication;
+import fr.gouv.vitam.functional.administration.client.AdminManagementClientFactory;
+import fr.gouv.vitam.functional.administration.client.AdminManagementOntologyLoader;
+import fr.gouv.vitam.logbook.common.server.LogbookConfiguration;
+import fr.gouv.vitam.logbook.common.server.database.collections.LogbookMongoDbAccessFactory;
+import fr.gouv.vitam.logbook.common.server.database.collections.LogbookMongoDbAccessImpl;
 
 import javax.servlet.ServletConfig;
 import javax.ws.rs.core.Application;
 import javax.ws.rs.core.Context;
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.HashSet;
+import java.util.Optional;
+import java.util.Set;
 
-import fr.gouv.vitam.common.PropertiesUtils;
-import fr.gouv.vitam.common.database.api.VitamRepositoryFactory;
-import fr.gouv.vitam.common.database.api.VitamRepositoryProvider;
-import fr.gouv.vitam.common.database.offset.OffsetRepository;
-import fr.gouv.vitam.common.serverv2.application.CommonBusinessApplication;
-import fr.gouv.vitam.logbook.common.server.LogbookConfiguration;
-import fr.gouv.vitam.logbook.common.server.database.collections.LogbookMongoDbAccessFactory;
-import fr.gouv.vitam.logbook.common.server.database.collections.LogbookMongoDbAccessImpl;
+import static fr.gouv.vitam.common.serverv2.application.ApplicationParameter.CONFIGURATION_FILE_APPLICATION;
 
 /**
  * Logbook application declaring resources and filters
@@ -66,8 +70,13 @@ public class BusinessApplication extends Application {
         try (final InputStream yamlIS = PropertiesUtils.getConfigAsStream(configurationFile)) {
             final LogbookConfiguration configuration = PropertiesUtils.readYaml(yamlIS, LogbookConfiguration.class);
             commonBusinessApplication = new CommonBusinessApplication();
+            CachedOntologyLoader ontologyLoader = new CachedOntologyLoader(
+                VitamConfiguration.getOntologyCacheMaxEntries(),
+                VitamConfiguration.getOntologyCacheTimeoutInSeconds(),
+                new AdminManagementOntologyLoader(AdminManagementClientFactory.getInstance(), Optional.empty())
+            );
             // hack to init collections and clients
-            LogbookMongoDbAccessImpl logbookMongoDbAccess = LogbookMongoDbAccessFactory.create(configuration);
+            LogbookMongoDbAccessImpl logbookMongoDbAccess = LogbookMongoDbAccessFactory.create(configuration, ontologyLoader);
 
             OffsetRepository offsetRepository = new OffsetRepository(logbookMongoDbAccess);
 
@@ -75,7 +84,7 @@ public class BusinessApplication extends Application {
 
             singletons = new HashSet<>();
             singletons.addAll(commonBusinessApplication.getResources());
-            singletons.add(new LogbookResource(configuration));
+            singletons.add(new LogbookResource(configuration, ontologyLoader));
             singletons.add(new LogbookRawResource(vitamRepositoryProvider));
             singletons.add(new LogbookAdminResource(vitamRepositoryProvider, configuration));
             singletons.add(new LogbookReconstructionResource(vitamRepositoryProvider, offsetRepository));

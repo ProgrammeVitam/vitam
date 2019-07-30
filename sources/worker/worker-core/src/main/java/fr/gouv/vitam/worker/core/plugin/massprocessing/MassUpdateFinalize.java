@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2019)
  * <p>
  * contact.vitam@culture.gouv.fr
@@ -26,193 +26,161 @@
  */
 package fr.gouv.vitam.worker.core.plugin.massprocessing;
 
-import com.fasterxml.jackson.core.JsonGenerator;
-import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.google.common.annotations.VisibleForTesting;
+import fr.gouv.vitam.batch.report.client.BatchReportClient;
+import fr.gouv.vitam.batch.report.client.BatchReportClientFactory;
+import fr.gouv.vitam.batch.report.model.OperationSummary;
+import fr.gouv.vitam.batch.report.model.Report;
+import fr.gouv.vitam.batch.report.model.ReportResults;
+import fr.gouv.vitam.batch.report.model.ReportSummary;
+import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
+import fr.gouv.vitam.common.exception.VitamClientInternalException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.ItemStatus;
+import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.StatusCode;
-import fr.gouv.vitam.common.parameter.ParameterHelper;
+import fr.gouv.vitam.common.model.logbook.LogbookEvent;
+import fr.gouv.vitam.common.model.logbook.LogbookEventOperation;
+import fr.gouv.vitam.common.model.logbook.LogbookOperation;
+import fr.gouv.vitam.common.thread.VitamThreadUtils;
+import fr.gouv.vitam.logbook.common.exception.LogbookClientException;
+import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClient;
+import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClientFactory;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
-import fr.gouv.vitam.storage.engine.client.StorageClient;
-import fr.gouv.vitam.storage.engine.client.StorageClientFactory;
-import fr.gouv.vitam.storage.engine.client.exception.StorageAlreadyExistsClientException;
-import fr.gouv.vitam.storage.engine.client.exception.StorageNotFoundClientException;
-import fr.gouv.vitam.storage.engine.client.exception.StorageServerClientException;
-import fr.gouv.vitam.storage.engine.common.model.DataCategory;
-import fr.gouv.vitam.storage.engine.common.model.request.ObjectDescription;
 import fr.gouv.vitam.worker.common.HandlerIO;
 import fr.gouv.vitam.worker.core.handler.ActionHandler;
-import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageAlreadyExistException;
-import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundException;
+import fr.gouv.vitam.worker.core.utils.PluginHelper.EventDetails;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
-import fr.gouv.vitam.workspace.client.WorkspaceClient;
-import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
+import org.apache.commons.lang3.StringUtils;
 
-import javax.ws.rs.core.Response;
-import java.io.BufferedInputStream;
-import java.io.BufferedOutputStream;
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.net.URI;
+import java.time.LocalDateTime;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
-import java.util.function.Predicate;
+import java.util.Objects;
+import java.util.Optional;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
-import static fr.gouv.vitam.common.json.JsonHandler.createJsonGenerator;
+import static fr.gouv.vitam.batch.report.model.ReportType.UPDATE_UNIT;
+import static fr.gouv.vitam.common.model.StatusCode.FATAL;
+import static fr.gouv.vitam.common.model.StatusCode.KO;
+import static fr.gouv.vitam.common.model.StatusCode.OK;
+import static fr.gouv.vitam.common.model.StatusCode.WARNING;
+import static fr.gouv.vitam.worker.core.plugin.massprocessing.description.MassUpdateUnitsProcess.MASS_UPDATE_UNITS;
+import static fr.gouv.vitam.worker.core.utils.PluginHelper.buildItemStatus;
 
-/**
- * Mass update finalize.
- */
 public class MassUpdateFinalize extends ActionHandler {
+    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(MassUpdateFinalize.class);
 
-    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(ActionHandler.class);
-
-    /**
-     * MASS_UPDATE_FINALIZE
-     */
     private static final String MASS_UPDATE_FINALIZE = "MASS_UPDATE_FINALIZE";
+    private final static String DETAILS = " Detail= ";
 
-    /**
-     * DISTRIBUTION_LOCAL_REPORTS_RANK
-     */
-    private static final int DISTRIBUTION_LOCAL_REPORTS_RANK = 0;
+    private final BatchReportClientFactory batchReportClientFactory;
+    private final LogbookOperationsClientFactory logbookOperationsClientFactory;
 
-    /**
-     * Default strategy identifier
-     */
-    private static final String STRATEGY_ID = "default";
-    private static final String RESULTS = "$results";
-    private static final String REPORT = "report";
-    private static final String FILE_NAME_FORMAT = "%s_%s_%s.json";
-
-    private StorageClientFactory storageClientFactory;
-    private WorkspaceClientFactory workspaceClientFactory;
-
-    /**
-     * Constructor.
-     */
     public MassUpdateFinalize() {
-        this(StorageClientFactory.getInstance(), WorkspaceClientFactory.getInstance());
+        this(BatchReportClientFactory.getInstance(), LogbookOperationsClientFactory.getInstance());
     }
 
     @VisibleForTesting
-    public MassUpdateFinalize(StorageClientFactory storageClientFactory,
-        WorkspaceClientFactory workspaceClientFactory) {
-        this.storageClientFactory = storageClientFactory;
-        this.workspaceClientFactory = workspaceClientFactory;
+    public MassUpdateFinalize(BatchReportClientFactory batchReportClientFactory, LogbookOperationsClientFactory logbookOperationsClientFactory) {
+        this.batchReportClientFactory = batchReportClientFactory;
+        this.logbookOperationsClientFactory = logbookOperationsClientFactory;
     }
 
-    /**
-     * Execute an action
-     * @param param {@link WorkerParameters}
-     * @param handler the handlerIo
-     * @return CompositeItemStatus:response contains a list of functional message and status code
-     * @throws ProcessingException if an error is encountered when executing the action
-     * @throws ContentAddressableStorageServerException if a storage exception is encountered when executing the action
-     */
-    @Override public ItemStatus execute(WorkerParameters param, HandlerIO handler)
-        throws ProcessingException, ContentAddressableStorageServerException {
+    @Override
+    public ItemStatus execute(WorkerParameters param, HandlerIO handler) throws ProcessingException, ContentAddressableStorageServerException {
+        try (BatchReportClient batchReportClient = batchReportClientFactory.getClient();
+             LogbookOperationsClient logbookClient = logbookOperationsClientFactory.getClient()) {
 
-        final ItemStatus itemStatus = new ItemStatus(MASS_UPDATE_FINALIZE);
+            LogbookOperation logbook = getLogbookInformation(param, logbookClient);
+            OperationSummary operationSummary = getOperationSummary(logbook, param.getContainerName());
+            ReportSummary reportSummary = getReport(logbook);
+            JsonNode context = handler.getJsonFromWorkspace("query.json");
 
-        final String distribReportConatiner = (String) handler.getInput(DISTRIBUTION_LOCAL_REPORTS_RANK);
-        try (final WorkspaceClient workspaceClient = workspaceClientFactory.getClient()) {
-            List<URI> uris =
-                JsonHandler
-                    .getFromStringAsTypeRefence(workspaceClient
-                        .getListUriDigitalObjectFromFolder(param.getContainerName(), distribReportConatiner)
-                        .toJsonNode().get(RESULTS).get(0).toString(), new TypeReference<List<URI>>() {
-                    });
-            if (uris.isEmpty()) {
-                itemStatus.increment(StatusCode.KO);
-                return new ItemStatus(MASS_UPDATE_FINALIZE).setItemsStatus(MASS_UPDATE_FINALIZE, itemStatus);
-            }
-            Predicate<String> predicate = p -> p.toLowerCase().endsWith("success.json");
-            Map<Boolean, List<String>> listing = uris.stream().map(String::valueOf)
-                .collect(Collectors.partitioningBy(predicate));
+            Report reportInfo = new Report(operationSummary, reportSummary, context);
+            batchReportClient.storeReport(reportInfo);
+            batchReportClient.cleanupReport(param.getContainerName(), UPDATE_UNIT);
 
-            String containerName = String.format("%s_%s", ParameterHelper.getTenantParameter(),
-                DataCategory.DISTRIBUTIONREPORTS.getFolder());
-
-            String successReportName =
-                String.format(FILE_NAME_FORMAT, param.getRequestId(), REPORT, "success");
-            final File distribReports = handler.getNewLocalFile(successReportName);
-            constructReportFile(param, distribReportConatiner, workspaceClient, listing.get(Boolean.TRUE),
-                containerName, distribReports, successReportName);
-
-            String errorReportName =
-                String.format(FILE_NAME_FORMAT, param.getRequestId(), REPORT, "error");
-            final File distribReportsKO = handler.getNewLocalFile(errorReportName);
-            constructReportFile(param, distribReportConatiner, workspaceClient, listing.get(Boolean.FALSE),
-                containerName, distribReportsKO, errorReportName);
-
-            itemStatus.increment(StatusCode.OK);
-
-        } catch (InvalidParseOperationException | ContentAddressableStorageServerException | ContentAddressableStorageNotFoundException | IOException e) {
+            return buildItemStatus(MASS_UPDATE_FINALIZE, OK, EventDetails.of("MassUpdate report generation OK."));
+        } catch (LogbookClientException | VitamClientInternalException e) {
             LOGGER.error(e);
-            itemStatus.increment(StatusCode.FATAL);
-        }
-        return new ItemStatus(MASS_UPDATE_FINALIZE).setItemsStatus(MASS_UPDATE_FINALIZE, itemStatus);
-    }
-
-    private void constructReportFile(WorkerParameters param, String distribReportConatiner,
-        WorkspaceClient workspaceClient, List<String> files, String containerName, File distribReports, String reportName)
-        throws IOException, ContentAddressableStorageServerException, ContentAddressableStorageNotFoundException {
-        if (files.isEmpty()) {
-            return;
-        }
-        try {
-            Response response;
-            try (BufferedOutputStream buffOut = new BufferedOutputStream(new FileOutputStream(distribReports));
-                JsonGenerator jsonGenerator = createJsonGenerator(buffOut)) {
-                jsonGenerator.writeStartArray();
-                for (int i = 0; i < files.size(); i++) {
-                    response = workspaceClient
-                        .getObject(param.getContainerName(), distribReportConatiner + "/" + files.get(i));
-                    try (BufferedReader br = new BufferedReader(
-                        new InputStreamReader((InputStream) response.getEntity()))) {
-                        String line;
-                        while ((line = br.readLine()) != null) {
-                            jsonGenerator.writeRawValue(line);
-                        }
-                    }
-                }
-                jsonGenerator.writeEndArray();
-            } finally {
-                try (InputStream inputStream = new BufferedInputStream(new FileInputStream(distribReports))) {
-                    workspaceClient.createContainer(containerName);
-                    workspaceClient.putObject(containerName, reportName, inputStream);
-                } catch (ContentAddressableStorageAlreadyExistException e) {
-                    LOGGER.error(e);
-                }
-            }
-            try (final StorageClient storageClient = storageClientFactory.getClient()) {
-                final ObjectDescription description = new ObjectDescription();
-                description.setWorkspaceContainerGUID(containerName);
-                description.setWorkspaceObjectURI(reportName);
-                storageClient
-                    .storeFileFromWorkspace(STRATEGY_ID, DataCategory.DISTRIBUTIONREPORTS, reportName,
-                        description);
-            } catch (StorageAlreadyExistsClientException | StorageNotFoundClientException | StorageServerClientException e) {
-                LOGGER.error(e);
-            } finally {
-                workspaceClient.deleteContainer(containerName, true);
-            }
-        } catch (ContentAddressableStorageNotFoundException e) {
+            return buildItemStatus(MASS_UPDATE_FINALIZE, FATAL, EventDetails.of("Client error when generating report."));
+        }  catch (InvalidParseOperationException e) {
             LOGGER.error(e);
-            throw e;
+            return buildItemStatus(MASS_UPDATE_FINALIZE, KO, EventDetails.of("Generic error when generating report."));
         }
     }
 
+    private LogbookOperation getLogbookInformation(WorkerParameters params, LogbookOperationsClient logbookClient) throws InvalidParseOperationException, LogbookClientException {
+        JsonNode response = logbookClient.selectOperationById(params.getContainerName());
+        RequestResponseOK<JsonNode> logbookResponse = RequestResponseOK.getFromJsonNode(response);
+        return JsonHandler.getFromJsonNode(logbookResponse.getFirstResult(), LogbookOperation.class);
+    }
+
+    private OperationSummary getOperationSummary(LogbookOperation logbook, String processId) throws InvalidParseOperationException {
+        List<LogbookEventOperation> events = logbook.getEvents();
+        LogbookEventOperation lastEvent = events.get(events.size() - 2);
+
+        JsonNode rSI = StringUtils.isNotBlank(logbook.getRightsStatementIdentifier())
+            ? JsonHandler.getFromString(logbook.getRightsStatementIdentifier())
+            : JsonHandler.createObjectNode();
+
+        JsonNode evDetData = Objects.isNull(lastEvent.getEvDetData())
+            ? JsonHandler.createObjectNode()
+            : JsonHandler.getFromString(lastEvent.getEvDetData());
+
+        return new OperationSummary(
+            VitamThreadUtils.getVitamSession().getTenantId(),
+            processId,
+            lastEvent.getEvType(),
+            lastEvent.getOutcome(),
+            lastEvent.getOutDetail(),
+            lastEvent.getOutMessg(),
+            rSI,
+            evDetData
+        );
+    }
+
+    private ReportSummary getReport(LogbookOperation logbook) {
+        Optional<LogbookEventOperation> logbookEvent = logbook.getEvents().stream()
+            .filter(e -> e.getEvType().equals(MASS_UPDATE_UNITS))
+            .findFirst();
+
+        String startDate = logbook.getEvDateTime();
+        String endDate = LocalDateUtil.getString(LocalDateTime.now());
+
+        if (!logbookEvent.isPresent()) {
+            return new ReportSummary(startDate, endDate, UPDATE_UNIT, null, null);
+        }
+
+        Map<StatusCode, Integer> codesNumber = getStatusStatistic(logbookEvent.get());
+        int total = codesNumber.values().stream().mapToInt(i -> i).sum();
+
+        ReportResults results = new ReportResults(codesNumber.get(OK), codesNumber.get(KO), codesNumber.get(WARNING), total);
+        return new ReportSummary(startDate, endDate, UPDATE_UNIT, results, null);
+    }
+
+    private Map<StatusCode, Integer> getStatusStatistic(LogbookEvent logbookEvent) {
+        String outMessg = logbookEvent.getOutMessg();
+        if (StringUtils.isBlank(outMessg)) {
+            return Collections.emptyMap();
+        }
+        String[] splitedMessage = outMessg.split(DETAILS);
+        if (splitedMessage.length != 2) {
+            return Collections.emptyMap();
+        }
+        return Stream.of(splitedMessage)
+            .reduce((first, second) -> second)
+            .map(last -> Stream.of(last.split("\\s"))
+                .filter(StringUtils::isNotBlank)
+                .collect(Collectors.toMap(s -> StatusCode.valueOf(s.split(":")[0]), s -> Integer.valueOf(s.split(":")[1]))))
+            .orElse(Collections.emptyMap());
+    }
 }

@@ -26,24 +26,21 @@
  *******************************************************************************/
 package fr.gouv.vitam.common.dsl.schema;
 
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.junit.Assert.fail;
+import com.fasterxml.jackson.databind.JsonNode;
+import fr.gouv.vitam.common.PropertiesUtils;
+import fr.gouv.vitam.common.dsl.schema.meta.Format;
+import fr.gouv.vitam.common.dsl.schema.meta.Schema;
+import fr.gouv.vitam.common.exception.InvalidParseOperationException;
+import fr.gouv.vitam.common.json.JsonHandler;
+import org.junit.Test;
 
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 
-import org.junit.Test;
-
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
-
-import fr.gouv.vitam.common.PropertiesUtils;
-import fr.gouv.vitam.common.dsl.schema.meta.Schema;
-import fr.gouv.vitam.common.dsl.schema.meta.Format;
-import fr.gouv.vitam.common.exception.InvalidParseOperationException;
-import fr.gouv.vitam.common.json.JsonHandler;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.junit.Assert.fail;
 
 /**
  * Tests of get by id query schema for Metadata, Masterdata and logbook DSL query
@@ -51,9 +48,9 @@ import fr.gouv.vitam.common.json.JsonHandler;
 public class ValidatorGetByIdQueryTest {
     private static final String GET_BY_ID_QUERY_DSL_SCHEMA_JSON = "get-by-id-query-dsl-schema.json";
 
-    private Schema loadSchema(ObjectMapper objectMapper, File dslSource) throws IOException {
+    private Schema loadSchema(File dslSource) throws IOException {
         try (InputStream inputStream = new FileInputStream(dslSource)) {
-            final Schema schema = Schema.withMapper(objectMapper).loadTypes(inputStream).build();
+            final Schema schema = Schema.getSchema().loadTypes(inputStream).build();
             Format dslType = schema.getType("DSL");
             System.out.println(dslType.toString());
             Format projectionType = schema.getType("PROJECTION");
@@ -68,7 +65,7 @@ public class ValidatorGetByIdQueryTest {
         JsonNode test1Json =
             JsonHandler.getFromFile(PropertiesUtils.getResourceFile("get_by_id_complete.json"));
         final Schema schema =
-            loadSchema(new ObjectMapper(), PropertiesUtils.getResourceFile(GET_BY_ID_QUERY_DSL_SCHEMA_JSON));
+            loadSchema(PropertiesUtils.getResourceFile(GET_BY_ID_QUERY_DSL_SCHEMA_JSON));
         try {
             Validator.validate(schema, "DSL", test1Json);
         } catch (ValidationException e) {
@@ -82,7 +79,7 @@ public class ValidatorGetByIdQueryTest {
         JsonNode test1Json =
             JsonHandler.getFromFile(PropertiesUtils.getResourceFile("get_by_id_empty_projection.json"));
         final Schema schema =
-            loadSchema(new ObjectMapper(), PropertiesUtils.getResourceFile(GET_BY_ID_QUERY_DSL_SCHEMA_JSON));
+            loadSchema(PropertiesUtils.getResourceFile(GET_BY_ID_QUERY_DSL_SCHEMA_JSON));
         try {
             Validator.validate(schema, "DSL", test1Json);
         } catch (ValidationException e) {
@@ -97,7 +94,7 @@ public class ValidatorGetByIdQueryTest {
         JsonNode test1Json =
             JsonHandler.getFromFile(PropertiesUtils.getResourceFile("get_by_id_no_projection.json"));
         final Schema schema =
-            loadSchema(new ObjectMapper(), PropertiesUtils.getResourceFile(GET_BY_ID_QUERY_DSL_SCHEMA_JSON));
+            loadSchema(PropertiesUtils.getResourceFile(GET_BY_ID_QUERY_DSL_SCHEMA_JSON));
         assertThatThrownBy(() -> Validator.validate(schema, "DSL", test1Json))
             .hasMessageMatching(".*Validating \\$projection: .* ~ MANDATORY.*");
     }
@@ -108,7 +105,7 @@ public class ValidatorGetByIdQueryTest {
         JsonNode test1Json =
             JsonHandler.getFromFile(PropertiesUtils.getResourceFile("get_by_id_query.json"));
         final Schema schema =
-            loadSchema(new ObjectMapper(), PropertiesUtils.getResourceFile(GET_BY_ID_QUERY_DSL_SCHEMA_JSON));
+            loadSchema(PropertiesUtils.getResourceFile(GET_BY_ID_QUERY_DSL_SCHEMA_JSON));
         assertThatThrownBy(() -> Validator.validate(schema, "DSL", test1Json))
             .hasMessageContaining("INVALID_JSON_FIELD: $query ~ found json: {} ~ path: []");
     }
@@ -118,7 +115,7 @@ public class ValidatorGetByIdQueryTest {
         JsonNode test1Json =
             JsonHandler.getFromFile(PropertiesUtils.getResourceFile("get_by_id_unknown_key.json"));
         final Schema schema =
-            loadSchema(new ObjectMapper(), PropertiesUtils.getResourceFile(GET_BY_ID_QUERY_DSL_SCHEMA_JSON));
+            loadSchema(PropertiesUtils.getResourceFile(GET_BY_ID_QUERY_DSL_SCHEMA_JSON));
         assertThatThrownBy(() -> Validator.validate(schema, "DSL", test1Json))
             .hasMessageContaining("INVALID_JSON_FIELD: $unknownKey ~ found json: \\\"novalidation\\\" ~ path: []")
             .hasMessageContaining("INVALID_JSON_FIELD: $unknown2 ~ found json: {} ~ path: []");

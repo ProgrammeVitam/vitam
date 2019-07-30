@@ -194,8 +194,8 @@ public enum VitamCode {
         "Access external client error in updateUnitbyId method."),
 
     ACCESS_EXTERNAL_SELECT_OBJECTS_ERROR(ServiceName.EXTERNAL_ACCESS, DomainName.IO, "49",
-            Status.BAD_REQUEST,
-            "Access external client error in selectObjects method."),
+        Status.BAD_REQUEST,
+        "Access external client error in selectObjects method."),
 
     ACCESS_EXTERNAL_SELECT_OBJECT_BY_ID_ERROR(ServiceName.EXTERNAL_ACCESS, DomainName.IO, "03",
         Status.BAD_REQUEST,
@@ -221,11 +221,13 @@ public enum VitamCode {
         Status.BAD_REQUEST,
         "Access external client error in selectObjectGroupLifeCycleById method."),
 
-    ACCESS_EXTERNAL_SELECT_OBJECT_GROUP_LIFECYCLE_PERMISSION(ServiceName.INTERNAL_ACCESS, DomainName.BUSINESS, "16", Status.UNAUTHORIZED,
-            "Unauthorized to access objects group lifecycle"),
+    ACCESS_EXTERNAL_SELECT_OBJECT_GROUP_LIFECYCLE_PERMISSION(ServiceName.INTERNAL_ACCESS, DomainName.BUSINESS, "16",
+        Status.UNAUTHORIZED,
+        "Unauthorized to access objects group lifecycle"),
 
-    ACCESS_EXTERNAL_SELECT_UNIT_LIFECYCLE_PERMISSION(ServiceName.INTERNAL_ACCESS, DomainName.BUSINESS, "17", Status.UNAUTHORIZED,
-            "Unauthorized to access archive units lifecycle"),
+    ACCESS_EXTERNAL_SELECT_UNIT_LIFECYCLE_PERMISSION(ServiceName.INTERNAL_ACCESS, DomainName.BUSINESS, "17",
+        Status.UNAUTHORIZED,
+        "Unauthorized to access archive units lifecycle"),
 
     ACCESS_EXTERNAL_GET_ACCESSION_REGISTER_SUMMARY_ERROR(ServiceName.EXTERNAL_ACCESS, DomainName.IO, "09",
         Status.BAD_REQUEST,
@@ -248,12 +250,12 @@ public enum VitamCode {
         "Access external client not found."),
 
     ACCESS_EXTERNAL_GET_ACCESSION_REGISTER_SYMBOLIC_ERROR(ServiceName.EXTERNAL_ACCESS, DomainName.IO, "66",
-            Status.BAD_REQUEST,
-            "Access external client error in getAccessionRegisterSymbolic method."),
+        Status.BAD_REQUEST,
+        "Access external client error in getAccessionRegisterSymbolic method."),
 
     ACCESS_EXTERNAL_GET_GET_GRIFFIN_ERROR(ServiceName.EXTERNAL_ACCESS, DomainName.IO, "67",
-            Status.BAD_REQUEST,
-            "Access external client in getting griffin."),
+        Status.BAD_REQUEST,
+        "Access external client in getting griffin."),
 
     // MASS UPDATE units
     ACCESS_EXTERNAL_MASS_UPDATE_ERROR(ServiceName.EXTERNAL_ACCESS, DomainName.IO, "40",
@@ -391,7 +393,8 @@ public enum VitamCode {
         Status.BAD_REQUEST,
         "Access internal error while check update on rules: Can't update rule with a given EndDate"),
     ACCESS_INTERNAL_UPDATE_UNIT_UPDATE_BAD_FORMAT(ServiceName.INTERNAL_ACCESS, DomainName.BUSINESS, "39",
-        Status.BAD_REQUEST, "Bad format ! You can either do {\"#management.CategoryRule.Rules\":[...]} or {\"#management.CategoryRule\":{\"Rules\":[...]}}"),
+        Status.BAD_REQUEST,
+        "Bad format ! You can either do {\"#management.CategoryRule.Rules\":[...]} or {\"#management.CategoryRule\":{\"Rules\":[...]}}"),
     ACCESS_INTERNAL_UPDATE_UNIT_UPDATE_RULE_FINAL_ACTION(ServiceName.INTERNAL_ACCESS, DomainName.BUSINESS, "04",
         Status.BAD_REQUEST,
         "Access internal error while check update on rules: Can't update rule with a wrong FinalAction"),
@@ -431,8 +434,11 @@ public enum VitamCode {
         "Unauthorized to update rules: Bad ID or wrong category"),
     UPDATE_UNIT_RULES_PROPERTY_CONSISTENCY(ServiceName.INTERNAL_ACCESS, DomainName.BUSINESS, "19", Status.UNAUTHORIZED,
         "Unauthorized to update rules: Incorrect value for a property"),
-    UPDATE_UNIT_MANAGEMENT_METADATA_CONSISTENCY(ServiceName.INTERNAL_ACCESS, DomainName.BUSINESS, "20", Status.UNAUTHORIZED,
+    UPDATE_UNIT_MANAGEMENT_METADATA_CONSISTENCY(ServiceName.INTERNAL_ACCESS, DomainName.BUSINESS, "20",
+        Status.UNAUTHORIZED,
         "Unauthorized to update management metadata: Incorrect property value"),
+    UPDATE_UNIT_RULES_QUERY_CONSISTENCY(ServiceName.INTERNAL_ACCESS, DomainName.BUSINESS, "21", Status.BAD_REQUEST,
+        "Request incorrect: Illegal use of properties"),
 
     INGEST_EXTERNAL_ILLEGAL_ARGUMENT(ServiceName.EXTERNAL_INGEST, DomainName.IO, "00", Status.PRECONDITION_FAILED,
         "Ingest external illegal argument"),

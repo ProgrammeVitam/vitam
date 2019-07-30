@@ -58,6 +58,14 @@ public class JsonLineWriter implements AutoCloseable {
         writer.append(JsonHandler.unprettyPrint(line));
     }
 
+    public void addEntry(Object line) throws IOException {
+        if (!isEmpty) {
+            writer.append("\n");
+        }
+        isEmpty = false;
+        writer.append(JsonHandler.unprettyPrint(line));
+    }
+
     @Override
     public void close() throws IOException {
         writer.flush();

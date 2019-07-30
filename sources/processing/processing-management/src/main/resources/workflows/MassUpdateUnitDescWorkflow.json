@@ -16,26 +16,8 @@
       "actions": [
         {
           "action": {
-            "actionKey": "UNIT_METADATA_UPDATE_CHECK_PERMISSION",
-            "behavior": "BLOCKING",
-            "in": [
-              {
-                "name": "checkContract",
-                "uri": "VALUE:true"
-              },
-              {
-                "name": "checkManagement",
-                "uri": "VALUE:true"
-              },
-              {
-                "name": "checkGraph",
-                "uri": "VALUE:true"
-              },
-              {
-                "name": "checkMDD",
-                "uri": "VALUE:true"
-              }
-            ]
+            "actionKey": "MASS_UPDATE_CHECK",
+            "behavior": "BLOCKING"
           }
         },
         {
@@ -80,13 +62,7 @@
         {
           "action": {
             "actionKey": "MASS_UPDATE_UNITS",
-            "behavior": "BLOCKING",
-            "out": [
-              {
-                "name": "update_units_report",
-                "uri": "WORKSPACE:reports"
-              }
-            ]
+            "behavior": "BLOCKING"
           }
         }
       ]
@@ -102,13 +78,7 @@
         {
           "action": {
             "actionKey": "MASS_UPDATE_FINALIZE",
-            "behavior": "BLOCKING",
-            "in": [
-              {
-                "name": "update_units_report_container",
-                "uri": "VALUE:reports"
-              }
-            ]
+            "behavior": "BLOCKING"
           }
         }
       ]

@@ -26,10 +26,7 @@
  *******************************************************************************/
 package fr.gouv.vitam.worker.core.handler;
 
-import java.util.Map;
-
 import com.fasterxml.jackson.databind.node.ObjectNode;
-
 import com.google.common.annotations.VisibleForTesting;
 import fr.gouv.vitam.common.SedaConstants;
 import fr.gouv.vitam.common.json.JsonHandler;
@@ -41,7 +38,10 @@ import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 import fr.gouv.vitam.worker.common.HandlerIO;
 import fr.gouv.vitam.worker.common.utils.SedaUtils;
+import fr.gouv.vitam.worker.common.utils.SedaUtilsException;
 import fr.gouv.vitam.worker.common.utils.SedaUtilsFactory;
+
+import java.util.Map;
 
 /**
  * CheckVersionActionHandler handler class used to check the versions of DataObject in manifest
@@ -52,9 +52,10 @@ public class CheckVersionActionHandler extends ActionHandler {
 
     private static final String SUBTASK_PDO_DATAOBJECTIONVERSION_BINARYMASTER = "PDO_DATAOBJECTIONVERSION_BINARYMASTER";
     private static final String SUBTASK_BDO_DATAOBJECTIONVERSION_PHYSICALMASTER =
-        "BDO_DATAOBJECTIONVERSION_PHYSICALMASTER";
+            "BDO_DATAOBJECTIONVERSION_PHYSICALMASTER";
     private static final String SUBTASK_INVALID_DATAOBJECTVERSION = "INVALID_DATAOBJECTVERSION";
     private static final String SUBTASK_EMPTY_REQUIRED_FIELD = "EMPTY_REQUIRED_FIELD";
+    private static final String SUBTASK_INVALIDE_ALGO = "INVALIDE_ALGO";
 
     private static final String BDO_CONTAINS_OTHER_TYPE = "BinaryDataObjectContainsOtherType";
     private static final String PDO_CONTAINS_OTHER_TYPE = "PhysicalDataObjectContainsOtherType";
@@ -65,7 +66,7 @@ public class CheckVersionActionHandler extends ActionHandler {
 
 
     public CheckVersionActionHandler() {
-       this(SedaUtilsFactory.getInstance());
+        this(SedaUtilsFactory.getInstance());
     }
 
     @VisibleForTesting
@@ -101,27 +102,27 @@ public class CheckVersionActionHandler extends ActionHandler {
                 invalidVersionMap.forEach((key, value) -> {
                     if (key.endsWith(BDO_CONTAINS_OTHER_TYPE)) {
                         updateDetailItemStatus(itemStatus,
-                            getMessageItemStatusUsageError(SedaConstants.TAG_BINARY_DATA_OBJECT, key, value),
-                            SUBTASK_BDO_DATAOBJECTIONVERSION_PHYSICALMASTER);
+                                getMessageItemStatusUsageError(SedaConstants.TAG_BINARY_DATA_OBJECT, key, value),
+                                SUBTASK_BDO_DATAOBJECTIONVERSION_PHYSICALMASTER);
                     } else if (key.endsWith(PDO_CONTAINS_OTHER_TYPE)) {
                         updateDetailItemStatus(itemStatus,
-                            getMessageItemStatusUsageError(SedaConstants.TAG_PHYSICAL_DATA_OBJECT, key, value),
-                            SUBTASK_PDO_DATAOBJECTIONVERSION_BINARYMASTER);
+                                getMessageItemStatusUsageError(SedaConstants.TAG_PHYSICAL_DATA_OBJECT, key, value),
+                                SUBTASK_PDO_DATAOBJECTIONVERSION_BINARYMASTER);
                     } else if (key.endsWith(INCORRECT_VERSION_FORMAT)) {
                         updateDetailItemStatus(itemStatus,
-                            getMessageItemStatusUsageError(
-                                key.contains(SedaConstants.TAG_BINARY_DATA_OBJECT)
-                                    ? SedaConstants.TAG_BINARY_DATA_OBJECT : SedaConstants.TAG_PHYSICAL_DATA_OBJECT,
-                                key, value),
-                            SUBTASK_INVALID_DATAOBJECTVERSION);
+                                getMessageItemStatusUsageError(
+                                        key.contains(SedaConstants.TAG_BINARY_DATA_OBJECT)
+                                                ? SedaConstants.TAG_BINARY_DATA_OBJECT : SedaConstants.TAG_PHYSICAL_DATA_OBJECT,
+                                        key, value),
+                                SUBTASK_INVALID_DATAOBJECTVERSION);
                     } else if (key.endsWith(INCORRECT_URI)) {
                         updateDetailItemStatus(itemStatus,
-                            getMessageItemStatusUsageError(SedaConstants.TAG_BINARY_DATA_OBJECT, key, value),
-                            SUBTASK_EMPTY_REQUIRED_FIELD);
+                                getMessageItemStatusUsageError(SedaConstants.TAG_BINARY_DATA_OBJECT, key, value),
+                                SUBTASK_EMPTY_REQUIRED_FIELD);
                     } else if (key.endsWith(INCORRECT_PHYSICAL_ID)) {
                         updateDetailItemStatus(itemStatus,
-                            getMessageItemStatusUsageError(SedaConstants.TAG_PHYSICAL_DATA_OBJECT, key, value),
-                            SUBTASK_EMPTY_REQUIRED_FIELD);
+                                getMessageItemStatusUsageError(SedaConstants.TAG_PHYSICAL_DATA_OBJECT, key, value),
+                                SUBTASK_EMPTY_REQUIRED_FIELD);
                     }
                 });
 
@@ -129,6 +130,15 @@ public class CheckVersionActionHandler extends ActionHandler {
             } else {
                 itemStatus.increment(StatusCode.OK);
             }
+        } catch (final SedaUtilsException e) {
+            ObjectNode errorDetail = JsonHandler.createObjectNode();
+            errorDetail.put("Error", e.getMessage());
+
+            updateDetailItemStatus(itemStatus,
+                    JsonHandler.unprettyPrint(errorDetail),
+                    SUBTASK_INVALIDE_ALGO);
+
+            itemStatus.increment(StatusCode.KO);
         } catch (final ProcessingException e) {
             LOGGER.error(e);
             itemStatus.increment(StatusCode.FATAL);
@@ -137,10 +147,10 @@ public class CheckVersionActionHandler extends ActionHandler {
     }
 
     private String getMessageItemStatusUsageError(final String typeDataObject, final String key,
-        final String errorVersion) {
+                                                  final String errorVersion) {
         ObjectNode errorDetail = JsonHandler.createObjectNode();
         errorDetail.put(typeDataObject, errorVersion +
-            (key.contains("_") ? (" - " + key.split("_")[0]) : ""));
+                (key.contains("_") ? (" - " + key.split("_")[0]) : ""));
         return JsonHandler.unprettyPrint(errorDetail);
     }
 

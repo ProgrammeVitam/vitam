@@ -1,0 +1,10 @@
+{
+  "$schema": "http://vitam-json-schema.org/draft-04/schema#",
+  "id": "http://example.com/root.json",
+  "type": "object",
+  "properties": {
+    "_id": {
+      "type": "string"
+    }
+  }
+}

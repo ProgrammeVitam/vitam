@@ -43,13 +43,15 @@ import fr.gouv.vitam.common.model.*;
 import fr.gouv.vitam.common.server.application.resources.ApplicationStatusResource;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.functional.administration.common.server.AccessionRegisterSymbolic;
-import fr.gouv.vitam.metadata.api.MetaData;
 import fr.gouv.vitam.metadata.api.exception.MetaDataAlreadyExistException;
 import fr.gouv.vitam.metadata.api.exception.MetaDataDocumentSizeException;
 import fr.gouv.vitam.metadata.api.exception.MetaDataExecutionException;
 import fr.gouv.vitam.metadata.api.exception.MetaDataNotFoundException;
 import fr.gouv.vitam.metadata.api.model.ObjectGroupPerOriginatingAgency;
+import fr.gouv.vitam.metadata.core.MetaDataImpl;
+import fr.gouv.vitam.metadata.core.model.UpdateUnit;
 import fr.gouv.vitam.metadata.core.rules.MetadataRuleService;
+import fr.gouv.vitam.metadata.core.validation.MetadataValidationException;
 import org.elasticsearch.ElasticsearchParseException;
 
 import javax.ws.rs.Consumes;
@@ -63,10 +65,10 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 import java.util.List;
-import java.util.Map;
 import java.util.stream.Collectors;
 
 import static javax.ws.rs.core.MediaType.APPLICATION_JSON;
+import static javax.ws.rs.core.Response.Status.FOUND;
 import static javax.ws.rs.core.Response.Status.INTERNAL_SERVER_ERROR;
 import static javax.ws.rs.core.Response.Status.OK;
 
@@ -84,7 +86,7 @@ public class MetadataResource extends ApplicationStatusResource {
     private static final String ACCESS = "ACCESS";
     private static final String CODE_VITAM = "code_vitam";
 
-    private final MetaData metaData;
+    private final MetaDataImpl metaData;
     private final MetadataRuleService metadataRuleService;
 
     /**
@@ -93,7 +95,7 @@ public class MetadataResource extends ApplicationStatusResource {
      * @param metaData
      * @param metadataRuleService
      */
-    public MetadataResource(MetaData metaData,
+    public MetadataResource(MetaDataImpl metaData,
         MetadataRuleService metadataRuleService) {
         this.metaData = metaData;
         this.metadataRuleService = metadataRuleService;
@@ -114,7 +116,7 @@ public class MetadataResource extends ApplicationStatusResource {
         Status status;
         try {
             metaData.insertUnit(insertRequest);
-        } catch (final VitamDBException | MetaDataExecutionException ve) {
+        } catch (final MetaDataExecutionException ve) {
             LOGGER.error(ve);
             status = Status.INTERNAL_SERVER_ERROR;
             return Response.status(status)
@@ -147,16 +149,6 @@ public class MetadataResource extends ApplicationStatusResource {
         } catch (final MetaDataAlreadyExistException e) {
             LOGGER.error(e);
             status = Status.CONFLICT;
-            return Response.status(status)
-                .entity(new VitamError(status.name()).setHttpCode(status.getStatusCode())
-                    .setContext(INGEST)
-                    .setState(CODE_VITAM)
-                    .setMessage(status.getReasonPhrase())
-                    .setDescription(e.getMessage()))
-                .build();
-        } catch (final MetaDataDocumentSizeException e) {
-            LOGGER.error(e);
-            status = Status.REQUEST_ENTITY_TOO_LARGE;
             return Response.status(status)
                 .entity(new VitamError(status.name()).setHttpCode(status.getStatusCode())
                     .setContext(INGEST)
@@ -187,7 +179,7 @@ public class MetadataResource extends ApplicationStatusResource {
         Status status;
         try {
             metaData.insertUnits(jsonNodes);
-        } catch (final VitamDBException | MetaDataExecutionException ve) {
+        } catch (final MetaDataExecutionException ve) {
             LOGGER.error(ve);
             status = Status.INTERNAL_SERVER_ERROR;
             return Response.status(status)
@@ -220,16 +212,6 @@ public class MetadataResource extends ApplicationStatusResource {
         } catch (final MetaDataAlreadyExistException e) {
             LOGGER.error(e);
             status = Status.CONFLICT;
-            return Response.status(status)
-                .entity(new VitamError(status.name()).setHttpCode(status.getStatusCode())
-                    .setContext(INGEST)
-                    .setState(CODE_VITAM)
-                    .setMessage(status.getReasonPhrase())
-                    .setDescription(e.getMessage()))
-                .build();
-        } catch (final MetaDataDocumentSizeException e) {
-            LOGGER.error(e);
-            status = Status.REQUEST_ENTITY_TOO_LARGE;
             return Response.status(status)
                 .entity(new VitamError(status.name()).setHttpCode(status.getStatusCode())
                     .setContext(INGEST)
@@ -263,7 +245,7 @@ public class MetadataResource extends ApplicationStatusResource {
     @Produces(APPLICATION_JSON)
     public Response updateUnitBulk(JsonNode updateQuery) {
         Status status;
-        RequestResponse<JsonNode> result;
+        RequestResponse<UpdateUnit> result;
         try {
             result = metaData.updateUnits(updateQuery);
         } catch (final InvalidParseOperationException e) {
@@ -288,37 +270,17 @@ public class MetadataResource extends ApplicationStatusResource {
 
     /**
      * Update unit rules with json request
-     * @param updateInfo the update request in JsonNode format including query and rules
+     * @param batchRulesUpdateInfo the update rule request
      * @return Response
      */
     @Path("units/updaterulesbulk")
     @POST
     @Consumes(APPLICATION_JSON)
     @Produces(APPLICATION_JSON)
-    public Response updateUnitsRulesBulk(JsonNode updateInfo) {
-        Status status;
-        RequestResponse<JsonNode> result;
-        RequestResponseOK responseOK;
-        try {
-            BatchRulesUpdateInfo batchRulesUpdateInfo = JsonHandler.getFromJsonNode(updateInfo, BatchRulesUpdateInfo.class);
-            JsonNode updateQuery = batchRulesUpdateInfo.getQueryAction();
-            Map<String, DurationData> bindRuleToDuration = batchRulesUpdateInfo.getRulesToDurationData();
-            result = metaData.updateUnitsRules(updateQuery, bindRuleToDuration);
-            responseOK = new RequestResponseOK(updateQuery);
-        } catch (final InvalidParseOperationException e) {
-            LOGGER.error(e);
-            status = Status.BAD_REQUEST;
-            return Response.status(status)
-                    .entity(new VitamError(status.name()).setHttpCode(status.getStatusCode())
-                            .setContext(INGEST)
-                            .setState(CODE_VITAM)
-                            .setMessage(status.getReasonPhrase())
-                            .setDescription(e.getMessage()))
-                    .build();
-        }
+    public Response updateUnitsRulesBulk(BatchRulesUpdateInfo batchRulesUpdateInfo) {
 
-        responseOK.setHits(1, 0, 1)
-                .setHttpCode(Status.OK.getStatusCode());
+        RequestResponse<UpdateUnit> result = metaData.updateUnitsRules(batchRulesUpdateInfo.getUnitIds(),
+            batchRulesUpdateInfo.getRuleActions(), batchRulesUpdateInfo.getRulesToDurationData());
 
         return Response.status(Status.OK)
                 .entity(result)
@@ -559,31 +521,13 @@ public class MetadataResource extends ApplicationStatusResource {
     @PUT
     @Consumes(APPLICATION_JSON)
     @Produces(APPLICATION_JSON)
-    public Response updateUnitbyId(JsonNode updateRequest, @PathParam("id_unit") String unitId) {
+    public Response updateUnitById(JsonNode updateRequest, @PathParam("id_unit") String unitId) {
         Status status;
         try {
-            RequestResponse<JsonNode> result;
-            try {
-                result = metaData.updateUnitbyId(updateRequest, unitId);
-            } catch (final VitamDBException ve) {
-                LOGGER.error(ve);
-                status = Status.INTERNAL_SERVER_ERROR;
-                return Response.status(status)
-                    .entity(new VitamError(status.name()).setHttpCode(status.getStatusCode())
-                        .setContext(ACCESS)
-                        .setState(CODE_VITAM)
-                        .setMessage(status.getReasonPhrase())
-                        .setDescription(ve.getMessage()))
-                    .build();
-            }
-            int st = result.isOk() ? Status.FOUND.getStatusCode() : result.getHttpCode();
-            if (result.isOk()) {
-                RequestResponseOK<JsonNode> resultOK = (RequestResponseOK<JsonNode>) result;
-                if (resultOK.getHits().getTotal() == 0) {
-                    throw new MetaDataNotFoundException("Unit not found");
-                }
-            }
-            return Response.status(st).entity(result.setHttpCode(st)).build();
+            UpdateUnit result = metaData.updateUnitById(updateRequest, unitId);
+
+            return Response.ok(new RequestResponseOK<UpdateUnit>().addResult(result)
+                .setHttpCode(Status.OK.getStatusCode())).build();
 
         } catch (final InvalidParseOperationException e) {
             LOGGER.error(e);
@@ -595,18 +539,8 @@ public class MetadataResource extends ApplicationStatusResource {
                     .setMessage(status.getReasonPhrase())
                     .setDescription(e.getMessage()))
                 .build();
-        } catch (final MetaDataExecutionException | SchemaValidationException | ArchiveUnitOntologyValidationException e) {
+        } catch (final MetaDataExecutionException | MetadataValidationException e) {
             return metadataExecutionExceptionTrace(e);
-        } catch (final MetaDataDocumentSizeException e) {
-            LOGGER.error(e);
-            status = Status.REQUEST_ENTITY_TOO_LARGE;
-            return Response.status(status)
-                .entity(new VitamError(status.name()).setHttpCode(status.getStatusCode())
-                    .setContext(ACCESS)
-                    .setState(CODE_VITAM)
-                    .setMessage(e.getMessage())
-                    .setDescription(status.getReasonPhrase()))
-                .build();
         } catch (MetaDataNotFoundException e) {
             LOGGER.error(e);
             status = Status.NOT_FOUND;
@@ -626,7 +560,7 @@ public class MetadataResource extends ApplicationStatusResource {
     private Response selectUnitById(JsonNode selectRequest, String unitId) {
         Status status;
         try {
-            RequestResponse<JsonNode> result = null;
+            RequestResponse<JsonNode> result;
             try {
                 result = metaData.selectUnitsById(selectRequest, unitId);
             } catch (final VitamDBException ve) {
@@ -744,16 +678,6 @@ public class MetadataResource extends ApplicationStatusResource {
                     .setMessage(status.getReasonPhrase())
                     .setDescription(e.getMessage()))
                 .build();
-        } catch (final MetaDataDocumentSizeException e) {
-            LOGGER.error(e);
-            status = Status.REQUEST_ENTITY_TOO_LARGE;
-            return Response.status(status)
-                .entity(new VitamError(status.name()).setHttpCode(status.getStatusCode())
-                    .setContext(INGEST)
-                    .setState(CODE_VITAM)
-                    .setMessage(status.getReasonPhrase())
-                    .setDescription(e.getMessage()))
-                .build();
         }
 
         return Response.status(Status.CREATED)
@@ -800,16 +724,6 @@ public class MetadataResource extends ApplicationStatusResource {
         } catch (final MetaDataExecutionException e) {
             LOGGER.error(e);
             status = Status.INTERNAL_SERVER_ERROR;
-            return Response.status(status)
-                .entity(new VitamError(status.name()).setHttpCode(status.getStatusCode())
-                    .setContext(INGEST)
-                    .setState(CODE_VITAM)
-                    .setMessage(status.getReasonPhrase())
-                    .setDescription(e.getMessage()))
-                .build();
-        } catch (final MetaDataDocumentSizeException e) {
-            LOGGER.error(e);
-            status = Status.REQUEST_ENTITY_TOO_LARGE;
             return Response.status(status)
                 .entity(new VitamError(status.name()).setHttpCode(status.getStatusCode())
                     .setContext(INGEST)
@@ -887,20 +801,14 @@ public class MetadataResource extends ApplicationStatusResource {
                 .build();
         }
         try {
-            try {
-                metaData.updateObjectGroupId(updateRequest, objectGroupId);
-            } catch (final VitamDBException ve) {
-                LOGGER.error(ve);
-                status = Status.INTERNAL_SERVER_ERROR;
-                return Response.status(status)
-                    .entity(new VitamError(status.name()).setHttpCode(status.getStatusCode())
-                        .setContext(METADATA)
-                        .setState(CODE_VITAM)
-                        .setMessage(status.getReasonPhrase())
-                        .setDescription(ve.getMessage()))
-                    .build();
-            }
-        } catch (final InvalidParseOperationException e) {
+            metaData.updateObjectGroupId(updateRequest, objectGroupId);
+
+            return Response.status(Status.CREATED)
+                .entity(new RequestResponseOK<String>().addResult(objectGroupId)
+                    .setHttpCode(Status.CREATED.getStatusCode()))
+                .build();
+
+        } catch (final InvalidParseOperationException  e) {
             LOGGER.error(e);
             status = Status.BAD_REQUEST;
             return Response.status(status)
@@ -910,9 +818,11 @@ public class MetadataResource extends ApplicationStatusResource {
                     .setMessage(status.getReasonPhrase())
                     .setDescription(e.getMessage()))
                 .build();
-        } catch (MetaDataExecutionException e) {
-            LOGGER.error(e);
-            status = Status.EXPECTATION_FAILED;
+        } catch (final MetaDataExecutionException | MetadataValidationException e) {
+            return metadataExecutionExceptionTrace(e);
+        } catch (MetaDataNotFoundException e) {
+            LOGGER.error("Object group not found " + objectGroupId, e);
+            status = Status.NOT_FOUND;
             return Response.status(status)
                 .entity(new VitamError(status.name()).setHttpCode(status.getStatusCode())
                     .setContext(METADATA)
@@ -921,11 +831,6 @@ public class MetadataResource extends ApplicationStatusResource {
                     .setDescription(e.getMessage()))
                 .build();
         }
-        return Response.status(Status.CREATED)
-            .entity(new RequestResponseOK<String>(updateRequest).addResult(objectGroupId)
-                .setHttpCode(Status.CREATED.getStatusCode()))
-            .build();
-
     }
 
     /**
@@ -934,7 +839,7 @@ public class MetadataResource extends ApplicationStatusResource {
     private Response selectObjectGroupById(JsonNode selectRequest, String objectGroupId) {
         Status status;
         try {
-            RequestResponse<JsonNode> result = null;
+            RequestResponse<JsonNode> result;
             try {
                 result = metaData.selectObjectGroupById(selectRequest, objectGroupId);
             } catch (final VitamDBException ve) {

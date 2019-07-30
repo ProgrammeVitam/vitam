@@ -333,6 +333,11 @@ public final class RequestResponseOK<T> extends RequestResponse<T> {
         return null;
     }
 
+    public RequestResponseOK<T> setHttpCode(int httpCode) {
+        super.setHttpCode(httpCode);
+        return this;
+    }
+
     /**
      * transform a RequestResponse to a standard response
      *

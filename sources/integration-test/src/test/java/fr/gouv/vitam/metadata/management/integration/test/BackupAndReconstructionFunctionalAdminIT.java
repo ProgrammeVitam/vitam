@@ -26,14 +26,6 @@
  */
 package fr.gouv.vitam.metadata.management.integration.test;
 
-import static fr.gouv.vitam.common.guid.GUIDFactory.newOperationLogbookGUID;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.Assert.assertEquals;
-
-import java.io.File;
-import java.util.List;
-import java.util.Optional;
-
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
@@ -81,6 +73,14 @@ import org.junit.BeforeClass;
 import org.junit.ClassRule;
 import org.junit.Test;
 
+import java.io.File;
+import java.util.List;
+import java.util.Optional;
+
+import static fr.gouv.vitam.common.guid.GUIDFactory.newOperationLogbookGUID;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.Assert.assertEquals;
+
 /**
  * Integration tests for the reconstruction services. <br/>
  */
@@ -91,7 +91,7 @@ public class BackupAndReconstructionFunctionalAdminIT extends VitamRuleRunner {
         new VitamServerRunner(BackupAndReconstructionFunctionalAdminIT.class, mongoRule.getMongoDatabase().getName(),
             elasticsearchRule.getClusterName(),
             Sets.newHashSet(
-                    MetadataMain.class,
+                MetadataMain.class,
                 LogbookMain.class,
                 WorkspaceMain.class,
                 StorageMain.class,
@@ -118,11 +118,11 @@ public class BackupAndReconstructionFunctionalAdminIT extends VitamRuleRunner {
     private static final String SECURITY_PROFILE_IDENTIFIER_2 = "SEC_PROFILE-000002";
 
     private static final String ACCESSION_REGISTER_DETAIL_DATA_1 =
-            "functional-admin/accession-register/accession-register-detail-1.json";
+        "functional-admin/accession-register/accession-register-detail-1.json";
     private static final String ACCESSION_REGISTER_DETAIL_DATA_2 =
-            "functional-admin/accession-register/accession-register-detail-2.json";
+        "functional-admin/accession-register/accession-register-detail-2.json";
     private static final String ACCESSION_REGISTER_DETAIL_DATA_3 =
-            "functional-admin/accession-register/accession-register-detail-3.json";
+        "functional-admin/accession-register/accession-register-detail-3.json";
 
     @BeforeClass
     public static void beforeClass() throws Exception {
@@ -166,10 +166,11 @@ public class BackupAndReconstructionFunctionalAdminIT extends VitamRuleRunner {
         OffsetRepository offsetRepository;
 
         MongoDbAccess mongoDbAccess =
-                new SimpleMongoDBAccess(mongoRule.getMongoClient(), mongoRule.getMongoDatabase().getName());
+            new SimpleMongoDBAccess(mongoRule.getMongoClient(), mongoRule.getMongoDatabase().getName());
         offsetRepository = new OffsetRepository(mongoDbAccess);
 
-        offsetRepository.createOrUpdateOffset(TENANT_1, FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL.getName(), 0L);
+        offsetRepository
+            .createOrUpdateOffset(TENANT_1, FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL.getName(), 0L);
 
         // Import 1 document agencies
         try (AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient()) {
@@ -208,7 +209,7 @@ public class BackupAndReconstructionFunctionalAdminIT extends VitamRuleRunner {
         assertThat(agencyDoc).isEmpty();
 
         ReconstructionServiceImpl reconstructionService =
-                new ReconstructionServiceImpl(vitamRepository, new RestoreBackupServiceImpl(), offsetRepository);
+            new ReconstructionServiceImpl(vitamRepository, new RestoreBackupServiceImpl(), offsetRepository);
 
         reconstructionService.reconstruct(FunctionalAdminCollections.AGENCIES, TENANT_0);
 
@@ -320,10 +321,11 @@ public class BackupAndReconstructionFunctionalAdminIT extends VitamRuleRunner {
         OffsetRepository offsetRepository;
 
         MongoDbAccess mongoDbAccess =
-                new SimpleMongoDBAccess(mongoRule.getMongoClient(), mongoRule.getMongoDatabase().getName());
+            new SimpleMongoDBAccess(mongoRule.getMongoClient(), mongoRule.getMongoDatabase().getName());
         offsetRepository = new OffsetRepository(mongoDbAccess);
 
-        offsetRepository.createOrUpdateOffset(TENANT_1, FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL.getName(), 0L);
+        offsetRepository
+            .createOrUpdateOffset(TENANT_1, FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL.getName(), 0L);
 
         // Import 1 document securityProfile.
         try (AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient()) {
@@ -366,7 +368,7 @@ public class BackupAndReconstructionFunctionalAdminIT extends VitamRuleRunner {
 
         // Reconstruction service
         ReconstructionServiceImpl reconstructionService =
-                new ReconstructionServiceImpl(vitamRepository, new RestoreBackupServiceImpl(), offsetRepository);
+            new ReconstructionServiceImpl(vitamRepository, new RestoreBackupServiceImpl(), offsetRepository);
         reconstructionService.reconstruct(FunctionalAdminCollections.SECURITY_PROFILE, TENANT_1);
 
         securityProfileyDoc = securityProfileMongo.findByIdentifier(SECURITY_PROFILE_IDENTIFIER_1);
@@ -482,22 +484,26 @@ public class BackupAndReconstructionFunctionalAdminIT extends VitamRuleRunner {
         OffsetRepository offsetRepository;
 
         MongoDbAccess mongoDbAccess =
-                new SimpleMongoDBAccess(mongoRule.getMongoClient(), mongoRule.getMongoDatabase().getName());
+            new SimpleMongoDBAccess(mongoRule.getMongoClient(), mongoRule.getMongoDatabase().getName());
         offsetRepository = new OffsetRepository(mongoDbAccess);
 
-        offsetRepository.createOrUpdateOffset(TENANT_1, FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL.getName(), 0L);
+        offsetRepository
+            .createOrUpdateOffset(TENANT_1, FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL.getName(), 0L);
 
         // Insert new register detail
         try (AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient()) {
-            register1 = JsonHandler.getFromInputStream(PropertiesUtils.getResourceAsStream(ACCESSION_REGISTER_DETAIL_DATA_1),
+            register1 =
+                JsonHandler.getFromInputStream(PropertiesUtils.getResourceAsStream(ACCESSION_REGISTER_DETAIL_DATA_1),
                     AccessionRegisterDetailModel.class);
             client.createorUpdateAccessionRegister(register1);
 
-            register2 = JsonHandler.getFromInputStream(PropertiesUtils.getResourceAsStream(ACCESSION_REGISTER_DETAIL_DATA_2),
+            register2 =
+                JsonHandler.getFromInputStream(PropertiesUtils.getResourceAsStream(ACCESSION_REGISTER_DETAIL_DATA_2),
                     AccessionRegisterDetailModel.class);
             client.createorUpdateAccessionRegister(register2);
 
-            register3 = JsonHandler.getFromInputStream(PropertiesUtils.getResourceAsStream(ACCESSION_REGISTER_DETAIL_DATA_3),
+            register3 =
+                JsonHandler.getFromInputStream(PropertiesUtils.getResourceAsStream(ACCESSION_REGISTER_DETAIL_DATA_3),
                     AccessionRegisterDetailModel.class);
             client.createorUpdateAccessionRegister(register3);
         }
@@ -505,16 +511,20 @@ public class BackupAndReconstructionFunctionalAdminIT extends VitamRuleRunner {
         final VitamRepositoryProvider vitamRepository = VitamRepositoryFactory.get();
 
         final VitamMongoRepository ardMongo =
-                vitamRepository.getVitamMongoRepository(FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL.getVitamCollection());
+            vitamRepository
+                .getVitamMongoRepository(FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL.getVitamCollection());
 
         final VitamElasticsearchRepository ardEs =
-                vitamRepository.getVitamESRepository(FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL.getVitamCollection());
+            vitamRepository
+                .getVitamESRepository(FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL.getVitamCollection());
 
         final VitamMongoRepository arsMongo =
-                vitamRepository.getVitamMongoRepository(FunctionalAdminCollections.ACCESSION_REGISTER_SUMMARY.getVitamCollection());
+            vitamRepository
+                .getVitamMongoRepository(FunctionalAdminCollections.ACCESSION_REGISTER_SUMMARY.getVitamCollection());
 
         final VitamElasticsearchRepository arsEs =
-                vitamRepository.getVitamESRepository(FunctionalAdminCollections.ACCESSION_REGISTER_SUMMARY.getVitamCollection());
+            vitamRepository
+                .getVitamESRepository(FunctionalAdminCollections.ACCESSION_REGISTER_SUMMARY.getVitamCollection());
 
         Optional<Document> registerDetailDoc = ardMongo.getByID(register1.getId(), TENANT_1);
         assertThat(registerDetailDoc).isNotNull();
@@ -562,12 +572,13 @@ public class BackupAndReconstructionFunctionalAdminIT extends VitamRuleRunner {
         assertThat(inMogo22Reconstructed.getString("Opc")).isEqualTo(register3.getOpc());
         assertThat(inMogo22Reconstructed.getString("EndDate")).isEqualTo(register3.getEndDate());
 
-        ArrayNode registerSummaryDocs = (ArrayNode)JsonHandler.toJsonNode(FunctionalAdminCollections.ACCESSION_REGISTER_SUMMARY.getCollection().find());
+        ArrayNode registerSummaryDocs = (ArrayNode) JsonHandler
+            .toJsonNode(FunctionalAdminCollections.ACCESSION_REGISTER_SUMMARY.getCollection().find());
 
         assertThat(registerSummaryDocs.size()).isEqualTo(2);
 
-        for(JsonNode doc : registerSummaryDocs) {
-            if(doc.get("OriginatingAgency").asText().equals("OG_1")) {
+        for (JsonNode doc : registerSummaryDocs) {
+            if (doc.get("OriginatingAgency").asText().equals("OG_1")) {
                 assertEquals("2000.0", doc.get("TotalObjectGroups").get("ingested").asText());
                 assertEquals("0.0", doc.get("TotalObjectGroups").get("deleted").asText());
                 assertEquals("2000.0", doc.get("TotalObjectGroups").get("remained").asText());
@@ -575,7 +586,7 @@ public class BackupAndReconstructionFunctionalAdminIT extends VitamRuleRunner {
                 assertEquals("19998.0", doc.get("ObjectSize").get("ingested").asText());
                 assertEquals("0.0", doc.get("ObjectSize").get("deleted").asText());
                 assertEquals("19998.0", doc.get("ObjectSize").get("remained").asText());
-            } else if(doc.get("OriginatingAgency").asText().equals("OG_2")) {
+            } else if (doc.get("OriginatingAgency").asText().equals("OG_2")) {
                 assertEquals("1000.0", doc.get("TotalObjectGroups").get("ingested").asText());
                 assertEquals("0.0", doc.get("TotalObjectGroups").get("deleted").asText());
                 assertEquals("1000.0", doc.get("TotalObjectGroups").get("remained").asText());
@@ -603,7 +614,7 @@ public class BackupAndReconstructionFunctionalAdminIT extends VitamRuleRunner {
 
         // Reconstruction service
         ReconstructionServiceImpl reconstructionService =
-                new ReconstructionServiceImpl(vitamRepository, new RestoreBackupServiceImpl(), offsetRepository);
+            new ReconstructionServiceImpl(vitamRepository, new RestoreBackupServiceImpl(), offsetRepository);
 
         // Reconstruct Accession Register Detail
         ReconstructionRequestItem reconstructionItem = new ReconstructionRequestItem();
@@ -636,12 +647,13 @@ public class BackupAndReconstructionFunctionalAdminIT extends VitamRuleRunner {
         assertThat(inMogo22Reconstructed.getString("Opc")).isEqualTo(register3.getOpc());
         assertThat(inMogo22Reconstructed.getString("EndDate")).isEqualTo(register3.getEndDate());
 
-        registerSummaryDocs = (ArrayNode)JsonHandler.toJsonNode(FunctionalAdminCollections.ACCESSION_REGISTER_SUMMARY.getCollection().find());
+        registerSummaryDocs = (ArrayNode) JsonHandler
+            .toJsonNode(FunctionalAdminCollections.ACCESSION_REGISTER_SUMMARY.getCollection().find());
 
         assertThat(registerSummaryDocs.size()).isEqualTo(2);
 
-        for(JsonNode doc : registerSummaryDocs) {
-            if(doc.get("OriginatingAgency").asText().equals("OG_1")) {
+        for (JsonNode doc : registerSummaryDocs) {
+            if (doc.get("OriginatingAgency").asText().equals("OG_1")) {
                 assertEquals("2000", doc.get("TotalObjectGroups").get("ingested").asText());
                 assertEquals("0", doc.get("TotalObjectGroups").get("deleted").asText());
                 assertEquals("2000", doc.get("TotalObjectGroups").get("remained").asText());
@@ -649,7 +661,7 @@ public class BackupAndReconstructionFunctionalAdminIT extends VitamRuleRunner {
                 assertEquals("19998", doc.get("ObjectSize").get("ingested").asText());
                 assertEquals("0", doc.get("ObjectSize").get("deleted").asText());
                 assertEquals("19998", doc.get("ObjectSize").get("remained").asText());
-            } else if(doc.get("OriginatingAgency").asText().equals("OG_2")) {
+            } else if (doc.get("OriginatingAgency").asText().equals("OG_2")) {
                 assertEquals("1000", doc.get("TotalObjectGroups").get("ingested").asText());
                 assertEquals("0", doc.get("TotalObjectGroups").get("deleted").asText());
                 assertEquals("1000", doc.get("TotalObjectGroups").get("remained").asText());
@@ -672,41 +684,46 @@ public class BackupAndReconstructionFunctionalAdminIT extends VitamRuleRunner {
         OffsetRepository offsetRepository;
 
         MongoDbAccess mongoDbAccess =
-                new SimpleMongoDBAccess(mongoRule.getMongoClient(), mongoRule.getMongoDatabase().getName());
+            new SimpleMongoDBAccess(mongoRule.getMongoClient(), mongoRule.getMongoDatabase().getName());
         offsetRepository = new OffsetRepository(mongoDbAccess);
 
-        offsetRepository.createOrUpdateOffset(TENANT_1, FunctionalAdminCollections.ACCESSION_REGISTER_SYMBOLIC.getName(), 0L);
+        offsetRepository
+            .createOrUpdateOffset(TENANT_1, FunctionalAdminCollections.ACCESSION_REGISTER_SYMBOLIC.getName(), 0L);
 
         initializeDbWithUnitAndObjectGroupData();
 
         // Compute Accession Register Symbolic
 
         try (AdminManagementClient adminManagementClient = AdminManagementClientFactory.getInstance().getClient()) {
-           adminManagementClient.createAccessionRegisterSymbolic(TENANT_1);
+            adminManagementClient.createAccessionRegisterSymbolic(TENANT_1);
         }
 
-        ArrayNode registerSymbolicDocs = (ArrayNode)JsonHandler.toJsonNode(FunctionalAdminCollections.ACCESSION_REGISTER_SYMBOLIC.getCollection().find());
+        ArrayNode registerSymbolicDocs = (ArrayNode) JsonHandler
+            .toJsonNode(FunctionalAdminCollections.ACCESSION_REGISTER_SYMBOLIC.getCollection().find());
 
         assertThat(registerSymbolicDocs.size()).isEqualTo(3);
         checkSymbolicRegisterResult(registerSymbolicDocs);
 
         final VitamRepositoryProvider vitamRepository = VitamRepositoryFactory.get();
         final VitamMongoRepository arsMongo =
-                vitamRepository.getVitamMongoRepository(FunctionalAdminCollections.ACCESSION_REGISTER_SYMBOLIC.getVitamCollection());
+            vitamRepository
+                .getVitamMongoRepository(FunctionalAdminCollections.ACCESSION_REGISTER_SYMBOLIC.getVitamCollection());
 
         final VitamElasticsearchRepository arsEs =
-                vitamRepository.getVitamESRepository(FunctionalAdminCollections.ACCESSION_REGISTER_SYMBOLIC.getVitamCollection());
+            vitamRepository
+                .getVitamESRepository(FunctionalAdminCollections.ACCESSION_REGISTER_SYMBOLIC.getVitamCollection());
 
         arsMongo.purge();
         arsEs.purge();
 
-        registerSymbolicDocs = (ArrayNode)JsonHandler.toJsonNode(FunctionalAdminCollections.ACCESSION_REGISTER_SYMBOLIC.getCollection().find());
+        registerSymbolicDocs = (ArrayNode) JsonHandler
+            .toJsonNode(FunctionalAdminCollections.ACCESSION_REGISTER_SYMBOLIC.getCollection().find());
 
         assertThat(registerSymbolicDocs.size()).isEqualTo(0);
 
         // Reconstruction service
         ReconstructionServiceImpl reconstructionService =
-                new ReconstructionServiceImpl(vitamRepository, new RestoreBackupServiceImpl(), offsetRepository);
+            new ReconstructionServiceImpl(vitamRepository, new RestoreBackupServiceImpl(), offsetRepository);
 
         // Reconstruct Accession Register Detail
         ReconstructionRequestItem reconstructionItem = new ReconstructionRequestItem();
@@ -715,7 +732,8 @@ public class BackupAndReconstructionFunctionalAdminIT extends VitamRuleRunner {
         reconstructionItem.setLimit(1000);
         reconstructionService.reconstruct(reconstructionItem);
 
-        registerSymbolicDocs = (ArrayNode)JsonHandler.toJsonNode(FunctionalAdminCollections.ACCESSION_REGISTER_SYMBOLIC.getCollection().find());
+        registerSymbolicDocs = (ArrayNode) JsonHandler
+            .toJsonNode(FunctionalAdminCollections.ACCESSION_REGISTER_SYMBOLIC.getCollection().find());
 
         assertThat(registerSymbolicDocs.size()).isEqualTo(3);
         checkSymbolicRegisterResult(registerSymbolicDocs);
@@ -723,11 +741,11 @@ public class BackupAndReconstructionFunctionalAdminIT extends VitamRuleRunner {
     }
 
     private void checkSymbolicRegisterResult(ArrayNode docs) {
-        for(JsonNode doc : docs) {
-            if(doc.get("OriginatingAgency").asText().equals("OA1")) {
+        for (JsonNode doc : docs) {
+            if (doc.get("OriginatingAgency").asText().equals("OA1")) {
                 assertThat(doc.get("_tenant").asText().equals(String.valueOf(TENANT_1)));
                 assertThat(doc.get("ArchiveUnit").asText().equals(String.valueOf(4)));
-            } else if(doc.get("OriginatingAgency").asText().equals("OA2")) {
+            } else if (doc.get("OriginatingAgency").asText().equals("OA2")) {
                 assertThat(doc.get("_tenant").asText().equals(String.valueOf(TENANT_1)));
                 assertThat(doc.get("ArchiveUnit").asText().equals(String.valueOf(2)));
             } else {
@@ -740,96 +758,96 @@ public class BackupAndReconstructionFunctionalAdminIT extends VitamRuleRunner {
     private void initializeDbWithUnitAndObjectGroupData() throws DatabaseException {
         // Create units with or without graph data
         Document au1 = new Document(Unit.ID, "AU_1")
-                .append(Unit.MAXDEPTH, 1)
-                .append(Unit.TENANT_ID, 1)
-                .append(Unit.UP, Lists.newArrayList())
-                .append("fakefake", "fakefake")
-                .append(Unit.GRAPH_LAST_PERSISTED_DATE, LocalDateUtil.getFormattedDateForMongo(LocalDateUtil.now()))
-                .append(Unit.ORIGINATING_AGENCY, "OA1").append(Unit.ORIGINATING_AGENCIES, Lists.newArrayList("OA1"));
+            .append(Unit.MAXDEPTH, 1)
+            .append(Unit.TENANT_ID, 1)
+            .append(Unit.UP, Lists.newArrayList())
+            .append("fakefake", "fakefake")
+            .append(Unit.GRAPH_LAST_PERSISTED_DATE, LocalDateUtil.getFormattedDateForMongo(LocalDateUtil.now()))
+            .append(Unit.ORIGINATING_AGENCY, "OA1").append(Unit.ORIGINATING_AGENCIES, Lists.newArrayList("OA1"));
 
         Document au2 = new Document(Unit.ID, "AU_2")
-                .append(Unit.MAXDEPTH, 1)
-                .append(Unit.TENANT_ID, 1)
-                .append(Unit.UP, Lists.newArrayList())
-                .append("fakefake", "fakefake")
-                .append(Unit.GRAPH_LAST_PERSISTED_DATE, LocalDateUtil.getFormattedDateForMongo(LocalDateUtil.now()))
-                .append(Unit.ORIGINATING_AGENCY, "OA2").append(Unit.ORIGINATING_AGENCIES, Lists.newArrayList("OA2"));
+            .append(Unit.MAXDEPTH, 1)
+            .append(Unit.TENANT_ID, 1)
+            .append(Unit.UP, Lists.newArrayList())
+            .append("fakefake", "fakefake")
+            .append(Unit.GRAPH_LAST_PERSISTED_DATE, LocalDateUtil.getFormattedDateForMongo(LocalDateUtil.now()))
+            .append(Unit.ORIGINATING_AGENCY, "OA2").append(Unit.ORIGINATING_AGENCIES, Lists.newArrayList("OA2"));
 
         Document au3 =
-                new Document(Unit.ID, "AU_3")
-                        .append(Unit.MAXDEPTH, 1)
-                        .append(Unit.TENANT_ID, 1)
-                        .append(Unit.OG, "GOT_8")
-                        .append(Unit.UP, Lists.newArrayList("AU_1"))
-                        .append(Unit.GRAPH_LAST_PERSISTED_DATE, LocalDateUtil.getFormattedDateForMongo(LocalDateUtil.now()))
-                        .append(Unit.ORIGINATING_AGENCY, "OA1").append(Unit.ORIGINATING_AGENCIES,
-                        Lists.newArrayList("OA1"));
-
-        Document au4 = new Document(Unit.ID, "AU_4")
-                .append(Unit.MAXDEPTH, 1)
-                .append(Unit.TENANT_ID, 1)
-                .append(Unit.OG, "GOT_4")
-                .append(Unit.UP, Lists.newArrayList("AU_1", "AU_2"))
-                .append("fakefake", "fakefake")
-                .append(Unit.GRAPH_LAST_PERSISTED_DATE, LocalDateUtil.getFormattedDateForMongo(LocalDateUtil.now()))
-                .append(Unit.ORIGINATING_AGENCY, "OA4").append(Unit.ORIGINATING_AGENCIES,
-                        Lists.newArrayList("OA4", "OA1", "OA2"));
-
-        Document au5 = new Document(Unit.ID, "AU_5")
-                .append(Unit.MAXDEPTH, 1)
-                .append(Unit.TENANT_ID, 1)
-                .append(Unit.UP, Lists.newArrayList("AU_2"))
-                .append("fakefake", "fakefake")
-                .append(Unit.GRAPH_LAST_PERSISTED_DATE, LocalDateUtil.getFormattedDateForMongo(LocalDateUtil.now()))
-                .append(Unit.ORIGINATING_AGENCY, "OA2").append(Unit.ORIGINATING_AGENCIES, Lists.newArrayList("OA2"));
-
-        Document au6 = new Document(Unit.ID, "AU_6")
-                .append(Unit.MAXDEPTH, 1)
-                .append(Unit.TENANT_ID, 1)
-                .append(Unit.OG, "GOT_6")
-                .append(Unit.UP, Lists.newArrayList("AU_2", "AU_5"))
-                .append(Unit.ORIGINATING_AGENCY, "OA2")
-                .append(Unit.GRAPH_LAST_PERSISTED_DATE, LocalDateUtil.getFormattedDateForMongo(LocalDateUtil.now()))
-                .append(Unit.ORIGINATING_AGENCIES, Lists.newArrayList("OA2"));
-
-        Document au7 =
-                new Document(Unit.ID, "AU_7")
-                        .append(Unit.MAXDEPTH, 1)
-                        .append(Unit.TENANT_ID, 1)
-                        .append(Unit.OG, "GOT_8")
-                        .append(Unit.UP, Lists.newArrayList("AU_4"))
-                        .append(Unit.GRAPH_LAST_PERSISTED_DATE, LocalDateUtil.getFormattedDateForMongo(LocalDateUtil.now()))
-                        .append(Unit.ORIGINATING_AGENCY, "OA4").append(Unit.ORIGINATING_AGENCIES,
-                        Lists.newArrayList("OA4", "OA1", "OA2"));
-
-        Document au8 = new Document(Unit.ID, "AU_8")
+            new Document(Unit.ID, "AU_3")
                 .append(Unit.MAXDEPTH, 1)
                 .append(Unit.TENANT_ID, 1)
                 .append(Unit.OG, "GOT_8")
-                .append(Unit.UP, Lists.newArrayList("AU_6", "AU_4"))
-                .append("fakefake", "fakefake")
+                .append(Unit.UP, Lists.newArrayList("AU_1"))
                 .append(Unit.GRAPH_LAST_PERSISTED_DATE, LocalDateUtil.getFormattedDateForMongo(LocalDateUtil.now()))
-                .append(Unit.ORIGINATING_AGENCY, "OA2").append(Unit.ORIGINATING_AGENCIES,
-                        Lists.newArrayList("OA4", "OA1", "OA2"));
+                .append(Unit.ORIGINATING_AGENCY, "OA1").append(Unit.ORIGINATING_AGENCIES,
+                Lists.newArrayList("OA1"));
 
-        Document au9 = new Document(Unit.ID, "AU_9")
+        Document au4 = new Document(Unit.ID, "AU_4")
+            .append(Unit.MAXDEPTH, 1)
+            .append(Unit.TENANT_ID, 1)
+            .append(Unit.OG, "GOT_4")
+            .append(Unit.UP, Lists.newArrayList("AU_1", "AU_2"))
+            .append("fakefake", "fakefake")
+            .append(Unit.GRAPH_LAST_PERSISTED_DATE, LocalDateUtil.getFormattedDateForMongo(LocalDateUtil.now()))
+            .append(Unit.ORIGINATING_AGENCY, "OA4").append(Unit.ORIGINATING_AGENCIES,
+                Lists.newArrayList("OA4", "OA1", "OA2"));
+
+        Document au5 = new Document(Unit.ID, "AU_5")
+            .append(Unit.MAXDEPTH, 1)
+            .append(Unit.TENANT_ID, 1)
+            .append(Unit.UP, Lists.newArrayList("AU_2"))
+            .append("fakefake", "fakefake")
+            .append(Unit.GRAPH_LAST_PERSISTED_DATE, LocalDateUtil.getFormattedDateForMongo(LocalDateUtil.now()))
+            .append(Unit.ORIGINATING_AGENCY, "OA2").append(Unit.ORIGINATING_AGENCIES, Lists.newArrayList("OA2"));
+
+        Document au6 = new Document(Unit.ID, "AU_6")
+            .append(Unit.MAXDEPTH, 1)
+            .append(Unit.TENANT_ID, 1)
+            .append(Unit.OG, "GOT_6")
+            .append(Unit.UP, Lists.newArrayList("AU_2", "AU_5"))
+            .append(Unit.ORIGINATING_AGENCY, "OA2")
+            .append(Unit.GRAPH_LAST_PERSISTED_DATE, LocalDateUtil.getFormattedDateForMongo(LocalDateUtil.now()))
+            .append(Unit.ORIGINATING_AGENCIES, Lists.newArrayList("OA2"));
+
+        Document au7 =
+            new Document(Unit.ID, "AU_7")
                 .append(Unit.MAXDEPTH, 1)
                 .append(Unit.TENANT_ID, 1)
-                .append(Unit.OG, "GOT_9")
-                .append(Unit.UP, Lists.newArrayList("AU_5", "AU_6"))
-                .append("fakefake", "fakefake")
+                .append(Unit.OG, "GOT_8")
+                .append(Unit.UP, Lists.newArrayList("AU_4"))
                 .append(Unit.GRAPH_LAST_PERSISTED_DATE, LocalDateUtil.getFormattedDateForMongo(LocalDateUtil.now()))
-                .append(Unit.ORIGINATING_AGENCY, "OA2").append(Unit.ORIGINATING_AGENCIES, Lists.newArrayList("OA2"));
+                .append(Unit.ORIGINATING_AGENCY, "OA4").append(Unit.ORIGINATING_AGENCIES,
+                Lists.newArrayList("OA4", "OA1", "OA2"));
+
+        Document au8 = new Document(Unit.ID, "AU_8")
+            .append(Unit.MAXDEPTH, 1)
+            .append(Unit.TENANT_ID, 1)
+            .append(Unit.OG, "GOT_8")
+            .append(Unit.UP, Lists.newArrayList("AU_6", "AU_4"))
+            .append("fakefake", "fakefake")
+            .append(Unit.GRAPH_LAST_PERSISTED_DATE, LocalDateUtil.getFormattedDateForMongo(LocalDateUtil.now()))
+            .append(Unit.ORIGINATING_AGENCY, "OA2").append(Unit.ORIGINATING_AGENCIES,
+                Lists.newArrayList("OA4", "OA1", "OA2"));
+
+        Document au9 = new Document(Unit.ID, "AU_9")
+            .append(Unit.MAXDEPTH, 1)
+            .append(Unit.TENANT_ID, 1)
+            .append(Unit.OG, "GOT_9")
+            .append(Unit.UP, Lists.newArrayList("AU_5", "AU_6"))
+            .append("fakefake", "fakefake")
+            .append(Unit.GRAPH_LAST_PERSISTED_DATE, LocalDateUtil.getFormattedDateForMongo(LocalDateUtil.now()))
+            .append(Unit.ORIGINATING_AGENCY, "OA2").append(Unit.ORIGINATING_AGENCIES, Lists.newArrayList("OA2"));
 
         Document au10 =
-                new Document(Unit.ID, "AU_10")
-                        .append(Unit.MAXDEPTH, 1)
-                        .append(Unit.TENANT_ID, 1)
-                        .append(Unit.OG, "GOT_10")
-                        .append(Unit.UP, Lists.newArrayList("AU_8", "AU_9"))
-                        .append(Unit.GRAPH_LAST_PERSISTED_DATE, LocalDateUtil.getFormattedDateForMongo(LocalDateUtil.now()))
-                        .append(Unit.ORIGINATING_AGENCY, "OA2").append(Unit.ORIGINATING_AGENCIES,
-                        Lists.newArrayList("OA4", "OA1", "OA2"));
+            new Document(Unit.ID, "AU_10")
+                .append(Unit.MAXDEPTH, 1)
+                .append(Unit.TENANT_ID, 1)
+                .append(Unit.OG, "GOT_10")
+                .append(Unit.UP, Lists.newArrayList("AU_8", "AU_9"))
+                .append(Unit.GRAPH_LAST_PERSISTED_DATE, LocalDateUtil.getFormattedDateForMongo(LocalDateUtil.now()))
+                .append(Unit.ORIGINATING_AGENCY, "OA2").append(Unit.ORIGINATING_AGENCIES,
+                Lists.newArrayList("OA4", "OA1", "OA2"));
 
         List<Document> units = Lists.newArrayList(au1, au2, au3, au4, au5, au6, au7, au8, au9, au10);
         VitamRepositoryFactory.get().getVitamMongoRepository(MetadataCollections.UNIT.getVitamCollection()).save(units);
@@ -839,44 +857,44 @@ public class BackupAndReconstructionFunctionalAdminIT extends VitamRuleRunner {
         // Create corresponding ObjectGroup (only 4 GOT subject of compute graph as no _glpd defined on them)
         ///////////////////////////////////////////////
         Document got4 = new Document(ObjectGroup.ID, "GOT_4")
-                .append(Unit.TENANT_ID, 1)
-                .append(ObjectGroup.UP, Lists.newArrayList("AU_4"))
-                .append(ObjectGroup.ORIGINATING_AGENCY, "OA4")
-                .append(Unit.GRAPH_LAST_PERSISTED_DATE, LocalDateUtil.getFormattedDateForMongo(LocalDateUtil.now()))
-                .append(ObjectGroup.ORIGINATING_AGENCIES, Lists.newArrayList("OA4"));
+            .append(Unit.TENANT_ID, 1)
+            .append(ObjectGroup.UP, Lists.newArrayList("AU_4"))
+            .append(ObjectGroup.ORIGINATING_AGENCY, "OA4")
+            .append(Unit.GRAPH_LAST_PERSISTED_DATE, LocalDateUtil.getFormattedDateForMongo(LocalDateUtil.now()))
+            .append(ObjectGroup.ORIGINATING_AGENCIES, Lists.newArrayList("OA4"));
 
         // Got 6 have Graph Data
         Document got6 = new Document(ObjectGroup.ID, "GOT_6")
-                .append(Unit.TENANT_ID, 1)
-                .append(ObjectGroup.GRAPH_LAST_PERSISTED_DATE, LocalDateUtil.getFormattedDateForMongo(LocalDateUtil.now()))
-                .append(ObjectGroup.UP, Lists.newArrayList("AU_6"))
-                .append(ObjectGroup.ORIGINATING_AGENCY, "OA2").append(ObjectGroup.ORIGINATING_AGENCIES,
-                        Lists.newArrayList("OA4", "OA1", "OA2"));
+            .append(Unit.TENANT_ID, 1)
+            .append(ObjectGroup.GRAPH_LAST_PERSISTED_DATE, LocalDateUtil.getFormattedDateForMongo(LocalDateUtil.now()))
+            .append(ObjectGroup.UP, Lists.newArrayList("AU_6"))
+            .append(ObjectGroup.ORIGINATING_AGENCY, "OA2").append(ObjectGroup.ORIGINATING_AGENCIES,
+                Lists.newArrayList("OA4", "OA1", "OA2"));
 
         //Unit "AU_8", "AU_3", "AU_7" attached to got 8
         Document got8 = new Document(ObjectGroup.ID, "GOT_8")
-                .append(Unit.TENANT_ID, 1)
-                .append(ObjectGroup.UP, Lists.newArrayList("AU_8", "AU_3", "AU_7"))
-                .append(Unit.GRAPH_LAST_PERSISTED_DATE, LocalDateUtil.getFormattedDateForMongo(LocalDateUtil.now()))
-                .append(ObjectGroup.ORIGINATING_AGENCY, "OA2");
+            .append(Unit.TENANT_ID, 1)
+            .append(ObjectGroup.UP, Lists.newArrayList("AU_8", "AU_3", "AU_7"))
+            .append(Unit.GRAPH_LAST_PERSISTED_DATE, LocalDateUtil.getFormattedDateForMongo(LocalDateUtil.now()))
+            .append(ObjectGroup.ORIGINATING_AGENCY, "OA2");
 
         Document got9 = new Document(ObjectGroup.ID, "GOT_9")
-                .append(Unit.TENANT_ID, 1)
-                .append(ObjectGroup.UP, Lists.newArrayList("AU_9"))
-                .append(Unit.GRAPH_LAST_PERSISTED_DATE, LocalDateUtil.getFormattedDateForMongo(LocalDateUtil.now()))
-                .append(ObjectGroup.ORIGINATING_AGENCY, "OA2");
+            .append(Unit.TENANT_ID, 1)
+            .append(ObjectGroup.UP, Lists.newArrayList("AU_9"))
+            .append(Unit.GRAPH_LAST_PERSISTED_DATE, LocalDateUtil.getFormattedDateForMongo(LocalDateUtil.now()))
+            .append(ObjectGroup.ORIGINATING_AGENCY, "OA2");
 
         Document got10 =
-                new Document(ObjectGroup.ID, "GOT_10")
-                        .append(Unit.TENANT_ID, 1)
-                        .append(ObjectGroup.UP, Lists.newArrayList("AU_10"))
-                        .append(Unit.GRAPH_LAST_PERSISTED_DATE, LocalDateUtil.getFormattedDateForMongo(LocalDateUtil.now()))
-                        .append(ObjectGroup.ORIGINATING_AGENCY, "OA2");
+            new Document(ObjectGroup.ID, "GOT_10")
+                .append(Unit.TENANT_ID, 1)
+                .append(ObjectGroup.UP, Lists.newArrayList("AU_10"))
+                .append(Unit.GRAPH_LAST_PERSISTED_DATE, LocalDateUtil.getFormattedDateForMongo(LocalDateUtil.now()))
+                .append(ObjectGroup.ORIGINATING_AGENCY, "OA2");
 
         List<Document> gots = Lists.newArrayList(got4, got6, got8, got9, got10);
         VitamRepositoryFactory.get().getVitamMongoRepository(MetadataCollections.OBJECTGROUP.getVitamCollection())
-                .save(gots);
+            .save(gots);
         VitamRepositoryFactory.get().getVitamESRepository(MetadataCollections.OBJECTGROUP.getVitamCollection())
-                .save(gots);
+            .save(gots);
     }
 }

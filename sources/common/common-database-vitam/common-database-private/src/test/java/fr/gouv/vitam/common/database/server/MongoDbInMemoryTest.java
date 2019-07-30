@@ -2,6 +2,8 @@ package fr.gouv.vitam.common.database.server;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
+import fr.gouv.vitam.common.database.collections.DynamicParserTokens;
+import fr.gouv.vitam.common.database.collections.VitamDescriptionType;
 import fr.gouv.vitam.common.database.parser.request.AbstractParser;
 import fr.gouv.vitam.common.database.parser.request.adapter.SingleVarNameAdapter;
 import fr.gouv.vitam.common.database.parser.request.multiple.UpdateParserMultiple;
@@ -11,6 +13,11 @@ import fr.gouv.vitam.common.json.JsonHandler;
 import org.junit.Before;
 import org.junit.Test;
 
+import java.util.Collections;
+import java.util.HashMap;
+
+import static fr.gouv.vitam.common.database.collections.VitamDescriptionType.VitamCardinality.one;
+import static fr.gouv.vitam.common.database.collections.VitamDescriptionType.VitamType.text;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotEquals;
@@ -144,7 +151,10 @@ public class MongoDbInMemoryTest {
     public void setUp() throws InvalidParseOperationException {
         // Init jsonDocument with values (from real document or only some json ?)
         jsonDocument = JsonHandler.getFromString(jsonNodeValue);
-        mDIM = new MongoDbInMemory(jsonDocument);
+        HashMap<String, VitamDescriptionType> descriptionTypeByName = new HashMap<>();
+        descriptionTypeByName.put("OriginatingAgency", new VitamDescriptionType("Title", text, one, true));
+        DynamicParserTokens parserTokens = new DynamicParserTokens(descriptionTypeByName, Collections.emptyList());
+        mDIM = new MongoDbInMemory(jsonDocument, parserTokens);
     }
 
     @Test

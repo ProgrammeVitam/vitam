@@ -24,6 +24,8 @@ package fr.gouv.vitam.batch.report.rest.service; /******************************
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  *******************************************************************************/
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.JsonNode;
 import fr.gouv.vitam.batch.report.model.PreservationReportModel;
 import fr.gouv.vitam.batch.report.model.PreservationStatsModel;
 import fr.gouv.vitam.batch.report.model.PreservationStatus;
@@ -31,10 +33,12 @@ import fr.gouv.vitam.batch.report.model.ReportBody;
 import fr.gouv.vitam.batch.report.rest.repository.EliminationActionObjectGroupRepository;
 import fr.gouv.vitam.batch.report.rest.repository.EliminationActionUnitRepository;
 import fr.gouv.vitam.batch.report.rest.repository.PreservationReportRepository;
+import fr.gouv.vitam.batch.report.rest.repository.UpdateUnitReportRepository;
 import fr.gouv.vitam.common.database.server.mongodb.EmptyMongoCursor;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.mongo.FakeMongoCursor;
+import fr.gouv.vitam.functional.administration.common.BackupService;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
 import fr.gouv.vitam.workspace.client.WorkspaceClient;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
@@ -54,6 +58,7 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.lang.reflect.Type;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -89,6 +94,12 @@ public class BatchReportServiceImplTest {
     @Mock
     private WorkspaceClient workspaceClient;
 
+    @Mock
+    public UpdateUnitReportRepository updateUnitMetadataReportEntry;
+
+    @Mock
+    private BackupService backupService;
+
     @Rule
     public TemporaryFolder folder = new TemporaryFolder();
 
@@ -103,7 +114,7 @@ public class BatchReportServiceImplTest {
     @Before
     public void setUp() throws Exception {
         batchReportServiceImpl = new BatchReportServiceImpl(eliminationActionUnitRepository,
-            eliminationActionObjectGroupRepository,
+            eliminationActionObjectGroupRepository, updateUnitMetadataReportEntry, backupService,
             workspaceClientFactory, preservationReportRepository);
     }
 
@@ -112,7 +123,8 @@ public class BatchReportServiceImplTest {
     public void should_append_elimination_object_group_report() throws Exception {
         // Given
         InputStream stream = getClass().getResourceAsStream("/eliminationObjectGroupModel.json");
-        ReportBody reportBody = JsonHandler.getFromInputStream(stream, ReportBody.class);
+        ReportBody<JsonNode> reportBody = JsonHandler.getFromInputStreamAsTypeRefence(stream,
+            new TypeReference<ReportBody<JsonNode>>() {});
         // When
         // Then
         assertThatCode(() ->
@@ -125,7 +137,8 @@ public class BatchReportServiceImplTest {
     public void should_append_elimination_unit_report() throws Exception {
         // Given
         InputStream stream = getClass().getResourceAsStream("/eliminationObjectGroupModel.json");
-        ReportBody reportBody = JsonHandler.getFromInputStream(stream, ReportBody.class);
+        ReportBody<JsonNode> reportBody = JsonHandler.getFromInputStreamAsTypeRefence(stream,
+            new TypeReference<ReportBody<JsonNode>>() {});
         // When
         // Then
         assertThatCode(() ->
@@ -137,7 +150,8 @@ public class BatchReportServiceImplTest {
     public void should_append_preservation_report() throws Exception {
         // Given
         InputStream stream = getClass().getResourceAsStream("/preservationReport.json");
-        ReportBody reportBody = JsonHandler.getFromInputStream(stream, ReportBody.class);
+        ReportBody<JsonNode> reportBody = JsonHandler.getFromInputStreamAsTypeRefence(stream,
+            new TypeReference<ReportBody<JsonNode>>() {});
 
         // When
         ThrowingCallable append = () -> batchReportServiceImpl.appendPreservationReport(reportBody.getProcessId(), reportBody.getEntries(), TENANT_ID);

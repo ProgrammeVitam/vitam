@@ -79,7 +79,6 @@ import fr.gouv.vitam.workspace.client.WorkspaceClient;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
 import org.apache.commons.io.IOUtils;
 import org.assertj.core.api.Assertions;
-import org.assertj.core.api.ThrowableAssert.ThrowingCallable;
 import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
@@ -496,13 +495,13 @@ public class AccessInternalModuleImplTest {
                 "\"MyInt\":20,\"MyBoolean\":false,\"MyFloat\":2.0,\"ArrayVar\":[\"val1\",\"val2\"]," +
                 "\"events\":[\"val1\",\"val2\"],\"#tenant\":0}]}"));
         // Mock update unit response
-        when(metaDataClient.updateUnitbyId(any(), any())).thenReturn(JsonHandler.getFromString("{\"$hits" +
+        when(metaDataClient.updateUnitById(any(), any())).thenReturn(JsonHandler.getFromString("{\"$hits" +
             "\":{\"total\":1,\"size\":1,\"limit\":1,\"time_out\":false},\"$context\":{}," +
             "\"$results\":[{\"#id\":\"aeaqaaaaaaaaaaabaasdaakxocodoiyaaaaq\",\"#diff\":\"-    \\\"Title\\\" : " +
             "\\\"MyTitle\\\",\\n+    \\\"Title\\\" : \\\"Modified title\\\",\\n-    \\\"MyBoolean\\\" : false,\\n+   " +
             " \\\"MyBoolean\\\" : true,\"}]}"));
 
-        accessModuleImpl.updateUnitbyId(new UpdateMultiQuery().getFinalUpdate(), id, REQUEST_ID);
+        accessModuleImpl.updateUnitById(new UpdateMultiQuery().getFinalUpdate(), id, REQUEST_ID);
 
         // check if diff for update sent to lfc is correct
         final LogbookLifeCycleUnitParameters capture = logbookLFCUnitParametersArgsCaptor.getValue();
@@ -556,7 +555,7 @@ public class AccessInternalModuleImplTest {
                 "\"MyInt\":20,\"MyBoolean\":false,\"MyFloat\":2.0,\"ArrayVar\":[\"val1\",\"val2\"]," +
                 "\"events\":[\"val1\",\"val2\"],\"#tenant\":0}]}"));
         // Mock update unit response
-        when(metaDataClient.updateUnitbyId(any(), any())).thenReturn(JsonHandler.getFromString("{\"$hits" +
+        when(metaDataClient.updateUnitById(any(), any())).thenReturn(JsonHandler.getFromString("{\"$hits" +
             "\":{\"total\":1,\"size\":1,\"limit\":1,\"time_out\":false},\"$context\":{}," +
             "\"$results\":[{\"#id\":\"aeaqaaaaaaaaaaabaasdaakxocodoiyaaaaq\",\"#diff\":\"-    \\\"Title\\\" : " +
             "\\\"MyTitle\\\",\\n+    \\\"Title\\\" : \\\"Modified title\\\",\\n-    \\\"MyBoolean\\\" : false,\\n+   " +
@@ -564,7 +563,7 @@ public class AccessInternalModuleImplTest {
 
         try {
             String query = QUERY_MULTIPLE_STRING.replace("managementRulesUpdate", id);
-            accessModuleImpl.updateUnitbyId(JsonHandler.getFromString(query), id, REQUEST_ID);
+            accessModuleImpl.updateUnitById(JsonHandler.getFromString(query), id, REQUEST_ID);
             fail("Should throw exception");
         } catch (UpdatePermissionException e) {
             assertEquals("UPDATE_UNIT_DESC_PERMISSION", e.getMessage());
@@ -614,14 +613,14 @@ public class AccessInternalModuleImplTest {
                 "\"MyInt\":20,\"MyBoolean\":false,\"MyFloat\":2.0,\"ArrayVar\":[\"val1\",\"val2\"]," +
                 "\"events\":[\"val1\",\"val2\"],\"#tenant\":0}]}"));
         // Mock update unit response
-        when(metaDataClient.updateUnitbyId(any(), any())).thenReturn(JsonHandler.getFromString("{\"$hits" +
+        when(metaDataClient.updateUnitById(any(), any())).thenReturn(JsonHandler.getFromString("{\"$hits" +
             "\":{\"total\":1,\"size\":1,\"limit\":1,\"time_out\":false},\"$context\":{}," +
             "\"$results\":[{\"#id\":\"aeaqaaaaaaaaaaabaasdaakxocodoiyaaaaq\",\"#diff\":\"-    \\\"Title\\\" : " +
             "\\\"MyTitle\\\",\\n+    \\\"Title\\\" : \\\"Modified title\\\",\\n-    \\\"MyBoolean\\\" : false,\\n+   " +
             " \\\"MyBoolean\\\" : true,\"}]}"));
 
         try {
-            accessModuleImpl.updateUnitbyId(JsonHandler.getFromString(QUERY_DESCRIPTION), id, REQUEST_ID);
+            accessModuleImpl.updateUnitById(JsonHandler.getFromString(QUERY_DESCRIPTION), id, REQUEST_ID);
             fail("Should throw exception");
         } catch (UpdatePermissionException e) {
             assertEquals("UPDATE_UNIT_PERMISSION", e.getMessage());
@@ -661,7 +660,7 @@ public class AccessInternalModuleImplTest {
         when(metaDataClient.getUnitByIdRaw(any())).thenReturn(requestResponseUnit);
         when(metaDataClient.selectUnitbyId(any(), any())).thenReturn(jsonResult);
 
-        accessModuleImpl.updateUnitbyId(JsonHandler.getFromString(QUERY_STRING), id, REQUEST_ID);
+        accessModuleImpl.updateUnitById(JsonHandler.getFromString(QUERY_STRING), id, REQUEST_ID);
 
     }
 
@@ -706,10 +705,10 @@ public class AccessInternalModuleImplTest {
                 "\"MyInt\":20,\"MyBoolean\":false,\"MyFloat\":2.0,\"ArrayVar\":[\"val1\",\"val2\"]," +
                 "\"events\":[\"val1\",\"val2\"],\"#tenant\":0}]}"));
         // Mock update unit response
-        when(metaDataClient.updateUnitbyId(any(), any()))
+        when(metaDataClient.updateUnitById(any(), any()))
             .thenThrow(new InvalidParseOperationException("InvalidParseOperationException"));
 
-        accessModuleImpl.updateUnitbyId(new UpdateMultiQuery().getFinalUpdate(), id, REQUEST_ID);
+        accessModuleImpl.updateUnitById(new UpdateMultiQuery().getFinalUpdate(), id, REQUEST_ID);
 
     }
 
@@ -754,11 +753,11 @@ public class AccessInternalModuleImplTest {
                 "\"MyInt\":20,\"MyBoolean\":false,\"MyFloat\":2.0,\"ArrayVar\":[\"val1\",\"val2\"]," +
                 "\"events\":[\"val1\",\"val2\"],\"#tenant\":0}]}"));
         // Mock update unit response
-        when(metaDataClient.updateUnitbyId(any(), any())).thenReturn(JsonHandler.getFromString("{\"$hits" +
+        when(metaDataClient.updateUnitById(any(), any())).thenReturn(JsonHandler.getFromString("{\"$hits" +
             "\":{\"total\":1,\"size\":1,\"limit\":1,\"time_out\":false},\"$context\":{}," +
             "\"$results\":[{\"#id\":\"aeaqaaaaaaaaaaabaasdaakxocodoiyaaaaq\"}]}"));
 
-        accessModuleImpl.updateUnitbyId(new UpdateMultiQuery().getFinalUpdate(), id, REQUEST_ID);
+        accessModuleImpl.updateUnitById(new UpdateMultiQuery().getFinalUpdate(), id, REQUEST_ID);
 
         // check if diff for update sent to lfc is null
         final LogbookLifeCycleUnitParameters capture = logbookLFCUnitParametersArgsCaptor.getValue();
@@ -774,7 +773,7 @@ public class AccessInternalModuleImplTest {
         Mockito.doNothing().when(logbookOperationClient).update(any());
         Mockito.doNothing().when(logbookLifeCycleClient).update(any());
 
-        accessModuleImpl.updateUnitbyId(fromStringToJson(""), ID, REQUEST_ID);
+        accessModuleImpl.updateUnitById(fromStringToJson(""), ID, REQUEST_ID);
     }
 
     @Test(expected = IllegalArgumentException.class)
@@ -785,9 +784,9 @@ public class AccessInternalModuleImplTest {
         Mockito.doNothing().when(logbookOperationClient).update(any());
         Mockito.doNothing().when(logbookLifeCycleClient).update(any());
         doThrow(new IllegalArgumentException("")).when(metaDataClient)
-            .updateUnitbyId(fromStringToJson(QUERY), ID);
+            .updateUnitById(fromStringToJson(QUERY), ID);
 
-        accessModuleImpl.updateUnitbyId(fromStringToJson(QUERY), ID, REQUEST_ID);
+        accessModuleImpl.updateUnitById(fromStringToJson(QUERY), ID, REQUEST_ID);
     }
 
     @Test(expected = MetaDataNotFoundException.class)
@@ -796,7 +795,7 @@ public class AccessInternalModuleImplTest {
         throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
 
-        accessModuleImpl.updateUnitbyId(fromStringToJson(QUERY), "dfsdfsdf", REQUEST_ID);
+        accessModuleImpl.updateUnitById(fromStringToJson(QUERY), "dfsdfsdf", REQUEST_ID);
     }
 
     @Test(expected = InvalidParseOperationException.class)
@@ -807,9 +806,9 @@ public class AccessInternalModuleImplTest {
         Mockito.doNothing().when(logbookOperationClient).update(any());
         Mockito.doNothing().when(logbookLifeCycleClient).update(any());
         doThrow(new InvalidParseOperationException("")).when(metaDataClient)
-            .updateUnitbyId(any(), any());
+            .updateUnitById(any(), any());
 
-        accessModuleImpl.updateUnitbyId(fromStringToJson(QUERY_UPDATE), ID, REQUEST_ID);
+        accessModuleImpl.updateUnitById(fromStringToJson(QUERY_UPDATE), ID, REQUEST_ID);
     }
 
     @Test(expected = AccessInternalExecutionException.class)
@@ -832,9 +831,9 @@ public class AccessInternalModuleImplTest {
             "\"MyInt\":20,\"MyBoolean\":false,\"MyFloat\":2.0,\"ArrayVar\":[\"val1\",\"val2\"]," +
             "\"Array2Var\":[\"val1\",\"val2\"],\"_tenant\":0,\"_max\":1,\"_min\":1,\"_up\":[],\"_nbc\":0}]}");
         when(metaDataClient.selectUnitbyId(any(), any())).thenReturn(jsonResult);
-        when(metaDataClient.updateUnitbyId(any(), any())).thenThrow(new MetaDataDocumentSizeException(""));
+        when(metaDataClient.updateUnitById(any(), any())).thenThrow(new MetaDataDocumentSizeException(""));
 
-        accessModuleImpl.updateUnitbyId(updateQuery.getFinalUpdate(), ID, REQUEST_ID);
+        accessModuleImpl.updateUnitById(updateQuery.getFinalUpdate(), ID, REQUEST_ID);
     }
 
     @Test(expected = AccessInternalExecutionException.class)
@@ -850,7 +849,7 @@ public class AccessInternalModuleImplTest {
         VitamThreadUtils.getVitamSession().setContract(accessContractModel);
         Mockito.doNothing().when(logbookOperationClient).update(any());
         Mockito.doNothing().when(logbookLifeCycleClient).update(any());
-        when(metaDataClient.updateUnitbyId(any(), any())).thenReturn(JsonHandler.createObjectNode());
+        when(metaDataClient.updateUnitById(any(), any())).thenReturn(JsonHandler.createObjectNode());
         JsonNode jsonResult = JsonHandler.getFromString("{\"$hits" +
             "\":{\"total\":1,\"size\":1,\"limit\":1,\"time_out\":false},\"$context\":{}," +
             "\"$results\":[{\"_id\":\"aeaqaaaaaaaaaaabaasdaakxocodoiyaaaaq\",\"Title\":\"MyTitle\"," +
@@ -859,9 +858,9 @@ public class AccessInternalModuleImplTest {
             "\"Array2Var\":[\"val1\",\"val2\"],\"_tenant\":0,\"_max\":1,\"_min\":1,\"_up\":[],\"_nbc\":0}]}");
         when(metaDataClient.selectUnitbyId(any(), any())).thenReturn(jsonResult);
         doThrow(new MetaDataExecutionException("")).when(metaDataClient)
-            .updateUnitbyId(any(), any());
+            .updateUnitById(any(), any());
 
-        accessModuleImpl.updateUnitbyId(updateQuery.getFinalUpdate(), ID, REQUEST_ID);
+        accessModuleImpl.updateUnitById(updateQuery.getFinalUpdate(), ID, REQUEST_ID);
     }
 
     @Test(expected = AccessInternalExecutionException.class)
@@ -911,14 +910,14 @@ public class AccessInternalModuleImplTest {
             "\"Array2Var\":[\"val1\",\"val2\"],\"_tenant\":0,\"_max\":1,\"_min\":1,\"_up\":[],\"_nbc\":0}]}");
         when(metaDataClient.selectUnitbyId(any(), any())).thenReturn(jsonResult);
         // Mock update unit response
-        when(metaDataClient.updateUnitbyId(any(), any())).thenReturn(JsonHandler.getFromString("{\"$hits" +
+        when(metaDataClient.updateUnitById(any(), any())).thenReturn(JsonHandler.getFromString("{\"$hits" +
             "\":{\"total\":1,\"size\":1,\"limit\":1,\"time_out\":false},\"$context\":{}," +
             "\"$results\":[{\"#id\":\"aeaqaaaaaaaaaaabaasdaakxocodoiyaaaaq\",\"#diff\":\"-    \\\"Title\\\" : " +
             "\\\"MyTitle\\\",\\n+    \\\"Title\\\" : \\\"Modified title\\\",\\n-    \\\"MyBoolean\\\" : false,\\n+   " +
             " \\\"MyBoolean\\\" : true,\"}]}"));
 
 
-        accessModuleImpl.updateUnitbyId(new UpdateMultiQuery().getFinalUpdate(), id, REQUEST_ID);
+        accessModuleImpl.updateUnitById(new UpdateMultiQuery().getFinalUpdate(), id, REQUEST_ID);
 
     }
 
@@ -927,9 +926,9 @@ public class AccessInternalModuleImplTest {
         Mockito.doNothing().when(logbookOperationClient).update(any());
         Mockito.doNothing().when(logbookLifeCycleClient).update(any());
         doThrow(new IllegalArgumentException("")).when(metaDataClient)
-            .updateUnitbyId(fromStringToJson(QUERY), "");
+            .updateUnitById(fromStringToJson(QUERY), "");
 
-        accessModuleImpl.updateUnitbyId(fromStringToJson(QUERY), "", REQUEST_ID);
+        accessModuleImpl.updateUnitById(fromStringToJson(QUERY), "", REQUEST_ID);
     }
 
     private void setAccessLogInfoInVitamSession() {
@@ -1061,15 +1060,15 @@ public class AccessInternalModuleImplTest {
         InputStream entity = (InputStream) response.getEntity();
     }
 
-    @Test(expected = AccessInternalExecutionException.class)
+    @Test
     @RunWithCustomExecutor
     public void testGetOneObjectFromObjectGroup_With_Result_Null() throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         when(metaDataClient.selectObjectGrouptbyId(any(), any())).thenReturn(null);
-        accessModuleImpl.getOneObjectFromObjectGroup(ID, "BinaryMaster", 0, "unit0");
+        assertThatThrownBy(() -> accessModuleImpl.getOneObjectFromObjectGroup(ID, "BinaryMaster", 0, "unit0")).isInstanceOf(AccessInternalExecutionException.class);
     }
 
-    @Test(expected = AccessInternalExecutionException.class)
+    @Test
     @RunWithCustomExecutor
     public void testGetOneObjectFromObjectGroup_With_StorageClient_Error() throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
@@ -1078,7 +1077,7 @@ public class AccessInternalModuleImplTest {
             .thenReturn(fromStringToJson(FAKE_METADATA_RESULT));
         when(storageClient.getContainerAsync(any(), any(), any(), any()))
             .thenThrow(new StorageServerClientException("Test wanted exception"));
-        accessModuleImpl.getOneObjectFromObjectGroup(ID, "BinaryMaster", 0, "unit0");
+        assertThatThrownBy(() -> accessModuleImpl.getOneObjectFromObjectGroup(ID, "BinaryMaster", 0, "unit0")).isInstanceOf(AccessInternalExecutionException.class);
     }
 
     @Test
@@ -1093,11 +1092,16 @@ public class AccessInternalModuleImplTest {
 
         RequestParserMultiple results;
 
-        when(adminManagementClient.getRuleByID(eq("STO-00001"))).thenReturn(new AdminManagementClientMock().getRuleByID("STO-00001"));
-        when(adminManagementClient.getRuleByID(eq("STO-00002"))).thenReturn(new AdminManagementClientMock().getRuleByID("STO-00002"));
-        when(adminManagementClient.getRuleByID(eq("CLASS-00002"))).thenReturn(new AdminManagementClientMock().getRuleByID("CLASS-00002"));
-        when(adminManagementClient.getRuleByID(eq("CLASS-00003"))).thenReturn(new AdminManagementClientMock().getRuleByID("CLASS-00003"));
-        when(adminManagementClient.getRuleByID(eq("REU-00001"))).thenReturn(new AdminManagementClientMock().getRuleByID("REU-00001"));
+        when(adminManagementClient.getRuleByID(eq("STO-00001")))
+            .thenReturn(new AdminManagementClientMock().getRuleByID("STO-00001"));
+        when(adminManagementClient.getRuleByID(eq("STO-00002")))
+            .thenReturn(new AdminManagementClientMock().getRuleByID("STO-00002"));
+        when(adminManagementClient.getRuleByID(eq("CLASS-00002")))
+            .thenReturn(new AdminManagementClientMock().getRuleByID("CLASS-00002"));
+        when(adminManagementClient.getRuleByID(eq("CLASS-00003")))
+            .thenReturn(new AdminManagementClientMock().getRuleByID("CLASS-00003"));
+        when(adminManagementClient.getRuleByID(eq("REU-00001")))
+            .thenReturn(new AdminManagementClientMock().getRuleByID("REU-00001"));
         results = executeCheck(QUERY_STRING);
         assertEquals(5, results.getRequest().getActions().size());
 
@@ -1200,21 +1204,6 @@ public class AccessInternalModuleImplTest {
         assertThat(parser.getRequest().getActions())
             .extracting(Action::toString)
             .containsOnly("{\"$set\":{\"#management.StorageRule.FinalAction\":\"Transfer\"}}");
-    }
-
-    @Test
-    public void should_throw_error_when_malformated_set_request() throws Exception {
-        // Given
-        UpdateParserMultiple parser = new UpdateParserMultiple();
-        String updateFinalAction =
-            "{\"$roots\":[\"aeaqaaaaaaftu7s5aakq6alerwedliqaaabq\"],\"$query\":[],\"$filter\":{},\"$action\":[{\"$set\":{\"#management.StorageRule.Rules.Rule\":\"R2\"}}]}";
-        parser.parse(fromStringToJson(updateFinalAction));
-
-        // When
-        ThrowingCallable checkAndUpdate = () -> accessModuleImpl.checkAndUpdateRuleQuery(parser);
-
-        // Then
-        assertThatThrownBy(checkAndUpdate).isInstanceOf(AccessInternalRuleExecutionException.class);
     }
 
     @Test

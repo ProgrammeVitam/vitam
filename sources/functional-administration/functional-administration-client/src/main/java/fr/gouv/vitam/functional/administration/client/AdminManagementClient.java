@@ -43,11 +43,11 @@ import fr.gouv.vitam.common.model.administration.AgenciesModel;
 import fr.gouv.vitam.common.model.administration.ArchiveUnitProfileModel;
 import fr.gouv.vitam.common.model.administration.ContextModel;
 import fr.gouv.vitam.common.model.administration.FileFormatModel;
-import fr.gouv.vitam.common.model.administration.preservation.GriffinModel;
 import fr.gouv.vitam.common.model.administration.IngestContractModel;
 import fr.gouv.vitam.common.model.administration.OntologyModel;
 import fr.gouv.vitam.common.model.administration.ProfileModel;
 import fr.gouv.vitam.common.model.administration.SecurityProfileModel;
+import fr.gouv.vitam.common.model.administration.preservation.GriffinModel;
 import fr.gouv.vitam.common.model.administration.preservation.PreservationScenarioModel;
 import fr.gouv.vitam.functional.administration.common.exception.AccessionRegisterException;
 import fr.gouv.vitam.functional.administration.common.exception.AdminManagementClientServerException;
@@ -57,6 +57,12 @@ import fr.gouv.vitam.functional.administration.common.exception.ProfileNotFoundE
 import fr.gouv.vitam.functional.administration.common.exception.ReferentialException;
 import fr.gouv.vitam.functional.administration.common.exception.ReferentialNotFoundException;
 import fr.gouv.vitam.functional.administration.common.server.AccessionRegisterSymbolic;
+
+import javax.ws.rs.core.Response;
+import javax.ws.rs.core.Response.Status;
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.List;
 
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
@@ -77,10 +83,10 @@ public interface AdminManagementClient extends MockOrRestClient {
     Response checkFormat(InputStream stream) throws ReferentialException;
 
     /**
-     * @param stream   as InputStream
+     * @param stream as InputStream
      * @param filename name of the imported file
      * @return the response to the request
-     * @throws ReferentialException      when import exception occurs
+     * @throws ReferentialException when import exception occurs
      * @throws DatabaseConflictException conflict exception occurs
      */
     Status importFormat(InputStream stream, String filename) throws ReferentialException, DatabaseConflictException;
@@ -89,7 +95,7 @@ public interface AdminManagementClient extends MockOrRestClient {
     /**
      * @param id as String
      * @return JsonNode
-     * @throws ReferentialException           check exception occurs
+     * @throws ReferentialException check exception occurs
      * @throws InvalidParseOperationException when json exception occurs
      */
     JsonNode getFormatByID(String id) throws ReferentialException, InvalidParseOperationException;
@@ -98,9 +104,9 @@ public interface AdminManagementClient extends MockOrRestClient {
     /**
      * @param query as JsonNode
      * @return JsonNode
-     * @throws ReferentialException           when referential format exception occurs
+     * @throws ReferentialException when referential format exception occurs
      * @throws InvalidParseOperationException when json exception occurs
-     * @throws IOException                    when io data exception occurs
+     * @throws IOException when io data exception occurs
      */
     RequestResponse<FileFormatModel> getFormats(JsonNode query)
         throws ReferentialException, InvalidParseOperationException,
@@ -129,11 +135,11 @@ public interface AdminManagementClient extends MockOrRestClient {
     /**
      * Import a the set of rules for a given tenant
      *
-     * @param stream   rule file inputstream to import
+     * @param stream rule file inputstream to import
      * @param filename name of the imported file
      * @return the response to the request
-     * @throws ReferentialException                 when file rules exception occurs
-     * @throws DatabaseConflictException            when Database conflict exception occurs
+     * @throws ReferentialException when file rules exception occurs
+     * @throws DatabaseConflictException when Database conflict exception occurs
      * @throws AdminManagementClientServerException
      */
     Status importRulesFile(InputStream stream, String filename)
@@ -142,11 +148,11 @@ public interface AdminManagementClient extends MockOrRestClient {
     /**
      * Import agencies for a given tenant
      *
-     * @param stream   agency file inputstream to import
+     * @param stream agency file inputstream to import
      * @param filename name of the imported file
      * @return the response to the request
-     * @throws ReferentialException                 when file rules exception occurs
-     * @throws DatabaseConflictException            when Database conflict exception occurs
+     * @throws ReferentialException when file rules exception occurs
+     * @throws DatabaseConflictException when Database conflict exception occurs
      * @throws AdminManagementClientServerException
      */
     Status importAgenciesFile(InputStream stream, String filename)
@@ -155,8 +161,8 @@ public interface AdminManagementClient extends MockOrRestClient {
     /**
      * @param id The agency identifier
      * @return agency in JsonNode agency
-     * @throws ReferentialNotFoundException         when file referential exception occurs
-     * @throws InvalidParseOperationException       when a parse problem occurs
+     * @throws ReferentialNotFoundException when file referential exception occurs
+     * @throws InvalidParseOperationException when a parse problem occurs
      * @throws AdminManagementClientServerException
      */
     RequestResponse<AgenciesModel> getAgencyById(String id)
@@ -167,9 +173,9 @@ public interface AdminManagementClient extends MockOrRestClient {
      *
      * @param query to get agencies
      * @return The server response as vitam RequestResponse
-     * @throws ReferentialException                 when file referential exception occurs
-     * @throws InvalidParseOperationException       when a parse problem occurs
-     * @throws IOException                          when IO Exception occurs
+     * @throws ReferentialException when file referential exception occurs
+     * @throws InvalidParseOperationException when a parse problem occurs
+     * @throws IOException when IO Exception occurs
      * @throws AdminManagementClientServerException when admin management resources not found
      */
     JsonNode getAgencies(JsonNode query)
@@ -178,8 +184,8 @@ public interface AdminManagementClient extends MockOrRestClient {
     /**
      * @param id The rule identifier
      * @return Rule in JsonNode format
-     * @throws FileRulesException                   when file rules exception occurs
-     * @throws InvalidParseOperationException       when a parse problem occurs
+     * @throws FileRulesException when file rules exception occurs
+     * @throws InvalidParseOperationException when a parse problem occurs
      * @throws AdminManagementClientServerException
      */
     JsonNode getRuleByID(String id)
@@ -190,9 +196,9 @@ public interface AdminManagementClient extends MockOrRestClient {
      *
      * @param query to get rule
      * @return Rules in JsonNode format
-     * @throws FileRulesException                   when file rules exception occurs
-     * @throws InvalidParseOperationException       when a parse problem occurs
-     * @throws IOException                          when IO Exception occurs
+     * @throws FileRulesException when file rules exception occurs
+     * @throws InvalidParseOperationException when a parse problem occurs
+     * @throws IOException when IO Exception occurs
      * @throws AdminManagementClientServerException when admin management resources not found
      */
     JsonNode getRules(JsonNode query)
@@ -201,7 +207,7 @@ public interface AdminManagementClient extends MockOrRestClient {
 
     /**
      * @param register AccessionRegisterDetail
-     * @throws AccessionRegisterException           when AccessionRegisterDetailexception occurs
+     * @throws AccessionRegisterException when AccessionRegisterDetailexception occurs
      * @throws AdminManagementClientServerException when
      */
     RequestResponse<AccessionRegisterDetailModel> createorUpdateAccessionRegister(AccessionRegisterDetailModel register)
@@ -273,7 +279,7 @@ public interface AdminManagementClient extends MockOrRestClient {
     /**
      * Update AccessContract to mongo
      *
-     * @param id       the given access contract id to update
+     * @param id the given access contract id to update
      * @param queryDsl query to execute
      * @return The server response as vitam RequestResponse
      * @throws InvalidParseOperationException
@@ -286,7 +292,7 @@ public interface AdminManagementClient extends MockOrRestClient {
     /**
      * Update IngestContract to mongo
      *
-     * @param id       the given Ingest contract id to update
+     * @param id the given Ingest contract id to update
      * @param queryDsl query to execute
      * @return The server response as vitam RequestResponse
      * @throws InvalidParseOperationException
@@ -365,9 +371,9 @@ public interface AdminManagementClient extends MockOrRestClient {
 
     /**
      * @param profileMetadataId the id of the profile metadata corresponding to the file
-     * @param stream            as InputStream
+     * @param stream as InputStream
      * @return the response to the request
-     * @throws ReferentialException      when import exception occurs
+     * @throws ReferentialException when import exception occurs
      * @throws DatabaseConflictException conflict exception occurs
      */
     RequestResponse importProfileFile(String profileMetadataId, InputStream stream)
@@ -522,7 +528,7 @@ public interface AdminManagementClient extends MockOrRestClient {
      * Updates a security context
      *
      * @param identifier the identifier of the security profile to update
-     * @param queryDsl   query to execute
+     * @param queryDsl query to execute
      * @return The server response as vitam RequestResponse
      * @throws InvalidParseOperationException
      * @throws AdminManagementClientServerException
@@ -601,7 +607,7 @@ public interface AdminManagementClient extends MockOrRestClient {
     RequestResponse rectificationAudit(String operationId) throws AdminManagementClientServerException;
 
     /**
-     * Launch an probative value  export for the query
+     * Launch an probative value export for the query
      *
      * @param probativeValueRequest the id
      * @return the server response
@@ -614,8 +620,8 @@ public interface AdminManagementClient extends MockOrRestClient {
 
     /**
      * Import a set of archive unit profile metadata. </BR>
-     * If all the archive unit profiles are valid, they will be stored in the collection and indexed The
-     * input is invalid in the following situations : </BR>
+     * If all the archive unit profiles are valid, they will be stored in the collection and indexed The input is
+     * invalid in the following situations : </BR>
      * <ul>
      * <li>The json is invalid</li>
      * <li>The json contains 2 ore many profile having the same name</li>
@@ -671,8 +677,8 @@ public interface AdminManagementClient extends MockOrRestClient {
 
     /**
      * Import a set of ontologies metadata. </BR>
-     * If all the ontologies are valid, they will be stored in the ontology collection and indexed The
-     * input is invalid in the following situations : </BR>
+     * If all the ontologies are valid, they will be stored in the ontology collection and indexed The input is invalid
+     * in the following situations : </BR>
      * <ul>
      * <li>The json is invalid</li>
      * <li>The json contains an already used identifier</li>
@@ -699,7 +705,7 @@ public interface AdminManagementClient extends MockOrRestClient {
      * @throws AdminManagementClientServerException
      */
     RequestResponse<OntologyModel> findOntologies(JsonNode query)
-        throws InvalidParseOperationException, AdminManagementClientServerException;
+        throws InvalidParseOperationException;
 
     /**
      * Find the ontology by technical id (id generated by the database)
@@ -743,7 +749,7 @@ public interface AdminManagementClient extends MockOrRestClient {
     /**
      * Retrieve the accession register symbolic regarding the tenant and a date range.
      *
-     * @param tenant   related to the accession register
+     * @param tenant related to the accession register
      * @param queryDsl search by dsl
      * @return a lis of accession register symbolic or a empty list if nothing is found
      */

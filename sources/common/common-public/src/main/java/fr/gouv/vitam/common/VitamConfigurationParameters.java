@@ -323,6 +323,10 @@ public class VitamConfigurationParameters {
      */
     private String environmentName;
 
+    private Integer ontologyCacheMaxEntries = 100;
+
+    private Integer ontologyCacheTimeoutInSeconds = 300;
+
     /**
      * VitamData empty constructor for YAMLFactory
      */
@@ -1298,4 +1302,19 @@ public class VitamConfigurationParameters {
         this.environmentName = environmentName;
     }
 
+    public Integer getOntologyCacheMaxEntries() {
+        return ontologyCacheMaxEntries;
+    }
+
+    public void setOntologyCacheMaxEntries(int ontologyCacheMaxEntries) {
+        this.ontologyCacheMaxEntries = ontologyCacheMaxEntries;
+    }
+
+    public Integer getOntologyCacheTimeoutInSeconds() {
+        return ontologyCacheTimeoutInSeconds;
+    }
+
+    public void setOntologyCacheTimeoutInSeconds(int ontologyCacheTimeoutInSeconds) {
+        this.ontologyCacheTimeoutInSeconds = ontologyCacheTimeoutInSeconds;
+    }
 }

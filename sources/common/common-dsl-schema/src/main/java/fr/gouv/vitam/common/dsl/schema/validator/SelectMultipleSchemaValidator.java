@@ -26,24 +26,21 @@
  *******************************************************************************/
 package fr.gouv.vitam.common.dsl.schema.validator;
 
-import java.io.IOException;
-import java.io.InputStream;
-
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
-
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken;
 import fr.gouv.vitam.common.dsl.schema.DslSchema;
 import fr.gouv.vitam.common.dsl.schema.ValidationException;
 import fr.gouv.vitam.common.dsl.schema.Validator;
-import fr.gouv.vitam.common.dsl.schema.meta.ValidatorEngine;
 import fr.gouv.vitam.common.dsl.schema.meta.Schema;
 import fr.gouv.vitam.common.error.VitamCode;
 import fr.gouv.vitam.common.error.VitamCodeHelper;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+
+import java.io.IOException;
+import java.io.InputStream;
 
 /**
  * Dsl schema validator for multiple queries DSL queries.
@@ -65,13 +62,11 @@ public class SelectMultipleSchemaValidator implements DslValidator {
      * @throws IOException thrown when the schema file is not found or invalid
      */
     public SelectMultipleSchemaValidator() throws IOException {
-        // FIXME find a way to use JsonHandler's mapper if possible
-        ObjectMapper objectMapper = new ObjectMapper();
         LOGGER.debug("Loading schema {} from {}", DslSchema.SELECT_MULTIPLE.name(),
             DslSchema.SELECT_MULTIPLE.getFilename());
         try (final InputStream schemaSource =
             PropertiesUtils.getResourceAsStream(DslSchema.SELECT_MULTIPLE.getFilename())) {
-            schema = Schema.withMapper(objectMapper).loadTypes(schemaSource).build();
+            schema = Schema.getSchema().loadTypes(schemaSource).build();
         }
     }
 

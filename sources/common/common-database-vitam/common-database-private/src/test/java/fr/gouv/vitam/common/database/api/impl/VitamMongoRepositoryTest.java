@@ -35,7 +35,6 @@ import com.mongodb.client.model.Filters;
 import com.mongodb.client.model.UpdateOneModel;
 import com.mongodb.client.model.UpdateOptions;
 import com.mongodb.client.model.WriteModel;
-import com.mongodb.util.JSON;
 import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.database.api.VitamRepositoryStatus;
 import fr.gouv.vitam.common.database.collections.VitamCollection;
@@ -43,6 +42,7 @@ import fr.gouv.vitam.common.database.server.mongodb.CollectionSample;
 import fr.gouv.vitam.common.database.server.mongodb.VitamDocument;
 import fr.gouv.vitam.common.exception.DatabaseException;
 import fr.gouv.vitam.common.guid.GUIDFactory;
+import fr.gouv.vitam.common.json.BsonHelper;
 import fr.gouv.vitam.common.mongo.MongoRule;
 import org.apache.commons.lang3.RandomUtils;
 import org.bson.Document;
@@ -270,7 +270,7 @@ public class VitamMongoRepositoryTest {
 
         MongoCursor<Document> cursor = collection.find().iterator();
         while (cursor.hasNext()) {
-            System.err.println(JSON.serialize(cursor.next()));
+            System.err.println(BsonHelper.stringify(cursor.next()));
         }
 
         updates = new ArrayList<>();

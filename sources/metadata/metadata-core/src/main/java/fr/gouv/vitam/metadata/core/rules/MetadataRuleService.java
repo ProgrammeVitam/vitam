@@ -43,10 +43,10 @@ import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
-import fr.gouv.vitam.metadata.api.MetaData;
 import fr.gouv.vitam.metadata.api.exception.MetaDataDocumentSizeException;
 import fr.gouv.vitam.metadata.api.exception.MetaDataExecutionException;
 import fr.gouv.vitam.metadata.api.exception.MetaDataNotFoundException;
+import fr.gouv.vitam.metadata.core.MetaDataImpl;
 import fr.gouv.vitam.metadata.core.rules.model.UnitInheritedRulesResponseModel;
 import fr.gouv.vitam.metadata.core.rules.model.UnitRuleModel;
 
@@ -73,14 +73,14 @@ public class MetadataRuleService {
     private static final int MAX_ELASTIC_SEARCH_IN_REQUEST_SIZE = 1000;
 
     private final ComputeInheritedRuleService computeInheritedRuleService;
-    private final MetaData metaData;
+    private final MetaDataImpl metaData;
 
-    public MetadataRuleService(MetaData metaData) {
+    public MetadataRuleService(MetaDataImpl metaData) {
         this(new ComputeInheritedRuleService(), metaData);
     }
 
     @VisibleForTesting
-    MetadataRuleService(ComputeInheritedRuleService computeInheritedRuleService, MetaData metaData) {
+    MetadataRuleService(ComputeInheritedRuleService computeInheritedRuleService, MetaDataImpl metaData) {
         this.computeInheritedRuleService = computeInheritedRuleService;
         this.metaData = metaData;
     }

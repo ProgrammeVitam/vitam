@@ -134,40 +134,48 @@
     "className": "fr.gouv.vitam.worker.core.plugin.reclassification.ObjectGroupGraphComputePlugin",
     "propertiesFile": "reclassification_object_group_compute.properties"
   },
-  "UNIT_METADATA_UPDATE_CHECK_PERMISSION": {
-    "className": "fr.gouv.vitam.worker.core.plugin.massprocessing.UnitMetadataUpdateCheckPermission",
-    "propertiesFile": "check_update_request_permissions.properties"
+  "MASS_UPDATE_RULES_CHECK": {
+    "className": "fr.gouv.vitam.worker.core.plugin.massprocessing.management.MassUpdateRulesCheck"
+  },
+  "MASS_UPDATE_CHECK": {
+    "className": "fr.gouv.vitam.worker.core.plugin.massprocessing.description.MassUpdateCheck"
+  },
+  "UNIT_METADATA_CHECK_CONSISTENCY": {
+    "className": "fr.gouv.vitam.worker.core.plugin.massprocessing.UnitMetadataRulesUpdateCheckConsistency",
+    "propertiesFile": "check_update_consistency.properties"
   },
   "CHECK_DISTRIBUTION_THRESHOLD": {
-    "className": "fr.gouv.vitam.worker.core.plugin.massprocessing.CheckDistributionThreshold",
-    "propertiesFile": "check_distribution_threshold.properties"
+    "className": "fr.gouv.vitam.worker.core.plugin.massprocessing.CheckDistributionThreshold"
   },
   "PREPARE_UPDATE_UNIT_LIST": {
     "className": "fr.gouv.vitam.worker.core.plugin.massprocessing.PrepareUpdateUnits"
   },
   "MASS_UPDATE_UNITS": {
-    "className": "fr.gouv.vitam.worker.core.plugin.massprocessing.MassUpdateUnitsProcess"
+    "className": "fr.gouv.vitam.worker.core.plugin.massprocessing.description.MassUpdateUnitsProcess"
   },
   "MASS_UPDATE_FINALIZE": {
     "className": "fr.gouv.vitam.worker.core.plugin.massprocessing.MassUpdateFinalize"
+  },
+  "MASS_UPDATE_UNITS_RULES": {
+    "className": "fr.gouv.vitam.worker.core.plugin.massprocessing.management.MassUpdateUnitsRulesProcess"
   },
   "ELIMINATION_ANALYSIS_UNIT_INDEXATION": {
     "className": "fr.gouv.vitam.worker.core.plugin.elimination.EliminationAnalysisUnitIndexationPlugin",
     "propertiesFile": "elimination_analysis_unit_indexation.properties"
   },
-  "ELIMINATION_ACTION_DELETE_UNIT":{
+  "ELIMINATION_ACTION_DELETE_UNIT": {
     "className": "fr.gouv.vitam.worker.core.plugin.elimination.EliminationActionDeleteUnitPlugin",
     "propertiesFile": "elimination_action_delete_unit.properties"
   },
-  "ELIMINATION_ACTION_DELETE_OBJECT_GROUP":{
+  "ELIMINATION_ACTION_DELETE_OBJECT_GROUP": {
     "className": "fr.gouv.vitam.worker.core.plugin.elimination.EliminationActionDeleteObjectGroupPlugin",
     "propertiesFile": "elimination_action_delete_object_group.properties"
   },
-  "ELIMINATION_ACTION_DETACH_OBJECT_GROUP":{
+  "ELIMINATION_ACTION_DETACH_OBJECT_GROUP": {
     "className": "fr.gouv.vitam.worker.core.plugin.elimination.EliminationActionDetachObjectGroupPlugin",
     "propertiesFile": "elimination_action_detach_object_group.properties"
   },
-  "ELIMINATION_ACTION_ACCESSION_REGISTER_UPDATE":{
+  "ELIMINATION_ACTION_ACCESSION_REGISTER_UPDATE": {
     "className": "fr.gouv.vitam.worker.core.plugin.elimination.EliminationActionAccessionRegisterUpdatePlugin",
     "propertiesFile": "elimination_action_update_accession_register.properties"
   },
@@ -204,28 +212,28 @@
     "className": "fr.gouv.vitam.worker.core.plugin.lfc_traceability.FinalizeObjectGroupLifecycleTraceabilityActionPlugin",
     "propertiesFile": "object_group_lfc_traceability_finalization_plugin.properties"
   },
-  "PRESERVATION_PREPARATION":{
+  "PRESERVATION_PREPARATION": {
     "className": "fr.gouv.vitam.worker.core.plugin.preservation.PreservationPreparationPlugin"
   },
-  "PRESERVATION_ACTION":{
+  "PRESERVATION_ACTION": {
     "className": "fr.gouv.vitam.worker.core.plugin.preservation.PreservationActionPlugin"
   },
-  "PRESERVATION_FINALIZATION":{
+  "PRESERVATION_FINALIZATION": {
     "className": "fr.gouv.vitam.worker.core.plugin.preservation.PreservationFinalizationPlugin"
   },
-  "PRESERVATION_SIEGFRIED_IDENTIFICATION":{
+  "PRESERVATION_SIEGFRIED_IDENTIFICATION": {
     "className": "fr.gouv.vitam.worker.core.plugin.preservation.PreservationSiegfriedPlugin"
   },
-  "PRESERVATION_BINARY_HASH":{
+  "PRESERVATION_BINARY_HASH": {
     "className": "fr.gouv.vitam.worker.core.plugin.preservation.PreservationGenerateBinaryHash"
   },
-  "PRESERVATION_STORAGE_BINARY":{
+  "PRESERVATION_STORAGE_BINARY": {
     "className": "fr.gouv.vitam.worker.core.plugin.preservation.PreservationStorageBinaryPlugin"
   },
-  "PRESERVATION_INDEXATION_METADATA":{
+  "PRESERVATION_INDEXATION_METADATA": {
     "className": "fr.gouv.vitam.worker.core.plugin.preservation.PreservationUpdateObjectGroupPlugin"
   },
-  "PRESERVATION_STORAGE_METADATA_LFC":{
+  "PRESERVATION_STORAGE_METADATA_LFC": {
     "className": "fr.gouv.vitam.worker.core.plugin.preservation.PreservationStorageMetadataAndLfc"
   }
 }

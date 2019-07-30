@@ -114,7 +114,7 @@ public class CheckArchiveProfileRelationActionHandler extends ActionHandler {
                 RequestResponse<ProfileModel> response = adminClient.findProfiles(select.getFinalSelect());
                 if (response.isOk()) {
                     List<ProfileModel> results = ((RequestResponseOK<ProfileModel>) response).getResults();
-                    if (null != results & results.size() > 0) {
+                    if (null != results && results.size() > 0) {
                         final ProfileModel profile = results.iterator().next();
                         if (!ProfileStatus.ACTIVE.equals(profile.getStatus())) {
                             status = CheckProfileStatus.INACTIVE;

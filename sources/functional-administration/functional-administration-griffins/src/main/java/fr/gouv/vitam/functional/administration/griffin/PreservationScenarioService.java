@@ -239,7 +239,7 @@ public class PreservationScenarioService {
                 throw new ReferentialException("Duplicate scenario : '" + model.getIdentifier() + "'");
             }
 
-            if ((model.getGriffinByFormat() == null || model.getGriffinByFormat().isEmpty()) && model.getDefaultGriffin() == null) {
+            if ((model.getGriffinByFormat().isEmpty()) && model.getDefaultGriffin() == null) {
                 throw new ReferentialException("Invalid scenario for : '" + model.getIdentifier() +
                     "' : at least one griffin must be defined (griffin by format or default griffin)");
             }
@@ -291,9 +291,9 @@ public class PreservationScenarioService {
     }
 
     private String getConstraintsStrings(Set<ConstraintViolation<PreservationScenarioModel>> constraints) {
-        List<String> result = new ArrayList<>() ;
-        for (ConstraintViolation<PreservationScenarioModel> constraintViolation :constraints){
-            result.add( "'"+ constraintViolation.getPropertyPath() + "' : " + constraintViolation.getMessage());
+        List<String> result = new ArrayList<>();
+        for (ConstraintViolation<PreservationScenarioModel> constraintViolation : constraints) {
+            result.add("'" + constraintViolation.getPropertyPath() + "' : " + constraintViolation.getMessage());
         }
         return result.toString();
     }

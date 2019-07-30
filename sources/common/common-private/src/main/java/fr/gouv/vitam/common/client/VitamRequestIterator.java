@@ -113,7 +113,7 @@ public class VitamRequestIterator<T> implements VitamAutoCloseable, Iterator<T> 
         }
         Response response = null;
         try {
-            headers.add(GlobalDataRest.X_CURSOR, false);
+            headers.putSingle(GlobalDataRest.X_CURSOR, false);
             headers.add(GlobalDataRest.X_CURSOR_ID, xCursorId);
             response =
                 ((AbstractCommonClient) client).performRequest(method, path, headers, MediaType.APPLICATION_JSON_TYPE);
@@ -190,7 +190,7 @@ public class VitamRequestIterator<T> implements VitamAutoCloseable, Iterator<T> 
             first = false;
             Response response = null;
             try {
-                headers.add(GlobalDataRest.X_CURSOR, true);
+                headers.putSingle(GlobalDataRest.X_CURSOR, true);
                 response = ((AbstractCommonClient) client).performRequest(method, path, headers, request,
                     MediaType.APPLICATION_JSON_TYPE,
                     MediaType.APPLICATION_JSON_TYPE);

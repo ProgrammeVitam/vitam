@@ -26,6 +26,8 @@
  *******************************************************************************/
 package fr.gouv.vitam.common.digest;
 
+import fr.gouv.vitam.worker.common.utils.DigestTypeException;
+
 /**
  * Digest Type (supported algorithms)
  */
@@ -60,7 +62,6 @@ public enum DigestType {
     }
 
     /**
-     *
      * @return the Digest name
      */
     public String getName() {
@@ -78,6 +79,6 @@ public enum DigestType {
                 return c;
             }
         }
-        throw new IllegalArgumentException(v);
+        throw new DigestTypeException("Unknown DigestType : " + v);
     }
 }

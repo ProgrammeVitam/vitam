@@ -26,12 +26,6 @@
  *******************************************************************************/
 package fr.gouv.vitam.logbook.rest;
 
-import static org.junit.Assert.fail;
-
-import java.io.File;
-import java.util.ArrayList;
-import java.util.List;
-
 import com.google.common.collect.Lists;
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.VitamConfiguration;
@@ -55,6 +49,13 @@ import org.junit.BeforeClass;
 import org.junit.ClassRule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
+
+import java.io.File;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+
+import static org.junit.Assert.fail;
 
 
 public class LogbookApplicationTest {
@@ -110,7 +111,7 @@ public class LogbookApplicationTest {
         logbookConfiguration.setOpEventsNotInWf(new ArrayList<>());
         logbookConfiguration.setOpWithLFC(new ArrayList<>());
 
-        mongoDbAccess = LogbookMongoDbAccessFactory.create(logbookConfiguration);
+        mongoDbAccess = LogbookMongoDbAccessFactory.create(logbookConfiguration, Collections::emptyList);
         serverPort = junitHelper.findAvailablePort();
         // TODO P1 verifier la compatibilité avec les tests parallèles sur jenkins
 

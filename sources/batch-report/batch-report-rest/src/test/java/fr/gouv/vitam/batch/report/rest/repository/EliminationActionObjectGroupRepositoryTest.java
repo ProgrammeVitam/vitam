@@ -24,7 +24,9 @@ package fr.gouv.vitam.batch.report.rest.repository; /***************************
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  *******************************************************************************/
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.exc.InvalidFormatException;
 import com.mongodb.client.FindIterable;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoCursor;
@@ -35,6 +37,7 @@ import fr.gouv.vitam.common.database.server.mongodb.SimpleMongoDBAccess;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.json.JsonHandler;
+import fr.gouv.vitam.common.model.administration.AccessContractModel;
 import fr.gouv.vitam.common.mongo.MongoRule;
 import org.assertj.core.api.Assertions;
 import org.bson.Document;
@@ -83,7 +86,7 @@ public class EliminationActionObjectGroupRepositoryTest {
 
     @Test
     public void should_bulk_append_objectgroup_report()
-        throws InvalidParseOperationException {
+        throws Exception {
         // Given
         List<EliminationActionObjectGroupModel> eliminationActionObjectGroupModels = getDocuments(
             "/eliminationObjectGroupModel.json");
@@ -105,7 +108,7 @@ public class EliminationActionObjectGroupRepositoryTest {
 
     @Test
     public void should_bulk_append_objectgroup_report_and_check_no_duplicate()
-        throws InvalidParseOperationException {
+        throws Exception {
         // Given
         List<EliminationActionObjectGroupModel> eliminationUnitModels =
             getDocuments("/eliminationObjectGroupWithDuplicateObjectGroup.json");
@@ -124,7 +127,7 @@ public class EliminationActionObjectGroupRepositoryTest {
 
     @Test
     public void compute_own_accession_register_multiple_objects_from_different_operation_ok()
-        throws InvalidParseOperationException {
+        throws Exception {
         // Given
         List<EliminationActionObjectGroupModel> eliminationUnitModels =
             getDocuments("/eliminationObjectGroupMultipleObjectsDifferentOperations.json");
@@ -154,7 +157,7 @@ public class EliminationActionObjectGroupRepositoryTest {
 
     @Test
     public void compute_own_accession_register_ok()
-        throws InvalidParseOperationException {
+        throws Exception {
         // Given
         List<EliminationActionObjectGroupModel> eliminationUnitModels =
             getDocuments("/eliminationObjectGroupWithDuplicateObjectGroup.json");
@@ -187,9 +190,10 @@ public class EliminationActionObjectGroupRepositoryTest {
     }
 
     private List<EliminationActionObjectGroupModel> getDocuments(String filename)
-        throws InvalidParseOperationException {
+        throws Exception {
         InputStream stream = getClass().getResourceAsStream(filename);
-        ReportBody reportBody = JsonHandler.getFromInputStream(stream, ReportBody.class);
+        ReportBody<JsonNode> reportBody = JsonHandler.getFromInputStreamAsTypeRefence(stream, new TypeReference<ReportBody<JsonNode>>() {
+        });
         return reportBody.getEntries().stream()
             .map(md -> {
                 EliminationActionObjectGroupModel

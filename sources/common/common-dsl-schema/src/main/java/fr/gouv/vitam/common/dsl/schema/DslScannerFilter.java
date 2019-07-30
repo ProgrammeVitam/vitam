@@ -26,24 +26,14 @@
  *******************************************************************************/
 package fr.gouv.vitam.common.dsl.schema;
 
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-
-import javax.annotation.Priority;
-import javax.ws.rs.Priorities;
-import javax.ws.rs.container.ContainerRequestContext;
-import javax.ws.rs.container.ContainerRequestFilter;
-
-import fr.gouv.vitam.common.dsl.schema.validator.DslValidator;
 import fr.gouv.vitam.common.dsl.schema.validator.BatchProcessingQuerySchemaValidator;
+import fr.gouv.vitam.common.dsl.schema.validator.DslValidator;
 import fr.gouv.vitam.common.dsl.schema.validator.GetByIdSchemaValidator;
-import fr.gouv.vitam.common.dsl.schema.validator.UpdateMultipleSchemaValidator;
+import fr.gouv.vitam.common.dsl.schema.validator.ReclassificationQuerySchemaValidator;
 import fr.gouv.vitam.common.dsl.schema.validator.SelectMultipleSchemaValidator;
 import fr.gouv.vitam.common.dsl.schema.validator.SelectSingleSchemaValidator;
 import fr.gouv.vitam.common.dsl.schema.validator.UpdateByIdSchemaValidator;
-import fr.gouv.vitam.common.dsl.schema.validator.ReclassificationQuerySchemaValidator;
+import fr.gouv.vitam.common.dsl.schema.validator.UpdateMultipleSchemaValidator;
 import fr.gouv.vitam.common.error.VitamCode;
 import fr.gouv.vitam.common.error.VitamCodeHelper;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
@@ -51,6 +41,15 @@ import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.stream.StreamUtils;
+
+import javax.annotation.Priority;
+import javax.ws.rs.Priorities;
+import javax.ws.rs.container.ContainerRequestContext;
+import javax.ws.rs.container.ContainerRequestFilter;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
 
 /**
  * Jax-rs scanner for validate Query DSL on external api Endpoint We make priority to 5000 for pass after SanityChecker
@@ -65,7 +64,7 @@ public class DslScannerFilter implements ContainerRequestFilter {
     private DslValidator selectSingleSchemaValidator;
     private DslValidator getByIdSchemaValidator;
     private DslValidator updateByIdSchemaValidator;
-    private DslValidator eliminationQuerySchemaValidator;
+    private DslValidator batchProcessingQuerySchemaValidator;
     private DslValidator massUpdateSchemaValidator;
     private DslValidator updateQueryReclassificationSchemaValidator;
     private DslSchema dslSchema;
@@ -76,7 +75,7 @@ public class DslScannerFilter implements ContainerRequestFilter {
         this.selectSingleSchemaValidator = new SelectSingleSchemaValidator();
         this.getByIdSchemaValidator = new GetByIdSchemaValidator();
         this.updateByIdSchemaValidator = new UpdateByIdSchemaValidator();
-        this.eliminationQuerySchemaValidator = new BatchProcessingQuerySchemaValidator();
+        this.batchProcessingQuerySchemaValidator = new BatchProcessingQuerySchemaValidator();
         this.updateQueryReclassificationSchemaValidator = new ReclassificationQuerySchemaValidator();
         this.massUpdateSchemaValidator = new UpdateMultipleSchemaValidator();
     }
@@ -96,7 +95,7 @@ public class DslScannerFilter implements ContainerRequestFilter {
                     selectSingleSchemaValidator.validate(JsonHandler.getFromBytes(bout.toByteArray()));
                     break;
                 case BATCH_PROCESSING:
-                    eliminationQuerySchemaValidator.validate(JsonHandler.getFromBytes(bout.toByteArray()));
+                    batchProcessingQuerySchemaValidator.validate(JsonHandler.getFromBytes(bout.toByteArray()));
                     break;
                 case GET_BY_ID:
                     getByIdSchemaValidator.validate(JsonHandler.getFromBytes(bout.toByteArray()));
