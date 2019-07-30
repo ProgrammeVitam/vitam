@@ -1,0 +1,10 @@
+{
+  "$query": [
+    {
+      "$eq": {
+        "#tenant": 0
+      }
+    }
+  ],
+  "$projection": {}
+}

@@ -149,7 +149,7 @@ Trois exemples :
 
 # Audit de cohérence
 
-Il est possible de définir les requêtes pour lancer un audit de cohérence sur des unités archivistiques, objets, groupe d'objets ou sur une opération
+Il est possible de définir les requêtes pour lancer un audit de cohérence sur des unités archivistiques, objets, groupe d'objets, opération(s) ou bien sur un tenant
  
 Deux exemples de requête :
 
@@ -200,5 +200,18 @@ Deux exemples de requête :
   ],
   "$filter": {},
   "$projection": {}
+}
+```
+* Audit de cohérence sur un tenant (exemple : tenant 0):
+
+```JSON
+{ 
+  "$query": [
+     { 
+       "$eq": 
+       { "#tenant": 0 } 
+      } 
+      ], 
+      "$projection": {} 
 }
 ```

@@ -1,0 +1,21 @@
+{
+  "$roots": [],
+  "$query": [
+    {
+      "$and": [
+        {
+          "$in": {
+            "#operations": [
+              "#id1",
+              "#id2"
+            ]
+          }
+        },
+        {
+          "$exists": "Title"
+        }
+      ]
+    }
+  ],
+  "$projection": {}
+}
