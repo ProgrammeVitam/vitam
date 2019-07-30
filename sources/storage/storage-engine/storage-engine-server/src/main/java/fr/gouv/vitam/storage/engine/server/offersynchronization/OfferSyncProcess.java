@@ -28,7 +28,6 @@ package fr.gouv.vitam.storage.engine.server.offersynchronization;
 
 import com.google.common.collect.Iterables;
 import fr.gouv.vitam.common.LocalDateUtil;
-import fr.gouv.vitam.common.exception.VitamRuntimeException;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.StatusCode;
@@ -42,6 +41,7 @@ import fr.gouv.vitam.storage.engine.common.model.OfferLog;
 import fr.gouv.vitam.storage.engine.common.model.Order;
 import fr.gouv.vitam.storage.engine.server.distribution.StorageDistribution;
 import fr.gouv.vitam.storage.engine.server.distribution.impl.DataContext;
+import fr.gouv.vitam.storage.engine.server.exception.RuntimeStorageException;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 
 import javax.ws.rs.core.Response;
@@ -178,13 +178,13 @@ public class OfferSyncProcess {
 
                 case WRITE:
                     completableFuture = CompletableFuture.runAsync(
-                        () -> copyObject(sourceOffer, destinationOffer, dataCategory, offerLog, tenantId, requestId),
+                        RetryableRunnable.from(() -> copyObject(sourceOffer, destinationOffer, dataCategory, offerLog, tenantId, requestId)),
                         executor);
                     break;
 
                 case DELETE:
                     completableFuture = CompletableFuture.runAsync(
-                        () -> deleteObject(destinationOffer, dataCategory, offerLog, tenantId, requestId),
+                        RetryableRunnable.from(() -> deleteObject(destinationOffer, dataCategory, offerLog, tenantId, requestId)),
                         executor);
                     break;
 
@@ -251,7 +251,7 @@ public class OfferSyncProcess {
             LOGGER.debug("File not found", e);
             LOGGER.warn("File " + sourceOffer + " not found on " + sourceOffer + ". File deleted meanwhile?");
         } catch (StorageException e) {
-            throw new VitamRuntimeException(
+            throw new RuntimeStorageException(
                 "An error occurred during copying '" + offerLog.getContainer() + "/" + offerLog.getFileName() +
                     "' from "
                     + sourceOffer + " to " + destinationOffer, e);
@@ -277,7 +277,7 @@ public class OfferSyncProcess {
             distribution.deleteObjectInOffers(STRATEGY_ID, context, Collections.singletonList(destinationOffer));
 
         } catch (StorageException e) {
-            throw new VitamRuntimeException("An error occurred during deleting '" + offerLog.getContainer() + "/" +
+            throw new RuntimeStorageException("An error occurred during deleting '" + offerLog.getContainer() + "/" +
                 offerLog.getFileName() + "' from " + destinationOffer, e);
         }
     }
