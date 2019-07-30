@@ -274,6 +274,14 @@ public class AccessExternalClientRestTest extends ResteasyTestApplication {
         public Response startEliminationAction(String queryDsl) {
             return expectedResponse.post();
         }
+
+        @POST
+        @Path("/units/computedInheritedRules")
+        @Consumes(MediaType.APPLICATION_JSON)
+        @Produces(MediaType.APPLICATION_JSON)
+        public Response computeInheritedrules(String queryDsl) {
+            return expectedResponse.post();
+        }
     }
 
     @Test
@@ -947,5 +955,27 @@ public class AccessExternalClientRestTest extends ResteasyTestApplication {
 
         // Then
         assertThat(requestResponse.getHttpCode()).isEqualTo(Status.BAD_REQUEST.getStatusCode());
+    }
+
+    @Test
+    @RunWithCustomExecutor
+    public void givenRequestNullWhencomputedInheritedRules() throws Exception {
+        when(mock.post()).thenReturn(Response.status(Status.PRECONDITION_FAILED).build());
+        assertThat(client
+            .computedInheritedRules(new VitamContext(TENANT_ID).setAccessContract(CONTRACT),
+                JsonHandler.getFromString(QUERY_DSL))
+            .getHttpCode())
+            .isEqualTo(Status.PRECONDITION_FAILED.getStatusCode());
+    }
+
+    @Test
+    @RunWithCustomExecutor
+    public void givenBadRequestWhencomputedInheritedRules() throws Exception {
+        when(mock.post()).thenReturn(Response.status(Status.PRECONDITION_FAILED).build());
+        assertThat(client
+            .computedInheritedRules(new VitamContext(TENANT_ID).setAccessContract(CONTRACT),
+                JsonHandler.getFromString(QUERY_DSL))
+            .getHttpCode())
+            .isEqualTo(Status.PRECONDITION_FAILED.getStatusCode());
     }
 }

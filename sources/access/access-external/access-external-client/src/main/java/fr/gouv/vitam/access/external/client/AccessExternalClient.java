@@ -265,6 +265,17 @@ public interface AccessExternalClient extends BasicClient {
     Response getAccessLog(VitamContext vitamContext, JsonNode params)
         throws VitamClientException;
 
+    /**
+     * compute inherited rules.
+     * @param vitamContext the vitam context
+     * @param ComputedInheritedRulesQuery the query request (query and actions)
+     * @return Json representation
+     * @throws VitamClientException
+     */
+    RequestResponse<JsonNode> computedInheritedRules(VitamContext vitamContext, JsonNode ComputedInheritedRulesQuery)
+        throws VitamClientException;
+
+
     RequestResponse<JsonNode> launchPreservation(VitamContext vitamContext, PreservationRequest preservationRequest)
         throws VitamClientException;
 }
