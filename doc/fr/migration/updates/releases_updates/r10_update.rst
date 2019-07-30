@@ -47,14 +47,16 @@ ou, si ``vault_pass.txt`` n'a pas été renseigné :
 Migration des contrats d'entrée
 --------------------------------
 
-La montée de version vers la *release* R10 requiert une migration de données (contrats d'entrée) suite à une modification sur les droits relatifs aux rattachements. Cette migration s'effectue à l'aide de la commande suivante, exécutée (une seule fois) sur l'une des machines [hosts-mongod-data] de l'inventaire : 
-
-.. code-block:: bash
-
-    mongo --host=<hosts-mongod-data> admin --username='<mongodb.mongo-data.admin.user>' --password='<mongodb.mongo-data.admin.password>' migration_ingest_contract.js 
+La montée de version vers la *release* R10 requiert une migration de données (contrats d'entrée) suite à une modification sur les droits relatifs aux rattachements. Cette migration s'effectue à l'aide du playbook :
 
 
-Où migration_ingest_contract.js contient : 
+``ansible-playbook -i environments/<inventaire> ansible-vitam-exploitation/migration_r9_r10_ingestcontracts.yml --vault-password-file vault_pass.txt``
+
+ou, si ``vault_pass.txt`` n'a pas été renseigné :
+
+``ansible-playbook -i environments/<inventaire> ansible-vitam-exploitation/migration_r9_r10_ingestcontracts.yml --ask-vault-pass``
+
+Le template ``upgrade_contracts.js`` contient : 
 
 .. code-block:: bash
 
@@ -71,11 +73,3 @@ Où migration_ingest_contract.js contient :
     //    printjson(item);
         db.IngestContract.update({_id: item._id}, item);
     });
-
-Afin que les modifications soient sauvegardées dans l'offre de stockage, il est nécessaire d'exécuter le playbook suivant réalisant au passage l'ajout du champ CheckParentLink = "AUTHORIZED" à tous les contrats d'entrées : 
-
-``ansible-playbook -i environments/<inventaire> ansible-vitam-exploitation/migration_r9_r10_ingestcontracts.yml --vault-password-file vault_pass.txt``
-
-ou, si ``vault_pass.txt`` n'a pas été renseigné :
-
-``ansible-playbook -i environments/<inventaire> ansible-vitam-exploitation/migration_r9_r10_ingestcontracts.yml --ask-vault-pass``
