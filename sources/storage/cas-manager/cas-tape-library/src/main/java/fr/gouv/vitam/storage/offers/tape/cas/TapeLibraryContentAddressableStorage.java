@@ -74,6 +74,7 @@ import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundEx
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
 import fr.gouv.vitam.workspace.api.exception.UnavailableFileException;
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -103,6 +104,7 @@ public class TapeLibraryContentAddressableStorage implements ContentAddressableS
     private final ReadRequestReferentialRepository readRequestReferentialRepository;
     private final TapeCatalogService tapeCatalogService;
     private final String outputTarStorageFolder;
+    private final ArchiveOutputRetentionPolicy archiveOutputRetentionPolicy;
 
     public TapeLibraryContentAddressableStorage(
         BasicFileStorage basicFileStorage,
@@ -111,7 +113,8 @@ public class TapeLibraryContentAddressableStorage implements ContentAddressableS
         ReadRequestReferentialRepository readRequestReferentialRepository,
         FileBucketTarCreatorManager fileBucketTarCreatorManager,
         QueueRepository readWriteQueue, TapeCatalogService tapeCatalogService,
-        String outputTarStorageFolder) {
+        String outputTarStorageFolder,
+        ArchiveOutputRetentionPolicy archiveOutputRetentionPolicy) {
         this.basicFileStorage = basicFileStorage;
         this.objectReferentialRepository = objectReferentialRepository;
         this.archiveReferentialRepository = archiveReferentialRepository;
@@ -120,6 +123,7 @@ public class TapeLibraryContentAddressableStorage implements ContentAddressableS
         this.readWriteQueue = readWriteQueue;
         this.tapeCatalogService = tapeCatalogService;
         this.outputTarStorageFolder = outputTarStorageFolder;
+        this.archiveOutputRetentionPolicy = archiveOutputRetentionPolicy;
     }
 
     @Override
@@ -283,7 +287,7 @@ public class TapeLibraryContentAddressableStorage implements ContentAddressableS
                         ErrorMessage.OBJECT_NOT_FOUND + containerName + "/" + objectName);
                 }
 
-                // get TARs containing the object segments
+                // Get TARs containing the object segments
                 TapeLibraryObjectStorageLocation location = object.get().getLocation();
                 if (!(location instanceof TapeLibraryTarObjectStorageLocation)) {
                     // TODO: 15/07/19 object is in the local FS and not yet in TAR (throw exception or read it from local FS ?)
@@ -299,7 +303,14 @@ public class TapeLibraryContentAddressableStorage implements ContentAddressableS
                 }
 
                 for (TarEntryDescription o : tarEntryDescriptions) {
-                    tarLocationMap.putIfAbsent(o.getTarFileId(), TarLocation.TAPE);
+                    // If Tar in cache then already in DISK. Access TAR in cache increase expire time
+                    String tarFileIdWithoutExtension = StringUtils.substringBeforeLast(o.getTarFileId(), ".");
+                    Path path = archiveOutputRetentionPolicy.get(tarFileIdWithoutExtension);
+                    if (null != path) {
+                        tarLocationMap.putIfAbsent(tarFileIdWithoutExtension, TarLocation.DISK);
+                    } else {
+                        tarLocationMap.putIfAbsent(tarFileIdWithoutExtension, TarLocation.TAPE);
+                    }
                 }
 
 
@@ -323,9 +334,12 @@ public class TapeLibraryContentAddressableStorage implements ContentAddressableS
                     throw new UnsupportedOperationException("Tar file not on tape. Not implemented yet");
                 }
 
-                // TODO: 12/07/19 implement retention policy => do not create read order if TAR already exists in local FS
+                if (tarLocationMap.get(tarId).equals(TarLocation.DISK)) {
+                    // Do not add read order task as TAR already exists in local FS
+                    continue;
+                }
 
-                // create read orders
+                // Create read orders
                 String tapeCode = ((TapeLibraryOnTapeArchiveStorageLocation) tarLocation).getTapeCode();
                 Integer filePosition = ((TapeLibraryOnTapeArchiveStorageLocation) tarLocation).getFilePosition();
                 String bucketId = getBucketByTapeCode(tapeCode);

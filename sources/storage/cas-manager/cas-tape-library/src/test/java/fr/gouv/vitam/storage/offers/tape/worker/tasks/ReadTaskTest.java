@@ -9,6 +9,7 @@ import fr.gouv.vitam.storage.engine.common.model.ReadOrder;
 import fr.gouv.vitam.storage.engine.common.model.TapeCatalog;
 import fr.gouv.vitam.storage.engine.common.model.TapeLocation;
 import fr.gouv.vitam.storage.engine.common.model.TapeLocationType;
+import fr.gouv.vitam.storage.offers.tape.cas.ArchiveOutputRetentionPolicy;
 import fr.gouv.vitam.storage.offers.tape.cas.ReadRequestReferentialRepository;
 import fr.gouv.vitam.storage.offers.tape.dto.TapeDriveState;
 import fr.gouv.vitam.storage.offers.tape.dto.TapeDriveStatus;
@@ -81,6 +82,9 @@ public class ReadTaskTest {
     @Mock
     private TapeDriveCommandService tapeDriveCommandService;
 
+    @Mock
+    private ArchiveOutputRetentionPolicy archiveOutputRetentionPolicy;
+
     private Path fileTest;
     private String fileName;
 
@@ -92,6 +96,7 @@ public class ReadTaskTest {
         reset(tapeCatalogService);
         reset(tapeReadWriteService);
         reset(tapeReadWriteService);
+        reset(archiveOutputRetentionPolicy);
 
         when(tapeDriveService.getReadWriteService(eq(TapeDriveService.ReadWriteCmd.DD)))
             .thenAnswer(o -> tapeReadWriteService);
@@ -119,29 +124,38 @@ public class ReadTaskTest {
         // Test constructors
         try {
             new ReadTask(null, mock(TapeCatalog.class), mock(TapeLibraryServiceImpl.class),
-                    mock(TapeCatalogService.class), mock(ReadRequestReferentialRepository.class));
+                mock(TapeCatalogService.class), mock(ReadRequestReferentialRepository.class),
+                archiveOutputRetentionPolicy);
             fail("read order is required");
         } catch (IllegalArgumentException e) {
         }
 
         try {
             new ReadTask(mock(ReadOrder.class), mock(TapeCatalog.class), null,
-                    mock(TapeCatalogService.class), mock(ReadRequestReferentialRepository.class));
+                mock(TapeCatalogService.class), mock(ReadRequestReferentialRepository.class),
+                archiveOutputRetentionPolicy);
             fail("tape library service is required");
         } catch (IllegalArgumentException e) {
         }
 
         try {
             new ReadTask(mock(ReadOrder.class), mock(TapeCatalog.class), mock(TapeLibraryServiceImpl.class),
-                    null, mock(ReadRequestReferentialRepository.class));
+                null, mock(ReadRequestReferentialRepository.class), archiveOutputRetentionPolicy);
             fail("tape catalog service is required");
         } catch (IllegalArgumentException e) {
         }
 
         try {
             new ReadTask(mock(ReadOrder.class), mock(TapeCatalog.class), mock(TapeLibraryServiceImpl.class),
-                    mock(TapeCatalogService.class), null);
+                mock(TapeCatalogService.class), null, archiveOutputRetentionPolicy);
             fail("read request repository is required");
+        } catch (IllegalArgumentException e) {
+        }
+
+        try {
+            new ReadTask(mock(ReadOrder.class), mock(TapeCatalog.class), mock(TapeLibraryServiceImpl.class),
+                mock(TapeCatalogService.class), mock(ReadRequestReferentialRepository.class), null);
+            fail("read request archiveOutputRetentionPolicy is required");
         } catch (IllegalArgumentException e) {
         }
     }
@@ -151,18 +165,18 @@ public class ReadTaskTest {
         // When
         when(tapeDriveService.getTapeDriveConf()).thenAnswer(o -> mock(TapeDriveConf.class));
         TapeCatalog tapeCatalog = new TapeCatalog()
-                .setLibrary(FAKE_LIBRARY)
-                .setCode(FAKE_TAPE_CODE)
-                .setCurrentPosition(FILE_POSITION)
-                .setCurrentLocation(new TapeLocation(DRIVE_INDEX, TapeLocationType.DRIVE));
+            .setLibrary(FAKE_LIBRARY)
+            .setCode(FAKE_TAPE_CODE)
+            .setCurrentPosition(FILE_POSITION)
+            .setCurrentLocation(new TapeLocation(DRIVE_INDEX, TapeLocationType.DRIVE));
 
         ReadOrder readOrder = new ReadOrder().setTapeCode(FAKE_TAPE_CODE)
-                .setFilePosition(FILE_POSITION)
-                .setFileName(fileName);
+            .setFilePosition(FILE_POSITION)
+            .setFileName(fileName);
 
         ReadTask readTask =
             new ReadTask(readOrder, tapeCatalog, new TapeLibraryServiceImpl(tapeDriveService, tapeRobotPool),
-                    tapeCatalogService, readRequestReferentialRepository);
+                tapeCatalogService, readRequestReferentialRepository, archiveOutputRetentionPolicy);
 
         doAnswer(
             invocationOnMock -> {
@@ -172,13 +186,13 @@ public class ReadTaskTest {
         ).when(tapeReadWriteService).readFromTape(any());
 
         when(tapeDriveService.getDriveCommandService())
-                .thenReturn(tapeDriveCommandService);
+            .thenReturn(tapeDriveCommandService);
         when(tapeDriveService.getDriveCommandService().rewind())
-                .thenReturn(new TapeResponse(StatusCode.OK));
+            .thenReturn(new TapeResponse(StatusCode.OK));
         when(tapeDriveService.getDriveCommandService().move(anyInt(), anyBoolean()))
-                .thenReturn(new TapeResponse(StatusCode.OK));
+            .thenReturn(new TapeResponse(StatusCode.OK));
         when(tapeDriveService.getDriveCommandService().move(anyInt(), anyBoolean()))
-                .thenReturn(new TapeResponse(StatusCode.OK));
+            .thenReturn(new TapeResponse(StatusCode.OK));
         when(tapeDriveCommandService.eject()).thenReturn(new TapeResponse(StatusCode.OK));
 
         // Case one current t
@@ -190,34 +204,34 @@ public class ReadTaskTest {
         assertThat(result.getCurrentTape()).isNotNull();
         assertThat(result.getCurrentTape().getCode()).isEqualTo(FAKE_TAPE_CODE);
         assertThat(result.getCurrentTape().getCurrentLocation()
-                .equals(new TapeLocation(DRIVE_INDEX, TapeLocationType.DRIVE))).isEqualTo(true);
+            .equals(new TapeLocation(DRIVE_INDEX, TapeLocationType.DRIVE))).isEqualTo(true);
         assertThat(result.getCurrentTape().getCurrentPosition()).isEqualTo(FILE_POSITION + 1);
 
     }
 
     @Test
     public void testReadTaskWhenCurrentTapeIsNotNullAndNotEligibleAndTheEligibleTapeIsAvailable()
-            throws InterruptedException, QueueException {
+        throws InterruptedException, QueueException {
         // When
         when(tapeDriveService.getTapeDriveConf()).thenAnswer(o -> mock(TapeDriveConf.class));
         TapeCatalog currentTape = new TapeCatalog()
-                .setLibrary(FAKE_LIBRARY)
-                .setCode("tape")
-                .setCurrentLocation(new TapeLocation(DRIVE_INDEX, TapeLocationType.DRIVE))
-                .setPreviousLocation(new TapeLocation(SLOT_INDEX + 1, TapeLocationType.SLOT));
+            .setLibrary(FAKE_LIBRARY)
+            .setCode("tape")
+            .setCurrentLocation(new TapeLocation(DRIVE_INDEX, TapeLocationType.DRIVE))
+            .setPreviousLocation(new TapeLocation(SLOT_INDEX + 1, TapeLocationType.SLOT));
 
         TapeCatalog appropriateTape = new TapeCatalog()
-                .setLibrary(FAKE_LIBRARY)
-                .setCode(FAKE_TAPE_CODE)
-                .setCurrentLocation(new TapeLocation(SLOT_INDEX, TapeLocationType.SLOT));
+            .setLibrary(FAKE_LIBRARY)
+            .setCode(FAKE_TAPE_CODE)
+            .setCurrentLocation(new TapeLocation(SLOT_INDEX, TapeLocationType.SLOT));
 
         ReadOrder readOrder = new ReadOrder().setTapeCode(FAKE_TAPE_CODE)
-                .setFilePosition(FILE_POSITION)
-                .setFileName(fileName);
+            .setFilePosition(FILE_POSITION)
+            .setFileName(fileName);
 
         ReadTask readTask =
-                new ReadTask(readOrder, currentTape, new TapeLibraryServiceImpl(tapeDriveService, tapeRobotPool),
-                        tapeCatalogService, readRequestReferentialRepository);
+            new ReadTask(readOrder, currentTape, new TapeLibraryServiceImpl(tapeDriveService, tapeRobotPool),
+                tapeCatalogService, readRequestReferentialRepository, archiveOutputRetentionPolicy);
 
         doAnswer(
             invocationOnMock -> {
@@ -227,26 +241,26 @@ public class ReadTaskTest {
         ).when(tapeReadWriteService).readFromTape(any());
 
         when(tapeDriveService.getDriveCommandService())
-                .thenReturn(tapeDriveCommandService);
+            .thenReturn(tapeDriveCommandService);
         when(tapeDriveService.getDriveCommandService().rewind())
-                .thenReturn(new TapeResponse(StatusCode.OK));
+            .thenReturn(new TapeResponse(StatusCode.OK));
         when(tapeDriveService.getDriveCommandService().move(anyInt(), anyBoolean()))
-                .thenReturn(new TapeResponse(StatusCode.OK));
+            .thenReturn(new TapeResponse(StatusCode.OK));
         when(tapeDriveService.getDriveCommandService().move(anyInt(), anyBoolean()))
-                .thenReturn(new TapeResponse(StatusCode.OK));
+            .thenReturn(new TapeResponse(StatusCode.OK));
         when(tapeCatalogService.receive(any(), any()))
-                .thenReturn(Optional.of(appropriateTape));
+            .thenReturn(Optional.of(appropriateTape));
         when(tapeDriveService.getTapeDriveConf().getIndex())
-                .thenReturn(DRIVE_INDEX);
+            .thenReturn(DRIVE_INDEX);
         when(tapeRobotPool.checkoutRobotService())
-                .thenReturn(mock(TapeRobotService.class));
+            .thenReturn(mock(TapeRobotService.class));
         when(tapeRobotPool.checkoutRobotService().getLoadUnloadService())
-                .thenReturn(mock(TapeLoadUnloadService.class));
+            .thenReturn(mock(TapeLoadUnloadService.class));
         when(tapeRobotPool.checkoutRobotService().getLoadUnloadService()
-                .loadTape(anyInt(), anyInt())).thenReturn(new TapeResponse(StatusCode.OK));
+            .loadTape(anyInt(), anyInt())).thenReturn(new TapeResponse(StatusCode.OK));
         when(tapeDriveCommandService.eject()).thenReturn(new TapeResponse(StatusCode.OK));
         when(tapeRobotPool.checkoutRobotService().getLoadUnloadService()
-                .unloadTape(anyInt(), anyInt())).thenReturn(new TapeResponse(StatusCode.OK));
+            .unloadTape(anyInt(), anyInt())).thenReturn(new TapeResponse(StatusCode.OK));
 
         // Case one current t
         ReadWriteResult result = readTask.get();
@@ -256,59 +270,62 @@ public class ReadTaskTest {
         assertThat(result.getOrderState()).isEqualTo(QueueState.COMPLETED);
         assertThat(result.getCurrentTape()).isNotNull();
         assertThat(result.getCurrentTape().getCode()).isEqualTo(FAKE_TAPE_CODE);
-        assertThat(result.getCurrentTape().getCurrentLocation().equals(new TapeLocation(DRIVE_INDEX, TapeLocationType.DRIVE))).isEqualTo(true);
-        assertThat(currentTape.getCurrentLocation().equals(new TapeLocation(SLOT_INDEX + 1, TapeLocationType.SLOT))).isEqualTo(true);
+        assertThat(
+            result.getCurrentTape().getCurrentLocation().equals(new TapeLocation(DRIVE_INDEX, TapeLocationType.DRIVE)))
+            .isEqualTo(true);
+        assertThat(currentTape.getCurrentLocation().equals(new TapeLocation(SLOT_INDEX + 1, TapeLocationType.SLOT)))
+            .isEqualTo(true);
         assertThat(result.getCurrentTape().getCurrentPosition()).isEqualTo(FILE_POSITION + 1);
     }
 
     @Test
     public void testReadTaskWhenCurrentTapeIsNotNullAndNotEligibleAndTheEligibleTapeIsBusy()
-            throws InterruptedException, QueueException, TapeCatalogException {
+        throws InterruptedException, QueueException, TapeCatalogException {
         // When
         when(tapeDriveService.getTapeDriveConf()).thenAnswer(o -> mock(TapeDriveConf.class));
         TapeCatalog currentTape = new TapeCatalog()
-                .setLibrary(FAKE_LIBRARY)
-                .setCode("tape")
-                .setCurrentLocation(new TapeLocation(DRIVE_INDEX, TapeLocationType.DRIVE))
-                .setPreviousLocation(new TapeLocation(SLOT_INDEX + 1, TapeLocationType.SLOT));
+            .setLibrary(FAKE_LIBRARY)
+            .setCode("tape")
+            .setCurrentLocation(new TapeLocation(DRIVE_INDEX, TapeLocationType.DRIVE))
+            .setPreviousLocation(new TapeLocation(SLOT_INDEX + 1, TapeLocationType.SLOT));
 
         TapeCatalog appropriateTape = new TapeCatalog()
-                .setLibrary(FAKE_LIBRARY)
-                .setCode(FAKE_TAPE_CODE)
-                .setCurrentLocation(new TapeLocation(SLOT_INDEX, TapeLocationType.SLOT));
+            .setLibrary(FAKE_LIBRARY)
+            .setCode(FAKE_TAPE_CODE)
+            .setCurrentLocation(new TapeLocation(SLOT_INDEX, TapeLocationType.SLOT));
 
         ReadOrder readOrder = new ReadOrder().setTapeCode(FAKE_TAPE_CODE)
-                .setFilePosition(FILE_POSITION)
-                .setFileName(fileName);
+            .setFilePosition(FILE_POSITION)
+            .setFileName(fileName);
 
         ReadTask readTask =
-                new ReadTask(readOrder, currentTape, new TapeLibraryServiceImpl(tapeDriveService, tapeRobotPool),
-                        tapeCatalogService, readRequestReferentialRepository);
+            new ReadTask(readOrder, currentTape, new TapeLibraryServiceImpl(tapeDriveService, tapeRobotPool),
+                tapeCatalogService, readRequestReferentialRepository, archiveOutputRetentionPolicy);
 
         when(tapeReadWriteService.readFromTape(startsWith(readOrder.getFileName())))
-                .thenReturn(new TapeResponse(StatusCode.OK));
+            .thenReturn(new TapeResponse(StatusCode.OK));
         when(tapeDriveService.getDriveCommandService())
-                .thenReturn(tapeDriveCommandService);
+            .thenReturn(tapeDriveCommandService);
         when(tapeDriveService.getDriveCommandService().rewind())
-                .thenReturn(new TapeResponse(StatusCode.OK));
+            .thenReturn(new TapeResponse(StatusCode.OK));
         when(tapeDriveService.getDriveCommandService().move(anyInt(), anyBoolean()))
-                .thenReturn(new TapeResponse(StatusCode.OK));
+            .thenReturn(new TapeResponse(StatusCode.OK));
         when(tapeDriveService.getDriveCommandService().move(anyInt(), anyBoolean()))
-                .thenReturn(new TapeResponse(StatusCode.OK));
+            .thenReturn(new TapeResponse(StatusCode.OK));
         when(tapeCatalogService.receive(any(), any()))
-                .thenReturn(Optional.empty());
+            .thenReturn(Optional.empty());
         when(tapeCatalogService.find(any()))
-                .thenReturn(Arrays.asList(appropriateTape));
+            .thenReturn(Arrays.asList(appropriateTape));
         when(tapeDriveService.getTapeDriveConf().getIndex())
-                .thenReturn(DRIVE_INDEX);
+            .thenReturn(DRIVE_INDEX);
         when(tapeRobotPool.checkoutRobotService())
-                .thenReturn(mock(TapeRobotService.class));
+            .thenReturn(mock(TapeRobotService.class));
         when(tapeRobotPool.checkoutRobotService().getLoadUnloadService())
-                .thenReturn(mock(TapeLoadUnloadService.class));
+            .thenReturn(mock(TapeLoadUnloadService.class));
         when(tapeRobotPool.checkoutRobotService().getLoadUnloadService()
-                .loadTape(anyInt(), anyInt())).thenReturn(new TapeResponse(StatusCode.OK));
+            .loadTape(anyInt(), anyInt())).thenReturn(new TapeResponse(StatusCode.OK));
         when(tapeRobotPool.checkoutRobotService().getLoadUnloadService()
-                .unloadTape(anyInt(), anyInt())).thenReturn(new TapeResponse(StatusCode.OK));
+            .unloadTape(anyInt(), anyInt())).thenReturn(new TapeResponse(StatusCode.OK));
 
         when(tapeDriveCommandService.eject()).thenReturn(new TapeResponse(StatusCode.OK));
 
@@ -323,48 +340,48 @@ public class ReadTaskTest {
 
     @Test
     public void testReadTaskWhenCurrentTapeIsNotNullAndNotEligibleAndTheEligibleTapeIsUnknown()
-            throws InterruptedException, QueueException, TapeCatalogException {
+        throws InterruptedException, QueueException, TapeCatalogException {
         // When
         when(tapeDriveService.getTapeDriveConf()).thenAnswer(o -> mock(TapeDriveConf.class));
         TapeCatalog currentTape = new TapeCatalog()
-                .setLibrary(FAKE_LIBRARY)
-                .setCode("tape")
-                .setCurrentLocation(new TapeLocation(DRIVE_INDEX, TapeLocationType.DRIVE))
-                .setPreviousLocation(new TapeLocation(SLOT_INDEX + 1, TapeLocationType.SLOT));
+            .setLibrary(FAKE_LIBRARY)
+            .setCode("tape")
+            .setCurrentLocation(new TapeLocation(DRIVE_INDEX, TapeLocationType.DRIVE))
+            .setPreviousLocation(new TapeLocation(SLOT_INDEX + 1, TapeLocationType.SLOT));
 
         ReadOrder readOrder = new ReadOrder().setTapeCode(FAKE_TAPE_CODE)
-                .setFilePosition(FILE_POSITION)
-                .setFileName(fileName);
+            .setFilePosition(FILE_POSITION)
+            .setFileName(fileName);
 
         ReadTask readTask =
-                new ReadTask(readOrder, currentTape, new TapeLibraryServiceImpl(tapeDriveService, tapeRobotPool),
-                        tapeCatalogService, readRequestReferentialRepository);
+            new ReadTask(readOrder, currentTape, new TapeLibraryServiceImpl(tapeDriveService, tapeRobotPool),
+                tapeCatalogService, readRequestReferentialRepository, archiveOutputRetentionPolicy);
 
         when(tapeReadWriteService.readFromTape(startsWith(readOrder.getFileName())))
-                .thenReturn(new TapeResponse(StatusCode.OK));
+            .thenReturn(new TapeResponse(StatusCode.OK));
         when(tapeDriveService.getDriveCommandService())
-                .thenReturn(tapeDriveCommandService);
+            .thenReturn(tapeDriveCommandService);
         when(tapeDriveService.getDriveCommandService().rewind())
-                .thenReturn(new TapeResponse(StatusCode.OK));
+            .thenReturn(new TapeResponse(StatusCode.OK));
         when(tapeDriveService.getDriveCommandService().move(anyInt(), anyBoolean()))
-                .thenReturn(new TapeResponse(StatusCode.OK));
+            .thenReturn(new TapeResponse(StatusCode.OK));
         when(tapeDriveService.getDriveCommandService().move(anyInt(), anyBoolean()))
-                .thenReturn(new TapeResponse(StatusCode.OK));
+            .thenReturn(new TapeResponse(StatusCode.OK));
         when(tapeCatalogService.receive(any(), any()))
-                .thenReturn(Optional.empty());
+            .thenReturn(Optional.empty());
         when(tapeCatalogService.find(any()))
-                .thenReturn(Collections.emptyList());
+            .thenReturn(Collections.emptyList());
         when(tapeDriveService.getTapeDriveConf().getIndex())
-                .thenReturn(DRIVE_INDEX);
+            .thenReturn(DRIVE_INDEX);
         when(tapeRobotPool.checkoutRobotService())
-                .thenReturn(mock(TapeRobotService.class));
+            .thenReturn(mock(TapeRobotService.class));
         when(tapeRobotPool.checkoutRobotService().getLoadUnloadService())
-                .thenReturn(mock(TapeLoadUnloadService.class));
+            .thenReturn(mock(TapeLoadUnloadService.class));
         when(tapeRobotPool.checkoutRobotService().getLoadUnloadService()
-                .loadTape(anyInt(), anyInt())).thenReturn(new TapeResponse(StatusCode.OK));
+            .loadTape(anyInt(), anyInt())).thenReturn(new TapeResponse(StatusCode.OK));
         when(tapeDriveCommandService.eject()).thenReturn(new TapeResponse(StatusCode.OK));
         when(tapeRobotPool.checkoutRobotService().getLoadUnloadService()
-                .unloadTape(anyInt(), anyInt())).thenReturn(new TapeResponse(StatusCode.OK));
+            .unloadTape(anyInt(), anyInt())).thenReturn(new TapeResponse(StatusCode.OK));
 
 
         // Case one current t
@@ -378,46 +395,46 @@ public class ReadTaskTest {
 
     @Test
     public void testReadTaskWhenCurrentTapeIsNotNullAndNotEligibleAndTapeCatalogThrownException()
-            throws InterruptedException, QueueException {
+        throws InterruptedException, QueueException {
         // When
         when(tapeDriveService.getTapeDriveConf()).thenAnswer(o -> mock(TapeDriveConf.class));
         TapeCatalog currentTape = new TapeCatalog()
-                .setLibrary(FAKE_LIBRARY)
-                .setCode("tape")
-                .setCurrentLocation(new TapeLocation(DRIVE_INDEX, TapeLocationType.DRIVE))
-                .setPreviousLocation(new TapeLocation(SLOT_INDEX + 1, TapeLocationType.SLOT));
+            .setLibrary(FAKE_LIBRARY)
+            .setCode("tape")
+            .setCurrentLocation(new TapeLocation(DRIVE_INDEX, TapeLocationType.DRIVE))
+            .setPreviousLocation(new TapeLocation(SLOT_INDEX + 1, TapeLocationType.SLOT));
 
         ReadOrder readOrder = new ReadOrder().setTapeCode(FAKE_TAPE_CODE)
-                .setFilePosition(FILE_POSITION)
-                .setFileName(fileName);
+            .setFilePosition(FILE_POSITION)
+            .setFileName(fileName);
 
         ReadTask readTask =
-                new ReadTask(readOrder, currentTape, new TapeLibraryServiceImpl(tapeDriveService, tapeRobotPool),
-                        tapeCatalogService, readRequestReferentialRepository);
+            new ReadTask(readOrder, currentTape, new TapeLibraryServiceImpl(tapeDriveService, tapeRobotPool),
+                tapeCatalogService, readRequestReferentialRepository, archiveOutputRetentionPolicy);
 
         when(tapeReadWriteService.readFromTape(startsWith(readOrder.getFileName())))
-                .thenReturn(new TapeResponse(StatusCode.OK));
+            .thenReturn(new TapeResponse(StatusCode.OK));
         when(tapeDriveService.getDriveCommandService())
-                .thenReturn(tapeDriveCommandService);
+            .thenReturn(tapeDriveCommandService);
         when(tapeDriveService.getDriveCommandService().rewind())
-                .thenReturn(new TapeResponse(StatusCode.OK));
+            .thenReturn(new TapeResponse(StatusCode.OK));
         when(tapeDriveService.getDriveCommandService().move(anyInt(), anyBoolean()))
-                .thenReturn(new TapeResponse(StatusCode.OK));
+            .thenReturn(new TapeResponse(StatusCode.OK));
         when(tapeDriveService.getDriveCommandService().move(anyInt(), anyBoolean()))
-                .thenReturn(new TapeResponse(StatusCode.OK));
+            .thenReturn(new TapeResponse(StatusCode.OK));
         when(tapeCatalogService.receive(any(), any()))
-                .thenThrow(QueueException.class);
+            .thenThrow(QueueException.class);
         when(tapeDriveService.getTapeDriveConf().getIndex())
-                .thenReturn(DRIVE_INDEX);
+            .thenReturn(DRIVE_INDEX);
         when(tapeRobotPool.checkoutRobotService())
-                .thenReturn(mock(TapeRobotService.class));
+            .thenReturn(mock(TapeRobotService.class));
         when(tapeRobotPool.checkoutRobotService().getLoadUnloadService())
-                .thenReturn(mock(TapeLoadUnloadService.class));
+            .thenReturn(mock(TapeLoadUnloadService.class));
         when(tapeRobotPool.checkoutRobotService().getLoadUnloadService()
-                .loadTape(anyInt(), anyInt())).thenReturn(new TapeResponse(StatusCode.OK));
+            .loadTape(anyInt(), anyInt())).thenReturn(new TapeResponse(StatusCode.OK));
         when(tapeDriveCommandService.eject()).thenReturn(new TapeResponse(StatusCode.OK));
         when(tapeRobotPool.checkoutRobotService().getLoadUnloadService()
-                .unloadTape(anyInt(), anyInt())).thenReturn(new TapeResponse(StatusCode.OK));
+            .unloadTape(anyInt(), anyInt())).thenReturn(new TapeResponse(StatusCode.OK));
 
         // Case one current t
         ReadWriteResult result = readTask.get();
@@ -430,50 +447,50 @@ public class ReadTaskTest {
 
     @Test
     public void testReadTaskWhenCurrentTapeIsNotNullAndNotEligibleAndTheEligibleTapeIsOutside()
-            throws InterruptedException, QueueException {
+        throws InterruptedException, QueueException {
         // When
         when(tapeDriveService.getTapeDriveConf()).thenAnswer(o -> mock(TapeDriveConf.class));
         TapeCatalog currentTape = new TapeCatalog()
-                .setLibrary(FAKE_LIBRARY)
-                .setCode("tape")
-                .setCurrentLocation(new TapeLocation(DRIVE_INDEX, TapeLocationType.DRIVE))
-                .setPreviousLocation(new TapeLocation(SLOT_INDEX + 1, TapeLocationType.SLOT));
+            .setLibrary(FAKE_LIBRARY)
+            .setCode("tape")
+            .setCurrentLocation(new TapeLocation(DRIVE_INDEX, TapeLocationType.DRIVE))
+            .setPreviousLocation(new TapeLocation(SLOT_INDEX + 1, TapeLocationType.SLOT));
 
         TapeCatalog appropriateTape = new TapeCatalog()
-                .setLibrary(FAKE_LIBRARY)
-                .setCode(FAKE_TAPE_CODE)
-                .setCurrentLocation(new TapeLocation(null, TapeLocationType.OUTSIDE));
+            .setLibrary(FAKE_LIBRARY)
+            .setCode(FAKE_TAPE_CODE)
+            .setCurrentLocation(new TapeLocation(null, TapeLocationType.OUTSIDE));
 
         ReadOrder readOrder = new ReadOrder().setTapeCode(FAKE_TAPE_CODE)
-                .setFilePosition(FILE_POSITION)
-                .setFileName(fileName);
+            .setFilePosition(FILE_POSITION)
+            .setFileName(fileName);
 
         ReadTask readTask =
-                new ReadTask(readOrder, currentTape, new TapeLibraryServiceImpl(tapeDriveService, tapeRobotPool),
-                        tapeCatalogService, readRequestReferentialRepository);
+            new ReadTask(readOrder, currentTape, new TapeLibraryServiceImpl(tapeDriveService, tapeRobotPool),
+                tapeCatalogService, readRequestReferentialRepository, archiveOutputRetentionPolicy);
 
         when(tapeReadWriteService.readFromTape(startsWith(readOrder.getFileName())))
-                .thenReturn(new TapeResponse(StatusCode.OK));
+            .thenReturn(new TapeResponse(StatusCode.OK));
         when(tapeDriveService.getDriveCommandService())
-                .thenReturn(tapeDriveCommandService);
+            .thenReturn(tapeDriveCommandService);
         when(tapeDriveService.getDriveCommandService().rewind())
-                .thenReturn(new TapeResponse(StatusCode.OK));
+            .thenReturn(new TapeResponse(StatusCode.OK));
         when(tapeDriveService.getDriveCommandService().move(anyInt(), anyBoolean()))
-                .thenReturn(new TapeResponse(StatusCode.OK));
+            .thenReturn(new TapeResponse(StatusCode.OK));
         when(tapeDriveService.getDriveCommandService().move(anyInt(), anyBoolean()))
-                .thenReturn(new TapeResponse(StatusCode.OK));
+            .thenReturn(new TapeResponse(StatusCode.OK));
         when(tapeCatalogService.receive(any(), any()))
-                .thenReturn(Optional.of(appropriateTape));
+            .thenReturn(Optional.of(appropriateTape));
         when(tapeDriveService.getTapeDriveConf().getIndex())
-                .thenReturn(DRIVE_INDEX);
+            .thenReturn(DRIVE_INDEX);
         when(tapeRobotPool.checkoutRobotService())
-                .thenReturn(mock(TapeRobotService.class));
+            .thenReturn(mock(TapeRobotService.class));
         when(tapeRobotPool.checkoutRobotService().getLoadUnloadService())
-                .thenReturn(mock(TapeLoadUnloadService.class));
+            .thenReturn(mock(TapeLoadUnloadService.class));
         when(tapeRobotPool.checkoutRobotService().getLoadUnloadService()
-                .loadTape(anyInt(), anyInt())).thenReturn(new TapeResponse(StatusCode.OK));
+            .loadTape(anyInt(), anyInt())).thenReturn(new TapeResponse(StatusCode.OK));
         when(tapeRobotPool.checkoutRobotService().getLoadUnloadService()
-                .unloadTape(anyInt(), anyInt())).thenReturn(new TapeResponse(StatusCode.OK));
+            .unloadTape(anyInt(), anyInt())).thenReturn(new TapeResponse(StatusCode.OK));
 
         when(tapeDriveCommandService.eject()).thenReturn(new TapeResponse(StatusCode.OK));
 
@@ -489,53 +506,53 @@ public class ReadTaskTest {
 
     @Test
     public void testReadTaskWhenCurrentTapeIsNotNullAndNotEligibleThenErrorWhenLoadingTheEligibleTape()
-            throws InterruptedException, QueueException {
+        throws InterruptedException, QueueException {
         // When
         when(tapeDriveService.getTapeDriveConf()).thenAnswer(o -> mock(TapeDriveConf.class));
         TapeCatalog currentTape = new TapeCatalog()
-                .setLibrary(FAKE_LIBRARY)
-                .setCode("tape")
-                .setCurrentLocation(new TapeLocation(DRIVE_INDEX, TapeLocationType.DRIVE))
-                .setPreviousLocation(new TapeLocation(SLOT_INDEX + 1, TapeLocationType.SLOT));
+            .setLibrary(FAKE_LIBRARY)
+            .setCode("tape")
+            .setCurrentLocation(new TapeLocation(DRIVE_INDEX, TapeLocationType.DRIVE))
+            .setPreviousLocation(new TapeLocation(SLOT_INDEX + 1, TapeLocationType.SLOT));
 
         TapeCatalog appropriateTape = new TapeCatalog()
-                .setLibrary(FAKE_LIBRARY)
-                .setCode(FAKE_TAPE_CODE)
-                .setCurrentLocation(new TapeLocation(SLOT_INDEX, TapeLocationType.SLOT));
+            .setLibrary(FAKE_LIBRARY)
+            .setCode(FAKE_TAPE_CODE)
+            .setCurrentLocation(new TapeLocation(SLOT_INDEX, TapeLocationType.SLOT));
 
         ReadOrder readOrder = new ReadOrder().setTapeCode(FAKE_TAPE_CODE)
-                .setFilePosition(FILE_POSITION)
-                .setFileName(fileName);
+            .setFilePosition(FILE_POSITION)
+            .setFileName(fileName);
 
         ReadTask readTask =
-                new ReadTask(readOrder, currentTape, new TapeLibraryServiceImpl(tapeDriveService, tapeRobotPool),
-                        tapeCatalogService, readRequestReferentialRepository);
+            new ReadTask(readOrder, currentTape, new TapeLibraryServiceImpl(tapeDriveService, tapeRobotPool),
+                tapeCatalogService, readRequestReferentialRepository, archiveOutputRetentionPolicy);
 
         when(tapeReadWriteService.readFromTape(startsWith(readOrder.getFileName())))
-                .thenReturn(new TapeResponse(StatusCode.OK));
+            .thenReturn(new TapeResponse(StatusCode.OK));
         when(tapeDriveService.getDriveCommandService())
-                .thenReturn(tapeDriveCommandService);
+            .thenReturn(tapeDriveCommandService);
         when(tapeDriveService.getDriveCommandService().rewind())
-                .thenReturn(new TapeResponse(StatusCode.OK));
+            .thenReturn(new TapeResponse(StatusCode.OK));
         when(tapeDriveService.getDriveCommandService().move(anyInt(), anyBoolean()))
-                .thenReturn(new TapeResponse(StatusCode.OK));
+            .thenReturn(new TapeResponse(StatusCode.OK));
         when(tapeDriveService.getDriveCommandService().move(anyInt(), anyBoolean()))
-                .thenReturn(new TapeResponse(StatusCode.OK));
+            .thenReturn(new TapeResponse(StatusCode.OK));
         when(tapeCatalogService.receive(any(), any()))
-                .thenReturn(Optional.of(appropriateTape));
+            .thenReturn(Optional.of(appropriateTape));
         when(tapeDriveService.getTapeDriveConf().getIndex())
-                .thenReturn(DRIVE_INDEX);
+            .thenReturn(DRIVE_INDEX);
         when(tapeRobotPool.checkoutRobotService())
-                .thenReturn(mock(TapeRobotService.class));
+            .thenReturn(mock(TapeRobotService.class));
         when(tapeRobotPool.checkoutRobotService().getLoadUnloadService())
-                .thenReturn(mock(TapeLoadUnloadService.class));
+            .thenReturn(mock(TapeLoadUnloadService.class));
         when(tapeRobotPool.checkoutRobotService().getLoadUnloadService()
-                .loadTape(anyInt(), anyInt())).thenReturn(new TapeResponse(StatusCode.FATAL));
+            .loadTape(anyInt(), anyInt())).thenReturn(new TapeResponse(StatusCode.FATAL));
         when(tapeDriveCommandService.eject()).thenReturn(new TapeResponse(StatusCode.OK));
         when(tapeRobotPool.checkoutRobotService().getLoadUnloadService()
-                .unloadTape(anyInt(), anyInt())).thenReturn(new TapeResponse(StatusCode.OK));
+            .unloadTape(anyInt(), anyInt())).thenReturn(new TapeResponse(StatusCode.OK));
         when(tapeDriveCommandService.status())
-                .thenReturn(new TapeDriveState(StatusCode.OK));
+            .thenReturn(new TapeDriveState(StatusCode.OK));
 
         // Case one current t
         ReadWriteResult result = readTask.get();
@@ -549,55 +566,55 @@ public class ReadTaskTest {
 
     @Test
     public void testReadTaskWhenCurrentTapeIsNotNullAndNotEligibleThenErrorWhenUnloadingTheCurrentTape()
-            throws InterruptedException, QueueException {
+        throws InterruptedException, QueueException {
         // When
         when(tapeDriveService.getTapeDriveConf()).thenAnswer(o -> mock(TapeDriveConf.class));
         TapeCatalog currentTape = new TapeCatalog()
-                .setLibrary(FAKE_LIBRARY)
-                .setCode("tape")
-                .setCurrentLocation(new TapeLocation(DRIVE_INDEX, TapeLocationType.DRIVE))
-                .setPreviousLocation(new TapeLocation(SLOT_INDEX + 1, TapeLocationType.SLOT));
+            .setLibrary(FAKE_LIBRARY)
+            .setCode("tape")
+            .setCurrentLocation(new TapeLocation(DRIVE_INDEX, TapeLocationType.DRIVE))
+            .setPreviousLocation(new TapeLocation(SLOT_INDEX + 1, TapeLocationType.SLOT));
 
         TapeCatalog appropriateTape = new TapeCatalog()
-                .setLibrary(FAKE_LIBRARY)
-                .setCode(FAKE_TAPE_CODE)
-                .setCurrentLocation(new TapeLocation(SLOT_INDEX, TapeLocationType.SLOT));
+            .setLibrary(FAKE_LIBRARY)
+            .setCode(FAKE_TAPE_CODE)
+            .setCurrentLocation(new TapeLocation(SLOT_INDEX, TapeLocationType.SLOT));
 
         ReadOrder readOrder = new ReadOrder().setTapeCode(FAKE_TAPE_CODE)
-                .setFilePosition(FILE_POSITION)
-                .setFileName(fileName);
+            .setFilePosition(FILE_POSITION)
+            .setFileName(fileName);
 
         ReadTask readTask =
-                new ReadTask(readOrder, currentTape, new TapeLibraryServiceImpl(tapeDriveService, tapeRobotPool),
-                        tapeCatalogService, readRequestReferentialRepository);
+            new ReadTask(readOrder, currentTape, new TapeLibraryServiceImpl(tapeDriveService, tapeRobotPool),
+                tapeCatalogService, readRequestReferentialRepository, archiveOutputRetentionPolicy);
 
         when(tapeReadWriteService.readFromTape(startsWith(readOrder.getFileName())))
-                .thenReturn(new TapeResponse(StatusCode.OK));
+            .thenReturn(new TapeResponse(StatusCode.OK));
         when(tapeDriveService.getDriveCommandService())
-                .thenReturn(tapeDriveCommandService);
+            .thenReturn(tapeDriveCommandService);
         when(tapeDriveService.getDriveCommandService().rewind())
-                .thenReturn(new TapeResponse(StatusCode.OK));
+            .thenReturn(new TapeResponse(StatusCode.OK));
         when(tapeDriveService.getDriveCommandService().move(anyInt(), anyBoolean()))
-                .thenReturn(new TapeResponse(StatusCode.OK));
+            .thenReturn(new TapeResponse(StatusCode.OK));
         when(tapeDriveService.getDriveCommandService().move(anyInt(), anyBoolean()))
-                .thenReturn(new TapeResponse(StatusCode.OK));
+            .thenReturn(new TapeResponse(StatusCode.OK));
         when(tapeCatalogService.receive(any(), any()))
-                .thenReturn(Optional.of(appropriateTape));
+            .thenReturn(Optional.of(appropriateTape));
         when(tapeDriveService.getTapeDriveConf().getIndex())
-                .thenReturn(DRIVE_INDEX);
+            .thenReturn(DRIVE_INDEX);
         when(tapeRobotPool.checkoutRobotService())
-                .thenReturn(mock(TapeRobotService.class));
+            .thenReturn(mock(TapeRobotService.class));
         when(tapeRobotPool.checkoutRobotService().getLoadUnloadService())
-                .thenReturn(mock(TapeLoadUnloadService.class));
+            .thenReturn(mock(TapeLoadUnloadService.class));
         when(tapeDriveCommandService.eject()).thenReturn(new TapeResponse(StatusCode.OK));
         when(tapeRobotPool.checkoutRobotService().getLoadUnloadService()
-                .unloadTape(anyInt(), anyInt())).thenReturn(new TapeResponse(StatusCode.FATAL));
+            .unloadTape(anyInt(), anyInt())).thenReturn(new TapeResponse(StatusCode.FATAL));
         TapeDriveState tapeDriveState = new TapeDriveState(StatusCode.OK);
         tapeDriveState.setDriveStatuses(Arrays.asList(TapeDriveStatus.ONLINE));
         when(tapeDriveCommandService.status())
-                .thenReturn(tapeDriveState);
+            .thenReturn(tapeDriveState);
         when(tapeRobotPool.checkoutRobotService().getLoadUnloadService()
-                .loadTape(anyInt(), anyInt())).thenReturn(new TapeResponse(StatusCode.OK));
+            .loadTape(anyInt(), anyInt())).thenReturn(new TapeResponse(StatusCode.OK));
 
         // Case one current t
         ReadWriteResult result = readTask.get();
@@ -611,53 +628,53 @@ public class ReadTaskTest {
 
     @Test
     public void testReadTaskWhenCurrentTapeIsNotEligibleAndLoadEligibleTapeThenErrorWhenReadIt()
-            throws InterruptedException, QueueException {
+        throws InterruptedException, QueueException {
         // When
         when(tapeDriveService.getTapeDriveConf()).thenAnswer(o -> mock(TapeDriveConf.class));
         TapeCatalog currentTape = new TapeCatalog()
-                .setLibrary(FAKE_LIBRARY)
-                .setCode("tape")
-                .setCurrentLocation(new TapeLocation(DRIVE_INDEX, TapeLocationType.DRIVE))
-                .setPreviousLocation(new TapeLocation(SLOT_INDEX + 1, TapeLocationType.SLOT));
+            .setLibrary(FAKE_LIBRARY)
+            .setCode("tape")
+            .setCurrentLocation(new TapeLocation(DRIVE_INDEX, TapeLocationType.DRIVE))
+            .setPreviousLocation(new TapeLocation(SLOT_INDEX + 1, TapeLocationType.SLOT));
 
         TapeCatalog appropriateTape = new TapeCatalog()
-                .setLibrary(FAKE_LIBRARY)
-                .setCode(FAKE_TAPE_CODE)
-                .setCurrentLocation(new TapeLocation(SLOT_INDEX, TapeLocationType.SLOT));
+            .setLibrary(FAKE_LIBRARY)
+            .setCode(FAKE_TAPE_CODE)
+            .setCurrentLocation(new TapeLocation(SLOT_INDEX, TapeLocationType.SLOT));
 
         ReadOrder readOrder = new ReadOrder().setTapeCode(FAKE_TAPE_CODE)
-                .setFilePosition(FILE_POSITION)
-                .setFileName(fileName);
+            .setFilePosition(FILE_POSITION)
+            .setFileName(fileName);
 
         ReadTask readTask =
-                new ReadTask(readOrder, currentTape, new TapeLibraryServiceImpl(tapeDriveService, tapeRobotPool),
-                        tapeCatalogService, readRequestReferentialRepository);
+            new ReadTask(readOrder, currentTape, new TapeLibraryServiceImpl(tapeDriveService, tapeRobotPool),
+                tapeCatalogService, readRequestReferentialRepository, archiveOutputRetentionPolicy);
 
         when(tapeReadWriteService.readFromTape(startsWith(readOrder.getFileName())))
-                .thenReturn(new TapeResponse(StatusCode.FATAL));
+            .thenReturn(new TapeResponse(StatusCode.FATAL));
         when(tapeDriveService.getDriveCommandService())
-                .thenReturn(tapeDriveCommandService);
+            .thenReturn(tapeDriveCommandService);
         when(tapeDriveService.getDriveCommandService().rewind())
-                .thenReturn(new TapeResponse(StatusCode.OK));
+            .thenReturn(new TapeResponse(StatusCode.OK));
         when(tapeDriveService.getDriveCommandService().move(anyInt(), anyBoolean()))
-                .thenReturn(new TapeResponse(StatusCode.OK));
+            .thenReturn(new TapeResponse(StatusCode.OK));
         when(tapeDriveService.getDriveCommandService().move(anyInt(), anyBoolean()))
-                .thenReturn(new TapeResponse(StatusCode.OK));
+            .thenReturn(new TapeResponse(StatusCode.OK));
         when(tapeCatalogService.receive(any(), any()))
-                .thenReturn(Optional.of(appropriateTape));
+            .thenReturn(Optional.of(appropriateTape));
         when(tapeDriveService.getTapeDriveConf().getIndex())
-                .thenReturn(DRIVE_INDEX);
+            .thenReturn(DRIVE_INDEX);
         when(tapeRobotPool.checkoutRobotService())
-                .thenReturn(mock(TapeRobotService.class));
+            .thenReturn(mock(TapeRobotService.class));
         when(tapeDriveCommandService.eject()).thenReturn(new TapeResponse(StatusCode.OK));
         when(tapeRobotPool.checkoutRobotService().getLoadUnloadService())
-                .thenReturn(mock(TapeLoadUnloadService.class));
+            .thenReturn(mock(TapeLoadUnloadService.class));
         when(tapeRobotPool.checkoutRobotService().getLoadUnloadService()
-                .unloadTape(anyInt(), anyInt())).thenReturn(new TapeResponse(StatusCode.OK));
+            .unloadTape(anyInt(), anyInt())).thenReturn(new TapeResponse(StatusCode.OK));
         when(tapeDriveCommandService.status())
-                .thenReturn(new TapeDriveState(StatusCode.OK));
+            .thenReturn(new TapeDriveState(StatusCode.OK));
         when(tapeRobotPool.checkoutRobotService().getLoadUnloadService()
-                .loadTape(anyInt(), anyInt())).thenReturn(new TapeResponse(StatusCode.OK));
+            .loadTape(anyInt(), anyInt())).thenReturn(new TapeResponse(StatusCode.OK));
 
         // Case one current t
         ReadWriteResult result = readTask.get();
@@ -674,17 +691,17 @@ public class ReadTaskTest {
         // When
         when(tapeDriveService.getTapeDriveConf()).thenAnswer(o -> mock(TapeDriveConf.class));
         TapeCatalog tapeCatalog = new TapeCatalog()
-                .setLibrary(FAKE_LIBRARY)
-                .setCode(FAKE_TAPE_CODE)
-                .setCurrentLocation(new TapeLocation(SLOT_INDEX, TapeLocationType.SLOT));
+            .setLibrary(FAKE_LIBRARY)
+            .setCode(FAKE_TAPE_CODE)
+            .setCurrentLocation(new TapeLocation(SLOT_INDEX, TapeLocationType.SLOT));
 
         ReadOrder readOrder = new ReadOrder().setTapeCode(FAKE_TAPE_CODE)
-                .setFilePosition(FILE_POSITION)
-                .setFileName(fileName);
+            .setFilePosition(FILE_POSITION)
+            .setFileName(fileName);
 
         ReadTask readTask =
-                new ReadTask(readOrder, null, new TapeLibraryServiceImpl(tapeDriveService, tapeRobotPool),
-                        tapeCatalogService, readRequestReferentialRepository);
+            new ReadTask(readOrder, null, new TapeLibraryServiceImpl(tapeDriveService, tapeRobotPool),
+                tapeCatalogService, readRequestReferentialRepository, archiveOutputRetentionPolicy);
 
         doAnswer(
             invocationOnMock -> {
@@ -694,23 +711,23 @@ public class ReadTaskTest {
         ).when(tapeReadWriteService).readFromTape(any());
 
         when(tapeDriveService.getDriveCommandService())
-                .thenReturn(tapeDriveCommandService);
+            .thenReturn(tapeDriveCommandService);
         when(tapeDriveService.getDriveCommandService().rewind())
-                .thenReturn(new TapeResponse(StatusCode.OK));
+            .thenReturn(new TapeResponse(StatusCode.OK));
         when(tapeDriveService.getDriveCommandService().move(anyInt(), anyBoolean()))
-                .thenReturn(new TapeResponse(StatusCode.OK));
+            .thenReturn(new TapeResponse(StatusCode.OK));
         when(tapeDriveService.getDriveCommandService().move(anyInt(), anyBoolean()))
-                .thenReturn(new TapeResponse(StatusCode.OK));
+            .thenReturn(new TapeResponse(StatusCode.OK));
         when(tapeCatalogService.receive(any(), any()))
-                .thenReturn(Optional.of(tapeCatalog));
+            .thenReturn(Optional.of(tapeCatalog));
         when(tapeDriveService.getTapeDriveConf().getIndex())
-                .thenReturn(DRIVE_INDEX);
+            .thenReturn(DRIVE_INDEX);
         when(tapeRobotPool.checkoutRobotService())
-                .thenReturn(mock(TapeRobotService.class));
+            .thenReturn(mock(TapeRobotService.class));
         when(tapeRobotPool.checkoutRobotService().getLoadUnloadService())
-                .thenReturn(mock(TapeLoadUnloadService.class));
+            .thenReturn(mock(TapeLoadUnloadService.class));
         when(tapeRobotPool.checkoutRobotService().getLoadUnloadService()
-                .loadTape(anyInt(), anyInt())).thenReturn(new TapeResponse(StatusCode.OK));
+            .loadTape(anyInt(), anyInt())).thenReturn(new TapeResponse(StatusCode.OK));
 
         when(tapeDriveCommandService.eject()).thenReturn(new TapeResponse(StatusCode.OK));
 
@@ -723,7 +740,7 @@ public class ReadTaskTest {
         assertThat(result.getCurrentTape()).isNotNull();
         assertThat(result.getCurrentTape().getCode()).isEqualTo(FAKE_TAPE_CODE);
         assertThat(result.getCurrentTape().getCurrentLocation()
-                .equals(new TapeLocation(DRIVE_INDEX, TapeLocationType.DRIVE))).isEqualTo(true);
+            .equals(new TapeLocation(DRIVE_INDEX, TapeLocationType.DRIVE))).isEqualTo(true);
         assertThat(result.getCurrentTape().getCurrentPosition()).isEqualTo(FILE_POSITION + 1);
 
     }

@@ -47,6 +47,7 @@ tapeLibraryConfiguration:
   maxTarFileSize: {{ vitam_offers[offer_conf]["tapeLibraryConfiguration"]["maxTarFileSize"] | default(1000000) }}
   useSudo: {{ vitam_offers[offer_conf]["tapeLibraryConfiguration"]["useSudo"] | default('false') }}
   forceOverrideNonEmptyCartridges: {{ vitam_offers[offer_conf]["tapeLibraryConfiguration"]["forceOverrideNonEmptyCartridges"] | default('false') }}
+  archiveRetentionCacheTimeoutInMinutes: {{ vitam_offers[offer_conf]["tapeLibraryConfiguration"]["archiveRetentionCacheTimeoutInMinutes"] | default(30) }}
 
   topology:
     buckets:

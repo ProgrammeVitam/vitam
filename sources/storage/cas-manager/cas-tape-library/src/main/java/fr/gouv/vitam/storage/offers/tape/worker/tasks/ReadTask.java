@@ -41,6 +41,7 @@ import fr.gouv.vitam.storage.engine.common.model.ReadOrder;
 import fr.gouv.vitam.storage.engine.common.model.TapeCatalog;
 import fr.gouv.vitam.storage.engine.common.model.TapeLocationType;
 import fr.gouv.vitam.storage.engine.common.model.TapeState;
+import fr.gouv.vitam.storage.offers.tape.cas.ArchiveOutputRetentionPolicy;
 import fr.gouv.vitam.storage.offers.tape.cas.ReadRequestReferentialRepository;
 import fr.gouv.vitam.storage.offers.tape.exception.QueueException;
 import fr.gouv.vitam.storage.offers.tape.exception.ReadRequestReferentialException;
@@ -49,6 +50,7 @@ import fr.gouv.vitam.storage.offers.tape.exception.ReadWriteException;
 import fr.gouv.vitam.storage.offers.tape.exception.TapeCatalogException;
 import fr.gouv.vitam.storage.offers.tape.spec.TapeCatalogService;
 import fr.gouv.vitam.storage.offers.tape.spec.TapeLibraryService;
+import org.apache.commons.lang3.StringUtils;
 import org.bson.conversions.Bson;
 
 import java.io.IOException;
@@ -71,7 +73,6 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import static com.mongodb.client.model.Filters.and;
 import static com.mongodb.client.model.Filters.eq;
 import static com.mongodb.client.model.Filters.ne;
-import static com.mongodb.client.model.Filters.regex;
 import static fr.gouv.vitam.common.model.StatusCode.FATAL;
 import static fr.gouv.vitam.common.model.StatusCode.KO;
 import static fr.gouv.vitam.common.model.StatusCode.OK;
@@ -87,22 +88,28 @@ public class ReadTask implements Future<ReadWriteResult> {
     private final ReadOrder readOrder;
     private final String MSG_PREFIX;
 
+    private final ArchiveOutputRetentionPolicy archiveOutputRetentionPolicy;
+
     private TapeCatalog workerCurrentTape;
 
     protected AtomicBoolean done = new AtomicBoolean(false);
 
     public ReadTask(ReadOrder readOrder, TapeCatalog workerCurrentTape, TapeLibraryService tapeLibraryService,
-        TapeCatalogService tapeCatalogService, ReadRequestReferentialRepository readRequestReferentialRepository) {
+        TapeCatalogService tapeCatalogService, ReadRequestReferentialRepository readRequestReferentialRepository,
+        ArchiveOutputRetentionPolicy archiveOutputRetentionPolicy) {
         ParametersChecker.checkParameter("WriteOrder param is required.", readOrder);
         ParametersChecker.checkParameter("TapeLibraryService param is required.", tapeLibraryService);
         ParametersChecker.checkParameter("TapeCatalogService param is required.", tapeCatalogService);
         ParametersChecker
             .checkParameter("ReadRequestReferentialRepository param is required.", readRequestReferentialRepository);
+        ParametersChecker
+            .checkParameter("ArchiveOutputRetentionPolicy param is required.", archiveOutputRetentionPolicy);
         this.readOrder = readOrder;
         this.workerCurrentTape = workerCurrentTape;
         this.tapeLibraryService = tapeLibraryService;
         this.tapeCatalogService = tapeCatalogService;
         this.readRequestReferentialRepository = readRequestReferentialRepository;
+        this.archiveOutputRetentionPolicy = archiveOutputRetentionPolicy;
         this.MSG_PREFIX = String.format("[Library] : %s, [Drive] : %s, ", tapeLibraryService.getLibraryIdentifier(),
             tapeLibraryService.getDriveIndex());
     }
@@ -210,16 +217,18 @@ public class ReadTask implements Future<ReadWriteResult> {
             Path targetPath =
                 Paths.get(tapeLibraryService.getOutputDirectory()).resolve(readOrder.getFileName()).toAbsolutePath();
 
-            if (targetPath.toFile().exists()) {
-                // TODO: 17/06/19 augmenter la durée de rétention du fichier ?
-            }
-
             if (!targetPath.toFile().exists()) {
                 Files.deleteIfExists(sourcePath);
                 tapeLibraryService
                     .read(workerCurrentTape, readOrder.getFilePosition(), readOrder.getFileName() + TEMP_EXT);
                 // Mark file as done (remove .tmp extension)
                 Files.move(sourcePath, targetPath, StandardCopyOption.ATOMIC_MOVE);
+            }
+
+            // Add file to retention policy
+            String tarFileIdWithoutExtension = StringUtils.substringBeforeLast(readOrder.getFileName(), ".");
+            if (null == archiveOutputRetentionPolicy.get(tarFileIdWithoutExtension)) {
+                archiveOutputRetentionPolicy.put(tarFileIdWithoutExtension, targetPath);
             }
 
             readRequestReferentialRepository
