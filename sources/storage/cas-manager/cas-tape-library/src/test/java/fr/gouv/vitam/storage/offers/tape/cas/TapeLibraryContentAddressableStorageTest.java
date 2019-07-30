@@ -84,6 +84,9 @@ public class TapeLibraryContentAddressableStorageTest {
     @Mock
     private TapeCatalogService tapeCatalogService;
 
+    @Mock
+    private ArchiveOutputRetentionPolicy archiveOutputRetentionPolicy;
+
     private BasicFileStorage basicFileStorage;
 
     private TapeLibraryContentAddressableStorage tapeLibraryContentAddressableStorage;
@@ -99,7 +102,7 @@ public class TapeLibraryContentAddressableStorageTest {
         tapeLibraryContentAddressableStorage =
             new TapeLibraryContentAddressableStorage(basicFileStorage, objectReferentialRepository,
                 archiveReferentialRepository, readRequestReferentialRepository, fileBucketTarCreatorManager,
-                readWriteQueueRepository, tapeCatalogService, outputTarsPath);
+                readWriteQueueRepository, tapeCatalogService, outputTarsPath, archiveOutputRetentionPolicy);
 
     }
 

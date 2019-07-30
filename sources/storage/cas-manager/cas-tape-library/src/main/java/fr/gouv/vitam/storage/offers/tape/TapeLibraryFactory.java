@@ -36,9 +36,10 @@ import fr.gouv.vitam.common.storage.tapelibrary.TapeDriveConf;
 import fr.gouv.vitam.common.storage.tapelibrary.TapeLibraryConf;
 import fr.gouv.vitam.common.storage.tapelibrary.TapeLibraryConfiguration;
 import fr.gouv.vitam.common.storage.tapelibrary.TapeRobotConf;
-import fr.gouv.vitam.common.thread.VitamThreadFactory;
 import fr.gouv.vitam.storage.engine.common.collection.OfferCollections;
 import fr.gouv.vitam.storage.engine.common.model.TapeCatalog;
+import fr.gouv.vitam.storage.offers.tape.cas.ArchiveOutputRetentionPolicy;
+import fr.gouv.vitam.storage.offers.tape.cas.ArchiveReferentialRepository;
 import fr.gouv.vitam.storage.offers.tape.cas.BackupFileStorage;
 import fr.gouv.vitam.storage.offers.tape.cas.BasicFileStorage;
 import fr.gouv.vitam.storage.offers.tape.cas.BucketTopologyHelper;
@@ -47,8 +48,6 @@ import fr.gouv.vitam.storage.offers.tape.cas.ObjectReferentialRepository;
 import fr.gouv.vitam.storage.offers.tape.cas.ReadRequestReferentialRepository;
 import fr.gouv.vitam.storage.offers.tape.cas.TapeLibraryContentAddressableStorage;
 import fr.gouv.vitam.storage.offers.tape.cas.TarFileRapairer;
-import fr.gouv.vitam.storage.offers.tape.cas.ArchiveReferentialRepository;
-import fr.gouv.vitam.storage.offers.tape.cas.TarsOutputRetention;
 import fr.gouv.vitam.storage.offers.tape.cas.WriteOrderCreator;
 import fr.gouv.vitam.storage.offers.tape.cas.WriteOrderCreatorBootstrapRecovery;
 import fr.gouv.vitam.storage.offers.tape.dto.TapeLibrarySpec;
@@ -59,7 +58,6 @@ import fr.gouv.vitam.storage.offers.tape.impl.TapeRobotManager;
 import fr.gouv.vitam.storage.offers.tape.impl.catalog.TapeCatalogRepository;
 import fr.gouv.vitam.storage.offers.tape.impl.catalog.TapeCatalogServiceImpl;
 import fr.gouv.vitam.storage.offers.tape.impl.queue.QueueRepositoryImpl;
-import fr.gouv.vitam.storage.offers.tape.impl.readwrite.TapeLibraryServiceImpl;
 import fr.gouv.vitam.storage.offers.tape.pool.TapeLibraryPoolImpl;
 import fr.gouv.vitam.storage.offers.tape.spec.QueueRepository;
 import fr.gouv.vitam.storage.offers.tape.spec.TapeCatalogService;
@@ -116,8 +114,8 @@ public class TapeLibraryFactory {
             new ArchiveReferentialRepository(mongoDbAccess.getMongoDatabase()
                 .getCollection(OfferCollections.TAPE_ARCHIVE_REFERENTIAL.getName()));
         ReadRequestReferentialRepository readRequestReferentialRepository =
-                new ReadRequestReferentialRepository(mongoDbAccess.getMongoDatabase()
-                        .getCollection(OfferCollections.TAPE_READ_REQUEST_REFERENTIAL.getName()));
+            new ReadRequestReferentialRepository(mongoDbAccess.getMongoDatabase()
+                .getCollection(OfferCollections.TAPE_READ_REQUEST_REFERENTIAL.getName()));
         QueueRepository readWriteQueue = new QueueRepositoryImpl(mongoDbAccess.getMongoDatabase().getCollection(
             OfferCollections.TAPE_QUEUE_MESSAGE.getName()));
 
@@ -143,10 +141,14 @@ public class TapeLibraryFactory {
             new FileBucketTarCreatorManager(configuration, basicFileStorage, bucketTopologyHelper,
                 objectReferentialRepository, archiveReferentialRepository, writeOrderCreator);
 
+        ArchiveOutputRetentionPolicy archiveOutputRetentionPolicy =
+            new ArchiveOutputRetentionPolicy(configuration.getArchiveRetentionCacheTimeoutInMinutes());
+
         tapeLibraryContentAddressableStorage =
             new TapeLibraryContentAddressableStorage(basicFileStorage, objectReferentialRepository,
-                archiveReferentialRepository, readRequestReferentialRepository, fileBucketTarCreatorManager, readWriteQueue,
-                tapeCatalogService, configuration.getOutputTarStorageFolder());
+                archiveReferentialRepository, readRequestReferentialRepository, fileBucketTarCreatorManager,
+                readWriteQueue,
+                tapeCatalogService, configuration.getOutputTarStorageFolder(), archiveOutputRetentionPolicy);
 
         // Change all running orders to ready state
         readWriteQueue.initializeOnBootstrap();
@@ -217,8 +219,10 @@ public class TapeLibraryFactory {
             // Start all workers
             tapeDriveWorkerManagers
                 .put(tapeLibraryIdentifier,
-                    new TapeDriveWorkerManager(readWriteQueue, archiveReferentialRepository, readRequestReferentialRepository, libraryPool, driveTape,
-                        configuration.getInputTarStorageFolder(), configuration.isForceOverrideNonEmptyCartridges()));
+                    new TapeDriveWorkerManager(readWriteQueue, archiveReferentialRepository,
+                        readRequestReferentialRepository, libraryPool, driveTape,
+                        configuration.getInputTarStorageFolder(), configuration.isForceOverrideNonEmptyCartridges(),
+                        archiveOutputRetentionPolicy));
         }
 
         // Everything's alright. Start tar creation listeners
@@ -229,9 +233,6 @@ public class TapeLibraryFactory {
         for (TapeDriveWorkerManager tapeDriveWorkerManager : tapeDriveWorkerManagers.values()) {
             tapeDriveWorkerManager.startWorkers();
         }
-
-        // launch thread TarsOuptutRetention
-        VitamThreadFactory.getInstance().newThread(new TarsOutputRetention(configuration.getOutputTarStorageFolder())).start();
     }
 
     public TapeLibraryContentAddressableStorage getTapeLibraryContentAddressableStorage() {

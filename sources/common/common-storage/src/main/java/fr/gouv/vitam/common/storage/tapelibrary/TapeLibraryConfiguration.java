@@ -63,6 +63,11 @@ public class TapeLibraryConfiguration {
     private boolean forceOverrideNonEmptyCartridges = false;
 
     /**
+     * Archive (Tar) file retention in local FS. Used for cache that manage remove file policy
+     */
+    private Integer archiveRetentionCacheTimeoutInMinutes = 30;
+
+    /**
      * File bucket & bucket configuration
      */
     private TapeLibraryTopologyConfiguration topology;
@@ -150,6 +155,15 @@ public class TapeLibraryConfiguration {
 
     public TapeLibraryConfiguration setForceOverrideNonEmptyCartridges(boolean forceOverrideNonEmptyCartridges) {
         this.forceOverrideNonEmptyCartridges = forceOverrideNonEmptyCartridges;
+        return this;
+    }
+
+    public Integer getArchiveRetentionCacheTimeoutInMinutes() {
+        return archiveRetentionCacheTimeoutInMinutes;
+    }
+
+    public TapeLibraryConfiguration setArchiveRetentionCacheTimeoutInMinutes(Integer archiveRetentionCacheTimeoutInMinutes) {
+        this.archiveRetentionCacheTimeoutInMinutes = archiveRetentionCacheTimeoutInMinutes;
         return this;
     }
 }
