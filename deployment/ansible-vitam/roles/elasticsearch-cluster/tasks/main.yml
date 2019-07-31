@@ -279,6 +279,10 @@
     name: "vitam-{{ composant.cluster_name }}"
     state: started
     enabled: yes
+  notify:
+    - restart elasticsearch
+
+- meta: flush_handlers
 
 - import_tasks: post_migration.yml
   when: is_installed.stdout.find('5.6.') != -1
