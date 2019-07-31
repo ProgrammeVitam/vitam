@@ -5,7 +5,6 @@
 [hosts:children]
 vitam
 reverse
-library
 hosts-dev-tools
 ldap
 
@@ -43,6 +42,7 @@ zone-applicative
 zone-storage
 zone-data
 zone-admin
+library
 
 
 ##### Zone externe
