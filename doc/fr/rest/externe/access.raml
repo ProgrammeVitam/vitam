@@ -73,7 +73,10 @@ documentation:
     body:
       application/json:
         description: Requête permettant de mettre à jour les métadonnées descriptives d'unités d'archives.
-        example: !include libraries/examples/unitsBatchUpdate.json
+        examples:
+          UnitsBatchUpdate: !include libraries/examples/unitsBatchUpdate.json
+          BatchUpdateObject: !include libraries/examples/updateObjects.json
+          BatchRemove: !include libraries/examples/batchRemove.json
     responses:
       202:
         description: Renvoie le statut de l'opération de mise à jour
