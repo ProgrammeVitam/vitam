@@ -6,7 +6,11 @@
 [
 {% for item in vitam_strategy %}
 {
+{% if item.id is defined %}
+    "id" : "{{ item.id }}",
+{% else %}
     "id" : "{{ item.name }}.service.{{ item.vitam_site_name |default(vitam_site_name) }}.{{ consul_domain }}",
+{% endif %}
     "baseUrl" : "{{ protocol }}://{{ item.name }}.service.{{ item.vitam_site_name |default(vitam_site_name) }}.{{ consul_domain }}:{{ vitam.storageofferdefault.port_service }}",
     "parameters" : {
         {% if vitam.storageofferdefault.https_enabled==true %}
