@@ -139,32 +139,32 @@ public class PerformanceService {
     }
 
     private void launchTestInSequence(PerformanceModel model, String fileName, int tenantId) throws IOException {
-        try (ReportGenerator reportGenerator = new ReportGenerator(performanceReportDirectory.resolve(fileName))) {
-            int numberOfRetry = model.getNumberOfRetry() == null ? NUMBER_OF_RETRY : model.getNumberOfRetry();
+        ReportGenerator reportGenerator = new ReportGenerator(performanceReportDirectory.resolve(fileName));
+        int numberOfRetry = model.getNumberOfRetry() == null ? NUMBER_OF_RETRY : model.getNumberOfRetry();
 
-            performanceTestInProgress.set(true);
+        performanceTestInProgress.set(true);
 
-            Flowable.interval(0, model.getDelay(), TimeUnit.MILLISECONDS)
-                .take(model.getNumberOfIngest())
-                .map(i -> upload(model, tenantId))
-                .flatMap(
-                    operationId -> Flowable.just(operationId)
-                        .observeOn(Schedulers.io())
-                        .map(id -> waitEndOfIngest(tenantId, numberOfRetry, id)))
-                .subscribe(operationId -> generateReport(reportGenerator, operationId, tenantId),
-                    throwable -> {
-                LOGGER.error("end performance test with error", throwable);
+        Flowable.interval(0, model.getDelay(), TimeUnit.MILLISECONDS)
+            .take(model.getNumberOfIngest())
+            .map(i -> upload(model, tenantId))
+            .flatMap(
+                operationId -> Flowable.just(operationId)
+                    .observeOn(Schedulers.io())
+                    .map(id -> waitEndOfIngest(tenantId, numberOfRetry, id)))
+            .subscribe(operationId -> generateReport(reportGenerator, operationId, tenantId),
+                throwable -> {
+                    LOGGER.error("end performance test with error", throwable);
                     performanceTestInProgress.set(false);
-        }, () -> {
-            try {
-                reportGenerator.close();
-                performanceTestInProgress.set(false);
-                LOGGER.info("end performance test");
-            } catch (IOException e) {
-                LOGGER.error("unable to close report", e);
-            }
-                    });
-        }
+                }, () -> {
+                    try {
+                        reportGenerator.close();
+                        performanceTestInProgress.set(false);
+                        LOGGER.info("end performance test");
+                    } catch (IOException e) {
+                        LOGGER.error("unable to close report", e);
+                    }
+                });
+
     }
 
     private void launchTestInParallel(PerformanceModel model, String fileName, int tenantId) throws IOException {
