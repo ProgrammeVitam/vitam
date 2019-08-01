@@ -27,8 +27,6 @@
 package fr.gouv.vitam.storage.offers.rest;
 
 import fr.gouv.vitam.common.serverv2.application.CommonBusinessApplication;
-import fr.gouv.vitam.common.storage.constants.StorageProvider;
-import fr.gouv.vitam.storage.offers.tape.rest.TapeCatalogResource;
 
 import javax.servlet.ServletConfig;
 import javax.ws.rs.core.Application;
@@ -60,11 +58,6 @@ public class BusinessApplication extends Application {
 
         singletons.addAll(commonBusinessApplication.getResources());
         singletons.add(defaultOfferResource);
-
-        if (StorageProvider.TAPE_LIBRARY.getValue()
-            .equalsIgnoreCase(offerCommonApplication.getStorageConfiguration().getProvider())) {
-            singletons.add(new TapeCatalogResource());
-        }
     }
 
     @Override
