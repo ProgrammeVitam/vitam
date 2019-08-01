@@ -51,6 +51,7 @@ import fr.gouv.vitam.common.storage.cas.container.api.ContentAddressableStorage;
 import fr.gouv.vitam.common.storage.cas.container.api.ObjectContent;
 import fr.gouv.vitam.common.storage.cas.container.api.VitamPageSet;
 import fr.gouv.vitam.common.storage.cas.container.api.VitamStorageMetadata;
+import fr.gouv.vitam.common.storage.constants.StorageProvider;
 import fr.gouv.vitam.common.stream.ExactSizeInputStream;
 import fr.gouv.vitam.common.stream.MultiplexedStreamReader;
 import fr.gouv.vitam.storage.driver.model.StorageBulkPutResult;
@@ -107,9 +108,6 @@ public class DefaultOfferServiceImpl implements DefaultOfferService {
         throws CertificateException, NoSuchAlgorithmException, KeyStoreException, IOException, KeyManagementException {
         this.offerDatabaseService = offerDatabaseService;
 
-        this.readRequestReferentialRepository = new ReadRequestReferentialRepository(mongoDBAccess.getMongoDatabase()
-            .getCollection(OfferCollections.TAPE_READ_REQUEST_REFERENTIAL.getName()));
-
         try {
             configuration = PropertiesUtils.readYaml(PropertiesUtils.findFile(STORAGE_CONF_FILE_NAME),
                 StorageConfiguration.class);
@@ -122,6 +120,14 @@ public class DefaultOfferServiceImpl implements DefaultOfferService {
         }
         defaultStorage = StoreContextBuilder.newStoreContext(configuration, mongoDBAccess);
         mapXCusor = new HashMap<>();
+
+        if (StorageProvider.TAPE_LIBRARY.getValue().equalsIgnoreCase(configuration.getProvider())) {
+            this.readRequestReferentialRepository =
+                new ReadRequestReferentialRepository(mongoDBAccess.getMongoDatabase()
+                    .getCollection(OfferCollections.TAPE_READ_REQUEST_REFERENTIAL.getName()));
+        } else {
+            this.readRequestReferentialRepository = null;
+        }
     }
 
     @Override
@@ -155,6 +161,11 @@ public class DefaultOfferServiceImpl implements DefaultOfferService {
     public Optional<TapeReadRequestReferentialEntity> createReadOrderRequest(String containerName,
         List<String> objectsIds)
         throws ContentAddressableStorageException {
+
+        if (!StorageProvider.TAPE_LIBRARY.getValue().equalsIgnoreCase(configuration.getProvider())) {
+            throw new ContentAddressableStorageException("Read order is enabled only on tape library offer");
+        }
+
         Stopwatch times = Stopwatch.createStarted();
         try {
             String readRequestID = defaultStorage.createReadOrderRequest(containerName, objectsIds);
@@ -174,7 +185,11 @@ public class DefaultOfferServiceImpl implements DefaultOfferService {
     }
 
     @Override
-    public Optional<TapeReadRequestReferentialEntity> getReadOrderRequest(String readRequestID) {
+    public Optional<TapeReadRequestReferentialEntity> getReadOrderRequest(String readRequestID)
+        throws ContentAddressableStorageException {
+        if (!StorageProvider.TAPE_LIBRARY.getValue().equalsIgnoreCase(configuration.getProvider())) {
+            throw new ContentAddressableStorageException("Read order is enabled only on tape library offer");
+        }
         try {
             return readRequestReferentialRepository.find(readRequestID);
         } catch (ReadRequestReferentialException e) {
@@ -185,7 +200,12 @@ public class DefaultOfferServiceImpl implements DefaultOfferService {
 
     @Override
     public void removeReadOrderRequest(String readRequestID)
-        throws ContentAddressableStorageServerException, ContentAddressableStorageNotFoundException {
+        throws ContentAddressableStorageException {
+
+        if (!StorageProvider.TAPE_LIBRARY.getValue().equalsIgnoreCase(configuration.getProvider())) {
+            throw new ContentAddressableStorageException("Read order is enabled only on tape library offer");
+        }
+
         Stopwatch times = Stopwatch.createStarted();
         try {
             defaultStorage.removeReadOrderRequest(readRequestID);

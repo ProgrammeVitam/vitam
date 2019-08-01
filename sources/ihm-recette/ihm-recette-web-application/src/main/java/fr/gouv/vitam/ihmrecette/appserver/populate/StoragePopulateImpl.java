@@ -182,9 +182,10 @@ public class StoragePopulateImpl implements VitamAutoCloseable {
     private VitamError buildError(VitamCode vitamCode, String message) {
         return new VitamError(VitamCodeHelper.getCode(vitamCode))
             .setContext(vitamCode.getService().getName())
+            .setHttpCode(vitamCode.getStatus().getStatusCode())
             .setState(vitamCode.getDomain().getName())
             .setMessage(vitamCode.getMessage())
-            .setDescription(vitamCode.getMessage());
+            .setDescription(message);
     }
 
     private VitamError buildError(VitamCode vitamCode) {
@@ -192,6 +193,7 @@ public class StoragePopulateImpl implements VitamAutoCloseable {
     }
 
     public RequestResponse<TapeReadRequestReferentialEntity> createReadOrderRequest(Integer tenantId, String strategyId,
+        String offerId,
         String objectId,
         DataCategory category) {
         checkStoreDataParams(strategyId, objectId, category);
@@ -210,6 +212,7 @@ public class StoragePopulateImpl implements VitamAutoCloseable {
         List<StorageOffer> storageOffers = offerReferences.stream()
             .map(StoragePopulateImpl::getStorageOffer)
             .filter(StorageOffer::isAsyncRead) // Only tape offer
+            .filter(o -> o.getId().equals(offerId))
             .collect(Collectors.toList());
 
         if (storageOffers.isEmpty()) {
@@ -242,6 +245,7 @@ public class StoragePopulateImpl implements VitamAutoCloseable {
     }
 
     public RequestResponse<TapeReadRequestReferentialEntity> getReadOrderRequest(Integer tenantId, String strategyId,
+        String offerId,
         String readOrderRequestIt) {
         ParametersChecker.checkParameter(EXPORT_ID_IS_MANDATORY, readOrderRequestIt);
 
@@ -259,6 +263,7 @@ public class StoragePopulateImpl implements VitamAutoCloseable {
         List<StorageOffer> storageOffers = offerReferences.stream()
             .map(StoragePopulateImpl::getStorageOffer)
             .filter(StorageOffer::isAsyncRead) // Only tape offer
+            .filter(o -> o.getId().equals(offerId))
             .collect(Collectors.toList());
 
         if (storageOffers.isEmpty()) {

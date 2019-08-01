@@ -345,7 +345,7 @@ public final class RequestResponseOK<T> extends RequestResponse<T> {
      */
     @Override
     public Response toResponse() {
-        final Response.ResponseBuilder resp = Response.status(getStatus()).entity(toJsonNode());
+        final Response.ResponseBuilder resp = Response.status(getStatus()).entity(this);
         final Map<String, String> vitamHeaders = getVitamHeaders();
         for (final String key : vitamHeaders.keySet()) {
             resp.header(key, getHeaderString(key));
