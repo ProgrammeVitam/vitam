@@ -28,7 +28,7 @@ package fr.gouv.vitam.storage.offers.tape.cas;
 
 import fr.gouv.vitam.common.digest.Digest;
 import fr.gouv.vitam.common.digest.DigestType;
-import fr.gouv.vitam.common.model.tape.TarEntryDescription;
+import fr.gouv.vitam.storage.engine.common.model.TarEntryDescription;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.io.output.NullOutputStream;
 

@@ -31,7 +31,6 @@ import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.MetadatasObject;
-import fr.gouv.vitam.common.model.tape.TapeReadRequestReferentialEntity;
 import fr.gouv.vitam.common.storage.ContainerInformation;
 import fr.gouv.vitam.common.storage.StorageConfiguration;
 import fr.gouv.vitam.common.storage.cas.container.api.ContentAddressableStorageJcloudsAbstract;
@@ -40,6 +39,7 @@ import fr.gouv.vitam.common.storage.constants.ErrorMessage;
 import fr.gouv.vitam.common.storage.constants.StorageProvider;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundException;
+import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
 import org.apache.commons.lang3.StringUtils;
 import org.jclouds.ContextBuilder;
 import org.jclouds.blobstore.BlobStoreContext;
@@ -167,12 +167,13 @@ public class OpenstackSwift extends ContentAddressableStorageJcloudsAbstract {
     }
 
     @Override
-    public TapeReadRequestReferentialEntity createReadOrder(String containerName, List<String> objectsIds) {
+    public String createReadOrderRequest(String containerName, List<String> objectsIds)
+        throws ContentAddressableStorageNotFoundException, ContentAddressableStorageException {
         throw new UnsupportedOperationException("Operation not supported");
     }
 
     @Override
-    public boolean isReadOrderCompleted(String readRequestID) {
+    public void removeReadOrderRequest(String readRequestID) throws ContentAddressableStorageServerException {
         throw new UnsupportedOperationException("Operation not supported");
     }
 

@@ -31,7 +31,6 @@ import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.MetadatasObject;
-import fr.gouv.vitam.common.model.tape.TapeReadRequestReferentialEntity;
 import fr.gouv.vitam.common.security.SafeFileChecker;
 import fr.gouv.vitam.common.storage.ContainerInformation;
 import fr.gouv.vitam.common.storage.StorageConfiguration;
@@ -75,12 +74,12 @@ public class FileSystem extends ContentAddressableStorageJcloudsAbstract {
     }
 
     @Override
-    public TapeReadRequestReferentialEntity createReadOrder(String containerName, List<String> objectsIds) {
+    public String createReadOrderRequest(String containerName, List<String> objectsIds) {
         throw new UnsupportedOperationException("Operation not supported");
     }
 
     @Override
-    public boolean isReadOrderCompleted(String readRequestID) {
+    public void removeReadOrderRequest(String readRequestID) {
         throw new UnsupportedOperationException("Operation not supported");
     }
 
@@ -115,7 +114,7 @@ public class FileSystem extends ContentAddressableStorageJcloudsAbstract {
                     throw new ContentAddressableStorageNotFoundException("Storage not found");
                 }
             } catch (IOException e) {
-               throw  new ContentAddressableStorageNotFoundException(e);
+                throw new ContentAddressableStorageNotFoundException(e);
             }
             return baseDirFile;
         } finally {
@@ -141,7 +140,7 @@ public class FileSystem extends ContentAddressableStorageJcloudsAbstract {
             if (containerName != null) {
                 if (objectId != null) {
                     SafeFileChecker.checkSafeFilePath(baseDir, containerName, objectId);
-                    file = new File(baseDir, containerName + File.separator  + objectId);
+                    file = new File(baseDir, containerName + File.separator + objectId);
                 } else {
                     SafeFileChecker.checkSafeFilePath(baseDir, containerName);
                     file = new File(baseDir, containerName);
@@ -151,10 +150,11 @@ public class FileSystem extends ContentAddressableStorageJcloudsAbstract {
                 file = new File(baseDir);
             }
             if (!file.exists()) {
-                throw new ContentAddressableStorageNotFoundException("Storage not found: " + containerName + "(BaseDir File: " + file + ")");
+                throw new ContentAddressableStorageNotFoundException(
+                    "Storage not found: " + containerName + "(BaseDir File: " + file + ")");
             }
         } catch (IOException e) {
-           throw  new ContentAddressableStorageNotFoundException(e);
+            throw new ContentAddressableStorageNotFoundException(e);
         }
         return file;
     }
@@ -179,7 +179,8 @@ public class FileSystem extends ContentAddressableStorageJcloudsAbstract {
             result.setObjectName(objectId);
             // TODO To be reviewed with the X-DIGEST-ALGORITHM parameter
             result
-                .setDigest(getObjectDigest(containerName, objectId, VitamConfiguration.getDefaultDigestType(), noCache));
+                .setDigest(
+                    getObjectDigest(containerName, objectId, VitamConfiguration.getDefaultDigestType(), noCache));
             result.setFileSize(size);
             // TODO store vitam metadatas
             result.setType(containerName.split("_")[1]);

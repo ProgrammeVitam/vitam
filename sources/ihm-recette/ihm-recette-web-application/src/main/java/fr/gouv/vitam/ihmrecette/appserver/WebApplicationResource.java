@@ -27,7 +27,6 @@
 package fr.gouv.vitam.ihmrecette.appserver;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.base.Strings;
 import com.google.common.collect.Iterables;
 import fr.gouv.vitam.access.external.api.AdminCollections;
@@ -90,6 +89,7 @@ import fr.gouv.vitam.storage.engine.client.exception.StorageServerClientExceptio
 import fr.gouv.vitam.storage.engine.common.exception.StorageException;
 import fr.gouv.vitam.storage.engine.common.exception.StorageNotFoundException;
 import fr.gouv.vitam.storage.engine.common.model.DataCategory;
+import fr.gouv.vitam.storage.engine.common.model.TapeReadRequestReferentialEntity;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shiro.authc.UsernamePasswordToken;
@@ -352,21 +352,17 @@ public class WebApplicationResource extends ApplicationStatusResource {
     @POST
     @Path("/readorder/{strategyId}/{offerId}/{dataType}/{uid}")
     @Produces(MediaType.APPLICATION_JSON)
-    public Response createReadOrder(@HeaderParam(GlobalDataRest.X_TENANT_ID) String xTenantId,
+    public Response createReadOrderRequest(@HeaderParam(GlobalDataRest.X_TENANT_ID) String xTenantId,
         @PathParam("uid") String uid,
         @PathParam("dataType") String dataType,
         @PathParam("strategyId") String strategyId,
         @PathParam("offerId") String offerId) {
         VitamThreadUtils.getVitamSession().setTenantId(Integer.parseInt(xTenantId));
 
+        RequestResponse<TapeReadRequestReferentialEntity> readOrderRequest = populateService
+            .createReadOrderRequest(Integer.parseInt(xTenantId), strategyId, uid, DataCategory.valueOf(dataType));
 
-        String readRequestID = populateService
-            .createReadOrder(Integer.parseInt(xTenantId), strategyId, uid, DataCategory.valueOf(dataType));
-        ObjectNode readOrderIdJson = JsonHandler.createObjectNode();
-        readOrderIdJson.put("ReadOrderId", readRequestID);
-        return Response.status(Status.CREATED)
-            .entity(readOrderIdJson)
-            .build();
+        return readOrderRequest.toResponse();
     }
 
     /**
@@ -376,16 +372,14 @@ public class WebApplicationResource extends ApplicationStatusResource {
     @Path("/readorder/{strategyId}/{readOrderId}")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    public Response isReadOrderCompleted(@HeaderParam(GlobalDataRest.X_TENANT_ID) String xTenantId,
+    public Response getReadOrderRequest(@HeaderParam(GlobalDataRest.X_TENANT_ID) String xTenantId,
         @PathParam("readOrderId") String readOrderId,
         @PathParam("strategyId") String strategyId) {
         VitamThreadUtils.getVitamSession().setTenantId(Integer.parseInt(xTenantId));
 
-        if (populateService.isReadOrderCompleted(Integer.parseInt(xTenantId), strategyId, readOrderId)) {
-            return Response.status(Status.OK).build();
-        } else {
-            return Response.status(Status.NOT_FOUND).build();
-        }
+        RequestResponse<TapeReadRequestReferentialEntity> readOrderRequest =
+            populateService.getReadOrderRequest(Integer.parseInt(xTenantId), strategyId, readOrderId);
+        return readOrderRequest.toResponse();
     }
 
     private InputStream getErrorStream(Status badRequest, String message, VitamError vitamError) {

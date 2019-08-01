@@ -1,4 +1,4 @@
-package fr.gouv.vitam.common.model.tape;
+package fr.gouv.vitam.storage.engine.common.model;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 

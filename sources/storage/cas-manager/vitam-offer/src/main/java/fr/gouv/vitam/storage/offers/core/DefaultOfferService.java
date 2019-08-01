@@ -30,7 +30,6 @@ package fr.gouv.vitam.storage.offers.core;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.google.common.annotations.VisibleForTesting;
 import fr.gouv.vitam.common.digest.DigestType;
-import fr.gouv.vitam.common.model.tape.TapeReadRequestReferentialEntity;
 import fr.gouv.vitam.common.storage.ContainerInformation;
 import fr.gouv.vitam.common.storage.cas.container.api.ObjectContent;
 import fr.gouv.vitam.common.stream.MultiplexedStreamReader;
@@ -39,6 +38,8 @@ import fr.gouv.vitam.storage.driver.model.StorageMetadataResult;
 import fr.gouv.vitam.storage.engine.common.model.DataCategory;
 import fr.gouv.vitam.storage.engine.common.model.OfferLog;
 import fr.gouv.vitam.storage.engine.common.model.Order;
+import fr.gouv.vitam.storage.engine.common.model.TapeReadRequestReferentialEntity;
+import fr.gouv.vitam.storage.offers.tape.exception.ReadRequestReferentialException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageDatabaseException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundException;
@@ -47,18 +48,19 @@ import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerExce
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.List;
+import java.util.Optional;
 
 /**
  * Default offer service interface define offer methods
  */
 public interface DefaultOfferService {
-   String STORAGE_CONF_FILE_NAME = "default-storage.conf";
+    String STORAGE_CONF_FILE_NAME = "default-storage.conf";
 
     /**
      * Get offer storage digest of object
      *
-     * @param containerName   the container with the object
-     * @param objectId        the object name / id
+     * @param containerName the container with the object
+     * @param objectId the object name / id
      * @param digestAlgorithm the digest algorithm
      * @return the offer computed digest
      * @throws ContentAddressableStorageException thrown on storage error
@@ -71,41 +73,45 @@ public interface DefaultOfferService {
      * Get object on offer as an inputStream
      *
      * @param containerName the container containing the object
-     * @param objectId      the object id
+     * @param objectId the object id
      * @return the object included in a response
      * @throws ContentAddressableStorageNotFoundException thrown when object does not exists
-     * @throws ContentAddressableStorageException         thrown when a server error occurs
+     * @throws ContentAddressableStorageException thrown when a server error occurs
      */
     ObjectContent getObject(String containerName, String objectId)
-            throws ContentAddressableStorageNotFoundException, ContentAddressableStorageException;
+        throws ContentAddressableStorageNotFoundException, ContentAddressableStorageException;
 
     /**
      * create read order (asynchronous read from tape to local FS) for the given @containerName and objects list.
      * Return read order ID
      *
      * @param containerName the container containing the object
-     * @param objectsIds      the objects ids
+     * @param objectsIds the objects ids
      * @return readOrder entity
      * @throws ContentAddressableStorageNotFoundException thrown when object does not exists
-     * @throws ContentAddressableStorageException         thrown when a server error occurs
+     * @throws ContentAddressableStorageException thrown when a server error occurs
      */
-    TapeReadRequestReferentialEntity createReadOrder(String containerName, List<String> objectsIds)
-            throws ContentAddressableStorageNotFoundException, ContentAddressableStorageException;
+    Optional<TapeReadRequestReferentialEntity>  createReadOrderRequest(String containerName, List<String> objectsIds)
+        throws ContentAddressableStorageException;
+
+    Optional<TapeReadRequestReferentialEntity> getReadOrderRequest(String readRequestID)
+        throws ContentAddressableStorageServerException, ContentAddressableStorageNotFoundException;
 
 
-    boolean isReadOrderCompleted(String readRequestID)
-            throws ContentAddressableStorageServerException, ContentAddressableStorageNotFoundException;
+
+    void removeReadOrderRequest(String readRequestID)
+        throws ContentAddressableStorageServerException, ContentAddressableStorageNotFoundException;
 
     /**
      * Create object on container with objectId Receive object part of object. Actually these parts <b>HAVE TO</b> be
      * send in the great order.
      *
      * @param containerName the container name
-     * @param objectId      the offer objectId to create
-     * @param objectPart    the part of the object to create (chunk style)
-     * @param type          the object type to create
-     * @param size          inputstream size
-     * @param digestType    digest of object
+     * @param objectId the offer objectId to create
+     * @param objectPart the part of the object to create (chunk style)
+     * @param type the object type to create
+     * @param size inputstream size
+     * @param digestType digest of object
      * @return the digest of the complete file or the digest of the chunk
      * @throws ContentAddressableStorageException if the container does not exist
      */
@@ -120,7 +126,7 @@ public interface DefaultOfferService {
      * Check if object exists
      *
      * @param containerName the container suppose to contain the object
-     * @param objectId      the objectId to check
+     * @param objectId the objectId to check
      * @return true if object exists, false otherwise
      * @throws ContentAddressableStorageServerException
      */
@@ -140,12 +146,12 @@ public interface DefaultOfferService {
     /**
      * Deletes a object representing the data at location containerName/objectName
      *
-     * @param containerName   container where this exists.
-     * @param objectId        the objectId to delete
-     * @param type            the object type to delete
+     * @param containerName container where this exists.
+     * @param objectId the objectId to delete
+     * @param type the object type to delete
      * @throws ContentAddressableStorageNotFoundException Thrown when the container cannot be located or the blob cannot
-     *                                                    be located in the container.
-     * @throws ContentAddressableStorageException         Thrown when delete action failed due some other failure
+     * be located in the container.
+     * @throws ContentAddressableStorageException Thrown when delete action failed due some other failure
      */
     void deleteObject(String containerName, String objectId,
         DataCategory type)
@@ -170,7 +176,7 @@ public interface DefaultOfferService {
      * @param containerName the container name
      * @return the cursor ID value
      * @throws ContentAddressableStorageNotFoundException thrown when the container cannot be located
-     * @throws ContentAddressableStorageServerException   thrown when delete action failed due some other failure
+     * @throws ContentAddressableStorageServerException thrown when delete action failed due some other failure
      */
     String createCursor(String containerName)
         throws ContentAddressableStorageNotFoundException, ContentAddressableStorageServerException;
@@ -179,7 +185,7 @@ public interface DefaultOfferService {
      * Check if iterator have a next value
      *
      * @param containerName the container name
-     * @param cursorId      the cursor ID
+     * @param cursorId the cursor ID
      * @return true if there is yet one or more value
      */
     boolean hasNext(String containerName, String cursorId);
@@ -188,7 +194,7 @@ public interface DefaultOfferService {
      * Get next values
      *
      * @param containerName the container name
-     * @param cursorId      the cursor ID
+     * @param cursorId the cursor ID
      * @return a list of next values
      * @throws ContentAddressableStorageNotFoundException thrown when the container cannot be located
      * @throws ContentAddressableStorageServerException
@@ -200,7 +206,7 @@ public interface DefaultOfferService {
      * Close the cursor
      *
      * @param containerName the container name
-     * @param cursorId      the cursor ID
+     * @param cursorId the cursor ID
      */
     void finalizeCursor(String containerName, String cursorId);
 
@@ -208,12 +214,12 @@ public interface DefaultOfferService {
      * Get the offer log of objects created in offer container
      *
      * @param containerName container the container name
-     * @param offset        the offset of the object before the wanted list
-     * @param limit         number of objects wanted
-     * @param order         order of search
+     * @param offset the offset of the object before the wanted list
+     * @param limit number of objects wanted
+     * @param order order of search
      * @return list of object informations
      * @throws ContentAddressableStorageDatabaseException Database error
-     * @throws ContentAddressableStorageServerException   Parsing error
+     * @throws ContentAddressableStorageServerException Parsing error
      */
     List<OfferLog> getOfferLogs(String containerName, Long offset, int limit, Order order)
         throws ContentAddressableStorageDatabaseException, ContentAddressableStorageServerException;

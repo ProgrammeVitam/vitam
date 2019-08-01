@@ -28,20 +28,19 @@ export class LoadStorageComponent extends PageComponent {
   fileName: string;
   strategyId: string;
   offerId: string;
-  exportId: string;
   category: string;
   tenant: string = this.resourcesService.getTenant();
   savedData: FileData;
   dataState = 'KO';
 
   fileUpload: File;
-
+  readOrderRequestError: any;
   displayErrorInitImport = false;
   displayGetError = false;
   displayAsyncGetMessage = false;
   displayExportStatusOK = false;
   displayExportStatusInprogressOrKo = false;
-  exportID: string;
+  readOrderRequest: any;
   displayDeleteError =false;
   displayMessageDelete = false ;
   displayErrorImport = false;
@@ -131,13 +130,14 @@ export class LoadStorageComponent extends PageComponent {
 
     this.savedData = new FileData(this.fileName, this.category, this.strategyId, this.offerId);
 
-    this.loadStorageService.export(this.fileName, this.category, this.strategyId, this.offerId).subscribe(
+    this.loadStorageService.createReadOrderRequest(this.fileName, this.category, this.strategyId, this.offerId).subscribe(
       (response) => {
-        this.exportID = response.ReadOrderId;
+        this.readOrderRequest = response.$results[0];
         this.displayAsyncGetMessage = true;
         this.dataState = 'OK';
       }, (error) => {
         delete this.savedData;
+        this.readOrderRequestError = error;
         this.dataState = 'KO';
         this.displayGetError = true;
       }
@@ -153,11 +153,14 @@ export class LoadStorageComponent extends PageComponent {
 
     this.dataState = 'RUNNING';
 
-    this.loadStorageService.checkExport(this.fileName, this.strategyId).subscribe(
-      (response) => {
+    this.loadStorageService.getReadOrderRequest(this.fileName, this.strategyId).subscribe(
+     (response) => {
+        this.readOrderRequest = response.$results[0];
         this.displayExportStatusOK = true;
         this.dataState = 'OK';
       }, (error) => {
+        delete this.savedData;
+        this.readOrderRequestError = error;
         this.dataState = 'KO';
         this.displayExportStatusInprogressOrKo = true;
       }

@@ -77,25 +77,27 @@
 </p-panel>
 
 <p-dialog header="Erreur de recherche" [(visible)]="displayGetError" modal="modal" [responsive]="true">
-  <p>Erreur lors de la recherche du fichier, veuillez vérifier les informations saisies</p>
+  <p>Erreur: {{readOrderRequestError.code}}, avec le message: {{readOrderRequestError.message}}, et la description: {{readOrderRequestError.description}}</p>
   <p-footer>
     <button type="button" pButton icon="fa-check" (click)="displayGetError=false" label="OK"></button>
   </p-footer>
 </p-dialog>
 <p-dialog header="Demande d'export acceptée" [(visible)]="displayAsyncGetMessage" modal="modal" [responsive]="true">
-  <p>L'export du fichier est en cours. Export ID = {{exportID}}</p>
+  <p>Read Request Id: {{readOrderRequest._id}}, IsCompleted: {{readOrderRequest.isCompleted}}, isExpired: {{readOrderRequest.isExpired}}</p>
   <p-footer>
     <button type="button" pButton icon="fa-check" (click)="displayAsyncGetMessage=false" label="OK"></button>
   </p-footer>
 </p-dialog>
 <p-dialog header="Etat export terminé" [(visible)]="displayExportStatusOK" modal="modal" [responsive]="true">
-  <p>Votre export est prêt</p>
+  <p>Etat de votre export est : </p>
+  <p>Read Request Id: {{readOrderRequest._id}}, IsCompleted: {{readOrderRequest.isCompleted}}, isExpired: {{readOrderRequest.isExpired}}</p>
   <p-footer>
     <button type="button" pButton icon="fa-check" (click)="displayExportStatusOK=false" label="OK"></button>
   </p-footer>
 </p-dialog>
 <p-dialog header="Etat export en cours" [(visible)]="displayExportStatusInprogressOrKo" modal="modal" [responsive]="true">
   <p>Votre export n'a pas été trouvé. Soit il est en cours soit l'identifiant saisi est erroné</p>
+  <p>Erreur: {{readOrderRequestError.code}}, avec le message: {{readOrderRequestError.message}}, et la description: {{readOrderRequestError.description}}</p>
   <p-footer>
     <button type="button" pButton icon="fa-check" (click)="displayExportStatusInprogressOrKo=false" label="OK"></button>
   </p-footer>

@@ -35,8 +35,10 @@ import fr.gouv.vitam.common.digest.Digest;
 import fr.gouv.vitam.common.digest.DigestType;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.storage.engine.common.exception.StorageException;
 import fr.gouv.vitam.storage.engine.common.model.DataCategory;
+import fr.gouv.vitam.storage.engine.common.model.TapeReadRequestReferentialEntity;
 import fr.gouv.vitam.storage.engine.common.referential.model.StorageStrategy;
 import io.reactivex.Flowable;
 import io.reactivex.Scheduler;
@@ -180,12 +182,12 @@ public class PopulateService {
             });
     }
 
-    public String createReadOrder(Integer tenant, String strategyId, String objectId, DataCategory dataCategory) {
-        return metadataStorageService.createReadOrder(tenant, strategyId, objectId, dataCategory);
+    public RequestResponse<TapeReadRequestReferentialEntity> createReadOrderRequest(Integer tenant, String strategyId, String objectId, DataCategory dataCategory) {
+        return metadataStorageService.createReadOrderRequest(tenant, strategyId, objectId, dataCategory);
     }
 
-    public boolean isReadOrderCompleted(Integer tenant, String strategyId, String readOrderId) {
-        return metadataStorageService.isReadOrderCompleted(tenant, strategyId, readOrderId);
+    public RequestResponse<TapeReadRequestReferentialEntity> getReadOrderRequest(Integer tenant, String strategyId, String readOrderId) {
+        return metadataStorageService.getReadOrderRequest(tenant, strategyId, readOrderId);
     }
 
     public Collection<StorageStrategy> getStrategies() throws StorageException {

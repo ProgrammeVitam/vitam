@@ -27,23 +27,24 @@
 
 package fr.gouv.vitam.ihmrecette.appserver.populate;
 
-import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.digest.Digest;
 import fr.gouv.vitam.common.digest.DigestType;
 import fr.gouv.vitam.common.error.VitamCode;
 import fr.gouv.vitam.common.error.VitamCodeHelper;
+import fr.gouv.vitam.common.error.VitamError;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.VitamAutoCloseable;
 import fr.gouv.vitam.common.stream.MultiplePipedInputStream;
 import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
+import fr.gouv.vitam.storage.driver.Connection;
 import fr.gouv.vitam.storage.driver.Driver;
 import fr.gouv.vitam.storage.driver.exception.StorageDriverConflictException;
 import fr.gouv.vitam.storage.driver.exception.StorageDriverException;
 import fr.gouv.vitam.storage.driver.exception.StorageDriverPreconditionFailedException;
-import fr.gouv.vitam.storage.driver.model.StorageGetResult;
 import fr.gouv.vitam.storage.driver.model.StorageObjectRequest;
 import fr.gouv.vitam.storage.driver.model.StoragePutRequest;
 import fr.gouv.vitam.storage.driver.model.StorageRemoveRequest;
@@ -52,6 +53,7 @@ import fr.gouv.vitam.storage.engine.common.exception.StorageException;
 import fr.gouv.vitam.storage.engine.common.exception.StorageNotFoundException;
 import fr.gouv.vitam.storage.engine.common.exception.StorageTechnicalException;
 import fr.gouv.vitam.storage.engine.common.model.DataCategory;
+import fr.gouv.vitam.storage.engine.common.model.TapeReadRequestReferentialEntity;
 import fr.gouv.vitam.storage.engine.common.referential.StorageOfferProvider;
 import fr.gouv.vitam.storage.engine.common.referential.StorageOfferProviderFactory;
 import fr.gouv.vitam.storage.engine.common.referential.StorageStrategyProvider;
@@ -61,8 +63,6 @@ import fr.gouv.vitam.storage.engine.common.referential.model.StorageOffer;
 import fr.gouv.vitam.storage.engine.common.referential.model.StorageStrategy;
 import fr.gouv.vitam.storage.engine.server.distribution.impl.DeleteThread;
 import fr.gouv.vitam.storage.engine.server.distribution.impl.OffersToCopyIn;
-import fr.gouv.vitam.storage.engine.server.distribution.impl.ReadOrderAction;
-import fr.gouv.vitam.storage.engine.server.distribution.impl.ReadOrderThread;
 import fr.gouv.vitam.storage.engine.server.distribution.impl.ThreadResponseData;
 import fr.gouv.vitam.storage.engine.server.distribution.impl.TransferThread;
 import fr.gouv.vitam.storage.engine.server.rest.StorageConfiguration;
@@ -172,55 +172,119 @@ public class StoragePopulateImpl implements VitamAutoCloseable {
 
         List<StorageOffer> storageOffers = offerReferences.stream()
             .map(StoragePopulateImpl::getStorageOffer)
+            .filter(StorageOffer::isAsyncRead)
             .collect(Collectors.toList());
         OffersToCopyIn offers = new OffersToCopyIn(storageOffers);
 
         tryAndRetry(objectId, category, file, tenantId, offers, 1, StorageAction.PUT);
     }
 
-    public String createReadOrder(Integer tenantId, String strategyId, String objectId, DataCategory category)
-        throws StorageException, FileNotFoundException {
+    private VitamError buildError(VitamCode vitamCode, String message) {
+        return new VitamError(VitamCodeHelper.getCode(vitamCode))
+            .setContext(vitamCode.getService().getName())
+            .setState(vitamCode.getDomain().getName())
+            .setMessage(vitamCode.getMessage())
+            .setDescription(vitamCode.getMessage());
+    }
+
+    private VitamError buildError(VitamCode vitamCode) {
+        return buildError(vitamCode, vitamCode.getMessage());
+    }
+
+    public RequestResponse<TapeReadRequestReferentialEntity> createReadOrderRequest(Integer tenantId, String strategyId,
+        String objectId,
+        DataCategory category) {
         checkStoreDataParams(strategyId, objectId, category);
 
-        final List<OfferReference> offerReferences = getOffersReferences(strategyId);
-        if (offerReferences.isEmpty()) {
-            throw new StorageNotFoundException(VitamCodeHelper.getLogMessage(VitamCode.STORAGE_OFFER_NOT_FOUND));
+        List<OfferReference> offerReferences;
+        try {
+            offerReferences = getOffersReferences(strategyId);
+        } catch (StorageNotFoundException | StorageTechnicalException e) {
+            return buildError(VitamCode.STORAGE_OFFER_NOT_FOUND);
+        }
+
+        if (offerReferences == null || offerReferences.isEmpty()) {
+            return buildError(VitamCode.STORAGE_OFFER_NOT_FOUND);
         }
 
         List<StorageOffer> storageOffers = offerReferences.stream()
             .map(StoragePopulateImpl::getStorageOffer)
+            .filter(StorageOffer::isAsyncRead) // Only tape offer
             .collect(Collectors.toList());
-        OffersToCopyIn offers = new OffersToCopyIn(storageOffers);
 
-        execute(objectId, category, null, tenantId, offers, StorageAction.POST);
+        if (storageOffers.isEmpty()) {
+            LOGGER.error("No AsyncRead and enabled offer found");
+            return buildError(VitamCode.STORAGE_OFFER_NOT_FOUND, "No AsyncRead and enabled offer found");
+        }
 
-        return offers.getReadRequestID();
+
+
+        StorageOffer storageOffer = storageOffers.iterator().next();
+        final Driver driver;
+        try {
+            driver = retrieveDriverInternal(storageOffer.getId());
+        } catch (StorageTechnicalException e) {
+            LOGGER.error("Error while get driver", e);
+            return buildError(VitamCode.STORAGE_OBJECT_NOT_FOUND, "Error while get driver");
+        }
+
+
+        try (Connection connection = driver.connect(storageOffer.getId())) {
+            if (Thread.currentThread().isInterrupted()) {
+                throw new InterruptedException();
+            }
+            StorageObjectRequest getObjectRequest = new StorageObjectRequest(tenantId, category.getFolder(), objectId);
+
+            return connection.createReadOrderRequest(getObjectRequest);
+        } catch (StorageDriverException | InterruptedException e) {
+            return buildError(VitamCode.STORAGE_OBJECT_NOT_FOUND, e.getMessage());
+        }
     }
 
-    public boolean isReadOrderCompleted(Integer tenantId, String strategyId, String exportId)
-        throws StorageException, FileNotFoundException {
-        ParametersChecker.checkParameter(EXPORT_ID_IS_MANDATORY, exportId);
+    public RequestResponse<TapeReadRequestReferentialEntity> getReadOrderRequest(Integer tenantId, String strategyId,
+        String readOrderRequestIt) {
+        ParametersChecker.checkParameter(EXPORT_ID_IS_MANDATORY, readOrderRequestIt);
 
-        final List<OfferReference> offerReferences = getOffersReferences(strategyId);
-        if (offerReferences.isEmpty()) {
-            throw new StorageNotFoundException(VitamCodeHelper.getLogMessage(VitamCode.STORAGE_OFFER_NOT_FOUND));
+        List<OfferReference> offerReferences;
+        try {
+            offerReferences = getOffersReferences(strategyId);
+        } catch (StorageNotFoundException | StorageTechnicalException e) {
+            return buildError(VitamCode.STORAGE_OFFER_NOT_FOUND);
+        }
+
+        if (offerReferences == null || offerReferences.isEmpty()) {
+            return buildError(VitamCode.STORAGE_OFFER_NOT_FOUND);
         }
 
         List<StorageOffer> storageOffers = offerReferences.stream()
             .map(StoragePopulateImpl::getStorageOffer)
+            .filter(StorageOffer::isAsyncRead) // Only tape offer
             .collect(Collectors.toList());
-        OffersToCopyIn offers = new OffersToCopyIn(storageOffers);
 
-        execute(exportId, null, null, tenantId, offers, StorageAction.HEAD);
+        if (storageOffers.isEmpty()) {
+            LOGGER.error("No AsyncRead and enabled offer found");
+            return buildError(VitamCode.STORAGE_OFFER_NOT_FOUND, "No AsyncRead and enabled offer found");
+        }
 
-        return offers.isReadOrderCompleted();
-    }
 
-    private void execute(String objectId, DataCategory category, File file,
-        Integer tenantId, OffersToCopyIn data, StorageAction action)
-        throws StorageTechnicalException, FileNotFoundException {
-        // To retry, attempts should be < NB_RETRY
-        tryAndRetry(objectId, category, file, tenantId, data, NB_RETRY + 1, action);
+
+        StorageOffer storageOffer = storageOffers.iterator().next();
+        final Driver driver;
+        try {
+            driver = retrieveDriverInternal(storageOffer.getId());
+        } catch (StorageTechnicalException e) {
+            LOGGER.error("Error while get driver", e);
+            return buildError(VitamCode.STORAGE_OBJECT_NOT_FOUND, "Error while get driver");
+        }
+
+        try (Connection connection = driver.connect(storageOffer.getId())) {
+            if (Thread.currentThread().isInterrupted()) {
+                throw new InterruptedException();
+            }
+            return connection.getReadOrderRequest(readOrderRequestIt, tenantId);
+        } catch (StorageDriverException | InterruptedException e) {
+            return buildError(VitamCode.STORAGE_OBJECT_NOT_FOUND, e.getMessage());
+        }
     }
 
 
@@ -259,19 +323,6 @@ public class StoragePopulateImpl implements VitamAutoCloseable {
                                         file.length())));
                             rank++;
                             break;
-                        case POST:
-                            futureMap.put(offerReference.getId(),
-                                executor
-                                    .submit(new ReadOrderThread(driver, offerReference,
-                                        new StorageObjectRequest(tenantId, category.getFolder(), objectId),
-                                        ReadOrderAction.CREATE)));
-                            break;
-                        case HEAD:
-                            futureMap.put(offerReference.getId(),
-                                executor
-                                    .submit(new ReadOrderThread(driver, offerReference,
-                                        new StorageObjectRequest(tenantId, objectId), ReadOrderAction.CHECK)));
-                            break;
                         default:
                             throw new IllegalArgumentException("Action not implemented");
                     }
@@ -298,13 +349,6 @@ public class StoragePopulateImpl implements VitamAutoCloseable {
                     if (threadResponseData == null) {
                         LOGGER.error(ERROR_ON_OFFER_ID + offerId);
                         throw new StorageTechnicalException(NO_MESSAGE_RETURNED);
-                    }
-
-                    if (action == StorageAction.POST) {
-                        data.setReadRequestID(((StorageGetResult) threadResponseData.getResponse()).getObject()
-                            .getHeaderString(GlobalDataRest.READ_REQUEST_ID));
-                    } else if (action == StorageAction.HEAD) {
-                        data.setReadOrderCompleted(threadResponseData.getStatus().equals(Status.FOUND) ? true : false);
                     }
                     data.koListToOkList(offerId);
                 } catch (TimeoutException e) {
@@ -475,9 +519,7 @@ public class StoragePopulateImpl implements VitamAutoCloseable {
 
 
     enum StorageAction {
-        PUT,
-        HEAD,
-        POST
+        PUT
     }
 
     public List<OfferReference> getOffersReferences(String strategyId)

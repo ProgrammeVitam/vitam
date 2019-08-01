@@ -46,6 +46,7 @@ import fr.gouv.vitam.storage.driver.model.StoragePutResult;
 import fr.gouv.vitam.storage.driver.model.StorageRemoveRequest;
 import fr.gouv.vitam.storage.driver.model.StorageRemoveResult;
 import fr.gouv.vitam.storage.engine.common.model.OfferLog;
+import fr.gouv.vitam.storage.engine.common.model.TapeReadRequestReferentialEntity;
 
 /**
  * Represents a connection to the distant storage offer service that is provided by the driver when calling the connect
@@ -92,9 +93,11 @@ public interface Connection extends AutoCloseable {
      * @throws StorageDriverException if any problem occurs during request
      * @throws IllegalArgumentException if request is wrong
      */
-    StorageGetResult createReadOrder(StorageObjectRequest request) throws StorageDriverException;
+    RequestResponse<TapeReadRequestReferentialEntity> createReadOrderRequest(StorageObjectRequest request) throws StorageDriverException;
 
-    boolean isReadOrderCompleted(String exportId, int tenant) throws StorageDriverException;
+    RequestResponse<TapeReadRequestReferentialEntity> getReadOrderRequest(String readOrderRequestId, int tenant) throws StorageDriverException;
+
+    void removeReadOrderRequest(String readOrderRequestId, int tenant) throws StorageDriverException;
 
     /**
      * Put the object file into the storage offer based on criterias defined in request argument and underlaying

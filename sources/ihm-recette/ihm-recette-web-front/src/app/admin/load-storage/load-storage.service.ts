@@ -15,11 +15,11 @@ export class LoadStorageService {
     return this.resourcesService.get(`${this.DOWNLOAD_API}/${strategyId}/${offerId}/${category}/${fileName}`, null, 'blob');
   }
 
-  export(fileName, category, strategyId, offerId): Observable<any> {
+  createReadOrderRequest(fileName, category, strategyId, offerId): Observable<any> {
     return this.resourcesService.post(`${this.READ_ORDER_API}/${strategyId}/${offerId}/${category}/${fileName}`, null, 'json');
   }
 
-  checkExport(readOrderId, strategyId): Observable<any> {
+  getReadOrderRequest(readOrderId, strategyId): Observable<any> {
     return this.resourcesService.head(`${this.READ_ORDER_API}/${strategyId}/${readOrderId}`, null, 'json');
   }
 

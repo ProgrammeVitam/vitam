@@ -27,7 +27,6 @@
 package fr.gouv.vitam.storage.engine.common.model;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import fr.gouv.vitam.common.model.tape.TarEntryDescription;
 
 import java.util.List;
 

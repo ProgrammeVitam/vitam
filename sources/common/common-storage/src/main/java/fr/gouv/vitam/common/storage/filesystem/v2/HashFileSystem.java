@@ -35,7 +35,6 @@ import fr.gouv.vitam.common.digest.DigestType;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.MetadatasObject;
-import fr.gouv.vitam.common.model.tape.TapeReadRequestReferentialEntity;
 import fr.gouv.vitam.common.performance.PerformanceLogger;
 import fr.gouv.vitam.common.security.SafeFileChecker;
 import fr.gouv.vitam.common.storage.ContainerInformation;
@@ -190,12 +189,12 @@ public class HashFileSystem extends ContentAddressableStorageAbstract {
     }
 
     @Override
-    public TapeReadRequestReferentialEntity createReadOrder(String containerName, List<String> objectsIds) {
+    public String createReadOrderRequest(String containerName, List<String> objectsIds) {
         throw new UnsupportedOperationException("Operation not supported");
     }
 
     @Override
-    public boolean isReadOrderCompleted(String readRequestID) {
+    public void removeReadOrderRequest(String readRequestID) {
         throw new UnsupportedOperationException("Operation not supported");
     }
 

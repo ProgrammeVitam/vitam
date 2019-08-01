@@ -26,10 +26,10 @@
  */
 package fr.gouv.vitam.common.storage.cas.container.api;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import fr.gouv.vitam.common.digest.DigestType;
 import fr.gouv.vitam.common.model.MetadatasObject;
 import fr.gouv.vitam.common.model.VitamAutoCloseable;
-import fr.gouv.vitam.common.model.tape.TapeReadRequestReferentialEntity;
 import fr.gouv.vitam.common.storage.ContainerInformation;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageAlreadyExistException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageException;
@@ -100,24 +100,22 @@ public interface ContentAddressableStorage extends VitamAutoCloseable {
      *
      * @param containerName container where this exists.
      * @param objectsIds list of the fully qualified name relative to the container.
-     * @return TapeReadRequestReferentialEntity
+     * @return read order request id
      * @throws ContentAddressableStorageNotFoundException Thrown when the container cannot be located.
      * @throws ContentAddressableStorageException Thrown when get action failed due some other failure
      * @throws ContentAddressableStorageAlreadyExistException Thrown when object creating exists
      */
-    TapeReadRequestReferentialEntity createReadOrder(String containerName, List<String> objectsIds)
+    String createReadOrderRequest(String containerName, List<String> objectsIds)
             throws ContentAddressableStorageNotFoundException, ContentAddressableStorageException;
 
     /**
-     * Check if the read order for the readRequestID is completed.
-     * Return true if the read request is completed. else false
+     * Purge all read request id to cleanup local FS
      * <p>
      *
      * @param readRequestID the read request ID.
-     * @return true if the read request is completed. else false
      */
-    boolean isReadOrderCompleted(String readRequestID)
-            throws ContentAddressableStorageServerException, ContentAddressableStorageNotFoundException;
+    void removeReadOrderRequest(String readRequestID)
+            throws ContentAddressableStorageServerException;
 
     /**
      * Deletes a object representing the data at location containerName/objectName
