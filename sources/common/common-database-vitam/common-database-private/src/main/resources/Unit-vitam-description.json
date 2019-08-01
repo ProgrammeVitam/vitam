@@ -384,6 +384,12 @@
     "cardinality": "many"
   },
   {
+    "path": "Coverage",
+    "type": "object",
+    "indexed": true,
+    "cardinality": "many"
+  },
+  {
     "path": "Coverage.Juridictional",
     "type": "text",
     "indexed": true,
@@ -408,7 +414,25 @@
     "cardinality": "one"
   },
   {
+    "path": "CustodialHistory",
+    "type": "object",
+    "indexed": true,
+    "cardinality": "one"
+  },
+  {
+    "path": "CustodialHistory.CustodialHistoryFile",
+    "type": "object",
+    "indexed": true,
+    "cardinality": "one"
+  },
+  {
     "path": "CustodialHistory.CustodialHistoryFile.DataObjectGroupReferenceId",
+    "type": "keyword",
+    "indexed": true,
+    "cardinality": "one"
+  },
+  {
+    "path": "CustodialHistory.CustodialHistoryFile.DataObjectReferenceId",
     "type": "keyword",
     "indexed": true,
     "cardinality": "one"
@@ -492,8 +516,14 @@
     "cardinality": "many"
   },
   {
+    "path": "Gps",
+    "type": "object",
+    "indexed": true,
+    "cardinality": "one"
+  },
+  {
     "path": "Gps.GpsAltitude",
-    "type": "keyword",
+    "type": "signed_long",
     "indexed": true,
     "cardinality": "one"
   },
@@ -618,6 +648,12 @@
     "cardinality": "one"
   },
   {
+    "path": "Recipient.BirthPlace",
+    "type": "object",
+    "indexed": true,
+    "cardinality": "one"
+  },
+  {
     "path": "Recipient.BirthPlace.Address",
     "type": "text",
     "indexed": true,
@@ -662,6 +698,12 @@
   {
     "path": "Recipient.DeathDate",
     "type": "datetime",
+    "indexed": true,
+    "cardinality": "one"
+  },
+  {
+    "path": "Recipient.DeathPlace",
+    "type": "object",
     "indexed": true,
     "cardinality": "one"
   },
@@ -734,6 +776,12 @@
   {
     "path": "RegisteredDate",
     "type": "datetime",
+    "indexed": true,
+    "cardinality": "one"
+  },
+  {
+    "path": "RelatedObjectReference",
+    "type": "object",
     "indexed": true,
     "cardinality": "one"
   },
@@ -811,13 +859,19 @@
   },
   {
     "path": "RelatedObjectReference.References",
-    "type": "keyword",
+    "type": "object",
     "indexed": true,
     "cardinality": "many"
   },
   {
     "path": "RelatedObjectReference.References.ArchiveUnitRefId",
     "type": "keyword",
+    "indexed": true,
+    "cardinality": "one"
+  },
+  {
+    "path": "RelatedObjectReference.References.DataObjectReference",
+    "type": "object",
     "indexed": true,
     "cardinality": "one"
   },
@@ -847,13 +901,19 @@
   },
   {
     "path": "RelatedObjectReference.Replaces",
-    "type": "keyword",
+    "type": "object",
     "indexed": true,
     "cardinality": "one"
   },
   {
     "path": "RelatedObjectReference.Replaces.ArchiveUnitRefId",
     "type": "keyword",
+    "indexed": true,
+    "cardinality": "one"
+  },
+  {
+    "path": "RelatedObjectReference.Replaces.DataObjectReference",
+    "type": "object",
     "indexed": true,
     "cardinality": "one"
   },
@@ -889,12 +949,18 @@
   },
   {
     "path": "RelatedObjectReference.Requires",
-    "type": "keyword",
+    "type": "object",
     "indexed": true,
     "cardinality": "many"
   },
   {
     "path": "RelatedObjectReference.Requires.ArchiveUnitRefId",
+    "type": "keyword",
+    "indexed": true,
+    "cardinality": "one"
+  },
+  {
+    "path": "RelatedObjectReference.Requires.DataObjectReference",
     "type": "keyword",
     "indexed": true,
     "cardinality": "one"
@@ -948,6 +1014,12 @@
     "cardinality": "one"
   },
   {
+    "path": "Sender.BirthPlace",
+    "type": "object",
+    "indexed": true,
+    "cardinality": "one"
+  },
+  {
     "path": "Sender.BirthPlace.Address",
     "type": "text",
     "indexed": true,
@@ -985,7 +1057,7 @@
   },
   {
     "path": "Sender.DeathDate",
-    "type": "datetime",
+    "type": "object",
     "indexed": true,
     "cardinality": "one"
   },
@@ -1098,8 +1170,26 @@
     "cardinality": "one"
   },
   {
+    "path": "Signature.Masterdata",
+    "type": "object",
+    "indexed": true,
+    "cardinality": "one"
+  },
+  {
     "path": "Signature.Masterdata.Value",
     "type": "keyword",
+    "indexed": true,
+    "cardinality": "one"
+  },
+  {
+    "path": "Signature.ReferencedObject",
+    "type": "object",
+    "indexed": true,
+    "cardinality": "one"
+  },
+  {
+    "path": "Signature.ReferencedObject.SignedObjectDigest",
+    "type": "object",
     "indexed": true,
     "cardinality": "one"
   },
@@ -1142,6 +1232,12 @@
   {
     "path": "Signature.Signer.BirthName",
     "type": "text",
+    "indexed": true,
+    "cardinality": "one"
+  },
+  {
+    "path": "Signature.Signer.BirthPlace",
+    "type": "object",
     "indexed": true,
     "cardinality": "one"
   },
@@ -1190,6 +1286,12 @@
   {
     "path": "Signature.Signer.DeathDate",
     "type": "datetime",
+    "indexed": true,
+    "cardinality": "one"
+  },
+  {
+    "path": "Signature.Signer.DeathPlace",
+    "type": "object",
     "indexed": true,
     "cardinality": "one"
   },
@@ -1290,6 +1392,12 @@
     "cardinality": "one"
   },
   {
+    "path": "Signature.Validator",
+    "type": "object",
+    "indexed": true,
+    "cardinality": "one"
+  },
+  {
     "path": "Signature.Validator.Activity",
     "type": "keyword",
     "indexed": true,
@@ -1352,6 +1460,12 @@
   {
     "path": "Signature.Validator.DeathDate",
     "type": "datetime",
+    "indexed": true,
+    "cardinality": "one"
+  },
+  {
+    "path": "Signature.Validator.DeathPlace",
+    "type": "object",
     "indexed": true,
     "cardinality": "one"
   },
@@ -1470,6 +1584,12 @@
     "cardinality": "one"
   },
   {
+    "path": "SubmissionAgency",
+    "type": "object",
+    "indexed": true,
+    "cardinality": "one"
+  },
+  {
     "path": "SubmissionAgency.Identifier",
     "type": "keyword",
     "indexed": true,
@@ -1542,6 +1662,12 @@
     "cardinality": "one"
   },
   {
+    "path": "Transmitter.BirthPlace",
+    "type": "object",
+    "indexed": true,
+    "cardinality": "one"
+  },
+  {
     "path": "Transmitter.BirthPlace.Address",
     "type": "text",
     "indexed": true,
@@ -1579,7 +1705,7 @@
   },
   {
     "path": "Transmitter.DeathDate",
-    "type": "datetime",
+    "type": "object",
     "indexed": true,
     "cardinality": "one"
   },
@@ -1704,6 +1830,12 @@
     "cardinality": "one"
   },
   {
+    "path": "Writer.BirthPlace",
+    "type": "object",
+    "indexed": true,
+    "cardinality": "one"
+  },
+  {
     "path": "Writer.BirthPlace.Address",
     "type": "text",
     "indexed": true,
@@ -1742,6 +1874,12 @@
   {
     "path": "Writer.DeathDate",
     "type": "datetime",
+    "indexed": true,
+    "cardinality": "one"
+  },
+  {
+    "path": "Writer.DeathPlace",
+    "type": "object",
     "indexed": true,
     "cardinality": "one"
   },
@@ -1830,10 +1968,28 @@
     "cardinality": "one"
   },
   {
+    "path": "_elimination",
+    "type": "object",
+    "indexed": true,
+    "cardinality": "one"
+  },
+  {
     "path": "_elimination.DestroyableOriginatingAgencies",
     "type": "keyword",
     "indexed": true,
     "cardinality": "one"
+  },
+  {
+    "path": "_elimination.ExtendedInfo",
+    "type": "object",
+    "indexed": true,
+    "cardinality": "one"
+  },
+  {
+    "path": "_elimination.ExtendedInfo.ExtendedInfoDetails",
+    "type": "object",
+    "indexed": true,
+    "cardinality": "many"
   },
   {
     "path": "_elimination.ExtendedInfo.ExtendedInfoDetails.DestroyableOriginatingAgencies",
@@ -1890,6 +2046,30 @@
     "cardinality": "many"
   },
   {
+    "path": "_history",
+    "type": "object",
+    "indexed": true,
+    "cardinality": "many"
+  },
+  {
+    "path": "_history.data",
+    "type": "object",
+    "indexed": true,
+    "cardinality": "one"
+  },
+  {
+    "path": "_history.data._mgt",
+    "type": "object",
+    "indexed": true,
+    "cardinality": "one"
+  },
+  {
+    "path": "_history.data._mgt.ClassificationRule",
+    "type": "object",
+    "indexed": true,
+    "cardinality": "one"
+  },
+  {
     "path": "_history.data._mgt.ClassificationRule.ClassificationAudience",
     "type": "keyword",
     "indexed": true,
@@ -1914,6 +2094,12 @@
     "cardinality": "one"
   },
   {
+    "path": "_history.data._mgt.ClassificationRule.Inheritance",
+    "type": "object",
+    "indexed": true,
+    "cardinality": "one"
+  },
+  {
     "path": "_history.data._mgt.ClassificationRule.Inheritance.PreventInheritance",
     "type": "bool",
     "indexed": true,
@@ -1930,6 +2116,12 @@
     "type": "bool",
     "indexed": true,
     "cardinality": "one"
+  },
+  {
+    "path": "_history.data._mgt.ClassificationRule.Rules",
+    "type": "object",
+    "indexed": true,
+    "cardinality": "many"
   },
   {
     "path": "_history.data._mgt.ClassificationRule.Rules.EndDate",
@@ -2004,6 +2196,12 @@
     "cardinality": "one"
   },
   {
+    "path": "_mgt.AccessRule",
+    "type": "object",
+    "indexed": true,
+    "cardinality": "one"
+  },
+  {
     "path": "_mgt.AccessRule.Rules",
     "type": "object",
     "indexed": true,
@@ -2016,8 +2214,20 @@
     "cardinality": "one"
   },
   {
+    "path": "_mgt.AppraisalRule",
+    "type": "object",
+    "indexed": true,
+    "cardinality": "one"
+  },
+  {
     "path": "_mgt.AppraisalRule.FinalAction",
     "type": "keyword",
+    "indexed": true,
+    "cardinality": "one"
+  },
+  {
+    "path": "_mgt.AppraisalRule.Inheritance",
+    "type": "object",
     "indexed": true,
     "cardinality": "one"
   },
@@ -2082,6 +2292,12 @@
     "cardinality": "one"
   },
   {
+    "path": "_mgt.ClassificationRule.Inheritance",
+    "type": "object",
+    "indexed": true,
+    "cardinality": "one"
+  },
+  {
     "path": "_mgt.ClassificationRule.Inheritance.PreventInheritance",
     "type": "bool",
     "indexed": true,
@@ -2128,6 +2344,12 @@
     "type": "object",
     "indexed": true,
     "cardinality": "many"
+  },
+  {
+    "path": "_mgt.DisseminationRule.Inheritance",
+    "type": "object",
+    "indexed": true,
+    "cardinality": "one"
   },
   {
     "path": "_mgt.DisseminationRule.Inheritance.PreventInheritance",
@@ -2178,6 +2400,12 @@
     "cardinality": "many"
   },
   {
+    "path": "_mgt.ReuseRule.Inheritance",
+    "type": "object",
+    "indexed": true,
+    "cardinality": "one"
+  },
+  {
     "path": "_mgt.ReuseRule.Inheritance.PreventInheritance",
     "type": "bool",
     "indexed": true,
@@ -2212,6 +2440,12 @@
     "type": "object",
     "indexed": true,
     "cardinality": "many"
+  },
+  {
+    "path": "_mgt.StorageRule.Inheritance",
+    "type": "object",
+    "indexed": true,
+    "cardinality": "one"
   },
   {
     "path": "_mgt.StorageRule.FinalAction",
@@ -2302,6 +2536,12 @@
     "type": "keyword",
     "indexed": true,
     "cardinality": "many"
+  },
+  {
+    "path": "_storage",
+    "type": "object",
+    "indexed": true,
+    "cardinality": "one"
   },
   {
     "path": "_storage._nbc",
