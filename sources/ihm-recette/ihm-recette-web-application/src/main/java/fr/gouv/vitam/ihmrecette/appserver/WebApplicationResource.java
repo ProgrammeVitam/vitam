@@ -101,7 +101,6 @@ import javax.ws.rs.Consumes;
 import javax.ws.rs.CookieParam;
 import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
-import javax.ws.rs.HEAD;
 import javax.ws.rs.HeaderParam;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
@@ -353,14 +352,15 @@ public class WebApplicationResource extends ApplicationStatusResource {
     @Path("/readorder/{strategyId}/{offerId}/{dataType}/{uid}")
     @Produces(MediaType.APPLICATION_JSON)
     public Response createReadOrderRequest(@HeaderParam(GlobalDataRest.X_TENANT_ID) String xTenantId,
-        @PathParam("uid") String uid,
-        @PathParam("dataType") String dataType,
         @PathParam("strategyId") String strategyId,
-        @PathParam("offerId") String offerId) {
+        @PathParam("offerId") String offerId,
+        @PathParam("dataType") String dataType,
+        @PathParam("uid") String uid) {
         VitamThreadUtils.getVitamSession().setTenantId(Integer.parseInt(xTenantId));
 
         RequestResponse<TapeReadRequestReferentialEntity> readOrderRequest = populateService
-            .createReadOrderRequest(Integer.parseInt(xTenantId), strategyId, uid, DataCategory.valueOf(dataType));
+            .createReadOrderRequest(Integer.parseInt(xTenantId), strategyId, offerId, uid,
+                DataCategory.valueOf(dataType));
 
         return readOrderRequest.toResponse();
     }
@@ -368,17 +368,17 @@ public class WebApplicationResource extends ApplicationStatusResource {
     /**
      * Check if the read order @readOrder is completed.
      */
-    @HEAD
-    @Path("/readorder/{strategyId}/{readOrderId}")
+    @GET
+    @Path("/readorder/{strategyId}/{offerId}/{readOrderId}")
     @Consumes(MediaType.APPLICATION_JSON)
-    @Produces(MediaType.APPLICATION_JSON)
     public Response getReadOrderRequest(@HeaderParam(GlobalDataRest.X_TENANT_ID) String xTenantId,
-        @PathParam("readOrderId") String readOrderId,
-        @PathParam("strategyId") String strategyId) {
+        @PathParam("strategyId") String strategyId,
+        @PathParam("offerId") String offerId,
+        @PathParam("readOrderId") String readOrderId) {
         VitamThreadUtils.getVitamSession().setTenantId(Integer.parseInt(xTenantId));
 
         RequestResponse<TapeReadRequestReferentialEntity> readOrderRequest =
-            populateService.getReadOrderRequest(Integer.parseInt(xTenantId), strategyId, readOrderId);
+            populateService.getReadOrderRequest(Integer.parseInt(xTenantId), strategyId, offerId, readOrderId);
         return readOrderRequest.toResponse();
     }
 

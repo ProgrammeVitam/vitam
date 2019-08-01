@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import fr.gouv.vitam.common.LocalDateUtil;
 
 import java.time.LocalDateTime;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -24,7 +25,7 @@ public class TapeReadRequestReferentialEntity {
 
     // Map of tar to tar location
     @JsonProperty(TAR_LOCATIONS)
-    private Map<String, TarLocation> tarLocations;
+    private Map<String, TarLocation> tarLocations = new HashMap<>();
 
 
     @JsonProperty(FILES)
@@ -99,12 +100,12 @@ public class TapeReadRequestReferentialEntity {
         this.expireInMinutes = expireInMinutes;
     }
 
-    @JsonProperty
+    @JsonProperty("isCompleted")
     public boolean isCompleted() {
         return tarLocations.values().stream().filter(o -> TarLocation.DISK.equals(o)).count() == tarLocations.size();
     }
 
-    @JsonProperty
+    @JsonProperty("isExpired")
     public boolean isExpired() {
         return LocalDateUtil.parseMongoFormattedDate(creationDate).plusMinutes(expireInMinutes)
             .isBefore(LocalDateTime.now());

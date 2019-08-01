@@ -215,17 +215,10 @@ public class ConnectionImpl extends AbstractConnection {
 
             final Response.Status status = Response.Status.fromStatusCode(response.getStatus());
             switch (status) {
-                case CREATED:
-                    return RequestResponse.parseFromResponse(response, TapeReadRequestReferentialEntity.class);
-                case NOT_FOUND:
-                    throw new StorageDriverNotFoundException(getDriverName(),
-                        "Object " + request.getGuid() + " not found");
                 case PRECONDITION_FAILED:
-                    LOGGER.error("Precondition failed");
                     throw new StorageDriverPreconditionFailedException(getDriverName(), "Precondition failed");
                 default:
-                    LOGGER.error(INTERNAL_SERVER_ERROR + " : " + status.getReasonPhrase());
-                    throw new StorageDriverException(getDriverName(), INTERNAL_SERVER_ERROR, true);
+                    return RequestResponse.parseFromResponse(response, TapeReadRequestReferentialEntity.class);
             }
         } catch (final VitamClientInternalException e1) {
             LOGGER.error(VitamCodeHelper.getLogMessage(VitamCode.STORAGE_TECHNICAL_INTERNAL_ERROR), e1);
@@ -252,17 +245,10 @@ public class ConnectionImpl extends AbstractConnection {
 
             final Response.Status status = Response.Status.fromStatusCode(response.getStatus());
             switch (status) {
-                case OK:
-                    return RequestResponse.parseFromResponse(response, TapeReadRequestReferentialEntity.class);
-                case NOT_FOUND:
-                    throw new StorageDriverNotFoundException(getDriverName(),
-                        "ReadOrderRequest  " + readOrderRequestId + " not found");
                 case PRECONDITION_FAILED:
-                    LOGGER.error("Precondition failed");
                     throw new StorageDriverPreconditionFailedException(getDriverName(), "Precondition failed");
                 default:
-                    LOGGER.error(INTERNAL_SERVER_ERROR + " : " + status.getReasonPhrase());
-                    throw new StorageDriverException(getDriverName(), INTERNAL_SERVER_ERROR, true);
+                    return RequestResponse.parseFromResponse(response, TapeReadRequestReferentialEntity.class);
             }
         } catch (final VitamClientInternalException e1) {
             LOGGER.error(VitamCodeHelper.getLogMessage(VitamCode.STORAGE_TECHNICAL_INTERNAL_ERROR), e1);

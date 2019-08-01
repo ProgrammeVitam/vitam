@@ -95,12 +95,12 @@ public interface DefaultOfferService {
         throws ContentAddressableStorageException;
 
     Optional<TapeReadRequestReferentialEntity> getReadOrderRequest(String readRequestID)
-        throws ContentAddressableStorageServerException, ContentAddressableStorageNotFoundException;
+        throws ContentAddressableStorageException;
 
 
 
     void removeReadOrderRequest(String readRequestID)
-        throws ContentAddressableStorageServerException, ContentAddressableStorageNotFoundException;
+        throws ContentAddressableStorageException;
 
     /**
      * Create object on container with objectId Receive object part of object. Actually these parts <b>HAVE TO</b> be

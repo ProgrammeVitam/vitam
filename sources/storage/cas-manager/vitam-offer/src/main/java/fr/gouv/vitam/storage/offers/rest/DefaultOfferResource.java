@@ -318,10 +318,10 @@ public class DefaultOfferResource extends ApplicationStatusResource {
                 Status.OK, responseHeader);
         } catch (final ContentAddressableStorageNotFoundException | UnavailableFileException e) {
             LOGGER.warn(e);
-            return buildErrorResponse(VitamCode.STORAGE_NOT_FOUND);
+            return buildErrorResponse(VitamCode.STORAGE_NOT_FOUND, e.getMessage());
         } catch (final ContentAddressableStorageException | InvalidParseOperationException e) {
             LOGGER.error(e);
-            return buildErrorResponse(VitamCode.STORAGE_TECHNICAL_INTERNAL_ERROR);
+            return buildErrorResponse(VitamCode.STORAGE_TECHNICAL_INTERNAL_ERROR, e.getMessage());
         }
     }
 
@@ -371,15 +371,15 @@ public class DefaultOfferResource extends ApplicationStatusResource {
 
                 return responseOK.toResponse();
             } else {
-                return Response.status(Status.NOT_FOUND).build();
+                return buildErrorResponse(VitamCode.STORAGE_CREATE_READ_ORDER_ERROR, "Not read order request created");
             }
 
         } catch (final ContentAddressableStorageNotFoundException e) {
             LOGGER.warn(e);
-            return buildErrorResponse(VitamCode.STORAGE_NOT_FOUND);
+            return buildErrorResponse(VitamCode.STORAGE_NOT_FOUND, e.getMessage());
         } catch (final ContentAddressableStorageException e) {
             LOGGER.error(e);
-            return buildErrorResponse(VitamCode.STORAGE_TECHNICAL_INTERNAL_ERROR);
+            return buildErrorResponse(VitamCode.STORAGE_TECHNICAL_INTERNAL_ERROR, e.getMessage());
         }
     }
 
@@ -417,16 +417,16 @@ public class DefaultOfferResource extends ApplicationStatusResource {
 
                 return responseOK.toResponse();
             } else {
-                return Response.status(Status.NOT_FOUND).header(GlobalDataRest.READ_REQUEST_ID, readOrderRequestId)
-                    .build();
+                return buildErrorResponse(VitamCode.STORAGE_NOT_FOUND,
+                    "Read order request (" + readOrderRequestId + ") not found");
             }
 
         } catch (final ContentAddressableStorageNotFoundException e) {
             LOGGER.warn(e);
-            return buildErrorResponse(VitamCode.STORAGE_NOT_FOUND);
+            return buildErrorResponse(VitamCode.STORAGE_NOT_FOUND, e.getMessage());
         } catch (final ContentAddressableStorageException | InvalidParseOperationException e) {
             LOGGER.error(e);
-            return buildErrorResponse(VitamCode.STORAGE_TECHNICAL_INTERNAL_ERROR);
+            return buildErrorResponse(VitamCode.STORAGE_TECHNICAL_INTERNAL_ERROR, e.getMessage());
         }
     }
 
@@ -451,10 +451,10 @@ public class DefaultOfferResource extends ApplicationStatusResource {
 
         } catch (final ContentAddressableStorageNotFoundException e) {
             LOGGER.warn(e);
-            return buildErrorResponse(VitamCode.STORAGE_NOT_FOUND);
+            return buildErrorResponse(VitamCode.STORAGE_NOT_FOUND, e.getMessage());
         } catch (final ContentAddressableStorageException | InvalidParseOperationException e) {
             LOGGER.error(e);
-            return buildErrorResponse(VitamCode.STORAGE_TECHNICAL_INTERNAL_ERROR);
+            return buildErrorResponse(VitamCode.STORAGE_TECHNICAL_INTERNAL_ERROR, e.getMessage());
         }
     }
 
@@ -703,13 +703,14 @@ public class DefaultOfferResource extends ApplicationStatusResource {
      * @param vitamCode vitam error Code
      */
 
-    private Response buildErrorResponse(VitamCode vitamCode) {
+    private Response buildErrorResponse(VitamCode vitamCode, String message) {
         return Response.status(vitamCode.getStatus()).entity(new RequestResponseError().setError(
             new VitamError(VitamCodeHelper.getCode(vitamCode))
                 .setContext(vitamCode.getService().getName())
+                .setHttpCode(vitamCode.getStatus().getStatusCode())
                 .setState(vitamCode.getDomain().getName())
                 .setMessage(vitamCode.getMessage())
-                .setDescription(vitamCode.getMessage()))
+                .setDescription(Strings.isNullOrEmpty(message) ? vitamCode.getMessage() : message))
             .toString()).build();
     }
 }

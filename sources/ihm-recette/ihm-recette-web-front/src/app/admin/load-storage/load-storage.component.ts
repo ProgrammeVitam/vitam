@@ -137,7 +137,7 @@ export class LoadStorageComponent extends PageComponent {
         this.dataState = 'OK';
       }, (error) => {
         delete this.savedData;
-        this.readOrderRequestError = error;
+        this.readOrderRequestError = error.error;
         this.dataState = 'KO';
         this.displayGetError = true;
       }
@@ -153,14 +153,14 @@ export class LoadStorageComponent extends PageComponent {
 
     this.dataState = 'RUNNING';
 
-    this.loadStorageService.getReadOrderRequest(this.fileName, this.strategyId).subscribe(
+    this.loadStorageService.getReadOrderRequest(this.fileName, this.strategyId, this.offerId).subscribe(
      (response) => {
         this.readOrderRequest = response.$results[0];
         this.displayExportStatusOK = true;
         this.dataState = 'OK';
       }, (error) => {
         delete this.savedData;
-        this.readOrderRequestError = error;
+        this.readOrderRequestError = error.error;
         this.dataState = 'KO';
         this.displayExportStatusInprogressOrKo = true;
       }

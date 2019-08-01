@@ -19,8 +19,8 @@ export class LoadStorageService {
     return this.resourcesService.post(`${this.READ_ORDER_API}/${strategyId}/${offerId}/${category}/${fileName}`, null, 'json');
   }
 
-  getReadOrderRequest(readOrderId, strategyId): Observable<any> {
-    return this.resourcesService.head(`${this.READ_ORDER_API}/${strategyId}/${readOrderId}`, null, 'json');
+  getReadOrderRequest(readOrderId, strategyId, offerId): Observable<any> {
+    return this.resourcesService.get(`${this.READ_ORDER_API}/${strategyId}/${offerId}/${readOrderId}`, null, 'json');
   }
 
   uploadFile(newFile, fileName, size, category, strategyId ,offerId): Observable<any> {

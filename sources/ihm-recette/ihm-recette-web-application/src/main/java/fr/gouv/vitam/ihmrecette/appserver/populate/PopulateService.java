@@ -182,12 +182,12 @@ public class PopulateService {
             });
     }
 
-    public RequestResponse<TapeReadRequestReferentialEntity> createReadOrderRequest(Integer tenant, String strategyId, String objectId, DataCategory dataCategory) {
-        return metadataStorageService.createReadOrderRequest(tenant, strategyId, objectId, dataCategory);
+    public RequestResponse<TapeReadRequestReferentialEntity> createReadOrderRequest(Integer tenant, String strategyId, String offerId, String objectId, DataCategory dataCategory) {
+        return metadataStorageService.createReadOrderRequest(tenant, strategyId, offerId, objectId, dataCategory);
     }
 
-    public RequestResponse<TapeReadRequestReferentialEntity> getReadOrderRequest(Integer tenant, String strategyId, String readOrderId) {
-        return metadataStorageService.getReadOrderRequest(tenant, strategyId, readOrderId);
+    public RequestResponse<TapeReadRequestReferentialEntity> getReadOrderRequest(Integer tenant, String strategyId, String offerId, String readOrderId) {
+        return metadataStorageService.getReadOrderRequest(tenant, strategyId, offerId, readOrderId);
     }
 
     public Collection<StorageStrategy> getStrategies() throws StorageException {

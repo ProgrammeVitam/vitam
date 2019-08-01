@@ -161,14 +161,14 @@ public class MetadataStorageService {
         }
     }
 
-    public RequestResponse<TapeReadRequestReferentialEntity> createReadOrderRequest(Integer tenant, String strategyId,
+    public RequestResponse<TapeReadRequestReferentialEntity> createReadOrderRequest(Integer tenant, String strategyId, String offerId,
         String objectId, DataCategory dataCategory) {
-        return storagePopulateService.createReadOrderRequest(tenant, strategyId, objectId, dataCategory);
+        return storagePopulateService.createReadOrderRequest(tenant, strategyId, offerId, objectId, dataCategory);
     }
 
-    public RequestResponse<TapeReadRequestReferentialEntity> getReadOrderRequest(Integer tenant, String strategyId,
+    public RequestResponse<TapeReadRequestReferentialEntity> getReadOrderRequest(Integer tenant, String strategyId, String offerId,
         String readOrderId) {
-        return storagePopulateService.getReadOrderRequest(tenant, strategyId, readOrderId);
+        return storagePopulateService.getReadOrderRequest(tenant, strategyId, offerId, readOrderId);
     }
 
     public StorageOffer getOffer(String offerId) throws StorageException {
