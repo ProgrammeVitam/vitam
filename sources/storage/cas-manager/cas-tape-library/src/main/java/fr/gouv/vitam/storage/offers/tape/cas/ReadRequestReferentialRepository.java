@@ -35,8 +35,8 @@ import com.mongodb.client.result.UpdateResult;
 import com.mongodb.util.JSON;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
-import fr.gouv.vitam.common.model.tape.TapeReadRequestReferentialEntity;
-import fr.gouv.vitam.common.model.tape.TarLocation;
+import fr.gouv.vitam.storage.engine.common.model.TapeReadRequestReferentialEntity;
+import fr.gouv.vitam.storage.engine.common.model.TarLocation;
 import fr.gouv.vitam.storage.offers.tape.exception.ReadRequestReferentialException;
 import org.bson.Document;
 

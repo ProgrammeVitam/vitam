@@ -58,6 +58,7 @@ import fr.gouv.vitam.storage.driver.model.StorageBulkPutResult;
 import fr.gouv.vitam.storage.driver.model.StorageMetadataResult;
 import fr.gouv.vitam.storage.engine.common.model.DataCategory;
 import fr.gouv.vitam.storage.engine.common.model.OfferLog;
+import fr.gouv.vitam.storage.engine.common.model.TapeReadRequestReferentialEntity;
 import fr.gouv.vitam.storage.engine.common.model.request.OfferLogRequest;
 import fr.gouv.vitam.storage.offers.core.DefaultOfferService;
 import fr.gouv.vitam.storage.offers.core.NonUpdatableContentAddressableStorageException;
@@ -339,8 +340,8 @@ public class DefaultOfferResource extends ApplicationStatusResource {
     @Path("/readorder/{type}")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    public Response createReadOrder(@PathParam("type") DataCategory type, List<String> objectsIds,
-                                    @Context HttpHeaders headers) {
+    public Response createReadOrderRequest(@PathParam("type") DataCategory type, List<String> objectsIds,
+        @Context HttpHeaders headers) {
         final String xTenantId = headers.getHeaderString(GlobalDataRest.X_TENANT_ID);
         try {
             if (type == null) {
@@ -359,9 +360,20 @@ public class DefaultOfferResource extends ApplicationStatusResource {
             }
 
             final String containerName = buildContainerName(type, xTenantId);
-            String readRequestID = defaultOfferService.createReadOrder(containerName, objectsIds).getRequestId();
+            Optional<TapeReadRequestReferentialEntity>
+                createReadOrderRequest = defaultOfferService.createReadOrderRequest(containerName, objectsIds);
 
-            return Response.status(Status.ACCEPTED).header(GlobalDataRest.READ_REQUEST_ID, readRequestID).build();
+            if (createReadOrderRequest.isPresent()) {
+                final RequestResponseOK<TapeReadRequestReferentialEntity> responseOK = new RequestResponseOK<>();
+                responseOK.addResult(createReadOrderRequest.get())
+                    .addHeader(GlobalDataRest.READ_REQUEST_ID, createReadOrderRequest.get().getRequestId())
+                    .setHttpCode(Status.CREATED.getStatusCode());
+
+                return responseOK.toResponse();
+            } else {
+                return Response.status(Status.NOT_FOUND).build();
+            }
+
         } catch (final ContentAddressableStorageNotFoundException e) {
             LOGGER.warn(e);
             return buildErrorResponse(VitamCode.STORAGE_NOT_FOUND);
@@ -372,32 +384,70 @@ public class DefaultOfferResource extends ApplicationStatusResource {
     }
 
     /**
-     * Check if the read request is completed.
+     * Get read order request
      * <p>
      * HEADER X-Tenant-Id (mandatory) : tenant's identifier HEADER "X-type" (optional) : data (dfault) or digest
      * </p>
      *
-     * @param readOrderId the read request ID
+     * @param readOrderRequestId the read request ID
      * @return response
      */
-    @HEAD
-    @Path("/readorder/{readOrderId}")
+    @GET
+    @Path("/readorder/{readOrderRequestId}")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    public Response isReadOrderCompleted(@PathParam("readOrderId") String readOrderId, @Context HttpHeaders headers) {
+    public Response getReadOrderRequest(@PathParam("readOrderRequestId") String readOrderRequestId,
+        @Context HttpHeaders headers) {
         final String xTenantId = headers.getHeaderString(GlobalDataRest.X_TENANT_ID);
         try {
-            SanityChecker.checkParameter(readOrderId);
+            SanityChecker.checkParameter(readOrderRequestId);
             if (Strings.isNullOrEmpty(xTenantId)) {
                 LOGGER.error(MISSING_THE_TENANT_ID_X_TENANT_ID);
                 return Response.status(Status.PRECONDITION_FAILED).build();
             }
 
-            if (defaultOfferService.isReadOrderCompleted(readOrderId)) {
-                return Response.status(Status.FOUND).build();
+            Optional<TapeReadRequestReferentialEntity>
+                createReadOrderRequest = defaultOfferService.getReadOrderRequest(readOrderRequestId);
+
+            if (createReadOrderRequest.isPresent()) {
+                final RequestResponseOK<TapeReadRequestReferentialEntity> responseOK = new RequestResponseOK<>();
+                responseOK.addResult(createReadOrderRequest.get())
+                    .addHeader(GlobalDataRest.READ_REQUEST_ID, createReadOrderRequest.get().getRequestId())
+                    .setHttpCode(Status.OK.getStatusCode());
+
+                return responseOK.toResponse();
             } else {
-                return Response.status(Status.NOT_FOUND).header(GlobalDataRest.READ_REQUEST_ID, readOrderId).build();
+                return Response.status(Status.NOT_FOUND).header(GlobalDataRest.READ_REQUEST_ID, readOrderRequestId)
+                    .build();
             }
+
+        } catch (final ContentAddressableStorageNotFoundException e) {
+            LOGGER.warn(e);
+            return buildErrorResponse(VitamCode.STORAGE_NOT_FOUND);
+        } catch (final ContentAddressableStorageException | InvalidParseOperationException e) {
+            LOGGER.error(e);
+            return buildErrorResponse(VitamCode.STORAGE_TECHNICAL_INTERNAL_ERROR);
+        }
+    }
+
+
+    @DELETE
+    @Path("/readorder/{readOrderRequestId}")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response removeReadOrderRequest(@PathParam("readOrderRequestId") String readOrderRequestId,
+        @Context HttpHeaders headers) {
+        final String xTenantId = headers.getHeaderString(GlobalDataRest.X_TENANT_ID);
+        try {
+            SanityChecker.checkParameter(readOrderRequestId);
+            if (Strings.isNullOrEmpty(xTenantId)) {
+                LOGGER.error(MISSING_THE_TENANT_ID_X_TENANT_ID);
+                return Response.status(Status.PRECONDITION_FAILED).build();
+            }
+
+            defaultOfferService.removeReadOrderRequest(readOrderRequestId);
+
+            return Response.status(Status.ACCEPTED).header(GlobalDataRest.READ_REQUEST_ID, readOrderRequestId).build();
 
         } catch (final ContentAddressableStorageNotFoundException e) {
             LOGGER.warn(e);

@@ -32,7 +32,7 @@ import fr.gouv.vitam.common.digest.Digest;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
-import fr.gouv.vitam.common.model.tape.TarEntryDescription;
+import fr.gouv.vitam.storage.engine.common.model.TarEntryDescription;
 import fr.gouv.vitam.storage.offers.tape.exception.ObjectReferentialException;
 import fr.gouv.vitam.storage.offers.tape.utils.LocalFileUtils;
 import org.apache.commons.compress.archivers.tar.TarArchiveEntry;

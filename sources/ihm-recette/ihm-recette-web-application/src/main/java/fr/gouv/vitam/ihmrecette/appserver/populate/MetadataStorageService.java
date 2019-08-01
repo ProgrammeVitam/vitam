@@ -34,9 +34,11 @@ import fr.gouv.vitam.common.logging.SysErrLogger;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.MetadataStorageHelper;
+import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.thread.VitamThreadFactory;
 import fr.gouv.vitam.storage.engine.common.exception.StorageException;
 import fr.gouv.vitam.storage.engine.common.model.DataCategory;
+import fr.gouv.vitam.storage.engine.common.model.TapeReadRequestReferentialEntity;
 import fr.gouv.vitam.storage.engine.common.referential.model.StorageOffer;
 import fr.gouv.vitam.storage.engine.common.referential.model.StorageStrategy;
 
@@ -159,30 +161,14 @@ public class MetadataStorageService {
         }
     }
 
-    public String createReadOrder(Integer tenant, String strategyId, String objectId, DataCategory dataCategory) {
-
-        String readRequestID = null;
-        try {
-            readRequestID = storagePopulateService.createReadOrder(tenant, strategyId, objectId, dataCategory);
-
-        } catch (IOException | StorageException e) {
-            LOGGER.error("Could not export data from offer", e);
-        }
-
-        return readRequestID;
+    public RequestResponse<TapeReadRequestReferentialEntity> createReadOrderRequest(Integer tenant, String strategyId,
+        String objectId, DataCategory dataCategory) {
+        return storagePopulateService.createReadOrderRequest(tenant, strategyId, objectId, dataCategory);
     }
 
-    public boolean isReadOrderCompleted(Integer tenant, String strategyId, String readOrderId) {
-
-        boolean isExportCompleted = false;
-        try {
-            isExportCompleted = storagePopulateService.isReadOrderCompleted(tenant, strategyId, readOrderId);
-
-        } catch (IOException | StorageException e) {
-            LOGGER.error("Could not check export status", e);
-        }
-
-        return isExportCompleted;
+    public RequestResponse<TapeReadRequestReferentialEntity> getReadOrderRequest(Integer tenant, String strategyId,
+        String readOrderId) {
+        return storagePopulateService.getReadOrderRequest(tenant, strategyId, readOrderId);
     }
 
     public StorageOffer getOffer(String offerId) throws StorageException {

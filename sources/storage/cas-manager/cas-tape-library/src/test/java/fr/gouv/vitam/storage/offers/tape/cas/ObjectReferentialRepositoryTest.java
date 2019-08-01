@@ -12,7 +12,7 @@ import fr.gouv.vitam.storage.engine.common.model.TapeLibraryInputFileObjectStora
 import fr.gouv.vitam.storage.engine.common.model.TapeLibraryObjectReferentialId;
 import fr.gouv.vitam.storage.engine.common.model.TapeLibraryTarObjectStorageLocation;
 import fr.gouv.vitam.storage.engine.common.model.TapeObjectReferentialEntity;
-import fr.gouv.vitam.common.model.tape.TarEntryDescription;
+import fr.gouv.vitam.storage.engine.common.model.TarEntryDescription;
 import fr.gouv.vitam.storage.offers.tape.exception.ObjectReferentialException;
 import org.junit.After;
 import org.junit.AfterClass;
@@ -239,16 +239,16 @@ public class ObjectReferentialRepositoryTest {
         assertThat(tapeObjectReferentialEntity.get().getDigestType()).isEqualTo("SHA-512");
         assertThat(tapeObjectReferentialEntity.get().getLocation())
             .isInstanceOf(TapeLibraryTarObjectStorageLocation.class);
-        assertThat(((TapeLibraryTarObjectStorageLocation)tapeObjectReferentialEntity.get().getLocation())
+        assertThat(((TapeLibraryTarObjectStorageLocation) tapeObjectReferentialEntity.get().getLocation())
             .getTarEntries()).extracting(
-                TarEntryDescription::getTarFileId,
+            TarEntryDescription::getTarFileId,
             TarEntryDescription::getEntryName,
             TarEntryDescription::getStartPos,
             TarEntryDescription::getSize,
             TarEntryDescription::getDigestValue).containsExactly(
-                tuple("tarId1", "entry1", 1000L, 3L, "digest1-1"),
-                tuple("tarId2", "entry2", 2000L, 7L, "digest1-2")
-            );
+            tuple("tarId1", "entry1", 1000L, 3L, "digest1-1"),
+            tuple("tarId2", "entry2", 2000L, 7L, "digest1-2")
+        );
         assertThat(tapeObjectReferentialEntity.get().getLastObjectModifiedDate()).isEqualTo("date1");
         assertThat(tapeObjectReferentialEntity.get().getLastUpdateDate()).isNotEqualTo("date2");
     }

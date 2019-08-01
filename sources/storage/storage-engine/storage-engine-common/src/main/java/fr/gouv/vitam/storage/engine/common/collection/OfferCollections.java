@@ -1,12 +1,12 @@
 package fr.gouv.vitam.storage.engine.common.collection;
 
-import fr.gouv.vitam.common.model.tape.TapeReadRequestReferentialEntity;
 import fr.gouv.vitam.storage.engine.common.model.OfferLog;
 import fr.gouv.vitam.storage.engine.common.model.OfferSequence;
 import fr.gouv.vitam.storage.engine.common.model.QueueMessageEntity;
 import fr.gouv.vitam.storage.engine.common.model.TapeArchiveReferentialEntity;
 import fr.gouv.vitam.storage.engine.common.model.TapeCatalog;
 import fr.gouv.vitam.storage.engine.common.model.TapeObjectReferentialEntity;
+import fr.gouv.vitam.storage.engine.common.model.TapeReadRequestReferentialEntity;
 
 public enum OfferCollections {
     /*

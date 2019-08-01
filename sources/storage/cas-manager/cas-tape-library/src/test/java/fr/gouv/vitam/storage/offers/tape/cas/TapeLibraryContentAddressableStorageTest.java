@@ -13,8 +13,8 @@ import fr.gouv.vitam.storage.engine.common.model.TapeLibraryObjectReferentialId;
 import fr.gouv.vitam.storage.engine.common.model.TapeLibraryOnTapeArchiveStorageLocation;
 import fr.gouv.vitam.storage.engine.common.model.TapeLibraryTarObjectStorageLocation;
 import fr.gouv.vitam.storage.engine.common.model.TapeObjectReferentialEntity;
-import fr.gouv.vitam.common.model.tape.TapeReadRequestReferentialEntity;
-import fr.gouv.vitam.common.model.tape.TarEntryDescription;
+import fr.gouv.vitam.storage.engine.common.model.TapeReadRequestReferentialEntity;
+import fr.gouv.vitam.storage.engine.common.model.TarEntryDescription;
 import fr.gouv.vitam.storage.offers.tape.exception.ArchiveReferentialException;
 import fr.gouv.vitam.storage.offers.tape.exception.ObjectReferentialException;
 import fr.gouv.vitam.storage.offers.tape.exception.ReadRequestReferentialException;
@@ -379,12 +379,16 @@ public class TapeLibraryContentAddressableStorageTest {
     }
 
     @Test
-    public void createReadOrderOK() throws ObjectReferentialException, IOException, ContentAddressableStorageNotFoundException, ContentAddressableStorageServerException, URISyntaxException, TapeCatalogException, ReadRequestReferentialException, ArchiveReferentialException {
+    public void createReadOrderOK()
+        throws ObjectReferentialException, IOException, ContentAddressableStorageNotFoundException,
+        ContentAddressableStorageServerException, URISyntaxException, TapeCatalogException,
+        ReadRequestReferentialException, ArchiveReferentialException {
         // Given
         String tapeCode = "VIT002L6";
         int fileSize = 6;
         String tarId = "20190625115513038-406fceff-2c4f-475c-898f-493331756eda.tar";
-        TapeLibraryObjectReferentialId objectReferentialId = new TapeLibraryObjectReferentialId("0_object", "aeaaaaaaaafklihzablkmallwljiqoiaaaaq");
+        TapeLibraryObjectReferentialId objectReferentialId =
+            new TapeLibraryObjectReferentialId("0_object", "aeaaaaaaaafklihzablkmallwljiqoiaaaaq");
         TapeLibraryTarObjectStorageLocation tarObjectStorageLocation = new TapeLibraryTarObjectStorageLocation(
             Arrays.asList(
                 new TarEntryDescription(
@@ -396,7 +400,8 @@ public class TapeLibraryContentAddressableStorageTest {
         Optional<TapeObjectReferentialEntity> objectReferentialEntity = Optional.of(new TapeObjectReferentialEntity(
             objectReferentialId, fileSize, "SHA-512",
             "664ac614a819df2a97d2a5df57dcad91d6ec38b0fffc793e80c56b4553a14ac7a5f0bce3bb71af419b0bb8f151ad3d512867454eeb818e01818a31989c13319b",
-            "aeaaaaaaaafklihzablkmallwljiqoiaaaaq-aeaaaaaaaafklihzabqb2allwljjpiaaaaaq", tarObjectStorageLocation, null, null));
+            "aeaaaaaaaafklihzablkmallwljiqoiaaaaq-aeaaaaaaaafklihzabqb2allwljjpiaaaaaq", tarObjectStorageLocation, null,
+            null));
 
         Optional<TapeArchiveReferentialEntity> tarReferentialEntity = Optional.of(
             new TapeArchiveReferentialEntity(tarId,
@@ -417,30 +422,34 @@ public class TapeLibraryContentAddressableStorageTest {
         when(objectReferentialRepository.find(anyString(), anyString())).thenReturn(objectReferentialEntity);
         when(archiveReferentialRepository.find(anyString())).thenReturn(tarReferentialEntity);
 
-        TapeReadRequestReferentialEntity readOrderEntity = tapeLibraryContentAddressableStorage.createReadOrder("0_object", Arrays.asList("aeaaaaaaaaecntv2ab5tmallrz6wdwqaaaaq"));
-        String readOrderId = readOrderEntity.getRequestId();
+        String readOrderId = tapeLibraryContentAddressableStorage
+            .createReadOrderRequest("0_object", Arrays.asList("aeaaaaaaaaecntv2ab5tmallrz6wdwqaaaaq"));
         assertThat(readOrderId).isNotNull();
 
-        TapeReadRequestReferentialEntity tapeReadRequestReferentialEntity = mock(TapeReadRequestReferentialEntity.class);
+        TapeReadRequestReferentialEntity tapeReadRequestReferentialEntity =
+            mock(TapeReadRequestReferentialEntity.class);
         when(tapeReadRequestReferentialEntity.isCompleted()).thenReturn(true);
 
-        when(readRequestReferentialRepository.find(eq(readOrderId))).thenReturn(Optional.of(tapeReadRequestReferentialEntity));
+        when(readRequestReferentialRepository.find(eq(readOrderId)))
+            .thenReturn(Optional.of(tapeReadRequestReferentialEntity));
         try {
             Thread.sleep(1000);
         } catch (InterruptedException e) {
 
         }
 
-        assertThat(tapeLibraryContentAddressableStorage.isReadOrderCompleted(readOrderId)).isTrue();
+        assertThat(readRequestReferentialRepository.find(readOrderId).get().isCompleted()).isTrue();
     }
 
     @Test
     public void getObjectWith1SegmentsOK() throws ObjectReferentialException, IOException,
-        ContentAddressableStorageNotFoundException, ContentAddressableStorageServerException, ArchiveReferentialException {
+        ContentAddressableStorageNotFoundException, ContentAddressableStorageServerException,
+        ArchiveReferentialException {
         // Given
         int fileSize = 6;
         String tarId = "20190625115513038-406fceff-2c4f-475c-898f-493331756eda.tar";
-        TapeLibraryObjectReferentialId objectReferentialId = new TapeLibraryObjectReferentialId("0_object", "aeaaaaaaaafklihzablkmallwljiqoiaaaaq");
+        TapeLibraryObjectReferentialId objectReferentialId =
+            new TapeLibraryObjectReferentialId("0_object", "aeaaaaaaaafklihzablkmallwljiqoiaaaaq");
         TapeLibraryTarObjectStorageLocation tarObjectStorageLocation = new TapeLibraryTarObjectStorageLocation(
             Arrays.asList(
                 new TarEntryDescription(
@@ -452,7 +461,8 @@ public class TapeLibraryContentAddressableStorageTest {
         Optional<TapeObjectReferentialEntity> objectReferentialEntity = Optional.of(new TapeObjectReferentialEntity(
             objectReferentialId, fileSize, "SHA-512",
             "86c0bc701ef6b5dd21b080bc5bb2af38097baa6237275da83a52f092c9eae3e4e4b0247391620bd732fe824d18bd3bb6c37e62ec73a8cf3585c6a799399861b1",
-            "aeaaaaaaaafklihzablkmallwljiqoiaaaaq-aeaaaaaaaafklihzabqb2allwljjpiaaaaaq", tarObjectStorageLocation, null, null));
+            "aeaaaaaaaafklihzablkmallwljiqoiaaaaq-aeaaaaaaaafklihzabqb2allwljjpiaaaaaq", tarObjectStorageLocation, null,
+            null));
 
         Optional<TapeArchiveReferentialEntity> tarReferentialEntity = Optional.of(
             new TapeArchiveReferentialEntity(tarId,
@@ -467,18 +477,22 @@ public class TapeLibraryContentAddressableStorageTest {
         when(objectReferentialRepository.find(anyString(), anyString())).thenReturn(objectReferentialEntity);
         when(archiveReferentialRepository.find(anyString())).thenReturn(tarReferentialEntity);
 
-        ObjectContent response = tapeLibraryContentAddressableStorage.getObject("0_object", "aeaaaaaaaaecntv2ab5tmallrz6wdwqaaaaq");
+        ObjectContent response =
+            tapeLibraryContentAddressableStorage.getObject("0_object", "aeaaaaaaaaecntv2ab5tmallrz6wdwqaaaaq");
         assertThat(response).isNotNull();
         assertThat(response.getSize()).isEqualTo(fileSize);
         assertThat(IOUtils.toString(response.getInputStream(), StandardCharsets.UTF_8.name())).isEqualTo("test 1");
     }
 
     @Test
-    public void getObjectWith2SegmentsOK() throws ObjectReferentialException, IOException, ContentAddressableStorageNotFoundException, ContentAddressableStorageServerException, ArchiveReferentialException {
+    public void getObjectWith2SegmentsOK()
+        throws ObjectReferentialException, IOException, ContentAddressableStorageNotFoundException,
+        ContentAddressableStorageServerException, ArchiveReferentialException {
         // Given
         int fileSize = 6;
         String tarId = "20190702131434269-84970e20-402d-4a88-b1df-ae05281ec7e6.tar";
-        TapeLibraryObjectReferentialId objectReferentialId = new TapeLibraryObjectReferentialId("0_object", "aeaaaaaaaafklihzablkmallwljiqoiaaaaq");
+        TapeLibraryObjectReferentialId objectReferentialId =
+            new TapeLibraryObjectReferentialId("0_object", "aeaaaaaaaafklihzablkmallwljiqoiaaaaq");
         TapeLibraryTarObjectStorageLocation tarObjectStorageLocation = new TapeLibraryTarObjectStorageLocation(
             Arrays.asList(
                 new TarEntryDescription(
@@ -496,7 +510,8 @@ public class TapeLibraryContentAddressableStorageTest {
         Optional<TapeObjectReferentialEntity> objectReferentialEntity = Optional.of(new TapeObjectReferentialEntity(
             objectReferentialId, fileSize, "SHA-512",
             "664ac614a819df2a97d2a5df57dcad91d6ec38b0fffc793e80c56b4553a14ac7a5f0bce3bb71af419b0bb8f151ad3d512867454eeb818e01818a31989c13319b",
-            "aeaaaaaaaafklihzablkmallwljiqoiaaaaq-aeaaaaaaaafklihzabqb2allwljjpiaaaaaq", tarObjectStorageLocation, null, null));
+            "aeaaaaaaaafklihzablkmallwljiqoiaaaaq-aeaaaaaaaafklihzabqb2allwljjpiaaaaaq", tarObjectStorageLocation, null,
+            null));
 
         Optional<TapeArchiveReferentialEntity> tarReferentialEntity = Optional.of(
             new TapeArchiveReferentialEntity(tarId,
@@ -511,7 +526,8 @@ public class TapeLibraryContentAddressableStorageTest {
         when(objectReferentialRepository.find(anyString(), anyString())).thenReturn(objectReferentialEntity);
         when(archiveReferentialRepository.find(anyString())).thenReturn(tarReferentialEntity);
 
-        ObjectContent response = tapeLibraryContentAddressableStorage.getObject("0_object", "aeaaaaaaaafklihzablkmallwljiqoiaaaaq");
+        ObjectContent response =
+            tapeLibraryContentAddressableStorage.getObject("0_object", "aeaaaaaaaafklihzablkmallwljiqoiaaaaq");
         assertThat(response).isNotNull();
         assertThat(response.getSize()).isEqualTo(fileSize);
         assertThat(IOUtils.toString(response.getInputStream(), StandardCharsets.UTF_8.name())).isEqualTo("test 2");

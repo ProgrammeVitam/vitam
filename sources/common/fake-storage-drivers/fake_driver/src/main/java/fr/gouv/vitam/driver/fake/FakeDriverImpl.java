@@ -26,32 +26,8 @@
  *******************************************************************************/
 package fr.gouv.vitam.driver.fake;
 
-import java.io.ByteArrayInputStream;
-import java.io.IOException;
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
-import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Properties;
-
-import javax.ws.rs.HttpMethod;
-import javax.ws.rs.client.Client;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.MultivaluedHashMap;
-import javax.ws.rs.core.Response.Status;
-
-import fr.gouv.vitam.storage.driver.exception.StorageDriverConflictException;
-import fr.gouv.vitam.storage.driver.model.StorageBulkPutRequest;
-import fr.gouv.vitam.storage.driver.model.StorageBulkPutResult;
-import fr.gouv.vitam.storage.driver.model.StorageGetMetadataRequest;
-import fr.gouv.vitam.storage.driver.model.StorageMetadataResult;
-import org.apache.commons.io.IOUtils;
-
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-
 import fr.gouv.vitam.common.BaseXx;
 import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.client.AbstractMockClient;
@@ -66,18 +42,40 @@ import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.storage.driver.AbstractConnection;
 import fr.gouv.vitam.storage.driver.AbstractDriver;
 import fr.gouv.vitam.storage.driver.Connection;
+import fr.gouv.vitam.storage.driver.exception.StorageDriverConflictException;
 import fr.gouv.vitam.storage.driver.exception.StorageDriverException;
+import fr.gouv.vitam.storage.driver.model.StorageBulkPutRequest;
+import fr.gouv.vitam.storage.driver.model.StorageBulkPutResult;
 import fr.gouv.vitam.storage.driver.model.StorageCapacityResult;
-import fr.gouv.vitam.storage.driver.model.StorageOfferLogRequest;
+import fr.gouv.vitam.storage.driver.model.StorageGetMetadataRequest;
 import fr.gouv.vitam.storage.driver.model.StorageGetResult;
 import fr.gouv.vitam.storage.driver.model.StorageListRequest;
+import fr.gouv.vitam.storage.driver.model.StorageMetadataResult;
 import fr.gouv.vitam.storage.driver.model.StorageObjectRequest;
+import fr.gouv.vitam.storage.driver.model.StorageOfferLogRequest;
 import fr.gouv.vitam.storage.driver.model.StoragePutRequest;
 import fr.gouv.vitam.storage.driver.model.StoragePutResult;
 import fr.gouv.vitam.storage.driver.model.StorageRemoveRequest;
 import fr.gouv.vitam.storage.driver.model.StorageRemoveResult;
 import fr.gouv.vitam.storage.engine.common.model.OfferLog;
+import fr.gouv.vitam.storage.engine.common.model.TapeReadRequestReferentialEntity;
 import fr.gouv.vitam.storage.engine.common.referential.model.StorageOffer;
+import org.apache.commons.io.IOUtils;
+
+import javax.ws.rs.HttpMethod;
+import javax.ws.rs.client.Client;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.MultivaluedHashMap;
+import javax.ws.rs.core.Response.Status;
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
+import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.Properties;
 
 /**
  * Driver implementation for test only
@@ -229,13 +227,20 @@ public class FakeDriverImpl extends AbstractDriver {
         }
 
         @Override
-        public StorageGetResult createReadOrder(StorageObjectRequest request) throws StorageDriverException {
-            return null;
+        public RequestResponse<TapeReadRequestReferentialEntity> createReadOrderRequest(StorageObjectRequest request)
+            throws StorageDriverException {
+            return new RequestResponseOK<>();
         }
 
         @Override
-        public boolean isReadOrderCompleted(String exportId, int tenant) throws StorageDriverException {
-            return false;
+        public RequestResponse<TapeReadRequestReferentialEntity> getReadOrderRequest(String readOrderRequestId,
+            int tenant) throws StorageDriverException {
+            return new RequestResponseOK<>();
+        }
+
+        @Override
+        public void removeReadOrderRequest(String readOrderRequestId, int tenant) throws StorageDriverException {
+            //Empty
         }
 
         @Override
@@ -246,7 +251,7 @@ public class FakeDriverImpl extends AbstractDriver {
                     objectRequest.getGuid(), "different_digest_hash", 0);
             }
 
-            if(("fail-offer-" + offerId).equals(objectRequest.getGuid())) {
+            if (("fail-offer-" + offerId).equals(objectRequest.getGuid())) {
                 throw new StorageDriverException(getName(), "Fake offer " + offerId + " failed", false);
             }
 
@@ -276,8 +281,8 @@ public class FakeDriverImpl extends AbstractDriver {
         @Override
         public StorageRemoveResult removeObject(StorageRemoveRequest objectRequest) throws StorageDriverException {
 
-                return new StorageRemoveResult(objectRequest.getTenantId(), objectRequest.getType(),
-                    objectRequest.getGuid(), true);
+            return new StorageRemoveResult(objectRequest.getTenantId(), objectRequest.getType(),
+                objectRequest.getGuid(), true);
 
         }
 

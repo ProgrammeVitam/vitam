@@ -38,7 +38,6 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.concurrent.Executors;
-import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -51,6 +50,7 @@ public class ArchiveOutputRetentionPolicy {
 
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(ArchiveOutputRetentionPolicy.class);
     private final Cache<String, Path> cache;
+    private final long cacheTimeoutInMinutes;
 
     public ArchiveOutputRetentionPolicy(long cacheTimeoutInMinutes) {
         this(cacheTimeoutInMinutes, TimeUnit.MINUTES, 4);
@@ -58,6 +58,7 @@ public class ArchiveOutputRetentionPolicy {
 
     @VisibleForTesting
     public ArchiveOutputRetentionPolicy(long cacheTimeoutInMinutes, TimeUnit timeUnit, int concurrencyLevel) {
+        this.cacheTimeoutInMinutes = cacheTimeoutInMinutes;
         cache = CacheBuilder.newBuilder()
             .expireAfterAccess(cacheTimeoutInMinutes, timeUnit)
             .concurrencyLevel(concurrencyLevel)
@@ -72,7 +73,7 @@ public class ArchiveOutputRetentionPolicy {
                 }
             }).build();
 
-        // Force cleanUp to force removalListener call (in case where we have just read and no write to cache)
+        // CleanUp to force call to removalListener (This is needed in case where we have just read and no write operations to cache)
         Executors
             .newScheduledThreadPool(1, VitamThreadFactory.getInstance())
             .scheduleWithFixedDelay(() -> cleanUp(), 0, cacheTimeoutInMinutes + 1, timeUnit);
@@ -92,5 +93,11 @@ public class ArchiveOutputRetentionPolicy {
 
     public void cleanUp() {
         cache.cleanUp();
+
+        // TODO: 01/08/2019 Delete all TapeReadRequestReferentialEntity having deleted tar, or older than a configured time
+    }
+
+    public long getCacheTimeoutInMinutes() {
+        return cacheTimeoutInMinutes;
     }
 }
