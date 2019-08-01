@@ -172,7 +172,7 @@
         <maven.failsafe.version>2.19.1</maven.failsafe.version>
         <maven.javadoc.version>2.10.4</maven.javadoc.version>
         <maven.exec.version>1.6.0</maven.exec.version>
-	<maven.dependencycheck.version>5.0.0</maven.dependencycheck.version>
+	<maven.dependencycheck.version>5.2.0</maven.dependencycheck.version>
         <xalan.version>2.7.2</xalan.version>
         <nodeDownloadRoot/>
         <maven-jar-plugin.version>2.6</maven-jar-plugin.version>
@@ -560,16 +560,14 @@
                     <groupId>org.owasp</groupId>
                     <artifactId>dependency-check-maven</artifactId>
                     <version>${maven.dependencycheck.version}</version>
-		            <configuration>
-                        <!-- <failBuildOnCVSS>8</failBuildOnCVSS> -->
+                    <configuration>
+                        <cveUrlModified>${env.SERVICE_REPOSITORY_URL}/nist/nvdcve-1.0-modified.json.gz</cveUrlModified>
+                        <cveUrlBase>${env.SERVICE_REPOSITORY_URL}/nist/nvdcve-1.0-%d.json.gz</cveUrlBase>
                         <assemblyAnalyzerEnabled>false</assemblyAnalyzerEnabled>
+                        <retireJsAnalyzerEnabled>false</retireJsAnalyzerEnabled>
 			            <failOnError>false</failOnError>
-                        <!-- we created a mirror -->
-                        <cveUrl12Modified>${env.SERVICE_REPOSITORY_URL}/nist/nvdcve-modified.xml.gz</cveUrl12Modified>
-                        <cveUrl20Modified>${env.SERVICE_REPOSITORY_URL}/nist/nvdcve-2.0-modified.xml.gz</cveUrl20Modified>
-                        <cveUrl12Base>${env.SERVICE_REPOSITORY_URL}/nist/nvdcve-%d.xml</cveUrl12Base>
-                        <cveUrl20Base>${env.SERVICE_REPOSITORY_URL}/nist/nvdcve-2.0-%d.xml</cveUrl20Base>
                     </configuration>
+                    
                     <executions>
                         <execution>
                             <goals>
