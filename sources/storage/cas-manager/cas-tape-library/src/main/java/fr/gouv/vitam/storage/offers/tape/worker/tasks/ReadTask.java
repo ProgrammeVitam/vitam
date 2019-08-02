@@ -50,6 +50,7 @@ import fr.gouv.vitam.storage.offers.tape.exception.ReadWriteException;
 import fr.gouv.vitam.storage.offers.tape.exception.TapeCatalogException;
 import fr.gouv.vitam.storage.offers.tape.spec.TapeCatalogService;
 import fr.gouv.vitam.storage.offers.tape.spec.TapeLibraryService;
+import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.bson.conversions.Bson;
 
@@ -157,25 +158,18 @@ public class ReadTask implements Future<ReadWriteResult> {
                 case KO_ON_LOAD_THEN_STATUS:
                 case KO_ON_LOAD_TAPE:
                     workerCurrentTape = null;
-                    return new ReadWriteResult(FATAL, QueueState.ERROR, null);
                 case KO_ON_GO_TO_POSITION:
                 case KO_ON_READ_FROM_TAPE:
                 case KO_ON_REWIND_TAPE:
-                    return new ReadWriteResult(FATAL, QueueState.ERROR, workerCurrentTape);
-
                 // Drive UP, Order Ready
                 case KO_ON_WRITE_TO_FS:
                 case KO_ON_UPDATE_READ_REQUEST_REPOSITORY:
                 case KO_TAPE_IS_BUSY:
-                    return new ReadWriteResult(KO, QueueState.READY, workerCurrentTape);
-
                 // Drive UP, Order ERROR
                 case TAPE_LOCATION_CONFLICT_ON_LOAD:
                 case TAPE_NOT_FOUND_IN_CATALOG:
                 case KO_TAPE_IS_OUTSIDE:
                 case KO_TAPE_CONFLICT_STATE:
-                    return new ReadWriteResult(KO, QueueState.ERROR, workerCurrentTape);
-
                 default:
                     return new ReadWriteResult(FATAL, QueueState.ERROR, workerCurrentTape);
             }
@@ -221,7 +215,8 @@ public class ReadTask implements Future<ReadWriteResult> {
 
 
             if (null == tarInCache || !targetPath.toFile().exists()) {
-                Files.deleteIfExists(sourcePath);
+                FileUtils.deleteQuietly(sourcePath.toFile());
+
                 tapeLibraryService
                     .read(workerCurrentTape, readOrder.getFilePosition(), readOrder.getFileName() + TEMP_EXT);
                 // Mark file as done (remove .tmp extension)
@@ -231,10 +226,11 @@ public class ReadTask implements Future<ReadWriteResult> {
             // Add file to retention policy
             archiveOutputRetentionPolicy.put(readOrder.getFileName(), targetPath);
 
+            String tarFileIdWithoutExtension = StringUtils.substringBeforeLast(readOrder.getFileName(), ".");
             readRequestReferentialRepository
                 .updateReadRequestInProgress(
                     readOrder.getReadRequestId(),
-                    readOrder.getFileName(),
+                    tarFileIdWithoutExtension,
                     TarLocation.DISK);
 
         } catch (IOException e) {

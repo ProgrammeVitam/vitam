@@ -87,18 +87,17 @@ public class ReadRequestReferentialRepository implements ReadRequestReferentialC
         }
     }
 
-    public void updateReadRequestInProgress(String requestId, String tarId, TarLocation tarLocation)
+    public void updateReadRequestInProgress(String requestId, String archiveId, TarLocation tarLocation)
         throws ReadRequestReferentialException {
 
         try {
             UpdateResult updateResult = collection.updateOne(
                 Filters.eq(TapeReadRequestReferentialEntity.ID, requestId),
-                Updates.set(TapeReadRequestReferentialEntity.TAR_LOCATIONS + "." + tarId,
-                    tarLocation.name()),
+                Updates.set(TapeReadRequestReferentialEntity.TAR_LOCATIONS + "." + archiveId, tarLocation.name()),
                 new UpdateOptions().upsert(false)
             );
 
-            if (updateResult.getMatchedCount() != 1) {
+            if (updateResult.getModifiedCount() != 1) {
                 throw new ReadRequestReferentialException(
                     "Could not update read request for " + requestId + ". No such read request");
             }
@@ -136,7 +135,7 @@ public class ReadRequestReferentialRepository implements ReadRequestReferentialC
                 new UpdateOptions().upsert(false)
             );
 
-            if (updateResult.getMatchedCount() != 1) {
+            if (updateResult.getModifiedCount() != 1) {
                 throw new ReadRequestReferentialException(
                     "Could not update read request for " + readOrderRequestId + ". No such read request");
             }

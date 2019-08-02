@@ -104,7 +104,8 @@ public class WriteTask implements Future<ReadWriteResult> {
         ParametersChecker.checkParameter("WriteOrder param is required.", writeOrder);
         ParametersChecker.checkParameter("TapeLibraryService param is required.", tapeLibraryService);
         ParametersChecker.checkParameter("TapeCatalogService param is required.", tapeCatalogService);
-        ParametersChecker.checkParameter("ArchiveReferentialRepository param is required.", archiveReferentialRepository);
+        ParametersChecker
+            .checkParameter("ArchiveReferentialRepository param is required.", archiveReferentialRepository);
         this.writeOrder = writeOrder;
         this.workerCurrentTape = workerCurrentTape;
         this.tapeLibraryService = tapeLibraryService;
@@ -244,8 +245,7 @@ public class WriteTask implements Future<ReadWriteResult> {
 
             FileUtils.deleteQuietly(file);
 
-            // TODO: 12/07/19 to activate when retention policy is implemented
-            // Move file to output directory for later reading
+            // Move file to output directory for later reading ?
             //  Path targetPath = Paths.get(tapeLibraryService.getOutputDirectory()).resolve(file.getName()).toAbsolutePath();
             //  Files.move(file.toPath(), targetPath, StandardCopyOption.ATOMIC_MOVE);
 

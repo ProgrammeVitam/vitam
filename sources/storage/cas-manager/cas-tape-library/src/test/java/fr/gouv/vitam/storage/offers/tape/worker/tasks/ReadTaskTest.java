@@ -333,8 +333,8 @@ public class ReadTaskTest {
         ReadWriteResult result = readTask.get();
 
         assertThat(result).isNotNull();
-        assertThat(result.getStatus()).isEqualTo(StatusCode.KO);
-        assertThat(result.getOrderState()).isEqualTo(QueueState.READY);
+        assertThat(result.getStatus()).isEqualTo(StatusCode.FATAL);
+        assertThat(result.getOrderState()).isEqualTo(QueueState.ERROR);
         assertThat(result.getCurrentTape()).isNull();
     }
 
@@ -388,7 +388,7 @@ public class ReadTaskTest {
         ReadWriteResult result = readTask.get();
 
         assertThat(result).isNotNull();
-        assertThat(result.getStatus()).isEqualTo(StatusCode.KO);
+        assertThat(result.getStatus()).isEqualTo(StatusCode.FATAL);
         assertThat(result.getOrderState()).isEqualTo(QueueState.ERROR);
         assertThat(result.getCurrentTape()).isNull();
     }
@@ -498,7 +498,7 @@ public class ReadTaskTest {
         ReadWriteResult result = readTask.get();
 
         assertThat(result).isNotNull();
-        assertThat(result.getStatus()).isEqualTo(StatusCode.KO);
+        assertThat(result.getStatus()).isEqualTo(StatusCode.FATAL);
         assertThat(result.getOrderState()).isEqualTo(QueueState.ERROR);
         assertThat(result.getCurrentTape()).isNull();
     }
