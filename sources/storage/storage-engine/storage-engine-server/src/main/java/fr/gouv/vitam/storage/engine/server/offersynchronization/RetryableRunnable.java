@@ -36,9 +36,6 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 public class RetryableRunnable implements Runnable {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(RetryableRunnable.class);
-    private final static int DEFAULT_NUMBER_OF_RETRIES = 3;
-    private static final int DEFAULT_FIRST_ATTEMPT_WAITING_TIME = 15;
-    private static final int DEFAULT_WAITING_TIME = 30;
 
     private final AtomicInteger counter = new AtomicInteger();
 
@@ -52,10 +49,6 @@ public class RetryableRunnable implements Runnable {
         this.runnable = runnable;
         this.firstAttemptWaitingTime = firstAttemptWaitingTime;
         this.waitingTime = waitingTime;
-    }
-
-    public static RetryableRunnable from(Runnable runnable) {
-        return new RetryableRunnable(DEFAULT_NUMBER_OF_RETRIES, runnable, DEFAULT_FIRST_ATTEMPT_WAITING_TIME, DEFAULT_WAITING_TIME);
     }
 
     public static RetryableRunnable from(int times, Runnable runnable, int firstAttemptWaitingTime, int waitingTime) {

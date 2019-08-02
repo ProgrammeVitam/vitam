@@ -1,4 +1,4 @@
-/*******************************************************************************
+/*
  * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2019)
  *
  * contact.vitam@culture.gouv.fr
@@ -23,21 +23,17 @@
  *
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
- *******************************************************************************/
-
+ */
 package fr.gouv.vitam.storage.engine.server.rest;
 
 import fr.gouv.vitam.common.server.application.configuration.DefaultVitamApplicationConfiguration;
 
-/**
- * Storage configuration class mapping
- */
 public final class StorageConfiguration extends DefaultVitamApplicationConfiguration {
 
     private String urlWorkspace;
     private Integer timeoutMsPerKB;
-    protected String loggingDirectory ;
-    protected String  zippingDirecorty;
+    private String loggingDirectory ;
+    private String  zippingDirecorty;
     private String p12LogbookPassword;
     private String p12LogbookFile;
     private Integer storageTraceabilityOverlapDelay;
@@ -49,6 +45,10 @@ public final class StorageConfiguration extends DefaultVitamApplicationConfigura
 
     private int offerSynchronizationBulkSize = 1000;
     private int offerSyncThreadPoolSize = 32;
+
+    private int offerSyncNumberOfRetries = 3;
+    private int offerSyncFirstAttemptWaitingTime = 15;
+    private int offerSyncWaitingTime = 30;
 
     /**
      * StorageConfiguration empty constructor for YAMLFactory
@@ -92,7 +92,6 @@ public final class StorageConfiguration extends DefaultVitamApplicationConfigura
         this.timeoutMsPerKB = timeoutMsPerKB;
         return this;
     }
-
 
     /**
      *
@@ -230,5 +229,29 @@ public final class StorageConfiguration extends DefaultVitamApplicationConfigura
     public StorageConfiguration setOfferSyncThreadPoolSize(int offerSyncThreadPoolSize) {
         this.offerSyncThreadPoolSize = offerSyncThreadPoolSize;
         return this;
+    }
+
+    public int getOfferSyncNumberOfRetries() {
+        return offerSyncNumberOfRetries;
+    }
+
+    public void setOfferSyncNumberOfRetries(int offerSyncNumberOfRetries) {
+        this.offerSyncNumberOfRetries = offerSyncNumberOfRetries;
+    }
+
+    public int getOfferSyncFirstAttemptWaitingTime() {
+        return offerSyncFirstAttemptWaitingTime;
+    }
+
+    public void setOfferSyncFirstAttemptWaitingTime(int offerSyncFirstAttemptWaitingTime) {
+        this.offerSyncFirstAttemptWaitingTime = offerSyncFirstAttemptWaitingTime;
+    }
+
+    public int getOfferSyncWaitingTime() {
+        return offerSyncWaitingTime;
+    }
+
+    public void setOfferSyncWaitingTime(int offerSyncWaitingTime) {
+        this.offerSyncWaitingTime = offerSyncWaitingTime;
     }
 }

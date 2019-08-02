@@ -60,7 +60,7 @@ public class OfferSyncServiceTest {
 
         // Given
         OfferSyncProcess offerSyncProcess = mock(OfferSyncProcess.class);
-        OfferSyncService instance = spy(new OfferSyncService(restoreOfferBackupService, distribution, 1000, 16));
+        OfferSyncService instance = spy(new OfferSyncService(restoreOfferBackupService, distribution, 1000, 16, 1, 1, 1));
         doNothing().when(instance).runSynchronizationAsync(any(), any(), any(), any(), anyLong(), any());
         when(instance.createOfferSyncProcess()).thenReturn(offerSyncProcess);
 
@@ -81,7 +81,7 @@ public class OfferSyncServiceTest {
         OfferSyncProcess offerSyncProcess2 = mock(OfferSyncProcess.class);
         when(offerSyncProcess1.isRunning()).thenReturn(true);
 
-        OfferSyncService instance = spy(new OfferSyncService(restoreOfferBackupService, distribution, 1000, 16));
+        OfferSyncService instance = spy(new OfferSyncService(restoreOfferBackupService, distribution, 1000, 16, 1, 1, 1));
         doNothing().when(instance).runSynchronizationAsync(any(), any(), any(), any(), anyLong(), any());
         when(instance.createOfferSyncProcess()).thenReturn(offerSyncProcess1, offerSyncProcess2);
 
@@ -106,7 +106,7 @@ public class OfferSyncServiceTest {
         OfferSyncProcess offerSyncProcess2 = mock(OfferSyncProcess.class);
         when(offerSyncProcess1.isRunning()).thenReturn(false);
 
-        OfferSyncService instance = spy(new OfferSyncService(restoreOfferBackupService, distribution, 1000, 16));
+        OfferSyncService instance = spy(new OfferSyncService(restoreOfferBackupService, distribution, 1000, 16, 1, 1, 1));
         doNothing().when(instance).runSynchronizationAsync(any(), any(), any(), any(), anyLong(), any());
         when(instance.createOfferSyncProcess()).thenReturn(offerSyncProcess1, offerSyncProcess2);
 
@@ -126,7 +126,7 @@ public class OfferSyncServiceTest {
     public void isRunningShouldReturnFalseWhenNoProcessStarted() {
 
         // Given
-        OfferSyncService instance = spy(new OfferSyncService(restoreOfferBackupService, distribution, 1000, 16));
+        OfferSyncService instance = spy(new OfferSyncService(restoreOfferBackupService, distribution, 1000, 16, 1, 1, 1));
 
         // When
         boolean isRunning = instance.isRunning();
@@ -143,7 +143,7 @@ public class OfferSyncServiceTest {
         OfferSyncProcess offerSyncProcess = mock(OfferSyncProcess.class);
         when(offerSyncProcess.isRunning()).thenReturn(true);
 
-        OfferSyncService instance = spy(new OfferSyncService(restoreOfferBackupService, distribution, 1000, 16));
+        OfferSyncService instance = spy(new OfferSyncService(restoreOfferBackupService, distribution, 1000, 16, 1, 1, 1));
         doNothing().when(instance).runSynchronizationAsync(any(), any(), any(), any(), anyLong(), any());
         when(instance.createOfferSyncProcess()).thenReturn(offerSyncProcess);
 
@@ -164,7 +164,7 @@ public class OfferSyncServiceTest {
         OfferSyncProcess offerSyncProcess = mock(OfferSyncProcess.class);
         when(offerSyncProcess.isRunning()).thenReturn(false);
 
-        OfferSyncService instance = spy(new OfferSyncService(restoreOfferBackupService, distribution, 1000, 16));
+        OfferSyncService instance = spy(new OfferSyncService(restoreOfferBackupService, distribution, 1000, 16, 1, 1, 1));
         doNothing().when(instance).runSynchronizationAsync(any(), any(), any(), any(), anyLong(), any());
         when(instance.createOfferSyncProcess()).thenReturn(offerSyncProcess);
 
@@ -182,7 +182,7 @@ public class OfferSyncServiceTest {
     public void getLastSynchronizationStatusShouldNullWhenNoProcessStarted() {
 
         // Given
-        OfferSyncService instance = spy(new OfferSyncService(restoreOfferBackupService, distribution, 1000, 16));
+        OfferSyncService instance = spy(new OfferSyncService(restoreOfferBackupService, distribution, 1000, 16, 1, 1, 1));
 
         // When
         OfferSyncStatus status = instance.getLastSynchronizationStatus();
@@ -202,7 +202,7 @@ public class OfferSyncServiceTest {
         when(offerSyncProcess.getOfferSyncStatus()).thenReturn(offerSyncStatus);
 
 
-        OfferSyncService instance = spy(new OfferSyncService(restoreOfferBackupService, distribution, 1000, 16));
+        OfferSyncService instance = spy(new OfferSyncService(restoreOfferBackupService, distribution, 1000, 16, 1, 1, 1));
         doNothing().when(instance).runSynchronizationAsync(any(), any(), any(), any(), anyLong(), any());
         when(instance.createOfferSyncProcess()).thenReturn(offerSyncProcess);
 
@@ -226,7 +226,7 @@ public class OfferSyncServiceTest {
         when(offerSyncProcess.getOfferSyncStatus()).thenReturn(offerSyncStatus);
 
 
-        OfferSyncService instance = spy(new OfferSyncService(restoreOfferBackupService, distribution, 1000, 16));
+        OfferSyncService instance = spy(new OfferSyncService(restoreOfferBackupService, distribution, 1000, 16, 1, 1, 1));
         doNothing().when(instance).runSynchronizationAsync(any(), any(), any(), any(), anyLong(), any());
         when(instance.createOfferSyncProcess()).thenReturn(offerSyncProcess);
 
@@ -251,7 +251,7 @@ public class OfferSyncServiceTest {
             return null;
         }).when(offerSyncProcess).synchronize(any(), any(), any(), any(), eq(OFFSET));
 
-        OfferSyncService instance = new OfferSyncService(restoreOfferBackupService, distribution, 1000, 16);
+        OfferSyncService instance = new OfferSyncService(restoreOfferBackupService, distribution, 1000, 1, 1, 1, 16);
 
         // When
         instance.runSynchronizationAsync(SOURCE, TARGET, VitamConfiguration.getDefaultStrategy(), DATA_CATEGORY, OFFSET, offerSyncProcess);

@@ -441,6 +441,10 @@ vitam:
         batchDigestComputationTimeout: 300
         # Offer synchronization batch size & thread pool size
         offerSynchronizationBulkSize: 1000
+        # Retries attempts
+        offerSyncNumberOfRetries: 3
+        offerSyncFirstAttemptWaitingTime: 15
+        offerSyncWaitingTime: 30
         offerSyncThreadPoolSize: 32
         # log_level: "DEBUG"
         metrics_enabled: true
