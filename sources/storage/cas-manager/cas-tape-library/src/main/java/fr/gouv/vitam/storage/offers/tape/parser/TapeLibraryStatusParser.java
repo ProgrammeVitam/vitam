@@ -116,19 +116,19 @@ public class TapeLibraryStatusParser {
 
     private void extractDriveVolumeTag(String s, TapeCartridge cartridge) {
         if (s.contains(DRIVE_VOLUME_TAG) && s.contains(DRIVE_ALTERNATE_VOLUME_TAG)) {
-            cartridge.setVolumeTag(StringUtils.substringBetween(s, DRIVE_VOLUME_TAG, DRIVE_ALTERNATE_VOLUME_TAG));
-            cartridge.setAlternateVolumeTag(StringUtils.substringAfterLast(s, DRIVE_ALTERNATE_VOLUME_TAG));
+            cartridge.setVolumeTag(StringUtils.substringBetween(s, DRIVE_VOLUME_TAG, DRIVE_ALTERNATE_VOLUME_TAG).trim());
+            cartridge.setAlternateVolumeTag(StringUtils.substringAfterLast(s, DRIVE_ALTERNATE_VOLUME_TAG).trim());
         } else if (s.contains(DRIVE_VOLUME_TAG)) {
-            cartridge.setVolumeTag(StringUtils.substringAfterLast(s, DRIVE_VOLUME_TAG));
+            cartridge.setVolumeTag(StringUtils.substringAfterLast(s, DRIVE_VOLUME_TAG).trim());
         }
     }
 
     private void extractSlotVolumeTag(String s, TapeCartridge cartridge) {
         if (s.contains(SLOT_VOLUME_TAG) && s.contains(SLOT_ALTERNATE_VOLUME_TAG)) {
-            cartridge.setVolumeTag(StringUtils.substringBetween(s, SLOT_VOLUME_TAG, SLOT_ALTERNATE_VOLUME_TAG));
-            cartridge.setAlternateVolumeTag(StringUtils.substringAfterLast(s, SLOT_ALTERNATE_VOLUME_TAG));
+            cartridge.setVolumeTag(StringUtils.substringBetween(s, SLOT_VOLUME_TAG, SLOT_ALTERNATE_VOLUME_TAG).trim());
+            cartridge.setAlternateVolumeTag(StringUtils.substringAfterLast(s, SLOT_ALTERNATE_VOLUME_TAG).trim());
         } else if (s.contains(SLOT_VOLUME_TAG)) {
-            cartridge.setVolumeTag(StringUtils.substringAfterLast(s, SLOT_VOLUME_TAG));
+            cartridge.setVolumeTag(StringUtils.substringAfterLast(s, SLOT_VOLUME_TAG).trim());
         }
     }
 }

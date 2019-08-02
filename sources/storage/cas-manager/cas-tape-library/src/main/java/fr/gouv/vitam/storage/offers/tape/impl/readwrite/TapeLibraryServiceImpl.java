@@ -47,7 +47,6 @@ import fr.gouv.vitam.storage.offers.tape.spec.TapeLibraryService;
 import fr.gouv.vitam.storage.offers.tape.spec.TapeLoadUnloadService;
 import fr.gouv.vitam.storage.offers.tape.spec.TapeRobotPool;
 import fr.gouv.vitam.storage.offers.tape.spec.TapeRobotService;
-import fr.gouv.vitam.storage.offers.tape.utils.LocalFileUtils;
 
 import java.io.File;
 import java.util.Objects;
@@ -450,7 +449,12 @@ public class TapeLibraryServiceImpl implements TapeLibraryService {
                         ReadWriteErrorCode.KO_ON_READ_LABEL, readStatus);
                 }
 
-                final TapeCatalogLabel tapeLabel = JsonHandler.getFromFile(labelFile, TapeCatalogLabel.class);
+                TapeCatalogLabel tapeLabel = null;
+
+                if (labelFile.length() > 0) {
+                    tapeLabel = JsonHandler.getFromFile(labelFile, TapeCatalogLabel.class);
+                }
+
                 final TapeCatalogLabel tapeCatalogLabel = tape.getLabel();
 
                 if (tapeLabel == null || !Objects.equals(tapeLabel.getId(), tapeCatalogLabel.getId())) {

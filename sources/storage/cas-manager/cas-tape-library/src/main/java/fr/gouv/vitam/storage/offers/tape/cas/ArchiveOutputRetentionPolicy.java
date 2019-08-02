@@ -33,9 +33,9 @@ import com.google.common.cache.RemovalListener;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.thread.VitamThreadFactory;
+import org.apache.commons.io.FileUtils;
+import org.apache.commons.lang3.StringUtils;
 
-import java.io.IOException;
-import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
@@ -67,21 +67,21 @@ public class ArchiveOutputRetentionPolicy {
             .expireAfterAccess(cacheTimeoutInMinutes, timeUnit)
             .concurrencyLevel(concurrencyLevel)
             .removalListener((RemovalListener<String, Path>) removalNotification -> {
+                
+                Path value = removalNotification.getValue();
+                FileUtils.deleteQuietly(value.toFile());
+
                 try {
-                    Path value = removalNotification.getValue();
-                    Files.deleteIfExists(value);
-
-                    try {
-                        requestReferentialCleaner.invalidate(removalNotification.getKey());
-                    } catch (Exception e) {
-                        LOGGER.error(e);
-                    }
-
-                    LOGGER.debug(
-                        String.format("Remove archive file (%s) from file system.", value.toFile().getAbsolutePath()));
-                } catch (IOException e) {
-                    LOGGER.error(e);
+                    String tarFileIdWithoutExtension = StringUtils
+                        .substringBeforeLast(removalNotification.getKey(), ".");
+                    requestReferentialCleaner.invalidate(tarFileIdWithoutExtension);
+                } catch (Exception e) {
+                    LOGGER.warn(e);
                 }
+
+                LOGGER.debug(
+                    String.format("Remove archive file (%s) from file system.", value.toFile().getAbsolutePath()));
+
             }).build();
 
         Runnable cc = () -> System.err.println("");
