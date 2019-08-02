@@ -118,8 +118,8 @@ pipeline {
                         docker.withRegistry("http://${env.SERVICE_DOCKER_PULL_URL}") {
                             docker.image("${env.SERVICE_DOCKER_PULL_URL}/elasticsearch/elasticsearch:6.8.1").withRun('-p 9200:9200 -p 9300:9300 -e "discovery.type=single-node" -e "cluster.name=elasticsearch-data"') { c ->
                                 docker.withRegistry("http://${env.SERVICE_DOCKER_PULL_URL}") {
-                                    docker.image("${env.SERVICE_DOCKER_PULL_URL}/mongo:4.0.10").withRun('-p 27017:27017') { o ->
-                                        // withEnv(["JAVA_TOOL_OPTIONS=-Dhttp.proxyHost=${env.SERVICE_PROXY_HOST} -Dhttp.proxyPort=${env.SERVICE_PROXY_PORT} -Dhttps.proxyHost=${env.SERVICE_PROXY_HOST} -Dhttps.proxyPort=${env.SERVICE_PROXY_PORT} -Dhttp.nonProxyHosts=${env.SERVICE_NOPROXY}"]) {
+                                    docker.image("${env.SERVICE_DOCKER_PULL_URL}/mongo:4.0.11").withRun('-p 27017:27017') { o ->
+                                        withEnv(["JAVA_TOOL_OPTIONS=-Dhttp.proxyHost=${env.SERVICE_PROXY_HOST} -Dhttp.proxyPort=${env.SERVICE_PROXY_PORT} -Dhttps.proxyHost=${env.SERVICE_PROXY_HOST} -Dhttps.proxyPort=${env.SERVICE_PROXY_PORT} -Dhttp.nonProxyHosts=${env.SERVICE_NOPROXY}"]) {
                                             sh 'while ! curl -v http://localhost:9200; do sleep 2; done'
                                             sh 'curl -X PUT http://localhost:9200/_template/default -H \'Content-Type: application/json\' -d \'{"index_patterns": ["*"],"order": -1,"settings": {"number_of_shards": "1","number_of_replicas": "0"}}\''
                                             sh '$MVN_COMMAND -f pom.xml clean verify org.owasp:dependency-check-maven:aggregate sonar:sonar -Dsonar.branch=$GIT_BRANCH -Ddownloader.quick.query.timestamp=false'
