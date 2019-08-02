@@ -44,12 +44,14 @@ import fr.gouv.vitam.storage.engine.common.model.ReadOrder;
 import fr.gouv.vitam.storage.engine.common.model.TapeCatalog;
 import fr.gouv.vitam.storage.offers.tape.TapeLibraryFactory;
 import fr.gouv.vitam.storage.offers.tape.cas.ArchiveOutputRetentionPolicy;
+import fr.gouv.vitam.storage.offers.tape.cas.ReadRequestReferentialCleaner;
 import fr.gouv.vitam.storage.offers.tape.cas.ReadRequestReferentialRepository;
 import fr.gouv.vitam.storage.offers.tape.dto.TapeDrive;
 import fr.gouv.vitam.storage.offers.tape.dto.TapeDriveSpec;
 import fr.gouv.vitam.storage.offers.tape.dto.TapeLibrarySpec;
 import fr.gouv.vitam.storage.offers.tape.dto.TapeResponse;
 import fr.gouv.vitam.storage.offers.tape.dto.TapeSlot;
+import fr.gouv.vitam.storage.offers.tape.exception.ReadRequestReferentialException;
 import fr.gouv.vitam.storage.offers.tape.exception.TapeCatalogException;
 import fr.gouv.vitam.storage.offers.tape.impl.catalog.TapeCatalogRepository;
 import fr.gouv.vitam.storage.offers.tape.impl.catalog.TapeCatalogServiceImpl;
@@ -78,6 +80,8 @@ import java.util.concurrent.TimeUnit;
 
 import static fr.gouv.vitam.common.database.collections.VitamCollection.getMongoClientOptions;
 import static org.assertj.core.api.AssertionsForInterfaceTypes.assertThat;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 //FIXME "Should be fixed after merge"
 @Ignore("Should be fixed after merge")
@@ -544,7 +548,10 @@ public class TapeLibraryIT {
 
             String readRequestId = GUIDFactory.newGUID().getId();
 
-            ArchiveOutputRetentionPolicy archiveOutputRetentionPolicy = new ArchiveOutputRetentionPolicy(1);
+            ReadRequestReferentialCleaner readRequestReferentialCleaner = mock(ReadRequestReferentialCleaner.class);
+            when(readRequestReferentialCleaner.cleanUp()).thenReturn(1L);
+
+            ArchiveOutputRetentionPolicy archiveOutputRetentionPolicy = new ArchiveOutputRetentionPolicy(1, readRequestReferentialCleaner);
 
             ReadTask readTask1 =
                 new ReadTask(new ReadOrder(readRequestId, tapeCode, 0, "testtar.tar", "bucket"), workerCurrentTape,
@@ -566,7 +573,7 @@ public class TapeLibraryIT {
             assertThat(result2).isNotNull();
             assertThat(result2.getOrderState()).isEqualTo(QueueState.COMPLETED);
 
-        } catch (TapeCatalogException e) {
+        } catch (TapeCatalogException | ReadRequestReferentialException e) {
             e.printStackTrace();
         } finally {
             try {

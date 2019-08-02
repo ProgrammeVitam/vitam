@@ -309,7 +309,7 @@ public class TapeLibraryContentAddressableStorage implements ContentAddressableS
                     archiveSet.add(o.getTarFileId());
 
                     String tarFileIdWithoutExtension = StringUtils.substringBeforeLast(o.getTarFileId(), ".");
-                    Path path = archiveOutputRetentionPolicy.get(tarFileIdWithoutExtension);
+                    Path path = archiveOutputRetentionPolicy.get(o.getTarFileId());
                     if (null != path) {
                         tarLocationMap.putIfAbsent(tarFileIdWithoutExtension, TarLocation.DISK);
                     } else {
@@ -335,11 +335,11 @@ public class TapeLibraryContentAddressableStorage implements ContentAddressableS
 
                 TapeLibraryArchiveStorageLocation tarLocation = tapeLibraryTarReferentialEntity.get().getLocation();
                 if (!(tarLocation instanceof TapeLibraryOnTapeArchiveStorageLocation)) {
-                    // FIXME: 29/03/19
-                    throw new UnsupportedOperationException("Tar file not on tape. Not implemented yet");
+                    throw new UnsupportedOperationException("Tar file is not yet on tape.");
                 }
 
-                if (tarLocationMap.get(tarId).equals(TarLocation.DISK)) {
+                String tarIdWithoutExtension = StringUtils.substringBeforeLast(tarId, ".");
+                if (tarLocationMap.get(tarIdWithoutExtension).equals(TarLocation.DISK)) {
                     // Do not add read order task as TAR already exists in local FS
                     continue;
                 }
@@ -373,9 +373,17 @@ public class TapeLibraryContentAddressableStorage implements ContentAddressableS
         throws ContentAddressableStorageServerException {
 
         try {
-            Optional<TapeReadRequestReferentialEntity> readRequestEntity =
-                readRequestReferentialRepository.find(readRequestID);
+            Optional<TapeReadRequestReferentialEntity> readRequestEntity = readRequestReferentialRepository.find(readRequestID);
 
+            if (readRequestEntity.isPresent()) {
+                readRequestEntity.get().getFiles().forEach( fileInTape -> {
+                    for (TarEntryDescription tarEntryDescription : fileInTape.getFileSegments()) {
+                        String tarId = tarEntryDescription.getTarFileId();
+                        String tarIdWithoutExtension = StringUtils.substringBeforeLast(tarId, ".");
+                        archiveOutputRetentionPolicy.invalidate(tarIdWithoutExtension);
+                    }
+                });
+            }
             // TODO: 01/08/2019 cleanup ArchiveOutputRetentionPolicy and local fs
         } catch (ReadRequestReferentialException e) {
             throw new ContentAddressableStorageServerException(

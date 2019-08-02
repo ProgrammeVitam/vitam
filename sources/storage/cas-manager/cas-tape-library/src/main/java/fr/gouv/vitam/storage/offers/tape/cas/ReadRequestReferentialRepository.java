@@ -31,6 +31,7 @@ import com.mongodb.client.MongoCollection;
 import com.mongodb.client.model.Filters;
 import com.mongodb.client.model.UpdateOptions;
 import com.mongodb.client.model.Updates;
+import com.mongodb.client.result.DeleteResult;
 import com.mongodb.client.result.UpdateResult;
 import com.mongodb.util.JSON;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
@@ -42,7 +43,7 @@ import org.bson.Document;
 
 import java.util.Optional;
 
-public class ReadRequestReferentialRepository {
+public class ReadRequestReferentialRepository implements ReadRequestReferentialCleaner {
 
     private final MongoCollection<Document> collection;
 
@@ -113,5 +114,34 @@ public class ReadRequestReferentialRepository {
     private <T> T fromBson(Document document, Class<T> clazz)
         throws InvalidParseOperationException {
         return JsonHandler.getFromString(JSON.serialize(document), clazz);
+    }
+
+    @Override
+    public long cleanUp() throws ReadRequestReferentialException {
+        try {
+            DeleteResult request =
+                collection.deleteMany(Filters.eq(TapeReadRequestReferentialEntity.IS_EXPIRED, true));
+            return request.getDeletedCount();
+        } catch (MongoException ex) {
+            throw new ReadRequestReferentialException("Could not cleanup expired read request", ex);
+        }
+    }
+
+    @Override
+    public void invalidate(String readOrderRequestId) throws ReadRequestReferentialException {
+        try {
+            UpdateResult updateResult = collection.updateOne(
+                Filters.eq(TapeReadRequestReferentialEntity.ID, readOrderRequestId),
+                Updates.set(TapeReadRequestReferentialEntity.IS_EXPIRED, true),
+                new UpdateOptions().upsert(false)
+            );
+
+            if (updateResult.getMatchedCount() != 1) {
+                throw new ReadRequestReferentialException(
+                    "Could not update read request for " + readOrderRequestId + ". No such read request");
+            }
+        } catch (MongoException ex) {
+            throw new ReadRequestReferentialException("Could not update read request for " + readOrderRequestId, ex);
+        }
     }
 }

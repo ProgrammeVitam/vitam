@@ -217,7 +217,10 @@ public class ReadTask implements Future<ReadWriteResult> {
             Path targetPath =
                 Paths.get(tapeLibraryService.getOutputDirectory()).resolve(readOrder.getFileName()).toAbsolutePath();
 
-            if (!targetPath.toFile().exists()) {
+            Path tarInCache = archiveOutputRetentionPolicy.get(readOrder.getFileName());
+
+
+            if (null == tarInCache || !targetPath.toFile().exists()) {
                 Files.deleteIfExists(sourcePath);
                 tapeLibraryService
                     .read(workerCurrentTape, readOrder.getFilePosition(), readOrder.getFileName() + TEMP_EXT);
@@ -226,10 +229,7 @@ public class ReadTask implements Future<ReadWriteResult> {
             }
 
             // Add file to retention policy
-            String tarFileIdWithoutExtension = StringUtils.substringBeforeLast(readOrder.getFileName(), ".");
-            if (null == archiveOutputRetentionPolicy.get(tarFileIdWithoutExtension)) {
-                archiveOutputRetentionPolicy.put(tarFileIdWithoutExtension, targetPath);
-            }
+            archiveOutputRetentionPolicy.put(readOrder.getFileName(), targetPath);
 
             readRequestReferentialRepository
                 .updateReadRequestInProgress(

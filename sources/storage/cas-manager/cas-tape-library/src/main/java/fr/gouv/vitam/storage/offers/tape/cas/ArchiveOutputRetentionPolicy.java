@@ -51,14 +51,18 @@ public class ArchiveOutputRetentionPolicy {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(ArchiveOutputRetentionPolicy.class);
     private final Cache<String, Path> cache;
     private final long cacheTimeoutInMinutes;
+    private final ReadRequestReferentialCleaner requestReferentialCleaner;
 
-    public ArchiveOutputRetentionPolicy(long cacheTimeoutInMinutes) {
-        this(cacheTimeoutInMinutes, TimeUnit.MINUTES, 4);
+    public ArchiveOutputRetentionPolicy(long cacheTimeoutInMinutes,
+        ReadRequestReferentialCleaner requestReferentialCleaner) {
+        this(cacheTimeoutInMinutes, TimeUnit.MINUTES, 4, requestReferentialCleaner);
     }
 
     @VisibleForTesting
-    public ArchiveOutputRetentionPolicy(long cacheTimeoutInMinutes, TimeUnit timeUnit, int concurrencyLevel) {
+    public ArchiveOutputRetentionPolicy(long cacheTimeoutInMinutes, TimeUnit timeUnit, int concurrencyLevel,
+        ReadRequestReferentialCleaner requestReferentialCleaner) {
         this.cacheTimeoutInMinutes = cacheTimeoutInMinutes;
+        this.requestReferentialCleaner = requestReferentialCleaner;
         cache = CacheBuilder.newBuilder()
             .expireAfterAccess(cacheTimeoutInMinutes, timeUnit)
             .concurrencyLevel(concurrencyLevel)
@@ -66,6 +70,13 @@ public class ArchiveOutputRetentionPolicy {
                 try {
                     Path value = removalNotification.getValue();
                     Files.deleteIfExists(value);
+
+                    try {
+                        requestReferentialCleaner.invalidate(removalNotification.getKey());
+                    } catch (Exception e) {
+                        LOGGER.error(e);
+                    }
+
                     LOGGER.debug(
                         String.format("Remove archive file (%s) from file system.", value.toFile().getAbsolutePath()));
                 } catch (IOException e) {
@@ -73,6 +84,7 @@ public class ArchiveOutputRetentionPolicy {
                 }
             }).build();
 
+        Runnable cc = () -> System.err.println("");
         // CleanUp to force call to removalListener (This is needed in case where we have just read and no write operations to cache)
         Executors
             .newScheduledThreadPool(1, VitamThreadFactory.getInstance())
@@ -91,10 +103,20 @@ public class ArchiveOutputRetentionPolicy {
         return cache.getIfPresent(archiveId);
     }
 
+    public void invalidate(String archiveId) {
+        LOGGER.debug(
+            String.format("Remove archive file (%s) from cache retention in file system.", archiveId));
+        cache.invalidate(archiveId);
+    }
+
     public void cleanUp() {
         cache.cleanUp();
-
-        // TODO: 01/08/2019 Delete all TapeReadRequestReferentialEntity having deleted tar, or older than a configured time
+        // RequestReferentialCleaner
+        try {
+            requestReferentialCleaner.cleanUp();
+        } catch (Exception e) {
+            LOGGER.error(e);
+        }
     }
 
     public long getCacheTimeoutInMinutes() {
