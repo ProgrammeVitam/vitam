@@ -173,7 +173,7 @@ public class PerformanceService {
 
         LOGGER.info("start performance test");
 
-        try (ReportGenerator reportGenerator = new ReportGenerator(performanceReportDirectory.resolve(fileName))) {
+        ReportGenerator reportGenerator = new ReportGenerator(performanceReportDirectory.resolve(fileName));
             performanceTestInProgress.set(true);
 
             List<CompletableFuture<Void>> collect = IntStream.range(0, model.getNumberOfIngest())
@@ -201,7 +201,6 @@ public class PerformanceService {
                 performanceTestInProgress.set(false);
                 return null;
             });
-        }
     }
 
     private void generateReport(ReportGenerator reportGenerator, String operationId, int tenantId) {
@@ -209,8 +208,7 @@ public class PerformanceService {
             LOGGER.debug("generate report");
             VitamContext context = new VitamContext(tenantId);
             context.setAccessContract(DEFAULT_CONTRACT_NAME).setApplicationSessionId(APP_SESSION_ID);
-            final RequestResponse<LogbookOperation> requestResponse =
-                userInterfaceTransactionManager.selectOperationbyId(operationId, context);
+            final RequestResponse<LogbookOperation> requestResponse = userInterfaceTransactionManager.selectOperationbyId(operationId, context);
 
             if (requestResponse.isOk()) {
                 RequestResponseOK<LogbookOperation> requestResponseOK =
@@ -219,7 +217,7 @@ public class PerformanceService {
                 final LogbookOperation logbookOperation = requestResponseOK.getFirstResult();
                 reportGenerator.generateReport(operationId, logbookOperation);
             }
-        } catch (IOException | VitamException | ParseException e) {
+        } catch (IOException | VitamException e) {
             LOGGER.error("unable to generate report", e);
         }
     }
@@ -252,7 +250,7 @@ public class PerformanceService {
 
     private String waitEndOfIngest(int tenantId, int numberOfRetry, String operationId) {
         LOGGER.debug("wait end of ingest");
-        try (AdminExternalClient adminClient = adminClientFactory.getClient();) {
+        try (AdminExternalClient adminClient = adminClientFactory.getClient()) {
             final VitamPoolingClient vitamPoolingClient = new VitamPoolingClient(adminClient);
             vitamPoolingClient.wait(tenantId, operationId, ProcessState.COMPLETED, numberOfRetry, 1000L,
                 TimeUnit.MILLISECONDS);
@@ -270,9 +268,7 @@ public class PerformanceService {
         try (InputStream sipInputStream = Files.newInputStream(sipDirectory.resolve(model.getFileName()),
             StandardOpenOption.READ); IngestExternalClient client = ingestClientFactory.getClient()) {
 
-            RequestResponse<Void> response =
-                client
-                    .ingest(new VitamContext(tenantId), sipInputStream, DEFAULT_WORKFLOW.name(), RESUME.name());
+            RequestResponse<Void> response = client.ingest(new VitamContext(tenantId), sipInputStream, DEFAULT_WORKFLOW.name(), RESUME.name());
 
             return response.getHeaderString(GlobalDataRest.X_REQUEST_ID);
         } catch (final Exception e) {

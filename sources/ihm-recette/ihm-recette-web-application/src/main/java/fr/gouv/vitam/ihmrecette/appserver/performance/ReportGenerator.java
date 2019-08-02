@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2019)
  * <p>
  * contact.vitam@culture.gouv.fr
@@ -26,6 +26,12 @@
  */
 package fr.gouv.vitam.ihmrecette.appserver.performance;
 
+import fr.gouv.vitam.common.LocalDateUtil;
+import fr.gouv.vitam.common.logging.VitamLogger;
+import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.common.model.logbook.LogbookEventOperation;
+import fr.gouv.vitam.common.model.logbook.LogbookOperation;
+
 import java.io.BufferedWriter;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -34,19 +40,12 @@ import java.nio.file.StandardOpenOption;
 import java.text.ParseException;
 import java.time.format.DateTimeParseException;
 import java.util.Date;
-import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
-
-import fr.gouv.vitam.common.LocalDateUtil;
-import fr.gouv.vitam.common.logging.VitamLogger;
-import fr.gouv.vitam.common.logging.VitamLoggerFactory;
-import fr.gouv.vitam.common.model.logbook.LogbookEventOperation;
-import fr.gouv.vitam.common.model.logbook.LogbookOperation;
 
 /**
  *
@@ -61,13 +60,12 @@ public class ReportGenerator implements AutoCloseable {
 
     private boolean headerAlreadyGenerated;
 
-    public ReportGenerator(Path path) throws IOException {
+    ReportGenerator(Path path) throws IOException {
         this.writer = Files.newBufferedWriter(path, StandardOpenOption.CREATE);
         headerAlreadyGenerated = false;
     }
 
-    public void generateReport(String operationId, LogbookOperation logbookOperation)
-        throws IOException, ParseException {
+    void generateReport(String operationId, LogbookOperation logbookOperation) throws IOException {
         if (!headerAlreadyGenerated) {
             generateReportHeader(logbookOperation);
         }
@@ -82,13 +80,12 @@ public class ReportGenerator implements AutoCloseable {
         List<LogbookEventOperation> events = logbookOperation.getEvents();
         events.iterator().forEachRemaining(event -> headers.add(event.getEvType().replace(STARTED_SUFFIX, "")));
 
-        writer.write(headers.stream().collect(Collectors.joining(",")));
+        writer.write(String.join(",", headers));
         writer.newLine();
         headerAlreadyGenerated = true;
     }
 
-    private void generateReportLine(String operationId, LogbookOperation logbookOperation)
-        throws ParseException, IOException {
+    private void generateReportLine(String operationId, LogbookOperation logbookOperation) throws IOException {
         String referenceDate = logbookOperation.getEvDateTime();
         String firstEventType = logbookOperation.getEvType();
 
@@ -97,21 +94,19 @@ public class ReportGenerator implements AutoCloseable {
         Map<String, Interval> map = new LinkedHashMap<>();
         map.put(firstEventType, new Interval(referenceDate));
 
-        Iterator<LogbookEventOperation> iterator = events.iterator();
-        while (iterator.hasNext()){
-            LogbookEventOperation event = iterator.next();
+        for (LogbookEventOperation event : events) {
             String evType = event.getEvType();
             String evDateTime = event.getEvDateTime();
-                    
+
             // if step (step start event is logged with eventType.STARTED)
-            if(evType.endsWith(STARTED_SUFFIX)){
+            if (evType.endsWith(STARTED_SUFFIX)) {
                 evType = evType.replace(STARTED_SUFFIX, "");
                 map.put(evType, new Interval(evDateTime));
-                
+
                 // update date reference
                 referenceDate = evDateTime;
             } else {
-                // if map containse key then it's a step end event
+                // if map contains key then it's a step end event
                 if (map.containsKey(evType)) {
                     map.get(evType).setEndDate(evDateTime);
                 } else {
@@ -126,8 +121,8 @@ public class ReportGenerator implements AutoCloseable {
             }
         }
 
-        writer.write(String.format("%s,%s", operationId, map.entrySet().stream()
-            .map(entry -> entry.getValue().total())
+        writer.write(String.format("%s,%s", operationId, map.values().stream()
+            .map(Interval::total)
             .collect(Collectors.joining(","))));
         writer.newLine();
     }
@@ -141,15 +136,15 @@ public class ReportGenerator implements AutoCloseable {
         private String startDate;
         private String endDate;
 
-        public Interval(String startDate) {
+        Interval(String startDate) {
             this.startDate = startDate;
         }
 
-        public void setEndDate(String endDate) {
+        void setEndDate(String endDate) {
             this.endDate = endDate;
         }
 
-        public String total() {
+        String total() {
             try {
                 final Date startDateTime = LocalDateUtil.getDate(startDate);
                 final Date endDateTime = LocalDateUtil.getDate(endDate);

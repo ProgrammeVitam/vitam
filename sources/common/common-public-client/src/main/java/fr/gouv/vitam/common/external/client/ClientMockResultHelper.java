@@ -32,6 +32,7 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 import java.io.ByteArrayInputStream;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 
@@ -64,6 +65,8 @@ import fr.gouv.vitam.common.model.administration.ProfileModel;
 import fr.gouv.vitam.common.model.administration.ProfileStatus;
 import fr.gouv.vitam.common.model.administration.RegisterValueDetailModel;
 import fr.gouv.vitam.common.model.dip.DipExportRequest;
+import fr.gouv.vitam.common.model.logbook.LogbookEvent;
+import fr.gouv.vitam.common.model.logbook.LogbookEventOperation;
 import fr.gouv.vitam.common.model.logbook.LogbookLifecycle;
 import fr.gouv.vitam.common.model.logbook.LogbookOperation;
 
@@ -223,6 +226,13 @@ public class ClientMockResultHelper {
         logbookOperation.setEvDateTime("2016-06-10T11:56:35.914");
         logbookOperation.setEvIdProc("aedqaaaaacaam7mxaaaamakvhiv4rsiaaaaq");
         logbookOperation.setEvTypeProc("INGEST");
+        LogbookEventOperation startEvent = new LogbookEventOperation();
+        startEvent.setEvType("TNR_PERFORMANCE.STARTED");
+        startEvent.setEvDateTime("2016-06-10T11:56:35.914");
+        LogbookEventOperation endEvent = new LogbookEventOperation();
+        endEvent.setEvType("TNR_PERFORMANCE.COMPLETED");
+        endEvent.setEvDateTime("2016-06-10T11:58:35.914");
+        logbookOperation.setEvents(Arrays.asList(startEvent, endEvent));
         logbookOperation.setOutcome("STARTED");
         logbookOperation.setOutDetail(null);
         logbookOperation.setOutMessg("\"SIP entry : SIP.zip");

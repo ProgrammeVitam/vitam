@@ -16,9 +16,13 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
 
+import fr.gouv.vitam.access.external.client.AdminExternalClient;
 import fr.gouv.vitam.access.external.client.AdminExternalClientFactory;
 import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.client.VitamContext;
+import fr.gouv.vitam.common.model.ItemStatus;
+import fr.gouv.vitam.common.model.ProcessState;
+import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.ihmdemo.core.UserInterfaceTransactionManager;
 import fr.gouv.vitam.ingest.external.client.IngestExternalClient;
@@ -114,7 +118,7 @@ public class PerformanceServiceTest {
     }
 
     @Test
-    public void should_launch_performance_test() throws Exception {
+    public void should_launch_performance_test_and_generate_non_empty_file() throws Exception {
         // Given
         Path reportDirectory = temporaryFolder.newFolder().toPath();
         Path sipDirectory = temporaryFolder.newFolder().toPath();
@@ -122,14 +126,22 @@ public class PerformanceServiceTest {
         String fileName = "result.csv";
         Path file = sipDirectory.resolve(fileName);
         Files.write(file, "test".getBytes());
+
+        AdminExternalClient adminExternalClient = mock(AdminExternalClient.class);
+        RequestResponseOK<ItemStatus> adminClientResponse = new RequestResponseOK<>();
+        ItemStatus itemStatus = new ItemStatus();
+        itemStatus.setGlobalState(ProcessState.COMPLETED);
+        adminClientResponse.addResult(itemStatus);
+        given(adminExternalClient.getOperationProcessStatus(any(), anyString())).willReturn(adminClientResponse);
+        given(adminClientFactory.getClient()).willReturn(adminExternalClient);
+
         PerformanceService performanceService =
             new PerformanceService(ingestClientFactory, adminClientFactory, sipDirectory, reportDirectory, UserInterfaceTransactionManager.getInstance());
-        IngestExternalClient mock = mock(IngestExternalClient.class);
-        given(ingestClientFactory.getClient()).willReturn(mock);
+        IngestExternalClient ingestExternalClient = mock(IngestExternalClient.class);
+        given(ingestClientFactory.getClient()).willReturn(ingestExternalClient);
         RequestResponseOK<Void> requestResponseOK = new RequestResponseOK<>();
         requestResponseOK.getVitamHeaders().put(GlobalDataRest.X_REQUEST_ID, "operationId");
-        given(mock.ingest(any(VitamContext.class), any(FileInputStream.class), anyString(),
-            anyString())).willReturn(requestResponseOK);
+        given(ingestExternalClient.ingest(any(), any(), anyString(), anyString())).willReturn(requestResponseOK);
 
         // When
         PerformanceModel model = createPerformanceTestInSequence(fileName, 1, 1, 1);
@@ -139,6 +151,10 @@ public class PerformanceServiceTest {
         assertThat(performanceService.inProgress()).isTrue();
         Thread.sleep(1500);
         assertThat(performanceService.inProgress()).isFalse();
+
+        Path reportFile = reportDirectory.resolve(reportName);
+        assertThat(Files.exists(reportFile)).isTrue();
+        assertThat(reportFile.toFile().length()).isGreaterThan(0);
     }
 
     private Path generateFileReport() throws IOException {
