@@ -4,12 +4,12 @@
 vitam_strategy:
   - name: offer-fs-1
     referent: true
-
+#    id: idoffre # OPTIONAL, but IF ACTIVATED, MUST BE UNIQUE & SAME if on another site
 # Tape offer mustn't be referent (referent: false) and should be configured as asynchrone read (asyncRead: true)
 #  - name: offer-tape-1
 #    referent: false
 #    asyncRead: true
-
+#    id: idoffre # OPTIONAL, but IF ACTIVATED, MUST BE UNIQUE & SAME if on another site
 # status : enable (value=ACTIVE, default value) or disable (value=INACTIVE) this offer
 #    status: ACTIVE
 #    vitam_site_name: prod-dc2
@@ -19,6 +19,7 @@ vitam_strategy:
 #    referent: true
 #    status: INACTIVE
 #    vitam_site_name: distant-dc2
+#    id: idoffre # OPTIONAL, but IF ACTIVATED, MUST BE UNIQUE & SAME if on another site
 
 # !!! PREVIEW V3 !!! DO NOT DECLARE 'other_strategies' FOR NOW.
 # More strategies can be added but are optional
