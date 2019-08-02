@@ -268,7 +268,7 @@ public class ComputeInheritedRulesActionPlugin extends ActionHandler {
         if (isApiIndexable) {
             return new ComputedInheritedRules(inheritedRules, inheritedRulesAPIOutput, globalInheritedProperties, dateFormatted);
         }
-        return new ComputedInheritedRules(inheritedRules, dateFormatted);
+        return new ComputedInheritedRules(inheritedRules, dateFormatted, globalInheritedProperties);
     }
 
     @Override

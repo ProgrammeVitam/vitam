@@ -74,12 +74,11 @@ public class ComputedInheritedRules {
 
     public ComputedInheritedRules(Map<String, InheritedRule> inheritedRules,JsonNode inheritedRulesAPIOutput,
         Map<String, Object> globalInheritedProperties, String indexationDate) {
-        this(inheritedRules, indexationDate);
+        this(inheritedRules, indexationDate, globalInheritedProperties);
         this.inheritedRulesAPIOutput = inheritedRulesAPIOutput;
-        this.needAuthorization = parseNeedAuthorizationProperty(globalInheritedProperties.get(NEED_AUTHORIZATION));
     }
 
-    public ComputedInheritedRules(Map<String, InheritedRule> inheritedRules, String indexationDate) {
+    public ComputedInheritedRules(Map<String, InheritedRule> inheritedRules, String indexationDate, Map<String, Object> globalInheritedProperties) {
         this.storageRule = (StorageRule) inheritedRules.get(STORAGE_RULE);
         this.appraisalRule = (AppraisalRule) inheritedRules.get(APPRAISAL_RULE);
         this.disseminationRule = inheritedRules.get(DISSEMINATION_RULE);
@@ -87,6 +86,7 @@ public class ComputedInheritedRules {
         this.reuseRule = inheritedRules.get(REUSE_RULE);
         this.classificationRule = (ClassificationRule) inheritedRules.get(CLASSIFICATION_RULE);
         this.indexationDate = indexationDate;
+        this.needAuthorization = parseNeedAuthorizationProperty(globalInheritedProperties.get(NEED_AUTHORIZATION));
     }
 
     private List<Boolean> parseNeedAuthorizationProperty(Object needAuthorizationProperty) {

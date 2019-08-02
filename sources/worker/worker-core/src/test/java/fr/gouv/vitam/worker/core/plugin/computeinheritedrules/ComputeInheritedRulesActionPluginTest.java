@@ -59,6 +59,7 @@ import java.io.FileNotFoundException;
 import java.util.Arrays;
 import java.util.List;
 
+import static com.mongodb.internal.connection.tlschannel.util.Util.assertTrue;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.when;
@@ -92,7 +93,7 @@ public class ComputeInheritedRulesActionPluginTest {
         ComputeInheritedRulesActionPlugin = new ComputeInheritedRulesActionPlugin(metaDataClientFactory);
         workerParameters = WorkerParametersFactory.newWorkerParameters();
         workerParameters.setObjectNameList(Lists.newArrayList("a", "b", "c", "d"));
-        List<String> tenant = Arrays.asList("0", "1", "2");
+        List<String> tenant = Arrays.asList("0", "2");
         VitamConfiguration.setIndexInheritedRulesWithRulesIdByTenant(tenant);
         VitamConfiguration.setIndexInheritedRulesWithAPIV2OutputByTenant(tenant);
     }
@@ -241,6 +242,27 @@ public class ComputeInheritedRulesActionPluginTest {
         assertThat(computedInheritedRules.getInheritedRulesAPIOutput())
             .isEqualTo(expectedComputedInheritedRules.getInheritedRulesAPIOutput());
 
+    }
+
+    @Test
+    @RunWithCustomExecutor
+    public void should_have_needauthorization_field_when_tenant_configuration_is_minimal() throws Exception {
+        // Given
+        VitamThreadUtils.getVitamSession().setTenantId(1);  // tenant with minimal computedInheritedRule
+        JsonNode response = getJsonNodeResponse();
+        JsonNode expectedJson = getExpectedJsonNode();
+        ComputedInheritedRules expectedComputedInheritedRules = getComputedInheritedRules(expectedJson);
+
+        ArgumentCaptor<JsonNode> objectNodeArgumentCaptor = initializeMockWithResponse(response);
+        // When
+        List<ItemStatus> itemStatus = ComputeInheritedRulesActionPlugin.executeList(workerParameters, HandlerIO);
+
+        //Then
+        assertThat(itemStatus).hasSize(4);
+        assertThat(itemStatus.stream().filter(i -> i.getGlobalStatus() == StatusCode.OK)).hasSize(4);
+        JsonNode updatedUnit = objectNodeArgumentCaptor.getValue();
+        ComputedInheritedRules computedInheritedRules = getComputedInheritedRules(updatedUnit);
+        assertThat(computedInheritedRules.getNeedAuthorization()).isEqualTo(expectedComputedInheritedRules.getNeedAuthorization());
     }
 
     private ArgumentCaptor<JsonNode> initializeMockWithResponse(JsonNode response)
