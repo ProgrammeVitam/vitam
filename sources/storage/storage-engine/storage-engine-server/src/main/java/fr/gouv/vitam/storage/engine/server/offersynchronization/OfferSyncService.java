@@ -51,6 +51,9 @@ public class OfferSyncService {
     private final StorageDistribution distribution;
     private final int bulkSize;
     private final int offerSyncThreadPoolSize;
+    private final int offerSyncNumberOfRetries;
+    private final int offerSyncFirstAttemptWaitingTime;
+    private final int offerSyncWaitingTime;
 
     private final AtomicReference<OfferSyncProcess> lastOfferSyncService = new AtomicReference<>(null);
 
@@ -62,7 +65,11 @@ public class OfferSyncService {
             new RestoreOfferBackupService(distribution),
             distribution,
             storageConfiguration.getOfferSynchronizationBulkSize(),
-            storageConfiguration.getOfferSyncThreadPoolSize());
+            storageConfiguration.getOfferSyncThreadPoolSize(),
+            storageConfiguration.getOfferSyncNumberOfRetries(),
+            storageConfiguration.getOfferSyncFirstAttemptWaitingTime(),
+            storageConfiguration.getOfferSyncWaitingTime()
+        );
     }
 
     /**
@@ -71,11 +78,14 @@ public class OfferSyncService {
     @VisibleForTesting
     OfferSyncService(
         RestoreOfferBackupService restoreOfferBackupService,
-        StorageDistribution distribution, int bulkSize, int offerSyncThreadPoolSize) {
+        StorageDistribution distribution, int bulkSize, int offerSyncThreadPoolSize, int offerSyncNumberOfRetries, int offerSyncFirstAttemptWaitingTime, int offerSyncWaitingTime) {
         this.restoreOfferBackupService = restoreOfferBackupService;
         this.distribution = distribution;
         this.bulkSize = bulkSize;
         this.offerSyncThreadPoolSize = offerSyncThreadPoolSize;
+        this.offerSyncNumberOfRetries = offerSyncNumberOfRetries;
+        this.offerSyncFirstAttemptWaitingTime = offerSyncFirstAttemptWaitingTime;
+        this.offerSyncWaitingTime = offerSyncWaitingTime;
     }
 
     /**
@@ -114,8 +124,7 @@ public class OfferSyncService {
     }
 
     OfferSyncProcess createOfferSyncProcess() {
-        return new OfferSyncProcess(restoreOfferBackupService, distribution,
-            bulkSize, offerSyncThreadPoolSize);
+        return new OfferSyncProcess(restoreOfferBackupService, distribution, bulkSize, offerSyncThreadPoolSize, offerSyncNumberOfRetries, offerSyncFirstAttemptWaitingTime, offerSyncWaitingTime);
     }
 
     void runSynchronizationAsync(String sourceOffer, String targetOffer, String strategyId, DataCategory dataCategory, Long offset,

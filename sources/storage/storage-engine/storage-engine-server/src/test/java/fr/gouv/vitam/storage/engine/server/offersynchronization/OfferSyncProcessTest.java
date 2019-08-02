@@ -133,7 +133,7 @@ public class OfferSyncProcessTest {
 
         // Given
         OfferSyncProcess instance = new OfferSyncProcess(restoreOfferBackupService,
-            distribution, 10, 4);
+            distribution, 10, 4, 1, 1, 1);
 
         // When
         instance.synchronize(SOURCE, TARGET, VitamConfiguration.getDefaultStrategy(), DATA_CATEGORY, null);
@@ -154,7 +154,7 @@ public class OfferSyncProcessTest {
         givenDataSetInSourceOffer();
 
         OfferSyncProcess instance = new OfferSyncProcess(restoreOfferBackupService,
-            distribution, 100, 4);
+            distribution, 100, 4, 1, 1, 1);
 
         // When
         instance.synchronize(SOURCE, TARGET, VitamConfiguration.getDefaultStrategy(), DATA_CATEGORY, null);
@@ -178,7 +178,7 @@ public class OfferSyncProcessTest {
         givenDataSetInSourceOffer();
 
         OfferSyncProcess instance = new OfferSyncProcess(restoreOfferBackupService,
-            distribution, 10, 4);
+            distribution, 10, 4, 1, 1, 1);
 
         // When
         instance.synchronize(SOURCE, TARGET, VitamConfiguration.getDefaultStrategy(), DATA_CATEGORY, null);
@@ -210,7 +210,7 @@ public class OfferSyncProcessTest {
         // Given
         givenDataSetInSourceOfferPart1();
         OfferSyncProcess instance = new OfferSyncProcess(restoreOfferBackupService,
-            distribution, 100, 4);
+            distribution, 100, 4, 1, 1, 1);
 
         // When
         instance.synchronize(SOURCE, TARGET, VitamConfiguration.getDefaultStrategy(), DATA_CATEGORY, null);
@@ -245,7 +245,7 @@ public class OfferSyncProcessTest {
         // Given
         givenDataSetInSourceOfferPart1();
         OfferSyncProcess instance = new OfferSyncProcess(restoreOfferBackupService,
-            distribution, 100, 4);
+            distribution, 100, 4, 1, 1, 1);
 
         // When
         instance.synchronize(SOURCE, TARGET, VitamConfiguration.getDefaultStrategy(), DATA_CATEGORY, null);

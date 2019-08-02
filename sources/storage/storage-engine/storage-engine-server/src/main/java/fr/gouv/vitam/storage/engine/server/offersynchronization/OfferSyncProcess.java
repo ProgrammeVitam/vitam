@@ -69,19 +69,21 @@ public class OfferSyncProcess {
     private final StorageDistribution distribution;
     private final int bulkSize;
     private final int offerSyncThreadPoolSize;
+    private final int offerSyncNumberOfRetries;
+    private final int offerSyncFirstAttemptWaitingTime;
+    private final int offerSyncWaitingTime;
 
     private OfferSyncStatus offerSyncStatus;
 
-    public OfferSyncProcess(
-        RestoreOfferBackupService restoreOfferBackupService,
-        StorageDistribution distribution, int bulkSize, int offerSyncThreadPoolSize) {
+    public OfferSyncProcess(RestoreOfferBackupService restoreOfferBackupService, StorageDistribution distribution, int bulkSize, int offerSyncThreadPoolSize, int offerSyncNumberOfRetries, int offerSyncFirstAttemptWaitingTime, int offerSyncWaitingTime) {
         this.restoreOfferBackupService = restoreOfferBackupService;
         this.distribution = distribution;
         this.bulkSize = bulkSize;
         this.offerSyncThreadPoolSize = offerSyncThreadPoolSize;
-        this.offerSyncStatus = new OfferSyncStatus(
-            VitamThreadUtils.getVitamSession().getRequestId(), StatusCode.UNKNOWN, null, null,
-            null, null, null, null, null);
+        this.offerSyncStatus = new OfferSyncStatus(VitamThreadUtils.getVitamSession().getRequestId(), StatusCode.UNKNOWN, null, null, null, null, null, null, null);
+        this.offerSyncNumberOfRetries = offerSyncNumberOfRetries;
+        this.offerSyncFirstAttemptWaitingTime = offerSyncFirstAttemptWaitingTime;
+        this.offerSyncWaitingTime = offerSyncWaitingTime;
     }
 
     private static OfferLog getLastOfferLog(OfferLog offerLog1, OfferLog offerLog2) {
@@ -178,25 +180,18 @@ public class OfferSyncProcess {
         List<CompletableFuture<Void>> completableFutures = new ArrayList<>();
         for (OfferLog offerLog : offerLogs) {
 
-            CompletableFuture<Void> completableFuture;
             switch (offerLog.getAction()) {
-
                 case WRITE:
-                    completableFuture = CompletableFuture.runAsync(
-                        RetryableRunnable.from(() -> copyObject(sourceOffer, destinationOffer, dataCategory, offerLog, tenantId, strategyId, requestId)),
-                        executor);
+                    Runnable copy = () -> copyObject(sourceOffer, destinationOffer, dataCategory, offerLog, tenantId, strategyId, requestId);
+                    completableFutures.add(CompletableFuture.runAsync(RetryableRunnable.from(offerSyncNumberOfRetries, copy, offerSyncFirstAttemptWaitingTime, offerSyncWaitingTime), executor));
                     break;
-
                 case DELETE:
-                    completableFuture = CompletableFuture.runAsync(
-                        RetryableRunnable.from(() -> deleteObject(destinationOffer, dataCategory, offerLog, tenantId, strategyId, requestId)),
-                        executor);
+                    Runnable delete = () -> deleteObject(destinationOffer, dataCategory, offerLog, tenantId, strategyId, requestId);
+                    completableFutures.add(CompletableFuture.runAsync(RetryableRunnable.from(offerSyncNumberOfRetries, delete, offerSyncFirstAttemptWaitingTime, offerSyncWaitingTime), executor));
                     break;
-
                 default:
                     throw new UnsupportedOperationException("Unknown offer log action " + offerLog.getAction());
             }
-            completableFutures.add(completableFuture);
         }
 
         boolean allSucceeded = awaitCompletion(completableFutures);
