@@ -2,9 +2,13 @@
     {
         "id" : "default",
         "offers" : [
-            {% for item in vitam_strategy %}
+{% for item in vitam_strategy %}
+{% if item.id is defined %}
+            {"id" : "{{ item.id }}"{% if item.referent is defined %}{% if item.referent|lower == "true" %}, "referent" : true{% endif %}{% endif %}{% if item.status is defined %}, "status" :  "{{ item.status| upper }}" {% endif %}}{% if not loop.last %},{% endif %}
+{% else %}
             {"id" : "{{ item.name }}.service.{{ item.vitam_site_name |default(vitam_site_name) }}.{{ consul_domain }}"{% if item.referent is defined %}{% if item.referent|lower == "true" %}, "referent" : true{% endif %}{% endif %}{% if item.status is defined %}, "status" :  "{{ item.status| upper }}" {% endif %}}{% if not loop.last %},{% endif %}
-            {% endfor %}
+{% endif %}
+{% endfor %}
         ]
     }
     {% if other_strategies is defined %}
