@@ -103,7 +103,6 @@ public class TapeLibraryContentAddressableStorageTest {
             new TapeLibraryContentAddressableStorage(basicFileStorage, objectReferentialRepository,
                 archiveReferentialRepository, readRequestReferentialRepository, fileBucketTarCreatorManager,
                 readWriteQueueRepository, tapeCatalogService, outputTarsPath, archiveOutputRetentionPolicy);
-
     }
 
     @Test

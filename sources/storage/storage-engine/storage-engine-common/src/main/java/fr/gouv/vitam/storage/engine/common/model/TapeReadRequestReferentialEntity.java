@@ -16,6 +16,8 @@ public class TapeReadRequestReferentialEntity {
     public static final String CONTAINER_NAME = "containerName";
     public static final String CREATE_DATE = "createDate";
     public static final String EXPIRE_IN_MINUTES = "expireInMinutes";
+    public static final String IS_COMPLETED = "isCompleted";
+    public static final String IS_EXPIRED = "isExpired";
 
     @JsonProperty(ID)
     private String requestId;
@@ -34,6 +36,11 @@ public class TapeReadRequestReferentialEntity {
     @JsonProperty(CREATE_DATE)
     private String creationDate = LocalDateUtil.getFormattedDateForMongo(LocalDateTime.now());
 
+    @JsonProperty(IS_EXPIRED)
+    private Boolean isExpired = false;
+
+
+    // When the first tar is in disk and expireInMinutes is elapsed then this entity will be expired an purged
     @JsonProperty(EXPIRE_IN_MINUTES)
     private Long expireInMinutes = 0L;
 
@@ -92,6 +99,14 @@ public class TapeReadRequestReferentialEntity {
         this.creationDate = creationDate;
     }
 
+    public Boolean getIsExpired() {
+        return isExpired;
+    }
+
+    public void setIsExpired(Boolean isExpired) {
+        this.isExpired = isExpired;
+    }
+
     public Long getExpireInMinutes() {
         return expireInMinutes;
     }
@@ -100,14 +115,9 @@ public class TapeReadRequestReferentialEntity {
         this.expireInMinutes = expireInMinutes;
     }
 
-    @JsonProperty("isCompleted")
+    @JsonProperty(IS_COMPLETED)
     public boolean isCompleted() {
         return tarLocations.values().stream().filter(o -> TarLocation.DISK.equals(o)).count() == tarLocations.size();
     }
 
-    @JsonProperty("isExpired")
-    public boolean isExpired() {
-        return LocalDateUtil.parseMongoFormattedDate(creationDate).plusMinutes(expireInMinutes)
-            .isBefore(LocalDateTime.now());
-    }
 }

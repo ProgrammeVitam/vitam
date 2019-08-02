@@ -142,7 +142,7 @@ public class TapeLibraryFactory {
                 objectReferentialRepository, archiveReferentialRepository, writeOrderCreator);
 
         ArchiveOutputRetentionPolicy archiveOutputRetentionPolicy =
-            new ArchiveOutputRetentionPolicy(configuration.getArchiveRetentionCacheTimeoutInMinutes());
+            new ArchiveOutputRetentionPolicy(configuration.getArchiveRetentionCacheTimeoutInMinutes(), readRequestReferentialRepository);
 
         tapeLibraryContentAddressableStorage =
             new TapeLibraryContentAddressableStorage(basicFileStorage, objectReferentialRepository,

@@ -54,7 +54,7 @@ public class ReadRequestReferentialRepositoryTest {
 
 
     @Test
-    public void test_insert_find_OK() throws ReadRequestReferentialException {
+    public void test_insert_find_cleanup_OK() throws ReadRequestReferentialException {
         String requestId = GUIDFactory.newGUID().getId();
         TapeReadRequestReferentialEntity tapeReadRequestReferentialEntity = new TapeReadRequestReferentialEntity();
         tapeReadRequestReferentialEntity.setRequestId(requestId);
@@ -77,10 +77,39 @@ public class ReadRequestReferentialRepositoryTest {
             tarNameWithoutExtension, TarLocation.TAPE);
         tapeReadRequestReferentialEntity.setTarLocations(tarLocations);
 
+        tapeReadRequestReferentialEntity.setExpireInMinutes(0L);
+        tapeReadRequestReferentialEntity.setIsExpired(true);
         readRequestReferentialRepository.insert(tapeReadRequestReferentialEntity);
 
         Optional<TapeReadRequestReferentialEntity> found = readRequestReferentialRepository.find(requestId);
         Assertions.assertThat(found).isPresent();
         Assertions.assertThat(found.get().getContainerName()).isEqualTo("test");
+        Assertions.assertThat(found.get().getIsExpired()).isTrue();
+
+
+        String requestId2 = GUIDFactory.newGUID().getId();
+        tapeReadRequestReferentialEntity.setRequestId(requestId2);
+        tapeReadRequestReferentialEntity.setExpireInMinutes(3L);
+        tapeReadRequestReferentialEntity.setIsExpired(false);
+        readRequestReferentialRepository.insert(tapeReadRequestReferentialEntity);
+
+        // Even two tapeReadRequestReferentialEntity, only expired one are removed
+        long deleted = readRequestReferentialRepository.cleanUp();
+        Assertions.assertThat(deleted).isEqualTo(1L);
+
+
+        found = readRequestReferentialRepository.find(requestId2);
+        Assertions.assertThat(found).isPresent();
+        Assertions.assertThat(found.get().getIsExpired()).isFalse();
+
+        // Invalidate will make tapeReadRequestReferentialEntity expired
+        readRequestReferentialRepository.invalidate(requestId2);
+        found = readRequestReferentialRepository.find(requestId2);
+        Assertions.assertThat(found).isPresent();
+        Assertions.assertThat(found.get().getIsExpired()).isTrue();
+
+        // Assert that invalided is removed
+        deleted = readRequestReferentialRepository.cleanUp();
+        Assertions.assertThat(deleted).isEqualTo(1L);
     }
 }
