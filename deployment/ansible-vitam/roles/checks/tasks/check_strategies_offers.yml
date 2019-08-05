@@ -4,7 +4,7 @@
 
     - name: check if defined offer is defined in vitam_strategy
       fail: msg="{{ item.name }} not configured in vitam_offers"
-      when: vitam_offers[item.name].provider is undefined
+      when: vitam_offers[item.name].provider is undefined and item.distant is undefined
       with_items:
         - "{{ vitam_strategy }}"
 
