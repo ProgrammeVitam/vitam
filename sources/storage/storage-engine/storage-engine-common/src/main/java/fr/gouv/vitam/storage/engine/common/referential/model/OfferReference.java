@@ -27,6 +27,7 @@
 
 package fr.gouv.vitam.storage.engine.common.referential.model;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import fr.gouv.vitam.common.model.administration.ActivationStatus;
 
 /**
@@ -42,8 +43,11 @@ public class OfferReference {
 
     public OfferReference() { /* nothing */ }
 
+    @JsonProperty("id")
     private String id;
+    @JsonProperty("referent")
     private boolean referent;
+    @JsonProperty("status")
     private ActivationStatus status = ActivationStatus.ACTIVE;
 
     /**

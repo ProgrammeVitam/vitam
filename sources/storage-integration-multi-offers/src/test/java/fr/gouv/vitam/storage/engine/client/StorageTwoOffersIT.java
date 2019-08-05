@@ -36,7 +36,10 @@ import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.common.model.RequestResponse;
+import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.StatusCode;
+import fr.gouv.vitam.common.model.administration.ActivationStatus;
 import fr.gouv.vitam.common.mongo.MongoRule;
 import fr.gouv.vitam.common.stream.StreamUtils;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
@@ -47,14 +50,15 @@ import fr.gouv.vitam.common.tmp.TempFolderRule;
 import fr.gouv.vitam.storage.engine.client.exception.StorageAlreadyExistsClientException;
 import fr.gouv.vitam.storage.engine.client.exception.StorageNotFoundClientException;
 import fr.gouv.vitam.storage.engine.client.exception.StorageServerClientException;
+import fr.gouv.vitam.storage.engine.common.collection.OfferCollections;
 import fr.gouv.vitam.storage.engine.common.model.DataCategory;
+import fr.gouv.vitam.storage.engine.common.model.OfferSequence;
 import fr.gouv.vitam.storage.engine.common.model.request.BulkObjectStoreRequest;
 import fr.gouv.vitam.storage.engine.common.model.request.ObjectDescription;
 import fr.gouv.vitam.storage.engine.common.model.request.OfferSyncRequest;
 import fr.gouv.vitam.storage.engine.common.model.response.BulkObjectStoreResponse;
+import fr.gouv.vitam.storage.engine.common.referential.model.StorageStrategy;
 import fr.gouv.vitam.storage.engine.server.offersynchronization.OfferSyncStatus;
-import fr.gouv.vitam.storage.engine.common.collection.OfferCollections;
-import fr.gouv.vitam.storage.engine.common.model.OfferSequence;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageAlreadyExistException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
 import fr.gouv.vitam.workspace.client.WorkspaceClient;
@@ -243,6 +247,22 @@ public class StorageTwoOffersIT {
             Arrays.asList(offerIds));
     }
 
+
+    @Test
+    @RunWithCustomExecutor
+    public void checkStrategyConfigutation() throws Exception {
+        VitamThreadUtils.getVitamSession().setTenantId(TENANT_0);
+        RequestResponse<StorageStrategy> response = storageClient.getStorageStrategies();
+        assertThat(response.isOk());
+        assertThat(((RequestResponseOK<StorageStrategy>)response).getFirstResult().getOffers().size()).isEqualTo(2);
+        assertThat(((RequestResponseOK<StorageStrategy>)response).getFirstResult().getOffers().get(0).isReferent()).isTrue();
+        assertThat(((RequestResponseOK<StorageStrategy>)response).getFirstResult().getOffers().get(0).getId()).isEqualTo("default");
+        assertThat(((RequestResponseOK<StorageStrategy>)response).getFirstResult().getOffers().get(0).getStatus()).isEqualTo(ActivationStatus.ACTIVE);
+        assertThat(((RequestResponseOK<StorageStrategy>)response).getFirstResult().getOffers().get(1).isReferent()).isFalse();
+        assertThat(((RequestResponseOK<StorageStrategy>)response).getFirstResult().getOffers().get(1).getId()).isEqualTo("default2");
+        assertThat(((RequestResponseOK<StorageStrategy>)response).getFirstResult().getOffers().get(1).getStatus()).isEqualTo(ActivationStatus.ACTIVE);
+    }
+    
     @Test
     @RunWithCustomExecutor
     public void checkStoreInOffers() throws Exception {
