@@ -1,5 +1,4 @@
 ---
-
 # Install mongodb-org (needed by vitam-mongo* packages)
 # and then disable the mongod service as it may start listening on 27017 port which is needed by vitam-mongos
 - name: Install mongodb-org package
@@ -65,6 +64,11 @@
     - status_tuned_present
     - ansible_virtualization_type != "docker"
 
+- name: check /sys/kernel/mm/transparent_hugepage existence
+  stat:
+    path: /sys/kernel/mm/transparent_hugepage
+  register: transparent_hugepage_dir
+
 - block:
 
     - name: add systemd service unit to disable THP
@@ -89,4 +93,6 @@
         enabled: yes
         state: started
 
-  when: ansible_virtualization_type != "docker"
+  when: ( ansible_virtualization_type != "docker") and ( transparent_hugepage_dir.stat.isdir is defined and transparent_hugepage_dir.stat.isdir )
+
+  
