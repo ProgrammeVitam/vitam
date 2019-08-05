@@ -42,6 +42,7 @@ library
 ##### Zone externe
 
 [hosts-ihm-recette]
+xlarge-external-vm-1
 
 [zone-external:children]
 hosts-ihm-demo
