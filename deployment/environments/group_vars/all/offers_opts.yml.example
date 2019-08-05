@@ -4,15 +4,15 @@
 vitam_strategy:
   - name: offer-fs-1
     referent: true
-# status : enable (value=ACTIVE, default value) or disable (value=INACTIVE) this offer
-#    status: ACTIVE
-#    vitam_site_name: prod-dc2
+#    status: ACTIVE # status : enable (value=ACTIVE, default value) or disable (value=INACTIVE) this offer
+#    vitam_site_name: prod-dc2 # optional, should be related to vitam_site_name if local ; remote vitam_site_name if distant
 #  - name: offer-swift-1
-# Example :
+# Example distant:
 #  - name: distant
 #    referent: true
 #    status: INACTIVE
 #    vitam_site_name: distant-dc2
+#    distant: true # Only add this parameter when distant offer (not on same platform)
 
 # !!! PREVIEW V3 !!! DO NOT DECLARE 'other_strategies' FOR NOW.
 # More strategies can be added but are optional
