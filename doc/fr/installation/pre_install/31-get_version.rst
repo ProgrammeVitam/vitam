@@ -50,8 +50,8 @@ Un dépôt supplémentaire peut être à paramétrer pour pouvoir dérouler l'in
 
 Sur les partitions cibles, configurer le fichier ``/etc/apt/sources.list.d/vitam-repositories.list`` (remplacer <branche_vitam> par le nom de la branche de support à installer) comme suit ::
 
-   deb [trusted=yes] http://download.programmevitam.fr/vitam_repository/<vitam_version>/deb stretch vitam-product vitam-external
-
+   deb [trusted=yes] http://download.programmevitam.fr/vitam_repository/<vitam_version>/deb/vitam-product/ ./
+   deb [trusted=yes] http://download.programmevitam.fr/vitam_repository/<vitam_version>/deb/vitam-external/ ./
 
 .. note:: remplacer <vitam_version> par la version à déployer.
 
@@ -60,7 +60,7 @@ Cas de *griffins*
 
 Un dépôt supplémentaire peut être à paramétrer pour pouvoir dérouler l'installation des *griffins* ::
 
-   deb [trusted=yes] http://download.programmevitam.fr/vitam_griffins/<version_griffins>/deb stretch .
+   deb [trusted=yes] http://download.programmevitam.fr/vitam_griffins/<version_griffins>/deb/ ./
 
 .. note:: remplacer <version_griffins> par la version à déployer.
 
