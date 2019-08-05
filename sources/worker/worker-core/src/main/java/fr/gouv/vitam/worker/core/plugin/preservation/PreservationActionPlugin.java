@@ -44,6 +44,8 @@ import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 import fr.gouv.vitam.storage.engine.client.StorageClient;
 import fr.gouv.vitam.storage.engine.client.StorageClientFactory;
+import fr.gouv.vitam.storage.engine.client.exception.StorageServerClientException;
+import fr.gouv.vitam.storage.engine.common.exception.StorageNotFoundException;
 import fr.gouv.vitam.worker.common.HandlerIO;
 import fr.gouv.vitam.worker.core.handler.ActionHandler;
 import fr.gouv.vitam.worker.core.plugin.preservation.model.InputPreservation;
@@ -79,13 +81,13 @@ import static fr.gouv.vitam.storage.engine.common.model.DataCategory.OBJECT;
 import static fr.gouv.vitam.worker.core.plugin.PluginHelper.tryDeleteLocalPreservationFiles;
 import static fr.gouv.vitam.worker.core.utils.PluginHelper.buildItemStatus;
 import static java.nio.file.StandardCopyOption.REPLACE_EXISTING;
-import static java.util.concurrent.TimeUnit.MINUTES;
+import static java.util.concurrent.TimeUnit.SECONDS;
 
 public class PreservationActionPlugin extends ActionHandler {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(PreservationActionPlugin.class);
 
     private static final String INPUT_FILES = "input-files";
-    public static final String OUTPUT_FILES = "output-files";
+    static final String OUTPUT_FILES = "output-files";
 
     private static final String PLUGIN_NAME = "PRESERVATION_ACTION";
     private static final String PARAMETERS_JSON = "parameters.json";
@@ -107,7 +109,7 @@ public class PreservationActionPlugin extends ActionHandler {
     }
 
     @VisibleForTesting
-    public PreservationActionPlugin(StorageClientFactory storage, PreservationReportService report, String inputFolder,
+    PreservationActionPlugin(StorageClientFactory storage, PreservationReportService report, String inputFolder,
         String execFolder) {
         this.storageClientFactory = storage;
         this.reportService = report;
@@ -168,7 +170,8 @@ public class PreservationActionPlugin extends ActionHandler {
         return Files.createDirectory(griffinDirectory.resolve(batchId));
     }
 
-    private void copyInputFiles(Path batchDirectory, List<PreservationDistributionLine> entries) throws Exception {
+    private void copyInputFiles(Path batchDirectory, List<PreservationDistributionLine> entries)
+        throws IOException, StorageNotFoundException, StorageServerClientException {
         try (StorageClient storageClient = storageClientFactory.getClient()) {
             Path inputFilesDirectory = Files.createDirectory(batchDirectory.resolve(INPUT_FILES));
             for (PreservationDistributionLine entryParams : entries) {
@@ -178,7 +181,7 @@ public class PreservationActionPlugin extends ActionHandler {
     }
 
     private void copyBinaryFile(PreservationDistributionLine entryParams, StorageClient storageClient, Path inputFilesDirectory)
-        throws Exception {
+        throws IOException, StorageNotFoundException, StorageServerClientException {
         Response fileResponse = null;
         InputStream src = null;
         try {
@@ -211,14 +214,19 @@ public class PreservationActionPlugin extends ActionHandler {
         return new InputPreservation(entryParams.getObjectId(), entryParams.getFormatId());
     }
 
-    private ResultPreservation launchGriffin(String griffinId, Path batchDirectory, int timeout) throws Exception {
+    private ResultPreservation launchGriffin(String griffinId, Path batchDirectory, int timeout) throws IOException, InterruptedException,
+        InvalidParseOperationException {
         Path griffinExecutable = Paths.get(execFolder, griffinId, EXECUTABLE_FILE_NAME);
 
         List<String> command = Arrays.asList(griffinExecutable.toString(), batchDirectory.toString());
         ProcessBuilder processBuilder = new ProcessBuilder(command);
 
         Process griffin = processBuilder.start();
-        griffin.waitFor(timeout, MINUTES);
+
+        if(!griffin.waitFor(timeout, SECONDS)) {
+            LOGGER.error("Griffin {} was not completed before timeout", griffinId);
+            griffin.destroyForcibly();
+        }
 
         if (griffin.exitValue() > 0) {
             LOGGER.error(
@@ -248,7 +256,7 @@ public class PreservationActionPlugin extends ActionHandler {
         return WorkflowBatchResult.of(e.getId(), e.getUnitId(), e.getTargetUse(), result.getRequestId(), outputExtras, e.getSourceUse(), e.getSourceStrategy());
     }
 
-    protected void createReport(List<WorkflowBatchResult> workflowResults, List<PreservationDistributionLine> entries, Integer tenantId,
+    private void createReport(List<WorkflowBatchResult> workflowResults, List<PreservationDistributionLine> entries, Integer tenantId,
         String requestId) throws VitamClientInternalException {
         List<PreservationReportEntry> reportModels = toReportModel(workflowResults, entries, tenantId, now(), requestId);
         reportService.appendPreservationEntries(requestId, reportModels);
