@@ -1,0 +1,10 @@
+#!/usr/bin/env bash
+
+c=1
+
+while :
+do
+    echo "${c}" &> $1/griffin_infite_loop_signal.txt
+    sleep 1
+    ((c++))
+done

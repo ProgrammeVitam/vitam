@@ -87,6 +87,7 @@ public class PreservationActionPluginTest {
 
     private final String objectId = "TEST_ID";
     private final String griffinId = "griffinId-my-test";
+    private final String griffinInfinteLoopId = "griffinInfinteLoopId-my-test";
 
     private final TestWorkerParameter parameter = workerParameterBuilder().withContainerName("CONTAINER_NAME_TEST")
         .withRequestId("REQUEST_ID_TEST")
@@ -145,6 +146,12 @@ public class PreservationActionPluginTest {
         String src = Object.class.getResource("/preservation/griffin").toURI().getPath();
         Files.copy(Paths.get(src), target.resolve("griffin"));
         target.resolve("griffin").toFile().setExecutable(true);
+
+        target = Files.createDirectory(execFolder.toPath().resolve(griffinInfinteLoopId));
+        src = Object.class.getResource("/preservation/griffin_infite_loop").toURI().getPath();
+        Files.copy(Paths.get(src), target.resolve("griffin"));
+        target.resolve("griffin").toFile().setExecutable(true);
+
         VitamThreadUtils.getVitamSession().setTenantId(0);
     }
 
@@ -243,6 +250,24 @@ public class PreservationActionPluginTest {
         assertThat(binaryId).isNotNull();
         WorkflowBatchResults results = (WorkflowBatchResults) handler.getInput(WORKFLOWBATCHRESULTS_IN_MEMORY);
         assertThat(binaryId).isEqualTo(results.getWorkflowBatchResults().get(0).getOutputExtras().get(0).getBinaryGUID());
+    }
+
+    @Test
+    @RunWithCustomExecutor
+    public void should_kill_griffin_process_when_timeout_expired() throws Exception {
+        // Given
+        PreservationDistributionLine preservationDistributionLineShortTimeout = new PreservationDistributionLine("fmt/43", "photo.jpg",
+            Collections.singletonList(new ActionPreservation(ActionTypePreservation.ANALYSE)), "unitId", griffinInfinteLoopId, objectId, true,
+            2, "gotId", "BinaryMaster", "BinaryMaster", "other_binary_strategy", "ScenarioId", "griffinIdentifier");
+        parameter.setObjectMetadataList(Collections.singletonList(JsonHandler.toJsonNode(preservationDistributionLineShortTimeout)));
+        given(storageClient.getContainerAsync("other_binary_strategy", objectId, OBJECT, getNoLogAccessLog()))
+            .willReturn(createOkResponse("image-files-with-data"));
+
+        // When
+        ThrowingCallable throwingCallable = () -> plugin.executeList(parameter, handler);
+
+        // Then
+        assertThatThrownBy(throwingCallable).isInstanceOf(ProcessingException.class).hasMessageContaining("process hasn't exited");
     }
 
     private Response createOkResponse(String entity) {
