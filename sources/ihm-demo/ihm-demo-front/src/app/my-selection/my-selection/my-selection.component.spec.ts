@@ -13,6 +13,7 @@ import {VitamResponse} from '../../common/utils/response';
 import {ArchiveUnitMetadata, ArchiveUnitSelection} from '../selection';
 import {ObjectsService} from '../../common/utils/objects.service';
 import {ReferentialsService} from '../../referentials/referentials.service';
+import {ResourcesService} from "../../common/resources.service";
 
 const response: VitamResponse = {
   httpCode: 200,
@@ -61,6 +62,7 @@ const defaultAUSMock: ArchiveUnitSelection[] = [
 
 const MySelectionServiceStub = {
   getResults: (offset, limit: number = 125) => Observable.of(response),
+  getBasketFromLocalStorage: () => [{}],
   haveChildren: () => true,
   getChildren: (id) => {
     response.$results.push({
@@ -80,6 +82,10 @@ const ArchiveUnitServiceStub = {
   getObjects: (id) => Observable.of(new VitamResponse()),
   getResults: (body, offset, limit) => Observable.of(new VitamResponse()),
   updateMetadata: (id, updateRequest) => Observable.of(new VitamResponse())
+};
+
+const ResourceServiceStub = {
+  getTenant: () => 0
 };
 
 const ReferentialsServiceStub = {
@@ -110,7 +116,8 @@ describe('MySelectionComponent', () => {
         DialogService,
         { provide: ReferentialsService, useValue: ReferentialsServiceStub },
         { provide: MySelectionService, useValue: MySelectionServiceStub },
-        { provide: ArchiveUnitService, useValue: ArchiveUnitServiceStub }
+        { provide: ArchiveUnitService, useValue: ArchiveUnitServiceStub },
+        { provide: ResourcesService, useValue: ResourceServiceStub }
       ],
       schemas: [NO_ERRORS_SCHEMA]
     })
