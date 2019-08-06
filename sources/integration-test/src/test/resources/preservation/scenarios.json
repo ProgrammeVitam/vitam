@@ -8,7 +8,6 @@
     "ActionList": [
       "GENERATE"
     ],
-    "MetadataFilter": [],
     "GriffinByFormat": [
       {
         "FormatList": [
@@ -186,8 +185,6 @@
       "ANALYSE",
       "GENERATE"
     ],
-    "MetadataFilter": [
-    ],
     "GriffinByFormat": [
       {
         "FormatList": [
@@ -310,10 +307,6 @@
     "ActionList": [
       "ANALYSE"
     ],
-    "MetadataFilter": [
-      "AU_TextContent",
-      "AU_NamedEntity"
-    ],
     "GriffinByFormat": [
       {
         "FormatList": [
@@ -337,12 +330,7 @@
         "ActionDetail": [
           {
             "Type": "ANALYSE",
-            "Values": {
-              "DataToExtract": {
-                "AU_TextContent": "text",
-                "AU_NamedEntity": "namedEntityList"
-              }
-            }
+            "Values": null
           }
         ]
       }

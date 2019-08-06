@@ -5,7 +5,6 @@
     "ActionList": [
       "GENERATE"
     ],
-    "MetadataFilter": null,
     "GriffinByFormat": [
       {
         "FormatList": ["fmt/43"],

@@ -8,7 +8,8 @@ export enum ActionTypePreservation {
 export class ValuesPreservation {
   Extension: string;
   Args: string[];
-  DataToExtract: any;
+  FilteredExtractedObjectGroupData: string[];
+  FilteredExtractedUnitData: string[];
 }
 
 export class ActionPreservation {
@@ -37,5 +38,4 @@ export class Scenario {
   GriffinByFormat: GriffinByFormat;
   ActionList: ActionTypePreservation;
   DefaultGriffin: GriffinByFormat;
-  MetadataFilter: string[];
 }

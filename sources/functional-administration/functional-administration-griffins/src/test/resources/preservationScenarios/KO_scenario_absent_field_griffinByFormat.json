@@ -6,7 +6,6 @@
     "ActionList": [
       "GENERATE"
     ],
-    "MetadataFilter": null,
     "DefaultGriffin": {
         "FormatList": ["fmt/43"],
         "GriffinIdentifier": "GRI-000001",

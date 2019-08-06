@@ -7,7 +7,6 @@
     "ActionList": [
       "GENERATE"
     ],
-    "MetadataFilter": null,
     "GriffinByFormat": [
       {
         "FormatList": ["fmt/43"],
@@ -58,7 +57,6 @@
     "ActionList": [
       "GENERATE"
     ],
-    "MetadataFilter": null,
     "GriffinByFormat": [
       {
         "FormatList": ["fmt/41"],
