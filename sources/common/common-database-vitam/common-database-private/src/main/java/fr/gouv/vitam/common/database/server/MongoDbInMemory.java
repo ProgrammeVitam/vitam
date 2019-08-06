@@ -535,7 +535,7 @@ public class MongoDbInMemory {
         String ruleId = unitRule.get(RULE_KEY) != null ? unitRule.get(RULE_KEY).asText() : null;
         DurationData durationData = bindRuleToDuration.get(ruleId);
 
-        if (durationData == null) {
+        if (durationData == null || unitRule.path(START_DATE_KEY).isNull() || unitRule.path(START_DATE_KEY).isMissingNode()) {
             return;
         }
 
