@@ -71,7 +71,6 @@ export class ReferentialHelper {
       'LastUpdate': 'Dernière modification',
       'ActionList': 'Action(s) couverte(s)',
       'DefaultGriffin': 'Action par défaut',
-      'MetadataFilter': 'Filtre de métadonnées',
       'GriffinByFormat': 'Action(s) à réaliser',
       'GriffinByFormat.FormatList': 'Format(s) concerné(s)',
       'GriffinByFormat.GriffinIdentifier':'Identifiant du griffon à exécuter',
@@ -90,9 +89,10 @@ export class ReferentialHelper {
       'DefaultGriffin.ActionDetail.Values'  :'Valeur(s)',
       'DefaultGriffin.ActionDetail.Values.Args'  :'Argument(s)',
       'GriffinByFormat.ActionDetail.Values.Args'  :'Argument(s)',
-      'GriffinByFormat.ActionDetail.Values.DataToExtract'  :'Données à Extraire',
-      'DefaultGriffin.ActionDetail.Values.DataToExtract'  :'Données à Extraire'
-
+      'GriffinByFormat.ActionDetail.Values.FilteredExtractedUnitData'  :'FilteredExtractedUnitData',
+      'GriffinByFormat.ActionDetail.Values.FilteredExtractedObjectGroupData'  :'FilteredExtractedObjectGroupData',
+      'DefaultGriffin.ActionDetail.Values.FilteredExtractedUnitData'  :'FilteredExtractedUnitData',
+      'DefaultGriffin.ActionDetail.Values.FilteredExtractedObjectGroupData'  :'FilteredExtractedObjectGroupData'
     };
   }
 }

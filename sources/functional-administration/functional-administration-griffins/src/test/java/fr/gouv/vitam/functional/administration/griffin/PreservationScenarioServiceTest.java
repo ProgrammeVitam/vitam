@@ -97,7 +97,6 @@ public class PreservationScenarioServiceTest {
             "name",
             "id",
             singletonList(GENERATE),
-            singletonList("string"),
             singletonList(new GriffinByFormat()),
             defaultGriffin);
 
@@ -285,7 +284,6 @@ public class PreservationScenarioServiceTest {
             "name",
             "id",
             singletonList(GENERATE),
-            singletonList("string"),
             singletonList(griffinByFormat),
             defaultGriffin);
 

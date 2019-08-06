@@ -5,10 +5,6 @@
     "Identifier": "IDENTIFIER1",
     "CreationDate": "25/10/2010",
     "LastUpdate": "25/10/2010",
-    "MetadataFilter": [
-      "AU_TextContent",
-      "AU_NamedEntity"
-    ],
     "GriffinByFormat": [
       {
         "FormatList": ["fmt/431"],
@@ -41,10 +37,6 @@
     "Identifier": "IDENTIFIER2",
     "CreationDate": "25/10/2010",
     "LastUpdate": "25/10/2010",
-    "MetadataFilter": [
-      "AU_TextContent",
-      "AU_NamedEntity"
-    ],
     "GriffinByFormat": [
       {
         "FormatList": ["fmt/4322"],
@@ -77,10 +69,6 @@
     "Identifier": "IDENTIFIER3",
     "CreationDate": "25/10/2010",
     "LastUpdate": "25/10/2010",
-    "MetadataFilter": [
-      "AU_TextContent",
-      "AU_NamedEntity"
-    ],
     "GriffinByFormat": [
       {
         "FormatList": ["fmt/43"],

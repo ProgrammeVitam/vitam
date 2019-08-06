@@ -60,8 +60,6 @@ public class PreservationScenarioModel {
 
     private static final String TAG_DEFAULT_GRIFFIN = "DefaultGriffin";
 
-    private static final String TAG_METADATA_FILTER = "MetadataFilter";
-
     @JsonProperty(ModelConstants.HASH + ModelConstants.TAG_ID)
     @JsonAlias(ModelConstants.UNDERSCORE + ModelConstants.TAG_ID)
     private String id;
@@ -95,9 +93,6 @@ public class PreservationScenarioModel {
     @JsonProperty(TAG_ACTION_LIST)
     private List<ActionTypePreservation> actionList;
 
-    @JsonProperty(TAG_METADATA_FILTER)
-    private List<String> metadataFilter;
-
     @Valid
     @JsonProperty(TAG_GRIFFIN_BY_FORMAT)
     private List<GriffinByFormat> griffinByFormat;
@@ -114,13 +109,11 @@ public class PreservationScenarioModel {
         @NotEmpty String name,
         @NotEmpty String identifier,
         @NotEmpty List<ActionTypePreservation> actionList,
-        @NotEmpty List<String> metadataFilter,
         @NotEmpty List<GriffinByFormat> griffinByFormat,
         @NotEmpty DefaultGriffin defaultGriffin) {
         this.name = name;
         this.identifier = identifier;
         this.actionList = actionList;
-        this.metadataFilter = metadataFilter;
         this.griffinByFormat = griffinByFormat;
         this.defaultGriffin = defaultGriffin;
     }
@@ -197,14 +190,6 @@ public class PreservationScenarioModel {
         this.actionList = actionList;
     }
 
-    public List<String> getMetadataFilter() {
-        return metadataFilter;
-    }
-
-    public void setMetadataFilter(List<String> metadataFilter) {
-        this.metadataFilter = metadataFilter;
-    }
-
     public List<GriffinByFormat> getGriffinByFormat() {
         if (griffinByFormat == null) {
             return Collections.emptyList();
@@ -266,7 +251,6 @@ public class PreservationScenarioModel {
             ", creationDate='" + creationDate + '\'' +
             ", lastUpdate='" + lastUpdate + '\'' +
             ", actionList=" + actionList +
-            ", metadataFilter=" + metadataFilter +
             ", griffinByFormat=" + griffinByFormat +
             ", defaultGriffin=" + defaultGriffin +
             '}';

@@ -31,10 +31,6 @@
     "ActionList": {
       "type": "text"
     },
-    "MetadataFilter": {
-      "type": "text"
-    },
-
     "GriffinByFormat": {
       "properties": {
         "FormatList": {
@@ -104,9 +100,6 @@
                 },
                 "Args": {
                   "type": "text"
-                },
-                "DataToExtract": {
-                  "type": "object"
                 }
               }
             }

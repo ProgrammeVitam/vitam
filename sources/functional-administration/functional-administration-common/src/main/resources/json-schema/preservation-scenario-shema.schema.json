@@ -43,9 +43,6 @@
     "DefaultGriffin":{
       "type": "object"
     },
-    "MetadataFilter":{
-      "type": "array"
-    },
     "LastUpdate": {
       "type": "string"
     },
