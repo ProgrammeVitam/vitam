@@ -10,15 +10,23 @@ import fr.gouv.vitam.common.database.parser.request.multiple.UpdateParserMultipl
 import fr.gouv.vitam.common.database.parser.request.single.UpdateParserSingle;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
+import fr.gouv.vitam.common.model.DurationData;
+import fr.gouv.vitam.common.model.massupdate.RuleAction;
+import fr.gouv.vitam.common.model.massupdate.RuleActions;
+import fr.gouv.vitam.common.model.massupdate.RuleCategoryAction;
+import org.assertj.core.api.ThrowableAssert.ThrowingCallable;
 import org.junit.Before;
 import org.junit.Test;
 
+import java.time.temporal.ChronoUnit;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.Map;
 
 import static fr.gouv.vitam.common.database.collections.VitamDescriptionType.VitamCardinality.one;
 import static fr.gouv.vitam.common.database.collections.VitamDescriptionType.VitamType.text;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertNull;
@@ -627,5 +635,55 @@ public class MongoDbInMemoryTest {
         mDIM.getUpdateJson(parser);
 
         // Then : NO NPE
+    }
+
+    @Test
+    public void should_not_throw_npe_when_update_with_rule_without_start_date() throws Exception {
+        // Given
+        DynamicParserTokens parserTokens = new DynamicParserTokens(Collections.emptyMap(), Collections.emptyList());
+        JsonNode documentToUpdate = JsonHandler.getFromString(
+            "{\n" +
+            "  \"_mgt\": {\n" +
+            "    \"AccessRule\": {\n" +
+            "      \"Rules\": [\n" +
+            "        {\n" +
+            "          \"Rule\": \"ACC-00001\"\n" +
+            "        }\n" +
+            "      ]\n" +
+            "    }\n" +
+            "  }\n" +
+            "}"
+        );
+        MongoDbInMemory mongoDbInMemory = new MongoDbInMemory(documentToUpdate, parserTokens);
+
+        DurationData duration = new DurationData();
+        duration.setDurationUnit(ChronoUnit.FOREVER);
+        duration.setDurationValue(12);
+
+        String ruleId = "Rule";
+
+        Map<String, DurationData> durations = new HashMap<>();
+        durations.put(ruleId, duration);
+
+        RuleAction ruleToUpdate = new RuleAction();
+        ruleToUpdate.setOldRule("ACC-00001");
+        ruleToUpdate.setRule(ruleId);
+
+        RuleCategoryAction accessRuleToUpdate = new RuleCategoryAction();
+        accessRuleToUpdate.setRules(Collections.singletonList(ruleToUpdate));
+
+        HashMap<String, RuleCategoryAction> updates = new HashMap<>();
+        updates.put("AccessRule", accessRuleToUpdate);
+
+        RuleActions ruleActions = new RuleActions();
+        ruleActions.setAdd(Collections.emptyList());
+        ruleActions.setDelete(Collections.emptyList());
+        ruleActions.setUpdate(Collections.singletonList(updates));
+
+        // When
+        ThrowingCallable updateForRule = () -> mongoDbInMemory.getUpdateJsonForRule(ruleActions, durations);
+
+        // Then
+        assertThatCode(updateForRule).doesNotThrowAnyException();
     }
 }
