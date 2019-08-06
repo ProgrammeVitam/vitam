@@ -34,6 +34,7 @@ import fr.gouv.vitam.batch.report.model.EliminationActionAccessionRegisterModel;
 import fr.gouv.vitam.batch.report.model.EliminationActionObjectGroupModel;
 import fr.gouv.vitam.batch.report.model.EliminationActionUnitModel;
 import fr.gouv.vitam.batch.report.model.MergeSortedIterator;
+import fr.gouv.vitam.batch.report.model.OperationSummary;
 import fr.gouv.vitam.batch.report.model.PreservationReportModel;
 import fr.gouv.vitam.batch.report.model.PreservationStatsModel;
 import fr.gouv.vitam.batch.report.model.PreservationStatus;
@@ -213,37 +214,37 @@ public class BatchReportServiceImpl {
         }
     }
 
-    private void storeReport(String operationId, File report) throws IOException, BackupServiceException {
-        backupService.backup(new FileInputStream(report), DataCategory.REPORT, operationId + ".jsonl");
+    private void storeReport(String processId, File report) throws IOException, BackupServiceException {
+        backupService.backup(new FileInputStream(report), DataCategory.REPORT, processId + ".jsonl");
     }
 
     private JsonNode getExtendedInfo(Report reportInfo) throws InvalidParseOperationException {
         switch (reportInfo.getReportSummary().getReportType()) {
             default:
-                return JsonHandler.createObjectNode();
+                return reportInfo.getReportSummary().getExtendedInfo();
         }
     }
 
     private ReportResults getReportResults(Report reportInfo) {
-        return new ReportResults();
+        return reportInfo.getReportSummary().getVitamResults();
     }
 
     public void storeReport(Report reportInfo)
         throws IllegalArgumentException, IOException, BackupServiceException, InvalidParseOperationException {
 
-        String processId = reportInfo.getOperationSummary().getEvId();
-        Integer tenantId = reportInfo.getOperationSummary().getTenant();
-        JsonNode extendedInfo = getExtendedInfo(reportInfo);
-        reportInfo.getReportSummary().setExtendedInfo(extendedInfo);
-        ReportResults vitamResults = getReportResults(reportInfo);
-        reportInfo.getReportSummary().setVitamResults(vitamResults);
+        OperationSummary operationSummary = reportInfo.getOperationSummary();
+        String processId = operationSummary.getEvId();
+        int tenantId = operationSummary.getTenant();
+
         ReportSummary reportSummary = reportInfo.getReportSummary();
-        reportSummary.setExtendedInfo(extendedInfo);
+        reportSummary.setExtendedInfo(getExtendedInfo(reportInfo));
+        reportSummary.setVitamResults(getReportResults(reportInfo));
+
 
         File tempReport = File.createTempFile(REPORT_JSONL, JSONL_EXTENSION, new File(VitamConfiguration.getVitamTmpFolder()));
 
         try (JsonLineWriter reportWriter = new JsonLineWriter(new FileOutputStream(tempReport))) {
-            reportWriter.addEntry(reportInfo.getOperationSummary());
+            reportWriter.addEntry(operationSummary);
             reportWriter.addEntry(reportSummary);
             reportWriter.addEntry(reportInfo.getContext());
 
@@ -253,11 +254,11 @@ public class BatchReportServiceImpl {
                     writeDocumentsInFile(reportWriter, updates);
                     break;
                 default:
-                    throw new UnsupportedOperationException("Unsupported report type yo store: " + reportInfo.getReportSummary().getReportType());
+                    throw new UnsupportedOperationException(String.format("Unsupported report type : '%s'.", reportSummary.getReportType()));
             }
         }
 
-        storeReport(reportInfo.getOperationSummary().getEvId(), tempReport);
+        storeReport(processId, tempReport);
     }
 
     public void exportEliminationActionObjectGroupReport(String processId, String fileName, int tenantId)
