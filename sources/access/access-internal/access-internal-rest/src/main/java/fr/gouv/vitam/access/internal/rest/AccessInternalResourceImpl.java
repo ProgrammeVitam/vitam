@@ -1061,7 +1061,7 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
             SanityChecker.checkJsonAll(queryDsl);
 
             // Check the writing rights
-            if (!getVitamSession().getContract().getWritingPermission()) {
+            if (getVitamSession().getContract().getWritingPermission() == null || !getVitamSession().getContract().getWritingPermission()) {
                 status = Status.UNAUTHORIZED;
                 return Response.status(status).entity(getErrorEntity(status, "Write permission not allowed")).build();
             }
@@ -1140,7 +1140,8 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
             SanityChecker.checkJsonAll(queryDsl);
 
             // Check the writing rights
-            if (!getVitamSession().getContract().getWritingPermission()) {
+
+            if (!isAuthorized()) {
                 status = Status.UNAUTHORIZED;
                 return Response.status(status).entity(getErrorEntity(status, "Write permission not allowed")).build();
             }
@@ -1192,6 +1193,12 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
         }
     }
 
+    private boolean isAuthorized() {
+        if (getVitamSession().getContract().getWritingPermission() == null || getVitamSession().getContract().getWritingRestrictedDesc() == null) {
+            return false;
+        }
+        return getVitamSession().getContract().getWritingPermission() && !getVitamSession().getContract().getWritingRestrictedDesc();
+    }
     private VitamError getErrorEntity(Status status, String message) {
         String aMessage =
             (message != null && !message.trim().isEmpty()) ? message
