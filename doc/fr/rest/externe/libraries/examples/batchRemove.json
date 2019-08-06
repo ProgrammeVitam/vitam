@@ -1,0 +1,20 @@
+{
+  "$roots": [],
+  "$query": [
+    {
+      "$in": {
+        "#id": [
+          "MY-AU-GUID"
+        ]
+      }
+    }
+  ],
+  "$threshold": 10000,
+  "$action": [
+    {
+      "$unset": [
+        "Description"
+      ]
+    }
+  ]
+}

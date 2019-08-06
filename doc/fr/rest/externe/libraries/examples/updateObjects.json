@@ -1,0 +1,23 @@
+{
+  "$roots": [],
+  "$query": [
+    {
+      "$in": {
+        "#id": [
+          "MY-AU-GUID"
+        ]
+      }
+    }
+  ],
+  "$threshold": 10000,
+  "$action": [
+    {
+      "$set": {
+        "Gps": {
+          "GpsLatitude": "lat is here",
+          "GpsLongitude": "long is here"
+        }
+      }
+    }
+  ]
+}
