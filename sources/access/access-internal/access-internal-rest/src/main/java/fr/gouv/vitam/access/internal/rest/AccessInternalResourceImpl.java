@@ -1215,6 +1215,12 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
             AccessContractModel contract = getVitamSession().getContract();
             JsonNode restrictedQuery = applyAccessContractRestrictionForUnitForSelect(dslQuery, contract);
 
+            if (!isAuthorized()) {
+                return Response.status(Status.UNAUTHORIZED)
+                    .entity(getErrorEntity(Status.UNAUTHORIZED, "Write permission not allowed"))
+                    .build();
+            }
+
             try (ProcessingManagementClient processingClient = processingManagementClientFactory.getClient();
                 LogbookOperationsClient logbookOperationsClient = logbookOperationsClientFactory.getClient();
                 WorkspaceClient workspaceClient = workspaceClientFactory.getClient()) {
