@@ -115,6 +115,7 @@ export class MassiveUpdateFormComponent implements OnInit {
     const deleteMetadata: any = {};
     let nbErrors = 0;
     let nbUpdates = 0;
+    let nbDelete = 0;
 
     const categoryNames: string[] = this.rulesCategories.map(x => x.rule);
 
@@ -135,6 +136,7 @@ export class MassiveUpdateFormComponent implements OnInit {
       // Check updates on FinalAction, ClassificationOwner and ClassificationLevel in the category
       const categoryProperties: any = {};
       let propertiesUpdated = false;
+      let propertiesDeleted = false;
       if (ruleCategory.FinalAction != null) {
         propertiesUpdated = true;
         categoryProperties.FinalAction = ruleCategory.FinalAction;
@@ -192,13 +194,17 @@ export class MassiveUpdateFormComponent implements OnInit {
         nbUpdates++;
       }
       if (ruleCategory.AllowRuleIds != null && ruleCategory.AllowRuleIds.length > 0) {
-        propertiesUpdated = true;
+        propertiesDeleted = true;
         categoryProperties.PreventRulesId = ruleCategory.AllowRuleIds;
-        nbUpdates++;
+        nbDelete++;
       }
 
       if (propertiesUpdated) {
         updates[categoryKey] = categoryProperties;
+      }
+      // Block the Rule for an AU means delete it from PreventRulesId Array
+      if (propertiesDeleted) {
+        deletions[categoryKey] = categoryProperties;
       }
 
       // Check for rules in category
@@ -279,7 +285,16 @@ export class MassiveUpdateFormComponent implements OnInit {
         addOrUpdateMetadata: updateMetadata,
         deleteMetadata: deleteMetadata
       };
-    } else {
+    } else if(nbDelete > 0)
+     {
+     this.form.updateRules = {
+        add: ObjectsService.objectToArray(additions),
+        update: ObjectsService.objectToArray(updates),
+        delete: ObjectsService.objectToArray(deletions),
+        addOrUpdateMetadata: updateMetadata,
+        deleteMetadata: deleteMetadata
+      };
+     } else {
       delete this.form.updateRules;
     }
     return true;
