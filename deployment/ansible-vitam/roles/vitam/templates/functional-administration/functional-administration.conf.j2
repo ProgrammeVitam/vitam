@@ -30,18 +30,21 @@ elasticsearchNodes:
 
 # ExternalId configuration
 listEnableExternalIdentifiers:
-  0:
-    - INGEST_CONTRACT
-    - ACCESS_CONTRACT
-    - ARCHIVE_UNIT_PROFILE
-  1:
-    - INGEST_CONTRACT
-    - ACCESS_CONTRACT
-    - PROFILE
-    - SECURITY_PROFILE
-    - CONTEXT
-
+{% for tenant in vitam_tenants_usage_external %}
+{% if tenant.identifiers is defined %}
+  {{ tenant.name }}:
+{% for external in tenant.identifiers %}
+    - {{ external }}
+{% endfor %}
+{% endif %}
+{% endfor %}
 
 listMinimumRuleDuration:
-  2:
-    AppraisalRule : 1 year
+{% for tenant in vitam_tenant_rule_duration %}
+  {{ tenant.name }}:
+{% for rule in tenant.rules %}
+{% for key, value in rule.items() %}
+    {{ key }}: {{ value }}
+{% endfor %}
+{% endfor %}
+{% endfor %}

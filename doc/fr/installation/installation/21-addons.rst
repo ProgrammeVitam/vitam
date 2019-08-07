@@ -123,7 +123,7 @@ Pour cela, il est nécessaire de placer un fichier de configuration dédié dans
 Passage des identifiants des référentiels en mode `esclave`
 ===========================================================
 
-La génération des identifiants des référentiels est géré par Vitam quand il fonctionne en mode maître.
+La génération des identifiants des référentiels est gérée par :term:`VITAM`, quand il fonctionne en mode maître.
 
 Par exemple :
 
@@ -131,34 +131,7 @@ Par exemple :
 - Préfixé par IC- pour les contrats d'entrée
 - Préfixé par AC- pour les contrats d'accès
 
-Si vous souhaitez gérer vous-même les identifiants sur un service référentiel, il faut qu'il soit en mode esclave.
-Par défaut tous les services référentiels de Vitam fonctionnent en mode maître. Pour désactiver le mode maître de :term:`VITAM`, il faut modifier le fichier ansible ``deployment/ansible-vitam/roles/vitam/templates/functional-administration/functional-administration.conf.j2``.
-
-Exemple du fichier par défaut :
-
-.. literalinclude:: ../../../../deployment/ansible-vitam/roles/vitam/templates/functional-administration/functional-administration.conf.j2
-     :language: yaml
-     :linenos:
-
-
-Un exemple de ce fichier se trouve dans la Documentation d’exploitation au chapitre "Exploitation des composants de la solution logicielle VITAM".
-
-.. code-block:: text
-
- # ExternalId configuration
-
- listEnableExternalIdentifiers:
-  0:
-    - INGEST_CONTRACT
-    - ACCESS_CONTRACT
-  1:
-    - INGEST_CONTRACT
-    - ACCESS_CONTRACT
-    - PROFILE
-    - SECURITY_PROFILE
-    - CONTEXT
-
-Depuis la version 1.0.4, la configuration par défaut de Vitam autorise des identifiants externes (ceux qui sont dans le fichier json importé).
+Depuis la version 1.0.4, la configuration par défaut de :term:`VITAM` autorise des identifiants externes (ceux qui sont dans le fichier json importé).
 
  - pour le tenant 0 pour les référentiels : contrat d'entrée et contrat d'accès.
  - pour le tenant 1 pour les référentiels : contrat d'entrée, contrat d'accès, profil, profil de sécurité et contexte.
@@ -172,27 +145,34 @@ La liste des choix possibles, pour chaque tenant, est :
   - CONTEXT : contextes applicatifs (utile seulement sur le tenant d'administration)
   - ARCHIVEUNITPROFILE : profils d'unités archivistiques
 
+Si vous souhaitez gérer vous-même les identifiants sur un service référentiel, il faut qu'il soit en mode esclave.
+
+Par défaut tous les services référentiels de Vitam fonctionnent en mode maître. Pour désactiver le mode maître de :term:`VITAM`, il faut modifier le fichier ansible ``deployment/environments/group_vars/all/vitam_vars.yml`` dans les sections ``vitam_tenants_usage_external`` (pour gérer, par tenant, les collections en mode esclave).
+
+Un exemple de ce fichier se trouve dans la Documentation d’exploitation au chapitre "Exploitation des composants de la solution logicielle VITAM".
+
+
 Durées minimales permettant de contrôler les valeurs saisies
 ==============================================================
 
 Afin de se prémunir contre une alimentation du référentiel des règles de gestion avec des durées trop courtes susceptibles de déclencher des actions indésirables sur la plate-forme (ex. éliminations) – que cette tentative soit intentionnelle ou non –, la solution logicielle :term:`VITAM` vérifie que l’association de la durée et de l’unité de mesure saisies pour chaque champ est supérieure ou égale à une durée minimale définie lors du paramétrage de la plate-forme, dans un fichier de configuration.
 
-Pour mettre en place le comportement attendu par le métier, il faut modifier le contenu de la directive ``listMinimumRuleDuration`` dans le fichier ansible ``deployment/ansible-vitam/roles/vitam/templates/functional-administration/functional-administration.conf.j2``.
+Pour mettre en place le comportement attendu par le métier, il faut modifier le contenu de la directive ``vitam_tenant_rule_duration`` dans le fichier ansible ``deployment/environments/group_vars/all/vitam_vars.yml``.
 
 Exemple::
 
-  listMinimumRuleDuration:
-    2:
-      AppraisalRule : 1 year
-      DisseminationRule : 10 year
+  vitam_tenant_rule_duration:
+    - name: 2 # applied tenant
+      rules: 
+        - AppraisalRule : "1 year" # rule name : rule value
+    - name: 3
+      rules:
+        AppraisaleRule : "5 year"
+        StorageRule : "5 year"
+        ReuseRule : "2 year"
 
-    3:
-      AppraisaleRule : 5 year
-      StorageRule : 5 year
-      ReuseRule : 2 year
 
-
-Par tenant, les directives possibles sont :
+Par `tenant`, les directives possibles sont :
 
 - AppraisalRule
 - DisseminationRule

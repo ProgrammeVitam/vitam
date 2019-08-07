@@ -525,3 +525,24 @@ vitam:
         consul_check_business: 10 # value in seconds
         consul_admin_check: 10 # value in seconds
         acceptableRequestTime: 10 # value in seconds
+
+
+# for functional-administration, manage master/slave tenant configuration
+vitam_tenants_usage_external:
+  - name: 0
+    identifiers:
+        - INGEST_CONTRACT
+        - ACCESS_CONTRACT
+        - ARCHIVE_UNIT_PROFILE
+  - name: 1
+    identifiers:
+      - INGEST_CONTRACT
+      - ACCESS_CONTRACT
+      - PROFILE
+      - SECURITY_PROFILE
+      - CONTEXT
+
+vitam_tenant_rule_duration:
+  - name: 2 # applied tenant
+    rules: 
+      - AppraisalRule : "1 year" # rule name : rule value
