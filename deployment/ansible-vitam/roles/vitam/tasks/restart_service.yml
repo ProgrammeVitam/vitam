@@ -1,0 +1,16 @@
+---
+
+- name: restart service
+  service:
+    name: "{{ package_name }}"
+    state: restarted
+  when: ( primary_site | lower == "true" ) or
+        ( vitam_struct.vitam_component in vitam_secondary_site_components )
+
+- name: "Check if service is listening on service port"
+  wait_for:
+    host: "{{ ip_service }}"
+    port: "{{ vitam_struct.port_service }}"
+    state: started
+  when: ( primary_site | lower == "true" ) or
+        ( vitam_struct.vitam_component in vitam_secondary_site_components )
