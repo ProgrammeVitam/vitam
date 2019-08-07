@@ -51,7 +51,7 @@ public class RuleMapper {
                 ruleIdType.setValue(ruleId);
                 return ruleIdType;
             }).collect(Collectors.toList()));
-            if(inheritance.getPreventRulesId().isEmpty()) {
+            if (commonRule.getRefNonRuleId().isEmpty()) {
                 commonRule.setPreventInheritance(inheritance.isPreventInheritance());
             }
         }
