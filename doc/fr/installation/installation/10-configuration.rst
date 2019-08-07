@@ -11,7 +11,7 @@ Configuration du déploiement
 Fichiers de déploiement
 =======================
 
-Les fichiers de déploiement sont disponibles dans la version VITAM livrée, dans le sous-répertoire |repertoire_deploiement| . Concernant l'installation, ils se déclinent en 2 parties :
+Les fichiers de déploiement sont disponibles dans la version :term:`VITAM` livrée, dans le sous-répertoire |repertoire_deploiement| . Concernant l'installation, ils se déclinent en 2 parties :
 
  * les *playbook* ansible de déploiement, présents dans le sous-répertoire |repertoire_playbook ansible|, qui est indépendant de l'environnement à déployer ; ces fichiers ne sont normalement pas à modifier pour réaliser une installation.
  * l'arborescence d'inventaire ; des fichiers d'exemples sont disponibles dans le sous-répertoire |repertoire_inventory|. Cette arborescence est valable pour le déploiement d'un environnement, et doit être dupliquée lors de l'installation d'environnements ultérieurs. Les fichiers contenus dans cette arborescence doivent être adaptés avant le déploiement, comme expliqué dans les paragraphes suivants.
@@ -25,7 +25,7 @@ Informations `plate-forme`
 Inventaire
 -----------
 
-Pour configurer le déploiement, il est nécessaire de créer, dans le répertoire |repertoire_inventory|, un nouveau fichier d'inventaire (dans la suite, ce fichier sera communément appelé  ``hosts.<environnement>``). Ce fichier devra se conformer à la structure présente dans le fichier ``hosts.example`` (et notamment respecter scrupuleusement l'arborescence des groupes `ansible`). Les commentaires dans ce fichier fournissent les explications permettant l'adaptation à l'environnement cible :
+Pour configurer le déploiement, il est nécessaire de créer, dans le répertoire |repertoire_inventory|, un nouveau fichier d'inventaire (par la suite, ce fichier sera communément appelé  ``hosts.<environnement>``). Ce fichier devra se conformer à la structure présente dans le fichier ``hosts.example`` (et notamment respecter scrupuleusement l'arborescence des groupes `ansible`). Les commentaires dans ce fichier fournissent les explications permettant l'adaptation à l'environnement cible :
 
 .. literalinclude:: ../../../../deployment/environments/hosts.example
    :language: ini
@@ -57,7 +57,7 @@ Fichier ``offers_opts.yml``
 
 .. hint:: Fichier à créer depuis ``offers_opts.yml.example`` et à paramétrer selon le besoin.
 
-La déclaration de configuration des offres de stockage associées est réalisée dans le fichier |repertoire_inventory| ``/group_vars/all/offers_opts.yml`` :
+La déclaration de configuration des offres de stockage associées se fait dans le fichier |repertoire_inventory| ``/group_vars/all/offers_opts.yml`` :
 
  .. literalinclude:: ../../../../deployment/environments/group_vars/all/offers_opts.yml.example
      :language: yaml
@@ -92,18 +92,18 @@ Déclaration des secrets
 .. warning:: Cette section décrit des fichiers contenant des données sensibles. Il est important d'implémenter une politique de mot de passe robuste conforme à ce que l'ANSSI préconise. Par exemple: ne pas utiliser le même mot de passe pour chaque service, renouveler régulièrement son mot de passe, utiliser des majuscules, minuscules, chiffres et caractères spéciaux (Se référer à la documentation ANSSI https://www.ssi.gouv.fr/guide/mot-de-passe). En cas d'usage d'un fichier de mot de passe (`vault-password-file`), il faut renseigner ce mot de passe comme contenu du fichier et ne pas oublier de sécuriser ou supprimer ce fichier à l'issue de l'installation.
 
 
-Les secrets utilisés par la solution logicielle (en-dehors des certificats qui sont abordés dans une section ultérieure) sont définis dans des fichiers chiffrés par ansible-vault.
+Les secrets utilisés par la solution logicielle (en-dehors des certificats qui sont abordés dans une section ultérieure) sont définis dans des fichiers chiffrés par ``ansible-vault``.
 
 .. important:: Tous les vault présents dans l'arborescence d'inventaire doivent être tous protégés par le même mot de passe !
 
-La première étape consiste à changer les mots de passe de tous les vault présents dans l'arborescence de déploiement (le mot de passe par défaut est contenu dans le fichier ``vault_pass.txt``) à l'aide de la commande ``ansible-vault rekey <fichier vault>``.
+La première étape consiste à changer les mots de passe de tous les vaults présents dans l'arborescence de déploiement (le mot de passe par défaut est contenu dans le fichier ``vault_pass.txt``) à l'aide de la commande ``ansible-vault rekey <fichier vault>``.
 
 Voici la liste des vaults pour lesquels il est nécessaire de modifier le mot de passe:
 
-* environments/group_vars/all/vault-vitam.yml
-* environments/group_vars/all/vault-keystores.yml
-* environments/group_vars/all/vault-extra.yml
-* environments/certs/vault-certs.yml
+* ``environments/group_vars/all/vault-vitam.yml``
+* ``environments/group_vars/all/vault-keystores.yml``
+* ``environments/group_vars/all/vault-extra.yml``
+* ``environments/certs/vault-certs.yml``
 
 2 vaults sont principalement utilisés dans le déploiement d'une version ; leur contenu est donc à modifier avant tout déploiement :
 
@@ -113,7 +113,7 @@ Voici la liste des vaults pour lesquels il est nécessaire de modifier le mot de
      :language: ini
      :linenos:
 
-.. warning:: Le paramétrage du mode d'authentifications des utilisateurs à l'IHM démo est géré au niveau du fichier ``deployment/environments/group_vars/all/vitam_vars.yml``. Plusieurs modes d'authentifications sont proposés au niveau de la section ``authentication_realms``. Dans le cas d'une authentification se basant sur le mécanisme ``iniRealm`` (configuration ``shiro`` par défaut), les mots de passe déclarés dans la section ``vitam_users`` devront s'appuyer sur une politique de mot de passe robuste, comme indiqué en début de chapitre. Il est par ailleurs possible de  choisir un mode d'authentification s'appuyant sur un annuaire LDAP externe (``ldapRealm`` dans la section ``authentication_realms``).
+.. warning:: Le paramétrage du mode d'authentifications des utilisateurs à l':term:`IHM` démo est géré au niveau du fichier ``deployment/environments/group_vars/all/vitam_vars.yml``. Plusieurs modes d'authentifications sont proposés au niveau de la section ``authentication_realms``. Dans le cas d'une authentification se basant sur le mécanisme ``iniRealm`` (configuration ``shiro`` par défaut), les mots de passe déclarés dans la section ``vitam_users`` devront s'appuyer sur une politique de mot de passe robuste, comme indiqué en début de chapitre. Il est par ailleurs possible de  choisir un mode d'authentification s'appuyant sur un annuaire LDAP externe (``ldapRealm`` dans la section ``authentication_realms``).
 
 .. note:: Dans le cadre d'une installation avec au moins une offre `swift`, il faut déclarer, dans la section ``vitam_offers``, le nom de chaque offre et le mot de passe de connexion `swift` associé, défini dans le fichier ``offers_opts.yml``. L'exemple ci-dessus présente la déclaration du mot de passe pour l'offre swift `offer-swift-1`.
 
@@ -127,7 +127,7 @@ Voici la liste des vaults pour lesquels il est nécessaire de modifier le mot de
 
 .. warning:: il convient de sécuriser votre environnement en définissant des mots de passe `forts`.
 
-Cas des extra
+Cas des extras
 --------------
 
 * Le fichier |repertoire_inventory| ``/group_vars/all/vault-extra.yml`` contient les mots de passe des magasins de certificats utilisés dans VITAM :

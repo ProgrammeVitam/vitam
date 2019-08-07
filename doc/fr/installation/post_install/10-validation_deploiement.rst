@@ -10,7 +10,7 @@ La procédure de validation est commune aux différentes méthodes d'installatio
 Sécurisation du fichier ``vault_pass.txt``
 ==========================================
 
-Le fichier ``vault_pass.txt`` est très sensible ; il contient le mot de passe du fichier ``environments/group_vars/all/vault.yml`` qui contient les divers mots de passe de la plate-forme. Il est fortement déconseillé de ne pas l'utiliser en production. A l'issue de l'installation, il est nécessaire de le sécuriser (suppression du fichier ou application d'un ``chmod 400``).
+Le fichier ``vault_pass.txt`` est très sensible ; il contient le mot de passe du fichier ``environments/group_vars/all/vault.yml`` qui contient les divers mots de passe de la plate-forme. A l'issue de l'installation, il est primordial de le sécuriser (suppression du fichier ou application d'un ``chmod 400``).
 
 .. Validation par ansible
 .. =======================
@@ -22,14 +22,12 @@ Le fichier ``vault_pass.txt`` est très sensible ; il contient le mot de passe d
 .. .. note:: A l'issue du passage du playbook, les étapes doivent toutes passer en vert.
 
 Validation manuelle
-===================
+===================  
 
-Chaque service VITAM (en dehors de bases de données) expose des URL de statut présente à l'adresse suivante : ``<protocole web http ou https>://<host>:<port>/admin/v1/status``
+Chaque service :term:`VITAM` (en dehors de bases de données) expose des URL de statut à l'adresse suivante : ``<protocole web http ou https>://<host>:<port>/admin/v1/status``
 Cette URL doit retourner une réponse HTTP 204 sur une requête HTTP GET, si OK.
 
-Un playbook d'appel de l'intégralité des autotests est également inclus (``deployment/ansible-vitam-exploitation/status_vitam.yml``). Il est à lancer de la même manière que pour l'installation de vitam (en changeant juste le nom du playbook à exécuter).
-
-.. warning:: les composants VITAM "ihm" n'intègrent pas /admin/v1/status".
+Un playbook d'appel de l'intégralité des autotests est également inclus (``deployment/ansible-vitam-exploitation/status_vitam.yml``). Il est à lancer de la même manière que pour l'installation de :term:`VITAM` (en renommant le playbook à exécuter).
 
 Il est également possible de vérifier la version installée de chaque composant par l'URL :
 
@@ -38,15 +36,13 @@ Il est également possible de vérifier la version installée de chaque composan
 Validation via Consul
 ======================
 
-Consul possède une :term:`IHM` pour afficher l'état des services VITAM et supervise le "/admin/v1/status" de chaque composant VITAM, ainsi que des check TCP sur les bases de données.
+Consul possède une :term:`IHM` pour afficher l'état des services :term:`VITAM` et supervise le "/admin/v1/status" de chaque composant :term:`VITAM`, ainsi que des check TCP sur les bases de données.
 
 Pour se connecter à Consul : ``http//<Nom du 1er host dans le groupe ansible hosts-consul-server>:8500/ui``
 
 Pour chaque service, la couleur à gauche du composant doit être verte (correspondant à un statut OK).
 
 Si une autre couleur apparaît, cliquer sur le service "KO" et vérifier le test qui ne fonctionne pas.
-
-.. warning:: les composants :term:`VITAM` "ihm" (ihm-demo, ihm-recette) n'intègrent pas /admin/v1/status" et donc sont indiqués "KO" sous Consul ; il ne faut pas en tenir compte, sachant que si l'IHM s'affiche en appel "classique", le composant fonctionne.
 
 
 Post-installation : administration fonctionnelle

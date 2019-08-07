@@ -3,17 +3,17 @@ Cycle de vie des certificats
 
 Le tableau ci-dessous indique le mode de fonctionnement actuel pour les différents certificats et :term:`CA`. Précisions :
 
-* Les "procédures par défaut" liées au cycle de vie des certificats dans la présente version de la solution VITAM peuvent être résumées ainsi :
+* Les "procédures par défaut" liées au cycle de vie des certificats dans la présente version de la solution :term:`VITAM` peuvent être résumées ainsi :
 
   * Création : génération par :term:`PKI` partenaire + copie dans répertoires de déploiement + script ``generate_stores.sh`` + déploiement ansible
   * Suppression : suppression dans répertoires de déploiement + script ``generate_stores.sh`` + déploiement ansible 
   * Renouvellement : regénération par :term:`PKI` partenaire + suppression / remplacement dans répertoires de déploiement + script ``generate_stores.sh`` + redéploiement ansible
 
-* Il n’y a pas de contrainte au niveau des :term:`CA` utilisées (une :term:`CA` unique pour tous les usages VITAM ou plusieurs :term:`CA` séparées – cf. :term:`DAT`). On appelle ici :
+* Il n’y a pas de contrainte au niveau des :term:`CA` utilisées (une :term:`CA` unique pour tous les usages :term:`VITAM` ou plusieurs :term:`CA` séparées – cf. :term:`DAT`). On appelle ici :
 
-  * ":term:`PKI` partenaire" : :term:`PKI` / :term:`CA` utilisées pour le déploiement et l’exploitation de la solution VITAM par le partenaire.
+  * ":term:`PKI` partenaire" : :term:`PKI` / :term:`CA` utilisées pour le déploiement et l’exploitation de la solution :term:`VITAM` par le partenaire.
   
-  * ":term:`PKI` distante" : :term:`PKI` / :term:`CA` utilisées pour l’usage des frontaux en communication avec le back office VITAM.
+  * ":term:`PKI` distante" : :term:`PKI` / :term:`CA` utilisées pour l’usage des frontaux en communication avec le back office :term:`VITAM`.
 
 .. csv-table:: 
     :header: "Classe", "Type", "Usages", "Origine", "Création", "Suppression", "Renouvellement"
@@ -37,4 +37,4 @@ Le tableau ci-dessous indique le mode de fonctionnement actuel pour les différe
 Remarques :
  * Lors d'un renouvellement de :term:`CA` :term:`SIA`, il faut s'assurer que les certificats qui y correspondaient soient retirés de MongoDB et que les nouveaux certificats soient ajoutés par le biais de l' :term:`API` dédiée.
  * Lors de toute suppression ou remplacement de certificats :term:`SIA`, s'assurer que la suppression ou remplacement des contextes associés soit également réalisé.
- * L’expiration des certificats n’est pas automatiquement prise en charge par la solution VITAM (pas de notification en fin de vie, pas de renouvellement automatique). Pour la plupart des usages, un certificat expiré est proprement rejeté et la connexion ne se fera pas ; les seules exceptions sont les certificats *Personae*, pour lesquels la validation de l'arborescence :term:`CA` et des dates est à charge du front office en interface avec VITAM.
+ * L’expiration des certificats n’est pas automatiquement prise en charge par la solution :term:`VITAM` (pas de notification en fin de vie, pas de renouvellement automatique). Pour la plupart des usages, un certificat expiré est proprement rejeté et la connexion ne se fera pas ; les seules exceptions sont les certificats *Personae*, pour lesquels la validation de l'arborescence :term:`CA` et des dates est à charge du front office en interface avec :term:`VITAM`.

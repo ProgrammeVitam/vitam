@@ -13,7 +13,7 @@ Présentation
 
 		**fr.gouv.vitam.access.exception**
 					
-API REST appelées par le client access interne.
+:term: `API` :term:`REST` appelées par le client access interne.
 
 Dans le package *fr.gouv.vitam.access.core* l'interface utilisée :
 

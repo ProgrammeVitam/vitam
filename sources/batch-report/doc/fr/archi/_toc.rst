@@ -2,7 +2,6 @@ Batch-report
 ############
 
 .. toctree::
-   :numbered:
    :maxdepth: 3
 
    fonctionnelle/basics.rst

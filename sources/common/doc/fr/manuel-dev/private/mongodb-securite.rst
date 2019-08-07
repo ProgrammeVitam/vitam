@@ -15,10 +15,10 @@ Si "dbAuthentication" est égal à "true", il faut créer le MongoClient contena
 qui représente les informations d'identification pour l'authentification auprès d'un serveur mongo, 
 ainsi que la source des informations d'identification et le mécanisme d'authentification à utiliser.
 
-Ici, Les utilisateurs "dbUserName" se lier à une base de données spécifique "dbName".
-Il a besoin de mot de passe "dbPassword" pour entrer le base et CRUD.
+Ici, Les utilisateurs "dbUserName" se lient à une base de données spécifique "dbName".
+Il a besoin du mot de passe "dbPassword" pour entrer dans la base et :term:`CRUD`.
 
-.. code-block:: java
+.. sourcecode:: java
 
     public static MongoClient createMongoClient(DbConfiguration configuration, MongoClientOptions options) {
         List<MongoDbNode> nodes = configuration.getMongoDbNodes();
@@ -36,14 +36,12 @@ Il a besoin de mot de passe "dbPassword" pour entrer le base et CRUD.
         } else {
             return new MongoClient(serverAddress, options);
         }
-    }  
-    ......................
+    }
 
 
- --	List<ServerAddress> serverAddress:
 
+--	List<ServerAddress> serverAddress:
 	La liste des adresses du serveur qui permet la base de données mongodb de connecter plusieurs nœuds
- --	Arrays.asList(credential):
-
+--	Arrays.asList(credential):
 	La liste des informations d'identification que ce client authentifie toutes les connexions avec
 

@@ -7,7 +7,7 @@ Utilisation des dépôts *open-source*
 
 Les scripts de déploiement de la solution logicielle :term:`VITAM` sont disponibles dans le `dépôt github VITAM <https://github.com/ProgrammeVitam/vitam>`_ , dans le répertoire ``deployment``.
 
-Les binaires de VITAM sont disponibles sur des dépôts :term:`VITAM` publics indiqués ci-dessous par type de package; ces dépôts doivent être correctement configurés sur la plate-forme cible avant toute installation.
+Les binaires de la solution logicielle :term:`VITAM` sont disponibles sur des dépôts :term:`VITAM` publics indiqués ci-dessous par type de `package`; ces dépôts doivent être correctement configurés sur la plate-forme cible avant toute installation.
 
 
 *Repository* pour environnement CentOS
@@ -34,7 +34,7 @@ Sur les partitions cibles, configurer le fichier ``/etc/yum.repos.d/vitam-reposi
 Cas de *griffins*
 ~~~~~~~~~~~~~~~~~~~
 
-Un dépôt supplémentaire peut être à paramétrer pour pouvoir dérouler l'installation des *griffins* ::
+Un dépôt supplémentaire est à paramétrer pour pouvoir dérouler l'installation des *griffins* ::
 
    [programmevitam-vitam-griffins]
    name=programmevitam-vitam-griffins
@@ -48,9 +48,11 @@ Un dépôt supplémentaire peut être à paramétrer pour pouvoir dérouler l'in
 *Repository* pour environnement Debian
 ---------------------------------------
 
-Sur les partitions cibles, configurer le fichier ``/etc/apt/sources.list.d/vitam-repositories.list`` (remplacer <branche_vitam> par le nom de la branche de support à installer) comme suit ::
+Sur les partitions cibles, configurer le fichier ``/etc/apt/sources.list.d/vitam-repositories.list`` comme suit ::
 
-   deb [trusted=yes] http://download.programmevitam.fr/vitam_repository/<vitam_version>/deb stretch vitam-product vitam-external
+   deb [trusted=yes] http://download.programmevitam.fr/vitam_repository/<vitam_version>/deb/vitam-product/ ./
+   deb [trusted=yes] http://download.programmevitam.fr/vitam_repository/<vitam_version>/deb/vitam-external/ ./
+
 
 
 .. note:: remplacer <vitam_version> par la version à déployer.
@@ -58,28 +60,23 @@ Sur les partitions cibles, configurer le fichier ``/etc/apt/sources.list.d/vitam
 Cas de *griffins*
 ~~~~~~~~~~~~~~~~~~~
 
-Un dépôt supplémentaire peut être à paramétrer pour pouvoir dérouler l'installation des *griffins* ::
+Un dépôt supplémentaire est à paramétrer pour pouvoir dérouler l'installation des *griffins* ::
 
-   deb [trusted=yes] http://download.programmevitam.fr/vitam_griffins/<version_griffins>/deb stretch .
+   deb [trusted=yes] http://download.programmevitam.fr/vitam_griffins/<version_griffins>/deb/ ./
 
 .. note:: remplacer <version_griffins> par la version à déployer.
 
 Utilisation du package global d'installation
 ============================================
 
-.. note:: Le package global d'installation n'est pas présent dans les dépôts publics.
+.. note:: Le `package` global d'installation n'est pas présent dans les dépôts publics.
 
-Le package global d'installation contient :
+Le `package` global d'installation contient les livrables binaires (dépôts CentOS, Debian, Maven) 
 
-* le package proprement dit
-* la release notes
-* les empreintes de contrôle
+Sur la machine "ansible" dédiée au déploiement de la solution logicielle :term:`VITAM`, décompresser le package (au format ``tar.gz``).
 
-Sur la machine "ansible" dévouée au déploiement de :term:`VITAM`, décompacter le package (au format ``tar.gz``).
-
-Pour l'installation des *griffins*, il convient de récupérer, puis décompacter, le package associé (au format ``zip``).
+Pour l'installation des *griffins*, il convient de récupérer, puis décompresser, le package associé (au format ``zip``).
 
 Sur le *repository* "VITAM", récupérer également depuis le fichier d'extension ``tar.gz`` les binaires d'installation (rpm pour CentOS ; deb pour Debian) et les faire prendre en compte par le *repository*.
 
 Sur le *repository* "*griffins*", récupérer également depuis le fichier d'extension ``zip`` les binaires d'installation (rpm pour CentOS ; deb pour Debian) et les faire prendre en compte par le *repository*.
-

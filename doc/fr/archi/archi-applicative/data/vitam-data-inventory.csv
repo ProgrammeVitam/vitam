@@ -1,4 +1,4 @@
-"Type","Données pris en charge par le module","Composant responsable de la donnée","Persistence locale","Persistence BDD métier","Persistence Workspace","Persistence Storage","Persistence BDD techniques","Persistence inventaire ansible"
+"Type","Données prises en charge par le module","Composant responsable de la donnée","Persistence locale","Persistence BDD métier","Persistence Workspace","Persistence Storage","Persistence BDD techniques","Persistence inventaire ansible"
 "métier","Sas d'entrée des SIP (check antivirus et format du SIP)","ingest-external","/vitam/tmp",,,,,
 "métier","Fichier de définition d'un référentiel","functional-administration",,,,"REF : X",,
 "métier","Référentiels métier : règles de gestion, formats, contrats, contextes, profils de sécurité, …","functional-administration",,"ES + MongoDB",,"REF : X",,

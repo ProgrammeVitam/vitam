@@ -11,3 +11,4 @@ Montées de version mineure
    r8_update.rst
    r9_update.rst
    r10_update.rst
+   r11_update.rst

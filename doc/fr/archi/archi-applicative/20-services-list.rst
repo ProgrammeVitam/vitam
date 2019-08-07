@@ -4,13 +4,13 @@ Services métiers
 Les services métiers sont présentés dans les sections suivantes ; pour chaque service, est indiqué son nom commun (en français), ainsi que le nom de service correspondant (en anglais, basé sur les usages :term:`OAIS`).
 
 
-API externes (ingest-external et access-external)
-=================================================
+:term:`API` externes (ingest-external et access-external)
+==========================================================
 
 Rôle :
 
 * Exposer les :term:`API` publiques du système
-* Sécuriser l'accès aux :term:`API` de VITAM
+* Sécuriser l'accès aux :term:`API` de :term:`VITAM`
 
 Contraintes techniques :
 
@@ -27,12 +27,12 @@ Moteur d'entrée (ingest-internal)
 
 Rôle :
 
-* Permettre l'entrée d'une archive SEDA dans le SAE
+* Permettre l'entrée d'une archive :term:`SEDA` dans le :term:`SAE`
 
 Fonctions :
 
 * Upload HTTP de fichiers au format :term:`SEDA`
-* Persistance du SEDA dans ``workspace``
+* Persistance du :term:`SEDA` dans ``workspace``
 * Lancement des *workflows* de traitements liés à l'entrée dans ``processing``
 
 Données gérées :
@@ -45,7 +45,7 @@ Moteur d'accès (access-internal)
 
 Rôle :
 
-* Permettre l'accès aux données du système VITAM
+* Permettre l'accès aux données du système :term:`VITAM`
 
 Fonction :
 
@@ -69,12 +69,12 @@ Fonctions :
 
 * Gestion des certificats d'accès des applications (:term:`SIA`)
 * Gestion des certificats personnels
-* Gestion des endpoints nécessitant le contrôle des certificats personnels
+* Gestion des *endpoints* nécessitant le contrôle des certificats personnels
 
 Données gérées :
 
-* Certificats des applications appelant VITAM (:term:`SIA`)
-* Certificats personnels (pour les endpoints nécessitant une authentification personae)
+* Certificats des applications appelant :term:`VITAM` (:term:`SIA`)
+* Certificats personnels (pour les *endpoints* nécessitant une authentification personae)
 
 
 Moteur d’exécution (processing)
@@ -96,7 +96,7 @@ Contraintes techniques :
 
 * Grand nombre de tâches
 * La durée d’exécution d’un ensemble de tâches peut être longue (ex: une campagne de transformation de document peut durer plusieurs semaines, voire plusieurs mois)
-* Possibilité de devoir gérer des objets lourds ; cela implique notamment l'usage de l’espace de travail pour passer des informations entre tâches, et des optimisations (colocalisations ou copies directes) permettant de limiter les contraintes sur le réseau
+* Possibilité de devoir gérer des objets lourds ; cela implique notamment l'usage de l’espace de travail pour passer des informations entre tâches, et des optimisations (colocalisations ou copies directes) permettant de limiter les contraintes sur le réseau.
 
 Données gérées :
 
@@ -108,11 +108,11 @@ Espace de travail (workspace)
 
 Rôle :
 
-* Fourniture d'un espace pour l'échange de fichiers (et faire un appel par pointeur lors des appels entre composants) entre les différents composants de VITAM
+* Fourniture d'un espace pour l'échange de fichiers (et faire un appel par pointeur lors des appels entre composants) entre les différents composants de :term:`VITAM`
 
 Fonctions :
 
-* Utilisation du moteur de stockage dans un mode minimal (Opérations CREATE, READ, DELETE sur 1 seule offre de stockage)
+* Utilisation du moteur de stockage dans un mode minimal (opérations CREATE, READ, DELETE sur 1 seule offre de stockage)
 
 Contraintes techniques :
 
@@ -128,7 +128,7 @@ Worker (worker)
 
 Rôle :
 
-* Effectuer les traitements de masse sur les archives & paquets d'archive (SIP / ...)
+* Effectuer les traitements de masse sur les archives & paquets d'archive (:term:`SIP` / ...)
 
 Fonction :
 
@@ -161,7 +161,7 @@ Moteur de journalisation (logbook)
 
 Rôle :
 
-* Gérer les journaux métiers à fort besoin d'intégrité et potentiellement à valeur probante : journal du cycle de vie, journal métier (SAE/opérations + écritures)
+* Gérer les journaux métiers à fort besoin d'intégrité et potentiellement à valeur probante : journal du cycle de vie, journal métier (:term:`SAE`/opérations + écritures)
 
 Fonctions :
 
@@ -188,7 +188,7 @@ Rôle :
 
 Fonctions :
 
-* Gestion des référentiels métier VITAM
+* Gestion des référentiels métier :term:`VITAM`
 
 Données gérées :
 
@@ -208,7 +208,7 @@ Moteur de stockage (storage)
 
 Rôle :
 
-* Stockage des données (Méta Données, Objets Numériques et journaux SAE et de l’archive)
+* Stockage des données (Métadonnées, Objets Numériques et journaux :term:`SAE` et de l’archive)
 
 Fonctions :
 
@@ -244,7 +244,7 @@ Interface de démonstration (ihm-demo)
 
 Rôle :
 
-* Permettre une utilisation basique de VITAM, notamment sans :term:`SIA`
+* Permettre une utilisation basique de :term:`VITAM`, notamment sans :term:`SIA`
 
 Fonctions :
 
@@ -255,7 +255,7 @@ Fonctions :
 
 Contraintes techniques :
 
-* :term:`IHM` intuitive (sans workflows métiers), accessible (au sens RGAA), *responsive design*
+* :term:`IHM` intuitive (sans *workflows* métiers), accessible (au sens :term:`RGAA`), *responsive design*
 * Compatibilité avec les navigateurs actuels
 * Pas d’applets/clients lourds
 

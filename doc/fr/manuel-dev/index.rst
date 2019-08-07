@@ -5,6 +5,7 @@
 .. toctree::
    :maxdepth: 2
 
+   introduction.rst
    dev-environnement.rst
    include/_toc.rst
    parallisation_tests.rst

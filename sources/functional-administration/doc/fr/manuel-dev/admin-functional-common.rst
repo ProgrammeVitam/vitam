@@ -75,10 +75,10 @@ Pour qu'un document soit analysé par elasticsearch et que la recherche rapproch
 
 Exemple: le document profile contient bien un paramètre :
 
-.. code-block:: java
+.. sourcecode:: java
 
-  public static final String TYPEUNIQUE = "typeunique";
-  ...
+   public static final String TYPEUNIQUE = "typeunique";
+
 
 - Créer dans le dossier resources les fichiers mapping au format json.
 
@@ -86,9 +86,9 @@ profile-es-mapping.json, accesscontract-es-mapping.json, ....
 
 Exemple de fichier json de mapping elasticsearch:
 
-.. code-block:: json
+.. sourcecode:: json
 
-  {
+   {
     "properties": {
       "Name": {
         "type": "string"
@@ -106,38 +106,36 @@ Exemple de fichier json de mapping elasticsearch:
         "index": "not_analyzed"
       }
     }
-  }
-  ...
+   }
+
 
 
 - Ces fichers sont ensuite chargé au niveau de ElasticsearchAccessFunctionalAdmin.
 
 - Dans la méthode getMapping de ElasticsearchAccessFunctionalAdmin, il faut rajouter le document concerné, ainsi récupérer le mapping correspondant.
 
-.. code-block:: java
+.. sourcecode:: java
 
-  private String getMapping(FunctionalAdminCollections collection) throws IOException {
+   private String getMapping(FunctionalAdminCollections collection) throws IOException {
       if (collection.equals(FunctionalAdminCollections.PROFILE)) {
           return ElasticsearchUtil.transferJsonToMapping(FileRules.class.getResourceAsStream(MAPPING_PROFILE_FILE_JSON));
       }
       return "";
-  }
-  ...
+   }
 
 - Dans la méthode getTypeUnique ajouter TYPEUNIQUE du document concerné.
 
-.. code-block:: java
+.. sourcecode:: java
 
-  private String getTypeUnique(FunctionalAdminCollections collection) {
+   private String getTypeUnique(FunctionalAdminCollections collection) {
       if (collection.equals(FunctionalAdminCollections.PROFILE)) {
               return PROFILE.TYPEUNIQUE;
       }
       return "";
-  }
-  ...
+   }
 
 Attention:
 
-- Il faut supprimer l'index s'il existe déjà pour qu'il puisse être crée avec les bon mapping.
-- Si on supprime l'index il faut re-indexer les données de la base de données.
+- Il faut supprimer l'index s'il existe déjà pour qu'il puisse être crée avec les bon `mappings`.
+- Si on supprime l'index, il faut ré-indexer les données de la base de données.
 

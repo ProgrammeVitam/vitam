@@ -25,7 +25,7 @@ La logique technique actuelle est la suivante :
 
 classe de démarrage du serveur d'application de l'ingest interne.
 
-.. code-block:: java
+.. sourcecode:: java
 
     // démarrage
     public static void main(String[] args) {
@@ -38,10 +38,7 @@ classe de démarrage du serveur d'application de l'ingest interne.
         }
     }
 
-    Dans le startApplication on effectue le start de VitamServer. Le join est effectuer dans
-    run. Le startApplication permet d'être lancer par les tests unitaires. Il peut être configurer
-    avec un port d'écoute par les tests.
 
-    Dans le fichier de configuration, le paramètre jettyConfig est à
-    paramétrer avec le nom du fichier de configuration de jetty.
+Dans le ``startApplication``, on effectue le start de ``VitamServer``. Le `join` est effectué dans ``run``. Le startApplication permet d'être lancé par les tests unitaires. Il peut être configuré avec un port d'écoute par les tests.
 
+Dans le fichier de configuration, le paramètre ``jettyConfig`` est à paramétrer avec le nom du fichier de configuration de jetty.

@@ -3,13 +3,13 @@ Principes
 
 Les principes de sécurité de la solution logicielle :term:`VITAM` suivent les directives suivantes :
 
-* Authentification et autorisation systématique des systèmes clients de VITAM basées sur une authentification TLS mutuelle utilisant des certificats (pour les composants de la couche accès) ;
+* Authentification et autorisation systématique des systèmes clients de :term:`VITAM` basées sur une authentification :term:`TLS` mutuelle utilisant des certificats (pour les composants de la couche accès) ;
 * Validation systématique des entrées du système :
 
-    - Détection et suppression de codes malveillants dans les archives déposées dans VITAM ;
+    - Détection et suppression de codes malveillants dans les archives déposées dans :term:`VITAM` ;
     - Robustesse contre les failles du *Top Ten* :term:`OWASP` pour toutes les interfaces :term:`REST` ;
 
-* Validation périodique des listes de :term:`CRL` pour toutes les :term:`CA` *trustées* par VITAM (non implémentée dans cette version de VITAM, cf. ci-dessous).
+* Validation périodique des listes de :term:`CRL` pour toutes les :term:`CA` *trustées* par :term:`VITAM` (non implémentée dans cette version de VITAM, cf. ci-dessous).
 
 
 Principes de cloisonnement
@@ -24,7 +24,7 @@ Principes de sécurisation des accès externes
 
 Les services logiciels en contact direct avec les clients du :term:`SAE` (i.e. les services ``*-external``) implémentent les mesures de sécurité suivantes :
 
-* Chiffrement du transport des données entre les applications externes et VITAM via HTTPS ; par défaut, la configuration suivante est appliquée :
+* Chiffrement du transport des données entre les applications externes et :term:`VITAM` via HTTPS ; par défaut, la configuration suivante est appliquée :
 
     - Protocoles exclus par défaut : ``SSLv2``, ``SSLv3``, ``TLSv1.0``, ``TLSv1.1``
     - Ciphers exclus par défaut: ``.*NULL.*``, ``.*RC4.*``, ``.*MD5.*``, ``.*DES.*``, ``.*DSS.*``, ``TLS_ECDHE_ECDSA_WITH_AES_256_CBC_SHA``, ``TLS_ECDHE_ECDSA_WITH_AES_128_CBC_SHA``, ``TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA``, ``TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA``, ``TLS_DHE_RSA_WITH_AES_256_CBC_SHA``, ``TLS_DHE_RSA_WITH_AES_128_CBC_SHA``
@@ -41,7 +41,7 @@ Fichier déployé :
 * Authentification par certificat x509 requise des applications externes (authentification :term:`M2M`) basée sur une liste blanche de certificats valides :
 
     - Lors d’une connexion, la vérification synchrone confirme que le certificat proposé n’est pas expiré (*not before*, *not after*) et qu'il est validé par une Autorité de Certification connue (liste des :term:`CA` portée par un fichier *truststore*) ;
-    - Avant de valider tout appel d'API, l'applicatif vérifie que le certificat proposé est bien présent dans le référentiel d’authentification des certificats valides (un des référentiels métier portés par la base des métadonnées).
+    - Avant de valider tout appel d':term:`API`, l'applicatif vérifie que le certificat proposé est bien présent dans le référentiel d’authentification des certificats valides (un des référentiels métier portés par la base des métadonnées).
 
 .. caution:: La révocation des certificats se fait par leur suppression dans les différents magasins et référentiels. Se reporter au :term:`DEX` pour plus d'informations.
 
@@ -65,7 +65,7 @@ Dans chaque requête, les deux headers suivants sont positionnés :
 
 Du côté du composant cible de la requête, le contrôle est alors le suivant :
 
-* Existence des deux headers précédents ;
+* Existence des deux *headers* précédents ;
 * Vérification que *timestamp* envoyé est distant de l'heure actuelle sur le serveur requêté de moins de x secondes ( valeur modifiable selon le composant, par défaut à 10 secondes,  ``| Timestamp - temps local | < x s`` )
 
 * Validation du hash transmis via la réalisation du même calul sur le serveur cible et de la comparaison des résultats.
@@ -85,7 +85,7 @@ MongoDB
 
 Dans le cas de MongoDB, le cloisonnement est logique. Chaque service hébergeant des données dans MongoDB se voit attribuer une base et un utilisateur dédié. Cet utilisateur a uniquement les droits de lecture / écriture dans les collections de cette base de données, mais ne peut notamment pas modifier la structure des collections de sa base de données ni accéder aux collections d'une autre base de données.
 
-Un utilisateur technique "root" est également créé pour les besoins de l'installation et de la configuration de MongoDB.
+Un utilisateur technique *root* est également créé pour les besoins de l'installation et de la configuration de MongoDB.
 
 Chaque base de données ne doit être accédée que par les instances d'un seul service (ex: le service logbook est le seul à accéder à la base de données logbook).
 
@@ -97,13 +97,14 @@ Elasticsearch
 
 Dans le cas d'Elasticsearch, le cloisonnement est principalement physique, dans le sens où le *cluster* hébergeant les données métier est disjoint du *cluster* hébergeant les données techniques.
 
-.. caution:: L'accès au cluster Elasticsearch est anonyme sans authentification requise ; ceci est dû à une limitation de la version *OpenSource* d'Elasticsearch, et pourra être réévalué dans les futures versions de la solution logicielle :term:`VITAM`.
+
+ .. caution:: L'accès au cluster Elasticsearch est anonyme sans authentification requise ; 
 
 
 Principes de sécurisation des secrets de déploiement
 ====================================================
 
-Les secrets de l'intégralité de la solution VITAM déployée sont tous présents sur le serveur de déploiement ; par conséquent, ils doivent y être stockés de manière sécurisée, avec les principes suivants :
+Les secrets de l'intégralité de la solution :term:`VITAM` déployée sont tous présents sur le serveur de déploiement ; par conséquent, ils doivent y être stockés de manière sécurisée, avec les principes suivants :
 
-* Les mots de passe et tokens utilisés par ansible doivent être stockés dans des fichiers d'inventaire chiffrés par ansible-vault ;
+* Les mots de passe et *tokens* utilisés par ansible doivent être stockés dans des fichiers d'inventaire chiffrés par ansible-vault ;
 * Les clés privées des certificats doivent être protégées par des mots de passe complexes ; ces derniers doivent suivre la règle précédente.

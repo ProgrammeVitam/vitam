@@ -7,7 +7,7 @@ Les pré-requis suivants sont nécessaires :
 Base commune
 ============
 
-* Tous les serveurs hébergeant la solution logicielle :term:`VITAM` doivent êre synchronisés sur un serveur de temps (pas de *stratum* 10)
+* Tous les serveurs hébergeant la solution logicielle :term:`VITAM` doivent êre synchronisés sur un serveur de temps (protocole :term:`NTP`, pas de *stratum* 10)
 * Disposer de la solution de déploiement basée sur ansible
 
 .. penser à ajouter une note sur /etc/hostname
@@ -20,19 +20,20 @@ Le déploiement est orchestré depuis un poste ou serveur d'administration ; les
   + **openssh-client** (client SSH utilisé par ansible)
   + **java-1.8.0-openjdk** et **openssl** (du fait de la génération de certificats / *stores*, l'utilitaire ``keytool`` est nécessaire)
 
-* un accès ssh vers un utilisateur d'administration avec élévation de privilèges vers les droits root, vitam, vitamdb sur les serveurs cibles.  
+* un accès ssh vers un utilisateur d'administration avec élévation de privilèges vers les droits ``root``, ``vitam``, ``vitamdb`` (les comptes ``vitam`` et ``vitamdb`` sont créés durant le déploiement) sur les serveurs cibles.  
 * Le compte utilisé sur le serveur d'administration doit avoir confiance dans les serveurs sur lesquels la solution logicielle :term:`VITAM` doit être installée (fichier ``~/.ssh/known_hosts`` correctement renseigné)
 
 .. note:: Se référer à la `documentation d'usage <http://docs.ansible.com/ansible/latest/intro_getting_started.html>`_ pour les procédures de connexion aux machines-cibles depuis le serveur ansible.
 
-.. caution:: Les adresses :term:`IP` des machines sur lesquelles la solution Vitam sera installée ne doivent pas changer d'IP au cours du temps, en cas de changement d'IP, la plateforme ne pourra plus fonctionner.
+.. caution:: Les adresses :term:`IP` des machines sur lesquelles la solution logicielle :term:`VITAM` sera installée ne doivent pas changer d'adresse IP au cours du temps. En cas de changement d'adresse IP, la plateforme ne pourra plus fonctionner.
 
 .. caution:: Dans le cadre de l'installation des packages "extra", il est nécessaire, pour les partitions hébergeant des containeurs docker (mongo-express, head), qu'elles aient un accès internet (installation du paquet officiel ``docker``, récupération des images).
 
-.. caution:: Dans le cadre de l'installation des packages "extra", il est nécessaire, pour les partitions hébergeant le composant ``ihm-recette``, qu'elles aient un accès internet (installation du package git-lfs ; récupération des :term:`TNR` depuis un dépôt git).
+.. caution:: Dans le cadre de l'installation des packages "extra", il est nécessaire, pour les partitions hébergeant le composant ``ihm-recette``, qu'elles aient un accès internet (installation du `repository` et installation du `package` ``git-lfs`` ; récupération des :term:`TNR` depuis un dépôt git).
 
 .. warning:: Dans le cas d'une installation du composant ``vitam-offer`` en ``filesystem-hash``, il est fortement recommandé d'employer un système de fichiers ``xfs`` pour le stockage des données. Se référer au :term:`DAT` pour connaître la structuration des *filesystems* dans la solution logicielle :term:`VITAM`. En cas d'utilisation d'un autre type, s'assurer que le filesystem possède/gère bien l'option ``user_xattr``.
 
+.. warning:: Dans le cas d'une installation du composant ``vitam-offer`` en ``tape-library``, il est fortement recommandé d'installer au préalable sur les machines cible associées les paquets pour les commandes ``mt``, ``mtx`` et ``dd``. Ces composants doivent également apporter le groupe système ``tape``. Se reporter également à :ref:`prerequisoffrefroide`.
 
 PKI
 ===
@@ -61,14 +62,14 @@ SELinux doit être configuré en mode ``permissive`` ou ``disabled``.
 Déploiement sur environnement CentOS
 ------------------------------------
 
-* Disposer d'une plate-forme Linux CentOS 7 installée selon la répartition des services souhaitée. En particulier, ces serveurs doivent avoir :
+* Disposer d'une plate-forme Linux CentOS 7 installée selon la répartition des services souhaités. En particulier, ces serveurs doivent avoir :
 
   + une configuration de temps synchronisée (ex: en récupérant le temps à un serveur centralisé)
   + Des autorisations de flux conformément aux besoins décrits dans le :term:`DAT`
   + une configuration des serveurs de noms correcte (cette configuration sera surchargée lors de l'installation)
   + un accès à un dépôt (ou son miroir) CentOS 7 (base et extras) et EPEL 7
 
-* Disposer des binaires VITAM : paquets RPM de VITAM (vitam-product) ainsi que les paquets d'éditeurs tiers livrés avec VITAM (vitam-external)
+* Disposer des binaires VITAM : paquets :term:`RPM` de VITAM (vitam-product) ainsi que les paquets d'éditeurs tiers livrés avec VITAM (vitam-external)
 * Disposer, si besoin, des binaires pour l'installation des *griffins*
 
 Déploiement sur environnement Debian
@@ -88,7 +89,7 @@ Déploiement sur environnement Debian
 Présence d'un agent antiviral
 -----------------------------
 
-Dans le cas de partitions sur lesquelles un agent antiviral est déjà configuré (typiquement, *golden image*), il est recommandé de positionner une exception sur l'arborescence ``/vitam`` et les sous-arborescences, hormis la partition hébergeant le composant ``ingest-exteral`` (emploi d'un agent antiviral en prérequis des *ingest*).
+Dans le cas de partitions sur lesquelles un agent antiviral est déjà configuré (typiquement, *golden image*), il est recommandé de positionner une exception sur l'arborescence ``/vitam`` et les sous-arborescences, hormis la partition hébergeant le composant ``ingest-exteral`` (emploi d'un agent antiviral en prérequis des *ingest* ; se reporter à :ref:`confantivirus`).
 
 Matériel
 ========
@@ -98,17 +99,19 @@ Les prérequis matériel sont définis dans le :term:`DAT` ; à l'heure actuelle
 Concernant l'espace disque, à l'heure actuelle, aucun pré-requis n'a été défini ; cependant, sont à prévoir par la suite des espaces de stockage conséquents pour les composants suivants :
 
 * offer
-* solution de centralisation des logs (elasticsearch)
+* solution de centralisation des logs (`cluster` elasticsearch de log)
 * workspace
 * worker (temporairement, lors du traitement de chaque fichier à traiter)
-* cluster elasticsearch des données :term:`VITAM`
+* `cluster` elasticsearch des données :term:`VITAM`
 
 L'arborescence associée sur les partitions associées est : ``/vitam/data/<composant>``
 
-Librairie de cartouches pour Offre Froide
+.. _prerequisoffrefroide:
+
+Librairie de cartouches pour offre froide
 =========================================
 
 Des prérequis sont à réunir pour utiliser l'offre froide de stockage "tape-library" définie dans le :term:`DAT`.
 
-* La librairie doit être opérationnelle et chargée en cartouche.
+* La librairie de cartouches doit être opérationnelle et chargée en cartouches.
 * La librairie et les lecteurs doivent déjà être disponibles sur la machine devant supporter une instance de ce composant. La commande ``lsscsi -g`` peut permettre de vérifier si des périphériques sont détectés.
