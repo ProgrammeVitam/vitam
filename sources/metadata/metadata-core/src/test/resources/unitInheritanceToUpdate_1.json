@@ -1,0 +1,65 @@
+{
+  "_id": "aeaqaaaabeghay2jabzuaalbarkww4iaaaba",
+  "_mgt": {
+    "DisseminationRule": {
+      "Inheritance": {
+        "PreventRulesId": ["DIS-00001","DIS-00002"],
+        "PreventInheritance" : false
+      }
+    }
+  },
+  "DescriptionLevel": "RecordGrp",
+  "Title": "Carrefour Pleyel",
+  "Description": "Cette unité de description a 3 règles propres, STO-00001 avec pour StartDate 01/01/2000 et comme FinalAction Copy, DIS-00001 avec pour StartDate 01/01/2000 et REU-00001 avec pour StartDate 01/01/2000",
+  "StartDate": "2017-04-04T08:07:06",
+  "EndDate": "2017-04-04T08:07:06",
+  "_sedaVersion": "2.1",
+  "_storage": {
+    "_nbc": 1,
+    "offerIds": [
+      "offer-fs-1.service.consul"
+    ],
+    "strategyId": "default"
+  },
+  "_sps": [
+    "RATP"
+  ],
+  "_sp": "RATP",
+  "_ops": [
+    "aeeaaaaaacflasxdaau4ealmhzrex7yaaaaq",
+    "aeeaaaaaacflasxdabenealmh2ahkmyaaaaq"
+  ],
+  "_opi": "aeeaaaaaacflasxdaau4ealmhzrex7yaaaaq",
+  "_unitType": "INGEST",
+  "_up": [
+    "aeaqaaaaaaflasxdabrkealmhzrhqyyaaaba"
+  ],
+  "_us": [
+    "aeaqaaaaaaflasxdabrkealmhzrhqyyaaaba",
+    "aeaqaaaaaaflasxdabrkealmhzrhp6iaaaba"
+  ],
+  "_graph": [
+    "aeaqaaaaaaflasxdabrkealmhzrhqyyaaaba/aeaqaaaaaaflasxdabrkealmhzrhp6iaaaba",
+    "aeaqaaaaaaflasxdabrkealmhzrhraiaaaaq/aeaqaaaaaaflasxdabrkealmhzrhqyyaaaba"
+  ],
+  "_us_sp": {
+    "RATP": [
+      "aeaqaaaaaaflasxdabrkealmhzrhqyyaaaba",
+      "aeaqaaaaaaflasxdabrkealmhzrhp6iaaaba"
+    ]
+  },
+  "_uds": {
+    "1": [
+      "aeaqaaaaaaflasxdabrkealmhzrhqyyaaaba"
+    ],
+    "2": [
+      "aeaqaaaaaaflasxdabrkealmhzrhp6iaaaba"
+    ]
+  },
+  "_min": 1,
+  "_max": 3,
+  "_glpd": "2019-07-29T15:39:24.025",
+  "_v": 1,
+  "_av": 1,
+  "_tenant": 0
+}

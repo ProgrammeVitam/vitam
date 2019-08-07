@@ -51,8 +51,9 @@ public class RuleMapper {
                 ruleIdType.setValue(ruleId);
                 return ruleIdType;
             }).collect(Collectors.toList()));
-            if(inheritance.getPreventRulesId().isEmpty())
-            commonRule.setPreventInheritance(inheritance.isPreventInheritance());
+            if(inheritance.getPreventRulesId().isEmpty()) {
+                commonRule.setPreventInheritance(inheritance.isPreventInheritance());
+            }
         }
 
         List<Object> ruleAndStartDate = new ArrayList<>();

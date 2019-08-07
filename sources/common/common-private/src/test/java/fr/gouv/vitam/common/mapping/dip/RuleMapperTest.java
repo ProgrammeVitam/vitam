@@ -53,7 +53,7 @@ public class RuleMapperTest {
 
         // Then
         assertThat(accessRuleType.getRefNonRuleId()).extracting("value").containsExactly("AC-00021", "AC-00022");
-        assertThat(accessRuleType.isPreventInheritance()).isTrue();
+        assertThat(accessRuleType.isPreventInheritance()).isNull();
         assertThat(((RuleIdType)accessRuleType.getRuleAndStartDate().get(0)).getValue()).isEqualTo("AC-00023");
         assertThat(accessRuleType.getRuleAndStartDate().get(1).toString()).isEqualTo("2017-04-01");
     }
@@ -87,17 +87,17 @@ public class RuleMapperTest {
 
         // Then
         assertThat(accessRuleType.getRefNonRuleId()).extracting("value").containsExactly("AC-00021", "AC-00022");
-        assertThat(accessRuleType.isPreventInheritance()).isTrue();
+        assertThat(accessRuleType.isPreventInheritance()).isNull();
         assertThat(((RuleIdType)accessRuleType.getRuleAndStartDate().get(0)).getValue()).isEqualTo("AC-00023");
         assertThat(accessRuleType.getRuleAndStartDate()).hasSize(1);
     }
 
     @Test
-    public void ruleCategoryWithPreventInheritanceAndNonEmptyRefNonRuleId() throws Exception {
+    public void shouldNotMapRuleCategoryWithPreventInheritanceAndNonEmptyRefNonRuleId() throws Exception {
         // Given
         RuleMapper ruleMapper = new RuleMapper();
         RuleCategoryModel ruleModel = new RuleCategoryModel();
-        ruleModel.getRules().add(new RuleModel("DIS-0000ZZ", null));
+        ruleModel.getRules().add(new RuleModel("RX", null));
         ruleModel.setPreventInheritance(false);
         ruleModel.addAllPreventRulesId(Lists.newArrayList("DIS-0000X", "DIS-0000Y"));
 
@@ -107,16 +107,16 @@ public class RuleMapperTest {
         // Then
         assertThat(disseminationRuleType.getRefNonRuleId()).extracting("value").containsExactly("DIS-0000X", "DIS-0000Y");
         assertThat(disseminationRuleType.isPreventInheritance()).isNull();
-        assertThat(((RuleIdType)disseminationRuleType.getRuleAndStartDate().get(0)).getValue()).isEqualTo("DIS-0000ZZ");
+        assertThat(((RuleIdType)disseminationRuleType.getRuleAndStartDate().get(0)).getValue()).isEqualTo("RX");
         assertThat(disseminationRuleType.getRuleAndStartDate()).hasSize(1);
     }
 
     @Test
-    public void ruleCategoryWithPreventInheritanceAndEmptyRefNonRuleId() throws Exception {
+    public void shouldMapRuleCategoryWithPreventInheritanceAndEmptyRefNonRuleId() throws Exception {
         // Given
         RuleMapper ruleMapper = new RuleMapper();
         RuleCategoryModel ruleModel = new RuleCategoryModel();
-        ruleModel.getRules().add(new RuleModel("DIS-0000SS", null));
+        ruleModel.getRules().add(new RuleModel("RX", null));
         ruleModel.setPreventInheritance(false);
         ruleModel.addAllPreventRulesId(Lists.newArrayList());
 
@@ -126,7 +126,7 @@ public class RuleMapperTest {
         // Then
         assertThat(disseminationRuleType.getRefNonRuleId()).extracting("value").asList().isEmpty();
         assertThat(disseminationRuleType.isPreventInheritance()).isFalse();
-        assertThat(((RuleIdType)disseminationRuleType.getRuleAndStartDate().get(0)).getValue()).isEqualTo("DIS-0000SS");
+        assertThat(((RuleIdType)disseminationRuleType.getRuleAndStartDate().get(0)).getValue()).isEqualTo("RX");
         assertThat(disseminationRuleType.getRuleAndStartDate()).hasSize(1);
     }
 }

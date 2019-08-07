@@ -26,10 +26,6 @@
  *******************************************************************************/
 package fr.gouv.vitam.common.mapping.dip;
 
-import static org.assertj.core.api.Assertions.assertThat;
-
-import javax.xml.datatype.XMLGregorianCalendar;
-
 import fr.gouv.culture.archivesdefrance.seda.v2.ArchiveUnitType;
 import fr.gouv.culture.archivesdefrance.seda.v2.ManagementType;
 import fr.gouv.culture.archivesdefrance.seda.v2.RuleIdType;
@@ -39,6 +35,10 @@ import fr.gouv.vitam.common.model.unit.DescriptiveMetadataModel;
 import fr.gouv.vitam.common.model.unit.RuleCategoryModel;
 import fr.gouv.vitam.common.model.unit.RuleModel;
 import org.junit.Test;
+
+import javax.xml.datatype.XMLGregorianCalendar;
+
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class ArchiveUnitMapperTest {
 
@@ -89,7 +89,7 @@ public class ArchiveUnitMapperTest {
 
         //AccessRule
         assertThat(management.getAccessRule()).isNotNull();
-        assertThat(management.getAccessRule().isPreventInheritance()).isTrue();
+        assertThat(management.getAccessRule().isPreventInheritance()).isNull();
         assertThat(management.getAccessRule().getRefNonRuleId()).hasSize(2);
         assertThat(management.getAccessRule().getRefNonRuleId().get(0).getValue()).isIn("R1", "R2");
         assertThat(management.getAccessRule().getRefNonRuleId().get(1).getValue()).isIn("R1", "R2");
@@ -100,7 +100,7 @@ public class ArchiveUnitMapperTest {
 
         //AppraisalRule
         assertThat(management.getAppraisalRule()).isNotNull();
-        assertThat(management.getAppraisalRule().isPreventInheritance()).isTrue();
+        assertThat(management.getAppraisalRule().isPreventInheritance()).isNull();
         assertThat(management.getAppraisalRule().getRefNonRuleId()).hasSize(2);
         assertThat(management.getAppraisalRule().getRefNonRuleId().get(0).getValue()).isIn("R1", "R2");
         assertThat(management.getAppraisalRule().getRefNonRuleId().get(1).getValue()).isIn("R1", "R2");
@@ -116,7 +116,7 @@ public class ArchiveUnitMapperTest {
 
         //ClassificationRule
         assertThat(management.getClassificationRule()).isNotNull();
-        assertThat(management.getClassificationRule().isPreventInheritance()).isTrue();
+        assertThat(management.getClassificationRule().isPreventInheritance()).isNull();
         assertThat(management.getClassificationRule().getRefNonRuleId()).hasSize(2);
         assertThat(management.getClassificationRule().getRefNonRuleId().get(0).getValue()).isIn("R1", "R2");
         assertThat(management.getClassificationRule().getRefNonRuleId().get(1).getValue()).isIn("R1", "R2");
@@ -137,7 +137,7 @@ public class ArchiveUnitMapperTest {
 
         //DisseminationRule
         assertThat(management.getDisseminationRule()).isNotNull();
-        assertThat(management.getDisseminationRule().isPreventInheritance()).isTrue();
+        assertThat(management.getDisseminationRule().isPreventInheritance()).isNull();
         assertThat(management.getDisseminationRule().getRefNonRuleId()).hasSize(2);
         assertThat(management.getDisseminationRule().getRefNonRuleId().get(0).getValue()).isIn("R1", "R2");
         assertThat(management.getDisseminationRule().getRefNonRuleId().get(1).getValue()).isIn("R1", "R2");
@@ -153,7 +153,7 @@ public class ArchiveUnitMapperTest {
 
         //ReuseRule
         assertThat(management.getReuseRule()).isNotNull();
-        assertThat(management.getReuseRule().isPreventInheritance()).isTrue();
+        assertThat(management.getReuseRule().isPreventInheritance()).isNull();
         assertThat(management.getReuseRule().getRefNonRuleId()).hasSize(2);
         assertThat(management.getReuseRule().getRefNonRuleId().get(0).getValue()).isIn("R1", "R2");
         assertThat(management.getReuseRule().getRefNonRuleId().get(1).getValue()).isIn("R1", "R2");
@@ -168,7 +168,7 @@ public class ArchiveUnitMapperTest {
 
         //StorageRule
         assertThat(management.getStorageRule()).isNotNull();
-        assertThat(management.getStorageRule().isPreventInheritance()).isTrue();
+        assertThat(management.getStorageRule().isPreventInheritance()).isNull();
         assertThat(management.getStorageRule().getRefNonRuleId()).hasSize(2);
         assertThat(management.getStorageRule().getRefNonRuleId().get(0).getValue()).isIn("R1", "R2");
         assertThat(management.getStorageRule().getRefNonRuleId().get(1).getValue()).isIn("R1", "R2");
