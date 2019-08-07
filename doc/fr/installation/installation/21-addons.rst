@@ -15,7 +15,7 @@ Tuning JVM
 .. caution:: En cas de colocalisation, bien prendre en compte la taille :term:`JVM` de chaque composant (VITAM : ``-Xmx512m`` par défaut) pour éviter de `swapper`.
 
 
-Un `tuning` fin des paramètres JVM de chaque composant :term:`VITAM` est possible.
+Un `tuning` fin des paramètres :term:`JVM` de chaque composant :term:`VITAM` est possible.
 Pour cela, il faut modifier le contenu du fichier ``environments/group_vars/all/jvm_opts.yml``
 
 Pour chaque composant, il est possible de modifier ces 3 variables:
@@ -44,6 +44,8 @@ Voici la liste des greffons disponibles au moment de la présente publication :
    :language: text
 
 .. warning:: Ne pas oublier d'avoir déclaré au préalable sur les machines cibles le dépôt de binaires associé aux *griffins*.
+
+.. _confantivirus:
 
 Paramétrage de l'antivirus (ingest-externe)
 ===========================================
@@ -86,25 +88,25 @@ Il est également fortement recommandé de positionner la valeur de la directive
 Paramétrer le ``secure_cookie`` pour ihm-demo
 =============================================
 
-Le composant ihm-demo (ainsi qu'ihm-recette) dispose d'une option suplémentaire par rapport aux autres composants vitam dans le fichier ``deployment/environments/group_vars/all/vitam_vars.yml``: le ``secure_cookie`` qui permet de renforcer ces deux ihm contre certaines attaques assez répandues comme les CSRF.
+Le composant ihm-demo (ainsi qu'ihm-recette) dispose d'une option suplémentaire, par rapport aux autres composants VITAM, dans le fichier ``deployment/environments/group_vars/all/vitam_vars.yml``: le ``secure_cookie`` qui permet de renforcer ces deux :term:`IHM` contre certaines attaques assez répandues comme les CSRF (Cross-Site Request Forgery).
 
-Il faut savoir que si cette variable est à true (valeur par défaut), le client doit obligatoirement sec connecter en https sur l'ihm, et ce même si un reverse proxy se trouve entre le serveur web et le client.
+Il faut savoir que si cette variable est à *true* (valeur par défaut), le client doit obligatoirement se connecter en https sur l':term:`IHM`, et ce même si un reverse proxy se trouve entre le serveur web et le client.
 
 Cela peut donc obliger le reverse proxy frontal de la chaine d'accès à écouter en https.
 
 
-Paramétrage de la centralisation des logs Vitam
+Paramétrage de la centralisation des logs VITAM
 ================================================
 
 2 cas sont possibles :
 
-* Utiliser le sous-système de gestion des logs fourni par la solution logicielle VITAM ;
+* Utiliser le sous-système de gestion des logs fourni par la solution logicielle :term:`VITAM` ;
 * Utiliser un :term:`SIEM` tiers.
 
-Gestion par Vitam
+Gestion par VITAM
 -------------------
 
-Pour une gestion des logs par Vitam, il est nécessaire de déclarer les serveurs ad-hoc dans le fichier d'inventaire pour les 3 groupes suivants:
+Pour une gestion des logs par :term:`VITAM`, il est nécessaire de déclarer les serveurs ad-hoc dans le fichier d'inventaire pour les 3 groupes suivants :
     - hosts-logstash
     - hosts-kibana-log
     - hosts-elasticsearch-log
@@ -113,23 +115,23 @@ Pour une gestion des logs par Vitam, il est nécessaire de déclarer les serveur
 Redirection des logs sur un :term:`SIEM` tiers
 ----------------------------------------------
 
-En configuration par défaut, les logs Vitam sont tout d'abord routés vers un serveur rsyslog installé sur chaque machine.
-Il est possible d'en modifier le routage, qui par défaut redirige vers le serveur logstash via le protocole syslog en TCP.
+En configuration par défaut, les logs VITAM sont tout d'abord routés vers un serveur rsyslog installé sur chaque machine.
+Il est possible d'en modifier le routage, qui par défaut redirige vers le serveur logstash, via le protocole syslog en TCP.
 
 Pour cela, il est nécessaire de placer un fichier de configuration dédié dans le dossier ``/etc/rsyslog.d/`` ; ce fichier sera automatiquement pris en compte par rsyslog. Pour la syntaxe de ce fichier de configuration rsyslog, se référer à la `documentation rsyslog <http://www.rsyslog.com/doc/v7-stable/>`_.
 
-.. tip:: Pour cela, il peut être utile de s'inspirer du fichier de référence VITAM ``deployment/ansible-vitam/roles/rsyslog/templates/vitam_transport.conf.j2`` (attention, il s'agit d'un fichier template ansible, non directement convertible en fichier de configuration sans en ôter les directives jinja2).
+.. tip:: Pour cela, il peut être utile de s'inspirer du fichier de référence :term:`VITAM` ``deployment/ansible-vitam/roles/rsyslog/templates/vitam_transport.conf.j2`` (attention, il s'agit d'un fichier template ansible, non directement convertible en fichier de configuration sans en ôter les directives jinja2).
 
 Passage des identifiants des référentiels en mode `esclave`
 ===========================================================
 
-La génération des identifiants des référentiels est gérée par :term:`VITAM`, quand il fonctionne en mode maître.
+La génération des identifiants des référentiels est géré par :term:`VITAM`lorsqu'il fonctionne en mode maître.
 
 Par exemple :
 
-- Préfixé par PR- pour les profils
-- Préfixé par IC- pour les contrats d'entrée
-- Préfixé par AC- pour les contrats d'accès
+- Préfixé par ``PR-`` pour les profils
+- Préfixé par ``IC-`` pour les contrats d'entrée
+- Préfixé par ``AC-`` pour les contrats d'accès
 
 Depuis la version 1.0.4, la configuration par défaut de :term:`VITAM` autorise des identifiants externes (ceux qui sont dans le fichier json importé).
 
@@ -206,7 +208,7 @@ A titre informatif, le positionnement des variables ainsi que des dérivations d
 
 .. note:: Cas du composant ingest-external. Les directives ``upload_dir``, ``success_dir``, ``fail_dir`` et ``upload_final_action`` permettent de prendre en charge (ingest) des fichiers déposés dans ``upload_dir`` et appliquer une règle ``upload_final_action`` à l'issue du traitement (NONE, DELETE ou MOVE dans ``success_dir`` ou ``fail_dir`` selon le cas). Se référer au :term:`DEX` pour de plus amples détails. Se référer au manuel de développement pour plus de détails sur l'appel à ce cas.
 
-.. warning:: Selon les informations apportées par le métier, redéfinir les valeurs associées dans les directives ``classificationList`` et ``classificationLevelOptional``. Cela permet de définir quels niveaux de protection du secret de la défense nationale supporte l'instance. Attention : une instance de niveau supérieur doit toujours supporter les niveaux inférieurs.
+.. warning:: Selon les informations apportées par le métier, redéfinir les valeurs associées dans les directives ``classificationList`` et ``classificationLevelOptional``. Cela permet de définir quels niveaux de protection du secret de la défense nationale, supporte l'instance. Attention : une instance de niveau supérieur doit toujours supporter les niveaux inférieurs.
 
 * |repertoire_inventory| ``/group_vars/all/cots_vars.yml``, comme suit :
 
@@ -231,14 +233,14 @@ Paramétrage de l'Offre Froide ( librairies de cartouches )
 ==========================================================
 
 Suite à l'introduction des offres bandes, plusieurs notions supplémentaires sont prises en compte dans ce fichier.
-De nouvelles entrées ont été ajoutées pour décrire d'une par le matériel robotique assigné à l'offre froide, et les répertoires d'échanges temporaires d'autre part. Les élements de configuration doivent être renseignés par l'exploitant.
+De nouvelles entrées ont été ajoutées pour décrire d'une part le matériel robotique assigné à l'offre froide, et les répertoires d'échanges temporaires d'autre part. Les élements de configuration doivent être renseignés par l'exploitant.
 
 * Lecture asynchrone
 
 Un paramètre a été ajouté aux définitions de statégie.
-AsyncRead permet de déterminer si l'offre associée fonctionne en lecture asynchrone, et désactive toute possibilité de lecture directe sur l'offre.
+`AsyncRead` permet de déterminer si l'offre associée fonctionne en lecture asynchrone, et désactive toute possibilité de lecture directe sur l'offre.
 Une offre froide "offer-tape" doit être configurée en lecture asynchrone.
-La valeur par défaut pour asyncRead est False.
+La valeur par défaut pour `asyncRead` est False.
 
 Exemple::
 
@@ -254,9 +256,9 @@ Exemple::
 
 **Terminologie**:
 
-        * **tapeLibrary**  une librairie de bande dans son ensemble. Une "tapeLibrary" est constituée de 1 à n "robot" et de 1 à n "drives". Une offre froide nécessite la déclaration d'au moins une librairie pour fonctionner. L'exploitant doit déclarer un identifiant pour chaque librairie. Ex: TAPE_LIB_1
+        * **tapeLibrary**  une librairie de bande dans son ensemble. Une *tapeLibrary* est constituée de 1 à n "robot" et de 1 à n "drives". Une offre froide nécessite la déclaration d'au moins une librairie pour fonctionner. L'exploitant doit déclarer un identifiant pour chaque librairie. Ex: TAPE_LIB_1
 
-        * **drive**  un drive est lecteur de cartouches. Il doit être identifié par un path scsi unique. Une offre froide nécessite la déclaration d'au moins un lecteur pour fonctionner.
+        * **drive**  un drive est un lecteur de cartouches. Il doit être identifié par un *path* scsi unique. Une offre froide nécessite la déclaration d'au moins un lecteur pour fonctionner.
         
         N.B.: il existe plusieurs fichiers périphériques sur Linux pour un même lecteur.
         Les plus classiques sont par exemple ``/dev/st0`` et ``/dev/nst0`` pour le premier drive détecté par le système.
@@ -267,11 +269,11 @@ Exemple::
  
         .. note:: Il peut arriver sur certains systèmes que l'ordre des lecteurs de bandes varient après un reboot de la machine. Pour s'assurer la persistence de l'ordre des lecteurs dans la configuration VITAM, il est conseillé d'utiliser les fichiers périphériques présents dans ``/dev/tape/by-id/`` qui s’appuient sur des références au hardware pour définir les drives.
  
-        * **robot**  un robot est le composant chargé de procéder au déplacement des cartouches dans une tapeLibrary, et de procéder à l'inventaire de ses ressources. Une offre froide nécessite la déclaration d'au moins un robot pour fonctionner. L'exploitant doit déclarer un fichier de périphérique scsi générique ( ex: /dev/sg4 ) associé à la robotique sur son système. A l'instar de la configuration des drives, il est recommandé d'utiliser le device présent dans /dev/tape/by-id pour déclarer les robots. 
+        * **robot**  un robot est le composant chargé de procéder au déplacement des cartouches dans une *tapeLibrary*, et de procéder à l'inventaire de ses ressources. Une offre froide nécessite la déclaration d'au moins un robot pour fonctionner. L'exploitant doit déclarer un fichier de périphérique scsi générique ( ex: /dev/sg4 ) associé à la robotique sur son système. A l'instar de la configuration des drives, il est recommandé d'utiliser le device présent dans /dev/tape/by-id pour déclarer les robots. 
 
 **Définition d'une offre froide:**
 
-        Une offre froide (OF) doit être définie dans la rubrique "vitam_offers" avec un provider de type "tape-library"
+        Une offre froide (OF) doit être définie dans la rubrique "vitam_offers" avec un provider de type *tape-library*
 
 Exemple::
 
@@ -282,15 +284,15 @@ Exemple::
 
 .
 
-        La description "tapeLibraryConfiguration" débute par la définition des répertoires de sockage ainsi que le paramétrage des tar.
+        La description "tapeLibraryConfiguration" débute par la définition des répertoires de sockage ainsi que le paramétrage des `tar`.
 
         **inputFileStorageFolder**	Répertoire où seront stockés les objets à intégrer à l'OF
-        **inputTarStorageFolder** 	Répertoire où seront générés et stockés les tars avant transfère sur bandes
-        **outputTarStorageFolder** Répertoire où seront rapatriés les tars depuis les bandes.
+        **inputTarStorageFolder** 	Répertoire où seront générés et stockés les tars avant transfert sur bandes
+        **outputTarStorageFolder** Répertoire où seront rapatriés les `tars` depuis les bandes.
         **MaxTarEntrySize**	Taille maximale au-delà de la laquelle les fichiers entrant seront découpés en segment, en octets
         **maxTarFileSize**		Taille maximale des tars à constituer, en octets.
-        **forceOverrideNonEmptyCartridge**  Permet de passer outre le contrôle vérifiant que les bandes nouvellement introduites sont vides. Par défaut à False
-        **useSudo**		Réservé à un usage futur – laisser à false.
+        **forceOverrideNonEmptyCartridge**  Permet de passer outre le contrôle vérifiant que les bandes nouvellement introduites sont vides. Par défaut à *false*
+        **useSudo**		Réservé à un usage futur – laisser à *false*.
 
         .. note:: **N.B.**: MaxTarEntrySize doit être strictement inférieur à maxTarFileSize
       
@@ -307,10 +309,10 @@ Exemple::
 
 .        
 
-        Par la suite, un paragraphe "topology" décrivant la topologie de l'offre doit être renseigné. L'objectif de cet élément est de pouvoir définir une segmentation de l'usage des bandes pour répondre à un besoin fonctionnel. Il convient ainsi de définir des buckets, qu'on peut voir comme un ensemble logique de bandes, et de les associers à un ou plusieurs tenants.
+        Par la suite, un paragraphe "topology" décrivant la topologie de l'offre doit être renseigné. L'objectif de cet élément est de pouvoir définir une segmentation de l'usage des bandes pour répondre à un besoin fonctionnel. Il convient ainsi de définir des *buckets*, qu'on peut voir comme un ensemble logique de bandes, et de les associer à un ou plusieurs tenants.
 
         **tenants**				tableau de 1 à n identifiants de tenants au format [1,...,n]
-        **tarBufferingTimeoutInMinutes** 	Valeur en minutes durant laquelle un tar peut rester ouvert 
+        **tarBufferingTimeoutInMinutes** 	Valeur en minutes durant laquelle un `tar` peut rester ouvert 
 
 Exemple::
 
@@ -338,7 +340,7 @@ Exemple::
         
         **timeoutInMilliseconds:** timeout en millisecondes à appliquer aux ordres du bras.
 
-**drives:**      Définition du ou des lecteurs de cartouches de la librairie.
+**drives:**      Définition du/ou des lecteurs de cartouches de la librairie.
 
         **index:** 		Numéro de lecteur, valeur débutant à 0
 

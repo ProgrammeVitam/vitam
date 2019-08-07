@@ -1,7 +1,7 @@
 Liste des secrets
 #################
 
-Les secrets nécessaires au bon déploiement de VITAM sont les suivants :
+Les secrets nécessaires au bon déploiement de :term:`VITAM` sont les suivants :
 
 * Certificat ou mot de passe de connexion :term:`SSH` à un compte *sudoer* sur les serveurs cibles (pour le déploiement) ;
 * Certificats x509 serveur (comprenant la clé privée) pour les modules de la zone d'accès (services ``*-external``) et pour le module ``storage``, ainsi que les :term:`CA` (finales et intermédiaires) ;
@@ -12,10 +12,10 @@ Les secrets nécessaires au bon déploiement de VITAM sont les suivants :
 .. note:: Ces certificats x509 seront déployés dans des `keystores java <https://docs.oracle.com/cd/E19509-01/820-3503/ggffo/index.html>`_ en tant qu'éléments de configuration de ces services (se rapporter au :term:`DIN` pour plus d'informations).
 
 
-Les secrets définis lors de l'installation de VITAM sont les suivants :
+Les secrets définis lors de l'installation de :term:`VITAM` sont les suivants :
 
 * Mots de passe des keystores ;
-* Mots de passe des administrateurs fonctionnels de l'application VITAM ;
+* Mots de passe des administrateurs fonctionnels de l'application :term:`VITAM` ;
 * Mots de passe d'administration de base de données MongoDB ;
 * Mots de passe des comptes d'accès aux bases de données MongoDB.
 

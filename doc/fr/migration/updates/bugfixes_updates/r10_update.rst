@@ -1,4 +1,4 @@
 Notes et procédures spécifiques R10
 ###################################
 
-Sans objet.
+.. note:: Cette version n'est à ce jour plus officiellement supportée. 

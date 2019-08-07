@@ -27,10 +27,10 @@ D'une façon synthétique, le plugin worker est décrit de cette façon :
 Appel du plugin
 ==================
 
-Au démarrage du service, le serveur worker charger tous les  plugins et leurs fichier de properties. 
-Les référentiels de plugin sont déclaré dans un fichier de configuration : 
+Au démarrage du service, le serveur `worker` charge tous les  `plugins` et leurs fichier de propriétés. 
+Les référentiels de `plugin` sont déclarés dans un fichier de configuration : 
 
-.. code-block:: json
+.. sourcecode:: json
 
   {
      "NOM_DE_PLUGIN_1": {
@@ -44,7 +44,7 @@ Les référentiels de plugin sont déclaré dans un fichier de configuration :
   }
 
 
-Au démarrage de chaque worker, la liste des plugins va être analysé. Puis le serveur va tenter d'instancier chaque plugin de la liste.
+Au démarrage de chaque `worker`, la liste des plugins va être analysé. Puis le serveur va tenter d'instancier chaque plugin de la liste.
 Si un des plugins ne se lance pas pour une raison quelconque (nom de classe incorrect, impossible d'instancier la classe, ...), alors le serveur ne démarrera pas.
 
 Les plugins ne sont pas pour l'instant thread safe dans Vitam, ce qui signifie que un plugin est réinstancié pour chaque appel au serveur worker.
@@ -56,8 +56,8 @@ Après ses traitements, Plugin doit retourner au Worker un ItemStatus. Quand le 
 
 - Il doit le traduire en utilisant par défaut le fichier de properties VITAM (vitam-logbook-messages_fr.properties) 
 
-si les clés ne sont pas définies dans ce fichier alors il va chercher la valeur du label dans le fichier properties 
-du plug-in puis envoit à Engine pour écrire dans les journaux des opération. 
+si les clés ne sont pas définies dans ce fichier, alors il va chercher la valeur du label dans le fichier properties 
+du `plugin` puis envoie à `Engine` pour écrire dans les journaux des opération. 
 
 - Construire et écrire LogbookLifeCycle.
 
@@ -68,36 +68,38 @@ Implémentation 
 Worker
 -------
 
-- getActionHandler: pour chaque action, le worker vérifie si l’action est dans la liste des plugins, il va le charger, si non on utilise les handlers prédéfinis dans Vitam
-- writeLogbookLifeCycle : traduire le code d’action d’un ItemStatus du Plugin en LogbookLifeCycleParameters puis en fonction du type d’élément dans la distribution (Unit ou ObjectGroup), il écrit dans la base de données correspondante
+- **getActionHandler**: pour chaque action, le worker vérifie si l’action est dans la liste des plugins, il va le charger, si non on utilise les handlers prédéfinis dans Vitam
+- **writeLogbookLifeCycle** : traduire le code d’action d’un ItemStatus du Plugin en LogbookLifeCycleParameters puis en fonction du type d’élément dans la distribution (Unit ou ObjectGroup), il écrit dans la base de données correspondante
 
 Exemple: Le plugin CHECK_DIGEST fait un traitement CALC_CHECK qui donne un status OK. 
 
-Le résultat retourné du plugin contiendra
+Le résultat retourné du plugin contiendra :
 
-.. code-block:: json
-
-  {
-	«globalStatus » : OK ,
-	« itemsStatus » : [ {« CALC_CHECK » :  { «globalStatus » : OK  }}] 
-  }
-
-Alors le Worker va écrire ces événements ci-dessous dans LFC :
-
-.. code-block:: json
+.. sourcecode:: text
 
    {
-       {
-            "evType" : "LFC.CHECK_DIGEST ",
-            "outcome" : "OK",
-            "outDetail" : "LFC.CHECK_DIGEST..OK",
-       }
-       {
-            "evType" : "LFC.CHECK_DIGEST.CALC_CHECK ",
-            "outcome" : "OK",
-            "outDetail" : "LFC.CHECK_DIGEST.CALC_CHECK.OK",
-       }
+    "globalStatus" : OK ,
+    "itemsStatus" : [ {"CALC_CHECK" :  { "globalStatus" : OK  }}] 
    }
+
+
+Alors le worker va écrire ces événements ci-dessous dans :term:`LFC`.
+
+.. sourcecode:: text
+
+   {
+    {
+      "evType" : "LFC.CHECK_DIGEST ",
+      "outcome" : "OK",
+      "outDetail" : "LFC.CHECK_DIGEST..OK",
+    },
+    {
+      "evType" : "LFC.CHECK_DIGEST.CALC_CHECK ",
+      "outcome" : "OK",
+      "outDetail" : "LFC.CHECK_DIGEST.CALC_CHECK.OK",
+    }
+   }
+
 
 L’écriture des journaux des opérations garde son implémentation.
 

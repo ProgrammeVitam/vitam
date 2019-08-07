@@ -40,13 +40,13 @@ Authentification des hôtes
 
 Pour éviter les attaques de type :term:`MitM`, le client :term:`SSH` cherche à authentifier le serveur sur lequel il se connecte. Ceci se base généralement sur le stockage des clés publiques des serveurs auxquels il faut faire confiance (~/.ssh/known_hosts).
 
-Il existe différentes méthodes pour remplir ce fichier (vérification humaine à la première connexion, gestion centralisée, :term:`DNSSEC`). La gestion de fichier est hors périmètre Vitam mais c'est un pré-requis pour le lancement d'ansible.
+Il existe différentes méthodes pour remplir ce fichier (vérification humaine à la première connexion, gestion centralisée, :term:`DNSSEC`). La gestion de fichier est hors périmètre :term:`VITAM` mais c'est un pré-requis pour le lancement d'ansible.
 
 
-Elevation de privilèges
+Elévation de privilèges
 =======================
 
-Une fois que l'on est connecté  sur le serveur cible, il faut définir la méthode pour accéder aux droits root
+Une fois que l'on est connecté  sur le serveur cible, il faut définir la méthode pour accéder aux droits ``root``
 
 Par sudo avec mot de passe
 --------------------------
@@ -60,12 +60,12 @@ Par su
 
 Dans ce cas, il faut rajouter les options ``--become-method=su --ask-su-pass``
 
-Au lancement de la commande ansible (ou ansible-playbook), il sera demandé le mot de passe root
+Au lancement de la commande ansible (ou ansible-playbook), il sera demandé le mot de passe ``root``
 
 Par sudo sans mot de passe
 --------------------------
 
-Il n'y a pas d'option à rajouter (l'élévation par sudo est la configuration par défaut)
+Il n'y a pas d'option à rajouter (l'élévation par ``sudo`` est la configuration par défaut)
 
 Déjà Root
 ---------

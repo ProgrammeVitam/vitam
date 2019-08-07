@@ -50,40 +50,42 @@ X509AuthenticationFilter (filter par defaut)
  - Activation du filter dans le fichier shiro.ini: x509 = fr.gouv.vitam.common.auth.web.filter.X509AuthenticationFilter
  - Ce filter récupère les certificats fournis dans la requête :
 
-    .. code-block:: java
+    .. sourcecode:: java
 
         X509Certificate[] clientCertChain = (X509Certificate[]) request.getAttribute("javax.servlet.request.X509Certificate");
+    
 
  - Si des certificats sont trouvé alors un token est crée qui sera passé à la méthode qui s'occupe d'authentifier un client.
 
-.. code-block:: java
+    .. sourcecode:: java
 
-    new X509AuthenticationToken(clientCertChain, getHost(request));
+        new X509AuthenticationToken(clientCertChain, getHost(request));
+    
 
  - X509AuthenticationFilter peut aussi authentifier via un certificat passé dans le header. La variable "useHeader" est égale à false par défaut. Donc cette option est désactivé par défaut. Si useHeader= true (qu'on peut spécifier dans shiro.ini: x509.useHeader = false dans l'exemple ci-dessus) et qu'aucun cetificat n'est fourni dans l'attribute de la requête javax.servlet.request.X509Certificate alors il bascule vers une authentification via le header. Le nom du header est X-SSL-CLIENT-CERT, et il doit avoir comme valeur un certificat valide au format pem. Le certificat pem est ensuite converti vers un X509Certificate qui sera utilisé pour créer le token d'authentification. Ci-dessous une snipet de code qui permets de récupérer la valeur du certificat depuis le header et le convertir au bon format.
- - Attention, jetty n'accepte pas les retour à la ligne dans le header, d'ou la nécessité d'encoder le pem en base 64. X509AuthenticationFilter s'occupe de déterminer si le certificat passé dans le header est encodé ou non en base 64 et fera en sorte d'accepter même les certificats non encodés.
+ - Attention, jetty n'accepte pas les retour à la ligne dans le `header`, d'où la nécessité d'encoder le ``pem`` en base 64. X509AuthenticationFilter s'occupe de déterminer si le certificat passé dans le header est encodé ou non en base 64 et fera en sorte d'accepter même les certificats non encodés.
 
-.. code-block:: java
+    .. sourcecode:: java
 
-    final HttpServletRequest httpRequest = (HttpServletRequest) request;
-    String pem = httpRequest.getHeader(X_SSL_CLIENT_CERT);
-    byte[] pemByte = null;
-    if (null != pem) {
-        try {
+        final HttpServletRequest httpRequest = (HttpServletRequest) request;
+        String pem = httpRequest.getHeader(X_SSL_CLIENT_CERT);
+        byte[] pemByte = null;
+        if (null != pem) {
             try {
-                pemByte = Base64.getDecoder().decode(pem);
-            } catch (IllegalArgumentException ex) {
-                // the pem is not base64 encoded
-                pemByte = pem.getBytes();
+                try {
+                    pemByte = Base64.getDecoder().decode(pem);
+                } catch (IllegalArgumentException ex) {
+                    // the pem is not base64 encoded
+                    pemByte = pem.getBytes();
+                }
+                final InputStream pemStream = new ByteArrayInputStream(pemByte);
+                final CertificateFactory cf = CertificateFactory.getInstance("X.509");
+                final X509Certificate cert = (X509Certificate) cf.generateCertificate(pemStream);
+                clientCertChain = new X509Certificate[] {cert};
+            } catch (Exception ce) {
+                throw new ShiroException(ce);
             }
-            final InputStream pemStream = new ByteArrayInputStream(pemByte);
-            final CertificateFactory cf = CertificateFactory.getInstance("X.509");
-            final X509Certificate cert = (X509Certificate) cf.generateCertificate(pemStream);
-            clientCertChain = new X509Certificate[] {cert};
-        } catch (Exception ce) {
-            throw new ShiroException(ce);
         }
-    }
 
 
- - Il faut noter que l'authentification via un certificat passé dans le header n'est pas sécurisée (moins sécurisée que la solution via l'attribute de la requête). En effet, il peut y avoir une injection lors de l'acheminement de la requête depuis un client vers un serveur jetty. Nous recommendons donc l'utilisation de certificats dans l'attribute de la requête.
+ - Il faut noter que l'authentification via un certificat passé dans le `header` n'est pas sécurisée (moins sécurisée que la solution via l'attribute de la requête). En effet, il peut y avoir une injection lors de l'acheminement de la requête depuis un client vers un serveur jetty. Nous recommendons donc l'utilisation de certificats dans l'attribute de la requête.

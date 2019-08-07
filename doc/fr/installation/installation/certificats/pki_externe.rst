@@ -7,7 +7,7 @@ Procédure générale
 
 La procédure suivante s'applique lorsqu'une :term:`PKI` est déjà disponible pour fournir les certificats nécessaires.
 
-Les étapes d'intégration des certificats à la solution Vitam sont les suivantes :
+Les étapes d'intégration des certificats à la solution :term:`Vitam` sont les suivantes :
 
 * Générer les certificats avec les bons `key usage` par type de certificat
 * Déposer les certificats et les autorités de certifications correspondantes dans les bons répertoires.
@@ -43,7 +43,7 @@ Ce qui donne pour le certificat serveur de access-external par exemple:
 
 Il faudra alors mettre le même nom de domaine pour la configuration de Consul (fichier ``deployment/environments/group_vars/all/vitam_vars.yml``, variable ``consul_domain`` )
 
-Cas particulier pour ihm-demo et ihm-recette: il faut ajouter le nom DNS qui sera utilisé pour requêter ces deux applications, si celles-ci sont appelées directement en frontal en https.
+Cas particulier pour ihm-demo et ihm-recette: il faut ajouter le nom :term:`DNS` qui sera utilisé pour requêter ces deux applications, si celles-ci sont appelées directement en frontal https.
 
 Certificat clients
 ^^^^^^^^^^^^^^^^^^
@@ -66,7 +66,7 @@ Ces certificats sont à générer pour les composants ``logbook`` et ``storage``
 Intégration de certificats existants
 ------------------------------------
 
-Une fois les certificats et CA mis à disposition par votre PKI, il convient de les positionner sous ``environments/certs/....`` en respectant la structure indiquée ci-dessous.
+Une fois les certificats et :term:`CA` mis à disposition par votre :term:`PKI`, il convient de les positionner sous ``environments/certs/....`` en respectant la structure indiquée ci-dessous.
 
 .. only:: html
 
@@ -85,10 +85,10 @@ Une fois les certificats et CA mis à disposition par votre PKI, il convient de 
 
 .. tip::
 
-    Dans le doute, n'hésitez pas à utiliser la PKI de test (étapes de génération de CA et de certificats) pour générer les fichiers requis au bon endroit et ainsi voir la structure exacte attendue ;
+    Dans le doute, n'hésitez pas à utiliser la :term:`PKI` de test (étapes de génération de :term:`CA` et de certificats) pour générer les fichiers requis au bon endroit et ainsi observer la structure exacte attendue ;
     il vous suffira ensuite de remplacer ces certificats "placeholders" par les certificats définitifs avant de lancer le déploiement.
 
-Ne pas oublier de renseigner le vault contenant les passphrases des clés des certificats: ``environments/certs/vault-certs.yml``
+Ne pas oublier de renseigner le vault contenant les *passphrases* des clés des certificats: ``environments/certs/vault-certs.yml``
 
 Pour modifier/créer un vault ansible, se référer à la documentation Ansible sur `cette url <http://docs.ansible.com/ansible/playbooks_vault.html>`_.
 

@@ -2,7 +2,6 @@ Common
 ######
 
 .. toctree::
-   :numbered:
    :maxdepth: 2
 
    fonctionnelle/index.rst

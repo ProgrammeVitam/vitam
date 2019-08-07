@@ -2,7 +2,7 @@ Procédures de mise à jour de la configuration
 #############################################
 
 
-Cette section décrit globalement les processus de reconfiguration d'une solution logicielle :term:`VITAM` déjà en place et ne peut se substituer aux recommandations effectuées dans la "release notes" associée à la fourniture des composants mis à niveau.
+Cette section décrit globalement les processus de reconfiguration d'une solution logicielle :term:`VITAM` déjà en place et ne peut se substituer aux recommandations effectuées dans la "release-notes" associée à la fourniture des composants mis à niveau.
 
 Se référer également aux :term:`DEX` pour plus de procédures.
 
@@ -18,7 +18,7 @@ Exemple :
 
 	vitam_tenant_ids=[0,1,2]
 
-A l'issue, il faut lancer le playbook de déploiement de VITAM (et, si déployé, les extras) avec l'option supplémentaire ``--tags update_vitam_configuration``.
+A l'issue, il faut lancer le playbook de déploiement de :term:`VITAM` (et, si déployé, les extras) avec l'option supplémentaire ``--tags update_vitam_configuration``.
 
 Exemple:
 
@@ -33,9 +33,9 @@ Cas d'une modification des paramètres :term:`JVM`
 
 Se référer à :ref:`update_jvm`
 
-Pour les partitions sur lesquelles une modification des paramètres JVM est nécessaire, il faut modifier les "hostvars" associées.
+Pour les partitions sur lesquelles une modification des paramètres :term:`JVM` est nécessaire, il faut modifier les "hostvars" associées.
 
-A l'issue, il faut lancer le playbook de déploiement de VITAM (et, si déployé, les extra) avec l'option supplémentaire ``--tags update_jvmoptions_vitam``.
+A l'issue, il faut lancer le playbook de déploiement de :term:`VITAM` (et, si déployé, les *extras*) avec l'option supplémentaire ``--tags update_jvmoptions_vitam``.
 
 Exemple:
 
@@ -44,7 +44,7 @@ Exemple:
 	ansible-playbook -i environments/hosts.deployment ansible-vitam/vitam.yml --ask-vault-pass --tags update_jvmoptions_vitam
 	ansible-playbook -i environments/hosts.deployment ansible-vitam-extra/extra.yml --ask-vault-pass --tags update_jvmoptions_vitam
 
-.. caution:: Limitation technique à ce jour ; il n'est pas possible de définir des variables JVM différentes pour des composants colocalisés sur une même partition.
+.. caution:: Limitation technique à ce jour ; il n'est pas possible de définir des variables :term:`JVM` différentes pour des composants colocalisés sur une même partition.
 
 Cas de la mise à jour des *griffins*
 ========================================

@@ -1,6 +1,7 @@
+.. _pkistores:
 
 Génération des magasins de certificats
---------------------------------------
+######################################
 
 En prérequis, les certificats et les autorités de certification (:term:`CA`) doivent être présents dans les répertoires attendus.
 

@@ -3,7 +3,7 @@ Access-core
 
 Présentation
 ************
-Ce module permet d'implémenter les API publique du module access-api
+Ce module permet d'implémenter les :term:`API` publiques du module access-api
 
 Packages:
 **********

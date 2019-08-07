@@ -1,15 +1,15 @@
 Worker Plugin
 #############
 
-1. Présentation
-***************
+Présentation
+===============
 
 Un plugin est un programme informatique conçu pour ajouter des fonctionnalités à un autre logiciel (appelé logiciel hôte). 
 En français, on utilise également les termes équivalents de "module d'extension" ou de "greffon".
 Dans le cadre de VITAM, un plugin pourra être ajouté dans un ou plusieurs Workflow(s) spécifique(s) pour effectuer de nouvelles fonctionnalités sur un type d'objet prédéfini (archive unit, manifest, ...) 
 
 
-1.1 Présentation de l'architecture VITAM
+Présentation de l'architecture VITAM
 ----------------------------------------
 
 Dans VITAM, on appelle Workflow une liste d'étapes (steps) devant être exécutées sur un objet particulier.
@@ -31,7 +31,7 @@ D'une façon synthétique, voici la place du plugin dans l'architecture Vitam :
    :align: center  
 
 
-1.2 Définition du plugin VITAM
+Définition du plugin VITAM
 ------------------------------
 
 Un plugin au sens VITAM propose une liste d'action(s) à réaliser sur un ou plusieurs objets de même type.
@@ -55,11 +55,12 @@ De manière synthétique, voici le fonctionnement du plugin VITAM.
 .. figure:: images/plugin.png
    :align: center  
 
-2. Gestion des entrants du plugin
-*********************************
+Gestion des entrants du plugin
+=================================
 
-2.1 WorkerParameters
+WorkerParameters
 --------------------
+
 Les paramètres WorkerParameters sont des paramètres permettant aux différents plugins d'exécuter leurs différentes actions.
 
 Actuellement 5 paramètres sont obligatoires pour tous les workers :
@@ -79,27 +80,24 @@ Les autres paramètres sont les suivants :
  
 Pour récupérer un paramètre, il suffit d'appliquer : 
 
-.. code-block:: java
+.. sourcecode:: java
    
-   @Override
-    public ItemStatus execute(WorkerParameters params, HandlerIO actionDefinition) {
-      
-      // on récupère le nom de l'objet sur lequel l'action va être effectuée
-      final String objectName = params.getObjectName();
-      // on récupère le nom de l'étape en cours
-      final String currentStep = params.getCurrentStep();
-      // il est possible de récupérer la même information différemment :
-      final String currentStepBis = params.getParameterValue(WorkerParameterName.currentStep);
-
-      // TODO : maintenant, réalisons l'action 
-
-      // on retourne un ItemStatus      
-      return new ItemStatus(); 
-                        
-    }
+  @Override
+  public ItemStatus execute(WorkerParameters params, HandlerIO actionDefinition) {
+    
+    // on récupère le nom de l'objet sur lequel l'action va être effectuée
+    final String objectName = params.getObjectName();
+    // on récupère le nom de l'étape en cours
+    final String currentStep = params.getCurrentStep();
+    // il est possible de récupérer la même information différemment :
+    final String currentStepBis = params.getParameterValue(WorkerParameterName.currentStep);
+    // TODO : maintenant, réalisons l'action 
+    // on retourne un ItemStatus      
+    return new ItemStatus();                   
+  }
 
 
-2.2 HandlerIO
+HandlerIO
 -------------
 
 Le HandlerIO a pour charge d'assurer la liaison avec le Workspace et la mémoire entre les différentes actions d'un step, exécutées dans différents plugins.
@@ -117,9 +115,9 @@ Voici un json d'exemple de configuration de workflow :
 
 Voici un exemple, de ce que l'on pourrait trouver au seun d'une action en terme d'input et d'output :
 
-.. code-block:: json
+.. sourcecode:: text
 
-  "action": {
+   "action": {
     "actionKey": "CHECK_CONSISTENCY",
     "behavior": "NOBLOCKING",
     "in": [
@@ -142,7 +140,7 @@ Voici un exemple, de ce que l'on pourrait trouver au seun d'une action en terme 
         "uri": "WORKSPACE:ATR/responseReply.xml"
       }
     ]
-  }
+   }
 
 On peut noter qu'il existe plusieurs types d'inputs qui sont identifiés par :  
 
@@ -166,15 +164,17 @@ Il existe plusieurs manières de récupérer les différents objets dans les plu
 Chaque plugin peut donc accéder aux différents inputs ou peut stocker différents outputs dès lors qu'ils sont bien déclarés dans la configuration.
 
  
-2.2.1 Récupérer un Json sur le workspace
+Récupérer un Json sur le workspace
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-.. code-block:: java
+
+.. sourcecode:: java
 
    // récupérons sur le workspace un json répresenant un objet sur lequel l'action est en cours
    final JsonNode jsonOG = handlerIO.getJsonFromWorkspace(
                     IngestWorkflowConstants.OBJECT_GROUP_FOLDER + "/" + params.getObjectName());
 
-2.2.2 Transférer un fichier sur le Workspace
+
+Transférer un fichier sur le Workspace
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 .. code-block:: java
 
@@ -191,33 +191,35 @@ Chaque plugin peut donc accéder aux différents inputs ou peut stocker différe
             jsonNode, true);                            
 
 
-2.2.3 Récupérer un objet spécifique déterminé dans le workflow
+Récupérer un objet spécifique déterminé dans le workflow
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 Soit la déclaration d'inputs : 
 
-.. code-block:: json
+.. sourcecode:: javascript
 
-  "in": [
-            {
-              "name": "testValue",
-              "uri": "VALUE:SHA-512"
-            },
-            {
-              "name": "testFile.file",
-              "uri": "WORKSPACE:Maps/testFile.json"
-            }, 
-  ],
+   "in": [
+    {
+      "name": "testValue",
+      "uri": "VALUE:SHA-512"
+    },
+    {
+      "name": "testFile.file",
+      "uri": "WORKSPACE:Maps/testFile.json"
+    }, 
+    {[...]}
+   ]
 
 
 Si l'on souhaite réaliser les différentes opérations : 
 
 - Récupérer un objet "VALUE" : 
 
-.. code-block:: java
+.. sourcecode:: java
 
-   // récupérons le fichier défini de rang 0 , en tant que VALUE dans le workflow
-   final DigestType digestTypeInput = DigestType.fromValue((String) handlerIO.getInput(0));
+  // récupérons le fichier défini de rang 0 , en tant que VALUE dans le workflow
+  final DigestType digestTypeInput = DigestType.fromValue((String) handlerIO.getInput(0));
+
 
  - Récupérer un objet "WORKSPACE", autrement dit, récupérer un FILE sur le workspace : 
 
@@ -225,16 +227,17 @@ Si l'on souhaite réaliser les différentes opérations :
 
    // récupérons le fichier défini de rang 1 , en tant que WORKSPACE dans le workflow
    File file = handlerIO.getInput(1);
-   
+
+ 
 - Récupérer un objet "MEMORY", autrement dit, récupérer un object en mémoire :
 
-.. code-block:: java
+.. sourcecode:: java
 
    // récupérons l'objet défini en rang 2, en mémoire
    Object object = handlerIO.getInput(2);
 
-                                                        
-2.2.4 Travailler sur le Workspace sur un fichier temporaire
+                                                     
+Travailler sur le Workspace sur un fichier temporaire
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 S'il est nécessaire de travailler sur un fichier temporaire sur le workspace, il est possible de faire : 
 
@@ -243,14 +246,14 @@ S'il est nécessaire de travailler sur un fichier temporaire sur le workspace, i
    // créons un fichier temporaire sur le workspace
    File temporaryFile = handlerIO.getNewLocalFile("MyTempFile" + objectName);
 
-2.2.5 Enregistrer un output
+Enregistrer un `output`
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 Soit la déclaration d'outputs : 
 
-.. code-block:: json
+.. code-block:: text
 
-  "out": [
+   "out": [
     {
       "name": "test.file",
       "uri": "WORKSPACE:test.txt"
@@ -258,8 +261,8 @@ Soit la déclaration d'outputs :
     {
       "name": "test.memory",
       "uri": "MEMORY:test.memory"
-    },
-  ],
+    }
+   ]
 
 Si l'on souhaite réaliser les différentes opérations : 
  
@@ -289,8 +292,8 @@ Si l'on souhaite réaliser les différentes opérations :
   handlerIO.addOuputResult(1, myMap);   
 
 
-3. Gestion des statuts du plugin : ItemStatus
-*********************************************
+Gestion des statuts du plugin : ItemStatus
+============================================
 
 Le plugin dans sa méthode execute, doit forcément retourner un objet de type ItemStatus.
 
@@ -330,7 +333,7 @@ En fin de ``execute()``, le plugin doit donc retourner l'objet ItemStatus instan
   return new ItemStatus(CHECK_RULES_TASK_ID).setItemsStatus(CHECK_RULES_TASK_ID, itemStatus);
 
 
-3.1 Journalisation : opération et cycle de vie
+Journalisation : opération et cycle de vie
 ----------------------------------------------
 
 Le worker, lorsqu'il récupérera le statut du plugin, devra traduire les différentes clés (ID_PLUGIN + STATUT) en messages humains en utilisant par défaut le fichier de properties VITAM (vitam-logbook-messages_fr.properties).
@@ -355,7 +358,7 @@ Le journal de cycle de vie des objectgroups va donc être mis à jour en fonctio
 Ce plugin exécute un traitement ayant pour identifiant CALC_CHECK.
 En fonction du statut de chaque traitement on aura donc des messages différents dans les journaux de cycle de vie.
 
-.. code-block:: json
+.. sourcecode:: json
 
   {
     "evType" : "LFC.CHECK_DIGEST",
@@ -386,12 +389,14 @@ Il convient donc d'avoir dans le fichier de properties VITAM (vitam-logbook-mess
    
 Tous les différents cas d'erreur doivent être traités.   
 
-4. Intégration d'un nouveau plugin
-**********************************
+Intégration d'un nouveau plugin
+=====================================
+
 Afin d'ajouter un nouveau plugin dans l'architecture VITAM, il convient de réaliser plusieurs opérations.
 
-4.1 Ajout de l'action dans le Workflow
+Ajout de l'action dans le Workflow
 --------------------------------------
+
 Dans le bon Workflow, il s'agit d'ajouter une action dans l'étape adéquate. 
 
 .. literalinclude:: includes/DefaultIngestWorkflow.json
@@ -402,14 +407,14 @@ Par exemple, je souhaite ajouter une deuxième vérification, en plus de la vér
 Je souhaite valider le manifest avec un XSD "maison". Cette vérification doit générer un fichier de report sur le Workspace, qui sera utilisé dans un futur proche.
 Il suffit donc d'ajouter les informations dans le Workflow adéquat.
 
-.. code-block:: json
+.. sourcecode:: javascript
 
-  {
+   {
     "action": {
       "actionKey": "CHECK_SEDA",
       "behavior": "BLOCKING"
     }
-  }, {
+   }, {
     "action": {
       "actionKey": "CHECK_MANIFEST_CUSTOM_XSD",
       "behavior": "NOBLOCKING",
@@ -419,28 +424,29 @@ Il suffit donc d'ajouter les informations dans le Workflow adéquat.
           "uri": "WORKSPACE:REPORT/report.txt"
         }
       ]
-    }
-  },
+     }
+   }
 
 De cette manière, l'action de vérification du manifest par un XSD maison se déroulera dans l'étape "STP_INGEST_CONTROL_SIP" et ne bloquera pas le processus en cas d'erreur (pour que l'on puisse continuer le workflow en cas d'erreur).
 
 
-4.2 Ajout du plugin dans la liste des plugins
+Ajout du plugin dans la liste des plugins
 ---------------------------------------------
+
 Une fois l'action déclarée dans le Workflow, il convient de préciser les informations au Worker pour qu'il puisse connaitre le code à exécuter pour ce type d'action.
 Dans le fichier de configuration plugins.json de l'ansiblerie du Worker, il conviendra d'ajouter les lignes suivantes : 
 
-.. code-block:: json
+.. code-block:: javascript
 
-  "CHECK_MANIFEST_CUSTOM_XSD": {
+   "CHECK_MANIFEST_CUSTOM_XSD": {
          "className": "mon.package.plugin.CheckManifestCustomXSD",
          "propertiesFile": "check_manifest_custom_xsd_plugin.properties"
-  }
+   }
 
 
 Pour information, le fichier de configuration plugins.json se trouve dans le répertoire /vitam/conf/worker/ du Worker.
 
-4.3 Création du plugin
+Création du plugin
 ----------------------
 
 Maintenant le plugin déclaré, il convient enfin de coder le plugin à proprement parler. 
@@ -514,7 +520,7 @@ De plus, il faudra créer le fichier de properties (check_manifest_custom_xsd_pl
    PLUGIN.CHECK_TEST_MANIFEST.WARNING=Manifest non conforme au CUSTOM XSD
 
 
-4.4 Installation du plugin
+Installation du plugin
 --------------------------
 
 Le plugin devra être fourni sous forme de jar (s'il provient d'une source externe à VITAM) et devra être installé dans le Worker, dans ``/vitam/lib/worker/``

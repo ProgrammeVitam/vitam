@@ -4,7 +4,7 @@ Access-rest
 Présentation
 ************
 
-API REST appelées par le client access interne. Il y a un controle des paramètres (SanityChecker.checkJsonAll) transmis
+:term:`API` :term:`REST` appelées par le client access interne. Il y a un controle des paramètres (SanityChecker.checkJsonAll) transmis
 avec ESAPI.
 
 Packages:

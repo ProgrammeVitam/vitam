@@ -63,13 +63,16 @@ Glossaire
 .. glossary::
 
    API
-      Application Programming Interface
+      `Application Programming Interface`
 
    AU 
       `Archive Unit`, unité archivistique 
 
    BDD
       Base De Données
+
+   BDO
+      `Binary DataObject`
 
    CA
       `Certificate Authority`, autorité de certification
@@ -88,6 +91,9 @@ Glossaire
 
    CRL 
       `Certificate Revocation List` ; liste des identifiants des certificats qui ont été révoqués ou invalidés et qui ne sont donc plus dignes de confiance. Cette norme est spécifiée dans les RFC 5280 et RFC 6818. 
+
+   CRUD
+      `create, read, update, and delete`, s'applique aux opérations dans une base de données MongoDB
 
    DAT
       Dossier d'Architecture Technique
@@ -119,26 +125,35 @@ Glossaire
    EBIOS
       Méthode d'évaluation des risques en informatique, permettant d'apprécier les risques Sécurité des systèmes d'information (entités et vulnérabilités, méthodes d’attaques et éléments menaçants, éléments essentiels et besoins de sécurité...), de contribuer à leur traitement en spécifiant les exigences de sécurité à mettre en place, de préparer l'ensemble du dossier de sécurité nécessaire à l'acceptation des risques et de fournir les éléments utiles à la communication relative aux risques. Elle est compatible avec les normes ISO 13335 (GMITS), ISO 15408 (critères communs) et ISO 17799
 
-   ELK
-      *Elasticsearch Logstash Kibana*
+   EAD
+      Description archivistique encodée
 
+   ELK
+      `Elasticsearch Logstash Kibana`
+
+   GOT
+      Groupe d'Objet Technique
+   
    IHM
      Interface Homme Machine
 
-   IP 
-      *Internet Protocol*
+   IP
+       `Internet Protocol`
+
+   IsaDG
+      Norme générale et internationale de description archivistique
 
    JRE
-      Java Runtime Environment ; il s'agit de la machine virtuelle Java permettant d'y exécuter les programmes compilés pour.
+      `Java Runtime Environment` ; il s'agit de la machine virtuelle Java permettant d'y exécuter les programmes compilés pour.
 
    JVM
-      Java Virtual Machine ; Cf. :term:`JRE`
+      `Java Virtual Machine` ; Cf. :term:`JRE`
 
    LAN 
-      *Local Area Network*, réseau informatique local, qui relie des ordinateurs dans une zone limitée
+      `Local Area Network`, réseau informatique local, qui relie des ordinateurs dans une zone limitée
 
    LFC
-      *LiFe Cycle*, cycle de vie
+      `LiFe Cycle`, cycle de vie
 
    LTS 
       `Long-term support`, support à long terme : version spécifique d'un logiciel dont le support est assuré pour une période de temps plus longue que la normale.
@@ -149,8 +164,14 @@ Glossaire
    MitM
       L'attaque de l'homme du milieu (HDM) ou `man-in-the-middle attack` (MITM) est une attaque qui a pour but d'intercepter les communications entre deux parties, sans que ni l'une ni l'autre ne puisse se douter que le canal de communication entre elles a été compromis. Le canal le plus courant est une connexion à Internet de l'internaute lambda. L'attaquant doit d'abord être capable d'observer et d'intercepter les messages d'une victime à l'autre. L'attaque « homme du milieu » est particulièrement applicable dans la méthode d'échange de clés Diffie-Hellman, quand cet échange est utilisé sans authentification. Avec authentification, Diffie-Hellman est en revanche invulnérable aux écoutes du canal, et est d'ailleurs conçu pour cela. `Explication <https://fr.wikipedia.org/wiki/Attaque_de_l'homme_du_milieu>`_
 
+   MoReq
+      `Modular Requirements for Records System`, recueil d'exigences pour l'organisation de l'archivage, élaboré dans le cadre de l'Union européenne.
+
    NoSQL
       Base de données non-basée sur un paradigme classique des bases relationnelles. `Définition NoSQL <https://fr.wikipedia.org/wiki/NoSQL>`_
+
+   NTP
+      `Network Time Protocol`
 
    OAIS
       `Open Archival Information System`, acronyme anglais pour Systèmes de transfert des informations et données spatiales -- Système ouvert d'archivage d'information (SOAI) - Modèle de référence.
@@ -174,13 +195,16 @@ Glossaire
       Plan de Reprise d'Activité
 
    REST
-      REpresentational State Transfer : type d'architecture d'échanges. Appliqué aux services web, en se basant sur les appels http standard, il permet de fournir des API dites "RESTful" qui présentent un certain nombre d'avantages en termes d'indépendance, d'universalité, de maintenabilité et de gestion de charge. `Définition REST <https://fr.wikipedia.org/wiki/Representational_state_transfer>`_
+      `REpresentational State Transfer` : type d'architecture d'échanges. Appliqué aux services web, en se basant sur les appels http standard, il permet de fournir des API dites "RESTful" qui présentent un certain nombre d'avantages en termes d'indépendance, d'universalité, de maintenabilité et de gestion de charge. `Définition REST <https://fr.wikipedia.org/wiki/Representational_state_transfer>`_
+
+   RGAA
+      Référentiel Général d'Accessibilité pour les Administrations
 
    RGI
       Référentiel Général d'Interopérabilité
 
    RPM
-      Red Hat Package Manager ; il s'agit du format de packets logiciels nativement utilisé par les distributions CentOS (entre autres)
+      `Red Hat Package Manager` ; il s'agit du format de packets logiciels nativement utilisé par les distributions CentOS (entre autres)
 
    SAE
       Système d'Archivage Électronique
@@ -191,20 +215,26 @@ Glossaire
    SGBD
       Système de Gestion de Base de Données
 
+   SGBDR
+      Système de Gestion de Base de Données Relationnelle
+
    SIA
       Système d'Informations Archivistique
    
    SIEM
-      Security Information and Event Management 
+      `Security Information and Event Management` 
 
    SIP
-      Submission Information Package
+      `Submission Information Package`
 
    SSH
       `Secure SHell`
 
    Swift
-      OpenStack Object Store project
+      `OpenStack Object Store project`
+
+   TLS
+      `Transport Layer Security`
 
    TNR
       Tests de Non-Régression
@@ -216,7 +246,7 @@ Glossaire
       `User Datagram Protocol`, protocole de datagramme utilisateur, un des principaux protocoles de télécommunication utilisés par Internet. Il fait partie de la couche transport du modèle OSI
 
    UID
-      User Identification
+      `User IDentification`
 
    VITAM
       Valeurs Immatérielles Transférées aux Archives pour Mémoire

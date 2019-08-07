@@ -11,7 +11,7 @@ Les principes d'implémentation applicative ont pour but de faciliter, voire d'a
 * Modèle *Open-Source* pour la réutilisation dans la sphère publique ainsi que pour conserver la maîtrise dans le temps du socle logiciel ;
 * Couplage lâche entre les composants ;
 * Nécessité de pouvoir disposer de composants de générations différentes rendant un même service ;
-* Usage d’API :term:`REST` pour la communication entre composants internes à :term:`VITAM`, ainsi qu'en extrême majorité pour les services exposés à l'extérieur ;
+* Usage d’:term:`API` :term:`REST` pour la communication entre composants internes à :term:`VITAM`, ainsi qu'en extrême majorité pour les services exposés à l'extérieur ;
 * Exploitabilité de la solution : limiter le coût d’entrée et de maintenance en : 
 
     - Intégrant un outillage favorisant le déploiement et les mises à jour de la plateforme ;
@@ -24,7 +24,7 @@ Services
 
 La solution logicielle :term:`VITAM` est découpée en services autonomes interagissant pour permettre de rendre le service global ; ce découpage applicatif suit en grande partie le découpage présenté plus haut dans l'architecture fonctionnelle. 
 
-Les schémas suivants présentent l'architecture applicative et les flux d'informations entre composants. Tous les composants jaunes sont fournis dans le cadre de la solution logicielle VITAM ; tous sont requis pour le bon fonctionnement de la solution, à l'exception de deux d'entre eux : ``ihm-demo`` et ``storage-offer-default`` (selon les choix de déploiement). Enfin, chaque service possède un nom propre qui l'identifie de manière unique au sein de la solution logicielle :term:`VITAM`.
+Les schémas suivants présentent l'architecture applicative et les flux d'informations entre composants. Tous les composants qui sont en jaune, sont fournis dans le cadre de la solution logicielle VITAM ; tous sont requis pour le bon fonctionnement de la solution, à l'exception de deux d'entre eux : ``ihm-demo`` et ``storage-offer-default`` (selon les choix de déploiement). Enfin, chaque service possède un nom propre qui l'identifie de manière unique au sein de la solution logicielle :term:`VITAM`.
 
 
 .. figure:: images/vitam-applicative-architecture-legend.*
@@ -55,7 +55,7 @@ Les schémas suivants présentent l'architecture applicative et les flux d'infor
 
 Les services sont organisés en zones logiques :
 
-* Les :term:`API` externes contiennent les services exposés aux clients (ex: à un :term:`SIA`) ; tout accès externe à la solution logicielle :term:`VITAM` doit passer par eux. Ils sont responsables notamment de la validation de l'authentification des systèmes externes, de la validation du droit d'accès aux API internes et de l'appel des API internes (principe d'API-Gateway);
+* Les :term:`API` externes contiennent les services exposés aux clients (ex: à un :term:`SIA`) ; tout accès externe à la solution logicielle :term:`VITAM` doit passer par eux. Ils sont responsables notamment de la validation de l'authentification des systèmes externes, de la validation du droit d'accès aux :terme: `API` internes et de l'appel des :terme: `API` internes (principe d':terme: `API`-Gateway);
 * Les services métiers internes hébergent la logique métier de gestion des archives ; ils se subdivisent en :
 
     - Les services de traitement des archives : ils effectuent tous les traitements concernant les archives (unitaires ou de masse) ;
@@ -65,7 +65,7 @@ Les services sont organisés en zones logiques :
 * Les offres de stockage (internes - i.e. fournies par VITAM - ou externes - i.e. fournies par un tiers) stockent les données d'archives gérées par VITAM ; la sélection de l'offre de stockage à utiliser pour une archive donnée est réalisée en amont (dans le moteur de stockage).
 * Enfin, les bases de données métiers stockent les données de travail concernant les archives et leurs traitements (notamment : métadonnées d'archives, journaux, référentiels)
 
-Une dernière zone, optionnelle, consiste en une IHM de démonstration de la solution. Du point de vue de la solution VITAM, elle se comporte comme un application métier externe ; elle accède notamment aux services VITAM via les mêmes API qu'une application métier.
+Une dernière zone, optionnelle, consiste en une :term:`IHM` de démonstration de la solution. Du point de vue de la solution :term:`VITAM`, elle se comporte comme un application métier externe ; elle accède notamment aux services VITAM via les mêmes :term:`API` qu'une application métier.
 
 
 Détail des flux d'information métier
@@ -73,10 +73,10 @@ Détail des flux d'information métier
 
 On distingue globalement 4 types de flux de données différents :
 
-* Les flux de données d'archives : ils  portent les informations métiers associées aux contenu des archives (données stockées ou métadonnées associées) ;
-* Les flux de commande : ils portent les demandes d'exécution de traitement d'archives et l'état de ces exécutions (et comprennent donc notamment les notifications de fin d'exécution de ces traitements) ;
+* Les flux de données d'archives : ils  portent les informations métiers associées aux contenus des archives (données stockées ou métadonnées associées) ;
+* Les flux de commandes : ils portent les demandes d'exécution de traitement d'archives et l'état de ces exécutions (et comprennent donc notamment les notifications de fin d'exécution de ces traitements) ;
 * Les flux de journaux : ils portent les journaux d'évènements (traces probantes des actions réalisées sur les archives) ;
-* Les flux de référentiels : ils portent les informations des référentiels hébergés au sein de VITAM (référentiels des formats, des contrats, ...)
+* Les flux de référentiels : ils portent les informations des référentiels hébergés au sein de :term:`VITAM` (référentiels des formats, des contrats, ...)
 
 .. KWA TODO : présenter des éléments d'architecture complémentaires (notamment sur le fonctionnement workers / processing).
 

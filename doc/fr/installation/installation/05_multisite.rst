@@ -6,7 +6,7 @@ Procédure d'installation
 
 Dans le cadre d'une installation multi-sites, il est nécessaire de déployer la solution logicielle :term:`VITAM` sur le site secondaire dans un premier temps, puis déployer le site `production`.
 
-Il est nécessaire de paramétrer correctement un certain de variables ansible pour chaque site:
+Il faut paramétrer correctement un certain nombre de variables ansible pour chaque site:
 
 vitam_site_name
 ---------------
@@ -22,16 +22,16 @@ primary_site
 Fichier: ``deployment/environments/hosts.<my_env>``
 
 Cette variable sert à définir si le site est primaire ou non.
-Sur un vitam installé en mode multi site, un seul des sites doit avoir la valeur `primary_site` à true.
-Sur les sites secondaires (primary_site: false), certains composants ne seront pas démarrés et apparaitront donc en orange sur consul.
-Certains timers systemd seront en revanche démarrés pour mettre en place la reconstruction au fil de l'eau par exemple.
+Sur VITAM installé en mode multi site, un seul des sites doit avoir la valeur `primary_site` à true.
+Sur les sites secondaires (primary_site: false), certains composants ne seront pas démarrés et apparaitront donc en orange sur l':term:`IHM` de consul.
+Certains timers systemd seront en revanche démarrés pour mettre en place la reconstruction au fil de l'eau, par exemple.
 
 consul_remote_sites
 -------------------
 
 Fichier: ``deployment/environments/group_vars/all/cots_vars.yml``
 
-Cette variable sert à référencer la liste des `Consul Server` des sites distants à celui qu'on est en train de configurer.
+Cette variable sert à référencer la liste des `Consul Server` des sites distants, à celui que l'on configure.
 
 Exemple de configuration pour une installation avec 3 sites.
 
@@ -82,7 +82,7 @@ vitam_offers
 
 Fichier: ``deployment/environments/group_vars/all/offer_opts.yml``
 
-Cette variable référence toutes les offres disponibles sur la totalité des sites vitam.
+Cette variable référence toutes les offres disponibles sur la totalité des sites VITAM.
 
 Exemple:
 
@@ -113,12 +113,24 @@ Exemple pour le site 1 (site primaire):
     vitam_strategy:
         - name: offer-fs-1
           referent: true
+          # status: INACTIVE (valeur par défaut: ACTIVE)
+          # id: idoffre # OPTIONAL, if used, MUST BE UNIQUE & same on each site
+          # asyncRead: true # ONLY ENABLE WHEN tape-library
+          # vitam_site_name: prod-dc2 # OPtional, needed only when call to distant site (indicate distant vitam_site_name)
         - name: offer-fs-2
           referent: false
           vitam_site_name: site2
+          # status: INACTIVE (valeur par défaut: ACTIVE)
+          # id: idoffre # OPTIONAL, if used, MUST BE UNIQUE & same on each site
+          # asyncRead: true # ONLY ENABLE WHEN tape-library
+          # vitam_site_name: prod-dc2 # OPtional, needed only when call to distant site (indicate distant vitam_site_name)
         - name: offer-fs-3
           referent: false
           vitam_site_name: site3
+          # status: INACTIVE (valeur par défaut: ACTIVE)
+          # id: idoffre # OPTIONAL, if used, MUST BE UNIQUE & same on each site
+          # asyncRead: true # ONLY ENABLE WHEN tape-library
+          # vitam_site_name: prod-dc2 # OPtional, needed only when call to distant site (indicate distant vitam_site_name)
 
 Exemple pour le site 2 (site secondaire):
 
@@ -127,6 +139,10 @@ Exemple pour le site 2 (site secondaire):
     vitam_strategy:
         - name: offer-fs-2
           referent: true
+          # id: idoffre # OPTIONAL, if used, MUST BE UNIQUE & same on each site
+          # status: INACTIVE (valeur par défaut: ACTIVE)
+          # asyncRead: true # ONLY ENABLE WHEN tape-library
+          # vitam_site_name: prod-dc2 # OPtional, needed only when call to distant site (indicate distant vitam_site_name)
 
 Exemple pour le site 3 (site secondaire):
 
@@ -135,13 +151,17 @@ Exemple pour le site 3 (site secondaire):
     vitam_strategy:
         - name: offer-fs-3
           referent: true
+          # id: idoffre # OPTIONAL, if used, MUST BE UNIQUE & same on each site
+          # status: INACTIVE (valeur par défaut: ACTIVE)
+          # asyncRead: true # ONLY ENABLE WHEN tape-library
+          # vitam_site_name: prod-dc2 # OPtional, needed only when call to distant site (indicate distant vitam_site_name)
 
 plateforme_secret
 -----------------
 
 Fichier: ``deployment/environments/group_vars/all/vault-vitam.yml``
 
-Cette variable stocke le `secret de plateforme` qui doit être commun entre tous les composants vitam de tous les sites.
+Cette variable stocke le `secret de plateforme` qui doit être commun à tous les composants de la solution logicielle :term:`VITAM` de tous les sites.
 La valeur doit donc être identique pour chaque site.
 
 consul_encrypt
@@ -149,13 +169,13 @@ consul_encrypt
 
 Fichier: ``deployment/environments/group_vars/all/vault-vitam.yml``
 
-Cette variable stocke le `secret de plateforme` qui doit être commun entre tous les `Consul` de tous les sites.
-La valeur doit donc être la identique pour chaque site.
+Cette variable stocke le `secret de plateforme` qui doit être commun à tous les `Consul` de tous les sites.
+La valeur doit donc être identique pour chaque site.
 
 Procédure de réinstallation
 ===========================
 
-En prérequis, il est nécessaire d'attendre que tous les workflows et reconstructions (sites secondaires) en cours soient terminés.
+En prérequis, il est nécessaire d'attendre que tous les `workflows` et reconstructions (sites secondaires) en cours soient terminés.
 
 Ensuite:
 
@@ -167,7 +187,9 @@ Ensuite:
 Flux entre Storage et Offer
 ===========================
 
-Dans le cas **d'appel en https entre les composants Storage et Offer**, il convient également de rajouter:
+Dans le cas **d'appel en https entre les composants Storage et Offer**, il faut modifier ``deployment/environments/group_vars/all/vitam_vars.yml``  et indiquer ``https_enabled: true`` dans ``storageofferdefault``.
+
+Il convient également également d'ajouter:
 
 * Sur le site primaire
     * Dans le truststore de Storage: la :term:`CA` ayant signé le certificat de l'Offer du site secondaire
@@ -194,7 +216,7 @@ Il est possible de procéder de 2 manières différentes:
 Avant la génération des keystores
 ---------------------------------
 
-.. warning:: Pour toutes les copies de certificats indiquées ci-dessous, il est important de ne jamais en écraser, il faut donc renommer les fichiers si nécessaire.
+.. warning:: Pour toutes les copies de certificats indiquées ci-dessous, il est important de ne jamais les écraser, il faut donc renommer les fichiers si nécessaire.
 
 Déposer les :term:`CA` du client storage du site 1 ``environments/certs/client-storage/ca/*`` dans le client storage du site 2 ``environments/certs/client-storage/ca/``.
 
@@ -205,7 +227,7 @@ Déposer les :term:`CA` du serveur offer du site 2 ``environments/certs/server/c
 Après la génération des keystores
 ---------------------------------
 
-Via le script deployment/generate_stores.sh, il convient donc de rajouter les :term:`CA` et certificats indiqués sur le schéma ci-dessus.
+Via le script ``deployment/generate_stores.sh``, il convient donc d'ajouter les :term:`CA` et certificats indiqués sur le schéma ci-dessus.
 
 Ajout d'un certificat :
 ``keytool -import -keystore -file <certificat.crt> -alias <alias_certificat>``

@@ -2,7 +2,7 @@ Modules IHM Front
 #################
 
 Cette documentation décrit les principaux modules réutilisables de l'IHM front (js)
------------------------------------------------------------------------------------
+
 
 
 Module archive-unit
@@ -41,18 +41,20 @@ Il est également possible de donner une valeur de surcharge pour la valeur du c
 
 - display-value: Affiche une valeur spécifique à la place de fieldValue (Le mode édition reprends la valeur réelle)
 
+
 Exemple:
 
-.. code-block:: html
+.. sourcecode:: html
 
-   <div class="col-xs-12">
+    <div class="col-xs-12">
       <div class="form-group col-md-6">
-      	<display-field field-label="'Service producteur'" field-size="'11'"
-      		intercept-user-change="$ctrl.interceptUserChanges(fieldSet)"
-      	    field-object="$ctrl.mainFields['OriginatingAgency'].content[0]" edit-mode="$ctrl.isEditMode">
-      	</display-field>
-      </div
-   </div>
+         <display-field field-label="'Service producteur'" field-size="'11'"
+            intercept-user-change="$ctrl.interceptUserChanges(fieldSet)"
+            field-object="$ctrl.mainFields['OriginatingAgency'].content[0]" edit-mode="$ctrl.isEditMode">
+         </display-field>
+      </div>
+    </div>
+
 
 Directive display-fieldtree
 ===========================
@@ -77,15 +79,15 @@ Cette directive permet d'afficher un champ et leurs sous élément si nécessair
 
 Exemple:
 
-.. code-block:: html
+.. sourcecode:: html
 
-   <div class="row archiveDesc panel-collapse collapse in" id="{{'box' + key}}">
+    <div class="row archiveDesc panel-collapse collapse in" id="{{'box' + key}}">
    	<div ng-repeat="fieldSet in $ctrl.managmentItems">
    	    <display-fieldtree intercept-user-change="$ctrl.interceptUserChanges(fieldSet)"
    	    	field-object="fieldSet" edit-mode="$ctrl.isEditMode">
    	    </display-fieldtree>
    	</div>
-   </div>
+    </div>
 
 Affichage des Libéllés des champs
 =================================
@@ -107,12 +109,12 @@ La fonction self.displayLabel du controller archive-unit permet de récupérer l
 
 Exemple:
 
-.. code-block:: javascript
+.. sourcecode:: javascript
 
-   var key = fieldSet.fieldId;
-   var parent = fieldSet.parent;
-   var constants = ARCHIVE_UNIT_MODULE_OG_FIELD_LABEL;
-   fieldSet.fieldName = self.displayLabel(key, parent, constants);
+    var key = fieldSet.fieldId;
+    var parent = fieldSet.parent;
+    var constants = ARCHIVE_UNIT_MODULE_OG_FIELD_LABEL;
+    fieldSet.fieldName = self.displayLabel(key, parent, constants);
 
 Affichage dynamiqueTable
 ************************

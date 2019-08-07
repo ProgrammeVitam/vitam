@@ -12,7 +12,7 @@ Déploiement
 Cas particulier : utilisation de ClamAv en environnement Debian
 ---------------------------------------------------------------
 
-Dans le cas de l'installation en environnement Debian, la base de données n'est pas intégrée avec l'installation de ClamAv, C'est la commande ``freshclam`` qui en assure la charge. Si vous n'êtes pas connecté à internet, la base de données doit s'installer manuellement. Les liens suivants indiquent la procédure à suivre: `Installation ClamAv <https://www.clamav.net/documents/installing-clamav>`_ et `Section Virus Database <https://www.clamav.net/downloads>`_
+Dans le cas de l'installation en environnement Debian, la base de données n'est pas intégrée avec l'installation de ClamAv, C'est la commande ``freshclam`` qui en assure la charge. Si vous n'êtes pas connecté à internet, la base de données doit être installée manuellement. Les liens suivants indiquent la procédure à suivre: `Installation ClamAv <https://www.clamav.net/documents/installing-clamav>`_ et `Section Virus Database <https://www.clamav.net/downloads>`_
 
 Fichier de mot de passe
 -----------------------
@@ -23,7 +23,7 @@ Par défaut, le mot de passe des `vault` sera demandé à chaque exécution d'an
 Mise en place des repositories VITAM (optionnel)
 -------------------------------------------------
 
-VITAM fournit un playbook permettant de définir sur les partitions cible la configuration d'appel aux repositories spécifiques à VITAM :
+:term:`VITAM` fournit un playbook permettant de définir sur les partitions cible la configuration d'appel aux repositories spécifiques à :term:`VITAM` :
 
 
 Editer le fichier ``environments/group_vars/all/repositories.yml`` à partir des modèles suivants (décommenter également les lignes) :
@@ -49,13 +49,13 @@ Pour mettre en place ces repositories sur les machines cibles, lancer la command
 
   ansible-playbook ansible-vitam-extra/bootstrap.yml -i environments/<fichier d'inventaire>  --ask-vault-pass
 
-.. note:: En environnement CentOS, il est recommandé de créer des noms de repository commençant par  `vitam-` .
+.. note:: En environnement CentOS, il est recommandé de créer des noms de *repository* commençant par  `vitam-` .
 
 Génération des *hostvars*
 --------------------------
 
 Une fois l'étape de :term:`PKI` effectuée avec succès, il convient de procéder à la génération des *hostvars*, qui permettent de définir quelles interfaces réseau utiliser.
-Actuellement la solution logicielle Vitam est capable de gérer 2 interfaces réseau:
+Actuellement la solution logicielle :term:`VITAM` est capable de gérer 2 interfaces réseau :
 
     - Une d'administration
     - Une de service
@@ -63,16 +63,16 @@ Actuellement la solution logicielle Vitam est capable de gérer 2 interfaces ré
 Cas 1: Machines avec une seule interface réseau
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Si les machines sur lesquelles Vitam sera déployé ne disposent que d'une interface réseau, ou si vous ne souhaitez en utiliser qu'une seule, il convient d'utiliser le playbook ``ansible-vitam/generate_hostvars_for_1_network_interface.yml``
+Si les machines sur lesquelles :term:`VITAM` sera déployé ne disposent que d'une interface réseau, ou si vous ne souhaitez en utiliser qu'une seule, il convient d'utiliser le playbook ``ansible-vitam/generate_hostvars_for_1_network_interface.yml``
 
-Cette définition des host_vars se base sur la directive ansible ``ansible_default_ipv4.address``, qui se base sur l'adresse IP associée à la route réseau définie par défaut.
+Cette définition des host_vars se base sur la directive ansible ``ansible_default_ipv4.address``, qui se base sur l'adresse :term:`IP` associée à la route réseau définie par défaut.
 
-.. Warning:: Les communication d'administration et de service transiteront donc toutes les deux via l'unique interface réseau disponible.
+.. Warning:: Les communications d'administration et de service transiteront donc toutes les deux via l'unique interface réseau disponible.
 
 Cas 2: Machines avec plusieurs interfaces réseau
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Si les machines sur lesquelles Vitam sera déployé disposent de plusieurs interfaces et si celles-ci respectent cette règle:
+Si les machines sur lesquelles :term:`VITAM` sera déployé disposent de plusieurs interfaces et si celles-ci respectent cette règle:
 
     - Interface nommée eth0 = ip_service
     - Interface nommée eth1 = ip_admin
@@ -93,7 +93,7 @@ A l'issue, vérifier le contenu des fichiers générés sous ``environments/host
 Déploiement
 -------------
 
-Le déploiement s'effectue depuis la machine `ansible` et va distribuer la solution VITAM selon l'inventaire correctement renseigné.
+Une fois les étapes précédentes correctement effectuées (en particulier, la section :ref:`pkistores`), le déploiement s'effectue depuis la machine `ansible` et va distribuer la solution :term:`VITAM` selon l'inventaire correctement renseigné.
 
 Une fois l'étape de la génération des hosts effectuée avec succès, le déploiement est à réaliser avec la commande suivante :
 

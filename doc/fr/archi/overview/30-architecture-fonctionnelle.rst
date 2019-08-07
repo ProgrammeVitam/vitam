@@ -5,11 +5,11 @@ Architecture fonctionnelle
 .. figure:: images/vitam-functional-architecture.png
 	:align: center
 
-	Architecture fonctionnelle cible de VITAM
+	Architecture fonctionnelle cible de :term:`VITAM`
 
 La solution logicielle :term:`VITAM` est constituée de différents composants liés aux fonctionnalités attendues :
 
-* :term:`API` externes : exposition des API :term:`REST` (aux *front-offices*, aux applications tierces)
+* :term:`API` externes : exposition des :term:`API` :term:`REST` (aux *front-offices*, aux applications tierces)
 * Moteur d’exécution : gestion de toutes les tâches massives/asynchrones. Exemples de moteurs :
 
    - *Workflow* de transformation : sert à la transformation des documents dans des formats pérennes (versement) ou pour résister à l’obsolescence des formats stockés (préservation)

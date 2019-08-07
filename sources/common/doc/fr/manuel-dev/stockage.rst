@@ -1,16 +1,17 @@
-==============
 Common-storage
-==============
+***************
 
 Le common storage est un module commun pour plusieurs modules qui consiste à gérer des objets stockés dans un container et/ou dans un répertoire, ce module propose plusieurs offres de stockage (Jclouds), par exemple filesystem, Swift (open stack et ceph) et s3 configurables par code (java) ou par fichier de configuration. Dans les chapitres suivants, on présentera les 3 modes de configuration.
 
-1- Présentation des APIs Java:
-------------------------------------------------
-1.1 - Introduction :
+Présentation des APIs Java
+==============================
+
+Introduction
+-------------
 
 Le Module common storage expose un ensemble des méthodes qui gèrent la création, la mise à jour , la suppression des conteneurs, des répertoires et des objets. Vous trouverez ci-dessous la liste des méthodes avec leurs fonctions attendues.
 
-L'API principale est l'interface ContentAddressableStorage. Celle-ci a la hiérarchie de classe suivante :
+L'API principale est l'interface ``ContentAddressableStorage``. Celle-ci a la hiérarchie de classe suivante :
 
 - ContentAddressableStorageAbstract : classe abstraite implémentant quelques méthodes communes
 
@@ -21,7 +22,8 @@ L'API principale est l'interface ContentAddressableStorage. Celle-ci a la hiéra
     + OpenstackSwift : classe d'implémentation permettant le stockage sur Swift (via jclouds)
     + AmazonS3V1 : classe d'implémentation permettant le stockage sur S3 (via le sdk amazon s3 v1)
 
-1.2 - Liste des méthodes :
+Liste des méthodes
+------------------
 
 - getContainerInformation : consulter les informations d'un conteneur (pour la version 0.14.0-SNAPSHOT)
 
@@ -83,12 +85,12 @@ Dans le cas échéant, la méthode retourne une immutable empty list.
 
 Dans le cas échéant (uncompress KO) la méthode génère une exception avec un message internal server.
 
-2 - Configuration
-------------------
+Configuration
+==============
 
 La première chose que nous devons faire est d'ajouter la dépendance maven dans le pom.xml du projet. Après il faut configurer le contexte de stockage souhaité (filesystem/swift ceph/ swift openStack), (on traitera cette problématique au chapitre 2.1 et 2.2)
 
-.. code-block:: xml
+.. sourcecode:: xml
 
   <dependency>
        <groupId>fr.gouv.vitam</groupId>
@@ -130,131 +132,143 @@ Pour une offre S3 les paramètres de configuration sont :
   - s3ClientExecutionTimeout :: Integer : temps maximum pour l'exécution de la requête par le client java avant d'abandonner (en millisecondes)
 
 
-2.1 - Configuration par code:
+Configuration par code
+------------------------
 
-2.1.a Exemple file système:
+Exemple `filesystem`
+^^^^^^^^^^^^^^^^^^^^^^
 
-.. code-block:: java
+.. sourcecode:: java
 
-  StorageConfiguration storeConfiguration = new StorageConfiguration().setProvider(StorageProvider.FILESYSTEM.getValue())
+   StorageConfiguration storeConfiguration = new StorageConfiguration().setProvider(StorageProvider.FILESYSTEM.getValue())
     .setStoragePath("/");
+   
 
 
+Exemple SWIFT CEPH
+^^^^^^^^^^^^^^^^^^^
 
-2.1.b Exemple SWIFT CEPH
+.. code:: java
 
-.. code-block:: java
+   StorageConfiguration storeConfiguration = new StorageConfiguration().setProvider(StorageProvider.SWIFT.getValue())
+    .setSwiftKeystoneAuthUrl("http://10.10.10.10:5000/auth/v1.0)
+    .setSwiftDomain(domain)
+    .setSwiftUser(user)
+    .setSwiftPassword(passwd);
+   
 
-  StorageConfiguration storeConfiguration = new StorageConfiguration().setProvider(StorageProvider.SWIFT.getValue())
-       .setSwiftKeystoneAuthUrl("http://10.10.10.10:5000/auth/v1.0)
-       .setSwiftDomain(domain)
-       .setSwiftUser(user)
-       .setSwiftPassword(passwd);
 
-2.1.c Exemple SWIFT OpenStack
+Exemple SWIFT OpenStack
+^^^^^^^^^^^^^^^^^^^^^^^^
 
-.. code-block:: java
+.. code:: java
 
-  StorageConfiguration storeConfiguration = new StorageConfiguration().setProvider(StorageProvider.SWIFT.getValue())
-       .setKeystoneEndPoint("http://10.10.10.10:5000/auth/v1.0)
-       .setSwiftUid(swift)
-       .setSwiftSubUser(user)
-       .setCredential(passwd);
+   StorageConfiguration storeConfiguration = new StorageConfiguration().setProvider(StorageProvider.SWIFT.getValue())
+    .setKeystoneEndPoint("http://10.10.10.10:5000/auth/v1.0)
+    .setSwiftUid(swift)
+    .setSwiftSubUser(user)
+    .setCredential(passwd);
 
-2.1.d Exemple S3
+
+Exemple S3
+^^^^^^^^^^^
 
 Cet exemple correspond aux valeurs d'une image docker Openio.
 
-.. code-block:: java
+.. code:: java
 
-  StorageConfiguration storeConfiguration = new StorageConfiguration().setProvider(StorageProvider.AMAZON_S3_V1.getValue())
-		.setS3RegionName(Regions.US_WEST_1.getName());
-		.setS3Endpoint("http://127.0.0.1:6007");
-		.setS3AccessKey("demo:demo");
-		.setS3SecretKey("DEMO_PASS");
-		.setS3PathStyleAccessEnabled(true);
+   StorageConfiguration storeConfiguration = new StorageConfiguration().setProvider(StorageProvider.AMAZON_S3_V1.getValue())
+    .setS3RegionName(Regions.US_WEST_1.getName());
+    .setS3Endpoint("http://127.0.0.1:6007");
+    .setS3AccessKey("demo:demo");
+    .setS3SecretKey("DEMO_PASS");
+    .setS3PathStyleAccessEnabled(true);
 
 
-2.2 - Configuration par fichier
+Configuration par fichier
+-----------------------------
 
 
 Exemple d'un fichier de configuration :
 
-.. code-block:: yaml
+.. sourcecode:: yaml
 
-  provider: openstack-swift
-  swiftKeystoneAuthUrl : http://10.10.10.10:5000/auth/v1.0
-  swiftDomain : vitam
-  swiftUser : swift
-  swiftPassword : password
+   provider: openstack-swift
+   swiftKeystoneAuthUrl : http://10.10.10.10:5000/auth/v1.0
+   swiftDomain : vitam
+   swiftUser : swift
+   swiftPassword : password
 
 Dans ce cas, on peut utiliser un Builder qui permet de fournir le context associé au provider.
 
- .. code-block:: java
+.. sourcecode:: java
 
-	ContentAddressableStorage storage=StoreContextBuilder.newStoreContext(configuration)
+	 ContentAddressableStorage storage=StoreContextBuilder.newStoreContext(configuration)
 
 
 
-3- Présentation des méthodes dans SWIFT & FileSystem:
-------------------------------------------------------
+Présentation des méthodes dans SWIFT & FileSystem
+===================================================
 
-3.1 - Introduction :
+Introduction
+-------------
 
 Il y a deux classes qui héritent les APIs. L'une utilise SWIFT et l'autre utilise FileSystem.
 
-3.2 - Liste des méthodes :
+Liste des méthodes
+---------------------
 
-3.2.1 getObjectInformation :
+``getObjectInformation``
+^^^^^^^^^^^^^^^^^^^^^^^^^
 
 - SWIFT: Obtenir l'objet par les APIs Swift
 
-.. code-block:: java
+.. sourcecode:: java
 
-		result.setFileOwner("Vitam_" + containerName.split("_")[0]);
-        result.setType(containerName.split("_")[1]);
-        result.setLastAccessDate(null);
-        if (objectId != null) {
-            SwiftObject swiftobject = getSwiftAPi()
-                .getObjectApi(swiftApi.getConfiguredRegions().iterator().next(), containerName).get(objectId);
+   result.setFileOwner("Vitam_" + containerName.split("_")[0]);
+      result.setType(containerName.split("_")[1]);
+      result.setLastAccessDate(null);
+      if (objectId != null) {
+          SwiftObject swiftobject = getSwiftAPi()
+              .getObjectApi(swiftApi.getConfiguredRegions().iterator().next(), containerName).get(objectId);
 
-            result.setObjectName(objectId);
-            result.setDigest(computeObjectDigest(containerName, objectId, VitamConfiguration.getDefaultDigestType()));
-            result.setFileSize(swiftobject.getPayload().getContentMetadata().getContentLength());
-            result.setLastModifiedDate(swiftobject.getLastModified().toString());
-        } else {
-            Container container = getContainerApi().get(containerName);
-            result.setObjectName(containerName);
-            result.setDigest(null);
-            result.setFileSize(container.getBytesUsed());
-            result.setLastModifiedDate(null);
-        }
+          result.setObjectName(objectId);
+          result.setDigest(computeObjectDigest(containerName, objectId, VitamConfiguration.getDefaultDigestType()));
+          result.setFileSize(swiftobject.getPayload().getContentMetadata().getContentLength());
+          result.setLastModifiedDate(swiftobject.getLastModified().toString());
+      } else {
+          Container container = getContainerApi().get(containerName);
+          result.setObjectName(containerName);
+          result.setDigest(null);
+          result.setFileSize(container.getBytesUsed());
+          result.setLastModifiedDate(null);
+      }
 
 - FileSystem: Obtenir le fichier de jclouds par le nom du conteneur et le nom du dossier
 
-.. code-block:: java
+.. sourcecode:: java
 
-		File file = getFileFromJClouds(containerName, objectId);
-        BasicFileAttributes basicAttribs = getFileAttributes(file);
-        long size = Files.size(Paths.get(file.getPath()));
-        if (null != file) {
-            if (objectId != null) {
-                result.setObjectName(objectId);
-                result.setDigest(computeObjectDigest(containerName, objectId, VitamConfiguration.getDefaultDigestType()));
-                result.setFileSize(size);
-            } else {
-                result.setObjectName(containerName);
-                result.setDigest(null);
-                result.setFileSize(getFolderUsedSize(file));
-            }
-            result.setType(containerName.split("_")[1]);
-            result.setFileOwner("Vitam_" + containerName.split("_")[0]);
-            result.setLastAccessDate(basicAttribs.lastAccessTime().toString());
-            result.setLastModifiedDate(basicAttribs.lastModifiedTime().toString());
-        }
+   File file = getFileFromJClouds(containerName, objectId);
+      BasicFileAttributes basicAttribs = getFileAttributes(file);
+      long size = Files.size(Paths.get(file.getPath()));
+      if (null != file) {
+          if (objectId != null) {
+              result.setObjectName(objectId);
+              result.setDigest(computeObjectDigest(containerName, objectId, VitamConfiguration.getDefaultDigestType()));
+              result.setFileSize(size);
+          } else {
+              result.setObjectName(containerName);
+              result.setDigest(null);
+              result.setFileSize(getFolderUsedSize(file));
+          }
+          result.setType(containerName.split("_")[1]);
+          result.setFileOwner("Vitam_" + containerName.split("_")[0]);
+          result.setLastAccessDate(basicAttribs.lastAccessTime().toString());
+          result.setLastModifiedDate(basicAttribs.lastModifiedTime().toString());
+      }
 
-4- Détail de l'implémentation HashFileSystem
---------------------------------------------
+Détail de l'implémentation HashFileSystem
+==========================================
 
 Logique d'implémentation
 

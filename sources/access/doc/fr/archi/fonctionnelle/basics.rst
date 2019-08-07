@@ -1,7 +1,7 @@
 Généralités
 ***********
 
-Le rôle d'access est de :
+Le rôle d'*access* est de :
 
 * Rechercher les Unités d'archives via des mots-clés.
 * Afficher la liste des résultats par rapport aux critères de recherche renseignés.

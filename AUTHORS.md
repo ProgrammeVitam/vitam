@@ -1,31 +1,25 @@
 # Authors of Vitam
 
-## Release 10 (V2) active development team (04/2019)
+## Release 11 (V2) active development team (08/2019)
 
 ### French government team
 
 * Edouard Vasseur (Archivist Leader)
 * Mehdi Afnaï
 * Pierre Ané
+* Mélanie Rebours
 * Emmanuel Laborde
 * Jean-Séverin Lair
-* Mélanie Rebours
 * Marion Ville
 * Nathalie Morin
 * Thierry Devillechabrolle
 
-### Linagora development team
+### Linagora team
 
-* Olivier Elbhar
-* Abderrahim Fraoucene
 * Mahmoud Sayad
 
 ### Smile - Ulteam
 
-
-* Antoine Paris
-
-* Jean-Eudes Couignoux
 * Djamel Hamas
 * Dédé Agbodji
 * Lotfi Gheribi
@@ -34,7 +28,9 @@
 * Nabil El Hajjioui
 * Gaëlle Fournier
 * Olga Zviezdicheva
-
+* Aziz Darkaoui
+* Gaëlle Fournier
+* Germain Ledroit
 
 ### Thales integration team
 
@@ -98,6 +94,12 @@
 * Edith Abouquir
 * Ludovic Blanchet
 * Thomas Peigné
+* Olivier Elbhar
+* Abderrahim Fraoucene
+* Antoine Paris
+* Jean-Eudes Couignoux
+
+
 
 ## Thanks for collaboration
 

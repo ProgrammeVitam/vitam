@@ -11,10 +11,10 @@ Elements *extras* de l'installation
 
 .. caution:: Dans le cas où l'installateur souhaite utiliser un `repository` de binaires qu'il gère par lui-même, il est fortement recommandé de rajouter ``--skip-tags "enable_vitam_repo"`` à la commande ``ansible-playbook`` ; dans ce cas, le comportement de ``yum`` n'est pas impacté par la solution de déploiement.
 
-Configuration des *extra*
-=========================
+Configuration des *extras*
+==========================
 
-Le fichier |repertoire_inventory| ``/group_vars/all/extra_vars.yml`` contient la configuration des *extra* :
+Le fichier |repertoire_inventory| ``/group_vars/all/extra_vars.yml`` contient la configuration des *extras* :
 
 .. literalinclude:: ../../../../deployment/environments/group_vars/all/extra_vars.yml
      :language: yaml
@@ -27,7 +27,7 @@ Le fichier |repertoire_inventory| ``/group_vars/all/extra_vars.yml`` contient la
 .. note:: La section ``metricbeat`` permet de configurer la périodicité d'envoi des informations collectées. Selon l'espace disponible sur le `cluster` Elasticsearch de log et la taille de l'environnement :term:`VITAM` (en particulier, le nombre de machines), il peut être nécessaire d'allonger cette périodicité (en secondes).
 
 
-Le fichier |repertoire_inventory| ``/group_vars/all/all/vault-extra.yml`` contient les secrets supplémentaires des extra ; ce fichier est encrypté par ``ansible-vault`` et doit être paramétré avant le lancement de l'orchestration de déploiement, si le composant ihm-recette est déployé avec récupération des TNR.
+Le fichier |repertoire_inventory| ``/group_vars/all/all/vault-extra.yml`` contient les secrets supplémentaires des *extras* ; ce fichier est encrypté par ``ansible-vault`` et doit être paramétré avant le lancement de l'orchestration du déploiement, si le composant ihm-recette est déployé avec récupération des :term:`TNR`.
 
 .. literalinclude:: ../../../../deployment/environments/group_vars/all/vault-extra.example
    :language: ini
@@ -36,10 +36,10 @@ Le fichier |repertoire_inventory| ``/group_vars/all/all/vault-extra.yml`` contie
 .. note:: Pour ce fichier, l'encrypter avec le même mot de passe que ``vault-vitam.yml``.
 
 
-Déploiement des *extra*
-=======================
+Déploiement des *extras*
+========================
 
-Plusieurs *playbook* d'*extra* sont fournis pour usage "tel quel".
+Plusieurs *playbooks* d'*extras* sont fournis pour usage "tel quel".
 
 ihm-recette
 -----------
@@ -54,8 +54,8 @@ Ce *playbook* permet d'installer également le composant :term:`VITAM` ihm-recet
 
 
 
-*Extra* complet
----------------
+*Extras* complet
+----------------
 
 Ce *playbook* permet d'installer :
   - des éléments de monitoring système
