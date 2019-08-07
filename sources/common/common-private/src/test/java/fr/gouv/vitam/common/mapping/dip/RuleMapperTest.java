@@ -26,17 +26,16 @@
  *******************************************************************************/
 package fr.gouv.vitam.common.mapping.dip;
 
-import static org.assertj.core.api.Assertions.assertThat;
-
-import org.junit.Test;
-
 import com.google.common.collect.Lists;
-
 import fr.gouv.culture.archivesdefrance.seda.v2.AccessRuleType;
+import fr.gouv.culture.archivesdefrance.seda.v2.DisseminationRuleType;
 import fr.gouv.culture.archivesdefrance.seda.v2.RuleIdType;
 import fr.gouv.culture.archivesdefrance.seda.v2.StorageRuleType;
 import fr.gouv.vitam.common.model.unit.RuleCategoryModel;
 import fr.gouv.vitam.common.model.unit.RuleModel;
+import org.junit.Test;
+
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class RuleMapperTest {
 
@@ -54,7 +53,7 @@ public class RuleMapperTest {
 
         // Then
         assertThat(accessRuleType.getRefNonRuleId()).extracting("value").containsExactly("AC-00021", "AC-00022");
-        assertThat(accessRuleType.isPreventInheritance()).isTrue();
+        assertThat(accessRuleType.isPreventInheritance()).isNull();
         assertThat(((RuleIdType)accessRuleType.getRuleAndStartDate().get(0)).getValue()).isEqualTo("AC-00023");
         assertThat(accessRuleType.getRuleAndStartDate().get(1).toString()).isEqualTo("2017-04-01");
     }
@@ -88,9 +87,46 @@ public class RuleMapperTest {
 
         // Then
         assertThat(accessRuleType.getRefNonRuleId()).extracting("value").containsExactly("AC-00021", "AC-00022");
-        assertThat(accessRuleType.isPreventInheritance()).isTrue();
+        assertThat(accessRuleType.isPreventInheritance()).isNull();
         assertThat(((RuleIdType)accessRuleType.getRuleAndStartDate().get(0)).getValue()).isEqualTo("AC-00023");
         assertThat(accessRuleType.getRuleAndStartDate()).hasSize(1);
     }
 
+    @Test
+    public void shouldNotMapRuleCategoryWithPreventInheritanceAndNonEmptyRefNonRuleId() throws Exception {
+        // Given
+        RuleMapper ruleMapper = new RuleMapper();
+        RuleCategoryModel ruleModel = new RuleCategoryModel();
+        ruleModel.getRules().add(new RuleModel("RX", null));
+        ruleModel.setPreventInheritance(false);
+        ruleModel.addAllPreventRulesId(Lists.newArrayList("DIS-0000X", "DIS-0000Y"));
+
+        // When
+        DisseminationRuleType disseminationRuleType = ruleMapper.fillCommonRule(ruleModel, DisseminationRuleType::new);
+
+        // Then
+        assertThat(disseminationRuleType.getRefNonRuleId()).extracting("value").containsExactly("DIS-0000X", "DIS-0000Y");
+        assertThat(disseminationRuleType.isPreventInheritance()).isNull();
+        assertThat(((RuleIdType)disseminationRuleType.getRuleAndStartDate().get(0)).getValue()).isEqualTo("RX");
+        assertThat(disseminationRuleType.getRuleAndStartDate()).hasSize(1);
+    }
+
+    @Test
+    public void shouldMapRuleCategoryWithPreventInheritanceAndEmptyRefNonRuleId() throws Exception {
+        // Given
+        RuleMapper ruleMapper = new RuleMapper();
+        RuleCategoryModel ruleModel = new RuleCategoryModel();
+        ruleModel.getRules().add(new RuleModel("RX", null));
+        ruleModel.setPreventInheritance(false);
+        ruleModel.addAllPreventRulesId(Lists.newArrayList());
+
+        // When
+        DisseminationRuleType disseminationRuleType = ruleMapper.fillCommonRule(ruleModel, DisseminationRuleType::new);
+
+        // Then
+        assertThat(disseminationRuleType.getRefNonRuleId()).extracting("value").asList().isEmpty();
+        assertThat(disseminationRuleType.isPreventInheritance()).isFalse();
+        assertThat(((RuleIdType)disseminationRuleType.getRuleAndStartDate().get(0)).getValue()).isEqualTo("RX");
+        assertThat(disseminationRuleType.getRuleAndStartDate()).hasSize(1);
+    }
 }

@@ -117,10 +117,12 @@ import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 
 import static fr.gouv.vitam.common.database.builder.query.QueryHelper.and;
 import static fr.gouv.vitam.common.database.builder.query.QueryHelper.eq;
@@ -163,20 +165,10 @@ import static org.mockito.Mockito.verify;
 public class DbRequestTest {
 
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(DbRequestTest.class);
-
-    @Rule
-    public RunWithCustomExecutorRule runInThread =
-        new RunWithCustomExecutorRule(VitamThreadPoolExecutor.getDefaultExecutor());
-
-    @ClassRule
-    public static TemporaryFolder tempFolder = new TemporaryFolder();
-
     private static final Integer TENANT_ID_0 = 0;
     private static final Integer TENANT_ID_1 = 1;
     private static final Integer TENANT_ID_2 = 2;
     private final static String HOST_NAME = "127.0.0.1";
-
-    private static ElasticsearchAccess esClientWithoutVitamBehavior;
     private static final String MY_INT = "MyInt";
     private static final String CREATED_DATE = "CreatedDate";
     private static final String DESCRIPTION = "Description";
@@ -188,22 +180,16 @@ public class DbRequestTest {
     private static final String ARRAY_VAR = "ArrayVar";
     private static final String ARRAY2_VAR = "Array2Var";
     private static final String EMPTY_VAR = "EmptyVar";
-    ;
     private static final String _OPS = "_ops";
     private static final String ROOTS = "$roots";
     private static final String _UDS = "_uds";
+    ;
     private static final String DATA = "$data";
-
     private static final String AU_TREE_NEGATIVE_DEPTH_LEVEL_ONE = "au_tree_negative_depth_level_one.json";
     private static final String AU_TREE_NEGATIVE_DEPTH_LEVEL_TWO = "au_tree_negative_depth_level_two.json";
     private static final String AU_INCORRECT_OFF_LIMIT = "au_incorrect_offset_limit.json";
-
-    static MongoDbVarNameAdapter mongoDbVarNameAdapter;
-
     private static final String REQUEST_SELECT_TEST = "{$query: {$eq: {\"id\" : \"id\" }}, $projection : []}";
     private static final String UUID2 = "aebaaaaaaaaaaaabaahbcakzu2stfryaaaaq";
-
-
     private static final String REQUEST_INSERT_TEST_1 =
         "{ \"#id\": \"aebaaaaaaaaaaaabaahbcakzu2stfryabbaq\", \"id\": \"id\" }";
     private static final String REQUEST_INSERT_TEST_2 =
@@ -221,11 +207,9 @@ public class DbRequestTest {
     private static final String REQUEST_SELECT_TEST_ES_5 =
         "{$query: [ { $eq : { 'DescriptionLevel' : 'Item' } } ]," +
             "$facets : [ { $name : 'desc_level_facet' , $terms : { $field : 'DescriptionLevel', $size: 10, $order: 'ASC' } } ] }";
-
     private static final String REQUEST_SELECT_TEST_ES_6 =
         "{$query: [ { $eq : { 'DescriptionLevel' : 'Item' } } ]," +
             "$facets : [ { $name : 'EndDate' ,  \"$date_range\": { $field : 'EndDate',$format : 'yyyy' , \"$ranges\": [ {\"$from\": \"1800\",\"$to\": \"2080\"}]} } ] }";
-
     private static final String REQUEST_SELECT_TEST_ES_7 =
         "{$query: [ { $match : { 'Description' : 'OK' } } ]," +
             "$facets : [ { $name : 'filtersFacet',  $filters: { $query_filters: [ {$name:'has_desc_level', $query : { $exists : 'DescriptionLevel' } }]} } ] }";
@@ -263,24 +247,25 @@ public class DbRequestTest {
             " \"DescriptionLevel\": \"toto\" }";
     private static final String REQUEST_UPDATE_INDEX_TEST_KO =
         "{$roots:['aeaqaaaaaagbcaacabg44ak45e54criaaaaq'],$query:[],$filter:{},$action:[{$set:{'date':'09/09/2015'}},{$set:{'title':'Archive2'}}]}";
-
     private static final String ADDITIONAL_SCHEMA =
         "{ \"$schema\": \"http://vitam-json-germain-schema.org/draft-04/schema#\", \"id\": \"http://example.com/root.json\", \"type\": \"object\", \"additionalProperties\": true, \"anyOf\": [ { \"required\": [ \"specificField\" ] } ], \"properties\": { \"specificField\": { \"description\": \"champ obligatoire - valeur = item\", \"type\": \"array\", \"items\": { \"description\": \"at least 1 element\", \"type\": \"string\" }, \"minItems\": 1 } } }";
-
     private static final String REQUEST_UPDATE_INDEX_TEST_KO_SECONDARY_SCHEMA =
         "{$roots:['" + UUID1 + "'],$query:[],$filter:{},$action:[{$set:{'ArchiveUnitProfile':'AdditionalSchema'}}]}";
-
     private static final String REQUEST_UPDATE_INDEX_TEST_OK_SECONDARY_SCHEMA =
         "{$roots:['" + UUID1 + "'],$query:[],$filter:{},$action:[{$set:{'specificField':['specificField']}}," +
             "{$set:{'ArchiveUnitProfile':'AdditionalSchema'}}]}";
-
-    private FieldHistoryManager fieldHistoryManager;
-
+    @ClassRule
+    public static TemporaryFolder tempFolder = new TemporaryFolder();
     @ClassRule
     public static MongoRule mongoRule =
         new MongoRule(MongoDbAccessMetadataImpl.getMongoClientOptions());
-
+    static MongoDbVarNameAdapter mongoDbVarNameAdapter;
+    private static ElasticsearchAccess esClientWithoutVitamBehavior;
     private static ElasticsearchAccessMetadata elasticsearchAccessMetadata;
+    @Rule
+    public RunWithCustomExecutorRule runInThread =
+        new RunWithCustomExecutorRule(VitamThreadPoolExecutor.getDefaultExecutor());
+    private FieldHistoryManager fieldHistoryManager;
 
     @BeforeClass
     public static void beforeClass() throws Exception {
@@ -299,6 +284,14 @@ public class DbRequestTest {
         MetadataCollections.afterTestClass(true, TENANT_ID_0, TENANT_ID_1, TENANT_ID_2);
     }
 
+    private static final JsonNode buildQueryJsonWithOptions(String query, String data)
+        throws Exception {
+        return JsonHandler.getFromString(new StringBuilder()
+            .append("{ $roots : [ ], ")
+            .append("$query : [ " + query + " ], ")
+            .append("$data : " + data + " }")
+            .toString());
+    }
 
     /**
      * @throws java.lang.Exception
@@ -611,7 +604,6 @@ public class DbRequestTest {
         }
     }
 
-
     /**
      * Test method for execRequest
      * .
@@ -873,7 +865,8 @@ public class DbRequestTest {
         UnitValidator unitValidator = new UnitValidator(archiveUnitProfileLoader, schemaValidatorLoader);
 
         UpdatedDocument updatedDocument =
-            dbRequest.execUpdateRequest(updateParser, uuid, MetadataCollections.UNIT, ontologyValidator, unitValidator, Collections.emptyList());
+            dbRequest.execUpdateRequest(updateParser, uuid, MetadataCollections.UNIT, ontologyValidator, unitValidator,
+                Collections.emptyList());
 
         // Then
         ObjectNode expectedUnit = (ObjectNode) JsonHandler.getFromString(BsonHelper.stringify(initialUnit));
@@ -885,7 +878,8 @@ public class DbRequestTest {
 
         String expected = JsonHandler.unprettyPrint(expectedUnit);
 
-        String after = JsonHandler.unprettyPrint(MetadataCollections.UNIT.getCollection().find(Filters.eq("_id", uuid)).first());
+        String after =
+            JsonHandler.unprettyPrint(MetadataCollections.UNIT.getCollection().find(Filters.eq("_id", uuid)).first());
         JsonAssert.assertJsonEquals(expected, after);
         JsonAssert.assertJsonEquals(BsonHelper.stringify(initialUnit),
             JsonHandler.unprettyPrint(updatedDocument.getBeforeUpdate()));
@@ -941,11 +935,13 @@ public class DbRequestTest {
 
         // Then
         assertThatThrownBy(() ->
-            dbRequest.execUpdateRequest(updateParser, uuid, MetadataCollections.UNIT, ontologyValidator, unitValidator, Collections.emptyList())
+            dbRequest.execUpdateRequest(updateParser, uuid, MetadataCollections.UNIT, ontologyValidator, unitValidator,
+                Collections.emptyList())
         ).isInstanceOf(MetadataValidationException.class);
 
         String expected = BsonHelper.stringify(initialUnit);
-        String after = JsonHandler.unprettyPrint(MetadataCollections.UNIT.getCollection().find(Filters.eq("_id", uuid)).first());
+        String after =
+            JsonHandler.unprettyPrint(MetadataCollections.UNIT.getCollection().find(Filters.eq("_id", uuid)).first());
         JsonAssert.assertJsonEquals(expected, after);
     }
 
@@ -996,11 +992,13 @@ public class DbRequestTest {
 
         // Then
         assertThatThrownBy(() ->
-            dbRequest.execUpdateRequest(updateParser, uuid, MetadataCollections.UNIT, ontologyValidator, unitValidator, Collections.emptyList())
+            dbRequest.execUpdateRequest(updateParser, uuid, MetadataCollections.UNIT, ontologyValidator, unitValidator,
+                Collections.emptyList())
         ).isInstanceOf(MetadataValidationException.class);
 
         String expected = BsonHelper.stringify(initialUnit);
-        String after = JsonHandler.unprettyPrint(MetadataCollections.UNIT.getCollection().find(Filters.eq("_id", uuid)).first());
+        String after =
+            JsonHandler.unprettyPrint(MetadataCollections.UNIT.getCollection().find(Filters.eq("_id", uuid)).first());
         JsonAssert.assertJsonEquals(expected, after);
     }
 
@@ -1044,11 +1042,13 @@ public class DbRequestTest {
 
         // Then
         assertThatThrownBy(() ->
-            dbRequest.execUpdateRequest(updateParser, uuid, MetadataCollections.UNIT, ontologyValidator, unitValidator, Collections.emptyList())
+            dbRequest.execUpdateRequest(updateParser, uuid, MetadataCollections.UNIT, ontologyValidator, unitValidator,
+                Collections.emptyList())
         ).isInstanceOf(MetadataValidationException.class);
 
         String expected = BsonHelper.stringify(initialUnit);
-        String after = JsonHandler.unprettyPrint(MetadataCollections.UNIT.getCollection().find(Filters.eq("_id", uuid)).first());
+        String after =
+            JsonHandler.unprettyPrint(MetadataCollections.UNIT.getCollection().find(Filters.eq("_id", uuid)).first());
         JsonAssert.assertJsonEquals(expected, after);
     }
 
@@ -1137,7 +1137,6 @@ public class DbRequestTest {
         }
     }
 
-
     @Test
     @RunWithCustomExecutor
     public void testInsertUnitRequest() throws Exception {
@@ -1160,7 +1159,7 @@ public class DbRequestTest {
 
     @Test
     @RunWithCustomExecutor
-    public void ShouldIndexElasticSearchWithGoodUnitSchema() throws Exception {
+    public void shouldIndexElasticSearchWithGoodUnitSchema() throws Exception {
         final GUID uuid = GUIDFactory.newUnitGUID(TENANT_ID_0);
         final GUID uuid2 = GUIDFactory.newUnitGUID(TENANT_ID_0);
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID_0);
@@ -1434,7 +1433,6 @@ public class DbRequestTest {
         assertEquals(0, MetadataCollections.OBJECTGROUP.getCollection().countDocuments());
     }
 
-
     private ObjectNode createInsertRequestGO(GUID uuid, GUID uuidParent) throws InvalidParseOperationException {
         // Create Insert command as in Internal Vitam Modules
         final InsertMultiQuery insert = new InsertMultiQuery();
@@ -1548,7 +1546,6 @@ public class DbRequestTest {
         }
     }
 
-
     private String getIndexName(final MetadataCollections collection, Integer TENANT_ID_0) {
         return collection.getName().toLowerCase() + "_" + TENANT_ID_0.toString();
     }
@@ -1645,7 +1642,6 @@ public class DbRequestTest {
         dbRequest.execInsertObjectGroupRequests(Collections.singletonList(insertParser));
     }
 
-
     @Test
     @RunWithCustomExecutor
     public void testSelectResult() throws Exception {
@@ -1659,7 +1655,6 @@ public class DbRequestTest {
         assertEquals("[]", result.getFinal().toString());
 
     }
-
 
     @Test
     @RunWithCustomExecutor
@@ -1702,7 +1697,6 @@ public class DbRequestTest {
         final Result result2 = dbRequest.execRequest(selectParser, Collections.emptyList());
         assertEquals(0, result2.nbResult);
     }
-
 
     @Test
     @RunWithCustomExecutor
@@ -1813,7 +1807,8 @@ public class DbRequestTest {
             .addRoots(UUID2);
         selectParser1.parse(select.getFinalSelect());
         LOGGER.debug("SelectParser: {}", selectParser1.getRequest());
-        final Result<MetadataDocument<?>> resultSelectRel3 = dbRequest.execRequest(selectParser1, Collections.emptyList());
+        final Result<MetadataDocument<?>> resultSelectRel3 =
+            dbRequest.execRequest(selectParser1, Collections.emptyList());
 
         assertEquals(1, resultSelectRel3.nbResult);
         assertEquals("aeaqaaaaaet33ntwablhaaku6z67pzqaaaar",
@@ -1826,7 +1821,8 @@ public class DbRequestTest {
         dbRequest.execInsertUnitRequest(insertParser);
         MetadataCollections.UNIT.getEsClient().refreshIndex(MetadataCollections.UNIT, TENANT_ID_2);
 
-        final Result<MetadataDocument<?>> resultSelectRel4 = dbRequest.execRequest(selectParser1, Collections.emptyList());
+        final Result<MetadataDocument<?>> resultSelectRel4 =
+            dbRequest.execRequest(selectParser1, Collections.emptyList());
         assertEquals(2, resultSelectRel4.nbResult);
         for (final String root : resultSelectRel4.getCurrentIds()) {
             assertTrue(root.equalsIgnoreCase("aeaqaaaaaet33ntwablhaaku6z67pzqaaaat") ||
@@ -1845,7 +1841,8 @@ public class DbRequestTest {
             .addRoots(UUID2);
         selectParser1.parse(select.getFinalSelect());
         LOGGER.debug("SelectParser: {}", selectParser1.getRequest());
-        final Result<MetadataDocument<?>> resultSelectRel5 = dbRequest.execRequest(selectParser1, Collections.emptyList());
+        final Result<MetadataDocument<?>> resultSelectRel5 =
+            dbRequest.execRequest(selectParser1, Collections.emptyList());
         assertEquals(1, resultSelectRel5.nbResult);
         assertEquals("aeaqaaaaaet33ntwablhaaku6z67pzqaaaas",
             resultSelectRel5.getCurrentIds().iterator().next().toString());
@@ -1922,7 +1919,6 @@ public class DbRequestTest {
         final Result resultSelect1 = dbRequest.execRequest(selectParser1, Collections.emptyList());
         assertEquals(1, resultSelect1.nbResult);
     }
-
 
     @Test
     @RunWithCustomExecutor
@@ -2011,7 +2007,8 @@ public class DbRequestTest {
             updateParser2.parse(updateRequest2);
             LOGGER.debug("UpdateParser: {}", updateParser2.getRequest());
             dbRequest
-                .execUpdateRequest(updateParser2, unitId, MetadataCollections.UNIT, ontologyValidator, unitValidator, Collections.emptyList());
+                .execUpdateRequest(updateParser2, unitId, MetadataCollections.UNIT, ontologyValidator, unitValidator,
+                    Collections.emptyList());
             fail("should throw an exception cause of the additional schema");
         } catch (MetadataValidationException e) {
             assertTrue(e.getCause().getMessage().contains("\"missing\":[\"specificField\"]"));
@@ -2023,7 +2020,8 @@ public class DbRequestTest {
         updateParserSchema.parse(updateRequestSchema);
         LOGGER.debug("UpdateParser: {}", updateParserSchema.getRequest());
         dbRequest
-            .execUpdateRequest(updateParserSchema, unitId, MetadataCollections.UNIT, ontologyValidator, unitValidator, Collections.emptyList());
+            .execUpdateRequest(updateParserSchema, unitId, MetadataCollections.UNIT, ontologyValidator, unitValidator,
+                Collections.emptyList());
         MetadataCollections.UNIT.getEsClient().refreshIndex(MetadataCollections.UNIT, TENANT_ID_0);
 
         // check new value that should exist in the collection
@@ -2057,7 +2055,6 @@ public class DbRequestTest {
             resultSelectRel5.getCurrentIds().iterator().next().toString());
     }
 
-
     @Test
     @RunWithCustomExecutor
     public void testUpdateKOSchemaUnitResultThrowsException() throws Exception {
@@ -2082,15 +2079,6 @@ public class DbRequestTest {
 
         dbRequest.execUpdateRequest(updateParser, "aeaqaaaaaagbcaacabg44ak45e54criaaaaq",
             MetadataCollections.UNIT, ontologyValidator, mock(UnitValidator.class), Collections.emptyList());
-    }
-
-    private static final JsonNode buildQueryJsonWithOptions(String query, String data)
-        throws Exception {
-        return JsonHandler.getFromString(new StringBuilder()
-            .append("{ $roots : [ ], ")
-            .append("$query : [ " + query + " ], ")
-            .append("$data : " + data + " }")
-            .toString());
     }
 
     @Test
@@ -2408,7 +2396,8 @@ public class DbRequestTest {
             new MongoDbMetadataRepository<ObjectGroup>(() -> MetadataCollections.OBJECTGROUP.getCollection()),
             fieldHistoryManager);
         UpdatedDocument updatedDocument =
-            dbRequest.execRuleRequest(uuid, ruleActions, ruleDurationByRuleId, ontologyValidator, unitValidator, Collections.emptyList());
+            dbRequest.execRuleRequest(uuid, ruleActions, ruleDurationByRuleId, ontologyValidator, unitValidator,
+                Collections.emptyList());
 
         // Then
         final Unit expectedUnit = new Unit(
@@ -2416,7 +2405,8 @@ public class DbRequestTest {
 
         String expected = BsonHelper.stringify(expectedUnit);
 
-        String after = JsonHandler.unprettyPrint(MetadataCollections.UNIT.getCollection().find(Filters.eq("_id", uuid)).first());
+        String after =
+            JsonHandler.unprettyPrint(MetadataCollections.UNIT.getCollection().find(Filters.eq("_id", uuid)).first());
         JsonAssert.assertJsonEquals(expected, after);
         JsonAssert.assertJsonEquals(BsonHelper.stringify(initialUnit),
             JsonHandler.unprettyPrint(updatedDocument.getBeforeUpdate()));
@@ -2486,13 +2476,15 @@ public class DbRequestTest {
             new MongoDbMetadataRepository<ObjectGroup>(() -> MetadataCollections.OBJECTGROUP.getCollection()),
             fieldHistoryManager);
         assertThatThrownBy(
-            () -> dbRequest.execRuleRequest(uuid, ruleActions, ruleDurationByRuleId, ontologyValidator, unitValidator, Collections.emptyList()))
+            () -> dbRequest.execRuleRequest(uuid, ruleActions, ruleDurationByRuleId, ontologyValidator, unitValidator,
+                Collections.emptyList()))
             .isInstanceOf(MetadataValidationException.class);
 
         // Then
         String expected = BsonHelper.stringify(initialUnit);
 
-        String after = JsonHandler.unprettyPrint(MetadataCollections.UNIT.getCollection().find(Filters.eq("_id", uuid)).first());
+        String after =
+            JsonHandler.unprettyPrint(MetadataCollections.UNIT.getCollection().find(Filters.eq("_id", uuid)).first());
         JsonAssert.assertJsonEquals(expected, after);
     }
 
@@ -2553,13 +2545,15 @@ public class DbRequestTest {
             new MongoDbMetadataRepository<ObjectGroup>(() -> MetadataCollections.OBJECTGROUP.getCollection()),
             fieldHistoryManager);
         assertThatThrownBy(
-            () -> dbRequest.execRuleRequest(uuid, ruleActions, emptyMap(), ontologyValidator, unitValidator, Collections.emptyList()))
+            () -> dbRequest.execRuleRequest(uuid, ruleActions, emptyMap(), ontologyValidator, unitValidator,
+                Collections.emptyList()))
             .isInstanceOf(MetadataValidationException.class);
 
         // Then
         String expected = BsonHelper.stringify(initialUnit);
 
-        String after = JsonHandler.unprettyPrint(MetadataCollections.UNIT.getCollection().find(Filters.eq("_id", uuid)).first());
+        String after =
+            JsonHandler.unprettyPrint(MetadataCollections.UNIT.getCollection().find(Filters.eq("_id", uuid)).first());
         JsonAssert.assertJsonEquals(expected, after);
     }
 
@@ -2606,13 +2600,15 @@ public class DbRequestTest {
         // When
         final DbRequest dbRequest = new DbRequest();
         assertThatThrownBy(
-            () -> dbRequest.execRuleRequest(uuid, ruleActions, emptyMap(), ontologyValidator, unitValidator, Collections.emptyList()))
+            () -> dbRequest.execRuleRequest(uuid, ruleActions, emptyMap(), ontologyValidator, unitValidator,
+                Collections.emptyList()))
             .isInstanceOf(MetadataValidationException.class);
 
         // Then
         String expected = BsonHelper.stringify(initialUnit);
 
-        String after = JsonHandler.unprettyPrint(MetadataCollections.UNIT.getCollection().find(Filters.eq("_id", uuid)).first());
+        String after =
+            JsonHandler.unprettyPrint(MetadataCollections.UNIT.getCollection().find(Filters.eq("_id", uuid)).first());
         JsonAssert.assertJsonEquals(expected, after);
     }
 
@@ -2681,5 +2677,222 @@ public class DbRequestTest {
         assertThat(updatedDocument.getAfterUpdate().get("_history").get(0).get("data").get("BatmanHistory"))
             .isNotNull();
         verify(fieldHistoryManager).trigger(any(JsonNode.class), any(JsonNode.class));
+    }
+
+    @RunWithCustomExecutor
+    @Test
+    public void testUnlockAllInheritancePreventRulesIdOK() throws Exception {
+
+        // Given
+        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID_0);
+        VitamThreadUtils.getVitamSession().setRequestId("aeeaaaaaacagqkjjaaxpwallds4xu6iaaaaq");
+
+        String uuid = "aeaqaaaabeghay2jabzuaalbarkww4iaaaba";
+
+
+        final Unit initialUnit = new Unit(
+            JsonHandler.getFromFile(PropertiesUtils.getResourceFile("unitInheritanceToUpdate_1.json")));
+
+        MetadataCollections.UNIT.getCollection().insertOne(initialUnit);
+        MetadataCollections.UNIT.getEsClient().insertFullDocument(MetadataCollections.UNIT, 0, uuid, initialUnit);
+
+        // Base ontology
+        List<OntologyModel> ontologyModels = JsonHandler
+            .getFromFileAsTypeRefence(PropertiesUtils.getResourceFile("ontology.json"),
+                new TypeReference<List<OntologyModel>>() {
+                });
+
+        // No external AUP Schema
+        CachedArchiveUnitProfileLoader archiveUnitProfileLoader = mock(CachedArchiveUnitProfileLoader.class);
+
+        Map<String, DurationData> ruleDurationByRuleId = ImmutableMap.of(
+            "DIS-00001", new DurationData(1, ChronoUnit.DAYS),
+            "DIS-00002", new DurationData(1, ChronoUnit.MONTHS)
+        );
+        // Request
+        RuleActions ruleActions = new RuleActions();
+        Set<String> preventRulesIdToDelete = new HashSet<>();
+        preventRulesIdToDelete.add("DIS-00001");
+        preventRulesIdToDelete.add("DIS-00002");
+        ruleActions.getDelete().add(ImmutableMap.of(
+            "DisseminationRule", new RuleCategoryAction()
+                .setPreventRulesId(preventRulesIdToDelete)
+        ));
+
+        CachedSchemaValidatorLoader schemaValidatorLoader = new CachedSchemaValidatorLoader(100, 300);
+
+        OntologyValidator ontologyValidator = new OntologyValidator(() -> ontologyModels);
+        UnitValidator unitValidator = new UnitValidator(archiveUnitProfileLoader, schemaValidatorLoader);
+
+        // When
+        DbRequest dbRequest = new DbRequest(
+            new MongoDbMetadataRepository<Unit>(() -> MetadataCollections.UNIT.getCollection()),
+            new MongoDbMetadataRepository<ObjectGroup>(() -> MetadataCollections.OBJECTGROUP.getCollection()),
+            fieldHistoryManager
+        );
+
+        UpdatedDocument updatedDocument = dbRequest.execRuleRequest(uuid, ruleActions, ruleDurationByRuleId,
+            ontologyValidator, unitValidator, Collections.emptyList());
+
+        // Then
+        assertThat(updatedDocument).isNotNull();
+        assertThat(updatedDocument.getAfterUpdate().get("_mgt").get("DisseminationRule").get("Inheritance")
+            .get("PreventRulesId")).isEqualTo(JsonHandler.createArrayNode());
+        assertThat(Boolean.valueOf(
+            updatedDocument.getAfterUpdate().get("_mgt").get("DisseminationRule").get("Inheritance")
+                .get("PreventInheritance").asText())).isEqualTo(Boolean.FALSE);
+    }
+
+    @RunWithCustomExecutor
+    @Test
+    public void shouldNotLockRuleWhenPrventInheritanceIsTrueAndPreventRulesIdIsEmpty() throws Exception {
+
+        // Given
+        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID_0);
+        VitamThreadUtils.getVitamSession().setRequestId("aeeaaaaaacagqkjjaaxpwallds4xu6iaaaaq");
+
+        String uuid = "aeaqaaaabeghay2jabzuaalbarkww4iaaaba";
+
+
+        final Unit initialUnit = new Unit(
+            JsonHandler.getFromFile(PropertiesUtils.getResourceFile("unitInheritanceToUpdate_2.json")));
+
+        MetadataCollections.UNIT.getCollection().insertOne(initialUnit);
+        MetadataCollections.UNIT.getEsClient().insertFullDocument(MetadataCollections.UNIT, 0, uuid, initialUnit);
+
+        // Base ontology
+        List<OntologyModel> ontologyModels = JsonHandler
+            .getFromFileAsTypeRefence(PropertiesUtils.getResourceFile("ontology.json"),
+                new TypeReference<List<OntologyModel>>() {
+                });
+
+        // No external AUP Schema
+        CachedArchiveUnitProfileLoader archiveUnitProfileLoader = mock(CachedArchiveUnitProfileLoader.class);
+
+        Map<String, DurationData> ruleDurationByRuleId = ImmutableMap.of(
+            "DIS-00001", new DurationData(1, ChronoUnit.DAYS),
+            "DIS-00002", new DurationData(1, ChronoUnit.MONTHS)
+        );
+        // Request
+        RuleActions ruleActions = new RuleActions();
+        Set<String> preventRulesIdToBlock = new HashSet<>();
+        preventRulesIdToBlock.add("DIS-00001");
+        ruleActions.getUpdate().add(ImmutableMap.of(
+            "DisseminationRule", new RuleCategoryAction()
+                .setPreventRulesId(preventRulesIdToBlock)
+        ));
+
+        CachedSchemaValidatorLoader schemaValidatorLoader = new CachedSchemaValidatorLoader(100, 300);
+
+        OntologyValidator ontologyValidator = new OntologyValidator(() -> ontologyModels);
+        UnitValidator unitValidator = new UnitValidator(archiveUnitProfileLoader, schemaValidatorLoader);
+
+        // When
+        DbRequest dbRequest = new DbRequest(
+            new MongoDbMetadataRepository<Unit>(() -> MetadataCollections.UNIT.getCollection()),
+            new MongoDbMetadataRepository<ObjectGroup>(() -> MetadataCollections.OBJECTGROUP.getCollection()),
+            fieldHistoryManager
+        );
+
+        // When
+        assertThatThrownBy(
+            () -> dbRequest.execRuleRequest(uuid, ruleActions, ruleDurationByRuleId, ontologyValidator, unitValidator,
+                Collections.emptyList()))
+            .isInstanceOf(MetadataValidationException.class);
+    }
+
+    @RunWithCustomExecutor
+    @Test
+    public void shouldAllowInheritanceBeforeBlockingRule() throws Exception {
+
+        // First case : Allow Inheritance before trying to Block Rule
+
+        // Given
+        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID_0);
+        VitamThreadUtils.getVitamSession().setRequestId("aeeaaaaaacagqkjjaaxpwallds4xu6iaaaaq");
+
+        String uuid = "aeaqaaaabeghay2jabzuaalbarkww4iaaaba";
+
+
+        final Unit initialUnit = new Unit(
+            JsonHandler.getFromFile(PropertiesUtils.getResourceFile("unitInheritanceToUpdate_2.json")));
+
+        MetadataCollections.UNIT.getCollection().insertOne(initialUnit);
+        MetadataCollections.UNIT.getEsClient().insertFullDocument(MetadataCollections.UNIT, 0, uuid, initialUnit);
+
+        // Base ontology
+        List<OntologyModel> ontologyModels = JsonHandler
+            .getFromFileAsTypeRefence(PropertiesUtils.getResourceFile("ontology.json"),
+                new TypeReference<List<OntologyModel>>() {
+                });
+
+        // No external AUP Schema
+        CachedArchiveUnitProfileLoader archiveUnitProfileLoader = mock(CachedArchiveUnitProfileLoader.class);
+
+        Map<String, DurationData> ruleDurationByRuleId = ImmutableMap.of(
+            "DIS-00001", new DurationData(1, ChronoUnit.DAYS),
+            "DIS-00002", new DurationData(1, ChronoUnit.MONTHS)
+        );
+        // Request
+        RuleActions ruleActions = new RuleActions();
+        Set<String> preventRulesIdToBlock = new HashSet<>();
+        Boolean preventInheritanceAllow = Boolean.FALSE;
+        ruleActions.getUpdate().add(ImmutableMap.of(
+            "DisseminationRule", new RuleCategoryAction()
+                .setPreventRulesId(preventRulesIdToBlock).setPreventInheritance(preventInheritanceAllow)
+        ));
+
+        CachedSchemaValidatorLoader schemaValidatorLoader = new CachedSchemaValidatorLoader(100, 300);
+
+        OntologyValidator ontologyValidator = new OntologyValidator(() -> ontologyModels);
+        UnitValidator unitValidator = new UnitValidator(archiveUnitProfileLoader, schemaValidatorLoader);
+
+        // When
+        DbRequest dbRequest = new DbRequest(
+            new MongoDbMetadataRepository<Unit>(() -> MetadataCollections.UNIT.getCollection()),
+            new MongoDbMetadataRepository<ObjectGroup>(() -> MetadataCollections.OBJECTGROUP.getCollection()),
+            fieldHistoryManager
+        );
+
+        UpdatedDocument updatedDocument = dbRequest.execRuleRequest(uuid, ruleActions, ruleDurationByRuleId,
+            ontologyValidator, unitValidator, Collections.emptyList());
+
+        // Then
+        assertThat(updatedDocument).isNotNull();
+        assertThat(updatedDocument.getAfterUpdate().get("_mgt").get("DisseminationRule").get("Inheritance")
+            .get("PreventRulesId")).isEqualTo(JsonHandler.createArrayNode());
+        assertThat(Boolean.valueOf(
+            updatedDocument.getAfterUpdate().get("_mgt").get("DisseminationRule").get("Inheritance")
+                .get("PreventInheritance").asText())).isEqualTo(Boolean.FALSE);
+
+        // Second case :  Block Rule After Allowing inheritance
+
+        // Given
+        Set<String> preventRulesIdToDelete = new HashSet<>();
+        preventRulesIdToDelete.add("DIS-00001");
+        preventRulesIdToDelete.add("DIS-00002");
+        ruleActions.getUpdate().add(ImmutableMap.of(
+            "DisseminationRule", new RuleCategoryAction()
+                .setPreventRulesId(preventRulesIdToDelete)
+        ));
+
+        // When
+        new DbRequest(
+            new MongoDbMetadataRepository<Unit>(() -> MetadataCollections.UNIT.getCollection()),
+            new MongoDbMetadataRepository<ObjectGroup>(() -> MetadataCollections.OBJECTGROUP.getCollection()),
+            fieldHistoryManager
+        );
+
+        updatedDocument = dbRequest.execRuleRequest(uuid, ruleActions, ruleDurationByRuleId,
+            ontologyValidator, unitValidator, Collections.emptyList());
+
+        // Then
+        assertThat(updatedDocument).isNotNull();
+        assertEquals(updatedDocument.getAfterUpdate().get("_mgt").get("DisseminationRule").get("Inheritance")
+            .get("PreventRulesId").size(), 2);
+        assertThat(Boolean.valueOf(
+            updatedDocument.getAfterUpdate().get("_mgt").get("DisseminationRule").get("Inheritance")
+                .get("PreventInheritance").asText())).isEqualTo(Boolean.FALSE);
+
     }
 }

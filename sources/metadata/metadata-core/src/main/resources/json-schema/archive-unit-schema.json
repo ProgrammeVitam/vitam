@@ -240,39 +240,22 @@
           "$ref": "#/definitions/string-array"
         }
       },
-      "oneOf": [
-        {
-          "required": [
-            "PreventInheritance"
-          ],
-          "not" : {
-            "required": [
-              "PreventRulesId"
+      "not": {
+        "properties": {
+          "PreventInheritance": {
+            "enum": [
+              true
             ]
-          }
-        },
-        {
-          "required": [
-            "PreventRulesId"
-          ],
-          "not" : {
-            "required": [
-              "PreventInheritance"
-            ]
-          }
-        },
-        {
-          "properties": {
-            "PreventRulesId": {
-              "maxItems": 0
-            }
           },
-          "required": [
-            "PreventInheritance",
-            "PreventRulesId"
-          ]
-        }
-      ]
+          "PreventRulesId": {
+            "minItems": 1
+          }
+        },
+        "required": [
+          "PreventInheritance",
+          "PreventRulesId"
+        ]
+      }
     },
     "data-object-or-archive-unit-reference-type-array": {
       "type": "array",

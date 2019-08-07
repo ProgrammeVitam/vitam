@@ -1,15 +1,5 @@
 package fr.gouv.vitam.common.mapping.dip;
 
-import static javax.xml.datatype.DatatypeFactory.newInstance;
-
-import java.util.ArrayList;
-import java.util.List;
-import java.util.function.Supplier;
-import java.util.stream.Collectors;
-
-import javax.xml.datatype.DatatypeConfigurationException;
-import javax.xml.datatype.XMLGregorianCalendar;
-
 import fr.gouv.culture.archivesdefrance.seda.v2.AppraisalRuleType;
 import fr.gouv.culture.archivesdefrance.seda.v2.ClassificationRuleType;
 import fr.gouv.culture.archivesdefrance.seda.v2.FinalActionAppraisalCodeType;
@@ -21,6 +11,15 @@ import fr.gouv.vitam.common.model.unit.CommonRule;
 import fr.gouv.vitam.common.model.unit.InheritanceModel;
 import fr.gouv.vitam.common.model.unit.RuleCategoryModel;
 import fr.gouv.vitam.common.model.unit.RuleModel;
+
+import javax.xml.datatype.DatatypeConfigurationException;
+import javax.xml.datatype.XMLGregorianCalendar;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.function.Supplier;
+import java.util.stream.Collectors;
+
+import static javax.xml.datatype.DatatypeFactory.newInstance;
 
 /**
  * Map data base representation of rules to a jaxb representation => Map RuleCategoryModel to CommonRule
@@ -52,8 +51,9 @@ public class RuleMapper {
                 ruleIdType.setValue(ruleId);
                 return ruleIdType;
             }).collect(Collectors.toList()));
-
-            commonRule.setPreventInheritance(inheritance.isPreventInheritance());
+            if (commonRule.getRefNonRuleId().isEmpty()) {
+                commonRule.setPreventInheritance(inheritance.isPreventInheritance());
+            }
         }
 
         List<Object> ruleAndStartDate = new ArrayList<>();
