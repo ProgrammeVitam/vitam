@@ -17,6 +17,7 @@
 #    - {role: packetbeat, when: "inventory_hostname != 'localhost'"}
 
 - import_playbook: curator_jobs.yml
+  when: external_siem is undefined
 
 - import_playbook: dev-tools.yml
 
