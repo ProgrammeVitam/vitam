@@ -9,8 +9,8 @@ Paramétrages supplémentaires
 
 .. _update_jvm:
 
-Tuning JVM
-==========
+`Tuning` JVM
+============
 
 .. caution:: En cas de colocalisation, bien prendre en compte la taille :term:`JVM` de chaque composant (VITAM : ``-Xmx512m`` par défaut) pour éviter de `swapper`.
 
@@ -125,7 +125,7 @@ Pour cela, il est nécessaire de placer un fichier de configuration dédié dans
 Passage des identifiants des référentiels en mode `esclave`
 ===========================================================
 
-La génération des identifiants des référentiels est géré par :term:`VITAM`lorsqu'il fonctionne en mode maître.
+La génération des identifiants des référentiels est géré par :term:`VITAM` lorsqu'il fonctionne en mode maître.
 
 Par exemple :
 
@@ -140,18 +140,17 @@ Depuis la version 1.0.4, la configuration par défaut de :term:`VITAM` autorise 
 
 La liste des choix possibles, pour chaque tenant, est :
 
-  - INGEST_CONTRACT : contrats d'entrée
-  - ACCESS_CONTRACT : contrats d'accès
-  - PROFILE : profils :term:`SEDA`
-  - SECURITY_PROFILE : profils de sécurité (utile seulement sur le tenant d'administration)
-  - CONTEXT : contextes applicatifs (utile seulement sur le tenant d'administration)
-  - ARCHIVEUNITPROFILE : profils d'unités archivistiques
+.. csv-table:: Description des identifiants de référentiels
+   :file: external_identifiers.csv
+   :delim: ;
+   :class: longtable
+   :widths: 1, 2
+   :header-rows: 1
+
 
 Si vous souhaitez gérer vous-même les identifiants sur un service référentiel, il faut qu'il soit en mode esclave.
 
 Par défaut tous les services référentiels de Vitam fonctionnent en mode maître. Pour désactiver le mode maître de :term:`VITAM`, il faut modifier le fichier ansible ``deployment/environments/group_vars/all/vitam_vars.yml`` dans les sections ``vitam_tenants_usage_external`` (pour gérer, par tenant, les collections en mode esclave).
-
-Un exemple de ce fichier se trouve dans la Documentation d’exploitation au chapitre "Exploitation des composants de la solution logicielle VITAM".
 
 
 Durées minimales permettant de contrôler les valeurs saisies
@@ -169,19 +168,19 @@ Exemple::
         - AppraisalRule : "1 year" # rule name : rule value
     - name: 3
       rules:
-        AppraisaleRule : "5 year"
-        StorageRule : "5 year"
-        ReuseRule : "2 year"
+        AppraisaleRule : "5 year" # rule name : rule value
+        StorageRule : "5 year" # rule name : rule value
+        ReuseRule : "2 year" # rule name : rule value
 
 
 Par `tenant`, les directives possibles sont :
 
-- AppraisalRule
-- DisseminationRule
-- StorageRule
-- ReuseRule
-- AccessRule (valeur par défaut : 0 year)
-- ClassificationRule
+.. csv-table:: Description des règles
+   :file: rules.csv
+   :delim: ;
+   :class: longtable
+   :widths: 1, 1
+   :header-rows: 1
 
 Les valeurs associées sont une durée au format <nombre> <unité en angais, au singulier>
 
@@ -191,7 +190,7 @@ Exemples::
    1 year
    5 year
 
-Pour plus de détails, se rapporter à la documentation métier "Règles de gestion".
+.. seealso:: Pour plus de détails, se rapporter à la documentation métier "Règles de gestion".
 
 
 

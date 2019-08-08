@@ -1,0 +1,7 @@
+Nom du référentiel;Description
+INGEST_CONTRACT;contrats d'entrée
+ACCESS_CONTRACT;contrats d'accès
+PROFILE;profils :term:`SEDA`
+SECURITY_PROFILE;profils de sécurité (utile seulement sur le tenant d'administration)
+CONTEXT;contextes applicatifs (utile seulement sur le tenant d'administration)
+ARCHIVEUNITPROFILE;profils d'unités archivistiques
