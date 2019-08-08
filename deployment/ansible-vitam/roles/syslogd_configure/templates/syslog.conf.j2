@@ -1,4 +1,62 @@
-{% if (groups['hosts-logstash']|length) > 0 %}
+{% if external_siem is defined %}
+options {
+#     flush_lines (0);
+     sync(0);
+#     time_reopen (10);
+#     log_fifo_size (100000);
+   chain_hostnames(no);
+#     use_dns (no);
+#     use_fqdn (no);
+#     create_dirs (no);
+   keep_hostname (yes);
+   log_fifo_size(100000);
+};
+
+
+# Common part
+#      Source
+source s_all {
+   udp(port(514));
+   tcp(port(514));
+};
+#     Destination
+destination d_logstash {
+   tcp ("{{ external_siem.host }}" port({{ external_siem.port }}));
+};
+
+source s_src {
+       system();
+       internal();
+};
+
+
+#       filtre
+filter f_facility {
+        facility({{ vitam_defaults.syslog_facility }});
+        facility({{ vitam_defaults.syslog_facility|upper }});
+        facility(kern);
+};
+
+# For DEBUG
+destination d_debug {
+        file("/var/log/test.log");
+};
+
+log {source(s_sys);destination(d_logstash);};
+
+# Specific parts
+{% set boucle=["vitam","mongo","vitam_accesslog","elasticsearch-log","elasticsearch-data","consul","clam","curator"] -%}
+{% for composant in boucle %}
+# Composant : {{ composant }}
+filter  f_logstash_{{ composant| regex_replace('-','_') }}_queue_filter {
+        program("{{ composant }}*") or match("{{ composant }}");
+};
+# removed filter(s_facility);
+log {source(s_all);filter(f_facility);filter(f_logstash_{{ composant| regex_replace('-','_') }}_queue_filter);destination(d_logstash);};
+log {source(s_sys);filter(f_logstash_{{ composant| regex_replace('-','_') }}_queue_filter);destination(d_logstash);};
+
+{% endfor %}
+{% elif (groups['hosts-logstash']|length) > 0 %}
 options {
 #     flush_lines (0);
      sync(0);

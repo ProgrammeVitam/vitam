@@ -305,10 +305,12 @@ hosts-logstash
 
 [hosts-logstash]
 # TODO: Put here servers where this service will be deployed : logstash
+# IF you connect VITAM to external SIEM, DO NOT FILL THE SECTION
 
 
 [hosts-elasticsearch-log]
 # TODO: Put here servers where this service will be deployed : elasticsearch-log cluster
+# IF you connect VITAM to external SIEM, DO NOT FILL THE SECTION
 
 ########### Global vars ###########
 

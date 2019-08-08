@@ -75,13 +75,15 @@ Se référer aux commentaires dans le fichier pour le renseigner correctement.
 Fichier ``cots_vars.yml``
 ----------------------------
 
-Dans le cas du choix du :term:`COTS` d'envoi des messages syslog dans logastsh, il est possible de choisir entre ``syslog-ng`` et ``rsyslog`` dans le fichier |repertoire_inventory| ``/group_vars/all/cots_vars.yml`` :
+Fichier le fichier |repertoire_inventory| ``/group_vars/all/cots_vars.yml`` :
 
  .. literalinclude:: ../../../../deployment/environments/group_vars/all/cots_vars.yml
      :language: yaml
      :linenos:
 
-Il faut alors modifier la valeur de la directive ``syslog.name`` ; la valeur par défaut est ``rsyslog``.
+Dans le cas du choix du :term:`COTS` d'envoi des messages syslog dans logastsh, il est possible de choisir entre ``syslog-ng`` et ``rsyslog``. Il faut alors modifier la valeur de la directive ``syslog.name`` ; la valeur par défaut est ``rsyslog``.
+
+.. note:: si vous  décommentez et renseignez les valeurs dans le bloc ``external_siem``, les messages seront envoyés (par ``syslog`` ou ``syslog-ng``, selon votre choix de déploiement) dans un :term:`SIEM` externe à la solution logicielle :term:`VITAM`, aux valeurs indiquées dans le bloc ; il n'est alors pas nécessaire de renseigner de partitions pour les groupes ansible ``[hosts-logstash]`` et ``[hosts-elasticsearch-log]``.
 
 .. _pkiconfsection:
 

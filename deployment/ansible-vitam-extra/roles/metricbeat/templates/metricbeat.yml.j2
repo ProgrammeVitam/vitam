@@ -108,9 +108,10 @@ output.elasticsearch:
   #password: "changeme"
 
 #----------------------------- Logstash output --------------------------------
-#output.logstash:
+{% if external_siem is defined %}
+output.logstash:
   # The Logstash hosts
-  #hosts: ["localhost:5044"]
+  hosts: ["{{ external_siem.host }}:{{ external_siem.port }}"]
 
   # Optional SSL. By default is off.
   # List of root certificates for HTTPS server verifications
@@ -121,7 +122,7 @@ output.elasticsearch:
 
   # Client Certificate Key
   #ssl.key: "/etc/pki/client/cert.key"
-
+{% endif %}
 #================================ Logging =====================================
 
 #================================ Logging ======================================
