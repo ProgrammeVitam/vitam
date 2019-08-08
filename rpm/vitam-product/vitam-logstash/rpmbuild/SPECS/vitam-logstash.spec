@@ -1,4 +1,4 @@
-%define version 6.8.1
+%define version 6.8.2
 %define epoch 1
 
 Name:          vitam-logstash
