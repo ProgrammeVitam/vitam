@@ -1,4 +1,3 @@
-
 .. |repertoire_deploiement| replace:: ``deployment``
 .. |repertoire_inventory| replace:: ``environments``
 .. |repertoire_playbook ansible| replace:: ``ansible-vitam``
@@ -125,7 +124,7 @@ Pour cela, il est nécessaire de placer un fichier de configuration dédié dans
 Passage des identifiants des référentiels en mode `esclave`
 ===========================================================
 
-La génération des identifiants des référentiels est géré par :term:`VITAM`lorsqu'il fonctionne en mode maître.
+La génération des identifiants des référentiels est géré par :term:`VITAM` lorsqu'il fonctionne en mode maître.
 
 Par exemple :
 
@@ -165,7 +164,7 @@ Exemple::
 
   vitam_tenant_rule_duration:
     - name: 2 # applied tenant
-      rules: 
+      rules:
         - AppraisalRule : "1 year" # rule name : rule value
     - name: 3
       rules:
@@ -259,17 +258,18 @@ Exemple::
         * **tapeLibrary**  une librairie de bande dans son ensemble. Une *tapeLibrary* est constituée de 1 à n "robot" et de 1 à n "drives". Une offre froide nécessite la déclaration d'au moins une librairie pour fonctionner. L'exploitant doit déclarer un identifiant pour chaque librairie. Ex: TAPE_LIB_1
 
         * **drive**  un drive est un lecteur de cartouches. Il doit être identifié par un *path* scsi unique. Une offre froide nécessite la déclaration d'au moins un lecteur pour fonctionner.
+
+        .. note:: il existe plusieurs fichiers périphériques sur Linux pour un même lecteur
         
-        N.B.: il existe plusieurs fichiers périphériques sur Linux pour un même lecteur.
         Les plus classiques sont par exemple ``/dev/st0`` et ``/dev/nst0`` pour le premier drive détecté par le système.
         L'usage de ``/dev/st0`` indique au système que la bande utilisée dans le lecteur associé devra être rembobinée après l'exécution de la commande appelante.
         A contrario, ``/dev/nst0`` indique au système que la bande utilisée dans le lecteur associé devra rester positionnée après le dernier marqueur de fichier utilisé par l'exécution de la commande appelante.
-        
+
         .. important:: Pour que l'offre froide fonctionne correctement, il convient de configurer une version /dev/nstxx
- 
+
         .. note:: Il peut arriver sur certains systèmes que l'ordre des lecteurs de bandes varient après un reboot de la machine. Pour s'assurer la persistence de l'ordre des lecteurs dans la configuration VITAM, il est conseillé d'utiliser les fichiers périphériques présents dans ``/dev/tape/by-id/`` qui s’appuient sur des références au hardware pour définir les drives.
- 
-        * **robot**  un robot est le composant chargé de procéder au déplacement des cartouches dans une *tapeLibrary*, et de procéder à l'inventaire de ses ressources. Une offre froide nécessite la déclaration d'au moins un robot pour fonctionner. L'exploitant doit déclarer un fichier de périphérique scsi générique ( ex: /dev/sg4 ) associé à la robotique sur son système. A l'instar de la configuration des drives, il est recommandé d'utiliser le device présent dans /dev/tape/by-id pour déclarer les robots. 
+
+        * **robot**  un robot est le composant chargé de procéder au déplacement des cartouches dans une *tapeLibrary*, et de procéder à l'inventaire de ses ressources. Une offre froide nécessite la déclaration d'au moins un robot pour fonctionner. L'exploitant doit déclarer un fichier de périphérique scsi générique ( ex: /dev/sg4 ) associé à la robotique sur son système. A l'instar de la configuration des drives, il est recommandé d'utiliser le device présent dans /dev/tape/by-id pour déclarer les robots.
 
 **Définition d'une offre froide:**
 
@@ -295,7 +295,7 @@ Exemple::
         **useSudo**		Réservé à un usage futur – laisser à *false*.
 
         .. note:: **N.B.**: MaxTarEntrySize doit être strictement inférieur à maxTarFileSize
-      
+
 
 Exemple::
 
@@ -307,12 +307,12 @@ Exemple::
 	ForceOverrideNonEmptyCartridge: False
         useSudo: false
 
-.        
+.
 
         Par la suite, un paragraphe "topology" décrivant la topologie de l'offre doit être renseigné. L'objectif de cet élément est de pouvoir définir une segmentation de l'usage des bandes pour répondre à un besoin fonctionnel. Il convient ainsi de définir des *buckets*, qu'on peut voir comme un ensemble logique de bandes, et de les associer à un ou plusieurs tenants.
 
         **tenants**				tableau de 1 à n identifiants de tenants au format [1,...,n]
-        **tarBufferingTimeoutInMinutes** 	Valeur en minutes durant laquelle un `tar` peut rester ouvert 
+        **tarBufferingTimeoutInMinutes** 	Valeur en minutes durant laquelle un `tar` peut rester ouvert
 
 Exemple::
 
@@ -337,7 +337,7 @@ Exemple::
         **device:** 		Chemin du fichier de périphérique scsi générique associé au bras.
 
         **mtxPath:**	Chemin vers la commande Linux de manipulation du bras.
-        
+
         **timeoutInMilliseconds:** timeout en millisecondes à appliquer aux ordres du bras.
 
 **drives:**      Définition du/ou des lecteurs de cartouches de la librairie.
