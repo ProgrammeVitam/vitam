@@ -29,7 +29,7 @@ metricReporterHosts:
 {% for host in groups['hosts-elasticsearch-log'] %}
    - "{{ hostvars[host]['ip_admin'] }}:{{ elasticsearch.log.port_http }}"
 {% endfor %}
-metricLogLevel: DEBUG
-metricReporterInterval: 3
-metricReporterIntervalUnit: MINUTES
+metricLogLevel: {{ vitam_struct.metricslevel|default(DEBUG) }}
+metricReporterInterval: {{ vitam_struct.metricsinterval|default(3) }}
+metricReporterIntervalUnit: {{ vitam_struct.metricsunit|default(MINUTES) }}
 {% endif %}
