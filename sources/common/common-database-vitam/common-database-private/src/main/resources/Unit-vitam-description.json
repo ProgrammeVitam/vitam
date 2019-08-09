@@ -1440,6 +1440,18 @@
     "cardinality": "one"
   },
   {
+    "path": "Signature.ReferencedObject.SignedObjectDigest.Algorithm",
+    "type": "keyword",
+    "indexed": true,
+    "cardinality": "one"
+  },
+  {
+    "path": "Signature.ReferencedObject.SignedObjectDigest.MessageDigest",
+    "type": "keyword",
+    "indexed": true,
+    "cardinality": "one"
+  },
+  {
     "path": "Signature.ReferencedObject.SignedObjectId",
     "type": "keyword",
     "indexed": true,

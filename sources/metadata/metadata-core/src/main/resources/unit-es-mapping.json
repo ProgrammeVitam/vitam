@@ -948,7 +948,14 @@
               "type": "keyword"
             },
             "SignedObjectDigest": {
-              "type": "object"
+              "properties": {
+                "Algorithm": {
+                  "type": "keyword"
+                },
+                "MessageDigest": {
+                  "type": "keyword"
+                }
+              }
             }
           }
         }
