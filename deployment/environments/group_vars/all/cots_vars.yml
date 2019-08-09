@@ -94,6 +94,7 @@ mongodb:
     mongo_authentication: "true"
     host: "mongos.service.{{ consul_domain }}"
     check_consul: 10 # in seconds
+    drop_info_log: false # Drop mongo (I)nformational log, for Verbosity Level of 0 
 
 logstash:
     host: "logstash.service.{{ consul_domain }}"
