@@ -148,6 +148,9 @@ vitam:
         consul_check_business: 10 # value in seconds
         consul_admin_check: 10 # value in seconds
         acceptableRequestTime: 10 # value in seconds
+        # metricslevel: DEBUG
+        # metricsinterval: 3
+        # metricsunit: MINUTES
     accessinternal:
         vitam_component: access-internal
         host: "access-internal.service.{{ consul_domain }}"
@@ -167,6 +170,9 @@ vitam:
         consul_check_business: 10 # value in seconds
         consul_admin_check: 10 # value in seconds
         acceptableRequestTime: 10 # value in seconds
+        # metricslevel: DEBUG
+        # metricsinterval: 3
+        # metricsunit: MINUTES
     functional_administration:
         vitam_component: functional-administration
         host: "functional-administration.service.{{ consul_domain }}"
@@ -187,6 +193,9 @@ vitam:
         consul_check_business: 10 # value in seconds
         consul_admin_check: 10 # value in seconds
         acceptableRequestTime: 10 # value in seconds
+        # metricslevel: DEBUG
+        # metricsinterval: 3
+        # metricsunit: MINUTES
     elastickibanainterceptor:
         vitam_component: elastic-kibana-interceptor
         host: "elastic-kibana-interceptor.service.{{ consul_domain }}"
@@ -207,6 +216,9 @@ vitam:
         consul_check_business: 10 # value in seconds
         consul_admin_check: 10 # value in seconds
         acceptableRequestTime: 10 # value in seconds
+        # metricslevel: DEBUG
+        # metricsinterval: 3
+        # metricsunit: MINUTES
     batchreport:
         vitam_component: batch-report
         host: "batch-report.service.{{ consul_domain }}"
@@ -226,6 +238,9 @@ vitam:
         consul_check_business: 10 # value in seconds
         consul_admin_check: 10 # value in seconds
         acceptableRequestTime: 10 # value in seconds
+        # metricslevel: DEBUG
+        # metricsinterval: 3
+        # metricsunit: MINUTES
     ingestexternal:
         vitam_component: ingest-external
         # DNS record for the service:
@@ -262,6 +277,9 @@ vitam:
         consul_check_business: 10 # value in seconds
         consul_admin_check: 10 # value in seconds
         acceptableRequestTime: 10 # value in seconds
+        # metricslevel: DEBUG
+        # metricsinterval: 3
+        # metricsunit: MINUTES
     ingestinternal:
         vitam_component: ingest-internal
         host: "ingest-internal.service.{{ consul_domain }}"
@@ -281,6 +299,9 @@ vitam:
         consul_check_business: 10 # value in seconds
         consul_admin_check: 10 # value in seconds
         acceptableRequestTime: 10 # value in seconds
+        # metricslevel: DEBUG
+        # metricsinterval: 3
+        # metricsunit: MINUTES
     ihm_demo:
         vitam_component: ihm-demo
         host: "ihm-demo.service.{{ consul_domain }}"
@@ -328,6 +349,9 @@ vitam:
         consul_check_business: 10 # value in seconds
         consul_admin_check: 10 # value in seconds
         acceptableRequestTime: 10 # value in seconds
+        # metricslevel: DEBUG
+        # metricsinterval: 3
+        # metricsunit: MINUTES
     logbook:
         vitam_component: logbook
         host: "logbook.service.{{ consul_domain }}"
@@ -356,6 +380,9 @@ vitam:
         consul_check_business: 10 # value in seconds
         consul_admin_check: 10 # value in seconds
         acceptableRequestTime: 10 # value in seconds
+        # metricslevel: DEBUG
+        # metricsinterval: 3
+        # metricsunit: MINUTES
     metadata:
         vitam_component: metadata
         host: "metadata.service.{{ consul_domain }}"
@@ -378,12 +405,13 @@ vitam:
         # Archive Unit Profile cache settings (max entries in cache & retention timeout in seconds)
         archiveUnitProfileCacheMaxEntries: 100
         archiveUnitProfileCacheTimeoutInSeconds: 300
-
         # Schema validator cache settings (max entries in cache & retention timeout in seconds)
         schemaValidatorCacheMaxEntries: 100
         schemaValidatorCacheTimeoutInSeconds: 300
-
         acceptableRequestTime: 10 # value in seconds
+        # metricslevel: DEBUG
+        # metricsinterval: 3
+        # metricsunit: MINUTES
     processing:
         vitam_component: processing
         host: "processing.service.{{ consul_domain }}"
@@ -405,6 +433,9 @@ vitam:
         consul_check_business: 10 # value in seconds
         consul_admin_check: 10 # value in seconds
         acceptableRequestTime: 10 # value in seconds
+        # metricslevel: DEBUG
+        # metricsinterval: 3
+        # metricsunit: MINUTES
     security_internal:
         vitam_component: security-internal
         host: "security-internal.service.{{ consul_domain }}"
@@ -424,6 +455,9 @@ vitam:
         consul_check_business: 10 # value in seconds
         consul_admin_check: 10 # value in seconds
         acceptableRequestTime: 10 # value in seconds
+        # metricslevel: DEBUG
+        # metricsinterval: 3
+        # metricsunit: MINUTES
     storageengine:
         vitam_component: storage
         host: "storage.service.{{ consul_domain }}"
@@ -459,6 +493,9 @@ vitam:
         consul_check_business: 10 # value in seconds
         consul_admin_check: 10 # value in seconds
         acceptableRequestTime: 60 # value in seconds
+        # metricslevel: DEBUG
+        # metricsinterval: 3
+        # metricsunit: MINUTES
     storageofferdefault:
         vitam_component: "offer"
         port_service: 9900
@@ -477,6 +514,9 @@ vitam:
         consul_check_business: 10 # value in seconds
         consul_admin_check: 10 # value in seconds
         acceptableRequestTime: 60 # value in seconds
+        # metricslevel: DEBUG
+        # metricsinterval: 3
+        # metricsunit: MINUTES
     worker:
         vitam_component: worker
         port_service: 9104
@@ -497,15 +537,15 @@ vitam:
         acceptableRequestTime: 60 # value in seconds
         api_output_index_tenants: [0,1,2,3,4,5,6,7,8,9]
         rules_index_tenants: [0,1,2,3,4,5,6,7,8,9]
-
         # Archive Unit Profile cache settings (max entries in cache & retention timeout in seconds)
         archiveUnitProfileCacheMaxEntries: 100
         archiveUnitProfileCacheTimeoutInSeconds: 300
-
         # Schema validator cache settings (max entries in cache & retention timeout in seconds)
         schemaValidatorCacheMaxEntries: 100
         schemaValidatorCacheTimeoutInSeconds: 300
-
+        # metricslevel: DEBUG
+        # metricsinterval: 3
+        # metricsunit: MINUTES
     workspace:
         vitam_component: workspace
         host: "workspace.service.{{ consul_domain }}"
@@ -525,7 +565,9 @@ vitam:
         consul_check_business: 10 # value in seconds
         consul_admin_check: 10 # value in seconds
         acceptableRequestTime: 10 # value in seconds
-
+        # metricslevel: DEBUG
+        # metricsinterval: 3
+        # metricsunit: MINUTES
 
 # for functional-administration, manage master/slave tenant configuration
 vitam_tenants_usage_external:
