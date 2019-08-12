@@ -27,7 +27,6 @@
       "format": "strict_date_optional_time"
     },
     "Permissions": {
-      "type": "object",
       "properties": {
         "AccessContracts": {
           "type": "keyword"
@@ -48,10 +47,6 @@
     },
     "_v": {
       "type": "long"
-    },
-    "_score": {
-      "type": "object",
-      "enabled": false
     }
   }
 }

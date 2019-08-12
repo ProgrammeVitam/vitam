@@ -340,45 +340,12 @@
     ]
   },
   {
-    "Identifier": "EventDateTime",
-    "SedaField": "EventDateTime",
-    "Description": "Mapping : unit-es-mapping.json",
-    "Type": "DATE",
-    "Origin": "INTERNAL",
-    "ShortName": "Date et heure",
-    "Collections": [
-      "Unit"
-    ]
-  },
-  {
-    "Identifier": "EventDetail",
+    "Identifier": "evTypeDetail",
     "SedaField": "EventDetail",
     "Description": "Mapping : unit-es-mapping.json",
     "Type": "TEXT",
     "Origin": "INTERNAL",
     "ShortName": "Détail",
-    "Collections": [
-      "Unit"
-    ]
-  },
-  {
-    "Identifier": "EventIdentifier",
-    "SedaField": "EventIdentifier",
-    "Description": "Mapping : unit-es-mapping.json",
-    "Type": "KEYWORD",
-    "Origin": "INTERNAL",
-    "ShortName": "Identifiant",
-    "Collections": [
-      "Unit"
-    ]
-  },
-  {
-    "Identifier": "EventType",
-    "SedaField": "EventType",
-    "Description": "Mapping : unit-es-mapping.json",
-    "Type": "TEXT",
-    "Origin": "INTERNAL",
-    "ShortName": "Type",
     "Collections": [
       "Unit"
     ]
@@ -629,7 +596,7 @@
     "Identifier": "Activity",
     "SedaField": "Activity",
     "Description": "Mapping : unit-es-mapping.json. En plus des balises Tag et Keyword, il est possible d'indexer les objets avec des éléments pré-définis : Activité.",
-    "Type": "KEYWORD",
+    "Type": "TEXT",
     "Origin": "INTERNAL",
     "ShortName": "Activité",
     "Collections": [
@@ -662,7 +629,7 @@
     "Identifier": "Function",
     "SedaField": "Function",
     "Description": "Mapping : unit-es-mapping.json. En plus des balises Tag et Keyword, il est possible d'indexer les objets avec des éléments pré-définis : Fonction.",
-    "Type": "KEYWORD",
+    "Type": "TEXT",
     "Origin": "INTERNAL",
     "ShortName": "Fonction",
     "Collections": [
@@ -714,28 +681,6 @@
     ]
   },
   {
-    "Identifier": "DateSignature",
-    "SedaField": "DateSignature",
-    "Description": "Mapping : unit-es-mapping.json. Date de l'objet signature.",
-    "Type": "DATE",
-    "Origin": "INTERNAL",
-    "ShortName": "Date de signature de l'objet",
-    "Collections": [
-      "Unit"
-    ]
-  },
-  {
-    "Identifier": "Value",
-    "SedaField": "Value",
-    "Description": "Mapping : unit-es-mapping.json. Attribut SEDA.",
-    "Type": "KEYWORD",
-    "Origin": "INTERNAL",
-    "ShortName": "Valeur",
-    "Collections": [
-      "Unit"
-    ]
-  },
-  {
     "Identifier": "Algorithm",
     "SedaField": "Algorithm",
     "Description": "Mapping : unit-es-mapping.json. Attribut SEDA.",
@@ -743,7 +688,6 @@
     "Origin": "INTERNAL",
     "ShortName": "Algorithme",
     "Collections": [
-      "Unit",
       "ObjectGroup"
     ]
   },
@@ -759,8 +703,8 @@
     ]
   },
   {
-    "Identifier": "Fullname",
-    "SedaField": "Fullname",
+    "Identifier": "FullName",
+    "SedaField": "FullName",
     "Description": "Mapping : unit-es-mapping.json",
     "Type": "TEXT",
     "Origin": "INTERNAL",
@@ -866,39 +810,6 @@
     ]
   },
   {
-    "Identifier": "fr",
-    "ApiField": "fr",
-    "Description": "Mapping : unit-es-mapping.json",
-    "Type": "TEXT",
-    "Origin": "INTERNAL",
-    "ShortName": "Langue française",
-    "Collections": [
-      "Unit"
-    ]
-  },
-  {
-    "Identifier": "en",
-    "ApiField": "en",
-    "Description": "Mapping : unit-es-mapping.json",
-    "Type": "TEXT",
-    "Origin": "INTERNAL",
-    "ShortName": "Langue anglaise",
-    "Collections": [
-      "Unit"
-    ]
-  },
-  {
-    "Identifier": "es",
-    "ApiField": "es",
-    "Description": "Mapping : unit-es-mapping.json",
-    "Type": "TEXT",
-    "Origin": "INTERNAL",
-    "ShortName": "Langue espagnole",
-    "Collections": [
-      "Unit"
-    ]
-  },
-  {
     "Identifier": "TransactedDate",
     "SedaField": "TransactedDate",
     "Description": "Mapping : unit-es-mapping.json",
@@ -949,7 +860,7 @@
     "Identifier": "_glpd",
     "ApiField": "#graph_last_persisted_date",
     "Description": "Mapping : unit-es-mapping.json",
-    "Type": "KEYWORD",
+    "Type": "DATE",
     "Origin": "INTERNAL",
     "ShortName": "_glpd",
     "Collections": [
@@ -1148,31 +1059,6 @@
     ]
   },
   {
-    "Identifier": "_score",
-    "ApiField": "#score",
-    "Description": "Mapping : unit-es-mapping.json",
-    "Type": "KEYWORD",
-    "Origin": "INTERNAL",
-    "ShortName": "_score",
-    "Collections": [
-      "Unit",
-      "ObjectGroup",
-      "AccessContract",
-      "AccessionRegisterDetail",
-      "AccessionRegisterSummary",
-      "Agencies",
-      "ArchiveUnitProfile",
-      "Context",
-      "FileFormat",
-      "IngestContract",
-      "LogbookOperation",
-      "Ontology",
-      "Profile",
-      "FileRules",
-      "SecurityProfile"
-    ]
-  },
-  {
     "Identifier": "_sp",
     "SedaField": "OriginatingAgencyIdentifier",
     "ApiField": "#originating_agency",
@@ -1234,6 +1120,7 @@
       "AccessContract",
       "AccessionRegisterDetail",
       "AccessionRegisterSummary",
+      "AccessionRegisterSymbolic",
       "Agencies",
       "ArchiveUnitProfile",
       "IngestContract",
@@ -1254,18 +1141,6 @@
     "ShortName": "Type d'unité archivistique",
     "Collections": [
       "Unit"
-    ]
-  },
-  {
-    "Identifier": "_unused",
-    "ApiField": "_unused",
-    "Description": "Mapping : unit-es-mapping.json",
-    "Type": "KEYWORD",
-    "Origin": "INTERNAL",
-    "ShortName": "_unused",
-    "Collections": [
-      "Unit",
-      "ObjectGroup"
     ]
   },
   {
@@ -1293,19 +1168,8 @@
     ]
   },
   {
-    "Identifier": "_us_sp",
-    "ApiField": "#parent_originating_agencies",
-    "Description": "Mapping : unit-es-mapping.json",
-    "Type": "KEYWORD",
-    "Origin": "INTERNAL",
-    "ShortName": "_us_sp",
-    "Collections": [
-      "Unit"
-    ]
-  },
-  {
     "Identifier": "_v",
-    "ApiField": "_v",
+    "ApiField": "#version",
     "Description": "Mapping : unit-es-mapping.json. Version de l’enregistrement décrit.",
     "Type": "LONG",
     "Origin": "INTERNAL",
@@ -1316,6 +1180,7 @@
       "AccessContract",
       "AccessionRegisterDetail",
       "AccessionRegisterSummary",
+      "AccessionRegisterSymbolic",
       "Agencies",
       "ArchiveUnitProfile",
       "Context",
@@ -1611,19 +1476,24 @@
     "Collections": [
       "ObjectGroup",
       "Griffin",
-      "PreservationScenario"
-    ]
-  },
-  {
-    "Identifier": "_uds",
-    "ApiField": "#uds",
-    "Description": "Mapping : unit-es-mapping.json. Tableau contenant la parentalité, c’est-à-dire l’ensemble des unités archivistiques parentes, ainsi que le niveau de profondeur relative.",
-    "Type": "KEYWORD",
-    "Origin": "INTERNAL",
-    "ShortName": "Identifiant(s) des unités archivistiques parentes et niveau de profondeur",
-    "Collections": [
+      "PreservationScenario",
       "Unit",
-      "ObjectGroup"
+      "AccessContract",
+      "ArchiveUnitProfile",
+      "Profile",
+      "Ontology",
+      "Context",
+      "IngestContract",
+      "LogbookOperation",
+      "LogbookLifeCycleUnit",
+      "LogbookLifeCycleObjectGroup",
+      "AccessionRegisterDetail",
+      "AccessionRegisterSummary",
+      "AccessionRegisterSymbolic",
+      "Agencies",
+      "SecurityProfile",
+      "FileRules",
+      "FileFormat"
     ]
   },
   {
@@ -1663,6 +1533,7 @@
       "AccessContract",
       "AccessionRegisterSummary",
       "AccessionRegisterDetail",
+      "AccessionRegisterSymbolic",
       "ArchiveUnitProfile",
       "Context",
       "IngestContract",
@@ -1810,7 +1681,7 @@
     "SedaField": "AcquisitionInformation",
     "ApiField": "AcquisitionInformation",
     "Description": "Mapping : accessionregisterdetail-es-mapping.json",
-    "Type": "KEYWORD",
+    "Type": "TEXT",
     "Origin": "INTERNAL",
     "ShortName": "Modalités d'entrée",
     "Collections": [
@@ -1911,7 +1782,7 @@
     "Identifier": "Args",
     "SedaField": "Args",
     "Description": "Mapping : preservationscenario-es-mapping.json",
-    "Type": "TEXT",
+    "Type": "KEYWORD",
     "Origin": "INTERNAL",
     "ShortName": "Extension",
     "Collections": [
@@ -1979,7 +1850,7 @@
     "Identifier": "Gots",
     "ApiField": "Gots",
     "Description": "Mapping : accessionregisterdetail-es-mapping.json. Total des groupes d'objets modifiant le register des fonds suite à une opération (ingest, élimination, ...)",
-    "Type": "KEYWORD",
+    "Type": "LONG",
     "Origin": "INTERNAL",
     "ShortName": "Total des groupes d'objets",
     "Collections": [
@@ -1990,7 +1861,7 @@
     "Identifier": "Units",
     "ApiField": "Units",
     "Description": "Mapping : accessionregisterdetail-es-mapping.json. Total des unités archivistiques modifiant le register des fonds suite à une opération (ingest, élimination, ...)",
-    "Type": "KEYWORD",
+    "Type": "LONG",
     "Origin": "INTERNAL",
     "ShortName": "Total des unités archivistiques",
     "Collections": [
@@ -2001,7 +1872,7 @@
     "Identifier": "Objects",
     "ApiField": "Objects",
     "Description": "Mapping : accessionregisterdetail-es-mapping.json. Total des objets modifiant le register des fonds suite à une opération (ingest, élimination, ...)",
-    "Type": "KEYWORD",
+    "Type": "LONG",
     "Origin": "INTERNAL",
     "ShortName": "Total des objets",
     "Collections": [
@@ -2012,7 +1883,7 @@
     "Identifier": "ObjSize",
     "ApiField": "ObjSize",
     "Description": "Mapping : accessionregisterdetail-es-mapping.json. Total de poids d'objets modifiant le register des fonds suite à une opération (ingest, élimination, ...)",
-    "Type": "KEYWORD",
+    "Type": "LONG",
     "Origin": "INTERNAL",
     "ShortName": "Total des poids d'objets",
     "Collections": [
@@ -2039,7 +1910,8 @@
     "ShortName": "Service producteur",
     "Collections": [
       "AccessionRegisterDetail",
-      "AccessionRegisterSummary"
+      "AccessionRegisterSummary",
+      "AccessionRegisterSymbolic"
     ]
   },
   {
@@ -2057,7 +1929,7 @@
     "Identifier": "LegalStatus",
     "SedaField": "LegalStatus",
     "Description": "Mapping : accessionregisterdetail-es-mapping.json",
-    "Type": "LONG",
+    "Type": "KEYWORD",
     "Origin": "INTERNAL",
     "ShortName": "Statut légal",
     "Collections": [
@@ -2321,24 +2193,40 @@
   },
   {
     "Identifier": "evDateTime",
+    "SedaField": "EventDateTime",
     "ApiField": "evDateTime",
     "Description": "Mapping : logbook-es-mapping.json. Date de lancement de l’opération",
     "Type": "DATE",
     "Origin": "INTERNAL",
     "ShortName": "Date",
     "Collections": [
-      "LogbookOperation"
+      "LogbookOperation",
+      "Unit"
     ]
   },
   {
     "Identifier": "evId",
+    "SedaField": "EventIdentifier",
     "ApiField": "evId",
     "Description": "Mapping : logbook-es-mapping.json",
     "Type": "KEYWORD",
     "Origin": "INTERNAL",
     "ShortName": "Identifiant de l'événement",
     "Collections": [
-      "LogbookOperation"
+      "LogbookOperation",
+      "Unit"
+    ]
+  },
+  {
+    "Identifier": "evDetData",
+    "SedaField": "eventDetailData",
+    "ApiField": "evDetData",
+    "Description": "Mapping : unit-es-mapping.json",
+    "Type": "KEYWORD",
+    "Origin": "INTERNAL",
+    "ShortName": "Détails techniques",
+    "Collections": [
+      "Unit"
     ]
   },
   {
@@ -2409,24 +2297,28 @@
   },
   {
     "Identifier": "evType",
+    "SedaField": "EventType",
     "ApiField": "evType",
     "Description": "Mapping : logbook-es-mapping.json. Code du type de l’opération",
     "Type": "KEYWORD",
     "Origin": "INTERNAL",
     "ShortName": "Type d'opération",
     "Collections": [
-      "LogbookOperation"
+      "LogbookOperation",
+      "Unit"
     ]
   },
   {
     "Identifier": "evTypeProc",
+    "SedaField": "EventTypeCode",
     "ApiField": "evTypeProc",
     "Description": "Mapping : logbook-es-mapping.json. Type de processus. Equivaut à la traduction du code du type de l'opération.",
     "Type": "KEYWORD",
     "Origin": "INTERNAL",
     "ShortName": "Catégorie d'opération",
     "Collections": [
-      "LogbookOperation"
+      "LogbookOperation",
+      "Unit"
     ]
   },
   {
@@ -2478,7 +2370,7 @@
     "Identifier": "EvDetailReq",
     "ApiField": "EvDetailReq",
     "Description": "Mapping : logbook-es-mapping.json. Précisions sur la demande de transfert. Chaîne de caractères. Reprend le champ « Comment » du message ArchiveTransfer.",
-    "Type": "KEYWORD",
+    "Type": "TEXT",
     "Origin": "INTERNAL",
     "ShortName": "Précisions",
     "Collections": [
@@ -2585,17 +2477,6 @@
     ]
   },
   {
-    "Identifier": "evDetDataType",
-    "ApiField": "evDetDataType",
-    "Description": "Mapping : logbook-es-mapping.json",
-    "Type": "KEYWORD",
-    "Origin": "INTERNAL",
-    "ShortName": "Type d'événement",
-    "Collections": [
-      "LogbookOperation"
-    ]
-  },
-  {
     "Identifier": "reports",
     "ApiField": "reports",
     "Description": "Mapping : logbook-es-mapping.json",
@@ -2649,7 +2530,8 @@
     "Origin": "INTERNAL",
     "ShortName": "Code technique",
     "Collections": [
-      "LogbookOperation"
+      "LogbookOperation",
+      "Unit"
     ]
   },
   {
@@ -2661,7 +2543,8 @@
     "Origin": "INTERNAL",
     "ShortName": "Message",
     "Collections": [
-      "LogbookOperation"
+      "LogbookOperation",
+      "Unit"
     ]
   },
   {
@@ -2673,7 +2556,8 @@
     "Origin": "INTERNAL",
     "ShortName": "Statut",
     "Collections": [
-      "LogbookOperation"
+      "LogbookOperation",
+      "Unit"
     ]
   },
   {
@@ -2827,7 +2711,8 @@
     "Origin": "INTERNAL",
     "ShortName": "Dernière modification",
     "Collections": [
-      "FileRules"
+      "FileRules",
+      "FileFormat"
     ]
   },
   {
@@ -2963,6 +2848,138 @@
     ]
   },
   {
+    "Identifier": "Compressed",
+    "SedaField": "Compressed",
+    "Description": "Indique si l’objet-données est compressé et doit être décompressé.",
+    "Type": "TEXT",
+    "Origin": "INTERNAL",
+    "ShortName": "Objet compressé",
+    "Collections": [
+      "ObjectGroup"
+    ]
+  },
+  {
+    "Identifier": "RawMetadata",
+    "ApiField": "RawMetadata",
+    "Description": "Métadonnées brutes, issues d'une extraction de métadonnées",
+    "Type": "TEXT",
+    "Origin": "INTERNAL",
+    "ShortName": "Métadonnées extraites",
+    "Collections": [
+      "ObjectGroup"
+    ]
+  },
+  {
+    "Identifier": "BinaryObjectSize",
+    "ApiField": "BinaryObjectSize",
+    "Description": "Volumétrie des objets de fonds symboliques",
+    "Type": "DOUBLE",
+    "Origin": "INTERNAL",
+    "ShortName": "Volumétrie des objets",
+    "Collections": [
+      "AccessionRegisterSymbolic"
+    ]
+  },
+  {
+    "Identifier": "BinaryObject",
+    "ApiField": "BinaryObject",
+    "Description": "Nombre d'objets de fonds symboliques",
+    "Type": "LONG",
+    "Origin": "INTERNAL",
+    "ShortName": "Nombre d'objets",
+    "Collections": [
+      "AccessionRegisterSymbolic"
+    ]
+  },
+  {
+    "Identifier": "ObjectGroup",
+    "ApiField": "ObjectGroup",
+    "Description": "Nombre de groupes d'objets techniques de fonds symboliques",
+    "Type": "LONG",
+    "Origin": "INTERNAL",
+    "ShortName": "Nombre de groupes d'objets techniques",
+    "Collections": [
+      "AccessionRegisterSymbolic"
+    ]
+  },
+  {
+    "Identifier": "ArchiveUnit",
+    "ApiField": "ArchiveUnit",
+    "Description": "Nombre d'unités archivistiques de fonds symboliques",
+    "Type": "LONG",
+    "Origin": "INTERNAL",
+    "ShortName": "Nombre d'unités archivistiques",
+    "Collections": [
+      "AccessionRegisterSymbolic"
+    ]
+  },
+  {
+    "Identifier": "FilteredExtractedObjectGroupData",
+    "ApiField": "FilteredExtractedObjectGroupData",
+    "Description": "Métadonnées à extraire dans le groupe d'objets techniques",
+    "Type": "KEYWORD",
+    "Origin": "INTERNAL",
+    "ShortName": "Métadonnées à extraire dans le groupe d'objets techniques",
+    "Collections": [
+      "PreservationScenario"
+    ]
+  },
+  {
+    "Identifier": "FilteredExtractedUnitData",
+    "ApiField": "FilteredExtractedUnitData",
+    "Description": "Métadonnées à extraire dans les unités archivistiques",
+    "Type": "KEYWORD",
+    "Origin": "INTERNAL",
+    "ShortName": "Métadonnées à extraire dans les unités archivistiques",
+    "Collections": [
+      "PreservationScenario"
+    ]
+  },
+  {
+    "Identifier": "CheckParentId",
+    "ApiField": "CheckParentId",
+    "Description": "Déclaration d’un ou plusieurs cônes de positionnement des rattachements",
+    "Type": "KEYWORD",
+    "Origin": "INTERNAL",
+    "ShortName": "Déclaration d’un ou plusieurs cônes de positionnement des rattachements",
+    "Collections": [
+      "IngestContract"
+    ]
+  },
+  {
+    "Identifier": "ArchivalProfile",
+    "SedaField": "ArchivalProfile",
+    "Description": "Mapping : accessionregisterdetail-es-mapping.json.",
+    "Type": "KEYWORD",
+    "Origin": "INTERNAL",
+    "ShortName": "Profile d'archivage",
+    "Collections": [
+      "AccessionRegisterDetail"
+    ]
+  },
+  {
+    "Identifier": "DataObjectSystemId",
+    "SedaField": "DataObjectSystemId",
+    "Description": "Mapping : og-es-mapping.json.",
+    "Type": "KEYWORD",
+    "Origin": "INTERNAL",
+    "ShortName": "Identifiant de l'objet",
+    "Collections": [
+      "ObjectGroup"
+    ]
+  },
+  {
+    "Identifier": "DataObjectGroupSystemId",
+    "SedaField": "DataObjectGroupSystemId",
+    "Description": "Mapping : og-es-mapping.json.",
+    "Type": "KEYWORD",
+    "Origin": "INTERNAL",
+    "ShortName": "Identifiant du groupe d'objet",
+    "Collections": [
+      "ObjectGroup"
+    ]
+  },
+  {
     "Identifier": "_validComputedInheritedRules",
     "Description": "Indique si les règles calculées sont valides",
     "Type": "BOOLEAN",
@@ -2971,5 +2988,26 @@
     "Collections": [
       "Unit"
     ]
+  },
+  {
+    "Identifier": "MaxEndDate",
+    "Description": "Date de fin maximale",
+    "Type": "DATE",
+    "Origin": "INTERNAL",
+    "ShortName": "MaxEndDate",
+    "Collections": [
+      "Unit"
+    ]
+  },
+  {
+    "Identifier": "indexationDate",
+    "Description": "Date d'indexation'",
+    "Type": "DATE",
+    "Origin": "INTERNAL",
+    "ShortName": "indexationDate",
+    "Collections": [
+      "Unit"
+    ]
   }
 ]
+

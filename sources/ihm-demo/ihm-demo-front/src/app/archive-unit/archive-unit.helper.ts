@@ -453,7 +453,6 @@ export class ArchiveUnitHelper {
       'FormatIdentification.Encoding': 'Encodage',
       'Metadata': 'Métadonnées',
       'Metadata.OtherMetadata': 'Autres métadonnées',
-      'Metadata.MyOtherCoreTechnicalMetadataAbstract': 'Autre objet',
       'Metadata.Audio': 'Audio',
       'Metadata.Image': 'Image',
       'Metadata.Text':'Texte',

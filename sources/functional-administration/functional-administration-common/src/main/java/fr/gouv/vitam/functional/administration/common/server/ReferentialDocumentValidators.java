@@ -33,36 +33,57 @@ import fr.gouv.vitam.common.json.JsonSchemaValidator;
 
 public final class ReferentialDocumentValidators {
 
-    private static final DocumentValidator ACCESS_CONTRACT_SCHEMA_VALIDATOR =
-        forBuiltInSchema("json-schema/access-contract-schema.json");
-    private static final DocumentValidator ACCESSION_REGISTER_DETAIL_SCHEMA_VALIDATOR =
-        forBuiltInSchema("json-schema/accession-register-detail.schema.json");
-    private static final DocumentValidator ACCESSION_REGISTER_SUMMARY_SCHEMA_VALIDATOR =
-        forBuiltInSchema("json-schema/accession-register-summary.schema.json");
-    private static final DocumentValidator AGENCIES_SCHEMA_VALIDATOR =
-        forBuiltInSchema("json-schema/agencies.schema.json");
-    private static final DocumentValidator ARCHIVE_UNIT_PROFILE_SCHEMA_VALIDATOR =
-        forBuiltInSchema("json-schema/archive-unit-profile.schema.json");
-    private static final DocumentValidator CONTEXT_SCHEMA_VALIDATOR =
-        forBuiltInSchema("json-schema/context.schema.json");
-    private static final DocumentValidator FILE_FORMAT_SCHEMA_VALIDATOR =
-        forBuiltInSchema("json-schema/file-format.schema.json");
-    private static final DocumentValidator FILE_RULES_SCHEMA_VALIDATOR =
-        forBuiltInSchema("json-schema/file-rules.schema.json");
-    private static final DocumentValidator INGEST_CONTRACT_SCHEMA_VALIDATOR =
-        forBuiltInSchema("json-schema/ingest-contract.schema.json");
-    private static final DocumentValidator PROFILE_SCHEMA_VALIDATOR =
-        forBuiltInSchema("json-schema/profile.schema.json");
-    private static final DocumentValidator SECURITY_PROFILE_SCHEMA_VALIDATOR =
-        forBuiltInSchema("json-schema/security-profile.schema.json");
-    private static final DocumentValidator ONTOLOGY_SCHEMA_VALIDATOR =
-        forBuiltInSchema("json-schema/ontology.schema.json");
-    private static final DocumentValidator GRIFFIN_SCHEMA =
-        forBuiltInSchema("json-schema/griffin-shema.schema.json");
-    private static final DocumentValidator PRESERVATION_SCENARIO_SCHEMA =
-        forBuiltInSchema("json-schema/preservation-scenario-shema.schema.json");
-    private static final DocumentValidator NULL_SCHEMA_VALIDATOR = (jsonNode) -> { /* NOP */ };
+    public static final String ACCESS_CONTRACT_SCHEMA_JSON = "/json-schema/access-contract-schema.json";
+    public static final String ACCESSION_REGISTER_DETAIL_SCHEMA_JSON =
+        "/json-schema/accession-register-detail-schema.json";
+    public static final String ACCESSION_REGISTER_SUMMARY_SCHEMA_JSON =
+        "/json-schema/accession-register-summary-schema.json";
+    public static final String ACCESSION_REGISTER_SYMBOLIC_SCHEMA_JSON =
+        "/json-schema/accession-register-symbolic-schema.json";
+    public static final String AGENCIES_SCHEMA_JSON = "/json-schema/agencies-schema.json";
+    public static final String ARCHIVE_UNIT_PROFILE_SCHEMA_JSON = "/json-schema/archive-unit-profile-schema.json";
+    public static final String CONTEXT_SCHEMA_JSON = "/json-schema/context-schema.json";
+    public static final String FILE_FORMAT_SCHEMA_JSON = "/json-schema/file-format-schema.json";
+    public static final String FILE_RULES_SCHEMA_JSON = "/json-schema/file-rules-schema.json";
+    public static final String INGEST_CONTRACT_SCHEMA_JSON = "/json-schema/ingest-contract-schema.json";
+    public static final String PROFILE_SCHEMA_JSON = "/json-schema/profile-schema.json";
+    public static final String SECURITY_PROFILE_SCHEMA_JSON = "/json-schema/security-profile-schema.json";
+    public static final String ONTOLOGY_SCHEMA_JSON = "/json-schema/ontology-schema.json";
+    public static final String GRIFFIN_SCHEMA_JSON = "/json-schema/griffin-schema-schema.json";
+    public static final String PRESERVATION_SCENARIO_SCHEMA_JSON =
+        "/json-schema/preservation-scenario-schema.json";
 
+    private static final DocumentValidator ACCESS_CONTRACT_SCHEMA_VALIDATOR =
+        forBuiltInSchema(ACCESS_CONTRACT_SCHEMA_JSON);
+    private static final DocumentValidator ACCESSION_REGISTER_DETAIL_SCHEMA_VALIDATOR =
+        forBuiltInSchema(ACCESSION_REGISTER_DETAIL_SCHEMA_JSON);
+    private static final DocumentValidator ACCESSION_REGISTER_SUMMARY_SCHEMA_VALIDATOR =
+        forBuiltInSchema(ACCESSION_REGISTER_SUMMARY_SCHEMA_JSON);
+    private static final DocumentValidator ACCESSION_REGISTER_SYMBOLIC_SCHEMA_VALIDATOR =
+        forBuiltInSchema(ACCESSION_REGISTER_SYMBOLIC_SCHEMA_JSON);
+    private static final DocumentValidator AGENCIES_SCHEMA_VALIDATOR =
+        forBuiltInSchema(AGENCIES_SCHEMA_JSON);
+    private static final DocumentValidator ARCHIVE_UNIT_PROFILE_SCHEMA_VALIDATOR =
+        forBuiltInSchema(ARCHIVE_UNIT_PROFILE_SCHEMA_JSON);
+    private static final DocumentValidator CONTEXT_SCHEMA_VALIDATOR =
+        forBuiltInSchema(CONTEXT_SCHEMA_JSON);
+    private static final DocumentValidator FILE_FORMAT_SCHEMA_VALIDATOR =
+        forBuiltInSchema(FILE_FORMAT_SCHEMA_JSON);
+    private static final DocumentValidator FILE_RULES_SCHEMA_VALIDATOR =
+        forBuiltInSchema(FILE_RULES_SCHEMA_JSON);
+    private static final DocumentValidator INGEST_CONTRACT_SCHEMA_VALIDATOR =
+        forBuiltInSchema(INGEST_CONTRACT_SCHEMA_JSON);
+    private static final DocumentValidator PROFILE_SCHEMA_VALIDATOR =
+        forBuiltInSchema(PROFILE_SCHEMA_JSON);
+    private static final DocumentValidator SECURITY_PROFILE_SCHEMA_VALIDATOR =
+        forBuiltInSchema(SECURITY_PROFILE_SCHEMA_JSON);
+    private static final DocumentValidator ONTOLOGY_SCHEMA_VALIDATOR =
+        forBuiltInSchema(ONTOLOGY_SCHEMA_JSON);
+    private static final DocumentValidator GRIFFIN_SCHEMA =
+        forBuiltInSchema(GRIFFIN_SCHEMA_JSON);
+    private static final DocumentValidator PRESERVATION_SCENARIO_SCHEMA =
+        forBuiltInSchema(PRESERVATION_SCENARIO_SCHEMA_JSON);
+    private static final DocumentValidator NULL_SCHEMA_VALIDATOR = (jsonNode) -> { /* NOP */ };
 
     private static DocumentValidator forBuiltInSchema(String schemaFilename) {
         JsonSchemaValidator schemaValidator = JsonSchemaValidator.forBuiltInSchema(schemaFilename);
@@ -102,33 +123,17 @@ public final class ReferentialDocumentValidators {
                 return PRESERVATION_SCENARIO_SCHEMA;
             case ONTOLOGY:
                 return ONTOLOGY_SCHEMA_VALIDATOR;
-
             case FORMATS:
-                // FIXME : File format schema needs to be fixed
-
-                // return FILE_FORMAT_SCHEMA_VALIDATOR;
-                return NULL_SCHEMA_VALIDATOR;
-
+                return FILE_FORMAT_SCHEMA_VALIDATOR;
             case ACCESSION_REGISTER_SUMMARY:
-                // FIXME : Accession register summary schema needs to be fixed
-
-                // return ACCESSION_REGISTER_SUMMARY_SCHEMA_VALIDATOR;
-                return NULL_SCHEMA_VALIDATOR;
-
+                return ACCESSION_REGISTER_SUMMARY_SCHEMA_VALIDATOR;
             case ACCESSION_REGISTER_DETAIL:
-                // FIXME : Accession register detail schema needs to be fixed
-
-                // return ACCESSION_REGISTER_DETAIL_SCHEMA_VALIDATOR;
-                return NULL_SCHEMA_VALIDATOR;
-
+                return ACCESSION_REGISTER_DETAIL_SCHEMA_VALIDATOR;
             case ACCESSION_REGISTER_SYMBOLIC:
-                // FIXME : Don't know why there is no schema validator for this one
-                return NULL_SCHEMA_VALIDATOR;
-
+                return ACCESSION_REGISTER_SYMBOLIC_SCHEMA_VALIDATOR;
             case VITAM_SEQUENCE:
                 // Internal collection. No need for schema validator
                 return NULL_SCHEMA_VALIDATOR;
-
             default:
                 throw new IllegalStateException("Unexpected value: " + collection);
         }

@@ -1,6 +1,24 @@
 {
   "$schema": "http://json-schema.org/draft-04/schema#",
-  "id": "http://example.com/root.json",
+  "definitions": {
+    "date-opt-time": {
+      "description": "pattern: Date",
+      "anyOf": [
+        {
+          "type": "string",
+          "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}$"
+        },
+        {
+          "type": "string",
+          "format": "date-time"
+        },
+        {
+          "type": "string",
+          "format": "date-time-vitam"
+        }
+      ]
+    }
+  },
   "type": "object",
   "additionalProperties": false,
   "properties": {
@@ -38,72 +56,16 @@
       ]
     },
     "CreationDate": {
-      "description": "pattern: Date",
-      "anyOf": [
-        {
-          "type": "string",
-          "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}$"
-        },
-        {
-          "type": "string",
-          "format": "date-time"
-        },
-        {
-          "type": "string",
-          "format": "date-time-vitam"
-        }
-      ]
+      "$ref": "#/definitions/date-opt-time"
     },
     "LastUpdate": {
-      "description": "pattern: Date",
-      "anyOf": [
-        {
-          "type": "string",
-          "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}$"
-        },
-        {
-          "type": "string",
-          "format": "date-time"
-        },
-        {
-          "type": "string",
-          "format": "date-time-vitam"
-        }
-      ]
+      "$ref": "#/definitions/date-opt-time"
     },
     "ActivationDate": {
-      "description": "pattern: Date",
-      "anyOf": [
-        {
-          "type": "string",
-          "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}$"
-        },
-        {
-          "type": "string",
-          "format": "date-time"
-        },
-        {
-          "type": "string",
-          "format": "date-time-vitam"
-        }
-      ]
+      "$ref": "#/definitions/date-opt-time"
     },
     "DeactivationDate": {
-      "description": "pattern: Date",
-      "anyOf": [
-        {
-          "type": "string",
-          "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}$"
-        },
-        {
-          "type": "string",
-          "format": "date-time"
-        },
-        {
-          "type": "string",
-          "format": "date-time-vitam"
-        }
-      ]
+      "$ref": "#/definitions/date-opt-time"
     },
     "LinkParentId": {
       "type": "string"

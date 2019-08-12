@@ -72,6 +72,8 @@ import static io.restassured.RestAssured.with;
 
 public class UpdateUnitResourceTest {
 
+    private static final String ONTOLOGY_JSON = "VitamOntology.json";
+
     @Rule
     public RunWithCustomExecutorRule runInThread =
         new RunWithCustomExecutorRule(VitamThreadPoolExecutor.getDefaultExecutor());
@@ -141,7 +143,7 @@ public class UpdateUnitResourceTest {
         RestAssured.basePath = DATA_URI;
 
         ClientMockResultHelper.setOntologies(JsonHandler.getFromInputStreamAsTypeRefence(
-            PropertiesUtils.getResourceAsStream("ontology.json"), new TypeReference<List<OntologyModel>>() {
+            PropertiesUtils.getResourceAsStream(ONTOLOGY_JSON), new TypeReference<List<OntologyModel>>() {
             }));
     }
 

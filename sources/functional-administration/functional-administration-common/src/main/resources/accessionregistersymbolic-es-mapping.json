@@ -8,7 +8,7 @@
       "format": "strict_date_optional_time"
     },
     "BinaryObjectSize": {
-      "type": "long"
+      "type": "double"
     },
     "ArchiveUnit": {
       "type": "long"
@@ -17,17 +17,13 @@
       "type": "long"
     },
     "BinaryObject": {
-      "type": "double"
+      "type": "long"
     },
     "_tenant": {
       "type": "long"
     },
     "_v": {
       "type": "long"
-    },
-    "_score": {
-      "type": "object",
-      "enabled": false
     }
   }
 }

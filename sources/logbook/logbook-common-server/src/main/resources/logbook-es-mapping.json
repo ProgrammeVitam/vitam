@@ -2,17 +2,15 @@
   "properties": {
     "events": {
       "type": "object",
-      "enabled": true,
       "properties": {
         "evDetData": {
           "type": "object",
-          "enabled": true,
           "properties": {
             "errors": {
               "type": "object",
               "enabled": false
             },
-            "evDetDataType": {
+            "LegalStatus": {
               "type": "keyword"
             },
             "LogType": {
@@ -54,7 +52,7 @@
               "type": "text"
             },
             "EvDetailReq": {
-              "type": "keyword"
+              "type": "text"
             },
             "EvDateTimeReq": {
               "type": "date",
@@ -79,30 +77,18 @@
               "type": "boolean"
             },
             "SecurisationVersion": {
-              "type": "text"
+              "type": "keyword"
             },
-            "validateUnitReport": {
-              "properties": {
-                "reports": {
-                  "enabled": false
-                },
-                "schema": {
-                  "properties": {
-                    "loadingURI": {
-                      "type": "text"
-                    },
-                    "pointer": {
-                      "type": "text"
-                    }
-                  }
-                }
-              }
+            "evIdReq": {
+              "type": "keyword"
+            },
+            "evParentId": {
+              "type": "keyword"
             }
           }
         },
         "agIdExt": {
           "type": "object",
-          "enabled": true,
           "properties": {
             "originatingAgency": {
               "type": "keyword"
@@ -119,7 +105,6 @@
           }
         },
         "rightsStatementIdentifier": {
-          "enabled": true,
           "type": "object",
           "properties": {
             "ArchivalAgreement": {
@@ -150,6 +135,12 @@
           "type": "text"
         },
         "obId": {
+          "type": "keyword"
+        },
+        "evId": {
+          "type": "keyword"
+        },
+        "evIdProc": {
           "type": "keyword"
         }
       }
@@ -191,10 +182,6 @@
     "LegalStatus": {
       "type": "keyword"
     },
-    "_score": {
-      "type": "object",
-      "enabled": false
-    },
     "obId": {
       "type": "keyword"
     },
@@ -207,6 +194,14 @@
     "_lastPersistedDate": {
       "type": "date",
       "format": "strict_date_optional_time"
+    },
+    "agIdExt": {
+      "type": "object",
+      "enabled": false
+    },
+    "evDetData": {
+      "type": "object",
+      "enabled": false
     }
   }
 }

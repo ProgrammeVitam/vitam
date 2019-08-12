@@ -165,6 +165,7 @@ import static org.mockito.Mockito.verify;
 public class DbRequestTest {
 
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(DbRequestTest.class);
+    private static final String ONTOLOGY_JSON = "VitamOntology.json";
     private static final Integer TENANT_ID_0 = 0;
     private static final Integer TENANT_ID_1 = 1;
     private static final Integer TENANT_ID_2 = 2;
@@ -821,7 +822,7 @@ public class DbRequestTest {
 
         // Base ontology with custom external types
         List<OntologyModel> ontologyModels = JsonHandler
-            .getFromFileAsTypeRefence(PropertiesUtils.getResourceFile("ontology.json"),
+            .getFromFileAsTypeRefence(PropertiesUtils.getResourceFile(ONTOLOGY_JSON),
                 new TypeReference<List<OntologyModel>>() {
                 });
         ontologyModels.addAll(Arrays.asList(
@@ -899,7 +900,7 @@ public class DbRequestTest {
 
         // Base ontology with custom external types
         List<OntologyModel> ontologyModels = JsonHandler
-            .getFromFileAsTypeRefence(PropertiesUtils.getResourceFile("ontology.json"),
+            .getFromFileAsTypeRefence(PropertiesUtils.getResourceFile(ONTOLOGY_JSON),
                 new TypeReference<List<OntologyModel>>() {
                 });
         ontologyModels.addAll(Arrays.asList(
@@ -957,7 +958,7 @@ public class DbRequestTest {
 
         // Base ontology
         List<OntologyModel> ontologyModels = JsonHandler
-            .getFromFileAsTypeRefence(PropertiesUtils.getResourceFile("ontology.json"),
+            .getFromFileAsTypeRefence(PropertiesUtils.getResourceFile(ONTOLOGY_JSON),
                 new TypeReference<List<OntologyModel>>() {
                 });
 
@@ -1014,7 +1015,7 @@ public class DbRequestTest {
 
         // Base ontology
         List<OntologyModel> ontologyModels = JsonHandler
-            .getFromFileAsTypeRefence(PropertiesUtils.getResourceFile("ontology.json"),
+            .getFromFileAsTypeRefence(PropertiesUtils.getResourceFile(ONTOLOGY_JSON),
                 new TypeReference<List<OntologyModel>>() {
                 });
 
@@ -1443,8 +1444,6 @@ public class DbRequestTest {
                 .getFromString("{\"#id\":\"" +
                     uuid +
                     "\", \"#Originating_Agency\": \"FRAN_NP_050056\",  \"FileInfo\": { \"Filename\": \"Filename0\"}, \"#qualifiers\": [{ \"qualifier\": \"BinaryMaster\"}]}");
-        System.out.println(json.get("_qualifiers"));
-        // "OriginatingAgency": "FRAN_NP_050056"
         insert.addData((ObjectNode) json);
         insert.addRoots(uuidParent.getId());
         final ObjectNode insertRequest = insert.getFinalInsert();
@@ -1609,9 +1608,6 @@ public class DbRequestTest {
         assertFalse(result.isError());
         list = result.getFinal();
         final Document og = list.get(0);
-        System.err.println(og);
-        System.err.println(og.get("_up"));
-        System.err.println(uuidUnit.getId());
         assertTrue(((List<String>) og.get("_up")).contains(uuidUnit.getId()));
     }
 
@@ -2331,7 +2327,7 @@ public class DbRequestTest {
 
         // Base ontology with custom external types
         List<OntologyModel> ontologyModels = JsonHandler
-            .getFromFileAsTypeRefence(PropertiesUtils.getResourceFile("ontology.json"),
+            .getFromFileAsTypeRefence(PropertiesUtils.getResourceFile(ONTOLOGY_JSON),
                 new TypeReference<List<OntologyModel>>() {
                 });
         ontologyModels.addAll(Arrays.asList(
@@ -2434,7 +2430,7 @@ public class DbRequestTest {
 
         // Base ontology
         List<OntologyModel> ontologyModels = JsonHandler
-            .getFromFileAsTypeRefence(PropertiesUtils.getResourceFile("ontology.json"),
+            .getFromFileAsTypeRefence(PropertiesUtils.getResourceFile(ONTOLOGY_JSON),
                 new TypeReference<List<OntologyModel>>() {
                 });
 
@@ -2506,7 +2502,7 @@ public class DbRequestTest {
 
         // Base ontology
         List<OntologyModel> ontologyModels = JsonHandler
-            .getFromFileAsTypeRefence(PropertiesUtils.getResourceFile("ontology.json"),
+            .getFromFileAsTypeRefence(PropertiesUtils.getResourceFile(ONTOLOGY_JSON),
                 new TypeReference<List<OntologyModel>>() {
                 });
 
@@ -2578,7 +2574,7 @@ public class DbRequestTest {
 
         // Base ontology
         List<OntologyModel> ontologyModels = JsonHandler
-            .getFromFileAsTypeRefence(PropertiesUtils.getResourceFile("ontology.json"),
+            .getFromFileAsTypeRefence(PropertiesUtils.getResourceFile(ONTOLOGY_JSON),
                 new TypeReference<List<OntologyModel>>() {
                 });
 
@@ -2698,7 +2694,7 @@ public class DbRequestTest {
 
         // Base ontology
         List<OntologyModel> ontologyModels = JsonHandler
-            .getFromFileAsTypeRefence(PropertiesUtils.getResourceFile("ontology.json"),
+            .getFromFileAsTypeRefence(PropertiesUtils.getResourceFile(ONTOLOGY_JSON),
                 new TypeReference<List<OntologyModel>>() {
                 });
 
@@ -2762,7 +2758,7 @@ public class DbRequestTest {
 
         // Base ontology
         List<OntologyModel> ontologyModels = JsonHandler
-            .getFromFileAsTypeRefence(PropertiesUtils.getResourceFile("ontology.json"),
+            .getFromFileAsTypeRefence(PropertiesUtils.getResourceFile(ONTOLOGY_JSON),
                 new TypeReference<List<OntologyModel>>() {
                 });
 
@@ -2822,7 +2818,7 @@ public class DbRequestTest {
 
         // Base ontology
         List<OntologyModel> ontologyModels = JsonHandler
-            .getFromFileAsTypeRefence(PropertiesUtils.getResourceFile("ontology.json"),
+            .getFromFileAsTypeRefence(PropertiesUtils.getResourceFile(ONTOLOGY_JSON),
                 new TypeReference<List<OntologyModel>>() {
                 });
 

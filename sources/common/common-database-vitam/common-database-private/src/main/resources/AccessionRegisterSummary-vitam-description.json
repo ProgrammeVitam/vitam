@@ -60,12 +60,6 @@
     "indexed": true
   },
   {
-    "path": "_score",
-    "type": "object",
-    "cardinality": "one",
-    "indexed": false
-  },
-  {
     "path": "TotalUnits.deleted",
     "type": "signed_long",
     "cardinality": "one",

@@ -32,7 +32,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.mongodb.client.FindIterable;
-import com.mongodb.client.MongoCursor;
+import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.VitamConfiguration;
@@ -46,6 +46,7 @@ import fr.gouv.vitam.common.database.parser.request.adapter.VarNameAdapter;
 import fr.gouv.vitam.common.database.parser.request.single.UpdateParserSingle;
 import fr.gouv.vitam.common.database.server.DbRequestResult;
 import fr.gouv.vitam.common.database.server.DbRequestSingle;
+import fr.gouv.vitam.common.database.server.mongodb.VitamDocument;
 import fr.gouv.vitam.common.error.VitamCode;
 import fr.gouv.vitam.common.error.VitamError;
 import fr.gouv.vitam.common.exception.BadRequestException;
@@ -62,29 +63,34 @@ import fr.gouv.vitam.common.json.BsonHelper;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.common.model.ModelConstants;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.StatusCode;
+import fr.gouv.vitam.common.model.administration.ArchiveUnitProfileModel;
 import fr.gouv.vitam.common.model.administration.OntologyModel;
 import fr.gouv.vitam.common.model.administration.OntologyOrigin;
 import fr.gouv.vitam.common.model.administration.OntologyType;
 import fr.gouv.vitam.common.parameter.ParameterHelper;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
+import fr.gouv.vitam.functional.administration.common.ArchiveUnitProfile;
 import fr.gouv.vitam.functional.administration.common.ErrorReportOntologies;
 import fr.gouv.vitam.functional.administration.common.FunctionalBackupService;
 import fr.gouv.vitam.functional.administration.common.Ontology;
 import fr.gouv.vitam.functional.administration.common.OntologyErrorCode;
 import fr.gouv.vitam.functional.administration.common.VitamErrorUtils;
-import fr.gouv.vitam.functional.administration.common.counter.VitamCounterService;
 import fr.gouv.vitam.functional.administration.common.exception.ReferentialException;
 import fr.gouv.vitam.functional.administration.common.server.FunctionalAdminCollections;
 import fr.gouv.vitam.functional.administration.common.server.MongoDbAccessAdminImpl;
 import fr.gouv.vitam.functional.administration.ontologies.api.OntologyService;
 import fr.gouv.vitam.functional.administration.ontologies.core.OntologyManager;
-import fr.gouv.vitam.functional.administration.ontologies.core.OntologyValidator;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClient;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClientFactory;
 import fr.gouv.vitam.storage.engine.common.model.DataCategory;
+import org.apache.commons.collections4.IterableUtils;
+import org.apache.commons.collections4.ListUtils;
+import org.apache.commons.collections4.MultiValuedMap;
+import org.apache.commons.collections4.multimap.ArrayListValuedHashMap;
 import org.bson.Document;
 
 import javax.ws.rs.core.Response;
@@ -100,9 +106,12 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 import static fr.gouv.vitam.common.database.builder.query.QueryHelper.eq;
+import static fr.gouv.vitam.common.database.parser.query.QueryParserHelper.in;
 import static fr.gouv.vitam.functional.administration.common.ReportConstants.ADDITIONAL_INFORMATION;
 import static fr.gouv.vitam.functional.administration.common.ReportConstants.CODE;
 import static fr.gouv.vitam.functional.administration.common.ReportConstants.ERROR;
@@ -120,12 +129,12 @@ public class OntologyServiceImpl implements OntologyService {
 
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(OntologyServiceImpl.class);
 
-    public static final Integer ADMIN_TENANT = VitamConfiguration.getAdminTenant();
+    private static final Integer ADMIN_TENANT = VitamConfiguration.getAdminTenant();
 
     private static final String IDENTIFIER = "IDENTIFIER";
     private static final String CTR_SCHEMA = "CTR_SCHEMA";
     private static final String ONTOLOGY_IMPORT_EVENT = "IMPORT_ONTOLOGY";
-    protected static final String BACKUP_ONTOLOGY_EVENT = "STP_BACKUP_ONTOLOGY";
+    static final String BACKUP_ONTOLOGY_EVENT = "STP_BACKUP_ONTOLOGY";
 
 
     private static final String ONTOLOGIES_IS_MANDATORY_PARAMETER = "ontologies parameter is mandatory";
@@ -135,15 +144,13 @@ public class OntologyServiceImpl implements OntologyService {
     private static final String DELETED_ONTOLOGIES = "deletedOntologies";
     private static final String UPDATED_ONTOLOGIES = "updatedOntologies";
     private static final String CREATED_ONTOLOGIES = "createdOntologies";
+    private static final Pattern INVALID_IDENTIFIER_PATTERN = Pattern.compile("^[_#\\s]|\\s");
 
     private final MongoDbAccessAdminImpl mongoAccess;
     private final LogbookOperationsClient logbookClient;
-    private final VitamCounterService vitamCounterService;
     private final FunctionalBackupService functionalBackupService;
     private static final String UND_TENANT = "_tenant";
     private static final String UND_ID = "_id";
-
-    private Map<Integer, List<VitamError>> errorsMap;
 
     private Map<OntologyType, List<OntologyType>> typeMap;
 
@@ -151,15 +158,11 @@ public class OntologyServiceImpl implements OntologyService {
      * Constructor
      *
      * @param mongoAccess MongoDB client
-     * @param vitamCounterService the vitam counter service
      * @param functionalBackupService the functional backup service
      */
-    public OntologyServiceImpl(MongoDbAccessAdminImpl mongoAccess,
-        VitamCounterService vitamCounterService, FunctionalBackupService functionalBackupService) {
+    public OntologyServiceImpl(MongoDbAccessAdminImpl mongoAccess, FunctionalBackupService functionalBackupService) {
         this.mongoAccess = mongoAccess;
-        this.vitamCounterService = vitamCounterService;
         logbookClient = LogbookOperationsClientFactory.getInstance().getClient();
-        errorsMap = new HashMap<>();
         initTypeMap();
         this.functionalBackupService = functionalBackupService;
     }
@@ -169,12 +172,12 @@ public class OntologyServiceImpl implements OntologyService {
      */
     private void initTypeMap() {
         typeMap = new HashMap<>();
-        typeMap.put(OntologyType.TEXT, Arrays.asList(OntologyType.KEYWORD));
-        typeMap.put(OntologyType.KEYWORD, Arrays.asList(OntologyType.TEXT));
+        typeMap.put(OntologyType.TEXT, Collections.singletonList(OntologyType.KEYWORD));
+        typeMap.put(OntologyType.KEYWORD, Collections.singletonList(OntologyType.TEXT));
         typeMap.put(OntologyType.DATE, Arrays.asList(OntologyType.KEYWORD, OntologyType.TEXT));
-        typeMap.put(OntologyType.LONG, new ArrayList<>());
-        typeMap.put(OntologyType.DOUBLE, new ArrayList<>());
-        typeMap.put(OntologyType.BOOLEAN, new ArrayList<>());
+        typeMap.put(OntologyType.LONG, Collections.emptyList());
+        typeMap.put(OntologyType.DOUBLE, Collections.emptyList());
+        typeMap.put(OntologyType.BOOLEAN, Collections.emptyList());
         typeMap.put(OntologyType.GEO_POINT, Arrays.asList(OntologyType.KEYWORD, OntologyType.TEXT));
         typeMap.put(OntologyType.ENUM, Arrays.asList(OntologyType.KEYWORD, OntologyType.TEXT));
     }
@@ -197,222 +200,74 @@ public class OntologyServiceImpl implements OntologyService {
         OntologyManager manager = new OntologyManager(logbookClient, eip, errors);
         manager.logStarted(ONTOLOGY_IMPORT_EVENT, null);
 
-        Integer tenant = ParameterHelper.getTenantParameter();
-
-        List<OntologyModel> toDelete = new ArrayList<OntologyModel>();
-        List<OntologyModel> toCreate = new ArrayList<OntologyModel>();
-        List<OntologyModel> toUpdate = new ArrayList<OntologyModel>();
-
-        final Set<String> ontologyIdentifiers = new HashSet<>();
-        ArrayNode ontologiesToCreate;
-
         try {
 
-            //Load ontology already exists in DB
+            // Access permissions checks
+            checkAdminTenant(manager, errors);
+            VitamError tenantValidationErrors = abortOnErrors(eip, errors, manager);
+            if (tenantValidationErrors != null) {
+                return tenantValidationErrors;
+            }
+
+            // Request validation checks
+            validateRequest(ontologyModelList, errors, manager);
+
+            VitamError requestValidationErrors = abortOnErrors(eip, errors, manager);
+            if (requestValidationErrors != null) {
+                return requestValidationErrors;
+            }
+
+            // Load current ontology from DB
             List<OntologyModel> actualOntologies = this.selectOntologies();
 
-            Map<String, OntologyModel> actualOntologiesMap =
+            Map<String, OntologyModel> currentOntologiesMap =
                 actualOntologies.stream().collect(Collectors.toMap(OntologyModel::getIdentifier, item -> item));
 
+            List<OntologyModel> toDelete = new ArrayList<>();
+            List<OntologyModel> toCreate = new ArrayList<>();
+            List<OntologyModel> toUpdate = new ArrayList<>();
 
-            Map<String, OntologyModel> importedOntologiesMap = new HashMap<String, OntologyModel>();
-            //Check if the ontologies must be created or updated
+            Set<String> importedOntologyIdentifiers = new HashSet<>();
+            // Check if the ontologies must be created or updated
             for (final OntologyModel ontm : ontologyModelList) {
                 // if the ontology in json file already exists in db, it will be updated, otherwise it will be created
-                if (actualOntologiesMap.containsKey(ontm.getIdentifier())) {
+                if (currentOntologiesMap.containsKey(ontm.getIdentifier())) {
                     toUpdate.add(ontm);
                 } else {
                     toCreate.add(ontm);
                 }
-                importedOntologiesMap.put(ontm.getIdentifier(), ontm);
+                importedOntologyIdentifiers.add(ontm.getIdentifier());
             }
 
             for (final OntologyModel actualTenantOntology : actualOntologies) {
                 //if the ontology in db doesn't exist in the json file anymore, it will be deleted
-                if (!importedOntologiesMap.containsKey(actualTenantOntology.getIdentifier())) {
+                if (!importedOntologyIdentifiers.contains(actualTenantOntology.getIdentifier())) {
                     toDelete.add(actualTenantOntology);
                 }
             }
 
+            // Coherence checks (if no forced update)
+            if (!forceUpdate) {
 
-            final VitamError vitamError =
-                getVitamError(VitamCode.ONTOLOGY_IMPORT_ERROR.getItem(), "Global import ontology error", StatusCode.KO)
-                    .setHttpCode(
-                        Response.Status.BAD_REQUEST.getStatusCode());
+                // Type change validation of updated ontologies
+                checkTypeChangeCompatibility(toUpdate, currentOntologiesMap, manager, errors);
 
+                // Check
+                checkUsedByArchiveUnitProfileValidator(toDelete, manager, errors);
 
-            ontologiesToCreate = JsonHandler.createArrayNode();
-
-            for (final OntologyModel ontm : ontologyModelList) {
-                boolean create = false;
-                boolean update = false;
-                //Check if the ontology ontm must be created or updated
-                if (toCreate.contains(ontm)) {
-                    create = true;
-                } else if (toUpdate.contains(ontm)) {
-                    update = true;
-                }
-
-
-
-                // VALIDATION
-                // if an ontology with the same identifier or the same sedaField is already treated in ontologyModelList, then mark the current one as duplicated
-                if (ParametersChecker.isNotEmpty(ontm.getIdentifier())) {
-                    if (ontologyIdentifiers.contains(ontm.getIdentifier().trim().toLowerCase())) {
-                        manager.addError(ontm.getIdentifier(),
-                            new ErrorReportOntologies(
-                                OntologyErrorCode.STP_IMPORT_ONTOLOGIES_IDENTIFIER_ALREADY_IN_ONTOLOGY,
-                                OntologyModel.TAG_IDENTIFIER,
-                                "Ontology identifier " + ontm.getIdentifier() + " already exists in the json file",
-                                ontm), errors);
-                        continue;
-                    } else {
-                        ontologyIdentifiers.add(ontm.getIdentifier().trim().toLowerCase());
-                        if (ontm.getSedaField() != null) {
-                            ontologyIdentifiers.add(ontm.getSedaField().trim().toLowerCase());
-                        }
-                    }
-                }
-
-                //ontologies to create validation
-                if (create) {
-
-                    if (!ADMIN_TENANT.equals(tenant)) {
-                        manager
-                            .addError(ontm.getIdentifier(),
-                                new ErrorReportOntologies(
-                                    OntologyErrorCode.STP_IMPORT_ONTOLOGIES_NOT_AUTHORIZED_FOR_TENANT,
-                                    OntologyModel.TAG_IDENTIFIER,
-                                    "Creation not authorized for tenant ", ontm), errors);
-                        continue;
-                    }
-                    //validate that the id is null at creation
-                    if (null != ontm.getId()) {
-                        OntologyValidator.RejectionCause cause =
-                            OntologyValidator.RejectionCause.rejectIdNotAllowedInCreate(ontm);
-                        manager.addError(ontm.getIdentifier(),
-                            new ErrorReportOntologies(OntologyErrorCode.STP_IMPORT_ONTOLOGIES_ID_NOT_ALLOWED_IN_CREATE,
-                                cause.getFieldName(),
-                                "Ontology identifier " + ontm.getIdentifier() + " already exists in the json file",
-                                ontm), errors);
-                        continue;
-                    }
-                    //Validation of external ontology for creation
-                    if (OntologyOrigin.EXTERNAL.equals(ontm.getOrigin())) {
-                        if (manager.validateCreateExternalOntology(ontm.getIdentifier(), ontm)) {
-                            ontm.setId(GUIDFactory.newOntologyGUID(tenant).getId());
-                        }
-                        // Validation of internal ontology for creation
-                    } else if (OntologyOrigin.INTERNAL.equals(ontm.getOrigin())) {
-                        if (manager.validateCreateInternalOntology(ontm.getIdentifier(), ontm)) {
-                            ontm.setId(GUIDFactory.newOntologyGUID(tenant).getId());
-                        }
-                    }
-
-                    if (ontm.getTenant() == null) {
-                        ontm.setTenant(ParameterHelper.getTenantParameter());
-                    }
-                    JsonNode ontologyNode = buildOntologyNode(ontm);
-
-                    ontologiesToCreate.add(ontologyNode);
-
-                    //  ontologies to update validation
-                } else if (update) {//if the ontology must be update
-
-                    if (!ADMIN_TENANT.equals(tenant)) {
-                        manager
-                            .addError(ontm.getIdentifier(),
-                                new ErrorReportOntologies(
-                                    OntologyErrorCode.STP_IMPORT_ONTOLOGIES_NOT_AUTHORIZED_FOR_TENANT,
-                                    OntologyModel.TAG_IDENTIFIER,
-                                    "Update not authorized for tenant ", ontm), errors);
-                        continue;
-                    }
-
-                    // Validation of external ontology for update
-                    if (OntologyOrigin.EXTERNAL.equals(ontm.getOrigin())) {
-                        if (manager.validateUpdateExternalOntology(ontm.getIdentifier(), ontm)) {
-                            ontm.setId(actualOntologiesMap.get(ontm.getIdentifier()).getId());
-                        }
-                        // Validation of internal ontology for update
-                    } else if (OntologyOrigin.INTERNAL.equals(ontm.getOrigin())) {
-                        if (manager.validateUpdateInternalOntology(ontm.getIdentifier(), ontm)) {
-                            ontm.setId(actualOntologiesMap.get(ontm.getIdentifier()).getId());
-                        }
-                    }
-
-
-                    //type change validation
-                    OntologyModel modelInDb = actualOntologiesMap.get(ontm.getIdentifier());
-                    OntologyType typeInDb = modelInDb.getType();
-                    OntologyType newType = ontm.getType();
-                    if (!newType.name().equalsIgnoreCase(typeInDb.toString())) {
-                        List<OntologyType> compatibleTypes = typeMap.get(typeInDb);
-                        if (!compatibleTypes.contains(newType)) {
-                            manager.addError(ontm.getIdentifier(),
-                                new ErrorReportOntologies(OntologyErrorCode.STP_IMPORT_ONTOLOGIES_UPDATE_INVALID_TYPE,
-                                    OntologyModel.TAG_TYPE,
-                                    "Change of type from " + typeInDb + " to " + newType + " is not possible", ontm),
-                                errors);
-                        }
-                    }
-
-                    if (ontm.getTenant() == null) {
-                        ontm.setTenant(ParameterHelper.getTenantParameter());
-                    }
-                }
-            }
-            //ontologies to delete validation
-            for (final OntologyModel ontm : toDelete) {
-                if (!ADMIN_TENANT.equals(tenant)) {
-                    manager
-                        .addError(ontm.getIdentifier(),
-                            new ErrorReportOntologies(OntologyErrorCode.STP_IMPORT_ONTOLOGIES_NOT_AUTHORIZED_FOR_TENANT,
-                                OntologyModel.TAG_IDENTIFIER,
-                                "Delete not authorized for tenant ", ontm), errors);
-                    continue;
-                }
-
-                if (!forceUpdate && OntologyOrigin.INTERNAL.equals(ontm.getOrigin())) {
-                    manager
-                        .addError(ontm.getIdentifier(),
-                            new ErrorReportOntologies(OntologyErrorCode.STP_IMPORT_ONTOLOGIES_DELETE_NOT_AUTHORIZED,
-                                OntologyModel.TAG_IDENTIFIER,
-                                "header \"FORCE_UPDATE\" must be true", ontm), errors);
-                    continue;
-
-                }
-                manager.validateDeleteOntology(ontm.getIdentifier(), ontm);
+                //ontologies to delete validation
+                checkInternalFieldDelete(toDelete, manager, errors);
             }
 
-
-            if (!errors.isEmpty()) {
-                String errorsDetails =
-                    errors.entrySet().stream().map(c -> c.getKey() + " : " + c.getValue().get(0).getMessage())
-                        .collect(Collectors.joining(","));
-                InputStream errorStream = generateErrorReport(errors, StatusCode.OK, eip);
-                backupReport(errorStream, eip);
-                manager.logValidationError(ONTOLOGY_IMPORT_EVENT, null, errorsDetails);
-                return vitamError;
+            VitamError coherenceErrors = abortOnErrors(eip, errors, manager);
+            if (coherenceErrors != null) {
+                return coherenceErrors;
             }
 
-            //If no errors are found, we create/update / delete the documents
-            createOntologies(ontologiesToCreate);
-            if (toDelete.size() > 0) {
-                for (OntologyModel ontology : toDelete) {
-                    deleteOntology(ontology);
-                }
-            }
-            if (toUpdate.size() > 0) {
-                for (OntologyModel ontology : toUpdate) {
-                    updateOntology(ontology);
-                }
-            }
+            // If no errors are found, we create/update / delete the documents
+            commitToDisk(currentOntologiesMap, toDelete, toCreate, toUpdate);
 
-            //Store collection
-            functionalBackupService
-                .saveCollectionAndSequence(eip, BACKUP_ONTOLOGY_EVENT, FunctionalAdminCollections.ONTOLOGY,
-                    eip.toString());
+            backupDatabaseToOffers(eip);
 
             InputStream errorStream = generateReportOK(toCreate, toDelete, toUpdate, eip);
             backupReport(errorStream, eip);
@@ -426,7 +281,7 @@ public class OntologyServiceImpl implements OntologyService {
             ErrorReportOntologies errorReport =
                 new ErrorReportOntologies(OntologyErrorCode.STP_IMPORT_ONTOLOGIES_EXCEPTION, "",
                     err, null);
-            exception.put(err, Arrays.asList(errorReport));
+            exception.put(err, Collections.singletonList(errorReport));
             InputStream errorStream = generateErrorReport(exception, StatusCode.KO, eip);
             manager.logValidationError(CTR_SCHEMA, null, err);
             backupReport(errorStream, eip);
@@ -441,7 +296,7 @@ public class OntologyServiceImpl implements OntologyService {
             ErrorReportOntologies errorReport =
                 new ErrorReportOntologies(OntologyErrorCode.STP_IMPORT_ONTOLOGIES_EXCEPTION, "",
                     err, null);
-            exception.put(err, Arrays.asList(errorReport));
+            exception.put(err, Collections.singletonList(errorReport));
             InputStream errorStream = generateErrorReport(exception, StatusCode.KO, eip);
             backupReport(errorStream, eip);
             manager.logFatalError(ONTOLOGY_IMPORT_EVENT, null, err);
@@ -455,11 +310,257 @@ public class OntologyServiceImpl implements OntologyService {
             .setHttpCode(Response.Status.CREATED.getStatusCode());
     }
 
-    /**
-     * @return a list of OntologyModel
-     * @throws ReferentialException
-     * @throws InvalidParseOperationException
-     */
+    private VitamError abortOnErrors(GUID eip, Map<String, List<ErrorReportOntologies>> errors, OntologyManager manager)
+        throws VitamException, IOException {
+        VitamError vitamError = null;
+        if (!errors.isEmpty()) {
+            String errorsDetails =
+                errors.entrySet().stream().map(c -> c.getKey() + " : " + c.getValue().get(0).getMessage())
+                    .collect(Collectors.joining(","));
+            InputStream errorStream = generateErrorReport(errors, StatusCode.OK, eip);
+            backupReport(errorStream, eip);
+            manager.logValidationError(ONTOLOGY_IMPORT_EVENT, null, errorsDetails);
+
+            vitamError =
+                getVitamError(VitamCode.ONTOLOGY_IMPORT_ERROR.getItem(), "Global import ontology error",
+                    StatusCode.KO)
+                    .setHttpCode(Response.Status.BAD_REQUEST.getStatusCode());
+        }
+        return vitamError;
+    }
+
+    private void checkAdminTenant(OntologyManager manager, Map<String, List<ErrorReportOntologies>> errors) {
+
+        if (ADMIN_TENANT.equals(ParameterHelper.getTenantParameter())) {
+            return;
+        }
+
+        manager.addError(VitamDocument.ID,
+            new ErrorReportOntologies(OntologyErrorCode.STP_IMPORT_ONTOLOGIES_NOT_AUTHORIZED_FOR_TENANT,
+                OntologyModel.TAG_IDENTIFIER,
+                "Ontology import not authorized for tenant", null), errors);
+    }
+
+    private void validateRequest(List<OntologyModel> ontologyModelList, Map<String, List<ErrorReportOntologies>> errors,
+        OntologyManager manager) {
+
+        // Check format
+        checkForbiddenFields(ontologyModelList, manager, errors);
+
+        checkMandatoryFields(ontologyModelList, manager, errors);
+
+        checkInvalidFieldFormat(ontologyModelList, manager, errors);
+
+        // Check duplicates
+        checkDuplicates(ontologyModelList, errors, manager);
+    }
+
+    private void checkForbiddenFields(List<OntologyModel> ontologyModelList, OntologyManager manager,
+        Map<String, List<ErrorReportOntologies>> errors) {
+        for (OntologyModel ontology : ontologyModelList) {
+            if (null != ontology.getId()) {
+                manager.addError(ontology.getIdentifier(),
+                    new ErrorReportOntologies(OntologyErrorCode.STP_IMPORT_ONTOLOGIES_ID_NOT_ALLOWED_IN_CREATE,
+                        ModelConstants.TAG_ID,
+                        "Forbidden field " + ModelConstants.TAG_ID,
+                        ontology), errors);
+            }
+        }
+    }
+
+    private void checkMandatoryFields(List<OntologyModel> ontologyModelList, OntologyManager manager,
+        Map<String, List<ErrorReportOntologies>> errors) {
+        for (OntologyModel ontology : ontologyModelList) {
+
+            if (ontology.getIdentifier() == null || ontology.getIdentifier().isEmpty()) {
+                manager.addError(ontology.getIdentifier(),
+                    new ErrorReportOntologies(OntologyErrorCode.STP_IMPORT_ONTOLOGIES_MISSING_INFORMATION,
+                        Ontology.IDENTIFIER,
+                        "The field " + Ontology.IDENTIFIER + " is mandatory",
+                        ontology), errors);
+            }
+
+            if (ontology.getType() == null) {
+                manager.addError(ontology.getIdentifier(),
+                    new ErrorReportOntologies(OntologyErrorCode.STP_IMPORT_ONTOLOGIES_MISSING_INFORMATION,
+                        Ontology.TYPE,
+                        "The field " + Ontology.TYPE + " is mandatory",
+                        ontology), errors);
+            }
+
+            if (ontology.getOrigin() == null) {
+                manager.addError(ontology.getIdentifier(),
+                    new ErrorReportOntologies(OntologyErrorCode.STP_IMPORT_ONTOLOGIES_MISSING_INFORMATION,
+                        Ontology.ORIGIN,
+                        "The field " + Ontology.ORIGIN + " is mandatory",
+                        ontology), errors);
+            }
+        }
+    }
+
+    private void checkInvalidFieldFormat(List<OntologyModel> ontologyModelList, OntologyManager manager,
+        Map<String, List<ErrorReportOntologies>> errors) {
+
+        for (OntologyModel ontology : ontologyModelList) {
+
+            // Identifier format (EXTERNAL)
+            if (ontology.getOrigin() == OntologyOrigin.EXTERNAL &&
+                ParametersChecker.isNotEmpty(ontology.getIdentifier())) {
+
+                final Matcher matcher = INVALID_IDENTIFIER_PATTERN.matcher(ontology.getIdentifier());
+                if (matcher.find()) {
+                    manager.addError(ontology.getIdentifier(),
+                        new ErrorReportOntologies(OntologyErrorCode.STP_IMPORT_ONTOLOGIES_INVALID_PARAMETER,
+                            OntologyModel.TAG_IDENTIFIER,
+                            "Invalid field " + OntologyModel.TAG_IDENTIFIER,
+                            ontology), errors);
+                }
+            }
+
+            // Creation date
+            String now = LocalDateUtil.getFormattedDateForMongo(LocalDateUtil.now());
+
+            if (ontology.getCreationdate() == null || ontology.getCreationdate().trim().isEmpty()) {
+                ontology.setCreationdate(now);
+            } else {
+                try {
+                    ontology.setCreationdate(LocalDateUtil.getFormattedDateForMongo(ontology.getCreationdate()));
+                } catch (Exception e) {
+                    LOGGER.error("Error ontology parse dates", e);
+
+                    manager.addError(ontology.getIdentifier(),
+                        new ErrorReportOntologies(OntologyErrorCode.STP_IMPORT_ONTOLOGIES_INVALID_PARAMETER,
+                            OntologyModel.CREATION_DATE,
+                            "Invalid field " + OntologyModel.CREATION_DATE,
+                            ontology), errors);
+                }
+            }
+
+            ontology.setLastupdate(now);
+        }
+    }
+
+    private void checkDuplicates(List<OntologyModel> ontologyModelList, Map<String, List<ErrorReportOntologies>> errors,
+        OntologyManager manager) {
+
+        // Check duplicates
+        final Set<String> ontologyIdentifiers = new HashSet<>();
+        for (final OntologyModel ontm : ontologyModelList) {
+
+            // if an ontology with the same identifier or the same sedaField is already treated in ontologyModelList, then mark the current one as duplicated
+            if (ParametersChecker.isNotEmpty(ontm.getIdentifier())) {
+                if (ontologyIdentifiers.contains(ontm.getIdentifier().trim().toLowerCase())) {
+                    manager.addError(ontm.getIdentifier(),
+                        new ErrorReportOntologies(
+                            OntologyErrorCode.STP_IMPORT_ONTOLOGIES_IDENTIFIER_ALREADY_IN_ONTOLOGY,
+                            OntologyModel.TAG_IDENTIFIER,
+                            "Ontology identifier " + ontm.getIdentifier() + " already exists in the json file",
+                            ontm), errors);
+                } else {
+                    ontologyIdentifiers.add(ontm.getIdentifier().trim().toLowerCase());
+                    if (ontm.getSedaField() != null) {
+                        ontologyIdentifiers.add(ontm.getSedaField().trim().toLowerCase());
+                    }
+                }
+            }
+        }
+    }
+
+    private void checkTypeChangeCompatibility(List<OntologyModel> toUpdate,
+        Map<String, OntologyModel> currentOntologiesMap, OntologyManager manager,
+        Map<String, List<ErrorReportOntologies>> errors) {
+        for (final OntologyModel ontm : toUpdate) {
+
+            OntologyModel modelInDb = currentOntologiesMap.get(ontm.getIdentifier());
+            OntologyType typeInDb = modelInDb.getType();
+            OntologyType newType = ontm.getType();
+            if (!newType.name().equalsIgnoreCase(typeInDb.toString())) {
+                List<OntologyType> compatibleTypes = typeMap.get(typeInDb);
+                if (!compatibleTypes.contains(newType)) {
+                    manager.addError(ontm.getIdentifier(),
+                        new ErrorReportOntologies(OntologyErrorCode.STP_IMPORT_ONTOLOGIES_UPDATE_INVALID_TYPE,
+                            OntologyModel.TAG_TYPE,
+                            "Change of type from " + typeInDb + " to " + newType + " is not possible", ontm),
+                        errors);
+                }
+            }
+        }
+    }
+
+    private void checkInternalFieldDelete(List<OntologyModel> toDelete, OntologyManager manager,
+        Map<String, List<ErrorReportOntologies>> errors) {
+        for (final OntologyModel ontm : toDelete) {
+            if (OntologyOrigin.INTERNAL.equals(ontm.getOrigin())) {
+                manager
+                    .addError(ontm.getIdentifier(),
+                        new ErrorReportOntologies(OntologyErrorCode.STP_IMPORT_ONTOLOGIES_DELETE_NOT_AUTHORIZED,
+                            OntologyModel.TAG_IDENTIFIER,
+                            "header \"" + GlobalDataRest.FORCE_UPDATE + "\" must be true", ontm), errors);
+            }
+        }
+    }
+
+    private void checkUsedByArchiveUnitProfileValidator(List<OntologyModel> toDelete, OntologyManager manager,
+        Map<String, List<ErrorReportOntologies>> errors) {
+
+        // Select archive unit profiles
+        List<ArchiveUnitProfile> archiveUnitProfiles = selectArchiveUnitProfiles();
+
+        // Map archive unit profiles by fields
+        MultiValuedMap<String, ArchiveUnitProfile> archiveUnitProfileByFieldName = new ArrayListValuedHashMap<>();
+        for (ArchiveUnitProfile archiveUnitProfileModel : archiveUnitProfiles) {
+            for (String field : archiveUnitProfileModel.getList(ArchiveUnitProfileModel.FIELDS, String.class)) {
+                archiveUnitProfileByFieldName.put(field, archiveUnitProfileModel);
+            }
+        }
+
+        // Look for referenced ontology field in an archive unit profile
+        for (OntologyModel ontologyToDelete : toDelete) {
+
+            if (ParametersChecker.isNotEmpty(ontologyToDelete.getIdentifier())) {
+
+                for (ArchiveUnitProfile archiveUnitProfile : archiveUnitProfileByFieldName
+                    .get(ontologyToDelete.getIdentifier())) {
+
+                    manager.addError(ontologyToDelete.getIdentifier(),
+                        new ErrorReportOntologies(OntologyErrorCode.STP_IMPORT_ONTOLOGIES_DELETE_USED_ONTOLOGY,
+                            OntologyModel.TAG_IDENTIFIER,
+                            "Field " + OntologyModel.TAG_IDENTIFIER + " used by ArchiveUnitProfile " +
+                                archiveUnitProfile.getIdentifier() + " of tenant " + archiveUnitProfile.getTenantId(),
+                            ontologyToDelete), errors);
+                }
+            }
+        }
+    }
+
+    private void commitToDisk(Map<String, OntologyModel> currentOntologiesMap, List<OntologyModel> toDelete,
+        List<OntologyModel> toCreate, List<OntologyModel> toUpdate)
+        throws ReferentialException, SchemaValidationException, InvalidParseOperationException,
+        InvalidCreateOperationException, BadRequestException {
+
+        deleteOntologies(toDelete);
+
+        createOntologies(toCreate);
+
+        updateOntologies(currentOntologiesMap, toUpdate);
+    }
+
+    private void backupDatabaseToOffers(GUID eip) throws VitamException {
+        //Store collection
+        functionalBackupService
+            .saveCollectionAndSequence(eip, BACKUP_ONTOLOGY_EVENT, FunctionalAdminCollections.ONTOLOGY,
+                eip.toString());
+    }
+
+    private List<ArchiveUnitProfile> selectArchiveUnitProfiles() {
+
+        // Cannot use DSL. We need to find archive unit profiles from ALL tenants
+        FindIterable<ArchiveUnitProfile> find =
+            FunctionalAdminCollections.ARCHIVE_UNIT_PROFILE.getCollection().find();
+
+        return IterableUtils.toList(find);
+    }
+
     private List<OntologyModel> selectOntologies() throws ReferentialException, InvalidParseOperationException {
 
         final Select select = new Select();
@@ -470,39 +571,36 @@ public class OntologyServiceImpl implements OntologyService {
 
     @Override
     public RequestResponseOK<OntologyModel> findOntologiesForCache(JsonNode queryDsl)
-        throws ReferentialException, InvalidParseOperationException {
+        throws InvalidParseOperationException {
         final RequestResponseOK<OntologyModel> response = new RequestResponseOK<>(queryDsl);
 
         FindIterable<Document> documents = FunctionalAdminCollections.ONTOLOGY.getCollection().find();
-        MongoCursor<Document> it = documents.iterator();
-        while (it.hasNext()) {
-            response.addResult(JsonHandler.getFromString(BsonHelper.stringify(it.next()), OntologyModel.class));
+        for (Document document : documents) {
+            response.addResult(JsonHandler.getFromString(BsonHelper.stringify(document), OntologyModel.class));
         }
 
         return response;
     }
 
-    /**
-     * Create the specified ontologies
-     *
-     * @param ontologiesToCreate
-     * @throws ReferentialException
-     * @throws SchemaValidationException
-     */
-    private void createOntologies(ArrayNode ontologiesToCreate)
-        throws ReferentialException, SchemaValidationException {
-        if (ontologiesToCreate.size() > 0) {
-            mongoAccess.insertDocuments(ontologiesToCreate, FunctionalAdminCollections.ONTOLOGY).close();
+    private void createOntologies(List<OntologyModel> toCreate)
+        throws ReferentialException, SchemaValidationException, InvalidParseOperationException {
+
+        if (toCreate.isEmpty()) {
+            return;
         }
+
+        Integer tenant = ParameterHelper.getTenantParameter();
+
+        ArrayNode ontologiesToCreate = JsonHandler.createArrayNode();
+        for (final OntologyModel ontm : toCreate) {
+            ontm.setId(GUIDFactory.newOntologyGUID(tenant).getId());
+            ontm.setTenant(tenant);
+            JsonNode ontologyNode = buildOntologyNode(ontm);
+            ontologiesToCreate.add(ontologyNode);
+        }
+        mongoAccess.insertDocuments(ontologiesToCreate, FunctionalAdminCollections.ONTOLOGY).close();
     }
 
-    /**
-     * Build a jsonNode from an OntologyModel
-     *
-     * @param ontm
-     * @return a JsonNode
-     * @throws InvalidParseOperationException
-     */
     private JsonNode buildOntologyNode(OntologyModel ontm) throws InvalidParseOperationException {
         final ObjectNode ontologyNode = (ObjectNode) JsonHandler.toJsonNode(ontm);
         JsonNode jsonNode = ontologyNode.remove(VitamFieldsHelper.id());
@@ -537,6 +635,20 @@ public class OntologyServiceImpl implements OntologyService {
         return VitamErrorUtils.getVitamError(vitamCode, error, "Ontology", statusCode);
     }
 
+    private void updateOntologies(Map<String, OntologyModel> currentOntologiesMap, List<OntologyModel> toUpdate)
+        throws InvalidCreateOperationException, ReferentialException, InvalidParseOperationException,
+        SchemaValidationException, BadRequestException {
+        if (toUpdate.isEmpty()) {
+            return;
+        }
+
+        for (OntologyModel ontology : toUpdate) {
+            ontology.setTenant(ParameterHelper.getTenantParameter());
+            ontology.setId(currentOntologiesMap.get(ontology.getIdentifier()).getId());
+
+            updateOntology(ontology);
+        }
+    }
 
     /**
      * Create QueryDsl to update the given ontology
@@ -554,7 +666,7 @@ public class OntologyServiceImpl implements OntologyService {
         // FIXME use bulk create instead like LogbookMongoDbAccessImpl.
         final UpdateParserSingle updateParser = new UpdateParserSingle(new VarNameAdapter());
         final Update updateOntologies = new Update();
-        List<SetAction> actions = new ArrayList<SetAction>();
+        List<SetAction> actions = new ArrayList<>();
         String description = ontologyModel.getDescription() == null ? "" : ontologyModel.getDescription();
         SetAction setDescription = new SetAction(OntologyModel.TAG_DESCRIPTION, description);
         actions.add(setDescription);
@@ -582,34 +694,46 @@ public class OntologyServiceImpl implements OntologyService {
         actions.add(setShortName);
 
         List<String> collections =
-            ontologyModel.getCollections() == null ? new ArrayList<String>() : ontologyModel.getCollections();
+            ontologyModel.getCollections() == null ? new ArrayList<>() : ontologyModel.getCollections();
         SetAction setCollections;
         setCollections = new SetAction(OntologyModel.TAG_COLLECTIONS, collections);
         actions.add(setCollections);
 
         updateOntologies.setQuery(eq(OntologyModel.TAG_IDENTIFIER, ontologyModel.getIdentifier()));
-        updateOntologies.addActions(actions.toArray(new SetAction[actions.size()]));
+        updateOntologies.addActions(actions.toArray(new SetAction[0]));
         updateParser.parse(updateOntologies.getFinalUpdate());
         JsonNode queryDslForUpdate = updateParser.getRequest().getFinalUpdate();
         mongoAccess.updateData(queryDslForUpdate, FunctionalAdminCollections.ONTOLOGY);
     }
 
     /**
-     * Delete an ontology by id
-     *  @param ontologyModel the ontologyModel to delete
+     * Delete ontologies
      *
+     * @param ontologyModels the ontologyModel to delete
      */
-    private void deleteOntology(OntologyModel ontologyModel) {
-        final Delete delete = new Delete();
-        DbRequestResult result = null;
+    private void deleteOntologies(List<OntologyModel> ontologyModels) {
+
+        if (ontologyModels.isEmpty()) {
+            return;
+        }
+
         DbRequestSingle dbRequest = new DbRequestSingle(FunctionalAdminCollections.ONTOLOGY.getVitamCollection(), Collections::emptyList);
         try {
-            delete.setQuery(eq(OntologyModel.TAG_IDENTIFIER, ontologyModel.getIdentifier()));
-            result = dbRequest.execute(delete);
-            result.close();
+
+            List<String> ontologyIdentifiers = ontologyModels.stream()
+                .map(OntologyModel::getIdentifier)
+                .collect(Collectors.toList());
+
+            for (List<String> ids : ListUtils.partition(ontologyIdentifiers, VitamConfiguration.getBatchSize())) {
+
+                final Delete delete = new Delete();
+                delete.setQuery(in(OntologyModel.TAG_IDENTIFIER, ids.toArray(new String[0])));
+                dbRequest.execute(delete);
+            }
+
         } catch (InvalidParseOperationException | BadRequestException | InvalidCreateOperationException |
             DatabaseException | VitamDBException | SchemaValidationException e) {
-            LOGGER.error(e);
+            throw new RuntimeException("Could not delete ontologies", e);
         }
     }
 
@@ -621,7 +745,7 @@ public class OntologyServiceImpl implements OntologyService {
      * @param eipMaster eipMaster
      * @return the error report inputStream
      */
-    public InputStream generateErrorReport(Map<String, List<ErrorReportOntologies>> errors,
+    private InputStream generateErrorReport(Map<String, List<ErrorReportOntologies>> errors,
         StatusCode status, GUID eipMaster) {
         final ObjectNode reportFinal = JsonHandler.createObjectNode();
         final ObjectNode guidmasterNode = JsonHandler.createObjectNode();
@@ -700,13 +824,8 @@ public class OntologyServiceImpl implements OntologyService {
 
     /**
      * Save the report stream
-     *
-     * @param stream
-     * @param eip
-     * @throws VitamException
-     * @throws IOException
      */
-    public void backupReport(InputStream stream, GUID eip) throws VitamException, IOException {
+    private void backupReport(InputStream stream, GUID eip) throws VitamException, IOException {
         functionalBackupService.saveFile(stream, eip, ONTOLOGIES_REPORT, DataCategory.REPORT,
             eip + ".json");
         stream.close();

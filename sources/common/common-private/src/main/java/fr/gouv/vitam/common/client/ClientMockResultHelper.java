@@ -769,12 +769,12 @@ public class ClientMockResultHelper {
     }
 
     public static void setOntologies(List<OntologyModel> ontologies) {
-        //FIXME : We really need to delete mock clients from production
+        // We really need to delete mock clients from production...
         ClientMockResultHelper.ontologies = ontologies;
     }
 
     public static void resetOntologies() {
-        //FIXME : We really need to delete mock clients from production
+        // We really need to delete mock clients from production...
         ClientMockResultHelper.ontologies = ONTOLOGIES;
     }
 }

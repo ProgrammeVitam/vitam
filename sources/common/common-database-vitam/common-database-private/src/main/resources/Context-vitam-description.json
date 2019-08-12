@@ -36,12 +36,6 @@
     "indexed": true
   },
   {
-    "path": "_score",
-    "type": "object",
-    "cardinality": "one",
-    "indexed": false
-  },
-  {
     "path": "DeactivationDate",
     "type": "datetime",
     "cardinality": "one",

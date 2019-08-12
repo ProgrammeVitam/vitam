@@ -8,7 +8,7 @@
       "type": "keyword"
     },
     "MimeType": {
-      "type": "text"
+      "type": "keyword"
     },
     "Extension": {
       "type": "keyword"
@@ -17,6 +17,10 @@
       "type": "keyword"
     },
     "CreatedDate": {
+      "type": "date",
+      "format": "strict_date_optional_time"
+    },
+    "UpdateDate": {
       "type": "date",
       "format": "strict_date_optional_time"
     },
@@ -37,10 +41,6 @@
     },
     "_v": {
       "type": "long"
-    },
-    "_score": {
-      "type": "object",
-      "enabled": false
     }
   }
 }

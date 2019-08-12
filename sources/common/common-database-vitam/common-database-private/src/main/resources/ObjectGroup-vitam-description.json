@@ -90,22 +90,21 @@
     "cardinality": "one"
   },
   {
-    "path": "Metadata.OtherCoreTechnicalMetadataAbstract",
-    "type": "object",
-    "indexed": true,
-    "visibility": "external",
-    "cardinality": "one"
-  },
-  {
     "path": "OtherMetadata",
     "type": "object",
     "indexed": true,
     "cardinality": "many"
   },
   {
-    "path": "_glpd",
-    "type": "keyword",
+    "path": "OtherMetadata.RawMetadata",
+    "type": "text",
     "indexed": true,
+    "cardinality": "many"
+  },
+  {
+    "path": "_glpd",
+    "type": "datetime",
+    "indexed": false,
     "cardinality": "one"
   },
   {
@@ -169,12 +168,6 @@
     "cardinality": "one"
   },
   {
-    "path": "_qualifiers.versions.Relationship",
-    "type": "keyword",
-    "indexed": true,
-    "cardinality": "many"
-  },
-  {
     "path": "_qualifiers.versions.Algorithm",
     "type": "keyword",
     "indexed": true,
@@ -189,6 +182,12 @@
   {
     "path": "_qualifiers.versions.DataObjectVersion",
     "type": "keyword",
+    "indexed": true,
+    "cardinality": "one"
+  },
+  {
+    "path": "_qualifiers.versions.FileInfo",
+    "type": "object",
     "indexed": true,
     "cardinality": "one"
   },
@@ -266,7 +265,7 @@
   },
   {
     "path": "_qualifiers.versions.Compressed",
-    "type": "keyword",
+    "type": "text",
     "indexed": true,
     "cardinality": "one"
   },
@@ -427,12 +426,6 @@
     "cardinality": "one"
   },
   {
-    "path": "_qualifiers.versions.OtherDimensionsAbstract",
-    "type": "object",
-    "indexed": true,
-    "cardinality": "one"
-  },
-  {
     "path": "_qualifiers.versions.Size",
     "type": "signed_long",
     "indexed": true,
@@ -481,12 +474,6 @@
     "cardinality": "one"
   },
   {
-    "path": "_score",
-    "type": "object",
-    "indexed": false,
-    "cardinality": "one"
-  },
-  {
     "path": "_sp",
     "type": "keyword",
     "indexed": true,
@@ -530,12 +517,6 @@
   },
   {
     "path": "_uds",
-    "type": "object",
-    "indexed": false,
-    "cardinality": "one"
-  },
-  {
-    "path": "_unused",
     "type": "object",
     "indexed": false,
     "cardinality": "one"

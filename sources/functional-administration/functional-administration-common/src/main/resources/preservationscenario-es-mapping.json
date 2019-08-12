@@ -24,20 +24,16 @@
     "_v": {
       "type": "long"
     },
-    "_score": {
-      "type": "object",
-      "enabled": false
-    },
     "ActionList": {
-      "type": "text"
+      "type": "keyword"
     },
     "GriffinByFormat": {
       "properties": {
         "FormatList": {
-          "type": "text"
+          "type": "keyword"
         },
         "GriffinIdentifier": {
-          "type": "text"
+          "type": "keyword"
         },
         "MaxSize": {
           "type": "long"
@@ -56,18 +52,17 @@
             "Values": {
               "properties": {
                 "Extension": {
-                  "type": "text"
+                  "type": "keyword"
                 },
                 "Args": {
-                  "type": "text"
+                  "type": "keyword"
                 },
                 "FilteredExtractedObjectGroupData": {
-                  "type": "text"
+                  "type": "keyword"
                 },
                 "FilteredExtractedUnitData": {
-                  "type": "text"
+                  "type": "keyword"
                 }
-
               }
             }
           }
@@ -77,7 +72,7 @@
     "DefaultGriffin": {
       "properties": {
         "GriffinIdentifier": {
-          "type": "text"
+          "type": "keyword"
         },
         "MaxSize": {
           "type": "long"
@@ -96,10 +91,16 @@
             "Values": {
               "properties": {
                 "Extension": {
-                  "type": "text"
+                  "type": "keyword"
                 },
                 "Args": {
-                  "type": "text"
+                  "type": "keyword"
+                },
+                "FilteredExtractedObjectGroupData": {
+                  "type": "keyword"
+                },
+                "FilteredExtractedUnitData": {
+                  "type": "keyword"
                 }
               }
             }

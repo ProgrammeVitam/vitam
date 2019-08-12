@@ -54,12 +54,6 @@
     "cardinality": "one"
   },
   {
-    "path": "_score",
-    "type": "object",
-    "indexed": false,
-    "cardinality": "one"
-  },
-  {
     "path": "_tenant",
     "type": "signed_long",
     "indexed": true,

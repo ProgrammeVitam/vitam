@@ -30,12 +30,6 @@
     "cardinality": "one"
   },
   {
-    "path": "_score",
-    "type": "object",
-    "indexed": false,
-    "cardinality": "one"
-  },
-  {
     "path": "Name",
     "type": "text",
     "indexed": true,

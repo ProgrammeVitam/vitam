@@ -31,13 +31,13 @@
   },
   {
     "path": "ExecutableName",
-    "type": "text",
+    "type": "keyword",
     "indexed": true,
     "cardinality": "one"
   },
   {
     "path": "ExecutableVersion",
-    "type": "text",
+    "type": "keyword",
     "indexed": true,
     "cardinality": "one"
   },

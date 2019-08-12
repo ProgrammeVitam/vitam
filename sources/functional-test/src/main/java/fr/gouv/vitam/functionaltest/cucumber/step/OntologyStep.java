@@ -75,18 +75,24 @@ public class OntologyStep {
         this.fileName = Paths.get(world.getBaseDirectory(), fileName);
     }
 
-
-
     @When("^j'importe l'ontologie$")
-    public void uploadOntology() throws InvalidParseOperationException, AccessExternalClientException, IOException {
+    public void importOntology() throws InvalidParseOperationException, AccessExternalClientException, IOException {
+        importOntology(false);
+    }
 
+    @When("^j'importe l'ontologie en mode forcé$")
+    public void forceImportOntology() throws InvalidParseOperationException, AccessExternalClientException, IOException {
+        importOntology(true);
+    }
+
+    private void importOntology(boolean forceUpdate) throws IOException, InvalidParseOperationException, AccessExternalClientException {
         try (InputStream inputStream = Files.newInputStream(fileName, StandardOpenOption.READ)) {
 
             VitamContext vitamContext = new VitamContext(world.getTenantId());
             vitamContext.setApplicationSessionId(world.getApplicationSessionId());
 
             RequestResponse requestResponse =
-                world.getAdminClient().importOntologies(true, vitamContext, inputStream);
+                world.getAdminClient().importOntologies(forceUpdate, vitamContext, inputStream);
             final String operationId = requestResponse.getHeaderString(GlobalDataRest.X_REQUEST_ID);
             world.setOperationId(operationId);
 

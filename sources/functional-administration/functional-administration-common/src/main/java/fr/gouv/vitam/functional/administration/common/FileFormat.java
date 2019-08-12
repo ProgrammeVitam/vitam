@@ -27,14 +27,12 @@
 
 package fr.gouv.vitam.functional.administration.common;
 
-import java.util.ArrayList;
-import java.util.List;
-
+import com.fasterxml.jackson.databind.JsonNode;
+import fr.gouv.vitam.common.database.server.mongodb.VitamDocument;
 import org.bson.Document;
 
-import com.fasterxml.jackson.databind.JsonNode;
-
-import fr.gouv.vitam.common.database.server.mongodb.VitamDocument;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * FileFormat define the file referential format for Vitam
@@ -185,7 +183,7 @@ public class FileFormat extends VitamDocument<FileFormat> {
      * @param mimeType as String
      * @return FileFormat with mimeType setted
      */
-    public FileFormat setMimeType(List<String> mimeType) {
+    public FileFormat setMimeType(String mimeType) {
         append(MIME_TYPE, mimeType);
         return this;
     }

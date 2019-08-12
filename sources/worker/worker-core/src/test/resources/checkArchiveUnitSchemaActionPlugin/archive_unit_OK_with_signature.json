@@ -99,10 +99,10 @@
     "StartDate" : "1914-01-01T09:31:00",
     "EndDate" : "1918-12-31T19:06:44",
     "Event" : [ {
-      "EventIdentifier" : "ID01",
-      "EventType" : "Envoi d'une carte postale",
-      "EventDateTime" : "1915-06-12T09:31:00",
-      "EventDetail" : "Envoi d'une carte postale depuis le front."
+      "evId" : "ID01",
+      "evType" : "Envoi d'une carte postale",
+      "evDateTime" : "1915-06-12T09:31:00",
+      "evTypeDetail" : "Envoi d'une carte postale depuis le front."
     } ],
     "Signature" :
     [

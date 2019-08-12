@@ -918,6 +918,11 @@ documentation:
     headers:
       X-Http-Method-Override:
         required: false
+      Force-Update:
+        description:  |
+          Permet de forcer l'import de l'ontologie en ignorant les contrôles de cohérence (changement de typage incompatibles avec l'ontologie actuelle, suppression de champs d'ontologie internes...).
+          Valeurs possibles : **true** et **false**.
+        required: false
 
   /{ido}:
     uriParameters:

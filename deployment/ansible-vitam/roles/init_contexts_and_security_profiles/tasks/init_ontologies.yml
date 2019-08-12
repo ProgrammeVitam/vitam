@@ -1,30 +1,44 @@
 ---
 
-- name: Check if ontologies already exist in functional-admin
-  uri:
-    method: GET
-    body: "{ \"$query\":{\"$eq\":{\"Identifier\":\"AcquiredDate\"}},\"$filter\":{},\"$projection\":{} }"
-    status_code: 200
-    url: "http://{{hostvars[groups['hosts-functional-administration'][0]]['ip_admin']}}:{{vitam.functional_administration.port_admin}}/v1/admin/ontologies"
-    body_format: "json"
-  run_once: true
-  register: ontologies_check
+- block:
 
-- name: Modify json & convert to dict...
-  set_fact:
-    ontologies_check_json: "{{ ontologies_check.json |regex_replace('\\$hits', 'hits') }}"
-  run_once: true
+    - name: Get current ontologies if any
+      uri:
+        method: GET
+        body: "{ \"$query\":{\"$eq\":{\"Identifier\":\"AcquiredDate\"}},\"$filter\":{},\"$projection\":{} }"
+        status_code: 200
+        url: "http://{{hostvars[groups['hosts-functional-administration'][0]]['ip_admin']}}:{{vitam.functional_administration.port_admin}}/v1/admin/ontologies"
+        body_format: "json"
+      register: last_ontologies_response
 
-- name: Import ontologies to functionnal-admin
-  uri:
-    method: POST
-    body: "{{ lookup('file', 'files/VitamOntology.json')}}"
-    status_code: 200,201
-    url: "http://{{hostvars[groups['hosts-functional-administration'][0]]['ip_admin']}}:{{vitam.functional_administration.port_admin}}/v1/admin/ontologies"
-    body_format: "json"
-    headers:
-      X-Tenant-Id: "{{ vitam_tenant_admin }}"
-  run_once: true
-  register: functional_adm_response
-  when: ontologies_check_json.hits.total < 1
+    - name: Prepare ontology backup
+      set_fact:
+        last_ontologies: "{{ last_ontologies_response.json |regex_replace('\\$results', 'results') }}"
+        backup_file_name: "ontology_backup_{{ lookup('pipe', 'date +%Y%m%d-%H%M') }}.json"
 
+    - name: Backup ontology
+      copy:
+        content: "{{ last_ontologies.results }}"
+        dest: "{{ vitam_defaults.folder.root_path }}/tmp/{{ vitam_struct.vitam_component }}/{{backup_file_name}}"
+        mode: 0775
+        owner: "{{ vitam_defaults.users.vitam }}"
+        group: "{{ vitam_defaults.users.group }}"
+
+    - name: Fetch backup file from {{ vitam_struct.vitam_component }}
+      fetch:
+        src: "{{ vitam_defaults.folder.root_path }}/tmp/{{ vitam_struct.vitam_component }}/{{backup_file_name}}"
+        dest: "{{ inventory_dir }}/backups/{{backup_file_name}}"
+        flat: yes
+
+    - name: Import/update ontologies to functionnal-admin
+      uri:
+        method: POST
+        body: "{{ lookup('file', 'files/VitamOntology.json')}}"
+        status_code: 200,201
+        url: "http://{{hostvars[groups['hosts-functional-administration'][0]]['ip_admin']}}:{{vitam.functional_administration.port_admin}}/v1/admin/ontologies"
+        body_format: "json"
+        headers:
+          X-Tenant-Id: "{{ vitam_tenant_admin }}"
+          Force-Update: "true"
+
+  run_once: true

@@ -64,7 +64,7 @@ public class OntologyValidator {
         .appendPattern("u-MM-dd['T'HH:mm:ss[.SSS][.SS][.S][xxx][X]][xxx][X]")
         .toFormatter();
 
-    private static float maxBytesPerCharUtf8 = StandardCharsets.UTF_8.newEncoder().maxBytesPerChar();
+    private static float MAX_UTF8_BYTES_PER_CHAR = StandardCharsets.UTF_8.newEncoder().maxBytesPerChar();
 
     private final OntologyLoader ontologyLoader;
 
@@ -245,18 +245,34 @@ public class OntologyValidator {
         }
         String textValue = fieldValueNode.asText();
 
-        if (textValue.length() * maxBytesPerCharUtf8 - 1 >= maxUtf8Length) {
-            if (textValue.getBytes(CharsetUtils.UTF8).length > maxUtf8Length) {
-                throw new IllegalArgumentException(String.format(
-                    message,
-                    fieldName));
-            }
+        if (stringExceedsMaxLuceneUtf8StorageSize(textValue, maxUtf8Length)) {
+            throw new IllegalArgumentException(String.format(message, fieldName));
         }
 
         if (fieldValueNode.isTextual()) {
             return fieldValueNode;
         }
         return new TextNode(textValue);
+    }
+
+    /**
+     * ES stores data in lucene indexes that have 32Kb max limit per token.
+     */
+    static boolean stringExceedsMaxLuceneUtf8StorageSize(String textValue, int maxUtf8Length) {
+
+        /*
+         * Optimisation : most string values are small, and will never exceed max storage length.
+         * We'll check if max string length (in chars) can never exceed max storage length in UTF-8.
+         * UTF-8 encoding is a var-length encoding. Some chars (eg. a-z0-9) will be encoded as 1 byte,
+         * some will be encoded as 2 bytes, and some as 3 bytes... A char cannot exceed
+         * StandardCharsets.UTF_8.newEncoder().maxBytesPerChar() = 3.
+         * if a string value has 100 chars, it will NEVER exceed 300 bytes on disk
+         */
+        if (textValue.length() * MAX_UTF8_BYTES_PER_CHAR < maxUtf8Length) {
+            return false;
+        }
+
+        return textValue.getBytes(CharsetUtils.UTF8).length >= maxUtf8Length;
     }
 
     private String mapDateToOntology(String field) {

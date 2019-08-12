@@ -14,6 +14,7 @@ import fr.gouv.vitam.common.model.ModelConstants;
 @JsonInclude(JsonInclude.Include.NON_EMPTY)
 public class PermissionModel {
 
+    @JsonProperty("tenant")
     private Integer tenant;
 
     @JsonProperty("AccessContracts")

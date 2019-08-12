@@ -1,0 +1,89 @@
+{
+  "$schema": "http://json-schema.org/draft-04/schema#",
+  "definitions": {
+    "date-opt-time": {
+      "description": "pattern: Date",
+      "anyOf": [
+        {
+          "type": "string",
+          "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}$"
+        },
+        {
+          "type": "string",
+          "format": "date-time"
+        },
+        {
+          "type": "string",
+          "format": "date-time-vitam"
+        }
+      ]
+    }
+  },
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "_id": {
+      "type": "string"
+    },
+    "_v": {
+      "type": "integer"
+    },
+    "Name": {
+      "type": "string"
+    },
+    "Status": {
+      "type": "string",
+      "enum": [
+        "ACTIVE",
+        "INACTIVE"
+      ]
+    },
+    "EnableControl": {
+      "type": "boolean"
+    },
+    "Identifier": {
+      "type": "string"
+    },
+    "SecurityProfile": {
+      "type": "string"
+    },
+    "Permissions": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "tenant": {
+            "type": "integer"
+          },
+          "AccessContracts": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "IngestContracts": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        },
+        "required": ["tenant"]
+      }
+    },
+    "CreationDate": {
+      "$ref": "#/definitions/date-opt-time"
+    },
+    "LastUpdate": {
+      "$ref": "#/definitions/date-opt-time"
+    },
+    "ActivationDate": {
+      "$ref": "#/definitions/date-opt-time"
+    },
+    "DeactivationDate": {
+      "$ref": "#/definitions/date-opt-time"
+    }
+  },
+  "required": ["_id", "_v", "Identifier", "SecurityProfile", "Status", "CreationDate", "LastUpdate", "Name", "Permissions", "EnableControl"]
+}

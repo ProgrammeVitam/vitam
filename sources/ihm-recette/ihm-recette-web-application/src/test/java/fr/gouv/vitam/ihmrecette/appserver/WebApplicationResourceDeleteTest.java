@@ -668,7 +668,8 @@ public class WebApplicationResourceDeleteTest {
         ObjectNode data1 = JsonHandler.createObjectNode().put("_id", guid.getId());
 
         if (!collection.equals(FunctionalAdminCollections.CONTEXT) &&
-            !collection.equals(FunctionalAdminCollections.SECURITY_PROFILE)) {
+            !collection.equals(FunctionalAdminCollections.SECURITY_PROFILE) &&
+            !collection.equals(FunctionalAdminCollections.FORMATS)) {
             data1.put("_tenant", 1);
         }
         data1.put("_v", "0");
@@ -744,7 +745,7 @@ public class WebApplicationResourceDeleteTest {
             case FORMATS:
                 data1.put("Name", "Plain Text File");
                 data1.put("PUID", "x-fmt/111");
-                data1.put("CreationDate", "2019-02-15");
+                data1.put("CreatedDate", "2019-02-15");
                 data1.put("VersionPronom", "94");
                 break;
             case ACCESSION_REGISTER_SUMMARY:

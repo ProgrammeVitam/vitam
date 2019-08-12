@@ -1,11 +1,30 @@
 {
   "$schema": "http://json-schema.org/draft-04/schema#",
-  "id": "http://example.com/root.json",
+  "definitions": {
+    "date-opt-time": {
+      "description": "pattern: Date",
+      "anyOf": [
+        {
+          "type": "string",
+          "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}$"
+        },
+        {
+          "type": "string",
+          "format": "date-time"
+        },
+        {
+          "type": "string",
+          "format": "date-time-vitam"
+        }
+      ]
+    }
+  },
   "type": "object",
   "additionalProperties": false,
   "properties": {
     "ObjectSize": {
       "type": "object",
+      "additionalProperties": false,
       "properties": {
         "ingested": {
           "type": "number"
@@ -32,6 +51,7 @@
     },
     "TotalObjects": {
       "type": "object",
+      "additionalProperties": false,
       "properties": {
         "ingested": {
           "type": "number"
@@ -46,6 +66,7 @@
     },
     "TotalObjectGroups": {
       "type": "object",
+      "additionalProperties": false,
       "properties": {
         "ingested": {
           "type": "number"
@@ -60,6 +81,7 @@
     },
     "TotalUnits": {
       "type": "object",
+      "additionalProperties": false,
       "properties": {
         "ingested": {
           "type": "number"
@@ -73,21 +95,7 @@
       }
     },
     "CreationDate": {
-      "description": "pattern: Date",
-      "anyOf": [
-        {
-          "type": "string",
-          "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}$"
-        },
-        {
-          "type": "string",
-          "format": "date-time"
-        },
-        {
-          "type": "string",
-          "format": "date-time-vitam"
-        }
-      ]
+      "$ref": "#/definitions/date-opt-time"
     }
   }
 }

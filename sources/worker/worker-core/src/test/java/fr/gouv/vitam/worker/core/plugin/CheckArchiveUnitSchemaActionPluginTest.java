@@ -71,6 +71,7 @@ import static org.mockito.Mockito.when;
 
 public class CheckArchiveUnitSchemaActionPluginTest {
 
+    private static final String ONTOLOGY_JSON = "VitamOntology.json";
     private WorkspaceClient workspaceClient;
     private WorkspaceClientFactory workspaceClientFactory;
 
@@ -179,7 +180,7 @@ public class CheckArchiveUnitSchemaActionPluginTest {
 
         when(workspaceClient.getObject(any(), eq("Ontology/ontology.json")))
             .thenReturn(Response.status(Status.OK)
-                .entity(PropertiesUtils.getResourceAsStream("ontology.json")).build());
+                .entity(PropertiesUtils.getResourceAsStream(ONTOLOGY_JSON)).build());
         action.addInIOParameters(in);
 
         File tempFolder = temporaryFolder.newFolder();

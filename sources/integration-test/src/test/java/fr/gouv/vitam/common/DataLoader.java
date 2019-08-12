@@ -86,6 +86,7 @@ import fr.gouv.vitam.processing.integration.test.ProcessingIT;
  */
 public class DataLoader {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(ProcessingIT.class);
+    private static final String ONTOLOGY_JSON = "VitamOntology.json";
 
     int tenantId = 0;
     String dataFodler = null;
@@ -134,7 +135,7 @@ public class DataLoader {
             VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newOperationLogbookGUID(tenantId));
             client.importOntologies(true, JsonHandler
                 .getFromFileAsTypeRefence(
-                    PropertiesUtils.getResourceFile("ontology.json"),
+                    PropertiesUtils.getResourceFile(ONTOLOGY_JSON),
                     new TypeReference<List<OntologyModel>>() {
                     }));
             VitamThreadUtils.getVitamSession().setTenantId(initialTenant);

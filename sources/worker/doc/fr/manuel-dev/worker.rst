@@ -696,7 +696,6 @@ Détails du data dans l'itemStatus retourné
 
 Le itemStatus est mis à jour avec les objets du manifest.xml remontées pour mettre à jour evDetData.
 Il contient dans data le json de evDetData en tant que String.
-Entre autre, le evDetData contient la valeur evDetDataType à "MASTER" qui définit une action de copie de ce evDetData dans le evDetData master de l'operation.
 Les champs récupérés (s'ils existent dans le manifest) sont "evDetailReq", "evDateTimeReq", "ArchivalAgreement", "agIfTrans", "ServiceLevel".
 
 Détail du handler : IndexObjectGroupActionHandler

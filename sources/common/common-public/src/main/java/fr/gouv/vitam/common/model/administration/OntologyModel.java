@@ -93,7 +93,7 @@ public class OntologyModel {
     /**
      * unique id
      */
-    @JsonProperty(ModelConstants.HASH + ModelConstants.TAG_ID)
+    @JsonProperty(TAG_HASH_ID)
     private String id;
 
     /**

@@ -1,1414 +1,1503 @@
 {
-  "typeunique": {
-    "dynamic_templates": [
-      {
-        "Title_": {
-          "path_match": "Title_.*",
-          "mapping": {
-            "type": "text",
-            "fielddata": true
-          }
+  "dynamic_templates": [
+    {
+      "Title_": {
+        "path_match": "Title_.*",
+        "mapping": {
+          "type": "text",
+          "fielddata": true
         }
-      },
-      {
-        "Description_": {
-          "path_match": "Description_.*",
-          "mapping": {
-            "type": "text"
-          }
+      }
+    },
+    {
+      "Description_": {
+        "path_match": "Description_.*",
+        "mapping": {
+          "type": "text"
         }
-      },
-      {
-        "object": {
-          "match_mapping_type": "object",
-          "mapping": {
-            "type": "object"
-          }
+      }
+    },
+    {
+      "object": {
+        "match_mapping_type": "object",
+        "mapping": {
+          "type": "object"
         }
-      },
-      {
-        "full_name": {
-          "path_match": "_uds.*",
-          "mapping": {
-            "type": "keyword"
-          }
+      }
+    },
+    {
+      "_uds": {
+        "path_match": "_uds.*",
+        "mapping": {
+          "type": "keyword"
         }
-      },
-      {
-        "all_string": {
-          "match": "*",
-          "mapping": {
-            "type": "text"
+      }
+    },
+    {
+      "all_string": {
+        "match": "*",
+        "mapping": {
+          "type": "text"
+        }
+      }
+    }
+  ],
+  "properties": {
+    "ArchivalAgencyArchiveUnitIdentifier": {
+      "type": "keyword"
+    },
+    "ArchiveUnitProfile": {
+      "type": "keyword"
+    },
+    "AcquiredDate": {
+      "type": "date",
+      "format": "strict_date_optional_time"
+    },
+    "CreatedDate": {
+      "type": "date",
+      "format": "strict_date_optional_time"
+    },
+    "Description": {
+      "type": "text"
+    },
+    "Description_": {
+      "type": "object"
+    },
+    "DescriptionLanguage": {
+      "type": "keyword"
+    },
+    "DescriptionLevel": {
+      "type": "keyword"
+    },
+    "EndDate": {
+      "type": "date",
+      "format": "strict_date_optional_time"
+    },
+    "Event": {
+      "properties": {
+        "evId": {
+          "type": "keyword"
+        },
+        "evTypeProc": {
+          "type": "keyword"
+        },
+        "evType": {
+          "type": "keyword"
+        },
+        "evDateTime": {
+          "type": "date",
+          "format": "strict_date_optional_time"
+        },
+        "evTypeDetail": {
+          "type": "text"
+        },
+        "outcome": {
+          "type": "keyword"
+        },
+        "outDetail": {
+          "type": "keyword"
+        },
+        "outMessg": {
+          "type": "text"
+        },
+        "evDetData": {
+          "type": "keyword"
+        }
+      }
+    },
+    "FilePlanPosition": {
+      "type": "keyword"
+    },
+    "Language": {
+      "type": "keyword"
+    },
+    "OriginatingAgency": {
+      "properties": {
+        "Identifier": {
+          "type": "keyword"
+        }
+      }
+    },
+    "OriginatingAgencyArchiveUnitIdentifier": {
+      "type": "keyword"
+    },
+    "OriginatingSystemId": {
+      "type": "keyword"
+    },
+    "ReceivedDate": {
+      "type": "date",
+      "format": "strict_date_optional_time"
+    },
+    "RegisteredDate": {
+      "type": "date",
+      "format": "strict_date_optional_time"
+    },
+    "SentDate": {
+      "type": "date",
+      "format": "strict_date_optional_time"
+    },
+    "Source": {
+      "type": "text"
+    },
+    "StartDate": {
+      "type": "date",
+      "format": "strict_date_optional_time"
+    },
+    "SubmissionAgency": {
+      "properties": {
+        "Identifier": {
+          "type": "keyword"
+        }
+      }
+    },
+    "SystemId": {
+      "type": "keyword"
+    },
+    "Tag": {
+      "type": "keyword"
+    },
+    "Title": {
+      "type": "text",
+      "fielddata": true
+    },
+    "Title_": {
+      "type": "object"
+    },
+    "TransactedDate": {
+      "type": "date",
+      "format": "strict_date_optional_time"
+    },
+    "TransferringAgencyArchiveUnitIdentifier": {
+      "type": "keyword"
+    },
+    "Type": {
+      "type": "keyword"
+    },
+    "DocumentType": {
+      "type": "text"
+    },
+    "Status": {
+      "type": "keyword"
+    },
+    "Version": {
+      "type": "keyword"
+    },
+    "CustodialHistory": {
+      "properties": {
+        "CustodialHistoryItem": {
+          "type": "text"
+        },
+        "CustodialHistoryFile": {
+          "properties": {
+            "DataObjectGroupReferenceId": {
+              "type": "keyword"
+            },
+            "DataObjectReferenceId": {
+              "type": "keyword"
+            }
           }
         }
       }
-    ],
-    "properties": {
-      "ArchivalAgencyArchiveUnitIdentifier": {
-        "type": "keyword"
-      },
-      "ArchiveUnitProfile": {
-        "type": "keyword"
-      },
-      "AcquiredDate": {
-        "type": "date",
-        "format": "strict_date_optional_time"
-      },
-      "CreatedDate": {
-        "type": "date",
-        "format": "strict_date_optional_time"
-      },
-      "Description": {
-        "type": "text"
-      },
-      "Descriptions": {
-        "type": "object"
-      },
-      "DescriptionLanguage": {
-        "type": "keyword"
-      },
-      "DescriptionLevel": {
-        "type": "keyword"
-      },
-      "EndDate": {
-        "type": "date",
-        "format": "strict_date_optional_time"
-      },
-      "Event": {
-        "properties": {
-          "EventIdentifier": {
-            "type": "keyword"
-          },
-          "EventType": {
-            "type": "text"
-          },
-          "EventDateTime": {
-            "type": "date",
-            "format": "strict_date_optional_time"
-          },
-          "EventDetail": {
-            "type": "text"
-          }
+    },
+    "Keyword": {
+      "properties": {
+        "KeywordContent": {
+          "type": "keyword"
+        },
+        "KeywordReference": {
+          "type": "keyword"
+        },
+        "KeywordType": {
+          "type": "keyword"
         }
-      },
-      "FilePlanPosition": {
-        "type": "keyword"
-      },
-      "Language": {
-        "type": "keyword"
-      },
-      "OriginatingAgency": {
-        "properties": {
-          "Identifier": {
-            "type": "keyword"
-          }
+      }
+    },
+    "Coverage": {
+      "properties": {
+        "Spatial": {
+          "type": "text"
+        },
+        "Temporal": {
+          "type": "text"
+        },
+        "Juridictional": {
+          "type": "text"
         }
-      },
-      "OriginatingAgencyArchiveUnitIdentifier": {
-        "type": "keyword"
-      },
-      "OriginatingSystemId": {
-        "type": "keyword"
-      },
-      "ReceivedDate": {
-        "type": "date",
-        "format": "strict_date_optional_time"
-      },
-      "RegisteredDate": {
-        "type": "date",
-        "format": "strict_date_optional_time"
-      },
-      "SentDate": {
-        "type": "date",
-        "format": "strict_date_optional_time"
-      },
-      "Source": {
-        "type": "text"
-      },
-      "StartDate": {
-        "type": "date",
-        "format": "strict_date_optional_time"
-      },
-      "SubmissionAgency": {
-        "properties": {
-          "Identifier": {
-            "type": "keyword"
-          }
-        }
-      },
-      "SystemId": {
-        "type": "keyword"
-      },
-      "Tag": {
-        "type": "keyword"
-      },
-      "Title": {
-        "type": "text",
-        "fielddata": true
-      },
-      "Titles": {
-        "type": "object"
-      },
-      "TransactedDate": {
-        "type": "date",
-        "format": "strict_date_optional_time"
-      },
-      "TransferringAgencyArchiveUnitIdentifier": {
-        "type": "keyword"
-      },
-      "Type": {
-        "type": "keyword"
-      },
-      "DocumentType": {
-        "type": "text"
-      },
-      "Status": {
-        "type": "keyword"
-      },
-      "Version": {
-        "type": "keyword"
-      },
-      "CustodialHistory": {
-        "properties": {
-          "CustodialHistoryItem": {
-            "type": "text"
-          },
-          "CustodialHistoryFile": {
-            "properties": {
-              "DataObjectGroupReferenceId": {
-                "type": "keyword"
-              }
+      }
+    },
+    "AuthorizedAgent": {
+      "properties": {
+        "Activity": {
+          "type": "text"
+        },
+        "BirthPlace": {
+          "properties": {
+            "Geogname": {
+              "type": "text"
+            },
+            "Address": {
+              "type": "text"
+            },
+            "PostalCode": {
+              "type": "keyword"
+            },
+            "City": {
+              "type": "text"
+            },
+            "Region": {
+              "type": "text"
+            },
+            "Country": {
+              "type": "text"
             }
           }
-        }
-      },
-      "Keyword": {
-        "properties": {
-          "KeywordContent": {
-            "type": "keyword"
-          },
-          "KeywordReference": {
-            "type": "keyword"
-          },
-          "KeywordType": {
-            "type": "keyword"
+        },
+        "BirthDate": {
+          "type": "date",
+          "format": "strict_date_optional_time"
+        },
+        "DeathPlace": {
+          "properties": {
+            "Geogname": {
+              "type": "text"
+            },
+            "Address": {
+              "type": "text"
+            },
+            "PostalCode": {
+              "type": "keyword"
+            },
+            "City": {
+              "type": "text"
+            },
+            "Region": {
+              "type": "text"
+            },
+            "Country": {
+              "type": "text"
+            }
           }
+        },
+        "GivenName": {
+          "type": "text"
+        },
+        "BirthName": {
+          "type": "text"
+        },
+        "FirstName": {
+          "type": "text"
+        },
+        "FullName": {
+          "type": "text"
+        },
+        "Function": {
+          "type": "text"
+        },
+        "Gender": {
+          "type": "text"
+        },
+        "Corpname": {
+          "type": "text"
+        },
+        "Nationality": {
+          "type": "text"
+        },
+        "DeathDate": {
+          "type": "date",
+          "format": "strict_date_optional_time"
+        },
+        "Identifier": {
+          "type": "keyword"
+        },
+        "Mandate": {
+          "type": "text"
+        },
+        "Position": {
+          "type": "text"
+        },
+        "Role": {
+          "type": "text"
         }
-      },
-      "Coverage": {
-        "properties": {
-          "Spatial": {
-            "type": "text"
-          },
-          "Temporal": {
-            "type": "text"
-          },
-          "Juridictional": {
-            "type": "text"
+      }
+    },
+    "Writer": {
+      "properties": {
+        "BirthPlace": {
+          "properties": {
+            "Geogname": {
+              "type": "text"
+            },
+            "Address": {
+              "type": "text"
+            },
+            "PostalCode": {
+              "type": "keyword"
+            },
+            "City": {
+              "type": "text"
+            },
+            "Region": {
+              "type": "text"
+            },
+            "Country": {
+              "type": "text"
+            }
           }
-        }
-      },
-      "AuthorizedAgent": {
-        "properties": {
-          "BirthPlace": {
-            "properties": {
-              "Geogname": {
-                "type": "text"
-              },
-              "Address": {
-                "type": "text"
-              },
-              "PostalCode": {
-                "type": "keyword"
-              },
-              "City": {
-                "type": "text"
-              },
-              "Region": {
-                "type": "text"
-              },
-              "Country": {
-                "type": "text"
-              }
+        },
+        "BirthDate": {
+          "type": "date",
+          "format": "strict_date_optional_time"
+        },
+        "Corpname": {
+          "type": "text"
+        },
+        "DeathPlace": {
+          "properties": {
+            "Geogname": {
+              "type": "text"
+            },
+            "Address": {
+              "type": "text"
+            },
+            "PostalCode": {
+              "type": "keyword"
+            },
+            "City": {
+              "type": "text"
+            },
+            "Region": {
+              "type": "text"
+            },
+            "Country": {
+              "type": "text"
             }
-          },
-          "BirthDate": {
-            "type": "date",
-            "format": "strict_date_optional_time"
-          },
-          "DeathPlace": {
-            "properties": {
-              "Geogname": {
-                "type": "text"
-              },
-              "Address": {
-                "type": "text"
-              },
-              "PostalCode": {
-                "type": "keyword"
-              },
-              "City": {
-                "type": "text"
-              },
-              "Region": {
-                "type": "text"
-              },
-              "Country": {
-                "type": "text"
-              }
-            }
-          },
-          "GivenName": {
-            "type": "text"
-          },
-          "BirthName": {
-            "type": "text"
-          },
-          "FirstName": {
-            "type": "text"
-          },
-          "Gender": {
-            "type": "text"
-          },
-          "Corpname": {
-            "type": "text"
-          },
-          "Nationality": {
-            "type": "text"
-          },
-          "DeathDate": {
-            "type": "date",
-            "format": "strict_date_optional_time"
-          },
-          "Identifier": {
-            "type": "keyword"
           }
+        },
+        "GivenName": {
+          "type": "text"
+        },
+        "BirthName": {
+          "type": "text"
+        },
+        "FirstName": {
+          "type": "text"
+        },
+        "FullName": {
+          "type": "text"
+        },
+        "Gender": {
+          "type": "text"
+        },
+        "Nationality": {
+          "type": "text"
+        },
+        "DeathDate": {
+          "type": "date",
+          "format": "strict_date_optional_time"
+        },
+        "Identifier": {
+          "type": "keyword"
+        },
+        "Function": {
+          "type": "text"
+        },
+        "Activity": {
+          "type": "text"
+        },
+        "Position": {
+          "type": "text"
+        },
+        "Role": {
+          "type": "text"
+        },
+        "Mandate": {
+          "type": "text"
         }
-      },
-      "Writer": {
-        "properties": {
-          "BirthPlace": {
-            "properties": {
-              "Geogname": {
-                "type": "text"
-              },
-              "Address": {
-                "type": "text"
-              },
-              "PostalCode": {
-                "type": "keyword"
-              },
-              "City": {
-                "type": "text"
-              },
-              "Region": {
-                "type": "text"
-              },
-              "Country": {
-                "type": "text"
-              }
+      }
+    },
+    "Addressee": {
+      "properties": {
+        "Activity": {
+          "type": "text"
+        },
+        "BirthPlace": {
+          "properties": {
+            "Geogname": {
+              "type": "text"
+            },
+            "Address": {
+              "type": "text"
+            },
+            "PostalCode": {
+              "type": "keyword"
+            },
+            "City": {
+              "type": "text"
+            },
+            "Region": {
+              "type": "text"
+            },
+            "Country": {
+              "type": "text"
             }
-          },
-          "BirthDate": {
-            "type": "date",
-            "format": "strict_date_optional_time"
-          },
-          "DeathPlace": {
-            "properties": {
-              "Geogname": {
-                "type": "text"
-              },
-              "Address": {
-                "type": "text"
-              },
-              "PostalCode": {
-                "type": "keyword"
-              },
-              "City": {
-                "type": "text"
-              },
-              "Region": {
-                "type": "text"
-              },
-              "Country": {
-                "type": "text"
-              }
-            }
-          },
-          "GivenName": {
-            "type": "text"
-          },
-          "BirthName": {
-            "type": "text"
-          },
-          "FirstName": {
-            "type": "text"
-          },
-          "Gender": {
-            "type": "text"
-          },
-          "Nationality": {
-            "type": "text"
-          },
-          "DeathDate": {
-            "type": "date",
-            "format": "strict_date_optional_time"
-          },
-          "Identifier": {
-            "type": "keyword"
-          },
-          "Function": {
-            "type": "keyword"
-          },
-          "Activity": {
-            "type": "keyword"
-          },
-          "Position": {
-            "type": "text"
-          },
-          "Role": {
-            "type": "text"
           }
-        }
-      },
-      "Addressee": {
-        "properties": {
-          "BirthPlace": {
-            "properties": {
-              "Geogname": {
-                "type": "text"
-              },
-              "Address": {
-                "type": "text"
-              },
-              "PostalCode": {
-                "type": "keyword"
-              },
-              "City": {
-                "type": "text"
-              },
-              "Region": {
-                "type": "text"
-              },
-              "Country": {
-                "type": "text"
-              }
+        },
+        "BirthDate": {
+          "type": "date",
+          "format": "strict_date_optional_time"
+        },
+        "DeathPlace": {
+          "properties": {
+            "Geogname": {
+              "type": "text"
+            },
+            "Address": {
+              "type": "text"
+            },
+            "PostalCode": {
+              "type": "keyword"
+            },
+            "City": {
+              "type": "text"
+            },
+            "Region": {
+              "type": "text"
+            },
+            "Country": {
+              "type": "text"
             }
-          },
-          "BirthDate": {
-            "type": "date",
-            "format": "strict_date_optional_time"
-          },
-          "DeathPlace": {
-            "properties": {
-              "Geogname": {
-                "type": "text"
-              },
-              "Address": {
-                "type": "text"
-              },
-              "PostalCode": {
-                "type": "keyword"
-              },
-              "City": {
-                "type": "text"
-              },
-              "Region": {
-                "type": "text"
-              },
-              "Country": {
-                "type": "text"
-              }
-            }
-          },
-          "GivenName": {
-            "type": "text"
-          },
-          "BirthName": {
-            "type": "text"
-          },
-          "FirstName": {
-            "type": "text"
-          },
-          "Gender": {
-            "type": "text"
-          },
-          "Corpname": {
-            "type": "text"
-          },
-          "Nationality": {
-            "type": "text"
-          },
-          "DeathDate": {
-            "type": "date",
-            "format": "strict_date_optional_time"
-          },
-          "Identifier": {
-            "type": "keyword"
           }
+        },
+        "GivenName": {
+          "type": "text"
+        },
+        "BirthName": {
+          "type": "text"
+        },
+        "FirstName": {
+          "type": "text"
+        },
+        "FullName": {
+          "type": "text"
+        },
+        "Function": {
+          "type": "text"
+        },
+        "Gender": {
+          "type": "text"
+        },
+        "Corpname": {
+          "type": "text"
+        },
+        "Nationality": {
+          "type": "text"
+        },
+        "DeathDate": {
+          "type": "date",
+          "format": "strict_date_optional_time"
+        },
+        "Identifier": {
+          "type": "keyword"
+        },
+        "Mandate": {
+          "type": "text"
+        },
+        "Position": {
+          "type": "text"
+        },
+        "Role": {
+          "type": "text"
         }
-      },
-      "Recipient": {
-        "properties": {
-          "BirthPlace": {
-            "properties": {
-              "Geogname": {
-                "type": "text"
-              },
-              "Address": {
-                "type": "text"
-              },
-              "PostalCode": {
-                "type": "keyword"
-              },
-              "City": {
-                "type": "text"
-              },
-              "Region": {
-                "type": "text"
-              },
-              "Country": {
-                "type": "text"
-              }
+      }
+    },
+    "Recipient": {
+      "properties": {
+        "Activity": {
+          "type": "text"
+        },
+        "BirthPlace": {
+          "properties": {
+            "Geogname": {
+              "type": "text"
+            },
+            "Address": {
+              "type": "text"
+            },
+            "PostalCode": {
+              "type": "keyword"
+            },
+            "City": {
+              "type": "text"
+            },
+            "Region": {
+              "type": "text"
+            },
+            "Country": {
+              "type": "text"
             }
-          },
-          "BirthDate": {
-            "type": "date",
-            "format": "strict_date_optional_time"
-          },
-          "DeathPlace": {
-            "properties": {
-              "Geogname": {
-                "type": "text"
-              },
-              "Address": {
-                "type": "text"
-              },
-              "PostalCode": {
-                "type": "keyword"
-              },
-              "City": {
-                "type": "text"
-              },
-              "Region": {
-                "type": "text"
-              },
-              "Country": {
-                "type": "text"
-              }
-            }
-          },
-          "GivenName": {
-            "type": "text"
-          },
-          "BirthName": {
-            "type": "text"
-          },
-          "FirstName": {
-            "type": "text"
-          },
-          "Gender": {
-            "type": "text"
-          },
-          "Corpname": {
-            "type": "text"
-          },
-          "Nationality": {
-            "type": "text"
-          },
-          "DeathDate": {
-            "type": "date",
-            "format": "strict_date_optional_time"
-          },
-          "Identifier": {
-            "type": "keyword"
           }
+        },
+        "BirthDate": {
+          "type": "date",
+          "format": "strict_date_optional_time"
+        },
+        "DeathPlace": {
+          "properties": {
+            "Geogname": {
+              "type": "text"
+            },
+            "Address": {
+              "type": "text"
+            },
+            "PostalCode": {
+              "type": "keyword"
+            },
+            "City": {
+              "type": "text"
+            },
+            "Region": {
+              "type": "text"
+            },
+            "Country": {
+              "type": "text"
+            }
+          }
+        },
+        "GivenName": {
+          "type": "text"
+        },
+        "BirthName": {
+          "type": "text"
+        },
+        "FirstName": {
+          "type": "text"
+        },
+        "FullName": {
+          "type": "text"
+        },
+        "Function": {
+          "type": "text"
+        },
+        "Gender": {
+          "type": "text"
+        },
+        "Corpname": {
+          "type": "text"
+        },
+        "Nationality": {
+          "type": "text"
+        },
+        "DeathDate": {
+          "type": "date",
+          "format": "strict_date_optional_time"
+        },
+        "Identifier": {
+          "type": "keyword"
+        },
+        "Mandate": {
+          "type": "text"
+        },
+        "Position": {
+          "type": "text"
+        },
+        "Role": {
+          "type": "text"
         }
-      },
-      "RelatedObjectReference": {
-        "properties": {
-          "IsVersionOf": {
-            "properties": {
-              "ArchiveUnitRefId": {
-                "type": "keyword"
-              },
-              "DataObjectReference": {
-                "properties": {
-                  "DataObjectGroupReferenceId": {
-                    "type": "keyword"
-                  },
-                  "DataObjectReferenceId": {
-                    "type": "keyword"
-                  }
+      }
+    },
+    "RelatedObjectReference": {
+      "properties": {
+        "IsVersionOf": {
+          "properties": {
+            "ArchiveUnitRefId": {
+              "type": "keyword"
+            },
+            "DataObjectReference": {
+              "properties": {
+                "DataObjectGroupReferenceId": {
+                  "type": "keyword"
+                },
+                "DataObjectReferenceId": {
+                  "type": "keyword"
                 }
-              },
-              "RepositoryArchiveUnitPID": {
-                "type": "keyword"
-              },
-              "RepositoryObjectPID": {
-                "type": "keyword"
               }
+            },
+            "RepositoryArchiveUnitPID": {
+              "type": "keyword"
+            },
+            "RepositoryObjectPID": {
+              "type": "keyword"
+            },
+            "ExternalReference": {
+              "type": "text"
             }
-          },
-          "Replaces": {
-            "properties": {
-              "ArchiveUnitRefId": {
-                "type": "keyword"
-              },
-              "DataObjectReference": {
-                "properties": {
-                  "DataObjectGroupReferenceId": {
-                    "type": "keyword"
-                  },
-                  "DataObjectReferenceId": {
-                    "type": "keyword"
-                  }
+          }
+        },
+        "Replaces": {
+          "properties": {
+            "ArchiveUnitRefId": {
+              "type": "keyword"
+            },
+            "DataObjectReference": {
+              "properties": {
+                "DataObjectGroupReferenceId": {
+                  "type": "keyword"
+                },
+                "DataObjectReferenceId": {
+                  "type": "keyword"
                 }
-              },
-              "RepositoryArchiveUnitPID": {
-                "type": "keyword"
-              },
-              "RepositoryObjectPID": {
-                "type": "keyword"
-              },
-              "ExternalReference": {
-                "type": "text"
               }
+            },
+            "RepositoryArchiveUnitPID": {
+              "type": "keyword"
+            },
+            "RepositoryObjectPID": {
+              "type": "keyword"
+            },
+            "ExternalReference": {
+              "type": "text"
             }
-          },
-          "Requires": {
-            "properties": {
-              "ArchiveUnitRefId": {
-                "type": "keyword"
-              },
-              "DataObjectReference": {
-                "properties": {
-                  "DataObjectGroupReferenceId": {
-                    "type": "keyword"
-                  },
-                  "DataObjectReferenceId": {
-                    "type": "keyword"
-                  }
+          }
+        },
+        "Requires": {
+          "properties": {
+            "ArchiveUnitRefId": {
+              "type": "keyword"
+            },
+            "DataObjectReference": {
+              "properties": {
+                "DataObjectGroupReferenceId": {
+                  "type": "keyword"
+                },
+                "DataObjectReferenceId": {
+                  "type": "keyword"
                 }
-              },
-              "RepositoryArchiveUnitPID": {
-                "type": "keyword"
-              },
-              "RepositoryObjectPID": {
-                "type": "keyword"
               }
+            },
+            "RepositoryArchiveUnitPID": {
+              "type": "keyword"
+            },
+            "RepositoryObjectPID": {
+              "type": "keyword"
+            },
+            "ExternalReference": {
+              "type": "text"
             }
-          },
-          "IsPartOf": {
-            "properties": {
-              "ArchiveUnitRefId": {
-                "type": "keyword"
-              },
-              "DataObjectReference": {
-                "properties": {
-                  "DataObjectGroupReferenceId": {
-                    "type": "keyword"
-                  },
-                  "DataObjectReferenceId": {
-                    "type": "keyword"
-                  }
+          }
+        },
+        "IsPartOf": {
+          "properties": {
+            "ArchiveUnitRefId": {
+              "type": "keyword"
+            },
+            "DataObjectReference": {
+              "properties": {
+                "DataObjectGroupReferenceId": {
+                  "type": "keyword"
+                },
+                "DataObjectReferenceId": {
+                  "type": "keyword"
                 }
-              },
-              "RepositoryArchiveUnitPID": {
-                "type": "keyword"
-              },
-              "RepositoryObjectPID": {
-                "type": "keyword"
               }
+            },
+            "RepositoryArchiveUnitPID": {
+              "type": "keyword"
+            },
+            "RepositoryObjectPID": {
+              "type": "keyword"
+            },
+            "ExternalReference": {
+              "type": "text"
             }
-          },
-          "References": {
-            "properties": {
-              "ArchiveUnitRefId": {
-                "type": "keyword"
-              },
-              "DataObjectReference": {
-                "properties": {
-                  "DataObjectGroupReferenceId": {
-                    "type": "keyword"
-                  },
-                  "DataObjectReferenceId": {
-                    "type": "keyword"
-                  }
+          }
+        },
+        "References": {
+          "properties": {
+            "ArchiveUnitRefId": {
+              "type": "keyword"
+            },
+            "DataObjectReference": {
+              "properties": {
+                "DataObjectGroupReferenceId": {
+                  "type": "keyword"
+                },
+                "DataObjectReferenceId": {
+                  "type": "keyword"
                 }
-              },
-              "RepositoryArchiveUnitPID": {
-                "type": "keyword"
-              },
-              "RepositoryObjectPID": {
-                "type": "keyword"
               }
+            },
+            "RepositoryArchiveUnitPID": {
+              "type": "keyword"
+            },
+            "RepositoryObjectPID": {
+              "type": "keyword"
+            },
+            "ExternalReference": {
+              "type": "text"
             }
           }
         }
-      },
-      "Signature": {
-        "properties": {
-          "DateSignature": {
-            "type": "date",
-            "format": "strict_date_optional_time"
-          },
-          "Signer": {
-            "properties": {
-              "BirthPlace": {
-                "properties": {
-                  "Geogname": {
-                    "type": "text"
-                  },
-                  "Address": {
-                    "type": "text"
-                  },
-                  "PostalCode": {
-                    "type": "keyword"
-                  },
-                  "City": {
-                    "type": "text"
-                  },
-                  "Region": {
-                    "type": "text"
-                  },
-                  "Country": {
-                    "type": "text"
-                  }
+      }
+    },
+    "Signature": {
+      "properties": {
+        "Signer": {
+          "properties": {
+            "BirthPlace": {
+              "properties": {
+                "Geogname": {
+                  "type": "text"
+                },
+                "Address": {
+                  "type": "text"
+                },
+                "PostalCode": {
+                  "type": "keyword"
+                },
+                "City": {
+                  "type": "text"
+                },
+                "Region": {
+                  "type": "text"
+                },
+                "Country": {
+                  "type": "text"
                 }
-              },
-              "BirthDate": {
-                "type": "date",
-                "format": "strict_date_optional_time"
-              },
-              "DeathPlace": {
-                "properties": {
-                  "Geogname": {
-                    "type": "text"
-                  },
-                  "Address": {
-                    "type": "text"
-                  },
-                  "PostalCode": {
-                    "type": "keyword"
-                  },
-                  "City": {
-                    "type": "text"
-                  },
-                  "Region": {
-                    "type": "text"
-                  },
-                  "Country": {
-                    "type": "text"
-                  }
-                }
-              },
-              "GivenName": {
-                "type": "text"
-              },
-              "BirthName": {
-                "type": "text"
-              },
-              "FirstName": {
-                "type": "text"
-              },
-              "Fullname": {
-                "type": "text"
-              },
-              "Gender": {
-                "type": "text"
-              },
-              "Corpname": {
-                "type": "text"
-              },
-              "Nationality": {
-                "type": "text"
-              },
-              "DeathDate": {
-                "type": "date",
-                "format": "strict_date_optional_time"
-              },
-              "Identifier": {
-                "type": "keyword"
-              },
-              "SigningTime": {
-                "type": "date",
-                "format": "strict_date_optional_time"
-              },
-              "Function": {
-                "type": "keyword"
-              },
-              "Activity": {
-                "type": "keyword"
-              },
-              "Position": {
-                "type": "text"
-              },
-              "Role": {
-                "type": "text"
               }
-            }
-          },
-          "Validator": {
-            "properties": {
-              "BirthPlace": {
-                "properties": {
-                  "Geogname": {
-                    "type": "text"
-                  },
-                  "Address": {
-                    "type": "text"
-                  },
-                  "PostalCode": {
-                    "type": "keyword"
-                  },
-                  "City": {
-                    "type": "text"
-                  },
-                  "Region": {
-                    "type": "text"
-                  },
-                  "Country": {
-                    "type": "text"
-                  }
+            },
+            "BirthDate": {
+              "type": "date",
+              "format": "strict_date_optional_time"
+            },
+            "DeathPlace": {
+              "properties": {
+                "Geogname": {
+                  "type": "text"
+                },
+                "Address": {
+                  "type": "text"
+                },
+                "PostalCode": {
+                  "type": "keyword"
+                },
+                "City": {
+                  "type": "text"
+                },
+                "Region": {
+                  "type": "text"
+                },
+                "Country": {
+                  "type": "text"
                 }
-              },
-              "BirthDate": {
-                "type": "date",
-                "format": "strict_date_optional_time"
-              },
-              "DeathPlace": {
-                "properties": {
-                  "Geogname": {
-                    "type": "text"
-                  },
-                  "Address": {
-                    "type": "text"
-                  },
-                  "PostalCode": {
-                    "type": "keyword"
-                  },
-                  "City": {
-                    "type": "text"
-                  },
-                  "Region": {
-                    "type": "text"
-                  },
-                  "Country": {
-                    "type": "text"
-                  }
+              }
+            },
+            "GivenName": {
+              "type": "text"
+            },
+            "BirthName": {
+              "type": "text"
+            },
+            "FirstName": {
+              "type": "text"
+            },
+            "FullName": {
+              "type": "text"
+            },
+            "Gender": {
+              "type": "text"
+            },
+            "Corpname": {
+              "type": "text"
+            },
+            "Nationality": {
+              "type": "text"
+            },
+            "DeathDate": {
+              "type": "date",
+              "format": "strict_date_optional_time"
+            },
+            "Identifier": {
+              "type": "keyword"
+            },
+            "SigningTime": {
+              "type": "date",
+              "format": "strict_date_optional_time"
+            },
+            "Function": {
+              "type": "text"
+            },
+            "Activity": {
+              "type": "text"
+            },
+            "Position": {
+              "type": "text"
+            },
+            "Role": {
+              "type": "text"
+            },
+            "Mandate": {
+              "type": "text"
+            }
+          }
+        },
+        "Validator": {
+          "properties": {
+            "BirthPlace": {
+              "properties": {
+                "Geogname": {
+                  "type": "text"
+                },
+                "Address": {
+                  "type": "text"
+                },
+                "PostalCode": {
+                  "type": "keyword"
+                },
+                "City": {
+                  "type": "text"
+                },
+                "Region": {
+                  "type": "text"
+                },
+                "Country": {
+                  "type": "text"
                 }
-              },
-              "GivenName": {
-                "type": "text"
-              },
-              "BirthName": {
-                "type": "text"
-              },
-              "FirstName": {
-                "type": "text"
-              },
-              "FullName": {
-                "type": "text"
-              },
-              "Gender": {
-                "type": "text"
-              },
-              "Corpname": {
-                "type": "text"
-              },
-              "Nationality": {
-                "type": "text"
-              },
-              "DeathDate": {
-                "type": "date",
-                "format": "strict_date_optional_time"
-              },
-              "Identifier": {
-                "type": "keyword"
-              },
-              "ValidationTime": {
-                "type": "date",
-                "format": "strict_date_optional_time"
-              },
-              "Function": {
-                "type": "keyword"
-              },
-              "Activity": {
-                "type": "keyword"
-              },
-              "Position": {
-                "type": "text"
-              },
-              "Role": {
-                "type": "text"
               }
-            }
-          },
-          "Masterdata": {
-            "properties": {
-              "Value": {
-                "type": "keyword"
+            },
+            "BirthDate": {
+              "type": "date",
+              "format": "strict_date_optional_time"
+            },
+            "DeathPlace": {
+              "properties": {
+                "Geogname": {
+                  "type": "text"
+                },
+                "Address": {
+                  "type": "text"
+                },
+                "PostalCode": {
+                  "type": "keyword"
+                },
+                "City": {
+                  "type": "text"
+                },
+                "Region": {
+                  "type": "text"
+                },
+                "Country": {
+                  "type": "text"
+                }
               }
+            },
+            "GivenName": {
+              "type": "text"
+            },
+            "BirthName": {
+              "type": "text"
+            },
+            "FirstName": {
+              "type": "text"
+            },
+            "FullName": {
+              "type": "text"
+            },
+            "Gender": {
+              "type": "text"
+            },
+            "Corpname": {
+              "type": "text"
+            },
+            "Nationality": {
+              "type": "text"
+            },
+            "DeathDate": {
+              "type": "date",
+              "format": "strict_date_optional_time"
+            },
+            "Identifier": {
+              "type": "keyword"
+            },
+            "ValidationTime": {
+              "type": "date",
+              "format": "strict_date_optional_time"
+            },
+            "Function": {
+              "type": "text"
+            },
+            "Activity": {
+              "type": "text"
+            },
+            "Position": {
+              "type": "text"
+            },
+            "Role": {
+              "type": "text"
+            },
+            "Mandate": {
+              "type": "text"
             }
-          },
-          "ReferencedObject": {
-            "properties": {
-              "SignedObjectId": {
-                "type": "keyword"
-              },
-              "SignedObjectDigest": {
-                "properties": {
-                  "Algorithm": {
-                    "type": "keyword"
-                  },
-                  "Value": {
-                    "type": "keyword"
-                  }
+          }
+        },
+        "Masterdata": {
+          "type": "object"
+        },
+        "ReferencedObject": {
+          "properties": {
+            "SignedObjectId": {
+              "type": "keyword"
+            },
+            "SignedObjectDigest": {
+              "type": "object"
+            }
+          }
+        }
+      }
+    },
+    "Gps": {
+      "properties": {
+        "GpsVersionID": {
+          "type": "keyword"
+        },
+        "GpsAltitude": {
+          "type": "long"
+        },
+        "GpsAltitudeRef": {
+          "type": "keyword"
+        },
+        "GpsLatitude": {
+          "type": "keyword"
+        },
+        "GpsLatitudeRef": {
+          "type": "keyword"
+        },
+        "GpsLongitude": {
+          "type": "keyword"
+        },
+        "GpsLongitudeRef": {
+          "type": "keyword"
+        },
+        "GpsDateStamp": {
+          "type": "keyword"
+        }
+      }
+    },
+    "_glpd": {
+      "enabled": false
+    },
+    "_graph": {
+      "enabled": false
+    },
+    "_mgt": {
+      "properties": {
+        "AccessRule": {
+          "properties": {
+            "Rules": {
+              "properties": {
+                "EndDate": {
+                  "type": "date",
+                  "format": "strict_date_optional_time"
+                },
+                "Rule": {
+                  "type": "keyword"
+                },
+                "StartDate": {
+                  "type": "date",
+                  "format": "strict_date_optional_time"
+                }
+              }
+            },
+            "Inheritance": {
+              "properties": {
+                "PreventInheritance": {
+                  "type": "boolean"
+                },
+                "PreventRulesId": {
+                  "type": "keyword"
                 }
               }
             }
           }
-        }
-      },
-      "Gps": {
-        "properties": {
-          "GpsVersionID": {
-            "type": "keyword"
-          },
-          "GpsAltitude": {
-            "type": "long"
-          },
-          "GpsAltitudeRef": {
-            "type": "keyword"
-          },
-          "GpsLatitude": {
-            "type": "keyword"
-          },
-          "GpsLatitudeRef": {
-            "type": "keyword"
-          },
-          "GpsLongitude": {
-            "type": "keyword"
-          },
-          "GpsLongitudeRef": {
-            "type": "keyword"
-          },
-          "GpsDateStamp": {
-            "type": "keyword"
+        },
+        "AppraisalRule": {
+          "properties": {
+            "Rules": {
+              "properties": {
+                "EndDate": {
+                  "type": "date",
+                  "format": "strict_date_optional_time"
+                },
+                "Rule": {
+                  "type": "keyword"
+                },
+                "StartDate": {
+                  "type": "date",
+                  "format": "strict_date_optional_time"
+                }
+              }
+            },
+            "Inheritance": {
+              "properties": {
+                "PreventInheritance": {
+                  "type": "boolean"
+                },
+                "PreventRulesId": {
+                  "type": "keyword"
+                }
+              }
+            },
+            "FinalAction": {
+              "type": "keyword"
+            }
           }
-        }
-      },
-      "_glpd": {
-        "enabled": false
-      },
-      "_graph": {
-        "enabled": false
-      },
-      "_mgt": {
-        "properties": {
-          "AccessRule": {
-            "properties": {
-              "Rules": {
-                "properties": {
-                  "EndDate": {
-                    "type": "date",
-                    "format": "strict_date_optional_time"
-                  },
-                  "Rule": {
-                    "type": "keyword"
-                  },
-                  "StartDate": {
-                    "type": "date",
-                    "format": "strict_date_optional_time"
-                  }
+        },
+        "DisseminationRule": {
+          "properties": {
+            "Rules": {
+              "properties": {
+                "EndDate": {
+                  "type": "date",
+                  "format": "strict_date_optional_time"
+                },
+                "Rule": {
+                  "type": "keyword"
+                },
+                "StartDate": {
+                  "type": "date",
+                  "format": "strict_date_optional_time"
                 }
-              },
-              "Inheritance": {
-                "properties": {
-                  "PreventInheritance": {
-                    "type": "boolean"
-                  },
-                  "PreventRulesId": {
-                    "type": "keyword"
-                  }
+              }
+            },
+            "Inheritance": {
+              "properties": {
+                "PreventInheritance": {
+                  "type": "boolean"
+                },
+                "PreventRulesId": {
+                  "type": "keyword"
                 }
               }
             }
-          },
-          "AppraisalRule": {
-            "properties": {
-              "Rules": {
-                "properties": {
-                  "EndDate": {
-                    "type": "date",
-                    "format": "strict_date_optional_time"
-                  },
-                  "Rule": {
-                    "type": "keyword"
-                  },
-                  "StartDate": {
-                    "type": "date",
-                    "format": "strict_date_optional_time"
-                  }
-                }
-              },
-              "Inheritance": {
-                "properties": {
-                  "PreventInheritance": {
-                    "type": "boolean"
-                  },
-                  "PreventRulesId": {
-                    "type": "keyword"
-                  }
-                }
-              },
-              "FinalAction": {
-                "type": "keyword"
-              }
-            }
-          },
-          "DisseminationRule": {
-            "properties": {
-              "Rules": {
-                "properties": {
-                  "EndDate": {
-                    "type": "date",
-                    "format": "strict_date_optional_time"
-                  },
-                  "Rule": {
-                    "type": "keyword"
-                  },
-                  "StartDate": {
-                    "type": "date",
-                    "format": "strict_date_optional_time"
-                  }
-                }
-              },
-              "Inheritance": {
-                "properties": {
-                  "PreventInheritance": {
-                    "type": "boolean"
-                  },
-                  "PreventRulesId": {
-                    "type": "keyword"
-                  }
-                }
-              }
-            }
-          },
-          "ReuseRule": {
-            "properties": {
-              "Rules": {
-                "properties": {
-                  "EndDate": {
-                    "type": "date",
-                    "format": "strict_date_optional_time"
-                  },
-                  "Rule": {
-                    "type": "keyword"
-                  },
-                  "StartDate": {
-                    "type": "date",
-                    "format": "strict_date_optional_time"
-                  }
-                }
-              },
-              "Inheritance": {
-                "properties": {
-                  "PreventInheritance": {
-                    "type": "boolean"
-                  },
-                  "PreventRulesId": {
-                    "type": "keyword"
-                  }
-                }
-              }
-            }
-          },
-          "StorageRule": {
-            "properties": {
-              "Rules": {
-                "properties": {
-                  "EndDate": {
-                    "type": "date",
-                    "format": "strict_date_optional_time"
-                  },
-                  "Rule": {
-                    "type": "keyword"
-                  },
-                  "StartDate": {
-                    "type": "date",
-                    "format": "strict_date_optional_time"
-                  }
-                }
-              },
-              "Inheritance": {
-                "properties": {
-                  "PreventInheritance": {
-                    "type": "boolean"
-                  },
-                  "PreventRulesId": {
-                    "type": "keyword"
-                  }
-                }
-              },
-              "FinalAction": {
-                "type": "keyword"
-              }
-            }
-          },
-          "ClassificationRule": {
-            "properties": {
-              "Rules": {
-                "properties": {
-                  "EndDate": {
-                    "type": "date",
-                    "format": "strict_date_optional_time"
-                  },
-                  "Rule": {
-                    "type": "keyword"
-                  },
-                  "StartDate": {
-                    "type": "date",
-                    "format": "strict_date_optional_time"
-                  },
-                  "ClassificationAudience": {
-                    "type": "text"
-                  }
-                }
-              },
-              "Inheritance": {
-                "properties": {
-                  "PreventInheritance": {
-                    "type": "boolean"
-                  },
-                  "PreventRulesId": {
-                    "type": "keyword"
-                  }
-                }
-              },
-              "ClassificationLevel": {
-                "type": "keyword"
-              },
-              "ClassificationOwner": {
-                "type": "text"
-              },
-              "ClassificationAudience": {
-                "type": "keyword"
-              },
-              "ClassificationReassessingDate": {
-                "type": "date",
-                "format": "strict_date_optional_time"
-              },
-              "NeedReassessingAuthorization": {
-                "type": "boolean"
-              }
-            }
-          },
-          "NeedAuthorization": {
-            "type": "boolean"
           }
-        }
-      },
-      "Transmitter": {
-        "properties": {
-          "BirthPlace": {
-            "properties": {
-              "Geogname": {
-                "type": "text"
-              },
-              "Address": {
-                "type": "text"
-              },
-              "PostalCode": {
-                "type": "keyword"
-              },
-              "City": {
-                "type": "text"
-              },
-              "Region": {
-                "type": "text"
-              },
-              "Country": {
-                "type": "text"
+        },
+        "ReuseRule": {
+          "properties": {
+            "Rules": {
+              "properties": {
+                "EndDate": {
+                  "type": "date",
+                  "format": "strict_date_optional_time"
+                },
+                "Rule": {
+                  "type": "keyword"
+                },
+                "StartDate": {
+                  "type": "date",
+                  "format": "strict_date_optional_time"
+                }
+              }
+            },
+            "Inheritance": {
+              "properties": {
+                "PreventInheritance": {
+                  "type": "boolean"
+                },
+                "PreventRulesId": {
+                  "type": "keyword"
+                }
               }
             }
-          },
-          "BirthDate": {
-            "type": "date",
-            "format": "strict_date_optional_time"
-          },
-          "DeathPlace": {
-            "properties": {
-              "Geogname": {
-                "type": "text"
-              },
-              "Address": {
-                "type": "text"
-              },
-              "PostalCode": {
-                "type": "keyword"
-              },
-              "City": {
-                "type": "text"
-              },
-              "Region": {
-                "type": "text"
-              },
-              "Country": {
-                "type": "text"
-              }
-            }
-          },
-          "GivenName": {
-            "type": "text"
-          },
-          "BirthName": {
-            "type": "text"
-          },
-          "FirstName": {
-            "type": "text"
-          },
-          "Gender": {
-            "type": "text"
-          },
-          "Nationality": {
-            "type": "text"
-          },
-          "DeathDate": {
-            "type": "date",
-            "format": "strict_date_optional_time"
-          },
-          "Identifier": {
-            "type": "keyword"
-          },
-          "Function": {
-            "type": "keyword"
-          },
-          "Activity": {
-            "type": "keyword"
-          },
-          "Position": {
-            "type": "text"
-          },
-          "Role": {
-            "type": "text"
           }
-        }
-      },
-      "Sender": {
-        "properties": {
-          "BirthPlace": {
-            "properties": {
-              "Geogname": {
-                "type": "text"
-              },
-              "Address": {
-                "type": "text"
-              },
-              "PostalCode": {
-                "type": "keyword"
-              },
-              "City": {
-                "type": "text"
-              },
-              "Region": {
-                "type": "text"
-              },
-              "Country": {
-                "type": "text"
+        },
+        "StorageRule": {
+          "properties": {
+            "Rules": {
+              "properties": {
+                "EndDate": {
+                  "type": "date",
+                  "format": "strict_date_optional_time"
+                },
+                "Rule": {
+                  "type": "keyword"
+                },
+                "StartDate": {
+                  "type": "date",
+                  "format": "strict_date_optional_time"
+                }
               }
-            }
-          },
-          "BirthDate": {
-            "type": "date",
-            "format": "strict_date_optional_time"
-          },
-          "DeathPlace": {
-            "properties": {
-              "Geogname": {
-                "type": "text"
-              },
-              "Address": {
-                "type": "text"
-              },
-              "PostalCode": {
-                "type": "keyword"
-              },
-              "City": {
-                "type": "text"
-              },
-              "Region": {
-                "type": "text"
-              },
-              "Country": {
-                "type": "text"
+            },
+            "Inheritance": {
+              "properties": {
+                "PreventInheritance": {
+                  "type": "boolean"
+                },
+                "PreventRulesId": {
+                  "type": "keyword"
+                }
               }
+            },
+            "FinalAction": {
+              "type": "keyword"
             }
-          },
-          "GivenName": {
-            "type": "text"
-          },
-          "BirthName": {
-            "type": "text"
-          },
-          "FirstName": {
-            "type": "text"
-          },
-          "Gender": {
-            "type": "text"
-          },
-          "Nationality": {
-            "type": "text"
-          },
-          "DeathDate": {
-            "type": "date",
-            "format": "strict_date_optional_time"
-          },
-          "Identifier": {
-            "type": "keyword"
-          },
-          "Function": {
-            "type": "keyword"
-          },
-          "Activity": {
-            "type": "keyword"
-          },
-          "Position": {
-            "type": "text"
-          },
-          "Role": {
-            "type": "text"
-          },
-          "Mandate": {
-            "type": "text"
           }
-        }
-      },
-      "_min": {
-        "type": "long"
-      },
-      "_max": {
-        "type": "long"
-      },
-      "_nbc": {
-        "type": "long"
-      },
-      "_og": {
-        "type": "keyword"
-      },
-      "_ops": {
-        "type": "keyword"
-      },
-      "_opi": {
-        "type": "keyword"
-      },
-      "_tenant": {
-        "type": "long"
-      },
-      "_sp": {
-        "type": "keyword"
-      },
-      "_sps": {
-        "type": "keyword"
-      },
-      "_uds": {
-        "type": "object"
-      },
-      "_unused": {
-        "type": "object",
-        "enabled": false
-      },
-      "_score": {
-        "type": "object",
-        "enabled": false
-      },
-      "_up": {
-        "type": "keyword"
-      },
-      "_us": {
-        "type": "keyword"
-      },
-      "_us_sp": {
-        "type": "object",
-        "enabled": false
-      },
-      "_v": {
-        "type": "long"
-      },
-      "_storage": {
-        "properties": {
-          "_nbc": {
-            "type": "long"
-          },
-          "offerIds": {
-            "type": "keyword"
-          },
-          "strategyId": {
-            "type": "keyword"
+        },
+        "ClassificationRule": {
+          "properties": {
+            "Rules": {
+              "properties": {
+                "EndDate": {
+                  "type": "date",
+                  "format": "strict_date_optional_time"
+                },
+                "Rule": {
+                  "type": "keyword"
+                },
+                "StartDate": {
+                  "type": "date",
+                  "format": "strict_date_optional_time"
+                }
+              }
+            },
+            "Inheritance": {
+              "properties": {
+                "PreventInheritance": {
+                  "type": "boolean"
+                },
+                "PreventRulesId": {
+                  "type": "keyword"
+                }
+              }
+            },
+            "ClassificationLevel": {
+              "type": "keyword"
+            },
+            "ClassificationOwner": {
+              "type": "text"
+            },
+            "ClassificationAudience": {
+              "type": "text"
+            },
+            "ClassificationReassessingDate": {
+              "type": "date",
+              "format": "strict_date_optional_time"
+            },
+            "NeedReassessingAuthorization": {
+              "type": "boolean"
+            }
           }
+        },
+        "NeedAuthorization": {
+          "type": "boolean"
         }
-      },
-      "_unitType": {
-        "type": "keyword"
-      },
-      "_history": {
-        "properties": {
-          "ud": {
-            "type": "date",
-            "format": "strict_date_optional_time"
-          },
-          "data": {
-            "properties": {
-              "_v": {
-                "type": "long"
-              },
-              "_mgt": {
-                "properties": {
-                  "ClassificationRule": {
-                    "properties": {
-                      "Rules": {
-                        "properties": {
-                          "EndDate": {
-                            "type": "date",
-                            "format": "strict_date_optional_time"
-                          },
-                          "Rule": {
-                            "type": "keyword"
-                          },
-                          "StartDate": {
-                            "type": "date",
-                            "format": "strict_date_optional_time"
-                          }
+      }
+    },
+    "Transmitter": {
+      "properties": {
+        "BirthPlace": {
+          "properties": {
+            "Geogname": {
+              "type": "text"
+            },
+            "Address": {
+              "type": "text"
+            },
+            "PostalCode": {
+              "type": "keyword"
+            },
+            "City": {
+              "type": "text"
+            },
+            "Region": {
+              "type": "text"
+            },
+            "Country": {
+              "type": "text"
+            }
+          }
+        },
+        "BirthDate": {
+          "type": "date",
+          "format": "strict_date_optional_time"
+        },
+        "Corpname": {
+          "type": "text"
+        },
+        "DeathPlace": {
+          "properties": {
+            "Geogname": {
+              "type": "text"
+            },
+            "Address": {
+              "type": "text"
+            },
+            "PostalCode": {
+              "type": "keyword"
+            },
+            "City": {
+              "type": "text"
+            },
+            "Region": {
+              "type": "text"
+            },
+            "Country": {
+              "type": "text"
+            }
+          }
+        },
+        "GivenName": {
+          "type": "text"
+        },
+        "BirthName": {
+          "type": "text"
+        },
+        "FirstName": {
+          "type": "text"
+        },
+        "FullName": {
+          "type": "text"
+        },
+        "Gender": {
+          "type": "text"
+        },
+        "Nationality": {
+          "type": "text"
+        },
+        "DeathDate": {
+          "type": "date",
+          "format": "strict_date_optional_time"
+        },
+        "Identifier": {
+          "type": "keyword"
+        },
+        "Function": {
+          "type": "text"
+        },
+        "Activity": {
+          "type": "text"
+        },
+        "Position": {
+          "type": "text"
+        },
+        "Role": {
+          "type": "text"
+        },
+        "Mandate": {
+          "type": "text"
+        }
+      }
+    },
+    "Sender": {
+      "properties": {
+        "BirthPlace": {
+          "properties": {
+            "Geogname": {
+              "type": "text"
+            },
+            "Address": {
+              "type": "text"
+            },
+            "PostalCode": {
+              "type": "keyword"
+            },
+            "City": {
+              "type": "text"
+            },
+            "Region": {
+              "type": "text"
+            },
+            "Country": {
+              "type": "text"
+            }
+          }
+        },
+        "BirthDate": {
+          "type": "date",
+          "format": "strict_date_optional_time"
+        },
+        "Corpname": {
+          "type": "text"
+        },
+        "DeathPlace": {
+          "properties": {
+            "Geogname": {
+              "type": "text"
+            },
+            "Address": {
+              "type": "text"
+            },
+            "PostalCode": {
+              "type": "keyword"
+            },
+            "City": {
+              "type": "text"
+            },
+            "Region": {
+              "type": "text"
+            },
+            "Country": {
+              "type": "text"
+            }
+          }
+        },
+        "GivenName": {
+          "type": "text"
+        },
+        "BirthName": {
+          "type": "text"
+        },
+        "FirstName": {
+          "type": "text"
+        },
+        "FullName": {
+          "type": "text"
+        },
+        "Gender": {
+          "type": "text"
+        },
+        "Nationality": {
+          "type": "text"
+        },
+        "DeathDate": {
+          "type": "date",
+          "format": "strict_date_optional_time"
+        },
+        "Identifier": {
+          "type": "keyword"
+        },
+        "Function": {
+          "type": "text"
+        },
+        "Activity": {
+          "type": "text"
+        },
+        "Position": {
+          "type": "text"
+        },
+        "Role": {
+          "type": "text"
+        },
+        "Mandate": {
+          "type": "text"
+        }
+      }
+    },
+    "_min": {
+      "type": "long"
+    },
+    "_max": {
+      "type": "long"
+    },
+    "_nbc": {
+      "type": "long"
+    },
+    "_og": {
+      "type": "keyword"
+    },
+    "_ops": {
+      "type": "keyword"
+    },
+    "_opi": {
+      "type": "keyword"
+    },
+    "_tenant": {
+      "type": "long"
+    },
+    "_sp": {
+      "type": "keyword"
+    },
+    "_sps": {
+      "type": "keyword"
+    },
+    "_uds": {
+      "type": "object"
+    },
+    "_up": {
+      "type": "keyword"
+    },
+    "_us": {
+      "type": "keyword"
+    },
+    "_us_sp": {
+      "type": "object",
+      "enabled": false
+    },
+    "_v": {
+      "type": "long"
+    },
+    "_av": {
+      "type": "long"
+    },
+    "_storage": {
+      "properties": {
+        "_nbc": {
+          "type": "long"
+        },
+        "offerIds": {
+          "type": "keyword"
+        },
+        "strategyId": {
+          "type": "keyword"
+        }
+      }
+    },
+    "_unitType": {
+      "type": "keyword"
+    },
+    "_history": {
+      "properties": {
+        "ud": {
+          "type": "date",
+          "format": "strict_date_optional_time"
+        },
+        "data": {
+          "properties": {
+            "_v": {
+              "type": "long"
+            },
+            "_mgt": {
+              "properties": {
+                "ClassificationRule": {
+                  "properties": {
+                    "Rules": {
+                      "properties": {
+                        "EndDate": {
+                          "type": "date",
+                          "format": "strict_date_optional_time"
+                        },
+                        "Rule": {
+                          "type": "keyword"
+                        },
+                        "StartDate": {
+                          "type": "date",
+                          "format": "strict_date_optional_time"
                         }
-                      },
-                      "Inheritance": {
-                        "properties": {
-                          "PreventInheritance": {
-                            "type": "boolean"
-                          },
-                          "PreventRulesId": {
-                            "type": "keyword"
-                          }
-                        }
-                      },
-                      "ClassificationLevel": {
-                        "type": "keyword"
-                      },
-                      "ClassificationOwner": {
-                        "type": "text"
-                      },
-                      "ClassificationAudience": {
-                        "type": "keyword"
-                      },
-                      "ClassificationReassessingDate": {
-                        "type": "date",
-                        "format": "strict_date_optional_time"
-                      },
-                      "NeedReassessingAuthorization": {
-                        "type": "boolean"
                       }
+                    },
+                    "Inheritance": {
+                      "properties": {
+                        "PreventInheritance": {
+                          "type": "boolean"
+                        },
+                        "PreventRulesId": {
+                          "type": "keyword"
+                        }
+                      }
+                    },
+                    "ClassificationLevel": {
+                      "type": "keyword"
+                    },
+                    "ClassificationOwner": {
+                      "type": "text"
+                    },
+                    "ClassificationAudience": {
+                      "type": "text"
+                    },
+                    "ClassificationReassessingDate": {
+                      "type": "date",
+                      "format": "strict_date_optional_time"
+                    },
+                    "NeedReassessingAuthorization": {
+                      "type": "boolean"
                     }
                   }
                 }
@@ -1416,128 +1505,135 @@
             }
           }
         }
-      },
-      "_elimination": {
-        "properties": {
-          "OperationId": {
-            "type": "keyword"
-          },
-          "GlobalStatus": {
-            "type": "keyword"
-          },
-          "DestroyableOriginatingAgencies": {
-            "type": "keyword"
-          },
-          "NonDestroyableOriginatingAgencies": {
-            "type": "keyword"
-          },
-          "ExtendedInfo": {
-            "properties": {
-              "ExtendedInfoType": {
-                "type": "keyword"
-              },
-              "ExtendedInfoDetails": {
-                "properties": {
-                  "ParentUnitId": {
-                    "type": "keyword"
-                  },
-                  "DestroyableOriginatingAgencies": {
-                    "type": "keyword"
-                  },
-                  "NonDestroyableOriginatingAgencies": {
-                    "type": "keyword"
-                  }
+      }
+    },
+    "_elimination": {
+      "properties": {
+        "OperationId": {
+          "type": "keyword"
+        },
+        "GlobalStatus": {
+          "type": "keyword"
+        },
+        "DestroyableOriginatingAgencies": {
+          "type": "keyword"
+        },
+        "NonDestroyableOriginatingAgencies": {
+          "type": "keyword"
+        },
+        "ExtendedInfo": {
+          "properties": {
+            "ExtendedInfoType": {
+              "type": "keyword"
+            },
+            "ExtendedInfoDetails": {
+              "properties": {
+                "ParentUnitId": {
+                  "type": "keyword"
+                },
+                "DestroyableOriginatingAgencies": {
+                  "type": "keyword"
+                },
+                "NonDestroyableOriginatingAgencies": {
+                  "type": "keyword"
+                },
+                "OriginatingAgenciesInConflict": {
+                  "type": "keyword"
                 }
               }
             }
           }
         }
-      },
-      "_computedInheritedRules": {
-        "properties": {
-          "NeedAuthorization": {
-            "type": "boolean"
-          },
-          "indexationDate": {
-            "type": "date",
-            "format": "strict_date_optional_time"
-          },
-          "AccessRule": {
-            "properties": {
-              "EndDates": {
-                "type": "object"
-              },
-              "MaxEndDate": {
-                "type": "date",
-                "format": "strict_date_optional_time"
-              }
+      }
+    },
+    "_validComputedInheritedRules": {
+      "type": "boolean"
+    },
+    "_computedInheritedRules": {
+      "properties": {
+        "NeedAuthorization": {
+          "type": "boolean"
+        },
+        "indexationDate": {
+          "type": "date",
+          "format": "strict_date_optional_time"
+        },
+        "inheritedRulesAPIOutput": {
+          "enabled": false
+        },
+        "AccessRule": {
+          "properties": {
+            "EndDates": {
+              "type": "object"
+            },
+            "MaxEndDate": {
+              "type": "date",
+              "format": "strict_date_optional_time"
             }
-          },
-          "AppraisalRule": {
-            "properties": {
-              "EndDates": {
-                "type": "object"
-              },
-              "MaxEndDate": {
-                "type": "date",
-                "format": "strict_date_optional_time"
-              }
+          }
+        },
+        "AppraisalRule": {
+          "properties": {
+            "EndDates": {
+              "type": "object"
+            },
+            "MaxEndDate": {
+              "type": "date",
+              "format": "strict_date_optional_time"
             }
-          },
-          "DisseminationRule": {
-            "properties": {
-              "EndDates": {
-                "type": "object"
-              },
-              "MaxEndDate": {
-                "type": "date",
-                "format": "strict_date_optional_time"
-              }
+          }
+        },
+        "DisseminationRule": {
+          "properties": {
+            "EndDates": {
+              "type": "object"
+            },
+            "MaxEndDate": {
+              "type": "date",
+              "format": "strict_date_optional_time"
             }
-          },
-          "ReuseRule": {
-            "properties": {
-              "EndDates": {
-                "type": "object"
-              },
-              "MaxEndDate": {
-                "type": "date",
-                "format": "strict_date_optional_time"
-              }
+          }
+        },
+        "ReuseRule": {
+          "properties": {
+            "EndDates": {
+              "type": "object"
+            },
+            "MaxEndDate": {
+              "type": "date",
+              "format": "strict_date_optional_time"
             }
-          },
-          "StorageRule": {
-            "properties": {
-              "EndDates": {
-                "type": "object"
-              },
-              "MaxEndDate": {
-                "type": "date",
-                "format": "strict_date_optional_time"
-              }
+          }
+        },
+        "StorageRule": {
+          "properties": {
+            "EndDates": {
+              "type": "object"
+            },
+            "MaxEndDate": {
+              "type": "date",
+              "format": "strict_date_optional_time"
             }
-          },
-          "ClassificationRule": {
-            "properties": {
-              "EndDates": {
-                "type": "object"
-              },
-              "MaxEndDate": {
-                "type": "date",
-                "format": "strict_date_optional_time"
-              }
+          }
+        },
+        "ClassificationRule": {
+          "properties": {
+            "EndDates": {
+              "type": "object"
+            },
+            "MaxEndDate": {
+              "type": "date",
+              "format": "strict_date_optional_time"
             }
           }
         }
-      },
-      "_sedaVersion": {
-        "type": "keyword"
-      },
-      "_implementationVersion": {
-        "type": "keyword"
       }
+    },
+    "_sedaVersion": {
+      "type": "keyword"
+    },
+    "_implementationVersion": {
+      "type": "keyword"
     }
   }
 }
-
-

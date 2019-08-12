@@ -129,7 +129,7 @@ public class DescriptiveMetadataModel {
 
     private String endDate;
 
-    private List<EventType> event;
+    private List<EventTypeModel> event;
 
     private List<SignatureType> signature;
 
@@ -722,7 +722,7 @@ public class DescriptiveMetadataModel {
     /**
      * @return
      */
-    public List<EventType> getEvent() {
+    public List<EventTypeModel> getEvent() {
         if (event == null) {
             event = new ArrayList<>();
         }
@@ -732,7 +732,7 @@ public class DescriptiveMetadataModel {
     /**
      * @param event
      */
-    public void setEvent(List<EventType> event) {
+    public void setEvent(List<EventTypeModel> event) {
         this.event = event;
     }
 

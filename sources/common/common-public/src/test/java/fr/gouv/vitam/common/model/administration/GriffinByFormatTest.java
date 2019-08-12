@@ -23,7 +23,7 @@ public class GriffinByFormatTest {
 
         GriffinByFormat griffinByFormat = getFromFile(resourceFile, GriffinByFormat.class);
 
-        assertThat(griffinByFormat.getMaxSize()).isEqualTo(10000000);
+        assertThat(griffinByFormat.getMaxSize()).isEqualTo(10000000L);
         assertThat(griffinByFormat.getTimeOut()).isEqualTo(20);
         assertThat(griffinByFormat.getActionDetail().get(0).getType()).isEqualTo(ANALYSE);
         assertThat(griffinByFormat.getActionDetail().get(1).getType()).isEqualTo(GENERATE);

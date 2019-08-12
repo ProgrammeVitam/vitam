@@ -30,6 +30,18 @@
     "indexed": true
   },
   {
+    "path": "events.evId",
+    "type": "keyword",
+    "cardinality": "one",
+    "indexed": true
+  },
+  {
+    "path": "events.evIdProc",
+    "type": "keyword",
+    "cardinality": "one",
+    "indexed": true
+  },
+  {
     "path": "events.evTypeProc",
     "type": "keyword",
     "cardinality": "one",
@@ -56,12 +68,6 @@
   {
     "path": "events.outDetail",
     "type": "keyword",
-    "cardinality": "one",
-    "indexed": true
-  },
-  {
-    "path": "_score",
-    "type": "object",
     "cardinality": "one",
     "indexed": true
   },
@@ -127,19 +133,7 @@
   },
   {
     "path": "events.rightsStatementIdentifier.ArchivalAgreement",
-    "type": "text",
-    "cardinality": "one",
-    "indexed": true
-  },
-  {
-    "path": "events.evDetData.validateUnitReport",
-    "type": "object",
-    "cardinality": "one",
-    "indexed": true
-  },
-  {
-    "path": "events.evDetData.validateUnitReport.schema",
-    "type": "object",
+    "type": "keyword",
     "cardinality": "one",
     "indexed": true
   },
@@ -218,12 +212,6 @@
   {
     "path": "events.evDetData.EvDateTimeReq",
     "type": "datetime",
-    "cardinality": "one",
-    "indexed": true
-  },
-  {
-    "path": "events.evDetData.validateUnitReport.schema.loadingURI",
-    "type": "text",
     "cardinality": "one",
     "indexed": true
   },
@@ -312,18 +300,6 @@
     "indexed": true
   },
   {
-    "path": "events.evDetData.evDetDataType",
-    "type": "keyword",
-    "cardinality": "one",
-    "indexed": true
-  },
-  {
-    "path": "events.evDetData.validateUnitReport.schema.pointer",
-    "type": "text",
-    "cardinality": "one",
-    "indexed": true
-  },
-  {
     "path": "outMessg",
     "type": "text",
     "cardinality": "one",
@@ -349,7 +325,7 @@
   },
   {
     "path": "events.evDetData.EvDetailReq",
-    "type": "keyword",
+    "type": "text",
     "cardinality": "one",
     "indexed": true
   },
@@ -358,5 +334,17 @@
     "type": "datetime",
     "cardinality": "one",
     "indexed": true
+  },
+  {
+    "path": "agIdExt",
+    "type": "object",
+    "cardinality": "one",
+    "indexed": false
+  },
+  {
+    "path": "evDetData",
+    "type": "object",
+    "cardinality": "one",
+    "indexed": false
   }
 ]

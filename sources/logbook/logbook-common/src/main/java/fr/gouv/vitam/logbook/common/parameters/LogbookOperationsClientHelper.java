@@ -48,10 +48,6 @@ import fr.gouv.vitam.logbook.common.exception.LogbookClientNotFoundException;
  */
 public class LogbookOperationsClientHelper {
 
-    /**
-     * event Detetail Data Type
-     */
-    public static final String EV_DET_DATA_TYPE = "evDetDataType";
     private static final ServerIdentity SERVER_IDENTITY = ServerIdentity.getInstance();
     private final Map<String, Queue<LogbookOperationParameters>> delegatedCreations = new ConcurrentHashMap<>();
     private final Map<String, Queue<LogbookOperationParameters>> delegatedUpdates = new ConcurrentHashMap<>();

@@ -28,18 +28,21 @@ package fr.gouv.vitam.common.mapping.dip;
 
 import fr.gouv.culture.archivesdefrance.seda.v2.CustodialHistoryType;
 import fr.gouv.culture.archivesdefrance.seda.v2.DescriptiveMetadataContentType;
+import fr.gouv.culture.archivesdefrance.seda.v2.EventType;
 import fr.gouv.culture.archivesdefrance.seda.v2.ManagementHistoryDataType;
 import fr.gouv.culture.archivesdefrance.seda.v2.ManagementHistoryType;
 import fr.gouv.culture.archivesdefrance.seda.v2.TextType;
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.model.unit.ArchiveUnitHistoryModel;
 import fr.gouv.vitam.common.model.unit.DescriptiveMetadataModel;
+import fr.gouv.vitam.common.model.unit.EventTypeModel;
 
 import javax.xml.datatype.DatatypeConfigurationException;
 import javax.xml.datatype.XMLGregorianCalendar;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 import static javax.xml.datatype.DatatypeFactory.newInstance;
 
@@ -90,7 +93,7 @@ public class DescriptiveMetadataMapper {
         dmc.setDescriptionLevel(metadataModel.getDescriptionLevel());
         dmc.setDocumentType(metadataModel.getDocumentType());
         dmc.setEndDate(metadataModel.getEndDate());
-        dmc.getEvent().addAll(metadataModel.getEvent());
+        dmc.getEvent().addAll(mapEvents(metadataModel.getEvent()));
         dmc.setGps(metadataModel.getGps());
         dmc.setOriginatingAgency(metadataModel.getOriginatingAgency());
 
@@ -174,6 +177,26 @@ public class DescriptiveMetadataMapper {
         fillHistory(historyListModel, dmc.getHistory());
 
         return dmc;
+    }
+
+    private List<EventType> mapEvents(List<EventTypeModel> eventTypes) {
+        return eventTypes.stream()
+            .map(this::mapEvent)
+            .collect(Collectors.toList());
+    }
+
+    private EventType mapEvent(EventTypeModel event) {
+        EventType eventType = new EventType();
+        eventType.setEventDateTime(event.getEventDateTime());
+        eventType.setEventDetail(event.getEventDetail());
+        eventType.setEventDetailData(event.getEventDetailData());
+        eventType.setEventIdentifier(event.getEventIdentifier());
+        eventType.setEventType(event.getEventType());
+        eventType.setEventTypeCode(event.getEventTypeCode());
+        eventType.setOutcome(event.getOutcome());
+        eventType.setOutcomeDetail(event.getOutcomeDetail());
+        eventType.setOutcomeDetailMessage(event.getOutcomeDetailMessage());
+        return eventType;
     }
 
     private void fillHistory(List<ArchiveUnitHistoryModel> archiveUnitHistoryModel, List<ManagementHistoryType> managementHistoryType)
