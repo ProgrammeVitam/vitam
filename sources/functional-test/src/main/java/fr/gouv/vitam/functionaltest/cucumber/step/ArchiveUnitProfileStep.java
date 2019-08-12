@@ -26,22 +26,7 @@
  */
 package fr.gouv.vitam.functionaltest.cucumber.step;
 
-import static fr.gouv.vitam.common.database.builder.query.QueryHelper.match;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.fail;
-
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.nio.file.StandardOpenOption;
-import java.util.ArrayList;
-import java.util.List;
-
-import javax.ws.rs.core.Response;
-
 import com.fasterxml.jackson.databind.JsonNode;
-
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import cucumber.api.DataTable;
 import cucumber.api.java.en.Given;
@@ -57,7 +42,17 @@ import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.administration.ArchiveUnitProfileModel;
-import fr.gouv.vitam.common.model.administration.ProfileModel;
+
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.StandardOpenOption;
+import java.util.ArrayList;
+import java.util.List;
+
+import static fr.gouv.vitam.common.database.builder.query.QueryHelper.match;
+import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * Profile Step
@@ -108,9 +103,10 @@ public class ArchiveUnitProfileStep {
                     new VitamContext(world.getTenantId()).setApplicationSessionId(world.getApplicationSessionId()),
                     Files.newInputStream(profil, StandardOpenOption.READ));
         if (response.isOk()) {
-            RequestResponseOK<ProfileModel> res = (RequestResponseOK) response;
-            Object o = (res.getResults().stream().findFirst()).get();
-            this.model = (JsonNode) o;
+            ((RequestResponseOK<JsonNode>) response).getResults()
+                .stream()
+                .findFirst()
+                .ifPresent(o -> this.model = o);
         }
         String httpCode = String.valueOf(response.getHttpCode());
         ObjectNode responseCode = JsonHandler.createObjectNode();
