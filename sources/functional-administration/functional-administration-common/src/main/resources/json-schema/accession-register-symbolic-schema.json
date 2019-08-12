@@ -1,0 +1,53 @@
+{
+  "$schema": "http://json-schema.org/draft-04/schema#",
+  "definitions": {
+    "date-opt-time": {
+      "description": "pattern: Date",
+      "anyOf": [
+        {
+          "type": "string",
+          "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}$"
+        },
+        {
+          "type": "string",
+          "format": "date-time"
+        },
+        {
+          "type": "string",
+          "format": "date-time-vitam"
+        }
+      ]
+    }
+  },
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "_id": {
+      "type": "string"
+    },
+    "_tenant": {
+      "type": "integer"
+    },
+    "_v": {
+      "type": "integer"
+    },
+    "OriginatingAgency": {
+      "type": "string"
+    },
+    "CreationDate": {
+      "$ref": "#/definitions/date-opt-time"
+    },
+    "BinaryObjectSize": {
+      "type": "number"
+    },
+    "ArchiveUnit": {
+      "type": "number"
+    },
+    "ObjectGroup": {
+      "type": "number"
+    },
+    "BinaryObject": {
+      "type": "number"
+    }
+  }
+}

@@ -324,12 +324,19 @@ public class AdminManagementResourceTest {
             .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
             .when().post(CREATE_FUND_REGISTER_URI)
             .then().statusCode(Status.CREATED.getStatusCode());
-        register.setTotalObjects(null);
 
+        // Already exists --> conflict
         given().contentType(ContentType.JSON).body(register)
             .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
             .when().post(CREATE_FUND_REGISTER_URI)
             .then().statusCode(Status.CONFLICT.getStatusCode());
+
+        // Invalid request (bad format) --> bad request
+        register.setTotalObjects(null);
+        given().contentType(ContentType.JSON).body(register)
+            .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
+            .when().post(CREATE_FUND_REGISTER_URI)
+            .then().statusCode(Status.BAD_REQUEST.getStatusCode());
     }
 
     @Test

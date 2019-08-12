@@ -37,10 +37,6 @@
     },
     "_v": {
       "type": "long"
-    },
-    "_score": {
-      "type": "object",
-      "enabled": false
     }
   }
 }

@@ -270,14 +270,11 @@
             "additionalProperties": false,
             "type": "object",
             "properties": {
-              "Id": {
-                "type": "string"
-              },
               "DataObjectReferenceId": {
-                "type": "string"
+                "$ref": "#/definitions/id"
               },
               "DataObjectGroupReferenceId": {
-                "type": "string"
+                "$ref": "#/definitions/id"
               }
             }
           },
@@ -324,36 +321,36 @@
       "additionalProperties": false,
       "type": "object",
       "properties": {
-        "EventIdentifier": {
+        "evId": {
           "$ref": "#/definitions/non-empty-token"
         },
-        "EventTypeCode": {
+        "evTypeProc": {
           "$ref": "#/definitions/non-empty-token"
         },
-        "EventType": {
+        "evType": {
           "$ref": "#/definitions/non-empty-token"
         },
-        "EventDateTime": {
+        "evDateTime": {
           "$ref": "#/definitions/date-time-opt"
         },
-        "EventDetail": {
+        "evTypeDetail": {
           "type": "string"
         },
-        "Outcome": {
+        "outcome": {
           "$ref": "#/definitions/non-empty-token"
         },
-        "OutcomeDetail": {
+        "outDetail": {
           "$ref": "#/definitions/non-empty-token"
         },
-        "OutcomeDetailMessage": {
+        "outMessg": {
           "$ref": "#/definitions/non-empty-token"
         },
-        "EventDetailData": {
-          "$ref": "#/definitions/non-empty-token"
+        "evDetData": {
+          "type": "string"
         }
       },
       "required": [
-        "EventDateTime"
+        "evDateTime"
       ]
     }
   },
@@ -797,12 +794,6 @@
         "Identifier"
       ]
     },
-    "AgentAbstract": {
-      "type": "array",
-      "items": {
-        "$ref": "#/definitions/agent-type"
-      }
-    },
     "AuthorizedAgent": {
       "type": "array",
       "items": {
@@ -918,43 +909,7 @@
             }
           },
           "Masterdata": {
-            "additionalProperties": false,
-            "type": "object",
-            "properties": {
-              "Value": {
-                "type": "string"
-              },
-              "ListID": {
-                "$ref": "#/definitions/token"
-              },
-              "ListAgencyID": {
-                "$ref": "#/definitions/token"
-              },
-              "listAgencyName": {
-                "type": "string"
-              },
-              "ListName": {
-                "type": "string"
-              },
-              "ListVersionID": {
-                "$ref": "#/definitions/token"
-              },
-              "Name": {
-                "type": "string"
-              },
-              "LanguageID": {
-                "type": "string"
-              },
-              "ListURI": {
-                "type": "string"
-              },
-              "ListSchemeURI": {
-                "type": "string"
-              }
-            },
-            "required": [
-              "Value"
-            ]
+            "type": "object"
           },
           "ReferencedObject": {
             "additionalProperties": false,

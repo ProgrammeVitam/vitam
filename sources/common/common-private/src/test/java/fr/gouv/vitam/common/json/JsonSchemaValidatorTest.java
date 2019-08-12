@@ -11,7 +11,7 @@ public class JsonSchemaValidatorTest {
     public void forBuiltInSchema() throws Exception {
 
         // Given
-        String schemaFilename = "test_schema.json";
+        String schemaFilename = "/test_schema.json";
 
         // When / Then
         JsonSchemaValidator schemaValidator = JsonSchemaValidator.forBuiltInSchema(schemaFilename);
@@ -31,13 +31,13 @@ public class JsonSchemaValidatorTest {
 
     @Test
     public void givenConstructorWithInexistingSchemaThenException() {
-        assertThatThrownBy(() -> JsonSchemaValidator.forBuiltInSchema("no_such_file"))
+        assertThatThrownBy(() -> JsonSchemaValidator.forBuiltInSchema("/no_such_file"))
             .isInstanceOf(VitamRuntimeException.class);
     }
 
     @Test
     public void givenConstructorWithIncorrectSchemaThenException() {
-        assertThatThrownBy(() -> JsonSchemaValidator.forBuiltInSchema("test.conf"))
+        assertThatThrownBy(() -> JsonSchemaValidator.forBuiltInSchema("/test.conf"))
             .isInstanceOf(VitamRuntimeException.class);
     }
 

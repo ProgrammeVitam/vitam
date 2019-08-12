@@ -46,7 +46,7 @@ import java.util.Optional;
 
 public class UnitValidator {
 
-    public static final String JSON_SCHEMA_ARCHIVE_UNIT_SCHEMA_JSON = "json-schema/archive-unit-schema.json";
+    public static final String JSON_SCHEMA_ARCHIVE_UNIT_SCHEMA_JSON = "/json-schema/archive-unit-schema.json";
 
     private static final String MANAGEMENT = "Management";
 

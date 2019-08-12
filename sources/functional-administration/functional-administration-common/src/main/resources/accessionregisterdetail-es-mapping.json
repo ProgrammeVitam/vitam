@@ -9,8 +9,11 @@
     "ArchivalAgreement": {
       "type": "keyword"
     },
-    "AcquisitionInformation": {
+    "ArchivalProfile": {
       "type": "keyword"
+    },
+    "AcquisitionInformation": {
+      "type": "text"
     },
     "Opc": {
       "type": "keyword"
@@ -114,6 +117,9 @@
     "OperationIds": {
       "type": "keyword"
     },
+    "OpType": {
+      "type": "keyword"
+    },
     "LegalStatus": {
       "type": "keyword"
     },
@@ -122,10 +128,6 @@
     },
     "_v": {
       "type": "long"
-    },
-    "_score": {
-      "type": "object",
-      "enabled": false
     }
   }
 }

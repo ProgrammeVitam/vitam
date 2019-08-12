@@ -116,7 +116,7 @@ public class OntologyResource {
         ParametersChecker.checkParameter(ONTOLOGY_JSON_IS_MANDATORY_PATAMETER, ontologyModelList);
 
         try (OntologyService ontologyService =
-            new OntologyServiceImpl(mongoAccess, vitamCounterService, functionalBackupService)) {
+            new OntologyServiceImpl(mongoAccess, functionalBackupService)) {
             RequestResponse requestResponse = ontologyService.importOntologies(forceUpdate, ontologyModelList);
 
             if (!requestResponse.isOk()) {
@@ -149,7 +149,7 @@ public class OntologyResource {
     public Response findOntologies(JsonNode queryDsl) {
 
         try (OntologyService ontologyService =
-            new OntologyServiceImpl(mongoAccess, vitamCounterService, functionalBackupService)) {
+            new OntologyServiceImpl(mongoAccess, functionalBackupService)) {
 
             final RequestResponseOK<OntologyModel> ontologyModelList =
                 ontologyService.findOntologies(queryDsl).setQuery(queryDsl);
@@ -178,7 +178,7 @@ public class OntologyResource {
     public Response findOntologiesForCache(JsonNode queryDsl) {
 
         try (OntologyService ontologyService =
-                     new OntologyServiceImpl(mongoAccess, vitamCounterService, functionalBackupService)) {
+                     new OntologyServiceImpl(mongoAccess, functionalBackupService)) {
 
             final RequestResponseOK<OntologyModel> ontologyModelList =
                     ontologyService.findOntologiesForCache(queryDsl).setQuery(queryDsl);

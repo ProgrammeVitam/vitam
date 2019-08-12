@@ -46,5 +46,11 @@
     "type": "datetime",
     "indexed": true,
     "cardinality": "one"
+  },
+  {
+    "path": "_v",
+    "type": "signed_long",
+    "cardinality": "one",
+    "indexed": true
   }
 ]

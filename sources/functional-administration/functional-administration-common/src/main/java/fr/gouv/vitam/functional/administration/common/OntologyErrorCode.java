@@ -26,8 +26,6 @@
  *******************************************************************************/
 package fr.gouv.vitam.functional.administration.common;
 
-import org.openstack4j.model.common.Identifier;
-
 /**
  * Ontology Import ErrorCode enumeration
  */
@@ -56,10 +54,9 @@ public enum OntologyErrorCode {
     STP_IMPORT_ONTOLOGIES_MISSING_INFORMATION,
 
     /**
-     * Invalid identifier
+     * Invalid parameter
      */
-    STP_IMPORT_ONTOLOGIES_INVALID_IDENTIFIER,
-
+    STP_IMPORT_ONTOLOGIES_INVALID_PARAMETER,
 
     /**
      * Invalid type for update
@@ -85,8 +82,5 @@ public enum OntologyErrorCode {
     /**
      * General import error
      */
-    STP_IMPORT_ONTOLOGIES_EXCEPTION,
-
-
-
+    STP_IMPORT_ONTOLOGIES_EXCEPTION
 }

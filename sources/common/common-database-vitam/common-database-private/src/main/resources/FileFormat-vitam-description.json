@@ -30,14 +30,8 @@
     "indexed": true
   },
   {
-    "path": "_score",
-    "type": "object",
-    "cardinality": "one",
-    "indexed": false
-  },
-  {
     "path": "MimeType",
-    "type": "text",
+    "type": "keyword",
     "cardinality": "one",
     "indexed": true
   },
@@ -67,6 +61,12 @@
   },
   {
     "path": "CreatedDate",
+    "type": "datetime",
+    "cardinality": "one",
+    "indexed": true
+  },
+  {
+    "path": "UpdateDate",
     "type": "datetime",
     "cardinality": "one",
     "indexed": true

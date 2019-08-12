@@ -53,7 +53,7 @@ public class GriffinByFormat {
 
     @Positive(message = ConstraintConstants.POSITIVE_ERROR_MSG)
     @JsonProperty("MaxSize")
-    private int maxSize;
+    private long maxSize;
 
     @NotNull(message = ConstraintConstants.NOT_EMPTY_ERROR_MSG)
     @JsonProperty("Debug")
@@ -109,11 +109,11 @@ public class GriffinByFormat {
         this.timeOut = timeOut;
     }
 
-    public int getMaxSize() {
+    public long getMaxSize() {
         return maxSize;
     }
 
-    public void setMaxSize(int maxSize) {
+    public void setMaxSize(long maxSize) {
         this.maxSize = maxSize;
     }
 

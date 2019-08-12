@@ -269,7 +269,7 @@ public class PreservationScenarioServiceTest {
         griffinByFormat.setDebug(false);
         griffinByFormat.setActionDetail(singletonList(new ActionPreservation(GENERATE, null)));
         griffinByFormat.setFormatList(Sets.newHashSet("ts"));
-        griffinByFormat.setMaxSize(2);
+        griffinByFormat.setMaxSize(2L);
         griffinByFormat.setTimeOut(2000);
 
         DefaultGriffin defaultGriffin =

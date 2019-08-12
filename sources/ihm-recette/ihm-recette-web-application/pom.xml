@@ -145,6 +145,13 @@
             <resource>
                 <directory>src/main/resources</directory>
             </resource>
+            <!-- Include ontologie file from ansible deployment configuration to avoid duplication -->
+            <resource>
+                <directory>../../../deployment/ansible-vitam/roles/init_contexts_and_security_profiles/files</directory>
+                <includes>
+                    <include>VitamOntology.json</include>
+                </includes>
+            </resource>
         </resources>
 
         <plugins>

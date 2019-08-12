@@ -61,9 +61,8 @@ public final class MetadataValidationProvider {
         CachedArchiveUnitProfileLoader archiveUnitProfileLoader = new CachedArchiveUnitProfileLoader(
             adminManagementClientFactory, archiveUnitProfileCacheMaxEntries, archiveUnitProfileCacheTimeoutInSeconds);
 
-        // FIXME : Configuration
         CachedSchemaValidatorLoader schemaValidatorLoader = new CachedSchemaValidatorLoader(
-            archiveUnitProfileCacheMaxEntries, archiveUnitProfileCacheTimeoutInSeconds);
+            schemaValidatorCacheMaxEntries, schemaValidatorCacheTimeoutInSeconds);
 
         OntologyLoader unitOntologyLoader = new CachedOntologyLoader(
             ontologyCacheMaxEntries,

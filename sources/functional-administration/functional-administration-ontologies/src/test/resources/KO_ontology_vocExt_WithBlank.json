@@ -2321,17 +2321,6 @@
         ]
     },
     {
-        "Identifier": "evDetDataType",
-        "ApiField": "evDetDataType",
-        "Description": "Mapping : logbook-es-mapping.json",
-        "Type": "KEYWORD",
-        "Origin": "INTERNAL",
-        "ShortName": "Type d'événement",
-        "Collections": [
-            "LogbookOperation"
-        ]
-    },
-    {
         "Identifier": "reports",
         "ApiField": "reports",
         "Description": "Mapping : logbook-es-mapping.json",

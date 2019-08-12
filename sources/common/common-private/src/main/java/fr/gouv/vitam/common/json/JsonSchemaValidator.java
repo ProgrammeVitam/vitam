@@ -58,7 +58,7 @@ public class JsonSchemaValidator {
 
     public static JsonSchemaValidator forBuiltInSchema(String schemaFilename) {
 
-        try (InputStream is = PropertiesUtils.getResourceAsStream(schemaFilename)) {
+        try (InputStream is = Object.class.getResourceAsStream(schemaFilename)) {
             JsonNode schemaJson = JsonHandler.getFromInputStream(is);
             JsonSchema jsonSchema = JSON_SCHEMA_FACTORY.getJsonSchema(schemaJson);
             return new JsonSchemaValidator(jsonSchema);

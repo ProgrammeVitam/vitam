@@ -30,3 +30,4 @@ proxy.conf.json
 vitam-griffins
 .directory
 .gitignore
+deployment/environments/backups

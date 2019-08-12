@@ -1,26 +1,26 @@
-/**
+/*
  * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2019)
- * <p>
+ *
  * contact.vitam@culture.gouv.fr
- * <p>
+ *
  * This software is a computer program whose purpose is to implement a digital archiving back-office system managing
  * high volumetry securely and efficiently.
- * <p>
+ *
  * This software is governed by the CeCILL 2.1 license under French law and abiding by the rules of distribution of free
  * software. You can use, modify and/ or redistribute the software under the terms of the CeCILL 2.1 license as
  * circulated by CEA, CNRS and INRIA at the following URL "http://www.cecill.info".
- * <p>
+ *
  * As a counterpart to the access to the source code and rights to copy, modify and redistribute granted by the license,
  * users are provided only with a limited warranty and the software's author, the holder of the economic rights, and the
  * successive licensors have only limited liability.
- * <p>
+ *
  * In this respect, the user's attention is drawn to the risks associated with loading, using, modifying and/or
  * developing or reproducing the software by the user in light of its specific status of free software, that may mean
  * that it is complicated to manipulate, and that also therefore means that it is reserved for developers and
  * experienced professionals having in-depth computer knowledge. Users are therefore encouraged to load and test the
  * software's suitability as regards their requirements in conditions enabling the security of their systems and/or data
  * to be ensured and, more generally, to use and operate it in the same conditions as regards security.
- * <p>
+ *
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  */
@@ -39,79 +39,41 @@ import fr.gouv.vitam.common.model.ModelConstants;
 @JsonInclude(JsonInclude.Include.NON_EMPTY)
 public class FileFormatModel {
 
-    /**
-     * unique id
-     */
     @JsonProperty(ModelConstants.HASH + ModelConstants.TAG_ID)
     private String id;
-
-    /**
-     * document version
-     */
     @JsonProperty(ModelConstants.HASH + ModelConstants.TAG_VERSION)
     private Integer documentVersion;
-
-    // TODO: P3 use a date object
-    /**
-     * creation date
-     */
     @JsonProperty("CreatedDate")
     private String createdDate;
-
-    /**
-     * version pronom
-     */
     @JsonProperty("VersionPronom")
     private String versionPronom;
-
-    /**
-     * version
-     */
+    @JsonProperty("UpdateDate")
+    private String updateDate;
     @JsonProperty("Version")
     private String version;
-
-    /**
-     * list of FileFormat with lower priority
-     */
     @JsonProperty("HasPriorityOverFileFormatID")
     private List<String> hasPriorityOverFileFormatIDs;
-
-    /**
-     * mime type
-     */
     @JsonProperty("MimeType")
     private String mimeType;
-
-    /**
-     * name
-     */
     @JsonProperty("Name")
     private String name;
-
     /**
-     * group
+     * @deprecated Unused / yagni / reserved for future use
      */
     @JsonProperty("Group")
     private String group;
-
+    /**
+     * @deprecated Unused / yagni / reserved for future use
+     */
     @JsonProperty("Alert")
     private Boolean alert;
-
     /**
-     * comment
+     * @deprecated Unused / yagni / reserved for future use
      */
     @JsonProperty("Comment")
     private String comment;
-
-    /**
-     * extensions
-     */
     @JsonProperty("Extension")
     private List<String> extensions;
-
-    /**
-     * puid
-     */
     @JsonProperty("PUID")
     private String puid;
 
@@ -349,4 +311,12 @@ public class FileFormatModel {
         return this;
     }
 
+    public String getUpdateDate() {
+        return updateDate;
+    }
+
+    public FileFormatModel setUpdateDate(String updateDate) {
+        this.updateDate = updateDate;
+        return this;
+    }
 }

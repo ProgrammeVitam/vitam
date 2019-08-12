@@ -17,6 +17,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
+import static fr.gouv.vitam.metadata.core.validation.OntologyValidator.stringExceedsMaxLuceneUtf8StorageSize;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.junit.Assert.assertEquals;
@@ -997,5 +998,34 @@ public class OntologyValidatorTest {
             .isInstanceOf(MetadataValidationException.class)
             .extracting(x -> ((MetadataValidationException) x).getErrorCode())
             .isEqualTo(MetadataValidationErrorCode.ONTOLOGY_VALIDATION_FAILURE);
+    }
+
+    @Test
+    public void testStringExceedsMaxLuceneUtf8StorageSize() {
+
+        // Empty
+        assertThat(stringExceedsMaxLuceneUtf8StorageSize("", 6)).isFalse();
+
+        // 1 char = 1 UTF8 byte
+        assertThat(stringExceedsMaxLuceneUtf8StorageSize("abcde", 6)).isFalse();
+        assertThat(stringExceedsMaxLuceneUtf8StorageSize("abcdef", 6)).isTrue();
+        assertThat(stringExceedsMaxLuceneUtf8StorageSize("abcdefg", 6)).isTrue();
+
+        // 1 char = 2 UTF8 byte
+        assertThat(stringExceedsMaxLuceneUtf8StorageSize("éé", 6)).isFalse();
+        assertThat(stringExceedsMaxLuceneUtf8StorageSize("ééé", 6)).isTrue();
+        assertThat(stringExceedsMaxLuceneUtf8StorageSize("ت", 6)).isFalse();
+        assertThat(stringExceedsMaxLuceneUtf8StorageSize("تت", 6)).isFalse();
+        assertThat(stringExceedsMaxLuceneUtf8StorageSize("تتت", 6)).isTrue();
+
+        // 1 char = 3 UTF8 byte
+        assertThat(stringExceedsMaxLuceneUtf8StorageSize("☃", 6)).isFalse();
+        assertThat(stringExceedsMaxLuceneUtf8StorageSize("☃☃", 6)).isTrue();
+
+        // Special unicode code points that require 2x UTF-16 characters : 😊 = 2 chars = 2x2 UTF8 bytes
+        assertThat("😊".length()).isEqualTo(2);
+        assertThat(stringExceedsMaxLuceneUtf8StorageSize("😊", 6)).isFalse();
+        assertThat(stringExceedsMaxLuceneUtf8StorageSize("a😊", 6)).isFalse();
+        assertThat(stringExceedsMaxLuceneUtf8StorageSize("aa😊", 6)).isTrue();
     }
 }

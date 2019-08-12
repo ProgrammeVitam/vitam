@@ -30,6 +30,12 @@
     "cardinality": "one"
   },
   {
+    "path": "LastUpdate",
+    "type": "datetime",
+    "indexed": true,
+    "cardinality": "one"
+  },
+  {
     "path": "ActionList",
     "type": "keyword",
     "indexed": true,
@@ -96,6 +102,18 @@
     "cardinality": "one"
   },
   {
+    "path": "GriffinByFormat.ActionDetail.Values.FilteredExtractedObjectGroupData",
+    "type": "keyword",
+    "indexed": true,
+    "cardinality": "many"
+  },
+  {
+    "path": "GriffinByFormat.ActionDetail.Values.FilteredExtractedUnitData",
+    "type": "keyword",
+    "indexed": true,
+    "cardinality": "many"
+  },
+  {
     "path": "GriffinByFormat.ActionDetail.Values.Args",
     "type": "keyword",
     "indexed": true,
@@ -156,9 +174,33 @@
     "cardinality": "one"
   },
   {
+    "path": "DefaultGriffin.ActionDetail.Values.FilteredExtractedObjectGroupData",
+    "type": "keyword",
+    "indexed": true,
+    "cardinality": "many"
+  },
+  {
+    "path": "DefaultGriffin.ActionDetail.Values.FilteredExtractedUnitData",
+    "type": "keyword",
+    "indexed": true,
+    "cardinality": "many"
+  },
+  {
     "path": "DefaultGriffin.ActionDetail.Values.Args",
     "type": "keyword",
     "indexed": true,
     "cardinality": "many"
+  },
+  {
+    "path": "_tenant",
+    "type": "signed_long",
+    "indexed": true,
+    "cardinality": "one"
+  },
+  {
+    "path": "_v",
+    "type": "signed_long",
+    "indexed": true,
+    "cardinality": "one"
   }
 ]

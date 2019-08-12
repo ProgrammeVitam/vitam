@@ -27,14 +27,17 @@
 package fr.gouv.vitam.worker.core.mapping;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 import fr.gouv.culture.archivesdefrance.seda.v2.DescriptiveMetadataContentType;
+import fr.gouv.culture.archivesdefrance.seda.v2.EventType;
 import fr.gouv.culture.archivesdefrance.seda.v2.RelatedObjectReferenceType;
 import fr.gouv.culture.archivesdefrance.seda.v2.TextType;
 import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.model.VitamConstants;
 import fr.gouv.vitam.common.model.unit.CustodialHistoryModel;
 import fr.gouv.vitam.common.model.unit.DescriptiveMetadataModel;
+import fr.gouv.vitam.common.model.unit.EventTypeModel;
 import fr.gouv.vitam.common.model.unit.TextByLang;
 
 /**
@@ -97,7 +100,7 @@ public class DescriptiveMetadataMapper {
         descriptiveMetadataModel.setDescriptionLevel(metadataContentType.getDescriptionLevel());
         descriptiveMetadataModel.setDocumentType(metadataContentType.getDocumentType());
         descriptiveMetadataModel.setEndDate(metadataContentType.getEndDate());
-        descriptiveMetadataModel.setEvent(metadataContentType.getEvent());
+        descriptiveMetadataModel.setEvent(mapEvents(metadataContentType.getEvent()));
         descriptiveMetadataModel.setFilePlanPosition(metadataContentType.getFilePlanPosition());
         descriptiveMetadataModel.setGps(metadataContentType.getGps());
         descriptiveMetadataModel.setKeyword(metadataContentType.getKeyword());
@@ -159,6 +162,25 @@ public class DescriptiveMetadataMapper {
         }
 
         return descriptiveMetadataModel;
+    }
+
+    private List<EventTypeModel> mapEvents(List<EventType> eventTypes) {
+        return eventTypes.stream()
+            .map(this::mapEvent)
+            .collect(Collectors.toList());
+    }
+
+    private EventTypeModel mapEvent(EventType event) {
+        return new EventTypeModel()
+            .setEventDateTime(event.getEventDateTime())
+            .setEventDetail(event.getEventDetail())
+            .setEventDetailData(event.getEventDetailData())
+            .setEventIdentifier(event.getEventIdentifier())
+            .setEventType(event.getEventType())
+            .setEventTypeCode(event.getEventTypeCode())
+            .setOutcome(event.getOutcome())
+            .setOutcomeDetail(event.getOutcomeDetail())
+            .setOutcomeDetailMessage(event.getOutcomeDetailMessage());
     }
 
     public String findDefaultTextType(List<TextType> textTypes) {

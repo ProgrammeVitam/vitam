@@ -30,6 +30,12 @@
     "indexed": true
   },
   {
+    "path": "OpType",
+    "type": "keyword",
+    "cardinality": "one",
+    "indexed": true
+  },
+  {
     "path": "ObjectSize.deleted",
     "type": "signed_long",
     "cardinality": "one",
@@ -40,12 +46,6 @@
     "type": "keyword",
     "cardinality": "one",
     "indexed": true
-  },
-  {
-    "path": "_score",
-    "type": "object",
-    "cardinality": "one",
-    "indexed": false
   },
   {
     "path": "TotalUnits.deleted",
@@ -67,7 +67,7 @@
   },
   {
     "path": "AcquisitionInformation",
-    "type": "keyword",
+    "type": "text",
     "cardinality": "one",
     "indexed": true
   },
@@ -236,6 +236,12 @@
   {
     "path": "TotalObjectGroups",
     "type": "object",
+    "cardinality": "one",
+    "indexed": true
+  },
+  {
+    "path": "ArchivalProfile",
+    "type": "keyword",
     "cardinality": "one",
     "indexed": true
   }

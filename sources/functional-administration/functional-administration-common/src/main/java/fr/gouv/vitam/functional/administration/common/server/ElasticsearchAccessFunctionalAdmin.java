@@ -79,8 +79,8 @@ public class ElasticsearchAccessFunctionalAdmin extends ElasticsearchAccess {
     public static final String MAPPING_ACCESSION_REGISTER_SYMBOLICS_FILE = "/accessionregistersymbolic-es-mapping.json";
     public static final String MAPPING_ACCESSION_REGISTER_SUMMARY_FILE = "/accessionregistersummary-es-mapping.json";
     public static final String MAPPING_ACCESSION_REGISTER_DETAIL_FILE = "/accessionregisterdetail-es-mapping.json";
-    static final String MAPPING_GRIFFIN_FILE = "/griffin-es-mapping.json";
-    static final String MAPPING_PRESERVATION_SCENARIO_FILE = "/preservationscenario-es-mapping.json";
+    public static final String MAPPING_GRIFFIN_FILE = "/griffin-es-mapping.json";
+    public static final String MAPPING_PRESERVATION_SCENARIO_FILE = "/preservationscenario-es-mapping.json";
 
     /**
      * @param clusterName

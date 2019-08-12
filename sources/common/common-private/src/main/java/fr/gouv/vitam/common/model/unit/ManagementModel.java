@@ -57,8 +57,10 @@ public class ManagementModel {
     @JsonProperty("ClassificationRule")
     private RuleCategoryModel classification;
 
+    @JsonProperty("NeedAuthorization")
     private Boolean needAuthorization;
 
+    @JsonProperty("UpdateOperation")
     private UpdateOperationType updateOperationType;
 
     /**

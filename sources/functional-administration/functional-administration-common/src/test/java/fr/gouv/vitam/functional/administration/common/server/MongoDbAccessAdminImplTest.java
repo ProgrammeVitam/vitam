@@ -31,6 +31,7 @@ import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.mongodb.client.MongoCollection;
 import fr.gouv.vitam.common.LocalDateUtil;
+import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.database.builder.query.action.UpdateActionHelper;
 import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
 import fr.gouv.vitam.common.database.builder.request.single.Delete;
@@ -56,7 +57,6 @@ import fr.gouv.vitam.common.model.administration.ContextStatus;
 import fr.gouv.vitam.common.model.administration.IngestContractCheckState;
 import fr.gouv.vitam.common.model.administration.ProfileFormat;
 import fr.gouv.vitam.common.model.administration.ProfileStatus;
-import fr.gouv.vitam.common.model.administration.RegisterValueDetailModel;
 import fr.gouv.vitam.common.mongo.MongoRule;
 import fr.gouv.vitam.common.server.application.configuration.DbConfigurationImpl;
 import fr.gouv.vitam.common.server.application.configuration.MongoDbNode;
@@ -160,14 +160,14 @@ public class MongoDbAccessAdminImplTest {
         testList.add("test1");
 
         final List<String> testList2 = new ArrayList<>();
-        testList.add("test2");
+        testList2.add("test2");
 
         final String now = LocalDateUtil.now().toString();
 
         fileFormat1 = new FileFormat()
             .setCreatedDate(now)
             .setExtension(testList)
-            .setMimeType(testList)
+            .setMimeType("test1")
             .setName("this is a very long name")
             .setPriorityOverIdList(testList)
             .setPronomVersion("pronom version")
@@ -177,7 +177,7 @@ public class MongoDbAccessAdminImplTest {
         fileFormat2 = new FileFormat()
             .setCreatedDate(now)
             .setExtension(testList)
-            .setMimeType(testList)
+            .setMimeType("test2")
             .setName("Acrobat PDF 1.0 - Portable Document Format")
             .setPriorityOverIdList(testList)
             .setPronomVersion("pronom version")
@@ -187,7 +187,7 @@ public class MongoDbAccessAdminImplTest {
         fileFormat3 = new FileFormat()
             .setCreatedDate(now)
             .setExtension(testList)
-            .setMimeType(testList2)
+            .setMimeType("test3")
             .setName("Acrobat PDF/X - Portable Document Format - Exchange 1a:2001")
             .setPriorityOverIdList(testList)
             .setPronomVersion("pronom version")
@@ -213,19 +213,6 @@ public class MongoDbAccessAdminImplTest {
             .setRuleDuration("20")
             .setRuleMeasurement("Annee")
             .setUpdateDate("2019-10-10");
-
-        final RegisterValueDetailModel initialValue = new RegisterValueDetailModel().setIngested(1).setRemained(1);
-        register = new AccessionRegisterDetail(TENANT_ID)
-            .setObjectSize(initialValue)
-            .setOriginatingAgency(AGENCY)
-            .setSubmissionAgency(AGENCY)
-            .setStartDate("2017-01-01")
-            .setEndDate("2017-01-01")
-            .setTotalObjectGroups(initialValue)
-            .setTotalObjects(initialValue)
-            .setTotalUnits(initialValue)
-            .setAcquisitionInformation(AQUISITION_INFORMATION)
-            .setLegalStatus(LEGAL_STATUS);
 
         contract = createContract();
 
@@ -391,7 +378,7 @@ public class MongoDbAccessAdminImplTest {
     @RunWithCustomExecutor
     public void testAccessionRegister() throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
-        final JsonNode jsonNode = JsonHandler.toJsonNode(register);
+        final JsonNode jsonNode = JsonHandler.getFromInputStream(PropertiesUtils.getResourceAsStream("accession_register_detail_OK.json"));
         mongoAccess.insertDocument(jsonNode, FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL).close();
         final MongoCollection<Document> collection =
             mongoRule.getMongoCollection(FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL.getName());

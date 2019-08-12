@@ -11,10 +11,10 @@
       "type": "text"
     },
     "ExecutableVersion": {
-      "type": "text"
+      "type": "keyword"
     },
     "ExecutableName": {
-      "type": "text"
+      "type": "keyword"
     },
     "CreationDate": {
       "type": "date",
@@ -29,10 +29,6 @@
     },
     "_v": {
       "type": "long"
-    },
-    "_score": {
-      "type": "object",
-      "enabled": false
     }
   }
 }

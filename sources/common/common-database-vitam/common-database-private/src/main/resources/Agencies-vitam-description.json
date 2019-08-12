@@ -30,12 +30,6 @@
     "indexed": true
   },
   {
-    "path": "_score",
-    "type": "object",
-    "cardinality": "one",
-    "indexed": false
-  },
-  {
     "path": "Name",
     "type": "text",
     "cardinality": "one",
