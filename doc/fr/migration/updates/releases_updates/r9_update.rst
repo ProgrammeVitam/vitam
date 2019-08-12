@@ -1,7 +1,7 @@
 Notes et procédures spécifiques R9
 ##################################
 
-.. caution:: Rappel : la montée de version vers la *release* R9 s'effectue depuis la *release* R7 (:term:`LTS` V1) ou la *release* R8 (V1, *deprecated*) et doit être réalisée en s'appuyant sur les dernières versions bugfixes publiées. 
+.. caution:: Rappel : la montée de version vers la *release* R9 s'effectue depuis la *release* R7 (:term:`LTS` V1) ou la *release* R8 (V1, *deprecated*) et doit être réalisée en s'appuyant sur les dernières versions *bugfixes* publiées. 
 
 Prérequis à la montée de version
 ================================
@@ -65,6 +65,8 @@ Montée de version
 =================
 
 La montée de version vers la *release* R9 est réalisée par réinstallation de la solution logicielle :term:`VITAM` grâce aux *playbooks* ansible fournis, et selon la procédure d'installation classique décrite dans le :term:`DIN`. 
+
+.. note:: Rappel : avant de procéder à la montée de version, on veillera tout particulièrement à la bonne mise en place des *repositories* :term:`VITAM` associés à la nouvelle version. Se reporter à la section du :term:`DIN` sur la mise en place des *repositories* :term:`VITAM`. 
 
 Etapes de migration 
 ===================
