@@ -19,8 +19,6 @@ La numérotation des versions logicielles :term:`VITAM` respecte le schéma suiv
        :align: center
        :header-rows: 1
 
-La *release* R7 est la version :term:`LTS` de la version majeure V1 :term:`VITAM`. Il est donc recommandé de ne plus utiliser les *releases* V1 R6 et R8, indiquées comme *deprecated* dans la suite du document. 
+La *release* R9 est la version :term:`LTS` de la version majeure V2 :term:`VITAM`.  
 
-La *release* R9 est la version :term:`LTS` de la version majeure V2 :term:`VITAM`. 
-
-Pour plus d'informations, se repporter au chapitre « Maintenance » du document de `Présentation de la solution logicielle VITAM <http://www.programmevitam.fr/ressources/DocCourante/autres/fonctionnel/VITAM_Presentation_solution_logicielle.pdf>`_. 
+Pour plus d'informations, se reporter au chapitre « Maintenance » du document de `Présentation de la solution logicielle VITAM <http://www.programmevitam.fr/ressources/DocCourante/autres/fonctionnel/VITAM_Presentation_solution_logicielle.pdf>`_. 

@@ -11,3 +11,5 @@ Montées de version bugfix
    r7_update.rst
    r8_update.rst
    r9_update.rst
+   r10_update.rst
+
