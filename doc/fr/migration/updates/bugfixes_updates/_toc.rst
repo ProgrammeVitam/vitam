@@ -1,6 +1,6 @@
 .. _bugfixes_updates: 
 
-Montées de version bugfix
+Montées de version *bugfix*
 #########################
 
 .. toctree::
