@@ -155,6 +155,9 @@ Glossaire
    OAIS
       `Open Archival Information System`, acronyme anglais pour Systèmes de transfert des informations et données spatiales -- Système ouvert d'archivage d'information (SOAI) - Modèle de référence.
 
+   OOM
+      Aussi apelé `Out-Of-Memory Killer` ; mécanisme de la dernière chance incorporé au noyau Linux, en cas de dépassement de la capacité mémoire
+
    OS
       `Operating System`, système d'exploitation
 
