@@ -1,7 +1,7 @@
 Notes et procédures spécifiques R9
 ##################################
 
-.. caution:: Rappel : la montée de version vers la *release* R9 s'effectue depuis la *release* R7 (:term:`LTS` V1) ou la *release* R8 (V1, *deprecated*) et doit être réalisée en s'appuyant sur les dernières versions bugfixes publiées. 
+.. caution:: Rappel : la montée de version vers la *release* R9 s'effectue depuis la *release* R7 (V1, *deprecated*) ou la *release* R8 (V1, *deprecated*) et doit être réalisée en s'appuyant sur les dernières versions bugfixes publiées. 
 
 Prérequis à la montée de version
 ================================
@@ -183,7 +183,7 @@ Ou, si un fichier vault-password-file existe ::
 
     ansible-playbook -i <inventaire> ansible-playbok-exploitation/audit_coherence.yml --vault-password-file vault_pass.txt -e "access_contract=<contrat multitenant>"
 
-.. hint:: L'audit est lancé sur tous les *tenants* ; cependant, il est nécessaire de donner le contrat d'accès adapté. Se rapprocher du métier pour cet *id* de contrat. Pour limiter la liste des *tenants*, il faut rajouter un *extra var* à la ligne de commande ansible. Exemple ::
+.. note:: L'audit est lancé sur tous les *tenants* ; cependant, il est nécessaire de donner le contrat d'accès adapté. Se rapprocher du métier pour cet *id* de contrat. Pour limiter la liste des *tenants*, il faut rajouter un *extra var* à la ligne de commande ansible. Exemple ::
 
    -e vitam_tenant_ids=[0,1]
 
