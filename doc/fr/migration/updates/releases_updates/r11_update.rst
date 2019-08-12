@@ -16,27 +16,12 @@ La montée de version vers la *release* R11 est réalisée par réinstallation d
 Etapes de migration 
 ===================
 
-Procédure de réindexation des ObjectGroup 
------------------------------------------
-
-Sous ``deployment``, exécuter la commande suivante :
-
-``ansible-playbook -i environments/<inventaire> ansible-vitam-exploitation/reindex_es_data.yml --vault-password-file vault_pass.txt --tags objectgroup``
-
-ou, si ``vault_pass.txt`` n'a pas été renseigné :
-
-``ansible-playbook -i environments/<inventaire> ansible-vitam-exploitation/reindex_es_data.yml --ask-vault-pass --tags objectgroup``
-
-Les changement apportés touchent le mapping Elasticsearch de la collection ``ObjectGroup``. 
-
-.. note:: Ce `playbook` ne supprime pas les anciens indexes pour laisser à l'exploitant le soin de verifier que la procedure de migration s'est correctement déroulée. A l'issue, la suppression des index devenus inutiles devra être realisée manuellement.
-
 Migration des données de certificats
 ------------------------------------
 
 La version R11 apporte une modification quant à la déclaration des certificats. En effet, un bug empêchait l'intégration dans la solution :term:`VITAM` de certificats possédant un serial number long. 
 
-La commande suivante est à depuis le répertoire ``deployment`` sur les différents sites hébergeant la solution logicielle :term:`VITAM` :
+La commande suivante est à exécuter depuis le répertoire ``deployment`` sur les différents sites hébergeant la solution logicielle :term:`VITAM` :
 
 ``ansible-playbook -i environments/<inventaire> ansible-vitam-exploitation/R11_upgrade_serial_number.yml --vault-password-file vault_pass.txt``
 
@@ -45,7 +30,7 @@ ou, si ``vault_pass.txt`` n'a pas été renseigné :
 ``ansible-playbook -i environments/<inventaire> ansible-vitam-exploitation/R11_upgrade_serial_number.yml --ask-vault-pass``
 
 Migration des contrats d'entrée
---------------------------------
+-------------------------------
 
 La montée de version vers la *release* R11 requiert une migration de données (contrats d'entrée) suite à une modification sur les droits relatifs aux rattachements. Cette migration s'effectue à l'aide du playbook :
 
@@ -58,21 +43,21 @@ ou, si ``vault_pass.txt`` n'a pas été renseigné :
 
 Le template ``upgrade_contracts.js`` contient : 
 
-.. code-block:: bash
+.. literalinclude::  ../../../../../deployment/ansible-vitam-exploitation/roles/upgrade_R10_contracts/templates/upgrade_contracts.js.j2
+   :language: javascript
 
-    // Switch to masterdata database
-    db = db.getSiblingDB('masterdata');
+Réindexation ES Data
+--------------------
 
-    // Update IngestContract
-    db.IngestContract.find({}).forEach(function(item)
-    {
-        if (item.CheckParentLink == "ACTIVE") {
-            item.checkParentId = new Array(item.LinkParentId);
-        }
+La montée de version vers la *release* R11 requiert une réindexation totale d'ElasticSearch. Cette réindexation s'effectue à l'aide du playbook :
 
-    //    printjson(item);
-        db.IngestContract.update({_id: item._id}, item);
-    }); 
+``ansible-playbook -i environments/<inventaire> ansible-vitam-exploitation/reindex_es_data.yml --vault-password-file vault_pass.txt --extra-vars=@environments/vitam-pf-vars.yml --extra-vars=@environments/environment_vars.yml``
+
+ou, si ``vault_pass.txt`` n'a pas été renseigné :
+
+``ansible-playbook -i environments/<inventaire> ansible-vitam-exploitation/reindex_es_data.yml  --ask-vault-pass --extra-vars=@environments/vitam-pf-vars.yml --extra-vars=@environments/environment_vars.yml``
+
+.. note:: Ce `playbook` ne supprime pas les anciens indexes pour laisser à l'exploitant le soin de vérifier que la procédure de migration s'est correctement déroulée. A l'issue, la suppression des index devenus inutiles devra être réalisée manuellement.
 
 Vérification de la bonne migration des données
 ----------------------------------------------
@@ -85,7 +70,7 @@ Ou, si un fichier vault-password-file existe ::
 
     ansible-playbook -i <inventaire> ansible-playbok-exploitation/audit_coherence.yml --vault-password-file vault_pass.txt -e "access_contract=<contrat multitenant>"
 
-.. hint:: L'audit est lancé sur tous les *tenants* ; cependant, il est nécessaire de donner le contrat d'accès adapté. Se rapprocher du métier pour cet *id* de contrat. Pour limiter la liste des *tenants*, il faut rajouter un *extra var* à la ligne de commande ansible. Exemple ::
+.. note:: L'audit est lancé sur tous les *tenants* ; cependant, il est nécessaire de donner le contrat d'accès adapté. Se rapprocher du métier pour cet *id* de contrat. Pour limiter la liste des *tenants*, il faut rajouter un *extra var* à la ligne de commande ansible. Exemple ::
 
    -e vitam_tenant_ids=[0,1]
 
