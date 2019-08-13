@@ -1,7 +1,7 @@
 .. _bugfixes_updates: 
 
 Montées de version *bugfix*
-#########################
+############################
 
 .. toctree::
    :glob:
