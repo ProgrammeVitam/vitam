@@ -123,7 +123,11 @@ public enum LogbookTypeProcess {
     /**
      * Compute inherited rules process
      */
-    COMPUTE_INHERITED_RULES;
+    COMPUTE_INHERITED_RULES,
+    /**
+     * Compute inherited rules process delete
+     */
+    COMPUTE_INHERITED_RULES_DELETE;
 
     /**
      * Get the LogbookTypeProcess matching the given type

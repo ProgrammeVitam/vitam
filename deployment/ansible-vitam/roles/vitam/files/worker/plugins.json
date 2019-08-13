@@ -261,5 +261,8 @@
  },
  "COMPUTE_INHERITED_RULES_INVALIDATOR": {
     "className": "fr.gouv.vitam.worker.core.plugin.computeinheritedrules.ComputeInheritedRulesInvalidatorPlugin"
+ },
+  "COMPUTE_INHERITED_RULES_DELETE": {
+    "className": "fr.gouv.vitam.worker.core.plugin.computeinheritedrules.ComputeInheritedRulesDeletePlugin"
  }
 }

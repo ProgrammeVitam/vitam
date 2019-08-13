@@ -795,4 +795,22 @@ class AccessInternalClientRest extends DefaultClient implements AccessInternalCl
             consumeAnyEntityAndClose(response);
         }
     }
+
+    @Override
+    public RequestResponse<JsonNode> deleteComputeInheritedRules(JsonNode dslQuery)
+        throws AccessInternalClientServerException {
+        VitamThreadUtils.getVitamSession().checkValidRequestId();
+        MultivaluedMap<String, Object> headers = new MultivaluedHashMap<>();
+        headers.add(X_ACCESS_CONTRAT_ID, VitamThreadUtils.getVitamSession().getContractId());
+        Response response = null;
+        try {
+            response = performRequest(HttpMethod.DELETE, "/units/computedInheritedRules", headers, dslQuery,
+                APPLICATION_JSON_TYPE, APPLICATION_JSON_TYPE);
+            return RequestResponse.parseFromResponse(response);
+        } catch (VitamClientInternalException e) {
+            throw new AccessInternalClientServerException(INTERNAL_SERVER_ERROR, e);
+        } finally {
+            consumeAnyEntityAndClose(response);
+        }
+    }
 }

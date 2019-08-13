@@ -508,4 +508,23 @@ class AccessExternalClientRest extends DefaultClient implements AccessExternalCl
             consumeAnyEntityAndClose(response);
         }
     }
+
+    @Override
+    public RequestResponse<JsonNode> deleteComputedInheritedRules(VitamContext vitamContext,
+        JsonNode deleteComputedInheritedRulesQuery) throws VitamClientException {
+        Response response = null;
+        try {
+            response = performRequest(HttpMethod.DELETE, UNITS+AccessExtAPI.COMPUTEDINHERITEDRULES, vitamContext.getHeaders(), deleteComputedInheritedRulesQuery,
+                MediaType.APPLICATION_JSON_TYPE, MediaType.APPLICATION_JSON_TYPE, false);
+            return RequestResponse.parseFromResponse(response, JsonNode.class);
+        } catch (IllegalStateException e) {
+            LOGGER.error(COULD_NOT_PARSE_SERVER_RESPONSE, e);
+            throw createExceptionFromResponse(response);
+        } catch (VitamClientInternalException e) {
+            LOGGER.error(VITAM_CLIENT_INTERNAL_EXCEPTION, e);
+            throw new VitamClientException(e);
+        } finally {
+            consumeAnyEntityAndClose(response);
+        }
+    }
 }

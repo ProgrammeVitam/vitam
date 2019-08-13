@@ -70,6 +70,7 @@ import fr.gouv.vitam.common.server.application.resources.ApplicationStatusResour
 import fr.gouv.vitam.common.stream.VitamAsyncInputStreamResponse;
 
 import javax.ws.rs.Consumes;
+import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
 import javax.ws.rs.OPTIONS;
 import javax.ws.rs.POST;
@@ -747,6 +748,28 @@ public class AccessExternalResource extends ApplicationStatusResource {
         Status status;
         try (AccessInternalClient client = accessInternalClientFactory.getClient()) {
             RequestResponse<JsonNode> requestResponse = client.startComputeInheritedRules(dslQuery);
+            int st = requestResponse.isOk() ? Status.OK.getStatusCode() : requestResponse.getHttpCode();
+            return Response.status(st).entity(requestResponse).build();
+        } catch (AccessInternalClientServerException e) {
+            LOGGER.error("Error on preservation request", e);
+            status = Status.INTERNAL_SERVER_ERROR;
+            return Response.status(status)
+                .entity(VitamCodeHelper.toVitamError(VitamCode.ACCESS_EXTERNAL_CLIENT_ERROR,
+                    e.getLocalizedMessage()).setHttpCode(status.getStatusCode()))
+                .build();
+        }
+    }
+
+
+    @Path("/units/computedInheritedRules")
+    @DELETE
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    @Secured(permission = "computeInheritedRules:delete", description = "Lancer le processus de Suppression calcul des règles hérité pour la recherche")
+    public Response deleteComputeInheritedRules(@Dsl(value = DslSchema.BATCH_PROCESSING) JsonNode dslQuery) {
+        Status status;
+        try (AccessInternalClient client = accessInternalClientFactory.getClient()) {
+            RequestResponse<JsonNode> requestResponse = client.deleteComputeInheritedRules(dslQuery);
             int st = requestResponse.isOk() ? Status.OK.getStatusCode() : requestResponse.getHttpCode();
             return Response.status(st).entity(requestResponse).build();
         } catch (AccessInternalClientServerException e) {
