@@ -1,7 +1,7 @@
 Notes et procédures spécifiques R9
 ##################################
 
-.. caution:: Rappel : la montée de version vers la *release* R9 s'effectue depuis la *release* R7 (V1, *deprecated*) ou la *release* R8 (V1, *deprecated*) et doit être réalisée en s'appuyant sur les dernières versions bugfixes publiées. 
+.. caution:: Rappel : la montée de version vers la *release* R9 s'effectue depuis la *release* R7 (V1, *deprecated*) ou la *release* R8 (V1, *deprecated*) et doit être réalisée en s'appuyant sur les dernières versions *bugfixes* publiées. 
 
 Prérequis à la montée de version
 ================================
@@ -31,7 +31,20 @@ ou, si ``vault_pass.txt`` n'a pas été renseigné :
 
 A l'issue de l'exécution du `playbook`, les *timers* systemd ont été arrêtés, afin de ne pas perturber la migration.
 
-Il est également recommandé de ne lancer la procédure de migration qu'après s'être assuré que plus aucun `workflow` n'est en cours de traitement. 
+Il est également recommandé de ne lancer la procédure de migration qu'après s'être assuré que plus aucun `workflow` n'est ni en cours, ni en statut **FATAL**. 
+
+Arrêt des composants *externals*
+---------------------------------
+
+Les commandes suivantes sont à lancer depuis le répertoire ``deployment`` sur les différents sites hébergeant la solution logicielle :term:`VITAM` :
+
+``ansible-playbook -i environments/<inventaire> ansible-vitam-exploitation/stop_external.yml --vault-password-file vault_pass.txt``
+
+ou, si ``vault_pass.txt`` n'a pas été renseigné :
+
+``ansible-playbook -i environments/<inventaire> ansible-vitam-exploitation/stop_external.yml --ask-vault-pass``
+
+A l'issue de l'exécution du `playbook`, les composants *externals* ont été arrêtés, afin de ne pas perturber la migration.
 
 Reprise des données de certificats
 ----------------------------------
@@ -65,6 +78,10 @@ Montée de version
 =================
 
 La montée de version vers la *release* R9 est réalisée par réinstallation de la solution logicielle :term:`VITAM` grâce aux *playbooks* ansible fournis, et selon la procédure d'installation classique décrite dans le :term:`DIN`. 
+
+.. note:: Rappel : avant de procéder à la montée de version, on veillera tout particulièrement à la bonne mise en place des *repositories* :term:`VITAM` associés à la nouvelle version. Se reporter à la section du :term:`DIN` sur la mise en place des *repositories* :term:`VITAM`. 
+
+.. caution:: À l'issue de l'exécution du déploiement de Vitam, les composants *externals* ainsi que les *timers* systemd seront redémarrés. Il est donc recommandé de jouer les étapes de migration suivantes dans la foulée. 
 
 Etapes de migration 
 ===================
