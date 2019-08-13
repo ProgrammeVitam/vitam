@@ -8,7 +8,7 @@ Avant toute migration, il est attendu de la part des exploitants de vérifier :
 
 - Que la solution logicielle :term:`VITAM` fonctionne normalement
 - Que l'ensemble des `timers` systemd sont stoppés
-- Qu'aucun `workflow` n'est en statut **FATAL**
+- Qu'aucun `workflow` n'est ni en cours, ni en statut **FATAL**
 
 Se référer au chapitre « Suivi de l'état du système » du :term:`DEX` pour plus d'informations. 
 
