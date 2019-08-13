@@ -247,6 +247,21 @@ public class UserInterfaceTransactionManager {
     }
 
     /**
+     * deletecomputinheritedrules
+     *
+     * @param parameters search criteria as DSL query
+     * @param context Vitamcontext
+     * @return result
+     * @throws VitamClientException
+     */
+    public RequestResponse<JsonNode> deleteComputedInheritedRules(JsonNode parameters, VitamContext context)
+        throws VitamClientException {
+        try (AccessExternalClient client = accessExternalClientFactory.getClient()) {
+            return client.deleteComputedInheritedRules(context, parameters);
+        }
+    }
+
+    /**
      * Massive Rules update
      *
      * @param parameters search criteria as DSL query
@@ -570,7 +585,8 @@ public class UserInterfaceTransactionManager {
      * @return a JsonNode for dip results
      * @throws VitamClientException access client exception
      */
-    public RequestResponse exportProbativeValue(ProbativeValueRequest request, VitamContext context) throws VitamClientException {
+    public RequestResponse exportProbativeValue(ProbativeValueRequest request, VitamContext context)
+        throws VitamClientException {
         try (AdminExternalClient client = adminExternalClientFactory.getClient()) {
             return client.exportProbativeValue(context, request);
         }

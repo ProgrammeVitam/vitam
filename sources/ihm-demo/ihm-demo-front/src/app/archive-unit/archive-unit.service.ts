@@ -23,6 +23,7 @@ export class ArchiveUnitService {
   ELIMINATION_ACTION = 'elimination/action';
   PRESERVATION = 'preservation';
   COMPUTED_INHERITED_RULES = 'computedinheritedrules';
+  DELETE_COMPUTED_INHERITED_RULES = 'deletecomputedinheritedrules';
   
 
   static setInputRequest(request) {
@@ -110,6 +111,9 @@ export class ArchiveUnitService {
   }
   COMPUTEDINHERITEDRULES_SERVICE(body: any): Observable<VitamResponse> {
     return this.resourceService.post(`${this.ARCHIVE_UNIT_API}/${this.COMPUTED_INHERITED_RULES}`, undefined, body);
+  }
+  DELETECOMPUTEDINHERITEDRULES_SERVICE(body: any): Observable<VitamResponse> {
+    return this.resourceService.post(`${this.ARCHIVE_UNIT_API}/${this.DELETE_COMPUTED_INHERITED_RULES}`, undefined, body);
   }
 
 }

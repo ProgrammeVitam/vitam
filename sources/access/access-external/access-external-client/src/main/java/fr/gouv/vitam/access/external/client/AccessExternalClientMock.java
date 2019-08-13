@@ -135,6 +135,12 @@ class AccessExternalClientMock extends AbstractMockClient implements AccessExter
         throw new UnsupportedOperationException("Will not be implemented");
     }
 
+    @Override
+    public RequestResponse<JsonNode> deleteComputedInheritedRules(VitamContext vitamContext,
+        JsonNode deleteComputedInheritedRulesQuery) throws VitamClientException {
+        throw new UnsupportedOperationException("Will not be implemented");
+    }
+
     @Override public RequestResponse<JsonNode> launchPreservation(VitamContext vitamContext,
         PreservationRequest preservationRequest) {
         throw new UnsupportedOperationException("Will not be implemented");

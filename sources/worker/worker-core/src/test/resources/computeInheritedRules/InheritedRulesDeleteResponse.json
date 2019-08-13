@@ -1,0 +1,168 @@
+{
+  "httpCode": 302,
+  "$hits": {
+    "total": 1,
+    "offset": 0,
+    "limit": 10000,
+    "size": 1
+  },
+  "$results": [
+    {
+      "DescriptionLevel": "Item",
+      "Title": "BAD0431E2C5E80E5BD42D547A3ED5966.odt",
+      "Description": "Ut malesuada pretium enim, eu mattis tellus hendrerit sed. Nulla ac egestas ex. Mauris cursus posuere massa, tincidunt dignissim nisl blandit posuere. Cras pellentesque auctor rutrum. Quisque non tincidunt eros. Morbi malesuada leo sed nunc accumsan, eget placerat ligula tincidunt",
+      "TransactedDate": "2016-06-03T15:28:00",
+      "#id": "aeaqaaaaaeho6udzaamxualmov2fulqaaaaq",
+      "#tenant": 1,
+      "#object": "aebaaaaaaeho6udzaamxualmov2ftqaaaaaq",
+      "#unitups": [
+        "aeaqaaaaaeho6udzaamxualmov2ftviaaaba"
+      ],
+      "#min": 1,
+      "#max": 2,
+      "#allunitups": [
+        "aeaqaaaaaeho6udzaamxualmov2ftviaaaba"
+      ],
+      "#management": {},
+      "#unitType": "INGEST",
+      "#operations": [
+        "aeeaaaaaagho6udzaalwcalmov2cv3aaaaaq"
+      ],
+      "#opi": "aeeaaaaaagho6udzaalwcalmov2cv3aaaaaq",
+      "#originating_agency": "FRAN_NP_009913",
+      "#originating_agencies": [
+        "FRAN_NP_009913"
+      ],
+      "#storage": {
+        "offerIds": [
+          "offer-fs-1.service.consul"
+        ],
+        "strategyId": "default",
+        "#nbc": 1
+      },
+      "#version": 0,
+      "#sedaVersion": "2.1",
+      "#computedInheritedRules": {
+        "StorageRule": {
+          "FinalAction": []
+        },
+        "AppraisalRule": {
+          "FinalAction": [
+            "Keep"
+          ]
+        },
+        "DisseminationRule": {},
+        "AccessRule": {},
+        "ReuseRule": {},
+        "ClassificationRule": {
+          "ClassificationAudience": [],
+          "ClassificationLevel": [],
+          "ClassificationOwner": [],
+          "ClassificationReassessingDate": [],
+          "NeedReassessingAuthorization": []
+        },
+        "inheritedRulesAPIOutput": {
+          "GlobalProperties": [],
+          "StorageRule": {
+            "Rules": [],
+            "Properties": []
+          },
+          "AppraisalRule": {
+            "Rules": [],
+            "Properties": [
+              {
+                "UnitId": "aeaqaaaaaeho6udzaamxualmov2ftviaaaba",
+                "OriginatingAgency": "FRAN_NP_009913",
+                "Paths": [
+                  [
+                    "aeaqaaaaaeho6udzaamxualmov2fulqaaaaq",
+                    "aeaqaaaaaeho6udzaamxualmov2ftviaaaba"
+                  ]
+                ],
+                "PropertyName": "FinalAction",
+                "PropertyValue": "Keep"
+              }
+            ]
+          },
+          "DisseminationRule": {
+            "Rules": [],
+            "Properties": []
+          },
+          "ReuseRule": {
+            "Rules": [],
+            "Properties": []
+          },
+          "ClassificationRule": {
+            "Rules": [],
+            "Properties": []
+          },
+          "AccessRule": {
+            "Rules": [],
+            "Properties": []
+          }
+        },
+        "indexationDate": "2019-08-09"
+      },
+      "#validComputedInheritedRules": "true",
+      "InheritedRules": {
+        "GlobalProperties": [],
+        "StorageRule": {
+          "Rules": [],
+          "Properties": []
+        },
+        "AppraisalRule": {
+          "Rules": [],
+          "Properties": [
+            {
+              "UnitId": "aeaqaaaaaeho6udzaamxualmov2ftviaaaba",
+              "OriginatingAgency": "FRAN_NP_009913",
+              "Paths": [
+                [
+                  "aeaqaaaaaeho6udzaamxualmov2fulqaaaaq",
+                  "aeaqaaaaaeho6udzaamxualmov2ftviaaaba"
+                ]
+              ],
+              "PropertyName": "FinalAction",
+              "PropertyValue": "Keep"
+            }
+          ]
+        },
+        "DisseminationRule": {
+          "Rules": [],
+          "Properties": []
+        },
+        "ReuseRule": {
+          "Rules": [],
+          "Properties": []
+        },
+        "ClassificationRule": {
+          "Rules": [],
+          "Properties": []
+        },
+        "AccessRule": {
+          "Rules": [],
+          "Properties": []
+        }
+      }
+    }
+  ],
+  "$facetResults": [],
+  "$context": {
+    "$roots": [],
+    "$query": [
+      {
+        "$in": {
+          "#id": [
+            "aeaqaaaaaeho6udzaamxualmov2fulqaaaaq"
+          ]
+        },
+        "$depth": 1000
+      }
+    ],
+    "$filter": {
+      "$limit": 10000
+    },
+    "$projection": {},
+    "$facets": []
+  }
+}

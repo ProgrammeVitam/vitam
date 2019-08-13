@@ -48,7 +48,8 @@ export class MySelectionComponent extends PageComponent {
     {label: 'Préservation ', value: 'PRESERVATION'},
     {label: 'Relevé de valeur probante ', value: 'PROBATIVE_VALUE'},
     {label: 'Vider le panier', value: 'DELETE'},
-    {label: 'Calcul des échéances', value: 'COMPUTED_INHERITED_RULES'}
+    {label: 'Calcul des échéances', value: 'COMPUTED_INHERITED_RULES'},
+    {label: 'Suppression des échéances calculées', value: 'DELETE_COMPUTED_INHERITED_RULES'}
   ];
 
   frLocale = DateService.vitamFrLocale;
@@ -302,6 +303,15 @@ export class MySelectionComponent extends PageComponent {
             message = 'Erreur lors du lancement du process de Calcul des échéances';
           }
           break;
+      case 'DELETE_COMPUTED_INHERITED_RULES':
+          if (isOK) {
+            title = 'Suppression des échéances calculées';
+            message = 'Le processus de Suppression des échéances calculées est en cours';
+          } else {
+            title = 'Erreur de lancement du process Suppression des échéances calculées';
+            message = 'Erreur lors du lancement du process de Suppression des échéances calculées';
+          }
+          break;
       default:
         break;
     }
@@ -484,6 +494,16 @@ export class MySelectionComponent extends PageComponent {
           }
         );       
         break;
+    case 'DELETE_COMPUTED_INHERITED_RULES':
+        query = this.getQueryComputedInheritedRules(this.selectedArchiveUnits);
+        this.archiveUnitService.DELETECOMPUTEDINHERITEDRULES_SERVICE(query).subscribe(
+          () => {
+            this.displayActionEnded(this.selectedOption, true);
+          }, () => {
+            this.displayActionEnded(this.selectedOption, false);
+          }
+        );   
+        break;
       default:
         // TODO Display error ?
         console.log('No action selected');
@@ -495,6 +515,7 @@ export class MySelectionComponent extends PageComponent {
       case 'EXPORT':
       case 'AUDIT':
       case 'COMPUTED_INHERITED_RULES':
+      case 'DELETE_COMPUTED_INHERITED_RULES':
       case 'DELETE':
         return;
       case 'PROBATIVE_VALUE':
@@ -548,6 +569,7 @@ export class MySelectionComponent extends PageComponent {
       case 'EXPORT':
       case 'AUDIT':
       case 'COMPUTED_INHERITED_RULES':
+      case 'DELETE_COMPUTED_INHERITED_RULES':
       case 'DELETE':
         return true;
       case 'PROBATIVE_VALUE':
