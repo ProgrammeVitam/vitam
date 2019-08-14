@@ -2,5 +2,5 @@
 # handlers file for storage-offer-default
 - name: restart apache
   service:
-    name: "{{apache_service}}"
+    name: "{{ apache_service }}"
     state: "restarted"

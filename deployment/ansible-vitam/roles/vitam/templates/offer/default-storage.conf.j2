@@ -2,7 +2,7 @@
 provider: {{ vitam_offers[offer_conf]["provider"] }}
 
 {% if vitam_offers[offer_conf]["provider"] in ["filesystem","filesystem-hash"] %}
-storagePath: {{vitam_folder_data}}
+storagePath: {{ vitam_folder_data }}
 {% endif %}
 
 {% if vitam_offers[offer_conf]["provider"] in ["openstack-swift","openstack-swift-v2","openstack-swift-v3"] %}
@@ -12,7 +12,7 @@ swiftProjectName: {{ vitam_offers[offer_conf]["swiftProjectName"] | default("") 
 swiftUser: {{ vitam_offers[offer_conf]["swiftUser"] | default("") }}
 swiftPassword: {{ vitam_offers[offer_conf]["swiftPassword"] | default("") }}
 swiftUrl: {{ vitam_offers[offer_conf]["swiftUrl"] | default("") }}
-swiftTrustStore: {{vitam_folder_conf}}/truststore_{{ vitam_struct.vitam_component }}.jks
+swiftTrustStore: {{ vitam_folder_conf }}/truststore_{{ vitam_struct.vitam_component }}.jks
 swiftTrustStorePassword: {{ password_truststore }}
 swiftMaxConnectionsPerRoute: {{ vitam_offers[offer_conf]["swiftMaxConnectionsPerRoute"] | default(200) }}
 swiftMaxConnections: {{ vitam_offers[offer_conf]["swiftMaxConnections"] | default(1000) }}
@@ -34,7 +34,7 @@ s3ConnectionTimeout: {{ vitam_offers[offer_conf]["s3ConnectionTimeout"] | defaul
 s3SocketTimeout: {{ vitam_offers[offer_conf]["s3SocketTimeout"] | default(50000) }}
 s3RequestTimeout: {{ vitam_offers[offer_conf]["s3RequestTimeout"] | default(0) }}
 s3ClientExecutionTimeout: {{ vitam_offers[offer_conf]["s3ClientExecutionTimeout"] | default(0) }}
-s3TrustStore: {{vitam_folder_conf}}/truststore_{{ vitam_struct.vitam_component }}.jks
+s3TrustStore: {{ vitam_folder_conf }}/truststore_{{ vitam_struct.vitam_component }}.jks
 s3TrustStorePassword: {{ password_truststore }}
 {% endif %}
 
@@ -51,9 +51,9 @@ tapeLibraryConfiguration:
   topology:
     buckets:
  {% for bucket in vitam_offers[offer_conf]["topology"]["buckets"] %}
-        {{bucket.name}}:
-          tenants: {{bucket.tenants}}
-          tarBufferingTimeoutInMinutes: {{bucket.tarBufferingTimeoutInMinutes}}
+        {{ bucket.name }}:
+          tenants: {{ bucket.tenants }}
+          tarBufferingTimeoutInMinutes: {{ bucket.tarBufferingTimeoutInMinutes }}
  {% endfor %}
 
   tapeLibraries:

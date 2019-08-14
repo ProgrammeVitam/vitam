@@ -22,11 +22,11 @@
     - name: Deploy mongo-express container
       docker_container:
         name: "mongo-express"
-        image: "{{ mongo_express_image }}:{{mongo_express_version}}"
+        image: "{{ mongo_express_image }}:{{ mongo_express_version }}"
         state: started
         restart_policy: always
         ports:
-          - "{{mongo_express_external_port}}:{{mongo_express_port}}"
+          - "{{ mongo_express_external_port }}:{{ mongo_express_port }}"
         env:
           ME_CONFIG_MONGODB_SERVER: "{{ ip_service }}"
           ME_CONFIG_MONGODB_PORT: "{{ mongodb.mongos_port }}"

@@ -11,7 +11,7 @@
 
 - name: check whether VITAM parent dir already exists
   stat:
-    path: "{{vitam_defaults.folder.root_path}}"
+    path: "{{ vitam_defaults.folder.root_path }}"
   register: root_dir
 
 - name: fail if this VITAM parent dir is a symlink
@@ -21,16 +21,16 @@
 
 - name: Ensure parent dir is OK ith correct permissions
   file:
-    path: "{{vitam_defaults.folder.root_path}}"
+    path: "{{ vitam_defaults.folder.root_path }}"
     state: directory
     owner: root
     group: root
     mode: 0555
 
 # FIXME : put it in group_vars (root/root/555)
-- name: Ensure {{vitam_defaults.folder.root_path}} sub-directories exist
+- name: Ensure {{ vitam_defaults.folder.root_path }} sub-directories exist
   file:
-    path: "{{vitam_defaults.folder.root_path}}/{{ item }}"
+    path: "{{ vitam_defaults.folder.root_path }}/{{ item }}"
     owner: root
     group: root
     state: directory

@@ -126,7 +126,7 @@
 - name: Deploy common configuration files in sysconfig subdir
   template:
     src: "{{ item }}.j2"
-    dest: "{{vitam_folder_conf}}/sysconfig/{{ item }}"
+    dest: "{{ vitam_folder_conf }}/sysconfig/{{ item }}"
     owner: "{{ vitam_defaults.users.vitam }}"
     group: "{{ vitam_defaults.users.group }}"
     mode: "{{ vitam_defaults.folder.conf_permission }}"
@@ -140,7 +140,7 @@
 - name: Deploy common configuration files
   template:
     src: "{{ item }}.j2"
-    dest: "{{vitam_folder_conf}}/{{ item }}"
+    dest: "{{ vitam_folder_conf }}/{{ item }}"
     owner: "{{ vitam_defaults.users.vitam }}"
     group: "{{ vitam_defaults.users.group }}"
     mode: "{{ vitam_defaults.folder.conf_permission }}"
@@ -166,7 +166,7 @@
 - name: Deploy specific configuration files (can override the common configuration files)
   template:
     src: "{{ item }}"
-    dest: "{{vitam_folder_conf}}/{{ item | basename | regex_replace('\\.j2$') }}"
+    dest: "{{ vitam_folder_conf }}/{{ item | basename | regex_replace('\\.j2$') }}"
     owner: "{{ vitam_defaults.users.vitam }}"
     group: "{{ vitam_defaults.users.group }}"
     mode: "{{ vitam_defaults.folder.conf_permission }}"
@@ -180,7 +180,7 @@
 
 - name: Ensure that sub directories exists
   file:
-    path: "{{vitam_folder_conf}}/{{ item.path }}"
+    path: "{{ vitam_folder_conf }}/{{ item.path }}"
     state: directory
     owner: "{{ vitam_defaults.users.vitam }}"
     group: "{{ vitam_defaults.users.group }}"
@@ -193,7 +193,7 @@
 - name: Copy files and directories recursively
   template:
     src: '{{ item.src }}'
-    dest: "{{vitam_folder_conf}}/{{ item.path | regex_replace('\\.j2$') }}"
+    dest: "{{ vitam_folder_conf }}/{{ item.path | regex_replace('\\.j2$') }}"
     owner: "{{ vitam_defaults.users.vitam }}"
     group: "{{ vitam_defaults.users.group }}"
     mode: "{{ vitam_defaults.folder.conf_permission }}"
@@ -213,12 +213,12 @@
 
 - name: "Copy {{ vitam_struct.vitam_component }} jks keystore (server)"
   copy:
-    src: "{{inventory_dir}}/keystores/server/{{inventory_hostname}}/keystore_{{vitam_struct.vitam_component}}.jks"
-    dest: "{{vitam_folder_conf}}/keystore_{{vitam_struct.vitam_component}}.jks"
+    src: "{{ inventory_dir }}/keystores/server/{{ inventory_hostname }}/keystore_{{ vitam_struct.vitam_component }}.jks"
+    dest: "{{ vitam_folder_conf }}/keystore_{{ vitam_struct.vitam_component }}.jks"
     owner: "{{ vitam_defaults.users.vitam }}"
     group: "{{ vitam_defaults.users.group }}"
     mode: "{{ vitam_defaults.folder.conf_permission }}"
-  when: "{{ lookup('pipe', 'test -f {{inventory_dir}}/keystores/server/{{inventory_hostname}}/keystore_{{vitam_struct.vitam_component}}.jks || echo nofile') == \"\" }}"
+  when: "{{ lookup('pipe', 'test -f {{ inventory_dir }}/keystores/server/{{ inventory_hostname }}/keystore_{{ vitam_struct.vitam_component }}.jks || echo nofile') == \"\" }}"
   tags:
     - update_vitam_certificates
   notify:
@@ -226,12 +226,12 @@
 
 - name: "Copy truststore"
   copy:
-    src: "{{inventory_dir}}/keystores/client-{{vitam_certificate_client_type}}/truststore_{{vitam_certificate_client_type}}.jks"
-    dest: "{{vitam_folder_conf}}/truststore_{{vitam_struct.vitam_component}}.jks"
+    src: "{{ inventory_dir }}/keystores/client-{{ vitam_certificate_client_type }}/truststore_{{ vitam_certificate_client_type }}.jks"
+    dest: "{{ vitam_folder_conf }}/truststore_{{ vitam_struct.vitam_component }}.jks"
     owner: "{{ vitam_defaults.users.vitam }}"
     group: "{{ vitam_defaults.users.group }}"
     mode: "{{ vitam_defaults.folder.conf_permission }}"
-  when: "( vitam_certificate_client_type is defined ) and ( {{ lookup('pipe', 'test -f {{inventory_dir}}/keystores/client-{{vitam_certificate_client_type}}/truststore_{{vitam_certificate_client_type}}.jks || echo nofile') == \"\"}} )"
+  when: "( vitam_certificate_client_type is defined ) and ( {{ lookup('pipe', 'test -f {{ inventory_dir }}/keystores/client-{{ vitam_certificate_client_type }}/truststore_{{ vitam_certificate_client_type }}.jks || echo nofile') == \"\"}} )"
   tags:
     - update_vitam_certificates
   notify:
@@ -239,12 +239,12 @@
 
 - name: "Copy server grantedstore"
   copy:
-    src: "{{inventory_dir}}/keystores/client-{{vitam_certificate_client_type}}/grantedstore_{{vitam_certificate_client_type}}.jks"
-    dest: "{{vitam_folder_conf}}/grantedstore_{{vitam_struct.vitam_component}}.jks"
+    src: "{{ inventory_dir }}/keystores/client-{{ vitam_certificate_client_type }}/grantedstore_{{ vitam_certificate_client_type }}.jks"
+    dest: "{{ vitam_folder_conf }}/grantedstore_{{ vitam_struct.vitam_component }}.jks"
     owner: "{{ vitam_defaults.users.vitam }}"
     group: "{{ vitam_defaults.users.group }}"
     mode: "{{ vitam_defaults.folder.conf_permission }}"
-  when: "( vitam_certificate_client_type is defined ) and ( {{ lookup('pipe', 'test -f {{inventory_dir}}/keystores/server/{{inventory_hostname}}/keystore_{{vitam_struct.vitam_component}}.jks || echo nofile') == \"\"}} ) and ( {{ lookup('pipe', 'test -f {{inventory_dir}}/keystores/client-{{vitam_certificate_client_type}}/grantedstore_{{vitam_certificate_client_type}}.jks || echo nofile') == \"\"}} )"
+  when: "( vitam_certificate_client_type is defined ) and ( {{ lookup('pipe', 'test -f {{ inventory_dir }}/keystores/server/{{ inventory_hostname }}/keystore_{{ vitam_struct.vitam_component }}.jks || echo nofile') == \"\"}} ) and ( {{ lookup('pipe', 'test -f {{ inventory_dir }}/keystores/client-{{ vitam_certificate_client_type }}/grantedstore_{{ vitam_certificate_client_type }}.jks || echo nofile') == \"\"}} )"
   tags:
     - update_vitam_certificates
   notify:
@@ -252,12 +252,12 @@
 
 - name: "Copy {{ vitam_struct.vitam_component }} p12 keystore (clients)"
   copy:
-    src: "{{inventory_dir}}/keystores/client-{{vitam_certificate_client_type}}/keystore_{{vitam_struct.vitam_component}}.p12"
-    dest: "{{vitam_folder_conf}}/keystore_{{vitam_struct.vitam_component}}.p12"
+    src: "{{ inventory_dir }}/keystores/client-{{ vitam_certificate_client_type }}/keystore_{{ vitam_struct.vitam_component }}.p12"
+    dest: "{{ vitam_folder_conf }}/keystore_{{ vitam_struct.vitam_component }}.p12"
     owner: "{{ vitam_defaults.users.vitam }}"
     group: "{{ vitam_defaults.users.group }}"
     mode: "{{ vitam_defaults.folder.conf_permission }}"
-  when: "( vitam_certificate_client_type is defined ) and ( {{ lookup('pipe', 'test -f {{inventory_dir}}/keystores/client-{{vitam_certificate_client_type}}/keystore_{{vitam_struct.vitam_component}}.p12 || echo nofile') == \"\" }} )"
+  when: "( vitam_certificate_client_type is defined ) and ( {{ lookup('pipe', 'test -f {{ inventory_dir }}/keystores/client-{{ vitam_certificate_client_type }}/keystore_{{ vitam_struct.vitam_component }}.p12 || echo nofile') == \"\" }} )"
   tags:
     - update_vitam_certificates
   notify:
@@ -265,12 +265,12 @@
 
 - name: "Copy timestamp keystore"
   copy:
-    src: "{{inventory_dir}}/keystores/timestamping/keystore_{{vitam_timestamp_usage}}.p12"
-    dest: "{{ vitam_folder_conf }}/keystore_{{vitam_timestamp_usage}}.p12"
+    src: "{{ inventory_dir }}/keystores/timestamping/keystore_{{ vitam_timestamp_usage }}.p12"
+    dest: "{{ vitam_folder_conf }}/keystore_{{ vitam_timestamp_usage }}.p12"
     owner: "{{ vitam_defaults.users.vitam }}"
     group: "{{ vitam_defaults.users.group }}"
     mode: "{{ vitam_defaults.folder.conf_permission }}"
-  when: "( vitam_timestamp_usage is defined ) and ( {{ lookup('pipe', 'test -f {{inventory_dir}}/keystores/timestamping/keystore_{{vitam_timestamp_usage}}.p12 || echo nofile') == \"\" }} )"
+  when: "( vitam_timestamp_usage is defined ) and ( {{ lookup('pipe', 'test -f {{ inventory_dir }}/keystores/timestamping/keystore_{{ vitam_timestamp_usage }}.p12 || echo nofile') == \"\" }} )"
   tags:
     - update_vitam_certificates
   notify:

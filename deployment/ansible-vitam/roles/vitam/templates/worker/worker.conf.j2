@@ -9,9 +9,9 @@ urlWorkspace: {{vitam.workspace | client_url}}
 # Configuration jetty
 jettyConfig: jetty-config.xml
 #Configuration parallele
-capacity: {{vitam_worker_capacity}}
+capacity: {{ vitam_worker_capacity }}
 {% if vitam_worker_workerFamily is defined %}
-workerFamily: {{vitam_worker_workerFamily}}
+workerFamily: {{ vitam_worker_workerFamily }}
 {% endif %}
 
 indexInheritedRulesWithAPIV2OutputByTenant: [ "{{  vitam.worker.api_output_index_tenants | join('", "') }}" ]

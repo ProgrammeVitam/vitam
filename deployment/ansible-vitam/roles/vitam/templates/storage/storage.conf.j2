@@ -1,20 +1,20 @@
 urlWorkspace: {{ vitam.workspace | client_url }}
-timeoutMsPerKB: {{vitam.storageengine.timeoutMsPerKB}}
+timeoutMsPerKB: {{ vitam.storageengine.timeoutMsPerKB }}
 jettyConfig: jetty-config.xml
-zippingDirecorty: {{vitam_folder_data}}/storage_archives
-loggingDirectory: {{vitam_folder_log}}
-p12LogbookPassword: {{keystores.timestamping.secure_storage}}
-p12LogbookFile: keystore_{{vitam_timestamp_usage}}.p12
+zippingDirecorty: {{ vitam_folder_data }}/storage_archives
+loggingDirectory: {{ vitam_folder_log }}
+p12LogbookPassword: {{ keystores.timestamping.secure_storage }}
+p12LogbookFile: keystore_{{ vitam_timestamp_usage }}.p12
 storageTraceabilityOverlapDelay: {{ vitam.storageengine.storageTraceabilityOverlapDelay }}
-restoreBulkSize: {{vitam.storageengine.restoreBulkSize}}
-minBatchThreadPoolSize: {{vitam.storageengine.minBatchThreadPoolSize}}
-maxBatchThreadPoolSize: {{vitam.storageengine.maxBatchThreadPoolSize}}
-batchDigestComputationTimeout: {{vitam.storageengine.batchDigestComputationTimeout}}
-offerSynchronizationBulkSize: {{vitam.storageengine.offerSynchronizationBulkSize}}
-offerSyncThreadPoolSize: {{vitam.storageengine.offerSyncThreadPoolSize}}
-offerSyncNumberOfRetries: {{vitam.storageengine.offerSyncNumberOfRetries}}
-offerSyncFirstAttemptWaitingTime: {{vitam.storageengine.offerSyncFirstAttemptWaitingTime}}
-offerSyncWaitingTime: {{vitam.storageengine.offerSyncWaitingTime}}
+restoreBulkSize: {{ vitam.storageengine.restoreBulkSize }}
+minBatchThreadPoolSize: {{ vitam.storageengine.minBatchThreadPoolSize }}
+maxBatchThreadPoolSize: {{ vitam.storageengine.maxBatchThreadPoolSize }}
+batchDigestComputationTimeout: {{ vitam.storageengine.batchDigestComputationTimeout }}
+offerSynchronizationBulkSize: {{ vitam.storageengine.offerSynchronizationBulkSize }}
+offerSyncThreadPoolSize: {{ vitam.storageengine.offerSyncThreadPoolSize }}
+offerSyncNumberOfRetries: {{ vitam.storageengine.offerSyncNumberOfRetries }}
+offerSyncFirstAttemptWaitingTime: {{ vitam.storageengine.offerSyncFirstAttemptWaitingTime }}
+offerSyncWaitingTime: {{ vitam.storageengine.offerSyncWaitingTime }}
 #Basic Authentication
 adminBasicAuth:
 - userName: {{ admin_basic_auth_user }}

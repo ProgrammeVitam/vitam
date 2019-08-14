@@ -60,10 +60,10 @@ x509credentialsMatcher = fr.gouv.vitam.common.auth.core.authc.X509CredentialsSha
 
 {% if "x509Realm" in vitam_struct.authentication_realms %}
 x509Realm = fr.gouv.vitam.common.auth.core.realm.X509KeystoreFileWithRoleRealm
-x509Realm.grantedKeyStoreName = {{vitam_folder_conf}}/grantedstore_ihm-demo.jks
-x509Realm.grantedKeyStorePassphrase = {{password_grantedstore}}
-x509Realm.trustedKeyStoreName = {{vitam_folder_conf}}/truststore_ihm-demo.jks
-x509Realm.trustedKeyStorePassphrase = {{password_truststore}}
+x509Realm.grantedKeyStoreName = {{ vitam_folder_conf }}/grantedstore_ihm-demo.jks
+x509Realm.grantedKeyStorePassphrase = {{ password_grantedstore }}
+x509Realm.trustedKeyStoreName = {{ vitam_folder_conf }}/truststore_ihm-demo.jks
+x509Realm.trustedKeyStorePassphrase = {{ password_truststore }}
 x509Realm.credentialsMatcher = $x509credentialsMatcher
 x509Realm.certificateDnRoleMapping = "CN=userAdmin,O=Vitam,L=Paris":"admin", "CN=userUser,O=Vitam,L=Paris,C=FR":"user"
 {% endif %}
@@ -78,7 +78,7 @@ securityManager.realms = {% for realm in vitam_struct.authentication_realms %}{%
 # # set of User accounts.
 # #username = password
 {% for item in vitam_users %}
- {{item.login}}={{item.password|hash('sha256')}}, {{item.role}}
+ {{ item.login }}={{ item.password|hash('sha256') }}, {{ item.role }}
 {% endfor %}
 
 {% endif %}

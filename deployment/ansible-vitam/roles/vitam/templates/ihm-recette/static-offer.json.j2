@@ -11,10 +11,10 @@
     {% if item.asyncRead is defined %} "asyncRead": {{item.asyncRead|lower }}, {% endif %}
     "parameters" : {
         {% if vitam.storageofferdefault.https_enabled==true %}
-        "keyStore-keyPath": "{{vitam_folder_conf}}/keystore_storage.p12",
-        "keyStore-keyPassword": "{{keystores.client_storage.storage}}",
-        "trustStore-keyPath": "{{vitam_folder_conf}}/truststore_storage.jks",
-        "trustStore-keyPassword": "{{truststores.client_storage}}"
+        "keyStore-keyPath": "{{ vitam_folder_conf }}/keystore_storage.p12",
+        "keyStore-keyPassword": "{{ keystores.client_storage.storage }}",
+        "trustStore-keyPath": "{{ vitam_folder_conf }}/truststore_storage.jks",
+        "trustStore-keyPassword": "{{ truststores.client_storage }}"
         {% endif %}
     }
 }

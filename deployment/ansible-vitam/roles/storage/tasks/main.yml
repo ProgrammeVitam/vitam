@@ -3,7 +3,7 @@
 - name: copy file for driver in data
   template:
     src: "fr.gouv.vitam.storage.offers.workspace.driver.DriverImpl"
-    dest: "{{vitam_folder_data}}/fr.gouv.vitam.storage.offers.workspace.driver.DriverImpl"
+    dest: "{{ vitam_folder_data }}/fr.gouv.vitam.storage.offers.workspace.driver.DriverImpl"
     owner: "{{ vitam_defaults.users.vitam }}"
     group: "{{ vitam_defaults.users.group }}"
     mode: "{{ vitam_defaults.folder.conf_permission }}"

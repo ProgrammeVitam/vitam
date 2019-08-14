@@ -11,10 +11,10 @@
     - vitam
   vars:
     vitam_struct: "{{ vitam.ihm_recette }}"
-    password_keystore: "{{keystores.server.ihm_recette}}"
-    password_manager_keystore: "{{keystores.server.ihm_recette}}"
-    password_truststore: "{{truststores.client_external}}"
-    password_grantedstore: "{{grantedstores.client_external}}"
+    password_keystore: "{{ keystores.server.ihm_recette }}"
+    password_manager_keystore: "{{ keystores.server.ihm_recette }}"
+    password_truststore: "{{ truststores.client_external }}"
+    password_grantedstore: "{{ grantedstores.client_external }}"
     cluster_name: elasticsearch-data
     vitam_certificate_client_type: "external"
 

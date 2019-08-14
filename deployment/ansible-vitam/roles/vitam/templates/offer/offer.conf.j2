@@ -1,13 +1,13 @@
 contextPath: /
 # Smile : TODO : remove storagePath from this file
-storagePath: {{vitam_folder_data}}
+storagePath: {{ vitam_folder_data }}
 jettyConfig: jetty-config.xml
 authentication : {{ vitam_struct.https_enabled }}
 # Configuration MongoDB
 mongoDbNodes:
 {% for server in groups['hosts-mongos-offer'] %}
 {% if hostvars[server]['mongo_cluster_name'] == offer_conf or inventory_hostname == 'localhost' %}
-- dbHost: {{hostvars[server]['ip_service']}}
+- dbHost: {{ hostvars[server]['ip_service'] }}
   dbPort: {{ mongodb.mongos_port }}
 {% endif %}
 {% endfor %}

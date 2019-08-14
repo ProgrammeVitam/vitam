@@ -135,10 +135,10 @@
     - vitam
   vars:
     vitam_struct: "{{ vitam.storageofferdefault }}"
-    password_keystore: "{{keystores.server.offer}}"
-    password_manager_keystore: "{{keystores.server.offer}}"
-    password_truststore: "{{truststores.client_storage}}"
-    password_grantedstore: "{{grantedstores.client_storage}}"
+    password_keystore: "{{ keystores.server.offer }}"
+    password_manager_keystore: "{{ keystores.server.offer }}"
+    password_truststore: "{{ truststores.client_storage }}"
+    password_grantedstore: "{{ grantedstores.client_storage }}"
     vitam_certificate_client_type: "storage"
 
 - hosts: hosts-storage-engine
@@ -245,10 +245,10 @@
     - vitam
   vars:
     vitam_struct: "{{ vitam.accessexternal }}"
-    password_keystore: "{{keystores.server.access_external}}"
-    password_manager_keystore: "{{keystores.server.access_external}}"
-    password_truststore: "{{truststores.client_external}}"
-    password_grantedstore: "{{grantedstores.client_external}}"
+    password_keystore: "{{ keystores.server.access_external }}"
+    password_manager_keystore: "{{ keystores.server.access_external }}"
+    password_truststore: "{{ truststores.client_external }}"
+    password_grantedstore: "{{ grantedstores.client_external }}"
     vitam_certificate_client_type: "external"
 
 # 2 differents steps, due to https://github.com/ansible/ansible/issues/15476
@@ -258,10 +258,10 @@
     - { role: init_pronom, when: primary_site | lower == "true" }
   vars:
     vitam_struct: "{{ vitam.accessexternal }}"
-    password_keystore: "{{keystores.server.access_external}}"
-    password_manager_keystore: "{{keystores.server.access_external}}"
-    password_truststore: "{{truststores.client_external}}"
-    password_grantedstore: "{{grantedstores.client_external}}"
+    password_keystore: "{{ keystores.server.access_external }}"
+    password_manager_keystore: "{{ keystores.server.access_external }}"
+    password_truststore: "{{ truststores.client_external }}"
+    password_grantedstore: "{{ grantedstores.client_external }}"
     vitam_certificate_client_type: "external"
 
 - hosts: hosts-ingest-internal
@@ -281,10 +281,10 @@
    #- {role: clamav, when: vitam_struct.antivirus=='clamav' }
   vars:
     vitam_struct: "{{ vitam.ingestexternal }}"
-    password_keystore: "{{keystores.server.ingest_external}}"
-    password_manager_keystore: "{{keystores.server.ingest_external}}"
-    password_truststore: "{{truststores.client_external}}"
-    password_grantedstore: "{{grantedstores.client_external}}"
+    password_keystore: "{{ keystores.server.ingest_external }}"
+    password_manager_keystore: "{{ keystores.server.ingest_external }}"
+    password_truststore: "{{ truststores.client_external }}"
+    password_grantedstore: "{{ grantedstores.client_external }}"
     vitam_certificate_client_type: "external"
 
 - hosts: hosts-ihm-demo
@@ -294,7 +294,7 @@
   vars:
     vitam_struct: "{{ vitam.ihm_demo }}"
     vitam_certificate_client_type: "external"
-    password_keystore: "{{keystores.server.ihm_demo}}"
-    password_manager_keystore: "{{keystores.server.ihm_demo}}"
-    password_truststore: "{{truststores.client_external}}"
-    password_grantedstore: "{{grantedstores.client_external}}"
+    password_keystore: "{{ keystores.server.ihm_demo }}"
+    password_manager_keystore: "{{ keystores.server.ihm_demo }}"
+    password_truststore: "{{ truststores.client_external }}"
+    password_grantedstore: "{{ grantedstores.client_external }}"

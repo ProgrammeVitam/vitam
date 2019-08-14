@@ -16,7 +16,7 @@
 
 - name: Wait until kibana service is OK
   uri:
-    url: 'http://{{ip_admin}}:{{ composant.port }}/status'
+    url: 'http://{{ ip_admin }}:{{ composant.port }}/status'
     method: GET
     #status_code: 200,302
   register: kibana_result
@@ -40,7 +40,7 @@
   run_once: true
   tags: load_kibana
   uri:
-    url: "http://{{ip_admin}}:{{ composant.port }}/api/saved_objects/index-pattern/{{ item | basename | regex_replace('\\.json$') }}*?overwrite=true"
+    url: "http://{{ ip_admin }}:{{ composant.port }}/api/saved_objects/index-pattern/{{ item | basename | regex_replace('\\.json$') }}*?overwrite=true"
     method: POST
     body: "{\"attributes\": {{ lookup('file', '{{ item }}') }} }"
     body_format: json
@@ -59,7 +59,7 @@
   run_once: true
   tags: load_kibana
   uri:
-    url: "http://{{ip_admin}}:{{ composant.port }}/api/saved_objects/search/{{ item | basename | regex_replace('\\.json$') }}?overwrite=true"
+    url: "http://{{ ip_admin }}:{{ composant.port }}/api/saved_objects/search/{{ item | basename | regex_replace('\\.json$') }}?overwrite=true"
     method: POST
     body: "{\"attributes\": {{ lookup('file', '{{ item }}') }} }"
     body_format: json
@@ -78,7 +78,7 @@
   run_once: true
   tags: load_kibana
   uri:
-    url: "http://{{ip_admin}}:{{ composant.port }}/api/saved_objects/visualization/{{ item | basename | regex_replace('\\.json$') }}?overwrite=true"
+    url: "http://{{ ip_admin }}:{{ composant.port }}/api/saved_objects/visualization/{{ item | basename | regex_replace('\\.json$') }}?overwrite=true"
     method: POST
     body: "{\"attributes\": {{ lookup('file', '{{ item }}') }} }"
     body_format: json
@@ -97,7 +97,7 @@
   run_once: true
   tags: load_kibana
   uri:
-    url: "http://{{ip_admin}}:{{ composant.port }}/api/saved_objects/dashboard/{{ item | basename | regex_replace('\\.json$') }}?overwrite=true"
+    url: "http://{{ ip_admin }}:{{ composant.port }}/api/saved_objects/dashboard/{{ item | basename | regex_replace('\\.json$') }}?overwrite=true"
     method: POST
     body: "{\"attributes\": {{ lookup('file', '{{ item }}') }} }"
     body_format: json
@@ -117,7 +117,7 @@
   tags: load_kibana
   run_once: true
   uri:
-    url: "http://{{ip_admin}}:{{ kibana.data.port }}/api/kibana/settings"
+    url: "http://{{ ip_admin }}:{{ kibana.data.port }}/api/kibana/settings"
     method: POST
     body: ' {"changes":{"defaultIndex":"{{ composant.default_index_pattern }}"}}'
     headers:
@@ -134,7 +134,7 @@
   run_once: true
   tags: load_kibana
   uri:
-    url: "http://{{ip_admin}}:{{ composant.port }}/api/kibana/settings"
+    url: "http://{{ ip_admin }}:{{ composant.port }}/api/kibana/settings"
     method: POST
     body: "{\"changes\":{\"telemetry:optIn\": \"false\"}}"
     body_format: json

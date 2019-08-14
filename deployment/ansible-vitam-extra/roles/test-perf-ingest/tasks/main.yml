@@ -2,7 +2,7 @@
 # FIXME OMA : variabiliser les arborescences... et remettre / entre port et baseuri quand ansiblerie 2.1 sera mergée !
 - name: ensure no old result is present
   file:
-    path: "{{inventory_dir}}/report.csv"
+    path: "{{ inventory_dir }}/report.csv"
     state: absent
 
 - name: copy "jeux de données" for performance tests
@@ -22,7 +22,7 @@
 
 # - name: wait for ihm-recette port to be open
 #   wait_for:
-#     host: "{{ip_service}}"
+#     host: "{{ ip_service }}"
 #     port: "{{ vitam.ihm_recette.port_service }}"
 #     timeout: 60
 
@@ -31,7 +31,7 @@
     url: "https://{{ ip_service }}:{{ vitam.ihm_recette.port_service }}/{{ vitam.ihm_recette.baseuri }}/v1/api/login"
     validate_certs: no
     method: POST
-    body: '{"token":{"principal":"{{vitam_users[0].login}}","credentials": "{{vitam_users[0].password}}" }}' # First account is used
+    body: '{"token":{"principal":"{{ vitam_users[0].login }}","credentials": "{{ vitam_users[0].password }}" }}' # First account is used
     body_format: json
     status_code: 200
     headers:
@@ -52,11 +52,11 @@
     method: POST
     headers:
       Connection: "keep-alive"
-      X-Tenant-Id: "{{item}}"
+      X-Tenant-Id: "{{ item }}"
       X-CSRF-Token: "{{ connected.json.tokenCSRF }}"
 #      Content-Type: "application/octet-stream"
-      Cookie: "{{connected.set_cookie}}"
-      Host: "{{ip_service}}"
+      Cookie: "{{ connected.set_cookie }}"
+      Host: "{{ ip_service }}"
       body_format: json
     body: "{{ lookup('template','perf.json.j2') }}"
     body_format: json
@@ -76,7 +76,7 @@
 
 - name: download output file
   fetch:
-    src: "{{ vitam_defaults.folder.root_path }}/data/ihm-recette/report/performance/{{launched.results[0].content}}"
-    dest: "{{inventory_dir}}/report.csv"
+    src: "{{ vitam_defaults.folder.root_path }}/data/ihm-recette/report/performance/{{ launched.results[0].content }}"
+    dest: "{{ inventory_dir }}/report.csv"
     flat: yes
   ignore_errors: true

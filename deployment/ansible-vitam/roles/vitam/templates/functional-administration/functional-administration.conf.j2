@@ -2,7 +2,7 @@
 # Configuration MongoDB
 mongoDbNodes:
 {% for host in groups['hosts-mongos-data'] %}
-- dbHost: {{hostvars[host]['ip_service']}}
+- dbHost: {{ hostvars[host]['ip_service'] }}
   dbPort: {{ mongodb.mongos_port }}
 {% endfor %}
 dbName: masterdata
@@ -23,7 +23,7 @@ processingUrl: {{vitam.processing | client_url}}
 clusterName: {{ vitam_struct.cluster_name }}
 elasticsearchNodes:
 {% for host in groups['hosts-elasticsearch-data'] %}
-- hostName: {{hostvars[host]['ip_service']}}
+- hostName: {{ hostvars[host]['ip_service'] }}
   tcpPort: {{ elasticsearch.data.port_tcp }}
 {% endfor %}
 

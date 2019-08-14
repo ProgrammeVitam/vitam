@@ -95,7 +95,7 @@
 
     - name: Make sure /vitam/conf/offer directory exists & don't modify initial permissions
       file:
-        path: "{{vitam_defaults.folder.root_path}}/conf/offer/"
+        path: "{{ vitam_defaults.folder.root_path }}/conf/offer/"
         state: "directory"
       tags:
         - htaccess
@@ -103,7 +103,7 @@
     - name: apply .htaccess to hide some files
       copy:
         src: .htaccess
-        dest: "{{vitam_defaults.folder.root_path}}/conf/offer/.htaccess"
+        dest: "{{ vitam_defaults.folder.root_path }}/conf/offer/.htaccess"
         owner: "{{ vitam_defaults.users.vitam }}"
         group: "{{ vitam_defaults.users.group }}"
         mode: "{{ vitam_defaults.folder.conf_permission }}"

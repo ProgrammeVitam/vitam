@@ -2,7 +2,7 @@
 # handlers file for common
 - name: reload consul configuration
   service:
-    name: "vitam-{{consul_component}}"
+    name: "vitam-{{ consul_component }}"
     state: reloaded
 
 - name: restart service

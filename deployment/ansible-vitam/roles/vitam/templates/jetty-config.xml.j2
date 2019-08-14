@@ -119,7 +119,7 @@
 
     <Set name="RequestLog">
             <New id="RequestLogImpl" class="ch.qos.logback.access.jetty.RequestLogImpl">
-                <Set name="fileName">{{vitam_folder_conf}}/logback-access.xml</Set>
+                <Set name="fileName">{{ vitam_folder_conf }}/logback-access.xml</Set>
             </New>
     </Set>
     <Ref id="RequestLogImpl">
@@ -146,10 +146,10 @@
     </New>
         <New id="sslContextFactory" class="org.eclipse.jetty.util.ssl.SslContextFactory$Server">
         <Set name="KeyStorePath">{{ vitam_folder_conf }}/keystore_{{ vitam_struct.vitam_component }}.jks</Set>
-        <Set name="KeyStorePassword">{{password_keystore}}</Set>
-        <Set name="KeyManagerPassword">{{password_manager_keystore}}</Set>
+        <Set name="KeyStorePassword">{{ password_keystore }}</Set>
+        <Set name="KeyManagerPassword">{{ password_manager_keystore }}</Set>
         <Set name="TrustStorePath">{{ vitam_folder_conf }}/truststore_{{ vitam_struct.vitam_component }}.jks</Set>
-        <Set name="TrustStorePassword">{{password_truststore}}</Set>
+        <Set name="TrustStorePassword">{{ password_truststore }}</Set>
         <Set name="TrustStoreType">JKS</Set>
         <Set name="NeedClientAuth">false</Set>
         <Set name="WantClientAuth">true</Set>
@@ -206,7 +206,7 @@
                 </Item>
             </Array>
         </Arg>
-        <Set name="host">{{ip_service}}</Set>
+        <Set name="host">{{ ip_service }}</Set>
         <Set name="port">
             <SystemProperty name="jetty.port" default="{{ vitam_struct.port_service }}"/>
         </Set>

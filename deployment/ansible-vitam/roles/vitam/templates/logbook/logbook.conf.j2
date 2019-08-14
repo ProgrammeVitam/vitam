@@ -2,7 +2,7 @@
 # Configuration MongoDB
 mongoDbNodes:
 {% for server in groups['hosts-mongos-data'] %}
-- dbHost: {{hostvars[server]['ip_service']}}
+- dbHost: {{ hostvars[server]['ip_service'] }}
   dbPort: {{ mongodb.mongos_port }}
 {% endfor %}
 dbName: logbook
@@ -10,7 +10,7 @@ dbAuthentication: {{ mongodb.mongo_authentication }}
 dbUserName: {{ mongodb['mongo-data'].logbook.user }}
 dbPassword: {{ mongodb['mongo-data'].logbook.password }}
 jettyConfig: jetty-config.xml
-p12LogbookPassword: {{keystores.timestamping.secure_logbook}}
+p12LogbookPassword: {{ keystores.timestamping.secure_logbook }}
 p12LogbookFile: keystore_secure-logbook.p12
 workspaceUrl: {{ vitam.workspace | client_url }}
 processingUrl: {{ vitam.processing | client_url }}
@@ -19,7 +19,7 @@ processingUrl: {{ vitam.processing | client_url }}
 clusterName: {{ vitam_struct.cluster_name }}
 elasticsearchNodes:
 {% for server in groups['hosts-elasticsearch-data'] %}
-- hostName: {{hostvars[server]['ip_service']}}
+- hostName: {{ hostvars[server]['ip_service'] }}
   tcpPort: {{ elasticsearch.data.port_tcp }}
 {% endfor %}
 
