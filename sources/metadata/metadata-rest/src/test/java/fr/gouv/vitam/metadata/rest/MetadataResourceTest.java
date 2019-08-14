@@ -125,8 +125,8 @@ public class MetadataResourceTest {
     private static int serverPort;
 
     private static MetadataMain metadataMain;
-    static final int tenantId = 0;
-    static final List tenantList = Lists.newArrayList(tenantId);
+    private static final int tenantId = 0;
+    private static final List tenantList = Lists.newArrayList(tenantId);
     private static final Integer TENANT_ID = 0;
     private static ElasticsearchAccessMetadata elasticsearchAccessMetadata;
     private static ElasticsearchAccessFunctionalAdmin accessFunctionalAdmin;
@@ -150,6 +150,7 @@ public class MetadataResourceTest {
             Lists.newArrayList(FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL,
                 FunctionalAdminCollections.ACCESSION_REGISTER_SUMMARY));
         configuration.setJettyConfig(JETTY_CONFIG);
+        configuration.setUrlProcessing("http://processing.service.consul:8203/");
         VitamConfiguration.setTenants(tenantList);
         serverPort = junitHelper.findAvailablePort();
 

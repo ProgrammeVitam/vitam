@@ -82,7 +82,7 @@ public class ComputeInheritedRulesPreparationPlugin extends ActionHandler {
     }
 
     @VisibleForTesting
-    public ComputeInheritedRulesPreparationPlugin(MetaDataClientFactory metaDataClientFactory) {
+    ComputeInheritedRulesPreparationPlugin(MetaDataClientFactory metaDataClientFactory) {
         this.metaDataClientFactory = metaDataClientFactory;
 
     }

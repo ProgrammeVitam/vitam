@@ -1,4 +1,4 @@
-/*******************************************************************************
+/*
  * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2019)
  *
  * contact.vitam@culture.gouv.fr
@@ -23,14 +23,14 @@
  *
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
- *******************************************************************************/
+ */
 package fr.gouv.vitam.metadata.rest;
 
-import com.google.common.base.Throwables;
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.database.api.VitamRepositoryFactory;
 import fr.gouv.vitam.common.database.offset.OffsetRepository;
+import fr.gouv.vitam.common.exception.VitamRuntimeException;
 import fr.gouv.vitam.common.security.waf.SanityCheckerCommonFilter;
 import fr.gouv.vitam.common.security.waf.SanityDynamicFeature;
 import fr.gouv.vitam.common.serverv2.application.CommonBusinessApplication;
@@ -91,10 +91,10 @@ public class BusinessApplication extends Application {
             GraphFactory.initialize(vitamRepositoryProvider, metadata);
 
             MetadataRuleService metadataRuleService = new MetadataRuleService(metadata);
-            MetadataResource metaDataResource = new MetadataResource(metadata, metadataRuleService);
+            MetadataResource metaDataResource = new MetadataResource(metadata, metadataRuleService, metaDataConfiguration);
             MetadataRawResource metadataRawResource = new MetadataRawResource(vitamRepositoryProvider);
             MetadataManagementResource metadataReconstruction =
-                new MetadataManagementResource(vitamRepositoryProvider, offsetRepository, metadata);
+                new MetadataManagementResource(vitamRepositoryProvider, offsetRepository, metadata, metaDataConfiguration);
 
             singletons = new HashSet<>();
             singletons.addAll(commonBusinessApplication.getResources());
@@ -104,7 +104,7 @@ public class BusinessApplication extends Application {
             singletons.add(new SanityCheckerCommonFilter());
             singletons.add(new SanityDynamicFeature());
         } catch (IOException e) {
-            throw Throwables.propagate(e);
+            throw new VitamRuntimeException(e);
         }
     }
 

@@ -1189,7 +1189,7 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
         }
     }
 
-    public void checkAndUpdateRuleQuery(UpdateParserMultiple updateParser)
+    void checkAndUpdateRuleQuery(UpdateParserMultiple updateParser)
         throws AccessInternalRuleExecutionException, AccessInternalExecutionException, MetaDataNotFoundException {
         UpdateMultiQuery request = updateParser.getRequest();
         List<String> deletedCategoryRules = new LinkedList<>();
@@ -1758,6 +1758,15 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
         } catch (MetaDataDocumentSizeException |
             ProcessingException | MetaDataClientServerException | MetaDataExecutionException e) {
             throw new AccessInternalExecutionException(e);
+        }
+    }
+
+    @Override
+    public Response startComputeInheritedRules(JsonNode dslQuery) throws AccessInternalException {
+        try (MetaDataClient metaDataClient = metaDataClientFactory.getClient()) {
+            return metaDataClient.startComputeInheritedRules(dslQuery);
+        } catch (MetaDataClientServerException e) {
+            throw new AccessInternalException(e);
         }
     }
 

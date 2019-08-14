@@ -27,6 +27,7 @@
 
 package fr.gouv.vitam.metadata.client;
 
+import static fr.gouv.vitam.common.GlobalDataRest.X_ACCESS_CONTRAT_ID;
 import static javax.ws.rs.HttpMethod.POST;
 import static javax.ws.rs.core.MediaType.APPLICATION_JSON_TYPE;
 import static javax.ws.rs.core.Response.Status.OK;
@@ -35,6 +36,8 @@ import java.util.*;
 
 import javax.ws.rs.HttpMethod;
 import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.MultivaluedHashMap;
+import javax.ws.rs.core.MultivaluedMap;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
@@ -56,6 +59,7 @@ import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.*;
 import fr.gouv.vitam.common.model.massupdate.RuleActions;
+import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.metadata.api.exception.MetaDataAlreadyExistException;
 import fr.gouv.vitam.metadata.api.exception.MetaDataClientServerException;
 import fr.gouv.vitam.metadata.api.exception.MetaDataDocumentSizeException;
@@ -752,6 +756,17 @@ public class MetaDataClientRest extends DefaultClient implements MetaDataClient 
             throw new MetaDataClientServerException(INTERNAL_SERVER_ERROR, e);
         } finally {
             consumeAnyEntityAndClose(response);
+        }
+    }
+
+    @Override
+    public Response startComputeInheritedRules(JsonNode dslQuery) throws MetaDataClientServerException {
+        try {
+            MultivaluedMap<String, Object> headers = new MultivaluedHashMap<>();
+            headers.add(X_ACCESS_CONTRAT_ID, VitamThreadUtils.getVitamSession().getContractId());
+            return performRequest(POST, "/units/computedInheritedRules", headers, dslQuery, APPLICATION_JSON_TYPE, APPLICATION_JSON_TYPE);
+        } catch (VitamClientInternalException e) {
+            throw new MetaDataClientServerException(INTERNAL_SERVER_ERROR, e);
         }
     }
 

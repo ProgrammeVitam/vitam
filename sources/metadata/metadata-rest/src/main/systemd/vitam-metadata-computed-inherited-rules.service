@@ -1,0 +1,17 @@
+[Unit]
+Description=Launch vitam computed inherited rules script for metadata
+
+Wants=network.target
+After=network.target
+
+[Service]
+Type=oneshot
+EnvironmentFile=/vitam/conf/metadata/reconstruction.conf
+ExecStart=/vitam/script/metadata/computed_inherited_rules.sh
+User=vitam
+Group=vitam
+StandardOutput=syslog
+StandardError=syslog
+
+[Install]
+WantedBy=multi-user.target

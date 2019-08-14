@@ -51,6 +51,11 @@
 			<version>${project.version}</version>
 		</dependency>
 		<dependency>
+			<groupId>fr.gouv.vitam</groupId>
+			<artifactId>common-security</artifactId>
+			<version>${project.version}</version>
+		</dependency>
+		<dependency>
             <groupId>ru.yandex.qatools.embed</groupId>
             <artifactId>embedded-services</artifactId>
             <scope>test</scope>
@@ -116,7 +121,7 @@
             <artifactId>json-unit</artifactId>
             <scope>test</scope>
         </dependency>
-	</dependencies>
+    </dependencies>
 
 
 	<build>

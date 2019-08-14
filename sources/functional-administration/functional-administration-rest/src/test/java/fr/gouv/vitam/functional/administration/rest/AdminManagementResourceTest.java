@@ -303,7 +303,6 @@ public class AdminManagementResourceTest {
         given().contentType(ContentType.BINARY).body(stream).header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
             .header(GlobalDataRest.X_FILENAME, "FF-vitam-format-KO.xml")
             .header(GlobalDataRest.X_REQUEST_ID, VitamThreadUtils.getVitamSession().getRequestId())
-
             .when().post(IMPORT_FORMAT_URI)
             .then().statusCode(Status.BAD_REQUEST.getStatusCode());
     }

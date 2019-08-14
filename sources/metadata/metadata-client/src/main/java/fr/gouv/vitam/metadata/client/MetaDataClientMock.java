@@ -29,6 +29,8 @@ import fr.gouv.vitam.metadata.api.exception.MetadataInvalidSelectException;
 import fr.gouv.vitam.metadata.api.model.ObjectGroupPerOriginatingAgency;
 import fr.gouv.vitam.metadata.api.model.UnitPerOriginatingAgency;
 
+import javax.ws.rs.core.Response;
+
 /**
  * Mock client implementation for metadata
  */
@@ -223,6 +225,11 @@ public class MetaDataClientMock extends AbstractMockClient implements MetaDataCl
 
     @Override
     public void deleteObjectGroupBulk(Collection<String> listIds) {
+        throw new IllegalStateException("Stop using mocks in production");
+    }
+
+    @Override
+    public Response startComputeInheritedRules(JsonNode dslQuery) throws MetaDataClientServerException {
         throw new IllegalStateException("Stop using mocks in production");
     }
 }

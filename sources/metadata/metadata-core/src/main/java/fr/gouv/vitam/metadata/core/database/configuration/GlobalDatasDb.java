@@ -108,9 +108,4 @@ public class GlobalDatasDb extends GlobalDatasParser {
      */
     public static final int DEFAULT_LIMIT_SCROLL = 100;
 
-    /**
-     * default limit scroll timeout
-     */
-    public static final int DEFAULT_SCROLL_TIMEOUT = 60000;
-
 }

@@ -99,7 +99,7 @@ public class AdminMetadataApplication extends Application {
 
             final MetadataManagementResource metadataReconstructionResource =
                 new MetadataManagementResource(vitamRepositoryProvider, offsetRepository,
-                    metadata);
+                    metadata, metaDataConfiguration);
 
             singletons = new HashSet<>();
             singletons.addAll(adminApplication.getSingletons());

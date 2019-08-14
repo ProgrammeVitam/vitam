@@ -27,6 +27,7 @@
 package fr.gouv.vitam.access.internal.api;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import fr.gouv.vitam.access.internal.common.exception.AccessInternalException;
 import fr.gouv.vitam.access.internal.common.exception.AccessInternalExecutionException;
 import fr.gouv.vitam.access.internal.common.exception.AccessInternalRuleExecutionException;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
@@ -160,6 +161,9 @@ public interface AccessInternalModule {
      */
     JsonNode selectUnitsWithInheritedRules(JsonNode jsonQuery)
         throws IllegalArgumentException, InvalidParseOperationException, AccessInternalExecutionException;
+
+
+    Response startComputeInheritedRules(JsonNode dslQuery) throws AccessInternalException;
 
     /**
      * check ClassificationLevel in update Unit

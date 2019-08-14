@@ -24,6 +24,7 @@
   with_items:
     - reconstruction.sh
     - storegraph.sh
+    - computed_inherited_rules.sh
     - reconstruction_payload.json
 
 - name: Copy the metadata reconstruction conf

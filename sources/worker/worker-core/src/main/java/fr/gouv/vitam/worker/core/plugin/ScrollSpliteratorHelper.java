@@ -29,7 +29,9 @@ package fr.gouv.vitam.worker.core.plugin;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import fr.gouv.vitam.batch.report.client.BatchReportClient;
+import fr.gouv.vitam.common.database.builder.request.configuration.GlobalDatas;
 import fr.gouv.vitam.common.database.builder.request.multiple.SelectMultiQuery;
+import fr.gouv.vitam.common.database.parser.request.GlobalDatasParser;
 import fr.gouv.vitam.common.database.utils.ScrollSpliterator;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamClientInternalException;
@@ -41,7 +43,6 @@ import fr.gouv.vitam.metadata.api.exception.MetaDataClientServerException;
 import fr.gouv.vitam.metadata.api.exception.MetaDataDocumentSizeException;
 import fr.gouv.vitam.metadata.api.exception.MetaDataExecutionException;
 import fr.gouv.vitam.metadata.client.MetaDataClient;
-import fr.gouv.vitam.metadata.core.database.configuration.GlobalDatasDb;
 
 import static fr.gouv.vitam.common.json.JsonHandler.createObjectNode;
 
@@ -57,7 +58,7 @@ public class ScrollSpliteratorHelper {
      */
     public static ScrollSpliterator<JsonNode> createUnitScrollSplitIterator(final MetaDataClient client,
         final SelectMultiQuery selectMultiQuery) {
-        return createUnitScrollSplitIterator(client, selectMultiQuery, GlobalDatasDb.LIMIT_LOAD);
+        return createUnitScrollSplitIterator(client, selectMultiQuery, GlobalDatas.LIMIT_LOAD);
 
 
     }
@@ -80,7 +81,7 @@ public class ScrollSpliteratorHelper {
                 } catch (MetaDataExecutionException | MetaDataDocumentSizeException | MetaDataClientServerException | InvalidParseOperationException e) {
                     throw new IllegalStateException(e);
                 }
-            }, GlobalDatasDb.DEFAULT_SCROLL_TIMEOUT, bachSize);
+            }, GlobalDatasParser.DEFAULT_SCROLL_TIMEOUT, bachSize);
     }
 
     public static ScrollSpliterator<JsonNode> createUnitsToInvalidateScrollSpliterator(final BatchReportClient client,
@@ -94,7 +95,7 @@ public class ScrollSpliteratorHelper {
                 } catch (InvalidParseOperationException | VitamClientInternalException e) {
                     throw new IllegalStateException(e);
                 }
-            }, GlobalDatasDb.DEFAULT_SCROLL_TIMEOUT, bachSize);
+            }, GlobalDatasParser.DEFAULT_SCROLL_TIMEOUT, bachSize);
     }
 
     /***
@@ -114,7 +115,8 @@ public class ScrollSpliteratorHelper {
                 } catch (MetaDataExecutionException | MetaDataDocumentSizeException | MetaDataClientServerException | InvalidParseOperationException e) {
                     throw new IllegalStateException(e);
                 }
-            }, GlobalDatasDb.DEFAULT_SCROLL_TIMEOUT, bachSize);
+            }, GlobalDatasParser
+            .DEFAULT_SCROLL_TIMEOUT, bachSize);
 
     }
 
@@ -126,7 +128,7 @@ public class ScrollSpliteratorHelper {
      */
     public static ScrollSpliterator<JsonNode> createObjectGroupScrollSplitIterator(final MetaDataClient client,
         final SelectMultiQuery selectMultiQuery) {
-        return createObjectGroupScrollSplitIterator(client, selectMultiQuery, GlobalDatasDb.LIMIT_LOAD);
+        return createObjectGroupScrollSplitIterator(client, selectMultiQuery, GlobalDatas.LIMIT_LOAD);
     }
 
     public static ScrollSpliterator<JsonNode> getUnitWithInheritedRulesScrollSpliterator(SelectMultiQuery request,
@@ -139,7 +141,7 @@ public class ScrollSpliteratorHelper {
                 } catch (InvalidParseOperationException | MetaDataExecutionException | MetaDataDocumentSizeException | MetaDataClientServerException e) {
                     throw new IllegalStateException(e);
                 }
-            }, GlobalDatasDb.DEFAULT_SCROLL_TIMEOUT, GlobalDatasDb.LIMIT_LOAD);
+            }, GlobalDatasParser.DEFAULT_SCROLL_TIMEOUT, GlobalDatas.LIMIT_LOAD);
     }
 
     /**Check number of result

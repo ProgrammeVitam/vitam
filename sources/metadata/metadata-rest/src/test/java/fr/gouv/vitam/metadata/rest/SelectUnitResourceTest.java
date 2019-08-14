@@ -203,6 +203,7 @@ public class SelectUnitResourceTest {
             new MetaDataConfiguration(mongo_nodes, MongoRule.VITAM_DB, ElasticsearchRule.VITAM_CLUSTER, nodes);
         VitamConfiguration.setTenants(tenantList);
         configuration.setJettyConfig(JETTY_CONFIG);
+        configuration.setUrlProcessing("http://processing.service.consul:8203/");
         serverPort = junitHelper.findAvailablePort();
 
         File configurationFile = tempFolder.newFile();

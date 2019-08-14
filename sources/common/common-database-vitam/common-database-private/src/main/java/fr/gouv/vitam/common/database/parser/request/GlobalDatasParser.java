@@ -66,6 +66,11 @@ public class GlobalDatasParser extends GlobalDatas {
      */
     public static final int NB_ACTIONS = 10000;
 
+    /**
+     * default limit scroll timeout
+     */
+    public static final int DEFAULT_SCROLL_TIMEOUT = 60000;
+
     protected GlobalDatasParser() {
         // empty
     }

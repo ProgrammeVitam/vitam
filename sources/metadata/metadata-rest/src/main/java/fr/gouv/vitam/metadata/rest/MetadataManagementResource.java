@@ -1,4 +1,4 @@
-/*******************************************************************************
+/*
  * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2019)
  *
  * contact.vitam@culture.gouv.fr
@@ -23,7 +23,7 @@
  *
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
- *******************************************************************************/
+ */
 package fr.gouv.vitam.metadata.rest;
 
 import com.fasterxml.jackson.databind.JsonNode;
@@ -32,15 +32,44 @@ import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.database.api.VitamRepositoryProvider;
+import fr.gouv.vitam.common.database.builder.query.BooleanQuery;
+import fr.gouv.vitam.common.database.builder.query.QueryHelper;
+import fr.gouv.vitam.common.database.builder.query.VitamFieldsHelper;
+import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
+import fr.gouv.vitam.common.database.builder.request.single.Select;
 import fr.gouv.vitam.common.database.offset.OffsetRepository;
+import fr.gouv.vitam.common.error.ServiceName;
+import fr.gouv.vitam.common.error.VitamCode;
+import fr.gouv.vitam.common.error.VitamCodeHelper;
+import fr.gouv.vitam.common.error.VitamError;
+import fr.gouv.vitam.common.exception.BadRequestException;
+import fr.gouv.vitam.common.exception.InternalServerException;
+import fr.gouv.vitam.common.exception.InvalidGuidOperationException;
+import fr.gouv.vitam.common.exception.InvalidParseOperationException;
+import fr.gouv.vitam.common.exception.VitamClientException;
+import fr.gouv.vitam.common.guid.GUID;
+import fr.gouv.vitam.common.guid.GUIDFactory;
+import fr.gouv.vitam.common.guid.GUIDReader;
+import fr.gouv.vitam.common.i18n.VitamLogbookMessages;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.AuthenticationLevel;
 import fr.gouv.vitam.common.model.GraphComputeResponse;
 import fr.gouv.vitam.common.model.GraphComputeResponse.GraphComputeAction;
+import fr.gouv.vitam.common.model.RequestResponse;
+import fr.gouv.vitam.common.model.RequestResponseError;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.security.rest.VitamAuthentication;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
+import fr.gouv.vitam.logbook.common.exception.LogbookClientAlreadyExistsException;
+import fr.gouv.vitam.logbook.common.exception.LogbookClientBadRequestException;
+import fr.gouv.vitam.logbook.common.exception.LogbookClientServerException;
+import fr.gouv.vitam.logbook.common.parameters.LogbookOperationParameters;
+import fr.gouv.vitam.logbook.common.parameters.LogbookParametersFactory;
+import fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess;
+import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClient;
+import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClientFactory;
+import fr.gouv.vitam.metadata.api.config.MetaDataConfiguration;
 import fr.gouv.vitam.metadata.api.model.ReclassificationChildNodeExportRequest;
 import fr.gouv.vitam.metadata.core.MetaDataImpl;
 import fr.gouv.vitam.metadata.core.database.collections.MetadataCollections;
@@ -51,6 +80,13 @@ import fr.gouv.vitam.metadata.core.graph.api.GraphComputeService;
 import fr.gouv.vitam.metadata.core.model.ReconstructionRequestItem;
 import fr.gouv.vitam.metadata.core.model.ReconstructionResponseItem;
 import fr.gouv.vitam.metadata.core.reconstruction.ReconstructionService;
+import fr.gouv.vitam.processing.common.ProcessingEntry;
+import fr.gouv.vitam.processing.management.client.ProcessingManagementClient;
+import fr.gouv.vitam.processing.management.client.ProcessingManagementClientFactory;
+import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageAlreadyExistException;
+import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
+import fr.gouv.vitam.workspace.client.WorkspaceClient;
+import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
 
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
@@ -67,6 +103,16 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import static fr.gouv.vitam.common.json.JsonHandler.writeToInpustream;
+import static fr.gouv.vitam.common.model.ProcessAction.RESUME;
+import static fr.gouv.vitam.common.model.StatusCode.STARTED;
+import static fr.gouv.vitam.common.thread.VitamThreadUtils.getVitamSession;
+import static fr.gouv.vitam.logbook.common.parameters.Contexts.COMPUTE_INHERITED_RULES;
+import static fr.gouv.vitam.logbook.common.parameters.Contexts.PRESERVATION;
+import static javax.ws.rs.core.Response.Status.BAD_REQUEST;
+import static javax.ws.rs.core.Response.Status.INTERNAL_SERVER_ERROR;
+import static javax.ws.rs.core.Response.Status.OK;
+
 /**
  * Metadata reconstruction resource.
  */
@@ -77,68 +123,74 @@ public class MetadataManagementResource {
      * Vitam Logger.
      */
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(MetadataManagementResource.class);
+
     public static final String OBJECTGROUP = "OBJECTGROUP";
     public static final String UNIT = "UNIT";
-    public static final String UNIT_OBJECTGROUP = UNIT + "_" + OBJECTGROUP;
-    private final static String EXPORT_RECLASSIFICATION_CHILD_NODES = "exportReclassificationChildNodes";
 
-    private final String RECONSTRUCTION_URI = "/reconstruction";
-    private final String STORE_GRAPH_URI = "/storegraph";
-    private final String COMPUTE_GRAPH_URI = "/computegraph";
-    private final String PURGE_GRAPH_ONLY_DOCUMENTS = "/purgeGraphOnlyDocuments";
-    private final String STORE_GRAPH_PROGRESS_URI = "/storegraph/progress";
-    private final String COMPUTE_GRAPH_PROGRESS_URI = "/computegraph/progress";
+
+    private static final String CONTEXT_METADATA = "METADATA";
+    private static final String CODE_VITAM = "code_vitam";
+
+    private static final String UNIT_OBJECTGROUP = UNIT + "_" + OBJECTGROUP;
+    private static final String EXPORT_RECLASSIFICATION_CHILD_NODES = "exportReclassificationChildNodes";
+
+    private static final String RECONSTRUCTION_URI = "/reconstruction";
+    private static final String STORE_GRAPH_URI = "/storegraph";
+    private static final String COMPUTE_GRAPH_URI = "/computegraph";
+    private static final String PURGE_GRAPH_ONLY_DOCUMENTS_URI = "/purgeGraphOnlyDocuments";
+    private static final String STORE_GRAPH_PROGRESS_URI = "/storegraph/progress";
+    private static final String COMPUTE_GRAPH_PROGRESS_URI = "/computegraph/progress";
+    private static final String COMPUTED_INHERITED_RULES_OBSOLETE_URI = "/units/computedInheritedRules/processObsoletes";
+
     /**
      * Error/Exceptions messages.
      */
-    private static final String RECONSTRUCTION_JSON_MONDATORY_PARAMETERS_MSG =
-        "the Json input of reconstruction's parameters is mondatory.";
-    private static final String RECONSTRUCTION_EXCEPTION_MSG =
-        "ERROR: Exception has been thrown when reconstructing Vitam collections: ";
-    private static final String STORE_GRAPH_EXCEPTION_MSG =
-        "ERROR: Exception has been thrown when sotre graph: ";
+    private static final String RECONSTRUCTION_JSON_MONDATORY_PARAMETERS_MSG = "the Json input of reconstruction's parameters is mondatory.";
+    private static final String RECONSTRUCTION_EXCEPTION_MSG = "ERROR: Exception has been thrown when reconstructing Vitam collections: ";
+    private static final String STORE_GRAPH_EXCEPTION_MSG = "ERROR: Exception has been thrown when sotre graph: ";
+    private static final String COMPUTE_GRAPH_EXCEPTION_MSG = "ERROR: Exception has been thrown when compute graph: ";
+    private static final String ERROR_MSG = "{\"ErrorMsg\":\"";
 
-    private static final String COMPUTE_GRAPH_EXCEPTION_MSG =
-        "ERROR: Exception has been thrown when compute graph: ";
-
-    /**
-     * Reconstruction service.
-     */
     private final ReconstructionService reconstructionService;
     private final StoreGraphService storeGraphService;
     private final GraphComputeService graphComputeService;
     private final ReclassificationDistributionService reclassificationDistributionService;
+    private final ProcessingManagementClientFactory processingManagementClientFactory;
+    private final LogbookOperationsClientFactory logbookOperationsClientFactory;
+    private final WorkspaceClientFactory workspaceClientFactory;
 
-    /**
-     * Constructor
-     *
-     * @param vitamRepositoryProvider vitamRepositoryProvider
-     * @param offsetRepository
-     */
-    public MetadataManagementResource(VitamRepositoryProvider vitamRepositoryProvider,
-        OffsetRepository offsetRepository, MetaDataImpl metadata) {
+    @VisibleForTesting
+    MetadataManagementResource(VitamRepositoryProvider vitamRepositoryProvider,
+        OffsetRepository offsetRepository, MetaDataImpl metadata, MetaDataConfiguration configuration) {
         this(new ReconstructionService(vitamRepositoryProvider, offsetRepository),
             new StoreGraphService(vitamRepositoryProvider),
             GraphComputeServiceImpl.initialize(vitamRepositoryProvider, metadata),
-            new ReclassificationDistributionService(vitamRepositoryProvider));
+            new ReclassificationDistributionService(vitamRepositoryProvider),
+            ProcessingManagementClientFactory.getInstance(),
+            LogbookOperationsClientFactory.getInstance(),
+            WorkspaceClientFactory.getInstance(),
+            configuration);
     }
 
-    /**
-     * Constructor for tests
-     *
-     * @param reconstructionService
-     * @param storeGraphService
-     */
     @VisibleForTesting
-    public MetadataManagementResource(
+    MetadataManagementResource(
         ReconstructionService reconstructionService,
         StoreGraphService storeGraphService,
         GraphComputeService graphComputeService,
-        ReclassificationDistributionService reclassificationDistributionService) {
+        ReclassificationDistributionService reclassificationDistributionService,
+        ProcessingManagementClientFactory processingManagementClientFactory,
+        LogbookOperationsClientFactory logbookOperationsClientFactory,
+        WorkspaceClientFactory workspaceClientFactory,
+        MetaDataConfiguration configuration) {
         this.reconstructionService = reconstructionService;
         this.storeGraphService = storeGraphService;
         this.graphComputeService = graphComputeService;
         this.reclassificationDistributionService = reclassificationDistributionService;
+        this.processingManagementClientFactory = processingManagementClientFactory;
+        this.logbookOperationsClientFactory = logbookOperationsClientFactory;
+        this.workspaceClientFactory = workspaceClientFactory;
+
+        ProcessingManagementClientFactory.changeConfigurationUrl(configuration.getUrlProcessing());
     }
 
     /**
@@ -195,10 +247,9 @@ public class MetadataManagementResource {
             return Response.ok().entity(map).build();
         } catch (Exception e) {
             LOGGER.error(STORE_GRAPH_EXCEPTION_MSG, e);
-            return Response.serverError().entity("{\"ErrorMsg\":\"" + e.getMessage() + "\"}").build();
+            return Response.serverError().entity(ERROR_MSG + e.getMessage() + "\"}").build();
         }
     }
-
 
     /**
      * Check if store graph is in progress.<br/>
@@ -247,7 +298,7 @@ public class MetadataManagementResource {
                 .entity(response).build();
         } catch (Exception e) {
             LOGGER.error(COMPUTE_GRAPH_EXCEPTION_MSG, e);
-            return Response.serverError().entity("{\"ErrorMsg\":\"" + e.getMessage() + "\"}").build();
+            return Response.serverError().entity(ERROR_MSG + e.getMessage() + "\"}").build();
         }
     }
 
@@ -303,7 +354,7 @@ public class MetadataManagementResource {
             return Response.ok().entity(response).build();
         } catch (Exception e) {
             LOGGER.error(COMPUTE_GRAPH_EXCEPTION_MSG, e);
-            return Response.serverError().entity("{\"ErrorMsg\":\"" + e.getMessage() + "\"}").build();
+            return Response.serverError().entity(ERROR_MSG + e.getMessage() + "\"}").build();
         }
     }
 
@@ -327,7 +378,7 @@ public class MetadataManagementResource {
             return Response.ok().build();
         } catch (Exception e) {
             LOGGER.error("Could not export child nodes for reclassification graph update", e);
-            return Response.serverError().entity("{\"ErrorMsg\":\"" + e.getMessage() + "\"}").build();
+            return Response.serverError().entity(ERROR_MSG + e.getMessage() + "\"}").build();
         }
     }
 
@@ -339,7 +390,7 @@ public class MetadataManagementResource {
      *
      * @return the response
      */
-    @Path(PURGE_GRAPH_ONLY_DOCUMENTS + "/{collection:" + UNIT + "|" + OBJECTGROUP + "|" + UNIT_OBJECTGROUP + "}")
+    @Path(PURGE_GRAPH_ONLY_DOCUMENTS_URI + "/{collection:" + UNIT + "|" + OBJECTGROUP + "|" + UNIT_OBJECTGROUP + "}")
     @DELETE
     @Produces(MediaType.APPLICATION_JSON)
     public Response purgeReconstructedDocumentsWithGraphOnlyData(@PathParam("collection") GraphComputeAction action) {
@@ -364,7 +415,122 @@ public class MetadataManagementResource {
             return Response.ok().build();
         } catch (Exception e) {
             LOGGER.error("Could not purge reconstructed documents with graph only data", e);
-            return Response.serverError().entity("{\"ErrorMsg\":\"" + e.getMessage() + "\"}").build();
+            return Response.serverError().entity(ERROR_MSG + e.getMessage() + "\"}").build();
         }
+    }
+
+    @Path(COMPUTED_INHERITED_RULES_OBSOLETE_URI)
+    @POST
+    @Produces(MediaType.APPLICATION_JSON)
+    @VitamAuthentication(authentLevel = AuthenticationLevel.BASIC_AUTHENT)
+    public Response processObsoleteComputedInheritedRules() {
+        try {
+            boolean isError = false;
+            for(int tenant :VitamConfiguration.getTenants()) {
+                VitamThreadUtils.getVitamSession().setTenantId(tenant);
+                JsonNode dslQuery = getObsoleteComputedInheritedRulesDsl();
+                Response response = computedInheritedRulesCalculation(dslQuery);
+                if(!response.getStatusInfo().equals(Response.Status.OK)) {
+                    isError = true;
+                }
+            }
+
+            if(isError) {
+                return Response.status(INTERNAL_SERVER_ERROR).build();
+            }
+            return Response.status(OK).build();
+        } catch (InvalidCreateOperationException e) {
+            LOGGER.error(e);
+            return Response.status(BAD_REQUEST)
+                .entity(ERROR_MSG + e.getMessage() + "\"}")
+                .build();
+        }
+    }
+
+    private JsonNode getObsoleteComputedInheritedRulesDsl() throws InvalidCreateOperationException {
+        Select select = new Select();
+        BooleanQuery obsoleteQuery = QueryHelper.or();
+        obsoleteQuery.add(QueryHelper.eq(VitamFieldsHelper.validComputedInheritedRules(), false));
+
+        BooleanQuery incoherentValuesQuery = QueryHelper.and();
+        incoherentValuesQuery.add(QueryHelper.missing(VitamFieldsHelper.computedInheritedRules()));
+        incoherentValuesQuery.add(QueryHelper.exists(VitamFieldsHelper.validComputedInheritedRules()));
+
+        obsoleteQuery.add(incoherentValuesQuery);
+        select.setQuery(obsoleteQuery);
+        return select.getFinalSelect();
+    }
+
+    private Response computedInheritedRulesCalculation(JsonNode dslQuery) {
+        GUID operationGuid = GUIDFactory.newGUID();
+        VitamThreadUtils.getVitamSession().setRequestId(operationGuid);
+
+        try (ProcessingManagementClient processingClient = processingManagementClientFactory.getClient();
+            LogbookOperationsClient logbookOperationsClient = logbookOperationsClientFactory.getClient();
+            WorkspaceClient workspaceClient = workspaceClientFactory.getClient()) {
+            String message = VitamLogbookMessages.getLabelOp(COMPUTE_INHERITED_RULES.getEventType() + ".STARTED") + " : " + operationGuid;
+            LogbookOperationParameters initParameters = LogbookParametersFactory.newLogbookOperationParameters(
+                operationGuid,
+                COMPUTE_INHERITED_RULES.getEventType(),
+                operationGuid,
+                LogbookTypeProcess.COMPUTE_INHERITED_RULES,
+                STARTED,
+                message,
+                operationGuid
+            );
+            logbookOperationsClient.create(initParameters);
+
+            workspaceClient.createContainer(operationGuid.getId());
+
+            workspaceClient.putObject(operationGuid.getId(), "query.json", writeToInpustream(dslQuery));
+
+            processingClient.initVitamProcess(new ProcessingEntry(operationGuid.getId(), COMPUTE_INHERITED_RULES.name()));
+
+            RequestResponse<JsonNode> response = processingClient.executeOperationProcess(operationGuid.getId(), COMPUTE_INHERITED_RULES.name(), RESUME.getValue());
+            return response.setHttpCode(Response.Status.OK.getStatusCode()).toResponse();
+        } catch (BadRequestException e) {
+            return buildErrorResponse(VitamCode.GLOBAL_EMPTY_QUERY, null);
+        } catch (LogbookClientBadRequestException | LogbookClientAlreadyExistsException |
+            LogbookClientServerException | ContentAddressableStorageAlreadyExistException | ContentAddressableStorageServerException |
+            InvalidParseOperationException | InternalServerException | VitamClientException e) {
+            LOGGER.error(e);
+            return Response.status(INTERNAL_SERVER_ERROR)
+                .entity(getErrorEntity(INTERNAL_SERVER_ERROR,
+                    String.format("An error occurred during %s workflow", PRESERVATION.getEventType())))
+                .build();
+        }
+    }
+
+    private VitamError getErrorEntity(Response.Status status, String message) {
+        String msg = getErrorStreamMessage(status, message);
+        return new VitamError(status.name())
+            .setHttpCode(status.getStatusCode())
+            .setContext(ServiceName.METADATA.getName())
+            .setState(CODE_VITAM)
+            .setMessage(msg);
+    }
+
+    private String getErrorStreamMessage(Response.Status status, String message) {
+        if (message != null && !message.trim().isEmpty()) {
+            return message;
+        }
+
+        if (status.getReasonPhrase() != null) {
+            return status.getReasonPhrase();
+        }
+
+        return status.name();
+    }
+
+    private Response buildErrorResponse(VitamCode vitamCode, String description) {
+        if (description == null) {
+            description = vitamCode.getMessage();
+        }
+
+        return Response.status(vitamCode.getStatus())
+            .entity(new RequestResponseError().setError(new VitamError(VitamCodeHelper.getCode(vitamCode))
+                .setContext(vitamCode.getService().getName()).setState(vitamCode.getDomain().getName())
+                .setMessage(vitamCode.getMessage()).setDescription(description)).toString())
+            .build();
     }
 }

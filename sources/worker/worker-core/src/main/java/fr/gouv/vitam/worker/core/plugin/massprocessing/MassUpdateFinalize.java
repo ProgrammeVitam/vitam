@@ -72,7 +72,6 @@ import static fr.gouv.vitam.common.model.StatusCode.FATAL;
 import static fr.gouv.vitam.common.model.StatusCode.KO;
 import static fr.gouv.vitam.common.model.StatusCode.OK;
 import static fr.gouv.vitam.common.model.StatusCode.WARNING;
-import static fr.gouv.vitam.processing.engine.core.ProcessEngineImpl.DETAILS;
 import static fr.gouv.vitam.worker.core.plugin.massprocessing.description.MassUpdateUnitsProcess.MASS_UPDATE_UNITS;
 import static fr.gouv.vitam.worker.core.utils.PluginHelper.buildItemStatus;
 
@@ -80,6 +79,7 @@ public class MassUpdateFinalize extends ActionHandler {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(MassUpdateFinalize.class);
 
     private static final String MASS_UPDATE_FINALIZE = "MASS_UPDATE_FINALIZE";
+    private static final String DETAILS = " Detail= ";
 
     private final BatchReportClientFactory batchReportClientFactory;
     private final LogbookOperationsClientFactory logbookOperationsClientFactory;
