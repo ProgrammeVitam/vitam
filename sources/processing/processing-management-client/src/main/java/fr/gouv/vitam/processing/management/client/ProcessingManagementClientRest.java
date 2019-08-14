@@ -1,4 +1,4 @@
-/*******************************************************************************
+/*
  * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2019)
  *
  * contact.vitam@culture.gouv.fr
@@ -23,7 +23,7 @@
  *
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
- *******************************************************************************/
+ */
 package fr.gouv.vitam.processing.management.client;
 
 import com.fasterxml.jackson.databind.JsonNode;
@@ -87,12 +87,9 @@ class ProcessingManagementClientRest extends DefaultClient implements Processing
     private static final String ACTION_ID_MUST_HAVE_A_VALID_VALUE = "Action id must have a valid value";
     private static final String BLANK_OPERATION_ID = "Operation identifier should be filled";
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(ProcessingManagementClientRest.class);
+    private static final String OPERATIONS_PATH = "/operations";
+    private static final String INTERNAL_SERVER_ERROR_MSG = "Internal Server Error";
 
-    /**
-     * Constructor
-     *
-     * @param factory
-     */
     ProcessingManagementClientRest(ProcessingManagementClientFactory factory) {
         super(factory);
     }
@@ -146,18 +143,17 @@ class ProcessingManagementClientRest extends DefaultClient implements Processing
 
     @Override
     public RequestResponse<JsonNode> executeOperationProcess(String operationId, String workflowId, String actionId)
-            throws InternalServerException, WorkflowNotFoundException {
+        throws InternalServerException, WorkflowNotFoundException {
 
         ParametersChecker.checkParameter(BLANK_OPERATION_ID, operationId);
         ParametersChecker.checkParameter(ACTION_ID_MUST_HAVE_A_VALID_VALUE, actionId);
         ParametersChecker.checkParameter("workflow is a mandatory parameter", workflowId);
         Response response = null;
         try {
-            response =
-                    performRequest(HttpMethod.POST, OPERATION_URI + "/" + operationId,
-                            getDefaultHeaders(workflowId, actionId),
-                            JsonHandler.toJsonNode(new ProcessingEntry(operationId, workflowId)), MediaType.APPLICATION_JSON_TYPE,
-                            MediaType.APPLICATION_JSON_TYPE);
+            response = performRequest(HttpMethod.POST, OPERATION_URI + "/" + operationId,
+                getDefaultHeaders(workflowId, actionId),
+                JsonHandler.toJsonNode(new ProcessingEntry(operationId, workflowId)), MediaType.APPLICATION_JSON_TYPE,
+                MediaType.APPLICATION_JSON_TYPE);
             if (response.getStatus() == Status.NOT_FOUND.getStatusCode()) {
                 throw new WorkflowNotFoundException(NOT_FOUND);
             } else if (response.getStatus() == Status.PRECONDITION_FAILED.getStatusCode()) {
@@ -439,7 +435,7 @@ class ProcessingManagementClientRest extends DefaultClient implements Processing
         Response response = null;
         try {
             response =
-                    performRequest(HttpMethod.GET, "/operations", null, JsonHandler.toJsonNode(query),
+                    performRequest(HttpMethod.GET, OPERATIONS_PATH, null, JsonHandler.toJsonNode(query),
                             MediaType.APPLICATION_JSON_TYPE, MediaType.APPLICATION_JSON_TYPE);
             return RequestResponse.parseFromResponse(response, ProcessDetail.class);
 
@@ -453,10 +449,8 @@ class ProcessingManagementClientRest extends DefaultClient implements Processing
         }
     }
 
-    @SuppressWarnings("unchecked")
     @Override
-    public Response executeCheckTraceabilityWorkFlow(String checkOperationId,
-                                                     JsonNode query, String workflowId, String actionId)
+    public Response executeCheckTraceabilityWorkFlow(String checkOperationId, JsonNode query, String workflowId, String actionId)
             throws InternalServerException, WorkflowNotFoundException {
 
         ParametersChecker.checkParameter(BLANK_OPERATION_ID, checkOperationId);
@@ -472,10 +466,9 @@ class ProcessingManagementClientRest extends DefaultClient implements Processing
             ProcessingEntry processingEntry = new ProcessingEntry(checkOperationId, workflowId);
             processingEntry.setExtraParams(checkExtraParams);
 
-            response =
-                    performRequest(HttpMethod.POST, OPERATION_URI + "/" + checkOperationId,
-                            getDefaultHeaders(workflowId, actionId), processingEntry, MediaType.APPLICATION_JSON_TYPE,
-                            MediaType.APPLICATION_JSON_TYPE);
+            response = performRequest(HttpMethod.POST, OPERATION_URI + "/" + checkOperationId,
+                getDefaultHeaders(workflowId, actionId), processingEntry, MediaType.APPLICATION_JSON_TYPE,
+                MediaType.APPLICATION_JSON_TYPE);
 
             if (response.getStatus() == Status.NOT_FOUND.getStatusCode()) {
                 throw new WorkflowNotFoundException(NOT_FOUND);
@@ -549,8 +542,8 @@ class ProcessingManagementClientRest extends DefaultClient implements Processing
             return RequestResponse.parseFromResponse(response, ProcessPause.class);
 
         } catch (VitamClientInternalException e) {
-            LOGGER.error("Internal Server Error", e);
-            throw new ProcessingException("Internal Server Error", e);
+            LOGGER.error(INTERNAL_SERVER_ERROR_MSG, e);
+            throw new ProcessingException(INTERNAL_SERVER_ERROR_MSG, e);
         } finally {
             consumeAnyEntityAndClose(response);
         }
@@ -567,8 +560,8 @@ class ProcessingManagementClientRest extends DefaultClient implements Processing
             return RequestResponse.parseFromResponse(response, ProcessPause.class);
 
         } catch (VitamClientInternalException e) {
-            LOGGER.error("Internal Server Error", e);
-            throw new ProcessingException("Internal Server Error", e);
+            LOGGER.error(INTERNAL_SERVER_ERROR_MSG, e);
+            throw new ProcessingException(INTERNAL_SERVER_ERROR_MSG, e);
         } finally {
             consumeAnyEntityAndClose(response);
         }

@@ -1,0 +1,10 @@
+[Unit]
+Description=Launch vitam store graph script for metadata
+
+[Timer]
+OnCalendar=*-*-* 02:30:00
+Persistent=false
+
+
+[Install]
+WantedBy=timers.target

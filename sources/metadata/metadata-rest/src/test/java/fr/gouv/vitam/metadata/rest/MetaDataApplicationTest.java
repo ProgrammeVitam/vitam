@@ -90,6 +90,7 @@ public class MetaDataApplicationTest {
         config = new MetaDataConfiguration(mongo_nodes, MongoRule.VITAM_DB, ElasticsearchRule.VITAM_CLUSTER, nodes);
         VitamConfiguration.setTenants(tenantList);
         config.setJettyConfig(JETTY_CONFIG);
+        config.setUrlProcessing("http://processing.service.consul:8203/");
     }
 
     @Test

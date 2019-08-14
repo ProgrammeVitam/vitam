@@ -54,6 +54,8 @@ import fr.gouv.vitam.metadata.api.exception.MetadataInvalidSelectException;
 import fr.gouv.vitam.metadata.api.model.ObjectGroupPerOriginatingAgency;
 import fr.gouv.vitam.metadata.api.model.UnitPerOriginatingAgency;
 
+import javax.ws.rs.core.Response;
+
 /**
  * Metadata client interface
  */
@@ -371,4 +373,6 @@ public interface MetaDataClient extends BasicClient {
      * @throws MetaDataClientServerException MetaDataClientServerException
      */
     void deleteObjectGroupBulk(Collection<String> listIds) throws MetaDataExecutionException, InvalidParseOperationException, MetaDataClientServerException;
+
+    Response startComputeInheritedRules(JsonNode dslQuery) throws MetaDataClientServerException;
 }

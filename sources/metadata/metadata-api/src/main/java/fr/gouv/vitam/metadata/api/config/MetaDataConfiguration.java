@@ -39,6 +39,7 @@ import java.util.List;
 public class MetaDataConfiguration extends DbConfigurationImpl {
 
     private String workspaceUrl;
+    private String urlProcessing;
     private String clusterName;
     private List<ElasticsearchNode> elasticsearchNodes;
 
@@ -169,5 +170,13 @@ public class MetaDataConfiguration extends DbConfigurationImpl {
     public MetaDataConfiguration setSchemaValidatorCacheTimeoutInSeconds(int schemaValidatorCacheTimeoutInSeconds) {
         this.schemaValidatorCacheTimeoutInSeconds = schemaValidatorCacheTimeoutInSeconds;
         return this;
+    }
+
+    public String getUrlProcessing() {
+        return urlProcessing;
+    }
+
+    public void setUrlProcessing(String urlProcessing) {
+        this.urlProcessing = urlProcessing;
     }
 }

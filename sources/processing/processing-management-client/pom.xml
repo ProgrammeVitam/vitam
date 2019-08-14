@@ -15,26 +15,11 @@
 			<artifactId>processing-common</artifactId>
 			<version>${project.version}</version>
 		</dependency>
-		<dependency>
-			<groupId>fr.gouv.vitam</groupId>
-			<artifactId>processing-management</artifactId>
-			<version>${project.version}</version>
-		</dependency>
 		 <dependency>
 			<groupId>fr.gouv.vitam</groupId>
 			<artifactId>workspace-rest</artifactId>
 			<version>${project.version}</version>
 			<scope>test</scope>
-		</dependency>
-		<dependency>
-			<groupId>fr.gouv.vitam</groupId>
-			<artifactId>metadata-core</artifactId>
-			<version>${project.version}</version>
-		</dependency>
-		<dependency>
-			<groupId>fr.gouv.vitam</groupId>
-			<artifactId>metadata-rest</artifactId>
-			<version>${project.version}</version>
 		</dependency>
         <dependency>
             <groupId>fr.gouv.vitam</groupId>

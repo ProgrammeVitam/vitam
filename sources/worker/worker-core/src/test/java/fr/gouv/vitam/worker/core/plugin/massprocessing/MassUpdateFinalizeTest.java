@@ -59,7 +59,6 @@ import static fr.gouv.vitam.batch.report.model.ReportType.UPDATE_UNIT;
 import static fr.gouv.vitam.common.model.StatusCode.FATAL;
 import static fr.gouv.vitam.common.model.StatusCode.KO;
 import static fr.gouv.vitam.common.model.StatusCode.OK;
-import static fr.gouv.vitam.processing.engine.core.ProcessEngineImpl.DETAILS;
 import static fr.gouv.vitam.worker.core.plugin.massprocessing.description.MassUpdateUnitsProcess.MASS_UPDATE_UNITS;
 import static fr.gouv.vitam.worker.core.plugin.preservation.TestWorkerParameter.TestWorkerParameterBuilder.workerParameterBuilder;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -69,6 +68,9 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 public class MassUpdateFinalizeTest {
+
+    private static final String DETAILS = " Detail= ";
+
     @Rule
     public MockitoRule mockitoRule = MockitoJUnit.rule();
 

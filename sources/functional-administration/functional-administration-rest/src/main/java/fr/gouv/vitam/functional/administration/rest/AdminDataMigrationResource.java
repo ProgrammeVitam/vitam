@@ -1,4 +1,4 @@
-/*******************************************************************************
+/*
  * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2019)
  *
  * contact.vitam@culture.gouv.fr
@@ -23,7 +23,7 @@
  *
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
- *******************************************************************************/
+ */
 package fr.gouv.vitam.functional.administration.rest;
 
 import com.fasterxml.jackson.databind.JsonNode;
@@ -60,7 +60,6 @@ import fr.gouv.vitam.logbook.common.parameters.LogbookParametersFactory;
 import fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClient;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClientFactory;
-import fr.gouv.vitam.metadata.rest.MetadataMigrationAdminResource;
 import fr.gouv.vitam.processing.management.client.ProcessingManagementClient;
 import fr.gouv.vitam.processing.management.client.ProcessingManagementClientFactory;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageAlreadyExistException;
@@ -221,15 +220,15 @@ public class AdminDataMigrationResource {
 
             if (started) {
                 LOGGER.info("Accession Register migration started successfully");
-                return Response.accepted(new MetadataMigrationAdminResource.ResponseMessage("OK")).build();
+                return Response.accepted(new ResponseMessage("OK")).build();
             } else {
                 LOGGER.warn("Accession Register migration already in progress");
                 return Response.status(Response.Status.CONFLICT)
-                        .entity(new MetadataMigrationAdminResource.ResponseMessage("Accession Register migration already in progress")).build();
+                        .entity(new ResponseMessage("Accession Register migration already in progress")).build();
             }
         } catch (Exception e) {
             LOGGER.error("An error occurred during Accession Register migration", e);
-            return Response.serverError().entity(new MetadataMigrationAdminResource.ResponseMessage(e.getMessage())).build();
+            return Response.serverError().entity(new ResponseMessage(e.getMessage())).build();
         }
     }
     /**
@@ -247,10 +246,10 @@ public class AdminDataMigrationResource {
 
             if (started) {
                 LOGGER.info("Accession Register migration still in progress");
-                return Response.ok(new MetadataMigrationAdminResource.ResponseMessage("Accession Register migration in progress")).build();
+                return Response.ok(new ResponseMessage("Accession Register migration in progress")).build();
             } else {
                 LOGGER.info("No active migration");
-                return Response.status(Response.Status.NOT_FOUND).entity(new MetadataMigrationAdminResource.ResponseMessage("No active migration"))
+                return Response.status(Response.Status.NOT_FOUND).entity(new ResponseMessage("No active migration"))
                         .build();
             }
         } catch (Exception e) {

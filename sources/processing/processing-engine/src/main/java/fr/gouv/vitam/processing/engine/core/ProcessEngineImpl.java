@@ -83,7 +83,7 @@ import java.util.concurrent.TimeUnit;
 public class ProcessEngineImpl implements ProcessEngine {
 
     private static PerformanceLogger PERFORMANCE_LOGGER = PerformanceLogger.getInstance();
-    public final static String DETAILS = " Detail= ";
+    public static final String DETAILS = " Detail= ";
 
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(ProcessEngineImpl.class);
     private static final String AGENCY_DETAIL = "agIdExt";
