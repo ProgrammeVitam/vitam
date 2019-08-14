@@ -3,7 +3,7 @@
 vitam:
     ihm_recette:
         vitam_component: ihm-recette
-        host: "ihm-recette.service.{{consul_domain}}"
+        host: "ihm-recette.service.{{ consul_domain }}"
         port_service: 8445
         port_admin: 28204
         baseurl: /ihm-recette
@@ -32,7 +32,7 @@ vitam:
         # metricsunit: MINUTES
     library:
         vitam_component: library
-        host: "library.service.{{consul_domain}}"
+        host: "library.service.{{ consul_domain }}"
         port_service: 8090
         port_admin: 28090
         baseuri: "doc"

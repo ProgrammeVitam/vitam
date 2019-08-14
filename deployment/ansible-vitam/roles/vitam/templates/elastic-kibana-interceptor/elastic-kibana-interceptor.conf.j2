@@ -3,7 +3,7 @@ jettyConfig: jetty-config.xml
 clusterName: {{ vitam_struct.cluster_name }}
 elasticsearchNodes:
 {% for server in groups['hosts-elasticsearch-data'] %}
-- hostName: {{hostvars[server]['ip_service']}}
+- hostName: {{ hostvars[server]['ip_service'] }}
   tcpPort: {{ elasticsearch.data.port_http }}
 {% endfor %}
 whitelist : ["tenant", "all", "mgt", "min", "max", "nbc", "og", "ops", "opi", "sp", "sps", "uds", "up", "us", "storage", "unitType", "v", "qualifiers"]

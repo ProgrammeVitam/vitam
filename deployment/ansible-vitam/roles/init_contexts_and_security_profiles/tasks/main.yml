@@ -3,8 +3,8 @@
 
 - name: "Wait until service functional-admin is up"
   wait_for:
-      host: "{{hostvars[groups['hosts-functional-administration'][0]]['ip_admin']}}"
-      port: "{{vitam.functional_administration.port_admin}}"
+      host: "{{ hostvars[groups['hosts-functional-administration'][0]]['ip_admin'] }}"
+      port: "{{ vitam.functional_administration.port_admin }}"
       state: "started"
       timeout: "{{ vitam_defaults.services.start_timeout }}"
   run_once: true
@@ -14,9 +14,9 @@
 - name: Check if security profile already exists in functional-admin
   uri:
     method: GET
-    body: "{ \"$query\":{\"$eq\":{\"Identifier\":\"{{admin_security_profile}}\"}},\"$filter\":{},\"$projection\":{} }"
+    body: "{ \"$query\":{\"$eq\":{\"Identifier\":\"{{ admin_security_profile }}\"}},\"$filter\":{},\"$projection\":{} }"
     status_code: 200
-    url: "http://{{hostvars[groups['hosts-functional-administration'][0]]['ip_admin']}}:{{vitam.functional_administration.port_admin}}/v1/admin/securityprofiles"
+    url: "http://{{ hostvars[groups['hosts-functional-administration'][0]]['ip_admin'] }}:{{ vitam.functional_administration.port_admin }}/v1/admin/securityprofiles"
     body_format: "json"
   run_once: true
   register: securityprofile_check

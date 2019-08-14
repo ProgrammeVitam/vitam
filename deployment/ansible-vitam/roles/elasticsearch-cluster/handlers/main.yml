@@ -2,7 +2,7 @@
 # handlers file for elasticsaerch-cluster
 - name: restart elasticsearch
   service:
-    name: vitam-{{composant.cluster_name}}
+    name: vitam-{{ composant.cluster_name }}
     state: restarted
 
 - name: create systemd tmpfiles

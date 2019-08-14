@@ -12,7 +12,7 @@ enableSession: true
 
 secureMode:
 {% for securemode in vitam_struct.secure_mode %}
-- {{securemode}}
+- {{ securemode }}
 {% endfor %}
 sipDirectory: {{ vitam_folder_data }}/test-data
 performanceReportDirectory: {{ vitam_folder_data }}/report/performance
@@ -27,7 +27,7 @@ workspaceUrl: {{vitam.workspace | client_url}}
 # Configuration MongoDB
 mongoDbNodes:
 {% for server in groups['hosts-mongos-data'] %}
-- dbHost: {{hostvars[server]['ip_service']}}
+- dbHost: {{ hostvars[server]['ip_service'] }}
   dbPort: {{ mongodb.mongos_port }}
 {% endfor %}
 # Actually need this field for compatibility
@@ -44,6 +44,6 @@ dbPassword: {{ mongodb['mongo-data']['admin']['password'] }}
 clusterName: {{ vitam_struct.cluster_name }}
 elasticsearchNodes:
 {% for server in groups['hosts-elasticsearch-data'] %}
-- hostName: {{hostvars[server]['ip_service']}}
+- hostName: {{ hostvars[server]['ip_service'] }}
   tcpPort: {{ elasticsearch.data.port_tcp }}
 {% endfor %}

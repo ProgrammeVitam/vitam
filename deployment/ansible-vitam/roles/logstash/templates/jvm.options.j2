@@ -72,7 +72,7 @@
 # log GC status to a file with time stamps
 # ensure the directory exists
 #-Xloggc:${LS_GC_LOG_FILE}
--Xloggc:{{logstash_log_dir}}/gc.log
+-Xloggc:{{ logstash_log_dir }}/gc.log
 -XX:+UseGCLogFileRotation
 -XX:NumberOfGCLogFiles=10
 -XX:GCLogFileSize=10M

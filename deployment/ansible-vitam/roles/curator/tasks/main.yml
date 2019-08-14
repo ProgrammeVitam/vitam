@@ -22,7 +22,7 @@
 
 - name: ensure Curator directories exist
   file:
-    path: "{{ vitam_defaults.folder.root_path }}/{{item}}/curator"
+    path: "{{ vitam_defaults.folder.root_path }}/{{ item }}/curator"
     owner: "{{ vitam_defaults.users.vitam }}"
     group: "{{ vitam_defaults.users.group }}"
     state: directory
@@ -37,7 +37,7 @@
 - name: apply configuration files for curator
   template:
     src: "{{ item }}.j2"
-    dest: "{{curator_conf_dir}}/{{ item }}"
+    dest: "{{ curator_conf_dir }}/{{ item }}"
     owner: "{{ vitam_defaults.users.vitam }}"
     group: "{{ vitam_defaults.users.group }}"
     mode: "{{ vitam_defaults.folder.conf_permission }}"

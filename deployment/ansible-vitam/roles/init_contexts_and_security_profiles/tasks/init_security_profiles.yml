@@ -3,9 +3,9 @@
 - name: Import admin security profile to functionnal-administration
   uri:
     method: POST
-    body: "[{ \"Name\": \"{{admin_security_profile}}\", \"Identifier\": \"{{admin_security_profile}}\", \"FullAccess\": true, \"Permissions\": null }]"
+    body: "[{ \"Name\": \"{{ admin_security_profile }}\", \"Identifier\": \"{{ admin_security_profile }}\", \"FullAccess\": true, \"Permissions\": null }]"
     status_code: 200,201
-    url: "http://{{hostvars[groups['hosts-functional-administration'][0]]['ip_admin']}}:{{vitam.functional_administration.port_admin}}/v1/admin/securityprofiles"
+    url: "http://{{ hostvars[groups['hosts-functional-administration'][0]]['ip_admin'] }}:{{ vitam.functional_administration.port_admin }}/v1/admin/securityprofiles"
     body_format: "json"
     headers:
       X-Tenant-Id: "{{ vitam_tenant_admin }}"

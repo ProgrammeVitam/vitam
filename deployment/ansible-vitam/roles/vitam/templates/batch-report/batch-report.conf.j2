@@ -1,7 +1,7 @@
 # Configuration MongoDB
 mongoDbNodes:
 {% for server in groups['hosts-mongos-data'] %}
-- dbHost: {{hostvars[server]['ip_service']}}
+- dbHost: {{ hostvars[server]['ip_service'] }}
   dbPort: {{ mongodb.mongos_port }}
 {% endfor %}
 dbName: report

@@ -1,7 +1,7 @@
 ---
 # defaults file for loadTNR
 data_dir: "{{ vitam_defaults.folder.root_path }}/data/ihm-recette"
-TNR_dir: "{{data_dir}}/test-data/system/"
+TNR_dir: "{{ data_dir }}/test-data/system/"
 TNR_conf: "{{ vitam_defaults.folder.root_path }}/conf/ihm-recette/"
 TNR_lib: "{{ vitam_defaults.folder.root_path }}/lib/ihm-recette/"
 report_dir: "{{ data_dir }}/report/system"

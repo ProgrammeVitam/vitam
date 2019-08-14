@@ -4,7 +4,7 @@
   uri:
     method: GET
     status_code: 200,201
-    url: "http://{{hostvars[groups['hosts-functional-administration'][0]]['ip_admin']}}:{{vitam.functional_administration.port_admin}}/v1/admin/contexts"
+    url: "http://{{ hostvars[groups['hosts-functional-administration'][0]]['ip_admin'] }}:{{ vitam.functional_administration.port_admin }}/v1/admin/contexts"
     body_format: "json"
     body: "[{ \"Name\": \"*\", \"SecurityProfile\": \"{{ admin_security_profile }}\"}]"
     headers:
@@ -50,7 +50,7 @@
   uri:
     method: DELETE
     status_code: 200,201,204
-    url: "http://{{hostvars[groups['hosts-functional-administration'][0]]['ip_admin']}}:{{vitam.functional_administration.port_admin}}/v1/admin/context/{{ item.Identifier }}"
+    url: "http://{{ hostvars[groups['hosts-functional-administration'][0]]['ip_admin'] }}:{{ vitam.functional_administration.port_admin }}/v1/admin/context/{{ item.Identifier }}"
   with_items:
    - "{{ context_check_json.results }}"
   run_once: true
@@ -59,7 +59,7 @@
   uri:
     method: DELETE
     status_code: 200,204
-    url: "http://{{hostvars[groups['hosts-functional-administration'][0]]['ip_admin']}}:{{vitam.functional_administration.port_admin}}/v1/admin/securityprofiles/{{ item.Identifier }}"
+    url: "http://{{ hostvars[groups['hosts-functional-administration'][0]]['ip_admin'] }}:{{ vitam.functional_administration.port_admin }}/v1/admin/securityprofiles/{{ item.Identifier }}"
   run_once: true
   with_items:
     - "{{ securityprofile_check_json.results }}"

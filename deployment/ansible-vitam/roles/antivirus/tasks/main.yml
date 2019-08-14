@@ -16,7 +16,7 @@
     group: "{{ vitam_defaults.users.group }}"
     mode: "{{ vitam_defaults.folder.folder_permission }}"
   with_fileglob:
-    - "{{inventory_dir}}/antivirus/*sh"
+    - "{{ inventory_dir }}/antivirus/*sh"
 
 - include_tasks: clamav.yml
   when: vitam_struct.antivirus == 'clamav'

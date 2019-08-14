@@ -11,7 +11,7 @@ schemaValidatorCacheTimeoutInSeconds: {{ vitam.metadata.schemaValidatorCacheTime
 # Configuration MongoDB
 mongoDbNodes:
 {% for server in groups['hosts-mongos-data'] %}
-- dbHost: {{hostvars[server]['ip_service']}}
+- dbHost: {{ hostvars[server]['ip_service'] }}
   dbPort: {{ mongodb.mongos_port }}
 {% endfor %}
 dbName: metadata
@@ -25,7 +25,7 @@ jettyConfig: jetty-config.xml
 clusterName: {{ vitam_struct.cluster_name }}
 elasticsearchNodes:
 {% for server in groups['hosts-elasticsearch-data'] %}
-- hostName: {{hostvars[server]['ip_service']}}
+- hostName: {{ hostvars[server]['ip_service'] }}
   tcpPort: {{ elasticsearch.data.port_tcp }}
 {% endfor %}
 

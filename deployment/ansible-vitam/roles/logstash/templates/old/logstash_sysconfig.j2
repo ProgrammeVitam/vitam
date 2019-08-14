@@ -13,7 +13,7 @@ LS_OPTS="--log-in-json"
 
 # Arguments to pass to java
 LS_HEAP_SIZE="{{ (ansible_memory_mb.real.total / 4) | int }}m"
-LS_JAVA_OPTS="-Xloggc:{{logstash_log_dir}}/gc.log -XX:+UseGCLogFileRotation -XX:NumberOfGCLogFiles=10 -XX:GCLogFileSize=10M -XX:+PrintGCDetails -XX:+PrintGCApplicationStoppedTime"
+LS_JAVA_OPTS="-Xloggc:{{ logstash_log_dir }}/gc.log -XX:+UseGCLogFileRotation -XX:NumberOfGCLogFiles=10 -XX:GCLogFileSize=10M -XX:+PrintGCDetails -XX:+PrintGCApplicationStoppedTime"
 
 # pidfiles aren't used for upstart; this is for sysv users.
 #LS_PIDFILE=/var/run/logstash.pid
@@ -22,12 +22,12 @@ LS_JAVA_OPTS="-Xloggc:{{logstash_log_dir}}/gc.log -XX:+UseGCLogFileRotation -XX:
 #LS_USER=logstash
 
 # logstash logging
-LS_LOG_FILE="{{logstash_log_dir}}/logstash.log"
+LS_LOG_FILE="{{ logstash_log_dir }}/logstash.log"
 #LS_USE_GC_LOGGING="true"
-LS_GC_LOG_FILE="{{logstash_log_dir}}/gc.log"
+LS_GC_LOG_FILE="{{ logstash_log_dir }}/gc.log"
 
 # logstash configuration directory
-LS_CONF_DIR="{{logstash_conf_dir}}"
+LS_CONF_DIR="{{ logstash_conf_dir }}"
 
 # Open file limit; cannot be overridden in upstart
 #LS_OPEN_FILES=16384

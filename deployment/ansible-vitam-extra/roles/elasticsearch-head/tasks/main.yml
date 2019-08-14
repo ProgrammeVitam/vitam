@@ -17,4 +17,4 @@
     state: started
     restart_policy: always
     ports:
-      - "{{elasticsearch_head_external_port}}:{{elasticsearch_head_port}}"
+      - "{{ elasticsearch_head_external_port }}:{{ elasticsearch_head_port }}"

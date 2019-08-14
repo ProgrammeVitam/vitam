@@ -7,14 +7,13 @@
 
   - name: supprimer le package docker fourni de base (obsolète et incompatible avec le package docker-ce)
     package:
-      name: "{{ item }}"
+      name: "docker"
       state: absent
     register: result
     retries: "{{ packages_install_retries_number }}"
     until: result is succeeded
     delay: "{{ packages_install_retries_delay }}"
-    with_items:
-    - docker
+
 
 # Need to wait for this bug to be resolved:
 # https://github.com/ansible/ansible/pull/42443
@@ -55,8 +54,8 @@
     apt_repository:
       repo: "{{ item }}"
       state: present
-    with_items:
-      - "deb [arch=amd64] https://download.docker.com/linux/debian  {{ansible_distribution_release}} stable"
+    loop:
+      - "deb [arch=amd64] https://download.docker.com/linux/debian  {{ ansible_distribution_release }} stable"
 
   - name: run apt-update
     apt:
@@ -68,15 +67,13 @@
 
   - name: installer docker & pip
     apt:
-      name: "{{ item }}"
+      name: ['docker-ce','python-pip']
       state: latest
     register: result
     retries: "{{ packages_install_retries_number }}"
     until: result is succeeded
     delay: "{{ packages_install_retries_delay }}"
-    with_items:
-      - docker-ce
-      - python-pip
+    
 
   - name: upgrade pip & install docker python package
     pip:
@@ -101,15 +98,12 @@
 
   - name: installer le package docker
     package:
-      name: "{{ item }}"
+      name: ['docker','docker-python']
       state: latest
     register: result
     retries: "{{ packages_install_retries_number }}"
     until: result is succeeded
     delay: "{{ packages_install_retries_delay }}"
-    with_items:
-    - docker
-    - docker-python
 
     # KWA : check if still useful with newer docker versions
   - name: Make sure net.ipv4.ip_forward is enabled (allow port-forwarding into docker containers)

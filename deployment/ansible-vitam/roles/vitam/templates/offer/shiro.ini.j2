@@ -5,9 +5,9 @@ x509 = fr.gouv.vitam.common.auth.web.filter.X509AuthenticationFilter
 x509credentialsMatcher = fr.gouv.vitam.common.auth.core.authc.X509CredentialsSha256Matcher
 
 x509Realm = fr.gouv.vitam.common.auth.core.realm.X509KeystoreFileRealm
-x509Realm.grantedKeyStoreName = {{vitam_folder_conf}}/grantedstore_{{ vitam_struct.vitam_component }}.jks
+x509Realm.grantedKeyStoreName = {{ vitam_folder_conf }}/grantedstore_{{ vitam_struct.vitam_component }}.jks
 x509Realm.grantedKeyStorePassphrase = {{ password_grantedstore }}
-x509Realm.trustedKeyStoreName = {{vitam_folder_conf}}/truststore_{{ vitam_struct.vitam_component }}.jks
+x509Realm.trustedKeyStoreName = {{ vitam_folder_conf }}/truststore_{{ vitam_struct.vitam_component }}.jks
 x509Realm.trustedKeyStorePassphrase = {{ password_truststore }}
 x509Realm.credentialsMatcher = $x509credentialsMatcher
 securityManager.realm = $x509Realm

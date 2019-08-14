@@ -27,7 +27,7 @@
 
 - name: Check that the consul directories exist
   file:
-    path: "{{vitam_defaults.folder.root_path}}/{{ item }}/{{consul_component}}"
+    path: "{{ vitam_defaults.folder.root_path }}/{{ item }}/{{ consul_component }}"
     state: directory
     owner: "{{ vitam_defaults.users.vitam }}"
     group: "{{ vitam_defaults.users.group }}"

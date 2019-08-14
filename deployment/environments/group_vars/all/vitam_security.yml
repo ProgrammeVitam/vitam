@@ -5,11 +5,11 @@ hide_passwords_during_deploy: true
 
 ### Admin context name and tenants ###
 admin_context_name: "admin-context"
-admin_context_tenants: "{{vitam_tenant_ids}}"
-# Indicate context certificates relative paths under {{inventory_dir}}/certs/client-external/clients
+admin_context_tenants: "{{ vitam_tenant_ids }}"
+# Indicate context certificates relative paths under {{ inventory_dir }}/certs/client-external/clients
 # vitam-admin-int is mandatory for internal use (PRONOM upload)
 admin_context_certs: [ "ihm-demo/ihm-demo.crt", "ihm-recette/ihm-recette.crt", "reverse/reverse.crt", "vitam-admin-int/vitam-admin-int.crt" ]
-# Indicate here all the personal certificates relative paths under {{inventory_dir}}/certs/client-vitam-users/clients
+# Indicate here all the personal certificates relative paths under {{ inventory_dir }}/certs/client-vitam-users/clients
 admin_personal_certs: [ "userOK.crt" ]
 
 # Admin security profile name

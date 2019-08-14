@@ -5,7 +5,7 @@
 
 - name: Set command for CentOS
   set_fact:
-    check_es_version: "rpm -q vitam-{{composant.cluster_name}}"
+    check_es_version: "rpm -q vitam-{{ composant.cluster_name }}"
   when: ansible_os_family == "RedHat"
 
 - name: Set command for Debian
@@ -94,9 +94,9 @@
   delay: "{{ packages_install_retries_delay }}"
   when: ansible_os_family == "RedHat"
 
-- name: install vitam-{{composant.cluster_name}} package
+- name: install vitam-{{ composant.cluster_name }} package
   package:
-    name: vitam-{{composant.cluster_name}}
+    name: vitam-{{ composant.cluster_name }}
     state: latest
   register: result
   retries: "{{ packages_install_retries_number }}"
@@ -203,8 +203,8 @@
 
 - name: apply logging for elasticsearch configuration file
   template:
-    src: "{{item}}.j2"
-    dest: "{{elasticsearch_conf_dir}}/{{item}}"
+    src: "{{ item }}.j2"
+    dest: "{{ elasticsearch_conf_dir }}/{{ item }}"
     owner: "{{ vitam_defaults.users.vitamdb }}"
     group: "{{ vitam_defaults.users.group }}"
     mode: "{{ vitam_defaults.folder.conf_permission }}"
@@ -217,7 +217,7 @@
 - name: apply elasticsearch sysconfig default
   template:
     src: "elasticsearch.j2"
-    dest: "{{elasticsearch_conf_dir}}/sysconfig/elasticsearch"
+    dest: "{{ elasticsearch_conf_dir }}/sysconfig/elasticsearch"
     owner: "{{ vitam_defaults.users.vitamdb }}"
     group: "{{ vitam_defaults.users.group }}"
     mode: "{{ vitam_defaults.folder.conf_permission }}"

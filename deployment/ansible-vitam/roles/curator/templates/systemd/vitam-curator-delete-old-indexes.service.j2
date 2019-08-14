@@ -5,7 +5,7 @@ After=network.target
 
 [Service]
 Type=oneshot
-ExecStart=/usr/bin/curator --config {{curator_conf_dir}}/curator.yml {{curator_conf_dir}}/delete_index.yml
+ExecStart=/usr/bin/curator --config {{ curator_conf_dir }}/curator.yml {{ curator_conf_dir }}/delete_index.yml
 User=vitam
 Group=vitam
 StandardOutput=syslog

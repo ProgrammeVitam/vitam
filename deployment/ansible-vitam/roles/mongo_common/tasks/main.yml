@@ -61,7 +61,7 @@
         state: restarted
 
   when:
-    - status_tuned_present
+    - status_tuned_present |bool
     - ansible_virtualization_type != "docker"
 
 - name: check /sys/kernel/mm/transparent_hugepage existence

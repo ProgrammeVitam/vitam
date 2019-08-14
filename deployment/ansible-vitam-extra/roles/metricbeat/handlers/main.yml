@@ -9,4 +9,4 @@
   service:
     name: kibana
     state: restarted
-  delegate_to: "{{groups['hosts-kibana-log'][0]}}"
+  delegate_to: "{{ groups['hosts-kibana-log'][0] }}"

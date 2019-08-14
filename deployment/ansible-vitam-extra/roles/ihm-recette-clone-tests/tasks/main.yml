@@ -70,7 +70,7 @@
     mode: "{{ vitam_defaults.folder.folder_permission }}"
 
 - name: create git repo
-  shell: "git clone --no-checkout {{vitam_tests_gitrepo_url}} ."
+  shell: "git clone --no-checkout {{ vitam_tests_gitrepo_url }} ."
   become_user: "{{ vitam_defaults.users.vitam }}"
   environment:
     http_proxy: "{{ http_proxy_environnement }}"

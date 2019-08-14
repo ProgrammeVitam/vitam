@@ -79,7 +79,7 @@
 
 - name: ensure json conf extra  directory exists
   file:
-    path: "{{logstash_confextra_dir}}"
+    path: "{{ logstash_confextra_dir }}"
     owner: "{{ logstash.user }}"
     group: "{{ vitam_defaults.users.group }}"
     state: directory
@@ -104,7 +104,7 @@
 - name: configure logstash parser
   template:
     src: "{{ item }}.j2"
-    dest: "{{logstash_conf_dir}}/{{ item }}"
+    dest: "{{ logstash_conf_dir }}/{{ item }}"
     owner: "{{ logstash.user }}"
     group: "{{ vitam_defaults.users.group }}"
     mode: "{{ vitam_defaults.folder.conf_permission }}"
@@ -127,7 +127,7 @@
 - name: configure extra parser configuration
   template:
     src: "{{ item }}.j2"
-    dest: "{{logstash_conf_dir}}/extra/{{ item }}"
+    dest: "{{ logstash_conf_dir }}/extra/{{ item }}"
     owner: logstash
     group: "{{ vitam_defaults.users.group }}"
     mode: "{{ vitam_defaults.folder.conf_permission }}"

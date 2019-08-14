@@ -1,4 +1,4 @@
-secret : {{plateforme_secret}}
+secret : {{ plateforme_secret }}
 filterActivation : {{ vitam_struct.secret_platform }}
 {% if vitam_struct.vitam_component == vitam.processing.vitam_component %}
 distributeurBatchSize: 800
@@ -18,8 +18,8 @@ intervalDelayCheckIdle : 5000
 maxDelayUnusedConnection : 5000
 delayValidationAfterInactivity : 2500
 tenants:  [ "{{ vitam_tenant_ids | join('", "') }}" ]
-adminTenant : {{vitam_tenant_admin}}
-forceChunkModeInputStream : {{vitam_defaults.vitam_force_chunk_mode}}
+adminTenant : {{ vitam_tenant_admin }}
+forceChunkModeInputStream : {{ vitam_defaults.vitam_force_chunk_mode }}
 
 {% if vitam_struct.vitam_component == vitam.worker.vitam_component %}
 reclassificationMaxBulkThreshold: 1000
@@ -32,7 +32,7 @@ textMaxLength: 32766
 
 classificationLevel :
   allowList :  [{% for classification in classificationList %}{{ classification }}{% if not loop.last %},{% endif %}{% endfor %}]
-  authorizeNotDefined: {{classificationLevelOptional}}
+  authorizeNotDefined: {{ classificationLevelOptional }}
 
 indexInheritedRulesWithAPIV2OutputByTenant: [ "{{  vitam.worker.api_output_index_tenants | join('", "') }}" ]
 indexInheritedRulesWithRulesIdByTenant: [ "{{  vitam.worker.rules_index_tenants | join('", "') }}" ]

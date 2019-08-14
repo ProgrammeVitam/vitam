@@ -2,6 +2,6 @@
 # vars file for elasticsaerch-cluster
 elasticsearch_user: "elasticsearch"
 elasticsearch_max_open_files: "65535"
-elasticsearch_log_dir: "{{vitam_defaults.folder.root_path}}/log/{{ composant.cluster_name }}"
-elasticsearch_data_dir: "{{vitam_defaults.folder.root_path}}/data/{{ composant.cluster_name }}"
-elasticsearch_conf_dir: "{{vitam_defaults.folder.root_path}}/conf/{{ composant.cluster_name }}"
+elasticsearch_log_dir: "{{ vitam_defaults.folder.root_path }}/log/{{ composant.cluster_name }}"
+elasticsearch_data_dir: "{{ vitam_defaults.folder.root_path }}/data/{{ composant.cluster_name }}"
+elasticsearch_conf_dir: "{{ vitam_defaults.folder.root_path }}/conf/{{ composant.cluster_name }}"

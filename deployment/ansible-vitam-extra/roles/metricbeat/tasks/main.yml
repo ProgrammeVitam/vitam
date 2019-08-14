@@ -54,7 +54,7 @@
 #   shell: /usr/share/metricbeat/scripts/import_dashboards -file /tmp/beats-dashboards-{{ beats_version }}.zip -es http://{{ elasticsearch.log.host }}:{{ elasticsearch.log.port_http }}
 #   run_once: true
 #   when: "{{ (groups['hosts-kibana-log'] | length) > 0}}"
-#   delegate_to: "{{groups['hosts-kibana-log'][0]}}"
+#   delegate_to: "{{ groups['hosts-kibana-log'][0] }}"
 #   notify:
 #     - restart kibana
 
@@ -64,7 +64,7 @@
   shell: /usr/bin/metricbeat setup --dashboards
   run_once: true
   when: "{{ (groups['hosts-kibana-log'] | length) > 0}}"
-  delegate_to: "{{groups['hosts-kibana-log'][0]}}"
+  delegate_to: "{{ groups['hosts-kibana-log'][0] }}"
   retries: 5
   delay: 30
   register: result

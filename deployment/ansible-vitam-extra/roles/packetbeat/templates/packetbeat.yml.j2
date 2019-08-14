@@ -179,7 +179,7 @@ setup.kibana:
 #-------------------------- Elasticsearch output ------------------------------
 output.elasticsearch:
   # Array of hosts to connect to.
-  hosts: [{% for item in groups['hosts-elasticsearch-log'] %}"{{hostvars[item]['ip_admin']}}:{{ elasticsearch.log.port_http }}"{% if not loop.last %},{% endif %}{% endfor %}]
+  hosts: [{% for item in groups['hosts-elasticsearch-log'] %}"{{ hostvars[item]['ip_admin'] }}:{{ elasticsearch.log.port_http }}"{% if not loop.last %},{% endif %}{% endfor %}]
 
   # Optional protocol and basic auth credentials.
   #protocol: "https"
