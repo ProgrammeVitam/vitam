@@ -254,6 +254,9 @@ public class TapeLibraryServiceImpl implements TapeLibraryService {
                 tape.setPreviousLocation(tape.getCurrentLocation());
                 tape.setCurrentLocation(new TapeLocation(getDriveIndex(), TapeLocationType.DRIVE));
 
+                // Rewind the tape
+                rewindTape(tape);
+
             } finally {
                 tapeRobotPool.pushRobotService(tapeRobotService);
             }
