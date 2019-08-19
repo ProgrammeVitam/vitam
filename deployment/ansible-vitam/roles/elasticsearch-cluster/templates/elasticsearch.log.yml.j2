@@ -55,7 +55,7 @@ bootstrap.memory_lock: true
 # Set the bind address to a specific IP (IPv4 or IPv6):
 #
 # Note : if installing to localhost, notably a docker container, we need to bind larger than localhost
-{% if inventory_hostname == "localhost" %}
+{% if inventory_hostname in single_vm_hostnames %}
 network.host: 0.0.0.0
 http.cors.enabled: true
 http.cors.allow-origin: "*"

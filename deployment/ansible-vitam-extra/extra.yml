@@ -14,7 +14,7 @@
 
 # - hosts: vitam
 #   roles:
-#    - {role: packetbeat, when: "inventory_hostname != 'localhost'"}
+#    - {role: packetbeat, when: "inventory_hostname not in single_vm_hostnames"}
 
 - import_playbook: curator_jobs.yml
 
