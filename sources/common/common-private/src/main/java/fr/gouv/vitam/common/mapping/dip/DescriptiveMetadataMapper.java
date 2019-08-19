@@ -31,11 +31,17 @@ import fr.gouv.culture.archivesdefrance.seda.v2.DescriptiveMetadataContentType;
 import fr.gouv.culture.archivesdefrance.seda.v2.EventType;
 import fr.gouv.culture.archivesdefrance.seda.v2.ManagementHistoryDataType;
 import fr.gouv.culture.archivesdefrance.seda.v2.ManagementHistoryType;
+import fr.gouv.culture.archivesdefrance.seda.v2.MessageDigestBinaryObjectType;
+import fr.gouv.culture.archivesdefrance.seda.v2.ReferencedObjectType;
+import fr.gouv.culture.archivesdefrance.seda.v2.SignatureType;
 import fr.gouv.culture.archivesdefrance.seda.v2.TextType;
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.model.unit.ArchiveUnitHistoryModel;
 import fr.gouv.vitam.common.model.unit.DescriptiveMetadataModel;
 import fr.gouv.vitam.common.model.unit.EventTypeModel;
+import fr.gouv.vitam.common.model.unit.ReferencedObjectTypeModel;
+import fr.gouv.vitam.common.model.unit.SignatureTypeModel;
+import fr.gouv.vitam.common.model.unit.SignedObjectDigestModel;
 
 import javax.xml.datatype.DatatypeConfigurationException;
 import javax.xml.datatype.XMLGregorianCalendar;
@@ -133,7 +139,7 @@ public class DescriptiveMetadataMapper {
 
 
         if (metadataModel.getSignature() != null && !metadataModel.getSignature().isEmpty()) {
-            dmc.getSignature().addAll(metadataModel.getSignature());
+            dmc.getSignature().addAll(mapSignatures(metadataModel.getSignature()));
         }
 
 
@@ -177,6 +183,47 @@ public class DescriptiveMetadataMapper {
         fillHistory(historyListModel, dmc.getHistory());
 
         return dmc;
+    }
+
+    private List<SignatureType> mapSignatures(List<SignatureTypeModel> signatures) {
+        if (signatures == null) {
+            return null;
+        }
+        return signatures.stream()
+            .map(this::mapSignature)
+            .collect(Collectors.toList());
+    }
+
+    private SignatureType mapSignature(SignatureTypeModel signatureType) {
+        SignatureType result = new SignatureType();
+        if(signatureType.getSigner() != null) {
+            result.getSigner().addAll(signatureType.getSigner());
+        }
+        result.setValidator(signatureType.getValidator());
+        result.setReferencedObject(mapReferencedObject(signatureType.getReferencedObject()));
+            // Not supported in R11
+        result.setMasterdata(signatureType.getMasterdata());
+        return result;
+    }
+
+    private ReferencedObjectType mapReferencedObject(ReferencedObjectTypeModel referencedObject) {
+        if (referencedObject == null) {
+            return null;
+        }
+        ReferencedObjectType result = new ReferencedObjectType();
+        result.setSignedObjectId(referencedObject.getSignedObjectId());
+        result.setSignedObjectDigest(mapSignedObjectDigest(referencedObject.getSignedObjectDigest()));
+        return result;
+    }
+
+    private MessageDigestBinaryObjectType mapSignedObjectDigest(SignedObjectDigestModel signedMessageDigest) {
+        if (signedMessageDigest == null) {
+            return null;
+        }
+        MessageDigestBinaryObjectType result = new MessageDigestBinaryObjectType();
+        result.setAlgorithm(signedMessageDigest.getAlgorithm());
+        result.setValue(signedMessageDigest.getValue());
+        return result;
     }
 
     private List<EventType> mapEvents(List<EventTypeModel> eventTypes) {
