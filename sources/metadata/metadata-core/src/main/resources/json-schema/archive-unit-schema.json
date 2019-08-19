@@ -919,7 +919,20 @@
                 "type": "string"
               },
               "SignedObjectDigest": {
-                "type": "object"
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                  "MessageDigest": {
+                    "$ref": "#/definitions/non-empty-token"
+                  },
+                  "Algorithm": {
+                    "$ref": "#/definitions/non-empty-token"
+                  }
+                },
+                "required": [
+                  "MessageDigest",
+                  "Algorithm"
+                ]
               }
             },
             "required": [
