@@ -80,6 +80,7 @@ import fr.gouv.vitam.common.model.unit.DescriptiveMetadataModel;
 import fr.gouv.vitam.common.model.unit.GotObj;
 import fr.gouv.vitam.common.model.unit.RuleCategoryModel;
 import fr.gouv.vitam.common.model.unit.RuleModel;
+import fr.gouv.vitam.common.model.unit.SignatureTypeModel;
 import fr.gouv.vitam.common.model.unit.TextByLang;
 import fr.gouv.vitam.common.parameter.ParameterHelper;
 import fr.gouv.vitam.functional.administration.client.AdminManagementClient;
@@ -451,7 +452,7 @@ public class ArchiveUnitListener extends Unmarshaller.Listener {
     private void enhanceSignatures(DescriptiveMetadataModel descriptiveMetadataModel) {
 
         if (descriptiveMetadataModel.getSignature() != null && !descriptiveMetadataModel.getSignature().isEmpty()) {
-            for (SignatureType signature : descriptiveMetadataModel.getSignature()) {
+            for (SignatureTypeModel signature : descriptiveMetadataModel.getSignature()) {
 
                 String signedObjectId =
                     signature.getReferencedObject().getSignedObjectId();

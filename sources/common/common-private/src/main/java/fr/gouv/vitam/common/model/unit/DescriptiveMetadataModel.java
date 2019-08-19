@@ -37,7 +37,6 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import fr.gouv.culture.archivesdefrance.seda.v2.CoverageType;
-import fr.gouv.culture.archivesdefrance.seda.v2.EventType;
 import fr.gouv.culture.archivesdefrance.seda.v2.GpsType;
 import fr.gouv.culture.archivesdefrance.seda.v2.KeywordsType;
 import fr.gouv.culture.archivesdefrance.seda.v2.LevelType;
@@ -131,7 +130,7 @@ public class DescriptiveMetadataModel {
 
     private List<EventTypeModel> event;
 
-    private List<SignatureType> signature;
+    private List<SignatureTypeModel> signature;
 
     private GpsType gps;
 
@@ -739,14 +738,14 @@ public class DescriptiveMetadataModel {
     /**
      * @return
      */
-    public List<SignatureType> getSignature() {
+    public List<SignatureTypeModel> getSignature() {
         return signature;
     }
 
     /**
      * @param signature
      */
-    public void setSignature(List<SignatureType> signature) {
+    public void setSignature(List<SignatureTypeModel> signature) {
         this.signature = signature;
     }
 
