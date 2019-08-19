@@ -54,7 +54,7 @@ hosts-ihm-recette
 
 
 [hosts-ihm-demo]
-# TODO: Put here servers where this service will be deployed : ihm-demo
+# TODO: Put here servers where this service will be deployed : ihm-demo. If you own another frontend, it is recommended to leave this group blank
 # If you don't need consul for ihm-demo, you can set this var after each hostname :
 # consul_disabled=true
 
