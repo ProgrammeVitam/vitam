@@ -1,14 +1,30 @@
 ---
-# handlers file for elasticsaerch-cluster
-- name: restart elasticsearch
+
+- name: restart service
   service:
-    name: vitam-{{composant.cluster_name}}
+    name: "vitam-{{ composant.cluster_name }}"
     state: restarted
+  listen: restart elasticsearch
+
+- name: wait until port is open
+  wait_for:
+    host: "{{ ip_service }}"
+    port: "{{ composant.port_http }}"
+    state: started
+  listen: restart elasticsearch
 
 - name: create systemd tmpfiles
   command: systemd-tmpfiles --create
 
-- name: reload consul configuration
+- name: reload consul
   service:
     name: vitam-consul
     state: reloaded
+  listen: reload consul configuration
+
+- name: wait for elasticsearch cluster to be resolved by consul
+  wait_for:
+    host: "{{ composant.host }}"
+    port: "{{ composant.port_http }}"
+    timeout: "{{ vitam_defaults.services.start_timeout }}"
+  listen: reload consul configuration
