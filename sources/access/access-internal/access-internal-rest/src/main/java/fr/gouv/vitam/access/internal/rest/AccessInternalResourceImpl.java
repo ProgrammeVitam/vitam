@@ -1212,7 +1212,8 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
         return new VitamError(status.name())
             .setHttpCode(status.getStatusCode()).setContext(ACCESS_MODULE)
             .setState(CODE_VITAM)
-            .setMessage(msg);
+            .setMessage(msg)
+            .setDescription(msg);
     }
 
     private InputStream getErrorStream(Status status, String message) {
@@ -1222,7 +1223,8 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
                 .setHttpCode(status.getStatusCode())
                 .setContext(ACCESS_MODULE)
                 .setState(CODE_VITAM)
-                .setMessage(status.getReasonPhrase()).setDescription(msg));
+                .setMessage(status.getReasonPhrase())
+                .setDescription(msg));
         } catch (InvalidParseOperationException e) {
             return new ByteArrayInputStream("{ 'message' : 'Invalid VitamError message' }".getBytes());
         }
