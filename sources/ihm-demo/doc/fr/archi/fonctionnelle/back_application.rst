@@ -10,6 +10,8 @@ Fonctionnement général du module
 L'application IHM-DEMO est une application web dont la partie Front est une application Single Page développée avec le framework AngularJS 1.5.3 et côté serveur on utilise un serveur Jetty intégré qui gère les appels à ses services REST. Dans ce document, on s'intéresse à l'application côté serveur.
 On détaille dans la suite le fonctionnement par service REST.
 
+.. caution:: La solution logicielle :term:`VITAM` étant avant tout un *back office*, si vous possédez une :term:`IHM` raccordée à VITAM, il n'est pas recommandé d'installer ce composant en environnement de production.
+
 Recherche des units : POST /ihm-demo/v1/api/archivesearch/units
 ---------------------------------------------------------------
 L'application Front construit en amont un objet Json passé dans le corps de la requête HTTP qui décrit les critères de recherche, les colonnes à afficher et le tri par défaut. Ci-dessous, la structure de l'objet reçu:
