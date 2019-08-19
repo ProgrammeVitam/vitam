@@ -1,7 +1,7 @@
 %define        version 6.8.2
 Name:          vitam-elasticsearch-log
 Version:       %{version}
-Release:       1%{?dist}
+Release:       2%{?dist}
 Summary:       A Distributed RESTful Search Engine (with vitam systemd units)
 Group:         Applications/Databases
 License:       AGPL 3.0
