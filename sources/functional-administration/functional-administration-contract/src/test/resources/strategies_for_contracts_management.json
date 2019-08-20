@@ -1,0 +1,49 @@
+[
+    {
+      "id": "default",
+      "offers": [
+        {
+          "id": "offer-one",
+          "referent": true
+        },
+        {
+          "id": "offer-two"
+        },
+        {
+          "id": "offer-three"
+        }
+      ]
+    },
+    {
+      "id": "default-fake-unit",
+      "offers": [
+        {
+          "id": "offer-one",
+          "referent": true
+        },
+        {
+          "id": "offer-two"
+        }
+      ]
+    },
+    {
+      "id": "default-fake-got",
+      "offers": [
+        {
+          "id": "offer-one",
+          "referent": true
+        },
+        {
+          "id": "offer-two"
+        }
+      ]
+    },
+    {
+      "id": "default-fake-object",
+      "offers": [
+        {
+          "id": "offer-three"
+        }
+      ]
+    }
+]

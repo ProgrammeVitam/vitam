@@ -28,7 +28,6 @@ package fr.gouv.vitam.common.guid;
 
 import fr.gouv.vitam.common.ServerIdentity;
 import fr.gouv.vitam.common.ServerIdentityInterface;
-import fr.gouv.vitam.common.exception.InvalidGuidOperationException;
 
 /**
  * GUID Factory <br>
@@ -260,8 +259,8 @@ public final class GUIDFactory {
      * @return a new GUID
      * @throws IllegalArgumentException if any of the argument are out of range
      */
-    public static final GUID newIngestContractGUID(final int tenantId) {
-        final int type = GUIDObjectType.INGEST_CONTRACT_TYPE;
+    public static final GUID newContractGUID(final int tenantId) {
+        final int type = GUIDObjectType.CONTRACT_TYPE;
         return new GUIDImplPrivate(type, tenantId, serverIdentity.getGlobalPlatformId(),
             GUIDObjectType.getDefaultWorm(type));
     }

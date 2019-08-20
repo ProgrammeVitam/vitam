@@ -1,0 +1,28 @@
+[
+	{
+		"Name": "mcContract1",
+		"Description": "Contrat de gestion 1",
+		"Status": "ACTIVE",
+		"CreationDate": "2017-04-10T11:30:33.798",
+		"LastUpdate": "2017-04-10T11:30:33.798",
+		"ActivationDate": "2017-04-10T11:30:33.798",
+		"DeactivationDate": null,
+		"Storage": {
+			"UnitStrategy": "default-md",
+			"ObjectGroupStrategy": "default-md",
+			"ObjectStrategy": "default-data"
+		}
+	},
+	{
+		"Name": "mcContract2",
+		"Description": "Contrat de gestion 2",
+		"Status": "ACTIVE",
+		"CreationDate": "2017-04-10T11:30:33.798",
+		"LastUpdate": "2017-04-10T11:30:33.798",
+		"ActivationDate": "2017-04-10T11:30:33.798",
+		"DeactivationDate": null,
+		"Storage": {
+			"ObjectStrategy": "default-data"
+		}
+	}
+]

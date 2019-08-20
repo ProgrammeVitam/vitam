@@ -30,7 +30,6 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 
 import fr.gouv.vitam.common.database.builder.request.single.Delete;
-import fr.gouv.vitam.common.database.collections.VitamCollection;
 import fr.gouv.vitam.common.database.server.DbRequestResult;
 import fr.gouv.vitam.common.database.server.mongodb.VitamDocument;
 import fr.gouv.vitam.common.exception.BadRequestException;
@@ -150,7 +149,7 @@ public interface MongoDbAccessReferential {
      * @throws BadRequestException when query is incorrect
      */
     DbRequestResult findDocuments(JsonNode select, FunctionalAdminCollections collection)
-        throws ReferentialException, BadRequestException;
+        throws ReferentialException;
 
     /**
      * @param delete filter

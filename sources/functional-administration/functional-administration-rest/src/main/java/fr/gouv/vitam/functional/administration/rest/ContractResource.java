@@ -45,7 +45,6 @@ import com.fasterxml.jackson.databind.JsonNode;
 
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.error.VitamError;
-import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamException;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
@@ -53,12 +52,13 @@ import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.administration.AccessContractModel;
 import fr.gouv.vitam.common.model.administration.IngestContractModel;
-import fr.gouv.vitam.functional.administration.common.exception.ReferentialException;
+import fr.gouv.vitam.common.model.administration.ManagementContractModel;
 import fr.gouv.vitam.functional.administration.common.server.MongoDbAccessAdminImpl;
 import fr.gouv.vitam.functional.administration.contract.api.ContractService;
 import fr.gouv.vitam.functional.administration.contract.core.AccessContractImpl;
 import fr.gouv.vitam.functional.administration.contract.core.IngestContractImpl;
 import fr.gouv.vitam.functional.administration.common.counter.VitamCounterService;
+import fr.gouv.vitam.functional.administration.contract.core.ManagementContractImpl;
 
 /**
  * FormatManagementResourceImpl implements AccessResource
@@ -70,8 +70,10 @@ public class ContractResource {
     private static final String ADMIN_MODULE = "ADMIN_MODULE";
     static final String INGEST_CONTRACTS_URI = "/ingestcontracts";
     static final String ACCESS_CONTRACTS_URI = "/accesscontracts";
-    static final String UPDATE_ACCESS_CONTRACT_URI = "/accesscontracts";
+    static final String MANAGEMENT_CONTRACTS_URI = "/managementcontracts";
+    static final String UPDATE_ACCESS_CONTRACTS_URI = "/accesscontracts";
     static final String UPDATE_INGEST_CONTRACTS_URI = "/ingestcontracts";
+    static final String UPDATE_MANAGEMENT_CONTRACTS_URI = "/managementcontracts";
 
 
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(ContractResource.class);
@@ -218,7 +220,7 @@ public class ContractResource {
     }
 
 
-    @Path(UPDATE_ACCESS_CONTRACT_URI + "/{id}")
+    @Path(UPDATE_ACCESS_CONTRACTS_URI + "/{id}")
     @PUT
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
@@ -300,6 +302,110 @@ public class ContractResource {
             LOGGER.error(e);
             return Response.status(Status.INTERNAL_SERVER_ERROR)
                 .entity(getErrorEntity(Status.INTERNAL_SERVER_ERROR, e.getMessage(), null)).build();
+        }
+    }
+
+
+    /**
+     * Import a set of management contracts after passing the validation steps. If all the contracts are valid, they are
+     * stored in the collection and indexed. </BR>
+     * The input is invalid in the following situations : </BR>
+     * <ul>
+     * <li>The json is invalid</li>
+     * <li>The json contains 2 ore many contracts having the same name</li>
+     * <li>One or more mandatory field is missing</li>
+     * <li>A field has an invalid format</li>
+     * <li>One or many contracts already exist in the database</li>
+     * <li>One or many of the storage strategies are invalid</li>
+     * </ul>
+     *
+     * @param managementContractModelList
+     * @param uri
+     * @return Response
+     */
+    @Path(MANAGEMENT_CONTRACTS_URI)
+    @POST
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response importManagementContracts(List<ManagementContractModel> managementContractModelList, @Context UriInfo uri) {
+        ParametersChecker.checkParameter(ACCESS_CONTRACT_JSON_IS_MANDATORY_PATAMETER, managementContractModelList);
+        try (ContractService<ManagementContractModel> managementContract = new ManagementContractImpl(mongoAccess,
+                vitamCounterService)) {
+            RequestResponse requestResponse = managementContract.createContracts(managementContractModelList);
+
+            if (!requestResponse.isOk()) {
+                ((VitamError) requestResponse).setHttpCode(Status.BAD_REQUEST.getStatusCode());
+                return Response.status(Status.BAD_REQUEST).entity(requestResponse).build();
+            } else {
+
+                return Response.created(uri.getRequestUri().normalize()).entity(requestResponse).build();
+            }
+
+
+        } catch (VitamException exp) {
+            LOGGER.error(exp);
+            return Response.status(Status.BAD_REQUEST)
+                    .entity(getErrorEntity(Status.BAD_REQUEST, exp.getMessage(), null)).build();
+        } catch (Exception exp) {
+            LOGGER.error("Unexpected server error {}", exp);
+            return Response.status(Status.INTERNAL_SERVER_ERROR)
+                    .entity(getErrorEntity(Status.INTERNAL_SERVER_ERROR, exp.getMessage(), null)).build();
+        }
+    }
+
+    /**
+     * find management contracts by queryDsl
+     *
+     * @param queryDsl
+     *
+     * @return Response
+     */
+    @Path(MANAGEMENT_CONTRACTS_URI)
+    @GET
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response findManagementContracts(JsonNode queryDsl) {
+        try (ContractService<ManagementContractModel> managementContract = new ManagementContractImpl(mongoAccess,
+                vitamCounterService)) {
+
+            final RequestResponseOK<ManagementContractModel> managementContractModelList =
+                    managementContract.findContracts(queryDsl)
+                            .setQuery(queryDsl);
+            return Response.status(Status.OK)
+                    .entity(managementContractModelList).build();
+        } catch (Exception e) {
+            LOGGER.error(e);
+            return Response.status(Status.INTERNAL_SERVER_ERROR)
+                    .entity(getErrorEntity(Status.INTERNAL_SERVER_ERROR, e.getMessage(), null)).build();
+        }
+    }
+
+
+    @Path(UPDATE_MANAGEMENT_CONTRACTS_URI + "/{id}")
+    @PUT
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response updateManagementContract(@PathParam("id") String contractId, JsonNode queryDsl) {
+        try (ContractService<ManagementContractModel> managementContract = new ManagementContractImpl(mongoAccess,
+                vitamCounterService)) {
+            RequestResponse requestResponse = managementContract.updateContract(contractId, queryDsl);
+            if (Response.Status.NOT_FOUND.getStatusCode() == requestResponse.getHttpCode()) {
+                ((VitamError) requestResponse).setHttpCode(Status.NOT_FOUND.getStatusCode());
+                return Response.status(Status.NOT_FOUND).entity(requestResponse).build();
+            } else if (!requestResponse.isOk()) {
+                ((VitamError) requestResponse).setHttpCode(Status.BAD_REQUEST.getStatusCode());
+                return Response.status(Status.BAD_REQUEST).entity(requestResponse).build();
+            } else {
+                return Response.status(Status.OK).entity(requestResponse).build();
+            }
+        } catch (VitamException exp) {
+            LOGGER.error(exp);
+            return Response.status(Status.BAD_REQUEST)
+                    .entity(getErrorEntity(Status.BAD_REQUEST, exp.getMessage(), null)).build();
+        } catch (Exception exp) {
+            LOGGER.error("Unexpected server error {}", exp);
+            return Response.status(Status.INTERNAL_SERVER_ERROR)
+                    .entity(getErrorEntity(Status.INTERNAL_SERVER_ERROR, exp.getMessage(), null)).build();
         }
     }
 

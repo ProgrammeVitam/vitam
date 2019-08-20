@@ -4,6 +4,7 @@
 - Référentiel des Règles de Gestion
 - Référentiel des Contrats d'Entrées
 - Référentiel des Contrats d'Accès
+- Référentiel des Contrats de Gestion
 - Référentiel des Contextes
 - Référentiel des Profiles de Sécurité
 - Registre des Fonds
@@ -43,6 +44,12 @@ Actuellement ce référentiel est utilisé lors du processus d'entrées.
 Il est possible de mettre à jour ce référentiel via les API. Il est par tenant.
 
 Actuellement ce référentiel est utilisé lors des accès.
+
+# Référentiel des Contrats de Gestion
+
+Il est possible de mettre à jour ce référentiel via les API. Il est par tenant.
+
+Actuellement ce référentiel est utilisé lors des entrées.
 
 # Référentiel des Contextes
 

@@ -57,11 +57,7 @@ import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.StatusCode;
-import fr.gouv.vitam.common.model.administration.AccessContractModel;
-import fr.gouv.vitam.common.model.administration.ContextModel;
-import fr.gouv.vitam.common.model.administration.IngestContractModel;
-import fr.gouv.vitam.common.model.administration.PermissionModel;
-import fr.gouv.vitam.common.model.administration.SecurityProfileModel;
+import fr.gouv.vitam.common.model.administration.*;
 import fr.gouv.vitam.common.parameter.ParameterHelper;
 import fr.gouv.vitam.common.security.SanityChecker;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
@@ -79,6 +75,7 @@ import fr.gouv.vitam.functional.administration.context.core.ContextValidator.Con
 import fr.gouv.vitam.functional.administration.contract.api.ContractService;
 import fr.gouv.vitam.functional.administration.contract.core.AccessContractImpl;
 import fr.gouv.vitam.functional.administration.contract.core.IngestContractImpl;
+import fr.gouv.vitam.functional.administration.contract.core.ManagementContractImpl;
 import fr.gouv.vitam.functional.administration.security.profile.core.SecurityProfileService;
 import fr.gouv.vitam.logbook.common.parameters.LogbookOperationParameters;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParameterName;
@@ -150,12 +147,10 @@ public class ContextServiceImpl implements ContextService {
         SecurityProfileService securityProfileService) {
         this.mongoAccess = mongoAccess;
         this.vitamCounterService = vitamCounterService;
-        logbookClient = LogbookOperationsClientFactory.getInstance().getClient();
-        internalSecurityClient = InternalSecurityClientFactory.getInstance().getClient();
-        ContractService<IngestContractModel> ingestContract = new IngestContractImpl(mongoAccess, vitamCounterService);
-        ContractService<AccessContractModel> accessContract = new AccessContractImpl(mongoAccess, vitamCounterService);
-        this.ingestContract = ingestContract;
-        this.accessContract = accessContract;
+        this.logbookClient = LogbookOperationsClientFactory.getInstance().getClient();
+        this.internalSecurityClient = InternalSecurityClientFactory.getInstance().getClient();
+        this.ingestContract = new IngestContractImpl(mongoAccess, vitamCounterService);
+        this.accessContract = new AccessContractImpl(mongoAccess, vitamCounterService);
         this.securityProfileService = securityProfileService;
         this.functionalBackupService = new FunctionalBackupService(vitamCounterService);
     }
@@ -173,8 +168,8 @@ public class ContextServiceImpl implements ContextService {
         SecurityProfileService securityProfileService, FunctionalBackupService functionalBackupService) {
         this.mongoAccess = mongoAccess;
         this.vitamCounterService = vitamCounterService;
-        logbookClient = LogbookOperationsClientFactory.getInstance().getClient();
-        internalSecurityClient = InternalSecurityClientFactory.getInstance().getClient();
+        this.logbookClient = LogbookOperationsClientFactory.getInstance().getClient();
+        this.internalSecurityClient = InternalSecurityClientFactory.getInstance().getClient();
         this.ingestContract = ingestContract;
         this.accessContract = accessContract;
         this.securityProfileService = securityProfileService;

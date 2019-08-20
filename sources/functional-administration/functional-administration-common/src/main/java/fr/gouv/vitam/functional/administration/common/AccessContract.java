@@ -34,7 +34,6 @@ import com.fasterxml.jackson.databind.JsonNode;
 
 import fr.gouv.vitam.common.database.server.mongodb.VitamDocument;
 import fr.gouv.vitam.common.model.administration.ActivationStatus;
-import fr.gouv.vitam.common.parameter.ParameterHelper;
 
 /**
  * Defines an Access contract model for SIP transfer control. </BR>
@@ -186,8 +185,7 @@ public class AccessContract extends VitamDocument<AccessContract> {
         try {
             return ActivationStatus.valueOf(status);
         } catch (IllegalArgumentException exp) {
-            // no value corresponds to this status => corrupted state
-            return null;
+            throw new IllegalStateException("invalid STATUS value " + status);
         }
     }
 

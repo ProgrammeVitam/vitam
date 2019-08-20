@@ -1,0 +1,54 @@
+[
+	{
+		"Name": "mcContract1",
+		"Description": "Description of the contract 1",
+		"Status": "ACTIVE",
+		"LastUpdate": "2017-04-10T11:30:33.798",
+		"CreationDate": "2017-04-10T11:30:33.798",
+		"ActivationDate": "2017-04-10T11:30:33.798",
+		"DeactivationDate": null,
+		"Storage": {
+			"UnitStrategy": "default",
+			"ObjectGroupStrategy": "default",
+			"ObjectStrategy": "default"
+		}
+	},
+	{
+		"Name": "mcContract2",
+		"Description": "Description of the contract 2",
+		"Status": "ACTIVE",
+		"LastUpdate": "2017-04-10T11:30:33.798",
+		"CreationDate": "2017-04-10T11:30:33.798",
+		"ActivationDate": "2017-04-10T11:30:33.798"
+	},
+	{
+		"Name": "mcContract3",
+		"Description": "Description of the contract 3",
+		"Status": "INACTIVE",
+		"LastUpdate": "2017-04-10T11:30:33.798",
+		"CreationDate": "2017-04-10T11:30:33.798",
+		"ActivationDate": "2017-04-10T11:30:33.798",
+		"DeactivationDate": "2017-04-11T11:30:33.798"
+	},
+	{
+		"Name": "mcContract4",
+		"Description": "Description of the contract 4",
+		"Status": "ACTIVE",
+		"LastUpdate": "2017-04-10T11:30:33.798",
+		"CreationDate": "2017-04-10T11:30:33.798",
+		"ActivationDate": "2017-04-10T11:30:33.798",
+		"Storage": {
+			
+		}
+	},
+	{
+		"Identifier": "IdentifierMC5",
+		"Name": "mcContract5",
+		"Description": "Description of the contract 5",
+		"Status": "ACTIVE",
+		"LastUpdate": "2017-04-10T11:30:33.798",
+		"CreationDate": "2017-04-10T11:30:33.798",
+		"ActivationDate": "2017-04-10T11:30:33.798",
+		"Storage": null
+	}
+]

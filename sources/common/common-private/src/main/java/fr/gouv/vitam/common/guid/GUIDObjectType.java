@@ -84,9 +84,9 @@ public final class GUIDObjectType {
         ACCESSION_REGISTER_DETAIL(ACCESSION_REGISTER_DETAIL_TYPE),
 
         /**
-         * Ingest contract type
+         * Contract type
          */
-        INGEST_CONTRACT(INGEST_CONTRACT_TYPE),
+        CONTRACT(CONTRACT_TYPE),
 
         /**
          * Agencies contract type
@@ -162,7 +162,7 @@ public final class GUIDObjectType {
     /**
      * Entry contract
      */
-    public static final int INGEST_CONTRACT_TYPE = 11;
+    public static final int CONTRACT_TYPE = 11;
 
 
     /**
@@ -225,8 +225,8 @@ public final class GUIDObjectType {
                 return GUIDObjectEnumType.STORAGE_OPERATION;
             case ACCESSION_REGISTER_SUMMARY_TYPE:
                 return GUIDObjectEnumType.ACCESSION_REGISTER_SUMMARY;
-            case INGEST_CONTRACT_TYPE:
-                return GUIDObjectEnumType.INGEST_CONTRACT;
+            case CONTRACT_TYPE:
+                return GUIDObjectEnumType.CONTRACT;
             case AGENCY_TYPE:
                 return GUIDObjectEnumType.AGENCIES;
             case ONTOLOGY_TYPE:
@@ -264,7 +264,7 @@ public final class GUIDObjectType {
      */
     public static boolean getDefaultWorm(int type) {
         switch (type) {
-            case INGEST_CONTRACT_TYPE:
+            case CONTRACT_TYPE:
                 return false;
             case UNIT_TYPE:
             case OBJECTGROUP_TYPE:

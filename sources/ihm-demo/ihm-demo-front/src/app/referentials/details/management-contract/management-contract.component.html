@@ -1,0 +1,94 @@
+<p-panel [header]="'Détail du contrat d\'entrée'">
+  <div class="ui-g" *ngIf="!saveRunning">
+    <div class="ui-g-8"></div>
+    <div class="ui-g-2" *ngIf="!update"></div>
+    <div class="ui-g-2" *ngIf="!update">
+      <button pButton class="ui-button" (click)="switchUpdateMode()" label="Modifier"
+              icon="fa-edit" iconPos="left"></button>
+    </div>
+    <div class="ui-g-2" *ngIf="update">
+      <button pButton class="ui-button secondaryButton" (click)="switchUpdateMode()" label="Annuler"
+              icon="fa-close" iconPos="left"></button>
+    </div>
+    <div class="ui-g-2" *ngIf="update">
+      <button pButton class="ui-button" (click)="saveUpdate()" label="Sauvegarder"
+              icon="fa-save" iconPos="left"></button>
+    </div>
+
+    <div class="ui-g-12 textAlignLeft" *ngIf="contract">
+      <div class="ui-g-12">
+        <vitam-metadata-field [title]="'Identifiant'" [originalTitle]="'Identifier'"
+                              [value]="modifiedContract.Identifier" [labelSize]="4"
+                              class="ui-g-4" [updateMode]="false"
+                              [(updatedFields)]="updatedFields"></vitam-metadata-field>
+
+        <vitam-metadata-field [title]="'Date de création'" [originalTitle]="'CreationDate'"
+                              [value]="modifiedContract.CreationDate" [labelSize]="4"
+                              class="ui-g-4" [updateMode]="false"
+                              [(updatedFields)]="updatedFields"></vitam-metadata-field>
+
+        <vitam-metadata-field [title]="'Dernière modification'" [originalTitle]="'LastUpdate'"
+                              [value]="modifiedContract.LastUpdate" [labelSize]="5"
+                              class="ui-g-4 " [updateMode]="false"
+                              [(updatedFields)]="updatedFields"></vitam-metadata-field>
+      </div>
+      <div class="ui-g-12">
+        <vitam-metadata-field [title]="'Intitulé'" [originalTitle]="'Name'" [value]="modifiedContract.Name"
+                              [labelSize]="4"
+                              class="ui-g-4 " [updateMode]="update"
+                              [(updatedFields)]="updatedFields"></vitam-metadata-field>
+
+        <div class="ui-g-4">
+          <div class="ui-g-nopad ui-g-4">
+            <label class="label fieldLabel">Statut</label>
+          </div>
+          <div class="ui-g-nopad ui-g-8" *ngIf="!update">
+            <span class="overflow-break-words">{{isActif ? 'Actif' : 'Inactif'}}</span>
+          </div>
+          <div class="ui-g-nopad ui-g-8" *ngIf="update">
+            <p-toggleButton onLabel="Actif" offLabel="Inactif" [(ngModel)]="isActif"
+                            (onChange)="changeStatus()"></p-toggleButton>
+          </div>
+        </div>
+        <vitam-metadata-field [title]="'Tenant'" [value]="modifiedContract['#tenant']" [labelSize]="5"
+                              class="ui-g-4 minHeight45 " [updateMode]="false"
+                              [(updatedFields)]="updatedFields"></vitam-metadata-field>
+      </div>
+
+
+      <div class="ui-g-12">
+        <vitam-metadata-field [title]="'Description'" [originalTitle]="'Description'"
+                              [value]="modifiedContract.Description" [labelSize]="4"
+                              class="ui-g-4 " [updateMode]="update"
+                              [(updatedFields)]="updatedFields"></vitam-metadata-field>
+      </div>
+      <div class="ui-g-12">
+        <vitam-metadata-field [title]="'Stockage des unités archivistique'" [originalTitle]="'UnitStrategy'"
+                              [value]="modifiedContract.Storage.UnitStrategy" [labelSize]="4"
+                              class="ui-g-4 " [updateMode]="update"
+                              [(updatedFields)]="updatedFields"></vitam-metadata-field>
+        <vitam-metadata-field [title]="'Stockage des groupes d\'objets'" [originalTitle]="'ObjectGroupStrategy'"
+                              [value]="modifiedContract.Storage.ObjectGroupStrategy" [labelSize]="4"
+                              class="ui-g-4 " [updateMode]="update"
+                              [(updatedFields)]="updatedFields"></vitam-metadata-field>
+        <vitam-metadata-field [title]="'Stockage des objets'" [originalTitle]="'ObjectStrategy'"
+                              [value]="modifiedContract.Storage.ObjectGroupStrategy" [labelSize]="4"
+                              class="ui-g-4 " [updateMode]="update"
+                              [(updatedFields)]="updatedFields"></vitam-metadata-field>
+      </div>
+    </div>
+
+    <div class="ui-g-12 textAlignLeft" *ngIf="contract">
+      <div class="ui-g-12">
+        <div class="ui-g-nopad ui-g-12" *ngIf="update">
+          <span class="overflow-break-words"><i>Afin que la modification soit prise en compte, veuillez appuyer sur "Entrer" après l'ajout de chaque identifiant.</i></span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div *ngIf="saveRunning">
+    Sauvegarde des métadonnées en cours...
+  </div>
+
+</p-panel>

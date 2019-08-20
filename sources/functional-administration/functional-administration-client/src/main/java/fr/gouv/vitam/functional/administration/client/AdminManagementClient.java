@@ -46,6 +46,7 @@ import fr.gouv.vitam.common.model.administration.ArchiveUnitProfileModel;
 import fr.gouv.vitam.common.model.administration.ContextModel;
 import fr.gouv.vitam.common.model.administration.FileFormatModel;
 import fr.gouv.vitam.common.model.administration.IngestContractModel;
+import fr.gouv.vitam.common.model.administration.ManagementContractModel;
 import fr.gouv.vitam.common.model.administration.OntologyModel;
 import fr.gouv.vitam.common.model.administration.ProfileModel;
 import fr.gouv.vitam.common.model.administration.SecurityProfileModel;
@@ -64,6 +65,7 @@ import fr.gouv.vitam.logbook.common.parameters.LogbookOperationParameters;
 
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.List;
@@ -275,6 +277,29 @@ public interface AdminManagementClient extends MockOrRestClient {
 
 
     /**
+     * Import a set of management contracts after passing the validation steps If all the contracts are valid, they are
+     * stored in the collection and indexed The input is invalid in the following situations : </BR>
+     * <ul>
+     * <li>The json is invalid</li>
+     * <li>The json have an id already set</li>
+     * <li>The json contains 2 ore many contracts having the same name</li>
+     * <li>One or more mandatory field is missing</li>
+     * <li>A field has an invalid format</li>
+     * <li>One or many contracts Already exist in the database</li>
+     * <li>One or many storage strategies are invalid</li>
+     * </ul>
+     *
+     * @param managementContractModelList the list contract to import
+     * @return The server response as vitam RequestResponse
+     * @throws VitamClientInternalException
+     * @throws InvalidParseOperationException
+     */
+
+    Status importManagementContracts(List<ManagementContractModel> managementContractModelList)
+            throws InvalidParseOperationException, AdminManagementClientServerException;
+
+
+    /**
      * Update AccessContract to mongo
      *
      * @param id the given access contract id to update
@@ -299,6 +324,20 @@ public interface AdminManagementClient extends MockOrRestClient {
      */
     RequestResponse<IngestContractModel> updateIngestContract(String id, JsonNode queryDsl)
         throws InvalidParseOperationException, AdminManagementClientServerException, ReferentialNotFoundException;
+
+
+    /**
+     * Update ManagementContract to mongo
+     *
+     * @param id the given access contract id to update
+     * @param queryDsl query to execute
+     * @return The server response as vitam RequestResponse
+     * @throws InvalidParseOperationException
+     * @throws AdminManagementClientServerException
+     * @throws ReferentialNotFoundException
+     */
+    RequestResponse<ManagementContractModel> updateManagementContract(String id, JsonNode queryDsl)
+            throws InvalidParseOperationException, AdminManagementClientServerException, ReferentialNotFoundException;
 
     /**
      * Find access contracts
@@ -346,6 +385,33 @@ public interface AdminManagementClient extends MockOrRestClient {
     RequestResponse<IngestContractModel> findIngestContractsByID(String id)
         throws InvalidParseOperationException, AdminManagementClientServerException, ReferentialNotFoundException;
 
+    /**
+     * Find management contracts
+     * <ul>
+     * <li>By id mongo</li>
+     * <li>By the name</li>
+     * <li>By comlexe criteria</li>
+     * </ul>
+     *
+     * @param queryDsl
+     * @return The server response as vitam RequestResponse
+     * @throws VitamClientInternalException
+     * @throws InvalidParseOperationException
+     */
+    RequestResponse<ManagementContractModel> findManagementContracts(JsonNode queryDsl)
+            throws InvalidParseOperationException, AdminManagementClientServerException;
+
+
+    /**
+     * @param documentId
+     * @return The server response as vitam RequestResponse
+     * @throws InvalidParseOperationException
+     * @throws AdminManagementClientServerException
+     * @throws ReferentialNotFoundException
+     */
+    RequestResponse<ManagementContractModel> findManagementContractsByID(String documentId)
+            throws InvalidParseOperationException, AdminManagementClientServerException, ReferentialNotFoundException;
+
 
     /**
      * Import a set of profile If all the profiles are valid, they will be stored in the collection and indexed The
@@ -363,7 +429,6 @@ public interface AdminManagementClient extends MockOrRestClient {
      * @throws VitamClientInternalException
      * @throws InvalidParseOperationException
      */
-
     RequestResponse createProfiles(List<ProfileModel> profileModelList)
         throws InvalidParseOperationException, AdminManagementClientServerException;
 

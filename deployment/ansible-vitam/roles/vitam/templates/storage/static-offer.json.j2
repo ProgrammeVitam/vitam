@@ -4,7 +4,7 @@
     {% set protocol = 'http' %}
 {% endif %}
 [
-{% for item in vitam_strategy %}
+{% for item in all_used_offers %}
 {
 {% if item.id is defined %}
     "id" : "{{ item.id }}",

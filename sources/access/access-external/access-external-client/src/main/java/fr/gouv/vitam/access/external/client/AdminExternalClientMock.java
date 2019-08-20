@@ -40,6 +40,7 @@ import fr.gouv.vitam.common.model.administration.ContextModel;
 import fr.gouv.vitam.common.model.administration.FileFormatModel;
 import fr.gouv.vitam.common.model.administration.FileRulesModel;
 import fr.gouv.vitam.common.model.administration.IngestContractModel;
+import fr.gouv.vitam.common.model.administration.ManagementContractModel;
 import fr.gouv.vitam.common.model.administration.OntologyModel;
 import fr.gouv.vitam.common.model.administration.ProfileModel;
 import fr.gouv.vitam.common.model.administration.SecurityProfileModel;
@@ -79,6 +80,13 @@ public class AdminExternalClientMock extends AbstractMockClient implements Admin
         JsonNode queryDsl)
         throws InvalidParseOperationException, AccessExternalClientException {
         return ClientMockResultHelper.createReponse(ClientMockResultHelper.getIngestContracts().toJsonNode());
+    }
+
+    @Override
+    public RequestResponse updateManagementContract(VitamContext vitamContext, String id,
+        JsonNode queryDsl)
+        throws InvalidParseOperationException, AccessExternalClientException {
+        return ClientMockResultHelper.createReponse(ClientMockResultHelper.getManagementContracts().toJsonNode());
     }
 
     @Override
@@ -169,6 +177,13 @@ public class AdminExternalClientMock extends AbstractMockClient implements Admin
     }
 
     @Override
+    public RequestResponse<ManagementContractModel> findManagementContracts(
+        VitamContext vitamContext, JsonNode select)
+        throws VitamClientException {
+        return ClientMockResultHelper.getManagementContracts();
+    }
+
+    @Override
     public RequestResponse<ContextModel> findContexts(VitamContext vitamContext,
         JsonNode select)
         throws VitamClientException {
@@ -222,6 +237,13 @@ public class AdminExternalClientMock extends AbstractMockClient implements Admin
         VitamContext vitamContext, String contractId)
         throws VitamClientException {
         return ClientMockResultHelper.getAccessContracts();
+    }
+
+    @Override
+    public RequestResponse<ManagementContractModel> findManagementContractById(
+        VitamContext vitamContext, String contractId)
+        throws VitamClientException {
+        return ClientMockResultHelper.getManagementContracts();
     }
 
     @Override
@@ -418,12 +440,16 @@ public class AdminExternalClientMock extends AbstractMockClient implements Admin
         return ClientMockResultHelper.createReponse(ClientMockResultHelper.getIngestContracts().toJsonNode());
     }
 
-
-
     @Override
     public RequestResponse createAccessContracts(VitamContext vitamContext, InputStream accessContracts)
         throws InvalidParseOperationException, AccessExternalClientException {
         return ClientMockResultHelper.createReponse(ClientMockResultHelper.getAccessContracts().toJsonNode());
+    }
+
+    @Override
+    public RequestResponse createManagementContracts(VitamContext vitamContext, InputStream managementContracts)
+        throws InvalidParseOperationException, AccessExternalClientException {
+        return ClientMockResultHelper.createReponse(ClientMockResultHelper.getManagementContracts().toJsonNode());
     }
 
     @Override

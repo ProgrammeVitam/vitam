@@ -62,6 +62,7 @@ import { FormatComponent } from './referentials/details/format/format.component'
 import { RuleComponent } from './referentials/details/rule/rule.component';
 import { AccessContractComponent } from './referentials/details/access-contract/access-contract.component';
 import { IngestContractComponent } from './referentials/details/ingest-contract/ingest-contract.component';
+import { ManagementContractComponent } from './referentials/details/management-contract/management-contract.component';
 import { ProfilComponent } from './referentials/details/profil/profil.component';
 import { ContextComponent } from './referentials/details/context/context.component';
 import { TreeParentComponent } from './archive-unit/archive-unit-details/archive-tree-view/tree-parent/tree-parent.component';
@@ -185,6 +186,9 @@ const appRoutes: Routes = [
     path: 'admin/ingestContract/:id', component: IngestContractComponent, data: {permission: 'contracts:read'}
   },
   {
+    path: 'admin/managementContract/:id', component: ManagementContractComponent, data: {permission: 'managementcontracts:read'}
+  },
+  {
     path: 'admin/profil/:id', component: ProfilComponent, data: {permission: 'profiles:read'}
   },
   {
@@ -283,6 +287,7 @@ const appRoutes: Routes = [
     RuleComponent,
     AccessContractComponent,
     IngestContractComponent,
+    ManagementContractComponent,
     ProfilComponent,
     ArchiveUnitProfileComponent,
     OntologyComponent,

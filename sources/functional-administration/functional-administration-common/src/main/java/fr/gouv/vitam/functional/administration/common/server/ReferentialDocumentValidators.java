@@ -46,6 +46,7 @@ public final class ReferentialDocumentValidators {
     public static final String FILE_FORMAT_SCHEMA_JSON = "/json-schema/file-format-schema.json";
     public static final String FILE_RULES_SCHEMA_JSON = "/json-schema/file-rules-schema.json";
     public static final String INGEST_CONTRACT_SCHEMA_JSON = "/json-schema/ingest-contract-schema.json";
+    public static final String MANAGEMENT_CONTRACT_SCHEMA_JSON = "/json-schema/management-contract-schema.json";
     public static final String PROFILE_SCHEMA_JSON = "/json-schema/profile-schema.json";
     public static final String SECURITY_PROFILE_SCHEMA_JSON = "/json-schema/security-profile-schema.json";
     public static final String ONTOLOGY_SCHEMA_JSON = "/json-schema/ontology-schema.json";
@@ -73,6 +74,8 @@ public final class ReferentialDocumentValidators {
         forBuiltInSchema(FILE_RULES_SCHEMA_JSON);
     private static final DocumentValidator INGEST_CONTRACT_SCHEMA_VALIDATOR =
         forBuiltInSchema(INGEST_CONTRACT_SCHEMA_JSON);
+    private static final DocumentValidator MANAGEMENT_CONTRACT_SCHEMA_VALIDATOR =
+            forBuiltInSchema(MANAGEMENT_CONTRACT_SCHEMA_JSON);
     private static final DocumentValidator PROFILE_SCHEMA_VALIDATOR =
         forBuiltInSchema(PROFILE_SCHEMA_JSON);
     private static final DocumentValidator SECURITY_PROFILE_SCHEMA_VALIDATOR =
@@ -105,6 +108,8 @@ public final class ReferentialDocumentValidators {
                 return FILE_RULES_SCHEMA_VALIDATOR;
             case INGEST_CONTRACT:
                 return INGEST_CONTRACT_SCHEMA_VALIDATOR;
+            case MANAGEMENT_CONTRACT:
+                return MANAGEMENT_CONTRACT_SCHEMA_VALIDATOR;
             case ACCESS_CONTRACT:
                 return ACCESS_CONTRACT_SCHEMA_VALIDATOR;
             case PROFILE:

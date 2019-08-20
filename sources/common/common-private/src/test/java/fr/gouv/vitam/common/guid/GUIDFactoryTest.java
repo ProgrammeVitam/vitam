@@ -101,6 +101,8 @@ public class GUIDFactoryTest {
             GUIDObjectType.getChildrenType(GUIDObjectType.STORAGE_OPERATION_TYPE));
         assertEquals(GUIDObjectType.UNASSIGNED_TYPE,
             GUIDObjectType.getChildrenType(GUIDObjectType.UNASSIGNED_TYPE));
+        assertEquals(GUIDObjectType.CONTRACT_TYPE,
+                GUIDObjectType.getChildrenType(GUIDObjectType.CONTRACT_TYPE));
 
         assertEquals(false,
             GUIDObjectType.getDefaultWorm(GUIDObjectType.UNIT_TYPE));
@@ -122,6 +124,8 @@ public class GUIDFactoryTest {
             GUIDObjectType.getDefaultWorm(GUIDObjectType.STORAGE_OPERATION_TYPE));
         assertEquals(false,
             GUIDObjectType.getDefaultWorm(GUIDObjectType.UNASSIGNED_TYPE));
+        assertEquals(false,
+                GUIDObjectType.getDefaultWorm(GUIDObjectType.CONTRACT_TYPE));
 
         assertEquals(GUIDObjectType.GUIDObjectEnumType.UNIT,
             GUIDObjectType.getEnumType(GUIDObjectType.UNIT_TYPE));
@@ -143,6 +147,8 @@ public class GUIDFactoryTest {
             GUIDObjectType.getEnumType(GUIDObjectType.STORAGE_OPERATION_TYPE));
         assertEquals(GUIDObjectType.GUIDObjectEnumType.UNASSIGNED,
             GUIDObjectType.getEnumType(GUIDObjectType.UNASSIGNED_TYPE));
+        assertEquals(GUIDObjectType.GUIDObjectEnumType.CONTRACT,
+                GUIDObjectType.getEnumType(GUIDObjectType.CONTRACT_TYPE));
 
         assertEquals(GUIDObjectType.GUIDObjectEnumType.UNIT.getId(),
             GUIDObjectType.UNIT_TYPE);
@@ -164,5 +170,7 @@ public class GUIDFactoryTest {
             GUIDObjectType.STORAGE_OPERATION_TYPE);
         assertEquals(GUIDObjectType.GUIDObjectEnumType.UNASSIGNED.getId(),
             GUIDObjectType.UNASSIGNED_TYPE);
+        assertEquals(GUIDObjectType.GUIDObjectEnumType.CONTRACT.getId(),
+                GUIDObjectType.CONTRACT_TYPE);
     }
 }

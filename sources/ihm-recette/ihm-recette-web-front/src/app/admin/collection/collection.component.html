@@ -50,10 +50,12 @@
   </div>
   <div class="pad-b-20px">
     <p-fieldset legend="Contrats" [toggleable]="true">
-      <vitam-remove-items class="ui-g-12 ui-md-6 ui-lg-6" [tenant]="tenant" api="masterdata/accessContract"
+      <vitam-remove-items class="ui-g-12 ui-md-6 ui-lg-4" [tenant]="tenant" api="masterdata/accessContract"
                           name="contrats d'accès" label="Purge des contrats d'accès"></vitam-remove-items>
-      <vitam-remove-items class="ui-g-12 ui-md-6 ui-lg-6" [tenant]="tenant" api="masterdata/ingestContract"
+      <vitam-remove-items class="ui-g-12 ui-md-6 ui-lg-4" [tenant]="tenant" api="masterdata/ingestContract"
                           name="contrats d'entrée" label="Purge des contrats d'entrée"></vitam-remove-items>
+      <vitam-remove-items class="ui-g-12 ui-md-6 ui-lg-4" [tenant]="tenant" api="masterdata/managementContract"
+                          name="contrats de gestion" label="Purge des contrats de gestion"></vitam-remove-items>
     </p-fieldset>
   </div>
 </div>

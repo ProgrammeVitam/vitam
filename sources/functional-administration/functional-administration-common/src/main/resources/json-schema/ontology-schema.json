@@ -95,7 +95,8 @@
           "EliminationActionObjectGroup",
           "EliminationActionUnit",
           "PreservationReport",
-          "PreservationScenario"
+          "PreservationScenario",
+          "ManagementContract"
         ]
       }
     },

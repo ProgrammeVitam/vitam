@@ -1,0 +1,3 @@
+{
+  "$action": [ { "$set": { "NewField": "New value" } } ]
+}

@@ -82,6 +82,7 @@ import fr.gouv.vitam.common.model.administration.ContextModel;
 import fr.gouv.vitam.common.model.administration.FileFormatModel;
 import fr.gouv.vitam.common.model.administration.FileRulesModel;
 import fr.gouv.vitam.common.model.administration.IngestContractModel;
+import fr.gouv.vitam.common.model.administration.ManagementContractModel;
 import fr.gouv.vitam.common.model.administration.OntologyModel;
 import fr.gouv.vitam.common.model.administration.ProfileModel;
 import fr.gouv.vitam.common.model.dip.DipExportRequest;
@@ -138,6 +139,7 @@ import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
+
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
@@ -2410,7 +2412,6 @@ public class WebApplicationResource extends ApplicationStatusResource {
         }
     }
 
-
     /**
      * Query to get Access contracts
      *
@@ -2517,6 +2518,158 @@ public class WebApplicationResource extends ApplicationStatusResource {
                 adminClient.updateAccessContract(
                     userInterfaceTransactionManager.getVitamContext(request),
                     contractId, updateRequest.getFinalUpdateById());
+            return Response.status(Status.OK).entity(archiveDetails).build();
+        } catch (InvalidCreateOperationException | InvalidParseOperationException e) {
+            LOGGER.error(BAD_REQUEST_EXCEPTION_MSG, e);
+            return Response.status(Status.BAD_REQUEST).build();
+        } catch (final AccessExternalClientException e) {
+            LOGGER.error(ACCESS_SERVER_EXCEPTION_MSG, e);
+            return Response.status(Status.INTERNAL_SERVER_ERROR).build();
+        } catch (final Exception e) {
+            LOGGER.error(INTERNAL_SERVER_ERROR_MSG, e);
+            return Response.status(Status.INTERNAL_SERVER_ERROR).build();
+        }
+    }
+
+
+    /**
+     * Upload Management contracts
+     *
+     * @param request HTTP request
+     * @param input the format file CSV
+     * @return Response
+     */
+    @POST
+    @Path("/managementcontracts")
+    @Consumes(MediaType.APPLICATION_OCTET_STREAM)
+    @Produces(MediaType.APPLICATION_JSON)
+    @RequiresPermissions("managementcontracts:create")
+    public Response uploadManagementContracts(@Context HttpServletRequest request, InputStream input) {
+
+        try (final AdminExternalClient adminClient = adminExternalClientFactory.getClient()) {
+            RequestResponse response =
+                    adminClient.createManagementContracts(
+                            userInterfaceTransactionManager.getVitamContext(request), input);
+            if (response != null && response instanceof RequestResponseOK) {
+                return Response.status(Status.OK).build();
+            }
+            if (response != null && response instanceof VitamError) {
+                LOGGER.error(response.toString());
+                return Response.status(response.getStatus()).entity(response).build();
+            }
+            return Response.status(Status.INTERNAL_SERVER_ERROR).build();
+        } catch (final Exception e) {
+            LOGGER.error(INTERNAL_SERVER_ERROR_MSG, e);
+            return Response.status(Status.INTERNAL_SERVER_ERROR).build();
+        }
+    }
+
+    /**
+     * Query to get Management contracts
+     *
+     * @param request HTTP request
+     * @param select the query to find Management contracts
+     * @return Response
+     */
+    @POST
+    @Path("/managementcontracts")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    @RequiresPermissions("managementcontracts:read")
+    public Response findManagementContracts(@Context HttpServletRequest request, String select) {
+        try {
+            final Map<String, Object> optionsMap = JsonHandler.getMapFromString(select);
+
+            final JsonNode query = dslQueryHelper.createSingleQueryDSL(optionsMap);
+
+            try (final AdminExternalClient adminClient = adminExternalClientFactory.getClient()) {
+                RequestResponse<ManagementContractModel> response =
+                        adminClient.findManagementContracts(
+                                userInterfaceTransactionManager.getVitamContext(request),
+                                query);
+                if (response != null && response instanceof RequestResponseOK) {
+                    return Response.status(Status.OK).entity(response).build();
+                }
+                if (response != null && response instanceof VitamError) {
+                    LOGGER.error(response.toString());
+                    return Response.status(Status.INTERNAL_SERVER_ERROR).entity(response).build();
+                }
+                return Response.status(Status.INTERNAL_SERVER_ERROR).build();
+            }
+        } catch (final Exception e) {
+            LOGGER.error(INTERNAL_SERVER_ERROR_MSG, e);
+            return Response.status(Status.INTERNAL_SERVER_ERROR).build();
+        }
+    }
+
+
+    /**
+     * Query to Management contracts by id
+     *
+     * @param request HTTP request
+     * @param id of the requested management contract
+     * @return Response
+     */
+    @GET
+    @Path("/managementcontracts/{id}")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    @RequiresPermissions("managementcontracts:read")
+    public Response findManagementContract(@Context HttpServletRequest request, @PathParam("id") String id) {
+
+        try (final AdminExternalClient adminClient = adminExternalClientFactory.getClient()) {
+            RequestResponse<ManagementContractModel> response =
+                    adminClient.findManagementContractById(
+                            userInterfaceTransactionManager.getVitamContext(request),
+                            id);
+            if (response != null && response instanceof RequestResponseOK) {
+                return Response.status(Status.OK).entity(response).build();
+            }
+            if (response != null && response instanceof VitamError) {
+                LOGGER.error(response.toString());
+                return Response.status(response.getHttpCode()).entity(response).build();
+            }
+            return Response.status(Status.INTERNAL_SERVER_ERROR).build();
+        } catch (final Exception e) {
+            LOGGER.error(INTERNAL_SERVER_ERROR_MSG, e);
+            return Response.status(Status.INTERNAL_SERVER_ERROR).build();
+        }
+    }
+
+    /**
+     * Update Management contracts
+     *
+     * @param request HTTP request
+     * @param contractId the id of management contract
+     * @return Response
+     */
+    @POST
+    @Path("/managementcontracts/{id}")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    @RequiresPermissions("managementcontracts:update")
+    public Response updateManagementContracts(@Context HttpServletRequest request, @PathParam("id") String contractId,
+                                          JsonNode updateOptions) {
+        try {
+            ParametersChecker.checkParameter(SEARCH_CRITERIA_MANDATORY_MSG, contractId);
+            SanityChecker.checkJsonAll(JsonHandler.toJsonNode(contractId));
+            SanityChecker.checkJsonAll(JsonHandler.toJsonNode(updateOptions));
+
+        } catch (final IllegalArgumentException | InvalidParseOperationException e) {
+            LOGGER.error(e);
+            return Response.status(Status.BAD_REQUEST).entity(e.getMessage()).build();
+        }
+
+        try (final AdminExternalClient adminClient = adminExternalClientFactory.getClient()) {
+            Update updateRequest = new Update();
+            if (!updateOptions.isObject()) {
+                throw new InvalidCreateOperationException("Query not valid");
+            }
+            updateRequest.addActions(UpdateActionHelper.set((ObjectNode) updateOptions));
+            final RequestResponse archiveDetails =
+                    adminClient.updateManagementContract(
+                            userInterfaceTransactionManager.getVitamContext(request),
+                            contractId, updateRequest.getFinalUpdateById());
             return Response.status(Status.OK).entity(archiveDetails).build();
         } catch (InvalidCreateOperationException | InvalidParseOperationException e) {
             LOGGER.error(BAD_REQUEST_EXCEPTION_MSG, e);

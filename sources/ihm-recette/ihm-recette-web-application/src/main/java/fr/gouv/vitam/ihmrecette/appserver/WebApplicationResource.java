@@ -1141,6 +1141,12 @@ public class WebApplicationResource extends ApplicationStatusResource {
                                                     getVitamContext(request),
                                                     criteria);
                                             break;
+                                        case MANAGEMENT_CONTRACTS:
+                                            result =
+                                                    adminExternalClient.findManagementContracts(
+                                                            getVitamContext(request),
+                                                            criteria);
+                                            break;
                                         case CONTEXTS:
                                             result = adminExternalClient.findContexts(
                                                 getVitamContext(request),
@@ -1195,6 +1201,12 @@ public class WebApplicationResource extends ApplicationStatusResource {
                                                         getVitamContext(request),
                                                         objectID);
                                                 break;
+                                            case MANAGEMENT_CONTRACTS:
+                                                result =
+                                                        adminExternalClient.findManagementContractById(
+                                                                getVitamContext(request),
+                                                                objectID);
+                                                break;
                                             case CONTEXTS:
                                                 result = adminExternalClient.findContextById(
                                                     getVitamContext(request),
@@ -1231,6 +1243,10 @@ public class WebApplicationResource extends ApplicationStatusResource {
                                         result = adminExternalClient.updateIngestContract(
                                             getVitamContext(request),
                                             objectID, criteria);
+                                    } else if (AdminCollections.MANAGEMENT_CONTRACTS.equals(requestedAdminCollection)) {
+                                        result = adminExternalClient.updateManagementContract(
+                                                getVitamContext(request),
+                                                objectID, criteria);
                                     } else if (AdminCollections.PROFILE.equals(requestedAdminCollection)) {
                                         result = adminExternalClient.updateProfile(
                                             getVitamContext(request),

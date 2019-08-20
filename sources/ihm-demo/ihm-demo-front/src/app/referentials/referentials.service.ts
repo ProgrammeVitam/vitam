@@ -109,7 +109,7 @@ export class ReferentialsService {
       }
     }
 
-    if (this.searchAPI === 'contracts' || this.searchAPI === 'accesscontracts') {
+    if (this.searchAPI === 'contracts' || this.searchAPI === 'accesscontracts' || this.searchAPI === 'managementcontracts') {
       if (!body.ContractID) {
         body.ContractID = 'all';
       }
@@ -207,6 +207,10 @@ export class ReferentialsService {
 
   getIngestContractById(id: string): Observable<VitamResponse> {
     return this.resourceService.get('contracts/' + id);
+  }
+
+  getManagementContractById(id: string): Observable<VitamResponse> {
+    return this.resourceService.get('managementcontracts/' + id);
   }
 
   getProfileById(id: string): Observable<VitamResponse> {

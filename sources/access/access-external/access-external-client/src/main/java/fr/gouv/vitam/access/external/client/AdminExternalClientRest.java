@@ -8,7 +8,6 @@ import fr.gouv.vitam.access.external.common.exception.AccessExternalClientNotFou
 import fr.gouv.vitam.access.external.common.exception.AccessExternalClientServerException;
 import fr.gouv.vitam.access.external.common.exception.AccessExternalNotFoundException;
 import fr.gouv.vitam.access.external.common.exception.LogbookExternalClientException;
-import fr.gouv.vitam.access.external.common.exception.LogbookExternalException;
 import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.client.VitamContext;
@@ -38,12 +37,13 @@ import fr.gouv.vitam.common.model.administration.ArchiveUnitProfileModel;
 import fr.gouv.vitam.common.model.administration.ContextModel;
 import fr.gouv.vitam.common.model.administration.FileFormatModel;
 import fr.gouv.vitam.common.model.administration.FileRulesModel;
-import fr.gouv.vitam.common.model.administration.preservation.GriffinModel;
 import fr.gouv.vitam.common.model.administration.IngestContractModel;
+import fr.gouv.vitam.common.model.administration.ManagementContractModel;
 import fr.gouv.vitam.common.model.administration.OntologyModel;
-import fr.gouv.vitam.common.model.administration.preservation.PreservationScenarioModel;
 import fr.gouv.vitam.common.model.administration.ProfileModel;
 import fr.gouv.vitam.common.model.administration.SecurityProfileModel;
+import fr.gouv.vitam.common.model.administration.preservation.GriffinModel;
+import fr.gouv.vitam.common.model.administration.preservation.PreservationScenarioModel;
 import fr.gouv.vitam.common.model.processing.ProcessDetail;
 import fr.gouv.vitam.common.model.processing.WorkFlow;
 import fr.gouv.vitam.logbook.common.client.ErrorMessage;
@@ -55,6 +55,7 @@ import javax.ws.rs.core.MultivaluedHashMap;
 import javax.ws.rs.core.MultivaluedMap;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
+
 import java.io.InputStream;
 
 import static fr.gouv.vitam.access.external.api.AdminCollections.ACCESSION_REGISTERS_SYMBOLIC;
@@ -71,6 +72,7 @@ public class AdminExternalClientRest extends DefaultClient implements AdminExter
     private static final String URI_NOT_FOUND = "URI not found";
     private static final String UPDATE_ACCESS_CONTRACT = AccessExtAPI.ACCESS_CONTRACT_API_UPDATE + "/";
     private static final String UPDATE_INGEST_CONTRACT = AccessExtAPI.INGEST_CONTRACT_API_UPDATE + "/";
+    private static final String UPDATE_MANAGEMENT_CONTRACT = AccessExtAPI.MANAGEMENT_CONTRACT_API_UPDATE + "/";
     private static final String UPDATE_CONTEXT = AccessExtAPI.CONTEXTS_API_UPDATE + "/";
     private static final String UPDATE_PROFILE = AccessExtAPI.PROFILES_API_UPDATE + "/";
     private static final String UPDATE_AU_PROFILE = AccessExtAPI.ARCHIVE_UNIT_PROFILE + "/";
@@ -124,6 +126,14 @@ public class AdminExternalClientRest extends DefaultClient implements AdminExter
         throws VitamClientException {
         return internalFindDocuments(vitamContext, AdminCollections.ACCESS_CONTRACTS, select,
             AccessContractModel.class);
+    }
+
+    @Override
+    public RequestResponse<ManagementContractModel> findManagementContracts(
+        VitamContext vitamContext, JsonNode select)
+        throws VitamClientException {
+        return internalFindDocuments(vitamContext, AdminCollections.MANAGEMENT_CONTRACTS, select,
+                ManagementContractModel.class);
     }
 
     @Override
@@ -265,6 +275,24 @@ public class AdminExternalClientRest extends DefaultClient implements AdminExter
         Response response = null;
         try {
             response = performRequest(HttpMethod.PUT, UPDATE_INGEST_CONTRACT + id, vitamContext.getHeaders(),
+                queryDsl, MediaType.APPLICATION_JSON_TYPE,
+                MediaType.APPLICATION_JSON_TYPE);
+            return RequestResponse.parseFromResponse(response);
+        } catch (final VitamClientInternalException e) {
+            LOGGER.error(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage(), e);
+            throw new AccessExternalClientException(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage(), e);
+        } finally {
+            consumeAnyEntityAndClose(response);
+        }
+    }
+
+    @Override
+    public RequestResponse updateManagementContract(VitamContext vitamContext, String id,
+        JsonNode queryDsl)
+        throws AccessExternalClientException {
+        Response response = null;
+        try {
+            response = performRequest(HttpMethod.PUT, UPDATE_MANAGEMENT_CONTRACT + id, vitamContext.getHeaders(),
                 queryDsl, MediaType.APPLICATION_JSON_TYPE,
                 MediaType.APPLICATION_JSON_TYPE);
             return RequestResponse.parseFromResponse(response);
@@ -570,6 +598,14 @@ public class AdminExternalClientRest extends DefaultClient implements AdminExter
         throws VitamClientException {
         return internalFindDocumentById(vitamContext, AdminCollections.ACCESS_CONTRACTS, contractId,
             AccessContractModel.class);
+    }
+
+    @Override
+    public RequestResponse<ManagementContractModel> findManagementContractById(
+        VitamContext vitamContext, String contractId)
+        throws VitamClientException {
+        return internalFindDocumentById(vitamContext, AdminCollections.MANAGEMENT_CONTRACTS, contractId,
+            ManagementContractModel.class);
     }
 
     @Override
@@ -940,6 +976,12 @@ public class AdminExternalClientRest extends DefaultClient implements AdminExter
     public RequestResponse createAccessContracts(VitamContext vitamContext, InputStream accessContracts)
         throws InvalidParseOperationException, AccessExternalClientException {
         return internalCreateContracts(vitamContext, accessContracts, AdminCollections.ACCESS_CONTRACTS);
+    }
+
+    @Override
+    public RequestResponse createManagementContracts(VitamContext vitamContext, InputStream managementContracts)
+        throws InvalidParseOperationException, AccessExternalClientException {
+        return internalCreateContracts(vitamContext, managementContracts, AdminCollections.MANAGEMENT_CONTRACTS);
     }
 
     @Override

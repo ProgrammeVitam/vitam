@@ -1,4 +1,4 @@
-/*******************************************************************************
+/**
  * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2019)
  *
  * contact.vitam@culture.gouv.fr
@@ -23,68 +23,50 @@
  *
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
- *******************************************************************************/
+ */
 package fr.gouv.vitam.functional.administration.contract.core;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import fr.gouv.vitam.common.model.StatusCode;
-import fr.gouv.vitam.common.model.administration.AccessContractModel;
-import fr.gouv.vitam.functional.administration.format.model.FunctionalOperationModel;
-import java.util.List;
+import fr.gouv.vitam.common.model.administration.ManagementContractModel;
+
+import java.util.Optional;
 
 /**
- * Contract Report Model
- * */
-public class ContractReport {
+ * Used to validate contracts (any class that extends AbstractContractModel) and to apply acceptance rules.
+ *
+ * Bellow the example of usage :
+ *<pre>
+ * {@code
+ * private static GenericContractValidator checkDuplicateInDatabaseValidator() {
+ *    return (contract, contractName) -> {
+ *        GenericRejectionCause rejection = null;
+ *        boolean exist = ... exists in database?;
+ *        if (exist) {
+ *           rejection = GenericRejectionCause.rejectDuplicatedInDatabase(contractName);
+ *        }
+ *        return (rejection == null) ? Optional.empty() : Optional.of(rejection);
+ *    };
+ * }
+ * }
+ * </pre>
+ *
+ * The call the method like this to validate the contract c:
+ *
+ * GenericRejectionCause rejection = checkDuplicateInDatabaseValidator().validate(c, c.getName());
+ *
+ * Check if rejection is present then do the resolution
+ *
+ */
+@FunctionalInterface
+public interface ManagementContractValidator extends GenericContractValidator<ManagementContractModel> {
 
-    @JsonProperty("Operation")
-    private FunctionalOperationModel operation;
 
-    @JsonProperty("StatusCode")
-    private StatusCode statusCode;
 
-    @JsonProperty("errors")
-    private String errors;
-
-    @JsonProperty("accessContractToImport")
-    List<AccessContractModel> accessContract;
-
-    public List<AccessContractModel> getAccessContract() {
-        return accessContract;
-    }
-
-    public void setAccessContract(List<AccessContractModel> accessContract) {
-        this.accessContract = accessContract;
-    }
-
-    public ContractReport() {
-        // empty constructor
-    }
-
-    public FunctionalOperationModel getOperation() {
-        return operation;
-    }
-
-    public ContractReport setOperation(
-        FunctionalOperationModel operation) {
-        this.operation = operation;
-        return this;
-    }
-
-    public StatusCode getStatusCode() {
-        return statusCode;
-    }
-
-    public ContractReport setStatusCode(StatusCode statusCode) {
-        this.statusCode = statusCode;
-        return this;
-    }
-
-    String getErrors() {
-        return errors;
-    }
-
-    public void setErrors(String errors) {
-        this.errors = errors;
-    }
+    /**
+     * Validate a contract object
+     *
+     * @param managementContract to validate
+     * @param contractName
+     * @return empty optional if OK, Else return the rejection cause
+     */
+    Optional<GenericRejectionCause> validate(ManagementContractModel managementContract, String contractName);
 }

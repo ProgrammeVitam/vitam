@@ -51,6 +51,11 @@ public enum AdminCollections {
     ACCESS_CONTRACTS(AccessExtAPI.ACCESS_CONTRACT, null),
 
     /**
+     * Access contracts collection
+     */
+    MANAGEMENT_CONTRACTS(AccessExtAPI.MANAGEMENT_CONTRACT, null),
+
+    /**
      * Agencies collection
      */
     AGENCIES(AccessExtAPI.AGENCIES, AccessExtAPI.AGENCIESCHECK),

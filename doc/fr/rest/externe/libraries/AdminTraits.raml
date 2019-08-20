@@ -68,6 +68,19 @@ traits:
       201:
         description: Réponse si le versement ou la vérification de <<resourcePathName | !uppercamelcase>> est OK
 
+  AdminUpdate:
+    description: Response model for update of <<resourcePathName | !uppercamelcase>>
+    is: [ StandardTraits.StandardOptionalHeader,
+      StandardTraits.StandardHeader200,
+      StandardTraits.StandardHeader401, StandardTraits.StandardHeader404, StandardTraits.StandardHeader412, StandardTraits.StandardHeader409 ]
+    body:
+      application/json:
+        description: Body contient la requête DSL unitaire de modification au format JSON.
+        schema: AccessTypes.AccessUpdateByIdQuery
+        example: !include examples/adminUpdateQuery.json
+    responses:
+      201:
+        description: Réponse si la modification de <<resourcePathName | !uppercamelcase>> est OK
 
   AdminUpload:
     description: Response model for check or upload of <<resourcePathName | !uppercamelcase>>
@@ -82,7 +95,6 @@ traits:
     responses:
       201:
         description: Réponse si le versement ou la vérification de <<resourcePathName | !uppercamelcase>> est OK
-
 
   AdminProfileUpload:
     description: Response model for upload of <<resourcePathName | !uppercamelcase>>
