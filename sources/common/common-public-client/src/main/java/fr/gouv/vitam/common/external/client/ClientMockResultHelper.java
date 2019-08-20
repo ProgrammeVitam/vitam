@@ -56,6 +56,7 @@ import fr.gouv.vitam.common.model.administration.ContextStatus;
 import fr.gouv.vitam.common.model.administration.FileFormatModel;
 import fr.gouv.vitam.common.model.administration.FileRulesModel;
 import fr.gouv.vitam.common.model.administration.IngestContractModel;
+import fr.gouv.vitam.common.model.administration.ManagementContractModel;
 import fr.gouv.vitam.common.model.administration.OntologyModel;
 import fr.gouv.vitam.common.model.administration.OntologyOrigin;
 import fr.gouv.vitam.common.model.administration.OntologyType;
@@ -64,6 +65,7 @@ import fr.gouv.vitam.common.model.administration.ProfileFormat;
 import fr.gouv.vitam.common.model.administration.ProfileModel;
 import fr.gouv.vitam.common.model.administration.ProfileStatus;
 import fr.gouv.vitam.common.model.administration.RegisterValueDetailModel;
+import fr.gouv.vitam.common.model.administration.StorageDetailModel;
 import fr.gouv.vitam.common.model.dip.DipExportRequest;
 import fr.gouv.vitam.common.model.logbook.LogbookEventOperation;
 import fr.gouv.vitam.common.model.logbook.LogbookLifecycle;
@@ -339,6 +341,23 @@ public class ClientMockResultHelper {
         });
         contract.setEveryDataObjectVersion(false);
         contract.setEveryOriginatingAgency(false);
+        return contract;
+    }
+
+    private static ManagementContractModel getManagementContractItem() {
+        ManagementContractModel contract = new ManagementContractModel();
+        contract.setId("aeaaaaaaaaaaaaabaa4ikakyetch6mqaaacq");
+        contract.setTenant(0);
+        contract.setIdentifier("FAKE_IDENTIFIER");
+        contract.setName("Un contrat");
+        contract.setDescription("DESCRIPTION D'UN CONTRAT");
+        contract.setStatus(ActivationStatus.ACTIVE);
+        contract.setCreationdate("2016-11-02");
+        contract.setLastupdate("2016-11-05");
+        contract.setActivationdate("2016-11-04");
+        contract.setDeactivationdate("2016-11-03");
+        contract.setStorage(new StorageDetailModel().setUnitStrategy("default").setObjectGroupStrategy("default")
+                .setObjectStrategy("default"));
         return contract;
     }
 
@@ -643,6 +662,15 @@ public class ClientMockResultHelper {
      */
     public static RequestResponse<AccessContractModel> getAccessContracts() {
         return new RequestResponseOK<AccessContractModel>().addResult(getAccessContractItem())
+            .setHttpCode(Status.OK.getStatusCode());
+    }
+
+
+    /**
+     * @return a RequestResponse containing access contracts json
+     */
+    public static RequestResponse<ManagementContractModel> getManagementContracts() {
+        return new RequestResponseOK<ManagementContractModel>().addResult(getManagementContractItem())
             .setHttpCode(Status.OK.getStatusCode());
     }
 

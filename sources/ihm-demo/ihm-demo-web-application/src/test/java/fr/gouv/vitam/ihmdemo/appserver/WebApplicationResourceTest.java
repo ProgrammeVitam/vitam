@@ -262,7 +262,7 @@ public class WebApplicationResourceTest {
     }
 
 
-    private Map<String, String> createActiveMapForUpdateAccessContract() {
+    private Map<String, String> createActiveMapForUpdateCommonContract() {
         String now = LocalDateUtil.now().toString();
         Map<String, String> parameters = new HashMap<String, String>();
         parameters.put(STATUS_FIELD_QUERY, "ACTIVE");
@@ -290,7 +290,7 @@ public class WebApplicationResourceTest {
     public void givenAccessContractTestUpdate() throws InvalidParseOperationException, AccessExternalClientException {
 
         initializeAdminExternalClientMock();
-        final Map<String, String> parameters = createActiveMapForUpdateAccessContract();
+        final Map<String, String> parameters = createActiveMapForUpdateCommonContract();
         String jsonObject = JsonHandler.unprettyPrint(parameters);
         final ResponseBody response =
             given().contentType(ContentType.JSON)
@@ -303,7 +303,7 @@ public class WebApplicationResourceTest {
     @Test
     public void givenIngestContractTestUpdate() throws InvalidParseOperationException, AccessExternalClientException {
         initializeAdminExternalClientMock();
-        final Map<String, String> parameters = createActiveMapForUpdateAccessContract();
+        final Map<String, String> parameters = createActiveMapForUpdateCommonContract();
         String jsonObject = JsonHandler.unprettyPrint(parameters);
         final ResponseBody response =
             given().contentType(ContentType.JSON)
@@ -311,6 +311,21 @@ public class WebApplicationResourceTest {
                 .body(jsonObject).cookie(COOKIE).expect()
                 .statusCode(Status.OK.getStatusCode()).when()
                 .post("/contracts/azercdsqsdf").getBody();
+    }
+
+
+    @Test
+    public void givenManagementContractTestUpdate() throws InvalidParseOperationException, AccessExternalClientException {
+
+        initializeAdminExternalClientMock();
+        final Map<String, String> parameters = createActiveMapForUpdateCommonContract();
+        String jsonObject = JsonHandler.unprettyPrint(parameters);
+        final ResponseBody response =
+                given().contentType(ContentType.JSON)
+                        .header(GlobalDataRest.X_CSRF_TOKEN, tokenCSRF)
+                        .body(jsonObject).cookie(COOKIE).expect()
+                        .statusCode(Status.OK.getStatusCode()).when()
+                        .post("/managementcontracts/azercdsqsdf").getBody();
     }
 
     @Test

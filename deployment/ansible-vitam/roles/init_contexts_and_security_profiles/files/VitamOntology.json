@@ -171,7 +171,8 @@
       "Profile",
       "SecurityProfile",
       "Griffin",
-      "PreservationScenario"
+      "PreservationScenario",
+      "ManagementContract"
     ]
   },
   {
@@ -290,7 +291,8 @@
       "Ontology",
       "Profile",
       "Griffin",
-      "PreservationScenario"
+      "PreservationScenario",
+      "ManagementContract"
     ]
   },
   {
@@ -774,7 +776,8 @@
       "ArchiveUnitProfile",
       "Context",
       "IngestContract",
-      "Profile"
+      "Profile",
+      "ManagementContract"
     ]
   },
   {
@@ -1130,7 +1133,8 @@
       "FileRules",
       "LogbookOperation",
       "Griffin",
-      "PreservationScenario"
+      "PreservationScenario",
+      "ManagementContract"
     ]
   },
   {
@@ -1193,7 +1197,8 @@
       "SecurityProfile",
       "LogbookOperation",
       "Griffin",
-      "PreservationScenario"
+      "PreservationScenario",
+      "ManagementContract"
     ]
   },
   {
@@ -1495,7 +1500,8 @@
       "Agencies",
       "SecurityProfile",
       "FileRules",
-      "FileFormat"
+      "FileFormat",
+      "ManagementContract"
     ]
   },
   {
@@ -1521,7 +1527,8 @@
       "ArchiveUnitProfile",
       "Context",
       "IngestContract",
-      "Profile"
+      "Profile",
+      "ManagementContract"
     ]
   },
   {
@@ -1543,7 +1550,8 @@
       "Profile",
       "FileRules",
       "Griffin",
-      "PreservationScenario"
+      "PreservationScenario",
+      "ManagementContract"
     ]
   },
   {
@@ -1558,7 +1566,8 @@
       "ArchiveUnitProfile",
       "Context",
       "IngestContract",
-      "Profile"
+      "Profile",
+      "ManagementContract"
     ]
   },
   {
@@ -1611,7 +1620,8 @@
       "Ontology",
       "Profile",
       "Griffin",
-      "PreservationScenario"
+      "PreservationScenario",
+      "ManagementContract"
     ]
   },
   {
@@ -1631,7 +1641,8 @@
       "Profile",
       "SecurityProfile",
       "Griffin",
-      "PreservationScenario"
+      "PreservationScenario",
+      "ManagementContract"
     ]
   },
   {
@@ -3009,6 +3020,39 @@
     "ShortName": "indexationDate",
     "Collections": [
       "Unit"
+    ]
+  },
+  {
+    "Identifier": "UnitStrategy",
+    "ApiField": "UnitStrategy",
+    "Description": "Mapping : managementcontract-es-mapping.json. Stratégie de stockage pour les métadonnées de type unité archivistique",
+    "Type": "KEYWORD",
+    "Origin": "INTERNAL",
+    "ShortName": "UnitStrategy",
+    "Collections": [
+      "ManagementContract"
+    ]
+  },
+  {
+    "Identifier": "ObjectGroupStrategy",
+    "ApiField": "ObjectGroupStrategy",
+    "Description": "Mapping : managementcontract-es-mapping.json. Stratégie de stockage pour les métadonnées de type groupe d'objet technique",
+    "Type": "KEYWORD",
+    "Origin": "INTERNAL",
+    "ShortName": "ObjectGroupStrategy",
+    "Collections": [
+      "ManagementContract"
+    ]
+  },
+  {
+    "Identifier": "ObjectStrategy",
+    "ApiField": "ObjectStrategy",
+    "Description": "Mapping : managementcontract-es-mapping.json. Stratégie de stockage pour les objets",
+    "Type": "KEYWORD",
+    "Origin": "INTERNAL",
+    "ShortName": "ObjectStrategy",
+    "Collections": [
+      "ManagementContract"
     ]
   }
 ]

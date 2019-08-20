@@ -148,7 +148,8 @@ public class MongoDbInMemoryTest {
         "\"$controlPattern\": \"oldValue\", " +
         "\"$updatePattern\": \"newValue\" } } ]}";
 
-    private static String requestSet = "{\"$action\": [{ \"$set\": { \"oldValue\": \"newValue\"} }]}";
+    //private static String requestSet = "{\"$action\": [{ \"$set\": { \"oldValue\": \"newValue\"} }]}";
+    private static String requestSet = "{\"$action\": [{ \"$set\": { \"oldValue\": { \"subItem\" : \"newValue\"} } }]}";
     private static String requestSetSubField = "{\"$action\": [{ \"$set\": { \"subItem.subInt\": \"newValue\"} }]}";
 
     private static String requestUnset = "{\"$action\": [{ \"$unset\": [ \"oldValue\", \"oldField\" ] }]}";

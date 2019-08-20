@@ -54,6 +54,11 @@ public enum SequenceType {
     ACCESS_CONTRACT_SEQUENCE(FunctionalAdminCollections.ACCESS_CONTRACT, "AC"),
 
     /**
+     * Management contract collection
+     */
+    MANAGEMENT_CONTRACT_SEQUENCE(FunctionalAdminCollections.MANAGEMENT_CONTRACT, "MC"),
+
+    /**
      * Profile collection
      */
     PROFILE_SEQUENCE(FunctionalAdminCollections.PROFILE, "PR"),

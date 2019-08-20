@@ -10,3 +10,7 @@ vitam_folder_scripts: "{{ vitam_defaults.folder.root_path }}/script/{{ vitam_str
 vitam_folder_tmp: "{{ vitam_defaults.folder.root_path }}/tmp/{{ vitam_struct.vitam_component }}"
 
 base_url: "{{ vitam_struct|client_url }}"
+
+vitam_strategy_offers_names: []
+other_strategy_offers_list: []
+all_used_offers: []

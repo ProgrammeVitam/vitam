@@ -93,7 +93,6 @@ import fr.gouv.vitam.metadata.core.database.collections.Unit;
 import io.restassured.RestAssured;
 import io.restassured.http.ContentType;
 import io.restassured.http.Cookie;
-import org.bson.Document;
 import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
@@ -475,6 +474,25 @@ public class WebApplicationResourceDeleteTest {
         }
     }
 
+    @Test
+    @RunWithCustomExecutor
+    public void testDeleteMasterdataManagementOK() {
+        try {
+            VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
+
+            final GUID idUnit = addData(FunctionalAdminCollections.MANAGEMENT_CONTRACT);
+            assertTrue(existsData(FunctionalAdminCollections.MANAGEMENT_CONTRACT, idUnit.getId()));
+            given().header(GlobalDataRest.X_TENANT_ID, TENANT_ID).header(GlobalDataRest.X_CSRF_TOKEN, tokenCSRF)
+                    .header(GlobalDataRest.X_REQUEST_ID, VitamThreadUtils.getVitamSession().getRequestId())
+                    .cookie(COOKIE).expect().statusCode(Status.OK.getStatusCode()).when()
+                    .delete("delete/masterdata/managementContract");
+            assertFalse(existsData(FunctionalAdminCollections.MANAGEMENT_CONTRACT, idUnit.getId()));
+        } catch (final Exception e) {
+            LOGGER.error(e);
+            fail("Exception using mongoDbAccess");
+        }
+    }
+
 
 
     @Test
@@ -715,6 +733,14 @@ public class WebApplicationResourceDeleteTest {
                 data1.put("FormatUnidentifiedAuthorized", true);
                 data1.put("MasterMandatory", true);
                 break;
+            case MANAGEMENT_CONTRACT:
+                data1.put("Name", "aName");
+                data1.put("Identifier", "Identifier_" + GUIDFactory.newGUID().getId());
+                data1.put("Status", "ACTIVE");
+                data1.put("CreationDate", "2019-02-13");
+                data1.put("LastUpdate", "2019-02-13");
+                data1.set("Storage", JsonHandler.createObjectNode().put("UnitStrategy", "default").put("ObjectGroupStrategy", "default").put("ObjectStrategy", "default"));
+                break;
             case RULES:
                 data1.put("RuleId", "APP-00001");
                 data1.put("RuleType", "AppraisalRule");
@@ -732,14 +758,14 @@ public class WebApplicationResourceDeleteTest {
                 data1.put("EnableControl", true);
                 final ObjectNode permissionNode = JsonHandler.createObjectNode();
                 permissionNode.put("tenant", TENANT_ID);
-                data1.put("Permissions", JsonHandler.createArrayNode().add(permissionNode));
+                data1.set("Permissions", JsonHandler.createArrayNode().add(permissionNode));
                 data1.put("SecurityProfile", "admin-security-profile");
                 data1.put("Status", "ACTIVE");
                 break;
             case SECURITY_PROFILE:
                 data1.put("Name", "aName");
                 data1.put("Identifier", "admin-security-profile_" + GUIDFactory.newGUID().getId());
-                data1.put("Permissions", new ArrayNode(null));
+                data1.set("Permissions", new ArrayNode(null));
                 data1.put("FullAccess", true);
                 break;
             case FORMATS:
@@ -750,20 +776,20 @@ public class WebApplicationResourceDeleteTest {
                 break;
             case ACCESSION_REGISTER_SUMMARY:
                 data1.put("OriginatingAgency", "FRAN_NP_009913");
-                data1.put("TotalObjectGroups", new ObjectNode(null));
-                data1.put("TotalUnits", new ObjectNode(null));
-                data1.put("TotalObjects", new ObjectNode(null));
-                data1.put("ObjectSize", new ObjectNode(null));
+                data1.set("TotalObjectGroups", new ObjectNode(null));
+                data1.set("TotalUnits", new ObjectNode(null));
+                data1.set("TotalObjects", new ObjectNode(null));
+                data1.set("ObjectSize", new ObjectNode(null));
                 break;
             case ACCESSION_REGISTER_DETAIL:
                 data1.put("OriginatingAgency", "FRAN_NP_009913");
                 data1.put("Opc", GUIDFactory.newGUID().toString());
                 data1.put("Opi", GUIDFactory.newGUID().toString());
-                data1.put("Events", new ArrayNode(null));
-                data1.put("TotalObjectGroups", new ObjectNode(null));
-                data1.put("TotalUnits", new ObjectNode(null));
-                data1.put("TotalObjects", new ObjectNode(null));
-                data1.put("ObjectSize", new ObjectNode(null));
+                data1.set("Events", new ArrayNode(null));
+                data1.set("TotalObjectGroups", new ObjectNode(null));
+                data1.set("TotalUnits", new ObjectNode(null));
+                data1.set("TotalObjects", new ObjectNode(null));
+                data1.set("ObjectSize", new ObjectNode(null));
                 break;
             default:
                 throw new IllegalArgumentException(String.format("ERROR: Invalid collection {%s}", collection));
@@ -854,7 +880,7 @@ public class WebApplicationResourceDeleteTest {
             final ObjectNode data1 = JsonHandler.createObjectNode().put("_id", adminContext.getId());
             data1.put(SECURITY_PROFIL_NAME, SECURITY_PROFIL_NAME_TO_SAVE);
             data1.put("Identifier", "admin-security-profile");
-            data1.put("Permissions", new ArrayNode(null));
+            data1.set("Permissions", new ArrayNode(null));
             data1.put("FullAccess", true);
             mongoDbAccessAdmin.insertDocument(data1, collection).close();
         }

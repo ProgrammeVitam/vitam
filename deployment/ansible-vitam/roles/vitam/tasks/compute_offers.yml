@@ -1,0 +1,17 @@
+---
+
+- name: Get the names of the offers present in vitam_strategy
+  set_fact:
+    vitam_strategy_offers_names: "{{ vitam_strategy_offers_names + [item.name] }}"
+  loop: "{{ vitam_strategy }}"
+
+- name: Get the offers present in other_strategy but not in vitam_strategy
+  set_fact:
+    other_strategy_offers_list: "{{ (other_strategy_offers_list + [item]) | unique }}"
+  loop: "{{ other_strategies | default({}) | dict2items | sum(attribute='value', start=[]) }}"
+  when: "{{ item.name not in vitam_strategy_offers_names}}"
+
+- name: Compute all offers (with offer configuration from vitam_offer by default)
+  set_fact:
+    all_used_offers: "{{ vitam_strategy + other_strategy_offers_list }}"
+

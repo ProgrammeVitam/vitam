@@ -1,0 +1,99 @@
+{
+  "$schema": "http://json-schema.org/draft-04/schema#",
+  "definitions": {
+    "date-opt-time": {
+      "description": "pattern: Date",
+      "anyOf": [
+        {
+          "type": "string",
+          "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}$"
+        },
+        {
+          "type": "string",
+          "format": "date-time"
+        },
+        {
+          "type": "string",
+          "format": "date-time-vitam"
+        }
+      ]
+    },
+    "nullable-date-opt-time": {
+      "description": "pattern: Date",
+      "anyOf": [
+        {
+          "$ref": "#/definitions/date-opt-time"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    }
+  },
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "_id": {
+      "type": "string"
+    },
+    "_tenant": {
+      "type": "integer"
+    },
+    "_v": {
+      "type": "integer"
+    },
+    "Name": {
+      "type": "string"
+    },
+    "Identifier": {
+      "type": "string"
+    },
+    "Description": {
+      "type": "string"
+    },
+    "Status": {
+      "type": "string",
+      "enum": [
+        "ACTIVE",
+        "INACTIVE"
+      ]
+    },
+    "CreationDate": {
+      "$ref": "#/definitions/date-opt-time"
+    },
+    "LastUpdate": {
+      "$ref": "#/definitions/date-opt-time"
+    },
+    "ActivationDate": {
+      "$ref": "#/definitions/nullable-date-opt-time"
+    },
+    "DeactivationDate": {
+      "$ref": "#/definitions/nullable-date-opt-time"
+    },
+    "Storage": {
+      "additionalProperties": false,
+      "type": "object",
+      "properties": {
+        "UnitStrategy": {
+          "type": "string"
+        },
+        "ObjectGroupStrategy": {
+          "type": "string"
+        },
+        "ObjectStrategy": {
+          "type": "string"
+        }
+      }
+    }
+  },
+  "required": [
+    "_id",
+    "_tenant",
+    "_v",
+    "Identifier",
+    "Status",
+    "CreationDate",
+    "LastUpdate",
+    "Name"
+  ]
+}

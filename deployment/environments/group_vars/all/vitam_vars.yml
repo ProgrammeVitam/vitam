@@ -575,11 +575,13 @@ vitam_tenants_usage_external:
     identifiers:
         - INGEST_CONTRACT
         - ACCESS_CONTRACT
+        - MANAGEMENT_CONTRACT
         - ARCHIVE_UNIT_PROFILE
   - name: 1
     identifiers:
       - INGEST_CONTRACT
       - ACCESS_CONTRACT
+      - MANAGEMENT_CONTRACT
       - PROFILE
       - SECURITY_PROFILE
       - CONTEXT

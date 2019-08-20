@@ -19,6 +19,7 @@ export class ImportComponent  extends PageComponent {
     {label:"Contextes applicatifs", value:'context'},
     {label:"Contrats d'accès", value:'accessContract'},
     {label:"Contrats d'entrée", value:'ingestContract'},
+    {label:"Contrats de gestion", value:'managementContract'},
     {label:"Formats", value:'format'},
     {label:"Griffons", value:'griffins'},
     {label:"Ontologies", value:'ontology'},
@@ -59,6 +60,13 @@ export class ImportComponent  extends PageComponent {
           this.importSucessMsg = "Les contrats d'entrée ont bien été importés";
           this.importErrorMsg = "Echec de l'import du fichier.";
           this.breadcrumbName = "Import des contrats d'entrée";
+          break;
+        case "managementContract":
+          this.extensions = ["json"];
+          this.uploadAPI = 'managementcontracts';
+          this.importSucessMsg = "Les contrats de gestion ont bien été importés";
+          this.importErrorMsg = "Echec de l'import du fichier.";
+          this.breadcrumbName = "Import des contrats de gestion";
           break;
         case "archiveUnitProfile":
           this.extensions = ["json"];

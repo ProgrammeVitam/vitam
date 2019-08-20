@@ -5,6 +5,8 @@ import fr.gouv.vitam.common.database.server.DocumentValidator;
 import fr.gouv.vitam.common.json.JsonHandler;
 import org.junit.Test;
 
+import static org.assertj.core.api.Assertions.assertThatCode;
+
 public class ReferentialDocumentValidatorsTest {
 
     private static final String ACCESS_CONTRACT_OK_JSON_FILE = "access-contract_OK.json";
@@ -17,6 +19,7 @@ public class ReferentialDocumentValidatorsTest {
     private static final String INGEST_CONTRACT_OK_JSON_FILE = "ingest_contract_OK.json";
     private static final String PROFILE_OK_JSON_FILE = "profile_OK.json";
     private static final String SECURITY_PROFILE_OK_JSON_FILE = "security_profile_OK.json";
+    private static final String MANAGEMENT_CONTRACT_OK_JSON_FILE = "management-contract_OK.json";
 
     @Test
     public void valid_AccessContract() throws Exception {
@@ -134,5 +137,20 @@ public class ReferentialDocumentValidatorsTest {
         // When / Then
         schemaValidator.validateDocument(
             JsonHandler.getFromInputStream(PropertiesUtils.getResourceAsStream(SECURITY_PROFILE_OK_JSON_FILE)));
+    }
+    
+
+    @Test
+    public void valid_ManagementContract() {
+
+        // Given
+        final DocumentValidator schemaValidator =
+            ReferentialDocumentValidators.getValidator(FunctionalAdminCollections.MANAGEMENT_CONTRACT);
+
+        // When / Then
+        assertThatCode(() -> {
+            schemaValidator.validateDocument(
+                    JsonHandler.getFromInputStream(PropertiesUtils.getResourceAsStream(MANAGEMENT_CONTRACT_OK_JSON_FILE)));
+        }).doesNotThrowAnyException();
     }
 }

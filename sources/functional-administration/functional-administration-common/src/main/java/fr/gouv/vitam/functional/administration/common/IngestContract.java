@@ -215,8 +215,7 @@ public class IngestContract extends VitamDocument<IngestContract> {
         try {
             return ActivationStatus.valueOf(status);
         } catch (IllegalArgumentException exp) {
-            // no value corresponds to this status => corrupted state
-            return null;
+            throw new IllegalStateException("invalid STATUS value " + status);
         }
     }
 
@@ -257,8 +256,7 @@ public class IngestContract extends VitamDocument<IngestContract> {
         try {
             return IngestContractCheckState.valueOf(checkParentLink);
         } catch (IllegalArgumentException exp) {
-            // no value corresponds to this checkParentLink => corrupted state
-            return null;
+            throw new IllegalStateException("invalid CHECKPARENTLINK value " + checkParentLink);
         }
     }
 

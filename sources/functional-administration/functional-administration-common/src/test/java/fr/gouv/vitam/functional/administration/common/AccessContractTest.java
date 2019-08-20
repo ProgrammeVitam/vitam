@@ -57,7 +57,7 @@ public class AccessContractTest {
 
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         AccessContract contract = new AccessContract();
-        final String id = GUIDFactory.newIngestContractGUID(TENANT_ID).getId();
+        final String id = GUIDFactory.newContractGUID(TENANT_ID).getId();
         String name = "aName";
         String description = "aDescription of the contract";
         String lastupdate = "10/12/2016";

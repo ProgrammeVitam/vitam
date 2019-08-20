@@ -120,6 +120,38 @@ export class SearchReferentialsComponent extends PageComponent {
           this.referentialPath = 'admin/ingestContract';
           this.referentialIdentifier = 'Identifier';
           break;
+        case 'managementContract':
+          this.searchReferentialsService.setSearchAPI('managementcontracts');
+          this.breadcrumbName = 'Contrats de gestion';
+          this.specificTitle = 'Contrats de gestion';
+          this.referentialData = [
+            new FieldDefinition('ContractName', 'Intitulé', 6, 8),
+            FieldDefinition.createIdField('ContractID', 'Identifiant', 6, 8)
+          ];
+          this.searchForm = {
+            'ContractID': 'all',
+            'ContractName': 'all',
+            'orderby': {'field': 'Name', 'sortType': 'ASC'}
+          };
+          this.initialSortKey = 'Name';
+          this.columns = [
+            ColumnDefinition.makeStaticColumn('Name', 'Intitulé', undefined,
+                () => ({'width': '325px'})),
+            ColumnDefinition.makeStaticColumn('Identifier', 'Identifiant', undefined,
+                () => ({'width': '225px'})),
+            ColumnDefinition.makeStaticColumn('#tenant', 'Tenant', undefined,
+                () => ({'width': '63px'})),
+            ColumnDefinition.makeStaticColumn('Status', 'Statut', SearchReferentialsComponent.handleStatus,
+                () => ({'width': '62px'})),
+            ColumnDefinition.makeStaticColumn('CreationDate', 'Date de création', DateService.handleDate,
+                () => ({'width': '125px'})),
+            ColumnDefinition.makeStaticColumn('LastUpdate', 'Dernière modification', DateService.handleDate,
+                () => ({'width': '125px'}))
+          ];
+          this.extraColumns = [];
+          this.referentialPath = 'admin/managementContract';
+          this.referentialIdentifier = 'Identifier';
+          break;
         case 'format':
           this.searchReferentialsService.setSearchAPI('admin/formats');
           this.breadcrumbName = 'Formats';

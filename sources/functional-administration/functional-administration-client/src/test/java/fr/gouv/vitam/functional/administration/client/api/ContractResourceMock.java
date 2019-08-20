@@ -29,6 +29,7 @@ package fr.gouv.vitam.functional.administration.client.api;
 import com.fasterxml.jackson.databind.JsonNode;
 import fr.gouv.vitam.common.model.administration.AccessContractModel;
 import fr.gouv.vitam.common.model.administration.IngestContractModel;
+import fr.gouv.vitam.common.model.administration.ManagementContractModel;
 import fr.gouv.vitam.common.server.application.junit.ResteasyTestApplication;
 
 import javax.ws.rs.Consumes;
@@ -51,8 +52,10 @@ public class ContractResourceMock {
     private final ResteasyTestApplication.ExpectedResults mock;
     static final String INGEST_CONTRACTS_URI = "/ingestcontracts";
     static final String ACCESS_CONTRACTS_URI = "/accesscontracts";
+    static final String MANAGEMENT_CONTRACTS_URI = "/managementcontracts";
     static final String UPDATE_ACCESS_CONTRACT_URI = "/accesscontracts";
     static final String UPDATE_INGEST_CONTRACTS_URI = "/ingestcontracts";
+    static final String UPDATE_MANAGEMENT_CONTRACTS_URI = "/managementcontracts";
 
     public ContractResourceMock(ResteasyTestApplication.ExpectedResults mock) {
         this.mock = mock;
@@ -105,5 +108,30 @@ public class ContractResourceMock {
     @Produces(MediaType.APPLICATION_JSON)
     public Response findAccessContracts(JsonNode queryDsl) {
         return mock.get();
+    }
+
+
+    @Path(MANAGEMENT_CONTRACTS_URI)
+    @POST
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response importManagementContracts(List<ManagementContractModel> managementContractModelList, @Context UriInfo uri) {
+        return mock.post();
+    }
+
+    @Path(MANAGEMENT_CONTRACTS_URI)
+    @GET
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response findManagementContracts(JsonNode queryDsl) {
+        return mock.get();
+    }
+
+    @Path(UPDATE_MANAGEMENT_CONTRACTS_URI + "/{id}")
+    @PUT
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response updateManagementContract(@PathParam("id") String contractId, JsonNode queryDsl) {
+        return mock.put();
     }
 }

@@ -26,6 +26,7 @@
  *******************************************************************************/
 package fr.gouv.vitam.functional.administration.rest;
 
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.github.tomakehurst.wiremock.client.WireMock;
 import com.github.tomakehurst.wiremock.junit.WireMockClassRule;
@@ -57,7 +58,9 @@ import fr.gouv.vitam.common.junit.JunitHelper;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.RequestResponse;
+import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.administration.AgenciesModel;
+import fr.gouv.vitam.common.model.administration.ManagementContractModel;
 import fr.gouv.vitam.common.mongo.MongoRule;
 import fr.gouv.vitam.common.server.application.configuration.DbConfigurationImpl;
 import fr.gouv.vitam.common.server.application.configuration.MongoDbNode;
@@ -76,6 +79,7 @@ import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClientFactory;
 import fr.gouv.vitam.metadata.client.MetaDataClientFactory;
 import io.restassured.RestAssured;
 import io.restassured.http.ContentType;
+import io.restassured.mapper.TypeRef;
 import io.restassured.path.json.JsonPath;
 import org.jhades.JHades;
 import org.junit.After;
@@ -104,6 +108,7 @@ import static fr.gouv.vitam.common.guid.GUIDFactory.newOperationLogbookGUID;
 import static io.restassured.RestAssured.get;
 import static io.restassured.RestAssured.given;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatCode;
 
 
 /**
@@ -141,7 +146,6 @@ public class ContractResourceTest {
 
     @ClassRule
     public static WireMockClassRule workspaceWireMock = new WireMockClassRule(workspacePort);
-
 
     @Rule
     public RunWithCustomExecutorRule runInThread =
@@ -332,30 +336,6 @@ public class ContractResourceTest {
             .then().statusCode(Status.CREATED.getStatusCode());
     }
 
-    private void createAccessContract() throws Exception {
-        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
-        File fileContracts = PropertiesUtils.getResourceFile("contracts_access_ok.json");
-        JsonNode json = JsonHandler.getFromFile(fileContracts);
-        // transform to json
-        given().contentType(ContentType.JSON).body(json)
-            .header(GlobalDataRest.X_TENANT_ID, 0)
-            .header(GlobalDataRest.X_REQUEST_ID, VitamThreadUtils.getVitamSession().getRequestId())
-            .when().post(ContractResource.ACCESS_CONTRACTS_URI)
-            .then().statusCode(Status.CREATED.getStatusCode());
-    }
-
-    private void createIngestContract() throws Exception {
-        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
-        File fileContracts = PropertiesUtils.getResourceFile("referential_contracts_ok.json");
-        JsonNode json = JsonHandler.getFromFile(fileContracts);
-        // transform to json
-        given().contentType(ContentType.JSON).body(json)
-            .header(GlobalDataRest.X_TENANT_ID, 0)
-            .header(GlobalDataRest.X_REQUEST_ID, VitamThreadUtils.getVitamSession().getRequestId())
-            .when().post(ContractResource.INGEST_CONTRACTS_URI)
-            .then().statusCode(Status.CREATED.getStatusCode());
-    }
-
     @Test
     @RunWithCustomExecutor
     public void givenAccessContractTestUpdate() throws Exception {
@@ -382,35 +362,13 @@ public class ContractResourceTest {
         given().contentType(ContentType.JSON).body(queryDslForUpdate).header(GlobalDataRest.X_TENANT_ID, 0)
             .header(GlobalDataRest.X_REQUEST_ID, VitamThreadUtils.getVitamSession().getRequestId())
 
-            .when().put(ContractResource.UPDATE_ACCESS_CONTRACT_URI + "/" + ids.get(0)).then()
+            .when().put(ContractResource.UPDATE_ACCESS_CONTRACTS_URI + "/" + ids.get(0)).then()
             .statusCode(Status.OK.getStatusCode());
 
         given().contentType(ContentType.JSON).body(queryDslForUpdate).header(GlobalDataRest.X_TENANT_ID, 0)
             .header(GlobalDataRest.X_REQUEST_ID, VitamThreadUtils.getVitamSession().getRequestId())
-            .when().put(ContractResource.UPDATE_ACCESS_CONTRACT_URI + "/wrongId").then()
+            .when().put(ContractResource.UPDATE_ACCESS_CONTRACTS_URI + "/wrongId").then()
             .statusCode(Status.NOT_FOUND.getStatusCode());
-    }
-
-    private List<String> selectContractByName(String name, String resource) throws Exception {
-        final SelectParserSingle parser = new SelectParserSingle(new SingleVarNameAdapter());
-        Select select = new Select();
-        parser.parse(select.getFinalSelect());
-        parser.addCondition(QueryHelper.eq("Name", name));
-        JsonNode queryDsl = parser.getRequest().getFinalSelect();
-
-
-        // find accessContract with the id1 should return Status.OK
-        JsonPath body = given().contentType(ContentType.JSON)
-            .header(GlobalDataRest.X_TENANT_ID, 0)
-            .header(GlobalDataRest.X_REQUEST_ID, VitamThreadUtils.getVitamSession().getRequestId())
-
-            .body(queryDsl)
-            .when()
-            .get(resource)
-            .then().statusCode(Status.OK.getStatusCode()).extract().body().jsonPath();
-
-        List<String> ids = body.get("$results.Identifier");
-        return ids;
     }
 
 
@@ -454,8 +412,6 @@ public class ContractResourceTest {
             .statusCode(Status.NOT_FOUND.getStatusCode());
 
     }
-
-
 
     @Test
     @RunWithCustomExecutor
@@ -503,5 +459,165 @@ public class ContractResourceTest {
         // We juste test the first contract
         assertThat(names).contains(name);
 
+    }
+
+    @Test
+    @RunWithCustomExecutor
+    public void givenManagementContractsTestWellFormedContractThenImportSuccessfully() throws Exception {
+        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
+        File fileContracts = PropertiesUtils.getResourceFile("contracts_management_ok.json");
+        JsonNode json = JsonHandler.getFromFile(fileContracts);
+
+        RequestResponseOK<ManagementContractModel> body = given().contentType(ContentType.JSON).body(json)
+                .header(GlobalDataRest.X_TENANT_ID, 0)
+                .header(GlobalDataRest.X_REQUEST_ID, VitamThreadUtils.getVitamSession().getRequestId())
+                .when().post(ContractResource.MANAGEMENT_CONTRACTS_URI)
+                .then().statusCode(Status.CREATED.getStatusCode()).extract().body().as( new TypeRef<RequestResponseOK<ManagementContractModel>>() {
+                });
+        assertThat(body.getResults().size()).isEqualTo(5);
+        assertThat(body.getResults().get(0).getIdentifier()).isNotNull().isNotEmpty().startsWith("MC-");
+        assertThat(body.getResults().get(0).getId()).isNotNull().isNotEmpty();
+    }
+
+    @Test
+    @RunWithCustomExecutor
+    public void givenManagementContractJsonWithMissingNamesReturnBadRequest() throws Exception {
+        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
+        File fileContracts = PropertiesUtils.getResourceFile("contracts_management_missingNames.json");
+        JsonNode json = JsonHandler.getFromFile(fileContracts);
+        // transform to json
+        given().contentType(ContentType.JSON).body(json)
+                .header(GlobalDataRest.X_TENANT_ID, 0)
+                .header(GlobalDataRest.X_REQUEST_ID, VitamThreadUtils.getVitamSession().getRequestId())
+                .when().post(ContractResource.MANAGEMENT_CONTRACTS_URI)
+                .then().statusCode(Status.BAD_REQUEST.getStatusCode());
+    }
+
+    @Test
+    @RunWithCustomExecutor
+    public void givenManagementContractTestUpdate() throws Exception {
+        List<String> createdIdentifiers = createManagementContracts();
+        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
+        // Test update for access contract Status => inactive
+        String now = LocalDateUtil.now().toString();
+        final UpdateParserSingle updateParser = new UpdateParserSingle(new SingleVarNameAdapter());
+
+        assertThatCode(() -> {
+            SetAction setActionStatusInactive = UpdateActionHelper.set("Status", "INACTIVE");
+            SetAction setActionDesactivationDateInactive = UpdateActionHelper.set("DeactivationDate", now);
+            SetAction setActionLastUpdateInactive = UpdateActionHelper.set("LastUpdate", now);
+            Update update = new Update();
+            update.setQuery(QueryHelper.eq("Identifier", createdIdentifiers.get(0)));
+            update.addActions(setActionStatusInactive, setActionDesactivationDateInactive, setActionLastUpdateInactive);
+            updateParser.parse(update.getFinalUpdate());
+        }).doesNotThrowAnyException();
+
+        JsonNode queryDslForUpdate = updateParser.getRequest().getFinalUpdate();
+
+        given().contentType(ContentType.JSON).body(queryDslForUpdate).header(GlobalDataRest.X_TENANT_ID, 0)
+                .header(GlobalDataRest.X_REQUEST_ID, VitamThreadUtils.getVitamSession().getRequestId())
+                .when().put(ContractResource.UPDATE_MANAGEMENT_CONTRACTS_URI + "/" + createdIdentifiers.get(0)).then()
+                .statusCode(Status.OK.getStatusCode());
+
+        given().contentType(ContentType.JSON).body(queryDslForUpdate).header(GlobalDataRest.X_TENANT_ID, 0)
+                .header(GlobalDataRest.X_REQUEST_ID, VitamThreadUtils.getVitamSession().getRequestId())
+                .when().put(ContractResource.UPDATE_MANAGEMENT_CONTRACTS_URI + "/wrongId").then()
+                .statusCode(Status.NOT_FOUND.getStatusCode());
+
+        assertThatCode(() -> {
+            SetAction setActionChangeIdentifier = UpdateActionHelper.set("Identifier", "FAKE");
+            Update update = new Update();
+            update.setQuery(QueryHelper.eq("Identifier", createdIdentifiers.get(1)));
+            update.addActions(setActionChangeIdentifier);
+            updateParser.parse(update.getFinalUpdate());
+        }).doesNotThrowAnyException();
+
+        given().contentType(ContentType.JSON).body(queryDslForUpdate).header(GlobalDataRest.X_TENANT_ID, 0)
+                .header(GlobalDataRest.X_REQUEST_ID, VitamThreadUtils.getVitamSession().getRequestId())
+                .when().put(ContractResource.UPDATE_MANAGEMENT_CONTRACTS_URI + "/" + createdIdentifiers.get(1)).then()
+                .statusCode(Status.BAD_REQUEST.getStatusCode());
+    }
+
+    @Test
+    @RunWithCustomExecutor
+    public void givenManagementContractsTestFind() throws Exception {
+        List<String> createdIdentifiers = createManagementContracts();
+        final SelectParserSingle parser = new SelectParserSingle(new SingleVarNameAdapter());
+        Select select = new Select();
+        parser.parse(select.getFinalSelect());
+        parser.addCondition(QueryHelper.eq("Identifier", createdIdentifiers.get(0)));
+        JsonNode queryDsl = parser.getRequest().getFinalSelect();
+
+        JsonPath body = given().contentType(ContentType.JSON)
+                .header(GlobalDataRest.X_TENANT_ID, 0)
+                .header(GlobalDataRest.X_REQUEST_ID, VitamThreadUtils.getVitamSession().getRequestId())
+                .body(queryDsl)
+                .when()
+                .get(ContractResource.MANAGEMENT_CONTRACTS_URI)
+                .then().statusCode(Status.OK.getStatusCode()).extract().body().jsonPath();
+
+        List<String> identifiers = body.get("$results.Identifier");
+        assertThat(identifiers).hasSize(1);
+        assertThat(identifiers.get(0)).isEqualTo(createdIdentifiers.get(0));
+    }
+
+    private void createAccessContract() throws Exception {
+        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
+        File fileContracts = PropertiesUtils.getResourceFile("contracts_access_ok.json");
+        JsonNode json = JsonHandler.getFromFile(fileContracts);
+        // transform to json
+        given().contentType(ContentType.JSON).body(json)
+                .header(GlobalDataRest.X_TENANT_ID, 0)
+                .header(GlobalDataRest.X_REQUEST_ID, VitamThreadUtils.getVitamSession().getRequestId())
+                .when().post(ContractResource.ACCESS_CONTRACTS_URI)
+                .then().statusCode(Status.CREATED.getStatusCode());
+    }
+
+    private void createIngestContract() throws Exception {
+        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
+        File fileContracts = PropertiesUtils.getResourceFile("referential_contracts_ok.json");
+        JsonNode json = JsonHandler.getFromFile(fileContracts);
+        // transform to json
+        given().contentType(ContentType.JSON).body(json)
+                .header(GlobalDataRest.X_TENANT_ID, 0)
+                .header(GlobalDataRest.X_REQUEST_ID, VitamThreadUtils.getVitamSession().getRequestId())
+                .when().post(ContractResource.INGEST_CONTRACTS_URI)
+                .then().statusCode(Status.CREATED.getStatusCode());
+    }
+
+    private List<String> createManagementContracts() throws Exception {
+        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
+        File fileContracts = PropertiesUtils.getResourceFile("contracts_management_ok.json");
+        JsonNode json = JsonHandler.getFromFile(fileContracts);
+        // transform to json
+        JsonPath body = given().contentType(ContentType.JSON).body(json)
+                .header(GlobalDataRest.X_TENANT_ID, 0)
+                .header(GlobalDataRest.X_REQUEST_ID, VitamThreadUtils.getVitamSession().getRequestId())
+                .when().post(ContractResource.MANAGEMENT_CONTRACTS_URI)
+                .then().statusCode(Status.CREATED.getStatusCode()).extract().body().jsonPath();
+
+        List<String> ids = body.get("$results.Identifier");
+        return ids;
+    }
+
+    private List<String> selectContractByName(String name, String resource) throws Exception {
+        final SelectParserSingle parser = new SelectParserSingle(new SingleVarNameAdapter());
+        Select select = new Select();
+        parser.parse(select.getFinalSelect());
+        parser.addCondition(QueryHelper.eq("Name", name));
+        JsonNode queryDsl = parser.getRequest().getFinalSelect();
+
+        // find xxxxContract with the id1 should return Status.OK
+        JsonPath body = given().contentType(ContentType.JSON)
+                .header(GlobalDataRest.X_TENANT_ID, 0)
+                .header(GlobalDataRest.X_REQUEST_ID, VitamThreadUtils.getVitamSession().getRequestId())
+
+                .body(queryDsl)
+                .when()
+                .get(resource)
+                .then().statusCode(Status.OK.getStatusCode()).extract().body().jsonPath();
+
+        List<String> ids = body.get("$results.Identifier");
+        return ids;
     }
 }

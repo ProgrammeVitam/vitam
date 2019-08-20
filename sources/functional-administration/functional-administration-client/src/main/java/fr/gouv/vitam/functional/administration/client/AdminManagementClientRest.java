@@ -48,6 +48,7 @@ import fr.gouv.vitam.common.model.ProbativeValueRequest;
 import fr.gouv.vitam.common.model.ProcessPause;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
+import fr.gouv.vitam.common.model.administration.AbstractContractModel;
 import fr.gouv.vitam.common.model.administration.AccessContractModel;
 import fr.gouv.vitam.common.model.administration.AccessionRegisterDetailModel;
 import fr.gouv.vitam.common.model.administration.AccessionRegisterSummaryModel;
@@ -57,14 +58,13 @@ import fr.gouv.vitam.common.model.administration.ArchiveUnitProfileModel;
 import fr.gouv.vitam.common.model.administration.ContextModel;
 import fr.gouv.vitam.common.model.administration.FileFormatModel;
 import fr.gouv.vitam.common.model.administration.IngestContractModel;
+import fr.gouv.vitam.common.model.administration.ManagementContractModel;
 import fr.gouv.vitam.common.model.administration.OntologyModel;
 import fr.gouv.vitam.common.model.administration.ProfileModel;
 import fr.gouv.vitam.common.model.administration.SecurityProfileModel;
 import fr.gouv.vitam.common.model.administration.preservation.GriffinModel;
 import fr.gouv.vitam.common.model.administration.preservation.PreservationScenarioModel;
-import fr.gouv.vitam.functional.administration.common.AccessContract;
 import fr.gouv.vitam.functional.administration.common.Context;
-import fr.gouv.vitam.functional.administration.common.IngestContract;
 import fr.gouv.vitam.functional.administration.common.Ontology;
 import fr.gouv.vitam.functional.administration.common.Profile;
 import fr.gouv.vitam.functional.administration.common.exception.AccessionRegisterException;
@@ -85,6 +85,7 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.MultivaluedHashMap;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
+
 import java.io.InputStream;
 import java.util.List;
 
@@ -118,8 +119,10 @@ class AdminManagementClientRest extends DefaultClient implements AdminManagement
     private static final String ACCESSION_REGISTER_GET_DETAIL_URL = "/accession-register/detail";
     private static final String INGEST_CONTRACTS_URI = "/ingestcontracts";
     private static final String ACCESS_CONTRACTS_URI = "/accesscontracts";
+    private static final String MANAGEMENT_CONTRACTS_URI = "/managementcontracts";
     private static final String UPDATE_ACCESS_CONTRACT_URI = "/accesscontracts/";
     private static final String UPDATE_INGEST_CONTRACT_URI = "/ingestcontracts/";
+    private static final String UPDATE_MANAGEMENT_CONTRACT_URI = "/managementcontracts/";
     private static final String PROFILE_URI = "/profiles";
     private static final String CONTEXT_URI = "/contexts";
     private static final String AUDIT_URI = "/audit";
@@ -618,33 +621,29 @@ class AdminManagementClientRest extends DefaultClient implements AdminManagement
     public Status importIngestContracts(List<IngestContractModel> ingestContractModelList)
         throws InvalidParseOperationException, AdminManagementClientServerException {
         ParametersChecker.checkParameter("The input ingest contracts json is mandatory", ingestContractModelList);
-        Response response = null;
-
-        try {
-            response = performRequest(POST, INGEST_CONTRACTS_URI, null,
-                ingestContractModelList, APPLICATION_JSON_TYPE, APPLICATION_JSON_TYPE,
-                false);
-            final Status status = Status.fromStatusCode(response.getStatus());
-
-            return status;
-        } catch (VitamClientInternalException e) {
-            LOGGER.error("Internal Server Error", e);
-            throw new AdminManagementClientServerException("Internal Server Error", e);
-        } finally {
-            consumeAnyEntityAndClose(response);
-        }
+        return importContracts(ingestContractModelList, INGEST_CONTRACTS_URI);
     }
 
     @Override
     public Status importAccessContracts(List<AccessContractModel> accessContractModelList)
         throws InvalidParseOperationException, AdminManagementClientServerException {
         ParametersChecker.checkParameter("The input access contracts json is mandatory", accessContractModelList);
-        Response response = null;
+        return importContracts(accessContractModelList, ACCESS_CONTRACTS_URI);
+    }
 
+    @Override
+    public Status importManagementContracts(List<ManagementContractModel> managementContractModelList)
+            throws InvalidParseOperationException, AdminManagementClientServerException {
+        ParametersChecker.checkParameter("The input management contracts json is mandatory", managementContractModelList);
+        return importContracts(managementContractModelList, MANAGEMENT_CONTRACTS_URI);
+    }
+
+    private <T extends AbstractContractModel> Status importContracts(List<T> contractModelList, String uri) throws AdminManagementClientServerException {
+        Response response = null;
         try {
-            response = performRequest(POST, ACCESS_CONTRACTS_URI, null,
-                accessContractModelList, APPLICATION_JSON_TYPE, APPLICATION_JSON_TYPE,
-                false);
+            response = performRequest(POST, uri, null,
+                    contractModelList, APPLICATION_JSON_TYPE, APPLICATION_JSON_TYPE,
+                    false);
             final Status status = Status.fromStatusCode(response.getStatus());
             return status;
 
@@ -659,20 +658,36 @@ class AdminManagementClientRest extends DefaultClient implements AdminManagement
     @Override
     public RequestResponse<AccessContractModel> findAccessContracts(JsonNode queryDsl)
         throws InvalidParseOperationException, AdminManagementClientServerException {
-
         ParametersChecker.checkParameter("The input queryDsl json is mandatory", queryDsl);
+        return findContracts(queryDsl, ACCESS_CONTRACTS_URI, AccessContractModel.class);
+    }
+
+    @Override
+    public RequestResponse<IngestContractModel> findIngestContracts(JsonNode queryDsl)
+            throws InvalidParseOperationException, AdminManagementClientServerException {
+        ParametersChecker.checkParameter("The input queryDsl json is mandatory", queryDsl);
+        return findContracts(queryDsl, INGEST_CONTRACTS_URI, IngestContractModel.class);
+    }
+
+    @Override
+    public RequestResponse<ManagementContractModel> findManagementContracts(JsonNode queryDsl)
+            throws InvalidParseOperationException, AdminManagementClientServerException {
+        ParametersChecker.checkParameter("The input queryDsl json is mandatory", queryDsl);
+        return findContracts(queryDsl, MANAGEMENT_CONTRACTS_URI, ManagementContractModel.class);
+    }
+
+    private <T extends AbstractContractModel> RequestResponse<T> findContracts(JsonNode queryDsl, String uri, Class<T> clasz)
+            throws InvalidParseOperationException, AdminManagementClientServerException {
         Response response = null;
         try {
-            response = performRequest(GET, ACCESS_CONTRACTS_URI, null, queryDsl,
-                APPLICATION_JSON_TYPE, APPLICATION_JSON_TYPE);
+            response = performRequest(GET, uri, null, queryDsl, APPLICATION_JSON_TYPE, APPLICATION_JSON_TYPE);
             final Status status = Status.fromStatusCode(response.getStatus());
             if (status == Status.OK) {
                 LOGGER.debug(Response.Status.OK.getReasonPhrase());
-                return getFromString(response.readEntity(String.class), RequestResponseOK.class,
-                    AccessContractModel.class);
+                return getFromString(response.readEntity(String.class), RequestResponseOK.class, clasz);
             }
 
-            return RequestResponse.parseFromResponse(response, AccessContractModel.class);
+            return RequestResponse.parseFromResponse(response, clasz);
 
         } catch (VitamClientInternalException e) {
             LOGGER.error("Internal Server Error", e);
@@ -681,102 +696,98 @@ class AdminManagementClientRest extends DefaultClient implements AdminManagement
             consumeAnyEntityAndClose(response);
         }
     }
-
 
     @Override
     public RequestResponse<AccessContractModel> findAccessContractsByID(String documentId)
         throws InvalidParseOperationException, AdminManagementClientServerException, ReferentialNotFoundException {
         ParametersChecker.checkParameter("The input documentId json is mandatory", documentId);
-        Response response = null;
-        try {
-
-            JsonNode queryDsl = getIdentifierQuery(AccessContract.IDENTIFIER, documentId);
-
-
-            response = performRequest(GET, ACCESS_CONTRACTS_URI, null, queryDsl,
-                APPLICATION_JSON_TYPE, APPLICATION_JSON_TYPE);
-            final Status status = Status.fromStatusCode(response.getStatus());
-            if (status == Status.OK) {
-                LOGGER.debug(Response.Status.OK.getReasonPhrase());
-                @SuppressWarnings("unchecked")
-                RequestResponseOK<AccessContractModel> resp =
-                    getFromString(response.readEntity(String.class), RequestResponseOK.class,
-                        AccessContractModel.class);
-
-
-                if (resp.getResults() == null || resp.getResults().size() == 0)
-                    throw new ReferentialNotFoundException("Access contract not found with id: " + documentId);
-
-                return resp;
-            }
-
-            return RequestResponse.parseFromResponse(response, AccessContractModel.class);
-
-        } catch (InvalidCreateOperationException e) {
-            LOGGER.error("unable to create query", e);
-            throw new AdminManagementClientServerException("Internal Server Error", e);
-        } catch (VitamClientInternalException e) {
-            LOGGER.error("Internal Server Error", e);
-            throw new AdminManagementClientServerException("Internal Server Error", e);
-        } finally {
-            consumeAnyEntityAndClose(response);
-        }
-    }
-
-    @Override
-    public RequestResponse<IngestContractModel> findIngestContracts(JsonNode queryDsl)
-        throws InvalidParseOperationException, AdminManagementClientServerException {
-        ParametersChecker.checkParameter("The input queryDsl json is mandatory", queryDsl);
-        Response response = null;
-        try {
-            response = performRequest(GET, INGEST_CONTRACTS_URI, null, queryDsl,
-                APPLICATION_JSON_TYPE, APPLICATION_JSON_TYPE);
-            final Status status = Status.fromStatusCode(response.getStatus());
-            if (status == Status.OK) {
-                LOGGER.debug(Response.Status.OK.getReasonPhrase());
-                return getFromString(response.readEntity(String.class), RequestResponseOK.class,
-                    IngestContractModel.class);
-            }
-
-            return RequestResponse.parseFromResponse(response, IngestContractModel.class);
-
-        } catch (VitamClientInternalException e) {
-            LOGGER.error("Internal Server Error", e);
-            throw new AdminManagementClientServerException("Internal Server Error", e);
-        } finally {
-            consumeAnyEntityAndClose(response);
-        }
+        return findContractByID(documentId, ACCESS_CONTRACTS_URI, AccessContractModel.class);
     }
 
     @Override
     public RequestResponse<IngestContractModel> findIngestContractsByID(String documentId)
-        throws InvalidParseOperationException, AdminManagementClientServerException, ReferentialNotFoundException {
+            throws InvalidParseOperationException, AdminManagementClientServerException, ReferentialNotFoundException {
         ParametersChecker.checkParameter("The input documentId json is mandatory", documentId);
+        return findContractByID(documentId, INGEST_CONTRACTS_URI, IngestContractModel.class);
+    }
+
+
+    @Override
+    public RequestResponse<ManagementContractModel> findManagementContractsByID(String documentId)
+            throws InvalidParseOperationException, AdminManagementClientServerException, ReferentialNotFoundException {
+        ParametersChecker.checkParameter("The input documentId json is mandatory", documentId);
+        return findContractByID(documentId, MANAGEMENT_CONTRACTS_URI, ManagementContractModel.class);
+    }
+
+    private <T extends AbstractContractModel> RequestResponse<T> findContractByID(String documentId, String uri, Class<T> clasz)
+            throws InvalidParseOperationException, AdminManagementClientServerException, ReferentialNotFoundException {
         Response response = null;
         try {
 
-            JsonNode queryDsl = getIdentifierQuery(IngestContract.IDENTIFIER, documentId);
-
-            response = performRequest(GET, INGEST_CONTRACTS_URI, null, queryDsl,
-                APPLICATION_JSON_TYPE, APPLICATION_JSON_TYPE);
+            JsonNode queryDsl = getIdentifierQuery(AbstractContractModel.TAG_IDENTIFIER, documentId);
+            response = performRequest(GET, uri, null, queryDsl,
+                    APPLICATION_JSON_TYPE, APPLICATION_JSON_TYPE);
             final Status status = Status.fromStatusCode(response.getStatus());
             if (status == Status.OK) {
                 LOGGER.debug(Response.Status.OK.getReasonPhrase());
-                RequestResponseOK<IngestContractModel> resp =
-                    getFromString(response.readEntity(String.class), RequestResponseOK.class,
-                        IngestContractModel.class);
-
+                @SuppressWarnings("unchecked")
+                RequestResponseOK<T> resp = getFromString(response.readEntity(String.class),
+                        RequestResponseOK.class, clasz);
                 if (resp.getResults() == null || resp.getResults().size() == 0)
-                    throw new ReferentialNotFoundException("Ingest contract not found with id: " + documentId);
+                    throw new ReferentialNotFoundException("Contract not found with id: " + documentId);
 
                 return resp;
             }
 
-            return RequestResponse.parseFromResponse(response, IngestContractModel.class);
+            return RequestResponse.parseFromResponse(response, clasz);
 
         } catch (InvalidCreateOperationException e) {
             LOGGER.error("unable to create query", e);
             throw new AdminManagementClientServerException("Internal Server Error", e);
+        } catch (VitamClientInternalException e) {
+            LOGGER.error("Internal Server Error", e);
+            throw new AdminManagementClientServerException("Internal Server Error", e);
+        } finally {
+            consumeAnyEntityAndClose(response);
+        }
+    }
+
+
+    @Override
+    public RequestResponse<AccessContractModel> updateAccessContract(String id, JsonNode queryDsl)
+            throws InvalidParseOperationException, AdminManagementClientServerException, ReferentialNotFoundException {
+        ParametersChecker.checkParameter("The input queryDsl json is mandatory", queryDsl);
+        return updateContract(id, queryDsl, UPDATE_ACCESS_CONTRACT_URI, AccessContractModel.class);
+    }
+
+    @Override
+    public RequestResponse<IngestContractModel> updateIngestContract(String id, JsonNode queryDsl)
+            throws InvalidParseOperationException, AdminManagementClientServerException, ReferentialNotFoundException {
+        ParametersChecker.checkParameter("The input queryDsl json is mandatory", queryDsl);
+        return updateContract(id, queryDsl, UPDATE_INGEST_CONTRACT_URI, IngestContractModel.class);
+    }
+
+    @Override
+    public RequestResponse<ManagementContractModel> updateManagementContract(String id, JsonNode queryDsl)
+            throws InvalidParseOperationException, AdminManagementClientServerException, ReferentialNotFoundException {
+        ParametersChecker.checkParameter("The input queryDsl json is mandatory", queryDsl);
+        return updateContract(id, queryDsl, UPDATE_MANAGEMENT_CONTRACT_URI, ManagementContractModel.class);
+    }
+
+    private <T extends AbstractContractModel> RequestResponse<T> updateContract(String id, JsonNode queryDsl, String updateUri, Class<T> clasz)
+            throws InvalidParseOperationException, AdminManagementClientServerException, ReferentialNotFoundException {
+        Response response = null;
+        try {
+            response = performRequest(HttpMethod.PUT, updateUri + id, null, queryDsl,
+                    APPLICATION_JSON_TYPE, APPLICATION_JSON_TYPE);
+            final Status status = Status.fromStatusCode(response.getStatus());
+            if (status == Status.OK) {
+                LOGGER.debug(Response.Status.OK.getReasonPhrase());
+                return getFromString(response.readEntity(String.class), RequestResponseOK.class);
+            } else if (status == Status.NOT_FOUND) {
+                throw new ReferentialNotFoundException("Contract not found with id: " + id);
+            }
+            return RequestResponse.parseFromResponse(response, clasz);
         } catch (VitamClientInternalException e) {
             LOGGER.error("Internal Server Error", e);
             throw new AdminManagementClientServerException("Internal Server Error", e);
@@ -842,7 +853,7 @@ class AdminManagementClientRest extends DefaultClient implements AdminManagement
                     return response;
                 default: {
                     String msgErr = "Error while download profile file : " + profileMetadataId;
-                    final RequestResponse requestResponse = RequestResponse.parseFromResponse(response);
+                    final RequestResponse<JsonNode> requestResponse = RequestResponse.parseFromResponse(response);
                     if (!requestResponse.isOk()) {
                         VitamError error = (VitamError) requestResponse;
                         msgErr = error.getDescription();
@@ -1053,54 +1064,6 @@ class AdminManagementClientRest extends DefaultClient implements AdminManagement
 
             return RequestResponse.parseFromResponse(response, ArchiveUnitProfileModel.class);
 
-        } catch (VitamClientInternalException e) {
-            LOGGER.error("Internal Server Error", e);
-            throw new AdminManagementClientServerException("Internal Server Error", e);
-        } finally {
-            consumeAnyEntityAndClose(response);
-        }
-    }
-
-    @Override
-    public RequestResponse<AccessContractModel> updateAccessContract(String id, JsonNode queryDsl)
-        throws InvalidParseOperationException, AdminManagementClientServerException, ReferentialNotFoundException {
-        ParametersChecker.checkParameter("The input queryDsl json is mandatory", queryDsl);
-        Response response = null;
-        try {
-            response = performRequest(HttpMethod.PUT, UPDATE_ACCESS_CONTRACT_URI + id, null, queryDsl,
-                APPLICATION_JSON_TYPE, APPLICATION_JSON_TYPE);
-            final Status status = Status.fromStatusCode(response.getStatus());
-            if (status == Status.OK) {
-                LOGGER.debug(Response.Status.OK.getReasonPhrase());
-                return getFromString(response.readEntity(String.class), RequestResponseOK.class);
-            } else if (status == Status.NOT_FOUND) {
-                throw new ReferentialNotFoundException("Access contract not found with id: " + id);
-            }
-            return RequestResponse.parseFromResponse(response, AccessContractModel.class);
-        } catch (VitamClientInternalException e) {
-            LOGGER.error("Internal Server Error", e);
-            throw new AdminManagementClientServerException("Internal Server Error", e);
-        } finally {
-            consumeAnyEntityAndClose(response);
-        }
-    }
-
-    @Override
-    public RequestResponse<IngestContractModel> updateIngestContract(String id, JsonNode queryDsl)
-        throws InvalidParseOperationException, AdminManagementClientServerException, ReferentialNotFoundException {
-        ParametersChecker.checkParameter("The input queryDsl json is mandatory", queryDsl);
-        Response response = null;
-        try {
-            response = performRequest(HttpMethod.PUT, UPDATE_INGEST_CONTRACT_URI + id, null, queryDsl,
-                APPLICATION_JSON_TYPE, APPLICATION_JSON_TYPE);
-            final Status status = Status.fromStatusCode(response.getStatus());
-            if (status == Status.OK) {
-                LOGGER.debug(Response.Status.OK.getReasonPhrase());
-                return getFromString(response.readEntity(String.class), RequestResponseOK.class);
-            } else if (status == Status.NOT_FOUND) {
-                throw new ReferentialNotFoundException("Ingest contract not found with id: " + id);
-            }
-            return RequestResponse.parseFromResponse(response, IngestContractModel.class);
         } catch (VitamClientInternalException e) {
             LOGGER.error("Internal Server Error", e);
             throw new AdminManagementClientServerException("Internal Server Error", e);

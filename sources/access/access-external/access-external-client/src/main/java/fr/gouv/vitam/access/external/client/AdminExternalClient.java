@@ -37,7 +37,6 @@ import fr.gouv.vitam.access.external.common.exception.AccessExternalClientNotFou
 import fr.gouv.vitam.access.external.common.exception.AccessExternalClientServerException;
 import fr.gouv.vitam.access.external.common.exception.AccessExternalNotFoundException;
 import fr.gouv.vitam.access.external.common.exception.LogbookExternalClientException;
-import fr.gouv.vitam.access.external.common.exception.LogbookExternalException;
 import fr.gouv.vitam.common.client.VitamContext;
 import fr.gouv.vitam.common.exception.AccessUnauthorizedException;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
@@ -56,6 +55,7 @@ import fr.gouv.vitam.common.model.administration.ContextModel;
 import fr.gouv.vitam.common.model.administration.FileFormatModel;
 import fr.gouv.vitam.common.model.administration.FileRulesModel;
 import fr.gouv.vitam.common.model.administration.IngestContractModel;
+import fr.gouv.vitam.common.model.administration.ManagementContractModel;
 import fr.gouv.vitam.common.model.administration.OntologyModel;
 import fr.gouv.vitam.common.model.administration.ProfileModel;
 import fr.gouv.vitam.common.model.administration.SecurityProfileModel;
@@ -145,6 +145,19 @@ public interface AdminExternalClient extends BasicClient, OperationStatusClient 
 
 
     /**
+     * Find management contracts.
+     *
+     * @param vitamContext the vitam context
+     * @param select select query
+     * @return list of management contrats
+     * @throws VitamClientException
+     */
+    RequestResponse<ManagementContractModel> findManagementContracts(VitamContext vitamContext,
+        JsonNode select)
+        throws VitamClientException;
+
+
+    /**
      * Find contexts.
      *
      * @param vitamContext the vitam context
@@ -225,7 +238,7 @@ public interface AdminExternalClient extends BasicClient, OperationStatusClient 
      * The input is invalid in the following situations : </BR>
      * <ul>
      * <li>The json is invalid</li>
-     * <li>The json contains 2 ore many contracts having the same name</li>
+     * <li>The json contains 2 or many contracts having the same name</li>
      * <li>One or more mandatory field is missing</li>
      * <li>A field has an invalid format</li>
      * <li>One or many contracts elready exist in the database</li>
@@ -246,7 +259,7 @@ public interface AdminExternalClient extends BasicClient, OperationStatusClient 
      * The input is invalid in the following situations : </BR>
      * <ul>
      * <li>The json is invalid</li>
-     * <li>The json contains 2 ore many contracts having the same name</li>
+     * <li>The json contains 2 or many contracts having the same name</li>
      * <li>One or more mandatory field is missing</li>
      * <li>A field has an invalid format</li>
      * <li>One or many contracts already exist in the database</li>
@@ -259,6 +272,28 @@ public interface AdminExternalClient extends BasicClient, OperationStatusClient 
      * @throws AccessExternalClientException
      */
     RequestResponse createAccessContracts(VitamContext vitamContext, InputStream accessContracts)
+        throws InvalidParseOperationException, AccessExternalClientException;
+
+    /**
+     * create a set of access contracts after passing the validation steps. If all the contracts are valid, they are
+     * stored in the collection and indexed. </BR>
+     * The input is invalid in the following situations : </BR>
+     * <ul>
+     * <li>The json is invalid</li>
+     * <li>The json contains 2 or many contracts having the same name</li>
+     * <li>One or more mandatory field is missing</li>
+     * <li>A field has an invalid format</li>
+     * <li>One or many contracts already exist in the database</li>
+     * <li>One or many strategies are invalid</li>
+     * </ul>
+     *
+     * @param vitamContext the vitam context
+     * @param accessContracts as InputStream
+     * @return Vitam response
+     * @throws InvalidParseOperationException
+     * @throws AccessExternalClientException
+     */
+    RequestResponse createManagementContracts(VitamContext vitamContext, InputStream accessContracts)
         throws InvalidParseOperationException, AccessExternalClientException;
 
     /**
@@ -286,6 +321,20 @@ public interface AdminExternalClient extends BasicClient, OperationStatusClient 
      * @throws AccessExternalClientException
      */
     RequestResponse updateIngestContract(VitamContext vitamContext, String ingestContractId,
+        JsonNode queryDsl)
+        throws InvalidParseOperationException, AccessExternalClientException;
+
+    /**
+     * Update the given management contract by query dsl
+     *
+     * @param vitamContext the vitam context
+     * @param managementContractId the given id of the management contract
+     * @param queryDsl the given dsl query
+     * @return Response status ok or vitam error
+     * @throws InvalidParseOperationException
+     * @throws AccessExternalClientException
+     */
+    RequestResponse updateManagementContract(VitamContext vitamContext, String managementContractId,
         JsonNode queryDsl)
         throws InvalidParseOperationException, AccessExternalClientException;
 
@@ -456,6 +505,19 @@ public interface AdminExternalClient extends BasicClient, OperationStatusClient 
      * @throws VitamClientException
      */
     RequestResponse<AccessContractModel> findAccessContractById(VitamContext vitamContext,
+        String contractId)
+        throws VitamClientException;
+
+
+    /**
+     * Find an management contracts by its id.
+     *
+     * @param vitamContext the vitam context
+     * @param contractId the contract id
+     * @return an access contract
+     * @throws VitamClientException
+     */
+    RequestResponse<ManagementContractModel> findManagementContractById(VitamContext vitamContext,
         String contractId)
         throws VitamClientException;
 

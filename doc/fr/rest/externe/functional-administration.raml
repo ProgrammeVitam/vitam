@@ -256,7 +256,7 @@ documentation:
       description: |
         Requête qui modifie un Contrat d'accès.
         La requête utilise le langage de requête DSL de type **modification unitaire (UPDATE BY ID)** de Vitam en entrée et retourne le statut de la mise à jour en résultat selon le DSL Vitam en cas de succès.
-      is: [AdminTraits.AdminUpload]
+      is: [AdminTraits.AdminUpdate]
 
 /ingestcontracts:
   displayName: Ingest contracts
@@ -294,7 +294,45 @@ documentation:
        description: |
         Requête qui modifie un Contrat d'entrée.
         La requête utilise le langage de requête DSL de type **modification unitaire (UPDATE BY ID)** de Vitam en entrée et retourne le statut de la mise à jour en résultat selon le DSL Vitam en cas de succès.
-       is: [AdminTraits.AdminUpload]
+       is: [AdminTraits.AdminUpdate]
+
+/managementcontracts:
+  displayName: Management contracts
+  description: |
+     API qui définit les requêtes pour accéder aux contrats de gestion
+     La requête utilise le langage de requête (DSL) de Vitam en entrée et retourne une liste de contrats de gestion selon le DSL Vitam en cas de succès.
+  get:
+    description: |
+      Requête qui retourne des résultats contenant des Contrats de gestion.
+      La requête utilise le langage de requête DSL de type **recherche simple (SELECT SINGLE)** de Vitam en entrée et retourne une liste de Contrats de gestion selon le DSL Vitam en cas de succès.
+    is: [AdminTraits.AdminListingResponse]
+  post:
+    description: |
+      Requête qui retourne des résultats contenant des Contrats de gestion si la requête utilise POST avec X-Http-Method-Override: GET.
+      Si il n'y a pas de X-Http-Method-Override, la requête importe un ensemble de contrats de gestion qui sont sauvegardés et indexés en cas de succès
+    is: [AdminTraits.AdminListingResponse, StandardTraits.OverrideGet, AdminTraits.AdminUpload]
+    headers:
+      X-Http-Method-Override:
+        required: false
+
+  /{idic}:
+    uriParameters:
+        idic:
+          required: true
+          description: |
+            Identifiant du contrat de gestion
+    displayName: Management Contract
+    description: |
+      API qui permet de mettre à jour un contrat de gestion via une requête de mise à jour ou d'accéder à un contrat de gestion
+    get:
+      description: |
+        Retourne une liste de Contrats de gestion contenant 1 seul résultat en cas de succès.
+      is: [AdminTraits.AdminListingResponse]
+    put:
+       description: |
+        Requête qui modifie un Contrat de gestion.
+        La requête utilise le langage de requête DSL de type **modification unitaire (UPDATE BY ID)** de Vitam en entrée et retourne le statut de la mise à jour en résultat selon le DSL Vitam en cas de succès.
+       is: [AdminTraits.AdminUpdate]
 
 /contexts:
   displayName: Contexts

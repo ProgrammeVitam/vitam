@@ -79,6 +79,7 @@ import fr.gouv.vitam.common.model.administration.ArchiveUnitProfileModel;
 import fr.gouv.vitam.common.model.administration.ContextModel;
 import fr.gouv.vitam.common.model.administration.FileFormatModel;
 import fr.gouv.vitam.common.model.administration.IngestContractModel;
+import fr.gouv.vitam.common.model.administration.ManagementContractModel;
 import fr.gouv.vitam.common.model.administration.OntologyModel;
 import fr.gouv.vitam.common.model.administration.ProfileModel;
 import fr.gouv.vitam.common.model.administration.SecurityProfileModel;
@@ -130,6 +131,7 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.ResponseBuilder;
 import javax.ws.rs.core.Response.Status;
 import javax.ws.rs.core.UriInfo;
+
 import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileInputStream;
@@ -531,6 +533,51 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
         try (AdminManagementClient client = adminManagementClientFactory.getClient()) {
             Status status = client.importAccessContracts(getFromStringAsTypeRefence(contract.toString(),
                 new TypeReference<List<AccessContractModel>>() {}));
+
+            if (Status.BAD_REQUEST.getStatusCode() == status.getStatusCode()) {
+                return Response.status(Status.BAD_REQUEST)
+                    .entity(getErrorEntity(Status.BAD_REQUEST, Status.BAD_REQUEST.getReasonPhrase(), null)).build();
+            }
+
+            // Send the http response with the entity and the status got from internalService;
+            ResponseBuilder ResponseBuilder = Response.status(status)
+                .entity(SUCCESSFULLY_IMPORTED);
+            return ResponseBuilder.build();
+        } catch (final ReferentialException e) {
+            LOGGER.error(e);
+            return Response.status(Status.BAD_REQUEST)
+                .entity(getErrorEntity(Status.BAD_REQUEST, e.getMessage(), null)).build();
+        } catch (InvalidParseOperationException | InvalidFormatException e) {
+            LOGGER.error(e);
+            VitamError error = new VitamError(VitamCode.ACCESS_EXTERNAL_INVALID_JSON.getItem())
+                .setMessage(VitamCode.ACCESS_EXTERNAL_INVALID_JSON.getMessage())
+                .setState(StatusCode.KO.name())
+                .setCode(VitamCodeHelper.getCode(VitamCode.ACCESS_EXTERNAL_INVALID_JSON))
+                .setContext(ACCESS_EXTERNAL_MODULE)
+                .setDescription(VitamCode.ACCESS_EXTERNAL_INVALID_JSON.getMessage());
+            return Response.status(Status.BAD_REQUEST)
+                .entity(error).build();
+        }
+    }
+
+    /**
+     * Import a set of management contracts.
+     *
+     * @param contract the input set of contracts as json
+     * @return Response
+     */
+    @Path(AccessExtAPI.MANAGEMENT_CONTRACT_API)
+    @POST
+    @Consumes(APPLICATION_JSON)
+    @Produces(APPLICATION_JSON)
+    @Secured(permission = "managementcontracts:create:json",
+        description = "Importer des contrats de gestion dans le référentiel")
+    public Response importManagementContracts(JsonNode contract) {
+
+        checkParameter(JSON_SELECT_IS_MANDATORY, contract);
+        try (AdminManagementClient client = adminManagementClientFactory.getClient()) {
+            Status status = client.importManagementContracts(getFromStringAsTypeRefence(contract.toString(),
+                new TypeReference<List<ManagementContractModel>>() {}));
 
             if (Status.BAD_REQUEST.getStatusCode() == status.getStatusCode()) {
                 return Response.status(Status.BAD_REQUEST)
@@ -1008,21 +1055,54 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
     @Secured(permission = "accesscontracts:read", description = "Lister le contenu du référentiel des contrats d'accès")
     public Response findAccessContracts(@Dsl(value = SELECT_SINGLE) JsonNode select) {
 
-        try {
-            try (AdminManagementClient client = adminManagementClientFactory.getClient()) {
-                SanityChecker.checkJsonAll(select);
-                RequestResponse result = client.findAccessContracts(select);
-                int st = result.isOk() ? Status.OK.getStatusCode() : result.getHttpCode();
-                return Response.status(st).entity(result).build();
-            } catch (ReferentialException e) {
-                LOGGER.error(e);
-                final Status status = INTERNAL_SERVER_ERROR;
-                return Response.status(status).entity(getErrorEntity(status, e.getMessage(), null)).build();
-            } catch (final InvalidParseOperationException e) {
-                LOGGER.error(e);
-                final Status status = Status.BAD_REQUEST;
-                return Response.status(status).entity(getErrorEntity(status, e.getMessage(), null)).build();
-            }
+        try (AdminManagementClient client = adminManagementClientFactory.getClient()) {
+            SanityChecker.checkJsonAll(select);
+            RequestResponse result = client.findAccessContracts(select);
+            int st = result.isOk() ? Status.OK.getStatusCode() : result.getHttpCode();
+            return Response.status(st).entity(result).build();
+        } catch (ReferentialException e) {
+            LOGGER.error(e);
+            final Status status = INTERNAL_SERVER_ERROR;
+            return Response.status(status).entity(getErrorEntity(status, e.getMessage(), null)).build();
+        } catch (final InvalidParseOperationException e) {
+            LOGGER.error(e);
+            final Status status = Status.BAD_REQUEST;
+            return Response.status(status).entity(getErrorEntity(status, e.getMessage(), null)).build();
+
+        } catch (IllegalArgumentException e) {
+            LOGGER.error(e);
+            final Status status = Status.PRECONDITION_FAILED;
+            return Response.status(status).entity(getErrorEntity(status, e.getMessage(), null)).build();
+        }
+    }
+
+    /**
+     * findManagementContracts using get method
+     *
+     * @param select the select query to find document
+     * @return Response
+     */
+    @Path(AccessExtAPI.MANAGEMENT_CONTRACT_API)
+    @GET
+    @Consumes(APPLICATION_JSON)
+    @Produces(APPLICATION_JSON)
+    @Secured(permission = "managementcontracts:read", description = "Lister le contenu du référentiel des contrats de gestion")
+    public Response findManagementContracts(@Dsl(value = SELECT_SINGLE) JsonNode select) {
+
+        try (AdminManagementClient client = adminManagementClientFactory.getClient()) {
+            SanityChecker.checkJsonAll(select);
+            RequestResponse result = client.findManagementContracts(select);
+            int st = result.isOk() ? Status.OK.getStatusCode() : result.getHttpCode();
+            return Response.status(st).entity(result).build();
+        } catch (ReferentialException e) {
+            LOGGER.error(e);
+            final Status status = INTERNAL_SERVER_ERROR;
+            return Response.status(status).entity(getErrorEntity(status, e.getMessage(), null)).build();
+        } catch (final InvalidParseOperationException e) {
+            LOGGER.error(e);
+            final Status status = Status.BAD_REQUEST;
+            return Response.status(status).entity(getErrorEntity(status, e.getMessage(), null)).build();
+
         } catch (IllegalArgumentException e) {
             LOGGER.error(e);
             final Status status = Status.PRECONDITION_FAILED;
@@ -1043,21 +1123,20 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
     @Secured(permission = "profiles:read", description = "Lister le contenu du référentiel des profils")
     public Response findProfiles(@Dsl(value = SELECT_SINGLE) JsonNode select) {
 
-        try {
-            try (AdminManagementClient client = adminManagementClientFactory.getClient()) {
-                SanityChecker.checkJsonAll(select);
-                RequestResponse result = client.findProfiles(select);
-                int st = result.isOk() ? Status.OK.getStatusCode() : result.getHttpCode();
-                return Response.status(st).entity(result).build();
-            } catch (ReferentialException e) {
-                LOGGER.error(e);
-                final Status status = INTERNAL_SERVER_ERROR;
-                return Response.status(status).entity(getErrorEntity(status, e.getMessage(), null)).build();
-            } catch (final InvalidParseOperationException e) {
-                LOGGER.error(e);
-                final Status status = Status.BAD_REQUEST;
-                return Response.status(status).entity(getErrorEntity(status, e.getMessage(), null)).build();
-            }
+        try (AdminManagementClient client = adminManagementClientFactory.getClient()) {
+            SanityChecker.checkJsonAll(select);
+            RequestResponse result = client.findProfiles(select);
+            int st = result.isOk() ? Status.OK.getStatusCode() : result.getHttpCode();
+            return Response.status(st).entity(result).build();
+        } catch (ReferentialException e) {
+            LOGGER.error(e);
+            final Status status = INTERNAL_SERVER_ERROR;
+            return Response.status(status).entity(getErrorEntity(status, e.getMessage(), null)).build();
+        } catch (final InvalidParseOperationException e) {
+            LOGGER.error(e);
+            final Status status = Status.BAD_REQUEST;
+            return Response.status(status).entity(getErrorEntity(status, e.getMessage(), null)).build();
+
         } catch (IllegalArgumentException e) {
             LOGGER.error(e);
             final Status status = Status.PRECONDITION_FAILED;
@@ -1481,6 +1560,44 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
                 .entity(getErrorEntity(Status.PRECONDITION_FAILED, e.getMessage(), null)).build();
         }
     }
+    /**
+     * findManagementContractsByID
+     *
+     * @param documentId the document id to find
+     * @return Response
+     */
+    @Path(AccessExtAPI.MANAGEMENT_CONTRACT_API+"/{id_document:.+}")
+    @GET
+    @Produces(APPLICATION_JSON)
+    @Secured(permission = "managementcontracts:id:read", description = "Lire un contrat de gestion donné")
+    public Response findManagementContractsByID(@PathParam("id_document") String documentId) {
+
+        try {
+            checkParameter(FORMAT_ID_MANDATORY, documentId);
+            SanityChecker.checkParameter(documentId);
+            try (AdminManagementClient client = adminManagementClientFactory.getClient()) {
+                RequestResponse<ManagementContractModel> requestResponse = client.findManagementContractsByID(documentId);
+                int st = requestResponse.isOk() ? Status.OK.getStatusCode() : requestResponse.getHttpCode();
+                return Response.status(st).entity(requestResponse).build();
+            } catch (ReferentialNotFoundException e) {
+                LOGGER.error(e);
+                final Status status = Status.NOT_FOUND;
+                return Response.status(status).entity(getErrorEntity(status, e.getMessage(), null)).build();
+            } catch (final ReferentialException e) {
+                LOGGER.error(e);
+                final Status status = INTERNAL_SERVER_ERROR;
+                return Response.status(status).entity(getErrorEntity(status, e.getMessage(), null)).build();
+            } catch (final InvalidParseOperationException e) {
+                LOGGER.error(e);
+                final Status status = Status.BAD_REQUEST;
+                return Response.status(status).entity(getErrorEntity(status, e.getMessage(), null)).build();
+            }
+        } catch (final IllegalArgumentException | InvalidParseOperationException e) {
+            LOGGER.error(e);
+            return Response.status(Status.PRECONDITION_FAILED)
+                .entity(getErrorEntity(Status.PRECONDITION_FAILED, e.getMessage(), null)).build();
+        }
+    }
 
     /**
      * findProfilesByID
@@ -1805,6 +1922,48 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
         } catch (IllegalArgumentException e) {
             LOGGER.error(e);
             return VitamCodeHelper.toVitamError(VitamCode.ADMIN_EXTERNAL_UPDATE_INGEST_CONTRACT_ERROR, e.getMessage())
+                .setHttpCode(Status.PRECONDITION_FAILED.getStatusCode())
+                .toResponse();
+        }
+    }
+
+    /**
+     * Update management contract
+     *
+     * @param identifier
+     * @param queryDsl
+     * @return Response
+     * @throws AdminManagementClientServerException
+     * @throws InvalidParseOperationException
+     */
+    @Path(AccessExtAPI.MANAGEMENT_CONTRACT_API_UPDATE+"/{identifier:.+}")
+    @PUT
+    @Consumes(APPLICATION_JSON)
+    @Produces(APPLICATION_JSON)
+    @Secured(permission = "managementcontracts:id:update", description = "Effectuer une mise à jour sur un contrat de gestion")
+    public Response updateManagementContract(@PathParam("identifier") String identifier,
+        @Dsl(DslSchema.UPDATE_BY_ID) JsonNode queryDsl)
+        throws AdminManagementClientServerException, InvalidParseOperationException {
+
+        try (AdminManagementClient client = adminManagementClientFactory.getClient()) {
+            UpdateParserSingle updateParserSingle = new UpdateParserSingle();
+            updateParserSingle.parse(queryDsl);
+            Update update = updateParserSingle.getRequest();
+            update.setQuery(QueryHelper.eq(IDENTIFIER, identifier));
+            RequestResponse response = client.updateManagementContract(identifier, update.getFinalUpdate());
+            return getResponse(response);
+        } catch (ReferentialNotFoundException e) {
+            LOGGER.error(e);
+            return VitamCodeHelper.toVitamError(VitamCode.CONTRACT_NOT_FOUND_ERROR, e.getMessage())
+                .setHttpCode(Status.NOT_FOUND.getStatusCode())
+                .toResponse();
+        } catch (InvalidCreateOperationException | InvalidParseOperationException e) {
+            LOGGER.error(e);
+            return VitamCodeHelper.toVitamError(VitamCode.ADMIN_EXTERNAL_UPDATE_MANAGEMENT_CONTRACT_ERROR, e.getMessage())
+                .toResponse();
+        } catch (IllegalArgumentException e) {
+            LOGGER.error(e);
+            return VitamCodeHelper.toVitamError(VitamCode.ADMIN_EXTERNAL_UPDATE_MANAGEMENT_CONTRACT_ERROR, e.getMessage())
                 .setHttpCode(Status.PRECONDITION_FAILED.getStatusCode())
                 .toResponse();
         }

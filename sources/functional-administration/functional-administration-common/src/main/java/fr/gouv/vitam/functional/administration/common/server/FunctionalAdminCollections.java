@@ -39,21 +39,7 @@ import fr.gouv.vitam.common.database.collections.VitamCollectionHelper;
 import fr.gouv.vitam.common.database.collections.VitamDescriptionLoader;
 import fr.gouv.vitam.common.database.parser.request.adapter.SingleVarNameAdapter;
 import fr.gouv.vitam.common.database.parser.request.adapter.VarNameAdapter;
-import fr.gouv.vitam.functional.administration.common.AccessContract;
-import fr.gouv.vitam.functional.administration.common.AccessionRegisterDetail;
-import fr.gouv.vitam.functional.administration.common.AccessionRegisterSummary;
-import fr.gouv.vitam.functional.administration.common.Agencies;
-import fr.gouv.vitam.functional.administration.common.ArchiveUnitProfile;
-import fr.gouv.vitam.functional.administration.common.Context;
-import fr.gouv.vitam.functional.administration.common.FileFormat;
-import fr.gouv.vitam.functional.administration.common.FileRules;
-import fr.gouv.vitam.functional.administration.common.Griffin;
-import fr.gouv.vitam.functional.administration.common.IngestContract;
-import fr.gouv.vitam.functional.administration.common.Ontology;
-import fr.gouv.vitam.functional.administration.common.PreservationScenario;
-import fr.gouv.vitam.functional.administration.common.Profile;
-import fr.gouv.vitam.functional.administration.common.SecurityProfile;
-import fr.gouv.vitam.functional.administration.common.VitamSequence;
+import fr.gouv.vitam.functional.administration.common.*;
 import org.bson.Document;
 
 import java.util.ArrayList;
@@ -99,6 +85,11 @@ public enum FunctionalAdminCollections {
      * Access contract collection
      */
     ACCESS_CONTRACT(AccessContract.class, true, true),
+
+    /**
+     * Management contract collection
+     */
+    MANAGEMENT_CONTRACT(ManagementContract.class, true, true),
 
     /**
      * VITAM SEQUENCE collection

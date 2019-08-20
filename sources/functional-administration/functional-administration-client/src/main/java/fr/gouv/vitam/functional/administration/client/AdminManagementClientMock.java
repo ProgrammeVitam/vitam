@@ -54,6 +54,7 @@ import fr.gouv.vitam.common.model.administration.ArchiveUnitProfileModel;
 import fr.gouv.vitam.common.model.administration.ContextModel;
 import fr.gouv.vitam.common.model.administration.FileFormatModel;
 import fr.gouv.vitam.common.model.administration.IngestContractModel;
+import fr.gouv.vitam.common.model.administration.ManagementContractModel;
 import fr.gouv.vitam.common.model.administration.OntologyModel;
 import fr.gouv.vitam.common.model.administration.ProfileModel;
 import fr.gouv.vitam.common.model.administration.RegisterValueDetailModel;
@@ -76,6 +77,7 @@ import fr.gouv.vitam.logbook.common.parameters.LogbookOperationParameters;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.List;
@@ -284,6 +286,12 @@ public class AdminManagementClientMock extends AbstractMockClient implements Adm
     }
 
     @Override
+    public Status importManagementContracts(List<ManagementContractModel> accessContractModelList)
+            throws InvalidParseOperationException, AdminManagementClientServerException {
+        throw new IllegalStateException("Cannot be used");
+    }
+
+    @Override
     public RequestResponse findAccessContracts(JsonNode queryDsl)
         throws InvalidParseOperationException, AdminManagementClientServerException {
         LOGGER.debug("find access contracts request ");
@@ -316,6 +324,18 @@ public class AdminManagementClientMock extends AbstractMockClient implements Adm
         throws InvalidParseOperationException, AdminManagementClientServerException, ReferentialNotFoundException {
         LOGGER.debug("find ingest contracts by id request ");
         return ClientMockResultHelper.getIngestContracts();
+    }
+
+    @Override
+    public RequestResponse findManagementContracts(JsonNode queryDsl)
+            throws InvalidParseOperationException, AdminManagementClientServerException {
+        throw new IllegalStateException("Cannot be used");
+    }
+
+    @Override
+    public RequestResponse findManagementContractsByID(String documentId)
+            throws InvalidParseOperationException, AdminManagementClientServerException {
+        throw new IllegalStateException("Cannot be used");
     }
 
     @Override
@@ -407,6 +427,12 @@ public class AdminManagementClientMock extends AbstractMockClient implements Adm
         throws InvalidParseOperationException, AdminManagementClientServerException {
         LOGGER.debug("uddate ingest contract");
         return new RequestResponseOK<>();
+    }
+
+    @Override
+    public RequestResponse<ManagementContractModel> updateManagementContract(String id, JsonNode queryDsl)
+            throws InvalidParseOperationException, AdminManagementClientServerException {
+        throw new IllegalStateException("Cannot be used");
     }
 
     @Override

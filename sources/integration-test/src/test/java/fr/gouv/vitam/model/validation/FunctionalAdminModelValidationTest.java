@@ -37,6 +37,7 @@ import fr.gouv.vitam.common.model.administration.ContextModel;
 import fr.gouv.vitam.common.model.administration.FileFormatModel;
 import fr.gouv.vitam.common.model.administration.FileRulesModel;
 import fr.gouv.vitam.common.model.administration.IngestContractModel;
+import fr.gouv.vitam.common.model.administration.ManagementContractModel;
 import fr.gouv.vitam.common.model.administration.OntologyModel;
 import fr.gouv.vitam.common.model.administration.ProfileModel;
 import fr.gouv.vitam.common.model.administration.SecurityProfileModel;
@@ -67,8 +68,8 @@ public class FunctionalAdminModelValidationTest {
         // Skip vitam sequence (internal collection)
         checkedCollections.add(FunctionalAdminCollections.VITAM_SEQUENCE);
 
-        // Check that all collections are tested
-        assertThat(checkedCollections).containsExactlyInAnyOrder(FunctionalAdminCollections.values());
+        // Check that all collections are tested (NB will fail if not all tests are executed)
+        assertThat(checkedCollections).as("Should not fail if all the tests are executed !!!").containsExactlyInAnyOrder(FunctionalAdminCollections.values());
     }
 
     @Test
@@ -174,6 +175,13 @@ public class FunctionalAdminModelValidationTest {
         validateDataModel(ElasticsearchAccessFunctionalAdmin.MAPPING_RULE_FILE,
             FunctionalAdminCollections.RULES, FileRulesModel.class,
             ReferentialDocumentValidators.FILE_RULES_SCHEMA_JSON);
+    }
+
+    @Test
+    public void testManagementContractElasticsearchMapping() throws Exception {
+        validateDataModel(ElasticsearchAccessFunctionalAdmin.MAPPING_MANAGEMENTCONTRACT_FILE,
+            FunctionalAdminCollections.MANAGEMENT_CONTRACT, ManagementContractModel.class,
+            ReferentialDocumentValidators.MANAGEMENT_CONTRACT_SCHEMA_JSON);
     }
 
     private void validateDataModel(String resourceFileName, FunctionalAdminCollections collection,

@@ -218,6 +218,18 @@ public class ClientMockResultHelper {
         "\"EveryOriginatingAgency\": \"false\", " +
         "\"DeactivationDate\":\"2016-11-02\"}";
 
+    public static final String MANAGEMENT_CONTRACTS = "{\"_id\":\"aeaaaaaaaaaaaaabaa4ikakyetch6mqaaacq\", " +
+            "\"_tenant\":0, " +
+            "\"Name\":\"Un contrat\", " +
+            "\"Description\":\"DESCRIPTION D'UN CONTRAT\", " +
+            "\"Status\":\"ACTIVE\", " +
+            "\"Storage\": {\"UnitStrategy\" : \"default\", \"ObjectGroupStrategy\": \"default\", \"ObjectStrategy\": \"default\"}, " +
+            "\"EveryDataObjectVersion\": false, " +
+            "\"CreationDate\":\"2016-11-02\", " +
+            "\"LastUpdate\":\"2016-11-02\", " +
+            "\"ActivationDate\":\"2016-11-02\", " +
+            "\"DeactivationDate\":\"2016-11-02\"}";
+
     public static final String PROFILES = "{\"_id\":\"aeaaaaaaaaaaaaabaa4ikakyetch6mqaaacq\", " +
         "\"_tenant\":0, " +
         "\"Identifier\":\"FAKE_IDENTIFIER\", " +
@@ -513,7 +525,7 @@ public class ClientMockResultHelper {
 
     /**
      * @param <T>
-     * @param s the original object to be included in response
+     * @param entries the original object to be included in response
      * @return a default response
      * @throws InvalidParseOperationException
      */
@@ -595,6 +607,14 @@ public class ClientMockResultHelper {
      */
     public static RequestResponse getAccessContracts() throws InvalidParseOperationException {
         return createResponse(ACCESS_CONTRACTS);
+    }
+
+    /**
+     * @return a RequestResponse containing management contracts json
+     * @throws InvalidParseOperationException
+     */
+    public static RequestResponse getManagementContracts() throws InvalidParseOperationException {
+        return createResponse(MANAGEMENT_CONTRACTS);
     }
 
 

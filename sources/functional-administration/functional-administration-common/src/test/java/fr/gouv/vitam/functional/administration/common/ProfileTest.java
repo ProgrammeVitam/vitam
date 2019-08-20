@@ -57,7 +57,7 @@ public class ProfileTest {
 
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         Profile profile = new Profile();
-        final String id = GUIDFactory.newIngestContractGUID(TENANT_ID).getId();
+        final String id = GUIDFactory.newProfileGUID(TENANT_ID).getId();
         String identifier = "aIdentifier";
         String name = "aName";
         String description = "aDescription of the contract";

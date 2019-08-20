@@ -35,6 +35,7 @@ const defaultCollections = [
   {label: 'Profil', value: 'PROFILE'},
   {label: 'Contrat d\'accès', value: 'ACCESS_CONTRACTS'},
   {label: 'Contrat d\'entrée', value: 'INGEST_CONTRACTS'},
+  {label: 'Contrat de gestion', value: 'MANAGEMENT_CONTRACTS'},
   {label: 'Contexte', value: 'CONTEXTS'},
   {label: 'Règle de gestion', value: 'RULES'},
   {label: 'Format', value: 'FORMATS'},
@@ -141,6 +142,7 @@ export class QueryDSLComponent extends PageComponent {
       case 'UNIT':
       case 'ACCESS_CONTRACTS':
       case 'INGEST_CONTRACTS':
+      case 'MANAGEMENT_CONTRACTS':
       case 'CONTEXTS':
       case 'PROFILE':
         this.methods = defaultAndUpdateMethods;

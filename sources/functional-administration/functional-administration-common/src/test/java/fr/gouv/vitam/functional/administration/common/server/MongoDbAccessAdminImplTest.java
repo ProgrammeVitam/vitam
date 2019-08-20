@@ -392,7 +392,7 @@ public class MongoDbAccessAdminImplTest {
     public void testIngestContract() throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         final FunctionalAdminCollections contractCollection = FunctionalAdminCollections.INGEST_CONTRACT;
-        final String id = GUIDFactory.newIngestContractGUID(TENANT_ID).getId();
+        final String id = GUIDFactory.newContractGUID(TENANT_ID).getId();
         contract.setId(id);
         JsonNode jsonContract = JsonHandler.toJsonNode(contract);
         ((ObjectNode) jsonContract).put("Identifier", contract.getName());
@@ -432,7 +432,7 @@ public class MongoDbAccessAdminImplTest {
     public void testAccessContract() throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         final FunctionalAdminCollections contractCollection = FunctionalAdminCollections.ACCESS_CONTRACT;
-        final String id = GUIDFactory.newIngestContractGUID(TENANT_ID).getId();
+        final String id = GUIDFactory.newContractGUID(TENANT_ID).getId();
         accessContract.setId(id);
         final JsonNode jsonContract = JsonHandler.toJsonNode(accessContract);
         ((ObjectNode) jsonContract).put("Identifier", accessContract.getName());
@@ -499,7 +499,7 @@ public class MongoDbAccessAdminImplTest {
 
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         final FunctionalAdminCollections contractCollection = FunctionalAdminCollections.INGEST_CONTRACT;
-        final String id = GUIDFactory.newIngestContractGUID(TENANT_ID).getId();
+        final String id = GUIDFactory.newContractGUID(TENANT_ID).getId();
         contract.setId(id);
         final JsonNode jsonContract = JsonHandler.toJsonNode(contract);
         ((ObjectNode) jsonContract).put("Identifier", GUIDFactory.newGUID().toString());
@@ -530,7 +530,7 @@ public class MongoDbAccessAdminImplTest {
 
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         final FunctionalAdminCollections contractCollection = FunctionalAdminCollections.ACCESS_CONTRACT;
-        final String id = GUIDFactory.newIngestContractGUID(TENANT_ID).getId();
+        final String id = GUIDFactory.newContractGUID(TENANT_ID).getId();
         accessContract.setId(id);
         final JsonNode jsonContract = JsonHandler.toJsonNode(accessContract);
         final ArrayNode arrayNode = JsonHandler.createArrayNode();
@@ -673,7 +673,7 @@ public class MongoDbAccessAdminImplTest {
 
     private static Context createContext() {
         JsonNode node = JsonHandler.createObjectNode();
-        ((ObjectNode) node).put(VitamDocument.ID, GUIDFactory.newIngestContractGUID(TENANT_ID).getId());
+        ((ObjectNode) node).put(VitamDocument.ID, GUIDFactory.newContractGUID(TENANT_ID).getId());
         ((ObjectNode) node).put(Context.IDENTIFIER, "contextId");
         ((ObjectNode) node).put(Context.NAME, "contextName");
         ((ObjectNode) node).put(Context.PERMISSION, new ArrayNode(null));

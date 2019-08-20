@@ -88,6 +88,18 @@ public class AccessExtAPI {
      */
     public static final String ACCESS_CONTRACT_API_UPDATE = "/accesscontracts";
     /**
+     * Management contracts base uri
+     */
+    public static final String MANAGEMENT_CONTRACT = "managementcontracts";
+    /**
+     * Management contracts uri
+     */
+    public static final String MANAGEMENT_CONTRACT_API = "/" + MANAGEMENT_CONTRACT;
+    /**
+     * Management contracts update uri
+     */
+    public static final String MANAGEMENT_CONTRACT_API_UPDATE = "/managementcontracts";
+    /**
      * Profiles base uri
      */
     public static final String PROFILES = "profiles";

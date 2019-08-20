@@ -61,9 +61,13 @@ interface définissant des opérations liées au référentiel des format : impo
 
 Le modèle de données des contracts d'entrée, ce modèle étend VitamDocument.
 
-- AccessContract.java : 
+- AccessContract.java :
 
 Le modèle de données des contracts d'accès, ce modèle étend VitamDocument.
+
+- ManagementContract.java :
+
+Le modèle de données des contracts de gestion, ce modèle étend VitamDocument.
 
 - Profile.java : 
 
@@ -188,6 +192,7 @@ fr.gouv.vitam.functional.administration.contract.core
 - ContractValidator.java : Interface fonctionnelle de validations des contrats
 - GenericContractValidator.java : Interface fonctionnelle de validations des contrats
 - IngestContractImpl.java : Classe d'implémentation pour la gestion des contrats d'entrées
+- ManagementContractImpl.java : Classe d'implémentation pour la gestion des contrats de gestion
 
 
 functional-administration-profile

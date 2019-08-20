@@ -109,7 +109,6 @@ describe('AccessContractComponent', () => {
 
   it('should change status', () => {
     component.updatedFields = {};
-    component.isActif = false;
 
     // Click on status selector update isActif and trigg changeStatus
     component.isActif = true;

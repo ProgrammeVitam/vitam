@@ -1,0 +1,18 @@
+{
+	"_id": "aefqaaaaaahbl62nabkzgak3k6qtf3aaaaaq",
+	"Name": "SIA archives nationales",
+	"Identifier": "MC-000009",
+	"Description": "Contrat de gestion - SIA archives nationales",
+	"Status": "ACTIVE",
+	"CreationDate": "2017-04-10T11:30:33.798",
+	"LastUpdate": "2017-04-10T11:30:33.798",
+	"ActivationDate": "2017-04-10T11:30:33.798",
+	"DeactivationDate": null,
+	"Storage":{
+		"UnitStrategy":"sia_strategy",
+		"ObjectGroupStrategy":"sia_strategy",
+		"ObjectStrategy":"sia_strategy"
+	},
+	"_tenant": 0,
+	"_v": 0
+}

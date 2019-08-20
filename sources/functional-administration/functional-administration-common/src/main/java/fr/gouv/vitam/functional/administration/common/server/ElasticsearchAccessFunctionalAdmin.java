@@ -70,6 +70,7 @@ public class ElasticsearchAccessFunctionalAdmin extends ElasticsearchAccess {
     public static final String MAPPING_RULE_FILE = "/rule-es-mapping.json";
     public static final String MAPPING_INGESTCONTRACT_FILE = "/ingestcontract-es-mapping.json";
     public static final String MAPPING_ACCESSCONTRACT_FILE = "/accesscontract-es-mapping.json";
+    public static final String MAPPING_MANAGEMENTCONTRACT_FILE = "/managementcontract-es-mapping.json";
     public static final String MAPPING_AGENCIES_FILE = "/agencies-es-mapping.json";
     public static final String MAPPING_PROFILE_FILE = "/profile-es-mapping.json";
     public static final String MAPPING_CONTEXT_FILE = "/context-es-mapping.json";
@@ -192,6 +193,8 @@ public class ElasticsearchAccessFunctionalAdmin extends ElasticsearchAccess {
                 return transferJsonToMapping(Object.class.getResourceAsStream(MAPPING_RULE_FILE));
             case INGEST_CONTRACT:
                 return transferJsonToMapping(Object.class.getResourceAsStream(MAPPING_INGESTCONTRACT_FILE));
+            case MANAGEMENT_CONTRACT:
+                return transferJsonToMapping(Object.class.getResourceAsStream(MAPPING_MANAGEMENTCONTRACT_FILE));
             case ACCESS_CONTRACT:
                 return transferJsonToMapping(Object.class.getResourceAsStream(MAPPING_ACCESSCONTRACT_FILE));
             case PROFILE:

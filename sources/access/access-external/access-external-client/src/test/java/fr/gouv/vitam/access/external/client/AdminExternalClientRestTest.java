@@ -33,6 +33,7 @@ import fr.gouv.vitam.common.model.administration.ArchiveUnitProfileModel;
 import fr.gouv.vitam.common.model.administration.ContextModel;
 import fr.gouv.vitam.common.model.administration.FileFormatModel;
 import fr.gouv.vitam.common.model.administration.IngestContractModel;
+import fr.gouv.vitam.common.model.administration.ManagementContractModel;
 import fr.gouv.vitam.common.model.administration.OntologyModel;
 import fr.gouv.vitam.common.model.administration.ProfileModel;
 import fr.gouv.vitam.common.model.processing.ProcessDetail;
@@ -483,7 +484,7 @@ public class AdminExternalClientRestTest extends ResteasyTestApplication {
     public void importContractsWithCorrectJsonReturnCreated()
         throws IOException, InvalidParseOperationException, AccessExternalClientException {
         when(mock.post()).thenReturn(
-            Response.status(Status.CREATED).entity(new RequestResponseOK<>().addAllResults(getContracts())).build());
+            Response.status(Status.CREATED).entity(new RequestResponseOK<>().addAllResults(getContracts("referential_contracts_ok.json"))).build());
 
         try (AdminExternalClientRest client = (AdminExternalClientRest) vitamServerTestRunner.getClient();
             InputStream fileContracts = PropertiesUtils.getResourceAsStream("referential_contracts_ok.json")) {
@@ -495,8 +496,8 @@ public class AdminExternalClientRestTest extends ResteasyTestApplication {
 
     }
 
-    private List<Object> getContracts() throws IOException, InvalidParseOperationException {
-        try (InputStream fileContracts = PropertiesUtils.getResourceAsStream("referential_contracts_ok.json")) {
+    private List<Object> getContracts(String filename) throws IOException, InvalidParseOperationException {
+        try (InputStream fileContracts = PropertiesUtils.getResourceAsStream(filename)) {
             ArrayNode array = (ArrayNode) JsonHandler.getFromInputStream(fileContracts);
             List<Object> res = new ArrayList<>();
             array.forEach(e -> res.add(e));
@@ -526,13 +527,11 @@ public class AdminExternalClientRestTest extends ResteasyTestApplication {
         }
     }
 
-
-
     @Test()
     public void importAccessContractsWithCorrectJsonReturnCreated()
         throws IOException, InvalidParseOperationException, AccessExternalClientException {
         when(mock.post()).thenReturn(
-            Response.status(Status.CREATED).entity(new RequestResponseOK<>().addAllResults(getAccessContracts()))
+            Response.status(Status.CREATED).entity(new RequestResponseOK<>().addAllResults(getContracts("contracts_access_ok.json")))
                 .build());
 
         try (AdminExternalClientRest client = (AdminExternalClientRest) vitamServerTestRunner.getClient();
@@ -541,15 +540,6 @@ public class AdminExternalClientRestTest extends ResteasyTestApplication {
                 client.createAccessContracts(new VitamContext(TENANT_ID), fileContracts);
             Assert.assertTrue(RequestResponseOK.class.isAssignableFrom(resp.getClass()));
             Assert.assertTrue((resp.isOk()));
-        }
-    }
-
-    private List<Object> getAccessContracts() throws IOException, InvalidParseOperationException {
-        try (InputStream fileContracts = PropertiesUtils.getResourceAsStream("contracts_access_ok.json")) {
-            ArrayNode array = (ArrayNode) JsonHandler.getFromInputStream(fileContracts);
-            List<Object> res = new ArrayList<>();
-            array.forEach(e -> res.add(e));
-            return res;
         }
     }
 
@@ -575,6 +565,44 @@ public class AdminExternalClientRestTest extends ResteasyTestApplication {
         }
     }
 
+    @Test()
+    public void importManagementContractsWithCorrectJsonReturnCreated()
+        throws IOException, InvalidParseOperationException, AccessExternalClientException {
+        when(mock.post()).thenReturn(
+            Response.status(Status.CREATED).entity(new RequestResponseOK<>().addAllResults(getContracts("contracts_management_ok.json")))
+                .build());
+
+        try (AdminExternalClientRest client = (AdminExternalClientRest) vitamServerTestRunner.getClient();
+            InputStream fileContracts = PropertiesUtils.getResourceAsStream("contracts_management_ok.json")) {
+            RequestResponse resp =
+                client.createManagementContracts(new VitamContext(TENANT_ID), fileContracts);
+            Assert.assertTrue(RequestResponseOK.class.isAssignableFrom(resp.getClass()));
+            Assert.assertTrue((resp.isOk()));
+        }
+    }
+
+    @Test
+    public void importManagementContractsWithIncorrectJsonReturnBadRequest()
+        throws InvalidParseOperationException, AccessExternalClientException {
+        VitamError error = new VitamError("vitam_code").setHttpCode(400).setContext("ADMIN").setState("INVALID")
+            .setMessage("invalid input").setDescription("Input file of contracts is malformed");
+        when(mock.post()).thenReturn(Response.status(Status.BAD_REQUEST).entity(error).build());
+        try (AdminExternalClientRest client = (AdminExternalClientRest) vitamServerTestRunner.getClient()) {
+            RequestResponse resp =
+                client.createManagementContracts(new VitamContext(TENANT_ID), new FakeInputStream(0));
+            Assert.assertTrue(VitamError.class.isAssignableFrom(resp.getClass()));
+            Assert.assertEquals(Status.BAD_REQUEST.getStatusCode(), (resp.getHttpCode()));
+        }
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void importManagementContractsWithNullStreamThrowIllegalArgException()
+        throws InvalidParseOperationException, AccessExternalClientException {
+        try (AdminExternalClientRest client = (AdminExternalClientRest) vitamServerTestRunner.getClient()) {
+            client.createManagementContracts(new VitamContext(TENANT_ID), null);
+        }
+    }
+
 
     /**
      * Test that findAccessContracts is reachable and does not return elements
@@ -592,6 +620,43 @@ public class AdminExternalClientRestTest extends ResteasyTestApplication {
             assertThat(resp.isOk()).isTrue();
             assertThat(resp.getStatus()).isEqualTo(Status.OK.getStatusCode());
             assertThat(((RequestResponseOK<AccessContractModel>) resp).getResults()).hasSize(0);
+        }
+    }
+
+    /**
+     * Test that findManagementContracts is reachable and returns elements
+     */
+    @Test
+    public void findAllManagementContractsThenReturnContracts()
+        throws VitamClientException {
+
+        when(mock.get()).thenReturn(Response.status(Status.OK).entity(ClientMockResultHelper.getManagementContracts()).build());
+        try (AdminExternalClientRest client = (AdminExternalClientRest) vitamServerTestRunner.getClient()) {
+            RequestResponse<ManagementContractModel> resp =
+                client.findManagementContracts(new VitamContext(TENANT_ID).setAccessContract(null),
+                    JsonHandler.createObjectNode());
+            assertThat(resp.isOk()).isTrue();
+            assertThat(resp.getStatus()).isEqualTo(Status.OK.getStatusCode());
+            assertThat(((RequestResponseOK<ManagementContractModel>) resp).getResults()).hasSize(1);
+        }
+    }
+
+    /**
+     * Test that findManagementContracts is reachable and returns no elements
+     */
+    @Test
+    public void findNoManagementContractsThenReturnEmpty()
+        throws VitamClientException {
+
+        when(mock.get()).thenReturn(Response.status(Status.OK)
+            .entity(new RequestResponseOK<ManagementContractModel>().setHttpCode(Status.OK.getStatusCode())).build());
+        try (AdminExternalClientRest client = (AdminExternalClientRest) vitamServerTestRunner.getClient()) {
+            RequestResponse<ManagementContractModel> resp =
+                client.findManagementContracts(new VitamContext(TENANT_ID).setAccessContract(null),
+                    JsonHandler.createObjectNode());
+            assertThat(resp.isOk()).isTrue();
+            assertThat(resp.getStatus()).isEqualTo(Status.OK.getStatusCode());
+            assertThat(((RequestResponseOK<ManagementContractModel>) resp).getResults()).hasSize(0);
         }
     }
 
@@ -648,6 +713,22 @@ public class AdminExternalClientRestTest extends ResteasyTestApplication {
         try (AdminExternalClientRest client = (AdminExternalClientRest) vitamServerTestRunner.getClient()) {
             RequestResponse<AccessContractModel> resp =
                 client.findAccessContractById(new VitamContext(TENANT_ID).setAccessContract(CONTRACT),
+                    "fakeId");
+            assertThat(resp).isInstanceOf(RequestResponseOK.class);
+            assertThat(((RequestResponseOK) resp).getResults()).hasSize(0);
+        }
+    }
+
+    /**
+     * Test that findManagementContractsByID is reachable
+     */
+    @Test
+    public void findManagementContractsByIdThenReturnEmpty() throws VitamClientException {
+
+        when(mock.get()).thenReturn(Response.status(Status.OK).entity(new RequestResponseOK<>()).build());
+        try (AdminExternalClientRest client = (AdminExternalClientRest) vitamServerTestRunner.getClient()) {
+            RequestResponse<ManagementContractModel> resp =
+                client.findManagementContractById(new VitamContext(TENANT_ID).setAccessContract(CONTRACT),
                     "fakeId");
             assertThat(resp).isInstanceOf(RequestResponseOK.class);
             assertThat(((RequestResponseOK) resp).getResults()).hasSize(0);
@@ -855,7 +936,7 @@ public class AdminExternalClientRestTest extends ResteasyTestApplication {
     public void importContextsWithCorrectJsonReturnCreated()
         throws IOException, InvalidParseOperationException, AccessExternalClientException {
         when(mock.post()).thenReturn(
-            Response.status(Status.CREATED).entity(new RequestResponseOK<>().addAllResults(getContracts())).build());
+            Response.status(Status.CREATED).entity(new RequestResponseOK<>().addAllResults(getContracts("referential_contracts_ok.json"))).build());
 
         try (AdminExternalClientRest client = (AdminExternalClientRest) vitamServerTestRunner.getClient();
             InputStream fileContexts = PropertiesUtils.getResourceAsStream("contexts_ok.json")) {
