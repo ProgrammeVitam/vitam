@@ -204,7 +204,7 @@ primary_site=true
 #environnement=cots
 
 ### vitam-itest repository ###
-vitam_tests_branch=master
+vitam_tests_branch=master_2.11.x
 vitam_tests_gitrepo_protocol=https
 vitam_tests_gitrepo_baseurl=gitlab.dev.programmevitam.fr
 vitam_tests_gitrepo_url={{ vitam_tests_gitrepo_protocol }}://{{ vitam_tests_gitrepo_baseurl }}/vitam/vitam-itests.git
