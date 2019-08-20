@@ -173,10 +173,14 @@
         <maven.failsafe.version>2.19.1</maven.failsafe.version>
         <maven.javadoc.version>2.10.4</maven.javadoc.version>
         <maven.exec.version>1.6.0</maven.exec.version>
-	<maven.dependencycheck.version>5.2.0</maven.dependencycheck.version>
+	    <maven.dependencycheck.version>5.2.0</maven.dependencycheck.version>
         <xalan.version>2.7.2</xalan.version>
         <nodeDownloadRoot/>
         <maven-jar-plugin.version>2.6</maven-jar-plugin.version>
+        <cucumber-java.version>1.2.5</cucumber-java.version>
+        <cucumber-picocontainer.version>1.2.5</cucumber-picocontainer.version>
+        <cucumber-junit.version>1.2.5</cucumber-junit.version>
+        <xstream.version>1.4.11.1</xstream.version>
     </properties>
 
 
