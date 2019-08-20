@@ -52,6 +52,10 @@ La configuration des droits d'accès à VITAM est réalisée dans le fichier |re
      :language: yaml
      :linenos:
 
+.. note:: Pour la directive ``admin_context_certs`` concernant l'intégration de certificats :term:`SIA` au déploiement, se reporter à la section :ref:`external_sia_certs_integration`. 
+
+.. note:: Pour la directive ``admin_personal_certs`` concernant l'intégration de certificats personnels (*personae*) au déploiement, se reporter à la section :ref:`personal_certs_integration`. 
+
 Fichier ``offers_opts.yml``
 ----------------------------
 
