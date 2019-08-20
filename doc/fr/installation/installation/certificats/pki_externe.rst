@@ -97,14 +97,29 @@ Pour modifier/créer un vault ansible, se référer à la documentation Ansible 
 .. caution:: Durant l'installation des extra de  VITAM, il est nécessaire de créer un certificat "gatling" (à placer sous ``deployment/environments/certs/client-external/clients/gatling``).
 
 
-Intégration d'une application externe (cliente)
------------------------------------------------
+Intégration de certificats clients de :term:`VITAM`
+---------------------------------------------------
 
-Dans le cas d'ajout de certificats :term:`SIA` externes :
+.. _external_sia_certs_integration:
+
+Intégration d'une application externe (cliente)
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Dans le cas d'ajout de certificats :term:`SIA` externes au déploiement de la solution logicielle :term:`VITAM` :
 
     * Déposer le certificat (``.crt``) de l'application client dans ``environments/certs/client-external/clients/external/``
     * Déposer les :term:`CA` du certificat de l'application (``.crt``) dans ``environments/certs/client-external/ca/``
     * Editer le fichier ``environments/group_vars/all/vitam_security.yml`` et ajouter le(s) entrée(s) supplémentaire(s)  (sous forme répertoire/fichier.crt, exemple: ``external/mon_sia.crt``) dans  la directive ``admin_context_certs`` pour que ceux-ci soient ajoutés aux profils de sécurité durant le déploiement de la solution logicielle :term:`VITAM`.
+
+.. _personal_certs_integration:
+
+Intégration d'un certificat personnel (*personae*)
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Dans le cas d'ajout de certificats personnels au déploiement de la solution logicielle :term:`VITAM` : 
+
+    * Déposer le certificat personnel (``.crt``) dans ``environments/certs/client-external/clients/external/``
+    * Editer le fichier ``environments/group_vars/all/vitam_security.yml`` et ajouter le(s) entrée(s) supplémentaire(s)  (sous forme répertoire/fichier.crt, exemple: ``external/mon_personae.crt``) dans  la directive ``admin_personal_certs`` pour que ceux-ci soient ajoutés à la base de donées du composant `security-internal` durant le déploiement de la solution logicielle :term:`VITAM`.     
 
 Cas des offres objet
 -----------------------
