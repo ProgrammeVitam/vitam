@@ -30,6 +30,8 @@ A l'issue de l'exécution du `playbook`, les *timers* systemd ont été arrêté
 
 Il est également recommandé de ne lancer la procédure de migration qu'après s'être assuré que plus aucun `workflow` n'est ni en cours, ni en statut **FATAL**. 
 
+.. seealso:: Se référer au chapitre "Suivi des Workflows" du :term:`DEX`, pour plus d'informations sur la façon de vérifier l'état des statuts des *workflows*.
+
 Arrêt des composants *externals*
 ---------------------------------
 
