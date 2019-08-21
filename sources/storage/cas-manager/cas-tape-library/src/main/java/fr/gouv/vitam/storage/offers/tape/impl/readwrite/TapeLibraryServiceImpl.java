@@ -47,8 +47,10 @@ import fr.gouv.vitam.storage.offers.tape.spec.TapeLibraryService;
 import fr.gouv.vitam.storage.offers.tape.spec.TapeLoadUnloadService;
 import fr.gouv.vitam.storage.offers.tape.spec.TapeRobotPool;
 import fr.gouv.vitam.storage.offers.tape.spec.TapeRobotService;
+import org.apache.commons.io.FileUtils;
 
 import java.io.File;
+import java.nio.file.Files;
 import java.util.Objects;
 
 public class TapeLibraryServiceImpl implements TapeLibraryService {
@@ -470,15 +472,13 @@ public class TapeLibraryServiceImpl implements TapeLibraryService {
 
                 return false;
 
+            } catch (ReadWriteException e) {
+                throw e;
             } catch (Exception e) {
-                if (e instanceof ReadWriteException) {
-                    throw (ReadWriteException) e;
-                }
                 throw new ReadWriteException(MSG_PREFIX + TAPE_MSG + tape.getCode(), e);
             } finally {
-                labelFile.delete();
+                FileUtils.deleteQuietly(labelFile);
             }
-
         }
     }
 }

@@ -7,17 +7,17 @@ import fr.gouv.vitam.storage.offers.tape.dto.TapeDriveStatus;
 import org.apache.commons.lang3.StringUtils;
 
 public class TapeDriveStatusParser {
-    public static final String TAPE_DRIVE = "tape drive:";
-    public static final String FILE_NUMBER = "File number=";
-    public static final String BLOCK_NUMBER = ", block number=";
-    public static final String PARTITION = ", partition=";
-    public static final String TAPE_BLOCK_SIZE = "Tape block size ";
-    public static final String DENSITY = " bytes. Density code ";
-    public static final String OPEN_PARENTHESIS = "(";
-    public static final String CLOSE_PARENTHESIS = ")";
-    public static final String SOFT_ERROR = "Soft error count since last status=";
-    public static final String GENERAL_STATUS = "General status bits on ";
-    public static final String POINT = ".";
+    private static final String TAPE_DRIVE = "tape drive:";
+    private static final String FILE_NUMBER = "File number=";
+    private static final String BLOCK_NUMBER = ", block number=";
+    private static final String PARTITION = ", partition=";
+    private static final String TAPE_BLOCK_SIZE = "Tape block size ";
+    private static final String DENSITY = " bytes. Density code ";
+    private static final String OPEN_PARENTHESIS = "(";
+    private static final String CLOSE_PARENTHESIS = ")";
+    private static final String SOFT_ERROR = "Soft error count since last status=";
+    private static final String GENERAL_STATUS = "General status bits on ";
+    private static final String POINT = ".";
 
     public TapeDriveState parse(String output) {
         ParametersChecker.checkParameter("All params is required", output);
