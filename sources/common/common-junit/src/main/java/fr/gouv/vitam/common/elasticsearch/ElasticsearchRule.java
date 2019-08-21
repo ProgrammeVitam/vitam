@@ -60,13 +60,16 @@ public class ElasticsearchRule extends ExternalResource {
     public static final int TCP_PORT = 9300;
     public static final String VITAM_CLUSTER = "elasticsearch-data";
     private boolean clientClosed = false;
-    private Client client;
+    private TransportClient client;
     private Set<String> indexesToBePurged = new HashSet<>();
 
     public ElasticsearchRule(String... indexesToBePurged) {
         try {
-            client = new PreBuiltTransportClient(getClientSettings()).addTransportAddress(
-                new TransportAddress(InetAddress.getByName("localhost"), TCP_PORT));
+            // client = new PreBuiltTransportClient(getClientSettings()).addTransportAddress(
+            //     new TransportAddress(InetAddress.getByName("localhost"), TCP_PORT));
+            Settings settings = Settings.builder()
+                .put("cluster.name", "myClusterName").build();
+            TransportClient client = new PreBuiltTransportClient(settings);
         } catch (final UnknownHostException e) {
             throw new VitamRuntimeException(e);
         }
@@ -85,7 +88,7 @@ public class ElasticsearchRule extends ExternalResource {
             .put("thread_pool.refresh.max", VitamConfiguration.getNumberDbClientThread())
             .put("thread_pool.search.size", VitamConfiguration.getNumberDbClientThread())
             .put("thread_pool.search.queue_size", VitamConfiguration.getNumberEsQueue())
-            .put("thread_pool.bulk.queue_size", VitamConfiguration.getNumberEsQueue())
+            .put("thread_pool.get.queue_size", VitamConfiguration.getNumberEsQueue())
             .build();
     }
 

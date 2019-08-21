@@ -44,18 +44,19 @@ import org.elasticsearch.action.bulk.BulkResponse;
 import org.elasticsearch.action.search.SearchResponse;
 import org.elasticsearch.action.support.WriteRequest;
 import org.elasticsearch.action.support.master.AcknowledgedResponse;
+// there must be a more proper & selective way
+import org.elasticsearch.client;
 import org.elasticsearch.client.Client;
-import org.elasticsearch.client.transport.TransportClient;
 import org.elasticsearch.common.settings.Settings;
 import org.elasticsearch.common.settings.Settings.Builder;
-import org.elasticsearch.common.transport.TransportAddress;
+
 import org.elasticsearch.common.unit.TimeValue;
 import org.elasticsearch.common.xcontent.XContentType;
 import org.elasticsearch.index.query.QueryBuilder;
 import org.elasticsearch.search.SearchHit;
 import org.elasticsearch.search.sort.FieldSortBuilder;
 import org.elasticsearch.search.sort.SortOrder;
-import org.elasticsearch.transport.client.PreBuiltTransportClient;
+// import org.elasticsearch.transport.client.PreBuiltTransportClient;
 
 import java.io.IOException;
 import java.net.InetAddress;
@@ -158,13 +159,13 @@ public class ElasticsearchAccess implements DatabaseConnection {
      * in sysctl "vm.swappiness = 1", "vm.max_map_count=262144"</br>
      * in elasticsearch.yml "bootstrap.mlockall: true"
      *
-     * @return Settings for Elasticsearch client
+     * @return RestClient for Elasticsearch client
      */
-    public static Settings getSettings(String clusterName) {
-        return Settings.builder().put("cluster.name", clusterName)
+    public static RestClient getSettings(String clusterName) {
+        return RestClient.builder().put("cluster.name", clusterName)
             .put("client.transport.sniff", true)
             .put("client.transport.ping_timeout", "1s")
-            .put("transport.tcp.connect_timeout", "30s")
+            //.put("transport.tcp.connect_timeout", "30s")
             // Note : thread_pool.refresh.size is now limited to max(half number of processors, 10)... that is the
             // default max value. So no configuration is needed.
             .put("thread_pool.refresh.max", VitamConfiguration.getNumberDbClientThread())
@@ -174,16 +175,16 @@ public class ElasticsearchAccess implements DatabaseConnection {
             // so no configuration is needed.
             // In addition, if the configured size is >= (1 + # of available processors), the threadpool creation fails.
             // .put("thread_pool.bulk.size", VitamConfiguration.getNumberDbClientThread())
-            .put("thread_pool.bulk.queue_size", VitamConfiguration.getNumberEsQueue())
+            .put("thread_pool.get.queue_size", VitamConfiguration.getNumberEsQueue())
             // watcher settings are now part of X-pack (paid license) and can be configured once installed with the
             // corresponding xpack.http.default_read_timeout
             // .put("watcher.http.default_read_timeout", VitamConfiguration.getReadTimeout() / TOSECOND + "s")
-            .build();
+            ;
     }
 
-    private TransportClient getClient(Settings settings) throws VitamException {
+    private RestHighLevelClient getClient(Settings settings) throws VitamException {
         try {
-            final TransportClient clientNew = new PreBuiltTransportClient(settings);
+            final RestHighLevelClient clientNew = new RestHighLevelClient(settings);
             for (final ElasticsearchNode node : nodes) {
                 clientNew.addTransportAddress(
                     new TransportAddress(InetAddress.getByName(node.getHostName()), node.getTcpPort()));
