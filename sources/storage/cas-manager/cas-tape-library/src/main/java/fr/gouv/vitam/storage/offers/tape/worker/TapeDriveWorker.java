@@ -257,7 +257,7 @@ public class TapeDriveWorker implements Runnable {
                         inProgressWorkerStopWatch.start();
 
                         LOGGER.warn(
-                            msgPrefix + "No read/write to tape order found. waiting (" + sleepTime + ") Sec ...");
+                            msgPrefix + "No read/write to tape order found. waiting (" + sleepTime + ") ms ...");
                     }
                     Thread.sleep(sleepTime);
                 }
