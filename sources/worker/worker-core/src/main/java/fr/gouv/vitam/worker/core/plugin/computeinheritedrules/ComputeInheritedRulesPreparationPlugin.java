@@ -98,7 +98,7 @@ public class ComputeInheritedRulesPreparationPlugin extends ActionHandler {
             ObjectNode error = createObjectNode().put("error", e.getMessage());
             return buildItemStatus(PLUGIN_NAME, e.getStatusCode(), error);
         }
-        return buildItemStatus(PLUGIN_NAME, StatusCode.OK, createObjectNode().put("query", dslQuery.toString()));
+        return buildItemStatus(PLUGIN_NAME, StatusCode.OK, null);
     }
 
     private void process(HandlerIO handler, JsonNode dslQuery) throws ComputedInheritedRulesException {
