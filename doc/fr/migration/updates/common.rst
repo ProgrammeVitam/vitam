@@ -10,7 +10,9 @@ Avant toute migration, il est attendu de la part des exploitants de vérifier :
 - Que l'ensemble des `timers` systemd sont stoppés
 - Qu'aucun `workflow` n'est ni en cours, ni en statut **FATAL**
 
-Se référer au chapitre « Suivi de l'état du système » du :term:`DEX` pour plus d'informations. 
+.. seealso:: Se référer au chapitre « Suivi de l'état du système » du :term:`DEX` pour plus d'informations. 
+
+.. seealso:: Se référer au chapitre "Suivi des Workflows" du :term:`DEX`, pour plus d'informations sur la façon de vérifier l'état des statuts des *workflows*.
 
 Post-migration
 ==============
