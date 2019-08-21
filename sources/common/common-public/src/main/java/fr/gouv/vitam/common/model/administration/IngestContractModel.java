@@ -65,6 +65,8 @@ public class IngestContractModel extends AbstractContractModel {
 
     public static final String FORMAT_TYPE = "FormatType";
 
+    public static final String TAG_MANAGEMENT_CONTRACT_ID = "ManagementContractId";
+
 
     @JsonProperty(LINK_PARENT_ID)
     private String linkParentId;
@@ -103,6 +105,9 @@ public class IngestContractModel extends AbstractContractModel {
 
     @JsonProperty(TAG_CHECK_PARENT_ID)
     private Set<String> checkParentId;
+
+    @JsonProperty(TAG_MANAGEMENT_CONTRACT_ID)
+    private String managementContractId;
 
 
 
@@ -219,5 +224,13 @@ public class IngestContractModel extends AbstractContractModel {
 
     public void setCheckParentId(Set<String> checkParentId) {
         this.checkParentId = checkParentId;
+    }
+    
+    public String getManagementContractId() {
+        return managementContractId;
+    }
+    
+    public void setManagementContractId(String managementContractId) {
+        this.managementContractId = managementContractId;
     }
 }

@@ -1,0 +1,57 @@
+[
+	{
+		"Name":"aName",
+		"Description":"aDescription of the contract",
+		"Status":"ACTIVE",
+		"LastUpdate":"10/12/2016",
+		"CreationDate":"10/12/2016",
+		"ActivationDate":"10/12/2016",
+		"DeactivationDate":"10/12/2016",
+		"CheckParentLink":"AUTHORIZED"
+		
+	},
+	{
+		"Name":"bName2",
+		"Description":"aDescription of the contract 2",
+		"Status":"ACTIVE",
+		"LastUpdate":"10/12/2016",
+		"CreationDate":"10/12/2016",
+		"ActivationDate":"10/12/2016",
+		"DeactivationDate":"10/12/2016",
+		"ManagementContractId":"MC-00001"
+	},
+	{
+		"Name":"cName",
+		"Description":"aDescription of the contract",
+		"Status":"ACTIVE",
+		"LastUpdate":"10/12/2016",
+		"CreationDate":"10/12/2016",
+		"ActivationDate":"10/12/2016",
+		"DeactivationDate":"10/12/2016",
+		"CheckParentLink":"UNAUTHORIZED"
+
+	},
+	{
+		"Name":"cName",
+		"Description":"aDescription of the contract",
+		"Status":"ACTIVE",
+		"LastUpdate":"10/12/2016",
+		"CreationDate":"10/12/2016",
+		"ActivationDate":"10/12/2016",
+		"DeactivationDate":"10/12/2016",
+		"CheckParentLink":"REQUIRED"
+
+	},
+	{
+		"Name":"cName",
+		"Description":"aDescription of the contract",
+		"Status":"ACTIVE",
+		"LastUpdate":"10/12/2016",
+		"CreationDate":"10/12/2016",
+		"ActivationDate":"10/12/2016",
+		"DeactivationDate":"10/12/2016",
+		"CheckParentLink":"REQUIRED",
+		"ManagementContractId":"MC-00002"
+
+	}
+]

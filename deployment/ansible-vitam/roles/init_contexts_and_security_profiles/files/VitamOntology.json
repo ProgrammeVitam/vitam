@@ -2183,6 +2183,17 @@
     ]
   },
   {
+    "Identifier": "ManagementContractId",
+    "ApiField": "ManagementContractId",
+    "Description": "Mapping : ingestcontract-es-mapping.json.",
+    "Type": "KEYWORD",
+    "Origin": "INTERNAL",
+    "ShortName": "Identifiant du contrat de gestion",
+    "Collections": [
+      "IngestContract"
+    ]
+  },
+  {
     "Identifier": "_lastPersistedDate",
     "ApiField": "#lastPersistedDate",
     "Description": "Mapping : logbook-es-mapping.json. Date technique de sauvegarde en base.",

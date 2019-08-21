@@ -67,9 +67,10 @@ public class ContractLogbookService {
     public static final String PROFILE_NOT_FOUND_IN_DATABASE = ".PROFILE_NOT_FOUND.KO";    
     public static final String AGENCY_NOT_FOUND_IN_DATABASE = ".AGENCY_NOT_FOUND.KO";
     public static final String CONTRACT_VALIDATION_ERROR = ".VALIDATION_ERROR.KO";
-    public static final String FORMAT_NOT_FOUND = "FORMAT_NOT_FOUND.KO";
+    public static final String FORMAT_NOT_FOUND = ".FORMAT_NOT_FOUND.KO";
     public static final String FORMAT_MUST_BE_EMPTY = ".FORMAT_MUST_BE_EMPTY.KO";
     public static final String FORMAT_MUST_NOT_BE_EMPTY = ".FORMAT_MUST_NOT_BE_EMPTY.KO";
+    public static final String MANAGEMENTCONTRACT_NOT_FOUND = ".MANAGEMENTCONTRACT_NOT_FOUND.KO";
     
     public static final String CONTRACT_BAD_REQUEST = ".BAD_REQUEST.KO";
     public static final String UPDATE_CONTRACT_NOT_FOUND = ".CONTRACT_NOT_FOUND.KO";
@@ -177,6 +178,7 @@ public class ContractLogbookService {
                 case FORMAT_NOT_FOUND:
                 case FORMAT_MUST_BE_EMPTY:
                 case FORMAT_MUST_NOT_BE_EMPTY:
+                case MANAGEMENTCONTRACT_NOT_FOUND:
                 case AC_GLOBAL_ERROR:
                 case IC_GLOBAL_ERROR:
                 case MC_GLOBAL_ERROR:

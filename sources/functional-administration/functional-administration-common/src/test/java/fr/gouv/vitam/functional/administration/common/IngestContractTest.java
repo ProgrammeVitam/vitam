@@ -37,6 +37,7 @@ public class IngestContractTest {
         String lastupdate = "10/12/2016";
         Set<String> archiveProfiles = new HashSet<>();
         archiveProfiles.add("FR_FAKE");
+        String managementContractId = "MC-00001";
         contract
             .setId(id)
             .setName(name)
@@ -44,9 +45,10 @@ public class IngestContractTest {
             .setCheckParentLink(IngestContractCheckState.AUTHORIZED)
             .setLastupdate(lastupdate)
             .setCreationdate(lastupdate)
-            .setActivationdate(lastupdate).
-            setDeactivationdate(lastupdate)
-            .setArchiveProfiles(archiveProfiles);
+            .setActivationdate(lastupdate)
+            .setDeactivationdate(lastupdate)
+            .setArchiveProfiles(archiveProfiles)
+            .setManagementContractId(managementContractId);
 
         assertEquals(id, contract.getId());
         assertEquals(name, contract.getName());
@@ -55,6 +57,7 @@ public class IngestContractTest {
         assertEquals(lastupdate, contract.getActivationdate());
         assertEquals(lastupdate, contract.getDeactivationdate());
         assertEquals(archiveProfiles, contract.getArchiveProfiles());
+        assertEquals(managementContractId, contract.getManagementContractId());
 
     }
 
