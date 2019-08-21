@@ -97,8 +97,6 @@ public class IngestContract extends VitamDocument<IngestContract> {
      * the MasterMandatory true by default
      */
     public static final String MASTERMANDATORY = "MasterMandatory";
-
-
     /**
      * the FormatUnidentifiedAuthorized false by default
      */
@@ -107,7 +105,10 @@ public class IngestContract extends VitamDocument<IngestContract> {
      * the EveryFormatType true by default
      */
     public static final String EVERYFORMATTYPE = "EveryFormatType";
-
+    /**
+     * the identifier of a management contract
+     */
+    public static final String MANAGEMENTCONTRACTID = "ManagementContractId";
 
 
     /**
@@ -376,6 +377,15 @@ public class IngestContract extends VitamDocument<IngestContract> {
     public IngestContract setFormatUnidentifiedAuthorized(boolean formatUnidentifiedAuthorized) {
         append(FORMATUNIDENTIFIEDAUTHORIZED, formatUnidentifiedAuthorized);
         return this;
+    }
+
+    public IngestContract setManagementContractId(String managementContractId) {
+        append(MANAGEMENTCONTRACTID, managementContractId);
+        return this;
+    }
+
+    public String getManagementContractId() {
+        return getString(MANAGEMENTCONTRACTID);
     }
 
 }

@@ -59,6 +59,9 @@
     "FormatType": {
       "type": "keyword"
     },
+    "ManagementContractId": {
+      "type": "keyword"
+    },
     "_tenant": {
       "type": "long"
     },

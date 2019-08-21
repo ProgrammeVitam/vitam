@@ -20,4 +20,5 @@ export class IngestContract {
   ActivationDate: string;
   DeactivationDate: string;
   ArchiveProfiles: string[];
+  ManagementContractId: string;
 }

@@ -87,6 +87,7 @@ public interface GenericContractValidator<T extends AbstractContractModel> {
         private static final String ERR_CONTRACT_EXCLUDED_AND_ROOT_UNITS_NOT_FOUND = "Error while validating contract (%s), ExcludedRootUnits and RootUnits (%s) not found in database";
         private static final String ERR_MANDATORY_FIELD = "The field %s is mandatory";
         private static final String ERR_IDS_NOT_FOUND = "At least one AU id %s not found";
+        private static final String ERR_MC_IDS_NOT_FOUND = "At least one Management Contract with Id %s not found";
         private static final String ERR_FORMATFILETYPE_NOT_FOUND_CONTRACT = "One or multiple file format %s not found in db";
         private static final String ERR_INCONSISTENT_CONTRACT_DEFINITION = "Error while validating contract (%s) : %s";
 
@@ -134,6 +135,16 @@ public interface GenericContractValidator<T extends AbstractContractModel> {
          */
         public static GenericRejectionCause rejectAuNotFoundInDatabase(String linkParentId) {
             return new GenericRejectionCause(String.format(ERR_IDS_NOT_FOUND, linkParentId));
+        }
+
+        /**
+         * Reject if the id of the MC is not in database
+         *
+         * @param managementContractID
+         * @return GenericRejectionCause
+         */
+        public static GenericRejectionCause rejectMCNotFoundInDatabase(String managementContractID) {
+            return new GenericRejectionCause(String.format(ERR_MC_IDS_NOT_FOUND, managementContractID));
         }
 
         /**

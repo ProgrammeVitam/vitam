@@ -112,6 +112,9 @@
       "items": {
         "type": "string"
       }
+    },
+    "ManagementContractId": {
+      "type": "string"
     }
   },
   "required": [

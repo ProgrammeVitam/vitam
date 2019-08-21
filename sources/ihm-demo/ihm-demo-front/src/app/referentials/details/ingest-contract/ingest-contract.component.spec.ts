@@ -49,6 +49,7 @@ describe('IngestContractComponent', () => {
     component.contract.Description = 'Initial Description';
     component.contract.Status = 'Inactif';
     component.contract.CheckParentLink = 'AUTHORIZED';
+    component.contract.ManagementContractId = 'MC-00001';
     component.isActif = false;
 
     component.modifiedContract = new IngestContract();
@@ -56,6 +57,7 @@ describe('IngestContractComponent', () => {
     component.modifiedContract.Description = 'Initial Description';
     component.modifiedContract.Status = 'Actif';
     component.modifiedContract.CheckParentLink = 'UNAUTHORIZED';
+    component.modifiedContract.ManagementContractId = 'MC-00002';
     component.isActif = true;
     component.update = true;
 
@@ -65,6 +67,7 @@ describe('IngestContractComponent', () => {
     expect(component.modifiedContract.Name).toBe('InitialName');
     expect(component.modifiedContract.Description).toBe('Initial Description');
     expect(component.modifiedContract.Status).toBe('Inactif');
+    expect(component.modifiedContract.ManagementContractId).toBe('MC-00001');
     expect(component.isActif).toBeFalsy();
   });
 

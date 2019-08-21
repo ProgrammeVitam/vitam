@@ -124,5 +124,11 @@
     "type": "datetime",
     "cardinality": "one",
     "indexed": true
+  },
+  {
+    "path": "ManagementContractId",
+    "type": "keyword",
+    "cardinality": "one",
+    "indexed": true
   }
 ]

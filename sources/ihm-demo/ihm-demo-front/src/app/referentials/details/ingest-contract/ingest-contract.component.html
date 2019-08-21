@@ -181,6 +181,12 @@
           </div>
         </div>
       </div>
+      <div class="ui-g-12">
+          <vitam-metadata-field [title]="'Contrat de gestion'" [originalTitle]="'ManagementContractId'" [value]="modifiedContract.ManagementContractId"
+                                [labelSize]="4"
+                                class="ui-g-4 " [updateMode]="update"
+                                [(updatedFields)]="updatedFields"></vitam-metadata-field>
+      </div>
 
       <div class="ui-g-12">
         <div class="ui-g-nopad ui-g-12" *ngIf="update">

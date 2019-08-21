@@ -26,6 +26,7 @@
  */
 package fr.gouv.vitam.functional.administration.contract.core;
 
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
@@ -58,6 +59,7 @@ import fr.gouv.vitam.common.model.administration.AbstractContractModel;
 import fr.gouv.vitam.common.model.administration.ActivationStatus;
 import fr.gouv.vitam.common.model.administration.IngestContractCheckState;
 import fr.gouv.vitam.common.model.administration.IngestContractModel;
+import fr.gouv.vitam.common.model.administration.ManagementContractModel;
 import fr.gouv.vitam.common.parameter.ParameterHelper;
 import fr.gouv.vitam.common.security.SanityChecker;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
@@ -84,6 +86,7 @@ import org.assertj.core.util.VisibleForTesting;
 import org.bson.conversions.Bson;
 
 import javax.ws.rs.core.Response;
+
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -96,6 +99,7 @@ import java.util.stream.Collectors;
 import static com.mongodb.client.model.Filters.and;
 import static com.mongodb.client.model.Filters.eq;
 import static com.mongodb.client.model.Filters.in;
+import static fr.gouv.vitam.common.json.JsonHandler.getFromStringAsTypeRefence;
 
 /**
  * IngestContract implementation class
@@ -121,6 +125,7 @@ public class IngestContractImpl implements ContractService<IngestContractModel> 
     private static final String FORMAT_NOT_FOUND = CONTRACTS_IMPORT_EVENT + ContractLogbookService.FORMAT_NOT_FOUND;
     private static final String FORMAT_MUST_BE_EMPTY = CONTRACTS_IMPORT_EVENT + ContractLogbookService.FORMAT_MUST_BE_EMPTY;
     private static final String FORMAT_MUST_NOT_BE_EMPTY = CONTRACTS_IMPORT_EVENT + ContractLogbookService.FORMAT_MUST_NOT_BE_EMPTY;
+    private static final String MANAGEMENTCONTRACT_NOT_FOUND = CONTRACTS_IMPORT_EVENT + ContractLogbookService.MANAGEMENTCONTRACT_NOT_FOUND;
     private static final String CONTRACT_BAD_REQUEST = CONTRACTS_IMPORT_EVENT + ContractLogbookService.CONTRACT_BAD_REQUEST;
 
     private static final String UPDATE_CONTRACT_NOT_FOUND = CONTRACT_UPDATE_EVENT + ContractLogbookService.UPDATE_CONTRACT_NOT_FOUND;
@@ -128,15 +133,20 @@ public class IngestContractImpl implements ContractService<IngestContractModel> 
     private static final String UPDATE_VALUE_NOT_IN_ENUM = CONTRACT_UPDATE_EVENT + ContractLogbookService.UPDATE_VALUE_NOT_IN_ENUM;
     private static final String UPDATE_PROFILE_NOT_FOUND = CONTRACT_UPDATE_EVENT + ContractLogbookService.PROFILE_NOT_FOUND_IN_DATABASE;
     private static final String UPDATE_WRONG_FILEFORMAT = CONTRACT_UPDATE_EVENT + ContractLogbookService.UPDATE_WRONG_FILEFORMAT;
+    private static final String UPDATE_MANAGEMENTCONTRACT_NOT_FOUND = CONTRACT_UPDATE_EVENT + ContractLogbookService.MANAGEMENTCONTRACT_NOT_FOUND;
     private static final String UPDATE_KO = CONTRACT_UPDATE_EVENT + ".KO";
 
     
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(IngestContractImpl.class);
+    
     private final MongoDbAccessAdminImpl mongoAccess;
     private final LogbookOperationsClient logbookClient;
     private final VitamCounterService vitamCounterService;
     private final MetaDataClient metaDataClient;
     private final FunctionalBackupService functionalBackupService;
+    private final ContractService<ManagementContractModel> managementContractService;
+    
+    
     private static final String UND_TENANT = "_tenant";
     private static final String UND_ID = "_id";
     private static final String RESULT_HITS = "$hits";
@@ -145,38 +155,44 @@ public class IngestContractImpl implements ContractService<IngestContractModel> 
     private static final String CONTRACT_KEY = "IngestContract";
     private static final String CONTRACT_CHECK_KEY = "ingestContractCheck";
 
+    
+
+    
     /**
      * Constructor
      *
-     * @param dbConfiguration the Database configuration
+     * @param mongoAccess the mongo access service
      * @param vitamCounterService the vitam counter service
      */
-    public IngestContractImpl(MongoDbAccessAdminImpl dbConfiguration, VitamCounterService vitamCounterService) {
-        this(dbConfiguration, vitamCounterService, MetaDataClientFactory.getInstance().getClient(),
+    public IngestContractImpl(MongoDbAccessAdminImpl mongoAccess, VitamCounterService vitamCounterService) {
+        this(mongoAccess, vitamCounterService, MetaDataClientFactory.getInstance().getClient(),
                 LogbookOperationsClientFactory.getInstance().getClient(),
-            new FunctionalBackupService(vitamCounterService));
+            new FunctionalBackupService(vitamCounterService),
+            new ManagementContractImpl(mongoAccess, vitamCounterService));
     }
 
     /**
      * Constructor
      *
-     * @param dbConfiguration the Database configuration
+     * @param mongoAccess the mongo access service
      * @param vitamCounterService the vitam counter service
      * @param metaDataClient the metadata client
      * @param logbookClient the logbook client
      * @param functionalBackupService
+     * @param managementContractService
      */
     @VisibleForTesting
-    public IngestContractImpl(MongoDbAccessAdminImpl dbConfiguration, VitamCounterService vitamCounterService,
+    public IngestContractImpl(MongoDbAccessAdminImpl mongoAccess, VitamCounterService vitamCounterService,
         MetaDataClient metaDataClient,
         LogbookOperationsClient logbookClient,
-        FunctionalBackupService functionalBackupService
-        ) {
-        mongoAccess = dbConfiguration;
+        FunctionalBackupService functionalBackupService,
+        ContractService<ManagementContractModel> managementContractService) {
+        this.mongoAccess = mongoAccess;
         this.vitamCounterService = vitamCounterService;
         this.metaDataClient = metaDataClient;
         this.functionalBackupService = functionalBackupService;
         this.logbookClient = logbookClient;
+        this.managementContractService = managementContractService;
     }
 
     @Override
@@ -194,7 +210,7 @@ public class IngestContractImpl implements ContractService<IngestContractModel> 
         GUID eip = GUIDReader.getGUID(operationId);
 
 
-        IngestContractValidationService validationService = new IngestContractValidationService(metaDataClient);
+        IngestContractValidationService validationService = new IngestContractValidationService(metaDataClient, managementContractService);
         ContractLogbookService logbookService = new ContractLogbookService(logbookClient, eip, CONTRACTS_IMPORT_EVENT,
                 CONTRACT_UPDATE_EVENT, CONTRACT_KEY, CONTRACT_CHECK_KEY);
 
@@ -217,6 +233,15 @@ public class IngestContractImpl implements ContractService<IngestContractModel> 
                         GenericRejectionCause
                             .rejectAuNotFoundInDatabase(linkParentId)
                             .getReason(), StatusCode.KO));
+                    continue;
+                }
+
+                final String managementContractId = acm.getManagementContractId();
+                if (managementContractId != null && !validationService.checkIfManagementContractExists(managementContractId)) {
+                    error.addToErrors(getVitamError(VitamCode.CONTRACT_VALIDATION_ERROR.getItem(),
+                        GenericRejectionCause
+                            .rejectMCNotFoundInDatabase(managementContractId)
+                            .getReason(), StatusCode.KO).setMessage(MANAGEMENTCONTRACT_NOT_FOUND));
                     continue;
                 }
 
@@ -377,10 +402,14 @@ public class IngestContractImpl implements ContractService<IngestContractModel> 
         private Map<IngestContractValidator, String> validators;
 
         private final MetaDataClient metaDataClient;
+        
+        private final ContractService<ManagementContractModel> managementContractService;
 
 
-        public IngestContractValidationService(MetaDataClient metaDataClient) {
+        public IngestContractValidationService(MetaDataClient metaDataClient, 
+                ContractService<ManagementContractModel> managementContractService) {
             this.metaDataClient = metaDataClient;
+            this.managementContractService = managementContractService;
             // Init validator
             validators = new HashMap<IngestContractValidator, String>() {{
                 put(createMandatoryParamsValidator(), EMPTY_REQUIRED_FIELD);
@@ -559,7 +588,6 @@ public class IngestContractImpl implements ContractService<IngestContractModel> 
                     return Optional.empty();
                 }
                 GenericRejectionCause rejection = null;
-                final int tenant = ParameterHelper.getTenantParameter();
 
                 final Bson clause =
                     in(FileFormat.PUID, contract.getFormatType());
@@ -582,6 +610,12 @@ public class IngestContractImpl implements ContractService<IngestContractModel> 
             JsonNode jsonNode = metaDataClient.selectUnitbyId(select.getFinalSelect(), unitId);
             return (jsonNode != null && jsonNode.get(RESULT_HITS) != null
                 && jsonNode.get(RESULT_HITS).get(HITS_SIZE).asInt() > 0);
+        }
+
+        private boolean checkIfManagementContractExists(String managementContractId)
+            throws ReferentialException, InvalidParseOperationException {
+            ManagementContractModel mc = managementContractService.findByIdentifier(managementContractId);
+            return mc != null;
         }
 
         private boolean checkIfAllUnitExist(Set<String> unitIds)
@@ -627,7 +661,7 @@ public class IngestContractImpl implements ContractService<IngestContractModel> 
         GUID eip = GUIDReader.getGUID(operationId);
         RequestResponseOK response = new RequestResponseOK<>();
 
-        IngestContractValidationService validationService = new IngestContractValidationService(metaDataClient);
+        IngestContractValidationService validationService = new IngestContractValidationService(metaDataClient, managementContractService);
         ContractLogbookService logbookService = new ContractLogbookService(logbookClient, eip, CONTRACTS_IMPORT_EVENT,
                 CONTRACT_UPDATE_EVENT, CONTRACT_KEY, CONTRACT_CHECK_KEY);
 
@@ -671,6 +705,17 @@ public class IngestContractImpl implements ContractService<IngestContractModel> 
                     }
                 }
             }
+
+            JsonNode managementContractNode = queryDsl.findValue(IngestContractModel.TAG_MANAGEMENT_CONTRACT_ID);
+            if (managementContractNode != null) {
+                final String managementContractId = managementContractNode.asText();
+                if (!validationService.checkIfManagementContractExists(managementContractId)) {
+                    error.addToErrors(getVitamError(VitamCode.CONTRACT_VALIDATION_ERROR.getItem(),
+                            GenericRejectionCause.rejectMCNotFoundInDatabase(managementContractId).getReason(),
+                            StatusCode.KO).setMessage(UPDATE_MANAGEMENTCONTRACT_NOT_FOUND));
+                }
+            }
+            
             boolean isAttachmentAuthorized = true;
             JsonNode checkParentLink = queryDsl.findValue(IngestContractModel.TAG_CHECK_PARENT_LINK);
             IngestContractCheckState checkState = ingestContractModel.getCheckParentLink();
@@ -723,7 +768,7 @@ public class IngestContractImpl implements ContractService<IngestContractModel> 
             final JsonNode archiveProfilesNode = queryDsl.findValue(IngestContractModel.ARCHIVE_PROFILES);
             if (archiveProfilesNode != null) {
                 final Set<String> archiveProfiles =
-                    JsonHandler.getFromString(archiveProfilesNode.toString(), Set.class, String.class);
+                        getFromStringAsTypeRefence(archiveProfilesNode.toString(), new TypeReference<Set<String>>() {});
                 final IngestContractValidator validator =
                     validationService.createCheckProfilesExistsInDatabaseValidator();
                 final Optional<GenericRejectionCause> result =
