@@ -186,3 +186,9 @@
     - update_package_vitam
   notify:
      - reload apache
+
+- name: Ensure Apache autostart && Apache is started
+  service:
+    name: "{{ apache_service }}"
+    enabled: yes
+    state: started
