@@ -52,6 +52,8 @@ vitam:
         # metricsinterval: 3
         # metricsunit: MINUTES
 
+tenant_to_clean_before_tnr: ["0","1"]
+
 # Period units in seconds
 metricbeat:
     system:
