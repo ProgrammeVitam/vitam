@@ -5,7 +5,6 @@ Wants=network-online.target
 After=network-online.target
 
 [Service]
-RuntimeDirectory=elasticsearch
 Environment=ES_HOME=/usr/share/elasticsearch
 Environment=CONF_DIR=/vitam/conf/elasticsearch-log
 Environment=PID_DIR=/var/run/elasticsearch-log
@@ -20,7 +19,7 @@ Group=vitam
 
 ExecStart=/usr/share/elasticsearch/bin/elasticsearch \
 	-p ${PID_DIR}/elasticsearch.pid \
-	--quiet 
+	--quiet
 
 # StandardOutput is configured to redirect to journalctl since
 # some error messages may be logged in standard output before

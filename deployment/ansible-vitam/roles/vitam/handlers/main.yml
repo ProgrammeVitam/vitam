@@ -1,9 +1,57 @@
 ---
 
-- name: restart service
-  import_tasks: tasks/restart_service.yml
+- name: restart the service
+  service:
+    name: "{{ package_name }}"
+    state: restarted
+  listen: restart service
+  when: ( primary_site | lower == "true" ) or
+        ( vitam_struct.vitam_component in vitam_secondary_site_components )
 
-- name: reload consul configuration
+- name: "Check if service is listening on service port (tcp check)"
+  wait_for:
+    host: "{{ ip_service }}"
+    port: "{{ vitam_struct.port_service }}"
+    state: started
+  listen: restart service
+  when: ( primary_site | lower == "true" ) or
+        ( vitam_struct.vitam_component in vitam_secondary_site_components )
+
+- name: "Check if service is listening on service port (http check)"
+  uri:
+    url: "http://{{ ip_service }}:{{ vitam_struct.port_admin }}/admin/v1/status"
+  register: result
+  until:
+    - result.status is defined
+    - result.status == 200
+  retries: "{{ vitam_defaults.services.status_retries_number }}"
+  delay: "{{ vitam_defaults.services.status_retries_delay }}"
+  listen: restart service
+  when: ( primary_site | lower == "true" ) or
+        ( vitam_struct.vitam_component in vitam_secondary_site_components )
+
+- name: reload consul
   service:
     name: "vitam-{{ consul_component }}"
     state: reloaded
+  listen: reload consul configuration
+
+- name: check if service name is resolved
+  wait_for:
+    host: "{{ vitam_struct.host }}"
+    port: "{{ vitam_struct.port_service }}"
+    state: started
+  listen: reload consul configuration
+  when: ( vitam_struct.vitam_component != vitam.storageofferdefault.vitam_component ) and
+        ( ( primary_site | lower == "true" ) or
+        ( vitam_struct.vitam_component in vitam_secondary_site_components ) )
+
+- name: check if service name is resolved
+  wait_for:
+    host: "{{ offer_conf }}.service.{{ consul_domain }}"
+    port: "{{ vitam_struct.port_service }}"
+    state: started
+  listen: reload consul configuration
+  when: ( vitam_struct.vitam_component == vitam.storageofferdefault.vitam_component ) and
+        ( ( primary_site | lower == "true" ) or
+        ( vitam_struct.vitam_component in vitam_secondary_site_components ) )
