@@ -94,6 +94,7 @@ import org.apache.commons.collections4.multimap.ArrayListValuedHashMap;
 import org.bson.Document;
 
 import javax.ws.rs.core.Response;
+
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -111,7 +112,7 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 import static fr.gouv.vitam.common.database.builder.query.QueryHelper.eq;
-import static fr.gouv.vitam.common.database.parser.query.QueryParserHelper.in;
+import static fr.gouv.vitam.common.database.builder.query.QueryHelper.in;
 import static fr.gouv.vitam.functional.administration.common.ReportConstants.ADDITIONAL_INFORMATION;
 import static fr.gouv.vitam.functional.administration.common.ReportConstants.CODE;
 import static fr.gouv.vitam.functional.administration.common.ReportConstants.ERROR;
@@ -509,7 +510,7 @@ public class OntologyServiceImpl implements OntologyService {
         // Map archive unit profiles by fields
         MultiValuedMap<String, ArchiveUnitProfile> archiveUnitProfileByFieldName = new ArrayListValuedHashMap<>();
         for (ArchiveUnitProfile archiveUnitProfileModel : archiveUnitProfiles) {
-            for (String field : archiveUnitProfileModel.getList(ArchiveUnitProfileModel.FIELDS, String.class)) {
+            for (String field : archiveUnitProfileModel.getList(ArchiveUnitProfileModel.FIELDS, String.class, Collections.emptyList())) {
                 archiveUnitProfileByFieldName.put(field, archiveUnitProfileModel);
             }
         }
