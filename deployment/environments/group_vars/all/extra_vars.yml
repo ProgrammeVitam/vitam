@@ -45,6 +45,8 @@ vitam:
         acceptableRequestTime: 10 # value in seconds
 
 
+tenant_to_clean_before_tnr: ["0","1"]
+
 # Period units in seconds
 metricbeat:
     system:
