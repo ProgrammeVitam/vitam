@@ -26,6 +26,8 @@ vitam_defaults:
         stop_timeout: 3600
         port_service_timeout: 86400
         api_call_timeout: 120
+        status_retries_number: 60
+        status_retries_delay: 5
     # Filter for the vitam package version to install
     # FIXME : commented as has to be removed becuase doesn't work under Debain
     #package_version: "*"
@@ -519,6 +521,7 @@ vitam:
         # metricsunit: MINUTES
     worker:
         vitam_component: worker
+        host: "worker.service.{{ consul_domain }}"
         port_service: 9104
         port_admin: 29104
         baseuri: "worker"
@@ -586,5 +589,5 @@ vitam_tenants_usage_external:
 
 vitam_tenant_rule_duration:
   - name: 2 # applied tenant
-    rules: 
+    rules:
       - AppraisalRule : "1 year" # rule name : rule value

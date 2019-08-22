@@ -16,12 +16,11 @@
     delay: 10 # to be sure Consul could detect it
   when: composant.groupe == "data"
 
-- name: Wait for Elasticsearch cluster {{ composant.cluster_name }} to be called by Consul
+- name: "Wait for Elasticsearch cluster {{ composant.cluster_name }} to be resolved by Consul"
   wait_for:
     host: "{{ composant.host }}"
     port: "{{ composant.port_http }}"
     timeout: "{{ vitam_defaults.services.start_timeout }}"
-    delay: 10 # to be sure Consul could detect it
 
 - name: Wait until Elasticsearch cluster {{ composant.cluster_name }} service is OK
   uri:
