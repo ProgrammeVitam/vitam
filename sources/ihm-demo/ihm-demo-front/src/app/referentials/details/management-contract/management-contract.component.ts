@@ -1,15 +1,15 @@
-import {Component} from '@angular/core';
-import {ActivatedRoute, Router} from '@angular/router';
-import {plainToClass} from 'class-transformer';
-import {Title} from '@angular/platform-browser';
+import { Component } from '@angular/core';
+import { ActivatedRoute, Router } from '@angular/router';
+import { plainToClass } from 'class-transformer';
+import { Title } from '@angular/platform-browser';
 
-import {BreadcrumbService} from '../../../common/breadcrumb.service';
-import {ReferentialsService} from '../../referentials.service';
-import {ObjectsService} from '../../../common/utils/objects.service';
-import {PageComponent} from '../../../common/page/page-component';
-import {DialogService} from '../../../common/dialog/dialog.service';
-import {ManagementContract} from './management-contract';
-import {ErrorService} from '../../../common/error.service';
+import { BreadcrumbService } from '../../../common/breadcrumb.service';
+import { ReferentialsService } from '../../referentials.service';
+import { ObjectsService } from '../../../common/utils/objects.service';
+import { PageComponent } from '../../../common/page/page-component';
+import { DialogService } from '../../../common/dialog/dialog.service';
+import { ManagementContract, ManagementContractStorage } from './management-contract';
+import { ErrorService } from '../../../common/error.service';
 
 @Component({
   selector: 'vitam-management-contract',
@@ -27,9 +27,9 @@ export class ManagementContractComponent extends PageComponent {
   saveRunning = false;
 
   constructor(private activatedRoute: ActivatedRoute, private router: Router,
-              public titleService: Title, public breadcrumbService: BreadcrumbService,
-              private searchReferentialsService: ReferentialsService, private dialogService: DialogService,
-              private errorService: ErrorService) {
+    public titleService: Title, public breadcrumbService: BreadcrumbService,
+    private searchReferentialsService: ReferentialsService, private dialogService: DialogService,
+    private errorService: ErrorService) {
     super('Détail du contrat de gestion', [], titleService, breadcrumbService);
 
   }
@@ -39,9 +39,9 @@ export class ManagementContractComponent extends PageComponent {
       this.id = params['id'];
       this.getDetail();
       let newBreadcrumb = [
-        {label: 'Administration', routerLink: ''},
-        {label: 'Contrats de gestion', routerLink: 'admin/search/managementContract'},
-        {label: 'Détail du contrat de gestion ' + this.id, routerLink: ''}
+        { label: 'Administration', routerLink: '' },
+        { label: 'Contrats de gestion', routerLink: 'admin/search/managementContract' },
+        { label: 'Détail du contrat de gestion ' + this.id, routerLink: '' }
       ];
 
       this.setBreadcrumb(newBreadcrumb);
@@ -63,6 +63,41 @@ export class ManagementContractComponent extends PageComponent {
     } else {
       this.updatedFields.Status = 'INACTIVE';
     }
+
+  }
+  updateFieldStorage() {
+
+    if (!this.updatedFields.hasOwnProperty('UnitStrategy') &&
+      !this.updatedFields.hasOwnProperty('ObjectGroupStrategy') &&
+      !this.updatedFields.hasOwnProperty('ObjectStrategy')) {
+        return;
+    }
+
+    this.updatedFields.Storage = this.modifiedContract.Storage;
+    if (this.updatedFields.hasOwnProperty('UnitStrategy')) {
+      this.updatedFields.Storage.UnitStrategy = this.updatedFields.UnitStrategy;
+      delete this.updatedFields.UnitStrategy;
+    }
+
+    if (this.updatedFields.hasOwnProperty('ObjectGroupStrategy')) {
+      this.updatedFields.Storage.ObjectGroupStrategy = this.updatedFields.ObjectGroupStrategy;
+      delete this.updatedFields.ObjectGroupStrategy;
+    }
+    if (this.updatedFields.hasOwnProperty('ObjectStrategy')) {
+      this.updatedFields.Storage.ObjectStrategy = this.updatedFields.ObjectStrategy;
+      delete this.updatedFields.ObjectStrategy;
+    }
+
+    if(this.updatedFields.Storage.UnitStrategy === '' || this.updatedFields.Storage.UnitStrategy === null){
+      delete this.updatedFields.Storage.UnitStrategy;
+    }
+    if(this.updatedFields.Storage.ObjectGroupStrategy === '' || this.updatedFields.Storage.ObjectGroupStrategy === null){
+      delete this.updatedFields.Storage.ObjectGroupStrategy;
+    }
+    if(this.updatedFields.Storage.ObjectStrategy === '' || this.updatedFields.Storage.ObjectStrategy === null){
+      delete this.updatedFields.Storage.ObjectStrategy;
+    }
+
   }
 
   saveUpdate() {
@@ -73,7 +108,7 @@ export class ManagementContractComponent extends PageComponent {
     }
 
     this.saveRunning = true;
-
+    this.updateFieldStorage();
     this.updatedFields.LastUpdate = new Date();
     this.searchReferentialsService.updateDocumentById('managementcontracts', this.id, this.updatedFields)
       .subscribe((data) => {
@@ -109,6 +144,9 @@ export class ManagementContractComponent extends PageComponent {
   initData(value) {
     this.contract = plainToClass(ManagementContract, value.$results)[0];
     this.modifiedContract = ObjectsService.clone(this.contract);
+    if (this.modifiedContract.Storage === null) {
+      this.modifiedContract.Storage = new ManagementContractStorage();
+    }
     this.isActif = this.modifiedContract.Status === 'ACTIVE';
   }
 }
