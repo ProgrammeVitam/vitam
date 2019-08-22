@@ -1,24 +1,21 @@
 package fr.gouv.vitam.metadata.core.graph;
 
 import com.fasterxml.jackson.core.type.TypeReference;
-import com.mongodb.client.FindIterable;
-import com.mongodb.client.MongoCursor;
-import fr.gouv.vitam.common.database.api.VitamRepositoryProvider;
-import fr.gouv.vitam.common.database.api.impl.VitamMongoRepository;
+import com.fasterxml.jackson.databind.JsonNode;
 import fr.gouv.vitam.common.guid.GUIDFactory;
+import fr.gouv.vitam.common.json.JsonHandler;
+import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
 import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
-import fr.gouv.vitam.metadata.core.database.collections.MetadataCollections;
+import fr.gouv.vitam.metadata.core.MetaDataImpl;
 import fr.gouv.vitam.worker.core.distribution.JsonLineGenericIterator;
 import fr.gouv.vitam.worker.core.distribution.JsonLineModel;
 import fr.gouv.vitam.workspace.client.WorkspaceClient;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
 import org.apache.commons.collections4.IteratorUtils;
 import org.apache.commons.io.FileUtils;
-import org.bson.Document;
-import org.bson.conversions.Bson;
 import org.junit.Before;
 import org.junit.ClassRule;
 import org.junit.Rule;
@@ -43,14 +40,11 @@ import java.util.stream.Collectors;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.doReturn;
-import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
 
 @RunWithCustomExecutor
 public class ReclassificationDistributionServiceTest {
@@ -72,11 +66,8 @@ public class ReclassificationDistributionServiceTest {
     private WorkspaceClientFactory workspaceClientFactory;
     @Mock
     private WorkspaceClient workspaceClient;
-
     @Mock
-    private VitamRepositoryProvider vitamRepositoryProvider;
-    @Mock
-    private VitamMongoRepository vitamMongoRepository;
+    private MetaDataImpl metaData;
 
     @InjectMocks
     ReclassificationDistributionService instance;
@@ -86,7 +77,6 @@ public class ReclassificationDistributionServiceTest {
     @Before
     public void init() throws Exception {
         doReturn(workspaceClient).when(workspaceClientFactory).getClient();
-        doReturn(vitamMongoRepository).when(vitamRepositoryProvider).getVitamMongoRepository(MetadataCollections.UNIT.getVitamCollection());
 
         int tenant = 0;
         VitamThreadUtils.getVitamSession().setTenantId(tenant);
@@ -101,17 +91,16 @@ public class ReclassificationDistributionServiceTest {
         String unitsToUpdateJsonLineFileName = "UnitsToUpdate.jsonl";
         String objectGroupsToUpdateJsonLineFileName = "ObjectGroupsToUpdate.jsonl";
 
-        FindIterable<Document> iterable = mock(FindIterable.class);
-        doReturn(iterable).when(vitamMongoRepository).findDocuments(any(Bson.class), anyInt());
-        doReturn(iterable).when(iterable).projection(any());
-        MongoCursor<Document> iterator = mock(MongoCursor.class);
-        doReturn(iterator).when(iterable).iterator();
-        when(iterator.hasNext()).thenReturn(true, true, true, true, false);
-        when(iterator.next()).thenReturn(
-            new Document().append("_id", "id1").append("_og", "og1"),
-            new Document().append("_id", "id2"),
-            new Document().append("_id", "id3").append("_og", "og3"),
-            new Document().append("_id", "id4").append("_og", "og4"));
+        RequestResponseOK<JsonNode> results = new RequestResponseOK<JsonNode>()
+            .addAllResults(Arrays.asList(
+                JsonHandler.createObjectNode().put("#id", "id1").put("#object", "og1"),
+                JsonHandler.createObjectNode().put("#id", "id2"),
+                JsonHandler.createObjectNode().put("#id", "id3-1").put("#object", "og3"),
+                JsonHandler.createObjectNode().put("#id", "id3-2").put("#object", "og3"),
+                JsonHandler.createObjectNode().put("#id", "id4").put("#object", "og4")
+            ));
+
+        doReturn(results).when(metaData).selectUnitsByQuery(any());
 
         Map<String, File> savedFiles = new HashMap<>();
         doAnswer((args) -> {
@@ -134,7 +123,7 @@ public class ReclassificationDistributionServiceTest {
         List<String> unitIds = readDistributionFile(savedFiles.get(unitsToUpdateJsonLineFileName));
         List<String> objectGroupIds = readDistributionFile(savedFiles.get(objectGroupsToUpdateJsonLineFileName));
 
-        assertThat(unitIds).containsExactly("id1", "id2", "id3", "id4");
+        assertThat(unitIds).containsExactly("id1", "id2", "id3-1", "id3-2", "id4");
         assertThat(objectGroupIds).containsExactly("og1", "og3", "og4");
     }
 
