@@ -37,7 +37,8 @@ import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamRuntimeException;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.worker.common.HandlerIO;
-import fr.gouv.vitam.worker.core.distribution.ChainedFileWriter;
+import fr.gouv.vitam.worker.core.distribution.JsonLineModel;
+import fr.gouv.vitam.worker.core.distribution.JsonLineWriter;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -55,9 +56,8 @@ import static fr.gouv.vitam.common.json.JsonHandler.createObjectNode;
 class MigrationHelper {
 
     private static final String FIELDS_KEY = "$fields";
-    private static final String CHAINED_FILE = "chainedFile.json";
     private static final String ID = "#id";
-    private static final String EVENTS_FIELDNAME = "events";
+    private static final String EVENTS_FIELD_NAME = "events";
 
     /**
      * Create SelectMultiQuery for selecting Id
@@ -80,45 +80,50 @@ class MigrationHelper {
     }
 
     /**
-     * Create linked Files and save them in workspace
-     *  @param scrollRequest scroll Request
+     * Create distribution file and report and save them in workspace
+     *
+     * @param scrollRequest scroll Request
      * @param handler the handler
-     * @param folder the workspace folder to save into
-     * @param bachSize linked file batch size
+     * @param jsonLineFileName the workspace filename
      */
-    static void exportToReportAndLinkedFiles(
+    static void exportToReportAndDistributionFile(
         final ScrollSpliterator<JsonNode> scrollRequest,
-        final HandlerIO handler, final String folder, int bachSize, String reportFilename) throws ProcessingException {
+        final HandlerIO handler, final String jsonLineFileName, String reportFilename)
+        throws ProcessingException {
 
         File report = handler.getNewLocalFile("report.json");
+        File distributionFile = handler.getNewLocalFile(jsonLineFileName);
 
-        try (ChainedFileWriter chainedFileWriter = new ChainedFileWriter(handler, folder + "/" + CHAINED_FILE, bachSize);
-            OutputStream outputStream = new FileOutputStream(report);
-            JsonGenerator jsonGenerator = createJsonGenerator(outputStream)) {
+        try (
+            OutputStream distributionOutputStream = new FileOutputStream(distributionFile);
+            JsonLineWriter distributionFileWriter = new JsonLineWriter(distributionOutputStream);
+            OutputStream reportOutputStream = new FileOutputStream(report);
+            JsonGenerator jsonGenerator = createJsonGenerator(reportOutputStream)) {
             jsonGenerator.writeStartArray();
 
             StreamSupport.stream(scrollRequest, false).forEach(
                 item -> {
                     final String id = item.get(ID).asText();
                     try {
-                        chainedFileWriter.addEntry(id);
+                        distributionFileWriter.addEntry(new JsonLineModel(id));
                         jsonGenerator.writeString(id);
-                    } catch (IOException | InvalidParseOperationException e) {
+                    } catch (IOException e) {
                         throw new VitamRuntimeException(e);
                     }
                 });
             jsonGenerator.writeEndArray();
-        } catch (IOException | InvalidParseOperationException e) {
+        } catch (IOException e) {
             throw new ProcessingException("Could not save linked files", e);
         }
 
+        handler.transferFileToWorkspace(jsonLineFileName, distributionFile, true, false);
         handler.transferFileToWorkspace(reportFilename, report, true, false);
     }
 
-    static boolean checkMigrationEvents(JsonNode lfc, String eventType ) {
+    static boolean checkMigrationEvents(JsonNode lfc, String eventType) {
         JsonNode lastEvent = null;
-        if (lfc!=null && lfc.get(EVENTS_FIELDNAME)!= null) {
-            lastEvent =  lfc.get(EVENTS_FIELDNAME).get((lfc.get(EVENTS_FIELDNAME)).size() - 1);
+        if (lfc != null && lfc.get(EVENTS_FIELD_NAME) != null) {
+            lastEvent = lfc.get(EVENTS_FIELD_NAME).get((lfc.get(EVENTS_FIELD_NAME)).size() - 1);
         }
 
         return (lastEvent != null && !lastEvent.get("evType").asText().equals(eventType));

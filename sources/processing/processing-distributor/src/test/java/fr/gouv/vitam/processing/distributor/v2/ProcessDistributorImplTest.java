@@ -106,9 +106,6 @@ import static org.mockito.Mockito.when;
 
 public class ProcessDistributorImplTest {
 
-    private static final String CHAINED_FILE_00_JSON = "chainedFile_00.json";
-    private static final String CHAINED_FILE_01_JSON = "chainedFile_01.json";
-    private static final String CHAINED_FILE_02_JSON = "chainedFile_02.json";
     private static final String FAKE_REQUEST_ID = "FakeRequestId";
     private static final String FAKE_CONTEXT_ID = "FakeContextId";
 
@@ -731,85 +728,6 @@ public class ProcessDistributorImplTest {
         Map<String, ItemStatus> imap = itemStatus.getItemsStatus();
         assertThat(imap).containsOnlyKeys(OBJECTS_LIST_EMPTY);
         assertThat(imap.get(OBJECTS_LIST_EMPTY).getGlobalStatus()).isEqualTo(StatusCode.WARNING);
-    }
-
-    @Test
-    @RunWithCustomExecutor
-    public void whenDistributeKindLargeOneChainedFileOK() throws WorkerAlreadyExistsException,
-        IOException, ContentAddressableStorageNotFoundException, ContentAddressableStorageServerException {
-
-        when(processWorkflow.getStatus()).thenReturn(StatusCode.STARTED);
-
-        File chainedFile = PropertiesUtils.getResourceFile(CHAINED_FILE_02_JSON);
-        givenWorkspaceClientReturnsFileContent(chainedFile, operationId, CHAINED_FILE_02_JSON);
-
-        ItemStatus itemStatus = processDistributor
-            .distribute(workerParameters,
-                getStep(DistributionKind.LIST_IN_LINKED_FILE, CHAINED_FILE_02_JSON), operationId,
-                PauseRecover.NO_RECOVER);
-
-        assertNotNull(itemStatus);
-        assertTrue(StatusCode.OK.equals(itemStatus.getGlobalStatus()));
-        Map<String, ItemStatus> imap = itemStatus.getItemsStatus();
-        assertNotNull(imap);
-        assertFalse(imap.isEmpty());
-    }
-
-    @Test
-    @RunWithCustomExecutor
-    public void whenDistributeKindLargeListChainedFileOK() throws WorkerAlreadyExistsException,
-        IOException, ContentAddressableStorageNotFoundException, ContentAddressableStorageServerException {
-
-        when(processWorkflow.getStatus()).thenReturn(StatusCode.STARTED);
-
-        File chainedFile = PropertiesUtils.getResourceFile(CHAINED_FILE_00_JSON);
-        givenWorkspaceClientReturnsFileContent(chainedFile, operationId, CHAINED_FILE_00_JSON);
-        Response response;
-
-        chainedFile = PropertiesUtils.getResourceFile(CHAINED_FILE_01_JSON);
-        response =
-            Response.ok(Files.newInputStream(chainedFile.toPath())).status(Response.Status.OK).build();
-        when(workspaceClient.getObject(operationId, CHAINED_FILE_01_JSON)).thenReturn(response);
-
-        chainedFile = PropertiesUtils.getResourceFile(CHAINED_FILE_02_JSON);
-        response =
-            Response.ok(Files.newInputStream(chainedFile.toPath())).status(Response.Status.OK).build();
-        when(workspaceClient.getObject(operationId, CHAINED_FILE_02_JSON)).thenReturn(response);
-
-        ItemStatus itemStatus = processDistributor
-            .distribute(workerParameters,
-                getStep(DistributionKind.LIST_IN_LINKED_FILE, CHAINED_FILE_00_JSON), operationId,
-                PauseRecover.NO_RECOVER);
-
-        assertNotNull(itemStatus);
-
-        assertTrue(StatusCode.OK.equals(itemStatus.getGlobalStatus()));
-        Map<String, ItemStatus> imap = itemStatus.getItemsStatus();
-        assertNotNull(imap);
-        assertFalse(imap.isEmpty());
-    }
-
-    @Test
-    @RunWithCustomExecutor
-    public void whenDistributeKindLargeChainedFileFATAL() throws WorkerAlreadyExistsException,
-        IOException, ContentAddressableStorageNotFoundException, ContentAddressableStorageServerException,
-        WorkerNotFoundClientException, WorkerServerClientException {
-
-        when(processWorkflow.getStatus()).thenReturn(StatusCode.STARTED);
-
-        File chainedFile = PropertiesUtils.getResourceFile(CHAINED_FILE_02_JSON);
-        givenWorkspaceClientReturnsFileContent(chainedFile, operationId, CHAINED_FILE_02_JSON);
-
-        when(workerClient.submitStep(any())).thenThrow(new RuntimeException("WorkerException"));
-
-        ItemStatus itemStatus = processDistributor
-            .distribute(workerParameters,
-                getStep(DistributionKind.LIST_IN_LINKED_FILE, CHAINED_FILE_02_JSON), operationId,
-                PauseRecover.NO_RECOVER);
-
-        assertNotNull(itemStatus);
-        assertTrue(StatusCode.FATAL.equals(itemStatus.getGlobalStatus()));
-
     }
 
     @Test

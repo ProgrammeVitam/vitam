@@ -28,8 +28,8 @@
       "stepName": "STP_MIGRATION_UNITS",
       "behavior": "BLOCKING",
       "distribution": {
-        "kind": "LIST_IN_LINKED_FILE",
-        "element": "Units/chainedFile.json"
+        "kind": "LIST_IN_JSONL_FILE",
+        "element": "Units.jsonl"
       },
       "actions": [
         {
@@ -62,8 +62,8 @@
       "stepName": "STP_MIGRATION_OBJECT_GROUPS",
       "behavior": "BLOCKING",
       "distribution": {
-        "kind": "LIST_IN_LINKED_FILE",
-        "element": "ObjectGroup/chainedFile.json"
+        "kind": "LIST_IN_JSONL_FILE",
+        "element": "ObjectGroups.jsonl"
       },
       "actions": [
         {
