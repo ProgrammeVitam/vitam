@@ -122,9 +122,9 @@
       "stepName": "STP_UNIT_GRAPH_COMPUTE",
       "behavior": "BLOCKING",
       "distribution": {
-        "kind": "LIST_IN_LINKED_FILE",
+        "kind": "LIST_IN_JSONL_FILE",
         "type": "Units",
-        "element": "UnitsToUpdate/chainedFile.json",
+        "element": "UnitsToUpdate.jsonl",
         "statusOnEmptyDistribution": "KO"
       },
       "actions": [
@@ -142,9 +142,9 @@
       "stepName": "STP_OBJECT_GROUP_GRAPH_COMPUTE",
       "behavior": "BLOCKING",
       "distribution": {
-        "kind": "LIST_IN_LINKED_FILE",
+        "kind": "LIST_IN_JSONL_FILE",
         "type": "ObjectGroup",
-        "element": "ObjectGroupsToUpdate/chainedFile.json",
+        "element": "ObjectGroupsToUpdate.jsonl",
         "statusOnEmptyDistribution": "OK"
       },
       "actions": [

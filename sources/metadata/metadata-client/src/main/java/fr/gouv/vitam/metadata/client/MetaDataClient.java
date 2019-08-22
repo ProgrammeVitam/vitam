@@ -332,8 +332,8 @@ public interface MetaDataClient extends BasicClient {
      * @param ids the unit ids for which all descendant nodes (units and object groups) are to be updated.
      * @throws VitamClientException
      */
-    void exportReclassificationChildNodes(Set<String> ids, String unitsToUpdateChainedFileName,
-        String objectGroupsToUpdateChainedFileName) throws VitamClientException, MetaDataExecutionException;
+    void exportReclassificationChildNodes(Set<String> ids, String unitsToUpdateJsonLineFileName,
+        String objectGroupsToUpdateJsonLineFileName) throws VitamClientException, MetaDataExecutionException;
 
     /**
      * Select units with inherited rules by select query (DSL)

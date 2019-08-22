@@ -59,15 +59,11 @@ import fr.gouv.vitam.worker.client.WorkerClientFactory;
 import fr.gouv.vitam.worker.client.exception.PauseCancelException;
 import fr.gouv.vitam.worker.client.exception.WorkerUnreachableException;
 import fr.gouv.vitam.worker.common.DescriptionStep;
-import fr.gouv.vitam.worker.core.distribution.ChainedFileModel;
 import fr.gouv.vitam.worker.core.distribution.JsonLineModel;
-import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundException;
-import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
 import fr.gouv.vitam.workspace.client.WorkspaceClient;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
 import fr.gouv.vitam.workspace.client.WorkspaceBufferingInputStream;
 import org.apache.commons.collections4.iterators.PeekingIterator;
-import org.apache.commons.lang3.StringUtils;
 
 import javax.ws.rs.core.Response;
 import java.io.BufferedReader;
@@ -85,8 +81,6 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.Objects;
-import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
@@ -317,12 +311,6 @@ public class ProcessDistributorImpl implements ProcessDistributor {
                     // Iterate over Objects List
                     distributeOnList(workParams, step, NOLEVEL, objectsList, useDistributorIndex, tenantId);
                 }
-            } else if (step.getDistribution().getKind().equals(DistributionKind.LIST_IN_LINKED_FILE)) {
-
-                // distribute ordered list of chained files
-                distributeChainedFiles(workParams.getContainerName(), step.getDistribution().getElement(),
-                    workParams, step, useDistributorIndex, tenantId);
-
             } else if (step.getDistribution().getKind().equals(DistributionKind.LIST_IN_JSONL_FILE)) {
 
                 // distribute on stream
@@ -365,74 +353,6 @@ public class ProcessDistributorImpl implements ProcessDistributor {
             currentSteps.remove(operationId);
         }
         return step.setPauseOrCancelAction(PauseOrCancelAction.ACTION_COMPLETE).getStepResponses();
-    }
-
-    /**
-     * @param containerName
-     * @param fileName
-     * @param workParams
-     * @param step
-     * @param useDistributorIndex
-     * @param tenantId
-     * @throws ContentAddressableStorageNotFoundException
-     * @throws ContentAddressableStorageServerException
-     * @throws fr.gouv.vitam.common.exception.InvalidParseOperationException
-     * @throws ProcessingException
-     */
-    private void distributeChainedFiles(String containerName, String fileName, WorkerParameters workParams, Step step,
-        boolean useDistributorIndex, int tenantId)
-        throws InvalidParseOperationException, ContentAddressableStorageNotFoundException,
-        ContentAddressableStorageServerException, ProcessingException {
-
-        List<String> objectsList;
-
-        String currentContainerName = containerName;
-        String currentFileName = fileName;
-
-        try (final WorkspaceClient workspaceClient = workspaceClientFactory.getClient()) {
-            boolean recursion;
-            do {
-                recursion = false; // by default, no recursion
-
-                // get file's content
-                Response response = null;
-                ChainedFileModel chainedFile;
-                try {
-                    response = workspaceClient.getObject(currentContainerName, currentFileName);
-                    chainedFile =
-                        JsonHandler.getFromInputStream((InputStream) response.getEntity(), ChainedFileModel.class);
-                } finally {
-                    workspaceClient.consumeAnyEntityAndClose(response);
-                }
-
-                if (chainedFile != null) {
-                    objectsList = Optional.ofNullable(chainedFile.getElements())
-                        .orElseGet(Collections::emptyList)
-                        .stream()
-                        .filter(Objects::nonNull)
-                        .collect(Collectors.toList());
-
-                    // Iterate over Objects List
-                    if (!objectsList.isEmpty()) {
-                        if (currentFileName != null) {
-                            distributeOnList(workParams, step, currentFileName, objectsList, useDistributorIndex,
-                                tenantId);
-                        } else {
-                            distributeOnList(workParams, step, NOLEVEL, objectsList, useDistributorIndex, tenantId);
-                        }
-                    }
-
-                    if (!StringUtils.isBlank(chainedFile.getNextFile())) {
-
-                        recursion = true;
-
-                        currentContainerName = workParams.getContainerName();
-                        currentFileName = chainedFile.getNextFile();
-                        // other parameters do not change
-                    }
-                }
-            } while (recursion);
-        }
     }
 
     /**

@@ -34,15 +34,22 @@ import com.mongodb.client.model.Projections;
 import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.database.api.VitamRepositoryProvider;
 import fr.gouv.vitam.common.database.api.impl.VitamMongoRepository;
-import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.metadata.core.database.collections.MetadataCollections;
 import fr.gouv.vitam.metadata.core.database.collections.Unit;
-import fr.gouv.vitam.worker.core.distribution.ChainedFileWorkspaceWriter;
+import fr.gouv.vitam.worker.core.distribution.JsonLineModel;
+import fr.gouv.vitam.worker.core.distribution.JsonLineWriter;
+import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
+import fr.gouv.vitam.workspace.client.WorkspaceClient;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
+import org.apache.commons.io.FileUtils;
 import org.bson.Document;
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.Set;
 
 /**
@@ -50,6 +57,9 @@ import java.util.Set;
  */
 public class ReclassificationDistributionService {
 
+    private static final String JSONL_EXTENSION = ".jsonl";
+    private static final String UNIT_LIST_TMP_FILE_PREFIX = "unit_export_";
+    private static final String OBJECT_GROUP_LIST_TMP_FILE_PREFIX = "object_group_export_";
     private final WorkspaceClientFactory workspaceClientFactory;
     private final VitamRepositoryProvider vitamRepositoryProvider;
 
@@ -68,8 +78,8 @@ public class ReclassificationDistributionService {
     }
 
 
-    public void exportReclassificationChildNodes(Set<String> unitIds, String unitsToUpdateChainedFileName,
-        String objectGroupsToUpdateChainedFileName) throws IOException, InvalidParseOperationException {
+    public void exportReclassificationChildNodes(Set<String> unitIds, String unitsToUpdateJsonLineFileName,
+        String objectGroupsToUpdateJsonLineFileName) throws IOException {
 
         VitamMongoRepository vitamMongoRepository =
             vitamRepositoryProvider.getVitamMongoRepository(MetadataCollections.UNIT.getVitamCollection());
@@ -81,28 +91,53 @@ public class ReclassificationDistributionService {
             , VitamConfiguration.getBatchSize())
             .projection(Projections.include(Unit.ID, Unit.OG));
 
-        try (MongoCursor<Document> iterator = query.iterator();
-            ChainedFileWorkspaceWriter unitChainedFileWriter = createChainedFileWriter(
-                unitsToUpdateChainedFileName);
-            ChainedFileWorkspaceWriter objectGroupChainedFileWriter = createChainedFileWriter(
-                objectGroupsToUpdateChainedFileName)) {
-            while (iterator.hasNext()) {
-                Document doc = iterator.next();
+        File tempUnitReportFile = null;
+        File tempObjectGroupReportFile = null;
 
-                String id = doc.get(Unit.ID, String.class);
-                String objectGroupId = doc.get(Unit.OG, String.class);
+        try {
 
-                unitChainedFileWriter.addEntry(id);
-                if (objectGroupId != null) {
-                    objectGroupChainedFileWriter.addEntry(objectGroupId);
+            tempUnitReportFile = File.createTempFile(UNIT_LIST_TMP_FILE_PREFIX, JSONL_EXTENSION,
+                new File(VitamConfiguration.getVitamTmpFolder()));
+            tempObjectGroupReportFile = File.createTempFile(OBJECT_GROUP_LIST_TMP_FILE_PREFIX, JSONL_EXTENSION,
+                new File(VitamConfiguration.getVitamTmpFolder()));
+
+            try (MongoCursor<Document> iterator = query.iterator();
+                JsonLineWriter unitReportWriter = new JsonLineWriter(new FileOutputStream(tempUnitReportFile));
+                JsonLineWriter objectGroupReportWriter = new JsonLineWriter(
+                    new FileOutputStream(tempObjectGroupReportFile))) {
+
+                while (iterator.hasNext()) {
+                    Document doc = iterator.next();
+
+                    String id = doc.get(Unit.ID, String.class);
+                    String objectGroupId = doc.get(Unit.OG, String.class);
+
+                    unitReportWriter.addEntry(new JsonLineModel(id));
+                    if (objectGroupId != null) {
+                        objectGroupReportWriter.addEntry(new JsonLineModel(objectGroupId));
+                    }
                 }
             }
+
+            storeIntoWorkspace(unitsToUpdateJsonLineFileName, tempUnitReportFile);
+            storeIntoWorkspace(objectGroupsToUpdateJsonLineFileName, tempObjectGroupReportFile);
+
+        } finally {
+            FileUtils.deleteQuietly(tempUnitReportFile);
+            FileUtils.deleteQuietly(tempObjectGroupReportFile);
         }
     }
 
-    private ChainedFileWorkspaceWriter createChainedFileWriter(String filename) {
-        return new ChainedFileWorkspaceWriter(workspaceClientFactory,
-            VitamThreadUtils.getVitamSession().getRequestId(),
-            filename, VitamConfiguration.getBatchSize());
+    private void storeIntoWorkspace(String filename, File file) throws IOException {
+
+        try (WorkspaceClient client = workspaceClientFactory.getClient();
+            InputStream inputStream = new FileInputStream(file)) {
+
+            String containerName = VitamThreadUtils.getVitamSession().getRequestId();
+            client.putObject(containerName, filename, inputStream);
+
+        } catch (ContentAddressableStorageServerException e) {
+            throw new IOException("Could not store file to workspace", e);
+        }
     }
 }
