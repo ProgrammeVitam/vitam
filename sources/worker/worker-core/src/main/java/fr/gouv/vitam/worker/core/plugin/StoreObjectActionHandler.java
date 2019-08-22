@@ -98,22 +98,26 @@ public abstract class StoreObjectActionHandler extends ActionHandler {
         return null;
     }
 
-    protected BulkObjectStoreResponse storeObjects(BulkObjectStoreRequest bulkObjectStoreRequest)
+    protected BulkObjectStoreResponse storeObjects(String startegy, BulkObjectStoreRequest bulkObjectStoreRequest)
             throws StorageNotFoundClientException, StorageServerClientException, StorageAlreadyExistsClientException {
 
         try (final StorageClient storageClient = storageClientFactory.getClient()) {
             // store binary data objects
-            return storageClient.bulkStoreFilesFromWorkspace(VitamConfiguration.getDefaultStrategy(), bulkObjectStoreRequest);
+            return storageClient.bulkStoreFilesFromWorkspace(startegy, bulkObjectStoreRequest);
 
         }
     }
 
-    protected void storeStorageInfos(String strategy, List<MapOfObjects> mapOfObjectsList, BulkObjectStoreResponse result) {
-        LOGGER.debug("DEBUG result: {}", result);
-        for(int i=0; i<mapOfObjectsList.size(); i++) {
-            MapOfObjects mapOfObjects = mapOfObjectsList.get(i);
+    protected void storeStorageInfos(List<MapOfObjects> mapOfObjectsList, Map<String, BulkObjectStoreResponse> resultByStrategy, Map<String, String> strategiesByObjectId) {
+        LOGGER.debug("DEBUG storeStorageInfos");
+
+        for (MapOfObjects mapOfObjects : mapOfObjectsList) {
             Map<String, JsonNode> nodes = mapOfObjects.getObjectJsonMap();
             for (Map.Entry<String, String> objectGuid : mapOfObjects.getBinaryObjectsToStore().entrySet()) {
+                String strategy = strategiesByObjectId.get(objectGuid.getKey());
+                BulkObjectStoreResponse result = resultByStrategy.get(strategy);
+                LOGGER.debug("DEBUG strategy: {}", strategy);
+                LOGGER.debug("DEBUG result: {}", result);
                 List<String> offers = result.getOfferIds();
                 ObjectNode storage = JsonHandler.createObjectNode();
                 storage.put(SedaConstants.TAG_NB, result.getOfferIds().size());
@@ -125,7 +129,7 @@ public abstract class StoreObjectActionHandler extends ActionHandler {
                 }
                 storage.set(SedaConstants.OFFER_IDS, offersId);
                 storage.put(SedaConstants.STRATEGY_ID, strategy);
-                ((ObjectNode)nodes.get(objectGuid.getKey())).set(SedaConstants.STORAGE, storage);
+                ((ObjectNode) nodes.get(objectGuid.getKey())).set(SedaConstants.STORAGE, storage);
                 LOGGER.debug("DEBUG node: {}", nodes.get(objectGuid.getKey()));
             }
         }
@@ -134,28 +138,30 @@ public abstract class StoreObjectActionHandler extends ActionHandler {
     /**
      * detailsFromStorageInfo, get storage details as JSON String from storageInfo result
      *
-     * @param result
+     * @param resultsByStrategy
      * @param itemStatusByObjectList
      * @param itemStatusList
      */
-    protected void updateSubTasksAndTasksFromStorageInfos(BulkObjectStoreResponse result, List<Map<String, ItemStatus>> itemStatusByObjectList, List<ItemStatus> itemStatusList) {
+    protected void updateSubTasksAndTasksFromStorageInfos(Map<String, BulkObjectStoreResponse> resultsByStrategy, List<Map<String, ItemStatus>> itemStatusByObjectList, List<ItemStatus> itemStatusList) {
 
-        for(Map.Entry<String, String> objectDigest : result.getObjectDigests().entrySet()) {
-            int pos = getElementPositionForObjectName(objectDigest.getKey(), itemStatusByObjectList);
-            Map<String, ItemStatus> itemStatusByObject = itemStatusByObjectList.get(pos);
-            ItemStatus itemStatus = itemStatusList.get(pos);
-            ObjectNode object = JsonHandler.createObjectNode();
-            object.put(FILE_NAME, objectDigest.getKey());
-            object.put(ALGORITHM, result.getDigestType());
-            object.put(DIGEST, objectDigest.getValue());
-            List<String> offers = result.getOfferIds();
-            object.put(OFFERS, offers != null ? String.join(",", offers) : "");
-            itemStatusByObject.get(objectDigest.getKey()).increment(StatusCode.OK);
-            itemStatusByObject.get(objectDigest.getKey()).setEvDetailData(JsonHandler.unprettyPrint(object));
+        for (BulkObjectStoreResponse result : resultsByStrategy.values()) {
+            for (Map.Entry<String, String> objectDigest : result.getObjectDigests().entrySet()) {
+                int pos = getElementPositionForObjectName(objectDigest.getKey(), itemStatusByObjectList);
+                Map<String, ItemStatus> itemStatusByObject = itemStatusByObjectList.get(pos);
+                ItemStatus itemStatus = itemStatusList.get(pos);
+                ObjectNode object = JsonHandler.createObjectNode();
+                object.put(FILE_NAME, objectDigest.getKey());
+                object.put(ALGORITHM, result.getDigestType());
+                object.put(DIGEST, objectDigest.getValue());
+                List<String> offers = result.getOfferIds();
+                object.put(OFFERS, offers != null ? String.join(",", offers) : "");
+                itemStatusByObject.get(objectDigest.getKey()).increment(StatusCode.OK);
+                itemStatusByObject.get(objectDigest.getKey()).setEvDetailData(JsonHandler.unprettyPrint(object));
 
-            // increment itemStatus with subtask
-            itemStatus.setSubTaskStatus(objectDigest.getKey(), itemStatusByObject.get(objectDigest.getKey()))
-                    .increment(itemStatusByObject.get(objectDigest.getKey()).getGlobalStatus());
+                // increment itemStatus with subtask
+                itemStatus.setSubTaskStatus(objectDigest.getKey(), itemStatusByObject.get(objectDigest.getKey()))
+                        .increment(itemStatusByObject.get(objectDigest.getKey()).getGlobalStatus());
+            }
         }
     }
 

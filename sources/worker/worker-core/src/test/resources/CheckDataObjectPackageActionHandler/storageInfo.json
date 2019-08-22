@@ -1,0 +1,27 @@
+{
+  "default": {
+    "_nbc": 2,
+    "offerIds": [
+      "offer1",
+      "offer2"
+    ],
+    "strategyId": "default"
+  },
+  "gotStrategy": {
+    "_nbc": 2,
+    "offerIds": [
+      "offer3",
+      "offer4"
+    ],
+    "strategyId": "gotStrategy"
+  },
+  "objectStrategy": {
+    "_nbc": 3,
+    "offerIds": [
+      "offer5",
+      "offer6",
+      "offer7"
+    ],
+    "strategyId": "objectStrategy"
+  }
+}

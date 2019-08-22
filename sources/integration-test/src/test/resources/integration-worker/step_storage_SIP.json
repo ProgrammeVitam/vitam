@@ -10,7 +10,13 @@
         {
           "action": {
             "actionKey": "STORAGE_AVAILABILITY_CHECK",
-            "behavior": "BLOCKING"
+            "behavior": "BLOCKING",
+            "in": [
+              {
+                "name": "ingestContract.json",
+                "uri": "WORKSPACE:referential/ingestContract.json"
+              }
+            ]
           }
         }
       ]

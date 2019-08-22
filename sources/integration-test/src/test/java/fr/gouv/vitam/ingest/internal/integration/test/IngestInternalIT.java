@@ -109,6 +109,7 @@ import fr.gouv.vitam.ingest.internal.client.IngestInternalClientFactory;
 import fr.gouv.vitam.ingest.internal.upload.rest.IngestInternalMain;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientAlreadyExistsException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientBadRequestException;
+import fr.gouv.vitam.logbook.common.exception.LogbookClientException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientServerException;
 import fr.gouv.vitam.logbook.common.parameters.LogbookOperationParameters;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParameterName;
@@ -393,7 +394,7 @@ public class IngestInternalIT extends VitamRuleRunner {
             client.initWorkflow(ingestSip);
 
             client.upload(zipInputStreamSipObject, CommonMediaType.ZIP_TYPE, ingestSip, ProcessAction.RESUME.name());
-
+            
             awaitForWorkflowTerminationWithStatus(operationGuid, StatusCode.OK);
 
             // Try to check AU
@@ -408,6 +409,7 @@ public class IngestInternalIT extends VitamRuleRunner {
             assertNotNull(unit);
             final String og = unit.get("#object").asText();
             assertThat(unit.get("#management").get("NeedAuthorization").asBoolean()).isFalse();
+            assertThat(unit.get("#storage").get("strategyId").asText()).isEqualTo(VitamConfiguration.getDefaultStrategy());
             // Try to check OG
             select = new SelectMultiQuery();
             select.addRoots(og);
@@ -2440,7 +2442,7 @@ public class IngestInternalIT extends VitamRuleRunner {
 
         ProcessWorkflow processWorkflow =
             ProcessMonitoringImpl.getInstance().findOneProcessWorkflow(operationGuid.toString(), tenantId);
-
+        
         assertNotNull(processWorkflow);
         assertEquals(ProcessState.COMPLETED, processWorkflow.getState());
         assertEquals(status, processWorkflow.getStatus());

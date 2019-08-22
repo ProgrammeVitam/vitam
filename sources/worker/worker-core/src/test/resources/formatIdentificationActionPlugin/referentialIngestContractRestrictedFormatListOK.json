@@ -1,5 +1,7 @@
 {
-  "FormatUnidentifiedAuthorized" : false,
-  "EveryFormatType" : false,
-  "FormatType" : ["fmt/293", "fmt/18", "fmt/11", "x-fmt/111"]
+  "ingestContract":{
+    "FormatUnidentifiedAuthorized" : false,
+    "EveryFormatType" : false,
+    "FormatType" : ["fmt/293", "fmt/18", "fmt/11", "x-fmt/111"]
+  }
 }

@@ -55,6 +55,10 @@
               {
                 "name": "storageInfo.json",
                 "uri": "WORKSPACE:StorageInfo/storageInfo.json"
+              },
+              {
+                "name": "ingestContract.json",
+                "uri": "WORKSPACE:referential/ingestContract.json"
               }
             ],
             "out": [

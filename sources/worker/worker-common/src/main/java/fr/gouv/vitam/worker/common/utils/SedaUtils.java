@@ -863,49 +863,4 @@ public class SedaUtils {
         return size;
     }
 
-    /**
-     * Get the size of the manifest file
-     *
-     * @param params worker parameters
-     * @return the size of the manifest
-     * @throws ProcessingException if json seda data is null or seda does not contain size attribute
-     */
-    public long getManifestSize(WorkerParameters params, WorkspaceClientFactory workspaceClientFactory)
-        throws ProcessingException {
-        ParameterHelper.checkNullOrEmptyParameters(params);
-        final String containerId = params.getContainerName();
-        ParametersChecker.checkParameter("Container id is a mandatory parameter", containerId);
-        try (final WorkspaceClient client = workspaceClientFactory.getClient()) {
-            final JsonNode jsonSeda = getObjectInformation(client, containerId,
-                IngestWorkflowConstants.SEDA_FOLDER + "/" + IngestWorkflowConstants.SEDA_FILE);
-            if (jsonSeda == null || jsonSeda.get("size") == null) {
-                LOGGER.error("Error while getting object size : " + IngestWorkflowConstants.SEDA_FILE);
-                throw new ProcessingException("Json response cannot be null and must contains a 'size' attribute");
-            }
-            return jsonSeda.get("size").asLong();
-        }
-    }
-
-
-    /**
-     * Retrieve information about an object.
-     *
-     * @param workspaceClient workspace connector
-     * @param containerId container id
-     * @param pathToObject path to the object
-     * @return JsonNode containing information about the object
-     * @throws ProcessingException throws when error occurs
-     */
-    private JsonNode getObjectInformation(WorkspaceClient workspaceClient, String containerId,
-        String pathToObject)
-        throws ProcessingException {
-        try {
-            return workspaceClient.getObjectInformation(containerId, pathToObject)
-                .toJsonNode().get("$results").get(0);
-        } catch (ContentAddressableStorageNotFoundException | ContentAddressableStorageServerException e) {
-            LOGGER.error(IngestWorkflowConstants.SEDA_FILE + " Not Found");
-            throw new ProcessingException(e);
-        }
-    }
-
 }

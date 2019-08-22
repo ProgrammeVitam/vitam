@@ -85,7 +85,8 @@ import static org.mockito.Mockito.when;
 
 public class CheckDataObjectPackageActionHandlerTest {
     private static final String SIP_ARBORESCENCE = "SIP_Arborescence.xml";
-    private static final String STORAGE_INFO_JSON = "storageInfo.json";
+    private static final String STORAGE_INFO_JSON = "CheckDataObjectPackageActionHandler/storageInfo.json";
+    private static final String INGEST_CONTRACT = "CheckDataObjectPackageActionHandler/ingestContractWithDetails.json";
     private AdminManagementClient adminManagementClient;
     private AdminManagementClientFactory adminManagementClientFactory;
     private LogbookLifeCyclesClient logbookLifeCyclesClient;
@@ -184,6 +185,8 @@ public class CheckDataObjectPackageActionHandlerTest {
             .setUri(new ProcessingUri(UriPrefix.VALUE, "INGEST")));
         in.add(new IOParameter()
             .setUri(new ProcessingUri(UriPrefix.WORKSPACE, "StorageInfo/storageInfo.json")));
+        in.add(new IOParameter()
+                .setUri(new ProcessingUri(UriPrefix.WORKSPACE, "referential/ingestContract.json")));
         out.add(new IOParameter()
             .setUri(new ProcessingUri(UriPrefix.WORKSPACE, "UpdateObjectGroup/existing_object_group.json")));
 
@@ -208,6 +211,8 @@ public class CheckDataObjectPackageActionHandlerTest {
             PropertiesUtils.getResourceAsStream(SIP_ARBORESCENCE);
         final InputStream storageInfo =
             PropertiesUtils.getResourceAsStream(STORAGE_INFO_JSON);
+        final InputStream ingestContract =
+                PropertiesUtils.getResourceAsStream(INGEST_CONTRACT);
         when(sedaUtilsFactory.createSedaUtils(any())).thenReturn(sedaUtils);
 
         when(sedaUtils.getAllDigitalObjectUriFromManifest()).thenReturn(extractUriResponseOK);
@@ -217,6 +222,8 @@ public class CheckDataObjectPackageActionHandlerTest {
             .thenReturn(new RequestResponseOK().addResult(uriListWorkspaceOK));
         when(workspaceClient.getObject(any(), eq("StorageInfo/storageInfo.json")))
             .thenReturn(Response.status(Status.OK).entity(storageInfo).build());
+        when(workspaceClient.getObject(any(), eq("referential/ingestContract.json")))
+                .thenReturn(Response.status(Status.OK).entity(ingestContract).build());
         when(adminManagementClient.findIngestContractsByID(anyString()))
             .thenReturn(ClientMockResultHelper.getIngestContracts());
         when(adminManagementClient.findIngestContracts(any())).thenReturn(ClientMockResultHelper.getIngestContracts());

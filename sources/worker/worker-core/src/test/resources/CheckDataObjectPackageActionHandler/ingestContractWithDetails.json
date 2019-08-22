@@ -1,0 +1,8 @@
+{
+  "managementContract": {
+    "Storage": {
+      "ObjectGroupStrategy": "gotStrategy",
+      "ObjectStrategy": "objectStrategy"
+    }
+  }
+}

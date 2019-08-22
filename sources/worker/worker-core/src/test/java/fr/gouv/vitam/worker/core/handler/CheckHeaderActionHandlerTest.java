@@ -28,12 +28,18 @@ package fr.gouv.vitam.worker.core.handler;
 
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.SedaConstants;
+import fr.gouv.vitam.common.client.ClientMockResultHelper;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.guid.GUID;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.model.ItemStatus;
+import fr.gouv.vitam.common.model.RequestResponse;
+import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.StatusCode;
+import fr.gouv.vitam.common.model.administration.ActivationStatus;
+import fr.gouv.vitam.common.model.administration.IngestContractModel;
+import fr.gouv.vitam.common.model.administration.ManagementContractModel;
 import fr.gouv.vitam.common.model.processing.ProcessingUri;
 import fr.gouv.vitam.common.model.processing.UriPrefix;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
@@ -64,6 +70,7 @@ import org.junit.Test;
 
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
+
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -122,6 +129,7 @@ public class CheckHeaderActionHandlerTest {
         logbookLifeCyclesClientFactory = mock(LogbookLifeCyclesClientFactory.class);
         when(logbookLifeCyclesClientFactory.getClient()).thenReturn(logbookLifeCyclesClient);
 
+        
         when(adminManagementClient.findIngestContractsByID(any()))
             .thenReturn(new AdminManagementClientMock().findIngestContractsByID("contract"));
         when(adminManagementClient.findContextById(any()))
@@ -231,6 +239,48 @@ public class CheckHeaderActionHandlerTest {
 
     @Test
     @RunWithCustomExecutor
+    public void testHandlerWorkingWithRealManifestAndManagementContract() throws Exception {
+
+        RequestResponseOK<IngestContractModel> ingestResponse = (RequestResponseOK<IngestContractModel>) new AdminManagementClientMock()
+                .findIngestContractsByID("contract");
+        ingestResponse.getFirstResult().setManagementContractId("managementContractId");
+        when(adminManagementClient.findIngestContractsByID(any())).thenReturn(ingestResponse);
+        when(adminManagementClient.findManagementContractsByID(any())).thenReturn(ClientMockResultHelper
+                .createResponse((ManagementContractModel) new ManagementContractModel().setId("managementContractId").setStatus(ActivationStatus.ACTIVE)));
+
+        handler = new CheckHeaderActionHandler(adminManagementClientFactory, SedaUtilsFactory.getInstance());
+
+        HandlerIOImpl action = new HandlerIOImpl(workspaceClientFactory, logbookLifeCyclesClientFactory, guid.getId(),
+                "workerId", com.google.common.collect.Lists.newArrayList());
+        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
+
+        final InputStream sedaLocal = new FileInputStream(PropertiesUtils.findFile(SIP_ADD_UNIT));
+        when(workspaceClient.getObject(any(), eq("SIP/manifest.xml")))
+                .thenReturn(Response.status(Status.OK).entity(sedaLocal).build());
+        assertNotNull(CheckHeaderActionHandler.getId());
+        final WorkerParameters params = WorkerParametersFactory.newWorkerParameters()
+                .setUrlWorkspace("http://localhost:8083").setUrlMetadata("http://localhost:8083")
+                .setObjectNameList(Lists.newArrayList("objectName.json")).setObjectName("objectName.json")
+                .setCurrentStep("currentStep").setContainerName(guid.getId());
+        action.getInput().add("true");
+        action.getInput().add("true");
+        action.getInput().add("false");
+
+        action.getOutput().add(new ProcessingUri(UriPrefix.WORKSPACE, "ingestcontract.json"));
+        final ItemStatus response = handler.execute(params, action);
+        assertThat(response.getGlobalStatus()).isEqualTo(StatusCode.OK);
+        assertThat(response.getData(SedaConstants.TAG_MESSAGE_IDENTIFIER)).isNotNull();
+        String evDetData = response.getEvDetailData();
+        assertThat(evDetData.contains("ArchivalAgreement0")).isTrue();
+        assertThat(evDetData.contains("English Comment")).isTrue();
+        assertThat(evDetData.contains("ArchivalProfile0")).isTrue();
+        action.partialClose();
+
+    }
+
+
+    @Test
+    @RunWithCustomExecutor
     public void testDefinedProfileInIngestContractButNotInManifest()
         throws IOException, ContentAddressableStorageNotFoundException,
         ContentAddressableStorageServerException {
@@ -270,4 +320,5 @@ public class CheckHeaderActionHandlerTest {
         action.partialClose();
 
     }
+
 }

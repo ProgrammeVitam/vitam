@@ -26,15 +26,11 @@
  *******************************************************************************/
 package fr.gouv.vitam.worker.common.utils;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.node.ObjectNode;
 import fr.gouv.vitam.common.CharsetUtils;
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.SedaConstants;
 import fr.gouv.vitam.common.guid.GUIDFactory;
-import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.model.ItemStatus;
-import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.xml.XMLInputFactoryUtils;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
@@ -87,7 +83,7 @@ public class SedaUtilsTest {
     private final InputStream sedaPdo;
 
     private final HandlerIO handlerIO = mock(HandlerIO.class);
-    private final SedaUtils utils = SedaUtilsFactory.create(handlerIO);
+    private final SedaUtils utils = SedaUtilsFactory.getInstance().createSedaUtils(handlerIO);
     private final WorkerParameters params = WorkerParametersFactory.newWorkerParameters().setWorkerGUID(GUIDFactory
         .newGUID()).setContainerName(OBJ).setUrlWorkspace("http://localhost:8083")
         .setUrlMetadata("http://localhost:8083").setObjectNameList(Lists.newArrayList(OBJ)).setObjectName(OBJ)
@@ -114,7 +110,6 @@ public class SedaUtilsTest {
         assertTrue(CheckSedaValidationStatus.VALID.equals(utils.checkSedaValidation(params, new ItemStatus())));
     }
 
-    // TODO P1 : WARN sometimes bug on jenkins
     @Test
     public void givenGuidWhenXmlNotXMLThenReturnNotXmlFile() throws Exception {
         final String str = "This is not an xml file";
@@ -126,7 +121,6 @@ public class SedaUtilsTest {
         assertTrue(CheckSedaValidationStatus.NOT_XML_FILE.equals(status));
     }
 
-    // TODO P1 : WARN sometimes bug on jenkins
     @Test
     public void givenGuidWhenXmlNotXMLThenReturnNotXsdValid() throws Exception {
         final String str = "<invalidTag>This is an invalid Tag</invalidTag>";
@@ -245,33 +239,6 @@ public class SedaUtilsTest {
         when(workspaceClient.getObject(any(), any()))
             .thenThrow(new ContentAddressableStorageNotFoundException(""));
         utils.computeTotalSizeOfObjectsInManifest(params);
-    }
-
-    @Test
-    public void givenCorrectSedaFileWhenCheckStorageAvailabilityThenOK() throws Exception {
-        when(workspaceClient.getObjectInformation(any(), any()))
-            .thenReturn(new RequestResponseOK().addResult(getSedaTest()));
-        final long manifestSize = utils.getManifestSize(params, workspaceClientFactory);
-        assertTrue(manifestSize > 0);
-    }
-
-    @Test(expected = ProcessingException.class)
-    public void givenProblemWithSedaFileWhenCheckStorageAvailabilityThenKO() throws Exception {
-        when(workspaceClient.getObjectInformation(any(), any()))
-            .thenReturn(new RequestResponseOK().addResult(getSedaTestError()));
-        utils.getManifestSize(params, workspaceClientFactory);
-    }
-
-    private JsonNode getSedaTest() {
-        final ObjectNode jsonNodeObjectInformation = JsonHandler.createObjectNode();
-        jsonNodeObjectInformation.put("size", new Long(1024));
-        jsonNodeObjectInformation.put("object_name", "objectName");
-        jsonNodeObjectInformation.put("container_name", "containerName");
-        return jsonNodeObjectInformation;
-    }
-
-    private JsonNode getSedaTestError() {
-        return JsonHandler.createObjectNode();
     }
 
     @Test

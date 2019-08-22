@@ -29,7 +29,6 @@ package fr.gouv.vitam.worker.core.handler;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.annotations.VisibleForTesting;
-
 import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
@@ -37,6 +36,8 @@ import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.StatusCode;
+import fr.gouv.vitam.common.model.administration.IngestContractWithDetailsModel;
+import fr.gouv.vitam.common.model.administration.ManagementContractModel;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.processing.common.model.StorageInformation;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
@@ -47,6 +48,9 @@ import fr.gouv.vitam.storage.engine.client.exception.StorageServerClientExceptio
 import fr.gouv.vitam.worker.common.HandlerIO;
 import fr.gouv.vitam.worker.common.utils.SedaUtils;
 import fr.gouv.vitam.worker.common.utils.SedaUtilsFactory;
+import org.apache.commons.lang3.StringUtils;
+
+import java.io.File;
 
 /**
  * CheckStorageAvailability Handler.<br>
@@ -56,6 +60,7 @@ public class CheckStorageAvailabilityActionHandler extends ActionHandler {
         VitamLoggerFactory.getInstance(CheckStorageAvailabilityActionHandler.class);
 
     private static final String HANDLER_ID = "STORAGE_AVAILABILITY_CHECK";
+    private static final int REFERENTIAL_INGEST_CONTRACT_IN_RANK = 0;
 
     private final StorageClientFactory storageClientFactory;
     private final SedaUtils sedaUtils;
@@ -83,26 +88,31 @@ public class CheckStorageAvailabilityActionHandler extends ActionHandler {
 
 
     @Override
-
     public ItemStatus execute(WorkerParameters params, HandlerIO handlerIO) {
         checkMandatoryParameters(params);
         final ItemStatus itemStatus = new ItemStatus(HANDLER_ID);
-        long totalSizeToBeStored;
         try {
             checkMandatoryIOParameter(handlerIO);
+            ManagementContractModel managementContract = loadManagementContractFromWorkspace(handlerIO);
+            
             // TODO P0 extract this information from first parsing
             final SedaUtils sedaUtils = (null == this.sedaUtils) ? SedaUtilsFactory.getInstance().createSedaUtils(handlerIO) : this.sedaUtils;
             final long objectsSizeInSip = sedaUtils.computeTotalSizeOfObjectsInManifest(params);
-            final long manifestSize = sedaUtils.getManifestSize(params, handlerIO.getWorkspaceClientFactory());
-            totalSizeToBeStored = objectsSizeInSip + manifestSize;
-            final JsonNode storageCapacityNode;
-
-            try (final StorageClient storageClient = storageClientFactory.getClient()) {
-                storageCapacityNode = storageClient.getStorageInformation(VitamConfiguration.getDefaultStrategy());
+            
+            String strategyId = VitamConfiguration.getDefaultStrategy();
+            if (managementContract != null && managementContract.getStorage() != null
+                    && StringUtils.isNotBlank(managementContract.getStorage().getObjectStrategy())) {
+                strategyId = managementContract.getStorage().getObjectStrategy();
             }
+            
+            final JsonNode storageCapacityNode;
+            try (final StorageClient storageClient = storageClientFactory.getClient()) {
+                storageCapacityNode = storageClient.getStorageInformation(strategyId);
+            }
+
             // TODO P1 fix getcontainerInformation in storage
             if (storageCapacityNode == null) {
-                LOGGER.warn("storage capacity account information not found");
+                LOGGER.warn("storage capacity account information not found for object strategy");
                 itemStatus.increment(StatusCode.OK);
                 return new ItemStatus(HANDLER_ID).setItemsStatus(HANDLER_ID, itemStatus);
             }
@@ -113,15 +123,15 @@ public class CheckStorageAvailabilityActionHandler extends ActionHandler {
                     ItemStatus is = new ItemStatus(HANDLER_ID);
                     ObjectNode info = JsonHandler.createObjectNode();
                     // if usable space not specified getUsableSpace() return -1
-                    if (information.getUsableSpace() >= totalSizeToBeStored || information.getUsableSpace() == -1) {
+                    if (information.getUsableSpace() >= objectsSizeInSip || information.getUsableSpace() == -1) {
                         info.put(information.getOfferId(), StatusCode.OK.name());
                         is.increment(StatusCode.OK);
                     } else {
-                        LOGGER.error("storage capacity invalid on offer {} : usableSpace={}, totalSizeToBeStored={}",
-                            information.getOfferId(), information.getUsableSpace(), totalSizeToBeStored);
+                        LOGGER.error("storage capacity invalid on offer {} of object strategy : usableSpace={}, totalSizeToBeStored={}",
+                            information.getOfferId(), information.getUsableSpace(), objectsSizeInSip);
                         info.put(information.getOfferId(), StatusCode.KO.name());
                         info.put(information.getOfferId() + "_usableSpace", information.getUsableSpace());
-                        info.put(information.getOfferId() + "_totalSizeToBeStored", totalSizeToBeStored);
+                        info.put(information.getOfferId() + "_totalSizeToBeStored", objectsSizeInSip);
                         is.increment(StatusCode.KO);
                     }
                     is.setEvDetailData(info.toString());
@@ -139,6 +149,13 @@ public class CheckStorageAvailabilityActionHandler extends ActionHandler {
             itemStatus.increment(StatusCode.FATAL);
         }
         return new ItemStatus(HANDLER_ID).setItemsStatus(HANDLER_ID, itemStatus);
+    }
+
+    private ManagementContractModel loadManagementContractFromWorkspace(HandlerIO handlerIO)
+        throws InvalidParseOperationException {
+        IngestContractWithDetailsModel ingestContractWithDetailsModel =  JsonHandler.getFromFile((File) handlerIO.getInput(REFERENTIAL_INGEST_CONTRACT_IN_RANK),
+            IngestContractWithDetailsModel.class);
+        return ingestContractWithDetailsModel.getManagementContractModel();
     }
 
     @Override

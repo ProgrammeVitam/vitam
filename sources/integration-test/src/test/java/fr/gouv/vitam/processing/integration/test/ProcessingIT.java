@@ -673,8 +673,8 @@ public class ProcessingIT extends VitamRuleRunner {
             new fr.gouv.vitam.common.database.builder.request.single.Select();
         JsonNode logbookResult = logbookClient.selectOperationById(containerName);
         JsonNode logbookNode = logbookResult.get("$results").get(0);
-        assertEquals(logbookNode.get("events").get(6).get("outDetail").asText(),
-            "CHECK_HEADER.CHECK_CONTRACT_INGEST.CONTRACT_UNKNOWN.KO");
+        assertEquals("CHECK_HEADER.CHECK_CONTRACT_INGEST.CONTRACT_UNKNOWN.KO",
+                logbookNode.get("events").get(5).get("outDetail").asText());
     }
 
 
@@ -717,7 +717,7 @@ public class ProcessingIT extends VitamRuleRunner {
         LogbookOperationsClient logbookClient = LogbookOperationsClientFactory.getInstance().getClient();
         JsonNode logbookResult = logbookClient.selectOperationById(containerName);
         JsonNode logbookNode = logbookResult.get("$results").get(0);
-        assertThat(logbookNode.get("events").get(6).get("outDetail").asText())
+        assertThat(logbookNode.get("events").get(5).get("outDetail").asText())
             .isEqualTo("CHECK_HEADER.CHECK_CONTRACT_INGEST.CONTRACT_NOT_IN_CONTEXT.KO");
     }
 

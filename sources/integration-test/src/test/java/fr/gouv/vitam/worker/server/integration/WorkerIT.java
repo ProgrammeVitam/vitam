@@ -89,7 +89,7 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.fail;
 
 /**
- * Worker integration test TODO P1 : do a "worker-integration" module
+ * Worker integration test
  */
 public class WorkerIT extends VitamRuleRunner {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(WorkerIT.class);

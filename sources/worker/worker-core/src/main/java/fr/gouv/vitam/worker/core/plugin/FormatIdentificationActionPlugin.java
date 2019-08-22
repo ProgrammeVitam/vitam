@@ -56,6 +56,7 @@ import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.model.VitamAutoCloseable;
 import fr.gouv.vitam.common.model.administration.FileFormatModel;
 import fr.gouv.vitam.common.model.administration.IngestContractModel;
+import fr.gouv.vitam.common.model.administration.IngestContractWithDetailsModel;
 import fr.gouv.vitam.functional.administration.client.AdminManagementClient;
 import fr.gouv.vitam.functional.administration.client.AdminManagementClientFactory;
 import fr.gouv.vitam.functional.administration.common.FileFormat;
@@ -514,8 +515,9 @@ public class FormatIdentificationActionPlugin extends ActionHandler implements V
 
     private IngestContractModel loadIngestContractFromWorkspace(HandlerIO handlerIO)
         throws InvalidParseOperationException {
-        return JsonHandler.getFromFile((File) handlerIO.getInput(REFERENTIAL_INGEST_CONTRACT_PARAMETERS_RANK),
-            IngestContractModel.class);
+        IngestContractWithDetailsModel ingestContractWithDetailsModel =  JsonHandler.getFromFile((File) handlerIO.getInput(REFERENTIAL_INGEST_CONTRACT_PARAMETERS_RANK),
+            IngestContractWithDetailsModel.class);
+        return ingestContractWithDetailsModel.getIngestContractModel();
     }
 
     private boolean identifiedFormatsRestricted(final JsonNode format, Set<String> formatTypeSet) {
