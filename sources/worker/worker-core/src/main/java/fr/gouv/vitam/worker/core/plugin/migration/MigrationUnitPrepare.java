@@ -1,4 +1,4 @@
-/*******************************************************************************
+/*
  * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2019)
  *
  * contact.vitam@culture.gouv.fr
@@ -23,7 +23,7 @@
  *
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
- *******************************************************************************/
+ */
 package fr.gouv.vitam.worker.core.plugin.migration;
 
 import com.fasterxml.jackson.databind.JsonNode;
@@ -45,8 +45,7 @@ import fr.gouv.vitam.worker.common.HandlerIO;
 import fr.gouv.vitam.worker.core.handler.ActionHandler;
 import fr.gouv.vitam.worker.core.plugin.ScrollSpliteratorHelper;
 
-import static fr.gouv.vitam.common.model.IngestWorkflowConstants.ARCHIVE_UNIT_FOLDER;
-import static fr.gouv.vitam.worker.core.plugin.migration.MigrationHelper.exportToReportAndLinkedFiles;
+import static fr.gouv.vitam.worker.core.plugin.migration.MigrationHelper.exportToReportAndDistributionFile;
 import static fr.gouv.vitam.worker.core.plugin.migration.MigrationHelper.getSelectMultiQuery;
 
 /**
@@ -67,9 +66,6 @@ public class MigrationUnitPrepare extends ActionHandler {
         this.bachSize = bachSize;
     }
 
-    /**
-     * Constructor
-     */
     public MigrationUnitPrepare() {
         this(MetaDataClientFactory.getInstance(), GlobalDatasDb.LIMIT_LOAD);
     }
@@ -85,8 +81,8 @@ public class MigrationUnitPrepare extends ActionHandler {
             ScrollSpliterator<JsonNode> scrollRequest = ScrollSpliteratorHelper
                 .createUnitScrollSplitIterator(client, selectMultiQuery, bachSize);
 
-            exportToReportAndLinkedFiles(scrollRequest, handler, ARCHIVE_UNIT_FOLDER,
-                bachSize, REPORTS + "/" + MIGRATION_UNITS_LIST_IDS + ".json");
+            exportToReportAndDistributionFile(scrollRequest, handler, "Units.jsonl",
+                REPORTS + "/" + MIGRATION_UNITS_LIST_IDS + ".json");
 
             if (ScrollSpliteratorHelper.checkNumberOfResultQuery(itemStatus, scrollRequest.estimateSize())) {
                 return new ItemStatus(MIGRATION_UNITS_LIST)
