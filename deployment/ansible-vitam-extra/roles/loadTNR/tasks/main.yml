@@ -37,9 +37,7 @@
     validate_certs: no
     timeout: "{{ vitam_defaults.services.api_call_timeout }}"
   # TNR are used on tenant 0 & 1 only
-  with_items:
-    - "0"
-    - "1"
+  loop: "{{ tenant_to_clean_before_tnr | list }}"
   ignore_errors: true
   run_once: true
   when: login.set_cookie != ''
