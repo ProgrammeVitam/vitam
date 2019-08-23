@@ -1047,6 +1047,12 @@ public class AccessStep {
                         .setApplicationSessionId(world.getApplicationSessionId()),
                     queryJSON);
                 break;
+            case MANAGEMENT_CONTRACTS:
+                requestResponse = world.getAdminClient().findManagementContracts(
+                    new VitamContext(world.getTenantId()).setAccessContract(null)
+                        .setApplicationSessionId(world.getApplicationSessionId()),
+                    queryJSON);
+                break;
             case CONTEXTS:
                 requestResponse = world.getAdminClient().findContexts(
                     new VitamContext(world.getTenantId()).setAccessContract(null)
