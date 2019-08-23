@@ -5,7 +5,6 @@ Wants=network-online.target
 After=network-online.target
 
 [Service]
-RuntimeDirectory=elasticsearch
 Environment=ES_HOME=/usr/share/elasticsearch
 Environment=ES_PATH_CONF=/vitam/conf/elasticsearch-data
 Environment=PID_DIR=/var/run/elasticsearch-data
@@ -20,7 +19,7 @@ Group=vitam
 
 ExecStart=/usr/share/elasticsearch/bin/elasticsearch \
 	-p ${PID_DIR}/elasticsearch.pid \
-	--quiet 
+	--quiet
 
 # Specifies the maximum number of bytes of memory that may be locked into RAM
 # Set to "infinity" if you use the 'bootstrap.memory_lock: true' option

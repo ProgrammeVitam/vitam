@@ -5,7 +5,6 @@ Wants=network-online.target
 After=network-online.target
 
 [Service]
-RuntimeDirectory=elasticsearch
 Environment=ES_HOME=/usr/share/elasticsearch
 Environment=CONF_DIR=/vitam/conf/elasticsearch-log
 Environment=PID_DIR=/var/run/elasticsearch-log

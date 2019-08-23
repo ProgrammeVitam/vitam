@@ -26,6 +26,8 @@ vitam_defaults:
         stop_timeout: 3600
         port_service_timeout: 86400
         api_call_timeout: 120
+        status_retries_number: 60
+        status_retries_delay: 5
     # Filter for the vitam package version to install
     # FIXME : commented as has to be removed becuase doesn't work under Debain
     #package_version: "*"
