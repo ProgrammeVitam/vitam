@@ -98,7 +98,7 @@ public class OfferSequenceServiceTest {
         MongoDatabase mongoDatabase = mock(MongoDatabase.class);
         MongoCollection<Document> mongoCollection = mock(MongoCollection.class);
         when(mongoDatabase.getCollection(any())).thenReturn(mongoCollection);
-        when(mongoCollection.findOneAndUpdate(any(Bson.class), any(), any())).thenThrow(new MongoException("mongo error"));
+        when(mongoCollection.findOneAndUpdate(any(Bson.class), any(Bson.class),any())).thenThrow(new MongoException("mongo error"));
         OfferSequenceDatabaseService service = new OfferSequenceDatabaseService(mongoDatabase);
 
         // when + then

@@ -1,8 +1,8 @@
 Package: vitam-mongod
-Version: 4.0
+Version: 4.2
 Section: database
 Priority: optional
 Architecture: amd64
-Depends: systemd, mongodb-org (>= 4.0), vitam-user-vitamdb
+Depends: systemd, mongodb-org (>= 4.2.0), vitam-user-vitamdb
 Maintainer: French Prime minister Office/SGMAP/DINSIC/Vitam Program <contact.vitam@culture.gouv.fr>
 Description: Service files for Vitam mongod cluster configuration nodes

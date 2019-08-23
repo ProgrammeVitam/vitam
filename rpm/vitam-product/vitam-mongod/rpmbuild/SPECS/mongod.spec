@@ -1,5 +1,5 @@
 Name:          vitam-mongod
-Version:       4.0
+Version:       4.2
 Release:       1%{?dist}
 Summary:       Service files for Vitam mongod cluster configuration nodes
 Group:         Applications/Databases
@@ -11,7 +11,7 @@ Source0:       vitam-mongod.service
 
 BuildRequires: systemd-units
 Requires:      systemd
-Requires:      mongodb-org >= 4.0
+Requires:      mongodb-org >= 4.2.0
 Requires:      vitam-user-vitamdb
 
 %description
