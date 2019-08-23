@@ -13,6 +13,7 @@ export class IngestContract {
   MasterMandatory: boolean;
   EveryDataObjectVersion: boolean;
   FormatUnidentifiedAuthorized: boolean;
+  ComputeInheritedRulesAtIngest: boolean;
   EveryFormatType: boolean;
   FormatType: string[];
   DataObjectVersion: string[];

@@ -55,7 +55,6 @@
                               [(updatedFields)]="updatedFields"></vitam-metadata-field>
       </div>
 
-
       <div class="ui-g-12">
         <vitam-metadata-field [title]="'Description'" [originalTitle]="'Description'"
                               [value]="modifiedContract.Description" [labelSize]="4"
@@ -157,7 +156,7 @@
           </div>
           <div class="ui-g-2" *ngIf="update">
             <p-toggleButton onLabel="Oui" offLabel="Non" [(ngModel)]="modifiedContract.FormatUnidentifiedAuthorized "
-                            (onChange)="changeFormatUnidentifiedAuthorized ()"></p-toggleButton>
+                            (onChange)="changeFormatUnidentifiedAuthorized()"></p-toggleButton>
           </div>
         </div>
 
@@ -173,16 +172,28 @@
 
           </div>
         </div>
-      <div class="ui-g-nopad ui-g-4">
+        <div class="ui-g-nopad ui-g-4">
           <vitam-metadata-field *ngIf="!modifiedContract.EveryFormatType" [title]="'Liste blanche des format'"
                                 [originalTitle]="'FormatType'"  [value]="modifiedContract.FormatType" [labelSize]="4"
                                 class="ui-g-12 " [updateMode]="update" [(updatedFields)]="updatedFields"></vitam-metadata-field>
-          <div class="ui-g-4" *ngIf="modifiedContract.EveryFormatType"  >
-          </div>
+          <div class="ui-g-2" *ngIf="modifiedContract.EveryFormatType"  ></div>
         </div>
       </div>
+
       <div class="ui-g-12">
-          <vitam-metadata-field [title]="'Contrat de gestion'" [originalTitle]="'ManagementContractId'" [value]="modifiedContract.ManagementContractId"
+        <div class="ui-g-4">
+          <div class="ui-g-8">
+            <label class="label fieldLabel">Computed Inherited Rules</label>
+          </div>
+          <div class="ui-g-2" *ngIf="!update">
+            <span class="overflow-break-words">{{modifiedContract.ComputeInheritedRulesAtIngest ? 'oui' : 'non'}}</span>
+          </div>
+          <div class="ui-g-2" *ngIf="update">
+            <p-toggleButton onLabel="Oui" offLabel="Non" [(ngModel)]="modifiedContract.ComputeInheritedRulesAtIngest"
+                            (onChange)="changeComputeInheritedRulesAtIngest()"></p-toggleButton>
+          </div>
+        </div>
+        <vitam-metadata-field [title]="'Contrat de gestion'" [originalTitle]="'ManagementContractId'" [value]="modifiedContract.ManagementContractId"
                                 [labelSize]="4"
                                 class="ui-g-4 " [updateMode]="update"
                                 [(updatedFields)]="updatedFields"></vitam-metadata-field>
@@ -190,7 +201,9 @@
 
       <div class="ui-g-12">
         <div class="ui-g-nopad ui-g-12" *ngIf="update">
-          <span class="overflow-break-words"><i>Afin que la modification soit prise en compte, veuillez appuyer sur "Entrer" après l'ajout de chaque identifiant.</i></span>
+          <span class="overflow-break-words">
+            <i>Afin que la modification soit prise en compte, veuillez appuyer sur "Entrer" après l'ajout de chaque identifiant.</i>
+          </span>
         </div>
       </div>
     </div>

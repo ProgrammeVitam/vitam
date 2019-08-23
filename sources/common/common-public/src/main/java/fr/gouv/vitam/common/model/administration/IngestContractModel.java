@@ -61,6 +61,8 @@ public class IngestContractModel extends AbstractContractModel {
 
     public static final String FORMAT_UNIDENTIFIED_AUTHORIZED = "FormatUnidentifiedAuthorized";
 
+    public static final String COMPUTE_INHERITED_RULES_AT_INGEST = "ComputeInheritedRulesAtIngest";
+
     public static final String EVERY_FORMAT_TYPE = "EveryFormatType";
 
     public static final String FORMAT_TYPE = "FormatType";
@@ -94,6 +96,11 @@ public class IngestContractModel extends AbstractContractModel {
      */
     @JsonProperty(FORMAT_UNIDENTIFIED_AUTHORIZED)
     private boolean formatUnidentifiedAuthorized = false;
+    /**
+     * computedInheritedRules is false  by default if no value is specified
+     */
+    @JsonProperty(COMPUTE_INHERITED_RULES_AT_INGEST)
+    private boolean computeInheritedRulesAtIngest = false;
     /**
      * everyFormatType is True by default if no value is specified.
      */
@@ -198,6 +205,14 @@ public class IngestContractModel extends AbstractContractModel {
     public IngestContractModel setFormatUnidentifiedAuthorized(boolean formatUnidentifiedAuthorized) {
         this.formatUnidentifiedAuthorized = formatUnidentifiedAuthorized;
         return this;
+    }
+
+    public boolean isComputeInheritedRulesAtIngest() {
+        return computeInheritedRulesAtIngest;
+    }
+
+    public void setComputeInheritedRulesAtIngest(boolean computeInheritedRulesAtIngest) {
+        this.computeInheritedRulesAtIngest = computeInheritedRulesAtIngest;
     }
 
     public boolean isEveryFormatType() {

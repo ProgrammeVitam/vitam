@@ -53,6 +53,9 @@
     "FormatUnidentifiedAuthorized": {
       "type": "boolean"
     },
+    "ComputeInheritedRulesAtIngest": {
+      "type": "boolean"
+    },
     "EveryFormatType": {
       "type": "boolean"
     },

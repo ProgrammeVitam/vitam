@@ -82,6 +82,9 @@ export class IngestContractComponent extends PageComponent {
   changeMasterMandatory() {
     this.updatedFields.MasterMandatory = this.modifiedContract.MasterMandatory;
   }
+  changeComputeInheritedRulesAtIngest() {
+    this.updatedFields.ComputeInheritedRulesAtIngest = this.modifiedContract.ComputeInheritedRulesAtIngest;
+  }
 
   changeBooleanValue(key: string) {
     this.updatedFields[key] = this.modifiedContract[key];
