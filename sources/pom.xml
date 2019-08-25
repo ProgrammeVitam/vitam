@@ -161,22 +161,22 @@
         <com.github.tomakehurst.version>2.21.0</com.github.tomakehurst.version>
         <io.reactivex.rxjava2.version>2.2.6</io.reactivex.rxjava2.version>
         <maven.surefire.version>2.22.1</maven.surefire.version>
-        <maven.clean.version>3.0.0</maven.clean.version>
-        <maven.compiler.version>3.5.1</maven.compiler.version>
+        <maven.clean.version>3.1.0</maven.clean.version>
+        <maven.compiler.version>3.8.1</maven.compiler.version>
         <maven.deploy.version>2.8.2</maven.deploy.version>
         <maven.resources.version>3.1.0</maven.resources.version>
-        <maven.source.version>3.0.0</maven.source.version>
+        <maven.source.version>3.1.0</maven.source.version>
         <maven.dependency.version>3.1.1</maven.dependency.version>
-        <maven.site.version>3.5.1</maven.site.version>
+        <maven.site.version>3.8.2</maven.site.version>
         <maven.assembly.version>3.1.1</maven.assembly.version>
         <maven.exec.version>1.6.0</maven.exec.version>
         <maven.failsafe.version>2.19.1</maven.failsafe.version>
-        <maven.javadoc.version>2.10.4</maven.javadoc.version>
+        <maven.javadoc.version>3.1.1</maven.javadoc.version>
         <maven.exec.version>1.6.0</maven.exec.version>
-	    <maven.dependencycheck.version>5.2.0</maven.dependencycheck.version>
+	    <maven.dependencycheck.version>5.2.1</maven.dependencycheck.version>
         <xalan.version>2.7.2</xalan.version>
         <nodeDownloadRoot/>
-        <maven-jar-plugin.version>2.6</maven-jar-plugin.version>
+        <maven-jar-plugin.version>3.1.2</maven-jar-plugin.version>
         <cucumber-java.version>1.2.5</cucumber-java.version>
         <cucumber-picocontainer.version>1.2.5</cucumber-picocontainer.version>
         <cucumber-junit.version>1.2.5</cucumber-junit.version>
@@ -185,19 +185,19 @@
         <antisamy.version>1.5.8</antisamy.version>
         <jdeb.vafer.version>1.5</jdeb.vafer.version>
         <json-schema-core.version>1.2.5</json-schema-core.version>
-        <maven-scm-plugin.version>1.9.4</maven-scm-plugin.version>
+        <maven-scm-plugin.version>1.11.2</maven-scm-plugin.version>
         <json-patch.version>1.9</json-patch.version>
         <jackson-coreutils.version>1.8</jackson-coreutils.version>
-        <git-commit-id-plugin.version>2.2.1</git-commit-id-plugin.version>
-        <maven-antrun-plugin.version>1.6</maven-antrun-plugin.version>
-        <license-maven-plugin.version>1.16</license-maven-plugin.version>
+        <git-commit-id-plugin.version>3.0.1</git-commit-id-plugin.version>
+        <maven-antrun-plugin.version>1.8</maven-antrun-plugin.version>
+        <license-maven-plugin.version>1.20</license-maven-plugin.version>
         <maven-install-plugin.version>2.5.2</maven-install-plugin.version>
         <maven-verifier-plugin.version>1.1</maven-verifier-plugin.version>
         <maven-enforcer-plugin.version>1.4.1</maven-enforcer-plugin.version>
-        <maven-help-plugin.version>2.2</maven-help-plugin.version>
+        <maven-help-plugin.version>3.2.0</maven-help-plugin.version>
         <maven-release-plugin.version>2.5.3</maven-release-plugin.version>
         <sonar-maven-plugin.version>3.2</sonar-maven-plugin.version>
-        <versions-maven-plugin.version>2.3</versions-maven-plugin.version>
+        <versions-maven-plugin.version>2.7</versions-maven-plugin.version>
         <maven-scm-provider-jgit.version>1.9.4</maven-scm-provider-jgit.version>
     </properties>
 

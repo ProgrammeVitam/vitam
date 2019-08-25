@@ -299,7 +299,6 @@
 			<plugin>
 				<artifactId>jdeb</artifactId>
 				<groupId>org.vafer</groupId>
-				<version>1.4</version>
 				<configuration>
 					<snapshotExpand>true</snapshotExpand>
 					<skip>false</skip>
