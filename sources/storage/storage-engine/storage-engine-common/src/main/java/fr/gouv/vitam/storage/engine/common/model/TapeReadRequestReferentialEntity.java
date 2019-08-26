@@ -40,7 +40,7 @@ public class TapeReadRequestReferentialEntity {
     private Boolean isExpired = false;
 
 
-    // When the first tar is in disk and expireInMinutes is elapsed then this entity will be expired an purged
+    // When expireInMinutes is elapsed after reading tar file from tape to disk this entity will marked as isExpired to true and then purged with a background thread
     @JsonProperty(EXPIRE_IN_MINUTES)
     private Long expireInMinutes = 0L;
 
