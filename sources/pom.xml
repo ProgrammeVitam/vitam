@@ -291,6 +291,9 @@
                                 </goals>
                             </execution>
                         </executions>
+                        <configuration>
+                            <doclint>none</doclint>
+                        </configuration>
                     </plugin>
                 </plugins>
             </build>
@@ -498,7 +501,7 @@
                     <version>${maven.javadoc.version}</version>
                     <configuration>
                         <source>${java.version}</source>
-                        <additionalparam>-Xdoclint:none</additionalparam>
+                        <doclint>none</doclint>
                         <doctitle>Vitam API Reference (${project.version})</doctitle>
                         <windowtitle>Vitam API Reference (${project.version})</windowtitle>
                         <excludePackageNames>
