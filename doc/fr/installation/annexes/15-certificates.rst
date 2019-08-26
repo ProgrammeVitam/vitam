@@ -72,3 +72,10 @@ Cas des certificats d'horodatage
 --------------------------------
 
 Les services ``logbook`` et ``storage`` utilisent des certificats d'horodatage.
+
+Cas des certificats des services de stockage objets
+---------------------------------------------------
+
+En cas d'utilisation d'offres de stockage objet avec :term:`VITAM`, si une connexion https est utilisée,
+il est nécessaire de déposer les :term:`CA` (root et/ou intermédiaire) des serveurs de ces offres de stockage dans le répertoire ``deployment/environments/certs/server/ca``.
+Cela permettra d'ajouter ces :term:`CA` dans le **truststore** du serveur ``offer`` lorsque les **keystores** seront générés.
