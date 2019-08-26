@@ -112,4 +112,42 @@ public class ReadRequestReferentialRepositoryTest {
         deleted = readRequestReferentialRepository.cleanUp();
         Assertions.assertThat(deleted).isEqualTo(1L);
     }
+
+
+    @Test
+    public void test_update_in_progress_OK() throws ReadRequestReferentialException {
+        String requestId = GUIDFactory.newGUID().getId();
+        TapeReadRequestReferentialEntity tapeReadRequestReferentialEntity = new TapeReadRequestReferentialEntity();
+        tapeReadRequestReferentialEntity.setRequestId(requestId);
+        tapeReadRequestReferentialEntity.setContainerName("test");
+        FileInTape fileInTape = new FileInTape();
+        fileInTape.setFileName("aeaaaaaaaahcgk7xab4u4almjab2h5aaaaaq");
+        fileInTape.setStorageId("aeaaaaaaaahcgk7xab4u4almjab2h5aaaaaq-aeaaaaaaaahgsrzsab2e2almjab3r6iaaaaq");
+        TarEntryDescription tarEntryDescription =
+            new TarEntryDescription("20190731123139281-3fd599c8-7747-4639-8176-14bb34f9e520.tar",
+                "frigotmp2_0_object/aeaaaaaaaahcgk7xab4u4almjab2h5aaaaaq-aeaaaaaaaahgsrzsab2e2almjab3r6iaaaaq-0",
+                0,
+                6,
+                "86c0bc701ef6b5dd21b080bc5bb2af38097baa6237275da83a52f092c9eae3e4e4b0247391620bd732fe824d18bd3bb6c37e62ec73a8cf3585c6a799399861b1");
+        fileInTape.setFileSegments(Lists.newArrayList(tarEntryDescription));
+        tapeReadRequestReferentialEntity.setFiles(Lists.newArrayList(fileInTape));
+        HashMap<String, TarLocation> tarLocations = new HashMap<>();
+        String tarNameWithoutExtension =
+            StringUtils.substringBeforeLast("20190731123139281-3fd599c8-7747-4639-8176-14bb34f9e520.tar", ".");
+        tarLocations.put(
+            tarNameWithoutExtension, TarLocation.TAPE);
+        tapeReadRequestReferentialEntity.setTarLocations(tarLocations);
+
+        tapeReadRequestReferentialEntity.setExpireInMinutes(5L);
+        tapeReadRequestReferentialEntity.setIsExpired(false);
+        readRequestReferentialRepository.insert(tapeReadRequestReferentialEntity);
+
+        readRequestReferentialRepository.updateReadRequestInProgress(requestId, tarNameWithoutExtension, TarLocation.DISK);
+
+        Optional<TapeReadRequestReferentialEntity> found = readRequestReferentialRepository.find(requestId);
+        Assertions.assertThat(found).isPresent();
+        Assertions.assertThat(found.get().isCompleted()).isTrue();
+        Assertions.assertThat(found.get().getIsExpired()).isFalse();
+
+    }
 }

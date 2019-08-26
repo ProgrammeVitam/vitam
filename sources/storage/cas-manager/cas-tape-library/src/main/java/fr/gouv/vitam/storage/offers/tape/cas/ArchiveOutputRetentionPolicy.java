@@ -37,6 +37,7 @@ import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
 
 import java.nio.file.Path;
+import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
@@ -52,6 +53,7 @@ public class ArchiveOutputRetentionPolicy {
     private final Cache<String, Path> cache;
     private final long cacheTimeoutInMinutes;
     private final ReadRequestReferentialCleaner requestReferentialCleaner;
+    private final Executor cleanUpExecutor = Executors.newFixedThreadPool(1, VitamThreadFactory.getInstance());
 
     public ArchiveOutputRetentionPolicy(long cacheTimeoutInMinutes,
         ReadRequestReferentialCleaner requestReferentialCleaner) {
@@ -66,29 +68,29 @@ public class ArchiveOutputRetentionPolicy {
         cache = CacheBuilder.newBuilder()
             .expireAfterAccess(cacheTimeoutInMinutes, timeUnit)
             .concurrencyLevel(concurrencyLevel)
-            .removalListener((RemovalListener<String, Path>) removalNotification -> {
-                
-                Path value = removalNotification.getValue();
-                FileUtils.deleteQuietly(value.toFile());
+            .removalListener((RemovalListener<String, Path>) removalNotification -> cleanUpExecutor
+                .execute(() -> cleanUpExpiredEntry(removalNotification.getKey(), removalNotification.getValue()))).build();
 
-                try {
-                    String tarFileIdWithoutExtension = StringUtils
-                        .substringBeforeLast(removalNotification.getKey(), ".");
-                    requestReferentialCleaner.invalidate(tarFileIdWithoutExtension);
-                } catch (Exception e) {
-                    LOGGER.warn(e);
-                }
-
-                LOGGER.debug(
-                    String.format("Remove archive file (%s) from file system.", value.toFile().getAbsolutePath()));
-
-            }).build();
-
-        Runnable cc = () -> System.err.println("");
         // CleanUp to force call to removalListener (This is needed in case where we have just read and no write operations to cache)
         Executors
             .newScheduledThreadPool(1, VitamThreadFactory.getInstance())
             .scheduleWithFixedDelay(() -> cleanUp(), 0, cacheTimeoutInMinutes + 1, timeUnit);
+    }
+
+    private void cleanUpExpiredEntry(String tarFileId, Path filePath) {
+
+        FileUtils.deleteQuietly(filePath.toFile());
+
+        try {
+            String tarFileIdWithoutExtension = StringUtils.substringBeforeLast(tarFileId, ".");
+            // TODO: 22/08/2019 invalidate many by tar and not by request id
+            requestReferentialCleaner.invalidate(tarFileIdWithoutExtension);
+        } catch (Exception e) {
+            LOGGER.warn(e);
+        }
+
+        LOGGER.debug(
+            String.format("Remove archive file (%s) from file system.", filePath.toFile().getAbsolutePath()));
     }
 
     public void put(String archiveId, Path path) {
