@@ -14,4 +14,4 @@
 - import_tasks: check_strategies_offers.yml
 
 - include_tasks: check_offers_mongo.yml
-  when:  ( inventory_hostname in groups['hosts-storage-offer-default'] and ansible_virtualization_type != "docker" and inventory_hostname != "localhost" )
+  when:  ( inventory_hostname in groups['hosts-storage-offer-default'] and ansible_virtualization_type != "docker" and inventory_hostname not in single_vm_hostnames )

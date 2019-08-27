@@ -591,3 +591,6 @@ vitam_tenant_rule_duration:
   - name: 2 # applied tenant
     rules:
       - AppraisalRule : "1 year" # rule name : rule value
+
+# If you want to deploy vitam in a single VM, add the vm name in this array
+single_vm_hostnames: ['localhost']
