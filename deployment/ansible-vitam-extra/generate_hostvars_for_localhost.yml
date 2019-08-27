@@ -1,0 +1,4 @@
+---
+- hosts: hosts
+  roles:
+    - generate_hostvars_for_localhost
