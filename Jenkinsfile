@@ -145,6 +145,14 @@ pipeline {
         }
 
         stage("Build packages") {
+            when {
+                anyOf {
+                    branch "develop*"
+                    branch "master_*"
+                    branch "master"
+                    tag pattern: "^[1-9]+\\.[0-9]+\\.[0-9]+-?[0-9]*\$", comparator: "REGEXP"
+                }
+            }
             // when {
             //     environment(name: 'CHANGED_VITAM', value: 'true')
             // }
@@ -173,6 +181,14 @@ pipeline {
         }
 
         stage("Build doc package") {
+            when {
+                anyOf {
+                    branch "develop*"
+                    branch "master_*"
+                    branch "master"
+                    tag pattern: "^[1-9]+\\.[0-9]+\\.[0-9]+-?[0-9]*\$", comparator: "REGEXP"
+                }
+            }
             // when {
             //     environment(name: 'CHANGED_VITAM', value: 'true')
             // }
@@ -192,6 +208,14 @@ pipeline {
         }
 
         stage("Prepare packages building") {
+            when {
+                anyOf {
+                    branch "develop*"
+                    branch "master_*"
+                    branch "master"
+                    tag pattern: "^[1-9]+\\.[0-9]+\\.[0-9]+-?[0-9]*\$", comparator: "REGEXP"
+                }
+            }
             // when {
             //     environment(name: 'CHANGED_VITAM_PRODUCT', value: 'true')
             // }
@@ -204,6 +228,14 @@ pipeline {
         }
 
         stage("Build vitam-product & vitam-external packages") {
+            when {
+                anyOf {
+                    branch "develop*"
+                    branch "master_*"
+                    branch "master"
+                    tag pattern: "^[1-9]+\\.[0-9]+\\.[0-9]+-?[0-9]*\$", comparator: "REGEXP"
+                }
+            }
             // when {
             //     environment(name: 'CHANGED_VITAM_PRODUCT', value: 'true')
             // }
@@ -238,6 +270,14 @@ pipeline {
         }
 
         stage("Publish packages") {
+            when {
+                anyOf {
+                    branch "develop*"
+                    branch "master_*"
+                    branch "master"
+                    tag pattern: "^[1-9]+\\.[0-9]+\\.[0-9]+-?[0-9]*\$", comparator: "REGEXP"
+                }
+            }
             // when {
             //     //environment(name: 'CHANGED_VITAM_PRODUCT', value: 'true')
             //     environment(name: 'MASTER_BRANCH', value: 'true')
@@ -273,6 +313,14 @@ pipeline {
             }
         }
         stage("Update symlink") {
+            when {
+                anyOf {
+                    branch "develop*"
+                    branch "master_*"
+                    branch "master"
+                    tag pattern: "^[1-9]+\\.[0-9]+\\.[0-9]+-?[0-9]*\$", comparator: "REGEXP"
+                }
+            }
             steps {
                 sshagent (credentials: ['jenkins_sftp_to_repository']) {
                     sh 'vitam-build.git/push_symlink_repo.sh commit $SERVICE_REPO_SSHURL'
@@ -285,6 +333,7 @@ pipeline {
                     branch "develop*"
                     branch "master_*"
                     branch "master"
+                    tag pattern: "^[1-9]+\\.[0-9]+\\.[0-9]+-?[0-9]*\$", comparator: "REGEXP"
                 }
             }
             steps {
