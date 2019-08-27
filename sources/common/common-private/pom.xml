@@ -217,7 +217,7 @@
             <plugin>
                 <groupId>org.jvnet.jaxb2.maven2</groupId>
                 <artifactId>maven-jaxb2-plugin</artifactId>
-                <version>0.13.1</version>
+                <version>${maven.jaxb2.version}</version>
                 <executions>
                     <execution>
                         <configuration>
@@ -249,7 +249,7 @@
                     <dependency>
                         <groupId>org.jvnet.jaxb2_commons</groupId>
                         <artifactId>jaxb2-basics</artifactId>
-                        <version>0.6.5</version>
+                        <version>${jaxb2-basics.version}</version>
                     </dependency>
                 </dependencies>
             </plugin>
