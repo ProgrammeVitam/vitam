@@ -6,7 +6,7 @@ authentication : {{ vitam_struct.https_enabled }}
 # Configuration MongoDB
 mongoDbNodes:
 {% for server in groups['hosts-mongos-offer'] %}
-{% if hostvars[server]['mongo_cluster_name'] == offer_conf or inventory_hostname == 'localhost' %}
+{% if hostvars[server]['mongo_cluster_name'] == offer_conf or inventory_hostname in single_vm_hostnames %}
 - dbHost: {{ hostvars[server]['ip_service'] }}
   dbPort: {{ mongodb.mongos_port }}
 {% endif %}

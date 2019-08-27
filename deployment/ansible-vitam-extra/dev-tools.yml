@@ -7,16 +7,16 @@
 
 - hosts: hosts-dev-tools
   roles:
-    - {role: elasticsearch-head, when: "inventory_hostname != 'localhost'"}
+    - {role: elasticsearch-head, when: "inventory_hostname not in single_vm_hostnames"}
 
 - hosts: hosts-mongos-data
   roles:
-    - {role: mongo-express, when: "inventory_hostname != 'localhost'"}
+    - {role: mongo-express, when: "inventory_hostname not in single_vm_hostnames"}
   vars:
     group_name: "hosts-mongos-data"
 
 - hosts: hosts-mongos-offer
   roles:
-    - {role: mongo-express, when: "inventory_hostname != 'localhost'"}
+    - {role: mongo-express, when: "inventory_hostname not in single_vm_hostnames"}
   vars:
     group_name: "hosts-mongos-offer"
