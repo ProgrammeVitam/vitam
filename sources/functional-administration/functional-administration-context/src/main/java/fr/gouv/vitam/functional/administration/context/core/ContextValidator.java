@@ -26,11 +26,11 @@
  */
 package fr.gouv.vitam.functional.administration.context.core;
 
-import java.util.Optional;
-
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.model.administration.ContextModel;
 import fr.gouv.vitam.functional.administration.common.exception.ReferentialException;
+
+import java.util.Optional;
 
 /**
  * Context Validator class
@@ -59,6 +59,7 @@ public interface ContextValidator {
         private static final String ERR_NO_EXISTANCE_INGEST = "The ingest contract %s does not exist";
         private static final String ERR_NO_EXISTANCE_ACCESS = "The access contract %s does not exist";
         private static final String ERR_INVALID_SECURITY_PROFILE = "The security profile %s does not exist";
+        private static final String ERR_NO_EXISTANCE_TENANT = "The tenant %d does not exist";
 
         private String reason;
 
@@ -100,6 +101,16 @@ public interface ContextValidator {
          */
         public static ContextRejectionCause rejectDuplicatedInDatabase(String contextName) {
             return new ContextRejectionCause(String.format(ERR_DUPLICATE_CONTEXT, contextName));
+        }
+
+        /**
+         * Reject if the tenant does not exist
+         *
+         * @param tenantId the tenant id
+         * @return ContextRejectionCause
+         */
+        public static ContextRejectionCause rejectNoExistanceOfTenant(Integer tenantId) {
+            return new ContextRejectionCause(String.format(ERR_NO_EXISTANCE_TENANT, tenantId));
         }
 
         /**

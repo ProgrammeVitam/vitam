@@ -31,6 +31,7 @@ import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.ParametersChecker;
+import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.database.builder.query.QueryHelper;
 import fr.gouv.vitam.common.database.builder.query.VitamFieldsHelper;
 import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken;
@@ -57,7 +58,11 @@ import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.StatusCode;
-import fr.gouv.vitam.common.model.administration.*;
+import fr.gouv.vitam.common.model.administration.AccessContractModel;
+import fr.gouv.vitam.common.model.administration.ContextModel;
+import fr.gouv.vitam.common.model.administration.IngestContractModel;
+import fr.gouv.vitam.common.model.administration.PermissionModel;
+import fr.gouv.vitam.common.model.administration.SecurityProfileModel;
 import fr.gouv.vitam.common.parameter.ParameterHelper;
 import fr.gouv.vitam.common.security.SanityChecker;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
@@ -75,7 +80,6 @@ import fr.gouv.vitam.functional.administration.context.core.ContextValidator.Con
 import fr.gouv.vitam.functional.administration.contract.api.ContractService;
 import fr.gouv.vitam.functional.administration.contract.core.AccessContractImpl;
 import fr.gouv.vitam.functional.administration.contract.core.IngestContractImpl;
-import fr.gouv.vitam.functional.administration.contract.core.ManagementContractImpl;
 import fr.gouv.vitam.functional.administration.security.profile.core.SecurityProfileService;
 import fr.gouv.vitam.logbook.common.parameters.LogbookOperationParameters;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParameterName;
@@ -562,6 +566,7 @@ public class ContextServiceImpl implements ContextService {
                 put(createMandatoryParamsValidator(), EMPTY_REQUIRED_FIELD);
                 put(securityProfileIdentifierValidator(), SECURITY_PROFILE_NOT_FOUND);
                 put(createCheckDuplicateInDatabaseValidator(), DUPLICATE_IN_DATABASE);
+                put(checkTenant(), UNKNOWN_VALUE);
                 put(checkContract(), UNKNOWN_VALUE);
             }};
         }
@@ -878,6 +883,28 @@ public class ContextServiceImpl implements ContextService {
             };
         }
 
+        /**
+         * Check if the tenant exist
+         *
+         * @return
+         */
+        private ContextValidator checkTenant() {
+            return (context) -> {
+                ContextValidator.ContextRejectionCause rejection = null;
+
+                final List<PermissionModel> pmList = context.getPermissions();
+                for (final PermissionModel pm : pmList) {
+                    final int tenant = pm.getTenant();
+                    List<Integer> tenants = VitamConfiguration.getTenants();
+                    if (!tenants.contains(tenant)) {
+                        rejection = ContextValidator.ContextRejectionCause.rejectNoExistanceOfTenant(tenant);
+                        return Optional.of(rejection);
+                    }
+                }
+
+                return Optional.empty();
+            };
+        }
 
         public boolean checkIdentifierOfIngestContract(String ic, int tenant)
             throws ReferentialException, InvalidParseOperationException {
