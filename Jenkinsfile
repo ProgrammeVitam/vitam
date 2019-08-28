@@ -78,7 +78,7 @@ pipeline {
                 // OMA: evaluate project version ; write directly through shell as I didn't find anything else
                 sh "$MVN_BASE -q -f sources/pom.xml --non-recursive -Dexec.args='\${project.version}' -Dexec.executable=\"echo\" org.codehaus.mojo:exec-maven-plugin:1.3.1:exec > version_projet.txt"
                 echo "Changed VITAM : ${env.CHANGED_VITAM}"
-                echo "Changed VITAM : ${env.CHANGED_VITAM_PRODUCT}"
+                echo "Changed VITAM : ${env.CHANGED_VITAM_PRODUCT}"		
             }
         }
 
@@ -105,7 +105,24 @@ pipeline {
                 echo "We are on master branch (${env.GIT_BRANCH}) ; deploy goal is \"${env.DEPLOY_GOAL}\""
             }
         }
-
+		
+		// special case for MR
+        stage("Notify gitlab if merge request") {
+            when {
+                not{
+                    anyOf {
+                        branch "develop*"
+                        branch "master_*"
+                        branch "master"
+                        tag pattern: "^[1-9]+\\.[0-9]+\\.[0-9]+-?[0-9]*\$", comparator: "REGEXP"
+                    }
+                }
+            }
+            steps {
+                updateGitlabCommitStatus name: 'mergerequest', state: 'running'
+            }
+        }
+		
         stage ("Execute unit and integration tests") {
          // when {
         //     //     environment(name: 'CHANGED_VITAM', value: 'true')
@@ -131,6 +148,25 @@ pipeline {
                 always {
                     junit 'sources/**/target/surefire-reports/*.xml'
                 }
+            }
+        }
+
+        // special case for MR
+        stage("Report to gitlab if merge request") {
+            when {
+                not{
+                    anyOf {
+                        branch "develop*"
+                        branch "master_*"
+                        branch "master"
+                        tag pattern: "^[1-9]+\\.[0-9]+\\.[0-9]+-?[0-9]*\$", comparator: "REGEXP"
+                    }
+                }
+                
+            }
+            steps {
+                updateGitlabCommitStatus name: 'mergerequest', state: 'success'
+				addGitLabMRComment comment: "pipeline-job : [analyse sonar](https://sonar.dev.programmevitam.fr/dashboard?id=fr.gouv.vitam%3Aparent%3A${gitlabSourceBranch}) de la branche"
             }
         }
 
