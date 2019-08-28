@@ -1,5 +1,6 @@
 package fr.gouv.vitam.storage.offers.tape.cas;
 
+import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.database.server.mongodb.MongoDbAccess;
 import fr.gouv.vitam.common.database.server.mongodb.SimpleMongoDBAccess;
 import fr.gouv.vitam.common.guid.GUIDFactory;
@@ -19,6 +20,7 @@ import org.junit.BeforeClass;
 import org.junit.ClassRule;
 import org.junit.Test;
 
+import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.Optional;
 
@@ -76,21 +78,20 @@ public class ReadRequestReferentialRepositoryTest {
         tarLocations.put(
             tarNameWithoutExtension, TarLocation.TAPE);
         tapeReadRequestReferentialEntity.setTarLocations(tarLocations);
+        tapeReadRequestReferentialEntity.setExpireDate(LocalDateUtil.getFormattedDateForMongo(LocalDateTime.now().minusDays(1)));
 
-        tapeReadRequestReferentialEntity.setExpireInMinutes(0L);
-        tapeReadRequestReferentialEntity.setIsExpired(true);
         readRequestReferentialRepository.insert(tapeReadRequestReferentialEntity);
 
         Optional<TapeReadRequestReferentialEntity> found = readRequestReferentialRepository.find(requestId);
         Assertions.assertThat(found).isPresent();
         Assertions.assertThat(found.get().getContainerName()).isEqualTo("test");
-        Assertions.assertThat(found.get().getIsExpired()).isTrue();
+        Assertions.assertThat(found.get().isExpired()).isTrue();
 
 
         String requestId2 = GUIDFactory.newGUID().getId();
         tapeReadRequestReferentialEntity.setRequestId(requestId2);
-        tapeReadRequestReferentialEntity.setExpireInMinutes(3L);
-        tapeReadRequestReferentialEntity.setIsExpired(false);
+        tapeReadRequestReferentialEntity.setExpireDate(LocalDateUtil.getFormattedDateForMongo(LocalDateTime.now().plusDays(1)));
+
         readRequestReferentialRepository.insert(tapeReadRequestReferentialEntity);
 
         // Even two tapeReadRequestReferentialEntity, only expired one are removed
@@ -100,13 +101,13 @@ public class ReadRequestReferentialRepositoryTest {
 
         found = readRequestReferentialRepository.find(requestId2);
         Assertions.assertThat(found).isPresent();
-        Assertions.assertThat(found.get().getIsExpired()).isFalse();
+        Assertions.assertThat(found.get().isExpired()).isFalse();
 
         // Invalidate will make tapeReadRequestReferentialEntity expired
         readRequestReferentialRepository.invalidate(requestId2);
         found = readRequestReferentialRepository.find(requestId2);
         Assertions.assertThat(found).isPresent();
-        Assertions.assertThat(found.get().getIsExpired()).isTrue();
+        Assertions.assertThat(found.get().isExpired()).isTrue();
 
         // Assert that invalided is removed
         deleted = readRequestReferentialRepository.cleanUp();
@@ -137,17 +138,17 @@ public class ReadRequestReferentialRepositoryTest {
         tarLocations.put(
             tarNameWithoutExtension, TarLocation.TAPE);
         tapeReadRequestReferentialEntity.setTarLocations(tarLocations);
+        tapeReadRequestReferentialEntity.setExpireDate(LocalDateUtil.getFormattedDateForMongo(LocalDateTime.now().plusDays(1)));
 
-        tapeReadRequestReferentialEntity.setExpireInMinutes(5L);
-        tapeReadRequestReferentialEntity.setIsExpired(false);
+
         readRequestReferentialRepository.insert(tapeReadRequestReferentialEntity);
 
-        readRequestReferentialRepository.updateReadRequestInProgress(requestId, tarNameWithoutExtension, TarLocation.DISK);
+        readRequestReferentialRepository.updateReadRequests(tarNameWithoutExtension, TarLocation.DISK);
 
         Optional<TapeReadRequestReferentialEntity> found = readRequestReferentialRepository.find(requestId);
         Assertions.assertThat(found).isPresent();
         Assertions.assertThat(found.get().isCompleted()).isTrue();
-        Assertions.assertThat(found.get().getIsExpired()).isFalse();
+        Assertions.assertThat(found.get().isExpired()).isFalse();
 
     }
 }
