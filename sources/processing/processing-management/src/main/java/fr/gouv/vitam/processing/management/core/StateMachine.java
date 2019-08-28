@@ -103,7 +103,7 @@ public class StateMachine implements IEventsState, IEventsProcessEngine {
 
     public StateMachine(ProcessWorkflow processWorkflow, ProcessEngine processEngine) {
         this(processWorkflow, processEngine, WorkspaceProcessDataManagement.getInstance(),
-        WorkspaceClientFactory.getInstance(),
+            WorkspaceClientFactory.getInstance(),
             LogbookOperationsClientFactory.getInstance());
     }
 
@@ -500,13 +500,7 @@ public class StateMachine implements IEventsState, IEventsProcessEngine {
                 workerParameters.setPreviousStep(backwards ? currentStep.getStepName() : null);
                 this.processEngine.start(currentStep, workerParameters, engineParams, pauseRecover);
             } catch (ProcessingEngineException e) {
-                LOGGER.error("ProcessEngine error ", e);
-                status = StatusCode.FATAL;
-                try {
-                    this.finalizeLogbook(workerParameters);
-                } finally {
-                    this.persistProcessWorkflow();
-                }
+                onError(e, workerParameters);
             }
         }
     }
@@ -531,14 +525,8 @@ public class StateMachine implements IEventsState, IEventsProcessEngine {
             engineParams.put(SedaConstants.TAG_ORIGINATINGAGENCY, prodService);
             try {
                 this.processEngine.start(currentStep, workerParameters, engineParams, PauseRecover.NO_RECOVER);
-            } catch (ProcessingEngineException e) {
-                LOGGER.error("ProcessEngine error", e);
-                status = StatusCode.FATAL;
-                try {
-                    this.finalizeLogbook(workerParameters);
-                } finally {
-                    this.persistProcessWorkflow();
-                }
+            } catch (Exception e) {
+                onError(e, workerParameters);
             }
         }
     }
