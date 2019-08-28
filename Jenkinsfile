@@ -134,32 +134,15 @@ pipeline {
             }
         }
 
-        // FIXME OMA : not working but should be...
-        //         stage("Build javadoc") {
-        //             // when {
-        //             //     environment(name: 'CHANGED_VITAM', value: 'true')
-        //             // }
-        //             environment {
-        //                 DEPLOY_GOAL = readFile("deploy_goal.txt")
-        //                 VERSION = readFile("version_projet.txt").trim()
-        //             }
-        //             steps {
-        //                 script {
-        //                     dir('sources') {
-        //                         // sh 'echo Version du projet is : $VERSION'
-        //                         sh '''$MVN_COMMAND -f sources/pom.xml javadoc:aggregate-jar deploy:deploy-file -DgroupId=fr.gouv.vitam -DartifactId=parent -Dfile=./target/parent-$VERSION-javadoc.jar -Dpackaging=jar -Dclassifier=javadoc -Durl=$SERVICE_NEXUS_URL -Dversion=$VERSION'''
-        // // generated output file should be ./target/parent-0.30.0-SNAPSHOT-javadoc.jar
-        // // manque encore
-        // // -DrepositoryId=<repository-id> \
-        // // -Dversion=<version> \
-        //                     }
-        //                 }
-        //             }
-        //         }
-
         stage("Build packages") {
-            // Separated for the -T 1C option (possible here, but not while executing the tests)
-            // Caution : it force us to recompile and rebuild the jar packages, but it doesn't cost that much (KWA TODO: To be verified)
+            when {
+                anyOf {
+                    branch "develop*"
+                    branch "master_*"
+                    branch "master"
+                    tag pattern: "^[1-9]+\\.[0-9]+\\.[0-9]+-?[0-9]*\$", comparator: "REGEXP"
+                }
+            }
             // when {
             //     environment(name: 'CHANGED_VITAM', value: 'true')
             // }
@@ -188,6 +171,14 @@ pipeline {
         }
 
         stage("Build doc package") {
+            when {
+                anyOf {
+                    branch "develop*"
+                    branch "master_*"
+                    branch "master"
+                    tag pattern: "^[1-9]+\\.[0-9]+\\.[0-9]+-?[0-9]*\$", comparator: "REGEXP"
+                }
+            }
             // when {
             //     environment(name: 'CHANGED_VITAM', value: 'true')
             // }
@@ -207,6 +198,14 @@ pipeline {
         }
 
         stage("Prepare packages building") {
+            when {
+                anyOf {
+                    branch "develop*"
+                    branch "master_*"
+                    branch "master"
+                    tag pattern: "^[1-9]+\\.[0-9]+\\.[0-9]+-?[0-9]*\$", comparator: "REGEXP"
+                }
+            }
             // when {
             //     environment(name: 'CHANGED_VITAM_PRODUCT', value: 'true')
             // }
@@ -219,6 +218,14 @@ pipeline {
         }
 
         stage("Build vitam-product & vitam-external packages") {
+            when {
+                anyOf {
+                    branch "develop*"
+                    branch "master_*"
+                    branch "master"
+                    tag pattern: "^[1-9]+\\.[0-9]+\\.[0-9]+-?[0-9]*\$", comparator: "REGEXP"
+                }
+            }
             // when {
             //     environment(name: 'CHANGED_VITAM_PRODUCT', value: 'true')
             // }
@@ -253,6 +260,14 @@ pipeline {
         }
 
         stage("Publish packages") {
+            when {
+                anyOf {
+                    branch "develop*"
+                    branch "master_*"
+                    branch "master"
+                    tag pattern: "^[1-9]+\\.[0-9]+\\.[0-9]+-?[0-9]*\$", comparator: "REGEXP"
+                }
+            }
             // when {
             //     //environment(name: 'CHANGED_VITAM_PRODUCT', value: 'true')
             //     environment(name: 'MASTER_BRANCH', value: 'true')
@@ -288,6 +303,14 @@ pipeline {
             }
         }
         stage("Update symlink") {
+            when {
+                anyOf {
+                    branch "develop*"
+                    branch "master_*"
+                    branch "master"
+                    tag pattern: "^[1-9]+\\.[0-9]+\\.[0-9]+-?[0-9]*\$", comparator: "REGEXP"
+                }
+            }
             steps {
                 sshagent (credentials: ['jenkins_sftp_to_repository']) {
                     sh 'vitam-build.git/push_symlink_repo.sh commit $SERVICE_REPO_SSHURL'
@@ -300,6 +323,7 @@ pipeline {
                     branch "develop*"
                     branch "master_*"
                     branch "master"
+                    tag pattern: "^[1-9]+\\.[0-9]+\\.[0-9]+-?[0-9]*\$", comparator: "REGEXP"
                 }
             }
             steps {
