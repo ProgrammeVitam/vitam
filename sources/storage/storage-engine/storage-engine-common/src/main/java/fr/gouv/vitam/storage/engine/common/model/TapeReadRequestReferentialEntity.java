@@ -15,7 +15,7 @@ public class TapeReadRequestReferentialEntity {
     public static final String FILES = "files";
     public static final String CONTAINER_NAME = "containerName";
     public static final String CREATE_DATE = "createDate";
-    public static final String EXPIRE_IN_MINUTES = "expireInMinutes";
+    public static final String EXPIRE_DATE = "expireDate";
     public static final String IS_COMPLETED = "isCompleted";
     public static final String IS_EXPIRED = "isExpired";
 
@@ -36,13 +36,8 @@ public class TapeReadRequestReferentialEntity {
     @JsonProperty(CREATE_DATE)
     private String creationDate = LocalDateUtil.getFormattedDateForMongo(LocalDateTime.now());
 
-    @JsonProperty(IS_EXPIRED)
-    private Boolean isExpired = false;
-
-
-    // When expireInMinutes is elapsed after reading tar file from tape to disk this entity will marked as isExpired to true and then purged with a background thread
-    @JsonProperty(EXPIRE_IN_MINUTES)
-    private Long expireInMinutes = 0L;
+    @JsonProperty(EXPIRE_DATE)
+    private String expireDate;
 
 
     public TapeReadRequestReferentialEntity() {
@@ -50,12 +45,11 @@ public class TapeReadRequestReferentialEntity {
     }
 
     public TapeReadRequestReferentialEntity(String requestId, String containerName,
-        Map<String, TarLocation> tarLocations, List<FileInTape> files, Long expireInMinutes) {
+        Map<String, TarLocation> tarLocations, List<FileInTape> files) {
         this.requestId = requestId;
         this.containerName = containerName;
         this.tarLocations = tarLocations;
         this.files = files;
-        this.expireInMinutes = expireInMinutes;
     }
 
 
@@ -99,20 +93,19 @@ public class TapeReadRequestReferentialEntity {
         this.creationDate = creationDate;
     }
 
-    public Boolean getIsExpired() {
-        return isExpired;
+    public String getExpireDate() {
+        return expireDate;
     }
 
-    public void setIsExpired(Boolean isExpired) {
-        this.isExpired = isExpired;
+    public void setExpireDate(String expireDate) {
+        this.expireDate = expireDate;
     }
 
-    public Long getExpireInMinutes() {
-        return expireInMinutes;
-    }
-
-    public void setExpireInMinutes(Long expireInMinutes) {
-        this.expireInMinutes = expireInMinutes;
+    @JsonProperty(IS_EXPIRED)
+    public Boolean isExpired() {
+        return expireDate == null ?
+            false :
+            LocalDateTime.now().isAfter(LocalDateUtil.parseMongoFormattedDate(expireDate));
     }
 
     @JsonProperty(IS_COMPLETED)

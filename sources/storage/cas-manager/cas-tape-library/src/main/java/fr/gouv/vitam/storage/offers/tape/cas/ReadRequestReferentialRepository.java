@@ -34,16 +34,23 @@ import com.mongodb.client.model.Updates;
 import com.mongodb.client.result.DeleteResult;
 import com.mongodb.client.result.UpdateResult;
 import com.mongodb.util.JSON;
+import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
+import fr.gouv.vitam.common.logging.VitamLogger;
+import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.storage.engine.common.model.TapeReadRequestReferentialEntity;
 import fr.gouv.vitam.storage.engine.common.model.TarLocation;
 import fr.gouv.vitam.storage.offers.tape.exception.ReadRequestReferentialException;
+import fr.gouv.vitam.storage.offers.tape.worker.tasks.ReadTask;
 import org.bson.Document;
 
+import java.time.LocalDateTime;
 import java.util.Optional;
 
 public class ReadRequestReferentialRepository implements ReadRequestReferentialCleaner {
+
+    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(ReadTask.class);
 
     private final MongoCollection<Document> collection;
 
@@ -87,22 +94,32 @@ public class ReadRequestReferentialRepository implements ReadRequestReferentialC
         }
     }
 
-    public void updateReadRequestInProgress(String requestId, String archiveId, TarLocation tarLocation)
+    /**
+     * Update location of a given archive id in all read request where this archive id exists
+     *
+     * @param archiveId
+     * @param tarLocation
+     * @throws ReadRequestReferentialException
+     */
+    public void updateReadRequests(String archiveId, TarLocation tarLocation)
         throws ReadRequestReferentialException {
 
         try {
             UpdateResult updateResult = collection.updateOne(
-                Filters.eq(TapeReadRequestReferentialEntity.ID, requestId),
+                Filters.exists(TapeReadRequestReferentialEntity.TAR_LOCATIONS + "." + archiveId),
                 Updates.set(TapeReadRequestReferentialEntity.TAR_LOCATIONS + "." + archiveId, tarLocation.name()),
                 new UpdateOptions().upsert(false)
             );
 
-            if (updateResult.getModifiedCount() != 1) {
-                throw new ReadRequestReferentialException(
-                    "Could not update read request for " + requestId + ". No such read request");
+
+            if (updateResult.getModifiedCount() == 0) {
+                LOGGER.warn("No update occurred, no read request found with archive :" + archiveId);
+            } else {
+                LOGGER.debug(updateResult.getModifiedCount() + " read request updated with archive :" + archiveId +
+                    " location: " + tarLocation.name());
             }
         } catch (MongoException ex) {
-            throw new ReadRequestReferentialException("Could not update read request for " + requestId, ex);
+            throw new ReadRequestReferentialException("Could not update read request for " + archiveId, ex);
         }
     }
 
@@ -131,9 +148,11 @@ public class ReadRequestReferentialRepository implements ReadRequestReferentialC
         try {
             UpdateResult updateResult = collection.updateOne(
                 Filters.eq(TapeReadRequestReferentialEntity.ID, readOrderRequestId),
-                Updates.set(TapeReadRequestReferentialEntity.IS_EXPIRED, true),
-                new UpdateOptions().upsert(false)
-            );
+                Updates.combine(Updates.set(TapeReadRequestReferentialEntity.IS_EXPIRED, true),
+                    Updates.set(TapeReadRequestReferentialEntity.EXPIRE_DATE, LocalDateUtil
+                        .getFormattedDateForMongo(LocalDateTime.now().minusSeconds(5)))),
+                    new UpdateOptions().upsert(false)
+                );
 
             if (updateResult.getModifiedCount() != 1) {
                 throw new ReadRequestReferentialException(

@@ -228,8 +228,7 @@ public class ReadTask implements Future<ReadWriteResult> {
 
             String tarFileIdWithoutExtension = StringUtils.substringBeforeLast(readOrder.getFileName(), ".");
             readRequestReferentialRepository
-                .updateReadRequestInProgress(
-                    readOrder.getReadRequestId(),
+                .updateReadRequests(
                     tarFileIdWithoutExtension,
                     TarLocation.DISK);
 

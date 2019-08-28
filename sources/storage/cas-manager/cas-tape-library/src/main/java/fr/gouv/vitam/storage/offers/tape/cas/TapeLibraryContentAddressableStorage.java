@@ -322,8 +322,7 @@ public class TapeLibraryContentAddressableStorage implements ContentAddressableS
             }
 
             tapeReadRequestReferentialEntity =
-                new TapeReadRequestReferentialEntity(readRequestId, containerName, tarLocationMap, filesInTape,
-                    archiveOutputRetentionPolicy.getCacheTimeoutInMinutes());
+                new TapeReadRequestReferentialEntity(readRequestId, containerName, tarLocationMap, filesInTape);
             readRequestReferentialRepository.insert(tapeReadRequestReferentialEntity);
 
             for (String tarId : archiveSet) {
