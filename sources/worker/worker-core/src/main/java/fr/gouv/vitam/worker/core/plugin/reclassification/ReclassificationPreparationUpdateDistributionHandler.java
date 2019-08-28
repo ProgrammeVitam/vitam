@@ -65,8 +65,8 @@ public class ReclassificationPreparationUpdateDistributionHandler extends Action
     private static final int RECLASSIFICATION_ORDERS_PARAMETER_RANK = 0;
     private static final String UNITS_TO_DETACH_DIR = "UnitsToDetach";
     private static final String UNITS_TO_ATTACH_DIR = "UnitsToAttach";
-    private static final String UNITS_TO_UPDATE_CHAINED_FILE = "UnitsToUpdate/chainedFile.json";
-    private static final String OG_TO_UPDATE_CHAINED_FILE = "ObjectGroupsToUpdate/chainedFile.json";
+    private static final String UNITS_TO_UPDATE_JSONL_FILE = "UnitsToUpdate.jsonl";
+    private static final String OG_TO_UPDATE_JSONL_FILE = "ObjectGroupsToUpdate.jsonl";
 
     private static final String COULD_NOT_EXPORT_THE_LIST_OF_UNITS_AND_OBJECT_GROUPS_TO_UPDATE =
         "Could not export the list of units and object groups to update";
@@ -154,7 +154,7 @@ public class ReclassificationPreparationUpdateDistributionHandler extends Action
                 reclassificationOrders.getChildToParentDetachments().keySet());
 
             metaDataClient.exportReclassificationChildNodes(
-                unitIds, UNITS_TO_UPDATE_CHAINED_FILE, OG_TO_UPDATE_CHAINED_FILE);
+                unitIds, UNITS_TO_UPDATE_JSONL_FILE, OG_TO_UPDATE_JSONL_FILE);
 
         } catch (VitamClientException | MetaDataExecutionException e) {
             throw new ReclassificationException(StatusCode.FATAL,
