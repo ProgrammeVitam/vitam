@@ -30,7 +30,6 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.base.Stopwatch;
-
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.SedaConstants;
 import fr.gouv.vitam.common.exception.InvalidGuidOperationException;
@@ -69,7 +68,6 @@ import fr.gouv.vitam.processing.common.parameter.WorkerParameterName;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 import fr.gouv.vitam.processing.distributor.api.ProcessDistributor;
 import fr.gouv.vitam.processing.engine.api.ProcessEngine;
-
 
 import java.util.HashMap;
 import java.util.Map;
@@ -161,7 +159,6 @@ public class ProcessEngineImpl implements ProcessEngine {
             try {
                 parameters = logbookBeforeDistributorCall(step, this.workerParameters, tenantId, logbookTypeProcess);
             } catch (Exception ex) {
-                LOGGER.error("Retry > Logbook error while process workflow", ex);
                 throw new ProcessingEngineException(ex);
             }
         }
