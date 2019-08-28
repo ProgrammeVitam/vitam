@@ -35,8 +35,12 @@ import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.MetadataStorageHelper;
 import fr.gouv.vitam.common.model.RequestResponse;
+import fr.gouv.vitam.common.stream.VitamAsyncInputStreamResponse;
 import fr.gouv.vitam.common.thread.VitamThreadFactory;
+import fr.gouv.vitam.storage.driver.exception.StorageDriverException;
 import fr.gouv.vitam.storage.engine.common.exception.StorageException;
+import fr.gouv.vitam.storage.engine.common.exception.StorageNotFoundException;
+import fr.gouv.vitam.storage.engine.common.exception.StorageTechnicalException;
 import fr.gouv.vitam.storage.engine.common.model.DataCategory;
 import fr.gouv.vitam.storage.engine.common.model.TapeReadRequestReferentialEntity;
 import fr.gouv.vitam.storage.engine.common.referential.model.StorageOffer;
@@ -161,14 +165,23 @@ public class MetadataStorageService {
         }
     }
 
-    public RequestResponse<TapeReadRequestReferentialEntity> createReadOrderRequest(Integer tenant, String strategyId, String offerId,
+    public RequestResponse<TapeReadRequestReferentialEntity> createReadOrderRequest(Integer tenant, String strategyId,
+        String offerId,
         String objectId, DataCategory dataCategory) {
         return storagePopulateService.createReadOrderRequest(tenant, strategyId, offerId, objectId, dataCategory);
     }
 
-    public RequestResponse<TapeReadRequestReferentialEntity> getReadOrderRequest(Integer tenant, String strategyId, String offerId,
+    public RequestResponse<TapeReadRequestReferentialEntity> getReadOrderRequest(Integer tenant, String strategyId,
+        String offerId,
         String readOrderId) {
         return storagePopulateService.getReadOrderRequest(tenant, strategyId, offerId, readOrderId);
+    }
+
+    public VitamAsyncInputStreamResponse download(Integer tenantId, DataCategory dataCategory,
+        String strategyId,
+        String offerId,
+        String objectId) throws StorageTechnicalException, StorageDriverException, StorageNotFoundException {
+        return storagePopulateService.download(tenantId, dataCategory, strategyId, offerId, objectId);
     }
 
     public StorageOffer getOffer(String offerId) throws StorageException {

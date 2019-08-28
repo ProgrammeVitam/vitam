@@ -175,7 +175,7 @@ public class TapeDriveWorker implements Runnable {
                         if (LOGGER.isDebugEnabled()) {
                             LOGGER.debug(msgPrefix + "Sleep " + sleepTime + " ms because of exception : ", e);
                         }
-                        Thread.sleep(sleepTime);
+                        TimeUnit.MILLISECONDS.sleep(sleepTime);
 
                         // Log every one minute
                         if (exceptionStopWatch.getTime(TimeUnit.MINUTES) >= 1) {
@@ -240,7 +240,7 @@ public class TapeDriveWorker implements Runnable {
                             "[Library] : %s, [Drive] : %s, [Tape]: %s, is paused because of FATAL status when executing order: %s",
                             tapeRobotPool.getLibraryIdentifier(),
                             tapeDriveService.getTapeDriveConf().getIndex(),
-                            currentTape.getCode(),
+                            currentTape == null ? "No active tape" : currentTape.getCode(),
                             JsonHandler.unprettyPrint(readWriteOrder)));
 
                         // Pause worker for maintenance
@@ -259,7 +259,7 @@ public class TapeDriveWorker implements Runnable {
                         LOGGER.warn(
                             msgPrefix + "No read/write to tape order found. waiting (" + sleepTime + ") ms ...");
                     }
-                    Thread.sleep(sleepTime);
+                    TimeUnit.MILLISECONDS.sleep(sleepTime);
                 }
 
             }
