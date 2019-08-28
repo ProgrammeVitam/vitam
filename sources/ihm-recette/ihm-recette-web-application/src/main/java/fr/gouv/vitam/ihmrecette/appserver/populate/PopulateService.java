@@ -36,7 +36,11 @@ import fr.gouv.vitam.common.digest.DigestType;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.RequestResponse;
+import fr.gouv.vitam.common.stream.VitamAsyncInputStreamResponse;
+import fr.gouv.vitam.storage.driver.exception.StorageDriverException;
 import fr.gouv.vitam.storage.engine.common.exception.StorageException;
+import fr.gouv.vitam.storage.engine.common.exception.StorageNotFoundException;
+import fr.gouv.vitam.storage.engine.common.exception.StorageTechnicalException;
 import fr.gouv.vitam.storage.engine.common.model.DataCategory;
 import fr.gouv.vitam.storage.engine.common.model.TapeReadRequestReferentialEntity;
 import fr.gouv.vitam.storage.engine.common.referential.model.StorageStrategy;
@@ -188,6 +192,13 @@ public class PopulateService {
 
     public RequestResponse<TapeReadRequestReferentialEntity> getReadOrderRequest(Integer tenant, String strategyId, String offerId, String readOrderId) {
         return metadataStorageService.getReadOrderRequest(tenant, strategyId, offerId, readOrderId);
+    }
+
+    public VitamAsyncInputStreamResponse download(Integer tenantId, DataCategory dataCategory,
+        String strategyId,
+        String offerId,
+        String objectId) throws StorageTechnicalException, StorageDriverException, StorageNotFoundException {
+        return metadataStorageService.download(tenantId, dataCategory, strategyId, offerId, objectId);
     }
 
     public Collection<StorageStrategy> getStrategies() throws StorageException {

@@ -39,8 +39,8 @@ import fr.gouv.vitam.storage.engine.common.model.ReadWriteOrder;
 import fr.gouv.vitam.storage.engine.common.model.TapeCatalog;
 import fr.gouv.vitam.storage.engine.common.model.WriteOrder;
 import fr.gouv.vitam.storage.offers.tape.cas.ArchiveOutputRetentionPolicy;
-import fr.gouv.vitam.storage.offers.tape.cas.ReadRequestReferentialRepository;
 import fr.gouv.vitam.storage.offers.tape.cas.ArchiveReferentialRepository;
+import fr.gouv.vitam.storage.offers.tape.cas.ReadRequestReferentialRepository;
 import fr.gouv.vitam.storage.offers.tape.exception.QueueException;
 import fr.gouv.vitam.storage.offers.tape.spec.QueueRepository;
 import fr.gouv.vitam.storage.offers.tape.spec.TapeDriveService;
@@ -81,7 +81,8 @@ public class TapeDriveWorkerManager implements TapeDriveOrderConsumer, TapeDrive
 
         ParametersChecker
             .checkParameter("All params is required required", tapeLibraryPool, readWriteQueue,
-                archiveReferentialRepository, readRequestReferentialRepository, driveTape, archiveOutputRetentionPolicy);
+                archiveReferentialRepository, readRequestReferentialRepository, driveTape,
+                archiveOutputRetentionPolicy);
         this.archiveOutputRetentionPolicy = archiveOutputRetentionPolicy;
         this.readWriteQueue = readWriteQueue;
         this.workers = new ArrayList<>();
@@ -89,7 +90,8 @@ public class TapeDriveWorkerManager implements TapeDriveOrderConsumer, TapeDrive
         for (Map.Entry<Integer, TapeDriveService> driveEntry : tapeLibraryPool.drives()) {
             final TapeDriveWorker tapeDriveWorker =
                 new TapeDriveWorker(tapeLibraryPool, driveEntry.getValue(), tapeLibraryPool.getTapeCatalogService(),
-                    this, archiveReferentialRepository, readRequestReferentialRepository, driveTape.get(driveEntry.getKey()), inputTarPath,
+                    this, archiveReferentialRepository, readRequestReferentialRepository,
+                    driveTape.get(driveEntry.getKey()), inputTarPath,
                     forceOverrideNonEmptyCartridges, this.archiveOutputRetentionPolicy);
             workers.add(tapeDriveWorker);
         }
@@ -213,9 +215,6 @@ public class TapeDriveWorkerManager implements TapeDriveOrderConsumer, TapeDrive
             order = selectReadOrderExcludingTapeCodes();
         }
 
-        if (!order.isPresent()) {
-            order = selectOrder(QueueMessageType.ReadOrder);
-        }
         return order;
     }
 
@@ -251,13 +250,8 @@ public class TapeDriveWorkerManager implements TapeDriveOrderConsumer, TapeDrive
         }
 
         if (!order.isPresent()) {
-            order = selectOrder(QueueMessageType.ReadOrder);
-        }
-
-        if (!order.isPresent()) {
             order = selectWriteOrderExcludingActiveBuckets();
         }
-
 
         if (!order.isPresent()) {
             order = selectOrder(QueueMessageType.WriteOrder);

@@ -153,6 +153,9 @@ public class ReadTask implements Future<ReadWriteResult> {
                 case KO_ON_UNLOAD_THEN_STATUS:
                 case KO_ON_UNLOAD_TAPE:
                     return new ReadWriteResult(FATAL, QueueState.READY, workerCurrentTape);
+                case KO_TAPE_IS_BUSY:
+                    // Drive UP, Order ERROR
+                    return new ReadWriteResult(KO, QueueState.READY, workerCurrentTape);
 
                 // Drive DOWN (FATAL), Order ERROR
                 case KO_ON_LOAD_THEN_STATUS:
@@ -161,11 +164,9 @@ public class ReadTask implements Future<ReadWriteResult> {
                 case KO_ON_GO_TO_POSITION:
                 case KO_ON_READ_FROM_TAPE:
                 case KO_ON_REWIND_TAPE:
-                // Drive UP, Order Ready
+                    // Drive UP, Order Ready
                 case KO_ON_WRITE_TO_FS:
                 case KO_ON_UPDATE_READ_REQUEST_REPOSITORY:
-                case KO_TAPE_IS_BUSY:
-                // Drive UP, Order ERROR
                 case TAPE_LOCATION_CONFLICT_ON_LOAD:
                 case TAPE_NOT_FOUND_IN_CATALOG:
                 case KO_TAPE_IS_OUTSIDE:
@@ -258,7 +259,7 @@ public class ReadTask implements Future<ReadWriteResult> {
     private CatalogResponse getTapeFromCatalog() throws ReadWriteException, QueueException, TapeCatalogException {
         Bson query = and(
             eq(TapeCatalog.CODE, readOrder.getTapeCode()),
-            ne(TapeCatalog.TAPE_STATE, TapeState.CONFLICT)
+            ne(TapeCatalog.TAPE_STATE, TapeState.CONFLICT.name())
         );
         Optional<TapeCatalog> found = tapeCatalogService.receive(query, QueueMessageType.TapeCatalog);
         if (!found.isPresent()) {

@@ -39,6 +39,7 @@ import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.VitamAutoCloseable;
 import fr.gouv.vitam.common.stream.MultiplePipedInputStream;
+import fr.gouv.vitam.common.stream.VitamAsyncInputStreamResponse;
 import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
 import fr.gouv.vitam.storage.driver.Connection;
 import fr.gouv.vitam.storage.driver.Driver;
@@ -69,6 +70,7 @@ import fr.gouv.vitam.storage.engine.server.rest.StorageConfiguration;
 import fr.gouv.vitam.storage.engine.server.spi.DriverManager;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
 
+import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response.Status;
 import java.io.BufferedInputStream;
 import java.io.File;
@@ -228,7 +230,7 @@ public class StoragePopulateImpl implements VitamAutoCloseable {
             driver = retrieveDriverInternal(storageOffer.getId());
         } catch (StorageTechnicalException e) {
             LOGGER.error("Error while get driver", e);
-            return buildError(VitamCode.STORAGE_OBJECT_NOT_FOUND, "Error while get driver");
+            return buildError(VitamCode.STORAGE_OFFER_NOT_FOUND, "Error while get driver");
         }
 
 
@@ -241,6 +243,44 @@ public class StoragePopulateImpl implements VitamAutoCloseable {
             return connection.createReadOrderRequest(getObjectRequest);
         } catch (StorageDriverException | InterruptedException e) {
             return buildError(VitamCode.STORAGE_OBJECT_NOT_FOUND, e.getMessage());
+        }
+    }
+
+    public VitamAsyncInputStreamResponse download(Integer tenantId, DataCategory dataCategory,
+        String strategyId,
+        String offerId,
+        String objectId) throws StorageTechnicalException, StorageDriverException, StorageNotFoundException {
+        ParametersChecker.checkParameter(EXPORT_ID_IS_MANDATORY, objectId);
+
+        List<OfferReference> offerReferences;
+            offerReferences = getOffersReferences(strategyId);
+
+
+        if (offerReferences == null || offerReferences.isEmpty()) {
+            throw new StorageTechnicalException("No offer found");
+        }
+
+        List<StorageOffer> storageOffers = offerReferences.stream()
+            .map(StoragePopulateImpl::getStorageOffer)
+            .filter(o -> o.getId().equals(offerId))
+            .collect(Collectors.toList());
+
+        if (storageOffers.isEmpty()) {
+            LOGGER.error("No enabled offer found");
+            throw new StorageTechnicalException("No enabled offer found");
+        }
+
+        StorageOffer storageOffer = storageOffers.iterator().next();
+        final Driver driver = retrieveDriverInternal(storageOffer.getId());
+
+        try (Connection connection = driver.connect(storageOffer.getId())) {
+            if (Thread.currentThread().isInterrupted()) {
+                throw new StorageTechnicalException(new InterruptedException());
+            }
+            final StorageObjectRequest request = new StorageObjectRequest(tenantId, dataCategory.getFolder(), objectId);
+            return new VitamAsyncInputStreamResponse(
+                connection.getObject(request).getObject(),
+                Status.OK, MediaType.APPLICATION_OCTET_STREAM_TYPE);
         }
     }
 

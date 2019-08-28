@@ -43,6 +43,7 @@ import fr.gouv.vitam.common.accesslog.AccessLogUtils;
 import fr.gouv.vitam.common.client.VitamContext;
 import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
 import fr.gouv.vitam.common.error.VitamCode;
+import fr.gouv.vitam.common.error.VitamCodeHelper;
 import fr.gouv.vitam.common.error.VitamError;
 import fr.gouv.vitam.common.exception.AccessUnauthorizedException;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
@@ -65,7 +66,6 @@ import fr.gouv.vitam.common.server.application.AsyncInputStreamHelper;
 import fr.gouv.vitam.common.server.application.resources.ApplicationStatusResource;
 import fr.gouv.vitam.common.server.application.resources.BasicVitamStatusServiceImpl;
 import fr.gouv.vitam.common.stream.StreamUtils;
-import fr.gouv.vitam.common.stream.VitamAsyncInputStreamResponse;
 import fr.gouv.vitam.common.thread.VitamThreadFactory;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.common.xsrf.filter.XSRFFilter;
@@ -83,11 +83,13 @@ import fr.gouv.vitam.logbook.common.exception.LogbookClientException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientServerException;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClient;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClientFactory;
+import fr.gouv.vitam.storage.driver.exception.StorageDriverException;
 import fr.gouv.vitam.storage.engine.client.StorageClient;
 import fr.gouv.vitam.storage.engine.client.StorageClientFactory;
 import fr.gouv.vitam.storage.engine.client.exception.StorageServerClientException;
 import fr.gouv.vitam.storage.engine.common.exception.StorageException;
 import fr.gouv.vitam.storage.engine.common.exception.StorageNotFoundException;
+import fr.gouv.vitam.storage.engine.common.exception.StorageTechnicalException;
 import fr.gouv.vitam.storage.engine.common.model.DataCategory;
 import fr.gouv.vitam.storage.engine.common.model.TapeReadRequestReferentialEntity;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
@@ -342,7 +344,28 @@ public class WebApplicationResource extends ApplicationStatusResource {
         @PathParam("offerId") String offerId) {
 
         VitamThreadUtils.getVitamSession().setTenantId(Integer.parseInt(xTenantId));
-        return asyncDowloadObject(DataCategory.valueOf(dataType), strategyId, uid);
+
+        try {
+            return populateService
+                .download(VitamThreadUtils.getVitamSession().getTenantId(), DataCategory.valueOf(dataType), strategyId,
+                    offerId, uid);
+        } catch (StorageTechnicalException e) {
+            return buildError(VitamCode.STORAGE_TECHNICAL_INTERNAL_ERROR, e.getMessage()).toResponse();
+        } catch (StorageDriverException e) {
+            return buildError(VitamCode.STORAGE_OFFER_NOT_FOUND, e.getMessage()).toResponse();
+        } catch (StorageNotFoundException e) {
+            return buildError(VitamCode.STORAGE_NOT_FOUND, e.getMessage()).toResponse();
+        }
+
+    }
+
+    private VitamError buildError(VitamCode vitamCode, String message) {
+        return new VitamError(VitamCodeHelper.getCode(vitamCode))
+            .setContext(vitamCode.getService().getName())
+            .setHttpCode(vitamCode.getStatus().getStatusCode())
+            .setState(vitamCode.getDomain().getName())
+            .setMessage(vitamCode.getMessage())
+            .setDescription(message);
     }
 
     /**
@@ -387,25 +410,6 @@ public class WebApplicationResource extends ApplicationStatusResource {
             return JsonHandler.writeToInpustream(vitamError);
         } catch (InvalidParseOperationException e) {
             return new ByteArrayInputStream("{ 'message' : 'Invalid VitamError message' }".getBytes());
-        }
-    }
-
-    /**
-     * asyncDowloadObject
-     *
-     * @param dataCategory
-     * @param uid
-     */
-    private Response asyncDowloadObject(DataCategory dataCategory, String strategyId, String uid) {
-        try (StorageClient client = StorageClientFactory.getInstance().getClient()) {
-            // Should we log it ?
-            Response response =
-                client.getContainerAsync(strategyId, uid, dataCategory, AccessLogUtils.getNoLogAccessLog());
-            return new VitamAsyncInputStreamResponse(response);
-        } catch (StorageServerClientException | StorageNotFoundException e) {
-            return Response.status(Status.INTERNAL_SERVER_ERROR)
-                .entity(getErrorStream(Status.INTERNAL_SERVER_ERROR, e.getMessage(), null).toString())
-                .build();
         }
     }
 
@@ -1167,9 +1171,9 @@ public class WebApplicationResource extends ApplicationStatusResource {
                                             break;
                                         case MANAGEMENT_CONTRACTS:
                                             result =
-                                                    adminExternalClient.findManagementContracts(
-                                                            getVitamContext(request),
-                                                            criteria);
+                                                adminExternalClient.findManagementContracts(
+                                                    getVitamContext(request),
+                                                    criteria);
                                             break;
                                         case CONTEXTS:
                                             result = adminExternalClient.findContexts(
@@ -1227,9 +1231,9 @@ public class WebApplicationResource extends ApplicationStatusResource {
                                                 break;
                                             case MANAGEMENT_CONTRACTS:
                                                 result =
-                                                        adminExternalClient.findManagementContractById(
-                                                                getVitamContext(request),
-                                                                objectID);
+                                                    adminExternalClient.findManagementContractById(
+                                                        getVitamContext(request),
+                                                        objectID);
                                                 break;
                                             case CONTEXTS:
                                                 result = adminExternalClient.findContextById(
@@ -1269,8 +1273,8 @@ public class WebApplicationResource extends ApplicationStatusResource {
                                             objectID, criteria);
                                     } else if (AdminCollections.MANAGEMENT_CONTRACTS.equals(requestedAdminCollection)) {
                                         result = adminExternalClient.updateManagementContract(
-                                                getVitamContext(request),
-                                                objectID, criteria);
+                                            getVitamContext(request),
+                                            objectID, criteria);
                                     } else if (AdminCollections.PROFILE.equals(requestedAdminCollection)) {
                                         result = adminExternalClient.updateProfile(
                                             getVitamContext(request),
