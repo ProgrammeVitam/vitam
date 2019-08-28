@@ -8,13 +8,13 @@
 - hosts: hosts-mongodb-offer
   any_errors_fatal: true
   roles:
-    - { role: mongo_common, when: "inventory_hostname != 'localhost'" }
+    - { role: mongo_common, when: "inventory_hostname not in single_vm_hostnames" }
 
 # Mongoc replicas configuration
 - hosts: hosts-mongoc-offer
   any_errors_fatal: true
   roles:
-    - { role: mongoc, when: "inventory_hostname != 'localhost'" }
+    - { role: mongoc, when: "inventory_hostname not in single_vm_hostnames" }
   vars:
     mongo_bin: mongod
     group_name: "hosts-mongoc-offer"
@@ -23,7 +23,7 @@
 - hosts: hosts-mongod-offer
   any_errors_fatal: true
   roles:
-    - { role: mongod, when: "inventory_hostname != 'localhost'" }
+    - { role: mongod, when: "inventory_hostname not in single_vm_hostnames" }
   vars:
     mongo_bin: mongod
     group_name: "hosts-mongod-offer"
@@ -32,7 +32,7 @@
 - hosts: hosts-mongos-offer
   any_errors_fatal: true
   roles:
-    - { role: mongos, when: "inventory_hostname != 'localhost'" }
+    - { role: mongos, when: "inventory_hostname not in single_vm_hostnames" }
   vars:
     mongo_bin: mongos
     group_name: "hosts-mongos-offer"
@@ -46,7 +46,7 @@
 - hosts: hosts-mongos-offer
   any_errors_fatal: true
   roles:
-    - { role: mongo_configure, when: "inventory_hostname == 'localhost'" }
+    - { role: mongo_configure, when: "inventory_hostname in single_vm_hostnames" }
   vars:
     mongo_bin: mongos
     group_name: "hosts-mongos-offer"
@@ -58,7 +58,7 @@
 - hosts: hosts-mongos-offer
   any_errors_fatal: true
   roles:
-    - { role: mongo_configure, when: "inventory_hostname != 'localhost'" }
+    - { role: mongo_configure, when: "inventory_hostname not in single_vm_hostnames" }
   vars:
     mongo_bin: mongos
     group_name: "hosts-mongos-offer"

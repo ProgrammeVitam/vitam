@@ -492,3 +492,6 @@ vitam:
         consul_check_business: 10 # value in seconds
         consul_admin_check: 10 # value in seconds
         acceptableRequestTime: 10 # value in seconds
+
+# If you want to deploy vitam in a single VM, add the vm name in this array
+single_vm_hostnames: ['localhost']

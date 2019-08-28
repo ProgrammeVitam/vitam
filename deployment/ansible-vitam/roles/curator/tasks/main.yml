@@ -18,7 +18,7 @@
   retries: "{{ packages_install_retries_number }}"
   until: result is succeeded
   delay: "{{ packages_install_retries_delay }}"
-  # when: "inventory_hostname != 'localhost'"
+  # when: "inventory_hostname not in single_vm_hostnames"
 
 - name: ensure Curator directories exist
   file:
@@ -32,7 +32,7 @@
     - log
     - conf
     - lib
-#  when: "inventory_hostname != 'localhost'"
+#  when: "inventory_hostname not in single_vm_hostnames"
 
 - name: apply configuration files for curator
   template:
@@ -46,7 +46,7 @@
     - "delete_index.yml"
     - "close_index.yml"
     - "metrics_index.yml"
-#  when: "inventory_hostname != 'localhost'"
+#  when: "inventory_hostname not in single_vm_hostnames"
 
 - name: copy the systemd unit & timer files for curator
   template:

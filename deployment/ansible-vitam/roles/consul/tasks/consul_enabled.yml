@@ -72,7 +72,7 @@
     marker: "# {mark} ANSIBLE MANAGED BLOCK"
     block: |
       nameserver 127.0.0.1
-  when: inventory_hostname != 'localhost'
+  when: inventory_hostname not in single_vm_hostnames
 
 - block:
 
