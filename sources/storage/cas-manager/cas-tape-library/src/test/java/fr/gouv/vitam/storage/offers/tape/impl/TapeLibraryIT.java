@@ -69,6 +69,7 @@ import fr.gouv.vitam.storage.offers.tape.spec.TapeReadWriteService;
 import fr.gouv.vitam.storage.offers.tape.spec.TapeRobotService;
 import fr.gouv.vitam.storage.offers.tape.worker.tasks.ReadTask;
 import fr.gouv.vitam.storage.offers.tape.worker.tasks.ReadWriteResult;
+import org.apache.commons.io.FileUtils;
 import org.assertj.core.api.Assertions;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
@@ -76,6 +77,7 @@ import org.junit.ClassRule;
 import org.junit.Ignore;
 import org.junit.Test;
 
+import java.io.File;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -523,7 +525,8 @@ public class TapeLibraryIT {
             // read file from tape with given position
             ReadRequestReferentialRepository readRequestReferentialRepository = new ReadRequestReferentialRepository(
                 mongoDbAccess.getMongoDatabase()
-                    .getCollection(OfferCollections.TAPE_READ_REQUEST_REFERENTIAL.getName())
+                    .getCollection(
+                        OfferCollections.TAPE_READ_REQUEST_REFERENTIAL.getName() + "_" + GUIDFactory.newGUID().getId())
             );
 
             TapeCatalogRepository tapeCatalogRepository = new TapeCatalogRepository(mongoDbAccess.getMongoDatabase()
@@ -554,7 +557,7 @@ public class TapeLibraryIT {
             when(readRequestReferentialCleaner.cleanUp()).thenReturn(1L);
 
             ArchiveOutputRetentionPolicy archiveOutputRetentionPolicy =
-                new ArchiveOutputRetentionPolicy(1, readRequestReferentialCleaner);
+                new ArchiveOutputRetentionPolicy(5, readRequestReferentialCleaner);
 
             ReadTask readTask1 =
                 new ReadTask(new ReadOrder(readRequestId, tapeCode, 0, "testtar.tar", "bucket"), workerCurrentTape,
@@ -568,16 +571,54 @@ public class TapeLibraryIT {
                     readRequestReferentialRepository,
                     archiveOutputRetentionPolicy);
 
+            // Classical read
             ReadWriteResult result1 = readTask1.get();
             assertThat(result1).isNotNull();
             assertThat(result1.getOrderState()).isEqualTo(QueueState.COMPLETED);
+
+            String outputFile = configuration.getOutputTarStorageFolder() + "/testtar.tar";
+            File outputTarFile = new File(outputFile);
+            Assertions.assertThat(outputTarFile).exists();
+            Assertions.assertThat(outputTarFile.length()).isGreaterThan(1);
+            archiveOutputRetentionPolicy.invalidate("testtar.tar");
+            FileUtils.forceDeleteOnExit(outputTarFile);
 
             ReadWriteResult result2 = readTask2.get();
             assertThat(result2).isNotNull();
             assertThat(result2.getOrderState()).isEqualTo(QueueState.COMPLETED);
 
+            outputFile = configuration.getOutputTarStorageFolder() + "/testtar_2.tar";
+            outputTarFile = new File(outputFile);
+            Assertions.assertThat(outputTarFile).exists();
+            Assertions.assertThat(outputTarFile.length()).isGreaterThan(1);
+            archiveOutputRetentionPolicy.invalidate("testtar_2.tar");
+            FileUtils.forceDeleteOnExit(outputTarFile);
 
-            readRequestReferentialRepository.insert(tapeReadRequestReferentialEntity);
+            // Test of move backward (bsfm) : We are in position 2 try to re-read second file
+            result2 = readTask2.get();
+            assertThat(result2).isNotNull();
+            assertThat(result2.getOrderState()).isEqualTo(QueueState.COMPLETED);
+
+            outputFile = configuration.getOutputTarStorageFolder() + "/testtar_2.tar";
+            outputTarFile = new File(outputFile);
+            Assertions.assertThat(outputTarFile).exists();
+            Assertions.assertThat(outputTarFile.length()).isGreaterThan(1);
+            archiveOutputRetentionPolicy.invalidate("testtar_2.tar");
+            FileUtils.forceDeleteOnExit(outputTarFile);
+
+            // Test of move backward rewind : We are in position 2 try to re-read first file
+            result1 = readTask1.get();
+            assertThat(result1).isNotNull();
+            assertThat(result1.getOrderState()).isEqualTo(QueueState.COMPLETED);
+
+            outputFile = configuration.getOutputTarStorageFolder() + "/testtar.tar";
+            outputTarFile = new File(outputFile);
+            Assertions.assertThat(outputTarFile).exists();
+            Assertions.assertThat(outputTarFile.length()).isGreaterThan(1);
+            archiveOutputRetentionPolicy.invalidate("testtar.tar");
+            FileUtils.forceDeleteOnExit(outputTarFile);
+
+            // Assert ReadRequestReferentialRepository
             actual = readRequestReferentialRepository.find(readRequestId);
 
             Assertions.assertThat(actual).isPresent();

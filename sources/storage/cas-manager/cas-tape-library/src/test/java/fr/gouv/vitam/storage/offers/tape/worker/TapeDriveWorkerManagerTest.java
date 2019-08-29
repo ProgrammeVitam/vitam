@@ -311,7 +311,7 @@ public class TapeDriveWorkerManagerTest {
     }
 
     @Test
-    public void test_consume_produce_current_tape_not_null_not_empty_priority_write_return_any_next_read_order()
+    public void test_consume_produce_current_tape_not_null_not_empty_priority_write_do_not_return_any_next_read_order()
         throws QueueException {
         TapeDriveWorker driveWorker = mock(TapeDriveWorker.class);
         TapeCatalog tapeCatalog = mock(TapeCatalog.class);
@@ -342,10 +342,9 @@ public class TapeDriveWorkerManagerTest {
         verify(queueRepository, new Times(2)).receive(any(), eq(QueueMessageType.WriteOrder));
         verify(queueRepository, new Times(2)).receive(any(), eq(QueueMessageType.ReadOrder));
         verify(queueRepository, new Times(1)).receive(eq(QueueMessageType.WriteOrder));
-        verify(queueRepository, new Times(1)).receive(eq(QueueMessageType.ReadOrder));
+        verify(queueRepository, new Times(0)).receive(eq(QueueMessageType.ReadOrder));
 
-        Assertions.assertThat(order).isPresent();
-        Assertions.assertThat(order.get().isWriteOrder()).isFalse();
+        Assertions.assertThat(order).isNotPresent();
     }
 
 
@@ -379,7 +378,7 @@ public class TapeDriveWorkerManagerTest {
         verify(queueRepository, new Times(2)).receive(any(), eq(QueueMessageType.WriteOrder));
         verify(queueRepository, new Times(2)).receive(any(), eq(QueueMessageType.ReadOrder));
         verify(queueRepository, new Times(1)).receive(eq(QueueMessageType.WriteOrder));
-        verify(queueRepository, new Times(1)).receive(eq(QueueMessageType.ReadOrder));
+        verify(queueRepository, new Times(0)).receive(eq(QueueMessageType.ReadOrder));
 
         Assertions.assertThat(order).isNotPresent();
     }
@@ -474,7 +473,7 @@ public class TapeDriveWorkerManagerTest {
     }
 
     @Test
-    public void test_consume_produce_current_tape_not_null_not_empty_priority_read_return_any_next_read_order()
+    public void test_consume_produce_current_tape_not_null_not_empty_priority_read_do_not_return_any_next_read_order()
         throws QueueException {
         TapeDriveWorker driveWorker = mock(TapeDriveWorker.class);
         TapeCatalog tapeCatalog = mock(TapeCatalog.class);
@@ -498,13 +497,12 @@ public class TapeDriveWorkerManagerTest {
         // Test consume write order
         Optional<? extends ReadWriteOrder> order = tapeDriveWorkerManager.consume(driveWorker);
 
-        verify(queueRepository, new Times(1)).receive(any(), eq(QueueMessageType.WriteOrder));
+        verify(queueRepository, new Times(2)).receive(any(), eq(QueueMessageType.WriteOrder));
         verify(queueRepository, new Times(2)).receive(any(), eq(QueueMessageType.ReadOrder));
-        verify(queueRepository, new Times(0)).receive(eq(QueueMessageType.WriteOrder));
-        verify(queueRepository, new Times(1)).receive(eq(QueueMessageType.ReadOrder));
+        verify(queueRepository, new Times(1)).receive(eq(QueueMessageType.WriteOrder));
+        verify(queueRepository, new Times(0)).receive(eq(QueueMessageType.ReadOrder));
 
-        Assertions.assertThat(order).isPresent();
-        Assertions.assertThat(order.get().isWriteOrder()).isFalse();
+        Assertions.assertThat(order).isNotPresent();
     }
 
 
@@ -538,7 +536,7 @@ public class TapeDriveWorkerManagerTest {
         verify(queueRepository, new Times(2)).receive(any(), eq(QueueMessageType.WriteOrder));
         verify(queueRepository, new Times(2)).receive(any(), eq(QueueMessageType.ReadOrder));
         verify(queueRepository, new Times(0)).receive(eq(QueueMessageType.WriteOrder));
-        verify(queueRepository, new Times(1)).receive(eq(QueueMessageType.ReadOrder));
+        verify(queueRepository, new Times(0)).receive(eq(QueueMessageType.ReadOrder));
 
         Assertions.assertThat(order).isPresent();
         Assertions.assertThat(order.get().isWriteOrder()).isTrue();
@@ -577,7 +575,7 @@ public class TapeDriveWorkerManagerTest {
         verify(queueRepository, new Times(2)).receive(any(), eq(QueueMessageType.WriteOrder));
         verify(queueRepository, new Times(2)).receive(any(), eq(QueueMessageType.ReadOrder));
         verify(queueRepository, new Times(1)).receive(eq(QueueMessageType.WriteOrder));
-        verify(queueRepository, new Times(1)).receive(eq(QueueMessageType.ReadOrder));
+        verify(queueRepository, new Times(0)).receive(eq(QueueMessageType.ReadOrder));
 
         Assertions.assertThat(order).isPresent();
         Assertions.assertThat(order.get().isWriteOrder()).isTrue();
@@ -614,7 +612,7 @@ public class TapeDriveWorkerManagerTest {
         verify(queueRepository, new Times(2)).receive(any(), eq(QueueMessageType.WriteOrder));
         verify(queueRepository, new Times(2)).receive(any(), eq(QueueMessageType.ReadOrder));
         verify(queueRepository, new Times(1)).receive(eq(QueueMessageType.WriteOrder));
-        verify(queueRepository, new Times(1)).receive(eq(QueueMessageType.ReadOrder));
+        verify(queueRepository, new Times(0)).receive(eq(QueueMessageType.ReadOrder));
 
         Assertions.assertThat(order).isNotPresent();
     }
