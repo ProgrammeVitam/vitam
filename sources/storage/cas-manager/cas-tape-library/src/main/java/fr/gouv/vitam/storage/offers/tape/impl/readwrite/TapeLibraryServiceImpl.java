@@ -50,7 +50,6 @@ import fr.gouv.vitam.storage.offers.tape.spec.TapeRobotService;
 import org.apache.commons.io.FileUtils;
 
 import java.io.File;
-import java.nio.file.Files;
 import java.util.Objects;
 
 public class TapeLibraryServiceImpl implements TapeLibraryService {
@@ -75,8 +74,13 @@ public class TapeLibraryServiceImpl implements TapeLibraryService {
     @Override
     public void goToPosition(TapeCatalog tape, Integer position, ReadWriteErrorCode readWriteErrorCode)
         throws ReadWriteException {
-        Integer offset = position - tape.getCurrentPosition();
 
+        if (position == 0) {
+            rewindTape(tape);
+            return;
+        }
+
+        int offset = position - tape.getCurrentPosition();
         if (offset != 0) {
             TapeResponse moveResponse = tapeDriveService.getDriveCommandService().move(Math.abs(offset), offset < 0);
             if (!moveResponse.isOK()) {
@@ -90,6 +94,9 @@ public class TapeLibraryServiceImpl implements TapeLibraryService {
             // Update current position only if fsf/bsf command success
             tape.setCurrentPosition(position);
 
+        } else {
+            LOGGER.debug(
+                "No need to move (current position=" + tape.getCurrentPosition() + ", target position=" + position + ")");
         }
     }
 

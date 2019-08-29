@@ -48,7 +48,7 @@ public class MtTapeLibraryService implements TapeDriveCommandService {
     public static final String F = "-f";
     public static final String STATUS = "status";
     public static final String FSF = "fsf";
-    public static final String BSF = "bsf";
+    public static final String BSFM = "bsfm";
     public static final String REWIND = "rewind";
     public static final String EOD = "eod";
     public static final String OFFLINE = "offline";
@@ -76,22 +76,43 @@ public class MtTapeLibraryService implements TapeDriveCommandService {
     }
 
     @Override
-    public TapeResponse move(Integer position, boolean isBackword) {
+    public TapeResponse move(Integer position, boolean isBackward) {
         ParametersChecker.checkParameter("Arguments position is required", position);
         if (position < 1) {
             return new TapeResponse("position sould be a positive integer", StatusCode.KO);
         }
 
-        List<String> args =
-            Lists.newArrayList(F, tapeDriveConf.getDevice(), isBackword ? BSF : FSF, position.toString());
-        LOGGER.debug("Execute script : {},timeout: {}, args : {}", tapeDriveConf.getMtPath(),
-            tapeDriveConf.getTimeoutInMilliseconds(),
-            args);
+        List<String> args;
+        if (isBackward) {
+            args = buildMoveBackwardArgs(position);
+        } else {
+            args = buildMoveForwardArgs(position);
+        }
         Output output =
             getExecutor()
                 .execute(tapeDriveConf.getMtPath(), tapeDriveConf.isUseSudo(), tapeDriveConf.getTimeoutInMilliseconds(),
                     args);
         return parseCommonResponse(output);
+    }
+
+    private List<String> buildMoveForwardArgs(int position) {
+        List<String> args =
+            Lists.newArrayList(F, tapeDriveConf.getDevice(), FSF, String.valueOf(position));
+        LOGGER.debug("Execute script : {},timeout: {}, args : {}", tapeDriveConf.getMtPath(),
+            tapeDriveConf.getTimeoutInMilliseconds(),
+            args);
+        return args;
+    }
+
+
+    private List<String> buildMoveBackwardArgs(int position) {
+
+        List<String> args =
+            Lists.newArrayList(F, tapeDriveConf.getDevice(), BSFM, String.valueOf(position + 1));
+        LOGGER.debug("Execute script : {},timeout: {}, args : {}", tapeDriveConf.getMtPath(),
+            tapeDriveConf.getTimeoutInMilliseconds(),
+            args);
+        return args;
     }
 
     @Override
@@ -114,12 +135,12 @@ public class MtTapeLibraryService implements TapeDriveCommandService {
     private TapeResponse execute(String option) {
         List<String> args = Lists.newArrayList(F, tapeDriveConf.getDevice(), option);
         LOGGER.debug("Execute script : {},timeout: {}, args : {}", tapeDriveConf.getMtPath(),
-                tapeDriveConf.getTimeoutInMilliseconds(),
-                args);
+            tapeDriveConf.getTimeoutInMilliseconds(),
+            args);
         Output output =
-                getExecutor()
-                        .execute(tapeDriveConf.getMtPath(), tapeDriveConf.isUseSudo(), tapeDriveConf.getTimeoutInMilliseconds(),
-                                args);
+            getExecutor()
+                .execute(tapeDriveConf.getMtPath(), tapeDriveConf.isUseSudo(), tapeDriveConf.getTimeoutInMilliseconds(),
+                    args);
         return parseCommonResponse(output);
     }
 

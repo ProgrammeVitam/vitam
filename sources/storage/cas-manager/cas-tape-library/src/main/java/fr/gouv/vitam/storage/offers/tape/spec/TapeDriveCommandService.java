@@ -31,13 +31,13 @@ import fr.gouv.vitam.storage.offers.tape.dto.TapeResponse;
 public interface TapeDriveCommandService extends TapeDriveSafeCommandService {
 
     /**
-     * fsf / bsf
+     * fsf / bsfm
      *
      * @param position
-     * @param isBackword
+     * @param isBackward
      * @return TapeResponse
      */
-    TapeResponse move(Integer position, boolean isBackword);
+    TapeResponse move(Integer position, boolean isBackward);
 
     /**
      * Go to start

@@ -315,7 +315,7 @@ public class MtTapeLibraryServiceTest {
 
         assertThat(commandPath.getValue()).isEqualTo(COMMAND_MT);
         assertThat(timeout.getValue()).isEqualTo(1_000l);
-        assertThat(args.getValue()).contains("-f", DEVICE_NST, "bsf", "5");
+        assertThat(args.getValue()).contains("-f", DEVICE_NST, "bsfm", "6");
     }
 
 
