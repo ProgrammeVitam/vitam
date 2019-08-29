@@ -49,25 +49,23 @@ public interface BatchReportClient extends BasicClient {
      *
      * @param processId
      * @param reportExportRequest report export request
-     * @return
      * @throws VitamClientInternalException
      */
-    RequestResponse<JsonNode> generateEliminationActionDistinctObjectGroupInUnitReport(String processId,
+    void generateEliminationActionDistinctObjectGroupInUnitReport(String processId,
         ReportExportRequest reportExportRequest) throws VitamClientInternalException;
 
     /**
      * Append report entries
      *
      * @param reportBody the given entry document.
-     * @return RequestResponse
      */
-    RequestResponse<JsonNode> appendReportEntries(ReportBody reportBody) throws VitamClientInternalException;
+    void appendReportEntries(ReportBody reportBody) throws VitamClientInternalException;
 
-    RequestResponse<JsonNode> storeReport(Report reportInfo) throws VitamClientInternalException;
+    void storeReport(Report reportInfo) throws VitamClientInternalException;
 
-    RequestResponse<JsonNode> saveUnitsAndProgeny(String processId, List<String> unitsId) throws VitamClientInternalException;
+    void saveUnitsAndProgeny(String processId, List<String> unitsId) throws VitamClientInternalException;
 
-    RequestResponse<JsonNode> deleteUnitsAndProgeny(String processId) throws VitamClientInternalException;
+    void deleteUnitsAndProgeny(String processId) throws VitamClientInternalException;
 
     JsonNode getUnitsToInvalidate(String processId) throws VitamClientInternalException;
 
@@ -77,10 +75,9 @@ public interface BatchReportClient extends BasicClient {
      *
      * @param processId
      * @param reportExportRequest report export request
-     * @return
      * @throws VitamClientInternalException
      */
-    RequestResponse<JsonNode> generateEliminationActionAccessionRegisterReport(String processId,
+    void generateEliminationActionAccessionRegisterReport(String processId,
         ReportExportRequest reportExportRequest) throws VitamClientInternalException;
 
     /**
@@ -88,8 +85,7 @@ public interface BatchReportClient extends BasicClient {
      *
      * @param processId the given process Id
      * @param reportType report type
-     * @return RequestResponse
      */
-    RequestResponse<JsonNode> cleanupReport(String processId, ReportType reportType)
+    void cleanupReport(String processId, ReportType reportType)
         throws VitamClientInternalException;
 }
