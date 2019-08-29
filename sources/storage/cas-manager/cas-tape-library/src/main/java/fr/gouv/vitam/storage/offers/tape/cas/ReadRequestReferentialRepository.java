@@ -105,7 +105,7 @@ public class ReadRequestReferentialRepository implements ReadRequestReferentialC
         throws ReadRequestReferentialException {
 
         try {
-            UpdateResult updateResult = collection.updateOne(
+            UpdateResult updateResult = collection.updateMany(
                 Filters.exists(TapeReadRequestReferentialEntity.TAR_LOCATIONS + "." + archiveId),
                 Updates.set(TapeReadRequestReferentialEntity.TAR_LOCATIONS + "." + archiveId, tarLocation.name()),
                 new UpdateOptions().upsert(false)
@@ -113,7 +113,9 @@ public class ReadRequestReferentialRepository implements ReadRequestReferentialC
 
 
             if (updateResult.getModifiedCount() == 0) {
-                LOGGER.warn("No update occurred, no read request found with archive :" + archiveId);
+                LOGGER.warn("No read request modified with archive :" + archiveId +
+                    ", Matched read request: " +
+                    updateResult.getMatchedCount());
             } else {
                 LOGGER.debug(updateResult.getModifiedCount() + " read request updated with archive :" + archiveId +
                     " location: " + tarLocation.name());
@@ -151,8 +153,8 @@ public class ReadRequestReferentialRepository implements ReadRequestReferentialC
                 Updates.combine(Updates.set(TapeReadRequestReferentialEntity.IS_EXPIRED, true),
                     Updates.set(TapeReadRequestReferentialEntity.EXPIRE_DATE, LocalDateUtil
                         .getFormattedDateForMongo(LocalDateTime.now().minusSeconds(5)))),
-                    new UpdateOptions().upsert(false)
-                );
+                new UpdateOptions().upsert(false)
+            );
 
             if (updateResult.getModifiedCount() != 1) {
                 throw new ReadRequestReferentialException(
