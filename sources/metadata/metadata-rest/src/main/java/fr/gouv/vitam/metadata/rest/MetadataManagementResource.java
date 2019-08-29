@@ -44,12 +44,10 @@ import fr.gouv.vitam.common.error.VitamCodeHelper;
 import fr.gouv.vitam.common.error.VitamError;
 import fr.gouv.vitam.common.exception.BadRequestException;
 import fr.gouv.vitam.common.exception.InternalServerException;
-import fr.gouv.vitam.common.exception.InvalidGuidOperationException;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamClientException;
 import fr.gouv.vitam.common.guid.GUID;
 import fr.gouv.vitam.common.guid.GUIDFactory;
-import fr.gouv.vitam.common.guid.GUIDReader;
 import fr.gouv.vitam.common.i18n.VitamLogbookMessages;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
@@ -106,7 +104,6 @@ import java.util.Set;
 import static fr.gouv.vitam.common.json.JsonHandler.writeToInpustream;
 import static fr.gouv.vitam.common.model.ProcessAction.RESUME;
 import static fr.gouv.vitam.common.model.StatusCode.STARTED;
-import static fr.gouv.vitam.common.thread.VitamThreadUtils.getVitamSession;
 import static fr.gouv.vitam.logbook.common.parameters.Contexts.COMPUTE_INHERITED_RULES;
 import static fr.gouv.vitam.logbook.common.parameters.Contexts.PRESERVATION;
 import static javax.ws.rs.core.Response.Status.BAD_REQUEST;
@@ -128,7 +125,6 @@ public class MetadataManagementResource {
     public static final String UNIT = "UNIT";
 
 
-    private static final String CONTEXT_METADATA = "METADATA";
     private static final String CODE_VITAM = "code_vitam";
 
     private static final String UNIT_OBJECTGROUP = UNIT + "_" + OBJECTGROUP;
@@ -145,7 +141,7 @@ public class MetadataManagementResource {
     /**
      * Error/Exceptions messages.
      */
-    private static final String RECONSTRUCTION_JSON_MONDATORY_PARAMETERS_MSG = "the Json input of reconstruction's parameters is mondatory.";
+    private static final String RECONSTRUCTION_JSON_MANDATORY_PARAMETERS_MSG = "the Json input of reconstruction's parameters is mandatory.";
     private static final String RECONSTRUCTION_EXCEPTION_MSG = "ERROR: Exception has been thrown when reconstructing Vitam collections: ";
     private static final String STORE_GRAPH_EXCEPTION_MSG = "ERROR: Exception has been thrown when sotre graph: ";
     private static final String COMPUTE_GRAPH_EXCEPTION_MSG = "ERROR: Exception has been thrown when compute graph: ";
@@ -205,7 +201,7 @@ public class MetadataManagementResource {
     @Produces(MediaType.APPLICATION_JSON)
     @VitamAuthentication(authentLevel = AuthenticationLevel.BASIC_AUTHENT)
     public Response reconstructCollection(List<ReconstructionRequestItem> reconstructionItems) {
-        ParametersChecker.checkParameter(RECONSTRUCTION_JSON_MONDATORY_PARAMETERS_MSG, reconstructionItems);
+        ParametersChecker.checkParameter(RECONSTRUCTION_JSON_MANDATORY_PARAMETERS_MSG, reconstructionItems);
 
         List<ReconstructionResponseItem> responses = new ArrayList<>();
         if (!reconstructionItems.isEmpty()) {
@@ -372,8 +368,8 @@ public class MetadataManagementResource {
 
             this.reclassificationDistributionService.exportReclassificationChildNodes(
                 request.getUnitIds(),
-                request.getUnitsToUpdateChainedFileName(),
-                request.getObjectGroupsToUpdateChainedFileName());
+                request.getUnitsToUpdateJsonLineFileName(),
+                request.getObjectGroupsToUpdateJsonLineFileName());
 
             return Response.ok().build();
         } catch (Exception e) {

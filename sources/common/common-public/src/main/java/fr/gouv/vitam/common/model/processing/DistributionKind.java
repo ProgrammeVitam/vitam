@@ -53,11 +53,6 @@ public enum DistributionKind {
     LIST_IN_DIRECTORY("LIST_IN_DIRECTORY"),
 
     /**
-     * Distribution by list defined in linked file.
-     */
-    LIST_IN_LINKED_FILE("LIST_IN_LINKED_FILE"),
-
-    /**
      * Distribution by list defined in JSONL file.
      */
     LIST_IN_JSONL_FILE("LIST_IN_JSONL_FILE");

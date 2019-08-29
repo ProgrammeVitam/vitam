@@ -38,32 +38,32 @@ public class ReclassificationChildNodeExportRequest {
     @JsonProperty("unitIds")
     private Set<String> unitIds;
 
-    @JsonProperty("unitsToUpdateChainedFileName")
-    private String unitsToUpdateChainedFileName;
+    @JsonProperty("unitsToUpdateJsonLineFileName")
+    private String unitsToUpdateJsonLineFileName;
 
-    @JsonProperty("objectGroupsToUpdateChainedFileName")
-    private String objectGroupsToUpdateChainedFileName;
+    @JsonProperty("objectGroupsToUpdateJsonLineFileName")
+    private String objectGroupsToUpdateJsonLineFileName;
 
     public ReclassificationChildNodeExportRequest() {
         // Empty constructor for deserialization
     }
 
-    public ReclassificationChildNodeExportRequest(Set<String> unitIds, String unitsToUpdateChainedFileName,
-        String objectGroupsToUpdateChainedFileName) {
+    public ReclassificationChildNodeExportRequest(Set<String> unitIds, String unitsToUpdateJsonLineFileName,
+        String objectGroupsToUpdateJsonLineFileName) {
         this.unitIds = unitIds;
-        this.unitsToUpdateChainedFileName = unitsToUpdateChainedFileName;
-        this.objectGroupsToUpdateChainedFileName = objectGroupsToUpdateChainedFileName;
+        this.unitsToUpdateJsonLineFileName = unitsToUpdateJsonLineFileName;
+        this.objectGroupsToUpdateJsonLineFileName = objectGroupsToUpdateJsonLineFileName;
     }
 
     public Set<String> getUnitIds() {
         return unitIds;
     }
 
-    public String getUnitsToUpdateChainedFileName() {
-        return unitsToUpdateChainedFileName;
+    public String getUnitsToUpdateJsonLineFileName() {
+        return unitsToUpdateJsonLineFileName;
     }
 
-    public String getObjectGroupsToUpdateChainedFileName() {
-        return objectGroupsToUpdateChainedFileName;
+    public String getObjectGroupsToUpdateJsonLineFileName() {
+        return objectGroupsToUpdateJsonLineFileName;
     }
 }
