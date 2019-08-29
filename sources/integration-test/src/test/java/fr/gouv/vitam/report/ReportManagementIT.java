@@ -26,26 +26,8 @@
  *******************************************************************************/
 package fr.gouv.vitam.report;
 
-import static org.assertj.core.api.Assertions.assertThat;
-
-import java.io.IOException;
-import java.io.InputStream;
-import java.time.LocalDateTime;
-import java.util.HashMap;
-import java.util.Map;
-
-import javax.ws.rs.core.Response;
-
-import org.junit.After;
-import org.junit.AfterClass;
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.ClassRule;
-import org.junit.Test;
-
 import com.fasterxml.jackson.databind.JsonNode;
 import com.google.common.collect.Sets;
-
 import fr.gouv.vitam.batch.report.client.BatchReportClient;
 import fr.gouv.vitam.batch.report.client.BatchReportClientFactory;
 import fr.gouv.vitam.batch.report.model.OperationSummary;
@@ -82,6 +64,22 @@ import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
 import fr.gouv.vitam.workspace.rest.WorkspaceMain;
 import net.javacrumbs.jsonunit.JsonAssert;
 import net.javacrumbs.jsonunit.core.Option;
+import org.junit.After;
+import org.junit.AfterClass;
+import org.junit.Before;
+import org.junit.BeforeClass;
+import org.junit.ClassRule;
+import org.junit.Test;
+
+import javax.ws.rs.core.Response;
+import java.io.IOException;
+import java.io.InputStream;
+import java.time.LocalDateTime;
+import java.util.HashMap;
+import java.util.Map;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatCode;
 
 /**
  * ReportManagementIT
@@ -144,8 +142,9 @@ public class ReportManagementIT extends VitamRuleRunner {
             JsonHandler.getFromInputStream(stream, ReportBody.class, EliminationActionUnitReportEntry.class);
         // When
         // Then
-        RequestResponse<JsonNode> requestResponse = batchReportClient.appendReportEntries(reportBody);
-        assertThat(requestResponse.getStatus()).isEqualTo(Response.Status.CREATED.getStatusCode());
+        assertThatCode(
+            () -> batchReportClient.appendReportEntries(reportBody)
+        ).doesNotThrowAnyException();
     }
 
     @Test
@@ -157,8 +156,9 @@ public class ReportManagementIT extends VitamRuleRunner {
             JsonHandler.getFromInputStream(stream, ReportBody.class, EliminationActionObjectGroupReportEntry.class);
         // When
         // Then
-        RequestResponse<JsonNode> requestResponse = batchReportClient.appendReportEntries(reportBody);
-        assertThat(requestResponse.getStatus()).isEqualTo(Response.Status.CREATED.getStatusCode());
+        assertThatCode(
+            () -> batchReportClient.appendReportEntries(reportBody)
+        ).doesNotThrowAnyException();
     }
 
     @Test
@@ -170,8 +170,9 @@ public class ReportManagementIT extends VitamRuleRunner {
             JsonHandler.getFromInputStream(stream, ReportBody.class, PreservationReportEntry.class);
         // When
         // Then
-        RequestResponse<JsonNode> requestResponse = batchReportClient.appendReportEntries(reportBody);
-        assertThat(requestResponse.getStatus()).isEqualTo(Response.Status.CREATED.getStatusCode());
+        assertThatCode(
+            () -> batchReportClient.appendReportEntries(reportBody)
+        ).doesNotThrowAnyException();
     }
 
     @Test
@@ -181,10 +182,10 @@ public class ReportManagementIT extends VitamRuleRunner {
         InputStream stream = getClass().getResourceAsStream("/report/auditObjectGroupModel.json");
         ReportBody<AuditObjectGroupReportEntry> reportBody =
             JsonHandler.getFromInputStream(stream, ReportBody.class, AuditObjectGroupReportEntry.class);
-        // When
-        RequestResponse<JsonNode> requestResponse = batchReportClient.appendReportEntries(reportBody);
-        // Then
-        assertThat(requestResponse.getStatus()).isEqualTo(Response.Status.CREATED.getStatusCode());
+        // When / Then
+        assertThatCode(
+            () -> batchReportClient.appendReportEntries(reportBody)
+        ).doesNotThrowAnyException();
     }
 
     @Test
@@ -196,11 +197,10 @@ public class ReportManagementIT extends VitamRuleRunner {
             JsonHandler.getFromInputStream(stream, ReportBody.class, EliminationActionUnitReportEntry.class);
         ReportExportRequest reportExportRequest = new ReportExportRequest("test.json");
         batchReportClient.appendReportEntries(reportBody);
-        // When
-        RequestResponse<JsonNode> requestResponse = batchReportClient
-            .generateEliminationActionDistinctObjectGroupInUnitReport(reportBody.getProcessId(), reportExportRequest);
-        // Then
-        assertThat(requestResponse.getStatus()).isEqualTo(200);
+        // When / Then
+        assertThatCode(() -> batchReportClient
+            .generateEliminationActionDistinctObjectGroupInUnitReport(reportBody.getProcessId(), reportExportRequest)
+        ).doesNotThrowAnyException();
 
         checkGeneratedReportEqualsExpectedJsonl("test.json",
             "report/eliminationUnitModel_expectedDistinctObjectGroupReport.jsonl");
@@ -218,7 +218,8 @@ public class ReportManagementIT extends VitamRuleRunner {
         Integer tenant = TENANT_0;
         String evId = PROCESS_ID;
         JsonNode evDetData = JsonHandler.createObjectNode(); // Will be set later by appended status data
-        OperationSummary operationSummary = new OperationSummary(tenant, evId, "", "", "", "", JsonHandler.createObjectNode(), evDetData);
+        OperationSummary operationSummary =
+            new OperationSummary(tenant, evId, "", "", "", "", JsonHandler.createObjectNode(), evDetData);
 
         String date = LocalDateUtil.getString(LocalDateTime.now());
         ReportType reportType = ReportType.PRESERVATION;
@@ -230,11 +231,10 @@ public class ReportManagementIT extends VitamRuleRunner {
 
         Report report = new Report(operationSummary, reportSummary, context);
 
-        // When
-        RequestResponse<JsonNode> storeResponse = batchReportClient.storeReport(report);
-
-        // Then
-        assertThat(storeResponse.getStatus()).isEqualTo(Response.Status.OK.getStatusCode());
+        // When / Then
+        assertThatCode(
+            () -> batchReportClient.storeReport(report)
+        ).doesNotThrowAnyException();
     }
 
     @Test
@@ -254,7 +254,8 @@ public class ReportManagementIT extends VitamRuleRunner {
         Integer tenant = TENANT_0;
         String evId = PROCESS_ID;
         JsonNode evDetData = JsonHandler.createObjectNode(); // Will be set later by appended status data
-        OperationSummary operationSummary = new OperationSummary(tenant, evId, "", "", "", "", JsonHandler.createObjectNode(), evDetData);
+        OperationSummary operationSummary =
+            new OperationSummary(tenant, evId, "", "", "", "", JsonHandler.createObjectNode(), evDetData);
 
         String date = LocalDateUtil.getString(LocalDateTime.now());
         ReportType reportType = ReportType.ELIMINATION_ACTION;
@@ -266,11 +267,10 @@ public class ReportManagementIT extends VitamRuleRunner {
 
         Report report = new Report(operationSummary, reportSummary, context);
 
-        // When
-        RequestResponse<JsonNode> storeResponse = batchReportClient.storeReport(report);
-
-        // Then
-        assertThat(storeResponse.getStatus()).isEqualTo(Response.Status.OK.getStatusCode());
+        // When / Then
+        assertThatCode(
+            () -> batchReportClient.storeReport(report)
+        ).doesNotThrowAnyException();
     }
 
 
@@ -286,7 +286,8 @@ public class ReportManagementIT extends VitamRuleRunner {
         Integer tenant = TENANT_0;
         String evId = PROCESS_ID;
         JsonNode evDetData = JsonHandler.createObjectNode(); // Will be set later by appended status data
-        OperationSummary operationSummary = new OperationSummary(tenant, evId, "", "", "", "", JsonHandler.createObjectNode(), evDetData);
+        OperationSummary operationSummary =
+            new OperationSummary(tenant, evId, "", "", "", "", JsonHandler.createObjectNode(), evDetData);
 
         String date = LocalDateUtil.getString(LocalDateTime.now());
         ReportType reportType = ReportType.AUDIT;
@@ -298,11 +299,10 @@ public class ReportManagementIT extends VitamRuleRunner {
 
         Report report = new Report(operationSummary, reportSummary, context);
 
-        // When
-        RequestResponse<JsonNode> storeResponse = batchReportClient.storeReport(report);
-
-        // Then
-        assertThat(storeResponse.getStatus()).isEqualTo(Response.Status.OK.getStatusCode());
+        // When / Then
+        assertThatCode(
+            () -> batchReportClient.storeReport(report)
+        ).doesNotThrowAnyException();
     }
 
 
@@ -321,7 +321,8 @@ public class ReportManagementIT extends VitamRuleRunner {
             assertThat(reportEntriesById.keySet()).containsExactlyInAnyOrderElementsOf(expectedEntriesById.keySet());
 
             for (String id : expectedEntriesById.keySet()) {
-                JsonAssert.assertJsonEquals(expectedEntriesById.get(id), reportEntriesById.get(id), JsonAssert.when(Option.IGNORING_ARRAY_ORDER));
+                JsonAssert.assertJsonEquals(expectedEntriesById.get(id), reportEntriesById.get(id),
+                    JsonAssert.when(Option.IGNORING_ARRAY_ORDER));
             }
         }
     }
