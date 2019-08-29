@@ -120,7 +120,7 @@ public class MetadataManagementResource {
         this(new ReconstructionService(vitamRepositoryProvider, offsetRepository),
             new StoreGraphService(vitamRepositoryProvider),
             GraphComputeServiceImpl.initialize(vitamRepositoryProvider, metadata),
-            new ReclassificationDistributionService(vitamRepositoryProvider));
+            new ReclassificationDistributionService(metadata));
     }
 
     /**
