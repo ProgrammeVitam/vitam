@@ -26,14 +26,12 @@
  *******************************************************************************/
 package fr.gouv.vitam.batch.report.client;
 
-import com.fasterxml.jackson.databind.JsonNode;
 import fr.gouv.vitam.batch.report.model.Report;
 import fr.gouv.vitam.batch.report.model.ReportBody;
 import fr.gouv.vitam.batch.report.model.ReportExportRequest;
 import fr.gouv.vitam.batch.report.model.ReportType;
 import fr.gouv.vitam.common.exception.VitamClientInternalException;
 import fr.gouv.vitam.common.external.client.BasicClient;
-import fr.gouv.vitam.common.model.RequestResponse;
 
 /**
  * BatchReportClient
@@ -46,10 +44,9 @@ public interface BatchReportClient extends BasicClient {
      *
      * @param processId the given process Id to aggregate
      * @param reportExportRequest report export request
-     * @return RequestResponse
      * @throws VitamClientInternalException VitamClientInternalException
      */
-    RequestResponse<JsonNode> generateEliminationActionUnitReport(String processId,
+    void generateEliminationActionUnitReport(String processId,
         ReportExportRequest reportExportRequest) throws VitamClientInternalException;
 
     /**
@@ -58,10 +55,9 @@ public interface BatchReportClient extends BasicClient {
      *
      * @param processId processId
      * @param reportExportRequest report export request
-     * @return RequestResponse
      * @throws VitamClientInternalException VitamClientInternalException
      */
-    RequestResponse<JsonNode> generateEliminationActionObjectGroupReport(String processId,
+    void generateEliminationActionObjectGroupReport(String processId,
         ReportExportRequest reportExportRequest) throws VitamClientInternalException;
 
     /**
@@ -70,21 +66,19 @@ public interface BatchReportClient extends BasicClient {
      *
      * @param processId
      * @param reportExportRequest report export request
-     * @return
      * @throws VitamClientInternalException
      */
-    RequestResponse<JsonNode> generateEliminationActionDistinctObjectGroupInUnitReport(String processId,
+    void generateEliminationActionDistinctObjectGroupInUnitReport(String processId,
         ReportExportRequest reportExportRequest) throws VitamClientInternalException;
 
     /**
      * Append report entries
      *
      * @param reportBody the given entry document.
-     * @return RequestResponse
      */
-    <T> RequestResponse<JsonNode> appendReportEntries(ReportBody<T> reportBody) throws VitamClientInternalException;
+    void appendReportEntries(ReportBody reportBody) throws VitamClientInternalException;
 
-    RequestResponse<JsonNode> storeReport(Report reportInfo) throws VitamClientInternalException;
+    void storeReport(Report reportInfo) throws VitamClientInternalException;
 
     /**
      * Generate elimination action accession register for deleted units by status and process Id.
@@ -92,10 +86,9 @@ public interface BatchReportClient extends BasicClient {
      *
      * @param processId
      * @param reportExportRequest report export request
-     * @return
      * @throws VitamClientInternalException
      */
-    RequestResponse<JsonNode> generateEliminationActionAccessionRegisterReport(String processId,
+    void generateEliminationActionAccessionRegisterReport(String processId,
         ReportExportRequest reportExportRequest) throws VitamClientInternalException;
 
     /**
@@ -106,7 +99,7 @@ public interface BatchReportClient extends BasicClient {
      * @return report in workspace
      * @throws VitamClientInternalException
      */
-    RequestResponse<JsonNode> generatePreservationReport(String processId, ReportExportRequest reportExportRequest)
+    void generatePreservationReport(String processId, ReportExportRequest reportExportRequest)
         throws VitamClientInternalException;
 
     /**
@@ -114,8 +107,7 @@ public interface BatchReportClient extends BasicClient {
      *
      * @param processId the given process Id
      * @param reportType report type
-     * @return RequestResponse
      */
-    RequestResponse<JsonNode> cleanupReport(String processId, ReportType reportType)
+    void cleanupReport(String processId, ReportType reportType)
         throws VitamClientInternalException;
 }

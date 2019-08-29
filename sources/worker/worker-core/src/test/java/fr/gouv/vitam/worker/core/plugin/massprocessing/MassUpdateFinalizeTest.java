@@ -64,6 +64,7 @@ import static fr.gouv.vitam.worker.core.plugin.preservation.TestWorkerParameter.
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
+import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -133,7 +134,7 @@ public class MassUpdateFinalizeTest {
         ArgumentCaptor<Report> reportCaptor = ArgumentCaptor.forClass(Report.class);
 
         when(logbookOperationsClient.selectOperationById(operationId)).thenReturn(getLogbookOperationRequestResponseOK(numberOfOK, numberOfKO));
-        when(batchReportClient.storeReport(reportCaptor.capture())).thenReturn(null);
+        doNothing().when(batchReportClient).storeReport(reportCaptor.capture());
 
         // When
         massUpdateFinalize.execute(workerParameter, handlerIO);

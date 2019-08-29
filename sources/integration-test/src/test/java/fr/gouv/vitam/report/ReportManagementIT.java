@@ -26,16 +26,6 @@
  *******************************************************************************/
 package fr.gouv.vitam.report;
 
-import static org.assertj.core.api.Assertions.assertThat;
-
-import java.io.IOException;
-import java.io.InputStream;
-import java.lang.reflect.Type;
-import java.util.HashMap;
-import java.util.Map;
-
-import javax.ws.rs.core.Response;
-
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.google.common.collect.Sets;
@@ -51,7 +41,6 @@ import fr.gouv.vitam.common.VitamServerRunner;
 import fr.gouv.vitam.common.client.VitamClientFactory;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.json.JsonHandler;
-import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.stream.VitamAsyncInputStream;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
@@ -71,6 +60,15 @@ import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
 import org.junit.Test;
+
+import javax.ws.rs.core.Response;
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.HashMap;
+import java.util.Map;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatCode;
 
 /**
  * ReportManagementIT
@@ -134,8 +132,9 @@ public class ReportManagementIT extends VitamRuleRunner {
             new TypeReference<ReportBody<JsonNode>>() {});
         // When
         // Then
-        RequestResponse<JsonNode> requestResponse = batchReportClient.appendReportEntries(reportBody);
-        assertThat(requestResponse.getStatus()).isEqualTo(Response.Status.CREATED.getStatusCode());
+        assertThatCode(
+            () -> batchReportClient.appendReportEntries(reportBody)
+        ).doesNotThrowAnyException();
     }
 
     @Test
@@ -147,8 +146,9 @@ public class ReportManagementIT extends VitamRuleRunner {
             new TypeReference<ReportBody<JsonNode>>() {});
         // When
         // Then
-        RequestResponse<JsonNode> requestResponse = batchReportClient.appendReportEntries(reportBody);
-        assertThat(requestResponse.getStatus()).isEqualTo(Response.Status.CREATED.getStatusCode());
+        assertThatCode(
+            () -> batchReportClient.appendReportEntries(reportBody)
+        ).doesNotThrowAnyException();
     }
 
 
@@ -161,11 +161,10 @@ public class ReportManagementIT extends VitamRuleRunner {
             new TypeReference<ReportBody<JsonNode>>() {});
         ReportExportRequest reportExportRequest = new ReportExportRequest("test.json");
         batchReportClient.appendReportEntries(reportBody);
-        // When
-        RequestResponse<JsonNode> requestResponse = batchReportClient
-            .generateEliminationActionObjectGroupReport(reportBody.getProcessId(), reportExportRequest);
-        // Then
-        assertThat(requestResponse.getStatus()).isEqualTo(200);
+        // When / Then
+        assertThatCode(
+            () -> batchReportClient.generateEliminationActionObjectGroupReport(reportBody.getProcessId(), reportExportRequest)
+        ).doesNotThrowAnyException();
 
         checkGeneratedReportEqualsExpectedJsonl("test.json", "report/eliminationObjectGroupModel_expectedReport.jsonl");
     }
@@ -179,11 +178,11 @@ public class ReportManagementIT extends VitamRuleRunner {
             new TypeReference<ReportBody<JsonNode>>() {});
         ReportExportRequest reportExportRequest = new ReportExportRequest("test.json");
         batchReportClient.appendReportEntries(reportBody);
-        // When
-        RequestResponse<JsonNode> requestResponse = batchReportClient
-            .generateEliminationActionUnitReport(reportBody.getProcessId(), reportExportRequest);
-        // Then
-        assertThat(requestResponse.getStatus()).isEqualTo(200);
+        // When / Then
+        assertThatCode(
+            () -> batchReportClient
+            .generateEliminationActionUnitReport(reportBody.getProcessId(), reportExportRequest)
+        ).doesNotThrowAnyException();
 
         checkGeneratedReportEqualsExpectedJsonl("test.json", "report/eliminationUnitModel_expectedReport.jsonl");
     }
@@ -198,10 +197,10 @@ public class ReportManagementIT extends VitamRuleRunner {
         ReportExportRequest reportExportRequest = new ReportExportRequest("test.json");
         batchReportClient.appendReportEntries(reportBody);
         // When
-        RequestResponse<JsonNode> requestResponse = batchReportClient
-            .generateEliminationActionDistinctObjectGroupInUnitReport(reportBody.getProcessId(), reportExportRequest);
-        // Then
-        assertThat(requestResponse.getStatus()).isEqualTo(200);
+        assertThatCode(
+            () -> batchReportClient
+            .generateEliminationActionDistinctObjectGroupInUnitReport(reportBody.getProcessId(), reportExportRequest)
+        ).doesNotThrowAnyException();
 
         checkGeneratedReportEqualsExpectedJsonl("test.json",
             "report/eliminationUnitModel_expectedDistinctObjectGroupReport.jsonl");
@@ -218,34 +217,32 @@ public class ReportManagementIT extends VitamRuleRunner {
         ReportExportRequest reportExportRequest = new ReportExportRequest("test_1.json");
         batchReportClient.appendReportEntries(reportBody);
         // When
-        RequestResponse<JsonNode> requestResponse = batchReportClient
-            .generateEliminationActionUnitReport(reportBody.getProcessId(), reportExportRequest);
-        // Then
-        assertThat(requestResponse.getStatus()).isEqualTo(200);
+        assertThatCode(
+            () -> batchReportClient.generateEliminationActionUnitReport(reportBody.getProcessId(), reportExportRequest)
+        ).doesNotThrowAnyException();
 
         checkGeneratedReportEqualsExpectedJsonl("test_1.json",
             "report/eliminationUnitWithDuplicateUnit_expectedReport.jsonl");
 
         // Given
         stream = getClass().getResourceAsStream("/report/eliminationObjectGroupWithDuplicateObjectGroup.json");
-        reportBody = JsonHandler.getFromInputStreamAsTypeRefence(stream,
+        ReportBody reportBody2 = JsonHandler.getFromInputStreamAsTypeRefence(stream,
             new TypeReference<ReportBody<JsonNode>>() {});
-        reportExportRequest = new ReportExportRequest("test_2.json");
-        batchReportClient.appendReportEntries(reportBody);
+        ReportExportRequest reportExportRequest2 = new ReportExportRequest("test_2.json");
+        batchReportClient.appendReportEntries(reportBody2);
         // When
-        requestResponse = batchReportClient
-            .generateEliminationActionUnitReport(reportBody.getProcessId(), reportExportRequest);
-
-        // Then
-        assertThat(requestResponse.getStatus()).isEqualTo(200);
+        assertThatCode(
+            () -> batchReportClient
+            .generateEliminationActionUnitReport(reportBody2.getProcessId(), reportExportRequest2)
+        ).doesNotThrowAnyException();
 
         checkGeneratedReportEqualsExpectedJsonl("test_2.json",
             "report/eliminationObjectGroupWithDuplicateObjectGroup_expectedReport.jsonl");
 
-        reportExportRequest = new ReportExportRequest("accession_register.json");
+        ReportExportRequest reportExportRequest3 = new ReportExportRequest("accession_register.json");
 
         batchReportClient
-            .generateEliminationActionAccessionRegisterReport(reportBody.getProcessId(), reportExportRequest);
+            .generateEliminationActionAccessionRegisterReport(reportBody.getProcessId(), reportExportRequest3);
 
         checkGeneratedReportEqualsExpectedJsonl("accession_register.json",
             "report/accessionRegister_expectedReport.jsonl");
@@ -262,15 +259,15 @@ public class ReportManagementIT extends VitamRuleRunner {
         ReportBody reportBody = JsonHandler.getFromInputStreamAsTypeRefence(stream,
             new TypeReference<ReportBody<JsonNode>>() {});
         batchReportClient.appendReportEntries(reportBody);
-        // When
-        RequestResponse<JsonNode> response =
-            batchReportClient.cleanupReport(reportBody.getProcessId(), ReportType.ELIMINATION_ACTION_UNIT);
-        // Then
-        assertThat(response.getStatus()).isEqualTo(Response.Status.NO_CONTENT.getStatusCode());
+        // When / Then
+        assertThatCode(
+            () -> batchReportClient.cleanupReport(reportBody.getProcessId(), ReportType.ELIMINATION_ACTION_UNIT)
+        ).doesNotThrowAnyException();
 
-        RequestResponse<JsonNode> findResponse = batchReportClient
-            .generateEliminationActionUnitReport(reportBody.getProcessId(), new ReportExportRequest(REPORT_JSON));
-        assertThat(findResponse.getStatus()).isEqualTo(Response.Status.OK.getStatusCode());
+        assertThatCode(
+            () -> batchReportClient
+            .generateEliminationActionUnitReport(reportBody.getProcessId(), new ReportExportRequest(REPORT_JSON))
+        ).doesNotThrowAnyException();
         Response responseEmptyExport = workspaceClient.getObject(reportBody.getProcessId(), REPORT_JSON);
 
         InputStream inputStream = responseEmptyExport.readEntity(InputStream.class);
