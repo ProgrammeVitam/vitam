@@ -72,6 +72,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
@@ -124,7 +125,7 @@ public class ComputeInheritedRuleProgenyIdentifierPluginTest {
         when(metaDataClient.selectUnits(any(JsonNode.class))).thenReturn(createMetadataResponseFromList(allUnitsToInvalidate));
         when(batchReportClient.getUnitsToInvalidate(anyString())).thenReturn(createBatchReportResponseFromList(allUnitsToInvalidate));
         ArgumentCaptor<List<String>> listArgumentCaptor = ArgumentCaptor.forClass(List.class);
-        when(batchReportClient.saveUnitsAndProgeny(anyString(), listArgumentCaptor.capture())).thenReturn(null);
+        doNothing().when(batchReportClient).saveUnitsAndProgeny(anyString(), listArgumentCaptor.capture());
 
         // When
         computeInheritedRuleProgenyIdentifierPlugin.executeList(workerParameters, handlerIO);
