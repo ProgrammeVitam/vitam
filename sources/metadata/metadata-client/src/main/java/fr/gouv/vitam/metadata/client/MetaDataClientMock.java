@@ -201,8 +201,8 @@ public class MetaDataClientMock extends AbstractMockClient implements MetaDataCl
     }
 
     @Override
-    public void exportReclassificationChildNodes(Set<String> ids, String unitsToUpdateChainedFileName,
-        String objectGroupsToUpdateChainedFileName) {
+    public void exportReclassificationChildNodes(Set<String> ids, String unitsToUpdateJsonLineFileName,
+        String objectGroupsToUpdateJsonLineFileName) {
         throw new IllegalStateException("Stop using mocks in production");
     }
 

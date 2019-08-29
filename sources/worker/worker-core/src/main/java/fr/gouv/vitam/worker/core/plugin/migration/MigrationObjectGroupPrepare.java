@@ -1,4 +1,4 @@
-/*******************************************************************************
+/*
  * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2019)
  *
  * contact.vitam@culture.gouv.fr
@@ -23,7 +23,7 @@
  *
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
- *******************************************************************************/
+ */
 package fr.gouv.vitam.worker.core.plugin.migration;
 
 import com.fasterxml.jackson.databind.JsonNode;
@@ -45,8 +45,7 @@ import fr.gouv.vitam.worker.common.HandlerIO;
 import fr.gouv.vitam.worker.core.handler.ActionHandler;
 import fr.gouv.vitam.worker.core.plugin.ScrollSpliteratorHelper;
 
-import static fr.gouv.vitam.common.model.IngestWorkflowConstants.OBJECT_GROUP_FOLDER;
-import static fr.gouv.vitam.worker.core.plugin.migration.MigrationHelper.exportToReportAndLinkedFiles;
+import static fr.gouv.vitam.worker.core.plugin.migration.MigrationHelper.exportToReportAndDistributionFile;
 import static fr.gouv.vitam.worker.core.plugin.migration.MigrationHelper.getSelectMultiQuery;
 
 /**
@@ -61,24 +60,12 @@ public class MigrationObjectGroupPrepare extends ActionHandler {
     static final String MIGRATION_OBJECT_LIST_IDS = "migrationObjectsListIds";
     private static final String REPORTS = "reports";
 
-
-
-    /**
-     * Constructor
-     *
-     * @param metaDataClientFactory metaDataClientFactory
-     * @param bachSize bachSize
-     */
     @VisibleForTesting
     public MigrationObjectGroupPrepare(MetaDataClientFactory metaDataClientFactory, int bachSize) {
         this.metaDataClientFactory = metaDataClientFactory;
         this.bachSize = bachSize;
-
     }
 
-    /**
-     * Constructor
-     */
     public MigrationObjectGroupPrepare() {
         this(MetaDataClientFactory.getInstance(), GlobalDatasDb.LIMIT_LOAD);
     }
@@ -94,8 +81,8 @@ public class MigrationObjectGroupPrepare extends ActionHandler {
             ScrollSpliterator<JsonNode> scrollRequest = ScrollSpliteratorHelper
                 .createObjectGroupScrollSplitIterator(client, selectMultiQuery, bachSize);
 
-            exportToReportAndLinkedFiles(scrollRequest, handler, OBJECT_GROUP_FOLDER,
-                bachSize, REPORTS + "/" + MIGRATION_OBJECT_LIST_IDS + ".json");
+            exportToReportAndDistributionFile(scrollRequest, handler, "ObjectGroups.jsonl",
+                REPORTS + "/" + MIGRATION_OBJECT_LIST_IDS + ".json");
 
             if (ScrollSpliteratorHelper.checkNumberOfResultQuery(itemStatus, scrollRequest.estimateSize())) {
                 return new ItemStatus(MIGRATION_OBJECT_GROUPS_LIST)

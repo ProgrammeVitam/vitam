@@ -321,8 +321,8 @@ public class MetadataManagementResource {
 
             this.reclassificationDistributionService.exportReclassificationChildNodes(
                 request.getUnitIds(),
-                request.getUnitsToUpdateChainedFileName(),
-                request.getObjectGroupsToUpdateChainedFileName());
+                request.getUnitsToUpdateJsonLineFileName(),
+                request.getObjectGroupsToUpdateJsonLineFileName());
 
             return Response.ok().build();
         } catch (Exception e) {

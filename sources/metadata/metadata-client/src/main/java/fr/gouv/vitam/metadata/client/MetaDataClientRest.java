@@ -676,16 +676,16 @@ public class MetaDataClientRest extends DefaultClient implements MetaDataClient 
     }
 
     @Override
-    public void exportReclassificationChildNodes(Set<String> ids, String unitsToUpdateChainedFileName,
-                                                 String objectGroupsToUpdateChainedFileName)
+    public void exportReclassificationChildNodes(Set<String> ids, String unitsToUpdateJsonLineFileName,
+                                                 String objectGroupsToUpdateJsonLineFileName)
         throws VitamClientException, MetaDataExecutionException {
         ParametersChecker.checkParameter("All params are mandatory", ids);
         Response response = null;
         try {
 
             ReclassificationChildNodeExportRequest reclassificationChildNodeExportRequest =
-                new ReclassificationChildNodeExportRequest(ids, unitsToUpdateChainedFileName,
-                    objectGroupsToUpdateChainedFileName);
+                new ReclassificationChildNodeExportRequest(ids, unitsToUpdateJsonLineFileName,
+                    objectGroupsToUpdateJsonLineFileName);
 
             response = performRequest(POST, "exportReclassificationChildNodes", null,
                 reclassificationChildNodeExportRequest,
