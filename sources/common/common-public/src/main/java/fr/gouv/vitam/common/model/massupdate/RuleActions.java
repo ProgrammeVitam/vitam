@@ -27,12 +27,15 @@
 package fr.gouv.vitam.common.model.massupdate;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+
+import static com.fasterxml.jackson.annotation.JsonInclude.Include.ALWAYS;
 
 public class RuleActions {
 
@@ -43,7 +46,8 @@ public class RuleActions {
     List<Map<String, RuleCategoryAction>> update = new ArrayList<>();
 
     @JsonProperty("delete")
-    List<Map<String, RuleCategoryAction>> delete = new ArrayList<>();
+    @JsonInclude(ALWAYS)
+    List<Map<String, RuleCategoryActionDeletion>> delete = new ArrayList<>();
 
     @JsonProperty("addOrUpdateMetadata")
     ManagementMetadataAction addOrUpdateMetadata;
@@ -67,11 +71,11 @@ public class RuleActions {
         this.update = update;
     }
 
-    public List<Map<String, RuleCategoryAction>> getDelete() {
+    public List<Map<String, RuleCategoryActionDeletion>> getDelete() {
         return delete;
     }
 
-    public void setDelete(List<Map<String, RuleCategoryAction>> delete) {
+    public void setDelete(List<Map<String, RuleCategoryActionDeletion>> delete) {
         this.delete = delete;
     }
 
