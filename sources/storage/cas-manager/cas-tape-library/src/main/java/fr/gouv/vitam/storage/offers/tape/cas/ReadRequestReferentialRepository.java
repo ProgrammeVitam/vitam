@@ -152,7 +152,7 @@ public class ReadRequestReferentialRepository implements ReadRequestReferentialC
                 Filters.eq(TapeReadRequestReferentialEntity.ID, readOrderRequestId),
                 Updates.combine(Updates.set(TapeReadRequestReferentialEntity.IS_EXPIRED, true),
                     Updates.set(TapeReadRequestReferentialEntity.EXPIRE_DATE, LocalDateUtil
-                        .getFormattedDateForMongo(LocalDateTime.now().minusSeconds(5)))),
+                        .getFormattedDateForMongo(LocalDateTime.now()))),
                 new UpdateOptions().upsert(false)
             );
 
