@@ -76,6 +76,7 @@ import fr.gouv.vitam.common.model.massupdate.ManagementMetadataAction;
 import fr.gouv.vitam.common.model.massupdate.RuleAction;
 import fr.gouv.vitam.common.model.massupdate.RuleActions;
 import fr.gouv.vitam.common.model.massupdate.RuleCategoryAction;
+import fr.gouv.vitam.common.model.massupdate.RuleCategoryActionDeletion;
 import fr.gouv.vitam.common.mongo.MongoRule;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
@@ -117,6 +118,7 @@ import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
@@ -2262,16 +2264,7 @@ public class DbRequestTest {
         final GUID uuid = GUIDFactory.newUnitGUID(TENANT_ID_0);
         try {
             final DbRequest dbRequest = new DbRequest();
-            RequestParserMultiple requestParser = null;
-            // INSERT
-            final JsonNode insertRequest =
-                JsonHandler.getFromInputStream(PropertiesUtils.getResourceAsStream("insert_request_with_nested.json"));
-            // Now considering insert request and parsing it as in Data Server (POST command)
-            /*InsertParserMultiple insertParserMultiple =
-                    (InsertParserMultiple) RequestParserHelper.getParser(insertRequest, mongoDbVarNameAdapter);
-            LOGGER.debug("InsertParser: {}", insertParserMultiple);
-            // Now execute the request
-            dbRequest.execInsertUnitRequest(insertParserMultiple);*/
+            RequestParserMultiple requestParser;
 
             // SELECT
             JsonNode selectRequest =
@@ -2361,12 +2354,9 @@ public class DbRequestTest {
                     new RuleAction().setOldRule("ACC-00002").setRule("ACC-00003").setStartDate("2000-01-01")
                 ))));
 
-        ruleActions.getDelete().add(ImmutableMap.of(
-            "AccessRule", new RuleCategoryAction()
-                .setPreventInheritance(true)
-                .setRules(Collections.singletonList(
-                    new RuleAction().setRule("ACC-00004")
-                ))));
+        RuleCategoryActionDeletion accessRule = new RuleCategoryActionDeletion();
+        accessRule.setRules(Collections.singletonList(new RuleAction().setRule("ACC-00004")));
+        ruleActions.getDelete().add(ImmutableMap.of("AccessRule", accessRule));
 
         Map<String, DurationData> ruleDurationByRuleId = ImmutableMap.of(
             "ACC-00001", new DurationData(1, ChronoUnit.DAYS),
@@ -2635,7 +2625,7 @@ public class DbRequestTest {
         RuleCategoryAction classificationRule = new RuleCategoryAction()
             .setRules(Collections.singletonList(new RuleAction().setRule("ACC-00001")))
             .setClassificationLevel("Batman defense");
-        ruleActions.getDelete().add(ImmutableMap.of("ClassificationLevel", classificationRule));
+        ruleActions.getDelete().add(ImmutableMap.of("ClassificationLevel", new RuleCategoryActionDeletion()));
 
         Map<String, DurationData> ruleDurationByRuleId = ImmutableMap.of(
             "ACC-00001", new DurationData(1, ChronoUnit.DAYS),
@@ -2707,36 +2697,27 @@ public class DbRequestTest {
         );
         // Request
         RuleActions ruleActions = new RuleActions();
-        Set<String> preventRulesIdToDelete = new HashSet<>();
-        preventRulesIdToDelete.add("DIS-00001");
-        preventRulesIdToDelete.add("DIS-00002");
-        ruleActions.getDelete().add(ImmutableMap.of(
-            "DisseminationRule", new RuleCategoryAction()
-                .setPreventRulesId(preventRulesIdToDelete)
-        ));
+        HashMap<String, RuleCategoryActionDeletion> e = new HashMap<>();
+        e.put("DisseminationRule", null);
+        ruleActions.getDelete().add(e);
 
         CachedSchemaValidatorLoader schemaValidatorLoader = new CachedSchemaValidatorLoader(100, 300);
 
         OntologyValidator ontologyValidator = new OntologyValidator(() -> ontologyModels);
         UnitValidator unitValidator = new UnitValidator(archiveUnitProfileLoader, schemaValidatorLoader);
 
-        // When
         DbRequest dbRequest = new DbRequest(
             new MongoDbMetadataRepository<Unit>(() -> MetadataCollections.UNIT.getCollection()),
             new MongoDbMetadataRepository<ObjectGroup>(() -> MetadataCollections.OBJECTGROUP.getCollection()),
             fieldHistoryManager
         );
 
-        UpdatedDocument updatedDocument = dbRequest.execRuleRequest(uuid, ruleActions, ruleDurationByRuleId,
-            ontologyValidator, unitValidator, Collections.emptyList());
+        // When
+        UpdatedDocument updatedDocument = dbRequest.execRuleRequest(uuid, ruleActions, ruleDurationByRuleId, ontologyValidator, unitValidator, Collections.emptyList());
 
         // Then
         assertThat(updatedDocument).isNotNull();
-        assertThat(updatedDocument.getAfterUpdate().get("_mgt").get("DisseminationRule").get("Inheritance")
-            .get("PreventRulesId")).isEqualTo(JsonHandler.createArrayNode());
-        assertThat(Boolean.valueOf(
-            updatedDocument.getAfterUpdate().get("_mgt").get("DisseminationRule").get("Inheritance")
-                .get("PreventInheritance").asText())).isEqualTo(Boolean.FALSE);
+        assertThat(updatedDocument.getAfterUpdate().get("_mgt").isEmpty(null)).isTrue();
     }
 
     @RunWithCustomExecutor
