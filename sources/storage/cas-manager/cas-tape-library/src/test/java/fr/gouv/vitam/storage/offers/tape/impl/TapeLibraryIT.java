@@ -28,10 +28,12 @@ package fr.gouv.vitam.storage.offers.tape.impl;
 
 import com.google.common.collect.Lists;
 import fr.gouv.vitam.common.PropertiesUtils;
+import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.database.server.mongodb.MongoDbAccess;
 import fr.gouv.vitam.common.database.server.mongodb.SimpleMongoDBAccess;
 import fr.gouv.vitam.common.database.server.query.QueryCriteria;
 import fr.gouv.vitam.common.database.server.query.QueryCriteriaOperator;
+import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.mongo.MongoRule;
 import fr.gouv.vitam.common.storage.tapelibrary.TapeDriveConf;
@@ -41,15 +43,22 @@ import fr.gouv.vitam.storage.engine.common.collection.OfferCollections;
 import fr.gouv.vitam.storage.engine.common.model.QueueState;
 import fr.gouv.vitam.storage.engine.common.model.ReadOrder;
 import fr.gouv.vitam.storage.engine.common.model.TapeCatalog;
+import fr.gouv.vitam.storage.engine.common.model.TapeReadRequestReferentialEntity;
+import fr.gouv.vitam.storage.engine.common.model.TarLocation;
 import fr.gouv.vitam.storage.offers.tape.TapeLibraryFactory;
+import fr.gouv.vitam.storage.offers.tape.cas.ArchiveOutputRetentionPolicy;
+import fr.gouv.vitam.storage.offers.tape.cas.ReadRequestReferentialCleaner;
+import fr.gouv.vitam.storage.offers.tape.cas.ReadRequestReferentialRepository;
 import fr.gouv.vitam.storage.offers.tape.dto.TapeDrive;
 import fr.gouv.vitam.storage.offers.tape.dto.TapeDriveSpec;
 import fr.gouv.vitam.storage.offers.tape.dto.TapeLibrarySpec;
 import fr.gouv.vitam.storage.offers.tape.dto.TapeResponse;
 import fr.gouv.vitam.storage.offers.tape.dto.TapeSlot;
+import fr.gouv.vitam.storage.offers.tape.exception.ReadRequestReferentialException;
 import fr.gouv.vitam.storage.offers.tape.exception.TapeCatalogException;
 import fr.gouv.vitam.storage.offers.tape.impl.catalog.TapeCatalogRepository;
 import fr.gouv.vitam.storage.offers.tape.impl.catalog.TapeCatalogServiceImpl;
+import fr.gouv.vitam.storage.offers.tape.impl.readwrite.TapeLibraryServiceImpl;
 import fr.gouv.vitam.storage.offers.tape.process.Output;
 import fr.gouv.vitam.storage.offers.tape.spec.TapeCatalogService;
 import fr.gouv.vitam.storage.offers.tape.spec.TapeDriveCommandService;
@@ -60,6 +69,7 @@ import fr.gouv.vitam.storage.offers.tape.spec.TapeReadWriteService;
 import fr.gouv.vitam.storage.offers.tape.spec.TapeRobotService;
 import fr.gouv.vitam.storage.offers.tape.worker.tasks.ReadTask;
 import fr.gouv.vitam.storage.offers.tape.worker.tasks.ReadWriteResult;
+import org.apache.commons.io.FileUtils;
 import org.assertj.core.api.Assertions;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
@@ -67,16 +77,21 @@ import org.junit.ClassRule;
 import org.junit.Ignore;
 import org.junit.Test;
 
+import java.io.File;
 import java.io.IOException;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 
 import static fr.gouv.vitam.common.database.collections.VitamCollection.getMongoClientOptions;
 import static org.assertj.core.api.AssertionsForInterfaceTypes.assertThat;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
-//FIXME "Should be fixed after merge"
-@Ignore("Should be fixed after merge")
+@Ignore("Will not work if no tape library connected with a good configuration file")
 public class TapeLibraryIT {
     public static final String OFFER_TAPE_TEST_CONF = "offer-tape-test.conf";
     public static final long TIMEOUT_IN_MILLISECONDS = 60000L;
@@ -102,6 +117,7 @@ public class TapeLibraryIT {
             PropertiesUtils.readYaml(PropertiesUtils.findFile(OFFER_TAPE_TEST_CONF),
                 TapeLibraryConfiguration.class);
 
+        VitamConfiguration.setTenants(Lists.newArrayList(0, 1, 2, 3, 4, 5, 6, 7, 8, 9));
         String inputFileStorageFolder = PropertiesUtils.getResourceFile("tar/").getAbsolutePath();
         configuration.setInputFileStorageFolder(inputFileStorageFolder);
         configuration.setInputTarStorageFolder(inputFileStorageFolder);
@@ -392,10 +408,6 @@ public class TapeLibraryIT {
             TapeReadWriteService ddRreadWriteService =
                 tapeDriveService.getReadWriteService(TapeDriveService.ReadWriteCmd.DD);
 
-            TapeReadWriteService tarRreadWriteService =
-                tapeDriveService.getReadWriteService(TapeDriveService.ReadWriteCmd.TAR);
-
-
             TapeDriveCommandService driveCommandService = tapeDriveService.getDriveCommandService();
 
 
@@ -439,24 +451,8 @@ public class TapeLibraryIT {
             // TODO: 25/02/19 Check parse response
 
 
-            // 7 Read file from tape with tar command
-            response = tarRreadWriteService.readFromTape("");
-            assertThat(response).isNotNull();
-            Assertions.assertThat(response.getEntity()).isNotNull();
-            assertThat(response.getStatus()).isEqualTo(StatusCode.OK);
-            // TODO: 25/02/19 Check parse response
-
-
             //8 Rewind
             response = driveCommandService.rewind();
-            assertThat(response).isNotNull();
-            Assertions.assertThat(response.getEntity()).isNotNull();
-            assertThat(response.getStatus()).isEqualTo(StatusCode.OK);
-            // TODO: 25/02/19 Check parse response
-
-
-            // 9 Read file from tape with tar command
-            response = tarRreadWriteService.readFromTape("file1");
             assertThat(response).isNotNull();
             Assertions.assertThat(response.getEntity()).isNotNull();
             assertThat(response.getStatus()).isEqualTo(StatusCode.OK);
@@ -527,28 +523,112 @@ public class TapeLibraryIT {
             Assertions.assertThat(response.isOK()).isTrue();
 
             // read file from tape with given position
+            ReadRequestReferentialRepository readRequestReferentialRepository = new ReadRequestReferentialRepository(
+                mongoDbAccess.getMongoDatabase()
+                    .getCollection(
+                        OfferCollections.TAPE_READ_REQUEST_REFERENTIAL.getName() + "_" + GUIDFactory.newGUID().getId())
+            );
+
             TapeCatalogRepository tapeCatalogRepository = new TapeCatalogRepository(mongoDbAccess.getMongoDatabase()
                 .getCollection(OfferCollections.TAPE_CATALOG.getName()));
+
             TapeCatalogService tapeCatalogService = new TapeCatalogServiceImpl(tapeCatalogRepository);
             String tapeCode = state.getSlots().get(SLOT_INDEX - 1).getTape().getVolumeTag();
             TapeCatalog workerCurrentTape = tapeCatalogService.find(
                 Arrays.asList(new QueryCriteria(TapeCatalog.CODE, tapeCode, QueryCriteriaOperator.EQ))).get(0);
 
-            ReadTask readTask1 = new ReadTask(new ReadOrder(tapeCode, 0, "testtar.tar", "bucket"), workerCurrentTape,
-                tapeLibraryPool, tapeDriveService, tapeCatalogService);
+            String readRequestId = GUIDFactory.newGUID().getId();
 
-            ReadTask readTask2 = new ReadTask(new ReadOrder(tapeCode, 1, "testtar_2.tar", "bucket"), workerCurrentTape,
-                tapeLibraryPool, tapeDriveService, tapeCatalogService);
+            Map<String, TarLocation> tarLocations = new HashMap<>();
+            tarLocations.put("testtar", TarLocation.TAPE);
+            tarLocations.put("testtar_2", TarLocation.TAPE);
 
+            TapeReadRequestReferentialEntity tapeReadRequestReferentialEntity =
+                new TapeReadRequestReferentialEntity(readRequestId, "fakeContainer",
+                    tarLocations, Lists.newArrayList());
+
+            readRequestReferentialRepository.insert(tapeReadRequestReferentialEntity);
+            Optional<TapeReadRequestReferentialEntity> actual = readRequestReferentialRepository.find(readRequestId);
+
+            Assertions.assertThat(actual).isPresent();
+            assertThat(actual.get().isCompleted()).isFalse();
+
+            ReadRequestReferentialCleaner readRequestReferentialCleaner = mock(ReadRequestReferentialCleaner.class);
+            when(readRequestReferentialCleaner.cleanUp()).thenReturn(1L);
+
+            ArchiveOutputRetentionPolicy archiveOutputRetentionPolicy =
+                new ArchiveOutputRetentionPolicy(5, readRequestReferentialCleaner);
+
+            ReadTask readTask1 =
+                new ReadTask(new ReadOrder(readRequestId, tapeCode, 0, "testtar.tar", "bucket"), workerCurrentTape,
+                    new TapeLibraryServiceImpl(tapeDriveService, tapeLibraryPool), tapeCatalogService,
+                    readRequestReferentialRepository,
+                    archiveOutputRetentionPolicy);
+
+            ReadTask readTask2 =
+                new ReadTask(new ReadOrder(readRequestId, tapeCode, 1, "testtar_2.tar", "bucket"), workerCurrentTape,
+                    new TapeLibraryServiceImpl(tapeDriveService, tapeLibraryPool), tapeCatalogService,
+                    readRequestReferentialRepository,
+                    archiveOutputRetentionPolicy);
+
+            // Classical read
             ReadWriteResult result1 = readTask1.get();
             assertThat(result1).isNotNull();
             assertThat(result1.getOrderState()).isEqualTo(QueueState.COMPLETED);
+
+            String outputFile = configuration.getOutputTarStorageFolder() + "/testtar.tar";
+            File outputTarFile = new File(outputFile);
+            Assertions.assertThat(outputTarFile).exists();
+            Assertions.assertThat(outputTarFile.length()).isGreaterThan(1);
+            archiveOutputRetentionPolicy.invalidate("testtar.tar");
+            FileUtils.forceDeleteOnExit(outputTarFile);
 
             ReadWriteResult result2 = readTask2.get();
             assertThat(result2).isNotNull();
             assertThat(result2.getOrderState()).isEqualTo(QueueState.COMPLETED);
 
-        } catch (TapeCatalogException e) {
+            outputFile = configuration.getOutputTarStorageFolder() + "/testtar_2.tar";
+            outputTarFile = new File(outputFile);
+            Assertions.assertThat(outputTarFile).exists();
+            Assertions.assertThat(outputTarFile.length()).isGreaterThan(1);
+            archiveOutputRetentionPolicy.invalidate("testtar_2.tar");
+            FileUtils.forceDeleteOnExit(outputTarFile);
+
+            // Test of move backward (bsfm) : We are in position 2 try to re-read second file
+            result2 = readTask2.get();
+            assertThat(result2).isNotNull();
+            assertThat(result2.getOrderState()).isEqualTo(QueueState.COMPLETED);
+
+            outputFile = configuration.getOutputTarStorageFolder() + "/testtar_2.tar";
+            outputTarFile = new File(outputFile);
+            Assertions.assertThat(outputTarFile).exists();
+            Assertions.assertThat(outputTarFile.length()).isGreaterThan(1);
+            archiveOutputRetentionPolicy.invalidate("testtar_2.tar");
+            FileUtils.forceDeleteOnExit(outputTarFile);
+
+            // Test of move backward rewind : We are in position 2 try to re-read first file
+            result1 = readTask1.get();
+            assertThat(result1).isNotNull();
+            assertThat(result1.getOrderState()).isEqualTo(QueueState.COMPLETED);
+
+            outputFile = configuration.getOutputTarStorageFolder() + "/testtar.tar";
+            outputTarFile = new File(outputFile);
+            Assertions.assertThat(outputTarFile).exists();
+            Assertions.assertThat(outputTarFile.length()).isGreaterThan(1);
+            archiveOutputRetentionPolicy.invalidate("testtar.tar");
+            FileUtils.forceDeleteOnExit(outputTarFile);
+
+            // Assert ReadRequestReferentialRepository
+            actual = readRequestReferentialRepository.find(readRequestId);
+
+            Assertions.assertThat(actual).isPresent();
+            tapeReadRequestReferentialEntity = actual.get();
+
+            assertThat(tapeReadRequestReferentialEntity.getTarLocations().get("testtar")).isEqualTo(TarLocation.DISK);
+            assertThat(tapeReadRequestReferentialEntity.getTarLocations().get("testtar_2")).isEqualTo(TarLocation.DISK);
+            assertThat(tapeReadRequestReferentialEntity.isCompleted()).isTrue();
+
+        } catch (TapeCatalogException | ReadRequestReferentialException e) {
             e.printStackTrace();
         } finally {
             try {

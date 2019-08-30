@@ -28,30 +28,21 @@ package fr.gouv.vitam.storage.offers.tape.cas;
 
 import fr.gouv.vitam.common.digest.Digest;
 import fr.gouv.vitam.common.digest.DigestType;
-import fr.gouv.vitam.common.stream.ExactSizeInputStream;
 import fr.gouv.vitam.storage.engine.common.model.TarEntryDescription;
-import org.apache.commons.compress.archivers.ArchiveEntry;
-import org.apache.commons.compress.archivers.tar.TarArchiveInputStream;
 import org.apache.commons.io.IOUtils;
-import org.apache.commons.io.input.CloseShieldInputStream;
 import org.apache.commons.io.output.NullOutputStream;
 
-import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.nio.channels.Channels;
-import java.nio.channels.SeekableByteChannel;
-import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.StandardOpenOption;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
 public final class TarTestHelper {
 
     public static void checkEntryAtPos(Path tarFilePath, TarEntryDescription entryDescription)
-        throws IOException {
+            throws IOException {
 
         Digest digest = new Digest(DigestType.SHA512);
         OutputStream digestOutputStream = digest.getDigestOutputStream(new NullOutputStream());
@@ -60,24 +51,12 @@ public final class TarTestHelper {
         assertThat(tarEntryDigest).isEqualTo(entryDescription.getDigestValue());
     }
 
+    // FIXME : usefull?
     public static void readEntryAtPos(Path tarFilePath, TarEntryDescription entryDescription, OutputStream outputStream)
-        throws IOException {
+            throws IOException {
 
-        try (SeekableByteChannel seekableByteChannel = Files
-            .newByteChannel(tarFilePath, StandardOpenOption.READ)) {
-
-            seekableByteChannel.position(entryDescription.getStartPos());
-
-            try (InputStream inputStream = Channels.newInputStream(seekableByteChannel);
-                TarArchiveInputStream tarArchiveInputStream = new TarArchiveInputStream(inputStream)) {
-
-                ArchiveEntry tarEntry = tarArchiveInputStream.getNextEntry();
-                assertThat(tarEntry.getName()).isEqualTo(entryDescription.getEntryName());
-                assertThat(tarEntry.getSize()).isEqualTo(entryDescription.getSize());
-
-                IOUtils.copy(new CloseShieldInputStream(
-                    new ExactSizeInputStream(tarArchiveInputStream, entryDescription.getSize())), outputStream);
-            }
+        try (InputStream is = TarHelper.readEntryAtPos(tarFilePath, entryDescription)) {
+            IOUtils.copy(is, outputStream);
         }
     }
 }

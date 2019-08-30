@@ -29,22 +29,15 @@ package fr.gouv.vitam.storage.offers.tape.spec;
 import fr.gouv.vitam.storage.offers.tape.dto.TapeResponse;
 
 public interface TapeDriveCommandService extends TapeDriveSafeCommandService {
-    /**
-     * fsf
-     *
-     * @param position
-     * @return TapeResponse
-     */
-    TapeResponse goToPosition(Integer position);
 
     /**
-     * fsf / bsf
+     * fsf / bsfm
      *
      * @param position
-     * @param isBackword
+     * @param isBackward
      * @return TapeResponse
      */
-    TapeResponse goToPosition(Integer position, boolean isBackword);
+    TapeResponse move(Integer position, boolean isBackward);
 
     /**
      * Go to start

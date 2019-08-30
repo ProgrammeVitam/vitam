@@ -85,7 +85,7 @@ public class Swift extends ContentAddressableStorageAbstract {
     /**
      * Constructor
      *
-     * @param osClient      the given type of osClient can be OSClientV2, OSClientV3
+     * @param osClient the given type of osClient can be OSClientV2, OSClientV3
      * @param configuration StorageConfiguration
      */
     public Swift(Supplier<OSClient> osClient, StorageConfiguration configuration) {
@@ -105,14 +105,14 @@ public class Swift extends ContentAddressableStorageAbstract {
     @Override
     public void createContainer(String containerName) throws ContentAddressableStorageServerException {
         ParametersChecker
-                .checkParameter(ErrorMessage.CONTAINER_NAME_IS_A_MANDATORY_PARAMETER.getMessage(), containerName);
+            .checkParameter(ErrorMessage.CONTAINER_NAME_IS_A_MANDATORY_PARAMETER.getMessage(), containerName);
 
         ActionResponse response = osClient.get().objectStorage().containers().create(containerName);
         if (!response.isSuccess()) {
             LOGGER.error("Error when try to create container with name: {}", containerName);
             LOGGER.error("Reason: {}", response.getFault());
             throw new ContentAddressableStorageServerException("Error when try to create container: " + response
-                    .getFault());
+                .getFault());
         }
         if (response.isSuccess() && response.getCode() == 202) {
             LOGGER.warn("Container " + containerName + " already exists");
@@ -140,7 +140,7 @@ public class Swift extends ContentAddressableStorageAbstract {
         ContentAddressableStorageException {
 
         ParametersChecker.checkParameter(ErrorMessage.CONTAINER_OBJECT_NAMES_ARE_A_MANDATORY_PARAMETER.getMessage(),
-                containerName, objectName);
+            containerName, objectName);
         // Swift has a limit on the size of a single uploaded object; by default this is 5GB.
         // However, the download size of a single object is virtually unlimited with the concept of segmentation.
         // Segments of the larger object are uploaded and a special manifest file is created that,
@@ -162,7 +162,7 @@ public class Swift extends ContentAddressableStorageAbstract {
 
         if (size != sis.getSize()) {
             throw new ContentAddressableStorageException(
-                    "Illegal state. Stream size " + sis.getSize() + " did not match expected size " + size);
+                "Illegal state. Stream size " + sis.getSize() + " did not match expected size " + size);
         }
 
         String computedDigest = computeObjectDigest(containerName, objectName, digestType);
@@ -187,7 +187,7 @@ public class Swift extends ContentAddressableStorageAbstract {
             do {
                 final String objectNameToPut = objectName + "/" + i;
                 BoundedInputStream boundedInputStream =
-                        new BoundedInputStream(stream, swiftLimit);
+                    new BoundedInputStream(stream, swiftLimit);
                 // for prevent closed stream in swift client
                 boundedInputStream.setPropagateClose(false);
 
@@ -198,10 +198,10 @@ public class Swift extends ContentAddressableStorageAbstract {
                 segmentInputStream = new CountingInputStream(autoCloseInputStream);
                 segmentTime.start();
                 osClient.get().objectStorage().objects()
-                        .put(containerName, objectNameToPut, Payloads.create(segmentInputStream));
+                    .put(containerName, objectNameToPut, Payloads.create(segmentInputStream));
                 PerformanceLogger.getInstance().log("STP_Offer_" + getConfiguration().getProvider(), containerName,
-                        "REAL_SWIFT_PUT_OBJECT_SEGMENT", segmentTime.elapsed(
-                                TimeUnit.MILLISECONDS));
+                    "REAL_SWIFT_PUT_OBJECT_SEGMENT", segmentTime.elapsed(
+                        TimeUnit.MILLISECONDS));
                 segmentTime.stop();
                 i++;
                 fileSizeRead = fileSizeRead + segmentInputStream.getByteCount();
@@ -211,14 +211,14 @@ public class Swift extends ContentAddressableStorageAbstract {
             ObjectPutOptions objectPutOptions = ObjectPutOptions.create();
             objectPutOptions.getOptions().put("X-Object-Manifest", containerName + "/" + objectName + "/");
             osClient.get().objectStorage().objects().put(
-                    containerName,
-                    objectName,
-                    Payloads.create(new VitamAutoCloseInputStream(new ByteArrayInputStream(dloManifest.getBytes()))),
-                    objectPutOptions);
+                containerName,
+                objectName,
+                Payloads.create(new VitamAutoCloseInputStream(new ByteArrayInputStream(dloManifest.getBytes()))),
+                objectPutOptions);
         } finally {
             StreamUtils.closeSilently(stream);
             PerformanceLogger.getInstance().log("STP_Offer_" + getConfiguration().getProvider(), containerName,
-                    "REAL_SWIFT_PUT_OBJECT", times.elapsed(TimeUnit.MILLISECONDS));
+                "REAL_SWIFT_PUT_OBJECT", times.elapsed(TimeUnit.MILLISECONDS));
         }
 
     }
@@ -229,12 +229,12 @@ public class Swift extends ContentAddressableStorageAbstract {
             osClient.get().objectStorage().objects().put(containerName, objectName, Payloads.create(stream));
         } finally {
             PerformanceLogger.getInstance().log("STP_Offer_" + getConfiguration().getProvider(),
-                    containerName, "REAL_SWIFT_PUT_OBJECT", times.elapsed(TimeUnit.MILLISECONDS));
+                containerName, "REAL_SWIFT_PUT_OBJECT", times.elapsed(TimeUnit.MILLISECONDS));
         }
     }
 
     private void storeDigest(String containerName, String objectName, DigestType digestType, String digest)
-            throws ContentAddressableStorageException {
+        throws ContentAddressableStorageException {
 
         Stopwatch stopwatch = Stopwatch.createStarted();
         Map<String, String> metadataToUpdate = new HashMap<>();
@@ -242,38 +242,38 @@ public class Swift extends ContentAddressableStorageAbstract {
         metadataToUpdate.put(X_OBJECT_META_DIGEST, digest);
         metadataToUpdate.put(X_OBJECT_META_DIGEST_TYPE, digestType.getName());
         if (!osClient.get().objectStorage().objects().updateMetadata(ObjectLocation.create(containerName, objectName),
-                metadataToUpdate)) {
+            metadataToUpdate)) {
             LOGGER.error("Failed to update object metadata -> remove object");
             osClient.get().objectStorage().objects().delete(containerName, objectName);
             throw new ContentAddressableStorageServerException("Cannot put object " + objectName + " on container " +
-                    containerName);
+                containerName);
         }
         PerformanceLogger.getInstance().log("STP_Offer_" + getConfiguration().getProvider(),
-                containerName, "STORE_DIGEST_IN_METADATA", stopwatch.elapsed(TimeUnit.MILLISECONDS));
+            containerName, "STORE_DIGEST_IN_METADATA", stopwatch.elapsed(TimeUnit.MILLISECONDS));
     }
 
     @Override
     public String getObjectDigest(String containerName, String objectName, DigestType digestType, boolean noCache)
-            throws ContentAddressableStorageException {
+        throws ContentAddressableStorageException {
 
         if (!noCache) {
 
             Stopwatch stopwatch = Stopwatch.createStarted();
             Map<String, String> metadata = osClient.get().objectStorage().objects()
-                    .getMetadata(ObjectLocation.create(containerName, objectName));
+                .getMetadata(ObjectLocation.create(containerName, objectName));
             PerformanceLogger.getInstance().log("STP_Offer_" + getConfiguration().getProvider(),
-                    containerName, "READ_DIGEST_FROM_METADATA", stopwatch.elapsed(TimeUnit.MILLISECONDS));
+                containerName, "READ_DIGEST_FROM_METADATA", stopwatch.elapsed(TimeUnit.MILLISECONDS));
 
             if (metadata != null
-                    && metadata.containsKey(X_OBJECT_META_DIGEST)
-                    && metadata.containsKey(X_OBJECT_META_DIGEST_TYPE)
-                    && digestType.getName().equals(metadata.get(X_OBJECT_META_DIGEST_TYPE))) {
+                && metadata.containsKey(X_OBJECT_META_DIGEST)
+                && metadata.containsKey(X_OBJECT_META_DIGEST_TYPE)
+                && digestType.getName().equals(metadata.get(X_OBJECT_META_DIGEST_TYPE))) {
 
                 return metadata.get(X_OBJECT_META_DIGEST);
             }
 
             LOGGER.warn(String.format(
-                    "Could not retrieve cached digest for object '%s' in container '%s'", objectName, containerName));
+                "Could not retrieve cached digest for object '%s' in container '%s'", objectName, containerName));
         }
 
         return computeObjectDigest(containerName, objectName, digestType);
@@ -282,13 +282,13 @@ public class Swift extends ContentAddressableStorageAbstract {
     @Override
     public ObjectContent getObject(String containerName, String objectName) throws ContentAddressableStorageException {
         ParametersChecker.checkParameter(ErrorMessage.CONTAINER_OBJECT_NAMES_ARE_A_MANDATORY_PARAMETER.getMessage(),
-                containerName, objectName);
+            containerName, objectName);
         SwiftObject object = osClient.get().objectStorage().objects().get(containerName, objectName);
         if (object == null) {
             LOGGER.error(
-                    ErrorMessage.OBJECT_NOT_FOUND.getMessage() + objectName + " in container '" + containerName + "'");
+                ErrorMessage.OBJECT_NOT_FOUND.getMessage() + objectName + " in container '" + containerName + "'");
             throw new ContentAddressableStorageNotFoundException(
-                    ErrorMessage.OBJECT_NOT_FOUND.getMessage() + objectName);
+                ErrorMessage.OBJECT_NOT_FOUND.getMessage() + objectName);
         }
 
         long size = object.getSizeInBytes();
@@ -297,16 +297,20 @@ public class Swift extends ContentAddressableStorageAbstract {
     }
 
     @Override
-    public void asyncGetObject(String containerName, String objectName)
-            throws ContentAddressableStorageNotFoundException, ContentAddressableStorageException {
-        throw new UnsupportedOperationException("Operation not supporter");
+    public String createReadOrderRequest(String containerName, List<String> objectsIds) {
+        throw new UnsupportedOperationException("Operation not supported");
+    }
+
+    @Override
+    public void removeReadOrderRequest(String readRequestID) {
+        throw new UnsupportedOperationException("Operation not supported");
     }
 
     @Override
     public void deleteObject(String containerName, String objectName) throws
-            ContentAddressableStorageNotFoundException, ContentAddressableStorageServerException {
+        ContentAddressableStorageNotFoundException, ContentAddressableStorageServerException {
         ParametersChecker.checkParameter(ErrorMessage.CONTAINER_OBJECT_NAMES_ARE_A_MANDATORY_PARAMETER.getMessage(),
-                containerName, objectName);
+            containerName, objectName);
         ActionResponse response = osClient.get().objectStorage().objects().delete(containerName, objectName);
         if (!response.isSuccess()) {
             if (response.getCode() == 404) {
@@ -325,7 +329,7 @@ public class Swift extends ContentAddressableStorageAbstract {
 
     @Override
     public ContainerInformation getContainerInformation(String containerName)
-            throws ContentAddressableStorageNotFoundException {
+        throws ContentAddressableStorageNotFoundException {
         ParametersChecker.checkParameter("Container name may not be null", containerName);
         final ContainerInformation containerInformation = new ContainerInformation();
         Map<String, String> metadata = osClient.get().objectStorage().containers().getMetadata(containerName);
@@ -340,7 +344,7 @@ public class Swift extends ContentAddressableStorageAbstract {
     @Override
     public MetadatasObject getObjectMetadata(String containerName, String objectId, boolean noCache) {
         ParametersChecker.checkParameter(ErrorMessage.CONTAINER_OBJECT_NAMES_ARE_A_MANDATORY_PARAMETER.getMessage(),
-                containerName, objectId);
+            containerName, objectId);
         MetadatasStorageObject result = new MetadatasStorageObject();
         SwiftObject object = osClient.get().objectStorage().objects().get(containerName, objectId);
         // ugly
@@ -354,12 +358,12 @@ public class Swift extends ContentAddressableStorageAbstract {
 
     @Override
     public VitamPageSet<? extends VitamStorageMetadata> listContainer(String containerName)
-            throws ContentAddressableStorageNotFoundException {
+        throws ContentAddressableStorageNotFoundException {
         ParametersChecker
-                .checkParameter(ErrorMessage.CONTAINER_NAME_IS_A_MANDATORY_PARAMETER.getMessage(), containerName);
+            .checkParameter(ErrorMessage.CONTAINER_NAME_IS_A_MANDATORY_PARAMETER.getMessage(), containerName);
         List<? extends SwiftObject> list =
-                osClient.get().objectStorage().objects().list(containerName, ObjectListOptions
-                        .create().path(containerName).limit(LISTING_MAX_RESULTS));
+            osClient.get().objectStorage().objects().list(containerName, ObjectListOptions
+                .create().path(containerName).limit(LISTING_MAX_RESULTS));
         if (list != null) {
             return OpenstackPageSetImpl.wrap(list);
         } else {
@@ -369,12 +373,12 @@ public class Swift extends ContentAddressableStorageAbstract {
 
     @Override
     public VitamPageSet<? extends VitamStorageMetadata> listContainerNext(String containerName, String nextMarker)
-            throws ContentAddressableStorageNotFoundException {
+        throws ContentAddressableStorageNotFoundException {
         ParametersChecker
-                .checkParameter(ErrorMessage.CONTAINER_NAME_IS_A_MANDATORY_PARAMETER.getMessage(), containerName);
+            .checkParameter(ErrorMessage.CONTAINER_NAME_IS_A_MANDATORY_PARAMETER.getMessage(), containerName);
         List<? extends SwiftObject> list =
-                osClient.get().objectStorage().objects().list(containerName, ObjectListOptions
-                        .create().path(containerName).limit(LISTING_MAX_RESULTS).marker(nextMarker));
+            osClient.get().objectStorage().objects().list(containerName, ObjectListOptions
+                .create().path(containerName).limit(LISTING_MAX_RESULTS).marker(nextMarker));
         if (list != null) {
             return OpenstackPageSetImpl.wrap(list);
         } else {

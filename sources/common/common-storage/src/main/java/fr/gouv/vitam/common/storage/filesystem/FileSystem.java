@@ -51,6 +51,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.attribute.BasicFileAttributeView;
 import java.nio.file.attribute.BasicFileAttributes;
+import java.util.List;
 import java.util.Properties;
 
 /**
@@ -73,9 +74,13 @@ public class FileSystem extends ContentAddressableStorageJcloudsAbstract {
     }
 
     @Override
-    public void asyncGetObject(String containerName, String objectName)
-            throws ContentAddressableStorageNotFoundException, ContentAddressableStorageException {
-        throw new UnsupportedOperationException("Operation not supporter");
+    public String createReadOrderRequest(String containerName, List<String> objectsIds) {
+        throw new UnsupportedOperationException("Operation not supported");
+    }
+
+    @Override
+    public void removeReadOrderRequest(String readRequestID) {
+        throw new UnsupportedOperationException("Operation not supported");
     }
 
     @Override
@@ -109,7 +114,7 @@ public class FileSystem extends ContentAddressableStorageJcloudsAbstract {
                     throw new ContentAddressableStorageNotFoundException("Storage not found");
                 }
             } catch (IOException e) {
-               throw  new ContentAddressableStorageNotFoundException(e);
+                throw new ContentAddressableStorageNotFoundException(e);
             }
             return baseDirFile;
         } finally {
@@ -135,7 +140,7 @@ public class FileSystem extends ContentAddressableStorageJcloudsAbstract {
             if (containerName != null) {
                 if (objectId != null) {
                     SafeFileChecker.checkSafeFilePath(baseDir, containerName, objectId);
-                    file = new File(baseDir, containerName + File.separator  + objectId);
+                    file = new File(baseDir, containerName + File.separator + objectId);
                 } else {
                     SafeFileChecker.checkSafeFilePath(baseDir, containerName);
                     file = new File(baseDir, containerName);
@@ -145,10 +150,11 @@ public class FileSystem extends ContentAddressableStorageJcloudsAbstract {
                 file = new File(baseDir);
             }
             if (!file.exists()) {
-                throw new ContentAddressableStorageNotFoundException("Storage not found: " + containerName + "(BaseDir File: " + file + ")");
+                throw new ContentAddressableStorageNotFoundException(
+                    "Storage not found: " + containerName + "(BaseDir File: " + file + ")");
             }
         } catch (IOException e) {
-           throw  new ContentAddressableStorageNotFoundException(e);
+            throw new ContentAddressableStorageNotFoundException(e);
         }
         return file;
     }
@@ -173,7 +179,8 @@ public class FileSystem extends ContentAddressableStorageJcloudsAbstract {
             result.setObjectName(objectId);
             // TODO To be reviewed with the X-DIGEST-ALGORITHM parameter
             result
-                .setDigest(getObjectDigest(containerName, objectId, VitamConfiguration.getDefaultDigestType(), noCache));
+                .setDigest(
+                    getObjectDigest(containerName, objectId, VitamConfiguration.getDefaultDigestType(), noCache));
             result.setFileSize(size);
             // TODO store vitam metadatas
             result.setType(containerName.split("_")[1]);

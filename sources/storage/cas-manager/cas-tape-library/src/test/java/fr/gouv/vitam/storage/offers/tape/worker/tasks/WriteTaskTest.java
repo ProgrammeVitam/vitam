@@ -1,22 +1,5 @@
 package fr.gouv.vitam.storage.offers.tape.worker.tasks;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.fail;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyInt;
-import static org.mockito.ArgumentMatchers.anyMap;
-import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.ArgumentMatchers.contains;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.reset;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
-
-import java.io.File;
-import java.nio.file.Files;
-import java.util.Optional;
-
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.model.StatusCode;
@@ -33,8 +16,8 @@ import fr.gouv.vitam.storage.offers.tape.cas.ArchiveReferentialRepository;
 import fr.gouv.vitam.storage.offers.tape.dto.TapeDriveState;
 import fr.gouv.vitam.storage.offers.tape.dto.TapeDriveStatus;
 import fr.gouv.vitam.storage.offers.tape.dto.TapeResponse;
-import fr.gouv.vitam.storage.offers.tape.exception.ReadWriteErrorCode;
 import fr.gouv.vitam.storage.offers.tape.exception.TapeCatalogException;
+import fr.gouv.vitam.storage.offers.tape.impl.readwrite.TapeLibraryServiceImpl;
 import fr.gouv.vitam.storage.offers.tape.spec.TapeCatalogService;
 import fr.gouv.vitam.storage.offers.tape.spec.TapeDriveCommandService;
 import fr.gouv.vitam.storage.offers.tape.spec.TapeDriveService;
@@ -42,14 +25,37 @@ import fr.gouv.vitam.storage.offers.tape.spec.TapeLoadUnloadService;
 import fr.gouv.vitam.storage.offers.tape.spec.TapeReadWriteService;
 import fr.gouv.vitam.storage.offers.tape.spec.TapeRobotPool;
 import fr.gouv.vitam.storage.offers.tape.spec.TapeRobotService;
+import fr.gouv.vitam.storage.offers.tape.utils.LocalFileUtils;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
+import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.internal.verification.Times;
-import org.mockito.internal.verification.VerificationModeFactory;
 import org.mockito.junit.MockitoJUnit;
 import org.mockito.junit.MockitoRule;
+
+import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.Optional;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.fail;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyBoolean;
+import static org.mockito.ArgumentMatchers.anyInt;
+import static org.mockito.ArgumentMatchers.anyMap;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.contains;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.reset;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 public class WriteTaskTest {
 
@@ -57,6 +63,7 @@ public class WriteTaskTest {
     public static final String FAKE_LIBRARY = "fakeLibrary";
     public static final String LTO_6 = "LTO-6";
     public static final String TAPE_CODE = "VIT0001";
+    private static final String FAKE_FILE_PATH = "fakeFilePath";
     @Rule
     public MockitoRule mockitoRule = MockitoJUnit.rule();
 
@@ -101,6 +108,9 @@ public class WriteTaskTest {
         when(tapeDriveService.getDriveCommandService()).thenAnswer(o -> tapeDriveCommandService);
         when(tapeRobotPool.checkoutRobotService()).thenAnswer(o -> tapeRobotService);
         when(tapeRobotService.getLoadUnloadService()).thenAnswer(o -> tapeLoadUnloadService);
+
+        when(tapeReadWriteService.getOutputDirectory()).thenReturn("/tmp");
+        when(tapeReadWriteService.getInputDirectory()).thenReturn("/tmp");
     }
 
     @Test
@@ -110,43 +120,39 @@ public class WriteTaskTest {
 
         // Test constructors
         try {
-            new WriteTask(mock(WriteOrder.class), null, null, tapeDriveService, tapeCatalogService,
+            new WriteTask(mock(WriteOrder.class), null, null, tapeCatalogService,
                 archiveReferentialRepository, null, false);
-            fail("should fail tapeRobotPool is required");
+            fail("should fail tapeLibraryService is required");
         } catch (IllegalArgumentException e) {
         }
 
         try {
-            new WriteTask(mock(WriteOrder.class), null, tapeRobotPool, null, tapeCatalogService,
-                archiveReferentialRepository, null, false);
-            fail("should fail tapeDriveService is required");
-        } catch (IllegalArgumentException e) {
-        }
-
-        try {
-            new WriteTask(mock(WriteOrder.class), null, tapeRobotPool, tapeDriveService, null,
-                archiveReferentialRepository,
+            new WriteTask(mock(WriteOrder.class), null, new TapeLibraryServiceImpl(tapeDriveService, tapeRobotPool),
+                null, archiveReferentialRepository,
                 null, false);
             fail("should fail tapeCatalogService is required");
         } catch (IllegalArgumentException e) {
         }
 
         try {
-            new WriteTask(mock(WriteOrder.class), null, tapeRobotPool, tapeDriveService, tapeCatalogService, null,
+            new WriteTask(mock(WriteOrder.class), null, new TapeLibraryServiceImpl(tapeDriveService, tapeRobotPool),
+                tapeCatalogService, null,
                 null, false);
             fail("should fail archiveReferentialRepository is required");
         } catch (IllegalArgumentException e) {
         }
 
         try {
-            new WriteTask(mock(WriteOrder.class), null, tapeRobotPool, tapeDriveService, tapeCatalogService,
+            new WriteTask(mock(WriteOrder.class), null, new TapeLibraryServiceImpl(tapeDriveService, tapeRobotPool),
+                tapeCatalogService,
                 archiveReferentialRepository, null, false);
         } catch (IllegalArgumentException e) {
             fail("should not throw exception");
         }
 
         try {
-            new WriteTask(mock(WriteOrder.class), null, tapeRobotPool, tapeDriveService, tapeCatalogService,
+            new WriteTask(mock(WriteOrder.class), null, new TapeLibraryServiceImpl(tapeDriveService, tapeRobotPool),
+                tapeCatalogService,
                 archiveReferentialRepository, "", false);
         } catch (IllegalArgumentException e) {
             fail("should not throw exception");
@@ -157,29 +163,42 @@ public class WriteTaskTest {
     public void test_current_tape_not_null_and_empty_label_success() throws Exception {
         // When
         when(tapeDriveService.getTapeDriveConf()).thenAnswer(o -> mock(TapeDriveConf.class));
-        String file = Files.createTempFile(GUIDFactory.newGUID().getId(), ".tar").toString();
+        String file = getTarFileName();
 
         // Given WriterOrder and TapeCatalog
-        WriteOrder writeOrder = new WriteOrder().setBucket(FAKE_BUCKET).setFilePath(file).setSize(10l);
+        WriteOrder writeOrder =
+            new WriteOrder().setBucket(FAKE_BUCKET).setFilePath(FAKE_FILE_PATH + File.separator + file).setArchiveId(file).setSize(10l);
 
         TapeCatalog tapeCatalog = getTapeCatalog(false, false, TapeState.EMPTY);
 
         // When write to tape (label and file)
         when(tapeReadWriteService.writeToTape(contains(WriteTask.TAPE_LABEL)))
             .thenReturn(new TapeResponse(StatusCode.OK));
-        when(tapeReadWriteService.writeToTape(eq(writeOrder.getFilePath())))
+        when(tapeReadWriteService.writeToTape(eq(FAKE_FILE_PATH + "/" + writeOrder.getArchiveId())))
             .thenReturn(new TapeResponse(StatusCode.OK));
+        when(tapeDriveCommandService.rewind())
+            .thenReturn(new TapeDriveState(JsonHandler.createObjectNode(), StatusCode.OK));
 
         WriteTask writeTask =
-            new WriteTask(writeOrder, tapeCatalog, tapeRobotPool, tapeDriveService, tapeCatalogService,
-                archiveReferentialRepository, "",
+            new WriteTask(writeOrder, tapeCatalog, new TapeLibraryServiceImpl(tapeDriveService, tapeRobotPool),
+                tapeCatalogService, archiveReferentialRepository, "/tmp",
                 false);
 
         ReadWriteResult result = writeTask.get();
 
         // Then
         verify(tapeReadWriteService, new Times(1)).writeToTape(contains(WriteTask.TAPE_LABEL));
-        verify(tapeReadWriteService, new Times(1)).writeToTape(eq(writeOrder.getFilePath()));
+        verify(tapeReadWriteService, new Times(1)).writeToTape(eq(FAKE_FILE_PATH + "/" + writeOrder.getArchiveId()));
+        verify(tapeDriveCommandService, times(1)).rewind();
+
+        ArgumentCaptor<String> fileName = ArgumentCaptor.forClass(String.class);
+
+        verify(tapeReadWriteService, new Times(2)).writeToTape(fileName.capture());
+
+        assertThat(fileName.getAllValues()).hasSize(2);
+
+        assertThat(fileName.getAllValues().get(0)).contains(LocalFileUtils.INPUT_TAR_TMP_FOLDER).contains(WriteTask.TAPE_LABEL);
+        assertThat(fileName.getAllValues().get(1)).contains(FAKE_FILE_PATH).contains(".tar");
 
         assertThat(result).isNotNull();
         assertThat(result.getStatus()).isEqualTo(StatusCode.OK);
@@ -202,142 +221,29 @@ public class WriteTaskTest {
     public void test_current_tape_not_null_and_have_label_success() throws Exception {
         // When
         when(tapeDriveService.getTapeDriveConf()).thenAnswer(o -> mock(TapeDriveConf.class));
-        String file = Files.createTempFile(GUIDFactory.newGUID().getId(), ".tar").toString();
+        String file = getTarFileName();
 
-        WriteOrder writeOrder = new WriteOrder().setBucket(FAKE_BUCKET).setFilePath(file).setSize(10l);
+        WriteOrder writeOrder =
+            new WriteOrder().setBucket(FAKE_BUCKET).setFilePath(FAKE_FILE_PATH + File.separator + file).setArchiveId(file).setSize(10l);
 
         TapeCatalog tapeCatalog = getTapeCatalog(true, false, TapeState.EMPTY);
 
-        when(tapeReadWriteService.writeToTape(eq(writeOrder.getFilePath())))
+        when(tapeReadWriteService.writeToTape(eq(FAKE_FILE_PATH + "/" + writeOrder.getArchiveId())))
             .thenReturn(new TapeResponse(StatusCode.OK));
 
+        when(tapeDriveCommandService.rewind())
+            .thenReturn(new TapeDriveState(JsonHandler.createObjectNode(), StatusCode.OK));
+
         WriteTask writeTask =
-            new WriteTask(writeOrder, tapeCatalog, tapeRobotPool, tapeDriveService, tapeCatalogService,
-                archiveReferentialRepository, "",
+            new WriteTask(writeOrder, tapeCatalog, new TapeLibraryServiceImpl(tapeDriveService, tapeRobotPool),
+                tapeCatalogService, archiveReferentialRepository, "/tmp",
                 false);
 
         ReadWriteResult result = writeTask.get();
 
         verify(tapeReadWriteService, new Times(0)).writeToTape(contains(WriteTask.TAPE_LABEL));
-        verify(tapeReadWriteService, new Times(1)).writeToTape(eq(writeOrder.getFilePath()));
-
-
-
-        assertThat(result).isNotNull();
-        assertThat(result.getStatus()).isEqualTo(StatusCode.OK);
-        assertThat(result.getOrderState()).isEqualTo(QueueState.COMPLETED);
-
-        assertThat(result.getCurrentTape()).isNotNull();
-        assertThat(result.getCurrentTape().getFileCount()).isEqualTo(1);
-        assertThat(result.getCurrentTape().getTapeState()).isEqualTo(TapeState.OPEN);
-
-        TapeCatalogLabel label = result.getCurrentTape().getLabel();
-
-        assertThat(label).isNotNull();
-        assertThat(label)
-            .extracting("id", TapeCatalogLabel.CODE, TapeCatalogLabel.BUCKET, TapeCatalogLabel.TYPE)
-            .contains(tapeCatalog.getId(), tapeCatalog.getCode(), tapeCatalog.getBucket(), tapeCatalog.getType());
-    }
-
-
-    @Test
-    public void test_current_tape_not_null_and_empty_label_with_retry_success() throws Exception {
-        // When
-        when(tapeDriveService.getTapeDriveConf()).thenAnswer(o -> mock(TapeDriveConf.class));
-        String file = Files.createTempFile(GUIDFactory.newGUID().getId(), ".tar").toString();
-
-        WriteOrder writeOrder = new WriteOrder().setBucket(FAKE_BUCKET).setFilePath(file).setSize(10l);
-
-        TapeCatalog tapeCatalog = getTapeCatalog(false, false, TapeState.EMPTY);
-
-        when(tapeReadWriteService.writeToTape(contains(WriteTask.TAPE_LABEL)))
-            .thenReturn(new TapeResponse(JsonHandler.createObjectNode(), StatusCode.KO))
-            .thenReturn(new TapeResponse(StatusCode.OK));
-
-        when(tapeDriveCommandService.rewind()).thenReturn(new TapeResponse(StatusCode.OK));
-        when(tapeDriveCommandService.goToPosition(anyInt())).thenReturn(new TapeResponse(StatusCode.OK));
-
-        when(tapeReadWriteService.writeToTape(eq(writeOrder.getFilePath())))
-            .thenReturn(new TapeResponse(StatusCode.OK));
-
-
-        WriteTask writeTask =
-            new WriteTask(writeOrder, tapeCatalog, tapeRobotPool, tapeDriveService, tapeCatalogService,
-                archiveReferentialRepository, "", false);
-
-        ReadWriteResult result = writeTask.get();
-
-        verify(tapeReadWriteService, new Times(2)).writeToTape(contains(WriteTask.TAPE_LABEL));
-        verify(tapeReadWriteService, new Times(1)).writeToTape(eq(writeOrder.getFilePath()));
-
-        verify(tapeDriveCommandService, new Times(1)).rewind();
-        verify(tapeDriveCommandService, new Times(1)).goToPosition(anyInt());
-
-
-
-        assertThat(result).isNotNull();
-        assertThat(result.getStatus()).isEqualTo(StatusCode.OK);
-        assertThat(result.getOrderState()).isEqualTo(QueueState.COMPLETED);
-
-        assertThat(result.getCurrentTape()).isNotNull();
-        assertThat(result.getCurrentTape().getFileCount()).isEqualTo(2);
-        assertThat(result.getCurrentTape().getTapeState()).isEqualTo(TapeState.OPEN);
-
-
-        TapeCatalogLabel label = result.getCurrentTape().getLabel();
-
-        assertThat(label).isNotNull();
-        assertThat(label)
-            .extracting("id", TapeCatalogLabel.CODE, TapeCatalogLabel.BUCKET, TapeCatalogLabel.TYPE)
-            .contains(tapeCatalog.getId(), tapeCatalog.getCode(), tapeCatalog.getBucket(), tapeCatalog.getType());
-    }
-
-
-    @Test
-    public void test_current_tape_not_null_and_have_label__with_retry_success() throws Exception {
-        // When
-        when(tapeDriveService.getTapeDriveConf()).thenAnswer(o -> mock(TapeDriveConf.class));
-        String file = Files.createTempFile(GUIDFactory.newGUID().getId(), ".tar").toString();
-
-        WriteOrder writeOrder = new WriteOrder().setBucket(FAKE_BUCKET).setFilePath(file).setSize(10l);
-
-        TapeCatalog tapeCatalog = getTapeCatalog(true, false, TapeState.EMPTY);
-
-        when(tapeReadWriteService.writeToTape(contains(WriteTask.TAPE_LABEL)))
-            .thenReturn(new TapeResponse(StatusCode.OK));
-
-        when(tapeReadWriteService.writeToTape(eq(writeOrder.getFilePath())))
-            .thenReturn(new TapeResponse(JsonHandler.createObjectNode(), StatusCode.KO))
-            .thenReturn(new TapeResponse(JsonHandler.createObjectNode(), StatusCode.KO))
-            .thenReturn(new TapeResponse(StatusCode.OK));
-
-
-        when(tapeDriveCommandService.status())
-            .thenReturn(new TapeDriveState(JsonHandler.createObjectNode(), StatusCode.KO))
-            .thenReturn(new TapeDriveState(StatusCode.OK));
-
-        when(tapeDriveCommandService.rewind())
-            .thenReturn(new TapeResponse(StatusCode.OK))
-            .thenReturn(new TapeResponse(StatusCode.OK));
-
-        when(tapeDriveCommandService.goToPosition(anyInt()))
-            .thenReturn(new TapeResponse(StatusCode.OK))
-            .thenReturn(new TapeResponse(StatusCode.OK));
-
-
-        WriteTask writeTask =
-            new WriteTask(writeOrder, tapeCatalog, tapeRobotPool, tapeDriveService, tapeCatalogService,
-                archiveReferentialRepository, "", false);
-
-        ReadWriteResult result = writeTask.get();
-
-        verify(tapeReadWriteService, new Times(0)).writeToTape(contains(WriteTask.TAPE_LABEL));
-        verify(tapeReadWriteService, new Times(3)).writeToTape(eq(writeOrder.getFilePath()));
-
-        verify(tapeDriveCommandService, new Times(2)).rewind();
-        verify(tapeDriveCommandService, new Times(2)).status();
-        verify(tapeDriveCommandService, new Times(2)).goToPosition(anyInt());
-
+        verify(tapeReadWriteService, new Times(1)).writeToTape(eq(FAKE_FILE_PATH + "/" + writeOrder.getArchiveId()));
+        verify(tapeDriveCommandService, times(1)).rewind();
 
         assertThat(result).isNotNull();
         assertThat(result.getStatus()).isEqualTo(StatusCode.OK);
@@ -354,28 +260,31 @@ public class WriteTaskTest {
             .extracting("id", TapeCatalogLabel.CODE, TapeCatalogLabel.BUCKET, TapeCatalogLabel.TYPE)
             .contains(tapeCatalog.getId(), tapeCatalog.getCode(), tapeCatalog.getBucket(), tapeCatalog.getType());
     }
-
 
     @Test
     public void test_current_tape_null_then_load_tape_with_empty_label_success()
         throws Exception {
         // When
         when(tapeDriveService.getTapeDriveConf()).thenAnswer(o -> mock(TapeDriveConf.class));
-        String file = Files.createTempFile(GUIDFactory.newGUID().getId(), ".tar").toString();
+        String file = getTarFileName();
 
         // given
         WriteOrder writeOrder =
-            new WriteOrder().setBucket(FAKE_BUCKET).setFilePath(file).setSize(10l);
+            new WriteOrder().setBucket(FAKE_BUCKET).setFilePath(FAKE_FILE_PATH + File.separator + file).setArchiveId(file).setSize(10l);
 
         WriteTask writeTask =
-            new WriteTask(writeOrder, null, tapeRobotPool, tapeDriveService, tapeCatalogService,
-                archiveReferentialRepository, "", false);
+            new WriteTask(writeOrder, null, new TapeLibraryServiceImpl(tapeDriveService, tapeRobotPool),
+                tapeCatalogService,
+                archiveReferentialRepository, "/tmp", false);
 
         TapeCatalog tapeCatalog = getTapeCatalog(false, false, TapeState.EMPTY);
+        tapeCatalog.setCurrentLocation(new TapeLocation(1, TapeLocationType.SLOT));
         when(tapeCatalogService.receive(any(), eq(QueueMessageType.TapeCatalog))).thenReturn(
             Optional.of(tapeCatalog));
 
         when(tapeLoadUnloadService.loadTape(anyInt(), anyInt())).thenReturn(new TapeResponse(StatusCode.OK));
+        when(tapeDriveCommandService.rewind())
+            .thenReturn(new TapeDriveState(JsonHandler.createObjectNode(), StatusCode.OK));
 
         TapeDriveState tapeDriveState = new TapeDriveState(StatusCode.OK);
         tapeDriveState.setCartridge("LTO-6");
@@ -389,13 +298,10 @@ public class WriteTaskTest {
         when(tapeReadWriteService.writeToTape(contains(WriteTask.TAPE_LABEL)))
             .thenReturn(new TapeResponse(StatusCode.OK));
 
-        when(tapeReadWriteService.writeToTape(eq(writeOrder.getFilePath())))
+        when(tapeReadWriteService.writeToTape(eq(FAKE_FILE_PATH + "/" + writeOrder.getArchiveId())))
             .thenReturn(new TapeResponse(StatusCode.OK));
 
-        when(tapeDriveCommandService.rewind())
-            .thenReturn(new TapeResponse(StatusCode.OK));
-
-        when(tapeDriveCommandService.goToPosition(anyInt()))
+        when(tapeDriveCommandService.move(anyInt(), anyBoolean()))
             .thenReturn(new TapeResponse(JsonHandler.createObjectNode(), StatusCode.KO))
             .thenReturn(new TapeResponse(StatusCode.OK));
 
@@ -405,11 +311,11 @@ public class WriteTaskTest {
         verify(tapeRobotPool, new Times(1)).checkoutRobotService();
         verify(tapeRobotService, new Times(1)).getLoadUnloadService();
         verify(tapeDriveCommandService, new Times(2)).status();
-        verify(tapeDriveCommandService, new Times(1)).goToPosition(anyInt());
+        verify(tapeDriveCommandService, new Times(1)).move(anyInt(), anyBoolean());
         verify(tapeLoadUnloadService, new Times(1)).loadTape(anyInt(), anyInt());
+        verify(tapeDriveCommandService, times(2)).rewind();
         verify(tapeReadWriteService, new Times(1)).writeToTape(contains(WriteTask.TAPE_LABEL));
-        verify(tapeReadWriteService, new Times(1)).writeToTape(eq(writeOrder.getFilePath()));
-        //verify(tapeReadWriteService, new Times(1)).readFromTape(anyString());
+        verify(tapeReadWriteService, new Times(1)).writeToTape(eq(FAKE_FILE_PATH + "/" + writeOrder.getArchiveId()));
 
         assertThat(result).isNotNull();
         assertThat(result.getStatus()).isEqualTo(StatusCode.OK);
@@ -439,29 +345,30 @@ public class WriteTaskTest {
         throws Exception {
         // When
         when(tapeDriveService.getTapeDriveConf()).thenAnswer(o -> mock(TapeDriveConf.class));
-        String file = Files.createTempFile(GUIDFactory.newGUID().getId(), ".tar").toString();
+        String file = getTarFileName();
 
         // given
         WriteOrder writeOrder =
-            new WriteOrder().setBucket(FAKE_BUCKET).setFilePath(file).setSize(10l);
+            new WriteOrder().setBucket(FAKE_BUCKET).setFilePath(FAKE_FILE_PATH).setArchiveId(file).setSize(10l);
 
         WriteTask writeTask =
-            new WriteTask(writeOrder, null, tapeRobotPool, tapeDriveService, tapeCatalogService,
-                archiveReferentialRepository, "", false);
+            new WriteTask(writeOrder, null, new TapeLibraryServiceImpl(tapeDriveService, tapeRobotPool),
+                tapeCatalogService,
+                archiveReferentialRepository, "/tmp", false);
 
         TapeCatalog tapeCatalog = getTapeCatalog(false, false, TapeState.EMPTY);
+        tapeCatalog.setCurrentLocation(new TapeLocation(1, TapeLocationType.SLOT));
         when(tapeCatalogService.receive(any(), eq(QueueMessageType.TapeCatalog))).thenReturn(
             Optional.of(tapeCatalog));
 
         when(tapeLoadUnloadService.loadTape(anyInt(), anyInt())).thenReturn(new TapeResponse(StatusCode.OK));
+        when(tapeDriveCommandService.rewind())
+            .thenReturn(new TapeDriveState(JsonHandler.createObjectNode(), StatusCode.OK));
 
         TapeDriveState tapeDriveState = new TapeDriveState(StatusCode.OK);
         tapeDriveState.setCartridge("LTO-6");
 
-        when(tapeDriveCommandService.rewind())
-            .thenReturn(new TapeResponse(StatusCode.OK));
-
-        when(tapeDriveCommandService.goToPosition(anyInt()))
+        when(tapeDriveCommandService.move(anyInt(), anyBoolean()))
             .thenReturn(new TapeResponse(StatusCode.OK));
 
         ReadWriteResult result = writeTask.get();
@@ -469,9 +376,9 @@ public class WriteTaskTest {
         // Then
         verify(tapeRobotPool, new Times(1)).checkoutRobotService();
         verify(tapeRobotService, new Times(1)).getLoadUnloadService();
-        verify(tapeDriveCommandService, new Times(1)).goToPosition(anyInt());
-        verify(tapeDriveCommandService, new Times(1)).rewind();
+        verify(tapeDriveCommandService, new Times(1)).move(anyInt(), anyBoolean());
         verify(tapeLoadUnloadService, new Times(1)).loadTape(anyInt(), anyInt());
+        verify(tapeDriveCommandService, times(1)).rewind();
 
         assertThat(result).isNotNull();
         assertThat(result.getStatus()).isEqualTo(StatusCode.FATAL);
@@ -499,21 +406,25 @@ public class WriteTaskTest {
         throws Exception {
         // When
         when(tapeDriveService.getTapeDriveConf()).thenAnswer(o -> mock(TapeDriveConf.class));
-        String file = Files.createTempFile(GUIDFactory.newGUID().getId(), ".tar").toString();
+        String file = getTarFileName();
 
         // given
         WriteOrder writeOrder =
-            new WriteOrder().setBucket(FAKE_BUCKET).setFilePath(file).setSize(10l);
+            new WriteOrder().setBucket(FAKE_BUCKET).setFilePath(FAKE_FILE_PATH + File.separator + file).setArchiveId(file).setSize(10l);
 
         WriteTask writeTask =
-            new WriteTask(writeOrder, null, tapeRobotPool, tapeDriveService, tapeCatalogService,
-                archiveReferentialRepository, "", true);
+            new WriteTask(writeOrder, null, new TapeLibraryServiceImpl(tapeDriveService, tapeRobotPool),
+                tapeCatalogService,
+                archiveReferentialRepository, "/tmp", true);
 
         TapeCatalog tapeCatalog = getTapeCatalog(false, false, TapeState.EMPTY);
+        tapeCatalog.setCurrentLocation(new TapeLocation(1, TapeLocationType.SLOT));
         when(tapeCatalogService.receive(any(), eq(QueueMessageType.TapeCatalog))).thenReturn(
             Optional.of(tapeCatalog));
 
         when(tapeLoadUnloadService.loadTape(anyInt(), anyInt())).thenReturn(new TapeResponse(StatusCode.OK));
+        when(tapeDriveCommandService.rewind())
+            .thenReturn(new TapeDriveState(JsonHandler.createObjectNode(), StatusCode.OK));
 
         TapeDriveState tapeDriveState = new TapeDriveState(StatusCode.OK);
         tapeDriveState.setCartridge("LTO-6");
@@ -527,12 +438,12 @@ public class WriteTaskTest {
         when(tapeReadWriteService.writeToTape(contains(WriteTask.TAPE_LABEL)))
             .thenReturn(new TapeResponse(StatusCode.OK));
 
-        when(tapeReadWriteService.writeToTape(eq(writeOrder.getFilePath())))
+        when(tapeReadWriteService.writeToTape(eq(FAKE_FILE_PATH + "/" + writeOrder.getArchiveId())))
             .thenReturn(new TapeResponse(StatusCode.OK));
         when(tapeDriveCommandService.rewind())
             .thenReturn(new TapeResponse(StatusCode.OK));
 
-        when(tapeDriveCommandService.goToPosition(anyInt()))
+        when(tapeDriveCommandService.move(anyInt(), anyBoolean()))
             .thenReturn(new TapeResponse(StatusCode.OK));
 
         ReadWriteResult result = writeTask.get();
@@ -541,10 +452,11 @@ public class WriteTaskTest {
         verify(tapeRobotPool, new Times(1)).checkoutRobotService();
         verify(tapeRobotService, new Times(1)).getLoadUnloadService();
         verify(tapeDriveCommandService, new Times(2)).status();
-        verify(tapeDriveCommandService, new Times(1)).goToPosition(anyInt());
+        verify(tapeDriveCommandService, new Times(1)).move(anyInt(), anyBoolean());
         verify(tapeLoadUnloadService, new Times(1)).loadTape(anyInt(), anyInt());
+        verify(tapeDriveCommandService, times(3)).rewind();
         verify(tapeReadWriteService, new Times(1)).writeToTape(contains(WriteTask.TAPE_LABEL));
-        verify(tapeReadWriteService, new Times(1)).writeToTape(eq(writeOrder.getFilePath()));
+        verify(tapeReadWriteService, new Times(1)).writeToTape(eq(FAKE_FILE_PATH + "/" + writeOrder.getArchiveId()));
 
         assertThat(result).isNotNull();
         assertThat(result.getStatus()).isEqualTo(StatusCode.OK);
@@ -574,29 +486,30 @@ public class WriteTaskTest {
         throws Exception {
         // When
         when(tapeDriveService.getTapeDriveConf()).thenAnswer(o -> mock(TapeDriveConf.class));
-        String file = Files.createTempFile(GUIDFactory.newGUID().getId(), ".tar").toString();
+        String file = getTarFileName();
 
         // given
         WriteOrder writeOrder =
-            new WriteOrder().setBucket(FAKE_BUCKET).setFilePath(file).setSize(10l);
+            new WriteOrder().setBucket(FAKE_BUCKET).setFilePath(FAKE_FILE_PATH + File.separator + file).setArchiveId(file).setSize(10l);
 
         WriteTask writeTask =
-            new WriteTask(writeOrder, null, tapeRobotPool, tapeDriveService, tapeCatalogService,
-                archiveReferentialRepository, "", false);
+            new WriteTask(writeOrder, null, new TapeLibraryServiceImpl(tapeDriveService, tapeRobotPool),
+                tapeCatalogService,
+                archiveReferentialRepository, "/tmp", false);
 
         TapeCatalog tapeCatalog = getTapeCatalog(true, false, TapeState.OPEN);
+        tapeCatalog.setCurrentLocation(new TapeLocation(1, TapeLocationType.SLOT));
         when(tapeCatalogService.receive(any(), eq(QueueMessageType.TapeCatalog))).thenReturn(
             Optional.of(tapeCatalog));
 
         when(tapeLoadUnloadService.loadTape(anyInt(), anyInt())).thenReturn(new TapeResponse(StatusCode.OK));
+        when(tapeDriveCommandService.rewind())
+            .thenReturn(new TapeDriveState(JsonHandler.createObjectNode(), StatusCode.OK));
 
         TapeDriveState tapeDriveState = new TapeDriveState(StatusCode.OK);
         tapeDriveState.setCartridge("LTO-6");
 
-        when(tapeDriveCommandService.rewind())
-            .thenReturn(new TapeResponse(StatusCode.OK));
-
-        when(tapeDriveCommandService.goToPosition(anyInt()))
+        when(tapeDriveCommandService.move(anyInt(), anyBoolean()))
             .thenReturn(new TapeResponse(StatusCode.OK));
 
         when(tapeReadWriteService.readFromTape(anyString())).thenAnswer(o -> {
@@ -610,9 +523,9 @@ public class WriteTaskTest {
         // Then
         verify(tapeRobotPool, new Times(1)).checkoutRobotService();
         verify(tapeRobotService, new Times(1)).getLoadUnloadService();
-        verify(tapeDriveCommandService, new Times(1)).rewind();
         verify(tapeReadWriteService, new Times(1)).readFromTape(anyString());
         verify(tapeLoadUnloadService, new Times(1)).loadTape(anyInt(), anyInt());
+        verify(tapeDriveCommandService, times(1)).rewind();
 
         assertThat(result).isNotNull();
         assertThat(result.getStatus()).isEqualTo(StatusCode.FATAL);
@@ -635,29 +548,30 @@ public class WriteTaskTest {
         throws Exception {
         // When
         when(tapeDriveService.getTapeDriveConf()).thenAnswer(o -> mock(TapeDriveConf.class));
-        String file = Files.createTempFile(GUIDFactory.newGUID().getId(), ".tar").toString();
+        String file = getTarFileName();
 
         // given
         WriteOrder writeOrder =
-            new WriteOrder().setBucket(FAKE_BUCKET).setFilePath(file).setSize(10l);
+            new WriteOrder().setBucket(FAKE_BUCKET).setFilePath(FAKE_FILE_PATH + File.separator + file).setArchiveId(file).setSize(10l);
 
         WriteTask writeTask =
-            new WriteTask(writeOrder, null, tapeRobotPool, tapeDriveService, tapeCatalogService,
-                archiveReferentialRepository, "", false);
+            new WriteTask(writeOrder, null, new TapeLibraryServiceImpl(tapeDriveService, tapeRobotPool),
+                tapeCatalogService,
+                archiveReferentialRepository, "/tmp", false);
 
         TapeCatalog tapeCatalog = getTapeCatalog(true, false, TapeState.OPEN);
+        tapeCatalog.setCurrentLocation(new TapeLocation(1, TapeLocationType.SLOT));
         when(tapeCatalogService.receive(any(), eq(QueueMessageType.TapeCatalog))).thenReturn(
             Optional.of(tapeCatalog));
 
         when(tapeLoadUnloadService.loadTape(anyInt(), anyInt())).thenReturn(new TapeResponse(StatusCode.OK));
+        when(tapeDriveCommandService.rewind())
+            .thenReturn(new TapeDriveState(JsonHandler.createObjectNode(), StatusCode.OK));
 
         TapeDriveState tapeDriveState = new TapeDriveState(StatusCode.OK);
         tapeDriveState.setCartridge("LTO-6");
 
-        when(tapeDriveCommandService.rewind())
-            .thenReturn(new TapeResponse(StatusCode.OK));
-
-        when(tapeDriveCommandService.goToPosition(anyInt()))
+        when(tapeDriveCommandService.move(anyInt(), anyBoolean()))
             .thenReturn(new TapeResponse(StatusCode.OK));
 
         when(tapeReadWriteService.readFromTape(anyString()))
@@ -668,9 +582,9 @@ public class WriteTaskTest {
         // Then
         verify(tapeRobotPool, new Times(1)).checkoutRobotService();
         verify(tapeRobotService, new Times(1)).getLoadUnloadService();
-        verify(tapeDriveCommandService, new Times(1)).rewind();
         verify(tapeReadWriteService, new Times(1)).readFromTape(anyString());
         verify(tapeLoadUnloadService, new Times(1)).loadTape(anyInt(), anyInt());
+        verify(tapeDriveCommandService, times(1)).rewind();
 
         assertThat(result).isNotNull();
         assertThat(result.getStatus()).isEqualTo(StatusCode.FATAL);
@@ -691,23 +605,28 @@ public class WriteTaskTest {
         throws Exception {
         // When
         when(tapeDriveService.getTapeDriveConf()).thenAnswer(o -> mock(TapeDriveConf.class));
-        String file = Files.createTempFile(GUIDFactory.newGUID().getId(), ".tar").toString();
+        String file = getTarFileName();
 
         // given
         WriteOrder writeOrder =
-            new WriteOrder().setBucket(FAKE_BUCKET).setFilePath(file).setSize(10l);
+            new WriteOrder().setBucket(FAKE_BUCKET).setFilePath(FAKE_FILE_PATH + File.separator + file).setArchiveId(file).setSize(10l);
 
         WriteTask writeTask =
-            new WriteTask(writeOrder, getTapeCatalog(true, false, TapeState.CONFLICT), tapeRobotPool, tapeDriveService,
-                tapeCatalogService, archiveReferentialRepository, "", false);
+            new WriteTask(writeOrder, getTapeCatalog(true, false, TapeState.CONFLICT),
+                new TapeLibraryServiceImpl(tapeDriveService, tapeRobotPool),
+                tapeCatalogService, archiveReferentialRepository, "/tmp", false);
 
         TapeCatalog tapeCatalog = getTapeCatalog(false, false, TapeState.EMPTY);
+        tapeCatalog.setCurrentLocation(new TapeLocation(1, TapeLocationType.SLOT));
         when(tapeCatalogService.receive(any(), eq(QueueMessageType.TapeCatalog))).thenReturn(
             Optional.of(tapeCatalog));
 
+        when(tapeDriveCommandService.eject()).thenReturn(new TapeResponse(StatusCode.OK));
         when(tapeLoadUnloadService.unloadTape(anyInt(), anyInt())).thenReturn(new TapeResponse(StatusCode.OK));
 
         when(tapeLoadUnloadService.loadTape(anyInt(), anyInt())).thenReturn(new TapeResponse(StatusCode.OK));
+        when(tapeDriveCommandService.rewind())
+            .thenReturn(new TapeDriveState(JsonHandler.createObjectNode(), StatusCode.OK));
 
         TapeDriveState tapeDriveState = new TapeDriveState(StatusCode.OK);
         tapeDriveState.setCartridge("VIT0001");
@@ -716,10 +635,7 @@ public class WriteTaskTest {
             .thenReturn(new TapeDriveState(JsonHandler.createObjectNode(), StatusCode.KO))
             .thenReturn(tapeDriveState);
 
-        when(tapeDriveCommandService.rewind())
-            .thenReturn(new TapeResponse(StatusCode.OK));
-
-        when(tapeDriveCommandService.goToPosition(anyInt()))
+        when(tapeDriveCommandService.move(anyInt(), anyBoolean()))
             .thenReturn(new TapeResponse(JsonHandler.createObjectNode(), StatusCode.KO))
             .thenReturn(new TapeResponse(StatusCode.OK));
 
@@ -727,10 +643,8 @@ public class WriteTaskTest {
         when(tapeReadWriteService.writeToTape(contains(WriteTask.TAPE_LABEL)))
             .thenReturn(new TapeResponse(StatusCode.OK));
 
-        when(tapeReadWriteService.writeToTape(eq(writeOrder.getFilePath())))
+        when(tapeReadWriteService.writeToTape(eq(FAKE_FILE_PATH + "/" + writeOrder.getArchiveId())))
             .thenReturn(new TapeResponse(StatusCode.OK));
-
-        when(tapeDriveCommandService.eject()).thenReturn(new TapeResponse(StatusCode.OK));
 
         ReadWriteResult result = writeTask.get();
 
@@ -738,13 +652,14 @@ public class WriteTaskTest {
         verify(tapeRobotPool, new Times(2)).checkoutRobotService();
         verify(tapeRobotService, new Times(2)).getLoadUnloadService();
         verify(tapeDriveCommandService, new Times(2)).status();
-        verify(tapeDriveCommandService, new Times(1)).rewind();
-        verify(tapeDriveCommandService, new Times(1)).goToPosition(anyInt());
+        verify(tapeDriveCommandService, new Times(1)).move(anyInt(), anyBoolean());
+        verify(tapeDriveCommandService, new Times(1)).eject();
 
         verify(tapeLoadUnloadService, new Times(1)).loadTape(anyInt(), anyInt());
+        verify(tapeDriveCommandService, times(2)).rewind();
         verify(tapeLoadUnloadService, new Times(1)).unloadTape(anyInt(), anyInt());
         verify(tapeReadWriteService, new Times(1)).writeToTape(contains(WriteTask.TAPE_LABEL));
-        verify(tapeReadWriteService, new Times(1)).writeToTape(eq(writeOrder.getFilePath()));
+        verify(tapeReadWriteService, new Times(1)).writeToTape(eq(FAKE_FILE_PATH + "/" + writeOrder.getArchiveId()));
 
         assertThat(result).isNotNull();
         assertThat(result.getStatus()).isEqualTo(StatusCode.OK);
@@ -775,23 +690,30 @@ public class WriteTaskTest {
         throws Exception {
         // When
         when(tapeDriveService.getTapeDriveConf()).thenAnswer(o -> mock(TapeDriveConf.class));
-        String file = Files.createTempFile(GUIDFactory.newGUID().getId(), ".tar").toString();
+        String file = getTarFileName();
 
         // given
         WriteOrder writeOrder =
-            new WriteOrder().setBucket(FAKE_BUCKET).setFilePath(file).setSize(10l);
+            new WriteOrder().setBucket(FAKE_BUCKET).setFilePath(FAKE_FILE_PATH + File.separator + file).setArchiveId(file).setSize(10l);
 
         WriteTask writeTask =
-            new WriteTask(writeOrder, getTapeCatalog(true, false, TapeState.OPEN), tapeRobotPool, tapeDriveService,
-                tapeCatalogService, archiveReferentialRepository, "", false);
+            new WriteTask(writeOrder, getTapeCatalog(true, false, TapeState.OPEN),
+                new TapeLibraryServiceImpl(tapeDriveService, tapeRobotPool),
+                tapeCatalogService, archiveReferentialRepository, "/tmp", false);
 
         TapeCatalog tapeCatalog = getTapeCatalog(false, false, TapeState.EMPTY);
+        tapeCatalog.setCurrentLocation(new TapeLocation(1, TapeLocationType.SLOT));
         when(tapeCatalogService.receive(any(), eq(QueueMessageType.TapeCatalog))).thenReturn(
             Optional.of(tapeCatalog));
 
         when(tapeLoadUnloadService.unloadTape(anyInt(), anyInt())).thenReturn(new TapeResponse(StatusCode.OK));
+        when(tapeDriveCommandService.eject()).thenReturn(new TapeResponse(StatusCode.OK));
 
         when(tapeLoadUnloadService.loadTape(anyInt(), anyInt())).thenReturn(new TapeResponse(StatusCode.OK));
+        when(tapeDriveCommandService.rewind())
+            .thenReturn(new TapeDriveState(JsonHandler.createObjectNode(), StatusCode.OK))
+            .thenReturn(new TapeDriveState(JsonHandler.createObjectNode(), StatusCode.OK))
+            .thenReturn(new TapeDriveState(JsonHandler.createObjectNode(), StatusCode.OK));
 
         TapeDriveState tapeDriveState = new TapeDriveState(StatusCode.OK);
         tapeDriveState.setCartridge("VIT0001");
@@ -810,29 +732,26 @@ public class WriteTaskTest {
             .thenReturn(new TapeResponse(StatusCode.OK));
 
         // First write response ko (end of tape) the second write should be a new tape
-        when(tapeReadWriteService.writeToTape(eq(writeOrder.getFilePath())))
+        when(tapeReadWriteService.writeToTape(eq(FAKE_FILE_PATH + "/" + writeOrder.getArchiveId())))
             .thenReturn(new TapeResponse(JsonHandler.createObjectNode(), StatusCode.KO))
             .thenReturn(new TapeResponse(StatusCode.OK));
 
-        when(tapeDriveCommandService.goToPosition(anyInt()))
+        when(tapeDriveCommandService.move(anyInt(), anyBoolean()))
             .thenReturn(new TapeResponse(JsonHandler.createObjectNode(), StatusCode.KO));
 
-        when(tapeDriveCommandService.eject()).thenReturn(new TapeResponse(StatusCode.OK));
-
-        when(tapeDriveCommandService.rewind())
-            .thenReturn(new TapeResponse(StatusCode.OK));
         ReadWriteResult result = writeTask.get();
 
         // Then
         verify(tapeRobotPool, new Times(2)).checkoutRobotService();
         verify(tapeRobotService, new Times(2)).getLoadUnloadService();
         verify(tapeDriveCommandService, new Times(3)).status();
-        verify(tapeDriveCommandService, new Times(1)).rewind();
-        verify(tapeDriveCommandService, new Times(1)).goToPosition(anyInt());
+        verify(tapeDriveCommandService, new Times(1)).eject();
+        verify(tapeDriveCommandService, new Times(1)).move(anyInt(), anyBoolean());
         verify(tapeLoadUnloadService, new Times(1)).loadTape(anyInt(), anyInt());
+        verify(tapeDriveCommandService, times(3)).rewind();
         verify(tapeLoadUnloadService, new Times(1)).unloadTape(anyInt(), anyInt());
         verify(tapeReadWriteService, new Times(1)).writeToTape(contains(WriteTask.TAPE_LABEL));
-        verify(tapeReadWriteService, new Times(2)).writeToTape(eq(writeOrder.getFilePath()));
+        verify(tapeReadWriteService, new Times(2)).writeToTape(eq(FAKE_FILE_PATH + "/" + writeOrder.getArchiveId()));
 
         assertThat(result).isNotNull();
         assertThat(result.getStatus()).isEqualTo(StatusCode.OK);
@@ -857,15 +776,17 @@ public class WriteTaskTest {
         throws Exception {
         // When
         when(tapeDriveService.getTapeDriveConf()).thenAnswer(o -> mock(TapeDriveConf.class));
-        String file = Files.createTempFile(GUIDFactory.newGUID().getId(), ".tar").toString();
+        String file = getTarFileName();
 
         // given
         WriteOrder writeOrder =
-            new WriteOrder().setBucket(FAKE_BUCKET).setFilePath(file).setSize(10l);
+            new WriteOrder().setBucket(FAKE_BUCKET).setFilePath(FAKE_FILE_PATH + File.separator + file).setArchiveId(file).setSize(10l);
 
+        TapeCatalog tape = getTapeCatalog(true, false, TapeState.OPEN);
         WriteTask writeTask =
-            new WriteTask(writeOrder, getTapeCatalog(true, false, TapeState.OPEN), tapeRobotPool, tapeDriveService,
-                tapeCatalogService, archiveReferentialRepository, "", false);
+            new WriteTask(writeOrder, tape,
+                new TapeLibraryServiceImpl(tapeDriveService, tapeRobotPool),
+                tapeCatalogService, archiveReferentialRepository, "/tmp", false);
 
 
         TapeCatalog tapeCatalog = getTapeCatalog(false, false, TapeState.EMPTY);
@@ -873,9 +794,13 @@ public class WriteTaskTest {
             Optional.of(tapeCatalog));
 
         when(tapeLoadUnloadService.unloadTape(anyInt(), anyInt())).thenReturn(new TapeResponse(StatusCode.OK));
+        when(tapeDriveCommandService.eject()).thenReturn(new TapeResponse(StatusCode.OK));
 
         when(tapeLoadUnloadService.loadTape(anyInt(), anyInt())).thenReturn(new TapeResponse(StatusCode.OK));
-
+        when(tapeDriveCommandService.rewind())
+            .thenReturn(new TapeDriveState(JsonHandler.createObjectNode(), StatusCode.OK))
+            .thenReturn(new TapeDriveState(JsonHandler.createObjectNode(), StatusCode.OK))
+            .thenReturn(new TapeDriveState(JsonHandler.createObjectNode(), StatusCode.OK));
 
         // When Write Label and file to tape
         when(tapeReadWriteService.writeToTape(contains(WriteTask.TAPE_LABEL)))
@@ -889,34 +814,24 @@ public class WriteTaskTest {
             .thenReturn(tapeDriveState);
 
         // First write response ko (end of tape) the second write should be a new tape
-        when(tapeReadWriteService.writeToTape(eq(writeOrder.getFilePath())))
-            .thenReturn(new TapeResponse(JsonHandler.createObjectNode(), StatusCode.KO))
-            .thenReturn(new TapeResponse(JsonHandler.createObjectNode(), StatusCode.KO))
+        when(tapeReadWriteService.writeToTape(eq(FAKE_FILE_PATH + "/" + writeOrder.getArchiveId())))
             .thenReturn(new TapeResponse(JsonHandler.createObjectNode(), StatusCode.KO))
             .thenReturn(new TapeResponse(StatusCode.OK));
 
-        when(tapeDriveCommandService.rewind())
-            .thenReturn(new TapeResponse(StatusCode.OK))
-            .thenReturn(new TapeResponse(StatusCode.OK))
-            .thenReturn(new TapeResponse(StatusCode.OK));
-
-        when(tapeDriveCommandService.eject()).thenReturn(new TapeResponse(StatusCode.OK));
-
-        when(tapeDriveCommandService.goToPosition(anyInt()))
-            .thenReturn(new TapeResponse(StatusCode.OK))
-            .thenReturn(new TapeResponse(StatusCode.OK))
+        when(tapeDriveCommandService.move(anyInt(), anyBoolean()))
             .thenReturn(new TapeResponse(JsonHandler.createArrayNode(), StatusCode.KO));
 
         ReadWriteResult result = writeTask.get();
 
         // Then
         verify(tapeDriveCommandService, new Times(2)).status();
-        verify(tapeDriveCommandService, new Times(3)).rewind();
-        verify(tapeDriveCommandService, new Times(3)).goToPosition(anyInt());
+        verify(tapeDriveCommandService, new Times(1)).eject();
+        verify(tapeDriveCommandService, new Times(1)).move(anyInt(), anyBoolean());
         verify(tapeLoadUnloadService, new Times(1)).loadTape(anyInt(), anyInt());
+        verify(tapeDriveCommandService, times(3)).rewind();
         verify(tapeLoadUnloadService, new Times(1)).unloadTape(anyInt(), anyInt());
+        verify(tapeReadWriteService, new Times(2)).writeToTape(eq(FAKE_FILE_PATH + "/" + writeOrder.getArchiveId()));
         verify(tapeReadWriteService, new Times(1)).writeToTape(contains(WriteTask.TAPE_LABEL));
-        verify(tapeReadWriteService, new Times(4)).writeToTape(eq(writeOrder.getFilePath()));
 
         assertThat(result).isNotNull();
         assertThat(result.getStatus()).isEqualTo(StatusCode.OK);
@@ -945,15 +860,16 @@ public class WriteTaskTest {
         throws Exception {
         // When
         when(tapeDriveService.getTapeDriveConf()).thenAnswer(o -> mock(TapeDriveConf.class));
-        String file = Files.createTempFile(GUIDFactory.newGUID().getId(), ".tar").toString();
+        String file = getTarFileName();
 
         // given
         WriteOrder writeOrder =
-            new WriteOrder().setBucket(FAKE_BUCKET).setFilePath(file).setSize(10l);
+            new WriteOrder().setBucket(FAKE_BUCKET).setFilePath(FAKE_FILE_PATH + File.separator + file).setArchiveId(file).setSize(10l);
 
         WriteTask writeTask =
-            new WriteTask(writeOrder, getTapeCatalog(true, false, TapeState.OPEN), tapeRobotPool, tapeDriveService,
-                tapeCatalogService, archiveReferentialRepository, "", false);
+            new WriteTask(writeOrder, getTapeCatalog(true, false, TapeState.OPEN),
+                new TapeLibraryServiceImpl(tapeDriveService, tapeRobotPool),
+                tapeCatalogService, archiveReferentialRepository, "/tmp", false);
 
 
         TapeCatalog tapeCatalog = getTapeCatalog(false, false, TapeState.EMPTY);
@@ -961,9 +877,13 @@ public class WriteTaskTest {
             Optional.of(tapeCatalog));
 
         when(tapeLoadUnloadService.unloadTape(anyInt(), anyInt())).thenReturn(new TapeResponse(StatusCode.OK));
+        when(tapeDriveCommandService.eject()).thenReturn(new TapeResponse(StatusCode.OK));
 
         when(tapeLoadUnloadService.loadTape(anyInt(), anyInt())).thenReturn(new TapeResponse(StatusCode.OK));
-
+        when(tapeDriveCommandService.rewind())
+            .thenReturn(new TapeDriveState(JsonHandler.createObjectNode(), StatusCode.OK))
+            .thenReturn(new TapeDriveState(JsonHandler.createObjectNode(), StatusCode.OK))
+            .thenReturn(new TapeDriveState(JsonHandler.createObjectNode(), StatusCode.OK));
 
         // When Write Label and file to tape
         when(tapeReadWriteService.writeToTape(contains(WriteTask.TAPE_LABEL)))
@@ -978,36 +898,24 @@ public class WriteTaskTest {
             .thenReturn(new TapeDriveState(StatusCode.OK));
 
         // First write response ko (end of tape) the second write should be a new tape
-        when(tapeReadWriteService.writeToTape(eq(writeOrder.getFilePath())))
-            .thenReturn(new TapeResponse(JsonHandler.createObjectNode(), StatusCode.KO))
-            .thenReturn(new TapeResponse(JsonHandler.createObjectNode(), StatusCode.KO))
-            .thenReturn(new TapeResponse(JsonHandler.createObjectNode(), StatusCode.KO))
-            .thenReturn(new TapeResponse(JsonHandler.createObjectNode(), StatusCode.KO))
+        when(tapeReadWriteService.writeToTape(eq(FAKE_FILE_PATH + "/" + writeOrder.getArchiveId())))
             .thenReturn(new TapeResponse(JsonHandler.createObjectNode(), StatusCode.KO))
             .thenReturn(new TapeResponse(JsonHandler.createObjectNode(), StatusCode.KO));
 
-        when(tapeDriveCommandService.rewind())
-            .thenAnswer(o -> new TapeResponse(StatusCode.OK));
-
-        when(tapeDriveCommandService.eject()).thenReturn(new TapeResponse(StatusCode.OK));
-
-        when(tapeDriveCommandService.goToPosition(anyInt()))
-            .thenReturn(new TapeResponse(StatusCode.OK))
-            .thenReturn(new TapeResponse(StatusCode.OK))
-            .thenReturn(new TapeResponse(JsonHandler.createArrayNode(), StatusCode.KO))
-            .thenReturn(new TapeResponse(StatusCode.OK))
-            .thenReturn(new TapeResponse(StatusCode.OK));
+        when(tapeDriveCommandService.move(anyInt(), anyBoolean()))
+            .thenReturn(new TapeResponse(JsonHandler.createArrayNode(), StatusCode.KO));
 
         ReadWriteResult result = writeTask.get();
 
         // Then
         verify(tapeDriveCommandService, new Times(3)).status();
-        verify(tapeDriveCommandService, new Times(5)).rewind();
-        verify(tapeDriveCommandService, new Times(5)).goToPosition(anyInt());
+        verify(tapeDriveCommandService, new Times(1)).eject();
+        verify(tapeDriveCommandService, new Times(1)).move(anyInt(), anyBoolean());
         verify(tapeLoadUnloadService, new Times(1)).loadTape(anyInt(), anyInt());
+        verify(tapeDriveCommandService, times(3)).rewind();
         verify(tapeLoadUnloadService, new Times(1)).unloadTape(anyInt(), anyInt());
         verify(tapeReadWriteService, new Times(1)).writeToTape(contains(WriteTask.TAPE_LABEL));
-        verify(tapeReadWriteService, new Times(6)).writeToTape(eq(writeOrder.getFilePath()));
+        verify(tapeReadWriteService, new Times(2)).writeToTape(eq(FAKE_FILE_PATH + "/" + writeOrder.getArchiveId()));
 
         assertThat(result).isNotNull();
         assertThat(result.getStatus()).isEqualTo(StatusCode.FATAL);
@@ -1022,30 +930,31 @@ public class WriteTaskTest {
         throws Exception {
         // When
         when(tapeDriveService.getTapeDriveConf()).thenAnswer(o -> mock(TapeDriveConf.class));
-        String file = Files.createTempFile(GUIDFactory.newGUID().getId(), ".tar").toString();
+        String file = getTarFileName();
 
         // given
         WriteOrder writeOrder =
-            new WriteOrder().setBucket(FAKE_BUCKET).setFilePath(file).setSize(10l);
+            new WriteOrder().setBucket(FAKE_BUCKET).setFilePath(FAKE_FILE_PATH + File.separator + file).setArchiveId(file).setSize(10l);
 
         WriteTask writeTask =
-            new WriteTask(writeOrder, getTapeCatalog(true, false, TapeState.CONFLICT), tapeRobotPool, tapeDriveService,
-                tapeCatalogService, archiveReferentialRepository, "", false);
+            new WriteTask(writeOrder, getTapeCatalog(true, false, TapeState.CONFLICT),
+                new TapeLibraryServiceImpl(tapeDriveService, tapeRobotPool),
+                tapeCatalogService, archiveReferentialRepository, "/tmp", false);
 
         when(tapeCatalogService.update(any(), anyMap()))
             .thenThrow(new TapeCatalogException(""))
             .thenThrow(new TapeCatalogException(""))
             .thenThrow(new TapeCatalogException(""));
 
-        when(tapeDriveCommandService.eject()).thenReturn(new TapeResponse(StatusCode.OK));
-
         when(tapeLoadUnloadService.unloadTape(anyInt(), anyInt())).thenReturn(new TapeResponse(StatusCode.OK));
+        when(tapeDriveCommandService.eject()).thenReturn(new TapeResponse(StatusCode.OK));
 
         ReadWriteResult result = writeTask.get();
 
         // Then
         verify(tapeCatalogService, new Times(3)).update(any(), anyMap());
         verify(tapeLoadUnloadService, new Times(1)).unloadTape(anyInt(), anyInt());
+        verify(tapeDriveCommandService, new Times(1)).eject();
 
         assertThat(result).isNotNull();
         assertThat(result.getStatus()).isEqualTo(StatusCode.FATAL);
@@ -1059,10 +968,12 @@ public class WriteTaskTest {
         // When
         when(tapeDriveService.getTapeDriveConf()).thenAnswer(o -> mock(TapeDriveConf.class));
         WriteOrder writeOrder =
-            new WriteOrder().setBucket(FAKE_BUCKET).setFilePath("/tmp/" + GUIDFactory.newGUID().getId()).setSize(10l);
+            new WriteOrder().setBucket(FAKE_BUCKET).setFilePath(FAKE_FILE_PATH)
+                .setArchiveId(GUIDFactory.newGUID().getId()).setSize(10l);
 
         WriteTask writeTask =
-            new WriteTask(writeOrder, null, tapeRobotPool, tapeDriveService, tapeCatalogService,
+            new WriteTask(writeOrder, null, new TapeLibraryServiceImpl(tapeDriveService, tapeRobotPool),
+                tapeCatalogService,
                 archiveReferentialRepository, "", false);
 
         ReadWriteResult result = writeTask.get();
@@ -1075,147 +986,22 @@ public class WriteTaskTest {
     }
 
     @Test
-    public void test_write_to_tape_retry_status_ko()
-        throws Exception {
-        // When
-        when(tapeDriveService.getTapeDriveConf()).thenAnswer(o -> mock(TapeDriveConf.class));
-        String file = Files.createTempFile(GUIDFactory.newGUID().getId(), ".tar").toString();
-
-        // given
-        WriteOrder writeOrder =
-            new WriteOrder().setBucket(FAKE_BUCKET).setFilePath(file).setSize(10l);
-
-        WriteTask writeTask =
-            new WriteTask(writeOrder, getTapeCatalog(true, false, TapeState.OPEN), tapeRobotPool, tapeDriveService,
-                tapeCatalogService, archiveReferentialRepository, "", false);
-
-        when(tapeDriveCommandService.status())
-            .thenReturn(new TapeDriveState(JsonHandler.createObjectNode(), StatusCode.KO))
-            .thenReturn(new TapeDriveState(JsonHandler.createObjectNode(), StatusCode.KO))
-            .thenReturn(new TapeDriveState(JsonHandler.createObjectNode(), StatusCode.KO));
-
-        // First write response ko (end of tape) the second write should be a new tape
-        when(tapeReadWriteService.writeToTape(eq(writeOrder.getFilePath())))
-            .thenReturn(new TapeResponse(JsonHandler.createObjectNode(), StatusCode.KO));
-
-        ReadWriteResult result = writeTask.get();
-
-        // Then
-        verify(tapeDriveCommandService, new Times(3)).status();
-        verify(tapeReadWriteService, new Times(1)).writeToTape(eq(writeOrder.getFilePath()));
-
-        assertThat(result).isNotNull();
-        assertThat(result.getStatus()).isEqualTo(StatusCode.FATAL);
-        assertThat(result.getOrderState()).isEqualTo(QueueState.READY);
-
-        assertThat(result.getCurrentTape()).isNotNull();
-        assertThat(result.getCode()).isEqualTo(ReadWriteErrorCode.KO_UNKNOWN_CURRENT_POSITION);
-    }
-
-
-    @Test
-    public void test_write_to_tape_retry_rewind_ko()
-        throws Exception {
-        // When
-        when(tapeDriveService.getTapeDriveConf()).thenAnswer(o -> mock(TapeDriveConf.class));
-        String file = Files.createTempFile(GUIDFactory.newGUID().getId(), ".tar").toString();
-
-        // given
-        WriteOrder writeOrder =
-            new WriteOrder().setBucket(FAKE_BUCKET).setFilePath(file).setSize(10l);
-
-        WriteTask writeTask =
-            new WriteTask(writeOrder, getTapeCatalog(true, false, TapeState.OPEN), tapeRobotPool, tapeDriveService,
-                tapeCatalogService, archiveReferentialRepository, "", false);
-
-        when(tapeDriveCommandService.status())
-            .thenAnswer(o -> new TapeDriveState(JsonHandler.createObjectNode(), StatusCode.OK));
-
-        when(tapeDriveCommandService.rewind())
-            .thenAnswer(o -> new TapeDriveState(JsonHandler.createObjectNode(), StatusCode.KO));
-
-
-        // First write response ko (end of tape) the second write should be a new tape
-        when(tapeReadWriteService.writeToTape(eq(writeOrder.getFilePath())))
-            .thenReturn(new TapeResponse(JsonHandler.createObjectNode(), StatusCode.KO));
-
-        ReadWriteResult result = writeTask.get();
-
-        // Then
-        verify(tapeDriveCommandService, VerificationModeFactory.atLeastOnce()).status();
-        verify(tapeDriveCommandService, VerificationModeFactory.atLeast(1)).rewind();
-        verify(tapeReadWriteService, VerificationModeFactory.atLeast(1)).writeToTape(eq(writeOrder.getFilePath()));
-
-        assertThat(result).isNotNull();
-        assertThat(result.getStatus()).isEqualTo(StatusCode.FATAL);
-        assertThat(result.getOrderState()).isEqualTo(QueueState.READY);
-
-        assertThat(result.getCurrentTape()).isNotNull();
-        assertThat(result.getCode()).isEqualTo(ReadWriteErrorCode.KO_UNKNOWN_CURRENT_POSITION);
-    }
-
-    @Test
-    public void test_write_to_tape_retry_go_to_position_ko()
-        throws Exception {
-        // When
-        when(tapeDriveService.getTapeDriveConf()).thenAnswer(o -> mock(TapeDriveConf.class));
-        String file = Files.createTempFile(GUIDFactory.newGUID().getId(), ".tar").toString();
-
-        // given
-        WriteOrder writeOrder =
-            new WriteOrder().setBucket(FAKE_BUCKET).setFilePath(file).setSize(10l);
-
-        WriteTask writeTask =
-            new WriteTask(writeOrder, getTapeCatalog(true, false, TapeState.OPEN), tapeRobotPool, tapeDriveService,
-                tapeCatalogService, archiveReferentialRepository, "", false);
-
-        when(tapeDriveCommandService.status())
-            .thenAnswer(o -> new TapeDriveState(StatusCode.OK));
-
-        when(tapeDriveCommandService.rewind())
-            .thenAnswer(o -> new TapeDriveState(StatusCode.OK));
-
-
-        when(tapeDriveCommandService.goToPosition(anyInt()))
-            .thenAnswer(o -> new TapeDriveState(JsonHandler.createObjectNode(), StatusCode.KO));
-
-
-        // First write response ko (end of tape) the second write should be a new tape
-        when(tapeReadWriteService.writeToTape(eq(writeOrder.getFilePath())))
-            .thenReturn(new TapeResponse(JsonHandler.createObjectNode(), StatusCode.KO));
-
-        ReadWriteResult result = writeTask.get();
-
-        // Then
-        verify(tapeDriveCommandService, VerificationModeFactory.atLeastOnce()).status();
-        verify(tapeDriveCommandService, VerificationModeFactory.atLeast(1)).rewind();
-        verify(tapeReadWriteService, VerificationModeFactory.atLeast(1)).writeToTape(eq(writeOrder.getFilePath()));
-
-        assertThat(result).isNotNull();
-        assertThat(result.getStatus()).isEqualTo(StatusCode.FATAL);
-        assertThat(result.getOrderState()).isEqualTo(QueueState.READY);
-
-        assertThat(result.getCurrentTape()).isNotNull();
-        assertThat(result.getCode()).isEqualTo(ReadWriteErrorCode.KO_UNKNOWN_CURRENT_POSITION);
-    }
-
-    @Test
     public void test_write_when_tape_is_wrong_then_eject_tape_ko()
-            throws Exception {
+        throws Exception {
         // When
         when(tapeDriveService.getTapeDriveConf()).thenAnswer(o -> mock(TapeDriveConf.class));
-        String file = Files.createTempFile(GUIDFactory.newGUID().getId(), ".tar").toString();
+        String file = getTarFileName();
 
         // given
         WriteOrder writeOrder =
-                new WriteOrder().setBucket(FAKE_BUCKET).setFilePath(file).setSize(10l);
+            new WriteOrder().setBucket(FAKE_BUCKET).setFilePath(FAKE_FILE_PATH + File.separator + file).setArchiveId(file).setSize(10l);
 
         TapeCatalog tape = getTapeCatalog(true, false, TapeState.OPEN);
         tape.setBucket("wrongBucket");
 
         WriteTask writeTask =
-                new WriteTask(writeOrder, tape, tapeRobotPool, tapeDriveService,
-                        tapeCatalogService, archiveReferentialRepository, "", false);
+            new WriteTask(writeOrder, tape, new TapeLibraryServiceImpl(tapeDriveService, tapeRobotPool),
+                tapeCatalogService, archiveReferentialRepository, "/tmp", false);
 
         when(tapeDriveCommandService.eject()).thenReturn(new TapeResponse(StatusCode.KO));
 
@@ -1226,6 +1012,15 @@ public class WriteTaskTest {
         assertThat(result).isNotNull();
         assertThat(result.getStatus()).isEqualTo(StatusCode.FATAL);
         assertThat(result.getOrderState()).isEqualTo(QueueState.READY);
+    }
+
+    private String getTarFileName() throws IOException {
+        Path resolve = Paths.get("/tmp").resolve(FAKE_FILE_PATH);
+        Files.createDirectories(resolve);
+        Path filePath = Paths.get("/tmp", FAKE_FILE_PATH).resolve(GUIDFactory.newGUID().getId() + ".tar");
+        Path file = Files.createFile(filePath);
+        return file.toFile().getName();
+
     }
 
     private TapeCatalog getTapeCatalog(boolean withLabel, boolean isWorm, TapeState tapeState) {
@@ -1247,6 +1042,7 @@ public class WriteTaskTest {
         }
 
         tapeCatalog.setPreviousLocation(new TapeLocation(1, TapeLocationType.SLOT));
+        tapeCatalog.setCurrentLocation(new TapeLocation(1, TapeLocationType.SLOT));
         return tapeCatalog;
     }
 }

@@ -4,7 +4,7 @@
     <div class="ui-g-12">
       <div class="ui-g-4">Titre: </div>
       <div class="ui-g-4 ui-g-nopad">
-        <input id="identifier" class="fs-1-1em" size="45" pInputText [(ngModel)]="fileName" placeholder="Nom du Fichier"/>
+        <input id="identifier" class="fs-1-1em" size="45" pInputText [(ngModel)]="fileName" placeholder="Nom du Fichier / id export"/>
       </div>
     </div>
     <div class="ui-g-12">
@@ -45,6 +45,8 @@
       <div class="ui-g-4">
         <button pButton type="button" (click)="getObject()" label="Récupérer le fichier"></button>
         <button pButton type="button" (click)="deleteObject()" label="Suprimer le  fichier"></button>
+        <button pButton type="button" (click)="exportObject()" label="Exporter le fichier"></button>
+        <button pButton type="button" (click)="checkExportStatus()" label="Vérifier état export"></button>
       </div>
     </div>
   </div>
@@ -75,15 +77,29 @@
 </p-panel>
 
 <p-dialog header="Erreur de recherche" [(visible)]="displayGetError" modal="modal" [responsive]="true">
-  <p>Erreur lors de la recherche du fichier, veuillez vérifier les informations saisies</p>
+  <p *ngIf="readOrderRequestError">Erreur: {{readOrderRequestError.code}}, avec le message: {{readOrderRequestError.message}}, et la description: {{readOrderRequestError.description}}</p>
   <p-footer>
     <button type="button" pButton icon="fa-check" (click)="displayGetError=false" label="OK"></button>
   </p-footer>
 </p-dialog>
 <p-dialog header="Demande d'export acceptée" [(visible)]="displayAsyncGetMessage" modal="modal" [responsive]="true">
-  <p>Le fichier demandé se trouvent sur offre à lecture asynchrone. L'export du fichier est en cours</p>
+  <p *ngIf="readOrderRequest">Read Request Id: {{readOrderRequest._id}}, IsCompleted: {{readOrderRequest.isCompleted}}, isExpired: {{readOrderRequest.isExpired}}</p>
   <p-footer>
     <button type="button" pButton icon="fa-check" (click)="displayAsyncGetMessage=false" label="OK"></button>
+  </p-footer>
+</p-dialog>
+<p-dialog header="Etat export terminé" [(visible)]="displayExportStatusOK" modal="modal" [responsive]="true">
+  <p>Etat de votre export est : </p>
+  <p *ngIf="readOrderRequest">Read Request Id: {{readOrderRequest._id}}, IsCompleted: {{readOrderRequest.isCompleted}}, isExpired: {{readOrderRequest.isExpired}}</p>
+  <p-footer>
+    <button type="button" pButton icon="fa-check" (click)="displayExportStatusOK=false" label="OK"></button>
+  </p-footer>
+</p-dialog>
+<p-dialog header="Etat export en cours" [(visible)]="displayExportStatusInprogressOrKo" modal="modal" [responsive]="true">
+  <p>Votre export n'a pas été trouvé. Soit il est en cours soit l'identifiant saisi est erroné</p>
+  <p *ngIf="readOrderRequestError">Erreur: {{readOrderRequestError.code}}, avec le message: {{readOrderRequestError.message}}, et la description: {{readOrderRequestError.description}}</p>
+  <p-footer>
+    <button type="button" pButton icon="fa-check" (click)="displayExportStatusInprogressOrKo=false" label="OK"></button>
   </p-footer>
 </p-dialog>
 <p-dialog header="Erreur de supression " [(visible)]="displayDeleteError" modal="modal" [responsive]="true">

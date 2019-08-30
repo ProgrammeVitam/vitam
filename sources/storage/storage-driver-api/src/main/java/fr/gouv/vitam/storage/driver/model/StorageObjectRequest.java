@@ -50,6 +50,10 @@ public class StorageObjectRequest extends StorageRequest {
         this.guid = guid;
     }
 
+    public StorageObjectRequest(Integer tenantId,String guid) {
+        this(tenantId, null, guid);
+    }
+
     /**
      * Gets the guid
      * 

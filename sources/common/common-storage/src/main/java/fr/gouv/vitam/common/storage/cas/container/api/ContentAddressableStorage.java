@@ -26,6 +26,7 @@
  */
 package fr.gouv.vitam.common.storage.cas.container.api;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import fr.gouv.vitam.common.digest.DigestType;
 import fr.gouv.vitam.common.model.MetadatasObject;
 import fr.gouv.vitam.common.model.VitamAutoCloseable;
@@ -37,6 +38,7 @@ import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerExce
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.List;
 
 /**
  * The ContentAddressableStorage interface.
@@ -89,20 +91,31 @@ public interface ContentAddressableStorage extends VitamAutoCloseable {
      * @throws ContentAddressableStorageAlreadyExistException Thrown when object creating exists
      */
     ObjectContent getObject(String containerName, String objectName)
-        throws ContentAddressableStorageNotFoundException, ContentAddressableStorageException;
+            throws ContentAddressableStorageNotFoundException, ContentAddressableStorageException;
 
     /**
-     * Asynchronous Retrieves an object representing the data at location containerName/objectName
+     * Create read order (asynchronous read from tape to local FS) for the given objects representing the data at location containerName/objectId.
+     * Return read order entity
      * <p>
      *
      * @param containerName container where this exists.
-     * @param objectName fully qualified name relative to the container.
+     * @param objectsIds list of the fully qualified name relative to the container.
+     * @return read order request id
      * @throws ContentAddressableStorageNotFoundException Thrown when the container cannot be located.
      * @throws ContentAddressableStorageException Thrown when get action failed due some other failure
      * @throws ContentAddressableStorageAlreadyExistException Thrown when object creating exists
      */
-    void asyncGetObject(String containerName, String objectName)
+    String createReadOrderRequest(String containerName, List<String> objectsIds)
             throws ContentAddressableStorageNotFoundException, ContentAddressableStorageException;
+
+    /**
+     * Purge all read request id to cleanup local FS
+     * <p>
+     *
+     * @param readRequestID the read request ID.
+     */
+    void removeReadOrderRequest(String readRequestID)
+            throws ContentAddressableStorageServerException;
 
     /**
      * Deletes a object representing the data at location containerName/objectName

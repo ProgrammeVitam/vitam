@@ -5,6 +5,7 @@ import {Observable} from 'rxjs/Observable';
 @Injectable()
 export class LoadStorageService {
   DOWNLOAD_API = 'download';
+  READ_ORDER_API = 'readorder';
   UPLOAD_API = 'replaceObject';
   DELETE_API = 'deleteObject';
 
@@ -12,6 +13,14 @@ export class LoadStorageService {
 
   download(fileName, category, strategyId, offerId): Observable<any> {
     return this.resourcesService.get(`${this.DOWNLOAD_API}/${strategyId}/${offerId}/${category}/${fileName}`, null, 'blob');
+  }
+
+  createReadOrderRequest(fileName, category, strategyId, offerId): Observable<any> {
+    return this.resourcesService.post(`${this.READ_ORDER_API}/${strategyId}/${offerId}/${category}/${fileName}`, null, 'json');
+  }
+
+  getReadOrderRequest(readOrderId, strategyId, offerId): Observable<any> {
+    return this.resourcesService.get(`${this.READ_ORDER_API}/${strategyId}/${offerId}/${readOrderId}`, null, 'json');
   }
 
   uploadFile(newFile, fileName, size, category, strategyId ,offerId): Observable<any> {

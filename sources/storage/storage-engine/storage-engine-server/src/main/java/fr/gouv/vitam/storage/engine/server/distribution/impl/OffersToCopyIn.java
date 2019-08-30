@@ -52,6 +52,8 @@ public class OffersToCopyIn {
      */
     private final Map<String, Response.Status> globalOfferResult;
 
+    private String readRequestID;
+    private boolean readOrderCompleted;
 
 
     /**
@@ -132,5 +134,21 @@ public class OffersToCopyIn {
      */
     public void changeStatus(String offerId, Response.Status status) {
         globalOfferResult.put(offerId, status);
+    }
+
+    public String getReadRequestID() {
+        return readRequestID;
+    }
+
+    public void setReadRequestID(String readRequestID) {
+        this.readRequestID = readRequestID;
+    }
+
+    public void setReadOrderCompleted(boolean readOrderCompleted) {
+        this.readOrderCompleted = readOrderCompleted;
+    }
+
+    public boolean isReadOrderCompleted() {
+        return readOrderCompleted;
     }
 }

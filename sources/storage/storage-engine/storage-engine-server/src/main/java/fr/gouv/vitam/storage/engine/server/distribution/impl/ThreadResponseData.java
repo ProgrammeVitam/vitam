@@ -56,6 +56,10 @@ public class ThreadResponseData {
         this.objectGuid = objectGuid;
     }
 
+    public ThreadResponseData(Response.Status status, String objectGuid) {
+        this(null, status, objectGuid);
+    }
+
     /**
      * @return the transfer response
      */

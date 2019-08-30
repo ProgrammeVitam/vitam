@@ -26,6 +26,26 @@
  *******************************************************************************/
 package fr.gouv.vitam.ihmrecette.appserver.populate;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import fr.gouv.vitam.common.PropertiesUtils;
+import fr.gouv.vitam.common.VitamConfiguration;
+import fr.gouv.vitam.common.json.CanonicalJsonFormatter;
+import fr.gouv.vitam.common.logging.SysErrLogger;
+import fr.gouv.vitam.common.logging.VitamLogger;
+import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.common.model.MetadataStorageHelper;
+import fr.gouv.vitam.common.model.RequestResponse;
+import fr.gouv.vitam.common.stream.VitamAsyncInputStreamResponse;
+import fr.gouv.vitam.common.thread.VitamThreadFactory;
+import fr.gouv.vitam.storage.driver.exception.StorageDriverException;
+import fr.gouv.vitam.storage.engine.common.exception.StorageException;
+import fr.gouv.vitam.storage.engine.common.exception.StorageNotFoundException;
+import fr.gouv.vitam.storage.engine.common.exception.StorageTechnicalException;
+import fr.gouv.vitam.storage.engine.common.model.DataCategory;
+import fr.gouv.vitam.storage.engine.common.model.TapeReadRequestReferentialEntity;
+import fr.gouv.vitam.storage.engine.common.referential.model.StorageOffer;
+import fr.gouv.vitam.storage.engine.common.referential.model.StorageStrategy;
+
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -37,20 +57,6 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.stream.Collectors;
-
-import com.fasterxml.jackson.databind.JsonNode;
-import fr.gouv.vitam.common.PropertiesUtils;
-import fr.gouv.vitam.common.VitamConfiguration;
-import fr.gouv.vitam.common.json.CanonicalJsonFormatter;
-import fr.gouv.vitam.common.logging.SysErrLogger;
-import fr.gouv.vitam.common.logging.VitamLogger;
-import fr.gouv.vitam.common.logging.VitamLoggerFactory;
-import fr.gouv.vitam.common.model.MetadataStorageHelper;
-import fr.gouv.vitam.common.thread.VitamThreadFactory;
-import fr.gouv.vitam.storage.engine.common.exception.StorageException;
-import fr.gouv.vitam.storage.engine.common.model.DataCategory;
-import fr.gouv.vitam.storage.engine.common.referential.model.StorageOffer;
-import fr.gouv.vitam.storage.engine.common.referential.model.StorageStrategy;
 
 /**
  * Handles metadata backup for populate service
@@ -78,6 +84,7 @@ public class MetadataStorageService {
 
     /**
      * Stores LFC / GOT + LFC into offers
+     *
      * @param populateModel
      * @param unitGotList
      * @return
@@ -87,10 +94,12 @@ public class MetadataStorageService {
         if (populateModel.isStoreMetadataAndLfcInOffers()) {
 
             List<String> unitIds = unitGotList.stream().map(i -> i.getUnit().getId()).collect(Collectors.toList());
-            persistMetadataAndLfcToOffers(populateModel, unitIds, VitamDataType.UNIT, VitamDataType.LFC_UNIT, DataCategory.UNIT);
+            persistMetadataAndLfcToOffers(populateModel, unitIds, VitamDataType.UNIT, VitamDataType.LFC_UNIT,
+                DataCategory.UNIT);
 
             List<String> gotIds = unitGotList.stream().map(i -> i.getGot().getId()).collect(Collectors.toList());
-            persistMetadataAndLfcToOffers(populateModel, gotIds, VitamDataType.GOT, VitamDataType.LFC_GOT, DataCategory.OBJECTGROUP);
+            persistMetadataAndLfcToOffers(populateModel, gotIds, VitamDataType.GOT, VitamDataType.LFC_GOT,
+                DataCategory.OBJECTGROUP);
         }
 
         return true;
@@ -156,14 +165,23 @@ public class MetadataStorageService {
         }
     }
 
-    public void exportData(Integer tenant, String strategyId, String objectId, DataCategory dataCategory) {
+    public RequestResponse<TapeReadRequestReferentialEntity> createReadOrderRequest(Integer tenant, String strategyId,
+        String offerId,
+        String objectId, DataCategory dataCategory) {
+        return storagePopulateService.createReadOrderRequest(tenant, strategyId, offerId, objectId, dataCategory);
+    }
 
-        try {
-            storagePopulateService.exportData(strategyId, objectId, dataCategory, tenant);
+    public RequestResponse<TapeReadRequestReferentialEntity> getReadOrderRequest(Integer tenant, String strategyId,
+        String offerId,
+        String readOrderId) {
+        return storagePopulateService.getReadOrderRequest(tenant, strategyId, offerId, readOrderId);
+    }
 
-        } catch (IOException | StorageException e) {
-            LOGGER.error("Could not export data from offer", e);
-        }
+    public VitamAsyncInputStreamResponse download(Integer tenantId, DataCategory dataCategory,
+        String strategyId,
+        String offerId,
+        String objectId) throws StorageTechnicalException, StorageDriverException, StorageNotFoundException {
+        return storagePopulateService.download(tenantId, dataCategory, strategyId, offerId, objectId);
     }
 
     public StorageOffer getOffer(String offerId) throws StorageException {

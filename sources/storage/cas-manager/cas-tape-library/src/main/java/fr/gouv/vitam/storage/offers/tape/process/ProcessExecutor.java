@@ -122,7 +122,13 @@ public class ProcessExecutor {
         }
 
         if (0 == result.getExitCode()) {
-            LOGGER.info("[" + operationId + "] > Success (" + started.elapsed(TimeUnit.MILLISECONDS) + " ms)");
+            if (LOGGER.isDebugEnabled()) {
+                LOGGER.info("[" + operationId + "] > Success (" + started.elapsed(TimeUnit.MILLISECONDS) + " ms): " +
+                    JsonHandler.unprettyPrint(result));
+            } else {
+                LOGGER.info("[" + operationId + "] > Success (" + started.elapsed(TimeUnit.MILLISECONDS) + " ms)");
+            }
+
         } else {
             LOGGER.error("[" + operationId + "] > KO " + JsonHandler.unprettyPrint(result)
                 + " (" + started.elapsed(TimeUnit.MILLISECONDS) + " ms)");
