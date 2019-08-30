@@ -123,7 +123,7 @@ public class ProcessExecutor {
 
         if (0 == result.getExitCode()) {
             if (LOGGER.isDebugEnabled()) {
-                LOGGER.info("[" + operationId + "] > Success (" + started.elapsed(TimeUnit.MILLISECONDS) + " ms): " +
+                LOGGER.debug("[" + operationId + "] > Success (" + started.elapsed(TimeUnit.MILLISECONDS) + " ms): " +
                     JsonHandler.unprettyPrint(result));
             } else {
                 LOGGER.info("[" + operationId + "] > Success (" + started.elapsed(TimeUnit.MILLISECONDS) + " ms)");

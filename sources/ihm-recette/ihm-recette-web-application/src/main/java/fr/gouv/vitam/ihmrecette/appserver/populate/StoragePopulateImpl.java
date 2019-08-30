@@ -235,13 +235,10 @@ public class StoragePopulateImpl implements VitamAutoCloseable {
 
 
         try (Connection connection = driver.connect(storageOffer.getId())) {
-            if (Thread.currentThread().isInterrupted()) {
-                throw new InterruptedException();
-            }
             StorageObjectRequest getObjectRequest = new StorageObjectRequest(tenantId, category.getFolder(), objectId);
 
             return connection.createReadOrderRequest(getObjectRequest);
-        } catch (StorageDriverException | InterruptedException e) {
+        } catch (StorageDriverException e) {
             return buildError(VitamCode.STORAGE_OBJECT_NOT_FOUND, e.getMessage());
         }
     }
@@ -253,7 +250,7 @@ public class StoragePopulateImpl implements VitamAutoCloseable {
         ParametersChecker.checkParameter(EXPORT_ID_IS_MANDATORY, objectId);
 
         List<OfferReference> offerReferences;
-            offerReferences = getOffersReferences(strategyId);
+        offerReferences = getOffersReferences(strategyId);
 
 
         if (offerReferences == null || offerReferences.isEmpty()) {
@@ -274,9 +271,6 @@ public class StoragePopulateImpl implements VitamAutoCloseable {
         final Driver driver = retrieveDriverInternal(storageOffer.getId());
 
         try (Connection connection = driver.connect(storageOffer.getId())) {
-            if (Thread.currentThread().isInterrupted()) {
-                throw new StorageTechnicalException(new InterruptedException());
-            }
             final StorageObjectRequest request = new StorageObjectRequest(tenantId, dataCategory.getFolder(), objectId);
             return new VitamAsyncInputStreamResponse(
                 connection.getObject(request).getObject(),
@@ -323,11 +317,8 @@ public class StoragePopulateImpl implements VitamAutoCloseable {
         }
 
         try (Connection connection = driver.connect(storageOffer.getId())) {
-            if (Thread.currentThread().isInterrupted()) {
-                throw new InterruptedException();
-            }
             return connection.getReadOrderRequest(readOrderRequestIt, tenantId);
-        } catch (StorageDriverException | InterruptedException e) {
+        } catch (StorageDriverException e) {
             return buildError(VitamCode.STORAGE_OBJECT_NOT_FOUND, e.getMessage());
         }
     }
