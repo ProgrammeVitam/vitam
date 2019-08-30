@@ -39,6 +39,7 @@ import fr.gouv.vitam.common.storage.constants.ErrorMessage;
 import fr.gouv.vitam.common.storage.constants.StorageProvider;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundException;
+import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
 import org.apache.commons.lang3.StringUtils;
 import org.jclouds.ContextBuilder;
 import org.jclouds.blobstore.BlobStoreContext;
@@ -49,6 +50,7 @@ import org.jclouds.openstack.swift.v1.domain.SwiftObject;
 import org.jclouds.openstack.swift.v1.features.AccountApi;
 import org.jclouds.openstack.swift.v1.features.ContainerApi;
 
+import java.util.List;
 import java.util.Properties;
 
 import static org.jclouds.Constants.PROPERTY_CONNECTION_TIMEOUT;
@@ -165,9 +167,14 @@ public class OpenstackSwift extends ContentAddressableStorageJcloudsAbstract {
     }
 
     @Override
-    public void asyncGetObject(String containerName, String objectName)
-            throws ContentAddressableStorageNotFoundException, ContentAddressableStorageException {
-        throw new UnsupportedOperationException("Operation not supporter");
+    public String createReadOrderRequest(String containerName, List<String> objectsIds)
+        throws ContentAddressableStorageNotFoundException, ContentAddressableStorageException {
+        throw new UnsupportedOperationException("Operation not supported");
+    }
+
+    @Override
+    public void removeReadOrderRequest(String readRequestID) throws ContentAddressableStorageServerException {
+        throw new UnsupportedOperationException("Operation not supported");
     }
 
     /**

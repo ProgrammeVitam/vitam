@@ -7,13 +7,13 @@
   "Drives" : [ {
     "Index" : 0,
     "Tape" : {
-      "VolumeTag" : "VIT008L6                         ",
+      "VolumeTag" : "VIT008L6",
       "SlotIndex" : 9
     }
   }, {
     "Index" : 1,
     "Tape" : {
-      "VolumeTag" : "VIT000L6                         ",
+      "VolumeTag" : "VIT000L6",
       "SlotIndex" : 1
     }
   }, {
@@ -27,43 +27,43 @@
   }, {
     "Index" : 2,
     "Tape" : {
-      "VolumeTag" : "VIT001L6                         "
+      "VolumeTag" : "VIT001L6"
     },
     "StorageElementType" : "SLOT"
   }, {
     "Index" : 3,
     "Tape" : {
-      "VolumeTag" : "VIT002L6                         "
+      "VolumeTag" : "VIT002L6"
     },
     "StorageElementType" : "SLOT"
   }, {
     "Index" : 4,
     "Tape" : {
-      "VolumeTag" : "VIT003L6                         "
+      "VolumeTag" : "VIT003L6"
     },
     "StorageElementType" : "SLOT"
   }, {
     "Index" : 5,
     "Tape" : {
-      "VolumeTag" : "VIT004L6                         "
+      "VolumeTag" : "VIT004L6"
     },
     "StorageElementType" : "SLOT"
   }, {
     "Index" : 6,
     "Tape" : {
-      "VolumeTag" : "VIT005L6                         "
+      "VolumeTag" : "VIT005L6"
     },
     "StorageElementType" : "SLOT"
   }, {
     "Index" : 7,
     "Tape" : {
-      "VolumeTag" : "VIT006L6                         "
+      "VolumeTag" : "VIT006L6"
     },
     "StorageElementType" : "SLOT"
   }, {
     "Index" : 8,
     "Tape" : {
-      "VolumeTag" : "VIT007L6                         "
+      "VolumeTag" : "VIT007L6"
     },
     "StorageElementType" : "SLOT"
   }, {
@@ -72,7 +72,7 @@
   }, {
     "Index" : 10,
     "Tape" : {
-      "VolumeTag" : "VIT009L6                         "
+      "VolumeTag" : "VIT009L6"
     },
     "StorageElementType" : "SLOT"
   }, {

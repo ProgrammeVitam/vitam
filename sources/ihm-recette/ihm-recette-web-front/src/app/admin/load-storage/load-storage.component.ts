@@ -34,10 +34,13 @@ export class LoadStorageComponent extends PageComponent {
   dataState = 'KO';
 
   fileUpload: File;
-
+  readOrderRequestError: any;
   displayErrorInitImport = false;
   displayGetError = false;
   displayAsyncGetMessage = false;
+  displayExportStatusOK = false;
+  displayExportStatusInprogressOrKo = false;
+  readOrderRequest: any;
   displayDeleteError =false;
   displayMessageDelete = false ;
   displayErrorImport = false;
@@ -102,18 +105,11 @@ export class LoadStorageComponent extends PageComponent {
 
     this.loadStorageService.download(this.fileName, this.category, this.strategyId, this.offerId).subscribe(
       (response) => {
-        if(response.status === 202) {
-            // asynchronous download
-            this.displayAsyncGetMessage = true;
-        } else {
-            const a = document.createElement('a');
-            document.body.appendChild(a);
-            a.href = URL.createObjectURL(response.body);
-
-            a.download = this.fileName;
-
-            a.click();
-        }
+        const a = document.createElement('a');
+        document.body.appendChild(a);
+        a.href = URL.createObjectURL(response.body)
+        a.download = this.fileName
+        a.click();
         this.dataState = 'OK';
       }, () => {
         delete this.savedData;
@@ -122,6 +118,55 @@ export class LoadStorageComponent extends PageComponent {
       }
     );
   }
+
+  exportObject() {
+
+    if (!this.fileName || !this.category || !this.tenant || !this.strategyId || !this.offerId) {
+      this.error = true;
+      return;
+    }
+
+    this.dataState = 'RUNNING';
+
+    this.savedData = new FileData(this.fileName, this.category, this.strategyId, this.offerId);
+
+    this.loadStorageService.createReadOrderRequest(this.fileName, this.category, this.strategyId, this.offerId).subscribe(
+      (response) => {
+        this.readOrderRequest = response.$results[0];
+        this.displayAsyncGetMessage = true;
+        this.dataState = 'OK';
+      }, (error) => {
+        delete this.savedData;
+        this.readOrderRequestError = error.error;
+        this.dataState = 'KO';
+        this.displayGetError = true;
+      }
+    );
+  }
+
+  checkExportStatus() {
+
+    if (!this.fileName || !this.tenant || !this.strategyId ) {
+      this.error = true;
+      return;
+    }
+
+    this.dataState = 'RUNNING';
+
+    this.loadStorageService.getReadOrderRequest(this.fileName, this.strategyId, this.offerId).subscribe(
+     (response) => {
+        this.readOrderRequest = response.$results[0];
+        this.displayExportStatusOK = true;
+        this.dataState = 'OK';
+      }, (error) => {
+        delete this.savedData;
+        this.readOrderRequestError = error.error;
+        this.dataState = 'KO';
+        this.displayExportStatusInprogressOrKo = true;
+      }
+    );
+  }
+
   deleteObject() {
 
     if (!this.fileName || !this.category || !this.tenant || !this.strategyId || !this.offerId) {

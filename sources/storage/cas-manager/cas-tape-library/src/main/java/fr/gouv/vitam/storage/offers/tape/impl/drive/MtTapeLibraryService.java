@@ -35,7 +35,6 @@ import fr.gouv.vitam.common.storage.tapelibrary.TapeDriveConf;
 import fr.gouv.vitam.storage.offers.tape.dto.TapeDriveSpec;
 import fr.gouv.vitam.storage.offers.tape.dto.TapeDriveState;
 import fr.gouv.vitam.storage.offers.tape.dto.TapeResponse;
-import fr.gouv.vitam.storage.offers.tape.exception.ReadWriteErrorCode;
 import fr.gouv.vitam.storage.offers.tape.parser.TapeDriveStatusParser;
 import fr.gouv.vitam.storage.offers.tape.process.Output;
 import fr.gouv.vitam.storage.offers.tape.process.ProcessExecutor;
@@ -49,7 +48,7 @@ public class MtTapeLibraryService implements TapeDriveCommandService {
     public static final String F = "-f";
     public static final String STATUS = "status";
     public static final String FSF = "fsf";
-    public static final String BSF = "bsf";
+    public static final String BSFM = "bsfm";
     public static final String REWIND = "rewind";
     public static final String EOD = "eod";
     public static final String OFFLINE = "offline";
@@ -77,27 +76,43 @@ public class MtTapeLibraryService implements TapeDriveCommandService {
     }
 
     @Override
-    public TapeResponse goToPosition(Integer position) {
-        return goToPosition(position, false);
-    }
-
-    @Override
-    public TapeResponse goToPosition(Integer position, boolean isBackword) {
+    public TapeResponse move(Integer position, boolean isBackward) {
         ParametersChecker.checkParameter("Arguments position is required", position);
         if (position < 1) {
-            return new TapeResponse(ReadWriteErrorCode.KO_TARGET_POSITION_MUST_BE_POSITIVE_INTEGER, StatusCode.KO);
+            return new TapeResponse("position sould be a positive integer", StatusCode.KO);
         }
 
-        List<String> args =
-            Lists.newArrayList(F, tapeDriveConf.getDevice(), isBackword ? BSF : FSF, position.toString());
-        LOGGER.debug("Execute script : {},timeout: {}, args : {}", tapeDriveConf.getMtPath(),
-            tapeDriveConf.getTimeoutInMilliseconds(),
-            args);
+        List<String> args;
+        if (isBackward) {
+            args = buildMoveBackwardArgs(position);
+        } else {
+            args = buildMoveForwardArgs(position);
+        }
         Output output =
             getExecutor()
                 .execute(tapeDriveConf.getMtPath(), tapeDriveConf.isUseSudo(), tapeDriveConf.getTimeoutInMilliseconds(),
                     args);
         return parseCommonResponse(output);
+    }
+
+    private List<String> buildMoveForwardArgs(int position) {
+        List<String> args =
+            Lists.newArrayList(F, tapeDriveConf.getDevice(), FSF, String.valueOf(position));
+        LOGGER.debug("Execute script : {},timeout: {}, args : {}", tapeDriveConf.getMtPath(),
+            tapeDriveConf.getTimeoutInMilliseconds(),
+            args);
+        return args;
+    }
+
+
+    private List<String> buildMoveBackwardArgs(int position) {
+
+        List<String> args =
+            Lists.newArrayList(F, tapeDriveConf.getDevice(), BSFM, String.valueOf(position + 1));
+        LOGGER.debug("Execute script : {},timeout: {}, args : {}", tapeDriveConf.getMtPath(),
+            tapeDriveConf.getTimeoutInMilliseconds(),
+            args);
+        return args;
     }
 
     @Override
@@ -120,12 +135,12 @@ public class MtTapeLibraryService implements TapeDriveCommandService {
     private TapeResponse execute(String option) {
         List<String> args = Lists.newArrayList(F, tapeDriveConf.getDevice(), option);
         LOGGER.debug("Execute script : {},timeout: {}, args : {}", tapeDriveConf.getMtPath(),
-                tapeDriveConf.getTimeoutInMilliseconds(),
-                args);
+            tapeDriveConf.getTimeoutInMilliseconds(),
+            args);
         Output output =
-                getExecutor()
-                        .execute(tapeDriveConf.getMtPath(), tapeDriveConf.isUseSudo(), tapeDriveConf.getTimeoutInMilliseconds(),
-                                args);
+            getExecutor()
+                .execute(tapeDriveConf.getMtPath(), tapeDriveConf.isUseSudo(), tapeDriveConf.getTimeoutInMilliseconds(),
+                    args);
         return parseCommonResponse(output);
     }
 

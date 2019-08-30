@@ -101,6 +101,11 @@ public enum VitamCode {
     STORAGE_INCONSISTENT_STATE(ServiceName.STORAGE, DomainName.STORAGE, "19", Status.CONFLICT,
         "Inconsistent state"),
 
+    STORAGE_GET_READ_ORDER_ERROR(ServiceName.STORAGE, DomainName.STORAGE, "20", Status.INTERNAL_SERVER_ERROR,
+        "Cannot retrieve read order request"),
+    STORAGE_CREATE_READ_ORDER_ERROR(ServiceName.STORAGE, DomainName.STORAGE, "21", Status.INTERNAL_SERVER_ERROR,
+        "Cannot create read order request"),
+
     WORKSPACE_NOT_ACCEPTABLE_FILES(ServiceName.WORKSPACE, DomainName.STORAGE, "14", Status.NOT_ACCEPTABLE,
         "File or folder name not authorized"),
     WORKSPACE_BAD_REQUEST(ServiceName.WORKSPACE, DomainName.STORAGE, "15", Status.BAD_REQUEST,

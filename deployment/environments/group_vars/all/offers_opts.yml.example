@@ -44,6 +44,8 @@ vitam_offers:
       # Enable overriding non empty cartridges
       # WARNING : FOR DEV/TEST ONLY. DO NOT ENABLE IN PRODUCTION.
       forceOverrideNonEmptyCartridges: false
+      # Archive (Tar) file expire time for retention in local FS
+      archiveRetentionCacheTimeoutInMinutes: 30
 
       useSudo: false
     topology:
@@ -98,6 +100,7 @@ vitam_offers:
             mtPath: "/bin/mt"
             ddPath: "/bin/dd"
             tarPath: "/bin/tar"
+            readWritePriority: READ
             timeoutInMilliseconds: 3600000
   offer-fs-1:
     # param can be filesystem-hash (recomended) or filesystem (not recomended)

@@ -68,6 +68,7 @@ import java.nio.file.StandardCopyOption;
 import java.nio.file.attribute.BasicFileAttributeView;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.nio.file.attribute.UserDefinedFileAttributeView;
+import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -188,9 +189,13 @@ public class HashFileSystem extends ContentAddressableStorageAbstract {
     }
 
     @Override
-    public void asyncGetObject(String containerName, String objectName)
-            throws ContentAddressableStorageNotFoundException, ContentAddressableStorageException {
-        throw new UnsupportedOperationException("Operation not supporter");
+    public String createReadOrderRequest(String containerName, List<String> objectsIds) {
+        throw new UnsupportedOperationException("Operation not supported");
+    }
+
+    @Override
+    public void removeReadOrderRequest(String readRequestID) {
+        throw new UnsupportedOperationException("Operation not supported");
     }
 
     @Override

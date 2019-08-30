@@ -10,21 +10,21 @@ import fr.gouv.vitam.storage.offers.tape.dto.TapeSlotType;
 import org.apache.commons.lang3.StringUtils;
 
 public class TapeLibraryStatusParser {
-    public static final String DRIVE_VOLUME_TAG = ":VolumeTag = ";
-    public static final String SLOT_VOLUME_TAG = ":VolumeTag=";
-    public static final String DRIVE_ALTERNATE_VOLUME_TAG = ":AlternateVolumeTag = ";
-    public static final String SLOT_ALTERNATE_VOLUME_TAG = ":AlternateVolumeTag=";
-    public static final String STORAGE_CHANGER = "Storage Changer";
-    public static final String SEPARATOR = ":";
-    public static final String DRIVES = "Drives,";
-    public static final String SLOTS = "Slots ( ";
-    public static final String IMPORT_EXPORT = "Import/Export";
-    public static final String IMPORT_EXPORT_TAG = " IMPORT/EXPORT";
-    public static final String FULL_UNKNOWN_STORAGE_ELEMENT_LOADED = "Full (Unknown Storage Element Loaded)";
-    public static final String STORAGE_ELEMENT = "Storage Element";
-    public static final String LOADED = "Loaded";
-    public static final String EMPTY = ":Empty";
-    public static final String DATA_TRANSFER_ELEMENT = "Data Transfer Element";
+    private static final String DRIVE_VOLUME_TAG = ":VolumeTag = ";
+    private static final String SLOT_VOLUME_TAG = ":VolumeTag=";
+    private static final String DRIVE_ALTERNATE_VOLUME_TAG = ":AlternateVolumeTag = ";
+    private static final String SLOT_ALTERNATE_VOLUME_TAG = ":AlternateVolumeTag=";
+    private static final String STORAGE_CHANGER = "Storage Changer";
+    private static final String SEPARATOR = ":";
+    private static final String DRIVES = "Drives,";
+    private static final String SLOTS = "Slots ( ";
+    private static final String IMPORT_EXPORT = "Import/Export";
+    private static final String IMPORT_EXPORT_TAG = " IMPORT/EXPORT";
+    private static final String FULL_UNKNOWN_STORAGE_ELEMENT_LOADED = "Full (Unknown Storage Element Loaded)";
+    private static final String STORAGE_ELEMENT = "Storage Element";
+    private static final String LOADED = "Loaded";
+    private static final String EMPTY = ":Empty";
+    private static final String DATA_TRANSFER_ELEMENT = "Data Transfer Element";
 
 
     public TapeLibraryState parse(String output) {
@@ -109,26 +109,26 @@ public class TapeLibraryStatusParser {
         String mailBoxCount = StringUtils.substringBetween(s, SLOTS, IMPORT_EXPORT);
 
         tapeLibraryState.setDevice(device.trim());
-        tapeLibraryState.setDriveCount(Integer.valueOf(driveCount.trim()));
-        tapeLibraryState.setSlotsCount(Integer.valueOf(slotsCount.trim()));
-        tapeLibraryState.setMailBoxCount(Integer.valueOf(mailBoxCount.trim()));
+        tapeLibraryState.setDriveCount(Integer.parseInt(driveCount.trim()));
+        tapeLibraryState.setSlotsCount(Integer.parseInt(slotsCount.trim()));
+        tapeLibraryState.setMailBoxCount(Integer.parseInt(mailBoxCount.trim()));
     }
 
     private void extractDriveVolumeTag(String s, TapeCartridge cartridge) {
         if (s.contains(DRIVE_VOLUME_TAG) && s.contains(DRIVE_ALTERNATE_VOLUME_TAG)) {
-            cartridge.setVolumeTag(StringUtils.substringBetween(s, DRIVE_VOLUME_TAG, DRIVE_ALTERNATE_VOLUME_TAG));
-            cartridge.setAlternateVolumeTag(StringUtils.substringAfterLast(s, DRIVE_ALTERNATE_VOLUME_TAG));
+            cartridge.setVolumeTag(StringUtils.substringBetween(s, DRIVE_VOLUME_TAG, DRIVE_ALTERNATE_VOLUME_TAG).trim());
+            cartridge.setAlternateVolumeTag(StringUtils.substringAfterLast(s, DRIVE_ALTERNATE_VOLUME_TAG).trim());
         } else if (s.contains(DRIVE_VOLUME_TAG)) {
-            cartridge.setVolumeTag(StringUtils.substringAfterLast(s, DRIVE_VOLUME_TAG));
+            cartridge.setVolumeTag(StringUtils.substringAfterLast(s, DRIVE_VOLUME_TAG).trim());
         }
     }
 
     private void extractSlotVolumeTag(String s, TapeCartridge cartridge) {
         if (s.contains(SLOT_VOLUME_TAG) && s.contains(SLOT_ALTERNATE_VOLUME_TAG)) {
-            cartridge.setVolumeTag(StringUtils.substringBetween(s, SLOT_VOLUME_TAG, SLOT_ALTERNATE_VOLUME_TAG));
-            cartridge.setAlternateVolumeTag(StringUtils.substringAfterLast(s, SLOT_ALTERNATE_VOLUME_TAG));
+            cartridge.setVolumeTag(StringUtils.substringBetween(s, SLOT_VOLUME_TAG, SLOT_ALTERNATE_VOLUME_TAG).trim());
+            cartridge.setAlternateVolumeTag(StringUtils.substringAfterLast(s, SLOT_ALTERNATE_VOLUME_TAG).trim());
         } else if (s.contains(SLOT_VOLUME_TAG)) {
-            cartridge.setVolumeTag(StringUtils.substringAfterLast(s, SLOT_VOLUME_TAG));
+            cartridge.setVolumeTag(StringUtils.substringAfterLast(s, SLOT_VOLUME_TAG).trim());
         }
     }
 }

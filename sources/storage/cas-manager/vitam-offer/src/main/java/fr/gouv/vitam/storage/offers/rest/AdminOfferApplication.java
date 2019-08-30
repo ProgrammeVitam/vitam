@@ -32,6 +32,7 @@ import fr.gouv.vitam.common.server.application.resources.VitamServiceRegistry;
 import fr.gouv.vitam.common.serverv2.ConfigurationApplication;
 import fr.gouv.vitam.common.storage.constants.StorageProvider;
 import fr.gouv.vitam.storage.offers.tape.rest.AdminTapeResource;
+import fr.gouv.vitam.storage.offers.tape.rest.TapeCatalogResource;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -57,6 +58,7 @@ public class AdminOfferApplication extends ConfigurationApplication {
         if (StorageProvider.TAPE_LIBRARY.getValue()
             .equalsIgnoreCase(offerCommonApplication.getStorageConfiguration().getProvider())) {
             singletons.add(new AdminTapeResource());
+            singletons.add(new TapeCatalogResource());
         }
     }
 

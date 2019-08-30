@@ -255,7 +255,7 @@ public class MtTapeLibraryServiceTest {
 
 
         MtTapeLibraryService mtTapeLibraryService = new MtTapeLibraryService(tapeDriveConf, processExecutor);
-        TapeResponse tapeResponse = mtTapeLibraryService.goToPosition(5, false);
+        TapeResponse tapeResponse = mtTapeLibraryService.move(5, false);
 
         assertThat(tapeResponse.isOK()).isTrue();
 
@@ -271,7 +271,7 @@ public class MtTapeLibraryServiceTest {
         assertThat(args.getValue()).contains("-f", DEVICE_NST, "fsf", "5");
 
 
-        tapeResponse = mtTapeLibraryService.goToPosition(5);
+        tapeResponse = mtTapeLibraryService.move(5, false);
 
         assertThat(tapeResponse.isOK()).isTrue();
 
@@ -302,7 +302,7 @@ public class MtTapeLibraryServiceTest {
 
 
         MtTapeLibraryService mtTapeLibraryService = new MtTapeLibraryService(tapeDriveConf, processExecutor);
-        TapeResponse tapeResponse = mtTapeLibraryService.goToPosition(5, true);
+        TapeResponse tapeResponse = mtTapeLibraryService.move(5, true);
 
         assertThat(tapeResponse.isOK()).isTrue();
 
@@ -315,7 +315,7 @@ public class MtTapeLibraryServiceTest {
 
         assertThat(commandPath.getValue()).isEqualTo(COMMAND_MT);
         assertThat(timeout.getValue()).isEqualTo(1_000l);
-        assertThat(args.getValue()).contains("-f", DEVICE_NST, "bsf", "5");
+        assertThat(args.getValue()).contains("-f", DEVICE_NST, "bsfm", "6");
     }
 
 
