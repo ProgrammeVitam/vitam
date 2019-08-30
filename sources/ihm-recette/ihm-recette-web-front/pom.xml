@@ -41,9 +41,6 @@
             <plugin>
                 <groupId>com.github.eirslett</groupId>
                 <artifactId>frontend-maven-plugin</artifactId>
-                <!-- NB! Set <version> to the latest released version of frontend-maven-plugin, like in README.md -->
-                <version>${frontend-maven-plugin.version}</version>
-
                 <configuration>
                     <installDirectory>target</installDirectory>
                 </configuration>
@@ -119,7 +116,6 @@
             <plugin>
                 <groupId>org.codehaus.mojo</groupId>
                 <artifactId>build-helper-maven-plugin</artifactId>
-                <version>${build-helper-maven-plugin.version}</version>
                 <executions>
                     <execution>
                         <id>attach-distribution</id>

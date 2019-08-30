@@ -92,15 +92,100 @@
         <!-- ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ -->
         <!-- Dependencies versions -->
         <!-- ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ -->
-        <jacoco-maven-plugin.version>0.7.9</jacoco-maven-plugin.version>
-        <slf4j.version>1.7.25</slf4j.version>
-        <logback.version>1.2.3</logback.version>
-        <resteasy.client.version>3.6.2.Final</resteasy.client.version>
+
+        <!-- maven plugins-->
+        <maven.rpm-maven-plugin.version>2.2.0</maven.rpm-maven-plugin.version>
+        <!-- <maven.clean.version>3.0.0</maven.clean.version> -->
+        <maven.clean.version>3.1.0</maven.clean.version>
+        <!-- <maven.compiler.version>3.5.1</maven.compiler.version> -->
+        <maven.compiler.version>3.8.1</maven.compiler.version>
+        <maven.deploy.version>2.8.2</maven.deploy.version>
+        <maven.resources.version>3.1.0</maven.resources.version>
+        <!-- <maven.source.version>3.0.0</maven.source.version> -->
+        <maven.source.version>3.1.0</maven.source.version>
+        <maven.dependency.version>3.1.1</maven.dependency.version>
+        <!-- <maven.site.version>3.5.1</maven.site.version> -->
+        <maven.site.version>3.8.2</maven.site.version>
+        <maven.assembly.version>3.1.1</maven.assembly.version>
+        <maven.exec.version>1.6.0</maven.exec.version>
+        <maven.failsafe.version>2.19.1</maven.failsafe.version>
+        <!-- <maven.javadoc.version>2.10.4</maven.javadoc.version> -->
+        <maven.javadoc.version>3.1.1</maven.javadoc.version>
+        <maven.exec.version>1.6.0</maven.exec.version>
+	    <maven.dependencycheck.version>5.2.1</maven.dependencycheck.version>
+        <!-- <git-commit-id-plugin.version>2.2.1</git-commit-id-plugin.version> -->
+        <git-commit-id-plugin.version>3.0.1</git-commit-id-plugin.version>
+        <!-- <maven-antrun-plugin.version>1.6</maven-antrun-plugin.version> -->
+        <maven-antrun-plugin.version>1.8</maven-antrun-plugin.version>
+        <!-- <license-maven-plugin.version>1.16</license-maven-plugin.version> -->
+        <license-maven-plugin.version>1.20</license-maven-plugin.version>
+        <maven-install-plugin.version>2.5.2</maven-install-plugin.version>
+        <maven-verifier-plugin.version>1.1</maven-verifier-plugin.version>
+        <maven-enforcer-plugin.version>1.4.1</maven-enforcer-plugin.version>
+        <!-- <maven-help-plugin.version>2.2</maven-help-plugin.version> -->
+        <maven-help-plugin.version>3.2.0</maven-help-plugin.version>
+        <maven-release-plugin.version>2.5.3</maven-release-plugin.version>
+        <sonar-maven-plugin.version>3.2</sonar-maven-plugin.version>
+        <!-- <versions-maven-plugin.version>2.3</versions-maven-plugin.version> -->
+        <versions-maven-plugin.version>2.7</versions-maven-plugin.version>
+        <!-- <maven-scm-provider-jgit.version>1.9.4</maven-scm-provider-jgit.version> -->
+        <maven-scm-provider-jgit.version>1.11.2</maven-scm-provider-jgit.version>
+        <!-- <maven-jar-plugin.version>2.6</maven-jar-plugin.version> -->
+        <maven-jar-plugin.version>3.1.2</maven-jar-plugin.version>
+        <maven-scm-plugin.version>1.11.2</maven-scm-plugin.version>
+
+        <!-- tests -->
+        <maven.surefire.version>2.22.2</maven.surefire.version>
+        <!-- <jacoco-maven-plugin.version>0.7.9</jacoco-maven-plugin.version> -->
+        <jacoco-maven-plugin.version>0.8.4</jacoco-maven-plugin.version>
+        <!-- <mockito.version>2.23.4</mockito.version> -->
+        <mockito.version>2.28.2</mockito.version>
+        <!-- <mockito.version>3.0.0</mockito.version> -->
+        <flapdoodle.version>2.1.1</flapdoodle.version>
+        <junit.version>4.12</junit.version>
+        <json-unit-version>2.3.0</json-unit-version>
+        <!-- <json-unit-version>2.8.0</json-unit-version> -->
+
+        <!-- database libraries -->
+        <elasticsearch.version>6.8.2</elasticsearch.version>
+        <elasticsearch.client.transport.version>${elasticsearch.version}</elasticsearch.client.transport.version>
+        <mongo.version>3.11.0</mongo.version>
+
+        <!-- object storing-->
         <jclouds.version>2.1.2</jclouds.version>
-        <javax.ws.rs.version>2.1.1</javax.ws.rs.version>
         <openstack4j.version>3.2.0</openstack4j.version>
         <awssdk.v1.version>1.11.488</awssdk.v1.version>
         <!-- <awssdk.v1.version>1.11.618</awssdk.v1.version> -->
+
+        <!-- jetty -->
+        <jetty.version>9.4.18.v20190429</jetty.version>
+        <!-- <jetty.version>9.4.20.v20190813</jetty.version> -->
+
+        <!-- specific for IHM -->
+        <frontend-maven-plugin.version>1.3</frontend-maven-plugin.version>
+        <!-- <frontend-maven-plugin.version>1.8.0</frontend-maven-plugin.version> -->
+        <build-helper-maven-plugin.version>1.3</build-helper-maven-plugin.version>
+        <!-- <build-helper-maven-plugin.version>3.0.0</build-helper-maven-plugin.version> -->
+
+        <!-- Metrics -->
+        <metrics.version>4.1.0-rc3</metrics.version>
+        <metrics.jvm.version>4.1.0-rc3</metrics.jvm.version>
+        <metrics.elastic.version>2.3.0-VITAM</metrics.elastic.version>
+        <jclouds-slf4j.version>1.6.0</jclouds-slf4j.version>
+        <skipITs>false</skipITs>
+
+        <!-- vitam specific -->
+        <unix.user>vitam</unix.user>
+        <unix.group>vitam</unix.group>
+
+        <!-- node -->
+        <nodeDownloadRoot/>
+
+        <!-- other -->
+        <slf4j.version>1.7.25</slf4j.version>
+        <logback.version>1.2.3</logback.version>
+        <resteasy.client.version>3.6.2.Final</resteasy.client.version>
+        <javax.ws.rs.version>2.1.1</javax.ws.rs.version>
         <thaiopensource.version>20091111</thaiopensource.version>
         <guava.version>27.0.1-jre</guava.version>
         <log4j2.version>2.11.1</log4j2.version>
@@ -112,30 +197,19 @@
         <easymock.version>4.0.2</easymock.version>
         <jackson-databind.version>2.9.9.2</jackson-databind.version>
         <jackson.version>2.9.9</jackson.version>
-        <elasticsearch.version>6.8.2</elasticsearch.version>
-        <elasticsearch.client.transport.version>${elasticsearch.version}</elasticsearch.client.transport.version>
-        <mongo.version>3.11.0</mongo.version>
         <apache-shiro.version>1.4.0</apache-shiro.version>
-        <jetty.version>9.4.18.v20190429</jetty.version>
-        <!-- <jetty.version>9.4.20.v20190813</jetty.version> -->
         <assertj.version>3.11.1</assertj.version>
         <rest-assured.version>3.3.0</rest-assured.version>
         <!-- <rest-assured.version>4.0.0</rest-assured.version> -->
-        <junit.version>4.12</junit.version>
-        <mockito.version>2.23.4</mockito.version>
-        <flapdoodle.version>2.1.1</flapdoodle.version>
         <yandex.version>1.21</yandex.version>
         <staxon.version>1.3</staxon.version>
         <org.json.version>20180813</org.json.version>
-        <json-unit-version>2.3.0</json-unit-version>
-        <!-- <json-unit-version>2.8.0</json-unit-version> -->
+        <!-- <org.json.version>20190722</org.json.version> -->
         <jhades.version>1.0.4</jhades.version>
         <javax.servlet.version>4.0.1</javax.servlet.version>
         <json-sanitize.version>1.2.0</json-sanitize.version>
         <commons-collections4.version>4.2</commons-collections4.version>
         <!-- <commons-collections4.version>4.4</commons-collections4.version> -->
-        <unix.user>vitam</unix.user>
-        <unix.group>vitam</unix.group>
         <esapi.version>2.1.0.1</esapi.version>
         <!-- removed to support xerces with 1.1 support <xerces.version>2.11.0</xerces.version> -->
         <xerces-xsd11.version>2.12-beta-r1667115</xerces-xsd11.version>
@@ -153,13 +227,6 @@
         <easystream.version>1.2.15</easystream.version>
         <!-- <zjsonpatch.version>0.4.7</zjsonpatch.version> -->
         <zjsonpatch.version>0.4.9</zjsonpatch.version>
-
-        <!-- Metrics -->
-        <metrics.version>4.1.0-rc3</metrics.version>
-        <metrics.jvm.version>4.1.0-rc3</metrics.jvm.version>
-        <metrics.elastic.version>2.3.0-VITAM</metrics.elastic.version>
-        <jclouds-slf4j.version>1.6.0</jclouds-slf4j.version>
-        <skipITs>false</skipITs>
         <!-- Json Validation -->
         <json-schema-validator.version>2.2.6</json-schema-validator.version>
         <javax-validation.version>2.0.1.Final</javax-validation.version>
@@ -167,31 +234,10 @@
         <org.glassfish.web.version>2.2.6</org.glassfish.web.version>
         <javax.el-api.version>3.0.0</javax.el-api.version>
         <retrofit2.version>2.6.1</retrofit2.version>
-        <maven.rpm-maven-plugin.version>2.2.0</maven.rpm-maven-plugin.version>
         <org.xmlunit.version>2.6.3</org.xmlunit.version>
         <com.github.tomakehurst.version>2.24.1</com.github.tomakehurst.version>
         <io.reactivex.rxjava2.version>2.2.12</io.reactivex.rxjava2.version>
-        <maven.surefire.version>2.22.2</maven.surefire.version>
-        <maven.clean.version>3.0.0</maven.clean.version>
-        <!-- <maven.clean.version>3.1.0</maven.clean.version> -->
-        <maven.compiler.version>3.5.1</maven.compiler.version>
-        <!-- <maven.compiler.version>3.8.2</maven.compiler.version> -->
-        <maven.deploy.version>2.8.2</maven.deploy.version>
-        <maven.resources.version>3.1.0</maven.resources.version>
-        <maven.source.version>3.0.0</maven.source.version>
-        <!-- <maven.source.version>3.1.0</maven.source.version> -->
-        <maven.dependency.version>3.1.1</maven.dependency.version>
-        <maven.site.version>3.5.1</maven.site.version>
-        <!-- <maven.site.version>3.8.2</maven.site.version> -->
-        <maven.assembly.version>3.1.1</maven.assembly.version>
-        <maven.exec.version>1.6.0</maven.exec.version>
-        <maven.failsafe.version>2.19.1</maven.failsafe.version>
-        <maven.javadoc.version>2.10.4</maven.javadoc.version>
-        <maven.exec.version>1.6.0</maven.exec.version>
-	    <maven.dependencycheck.version>5.2.1</maven.dependencycheck.version>
         <xalan.version>2.7.2</xalan.version>
-        <nodeDownloadRoot/>
-        <maven-jar-plugin.version>2.6</maven-jar-plugin.version>
         <cucumber-java.version>1.2.5</cucumber-java.version>
         <cucumber-picocontainer.version>1.2.5</cucumber-picocontainer.version>
         <cucumber-junit.version>1.2.5</cucumber-junit.version>
@@ -201,32 +247,10 @@
         <jdeb.vafer.version>1.5</jdeb.vafer.version>
         <!-- <jdeb.vafer.version>1.8</jdeb.vafer.version> -->
         <json-schema-core.version>1.2.5</json-schema-core.version>
-        <maven-scm-plugin.version>1.11.2</maven-scm-plugin.version>
         <json-patch.version>1.9</json-patch.version>
         <jackson-coreutils.version>1.8</jackson-coreutils.version>
-        <git-commit-id-plugin.version>2.2.1</git-commit-id-plugin.version>
-        <!-- <git-commit-id-plugin.version>3.0.1</git-commit-id-plugin.version> -->
-        <maven-antrun-plugin.version>1.8</maven-antrun-plugin.version>
-        <!-- <maven-antrun-plugin.version>1.6</maven-antrun-plugin.version> -->
-        <license-maven-plugin.version>1.16</license-maven-plugin.version>
-        <!-- <license-maven-plugin.version>1.20</license-maven-plugin.version> -->
-        <maven-install-plugin.version>2.5.2</maven-install-plugin.version>
-        <maven-verifier-plugin.version>1.1</maven-verifier-plugin.version>
-        <maven-enforcer-plugin.version>1.4.1</maven-enforcer-plugin.version>
-        <maven-help-plugin.version>2.2</maven-help-plugin.version>
-        <!-- <maven-help-plugin.version>3.2.0</maven-help-plugin.version> -->
-        <maven-release-plugin.version>2.5.3</maven-release-plugin.version>
-        <sonar-maven-plugin.version>3.2</sonar-maven-plugin.version>
-        <versions-maven-plugin.version>2.3</versions-maven-plugin.version>
-        <!-- <versions-maven-plugin.version>2.7</versions-maven-plugin.version> -->
-        <maven-scm-provider-jgit.version>1.9.4</maven-scm-provider-jgit.version>
-        <!-- <maven-scm-provider-jgit.version>1.11.2</maven-scm-provider-jgit.version> -->
         <maven.jaxb2.version>0.13.1</maven.jaxb2.version>
         <jaxb2-basics.version>0.6.5</jaxb2-basics.version>
-        <frontend-maven-plugin.version>1.3</frontend-maven-plugin.version>
-        <!-- <frontend-maven-plugin.version>1.8.0</frontend-maven-plugin.version> -->
-        <build-helper-maven-plugin.version>1.3</build-helper-maven-plugin.version>
-        <!-- <build-helper-maven-plugin.version>3.0.0</build-helper-maven-plugin.version> -->
     </properties>
 
 
@@ -319,9 +343,11 @@
                                 </goals>
                             </execution>
                         </executions>
-                        <!-- <configuration>
+                        <configuration>
                             <doclint>none</doclint>
-                        </configuration> -->
+                            <failOnError>false</failOnError>
+                            <quiet>true</quiet>
+                        </configuration>
                     </plugin>
                 </plugins>
             </build>
@@ -529,7 +555,8 @@
                     <version>${maven.javadoc.version}</version>
                     <configuration>
                         <source>${java.version}</source>
-                        <additionalparam>-Xdoclint:none</additionalparam>
+                        <!-- <additionalparam>-Xdoclint:none</additionalparam> -->
+                        <doclint>none</doclint>
                         <doctitle>Vitam API Reference (${project.version})</doctitle>
                         <windowtitle>Vitam API Reference (${project.version})</windowtitle>
                         <excludePackageNames>
@@ -598,6 +625,18 @@
                             <group>
                                 <title>Workspace</title>
                                 <packages>fr.gouv.vitam.workspace.*</packages>
+                            </group>
+                            <group>
+                                <title>Batch report</title>
+                                <packages>fr.gouv.vitam.batchreport.*</packages>
+                            </group>
+                            <group>
+                                <title>Security internal</title>
+                                <packages>fr.gouv.vitam.internal-security.*</packages>
+                            </group>
+                            <group>
+                                <title>Elastic kibana interceptor</title>
+                                <packages>fr.gouv.vitam.elastic-kibana-interceptor.*</packages>
                             </group>
                         </groups>
                     </configuration>
@@ -1420,7 +1459,18 @@
                 <artifactId>rxjava</artifactId>
                 <version>${io.reactivex.rxjava2.version}</version>
             </dependency>
-
+            <!-- #################### specific IHM ################### -->
+            <dependency>
+                <groupId>com.github.eirslett</groupId>
+                <artifactId>frontend-maven-plugin</artifactId>
+                <!-- NB! Set <version> to the latest released version of frontend-maven-plugin, like in README.md -->
+                <version>${frontend-maven-plugin.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>build-helper-maven-plugin</artifactId>
+                <version>${build-helper-maven-plugin.version}</version>
+            </dependency>
             <!-- ####################### Tests ####################### -->
 
             <dependency>
