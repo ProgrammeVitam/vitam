@@ -148,6 +148,7 @@ import java.io.InputStream;
 import java.io.RandomAccessFile;
 import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
+import java.nio.file.Files;
 import java.security.InvalidParameterException;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -715,7 +716,11 @@ public class WebApplicationResource extends ApplicationStatusResource {
                 finalResponseDetails.add(Status.INTERNAL_SERVER_ERROR);
                 uploadRequestsStatus.put(operationGuidFirstLevel, finalResponseDetails);
             } finally {
-                temporarSipFile.delete();
+                try {
+                    Files.delete(temporarSipFile.toPath());
+                } catch (IOException e) {
+                    LOGGER.error(e);
+                }
             }
         }
     }
@@ -828,7 +833,11 @@ public class WebApplicationResource extends ApplicationStatusResource {
             // Clean up uploadRequestsStatus
             uploadRequestsStatus.remove(operationId);
             File file = PropertiesUtils.fileFromTmpFolder("ATR_" + operationId + ".xml");
-            file.delete();
+            try {
+                Files.delete(file.toPath());
+            } catch (IOException e) {
+                LOGGER.error(e);
+            }
             // Cleaning process succeeded
             return Response.status(Status.OK).header(GlobalDataRest.X_REQUEST_ID, operationId).build();
         } else {
@@ -849,9 +858,9 @@ public class WebApplicationResource extends ApplicationStatusResource {
         return Iterables.getLast(operation.getEvents());
     }
 
-    private static int getStatus(LogbookEventOperation lastEvent) throws Exception {
+    private static int getStatus(LogbookEventOperation lastEvent) throws VitamException {
         if (lastEvent.getOutcome() == null) {
-            throw new Exception("parsing Error");
+            throw new VitamException("parsing Error");
         }
         switch (lastEvent.getOutcome()) {
             case "WARNING":
@@ -860,9 +869,9 @@ public class WebApplicationResource extends ApplicationStatusResource {
                 return 200;
             case "KO":
                 return 400;
-
+            default:
+                return 500;
         }
-        return 500;
     }
 
     /**

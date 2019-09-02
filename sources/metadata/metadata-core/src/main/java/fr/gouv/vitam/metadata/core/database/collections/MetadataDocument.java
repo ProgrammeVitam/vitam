@@ -27,25 +27,16 @@
 package fr.gouv.vitam.metadata.core.database.collections;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import com.mongodb.ErrorCategory;
-import com.mongodb.MongoException;
-import com.mongodb.MongoWriteException;
 import com.mongodb.client.MongoCollection;
 import fr.gouv.vitam.common.database.server.mongodb.VitamDocument;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
-import fr.gouv.vitam.common.parameter.ParameterHelper;
-import fr.gouv.vitam.metadata.api.exception.MetaDataAlreadyExistException;
-import fr.gouv.vitam.metadata.api.exception.MetaDataExecutionException;
 import org.bson.Document;
-import org.bson.conversions.Bson;
 
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Map;
-
-import static com.mongodb.client.model.Filters.eq;
 
 /**
  * The default Vitam Type object to be stored in the database (MongoDb/ElasticSearch mode)
@@ -111,7 +102,7 @@ public abstract class MetadataDocument<E> extends VitamDocument<E> {
     /**
      * Quick projection for ID and ObjectGroup Only
      */
-    public static final String[] ES_PROJECTION = {
+    static final String[] ES_PROJECTION = {
         ID, MetadataDocument.NBCHILD, TENANT_ID, SCORE};
 
     /**

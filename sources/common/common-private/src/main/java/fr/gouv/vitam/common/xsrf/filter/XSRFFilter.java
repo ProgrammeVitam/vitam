@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2019)
  *
  * contact.vitam@culture.gouv.fr
@@ -26,9 +26,11 @@
  */
 package fr.gouv.vitam.common.xsrf.filter;
 
-import java.io.IOException;
-import java.util.HashMap;
-import java.util.Map;
+import fr.gouv.vitam.common.GlobalDataRest;
+import fr.gouv.vitam.common.VitamConfiguration;
+import fr.gouv.vitam.common.logging.VitamLogger;
+import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.common.stream.StreamUtils;
 
 import javax.servlet.Filter;
 import javax.servlet.FilterChain;
@@ -39,22 +41,15 @@ import javax.servlet.ServletResponse;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.ws.rs.core.Response.Status;
+import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
 
-import fr.gouv.vitam.common.GlobalDataRest;
-import fr.gouv.vitam.common.VitamConfiguration;
-import fr.gouv.vitam.common.logging.VitamLogger;
-import fr.gouv.vitam.common.logging.VitamLoggerFactory;
-import fr.gouv.vitam.common.stream.StreamUtils;
-
-/**
- * XSRF Filter
- */
 public class XSRFFilter implements Filter {
-    public static final String CSRF_STATE_TOKEN_DOES_NOT_MATCH_ONE_PROVIDED =
-        "CSRF state token does not match one provided";
-    private static Map<String, String> tokenMap = new HashMap<String, String>();
-
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(XSRFFilter.class);
+
+    private static final String CSRF_STATE_TOKEN_DOES_NOT_MATCH_ONE_PROVIDED = "CSRF state token does not match one provided";
+    private static Map<String, String> tokenMap = new HashMap<>();
 
     @Override
     public void init(FilterConfig filterConfig) throws ServletException {

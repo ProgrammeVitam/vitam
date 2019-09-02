@@ -138,6 +138,7 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.file.Files;
 import java.util.List;
 import java.util.Map;
 
@@ -440,7 +441,11 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
             final Status status = Status.BAD_REQUEST;
             return Response.status(status).entity(getErrorEntity(status, HTML_CONTENT_MSG_ERROR, null)).build();
         } finally {
-            file.delete();
+            try {
+                Files.delete(file.toPath());
+            } catch (IOException e) {
+                LOGGER.error(e);
+            }
             StreamUtils.closeSilently(document);
         }
     }
@@ -1263,7 +1268,11 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
             final Status status = Status.BAD_REQUEST;
             return Response.status(status).entity(getErrorEntity(status, HTML_CONTENT_MSG_ERROR, null)).build();
         } finally {
-            file.delete();
+            try {
+                Files.delete(file.toPath());
+            } catch (IOException e) {
+                LOGGER.error(e);
+            }
             StreamUtils.closeSilently(document);
         }
     }

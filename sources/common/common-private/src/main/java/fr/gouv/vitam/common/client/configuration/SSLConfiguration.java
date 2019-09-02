@@ -1,4 +1,4 @@
-/*******************************************************************************
+/*
  * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2019)
  *
  * contact.vitam@culture.gouv.fr
@@ -23,14 +23,21 @@
  *
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
- *******************************************************************************/
+ */
 package fr.gouv.vitam.common.client.configuration;
 
-import javax.net.ssl.HostnameVerifier;
+import fr.gouv.vitam.common.ParametersChecker;
+import fr.gouv.vitam.common.PropertiesUtils;
+import fr.gouv.vitam.common.exception.VitamException;
+import org.apache.http.config.Registry;
+import org.apache.http.config.RegistryBuilder;
+import org.apache.http.conn.socket.ConnectionSocketFactory;
+import org.apache.http.conn.ssl.NoopHostnameVerifier;
+import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
+
 import javax.net.ssl.KeyManager;
 import javax.net.ssl.KeyManagerFactory;
 import javax.net.ssl.SSLContext;
-import javax.net.ssl.SSLSession;
 import javax.net.ssl.TrustManager;
 import javax.net.ssl.TrustManagerFactory;
 import java.io.FileInputStream;
@@ -42,24 +49,16 @@ import java.security.KeyManagementException;
 import java.security.KeyStore;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
+import java.security.SecureRandom;
 import java.security.UnrecoverableKeyException;
 import java.security.cert.CertificateException;
 import java.util.List;
-
-import fr.gouv.vitam.common.ParametersChecker;
-import fr.gouv.vitam.common.PropertiesUtils;
-import fr.gouv.vitam.common.exception.VitamException;
-import org.apache.http.config.Registry;
-import org.apache.http.config.RegistryBuilder;
-import org.apache.http.conn.socket.ConnectionSocketFactory;
-import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
 
 /**
  * SSL Configuration
  */
 public class SSLConfiguration {
     private static final String PARAMETERS = "SSLConfiguration parameters";
-    private static final AllowAllHostnameVerifier ALLOW_ALL_HOSTNAME_VERIFIER = new AllowAllHostnameVerifier();
     private List<SSLKey> truststore;
     private List<SSLKey> keystore;
     private String protocol;
@@ -93,8 +92,7 @@ public class SSLConfiguration {
      */
     public Registry<ConnectionSocketFactory> getRegistry(SSLContext sslContext) throws FileNotFoundException {
         return RegistryBuilder.<ConnectionSocketFactory>create()
-            .register("https", new SSLConnectionSocketFactory(sslContext,
-                getAllowAllHostnameVerifier())) // force
+            .register("https", new SSLConnectionSocketFactory(sslContext, NoopHostnameVerifier.INSTANCE)) // force
             .build();
     }
 
@@ -117,11 +115,11 @@ public class SSLConfiguration {
         }
         SSLContext sslContext;
         try {
-            if(protocol == null || protocol.isEmpty()) {
-                protocol = "TLS";
+            if (protocol == null || protocol.isEmpty()) {
+                protocol = "TLSv1.2";
             }
             sslContext = SSLContext.getInstance(protocol);
-            sslContext.init(keyManagers, trustManagers, new java.security.SecureRandom());
+            sslContext.init(keyManagers, trustManagers, new SecureRandom());
             return sslContext;
         } catch (NoSuchAlgorithmException | KeyManagementException e) {
             throw new VitamException(e);
@@ -269,20 +267,6 @@ public class SSLConfiguration {
     public SSLConfiguration setKeystore(List<SSLKey> keystore) {
         this.keystore = keystore;
         return this;
-    }
-
-    /**
-     * @return HostnameVerifier : An Allow All HostNameVerifier
-     */
-    public HostnameVerifier getAllowAllHostnameVerifier() {
-        return ALLOW_ALL_HOSTNAME_VERIFIER;
-    }
-
-    private static class AllowAllHostnameVerifier implements HostnameVerifier {
-        @Override
-        public boolean verify(String hostname, SSLSession sslSession) {
-            return true;
-        }
     }
 
     @SuppressWarnings("unchecked")

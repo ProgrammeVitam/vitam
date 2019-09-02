@@ -40,8 +40,8 @@ import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.
 import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.SELECTFILTER;
 import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
 import fr.gouv.vitam.common.database.builder.request.multiple.SelectMultiQuery;
-import fr.gouv.vitam.common.database.collections.VitamCollection;
 import fr.gouv.vitam.common.database.collections.DynamicParserTokens;
+import fr.gouv.vitam.common.database.collections.VitamCollection;
 import fr.gouv.vitam.common.database.parser.query.QueryParserHelper;
 import fr.gouv.vitam.common.database.parser.request.AbstractParser;
 import fr.gouv.vitam.common.database.parser.request.GlobalDatasParser;
@@ -70,7 +70,6 @@ import org.elasticsearch.search.sort.SortBuilders;
 import org.elasticsearch.search.sort.SortOrder;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -240,9 +239,6 @@ public class QueryToElasticsearch {
             case EXISTS:
             case MISSING:
                 return existsMissingCommand(req, content);
-            case FLT:
-            case MLT:
-                return xltCommand(req, content);
             case MATCH:
             case MATCH_ALL:
             case MATCH_PHRASE:
@@ -277,8 +273,6 @@ public class QueryToElasticsearch {
                 return sizeCommand(req, content);
             case NOP:
                 return QueryBuilders.matchAllQuery();
-            case PATH:
-                return pathCommand(req, content);
             case GEOMETRY:
             case BOX:
             case POLYGON:
@@ -288,24 +282,6 @@ public class QueryToElasticsearch {
             default:
         }
         throw new InvalidParseOperationException("Invalid command: " + req.exactToken());
-    }
-
-    /**
-     * @param content JsonNode
-     * @return the Path Command
-     */
-    private static QueryBuilder pathCommand(final QUERY query, final JsonNode content) {
-
-        // Unsupported command. May be deleted without prior notice.
-        logUnsupportedCommand(query, content, "Deprecated. Should not be invoked anymore.");
-
-        final ArrayNode array = (ArrayNode) content;
-        final String[] values = new String[array.size()];
-        int i = 0;
-        for (final JsonNode node : array) {
-            values[i++] = node.asText();
-        }
-        return QueryBuilders.termsQuery("_id", values);
     }
 
     /**
@@ -376,58 +352,6 @@ public class QueryToElasticsearch {
                 return QueryBuilders.rangeQuery(key).lte(value);
         }
 
-    }
-
-    /**
-     * $mlt : { $fields : [ name1, name2 ], $like : like_text } $flt : { $fields : [ name1, name2 ], $like : like_text }
-     *
-     * @param query QUERY
-     * @param content JsonNode
-     * @return the xlt Command
-     * @throws InvalidParseOperationException if check unicity is in error
-     */
-    private static QueryBuilder xltCommand(final QUERY query, final JsonNode content)
-        throws InvalidParseOperationException {
-
-        // Unsupported command. May be deleted without prior notice.
-        logUnsupportedCommand(query, content, "Deprecated. Should not be invoked anymore.");
-
-        final ArrayNode fields = (ArrayNode) content.get(QUERYARGS.FIELDS.exactToken());
-        final JsonNode like = content.get(QUERYARGS.LIKE.exactToken());
-        if (fields == null || like == null || fields.size() == 0) {
-            throw new InvalidParseOperationException("Incorrect command: " + query.exactToken() + " : " + query);
-        }
-        final String slike = like.toString();
-        if (slike.trim().isEmpty()) {
-            throw new InvalidParseOperationException("Incorrect command: " + query.exactToken() + " : " + query);
-        }
-        final String[] names = new String[fields.size()];
-        int i = 0;
-        for (final JsonNode name : fields) {
-            if (VitamDocument.ID.equals(name.toString())) {
-                logWarnUnsupportedIdForCommand(query, content);
-            }
-            names[i++] = name.toString();
-        }
-        switch (query) {
-            case FLT:
-                if (names.length > 1) {
-                    final BoolQueryBuilder builder = QueryBuilders.boolQuery().minimumShouldMatch(1);
-                    for (final String name : names) {
-                        builder.should(QueryBuilders.matchQuery(name, slike).fuzziness(FUZZINESS));
-                    }
-                    return builder;
-                } else if (names.length == 1) {
-                    return QueryBuilders.matchQuery(names[0], slike).fuzziness(FUZZINESS);
-                }
-            case MLT:
-            default:
-                // Note : array size increase is now needed (addLikeText(slike) is removed in ES5), and the array is
-                // small, so array copy should be relatively painless.
-                final String[] newNames = Arrays.copyOf(names, names.length + 1);
-                newNames[names.length] = slike;
-                return QueryBuilders.moreLikeThisQuery(newNames);
-        }
     }
 
     /**

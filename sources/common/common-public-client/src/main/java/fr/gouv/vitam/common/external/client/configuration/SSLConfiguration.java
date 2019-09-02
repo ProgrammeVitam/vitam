@@ -1,4 +1,4 @@
-/*******************************************************************************
+/*
  * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2019)
  *
  * contact.vitam@culture.gouv.fr
@@ -23,9 +23,23 @@
  *
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
- *******************************************************************************/
+ */
 package fr.gouv.vitam.common.external.client.configuration;
 
+import fr.gouv.vitam.common.ParametersChecker;
+import fr.gouv.vitam.common.PropertiesUtils;
+import fr.gouv.vitam.common.exception.VitamException;
+import org.apache.http.config.Registry;
+import org.apache.http.config.RegistryBuilder;
+import org.apache.http.conn.socket.ConnectionSocketFactory;
+import org.apache.http.conn.ssl.NoopHostnameVerifier;
+import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
+
+import javax.net.ssl.KeyManager;
+import javax.net.ssl.KeyManagerFactory;
+import javax.net.ssl.SSLContext;
+import javax.net.ssl.TrustManager;
+import javax.net.ssl.TrustManagerFactory;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -39,31 +53,14 @@ import java.security.UnrecoverableKeyException;
 import java.security.cert.CertificateException;
 import java.util.List;
 
-import javax.net.ssl.HostnameVerifier;
-import javax.net.ssl.KeyManager;
-import javax.net.ssl.KeyManagerFactory;
-import javax.net.ssl.SSLContext;
-import javax.net.ssl.SSLSession;
-import javax.net.ssl.TrustManager;
-import javax.net.ssl.TrustManagerFactory;
-
-import org.apache.http.config.Registry;
-import org.apache.http.config.RegistryBuilder;
-import org.apache.http.conn.socket.ConnectionSocketFactory;
-import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
-
-import fr.gouv.vitam.common.ParametersChecker;
-import fr.gouv.vitam.common.PropertiesUtils;
-import fr.gouv.vitam.common.exception.VitamException;
-
 /**
  * SSL Configuration
  */
 public class SSLConfiguration {
     private static final String PARAMETERS = "SSLConfiguration parameters";
-    private static final AllowAllHostnameVerifier ALLOW_ALL_HOSTNAME_VERIFIER = new AllowAllHostnameVerifier();
     private List<SSLKey> truststore;
     private List<SSLKey> keystore;
+    private String protocol;
 
     /**
      * Empty SSLConfiguration constructor for YAMLFactory
@@ -94,8 +91,7 @@ public class SSLConfiguration {
      */
     public Registry<ConnectionSocketFactory> getRegistry(SSLContext sslContext) throws FileNotFoundException {
         return RegistryBuilder.<ConnectionSocketFactory>create()
-            .register("https", new SSLConnectionSocketFactory(sslContext,
-                getAllowAllHostnameVerifier())) // force
+            .register("https", new SSLConnectionSocketFactory(sslContext, NoopHostnameVerifier.INSTANCE)) // force
             .build();
     }
 
@@ -118,7 +114,10 @@ public class SSLConfiguration {
         }
         SSLContext sslContext;
         try {
-            sslContext = SSLContext.getInstance("TLS");
+            if (protocol == null || protocol.isEmpty()) {
+                protocol = "TLSv1.2";
+            }
+            sslContext = SSLContext.getInstance(protocol);
             sslContext.init(keyManagers, trustManagers, new java.security.SecureRandom());
             return sslContext;
         } catch (NoSuchAlgorithmException | KeyManagementException e) {
@@ -269,25 +268,19 @@ public class SSLConfiguration {
         return this;
     }
 
-    /**
-     * @return HostnameVerifier : An Allow All HostNameVerifier
-     */
-    public HostnameVerifier getAllowAllHostnameVerifier() {
-        return ALLOW_ALL_HOSTNAME_VERIFIER;
-    }
-
-    private static class AllowAllHostnameVerifier implements HostnameVerifier {
-        @Override
-        public boolean verify(String hostname, SSLSession sslSession) {
-            return true;
-        }
-    }
-
     @SuppressWarnings("unchecked")
     private static <T> T[] concat(T[] first, T[] second, Class<T> type) {
         T[] result = (T[]) Array.newInstance(type, first.length + second.length);
         System.arraycopy(first, 0, result, 0, first.length);
         System.arraycopy(second, 0, result, first.length, second.length);
         return result;
+    }
+
+    public String getProtocol() {
+        return protocol;
+    }
+
+    public void setProtocol(String protocol) {
+        this.protocol = protocol;
     }
 }

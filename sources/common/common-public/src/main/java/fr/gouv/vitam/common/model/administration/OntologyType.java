@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2019)
  *
  * contact.vitam@culture.gouv.fr
@@ -27,9 +27,6 @@
 
 package fr.gouv.vitam.common.model.administration;
 
-/**
- * Enum for Ontology type
- */
 public enum OntologyType {
     TEXT ("TEXT", true),
     KEYWORD ("KEYWORD", false),
@@ -54,15 +51,7 @@ public enum OntologyType {
         return type;
     }
 
-    public void setType(String type) {
-        this.type = type;
-    }
-
     public boolean isAnalyzed() {
         return analyzed;
-    }
-
-    public void setAnalyzed(boolean analyzed) {
-        this.analyzed = analyzed;
     }
 }

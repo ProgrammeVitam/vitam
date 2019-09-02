@@ -37,7 +37,10 @@ import fr.gouv.vitam.common.client.ClientMockResultHelper;
 import fr.gouv.vitam.common.exception.AccessUnauthorizedException;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.NoWritingPermissionException;
+import fr.gouv.vitam.common.exception.VitamRuntimeException;
 import fr.gouv.vitam.common.json.JsonHandler;
+import fr.gouv.vitam.common.logging.VitamLogger;
+import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.PreservationRequest;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
@@ -61,6 +64,7 @@ import java.io.InputStream;
  * Mock client implementation for access
  */
 class AccessInternalClientMock extends AbstractMockClient implements AccessInternalClient {
+    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(AccessInternalClientMock.class);
 
     static final String MOCK_GET_FILE_CONTENT = "Vitam test";
 
@@ -210,7 +214,7 @@ class AccessInternalClientMock extends AbstractMockClient implements AccessInter
         try {
             res = JsonHandler.getFromFile(PropertiesUtils.getResourceFile("resultGot.json"));
         } catch (FileNotFoundException e) {
-            e.printStackTrace();
+            throw new VitamRuntimeException(e);
         }
         return new RequestResponseOK().addResult(res);
     }

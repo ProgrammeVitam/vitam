@@ -48,8 +48,7 @@ import static com.mongodb.client.model.Filters.eq;
  * ReportCommonRepository
  */
 public abstract class ReportCommonRepository {
-
-    VitamLogger LOGGER = VitamLoggerFactory.getInstance(ReportCommonRepository.class);
+    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(ReportCommonRepository.class);
 
     /**
      * Insert List of document in the given collection

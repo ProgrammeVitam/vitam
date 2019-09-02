@@ -26,16 +26,16 @@
  */
 package fr.gouv.vitam.common.server.application;
 
+import fr.gouv.vitam.common.model.VitamAutoCloseable;
+import fr.gouv.vitam.common.stream.StreamUtils;
+
+import javax.ws.rs.core.StreamingOutput;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-
-import javax.ws.rs.core.StreamingOutput;
-
-import fr.gouv.vitam.common.model.VitamAutoCloseable;
-import fr.gouv.vitam.common.stream.StreamUtils;
+import java.nio.file.Files;
 
 /**
  * Helper for Streaming to output one InputStream or File in non async mode
@@ -77,7 +77,7 @@ public class VitamStreamingOutput implements StreamingOutput, VitamAutoCloseable
             }
         }
         if (file != null && toDelete) {
-            file.delete();
+            Files.delete(file.toPath());
         }
     }
 

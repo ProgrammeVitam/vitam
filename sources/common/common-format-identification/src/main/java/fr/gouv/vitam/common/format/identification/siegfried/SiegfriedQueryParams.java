@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2019)
  * <p>
  * contact.vitam@culture.gouv.fr
@@ -53,16 +53,7 @@ public enum SiegfriedQueryParams {
         return parameter;
     }
 
-    public void setParameter(String parameter) {
-        this.parameter = parameter;
-    }
-
     public String getValue() {
         return value;
     }
-
-    public void setValue(String value) {
-        this.value = value;
-    }
-
 }

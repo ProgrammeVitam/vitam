@@ -55,7 +55,7 @@ public class RequestToElasticsearchTest {
             "{ $and : [ " + "{$exists : 'mavar1'}, " + "{$missing : 'mavar2'}, " + "{$isNull : 'mavar3'}, " +
             "{ $or : [ {$in : { 'mavar4' : [1, 2, 'maval1'] }}, " +
             "{ $nin : { 'mavar5' : ['maval2', true] } } ] } ] }," +
-            "{ $not : [ " + "{ $size : { 'mavar5' : 5 } }, " + "{ $gt : { 'mavar6' : 7 } }, " +
+            "{ $not : [ " + "{ $gt : { 'mavar6' : 7 } }, " +
             "{ $lt : { 'mavar7' : 8 } } ] , $exactdepth : 4}," + "{ $not : [ " + "{ $eq : { 'mavar8' : 5 } }, " +
             "{ $ne : { 'mavar9' : 'ab' } }, " + "{ $wildcard : { 'mavar9' : 'ab' } }, " +
             "{ $range : { 'mavar10' : { $gte : 12, $lte : 20} } } ], $depth : 1}, " +
@@ -67,8 +67,6 @@ public class RequestToElasticsearchTest {
             "{ $match : { 'mavar19' : 'words' , '$max_expansions' : 1  } }," +
             "{ $match_phrase : { 'mavar20' : 'words' } }," +
             "{ $match_phrase_prefix : { 'mavar21' : 'phrase' } }," +
-            "{ $mlt : { $fields : [ 'mavar23', 'mavar24' ], $like : 'like_text' } }," +
-            "{ $flt : { $fields : [ 'mavar23', 'mavar24' ], $like : 'like_text' } }," +
             "{ $search : { 'mavar25' : 'searchParameter' } }" +
             "], " +
             "$filter : {$offset : 100, $limit : 1000, $hint : ['cache'], " +

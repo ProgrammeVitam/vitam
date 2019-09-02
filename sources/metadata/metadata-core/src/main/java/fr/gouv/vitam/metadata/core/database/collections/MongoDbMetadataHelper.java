@@ -50,7 +50,7 @@ public class MongoDbMetadataHelper {
     /**
      * Quick projection for ID Only
      */
-    public static final BasicDBObject ID_PROJECTION = new BasicDBObject(MetadataDocument.ID, 1);
+    static final BasicDBObject ID_PROJECTION = new BasicDBObject(MetadataDocument.ID, 1);
 
     private MongoDbMetadataHelper() {
         // Empty constructor

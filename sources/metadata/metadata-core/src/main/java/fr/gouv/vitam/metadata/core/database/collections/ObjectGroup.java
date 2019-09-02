@@ -27,7 +27,6 @@
 package fr.gouv.vitam.metadata.core.database.collections;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import com.mongodb.BasicDBObject;
 import com.mongodb.client.MongoCollection;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
@@ -59,12 +58,6 @@ public class ObjectGroup extends MetadataDocument<ObjectGroup> {
      */
     public static final String STORAGE = "_storage";
 
-    /**
-     * Unit Id, Vitam fields Only projection (no usage)
-     */
-    public static final BasicDBObject OBJECTGROUP_VITAM_PROJECTION =
-        new BasicDBObject(NBCHILD, 1).append(TYPE, 1).append(ORIGINATING_AGENCY, 1)
-            .append(TENANT_ID, 1).append(MetadataDocument.UP, 1).append(MetadataDocument.ID, 1);
     /**
      * Versions
      */
