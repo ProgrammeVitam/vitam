@@ -154,6 +154,11 @@ public class VitamServerRunner extends ExternalResource {
                 ">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> Start " + clazz.getSimpleName() +
                     " <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<");
 
+            VitamConfiguration.setHttpClientWaitingTime(1);
+            VitamConfiguration.setHttpClientRandomWaitingSleep(1);
+            VitamConfiguration.setHttpClientFirstAttemptWaitingTime(1);
+            VitamConfiguration.setHttpClientRetry(1);
+
             if (Files.notExists(Paths.get(VitamConfiguration.getVitamDataFolder() + "/tmp/"))) {
                 Files.createDirectories(Paths.get(VitamConfiguration.getVitamDataFolder() + "/tmp/"));
             }

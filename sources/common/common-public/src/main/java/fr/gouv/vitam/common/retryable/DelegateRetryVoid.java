@@ -1,4 +1,4 @@
-/*******************************************************************************
+/*
  * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2019)
  *
  * contact.vitam@culture.gouv.fr
@@ -23,44 +23,10 @@
  *
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
- *******************************************************************************/
-package fr.gouv.vitam.storage.engine.common.exception;
-
-import fr.gouv.vitam.common.exception.VitamException;
-
-/**
- * Main Storage Exceptions
  */
-public class StorageException extends VitamException {
+package fr.gouv.vitam.common.retryable;
 
-    /**
-     *
-     */
-    private static final long serialVersionUID = -1245399254763660871L;
-
-    /**
-     * @param message
-     *            associated message
-     */
-    public StorageException(String message) {
-        super(message);
-    }
-
-    /**
-     * @param cause
-     *            associated cause
-     */
-    public StorageException(Throwable cause) {
-        super(cause);
-    }
-
-    /**
-     * @param message
-     *            associated message
-     * @param cause
-     *            associated cause
-     */
-    public StorageException(String message, Throwable cause) {
-        super(message, cause);
-    }
+@FunctionalInterface
+public interface DelegateRetryVoid<E extends Exception> {
+    void call() throws E;
 }

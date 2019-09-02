@@ -266,6 +266,12 @@ public class VitamConfiguration {
      * MongoDB client configuration
      */
     private static Integer threadsAllowedToBlockForConnectionMultipliers = 1500;
+
+    private static int httpClientRetry = 3;
+    private static int httpClientFirstAttemptWaitingTime = 10;
+    private static int httpClientWaitingTime = 20;
+    private static int httpClientRandomWaitingSleep = 5;
+
     /**
      * Retry repetition
      */
@@ -609,6 +615,38 @@ public class VitamConfiguration {
 
     public static void setOntologyCacheTimeoutInSeconds(int ontologyCacheTimeoutInSeconds) {
         VitamConfiguration.ontologyCacheTimeoutInSeconds = ontologyCacheTimeoutInSeconds;
+    }
+
+    public static int getHttpClientRetry() {
+        return httpClientRetry;
+    }
+
+    public static void setHttpClientRetry(int httpClientRetry) {
+        VitamConfiguration.httpClientRetry = httpClientRetry;
+    }
+
+    public static int getHttpClientFirstAttemptWaitingTime() {
+        return httpClientFirstAttemptWaitingTime;
+    }
+
+    public static void setHttpClientFirstAttemptWaitingTime(int httpClientFirstAttemptWaitingTime) {
+        VitamConfiguration.httpClientFirstAttemptWaitingTime = httpClientFirstAttemptWaitingTime;
+    }
+
+    public static int getHttpClientWaitingTime() {
+        return httpClientWaitingTime;
+    }
+
+    public static void setHttpClientWaitingTime(int httpClientWaitingTime) {
+        VitamConfiguration.httpClientWaitingTime = httpClientWaitingTime;
+    }
+
+    public static int getHttpClientRandomWaitingSleep() {
+        return httpClientRandomWaitingSleep;
+    }
+
+    public static void setHttpClientRandomWaitingSleep(int httpClientRandomWaitingSleep) {
+        VitamConfiguration.httpClientRandomWaitingSleep = httpClientRandomWaitingSleep;
     }
 
     /**
@@ -991,6 +1029,22 @@ public class VitamConfiguration {
 
         if (null != parameters.getOntologyCacheTimeoutInSeconds()) {
             setOntologyCacheTimeoutInSeconds(parameters.getOntologyCacheTimeoutInSeconds());
+        }
+
+        if (null != parameters.getHttpClientRetry()) {
+            setHttpClientRetry(parameters.getHttpClientRetry());
+        }
+
+        if (null != parameters.getHttpClientFirstAttemptWaitingTime()) {
+            setHttpClientFirstAttemptWaitingTime(parameters.getHttpClientFirstAttemptWaitingTime());
+        }
+
+        if (null != parameters.getHttpClientRandomWaitingSleep()) {
+            setHttpClientRandomWaitingSleep(parameters.getHttpClientRandomWaitingSleep());
+        }
+
+        if (null != parameters.getHttpClientWaitingTime()) {
+            setHttpClientWaitingTime(parameters.getHttpClientWaitingTime());
         }
     }
 

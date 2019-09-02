@@ -1,4 +1,4 @@
-/*******************************************************************************
+/*
  * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2019)
  *
  * contact.vitam@culture.gouv.fr
@@ -23,44 +23,43 @@
  *
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
- *******************************************************************************/
-package fr.gouv.vitam.storage.engine.common.exception;
-
-import fr.gouv.vitam.common.exception.VitamException;
-
-/**
- * Main Storage Exceptions
  */
-public class StorageException extends VitamException {
+package fr.gouv.vitam.common.retryable;
 
-    /**
-     *
-     */
-    private static final long serialVersionUID = -1245399254763660871L;
+import java.util.concurrent.TimeUnit;
 
-    /**
-     * @param message
-     *            associated message
-     */
-    public StorageException(String message) {
-        super(message);
+public class RetryableParameters {
+    private final int nbRetry;
+    private final int firstAttemptWaitingTime;
+    private final int waitingTime;
+    private final int randomRangeSleep;
+    private final TimeUnit timeUnit;
+
+    public RetryableParameters(int nbRetry, int firstAttemptWaitingTime, int waitingTime, int randomRangeSleep, TimeUnit timeUnit) {
+        this.nbRetry = nbRetry;
+        this.firstAttemptWaitingTime = firstAttemptWaitingTime;
+        this.waitingTime = waitingTime;
+        this.randomRangeSleep = randomRangeSleep;
+        this.timeUnit = timeUnit;
     }
 
-    /**
-     * @param cause
-     *            associated cause
-     */
-    public StorageException(Throwable cause) {
-        super(cause);
+    public int getNbRetry() {
+        return nbRetry;
     }
 
-    /**
-     * @param message
-     *            associated message
-     * @param cause
-     *            associated cause
-     */
-    public StorageException(String message, Throwable cause) {
-        super(message, cause);
+    public int getFirstAttemptWaitingTime() {
+        return firstAttemptWaitingTime;
+    }
+
+    public int getWaitingTime() {
+        return waitingTime;
+    }
+
+    public int getRandomRangeSleep() {
+        return randomRangeSleep;
+    }
+
+    public TimeUnit getTimeUnit() {
+        return timeUnit;
     }
 }

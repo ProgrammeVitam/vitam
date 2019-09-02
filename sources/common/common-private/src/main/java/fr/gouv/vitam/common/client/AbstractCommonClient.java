@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2019)
  *
  * contact.vitam@culture.gouv.fr
@@ -37,6 +37,9 @@ import fr.gouv.vitam.common.exception.VitamClientInternalException;
 import fr.gouv.vitam.common.logging.SysErrLogger;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.common.retryable.DelegateRetry;
+import fr.gouv.vitam.common.retryable.RetryableOnException;
+import fr.gouv.vitam.common.retryable.RetryableParameters;
 import fr.gouv.vitam.common.security.filter.AuthorizationFilterHelper;
 import fr.gouv.vitam.common.stream.StreamUtils;
 import org.apache.http.NoHttpResponseException;
@@ -64,39 +67,48 @@ import java.net.UnknownHostException;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.Random;
 import java.util.concurrent.Future;
+import java.util.function.Predicate;
 
-/**
- * Abstract Partial client class for all vitam clients
- */
+import static java.util.concurrent.TimeUnit.SECONDS;
+
 abstract class AbstractCommonClient implements BasicClient {
-    protected static final String INTERNAL_SERVER_ERROR = "Internal Server Error";
-    private static final String TIMEOUT_OCCURS_OR_DNS_PROBE_ERROR_RETRY = "TimeoutOccurs or DNS probe error, retry: ";
-    private static final String UNKNOWN_ERROR_IN_CLIENT = "Unknown error in client";
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(AbstractCommonClient.class);
+
+    protected static final String INTERNAL_SERVER_ERROR = "Internal Server Error";
+
     private static final String BODY_AND_CONTENT_TYPE_CANNOT_BE_NULL = "Body and ContentType cannot be null";
     private static final String ARGUMENT_CANNOT_BE_NULL_EXCEPT_HEADERS = "Argument cannot be null except headers";
-    /**
-     * Client Factory
-     */
+
+    private final RetryableParameters retryableParameters;
     final VitamClientFactory<?> clientFactory;
-    /**
-     * Used to get random sleep only
-     */
-    private final Random random = new Random(System.currentTimeMillis());
     private Client client;
     private Client clientNotChunked;
 
-    /**
-     * Constructor with standard configuration
-     *
-     * @param factory The client factory
-     */
-    protected AbstractCommonClient(VitamClientFactoryInterface<?> factory) {
+    private final Predicate<Exception> retryOnException = e -> {
+        Throwable source = e.getCause();
+        if (source == null) {
+            return false;
+        }
+        return source instanceof ConnectTimeoutException
+            || source instanceof UnknownHostException
+            || source instanceof HttpHostConnectException
+            || source instanceof NoHttpResponseException
+            || source instanceof NoRouteToHostException
+            || source instanceof SocketException;
+    };
+
+    AbstractCommonClient(VitamClientFactoryInterface<?> factory) {
         clientFactory = (VitamClientFactory<?>) factory;
         client = getClient(true);
         clientNotChunked = getClient(false);
+        this.retryableParameters = new RetryableParameters(
+            VitamConfiguration.getHttpClientRetry(),
+            VitamConfiguration.getHttpClientFirstAttemptWaitingTime(),
+            VitamConfiguration.getHttpClientWaitingTime(),
+            VitamConfiguration.getHttpClientRandomWaitingSleep(),
+            SECONDS
+        );
         // External client or with no Session context are excluded
     }
 
@@ -105,7 +117,7 @@ abstract class AbstractCommonClient implements BasicClient {
      *
      * @param response
      */
-    public static final void staticConsumeAnyEntityAndClose(Response response) {
+    public static void staticConsumeAnyEntityAndClose(Response response) {
         try {
             if (response != null && response.hasEntity()) {
                 final Object object = response.getEntity();
@@ -168,95 +180,22 @@ abstract class AbstractCommonClient implements BasicClient {
         }
     }
 
-    /**
-     * Helper for retry request when unreachable or Connect timeout
-     *
-     * @param retry retry count
-     * @param e the original ProcessingException
-     * @return the original exception allowing to continue and store the last one
-     * @throws ProcessingException
-     */
-    private final ProcessingException checkSpecificExceptionForRetry(int retry, ProcessingException e)
-        throws ProcessingException {
-        Throwable source = e.getCause();
-        if (source == null) {
-            LOGGER.error(TIMEOUT_OCCURS_OR_DNS_PROBE_ERROR_RETRY + retry, e);
-            throw e;
-        }
-        if (source instanceof ConnectTimeoutException || source instanceof UnknownHostException ||
-            source instanceof HttpHostConnectException || source instanceof NoHttpResponseException ||
-            source instanceof NoRouteToHostException || source instanceof SocketException) {
-            LOGGER.info(TIMEOUT_OCCURS_OR_DNS_PROBE_ERROR_RETRY + retry, source);
-            try {
-                long sleep = random.nextInt(50) + 20;
-                Thread.sleep(sleep);
-            } catch (InterruptedException e1) {
-                LOGGER.error(TIMEOUT_OCCURS_OR_DNS_PROBE_ERROR_RETRY + retry, source);
-                throw new ProcessingException("Interruption received", e1);
-            }
-            return e;
-        } else {
-            LOGGER.error(TIMEOUT_OCCURS_OR_DNS_PROBE_ERROR_RETRY + retry, source);
-            throw e;
-        }
-    }
-
-    /**
-     * Helper for retry request when unreachable or Connect timeout for Stream
-     *
-     * @param retry retry count
-     * @param e the original ProcessingException
-     * @return the original exception allowing to continue and store the last one
-     * @throws ProcessingException
-     */
-    private final ProcessingException checkSpecificExceptionForRetryUsingStream(int retry, ProcessingException e)
-        throws ProcessingException {
-        // Not a good idea to retry here on InputStream
-        throw e;
-    }
-
-    /**
-     * @param httpMethod
-     * @param body may be null
-     * @param contentType may be null
-     * @param builder
-     * @return the final response
-     * @throws VitamClientInternalException if retry is not possible and http call is failed
-     */
-    private final Response retryIfNecessary(String httpMethod, Object body, MediaType contentType, Builder builder)
-        throws VitamClientInternalException {
-        ProcessingException lastException = null;
+    private Response retryIfNecessary(String httpMethod, Object body, MediaType contentType, Builder builder) {
         if (body instanceof InputStream) {
-            for (int i = 0; i < VitamConfiguration.getRetryNumber(); i++) {
-                try {
-                    Entity<Object> entity = Entity.entity(body, contentType);
-                    return builder.method(httpMethod, entity);
-                } catch (ProcessingException e) {
-                    lastException = checkSpecificExceptionForRetryUsingStream(i, e);
-                    continue;
-                }
-            }
-        } else {
-            for (int i = 0; i < VitamConfiguration.getRetryNumber(); i++) {
-                try {
-                    if (body == null) {
-                        return builder.method(httpMethod);
-                    } else {
-                        Entity<Object> entity = Entity.entity(body, contentType);
-                        return builder.method(httpMethod, entity);
-                    }
-                } catch (ProcessingException e) {
-                    lastException = checkSpecificExceptionForRetry(i, e);
-                    continue;
-                }
-            }
+            Entity<Object> entity = Entity.entity(body, contentType);
+            return builder.method(httpMethod, entity);
         }
-        if (lastException != null) {
-            LOGGER.error(lastException);
-            throw lastException;
-        } else {
-            throw new VitamClientInternalException(UNKNOWN_ERROR_IN_CLIENT);
-        }
+
+        DelegateRetry<Response, ProcessingException> delegate = () -> {
+            if (body == null) {
+                return builder.method(httpMethod);
+            }
+            Entity<Object> entity = Entity.entity(body, contentType);
+            return builder.method(httpMethod, entity);
+        };
+
+        RetryableOnException<Response, ProcessingException> retryable = retryable();
+        return retryable.exec(delegate);
     }
 
     /**
@@ -355,51 +294,22 @@ abstract class AbstractCommonClient implements BasicClient {
         }
     }
 
-    /**
-     * @param httpMethod
-     * @param body may be null
-     * @param contentType may be null
-     * @param builder
-     * @param callback
-     * @param <T> the type of the Future result (generally Response)
-     * @return the response from the server as Future
-     * @throws VitamClientInternalException if retry is not possible and http call is failed
-     */
-    private final <T> Future<T> retryIfNecessary(String httpMethod, Object body, MediaType contentType,
-        AsyncInvoker builder, InvocationCallback<T> callback)
-        throws VitamClientInternalException {
-        ProcessingException lastException = null;
+    private <T> Future<T> retryIfNecessary(String httpMethod, Object body, MediaType contentType, AsyncInvoker builder, InvocationCallback<T> callback) {
         if (body instanceof InputStream) {
-            for (int i = 0; i < VitamConfiguration.getRetryNumber(); i++) {
-                try {
-                    Entity<Object> entity = Entity.entity(body, contentType);
-                    return builder.method(httpMethod, entity, callback);
-                } catch (ProcessingException e) {
-                    lastException = checkSpecificExceptionForRetryUsingStream(i, e);
-                    continue;
-                }
-            }
-        } else {
-            for (int i = 0; i < VitamConfiguration.getRetryNumber(); i++) {
-                try {
-                    if (body == null) {
-                        return builder.method(httpMethod, callback);
-                    } else {
-                        Entity<Object> entity = Entity.entity(body, contentType);
-                        return builder.method(httpMethod, entity, callback);
-                    }
-                } catch (ProcessingException e) {
-                    lastException = checkSpecificExceptionForRetry(i, e);
-                    continue;
-                }
-            }
+            Entity<Object> entity = Entity.entity(body, contentType);
+            return builder.method(httpMethod, entity, callback);
         }
-        if (lastException != null) {
-            LOGGER.error(lastException);
-            throw lastException;
-        } else {
-            throw new VitamClientInternalException(UNKNOWN_ERROR_IN_CLIENT);
-        }
+
+        DelegateRetry<Future<T>, ProcessingException> delegate = () -> {
+            if (body == null) {
+                return builder.method(httpMethod, callback);
+            }
+            Entity<Object> entity = Entity.entity(body, contentType);
+            return builder.method(httpMethod, entity, callback);
+        };
+
+        RetryableOnException<Future<T>, ProcessingException> retryable = retryable();
+        return retryable.exec(delegate);
     }
 
     /**
@@ -435,49 +345,22 @@ abstract class AbstractCommonClient implements BasicClient {
         }
     }
 
-    /**
-     * @param httpMethod
-     * @param body may be null
-     * @param contentType may be null
-     * @param builder
-     * @return the response from the server as Future
-     * @throws VitamClientInternalException if retry is not possible and http call is failed
-     */
-    private final Future<Response> retryIfNecessary(String httpMethod, Object body, MediaType contentType,
-        AsyncInvoker builder)
-        throws VitamClientInternalException {
-        ProcessingException lastException = null;
+    private Future<Response> retryIfNecessary(String httpMethod, Object body, MediaType contentType, AsyncInvoker builder) {
         if (body instanceof InputStream) {
-            for (int i = 0; i < VitamConfiguration.getRetryNumber(); i++) {
-                try {
-                    Entity<Object> entity = Entity.entity(body, contentType);
-                    return builder.method(httpMethod, entity);
-                } catch (ProcessingException e) {
-                    lastException = checkSpecificExceptionForRetryUsingStream(i, e);
-                    continue;
-                }
-            }
-        } else {
-            for (int i = 0; i < VitamConfiguration.getRetryNumber(); i++) {
-                try {
-                    if (body == null) {
-                        return builder.method(httpMethod);
-                    } else {
-                        Entity<Object> entity = Entity.entity(body, contentType);
-                        return builder.method(httpMethod, entity);
-                    }
-                } catch (ProcessingException e) {
-                    lastException = checkSpecificExceptionForRetry(i, e);
-                    continue;
-                }
-            }
+            Entity<Object> entity = Entity.entity(body, contentType);
+            return builder.method(httpMethod, entity);
         }
-        if (lastException != null) {
-            LOGGER.error(lastException);
-            throw lastException;
-        } else {
-            throw new VitamClientInternalException(UNKNOWN_ERROR_IN_CLIENT);
-        }
+
+        DelegateRetry<Future<Response>, ProcessingException> delegate = () -> {
+            if (body == null) {
+                return builder.method(httpMethod);
+            }
+            Entity<Object> entity = Entity.entity(body, contentType);
+            return builder.method(httpMethod, entity);
+        };
+
+        RetryableOnException<Future<Response>, ProcessingException> retryable = retryable();
+        return retryable.exec(delegate);
     }
 
     /**
@@ -705,10 +588,7 @@ abstract class AbstractCommonClient implements BasicClient {
         return clientFactory.getChunkedMode();
     }
 
-    /**
-     * @return the VitamClientFactory
-     */
-    public VitamClientFactory<?> getVitamClientFactory() {
-        return clientFactory;
+    private <T, E extends Exception> RetryableOnException<T, E> retryable() {
+        return new RetryableOnException<>(retryableParameters, retryOnException);
     }
 }

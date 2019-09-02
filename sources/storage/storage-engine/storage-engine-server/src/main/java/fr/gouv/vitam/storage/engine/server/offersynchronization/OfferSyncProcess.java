@@ -31,6 +31,8 @@ import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.StatusCode;
+import fr.gouv.vitam.common.retryable.RetryableOnException;
+import fr.gouv.vitam.common.retryable.RetryableParameters;
 import fr.gouv.vitam.common.stream.StreamUtils;
 import fr.gouv.vitam.common.thread.VitamThreadFactory;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
@@ -55,23 +57,19 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.stream.Collectors;
 
+import static java.util.concurrent.TimeUnit.SECONDS;
+
 /**
  * Synchronization of a storage offer from another one.
  */
 public class OfferSyncProcess {
-
-    /**
-     * Vitam Logger.
-     */
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(OfferSyncProcess.class);
 
     private final RestoreOfferBackupService restoreOfferBackupService;
     private final StorageDistribution distribution;
     private final int bulkSize;
     private final int offerSyncThreadPoolSize;
-    private final int offerSyncNumberOfRetries;
-    private final int offerSyncFirstAttemptWaitingTime;
-    private final int offerSyncWaitingTime;
+    private final RetryableParameters retryableParameters;
 
     private OfferSyncStatus offerSyncStatus;
 
@@ -81,9 +79,13 @@ public class OfferSyncProcess {
         this.bulkSize = bulkSize;
         this.offerSyncThreadPoolSize = offerSyncThreadPoolSize;
         this.offerSyncStatus = new OfferSyncStatus(VitamThreadUtils.getVitamSession().getRequestId(), StatusCode.UNKNOWN, null, null, null, null, null, null, null);
-        this.offerSyncNumberOfRetries = offerSyncNumberOfRetries;
-        this.offerSyncFirstAttemptWaitingTime = offerSyncFirstAttemptWaitingTime;
-        this.offerSyncWaitingTime = offerSyncWaitingTime;
+        this.retryableParameters = new RetryableParameters(
+            offerSyncNumberOfRetries,
+            offerSyncFirstAttemptWaitingTime,
+            offerSyncWaitingTime,
+            10,
+            SECONDS
+        );
     }
 
     private static OfferLog getLastOfferLog(OfferLog offerLog1, OfferLog offerLog2) {
@@ -182,12 +184,13 @@ public class OfferSyncProcess {
 
             switch (offerLog.getAction()) {
                 case WRITE:
-                    Runnable copy = () -> copyObject(sourceOffer, destinationOffer, dataCategory, offerLog, tenantId, strategyId, requestId);
-                    completableFutures.add(CompletableFuture.runAsync(RetryableRunnable.from(offerSyncNumberOfRetries, copy, offerSyncFirstAttemptWaitingTime, offerSyncWaitingTime), executor));
+                    completableFutures.add(CompletableFuture.runAsync(() -> retryable().execute(
+                        () -> copyObject(sourceOffer, destinationOffer, dataCategory, offerLog, tenantId, strategyId, requestId)), executor));
                     break;
                 case DELETE:
-                    Runnable delete = () -> deleteObject(destinationOffer, dataCategory, offerLog, tenantId, strategyId, requestId);
-                    completableFutures.add(CompletableFuture.runAsync(RetryableRunnable.from(offerSyncNumberOfRetries, delete, offerSyncFirstAttemptWaitingTime, offerSyncWaitingTime), executor));
+                    completableFutures.add(CompletableFuture.runAsync(() -> retryable().execute(
+                        () -> deleteObject(destinationOffer, dataCategory, offerLog, tenantId, strategyId, requestId)
+                    ), executor));
                     break;
                 default:
                     throw new UnsupportedOperationException("Unknown offer log action " + offerLog.getAction());
@@ -206,6 +209,10 @@ public class OfferSyncProcess {
         LOGGER.info("[OfferSync]: successful synchronization of dataCategory : {}, tenant : {}, offset : {}",
             dataCategory, tenantId, lastSequence);
         return lastSequence;
+    }
+
+    private RetryableOnException<Void, RuntimeStorageException> retryable() {
+        return new RetryableOnException<>(retryableParameters);
     }
 
     private boolean awaitCompletion(List<CompletableFuture<Void>> completableFutures) throws StorageException {

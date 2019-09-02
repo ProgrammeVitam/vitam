@@ -241,6 +241,11 @@ public class VitamServerTestRunner {// NOSONAR
 
             factory.changeServerPort(businessPort);
         }
+
+        VitamConfiguration.setHttpClientWaitingTime(1);
+        VitamConfiguration.setHttpClientRandomWaitingSleep(1);
+        VitamConfiguration.setHttpClientFirstAttemptWaitingTime(1);
+        VitamConfiguration.setHttpClientRetry(3);
     }
 
     /**
