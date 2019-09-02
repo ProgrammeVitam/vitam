@@ -45,6 +45,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.file.Files;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -229,7 +230,11 @@ public abstract class LogbookLifeCycleTraceabilityHelper implements LogbookTrace
                 subItemStatusSecurisationStorage.increment(StatusCode.FATAL));
             throw new TraceabilityException("unable to create container", e);
         } finally {
-            zipFile.delete();
+            try {
+                Files.delete(zipFile.toPath());
+            } catch (IOException e) {
+                LOGGER.error(e);
+            }
         }
     }
 

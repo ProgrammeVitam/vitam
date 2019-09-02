@@ -38,8 +38,6 @@ import fr.gouv.vitam.batch.report.model.EvidenceAuditStatsModel;
 import fr.gouv.vitam.batch.report.model.EvidenceAuditStatusCount;
 import fr.gouv.vitam.batch.report.model.ReportResults;
 import fr.gouv.vitam.common.database.server.mongodb.MongoDbAccess;
-import fr.gouv.vitam.common.logging.VitamLogger;
-import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import org.bson.Document;
 import org.bson.conversions.Bson;
 
@@ -61,7 +59,6 @@ import static com.mongodb.client.model.Filters.in;
  */
 public class EvidenceAuditReportRepository extends ReportCommonRepository {
     public static final String EVIDENCE_AUDIT = "EvidenceAuditReport";
-    private final VitamLogger LOGGER = VitamLoggerFactory.getInstance(AuditReportRepository.class);
     private final MongoCollection<Document> evidenceAuditReportCollection;
 
     @VisibleForTesting

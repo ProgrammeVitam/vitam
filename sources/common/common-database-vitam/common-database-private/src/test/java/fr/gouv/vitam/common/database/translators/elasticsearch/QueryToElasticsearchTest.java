@@ -27,14 +27,11 @@
 package fr.gouv.vitam.common.database.translators.elasticsearch;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import fr.gouv.vitam.common.database.builder.query.PathQuery;
 import fr.gouv.vitam.common.database.builder.query.Query;
-import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
 import fr.gouv.vitam.common.database.builder.request.multiple.SelectMultiQuery;
 import fr.gouv.vitam.common.database.collections.DynamicParserTokens;
 import fr.gouv.vitam.common.database.collections.VitamCollection;
 import fr.gouv.vitam.common.database.parser.request.multiple.SelectParserMultiple;
-import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
@@ -78,8 +75,6 @@ public class QueryToElasticsearchTest {
         "{ $match_phrase : { 'mavar20' : 'words'} }," +
         "{ $match_phrase_prefix : { 'mavar21' : 'phrase'} }," +
 
-        "{ $mlt : { $fields : [ 'mavar23', 'mavar24' ], $like : 'like_text' } }," +
-        "{ $flt : { $fields : [ 'mavar23', 'mavar24' ], $like : 'like_text' } }," +
         "{ $search : { 'mavar25' : 'searchParameter' } }" +
         "], " +
         "$filter : {$offset : 100, $limit : 1000, $hint : ['cache'], " +
@@ -319,14 +314,6 @@ public class QueryToElasticsearchTest {
             e.printStackTrace();
             fail(e.getMessage());
         }
-    }
-
-    @Test
-    public void shouldNotRaiseException_whenPathAllowed()
-        throws InvalidParseOperationException, InvalidCreateOperationException {
-        final Query query = new PathQuery("id0");
-        DynamicParserTokens parserTokens = new DynamicParserTokens(Collections.emptyMap(), Collections.emptyList());
-        QueryToElasticsearch.getCommand(query, new FakeMetadataVarNameAdapter(), parserTokens);
     }
 
     @Test

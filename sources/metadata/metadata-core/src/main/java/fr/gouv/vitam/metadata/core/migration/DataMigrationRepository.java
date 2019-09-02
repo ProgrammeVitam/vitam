@@ -1,4 +1,4 @@
-/*******************************************************************************
+/*
  * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2019)
  *
  * contact.vitam@culture.gouv.fr
@@ -23,14 +23,13 @@
  *
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
- *******************************************************************************/
+ */
 package fr.gouv.vitam.metadata.core.migration;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.mongodb.BasicDBObject;
 import com.mongodb.client.AggregateIterable;
 import com.mongodb.client.FindIterable;
-import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoCursor;
 import com.mongodb.client.model.Aggregates;
 import com.mongodb.client.model.BulkWriteOptions;
@@ -83,7 +82,7 @@ import static fr.gouv.vitam.metadata.core.database.collections.Unit.UNITUPS;
  */
 public class DataMigrationRepository {
 
-    public static final BasicDBObject UNIT_VITAM_GRAPH_PROJECTION =
+    private static final BasicDBObject UNIT_VITAM_GRAPH_PROJECTION =
         new BasicDBObject(UP, 1)
             .append(UNITUPS, 1)
             .append(GRAPH, 1)

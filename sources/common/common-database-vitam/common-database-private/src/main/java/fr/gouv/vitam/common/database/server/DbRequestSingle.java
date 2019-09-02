@@ -185,15 +185,12 @@ public class DbRequestSingle {
      */
     public static boolean checkInsertOrUpdate(Exception e) {
         if (e instanceof DatabaseException &&
-            (e.getCause() instanceof MongoBulkWriteException |
-                e.getCause() instanceof MongoWriteException)) {
+            (e.getCause() instanceof MongoBulkWriteException || e.getCause() instanceof MongoWriteException)) {
             LOGGER.info("Document existed, updating ...");
             return true;
         }
         Throwable d = e.getCause();
-        if (d instanceof DatabaseException &&
-            (d.getCause() instanceof MongoBulkWriteException |
-                d.getCause() instanceof MongoWriteException)) {
+        if (d instanceof DatabaseException && (d.getCause() instanceof MongoBulkWriteException || d.getCause() instanceof MongoWriteException)) {
             LOGGER.info("Document existed, updating ...");
             return true;
         }

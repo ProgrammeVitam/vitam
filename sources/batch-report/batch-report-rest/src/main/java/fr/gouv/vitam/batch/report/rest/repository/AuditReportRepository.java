@@ -26,6 +26,30 @@
  *******************************************************************************/
 package fr.gouv.vitam.batch.report.rest.repository;
 
+import com.google.common.annotations.VisibleForTesting;
+import com.mongodb.BasicDBObject;
+import com.mongodb.DBObject;
+import com.mongodb.client.MongoCollection;
+import com.mongodb.client.MongoCursor;
+import com.mongodb.client.model.Aggregates;
+import com.mongodb.client.model.Projections;
+import fr.gouv.vitam.batch.report.model.AuditFullStatusCount;
+import fr.gouv.vitam.batch.report.model.AuditObjectGroupModel;
+import fr.gouv.vitam.batch.report.model.AuditStatsModel;
+import fr.gouv.vitam.batch.report.model.AuditStatusCount;
+import fr.gouv.vitam.batch.report.model.ReportResults;
+import fr.gouv.vitam.common.database.server.mongodb.MongoDbAccess;
+import org.bson.Document;
+import org.bson.conversions.Bson;
+
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
+
 import static com.mongodb.client.model.Accumulators.sum;
 import static com.mongodb.client.model.Aggregates.group;
 import static com.mongodb.client.model.Aggregates.match;
@@ -36,41 +60,11 @@ import static com.mongodb.client.model.Filters.eq;
 import static com.mongodb.client.model.Filters.in;
 import static com.mongodb.client.model.Filters.or;
 
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.stream.Collectors;
-
-import org.bson.Document;
-import org.bson.conversions.Bson;
-
-import com.google.common.annotations.VisibleForTesting;
-import com.mongodb.BasicDBObject;
-import com.mongodb.DBObject;
-import com.mongodb.client.MongoCollection;
-import com.mongodb.client.MongoCursor;
-import com.mongodb.client.model.Aggregates;
-import com.mongodb.client.model.Projections;
-
-import fr.gouv.vitam.batch.report.model.AuditFullStatusCount;
-import fr.gouv.vitam.batch.report.model.AuditObjectGroupModel;
-import fr.gouv.vitam.batch.report.model.AuditStatsModel;
-import fr.gouv.vitam.batch.report.model.AuditStatusCount;
-import fr.gouv.vitam.batch.report.model.ReportResults;
-import fr.gouv.vitam.common.database.server.mongodb.MongoDbAccess;
-import fr.gouv.vitam.common.logging.VitamLogger;
-import fr.gouv.vitam.common.logging.VitamLoggerFactory;
-
 /**
  * AuditReportRepository
  *
  */
 public class AuditReportRepository extends ReportCommonRepository {
-    private final VitamLogger LOGGER = VitamLoggerFactory.getInstance(AuditReportRepository.class);
-
     public static final String AUDIT_OBJECT_GROUP = "AuditObjectGroup";
     private final MongoCollection<Document> objectGroupReportCollection;
 

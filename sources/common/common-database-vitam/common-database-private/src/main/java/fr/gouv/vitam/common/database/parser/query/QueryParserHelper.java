@@ -26,10 +26,7 @@
  *******************************************************************************/
 package fr.gouv.vitam.common.database.parser.query;
 
-import java.util.Map.Entry;
-
 import com.fasterxml.jackson.databind.JsonNode;
-
 import fr.gouv.vitam.common.database.builder.query.NopQuery;
 import fr.gouv.vitam.common.database.builder.query.Query;
 import fr.gouv.vitam.common.database.builder.query.QueryHelper;
@@ -40,6 +37,8 @@ import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOper
 import fr.gouv.vitam.common.database.parser.request.adapter.VarNameAdapter;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
+
+import java.util.Map.Entry;
 
 /**
  * Query from Parser Helper
@@ -407,14 +406,14 @@ public class QueryParserHelper extends QueryHelper {
                 subQueries = analyzeArrayCommand(query, command, adapter);
                 dslQuery = and().add(subQueries);
                 for (Query subQuery : subQueries) {
-                    dslQuery.setFullText(dslQuery.isFullText() | isCommandAsFullText(subQuery.getQUERY()));
+                    dslQuery.setFullText(dslQuery.isFullText() || isCommandAsFullText(subQuery.getQUERY()));
                 }
                 break;
             case NOT:
                 subQueries = analyzeArrayCommand(query, command, adapter);
                 dslQuery = not().add(analyzeArrayCommand(query, command, adapter));
                 for (Query subQuery : subQueries) {
-                    dslQuery.setFullText(dslQuery.isFullText() | isCommandAsFullText(subQuery.getQUERY()));
+                    dslQuery.setFullText(dslQuery.isFullText() || isCommandAsFullText(subQuery.getQUERY()));
                 }
 
                 break;
@@ -422,7 +421,7 @@ public class QueryParserHelper extends QueryHelper {
                 subQueries = analyzeArrayCommand(query, command, adapter);
                 dslQuery = or().add(analyzeArrayCommand(query, command, adapter));
                 for (Query subQuery : subQueries) {
-                    dslQuery.setFullText(dslQuery.isFullText() | isCommandAsFullText(subQuery.getQUERY()));
+                    dslQuery.setFullText(dslQuery.isFullText() || isCommandAsFullText(subQuery.getQUERY()));
                 }
                 break;
             case EXISTS:
@@ -517,7 +516,7 @@ public class QueryParserHelper extends QueryHelper {
                     "Invalid command: " + refCommand);
         }
         if (dslQuery != null) {
-            dslQuery.setFullText(dslQuery.isFullText() | isCommandAsFullText(query));
+            dslQuery.setFullText(dslQuery.isFullText() || isCommandAsFullText(query));
         }
         return dslQuery;
     }

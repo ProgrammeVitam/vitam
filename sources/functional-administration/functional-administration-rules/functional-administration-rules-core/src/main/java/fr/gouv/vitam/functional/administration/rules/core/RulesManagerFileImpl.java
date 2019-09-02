@@ -45,7 +45,6 @@ import fr.gouv.vitam.common.database.builder.request.multiple.SelectMultiQuery;
 import fr.gouv.vitam.common.database.builder.request.single.Delete;
 import fr.gouv.vitam.common.database.builder.request.single.Select;
 import fr.gouv.vitam.common.database.builder.request.single.Update;
-import fr.gouv.vitam.common.database.collections.CachedOntologyLoader;
 import fr.gouv.vitam.common.database.parser.request.adapter.VarNameAdapter;
 import fr.gouv.vitam.common.database.parser.request.single.UpdateParserSingle;
 import fr.gouv.vitam.common.database.server.DbRequestResult;
@@ -349,8 +348,6 @@ public class RulesManagerFileImpl implements ReferentialFile<FileRules> {
         } catch (IOException e) {
             handleIOException(filename, errors, usedDeletedRulesForReport, usedUpdateRulesForReport, eip, eip1, e);
             throw e;
-        } catch (FileRulesException e) {
-            throw e;
         } catch (FileRulesImportInProgressException e) {
             updateCheckFileRulesLogbookOperationWhenCheckBeforeImportIsKo(CHECK_RULES_IMPORT_IN_PROCESS, eip);
             updateStpImportRulesLogbookOperation(eip, eip1, StatusCode.KO, filename);
@@ -358,7 +355,7 @@ public class RulesManagerFileImpl implements ReferentialFile<FileRules> {
         } catch (LogbookClientException e) {
             throw new FileRulesException(e);
         } finally {
-            file.delete();
+            Files.delete(file.toPath());
         }
 
     }
@@ -1028,13 +1025,13 @@ public class RulesManagerFileImpl implements ReferentialFile<FileRules> {
                 }
                 throw new FileRulesCsvException(INVALID_CSV_FILE);
             }
-            if (usedDeletedRules.size() > 0) {
+            if (!usedDeletedRules.isEmpty()) {
                 throw new FileRulesDeleteException("used Rules want to be deleted");
             }
-            if (usedUpdateRulesForUpdateUnit.size() > 0) {
+            if (!usedUpdateRulesForUpdateUnit.isEmpty()) {
                 throw new FileRulesUpdateException("used Rules want to be updated");
             }
-            csvFileReader.delete();
+            Files.delete(csvFileReader.toPath());
             return readRulesAsJson;
         }
         /* this line is reached only if temporary file is null */

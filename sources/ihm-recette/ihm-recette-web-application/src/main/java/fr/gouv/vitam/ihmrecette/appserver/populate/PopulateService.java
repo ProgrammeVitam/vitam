@@ -53,6 +53,7 @@ import org.bson.Document;
 import java.io.File;
 import java.io.IOException;
 import java.io.RandomAccessFile;
+import java.nio.file.Files;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
@@ -165,7 +166,11 @@ public class PopulateService {
             .subscribe(t -> {
             }, t -> {
                 LOGGER.error(t);
-                POPULATE_FILE.delete();
+                try {
+                    Files.delete(POPULATE_FILE.toPath());
+                } catch (IOException e) {
+                    LOGGER.error(e);
+                }
                 populateInProgress.set(false);
             }, () -> {
                 long elapsed = stopwatch.elapsed(TimeUnit.MILLISECONDS);
@@ -181,7 +186,11 @@ public class PopulateService {
                         populateModel.getNumberOfUnit() * populateModel.getObjectSize());
                 }
 
-                POPULATE_FILE.delete();
+                try {
+                    Files.delete(POPULATE_FILE.toPath());
+                } catch (IOException e) {
+                    LOGGER.error(e);
+                }
                 populateInProgress.set(false);
             });
     }

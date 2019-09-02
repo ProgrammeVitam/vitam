@@ -31,7 +31,7 @@ import java.util.Collections;
 import java.util.List;
 
 public class WorkflowBatchResults {
-    public static String NAME = "workflowBatchResults";
+    public static final String NAME = "workflowBatchResults";
     private final Path batchDirectory;
     private final List<WorkflowBatchResult> workflowBatchResults;
 
