@@ -36,6 +36,8 @@ import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.performance.PerformanceLogger;
+import fr.gouv.vitam.common.retryable.RetryableOnException;
+import fr.gouv.vitam.common.retryable.RetryableParameters;
 import fr.gouv.vitam.common.storage.tapelibrary.ReadWritePriority;
 import fr.gouv.vitam.storage.engine.common.model.QueueMessageEntity;
 import fr.gouv.vitam.storage.engine.common.model.QueueState;
@@ -46,7 +48,6 @@ import fr.gouv.vitam.storage.offers.tape.cas.ArchiveReferentialRepository;
 import fr.gouv.vitam.storage.offers.tape.cas.ReadRequestReferentialRepository;
 import fr.gouv.vitam.storage.offers.tape.exception.QueueException;
 import fr.gouv.vitam.storage.offers.tape.impl.readwrite.TapeLibraryServiceImpl;
-import fr.gouv.vitam.storage.offers.tape.retry.Retry;
 import fr.gouv.vitam.storage.offers.tape.spec.TapeCatalogService;
 import fr.gouv.vitam.storage.offers.tape.spec.TapeDriveService;
 import fr.gouv.vitam.storage.offers.tape.spec.TapeLibraryService;
@@ -60,10 +61,15 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
+import static java.util.concurrent.TimeUnit.SECONDS;
+
 public class TapeDriveWorker implements Runnable {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(TapeDriveWorker.class);
+
     private static final int MAX_ATTEMPTS = 3;
-    private static final int RETRY_WAIT_SECONDS = 1000;
+    private static final int RETRY_WAIT_SECONDS = 10;
+    private static final int RANDOM_RANGE_SLEEP = 5;
+
     private static long sleepTime = 10_000;
     private static long intervalDelayLogInProgressWorker = VitamConfiguration.getIntervalDelayLogInProgressWorker();
 
@@ -207,22 +213,20 @@ public class TapeDriveWorker implements Runnable {
                     QueueState orderState = readWriteResult.getOrderState();
                     final String orderId = readWriteOrder.getId();
 
-
-                    Retry<Long> retry = new Retry<>(MAX_ATTEMPTS, RETRY_WAIT_SECONDS);
                     switch (orderState) {
                         case ERROR:
                             // Mark order as error state
-                            retry.execute(() -> receiver.getQueue().markError(orderId));
+                            retryable().exec(() -> receiver.getQueue().markError(orderId));
                             break;
 
                         case READY:
                             // Re-enqueue order
-                            retry.execute(() -> receiver.getQueue().markReady(orderId));
+                            retryable().exec(() -> receiver.getQueue().markReady(orderId));
                             break;
 
                         case COMPLETED:
                             // Remove order from queue
-                            retry.execute(() -> receiver.getQueue().remove(orderId));
+                            retryable().exec(() -> receiver.getQueue().remove(orderId));
                             break;
 
                         default:
@@ -269,6 +273,10 @@ public class TapeDriveWorker implements Runnable {
             this.shutdownSignal.countDown();
             this.pauseSignal.countDown();
         }
+    }
+
+    private RetryableOnException<Long, QueueException> retryable() {
+        return new RetryableOnException<>(new RetryableParameters(MAX_ATTEMPTS, RETRY_WAIT_SECONDS, RETRY_WAIT_SECONDS, RANDOM_RANGE_SLEEP, SECONDS));
     }
 
     private void interceptPauseRequest() throws InterruptedException {

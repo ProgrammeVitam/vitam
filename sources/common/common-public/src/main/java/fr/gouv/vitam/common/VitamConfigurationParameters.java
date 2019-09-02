@@ -339,6 +339,11 @@ public class VitamConfigurationParameters {
 
     private Integer ontologyCacheTimeoutInSeconds = 300;
 
+    private Integer httpClientRetry;
+    private Integer httpClientFirstAttemptWaitingTime;
+    private Integer httpClientWaitingTime;
+    private Integer httpClientRandomWaitingSleep;
+
     /**
      * VitamData empty constructor for YAMLFactory
      */
@@ -1384,5 +1389,37 @@ public class VitamConfigurationParameters {
 
     public void setOntologyCacheTimeoutInSeconds(int ontologyCacheTimeoutInSeconds) {
         this.ontologyCacheTimeoutInSeconds = ontologyCacheTimeoutInSeconds;
+    }
+
+    public Integer getHttpClientRetry() {
+        return httpClientRetry;
+    }
+
+    public void setHttpClientRetry(Integer httpClientRetry) {
+        this.httpClientRetry = httpClientRetry;
+    }
+
+    public Integer getHttpClientFirstAttemptWaitingTime() {
+        return httpClientFirstAttemptWaitingTime;
+    }
+
+    public void setHttpClientFirstAttemptWaitingTime(Integer httpClientFirstAttemptWaitingTime) {
+        this.httpClientFirstAttemptWaitingTime = httpClientFirstAttemptWaitingTime;
+    }
+
+    public Integer getHttpClientWaitingTime() {
+        return httpClientWaitingTime;
+    }
+
+    public void setHttpClientWaitingTime(Integer httpClientWaitingTime) {
+        this.httpClientWaitingTime = httpClientWaitingTime;
+    }
+
+    public Integer getHttpClientRandomWaitingSleep() {
+        return httpClientRandomWaitingSleep;
+    }
+
+    public void setHttpClientRandomWaitingSleep(Integer httpClientRandomWaitingSleep) {
+        this.httpClientRandomWaitingSleep = httpClientRandomWaitingSleep;
     }
 }

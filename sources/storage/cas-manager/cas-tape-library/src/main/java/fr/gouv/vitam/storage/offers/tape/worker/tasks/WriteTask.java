@@ -32,6 +32,8 @@ import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.StatusCode;
+import fr.gouv.vitam.common.retryable.RetryableOnException;
+import fr.gouv.vitam.common.retryable.RetryableParameters;
 import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
 import fr.gouv.vitam.storage.engine.common.model.QueueMessageEntity;
 import fr.gouv.vitam.storage.engine.common.model.QueueMessageType;
@@ -47,7 +49,6 @@ import fr.gouv.vitam.storage.offers.tape.exception.QueueException;
 import fr.gouv.vitam.storage.offers.tape.exception.ReadWriteErrorCode;
 import fr.gouv.vitam.storage.offers.tape.exception.ReadWriteException;
 import fr.gouv.vitam.storage.offers.tape.exception.TapeCatalogException;
-import fr.gouv.vitam.storage.offers.tape.retry.Retry;
 import fr.gouv.vitam.storage.offers.tape.spec.TapeCatalogService;
 import fr.gouv.vitam.storage.offers.tape.spec.TapeLibraryService;
 import fr.gouv.vitam.storage.offers.tape.utils.LocalFileUtils;
@@ -72,16 +73,17 @@ import static com.mongodb.client.model.Filters.and;
 import static com.mongodb.client.model.Filters.eq;
 import static com.mongodb.client.model.Filters.exists;
 import static com.mongodb.client.model.Filters.or;
+import static java.util.concurrent.TimeUnit.MILLISECONDS;
 
 public class WriteTask implements Future<ReadWriteResult> {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(WriteTask.class);
     public static final String TAPE_MSG = " [Tape] : ";
     public static final String TAPE_LABEL = "tape-Label-";
 
-    public static final long SLEEP_TIME = 20l;
+    public static final int SLEEP_TIME = 20;
     public static final int CARTRIDGE_RETRY = 1;
-    public static final int MAX_ATTEMPTS = 3;
-    public static final int ATTEMPTS_SLEEP_IN_SECONDS = 10;
+    private static final int NB_RETRY = 3;
+    private static final int RANDOM_RANGE_SLEEP = 5;
 
     public final String MSG_PREFIX;
     private final String inputTarPath;
@@ -134,7 +136,7 @@ public class WriteTask implements Future<ReadWriteResult> {
                 loadTapeAndWrite(file);
             }
 
-            withRetryDoUpdateTarReferential(file);
+            retryable().execute(() -> updateTarReferential(file));
 
             readWriteResult.setStatus(StatusCode.OK);
             readWriteResult.setOrderState(QueueState.COMPLETED);
@@ -153,7 +155,7 @@ public class WriteTask implements Future<ReadWriteResult> {
                     LOGGER.warn(MSG_PREFIX + TAPE_MSG + workerCurrentTape.getCode() +
                         " is marked as conflict (incident close tape)");
                     try {
-                        withRetryDoUpdateTapeCatalog(workerCurrentTape);
+                        retryable().execute(() -> doUpdateTapeCatalog(workerCurrentTape));
                     } catch (ReadWriteException ex) {
                         LOGGER.error(ex);
                     }
@@ -224,16 +226,6 @@ public class WriteTask implements Future<ReadWriteResult> {
         return readWriteResult;
     }
 
-    private void withRetryDoUpdateTarReferential(File file) throws ReadWriteException {
-
-        Retry.Delegate delegate = () -> {
-            updateTarReferential(file);
-            return true;
-        };
-
-        withRetry(delegate);
-    }
-
 
     private void updateTarReferential(File file) throws ReadWriteException {
         try {
@@ -260,7 +252,7 @@ public class WriteTask implements Future<ReadWriteResult> {
         // Unload current tape
         tapeLibraryService.unloadTape(workerCurrentTape);
 
-        withRetryTapeBackToCatalog();
+        retryable().execute(this::tapeBackToCatalog);
 
         loadTapeAndWrite(file);
     }
@@ -316,11 +308,9 @@ public class WriteTask implements Future<ReadWriteResult> {
 
         tapeLibraryService.loadTape(workerCurrentTape);
 
-        withRetryDoUpdateTapeCatalog(workerCurrentTape);
-
+        retryable().execute(() -> doUpdateTapeCatalog(workerCurrentTape));
 
         doCheckTapeLabel();
-
 
         return true;
     }
@@ -383,7 +373,7 @@ public class WriteTask implements Future<ReadWriteResult> {
 
         if (updateTapeCatalog) {
             workerCurrentTape.setBucket(writeOrder.getBucket());
-            withRetryDoUpdateTapeCatalog(workerCurrentTape);
+            retryable().execute(() -> doUpdateTapeCatalog(workerCurrentTape));
         }
     }
 
@@ -432,15 +422,14 @@ public class WriteTask implements Future<ReadWriteResult> {
 
             workerCurrentTape.setLabel(objLabel);
 
-            withRetryDoUpdateTapeCatalog(workerCurrentTape);
+            retryable().execute(() -> doUpdateTapeCatalog(workerCurrentTape));
 
+        } catch (ReadWriteException e) {
+            throw e;
         } catch (Exception e) {
-            if (e instanceof ReadWriteException) {
-                throw (ReadWriteException) e;
-            }
             throw new ReadWriteException(MSG_PREFIX + TAPE_MSG + workerCurrentTape.getCode(), e);
         } finally {
-            labelFile.delete();
+            FileUtils.deleteQuietly(labelFile);
         }
     }
 
@@ -451,7 +440,7 @@ public class WriteTask implements Future<ReadWriteResult> {
         } catch (ReadWriteException e) {
             if (e.getReadWriteErrorCode() == ReadWriteErrorCode.KO_ON_WRITE_TO_TAPE) {
                 // Update TapeCatalog in db to set Conflict state
-                withRetryTapeBackToCatalog();
+                retryable().execute(this::tapeBackToCatalog);
             }
             throw e;
         }
@@ -473,16 +462,6 @@ public class WriteTask implements Future<ReadWriteResult> {
         }
     }
 
-    private void withRetryDoUpdateTapeCatalog(TapeCatalog tapeCatalog) throws ReadWriteException {
-
-        Retry.Delegate delegate = () -> {
-            doUpdateTapeCatalog(tapeCatalog);
-            return true;
-        };
-
-        withRetry(delegate);
-    }
-
     private void tapeBackToCatalog() throws ReadWriteException {
         ParametersChecker
             .checkParameter(MSG_PREFIX + ", Error: tape to update in the catalog is null.", workerCurrentTape);
@@ -502,26 +481,9 @@ public class WriteTask implements Future<ReadWriteResult> {
 
     }
 
-    private void withRetryTapeBackToCatalog() throws ReadWriteException {
-
-        Retry.Delegate delegate = () -> {
-            tapeBackToCatalog();
-            return true;
-        };
-
-        withRetry(delegate);
-    }
-
-
-    private void withRetry(Retry.Delegate<?> delegate) throws ReadWriteException {
-        try {
-            new Retry(MAX_ATTEMPTS, ATTEMPTS_SLEEP_IN_SECONDS).execute(delegate);
-        } catch (Exception e) {
-            if (e instanceof ReadWriteException) {
-                throw (ReadWriteException) e;
-            }
-            throw new ReadWriteException(e);
-        }
+    private RetryableOnException<Void, ReadWriteException> retryable() {
+        RetryableParameters parameters = new RetryableParameters(NB_RETRY, SLEEP_TIME, SLEEP_TIME, RANDOM_RANGE_SLEEP, MILLISECONDS);
+        return new RetryableOnException<>(parameters);
     }
 
     /**
@@ -539,14 +501,14 @@ public class WriteTask implements Future<ReadWriteResult> {
         // doWrite(TAR)
         doWriteFileToTape(writeOrder.getFilePath(), file.length());
 
-        withRetryDoUpdateTapeCatalog(workerCurrentTape);
+        retryable().execute(() -> doUpdateTapeCatalog(workerCurrentTape));
     }
 
     @Override
     public ReadWriteResult get(long timeout, TimeUnit unit)
         throws InterruptedException, ExecutionException, TimeoutException {
 
-        return CompletableFuture.supplyAsync(() -> get(), VitamThreadPoolExecutor.getDefaultExecutor())
+        return CompletableFuture.supplyAsync(this::get, VitamThreadPoolExecutor.getDefaultExecutor())
             .get(timeout, unit);
 
     }

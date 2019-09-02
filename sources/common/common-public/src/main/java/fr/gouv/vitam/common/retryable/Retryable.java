@@ -1,4 +1,4 @@
-/*******************************************************************************
+/*
  * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2019)
  *
  * contact.vitam@culture.gouv.fr
@@ -23,55 +23,39 @@
  *
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
- *******************************************************************************/
-package fr.gouv.vitam.storage.offers.tape.retry;
+ */
+package fr.gouv.vitam.common.retryable;
 
-import com.google.common.collect.Lists;
+import fr.gouv.vitam.common.exception.VitamRuntimeException;
 import fr.gouv.vitam.common.logging.VitamLogger;
-import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 
-public class Retry<T> {
-    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(Retry.class);
+import java.util.Random;
+import java.util.concurrent.TimeUnit;
 
+public interface Retryable<T, E extends Exception> {
 
-    public interface Delegate<T> {
-        T call() throws Exception;
-    }
+    T exec(DelegateRetry<T, E> delegate) throws E;
 
+    void execute(DelegateRetryVoid<E> delegate) throws E;
 
-    private int maxAttempts;
-    private long retryWaitInMilliseconds;
-
-    public Retry(int maxAttempts, long retryWaitSeconds) {
-        this.maxAttempts = maxAttempts;
-        this.retryWaitInMilliseconds = retryWaitSeconds;
-    }
-
-    public T execute(Delegate<T> caller, Class... retryExceptionType) throws Exception {
-        int remainingAttempts = maxAttempts;
-
-        while (true) {
-            try {
-                return caller.call();
-            } catch (Exception e) {
-                LOGGER.error(e);
-                if (retryExceptionType.length == 0 || Lists.newArrayList(retryExceptionType).contains(e.getClass())) {
-
-                    if (--remainingAttempts == 0) {
-                        throw e;
-                    }
-
-                    try {
-                        Thread.sleep((retryWaitInMilliseconds));
-                    } catch (InterruptedException ie) {
-                        Thread.currentThread().interrupt();
-                        throw new RuntimeException(ie);
-                    }
-
-                } else {
-                    throw e;
-                }
-            }
+    default void sleep(int attempt, String name, VitamLogger LOGGER, RetryableParameters param, Random randomSleep) {
+        try {
+            long sleepTime = getSleepTime(attempt, param, randomSleep);
+            TimeUnit timeUnit = param.getTimeUnit();
+            LOGGER.warn("Will retry '{}' in '{}' {}.", name, sleepTime, timeUnit.name());
+            timeUnit.sleep(sleepTime);
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            throw new VitamRuntimeException(String.format("Error while trying to wait in retryable: '%s'.", name), e);
         }
+    }
+
+    default long getSleepTime(int attempt, RetryableParameters param, Random randomSleep) {
+        boolean isFirstAttempt = attempt == 1;
+        int randomRangeSleep = param.getRandomRangeSleep();
+        if (isFirstAttempt) {
+            return randomSleep.nextInt(randomRangeSleep) + param.getFirstAttemptWaitingTime();
+        }
+        return randomSleep.nextInt(randomRangeSleep) + param.getWaitingTime();
     }
 }

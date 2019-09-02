@@ -33,8 +33,10 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
+import fr.gouv.vitam.common.retryable.DelegateRetry;
 import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.ParametersChecker;
+import fr.gouv.vitam.common.retryable.RetryableOnResult;
 import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.accesslog.AccessLogInfoModel;
 import fr.gouv.vitam.common.accesslog.AccessLogUtils;
@@ -49,6 +51,7 @@ import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.parameter.ParameterHelper;
+import fr.gouv.vitam.common.retryable.RetryableParameters;
 import fr.gouv.vitam.common.server.application.VitamHttpHeader;
 import fr.gouv.vitam.common.stream.MultiplePipedInputStream;
 import fr.gouv.vitam.common.stream.VitamAsyncInputStream;
@@ -129,9 +132,11 @@ import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
 import static java.util.Collections.singletonList;
+import static java.util.concurrent.TimeUnit.SECONDS;
 
 
 /**
@@ -144,12 +149,11 @@ public class StorageDistributionImpl implements StorageDistribution {
     private static final String STRATEGY_ID_IS_MANDATORY = "Strategy id is mandatory";
     private static final String CATEGORY_IS_MANDATORY = "Category (object type) is mandatory";
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(StorageDistributionImpl.class);
-    private static final StorageStrategyProvider STRATEGY_PROVIDER =
-        StorageStrategyProviderFactory.getDefaultProvider();
+    private static final StorageStrategyProvider STRATEGY_PROVIDER = StorageStrategyProviderFactory.getDefaultProvider();
     private static final StorageOfferProvider OFFER_PROVIDER = StorageOfferProviderFactory.getDefaultProvider();
     private static final String NOT_IMPLEMENTED_MSG = "Not yet implemented";
-    private static final int NB_RETRY = 3;
 
+    private final RetryableParameters retryableParameters = new RetryableParameters(3, 5, 10, 5, SECONDS);
 
     /**
      * Global pool thread
@@ -223,7 +227,7 @@ public class StorageDistributionImpl implements StorageDistribution {
                 1L, TimeUnit.MINUTES, new LinkedBlockingQueue<>(), VitamThreadFactory.getInstance());
         batchDigestComputationTimeout = configuration.getBatchDigestComputationTimeout();
         this.transfertTimeoutHelper = new TransfertTimeoutHelper(configuration.getTimeoutMsPerKB());
-        this.bulkStorageDistribution = new BulkStorageDistribution(NB_RETRY, this.workspaceClientFactory,
+        this.bulkStorageDistribution = new BulkStorageDistribution(3, this.workspaceClientFactory,
             this.storageLogService, this.transfertTimeoutHelper);
     }
 
@@ -292,24 +296,21 @@ public class StorageDistributionImpl implements StorageDistribution {
             VitamCodeHelper.getLogMessage(VitamCode.STORAGE_TECHNICAL_INTERNAL_ERROR));
     }
 
-    private StorageLogbookParameters sendDataToOffersWithRetries(DataContext dataContext, OffersToCopyIn offersParams,
-        ObjectDescription description)
-        throws StorageTechnicalException, StorageNotFoundException {
-        StorageLogbookParameters parameters = null;
-        int attempt = 0;
-        // ACK to prevent retry
-
+    private StorageLogbookParameters sendDataToOffersWithRetries(DataContext dataContext, OffersToCopyIn offersParams, ObjectDescription description) throws StorageException {
+        AtomicInteger attempt = new AtomicInteger();
         AtomicBoolean needToRetry = new AtomicBoolean(true);
 
-        while (needToRetry.get() && attempt < NB_RETRY && !offersParams.getKoOffers().isEmpty()) {
-
-            attempt++;
-
-            try(StreamAndInfo streamAndInfo = getInputStreamFromWorkspace(description)) {
-                parameters = sendDataToOffers(streamAndInfo, dataContext, offersParams, attempt, needToRetry);
+        DelegateRetry<StorageLogbookParameters, StorageException> delegate = () -> {
+            try (StreamAndInfo streamAndInfo = getInputStreamFromWorkspace(description)) {
+                return sendDataToOffers(streamAndInfo, dataContext, offersParams, attempt.incrementAndGet(), needToRetry);
             }
-        }
-        return parameters;
+        };
+
+        RetryableOnResult<StorageLogbookParameters, StorageException> retryable = new RetryableOnResult<>(
+            retryableParameters,
+            p -> needToRetry.get() && !offersParams.getKoOffers().isEmpty()
+        );
+        return retryable.exec(delegate);
     }
 
     @Override
@@ -342,10 +343,10 @@ public class StorageDistributionImpl implements StorageDistribution {
         StorageStrategy storageStrategy = checkStrategy(strategyId);
 
         List<String> strategyOfferIds = storageStrategy.getOffers().stream()
-                .map(offerReference -> offerReference.getId())
-                .collect(Collectors.toList()); 
+            .map(offerReference -> offerReference.getId())
+            .collect(Collectors.toList());
         List<StorageOffer> offers = new ArrayList<>();
-        
+
         if (offerIds != null) {
             for (String offerId : offerIds) {
                 if(strategyOfferIds.contains(offerId)) {
@@ -1503,7 +1504,7 @@ public class StorageDistributionImpl implements StorageDistribution {
             = sequence(completableFutures);
 
         try {
-            return batchObjectInformationFuture.get(batchDigestComputationTimeout, TimeUnit.SECONDS);
+            return batchObjectInformationFuture.get(batchDigestComputationTimeout, SECONDS);
         } catch (InterruptedException | ExecutionException | TimeoutException e) {
             // Abort pending tasks
             for (CompletableFuture<BatchObjectInformationResponse> completableFuture : completableFutures) {
