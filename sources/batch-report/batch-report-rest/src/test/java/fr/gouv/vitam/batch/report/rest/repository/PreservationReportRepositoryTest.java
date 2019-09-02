@@ -72,12 +72,12 @@ public class PreservationReportRepositoryTest {
         repository = new PreservationReportRepository(mongoDbAccess, PRESERVATION_REPORT);
         preservationReportCollection = mongoRule.getMongoCollection(PRESERVATION_REPORT);
         processId = "aeeaaaaaacgw45nxaaopkalhchougsiaaaaq";
-        preservationReportEntry = new PreservationReportEntry("aeaaaaaaaagw45nxabw2ualhc4jvawqaaaaq", "preservationReportId", processId,
+        preservationReportEntry = new PreservationReportEntry("aeaaaaaaaagw45nxabw2ualhc4jvawqaaaaq", processId,
             TENANT_ID, "2018-11-15T11:13:20.986",
             PreservationStatus.OK, "unitId", "objectGroupId", ANALYSE, "VALID_ALL",
             "aeaaaaaaaagh65wtab27ialg5fopxnaaaaaq", "", "Outcome - TEST", "griffinId",
             "preservationScenarioId");
-        preservationReportEntry2 = new PreservationReportEntry("aeaaaaaaaagw45nxabw2ualhc4jvawqabbbq", "preservationReportId", processId,
+        preservationReportEntry2 = new PreservationReportEntry("aeaaaaaaaagw45nxabw2ualhc4jvawqabbbq", processId,
             TENANT_ID, "2018-11-15T11:13:20.986",
             PreservationStatus.OK, "unitId2", "objectGroupId", ANALYSE, "VALID_ALL",
             "aeaaaaaaaagh65wtab27ialg5fopxnaaaaaq", "", "Outcome - TEST", "griffinId",
@@ -91,10 +91,10 @@ public class PreservationReportRepositoryTest {
 
         // When
         Document report = preservationReportCollection.find(
-            and(eq(PreservationReportEntry.ID, "aeaaaaaaaagw45nxabw2ualhc4jvawqaaaaq"), eq(PreservationReportEntry.TENANT, 0))).first();
+            and(eq(PreservationReportEntry.DETAIL_ID, "aeaaaaaaaagw45nxabw2ualhc4jvawqaaaaq"), eq(PreservationReportEntry.TENANT, 0))).first();
 
         // Then
-        assertThat(report.get(PreservationReportEntry.ID)).isEqualTo(preservationReportEntry.getPreservationId());
+        assertThat(report.get(PreservationReportEntry.DETAIL_ID)).isEqualTo(preservationReportEntry.getDetailId());
         assertThat(report.get(PreservationReportEntry.OBJECT_GROUP_ID)).isEqualTo(preservationReportEntry.getObjectGroupId());
         assertThat(PreservationStatus.valueOf(report.get(PreservationReportEntry.STATUS).toString())).isEqualTo(preservationReportEntry.getStatus());
         assertThat(report.get(PreservationReportEntry.ANALYSE_RESULT)).isEqualTo(preservationReportEntry.getAnalyseResult());

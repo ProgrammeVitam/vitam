@@ -35,7 +35,6 @@ import com.mongodb.client.model.Aggregates;
 import com.mongodb.client.model.Projections;
 import com.mongodb.client.model.Sorts;
 import fr.gouv.vitam.batch.report.model.EliminationActionObjectGroupModel;
-import fr.gouv.vitam.batch.report.model.Report;
 import fr.gouv.vitam.common.database.server.mongodb.MongoDbAccess;
 import org.bson.Document;
 

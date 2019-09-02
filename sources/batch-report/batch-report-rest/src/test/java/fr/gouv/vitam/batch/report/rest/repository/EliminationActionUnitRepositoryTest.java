@@ -106,11 +106,13 @@ public class EliminationActionUnitRepositoryTest {
     public void should_bulk_append_unit_report_and_check_no_duplicate()
         throws InvalidParseOperationException {
         // Given
-        List<EliminationActionUnitModel> eliminationActionUnitModels =
+        List<EliminationActionUnitModel> eliminationActionUnitModels1 =
+            getDocuments("/eliminationUnitWithDuplicateUnit.json");
+        List<EliminationActionUnitModel> eliminationActionUnitModels2 =
             getDocuments("/eliminationUnitWithDuplicateUnit.json");
         // When
-        repository.bulkAppendReport(eliminationActionUnitModels);
-        repository.bulkAppendReport(eliminationActionUnitModels);
+        repository.bulkAppendReport(eliminationActionUnitModels1);
+        repository.bulkAppendReport(eliminationActionUnitModels2);
         // Then
         FindIterable<Document> iterable = eliminationUnitCollection.find();
         MongoCursor<Document> iterator = iterable.iterator();
@@ -158,7 +160,6 @@ public class EliminationActionUnitRepositoryTest {
             .map(md -> {
                 EliminationActionUnitModel eliminationActionUnitModel = new EliminationActionUnitModel();
                 eliminationActionUnitModel.setProcessId(reportBody.getProcessId());
-                eliminationActionUnitModel.setId(GUIDFactory.newGUID().toString());
                 eliminationActionUnitModel.setTenant(0);
                 LocalDateTime localDateTime = LocalDateTime.now();
                 eliminationActionUnitModel.setCreationDateTime(localDateTime.toString());
