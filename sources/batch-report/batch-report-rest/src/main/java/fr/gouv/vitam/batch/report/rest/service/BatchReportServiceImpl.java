@@ -150,7 +150,7 @@ public class BatchReportServiceImpl {
         List<EliminationActionUnitModel> documents =
             entries.stream()
                 .map(entry -> new EliminationActionUnitModel(
-                    GUIDFactory.newGUID().toString(), processId, tenantId,
+                    processId, tenantId,
                     LocalDateUtil.getFormattedDateForMongo(LocalDateUtil.now()),
                     entry))
                 .collect(Collectors.toList());
@@ -162,7 +162,7 @@ public class BatchReportServiceImpl {
         List<EliminationActionObjectGroupModel> documents =
             entries.stream()
                 .map(entry -> new EliminationActionObjectGroupModel(
-                    GUIDFactory.newGUID().toString(), processId,
+                    processId,
                     LocalDateUtil.getFormattedDateForMongo(LocalDateUtil.now()), entry, tenantId))
                 .collect(Collectors.toList());
         eliminationActionObjectGroupRepository.bulkAppendReport(documents);
@@ -199,8 +199,8 @@ public class BatchReportServiceImpl {
         checkIfPresent("strategyId", evidenceAuditEntry.getStrategyId());
         checkIfPresent("objectType", evidenceAuditEntry.getObjectType());
 
-        return new EvidenceAuditObjectModel(GUIDFactory.newGUID().toString(), processId, tenantId, LocalDateUtil.getFormattedDateForMongo(LocalDateUtil.now()),
-            evidenceAuditEntry);
+        return new EvidenceAuditObjectModel(processId, tenantId,
+            LocalDateUtil.getFormattedDateForMongo(LocalDateUtil.now()), evidenceAuditEntry);
     }
 
     private PreservationReportModel createPreservationReportModel(String processId, int tenantId, JsonNode entry)

@@ -36,14 +36,10 @@ import java.util.Objects;
  */
 public class EliminationActionObjectGroupModel {
 
-    public static final String ID = "_id";
     public static final String PROCESS_ID = "processId";
     public static final String TENANT = "_tenant";
     public static final String METADATA = "_metadata";
     public static final String CREATION_DATE_TIME = "creationDateTime";
-
-    @JsonProperty(ID)
-    private String id;
 
     @JsonProperty(PROCESS_ID)
     private String processId;
@@ -61,21 +57,12 @@ public class EliminationActionObjectGroupModel {
         // Empty constructor for deserialization
     }
 
-    public EliminationActionObjectGroupModel(String id, String processId, String creationDateTime,
+    public EliminationActionObjectGroupModel(String processId, String creationDateTime,
         JsonNode metadata, int tenant) {
-        this.id = id;
         this.processId = processId;
         this.creationDateTime = creationDateTime;
         this.metadata = metadata;
         this.tenant = tenant;
-    }
-
-    public String getId() {
-        return id;
-    }
-
-    public void setId(String id) {
-        this.id = id;
     }
 
     public String getProcessId() {

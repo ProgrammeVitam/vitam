@@ -39,6 +39,7 @@ import fr.gouv.vitam.batch.report.model.PreservationReportModel;
 import fr.gouv.vitam.batch.report.model.PreservationStatsModel;
 import fr.gouv.vitam.common.database.server.mongodb.MongoDbAccess;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
+import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
@@ -62,6 +63,7 @@ import static com.mongodb.client.model.Filters.eq;
 import static com.mongodb.client.model.Projections.include;
 import static fr.gouv.vitam.batch.report.model.PreservationReportModel.ACTION;
 import static fr.gouv.vitam.batch.report.model.PreservationReportModel.ANALYSE_RESULT;
+import static fr.gouv.vitam.batch.report.model.PreservationReportModel.DETAIL_ID;
 import static fr.gouv.vitam.batch.report.model.PreservationReportModel.OBJECT_GROUP_ID;
 import static fr.gouv.vitam.batch.report.model.PreservationReportModel.PROCESS_ID;
 import static fr.gouv.vitam.batch.report.model.PreservationReportModel.STATUS;
@@ -100,8 +102,9 @@ public class PreservationReportRepository {
     private static WriteModel<Document> modelToWriteDocument(PreservationReportModel model) {
         try {
             return new UpdateOneModel<>(
-                eq(PROCESS_ID, model.getProcessId()),
-                new Document("$set", Document.parse(JsonHandler.writeAsString(model))),
+                and(eq(PROCESS_ID, model.getProcessId()), eq(DETAIL_ID, model.getDetailId())),
+                new Document("$set", Document.parse(JsonHandler.writeAsString(model)))
+                    .append("$setOnInsert", new Document("_id", GUIDFactory.newGUID().toString())),
                 new UpdateOptions().upsert(true)
             );
         } catch (InvalidParseOperationException e) {
