@@ -85,6 +85,16 @@ Pré-requis
 * maven (version 3.3.9 minimale)
 * rpm-build
 
+Il est nécessaire de builder la librairie elasticsearch-metrics-reporter-java mise à jour par le projet VITAM:
+
+Cloner le dépot https://github.com/ProgrammeVitam/elasticsearch-metrics-reporter-java.git
+
+Builder le projet elasticsearch-metrics-reporter-java:
+
+.. code-block:: bash
+
+    mvn clean install
+
 Instructions
 ************
 
