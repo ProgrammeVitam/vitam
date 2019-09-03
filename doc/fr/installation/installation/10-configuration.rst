@@ -94,6 +94,7 @@ Dans le cas du choix du :term:`COTS` d'envoi des messages syslog dans logastsh, 
 Déclaration des secrets
 =======================
 
+.. warning:: L'ensemble des mots de passe fournis ci-après le sont par défaut et doivent être changés !
 
 .. warning:: Cette section décrit des fichiers contenant des données sensibles. Il est important d'implémenter une politique de mot de passe robuste conforme à ce que l'ANSSI préconise. Par exemple: ne pas utiliser le même mot de passe pour chaque service, renouveler régulièrement son mot de passe, utiliser des majuscules, minuscules, chiffres et caractères spéciaux (Se référer à la documentation ANSSI https://www.ssi.gouv.fr/guide/mot-de-passe). En cas d'usage d'un fichier de mot de passe (`vault-password-file`), il faut renseigner ce mot de passe comme contenu du fichier et ne pas oublier de sécuriser ou supprimer ce fichier à l'issue de l'installation.
 
@@ -111,7 +112,9 @@ Voici la liste des vaults pour lesquels il est nécessaire de modifier le mot de
 * ``environments/group_vars/all/vault-extra.yml``
 * ``environments/certs/vault-certs.yml``
 
-2 vaults sont principalement utilisés dans le déploiement d'une version ; leur contenu est donc à modifier avant tout déploiement :
+2 vaults sont principalement utilisés dans le déploiement d'une version :
+
+.. warning:: Leur contenu est donc à modifier avant tout déploiement.
 
 * Le fichier |repertoire_inventory| ``/group_vars/all/vault-vitam.yml`` contient les secrets généraux :
 
