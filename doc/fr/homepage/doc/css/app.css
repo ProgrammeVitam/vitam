@@ -1038,3 +1038,13 @@ label{
 .panel-footer {
   background-color: white;
 }
+
+#docmetier {
+    float: left;
+    width: 49.5%;
+}
+
+#vademecum {
+    float: right;
+    width: 49.5%;
+}
