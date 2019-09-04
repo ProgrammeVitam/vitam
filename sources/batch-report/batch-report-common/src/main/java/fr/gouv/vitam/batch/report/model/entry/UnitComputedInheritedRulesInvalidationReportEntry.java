@@ -1,4 +1,4 @@
-/*******************************************************************************
+/*
  * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2019)
  *
  * contact.vitam@culture.gouv.fr
@@ -23,59 +23,26 @@
  *
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
- *******************************************************************************/
-package fr.gouv.vitam.batch.report.model;
-
-import com.fasterxml.jackson.annotation.JsonProperty;
-import fr.gouv.vitam.batch.report.model.entry.ReportEntry;
-
-import java.util.List;
-
-/**
- * ReportBody
  */
-public class ReportBody<T> {
+package fr.gouv.vitam.batch.report.model.entry;
 
-    @JsonProperty("processId")
-    private String processId;
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
-    @JsonProperty("reportType")
-    private ReportType reportType;
+public class UnitComputedInheritedRulesInvalidationReportEntry {
 
-    @JsonProperty("entries")
-    private List<T> entries;
+    public final static String UNIT_ID = "id";
 
-    public ReportBody() {
-        // Empty constructor for deserialization
+    private final String unitId;
+
+    @JsonCreator
+    public UnitComputedInheritedRulesInvalidationReportEntry(
+        @JsonProperty(UNIT_ID) String unitId) {
+        this.unitId = unitId;
     }
 
-    public ReportBody(String processId, ReportType reportType, List<T> entries) {
-        this.processId = processId;
-        this.reportType = reportType;
-        this.entries = entries;
-    }
-
-    public String getProcessId() {
-        return processId;
-    }
-
-    public void setProcessId(String processId) {
-        this.processId = processId;
-    }
-
-    public ReportType getReportType() {
-        return reportType;
-    }
-
-    public void setReportType(ReportType reportType) {
-        this.reportType = reportType;
-    }
-
-    public List<T> getEntries() {
-        return entries;
-    }
-
-    public void setEntries(List<T> entries) {
-        this.entries = entries;
+    @JsonProperty(UNIT_ID)
+    public String getUnitId() {
+        return unitId;
     }
 }

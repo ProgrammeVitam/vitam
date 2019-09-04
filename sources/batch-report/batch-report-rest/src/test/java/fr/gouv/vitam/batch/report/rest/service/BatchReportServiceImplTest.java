@@ -26,6 +26,7 @@
  *******************************************************************************/
 package fr.gouv.vitam.batch.report.rest.service;
 
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import fr.gouv.vitam.batch.report.model.AuditFullStatusCount;
 import fr.gouv.vitam.batch.report.model.AuditStatsModel;
@@ -37,21 +38,25 @@ import fr.gouv.vitam.batch.report.model.PreservationStatsModel;
 import fr.gouv.vitam.batch.report.model.PreservationStatus;
 import fr.gouv.vitam.batch.report.model.Report;
 import fr.gouv.vitam.batch.report.model.ReportBody;
+import fr.gouv.vitam.batch.report.model.ReportExportRequest;
 import fr.gouv.vitam.batch.report.model.ReportResults;
 import fr.gouv.vitam.batch.report.model.ReportSummary;
 import fr.gouv.vitam.batch.report.model.ReportType;
+import fr.gouv.vitam.batch.report.model.UnitComputedInheritedRulesInvalidationModel;
 import fr.gouv.vitam.batch.report.model.entry.AuditObjectGroupReportEntry;
 import fr.gouv.vitam.batch.report.model.entry.EliminationActionObjectGroupReportEntry;
 import fr.gouv.vitam.batch.report.model.entry.EliminationActionUnitReportEntry;
 import fr.gouv.vitam.batch.report.model.entry.EvidenceAuditReportEntry;
 import fr.gouv.vitam.batch.report.model.entry.PreservationReportEntry;
+import fr.gouv.vitam.batch.report.model.entry.UnitComputedInheritedRulesInvalidationReportEntry;
 import fr.gouv.vitam.batch.report.rest.repository.AuditReportRepository;
 import fr.gouv.vitam.batch.report.rest.repository.EliminationActionObjectGroupRepository;
 import fr.gouv.vitam.batch.report.rest.repository.EliminationActionUnitRepository;
 import fr.gouv.vitam.batch.report.rest.repository.EvidenceAuditReportRepository;
-import fr.gouv.vitam.batch.report.rest.repository.InvalidUnitsRepository;
 import fr.gouv.vitam.batch.report.rest.repository.PreservationReportRepository;
+import fr.gouv.vitam.batch.report.rest.repository.UnitComputedInheritedRulesInvalidationRepository;
 import fr.gouv.vitam.batch.report.rest.repository.UpdateUnitReportRepository;
+import fr.gouv.vitam.common.collection.CloseableIteratorUtils;
 import fr.gouv.vitam.common.database.server.mongodb.EmptyMongoCursor;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.BsonHelper;
@@ -60,6 +65,8 @@ import fr.gouv.vitam.common.mongo.FakeMongoCursor;
 import fr.gouv.vitam.functional.administration.common.BackupService;
 import fr.gouv.vitam.storage.engine.client.StorageClient;
 import fr.gouv.vitam.storage.engine.client.StorageClientFactory;
+import fr.gouv.vitam.worker.core.distribution.JsonLineGenericIterator;
+import fr.gouv.vitam.worker.core.distribution.JsonLineModel;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
 import fr.gouv.vitam.workspace.client.WorkspaceClient;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
@@ -70,6 +77,7 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
+import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnit;
 import org.mockito.junit.MockitoRule;
@@ -88,6 +96,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 
 import static fr.gouv.vitam.batch.report.model.entry.PreservationReportEntry.ACTION;
 import static fr.gouv.vitam.batch.report.model.entry.PreservationReportEntry.ANALYSE_RESULT;
@@ -106,13 +115,19 @@ import static fr.gouv.vitam.batch.report.model.entry.ReportEntry.OUTCOME;
 import static fr.gouv.vitam.common.model.administration.ActionTypePreservation.ANALYSE;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatCode;
+import static org.assertj.core.api.Assertions.tuple;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 public class BatchReportServiceImplTest {
 
+    public static final TypeReference<JsonLineModel>
+        TYPE_REFERENCE = new TypeReference<JsonLineModel>() {
+    };
     @Rule
     public MockitoRule rule = MockitoJUnit.rule();
 
@@ -132,7 +147,7 @@ public class BatchReportServiceImplTest {
     private EvidenceAuditReportRepository evidenceAuditReportRepository;
 
     @Mock
-    private InvalidUnitsRepository invalidUnitsRepository;
+    private UnitComputedInheritedRulesInvalidationRepository unitComputedInheritedRulesInvalidationRepository;
 
     @Mock
     private WorkspaceClientFactory workspaceClientFactory;
@@ -170,7 +185,8 @@ public class BatchReportServiceImplTest {
         batchReportServiceImpl = new BatchReportServiceImpl(eliminationActionUnitRepository,
             eliminationActionObjectGroupRepository, updateUnitMetadataReportEntry, backupService,
             workspaceClientFactory,
-            preservationReportRepository, auditReportRepository, invalidUnitsRepository, evidenceAuditReportRepository);
+            preservationReportRepository, auditReportRepository, unitComputedInheritedRulesInvalidationRepository,
+            evidenceAuditReportRepository);
     }
 
 
@@ -470,7 +486,7 @@ public class BatchReportServiceImplTest {
 
         initialiseMockWhenPutObjectInWorkspace(report);
         when(evidenceAuditReportRepository.findCollectionByProcessIdTenantAndStatus(processId, TENANT_ID,
-            EvidenceStatus.WARN.name(),EvidenceStatus.KO.name()))
+            EvidenceStatus.WARN.name(), EvidenceStatus.KO.name()))
             .thenReturn(fakeMongoCursor);
         when(evidenceAuditReportRepository.stats(processId, TENANT_ID)).thenReturn(auditStatus);
 
@@ -521,6 +537,73 @@ public class BatchReportServiceImplTest {
                 String line = reader.readLine();
                 assertThat(line).isNotNull();
             }
+        }
+    }
+
+    @Test
+    public void should_append_unit_computed_inherited_rules_invalidation_entries() {
+        // Given
+        List<UnitComputedInheritedRulesInvalidationReportEntry> entries = Arrays.asList(
+            new UnitComputedInheritedRulesInvalidationReportEntry("unit1"),
+            new UnitComputedInheritedRulesInvalidationReportEntry("unit2"),
+            new UnitComputedInheritedRulesInvalidationReportEntry("unit3")
+        );
+
+        // When
+        batchReportServiceImpl.appendUnitComputedInheritedRulesInvalidationReport("procId", entries, 1);
+
+        // Then
+        ArgumentCaptor<List<UnitComputedInheritedRulesInvalidationModel>> argumentCaptor =
+            ArgumentCaptor.forClass(List.class);
+        verify(this.unitComputedInheritedRulesInvalidationRepository).bulkAppendReport(argumentCaptor.capture());
+        assertThat(argumentCaptor.getValue())
+            .extracting(
+                UnitComputedInheritedRulesInvalidationModel::getProcessId,
+                UnitComputedInheritedRulesInvalidationModel::getTenant,
+                e -> e.getMetadata().getUnitId())
+            .containsExactly(
+                tuple("procId", 1, "unit1"),
+                tuple("procId", 1, "unit2"),
+                tuple("procId", 1, "unit3")
+            );
+    }
+
+    @Test
+    public void should_cleanup_unit_inherited_rules_invalidation_report() {
+        // Given
+
+        // When
+        batchReportServiceImpl.deleteUnitComputedInheritedRulesInvalidationReport("procId", 1);
+
+        // Then
+        verify(this.unitComputedInheritedRulesInvalidationRepository).deleteReportByIdAndTenant("procId", 1);
+    }
+
+    @Test
+    public void should_export_unit_inherited_rules_invalidation_report() throws Exception {
+        // Given
+        String filename = "filename.jsonl";
+        when(workspaceClientFactory.getClient()).thenReturn(workspaceClient);
+        Path report = initialisePathWithFileName(filename);
+        initialiseMockWhenPutObjectInWorkspace(report);
+        doReturn(
+            CloseableIteratorUtils.toCloseableIterator(Arrays.asList(
+                new Document("id", "unit1"),
+                new Document("id", "unit2")
+            ).iterator()))
+            .when(unitComputedInheritedRulesInvalidationRepository)
+            .findCollectionByProcessIdTenant("procId", 1);
+
+        // When
+        batchReportServiceImpl.exportUnitsToInvalidate("procId", 1, new ReportExportRequest(filename));
+
+        // Then
+        try (InputStream is = Files.newInputStream(report);
+            JsonLineGenericIterator<JsonLineModel> reader = new JsonLineGenericIterator<>(is, TYPE_REFERENCE)) {
+
+            assertThat(reader).extracting(JsonLineModel::getId).containsExactly(
+                "unit1", "unit2"
+            );
         }
     }
 
@@ -579,7 +662,8 @@ public class BatchReportServiceImplTest {
         return Document.parse(reportDoc);
     }
 
-    private Document getEvidenceAuditDocument(String processId) throws InvalidParseOperationException, FileNotFoundException {
+    private Document getEvidenceAuditDocument(String processId)
+        throws InvalidParseOperationException, FileNotFoundException {
         String reportDoc = JsonHandler
             .unprettyPrint(
                 JsonHandler.getFromInputStream(getClass().getResourceAsStream("/evidenceAuditObjectDocument.json")));

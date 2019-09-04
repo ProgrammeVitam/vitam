@@ -84,20 +84,6 @@ public class ScrollSpliteratorHelper {
             }, GlobalDatasParser.DEFAULT_SCROLL_TIMEOUT, bachSize);
     }
 
-    public static ScrollSpliterator<JsonNode> createUnitsToInvalidateScrollSpliterator(final BatchReportClient client,
-        final String processId, int bachSize) {
-
-        return new ScrollSpliterator<>(new SelectMultiQuery(),
-            query -> {
-                try {
-                    JsonNode jsonNode = client.getUnitsToInvalidate(processId);
-                    return RequestResponseOK.getFromJsonNode(jsonNode);
-                } catch (InvalidParseOperationException | VitamClientInternalException e) {
-                    throw new IllegalStateException(e);
-                }
-            }, GlobalDatasParser.DEFAULT_SCROLL_TIMEOUT, bachSize);
-    }
-
     /***
      * Create  objectGroups   ScrollSpliterator from a query that can iterate millions  of objectsGroups with given bachSize
      * @param client metadataClient

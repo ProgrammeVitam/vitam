@@ -32,80 +32,81 @@ import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoCursor;
 import com.mongodb.client.model.Aggregates;
 import com.mongodb.client.model.Projections;
-import com.mongodb.client.model.UpdateOneModel;
-import com.mongodb.client.model.UpdateOptions;
-import com.mongodb.client.model.WriteModel;
+import fr.gouv.vitam.batch.report.model.UnitComputedInheritedRulesInvalidationModel;
+import fr.gouv.vitam.common.collection.CloseableIterator;
 import fr.gouv.vitam.common.database.server.mongodb.MongoDbAccess;
-import fr.gouv.vitam.common.guid.GUIDFactory;
-import fr.gouv.vitam.common.thread.VitamThreadUtils;
+import fr.gouv.vitam.common.database.server.mongodb.SimpleMongoDBAccess;
 import org.bson.Document;
 
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
-import static com.mongodb.client.model.Aggregates.match;
-import static com.mongodb.client.model.Aggregates.project;
 import static com.mongodb.client.model.Filters.and;
 import static com.mongodb.client.model.Filters.eq;
 
-public class InvalidUnitsRepository extends ReportCommonRepository {
+public class UnitComputedInheritedRulesInvalidationRepository extends ReportCommonRepository {
 
-    public static final String INVALID_UNITS_COLLECTION_NAME = "InvalidUnits";
-    public static final String PROCESS_ID = "processId";
-    public static final String UNIT_ID = "unitId";
-    public static final String TENANT_ID = "_tenant";
+    static final String UNIT_COMPUTED_INHERITED_RULES_INVALIDATION_COLLECTION_NAME = "InvalidUnits";
 
     private final MongoCollection<Document> collection;
 
     @VisibleForTesting
-    InvalidUnitsRepository(MongoDbAccess mongoDbAccess, String collectionName) {
+    UnitComputedInheritedRulesInvalidationRepository(MongoDbAccess mongoDbAccess, String collectionName) {
         this.collection = mongoDbAccess.getMongoDatabase().getCollection(collectionName);
     }
 
-    public InvalidUnitsRepository(MongoDbAccess mongoDbAccess) {
-        this(mongoDbAccess, INVALID_UNITS_COLLECTION_NAME);
+    public UnitComputedInheritedRulesInvalidationRepository(SimpleMongoDBAccess mongoDbAccess) {
+        this(mongoDbAccess, UNIT_COMPUTED_INHERITED_RULES_INVALIDATION_COLLECTION_NAME);
     }
 
-    public void bulkAppendUnits(List<String> unitsId, String processId) {
-        List<WriteModel<Document>> updates = unitsId.stream()
-            .map(id -> getWriteModel(id, processId))
-            .collect(Collectors.toList());
-
-        collection.bulkWrite(updates);
+    public void bulkAppendReport(List<UnitComputedInheritedRulesInvalidationModel> reports) {
+        Set<UnitComputedInheritedRulesInvalidationModel> reportsWithoutDuplicate = new HashSet<>(reports);
+        List<Document> entries = reportsWithoutDuplicate.stream()
+            .map(ReportCommonRepository::pojoToDocument).collect(Collectors.toList());
+        super.bulkAppendReport(entries, collection);
     }
 
-    public void deleteUnitsAndProgeny(String processId) {
-        collection.deleteMany(and(
-            eq(PROCESS_ID, processId),
-            eq(TENANT_ID, VitamThreadUtils.getVitamSession().getTenantId())
-        ));
-    }
+    public CloseableIterator<Document> findCollectionByProcessIdTenant(String processId, int tenantId) {
 
-    public MongoCursor<Document> findUnitsByProcessId(String processId) {
-        return collection.aggregate(Arrays.asList(
-            match(and(
-                eq(PROCESS_ID, processId),
-                eq(TENANT_ID, VitamThreadUtils.getVitamSession().getTenantId())
-            )),
-            project(Projections.fields(
-                new Document("_id", 0),
-                new Document(UNIT_ID, "unitId")))
-            ))
+        MongoCursor<Document> cursor = collection.aggregate(
+            Arrays.asList(
+                Aggregates.match(and(
+                    eq(UnitComputedInheritedRulesInvalidationModel.PROCESS_ID, processId),
+                    eq(UnitComputedInheritedRulesInvalidationModel.TENANT, tenantId)
+                )),
+                Aggregates.project(Projections.fields(
+                    new Document("_id", 0),
+                    new Document("id", "$_metadata.id")
+                    )
+                ))
+        )
+            // Aggregation query requires more than 100MB to proceed.
             .allowDiskUse(true)
             .iterator();
+
+        return new CloseableIterator<Document>() {
+
+            @Override
+            public void close() {
+                cursor.close();
+            }
+
+            @Override
+            public boolean hasNext() {
+                return cursor.hasNext();
+            }
+
+            @Override
+            public Document next() {
+                return cursor.next();
+            }
+        };
     }
 
-    private WriteModel<Document> getWriteModel(String unitId, String operationId) {
-        Document doc = new Document(UNIT_ID, unitId)
-            .append(PROCESS_ID, operationId)
-            .append(TENANT_ID, VitamThreadUtils.getVitamSession().getTenantId());
-        return new UpdateOneModel<>(
-            doc,
-            new Document("$set", doc)
-                .append("$setOnInsert", new Document("_id", GUIDFactory.newGUID().toString())),
-            new UpdateOptions().upsert(true)
-        );
+    public void deleteReportByIdAndTenant(String processId, int tenantId) {
+        super.deleteReportByIdAndTenant(processId, tenantId, collection);
     }
-
 }

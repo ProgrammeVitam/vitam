@@ -26,8 +26,11 @@
  *******************************************************************************/
 package fr.gouv.vitam.worker.core.plugin.computeinheritedrules;
 
-import static fr.gouv.vitam.worker.core.utils.PluginHelper.buildItemStatus;
-
+import com.google.common.annotations.VisibleForTesting;
+import fr.gouv.vitam.batch.report.client.BatchReportClient;
+import fr.gouv.vitam.batch.report.client.BatchReportClientFactory;
+import fr.gouv.vitam.batch.report.model.ReportType;
+import fr.gouv.vitam.common.exception.VitamClientInternalException;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.ItemStatus;
@@ -39,6 +42,8 @@ import fr.gouv.vitam.worker.core.handler.ActionHandler;
 import fr.gouv.vitam.worker.core.plugin.reclassification.ReclassificationFinalizationHandler;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
 
+import static fr.gouv.vitam.worker.core.utils.PluginHelper.buildItemStatus;
+
 /**
  * ComputeInheritedRulesFinalizationPlugin
  */
@@ -49,20 +54,36 @@ public class ComputeInheritedRulesFinalizationPlugin extends ActionHandler {
 
     private static final String COMPUTE_INHERITED_RULES_FINALIZATION = "COMPUTE_INHERITED_RULES_FINALIZATION";
 
-    /**
-     * Default constructor
-     */
+    private final BatchReportClientFactory batchReportClientFactory;
+
     public ComputeInheritedRulesFinalizationPlugin() {
+        this(BatchReportClientFactory.getInstance());
+        // Default constructor for workflow initialization by Worker
+    }
+
+    @VisibleForTesting
+    ComputeInheritedRulesFinalizationPlugin(BatchReportClientFactory batchReportClientFactory) {
+        this.batchReportClientFactory = batchReportClientFactory;
     }
 
     @Override
     public ItemStatus execute(WorkerParameters param, HandlerIO handler)
         throws ProcessingException, ContentAddressableStorageServerException {
-
-        // Nothing to cleanup
+        cleanupBatchReport(handler);
 
         LOGGER.info("Reclassification finalization succeeded");
         return buildItemStatus(COMPUTE_INHERITED_RULES_FINALIZATION, StatusCode.OK, null);
+    }
+
+    private void cleanupBatchReport(HandlerIO handler) throws ProcessingException {
+
+        // Cleanup units
+        try (BatchReportClient batchReportClient = batchReportClientFactory.getClient()) {
+            String processId = handler.getContainerName();
+            batchReportClient.cleanupReport(processId, ReportType.UNIT_COMPUTED_INHERITED_RULES_INVALIDATION);
+        } catch (VitamClientInternalException e) {
+            throw new ProcessingException("An error occurred during cleanup", e);
+        }
     }
 
     @Override
