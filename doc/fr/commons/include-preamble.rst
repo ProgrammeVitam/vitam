@@ -122,6 +122,9 @@ Glossaire
    ELK
       *Elasticsearch Logstash Kibana*
 
+   FIP
+      *Floating IP*
+
    IHM
      Interface Homme Machine
 
