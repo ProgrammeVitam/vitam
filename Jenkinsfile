@@ -17,7 +17,7 @@ pipeline {
     environment {
         MVN_BASE = "/usr/local/maven/bin/mvn --settings ${pwd()}/.ci/settings.xml"
         MVN_COMMAND = "${MVN_BASE} --show-version --batch-mode --errors --fail-at-end -DinstallAtEnd=true -DdeployAtEnd=true "
-        DEPLOY_GOAL = " " // Deploy goal used by maven ; typically "deploy" for master* branches & "" (nothing) for everything else (we don't deploy) ; keep a space so can work in other branches than develop
+        DEPLOY_GOAL = "install" // Deploy goal used by maven ; typically "deploy" for master* branches & "" (nothing) for everything else (we don't deploy) ; keep a space so can work in other branches than develop
         CI = credentials("app-jenkins")
         SERVICE_SONAR_URL = credentials("service-sonar-url")
         SERVICE_NEXUS_URL = credentials("service-nexus-url")
@@ -199,7 +199,7 @@ pipeline {
                 parallel(
                     "Package VITAM solution" : {
                         dir('sources') {
-                            sh '$MVN_COMMAND -f pom.xml -Dmaven.test.skip=true -DskipTests=true clean package javadoc:aggregate-jar rpm:attached-rpm jdeb:jdeb $DEPLOY_GOAL'
+                            sh '$MVN_COMMAND -f pom.xml -Dmaven.test.skip=true -DskipTests=true clean javadoc:aggregate-jar $DEPLOY_GOAL jdeb:jdeb rpm:attached-rpm'
                             // -T 1C // Doesn't work with the javadoc:aggregate-jar goal
                         }
                     },
@@ -233,7 +233,7 @@ pipeline {
             }
             steps {
                 dir('doc') {
-                    sh '$MVN_COMMAND -f pom.xml -T 1C clean package rpm:attached-rpm jdeb:jdeb $DEPLOY_GOAL'
+                    sh '$MVN_COMMAND -f pom.xml -T 1C clean install jdeb:jdeb rpm:attached-rpm $DEPLOY_GOAL'
                 }
             }
             post {
