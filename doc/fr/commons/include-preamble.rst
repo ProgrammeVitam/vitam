@@ -129,11 +129,14 @@ Glossaire
       Description archivistique encodée
 
    ELK
-      `Elasticsearch Logstash Kibana`
+      *Elasticsearch Logstash Kibana*
+
+   FIP
+      *Floating IP*
 
    GOT
       Groupe d'Objet Technique
-   
+
    IHM
      Interface Homme Machine
 
