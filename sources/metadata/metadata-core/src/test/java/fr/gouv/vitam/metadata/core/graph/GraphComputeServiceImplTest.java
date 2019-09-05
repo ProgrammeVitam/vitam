@@ -144,7 +144,7 @@ public class GraphComputeServiceImplTest {
 
 
         GraphComputeResponse response = graphBuilderService.computeGraph(MetadataCollections.UNIT,
-            Sets.newHashSet("fake1", "fake2", "fake3"), true);
+            Sets.newHashSet("fake1", "fake2", "fake3"), true, true);
         assertThat(response.getUnitCount()).isEqualTo(3);
         assertThat(response.getGotCount()).isEqualTo(3);
     }
@@ -165,7 +165,7 @@ public class GraphComputeServiceImplTest {
 
 
         GraphComputeResponse response = graphBuilderService.computeGraph(MetadataCollections.OBJECTGROUP,
-            Sets.newHashSet("fake1", "fake2", "fake3"), false);
+            Sets.newHashSet("fake1", "fake2", "fake3"), false, true);
         assertThat(response.getGotCount()).isEqualTo(3);
     }
 
@@ -185,7 +185,7 @@ public class GraphComputeServiceImplTest {
 
 
         GraphComputeResponse response = graphBuilderService.computeGraph(MetadataCollections.UNIT,
-            Sets.newHashSet("fake1", "fake2", "fake3"), false);
+            Sets.newHashSet("fake1", "fake2", "fake3"), false, true);
         assertThat(response.getUnitCount()).isEqualTo(3);
     }
 
@@ -195,10 +195,10 @@ public class GraphComputeServiceImplTest {
     public void whenBuildGraphThenQueryResultIsEmpty() {
         // given
         GraphComputeResponse response = graphBuilderService.computeGraph(MetadataCollections.UNIT,
-            Sets.newHashSet(), false);
+            Sets.newHashSet(), false, true);
         assertThat(response.getUnitCount()).isEqualTo(0);
         response = graphBuilderService.computeGraph(MetadataCollections.OBJECTGROUP,
-            Sets.newHashSet(), false);
+            Sets.newHashSet(), false, true);
         assertThat(response.getGotCount()).isEqualTo(0);
     }
 }

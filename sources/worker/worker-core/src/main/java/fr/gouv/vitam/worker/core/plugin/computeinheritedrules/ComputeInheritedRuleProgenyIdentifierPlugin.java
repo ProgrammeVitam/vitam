@@ -155,36 +155,41 @@ public class ComputeInheritedRuleProgenyIdentifierPlugin extends ActionHandler {
             select.addUsedProjection(VitamFieldsHelper.id());
 
             // Query against ES via cursor
-            ScrollSpliterator<JsonNode> unitIterator =
-                ScrollSpliteratorHelper.createUnitScrollSplitIterator(metaDataClient, select);
+            Iterator<JsonNode> unitIterator = new SpliteratorIterator<>(
+                ScrollSpliteratorHelper.createUnitScrollSplitIterator(metaDataClient, select));
 
-            // Process in batch mode
+            // Map to unit Ids
+            Iterator<String> unitIdIterator = IteratorUtils.transformedIterator(
+                unitIterator,
+                result -> Objects.requireNonNull(result.get(VitamFieldsHelper.id()).asText()));
+
+            // Process in chunks
             Iterator<List<String>> bulkUnitIdsIterator = new BulkIterator<>(
-                IteratorUtils.transformedIterator(
-                    new SpliteratorIterator<>(unitIterator),
-                    result -> Objects.requireNonNull(result.get(VitamFieldsHelper.id()).asText())
-                ),
+                unitIdIterator,
                 VitamConfiguration.getBatchSize()
             );
 
             bulkUnitIdsIterator.forEachRemaining(
-                unitsIds -> {
-                    try {
-                        List<UnitComputedInheritedRulesInvalidationReportEntry> entries = unitsIds.stream()
-                            .distinct()
-                            .map(UnitComputedInheritedRulesInvalidationReportEntry::new)
-                            .collect(Collectors.toList());
-                        ReportBody<UnitComputedInheritedRulesInvalidationReportEntry> report =
-                            new ReportBody<>(operationId,
-                                ReportType.UNIT_COMPUTED_INHERITED_RULES_INVALIDATION, entries);
-                        batchReportClient.appendReportEntries(report);
-                    } catch (VitamClientInternalException e) {
-                        throw new VitamRuntimeException(e);
-                    }
-                }
+                unitsIds -> appendUnitIdsToBatchReport(batchReportClient, operationId, unitsIds)
             );
 
         } catch (InvalidCreateOperationException | InvalidParseOperationException e) {
+            throw new VitamRuntimeException(e);
+        }
+    }
+
+    private void appendUnitIdsToBatchReport(BatchReportClient batchReportClient, String operationId,
+        List<String> unitsIds) {
+        try {
+            List<UnitComputedInheritedRulesInvalidationReportEntry> entries = unitsIds.stream()
+                .distinct()
+                .map(UnitComputedInheritedRulesInvalidationReportEntry::new)
+                .collect(Collectors.toList());
+            ReportBody<UnitComputedInheritedRulesInvalidationReportEntry> report =
+                new ReportBody<>(operationId,
+                    ReportType.UNIT_COMPUTED_INHERITED_RULES_INVALIDATION, entries);
+            batchReportClient.appendReportEntries(report);
+        } catch (VitamClientInternalException e) {
             throw new VitamRuntimeException(e);
         }
     }

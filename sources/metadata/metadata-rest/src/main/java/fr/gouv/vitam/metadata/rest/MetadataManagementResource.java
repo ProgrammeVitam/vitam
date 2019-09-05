@@ -346,7 +346,7 @@ public class MetadataManagementResource {
             }
 
             GraphComputeResponse response =
-                this.graphComputeService.computeGraph(metadataCollections, documentsId, computeObjectGroupGraph);
+                this.graphComputeService.computeGraph(metadataCollections, documentsId, computeObjectGroupGraph, true);
             return Response.ok().entity(response).build();
         } catch (Exception e) {
             LOGGER.error(COMPUTE_GRAPH_EXCEPTION_MSG, e);
