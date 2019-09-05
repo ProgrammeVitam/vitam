@@ -353,28 +353,35 @@ CLIENT_TYPE="external"
 REPERTOIRE_PLUS="vitam-users"
 JKS_GRANTED_STORE=${REPERTOIRE_KEYSTORES}/client-${CLIENT_TYPE}/grantedstore_${CLIENT_TYPE}.jks
 GRANTED_STORE_PASSWORD=$(getKeystorePassphrase "grantedstores_client_${CLIENT_TYPE}")
-for CRT_FILE in $( ls ${REPERTOIRE_CERTIFICAT}/client-${REPERTOIRE_PLUS}/clients 2>/dev/null ); do
-    CRT_FILE="${REPERTOIRE_CERTIFICAT}/client-${REPERTOIRE_PLUS}/clients/${CRT_FILE}"
-    pki_logger "Ajout de ${CRT_FILE} dans le grantedstore ${CLIENT_TYPE}"
-    addCrtInJks ${JKS_GRANTED_STORE} \
-                ${GRANTED_STORE_PASSWORD} \
-                ${CRT_FILE} \
-                $(basename ${CRT_FILE})
-done
-
+if [ -d ${REPERTOIRE_CERTIFICAT}/client-${REPERTOIRE_PLUS} ]; then
+    for CRT_FILE in $( ls ${REPERTOIRE_CERTIFICAT}/client-${REPERTOIRE_PLUS}/clients 2>/dev/null ); do
+        CRT_FILE="${REPERTOIRE_CERTIFICAT}/client-${REPERTOIRE_PLUS}/clients/${CRT_FILE}"
+        pki_logger "Ajout de ${CRT_FILE} dans le grantedstore ${CLIENT_TYPE}"
+        addCrtInJks ${JKS_GRANTED_STORE} \
+                    ${GRANTED_STORE_PASSWORD} \
+                    ${CRT_FILE} \
+                    $(basename ${CRT_FILE})
+    done
+else
+    pki_logger "No client-${REPERTOIRE_PLUS} directory is present. Skipping..."
+fi
 # Generate the vitam-users trustore
 pki_logger "-------------------------------------------"
 pki_logger "Génération des certif vitam-users dans client-${CLIENT_TYPE}"
 JKS_TRUST_STORE=${REPERTOIRE_KEYSTORES}/client-${CLIENT_TYPE}/truststore_${CLIENT_TYPE}.jks
 TRUST_STORE_PASSWORD=$(getKeystorePassphrase "truststores_client_${CLIENT_TYPE}")
-for CRT_FILE in $(ls ${REPERTOIRE_CERTIFICAT}/client-${REPERTOIRE_PLUS}/ca/*.crt); do
-    pki_logger "Ajout de ${CRT_FILE} dans le truststore ${REPERTOIRE_PLUS}"
-    ALIAS="$(basename ${CRT_FILE})"
-    addCrtInJks ${JKS_TRUST_STORE} \
-                ${TRUST_STORE_PASSWORD} \
-                ${CRT_FILE} \
-                ${ALIAS}
-done
+if [ -d ${REPERTOIRE_CERTIFICAT}/client-${REPERTOIRE_PLUS}/ca ]; then
+    for CRT_FILE in $(ls ${REPERTOIRE_CERTIFICAT}/client-${REPERTOIRE_PLUS}/ca/*.crt); do
+        pki_logger "Ajout de ${CRT_FILE} dans le truststore ${REPERTOIRE_PLUS}"
+        ALIAS="$(basename ${CRT_FILE})"
+        addCrtInJks ${JKS_TRUST_STORE} \
+                    ${TRUST_STORE_PASSWORD} \
+                    ${CRT_FILE} \
+                    ${ALIAS}
+    done
+else
+    pki_logger "No client-${REPERTOIRE_PLUS}/ca directory is present. Skipping..."
+fi
 
 pki_logger "-------------------------------------------"
 pki_logger "Fin de la génération des stores"
