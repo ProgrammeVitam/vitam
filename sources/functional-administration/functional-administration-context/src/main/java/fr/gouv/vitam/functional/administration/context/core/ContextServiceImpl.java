@@ -31,6 +31,7 @@ import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.ParametersChecker;
+import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.database.builder.query.QueryHelper;
 import fr.gouv.vitam.common.database.builder.query.VitamFieldsHelper;
 import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken;
@@ -567,6 +568,7 @@ public class ContextServiceImpl implements ContextService {
                 put(createMandatoryParamsValidator(), EMPTY_REQUIRED_FIELD);
                 put(securityProfileIdentifierValidator(), SECURITY_PROFILE_NOT_FOUND);
                 put(createCheckDuplicateInDatabaseValidator(), DUPLICATE_IN_DATABASE);
+                put(checkTenant(), UNKNOWN_VALUE);
                 put(checkContract(), UNKNOWN_VALUE);
             }};
         }
@@ -883,6 +885,28 @@ public class ContextServiceImpl implements ContextService {
             };
         }
 
+        /**
+         * Check if the tenant exist
+         *
+         * @return
+         */
+        private ContextValidator checkTenant() {
+            return (context) -> {
+                ContextValidator.ContextRejectionCause rejection = null;
+
+                final List<PermissionModel> pmList = context.getPermissions();
+                for (final PermissionModel pm : pmList) {
+                    final int tenant = pm.getTenant();
+                    List<Integer> tenants = VitamConfiguration.getTenants();
+                    if (!tenants.contains(tenant)) {
+                        rejection = ContextValidator.ContextRejectionCause.rejectNoExistanceOfTenant(tenant);
+                        return Optional.of(rejection);
+                    }
+                }
+
+                return Optional.empty();
+            };
+        }
 
         public boolean checkIdentifierOfIngestContract(String ic, int tenant)
             throws ReferentialException, InvalidParseOperationException {
