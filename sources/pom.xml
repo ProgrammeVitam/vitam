@@ -1470,7 +1470,7 @@
                 <artifactId>rxjava</artifactId>
                 <version>${io.reactivex.rxjava2.version}</version>
             </dependency>
-            
+
             <!-- ####################### Tests ####################### -->
 
             <dependency>

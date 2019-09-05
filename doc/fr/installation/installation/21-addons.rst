@@ -80,7 +80,13 @@ Sous ``deployment/environments/host_vars``, créer ou éditer un fichier nommé 
 
    consul_disabled: true
 
-A l'issue, le déploiement n'installera pas l'agent Consul. Le composant ihm-demo appellera, alors, par l'adresse IP de services les composants "access-external" et "ingest-external".
+Il faut également modifier le fichier ``deployment/environments/group_vars/all/vitam_vars.yml`` en remplaçant :
+
+* dans le bloc ``accessexternal``, la directive ``host: "access-external.service.{{ consul_domain }}"`` par ``host: "<adresse IP de access-external>"`` (l'adresse IP peut être une :term:`FIP`)
+* dans le bloc ``ingestexternal``, la directive ``host: "ingest-external.service.{{ consul_domain }}"`` par ``host: "<adresse IP de ingest-external>"`` (l'adresse IP peut être une :term:`FIP`)
+
+
+A l'issue, le déploiement n'installera pas l'agent Consul. Le composant ihm-demo appellera, alors, par l'adresse :term:`IP` de service les composants "access-external" et "ingest-external".
 
 Il est également fortement recommandé de positionner la valeur de la directive ``vitam.ihm_demo.metrics_enabled`` à  ``false`` dans le fichier ``deployment/environments/group_vars/all/vitam_vars.yml``, afin que ce composant ne tente pas d'envoyer des données sur "elasticsearch-log".
 
