@@ -1,115 +1,163 @@
 package fr.gouv.vitam.batch.report.rest.repository;
 
-import com.mongodb.client.AggregateIterable;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoCursor;
-import com.mongodb.client.MongoDatabase;
-import com.mongodb.client.model.UpdateOneModel;
-import com.mongodb.client.model.UpdateOptions;
-import com.mongodb.client.model.WriteModel;
-import com.mongodb.client.result.DeleteResult;
+import fr.gouv.vitam.common.database.server.mongodb.MongoDbAccess;
 import fr.gouv.vitam.common.database.server.mongodb.SimpleMongoDBAccess;
+import fr.gouv.vitam.common.guid.GUIDFactory;
+import fr.gouv.vitam.common.mongo.MongoRule;
+import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
+import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
+import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
+import fr.gouv.vitam.common.thread.VitamThreadUtils;
+import org.assertj.core.api.Assertions;
 import org.bson.Document;
-import org.bson.conversions.Bson;
 import org.junit.Before;
+import org.junit.ClassRule;
 import org.junit.Rule;
 import org.junit.Test;
-import org.mockito.ArgumentCaptor;
-import org.mockito.Captor;
-import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnit;
-import org.mockito.junit.MockitoRule;
 
-import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
-import static com.mongodb.client.model.Aggregates.match;
+import static com.mongodb.client.model.Filters.and;
 import static com.mongodb.client.model.Filters.eq;
+import static fr.gouv.vitam.batch.report.rest.repository.InvalidUnitsRepository.INVALID_UNITS_COLLECTION_NAME;
+import static fr.gouv.vitam.common.database.collections.VitamCollection.getMongoClientOptions;
 import static org.assertj.core.api.AssertionsForInterfaceTypes.assertThat;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyBoolean;
-import static org.mockito.ArgumentMatchers.anyList;
-import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
 
+@RunWithCustomExecutor
 public class InvalidUnitsRepositoryTest {
 
-    @Rule public MockitoRule mockitoRule = MockitoJUnit.rule();
+    private final static String TEST_COLLECTION_NAME = INVALID_UNITS_COLLECTION_NAME + GUIDFactory.newGUID().getId();
 
-    @Mock private SimpleMongoDBAccess simpleMongoDBAccess;
-    @Mock private MongoDatabase mongoDatabase;
-    @Mock private MongoCollection<Document> mongoCollection;
-    @Mock private AggregateIterable<Document> aggregateIterable;
-    @Mock private MongoCursor<Document> mongoCursor;
+    @ClassRule
+    public static RunWithCustomExecutorRule runInThread = new RunWithCustomExecutorRule(
+        VitamThreadPoolExecutor.getDefaultExecutor());
 
-    @Captor private ArgumentCaptor<ArrayList<WriteModel<Document>>> captorBulkWrite;
-    @Captor private ArgumentCaptor<Bson> captorDeleteMany;
-    @Captor private ArgumentCaptor<ArrayList<Bson>> captorAggregate;
+    @Rule
+    public MongoRule mongoRule =
+        new MongoRule(getMongoClientOptions(), TEST_COLLECTION_NAME);
 
-    private InvalidUnitsRepository invalidUnitsRepository;
+    private InvalidUnitsRepository repository;
+
+    private MongoCollection<Document> mongoCollection;
 
     @Before
     public void setUp() {
-        when(mongoDatabase.getCollection(anyString())).thenReturn(mongoCollection);
-        when(simpleMongoDBAccess.getMongoDatabase()).thenReturn(mongoDatabase);
-        invalidUnitsRepository = new InvalidUnitsRepository(simpleMongoDBAccess, "InvalidUnits");
+        MongoDbAccess mongoDbAccess = new SimpleMongoDBAccess(mongoRule.getMongoClient(), MongoRule.VITAM_DB);
+        repository = new InvalidUnitsRepository(mongoDbAccess, TEST_COLLECTION_NAME);
+        mongoCollection = mongoRule.getMongoCollection(TEST_COLLECTION_NAME);
+        VitamThreadUtils.getVitamSession().setTenantId(0);
     }
 
     @Test
-    public void bulkAppendUnits_should_call_bulkWrite_correctly() {
-        when(mongoCollection.bulkWrite(anyList())).thenReturn(null);
-
-        String processId = "processId1";
-        List<String> unitList = new ArrayList<>();
-        unitList.add("unit1");
-        unitList.add("unit2");
-
-        List<WriteModel<Document>> expectedUpdate = new ArrayList<>();
-        for(String unit : unitList) {
-            Document doc = new Document("_id", unit);
-            doc.append("processId", processId);
-            UpdateOneModel<Document> update = new UpdateOneModel<>(doc, new Document("$set", doc), new UpdateOptions().upsert(true));
-            expectedUpdate.add(update);
-        }
-
-        invalidUnitsRepository.bulkAppendUnits(unitList, processId);
-        verify(mongoCollection).bulkWrite(captorBulkWrite.capture());
-        ArrayList<WriteModel<Document>> update = captorBulkWrite.getValue();
-        assertEquals(update.toString(), expectedUpdate.toString());
+    public void bulkAppendUnits_singleCallOK() throws Exception {
+        // Given
+        List<String> units =
+            Arrays.asList("unit1", "unit2", "unit4");
+        // When
+        repository.bulkAppendUnits(units, "procId1");
+        // Then
+        long count = mongoCollection.countDocuments(and(
+            eq(InvalidUnitsRepository.UNIT_ID, "unit1"),
+            eq(InvalidUnitsRepository.TENANT_ID, 0),
+            eq(InvalidUnitsRepository.PROCESS_ID, "procId1")));
+        assertThat(count).isEqualTo(1);
+        Assertions.assertThat(mongoCollection.countDocuments()).isEqualTo(3);
     }
 
     @Test
-    public void deleteUnitsAndProgeny_should_call_deleteMany_correctly() {
-        when(mongoCollection.deleteMany(any(Bson.class))).thenReturn(null);
-
-        String processId = "processId1";
-        Bson expectedFilter = eq("processId", processId);
-
-        invalidUnitsRepository.deleteUnitsAndProgeny(processId);
-        verify(mongoCollection).deleteMany(captorDeleteMany.capture());
-        Bson actualFilter = captorDeleteMany.getValue();
-
-        assertEquals(expectedFilter.toString(), actualFilter.toString());
+    public void bulkAppendUnits_noDuplicates() throws Exception {
+        // Given
+        List<String> units1 =
+            Arrays.asList("unit1", "unit2", "unit4");
+        List<String> units2 =
+            Arrays.asList("unit3", "unit4");
+        List<String> units3 =
+            Collections.singletonList("unit5");
+        // When
+        repository.bulkAppendUnits(units1, "procId1");
+        repository.bulkAppendUnits(units2, "procId1");
+        repository.bulkAppendUnits(units3, "procId1");
+        // Then
+        long count = mongoCollection.countDocuments(and(
+            eq(InvalidUnitsRepository.UNIT_ID, "unit1"),
+            eq(InvalidUnitsRepository.TENANT_ID, 0),
+            eq(InvalidUnitsRepository.PROCESS_ID, "procId1")));
+        assertThat(count).isEqualTo(1);
+        Assertions.assertThat(mongoCollection.countDocuments()).isEqualTo(5);
     }
 
     @Test
-    public void findUnitsByProcessId_should_call_aggregate_correctly() {
-        when(mongoCollection.aggregate(anyList())).thenReturn(aggregateIterable);
-        when(aggregateIterable.allowDiskUse(anyBoolean())).thenReturn(aggregateIterable);
-        when(aggregateIterable.iterator()).thenReturn(mongoCursor);
+    public void bulkAppendUnits_multiProcess() throws Exception {
+        // Given
+        List<String> units1 =
+            Arrays.asList("unit1", "unit2", "unit4");
+        List<String> units2 =
+            Arrays.asList("unit3", "unit4");
+        // When
+        repository.bulkAppendUnits(units1, "procId1");
+        repository.bulkAppendUnits(units2, "procId2");
+        // Then
+        long count = mongoCollection.countDocuments(and(
+            eq(InvalidUnitsRepository.UNIT_ID, "unit4"),
+            eq(InvalidUnitsRepository.TENANT_ID, 0),
+            eq(InvalidUnitsRepository.PROCESS_ID, "procId1")));
+        assertThat(count).isEqualTo(1);
+        Assertions.assertThat(mongoCollection.countDocuments()).isEqualTo(5);
+    }
 
-        String processId = "processId1";
-        Bson expected = match(eq("processId", processId));
+    @Test
+    public void deleteUnitsAndProgeny_OK() throws Exception {
+        // Given
+        List<String> units1 =
+            Arrays.asList("unit1", "unit2", "unit4");
+        List<String> units2 =
+            Arrays.asList("unit3", "unit4");
 
-        invalidUnitsRepository.findUnitsByProcessId(processId);
-        verify(mongoCollection).aggregate(captorAggregate.capture());
-        List<Bson> actual = captorAggregate.getValue();
+        // When
+        repository.bulkAppendUnits(units1, "procId1");
+        repository.bulkAppendUnits(units2, "procId2");
+        Assertions.assertThat(mongoCollection.countDocuments()).isEqualTo(5);
 
-        assertThat(actual.size()).isEqualTo(1);
-        assertEquals(actual.get(0).toString(), expected.toString());
+        repository.deleteUnitsAndProgeny("procId1");
+
+        // Then
+        Assertions.assertThat(mongoCollection.countDocuments()).isEqualTo(2);
+    }
+
+    @Test
+    public void deleteUnitsAndProgeny_EmptyOK() throws Exception {
+        // Given
+
+        // When
+        repository.deleteUnitsAndProgeny("procId1");
+
+        // Then
+        Assertions.assertThat(mongoCollection.countDocuments()).isEqualTo(0);
+    }
+
+    @Test
+    public void findUnitsByProcessId() throws Exception {
+        // Given
+        List<String> units1 =
+            Arrays.asList("unit1", "unit2", "unit4");
+        List<String> units2 =
+            Arrays.asList("unit3", "unit4");
+        // When
+        repository.bulkAppendUnits(units1, "procId1");
+        repository.bulkAppendUnits(units2, "procId2");
+        repository.findUnitsByProcessId("procId1").forEachRemaining(
+            doc -> doc.get("unitId")
+        );
+        // Then
+        long count = mongoCollection.countDocuments(and(
+            eq(InvalidUnitsRepository.UNIT_ID, "unit4"),
+            eq(InvalidUnitsRepository.TENANT_ID, 0),
+            eq(InvalidUnitsRepository.PROCESS_ID, "procId1")));
+        assertThat(count).isEqualTo(1);
+        Assertions.assertThat(mongoCollection.countDocuments()).isEqualTo(5);
     }
 }

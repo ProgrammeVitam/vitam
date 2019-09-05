@@ -275,8 +275,7 @@ public class PreservationActionPlugin extends ActionHandler {
         OutputExtra value, List<PreservationDistributionLine> entries) {
         PreservationDistributionLine model = IterableUtils.find(entries, j -> j.getObjectId().equals(value.getOutput().getInputPreservation().getName()));
         return new PreservationReportEntry(
-            requestId,
-            requestId,
+            GUIDFactory.newGUID().toString(),
             requestId,
             tenant,
             now.toString(),

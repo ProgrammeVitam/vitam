@@ -87,8 +87,11 @@ public class UpdateUnitReportRepository extends ReportCommonRepository {
     private static WriteModel<Document> modelToWriteDocument(UpdateUnitMetadataReportEntry model) {
         try {
             return new UpdateOneModel<>(
-                and(eq(PROCESS_ID, model.getProcessId()), eq("_id", GUIDFactory.newGUID().toString())),
-                new Document("$set", Document.parse(JsonHandler.writeAsString(model))),
+                and(eq(PROCESS_ID, model.getProcessId()),
+                    eq(TENANT_ID, model.getTenantId()),
+                    eq(DETAIL_ID, model.getDetailId())),
+                new Document("$set", Document.parse(JsonHandler.writeAsString(model)))
+                    .append("$setOnInsert", new Document("_id", GUIDFactory.newGUID().toString())),
                 new UpdateOptions().upsert(true)
             );
         } catch (InvalidParseOperationException e) {
