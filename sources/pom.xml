@@ -108,7 +108,7 @@
         <commons-lang3>3.8.1</commons-lang3>
         <easymock.version>4.0.2</easymock.version>
         <jackson-databind.version>2.9.9.2</jackson-databind.version>
-        <jackson.version>2.9.9</jackson.version>
+        <jackson.version>2.10.0.pr2</jackson.version>
         <elasticsearch.version>6.8.2</elasticsearch.version>
         <elasticsearch.client.transport.version>${elasticsearch.version}</elasticsearch.client.transport.version>
         <mongo.version>3.10.2</mongo.version>
