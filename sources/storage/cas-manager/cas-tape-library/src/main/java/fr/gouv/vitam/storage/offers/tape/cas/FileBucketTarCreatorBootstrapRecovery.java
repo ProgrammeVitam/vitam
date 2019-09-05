@@ -26,9 +26,9 @@
  *******************************************************************************/
 package fr.gouv.vitam.storage.offers.tape.cas;
 
+import com.google.common.collect.Iterators;
 import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.exception.VitamRuntimeException;
-import fr.gouv.vitam.common.iterables.BulkIterator;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.storage.engine.common.model.TapeLibraryInputFileObjectStorageLocation;
@@ -38,6 +38,7 @@ import fr.gouv.vitam.storage.offers.tape.utils.LocalFileUtils;
 
 import java.io.IOException;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -73,7 +74,7 @@ public class FileBucketTarCreatorBootstrapRecovery {
             for (String containerName : containerNames) {
                 try (Stream<String> storageIdsStream = this.basicFileStorage
                     .listStorageIdsByContainerName(containerName)) {
-                    BulkIterator<String> bulkIterator = new BulkIterator<>(
+                    Iterator<List<String>> bulkIterator = Iterators.partition(
                         storageIdsStream.iterator(), VitamConfiguration.getBatchSize());
 
                     while (bulkIterator.hasNext()) {

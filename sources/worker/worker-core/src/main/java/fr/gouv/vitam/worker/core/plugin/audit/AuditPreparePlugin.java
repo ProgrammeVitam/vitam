@@ -49,6 +49,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
+import com.google.common.collect.Iterators;
 import org.apache.commons.collections4.IteratorUtils;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.Pair;
@@ -68,7 +69,6 @@ import fr.gouv.vitam.common.database.parser.request.multiple.SelectParserMultipl
 import fr.gouv.vitam.common.database.utils.ScrollSpliterator;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamException;
-import fr.gouv.vitam.common.iterables.BulkIterator;
 import fr.gouv.vitam.common.iterables.SpliteratorIterator;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
@@ -139,7 +139,7 @@ public class AuditPreparePlugin extends ActionHandler {
         Iterator<Pair<String, List<String>>> unitsByObjectGroupIterator = new GroupByObjectIterator(
                 gotIdUnitIdIterator);
 
-        Iterator<List<Pair<String, List<String>>>> unitsByObjectGroupBulkIterator = new BulkIterator<>(
+        Iterator<List<Pair<String, List<String>>>> unitsByObjectGroupBulkIterator = Iterators.partition(
                 unitsByObjectGroupIterator, VitamConfiguration.getBatchSize());
 
         File objectGroupsToAudit = handler.getNewLocalFile(OBJECT_GROUPS_TO_AUDIT_JSONL);

@@ -31,6 +31,7 @@ import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Stopwatch;
 import com.google.common.collect.Iterables;
+import com.google.common.collect.Iterators;
 import fr.gouv.vitam.common.SedaConstants;
 import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.alert.AlertService;
@@ -44,7 +45,6 @@ import fr.gouv.vitam.common.digest.DigestType;
 import fr.gouv.vitam.common.error.VitamError;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamRuntimeException;
-import fr.gouv.vitam.common.iterables.BulkIterator;
 import fr.gouv.vitam.common.json.CanonicalJsonFormatter;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
@@ -90,6 +90,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
@@ -154,7 +155,7 @@ public abstract class BuildTraceabilityActionPlugin extends ActionHandler {
             CloseableIterator<LfcMetadataPair> lfcMetadataIterator = CloseableIteratorUtils
                 .map(jsonLineIterator, BuildTraceabilityActionPlugin::parse);
 
-            BulkIterator<LfcMetadataPair> bulkIterator = new BulkIterator<>(lfcMetadataIterator, batchSize);
+            Iterator<List<LfcMetadataPair>> bulkIterator = Iterators.partition(lfcMetadataIterator, batchSize);
 
             while (bulkIterator.hasNext()) {
                 List<LfcMetadataPair> lfcMetadataPairList = bulkIterator.next();

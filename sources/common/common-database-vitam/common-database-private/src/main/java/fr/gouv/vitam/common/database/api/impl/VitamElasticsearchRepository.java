@@ -27,6 +27,7 @@
 package fr.gouv.vitam.common.database.api.impl;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.google.common.collect.Iterators;
 import com.mongodb.client.FindIterable;
 import com.mongodb.client.model.WriteModel;
 import fr.gouv.vitam.common.ParametersChecker;
@@ -37,7 +38,6 @@ import fr.gouv.vitam.common.database.collections.VitamCollection;
 import fr.gouv.vitam.common.database.server.mongodb.VitamDocument;
 import fr.gouv.vitam.common.exception.DatabaseException;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
-import fr.gouv.vitam.common.iterables.BulkIterator;
 import fr.gouv.vitam.common.json.BsonHelper;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
@@ -577,7 +577,7 @@ public class VitamElasticsearchRepository implements VitamRepository {
         }
 
         Iterator<List<String>> idIterator =
-            new BulkIterator<>(ids.iterator(), VitamConfiguration.getMaxElasticsearchBulk());
+            Iterators.partition(ids.iterator(), VitamConfiguration.getMaxElasticsearchBulk());
 
         while (idIterator.hasNext()) {
 

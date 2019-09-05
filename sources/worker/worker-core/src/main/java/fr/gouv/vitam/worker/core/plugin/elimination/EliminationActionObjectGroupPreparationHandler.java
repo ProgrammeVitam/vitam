@@ -35,11 +35,13 @@ import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import com.google.common.collect.Iterators;
 import org.apache.commons.collections4.ListUtils;
 import org.apache.commons.collections4.SetUtils;
 
@@ -54,7 +56,6 @@ import fr.gouv.vitam.common.collection.CloseableIterator;
 import fr.gouv.vitam.common.database.builder.query.VitamFieldsHelper;
 import fr.gouv.vitam.common.database.builder.request.multiple.SelectMultiQuery;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
-import fr.gouv.vitam.common.iterables.BulkIterator;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
@@ -145,7 +146,7 @@ public class EliminationActionObjectGroupPreparationHandler extends ActionHandle
                 CloseableIterator<String> iterator =
                     eliminationActionReportService.exportDistinctObjectGroups(param.getContainerName())) {
 
-                BulkIterator<String> bulkIterator = new BulkIterator<>(iterator, objectGroupBulkSize);
+                Iterator<List<String>> bulkIterator = Iterators.partition(iterator, objectGroupBulkSize);
 
                 while (bulkIterator.hasNext()) {
                     List<String> objectGroupIds = bulkIterator.next();

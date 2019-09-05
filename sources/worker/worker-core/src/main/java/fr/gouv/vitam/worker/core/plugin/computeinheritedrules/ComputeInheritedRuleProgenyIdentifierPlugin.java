@@ -30,6 +30,7 @@ package fr.gouv.vitam.worker.core.plugin.computeinheritedrules;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.google.common.annotations.VisibleForTesting;
+import com.google.common.collect.Iterators;
 import fr.gouv.vitam.batch.report.client.BatchReportClient;
 import fr.gouv.vitam.batch.report.client.BatchReportClientFactory;
 import fr.gouv.vitam.batch.report.model.ReportBody;
@@ -44,11 +45,9 @@ import fr.gouv.vitam.common.database.builder.query.QueryHelper;
 import fr.gouv.vitam.common.database.builder.query.VitamFieldsHelper;
 import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
 import fr.gouv.vitam.common.database.builder.request.multiple.SelectMultiQuery;
-import fr.gouv.vitam.common.database.utils.ScrollSpliterator;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamClientInternalException;
 import fr.gouv.vitam.common.exception.VitamRuntimeException;
-import fr.gouv.vitam.common.iterables.BulkIterator;
 import fr.gouv.vitam.common.iterables.SpliteratorIterator;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
@@ -120,7 +119,7 @@ public class ComputeInheritedRuleProgenyIdentifierPlugin extends ActionHandler {
             BatchReportClient batchReportClient = batchReportClientFactory.getClient();
             MetaDataClient metaDataClient = metaDataClientFactory.getClient()) {
 
-            Iterator<List<JsonLineModel>> bulkLines = new BulkIterator<>(lines, bulkSize);
+            Iterator<List<JsonLineModel>> bulkLines = Iterators.partition(lines, bulkSize);
             bulkLines.forEachRemaining(
                 unitsToBatch -> findAndSaveUnitsProgeny(metaDataClient, batchReportClient, unitsToBatch, processId));
 
@@ -164,12 +163,7 @@ public class ComputeInheritedRuleProgenyIdentifierPlugin extends ActionHandler {
                 result -> Objects.requireNonNull(result.get(VitamFieldsHelper.id()).asText()));
 
             // Process in chunks
-            Iterator<List<String>> bulkUnitIdsIterator = new BulkIterator<>(
-                unitIdIterator,
-                VitamConfiguration.getBatchSize()
-            );
-
-            bulkUnitIdsIterator.forEachRemaining(
+            Iterators.partition(unitIdIterator, VitamConfiguration.getBatchSize()).forEachRemaining(
                 unitsIds -> appendUnitIdsToBatchReport(batchReportClient, operationId, unitsIds)
             );
 
