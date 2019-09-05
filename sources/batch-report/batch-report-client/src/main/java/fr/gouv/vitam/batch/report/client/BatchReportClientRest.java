@@ -103,25 +103,9 @@ public class BatchReportClientRest extends DefaultClient implements BatchReportC
     }
 
     @Override
-    public void saveUnitsAndProgeny(String processId, List<String> unitsId) throws VitamClientInternalException {
-        ParametersChecker.checkParameter(EMPTY_BODY_ERROR_MESSAGE, unitsId);
-
-        httpPost(UNITS_AND_PROGENY_INVALIDATION + processId, unitsId);
-    }
-
-    @Override
-    public void deleteUnitsAndProgeny(String processId) throws VitamClientInternalException {
-        ParametersChecker.checkParameter(EMPTY_BODY_ERROR_MESSAGE, processId);
-
-        httpRequest(HttpMethod.DELETE, UNITS_AND_PROGENY_INVALIDATION + processId, null);
-    }
-
-    @Override
-    public JsonNode getUnitsToInvalidate(String processId) throws VitamClientInternalException {
+    public void exportUnitsToInvalidate(String processId, ReportExportRequest reportExportRequest) throws VitamClientInternalException {
         ParametersChecker.checkParameter("processId parameter should be filled", processId);
-
-        Response response = performRequest(HttpMethod.GET, UNITS_AND_PROGENY_INVALIDATION + processId, null);
-        return response.readEntity(JsonNode.class);
+        httpPost(UNITS_AND_PROGENY_INVALIDATION + processId, reportExportRequest);
     }
 
     @Override

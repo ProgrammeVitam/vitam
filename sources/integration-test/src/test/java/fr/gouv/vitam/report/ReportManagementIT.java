@@ -26,6 +26,7 @@
  *******************************************************************************/
 package fr.gouv.vitam.report;
 
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.google.common.collect.Sets;
 import fr.gouv.vitam.batch.report.client.BatchReportClient;
@@ -41,6 +42,7 @@ import fr.gouv.vitam.batch.report.model.entry.AuditObjectGroupReportEntry;
 import fr.gouv.vitam.batch.report.model.entry.EliminationActionObjectGroupReportEntry;
 import fr.gouv.vitam.batch.report.model.entry.EliminationActionUnitReportEntry;
 import fr.gouv.vitam.batch.report.model.entry.PreservationReportEntry;
+import fr.gouv.vitam.batch.report.model.entry.UnitComputedInheritedRulesInvalidationReportEntry;
 import fr.gouv.vitam.batch.report.rest.BatchReportMain;
 import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.PropertiesUtils;
@@ -49,12 +51,12 @@ import fr.gouv.vitam.common.VitamServerRunner;
 import fr.gouv.vitam.common.client.VitamClientFactory;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.json.JsonHandler;
-import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.stream.VitamAsyncInputStream;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
 import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
+import fr.gouv.vitam.worker.core.distribution.JsonLineGenericIterator;
 import fr.gouv.vitam.worker.core.distribution.JsonLineIterator;
 import fr.gouv.vitam.worker.core.distribution.JsonLineModel;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundException;
@@ -71,12 +73,17 @@ import org.junit.BeforeClass;
 import org.junit.ClassRule;
 import org.junit.Test;
 
-import javax.ws.rs.core.Response;
 import java.io.IOException;
 import java.io.InputStream;
 import java.time.LocalDateTime;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatCode;
@@ -90,6 +97,8 @@ public class ReportManagementIT extends VitamRuleRunner {
     public static RunWithCustomExecutorRule runInThread =
         new RunWithCustomExecutorRule(VitamThreadPoolExecutor.getDefaultExecutor());
 
+    private static final TypeReference<JsonLineModel> TYPE_REFERENCE = new TypeReference<JsonLineModel>() {
+    };
     private static final String PROCESS_ID = "123456789";
     private static final int TENANT_0 = 0;
     private static BatchReportClient batchReportClient;
@@ -342,5 +351,54 @@ public class ReportManagementIT extends VitamRuleRunner {
         }
 
         return reportEntriesById;
+    }
+
+    @Test
+    @RunWithCustomExecutor
+    public void should_store_units_to_invalidate_distribution_file() throws Exception {
+
+        // Given
+        String processId = VitamThreadUtils.getVitamSession().getRequestId();
+        workspaceClient.createContainer(processId);
+
+        List<String> ids1 = Arrays.asList("id1", "id2");
+        List<String> ids2 = Arrays.asList("id1", "id3");
+        List<String> ids3 = Collections.emptyList();
+        List<String> ids4 = Collections.singletonList("id4");
+        String unitsJsonlFileName = "myFileName.jsonl";
+
+        // When
+        batchReportClient.appendReportEntries(getReportBody(processId, ids1));
+        batchReportClient.appendReportEntries(getReportBody(processId, ids2));
+        batchReportClient.appendReportEntries(getReportBody(processId, ids3));
+        batchReportClient.appendReportEntries(getReportBody(processId, ids4));
+        batchReportClient.exportUnitsToInvalidate(processId, new ReportExportRequest(unitsJsonlFileName));
+
+        // Then
+        try (InputStream reportIS = new VitamAsyncInputStream(
+            workspaceClient.getObject(processId, unitsJsonlFileName));
+            JsonLineGenericIterator<JsonLineModel> lineGenericIterator = new JsonLineGenericIterator<>(reportIS,
+                TYPE_REFERENCE)) {
+
+            Set<String> expectedDeduplicatedIds = new HashSet<>();
+            expectedDeduplicatedIds.addAll(ids1);
+            expectedDeduplicatedIds.addAll(ids2);
+            expectedDeduplicatedIds.addAll(ids3);
+            expectedDeduplicatedIds.addAll(ids4);
+
+            assertThat(lineGenericIterator.stream()
+                .map(JsonLineModel::getId)
+                .collect(Collectors.toList()))
+                .containsExactlyInAnyOrder(expectedDeduplicatedIds.toArray(new String[0]));
+        }
+    }
+
+    private ReportBody getReportBody(String processId, List<String> unitsIds) {
+        List<UnitComputedInheritedRulesInvalidationReportEntry> entries = unitsIds.stream()
+            .distinct()
+            .map(UnitComputedInheritedRulesInvalidationReportEntry::new)
+            .collect(Collectors.toList());
+        return new ReportBody<>(processId,
+                ReportType.UNIT_COMPUTED_INHERITED_RULES_INVALIDATION, entries);
     }
 }

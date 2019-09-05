@@ -37,8 +37,6 @@ import fr.gouv.vitam.batch.report.model.ReportType;
 import fr.gouv.vitam.batch.report.model.entry.PreservationReportEntry;
 import fr.gouv.vitam.batch.report.model.PreservationStatus;
 import fr.gouv.vitam.common.json.JsonHandler;
-import fr.gouv.vitam.storage.engine.client.StorageClient;
-import fr.gouv.vitam.storage.engine.client.StorageClientFactory;
 import fr.gouv.vitam.workspace.client.WorkspaceClient;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
 import org.assertj.core.api.ThrowableAssert.ThrowingCallable;
@@ -68,12 +66,6 @@ public class PreservationReportServiceTest {
     private WorkspaceClient workspaceClient;
 
     @Mock
-    private StorageClientFactory storageClientFactory;
-
-    @Mock
-    private StorageClient storageClient;
-
-    @Mock
     private BatchReportClientFactory batchReportFactory;
 
     @Mock
@@ -86,10 +78,7 @@ public class PreservationReportServiceTest {
     public void setUp() throws Exception {
         given(batchReportFactory.getClient()).willReturn(batchReportClient);
         given(workspaceClientFactory.getClient()).willReturn(workspaceClient);
-        given(storageClientFactory.getClient()).willReturn(storageClient);
-
-        preservationReportService =
-            new PreservationReportService(batchReportFactory, storageClientFactory);
+        preservationReportService = new PreservationReportService(batchReportFactory);
     }
 
     @Test

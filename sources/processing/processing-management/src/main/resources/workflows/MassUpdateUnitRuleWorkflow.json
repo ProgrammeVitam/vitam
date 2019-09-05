@@ -67,7 +67,7 @@
             "out": [
               {
                 "name": "units_to_invalidate",
-                "uri": "WORKSPACE:massUpdateUnits/unitsToInvalidate.jsonl"
+                "uri": "WORKSPACE:unitsToInvalidate.jsonl"
               }
             ],
             "lifecycleLog": "DISABLED"
@@ -81,7 +81,7 @@
       "behavior": "BLOCKING",
       "distribution": {
         "kind": "LIST_IN_JSONL_FILE",
-        "element": "massUpdateUnits/unitsToInvalidate.jsonl",
+        "element": "unitsToInvalidate.jsonl",
         "statusOnEmptyDistribution": "OK"
       },
       "actions": [

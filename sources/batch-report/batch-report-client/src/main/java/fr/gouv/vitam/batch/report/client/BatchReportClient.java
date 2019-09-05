@@ -26,17 +26,12 @@
  *******************************************************************************/
 package fr.gouv.vitam.batch.report.client;
 
-import com.fasterxml.jackson.databind.JsonNode;
 import fr.gouv.vitam.batch.report.model.Report;
 import fr.gouv.vitam.batch.report.model.ReportBody;
 import fr.gouv.vitam.batch.report.model.ReportExportRequest;
 import fr.gouv.vitam.batch.report.model.ReportType;
 import fr.gouv.vitam.common.exception.VitamClientInternalException;
 import fr.gouv.vitam.common.external.client.BasicClient;
-import fr.gouv.vitam.common.model.RequestResponse;
-
-import javax.ws.rs.core.Response;
-import java.util.List;
 
 /**
  * BatchReportClient
@@ -63,11 +58,11 @@ public interface BatchReportClient extends BasicClient {
 
     void storeReport(Report reportInfo) throws VitamClientInternalException;
 
-    void saveUnitsAndProgeny(String processId, List<String> unitsId) throws VitamClientInternalException;
-
-    void deleteUnitsAndProgeny(String processId) throws VitamClientInternalException;
-
-    JsonNode getUnitsToInvalidate(String processId) throws VitamClientInternalException;
+    /**
+     * Generate units to invalidate by process Id.
+     * Report is stored in JSONL format without duplicates.
+     */
+    void exportUnitsToInvalidate(String processId, ReportExportRequest reportExportRequest) throws VitamClientInternalException;
 
     /**
      * Generate elimination action accession register for deleted units by status and process Id.
