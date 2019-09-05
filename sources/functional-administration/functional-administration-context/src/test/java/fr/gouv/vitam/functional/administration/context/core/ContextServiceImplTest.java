@@ -31,6 +31,7 @@ import fr.gouv.vitam.common.database.builder.request.single.Select;
 import fr.gouv.vitam.common.database.builder.request.single.Update;
 import fr.gouv.vitam.common.database.server.elasticsearch.ElasticsearchNode;
 import fr.gouv.vitam.common.elasticsearch.ElasticsearchRule;
+import fr.gouv.vitam.common.error.VitamError;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.model.RequestResponse;
@@ -136,6 +137,7 @@ public class ContextServiceImplTest {
 
         final List tenants = new ArrayList<>();
         tenants.add(new Integer(TENANT_ID));
+        tenants.add(new Integer(0));
         tenants.add(new Integer(EXTERNAL_TENANT));
         VitamConfiguration.setTenants(tenants);
         VitamConfiguration.setAdminTenant(TENANT_ID);
@@ -357,5 +359,21 @@ public class ContextServiceImplTest {
 
         verifyZeroInteractions(ingestContractService);
         verifyZeroInteractions(functionalBackupService);
+    }
+
+    @Test
+    @RunWithCustomExecutor
+    public void givenContextImportedWithNonExistingTenant() throws Exception {
+        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
+
+        final File fileContexts = PropertiesUtils.getResourceFile("KO_context_non_existing_tenant.json");
+        final List<ContextModel> ModelList =
+            JsonHandler.getFromFileAsTypeRefence(fileContexts, new TypeReference<List<ContextModel>>() {
+            });
+
+        RequestResponse<ContextModel> response = contextService.createContexts(ModelList);
+        assertThat(response.isOk()).isFalse();
+        assertThat(((VitamError) response).getErrors().get(0).getDescription()).isEqualTo("The tenant 112211 does not exist");
+        assertThat(((VitamError) response).getErrors().get(0).getMessage()).isEqualTo("STP_IMPORT_CONTEXT.UNKNOWN_VALUE.KO");
     }
 }

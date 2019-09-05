@@ -1,0 +1,14 @@
+[
+  {
+    "Name": "My_Context_test",
+    "Status": "INACTIVE",
+    "SecurityProfile" : "SEC_PROFILE-000001",
+    "Permissions": [
+      {
+        "tenant": 112211,
+        "AccessContracts": [],
+        "IngestContracts": []
+      }
+    ]
+  }
+]
