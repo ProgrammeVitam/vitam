@@ -1,4 +1,4 @@
-/*******************************************************************************
+/*
  * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2019)
  *
  * contact.vitam@culture.gouv.fr
@@ -23,7 +23,7 @@
  *
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
- *******************************************************************************/
+ */
 package fr.gouv.vitam.ingest.internal.integration.test;
 
 import com.fasterxml.jackson.core.type.TypeReference;
@@ -65,6 +65,7 @@ import fr.gouv.vitam.common.database.parser.request.single.SelectParserSingle;
 import fr.gouv.vitam.common.database.parser.request.single.UpdateParserSingle;
 import fr.gouv.vitam.common.database.server.elasticsearch.ElasticsearchNode;
 import fr.gouv.vitam.common.database.utils.AccessContractRestrictionHelper;
+import fr.gouv.vitam.common.elasticsearch.ElasticsearchRule;
 import fr.gouv.vitam.common.error.VitamError;
 import fr.gouv.vitam.common.exception.AccessUnauthorizedException;
 import fr.gouv.vitam.common.exception.BadRequestException;
@@ -169,6 +170,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import static fr.gouv.vitam.common.VitamServerRunner.PORT_SERVICE_LOGBOOK;
 import static fr.gouv.vitam.common.database.builder.query.QueryHelper.eq;
 import static fr.gouv.vitam.common.guid.GUIDFactory.newOperationLogbookGUID;
 import static fr.gouv.vitam.preservation.ProcessManagementWaiter.waitOperation;
@@ -184,14 +186,14 @@ import static org.junit.Assert.fail;
  * Ingest Internal integration test
  */
 public class IngestInternalIT extends VitamRuleRunner {
-    public static final String HOLDING_SCHEME = "HOLDING_SCHEME";
+    private static final String HOLDING_SCHEME = "HOLDING_SCHEME";
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(IngestInternalIT.class);
     private static final String HOLDING_SCHEME_IDENTIFIER = "HOLDINGSCHEME";
     private static final String LINE_3 = "line 3";
     private static final String LINE_2 = "line 2";
     private static final String JEU_DONNEES_OK_REGLES_CSV_CSV = "jeu_donnees_OK_regles_CSV.csv";
     private static final Integer tenantId = 0;
-    private static final long SLEEP_TIME = 20l;
+    private static final long SLEEP_TIME = 20L;
     private static final long NB_TRY = 18000; // equivalent to 16 minute
     private static final String METADATA_PATH = "/metadata/v1";
     private static final String PROCESSING_PATH = "/processing/v1";
@@ -237,7 +239,7 @@ public class IngestInternalIT extends VitamRuleRunner {
     @ClassRule
     public static VitamServerRunner runner =
         new VitamServerRunner(IngestInternalIT.class, mongoRule.getMongoDatabase().getName(),
-            elasticsearchRule.getClusterName(),
+            ElasticsearchRule.getClusterName(),
             Sets.newHashSet(
                 MetadataMain.class,
                 WorkerMain.class,
@@ -301,8 +303,8 @@ public class IngestInternalIT extends VitamRuleRunner {
 
         // ES client
         final List<ElasticsearchNode> esNodes = new ArrayList<>();
-        esNodes.add(new ElasticsearchNode("localhost", elasticsearchRule.getTcpPort()));
-        esClient = new LogbookElasticsearchAccess(elasticsearchRule.getClusterName(), esNodes);
+        esNodes.add(new ElasticsearchNode("localhost", ElasticsearchRule.getTcpPort()));
+        esClient = new LogbookElasticsearchAccess(ElasticsearchRule.getClusterName(), esNodes);
 
         StorageClientFactory storageClientFactory = StorageClientFactory.getInstance();
         storageClientFactory.setVitamClientType(VitamClientFactoryInterface.VitamClientType.MOCK);
@@ -332,31 +334,31 @@ public class IngestInternalIT extends VitamRuleRunner {
     @RunWithCustomExecutor
     @Test
     public void testServersStatus() throws Exception {
-        RestAssured.port = runner.PORT_SERVICE_PROCESSING;
+        RestAssured.port = VitamServerRunner.PORT_SERVICE_PROCESSING;
         RestAssured.basePath = PROCESSING_PATH;
         get("/status").then().statusCode(Status.NO_CONTENT.getStatusCode());
 
-        RestAssured.port = runner.PORT_SERVICE_WORKSPACE;
+        RestAssured.port = VitamServerRunner.PORT_SERVICE_WORKSPACE;
         RestAssured.basePath = WORKSPACE_PATH;
         get("/status").then().statusCode(Status.NO_CONTENT.getStatusCode());
 
-        RestAssured.port = runner.PORT_SERVICE_METADATA;
+        RestAssured.port = VitamServerRunner.PORT_SERVICE_METADATA;
         RestAssured.basePath = METADATA_PATH;
         get("/status").then().statusCode(Status.NO_CONTENT.getStatusCode());
 
-        RestAssured.port = runner.PORT_SERVICE_WORKER;
+        RestAssured.port = VitamServerRunner.PORT_SERVICE_WORKER;
         RestAssured.basePath = WORKER_PATH;
         get("/status").then().statusCode(Status.NO_CONTENT.getStatusCode());
 
-        RestAssured.port = runner.PORT_SERVICE_LOGBOOK;
+        RestAssured.port = PORT_SERVICE_LOGBOOK;
         RestAssured.basePath = LOGBOOK_PATH;
         get("/status").then().statusCode(Status.NO_CONTENT.getStatusCode());
 
-        RestAssured.port = runner.PORT_SERVICE_INGEST_INTERNAL;
+        RestAssured.port = VitamServerRunner.PORT_SERVICE_INGEST_INTERNAL;
         RestAssured.basePath = INGEST_INTERNAL_PATH;
         get("/status").then().statusCode(Status.NO_CONTENT.getStatusCode());
 
-        RestAssured.port = runner.PORT_SERVICE_ACCESS_INTERNAL;
+        RestAssured.port = VitamServerRunner.PORT_SERVICE_ACCESS_INTERNAL;
         RestAssured.basePath = ACCESS_INTERNAL_PATH;
         get("/status").then().statusCode(Status.NO_CONTENT.getStatusCode());
     }

@@ -1,4 +1,4 @@
-/*******************************************************************************
+/*
  * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2019)
  *
  * contact.vitam@culture.gouv.fr
@@ -23,7 +23,7 @@
  *
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
- *******************************************************************************/
+ */
 package fr.gouv.vitam.ingest.external.client;
 
 import static fr.gouv.vitam.common.GlobalDataRest.X_REQUEST_ID;
@@ -49,9 +49,7 @@ import fr.gouv.vitam.ingest.external.api.exception.IngestExternalException;
  * Mock client implementation for IngestExternal
  */
 class IngestExternalClientMock extends AbstractMockClient implements IngestExternalClient {
-    private static final String FAKE_X_REQUEST_ID = "aedqaaaaacaam7mxaaaamakvhiv4rsiaaa0";
-    public static final String MOCK_INGEST_EXTERNAL_RESPONSE_STREAM = "VITAM-Ingest External Client Mock Response";
-    final int TENANT_ID = 0;
+    private static final String FAKE_X_REQUEST_ID = "aeaqaaaaaefex4j4aao2qalmjv7h24yaaaaq";
     public static final String ID = "identifier1";
     protected StatusCode globalStatus;
 

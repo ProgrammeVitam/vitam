@@ -32,46 +32,61 @@ import com.fasterxml.jackson.annotation.JsonProperty;
  * Logbook Common event model
  */
 public class LogbookEvent {
-    @JsonProperty("evId")
+    public static final String EV_ID = "evId";
+    public static final String EV_PARENT_ID = "evParentId";
+    public static final String EV_TYPE = "evType";
+    public static final String EV_DATE_TIME = "evDateTime";
+    public static final String EV_ID_PROC = "evIdProc";
+    public static final String EV_TYPE_PROC = "evTypeProc";
+    public static final String OUTCOME = "outcome";
+    public static final String OUT_DETAIL = "outDetail";
+    public static final String OUT_MESSG = "outMessg";
+    public static final String AG_ID = "agId";
+    public static final String OB_ID = "obId";
+    public static final String EV_DET_DATA = "evDetData";
+    public static final String RIGHTS_STATEMENT_IDENTIFIER = "rightsStatementIdentifier";
+    public static final String LAST_PERSISTED_DATE = "_lastPersistedDate";
+
+    @JsonProperty(EV_ID)
     private String evId;
 
-    @JsonProperty("evParentId")
+    @JsonProperty(EV_PARENT_ID)
     private String evParentId;
 
-    @JsonProperty("evType")
+    @JsonProperty(EV_TYPE)
     private String evType;
 
-    @JsonProperty("evDateTime")
+    @JsonProperty(EV_DATE_TIME)
     private String evDateTime;
 
-    @JsonProperty("evIdProc")
+    @JsonProperty(EV_ID_PROC)
     private String evIdProc;
 
-    @JsonProperty("evTypeProc")
+    @JsonProperty(EV_TYPE_PROC)
     private String evTypeProc;
 
-    @JsonProperty("outcome")
+    @JsonProperty(OUTCOME)
     private String outcome;
 
-    @JsonProperty("outDetail")
+    @JsonProperty(OUT_DETAIL)
     private String outDetail;
 
-    @JsonProperty("outMessg")
+    @JsonProperty(OUT_MESSG)
     private String outMessg;
 
-    @JsonProperty("agId")
+    @JsonProperty(AG_ID)
     private String agId;
 
-    @JsonProperty("obId")
+    @JsonProperty(OB_ID)
     private String obId;
 
-    @JsonProperty("evDetData")
+    @JsonProperty(EV_DET_DATA)
     private String evDetData;
 
-    @JsonProperty("rightsStatementIdentifier")
+    @JsonProperty(RIGHTS_STATEMENT_IDENTIFIER)
     private String rightsStatementIdentifier;
 
-    @JsonProperty("_lastPersistedDate")
+    @JsonProperty(LAST_PERSISTED_DATE)
     private String lastPersistedDate;
 
     /**

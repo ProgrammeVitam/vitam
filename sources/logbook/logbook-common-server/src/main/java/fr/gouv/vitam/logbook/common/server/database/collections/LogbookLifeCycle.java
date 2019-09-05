@@ -1,4 +1,4 @@
-/*******************************************************************************
+/*
  * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2019)
  *
  * contact.vitam@culture.gouv.fr
@@ -23,22 +23,20 @@
  *
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
- *******************************************************************************/
+ */
 package fr.gouv.vitam.logbook.common.server.database.collections;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
-
 import com.fasterxml.jackson.databind.JsonNode;
-import com.mongodb.BasicDBObject;
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.database.server.mongodb.VitamDocument;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParameterName;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParameters;
 import org.bson.Document;
-import org.bson.conversions.Bson;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Map;
 
 /**
  * Abstract class for Logbook LifeCycle item
@@ -104,7 +102,7 @@ public class LogbookLifeCycle<T> extends VitamDocument<LogbookLifeCycle<T>> {
         super(content);
     }
 
-    static final LogbookMongoDbName getIdName() {
+    static LogbookMongoDbName getIdName() {
         return LogbookMongoDbName.objectIdentifier;
     }
 
@@ -112,7 +110,7 @@ public class LogbookLifeCycle<T> extends VitamDocument<LogbookLifeCycle<T>> {
      *
      * @return the ParameterName as id in collection
      */
-    public static final LogbookParameterName getIdParameterName() {
+    static LogbookParameterName getIdParameterName() {
         return LogbookParameterName.objectIdentifier;
     }
 
@@ -129,14 +127,14 @@ public class LogbookLifeCycle<T> extends VitamDocument<LogbookLifeCycle<T>> {
     /**
      * Initialize indexes for Collection
      */
-    static final void addIndexes() {
+    static void addIndexes() {
         // TODO P1
     }
 
     /**
      * Drop indexes for Collection
      */
-    static final void dropIndexes() {
+    static void dropIndexes() {
         // TODO P1
 
     }
