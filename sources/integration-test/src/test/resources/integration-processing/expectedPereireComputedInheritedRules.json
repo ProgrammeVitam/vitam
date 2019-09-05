@@ -1,0 +1,25 @@
+{
+    "AccessRule": {
+        "MaxEndDate": "2000-01-01"
+    },
+    "AppraisalRule": {
+        "FinalAction": [
+            "Keep",
+            "Keep"
+        ]
+    },
+    "ClassificationRule": {
+        "ClassificationAudience": [],
+        "ClassificationLevel": [],
+        "ClassificationOwner": [],
+        "ClassificationReassessingDate": [],
+        "NeedReassessingAuthorization": []
+    },
+    "DisseminationRule": {
+        "MaxEndDate": "2025-01-01"
+    },
+    "ReuseRule": {},
+    "StorageRule": {
+        "FinalAction": []
+    }
+}

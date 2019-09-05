@@ -30,12 +30,11 @@ import com.google.common.annotations.VisibleForTesting;
 import fr.gouv.vitam.batch.report.client.BatchReportClient;
 import fr.gouv.vitam.batch.report.client.BatchReportClientFactory;
 import fr.gouv.vitam.batch.report.model.Report;
+import fr.gouv.vitam.batch.report.model.ReportBody;
 import fr.gouv.vitam.batch.report.model.ReportType;
 import fr.gouv.vitam.batch.report.model.entry.PreservationReportEntry;
-import fr.gouv.vitam.batch.report.model.ReportBody;
 import fr.gouv.vitam.common.exception.VitamClientInternalException;
 import fr.gouv.vitam.common.exception.VitamException;
-import fr.gouv.vitam.storage.engine.client.StorageClientFactory;
 
 import java.util.List;
 
@@ -46,27 +45,23 @@ import static fr.gouv.vitam.batch.report.model.ReportType.PRESERVATION;
  */
 public class PreservationReportService {
 
-    private static final String PRESERVATION_REPORT = "preservationReport";
-
     private final BatchReportClientFactory batchReportClientFactory;
-    private final StorageClientFactory storageClientFactory;
 
     public PreservationReportService() {
-        this(BatchReportClientFactory.getInstance(), StorageClientFactory.getInstance());
+        this(BatchReportClientFactory.getInstance());
     }
 
     @VisibleForTesting
-    public PreservationReportService(BatchReportClientFactory reportFactory,
-        StorageClientFactory storageClientFactory) {
+    public PreservationReportService(BatchReportClientFactory reportFactory) {
         this.batchReportClientFactory = reportFactory;
-        this.storageClientFactory = storageClientFactory;
     }
 
     public void appendPreservationEntries(String processId, List<PreservationReportEntry> preservationEntries)
         throws VitamClientInternalException {
 
         try (BatchReportClient batchReportClient = batchReportClientFactory.getClient()) {
-            ReportBody reportBody = new ReportBody(processId, PRESERVATION, preservationEntries);
+            ReportBody<PreservationReportEntry> reportBody =
+                new ReportBody<>(processId, PRESERVATION, preservationEntries);
             batchReportClient.appendReportEntries(reportBody);
         }
     }

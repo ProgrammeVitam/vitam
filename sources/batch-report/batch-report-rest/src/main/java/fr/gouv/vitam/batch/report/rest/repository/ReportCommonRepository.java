@@ -57,6 +57,9 @@ public abstract class ReportCommonRepository {
      * @param reports report
      */
     protected void bulkAppendReport(List<Document> reports, MongoCollection<Document> collection) {
+        if(reports.isEmpty()) {
+            return;
+        }
         final List<WriteModel<Document>> updates = new ArrayList<>();
         for (Document document : reports) {
             Document metadata = (Document) document.get("_metadata");
