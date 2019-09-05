@@ -1,4 +1,4 @@
-/*******************************************************************************
+/*
  * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2019)
  *
  * contact.vitam@culture.gouv.fr
@@ -23,29 +23,16 @@
  *
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
- *******************************************************************************/
+ */
 package fr.gouv.vitam.worker.core.plugin.dip;
-
-import static fr.gouv.vitam.worker.core.plugin.dip.CreateManifest.BINARIES_RANK;
-import static fr.gouv.vitam.worker.core.plugin.dip.CreateManifest.GUID_TO_INFO_RANK;
-import static fr.gouv.vitam.worker.core.plugin.dip.CreateManifest.MANIFEST_XML_RANK;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.hamcrest.core.IsEqual.equalTo;
-import static org.mockito.BDDMockito.given;
-import static org.mockito.Mockito.mock;
-import static org.xmlunit.matchers.EvaluateXPathMatcher.hasXPath;
-
-import java.io.File;
-import java.io.FileInputStream;
-import java.util.*;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
-
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.model.administration.AccessContractModel;
+import fr.gouv.vitam.common.model.dip.DipExportRequest;
 import fr.gouv.vitam.common.model.processing.ProcessingUri;
 import fr.gouv.vitam.common.model.processing.UriPrefix;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
@@ -54,9 +41,9 @@ import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.metadata.client.MetaDataClient;
 import fr.gouv.vitam.metadata.client.MetaDataClientFactory;
+import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 import fr.gouv.vitam.processing.common.parameter.WorkerParametersFactory;
 import fr.gouv.vitam.worker.common.HandlerIO;
-
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Rule;
@@ -66,6 +53,22 @@ import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnit;
 import org.mockito.junit.MockitoRule;
 import org.xmlunit.builder.Input;
+
+import java.io.File;
+import java.io.FileInputStream;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
+
+import static fr.gouv.vitam.worker.core.plugin.dip.CreateManifest.BINARIES_RANK;
+import static fr.gouv.vitam.worker.core.plugin.dip.CreateManifest.GUID_TO_INFO_RANK;
+import static fr.gouv.vitam.worker.core.plugin.dip.CreateManifest.MANIFEST_XML_RANK;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.hamcrest.core.IsEqual.equalTo;
+import static org.mockito.BDDMockito.given;
+import static org.mockito.Mockito.mock;
+import static org.xmlunit.matchers.EvaluateXPathMatcher.hasXPath;
 
 public class CreateManifestTest {
 
@@ -86,7 +89,7 @@ public class CreateManifestTest {
     
     private CreateManifest createManifest;
 
-    static Map<String, String> prefix2Uri = new HashMap<>();
+    private static Map<String, String> prefix2Uri = new HashMap<>();
 
     static {
         prefix2Uri.put("vitam", "fr:gouv:culture:archivesdefrance:seda:v2.1");
@@ -145,8 +148,15 @@ public class CreateManifestTest {
             .willReturn(new ProcessingUri(UriPrefix.WORKSPACE, binaryFile.getPath()));
         given(handlerIO.getNewLocalFile(binaryFile.getPath())).willReturn(binaryFile);
 
+        DipExportRequest dipExportRequest = new DipExportRequest();
+        dipExportRequest.setExportWithLogBookLFC(true);
+        dipExportRequest.setDslRequest(queryUnit);
+        given(handlerIO.getJsonFromWorkspace("dip_export_query.json")).willReturn(JsonHandler.toJsonNode(dipExportRequest));
+
+        WorkerParameters wp = WorkerParametersFactory.newWorkerParameters();
+
         // When
-        ItemStatus itemStatus = createManifest.execute(WorkerParametersFactory.newWorkerParameters(), handlerIO);
+        ItemStatus itemStatus = createManifest.execute(wp, handlerIO);
 
         // Then
         assertThat(itemStatus.getGlobalStatus()).isEqualTo(StatusCode.OK);
@@ -186,6 +196,8 @@ public class CreateManifestTest {
         Assert.assertThat(Input.fromFile(manifestFile), hasXPath("//vitam:ArchiveDeliveryRequestReply/vitam:DataObjectPackage/vitam:DataObjectGroup/vitam:PhysicalDataObject/vitam:PhysicalId",
                 equalTo("1 Num 1/204-4"))
                 .withNamespaceContext(prefix2Uri));
+        Assert.assertThat(Input.fromFile(manifestFile), hasXPath("//vitam:ArchiveDeliveryRequestReply/vitam:DataObjectPackage/vitam:DescriptiveMetadata/vitam:ArchiveUnit/vitam:Management/vitam:LogBook/vitam:Event/vitam:EventIdentifier",
+            equalTo("aedqaaaaacaam7mxaaaamakvhiv4rsqaaaaq")).withNamespaceContext(prefix2Uri));
     }
 
 
@@ -243,6 +255,10 @@ public class CreateManifestTest {
         given(handlerIO.getOutput(BINARIES_RANK))
                 .willReturn(new ProcessingUri(UriPrefix.WORKSPACE, binaryFile.getPath()));
         given(handlerIO.getNewLocalFile(binaryFile.getPath())).willReturn(binaryFile);
+        DipExportRequest dipExportRequest = new DipExportRequest();
+        dipExportRequest.setExportWithLogBookLFC(true);
+        dipExportRequest.setDslRequest(queryUnit);
+        given(handlerIO.getJsonFromWorkspace("dip_export_query.json")).willReturn(JsonHandler.toJsonNode(dipExportRequest));
 
         // When
         ItemStatus itemStatus = createManifest.execute(WorkerParametersFactory.newWorkerParameters(), handlerIO);

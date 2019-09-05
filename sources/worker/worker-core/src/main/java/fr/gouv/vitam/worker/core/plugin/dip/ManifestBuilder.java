@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2019)
  *
  * contact.vitam@culture.gouv.fr
@@ -37,6 +37,7 @@ import fr.gouv.culture.archivesdefrance.seda.v2.DataObjectGroupType;
 import fr.gouv.culture.archivesdefrance.seda.v2.DataObjectOrArchiveUnitReferenceType;
 import fr.gouv.culture.archivesdefrance.seda.v2.DataObjectPackageType;
 import fr.gouv.culture.archivesdefrance.seda.v2.DataObjectRefType;
+import fr.gouv.culture.archivesdefrance.seda.v2.LogBookType;
 import fr.gouv.culture.archivesdefrance.seda.v2.MinimalDataObjectType;
 import fr.gouv.culture.archivesdefrance.seda.v2.ObjectFactory;
 import fr.gouv.vitam.common.accesslog.AccessLogUtils;
@@ -62,9 +63,15 @@ import fr.gouv.vitam.functional.administration.client.AdminManagementClient;
 import fr.gouv.vitam.functional.administration.client.AdminManagementClientFactory;
 import fr.gouv.vitam.functional.administration.common.AccessContract;
 import fr.gouv.vitam.functional.administration.common.exception.AdminManagementClientServerException;
+import fr.gouv.vitam.logbook.common.exception.LogbookClientException;
+import fr.gouv.vitam.logbook.common.server.database.collections.LogbookLifeCycleUnit;
+import fr.gouv.vitam.logbook.lifecycles.client.LogbookLifeCyclesClient;
+import fr.gouv.vitam.logbook.lifecycles.client.LogbookLifeCyclesClientFactory;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.worker.common.utils.SedaUtils;
+import fr.gouv.vitam.worker.core.mapping.LogbookMapper;
 import org.apache.commons.io.FilenameUtils;
+import org.bson.Document;
 
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBElement;
@@ -81,7 +88,6 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -94,6 +100,7 @@ import static fr.gouv.vitam.common.SedaConstants.TAG_DESCRIPTIVE_METADATA;
 import static fr.gouv.vitam.common.SedaConstants.TAG_MANAGEMENT_METADATA;
 import static fr.gouv.vitam.common.SedaConstants.TAG_ORIGINATINGAGENCYIDENTIFIER;
 import static fr.gouv.vitam.common.mapping.dip.UnitMapper.buildObjectMapper;
+import static fr.gouv.vitam.common.model.RequestResponseOK.TAG_RESULTS;
 import static fr.gouv.vitam.worker.common.utils.SedaUtils.XSI_URI;
 
 /**
@@ -102,7 +109,6 @@ import static fr.gouv.vitam.worker.common.utils.SedaUtils.XSI_URI;
 public class ManifestBuilder implements AutoCloseable {
 
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(ManifestBuilder.class);
-
     private static JAXBContext jaxbContext;
 
     static {
@@ -112,20 +118,21 @@ public class ManifestBuilder implements AutoCloseable {
             LOGGER.error("unable to create jaxb context", e);
         }
     }
-
     private final XMLStreamWriter writer;
     private final Marshaller marshaller;
     private final ArchiveUnitMapper archiveUnitMapper;
     private final ObjectMapper objectMapper;
     private final ObjectFactory objectFactory;
     private ObjectGroupMapper objectGroupMapper;
+    private LogbookLifeCyclesClientFactory logbookLifeCyclesClientFactory = LogbookLifeCyclesClientFactory.getInstance();
+
 
     /**
      * @param outputStream
      * @throws XMLStreamException
      * @throws JAXBException
      */
-    public ManifestBuilder(OutputStream outputStream) throws XMLStreamException, JAXBException {
+    ManifestBuilder(OutputStream outputStream) throws XMLStreamException, JAXBException {
         archiveUnitMapper = new ArchiveUnitMapper();
         this.objectFactory = new ObjectFactory();
         this.objectMapper = buildObjectMapper();
@@ -149,26 +156,27 @@ public class ManifestBuilder implements AutoCloseable {
     /**
      * write a GOT
      *
-     * @param og
+     * @param og    objectGroup
      * @return
      * @throws JsonProcessingException
      * @throws JAXBException
      * @throws ProcessingException
+     * @throws XMLStreamException
      */
-    public Map<String, JsonNode> writeGOT(JsonNode og, String linkedAU, Optional<Set<String>> dataObjectVersionFilter)
+    Map<String, JsonNode> writeGOT(JsonNode og, String linkedAU, Set<String> dataObjectVersionFilter)
         throws JsonProcessingException, JAXBException, ProcessingException, XMLStreamException {
 
         ObjectGroupResponse objectGroup = objectMapper.treeToValue(og, ObjectGroupResponse.class);
         // Usage access control
         AccessContractModel accessContractModel = VitamThreadUtils.getVitamSession().getContract();
-        if(accessContractModel == null) {
+        if (accessContractModel == null) {
             final AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient();
             Select select = new Select();
 
             try {
                 Query query = QueryHelper.eq(AccessContract.IDENTIFIER, VitamThreadUtils.getVitamSession().getContractId());
                 select.setQuery(query);
-                accessContractModel = ((RequestResponseOK<AccessContractModel>)client.findAccessContracts(select.getFinalSelect())).getResults().get(0);
+                accessContractModel = ((RequestResponseOK<AccessContractModel>) client.findAccessContracts(select.getFinalSelect())).getResults().get(0);
             } catch (InvalidCreateOperationException | AdminManagementClientServerException | InvalidParseOperationException e) {
                 throw new ProcessingException(e.getMessage(), e.getCause());
             }
@@ -177,29 +185,29 @@ public class ManifestBuilder implements AutoCloseable {
         final AccessContractModel accessContract = accessContractModel;
 
         List<QualifiersModel> qualifiersToRemove;
-        if(!accessContract.isEveryDataObjectVersion()) {
+        if (!accessContract.isEveryDataObjectVersion()) {
             qualifiersToRemove = objectGroup.getQualifiers().stream()
-                    .filter(qualifier -> !accessContract.getDataObjectVersion().contains(qualifier.getQualifier()))
-                    .collect(Collectors.toList());
+                .filter(qualifier -> !accessContract.getDataObjectVersion().contains(qualifier.getQualifier()))
+                .collect(Collectors.toList());
             objectGroup.getQualifiers().removeAll(qualifiersToRemove);
         }
 
-        if(dataObjectVersionFilter.isPresent()) {
+        if (!dataObjectVersionFilter.isEmpty()) {
             qualifiersToRemove = objectGroup.getQualifiers().stream()
-                    .filter(qualifier -> !dataObjectVersionFilter.get().contains(qualifier.getQualifier()))
-                    .collect(Collectors.toList());
+                .filter(qualifier -> !dataObjectVersionFilter.contains(qualifier.getQualifier()))
+                .collect(Collectors.toList());
             objectGroup.getQualifiers().removeAll(qualifiersToRemove);
         }
 
-        if(objectGroup.getQualifiers().isEmpty()) {
+        if (objectGroup.getQualifiers().isEmpty()) {
             return Collections.emptyMap();
         }
 
         Map<String, String> strategiesByVersion = objectGroup.getQualifiers().stream()
-                .flatMap(qualifier -> qualifier.getVersions().stream())
-                .filter(version -> version.getStorage() != null && version.getStorage().getStrategyId() != null)
-                .collect(Collectors.toMap(VersionsModel::getDataObjectVersion, version -> version.getStorage().getStrategyId()));
-        
+            .flatMap(qualifier -> qualifier.getVersions().stream())
+            .filter(version -> version.getStorage() != null && version.getStorage().getStrategyId() != null)
+            .collect(Collectors.toMap(VersionsModel::getDataObjectVersion, version -> version.getStorage().getStrategyId()));
+
         Map<String, JsonNode> maps = new HashMap<>();
 
         final DataObjectPackageType xmlObject;
@@ -228,7 +236,8 @@ public class ManifestBuilder implements AutoCloseable {
                         String xmlQualifier = dataObjectVersion[0];
                         Integer xmlVersion = Integer.parseInt(dataObjectVersion[1]);
 
-                        ObjectNode objectInfos = (ObjectNode) AccessLogUtils.getWorkerInfo(xmlQualifier, xmlVersion, binaryDataObjectType.getSize().longValue(), linkedAU, fileName);
+                        ObjectNode objectInfos =
+                            (ObjectNode) AccessLogUtils.getWorkerInfo(xmlQualifier, xmlVersion, binaryDataObjectType.getSize().longValue(), linkedAU, fileName);
                         objectInfos.put("strategyId", strategiesByVersion.get(minimalDataObjectType.getDataObjectVersion()));
                         maps.put(minimalDataObjectType.getId(), objectInfos);
                     }
@@ -253,8 +262,8 @@ public class ManifestBuilder implements AutoCloseable {
      * @throws DatatypeConfigurationException
      * @throws JAXBException
      */
-    public void writeArchiveUnit(JsonNode result, ListMultimap<String, String> multimap, Map<String, String> ogs)
-        throws JsonProcessingException, DatatypeConfigurationException, JAXBException {
+    void writeArchiveUnit(JsonNode result, ListMultimap<String, String> multimap, Map<String, String> ogs, boolean exportWithLogBookLFC)
+        throws JsonProcessingException, DatatypeConfigurationException, JAXBException, ProcessingException {
 
         ArchiveUnitModel archiveUnitModel = objectMapper.treeToValue(result, ArchiveUnitModel.class);
         final ArchiveUnitType xmlUnit = archiveUnitMapper.map(archiveUnitModel);
@@ -283,8 +292,32 @@ public class ManifestBuilder implements AutoCloseable {
             xmlUnit.getArchiveUnitOrDataObjectReferenceOrDataObjectGroup().add(archiveUnitTypeDataObjectReference);
         }
 
+        if(exportWithLogBookLFC) {
+            addLogbookType(xmlUnit);
+        }
+
         marshaller.marshal(xmlUnit, writer);
 
+    }
+
+    private void addLogbookType(ArchiveUnitType xmlUnit) throws ProcessingException {
+        try (LogbookLifeCyclesClient client = logbookLifeCyclesClientFactory.getClient()) {
+            Select select = new Select();
+
+            JsonNode response = client.selectUnitLifeCycleById(xmlUnit.getId(), select.getFinalSelect());
+            if (response != null && response.has(TAG_RESULTS) && response.get(TAG_RESULTS).size() > 0) {
+                JsonNode rootEvent = response.get(TAG_RESULTS).get(0);
+                LogbookLifeCycleUnit logbookLFC = new LogbookLifeCycleUnit(rootEvent);
+                LogBookType logbookType = new LogBookType();
+                for(Document event : logbookLFC.events()) {
+                    logbookType.getEvent().add(LogbookMapper.getEventTypeFromDocument(event));
+                }
+                logbookType.getEvent().add(LogbookMapper.getEventTypeFromDocument(logbookLFC));
+                xmlUnit.getManagement().setLogBook(logbookType);
+            }
+        } catch (LogbookClientException | InvalidParseOperationException e) {
+            throw new ProcessingException(e);
+        }
     }
 
     @Override
@@ -292,32 +325,32 @@ public class ManifestBuilder implements AutoCloseable {
         writer.close();
     }
 
-    public void startDescriptiveMetadata() throws XMLStreamException {
+    void startDescriptiveMetadata() throws XMLStreamException {
         writer.writeStartElement(TAG_DESCRIPTIVE_METADATA);
     }
 
-    public void startDataObjectPackage() throws XMLStreamException {
+    void startDataObjectPackage() throws XMLStreamException {
         writer.writeStartElement(TAG_DATA_OBJECT_PACKAGE);
     }
 
-    public void startDataObjectGroup(String groupId) throws XMLStreamException {
+    private void startDataObjectGroup(String groupId) throws XMLStreamException {
         writer.writeStartElement(TAG_DATA_OBJECT_GROUP);
         writer.writeAttribute(NAMESPACE_URI, ATTRIBUTE_ID, groupId);
     }
 
-    public void endDescriptiveMetadata() throws XMLStreamException {
+    void endDescriptiveMetadata() throws XMLStreamException {
         writer.writeEndElement();
     }
 
-    public void endDataObjectPackage() throws XMLStreamException {
+    void endDataObjectPackage() throws XMLStreamException {
         writer.writeEndElement();
     }
 
-    public void endDataObjectGroup() throws XMLStreamException {
+    private void endDataObjectGroup() throws XMLStreamException {
         writer.writeEndElement();
     }
 
-    public void writeOriginatingAgency(String originatingAgency) throws JAXBException, XMLStreamException {
+    void writeOriginatingAgency(String originatingAgency) throws JAXBException, XMLStreamException {
         writer.writeStartElement(NAMESPACE_URI, TAG_MANAGEMENT_METADATA);
 
         marshaller.marshal(new JAXBElement<>(new QName(NAMESPACE_URI, TAG_ORIGINATINGAGENCYIDENTIFIER),
@@ -326,7 +359,7 @@ public class ManifestBuilder implements AutoCloseable {
         writer.writeEndElement();
     }
 
-    public void closeManifest() throws XMLStreamException {
+    void closeManifest() throws XMLStreamException {
         writer.writeEndElement();
         writer.writeEndDocument();
     }

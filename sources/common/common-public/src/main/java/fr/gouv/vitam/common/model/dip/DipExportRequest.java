@@ -10,11 +10,19 @@ public class DipExportRequest {
     @JsonProperty("dslRequest")
     private JsonNode dslRequest;
 
+    @JsonProperty("exportWithLogBookLFC")
+    private boolean exportWithLogBookLFC;
+
     public DipExportRequest() {}
 
     public DipExportRequest(DataObjectVersions dataObjectVersionToExport, JsonNode dslRequest) {
+        this(dataObjectVersionToExport, dslRequest, false);
+    }
+
+    public DipExportRequest(DataObjectVersions dataObjectVersionToExport, JsonNode dslRequest, boolean withLogBookLFC) {
         this.dataObjectVersionToExport = dataObjectVersionToExport;
         this.dslRequest = dslRequest;
+        this.exportWithLogBookLFC = withLogBookLFC;
     }
 
     public DipExportRequest(JsonNode dslRequest) {
@@ -35,5 +43,13 @@ public class DipExportRequest {
 
     public void setDslRequest(JsonNode dslRequest) {
         this.dslRequest = dslRequest;
+    }
+
+    public boolean isExportWithLogBookLFC() {
+        return exportWithLogBookLFC;
+    }
+
+    public void setExportWithLogBookLFC(boolean exportWithLogBookLFC) {
+        this.exportWithLogBookLFC = exportWithLogBookLFC;
     }
 }

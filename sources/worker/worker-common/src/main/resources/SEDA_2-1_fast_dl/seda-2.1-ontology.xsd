@@ -650,11 +650,7 @@
                     <xsd:documentation>Message technique détaillant l'erreur.</xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element ref="EventAbstract" minOccurs="0" maxOccurs="unbounded">
-                <xsd:annotation>
-                    <xsd:documentation>Permet d'étendre de nouveaux types d'évenéments.</xsd:documentation>
-                </xsd:annotation>
-            </xsd:element>
+            <xsd:any processContents="lax" minOccurs="0" maxOccurs="unbounded" />
         </xsd:sequence>
     </xsd:complexType>
     <!-- Signature description -->

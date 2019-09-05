@@ -1,4 +1,4 @@
-/*******************************************************************************
+/*
  * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2019)
  *
  * contact.vitam@culture.gouv.fr
@@ -23,7 +23,7 @@
  *
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
- *******************************************************************************/
+ */
 package fr.gouv.vitam.worker.core.plugin;
 
 import com.fasterxml.jackson.core.type.TypeReference;
@@ -87,7 +87,7 @@ public class CheckArchiveUnitSchemaActionPlugin extends ActionHandler {
     /**
      * Rule's date in bad format
      */
-    static final String DATE_FORMAT = "DATE_FORMAT";
+    private static final String DATE_FORMAT = "DATE_FORMAT";
     /**
      * StartDate is after EndDate
      */
@@ -223,7 +223,7 @@ public class CheckArchiveUnitSchemaActionPlugin extends ActionHandler {
         archiveUnit.set(SedaConstants.TAG_ARCHIVE_UNIT, updatedArchiveUnitJson);
         boolean isUpdateJsonMandatory = !archiveUnitJson.equals(updatedArchiveUnitJson);
 
-        PerformanceLogger.getInstance().log("STP_UNIT_CHECK_AND_PROCESS", "CHECK_UNIT_SCHEMA", "validationOntology",
+        PerformanceLogger.getInstance().log("STP_UNIT_CHECK_AND_PROCESS", CHECK_UNIT_SCHEMA_TASK_ID, "validationOntology",
             ontologyTime.elapsed(TimeUnit.MILLISECONDS));
 
         handlerIO.addOutputResult(UNIT_OUT_RANK, archiveUnit, true, false);
@@ -239,7 +239,7 @@ public class CheckArchiveUnitSchemaActionPlugin extends ActionHandler {
 
         this.unitValidator.validateInternalSchema(updatedArchiveUnitJson);
 
-        PerformanceLogger.getInstance().log("STP_UNIT_CHECK_AND_PROCESS", "CHECK_UNIT_SCHEMA", "validationJson",
+        PerformanceLogger.getInstance().log("STP_UNIT_CHECK_AND_PROCESS", CHECK_UNIT_SCHEMA_TASK_ID, "validationJson",
             validationJson.elapsed(TimeUnit.MILLISECONDS));
     }
 

@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2019)
  *
  * contact.vitam@culture.gouv.fr
@@ -447,7 +447,7 @@ public class ClientMockResultHelper {
      */
     public static JsonNode getLogbookOperation() throws InvalidParseOperationException {
         return JsonHandler
-            .getFromString(RESULT + "[{\"_id\": \"aedqaaaaacaam7mxaaaamakvhiv4rsiaaa0\"," + LOGBOOK_OPERATION + "]}");
+            .getFromString(RESULT + "[{\"_id\": \"aeaqaaaaaefex4j4aao2qalmjv7h24yaaaaq\"," + LOGBOOK_OPERATION + "]}");
     }
 
     /**
@@ -456,7 +456,7 @@ public class ClientMockResultHelper {
      */
     public static JsonNode getLogbookLifecycle() throws InvalidParseOperationException {
         return JsonHandler
-            .getFromString(RESULT + "[{\"_id\": \"aedqaaaaacaam7mxaaaamakvhiv4rsiaaa0\"," + LOGBOOK_LIFECYCLE + "]}");
+            .getFromString(RESULT + "[{\"_id\": \"aeaqaaaaaefex4j4aao2qalmjv7h24yaaaaq\"," + LOGBOOK_LIFECYCLE + "]}");
     }
 
     public static RequestResponse<JsonNode> getMetaDataResult() throws InvalidParseOperationException {

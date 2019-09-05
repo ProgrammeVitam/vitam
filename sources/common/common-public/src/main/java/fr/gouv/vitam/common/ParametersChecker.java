@@ -1,4 +1,4 @@
-/*******************************************************************************
+/*
  * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2019)
  *
  * contact.vitam@culture.gouv.fr
@@ -23,7 +23,7 @@
  *
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
- *******************************************************************************/
+ */
 package fr.gouv.vitam.common;
 
 import com.google.common.base.Strings;
@@ -52,7 +52,7 @@ public final class ParametersChecker {
      * @param parameters parameters to be checked
      * @throws IllegalArgumentException if null or empty
      */
-    public static final void checkParameter(String errorMessage, String... parameters) {
+    public static void checkParameter(String errorMessage, String... parameters) {
         if (parameters == null) {
             throw new IllegalArgumentException(errorMessage);
         }
@@ -70,7 +70,7 @@ public final class ParametersChecker {
      * @param parameters set of parameters
      * @throws IllegalArgumentException if null or empty
      */
-    public static final void checkParameterDefault(String errorMessage, String... parameters) {
+    public static void checkParameterDefault(String errorMessage, String... parameters) {
         if (parameters == null) {
             throw new IllegalArgumentException(errorMessage + MANDATORY_PARAMETER);
         }
@@ -87,7 +87,7 @@ public final class ParametersChecker {
      * @param parameters set of parameters
      * @return True if not null and not empty neither containing only spaces
      */
-    public static final boolean isNotEmpty(String... parameters) {
+    public static boolean isNotEmpty(String... parameters) {
         if (parameters == null) {
             return false;
         }
@@ -106,7 +106,7 @@ public final class ParametersChecker {
      * @param parameters set of parameters
      * @throws IllegalArgumentException if null or empty
      */
-    public static final void checkParameterDefault(String errorMessage, Object... parameters) {
+    public static void checkParameterDefault(String errorMessage, Object... parameters) {
         if (parameters == null) {
             throw new IllegalArgumentException(errorMessage + MANDATORY_PARAMETER);
         }
@@ -124,7 +124,7 @@ public final class ParametersChecker {
      * @param parameters parameters to be checked
      * @throws IllegalArgumentException if null
      */
-    public static final void checkParameterNullOnly(String errorMessage, String... parameters) {
+    public static void checkParameterNullOnly(String errorMessage, String... parameters) {
         if (parameters == null) {
             throw new IllegalArgumentException(errorMessage);
         }
@@ -142,7 +142,7 @@ public final class ParametersChecker {
      * @param parameters set parameters to be checked
      * @throws IllegalArgumentException if null
      */
-    public static final void checkParameter(String errorMessage, Object... parameters) {
+    public static void checkParameter(String errorMessage, Object... parameters) {
         if (parameters == null) {
             throw new IllegalArgumentException(errorMessage);
         }
@@ -154,7 +154,7 @@ public final class ParametersChecker {
     }
 
 
-    public static final void checkDateParam(String errorMessage, String date) {
+    public static void checkDateParam(String errorMessage, String date) {
         if (date == null) {
             throw new IllegalArgumentException(errorMessage);
         }
@@ -172,7 +172,7 @@ public final class ParametersChecker {
      * @param variable the value of variable to check
      * @param minValue the min value
      */
-    public static final void checkValue(String name, long variable, long minValue) {
+    public static void checkValue(String name, long variable, long minValue) {
         if (variable < minValue) {
             throw new IllegalArgumentException("Parameter " + name + " is less than " + minValue);
         }

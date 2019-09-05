@@ -44,11 +44,7 @@
                                 <xsd:documentation>Gestion de la récursivité. Un &lt;ArchiveUnit&gt; peut être contenu dans un ature &lt;ArchiveUnit&gt;.</xsd:documentation>
                             </xsd:annotation>
                         </xsd:element>
-                        <!-- <xsd:element ref="ArchiveUnitReferenceAbstract">
-                            <xsd:annotation>
-                                <xsd:documentation>Permet de faire référence à une sous unité d'archives, pouvant être déjà présente dans le système d'archivage provenant d'une transaction précédente.</xsd:documentation>
-                            </xsd:annotation>
-                        </xsd:element> -->
+
                         <xsd:element name="DataObjectReference" type="DataObjectRefType">
                             <xsd:annotation>
                                 <xsd:documentation>Permet de faire référence à un objet-donnée binaire ou physique déjà présent dans les métadonnées du bordereau.</xsd:documentation>

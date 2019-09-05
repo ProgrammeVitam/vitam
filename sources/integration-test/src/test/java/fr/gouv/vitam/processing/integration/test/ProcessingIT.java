@@ -73,6 +73,7 @@ import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.model.UpdateWorkflowConstants;
 import fr.gouv.vitam.common.model.administration.IngestContractCheckState;
 import fr.gouv.vitam.common.model.administration.IngestContractModel;
+import fr.gouv.vitam.common.model.dip.DipExportRequest;
 import fr.gouv.vitam.common.stream.StreamUtils;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
@@ -1263,6 +1264,11 @@ public class ProcessingIT extends VitamRuleRunner {
 
         workspaceClient.createContainer(containerName);
         workspaceClient.putObject(containerName, "query.json", JsonHandler.writeToInpustream(finalSelect));
+
+        DipExportRequest dipExportRequest = new DipExportRequest();
+        dipExportRequest.setExportWithLogBookLFC(true);
+        dipExportRequest.setDslRequest(finalSelect);
+        workspaceClient.putObject(containerName, "dip_export_query.json", JsonHandler.writeToInpustream(dipExportRequest));
 
         processingClient = ProcessingManagementClientFactory.getInstance().getClient();
         processingClient.initVitamProcess(containerName, Contexts.EXPORT_DIP.name());
