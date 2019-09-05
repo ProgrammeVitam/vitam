@@ -167,9 +167,7 @@ public class BatchReportServiceImpl {
         List<EliminationActionUnitModel> documents =
             entries.stream()
                 .map(unitEntry -> new EliminationActionUnitModel(
-                    GUIDFactory.newGUID().toString(), processId, tenantId,
-                    LocalDateUtil.getFormattedDateForMongo(LocalDateUtil.now()),
-                    unitEntry))
+                    processId, tenantId, LocalDateUtil.getFormattedDateForMongo(LocalDateUtil.now()), unitEntry))
                 .collect(Collectors.toList());
         eliminationActionUnitRepository.bulkAppendReport(documents);
     }
@@ -179,8 +177,7 @@ public class BatchReportServiceImpl {
         List<EliminationActionObjectGroupModel> documents =
             entries.stream()
                 .map(ogEntry -> new EliminationActionObjectGroupModel(
-                    GUIDFactory.newGUID().toString(), processId,
-                    LocalDateUtil.getFormattedDateForMongo(LocalDateUtil.now()), ogEntry, tenantId))
+                    processId, LocalDateUtil.getFormattedDateForMongo(LocalDateUtil.now()), ogEntry, tenantId))
                 .collect(Collectors.toList());
         eliminationActionObjectGroupRepository.bulkAppendReport(documents);
     }
@@ -212,7 +209,7 @@ public class BatchReportServiceImpl {
         List<String> unitsToInvalidate = new ArrayList<>();
         while(units.hasNext()) {
             Document unit = units.next();
-            unitsToInvalidate.add((String) unit.get("_id"));
+            unitsToInvalidate.add((String) unit.get(InvalidUnitsRepository.UNIT_ID));
         }
 
         return unitsToInvalidate;
@@ -241,7 +238,6 @@ public class BatchReportServiceImpl {
 
         return new PreservationReportEntry(
             GUIDFactory.newGUID().toString(),
-            "preservationReportId",
             processId,
             tenantId,
             LocalDateUtil.getFormattedDateForMongo(LocalDateUtil.now()),
@@ -282,7 +278,7 @@ public class BatchReportServiceImpl {
         checkIfPresent("ParentUnitIds", auditEntry.getParentUnitIds());
         checkIfPresent("Status", auditEntry.getStatus());
 
-        return new AuditObjectGroupModel(GUIDFactory.newGUID().toString(), processId,
+        return new AuditObjectGroupModel(processId,
             LocalDateUtil.getFormattedDateForMongo(LocalDateUtil.now()), auditEntry, tenantId);
     }
 
@@ -294,8 +290,8 @@ public class BatchReportServiceImpl {
         checkIfPresent("strategyId", evidenceAuditEntry.getStrategyId());
         checkIfPresent("objectType", evidenceAuditEntry.getObjectType());
 
-        return new EvidenceAuditObjectModel(GUIDFactory.newGUID().toString(), processId, tenantId, LocalDateUtil.getFormattedDateForMongo(LocalDateUtil.now()),
-            evidenceAuditEntry);
+        return new EvidenceAuditObjectModel(processId, tenantId,
+            LocalDateUtil.getFormattedDateForMongo(LocalDateUtil.now()), evidenceAuditEntry);
     }
 
     private void checkIfPresent(String name, Object value) throws BatchReportException {

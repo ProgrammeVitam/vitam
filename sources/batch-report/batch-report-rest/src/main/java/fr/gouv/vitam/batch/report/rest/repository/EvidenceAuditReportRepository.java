@@ -190,21 +190,6 @@ public class EvidenceAuditReportRepository extends ReportCommonRepository {
     }
 
     /**
-     * Append number of objects groups
-     *
-     * @param matchAgg filter
-     * @return number of objectGroups
-     */
-    private int getNbObjects(Bson matchAgg, String objectType) {
-        Document nbObjectGroupsResult = getStats(matchAgg, getGroupAggregation(objectType));
-        if (nbObjectGroupsResult != null) {
-            return nbObjectGroupsResult.getInteger("result");
-        } else {
-            return 0;
-        }
-    }
-
-    /**
      * Compute the {@link EvidenceAuditStatsModel}
      *
      * @param processId the process id
@@ -279,10 +264,6 @@ public class EvidenceAuditReportRepository extends ReportCommonRepository {
 
     private Bson getMatchAggregation(Bson filter) {
         return match(filter);
-    }
-
-    private Bson getGroupAggregation(String name) {
-        return group(String.format("$%s", name), sum("result", 1));
     }
 
     private MongoCursor<Document> getListStats(Bson... aggregations) {

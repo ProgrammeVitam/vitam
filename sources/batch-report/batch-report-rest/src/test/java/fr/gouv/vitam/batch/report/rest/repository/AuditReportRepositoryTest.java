@@ -91,7 +91,7 @@ public class AuditReportRepositoryTest {
                 .add(generateVersion("objectId2", "objectOpi2", "objectQualifier2", "objectVersion2", ReportStatus.OK, ReportStatus.KO, ReportStatus.KO));
         AuditObjectGroupReportEntry auditObjectGroupEntry1 = new AuditObjectGroupReportEntry("objectGroupId1",
                 Collections.singletonList("unitId"), "originatingAgency1", "opi", objectVersions1, ReportStatus.KO, "outcome");
-        auditReportEntryKO = new AuditObjectGroupModel(GUIDFactory.newGUID().toString(), processId,
+        auditReportEntryKO = new AuditObjectGroupModel(processId,
                 LocalDateUtil.getFormattedDateForMongo(LocalDateUtil.now()), auditObjectGroupEntry1, TENANT_ID);
 
         List<AuditObjectVersion> objectVersions2 = new ArrayList<AuditObjectVersion>();
@@ -101,7 +101,7 @@ public class AuditReportRepositoryTest {
                 .add(generateVersion("objectId4", "objectOpi2", "objectQualifier2", "objectVersion2", ReportStatus.OK, ReportStatus.OK, ReportStatus.OK));
         AuditObjectGroupReportEntry auditObjectGroupEntry2 = new AuditObjectGroupReportEntry("objectGroupId2",
                 Collections.singletonList("unitId"), "originatingAgency1", "opi", objectVersions2, ReportStatus.OK, "outcome");
-        auditReportEntryOK = new AuditObjectGroupModel(GUIDFactory.newGUID().toString(), processId,
+        auditReportEntryOK = new AuditObjectGroupModel(processId,
                 LocalDateUtil.getFormattedDateForMongo(LocalDateUtil.now()), auditObjectGroupEntry2, TENANT_ID);
 
         List<AuditObjectVersion> objectVersions3 = new ArrayList<AuditObjectVersion>();
@@ -112,7 +112,7 @@ public class AuditReportRepositoryTest {
         AuditObjectGroupReportEntry auditObjectGroupEntry3 = new AuditObjectGroupReportEntry("objectGroupId3",
                 Collections.singletonList("unitId"), "originatingAgency2", "opi", objectVersions3, ReportStatus.WARNING,
                 "outcome");
-        auditReportEntryWARNING = new AuditObjectGroupModel(GUIDFactory.newGUID().toString(), processId,
+        auditReportEntryWARNING = new AuditObjectGroupModel(processId,
                 LocalDateUtil.getFormattedDateForMongo(LocalDateUtil.now()), auditObjectGroupEntry3, TENANT_ID);
 
     }
