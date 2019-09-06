@@ -31,6 +31,7 @@ import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Iterables;
+import com.google.common.collect.Iterators;
 import com.mongodb.MongoBulkWriteException;
 import com.mongodb.client.FindIterable;
 import com.mongodb.client.MongoCursor;
@@ -49,7 +50,6 @@ import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamFatalRuntimeException;
 import fr.gouv.vitam.common.exception.VitamRuntimeException;
 import fr.gouv.vitam.common.guid.GUIDFactory;
-import fr.gouv.vitam.common.iterables.BulkIterator;
 import fr.gouv.vitam.common.json.BsonHelper;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.SysErrLogger;
@@ -319,7 +319,7 @@ public class ReconstructionService {
             Iterator<OfferLog> listing = restoreBackupService.getListing(VitamConfiguration.getDefaultStrategy(), type, offset, limit, Order.ASC,
                 VitamConfiguration.getRestoreBulkSize());
 
-            Iterator<List<OfferLog>> bulkListing = new BulkIterator<>(listing, VitamConfiguration.getRestoreBulkSize());
+            Iterator<List<OfferLog>> bulkListing = Iterators.partition(listing, VitamConfiguration.getRestoreBulkSize());
 
             while (bulkListing.hasNext()) {
 

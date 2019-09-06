@@ -62,7 +62,6 @@ import fr.gouv.vitam.metadata.core.model.ReconstructionResponseItem;
 import fr.gouv.vitam.metadata.core.reconstruction.ReconstructionService;
 import fr.gouv.vitam.processing.management.client.ProcessingManagementClientFactory;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
-import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
@@ -192,7 +191,7 @@ public class MetadataManagementResourceTest {
     @RunWithCustomExecutor
     public void should_return_ok_when__graph_handled() throws MetaDataException {
         // Given
-        when(graphBuilderService.computeGraph(MetadataCollections.UNIT, Sets.newHashSet("fake"), false))
+        when(graphBuilderService.computeGraph(MetadataCollections.UNIT, Sets.newHashSet("fake"), false, true))
             .thenReturn(new GraphComputeResponse(10, 3));
         // When
         Response response = reconstructionResource.computeGraph(GraphComputeResponse.GraphComputeAction.UNIT, Sets.newHashSet("fake"));
@@ -211,7 +210,7 @@ public class MetadataManagementResourceTest {
     public void should_return_ko_when_graph_compute_handled() throws MetaDataException {
         // Given
         String errorMessage = "Error in graph builder";
-        when(graphBuilderService.computeGraph(MetadataCollections.UNIT, Sets.newHashSet("fake"), false))
+        when(graphBuilderService.computeGraph(MetadataCollections.UNIT, Sets.newHashSet("fake"), false, true))
             .thenThrow(new RuntimeException(errorMessage));
         // When
         Response response = reconstructionResource.computeGraph(GraphComputeResponse.GraphComputeAction.UNIT, Sets.newHashSet("fake"));

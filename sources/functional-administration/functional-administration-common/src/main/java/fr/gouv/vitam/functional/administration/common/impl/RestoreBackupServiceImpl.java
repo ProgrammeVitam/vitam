@@ -27,12 +27,12 @@
 package fr.gouv.vitam.functional.administration.common.impl;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.google.common.collect.Iterators;
 import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.accesslog.AccessLogUtils;
 import fr.gouv.vitam.common.client.VitamRequestIterator;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamRuntimeException;
-import fr.gouv.vitam.common.iterables.BulkIterator;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
@@ -168,7 +168,7 @@ public class RestoreBackupServiceImpl implements RestoreBackupService {
             "[Reconstruction]: Retrieve listing of {%s} Collection on {%s} Vitam strategy from {%s} offset with {%s} limit",
             dataCategory, strategy, offset, limit));
 
-        return new BulkIterator<>(
+        return Iterators.partition(
             OfferLogHelper.getListing(
                 storageClientFactory, strategy, dataCategory, offset, order, VitamConfiguration.getRestoreBulkSize(),
                 limit),

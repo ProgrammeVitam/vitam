@@ -28,11 +28,11 @@ package fr.gouv.vitam.logbook.common.server.reconstruction;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.google.common.annotations.VisibleForTesting;
+import com.google.common.collect.Iterators;
 import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.accesslog.AccessLogUtils;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamRuntimeException;
-import fr.gouv.vitam.common.iterables.BulkIterator;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
@@ -46,7 +46,6 @@ import fr.gouv.vitam.storage.engine.common.exception.StorageNotFoundException;
 import fr.gouv.vitam.storage.engine.common.model.DataCategory;
 import fr.gouv.vitam.storage.engine.common.model.OfferLog;
 import fr.gouv.vitam.storage.engine.common.model.Order;
-import org.apache.commons.collections4.IteratorUtils;
 
 import javax.ws.rs.core.Response;
 import java.io.InputStream;
@@ -98,7 +97,7 @@ public class RestoreBackupService {
             "[Reconstruction]: Retrieve listing of {%s} Collection on {%s} Vitam strategy from {%s} offset with {%s} limit",
             DataCategory.BACKUP_OPERATION.name(), strategy, offset, limit));
 
-        return new BulkIterator<>(
+        return Iterators.partition(
             OfferLogHelper.getListing(storageClientFactory, strategy, DataCategory.BACKUP_OPERATION, offset, Order.ASC,
                 VitamConfiguration.getRestoreBulkSize(), limit),
             VitamConfiguration.getRestoreBulkSize());

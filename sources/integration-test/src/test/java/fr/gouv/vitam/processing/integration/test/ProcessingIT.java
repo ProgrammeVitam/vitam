@@ -55,12 +55,14 @@ import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.
 import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.PROJECTIONARGS;
 import fr.gouv.vitam.common.database.builder.request.multiple.InsertMultiQuery;
 import fr.gouv.vitam.common.database.builder.request.multiple.SelectMultiQuery;
+import fr.gouv.vitam.common.database.builder.request.multiple.UpdateMultiQuery;
 import fr.gouv.vitam.common.database.builder.request.single.Select;
 import fr.gouv.vitam.common.database.builder.request.single.Update;
 import fr.gouv.vitam.common.database.parser.request.adapter.SingleVarNameAdapter;
 import fr.gouv.vitam.common.database.parser.request.single.UpdateParserSingle;
 import fr.gouv.vitam.common.exception.BadRequestException;
 import fr.gouv.vitam.common.exception.InternalServerException;
+import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamClientException;
 import fr.gouv.vitam.common.format.identification.FormatIdentifierFactory;
 import fr.gouv.vitam.common.guid.GUID;
@@ -68,6 +70,7 @@ import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.i18n.VitamLogbookMessages;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.SysErrLogger;
+import fr.gouv.vitam.common.model.GraphComputeResponse;
 import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.ProcessAction;
 import fr.gouv.vitam.common.model.ProcessPause;
@@ -119,7 +122,9 @@ import fr.gouv.vitam.processing.management.client.ProcessingManagementClientFact
 import fr.gouv.vitam.processing.management.rest.ProcessManagementMain;
 import fr.gouv.vitam.storage.engine.client.StorageClientFactory;
 import fr.gouv.vitam.worker.server.rest.WorkerMain;
+import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageAlreadyExistException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageException;
+import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
 import fr.gouv.vitam.workspace.client.WorkspaceClient;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
 import fr.gouv.vitam.workspace.rest.WorkspaceMain;
@@ -2223,22 +2228,7 @@ public class ProcessingIT extends VitamRuleRunner {
             .allMatch(Objects::isNull);
 
         // When
-        final String computedInheritedRulesProcess = createOperationContainer();
-
-        workspaceClient.createContainer(computedInheritedRulesProcess);
-        workspaceClient
-            .putObject(computedInheritedRulesProcess, "query.json", writeToInpustream(select.getFinalSelect()));
-        processingClient
-            .initVitamProcess(new ProcessingEntry(computedInheritedRulesProcess, COMPUTE_INHERITED_RULES.name()));
-        RequestResponse<JsonNode> cirResponse = processingClient
-            .executeOperationProcess(computedInheritedRulesProcess, COMPUTE_INHERITED_RULES.name(), RESUME.getValue());
-        assertNotNull(cirResponse);
-        assertEquals(Status.ACCEPTED.getStatusCode(), cirResponse.getStatus());
-        wait(computedInheritedRulesProcess);
-        ProcessWorkflow cirWorkflow = processMonitoring.findOneProcessWorkflow(computedInheritedRulesProcess, tenantId);
-        assertNotNull(cirWorkflow);
-        assertEquals(ProcessState.COMPLETED, cirWorkflow.getState());
-        assertEquals(StatusCode.OK, cirWorkflow.getStatus());
+        computeInheritedRules(select);
 
         // Then
         JsonNode selectUnitsAfterComputedInheritedRules =
@@ -2263,6 +2253,28 @@ public class ProcessingIT extends VitamRuleRunner {
             JsonHandler.getFromInputStream(PropertiesUtils
                 .getResourceAsStream("integration-processing/expectedPereireComputedInheritedRules.json")),
             computedInheritedRules);
+    }
+
+    private void computeInheritedRules(SelectMultiQuery select)
+        throws LogbookClientBadRequestException, LogbookClientAlreadyExistsException, LogbookClientServerException,
+        ContentAddressableStorageAlreadyExistException, ContentAddressableStorageServerException,
+        InvalidParseOperationException, InternalServerException, BadRequestException, VitamClientException {
+        final String computedInheritedRulesProcess = createOperationContainer();
+
+        workspaceClient.createContainer(computedInheritedRulesProcess);
+        workspaceClient
+            .putObject(computedInheritedRulesProcess, "query.json", writeToInpustream(select.getFinalSelect()));
+        processingClient
+            .initVitamProcess(new ProcessingEntry(computedInheritedRulesProcess, COMPUTE_INHERITED_RULES.name()));
+        RequestResponse<JsonNode> cirResponse = processingClient
+            .executeOperationProcess(computedInheritedRulesProcess, COMPUTE_INHERITED_RULES.name(), RESUME.getValue());
+        assertNotNull(cirResponse);
+        assertEquals(Status.ACCEPTED.getStatusCode(), cirResponse.getStatus());
+        wait(computedInheritedRulesProcess);
+        ProcessWorkflow cirWorkflow = processMonitoring.findOneProcessWorkflow(computedInheritedRulesProcess, tenantId);
+        assertNotNull(cirWorkflow);
+        assertEquals(ProcessState.COMPLETED, cirWorkflow.getState());
+        assertEquals(StatusCode.OK, cirWorkflow.getStatus());
     }
 
     @RunWithCustomExecutor
@@ -3101,4 +3113,243 @@ public class ProcessingIT extends VitamRuleRunner {
         assertThat(stream).hasSize(4).allMatch(o -> gotId.equals(o));
     }
 
+    @RunWithCustomExecutor
+    @Test
+    public void testWorkflowReclassificationWithComputedInheritedRules() throws Exception {
+        prepareVitamSession();
+
+        // Given ingest
+        final String ingestOperation =
+            ingestSIP("integration-processing/4_UNITS_2_GOTS.zip", DEFAULT_WORKFLOW.name(), StatusCode.OK);
+
+        // Compute inherited rules
+        SelectMultiQuery select = new SelectMultiQuery();
+        CompareQuery query = QueryHelper.eq(VitamFieldsHelper.initialOperation(), ingestOperation);
+        select.setQuery(query);
+
+        computeInheritedRules(select);
+
+        // Then
+        MetaDataClient metaDataClient = MetaDataClientFactory.getInstance().getClient();
+        JsonNode selectUnitsAfterComputedInheritedRules =
+            metaDataClient.selectUnits(select.getFinalSelect()).get("$results");
+
+        assertThat(selectUnitsAfterComputedInheritedRules.elements())
+            .extracting(unit -> unit.get(VitamFieldsHelper.validComputedInheritedRules()))
+            .allMatch(JsonNode::booleanValue);
+        assertThat(selectUnitsAfterComputedInheritedRules.elements())
+            .extracting(unit -> unit.get(VitamFieldsHelper.computedInheritedRules()))
+            .allMatch(Objects::nonNull);
+
+        // When running reclassification : Attach C to B
+        /*
+         *         A                       A
+         *      ↗  ↑            ==>      ↗ ↑
+         *    B    |                   B   |
+         *         |                     ↖ |
+         *         C                       C
+         *         ↑                       ↑
+         *         D                       D
+         */
+
+        UpdateMultiQuery reclassificationRequest = new UpdateMultiQuery();
+        reclassificationRequest.setQuery(QueryHelper.eq(VitamFieldsHelper.id(),
+            getUnitId(getUnitIdByTitle(selectUnitsAfterComputedInheritedRules, "UnitC"))));
+        reclassificationRequest.addActions(UpdateActionHelper.add(VitamFieldsHelper.unitups(),
+            getUnitId(getUnitIdByTitle(selectUnitsAfterComputedInheritedRules, "UnitB"))));
+        JsonNode reclassificationQuery = JsonHandler.createArrayNode().add(reclassificationRequest.getFinalUpdate());
+
+        final String reclassificationWorkflow = createOperationContainer();
+        VitamThreadUtils.getVitamSession().setRequestId(reclassificationWorkflow);
+
+        workspaceClient.createContainer(reclassificationWorkflow);
+        workspaceClient
+            .putObject(reclassificationWorkflow, "request.json", writeToInpustream(reclassificationQuery));
+        processingClient
+            .initVitamProcess(new ProcessingEntry(reclassificationWorkflow, Contexts.RECLASSIFICATION.name()));
+        RequestResponse<JsonNode> cirResponse = processingClient
+            .executeOperationProcess(reclassificationWorkflow, Contexts.RECLASSIFICATION.name(), RESUME.getValue());
+        assertNotNull(cirResponse);
+        assertEquals(Status.ACCEPTED.getStatusCode(), cirResponse.getStatus());
+        wait(reclassificationWorkflow);
+        ProcessWorkflow cirWorkflow = processMonitoring.findOneProcessWorkflow(reclassificationWorkflow, tenantId);
+        assertNotNull(cirWorkflow);
+        assertEquals(ProcessState.COMPLETED, cirWorkflow.getState());
+        assertEquals(StatusCode.OK, cirWorkflow.getStatus());
+
+        // Then
+        JsonNode selectUnitsAfterReclassification =
+            metaDataClient.selectUnits(select.getFinalSelect()).get("$results");
+
+        // Basic reclassification check
+        JsonNode unitA = getUnitIdByTitle(selectUnitsAfterReclassification, "UnitA");
+        JsonNode unitB = getUnitIdByTitle(selectUnitsAfterReclassification, "UnitB");
+        JsonNode unitC = getUnitIdByTitle(selectUnitsAfterReclassification, "UnitC");
+        JsonNode unitD = getUnitIdByTitle(selectUnitsAfterReclassification, "UnitD");
+
+        assertThat(getUnitParents(unitA)).isEmpty();
+        assertThat(getUnitParents(unitB)).containsExactlyInAnyOrder(getUnitId(unitA));
+        assertThat(getUnitParents(unitC)).containsExactlyInAnyOrder(getUnitId(unitA), getUnitId(unitB));
+        assertThat(getUnitParents(unitD)).containsExactlyInAnyOrder(getUnitId(unitC));
+
+        // Check computed inherited rules invalidation for unit C and its children D
+        assertThat(unitA.get(VitamFieldsHelper.validComputedInheritedRules()).booleanValue()).isTrue();
+        assertThat(unitB.get(VitamFieldsHelper.validComputedInheritedRules()).booleanValue()).isTrue();
+        assertThat(unitC.get(VitamFieldsHelper.validComputedInheritedRules()).booleanValue()).isFalse();
+        assertThat(unitD.get(VitamFieldsHelper.validComputedInheritedRules()).booleanValue()).isFalse();
+
+        assertThat(unitA.get(VitamFieldsHelper.computedInheritedRules())).isNotNull();
+        assertThat(unitB.get(VitamFieldsHelper.computedInheritedRules())).isNotNull();
+        assertThat(unitC.get(VitamFieldsHelper.computedInheritedRules())).isNull();
+        assertThat(unitD.get(VitamFieldsHelper.computedInheritedRules())).isNull();
+    }
+
+    @RunWithCustomExecutor
+    @Test
+    public void testWorkflowReclassificationWithoutComputedInheritedRules() throws Exception {
+        prepareVitamSession();
+
+        // Given ingest
+        final String ingestOperation =
+            ingestSIP("integration-processing/4_UNITS_2_GOTS.zip", DEFAULT_WORKFLOW.name(), StatusCode.OK);
+
+        // Check no computed inherited rules after ingest
+        SelectMultiQuery select = new SelectMultiQuery();
+        CompareQuery query = QueryHelper.eq(VitamFieldsHelper.initialOperation(), ingestOperation);
+        select.setQuery(query);
+
+        MetaDataClient metaDataClient = MetaDataClientFactory.getInstance().getClient();
+        JsonNode selectUnitsAfterComputedInheritedRules =
+            metaDataClient.selectUnits(select.getFinalSelect()).get("$results");
+
+        assertThat(selectUnitsAfterComputedInheritedRules.elements())
+            .extracting(unit -> unit.get(VitamFieldsHelper.validComputedInheritedRules()))
+            .allMatch(Objects::isNull);
+        assertThat(selectUnitsAfterComputedInheritedRules.elements())
+            .extracting(unit -> unit.get(VitamFieldsHelper.computedInheritedRules()))
+            .allMatch(Objects::isNull);
+
+        // When running reclassification : Attach C to B
+        /*
+         *         A                       A
+         *      ↗  ↑            ==>      ↗ ↑
+         *    B    |                   B   |
+         *         |                     ↖ |
+         *         C                       C
+         *         ↑                       ↑
+         *         D                       D
+         */
+
+        UpdateMultiQuery reclassificationRequest = new UpdateMultiQuery();
+        reclassificationRequest.setQuery(QueryHelper.eq(VitamFieldsHelper.id(),
+            getUnitId(getUnitIdByTitle(selectUnitsAfterComputedInheritedRules, "UnitC"))));
+        reclassificationRequest.addActions(UpdateActionHelper.add(VitamFieldsHelper.unitups(),
+            getUnitId(getUnitIdByTitle(selectUnitsAfterComputedInheritedRules, "UnitB"))));
+        JsonNode reclassificationQuery = JsonHandler.createArrayNode().add(reclassificationRequest.getFinalUpdate());
+
+        final String reclassificationWorkflow = createOperationContainer();
+        VitamThreadUtils.getVitamSession().setRequestId(reclassificationWorkflow);
+
+        workspaceClient.createContainer(reclassificationWorkflow);
+        workspaceClient
+            .putObject(reclassificationWorkflow, "request.json", writeToInpustream(reclassificationQuery));
+        processingClient
+            .initVitamProcess(new ProcessingEntry(reclassificationWorkflow, Contexts.RECLASSIFICATION.name()));
+        RequestResponse<JsonNode> cirResponse = processingClient
+            .executeOperationProcess(reclassificationWorkflow, Contexts.RECLASSIFICATION.name(), RESUME.getValue());
+        assertNotNull(cirResponse);
+        assertEquals(Status.ACCEPTED.getStatusCode(), cirResponse.getStatus());
+        wait(reclassificationWorkflow);
+        ProcessWorkflow cirWorkflow = processMonitoring.findOneProcessWorkflow(reclassificationWorkflow, tenantId);
+        assertNotNull(cirWorkflow);
+        assertEquals(ProcessState.COMPLETED, cirWorkflow.getState());
+        assertEquals(StatusCode.OK, cirWorkflow.getStatus());
+
+        // Then
+        JsonNode selectUnitsAfterReclassification =
+            metaDataClient.selectUnits(select.getFinalSelect()).get("$results");
+
+        // Basic reclassification check
+        JsonNode unitA = getUnitIdByTitle(selectUnitsAfterReclassification, "UnitA");
+        JsonNode unitB = getUnitIdByTitle(selectUnitsAfterReclassification, "UnitB");
+        JsonNode unitC = getUnitIdByTitle(selectUnitsAfterReclassification, "UnitC");
+        JsonNode unitD = getUnitIdByTitle(selectUnitsAfterReclassification, "UnitD");
+
+        assertThat(getUnitParents(unitA)).isEmpty();
+        assertThat(getUnitParents(unitB)).containsExactlyInAnyOrder(getUnitId(unitA));
+        assertThat(getUnitParents(unitC)).containsExactlyInAnyOrder(getUnitId(unitA), getUnitId(unitB));
+        assertThat(getUnitParents(unitD)).containsExactlyInAnyOrder(getUnitId(unitC));
+
+        // Check computed inherited rules are still non indexed
+        assertThat(selectUnitsAfterReclassification.elements())
+            .extracting(unit -> unit.get(VitamFieldsHelper.validComputedInheritedRules()))
+            .allMatch(Objects::isNull);
+        assertThat(selectUnitsAfterReclassification.elements())
+            .extracting(unit -> unit.get(VitamFieldsHelper.computedInheritedRules()))
+            .allMatch(Objects::isNull);
+    }
+
+    @RunWithCustomExecutor
+    @Test
+    public void testGraphComputationWithComputedInheritedRules() throws Exception {
+        prepareVitamSession();
+
+        // Given ingest
+        final String ingestOperation =
+            ingestSIP("integration-processing/4_UNITS_2_GOTS.zip", DEFAULT_WORKFLOW.name(), StatusCode.OK);
+
+        // Compute inherited rules
+        SelectMultiQuery select = new SelectMultiQuery();
+        CompareQuery query = QueryHelper.eq(VitamFieldsHelper.initialOperation(), ingestOperation);
+        select.setQuery(query);
+
+        computeInheritedRules(select);
+
+        // Then
+        MetaDataClient metaDataClient = MetaDataClientFactory.getInstance().getClient();
+        JsonNode selectUnitsAfterComputedInheritedRules =
+            metaDataClient.selectUnits(select.getFinalSelect()).get("$results");
+
+        assertThat(selectUnitsAfterComputedInheritedRules.elements())
+            .extracting(unit -> unit.get(VitamFieldsHelper.validComputedInheritedRules()))
+            .allMatch(JsonNode::booleanValue);
+        assertThat(selectUnitsAfterComputedInheritedRules.elements())
+            .extracting(unit -> unit.get(VitamFieldsHelper.computedInheritedRules()))
+            .allMatch(Objects::nonNull);
+
+        // When recompute graph, no computed inherited rules invalidation
+        GraphComputeResponse graphComputeResponse = metaDataClient.computeGraph(select.getFinalSelect());
+
+        // Then
+        assertThat(graphComputeResponse.getUnitCount()).isEqualTo(4);
+        assertThat(graphComputeResponse.getGotCount()).isEqualTo(2);
+        assertThat(graphComputeResponse.getErrorMessage()).isNull();
+
+        JsonNode selectUnitsAfterGraphRecomputation =
+            metaDataClient.selectUnits(select.getFinalSelect()).get("$results");
+
+        // Check computed inherited rules have not been invalidated
+        assertThat(selectUnitsAfterComputedInheritedRules.elements())
+            .extracting(unit -> unit.get(VitamFieldsHelper.validComputedInheritedRules()))
+            .allMatch(JsonNode::booleanValue);
+        assertThat(selectUnitsAfterComputedInheritedRules.elements())
+            .extracting(unit -> unit.get(VitamFieldsHelper.computedInheritedRules()))
+            .allMatch(Objects::nonNull);
+    }
+
+    private JsonNode getUnitIdByTitle(JsonNode units, String title) {
+        return Streams.stream(units.elements())
+            .filter(unit -> unit.get("Title").asText().equals(title))
+            .findFirst().get();
+    }
+
+    private String getUnitId(JsonNode unit) {
+        return unit.get(VitamFieldsHelper.id()).asText();
+    }
+
+    private List<String> getUnitParents(JsonNode unit) {
+        return Streams.stream(unit.get(VitamFieldsHelper.unitups()).elements())
+            .map(JsonNode::asText)
+            .collect(Collectors.toList());
+    }
 }

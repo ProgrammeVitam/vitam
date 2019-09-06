@@ -58,6 +58,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 
+import com.google.common.collect.Iterators;
 import org.apache.commons.collections4.IteratorUtils;
 import org.apache.commons.collections4.MultiValuedMap;
 import org.apache.commons.collections4.multimap.ArrayListValuedHashMap;
@@ -82,7 +83,6 @@ import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamException;
 import fr.gouv.vitam.common.exception.VitamRuntimeException;
 import fr.gouv.vitam.common.guid.GUIDFactory;
-import fr.gouv.vitam.common.iterables.BulkIterator;
 import fr.gouv.vitam.common.iterables.SpliteratorIterator;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
@@ -207,7 +207,7 @@ public class PreservationPreparationPlugin extends ActionHandler {
             new GroupByObjectIterator(gotIdUnitIdIterator);
 
         Iterator<List<Pair<String, List<String>>>> bulkIterator =
-            new BulkIterator<>(unitsByObjectGroupIterator, VitamConfiguration.getBatchSize());
+            Iterators.partition(unitsByObjectGroupIterator, VitamConfiguration.getBatchSize());
 
         HashMap<String, File> distributionFileByFormat = new HashMap<>();
 

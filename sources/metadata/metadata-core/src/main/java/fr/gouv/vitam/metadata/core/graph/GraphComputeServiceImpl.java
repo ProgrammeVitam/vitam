@@ -26,23 +26,6 @@
  */
 package fr.gouv.vitam.metadata.core.graph;
 
-import static com.mongodb.client.model.Filters.in;
-import static com.mongodb.client.model.Projections.include;
-import static fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.PROJECTION.FIELDS;
-import static fr.gouv.vitam.common.database.parser.query.ParserTokens.PROJECTIONARGS.ID;
-
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Set;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.stream.StreamSupport;
-
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.annotations.VisibleForTesting;
@@ -82,6 +65,23 @@ import joptsimple.internal.Strings;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.RandomUtils;
 import org.bson.Document;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Set;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.stream.StreamSupport;
+
+import static com.mongodb.client.model.Filters.in;
+import static com.mongodb.client.model.Projections.include;
+import static fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.PROJECTION.FIELDS;
+import static fr.gouv.vitam.common.database.parser.query.ParserTokens.PROJECTIONARGS.ID;
 
 /**
  * This class compute graph for unit and object group
@@ -178,7 +178,7 @@ public class GraphComputeServiceImpl implements GraphComputeService {
 
             StreamSupport.stream(scroll, false).forEach(
                 item -> {
-                    GraphComputeResponse stats = computeGraph(MetadataCollections.UNIT, item, true);
+                    GraphComputeResponse stats = computeGraph(MetadataCollections.UNIT, item, true, false);
                     response.increment(stats);
                 });
             return response;
@@ -252,7 +252,7 @@ public class GraphComputeServiceImpl implements GraphComputeService {
     @Override
     public GraphComputeResponse computeGraph(MetadataCollections metadataCollections,
         Set<String> documentsId,
-        boolean computeObjectGroupGraph) {
+        boolean computeObjectGroupGraph, boolean invalidateComputedInheritedRules) {
         if (LOGGER.isDebugEnabled()) {
             LOGGER.debug(String.format("Start Compute graph of (%s)", metadataCollections.name()));
         }
@@ -270,7 +270,7 @@ public class GraphComputeServiceImpl implements GraphComputeService {
             final MongoCursor<Document> cursor = vitamRepositoryProvider
                 .getVitamMongoRepository(metadataCollections.getVitamCollection())
                 .findDocuments(in(Unit.ID, documentsId), VitamConfiguration.getBatchSize())
-                .projection(include(Unit.UP, Unit.OG, Unit.ORIGINATING_AGENCY, Unit.ORIGINATING_AGENCIES))
+                .projection(include(Unit.UP, Unit.OG, Unit.ORIGINATING_AGENCY, Unit.ORIGINATING_AGENCIES, Unit.VALID_COMPUTED_INHERITED_RULES))
                 .iterator();
 
             List<Document> documents = new ArrayList<>();
@@ -286,7 +286,7 @@ public class GraphComputeServiceImpl implements GraphComputeService {
 
                 documents.add(doc);
                 if (!cursor.hasNext() || documents.size() >= VitamConfiguration.getBatchSize()) {
-                    computeGraph(metadataCollections, documents);
+                    computeGraph(metadataCollections, documents, invalidateComputedInheritedRules);
                     documents = new ArrayList<>();
                 }
             }
@@ -294,7 +294,8 @@ public class GraphComputeServiceImpl implements GraphComputeService {
             //Compute ObjectGroup graph
             if (computeObjectGroupGraph && concernedGots.size() > 0) {
                 GraphComputeResponse statsGots =
-                    computeGraph(MetadataCollections.OBJECTGROUP, concernedGots, false);
+                    computeGraph(MetadataCollections.OBJECTGROUP, concernedGots, false,
+                        invalidateComputedInheritedRules);
                 response.increment(statsGots);
             }
             if (LOGGER.isDebugEnabled()) {

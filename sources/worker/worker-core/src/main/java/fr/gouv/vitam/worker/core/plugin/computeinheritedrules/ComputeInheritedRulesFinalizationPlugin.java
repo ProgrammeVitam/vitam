@@ -71,7 +71,7 @@ public class ComputeInheritedRulesFinalizationPlugin extends ActionHandler {
         throws ProcessingException, ContentAddressableStorageServerException {
         cleanupBatchReport(handler);
 
-        LOGGER.info("Reclassification finalization succeeded");
+        LOGGER.info("Computed inherited rules finalization succeeded");
         return buildItemStatus(COMPUTE_INHERITED_RULES_FINALIZATION, StatusCode.OK, null);
     }
 

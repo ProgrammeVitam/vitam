@@ -69,8 +69,8 @@ public class Unit extends MetadataDocument<Unit> {
      * elimination
      */
     public static final String ELIMINATION = "_elimination";
-    static final String COMPUTED_INHERITED_RULES = "_computedInheritedRules";
-    static final String VALID_COMPUTED_INHERITED_RULES = "_validComputedInheritedRules";
+    public static final String COMPUTED_INHERITED_RULES = "_computedInheritedRules";
+    public static final String VALID_COMPUTED_INHERITED_RULES = "_validComputedInheritedRules";
     /**
      * UnitType : normal or holding scheme
      */
