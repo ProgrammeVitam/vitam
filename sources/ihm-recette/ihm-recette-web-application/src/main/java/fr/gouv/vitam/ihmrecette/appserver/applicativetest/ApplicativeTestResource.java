@@ -210,6 +210,10 @@ public class ApplicativeTestResource {
         LOGGER.debug("synchronise " + branch);
 
         applicativeTestService.fetch(Paths.get(testSystemSipDirectory));
+        List<String> branchList = applicativeTestService.getBranches(Paths.get(testSystemSipDirectory));
+        if(!branchList.contains(branch)) {
+            return Response.status(Response.Status.BAD_REQUEST).build();
+        }
         int resetStatus = applicativeTestService.reset(Paths.get(testSystemSipDirectory), branch);
         int checkoutStatus = applicativeTestService.checkout(Paths.get(testSystemSipDirectory), branch);
 

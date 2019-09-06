@@ -57,7 +57,6 @@ public class SafeFileChecker {
      * @throws IOException thrown when any check fails with UnChecked or Runtime exception
      */
     public static void checkSafeFilePath(String path) throws IOException {
-
         checkNullParameter(path);
         try {
             File sanityCheckedFile = doSanityCheck(path);

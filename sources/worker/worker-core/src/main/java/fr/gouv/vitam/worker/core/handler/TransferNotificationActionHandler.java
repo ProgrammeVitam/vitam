@@ -200,8 +200,11 @@ public class TransferNotificationActionHandler extends ActionHandler {
             atrFile = createATR(params, handlerIO, logbookOperation);
 
             // calculate digest by vitam alog
-            final Digest vitamDigest = new Digest(VitamConfiguration.getDefaultDigestType());
-            final String vitamDigestString = vitamDigest.update(atrFile).digestHex();
+            String vitamDigestString;
+            try (FileInputStream inputStream = new FileInputStream(atrFile)) {
+                Digest vitamDigest = new Digest(VitamConfiguration.getDefaultDigestType());
+                vitamDigestString = vitamDigest.update(inputStream).digestHex();
+            }
 
             LOGGER.debug(
                 "DEBUG: \n\t" + vitamDigestString);

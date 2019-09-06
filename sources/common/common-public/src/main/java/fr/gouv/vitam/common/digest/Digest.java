@@ -189,6 +189,7 @@ public class Digest {
      */
     public final Digest update(File in, long start, long limit) throws IOException {
         ParametersChecker.checkParameter(ARGUMENT_MUST_NOT_BE_NULL, in);
+
         if (!in.isFile()) {
             throw new IllegalArgumentException("File not found");
         }

@@ -441,6 +441,7 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
     @Consumes(MediaType.APPLICATION_OCTET_STREAM)
     public Response findDIPByID(@PathParam("id") String id) {
         try {
+            // check on Id is done by SanityCheckerCommonFilter
             return accessModule.findDIPByOperationId(id);
         } catch (AccessInternalExecutionException e) {
             LOGGER.error(BAD_REQUEST_EXCEPTION, e);

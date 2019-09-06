@@ -1,4 +1,4 @@
-/*******************************************************************************
+/*
  * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2019)
  *
  * contact.vitam@culture.gouv.fr
@@ -23,7 +23,7 @@
  *
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
- *******************************************************************************/
+ */
 package fr.gouv.vitam.common.storage.filesystem.v2;
 
 import com.google.common.annotations.VisibleForTesting;
@@ -77,7 +77,7 @@ import java.util.concurrent.TimeUnit;
 public class HashFileSystem extends ContentAddressableStorageAbstract {
 
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(HashFileSystem.class);
-    private final String storagePath;
+    private static final String ERROR_MSG_NOT_SUPPORTED = "Extended attribute not supported. You should consider to use XFS filesystem.";
     private HashFileSystemHelper fsHelper;
 
     /**
@@ -87,7 +87,7 @@ public class HashFileSystem extends ContentAddressableStorageAbstract {
         super(configuration);
         ParametersChecker.checkParameter("Storage configuration can't be null", configuration);
         ParametersChecker.checkParameter("StoragePath can't be null", configuration.getStoragePath());
-        storagePath = configuration.getStoragePath();
+        final String storagePath = configuration.getStoragePath();
         fsHelper = new HashFileSystemHelper(storagePath);
         File f = new File(storagePath);
         if (!f.exists()) {
@@ -134,9 +134,10 @@ public class HashFileSystem extends ContentAddressableStorageAbstract {
         Long size)
         throws ContentAddressableStorageException {
 
-        ParametersChecker
-                .checkParameter(ErrorMessage.CONTAINER_NAME_IS_A_MANDATORY_PARAMETER.getMessage(), containerName);
+        ParametersChecker.checkParameter(ErrorMessage.CONTAINER_NAME_IS_A_MANDATORY_PARAMETER.getMessage(), containerName);
         Path filePath = fsHelper.getPathObject(containerName, objectName);
+        fsHelper.checkContainerPathTraversal(filePath.toString());
+
         Path parentPath = filePath.getParent();
         // Create the chain of directories
         fsHelper.createDirectories(parentPath);
@@ -173,7 +174,8 @@ public class HashFileSystem extends ContentAddressableStorageAbstract {
         ParametersChecker
                 .checkParameter(ErrorMessage.CONTAINER_NAME_IS_A_MANDATORY_PARAMETER.getMessage(), containerName);
         Path filePath = fsHelper.getPathObject(containerName, objectName);
-        if (!Files.isRegularFile(filePath)) {
+        fsHelper.checkContainerPathTraversal(filePath.toString());
+        if (!filePath.toFile().isFile()) {
             throw new ContentAddressableStorageNotFoundException(
                     objectName + " in container " + containerName + " not found");
         }
@@ -199,10 +201,8 @@ public class HashFileSystem extends ContentAddressableStorageAbstract {
     }
 
     @Override
-    public void deleteObject(String containerName, String objectName)
-            throws ContentAddressableStorageNotFoundException, ContentAddressableStorageException {
-        ParametersChecker
-                .checkParameter(ErrorMessage.CONTAINER_NAME_IS_A_MANDATORY_PARAMETER.getMessage(), containerName);
+    public void deleteObject(String containerName, String objectName) throws ContentAddressableStorageException {
+        ParametersChecker.checkParameter(ErrorMessage.CONTAINER_NAME_IS_A_MANDATORY_PARAMETER.getMessage(), containerName);
         Path filePath = fsHelper.getPathObject(containerName, objectName);
         // Delete file
         try {
@@ -354,7 +354,9 @@ public class HashFileSystem extends ContentAddressableStorageAbstract {
                 .checkParameter(ErrorMessage.CONTAINER_OBJECT_NAMES_ARE_A_MANDATORY_PARAMETER.getMessage(), containerName,
                         objectId);
         MetadatasStorageObject result = new MetadatasStorageObject();
-        File file = fsHelper.getPathObject(containerName, objectId).toFile();
+        Path filePath = fsHelper.getPathObject(containerName, objectId);
+        fsHelper.checkContainerPathTraversal(filePath.toString());
+        File file = filePath.toFile();
         BasicFileAttributes basicAttribs = getFileAttributes(file);
         long size = Files.size(Paths.get(file.getPath()));
         result.setObjectName(objectId);
@@ -371,9 +373,8 @@ public class HashFileSystem extends ContentAddressableStorageAbstract {
 
     @Override
     public VitamPageSet<? extends VitamStorageMetadata> listContainer(String containerName)
-            throws ContentAddressableStorageNotFoundException, ContentAddressableStorageServerException {
-        ParametersChecker
-                .checkParameter(ErrorMessage.CONTAINER_NAME_IS_A_MANDATORY_PARAMETER.getMessage(), containerName);
+            throws ContentAddressableStorageServerException {
+        ParametersChecker.checkParameter(ErrorMessage.CONTAINER_NAME_IS_A_MANDATORY_PARAMETER.getMessage(), containerName);
         fsHelper.checkContainerPathTraversal(containerName);
         Path p = fsHelper.getPathContainer(containerName);
         HashFileListVisitor hfv = new HashFileListVisitor();
@@ -387,9 +388,8 @@ public class HashFileSystem extends ContentAddressableStorageAbstract {
 
     @Override
     public VitamPageSet<? extends VitamStorageMetadata> listContainerNext(String containerName, String nextMarker)
-            throws ContentAddressableStorageNotFoundException, ContentAddressableStorageServerException {
-        ParametersChecker
-                .checkParameter(ErrorMessage.CONTAINER_NAME_IS_A_MANDATORY_PARAMETER.getMessage(), containerName);
+            throws ContentAddressableStorageServerException {
+        ParametersChecker.checkParameter(ErrorMessage.CONTAINER_NAME_IS_A_MANDATORY_PARAMETER.getMessage(), containerName);
 
         HashFileListVisitor hfv = new HashFileListVisitor(fsHelper.splitObjectId(nextMarker), nextMarker);
         fsHelper.checkContainerPathTraversal(containerName);
@@ -424,13 +424,13 @@ public class HashFileSystem extends ContentAddressableStorageAbstract {
         try {
             view.write(name, ByteBuffer.wrap(value.getBytes()));
         } catch (SecurityException | FileSystemException e) {
-            LOGGER.error("Extended attribute not supported. You should consider to use XFS filesystem.", e);
-            throw new IOException("Extended attribute not supported. You should consider to use XFS filesystem.", e);
+            LOGGER.error(ERROR_MSG_NOT_SUPPORTED, e);
+            throw new IOException(ERROR_MSG_NOT_SUPPORTED, e);
         }
     }
 
     @VisibleForTesting
-    public String readExtendedMetadata(Path p, String name) throws IOException {
+    String readExtendedMetadata(Path p, String name) throws IOException {
         return readExtendedMetadata(Files.getFileAttributeView(p, UserDefinedFileAttributeView.class), name);
     }
 
@@ -442,8 +442,8 @@ public class HashFileSystem extends ContentAddressableStorageAbstract {
             CharBuffer buffer = Charset.defaultCharset().decode(bb);
             return buffer.toString();
         } catch (IllegalArgumentException | FileSystemException e) {
-            LOGGER.error("Extended attribute not supported. You should consider to use XFS filesystem.", e);
-            throw new IOException("Extended attribute not supported. You should consider to use XFS filesystem.", e);
+            LOGGER.error(ERROR_MSG_NOT_SUPPORTED, e);
+            throw new IOException(ERROR_MSG_NOT_SUPPORTED, e);
         }
     }
 }
