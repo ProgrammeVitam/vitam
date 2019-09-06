@@ -163,7 +163,7 @@ public class FormatIdentificationActionPlugin extends ActionHandler implements V
             itemStatus.increment(StatusCode.FATAL);
             return new ItemStatus(FILE_FORMAT).setItemsStatus(FILE_FORMAT, itemStatus);
         }
-        File file = null;
+
         try {
             // Get objectGroup metadatas
             final JsonNode jsonOG = (JsonNode) handlerIO.getInput(OG_INPUT_RANK);
@@ -177,6 +177,7 @@ public class FormatIdentificationActionPlugin extends ActionHandler implements V
                     for (final JsonNode versionsArray : versions) {
                         for (final JsonNode version : versionsArray) {
                             if (version.get(SedaConstants.TAG_PHYSICAL_ID) == null) {
+                                File file = null;
                                 try {
                                     final JsonNode jsonFormatIdentifier =
                                         version.get(SedaConstants.TAG_FORMAT_IDENTIFICATION);
@@ -244,14 +245,6 @@ public class FormatIdentificationActionPlugin extends ActionHandler implements V
         } catch (final ProcessingException e) {
             LOGGER.error(e);
             itemStatus.increment(StatusCode.FATAL);
-        } finally {
-            if (file != null) {
-                try {
-                    Files.delete(file.toPath());
-                } catch (IOException e) {
-                    LOGGER.error(e);
-                }
-            }
         }
 
         if (itemStatus.getGlobalStatus().getStatusLevel() == StatusCode.UNKNOWN.getStatusLevel()) {
