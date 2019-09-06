@@ -28,11 +28,13 @@ package fr.gouv.vitam.worker.core.plugin.dip;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
+import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.model.administration.AccessContractModel;
 import fr.gouv.vitam.common.model.dip.DipExportRequest;
+import fr.gouv.vitam.common.model.dip.ExportRequestParameters;
 import fr.gouv.vitam.common.model.processing.ProcessingUri;
 import fr.gouv.vitam.common.model.processing.UriPrefix;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
@@ -259,6 +261,13 @@ public class CreateManifestTest {
         DipExportRequest dipExportRequest = new DipExportRequest();
         dipExportRequest.setExportWithLogBookLFC(true);
         dipExportRequest.setDslRequest(queryUnit);
+        ExportRequestParameters exportRequestParameters = new ExportRequestParameters();
+        exportRequestParameters.setMessageRequestIdentifier(GUIDFactory.newGUID().getId());
+        exportRequestParameters.setArchivalAgencyIdentifier("ArchivalAgency");
+        exportRequestParameters.setRequesterIdentifier("Vitam-Bis");
+
+        dipExportRequest.setExportRequestParameters(exportRequestParameters);
+
         given(handlerIO.getJsonFromWorkspace(DIP_REQUEST_FILE_NAME)).willReturn(JsonHandler.toJsonNode(dipExportRequest));
 
         // When

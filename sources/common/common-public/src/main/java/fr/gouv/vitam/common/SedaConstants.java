@@ -147,6 +147,26 @@ public class SedaConstants {
     public static final String TAG_RELATED_OBJECT_REFERENCE = "RelatedObjectReference";
 
     /**
+     * Tag of RelatedTransferReference
+     */
+    public static final String TAG_RELATED_TRANSFER_REFERENCE = "RelatedTransferReference";
+
+    /**
+     * Tag of TransferRequestReplyIdentifier
+     */
+    public static final String TAG_TRANSFER_REQUEST_REPLY_IDENTIFIER = "TransferRequestReplyIdentifier";
+
+    /**
+     * Tag of Requester
+     */
+    public static final String TAG_REQUESTER = "Requester";
+
+    /**
+     * Tag of AuthorizationRequestReplyIdentifier
+     */
+    public static final String TAG_AUTHORIZATION_REQUEST_REPLY_IDENTIFIER = "AuthorizationRequestReplyIdentifier";
+
+    /**
      * Tag of DataObjectReferenceId
      */
     public static final String TAG_DATA_OBJECT_REFERENCEID = "DataObjectReferenceId";
@@ -154,7 +174,7 @@ public class SedaConstants {
      * Tag of PhysicalId
      */
     public static final String TAG_PHYSICAL_ID = "PhysicalId";
-    
+
     /**
      * Tag of dValue : used for data with an attibute
      */
@@ -309,6 +329,7 @@ public class SedaConstants {
      * tag of ArchivalAgency
      */
     public static final String TAG_ARCHIVAL_AGENCY = "ArchivalAgency";
+
     /**
      * tag of TransferringAgency
      */
@@ -322,6 +343,10 @@ public class SedaConstants {
      */
     public static final String TAG_MESSAGE_REQUEST_IDENTIFIER = "MessageRequestIdentifier";
     /**
+     * tag of UnitIdentifier
+     */
+    public static final String TAG_UNIT_IDENTIFIER = "UnitIdentifier";
+    /**
      * tag of CodeListVersions
      */
     public static final String TAG_CODE_LIST_VERSIONS = "CodeListVersions";
@@ -330,6 +355,14 @@ public class SedaConstants {
      */
     public static final String TAG_REPLY_CODE_LIST_VERSION = "ReplyCodeListVersion";
     /**
+     * tag of MimeTypeCodeListVersion
+     */
+    public static final String TAG_MIME_TYPE_CODE_LIST_VERSION = "MimeTypeCodeListVersion";
+    /**
+     * tag of EncodingCodeListVersion
+     */
+    public static final String TAG_ENCODING_CODE_LIST_VERSION = "EncodingCodeListVersion";
+    /**
      * tag of MessageDigestAlgorithmCodeListVersion
      */
     public static final String TAG_MESSAGE_DIGEST_ALGORITHM_CODE_LIST_VERSION = "MessageDigestAlgorithmCodeListVersion";
@@ -337,6 +370,46 @@ public class SedaConstants {
      * tag of FileFormatCodeListVersion
      */
     public static final String TAG_FILE_FORMAT_CODE_LIST_VERSION = "FileFormatCodeListVersion";
+    /**
+     * tag of CompressionAlgorithmCodeListVersion
+     */
+    public static final String TAG_COMPRESSION_ALGORITHM_CODE_LIST_VERSION = "CompressionAlgorithmCodeListVersion";
+    /**
+     * tag of DataObjectVersionCodeListVersion
+     */
+    public static final String TAG_DATA_OBJECT_VERSION_CODE_LIST_VERSION = "DataObjectVersionCodeListVersion";
+    /**
+     * tag of StorageRuleCodeListVersion
+     */
+    public static final String TAG_STORAGE_RULE_CODE_LIST_VERSION = "StorageRuleCodeListVersion";
+    /**
+     * tag of AppraisalRuleCodeListVersion
+     */
+    public static final String TAG_APPRAISAL_RULE_CODE_LIST_VERSION = "AppraisalRuleCodeListVersion";
+    /**
+     * tag of AccessRuleCodeListVersion
+     */
+    public static final String TAG_ACCESS_RULE_CODE_LIST_VERSION = "AccessRuleCodeListVersion";
+    /**
+     * tag of DisseminationRuleCodeListVersion
+     */
+    public static final String TAG_DISSEMINATION_RULE_CODE_LIST_VERSION = "DisseminationRuleCodeListVersion";
+    /**
+     * tag of ReuseRuleCodeListVersion
+     */
+    public static final String TAG_REUSE_RULE_CODE_LIST_VERSION = "ReuseRuleCodeListVersion";
+    /**
+     * tag of ClassificationRuleCodeListVersion
+     */
+    public static final String TAG_CLASSIFICATION_RULE_CODE_LIST_VERSION = "ClassificationRuleCodeListVersion";
+    /**
+     * tag of AuthorizationReasonCodeListVersion
+     */
+    public static final String TAG_AUTHORIZATION_REASON_CODE_LIST_VERSION = "AuthorizationReasonCodeListVersion";
+    /**
+     * tag of RelationshipCodeListVersion
+     */
+    public static final String TAG_RELATIONSHIP_CODE_LIST_VERSION = "RelationshipCodeListVersion";
     /**
      * tag of ArchiveTransfer
      */
@@ -359,12 +432,12 @@ public class SedaConstants {
     public static final String TAG_ORIGINATINGAGENCY = "OriginatingAgency";
 
     /**
-     *tag of AcquisitionInformation
+     * tag of AcquisitionInformation
      */
     public static final String TAG_ACQUISITIONINFORMATION = "AcquisitionInformation";
 
     /**
-     *tag of LegalStatus
+     * tag of LegalStatus
      */
     public static final String TAG_LEGALSTATUS = "LegalStatus";
 
@@ -537,11 +610,11 @@ public class SedaConstants {
      * tag of DataObjectSystemId
      */
     public static final String TAG_DATA_OBJECT_SYSTEM_ID = "DataObjectSystemId";
-    
+
     /**
      * tag of DataObjectGroupSystemId
      */
-    public static final String TAG_DATA_OBJECT_GROUP_SYSTEM_ID = "DataObjectGroupSystemId";    
+    public static final String TAG_DATA_OBJECT_GROUP_SYSTEM_ID = "DataObjectGroupSystemId";
 
     /**
      * evDetTechData
@@ -579,18 +652,17 @@ public class SedaConstants {
      * LFC OBJECTS FOLDER path
      */
     public static final String LFC_OBJECTS_FOLDER = "LFCObjects";
-    
+
     /**
      * LFC UNITS FOLDER path
      */
     public static final String LFC_UNITS_FOLDER = "LFCUnits";
-    
+
     private SedaConstants() {
         // Empty constructor
     }
 
     /**
-     *
      * @return supported Rules type
      */
     public static List<String> getSupportedRules() {

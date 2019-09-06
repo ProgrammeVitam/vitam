@@ -70,6 +70,7 @@ public final class LocalDateUtil {
 
     private static final DateTimeFormatter INDEX_DATE_TIME_FORMAT =
         DateTimeFormatter.ofPattern("yyyyMMdd_HHmmss");
+    public static final String LONG_SECOND_DATE_FORMAT = "yyyy-MM-dd'T'HH:mm:ss";
 
     private LocalDateUtil() {
         // empty
@@ -187,7 +188,13 @@ public final class LocalDateUtil {
         final SimpleDateFormat dateFormat = new SimpleDateFormat(DATE_FORMAT);
         return dateFormat.format(date);
     }
-
+    /**
+     * @param date date
+     * @return formatted date
+     */
+    public static String getFormattedDate(LocalDateTime date) {
+        return date.format(DateTimeFormatter.ofPattern(LONG_SECOND_DATE_FORMAT));
+    }
     /**
      * @param date date
      * @return formatted date

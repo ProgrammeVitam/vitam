@@ -9,23 +9,21 @@ public class DipExportRequest {
     @JsonProperty("dataObjectVersionToExport")
     private DataObjectVersions  dataObjectVersionToExport;
 
-    @JsonProperty("dslRequest")
-    private JsonNode dslRequest;
+    @JsonProperty("exportType")
+    private ExportType exportType = ExportType.ArchiveDeliveryRequestReply;
+
+    @JsonProperty("exportRequestParameters")
+    private ExportRequestParameters exportRequestParameters;
+
 
     @JsonProperty("exportWithLogBookLFC")
-    private boolean exportWithLogBookLFC;
+    private boolean exportWithLogBookLFC;    @JsonProperty("dslRequest")
+
+    private JsonNode dslRequest;
+
 
     public DipExportRequest() {}
 
-    public DipExportRequest(DataObjectVersions dataObjectVersionToExport, JsonNode dslRequest) {
-        this(dataObjectVersionToExport, dslRequest, false);
-    }
-
-    public DipExportRequest(DataObjectVersions dataObjectVersionToExport, JsonNode dslRequest, boolean withLogBookLFC) {
-        this.dataObjectVersionToExport = dataObjectVersionToExport;
-        this.dslRequest = dslRequest;
-        this.exportWithLogBookLFC = withLogBookLFC;
-    }
 
     public DipExportRequest(JsonNode dslRequest) {
         this.dslRequest = dslRequest;
@@ -45,6 +43,22 @@ public class DipExportRequest {
 
     public void setDslRequest(JsonNode dslRequest) {
         this.dslRequest = dslRequest;
+    }
+
+    public ExportType getExportType() {
+        return exportType;
+    }
+
+    public void setExportType(ExportType exportType) {
+        this.exportType = exportType;
+    }
+
+    public ExportRequestParameters getExportRequestParameters() {
+        return exportRequestParameters;
+    }
+
+    public void setExportRequestParameters(ExportRequestParameters exportRequestParameters) {
+        this.exportRequestParameters = exportRequestParameters;
     }
 
     public boolean isExportWithLogBookLFC() {

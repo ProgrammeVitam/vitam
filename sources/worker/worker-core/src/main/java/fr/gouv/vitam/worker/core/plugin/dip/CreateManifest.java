@@ -65,6 +65,7 @@ import fr.gouv.vitam.worker.core.plugin.ScrollSpliteratorHelper;
 import javax.xml.bind.JAXBException;
 import javax.xml.datatype.DatatypeConfigurationException;
 import javax.xml.stream.XMLStreamException;
+
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -112,8 +113,7 @@ public class CreateManifest extends ActionHandler {
         this(MetaDataClientFactory.getInstance());
     }
 
-    @VisibleForTesting
-    CreateManifest(MetaDataClientFactory metaDataClientFactory) {
+    @VisibleForTesting CreateManifest(MetaDataClientFactory metaDataClientFactory) {
         this.metaDataClientFactory = metaDataClientFactory;
 
         ObjectNode fields = JsonHandler.createObjectNode();
@@ -133,18 +133,28 @@ public class CreateManifest extends ActionHandler {
         File manifestFile = handlerIO.getNewLocalFile(handlerIO.getOutput(MANIFEST_XML_RANK).getPath());
 
         try (MetaDataClient client = metaDataClientFactory.getClient();
-             OutputStream outputStream = new FileOutputStream(manifestFile);
-             ManifestBuilder manifestBuilder = new ManifestBuilder(outputStream)) {
+            OutputStream outputStream = new FileOutputStream(manifestFile);
+            ManifestBuilder manifestBuilder = new ManifestBuilder(outputStream)) {
 
-            DipExportRequest dipExportRequest = JsonHandler.getFromJsonNode(handlerIO.getJsonFromWorkspace(DIP_REQUEST_FILE_NAME), DipExportRequest.class);
+            DipExportRequest exportRequest = JsonHandler
+                .getFromJsonNode(handlerIO.getJsonFromWorkspace(DIP_REQUEST_FILE_NAME), DipExportRequest.class);
+
+            // Validate request
+            manifestBuilder.validate(exportRequest.getExportType(), exportRequest.getExportRequestParameters());
+
+            // Write manifest first line information
+            manifestBuilder.startDocument(param.getContainerName(), exportRequest.getExportType(),
+                exportRequest.getExportRequestParameters());
+
 
             ListMultimap<String, String> multimap = ArrayListMultimap.create();
             Set<String> originatingAgencies = new HashSet<>();
-            String originatingAgency = VitamConfiguration.getDefaultOriginatingAgencyForExport(ParameterHelper.getTenantParameter());
+            String originatingAgency =
+                VitamConfiguration.getDefaultOriginatingAgencyForExport(ParameterHelper.getTenantParameter());
             Map<String, String> ogs = new HashMap<>();
 
             SelectParserMultiple parser = new SelectParserMultiple();
-            parser.parse(dipExportRequest.getDslRequest());
+            parser.parse(exportRequest.getDslRequest());
 
             SelectMultiQuery request = parser.getRequest();
             request.setProjection(projection);
@@ -168,9 +178,9 @@ public class CreateManifest extends ActionHandler {
             Select select = new Select();
 
             Map<String, JsonNode> idBinaryWithFileName = new HashMap<>();
-            boolean exportWithLogBookLFC = dipExportRequest.isExportWithLogBookLFC();
-            Set<String> dataObjectVersions = Objects.nonNull(dipExportRequest.getDataObjectVersionToExport())
-                ? dipExportRequest.getDataObjectVersionToExport().getDataObjectVersions()
+            boolean exportWithLogBookLFC = exportRequest.isExportWithLogBookLFC();
+            Set<String> dataObjectVersions = Objects.nonNull(exportRequest.getDataObjectVersionToExport())
+                ? exportRequest.getDataObjectVersionToExport().getDataObjectVersions()
                 : Collections.emptySet();
 
             Iterable<List<Entry<String, String>>> partitions = partition(ogs.entrySet(), MAX_ELEMENT_IN_QUERY);
@@ -193,7 +203,8 @@ public class CreateManifest extends ActionHandler {
                     List<String> linkedUnits = unitsForObjectGroupId.get(
                         object.get(ParserTokens.PROJECTIONARGS.ID.exactToken()).textValue());
                     for (String linkedUnit : linkedUnits) {
-                        idBinaryWithFileName.putAll(manifestBuilder.writeGOT(object, linkedUnit, dataObjectVersions, exportWithLogBookLFC));
+                        idBinaryWithFileName.putAll(
+                            manifestBuilder.writeGOT(object, linkedUnit, dataObjectVersions, exportWithLogBookLFC));
                     }
                 }
             }
@@ -201,7 +212,7 @@ public class CreateManifest extends ActionHandler {
             storeBinaryInformationOnWorkspace(handlerIO, idBinaryWithFileName);
 
             SelectParserMultiple initialQueryParser = new SelectParserMultiple();
-            initialQueryParser.parse(dipExportRequest.getDslRequest());
+            initialQueryParser.parse(exportRequest.getDslRequest());
 
             scrollRequest = new ScrollSpliterator<>(initialQueryParser.getRequest(),
                 query -> {
@@ -224,9 +235,19 @@ public class CreateManifest extends ActionHandler {
                 });
             manifestBuilder.endDescriptiveMetadata();
 
-            manifestBuilder.writeOriginatingAgency(originatingAgency);
+            manifestBuilder.writeManagementMetadata(originatingAgency,
+                exportRequest.getExportRequestParameters().getSubmissionAgencyIdentifier());
             manifestBuilder.endDataObjectPackage();
+
+            manifestBuilder.writeFooter(exportRequest.getExportType(), exportRequest.getExportRequestParameters());
+
             manifestBuilder.closeManifest();
+        } catch (ExportException e) {
+            itemStatus.increment(StatusCode.KO);
+            ObjectNode infoNode = JsonHandler.createObjectNode();
+            infoNode.put("Reason", e.getMessage());
+            String evDetData = JsonHandler.unprettyPrint(infoNode);
+            itemStatus.setEvDetailData(evDetData);
         } catch (IOException | MetaDataExecutionException | InvalidCreateOperationException | MetaDataClientServerException | XMLStreamException | JAXBException | MetaDataDocumentSizeException | InvalidParseOperationException e) {
             throw new ProcessingException(e);
         }

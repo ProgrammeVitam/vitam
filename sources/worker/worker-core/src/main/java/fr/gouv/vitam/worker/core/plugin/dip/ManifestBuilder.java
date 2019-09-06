@@ -42,6 +42,8 @@ import fr.gouv.culture.archivesdefrance.seda.v2.LogBookOgType;
 import fr.gouv.culture.archivesdefrance.seda.v2.LogBookType;
 import fr.gouv.culture.archivesdefrance.seda.v2.MinimalDataObjectType;
 import fr.gouv.culture.archivesdefrance.seda.v2.ObjectFactory;
+import fr.gouv.vitam.common.LocalDateUtil;
+import fr.gouv.vitam.common.SedaConstants;
 import fr.gouv.vitam.common.accesslog.AccessLogUtils;
 import fr.gouv.vitam.common.database.builder.query.Query;
 import fr.gouv.vitam.common.database.builder.query.QueryHelper;
@@ -56,10 +58,13 @@ import fr.gouv.vitam.common.mapping.dip.ArchiveUnitMapper;
 import fr.gouv.vitam.common.mapping.dip.ObjectGroupMapper;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.administration.AccessContractModel;
+import fr.gouv.vitam.common.model.dip.ExportRequestParameters;
+import fr.gouv.vitam.common.model.dip.ExportType;
 import fr.gouv.vitam.common.model.objectgroup.ObjectGroupResponse;
 import fr.gouv.vitam.common.model.objectgroup.QualifiersModel;
 import fr.gouv.vitam.common.model.objectgroup.VersionsModel;
 import fr.gouv.vitam.common.model.unit.ArchiveUnitModel;
+import fr.gouv.vitam.common.parameter.ParameterHelper;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.functional.administration.client.AdminManagementClient;
 import fr.gouv.vitam.functional.administration.client.AdminManagementClientFactory;
@@ -73,8 +78,10 @@ import fr.gouv.vitam.logbook.lifecycles.client.LogbookLifeCyclesClientFactory;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.worker.common.utils.SedaUtils;
 import fr.gouv.vitam.worker.core.mapping.LogbookMapper;
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.io.FilenameUtils;
 import org.bson.Document;
+import org.elasticsearch.common.Strings;
 
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBElement;
@@ -86,6 +93,7 @@ import javax.xml.stream.XMLOutputFactory;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamWriter;
 import java.io.OutputStream;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -96,12 +104,42 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static fr.gouv.vitam.common.SedaConstants.NAMESPACE_URI;
+import static fr.gouv.vitam.common.SedaConstants.TAG_ACCESS_RULE_CODE_LIST_VERSION;
+import static fr.gouv.vitam.common.SedaConstants.TAG_APPRAISAL_RULE_CODE_LIST_VERSION;
+import static fr.gouv.vitam.common.SedaConstants.TAG_ARCHIVAL_AGENCY;
+import static fr.gouv.vitam.common.SedaConstants.TAG_ARCHIVAL_AGREEMENT;
 import static fr.gouv.vitam.common.SedaConstants.TAG_ARCHIVE_DELIVERY_REQUEST_REPLY;
+import static fr.gouv.vitam.common.SedaConstants.TAG_ARCHIVE_TRANSFER;
+import static fr.gouv.vitam.common.SedaConstants.TAG_AUTHORIZATION_REASON_CODE_LIST_VERSION;
+import static fr.gouv.vitam.common.SedaConstants.TAG_CLASSIFICATION_RULE_CODE_LIST_VERSION;
+import static fr.gouv.vitam.common.SedaConstants.TAG_CODE_LIST_VERSIONS;
+import static fr.gouv.vitam.common.SedaConstants.TAG_COMMENT;
+import static fr.gouv.vitam.common.SedaConstants.TAG_COMPRESSION_ALGORITHM_CODE_LIST_VERSION;
 import static fr.gouv.vitam.common.SedaConstants.TAG_DATA_OBJECT_GROUP;
 import static fr.gouv.vitam.common.SedaConstants.TAG_DATA_OBJECT_PACKAGE;
+import static fr.gouv.vitam.common.SedaConstants.TAG_DATA_OBJECT_VERSION_CODE_LIST_VERSION;
+import static fr.gouv.vitam.common.SedaConstants.TAG_DATE;
 import static fr.gouv.vitam.common.SedaConstants.TAG_DESCRIPTIVE_METADATA;
+import static fr.gouv.vitam.common.SedaConstants.TAG_DISSEMINATION_RULE_CODE_LIST_VERSION;
+import static fr.gouv.vitam.common.SedaConstants.TAG_ENCODING_CODE_LIST_VERSION;
+import static fr.gouv.vitam.common.SedaConstants.TAG_FILE_FORMAT_CODE_LIST_VERSION;
+import static fr.gouv.vitam.common.SedaConstants.TAG_IDENTIFIER;
 import static fr.gouv.vitam.common.SedaConstants.TAG_MANAGEMENT_METADATA;
+import static fr.gouv.vitam.common.SedaConstants.TAG_MESSAGE_DIGEST_ALGORITHM_CODE_LIST_VERSION;
+import static fr.gouv.vitam.common.SedaConstants.TAG_MESSAGE_IDENTIFIER;
+import static fr.gouv.vitam.common.SedaConstants.TAG_MESSAGE_REQUEST_IDENTIFIER;
+import static fr.gouv.vitam.common.SedaConstants.TAG_MIME_TYPE_CODE_LIST_VERSION;
 import static fr.gouv.vitam.common.SedaConstants.TAG_ORIGINATINGAGENCYIDENTIFIER;
+import static fr.gouv.vitam.common.SedaConstants.TAG_RELATED_TRANSFER_REFERENCE;
+import static fr.gouv.vitam.common.SedaConstants.TAG_RELATIONSHIP_CODE_LIST_VERSION;
+import static fr.gouv.vitam.common.SedaConstants.TAG_REPLY_CODE_LIST_VERSION;
+import static fr.gouv.vitam.common.SedaConstants.TAG_REQUESTER;
+import static fr.gouv.vitam.common.SedaConstants.TAG_REUSE_RULE_CODE_LIST_VERSION;
+import static fr.gouv.vitam.common.SedaConstants.TAG_STORAGE_RULE_CODE_LIST_VERSION;
+import static fr.gouv.vitam.common.SedaConstants.TAG_SUBMISSIONAGENCYIDENTIFIER;
+import static fr.gouv.vitam.common.SedaConstants.TAG_TRANSFERRING_AGENCY;
+import static fr.gouv.vitam.common.SedaConstants.TAG_TRANSFER_REQUEST_REPLY_IDENTIFIER;
+import static fr.gouv.vitam.common.SedaConstants.TAG_UNIT_IDENTIFIER;
 import static fr.gouv.vitam.common.mapping.dip.UnitMapper.buildObjectMapper;
 import static fr.gouv.vitam.common.model.RequestResponseOK.TAG_RESULTS;
 import static fr.gouv.vitam.worker.common.utils.SedaUtils.XSI_URI;
@@ -121,6 +159,7 @@ public class ManifestBuilder implements AutoCloseable {
             LOGGER.error("unable to create jaxb context", e);
         }
     }
+
     private final XMLStreamWriter writer;
     private final Marshaller marshaller;
     private final ArchiveUnitMapper archiveUnitMapper;
@@ -146,14 +185,37 @@ public class ManifestBuilder implements AutoCloseable {
 
         marshaller = jaxbContext.createMarshaller();
         marshaller.setProperty(Marshaller.JAXB_FRAGMENT, true);
+    }
 
+    public void startDocument(String operationId, ExportType exportType,
+        ExportRequestParameters exportRequestParameters)
+        throws XMLStreamException, JAXBException, ExportException {
         writer.writeStartDocument();
-        writer.writeStartElement(TAG_ARCHIVE_DELIVERY_REQUEST_REPLY);
+        switch (exportType) {
+            case ArchiveTransfer:
+                writer.writeStartElement(TAG_ARCHIVE_TRANSFER);
+                break;
+            case ArchiveDeliveryRequestReply:
+                writer.writeStartElement(TAG_ARCHIVE_DELIVERY_REQUEST_REPLY);
+                break;
+        }
         writer.writeNamespace("xlink", "http://www.w3.org/1999/xlink");
         writer.writeNamespace("pr", "info:lc/xmlns/premis-v2");
         writer.writeDefaultNamespace(NAMESPACE_URI);
         writer.writeNamespace("xsi", XSI_URI);
         writer.writeAttribute("xsi", XSI_URI, "schemaLocation", NAMESPACE_URI + " " + SedaUtils.SEDA_XSD_VERSION);
+
+        switch (exportType) {
+            case ArchiveTransfer:
+                writer.writeNamespace("id", "ID");// TODO: 06/09/2019 what ID should be ?
+                break;
+        }
+
+        writeComment(exportRequestParameters.getComment());
+        writeDate(LocalDateUtil.getFormattedDate(LocalDateTime.now()));
+        writeMessageIdentifier(operationId);
+        writeArchivalAgreement(exportRequestParameters.getArchivalAgreement());
+        writeCodeListVersions(ParameterHelper.getTenantParameter());
     }
 
     Map<String, JsonNode> writeGOT(JsonNode og, String linkedAU, Set<String> dataObjectVersionFilter, boolean exportWithLogBookLFC) throws JsonProcessingException, JAXBException, ProcessingException, XMLStreamException {
@@ -165,9 +227,12 @@ public class ManifestBuilder implements AutoCloseable {
             Select select = new Select();
 
             try {
-                Query query = QueryHelper.eq(AccessContract.IDENTIFIER, VitamThreadUtils.getVitamSession().getContractId());
+                Query query =
+                    QueryHelper.eq(AccessContract.IDENTIFIER, VitamThreadUtils.getVitamSession().getContractId());
                 select.setQuery(query);
-                accessContractModel = ((RequestResponseOK<AccessContractModel>) client.findAccessContracts(select.getFinalSelect())).getResults().get(0);
+                accessContractModel =
+                    ((RequestResponseOK<AccessContractModel>) client.findAccessContracts(select.getFinalSelect()))
+                        .getResults().get(0);
             } catch (InvalidCreateOperationException | AdminManagementClientServerException | InvalidParseOperationException e) {
                 throw new ProcessingException(e.getMessage(), e.getCause());
             }
@@ -197,7 +262,8 @@ public class ManifestBuilder implements AutoCloseable {
         Map<String, String> strategiesByVersion = objectGroup.getQualifiers().stream()
             .flatMap(qualifier -> qualifier.getVersions().stream())
             .filter(version -> version.getStorage() != null && version.getStorage().getStrategyId() != null)
-            .collect(Collectors.toMap(VersionsModel::getDataObjectVersion, version -> version.getStorage().getStrategyId()));
+            .collect(
+                Collectors.toMap(VersionsModel::getDataObjectVersion, version -> version.getStorage().getStrategyId()));
 
         Map<String, JsonNode> maps = new HashMap<>();
 
@@ -278,7 +344,8 @@ public class ManifestBuilder implements AutoCloseable {
      * @throws DatatypeConfigurationException
      * @throws JAXBException
      */
-    void writeArchiveUnit(JsonNode result, ListMultimap<String, String> multimap, Map<String, String> ogs, boolean exportWithLogBookLFC)
+    void writeArchiveUnit(JsonNode result, ListMultimap<String, String> multimap, Map<String, String> ogs,
+        boolean exportWithLogBookLFC)
         throws JsonProcessingException, DatatypeConfigurationException, JAXBException, ProcessingException {
 
         ArchiveUnitModel archiveUnitModel = objectMapper.treeToValue(result, ArchiveUnitModel.class);
@@ -358,16 +425,272 @@ public class ManifestBuilder implements AutoCloseable {
         writer.writeEndElement();
     }
 
-    void writeOriginatingAgency(String originatingAgency) throws JAXBException, XMLStreamException {
+
+    void writeComment(String comment) throws XMLStreamException {
+        if (null == comment) {
+            return;
+        }
+
+        writer.writeStartElement(NAMESPACE_URI, TAG_COMMENT);
+        writer.writeCharacters(comment);
+        writer.writeEndElement();
+    }
+
+    void writeDate(String date) throws XMLStreamException {
+        if (null == date) {
+            return;
+        }
+
+        writer.writeStartElement(NAMESPACE_URI, TAG_DATE);
+        writer.writeCharacters(date);
+        writer.writeEndElement();
+    }
+
+    void writeMessageIdentifier(String operationId) throws XMLStreamException {
+        if (null == operationId) {
+            return;
+        }
+
+        writer.writeStartElement(NAMESPACE_URI, TAG_MESSAGE_IDENTIFIER);
+        writer.writeCharacters(operationId);
+        writer.writeEndElement();
+    }
+
+    void writeArchivalAgreement(String archivalAgreement) throws XMLStreamException, ExportException {
+        if (Strings.isNullOrEmpty(archivalAgreement)) {
+            throw new ExportException(TAG_ARCHIVAL_AGREEMENT + " parameter is required");
+        }
+        writer.writeStartElement(NAMESPACE_URI, TAG_ARCHIVAL_AGREEMENT);
+        writer.writeCharacters(archivalAgreement);
+        writer.writeEndElement();
+    }
+
+    void writeRelatedTransferReference(String relatedTransferReference) throws XMLStreamException {
+        if (Strings.isNullOrEmpty(relatedTransferReference)) {
+            return;
+        }
+        writer.writeStartElement(NAMESPACE_URI, TAG_RELATED_TRANSFER_REFERENCE);
+        writer.writeCharacters(relatedTransferReference);
+        writer.writeEndElement();
+    }
+
+    void writeTransferRequestReplyIdentifier(String transferRequestReplyIdentifier)
+        throws XMLStreamException {
+        if (Strings.isNullOrEmpty(transferRequestReplyIdentifier)) {
+            return;
+        }
+        writer.writeStartElement(NAMESPACE_URI, TAG_TRANSFER_REQUEST_REPLY_IDENTIFIER);
+        writer.writeCharacters(transferRequestReplyIdentifier);
+        writer.writeEndElement();
+    }
+
+    void writeMessageRequestIdentifier(String messageRequestIdentifier)
+        throws XMLStreamException, ExportException {
+        if (Strings.isNullOrEmpty(messageRequestIdentifier)) {
+            throw new ExportException(TAG_MESSAGE_REQUEST_IDENTIFIER + " parameter is required");
+        }
+        writer.writeStartElement(NAMESPACE_URI, TAG_MESSAGE_REQUEST_IDENTIFIER);
+        writer.writeCharacters(messageRequestIdentifier);
+        writer.writeEndElement();
+    }
+
+    void writeRequester(String requester)
+        throws XMLStreamException, ExportException {
+        if (Strings.isNullOrEmpty(requester)) {
+            throw new ExportException(TAG_REQUESTER + " parameter is required");
+        }
+        writer.writeStartElement(NAMESPACE_URI, TAG_REQUESTER);
+        writer.writeCharacters(requester);
+        writer.writeEndElement();
+    }
+
+    void writeAuthorizationRequestReplyIdentifier(String authorizationRequestReplyIdentifier)
+        throws XMLStreamException {
+        if (Strings.isNullOrEmpty(authorizationRequestReplyIdentifier)) {
+            return;
+        }
+        writer.writeStartElement(NAMESPACE_URI, TAG_MESSAGE_REQUEST_IDENTIFIER);
+        writer.writeCharacters(authorizationRequestReplyIdentifier);
+        writer.writeEndElement();
+    }
+
+    void writeUnitIdentifier(String unitIdentifier)
+        throws XMLStreamException {
+        if (Strings.isNullOrEmpty(unitIdentifier)) {
+            return;
+        }
+        writer.writeStartElement(NAMESPACE_URI, TAG_UNIT_IDENTIFIER);
+        writer.writeCharacters(unitIdentifier);
+        writer.writeEndElement();
+    }
+
+    void writeManagementMetadata(String originatingAgency, String submissionAgencyIdentifier)
+        throws JAXBException, XMLStreamException, ExportException {
+        if (Strings.isNullOrEmpty(originatingAgency)) {
+            throw new ExportException(TAG_ORIGINATINGAGENCYIDENTIFIER + " parameter is required");
+        }
         writer.writeStartElement(NAMESPACE_URI, TAG_MANAGEMENT_METADATA);
 
         marshaller.marshal(new JAXBElement<>(new QName(NAMESPACE_URI, TAG_ORIGINATINGAGENCYIDENTIFIER), String.class, originatingAgency), writer);
 
+        if (!Strings.isNullOrEmpty(submissionAgencyIdentifier)) {
+            marshaller.marshal(new JAXBElement<>(new QName(NAMESPACE_URI, TAG_SUBMISSIONAGENCYIDENTIFIER),
+                String.class, submissionAgencyIdentifier), writer);
+        }
+
         writer.writeEndElement();
+    }
+
+    void writeArchivalAgency(String archivalAgency)
+        throws JAXBException, XMLStreamException, ExportException {
+        if (Strings.isNullOrEmpty(archivalAgency)) {
+            throw new ExportException(TAG_ARCHIVAL_AGENCY + " parameter is required");
+        }
+        writer.writeStartElement(NAMESPACE_URI, TAG_ARCHIVAL_AGENCY);
+
+        marshaller.marshal(new JAXBElement<>(new QName(NAMESPACE_URI, TAG_IDENTIFIER),
+            String.class, archivalAgency), writer);
+
+        writer.writeEndElement();
+    }
+
+    void writeTransferringAgency(String transferringAgency)
+        throws JAXBException, XMLStreamException, ExportException {
+        if (Strings.isNullOrEmpty(transferringAgency)) {
+            throw new ExportException(TAG_TRANSFERRING_AGENCY + " parameter is required");
+        }
+        writer.writeStartElement(NAMESPACE_URI, TAG_TRANSFERRING_AGENCY);
+
+        marshaller.marshal(new JAXBElement<>(new QName(NAMESPACE_URI, TAG_IDENTIFIER),
+            String.class, transferringAgency), writer);
+
+        writer.writeEndElement();
+    }
+
+    void writeCodeListVersions(int tenant) throws JAXBException, XMLStreamException {
+        writer.writeStartElement(NAMESPACE_URI, TAG_CODE_LIST_VERSIONS);
+
+        marshaller.marshal(new JAXBElement<>(new QName(NAMESPACE_URI, TAG_REPLY_CODE_LIST_VERSION),
+            String.class, TAG_REPLY_CODE_LIST_VERSION + tenant), writer);
+
+        marshaller.marshal(new JAXBElement<>(new QName(NAMESPACE_URI, TAG_MESSAGE_DIGEST_ALGORITHM_CODE_LIST_VERSION),
+            String.class, TAG_MESSAGE_DIGEST_ALGORITHM_CODE_LIST_VERSION + tenant), writer);
+
+        marshaller.marshal(new JAXBElement<>(new QName(NAMESPACE_URI, TAG_MIME_TYPE_CODE_LIST_VERSION),
+            String.class, TAG_MIME_TYPE_CODE_LIST_VERSION + tenant), writer);
+
+        marshaller.marshal(new JAXBElement<>(new QName(NAMESPACE_URI, TAG_ENCODING_CODE_LIST_VERSION),
+            String.class, TAG_ENCODING_CODE_LIST_VERSION + tenant), writer);
+
+        marshaller.marshal(new JAXBElement<>(new QName(NAMESPACE_URI, TAG_FILE_FORMAT_CODE_LIST_VERSION),
+            String.class, TAG_FILE_FORMAT_CODE_LIST_VERSION + tenant), writer);
+
+        marshaller.marshal(new JAXBElement<>(new QName(NAMESPACE_URI, TAG_COMPRESSION_ALGORITHM_CODE_LIST_VERSION),
+            String.class, TAG_COMPRESSION_ALGORITHM_CODE_LIST_VERSION + tenant), writer);
+
+        marshaller.marshal(new JAXBElement<>(new QName(NAMESPACE_URI, TAG_DATA_OBJECT_VERSION_CODE_LIST_VERSION),
+            String.class, TAG_DATA_OBJECT_VERSION_CODE_LIST_VERSION + tenant), writer);
+
+        marshaller.marshal(new JAXBElement<>(new QName(NAMESPACE_URI, TAG_STORAGE_RULE_CODE_LIST_VERSION),
+            String.class, TAG_STORAGE_RULE_CODE_LIST_VERSION + tenant), writer);
+
+        marshaller.marshal(new JAXBElement<>(new QName(NAMESPACE_URI, TAG_APPRAISAL_RULE_CODE_LIST_VERSION),
+            String.class, TAG_APPRAISAL_RULE_CODE_LIST_VERSION + tenant), writer);
+
+        marshaller.marshal(new JAXBElement<>(new QName(NAMESPACE_URI, TAG_ACCESS_RULE_CODE_LIST_VERSION),
+            String.class, TAG_ACCESS_RULE_CODE_LIST_VERSION + tenant), writer);
+
+        marshaller.marshal(new JAXBElement<>(new QName(NAMESPACE_URI, TAG_DISSEMINATION_RULE_CODE_LIST_VERSION),
+            String.class, TAG_DISSEMINATION_RULE_CODE_LIST_VERSION + tenant), writer);
+
+        marshaller.marshal(new JAXBElement<>(new QName(NAMESPACE_URI, TAG_REUSE_RULE_CODE_LIST_VERSION),
+            String.class, TAG_REUSE_RULE_CODE_LIST_VERSION + tenant), writer);
+
+        marshaller.marshal(new JAXBElement<>(new QName(NAMESPACE_URI, TAG_CLASSIFICATION_RULE_CODE_LIST_VERSION),
+            String.class, TAG_CLASSIFICATION_RULE_CODE_LIST_VERSION + tenant), writer);
+
+        marshaller.marshal(new JAXBElement<>(new QName(NAMESPACE_URI, TAG_AUTHORIZATION_REASON_CODE_LIST_VERSION),
+            String.class, TAG_AUTHORIZATION_REASON_CODE_LIST_VERSION + tenant), writer);
+
+        marshaller.marshal(new JAXBElement<>(new QName(NAMESPACE_URI, TAG_RELATIONSHIP_CODE_LIST_VERSION),
+            String.class, TAG_RELATIONSHIP_CODE_LIST_VERSION + tenant), writer);
+
+        writer.writeEndElement();
+    }
+
+    void writeFooter(ExportType exportType, ExportRequestParameters parameters)
+        throws XMLStreamException, ExportException, JAXBException {
+        switch (exportType) {
+            case ArchiveTransfer:
+                if (CollectionUtils.isNotEmpty(parameters.getRelatedTransferReference())) {
+                    for (String elem : parameters.getRelatedTransferReference()) {
+                        writeRelatedTransferReference(elem);
+                    }
+                }
+                writeTransferRequestReplyIdentifier(parameters.getTransferRequestReplyIdentifier());
+                break;
+            case ArchiveDeliveryRequestReply:
+                writeMessageRequestIdentifier(parameters.getMessageRequestIdentifier());
+                writeAuthorizationRequestReplyIdentifier(parameters.getAuthorizationRequestReplyIdentifier());
+                writeUnitIdentifier("TODO");
+
+                break;
+        }
+
+        writeArchivalAgency(parameters.getArchivalAgencyIdentifier());
+
+        switch (exportType) {
+            case ArchiveTransfer:
+                writeTransferringAgency("TODO");
+            case ArchiveDeliveryRequestReply:
+                writeRequester(parameters.getRequesterIdentifier());
+                break;
+        }
     }
 
     void closeManifest() throws XMLStreamException {
         writer.writeEndElement();
         writer.writeEndDocument();
+    }
+
+    void validate(ExportType exportType, ExportRequestParameters exportRequestParameters) throws ExportException {
+
+        String msg = "";
+        switch (exportType) {
+            case ArchiveTransfer:
+                if (Strings.isNullOrEmpty(exportRequestParameters.getArchivalAgreement())) {
+                    msg = TAG_ARCHIVAL_AGREEMENT + " parameter is required, ";
+                }
+                if (Strings.isNullOrEmpty(exportRequestParameters.getOriginatingAgencyIdentifier())) {
+                    msg = msg + TAG_ORIGINATINGAGENCYIDENTIFIER + " parameter is required, ";
+                }
+                if (Strings.isNullOrEmpty(exportRequestParameters.getArchivalAgencyIdentifier())) {
+                    msg = msg + TAG_ARCHIVAL_AGENCY + " parameter is required.";
+                }
+
+                if (!Strings.isNullOrEmpty(msg)) {
+                    throw new ExportException(msg);
+                }
+                break;
+            case ArchiveDeliveryRequestReply:
+                if (Strings.isNullOrEmpty(exportRequestParameters.getMessageRequestIdentifier())) {
+                    msg = TAG_MESSAGE_REQUEST_IDENTIFIER + " parameter is required, ";
+                }
+
+                if (Strings.isNullOrEmpty(exportRequestParameters.getArchivalAgencyIdentifier())) {
+                    msg = msg + TAG_ARCHIVAL_AGENCY + " parameter is required, ";
+                }
+
+                if (Strings.isNullOrEmpty(exportRequestParameters.getRequesterIdentifier())) {
+                    msg = msg + TAG_REQUESTER + " parameter is required.";
+                }
+
+                if (!Strings.isNullOrEmpty(msg)) {
+                    throw new ExportException(msg);
+                }
+                break;
+            default:
+                throw new ExportException("Export type (" + exportType + ") not yet implemented");
+        }
     }
 }
