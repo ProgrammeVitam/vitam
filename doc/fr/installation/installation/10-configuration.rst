@@ -43,6 +43,8 @@ Pour chaque type de `host`, indiquer le(s) serveur(s) défini(s), pour chaque fo
 
 .. note:: Pour les composants considérés par l'exploitant comme étant "hors :term:`VITAM`" (typiquement, le composant ``ihm-demo``), il est possible de désactiver la création du servcie Consul associé. Pour cela, après chaque hostname impliqué, il faut rajouter la directive suivante : ``consul_disabled=true``.
 
+.. caution:: Concernant la valeur de ``vitam_site_name``, seuls les caractères alphanumériques et le tiret ("-") sont autorisés.
+
 Fichier ``vitam_security.yml``
 -------------------------------
 
