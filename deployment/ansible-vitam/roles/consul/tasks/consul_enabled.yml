@@ -3,7 +3,7 @@
 ### TODO : check if vitam_site_name is correct (ie a-zA-Z0-9\-_ )
 - name: check vitam_site_name is correctly set
   fail: msg="{{ vitam_site_name }} not correctly configured"
-  when: vitam_site_name|regex_search('[^a-zA-Z0-9\\-_]')
+  when: vitam_site_name|regex_search('[^a-zA-Z0-9\\-]')
 
 - name: Install Consul package
   package:
