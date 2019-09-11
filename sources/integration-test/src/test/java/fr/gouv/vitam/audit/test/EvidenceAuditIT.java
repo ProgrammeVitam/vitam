@@ -215,6 +215,7 @@ public class EvidenceAuditIT extends VitamRuleRunner {
                 .allMatch(outcome -> outcome.equals(StatusCode.OK.name()));
 
             // Check report exists
+            List<JsonNode> reportLines = null;
             try (StorageClient storageClient = StorageClientFactory.getInstance().getClient()) {
                 Response reportResponse = null;
                 try {
@@ -222,10 +223,14 @@ public class EvidenceAuditIT extends VitamRuleRunner {
                         evidenceAuditOperationGUID.toString() + ".jsonl", DataCategory.REPORT,
                         AccessLogUtils.getNoLogAccessLog());
                     assertThat(reportResponse.getStatus()).isEqualTo(Response.Status.OK.getStatusCode());
+                    reportLines = getReport(reportResponse);
                 } finally {
                     consumeAnyEntityAndClose(reportResponse);
                 }
             }
+            assertThat(reportLines.get(1).get("extendedInfo").get("nbObjectGroups").asInt()).isEqualTo(4);
+            assertThat(reportLines.get(1).get("extendedInfo").get("nbArchiveUnits").asInt()).isEqualTo(7);
+            assertThat(reportLines.get(1).get("extendedInfo").get("nbObjects").asInt()).isEqualTo(4);
         }
     }
 
@@ -351,7 +356,7 @@ public class EvidenceAuditIT extends VitamRuleRunner {
             assertThat(reportLines.size()).isEqualTo(8);
             assertThat(reportLines.get(1).get("vitamResults").get("WARNING").asInt()).isEqualTo(5);
             assertThat(reportLines.get(1).get("extendedInfo").get("nbObjectGroups").asInt()).isEqualTo(2);
-            assertThat(reportLines.get(1).get("extendedInfo").get("nbObjects").asInt()).isEqualTo(3);
+            assertThat(reportLines.get(1).get("extendedInfo").get("nbArchiveUnits").asInt()).isEqualTo(3);
             assertThat(reportLines.get(3).get("message").asText()).contains("No traceability operation found matching date");
 
         }

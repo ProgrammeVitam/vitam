@@ -36,9 +36,11 @@ public class EvidenceAuditStatsModel {
     @JsonProperty("nbObjectGroups")
     private int nbObjectGroups;
 
+    @JsonProperty("nbArchiveUnits")
+    private int nbUnits;
+
     @JsonProperty("nbObjects")
     private int nbObjects;
-
 
     @JsonProperty("globalResults")
     private EvidenceAuditFullStatusCount globalResults;
@@ -47,9 +49,10 @@ public class EvidenceAuditStatsModel {
     public EvidenceAuditStatsModel() {
     }
 
-    public EvidenceAuditStatsModel(int nbObjectGroups, int nbObjects, EvidenceAuditFullStatusCount globalResults) {
+    public EvidenceAuditStatsModel(int nbObjectGroups, int nbUnits, int nbObjects, EvidenceAuditFullStatusCount globalResults) {
         super();
         this.nbObjectGroups = nbObjectGroups;
+        this.nbUnits = nbUnits;
         this.nbObjects = nbObjects;
         this.globalResults = globalResults;
     }
@@ -62,6 +65,13 @@ public class EvidenceAuditStatsModel {
         this.nbObjectGroups = nbObjectGroups;
     }
 
+    public int getNbUnits() {
+        return nbUnits;
+    }
+
+    public void setNbUnits(int nbUnits) {
+        this.nbUnits = nbUnits;
+    }
     public int getNbObjects() {
         return nbObjects;
     }

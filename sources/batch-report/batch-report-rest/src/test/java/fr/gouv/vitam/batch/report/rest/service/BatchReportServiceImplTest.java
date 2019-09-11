@@ -480,7 +480,7 @@ public class BatchReportServiceImplTest {
         when(storageClient.storeFileFromWorkspace(anyString(), any(), anyString(), any())).thenReturn(null);
 
         EvidenceAuditStatsModel auditStatus =
-            new EvidenceAuditStatsModel(1, 0, new EvidenceAuditFullStatusCount());
+            new EvidenceAuditStatsModel(1, 0, 1,new EvidenceAuditFullStatusCount());
         Document evidenceAuditData = getEvidenceAuditDocument(processId);
         FakeMongoCursor<Document> fakeMongoCursor = new FakeMongoCursor<>(Collections.singletonList(evidenceAuditData));
 

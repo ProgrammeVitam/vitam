@@ -209,8 +209,8 @@ public class EvidenceAuditReportRepositoryTest {
 
         // Then
         assertThat(stats.getNbObjectGroups()).isEqualTo(3);
-        assertThat(stats.getGlobalResults().getObjectGroupsCount().getNbOK()).isEqualTo(1);
-        assertThat(stats.getGlobalResults().getObjectGroupsCount().getNbWARNING()).isEqualTo(1);
+        assertThat(stats.getGlobalResults().getObjectGroupsCount().getNbOK()).isEqualTo(2);
+        assertThat(stats.getGlobalResults().getObjectGroupsCount().getNbWARNING()).isEqualTo(3);
         assertThat(stats.getGlobalResults().getObjectGroupsCount().getNbKO()).isEqualTo(1);
     }
 
