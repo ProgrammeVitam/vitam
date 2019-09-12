@@ -168,12 +168,6 @@ public class UnitMetadataRulesUpdateCheckConsistency extends ActionHandler {
         if (checkError.isPresent())
             return checkError.get();
 
-        checkError = ruleActions.getDelete().stream()
-            .flatMap(x -> x.entrySet().stream())
-            .map(this::computeErrorsForDelete)
-            .filter(Optional::isPresent)
-            .map(Optional::get)
-            .findFirst();
         return checkError.orElse(null);
     }
 
@@ -330,38 +324,6 @@ public class UnitMetadataRulesUpdateCheckConsistency extends ActionHandler {
             Optional<JsonNode> checkDateResponse = checkDate(ruleAction.getStartDate(), entry.getKey());
             if (checkDateResponse.isPresent()) {
                 return checkDateResponse;
-            }
-        }
-
-        return Optional.empty();
-    }
-
-    private Optional<JsonNode> computeErrorsForDelete(Map.Entry<String, RuleCategoryAction> entry) {
-        JsonNode rulesIDErrors = computeOnlyRulesID(entry);
-        if (rulesIDErrors != null) {
-            return Optional.of(rulesIDErrors);
-        }
-
-        for (RuleAction ruleAction : entry.getValue().getRules()) {
-            if (StringUtils.isEmpty(ruleAction.getRule())) {
-                ObjectNode errorInfo = JsonHandler.createObjectNode();
-                errorInfo.put("Error", VitamCode.UPDATE_UNIT_RULES_QUERY_CONSISTENCY.name());
-                errorInfo.put("Message", VitamCode.UPDATE_UNIT_RULES_QUERY_CONSISTENCY.getMessage());
-                errorInfo.put("Info ", "Delete rule must at least define the field 'Rule' for category " + entry.getKey());
-                errorInfo.put("Code", "UNIT_RULES_MISSING_MANDATORY_FIELD");
-                return Optional.of(errorInfo);
-            }
-
-            if (StringUtils.isNotEmpty(ruleAction.getOldRule())
-                || StringUtils.isNotEmpty(ruleAction.getStartDate())
-                || Boolean.TRUE.equals(ruleAction.isDeleteStartDate())) {
-
-                ObjectNode errorInfo = JsonHandler.createObjectNode();
-                errorInfo.put("Error", VitamCode.UPDATE_UNIT_RULES_QUERY_CONSISTENCY.name());
-                errorInfo.put("Message", VitamCode.UPDATE_UNIT_RULES_QUERY_CONSISTENCY.getMessage());
-                errorInfo.put("Info ", "Delete rule must not define 'OldRule', 'StartDate' nor 'DeleteStartDate' fields for category " + entry.getKey());
-                errorInfo.put("Code", "UNIT_RULES_NOT_EXPECTED_FIELD");
-                return Optional.of(errorInfo);
             }
         }
 

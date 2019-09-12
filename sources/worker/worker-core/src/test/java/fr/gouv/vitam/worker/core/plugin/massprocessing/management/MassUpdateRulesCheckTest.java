@@ -33,6 +33,7 @@ import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.massupdate.RuleActions;
 import fr.gouv.vitam.common.model.massupdate.RuleCategoryAction;
+import fr.gouv.vitam.common.model.massupdate.RuleCategoryActionDeletion;
 import fr.gouv.vitam.worker.core.plugin.massprocessing.MassUpdateErrorInfo;
 import fr.gouv.vitam.worker.core.plugin.preservation.TestHandlerIO;
 import fr.gouv.vitam.worker.core.plugin.preservation.TestWorkerParameter;
@@ -143,9 +144,12 @@ public class MassUpdateRulesCheckTest {
         RuleActions ruleActions = new RuleActions();
         HashMap<String, RuleCategoryAction> addRules = new HashMap<>();
         addRules.put(TAG_RULE_CLASSIFICATION, new RuleCategoryAction());
+        HashMap<String, RuleCategoryActionDeletion> deleteRules = new HashMap<>();
+        deleteRules.put(TAG_RULE_CLASSIFICATION, new RuleCategoryActionDeletion());
+
         ruleActions.setUpdate(Collections.singletonList(addRules));               // <- Here 1 ClassificationRule
         ruleActions.setAdd(Collections.singletonList(addRules));                  // <- Here 1 ClassificationRule
-        ruleActions.setDelete(Collections.singletonList(addRules));               // <- Here 1 ClassificationRule
+        ruleActions.setDelete(Collections.singletonList(deleteRules));            // <- Here 1 ClassificationRule
 
         TestHandlerIO handlerIO = new TestHandlerIO();
         handlerIO.setJsonFromWorkspace("actions.json", JsonHandler.toJsonNode(ruleActions));
