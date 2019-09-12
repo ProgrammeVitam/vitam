@@ -420,7 +420,7 @@ public final class JsonHandler {
      * @return the corresponding object
      * @throws InvalidParseOperationException if parse JsonNode object exception occurred
      */
-    public static final <T> T getFromFileAsTypeRefence(File file, TypeReference valueTypeRef)
+    public static final <T> T getFromFileAsTypeRefence(File file, TypeReference<T> valueTypeRef)
         throws InvalidParseOperationException {
         try {
             ParametersChecker.checkParameter("File or class", file, valueTypeRef);

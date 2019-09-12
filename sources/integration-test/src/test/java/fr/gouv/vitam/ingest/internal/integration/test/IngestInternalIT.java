@@ -1975,7 +1975,7 @@ public class IngestInternalIT extends VitamRuleRunner {
         final List<Document> unitList =
             JsonHandler.getFromFileAsTypeRefence(PropertiesUtils
                     .getResourceFile("integration-ingest-internal/data/units_tree_access_contract_test.json"),
-                new TypeReference<List<Unit>>() {
+                new TypeReference<List<Document>>() {
                 });
 
         // Save units in Mongo
