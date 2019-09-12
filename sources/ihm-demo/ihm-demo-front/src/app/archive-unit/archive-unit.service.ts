@@ -72,7 +72,8 @@ export class ArchiveUnitService {
   exportDIP(query: {$query: object, $projection: object, $filter: object}, dataObjectVersions: string[]): Observable<VitamResponse> {
     const body = {
       dslRequest: query,
-      dataObjectVersionToExport: {dataObjectVersions}
+      dataObjectVersionToExport: {dataObjectVersions},
+      exportWithLogBookLFC: true
     };
     return this.resourceService.post(`${this.ARCHIVE_UNIT_API}/${this.EXPORT}`, undefined, body);
   }

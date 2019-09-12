@@ -28,7 +28,6 @@ package fr.gouv.vitam.worker.core.plugin.dip;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.annotations.VisibleForTesting;
@@ -57,7 +56,6 @@ import fr.gouv.vitam.metadata.api.exception.MetaDataDocumentSizeException;
 import fr.gouv.vitam.metadata.api.exception.MetaDataExecutionException;
 import fr.gouv.vitam.metadata.client.MetaDataClient;
 import fr.gouv.vitam.metadata.client.MetaDataClientFactory;
-import fr.gouv.vitam.metadata.core.database.configuration.GlobalDatasDb;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 import fr.gouv.vitam.worker.common.HandlerIO;
@@ -71,12 +69,13 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
-import java.util.AbstractMap;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.StreamSupport;
@@ -84,25 +83,26 @@ import java.util.stream.StreamSupport;
 import static com.google.common.collect.Iterables.partition;
 import static fr.gouv.vitam.common.database.builder.query.VitamFieldsHelper.id;
 import static fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.PROJECTION.FIELDS;
+import static fr.gouv.vitam.common.database.builder.request.configuration.GlobalDatas.LIMIT_LOAD;
 import static fr.gouv.vitam.common.database.parser.query.ParserTokens.PROJECTIONARGS.ID;
 import static fr.gouv.vitam.common.database.parser.query.ParserTokens.PROJECTIONARGS.OBJECT;
 import static fr.gouv.vitam.common.database.parser.query.ParserTokens.PROJECTIONARGS.ORIGINATING_AGENCY;
 import static fr.gouv.vitam.common.database.parser.query.ParserTokens.PROJECTIONARGS.UNITUPS;
+import static fr.gouv.vitam.common.database.parser.request.GlobalDatasParser.DEFAULT_SCROLL_TIMEOUT;
+import static fr.gouv.vitam.common.model.dip.DipExportRequest.DIP_REQUEST_FILE_NAME;
 
 /**
  * create manifest and put in on workspace
  */
 public class CreateManifest extends ActionHandler {
-
-    private static final String CREATE_MANIFEST = "CREATE_MANIFEST";
-
     static final int MANIFEST_XML_RANK = 0;
     static final int GUID_TO_INFO_RANK = 1;
     static final int BINARIES_RANK = 2;
+
+    private static final String CREATE_MANIFEST = "CREATE_MANIFEST";
     private static final int MAX_ELEMENT_IN_QUERY = 1000;
 
     private MetaDataClientFactory metaDataClientFactory;
-
     private ObjectNode projection;
 
     /**
@@ -133,13 +133,10 @@ public class CreateManifest extends ActionHandler {
         File manifestFile = handlerIO.getNewLocalFile(handlerIO.getOutput(MANIFEST_XML_RANK).getPath());
 
         try (MetaDataClient client = metaDataClientFactory.getClient();
-            OutputStream outputStream = new FileOutputStream(manifestFile);
-            final ManifestBuilder manifestBuilder = new ManifestBuilder(outputStream)) {
-            JsonNode initialQuery = handlerIO.getJsonFromWorkspace("query.json");
-            DipExportRequest dipExportRequest = JsonHandler.getFromJsonNode(
-                handlerIO.getJsonFromWorkspace("dip_export_query.json"), DipExportRequest.class);
+             OutputStream outputStream = new FileOutputStream(manifestFile);
+             ManifestBuilder manifestBuilder = new ManifestBuilder(outputStream)) {
 
-            Optional<Set<String>> dataObjectVersionFilter = getDataObjectVersionFilter(handlerIO);
+            DipExportRequest dipExportRequest = JsonHandler.getFromJsonNode(handlerIO.getJsonFromWorkspace(DIP_REQUEST_FILE_NAME), DipExportRequest.class);
 
             ListMultimap<String, String> multimap = ArrayListMultimap.create();
             Set<String> originatingAgencies = new HashSet<>();
@@ -147,7 +144,7 @@ public class CreateManifest extends ActionHandler {
             Map<String, String> ogs = new HashMap<>();
 
             SelectParserMultiple parser = new SelectParserMultiple();
-            parser.parse(initialQuery);
+            parser.parse(dipExportRequest.getDslRequest());
 
             SelectMultiQuery request = parser.getRequest();
             request.setProjection(projection);
@@ -155,8 +152,8 @@ public class CreateManifest extends ActionHandler {
             ScrollSpliterator<JsonNode> scrollRequest = ScrollSpliteratorHelper
                 .createUnitScrollSplitIterator(client, request);
 
-            StreamSupport.stream(scrollRequest, false).forEach(
-                item -> createGraph(multimap, originatingAgencies, ogs, item));
+            StreamSupport.stream(scrollRequest, false)
+                .forEach(item -> createGraph(multimap, originatingAgencies, ogs, item));
 
             if (checkNumberOfUnit(itemStatus, scrollRequest.estimateSize())) {
                 return new ItemStatus(CREATE_MANIFEST).setItemsStatus(CREATE_MANIFEST, itemStatus);
@@ -171,19 +168,22 @@ public class CreateManifest extends ActionHandler {
             Select select = new Select();
 
             Map<String, JsonNode> idBinaryWithFileName = new HashMap<>();
+            boolean exportWithLogBookLFC = dipExportRequest.isExportWithLogBookLFC();
+            Set<String> dataObjectVersions = Objects.nonNull(dipExportRequest.getDataObjectVersionToExport())
+                ? dipExportRequest.getDataObjectVersionToExport().getDataObjectVersions()
+                : Collections.emptySet();
 
-            Iterable<List<Map.Entry<String, String>>> partitions = partition(ogs.entrySet(), MAX_ELEMENT_IN_QUERY);
-            for (List<Map.Entry<String, String>> partition : partitions) {
+            Iterable<List<Entry<String, String>>> partitions = partition(ogs.entrySet(), MAX_ELEMENT_IN_QUERY);
+            for (List<Entry<String, String>> partition : partitions) {
 
                 ListMultimap<String, String> unitsForObjectGroupId = partition.stream()
-                    .map(x -> new AbstractMap.SimpleEntry<>(x.getValue(), x.getKey()))
                     .collect(
                         ArrayListMultimap::create,
-                        (ArrayListMultimap<String, String> map, AbstractMap.SimpleEntry<String, String> entry) -> map.put(entry.getKey(), entry.getValue()),
-                        (l, r) -> l.putAll(r)
+                        (map, entry) -> map.put(entry.getValue(), entry.getKey()),
+                        (list1, list2) -> list1.putAll(list2)
                     );
 
-                InQuery in = QueryHelper.in(id(), partition.stream().map(Map.Entry::getValue).toArray(String[]::new));
+                InQuery in = QueryHelper.in(id(), partition.stream().map(Entry::getValue).toArray(String[]::new));
 
                 select.setQuery(in);
                 JsonNode response = client.selectObjectGroups(select.getFinalSelect());
@@ -193,7 +193,7 @@ public class CreateManifest extends ActionHandler {
                     List<String> linkedUnits = unitsForObjectGroupId.get(
                         object.get(ParserTokens.PROJECTIONARGS.ID.exactToken()).textValue());
                     for (String linkedUnit : linkedUnits) {
-                        idBinaryWithFileName.putAll(manifestBuilder.writeGOT(object, linkedUnit, dataObjectVersionFilter.orElse(Collections.emptySet())));
+                        idBinaryWithFileName.putAll(manifestBuilder.writeGOT(object, linkedUnit, dataObjectVersions, exportWithLogBookLFC));
                     }
                 }
             }
@@ -201,7 +201,7 @@ public class CreateManifest extends ActionHandler {
             storeBinaryInformationOnWorkspace(handlerIO, idBinaryWithFileName);
 
             SelectParserMultiple initialQueryParser = new SelectParserMultiple();
-            initialQueryParser.parse(initialQuery);
+            initialQueryParser.parse(dipExportRequest.getDslRequest());
 
             scrollRequest = new ScrollSpliterator<>(initialQueryParser.getRequest(),
                 query -> {
@@ -211,17 +211,17 @@ public class CreateManifest extends ActionHandler {
                     } catch (MetaDataExecutionException | MetaDataDocumentSizeException | MetaDataClientServerException | InvalidParseOperationException e) {
                         throw new IllegalStateException(e);
                     }
-                }, GlobalDatasDb.DEFAULT_SCROLL_TIMEOUT, GlobalDatasDb.LIMIT_LOAD);
+                }, DEFAULT_SCROLL_TIMEOUT, LIMIT_LOAD);
 
             manifestBuilder.startDescriptiveMetadata();
-            StreamSupport.stream(scrollRequest, false).forEach(result -> {
-                try {
-                    boolean exportWithLogBookLFC = dipExportRequest.isExportWithLogBookLFC();
-                    manifestBuilder.writeArchiveUnit(result, multimap, ogs, exportWithLogBookLFC);
-                } catch (JsonProcessingException | JAXBException | DatatypeConfigurationException | ProcessingException e) {
-                    throw new IllegalArgumentException(e);
-                }
-            });
+            StreamSupport.stream(scrollRequest, false)
+                .forEach(result -> {
+                    try {
+                        manifestBuilder.writeArchiveUnit(result, multimap, ogs, exportWithLogBookLFC);
+                    } catch (JsonProcessingException | JAXBException | DatatypeConfigurationException | ProcessingException e) {
+                        throw new IllegalArgumentException(e);
+                    }
+                });
             manifestBuilder.endDescriptiveMetadata();
 
             manifestBuilder.writeOriginatingAgency(originatingAgency);
@@ -236,21 +236,6 @@ public class CreateManifest extends ActionHandler {
 
         itemStatus.increment(StatusCode.OK);
         return new ItemStatus(CREATE_MANIFEST).setItemsStatus(CREATE_MANIFEST, itemStatus);
-    }
-
-    private Optional<Set<String>> getDataObjectVersionFilter(HandlerIO handlerIO) throws ProcessingException {
-        try {
-            JsonNode dataObjectVersionNode = handlerIO.getJsonFromWorkspace("dataObjectVersionFilter.json");
-            if (dataObjectVersionNode != null && dataObjectVersionNode.get("DataObjectVersions") != null) {
-                return Optional.of((new ObjectMapper()).treeToValue(dataObjectVersionNode.get("DataObjectVersions"), Set.class));
-            } else {
-                return Optional.empty();
-            }
-        } catch (ProcessingException e) {
-            return Optional.empty();
-        } catch (JsonProcessingException e) {
-            throw new ProcessingException(e.getMessage(), e.getCause());
-        }
     }
 
     private boolean checkNumberOfUnit(ItemStatus itemStatus, long total) {

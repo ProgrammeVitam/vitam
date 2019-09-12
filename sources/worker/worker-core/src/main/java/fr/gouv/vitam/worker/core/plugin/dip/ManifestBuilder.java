@@ -37,6 +37,8 @@ import fr.gouv.culture.archivesdefrance.seda.v2.DataObjectGroupType;
 import fr.gouv.culture.archivesdefrance.seda.v2.DataObjectOrArchiveUnitReferenceType;
 import fr.gouv.culture.archivesdefrance.seda.v2.DataObjectPackageType;
 import fr.gouv.culture.archivesdefrance.seda.v2.DataObjectRefType;
+import fr.gouv.culture.archivesdefrance.seda.v2.EventLogBookOgType;
+import fr.gouv.culture.archivesdefrance.seda.v2.LogBookOgType;
 import fr.gouv.culture.archivesdefrance.seda.v2.LogBookType;
 import fr.gouv.culture.archivesdefrance.seda.v2.MinimalDataObjectType;
 import fr.gouv.culture.archivesdefrance.seda.v2.ObjectFactory;
@@ -64,6 +66,7 @@ import fr.gouv.vitam.functional.administration.client.AdminManagementClientFacto
 import fr.gouv.vitam.functional.administration.common.AccessContract;
 import fr.gouv.vitam.functional.administration.common.exception.AdminManagementClientServerException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientException;
+import fr.gouv.vitam.logbook.common.server.database.collections.LogbookLifeCycleObjectGroup;
 import fr.gouv.vitam.logbook.common.server.database.collections.LogbookLifeCycleUnit;
 import fr.gouv.vitam.logbook.lifecycles.client.LogbookLifeCyclesClient;
 import fr.gouv.vitam.logbook.lifecycles.client.LogbookLifeCyclesClientFactory;
@@ -90,8 +93,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
-import static fr.gouv.vitam.common.SedaConstants.ATTRIBUTE_ID;
 import static fr.gouv.vitam.common.SedaConstants.NAMESPACE_URI;
 import static fr.gouv.vitam.common.SedaConstants.TAG_ARCHIVE_DELIVERY_REQUEST_REPLY;
 import static fr.gouv.vitam.common.SedaConstants.TAG_DATA_OBJECT_GROUP;
@@ -153,19 +156,7 @@ public class ManifestBuilder implements AutoCloseable {
         writer.writeAttribute("xsi", XSI_URI, "schemaLocation", NAMESPACE_URI + " " + SedaUtils.SEDA_XSD_VERSION);
     }
 
-    /**
-     * write a GOT
-     *
-     * @param og    objectGroup
-     * @return
-     * @throws JsonProcessingException
-     * @throws JAXBException
-     * @throws ProcessingException
-     * @throws XMLStreamException
-     */
-    Map<String, JsonNode> writeGOT(JsonNode og, String linkedAU, Set<String> dataObjectVersionFilter)
-        throws JsonProcessingException, JAXBException, ProcessingException, XMLStreamException {
-
+    Map<String, JsonNode> writeGOT(JsonNode og, String linkedAU, Set<String> dataObjectVersionFilter, boolean exportWithLogBookLFC) throws JsonProcessingException, JAXBException, ProcessingException, XMLStreamException {
         ObjectGroupResponse objectGroup = objectMapper.treeToValue(og, ObjectGroupResponse.class);
         // Usage access control
         AccessContractModel accessContractModel = VitamThreadUtils.getVitamSession().getContract();
@@ -210,46 +201,71 @@ public class ManifestBuilder implements AutoCloseable {
 
         Map<String, JsonNode> maps = new HashMap<>();
 
-        final DataObjectPackageType xmlObject;
         try {
-            xmlObject = objectGroupMapper.map(objectGroup);
-
+            final DataObjectPackageType  xmlObject = objectGroupMapper.map(objectGroup);
             List<Object> dataObjectGroupList = xmlObject.getDataObjectGroupOrBinaryDataObjectOrPhysicalDataObject();
-            // must be only 1 GOT (vitam seda restriction)
-            for (Object dataObjectGroupItem : dataObjectGroupList) {
 
-                DataObjectGroupType dataObjectGroup = (DataObjectGroupType) dataObjectGroupItem;
-
-                startDataObjectGroup(dataObjectGroup.getId());
-
-                List<MinimalDataObjectType> binaryDataObjectOrPhysicalDataObject =
-                    dataObjectGroup.getBinaryDataObjectOrPhysicalDataObject();
-                for (MinimalDataObjectType minimalDataObjectType : binaryDataObjectOrPhysicalDataObject) {
-                    if (minimalDataObjectType instanceof BinaryDataObjectType) {
-                        BinaryDataObjectType binaryDataObjectType = (BinaryDataObjectType) minimalDataObjectType;
-                        String extension =
-                            FilenameUtils.getExtension(binaryDataObjectType.getUri());
-                        String fileName = StoreDIP.CONTENT + "/" + binaryDataObjectType.getId() + "." + extension;
-                        binaryDataObjectType.setUri(fileName);
-
-                        String[] dataObjectVersion = minimalDataObjectType.getDataObjectVersion().split("_");
-                        String xmlQualifier = dataObjectVersion[0];
-                        Integer xmlVersion = Integer.parseInt(dataObjectVersion[1]);
-
-                        ObjectNode objectInfos =
-                            (ObjectNode) AccessLogUtils.getWorkerInfo(xmlQualifier, xmlVersion, binaryDataObjectType.getSize().longValue(), linkedAU, fileName);
-                        objectInfos.put("strategyId", strategiesByVersion.get(minimalDataObjectType.getDataObjectVersion()));
-                        maps.put(minimalDataObjectType.getId(), objectInfos);
-                    }
-                    marshaller.marshal(minimalDataObjectType, writer);
-                }
-
-                endDataObjectGroup();
+            if (dataObjectGroupList.isEmpty()) {
+                return maps;
             }
-        } catch (InternalServerException e) {
+            // must be only 1 GOT (vitam seda restriction)
+            DataObjectGroupType dataObjectGroup = (DataObjectGroupType) dataObjectGroupList.get(0);
+
+            if (exportWithLogBookLFC) {
+                LogBookOgType logBookOgType = getLogBookOgType(dataObjectGroup.getId());
+                dataObjectGroup.setLogBook(logBookOgType);
+            }
+
+            List<MinimalDataObjectType> binaryDataObjectOrPhysicalDataObject = dataObjectGroup.getBinaryDataObjectOrPhysicalDataObject();
+            for (MinimalDataObjectType minimalDataObjectType : binaryDataObjectOrPhysicalDataObject) {
+                if (minimalDataObjectType instanceof BinaryDataObjectType) {
+                    BinaryDataObjectType binaryDataObjectType = (BinaryDataObjectType) minimalDataObjectType;
+                    String extension = FilenameUtils.getExtension(binaryDataObjectType.getUri());
+                    String fileName = StoreDIP.CONTENT + "/" + binaryDataObjectType.getId() + "." + extension;
+                    binaryDataObjectType.setUri(fileName);
+
+                    String[] dataObjectVersion = minimalDataObjectType.getDataObjectVersion().split("_");
+                    String xmlQualifier = dataObjectVersion[0];
+                    Integer xmlVersion = Integer.parseInt(dataObjectVersion[1]);
+
+                    ObjectNode objectInfos =
+                        (ObjectNode) AccessLogUtils.getWorkerInfo(xmlQualifier, xmlVersion, binaryDataObjectType.getSize().longValue(), linkedAU, fileName);
+                    objectInfos.put("strategyId", strategiesByVersion.get(minimalDataObjectType.getDataObjectVersion()));
+                    maps.put(minimalDataObjectType.getId(), objectInfos);
+                }
+            }
+            marshallHackForNonXmlRootObject(dataObjectGroup);
+            return maps;
+        } catch (InternalServerException | LogbookClientException | InvalidParseOperationException e) {
             throw new ProcessingException(e);
         }
-        return maps;
+    }
+
+    private void marshallHackForNonXmlRootObject(DataObjectGroupType dataObjectGroup) throws JAXBException {
+        // Hack from https://docs.oracle.com/javase/7/docs/api/javax/xml/bind/Marshaller.html
+        // Marshalling content tree rooted by a JAXB element
+        // Using the dataObjectGroup.getClass() in order to have no namespace or type issue
+        marshaller.marshal(new JAXBElement(new QName(NAMESPACE_URI, TAG_DATA_OBJECT_GROUP), dataObjectGroup.getClass(), dataObjectGroup), writer);
+    }
+
+    private LogBookOgType getLogBookOgType(String id) throws LogbookClientException, InvalidParseOperationException, JAXBException {
+        try (LogbookLifeCyclesClient client = logbookLifeCyclesClientFactory.getClient()) {
+            JsonNode response = client.selectObjectGroupLifeCycleById(id, new Select().getFinalSelect());
+
+            List<EventLogBookOgType> events = RequestResponseOK.getFromJsonNode(response)
+                    .getResults()
+                    .stream()
+                    .map(LogbookLifeCycleObjectGroup::new)
+                    .flatMap(lifecycle -> Stream.concat(lifecycle.events().stream(), Stream.of(lifecycle)))
+                    .map(LogbookMapper::getEventOGTypeFromDocument)
+                    .collect(Collectors.toList());
+
+            LogBookOgType logbookType = new LogBookOgType();
+            logbookType.getEvent()
+                .addAll(events);
+
+            return logbookType;
+        }
     }
 
     /**
@@ -267,6 +283,7 @@ public class ManifestBuilder implements AutoCloseable {
 
         ArchiveUnitModel archiveUnitModel = objectMapper.treeToValue(result, ArchiveUnitModel.class);
         final ArchiveUnitType xmlUnit = archiveUnitMapper.map(archiveUnitModel);
+
         List<ArchiveUnitType> unitChildren = new ArrayList<>();
         if (multimap.containsKey(xmlUnit.getId())) {
             List<String> children = multimap.get(xmlUnit.getId());
@@ -292,15 +309,15 @@ public class ManifestBuilder implements AutoCloseable {
             xmlUnit.getArchiveUnitOrDataObjectReferenceOrDataObjectGroup().add(archiveUnitTypeDataObjectReference);
         }
 
-        if(exportWithLogBookLFC) {
-            addLogbookType(xmlUnit);
+        if (exportWithLogBookLFC) {
+            addArchiveUnitLogbookType(xmlUnit);
         }
 
         marshaller.marshal(xmlUnit, writer);
 
     }
 
-    private void addLogbookType(ArchiveUnitType xmlUnit) throws ProcessingException {
+    private void addArchiveUnitLogbookType(ArchiveUnitType xmlUnit) throws ProcessingException {
         try (LogbookLifeCyclesClient client = logbookLifeCyclesClientFactory.getClient()) {
             Select select = new Select();
 
@@ -309,7 +326,7 @@ public class ManifestBuilder implements AutoCloseable {
                 JsonNode rootEvent = response.get(TAG_RESULTS).get(0);
                 LogbookLifeCycleUnit logbookLFC = new LogbookLifeCycleUnit(rootEvent);
                 LogBookType logbookType = new LogBookType();
-                for(Document event : logbookLFC.events()) {
+                for (Document event : logbookLFC.events()) {
                     logbookType.getEvent().add(LogbookMapper.getEventTypeFromDocument(event));
                 }
                 logbookType.getEvent().add(LogbookMapper.getEventTypeFromDocument(logbookLFC));
@@ -333,11 +350,6 @@ public class ManifestBuilder implements AutoCloseable {
         writer.writeStartElement(TAG_DATA_OBJECT_PACKAGE);
     }
 
-    private void startDataObjectGroup(String groupId) throws XMLStreamException {
-        writer.writeStartElement(TAG_DATA_OBJECT_GROUP);
-        writer.writeAttribute(NAMESPACE_URI, ATTRIBUTE_ID, groupId);
-    }
-
     void endDescriptiveMetadata() throws XMLStreamException {
         writer.writeEndElement();
     }
@@ -346,15 +358,10 @@ public class ManifestBuilder implements AutoCloseable {
         writer.writeEndElement();
     }
 
-    private void endDataObjectGroup() throws XMLStreamException {
-        writer.writeEndElement();
-    }
-
     void writeOriginatingAgency(String originatingAgency) throws JAXBException, XMLStreamException {
         writer.writeStartElement(NAMESPACE_URI, TAG_MANAGEMENT_METADATA);
 
-        marshaller.marshal(new JAXBElement<>(new QName(NAMESPACE_URI, TAG_ORIGINATINGAGENCYIDENTIFIER),
-            String.class, originatingAgency), writer);
+        marshaller.marshal(new JAXBElement<>(new QName(NAMESPACE_URI, TAG_ORIGINATINGAGENCYIDENTIFIER), String.class, originatingAgency), writer);
 
         writer.writeEndElement();
     }

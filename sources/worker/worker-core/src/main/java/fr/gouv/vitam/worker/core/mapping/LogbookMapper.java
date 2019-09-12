@@ -27,6 +27,7 @@
 
 package fr.gouv.vitam.worker.core.mapping;
 
+import fr.gouv.culture.archivesdefrance.seda.v2.EventLogBookOgType;
 import fr.gouv.culture.archivesdefrance.seda.v2.EventType;
 import fr.gouv.vitam.common.mapping.dip.TransformJsonTreeToListOfXmlElement;
 import fr.gouv.vitam.common.model.logbook.LogbookEvent;
@@ -46,6 +47,17 @@ public class LogbookMapper {
 
     public static EventType getEventTypeFromDocument(Document eventData) {
         EventType event = new EventType();
+        setDataInEvent(eventData, event);
+        return event;
+    }
+
+    public static EventLogBookOgType getEventOGTypeFromDocument(Document eventData) {
+        EventLogBookOgType event = new EventLogBookOgType();
+        setDataInEvent(eventData, event);
+        return event;
+    }
+
+    private static <T extends EventType> void setDataInEvent(Document eventData, T event) {
         event.setEventIdentifier(eventData.getString(LogbookEvent.EV_ID));
         event.setEventTypeCode(eventData.getString(LogbookEvent.EV_TYPE_PROC));
         event.setEventType(eventData.getString(LogbookEvent.EV_TYPE));
@@ -59,7 +71,5 @@ public class LogbookMapper {
         extensions.put(AGENT_IDENTIFIER, Collections.singletonList(eventData.getString(LOGBOOK_EVENT_AGENT_IDENTIFIER)));
         extensions.put(OBJECT_IDENTIFIER, Collections.singletonList(eventData.getString(LOGBOOK_EVENT_OBJECT_IDENTIFIER)));
         event.getAny().addAll(TransformJsonTreeToListOfXmlElement.mapJsonToElement(Collections.singletonList(extensions)));
-
-        return event;
     }
 }

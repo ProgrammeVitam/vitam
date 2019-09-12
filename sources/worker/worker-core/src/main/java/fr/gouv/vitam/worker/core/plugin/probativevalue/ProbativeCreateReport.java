@@ -48,7 +48,6 @@ import fr.gouv.vitam.worker.common.HandlerIO;
 import fr.gouv.vitam.worker.core.distribution.JsonLineGenericIterator;
 import fr.gouv.vitam.worker.core.distribution.JsonLineModel;
 import fr.gouv.vitam.worker.core.handler.ActionHandler;
-import fr.gouv.vitam.worker.core.plugin.evidence.exception.EvidenceStatus;
 import fr.gouv.vitam.worker.core.plugin.probativevalue.pojo.ProbativeReportEntry;
 import fr.gouv.vitam.worker.core.plugin.probativevalue.pojo.ProbativeReportV2;
 import fr.gouv.vitam.worker.core.utils.PluginHelper.EventDetails;
@@ -98,9 +97,9 @@ public class ProbativeCreateReport extends ActionHandler {
                 .collect(Collectors.toList());
 
             ReportResults reportResults = new ReportResults(
-                new Long(probativeEntries.stream().filter(e -> e.getStatus().equals(EvidenceStatus.OK)).count()).intValue(),
-                new Long(probativeEntries.stream().filter(e -> e.getStatus().equals(EvidenceStatus.KO)).count()).intValue(),
-                new Long(probativeEntries.stream().filter(e -> e.getStatus().equals(EvidenceStatus.WARN)).count()).intValue(),
+                (int) probativeEntries.stream().filter(e -> e.getStatus().equals(StatusCode.OK)).count(),
+                (int) probativeEntries.stream().filter(e -> e.getStatus().equals(StatusCode.KO)).count(),
+                (int) probativeEntries.stream().filter(e -> e.getStatus().equals(StatusCode.WARNING)).count(),
                 probativeEntries.size()
             );
 
@@ -175,7 +174,7 @@ public class ProbativeCreateReport extends ActionHandler {
         }
     }
 
-    public static class ReportVersion2 {
+    protected static class ReportVersion2 {
         @JsonProperty("probativeReportVersion")
         private final int probativeReportVersion = 2;
     }
