@@ -61,6 +61,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 
+import static fr.gouv.vitam.common.model.dip.DipExportRequest.DIP_REQUEST_FILE_NAME;
 import static fr.gouv.vitam.worker.core.plugin.dip.CreateManifest.BINARIES_RANK;
 import static fr.gouv.vitam.worker.core.plugin.dip.CreateManifest.GUID_TO_INFO_RANK;
 import static fr.gouv.vitam.worker.core.plugin.dip.CreateManifest.MANIFEST_XML_RANK;
@@ -151,7 +152,7 @@ public class CreateManifestTest {
         DipExportRequest dipExportRequest = new DipExportRequest();
         dipExportRequest.setExportWithLogBookLFC(true);
         dipExportRequest.setDslRequest(queryUnit);
-        given(handlerIO.getJsonFromWorkspace("dip_export_query.json")).willReturn(JsonHandler.toJsonNode(dipExportRequest));
+        given(handlerIO.getJsonFromWorkspace(DIP_REQUEST_FILE_NAME)).willReturn(JsonHandler.toJsonNode(dipExportRequest));
 
         WorkerParameters wp = WorkerParametersFactory.newWorkerParameters();
 
@@ -258,7 +259,7 @@ public class CreateManifestTest {
         DipExportRequest dipExportRequest = new DipExportRequest();
         dipExportRequest.setExportWithLogBookLFC(true);
         dipExportRequest.setDslRequest(queryUnit);
-        given(handlerIO.getJsonFromWorkspace("dip_export_query.json")).willReturn(JsonHandler.toJsonNode(dipExportRequest));
+        given(handlerIO.getJsonFromWorkspace(DIP_REQUEST_FILE_NAME)).willReturn(JsonHandler.toJsonNode(dipExportRequest));
 
         // When
         ItemStatus itemStatus = createManifest.execute(WorkerParametersFactory.newWorkerParameters(), handlerIO);

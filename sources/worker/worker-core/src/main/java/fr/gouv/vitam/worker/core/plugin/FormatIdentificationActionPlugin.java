@@ -163,7 +163,6 @@ public class FormatIdentificationActionPlugin extends ActionHandler implements V
             itemStatus.increment(StatusCode.FATAL);
             return new ItemStatus(FILE_FORMAT).setItemsStatus(FILE_FORMAT, itemStatus);
         }
-
         try {
             // Get objectGroup metadatas
             final JsonNode jsonOG = (JsonNode) handlerIO.getInput(OG_INPUT_RANK);

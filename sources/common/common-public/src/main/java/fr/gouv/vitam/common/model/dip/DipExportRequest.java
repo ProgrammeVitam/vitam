@@ -4,6 +4,8 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.JsonNode;
 
 public class DipExportRequest {
+    public static final String DIP_REQUEST_FILE_NAME = "dip_export_query.json";
+
     @JsonProperty("dataObjectVersionToExport")
     private DataObjectVersions  dataObjectVersionToExport;
 

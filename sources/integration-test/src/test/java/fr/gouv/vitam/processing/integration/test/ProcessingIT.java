@@ -171,6 +171,7 @@ import static fr.gouv.vitam.common.database.builder.request.configuration.Builde
 import static fr.gouv.vitam.common.guid.GUIDFactory.newOperationLogbookGUID;
 import static fr.gouv.vitam.common.json.JsonHandler.writeToInpustream;
 import static fr.gouv.vitam.common.model.ProcessAction.RESUME;
+import static fr.gouv.vitam.common.model.dip.DipExportRequest.DIP_REQUEST_FILE_NAME;
 import static fr.gouv.vitam.logbook.common.parameters.Contexts.COMPUTE_INHERITED_RULES;
 import static fr.gouv.vitam.logbook.common.parameters.Contexts.DEFAULT_WORKFLOW;
 import static fr.gouv.vitam.logbook.common.server.database.collections.LogbookDocument.EVENT_DETAILS;
@@ -1024,71 +1025,6 @@ public class ProcessingIT extends VitamRuleRunner {
 
         assertEquals(ProcessState.COMPLETED, processWorkflow.getState());
     }
-
-    @Test
-    @RunWithCustomExecutor
-    public void should_export_dip() throws Exception {
-        // Given
-        prepareVitamSession();
-
-
-        String containerName = createOperationContainer();
-
-        WorkspaceClient workspaceClient = WorkspaceClientFactory.getInstance().getClient();
-
-        // upload SIP
-        final InputStream zipInputStreamSipObject =
-            PropertiesUtils.getResourceAsStream(SIP_FUND_REGISTER_OK);
-        workspaceClient.createContainer(containerName);
-        workspaceClient.uncompressObject(containerName, SIP_FOLDER, CommonMediaType.ZIP,
-            zipInputStreamSipObject);
-        // call processing
-
-        processingClient = ProcessingManagementClientFactory.getInstance().getClient();
-        processingClient.initVitamProcess(containerName, DEFAULT_WORKFLOW.name());
-        RequestResponse<ItemStatus> ret =
-            processingClient.updateOperationActionProcess(RESUME.getValue(), containerName);
-        assertNotNull(ret);
-
-        assertEquals(Response.Status.ACCEPTED.getStatusCode(), ret.getStatus());
-
-        wait(containerName);
-
-        Select select = new Select();
-        CompareQuery eq = QueryHelper.eq("#operations", containerName);
-        select.setQuery(eq);
-
-        containerName = createOperationContainer("EXPORT_DIP", LogbookTypeProcess.EXPORT_DIP);
-        ObjectNode finalSelect = select.getFinalSelect();
-
-        workspaceClient.createContainer(containerName);
-        workspaceClient.putObject(containerName, "query.json", JsonHandler.writeToInpustream(finalSelect));
-
-        DipExportRequest dipExportRequest = new DipExportRequest();
-        dipExportRequest.setExportWithLogBookLFC(true);
-        dipExportRequest.setDslRequest(finalSelect);
-        workspaceClient.putObject(containerName, "dip_export_query.json", JsonHandler.writeToInpustream(dipExportRequest));
-
-        processingClient = ProcessingManagementClientFactory.getInstance().getClient();
-        processingClient.initVitamProcess(containerName, Contexts.EXPORT_DIP.name());
-
-        // When
-        RequestResponse<JsonNode> jsonNodeRequestResponse =
-            processingClient.executeOperationProcess(containerName, DEFAULT_WORKFLOW.name(),
-                RESUME.getValue());
-
-        // Then
-        assertNotNull(jsonNodeRequestResponse);
-        assertEquals(Response.Status.ACCEPTED.getStatusCode(), jsonNodeRequestResponse.getStatus());
-
-        wait(containerName);
-        ProcessWorkflow processWorkflow =
-            processMonitoring.findOneProcessWorkflow(containerName, tenantId);
-        assertNotNull(processWorkflow);
-        assertEquals(ProcessState.COMPLETED, processWorkflow.getState());
-        assertThat(processWorkflow.getStatus()).isEqualTo(StatusCode.OK);
-    }
-
 
     @RunWithCustomExecutor
     @Test

@@ -140,6 +140,7 @@ import static fr.gouv.vitam.common.database.utils.AccessContractRestrictionHelpe
 import static fr.gouv.vitam.common.json.JsonHandler.writeToInpustream;
 import static fr.gouv.vitam.common.model.ProcessAction.RESUME;
 import static fr.gouv.vitam.common.model.StatusCode.STARTED;
+import static fr.gouv.vitam.common.model.dip.DipExportRequest.DIP_REQUEST_FILE_NAME;
 import static fr.gouv.vitam.common.thread.VitamThreadUtils.getVitamSession;
 import static fr.gouv.vitam.logbook.common.parameters.Contexts.COMPUTE_INHERITED_RULES_DELETE;
 import static fr.gouv.vitam.logbook.common.parameters.Contexts.PRESERVATION;
@@ -383,7 +384,7 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
                     VitamLogbookMessages.getLabelOp("EXPORT_DIP.STARTED") + " : " + GUIDReader.getGUID(operationId),
                     GUIDReader.getGUID(operationId));
 
-            if(applyFilter) {
+            if (applyFilter) {
                 // Add access contract rights
                 addRightsStatementIdentifier(initParameters);
             }
@@ -394,13 +395,7 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
             JsonNode filteredQueryQsl = applyAccessContractRestrictionForUnitForSelect(dipExportRequest.getDslRequest(), getVitamSession().getContract());
             dipExportRequest.setDslRequest(filteredQueryQsl);
             workspaceClient.putObject(operationId, QUERY_FILE, writeToInpustream(filteredQueryQsl));
-            workspaceClient.putObject(operationId, "dip_export_query.json", writeToInpustream(dipExportRequest));
-
-            if (dipExportRequest.getDataObjectVersionToExport() != null
-                && !dipExportRequest.getDataObjectVersionToExport().getDataObjectVersions().isEmpty()) {
-                workspaceClient.putObject(operationId, "dataObjectVersionFilter.json",
-                    writeToInpustream(dipExportRequest.getDataObjectVersionToExport()));
-            }
+            workspaceClient.putObject(operationId, DIP_REQUEST_FILE_NAME, writeToInpustream(dipExportRequest));
 
             ProcessingEntry processingEntry = new ProcessingEntry(operationId, Contexts.EXPORT_DIP.name());
             boolean mustLog = ActivationStatus.ACTIVE.equals(getVitamSession().getContract().getAccessLog());
