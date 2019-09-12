@@ -41,18 +41,19 @@ import fr.gouv.vitam.logbook.lifecycles.client.LogbookLifeCyclesClient;
 import fr.gouv.vitam.logbook.lifecycles.client.LogbookLifeCyclesClientFactory;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClient;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClientFactory;
-import fr.gouv.vitam.metadata.client.MetaDataClient;
-import fr.gouv.vitam.metadata.client.MetaDataClientFactory;
 import fr.gouv.vitam.processing.common.parameter.DefaultWorkerParameters;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 import fr.gouv.vitam.processing.common.parameter.WorkerParametersFactory;
 import fr.gouv.vitam.worker.core.impl.HandlerIOImpl;
 import fr.gouv.vitam.workspace.client.WorkspaceClient;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
+import org.assertj.core.api.Assertions;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.TemporaryFolder;
 import org.mockito.Mock;
+import org.mockito.Mockito;
 import org.mockito.junit.MockitoJUnit;
 import org.mockito.junit.MockitoRule;
 
@@ -71,6 +72,7 @@ import java.util.stream.Stream;
 import static org.junit.Assert.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.when;
 
 
@@ -152,12 +154,14 @@ public class CheckConformityActionPluginTest {
     @Rule
     public MockitoRule mockitoRule = MockitoJUnit.rule();
 
+    @Rule
+    public TemporaryFolder tempFolder = new TemporaryFolder();
+
     @Mock
     private WorkspaceClient workspaceClient;
 
     @Mock
     private WorkspaceClientFactory workspaceClientFactory;
-
 
     @Mock
     private LogbookLifeCyclesClientFactory logbookLifeCyclesClientFactory;
@@ -165,24 +169,27 @@ public class CheckConformityActionPluginTest {
     @Mock
     private LogbookLifeCyclesClient logbookLifeCyclesClient;
 
-
     @Mock
     private LogbookOperationsClientFactory logbookOperationsClientFactory;
+
     @Mock
     private LogbookOperationsClient logbookOperationsClient;
 
     @Before
     public void setUp() throws Exception {
+        Mockito.reset(workspaceClient, logbookOperationsClient, logbookLifeCyclesClient);
+
         when(workspaceClientFactory.getClient()).thenReturn(workspaceClient);
         when(logbookOperationsClientFactory.getClient()).thenReturn(logbookOperationsClient);
         when(logbookLifeCyclesClientFactory.getClient()).thenReturn(logbookLifeCyclesClient);
+
     }
 
     @Test
     public void getNonStandardDigestUpdate() throws Exception {
 
         InputStream objectGroup = PropertiesUtils.getResourceAsStream(OBJECT_GROUP);
-        when(workspaceClient.getObject(any(), eq("ObjectGroup/objName")))
+        when(workspaceClient.getObject(any(), eq("ObjectGroup/objName2")))
             .thenReturn(Response.status(Status.OK).entity(objectGroup).build());
         when(workspaceClient.getObject(any(), eq("SIP/content/" + bdo1)))
             .thenReturn(
@@ -201,6 +208,7 @@ public class CheckConformityActionPluginTest {
         // assertNotNull(objectGroup);
         CheckConformityActionPlugin plugin = new CheckConformityActionPlugin();
         final WorkerParameters params = getDefaultWorkerParameters();
+        params.setObjectName("objName2");
         String objectId = "objectId";
         final HandlerIOImpl handlerIO =
             new HandlerIOImpl(workspaceClientFactory, logbookLifeCyclesClientFactory,
@@ -217,6 +225,9 @@ public class CheckConformityActionPluginTest {
         handlerIO.addOutIOParameters(out);
         final ItemStatus response = plugin.execute(params, handlerIO);
         assertEquals(StatusCode.OK, response.getGlobalStatus());
+        Integer count = response.getStatusMeter().get(StatusCode.OK.ordinal());
+        Assertions.assertThat(count).isEqualTo(4);
+
         // check all subtasks
         response.getItemsStatus().get(CALC_CHECK).getSubTaskStatus().forEach((k, v) -> {
             assertEquals(v.getEvDetailData(), JsonHandler.unprettyPrint(EV_DETAIL_DATA.get(k)));
@@ -228,7 +239,7 @@ public class CheckConformityActionPluginTest {
     public void checkBinaryAndPhysicalObject() throws Exception {
 
         InputStream objectGroup = PropertiesUtils.getResourceAsStream(OBJECT_GROUP_BDO_AND_PDO);
-        when(workspaceClient.getObject(any(), eq("ObjectGroup/objName")))
+        when(workspaceClient.getObject(any(), eq("ObjectGroup/objName1")))
             .thenReturn(Response.status(Status.OK).entity(objectGroup).build());
         when(workspaceClient.getObject(any(), eq("SIP/Content/5zC1uD6CvaYDipUhETOyUWVEbxHmE1.pdf")))
             .thenReturn(Response.status(Status.OK).entity(PropertiesUtils
@@ -237,6 +248,7 @@ public class CheckConformityActionPluginTest {
 
         CheckConformityActionPlugin plugin = new CheckConformityActionPlugin();
         final WorkerParameters params = getDefaultWorkerParameters();
+        params.setObjectName("objName1");
         String objectId = "objectId";
         final HandlerIOImpl handlerIO =
             new HandlerIOImpl(workspaceClientFactory, logbookLifeCyclesClientFactory,
@@ -250,6 +262,8 @@ public class CheckConformityActionPluginTest {
         handlerIO.addInIOParameters(in);
         handlerIO.addOutIOParameters(out);
         final ItemStatus response = plugin.execute(params, handlerIO);
+        Integer count = response.getStatusMeter().get(StatusCode.OK.ordinal());
+        Assertions.assertThat(count).isEqualTo(1);
         assertEquals(StatusCode.OK, response.getGlobalStatus());
         assertEquals(response.getItemsStatus().get(CALC_CHECK).getSubTaskStatus().values()
             .iterator().next().getEvDetailData(), JsonHandler.unprettyPrint(EV_DETAIL_DATA_BDO_AND_PDO));
@@ -258,7 +272,6 @@ public class CheckConformityActionPluginTest {
 
     @Test
     public void checkEmptyDigestMessage() throws Exception {
-
         InputStream objectGroupEmptyDigest = PropertiesUtils.getResourceAsStream(OBJECT_GROUP_DIGEST_EMPTY);
         when(workspaceClient.getObject(any(), eq("ObjectGroup/objectName2")))
             .thenReturn(Response.status(Status.OK).entity(objectGroupEmptyDigest).build());
@@ -334,7 +347,6 @@ public class CheckConformityActionPluginTest {
         DefaultWorkerParameters workerParam =
             WorkerParametersFactory.newWorkerParameters("pId", "stepId", "CheckConformityActionHandlerTest",
                 "currentStep", Lists.newArrayList("objName"), "metadataURL", "workspaceURL");
-        workerParam.setObjectName("objName");
         return workerParam;
     }
 }
