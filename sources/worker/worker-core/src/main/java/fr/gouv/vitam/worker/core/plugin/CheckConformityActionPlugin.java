@@ -85,7 +85,7 @@ public class CheckConformityActionPlugin extends ActionHandler {
         LOGGER.debug("CheckConformityActionHandler running ...");
 
         // Set default status code to OK 
-        final ItemStatus itemStatus = new ItemStatus(CALC_CHECK).increment(StatusCode.OK);
+        final ItemStatus itemStatus = new ItemStatus(CALC_CHECK);
         try {
             // Get objectGroup
             final JsonNode jsonOG = handlerIO.getJsonFromWorkspace(
@@ -121,13 +121,16 @@ public class CheckConformityActionPlugin extends ActionHandler {
             itemStatus.increment(StatusCode.FATAL);
         }
 
+        // Occurs only when GOT does not have qualifiers or versions or all versions are Physical
+        if (itemStatus.getGlobalStatus().getStatusLevel() == StatusCode.UNKNOWN.getStatusLevel()) {
+            itemStatus.increment(StatusCode.OK);
+        }
         LOGGER.debug("CheckConformityActionHandler response: " + itemStatus.getGlobalStatus());
         return new ItemStatus(CALC_CHECK).setItemsStatus(CALC_CHECK, itemStatus);
     }
 
     private void checkMessageDigest(DataObjectInfo binaryObject, JsonNode version, ItemStatus itemStatus)
         throws ProcessingException {
-        String eventDetailData;
 
         InputStream inputStream = null;
         try {
@@ -138,14 +141,14 @@ public class CheckConformityActionPlugin extends ActionHandler {
             Digest manifestDigest;
             boolean isVitamDigest = false;
             if (!binaryObject.getAlgo().equals(digestTypeInput)) {
-                // Begin calculate digest by manifest alog
+                // Begin calculate digest by manifest algo
                 manifestDigest = new Digest(binaryObject.getAlgo());
                 inputStream = manifestDigest.getDigestInputStream(inputStream);
             } else {
                 manifestDigest = vitamDigest;
                 isVitamDigest = true;
             }
-            // calculate digest by vitam alog
+            // calculate digest by vitam algo
             vitamDigest.update(inputStream);
 
             final String manifestDigestString = manifestDigest.digestHex();
@@ -202,7 +205,7 @@ public class CheckConformityActionPlugin extends ActionHandler {
             LOGGER.error(e);
             throw new ProcessingException(e.getMessage(), e);
         } finally {
-        	IOUtils.closeQuietly(inputStream);
+            IOUtils.closeQuietly(inputStream);
         }
 
     }
