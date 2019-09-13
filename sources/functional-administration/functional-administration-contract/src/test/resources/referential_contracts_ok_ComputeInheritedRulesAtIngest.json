@@ -1,0 +1,27 @@
+[
+	{
+		"Name":"aName",
+		"Description":"aDescription of the contract",
+		"Status":"ACTIVE",
+		"LastUpdate":"10/12/2016",
+		"CreationDate":"10/12/2016",
+		"ActivationDate":"10/12/2016",
+		"DeactivationDate":"10/12/2016",
+		"MasterMandatory": false,
+		"EveryDataObjectVersion": true,
+		"FormatUnidentifiedAuthorized": false,
+		"ComputeInheritedRulesAtIngest": false,
+		"EveryFormatType": true
+	},
+		{
+		"Name":"bName2",
+		"Description":"aDescription of the contract 2",
+		"Status":"ACTIVE",
+		"ComputeInheritedRulesAtIngest": false,
+		"LastUpdate":"10/12/2016",
+		"CreationDate":"10/12/2016",
+		"ActivationDate":"10/12/2016",
+		"DeactivationDate":"10/12/2016"
+
+		}
+]

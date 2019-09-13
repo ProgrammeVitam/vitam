@@ -42,6 +42,12 @@
     "indexed": true
   },
   {
+    "path": "ComputeInheritedRulesAtIngest",
+    "type": "bool",
+    "cardinality": "one",
+    "indexed": true
+  },
+  {
     "path": "DataObjectVersion",
     "type": "keyword",
     "cardinality": "many",
