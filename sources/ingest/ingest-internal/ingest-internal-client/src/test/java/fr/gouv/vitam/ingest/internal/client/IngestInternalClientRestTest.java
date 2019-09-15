@@ -611,50 +611,6 @@ public class IngestInternalClientRestTest extends ResteasyTestApplication {
 
     }
 
-
-    @Test(expected = VitamClientException.class)
-    public void givenPostOperationStatusThenThrowVitamClientInternalException() throws Exception {
-        when(mock.post()).thenReturn(Response.status(Status.NOT_FOUND).build());
-        client.executeOperationProcess(ID, null, WROKFLOW_ID, ProcessAction.START.getValue());
-    }
-
-    @Test(expected = VitamClientException.class)
-    public void givenUnauthorizedExecuteOperationThenThrowVitamClientInternalException()
-        throws Exception {
-
-        when(mock.post()).thenReturn(Response.status(Status.UNAUTHORIZED).build());
-        client.executeOperationProcess(ID, null, WROKFLOW_ID, ProcessAction.START.getValue());
-
-    }
-
-    @Test
-    public void givenAcceptedExecuteOperationThenReturnResponseAccepted()
-        throws Exception {
-
-        when(mock.post()).thenReturn(Response.status(Status.ACCEPTED).build());
-        client.executeOperationProcess(ID, null, WROKFLOW_ID, ProcessAction.START.getValue());
-
-    }
-
-    @Test(expected = VitamClientException.class)
-    public void givenInternalServerErrorExecuteOperationThenThrowVitamClientInternalException()
-        throws Exception {
-
-        when(mock.post()).thenReturn(Response.status(Status.INTERNAL_SERVER_ERROR).build());
-        client.executeOperationProcess(ID, null, WROKFLOW_ID, ProcessAction.START.getValue());
-
-    }
-
-    @Test(expected = VitamClientException.class)
-    public void givenPreconditionFailedExecuteOperationThenReturnResponseAccepted()
-        throws Exception {
-
-        when(mock.post()).thenReturn(Response.status(Status.PRECONDITION_FAILED).build());
-        client.executeOperationProcess(ID, null, WROKFLOW_ID, ProcessAction.START.getValue());
-
-    }
-
-
     @Test
     public void givenOKWhenDefinitionsWorkflowThenReturnMap() throws Exception {
         List<WorkFlow> desired = new ArrayList<>();

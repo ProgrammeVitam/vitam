@@ -598,6 +598,7 @@ public class MetadataResource extends ApplicationStatusResource {
         }
     }
 
+    // FIXME: 15/09/2019 workflow should be init/start from internals or functional admin
     @Path("/units/computedInheritedRules")
     @POST
     @Consumes(APPLICATION_JSON)
@@ -631,7 +632,7 @@ public class MetadataResource extends ApplicationStatusResource {
             processingClient.initVitamProcess(new ProcessingEntry(operationId, COMPUTE_INHERITED_RULES.name()));
 
             RequestResponse<ItemStatus> response = processingClient.executeOperationProcess(operationId, COMPUTE_INHERITED_RULES.name(), RESUME.getValue());
-            return response.setHttpCode(Status.OK.getStatusCode()).toResponse();
+            return response.toResponse();
         } catch (BadRequestException e) {
             return buildErrorResponse(VitamCode.GLOBAL_EMPTY_QUERY, null);
         } catch (InvalidGuidOperationException | LogbookClientBadRequestException | LogbookClientAlreadyExistsException |

@@ -39,22 +39,11 @@ public interface ProcessMonitoring {
 
     /**
      * Gets Process Workflow by operation Id
-     * 
+     *
      * @param id :null not allowed
      * @param tenantId Tenant identifier
      * @return ProcessWorkflow object
      * @throws WorkflowNotFoundException thrown when process workflow not found
      */
     ProcessWorkflow findOneProcessWorkflow(String id, Integer tenantId) throws WorkflowNotFoundException;
-
-
-    /**
-     * Get all proccess
-     * @param tenantId the working tenant
-     * @return the list of all worflow
-     */
-    public List<ProcessWorkflow> findAllProcessWorkflow(Integer tenantId);
-
-
-
 }

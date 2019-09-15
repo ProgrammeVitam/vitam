@@ -1923,7 +1923,7 @@ public class AdminManagementExternalResourceTest extends ResteasyTestApplication
     @Test
     public void getWorkFlowStatusTest()
         throws Exception {
-        when(ingestInternalClient.getOperationProcessExecutionDetails(anyString())).thenReturn(new ItemStatus());
+        when(ingestInternalClient.getOperationProcessExecutionDetails(anyString())).thenReturn(new RequestResponseOK<ItemStatus>().addResult(new ItemStatus()));
         RestAssured.given()
             .contentType(MediaType.APPLICATION_JSON)
             .accept(MediaType.APPLICATION_JSON)

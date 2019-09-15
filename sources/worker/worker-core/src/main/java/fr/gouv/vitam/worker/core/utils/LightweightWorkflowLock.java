@@ -28,6 +28,7 @@ package fr.gouv.vitam.worker.core.utils;
 
 import com.google.common.annotations.VisibleForTesting;
 import fr.gouv.vitam.common.error.VitamError;
+import fr.gouv.vitam.common.exception.InternalServerException;
 import fr.gouv.vitam.common.exception.VitamClientException;
 import fr.gouv.vitam.common.model.ProcessQuery;
 import fr.gouv.vitam.common.model.ProcessState;
@@ -75,7 +76,7 @@ public class LightweightWorkflowLock {
      * @param currentProcessId the current process id (filtred from result)
      * @return the list of concurrent workflows if any, or an empty list if no concurrent workflow is found.
      */
-    public List<ProcessDetail> listConcurrentWorkflows(List<String> workflowIds, String currentProcessId)
+    public List<ProcessDetail> listConcurrentWorkflow(List<String> workflowIds, String currentProcessId)
         throws VitamClientException {
 
         try (ProcessingManagementClient client = processingManagementClientFactory.getClient()) {
