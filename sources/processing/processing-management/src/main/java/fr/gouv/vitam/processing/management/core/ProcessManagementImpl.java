@@ -55,7 +55,6 @@ import fr.gouv.vitam.processing.common.parameter.WorkerParametersFactory;
 import fr.gouv.vitam.processing.data.core.ProcessDataAccess;
 import fr.gouv.vitam.processing.data.core.ProcessDataAccessImpl;
 import fr.gouv.vitam.processing.data.core.management.ProcessDataManagement;
-import fr.gouv.vitam.processing.data.core.management.WorkspaceProcessDataManagement;
 import fr.gouv.vitam.processing.distributor.api.ProcessDistributor;
 import fr.gouv.vitam.processing.engine.api.ProcessEngine;
 import fr.gouv.vitam.processing.engine.core.ProcessEngineFactory;
@@ -100,7 +99,8 @@ public class ProcessManagementImpl implements ProcessManagement {
 
     public ProcessManagementImpl(ServerConfiguration config, ProcessDistributor processDistributor)
         throws ProcessingStorageWorkspaceException {
-        this(config, processDistributor, processDistributor.getProcessDataAccess(), processDistributor.getProcessDataManagement());
+        this(config, processDistributor, processDistributor.getProcessDataAccess(),
+            processDistributor.getProcessDataManagement());
     }
 
     @VisibleForTesting
@@ -490,11 +490,9 @@ public class ProcessManagementImpl implements ProcessManagement {
                 "StateMachine not found with id " + operationId + ". Handle INIT before next");
         }
 
-        final ProcessWorkflow processWorkflow = findOneProcessWorkflow(operationId, tenantId);
-
         stateMachine.cancel();
 
-
+        final ProcessWorkflow processWorkflow = findOneProcessWorkflow(operationId, tenantId);
         return new ItemStatus(operationId)
             .increment(processWorkflow.getStatus())
             .setGlobalState(processWorkflow.getState())
@@ -596,12 +594,12 @@ public class ProcessManagementImpl implements ProcessManagement {
     }
 
     public List<ProcessDetail> getFilteredProcess(ProcessQuery query, Integer tenantId) {
-        List<ProcessWorkflow> listWorkflows = this.findAllProcessWorkflow(tenantId);
-        listWorkflows.sort((a, b) -> b.getProcessDate().compareTo(a.getProcessDate()));
+        List<ProcessWorkflow> listWorkflow = this.findAllProcessWorkflow(tenantId);
+        listWorkflow.sort((a, b) -> b.getProcessDate().compareTo(a.getProcessDate()));
 
         List<ProcessDetail> results = new ArrayList<>();
 
-        for (ProcessWorkflow processWorkflow : listWorkflows) {
+        for (ProcessWorkflow processWorkflow : listWorkflow) {
             ProcessDetail workflow = new ProcessDetail();
             workflow = getNextAndPreviousSteps(processWorkflow, workflow);
             if (query.getId() != null && !query.getId().equals(processWorkflow.getOperationId())) {

@@ -160,11 +160,15 @@ public class ProcessManagementResource extends ApplicationStatusResource {
      * Resume the asynchronous response following a given status and entity
      */
     private Response buildResponse(ItemStatus itemStatus) {
+        RequestResponseOK<ItemStatus> responseOK = new RequestResponseOK<>();
+        responseOK.addResult(itemStatus);
+        responseOK.setHttpCode(itemStatus.getGlobalState().getEquivalentHttpStatus().getStatusCode());
+
         return Response.status(itemStatus.getGlobalState().getEquivalentHttpStatus())
             .header(GlobalDataRest.X_GLOBAL_EXECUTION_STATE, itemStatus.getGlobalState())
             .header(GlobalDataRest.X_GLOBAL_EXECUTION_STATUS, itemStatus.getGlobalStatus())
             .header(GlobalDataRest.X_CONTEXT_ID, itemStatus.getLogbookTypeProcess())
-            .entity(itemStatus)
+            .entity(responseOK)
             .build();
     }
 
@@ -309,12 +313,18 @@ public class ProcessManagementResource extends ApplicationStatusResource {
         Integer tenantId = VitamThreadUtils.getVitamSession().getTenantId();
         try {
             final ProcessWorkflow processWorkflow = processMonitoring.findOneProcessWorkflow(id, tenantId);
+            ItemStatus itemStatus = new ItemStatus(id).setGlobalState(processWorkflow.getState())
+                .increment(processWorkflow.getStatus());
+
+            RequestResponseOK<ItemStatus> responseOK = new RequestResponseOK<>();
+            responseOK.addResult(itemStatus);
+            responseOK.setHttpCode(itemStatus.getGlobalState().getEquivalentHttpStatus().getStatusCode());
+
             return Response.status(Status.OK)
                 .header(GlobalDataRest.X_GLOBAL_EXECUTION_STATE, processWorkflow.getState())
                 .header(GlobalDataRest.X_GLOBAL_EXECUTION_STATUS, processWorkflow.getStatus())
                 .header(GlobalDataRest.X_CONTEXT_ID, processWorkflow.getLogbookTypeProcess())
-                .entity(new ItemStatus(id).setGlobalState(processWorkflow.getState())
-                    .increment(processWorkflow.getStatus()))
+                .entity(responseOK)
                 .build();
 
         } catch (final IllegalArgumentException e) {
@@ -371,7 +381,7 @@ public class ProcessManagementResource extends ApplicationStatusResource {
 
             final ProcessAction action = ProcessAction.getProcessAction(xAction);
 
-            ItemStatus itemStatus = null;
+            ItemStatus itemStatus;
             switch (action) {
                 case NEXT:
                     itemStatus = processManagement.next(workParams, tenantId);
@@ -501,7 +511,7 @@ public class ProcessManagementResource extends ApplicationStatusResource {
     @Path("/operations")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    public Response findProcessWorkflows(ProcessQuery query) {
+    public Response findProcessWorkflow(ProcessQuery query) {
         try {
 
             Integer tenantId = VitamThreadUtils.getVitamSession().getTenantId();
@@ -515,7 +525,7 @@ public class ProcessManagementResource extends ApplicationStatusResource {
         } catch (Exception e) {
             LOGGER.error("Error while finding existing workflow process: ", e);
             return Response.status(Status.INTERNAL_SERVER_ERROR)
-                .entity(VitamCodeHelper.toVitamError(VitamCode.WORKFLOW_PROCESSES_ERROR, e.getLocalizedMessage()))
+                .entity(VitamCodeHelper.toVitamError(VitamCode.WORKFLOW_PROCESSES_ERROR, e.getMessage()))
                 .build();
         }
     }
@@ -542,7 +552,8 @@ public class ProcessManagementResource extends ApplicationStatusResource {
             return Response.status(Status.OK).entity(response).build();
         } catch (ProcessingException e) {
             LOGGER.error(e);
-            return Response.status(Status.BAD_REQUEST).entity(e.getMessage()).build();
+            return this.buildResponse(Status.BAD_REQUEST,
+                getErrorEntity(Status.BAD_REQUEST, "Error while set force pause", e.getMessage()));
         }
     }
 
@@ -567,7 +578,8 @@ public class ProcessManagementResource extends ApplicationStatusResource {
             return Response.status(Status.OK).entity(response).build();
         } catch (ProcessingException e) {
             LOGGER.error(e);
-            return Response.status(Status.BAD_REQUEST).entity(e.getMessage()).build();
+            return this.buildResponse(Status.BAD_REQUEST,
+                getErrorEntity(Status.BAD_REQUEST, "Error while remove force pause", e.getMessage()));
         }
     }
 }

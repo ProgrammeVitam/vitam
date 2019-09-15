@@ -512,6 +512,7 @@ public class MetadataManagementResource {
         return select.getFinalSelect();
     }
 
+    // FIXME: 15/09/2019 workflow should be init/start from internals or functional admin
     private Response computedInheritedRulesCalculation(JsonNode dslQuery) {
         GUID operationGuid = GUIDFactory.newGUID();
         VitamThreadUtils.getVitamSession().setRequestId(operationGuid);
@@ -541,7 +542,7 @@ public class MetadataManagementResource {
                 .initVitamProcess(new ProcessingEntry(operationGuid.getId(), COMPUTE_INHERITED_RULES.name()));
 
             RequestResponse<ItemStatus> response = processingClient.executeOperationProcess(operationGuid.getId(), COMPUTE_INHERITED_RULES.name(), RESUME.getValue());
-            return response.setHttpCode(Response.Status.OK.getStatusCode()).toResponse();
+            return response.toResponse();
         } catch (BadRequestException e) {
             return buildErrorResponse(VitamCode.GLOBAL_EMPTY_QUERY, null);
         } catch (LogbookClientBadRequestException | LogbookClientAlreadyExistsException |

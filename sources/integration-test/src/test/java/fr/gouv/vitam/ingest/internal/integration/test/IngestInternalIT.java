@@ -142,6 +142,7 @@ import fr.gouv.vitam.worker.server.rest.WorkerMain;
 import fr.gouv.vitam.workspace.rest.WorkspaceMain;
 import io.restassured.RestAssured;
 import org.apache.commons.io.FileUtils;
+import org.apache.xml.resolver.apps.resolver;
 import org.bson.Document;
 import org.elasticsearch.action.search.SearchResponse;
 import org.elasticsearch.index.query.QueryBuilder;
@@ -172,6 +173,7 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 import static fr.gouv.vitam.common.VitamServerRunner.PORT_SERVICE_LOGBOOK;
@@ -1857,19 +1859,32 @@ public class IngestInternalIT extends VitamRuleRunner {
             assertEquals(ProcessState.PAUSE, processWorkflow.getState());
             assertEquals(StatusCode.OK, processWorkflow.getStatus());
 
-            ItemStatus itemStatus1 =
+            RequestResponse<ItemStatus> requestResponse =
                 client2.getOperationProcessExecutionDetails(operationGuid.toString());
-            assertEquals(StatusCode.OK, itemStatus1.getGlobalStatus());
+            assertThat(requestResponse.isOk()).isTrue();
+            RequestResponseOK<ItemStatus> responseOK = (RequestResponseOK<ItemStatus>) requestResponse;
+            assertThat(responseOK.getResults().iterator().next().getGlobalStatus()).isEqualTo(StatusCode.OK);
 
             assertNotNull(client2.getWorkflowDefinitions());
 
             // then finally we cancel the ingest
-            RequestResponse<ItemStatus> response = client2.cancelOperationProcessExecution(operationGuid.toString());
-            assertThat(response.isOk()).isTrue();
-            RequestResponseOK<ItemStatus> responseOK = (RequestResponseOK<ItemStatus>) response;
+            requestResponse = client2.cancelOperationProcessExecution(operationGuid.toString());
+            assertThat(requestResponse.isOk()).isTrue();
+            responseOK = (RequestResponseOK<ItemStatus>) requestResponse;
             assertThat(responseOK.getResults().iterator().hasNext()).isTrue();
             assertThat(responseOK.getResults().iterator().next().getGlobalStatus()).isEqualTo(StatusCode.FATAL);
-            assertThat(responseOK.getResults().iterator().next().getGlobalState()).isEqualTo(ProcessState.COMPLETED);
+
+            awaitForWorkflowTerminationWithStatus(operationGuid, StatusCode.FATAL);
+
+            while (!ProcessState.COMPLETED.equals(processWorkflow.getState())) {
+            TimeUnit.MILLISECONDS.sleep(20l);
+                processWorkflow =
+                    ProcessMonitoringImpl.getInstance().findOneProcessWorkflow(operationGuid.toString(), tenantId);
+            }
+
+            assertNotNull(processWorkflow);
+            assertEquals(ProcessState.COMPLETED, processWorkflow.getState());
+            assertEquals(StatusCode.FATAL, processWorkflow.getStatus());
 
         } catch (final Exception e) {
             LOGGER.error(e);

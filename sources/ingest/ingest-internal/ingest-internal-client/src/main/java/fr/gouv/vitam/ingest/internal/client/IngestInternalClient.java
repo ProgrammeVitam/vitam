@@ -136,12 +136,10 @@ public interface IngestInternalClient extends MockOrRestClient {
      * @param id : operation identifier
      * @return Engine response containing message and status
      * @throws VitamClientException
-     * @throws InternalServerException
-     * @throws BadRequestException
      */
 
-    ItemStatus getOperationProcessExecutionDetails(String id)
-            throws VitamClientException, InternalServerException, BadRequestException;
+    RequestResponse<ItemStatus> getOperationProcessExecutionDetails(String id)
+            throws VitamClientException;
 
     /**
      * cancelOperationProcessExecution : cancel processing operation
@@ -149,11 +147,9 @@ public interface IngestInternalClient extends MockOrRestClient {
      * @param id : operation identifier
      * @return ItemStatus response containing message and status
      * @throws VitamClientException
-     * @throws InternalServerException
-     * @throws BadRequestException
      */
     RequestResponse<ItemStatus>  cancelOperationProcessExecution(String id)
-            throws InternalServerException, BadRequestException, VitamClientException;
+            throws VitamClientException;
 
     /**
      * updateOperationActionProcess : update operation processing status
@@ -162,30 +158,10 @@ public interface IngestInternalClient extends MockOrRestClient {
      * @param actionId : identify the action to be executed by the workflow(next , pause,resume)
      * @param operationId : operation identifier
      * @return Response containing message and status
-     * @throws InternalServerException
-     * @throws BadRequestException
      * @throws VitamClientException
      */
     RequestResponse<ItemStatus> updateOperationActionProcess(String actionId, String operationId)
-            throws InternalServerException, BadRequestException, VitamClientException;
-
-
-    /**
-     * executeOperationProcess : execute an operation processing
-     *
-     * @param operationId id of the operation
-     * @param workflow id of the workflow
-     * @param contextId define the execution context of workflow
-     * @param actionId identify the action to be executed by the workflow(next , pause,resume)
-     * @return RequestResponse
-     * @throws InternalServerException
-     * @throws BadRequestException
-     * @throws VitamClientException
-     * @throws WorkflowNotFoundException
-     */
-    RequestResponse<JsonNode> executeOperationProcess(String operationId, String workflow, String contextId,
-                                                      String actionId)
-            throws InternalServerException, BadRequestException, VitamClientException, WorkflowNotFoundException;
+            throws VitamClientException;
 
     /**
      * initWorkflow : init workFlow Process

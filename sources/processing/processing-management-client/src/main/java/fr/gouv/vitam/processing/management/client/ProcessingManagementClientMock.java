@@ -54,10 +54,8 @@ import fr.gouv.vitam.common.model.processing.Step;
 import fr.gouv.vitam.common.model.processing.WorkFlow;
 import fr.gouv.vitam.processing.common.ProcessingEntry;
 import fr.gouv.vitam.processing.common.exception.ProcessingBadRequestException;
-import fr.gouv.vitam.processing.common.exception.WorkerAlreadyExistsException;
 import fr.gouv.vitam.processing.common.model.WorkerBean;
 
-import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -81,8 +79,7 @@ public class ProcessingManagementClientMock extends AbstractMockClient implement
     }
 
     @Override
-    public ItemStatus getOperationProcessStatus(String id)
-        throws VitamClientException, InternalServerException, BadRequestException {
+    public ItemStatus getOperationProcessStatus(String id) {
         final List<Integer> status = new ArrayList<>();
         status.add(0);
         status.add(0);
@@ -96,8 +93,7 @@ public class ProcessingManagementClientMock extends AbstractMockClient implement
 
 
     @Override
-    public ItemStatus getOperationProcessExecutionDetails(String id)
-        throws VitamClientException, InternalServerException, BadRequestException {
+    public RequestResponse<ItemStatus> getOperationProcessExecutionDetails(String id) {
         final List<Integer> status = new ArrayList<>();
         status.add(0);
         status.add(0);
@@ -105,15 +101,18 @@ public class ProcessingManagementClientMock extends AbstractMockClient implement
         status.add(0);
         status.add(0);
         status.add(0);
-        return new ItemStatus("FakeId", "FakeMessage", StatusCode.OK, status, SingletonUtils.singletonMap(), null,
-            null, null);
+        ItemStatus itemStatus =
+            new ItemStatus("FakeId", "FakeMessage", StatusCode.OK, status, SingletonUtils.singletonMap(), null,
+                null, null);
+
+        return new RequestResponseOK<ItemStatus>().addResult(itemStatus)
+            .setHttpCode(StatusCode.OK.getEquivalentHttpStatus().getStatusCode());
     }
 
 
 
     @Override
-    public RequestResponse<ItemStatus> cancelOperationProcessExecution(String id)
-        throws InternalServerException, VitamClientException {
+    public RequestResponse<ItemStatus> cancelOperationProcessExecution(String id) {
         final List<Integer> status = new ArrayList<>();
         status.add(0);
         status.add(0);
@@ -131,48 +130,32 @@ public class ProcessingManagementClientMock extends AbstractMockClient implement
 
 
     @Override
-    public RequestResponse<ItemStatus> updateOperationActionProcess(String actionId, String operationId)
-        throws InternalServerException, VitamClientException {
+    public RequestResponse<ItemStatus> updateOperationActionProcess(String actionId, String operationId) {
         return new RequestResponseOK<>();
     }
 
 
 
     @Override
-    public RequestResponse<ItemStatus> executeOperationProcess(String operationId, String workflow, String actionId)
-        throws InternalServerException, VitamClientException {
+    public RequestResponse<ItemStatus> executeOperationProcess(String operationId, String workflow, String actionId) {
         return new RequestResponseOK<ItemStatus>().addHeader(GlobalDataRest.X_GLOBAL_EXECUTION_STATE,
             FAKE_EXECUTION_STATUS);
-
     }
 
-
     @Override
-    public void registerWorker(String familyId, String workerId, WorkerBean workerDescription)
-        throws ProcessingBadRequestException, WorkerAlreadyExistsException {
-        // TODO Auto-generated method stub
-
+    public void registerWorker(String familyId, String workerId, WorkerBean workerDescription) {
     }
 
-
-
     @Override
-    public void unregisterWorker(String familyId, String workerId) throws ProcessingBadRequestException {
-        // TODO Auto-generated method stub
-
+    public void unregisterWorker(String familyId, String workerId) {
     }
 
-
-
     @Override
-    public void initVitamProcess(String container, String workflowId)
-        throws InternalServerException, BadRequestException {
+    public void initVitamProcess(String container, String workflowId) {
     }
 
-
-
     @Override
-    public RequestResponse<ProcessDetail> listOperationsDetails(ProcessQuery query) throws VitamClientException {
+    public RequestResponse<ProcessDetail> listOperationsDetails(ProcessQuery query) {
         ProcessDetail pw = new ProcessDetail();
         pw.setOperationId(GUIDFactory.newOperationLogbookGUID(0).toString());
         pw.setGlobalState(ProcessState.RUNNING.toString());
@@ -183,17 +166,17 @@ public class ProcessingManagementClientMock extends AbstractMockClient implement
     @Override
     public RequestResponse<ItemStatus> executeCheckTraceabilityWorkFlow(String checkOperationId, JsonNode query,
         String workflowId, String actionId)
-        throws InternalServerException, WorkflowNotFoundException {
+        throws WorkflowNotFoundException {
         return new RequestResponseOK<>();
     }
 
     @Override
-    public RequestResponse<WorkFlow> getWorkflowDefinitions() throws VitamClientException {
+    public RequestResponse<WorkFlow> getWorkflowDefinitions() {
         List<WorkFlow> workflowDefinitions = new ArrayList<>();
         WorkFlow workflow = new WorkFlow();
 
         List<Action> actions = new ArrayList<>();
-        actions.add(getAction("CHECK_DIGEST", ProcessBehavior.BLOCKING, new ArrayList<IOParameter>(
+        actions.add(getAction("CHECK_DIGEST", ProcessBehavior.BLOCKING, new ArrayList<>(
                 Arrays.asList(new IOParameter().setName("algo").setUri(new ProcessingUri("VALUE", "SHA-512")))),
             null));
         actions.add(getAction("OG_OBJECTS_FORMAT_CHECK", ProcessBehavior.BLOCKING, null, null));
@@ -219,13 +202,12 @@ public class ProcessingManagementClientMock extends AbstractMockClient implement
     }
 
     @Override
-    public Optional<WorkFlow> getWorkflowDetails(String WorkflowIdentifier) throws VitamClientException {
+    public Optional<WorkFlow> getWorkflowDetails(String WorkflowIdentifier) {
         throw new IllegalStateException("Method getWorkflowDetails not implemented");
     }
 
     @Override
-    public void initVitamProcess(ProcessingEntry entry)
-        throws InternalServerException, BadRequestException {
+    public void initVitamProcess(ProcessingEntry entry) {
 
     }
 
@@ -252,12 +234,12 @@ public class ProcessingManagementClientMock extends AbstractMockClient implement
 
     @Override
     public RequestResponse<ProcessPause> forcePause(ProcessPause info) {
-        return new RequestResponseOK().addResult(info).setHttpCode(Status.OK.getStatusCode());
+        return new RequestResponseOK<ProcessPause>().addResult(info).setHttpCode(Status.OK.getStatusCode());
     }
 
     @Override
     public RequestResponse<ProcessPause> removeForcePause(ProcessPause info) {
-        return new RequestResponseOK().addResult(info).setHttpCode(Status.OK.getStatusCode());
+        return new RequestResponseOK<ProcessPause>().addResult(info).setHttpCode(Status.OK.getStatusCode());
     }
 
 

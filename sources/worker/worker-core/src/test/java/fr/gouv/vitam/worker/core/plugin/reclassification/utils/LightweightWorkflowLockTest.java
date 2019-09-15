@@ -4,11 +4,9 @@ import fr.gouv.vitam.common.error.VitamError;
 import fr.gouv.vitam.common.exception.VitamClientException;
 import fr.gouv.vitam.common.model.ProcessQuery;
 import fr.gouv.vitam.common.model.RequestResponseOK;
-import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.model.processing.ProcessDetail;
 import fr.gouv.vitam.processing.management.client.ProcessingManagementClient;
 import fr.gouv.vitam.processing.management.client.ProcessingManagementClientFactory;
-import fr.gouv.vitam.worker.core.plugin.reclassification.exception.ReclassificationException;
 import fr.gouv.vitam.worker.core.utils.LightweightWorkflowLock;
 import org.junit.Before;
 import org.junit.Rule;
@@ -76,7 +74,7 @@ public class LightweightWorkflowLockTest {
 
         // When
         List<ProcessDetail> processDetails =
-            lightweightWorkflowLock.listConcurrentWorkflows(Collections.singletonList(workflowId), currentProcessId);
+            lightweightWorkflowLock.listConcurrentWorkflow(Collections.singletonList(workflowId), currentProcessId);
 
         // Then
         ArgumentCaptor<ProcessQuery> processQueryArgumentCaptor = ArgumentCaptor.forClass(ProcessQuery.class);
@@ -96,7 +94,7 @@ public class LightweightWorkflowLockTest {
             new LightweightWorkflowLock(processingManagementClientFactory);
 
         // When / Then
-        assertThatThrownBy(() -> lightweightWorkflowLock.listConcurrentWorkflows(Collections.singletonList("any"), "any"))
+        assertThatThrownBy(() -> lightweightWorkflowLock.listConcurrentWorkflow(Collections.singletonList("any"), "any"))
             .isInstanceOf(VitamClientException.class);
     }
 }

@@ -74,7 +74,6 @@ class ProcessingManagementClientRest extends DefaultClient implements Processing
     private static final String ERR_CONTAINER_IS_MANDATORY = "Container is mandatory";
     private static final String ERR_WORKFLOW_IS_MANDATORY = "Workflow is mandatory";
     private static final String PROCESSING_INTERNAL_SERVER_ERROR = "Processing Internal Server Error";
-    private static final String INTERNAL_SERVER_ERROR = "Internal Server Error";
     private static final String ILLEGAL_ARGUMENT = "Illegal Argument";
     private static final String NOT_FOUND = "Not Found";
     private static final String BAD_REQUEST_EXCEPTION = "Bad Request Exception";
@@ -141,7 +140,7 @@ class ProcessingManagementClientRest extends DefaultClient implements Processing
 
     @Override
     public RequestResponse<ItemStatus> executeOperationProcess(String operationId, String workflowId, String actionId)
-        throws InternalServerException, WorkflowNotFoundException {
+        throws InternalServerException, VitamClientException {
 
         ParametersChecker.checkParameter(BLANK_OPERATION_ID, operationId);
         ParametersChecker.checkParameter(ACTION_ID_MUST_HAVE_A_VALID_VALUE, actionId);
@@ -154,26 +153,55 @@ class ProcessingManagementClientRest extends DefaultClient implements Processing
                     JsonHandler.toJsonNode(new ProcessingEntry(operationId, workflowId)),
                     MediaType.APPLICATION_JSON_TYPE,
                     MediaType.APPLICATION_JSON_TYPE);
-            if (response.getStatus() == Status.NOT_FOUND.getStatusCode()) {
-                throw new WorkflowNotFoundException(NOT_FOUND);
-            } else if (response.getStatus() == Status.PRECONDITION_FAILED.getStatusCode()) {
-                throw new IllegalArgumentException(ILLEGAL_ARGUMENT);
-            }
-            ItemStatus itemStatus = response.readEntity(ItemStatus.class);
-            return new RequestResponseOK<ItemStatus>().addResult(itemStatus).parseHeadersFromResponse(response);
 
-        } catch (final javax.ws.rs.ProcessingException e) {
+            return RequestResponse.parseFromResponse(response, ItemStatus.class);
+
+        } catch (VitamClientException e) {
+            throw e;
+        } catch (final Exception e) {
             LOGGER.debug(e);
             throw new InternalServerException(INTERNAL_SERVER_ERROR, e);
-        } catch (final VitamClientInternalException e) {
-            LOGGER.debug(PROCESSING_INTERNAL_SERVER_ERROR, e);
-            throw new InternalServerException(INTERNAL_SERVER_ERROR, e);
-        } catch (final InvalidParseOperationException e) {
-            throw new IllegalArgumentException(ILLEGAL_ARGUMENT, e);
         } finally {
             consumeAnyEntityAndClose(response);
         }
     }
+
+
+    @Override
+    public RequestResponse<ItemStatus> executeCheckTraceabilityWorkFlow(String checkOperationId,
+        JsonNode query, String workflowId, String actionId)
+        throws InternalServerException, VitamClientException {
+
+        ParametersChecker.checkParameter(BLANK_OPERATION_ID, checkOperationId);
+        ParametersChecker.checkParameter(ACTION_ID_MUST_HAVE_A_VALID_VALUE, actionId);
+        ParametersChecker.checkParameter("workflow is a mandatory parameter", workflowId);
+
+
+        Response response = null;
+        try {
+            // Add extra parameters to start correctly the check process
+            Map<String, String> checkExtraParams = new HashMap<>();
+            checkExtraParams.put(WorkerParameterName.logbookRequest.toString(), JsonHandler.unprettyPrint(query));
+            ProcessingEntry processingEntry = new ProcessingEntry(checkOperationId, workflowId);
+            processingEntry.setExtraParams(checkExtraParams);
+
+            response =
+                performRequest(HttpMethod.POST, OPERATION_URI + "/" + checkOperationId,
+                    getDefaultHeaders(workflowId, actionId), processingEntry, MediaType.APPLICATION_JSON_TYPE,
+                    MediaType.APPLICATION_JSON_TYPE);
+
+            return RequestResponse.parseFromResponse(response, ItemStatus.class);
+
+        } catch (VitamClientException e) {
+            throw e;
+        } catch (final Exception e) {
+            LOGGER.debug(e);
+            throw new InternalServerException(INTERNAL_SERVER_ERROR, e);
+        } finally {
+            consumeAnyEntityAndClose(response);
+        }
+    }
+
 
     /**
      * Generate the default header map
@@ -191,7 +219,7 @@ class ProcessingManagementClientRest extends DefaultClient implements Processing
 
     @Override
     public RequestResponse<ItemStatus> updateOperationActionProcess(String actionId, String operationId)
-        throws InternalServerException {
+        throws InternalServerException, VitamClientException {
         ParametersChecker.checkParameter(BLANK_OPERATION_ID, operationId);
         ParametersChecker.checkParameter(ACTION_ID_MUST_HAVE_A_VALID_VALUE, actionId);
         Response response = null;
@@ -201,22 +229,13 @@ class ProcessingManagementClientRest extends DefaultClient implements Processing
                     getDefaultHeaders(null, actionId),
                     null, MediaType.APPLICATION_JSON_TYPE,
                     MediaType.APPLICATION_JSON_TYPE);
-            if (response.getStatus() == Status.NOT_FOUND.getStatusCode()) {
-                throw new WorkflowNotFoundException(NOT_FOUND);
-            } else if (response.getStatus() == Status.PRECONDITION_FAILED.getStatusCode()) {
-                throw new IllegalArgumentException(ILLEGAL_ARGUMENT);
-            } else if (response.getStatus() == Status.INTERNAL_SERVER_ERROR.getStatusCode()) {
-                throw new InternalServerException(INTERNAL_SERVER_ERROR);
-            }
 
-            ItemStatus itemStatus = response.readEntity(ItemStatus.class);
-            return new RequestResponseOK<ItemStatus>().addResult(itemStatus).parseHeadersFromResponse(response);
+            return RequestResponse.parseFromResponse(response, ItemStatus.class);
 
-        } catch (final javax.ws.rs.ProcessingException e) {
+        } catch (VitamClientException e) {
+            throw e;
+        } catch (final Exception e) {
             LOGGER.debug(e);
-            throw new InternalServerException(INTERNAL_SERVER_ERROR, e);
-        } catch (final VitamClientInternalException e) {
-            LOGGER.debug(PROCESSING_INTERNAL_SERVER_ERROR, e);
             throw new InternalServerException(INTERNAL_SERVER_ERROR, e);
         } finally {
             consumeAnyEntityAndClose(response);
@@ -224,7 +243,8 @@ class ProcessingManagementClientRest extends DefaultClient implements Processing
     }
 
     @Override
-    public ItemStatus getOperationProcessStatus(String id) throws InternalServerException, BadRequestException {
+    public ItemStatus getOperationProcessStatus(String id)
+        throws InternalServerException, BadRequestException, VitamClientException {
         ParametersChecker.checkParameter(BLANK_OPERATION_ID, id);
         Response response = null;
         try {
@@ -235,7 +255,7 @@ class ProcessingManagementClientRest extends DefaultClient implements Processing
             if (response.getStatus() == Status.NOT_FOUND.getStatusCode()) {
                 throw new WorkflowNotFoundException(NOT_FOUND);
             } else if (response.getStatus() == Status.PRECONDITION_FAILED.getStatusCode()) {
-                throw new IllegalArgumentException(ILLEGAL_ARGUMENT);
+                throw new BadRequestException(ILLEGAL_ARGUMENT);
             } else if (response.getStatus() == Status.INTERNAL_SERVER_ERROR.getStatusCode()) {
                 throw new InternalServerException(INTERNAL_SERVER_ERROR);
             }
@@ -245,13 +265,9 @@ class ProcessingManagementClientRest extends DefaultClient implements Processing
                 .setLogbookTypeProcess(response.getHeaderString(GlobalDataRest.X_CONTEXT_ID))
                 .increment(StatusCode.valueOf(response.getHeaderString(GlobalDataRest.X_GLOBAL_EXECUTION_STATUS)));
 
-        } catch (final WorkflowNotFoundException e) {
-            LOGGER.debug(e);
-            throw new WorkflowNotFoundException(NOT_FOUND, e);
-        } catch (final javax.ws.rs.ProcessingException e) {
-            LOGGER.debug(e);
-            throw new InternalServerException(INTERNAL_SERVER_ERROR, e);
-        } catch (final VitamClientInternalException e) {
+        } catch (final VitamClientException | WorkflowNotFoundException | BadRequestException | InternalServerException e) {
+            throw e;
+        } catch (final Exception e) {
             LOGGER.debug(PROCESSING_INTERNAL_SERVER_ERROR, e);
             throw new InternalServerException(INTERNAL_SERVER_ERROR, e);
         } finally {
@@ -297,33 +313,20 @@ class ProcessingManagementClientRest extends DefaultClient implements Processing
     }
 
     @Override
-    public ItemStatus getOperationProcessExecutionDetails(String id)
-        throws InternalServerException, BadRequestException {
+    public RequestResponse<ItemStatus> getOperationProcessExecutionDetails(String id)
+        throws InternalServerException, VitamClientException {
         ParametersChecker.checkParameter(BLANK_OPERATION_ID, id);
         Response response = null;
         try {
             response =
                 performRequest(HttpMethod.GET, OPERATION_URI + "/" + id,
                     null, MediaType.APPLICATION_JSON_TYPE);
-            if (response.getStatus() == Status.NOT_FOUND.getStatusCode()) {
-                throw new WorkflowNotFoundException(NOT_FOUND);
-            } else if (response.getStatus() == Status.PRECONDITION_FAILED.getStatusCode()) {
-                throw new IllegalArgumentException(ILLEGAL_ARGUMENT);
-            } else if (response.getStatus() == Status.INTERNAL_SERVER_ERROR.getStatusCode()) {
-                throw new InternalServerException(INTERNAL_SERVER_ERROR);
-            }
+            return RequestResponse.parseFromResponse(response, ItemStatus.class);
 
-            // XXX: theoretically OK status case
-            // Don't we thrown an exception if it is another status ?
-            return response.readEntity(ItemStatus.class);
-        } catch (final WorkflowNotFoundException e) {
+        } catch (VitamClientException e) {
+            throw e;
+        } catch (final Exception e) {
             LOGGER.debug(e);
-            throw new WorkflowNotFoundException(NOT_FOUND, e);
-        } catch (final javax.ws.rs.ProcessingException e) {
-            LOGGER.debug(e);
-            throw new InternalServerException(INTERNAL_SERVER_ERROR, e);
-        } catch (final VitamClientInternalException e) {
-            LOGGER.debug(PROCESSING_INTERNAL_SERVER_ERROR, e);
             throw new InternalServerException(INTERNAL_SERVER_ERROR, e);
         } finally {
             consumeAnyEntityAndClose(response);
@@ -332,29 +335,20 @@ class ProcessingManagementClientRest extends DefaultClient implements Processing
 
     @Override
     public RequestResponse<ItemStatus> cancelOperationProcessExecution(String id)
-        throws InternalServerException {
+        throws InternalServerException, VitamClientException {
         ParametersChecker.checkParameter(BLANK_OPERATION_ID, id);
         Response response = null;
         try {
             response =
                 performRequest(HttpMethod.DELETE, OPERATION_URI + "/" + id,
                     null, MediaType.APPLICATION_JSON_TYPE);
-            if (response.getStatus() == Status.NOT_FOUND.getStatusCode()) {
-                throw new WorkflowNotFoundException(NOT_FOUND);
-            } else if (response.getStatus() == Status.PRECONDITION_FAILED.getStatusCode()) {
-                throw new IllegalArgumentException(ILLEGAL_ARGUMENT);
-            } else if (response.getStatus() == Status.INTERNAL_SERVER_ERROR.getStatusCode()) {
-                throw new InternalServerException(INTERNAL_SERVER_ERROR);
-            }
 
-            ItemStatus itemStatus = response.readEntity(ItemStatus.class);
-            return new RequestResponseOK<ItemStatus>().addResult(itemStatus).parseHeadersFromResponse(response);
+            return RequestResponse.parseFromResponse(response, ItemStatus.class);
 
-        } catch (final javax.ws.rs.ProcessingException e) {
+        } catch (VitamClientException e) {
+            throw e;
+        } catch (final Exception e) {
             LOGGER.debug(e);
-            throw new InternalServerException(INTERNAL_SERVER_ERROR, e);
-        } catch (final VitamClientInternalException e) {
-            LOGGER.debug(PROCESSING_INTERNAL_SERVER_ERROR, e);
             throw new InternalServerException(INTERNAL_SERVER_ERROR, e);
         } finally {
             consumeAnyEntityAndClose(response);
@@ -421,56 +415,11 @@ class ProcessingManagementClientRest extends DefaultClient implements Processing
                     MediaType.APPLICATION_JSON_TYPE, MediaType.APPLICATION_JSON_TYPE);
             return RequestResponse.parseFromResponse(response, ProcessDetail.class);
 
-        } catch (VitamClientInternalException e) {
-            LOGGER.debug("VitamClientInternalException: ", e);
-            throw new VitamClientException(e);
-        } catch (final InvalidParseOperationException e) {
-            throw new IllegalArgumentException(ILLEGAL_ARGUMENT, e);
-        } finally {
-            consumeAnyEntityAndClose(response);
-        }
-    }
-
-    @Override
-    public RequestResponse<ItemStatus> executeCheckTraceabilityWorkFlow(String checkOperationId,
-        JsonNode query, String workflowId, String actionId)
-        throws InternalServerException, WorkflowNotFoundException {
-
-        ParametersChecker.checkParameter(BLANK_OPERATION_ID, checkOperationId);
-        ParametersChecker.checkParameter(ACTION_ID_MUST_HAVE_A_VALID_VALUE, actionId);
-        ParametersChecker.checkParameter("workflow is a mandatory parameter", workflowId);
-
-
-        Response response = null;
-        try {
-            // Add extra parameters to start correctly the check process
-            Map<String, String> checkExtraParams = new HashMap<>();
-            checkExtraParams.put(WorkerParameterName.logbookRequest.toString(), JsonHandler.unprettyPrint(query));
-            ProcessingEntry processingEntry = new ProcessingEntry(checkOperationId, workflowId);
-            processingEntry.setExtraParams(checkExtraParams);
-
-            response =
-                performRequest(HttpMethod.POST, OPERATION_URI + "/" + checkOperationId,
-                    getDefaultHeaders(workflowId, actionId), processingEntry, MediaType.APPLICATION_JSON_TYPE,
-                    MediaType.APPLICATION_JSON_TYPE);
-
-            if (response.getStatus() == Status.NOT_FOUND.getStatusCode()) {
-                throw new WorkflowNotFoundException(NOT_FOUND);
-            } else if (response.getStatus() == Status.PRECONDITION_FAILED.getStatusCode()) {
-                throw new IllegalArgumentException(ILLEGAL_ARGUMENT);
-            } else if (response.getStatus() == Status.INTERNAL_SERVER_ERROR.getStatusCode()) {
-                throw new InternalServerException(INTERNAL_SERVER_ERROR);
-            }
-
-            ItemStatus itemStatus = response.readEntity(ItemStatus.class);
-            return new RequestResponseOK<ItemStatus>().addResult(itemStatus).parseHeadersFromResponse(response);
-
-        } catch (final javax.ws.rs.ProcessingException e) {
+        } catch (VitamClientException e) {
+            throw e;
+        } catch (final Exception e) {
             LOGGER.debug(e);
-            throw new InternalServerException(INTERNAL_SERVER_ERROR, e);
-        } catch (final VitamClientInternalException e) {
-            LOGGER.debug(PROCESSING_INTERNAL_SERVER_ERROR, e);
-            throw new InternalServerException(INTERNAL_SERVER_ERROR, e);
+            throw new VitamClientInternalException(INTERNAL_SERVER_ERROR, e);
         } finally {
             consumeAnyEntityAndClose(response);
         }

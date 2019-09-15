@@ -80,7 +80,7 @@ public class CheckConcurrentWorkflowLockHandlerTest {
         concurrentProcessDetail.setStepStatus("FATAL");
 
         doReturn(Collections.singletonList(concurrentProcessDetail)).when(lightweightWorkflowLock)
-            .listConcurrentWorkflows(
+            .listConcurrentWorkflow(
                 eq(Arrays.asList(Contexts.RECLASSIFICATION.getEventType(), Contexts.ELIMINATION_ACTION.getEventType())),
                 eq(VitamThreadUtils.getVitamSession().getRequestId()));
 
@@ -100,7 +100,7 @@ public class CheckConcurrentWorkflowLockHandlerTest {
     public void execute_GivenNoConcurrentProcessFoundThenExpectOK() throws Exception {
 
         doReturn(Collections.EMPTY_LIST).when(lightweightWorkflowLock)
-            .listConcurrentWorkflows(
+            .listConcurrentWorkflow(
                 eq(Arrays.asList(Contexts.RECLASSIFICATION.getEventType(), Contexts.ELIMINATION_ACTION.getEventType())),
                 any());
 
