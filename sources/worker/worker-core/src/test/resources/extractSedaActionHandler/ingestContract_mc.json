@@ -1,0 +1,8 @@
+{
+  "managementContract":{
+    "Storage" : {
+      "UnitStrategy":"default",
+      "ObjectStrategy":"offerId"
+    }
+  }
+}

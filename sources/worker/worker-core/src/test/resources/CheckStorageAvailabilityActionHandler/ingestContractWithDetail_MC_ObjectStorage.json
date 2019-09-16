@@ -1,0 +1,9 @@
+{
+   "managementContract": {
+     "Storage": {
+       "UnitStrategy":"test",
+       "ObjectGroupStrategy":"test",
+       "ObjectStrategy":"test"
+     }
+   }
+}

@@ -1,5 +1,7 @@
 {
-  "FormatUnidentifiedAuthorized" : false,
-  "EveryFormatType" : false,
-  "FormatType" : []
+  "ingestContract":{
+    "FormatUnidentifiedAuthorized" : false,
+    "EveryFormatType" : false,
+    "FormatType" : []
+  }
 }

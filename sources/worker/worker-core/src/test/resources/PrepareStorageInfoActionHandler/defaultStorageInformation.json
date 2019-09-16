@@ -1,0 +1,14 @@
+{
+	"capacities": [
+		{
+			"offerId": "offer1",
+			"usableSpace": 838860800,
+			"nbc": 2
+		},
+		{
+			"offerId": "offer2",
+			"usableSpace": 838860800,
+			"nbc": 2
+		}
+	]
+}

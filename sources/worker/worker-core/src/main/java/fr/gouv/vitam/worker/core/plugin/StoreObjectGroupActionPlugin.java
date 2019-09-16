@@ -30,6 +30,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.SedaConstants;
 import fr.gouv.vitam.common.VitamConfiguration;
+import fr.gouv.vitam.common.database.utils.MetadataDocumentHelper;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
@@ -44,12 +45,12 @@ import fr.gouv.vitam.storage.engine.common.model.DataCategory;
 import fr.gouv.vitam.storage.engine.common.model.request.BulkObjectStoreRequest;
 import fr.gouv.vitam.storage.engine.common.model.response.BulkObjectStoreResponse;
 import fr.gouv.vitam.worker.common.HandlerIO;
+import org.apache.commons.collections4.ListValuedMap;
+import org.apache.commons.collections4.MultiValuedMap;
+import org.apache.commons.collections4.multimap.ArrayListValuedHashMap;
+import org.apache.commons.collections4.multimap.HashSetValuedHashMap;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * StoreObjectGroupAction Plugin.<br>
@@ -85,8 +86,10 @@ public class StoreObjectGroupActionPlugin extends StoreObjectActionHandler {
         try {
             checkMandatoryIOParameter(handlerIO);
 
-            List<String> workspaceObjectURIs = new ArrayList<>();
-            List<String> objectNames = new ArrayList<>();
+            Set<String> strategies = new LinkedHashSet<>();
+            Map<String, String> strategiesByObjectId = new HashMap<>();
+            ListValuedMap<String, String> workspaceObjectURIsByStrategies = new ArrayListValuedHashMap<>();
+            ListValuedMap<String, String> objectNamesByStrategies = new ArrayListValuedHashMap<>();
             List<MapOfObjects> mapOfObjectsList = new ArrayList<>();
 
             // get list of object group's objects
@@ -96,8 +99,11 @@ public class StoreObjectGroupActionPlugin extends StoreObjectActionHandler {
                 for (final Map.Entry<String, String> objectGuid : mapOfObjects.getBinaryObjectsToStore()
                     .entrySet()) {
                     itemStatusByObject.put(objectGuid.getKey(), new ItemStatus(STORING_OBJECT_TASK_ID));
-                    workspaceObjectURIs.add(SIP + objectGuid.getValue());
-                    objectNames.add(objectGuid.getKey());
+                    String strategyId = mapOfObjects.getObjectStorageInfos().get(objectGuid.getKey()).get("strategyId").asText();
+                    strategies.add(strategyId);
+                    workspaceObjectURIsByStrategies.put(strategyId, SIP + objectGuid.getValue());
+                    objectNamesByStrategies.put(strategyId, objectGuid.getKey());
+                    strategiesByObjectId.put(objectGuid.getKey(), strategyId);
                 }
 
                 itemStatusByObjectList.add(itemStatusByObject);
@@ -110,21 +116,31 @@ public class StoreObjectGroupActionPlugin extends StoreObjectActionHandler {
                 }
             }
 
-            if (objectNames.isEmpty()) {
+            if (objectNamesByStrategies.values().isEmpty()) {
                 return Arrays.asList(new ItemStatus(STORING_OBJECT_TASK_ID)
                     .setItemsStatus(STORING_OBJECT_TASK_ID, new ItemStatus().increment(StatusCode.OK)));
             }
 
-            BulkObjectStoreRequest bulkObjectStoreRequest = new BulkObjectStoreRequest(params.getContainerName(),
-                workspaceObjectURIs, DataCategory.OBJECT, objectNames);
+            Map<String, BulkObjectStoreResponse> resultByStrategy = new LinkedHashMap<>();
 
-            // store objects
-            BulkObjectStoreResponse result = storeObjects(bulkObjectStoreRequest);
+            for (String strategy : strategies) {
+
+                List<String> workspaceObjectURIs = workspaceObjectURIsByStrategies.get(strategy);
+                List<String> objectNames = objectNamesByStrategies.get(strategy);
+
+                // store objects
+                BulkObjectStoreRequest bulkObjectStoreRequest = new BulkObjectStoreRequest(params.getContainerName(),
+                        workspaceObjectURIs, DataCategory.OBJECT, objectNames);
+                BulkObjectStoreResponse result = storeObjects(strategy, bulkObjectStoreRequest);
+                resultByStrategy.put(strategy, result);
+            }
 
             // update sub task itemStatus
-            updateSubTasksAndTasksFromStorageInfos(result, itemStatusByObjectList, itemStatusList);
+            updateSubTasksAndTasksFromStorageInfos(resultByStrategy, itemStatusByObjectList, itemStatusList);
 
-            storeStorageInfos(VitamConfiguration.getDefaultStrategy(), mapOfObjectsList, result);
+            // separate by strategy
+            storeStorageInfos(mapOfObjectsList, resultByStrategy, strategiesByObjectId);
+
 
             for (int i = 0; i < mapOfObjectsList.size(); i++) {
                 handlerIO.transferJsonToWorkspace(IngestWorkflowConstants.OBJECT_GROUP_FOLDER,
@@ -164,6 +180,7 @@ public class StoreObjectGroupActionPlugin extends StoreObjectActionHandler {
         final MapOfObjects mapOfObjects = new MapOfObjects();
         mapOfObjects.setBinaryObjectsToStore(new HashMap<>());
         mapOfObjects.setObjectJsonMap(new HashMap<>());
+        mapOfObjects.setObjectStorageInfos(new HashMap<>());
         ParametersChecker.checkParameter("Container id is a mandatory parameter", containerId);
         ParametersChecker.checkParameter("ObjectName id is a mandatory parameter", objectName);
         // Get objectGroup objects ids
@@ -197,6 +214,7 @@ public class StoreObjectGroupActionPlugin extends StoreObjectActionHandler {
                             if (binaryObject2.get(SedaConstants.TAG_PHYSICAL_ID) == null &&
                                 binaryObject2.get(SedaConstants.PREFIX_ID).asText().equals(id)) {
                                 mapOfObjects.getObjectJsonMap().put(id, binaryObject2);
+                                mapOfObjects.getObjectStorageInfos().put(id, binaryObject.get(SedaConstants.STORAGE));
                             }
                         }
                     }

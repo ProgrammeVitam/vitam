@@ -43,6 +43,7 @@ import fr.gouv.vitam.common.model.administration.ActivationStatus;
 import fr.gouv.vitam.common.model.administration.ContextModel;
 import fr.gouv.vitam.common.model.administration.ContextStatus;
 import fr.gouv.vitam.common.model.administration.IngestContractModel;
+import fr.gouv.vitam.common.model.administration.ManagementContractModel;
 import fr.gouv.vitam.common.parameter.ParameterHelper;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.functional.administration.client.AdminManagementClient;
@@ -52,6 +53,7 @@ import fr.gouv.vitam.functional.administration.common.exception.ReferentialNotFo
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 import fr.gouv.vitam.worker.common.HandlerIO;
+import org.apache.commons.lang3.StringUtils;
 
 import java.util.List;
 import java.util.Map;
@@ -153,9 +155,30 @@ public class CheckIngestContractActionHandler extends ActionHandler {
                     itemStatus.setEvDetailData(JsonHandler.unprettyPrint(infoNode));
                     itemStatus.increment(StatusCode.KO);
                     break;
+                case MANAGEMENT_CONTRACT_UNKNOWN:
+                    itemStatus
+                    .setGlobalOutcomeDetailSubcode(CheckIngestContractStatus.MANAGEMENT_CONTRACT_UNKNOWN.toString());
+                infoNode.put(SedaConstants.EV_DET_TECH_DATA, "Management Contract not found");
+                itemStatus.setEvDetailData(JsonHandler.unprettyPrint(infoNode));
+                itemStatus.increment(StatusCode.KO);
+                    break;
+                case MANAGEMENT_CONTRACT_INACTIVE:
+                    itemStatus
+                    .setGlobalOutcomeDetailSubcode(CheckIngestContractStatus.MANAGEMENT_CONTRACT_INACTIVE.toString());
+                infoNode.put(SedaConstants.EV_DET_TECH_DATA, "Management Contract inactive");
+                itemStatus.setEvDetailData(JsonHandler.unprettyPrint(infoNode));
+                itemStatus.increment(StatusCode.KO);
+                    break;
+                case MANAGEMENT_CONTRACT_INVALID:
+                    itemStatus
+                    .setGlobalOutcomeDetailSubcode(CheckIngestContractStatus.MANAGEMENT_CONTRACT_INVALID.toString());
+                infoNode.put(SedaConstants.EV_DET_TECH_DATA, "Management Contract invalid");
+                itemStatus.setEvDetailData(JsonHandler.unprettyPrint(infoNode));
+                itemStatus.increment(StatusCode.KO);
+                    break;
                 case FATAL:
                     itemStatus.setGlobalOutcomeDetailSubcode(CheckIngestContractStatus.FATAL.toString());
-                    infoNode.put(SedaConstants.EV_DET_TECH_DATA, "Cannot check context");
+                    infoNode.put(SedaConstants.EV_DET_TECH_DATA, "Unexpected technical error");
                     itemStatus.setEvDetailData(JsonHandler.unprettyPrint(infoNode));
                     itemStatus.increment(StatusCode.FATAL);
                     break;
@@ -189,14 +212,20 @@ public class CheckIngestContractActionHandler extends ActionHandler {
             RequestResponse<IngestContractModel> referenceContracts =
                 adminManagementClient.findIngestContractsByID(contractIdentifier);
             if (referenceContracts.isOk()) {
-                List<IngestContractModel> results = ((RequestResponseOK) referenceContracts).getResults();
+                List<IngestContractModel> results = ((RequestResponseOK<IngestContractModel>) referenceContracts).getResults();
                 if (!results.isEmpty()) {
                     for (IngestContractModel result : results) {
                         ActivationStatus status = result.getStatus();
                         if (ActivationStatus.ACTIVE.equals(status)
                             && result.getIdentifier().equals(contractIdentifier)) {
 
-                            return checkIngestContractInTheContext(contractIdentifier);
+                            CheckIngestContractStatus tempStatus = checkIngestContractInTheContext(contractIdentifier);
+                            if (CheckIngestContractStatus.OK.equals(tempStatus)
+                                    && StringUtils.isNotBlank(result.getManagementContractId())) {
+                                return checkManagementContract(result.getManagementContractId());
+                            } else {
+                                return tempStatus;
+                            }
                         } else {
                             return CheckIngestContractStatus.CONTRACT_INACTIVE;
                         }
@@ -210,6 +239,43 @@ public class CheckIngestContractActionHandler extends ActionHandler {
             // Case when the manifest's contract is not in the database of contracts
             LOGGER.error("Contract not found :", e);
             return CheckIngestContractStatus.CONTRACT_UNKNOWN;
+        }
+
+        return CheckIngestContractStatus.KO;
+    }
+
+    private CheckIngestContractStatus checkManagementContract(String managementContractId) {
+        try (AdminManagementClient adminManagementClient = adminManagementClientFactory.getClient()) {
+            RequestResponse<ManagementContractModel> ManagementContractResponse = adminManagementClient
+                    .findManagementContractsByID(managementContractId);
+            if (ManagementContractResponse.isOk()) {
+
+                List<ManagementContractModel> results = ((RequestResponseOK<ManagementContractModel>) ManagementContractResponse)
+                        .getResults();
+                if (results.isEmpty()) {
+                    LOGGER.error("CheckContract : The Management Contract " + managementContractId
+                            + "  not found in database");
+                    return CheckIngestContractStatus.MANAGEMENT_CONTRACT_UNKNOWN;
+                } else {
+                    final ManagementContractModel managementContract = Iterables.getFirst(results, null);
+
+                    if (!ActivationStatus.ACTIVE.equals(managementContract.getStatus())) {
+                        LOGGER.error(
+                                "CheckContract : The Management Contract " + managementContract + "  is not activated");
+                        return CheckIngestContractStatus.MANAGEMENT_CONTRACT_INACTIVE;
+                    }
+                    // TODO check validity of management contract WITH COMMON CODE
+                    // CheckIngestContractStatus.MANAGEMENT_CONTRACT_INVALID;
+                    return CheckIngestContractStatus.OK;
+                }
+            }
+        } catch (ReferentialNotFoundException e) {
+            LOGGER.error("Management Contract not found :", e);
+            return CheckIngestContractStatus.MANAGEMENT_CONTRACT_UNKNOWN;
+
+        } catch (AdminManagementClientServerException | InvalidParseOperationException e) {
+            LOGGER.error("Context check error :", e);
+            return CheckIngestContractStatus.FATAL;
         }
 
         return CheckIngestContractStatus.KO;
@@ -311,6 +377,18 @@ public class CheckIngestContractActionHandler extends ActionHandler {
          * Existing but inactive contract
          */
         CONTRACT_INACTIVE,
+        /**
+         * Management Contract not found
+         */
+        MANAGEMENT_CONTRACT_UNKNOWN,
+        /**
+         * Management Contract existing but inactive
+         */
+        MANAGEMENT_CONTRACT_INACTIVE,
+        /**
+         * Management Contract invalid
+         */
+        MANAGEMENT_CONTRACT_INVALID,
         /**
          * OK contract
          */

@@ -16,18 +16,6 @@
       "actions": [
         {
           "action": {
-            "actionKey": "PREPARE_STORAGE_INFO",
-            "behavior": "BLOCKING",
-            "out": [
-              {
-                "name": "storageInfo.json",
-                "uri": "WORKSPACE:StorageInfo/storageInfo.json"
-              }
-            ]
-          }
-        },
-        {
-          "action": {
             "actionKey": "CHECK_SEDA",
             "behavior": "BLOCKING"
           }
@@ -60,6 +48,24 @@
         },
         {
           "action": {
+            "actionKey": "PREPARE_STORAGE_INFO",
+            "behavior": "BLOCKING",
+            "in": [
+              {
+                "name": "ingestContract.json",
+                "uri": "WORKSPACE:referential/ingestContract.json"
+              }
+            ],
+            "out": [
+              {
+                "name": "storageInfo.json",
+                "uri": "WORKSPACE:StorageInfo/storageInfo.json"
+              }
+            ]
+          }
+        },
+        {
+          "action": {
             "actionKey": "CHECK_DATAOBJECTPACKAGE",
             "behavior": "BLOCKING",
             "in": [
@@ -74,6 +80,10 @@
               {
                 "name": "storageInfo.json",
                 "uri": "WORKSPACE:StorageInfo/storageInfo.json"
+              },              
+              {
+                "name": "ingestContract.json",
+                "uri": "WORKSPACE:referential/ingestContract.json"
               }
             ],
             "out": [
@@ -264,7 +274,13 @@
         {
           "action": {
             "actionKey": "STORAGE_AVAILABILITY_CHECK",
-            "behavior": "BLOCKING"
+            "behavior": "BLOCKING",
+            "in": [
+              {
+                "name": "ingestContract.json",
+                "uri": "WORKSPACE:referential/ingestContract.json"
+              }
+            ]
           }
         }
       ]

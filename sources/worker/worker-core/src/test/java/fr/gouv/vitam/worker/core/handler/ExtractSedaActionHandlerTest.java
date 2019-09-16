@@ -33,7 +33,6 @@ import static org.junit.Assert.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.verify;
@@ -78,14 +77,12 @@ import fr.gouv.vitam.processing.common.parameter.WorkerParametersFactory;
 import fr.gouv.vitam.worker.core.impl.HandlerIOImpl;
 import fr.gouv.vitam.workspace.client.WorkspaceClient;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
-import org.assertj.core.api.Assertions;
 import org.assertj.core.util.Lists;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
-import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnit;
 import org.mockito.junit.MockitoRule;
@@ -137,7 +134,8 @@ public class ExtractSedaActionHandlerTest {
     private static final String SIP_WITH_SPECIAL_CHARACTERS =
         "extractSedaActionHandler/SIP_WITH_SPECIAL_CHARACTERS.xml";
     private static final String SIP_ARBORESCENCE = "SIP_Arborescence.xml";
-    private static final String STORAGE_INFO_JSON = "storageInfo.json";
+    private static final String STORAGE_INFO_JSON = "extractSedaActionHandler/storageInfo.json";
+    private static final String INGEST_CONTRACT_JSON = "extractSedaActionHandler/ingestContract.json";
     private static final String OK_MULTI_COMMENT = "extractSedaActionHandler/OK_multi_comment.xml";
     private static final String OK_SIGNATURE = "extractSedaActionHandler/signature.xml";
     private static final String OK_RULES_WOUT_ID = "extractSedaActionHandler/manifestRulesWithoutId.xml";
@@ -245,11 +243,15 @@ public class ExtractSedaActionHandlerTest {
             .setUri(new ProcessingUri(UriPrefix.VALUE, "INGEST")));
         in.add(new IOParameter()
             .setUri(new ProcessingUri(UriPrefix.WORKSPACE, "StorageInfo/storageInfo.json")));
+        in.add(new IOParameter()
+            .setUri(new ProcessingUri(UriPrefix.WORKSPACE, "referential/ingestContract.json")));
 
-        final InputStream storageInfo =
-            PropertiesUtils.getResourceAsStream(STORAGE_INFO_JSON);
+        final InputStream storageInfo = PropertiesUtils.getResourceAsStream(STORAGE_INFO_JSON);
         when(workspaceClient.getObject(any(), eq("StorageInfo/storageInfo.json")))
-            .thenReturn(Response.status(Status.OK).entity(storageInfo).build());
+                .thenReturn(Response.status(Status.OK).entity(storageInfo).build());
+        final InputStream ingestContract = PropertiesUtils.getResourceAsStream(INGEST_CONTRACT_JSON);
+        when(workspaceClient.getObject(any(), eq("referential/ingestContract.json")))
+                .thenReturn(Response.status(Status.OK).entity(ingestContract).build());
         when(workspaceClient.isExistingFolder(any(), any())).thenReturn(true);
         handlerIO.addInIOParameters(in);
     }
@@ -430,7 +432,7 @@ public class ExtractSedaActionHandlerTest {
 
     @Test
     @RunWithCustomExecutor
-    public void givenSipWithDoubleBMThenFatal()
+    public void givenSipWithDoubleBMThenKO()
         throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         prepareResponseOKForAdminManagementClientFindIngestContracts(INGEST_CONTRACT_MASTER_MANDATORY_FALSE);
@@ -848,8 +850,8 @@ public class ExtractSedaActionHandlerTest {
         throws Exception {
         final InputStream ingestContractInputStream =
             PropertiesUtils.getResourceAsStream(ingestContractName);
-        RequestResponseOK responseOK =
-            new RequestResponseOK()
+        RequestResponseOK<IngestContractModel> responseOK =
+            new RequestResponseOK<IngestContractModel>()
                 .addResult(JsonHandler.getFromInputStream(ingestContractInputStream, IngestContractModel.class));
         when(adminManagementClient.findIngestContracts(any())).thenReturn(responseOK);
         when(adminManagementClient.findIngestContractsByID(anyString())).thenReturn(responseOK);
@@ -1238,6 +1240,29 @@ public class ExtractSedaActionHandlerTest {
         assertTrue(evDetData.get("evDetTechData").asText().contains("BinaryDataObjectID"));
         assertTrue(evDetData.get("evDetTechData").asText().contains("DataObjectGroupId"));
         assertTrue(evDetData.get("evDetTechData").asText().contains("ID22"));
+    }
+
+    @Test
+    @RunWithCustomExecutor
+    public void givenContractMCWhenExecuteThenReturnResponseOK() throws Exception {
+        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
+        assertNotNull(ExtractSedaActionHandler.getId());
+        final InputStream storageInfo = PropertiesUtils.getResourceAsStream(STORAGE_INFO_JSON);
+        when(workspaceClient.getObject(any(), eq("StorageInfo/storageInfo_mc.json")))
+                .thenReturn(Response.status(Status.OK).entity(storageInfo).build());
+        final InputStream ingestContract = PropertiesUtils.getResourceAsStream(INGEST_CONTRACT_JSON);
+        when(workspaceClient.getObject(any(), eq("referential/ingestContract_mc.json")))
+                .thenReturn(Response.status(Status.OK).entity(ingestContract).build());
+        prepareResponseOKForAdminManagementClientFindIngestContracts(INGEST_CONTRACT_MASTER_MANDATORY_FALSE);
+        final InputStream seda_arborescence = PropertiesUtils.getResourceAsStream(SIP_ARBORESCENCE);
+        when(workspaceClient.getObject(any(), eq("SIP/manifest.xml")))
+                .thenReturn(Response.status(Status.OK).entity(seda_arborescence).build());
+        handlerIO.addOutIOParameters(out);
+
+        final ItemStatus response = handler.execute(params, handlerIO);
+        assertEquals(StatusCode.OK, response.getGlobalStatus());
+        JsonNode evDetData = JsonHandler.getFromString((String) response.getData("eventDetailData"));
+        assertNotNull(evDetData);
     }
 
 }

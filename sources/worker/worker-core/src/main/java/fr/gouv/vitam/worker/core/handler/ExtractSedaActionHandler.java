@@ -41,6 +41,7 @@ import fr.gouv.culture.archivesdefrance.seda.v2.DataObjectOrArchiveUnitReference
 import fr.gouv.culture.archivesdefrance.seda.v2.RelatedObjectReferenceType;
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.SedaConstants;
+import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.database.builder.query.QueryHelper;
 import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
 import fr.gouv.vitam.common.database.builder.request.single.Select;
@@ -69,6 +70,7 @@ import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.model.UnitType;
 import fr.gouv.vitam.common.model.administration.IngestContractCheckState;
 import fr.gouv.vitam.common.model.administration.IngestContractModel;
+import fr.gouv.vitam.common.model.administration.IngestContractWithDetailsModel;
 import fr.gouv.vitam.common.model.administration.OntologyModel;
 import fr.gouv.vitam.common.model.unit.GotObj;
 import fr.gouv.vitam.common.model.unit.ManagementModel;
@@ -186,6 +188,7 @@ public class ExtractSedaActionHandler extends ActionHandler {
     private static final int UNIT_ID_TO_GUID_IO_RANK = 6;
     private static final int GLOBAL_SEDA_PARAMETERS_FILE_IO_RANK = 7;
     public static final int OG_ID_TO_GUID_IO_MEMORY_RANK = 8;
+    private static final int EXISTING_GOT_RANK = 9;
     private static final int GUID_TO_UNIT_ID_IO_RANK = 10;
     private static final int HANDLER_IO_OUT_PARAMETER_NUMBER = 13;
     private static final int ONTOLOGY_IO_RANK = 11;
@@ -194,7 +197,7 @@ public class ExtractSedaActionHandler extends ActionHandler {
     // IN RANK
     private static final int UNIT_TYPE_INPUT_RANK = 1;
     private static final int STORAGE_INFO_INPUT_RANK = 2;
-    private static final int EXISTING_GOT_RANK = 9;
+    private static final int INGEST_CONTRACT_WITH_DETAILS_INPUT_RANK = 3;
 
     private static final String HANDLER_ID = "CHECK_MANIFEST";
     private static final String SUBTASK_LOOP = "CHECK_MANIFEST_LOOP";
@@ -261,6 +264,7 @@ public class ExtractSedaActionHandler extends ActionHandler {
     private static final String CANNOT_READ_SEDA = "Can not read SEDA";
     private static final String MANIFEST_NOT_FOUND = "Manifest.xml Not Found";
     private static final String ARCHIVE_UNIT_TMP_FILE_PREFIX = "AU_TMP_";
+    private static final String MISSING_STORAGE_INFO = "Missing one or more storage infos";
     private static final String GLOBAL_MGT_RULE_TAG = "GLOBAL_MGT_RULE";
 
     private final Map<String, String> dataObjectIdToGuid;
@@ -282,7 +286,7 @@ public class ExtractSedaActionHandler extends ActionHandler {
     private final Map<String, LogbookLifeCycleParameters> guidToLifeCycleParameters;
     private final Map<String, Boolean> dataObjectGroupMasterMandatory;
 
-    private final List<Class<?>> handlerInputIOList = Arrays.asList(String.class, String.class, File.class);
+    private final List<Class<?>> handlerInputIOList = Arrays.asList(String.class, String.class, File.class, File.class);
     private File globalSedaParametersFile;
     private final Map<String, Set<String>> unitIdToSetOfRuleId;
     private final Map<String, StringWriter> mngtMdRuleIdToRulesXml;
@@ -774,6 +778,29 @@ public class ExtractSedaActionHandler extends ActionHandler {
 
             // Retrieve storage info
             final JsonNode storageInfo = JsonHandler.getFromFile((File) handlerIO.getInput(STORAGE_INFO_INPUT_RANK));
+            final IngestContractWithDetailsModel contracts = JsonHandler.getFromFile(
+                    (File) handlerIO.getInput(INGEST_CONTRACT_WITH_DETAILS_INPUT_RANK),
+                    IngestContractWithDetailsModel.class);
+            
+            JsonNode storageUnitInfo = storageInfo.get(VitamConfiguration.getDefaultStrategy());
+            JsonNode storageObjectGroupInfo = storageInfo.get(VitamConfiguration.getDefaultStrategy());
+            JsonNode storageObjectInfo = storageInfo.get(VitamConfiguration.getDefaultStrategy());
+            if (contracts.getManagementContractModel() != null && contracts.getManagementContractModel().getStorage() != null) {
+                if (StringUtils.isNotBlank(contracts.getManagementContractModel().getStorage().getUnitStrategy())) {
+                    storageUnitInfo = storageInfo.get(contracts.getManagementContractModel().getStorage().getUnitStrategy());
+                }
+                if (StringUtils.isNotBlank(contracts.getManagementContractModel().getStorage().getObjectGroupStrategy())) {
+                    storageObjectGroupInfo = storageInfo.get(contracts.getManagementContractModel().getStorage().getObjectGroupStrategy());
+                }
+                if (StringUtils.isNotBlank(contracts.getManagementContractModel().getStorage().getObjectStrategy())) {
+                    storageObjectInfo = storageInfo.get(contracts.getManagementContractModel().getStorage().getObjectStrategy());
+                }
+            }
+
+            if (storageUnitInfo == null || storageObjectGroupInfo == null || storageObjectInfo == null) {
+                LOGGER.error(MISSING_STORAGE_INFO);
+                throw new ProcessingException(MISSING_STORAGE_INFO);
+            }
 
             ObjectNode evDetData = JsonHandler.createObjectNode();
 
@@ -1102,7 +1129,7 @@ public class ExtractSedaActionHandler extends ActionHandler {
 
             checkMasterIsMandatoryAndCheckCanAddObjectToExistingObjectGroup();
             saveObjectGroupsToWorkspace(containerId, logbookLifeCycleClient, typeProcess, originatingAgency,
-                storageInfo);
+                    storageObjectGroupInfo, storageObjectInfo);
 
             PERFORMANCE_LOGGER.log("STP_INGEST_CONTROL_SIP", "CHECK_DATAOBJECTPACKAGE", "extractSeda.saveObjectGroup",
                 saveObjectGroupToWorkspaceStopWatch.elapsed(TimeUnit.MILLISECONDS));
@@ -1113,7 +1140,7 @@ public class ExtractSedaActionHandler extends ActionHandler {
             Stopwatch saveArchiveUnitStopWatch = Stopwatch.createStarted();
 
             finalizeAndSaveArchiveUnitToWorkspace(archiveUnitTree, containerId,
-                IngestWorkflowConstants.ARCHIVE_UNIT_FOLDER, logbookLifeCycleClient, storageInfo);
+                IngestWorkflowConstants.ARCHIVE_UNIT_FOLDER, logbookLifeCycleClient, storageUnitInfo);
 
             PERFORMANCE_LOGGER.log("STP_INGEST_CONTROL_SIP", "CHECK_DATAOBJECTPACKAGE", "extractSeda.saveArchiveUnit",
                 saveArchiveUnitStopWatch.elapsed(TimeUnit.MILLISECONDS));
@@ -1349,7 +1376,7 @@ public class ExtractSedaActionHandler extends ActionHandler {
 
     private void finalizeAndSaveArchiveUnitToWorkspace(ObjectNode archiveUnitTree,
         String containerId, String path, LogbookLifeCyclesClient logbookLifeCycleClient,
-        JsonNode storageInfo)
+        JsonNode storageUnitInfo)
         throws LogbookClientBadRequestException, LogbookClientNotFoundException, LogbookClientServerException,
         ProcessingException, InvalidParseOperationException {
 
@@ -1385,7 +1412,7 @@ public class ExtractSedaActionHandler extends ActionHandler {
                 Set<String> globalMgtIdExtra = new HashSet<>();
 
                 // Add storage information to archive unit
-                addStorageInformation(archiveUnit, storageInfo);
+                addStorageInformation(archiveUnit, storageUnitInfo);
 
                 isRootArchive =
                     attachmentByIngestContractAndManageRulesInformation(archiveUnit, manifestUnitId, unitGuid,
@@ -1427,9 +1454,9 @@ public class ExtractSedaActionHandler extends ActionHandler {
         }
     }
 
-    private void addStorageInformation(ObjectNode archiveUnit, JsonNode storageInfo) {
+    private void addStorageInformation(ObjectNode archiveUnit, JsonNode storageUnitInfo) {
         ObjectNode archiveUnitNode = (ObjectNode) archiveUnit.get(SedaConstants.TAG_ARCHIVE_UNIT);
-        archiveUnitNode.set(SedaConstants.STORAGE, storageInfo);
+        archiveUnitNode.set(SedaConstants.STORAGE, storageUnitInfo);
     }
 
     /**
@@ -2466,7 +2493,7 @@ public class ExtractSedaActionHandler extends ActionHandler {
     private void saveObjectGroupsToWorkspace(
         String containerId,
         LogbookLifeCyclesClient logbookLifeCycleClient, LogbookTypeProcess typeProcess, String originatingAgency,
-        JsonNode storageInfo)
+        JsonNode storageObjectGroupInfo, JsonNode storageObjectInfo)
         throws ProcessingException {
         boolean existingGot = false;
         completeDataObjectToObjectGroupMap();
@@ -2607,7 +2634,7 @@ public class ExtractSedaActionHandler extends ActionHandler {
                 objectGroup.set(SedaConstants.TAG_FILE_INFO, fileInfo);
                 final ArrayNode qualifiersNode = getObjectGroupQualifiers(categoryMap, containerId);
                 objectGroup.set(SedaConstants.PREFIX_QUALIFIERS, qualifiersNode);
-                final ObjectNode workNode = getObjectGroupWork(categoryMap, containerId);
+                final ObjectNode workNode = getObjectGroupWork(categoryMap, containerId, storageObjectInfo);
                 // In case of attachment, this will be true, we will then add information about existing og in work
                 if (existingGot) {
                     workNode.put(SedaConstants.TAG_DATA_OBJECT_GROUP_EXISTING_REFERENCEID,
@@ -2623,7 +2650,7 @@ public class ExtractSedaActionHandler extends ActionHandler {
                 objectGroup.put(SedaConstants.PREFIX_ORIGINATING_AGENCY, originatingAgency);
                 objectGroup.set(SedaConstants.PREFIX_ORIGINATING_AGENCIES,
                     JsonHandler.createArrayNode().add(originatingAgency));
-                objectGroup.set(SedaConstants.STORAGE, storageInfo);
+                objectGroup.set(SedaConstants.STORAGE, storageObjectGroupInfo);
 
                 JsonHandler.writeAsFile(objectGroup, tmpFile);
 
@@ -2791,7 +2818,7 @@ public class ExtractSedaActionHandler extends ActionHandler {
         return qualifiersArray;
     }
 
-    private ObjectNode getObjectGroupWork(Map<String, List<JsonNode>> categoryMap, String containerId) {
+    private ObjectNode getObjectGroupWork(Map<String, List<JsonNode>> categoryMap, String containerId, JsonNode storageObjectInfo) {
         final ObjectNode workObject = JsonHandler.createObjectNode();
         final ObjectNode qualifierObject = JsonHandler.createObjectNode();
         for (final Entry<String, List<JsonNode>> entry : categoryMap.entrySet()) {
@@ -2805,6 +2832,8 @@ public class ExtractSedaActionHandler extends ActionHandler {
                 updateObjectNode(objectNode, id, phsyical, containerId);
                 if (phsyical) {
                     objectNode.set(SedaConstants.TAG_PHYSICAL_ID, node.get(SedaConstants.TAG_PHYSICAL_ID));
+                } else {
+                    objectNode.set(SedaConstants.STORAGE, storageObjectInfo);
                 }
 
                 arrayNode.add(objectNode);

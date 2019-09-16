@@ -1,0 +1,19 @@
+{
+  "offerId": {
+    "_nbc": 2,
+    "offerIds": [
+      "offerOther1",
+      "offerOther2",
+      "offerOther3"
+    ],
+  "strategyId": "offerId"
+  },
+  "default": {
+    "_nbc": 2,
+    "offerIds": [
+      "offer1",
+      "offer2"
+    ],
+  "strategyId": "default"
+  }
+}
