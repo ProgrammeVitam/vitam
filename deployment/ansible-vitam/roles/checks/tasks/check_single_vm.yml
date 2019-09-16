@@ -1,0 +1,11 @@
+---
+
+- name: check whether single_vm_hostnames is defined
+  fail:
+    msg: "Variable single_vm_hostnames is undefined or badly defined ! Should be set in group_vars/all/vitam_vars.yml"
+  when: single_vm_hostnames is undefined
+
+- name: check whether single_vm_hostnames is a list
+  fail:
+    msg: "Variable single_vm_hostnames is  badly defined ! List should be set in group_vars/all/vitam_vars.yml"
+  when: single_vm_hostnames | type_debug != 'list'
