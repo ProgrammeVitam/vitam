@@ -546,11 +546,7 @@ public class IngestInternalResource extends ApplicationStatusResource {
         try (StorageClient storageClient = StorageClientFactory.getInstance().getClient();
              WorkspaceClient workspaceClient = workspaceClientFactory.getClient()) {
             SanityChecker.checkParameter(guid);
-            try {
-                workspaceClient.createContainer(guid);
-            } catch (ContentAddressableStorageAlreadyExistException e) {
-                LOGGER.debug(e);
-            }
+            workspaceClient.createContainer(guid);
             workspaceClient.putObject(guid, FOLDERNAME + guid + XML, atr);
 
             final ObjectDescription description = new ObjectDescription();

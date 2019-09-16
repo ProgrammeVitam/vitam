@@ -374,12 +374,7 @@ public class LogbookOperationsImpl implements LogbookOperations {
         String containerName = tenantId + "_" + DataCategory.BACKUP_OPERATION.getFolder();
         // Ugly hack to mock workspaceFactoryClient
         try (WorkspaceClient workspaceClient = workspaceClientFactory.getClient()) {
-            try {
-                workspaceClient.createContainer(containerName);
-            } catch (ContentAddressableStorageAlreadyExistException ignored) {
-                // Already exists ? So, it's good
-                SysErrLogger.FAKE_LOGGER.ignoreLog(ignored);
-            }
+            workspaceClient.createContainer(containerName);
             workspaceClient.putObject(containerName, operationGuid, JsonHandler.writeToInpustream
                 (logbookOperation));
             try (StorageClient storageClient = storageClientFactory.getClient()) {

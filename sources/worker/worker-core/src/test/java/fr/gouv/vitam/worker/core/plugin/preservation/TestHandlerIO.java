@@ -217,11 +217,6 @@ public class TestHandlerIO implements HandlerIO {
     }
 
     @Override
-    public void zipWorkspace(String output, String... inputFiles) throws ContentAddressableStorageException {
-        throw new RuntimeException("Not implemented");
-    }
-
-    @Override
     public void enableAsync(boolean asyncIo) throws WorkerspaceQueueException {
         throw new RuntimeException("Not implemented");
     }

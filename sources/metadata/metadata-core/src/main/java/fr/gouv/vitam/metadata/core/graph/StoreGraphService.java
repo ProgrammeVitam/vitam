@@ -428,6 +428,7 @@ public class StoreGraphService {
             CompressInformation compressInformation = new CompressInformation();
             Collections.addAll(compressInformation.getFiles(), graphFolder);
             compressInformation.setOutputFile(graphZipName);
+            compressInformation.setOutputContainer(containerName);
             workspaceClient.compress(containerName, compressInformation);
         } catch (ContentAddressableStorageServerException e) {
             throw new StoreGraphException(e);

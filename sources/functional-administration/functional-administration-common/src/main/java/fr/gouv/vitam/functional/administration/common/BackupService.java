@@ -116,8 +116,7 @@ public class BackupService {
                 }
             }
 
-        } catch (ContentAddressableStorageServerException
-            | ContentAddressableStorageAlreadyExistException e) {
+        } catch (ContentAddressableStorageServerException e) {
             //workspace Error
             throw new BackupServiceException("Unable to store file in workSpace " + containerName + "/" + uri, e);
 

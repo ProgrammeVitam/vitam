@@ -186,8 +186,7 @@ public class ProbativeValueResource {
                     processingClient.executeOperationProcess(operationId, Contexts.EXPORT_PROBATIVE_VALUE.name(), ProcessAction.RESUME.getValue());
                 return jsonNodeRequestResponse.toResponse();
 
-            } catch (ContentAddressableStorageServerException | ContentAddressableStorageAlreadyExistException |
-
+            } catch (ContentAddressableStorageServerException |
                 VitamClientException | LogbookClientServerException | InternalServerException | InvalidGuidOperationException e) {
                 LOGGER.error("Error while exporting probative value", e);
 

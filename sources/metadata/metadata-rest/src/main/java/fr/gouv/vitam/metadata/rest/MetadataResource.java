@@ -634,7 +634,7 @@ public class MetadataResource extends ApplicationStatusResource {
         } catch (BadRequestException e) {
             return buildErrorResponse(VitamCode.GLOBAL_EMPTY_QUERY, null);
         } catch (InvalidGuidOperationException | LogbookClientBadRequestException | LogbookClientAlreadyExistsException |
-            LogbookClientServerException | ContentAddressableStorageAlreadyExistException | ContentAddressableStorageServerException |
+            LogbookClientServerException | ContentAddressableStorageServerException |
             InvalidParseOperationException | InternalServerException | VitamClientException e) {
             LOGGER.error(e);
             return Response.status(INTERNAL_SERVER_ERROR)

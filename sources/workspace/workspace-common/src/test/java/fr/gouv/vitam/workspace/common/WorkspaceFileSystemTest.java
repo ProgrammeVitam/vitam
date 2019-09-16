@@ -64,6 +64,7 @@ import static org.assertj.core.groups.Tuple.tuple;
 public class WorkspaceFileSystemTest {
 
     private static final String CONTAINER_NAME = "myContainer";
+    private static final String CONTAINER_NAME2 = "myContainer2";
     private static final String OBJECT_NAME = "myObject";
     private static final String FOLDER_NAME = "myFolder";
     private static final String SIP_CONTAINER = "sipContainer";
@@ -439,10 +440,43 @@ public class WorkspaceFileSystemTest {
         storage.putObject(CONTAINER_NAME, "3.txt", new ByteArrayInputStream("bobby5".getBytes()));
 
         // When
-        storage.compress(CONTAINER_NAME, Lists.newArrayList(folder1, "3.txt"), fileName);
+        storage.compress(CONTAINER_NAME, Lists.newArrayList(folder1, "3.txt"), fileName, CONTAINER_NAME);
 
         // Then
         Path zipPath = Paths.get(tempDir.toString(), CONTAINER_NAME, fileName);
+        assertThat(zipPath).exists();
+
+        ArchiveStreamFactory archiveStreamFactory = new ArchiveStreamFactory();
+        ArchiveInputStream archiveInputStream = archiveStreamFactory
+            .createArchiveInputStream(ArchiveStreamFactory.ZIP, new FileInputStream(zipPath.toString()));
+
+        List<ArchiveEntry> entries = findArchiveEntries(archiveInputStream);
+        assertThat(entries).extracting("name", "size")
+            .containsExactlyInAnyOrder(tuple("folder1/1.txt", 7L), tuple("folder1/2.txt", 8L), tuple("3.txt", 6L));
+        assertThat(entries).extracting("name").containsExactlyInAnyOrder("folder1/1.txt", "folder1/2.txt", "3.txt");
+    }
+
+    @Test
+    public void should_compress_container_name_into_another_container() throws Exception {
+
+        // Given
+        String fileName = "targetDir/result.zip";
+        storage.createContainer(CONTAINER_NAME);
+        storage.createContainer(CONTAINER_NAME2);
+        String folder1 = "folder1";
+        String folder2 = "targetDir";
+        storage.createFolder(CONTAINER_NAME, folder1);
+        storage.createFolder(CONTAINER_NAME2, folder2);
+
+        storage.putObject(CONTAINER_NAME + "/" + folder1, "1.txt", new ByteArrayInputStream("bobbie1".getBytes()));
+        storage.putObject(CONTAINER_NAME + "/" + folder1, "2.txt", new ByteArrayInputStream("bobby404".getBytes()));
+        storage.putObject(CONTAINER_NAME, "3.txt", new ByteArrayInputStream("bobby5".getBytes()));
+
+        // When
+        storage.compress(CONTAINER_NAME, Lists.newArrayList(folder1, "3.txt"), fileName, CONTAINER_NAME2);
+
+        // Then
+        Path zipPath = Paths.get(tempDir.toString(), CONTAINER_NAME2, fileName);
         assertThat(zipPath).exists();
 
         ArchiveStreamFactory archiveStreamFactory = new ArchiveStreamFactory();

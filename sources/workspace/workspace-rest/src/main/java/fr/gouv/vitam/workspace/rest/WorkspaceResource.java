@@ -50,6 +50,7 @@ import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageCompressed
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundException;
 import fr.gouv.vitam.workspace.api.exception.ZipFilesNameNotAllowedException;
+import fr.gouv.vitam.workspace.api.model.TimeToLive;
 import fr.gouv.vitam.workspace.common.CompressInformation;
 import fr.gouv.vitam.workspace.common.WorkspaceFileSystem;
 import org.apache.commons.compress.archivers.ArchiveException;
@@ -126,18 +127,17 @@ public class WorkspaceResource extends ApplicationStatusResource {
             ParametersChecker.checkParameter(ErrorMessage.CONTAINER_NAME_IS_A_MANDATORY_PARAMETER.getMessage(),
                 containerName);
             workspace.createContainer(containerName);
+            return Response.status(Status.CREATED).entity(containerName).build();
         } catch (final IllegalArgumentException e) {
             LOGGER.error(e);
             return Response.status(Status.BAD_REQUEST).entity(e.getMessage()).build();
         } catch (final ContentAddressableStorageAlreadyExistException e) {
-            LOGGER.info(ErrorMessage.CONTAINER_ALREADY_EXIST.getMessage() + containerName + " => " + e.getMessage());
-            return Response.status(Status.CONFLICT).entity(containerName).build();
+            LOGGER.info(ErrorMessage.CONTAINER_ALREADY_EXIST.getMessage() + containerName);
+            return Response.status(Status.CREATED).entity(containerName).build();
         } catch (Exception e) {
             LOGGER.error(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage(), e);
             return Response.status(Status.INTERNAL_SERVER_ERROR).entity(containerName).build();
         }
-
-        return Response.status(Status.CREATED).entity(containerName).build();
     }
 
     /**
@@ -156,6 +156,32 @@ public class WorkspaceResource extends ApplicationStatusResource {
             ParametersChecker.checkParameter(ErrorMessage.CONTAINER_NAME_IS_A_MANDATORY_PARAMETER.getMessage(),
                 containerName);
             workspace.deleteContainer(containerName, recursive);
+        } catch (final ContentAddressableStorageNotFoundException e) {
+            LOGGER.error(ErrorMessage.CONTAINER_NOT_FOUND.getMessage() + containerName + " => " + e.getMessage());
+            return Response.status(Status.NOT_FOUND).entity(containerName).build();
+        } catch (final IllegalArgumentException e) {
+            LOGGER.error(e);
+            return Response.status(Status.BAD_REQUEST).entity(e.getMessage()).build();
+        } catch (final Exception e) {
+            LOGGER.error(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage(), e);
+            return Response.status(Status.INTERNAL_SERVER_ERROR).entity(containerName).build();
+        }
+
+        return Response.status(Status.NO_CONTENT).entity(containerName).build();
+    }
+
+    /**
+     * deletes old file in a container in the workspace
+     */
+    @Path("/containers/{containerName}/old_files")
+    @DELETE
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response purgeOldFilesInContainer(@PathParam(CONTAINER_NAME) String containerName, TimeToLive timeToLive) {
+
+        try {
+            ParametersChecker.checkParameter(ErrorMessage.CONTAINER_NAME_IS_A_MANDATORY_PARAMETER.getMessage(),
+                containerName);
+            workspace.purgeOldFilesInContainer(containerName, timeToLive);
         } catch (final ContentAddressableStorageNotFoundException e) {
             LOGGER.error(ErrorMessage.CONTAINER_NOT_FOUND.getMessage() + containerName + " => " + e.getMessage());
             return Response.status(Status.NOT_FOUND).entity(containerName).build();
@@ -273,22 +299,20 @@ public class WorkspaceResource extends ApplicationStatusResource {
             ParametersChecker.checkParameter(ErrorMessage.CONTAINER_NAME_IS_A_MANDATORY_PARAMETER.getMessage(),
                 containerName, folderName);
             workspace.createFolder(containerName, folderName);
+            return Response.status(Status.CREATED).entity(containerName + "/" + folderName).build();
         } catch (final IllegalArgumentException e) {
             LOGGER.error(e);
             return Response.status(Status.BAD_REQUEST).entity(e.getMessage()).build();
         } catch (final ContentAddressableStorageAlreadyExistException e) {
             LOGGER.info(ErrorMessage.FOLDER_ALREADY_EXIST.getMessage() + containerName + "/" + folderName, e);
-            return Response.status(Status.CONFLICT).entity(containerName + "/" + folderName).build();
+            return Response.status(Status.CREATED).entity(containerName + "/" + folderName).build();
         } catch (final ContentAddressableStorageNotFoundException e) {
             LOGGER.error(ErrorMessage.FOLDER_NOT_FOUND.getMessage() + containerName + "/" + folderName, e);
             return Response.status(Status.NOT_FOUND).entity(containerName + "/" + folderName).build();
         } catch (final Exception e) {
             LOGGER.error(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage(), e);
             return Response.status(Status.INTERNAL_SERVER_ERROR).entity(containerName).build();
-        }
-
-        return Response.status(Status.CREATED).entity(containerName + "/" + folderName).build();
-    }
+        }    }
 
     /**
      * deletes a folder in a container
@@ -428,7 +452,7 @@ public class WorkspaceResource extends ApplicationStatusResource {
         try {
             ParametersChecker.checkParameter(ErrorMessage.CONTAINER_FOLDER_NAMES_ARE_A_MANDATORY_PARAMETER.getMessage(),
                 containerName, compressInformation);
-            workspace.compress(containerName, compressInformation.getFiles(), compressInformation.getOutputFile());
+            workspace.compress(containerName, compressInformation.getFiles(), compressInformation.getOutputFile(), compressInformation.getOutputContainer());
             return Response.status(Status.CREATED).build();
 
         } catch (final IllegalArgumentException e) {

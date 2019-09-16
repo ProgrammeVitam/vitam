@@ -24,28 +24,39 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  *******************************************************************************/
-package fr.gouv.vitam.storage.engine.client;
+package fr.gouv.vitam.metadata.core.dip;
 
-import fr.gouv.vitam.storage.engine.common.model.DataCategory;
-import fr.gouv.vitam.storage.engine.common.model.OfferLog;
-import fr.gouv.vitam.storage.engine.common.model.Order;
-import org.apache.commons.collections4.IteratorUtils;
+import com.google.common.annotations.VisibleForTesting;
+import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
+import fr.gouv.vitam.workspace.api.model.TimeToLive;
+import fr.gouv.vitam.workspace.client.WorkspaceClient;
+import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
 
-import java.util.Iterator;
+import java.time.temporal.ChronoUnit;
 
-public final class OfferLogHelper {
+public class DipPurgeService {
 
-    public static Iterator<OfferLog> getListing(StorageClientFactory storageClientFactory, String strategy,
-        DataCategory dataCategory, Long offset, Order order, int chunkSize, Integer limit) {
+    private static final String DIP_CONTAINER = "DIP";
 
-        int actualChunkSize = limit == null ? chunkSize : Math.min(chunkSize, limit);
-        Iterator<OfferLog> offerLogIterator = new StorageClientOfferLogIterator(
-            storageClientFactory, strategy, order, dataCategory, actualChunkSize, offset);
+    private final WorkspaceClientFactory workspaceClientFactory;
+    private final int timeToLiveInMinutes;
 
-        if (limit != null) {
-            offerLogIterator = IteratorUtils.boundedIterator(offerLogIterator, limit);
+    public DipPurgeService(int timeToLiveInMinutes) {
+        this(WorkspaceClientFactory.getInstance(), timeToLiveInMinutes);
+    }
+
+    @VisibleForTesting
+    public DipPurgeService(WorkspaceClientFactory workspaceClientFactory, int timeToLiveInMinutes) {
+        this.workspaceClientFactory = workspaceClientFactory;
+        this.timeToLiveInMinutes = timeToLiveInMinutes;
+    }
+
+    public void purgeExpiredDipFiles() throws ContentAddressableStorageServerException {
+
+        try (WorkspaceClient workspaceClient = this.workspaceClientFactory.getClient()) {
+            workspaceClient.purgeOldFilesInContainer(
+                DIP_CONTAINER,
+                new TimeToLive(this.timeToLiveInMinutes, ChronoUnit.MINUTES));
         }
-
-        return offerLogIterator;
     }
 }

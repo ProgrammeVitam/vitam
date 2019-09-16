@@ -149,12 +149,6 @@ public class WorkspaceClientContainerTest extends ResteasyTestApplication {
         client.createContainer(CONTAINER_NAME);
     }
 
-    @Test(expected = ContentAddressableStorageAlreadyExistException.class)
-    public void givenContainerAlreadyExistsWhenCreateContainerThenRaiseAnException() throws Exception {
-        when(mock.post()).thenReturn(Response.status(Status.CONFLICT).build());
-        client.createContainer(CONTAINER_NAME);
-    }
-
     @Test
     public void givenContainerNotFoundWhenCreateContainerThenReturnCreated() throws Exception {
         when(mock.post()).thenReturn(Response.status(Status.CREATED).build());

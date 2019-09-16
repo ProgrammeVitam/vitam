@@ -177,7 +177,7 @@ public class AdminDataMigrationResource {
             LOGGER.error(e);
             return status(BAD_REQUEST).build();
 
-        } catch (ContentAddressableStorageServerException | ContentAddressableStorageAlreadyExistException | VitamClientException | InternalServerException | InvalidGuidOperationException e) {
+        } catch (ContentAddressableStorageServerException | VitamClientException | InternalServerException | InvalidGuidOperationException e) {
             LOGGER.error(e);
             return Response.status(INTERNAL_SERVER_ERROR)
                     .entity(getErrorEntity(INTERNAL_SERVER_ERROR, e.getMessage())).build();

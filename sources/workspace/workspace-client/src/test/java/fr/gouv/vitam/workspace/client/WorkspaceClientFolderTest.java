@@ -153,12 +153,6 @@ public class WorkspaceClientFolderTest extends ResteasyTestApplication {
 
     }
 
-    @Test(expected = ContentAddressableStorageAlreadyExistException.class)
-    public void givenFolderAlreadyExistsWhenCreateFolderThenRaiseAnException() throws Exception {
-        when(mock.post()).thenReturn(Response.status(Status.CONFLICT).build());
-        client.createFolder(CONTAINER_NAME, FOLDER_NAME);
-    }
-
     @Test
     public void givenFolderNotFoundWhenCreateFolderThenReturnCreated() throws Exception {
         when(mock.post()).thenReturn(Response.status(Status.CREATED).build());

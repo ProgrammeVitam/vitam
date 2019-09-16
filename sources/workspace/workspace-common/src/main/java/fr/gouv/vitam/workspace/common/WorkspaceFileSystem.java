@@ -56,6 +56,7 @@ import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
 import fr.gouv.vitam.workspace.api.exception.ZipFilesNameNotAllowedException;
+import fr.gouv.vitam.workspace.api.model.TimeToLive;
 import org.apache.commons.compress.archivers.ArchiveEntry;
 import org.apache.commons.compress.archivers.ArchiveException;
 import org.apache.commons.compress.archivers.ArchiveInputStream;
@@ -90,6 +91,8 @@ import java.nio.file.SimpleFileVisitor;
 import java.nio.file.StandardCopyOption;
 import java.nio.file.StandardOpenOption;
 import java.nio.file.attribute.BasicFileAttributes;
+import java.nio.file.attribute.FileTime;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -161,6 +164,45 @@ public class WorkspaceFileSystem implements WorkspaceContentAddressableStorage {
             }
         } catch (IOException ex) {
             throw new ContentAddressableStorageServerException(ex);
+        }
+    }
+
+    @Override
+    public void purgeOldFilesInContainer(String containerName, TimeToLive timeToLive)
+        throws ContentAddressableStorageException {
+
+        if (!isExistingContainer(containerName)) {
+            LOGGER.info(ErrorMessage.CONTAINER_NOT_FOUND + containerName);
+            return;
+        }
+
+        try {
+            Path folderPath = getContainerPath(containerName, false);
+            Instant expirationInstant = Instant.now().minus(timeToLive.getValue(), timeToLive.getUnit());
+
+            try (Stream<Path> streams = Files.walk(folderPath, FileVisitOption.FOLLOW_LINKS)) {
+                streams.filter(
+                    path -> {
+                        try {
+                            if (Files.isDirectory(path)) {
+                                return false;
+                            }
+                            FileTime lastModifiedTime = Files.getLastModifiedTime(path);
+                            return expirationInstant.isAfter(lastModifiedTime.toInstant());
+                        } catch (IOException e) {
+                            throw new RuntimeException(e);
+                        }
+                    }
+                ).forEach(path -> {
+                    try {
+                        Files.delete(path);
+                    } catch (IOException e) {
+                        LOGGER.warn("Could not delete file " + path, e);
+                    }
+                });
+            }
+        } catch (IOException ex) {
+            throw new ContentAddressableStorageException(ex);
         }
     }
 
@@ -411,9 +453,9 @@ public class WorkspaceFileSystem implements WorkspaceContentAddressableStorage {
             long totalSize = Files.size(objectPath);
 
             long chunkSize;
-            if(chunkOffset == null) {
+            if (chunkOffset == null) {
                 chunkSize = totalSize;
-            } else if(maxChunkSize == null) {
+            } else if (maxChunkSize == null) {
                 chunkSize = totalSize - chunkOffset;
             } else {
                 chunkSize = Math.min(maxChunkSize, totalSize - chunkOffset);
@@ -663,13 +705,15 @@ public class WorkspaceFileSystem implements WorkspaceContentAddressableStorage {
      * @param containerName name of the container
      * @param folderNames list of file or directory to archive
      * @param zipName name of the archive file
+     * @param outputContainer
      * @throws IOException
      * @throws ArchiveException
      */
-    public void compress(String containerName, List<String> folderNames, String zipName)
+    public void compress(String containerName, List<String> folderNames, String zipName,
+        String outputContainer)
         throws IOException, ArchiveException {
 
-        Path zip = getObjectPath(containerName, zipName, true);
+        Path zip = getObjectPath(outputContainer, zipName, true);
 
         try (ArchiveOutputStream archive = new ArchiveStreamFactory()
             .createArchiveOutputStream(ArchiveStreamFactory.ZIP, new FileOutputStream(zip.toString()))) {

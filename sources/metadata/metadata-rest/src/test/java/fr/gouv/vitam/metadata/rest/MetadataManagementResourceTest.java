@@ -53,6 +53,7 @@ import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClientFactory;
 import fr.gouv.vitam.metadata.api.config.MetaDataConfiguration;
 import fr.gouv.vitam.metadata.api.exception.MetaDataException;
 import fr.gouv.vitam.metadata.core.database.collections.MetadataCollections;
+import fr.gouv.vitam.metadata.core.dip.DipPurgeService;
 import fr.gouv.vitam.metadata.core.graph.ReclassificationDistributionService;
 import fr.gouv.vitam.metadata.core.graph.StoreGraphException;
 import fr.gouv.vitam.metadata.core.graph.StoreGraphService;
@@ -83,8 +84,10 @@ public class MetadataManagementResourceTest {
     private ReconstructionRequestItem requestItem;
     private ReclassificationDistributionService reclassificationDistributionService;
     private MetadataManagementResource reconstructionResource;
+    private DipPurgeService dipPurgeService;
 
     private static int tenant = VitamConfiguration.getAdminTenant();
+
     @Before
     public void setup() {
         reconstructionService = mock(ReconstructionService.class);
@@ -95,12 +98,13 @@ public class MetadataManagementResourceTest {
         requestItem.setCollection("unit").setTenant(10).setLimit(100);
         MetaDataConfiguration configuration = new MetaDataConfiguration();
         configuration.setUrlProcessing("http://processing.service.consul:8203/");
+        dipPurgeService = mock(DipPurgeService.class);
         reconstructionResource =
             new MetadataManagementResource(reconstructionService, storeGraphService, graphBuilderService, reclassificationDistributionService,
                 ProcessingManagementClientFactory.getInstance(),
                 LogbookOperationsClientFactory.getInstance(),
                 WorkspaceClientFactory.getInstance(),
-                configuration);
+                configuration, dipPurgeService);
     }
 
     @BeforeClass

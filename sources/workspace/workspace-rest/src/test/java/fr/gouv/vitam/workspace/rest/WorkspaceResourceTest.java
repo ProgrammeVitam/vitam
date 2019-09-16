@@ -151,13 +151,13 @@ public class WorkspaceResourceTest {
 
     // Container
     @Test
-    public void givenContainerAlreadyExistsWhenCreateContainerThenReturnConflict() {
+    public void givenContainerAlreadyExistsWhenCreateContainerThenReturnCreated() {
 
         with().then()
             .statusCode(Status.CREATED.getStatusCode()).when().post("/containers/" + CONTAINER_NAME);
 
         given().expect()
-            .statusCode(Status.CONFLICT.getStatusCode()).when().post("/containers/" + CONTAINER_NAME);
+            .statusCode(Status.CREATED.getStatusCode()).when().post("/containers/" + CONTAINER_NAME);
     }
 
     @Test
@@ -206,7 +206,7 @@ public class WorkspaceResourceTest {
     }
 
     @Test
-    public void givenFolderAlreadyExistsWhenCreateFolderThenReturnConflict() {
+    public void givenFolderAlreadyExistsWhenCreateFolderThenReturnCreated() {
 
         with().then()
             .statusCode(Status.CREATED.getStatusCode()).when().post("/containers/" + CONTAINER_NAME);
@@ -216,7 +216,7 @@ public class WorkspaceResourceTest {
             .post("/containers/" + CONTAINER_NAME + "/folders/" + FOLDER_NAME);
 
         given().contentType(ContentType.JSON).then()
-            .statusCode(Status.CONFLICT.getStatusCode()).when()
+            .statusCode(Status.CREATED.getStatusCode()).when()
             .post("/containers/" + CONTAINER_NAME + "/folders/" + FOLDER_NAME);
 
     }
@@ -674,21 +674,26 @@ public class WorkspaceResourceTest {
                 .when().post("/containers/" + CONTAINER_NAME + "/objects/" + FOLDER_NAME + "/" + OBJECT_NAME)
                 .then().statusCode(Status.CREATED.getStatusCode());
 
+            String outputContainer = "outputContainer";
+
+            with().then()
+                .statusCode(Status.CREATED.getStatusCode()).when().post("/containers/" + outputContainer);
+
             given().contentType(ContentType.JSON)
                 .body(new CompressInformation(Collections.singletonList(FOLDER_NAME + "/" + OBJECT_NAME),
-                    outputFile)).then()
+                    outputFile, outputContainer)).then()
                 .statusCode(Status.CREATED.getStatusCode()).when()
                 .post("/containers/" + CONTAINER_NAME);
 
             given().contentType(ContentType.JSON)
                 .body(new CompressInformation(Collections.singletonList(FOLDER_NAME + "/" + OBJECT_NAME),
-                    outputFile)).then()
+                    outputFile, outputContainer)).then()
                 .statusCode(Status.CREATED.getStatusCode()).when()
                 .post("/containers/" + CONTAINER_NAME);
 
             given().then()
                 .statusCode(Status.OK.getStatusCode()).when()
-                .get("/containers/" + CONTAINER_NAME + "/objects/" + outputFile);
+                .get("/containers/" + outputContainer + "/objects/" + outputFile);
         }
     }
 

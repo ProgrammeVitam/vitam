@@ -199,8 +199,7 @@ public class EvidenceResource {
                 processingClient.executeOperationProcess(operationId, Contexts.EVIDENCE_AUDIT.name(), ProcessAction.RESUME.getValue());
             return jsonNodeRequestResponse.toResponse();
 
-        } catch (ContentAddressableStorageServerException | ContentAddressableStorageAlreadyExistException |
-
+        } catch (ContentAddressableStorageServerException |
             VitamClientException | InternalServerException | InvalidGuidOperationException | ReferentialException e) {
             LOGGER.error("Error while auditing", e);
 
@@ -257,7 +256,7 @@ public class EvidenceResource {
             return jsonNodeRequestResponse.toResponse();
 
         } catch (ContentAddressableStorageServerException | InvalidParseOperationException | LogbookClientException
-            | ContentAddressableStorageAlreadyExistException | VitamClientException | InternalServerException
+            | VitamClientException | InternalServerException
             | InvalidGuidOperationException | ReferentialException e) {
             LOGGER.error("Error while auditing", e);
 

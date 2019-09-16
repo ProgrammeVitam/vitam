@@ -245,7 +245,7 @@ public class LogbookLFCAdministration {
     private void createContainer(String containerName) throws VitamClientException {
         try (WorkspaceClient workspaceClient = workspaceClientFactory.getClient();) {
             workspaceClient.createContainer(containerName);
-        } catch (ContentAddressableStorageAlreadyExistException | ContentAddressableStorageServerException e) {
+        } catch (ContentAddressableStorageServerException e) {
             LOGGER.error(e.getMessage());
             throw new VitamClientException(e);
         }

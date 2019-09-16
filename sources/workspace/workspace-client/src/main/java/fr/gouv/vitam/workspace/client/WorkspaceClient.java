@@ -46,6 +46,7 @@ import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundEx
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageZipException;
 import fr.gouv.vitam.workspace.api.exception.ZipFilesNameNotAllowedException;
+import fr.gouv.vitam.workspace.api.model.TimeToLive;
 import fr.gouv.vitam.workspace.common.CompressInformation;
 
 import javax.ws.rs.HttpMethod;
@@ -71,6 +72,7 @@ public class WorkspaceClient extends DefaultClient {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(WorkspaceClient.class);
     private static final String OBJECTS = "/objects/";
     private static final String FOLDERS = "/folders/";
+    private static final String OLD_FILES = "/old_files";
     private static final String CONTAINERS = "/containers/";
 
     /**
@@ -86,11 +88,10 @@ public class WorkspaceClient extends DefaultClient {
      * Create container
      *
      * @param containerName the container name
-     * @throws ContentAddressableStorageAlreadyExistException in case the container already exists
      * @throws ContentAddressableStorageServerException in case of any other error
      */
     public void createContainer(String containerName)
-        throws ContentAddressableStorageAlreadyExistException, ContentAddressableStorageServerException {
+        throws ContentAddressableStorageServerException {
 
         ParametersChecker.checkParameter(ErrorMessage.CONTAINER_NAME_IS_A_MANDATORY_PARAMETER.getMessage(),
             containerName);
@@ -100,10 +101,6 @@ public class WorkspaceClient extends DefaultClient {
                 MediaType.APPLICATION_JSON_TYPE);
             if (Status.CREATED.getStatusCode() == response.getStatus()) {
                 LOGGER.debug(containerName + ": " + Response.Status.CREATED.getReasonPhrase());
-            } else if (Status.CONFLICT.getStatusCode() == response.getStatus()) {
-                LOGGER.info(ErrorMessage.CONTAINER_ALREADY_EXIST.getMessage());
-                throw new ContentAddressableStorageAlreadyExistException(
-                    ErrorMessage.CONTAINER_ALREADY_EXIST.getMessage());
             } else {
                 LOGGER.error(response.getStatusInfo().getReasonPhrase());
                 throw new ContentAddressableStorageServerException(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage());
@@ -228,10 +225,6 @@ public class WorkspaceClient extends DefaultClient {
                 MediaType.APPLICATION_JSON_TYPE);
             if (Status.CREATED.getStatusCode() == response.getStatus()) {
                 LOGGER.debug(containerName + "/" + folderName + ": " + Response.Status.CREATED.getReasonPhrase());
-            } else if (Status.CONFLICT.getStatusCode() == response.getStatus()) {
-                LOGGER.warn(ErrorMessage.FOLDER_ALREADY_EXIST.getMessage());
-                throw new ContentAddressableStorageAlreadyExistException(
-                    ErrorMessage.FOLDER_ALREADY_EXIST.getMessage());
             } else {
                 LOGGER.error(response.getStatusInfo().getReasonPhrase());
                 throw new ContentAddressableStorageServerException(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage());
@@ -767,5 +760,27 @@ public class WorkspaceClient extends DefaultClient {
         String offerDigest = computeObjectDigest(containerName, objectId, digestAlgorithm)
             .toJsonNode().get("$results").get(0).asText();
         return offerDigest.equals(digest);
+    }
+
+    public void purgeOldFilesInContainer(String containerName, TimeToLive timeToLive)
+        throws ContentAddressableStorageServerException {
+        ParametersChecker.checkParameter("Mandatory parameters", containerName, timeToLive);
+
+        Response response = null;
+        try {
+            response = performRequest(HttpMethod.DELETE, CONTAINERS + containerName + OLD_FILES, null, timeToLive,
+                MediaType.APPLICATION_JSON_TYPE,
+                MediaType.APPLICATION_JSON_TYPE);
+
+            if (Status.Family.SUCCESSFUL != response.getStatusInfo().getFamily()) {
+                LOGGER.error(response.getStatusInfo().getReasonPhrase());
+                throw new ContentAddressableStorageServerException(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage());
+            }
+        } catch (final VitamClientInternalException e) {
+            LOGGER.debug(INTERNAL_SERVER_ERROR2, e);
+            throw new ContentAddressableStorageServerException(e);
+        } finally {
+            consumeAnyEntityAndClose(response);
+        }
     }
 }

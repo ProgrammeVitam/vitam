@@ -189,8 +189,7 @@ public class StorageLogAdministration {
             }
 
 
-        } catch (ContentAddressableStorageAlreadyExistException | ContentAddressableStorageServerException |
-            IOException e) {
+        } catch (ContentAddressableStorageServerException | IOException e) {
             LOGGER.error("Unable to create container", e);
             createLogbookOperationEvent(helper, eip, evType, StatusCode.FATAL);
             throw new StorageLogException(e);

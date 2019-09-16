@@ -1,0 +1,21 @@
+#!/usr/bin/env bash
+set -e
+
+CURRENT_DIR="$( cd "$( readlink -f $(dirname ${BASH_SOURCE[0]}) )" ; pwd )"
+CLEANUP_EXPIRED_DIP_URL="http://{{ ip_admin }}:{{ vitam.metadata.port_admin }}/metadata/v1/purgeDIP"
+
+function log() {
+    LEVEL=${1}
+    MSG=${2}
+    TIMESTAMP=$( date +"%Y-%m-%d %H:%M:%S" )
+    echo ${TIMESTAMP} [[vitam-metadata-purge-dip]] [vitam-metadata-purge-dip] ${LEVEL} purge_dip.sh - vitam-metadata-purge-dip.service : [${HOSTNAME}:vitam-metadata-purge-dip.service:0] ${MSG}
+}
+
+function local_curl() {
+    COLLECTION=${1}
+    curl -s -X DELETE -H "X-Tenant-Id: {{ vitam_tenant_admin }}" -H "Content-Type: application/json" --user "${VITAM_ADMIN_AUTH}" ${CLEANUP_EXPIRED_DIP_URL}
+    log "INFO" "${MSG}"
+}
+
+# Main
+local_curl

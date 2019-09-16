@@ -1,0 +1,10 @@
+[Unit]
+Description=Launch vitam dip purge for metadata
+
+[Timer]
+OnCalendar=*-*-* 02:15:00
+Persistent=false
+
+
+[Install]
+WantedBy=timers.target

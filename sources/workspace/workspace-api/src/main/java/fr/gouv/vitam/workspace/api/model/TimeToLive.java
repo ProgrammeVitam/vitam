@@ -24,28 +24,44 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  *******************************************************************************/
-package fr.gouv.vitam.storage.engine.client;
+package fr.gouv.vitam.workspace.api.model;
 
-import fr.gouv.vitam.storage.engine.common.model.DataCategory;
-import fr.gouv.vitam.storage.engine.common.model.OfferLog;
-import fr.gouv.vitam.storage.engine.common.model.Order;
-import org.apache.commons.collections4.IteratorUtils;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
-import java.util.Iterator;
+import java.time.temporal.ChronoUnit;
 
-public final class OfferLogHelper {
+public class TimeToLive {
 
-    public static Iterator<OfferLog> getListing(StorageClientFactory storageClientFactory, String strategy,
-        DataCategory dataCategory, Long offset, Order order, int chunkSize, Integer limit) {
+    @JsonProperty("value")
+    private int value;
 
-        int actualChunkSize = limit == null ? chunkSize : Math.min(chunkSize, limit);
-        Iterator<OfferLog> offerLogIterator = new StorageClientOfferLogIterator(
-            storageClientFactory, strategy, order, dataCategory, actualChunkSize, offset);
+    @JsonProperty("unit")
+    private ChronoUnit unit;
 
-        if (limit != null) {
-            offerLogIterator = IteratorUtils.boundedIterator(offerLogIterator, limit);
-        }
+    public TimeToLive() {
+        // Empty constructor for deserialization
+    }
 
-        return offerLogIterator;
+    public TimeToLive(int value, ChronoUnit unit) {
+        this.value = value;
+        this.unit = unit;
+    }
+
+    public int getValue() {
+        return value;
+    }
+
+    public TimeToLive setValue(int value) {
+        this.value = value;
+        return this;
+    }
+
+    public ChronoUnit getUnit() {
+        return unit;
+    }
+
+    public TimeToLive setUnit(ChronoUnit unit) {
+        this.unit = unit;
+        return this;
     }
 }

@@ -145,12 +145,6 @@ public class BackupServiceTest {
         assertThatThrownBy(() -> backupService.backup(inputStream, REPORT, URI))
             .isInstanceOf(BackupServiceException.class)
             .hasMessageContaining(description);
-        //Given
-        willThrow(ContentAddressableStorageAlreadyExistException.class).given(workspaceClient).createContainer(any());
-        //When
-        assertThatThrownBy(() -> backupService.backup(inputStream, REPORT, URI))
-            .isInstanceOf(BackupServiceException.class)
-            .hasMessageContaining(description);
 
         willThrow(ContentAddressableStorageServerException.class).given(workspaceClient).putObject(any(), any(), any());
         //When

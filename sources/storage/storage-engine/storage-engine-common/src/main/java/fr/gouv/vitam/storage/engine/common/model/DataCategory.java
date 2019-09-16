@@ -103,7 +103,9 @@ public enum DataCategory {
 
     /**
      * dip collection
+     * @deprecated : DIP are no more stored in offers.
      */
+    @Deprecated
     DIP("dip", "dip", false, true),
     /**
      * Agencies files

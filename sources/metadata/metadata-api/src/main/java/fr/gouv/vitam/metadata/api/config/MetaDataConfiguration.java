@@ -49,6 +49,8 @@ public class MetaDataConfiguration extends DbConfigurationImpl {
     private int schemaValidatorCacheMaxEntries = 100;
     private int schemaValidatorCacheTimeoutInSeconds = 300;
 
+    private int dipTimeToLiveInMinutes = 60 * 24 * 7;
+
     /**
      * MetaDataConfiguration constructor
      *
@@ -178,5 +180,14 @@ public class MetaDataConfiguration extends DbConfigurationImpl {
 
     public void setUrlProcessing(String urlProcessing) {
         this.urlProcessing = urlProcessing;
+    }
+
+    public int getDipTimeToLiveInMinutes() {
+        return dipTimeToLiveInMinutes;
+    }
+
+    public MetaDataConfiguration setDipTimeToLiveInMinutes(int dipTimeToLiveInMinutes) {
+        this.dipTimeToLiveInMinutes = dipTimeToLiveInMinutes;
+        return this;
     }
 }

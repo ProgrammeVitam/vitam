@@ -291,12 +291,7 @@ public class LogbookOperationTraceabilityHelper implements LogbookTraceabilityHe
             final WorkspaceClient workspaceClient = WorkspaceClientFactory.getInstance().getClient()) {
 
             String containerName = VitamThreadUtils.getVitamSession().getRequestId() + "-Traceability";
-            try {
-                workspaceClient.createContainer(containerName);
-            } catch (ContentAddressableStorageAlreadyExistException e) {
-                // Already exists
-                SysErrLogger.FAKE_LOGGER.ignoreLog(e);
-            }
+            workspaceClient.createContainer(containerName);
             workspaceClient.putObject(containerName, uri, inputStream);
 
             final StorageClientFactory storageClientFactory = StorageClientFactory.getInstance();

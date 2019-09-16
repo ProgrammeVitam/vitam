@@ -371,7 +371,11 @@ public class AccessExternalResource extends ApplicationStatusResource {
         Status status;
         try (AccessInternalClient client = accessInternalClientFactory.getClient()) {
             Response response = client.findDIPByID(id);
-            return new VitamAsyncInputStreamResponse(response, Status.OK, MediaType.APPLICATION_OCTET_STREAM_TYPE);
+            if (response.getStatusInfo().getFamily() == Status.Family.SUCCESSFUL) {
+                return new VitamAsyncInputStreamResponse(response, Status.OK, MediaType.APPLICATION_OCTET_STREAM_TYPE);
+            } else {
+                return response;
+            }
         } catch (final AccessInternalClientServerException e) {
             LOGGER.error(PREDICATES_FAILED_EXCEPTION, e);
             status = Status.PRECONDITION_FAILED;
