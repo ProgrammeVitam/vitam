@@ -34,7 +34,9 @@ import fr.gouv.vitam.batch.report.model.EvidenceAuditObjectModel;
 import fr.gouv.vitam.batch.report.model.EvidenceAuditReportObject;
 import fr.gouv.vitam.batch.report.model.EvidenceAuditStatsModel;
 import fr.gouv.vitam.batch.report.model.EvidenceStatus;
+import fr.gouv.vitam.batch.report.model.Report;
 import fr.gouv.vitam.batch.report.model.ReportResults;
+import fr.gouv.vitam.batch.report.model.ReportSummary;
 import fr.gouv.vitam.batch.report.model.entry.EvidenceAuditReportEntry;
 import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.database.server.mongodb.MongoDbAccess;
@@ -84,52 +86,76 @@ public class EvidenceAuditReportRepositoryTest {
         processId = "aeeaaaaaagfpuagsaauscallv6nhzlyaaaaq";
 
         // TODO  get from JSON File
-        Map<String,String> offerHashesObject = new HashMap<>();
-        offerHashesObject.put("offer-fs-1.service.consul","664ac614a819df2a97d2a5df57dcad91d6ec38b0fffc793e80c56b4553a14ac7a5f0bce3bb71af419b0bb8f151ad3d512867454eeb818e01818a31989c13319b");
+        Map<String, String> offerHashesObject = new HashMap<>();
+        offerHashesObject.put("offer-fs-1.service.consul",
+            "664ac614a819df2a97d2a5df57dcad91d6ec38b0fffc793e80c56b4553a14ac7a5f0bce3bb71af419b0bb8f151ad3d512867454eeb818e01818a31989c13319b");
         ArrayList<EvidenceAuditReportObject> listEvidenceAuditReportObject = new ArrayList<>();
-        EvidenceAuditReportObject evidenceAuditReportObject = new EvidenceAuditReportObject("aebaaaaaaeg7sn7vabtioallotfxytyaaaaq",EvidenceStatus.OK.name(),"audit OK for ObjectGroup",
-            "OBJECTGROUP","664ac614a819df2a97d2a5df57dcad91d6ec38b0fffc793e80c56b4553a14ac7a5f0bce3bb71af419b0bb8f151ad3d512867454eeb818e01818a31989c13319b", DEFAULT_STRATEGY,offerHashesObject);
+        EvidenceAuditReportObject evidenceAuditReportObject =
+            new EvidenceAuditReportObject("aebaaaaaaeg7sn7vabtioallotfxytyaaaaq", EvidenceStatus.OK.name(),
+                "audit OK for ObjectGroup",
+                "OBJECTGROUP",
+                "664ac614a819df2a97d2a5df57dcad91d6ec38b0fffc793e80c56b4553a14ac7a5f0bce3bb71af419b0bb8f151ad3d512867454eeb818e01818a31989c13319b",
+                DEFAULT_STRATEGY, offerHashesObject);
         listEvidenceAuditReportObject.add(evidenceAuditReportObject);
-        Map<String,String> offerHashesUnit = new HashMap<>();
-        offerHashesObject.put("offer-fs-1.service.consul","cc9221173b12e75f7a8f629d49632ffbb87538b13d82ab7cc02e8b3486131fb609c6303bb7b5f67962e45b068e74cb40aa8c8906bcbb9db9fd6ebbe89929d655");
+        Map<String, String> offerHashesUnit = new HashMap<>();
+        offerHashesObject.put("offer-fs-1.service.consul",
+            "cc9221173b12e75f7a8f629d49632ffbb87538b13d82ab7cc02e8b3486131fb609c6303bb7b5f67962e45b068e74cb40aa8c8906bcbb9db9fd6ebbe89929d655");
         EvidenceAuditReportEntry evidenceAuditReportEntry1 = new EvidenceAuditReportEntry("Id1",
             EvidenceStatus.OK.name(), "audit OK for aebaaaaaaeg7sn7vabtioallotfxytyaaaaq", "OBJECTGROUP",
-            listEvidenceAuditReportObject, "cc9221173b12e75f7a8f629d49632ffbb87538b13d82ab7cc02e8b3486131fb609c6303bb7b5f67962e45b068e74cb40aa8c8906bcbb9db9fd6ebbe89929d655", DEFAULT_STRATEGY, offerHashesUnit,EvidenceStatus.OK
-        .name());
+            listEvidenceAuditReportObject,
+            "cc9221173b12e75f7a8f629d49632ffbb87538b13d82ab7cc02e8b3486131fb609c6303bb7b5f67962e45b068e74cb40aa8c8906bcbb9db9fd6ebbe89929d655",
+            DEFAULT_STRATEGY, offerHashesUnit, EvidenceStatus.OK
+            .name());
         evidenceAuditReportEntryOK = new EvidenceAuditObjectModel(processId, TENANT_ID,
             LocalDateUtil.getFormattedDateForMongo(LocalDateUtil.now()), evidenceAuditReportEntry1);
 
 
-        Map<String,String> offerHashesObject2 = new HashMap<>();
-        offerHashesObject2.put("offer-fs-1.service.consul","664ac614a819df2a97d2a5df57dcad91d6ec38b0fffc793e80c56b4553a14ac7a5f0bce3bb71af419b0bb8f151ad3d512867454eeb818e01818a31989c13319b");
+        Map<String, String> offerHashesObject2 = new HashMap<>();
+        offerHashesObject2.put("offer-fs-1.service.consul",
+            "664ac614a819df2a97d2a5df57dcad91d6ec38b0fffc793e80c56b4553a14ac7a5f0bce3bb71af419b0bb8f151ad3d512867454eeb818e01818a31989c13319b");
         ArrayList<EvidenceAuditReportObject> listEvidenceAuditReportObject2 = new ArrayList<>();
-        EvidenceAuditReportObject evidenceAuditReportObject2 = new EvidenceAuditReportObject("aebaaaaaaeg7sn7vabtioallotfxytyaaaaq",EvidenceStatus.KO.name(),"audit OK for ObjectGroup",
-            "OBJECTGROUP","664ac614a819df2a97d2a5df57dcad91d6ec38b0fffc793e80c56b4553a14ac7a5f0bce3bb71af419b0bb8f151ad3d512867454eeb818e01818a31989c13319b", DEFAULT_STRATEGY, offerHashesObject2);
+        EvidenceAuditReportObject evidenceAuditReportObject2 =
+            new EvidenceAuditReportObject("aebaaaaaaeg7sn7vabtioallotfxytyaaaaq", EvidenceStatus.KO.name(),
+                "audit OK for ObjectGroup",
+                "OBJECTGROUP",
+                "664ac614a819df2a97d2a5df57dcad91d6ec38b0fffc793e80c56b4553a14ac7a5f0bce3bb71af419b0bb8f151ad3d512867454eeb818e01818a31989c13319b",
+                DEFAULT_STRATEGY, offerHashesObject2);
         listEvidenceAuditReportObject2.add(evidenceAuditReportObject2);
-        Map<String,String> offerHashesUnit2 = new HashMap<>();
-        offerHashesObject.put("offer-fs-1.service.consul","cc9221173b12e75f7a8f629d49632ffbb87538b13d82ab7cc02e8b3486131fb609c6303bb7b5f67962e45b068e74cb40aa8c8906bcbb9db9fd6ebbe89929d655");
+        Map<String, String> offerHashesUnit2 = new HashMap<>();
+        offerHashesObject.put("offer-fs-1.service.consul",
+            "cc9221173b12e75f7a8f629d49632ffbb87538b13d82ab7cc02e8b3486131fb609c6303bb7b5f67962e45b068e74cb40aa8c8906bcbb9db9fd6ebbe89929d655");
         EvidenceAuditReportEntry evidenceAuditReportEntry2 = new EvidenceAuditReportEntry("Id2",
             EvidenceStatus.KO.name(), "audit OK for aebaaaaaaeg7sn7vabtioallotfxytyaaaaq", "OBJECTGROUP",
-            listEvidenceAuditReportObject2, "cc9221173b12e75f7a8f629d49632ffbb87538b13d82ab7cc02e8b3486131fb609c6303bb7b5f67962e45b068e74cb40aa8c8906bcbb9db9fd6ebbe89929d655", DEFAULT_STRATEGY, offerHashesUnit2,EvidenceStatus.KO
+            listEvidenceAuditReportObject2,
+            "cc9221173b12e75f7a8f629d49632ffbb87538b13d82ab7cc02e8b3486131fb609c6303bb7b5f67962e45b068e74cb40aa8c8906bcbb9db9fd6ebbe89929d655",
+            DEFAULT_STRATEGY, offerHashesUnit2, EvidenceStatus.KO
             .name());
         evidenceAuditReportEntryKO = new EvidenceAuditObjectModel(processId, TENANT_ID,
             LocalDateUtil.getFormattedDateForMongo(LocalDateUtil.now()), evidenceAuditReportEntry2);
 
-        Map<String,String> offerHashesObject3 = new HashMap<>();
-        offerHashesObject3.put("offer-fs-1.service.consul","664ac614a819df2a97d2a5df57dcad91d6ec38b0fffc793e80c56b4553a14ac7a5f0bce3bb71af419b0bb8f151ad3d512867454eeb818e01818a31989c13319b");
+        Map<String, String> offerHashesObject3 = new HashMap<>();
+        offerHashesObject3.put("offer-fs-1.service.consul",
+            "664ac614a819df2a97d2a5df57dcad91d6ec38b0fffc793e80c56b4553a14ac7a5f0bce3bb71af419b0bb8f151ad3d512867454eeb818e01818a31989c13319b");
         ArrayList<EvidenceAuditReportObject> listEvidenceAuditReportObject3 = new ArrayList<>();
-        EvidenceAuditReportObject evidenceAuditReportObject3 = new EvidenceAuditReportObject("aebaaaaaaeg7sn7vabtioallotfxytyaaaaq",EvidenceStatus.WARN.name(),"audit OK for ObjectGroup",
-            "OBJECTGROUP","664ac614a819df2a97d2a5df57dcad91d6ec38b0fffc793e80c56b4553a14ac7a5f0bce3bb71af419b0bb8f151ad3d512867454eeb818e01818a31989c13319b", DEFAULT_STRATEGY, offerHashesObject3);
+        EvidenceAuditReportObject evidenceAuditReportObject3 =
+            new EvidenceAuditReportObject("aebaaaaaaeg7sn7vabtioallotfxytyaaaaq", EvidenceStatus.WARN.name(),
+                "audit OK for ObjectGroup",
+                "OBJECTGROUP",
+                "664ac614a819df2a97d2a5df57dcad91d6ec38b0fffc793e80c56b4553a14ac7a5f0bce3bb71af419b0bb8f151ad3d512867454eeb818e01818a31989c13319b",
+                DEFAULT_STRATEGY, offerHashesObject3);
         listEvidenceAuditReportObject3.add(evidenceAuditReportObject3);
 
 
-        Map<String,String> offerHashesUnit3 = new HashMap<>();
-        offerHashesObject.put("offer-fs-1.service.consul","cc9221173b12e75f7a8f629d49632ffbb87538b13d82ab7cc02e8b3486131fb609c6303bb7b5f67962e45b068e74cb40aa8c8906bcbb9db9fd6ebbe89929d655");
+        Map<String, String> offerHashesUnit3 = new HashMap<>();
+        offerHashesObject.put("offer-fs-1.service.consul",
+            "cc9221173b12e75f7a8f629d49632ffbb87538b13d82ab7cc02e8b3486131fb609c6303bb7b5f67962e45b068e74cb40aa8c8906bcbb9db9fd6ebbe89929d655");
 
 
         EvidenceAuditReportEntry evidenceAuditReportEntry3 = new EvidenceAuditReportEntry("Id3",
             EvidenceStatus.WARN.name(), "audit OK for aebaaaaaaeg7sn7vabtioallotfxytyaaaaq", "OBJECTGROUP",
-            listEvidenceAuditReportObject3, "cc9221173b12e75f7a8f629d49632ffbb87538b13d82ab7cc02e8b3486131fb609c6303bb7b5f67962e45b068e74cb40aa8c8906bcbb9db9fd6ebbe89929d655", DEFAULT_STRATEGY, offerHashesUnit3,EvidenceStatus.WARN
+            listEvidenceAuditReportObject3,
+            "cc9221173b12e75f7a8f629d49632ffbb87538b13d82ab7cc02e8b3486131fb609c6303bb7b5f67962e45b068e74cb40aa8c8906bcbb9db9fd6ebbe89929d655",
+            DEFAULT_STRATEGY, offerHashesUnit3, EvidenceStatus.WARN
             .name());
 
         evidenceAuditReportEntryWARN = new EvidenceAuditObjectModel(processId, TENANT_ID,
@@ -178,13 +204,20 @@ public class EvidenceAuditReportRepositoryTest {
         // Given
         populateDatabase(evidenceAuditReportEntryKO, evidenceAuditReportEntryOK, evidenceAuditReportEntryWARN);
 
+        Report report = new Report();
+        JsonNode extendedInfo = JsonHandler.getFromString(
+            "{\"nbObjectGroups\":14,\"nbArchiveUnits\":15,\"nbObjects\":14,\"globalResults\":{\"objectGroupsCount\":{\"OK\":13,\"WARNING\":0,\"KO\":1},\"archiveUnitsCount\":{\"OK\":15,\"WARNING\":0,\"KO\":0},\"objectsCount\":{\"OK\":13,\"WARNING\":0,\"KO\":1}}}");
+        ReportSummary summary = new ReportSummary();
+        report.setReportSummary(summary);
+        report.getReportSummary().setExtendedInfo(extendedInfo);
         // When
-        ReportResults reportResult = evidenceAuditRepository.computeVitamResults(processId, TENANT_ID);
+        ReportResults reportResult = evidenceAuditRepository.computeVitamResults(report);
 
         // Then
-        assertThat(reportResult.getNbOk()).isEqualTo(1);
-        assertThat(reportResult.getNbWarning()).isEqualTo(1);
-        assertThat(reportResult.getNbKo()).isEqualTo(1);
+        assertThat(reportResult.getNbOk()).isEqualTo(41);
+        assertThat(reportResult.getNbWarning()).isEqualTo(0);
+        assertThat(reportResult.getNbKo()).isEqualTo(2);
+        assertThat(reportResult.getTotal()).isEqualTo(43);
     }
 
     @Test
@@ -209,8 +242,8 @@ public class EvidenceAuditReportRepositoryTest {
 
         // Then
         assertThat(stats.getNbObjectGroups()).isEqualTo(3);
-        assertThat(stats.getGlobalResults().getObjectGroupsCount().getNbOK()).isEqualTo(2);
-        assertThat(stats.getGlobalResults().getObjectGroupsCount().getNbWARNING()).isEqualTo(3);
+        assertThat(stats.getGlobalResults().getObjectGroupsCount().getNbOK()).isEqualTo(1);
+        assertThat(stats.getGlobalResults().getObjectGroupsCount().getNbWARNING()).isEqualTo(1);
         assertThat(stats.getGlobalResults().getObjectGroupsCount().getNbKO()).isEqualTo(1);
     }
 
@@ -232,7 +265,7 @@ public class EvidenceAuditReportRepositoryTest {
         assertThat(documents.size()).isEqualTo(0);
     }
 
-    private void populateDatabase(EvidenceAuditObjectModel ... entries) {
+    private void populateDatabase(EvidenceAuditObjectModel... entries) {
         List<EvidenceAuditObjectModel> reports = new ArrayList<>();
         reports.addAll(Arrays.asList(entries));
         evidenceAuditRepository.bulkAppendReport(reports);

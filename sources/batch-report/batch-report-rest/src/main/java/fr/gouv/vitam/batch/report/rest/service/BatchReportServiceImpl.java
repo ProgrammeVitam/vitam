@@ -351,8 +351,7 @@ public class BatchReportServiceImpl {
                 reportInfo.getOperationSummary().getTenant());
         }
         if (reportInfo.getReportSummary().getReportType() == EVIDENCE_AUDIT) {
-            return evidenceAuditReportRepository.computeVitamResults(reportInfo.getOperationSummary().getEvId(),
-                reportInfo.getOperationSummary().getTenant());
+            return evidenceAuditReportRepository.computeVitamResults(reportInfo);
         }
         return reportInfo.getReportSummary().getVitamResults();
     }

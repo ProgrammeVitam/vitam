@@ -26,6 +26,7 @@
  *******************************************************************************/
 package fr.gouv.vitam.batch.report.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
@@ -86,6 +87,10 @@ public class EvidenceAuditStatsModel {
 
     public void setGlobalResults(EvidenceAuditFullStatusCount globalResults) {
         this.globalResults = globalResults;
+    }
+    @JsonIgnore
+    public int getTotal(){
+        return nbObjectGroups + nbUnits + nbObjects;
     }
 
 
