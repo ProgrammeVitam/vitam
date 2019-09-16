@@ -28,6 +28,7 @@
 package fr.gouv.vitam.common.database.server;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.SerializerProvider;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.NullNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
@@ -44,6 +45,7 @@ import fr.gouv.vitam.common.database.parser.request.adapter.VarNameAdapter;
 import fr.gouv.vitam.common.database.parser.request.multiple.UpdateParserMultiple;
 import fr.gouv.vitam.common.database.parser.request.single.UpdateParserSingle;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
+import fr.gouv.vitam.common.exception.VitamRuntimeException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
@@ -53,6 +55,7 @@ import fr.gouv.vitam.common.model.massupdate.ManagementMetadataAction;
 import fr.gouv.vitam.common.model.massupdate.RuleAction;
 import fr.gouv.vitam.common.model.massupdate.RuleActions;
 import fr.gouv.vitam.common.model.massupdate.RuleCategoryAction;
+import fr.gouv.vitam.common.model.massupdate.RuleCategoryActionDeletion;
 import org.apache.commons.lang.StringUtils;
 
 import java.text.ParseException;
@@ -64,6 +67,8 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Objects;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.regex.Pattern;
@@ -85,6 +90,9 @@ public class MongoDbInMemory {
     private static final String INHERITANCE = "Inheritance";
     private static final String PREVENT_INHERITANCE = "PreventInheritance";
     private static final String PREVENT_RULES_ID = "PreventRulesId";
+
+    private static final SerializerProvider EMPTY_SERIALIZER_FOR_OBJECT_NODE = null;
+
 
     private final JsonNode originalDocument;
     private final DynamicParserTokens parserTokens;
@@ -210,7 +218,7 @@ public class MongoDbInMemory {
         if(ruleActions == null || ruleActions.isEmpty())
             return;
 
-        ruleActions.stream().flatMap(item-> item.entrySet().stream()).forEach((Map.Entry<String, RuleCategoryAction> entry) -> {
+        ruleActions.stream().flatMap(item-> item.entrySet().stream()).forEach((Entry<String, RuleCategoryAction> entry) -> {
             String category = entry.getKey();
             RuleCategoryAction ruleCategoryAction = entry.getValue();
 
@@ -252,62 +260,102 @@ public class MongoDbInMemory {
         if(ruleActions == null || ruleActions.isEmpty())
             return;
 
-        ruleActions.stream().flatMap(item-> item.entrySet().stream()).forEach((Map.Entry<String, RuleCategoryAction> entry) -> {
-            String category = entry.getKey();
-            RuleCategoryAction ruleCategoryAction = entry.getValue();
+        ruleActions.stream()
+            .flatMap(item-> item.entrySet().stream())
+            .forEach((Entry<String, RuleCategoryAction> entry) -> {
+                String category = entry.getKey();
+                RuleCategoryAction ruleCategoryAction = entry.getValue();
 
-            ObjectNode initialRuleCategory = (ObjectNode) getOrCreateEmptyNodeByName(initialMgt, category, false);
+                ObjectNode initialRuleCategory = (ObjectNode) getOrCreateEmptyNodeByName(initialMgt, category, false);
 
-            initialRuleCategory = handleFinalAction(initialRuleCategory, ruleCategoryAction, category);
-            initialRuleCategory = handleClassificationProperties(initialRuleCategory, ruleCategoryAction, category);
-            initialRuleCategory = handleInheritanceProperties(initialRuleCategory, ruleCategoryAction);
+                initialRuleCategory = handleFinalAction(initialRuleCategory, ruleCategoryAction, category);
+                initialRuleCategory = handleClassificationProperties(initialRuleCategory, ruleCategoryAction, category);
+                initialRuleCategory = handleInheritanceProperties(initialRuleCategory, ruleCategoryAction);
 
-            if (!ruleCategoryAction.getRules().isEmpty()) {
-                Map<String, RuleAction> rulesToUpdate = ruleCategoryAction.getRules().stream().collect(Collectors.toMap(RuleAction::getOldRule, Function.identity()));
-                ArrayNode initialRules = (ArrayNode) getOrCreateEmptyNodeByName(initialRuleCategory, RULES_KEY, true);
-                Iterator<JsonNode> it = initialRules.iterator();
-                while (it.hasNext()) {
-                    ObjectNode node = (ObjectNode) it.next();
-                    String actualRule = node.get(RULE_KEY).asText();
-                    if (rulesToUpdate.keySet().contains(actualRule)) {
-                        updateJsonNodeUsingRuleAction(node, rulesToUpdate.get(actualRule), bindRuleToDuration);
+                if (!ruleCategoryAction.getRules().isEmpty()) {
+                    Map<String, RuleAction> rulesToUpdate = ruleCategoryAction.getRules().stream().collect(Collectors.toMap(RuleAction::getOldRule, Function.identity()));
+                    ArrayNode initialRules = (ArrayNode) getOrCreateEmptyNodeByName(initialRuleCategory, RULES_KEY, true);
+                    for (JsonNode initialRule : initialRules) {
+                        ObjectNode node = (ObjectNode) initialRule;
+                        String actualRule = node.get(RULE_KEY).asText();
+                        if (rulesToUpdate.containsKey(actualRule)) {
+                            updateJsonNodeUsingRuleAction(node, rulesToUpdate.get(actualRule), bindRuleToDuration);
+                        }
                     }
+                    initialRuleCategory.set(RULES_KEY, initialRules);
                 }
-                initialRuleCategory.set(RULES_KEY, initialRules);
-            }
 
-            // set category
-            initialMgt.set(category, initialRuleCategory);
+                initialMgt.set(category, initialRuleCategory);
         });
     }
 
-    private void applyDeleteRuleAction(final List<Map<String, RuleCategoryAction>> ruleActions, final ObjectNode initialMgt) {
-        if(ruleActions == null || ruleActions.isEmpty())
+    private void applyDeleteRuleAction(List<Map<String, RuleCategoryActionDeletion>> ruleActions, ObjectNode initialMgt) {
+        ruleActions.stream()
+            .flatMap(categoryItems-> categoryItems.entrySet().stream())
+            .forEach(categoryItem -> deletionRule(initialMgt, categoryItem.getKey(), categoryItem.getValue()));
+    }
+
+    private void deletionRule(ObjectNode initialMgt, String categoryName, RuleCategoryActionDeletion category) {
+        if (initialMgt.isEmpty(EMPTY_SERIALIZER_FOR_OBJECT_NODE)) {
             return;
+        }
+        if (Objects.isNull(category) || category.isEmpty()) {
+            initialMgt.remove(categoryName);
+            return;
+        }
 
-        ruleActions.stream().flatMap(item-> item.entrySet().stream()).forEach((Map.Entry<String, RuleCategoryAction> entry) -> {
-            String category = entry.getKey();
-            RuleCategoryAction ruleCategoryAction = entry.getValue();
-            ObjectNode initialRuleCategory = (ObjectNode) getOrCreateEmptyNodeByName(initialMgt, category, false);
+        JsonNode categoryAsJsonNode = initialMgt.path(categoryName);
+        if (categoryAsJsonNode.isMissingNode() || categoryAsJsonNode.isNull() || !categoryAsJsonNode.isObject()) {
+            return;
+        }
 
-            initialRuleCategory = handleClassificationPropertiesDeletion(initialRuleCategory, ruleCategoryAction, category);
-            initialRuleCategory = handleInheritancePropertiesDeletion(initialRuleCategory, ruleCategoryAction);
+        ObjectNode initialCategory = (ObjectNode) categoryAsJsonNode;
+        if (Objects.nonNull(category.getRules()) && category.getRules().isPresent()) {
+            List<String> rulesToDelete = category.getRules().get().stream().map(RuleAction::getRule).collect(Collectors.toList());
+            ArrayNode initialRules = (ArrayNode) getOrCreateEmptyNodeByName(initialCategory, RULES_KEY, true);
+            ArrayNode filteredRules = JsonHandler.createArrayNode();
+            initialRules.forEach(node -> {
+                if (!rulesToDelete.contains(node.get(RULE_KEY).asText())) {
+                    filteredRules.add(node);
+                }
+            });
+            initialCategory.set(RULES_KEY, filteredRules);
+        }
+        if (Objects.nonNull(category.getRules()) && !category.getRules().isPresent()) {
+            initialCategory.remove(SedaConstants.TAG_RULE_RULE);
+        }
+        if (Objects.nonNull(category.getFinalAction())) {
+            initialCategory.remove(SedaConstants.TAG_RULE_FINAL_ACTION);
+        }
+        if (Objects.nonNull(category.getClassificationAudience())) {
+            initialCategory.remove(SedaConstants.TAG_RULE_CLASSIFICATION_AUDIENCE);
+        }
+        if (Objects.nonNull(category.getClassificationReassessingDate())) {
+            initialCategory.remove(SedaConstants.TAG_RULE_CLASSIFICATION_REASSESSING_DATE);
+        }
+        if (Objects.nonNull(category.getNeedReassessingAuthorization())) {
+            initialCategory.remove(SedaConstants.TAG_RULE_CLASSIFICATION_NEED_REASSESSING_AUTHORIZATION);
+        }
 
-            if (!ruleCategoryAction.getRules().isEmpty()) {
-                List<String> rulesToDelete = ruleCategoryAction.getRules().stream().map(RuleAction::getRule).collect(Collectors.toList());
-                ArrayNode initialRules = (ArrayNode) getOrCreateEmptyNodeByName(initialRuleCategory, RULES_KEY, true);
-                ArrayNode filteredRules = JsonHandler.createArrayNode();
-                initialRules.forEach(node -> {
-                    if (!rulesToDelete.contains(node.get(RULE_KEY).asText())) {
-                        filteredRules.add(node);
-                    }
-                });
-                initialRuleCategory.set(RULES_KEY, filteredRules);
-            }
+        JsonNode inheritanceAsJsonNode = initialCategory.path(INHERITANCE);
+        if (inheritanceAsJsonNode.isMissingNode() || inheritanceAsJsonNode.isNull() || !inheritanceAsJsonNode.isObject()) {
+            return;
+        }
 
-            // set category
-            initialMgt.set(category, initialRuleCategory);
-        });
+        ObjectNode initialInheritance = (ObjectNode) inheritanceAsJsonNode;
+        if (Objects.nonNull(category.getPreventInheritance())) {
+            initialInheritance.remove(SedaConstants.TAG_RULE_PREVENT_INHERITANCE);
+        }
+        if (Objects.nonNull(category.getPreventRulesId())) {
+            initialInheritance.remove(PREVENT_RULES_ID);
+        }
+        if (initialInheritance.isEmpty(EMPTY_SERIALIZER_FOR_OBJECT_NODE)) {
+            initialCategory.remove(INHERITANCE);
+        }
+
+        if (initialCategory.isEmpty(EMPTY_SERIALIZER_FOR_OBJECT_NODE)) {
+            initialMgt.remove(categoryName);
+        }
     }
 
     private JsonNode getOrCreateEmptyNodeByName(JsonNode parent, String fieldName, boolean acceptArray) {
@@ -393,11 +441,9 @@ public class MongoDbInMemory {
 
         // add preventRulesId
         Set<String> preventRuleIds = ruleCategoryAction.getPreventRulesId();
-        if (preventRuleIds != null && preventRuleIds.size() > 0) {
-            JsonNode initialPreventRules = inheritance.get(PREVENT_RULES_ID);
+        if (preventRuleIds != null) {
             updatedInheritance = true;
-            ArrayNode newPreventRulesId = getComputedPreventedRulesAfterAddition(initialPreventRules, preventRuleIds);
-            inheritance.set(PREVENT_RULES_ID, newPreventRulesId);
+            inheritance.set(PREVENT_RULES_ID, preventRulesToNode(preventRuleIds));
         }
 
         if (updatedInheritance) {
@@ -407,92 +453,12 @@ public class MongoDbInMemory {
         return initialRuleCategory;
     }
 
-    private ObjectNode handleClassificationPropertiesDeletion(ObjectNode initialRuleCategory, RuleCategoryAction ruleCategoryAction, String category) {
-        if (!SedaConstants.TAG_RULE_CLASSIFICATION.equals(category)) {
-            return initialRuleCategory;
-        }
-
-        String classificationLevel = ruleCategoryAction.getClassificationLevel();
-        if (classificationLevel != null) {
-            // FIXME: Add a check-step in order to prevent classificationLevel/Owner deletion ?
-            throw new IllegalStateException("ClassificationLevel should not be deleted");
-        }
-
-        String classificationOwner = ruleCategoryAction.getClassificationOwner();
-        if (classificationOwner != null) {
-            // FIXME: Add a check-step in order to prevent classificationLevel/Owner deletion ?
-            throw new IllegalStateException("ClassificationOwner should not be deleted");
-        }
-
-        String classificationReassessingDate = ruleCategoryAction.getClassificationReassessingDate();
-        if (classificationReassessingDate != null) {
-            initialRuleCategory.remove(SedaConstants.TAG_RULE_CLASSIFICATION_REASSESSING_DATE);
-        }
-
-        String classificationAudience = ruleCategoryAction.getClassificationAudience();
-        if (classificationAudience != null) {
-            initialRuleCategory.remove(SedaConstants.TAG_RULE_CLASSIFICATION_AUDIENCE);
-        }
-
-        Boolean needReassessingAuthorization = ruleCategoryAction.getNeedReassessingAuthorization();
-        if (needReassessingAuthorization != null) {
-            initialRuleCategory.remove(SedaConstants.TAG_RULE_CLASSIFICATION_NEED_REASSESSING_AUTHORIZATION);
-        }
-
-        return initialRuleCategory;
-    }
-
-    private ObjectNode handleInheritancePropertiesDeletion(ObjectNode initialRuleCategory, RuleCategoryAction ruleCategoryAction) {
-        ObjectNode inheritance = (ObjectNode) initialRuleCategory.get(INHERITANCE);
-        if (inheritance == null) {
-            inheritance = JsonHandler.createObjectNode();
-        }
-
-        // add preventRulesId
-        Set<String> preventRuleIds = ruleCategoryAction.getPreventRulesId();
-        if (preventRuleIds != null && preventRuleIds.size() > 0) {
-            JsonNode initialPreventRules = inheritance.get(PREVENT_RULES_ID);
-            ArrayNode newPreventRulesId = getComputedPreventedRulesAfterDeletion(initialPreventRules, preventRuleIds);
-            inheritance.set(PREVENT_RULES_ID, newPreventRulesId);
-            initialRuleCategory.set(INHERITANCE, inheritance);
-        }
-
-        return initialRuleCategory;
-    }
-
-    private ArrayNode getComputedPreventedRulesAfterAddition(JsonNode initialPreventRules, Set<String> preventRuleIdsToAdd) {
-        if (initialPreventRules != null && initialPreventRules.isArray()) {
-            ArrayNode initialArray = (ArrayNode) initialPreventRules;
-            for (JsonNode initialElement: initialArray) {
-                preventRuleIdsToAdd.add(initialElement.asText());
-            }
-        }
-
-        ArrayNode result;
+    private ArrayNode preventRulesToNode(Set<String> preventRuleIdsToAdd) {
         try {
-            result = (ArrayNode) JsonHandler.toJsonNode(preventRuleIdsToAdd);
+            return (ArrayNode) JsonHandler.toJsonNode(preventRuleIdsToAdd);
         } catch (InvalidParseOperationException e) {
-            throw new IllegalStateException("cannot transform preventRulesId as ArrayNode", e);
+            throw new VitamRuntimeException("Cannot transform preventRulesId.", e);
         }
-
-        return result;
-    }
-
-    private ArrayNode getComputedPreventedRulesAfterDeletion(JsonNode initialPreventRules, Set<String> preventRuleIdsToRemove) {
-        if (initialPreventRules != null && initialPreventRules.isArray()) {
-            ArrayNode initialArray = (ArrayNode) initialPreventRules;
-            Iterator<JsonNode> initialIterator = initialArray.elements();
-
-            while(initialIterator.hasNext()) {
-                JsonNode initialItem = initialIterator.next();
-                if (preventRuleIdsToRemove.contains(initialItem.asText())) {
-                    initialIterator.remove();
-                }
-            }
-
-            return initialArray;
-        }
-        return JsonHandler.createArrayNode();
     }
 
     private JsonNode getJsonNodeFromRuleAction(RuleAction ruleAction, Map<String, DurationData> bindRuleToDuration) {
@@ -561,7 +527,7 @@ public class MongoDbInMemory {
 
     private void inc(final BuilderToken.UPDATEACTION req, final JsonNode content)
         throws InvalidParseOperationException {
-        final Map.Entry<String, JsonNode> element = JsonHandler.checkUnicity(req.exactToken(), content);
+        final Entry<String, JsonNode> element = JsonHandler.checkUnicity(req.exactToken(), content);
         final String fieldName = element.getKey();
         Double nodeValue = getNumberValue(req.name(), fieldName);
 
@@ -594,9 +560,9 @@ public class MongoDbInMemory {
     }
 
     private void set(final JsonNode content) throws InvalidParseOperationException {
-        final Iterator<Map.Entry<String, JsonNode>> iterator = content.fields();
+        final Iterator<Entry<String, JsonNode>> iterator = content.fields();
         while (iterator.hasNext()) {
-            final Map.Entry<String, JsonNode> element = iterator.next();
+            final Entry<String, JsonNode> element = iterator.next();
             String fieldName = element.getKey();
             if (parserTokens.isAnArray(fieldName)) {
                 ArrayNode arrayNode = GlobalDatasParser.getArray(element.getValue());
@@ -656,7 +622,7 @@ public class MongoDbInMemory {
 
     private void min(final BuilderToken.UPDATEACTION req, final JsonNode content)
         throws InvalidParseOperationException {
-        final Map.Entry<String, JsonNode> element = JsonHandler.checkUnicity(req.exactToken(), content);
+        final Entry<String, JsonNode> element = JsonHandler.checkUnicity(req.exactToken(), content);
         final String fieldName = element.getKey();
         Double nodeValue = getNumberValue(req.name(), fieldName);
 
@@ -675,7 +641,7 @@ public class MongoDbInMemory {
 
     private void max(final BuilderToken.UPDATEACTION req, final JsonNode content)
         throws InvalidParseOperationException {
-        final Map.Entry<String, JsonNode> element = JsonHandler.checkUnicity(req.exactToken(), content);
+        final Entry<String, JsonNode> element = JsonHandler.checkUnicity(req.exactToken(), content);
         final String fieldName = element.getKey();
         Double nodeValue = getNumberValue(req.name(), fieldName);
 
@@ -694,7 +660,7 @@ public class MongoDbInMemory {
 
     private void rename(final BuilderToken.UPDATEACTION req, final JsonNode content)
         throws InvalidParseOperationException {
-        final Map.Entry<String, JsonNode> element = JsonHandler.checkUnicity(req.exactToken(), content);
+        final Entry<String, JsonNode> element = JsonHandler.checkUnicity(req.exactToken(), content);
         final String fieldName = element.getKey();
         JsonNode value = JsonHandler.getNodeByPath(updatedDocument, fieldName, false);
         if (value == null) {
@@ -715,7 +681,7 @@ public class MongoDbInMemory {
 
     private void push(final BuilderToken.UPDATEACTION req, final JsonNode content)
         throws InvalidParseOperationException {
-        final Map.Entry<String, JsonNode> element = JsonHandler.checkUnicity(req.exactToken(), content);
+        final Entry<String, JsonNode> element = JsonHandler.checkUnicity(req.exactToken(), content);
         final String fieldName = element.getKey();
         if(!(element.getValue() instanceof ArrayNode)) {
             throw new InvalidParseOperationException("[" + "PUSH" + "]Action argument (" + element.getValue() +
@@ -732,7 +698,7 @@ public class MongoDbInMemory {
 
     private void pull(final BuilderToken.UPDATEACTION req, final JsonNode content)
         throws InvalidParseOperationException {
-        final Map.Entry<String, JsonNode> element = JsonHandler.checkUnicity(req.exactToken(), content);
+        final Entry<String, JsonNode> element = JsonHandler.checkUnicity(req.exactToken(), content);
         final String fieldName = element.getKey();
         if(!(element.getValue() instanceof ArrayNode)) {
             throw new InvalidParseOperationException("[" + "PULL" + "]Action argument (" + element.getValue() +
@@ -765,7 +731,7 @@ public class MongoDbInMemory {
 
     private void add(final BuilderToken.UPDATEACTION req, final JsonNode content)
         throws InvalidParseOperationException {
-        final Map.Entry<String, JsonNode> element = JsonHandler.checkUnicity(req.exactToken(), content);
+        final Entry<String, JsonNode> element = JsonHandler.checkUnicity(req.exactToken(), content);
         final String fieldName = element.getKey();
         if(!(element.getValue() instanceof ArrayNode)) {
             throw new InvalidParseOperationException("[" + "ADD" + "]Action argument (" + element.getValue() +
@@ -795,7 +761,7 @@ public class MongoDbInMemory {
 
     private void pop(final BuilderToken.UPDATEACTION req, final JsonNode content)
         throws InvalidParseOperationException {
-        final Map.Entry<String, JsonNode> element = JsonHandler.checkUnicity(req.exactToken(), content);
+        final Entry<String, JsonNode> element = JsonHandler.checkUnicity(req.exactToken(), content);
         final String fieldName = element.getKey();
         ArrayNode node = (ArrayNode) getArrayValue(req.name(), fieldName);
 
