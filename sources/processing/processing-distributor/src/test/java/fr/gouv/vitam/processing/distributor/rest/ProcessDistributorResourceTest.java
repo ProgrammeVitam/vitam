@@ -181,13 +181,6 @@ public class ProcessDistributorResourceTest extends ResteasyTestApplication {
             .statusCode(Status.BAD_REQUEST.getStatusCode());
     }
 
-    /*@Test
-    public final void testRegisterWorkerNotFound() {
-        given().contentType(ContentType.JSON).body(JSON_REGISTER).when()
-            .post(WORKER_FAMILY_URI + ID_FAMILY_URI + WORKERS_URI + WORKER_ID_E).then()
-            .statusCode(Status.CONFLICT.getStatusCode());
-    }*/
-
     @Test
     public final void testRegisterWorkerOK() {
         given().contentType(ContentType.JSON).body(JSON_REGISTER).when()

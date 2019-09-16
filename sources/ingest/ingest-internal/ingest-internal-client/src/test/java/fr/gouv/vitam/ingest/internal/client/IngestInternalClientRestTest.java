@@ -40,7 +40,7 @@ import fr.gouv.vitam.common.exception.WorkflowNotFoundException;
 import fr.gouv.vitam.common.guid.GUID;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.model.ItemStatus;
-import fr.gouv.vitam.common.model.ProcessAction;
+import fr.gouv.vitam.common.model.ProcessQuery;
 import fr.gouv.vitam.common.model.ProcessState;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
@@ -140,52 +140,71 @@ public class IngestInternalClientRestTest extends ResteasyTestApplication {
 
     @Override
     public Set<Object> getResources() {
-        return Sets.newHashSet(new MockRessource(mock, mockLogbook));
+        return Sets.newHashSet(new MockResource(mock, mockLogbook));
     }
 
     @Path(PATH)
-    public static class MockRessource<ProcessingEntry> {
+    public static class MockResource {
 
         private final ExpectedResults expectedResponse;
         private final ExpectedResults expectedResponseLogbook;
 
-        public MockRessource(ExpectedResults expectedResponse, ExpectedResults expectedResponseLogbook) {
+        public MockResource(ExpectedResults expectedResponse, ExpectedResults expectedResponseLogbook) {
             this.expectedResponse = expectedResponse;
             this.expectedResponseLogbook = expectedResponseLogbook;
         }
 
-        @Path("/ingests")
         @POST
-        @Consumes({MediaType.APPLICATION_OCTET_STREAM, CommonMediaType.ZIP, CommonMediaType.GZIP, CommonMediaType.TAR})
-        @Produces(MediaType.APPLICATION_OCTET_STREAM)
-        public Response uploadSipAsStream(@HeaderParam(HttpHeaders.CONTENT_TYPE) String contentType,
-            InputStream uploadedInputStream) {
-            return expectedResponse.post();
-        }
-
-        @GET
-        @Path("/ingests/{objectId}/{type}")
-        @Produces(MediaType.APPLICATION_OCTET_STREAM)
-        public Response downloadObject(@PathParam("objectId") String objectId, @PathParam("type") String type) {
-            return expectedResponse.get();
-        }
-
         @Path("/logbooks")
-        @POST
         @Consumes(MediaType.APPLICATION_JSON)
         @Produces(MediaType.APPLICATION_JSON)
         public Response delegateCreateLogbookOperation(Queue<LogbookOperationParameters> queue) {
             return expectedResponseLogbook.post();
         }
 
+        @PUT
+        @Path("/logbooks")
+        @Consumes(MediaType.APPLICATION_JSON)
+        @Produces(MediaType.APPLICATION_JSON)
+        public Response delegateUpdateLogbookOperation(Queue<LogbookOperationParameters> queue) {
+            return expectedResponseLogbook.put();
+        }
+
+        @POST
+        @Path("/ingests")
+        @Consumes({MediaType.APPLICATION_OCTET_STREAM, CommonMediaType.ZIP, CommonMediaType.XGZIP, CommonMediaType.GZIP,
+            CommonMediaType.TAR, CommonMediaType.BZIP2})
+        public Response uploadSipAsStream(@HeaderParam(HttpHeaders.CONTENT_TYPE) String contentType,
+            @HeaderParam(GlobalDataRest.X_CONTEXT_ID) String contextId,
+            @HeaderParam(GlobalDataRest.X_ACTION) String actionId,
+            @HeaderParam(GlobalDataRest.X_ACTION_INIT) String xActionInit,
+            @HeaderParam(GlobalDataRest.X_TYPE_PROCESS) LogbookTypeProcess logbookTypeProcess,
+            InputStream uploadedInputStream) {
+            return expectedResponse.post();
+        }
+
+        @Path("/operations/{id}")
+        @PUT
+        @Produces(MediaType.APPLICATION_JSON)
+        public Response updateWorkFlowStatus(@Context HttpHeaders headers, @PathParam("id") String id) {
+            return expectedResponse.put();
+        }
+
         @Path("/operations/{id}")
         @POST
-        @Consumes({MediaType.APPLICATION_OCTET_STREAM, CommonMediaType.ZIP, CommonMediaType.GZIP, CommonMediaType.TAR,
-            CommonMediaType.BZIP2})
+        @Consumes({MediaType.APPLICATION_OCTET_STREAM, CommonMediaType.ZIP, CommonMediaType.XGZIP, CommonMediaType.GZIP,
+            CommonMediaType.TAR, CommonMediaType.BZIP2})
         @Produces(MediaType.APPLICATION_OCTET_STREAM)
         public Response executeWorkFlow(@Context HttpHeaders headers, @PathParam("id") String id,
             InputStream uploadedInputStream) {
             return expectedResponse.post();
+        }
+
+        @Path("/operations/{id}")
+        @HEAD
+        @Produces(MediaType.APPLICATION_JSON)
+        public Response getWorkFlowExecutionStatus(@PathParam("id") String id) {
+            return expectedResponse.head();
         }
 
         @Path("/operations/{id}")
@@ -197,32 +216,45 @@ public class IngestInternalClientRestTest extends ResteasyTestApplication {
         }
 
         @Path("/operations/{id}")
-        @PUT
-        @Consumes(MediaType.APPLICATION_JSON)
-        @Produces(MediaType.APPLICATION_JSON)
-        public Response updateWorkFlowStatus(@Context HttpHeaders headers, @PathParam("id") String id,
-            ProcessingEntry process) {
-            return expectedResponse.put();
-        }
-
-        @Path("/operations/{id}")
-        @HEAD
-        @Produces(MediaType.APPLICATION_JSON)
-        public Response getWorkFlowExecutionStatus(@PathParam("id") String id) {
-            return expectedResponse.head();
-        }
-
-        @Path("/operations/{id}")
         @DELETE
         @Produces(MediaType.APPLICATION_JSON)
-        public Response InterruptWorkFlowExecution(@PathParam("id") String id) {
+        public Response interruptWorkFlowExecution(@PathParam("id") String id) {
             return expectedResponse.delete();
         }
 
+        @GET
+        @Path("/ingests/{objectId}/{type}")
+        @Produces(MediaType.APPLICATION_OCTET_STREAM)
+        public Response downloadObjectAsStream(@PathParam("objectId") String objectId, @PathParam("type") String type) {
+            return expectedResponse.get();
+        }
+
+        @POST
+        @Path("/ingests/{objectId}/report")
+        @Consumes(MediaType.APPLICATION_OCTET_STREAM)
+        public Response storeATR(@PathParam("objectId") String guid, InputStream atr) {
+            return expectedResponse.post();
+        }
+
+        @GET
+        @Path("/operations")
+        @Consumes(MediaType.APPLICATION_JSON)
+        @Produces(MediaType.APPLICATION_JSON)
+        public Response listOperationsDetails(@Context HttpHeaders headers, ProcessQuery query) {
+            return expectedResponse.get();
+        }
+
+        @GET
         @Path("/workflows")
+        @Produces(MediaType.APPLICATION_JSON)
+        public Response getWorkflowDefinitions(@Context HttpHeaders headers) {
+            return expectedResponse.get();
+        }
+
+        @Path("workflows/{workfowId}")
         @GET
         @Produces(MediaType.APPLICATION_JSON)
-        public Response getWorkflowDefinitions() {
+        public Response getWorkflowDetails(@PathParam("workfowId") String workfowId) {
             return expectedResponse.get();
         }
     }

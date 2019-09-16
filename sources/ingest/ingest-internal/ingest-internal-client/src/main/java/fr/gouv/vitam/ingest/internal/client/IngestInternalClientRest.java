@@ -27,7 +27,6 @@
 
 package fr.gouv.vitam.ingest.internal.client;
 
-import com.fasterxml.jackson.databind.JsonNode;
 import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.client.DefaultClient;
@@ -85,7 +84,6 @@ class IngestInternalClientRest extends DefaultClient implements IngestInternalCl
     private static final String BLANK_TYPE = "Type should be filled";
 
     private static final String REPORT = "/report";
-    private static final String CONTEXT_ID_MUST_HAVE_A_VALID_VALUE = "Context id must have a valid value";
     private static final String BLANK_OPERATION_ID = "Operation identifier should be filled";
     private static final String OPERATION_URI = "/operations";
     private static final String WORKFLOWS_URI = "/workflows";
@@ -266,7 +264,10 @@ class IngestInternalClientRest extends DefaultClient implements IngestInternalCl
 
         } catch (VitamClientInternalException e) {
             LOGGER.error("VitamClientInternalException: ", e);
-            throw new VitamClientException(e);
+            throw e;
+        } catch (Exception e) {
+            LOGGER.error("VitamClientInternalException: ", e);
+            throw new VitamClientInternalException(e);
         } finally {
             consumeAnyEntityAndClose(response);
         }
@@ -320,9 +321,13 @@ class IngestInternalClientRest extends DefaultClient implements IngestInternalCl
 
             return RequestResponse.parseFromResponse(response, ItemStatus.class);
 
-        } catch (VitamClientInternalException e) {
+
+        } catch (VitamClientException e) {
             LOGGER.error("VitamClientInternalException: ", e);
-            throw new VitamClientException(e);
+            throw e;
+        } catch (Exception e) {
+            LOGGER.error("VitamClientInternalException: ", e);
+            throw new VitamClientInternalException(e);
         } finally {
             consumeAnyEntityAndClose(response);
         }
@@ -339,9 +344,12 @@ class IngestInternalClientRest extends DefaultClient implements IngestInternalCl
 
             return RequestResponse.parseFromResponse(response, ItemStatus.class);
 
-        } catch (VitamClientInternalException e) {
+        } catch (VitamClientException e) {
             LOGGER.error("VitamClientInternalException: ", e);
-            throw new VitamClientException(e);
+            throw e;
+        } catch (Exception e) {
+            LOGGER.error("VitamClientInternalException: ", e);
+            throw new VitamClientInternalException(e);
         } finally {
             consumeAnyEntityAndClose(response);
         }
@@ -375,15 +383,13 @@ class IngestInternalClientRest extends DefaultClient implements IngestInternalCl
                 MediaType.APPLICATION_JSON_TYPE, MediaType.APPLICATION_JSON_TYPE);
             return RequestResponse.parseFromResponse(response, ProcessDetail.class);
 
-        } catch (IllegalStateException e) {
-            LOGGER.error("Could not parse server response ", e);
-            throw createExceptionFromResponse(response);
-        } catch (InvalidParseOperationException e) {
-            LOGGER.error("Could not parse query ", e);
-            throw new VitamClientException(e);
-        } catch (VitamClientInternalException e) {
+        } catch (VitamClientException e) {
             LOGGER.error("VitamClientInternalException: ", e);
-            throw new VitamClientException(e);
+            throw e;
+        } catch (Exception e) {
+            LOGGER.error("VitamClientInternalException: ", e);
+            throw new VitamClientInternalException(e);
+
         } finally {
             consumeAnyEntityAndClose(response);
         }
@@ -397,12 +403,13 @@ class IngestInternalClientRest extends DefaultClient implements IngestInternalCl
             response = performRequest(HttpMethod.GET, WORKFLOWS_URI, null, MediaType.APPLICATION_JSON_TYPE);
             return RequestResponse.parseFromResponse(response, WorkFlow.class);
 
-        } catch (IllegalStateException e) {
-            LOGGER.error("Could not parse server response ", e);
-            throw createExceptionFromResponse(response);
-        } catch (VitamClientInternalException e) {
+        } catch (VitamClientException e) {
             LOGGER.error("VitamClientInternalException: ", e);
-            throw new VitamClientException(e);
+            throw e;
+        } catch (Exception e) {
+            LOGGER.error("VitamClientInternalException: ", e);
+            throw new VitamClientInternalException(e);
+
         } finally {
             consumeAnyEntityAndClose(response);
         }

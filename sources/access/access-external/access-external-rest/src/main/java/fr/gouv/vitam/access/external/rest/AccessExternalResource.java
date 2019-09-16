@@ -444,7 +444,6 @@ public class AccessExternalResource extends ApplicationStatusResource {
     public Response updateUnitById(@Dsl(DslSchema.UPDATE_BY_ID) JsonNode queryJson, @PathParam("idu") String idUnit) {
         Status status;
         try (AccessInternalClient client = accessInternalClientFactory.getClient()) {
-            // FIXME P1 add of idUnit as roots should be made in metadata as it is an internal concern
             UpdateParserMultiple updateParserMultiple = new UpdateParserMultiple();
             updateParserMultiple.parse(queryJson);
             UpdateMultiQuery updateMultiQuery = updateParserMultiple.getRequest();
@@ -519,10 +518,11 @@ public class AccessExternalResource extends ApplicationStatusResource {
             }
             RequestResponse<JsonNode> result = client.selectObjectbyId(queryJson, idObjectGroup);
             int st = result.isOk() ? Status.OK.getStatusCode() : result.getHttpCode();
-            // FIXME hack for bug in Metadata when DSL contains unexisting root id without query
-            if (((RequestResponseOK<JsonNode>) result).getResults() == null ||
-                ((RequestResponseOK<JsonNode>) result).getResults().isEmpty()) {
-                throw new AccessInternalClientNotFoundException(UNIT_NOT_FOUND);
+
+            if (!result.isOk() && result instanceof VitamError) {
+                VitamError error = (VitamError) result;
+                return buildErrorFromError(VitamCode.ACCESS_EXTERNAL_SELECT_OBJECT_BY_ID_ERROR, error.getMessage(),
+                    error);
             }
 
             return Response.status(st).entity(result).build();

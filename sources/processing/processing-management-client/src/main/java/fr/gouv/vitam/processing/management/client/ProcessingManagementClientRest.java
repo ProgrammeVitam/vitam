@@ -45,7 +45,6 @@ import fr.gouv.vitam.common.model.ProcessPause;
 import fr.gouv.vitam.common.model.ProcessQuery;
 import fr.gouv.vitam.common.model.ProcessState;
 import fr.gouv.vitam.common.model.RequestResponse;
-import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.model.processing.ProcessDetail;
 import fr.gouv.vitam.common.model.processing.WorkFlow;
@@ -122,16 +121,11 @@ class ProcessingManagementClientRest extends DefaultClient implements Processing
                 throw new InternalServerException(INTERNAL_SERVER_ERROR);
             }
 
-            // XXX: theoretically OK status case
-            // Don't we thrown an exception if it is another status ?
-        } catch (final javax.ws.rs.ProcessingException e) {
+        } catch (final WorkflowNotFoundException | IllegalArgumentException | BadRequestException | InternalServerException e) {
             LOGGER.debug(e);
-            throw new InternalServerException(INTERNAL_SERVER_ERROR, e);
-        } catch (final VitamClientInternalException e) {
-            LOGGER.debug(PROCESSING_INTERNAL_SERVER_ERROR, e);
-            throw new InternalServerException(INTERNAL_SERVER_ERROR, e);
-        } catch (final BadRequestException e) {
-            throw new BadRequestException(BAD_REQUEST_EXCEPTION);
+            throw e;
+        } catch (final Exception e) {
+            throw new InternalServerException(BAD_REQUEST_EXCEPTION);
         } finally {
             consumeAnyEntityAndClose(response);
         }
