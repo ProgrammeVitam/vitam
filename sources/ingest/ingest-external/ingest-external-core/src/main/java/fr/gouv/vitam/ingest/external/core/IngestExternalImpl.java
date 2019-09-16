@@ -498,9 +498,7 @@ public class IngestExternalImpl implements IngestExternal {
                     SANITY_CHECK_SIP, "");
             }
 
-            try (IngestInternalClient ingestClient =
-                ingestInternalClientFactory.getClient()) {
-                // FIXME P1 one should finalize the Logbook Operation with new entries like
+            try (IngestInternalClient ingestClient = ingestInternalClientFactory.getClient()) {
                 // before calling the ingestClient: LogbookOperationParameters as Ingest-Internal started
                 // after calling the ingestClient: LogbookOperationParameters as Ingest-Internal "status"
                 // and in async mode add LogbookOperationParameters as Ingest-External-ATR-Forward START
@@ -676,7 +674,7 @@ public class IngestExternalImpl implements IngestExternal {
             getAtrNotificationEvent(operationId, logbookTypeProcess, atrStatusCode, finalisationEventId);
 
         if (!StatusCode.OK.equals(atrStatusCode)) {
-            // Erase informations of finalisation event if atrStatusCode is not OK
+            // Erase information of finalisation event if atrStatusCode is not OK
             // Because parent event should have the correct status if atr fail
             stpIngestFinalisationParameters.setStatus(atrStatusCode);
             stpIngestFinalisationParameters.putParameterValue(LogbookParameterName.outcomeDetailMessage,

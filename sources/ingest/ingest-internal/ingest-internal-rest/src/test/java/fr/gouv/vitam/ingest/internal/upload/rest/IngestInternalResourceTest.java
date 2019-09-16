@@ -53,6 +53,8 @@ import fr.gouv.vitam.logbook.common.parameters.LogbookOperationParameters;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParameters;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParametersFactory;
 import fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess;
+import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClient;
+import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClientFactory;
 import fr.gouv.vitam.processing.management.client.ProcessingManagementClient;
 import fr.gouv.vitam.processing.management.client.ProcessingManagementClientFactory;
 import fr.gouv.vitam.storage.engine.common.model.DataCategory;
@@ -108,11 +110,15 @@ public class IngestInternalResourceTest extends ResteasyTestApplication {
     private final static ProcessingManagementClientFactory processingManagementClientFactory =
         mock(ProcessingManagementClientFactory.class);
 
+    private final static LogbookOperationsClientFactory logbookOperationsClientFactory =
+        mock(LogbookOperationsClientFactory.class);
+
 
 
     private GUID ingestGuid;
     private ProcessingManagementClient processingClient;
     private WorkspaceClient workspaceClient;
+    private LogbookOperationsClient logbookOperationsClient;
 
     private List<LogbookParameters> operationList = new ArrayList<>();
     private List<LogbookParameters> operationList2 = new ArrayList<>();
@@ -121,7 +127,8 @@ public class IngestInternalResourceTest extends ResteasyTestApplication {
     public Set<Object> getResources() {
         return Sets
             .newHashSet(new HeaderIdContainerFilter(),
-                new IngestInternalResource(workspaceClientFactory, processingManagementClientFactory));
+                new IngestInternalResource(workspaceClientFactory, processingManagementClientFactory,
+                    logbookOperationsClientFactory));
     }
 
     @BeforeClass
@@ -141,8 +148,10 @@ public class IngestInternalResourceTest extends ResteasyTestApplication {
     public void setUp() throws Exception {
         processingClient = mock(ProcessingManagementClient.class);
         workspaceClient = mock(WorkspaceClient.class);
+        logbookOperationsClient = mock(LogbookOperationsClient.class);
         when(processingManagementClientFactory.getClient()).thenReturn(processingClient);
         when(workspaceClientFactory.getClient()).thenReturn(workspaceClient);
+        when(logbookOperationsClientFactory.getClient()).thenReturn(logbookOperationsClient);
 
 
         ingestGuid = GUIDFactory.newManifestGUID(0);

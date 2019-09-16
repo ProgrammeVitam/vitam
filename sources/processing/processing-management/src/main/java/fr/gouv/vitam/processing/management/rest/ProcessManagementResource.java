@@ -197,7 +197,7 @@ public class ProcessManagementResource extends ApplicationStatusResource {
     @Path("workflows/{workfowId}")
     @GET
     @Produces(MediaType.APPLICATION_JSON)
-    public Response getWorkflowDefinitions(@PathParam("workfowId") String workfowId) {
+    public Response getWorkflowDetails(@PathParam("workfowId") String workfowId) {
         try {
             Optional<WorkFlow> optionalWorkflow = processManagement.getWorkflowDefinitions().values().stream()
                 .filter(workFlow -> StringUtils.equals(workFlow.getId(), workfowId))

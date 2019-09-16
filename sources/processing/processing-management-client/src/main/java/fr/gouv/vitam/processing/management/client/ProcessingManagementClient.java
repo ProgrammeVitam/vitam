@@ -201,7 +201,6 @@ public interface ProcessingManagementClient extends MockOrRestClient {
      * @param container
      * @param workflowId
      * @throws InternalServerException
-     * @throws VitamClientException
      * @throws BadRequestException
      */
     void initVitamProcess(String container, String workflowId) throws BadRequestException, InternalServerException;
