@@ -1,4 +1,22 @@
 {
+  "ingestContract": {
+    "#id": "aefqaaaaaeejnoocaalmkalnhki76ziaaaaq",
+    "#tenant": 1,
+    "#version": 2,
+    "Name": "Accepte_les_formats_non_identifies_computed_80",
+    "Identifier": "Accepte_les_formats_non_identifies_computed_80",
+    "Description": "Contrat Vitam 0",
+    "Status": "ACTIVE",
+    "CreationDate": "2019-09-16T14:55:09.669",
+    "LastUpdate": "2019-09-16T15:01:01.305",
+    "ActivationDate": "2019-09-16T14:55:09.669",
+    "CheckParentLink": "AUTHORIZED",
+    "MasterMandatory": true,
+    "EveryDataObjectVersion": false,
+    "FormatUnidentifiedAuthorized": true,
+    "ComputeInheritedRulesAtIngest": true,
+    "EveryFormatType": true
+  },
   "managementContract":{
     "Storage" : {
       "UnitStrategy":"default",
