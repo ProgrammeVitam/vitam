@@ -36,7 +36,7 @@ import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.StatusCode;
-import fr.gouv.vitam.common.model.administration.IngestContractWithDetailsModel;
+import fr.gouv.vitam.common.model.administration.ContractsDetailsModel;
 import fr.gouv.vitam.common.model.administration.ManagementContractModel;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.processing.common.model.StorageInformation;
@@ -153,9 +153,9 @@ public class CheckStorageAvailabilityActionHandler extends ActionHandler {
 
     private ManagementContractModel loadManagementContractFromWorkspace(HandlerIO handlerIO)
         throws InvalidParseOperationException {
-        IngestContractWithDetailsModel ingestContractWithDetailsModel =  JsonHandler.getFromFile((File) handlerIO.getInput(REFERENTIAL_INGEST_CONTRACT_IN_RANK),
-            IngestContractWithDetailsModel.class);
-        return ingestContractWithDetailsModel.getManagementContractModel();
+        ContractsDetailsModel contractsDetailsModel =  JsonHandler.getFromFile((File) handlerIO.getInput(REFERENTIAL_INGEST_CONTRACT_IN_RANK),
+            ContractsDetailsModel.class);
+        return contractsDetailsModel.getManagementContractModel();
     }
 
     @Override

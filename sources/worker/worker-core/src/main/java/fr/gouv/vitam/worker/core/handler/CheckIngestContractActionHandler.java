@@ -43,23 +43,15 @@ import fr.gouv.vitam.common.model.administration.ActivationStatus;
 import fr.gouv.vitam.common.model.administration.ContextModel;
 import fr.gouv.vitam.common.model.administration.ContextStatus;
 import fr.gouv.vitam.common.model.administration.IngestContractModel;
-import fr.gouv.vitam.common.model.administration.ManagementContractModel;
 import fr.gouv.vitam.common.parameter.ParameterHelper;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.functional.administration.client.AdminManagementClient;
 import fr.gouv.vitam.functional.administration.client.AdminManagementClientFactory;
-import fr.gouv.vitam.functional.administration.common.ManagementContract;
 import fr.gouv.vitam.functional.administration.common.exception.AdminManagementClientServerException;
 import fr.gouv.vitam.functional.administration.common.exception.ReferentialNotFoundException;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
-import fr.gouv.vitam.storage.engine.client.StorageClient;
 import fr.gouv.vitam.storage.engine.client.StorageClientFactory;
-import fr.gouv.vitam.storage.engine.client.exception.StorageServerClientException;
-import fr.gouv.vitam.storage.engine.common.referential.model.StorageStrategy;
-import fr.gouv.vitam.storage.engine.common.utils.ReferentOfferNotFoundException;
-import fr.gouv.vitam.storage.engine.common.utils.StorageStrategyNotFoundException;
-import fr.gouv.vitam.storage.engine.common.utils.StorageStrategyUtils;
 import fr.gouv.vitam.worker.common.HandlerIO;
 import org.apache.commons.lang3.StringUtils;
 
@@ -233,7 +225,10 @@ public class CheckIngestContractActionHandler extends ActionHandler {
                             CheckIngestContractStatus tempStatus = checkIngestContractInTheContext(contractIdentifier);
                             if (CheckIngestContractStatus.OK.equals(tempStatus)
                                     && StringUtils.isNotBlank(result.getManagementContractId())) {
-                                return checkManagementContract(result.getManagementContractId());
+                                ManagmentContractChecker managementContractChecker = new ManagmentContractChecker(
+                                        result.getManagementContractId(), adminManagementClientFactory,
+                                        storageClientFactory);
+                                return managementContractChecker.check();
                             } else {
                                 return tempStatus;
                             }
@@ -250,73 +245,6 @@ public class CheckIngestContractActionHandler extends ActionHandler {
             // Case when the manifest's contract is not in the database of contracts
             LOGGER.error("Contract not found :", e);
             return CheckIngestContractStatus.CONTRACT_UNKNOWN;
-        }
-
-        return CheckIngestContractStatus.KO;
-    }
-
-    private CheckIngestContractStatus checkManagementContract(String managementContractId) {
-        try (AdminManagementClient adminManagementClient = adminManagementClientFactory.getClient();
-                StorageClient storageClient = storageClientFactory.getClient()) {
-            RequestResponse<ManagementContractModel> ManagementContractResponse = adminManagementClient
-                    .findManagementContractsByID(managementContractId);
-            if (ManagementContractResponse.isOk()) {
-
-                List<ManagementContractModel> results = ((RequestResponseOK<ManagementContractModel>) ManagementContractResponse)
-                        .getResults();
-                if (results.isEmpty()) {
-                    LOGGER.error("CheckContract : The Management Contract " + managementContractId
-                            + "  not found in database");
-                    return CheckIngestContractStatus.MANAGEMENT_CONTRACT_UNKNOWN;
-                } else {
-                    final ManagementContractModel managementContract = Iterables.getFirst(results, null);
-
-                    if (!ActivationStatus.ACTIVE.equals(managementContract.getStatus())) {
-                        LOGGER.error(
-                                "CheckContract : The Management Contract " + managementContract + "  is not activated");
-                        return CheckIngestContractStatus.MANAGEMENT_CONTRACT_INACTIVE;
-                    }
-                    
-                    if (managementContract.getStorage() != null) {
-                        RequestResponse<StorageStrategy> strategiesResponse = storageClient.getStorageStrategies();
-                        if (!strategiesResponse.isOk()) {
-                            LOGGER.error(strategiesResponse.toString());
-                            throw new StorageServerClientException("Exception while retrieving storage strategies");
-                        }
-                        List<StorageStrategy> strategies = ((RequestResponseOK<StorageStrategy>) strategiesResponse)
-                                .getResults();
-
-                        try {
-                            if (managementContract.getStorage().getObjectGroupStrategy() != null) {
-                                StorageStrategyUtils.checkStrategy(
-                                        managementContract.getStorage().getObjectGroupStrategy(), strategies,
-                                        ManagementContract.OBJECTGROUP_STRATEGY, true);
-                            }
-                            if (managementContract.getStorage().getUnitStrategy() != null) {
-                                StorageStrategyUtils.checkStrategy(managementContract.getStorage().getUnitStrategy(),
-                                        strategies, ManagementContract.UNIT_STRATEGY, true);
-                            }
-
-                            if (managementContract.getStorage().getObjectStrategy() != null) {
-                                StorageStrategyUtils.checkStrategy(managementContract.getStorage().getObjectStrategy(),
-                                        strategies, ManagementContract.OBJECT_STRATEGY, false);
-                            }
-                        } catch (StorageStrategyNotFoundException | ReferentOfferNotFoundException exc) {
-                            LOGGER.error(exc);
-                            return CheckIngestContractStatus.MANAGEMENT_CONTRACT_INVALID;
-                        }
-                    }
-                    
-                    return CheckIngestContractStatus.OK;
-                }
-            }
-        } catch (ReferentialNotFoundException e) {
-            LOGGER.error("Management Contract not found :", e);
-            return CheckIngestContractStatus.MANAGEMENT_CONTRACT_UNKNOWN;
-
-        } catch (AdminManagementClientServerException | InvalidParseOperationException | StorageServerClientException e) {
-            LOGGER.error("Fatal check error :", e);
-            return CheckIngestContractStatus.FATAL;
         }
 
         return CheckIngestContractStatus.KO;

@@ -177,7 +177,7 @@ public class CheckHeaderActionHandlerTest {
         action.getInput().add("true");
         action.getInput().add("true");
         action.getInput().add("false");
-        action.getOutput().add(new ProcessingUri(UriPrefix.WORKSPACE, "ingestcontract.json"));
+        action.getOutput().add(new ProcessingUri(UriPrefix.WORKSPACE, "contracts.json"));
 
         final ItemStatus response = handler.execute(params, action);
         assertEquals(response.getGlobalStatus(), StatusCode.OK);
@@ -189,7 +189,7 @@ public class CheckHeaderActionHandlerTest {
         action.getInput().add("true");
         action.getInput().add("true");
         action.getInput().add("true");
-        action.getOutput().add(new ProcessingUri(UriPrefix.WORKSPACE, "ingestcontract.json"));
+        action.getOutput().add(new ProcessingUri(UriPrefix.WORKSPACE, "contracts.json"));
 
         sedaMap.put(SedaConstants.TAG_ORIGINATINGAGENCYIDENTIFIER, "");
         doReturn(sedaMap).when(sedaUtils).getMandatoryValues(any());
@@ -200,7 +200,7 @@ public class CheckHeaderActionHandlerTest {
         action.getInput().add("true");
         action.getInput().add("true");
         action.getInput().add("true");
-        action.getOutput().add(new ProcessingUri(UriPrefix.WORKSPACE, "ingestcontract.json"));
+        action.getOutput().add(new ProcessingUri(UriPrefix.WORKSPACE, "contracts.json"));
 
         sedaMap.remove(SedaConstants.TAG_ORIGINATINGAGENCYIDENTIFIER);
         doReturn(sedaMap).when(sedaUtils).getMandatoryValues(any());
@@ -234,7 +234,7 @@ public class CheckHeaderActionHandlerTest {
         action.getInput().add("true");
         action.getInput().add("false");
 
-        action.getOutput().add(new ProcessingUri(UriPrefix.WORKSPACE, "ingestcontract.json"));
+        action.getOutput().add(new ProcessingUri(UriPrefix.WORKSPACE, "contracts.json"));
         final ItemStatus response = handler.execute(params, action);
         assertThat(response.getGlobalStatus()).isEqualTo( StatusCode.OK);
         assertThat(response.getData(SedaConstants.TAG_MESSAGE_IDENTIFIER)).isNotNull();
@@ -276,7 +276,7 @@ public class CheckHeaderActionHandlerTest {
         action.getInput().add("true");
         action.getInput().add("false");
 
-        action.getOutput().add(new ProcessingUri(UriPrefix.WORKSPACE, "ingestcontract.json"));
+        action.getOutput().add(new ProcessingUri(UriPrefix.WORKSPACE, "contracts.json"));
         final ItemStatus response = handler.execute(params, action);
         assertThat(response.getGlobalStatus()).isEqualTo(StatusCode.OK);
         assertThat(response.getData(SedaConstants.TAG_MESSAGE_IDENTIFIER)).isNotNull();
@@ -317,7 +317,7 @@ public class CheckHeaderActionHandlerTest {
         action.getInput().add("true");
         action.getInput().add("true");
         action.getInput().add("true");
-        action.getOutput().add(new ProcessingUri(UriPrefix.WORKSPACE, "ingestcontract.json"));
+        action.getOutput().add(new ProcessingUri(UriPrefix.WORKSPACE, "contracts.json"));
 
         final ItemStatus response = handler.execute(params, action);
         assertThat(response.getGlobalStatus()).isEqualTo(StatusCode.KO);

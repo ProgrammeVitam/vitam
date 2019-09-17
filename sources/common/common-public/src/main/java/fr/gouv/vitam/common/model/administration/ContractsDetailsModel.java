@@ -33,7 +33,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
  * Data Transfer Object Model of ingest contract with subobjects (DTO).
  */
 @JsonInclude(JsonInclude.Include.NON_EMPTY)
-public class IngestContractWithDetailsModel {
+public class ContractsDetailsModel {
     
     @JsonProperty("ingestContract")
     private IngestContractModel ingestContractModel;
@@ -41,7 +41,7 @@ public class IngestContractWithDetailsModel {
     @JsonProperty("managementContract")
     private ManagementContractModel managementContractModel;
     
-    public IngestContractWithDetailsModel() {
+    public ContractsDetailsModel() {
         super();
     }
     

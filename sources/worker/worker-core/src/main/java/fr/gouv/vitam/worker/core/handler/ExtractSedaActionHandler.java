@@ -70,7 +70,7 @@ import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.model.UnitType;
 import fr.gouv.vitam.common.model.administration.IngestContractCheckState;
 import fr.gouv.vitam.common.model.administration.IngestContractModel;
-import fr.gouv.vitam.common.model.administration.IngestContractWithDetailsModel;
+import fr.gouv.vitam.common.model.administration.ContractsDetailsModel;
 import fr.gouv.vitam.common.model.administration.OntologyModel;
 import fr.gouv.vitam.common.model.unit.GotObj;
 import fr.gouv.vitam.common.model.unit.ManagementModel;
@@ -197,7 +197,7 @@ public class ExtractSedaActionHandler extends ActionHandler {
     // IN RANK
     private static final int UNIT_TYPE_INPUT_RANK = 1;
     private static final int STORAGE_INFO_INPUT_RANK = 2;
-    private static final int INGEST_CONTRACT_WITH_DETAILS_INPUT_RANK = 3;
+    private static final int CONTRACTS_INPUT_RANK = 3;
 
     private static final String HANDLER_ID = "CHECK_MANIFEST";
     private static final String SUBTASK_LOOP = "CHECK_MANIFEST_LOOP";
@@ -778,22 +778,22 @@ public class ExtractSedaActionHandler extends ActionHandler {
 
             // Retrieve storage info
             final JsonNode storageInfo = JsonHandler.getFromFile((File) handlerIO.getInput(STORAGE_INFO_INPUT_RANK));
-            final IngestContractWithDetailsModel contracts = JsonHandler.getFromFile(
-                    (File) handlerIO.getInput(INGEST_CONTRACT_WITH_DETAILS_INPUT_RANK),
-                    IngestContractWithDetailsModel.class);
+            final ContractsDetailsModel contractsDetailsModel = JsonHandler.getFromFile(
+                    (File) handlerIO.getInput(CONTRACTS_INPUT_RANK),
+                    ContractsDetailsModel.class);
             
             JsonNode storageUnitInfo = storageInfo.get(VitamConfiguration.getDefaultStrategy());
             JsonNode storageObjectGroupInfo = storageInfo.get(VitamConfiguration.getDefaultStrategy());
             JsonNode storageObjectInfo = storageInfo.get(VitamConfiguration.getDefaultStrategy());
-            if (contracts.getManagementContractModel() != null && contracts.getManagementContractModel().getStorage() != null) {
-                if (StringUtils.isNotBlank(contracts.getManagementContractModel().getStorage().getUnitStrategy())) {
-                    storageUnitInfo = storageInfo.get(contracts.getManagementContractModel().getStorage().getUnitStrategy());
+            if (contractsDetailsModel.getManagementContractModel() != null && contractsDetailsModel.getManagementContractModel().getStorage() != null) {
+                if (StringUtils.isNotBlank(contractsDetailsModel.getManagementContractModel().getStorage().getUnitStrategy())) {
+                    storageUnitInfo = storageInfo.get(contractsDetailsModel.getManagementContractModel().getStorage().getUnitStrategy());
                 }
-                if (StringUtils.isNotBlank(contracts.getManagementContractModel().getStorage().getObjectGroupStrategy())) {
-                    storageObjectGroupInfo = storageInfo.get(contracts.getManagementContractModel().getStorage().getObjectGroupStrategy());
+                if (StringUtils.isNotBlank(contractsDetailsModel.getManagementContractModel().getStorage().getObjectGroupStrategy())) {
+                    storageObjectGroupInfo = storageInfo.get(contractsDetailsModel.getManagementContractModel().getStorage().getObjectGroupStrategy());
                 }
-                if (StringUtils.isNotBlank(contracts.getManagementContractModel().getStorage().getObjectStrategy())) {
-                    storageObjectInfo = storageInfo.get(contracts.getManagementContractModel().getStorage().getObjectStrategy());
+                if (StringUtils.isNotBlank(contractsDetailsModel.getManagementContractModel().getStorage().getObjectStrategy())) {
+                    storageObjectInfo = storageInfo.get(contractsDetailsModel.getManagementContractModel().getStorage().getObjectStrategy());
                 }
             }
 

@@ -632,13 +632,13 @@ public class ManagementContractImpl implements ContractService<ManagementContrac
                         }
                     } catch (StorageStrategyNotFoundException storageStrategyNotFoundException) {
                         return Optional.of(GenericContractValidator.GenericRejectionCause.rejectStorageStrategyMissing(
-                                storageStrategyNotFoundException.getStrategyId(), ManagementContract.UNIT_STRATEGY));
+                                storageStrategyNotFoundException.getStrategyId(), storageStrategyNotFoundException.getVariableName()));
                     } catch (ReferentOfferNotFoundException referentOfferNotFoundException) {
                         return Optional.of(GenericContractValidator.GenericRejectionCause
                                 .rejectStorageStrategyDoesNotContainsReferent(
                                         referentOfferNotFoundException.getStrategyId(),
                                         referentOfferNotFoundException.getReferentOfferId(),
-                                        ManagementContract.UNIT_STRATEGY));
+                                        referentOfferNotFoundException.getVariableName()));
                     }
 
                     return Optional.empty();
