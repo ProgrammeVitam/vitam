@@ -34,7 +34,6 @@ import fr.gouv.vitam.common.guid.GUID;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.model.ItemStatus;
-import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.model.administration.ActivationStatus;
@@ -55,6 +54,8 @@ import fr.gouv.vitam.logbook.lifecycles.client.LogbookLifeCyclesClientFactory;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 import fr.gouv.vitam.processing.common.parameter.WorkerParametersFactory;
+import fr.gouv.vitam.storage.engine.client.StorageClient;
+import fr.gouv.vitam.storage.engine.client.StorageClientFactory;
 import fr.gouv.vitam.worker.common.HandlerIO;
 import fr.gouv.vitam.worker.common.utils.SedaUtils;
 import fr.gouv.vitam.worker.common.utils.SedaUtilsFactory;
@@ -95,10 +96,15 @@ public class CheckHeaderActionHandlerTest {
     private static final String SIP_ADD_UNIT = "CheckHeaderActionHandler/manifest.xml";
     private static final String MANIFEST_WITHOUT_ARCHIVAL_PROFILE =
         "CheckHeaderActionHandler/manifest_no_archival_profile.xml";
+
     private WorkspaceClient workspaceClient;
     private WorkspaceClientFactory workspaceClientFactory;
+    
     private AdminManagementClient adminManagementClient;
     private AdminManagementClientFactory adminManagementClientFactory;
+    
+    private StorageClient storageClient;
+    private StorageClientFactory storageClientFactory;
 
     private LogbookLifeCyclesClient logbookLifeCyclesClient;
     private LogbookLifeCyclesClientFactory logbookLifeCyclesClientFactory;
@@ -125,6 +131,10 @@ public class CheckHeaderActionHandlerTest {
         adminManagementClientFactory = mock(AdminManagementClientFactory.class);
         when(adminManagementClientFactory.getClient()).thenReturn(adminManagementClient);
 
+        storageClient = mock(StorageClient.class);
+        storageClientFactory = mock(StorageClientFactory.class);
+        when(storageClientFactory.getClient()).thenReturn(storageClient);
+        
         logbookLifeCyclesClient = mock(LogbookLifeCyclesClient.class);
         logbookLifeCyclesClientFactory = mock(LogbookLifeCyclesClientFactory.class);
         when(logbookLifeCyclesClientFactory.getClient()).thenReturn(logbookLifeCyclesClient);
@@ -148,7 +158,7 @@ public class CheckHeaderActionHandlerTest {
     @Test
     @RunWithCustomExecutor
     public void testHandlerWorking() throws ProcessingException {
-        handler = new CheckHeaderActionHandler(adminManagementClientFactory, sedaUtilsFactory);
+        handler = new CheckHeaderActionHandler(adminManagementClientFactory, storageClientFactory, sedaUtilsFactory);
         HandlerIOImpl action =
             new HandlerIOImpl(workspaceClientFactory, logbookLifeCyclesClientFactory, guid.getId(), "workerId",
                 com.google.common.collect.Lists.newArrayList());
@@ -204,7 +214,7 @@ public class CheckHeaderActionHandlerTest {
     @Test
     @RunWithCustomExecutor
     public void testHandlerWorkingWithRealManifest() throws Exception {
-        handler = new CheckHeaderActionHandler(adminManagementClientFactory, SedaUtilsFactory.getInstance());
+        handler = new CheckHeaderActionHandler(adminManagementClientFactory, storageClientFactory, SedaUtilsFactory.getInstance());
 
         HandlerIOImpl action =
             new HandlerIOImpl(workspaceClientFactory, logbookLifeCyclesClientFactory, guid.getId(), "workerId",
@@ -248,7 +258,7 @@ public class CheckHeaderActionHandlerTest {
         when(adminManagementClient.findManagementContractsByID(any())).thenReturn(ClientMockResultHelper
                 .createResponse((ManagementContractModel) new ManagementContractModel().setId("managementContractId").setStatus(ActivationStatus.ACTIVE)));
 
-        handler = new CheckHeaderActionHandler(adminManagementClientFactory, SedaUtilsFactory.getInstance());
+        handler = new CheckHeaderActionHandler(adminManagementClientFactory, storageClientFactory, SedaUtilsFactory.getInstance());
 
         HandlerIOImpl action = new HandlerIOImpl(workspaceClientFactory, logbookLifeCyclesClientFactory, guid.getId(),
                 "workerId", com.google.common.collect.Lists.newArrayList());
@@ -284,7 +294,7 @@ public class CheckHeaderActionHandlerTest {
     public void testDefinedProfileInIngestContractButNotInManifest()
         throws IOException, ContentAddressableStorageNotFoundException,
         ContentAddressableStorageServerException {
-        handler = new CheckHeaderActionHandler(adminManagementClientFactory, SedaUtilsFactory.getInstance());
+        handler = new CheckHeaderActionHandler(adminManagementClientFactory, storageClientFactory, SedaUtilsFactory.getInstance());
 
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
 

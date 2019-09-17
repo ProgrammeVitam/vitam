@@ -26,19 +26,9 @@
  */
 package fr.gouv.vitam.functional.administration.contract.core;
 
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.stream.Collectors;
-
-import javax.ws.rs.core.Response;
-
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-
 import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.VitamConfiguration;
@@ -87,6 +77,18 @@ import fr.gouv.vitam.storage.engine.client.StorageClientFactory;
 import fr.gouv.vitam.storage.engine.common.exception.StorageException;
 import fr.gouv.vitam.storage.engine.common.referential.model.OfferReference;
 import fr.gouv.vitam.storage.engine.common.referential.model.StorageStrategy;
+import fr.gouv.vitam.storage.engine.common.utils.ReferentOfferNotFoundException;
+import fr.gouv.vitam.storage.engine.common.utils.StorageStrategyNotFoundException;
+import fr.gouv.vitam.storage.engine.common.utils.StorageStrategyUtils;
+
+import javax.ws.rs.core.Response;
+
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.stream.Collectors;
 
 public class ManagementContractImpl implements ContractService<ManagementContractModel> {
 
@@ -613,53 +615,30 @@ public class ManagementContractImpl implements ContractService<ManagementContrac
                     }
                     List<StorageStrategy> strategies = ((RequestResponseOK<StorageStrategy>) strategiesResponse)
                             .getResults();
-                    StorageStrategy defaultStrategy = strategies.stream()
-                            .filter(strategy -> VitamConfiguration.getDefaultStrategy().equals(strategy.getId()))
-                            .findFirst().get();
-                    OfferReference referentOffer = defaultStrategy.getOffers().stream()
-                            .filter(offer -> offer.isEnabled() && offer.isReferent()).findFirst().get();
 
-                    if (storage.getObjectGroupStrategy() != null) {
-                        Optional<StorageStrategy> gotStrategy = strategies.stream()
-                                .filter(strategy -> storage.getObjectGroupStrategy().equals(strategy.getId()))
-                                .findFirst();
-                        if (!gotStrategy.isPresent()) {
-                            return Optional
-                                    .of(GenericContractValidator.GenericRejectionCause.rejectStorageStrategyMissing(
-                                            storage.getObjectGroupStrategy(), ManagementContract.OBJECTGROUP_STRATEGY));
+                    try {
+                        if (storage.getObjectGroupStrategy() != null) {
+                            StorageStrategyUtils.checkStrategy(storage.getObjectGroupStrategy(), strategies,
+                                    ManagementContract.OBJECTGROUP_STRATEGY, true);
                         }
-                        if (gotStrategy.get().getOffers().stream()
-                                .filter(offer -> referentOffer.getId().equals(offer.getId())).count() < 1) {
-                            return Optional.of(GenericContractValidator.GenericRejectionCause
-                                    .rejectStorageStrategyDoesNotContainsReferent(storage.getObjectGroupStrategy(),
-                                            referentOffer.getId(), ManagementContract.OBJECTGROUP_STRATEGY));
+                        if (storage.getUnitStrategy() != null) {
+                            StorageStrategyUtils.checkStrategy(storage.getUnitStrategy(), strategies,
+                                    ManagementContract.UNIT_STRATEGY, true);
                         }
-                    }
 
-                    if (storage.getUnitStrategy() != null) {
-                        Optional<StorageStrategy> unitStrategy = strategies.stream()
-                                .filter(strategy -> storage.getUnitStrategy().equals(strategy.getId())).findFirst();
-                        if (!unitStrategy.isPresent()) {
-                            return Optional
-                                    .of(GenericContractValidator.GenericRejectionCause.rejectStorageStrategyMissing(
-                                            storage.getUnitStrategy(), ManagementContract.UNIT_STRATEGY));
+                        if (storage.getObjectStrategy() != null) {
+                            StorageStrategyUtils.checkStrategy(storage.getObjectStrategy(), strategies,
+                                    ManagementContract.OBJECT_STRATEGY, false);
                         }
-                        if (unitStrategy.get().getOffers().stream()
-                                .filter(offer -> referentOffer.getId().equals(offer.getId())).count() < 1) {
-                            return Optional.of(GenericContractValidator.GenericRejectionCause
-                                    .rejectStorageStrategyDoesNotContainsReferent(storage.getUnitStrategy(),
-                                            referentOffer.getId(), ManagementContract.UNIT_STRATEGY));
-                        }
-                    }
-
-                    if (storage.getObjectStrategy() != null) {
-                        Optional<StorageStrategy> objectStrategy = strategies.stream()
-                                .filter(strategy -> storage.getObjectStrategy().equals(strategy.getId())).findFirst();
-                        if (!objectStrategy.isPresent()) {
-                            return Optional
-                                    .of(GenericContractValidator.GenericRejectionCause.rejectStorageStrategyMissing(
-                                            storage.getObjectStrategy(), ManagementContract.OBJECT_STRATEGY));
-                        }
+                    } catch (StorageStrategyNotFoundException storageStrategyNotFoundException) {
+                        return Optional.of(GenericContractValidator.GenericRejectionCause.rejectStorageStrategyMissing(
+                                storageStrategyNotFoundException.getStrategyId(), ManagementContract.UNIT_STRATEGY));
+                    } catch (ReferentOfferNotFoundException referentOfferNotFoundException) {
+                        return Optional.of(GenericContractValidator.GenericRejectionCause
+                                .rejectStorageStrategyDoesNotContainsReferent(
+                                        referentOfferNotFoundException.getStrategyId(),
+                                        referentOfferNotFoundException.getReferentOfferId(),
+                                        ManagementContract.UNIT_STRATEGY));
                     }
 
                     return Optional.empty();

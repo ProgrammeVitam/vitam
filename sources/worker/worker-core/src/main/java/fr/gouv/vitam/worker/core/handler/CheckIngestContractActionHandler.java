@@ -48,10 +48,18 @@ import fr.gouv.vitam.common.parameter.ParameterHelper;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.functional.administration.client.AdminManagementClient;
 import fr.gouv.vitam.functional.administration.client.AdminManagementClientFactory;
+import fr.gouv.vitam.functional.administration.common.ManagementContract;
 import fr.gouv.vitam.functional.administration.common.exception.AdminManagementClientServerException;
 import fr.gouv.vitam.functional.administration.common.exception.ReferentialNotFoundException;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
+import fr.gouv.vitam.storage.engine.client.StorageClient;
+import fr.gouv.vitam.storage.engine.client.StorageClientFactory;
+import fr.gouv.vitam.storage.engine.client.exception.StorageServerClientException;
+import fr.gouv.vitam.storage.engine.common.referential.model.StorageStrategy;
+import fr.gouv.vitam.storage.engine.common.utils.ReferentOfferNotFoundException;
+import fr.gouv.vitam.storage.engine.common.utils.StorageStrategyNotFoundException;
+import fr.gouv.vitam.storage.engine.common.utils.StorageStrategyUtils;
 import fr.gouv.vitam.worker.common.HandlerIO;
 import org.apache.commons.lang3.StringUtils;
 
@@ -75,14 +83,17 @@ public class CheckIngestContractActionHandler extends ActionHandler {
     final ItemStatus itemStatus = new ItemStatus(HANDLER_ID);
 
     private AdminManagementClientFactory adminManagementClientFactory;
+    private StorageClientFactory storageClientFactory;
 
     public CheckIngestContractActionHandler() {
-        this(AdminManagementClientFactory.getInstance());
+        this(AdminManagementClientFactory.getInstance(), StorageClientFactory.getInstance());
     }
 
     @VisibleForTesting
-    public CheckIngestContractActionHandler(AdminManagementClientFactory adminManagementClientFactory) {
+    public CheckIngestContractActionHandler(AdminManagementClientFactory adminManagementClientFactory,
+            StorageClientFactory storageClientFactory) {
         this.adminManagementClientFactory = adminManagementClientFactory;
+        this.storageClientFactory = storageClientFactory;
     }
 
 
@@ -245,7 +256,8 @@ public class CheckIngestContractActionHandler extends ActionHandler {
     }
 
     private CheckIngestContractStatus checkManagementContract(String managementContractId) {
-        try (AdminManagementClient adminManagementClient = adminManagementClientFactory.getClient()) {
+        try (AdminManagementClient adminManagementClient = adminManagementClientFactory.getClient();
+                StorageClient storageClient = storageClientFactory.getClient()) {
             RequestResponse<ManagementContractModel> ManagementContractResponse = adminManagementClient
                     .findManagementContractsByID(managementContractId);
             if (ManagementContractResponse.isOk()) {
@@ -264,8 +276,37 @@ public class CheckIngestContractActionHandler extends ActionHandler {
                                 "CheckContract : The Management Contract " + managementContract + "  is not activated");
                         return CheckIngestContractStatus.MANAGEMENT_CONTRACT_INACTIVE;
                     }
-                    // TODO check validity of management contract WITH COMMON CODE
-                    // CheckIngestContractStatus.MANAGEMENT_CONTRACT_INVALID;
+                    
+                    if (managementContract.getStorage() != null) {
+                        RequestResponse<StorageStrategy> strategiesResponse = storageClient.getStorageStrategies();
+                        if (!strategiesResponse.isOk()) {
+                            LOGGER.error(strategiesResponse.toString());
+                            throw new StorageServerClientException("Exception while retrieving storage strategies");
+                        }
+                        List<StorageStrategy> strategies = ((RequestResponseOK<StorageStrategy>) strategiesResponse)
+                                .getResults();
+
+                        try {
+                            if (managementContract.getStorage().getObjectGroupStrategy() != null) {
+                                StorageStrategyUtils.checkStrategy(
+                                        managementContract.getStorage().getObjectGroupStrategy(), strategies,
+                                        ManagementContract.OBJECTGROUP_STRATEGY, true);
+                            }
+                            if (managementContract.getStorage().getUnitStrategy() != null) {
+                                StorageStrategyUtils.checkStrategy(managementContract.getStorage().getUnitStrategy(),
+                                        strategies, ManagementContract.UNIT_STRATEGY, true);
+                            }
+
+                            if (managementContract.getStorage().getObjectStrategy() != null) {
+                                StorageStrategyUtils.checkStrategy(managementContract.getStorage().getObjectStrategy(),
+                                        strategies, ManagementContract.OBJECT_STRATEGY, false);
+                            }
+                        } catch (StorageStrategyNotFoundException | ReferentOfferNotFoundException exc) {
+                            LOGGER.error(exc);
+                            return CheckIngestContractStatus.MANAGEMENT_CONTRACT_INVALID;
+                        }
+                    }
+                    
                     return CheckIngestContractStatus.OK;
                 }
             }
@@ -273,8 +314,8 @@ public class CheckIngestContractActionHandler extends ActionHandler {
             LOGGER.error("Management Contract not found :", e);
             return CheckIngestContractStatus.MANAGEMENT_CONTRACT_UNKNOWN;
 
-        } catch (AdminManagementClientServerException | InvalidParseOperationException e) {
-            LOGGER.error("Context check error :", e);
+        } catch (AdminManagementClientServerException | InvalidParseOperationException | StorageServerClientException e) {
+            LOGGER.error("Fatal check error :", e);
             return CheckIngestContractStatus.FATAL;
         }
 

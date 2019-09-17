@@ -48,6 +48,7 @@ import fr.gouv.vitam.functional.administration.common.exception.ReferentialNotFo
 import fr.gouv.vitam.logbook.common.parameters.LogbookParameterName;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
+import fr.gouv.vitam.storage.engine.client.StorageClientFactory;
 import fr.gouv.vitam.worker.common.HandlerIO;
 import fr.gouv.vitam.worker.common.utils.SedaUtils;
 import fr.gouv.vitam.worker.common.utils.SedaUtilsFactory;
@@ -73,17 +74,20 @@ public class CheckHeaderActionHandler extends ActionHandler {
     public static final String MANAGEMENT_CONTRACT = "managementContract";
 
     private final AdminManagementClientFactory adminManagementClientFactory;
+    private final StorageClientFactory storageClientFactory;
     private final SedaUtilsFactory sedaUtilsFactory;
 
     public CheckHeaderActionHandler() {
-      this(AdminManagementClientFactory.getInstance(), SedaUtilsFactory.getInstance());
+      this(AdminManagementClientFactory.getInstance(), StorageClientFactory.getInstance(), SedaUtilsFactory.getInstance());
     }
 
     @VisibleForTesting
     public CheckHeaderActionHandler(
         AdminManagementClientFactory adminManagementClientFactory,
+        StorageClientFactory storageClientFactory,
         SedaUtilsFactory sedaUtilsFactory) {
         this.adminManagementClientFactory = adminManagementClientFactory;
+        this.storageClientFactory = storageClientFactory;
         this.sedaUtilsFactory = sedaUtilsFactory;
     }
 
@@ -148,7 +152,7 @@ public class CheckHeaderActionHandler extends ActionHandler {
         if (shouldCheckContract) {
             handlerIO.getInput().clear();
             handlerIO.getInput().add(mandatoryValueMap);
-            CheckIngestContractActionHandler checkIngestContractActionHandler = new CheckIngestContractActionHandler(adminManagementClientFactory);
+            CheckIngestContractActionHandler checkIngestContractActionHandler = new CheckIngestContractActionHandler(adminManagementClientFactory, storageClientFactory);
             final ItemStatus checkContratItemStatus = checkIngestContractActionHandler.execute(params, handlerIO);
             itemStatus.setItemsStatus(CheckIngestContractActionHandler.getId(), checkContratItemStatus);
             checkIngestContractActionHandler.close();
