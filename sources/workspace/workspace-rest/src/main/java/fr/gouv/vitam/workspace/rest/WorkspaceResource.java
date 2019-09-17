@@ -182,6 +182,8 @@ public class WorkspaceResource extends ApplicationStatusResource {
             ParametersChecker.checkParameter(ErrorMessage.CONTAINER_NAME_IS_A_MANDATORY_PARAMETER.getMessage(),
                 containerName);
             workspace.purgeOldFilesInContainer(containerName, timeToLive);
+            return Response.status(Status.NO_CONTENT).entity(containerName).build();
+
         } catch (final ContentAddressableStorageNotFoundException e) {
             LOGGER.error(ErrorMessage.CONTAINER_NOT_FOUND.getMessage() + containerName + " => " + e.getMessage());
             return Response.status(Status.NOT_FOUND).entity(containerName).build();
@@ -192,8 +194,6 @@ public class WorkspaceResource extends ApplicationStatusResource {
             LOGGER.error(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage(), e);
             return Response.status(Status.INTERNAL_SERVER_ERROR).entity(containerName).build();
         }
-
-        return Response.status(Status.NO_CONTENT).entity(containerName).build();
     }
 
     /**

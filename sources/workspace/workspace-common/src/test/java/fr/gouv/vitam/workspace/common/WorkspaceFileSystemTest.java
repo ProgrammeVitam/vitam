@@ -36,6 +36,7 @@ import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageCompressed
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundException;
 import fr.gouv.vitam.workspace.api.exception.ZipFilesNameNotAllowedException;
+import fr.gouv.vitam.workspace.api.model.TimeToLive;
 import org.apache.commons.compress.archivers.ArchiveEntry;
 import org.apache.commons.compress.archivers.ArchiveInputStream;
 import org.apache.commons.compress.archivers.ArchiveStreamFactory;
@@ -54,8 +55,10 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -496,6 +499,50 @@ public class WorkspaceFileSystemTest {
         long number = storage.countObjects(CONTAINER_NAME);
         Assert.assertNotNull(number);
         Assert.assertEquals(7, number);
+    }
+
+    @Test
+    public void purgeOldFilesInContainerShouldNotDeleteNewFiles() throws Exception {
+
+        // Given
+        String fileName = "targetDir/result.zip";
+        storage.createContainer(CONTAINER_NAME);
+        String folder1 = "folder1";
+        storage.createFolder(CONTAINER_NAME, folder1);
+
+        storage.putObject(CONTAINER_NAME + "/" + folder1, "1.txt", new ByteArrayInputStream("bobbie1".getBytes()));
+        storage.putObject(CONTAINER_NAME, "2.txt", new ByteArrayInputStream("bobby5".getBytes()));
+
+        // When
+        storage.purgeOldFilesInContainer(CONTAINER_NAME, new TimeToLive(1, ChronoUnit.HOURS));
+
+        // Then
+        assertThat(storage.getObject(CONTAINER_NAME + "/" + folder1, "1.txt", null, null).getStatus()).isEqualTo(200);
+        assertThat(storage.getObject(CONTAINER_NAME, "2.txt", null, null).getStatus()).isEqualTo(200);
+    }
+
+    @Test
+    public void purgeOldFilesInContainerShouldDeleteOldFiles() throws Exception {
+
+        // Given
+        String fileName = "targetDir/result.zip";
+        storage.createContainer(CONTAINER_NAME);
+        String folder1 = "folder1";
+        storage.createFolder(CONTAINER_NAME, folder1);
+
+        storage.putObject(CONTAINER_NAME + "/" + folder1, "1.txt", new ByteArrayInputStream("bobbie1".getBytes()));
+        storage.putObject(CONTAINER_NAME, "2.txt", new ByteArrayInputStream("bobby5".getBytes()));
+
+        TimeUnit.SECONDS.sleep(2);
+
+        // When
+        storage.purgeOldFilesInContainer(CONTAINER_NAME, new TimeToLive(1, ChronoUnit.SECONDS));
+
+        // Then
+        assertThatThrownBy(() -> storage.getObject(CONTAINER_NAME + "/" + folder1, "1.txt", null, null))
+            .isInstanceOf(ContentAddressableStorageNotFoundException.class);
+        assertThatThrownBy(() -> storage.getObject(CONTAINER_NAME, "2.txt", null, null))
+            .isInstanceOf(ContentAddressableStorageNotFoundException.class);
     }
 
     private List<ArchiveEntry> findArchiveEntries(ArchiveInputStream archiveInputStream) throws IOException {

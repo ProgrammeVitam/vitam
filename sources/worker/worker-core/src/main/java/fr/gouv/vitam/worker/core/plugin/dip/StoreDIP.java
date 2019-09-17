@@ -33,27 +33,16 @@ import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
-import fr.gouv.vitam.storage.engine.client.StorageClient;
-import fr.gouv.vitam.storage.engine.client.StorageClientFactory;
-import fr.gouv.vitam.storage.engine.client.exception.StorageAlreadyExistsClientException;
-import fr.gouv.vitam.storage.engine.client.exception.StorageNotFoundClientException;
-import fr.gouv.vitam.storage.engine.client.exception.StorageServerClientException;
-import fr.gouv.vitam.storage.engine.common.model.DataCategory;
-import fr.gouv.vitam.storage.engine.common.model.request.ObjectDescription;
 import fr.gouv.vitam.worker.common.HandlerIO;
 import fr.gouv.vitam.worker.core.handler.ActionHandler;
-import fr.gouv.vitam.worker.core.impl.HandlerIOImpl;
-import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageAlreadyExistException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
-
-import static fr.gouv.vitam.common.model.IngestWorkflowConstants.SEDA_FILE;
-
-import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.workspace.client.WorkspaceClient;
 import fr.gouv.vitam.workspace.common.CompressInformation;
 
 import java.util.Collections;
+
+import static fr.gouv.vitam.common.model.IngestWorkflowConstants.SEDA_FILE;
 
 /**
  * ZIP the dip and move it from workspace to storage
@@ -64,7 +53,7 @@ public class StoreDIP extends ActionHandler {
 
     private static final String STORE_DIP = "STORE_DIP";
     static final String CONTENT = "Content";
-    private static final String DIP_CONTAINER = "DIP";
+    static final String DIP_CONTAINER = "DIP";
 
     @Override
     public ItemStatus execute(WorkerParameters params, HandlerIO handler)
@@ -106,7 +95,6 @@ public class StoreDIP extends ActionHandler {
 
     @Override
     public void checkMandatoryIOParameter(HandlerIO handler) throws ProcessingException {
-
+        // Nothing to check
     }
-
 }

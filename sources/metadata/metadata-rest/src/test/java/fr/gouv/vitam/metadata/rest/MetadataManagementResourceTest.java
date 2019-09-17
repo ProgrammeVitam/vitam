@@ -28,7 +28,9 @@ package fr.gouv.vitam.metadata.rest;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatCode;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import java.util.ArrayList;
@@ -62,6 +64,7 @@ import fr.gouv.vitam.metadata.core.model.ReconstructionRequestItem;
 import fr.gouv.vitam.metadata.core.model.ReconstructionResponseItem;
 import fr.gouv.vitam.metadata.core.reconstruction.ReconstructionService;
 import fr.gouv.vitam.processing.management.client.ProcessingManagementClientFactory;
+import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
 import org.junit.AfterClass;
 import org.junit.Before;
@@ -289,4 +292,31 @@ public class MetadataManagementResourceTest {
             .isInstanceOf(IllegalArgumentException.class);
     }
 
+    @Test
+    @RunWithCustomExecutor
+    public void purgeExpiredDipFilesShouldReturnOKWhenServiceOK() throws Exception {
+
+        // Given
+
+        // When
+        Response response = reconstructionResource.purgeExpiredDipFiles();
+
+        // Then
+        verify(dipPurgeService).purgeExpiredDipFiles();
+        assertThat(response.getStatus()).isEqualTo(Status.OK.getStatusCode());
+    }
+
+    @Test
+    @RunWithCustomExecutor
+    public void purgeExpiredDipFilesShouldReturnInternalServerWhenServiceError() throws Exception {
+
+        // Given
+        doThrow(new ContentAddressableStorageServerException("")).when(dipPurgeService).purgeExpiredDipFiles();
+
+        // When
+        Response response = reconstructionResource.purgeExpiredDipFiles();
+
+        // Then
+        assertThat(response.getStatus()).isEqualTo(Status.INTERNAL_SERVER_ERROR.getStatusCode());
+    }
 }

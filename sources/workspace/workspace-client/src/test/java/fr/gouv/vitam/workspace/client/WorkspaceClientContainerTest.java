@@ -32,9 +32,9 @@ import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.server.application.junit.ResteasyTestApplication;
 import fr.gouv.vitam.common.serverv2.VitamServerTestRunner;
-import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageAlreadyExistException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
+import fr.gouv.vitam.workspace.api.model.TimeToLive;
 import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
@@ -50,6 +50,7 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
+import java.time.temporal.ChronoUnit;
 import java.util.Set;
 
 import static org.junit.Assert.assertEquals;
@@ -129,6 +130,13 @@ public class WorkspaceClientContainerTest extends ResteasyTestApplication {
         @Produces(MediaType.APPLICATION_JSON)
         public Response countObjects(@PathParam("containerName") String containerName) {
             return expectedResponse.get();
+        }
+
+        @DELETE
+        @Path("{containerName}/old_files")
+        @Produces(MediaType.APPLICATION_JSON)
+        public Response purgeOldFilesInContainer(@PathParam("containerName") String containerName, TimeToLive timeToLive) {
+            return expectedResponse.delete();
         }
     }
 
@@ -232,5 +240,19 @@ public class WorkspaceClientContainerTest extends ResteasyTestApplication {
         throws ContentAddressableStorageServerException, ContentAddressableStorageNotFoundException {
         when(mock.get()).thenReturn(Response.status(Status.INTERNAL_SERVER_ERROR).build());
         client.countObjects(CONTAINER_NAME);
+    }
+
+    @Test
+    public void givenSuccessWhenPurgeOldFilesInContainerThenReturnOk()
+        throws ContentAddressableStorageServerException {
+        when(mock.delete()).thenReturn(Response.status(Status.NO_CONTENT).build());
+        client.purgeOldFilesInContainer(CONTAINER_NAME, new TimeToLive(10, ChronoUnit.MINUTES));
+    }
+
+    @Test(expected = ContentAddressableStorageServerException.class)
+    public void givenInternalErrorWhenPurgeOldFilesInContainerThenThrowException()
+        throws ContentAddressableStorageServerException {
+        when(mock.delete()).thenReturn(Response.status(Status.INTERNAL_SERVER_ERROR).build());
+        client.purgeOldFilesInContainer(CONTAINER_NAME, new TimeToLive(10, ChronoUnit.MINUTES));
     }
 }

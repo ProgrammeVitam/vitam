@@ -42,6 +42,7 @@ import fr.gouv.vitam.common.exception.VitamApplicationServerException;
 import fr.gouv.vitam.common.junit.JunitHelper;
 import fr.gouv.vitam.common.storage.StorageConfiguration;
 import fr.gouv.vitam.common.stream.MultiplexedStreamReader;
+import fr.gouv.vitam.workspace.api.model.TimeToLive;
 import fr.gouv.vitam.workspace.common.CompressInformation;
 import fr.gouv.vitam.workspace.common.Entry;
 import io.restassured.RestAssured;
@@ -65,9 +66,13 @@ import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 import static io.restassured.RestAssured.get;
 import static io.restassured.RestAssured.given;
@@ -752,5 +757,69 @@ public class WorkspaceResourceTest {
             .body(Arrays.asList(fileName1, fileName2)).then()
             .statusCode(Status.NOT_FOUND.getStatusCode()).when()
             .get("/containers/" + CONTAINER_NAME + "/objects");
+    }
+
+    @Test
+    public void should_purge_old_files() throws Exception {
+
+        // Given 2 old files
+        with().then()
+            .statusCode(Status.CREATED.getStatusCode()).when().post("/containers/" + CONTAINER_NAME);
+
+        String file1 = "file1.zip";
+        String file2 = "sub-folder/file2.zip";
+
+        with()
+            .contentType(ContentType.BINARY).body(IOUtils.toInputStream("test 1", StandardCharsets.UTF_8))
+            .when().post("/containers/" + CONTAINER_NAME + "/objects/" + file1)
+            .then().statusCode(Status.CREATED.getStatusCode());
+
+        with()
+            .contentType(ContentType.BINARY).body(IOUtils.toInputStream("test 2", StandardCharsets.UTF_8))
+            .when().post("/containers/" + CONTAINER_NAME + "/objects/" + file2)
+            .then().statusCode(Status.CREATED.getStatusCode());
+
+        // When
+        given().contentType(ContentType.JSON)
+            .body(new TimeToLive(1, ChronoUnit.MINUTES)).then()
+            .statusCode(Status.NO_CONTENT.getStatusCode()).when()
+            .delete("/containers/" + CONTAINER_NAME + "/old_files");
+
+        // Then
+        given().then().statusCode(Status.OK.getStatusCode()).when().get("/containers/" + CONTAINER_NAME + "/objects/" + file1);
+        given().then().statusCode(Status.OK.getStatusCode()).when().get("/containers/" + CONTAINER_NAME + "/objects/" + file2);
+    }
+
+    @Test
+    public void should_not_purge_new_files() throws Exception {
+
+        // Given 2 new files
+        with().then()
+            .statusCode(Status.CREATED.getStatusCode()).when().post("/containers/" + CONTAINER_NAME);
+
+        String file1 = "file1.zip";
+        String file2 = "sub-folder/file2.zip";
+
+        with()
+            .contentType(ContentType.BINARY).body(IOUtils.toInputStream("test 1", StandardCharsets.UTF_8))
+            .when().post("/containers/" + CONTAINER_NAME + "/objects/" + file1)
+            .then().statusCode(Status.CREATED.getStatusCode());
+
+        with()
+            .contentType(ContentType.BINARY).body(IOUtils.toInputStream("test 2", StandardCharsets.UTF_8))
+            .when().post("/containers/" + CONTAINER_NAME + "/objects/" + file2)
+            .then().statusCode(Status.CREATED.getStatusCode());
+
+        TimeUnit.SECONDS.sleep(2);
+
+        // When
+        given().contentType(ContentType.JSON)
+            .body(new TimeToLive(1, ChronoUnit.SECONDS)).then()
+            .statusCode(Status.NO_CONTENT.getStatusCode()).when()
+            .delete("/containers/" + CONTAINER_NAME + "/old_files");
+
+        // Then
+        given().then().statusCode(Status.NOT_FOUND.getStatusCode()).when().get("/containers/" + CONTAINER_NAME + "/objects/" + file1);
+        given().then().statusCode(Status.NOT_FOUND.getStatusCode()).when().get("/containers/" + CONTAINER_NAME + "/objects/" + file2);
     }
 }

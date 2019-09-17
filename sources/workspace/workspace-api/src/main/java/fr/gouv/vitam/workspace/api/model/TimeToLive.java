@@ -29,6 +29,7 @@ package fr.gouv.vitam.workspace.api.model;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 import java.time.temporal.ChronoUnit;
+import java.util.Objects;
 
 public class TimeToLive {
 
@@ -63,5 +64,21 @@ public class TimeToLive {
     public TimeToLive setUnit(ChronoUnit unit) {
         this.unit = unit;
         return this;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o)
+            return true;
+        if (o == null || getClass() != o.getClass())
+            return false;
+        TimeToLive that = (TimeToLive) o;
+        return value == that.value &&
+            unit == that.unit;
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(value, unit);
     }
 }
