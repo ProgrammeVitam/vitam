@@ -16,7 +16,7 @@ pipeline {
 
     environment {
         MVN_BASE = "/usr/local/maven/bin/mvn --settings ${pwd()}/.ci/settings.xml"
-        MVN_COMMAND = "${MVN_BASE} --show-version --batch-mode --errors --fail-at-end -DinstallAtEnd=true -DdeployAtEnd=true "
+        MVN_COMMAND = "${MVN_BASE} --show-version --batch-mode --errors --fail-never -DinstallAtEnd=true -DdeployAtEnd=true "
         DEPLOY_GOAL = "install" // Deploy goal used by maven ; typically "deploy" for master* branches & "" (nothing) for everything else (we don't deploy) ; keep a space so can work in other branches than develop
         CI = credentials("app-jenkins")
         SERVICE_SONAR_URL = credentials("service-sonar-url")
@@ -80,7 +80,7 @@ pipeline {
                 // OMA: evaluate project version ; write directly through shell as I didn't find anything else
                 sh "$MVN_BASE -q -f sources/pom.xml --non-recursive -Dexec.args='\${project.version}' -Dexec.executable=\"echo\" org.codehaus.mojo:exec-maven-plugin:1.3.1:exec > version_projet.txt"
                 echo "Changed VITAM : ${env.CHANGED_VITAM}"
-                echo "Changed VITAM : ${env.CHANGED_VITAM_PRODUCT}"		
+                echo "Changed VITAM : ${env.CHANGED_VITAM_PRODUCT}"
             }
         }
 
@@ -107,7 +107,7 @@ pipeline {
                 echo "We are on master branch (${env.GIT_BRANCH}) ; deploy goal is \"${env.DEPLOY_GOAL}\""
             }
         }
-		
+
 		// special case for MR
         stage("Notify gitlab if merge request") {
             when {
@@ -124,7 +124,7 @@ pipeline {
                 updateGitlabCommitStatus name: 'mergerequest', state: 'running'
             }
         }
-		
+
         stage ("Execute unit and integration tests") {
          // when {
         //     //     environment(name: 'CHANGED_VITAM', value: 'true')
@@ -172,7 +172,7 @@ pipeline {
                         tag pattern: "^[1-9]+\\.[0-9]+\\.[0-9]+-?[0-9]*\$", comparator: "REGEXP"
                     }
                 }
-                
+
             }
             steps {
                 updateGitlabCommitStatus name: 'mergerequest', state: 'success'
