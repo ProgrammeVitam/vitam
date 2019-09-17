@@ -30,6 +30,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -108,6 +109,7 @@ public class MetadataManagementResourceTest {
                 LogbookOperationsClientFactory.getInstance(),
                 WorkspaceClientFactory.getInstance(),
                 configuration, dipPurgeService);
+        VitamConfiguration.setTenants(Arrays.asList(0, 1, 2));
     }
 
     @BeforeClass
@@ -318,5 +320,17 @@ public class MetadataManagementResourceTest {
 
         // Then
         assertThat(response.getStatus()).isEqualTo(Status.INTERNAL_SERVER_ERROR.getStatusCode());
+    }
+
+    @Test
+    @RunWithCustomExecutor
+    public void migrationPurgeDipFilesFromOffersTest() throws Exception {
+
+        // When
+        Response response = reconstructionResource.migrationPurgeDipFilesFromOffers();
+
+        // Then
+        verify(dipPurgeService, times(VitamConfiguration.getTenants().size())).migrationPurgeDipFilesFromOffers();
+        assertThat(response.getStatus()).isEqualTo(Status.OK.getStatusCode());
     }
 }

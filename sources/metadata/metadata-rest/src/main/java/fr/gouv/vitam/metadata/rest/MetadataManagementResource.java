@@ -139,6 +139,7 @@ public class MetadataManagementResource {
     private static final String COMPUTED_INHERITED_RULES_OBSOLETE_URI =
         "/units/computedInheritedRules/processObsoletes";
     private static final String PURGE_EXPIRED_DIP_FILES_URI = "/purgeDIP";
+    private static final String MIGRATION_PURGE_EXPIRED_FROM_OFFERS = "/migrationDeleteDipFromOffers";
 
     /**
      * Error/Exceptions messages.
@@ -460,6 +461,33 @@ public class MetadataManagementResource {
             VitamThreadUtils.getVitamSession().initIfAbsent(VitamConfiguration.getAdminTenant());
 
             this.dipPurgeService.purgeExpiredDipFiles();
+
+            return Response.status(OK).build();
+        } catch (Exception e) {
+            LOGGER.error(e);
+            return VitamCodeHelper.toVitamError(VitamCode.METADATA_INTERNAL_SERVER_ERROR, e.getMessage())
+                .toResponse();
+        }
+    }
+
+    @Path(MIGRATION_PURGE_EXPIRED_FROM_OFFERS)
+    @DELETE
+    @Produces(MediaType.APPLICATION_JSON)
+    @VitamAuthentication(authentLevel = AuthenticationLevel.BASIC_AUTHENT)
+    public Response migrationPurgeDipFilesFromOffers() {
+        try {
+
+            for (Integer tenant : VitamConfiguration.getTenants()) {
+
+                LOGGER.info("Running DIP cleanup from offers for tenant " + tenant);
+
+                VitamThreadUtils.getVitamSession().setTenantId(tenant);
+                VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newRequestIdGUID(tenant));
+
+                this.dipPurgeService.migrationPurgeDipFilesFromOffers();
+
+                LOGGER.info("Running DIP finished successfully");
+            }
 
             return Response.status(OK).build();
         } catch (Exception e) {

@@ -27,27 +27,44 @@
 package fr.gouv.vitam.metadata.core.dip;
 
 import com.google.common.annotations.VisibleForTesting;
+import fr.gouv.vitam.common.VitamConfiguration;
+import fr.gouv.vitam.common.logging.VitamLogger;
+import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.storage.engine.client.OfferLogHelper;
+import fr.gouv.vitam.storage.engine.client.StorageClient;
+import fr.gouv.vitam.storage.engine.client.StorageClientFactory;
+import fr.gouv.vitam.storage.engine.client.StorageClientOfferLogIterator;
+import fr.gouv.vitam.storage.engine.client.exception.StorageServerClientException;
+import fr.gouv.vitam.storage.engine.common.model.DataCategory;
+import fr.gouv.vitam.storage.engine.common.model.OfferLog;
+import fr.gouv.vitam.storage.engine.common.model.Order;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
 import fr.gouv.vitam.workspace.api.model.TimeToLive;
 import fr.gouv.vitam.workspace.client.WorkspaceClient;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
 
 import java.time.temporal.ChronoUnit;
+import java.util.Iterator;
 
 public class DipPurgeService {
+
+    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(DipPurgeService.class);
 
     private static final String DIP_CONTAINER = "DIP";
 
     private final WorkspaceClientFactory workspaceClientFactory;
+    private final StorageClientFactory storageClientFactory;
     private final int timeToLiveInMinutes;
 
     public DipPurgeService(int timeToLiveInMinutes) {
-        this(WorkspaceClientFactory.getInstance(), timeToLiveInMinutes);
+        this(WorkspaceClientFactory.getInstance(), StorageClientFactory.getInstance(), timeToLiveInMinutes);
     }
 
     @VisibleForTesting
-    public DipPurgeService(WorkspaceClientFactory workspaceClientFactory, int timeToLiveInMinutes) {
+    public DipPurgeService(WorkspaceClientFactory workspaceClientFactory,
+        StorageClientFactory storageClientFactory, int timeToLiveInMinutes) {
         this.workspaceClientFactory = workspaceClientFactory;
+        this.storageClientFactory = storageClientFactory;
         this.timeToLiveInMinutes = timeToLiveInMinutes;
     }
 
@@ -57,6 +74,31 @@ public class DipPurgeService {
             workspaceClient.purgeOldFilesInContainer(
                 DIP_CONTAINER,
                 new TimeToLive(this.timeToLiveInMinutes, ChronoUnit.MINUTES));
+        }
+    }
+
+    public void migrationPurgeDipFilesFromOffers() throws StorageServerClientException {
+        try (StorageClient storageClient = storageClientFactory.getClient()) {
+
+            Iterator<OfferLog> offerLogIterator = OfferLogHelper.getListing(
+                storageClientFactory, VitamConfiguration.getDefaultStrategy(), DataCategory.DIP, null,
+                Order.ASC, VitamConfiguration.getChunkSize(), null);
+
+            while(offerLogIterator.hasNext()) {
+                OfferLog offerLog = offerLogIterator.next();
+                switch (offerLog.getAction()) {
+                    case WRITE:
+                        LOGGER.info("Deleting DIP file " + offerLog.getFileName());
+                        storageClient.delete(VitamConfiguration.getDefaultStrategy(), DataCategory.DIP, offerLog.getFileName());
+                        break;
+                    case DELETE:
+                        // NOP
+                        break;
+                    default:
+                        throw new IllegalStateException("Unexpected value: " + offerLog.getAction());
+                }
+            }
+
         }
     }
 }
