@@ -46,6 +46,7 @@ import fr.gouv.vitam.logbook.common.parameters.LogbookLifeCycleUnitParameters;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParameterName;
 import fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess;
 import fr.gouv.vitam.logbook.lifecycles.client.LogbookLifeCyclesClientFactory;
+import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClientFactory;
 import fr.gouv.vitam.storage.engine.client.StorageClientFactory;
 import fr.gouv.vitam.storage.engine.client.exception.StorageServerClientException;
 import fr.gouv.vitam.storage.engine.common.model.DataCategory;
@@ -68,18 +69,20 @@ public class DataRectificationService {
 
     final private StorageClientFactory storageClientFactory;
     final private LogbookLifeCyclesClientFactory logbookLifeCyclesClientFactory;
+    final private LogbookOperationsClientFactory logbookOperationsClientFactory;
     private String OBJECT_CORRECTIVE_AUDIT = "OBJECT_CORRECTIVE_AUDIT";
     private String UNIT_CORRECTIVE_AUDIT = "UNIT_CORRECTIVE_AUDIT";
     private String OBJECT_GROUP_CORRECTIVE_AUDIT = "OBJECT_GROUP_CORRECTIVE_AUDIT";
 
     @VisibleForTesting DataRectificationService(StorageClientFactory storageClientFactory,
-        LogbookLifeCyclesClientFactory logbookLifeCyclesClientFactory) {
+        LogbookLifeCyclesClientFactory logbookLifeCyclesClientFactory, LogbookOperationsClientFactory logbookOperationsClientFactory) {
         this.storageClientFactory = storageClientFactory;
         this.logbookLifeCyclesClientFactory = logbookLifeCyclesClientFactory;
+        this.logbookOperationsClientFactory = logbookOperationsClientFactory;
     }
 
     DataRectificationService() {
-        this(StorageClientFactory.getInstance(), LogbookLifeCyclesClientFactory.getInstance());
+        this(StorageClientFactory.getInstance(), LogbookLifeCyclesClientFactory.getInstance(), LogbookOperationsClientFactory.getInstance());
     }
 
     public Optional<IdentifierType> correctUnits(EvidenceAuditReportLine line, String containerName)
