@@ -30,6 +30,8 @@ import javax.ws.rs.container.ContainerRequestContext;
 import javax.ws.rs.core.UriInfo;
 
 import fr.gouv.vitam.common.model.administration.ContextStatus;
+import fr.gouv.vitam.functional.administration.client.AdminManagementClientFactory;
+import fr.gouv.vitam.security.internal.client.InternalSecurityClientFactory;
 import org.bouncycastle.asn1.x500.X500Name;
 import org.bouncycastle.asn1.x509.AlgorithmIdentifier;
 import org.bouncycastle.asn1.x509.BasicConstraints;
@@ -87,6 +89,9 @@ public class InternalSecurityFilterTest {
     private InternalSecurityClient internalSecurityClient;
     private AdminManagementClient adminManagementClient;
 
+    private InternalSecurityClientFactory internalSecurityClientFactory;
+    private AdminManagementClientFactory adminManagementClientFactory;
+
     private UriInfo uriInfo;
 
     @Rule
@@ -113,12 +118,18 @@ public class InternalSecurityFilterTest {
 
         x509CertificateToPem();
 
+        internalSecurityClientFactory = mock(InternalSecurityClientFactory.class);
+        adminManagementClientFactory = mock(AdminManagementClientFactory.class);
+
         httpServletRequest = mock(HttpServletRequest.class);
         containerRequestContext = mock(ContainerRequestContext.class);
         internalSecurityClient = mock(InternalSecurityClient.class);
         adminManagementClient = mock(AdminManagementClient.class);
+        when(internalSecurityClientFactory.getClient()).thenReturn(internalSecurityClient);
+        when(adminManagementClientFactory.getClient()).thenReturn(adminManagementClient);
+
         internalSecurityFilter =
-            new InternalSecurityFilter(httpServletRequest, internalSecurityClient, adminManagementClient);
+            new InternalSecurityFilter(httpServletRequest, internalSecurityClientFactory, adminManagementClientFactory);
 
         uriInfo = mock(UriInfo.class);
         when(containerRequestContext.getUriInfo()).thenReturn(uriInfo);

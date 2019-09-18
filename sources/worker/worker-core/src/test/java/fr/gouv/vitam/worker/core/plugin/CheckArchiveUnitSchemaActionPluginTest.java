@@ -36,6 +36,7 @@ import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.model.processing.IOParameter;
 import fr.gouv.vitam.common.model.processing.ProcessingUri;
 import fr.gouv.vitam.common.model.processing.UriPrefix;
+import fr.gouv.vitam.common.ontology.OntologyTestHelper;
 import fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess;
 import fr.gouv.vitam.logbook.lifecycles.client.LogbookLifeCyclesClient;
 import fr.gouv.vitam.logbook.lifecycles.client.LogbookLifeCyclesClientFactory;
@@ -71,7 +72,6 @@ import static org.mockito.Mockito.when;
 
 public class CheckArchiveUnitSchemaActionPluginTest {
 
-    private static final String ONTOLOGY_JSON = "VitamOntology.json";
     private WorkspaceClient workspaceClient;
     private WorkspaceClientFactory workspaceClientFactory;
 
@@ -180,7 +180,7 @@ public class CheckArchiveUnitSchemaActionPluginTest {
 
         when(workspaceClient.getObject(any(), eq("Ontology/ontology.json")))
             .thenReturn(Response.status(Status.OK)
-                .entity(PropertiesUtils.getResourceAsStream(ONTOLOGY_JSON)).build());
+                .entity(OntologyTestHelper.loadOntologies()).build());
         action.addInIOParameters(in);
 
         File tempFolder = temporaryFolder.newFolder();

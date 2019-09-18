@@ -28,7 +28,10 @@ package fr.gouv.vitam.common.format.identification;
 
 import fr.gouv.vitam.common.format.identification.model.FormatIdentifierInfo;
 import fr.gouv.vitam.common.format.identification.model.FormatIdentifierResponse;
+import fr.gouv.vitam.common.logging.SysErrLogger;
 
+import java.io.IOException;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
@@ -38,17 +41,39 @@ import java.util.List;
  */
 class FormatIdentifierMock implements FormatIdentifier {
 
+    public static final String ZIP = "zip";
+
     @Override
     public List<FormatIdentifierResponse> analysePath(Path pathToFile) {
         final List<FormatIdentifierResponse> responses = new ArrayList<>();
-        final String formatLitteral = "Plain Text File";
-        final String mimeType = "text/plain";
-        final String formatId = "x-fmt/111";
-        final String ns = "pronom";
-        final FormatIdentifierResponse formatResponse =
-            new FormatIdentifierResponse(formatLitteral, mimeType, formatId, ns);
-        responses.add(formatResponse);
-        return responses;
+        String formatLitteral = "Plain Text File";
+        String mimeType = "text/plain";
+        String formatId = "x-fmt/111";
+        String ns = "pronom";
+        boolean isZip = false;
+        try {
+            String contentType = Files.probeContentType(pathToFile);
+            if (contentType != null && contentType.contains(ZIP)) {
+                isZip = true;
+            }
+        } catch (IOException e) {
+            SysErrLogger.FAKE_LOGGER.ignoreLog(e);
+        }
+        if (!isZip) {
+            final FormatIdentifierResponse formatResponse =
+                new FormatIdentifierResponse(formatLitteral, mimeType, formatId, ns);
+            responses.add(formatResponse);
+            return responses;
+        } else {
+            formatLitteral = "Zip File";
+            mimeType = "application/zip";
+            formatId = "x-fmt/263";
+            ns = "pronom";
+            final FormatIdentifierResponse formatResponse =
+                new FormatIdentifierResponse(formatLitteral, mimeType, formatId, ns);
+            responses.add(formatResponse);
+            return responses;
+        }
     }
 
     @Override

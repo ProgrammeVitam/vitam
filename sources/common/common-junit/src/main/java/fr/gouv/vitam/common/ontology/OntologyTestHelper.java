@@ -24,47 +24,16 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  *******************************************************************************/
-package fr.gouv.vitam.ingest.external.client;
+package fr.gouv.vitam.common.ontology;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import fr.gouv.vitam.common.PropertiesUtils;
 
-import fr.gouv.vitam.common.external.client.configuration.SecureClientConfiguration;
-import org.junit.Before;
-import org.junit.Test;
+import java.io.IOException;
+import java.io.InputStream;
 
-import fr.gouv.vitam.common.client.VitamClientFactoryInterface.VitamClientType;
+public class OntologyTestHelper {
 
-
-public class IngestExternalClientFactoryTest {
-
-    @Before
-    public void initFileConfiguration() {
-        IngestExternalClientFactory
-            .changeMode(IngestExternalClientFactory.changeConfigurationFile("ingest-external-client.conf"));
-    }
-
-    @Test
-    public void changeDefaultClientTypeTest() {
-
-        // First client type : Production
-        final IngestExternalClient client =
-            IngestExternalClientFactory.getInstance().getClient();
-        assertTrue(client instanceof IngestExternalClientRest);
-        assertEquals(VitamClientType.PRODUCTION, IngestExternalClientFactory.getInstance().getVitamClientType());
-
-        // Change to mock type and test
-        IngestExternalClientFactory.changeMode((SecureClientConfiguration)null);
-        final IngestExternalClient client2 = IngestExternalClientFactory.getInstance().getClient();
-        assertTrue(client2 instanceof IngestExternalClientMock);
-        assertEquals(VitamClientType.MOCK, IngestExternalClientFactory.getInstance().getVitamClientType());
-    }
-
-    @Test
-    public void testInitWithConfigurationFile() {
-        final IngestExternalClient client =
-            IngestExternalClientFactory.getInstance().getClient();
-        assertTrue(client instanceof IngestExternalClientRest);
-        assertEquals(VitamClientType.PRODUCTION, IngestExternalClientFactory.getInstance().getVitamClientType());
+    public static InputStream loadOntologies() throws IOException {
+        return PropertiesUtils.getResourceAsStream("VitamOntology.json");
     }
 }

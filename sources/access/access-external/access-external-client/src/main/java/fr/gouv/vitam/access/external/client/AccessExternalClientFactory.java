@@ -26,15 +26,15 @@
  *******************************************************************************/
 package fr.gouv.vitam.access.external.client;
 
-import java.io.IOException;
-
 import fr.gouv.vitam.common.PropertiesUtils;
-import fr.gouv.vitam.common.external.client.VitamClientFactory;
 import fr.gouv.vitam.common.client.configuration.ClientConfiguration;
+import fr.gouv.vitam.common.external.client.VitamClientFactory;
 import fr.gouv.vitam.common.external.client.configuration.SecureClientConfiguration;
 import fr.gouv.vitam.common.external.client.configuration.SecureClientConfigurationImpl;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+
+import java.io.IOException;
 
 /**
  * Access External Client Factory<br>
@@ -104,10 +104,15 @@ public class AccessExternalClientFactory extends VitamClientFactory<AccessExtern
 
     /**
      * JUnit only!!
-     * 
+     *
      * @param configuration null for MOCK
      */
     public static void changeMode(ClientConfiguration configuration) {
+        getInstance().initialisation(configuration, getInstance().getResourcePath());
+    }
+
+    public static void changeMode(String configurationFile) {
+        SecureClientConfiguration configuration = changeConfigurationFile(configurationFile);
         getInstance().initialisation(configuration, getInstance().getResourcePath());
     }
 }

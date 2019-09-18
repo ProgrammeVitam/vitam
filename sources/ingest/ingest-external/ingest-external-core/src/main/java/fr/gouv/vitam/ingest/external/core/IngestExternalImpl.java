@@ -504,7 +504,11 @@ public class IngestExternalImpl implements IngestExternal {
                 // and in async mode add LogbookOperationParameters as Ingest-External-ATR-Forward START
                 // and LogbookOperationParameters as Ingest-External-ATR-Forward OK
                 // then call back ingestClient with updateFinalLogbook
-                ingestClient.uploadInitialLogbook(helper.removeCreateDelegate(guid.getId()));
+                try {
+                    ingestClient.uploadInitialLogbook(helper.removeCreateDelegate(guid.getId()));
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
                 if (!isFileInfected && isSupportedMedia && manifestFileName != null &&
                     manifestFileName.isManifestFile()) {
 
@@ -851,8 +855,8 @@ public class IngestExternalImpl implements IngestExternal {
             .createArchiveInputStream(CommonMediaType.valueOf(mimeType), in)) {
             ArchiveEntry entry;
             while ((entry = archiveInputStream.getNextEntry()) != null) {
+                LOGGER.debug("SIP Files : " + entry.getName());
                 if (archiveInputStream.canReadEntryData(entry)) {
-                    LOGGER.info("SIP Files : " + entry.getName());
                     if (!entry.isDirectory() && entry.getName().split("/").length == 1) {
                         manifestFileName.setFileName(entry.getName());
                         if (entry.getName().matches(VitamConstants.MANIFEST_FILE_NAME_REGEX)) {
