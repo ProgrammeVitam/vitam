@@ -57,6 +57,7 @@ class InternalSecurityClientMock extends AbstractMockClient implements InternalS
     public Optional<IdentityModel> findIdentity(byte[] certificate)
         throws VitamClientInternalException, InternalSecurityException {
         IdentityModel value = new IdentityModel();
+        value.setContextId("Context_IT");
         return Optional.of(value);
     }
 

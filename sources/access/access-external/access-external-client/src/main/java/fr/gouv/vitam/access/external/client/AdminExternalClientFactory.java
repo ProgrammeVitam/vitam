@@ -31,6 +31,7 @@ import java.io.IOException;
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.external.client.VitamClientFactory;
 import fr.gouv.vitam.common.client.configuration.ClientConfiguration;
+import fr.gouv.vitam.common.external.client.configuration.SecureClientConfiguration;
 import fr.gouv.vitam.common.external.client.configuration.SecureClientConfigurationImpl;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
@@ -69,8 +70,8 @@ public class AdminExternalClientFactory extends VitamClientFactory<AdminExternal
      * @param configurationPath the path to the configuration file
      * @return ClientConfiguration
      */
-    static final ClientConfiguration changeConfigurationFile(String configurationPath) {
-        ClientConfiguration configuration = null;
+    static final SecureClientConfiguration changeConfigurationFile(String configurationPath) {
+        SecureClientConfiguration configuration = null;
         try {
             configuration = PropertiesUtils.readYaml(PropertiesUtils.findFile(configurationPath),
                 SecureClientConfigurationImpl.class);
@@ -107,6 +108,11 @@ public class AdminExternalClientFactory extends VitamClientFactory<AdminExternal
      * @param configuration null for MOCK
      */
     static final void changeMode(ClientConfiguration configuration) {
+        getInstance().initialisation(configuration, getInstance().getResourcePath());
+    }
+
+    public static final void changeMode(String configurationFile) {
+        SecureClientConfiguration configuration = changeConfigurationFile(configurationFile);
         getInstance().initialisation(configuration, getInstance().getResourcePath());
     }
 }

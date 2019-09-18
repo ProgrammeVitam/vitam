@@ -105,10 +105,14 @@ public class IngestExternalClientFactory extends VitamClientFactory<IngestExtern
     }
 
     /**
-     *
      * @param configuration null for MOCK
      */
-    static final void changeMode(SecureClientConfiguration configuration) {
+    public static final void changeMode(SecureClientConfiguration configuration) {
+        getInstance().initialisation(configuration, getInstance().getResourcePath());
+    }
+
+    public static final void changeMode(String configurationFile) {
+        SecureClientConfiguration configuration = changeConfigurationFile(configurationFile);
         getInstance().initialisation(configuration, getInstance().getResourcePath());
     }
 }

@@ -45,15 +45,16 @@ import javax.ws.rs.core.Application;
  */
 public class IngestExternalMain {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(IngestExternalMain.class);
+    public static final String PARAMETER_JETTY_SERVER_PORT = "jetty.ingest-external.port";
 
     private static final String CONF_FILE_NAME = "ingest-external.conf";
     private static final String MODULE_NAME = ServerIdentity.getInstance().getRole();
-    
+
     private VitamStarter vitamStarter;
 
     /**
      * Ingest External Main constructor
-     * 
+     *
      * @param configurationFile
      */
     public IngestExternalMain(String configurationFile) {
@@ -88,7 +89,7 @@ public class IngestExternalMain {
 
     /**
      * Main method to run the application (doing start and join)
-     * 
+     *
      * @param args
      */
     public static void main(String[] args) {
@@ -113,7 +114,7 @@ public class IngestExternalMain {
 
     /**
      * Start application
-     * 
+     *
      * @throws VitamApplicationServerException
      */
     public void start() throws VitamApplicationServerException {
@@ -122,7 +123,7 @@ public class IngestExternalMain {
 
     /**
      * Start and join application
-     * 
+     *
      * @throws VitamApplicationServerException
      */
     public void startAndJoin() throws VitamApplicationServerException {
@@ -131,7 +132,7 @@ public class IngestExternalMain {
 
     /**
      * Stop application
-     * 
+     *
      * @throws VitamApplicationServerException
      */
     public void stop() throws VitamApplicationServerException {
@@ -140,7 +141,7 @@ public class IngestExternalMain {
 
     /**
      * Get the Vitam Starter
-     * 
+     *
      * @return
      */
     public VitamStarter getVitamStarter() {

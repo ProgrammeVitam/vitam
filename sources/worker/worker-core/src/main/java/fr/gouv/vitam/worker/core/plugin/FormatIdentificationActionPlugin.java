@@ -297,7 +297,6 @@ public class FormatIdentificationActionPlugin extends ActionHandler implements V
                 result = adminClient.getFormats(select.getFinalSelect());
             }
 
-            // TODO P1 : what should we do if more than 1 result (for the moment, we take into account the first one)
             if (!result.isOk() || ((RequestResponseOK<FileFormatModel>) result).getResults().isEmpty()) {
                 // format not found in vitam referential
                 if (formatUnidentifiedAuthorized) {

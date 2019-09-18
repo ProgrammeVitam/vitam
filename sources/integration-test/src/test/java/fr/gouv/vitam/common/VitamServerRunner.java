@@ -1,5 +1,9 @@
 package fr.gouv.vitam.common;
 
+import fr.gouv.vitam.access.external.client.AccessExternalClientFactory;
+import fr.gouv.vitam.access.external.client.AdminExternalClientFactory;
+import fr.gouv.vitam.access.external.rest.AccessExternalApplicationForTest;
+import fr.gouv.vitam.access.external.rest.AccessExternalMain;
 import fr.gouv.vitam.access.internal.client.AccessInternalClientFactory;
 import fr.gouv.vitam.access.internal.rest.AccessInternalMain;
 import fr.gouv.vitam.batch.report.client.BatchReportClientFactory;
@@ -11,17 +15,23 @@ import fr.gouv.vitam.common.client.configuration.ClientConfigurationImpl;
 import fr.gouv.vitam.common.database.server.elasticsearch.ElasticsearchNode;
 import fr.gouv.vitam.common.elasticsearch.ElasticsearchRule;
 import fr.gouv.vitam.common.exception.VitamApplicationServerException;
+import fr.gouv.vitam.common.format.identification.FormatIdentifierFactory;
 import fr.gouv.vitam.common.junit.JunitHelper;
 import fr.gouv.vitam.common.logging.SysErrLogger;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.mongo.MongoRule;
 import fr.gouv.vitam.common.server.application.configuration.MongoDbNode;
+import fr.gouv.vitam.common.serverv2.application.AdminApplication;
 import fr.gouv.vitam.common.storage.cas.container.api.ContentAddressableStorageAbstract;
 import fr.gouv.vitam.common.tmp.TempFolderRule;
 import fr.gouv.vitam.functional.administration.client.AdminManagementClientFactory;
 import fr.gouv.vitam.functional.administration.common.server.AdminManagementConfiguration;
 import fr.gouv.vitam.functional.administration.rest.AdminManagementMain;
+import fr.gouv.vitam.ingest.external.client.IngestExternalClient;
+import fr.gouv.vitam.ingest.external.client.IngestExternalClientFactory;
+import fr.gouv.vitam.ingest.external.rest.IngestExternalApplicationForTest;
+import fr.gouv.vitam.ingest.external.rest.IngestExternalMain;
 import fr.gouv.vitam.ingest.internal.client.IngestInternalClientFactory;
 import fr.gouv.vitam.ingest.internal.upload.rest.IngestInternalMain;
 import fr.gouv.vitam.logbook.common.server.LogbookConfiguration;
@@ -34,6 +44,9 @@ import fr.gouv.vitam.metadata.rest.MetadataMain;
 import fr.gouv.vitam.processing.common.exception.PluginException;
 import fr.gouv.vitam.processing.management.client.ProcessingManagementClientFactory;
 import fr.gouv.vitam.processing.management.rest.ProcessManagementMain;
+import fr.gouv.vitam.security.internal.client.InternalSecurityClientFactory;
+import fr.gouv.vitam.security.internal.rest.IdentityMain;
+import fr.gouv.vitam.security.internal.rest.server.InternalSecurityConfiguration;
 import fr.gouv.vitam.storage.engine.client.StorageClientFactory;
 import fr.gouv.vitam.storage.engine.server.rest.StorageConfiguration;
 import fr.gouv.vitam.storage.engine.server.rest.StorageMain;
@@ -44,10 +57,13 @@ import fr.gouv.vitam.worker.client.WorkerClientFactory;
 import fr.gouv.vitam.worker.server.rest.WorkerMain;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
 import fr.gouv.vitam.workspace.rest.WorkspaceMain;
+import org.apache.commons.collections4.MultiValuedMap;
 import org.junit.rules.ExternalResource;
 
+import javax.ws.rs.core.MultivaluedHashMap;
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -55,6 +71,7 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.TimeUnit;
 
 import static fr.gouv.vitam.common.PropertiesUtils.readYaml;
 import static fr.gouv.vitam.common.PropertiesUtils.writeYaml;
@@ -69,6 +86,8 @@ public class VitamServerRunner extends ExternalResource {
     public static final long NB_TRY = 18000;
 
 
+    public static final int PORT_SERVICE_IDENTITY = 8005;
+    public static final int PORT_SERVICE_IDENTITY_ADMIN = 28005;
     public static final int PORT_SERVICE_WORKSPACE = 8094;
     public static final int PORT_SERVICE_WORKSPACE_ADMIN = 28094;
     public static final int PORT_SERVICE_METADATA = 8098;
@@ -84,7 +103,12 @@ public class VitamServerRunner extends ExternalResource {
     public static final int PORT_SERVICE_WORKER = 8096;
     public static final int PORT_SERVICE_PROCESSING = 8097;
     public static final int PORT_SERVICE_INGEST_INTERNAL = 8095;
+    public static final int PORT_SERVICE_INGEST_INTERNAL_ADMIN = 28095;
+    public static final int PORT_SERVICE_INGEST_EXTERNAL = 8443;
+    public static final int PORT_SERVICE_INGEST_EXTERNAL_ADMIN = 28001;
     public static final int PORT_SERVICE_ACCESS_INTERNAL = 8092;
+    public static final int PORT_SERVICE_ACCESS_EXTERNAL = 8444;
+    public static final int PORT_SERVICE_ACCESS_EXTERNAL_ADMIN = 28102;
     public static final int PORT_SERVICE_BATCH_REPORT = 8089;
 
 
@@ -97,10 +121,15 @@ public class VitamServerRunner extends ExternalResource {
     public static final String LOGBOOK_CONF = "common/logbook.conf";
     public static final String STORAGE_CONF = "common/storage-engine.conf";
     public static final String WORKSPACE_CONF = "common/workspace.conf";
+    public static final String IDENTITY_CONF = "common/security-internal.conf";
     public static final String METADATA_CONF = "common/metadata.conf";
     public static final String ADMIN_MANAGEMENT_CONF = "common/functional-administration.conf";
     public static final String ACCESS_INTERNAL_CONF = "common/access-internal.conf";
+    public static final String ACCESS_EXTERNAL_CONF = "common/access-external.conf";
+    public static final String ACCESS_EXTERNAL_CLIENT_CONF = "common/access-external-client.conf";
     public static final String INGEST_INTERNAL_CONF = "common/ingest-internal.conf";
+    public static final String INGEST_EXTERNAL_CONF = "common/ingest-external.conf";
+    public static final String INGEST_EXTERNAL_CLIENT_CONF = "common/ingest-external-client.conf";
     public static final String BATCH_REPORT_CONF = "common/batch-report.conf";
     public static final String BATCH_REPORT_CLIENT_PATH = "common/batch-report-client.conf";
     public static final String PROCESSING_CONF = "common/processing.conf";
@@ -110,6 +139,7 @@ public class VitamServerRunner extends ExternalResource {
 
 
 
+    private static IdentityMain identityMain;
     private static MetadataMain metadataMain;
     private static ProcessManagementMain processManagementMain;
     private static WorkspaceMain workspaceMain;
@@ -118,7 +148,9 @@ public class VitamServerRunner extends ExternalResource {
     private static StorageMain storageMain;
     private static AdminManagementMain adminManagementMain;
     private static IngestInternalMain ingestInternalMain;
+    private static IngestExternalMain ingestExternalMain;
     private static AccessInternalMain accessInternalMain;
+    private static AccessExternalMain accessExternalMain;
     private static BatchReportMain batchReportMain;
     private static WorkerMain workerMain;
 
@@ -144,6 +176,7 @@ public class VitamServerRunner extends ExternalResource {
         this.dbname = dbname;
         this.cluster = cluster;
         this.servers = servers;
+        VitamConfiguration.setIntegrationTest(true);
     }
 
 
@@ -169,9 +202,14 @@ public class VitamServerRunner extends ExternalResource {
                 Files.createDirectories(Paths.get(VitamConfiguration.getVitamDataFolder() + "/storage/"));
             }
 
+            FormatIdentifierFactory.getInstance()
+                .changeConfigurationFile(PropertiesUtils.getResourcePath(FORMAT_IDENTIFIERS_CONF).toString());
 
+            // launch Identity
+            if (servers.contains(IdentityMain.class)) {
+                startIdentityServer();
+            }
 
-            // launch ES
 
             // launch workspace
             if (servers.contains(WorkspaceMain.class)) {
@@ -230,11 +268,11 @@ public class VitamServerRunner extends ExternalResource {
                 stopWorkerServer();
             }
 
-            if (servers.contains(AccessInternalMain.class)) {
-                startAccessInternalServer();
-            } else {
-                AccessInternalClientFactory.getInstance()
-                    .setVitamClientType(VitamClientFactoryInterface.VitamClientType.MOCK);
+            // BatchReportMain
+            if (servers.contains(BatchReportMain.class)) {
+                startBatchReportServer();
+                BatchReportClientFactory.changeMode(
+                    BatchReportClientFactory.changeConfigurationFile(BATCH_REPORT_CLIENT_PATH));
             }
 
             // IngestInternalMain
@@ -244,16 +282,33 @@ public class VitamServerRunner extends ExternalResource {
                 IngestInternalClientFactory.getInstance()
                     .setVitamClientType(VitamClientFactoryInterface.VitamClientType.MOCK);
             }
-            // IngestInternalMain
-            if (servers.contains(BatchReportMain.class)) {
-                startBatchReportServer();
-                BatchReportClientFactory.changeMode(
-                    BatchReportClientFactory.changeConfigurationFile(BATCH_REPORT_CLIENT_PATH));
+
+            // IngestExternalMain
+            if (servers.contains(IngestExternalMain.class)) {
+                startIngestExternalServer();
+            } else {
+                IngestExternalClientFactory.getInstance()
+                    .setVitamClientType(VitamClientFactoryInterface.VitamClientType.MOCK);
             }
 
+            // AccessInternalMain
+            if (servers.contains(AccessInternalMain.class)) {
+                startAccessInternalServer();
+            } else {
+                AccessInternalClientFactory.getInstance()
+                    .setVitamClientType(VitamClientFactoryInterface.VitamClientType.MOCK);
+            }
+
+            // AccessExternalMain
+            if (servers.contains(AccessExternalMain.class)) {
+                startAccessExternalServer();
+            } else {
+                AccessExternalClientFactory.getInstance()
+                    .setVitamClientType(VitamClientFactoryInterface.VitamClientType.MOCK);
+            }
             waitServerStartOrStop(true);
         } catch (IOException | VitamApplicationServerException | PluginException e) {
-            e.printStackTrace();
+            SysErrLogger.FAKE_LOGGER.syserr("", e);
             throw new RuntimeException(e);
         }
     }
@@ -261,6 +316,7 @@ public class VitamServerRunner extends ExternalResource {
 
     private void startIngestInternalServer() throws VitamApplicationServerException {
         if (null != ingestInternalMain) {
+            IngestInternalClientFactory.getInstance().changeServerPort(PORT_SERVICE_INGEST_INTERNAL);
             return;
         }
 
@@ -269,7 +325,24 @@ public class VitamServerRunner extends ExternalResource {
         LOGGER.warn("=== VitamServerRunner start  IngestInternalMain");
         ingestInternalMain = new IngestInternalMain(INGEST_INTERNAL_CONF);
         ingestInternalMain.start();
+        IngestInternalClientFactory.getInstance().changeServerPort(PORT_SERVICE_INGEST_INTERNAL);
         SystemPropertyUtil.clear(IngestInternalMain.PARAMETER_JETTY_SERVER_PORT);
+    }
+
+    private void startIngestExternalServer() throws VitamApplicationServerException {
+        if (null != ingestExternalMain) {
+            IngestExternalClientFactory.getInstance().changeMode(INGEST_EXTERNAL_CLIENT_CONF);
+            return;
+        }
+
+        SystemPropertyUtil.set(IngestExternalMain.PARAMETER_JETTY_SERVER_PORT,
+            Integer.toString(PORT_SERVICE_INGEST_EXTERNAL));
+        LOGGER.warn("=== VitamServerRunner start  IngestExternalMain");
+        ingestExternalMain = new IngestExternalMain(INGEST_EXTERNAL_CONF);
+
+        ingestExternalMain.start();
+        IngestExternalClientFactory.getInstance().changeMode(INGEST_EXTERNAL_CLIENT_CONF);
+        SystemPropertyUtil.clear(IngestExternalMain.PARAMETER_JETTY_SERVER_PORT);
     }
 
     private void startBatchReportServer() throws VitamApplicationServerException, IOException {
@@ -286,7 +359,7 @@ public class VitamServerRunner extends ExternalResource {
         batchReportConfiguration.setMongoDbNodes(mongoDbNodes);
         PropertiesUtils.writeYaml(batchConfig, batchReportConfiguration);
         LOGGER.warn("=== VitamServerRunner start  BatchReportMain");
-        BatchReportClientFactory.changeMode(new ClientConfigurationImpl("localhost", 8015));
+        BatchReportClientFactory.changeMode(new ClientConfigurationImpl("localhost", PORT_SERVICE_BATCH_REPORT));
         batchReportMain = new BatchReportMain(batchConfig.getAbsolutePath());
         batchReportMain.start();
         SystemPropertyUtil.clear(BatchReportMain.PARAMETER_JETTY_SERVER_PORT);
@@ -312,6 +385,25 @@ public class VitamServerRunner extends ExternalResource {
         }
     }
 
+    private void stopIngestExternalServer(boolean mockWhenStop) throws VitamApplicationServerException {
+        if (null == ingestExternalMain) {
+            if (mockWhenStop) {
+                IngestExternalClientFactory.getInstance()
+                    .setVitamClientType(VitamClientFactoryInterface.VitamClientType.MOCK);
+            }
+            return;
+        }
+
+        LOGGER.warn("=== VitamServerRunner start  IngestExternalMain");
+        ingestExternalMain.stop();
+        ingestExternalMain = null;
+
+        // Wait stop
+        if (mockWhenStop) {
+            IngestExternalClientFactory.getInstance()
+                .setVitamClientType(VitamClientFactoryInterface.VitamClientType.MOCK);
+        }
+    }
 
     private void startAccessInternalServer() throws VitamApplicationServerException {
         if (null != accessInternalMain) {
@@ -331,6 +423,7 @@ public class VitamServerRunner extends ExternalResource {
         // Wait startup
     }
 
+
     private void stopAccessInternalServer(boolean mockWhenStop) throws VitamApplicationServerException {
         if (null == accessInternalMain) {
             if (mockWhenStop) {
@@ -349,6 +442,48 @@ public class VitamServerRunner extends ExternalResource {
                 .setVitamClientType(VitamClientFactoryInterface.VitamClientType.MOCK);
         }
     }
+
+
+    private void startAccessExternalServer() throws VitamApplicationServerException {
+        if (null != accessExternalMain) {
+            AccessExternalClientFactory.getInstance().changeMode(ACCESS_EXTERNAL_CLIENT_CONF);
+            AdminExternalClientFactory.getInstance().changeMode(ACCESS_EXTERNAL_CLIENT_CONF);
+            return;
+        }
+        SystemPropertyUtil
+            .set(AccessExternalMain.PARAMETER_JETTY_SERVER_PORT,
+                Integer.toString(PORT_SERVICE_ACCESS_EXTERNAL));
+        LOGGER.warn("=== VitamServerRunner start  AccessExternalMain");
+        AccessExternalClientFactory.getInstance().changeMode(ACCESS_EXTERNAL_CLIENT_CONF);
+        AdminExternalClientFactory.getInstance().changeMode(ACCESS_EXTERNAL_CLIENT_CONF);
+        accessExternalMain =
+            new AccessExternalMain(ACCESS_EXTERNAL_CONF);
+        accessExternalMain.start();
+        SystemPropertyUtil.clear(AccessExternalMain.PARAMETER_JETTY_SERVER_PORT);
+
+        // Wait startup
+    }
+
+
+    private void stopAccessExternalServer(boolean mockWhenStop) throws VitamApplicationServerException {
+        if (null == accessExternalMain) {
+            if (mockWhenStop) {
+                AccessExternalClientFactory.getInstance()
+                    .setVitamClientType(VitamClientFactoryInterface.VitamClientType.MOCK);
+            }
+            return;
+        }
+        LOGGER.warn("=== VitamServerRunner start  AccessExternalMain");
+        accessExternalMain.stop();
+        accessExternalMain = null;
+
+        // Wait stop then Mock
+        if (mockWhenStop) {
+            AccessExternalClientFactory.getInstance()
+                .setVitamClientType(VitamClientFactoryInterface.VitamClientType.MOCK);
+        }
+    }
+
 
     public void startStorageServer() throws IOException, VitamApplicationServerException {
 
@@ -586,7 +721,44 @@ public class VitamServerRunner extends ExternalResource {
         workspaceMain = null;
     }
 
+    public void startIdentityServer() throws IOException, VitamApplicationServerException {
+        if (null !=identityMain) {
+            InternalSecurityClientFactory.getInstance().changeMode(new ClientConfigurationImpl("localhost", PORT_SERVICE_IDENTITY));
+            return;
+        }
+        SystemPropertyUtil.set(IdentityMain.PARAMETER_JETTY_SERVER_PORT,
+            Integer.toString(PORT_SERVICE_IDENTITY));
 
+        File securityInternalConfigurationFile = PropertiesUtils.findFile(IDENTITY_CONF);
+        final InternalSecurityConfiguration internalSecurityConfiguration =
+            PropertiesUtils.readYaml(securityInternalConfigurationFile, InternalSecurityConfiguration.class);
+        internalSecurityConfiguration.getMongoDbNodes().get(0).setDbPort(MongoRule.getDataBasePort());
+        PropertiesUtils.writeYaml(securityInternalConfigurationFile, internalSecurityConfiguration);
+
+        LOGGER.warn("=== VitamServerRunner start  WorkspaceMain");
+        InternalSecurityClientFactory.getInstance().changeMode(new ClientConfigurationImpl("localhost", PORT_SERVICE_IDENTITY));
+        identityMain = new IdentityMain(IDENTITY_CONF);
+        identityMain.start();
+        SystemPropertyUtil.clear(IdentityMain.PARAMETER_JETTY_SERVER_PORT);
+    }
+
+    public void stopIdentityServer(boolean mockWhenStop) throws VitamApplicationServerException {
+        if (null == identityMain) {
+            if (mockWhenStop) {
+                InternalSecurityClientFactory.changeMode(null);
+            }
+            return;
+        }
+        LOGGER.warn("=== VitamServerRunner start  IdentityMain");
+        identityMain.stop();
+        identityMain = null;
+        InternalSecurityClientFactory.changeMode(new ClientConfigurationImpl("localhost", PORT_SERVICE_IDENTITY));
+        waitServer(false, InternalSecurityClientFactory.getInstance().getClient());
+        if (mockWhenStop) {
+            InternalSecurityClientFactory.changeMode(null);
+        }
+
+    }
     public void startMetadataServer()
         throws IOException, VitamApplicationServerException {
         if (null != metadataMain) {
@@ -715,7 +887,6 @@ public class VitamServerRunner extends ExternalResource {
                 ">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> End " + clazz.getSimpleName() +
                     " <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<");
         }
-
     }
 
 
@@ -745,21 +916,44 @@ public class VitamServerRunner extends ExternalResource {
             waitServer(start, LogbookOperationsClientFactory.getInstance().getClient());
         }
 
-        if (null != accessInternalMain) {
-            waitServer(start, AccessInternalClientFactory.getInstance().getClient());
-        }
         if (null != ingestInternalMain) {
             waitServer(start, IngestInternalClientFactory.getInstance().getClient());
+        }
+
+        if (null != ingestExternalMain) {
+            // status should be done only on admin connector
+            // Else InternalSecurityFilter will reject request by doing some business control
+            try {
+                TimeUnit.MILLISECONDS.sleep(100l);
+            } catch (InterruptedException e) {
+                SysErrLogger.FAKE_LOGGER.ignoreLog(e);
+            }
         }
         if (null != batchReportMain) {
             waitServer(start, BatchReportClientFactory.getInstance().getClient());
         }
-    }
 
+        if (null != accessInternalMain) {
+            waitServer(start, AccessInternalClientFactory.getInstance().getClient());
+        }
+
+        if (null != accessExternalMain) {
+            // status should be done only on admin connector
+            // Else InternalSecurityFilter will reject request by doing some business control
+            try {
+                TimeUnit.MILLISECONDS.sleep(100l);
+            } catch (InterruptedException e) {
+                SysErrLogger.FAKE_LOGGER.ignoreLog(e);
+            }
+        }
+    }
     private void waitServer(boolean start, MockOrRestClient mockOrRestClient) {
+        waitServer(start, mockOrRestClient, null);
+    }
+    private void waitServer(boolean start, MockOrRestClient mockOrRestClient, MultivaluedHashMap<String, Object> headers) {
         int nbTry = 500;
         if (start) {
-            while (!checkStatus(mockOrRestClient)) {
+            while (!checkStatus(mockOrRestClient, headers)) {
                 try {
                     Thread.sleep(60);
                 } catch (InterruptedException e) {
@@ -772,7 +966,7 @@ public class VitamServerRunner extends ExternalResource {
                 }
             }
         } else {
-            while (checkStatus(mockOrRestClient)) {
+            while (checkStatus(mockOrRestClient, headers)) {
                 try {
                     Thread.sleep(50);
                 } catch (InterruptedException e) {
@@ -787,9 +981,9 @@ public class VitamServerRunner extends ExternalResource {
         }
     }
 
-    private boolean checkStatus(MockOrRestClient mockOrRestClient) {
+    private boolean checkStatus(MockOrRestClient mockOrRestClient, MultivaluedHashMap<String, Object> headers) {
         try {
-            mockOrRestClient.checkStatus();
+            mockOrRestClient.checkStatus(headers);
             return true;
         } catch (Exception e) {
             return false;

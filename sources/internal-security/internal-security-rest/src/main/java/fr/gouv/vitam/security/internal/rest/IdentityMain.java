@@ -47,6 +47,7 @@ public class IdentityMain {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(IdentityMain.class);
     private static final String CONF_FILE_NAME = "internal-security.conf";
     private static final String MODULE_NAME = ServerIdentity.getInstance().getRole();
+    public static final String PARAMETER_JETTY_SERVER_PORT = "jetty.identity.port";
 
     private VitamStarter vitamStarter;
 

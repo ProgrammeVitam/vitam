@@ -73,7 +73,6 @@ import fr.gouv.vitam.common.exception.InternalServerException;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamClientException;
 import fr.gouv.vitam.common.exception.VitamRuntimeException;
-import fr.gouv.vitam.common.format.identification.FormatIdentifierFactory;
 import fr.gouv.vitam.common.guid.GUID;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.i18n.VitamLogbookMessages;
@@ -249,7 +248,6 @@ public class IngestInternalIT extends VitamRuleRunner {
                 ProcessManagementMain.class,
                 AccessInternalMain.class,
                 IngestInternalMain.class));
-    private static String CONFIG_SIEGFRIED_PATH = "";
     private static String SIP_TREE = "integration-ingest-internal/test_arbre.zip";
     private static String SIP_FILE_OK_NAME = "integration-ingest-internal/SIP-ingest-internal-ok.zip";
     private static String SIP_SIP_ALL_METADATA_WITH_CUSTODIALHISTORYFILE =
@@ -296,11 +294,6 @@ public class IngestInternalIT extends VitamRuleRunner {
     @BeforeClass
     public static void setUpBeforeClass() throws Exception {
         handleBeforeClass(0, 1);
-        CONFIG_SIEGFRIED_PATH =
-            PropertiesUtils.getResourcePath("integration-ingest-internal/format-identifiers.conf").toString();
-
-        FormatIdentifierFactory.getInstance().changeConfigurationFile(CONFIG_SIEGFRIED_PATH);
-
         // ES client
         final List<ElasticsearchNode> esNodes = new ArrayList<>();
         esNodes.add(new ElasticsearchNode("localhost", elasticsearchRule.getTcpPort()));
@@ -372,8 +365,7 @@ public class IngestInternalIT extends VitamRuleRunner {
             VitamThreadUtils.getVitamSession().setRequestId(operationGuid);
 
             // workspace client unzip SIP in workspace
-            final InputStream zipInputStreamSipObject =
-                PropertiesUtils.getResourceAsStream(SIP_FILE_OK_NAME);
+            final InputStream zipInputStreamSipObject = PropertiesUtils.getResourceAsStream(SIP_FILE_OK_NAME);
 
             // init default logbook operation
             final List<LogbookOperationParameters> params = new ArrayList<>();
