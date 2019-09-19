@@ -523,6 +523,9 @@ public class AccessExternalResource extends ApplicationStatusResource {
                 VitamError error = (VitamError) result;
                 return buildErrorFromError(VitamCode.ACCESS_EXTERNAL_SELECT_OBJECT_BY_ID_ERROR, error.getMessage(),
                     error);
+            } else if (((RequestResponseOK<JsonNode>) result).getResults() == null ||
+                ((RequestResponseOK<JsonNode>) result).getResults().isEmpty()) {
+                throw new AccessInternalClientNotFoundException(UNIT_NOT_FOUND);
             }
 
             return Response.status(st).entity(result).build();

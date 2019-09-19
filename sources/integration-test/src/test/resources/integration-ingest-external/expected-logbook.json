@@ -108,16 +108,6 @@
       "obIdIn": "SIP passant contenant 2 groupes d'objets"
     },
     {
-      "evType": "PREPARE_STORAGE_INFO",
-      "evDetData": "{}",
-      "evIdProc": "OPERATION_ID_REPLACE",
-      "evTypeProc": "INGEST",
-      "outcome": "OK",
-      "outDetail": "PREPARE_STORAGE_INFO.OK",
-      "outMessg": "Succ\u00E8s de la pr\u00E9paration des informations de stockage Detail=  OK:1",
-      "evIdReq": "OPERATION_ID_REPLACE"
-    },
-    {
       "evType": "CHECK_SEDA",
       "evDetData": "{}",
       "evIdProc": "OPERATION_ID_REPLACE",
@@ -153,6 +143,16 @@
       "outcome": "OK",
       "outDetail": "CHECK_HEADER.CHECK_CONTRACT_INGEST.OK",
       "outMessg": "Succ\u00E8s de la v\u00E9rification de la pr\u00E9sence et du contr\u00F4le du contrat d'entr\u00E9e Detail=  OK:1",
+      "evIdReq": "OPERATION_ID_REPLACE"
+    },
+    {
+      "evType": "PREPARE_STORAGE_INFO",
+      "evDetData": "{}",
+      "evIdProc": "OPERATION_ID_REPLACE",
+      "evTypeProc": "INGEST",
+      "outcome": "OK",
+      "outDetail": "PREPARE_STORAGE_INFO.OK",
+      "outMessg": "Succ\u00E8s de la pr\u00E9paration des informations de stockage Detail=  OK:1",
       "evIdReq": "OPERATION_ID_REPLACE"
     },
     {

@@ -363,7 +363,7 @@ public class ProcessingIT extends VitamRuleRunner {
     private void wait(String operationId) {
         int nbTry = 0;
         ProcessingManagementClient processingClient = ProcessingManagementClientFactory.getInstance().getClient();
-        while (!processingClient.isOperationCompleted(operationId)) {
+        while (!processingClient.isNotRunning(operationId)) {
             try {
                 Thread.sleep(SLEEP_TIME);
             } catch (InterruptedException e) {

@@ -65,7 +65,6 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.mockito.Mockito;
 
-import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
 import java.util.Set;
@@ -73,7 +72,6 @@ import java.util.Set;
 import static io.restassured.RestAssured.given;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyBoolean;
-import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.reset;
@@ -216,7 +214,7 @@ public class LogbookInternalResourceImplTest extends ResteasyTestApplication {
             .thenReturn(ClientMockResultHelper.getLogbookOperation());
         when(processingManagementClient.executeCheckTraceabilityWorkFlow(any(), any(),
             any(), any())).thenReturn(new RequestResponseOK<>());
-        when(processingManagementClient.isOperationCompleted(any())).thenReturn(true);
+        when(processingManagementClient.isNotRunning(any())).thenReturn(true);
         when(workspaceClient.isExistingContainer(any())).thenReturn(true);
         doNothing().when(workspaceClient).deleteContainer(any(), anyBoolean());
         LOGGER.warn("Start Check");

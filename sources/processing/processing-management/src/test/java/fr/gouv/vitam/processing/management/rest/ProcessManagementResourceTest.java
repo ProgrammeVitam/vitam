@@ -276,7 +276,7 @@ public class ProcessManagementResourceTest extends ResteasyTestApplication {
                 GlobalDataRest.X_REQUEST_ID, ID, GlobalDataRest.X_TENANT_ID, TENANT_ID)
             .body(ID).when()
             .delete(OPERATION_ID_URI).then()
-            .statusCode(Status.PRECONDITION_FAILED.getStatusCode());
+            .statusCode(Status.NOT_FOUND.getStatusCode());
     }
 
     /**

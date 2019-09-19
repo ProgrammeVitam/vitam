@@ -165,7 +165,7 @@ public class IngestExternalImpl implements IngestExternal {
     @Override
     public PreUploadResume preUploadAndResume(InputStream input, String workflowIdentifier, GUID guid,
         AsyncResponse asyncResponse)
-        throws IngestExternalException, WorkspaceClientServerException, VitamClientException {
+        throws IngestExternalException, VitamClientException, WorkspaceClientServerException {
         ParametersChecker.checkParameter("input is a mandatory parameter", input);
         VitamThreadUtils.getVitamSession().setRequestId(guid);
 
@@ -506,11 +506,9 @@ public class IngestExternalImpl implements IngestExternal {
                 // and in async mode add LogbookOperationParameters as Ingest-External-ATR-Forward START
                 // and LogbookOperationParameters as Ingest-External-ATR-Forward OK
                 // then call back ingestClient with updateFinalLogbook
-                try {
-                    ingestClient.uploadInitialLogbook(helper.removeCreateDelegate(guid.getId()));
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
+
+                ingestClient.uploadInitialLogbook(helper.removeCreateDelegate(guid.getId()));
+
                 if (!isFileInfected && isSupportedMedia && manifestFileName != null &&
                     manifestFileName.isManifestFile()) {
 

@@ -59,6 +59,7 @@ import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.ProcessAction;
+import fr.gouv.vitam.common.model.ProcessState;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.StatusCode;
@@ -400,7 +401,7 @@ public class LogbookInternalResourceImpl {
             }
 
             int nbTry = 0;
-            boolean done = processingClient.isOperationCompleted(checkOperationGUID.getId());
+            boolean done = processingClient.isNotRunning(checkOperationGUID.getId(), ProcessState.COMPLETED);
 
             while (!done) {
                 try {
@@ -411,7 +412,7 @@ public class LogbookInternalResourceImpl {
                 if (nbTry == NB_TRY)
                     break;
                 nbTry++;
-                done = processingClient.isOperationCompleted(checkOperationGUID.getId());
+                done = processingClient.isNotRunning(checkOperationGUID.getId(), ProcessState.COMPLETED);
             }
             LOGGER.debug("End of Check in Resource: {} nbTry {}", done, nbTry);
             if (done) {

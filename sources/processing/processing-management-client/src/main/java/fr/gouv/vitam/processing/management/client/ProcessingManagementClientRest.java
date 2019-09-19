@@ -269,6 +269,11 @@ class ProcessingManagementClientRest extends DefaultClient implements Processing
         }
     }
 
+    @Override
+    public boolean isNotRunning(String operationId) {
+        return isNotRunning(operationId, null);
+    }
+
     /**
      * Return false if status accepted Return true otherwise
      *
@@ -276,7 +281,7 @@ class ProcessingManagementClientRest extends DefaultClient implements Processing
      * @return
      */
     @Override
-    public boolean isOperationCompleted(String operationId) {
+    public boolean isNotRunning(String operationId, ProcessState expectedProcessState) {
         ParametersChecker.checkParameter(BLANK_OPERATION_ID, operationId);
         Response response = null;
         try {
@@ -292,6 +297,10 @@ class ProcessingManagementClientRest extends DefaultClient implements Processing
                     StatusCode.valueOf(response.getHeaderString(GlobalDataRest.X_GLOBAL_EXECUTION_STATUS));
 
                 if (ProcessState.PAUSE.equals(state) && StatusCode.STARTED.compareTo(status) <= 0) {
+                    if (null != expectedProcessState && !expectedProcessState.equals(state)) {
+                        return false;
+                    }
+
                     return true;
                 } else {
                     return false;

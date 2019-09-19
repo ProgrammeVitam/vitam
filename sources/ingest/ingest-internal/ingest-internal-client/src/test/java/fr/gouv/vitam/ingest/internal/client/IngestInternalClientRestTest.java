@@ -33,6 +33,7 @@ import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.client.ClientMockResultHelper;
 import fr.gouv.vitam.common.client.IngestCollection;
+import fr.gouv.vitam.common.error.VitamError;
 import fr.gouv.vitam.common.exception.BadRequestException;
 import fr.gouv.vitam.common.exception.VitamClientException;
 import fr.gouv.vitam.common.exception.VitamClientInternalException;
@@ -57,6 +58,7 @@ import fr.gouv.vitam.logbook.common.parameters.LogbookOperationParameters;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParametersFactory;
 import fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess;
 import org.apache.commons.io.IOUtils;
+import org.assertj.core.api.Assertions;
 import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
@@ -188,16 +190,6 @@ public class IngestInternalClientRestTest extends ResteasyTestApplication {
         @Produces(MediaType.APPLICATION_JSON)
         public Response updateWorkFlowStatus(@Context HttpHeaders headers, @PathParam("id") String id) {
             return expectedResponse.put();
-        }
-
-        @Path("/operations/{id}")
-        @POST
-        @Consumes({MediaType.APPLICATION_OCTET_STREAM, CommonMediaType.ZIP, CommonMediaType.XGZIP, CommonMediaType.GZIP,
-            CommonMediaType.TAR, CommonMediaType.BZIP2})
-        @Produces(MediaType.APPLICATION_OCTET_STREAM)
-        public Response executeWorkFlow(@Context HttpHeaders headers, @PathParam("id") String id,
-            InputStream uploadedInputStream) {
-            return expectedResponse.post();
         }
 
         @Path("/operations/{id}")
@@ -469,24 +461,6 @@ public class IngestInternalClientRestTest extends ResteasyTestApplication {
 
     }
 
-    @Test(expected = WorkflowNotFoundException.class)
-    public void givenGetOperationStatusThenThrowVitamClientInternalException()
-        throws Exception {
-
-        when(mock.get()).thenReturn(Response.status(Status.NOT_FOUND).build());
-        client.getOperationProcessExecutionDetails(ID);
-
-    }
-
-    @Test(expected = VitamClientInternalException.class)
-    public void givenHeadOperationStatusThenThrowInternalServerError()
-        throws Exception {
-
-        when(mock.head()).thenReturn(Response.status(Status.NOT_FOUND).build());
-        client.getOperationProcessStatus(ID);
-
-    }
-
     @Test
     public void givenHeadOperationOKThenOK()
         throws Exception {
@@ -499,15 +473,6 @@ public class IngestInternalClientRestTest extends ResteasyTestApplication {
             .thenReturn(builder.build());
         ItemStatus status = client.getOperationProcessStatus(ID);
         assertEquals(status.getGlobalStatus(), StatusCode.OK);
-
-    }
-
-    @Test(expected = VitamClientInternalException.class)
-    public void givenGetOperationStatusThenThrowInternalServerError()
-        throws Exception {
-
-        when(mock.get()).thenReturn(Response.status(Status.INTERNAL_SERVER_ERROR).build());
-        client.getOperationProcessExecutionDetails(ID);
 
     }
 
@@ -529,57 +494,65 @@ public class IngestInternalClientRestTest extends ResteasyTestApplication {
 
     }
 
-    @Test(expected = VitamClientInternalException.class)
-    public void givenGetOperationStatusThenThrowUnauthorized()
+    @Test
+    public void testPreconditionFailedWhenGetOperationProcessExecutionDetails()
         throws Exception {
 
-        when(mock.get()).thenReturn(Response.status(Status.UNAUTHORIZED).build());
-        client.getOperationProcessExecutionDetails(ID);
+        VitamError vitamError =
+            new VitamError("code").setMessage("msg")
+                .setDescription("desc").setContext("ctx").setState("st");
+        // 412
+        when(mock.get()).thenReturn(Response.status(Status.PRECONDITION_FAILED).entity(vitamError).build());
+        RequestResponse<ItemStatus> res = client.getOperationProcessExecutionDetails(ID);
+        Assertions.assertThat(res.isOk()).isFalse();
+        Assertions.assertThat(res.getHttpCode()).isEqualTo(Status.PRECONDITION_FAILED.getStatusCode());
+
+
+        // 500
+        when(mock.get()).thenReturn(Response.status(Status.INTERNAL_SERVER_ERROR).entity(vitamError).build());
+        res = client.getOperationProcessExecutionDetails(ID);
+        Assertions.assertThat(res.isOk()).isFalse();
+        Assertions.assertThat(res.getHttpCode()).isEqualTo(Status.INTERNAL_SERVER_ERROR.getStatusCode());
+
+        // 404
+        when(mock.get()).thenReturn(Response.status(Status.NOT_FOUND).entity(vitamError).build());
+        res = client.getOperationProcessExecutionDetails(ID);
+        Assertions.assertThat(res.isOk()).isFalse();
+        Assertions.assertThat(res.getHttpCode()).isEqualTo(Status.NOT_FOUND.getStatusCode());
+
 
     }
 
-    @Test(expected = VitamClientException.class)
-    public void givenGetPreconditionFailedStatusThenThrowUnauthorized()
+    @Test
+    public void givenDeleteOperationStatusErrors()
         throws Exception {
 
-        when(mock.get()).thenReturn(Response.status(Status.PRECONDITION_FAILED).build());
-        client.getOperationProcessExecutionDetails(ID);
+        VitamError vitamError =
+            new VitamError("code").setMessage("msg")
+                .setDescription("desc").setContext("ctx").setState("st");
+        // 500
+        when(mock.delete()).thenReturn(Response.status(Status.INTERNAL_SERVER_ERROR).entity(vitamError).build());
+        RequestResponse<ItemStatus> res = client.cancelOperationProcessExecution(ID);
+        Assertions.assertThat(res.isOk()).isFalse();
+        Assertions.assertThat(res.getHttpCode()).isEqualTo(Status.INTERNAL_SERVER_ERROR.getStatusCode());
 
-    }
+        // 409
+        when(mock.delete()).thenReturn(Response.status(Status.CONFLICT).entity(vitamError).build());
+        res = client.cancelOperationProcessExecution(ID);
+        Assertions.assertThat(res.isOk()).isFalse();
+        Assertions.assertThat(res.getHttpCode()).isEqualTo(Status.CONFLICT.getStatusCode());
 
-    @Test(expected = BadRequestException.class)
-    public void givenDeleteOperationStatusThenThrowUnauthorized()
-        throws Exception {
+        // 412
+        when(mock.delete()).thenReturn(Response.status(Status.PRECONDITION_FAILED).entity(vitamError).build());
+        res = client.cancelOperationProcessExecution(ID);
+        Assertions.assertThat(res.isOk()).isFalse();
+        Assertions.assertThat(res.getHttpCode()).isEqualTo(Status.PRECONDITION_FAILED.getStatusCode());
 
-        when(mock.delete()).thenReturn(Response.status(Status.BAD_REQUEST).build());
-        client.cancelOperationProcessExecution(ID);
-
-    }
-
-    @Test(expected = VitamClientException.class)
-    public void givenDeleteOperationStatusThenThrowInternalServerError()
-        throws Exception {
-
-        when(mock.delete()).thenReturn(Response.status(Status.INTERNAL_SERVER_ERROR).build());
-        client.cancelOperationProcessExecution(ID);
-
-    }
-
-    @Test(expected = WorkflowNotFoundException.class)
-    public void givenDeleteOperationNotFoundStatusThenThrowWorkflowNotFoundException()
-        throws Exception {
-        when(mock.delete()).thenReturn(Response.status(Status.NOT_FOUND).build());
-        client.cancelOperationProcessExecution(ID);
-
-    }
-
-    @Test(expected = VitamClientException.class)
-    public void givenDeletePreconditionFailedThenThrowInternalServerError()
-        throws Exception {
-
-        when(mock.delete()).thenReturn(Response.status(Status.PRECONDITION_FAILED).build());
-        client.cancelOperationProcessExecution(ID);
-
+        // 404
+        when(mock.delete()).thenReturn(Response.status(Status.NOT_FOUND).entity(vitamError).build());
+        res = client.cancelOperationProcessExecution(ID);
+        Assertions.assertThat(res.isOk()).isFalse();
+        Assertions.assertThat(res.getHttpCode()).isEqualTo(Status.NOT_FOUND.getStatusCode());
     }
 
     @Test
