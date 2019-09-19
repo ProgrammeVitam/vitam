@@ -130,46 +130,32 @@ public class BatchReportServiceImplTest {
     };
     @Rule
     public MockitoRule rule = MockitoJUnit.rule();
-
-    @Mock
-    private EliminationActionUnitRepository eliminationActionUnitRepository;
-
-    @Mock
-    private EliminationActionObjectGroupRepository eliminationActionObjectGroupRepository;
-
-    @Mock
-    private PreservationReportRepository preservationReportRepository;
-
-    @Mock
-    private AuditReportRepository auditReportRepository;
-
-    @Mock
-    private EvidenceAuditReportRepository evidenceAuditReportRepository;
-
-    @Mock
-    private UnitComputedInheritedRulesInvalidationRepository unitComputedInheritedRulesInvalidationRepository;
-
-    @Mock
-    private WorkspaceClientFactory workspaceClientFactory;
-
-    @Mock
-    private WorkspaceClient workspaceClient;
-
-    @Mock
-    private StorageClientFactory storageClientFactory;
-
-    @Mock
-    private StorageClient storageClient;
-
     @Mock
     public UpdateUnitReportRepository updateUnitMetadataReportEntry;
-
-    @Mock
-    private BackupService backupService;
-
     @Rule
     public TemporaryFolder folder = new TemporaryFolder();
-
+    @Mock
+    private EliminationActionUnitRepository eliminationActionUnitRepository;
+    @Mock
+    private EliminationActionObjectGroupRepository eliminationActionObjectGroupRepository;
+    @Mock
+    private PreservationReportRepository preservationReportRepository;
+    @Mock
+    private AuditReportRepository auditReportRepository;
+    @Mock
+    private EvidenceAuditReportRepository evidenceAuditReportRepository;
+    @Mock
+    private UnitComputedInheritedRulesInvalidationRepository unitComputedInheritedRulesInvalidationRepository;
+    @Mock
+    private WorkspaceClientFactory workspaceClientFactory;
+    @Mock
+    private WorkspaceClient workspaceClient;
+    @Mock
+    private StorageClientFactory storageClientFactory;
+    @Mock
+    private StorageClient storageClient;
+    @Mock
+    private BackupService backupService;
     @Mock
     private EmptyMongoCursor emptyMongoCursor;
 
@@ -480,7 +466,7 @@ public class BatchReportServiceImplTest {
         when(storageClient.storeFileFromWorkspace(anyString(), any(), anyString(), any())).thenReturn(null);
 
         EvidenceAuditStatsModel auditStatus =
-            new EvidenceAuditStatsModel(1, 0, 1,new EvidenceAuditFullStatusCount());
+            new EvidenceAuditStatsModel(1, 0, 1, new EvidenceAuditFullStatusCount());
         Document evidenceAuditData = getEvidenceAuditDocument(processId);
         FakeMongoCursor<Document> fakeMongoCursor = new FakeMongoCursor<>(Collections.singletonList(evidenceAuditData));
 

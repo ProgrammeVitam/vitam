@@ -36,11 +36,8 @@ import fr.gouv.vitam.batch.report.model.EvidenceAuditFullStatusCount;
 import fr.gouv.vitam.batch.report.model.EvidenceAuditObjectModel;
 import fr.gouv.vitam.batch.report.model.EvidenceAuditStatsModel;
 import fr.gouv.vitam.batch.report.model.EvidenceAuditStatusCount;
-import fr.gouv.vitam.batch.report.model.Report;
 import fr.gouv.vitam.batch.report.model.ReportResults;
 import fr.gouv.vitam.common.database.server.mongodb.MongoDbAccess;
-import fr.gouv.vitam.common.exception.InvalidParseOperationException;
-import fr.gouv.vitam.common.json.JsonHandler;
 import org.bson.Document;
 import org.bson.conversions.Bson;
 
@@ -98,25 +95,25 @@ public class EvidenceAuditReportRepository extends ReportCommonRepository {
     /**
      * Compute the number of OK, WARNING, and KO
      *
-     * @param report the report
+     * @param processId the process id
+     * @param tenantId the tenantId id
      */
-    public ReportResults computeVitamResults(Report report) {
-        ReportResults reportResult = new ReportResults(0, 0, 0, 0);
-        try {
-            EvidenceAuditStatsModel evidenceAuditStatsModel = JsonHandler
-                .getFromJsonNode(report.getReportSummary().getExtendedInfo(), EvidenceAuditStatsModel.class);
-            reportResult.setNbOk(evidenceAuditStatsModel.getGlobalResults().getObjectGroupsCount().getNbOK() +
-                evidenceAuditStatsModel.getGlobalResults().getUnitsCount().getNbOK() +
-                evidenceAuditStatsModel.getGlobalResults().getObjectsCount().getNbOK());
-            reportResult.setNbKo(evidenceAuditStatsModel.getGlobalResults().getObjectGroupsCount().getNbKO() +
-                evidenceAuditStatsModel.getGlobalResults().getUnitsCount().getNbKO() +
-                evidenceAuditStatsModel.getGlobalResults().getObjectsCount().getNbKO());
-            reportResult.setNbWarning(evidenceAuditStatsModel.getGlobalResults().getObjectGroupsCount().getNbWARNING() +
-                evidenceAuditStatsModel.getGlobalResults().getUnitsCount().getNbWARNING() +
-                evidenceAuditStatsModel.getGlobalResults().getObjectsCount().getNbWARNING());
-        } catch (InvalidParseOperationException e) {
-            throw new IllegalStateException("invalid parse");
-        }
+    public ReportResults computeVitamResults(String processId, Integer tenantId) {
+        ReportResults reportResult = new ReportResults();
+
+        Bson eqProcessId = eq(EvidenceAuditObjectModel.PROCESS_ID, processId);
+        Bson eqTenant = eq(EvidenceAuditObjectModel.TENANT, tenantId);
+
+        EvidenceAuditFullStatusCount globalResults =
+            new EvidenceAuditFullStatusCount(new EvidenceAuditStatusCount(), new EvidenceAuditStatusCount(),
+                new EvidenceAuditStatusCount());
+
+        getNbObjects(match(and(eqProcessId, eqTenant)), globalResults);
+        getMetadataTypeStats(globalResults, eqProcessId, eqTenant);
+
+        reportResult.setNbOk(globalResults.getObjectGroupsCount().getNbOK() + globalResults.getUnitsCount().getNbOK() + globalResults.getObjectsCount().getNbOK());
+        reportResult.setNbKo(globalResults.getObjectGroupsCount().getNbKO() + globalResults.getUnitsCount().getNbKO() + globalResults.getObjectsCount().getNbKO());
+        reportResult.setNbWarning(globalResults.getObjectGroupsCount().getNbWARNING() + globalResults.getUnitsCount().getNbWARNING() + globalResults.getObjectsCount().getNbWARNING());
 
         reportResult.setTotal(reportResult.getNbKo() + reportResult.getNbOk() + reportResult.getNbWarning());
         return reportResult;
@@ -202,7 +199,7 @@ public class EvidenceAuditReportRepository extends ReportCommonRepository {
     }
 
     /**
-     * Archive Unit ang GOT statistics
+     * Archive Unit and GOT statistics
      *
      * @param globalResults globalResults
      * @param eqProcessId eqProcessId

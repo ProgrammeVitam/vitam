@@ -34,9 +34,7 @@ import fr.gouv.vitam.batch.report.model.EvidenceAuditObjectModel;
 import fr.gouv.vitam.batch.report.model.EvidenceAuditReportObject;
 import fr.gouv.vitam.batch.report.model.EvidenceAuditStatsModel;
 import fr.gouv.vitam.batch.report.model.EvidenceStatus;
-import fr.gouv.vitam.batch.report.model.Report;
 import fr.gouv.vitam.batch.report.model.ReportResults;
-import fr.gouv.vitam.batch.report.model.ReportSummary;
 import fr.gouv.vitam.batch.report.model.entry.EvidenceAuditReportEntry;
 import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.database.server.mongodb.MongoDbAccess;
@@ -204,20 +202,14 @@ public class EvidenceAuditReportRepositoryTest {
         // Given
         populateDatabase(evidenceAuditReportEntryKO, evidenceAuditReportEntryOK, evidenceAuditReportEntryWARN);
 
-        Report report = new Report();
-        JsonNode extendedInfo = JsonHandler.getFromString(
-            "{\"nbObjectGroups\":14,\"nbArchiveUnits\":15,\"nbObjects\":14,\"globalResults\":{\"objectGroupsCount\":{\"OK\":13,\"WARNING\":0,\"KO\":1},\"archiveUnitsCount\":{\"OK\":15,\"WARNING\":0,\"KO\":0},\"objectsCount\":{\"OK\":13,\"WARNING\":0,\"KO\":1}}}");
-        ReportSummary summary = new ReportSummary();
-        report.setReportSummary(summary);
-        report.getReportSummary().setExtendedInfo(extendedInfo);
         // When
-        ReportResults reportResult = evidenceAuditRepository.computeVitamResults(report);
+        ReportResults reportResult = evidenceAuditRepository.computeVitamResults(processId, TENANT_ID);
 
         // Then
-        assertThat(reportResult.getNbOk()).isEqualTo(41);
-        assertThat(reportResult.getNbWarning()).isEqualTo(0);
+        assertThat(reportResult.getNbOk()).isEqualTo(2);
+        assertThat(reportResult.getNbWarning()).isEqualTo(2);
         assertThat(reportResult.getNbKo()).isEqualTo(2);
-        assertThat(reportResult.getTotal()).isEqualTo(43);
+        assertThat(reportResult.getTotal()).isEqualTo(6);
     }
 
     @Test
