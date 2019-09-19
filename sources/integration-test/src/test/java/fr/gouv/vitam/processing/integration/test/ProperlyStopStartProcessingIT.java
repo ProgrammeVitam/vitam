@@ -27,7 +27,6 @@
 
 package fr.gouv.vitam.processing.integration.test;
 
-import com.fasterxml.jackson.databind.JsonNode;
 import com.github.tomakehurst.wiremock.client.WireMock;
 import com.github.tomakehurst.wiremock.junit.WireMockClassRule;
 import com.google.common.collect.Sets;
@@ -194,7 +193,7 @@ public class ProperlyStopStartProcessingIT extends VitamRuleRunner {
 
     private void wait(String operationId) {
         int nbTry = 0;
-        while (!ProcessingManagementClientFactory.getInstance().getClient().isOperationCompleted(operationId)) {
+        while (!ProcessingManagementClientFactory.getInstance().getClient().isNotRunning(operationId, ProcessState.COMPLETED)) {
             try {
                 Thread.sleep(SLEEP_TIME);
             } catch (InterruptedException e) {

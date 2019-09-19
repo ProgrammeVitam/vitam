@@ -30,9 +30,6 @@ import com.fasterxml.jackson.databind.JsonNode;
 import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.SingletonUtils;
 import fr.gouv.vitam.common.client.AbstractMockClient;
-import fr.gouv.vitam.common.exception.BadRequestException;
-import fr.gouv.vitam.common.exception.InternalServerException;
-import fr.gouv.vitam.common.exception.VitamClientException;
 import fr.gouv.vitam.common.exception.WorkflowNotFoundException;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.model.ItemStatus;
@@ -53,7 +50,6 @@ import fr.gouv.vitam.common.model.processing.ProcessingUri;
 import fr.gouv.vitam.common.model.processing.Step;
 import fr.gouv.vitam.common.model.processing.WorkFlow;
 import fr.gouv.vitam.processing.common.ProcessingEntry;
-import fr.gouv.vitam.processing.common.exception.ProcessingBadRequestException;
 import fr.gouv.vitam.processing.common.model.WorkerBean;
 
 import javax.ws.rs.core.Response.Status;
@@ -71,11 +67,6 @@ public class ProcessingManagementClientMock extends AbstractMockClient implement
 
     ProcessingManagementClientMock() {
         // Empty
-    }
-
-    @Override
-    public boolean isOperationCompleted(String operationId) {
-        return false;
     }
 
     @Override
@@ -140,6 +131,16 @@ public class ProcessingManagementClientMock extends AbstractMockClient implement
     public RequestResponse<ItemStatus> executeOperationProcess(String operationId, String workflow, String actionId) {
         return new RequestResponseOK<ItemStatus>().addHeader(GlobalDataRest.X_GLOBAL_EXECUTION_STATE,
             FAKE_EXECUTION_STATUS);
+    }
+
+    @Override
+    public boolean isNotRunning(String operationId) {
+        return false;
+    }
+
+    @Override
+    public boolean isNotRunning(String operationId, ProcessState expectedProcessState) {
+        return false;
     }
 
     @Override

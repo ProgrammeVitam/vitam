@@ -91,7 +91,7 @@ import java.util.concurrent.atomic.AtomicLong;
 @ApplicationPath("webresources")
 public class ProcessManagementResource extends ApplicationStatusResource {
 
-    private static final String INGEST = "ingest";
+    private static final String WORKFLOW = "workflow";
 
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(ProcessManagementResource.class);
 
@@ -141,7 +141,7 @@ public class ProcessManagementResource extends ApplicationStatusResource {
 
     private VitamError getErrorEntity(Status status, String msg, String description) {
         return new VitamError(status.name()).setHttpCode(status.getStatusCode())
-            .setContext(INGEST)
+            .setContext(WORKFLOW)
             .setState("code_vitam")
             .setMessage(msg)
             .setDescription(description);
@@ -435,7 +435,7 @@ public class ProcessManagementResource extends ApplicationStatusResource {
     @DELETE
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    public Response interruptWorkFlowExecution(@PathParam("id") String id) {
+    public Response cancelOperationProcessExecution(@PathParam("id") String id) {
         ParametersChecker.checkParameter(ERR_OPERATION_ID_IS_MANDATORY, id);
 
         Integer tenantId = VitamThreadUtils.getVitamSession().getTenantId();
@@ -451,7 +451,7 @@ public class ProcessManagementResource extends ApplicationStatusResource {
                     "The action cancel is not allowed! The engine exception is :" + e.getMessage()));
         } catch (final ProcessingException e) {
             LOGGER.error(e);
-            return this.buildResponse(Status.PRECONDITION_FAILED, getErrorEntity(Status.PRECONDITION_FAILED,
+            return this.buildResponse(Status.NOT_FOUND, getErrorEntity(Status.NOT_FOUND,
                 "Error processing the action : CANCEL", "The action cancel cause an error :" + e.getMessage()));
         } catch (final Exception e) {
             LOGGER.error(e);

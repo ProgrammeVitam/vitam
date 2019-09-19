@@ -208,7 +208,7 @@ public class ProcessingManagementClientTest extends ResteasyTestApplication {
                 .build());
         try (ProcessingManagementClientRest client = (ProcessingManagementClientRest) vitamServerTestRunner
             .getClient()) {
-            boolean resp = client.isOperationCompleted("FakeOp");
+            boolean resp = client.isNotRunning("FakeOp", ProcessState.COMPLETED);
             Assertions.assertThat(resp).isFalse();
         }
 
@@ -220,7 +220,7 @@ public class ProcessingManagementClientTest extends ResteasyTestApplication {
                 .build());
         try (ProcessingManagementClientRest client = (ProcessingManagementClientRest) vitamServerTestRunner
             .getClient()) {
-            boolean resp = client.isOperationCompleted("FakeOp");
+            boolean resp = client.isNotRunning("FakeOp");
             Assertions.assertThat(resp).isTrue();
         }
 
@@ -232,7 +232,7 @@ public class ProcessingManagementClientTest extends ResteasyTestApplication {
                 .build());
         try (ProcessingManagementClientRest client = (ProcessingManagementClientRest) vitamServerTestRunner
             .getClient()) {
-            boolean resp = client.isOperationCompleted("FakeOp");
+            boolean resp = client.isNotRunning("FakeOp");
             Assertions.assertThat(resp).isFalse();
         }
 
@@ -240,7 +240,7 @@ public class ProcessingManagementClientTest extends ResteasyTestApplication {
         when(mock.head()).thenReturn(Response.status(Status.OK).build());
         try (ProcessingManagementClientRest client = (ProcessingManagementClientRest) vitamServerTestRunner
             .getClient()) {
-            boolean resp = client.isOperationCompleted("FakeOp");
+            boolean resp = client.isNotRunning("FakeOp");
             Assertions.assertThat(resp).isTrue();
         }
     }

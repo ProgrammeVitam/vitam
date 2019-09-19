@@ -2,7 +2,6 @@ package fr.gouv.vitam.common;
 
 import fr.gouv.vitam.access.external.client.AccessExternalClientFactory;
 import fr.gouv.vitam.access.external.client.AdminExternalClientFactory;
-import fr.gouv.vitam.access.external.rest.AccessExternalApplicationForTest;
 import fr.gouv.vitam.access.external.rest.AccessExternalMain;
 import fr.gouv.vitam.access.internal.client.AccessInternalClientFactory;
 import fr.gouv.vitam.access.internal.rest.AccessInternalMain;
@@ -22,15 +21,12 @@ import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.mongo.MongoRule;
 import fr.gouv.vitam.common.server.application.configuration.MongoDbNode;
-import fr.gouv.vitam.common.serverv2.application.AdminApplication;
 import fr.gouv.vitam.common.storage.cas.container.api.ContentAddressableStorageAbstract;
 import fr.gouv.vitam.common.tmp.TempFolderRule;
 import fr.gouv.vitam.functional.administration.client.AdminManagementClientFactory;
 import fr.gouv.vitam.functional.administration.common.server.AdminManagementConfiguration;
 import fr.gouv.vitam.functional.administration.rest.AdminManagementMain;
-import fr.gouv.vitam.ingest.external.client.IngestExternalClient;
 import fr.gouv.vitam.ingest.external.client.IngestExternalClientFactory;
-import fr.gouv.vitam.ingest.external.rest.IngestExternalApplicationForTest;
 import fr.gouv.vitam.ingest.external.rest.IngestExternalMain;
 import fr.gouv.vitam.ingest.internal.client.IngestInternalClientFactory;
 import fr.gouv.vitam.ingest.internal.upload.rest.IngestInternalMain;
@@ -57,13 +53,11 @@ import fr.gouv.vitam.worker.client.WorkerClientFactory;
 import fr.gouv.vitam.worker.server.rest.WorkerMain;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
 import fr.gouv.vitam.workspace.rest.WorkspaceMain;
-import org.apache.commons.collections4.MultiValuedMap;
 import org.junit.rules.ExternalResource;
 
 import javax.ws.rs.core.MultivaluedHashMap;
 import java.io.File;
 import java.io.IOException;
-import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -176,7 +170,6 @@ public class VitamServerRunner extends ExternalResource {
         this.dbname = dbname;
         this.cluster = cluster;
         this.servers = servers;
-        VitamConfiguration.setIntegrationTest(true);
     }
 
 
@@ -727,8 +720,9 @@ public class VitamServerRunner extends ExternalResource {
     }
 
     public void startIdentityServer() throws IOException, VitamApplicationServerException {
-        if (null !=identityMain) {
-            InternalSecurityClientFactory.getInstance().changeMode(new ClientConfigurationImpl("localhost", PORT_SERVICE_IDENTITY));
+        if (null != identityMain) {
+            InternalSecurityClientFactory.getInstance()
+                .changeMode(new ClientConfigurationImpl("localhost", PORT_SERVICE_IDENTITY));
             return;
         }
         SystemPropertyUtil.set(IdentityMain.PARAMETER_JETTY_SERVER_PORT,
@@ -741,7 +735,8 @@ public class VitamServerRunner extends ExternalResource {
         PropertiesUtils.writeYaml(securityInternalConfigurationFile, internalSecurityConfiguration);
 
         LOGGER.warn("=== VitamServerRunner start  WorkspaceMain");
-        InternalSecurityClientFactory.getInstance().changeMode(new ClientConfigurationImpl("localhost", PORT_SERVICE_IDENTITY));
+        InternalSecurityClientFactory.getInstance()
+            .changeMode(new ClientConfigurationImpl("localhost", PORT_SERVICE_IDENTITY));
         identityMain = new IdentityMain(IDENTITY_CONF);
         identityMain.start();
         SystemPropertyUtil.clear(IdentityMain.PARAMETER_JETTY_SERVER_PORT);
@@ -764,6 +759,7 @@ public class VitamServerRunner extends ExternalResource {
         }
 
     }
+
     public void startMetadataServer()
         throws IOException, VitamApplicationServerException {
         if (null != metadataMain) {
@@ -952,10 +948,13 @@ public class VitamServerRunner extends ExternalResource {
             }
         }
     }
+
     private void waitServer(boolean start, MockOrRestClient mockOrRestClient) {
         waitServer(start, mockOrRestClient, null);
     }
-    private void waitServer(boolean start, MockOrRestClient mockOrRestClient, MultivaluedHashMap<String, Object> headers) {
+
+    private void waitServer(boolean start, MockOrRestClient mockOrRestClient,
+        MultivaluedHashMap<String, Object> headers) {
         int nbTry = 500;
         if (start) {
             while (!checkStatus(mockOrRestClient, headers)) {

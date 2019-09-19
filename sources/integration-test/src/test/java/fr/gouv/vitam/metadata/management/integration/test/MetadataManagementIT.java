@@ -40,8 +40,6 @@ import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.model.administration.AccessContractModel;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
-import fr.gouv.vitam.functional.administration.client.AdminManagementClient;
-import fr.gouv.vitam.functional.administration.client.AdminManagementClientFactory;
 import fr.gouv.vitam.functional.administration.rest.AdminManagementMain;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientNotFoundException;
@@ -104,7 +102,6 @@ import retrofit2.http.GET;
 import retrofit2.http.Headers;
 import retrofit2.http.POST;
 
-import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -1307,7 +1304,7 @@ public class MetadataManagementIT extends VitamRuleRunner {
 
     private void wait(String operationId) {
         int nbTry = 0;
-        while (!ProcessingManagementClientFactory.getInstance().getClient().isOperationCompleted(operationId)) {
+        while (!ProcessingManagementClientFactory.getInstance().getClient().isNotRunning(operationId)) {
             try {
                 Thread.sleep(runner.SLEEP_TIME);
             } catch (InterruptedException e) {

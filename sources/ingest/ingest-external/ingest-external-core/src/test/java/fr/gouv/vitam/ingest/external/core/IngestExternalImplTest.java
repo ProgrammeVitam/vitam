@@ -37,6 +37,7 @@ import fr.gouv.vitam.common.format.identification.exception.FormatIdentifierTech
 import fr.gouv.vitam.common.format.identification.model.FormatIdentifierResponse;
 import fr.gouv.vitam.common.guid.GUID;
 import fr.gouv.vitam.common.guid.GUIDFactory;
+import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.parameter.ParameterHelper;
 import fr.gouv.vitam.common.server.application.junit.AsyncResponseJunitTest;
@@ -99,6 +100,8 @@ public class IngestExternalImplTest {
 
         when(ingestInternalClient.getWorkflowDetails(anyString()))
             .thenReturn(new IngestInternalClientMock().getWorkflowDetails("DEFAULT_WORKFLOW"));
+        when(ingestInternalClient.cancelOperationProcessExecution(anyString())).thenReturn(new RequestResponseOK<>());
+
         final IngestExternalConfiguration config = new IngestExternalConfiguration();
         config.setPath(PATH);
         config.setAntiVirusScriptName(SCRIPT_SCAN_CLAMAV);
@@ -174,6 +177,7 @@ public class IngestExternalImplTest {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         when(formatIdentifier.analysePath(any())).thenThrow(new FormatIdentifierBadRequestException(""));
 
+        when(ingestInternalClient.cancelOperationProcessExecution(anyString())).thenReturn(new RequestResponseOK<>());
         stream = PropertiesUtils.getResourceAsStream("no-virus.txt");
         final GUID guid = GUIDFactory.newEventGUID(ParameterHelper.getTenantParameter());
         final AsyncResponseJunitTest responseAsync = new AsyncResponseJunitTest();

@@ -159,7 +159,7 @@ public class ReindexSwitchIT extends VitamRuleRunner {
 
     private void wait(String operationId) {
         int nbTry = 0;
-        while (!processingClient.isOperationCompleted(operationId)) {
+        while (!processingClient.isNotRunning(operationId)) {
             try {
                 Thread.sleep(SLEEP_TIME);
             } catch (InterruptedException e) {

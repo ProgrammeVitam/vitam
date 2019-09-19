@@ -44,15 +44,12 @@ import fr.gouv.vitam.common.client.VitamClientFactoryInterface;
 import fr.gouv.vitam.common.client.VitamContext;
 import fr.gouv.vitam.common.elasticsearch.ElasticsearchRule;
 import fr.gouv.vitam.common.json.JsonHandler;
-import fr.gouv.vitam.common.logging.VitamLogger;
-import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.ProcessAction;
 import fr.gouv.vitam.common.model.ProcessState;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.StatusCode;
-import fr.gouv.vitam.common.model.processing.WorkFlow;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
 import fr.gouv.vitam.functional.administration.rest.AdminManagementMain;
 import fr.gouv.vitam.ingest.external.client.IngestExternalClient;
@@ -66,58 +63,33 @@ import fr.gouv.vitam.processing.management.rest.ProcessManagementMain;
 import fr.gouv.vitam.storage.engine.client.StorageClientFactory;
 import fr.gouv.vitam.worker.server.rest.WorkerMain;
 import fr.gouv.vitam.workspace.rest.WorkspaceMain;
-import io.restassured.RestAssured;
 import net.javacrumbs.jsonunit.JsonAssert;
-import net.javacrumbs.jsonunit.core.internal.Options;
 import org.assertj.core.api.Assertions;
 import org.bson.Document;
 import org.junit.AfterClass;
-import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
-import org.junit.Ignore;
 import org.junit.Test;
 
-import javax.ws.rs.core.Response.Status;
 import java.io.InputStream;
 import java.util.concurrent.TimeUnit;
 
 import static fr.gouv.vitam.common.GlobalDataRest.X_REQUEST_ID;
-import static fr.gouv.vitam.common.VitamServerRunner.PORT_SERVICE_LOGBOOK;
 import static fr.gouv.vitam.logbook.common.parameters.Contexts.DEFAULT_WORKFLOW;
-import static io.restassured.RestAssured.get;
 import static java.lang.String.format;
 import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * Ingest External integration test
  */
-@Ignore
 public class IngestExternalIT extends VitamRuleRunner {
-    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(IngestExternalIT.class);
-    private static final String HOLDING_SCHEME = "HOLDING_SCHEME";
-    private static final String HOLDING_SCHEME_IDENTIFIER = "HOLDINGSCHEME";
     private static final Integer tenantId = 0;
-    private static final String accessContract = "aName3";
-    private static final String context = "Context_IT";
-
-    private static final long SLEEP_TIME = 20L;
-    private static final long NB_TRY = 18000; // equivalent to 16 minute
-    private static final String METADATA_PATH = "/metadata/v1";
-    private static final String PROCESSING_PATH = "/processing/v1";
-    private static final String WORKER_PATH = "/worker/v1";
-    private static final String WORKSPACE_PATH = "/workspace/v1";
-    private static final String LOGBOOK_PATH = "/logbook/v1";
-    private static final String INGEST_INTERNAL_PATH = "/ingest/v1";
-    private static final String INGEST_EXTERNAL_PATH = "/ingest-external/v1";
-    private static final String ACCESS_INTERNAL_PATH = "/access-internal/v1";
-    private static final String ACCESS_EXTERNAL_PATH = "/access-external/v1";
-    private static final String WORKFLOW_ID = "DEFAULT_WORKFLOW";
-    private static final String CONTEXT_ID = "PROCESS_SIP_UNITARY";
     public static final String APPLICATION_SESSION_ID = "ApplicationSessionId";
     public static final String INTEGRATION_PROCESSING_4_UNITS_2_GOTS_ZIP = "integration-processing/4_UNITS_2_GOTS.zip";
     public static final String ACCESS_CONTRACT = "aName3";
     public static final String OPERATION_ID_REPLACE = "OPERATION_ID_REPLACE";
+    public static final String INTEGRATION_INGEST_EXTERNAL_EXPECTED_LOGBOOK_JSON =
+        "integration-ingest-external/expected-logbook.json";
 
 
     @ClassRule
@@ -135,9 +107,6 @@ public class IngestExternalIT extends VitamRuleRunner {
                 AccessExternalMain.class,
                 IngestInternalMain.class,
                 IngestExternalMain.class));
-
-    private WorkFlow holding = WorkFlow.of(HOLDING_SCHEME, HOLDING_SCHEME_IDENTIFIER, "MASTERDATA");
-    private WorkFlow ingestSip = WorkFlow.of(WORKFLOW_ID, CONTEXT_ID, "INGEST");
 
     private static IngestExternalClient ingestExternalClient;
     private static AdminExternalClient adminExternalClient;
@@ -161,52 +130,6 @@ public class IngestExternalIT extends VitamRuleRunner {
         runAfter();
         VitamClientFactory.resetConnections();
     }
-
-    @Before
-    public void setUpBefore() throws Exception {
-    }
-
-    @RunWithCustomExecutor
-    @Test
-    public void testServersStatus() throws Exception {
-        RestAssured.port = VitamServerRunner.PORT_SERVICE_PROCESSING;
-        RestAssured.basePath = PROCESSING_PATH;
-        get("/status").then().statusCode(Status.NO_CONTENT.getStatusCode());
-
-        RestAssured.port = VitamServerRunner.PORT_SERVICE_WORKSPACE;
-        RestAssured.basePath = WORKSPACE_PATH;
-        get("/status").then().statusCode(Status.NO_CONTENT.getStatusCode());
-
-        RestAssured.port = VitamServerRunner.PORT_SERVICE_METADATA;
-        RestAssured.basePath = METADATA_PATH;
-        get("/status").then().statusCode(Status.NO_CONTENT.getStatusCode());
-
-        RestAssured.port = VitamServerRunner.PORT_SERVICE_WORKER;
-        RestAssured.basePath = WORKER_PATH;
-        get("/status").then().statusCode(Status.NO_CONTENT.getStatusCode());
-
-        RestAssured.port = PORT_SERVICE_LOGBOOK;
-        RestAssured.basePath = LOGBOOK_PATH;
-        get("/status").then().statusCode(Status.NO_CONTENT.getStatusCode());
-
-        RestAssured.port = VitamServerRunner.PORT_SERVICE_INGEST_INTERNAL;
-        RestAssured.basePath = INGEST_INTERNAL_PATH;
-        get("/status").then().statusCode(Status.NO_CONTENT.getStatusCode());
-
-        RestAssured.port = VitamServerRunner.PORT_SERVICE_INGEST_EXTERNAL;
-        RestAssured.basePath = INGEST_EXTERNAL_PATH;
-        get("/status").then().statusCode(Status.NO_CONTENT.getStatusCode());
-
-        RestAssured.port = VitamServerRunner.PORT_SERVICE_ACCESS_INTERNAL;
-        RestAssured.basePath = ACCESS_INTERNAL_PATH;
-        get("/status").then().statusCode(Status.NO_CONTENT.getStatusCode());
-
-
-        RestAssured.port = VitamServerRunner.PORT_SERVICE_ACCESS_INTERNAL;
-        RestAssured.basePath = ACCESS_EXTERNAL_PATH;
-        get("/status").then().statusCode(Status.NO_CONTENT.getStatusCode());
-    }
-
 
     @RunWithCustomExecutor
     @Test
@@ -249,7 +172,8 @@ public class IngestExternalIT extends VitamRuleRunner {
     @Test
     public void test_ingest_step_by_step_ok() throws Exception {
         try (InputStream inputStream =
-            PropertiesUtils.getResourceAsStream("integration-processing/4_UNITS_2_GOTS.zip");) {
+            PropertiesUtils.getResourceAsStream("integration-processing/4_UNITS_2_GOTS.zip")) {
+            // Start ingest with step by step mode
             RequestResponse response = ingestExternalClient
                 .ingest(
                     new VitamContext(tenantId).setApplicationSessionId(APPLICATION_SESSION_ID).setAccessContract(
@@ -262,6 +186,7 @@ public class IngestExternalIT extends VitamRuleRunner {
 
             assertThat(operationId).as(format("%s not found for request", X_REQUEST_ID)).isNotNull();
 
+            // Number of steps in ingest workflow
             int numberOfIngestSteps = 11;
 
             final VitamPoolingClient vitamPoolingClient = new VitamPoolingClient(adminExternalClient);
@@ -274,6 +199,7 @@ public class IngestExternalIT extends VitamRuleRunner {
             RequestResponse itemStatusResponse = null;
             while (null == itemStatusResponse || itemStatusResponse.isOk()) {
                 numberOfIngestSteps--;
+                // Check workflow state and status
                 itemStatusResponse =
                     adminExternalClient.getOperationProcessExecutionDetails(new VitamContext(tenantId), operationId);
                 assertThat(itemStatusResponse.isOk()).isTrue();
@@ -288,6 +214,7 @@ public class IngestExternalIT extends VitamRuleRunner {
                     break;
                 }
 
+                // Execute the next step
                 RequestResponse<ItemStatus> updateResponse = adminExternalClient.updateOperationActionProcess(
                     new VitamContext(tenantId).setApplicationSessionId(APPLICATION_SESSION_ID)
                         .setAccessContract(ACCESS_CONTRACT),
@@ -296,6 +223,7 @@ public class IngestExternalIT extends VitamRuleRunner {
                 );
                 assertThat(updateResponse.isOk()).isTrue();
 
+                // Wait the end of execution of the current step
                 process_timeout = vitamPoolingClient
                     .wait(tenantId, operationId, 1800, 1_000L, TimeUnit.MILLISECONDS);
                 if (!process_timeout) {
@@ -303,7 +231,7 @@ public class IngestExternalIT extends VitamRuleRunner {
                 }
             }
 
-            // Assert all steps executed
+            // Assert all steps are executed
             assertThat(numberOfIngestSteps).isEqualTo(0);
 
             // Get logbook and check all events
@@ -311,7 +239,7 @@ public class IngestExternalIT extends VitamRuleRunner {
                 (Document) LogbookCollections.OPERATION.getCollection().find(Filters.eq(operationId), Document.class)
                     .first();
             InputStream expected =
-                PropertiesUtils.getResourceAsStream("integration-ingest-external/expected-logbook.json");
+                PropertiesUtils.getResourceAsStream(INTEGRATION_INGEST_EXTERNAL_EXPECTED_LOGBOOK_JSON);
             JsonNode expectedJsonNode = JsonHandler.getFromInputStream(
                 expected);
             String found = JsonHandler.prettyPrint(operation).replace(operationId, OPERATION_ID_REPLACE);

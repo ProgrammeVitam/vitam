@@ -244,8 +244,10 @@ public class IngestInternalResourceTest extends ResteasyTestApplication {
             PropertiesUtils.getResourceAsStream("SIP_mauvais_format.pdf");
 
         given()
-            .headers(GlobalDataRest.X_REQUEST_ID, ingestGuid.getId(), GlobalDataRest.X_ACTION, ProcessAction.INIT,
-                GlobalDataRest.X_CONTEXT_ID, INIT_CONTEXT)
+            .headers(
+                GlobalDataRest.X_REQUEST_ID, ingestGuid.getId(),
+                GlobalDataRest.X_ACTION, ProcessAction.INIT,
+                GlobalDataRest.X_CONTEXT_ID, INIT_CONTEXT, GlobalDataRest.X_TYPE_PROCESS, "INGEST")
             .body(inputStreamZip).contentType(CommonMediaType.ZIP)
             .when().post(INGEST_URL)
             .then().statusCode(Status.INTERNAL_SERVER_ERROR.getStatusCode());
@@ -310,22 +312,6 @@ public class IngestInternalResourceTest extends ResteasyTestApplication {
     }
 
     @Test
-    public void givenOperationIdUnavailableWhenUploadSipAsStreamThenRaiseAnExceptionProcessingException()
-        throws Exception {
-        doThrow(new ContentAddressableStorageServerException("Test")).when(workspaceClient)
-            .uncompressObject(any(), any(), any(), any());
-        try (InputStream inputStream = PropertiesUtils.getResourceAsStream("SIP_bordereau_avec_objet_OK.zip")) {
-            given()
-                .headers(GlobalDataRest.X_REQUEST_ID, ingestGuid.getId(), GlobalDataRest.X_ACTION, ProcessAction.START,
-                    GlobalDataRest.X_CONTEXT_ID, START_CONTEXT)
-                .body(inputStream).contentType(CommonMediaType.ZIP)
-                .when().post(OPERATION_URL)
-                .then().statusCode(Status.INTERNAL_SERVER_ERROR.getStatusCode());
-        }
-    }
-
-
-    @Test
     public void givenOperationIdUnavailableWhenupdateOperationProcessStatusThenRaiseAnExceptionProcessingException()
         throws Exception {
         doThrow(new VitamClientException("")).when(processingClient).updateOperationActionProcess(
@@ -355,8 +341,12 @@ public class IngestInternalResourceTest extends ResteasyTestApplication {
     @Test
     public void givenOperationIdWhengetDetailedStatusThenReturnOk()
         throws Exception {
-        when(processingClient.getOperationProcessStatus(any())).thenReturn(new ItemStatus().setGlobalState(
-            ProcessState.COMPLETED));
+        ItemStatus itemStatus = new ItemStatus().setGlobalState(
+            ProcessState.COMPLETED);
+
+        RequestResponseOK<ItemStatus> objectRequestResponseOK =
+            new RequestResponseOK<ItemStatus>().addResult(itemStatus).setHttpCode(Status.OK.getStatusCode());
+        when(processingClient.getOperationProcessExecutionDetails(anyString())).thenReturn(objectRequestResponseOK);
 
         given()
             .headers(GlobalDataRest.X_REQUEST_ID, ingestGuid.getId(), GlobalDataRest.X_ACTION, ProcessAction.RESUME,

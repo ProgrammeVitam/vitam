@@ -375,7 +375,7 @@ public class IngestInternalResource extends ApplicationStatusResource {
     @GET
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    public Response getWorkFlowStatus(@PathParam("id") String id) {
+    public Response getOperationProcessExecutionDetails(@PathParam("id") String id) {
         try (ProcessingManagementClient processManagementClient = processingManagementClientFactory.getClient()) {
             return processManagementClient.getOperationProcessExecutionDetails(id).toResponse();
         } catch (Exception e) {
@@ -397,7 +397,7 @@ public class IngestInternalResource extends ApplicationStatusResource {
     @Path("/operations/{id}")
     @DELETE
     @Produces(MediaType.APPLICATION_JSON)
-    public Response interruptWorkFlowExecution(@PathParam("id") String id) {
+    public Response cancelOperationProcessExecution(@PathParam("id") String id) {
         Status status;
         try (ProcessingManagementClient processManagementClient = processingManagementClientFactory.getClient()) {
             SanityChecker.checkParameter(id);
