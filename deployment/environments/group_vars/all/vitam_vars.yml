@@ -450,6 +450,7 @@ vitam:
         acceptableRequestTime: 60 # value in seconds
     worker:
         vitam_component: worker
+        host: "worker.service.{{ consul_domain }}"
         port_service: 9104
         port_admin: 29104
         baseuri: "worker"
