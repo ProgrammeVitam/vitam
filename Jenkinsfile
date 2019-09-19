@@ -16,7 +16,7 @@ pipeline {
 
     environment {
         MVN_BASE = "/usr/local/maven/bin/mvn --settings ${pwd()}/.ci/settings.xml"
-        MVN_COMMAND = "${MVN_BASE} --show-version --batch-mode --errors --fail-never -DinstallAtEnd=true -DdeployAtEnd=true "
+        MVN_COMMAND = "${MVN_BASE} --show-version --batch-mode --errors --fail-at-end -DinstallAtEnd=true -DdeployAtEnd=true "
         DEPLOY_GOAL = "install" // Deploy goal used by maven ; typically "deploy" for master* branches & "" (nothing) for everything else (we don't deploy) ; keep a space so can work in other branches than develop
         CI = credentials("app-jenkins")
         SERVICE_SONAR_URL = credentials("service-sonar-url")
@@ -80,7 +80,7 @@ pipeline {
                 // OMA: evaluate project version ; write directly through shell as I didn't find anything else
                 sh "$MVN_BASE -q -f sources/pom.xml --non-recursive -Dexec.args='\${project.version}' -Dexec.executable=\"echo\" org.codehaus.mojo:exec-maven-plugin:1.3.1:exec > version_projet.txt"
                 echo "Changed VITAM : ${env.CHANGED_VITAM}"
-                echo "Changed VITAM : ${env.CHANGED_VITAM_PRODUCT}"
+                echo "Changed VITAM : ${env.CHANGED_VITAM_PRODUCT}"		
             }
         }
 
@@ -108,27 +108,15 @@ pipeline {
             }
         }
 
-		// special case for MR
-        stage("Notify gitlab if merge request") {
+        stage ("Execute unit and integration tests on master branches") {
             when {
-                not{
-                    anyOf {
-                        branch "develop*"
-                        branch "master_*"
-                        branch "master"
-                        tag pattern: "^[1-9]+\\.[0-9]+\\.[0-9]+-?[0-9]*\$", comparator: "REGEXP"
-                    }
+                anyOf {
+                    branch "develop*"
+                    branch "master_*"
+                    branch "master"
+                    tag pattern: "^[1-9]+\\.[0-9]+\\.[0-9]+-?[0-9]*\$", comparator: "REGEXP"
                 }
             }
-            steps {
-                updateGitlabCommitStatus name: 'mergerequest', state: 'running'
-            }
-        }
-
-        stage ("Execute unit and integration tests") {
-         // when {
-        //     //     environment(name: 'CHANGED_VITAM', value: 'true')
-        //     // }
             steps {
                 dir('sources') {
                     script {
@@ -161,8 +149,7 @@ pipeline {
             }
         }
 
-        // special case for MR
-        stage("Report to gitlab if merge request") {
+        stage ("Execute unit and integration tests on merge requests") {
             when {
                 not{
                     anyOf {
@@ -172,13 +159,54 @@ pipeline {
                         tag pattern: "^[1-9]+\\.[0-9]+\\.[0-9]+-?[0-9]*\$", comparator: "REGEXP"
                     }
                 }
-
+            }
+            environment {
+                MVN_COMMAND = "${MVN_BASE} --show-version --batch-mode --errors --fail-never -DinstallAtEnd=true -DdeployAtEnd=true "
             }
             steps {
-                updateGitlabCommitStatus name: 'mergerequest', state: 'success'
-				addGitLabMRComment comment: "pipeline-job : [analyse sonar](https://sonar.dev.programmevitam.fr/dashboard?id=fr.gouv.vitam%3Aparent%3A${gitlabSourceBranch}) de la branche"
+                updateGitlabCommitStatus name: 'mergerequest', state: "running"
+                dir('sources') {
+                    script {
+                        docker.withRegistry("http://${env.SERVICE_DOCKER_PULL_URL}") {
+                            docker.image("${env.SERVICE_DOCKER_PULL_URL}/elasticsearch/elasticsearch:6.8.2").withRun('-p 9200:9200 -p 9300:9300 -e "discovery.type=single-node" -e "cluster.name=elasticsearch-data"') { c ->
+                                docker.withRegistry("http://${env.SERVICE_DOCKER_PULL_URL}") {
+                                    docker.image("${env.SERVICE_DOCKER_PULL_URL}/mongo:4.2.0").withRun('-p 27017:27017') { o ->
+                                        sh 'while ! curl -v http://localhost:9200; do sleep 2; done'
+                                        sh 'curl -X PUT http://localhost:9200/_template/default -H \'Content-Type: application/json\' -d \'{"index_patterns": ["*"],"order": -1,"settings": {"number_of_shards": "1","number_of_replicas": "0"}}\''
+                                        sh '$MVN_COMMAND -f pom.xml clean verify org.owasp:dependency-check-maven:aggregate sonar:sonar -Dsonar.branch=$GIT_BRANCH -Ddownloader.quick.query.timestamp=false'
+                                    }
+                        		}
+                            }
+                        }
+                    }
+                }
+            }
+            post {
+                always {
+                    junit 'sources/**/target/surefire-reports/*.xml'
+                }
+                success {
+                    archiveArtifacts (
+                        artifacts: '**/dependency-check-report.html'
+                        , fingerprint: true
+                        , allowEmptyArchive: true
+
+                    )
+                    updateGitlabCommitStatus name: 'mergerequest', state: "success"
+				    addGitLabMRComment comment: "pipeline-job : [analyse sonar](https://sonar.dev.programmevitam.fr/dashboard?id=fr.gouv.vitam%3Aparent%3A${gitlabSourceBranch}) de la branche"
+                }
+                failure {
+                    updateGitlabCommitStatus name: 'mergerequest', state: "failed"
+                }
+                unstable {
+                    updateGitlabCommitStatus name: 'mergerequest', state: "failed"
+                }
+                aborted {
+                    updateGitlabCommitStatus name: 'mergerequest', state: "canceled"
+                }
             }
         }
+
 
         stage("Build packages") {
             when {
