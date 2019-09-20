@@ -226,7 +226,7 @@
 						<require>vitam-user-${unix.user}</require>
 					</requires>
 					<defaultDirmode>750</defaultDirmode>
-					<defaultFileMode>640</defaultFileMode>
+					<defaultFilemode>640</defaultFilemode>
 					<defaultUsername>${unix.user}</defaultUsername>
 					<defaultGroupname>${unix.group}</defaultGroupname>
 					<mappings>
