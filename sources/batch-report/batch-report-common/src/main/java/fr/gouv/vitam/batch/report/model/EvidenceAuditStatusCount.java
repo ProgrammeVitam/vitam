@@ -26,6 +26,7 @@
  *******************************************************************************/
 package fr.gouv.vitam.batch.report.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
@@ -79,6 +80,10 @@ public class EvidenceAuditStatusCount {
         default:
             throw new IllegalArgumentException("Status invalid " + status);
         }
+    }
+    @JsonIgnore
+    public int getTotal() {
+        return nbOK + nbWARNING + nbKO;
     }
 
 }
