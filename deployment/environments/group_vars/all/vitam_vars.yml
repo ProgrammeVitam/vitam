@@ -416,7 +416,7 @@ vitam:
         schemaValidatorCacheMaxEntries: 100
         schemaValidatorCacheTimeoutInSeconds: 300
         acceptableRequestTime: 10 # value in seconds
-        # DIP cleanup delay
+        # DIP cleanup delay (in minutes)
         dipTimeToLiveInMinutes: 10080 # 7 days
         # metricslevel: DEBUG
         # metricsinterval: 3
