@@ -5,6 +5,8 @@
 - import_tasks: check_groups.yml
   when: ansible_virtualization_type != 'docker'
 
+- import_tasks: check_single_vm.yml
+
 - include_tasks: check_consul.yml
   when:  inventory_hostname in groups['vitam']
 
