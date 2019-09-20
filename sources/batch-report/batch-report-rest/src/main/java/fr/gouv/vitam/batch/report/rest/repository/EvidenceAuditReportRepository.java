@@ -102,31 +102,22 @@ public class EvidenceAuditReportRepository extends ReportCommonRepository {
      * @param tenantId the tenantId id
      */
     public ReportResults computeVitamResults(String processId, Integer tenantId) {
-        ReportResults reportResult = new ReportResults(0, 0, 0, 0);
+        ReportResults reportResult = new ReportResults();
 
         Bson eqProcessId = eq(EvidenceAuditObjectModel.PROCESS_ID, processId);
         Bson eqTenant = eq(EvidenceAuditObjectModel.TENANT, tenantId);
-        Bson groupOnSp = group("$_metadata.status", sum("result", 1));
-        MongoCursor<Document> objectGroupsStatusCountResult = getListStats(Aggregates.match(and(eqProcessId, eqTenant)),
-            groupOnSp);
-        while (objectGroupsStatusCountResult.hasNext()) {
-            Document result = objectGroupsStatusCountResult.next();
-            String status = result.getString("_id");
-            Integer count = result.getInteger("result");
-            switch (status) {
-                case "OK":
-                    reportResult.setNbOk(count);
-                    break;
-                case "WARN":
-                    reportResult.setNbWarning(count);
-                    break;
-                case "KO":
-                    reportResult.setNbKo(count);
-                    break;
-                default:
-                    break;
-            }
-        }
+
+        EvidenceAuditFullStatusCount globalResults =
+            new EvidenceAuditFullStatusCount(new EvidenceAuditStatusCount(), new EvidenceAuditStatusCount(),
+                new EvidenceAuditStatusCount());
+
+        getNbObjects(match(and(eqProcessId, eqTenant)), globalResults);
+        getMetadataTypeStats(globalResults, eqProcessId, eqTenant);
+
+        reportResult.setNbOk(globalResults.getObjectGroupsCount().getNbOK() + globalResults.getUnitsCount().getNbOK() + globalResults.getObjectsCount().getNbOK());
+        reportResult.setNbKo(globalResults.getObjectGroupsCount().getNbKO() + globalResults.getUnitsCount().getNbKO() + globalResults.getObjectsCount().getNbKO());
+        reportResult.setNbWarning(globalResults.getObjectGroupsCount().getNbWARNING() + globalResults.getUnitsCount().getNbWARNING() + globalResults.getObjectsCount().getNbWARNING());
+
         reportResult.setTotal(reportResult.getNbKo() + reportResult.getNbOk() + reportResult.getNbWarning());
         return reportResult;
     }
@@ -152,8 +143,8 @@ public class EvidenceAuditReportRepository extends ReportCommonRepository {
      * Retrieve report mongo document for a report filtered by defined statuses
      *
      * @param processId processId
-     * @param tenantId  tenantId
-     * @param status    statuses
+     * @param tenantId tenantId
+     * @param status statuses
      * @return mongo cursor of report documents
      */
     public MongoCursor<Document> findCollectionByProcessIdTenantAndStatus(String processId, int tenantId,
@@ -179,65 +170,17 @@ public class EvidenceAuditReportRepository extends ReportCommonRepository {
     public EvidenceAuditStatsModel stats(String processId, int tenantId) {
         Bson eqProcessId = eq(EvidenceAuditObjectModel.PROCESS_ID, processId);
         Bson eqTenant = eq(EvidenceAuditObjectModel.TENANT, tenantId);
-        Bson filterAgg = getMatchAggregation(and(eqProcessId, eqTenant));
-        EvidenceAuditStatsModel counterStatus = getNumberOfUnitGot(processId, tenantId);
 
         EvidenceAuditFullStatusCount globalResults =
-            new EvidenceAuditFullStatusCount(new EvidenceAuditStatusCount(), new EvidenceAuditStatusCount());
+            new EvidenceAuditFullStatusCount(new EvidenceAuditStatusCount(), new EvidenceAuditStatusCount(),
+                new EvidenceAuditStatusCount());
 
-        getNbGotsStatus(filterAgg, globalResults);
-        getNbObjectsStatus(filterAgg, globalResults);
+        getNbObjects(match(and(eqProcessId, eqTenant)), globalResults);
+        getMetadataTypeStats(globalResults, eqProcessId, eqTenant);
+        return
+            new EvidenceAuditStatsModel(globalResults.getObjectGroupsCount().getTotal(),
+                globalResults.getUnitsCount().getTotal(), globalResults.getObjectsCount().getTotal(), globalResults);
 
-        return new EvidenceAuditStatsModel(counterStatus.getNbObjectGroups(), counterStatus.getNbObjects(),
-            globalResults);
-    }
-
-    /**
-     * Compute the {@link EvidenceAuditStatsModel}
-     *
-     * @param processId the process id
-     * @param tenantId the tenantId id
-     */
-    public EvidenceAuditStatsModel getNumberOfUnitGot(String processId, Integer tenantId) {
-        EvidenceAuditStatsModel counter = new EvidenceAuditStatsModel();
-        Bson eqProcessId = eq(EvidenceAuditObjectModel.PROCESS_ID, processId);
-        Bson eqTenant = eq(EvidenceAuditObjectModel.TENANT, tenantId);
-        Bson groupOnObjectType = group("$_metadata.objectType", sum("result", 1));
-        MongoCursor<Document> objectGroupsStatusCountResult = getListStats(Aggregates.match(and(eqProcessId, eqTenant)),
-            groupOnObjectType);
-        while (objectGroupsStatusCountResult.hasNext()) {
-            Document result = objectGroupsStatusCountResult.next();
-            String status = result.getString("_id");
-            switch (status) {
-                case "OBJECTGROUP":
-                    counter.setNbObjectGroups(result.getInteger("result"));
-                    break;
-                case "UNIT":
-                    counter.setNbObjects(result.getInteger("result"));
-                    break;
-                default:
-                    break;
-            }
-        }
-        return counter;
-    }
-
-
-    /**
-     * Append number of objects group status to global stats results
-     *
-     * @param matchAgg filter
-     * @param results results
-     */
-    private void getNbGotsStatus(Bson matchAgg, EvidenceAuditFullStatusCount results) {
-        Bson groupOnSp = group("$_metadata.status", sum("result", 1));
-        MongoCursor<Document> objectGroupsStatusCountResult = getListStats(matchAgg, groupOnSp);
-        while (objectGroupsStatusCountResult.hasNext()) {
-            Document result = objectGroupsStatusCountResult.next();
-            String status = result.getString("_id");
-            Integer count = result.getInteger("result");
-            results.getObjectGroupsCount().addOneStatus(status, count);
-        }
     }
 
     /**
@@ -246,14 +189,47 @@ public class EvidenceAuditReportRepository extends ReportCommonRepository {
      * @param matchAgg filter
      * @param results results
      */
-    private void getNbObjectsStatus(Bson matchAgg, EvidenceAuditFullStatusCount results) {
-        Bson group = group("$_metadata.status", sum("result", 1));
-        MongoCursor<Document> objectGroupsStatusCountResult = getListStats(matchAgg, group);
+    private void getNbObjects(Bson matchAgg, EvidenceAuditFullStatusCount results) {
+        Bson group = group("$_metadata.objectsReports.status", sum("result", 1));
+        MongoCursor<Document> objectGroupsStatusCountResult =
+            getListStats(matchAgg, Aggregates.unwind("$_metadata.objectsReports"), group);
         while (objectGroupsStatusCountResult.hasNext()) {
             Document result = objectGroupsStatusCountResult.next();
             String status = result.getString("_id");
             Integer count = result.getInteger("result");
             results.getObjectsCount().addOneStatus(status, count);
+        }
+    }
+
+    /**
+     * Archive Unit and GOT statistics
+     *
+     * @param globalResults globalResults
+     * @param eqProcessId eqProcessId
+     * @param eqTenant eqTenant
+     * @return AU and GOT statistics
+     */
+    private void getMetadataTypeStats(EvidenceAuditFullStatusCount globalResults, Bson eqProcessId, Bson eqTenant) {
+        MongoCursor<Document> findIterable =
+            getListStats(match(and(eqProcessId, eqTenant)), group(new Document("_id",
+                    new Document("restType", "$_metadata.objectType").append("resStatus", "$_metadata.status")),
+                sum("result", 1)));
+        while (findIterable.hasNext()) {
+            Document current = findIterable.next();
+            Document objectType = ((Document) current.get("_id"));
+            String dataType = ((Document) objectType.get("_id")).get("restType").toString();
+            String dataStatus = ((Document) objectType.get("_id")).getString("resStatus");
+            Integer count = current.getInteger("result");
+            switch (dataType) {
+                case "OBJECTGROUP":
+                    globalResults.getObjectGroupsCount().addOneStatus(dataStatus, count);
+                    break;
+                case "UNIT":
+                    globalResults.getUnitsCount().addOneStatus(dataStatus, count);
+                    break;
+                default:
+                    break;
+            }
         }
     }
 
@@ -265,16 +241,8 @@ public class EvidenceAuditReportRepository extends ReportCommonRepository {
             new Document("offersHashes", "$_metadata.offersHashes"));
     }
 
-    private Bson getMatchAggregation(Bson filter) {
-        return match(filter);
-    }
-
     private MongoCursor<Document> getListStats(Bson... aggregations) {
-        return evidenceAuditReportCollection.aggregate(Arrays.asList(aggregations)).iterator();
-    }
-
-    private Document getStats(Bson... aggregations) {
-        return evidenceAuditReportCollection.aggregate(Arrays.asList(aggregations)).first();
+        return evidenceAuditReportCollection.aggregate(Arrays.asList(aggregations)).allowDiskUse(true).iterator();
     }
 
 }

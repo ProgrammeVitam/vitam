@@ -36,16 +36,20 @@ public class EvidenceAuditFullStatusCount {
 
     @JsonProperty("objectGroupsCount")
     private EvidenceAuditStatusCount objectGroupsCount;
+    @JsonProperty("archiveUnitsCount")
+    private EvidenceAuditStatusCount unitsCount;
     @JsonProperty("objectsCount")
     private EvidenceAuditStatusCount objectsCount;
+
 
     public EvidenceAuditFullStatusCount() {
 
     }
 
-    public EvidenceAuditFullStatusCount(EvidenceAuditStatusCount objectGroupsCount, EvidenceAuditStatusCount objectsCount) {
+    public EvidenceAuditFullStatusCount(EvidenceAuditStatusCount objectGroupsCount, EvidenceAuditStatusCount unitsCount, EvidenceAuditStatusCount objectsCount) {
         super();
         this.objectGroupsCount = objectGroupsCount;
+        this.unitsCount = unitsCount;
         this.objectsCount = objectsCount;
     }
 
@@ -57,6 +61,14 @@ public class EvidenceAuditFullStatusCount {
         this.objectGroupsCount = objectGroupsCount;
     }
 
+    public EvidenceAuditStatusCount getUnitsCount() {
+        return unitsCount;
+    }
+
+    public void setUnitsCount(EvidenceAuditStatusCount unitsCount) {
+        this.unitsCount = unitsCount;
+    }
+
     public EvidenceAuditStatusCount getObjectsCount() {
         return objectsCount;
     }
@@ -64,5 +76,4 @@ public class EvidenceAuditFullStatusCount {
     public void setObjectsCount(EvidenceAuditStatusCount objectsCount) {
         this.objectsCount = objectsCount;
     }
-
 }
