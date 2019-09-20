@@ -27,6 +27,7 @@ import fr.gouv.vitam.functional.administration.client.AdminManagementClientFacto
 import fr.gouv.vitam.functional.administration.common.server.AdminManagementConfiguration;
 import fr.gouv.vitam.functional.administration.rest.AdminManagementMain;
 import fr.gouv.vitam.ingest.external.client.IngestExternalClientFactory;
+import fr.gouv.vitam.ingest.external.common.config.IngestExternalConfiguration;
 import fr.gouv.vitam.ingest.external.rest.IngestExternalMain;
 import fr.gouv.vitam.ingest.internal.client.IngestInternalClientFactory;
 import fr.gouv.vitam.ingest.internal.upload.rest.IngestInternalMain;
@@ -56,7 +57,9 @@ import fr.gouv.vitam.workspace.rest.WorkspaceMain;
 import org.junit.rules.ExternalResource;
 
 import javax.ws.rs.core.MultivaluedHashMap;
+
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -191,8 +194,25 @@ public class VitamServerRunner extends ExternalResource {
             if (Files.notExists(Paths.get(VitamConfiguration.getVitamDataFolder() + "/log/"))) {
                 Files.createDirectories(Paths.get(VitamConfiguration.getVitamDataFolder() + "/log/"));
             }
+
             if (Files.notExists(Paths.get(VitamConfiguration.getVitamDataFolder() + "/storage/"))) {
                 Files.createDirectories(Paths.get(VitamConfiguration.getVitamDataFolder() + "/storage/"));
+            }
+
+            if (Files.notExists(Paths.get(VitamConfiguration.getVitamDataFolder() + "/ingest-external/workspace/"))) {
+                Files.createDirectories(Paths.get(VitamConfiguration.getVitamDataFolder() + "/ingest-external/workspace/"));
+            }
+
+            if (Files.notExists(Paths.get(VitamConfiguration.getVitamDataFolder() + "/ingest-external/upload/"))) {
+                Files.createDirectories(Paths.get(VitamConfiguration.getVitamDataFolder() + "/ingest-external/upload/"));
+            }
+
+            if (Files.notExists(Paths.get(VitamConfiguration.getVitamDataFolder() + "/ingest-external/upload/success/"))) {
+                Files.createDirectories(Paths.get(VitamConfiguration.getVitamDataFolder() + "/ingest-external/upload/success/"));
+            }
+
+            if (Files.notExists(Paths.get(VitamConfiguration.getVitamDataFolder() + "/ingest-external/upload/failure/"))) {
+                Files.createDirectories(Paths.get(VitamConfiguration.getVitamDataFolder() + "/ingest-external/upload/failure/"));
             }
 
             FormatIdentifierFactory.getInstance()
@@ -298,6 +318,8 @@ public class VitamServerRunner extends ExternalResource {
             } else {
                 AccessExternalClientFactory.getInstance()
                     .setVitamClientType(VitamClientFactoryInterface.VitamClientType.MOCK);
+                AdminExternalClientFactory.getInstance()
+                    .setVitamClientType(VitamClientFactoryInterface.VitamClientType.MOCK);
             }
             waitServerStartOrStop(true);
         } catch (IOException | VitamApplicationServerException | PluginException e) {
@@ -322,11 +344,37 @@ public class VitamServerRunner extends ExternalResource {
         SystemPropertyUtil.clear(IngestInternalMain.PARAMETER_JETTY_SERVER_PORT);
     }
 
-    private void startIngestExternalServer() throws VitamApplicationServerException {
+    private void startIngestExternalServer() throws VitamApplicationServerException, IOException {
         if (null != ingestExternalMain) {
             IngestExternalClientFactory.getInstance().changeMode(INGEST_EXTERNAL_CLIENT_CONF);
             return;
         }
+
+        File ingestExternalFile = PropertiesUtils.findFile(INGEST_EXTERNAL_CONF);
+        final IngestExternalConfiguration serverConfiguration =
+            readYaml(ingestExternalFile, IngestExternalConfiguration.class);
+
+
+        serverConfiguration.setPath(Files
+            .createTempDirectory(Paths.get(VitamConfiguration.getVitamDataFolder() + "/ingest-external/workspace/"),
+                "workspace_").toFile().getAbsolutePath());
+
+        serverConfiguration.setBaseUploadPath(Files
+            .createTempDirectory(Paths.get(VitamConfiguration.getVitamDataFolder() + "/ingest-external/upload/"),
+                "upload_").toFile().getAbsolutePath());
+
+
+        serverConfiguration.setSuccessfulUploadDir(Files
+            .createTempDirectory(Paths.get(VitamConfiguration.getVitamDataFolder() + "/ingest-external/upload/success/"),
+                "upload_").toFile().getAbsolutePath());
+
+        serverConfiguration.setFailedUploadDir(Files
+            .createTempDirectory(Paths.get(VitamConfiguration.getVitamDataFolder() + "/ingest-external/upload/failure"),
+                "upload_").toFile().getAbsolutePath());
+
+        writeYaml(ingestExternalFile, serverConfiguration);
+
+
 
         SystemPropertyUtil.set(IngestExternalMain.PARAMETER_JETTY_SERVER_PORT,
             Integer.toString(PORT_SERVICE_INGEST_EXTERNAL));

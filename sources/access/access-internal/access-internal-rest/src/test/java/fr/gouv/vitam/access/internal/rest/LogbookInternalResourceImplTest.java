@@ -214,7 +214,7 @@ public class LogbookInternalResourceImplTest extends ResteasyTestApplication {
             .thenReturn(ClientMockResultHelper.getLogbookOperation());
         when(processingManagementClient.executeCheckTraceabilityWorkFlow(any(), any(),
             any(), any())).thenReturn(new RequestResponseOK<>());
-        when(processingManagementClient.isNotRunning(any())).thenReturn(true);
+        when(processingManagementClient.isNotRunning(any(), any())).thenReturn(true);
         when(workspaceClient.isExistingContainer(any())).thenReturn(true);
         doNothing().when(workspaceClient).deleteContainer(any(), anyBoolean());
         LOGGER.warn("Start Check");

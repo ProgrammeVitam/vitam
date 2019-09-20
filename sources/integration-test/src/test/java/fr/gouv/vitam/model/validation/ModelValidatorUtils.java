@@ -39,6 +39,7 @@ import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.model.administration.OntologyModel;
 import fr.gouv.vitam.common.model.administration.OntologyType;
+import fr.gouv.vitam.common.ontology.OntologyTestHelper;
 import fr.gouv.vitam.model.validation.jsonschema.JsonSchemaField;
 import fr.gouv.vitam.model.validation.jsonschema.JsonSchemaFieldParser;
 import fr.gouv.vitam.model.validation.mapping.ElasticsearchMappingParser;
@@ -52,6 +53,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.assertj.core.api.SoftAssertions;
 
 import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -146,9 +148,9 @@ public class ModelValidatorUtils {
     }
 
     private static List<OntologyModel> loadOntology(String collectionName)
-        throws FileNotFoundException, InvalidParseOperationException, InvalidFormatException {
+        throws IOException, InvalidParseOperationException {
         // Read vitam ontology (added as test resource from ansible deployment directory)
-        InputStream resourceAsStream = PropertiesUtils.getResourceAsStream("VitamOntology.json");
+        InputStream resourceAsStream = OntologyTestHelper.loadOntologies();
 
         List<OntologyModel> ontologyModels =
             JsonHandler.getFromInputStreamAsTypeRefence(resourceAsStream, LIST_TYPE_REFERENCE);

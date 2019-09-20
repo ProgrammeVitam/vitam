@@ -78,6 +78,7 @@ import fr.gouv.vitam.common.model.massupdate.RuleActions;
 import fr.gouv.vitam.common.model.massupdate.RuleCategoryAction;
 import fr.gouv.vitam.common.model.massupdate.RuleCategoryActionDeletion;
 import fr.gouv.vitam.common.mongo.MongoRule;
+import fr.gouv.vitam.common.ontology.OntologyTestHelper;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
 import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
@@ -167,7 +168,6 @@ import static org.mockito.Mockito.verify;
 public class DbRequestTest {
 
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(DbRequestTest.class);
-    private static final String ONTOLOGY_JSON = "VitamOntology.json";
     private static final Integer TENANT_ID_0 = 0;
     private static final Integer TENANT_ID_1 = 1;
     private static final Integer TENANT_ID_2 = 2;
@@ -824,7 +824,7 @@ public class DbRequestTest {
 
         // Base ontology with custom external types
         List<OntologyModel> ontologyModels = JsonHandler
-            .getFromFileAsTypeRefence(PropertiesUtils.getResourceFile(ONTOLOGY_JSON),
+            .getFromInputStreamAsTypeRefence(OntologyTestHelper.loadOntologies(),
                 new TypeReference<List<OntologyModel>>() {
                 });
         ontologyModels.addAll(Arrays.asList(
@@ -902,7 +902,7 @@ public class DbRequestTest {
 
         // Base ontology with custom external types
         List<OntologyModel> ontologyModels = JsonHandler
-            .getFromFileAsTypeRefence(PropertiesUtils.getResourceFile(ONTOLOGY_JSON),
+            .getFromInputStreamAsTypeRefence(OntologyTestHelper.loadOntologies(),
                 new TypeReference<List<OntologyModel>>() {
                 });
         ontologyModels.addAll(Arrays.asList(
@@ -960,7 +960,7 @@ public class DbRequestTest {
 
         // Base ontology
         List<OntologyModel> ontologyModels = JsonHandler
-            .getFromFileAsTypeRefence(PropertiesUtils.getResourceFile(ONTOLOGY_JSON),
+            .getFromInputStreamAsTypeRefence(OntologyTestHelper.loadOntologies(),
                 new TypeReference<List<OntologyModel>>() {
                 });
 
@@ -1017,7 +1017,7 @@ public class DbRequestTest {
 
         // Base ontology
         List<OntologyModel> ontologyModels = JsonHandler
-            .getFromFileAsTypeRefence(PropertiesUtils.getResourceFile(ONTOLOGY_JSON),
+            .getFromInputStreamAsTypeRefence(OntologyTestHelper.loadOntologies(),
                 new TypeReference<List<OntologyModel>>() {
                 });
 
@@ -2320,7 +2320,7 @@ public class DbRequestTest {
 
         // Base ontology with custom external types
         List<OntologyModel> ontologyModels = JsonHandler
-            .getFromFileAsTypeRefence(PropertiesUtils.getResourceFile(ONTOLOGY_JSON),
+            .getFromInputStreamAsTypeRefence(OntologyTestHelper.loadOntologies(),
                 new TypeReference<List<OntologyModel>>() {
                 });
         ontologyModels.addAll(Arrays.asList(
@@ -2420,7 +2420,7 @@ public class DbRequestTest {
 
         // Base ontology
         List<OntologyModel> ontologyModels = JsonHandler
-            .getFromFileAsTypeRefence(PropertiesUtils.getResourceFile(ONTOLOGY_JSON),
+            .getFromInputStreamAsTypeRefence(OntologyTestHelper.loadOntologies(),
                 new TypeReference<List<OntologyModel>>() {
                 });
 
@@ -2492,7 +2492,7 @@ public class DbRequestTest {
 
         // Base ontology
         List<OntologyModel> ontologyModels = JsonHandler
-            .getFromFileAsTypeRefence(PropertiesUtils.getResourceFile(ONTOLOGY_JSON),
+            .getFromInputStreamAsTypeRefence(OntologyTestHelper.loadOntologies(),
                 new TypeReference<List<OntologyModel>>() {
                 });
 
@@ -2564,7 +2564,7 @@ public class DbRequestTest {
 
         // Base ontology
         List<OntologyModel> ontologyModels = JsonHandler
-            .getFromFileAsTypeRefence(PropertiesUtils.getResourceFile(ONTOLOGY_JSON),
+            .getFromInputStreamAsTypeRefence(OntologyTestHelper.loadOntologies(),
                 new TypeReference<List<OntologyModel>>() {
                 });
 
@@ -2684,7 +2684,7 @@ public class DbRequestTest {
 
         // Base ontology
         List<OntologyModel> ontologyModels = JsonHandler
-            .getFromFileAsTypeRefence(PropertiesUtils.getResourceFile(ONTOLOGY_JSON),
+            .getFromInputStreamAsTypeRefence(OntologyTestHelper.loadOntologies(),
                 new TypeReference<List<OntologyModel>>() {
                 });
 
@@ -2739,7 +2739,7 @@ public class DbRequestTest {
 
         // Base ontology
         List<OntologyModel> ontologyModels = JsonHandler
-            .getFromFileAsTypeRefence(PropertiesUtils.getResourceFile(ONTOLOGY_JSON),
+            .getFromInputStreamAsTypeRefence(OntologyTestHelper.loadOntologies(),
                 new TypeReference<List<OntologyModel>>() {
                 });
 
@@ -2799,7 +2799,7 @@ public class DbRequestTest {
 
         // Base ontology
         List<OntologyModel> ontologyModels = JsonHandler
-            .getFromFileAsTypeRefence(PropertiesUtils.getResourceFile(ONTOLOGY_JSON),
+            .getFromInputStreamAsTypeRefence(OntologyTestHelper.loadOntologies(),
                 new TypeReference<List<OntologyModel>>() {
                 });
 
