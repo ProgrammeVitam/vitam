@@ -29,14 +29,16 @@ package fr.gouv.vitam.worker.core.plugin.evidence;
 
 import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.StatusCode;
+import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
+import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
+import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
+import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.functional.administration.common.BackupService;
-import fr.gouv.vitam.metadata.client.MetaDataClient;
-import fr.gouv.vitam.metadata.client.MetaDataClientFactory;
-import fr.gouv.vitam.processing.common.exception.ProcessingException;
+import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClient;
+import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClientFactory;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
-import fr.gouv.vitam.storage.engine.common.model.DataCategory;
 import fr.gouv.vitam.worker.common.HandlerIO;
-import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
+import fr.gouv.vitam.worker.core.plugin.evidence.report.EvidenceAuditReportService;
 import org.assertj.core.api.Assertions;
 import org.junit.Before;
 import org.junit.Rule;
@@ -47,13 +49,9 @@ import org.mockito.junit.MockitoJUnit;
 import org.mockito.junit.MockitoRule;
 
 import java.io.File;
-import java.io.InputStream;
 
+import static fr.gouv.vitam.common.json.JsonHandler.getFromInputStream;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 public class EvidenceAuditFinalizeTest {
@@ -62,22 +60,53 @@ public class EvidenceAuditFinalizeTest {
     @Rule public TemporaryFolder tempFolder = new TemporaryFolder();
     @Mock private BackupService backupService;
     private EvidenceAuditFinalize evidenceAuditFinalize;
+    private static final String JOP_EVIDENCE_AUDIT_RESULTS_OK = "/evidenceAudit/JOP_EVIDENCE_AUDIT_OK.json";
+    private static final String JOP_EVIDENCE_AUDIT_RESULTS_WARNING = "/evidenceAudit/JOP_EVIDENCE_AUDIT_WARNING.json";
     @Mock public HandlerIO handlerIO;
     @Mock
     WorkerParameters defaultWorkerParameters;
+    @Mock
+    private EvidenceAuditReportService evidenceAuditReportService;
+    @Mock
+    private LogbookOperationsClientFactory logbookOperationsClientFactory;
+    @Mock
+    private LogbookOperationsClient logbookClient;
+    @Rule
+    public RunWithCustomExecutorRule runInThread =
+        new RunWithCustomExecutorRule(VitamThreadPoolExecutor.getDefaultExecutor());
 
     @Before
     public void setUp() throws Exception {
-        evidenceAuditFinalize = new EvidenceAuditFinalize(backupService);
+        when(logbookOperationsClientFactory.getClient()).thenReturn(logbookClient);
+        evidenceAuditFinalize = new EvidenceAuditFinalize(evidenceAuditReportService,logbookOperationsClientFactory);
     }
 
+
+    @RunWithCustomExecutor
     @Test
-    public void shouldFinalizeAudit() throws Exception {
+    public void shouldFinalizeAuditWithOK() throws Exception {
+        VitamThreadUtils.getVitamSession().setTenantId(0);
+        VitamThreadUtils.getVitamSession().setRequestId("aeeaaaaaacfpuagsaauscallwn433oaaaaaq");
         File file = tempFolder.newFile();
         when(handlerIO.getNewLocalFile("report.json")).thenReturn(file);
+        when(logbookClient.selectOperationById(any()))
+            .thenReturn(getFromInputStream(getClass().getResourceAsStream(JOP_EVIDENCE_AUDIT_RESULTS_OK)));
+
         ItemStatus execute = evidenceAuditFinalize.execute(defaultWorkerParameters, handlerIO);
         Assertions.assertThat(execute.getGlobalStatus()).isEqualTo(StatusCode.OK);
+    }
 
-        verify(backupService).backup(any(InputStream.class), eq(DataCategory.REPORT), anyString());
+    @RunWithCustomExecutor
+    @Test
+    public void shouldFinalizeAuditWithWarning() throws Exception {
+        VitamThreadUtils.getVitamSession().setTenantId(0);
+        VitamThreadUtils.getVitamSession().setRequestId("aeeaaaaaacfpuagsaauscallwn434oaaaaaq");
+        File file = tempFolder.newFile();
+        when(handlerIO.getNewLocalFile("report.json")).thenReturn(file);
+        when(logbookClient.selectOperationById(any()))
+            .thenReturn(getFromInputStream(getClass().getResourceAsStream(JOP_EVIDENCE_AUDIT_RESULTS_WARNING)));
+
+        ItemStatus execute = evidenceAuditFinalize.execute(defaultWorkerParameters, handlerIO);
+        Assertions.assertThat(execute.getGlobalStatus()).isEqualTo(StatusCode.OK);
     }
 }

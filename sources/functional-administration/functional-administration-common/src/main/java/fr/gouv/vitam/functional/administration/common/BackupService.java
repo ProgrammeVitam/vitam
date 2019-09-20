@@ -66,7 +66,7 @@ public class BackupService {
         storageClientFactory = StorageClientFactory.getInstance();
     }
 
-    @VisibleForTesting BackupService(
+    public @VisibleForTesting BackupService(
         WorkspaceClientFactory workspaceClientFactory,
         StorageClientFactory storageClientFactory) {
         this.storageClientFactory = storageClientFactory;

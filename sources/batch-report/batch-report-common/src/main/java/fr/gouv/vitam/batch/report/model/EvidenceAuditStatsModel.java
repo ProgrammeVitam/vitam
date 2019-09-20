@@ -24,56 +24,59 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  *******************************************************************************/
-package fr.gouv.vitam.worker.core.plugin.evidence;
+package fr.gouv.vitam.batch.report.model;
 
-import fr.gouv.vitam.common.model.ItemStatus;
-import fr.gouv.vitam.common.model.StatusCode;
-import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
-import fr.gouv.vitam.worker.common.HandlerIO;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.TemporaryFolder;
-import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnit;
-import org.mockito.junit.MockitoRule;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
- * EvidenceAuditExtractFromZipTest
+ * Additional statistics for audit report.
  */
-public class EvidenceAuditExtractFromZipTest {
+public class EvidenceAuditStatsModel {
 
-    @Rule
-    public MockitoRule mockitoRule = MockitoJUnit.rule();
+    @JsonProperty("nbObjectGroups")
+    private int nbObjectGroups;
 
-    @Rule
-    public TemporaryFolder tempFolder = new TemporaryFolder();
-    @Mock
-    public HandlerIO handlerIO;
-    @Mock
-    private EvidenceService evidenceService;
-    private EvidenceAuditExtractFromZip evidenceAuditExtractFromZip;
+    @JsonProperty("nbObjects")
+    private int nbObjects;
 
-    @Before
-    public void setUp() throws Exception {
-        evidenceAuditExtractFromZip = new EvidenceAuditExtractFromZip(evidenceService);
+
+    @JsonProperty("globalResults")
+    private EvidenceAuditFullStatusCount globalResults;
+
+
+    public EvidenceAuditStatsModel() {
     }
 
-    @Test
-    public void should_extract_from_zip() throws Exception {
-        WorkerParameters defaultWorkerParameters = mock(WorkerParameters.class);
-
-        when(defaultWorkerParameters.getObjectName())
-            .thenReturn("evidenceAudit/0_LogbookLifecycles_20180220_111512.zip");
-
-        ItemStatus execute = evidenceAuditExtractFromZip.execute(defaultWorkerParameters, handlerIO);
-        assertThat(execute.getGlobalStatus()).isEqualTo(StatusCode.OK);
+    public EvidenceAuditStatsModel(int nbObjectGroups, int nbObjects, EvidenceAuditFullStatusCount globalResults) {
+        super();
+        this.nbObjectGroups = nbObjectGroups;
+        this.nbObjects = nbObjects;
+        this.globalResults = globalResults;
     }
 
+    public int getNbObjectGroups() {
+        return nbObjectGroups;
+    }
+
+    public void setNbObjectGroups(int nbObjectGroups) {
+        this.nbObjectGroups = nbObjectGroups;
+    }
+
+    public int getNbObjects() {
+        return nbObjects;
+    }
+
+    public void setNbObjects(int nbObjects) {
+        this.nbObjects = nbObjects;
+    }
+
+    public EvidenceAuditFullStatusCount getGlobalResults() {
+        return globalResults;
+    }
+
+    public void setGlobalResults(EvidenceAuditFullStatusCount globalResults) {
+        this.globalResults = globalResults;
+    }
 
 
 }

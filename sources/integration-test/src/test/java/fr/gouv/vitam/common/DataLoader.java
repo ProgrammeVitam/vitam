@@ -1,28 +1,18 @@
 package fr.gouv.vitam.common;
 
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
-
-import java.io.File;
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.util.Comparator;
-import java.util.List;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.TimeUnit;
-
-import javax.ws.rs.core.Response;
-
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import fr.gouv.vitam.common.database.builder.query.QueryHelper;
 import fr.gouv.vitam.common.database.builder.request.single.Select;
+import fr.gouv.vitam.common.exception.VitamException;
+import fr.gouv.vitam.common.guid.GUID;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.common.model.ProcessAction;
 import fr.gouv.vitam.common.model.RequestResponseOK;
+import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.model.administration.AccessContractModel;
 import fr.gouv.vitam.common.model.administration.ArchiveUnitProfileModel;
 import fr.gouv.vitam.common.model.administration.ContextModel;
@@ -30,13 +20,36 @@ import fr.gouv.vitam.common.model.administration.IngestContractModel;
 import fr.gouv.vitam.common.model.administration.OntologyModel;
 import fr.gouv.vitam.common.model.administration.ProfileModel;
 import fr.gouv.vitam.common.model.administration.SecurityProfileModel;
+import fr.gouv.vitam.common.model.processing.WorkFlow;
 import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.functional.administration.client.AdminManagementClient;
 import fr.gouv.vitam.functional.administration.client.AdminManagementClientFactory;
+import fr.gouv.vitam.ingest.internal.client.IngestInternalClient;
+import fr.gouv.vitam.ingest.internal.client.IngestInternalClientFactory;
+import fr.gouv.vitam.logbook.common.parameters.LogbookOperationParameters;
+import fr.gouv.vitam.logbook.common.parameters.LogbookParametersFactory;
+import fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClient;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClientFactory;
 import fr.gouv.vitam.processing.integration.test.ProcessingIT;
+
+import javax.ws.rs.core.Response;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.InputStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.List;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
+
+import static fr.gouv.vitam.preservation.ProcessManagementWaiter.waitOperation;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 
 /**
  * This class replace FunctionalAdminIT
@@ -173,6 +186,40 @@ public class DataLoader {
         } catch (final Exception e) {
             LOGGER.error(e);
         }
+    }
+
+    public String doIngest(String zip) throws FileNotFoundException, VitamException {
+
+        String CONTEXT_ID = "DEFAULT_WORKFLOW";
+        String WORKFLOW_IDENTIFIER = "PROCESS_SIP_UNITARY";
+        WorkFlow workflow = WorkFlow.of(CONTEXT_ID, WORKFLOW_IDENTIFIER, "INGEST");
+
+        final GUID ingestOperationGuid = GUIDFactory.newOperationLogbookGUID(tenantId);
+        prepareVitamSession();
+
+        VitamThreadUtils.getVitamSession().setRequestId(ingestOperationGuid);
+
+        final InputStream zipInputStreamSipObject = PropertiesUtils.getResourceAsStream(zip);
+
+        // init default logbook operation
+        final List<LogbookOperationParameters> params = new ArrayList<>();
+        final LogbookOperationParameters initParameters = LogbookParametersFactory.newLogbookOperationParameters(
+            ingestOperationGuid, "Process_SIP_unitary", ingestOperationGuid, LogbookTypeProcess.INGEST,
+            StatusCode.STARTED, ingestOperationGuid.toString(), ingestOperationGuid);
+        params.add(initParameters);
+
+        // call ingest
+        IngestInternalClientFactory.getInstance().changeServerPort(VitamServerRunner.PORT_SERVICE_INGEST_INTERNAL);
+        final IngestInternalClient client = IngestInternalClientFactory.getInstance().getClient();
+        client.uploadInitialLogbook(params);
+
+        // init workflow before execution
+        client.initWorkflow(workflow);
+
+        client.upload(zipInputStreamSipObject, CommonMediaType.ZIP_TYPE, workflow, ProcessAction.RESUME.name());
+
+        waitOperation(VitamServerRunner.NB_TRY, VitamServerRunner.SLEEP_TIME, ingestOperationGuid.getId());
+        return ingestOperationGuid.toString();
     }
 
     public static final String OFFER_FOLDER = "offer";

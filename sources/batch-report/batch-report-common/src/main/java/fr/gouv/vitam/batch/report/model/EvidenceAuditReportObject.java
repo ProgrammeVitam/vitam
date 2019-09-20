@@ -24,54 +24,63 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  *******************************************************************************/
-package fr.gouv.vitam.worker.core.plugin.evidence.report;
+package fr.gouv.vitam.batch.report.model;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import fr.gouv.vitam.common.model.MetadataType;
-import fr.gouv.vitam.worker.core.plugin.evidence.exception.EvidenceStatus;
 
-import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.Map;
 
 /**
- * EvidenceAuditReportLine class
+ * EvidenceAuditReportObject class
  */
-public class EvidenceAuditReportLine {
-
+public class EvidenceAuditReportObject {
     @JsonProperty("identifier")
-    private String identifier;
+    private String identifier ;
+
     @JsonProperty("status")
-    private EvidenceStatus evidenceStatus;
+    private String evidenceStatus;
 
     @JsonProperty("message")
     private String message;
 
     @JsonProperty("objectType")
-    private MetadataType objectType;
-
-    @JsonProperty("objectsReports")
-    private ArrayList<EvidenceAuditReportObject> objectsReports;
-
-    @JsonProperty("securedHash")
-    private String securedHash;
+    private String objectType;
 
     @JsonProperty("strategyId")
     private String strategyId;
 
+    @JsonProperty("securedHash")
+    private String securedHash;
+
     @JsonProperty("offersHashes")
-    private Map<String, String> offersHashes;
+    private Map<String,String>offersHashes;
 
-    public EvidenceAuditReportLine() {
-        offersHashes = new HashMap<>();
+
+    EvidenceAuditReportObject(){
+
     }
-
-    public EvidenceAuditReportLine(String id) {
+    @JsonCreator
+    public EvidenceAuditReportObject(
+        @JsonProperty("identifier") String identifier,
+        @JsonProperty("status") String  evidenceStatus,
+        @JsonProperty("message") String message,
+        @JsonProperty("objectType") String objectType,
+        @JsonProperty("securedHash") String securedHash,
+        @JsonProperty("strategyId") String strategyId,
+        @JsonProperty("offersHashes") Map<String, String> offersHashes) {
+        this.identifier = identifier;
+        this.evidenceStatus = evidenceStatus;
+        this.message = message;
+        this.objectType = objectType;
+        this.securedHash = securedHash;
+        this.strategyId = strategyId;
+        this.offersHashes = offersHashes;
+    }
+    public EvidenceAuditReportObject(String id ){
         this.identifier = id;
-        evidenceStatus = EvidenceStatus.OK;
-        offersHashes = new HashMap<>();
+        evidenceStatus=EvidenceStatus.OK.name();
     }
-
     /**
      * getter for identifier
      **/
@@ -89,14 +98,14 @@ public class EvidenceAuditReportLine {
     /**
      * getter for evidenceStatus
      **/
-    public EvidenceStatus getEvidenceStatus() {
+    public String getEvidenceStatus() {
         return evidenceStatus;
     }
 
     /**
      * setter for evidenceStatus
      **/
-    public void setEvidenceStatus(EvidenceStatus evidenceStatus) {
+    public void setEvidenceStatus(String evidenceStatus) {
         this.evidenceStatus = evidenceStatus;
     }
 
@@ -117,30 +126,15 @@ public class EvidenceAuditReportLine {
     /**
      * getter for objectType
      **/
-    public MetadataType getObjectType() {
+    public String getObjectType() {
         return objectType;
     }
 
     /**
      * setter for objectType
      **/
-    public void setObjectType(MetadataType objectType) {
+    public void setObjectType(String objectType) {
         this.objectType = objectType;
-    }
-
-    /**
-     * getter for objectsReports
-     **/
-    public ArrayList<EvidenceAuditReportObject> getObjectsReports() {
-        return objectsReports;
-    }
-
-    /**
-     * setter for objectsReports
-     **/
-    public void setObjectsReports(
-        ArrayList<EvidenceAuditReportObject> objectsReports) {
-        this.objectsReports = objectsReports;
     }
 
     /**
@@ -157,13 +151,13 @@ public class EvidenceAuditReportLine {
         this.securedHash = securedHash;
     }
 
+
     /**
      * getter for strategyId
      **/
     public String getStrategyId() {
         return strategyId;
     }
-
     /**
      * setter for strategyId
      **/

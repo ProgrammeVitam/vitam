@@ -36,5 +36,6 @@ public enum ReportType {
     UPDATE_UNIT,
     PRESERVATION,
     PROBATIVE_VALUE,
-    AUDIT
+    AUDIT,
+    EVIDENCE_AUDIT
 }

@@ -34,7 +34,7 @@ import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 import fr.gouv.vitam.worker.common.HandlerIO;
 import fr.gouv.vitam.worker.core.plugin.evidence.report.EvidenceAuditParameters;
-import org.assertj.core.api.Assertions;
+import fr.gouv.vitam.worker.core.plugin.evidence.report.EvidenceAuditReportService;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -64,14 +64,15 @@ public class EvidenceAuditDatabaseCheckTest {
     @Rule public MockitoRule mockitoRule = MockitoJUnit.rule();
 
     @Rule public TemporaryFolder tempFolder = new TemporaryFolder();
+    @Mock public HandlerIO handlerIO;
     @Mock private EvidenceService evidenceService;
     private EvidenceAuditDatabaseCheck evidenceAuditDatabaseCheck;
-
-    @Mock public HandlerIO handlerIO;
+    @Mock
+    private EvidenceAuditReportService evidenceAuditReportService;
 
     @Before
     public void setUp() throws Exception {
-        evidenceAuditDatabaseCheck = new EvidenceAuditDatabaseCheck(evidenceService);
+        evidenceAuditDatabaseCheck = new EvidenceAuditDatabaseCheck(evidenceService, evidenceAuditReportService);
     }
 
     @Test
@@ -95,10 +96,12 @@ public class EvidenceAuditDatabaseCheckTest {
         ItemStatus execute =
             evidenceAuditDatabaseCheck.execute(defaultWorkerParameters, handlerIO);
         assertThat(execute.getGlobalStatus()).isEqualTo(StatusCode.OK);
-        EvidenceAuditParameters evidenceAuditParameters2 = JsonHandler.getFromFile(file2, EvidenceAuditParameters.class);
+        EvidenceAuditParameters evidenceAuditParameters2 =
+            JsonHandler.getFromFile(file2, EvidenceAuditParameters.class);
 
         assertThat(evidenceAuditParameters.getAuditMessage()).isEqualTo(evidenceAuditParameters2.getAuditMessage());
-        assertThat(evidenceAuditParameters.getObjectStorageMetadataResultMap()).isEqualTo(evidenceAuditParameters2.getObjectStorageMetadataResultMap());
+        assertThat(evidenceAuditParameters.getObjectStorageMetadataResultMap())
+            .isEqualTo(evidenceAuditParameters2.getObjectStorageMetadataResultMap());
         assertThat(evidenceAuditParameters.getEvidenceStatus()).isEqualTo(evidenceAuditParameters2.getEvidenceStatus());
 
         when(handlerIO.getFileFromWorkspace(any())).thenThrow(IOException.class);

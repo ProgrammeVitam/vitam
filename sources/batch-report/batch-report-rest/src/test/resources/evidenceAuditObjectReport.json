@@ -1,0 +1,116 @@
+{
+  "processId": "aeeaaaaaagfpuagsaauscallv6nhzlyaaaaq",
+  "reportType": "EVIDENCE_AUDIT",
+  "entries": [
+    {
+      "identifier": "aebaaaaaaefpuagsabxfqallvs4kqbiaaaaq",
+      "status": "WARN",
+      "objectType": "ObjectGroup",
+      "message": "No traceability operation found matching date 2019-07-01T08:48:39.106",
+      "strategyId": "default",
+      "offersHashes": {}
+    },
+    {
+      "identifier": "aebaaaaaaefpuagsabxfqallvs4kp7yaaaaq",
+      "status": "WARN",
+      "objectType": "ObjectGroup",
+      "message": "No traceability operation found matching date 2019-07-01T08:48:39.121",
+      "strategyId": "default",
+      "offersHashes": {}
+    },
+    {
+      "identifier": "aeaqaaaaaefpuagsabxfqallvs4kqzaaaaaq",
+      "status": "WARN",
+      "objectType": "Unit",
+      "message": "No traceability operation found matching date 2019-07-01T08:48:40.086",
+      "strategyId": "default",
+      "offersHashes": {}
+    },
+    {
+      "identifier": "aeaqaaaaaefpuagsabxfqallvs4kqzyaaaba",
+      "status": "WARN",
+      "objectType": "Unit",
+      "message": "No traceability operation found matching date 2019-07-01T08:48:40.284",
+      "strategyId": "default",
+      "offersHashes": {}
+    },
+    {
+      "identifier": "aeaqaaaaaefpuagsabxfqallvs4kqziaaaaq",
+      "status": "WARN",
+      "objectType": "Unit",
+      "message": "No traceability operation found matching date 2019-07-01T08:48:40.273",
+      "strategyId": "default",
+      "offersHashes": {}
+    },
+    {
+      "identifier": "aebaaaaaaeg7sn7vabtioallotfxytyaaaaq",
+      "status": "OK",
+      "objectType": "ObjectGroup",
+      "message": "audit OK for aebaaaaaaeg7sn7vabtioallotfxytyaaaaq",
+      "strategyId": "default",
+      "offersHashes": {
+        "offer-fs-1.service.consul": "cc9221173b12e75f7a8f629d49632ffbb87538b13d82ab7cc02e8b3486131fb609c6303bb7b5f67962e45b068e74cb40aa8c8906bcbb9db9fd6ebbe89929d655"
+      }
+    },
+    {
+      "identifier": "aebaaaaaaefpuagsaa7r4alltatssaqaaaaq",
+      "status": "OK",
+      "objectType": "ObjectGroup",
+      "message": "audit OK for aebaaaaaaefpuagsaa7r4alltatssaqaaaaq",
+      "strategyId": "default",
+      "offersHashes": {
+        "offer-fs-1.service.consul": "9430824f8d05b9e43abe438f90adee1ecc72c716aaddc2696ec7664028c1574199c7ced6b55e2acabc669fe87e99cd6a1924e849043685a1329258c22c8ba606"
+      }
+    },
+    {
+      "identifier": "aebaaaaaaefpuagsaa7r4alltatssbiaaaaq",
+      "status": "OK",
+      "objectType": "ObjectGroup",
+      "message": "audit OK for aebaaaaaaefpuagsaa7r4alltatssbiaaaaq",
+      "strategyId": "default",
+      "offersHashes": {
+        "offer-fs-1.service.consul": "f4d04a0cccbfc6080587a9a8f0d657065dadb43999fc3b2174c7a89cab77fedf17d7ab80af6aa33fc7c0bc5e8b55b293e870c2c63c422a603529fbadc212975f"
+      }
+    },
+    {
+      "identifier": "aeaqaaaaaefpuagsaa7r4alltatss2iaaaaq",
+      "status": "OK",
+      "objectType": "Unit",
+      "message": "audit OK for aeaqaaaaaefpuagsaa7r4alltatss2iaaaaq",
+      "strategyId": "default",
+      "offersHashes": {
+        "offer-fs-1.service.consul": "6cffc1745b97a324f4f25fa09129e396adbe88fc9b1a4d065b82f3409af72c69cbf02fa83170dd88884eb4afef00b48f165aa96c6219e32a1a31f97012c37560"
+      }
+    },
+    {
+      "identifier": "aeaqaaaaaeg7sn7vabtioallotfxzkiaaaaq",
+      "status": "OK",
+      "objectType": "Unit",
+      "message": "audit OK for aeaqaaaaaeg7sn7vabtioallotfxzkiaaaaq",
+      "strategyId": "default",
+      "offersHashes": {
+        "offer-fs-1.service.consul": "dda83b943beda8af0735577a752b293c0232c21076a097c8e1138e90e7761560c92a1a28a24b6b9dcb488837e3b953411ce23cbefaa88a7d65d692369a96f31f"
+      }
+    },
+    {
+      "identifier": "aeaqaaaaaefpuagsaa7r4alltatsscqaaaba",
+      "status": "OK",
+      "objectType": "Unit",
+      "message": "audit OK for aeaqaaaaaefpuagsaa7r4alltatsscqaaaba",
+      "strategyId": "default",
+      "offersHashes": {
+        "offer-fs-1.service.consul": "c9c11a529e45c535fb12b5b3ae6d419d98b1199f31778bafcc29f19336b26c8b26c46999bc9cd80847631bede088ea04e6a2b9acf6d79c2749edfb007f0603ea"
+      }
+    },
+    {
+      "identifier": "aeaqaaaaaefpuagsaa7r4alltatss4yaaaaq",
+      "status": "OK",
+      "objectType": "Unit",
+      "message": "audit OK for aeaqaaaaaefpuagsaa7r4alltatss4yaaaaq",
+      "strategyId": "default",
+      "offersHashes": {
+        "offer-fs-1.service.consul": "ed2fb60d7b2e30397788eeaaa093bd6ea78b1d61ad83187be889c5e1380087da3547031932235a438d87e04982caf7aeef64a2fc57d23f65e5af63b09c62c66a"
+      }
+    }
+  ]
+}

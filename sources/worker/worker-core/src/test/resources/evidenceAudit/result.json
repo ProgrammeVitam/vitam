@@ -1,0 +1,31 @@
+{
+  "FileName": "0_LogbookLifecycles_20180220_111512.zip",
+  "DigestType": "SHA512",
+  "FileDigest": "1uEHtQeA3eXIduiBV9wt5qCZD3VmuiTD68mnMMQp3VWF9QUl3ME8aFv/GVXvVY9PMU73xu6Tjn1eHqs4FOHfDQ==",
+  "SecurisationOperationId": "aecaaaaaacecuncwaaflmalbwlwjnhyaaaaq",
+  "Id": "aeaqaaaaaaguu2zzaazsualbwlwdgwaaaaaq",
+  "MetadataType": "UNIT",
+  "MdOptimisticStorageInfo": {
+    "strategy": "default",
+    "nbCopy": 0,
+    "offerIds": [
+      "offer-fs-1.service.consul"
+    ]
+  },
+  "HashMdFromDatabase": "JRbGfmQAkk8x/TsatdVjmT40DUzm0vEnSYeAyvGsHfSY7HkV1vzIWlN4rg/TcAmDRZccmBRSz/Ggj4IkWYPlkg==",
+  "LfcVersion": 4,
+  "HashLfcFromDatabase": "DwOqfkU+4ygFnEmBXC/UKfl/sNhjzx6fcOmLkL1RF3LX0ukbjjJEUialkC3ztacoR1DrTvlr3nc5x5lO9NEi6A==",
+  "StorageMetadataResultListJsonNode": {
+    "offer-fs-1.service.consul": {
+      "objectName": "aeaqaaaaaaguu2zzaazsualbwlwdgwaaaaaq.json",
+      "type": "unit",
+      "digest": "66ebea803269b6c768fda751718b3a984c8e4d339c38aeedd8de812ab4362f0ab1225606aada1635652bece913e59779d662aa7e843713fa85291b91a5608246",
+      "fileSize": 5334,
+      "fileOwner": "Vitam_0",
+      "lastAccessDate": "2018-02-21T11:18:05.674924Z",
+      "lastModifiedDate": "2018-02-20T11:14:55.123572Z"
+    }
+  },
+  "EvidenceStatus": "OK",
+  "LastSecurisation": true
+}

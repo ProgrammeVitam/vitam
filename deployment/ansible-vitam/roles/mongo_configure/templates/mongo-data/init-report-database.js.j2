@@ -20,3 +20,8 @@ db.EliminationActionObjectGroup.createIndex( { "processId" : 1, "_tenant" : 1, "
 db.PreservationReport.createIndex({"processId" : 1, "_tenant" : 1})
 db.PreservationReport.createIndex({"processId" : 1, "_tenant" : 1, "id" : 1 })
 db.PreservationReport.createIndex({"processId" : 1, "_tenant" : 1, "status" : 1 })
+
+// Create indexes EvidenceAuditReport
+db.EvidenceAuditReport.createIndex( { "processId" : 1, "_tenant" : 1 } )
+db.EvidenceAuditReport.createIndex( { "processId" : 1, "_tenant" : 1, "_metadata.id" : 1 } )
+db.EvidenceAuditReport.createIndex( { "processId" : 1, "_tenant" : 1, "_metadata.status" : 1 } )

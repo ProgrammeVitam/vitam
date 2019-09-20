@@ -26,18 +26,17 @@
  *******************************************************************************/
 package fr.gouv.vitam.worker.core.plugin.evidence;
 
+import fr.gouv.vitam.batch.report.client.BatchReportClient;
+import fr.gouv.vitam.batch.report.client.BatchReportClientFactory;
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.StatusCode;
-import fr.gouv.vitam.functional.administration.common.BackupService;
-import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 import fr.gouv.vitam.worker.common.HandlerIO;
 import fr.gouv.vitam.worker.core.plugin.evidence.exception.EvidenceStatus;
 import fr.gouv.vitam.worker.core.plugin.evidence.report.EvidenceAuditReportLine;
-import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
-import org.assertj.core.api.Assertions;
+import fr.gouv.vitam.worker.core.plugin.evidence.report.EvidenceAuditReportService;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -47,7 +46,6 @@ import org.mockito.junit.MockitoJUnit;
 import org.mockito.junit.MockitoRule;
 
 import java.io.File;
-import java.nio.file.Files;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.BDDMockito.given;
@@ -59,19 +57,61 @@ import static org.mockito.Mockito.when;
 public class EvidenceAuditGenerateReportsTest {
     @Rule public MockitoRule mockitoRule = MockitoJUnit.rule();
     @Rule public TemporaryFolder tempFolder = new TemporaryFolder();
-    private EvidenceAuditGenerateReports  evidenceAuditGenerateReports;
     @Mock public HandlerIO handlerIO;
     @Mock
     WorkerParameters defaultWorkerParameters;
+    private EvidenceAuditGenerateReports evidenceAuditGenerateReports;
+    @Mock
+    private BatchReportClientFactory batchReportFactory;
+    @Mock
+    private EvidenceAuditReportService evidenceAuditReportService;
+    @Mock
+    private BatchReportClient batchReportClient;
+
+    private String processId;
 
     @Before
     public void setUp() throws Exception {
-        evidenceAuditGenerateReports = new EvidenceAuditGenerateReports();
+        given(batchReportFactory.getClient()).willReturn(batchReportClient);
+
+        evidenceAuditReportService = new EvidenceAuditReportService(batchReportFactory);
+
+        evidenceAuditGenerateReports = new EvidenceAuditGenerateReports(evidenceAuditReportService);
+
+        processId = "aeaqaaaaaaebta56aaoc4alcdk4hlcqaaaaq";
     }
+
+
     @Test
-    public void should_generate_reports() throws Exception {
+    public void should_generate_reports_when_line_not_found() throws Exception {
         when(defaultWorkerParameters.getObjectName()).thenReturn("test");
+        when(defaultWorkerParameters.getContainerName()).thenReturn(processId);
         File resourceFile = PropertiesUtils.getResourceFile("evidenceAudit/data.txt");
+        when(handlerIO.getFileFromWorkspace("zip/test")).thenReturn(resourceFile);
+        File file2 = tempFolder.newFile();
+        File report = tempFolder.newFile();
+        JsonHandler.writeAsFile( "aeaqaaaaaaebta56aaoc4alcdk4hlcqaaaaq", file2);
+        when(handlerIO.getFileFromWorkspace("fileNames/test")).thenReturn(file2);
+        when(handlerIO.getFileFromWorkspace("data/aeaqaaaaaaebta56aaoc4alcdk4hlcqaaaaq" )).thenReturn(PropertiesUtils.getResourceFile("evidenceAudit/test.json"));
+        when(handlerIO.getNewLocalFile("aeaqaaaaaaebta56aaoc4alcdk4hlcqaaaaq")).thenReturn(report);
+        given(handlerIO.getJsonFromWorkspace("evidenceOptions")).willReturn(JsonHandler.createObjectNode().put("correctiveOption",false));
+
+        ItemStatus execute = evidenceAuditGenerateReports.execute(defaultWorkerParameters, handlerIO);
+
+
+        assertThat(execute.getGlobalStatus()).isEqualTo(StatusCode.OK);
+
+        EvidenceAuditReportLine evidenceAuditReportLine = JsonHandler.getFromFile(report, EvidenceAuditReportLine.class);
+        assertThat(evidenceAuditReportLine.getIdentifier()).isEqualTo("aeaqaaaaaaebta56aaoc4alcdk4hlcqaaaaq");
+        assertThat(evidenceAuditReportLine.getEvidenceStatus()).isEqualTo(EvidenceStatus.KO);
+        assertThat(evidenceAuditReportLine.getMessage()).isEqualTo("Could not find matching traceability info in the file");
+
+    }
+
+    @Test
+    public void should_generate_reports_when_digest_invalid() throws Exception {
+        when(defaultWorkerParameters.getObjectName()).thenReturn("test");
+        File resourceFile = PropertiesUtils.getResourceFile("evidenceAudit/data_ko_unit.txt");
         when(handlerIO.getFileFromWorkspace("zip/test")).thenReturn(resourceFile);
         File file2 = tempFolder.newFile();
         File report = tempFolder.newFile();
@@ -88,7 +128,8 @@ public class EvidenceAuditGenerateReportsTest {
         EvidenceAuditReportLine evidenceAuditReportLine = JsonHandler.getFromFile(report, EvidenceAuditReportLine.class);
         assertThat(evidenceAuditReportLine.getIdentifier()).isEqualTo("aeaqaaaaaaebta56aaoc4alcdk4hlcqaaaaq");
         assertThat(evidenceAuditReportLine.getEvidenceStatus()).isEqualTo(EvidenceStatus.KO);
-        assertThat(evidenceAuditReportLine.getMessage()).isEqualTo("Could not find matching traceability info in the file");
+        assertThat(evidenceAuditReportLine.getMessage()).contains("Traceability audit KO  Database check failure");
+        assertThat(evidenceAuditReportLine.getStrategyId()).contains("default");
 
     }
 }
