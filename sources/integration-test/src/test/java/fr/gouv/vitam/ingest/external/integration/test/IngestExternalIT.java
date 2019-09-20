@@ -118,6 +118,9 @@ public class IngestExternalIT extends VitamRuleRunner {
         ingestExternalClient = IngestExternalClientFactory.getInstance().getClient();
         adminExternalClient = AdminExternalClientFactory.getInstance().getClient();
 
+        StorageClientFactory storageClientFactory = StorageClientFactory.getInstance();
+        storageClientFactory.setVitamClientType(VitamClientFactoryInterface.VitamClientType.MOCK);
+
         // TODO: 18/09/2019 should import referential from externals
         new DataLoader("integration-ingest-internal").prepareData();
     }
@@ -142,7 +145,7 @@ public class IngestExternalIT extends VitamRuleRunner {
                         .setAccessContract("aName3"),
                     inputStream, DEFAULT_WORKFLOW.name(), ProcessAction.RESUME.name());
 
-            assertThat(response.isOk()).isTrue();
+            assertThat(response.isOk()).as(JsonHandler.unprettyPrint(response)).isTrue();
 
             final String operationId = response.getHeaderString(GlobalDataRest.X_REQUEST_ID);
 
@@ -180,7 +183,7 @@ public class IngestExternalIT extends VitamRuleRunner {
                         ACCESS_CONTRACT),
                     inputStream, DEFAULT_WORKFLOW.name(), ProcessAction.NEXT.name());
 
-            assertThat(response.isOk()).isTrue();
+            assertThat(response.isOk()).as(JsonHandler.unprettyPrint(response)).isTrue();
 
             final String operationId = response.getHeaderString(GlobalDataRest.X_REQUEST_ID);
 

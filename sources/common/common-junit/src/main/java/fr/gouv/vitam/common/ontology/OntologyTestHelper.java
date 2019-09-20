@@ -26,14 +26,27 @@
  *******************************************************************************/
 package fr.gouv.vitam.common.ontology;
 
-import fr.gouv.vitam.common.PropertiesUtils;
+import fr.gouv.vitam.common.logging.VitamLogger;
+import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import org.apache.commons.lang3.StringUtils;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 
 public class OntologyTestHelper {
+    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(OntologyTestHelper.class);
+
+    public static final String ANSIBLE_PATH_TO_ONTOLOGY =
+        "/deployment/ansible-vitam/roles/init_contexts_and_security_profiles/files/VitamOntology.json";
 
     public static InputStream loadOntologies() throws IOException {
-        return PropertiesUtils.getResourceAsStream("VitamOntology.json");
+        String dir = Paths.get("").toAbsolutePath().toString();
+        String userDir = StringUtils.substringBefore(dir, "/sources/");
+        String ontologyPath = userDir + ANSIBLE_PATH_TO_ONTOLOGY;
+
+        LOGGER.error("user.dir: " + dir + " ontology : " + ontologyPath);
+        return Files.newInputStream(Paths.get(ontologyPath));
     }
 }
