@@ -26,24 +26,9 @@
  */
 package fr.gouv.vitam.worker.core.plugin;
 
-import static fr.gouv.vitam.worker.core.utils.PluginHelper.buildItemStatus;
-
-import java.io.File;
-import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.Map;
-import java.util.concurrent.TimeUnit;
-import java.util.stream.Collectors;
-
-import org.apache.commons.collections4.MultiValuedMap;
-import org.apache.commons.collections4.multimap.HashSetValuedHashMap;
-
 import com.fasterxml.jackson.databind.JsonNode;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Stopwatch;
-
 import fr.gouv.vitam.common.StringUtils;
 import fr.gouv.vitam.common.database.utils.MetadataDocumentHelper;
 import fr.gouv.vitam.common.exception.VitamException;
@@ -73,6 +58,19 @@ import fr.gouv.vitam.storage.engine.common.model.request.BulkObjectStoreRequest;
 import fr.gouv.vitam.worker.common.HandlerIO;
 import fr.gouv.vitam.worker.core.handler.ActionHandler;
 import fr.gouv.vitam.workspace.api.exception.WorkspaceClientServerException;
+import org.apache.commons.collections4.MultiValuedMap;
+import org.apache.commons.collections4.multimap.HashSetValuedHashMap;
+
+import java.io.File;
+import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
+
+import static fr.gouv.vitam.worker.core.utils.PluginHelper.buildItemStatus;
 
 /**
  * Stores MetaData object group plugin.
@@ -96,7 +94,7 @@ public class StoreMetaDataObjectGroupActionPlugin extends ActionHandler {
     }
 
     @VisibleForTesting
-    StoreMetaDataObjectGroupActionPlugin(MetaDataClientFactory metaDataClientFactory,
+    public StoreMetaDataObjectGroupActionPlugin(MetaDataClientFactory metaDataClientFactory,
         LogbookLifeCyclesClientFactory logbookLifeCyclesClientFactory,
         StorageClientFactory storageClientFactory) {
         this.metaDataClientFactory = metaDataClientFactory;
@@ -110,7 +108,7 @@ public class StoreMetaDataObjectGroupActionPlugin extends ActionHandler {
         List<String> objectGroupIds = params.getObjectNameList().stream()
             .map(metadataFilename -> StringUtils.substringBeforeLast(metadataFilename, "."))
             .collect(Collectors.toList());
-        
+
         try {
 
             storeDocumentsWithLfc(params, handlerIO, objectGroupIds);
@@ -236,7 +234,7 @@ public class StoreMetaDataObjectGroupActionPlugin extends ActionHandler {
             }
 
             BulkObjectStoreRequest request = new BulkObjectStoreRequest(
-                    containerName, workspaceURIs, DataCategory.OBJECTGROUP, objectNames);
+                containerName, workspaceURIs, DataCategory.OBJECTGROUP, objectNames);
 
             try (StorageClient storageClient = storageClientFactory.getClient()) {
                 storageClient.bulkStoreFilesFromWorkspace(strategy, request);

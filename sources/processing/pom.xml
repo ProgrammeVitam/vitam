@@ -14,9 +14,7 @@
 		<module>processing-management</module>
 		<module>processing-management-client</module>
 		<module>processing-engine</module>
-		<module>processing-engine-client</module>
 		<module>processing-distributor</module>
-		<module>processing-distributor-client</module>
 		<module>processing-monitoring</module>
 		<module>processing-data</module>
 	</modules>

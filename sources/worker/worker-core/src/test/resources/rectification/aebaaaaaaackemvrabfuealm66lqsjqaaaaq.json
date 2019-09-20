@@ -1,0 +1,63 @@
+{
+  "_id": "aebaaaaaaackemvrabfuealm66lqsjqaaaaq",
+  "_tenant": 0,
+  "_profil": "",
+  "FileInfo": {
+    "Filename": "Pereire.txt",
+    "LastModified": "2017-04-04T08:07:27.825+02:00"
+  },
+  "_qualifiers": [
+    {
+      "qualifier": "BinaryMaster",
+      "_nbc": 1,
+      "versions": [
+        {
+          "_id": "aeaaaaaaaahf6prnabgnkala2wiqhhqaaaaq",
+          "DataObjectGroupId": "aebaaaaaaahf6prnabgnkala2wiqhhqaaaba",
+          "DataObjectVersion": "BinaryMaster_1",
+          "FormatIdentification": {
+            "FormatLitteral": "Plain Text File",
+            "MimeType": "text/plain",
+            "FormatId": "x-fmt/111"
+          },
+          "FileInfo": {
+            "Filename": "Pereire.txt",
+            "LastModified": "2017-04-04T08:07:27.825+02:00"
+          },
+          "Size": 6,
+          "Uri": "Content/ID35.txt",
+          "MessageDigest": "664ac614a819df2a97d2a5df57dcad91d6ec38b0fffc793e80c56b4553a14ac7a5f0bce3bb71af419b0bb8f151ad3d512867454eeb818e01818a31989c13319b",
+          "Algorithm": "SHA-512",
+          "_storage": {
+            "_nbc": 2,
+            "offerIds": [
+              "vitam-test-offer1",
+              "vitam-test-offer2"
+            ],
+            "strategyId": "default"
+          }
+        }
+      ]
+    }
+  ],
+  "_up": [
+    "aeaqaaaaaahf6prnabgnkala2wiqhqyaaaba"
+  ],
+  "_nbc": 1,
+  "_ops": [
+    "aedqaaaaachhi7bqabtioala2wip4diaaaaq"
+  ],
+  "_sp": "RATP",
+  "_sps": [
+    "RATP"
+  ],
+  "_storage": {
+    "_nbc": 2,
+    "offerIds": [
+      "vitam-test-offer1",
+      "vitam-test-offer2"
+    ],
+    "strategyId": "default-got-fake"
+  },
+  "_v": 1
+}

@@ -163,7 +163,7 @@ public class MassUpdateIT extends VitamRuleRunner {
     private static final long SLEEP_TIME = 20l;
     private static final long NB_TRY = 18000;
     private static final TypeReference<List<AccessContractModel>> TYPE_LIST_CONTRACT = new TypeReference<List<AccessContractModel>>() {};
-    private static final TypeReference<List<Unit>> TYPE_LIST_UNIT = new TypeReference<List<Unit>>() {};
+    private static final TypeReference<List<Document>> TYPE_LIST_UNIT = new TypeReference<List<Document>>() {};
 
     private WorkspaceClient workspaceClient;
     private ProcessingManagementClient processingClient;
