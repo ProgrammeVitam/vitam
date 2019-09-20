@@ -120,7 +120,7 @@ Voici la liste des vaults pour lesquels il est nécessaire de modifier le mot de
 
 * Le fichier |repertoire_inventory| ``/group_vars/all/vault-vitam.yml`` contient les secrets généraux :
 
-  .. literalinclude:: ../../../../deployment/environments/group_vars/all/vault-vitam.example
+  .. literalinclude:: ../../../../deployment/environments/group_vars/all/vault-vitam.yml.example
      :language: ini
      :linenos:
 
@@ -132,7 +132,7 @@ Voici la liste des vaults pour lesquels il est nécessaire de modifier le mot de
 
 * Le fichier |repertoire_inventory| ``/group_vars/all/vault-keystores.yml`` contient les mots de passe des magasins de certificats utilisés dans VITAM :
 
-  .. literalinclude:: ../../../../deployment/environments/group_vars/all/vault-keystores.example
+  .. literalinclude:: ../../../../deployment/environments/group_vars/all/vault-keystores.yml.example
      :language: ini
      :linenos:
 
@@ -143,7 +143,7 @@ Cas des extras
 
 * Le fichier |repertoire_inventory| ``/group_vars/all/vault-extra.yml`` contient les mots de passe des magasins de certificats utilisés dans VITAM :
 
-  .. literalinclude:: ../../../../deployment/environments/group_vars/all/vault-extra.example
+  .. literalinclude:: ../../../../deployment/environments/group_vars/all/vault-extra.yml.example
      :language: ini
      :linenos:
 

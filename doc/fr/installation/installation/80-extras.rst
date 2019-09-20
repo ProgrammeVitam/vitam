@@ -29,7 +29,7 @@ Le fichier |repertoire_inventory| ``/group_vars/all/extra_vars.yml`` contient la
 
 Le fichier |repertoire_inventory| ``/group_vars/all/all/vault-extra.yml`` contient les secrets supplémentaires des *extras* ; ce fichier est encrypté par ``ansible-vault`` et doit être paramétré avant le lancement de l'orchestration du déploiement, si le composant ihm-recette est déployé avec récupération des :term:`TNR`.
 
-.. literalinclude:: ../../../../deployment/environments/group_vars/all/vault-extra.example
+.. literalinclude:: ../../../../deployment/environments/group_vars/all/vault-extra.yml.example
    :language: ini
    :linenos:
 

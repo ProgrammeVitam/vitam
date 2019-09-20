@@ -30,14 +30,14 @@ Editer le fichier ``environments/group_vars/all/repositories.yml`` à partir des
 
 Pour une cible de déploiement CentOS :
 
-.. literalinclude:: ../../../../deployment/environments/group_vars/all/repositories_centos_example.yml
+.. literalinclude:: ../../../../deployment/environments/group_vars/all/repositories_centos.yml.example
    :language: yaml
    :linenos:
 
 
 Pour une cible de déploiement Debian :
 
-.. literalinclude:: ../../../../deployment/environments/group_vars/all/repositories_debian_example.yml
+.. literalinclude:: ../../../../deployment/environments/group_vars/all/repositories_debian.yml.example
    :language: yaml
    :linenos:
 
