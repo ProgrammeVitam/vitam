@@ -26,6 +26,14 @@
  */
 package fr.gouv.vitam.ingest.external.integration.test;
 
+import static fr.gouv.vitam.common.GlobalDataRest.X_REQUEST_ID;
+import static fr.gouv.vitam.logbook.common.parameters.Contexts.DEFAULT_WORKFLOW;
+import static java.lang.String.format;
+import static org.assertj.core.api.Assertions.assertThat;
+
+import java.io.InputStream;
+import java.util.concurrent.TimeUnit;
+
 import com.fasterxml.jackson.databind.JsonNode;
 import com.google.common.collect.Sets;
 import com.mongodb.client.model.Filters;
@@ -61,6 +69,8 @@ import fr.gouv.vitam.logbook.rest.LogbookMain;
 import fr.gouv.vitam.metadata.rest.MetadataMain;
 import fr.gouv.vitam.processing.management.rest.ProcessManagementMain;
 import fr.gouv.vitam.storage.engine.client.StorageClientFactory;
+import fr.gouv.vitam.storage.engine.server.rest.StorageMain;
+import fr.gouv.vitam.storage.offers.rest.DefaultOfferMain;
 import fr.gouv.vitam.worker.server.rest.WorkerMain;
 import fr.gouv.vitam.workspace.rest.WorkspaceMain;
 import net.javacrumbs.jsonunit.JsonAssert;
@@ -70,14 +80,6 @@ import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
 import org.junit.Test;
-
-import java.io.InputStream;
-import java.util.concurrent.TimeUnit;
-
-import static fr.gouv.vitam.common.GlobalDataRest.X_REQUEST_ID;
-import static fr.gouv.vitam.logbook.common.parameters.Contexts.DEFAULT_WORKFLOW;
-import static java.lang.String.format;
-import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * Ingest External integration test
@@ -99,6 +101,8 @@ public class IngestExternalIT extends VitamRuleRunner {
             Sets.newHashSet(
                 MetadataMain.class,
                 WorkerMain.class,
+                StorageMain.class,
+                DefaultOfferMain.class,
                 AdminManagementMain.class,
                 LogbookMain.class,
                 WorkspaceMain.class,
@@ -117,9 +121,6 @@ public class IngestExternalIT extends VitamRuleRunner {
         handleBeforeClass(0, 1);
         ingestExternalClient = IngestExternalClientFactory.getInstance().getClient();
         adminExternalClient = AdminExternalClientFactory.getInstance().getClient();
-
-        StorageClientFactory storageClientFactory = StorageClientFactory.getInstance();
-        storageClientFactory.setVitamClientType(VitamClientFactoryInterface.VitamClientType.MOCK);
 
         // TODO: 18/09/2019 should import referential from externals
         new DataLoader("integration-ingest-internal").prepareData();
@@ -167,7 +168,9 @@ public class IngestExternalIT extends VitamRuleRunner {
 
             ItemStatus itemStatus = itemStatusRequestResponse.getFirstResult();
             assertThat(itemStatus.getGlobalState()).isEqualTo(ProcessState.COMPLETED);
-            assertThat(itemStatus.getGlobalStatus()).isEqualTo(StatusCode.OK);
+            assertThat(itemStatus.getGlobalStatus()).as(JsonHandler
+                .unprettyPrint(LogbookCollections.OPERATION.getCollection().find(Filters.eq(operationId))))
+                .isEqualTo(StatusCode.OK);
         }
     }
 
@@ -211,7 +214,10 @@ public class IngestExternalIT extends VitamRuleRunner {
                 assertThat(itemStatusRequestResponse.getResults()).hasSize(1);
 
                 ItemStatus itemStatus = itemStatusRequestResponse.getFirstResult();
-                assertThat(itemStatus.getGlobalStatus()).isEqualTo(StatusCode.OK);
+                assertThat(itemStatus.getGlobalStatus()).as(JsonHandler
+                    .unprettyPrint(LogbookCollections.OPERATION.getCollection().find(Filters.eq(operationId))))
+                    .isEqualTo(StatusCode.OK);
+
 
                 if (ProcessState.COMPLETED.equals(itemStatus.getGlobalState())) {
                     break;
