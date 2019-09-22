@@ -54,6 +54,7 @@ import fr.gouv.vitam.worker.client.WorkerClientFactory;
 import fr.gouv.vitam.worker.server.rest.WorkerMain;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
 import fr.gouv.vitam.workspace.rest.WorkspaceMain;
+import org.apache.commons.lang3.StringUtils;
 import org.junit.rules.ExternalResource;
 
 import javax.ws.rs.core.MultivaluedHashMap;
@@ -133,6 +134,8 @@ public class VitamServerRunner extends ExternalResource {
     public static final String CONFIG_WORKER_PATH = "common/worker.conf";
     public static final String FORMAT_IDENTIFIERS_CONF = "common/format-identifiers.conf";
     public static final String OFFER_FOLDER = "offer";
+    public static final String DEPLOYMENT_ENVIRONMENTS_ANTIVIRUS_SCAN_DEV_SH =
+        "/deployment/environments/antivirus/scan-dev.sh";
 
 
 
@@ -200,19 +203,25 @@ public class VitamServerRunner extends ExternalResource {
             }
 
             if (Files.notExists(Paths.get(VitamConfiguration.getVitamDataFolder() + "/ingest-external/workspace/"))) {
-                Files.createDirectories(Paths.get(VitamConfiguration.getVitamDataFolder() + "/ingest-external/workspace/"));
+                Files.createDirectories(
+                    Paths.get(VitamConfiguration.getVitamDataFolder() + "/ingest-external/workspace/"));
             }
 
             if (Files.notExists(Paths.get(VitamConfiguration.getVitamDataFolder() + "/ingest-external/upload/"))) {
-                Files.createDirectories(Paths.get(VitamConfiguration.getVitamDataFolder() + "/ingest-external/upload/"));
+                Files
+                    .createDirectories(Paths.get(VitamConfiguration.getVitamDataFolder() + "/ingest-external/upload/"));
             }
 
-            if (Files.notExists(Paths.get(VitamConfiguration.getVitamDataFolder() + "/ingest-external/upload/success/"))) {
-                Files.createDirectories(Paths.get(VitamConfiguration.getVitamDataFolder() + "/ingest-external/upload/success/"));
+            if (Files
+                .notExists(Paths.get(VitamConfiguration.getVitamDataFolder() + "/ingest-external/upload/success/"))) {
+                Files.createDirectories(
+                    Paths.get(VitamConfiguration.getVitamDataFolder() + "/ingest-external/upload/success/"));
             }
 
-            if (Files.notExists(Paths.get(VitamConfiguration.getVitamDataFolder() + "/ingest-external/upload/failure/"))) {
-                Files.createDirectories(Paths.get(VitamConfiguration.getVitamDataFolder() + "/ingest-external/upload/failure/"));
+            if (Files
+                .notExists(Paths.get(VitamConfiguration.getVitamDataFolder() + "/ingest-external/upload/failure/"))) {
+                Files.createDirectories(
+                    Paths.get(VitamConfiguration.getVitamDataFolder() + "/ingest-external/upload/failure/"));
             }
 
             FormatIdentifierFactory.getInstance()
@@ -328,7 +337,6 @@ public class VitamServerRunner extends ExternalResource {
         }
     }
 
-
     private void startIngestInternalServer() throws VitamApplicationServerException {
         if (null != ingestInternalMain) {
             IngestInternalClientFactory.getInstance().changeServerPort(PORT_SERVICE_INGEST_INTERNAL);
@@ -365,13 +373,19 @@ public class VitamServerRunner extends ExternalResource {
 
 
         serverConfiguration.setSuccessfulUploadDir(Files
-            .createTempDirectory(Paths.get(VitamConfiguration.getVitamDataFolder() + "/ingest-external/upload/success/"),
+            .createTempDirectory(
+                Paths.get(VitamConfiguration.getVitamDataFolder() + "/ingest-external/upload/success/"),
                 "upload_").toFile().getAbsolutePath());
 
         serverConfiguration.setFailedUploadDir(Files
             .createTempDirectory(Paths.get(VitamConfiguration.getVitamDataFolder() + "/ingest-external/upload/failure"),
                 "upload_").toFile().getAbsolutePath());
 
+        String dir = Paths.get("").toAbsolutePath().toString();
+        String userDir = StringUtils.substringBefore(dir, "/sources/");
+
+        LOGGER.error("User dir :" + userDir);
+        serverConfiguration.setAntiVirusScriptName(userDir + DEPLOYMENT_ENVIRONMENTS_ANTIVIRUS_SCAN_DEV_SH);
         writeYaml(ingestExternalFile, serverConfiguration);
 
 

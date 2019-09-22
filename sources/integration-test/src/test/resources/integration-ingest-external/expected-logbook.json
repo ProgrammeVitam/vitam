@@ -332,7 +332,7 @@
       "evTypeProc": "INGEST",
       "outcome": "OK",
       "outDetail": "STORAGE_AVAILABILITY_CHECK.OK",
-      "outMessg": "Succ\u00E8s de la v\u00E9rification de la disponibilit\u00E9 de toutes les offres de stockage Detail=  OK:2",
+      "outMessg": "Succ\u00E8s de la v\u00E9rification de la disponibilit\u00E9 de toutes les offres de stockage Detail=  OK:1",
       "evIdReq": "OPERATION_ID_REPLACE"
     },
     {
@@ -341,7 +341,7 @@
       "evTypeProc": "INGEST",
       "outcome": "OK",
       "outDetail": "STORAGE_AVAILABILITY_CHECK.STORAGE_AVAILABILITY_CHECK.OK",
-      "outMessg": "Succ\u00E8s de la v\u00E9rification de la disponibilit\u00E9 de l'offre de stockage Detail=  OK:2",
+      "outMessg": "Succ\u00E8s de la v\u00E9rification de la disponibilit\u00E9 de l'offre de stockage Detail=  OK:1",
       "evIdReq": "OPERATION_ID_REPLACE"
     },
     {
