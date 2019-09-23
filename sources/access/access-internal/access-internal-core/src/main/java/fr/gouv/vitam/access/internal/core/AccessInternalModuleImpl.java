@@ -1693,13 +1693,17 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
     }
 
     @Override
-    public Response findDIPByOperationId(String id) throws AccessInternalExecutionException {
+    public Response findDIPByOperationId(String id)
+        throws AccessInternalExecutionException {
         try (WorkspaceClient workspaceClient = workspaceClientFactory.getClient()) {
             Response dip = workspaceClient.getObject(
                 DIP_CONTAINER, VitamThreadUtils.getVitamSession().getTenantId() + "/" + id);
             return new VitamAsyncInputStreamResponse(dip, Status.OK, MediaType.APPLICATION_OCTET_STREAM_TYPE);
-        } catch (ContentAddressableStorageNotFoundException | ContentAddressableStorageServerException e) {
+        } catch (ContentAddressableStorageServerException e) {
             throw new AccessInternalExecutionException(e);
+        } catch (ContentAddressableStorageNotFoundException e) {
+            LOGGER.warn("DIP file not found " + id);
+            return Response.status(Status.NOT_FOUND).build();
         }
     }
 
