@@ -33,6 +33,7 @@ import com.mongodb.client.model.WriteModel;
 import com.mongodb.client.result.DeleteResult;
 import fr.gouv.vitam.batch.report.model.EliminationActionUnitModel;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
+import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
@@ -56,7 +57,7 @@ public abstract class ReportCommonRepository {
      *
      * @param reports report
      */
-    void bulkAppendReport(List<Document> reports, MongoCollection<Document> collection) {
+    protected void bulkAppendReport(List<Document> reports, MongoCollection<Document> collection) {
         final List<WriteModel<Document>> updates = new ArrayList<>();
         for (Document document : reports) {
             Document metadata = (Document) document.get("_metadata");
@@ -65,7 +66,8 @@ public abstract class ReportCommonRepository {
                     and(eq("_metadata.id", metadata.get("id")),
                         eq("processId", document.get("processId")),
                         eq("_tenant", document.get("_tenant"))),
-                    new Document("$set", document),
+                    new Document("$set", document)
+                        .append("$setOnInsert", new Document("_id", GUIDFactory.newGUID().toString())),
                     new UpdateOptions().upsert(true)));
         }
         collection.bulkWrite(updates);
@@ -77,7 +79,7 @@ public abstract class ReportCommonRepository {
      * @param processId processId
      * @param tenantId tenantId
      */
-    void deleteReportByIdAndTenant(String processId, int tenantId, MongoCollection<Document> collection) {
+    protected void deleteReportByIdAndTenant(String processId, int tenantId, MongoCollection<Document> collection) {
         DeleteResult deleteResult = collection
             .deleteMany(
                 and(eq(EliminationActionUnitModel.PROCESS_ID, processId),

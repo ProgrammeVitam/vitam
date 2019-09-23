@@ -30,34 +30,41 @@ package fr.gouv.vitam.batch.report.rest.repository;
 import com.google.common.annotations.VisibleForTesting;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoCursor;
+import com.mongodb.client.model.Aggregates;
+import com.mongodb.client.model.Projections;
 import com.mongodb.client.model.UpdateOneModel;
 import com.mongodb.client.model.UpdateOptions;
 import com.mongodb.client.model.WriteModel;
-import fr.gouv.vitam.common.database.server.mongodb.SimpleMongoDBAccess;
+import fr.gouv.vitam.common.database.server.mongodb.MongoDbAccess;
+import fr.gouv.vitam.common.guid.GUIDFactory;
+import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import org.bson.Document;
 
-import java.util.Collections;
+import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
 import static com.mongodb.client.model.Aggregates.match;
+import static com.mongodb.client.model.Aggregates.project;
+import static com.mongodb.client.model.Filters.and;
 import static com.mongodb.client.model.Filters.eq;
 
 public class InvalidUnitsRepository extends ReportCommonRepository {
 
-    private static final String INVALID_UNITS = "InvalidUnits";
-    private static final String PROCESS_ID = "processId";
-    private static final String ID = "_id";
+    public static final String INVALID_UNITS_COLLECTION_NAME = "InvalidUnits";
+    public static final String PROCESS_ID = "processId";
+    public static final String UNIT_ID = "unitId";
+    public static final String TENANT_ID = "_tenant";
 
     private final MongoCollection<Document> collection;
 
     @VisibleForTesting
-    InvalidUnitsRepository(SimpleMongoDBAccess mongoDbAccess, String collectionName) {
+    InvalidUnitsRepository(MongoDbAccess mongoDbAccess, String collectionName) {
         this.collection = mongoDbAccess.getMongoDatabase().getCollection(collectionName);
     }
 
-    public InvalidUnitsRepository(SimpleMongoDBAccess mongoDbAccess) {
-        this(mongoDbAccess, INVALID_UNITS);
+    public InvalidUnitsRepository(MongoDbAccess mongoDbAccess) {
+        this(mongoDbAccess, INVALID_UNITS_COLLECTION_NAME);
     }
 
     public void bulkAppendUnits(List<String> unitsId, String processId) {
@@ -69,21 +76,34 @@ public class InvalidUnitsRepository extends ReportCommonRepository {
     }
 
     public void deleteUnitsAndProgeny(String processId) {
-        collection.deleteMany(eq(PROCESS_ID, processId));
+        collection.deleteMany(and(
+            eq(PROCESS_ID, processId),
+            eq(TENANT_ID, VitamThreadUtils.getVitamSession().getTenantId())
+        ));
     }
 
     public MongoCursor<Document> findUnitsByProcessId(String processId) {
-        return collection.aggregate(Collections.singletonList(match(eq(PROCESS_ID, processId))))
+        return collection.aggregate(Arrays.asList(
+            match(and(
+                eq(PROCESS_ID, processId),
+                eq(TENANT_ID, VitamThreadUtils.getVitamSession().getTenantId())
+            )),
+            project(Projections.fields(
+                new Document("_id", 0),
+                new Document(UNIT_ID, "unitId")))
+            ))
             .allowDiskUse(true)
             .iterator();
     }
 
     private WriteModel<Document> getWriteModel(String unitId, String operationId) {
-        Document doc = new Document(ID, unitId);
-        doc.append(PROCESS_ID, operationId);
+        Document doc = new Document(UNIT_ID, unitId)
+            .append(PROCESS_ID, operationId)
+            .append(TENANT_ID, VitamThreadUtils.getVitamSession().getTenantId());
         return new UpdateOneModel<>(
             doc,
-            new Document("$set", doc),
+            new Document("$set", doc)
+                .append("$setOnInsert", new Document("_id", GUIDFactory.newGUID().toString())),
             new UpdateOptions().upsert(true)
         );
     }

@@ -37,8 +37,6 @@ import static com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL;
 @JsonInclude(NON_NULL)
 public class PreservationReportEntry extends ReportEntry {
 
-    public static final String ID = "_id";
-    public static final String PRESERVATION_REPORT_ID = "preservationReportId";
     public static final String UNIT_ID = "unitId";
     public static final String OBJECT_GROUP_ID = "objectGroupId";
     public static final String PROCESS_ID = "processId";
@@ -52,8 +50,6 @@ public class PreservationReportEntry extends ReportEntry {
     public static final String INPUT_OBJECT_ID = "inputObjectId";
     public static final String OUTPUT_OBJECT_ID = "outputObjectId";
 
-    private final String preservationId;
-    private final String preservationReportId;
     private final String processId;
     private final int tenant;
     private final String creationDateTime;
@@ -69,8 +65,7 @@ public class PreservationReportEntry extends ReportEntry {
 
     @JsonCreator
     public PreservationReportEntry(
-        @JsonProperty(ID) String preservationId,
-        @JsonProperty(PRESERVATION_REPORT_ID) String preservationReportId,
+        @JsonProperty(DETAIL_ID) String detailId,
         @JsonProperty(PROCESS_ID) String processId,
         @JsonProperty(TENANT) int tenant,
         @JsonProperty(CREATION_DATE_TIME) String creationDateTime,
@@ -84,9 +79,7 @@ public class PreservationReportEntry extends ReportEntry {
         @JsonProperty(OUTCOME) String outcome,
         @JsonProperty(GRIFFIN_ID) String griffinId,
         @JsonProperty(SCENARIO_ID) String preservationScenarioId) {
-        super(outcome, "preservation", preservationId);
-        this.preservationId = preservationId;
-        this.preservationReportId = preservationReportId;
+        super(outcome, "preservation", detailId);
         this.processId = processId;
         this.tenant = tenant;
         this.creationDateTime = creationDateTime;
@@ -99,11 +92,6 @@ public class PreservationReportEntry extends ReportEntry {
         this.outputObjectId = outputObjectId;
         this.griffinId = griffinId;
         this.preservationScenarioId = preservationScenarioId;
-    }
-
-    @JsonProperty(ID)
-    public String getPreservationId() {
-        return preservationId;
     }
 
     @JsonProperty(PROCESS_ID)
@@ -164,10 +152,5 @@ public class PreservationReportEntry extends ReportEntry {
     @JsonProperty(SCENARIO_ID)
     public String getPreservationScenarioId() {
         return preservationScenarioId;
-    }
-
-    @JsonProperty(PRESERVATION_REPORT_ID)
-    public String getPreservationReportId() {
-        return preservationReportId;
     }
 }

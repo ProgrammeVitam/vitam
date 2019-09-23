@@ -93,11 +93,9 @@ import static fr.gouv.vitam.batch.report.model.entry.PreservationReportEntry.ACT
 import static fr.gouv.vitam.batch.report.model.entry.PreservationReportEntry.ANALYSE_RESULT;
 import static fr.gouv.vitam.batch.report.model.entry.PreservationReportEntry.CREATION_DATE_TIME;
 import static fr.gouv.vitam.batch.report.model.entry.PreservationReportEntry.GRIFFIN_ID;
-import static fr.gouv.vitam.batch.report.model.entry.PreservationReportEntry.ID;
 import static fr.gouv.vitam.batch.report.model.entry.PreservationReportEntry.INPUT_OBJECT_ID;
 import static fr.gouv.vitam.batch.report.model.entry.PreservationReportEntry.OBJECT_GROUP_ID;
 import static fr.gouv.vitam.batch.report.model.entry.PreservationReportEntry.OUTPUT_OBJECT_ID;
-import static fr.gouv.vitam.batch.report.model.entry.PreservationReportEntry.PRESERVATION_REPORT_ID;
 import static fr.gouv.vitam.batch.report.model.entry.PreservationReportEntry.SCENARIO_ID;
 import static fr.gouv.vitam.batch.report.model.entry.PreservationReportEntry.STATUS;
 import static fr.gouv.vitam.batch.report.model.entry.PreservationReportEntry.TENANT;
@@ -229,7 +227,7 @@ public class BatchReportServiceImplTest {
 
         PreservationStatsModel preservationStatus = new PreservationStatsModel(0, 1, 0, 1, 0, 0, 0, new HashMap<>(), 0);
         PreservationReportEntry preservationReportEntry =
-            new PreservationReportEntry("aeaaaaaaaagw45nxabw2ualhc4jvawqaaaaq", "aeaaaaaaaagw45nxabw2ualhc4jvawqaaaaq",
+            new PreservationReportEntry("aeaaaaaaaagw45nxabw2ualhc4jvawqaaaaq",
                 processId,
                 TENANT_ID, "2018-11-15T11:13:20.986",
                 PreservationStatus.OK, "unitId", "objectGroupId", ANALYSE, "VALID_ALL",
@@ -559,8 +557,6 @@ public class BatchReportServiceImplTest {
         document.put(OUTCOME, "Outcome - TEST");
         document.put(DETAIL_TYPE, "preservation");
         document.put(DETAIL_ID, "aeaaaaaaaagw45nxabw2ualhc4jvawqaaaaq");
-        document.put(ID, "aeaaaaaaaagw45nxabw2ualhc4jvawqaaaaq");
-        document.put(PRESERVATION_REPORT_ID, "aeaaaaaaaagw45nxabw2ualhc4jvawqaaaaq");
         document.put(PreservationReportEntry.PROCESS_ID, processId);
         document.put(TENANT, TENANT_ID);
         document.put(CREATION_DATE_TIME, "2018-11-15T11:13:20.986");

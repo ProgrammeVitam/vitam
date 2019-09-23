@@ -98,7 +98,7 @@ public class PreservationReportServiceTest {
         processId = "123456789";
         tenantId = 0;
         PreservationReportEntry preservationReportEntry =
-            new PreservationReportEntry("aeaaaaaaaagw45nxabw2ualhc4jvawqaaaaq", "preservationReportId", processId,
+            new PreservationReportEntry("aeaaaaaaaagw45nxabw2ualhc4jvawqaaaaq", processId,
                 tenantId, "2018-11-15T11:13:20.986",
                 PreservationStatus.OK, "unitId", "objectGroupId", ANALYSE, "VALID_ALL",
                 "aeaaaaaaaagh65wtab27ialg5fopxnaaaaaq", "", "outcome - TEST", "griffinId", "preservationScenarioId");

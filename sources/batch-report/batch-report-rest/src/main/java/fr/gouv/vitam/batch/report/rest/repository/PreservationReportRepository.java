@@ -27,7 +27,6 @@
 package fr.gouv.vitam.batch.report.rest.repository;
 
 import static com.mongodb.client.model.Accumulators.sum;
-import static com.mongodb.client.model.Aggregates.count;
 import static com.mongodb.client.model.Aggregates.group;
 import static com.mongodb.client.model.Aggregates.match;
 import static com.mongodb.client.model.Aggregates.project;
@@ -37,14 +36,13 @@ import static com.mongodb.client.model.Projections.include;
 import static fr.gouv.vitam.batch.report.model.PreservationStatus.KO;
 import static fr.gouv.vitam.batch.report.model.PreservationStatus.WARNING;
 import static fr.gouv.vitam.batch.report.model.entry.PreservationReportEntry.ACTION;
+import static fr.gouv.vitam.batch.report.model.entry.PreservationReportEntry.DETAIL_ID;
 import static fr.gouv.vitam.batch.report.model.entry.PreservationReportEntry.ANALYSE_RESULT;
 import static fr.gouv.vitam.batch.report.model.entry.PreservationReportEntry.CREATION_DATE_TIME;
 import static fr.gouv.vitam.batch.report.model.entry.PreservationReportEntry.GRIFFIN_ID;
-import static fr.gouv.vitam.batch.report.model.entry.PreservationReportEntry.ID;
 import static fr.gouv.vitam.batch.report.model.entry.PreservationReportEntry.INPUT_OBJECT_ID;
 import static fr.gouv.vitam.batch.report.model.entry.PreservationReportEntry.OBJECT_GROUP_ID;
 import static fr.gouv.vitam.batch.report.model.entry.PreservationReportEntry.OUTPUT_OBJECT_ID;
-import static fr.gouv.vitam.batch.report.model.entry.PreservationReportEntry.PRESERVATION_REPORT_ID;
 import static fr.gouv.vitam.batch.report.model.entry.PreservationReportEntry.PROCESS_ID;
 import static fr.gouv.vitam.batch.report.model.entry.PreservationReportEntry.SCENARIO_ID;
 import static fr.gouv.vitam.batch.report.model.entry.PreservationReportEntry.STATUS;
@@ -78,6 +76,7 @@ import fr.gouv.vitam.batch.report.model.PreservationStatsModel;
 import fr.gouv.vitam.batch.report.model.entry.PreservationReportEntry;
 import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.database.server.mongodb.MongoDbAccess;
+import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
@@ -110,8 +109,9 @@ public class PreservationReportRepository {
 
     private static WriteModel<Document> modelToWriteDocument(PreservationReportEntry model) {
         return new UpdateOneModel<>(
-            and(eq(PROCESS_ID, model.getProcessId()), eq(ID, model.getPreservationId())),
-            new Document("$set", Document.parse(JsonHandler.unprettyPrint(model))),
+            and(eq(PROCESS_ID, model.getProcessId()), eq(DETAIL_ID, model.getDetailId())),
+            new Document("$set", Document.parse(JsonHandler.unprettyPrint(model)))
+                .append("$setOnInsert", new Document("_id", GUIDFactory.newGUID().toString())),
             new UpdateOptions().upsert(true)
         );
     }
@@ -121,7 +121,6 @@ public class PreservationReportRepository {
             Arrays.asList(
                 match(and(eq(PROCESS_ID, processId), eq(TENANT, tenantId))),
                 Aggregates.project(Projections.fields(
-                    new Document(PRESERVATION_REPORT_ID, "$preservationReportId"),
                     new Document(PROCESS_ID, "$processId"),
                     new Document(CREATION_DATE_TIME, "$creationDateTime"),
                     new Document(UNIT_ID, "$unitId"),
