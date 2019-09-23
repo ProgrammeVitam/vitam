@@ -144,7 +144,7 @@ export class ManagementContractComponent extends PageComponent {
   initData(value) {
     this.contract = plainToClass(ManagementContract, value.$results)[0];
     this.modifiedContract = ObjectsService.clone(this.contract);
-    if (this.modifiedContract.Storage === null) {
+    if (this.modifiedContract.Storage === null || !this.modifiedContract.Storage ) {
       this.modifiedContract.Storage = new ManagementContractStorage();
     }
     this.isActif = this.modifiedContract.Status === 'ACTIVE';
