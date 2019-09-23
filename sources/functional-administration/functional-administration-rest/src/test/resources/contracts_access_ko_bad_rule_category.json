@@ -3,18 +3,16 @@
 		"Name":"aName",
 		"Description":"aDescription of the contract",
 		"Status":"ACTIVE",
-		"OriginatingAgencies":["FR_ORG_AGEN"],
-		"RuleCategoryToFilter": [ "AppraisalRule", "DisseminationRule" ],
 		"LastUpdate":"10/12/2016",
 		"CreationDate":"10/12/2016",
 		"ActivationDate":"10/12/2016",
-		"DeactivationDate":"10/12/2016"
+		"DeactivationDate":"10/12/2016",
+		"RuleCategoryToFilter": [ "AppraisalRule", "BAD" ]
 	},
-		{
+	{
 		"Name":"aName2",
 		"Description":"aDescription of the contract 2",
 		"Status":"ACTIVE",
-		"OriginatingAgencies":["FR_ORG_AGEN"],
 		"LastUpdate":"10/12/2016",
 		"CreationDate":"10/12/2016",
 		"ActivationDate":"10/12/2016",

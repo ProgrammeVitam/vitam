@@ -78,6 +78,7 @@ import fr.gouv.vitam.common.model.unit.RuleCategoryModel;
 import fr.gouv.vitam.common.model.unit.RuleModel;
 import fr.gouv.vitam.common.parameter.ParameterHelper;
 import fr.gouv.vitam.common.performance.PerformanceLogger;
+import fr.gouv.vitam.common.model.administration.RuleType;
 import fr.gouv.vitam.common.xml.XMLInputFactoryUtils;
 import fr.gouv.vitam.functional.administration.client.AdminManagementClient;
 import fr.gouv.vitam.functional.administration.client.AdminManagementClientFactory;
@@ -120,7 +121,6 @@ import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 import fr.gouv.vitam.worker.common.HandlerIO;
 import fr.gouv.vitam.worker.common.utils.DataObjectDetail;
 import fr.gouv.vitam.worker.common.utils.DataObjectInfo;
-import fr.gouv.vitam.worker.common.utils.RuleTypeName;
 import fr.gouv.vitam.worker.common.utils.SedaUtils;
 import fr.gouv.vitam.worker.core.exception.WorkerspaceQueueException;
 import fr.gouv.vitam.worker.core.extractseda.ArchiveUnitListener;
@@ -1596,8 +1596,8 @@ public class ExtractSedaActionHandler extends ActionHandler {
         }
         ObjectNode archiveUnitMgtNode = (ObjectNode) JsonHandler.toJsonNode(archiveUnitManagementModel);
         if (archiveUnitMgtNode != null) {
-            for (RuleTypeName ruleType : RuleTypeName.values()) {
-                String name = ruleType.getType();
+            for (RuleType ruleType : RuleType.values()) {
+                String name = ruleType.name();
                 if (archiveUnitMgtNode.get(name) != null && archiveUnitMgtNode.get(name).get(RULES) != null &&
                     archiveUnitMgtNode.get(name).get(RULES).size() == 0) {
                     ObjectNode ruleNode = (ObjectNode) archiveUnitMgtNode.get(name);

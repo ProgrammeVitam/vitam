@@ -17,6 +17,10 @@
       "type": "keyword",
       "null_value": "NULL"
     },
+    "RuleCategoryToFilter": {
+      "type": "keyword",
+      "null_value": "NULL"
+    },
     "CreationDate": {
       "type": "date",
       "format": "strict_date_optional_time"

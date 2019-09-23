@@ -26,7 +26,6 @@
  *******************************************************************************/
 package fr.gouv.vitam.functional.administration.rest;
 
-import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.github.tomakehurst.wiremock.client.WireMock;
 import com.github.tomakehurst.wiremock.junit.WireMockClassRule;
@@ -59,6 +58,7 @@ import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
+import fr.gouv.vitam.common.model.administration.AccessContractModel;
 import fr.gouv.vitam.common.model.administration.AgenciesModel;
 import fr.gouv.vitam.common.model.administration.ManagementContractModel;
 import fr.gouv.vitam.common.mongo.MongoRule;
@@ -70,6 +70,7 @@ import fr.gouv.vitam.common.thread.VitamThreadFactory;
 import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.functional.administration.agencies.api.AgenciesService;
+import fr.gouv.vitam.functional.administration.common.AccessContract;
 import fr.gouv.vitam.functional.administration.common.server.AdminManagementConfiguration;
 import fr.gouv.vitam.functional.administration.common.server.ElasticsearchAccessFunctionalAdmin;
 import fr.gouv.vitam.functional.administration.common.server.FunctionalAdminCollections;
@@ -134,13 +135,13 @@ public class ContractResourceTest {
 
     private static final int TENANT_ID = 0;
 
-    static MongoDbAccessReferential mongoDbAccess;
+    private static MongoDbAccessReferential mongoDbAccess;
     private static String DATABASE_HOST = "localhost";
     private static JunitHelper junitHelper = JunitHelper.getInstance();
     private static int serverPort;
     private static File adminConfigFile;
     private static AdminManagementMain application;
-    static AgenciesService agenciesService;
+    private static AgenciesService agenciesService;
 
     private static int workspacePort = junitHelper.findAvailablePort();
 
@@ -155,7 +156,7 @@ public class ContractResourceTest {
     public static TemporaryFolder tempFolder = new TemporaryFolder();
 
     @Before
-    public void setUp() throws Exception {
+    public void setUp() {
         VitamThreadUtils.getVitamSession().setRequestId(newOperationLogbookGUID(TENANT_ID));
     }
 
@@ -338,6 +339,20 @@ public class ContractResourceTest {
 
     @Test
     @RunWithCustomExecutor
+    public void givenAccessContractsTestWithInvalidRuleCategoryThenImportKO() throws Exception {
+        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
+        File fileContracts = PropertiesUtils.getResourceFile("contracts_access_ko_bad_rule_category.json");
+        JsonNode json = JsonHandler.getFromFile(fileContracts);
+        // transform to json
+        given().contentType(ContentType.JSON).body(json)
+            .header(GlobalDataRest.X_TENANT_ID, 0)
+            .header(GlobalDataRest.X_REQUEST_ID, VitamThreadUtils.getVitamSession().getRequestId())
+            .when().post(ContractResource.ACCESS_CONTRACTS_URI)
+            .then().statusCode(Status.BAD_REQUEST.getStatusCode());
+    }
+
+    @Test
+    @RunWithCustomExecutor
     public void givenAccessContractTestUpdate() throws Exception {
         createAccessContract();
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
@@ -345,25 +360,25 @@ public class ContractResourceTest {
         String now = LocalDateUtil.now().toString();
         final UpdateParserSingle updateParser = new UpdateParserSingle(new SingleVarNameAdapter());
         SetAction setActionStatusInactive;
-        try {
-            setActionStatusInactive = UpdateActionHelper.set("Status", "INACTIVE");
-            SetAction setActionDesactivationDateInactive = UpdateActionHelper.set("DeactivationDate", now);
-            SetAction setActionLastUpdateInactive = UpdateActionHelper.set("LastUpdate", now);
-            Update update = new Update();
-            update.setQuery(QueryHelper.eq("Name", "aName"));
-            update.addActions(setActionStatusInactive, setActionDesactivationDateInactive, setActionLastUpdateInactive);
-            updateParser.parse(update.getFinalUpdate());
-        } catch (InvalidCreateOperationException | InvalidParseOperationException e) {
-        }
-        JsonNode queryDslForUpdate = updateParser.getRequest().getFinalUpdate();
+        setActionStatusInactive = UpdateActionHelper.set("Status", "INACTIVE");
+        SetAction setActionDesactivationDateInactive = UpdateActionHelper.set("DeactivationDate", now);
+        SetAction setActionLastUpdateInactive = UpdateActionHelper.set("LastUpdate", now);
+        SetAction setActionRuleCategory =
+            UpdateActionHelper.set(AccessContractModel.RULE_CATEGORY_TO_FILTER, "DisseminationRule");
+        Update update = new Update();
+        update.setQuery(QueryHelper.eq("Name", "aName"));
+        update.addActions(setActionStatusInactive, setActionDesactivationDateInactive, setActionLastUpdateInactive,
+            setActionRuleCategory);
+        updateParser.parse(update.getFinalUpdate());
+            JsonNode queryDslForUpdate = updateParser.getRequest().getFinalUpdate();
 
-        List<String> ids = selectContractByName("aName", ContractResource.ACCESS_CONTRACTS_URI);
+            List<String> ids = selectContractByName("aName", ContractResource.ACCESS_CONTRACTS_URI);
 
-        given().contentType(ContentType.JSON).body(queryDslForUpdate).header(GlobalDataRest.X_TENANT_ID, 0)
-            .header(GlobalDataRest.X_REQUEST_ID, VitamThreadUtils.getVitamSession().getRequestId())
+            given().contentType(ContentType.JSON).body(queryDslForUpdate).header(GlobalDataRest.X_TENANT_ID, 0)
+                .header(GlobalDataRest.X_REQUEST_ID, VitamThreadUtils.getVitamSession().getRequestId())
 
-            .when().put(ContractResource.UPDATE_ACCESS_CONTRACTS_URI + "/" + ids.get(0)).then()
-            .statusCode(Status.OK.getStatusCode());
+                .when().put(ContractResource.UPDATE_ACCESS_CONTRACTS_URI + "/" + ids.get(0)).then()
+                .statusCode(Status.OK.getStatusCode());
 
         given().contentType(ContentType.JSON).body(queryDslForUpdate).header(GlobalDataRest.X_TENANT_ID, 0)
             .header(GlobalDataRest.X_REQUEST_ID, VitamThreadUtils.getVitamSession().getRequestId())
@@ -371,7 +386,29 @@ public class ContractResourceTest {
             .statusCode(Status.NOT_FOUND.getStatusCode());
     }
 
+    @Test
+    @RunWithCustomExecutor
+    public void givenAccessContractTestUpdateWithInvalidRuleCategoryThenKO() throws Exception {
+        createAccessContract();
+        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
+        // Test update for access contract Status => inactive
+        String now = LocalDateUtil.now().toString();
+        final UpdateParserSingle updateParser = new UpdateParserSingle(new SingleVarNameAdapter());
+        SetAction setActionStatusInactive =
+            UpdateActionHelper.set(AccessContractModel.RULE_CATEGORY_TO_FILTER, "Bad");
+        Update update = new Update();
+        update.setQuery(QueryHelper.eq("Name", "aName"));
+        update.addActions(setActionStatusInactive);
+        updateParser.parse(update.getFinalUpdate());
+        JsonNode queryDslForUpdate = updateParser.getRequest().getFinalUpdate();
 
+        List<String> ids = selectContractByName("aName", ContractResource.ACCESS_CONTRACTS_URI);
+
+        given().contentType(ContentType.JSON).body(queryDslForUpdate).header(GlobalDataRest.X_TENANT_ID, 0)
+            .header(GlobalDataRest.X_REQUEST_ID, VitamThreadUtils.getVitamSession().getRequestId())
+            .when().put(ContractResource.UPDATE_ACCESS_CONTRACTS_URI + "/" + ids.get(0)).then()
+            .statusCode(Status.BAD_REQUEST.getStatusCode());
+    }
 
     @Test
     @RunWithCustomExecutor

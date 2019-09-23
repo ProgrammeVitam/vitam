@@ -1657,6 +1657,17 @@
     ]
   },
   {
+    "Identifier": "RuleCategoryToFilter",
+    "ApiField": "RuleCategoryToFilter",
+    "Description": "Mapping : accesscontract-es-mapping.json",
+    "Type": "KEYWORD",
+    "Origin": "INTERNAL",
+    "ShortName": "Liste des catégories de règles à filtrer",
+    "Collections": [
+      "AccessContract"
+    ]
+  },
+  {
     "Identifier": "RootUnits",
     "ApiField": "RootUnits",
     "Description": "Mapping : accesscontract-es-mapping.json",

@@ -58,6 +58,7 @@ public class AccessContractModelTest {
         originatingAgencies.add("FR_FAKE");
         Set<String> rootUnits = Sets.newHashSet("guid");
         Set<String> excludedRootUnits = Sets.newHashSet("excludedGuid");
+        Set<RuleType> RuleCategoryToFilter = Sets.newHashSet(RuleType.DisseminationRule);
         ActivationStatus accessLog = ActivationStatus.ACTIVE;
         contract
             .setId(id)
@@ -73,7 +74,8 @@ public class AccessContractModelTest {
             .setEveryOriginatingAgency(true)
             .setRootUnits(rootUnits)
             .setExcludedRootUnits(excludedRootUnits)
-            .setAccessLog(accessLog);
+            .setAccessLog(accessLog)
+            .setRuleCategoryToFilter(RuleCategoryToFilter);
 
         assertEquals(id, contract.getId());
         assertEquals(name, contract.getName());
@@ -85,6 +87,7 @@ public class AccessContractModelTest {
         assertEquals(rootUnits, contract.getRootUnits());
         assertEquals(excludedRootUnits, contract.getExcludedRootUnits());
         assertEquals(accessLog, contract.getAccessLog());
+        assertEquals(RuleCategoryToFilter, contract.getRuleCategoryToFilter());
     }
 
     @Test

@@ -6,7 +6,8 @@
 		"LastUpdate":"10/12/2016",
 		"CreationDate":"10/12/2016",
 		"ActivationDate":"10/12/2016",
-		"DeactivationDate":"10/12/2016"
+		"DeactivationDate":"10/12/2016",
+		"RuleCategoryToFilter": [ "AppraisalRule", "DisseminationRule" ]
 	},
 		{
 		"Name":"aName2",

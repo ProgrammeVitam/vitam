@@ -49,6 +49,7 @@ import fr.gouv.vitam.common.client.VitamClientFactoryInterface;
 import fr.gouv.vitam.common.configuration.ClassificationLevel;
 import fr.gouv.vitam.common.database.api.VitamRepositoryFactory;
 import fr.gouv.vitam.common.database.builder.query.CompareQuery;
+import fr.gouv.vitam.common.database.builder.query.Query;
 import fr.gouv.vitam.common.database.builder.query.QueryHelper;
 import fr.gouv.vitam.common.database.builder.query.VitamFieldsHelper;
 import fr.gouv.vitam.common.database.builder.query.action.SetAction;
@@ -91,6 +92,7 @@ import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.model.VitamConstants;
 import fr.gouv.vitam.common.model.administration.AccessContractModel;
 import fr.gouv.vitam.common.model.administration.IngestContractModel;
+import fr.gouv.vitam.common.model.administration.RuleType;
 import fr.gouv.vitam.common.model.elimination.EliminationRequestBody;
 import fr.gouv.vitam.common.model.processing.WorkFlow;
 import fr.gouv.vitam.common.model.rules.InheritedRuleCategoryResponseModel;
@@ -1964,8 +1966,7 @@ public class IngestInternalIT extends VitamRuleRunner {
     @RunWithCustomExecutor
     @Test
     public void testApplyAccessContractSecurityFilter()
-        throws FileNotFoundException, InvalidParseOperationException, DatabaseException,
-        InvalidCreateOperationException {
+        throws FileNotFoundException, InvalidParseOperationException, DatabaseException {
 
         final GUID operationGuid = GUIDFactory.newOperationLogbookGUID(tenantId);
         prepareVitamSession();
@@ -2093,15 +2094,28 @@ public class IngestInternalIT extends VitamRuleRunner {
             res = JsonHandler.getFromString(result.toString(), RequestResponseOK.class, JsonNode.class);
             assertThat(res.getResults()).hasSize(0);
 
+            // check rule filter
+            Query query3 = QueryHelper.exists("Title");
+            selectMultiple.getRoots().clear();
+            selectMultiple.getQueries().clear();
+            selectMultiple.addQueries(query3);
+            accessContractModel.getRootUnits().clear();
+            accessContractModel.getOriginatingAgencies().clear();
+            accessContractModel.setEveryOriginatingAgency(true);
+            accessContractModel.getRuleCategoryToFilter().add(RuleType.DisseminationRule);
+            newJson = AccessContractRestrictionHelper.applyAccessContractRestrictionForUnitForSelect(selectMultiple.getFinalSelect(), accessContractModel);
+            assertThat(newJson).isNotNull();
+            result = accessInternalModule.selectUnit(newJson);
+            assertThat(result).isNotNull();
+            res = JsonHandler.getFromString(result.toString(), RequestResponseOK.class, JsonNode.class);
+            assertThat(res.getResults()).hasSize(1);
 
             //////////////////////////
             /// Test Depth negative
             /////////////////////////
-            query_1 =
-                QueryHelper.eq("Title", "UniqueTitleChild");
+            query_1 = QueryHelper.eq("Title", "UniqueTitleChild");
 
-            query_2 =
-                QueryHelper.eq("Title", "UniqueTitleChild");
+            query_2 = QueryHelper.eq("Title", "UniqueTitleChild");
             query_2.setDepthLimit(-1);
 
             selectMultiple = new SelectMultiQuery();

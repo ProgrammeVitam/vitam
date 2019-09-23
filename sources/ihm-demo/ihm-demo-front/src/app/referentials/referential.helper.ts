@@ -6,7 +6,8 @@ import {SelectItem} from 'primeng/primeng';
 export class ReferentialHelper {
 
   static optionLists = {
-    DataObjectVersion: ['BinaryMaster', 'Dissemination', 'Thumbnail', 'TextContent', 'PhysicalMaster']
+    DataObjectVersion: ['BinaryMaster', 'Dissemination', 'Thumbnail', 'TextContent', 'PhysicalMaster'],
+    RuleCategoryToFilter: ['AppraisalRule', 'AccessRule', 'StorageRule', 'DisseminationRule', 'ClassificationRule', 'ReuseRule']
   };
 
   static preservationLists ={
@@ -30,7 +31,7 @@ export class ReferentialHelper {
   }
 
   useMultiSelect(key: string) {
-    return 'DataObjectVersion' === key;
+    return 'DataObjectVersion' === key || 'RuleCategoryToFilter' === key;
   }
 
   public selectionOptions = {
@@ -40,6 +41,14 @@ export class ReferentialHelper {
       {label: 'Vignette', value: 'Thumbnail'},
       {label: 'Contenu brut', value: 'TextContent'},
       {label: 'Original papier', value: 'PhysicalMaster'}
+    ],
+    RuleCategoryToFilter: [
+      {label: 'Durée d\'utilité administrative', value: 'AppraisalRule'},
+      {label: 'Durée d\'utilité courante', value: 'StorageRule'},
+      {label: 'Durée de classification', value: 'ClassificationRule'},
+      {label: 'Délai de communicabilité', value: 'AccessRule'},
+      {label: 'Délai de diffusion', value: 'DisseminationRule'},
+      {label: 'Durée de réutilisation', value: 'ReuseRule'}
     ]
   };
 

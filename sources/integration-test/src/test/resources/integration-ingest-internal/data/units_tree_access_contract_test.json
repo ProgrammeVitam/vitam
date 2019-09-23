@@ -77,6 +77,133 @@
     },
     "_us_sp": {
     },
+    "_computedInheritedRules" : {
+      "StorageRule": {},
+      "AppraisalRule": {},
+      "DisseminationRule": {
+        "MaxEndDate": "2125-01-01",
+        "EndDates": {
+          "DIS-00003": "2025-01-01",
+          "DIS-00002": "2025-01-01"
+        }
+      },
+      "AccessRule": {},
+      "ReuseRule": {},
+      "ClassificationRule": {}
+    },
+    "_min": 1,
+    "_max": 2,
+    "_glpd": "2018-04-30T14:33:47.168",
+    "_v": 0,
+    "_tenant": 0
+  },
+  {
+    "_id": "aeaqaaaaaahmtusqabktwaldc34sl5jaaabq",
+    "_mgt": {},
+    "DescriptionLevel": "RecordGrp",
+    "Title": "RuleUnitTitle",
+    "Description": "RuleUnit",
+    "StartDate": "2017-03-27T08:19:17",
+    "EndDate": "2017-03-27T08:19:17",
+    "_storage": {
+      "_nbc": 2,
+      "offerIds": [
+        "offer-fs-1.service.int.consul",
+        "offer-fs-2.service.int.consul"
+      ],
+      "strategyId": "default"
+    },
+    "_sps": [
+      "Identifier1"
+    ],
+    "_sp": "Identifier1",
+    "_ops": [
+      "aeeaaaaaachnapmacbtqmaldc34rxxaaaaaq"
+    ],
+    "_opi": "aeeaaaaaachnapmacbtqmaldc34rxxaaaaaq",
+    "_unitType": "INGEST",
+    "_up": [
+      "aeaqaaaaaahmtusqabktwaldc34sm5yaaaaq"
+    ],
+    "_us": [
+      "aeaqaaaaaahmtusqabktwaldc34sm5yaaaaq"
+    ],
+    "_graph": [
+    ],
+    "_uds": {
+      "1": [
+        "aeaqaaaaaahmtusqabktwaldc34sm5yaaaaq"
+      ]
+    },
+    "_us_sp": {
+    },
+    "_computedInheritedRules" : {
+      "StorageRule": {},
+      "AppraisalRule": {},
+      "DisseminationRule": {
+        "MaxEndDate": "2015-01-01",
+        "EndDates": {
+          "DIS-00001": "2015-01-01"
+        }
+      },
+      "AccessRule": {},
+      "ReuseRule": {},
+      "ClassificationRule": {}
+    },
+    "_min": 1,
+    "_max": 2,
+    "_glpd": "2018-04-30T14:33:47.168",
+    "_v": 0,
+    "_tenant": 0
+  },
+  {
+    "_id": "aeaqaaaaaahmtusqabktwaldc34sl5jaaaba",
+    "_mgt": {},
+    "DescriptionLevel": "RecordGrp",
+    "Title": "RuleUnitTitle",
+    "Description": "RuleUnit",
+    "StartDate": "2017-03-27T08:19:17",
+    "EndDate": "2017-03-27T08:19:17",
+    "_storage": {
+      "_nbc": 2,
+      "offerIds": [
+        "offer-fs-1.service.int.consul",
+        "offer-fs-2.service.int.consul"
+      ],
+      "strategyId": "default"
+    },
+    "_sps": [
+      "Identifier1"
+    ],
+    "_sp": "Identifier1",
+    "_ops": [
+      "aeeaaaaaachnapmacbtqmaldc34rxxaaaaaq"
+    ],
+    "_opi": "aeeaaaaaachnapmacbtqmaldc34rxxaaaaaq",
+    "_unitType": "INGEST",
+    "_up": [
+      "aeaqaaaaaahmtusqabktwaldc34sm5yaaaaq"
+    ],
+    "_us": [
+      "aeaqaaaaaahmtusqabktwaldc34sm5yaaaaq"
+    ],
+    "_graph": [
+    ],
+    "_uds": {
+      "1": [
+        "aeaqaaaaaahmtusqabktwaldc34sm5yaaaaq"
+      ]
+    },
+    "_us_sp": {
+    },
+    "_computedInheritedRules" : {
+      "StorageRule": {},
+      "AppraisalRule": {},
+      "DisseminationRule": {},
+      "AccessRule": {},
+      "ReuseRule": {},
+      "ClassificationRule": {}
+    },
     "_min": 1,
     "_max": 2,
     "_glpd": "2018-04-30T14:33:47.168",

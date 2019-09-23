@@ -96,9 +96,15 @@
         <vitam-metadata-field *ngIf="update" [title]="'Liste blanche des usages'" [updateMode]="!modifiedContract.EveryDataObjectVersion"
                               [originalTitle]="'DataObjectVersion'" [value]="modifiedContract.DataObjectVersion" [labelSize]="4"
                               class="ui-g-4" [(updatedFields)]="updatedFields"></vitam-metadata-field>
-        <vitam-metadata-field *ngIf="!update" [title]="'Liste blanche des usages'" [updateMode]="false"
-                              [originalTitle]="'DataObjectVersion'" [value]="modifiedContract.DataObjectVersion" [labelSize]="4"
-                              class="ui-g-4" [(updatedFields)]="updatedFields"></vitam-metadata-field>
+        <vitam-metadata-field *ngIf="!update"
+                              [title]="'Liste blanche des usages'"
+                              [updateMode]="false"
+                              [originalTitle]="'DataObjectVersion'"
+                              [value]="modifiedContract.DataObjectVersion"
+                              [labelSize]="4"
+                              class="ui-g-4"
+                              [(updatedFields)]="updatedFields"></vitam-metadata-field>
+
         <div class="ui-g-4" *ngIf="modifiedContract.WritingPermission">
           <div class="ui-g-nopad ui-g-4">
             <label class="label fieldLabel">Restriction d'écriture aux métadonnées de description</label>
@@ -110,6 +116,15 @@
             <p-toggleButton onLabel="Oui" offLabel="Non" [(ngModel)]="modifiedContract.WritingRestrictedDesc" (onChange)="changeBooleanValue('WritingRestrictedDesc')"></p-toggleButton>
           </div>
         </div>
+      </div>
+      <div class="ui-g-12">
+        <vitam-metadata-field [title]="'Liste des règles à filtrer'"
+                              [updateMode]="update"
+                              [originalTitle]="'RuleCategoryToFilter'"
+                              [value]="modifiedContract.RuleCategoryToFilter"
+                              [labelSize]="4"
+                              class="ui-g-4"
+                              [(updatedFields)]="updatedFields"></vitam-metadata-field>
       </div>
       <div class="ui-g-12">
         <vitam-metadata-field [title]="'Noeuds de consultation'"  [originalTitle]="'RootUnits'" [value]="modifiedContract.RootUnits" [labelSize]="5"

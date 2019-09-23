@@ -1,4 +1,4 @@
-/*******************************************************************************
+/*
  * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2019)
  *
  * contact.vitam@culture.gouv.fr
@@ -23,54 +23,16 @@
  *
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
- *******************************************************************************/
-package fr.gouv.vitam.functional.administration.common;
-
-/**
- * Enum for Rule Type
  */
-public enum RuleTypeEnum {
 
-    /**
-     * AppraisalRule
-     */
-    APPRAISALRULE("AppraisalRule"),
-    /**
-     * AccessRule
-     */
-    ACCESSRULE("AccessRule"),
-    /**
-     * StorageRule
-     */
-    STORAGERULE("StorageRule"),
-    /**
-     * DisseminationRule
-     */
-    DISSEMINATIONRULE("DisseminationRule"),
-    /**
-     * ClassificationRule
-     */
-    CLASSIFICATIONRULE("ClassificationRule"),
-    /**
-     * ReuseRule
-     */
-    REUSERULE("ReuseRule");
+package fr.gouv.vitam.common.model.administration;
 
-    private final String type;
+public enum RuleType {
 
-    /**
-     * Constructor
-     */
-    private RuleTypeEnum(String ruleType) {
-        type = ruleType;
-    }
-
-    /**
-     *
-     * @return the type of the rule
-     */
-    public String getType() {
-        return type;
-    }
-
+    AppraisalRule,
+    AccessRule,
+    StorageRule,
+    DisseminationRule,
+    ClassificationRule,
+    ReuseRule;
 }

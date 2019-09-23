@@ -1,4 +1,4 @@
-/*******************************************************************************
+/*
  * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2019)
  *
  * contact.vitam@culture.gouv.fr
@@ -23,21 +23,13 @@
  *
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
- *******************************************************************************/
+ */
 package fr.gouv.vitam.common.database.utils;
 
-import static fr.gouv.vitam.common.database.builder.query.QueryHelper.and;
-import static fr.gouv.vitam.common.database.builder.query.QueryHelper.eq;
-import static fr.gouv.vitam.common.database.builder.query.QueryHelper.in;
-import static fr.gouv.vitam.common.database.builder.query.QueryHelper.nin;
-import static fr.gouv.vitam.common.database.builder.query.QueryHelper.or;
-import static fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.PROJECTIONARGS.ORIGINATING_AGENCIES;
-
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Set;
-
 import com.fasterxml.jackson.databind.JsonNode;
+import fr.gouv.vitam.common.database.builder.query.BooleanQuery;
+import fr.gouv.vitam.common.database.builder.query.CompareQuery;
+import fr.gouv.vitam.common.database.builder.query.ExistsQuery;
 import fr.gouv.vitam.common.database.builder.query.Query;
 import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken;
 import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
@@ -47,7 +39,25 @@ import fr.gouv.vitam.common.database.parser.request.multiple.UpdateParserMultipl
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.model.UnitType;
 import fr.gouv.vitam.common.model.administration.AccessContractModel;
+import fr.gouv.vitam.common.model.administration.RuleType;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
+
+import java.text.SimpleDateFormat;
+import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
+import java.util.Set;
+
+import static fr.gouv.vitam.common.database.builder.query.QueryHelper.and;
+import static fr.gouv.vitam.common.database.builder.query.QueryHelper.eq;
+import static fr.gouv.vitam.common.database.builder.query.QueryHelper.exists;
+import static fr.gouv.vitam.common.database.builder.query.QueryHelper.in;
+import static fr.gouv.vitam.common.database.builder.query.QueryHelper.lt;
+import static fr.gouv.vitam.common.database.builder.query.QueryHelper.nin;
+import static fr.gouv.vitam.common.database.builder.query.QueryHelper.not;
+import static fr.gouv.vitam.common.database.builder.query.QueryHelper.or;
+import static fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.PROJECTIONARGS.ORIGINATING_AGENCIES;
 
 public final class AccessContractRestrictionHelper {
 
@@ -99,7 +109,7 @@ public final class AccessContractRestrictionHelper {
      * @throws InvalidCreateOperationException
      */
     public static JsonNode applyAccessContractRestrictionForUnitForUpdate(JsonNode queryDsl, AccessContractModel contract)
-            throws InvalidParseOperationException, InvalidCreateOperationException {
+        throws InvalidParseOperationException, InvalidCreateOperationException {
         final UpdateParserMultiple parser = new UpdateParserMultiple();
         parser.parse(queryDsl);
         applyAccessContractRestriction(parser, contract, true);
@@ -113,10 +123,9 @@ public final class AccessContractRestrictionHelper {
      * @param contract
      * @param isUnit
      * @return JsonNode contains restriction
-     * @throws InvalidParseOperationException
      * @throws InvalidCreateOperationException
      */
-    public static void applyAccessContractRestriction(RequestParserMultiple parser, AccessContractModel contract,
+    private static void applyAccessContractRestriction(RequestParserMultiple parser, AccessContractModel contract,
         boolean isUnit)
         throws InvalidCreateOperationException {
         Set<String> rootUnits = contract.getRootUnits();
@@ -124,87 +133,80 @@ public final class AccessContractRestrictionHelper {
 
         List<Query> queryList = new ArrayList<>(parser.getRequest().getQueries());
 
-        if (!rootUnits.isEmpty() || !excludedRootUnits.isEmpty()) {
-            String[] rootUnitsArray = rootUnits.toArray(new String[rootUnits.size()]);
-            String[] excludedRootUnitsArray = excludedRootUnits.toArray(new String[excludedRootUnits.size()]);
-            // If unit then query _id else (GOT) then query _up
-            String fieldToQuery = BuilderToken.PROJECTIONARGS.ID.exactToken();
-            if (!isUnit) {
-                fieldToQuery = BuilderToken.PROJECTIONARGS.UNITUPS.exactToken();
-            }
+        BooleanQuery restrictionQueries = and();
+
+        // If unit then query _id else (GOT) then query _up
+        String fieldToQuery = BuilderToken.PROJECTIONARGS.ID.exactToken();
+        if (!isUnit) {
+            fieldToQuery = BuilderToken.PROJECTIONARGS.UNITUPS.exactToken();
+        }
+
+        if (!rootUnits.isEmpty()) {
+            String[] rootUnitsArray = rootUnits.toArray(new String[0]);
             Query rootUnitsRestriction = or()
                 .add(
                     in(fieldToQuery, rootUnitsArray),
                     in(BuilderToken.PROJECTIONARGS.ALLUNITUPS.exactToken(), rootUnitsArray)
                 );
+            restrictionQueries.add(rootUnitsRestriction);
+        }
 
+        if (!excludedRootUnits.isEmpty()) {
+            String[] excludedRootUnitsArray = excludedRootUnits.toArray(new String[0]);
             Query excludeRootUnitsRestriction = and()
                 .add(
                     nin(fieldToQuery, excludedRootUnitsArray),
                     nin(BuilderToken.PROJECTIONARGS.ALLUNITUPS.exactToken(), excludedRootUnitsArray)
                 );
+            restrictionQueries.add(excludeRootUnitsRestriction);
+        }
 
-
-            if (queryList.isEmpty()) {
-                if (rootUnits.size() > 0 && excludedRootUnits.size() > 0) {
-                    parser.getRequest().getQueries()
-                        .add(and().add(rootUnitsRestriction, excludeRootUnitsRestriction).setDepthLimit(0));
-                } else if (rootUnits.size() > 0) {
-                    parser.getRequest().getQueries().add(rootUnitsRestriction.setDepthLimit(0));
-                } else if (excludedRootUnits.size() > 0) {
-                    parser.getRequest().getQueries().add(excludeRootUnitsRestriction.setDepthLimit(0));
-                }
-            } else {
-                // In cas of one or multiple query
-                for (int i = 0; i < queryList.size(); i++) {
-                    final Query query = queryList.get(i);
-                    int depth = query.getParserRelativeDepth();
-
-                    if (rootUnits.size() > 0 && excludedRootUnits.size() > 0) {
-                        Query restrictedQuery = and().add(rootUnitsRestriction, excludeRootUnitsRestriction, query);
-                        restrictedQuery.setDepthLimit(depth);
-                        parser.getRequest().getQueries().set(i, restrictedQuery);
-
-                    } else if (rootUnits.size() > 0) {
-                        Query restrictedQuery = and().add(rootUnitsRestriction, query);
-                        restrictedQuery.setDepthLimit(depth);
-                        parser.getRequest().getQueries().set(i, restrictedQuery);
-
-                    } else if (excludedRootUnits.size() > 0) {
-                        Query restrictedQuery = and().add(excludeRootUnitsRestriction, query);
-                        restrictedQuery.setDepthLimit(depth);
-                        parser.getRequest().getQueries().set(i, restrictedQuery);
-                    }
-                }
-            }
+        if (!contract.getRuleCategoryToFilter().isEmpty()) {
+            Query rulesRestrictionQuery = getRulesRestrictionQuery(contract);
+            restrictionQueries.add(rulesRestrictionQuery);
         }
 
         // Filter on originating Agencies
         if (!contract.getEveryOriginatingAgency()) {
             queryList = new ArrayList<>(parser.getRequest().getQueries());
 
-            Set<String> prodServices = contract.getOriginatingAgencies();
-            Query originatingAgencyRestriction = or()
-                .add(
-                    in(ORIGINATING_AGENCIES.exactToken(), prodServices.toArray(new String[0])),
-                    eq(BuilderToken.PROJECTIONARGS.UNITTYPE.exactToken(), UnitType.HOLDING_UNIT.name())
-                );
+            Query originatingAgencyRestriction = getOriginatingAgencyRestrictionQuery(contract);
+            restrictionQueries.add(originatingAgencyRestriction);
+        }
 
+        if (!restrictionQueries.getQueries().isEmpty()) {
             if (queryList.isEmpty()) {
-                parser.getRequest().getQueries().add(originatingAgencyRestriction.setDepthLimit(0));
+                parser.getRequest().getQueries().add(restrictionQueries.setDepthLimit(0));
             } else {
                 // In cas of one or multiple query
                 for (int i = 0; i < queryList.size(); i++) {
                     final Query query = queryList.get(i);
                     int depth = query.getParserRelativeDepth();
-                    Query restrictedQuery = and().add(originatingAgencyRestriction, query);
+                    Query restrictedQuery = and().add(restrictionQueries, query);
                     restrictedQuery.setDepthLimit(depth);
                     parser.getRequest().getQueries().set(i, restrictedQuery);
                 }
-
             }
         }
+    }
 
+    private static Query getRulesRestrictionQuery(AccessContractModel contract) throws InvalidCreateOperationException {
+        BooleanQuery rulesRestrictionQuery = and();
+        for(RuleType ruleType : contract.getRuleCategoryToFilter()) {
+            String ruleFieldName = BuilderToken.PROJECTIONARGS.COMPUTED_INHERITED_RULES.exactToken() + "." + ruleType.name() + ".MaxEndDate";
+            CompareQuery maxEndDateExistsAndReached = lt(ruleFieldName, LocalDate.now().toString());
+            rulesRestrictionQuery.add(maxEndDateExistsAndReached);
+        }
+        return rulesRestrictionQuery;
+    }
+
+    private static Query getOriginatingAgencyRestrictionQuery(AccessContractModel contract) throws InvalidCreateOperationException {
+        Set<String> prodServices = contract.getOriginatingAgencies();
+        return or()
+            .add(
+                in(ORIGINATING_AGENCIES.exactToken(), prodServices.toArray(new String[0])),
+                eq(BuilderToken.PROJECTIONARGS.UNITTYPE.exactToken(), UnitType.HOLDING_UNIT.name())
+            );
     }
 
     /**

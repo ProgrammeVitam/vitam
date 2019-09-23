@@ -15,7 +15,9 @@ export class AccessContract {
   WritingRestrictedDesc: boolean;
   EveryOriginatingAgency: boolean;
   EveryDataObjectVersion: boolean;
+  EveryRuleCategoryToFilter: boolean;
   RootUnits: string[];
   ExcludedRootUnits: string[];
   AccessLog: string;
+  RuleCategoryToFilter: string[];
 }

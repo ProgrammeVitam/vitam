@@ -83,6 +83,21 @@
         ]
       }
     },
+    "RuleCategoryToFilter": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": {
+        "type": "string",
+        "enum": [
+          "AppraisalRule",
+          "AccessRule",
+          "StorageRule",
+          "DisseminationRule",
+          "ClassificationRule",
+          "ReuseRule"
+        ]
+      }
+    },
     "OriginatingAgencies": {
       "type": "array",
       "items": {

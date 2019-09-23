@@ -78,6 +78,7 @@ import fr.gouv.vitam.common.model.administration.FileRulesModel;
 import fr.gouv.vitam.common.parameter.ParameterHelper;
 import fr.gouv.vitam.common.stream.StreamUtils;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
+import fr.gouv.vitam.common.model.administration.RuleType;
 import fr.gouv.vitam.functional.administration.common.CollectionBackupModel;
 import fr.gouv.vitam.functional.administration.common.ErrorReport;
 import fr.gouv.vitam.functional.administration.common.FileRules;
@@ -87,7 +88,6 @@ import fr.gouv.vitam.functional.administration.common.ReferentialFile;
 import fr.gouv.vitam.functional.administration.common.ReferentialFileUtils;
 import fr.gouv.vitam.functional.administration.common.ReportConstants;
 import fr.gouv.vitam.functional.administration.common.RuleMeasurementEnum;
-import fr.gouv.vitam.functional.administration.common.RuleTypeEnum;
 import fr.gouv.vitam.functional.administration.common.api.RestoreBackupService;
 import fr.gouv.vitam.functional.administration.common.counter.SequenceType;
 import fr.gouv.vitam.functional.administration.common.counter.VitamCounterService;
@@ -275,8 +275,8 @@ public class RulesManagerFileImpl implements ReferentialFile<FileRules> {
      * @return true if ruleType is in the authorise RuleTypeEnum false if it's not
      */
     private static boolean containsRuleType(String ruleType) {
-        for (final RuleTypeEnum c : RuleTypeEnum.values()) {
-            if (c.getType().equalsIgnoreCase(ruleType)) {
+        for (final RuleType c : RuleType.values()) {
+            if (c.name().equalsIgnoreCase(ruleType)) {
                 return true;
             }
         }
