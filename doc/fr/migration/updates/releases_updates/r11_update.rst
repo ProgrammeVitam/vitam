@@ -64,11 +64,11 @@ La version R11 apporte une modification quant à la déclaration des certificats
 
 La commande suivante est à exécuter depuis le répertoire ``deployment`` sur les différents sites hébergeant la solution logicielle :term:`VITAM` :
 
-``ansible-playbook -i environments/<inventaire> ansible-vitam-exploitation/R11_upgrade_serial_number.yml --vault-password-file vault_pass.txt``
+``ansible-playbook -i environments/<inventaire> ansible-vitam-exploitation/R10_upgrade_serial_number.yml --vault-password-file vault_pass.txt``
 
 ou, si ``vault_pass.txt`` n'a pas été renseigné :
 
-``ansible-playbook -i environments/<inventaire> ansible-vitam-exploitation/R11_upgrade_serial_number.yml --ask-vault-pass``
+``ansible-playbook -i environments/<inventaire> ansible-vitam-exploitation/R10_upgrade_serial_number.yml --ask-vault-pass``
 
 Migration des contrats d'entrée
 -------------------------------
@@ -76,11 +76,11 @@ Migration des contrats d'entrée
 La montée de version vers la *release* R11 requiert une migration de données (contrats d'entrée) suite à une modification sur les droits relatifs aux rattachements. Cette migration s'effectue à l'aide du playbook :
 
 
-``ansible-playbook -i environments/<inventaire> ansible-vitam-exploitation/migration_r9_r11_ingestcontracts.yml --vault-password-file vault_pass.txt``
+``ansible-playbook -i environments/<inventaire> ansible-vitam-exploitation/migration_r9_r10_ingestcontracts.yml --vault-password-file vault_pass.txt``
 
 ou, si ``vault_pass.txt`` n'a pas été renseigné :
 
-``ansible-playbook -i environments/<inventaire> ansible-vitam-exploitation/migration_r9_r11_ingestcontracts.yml --ask-vault-pass``
+``ansible-playbook -i environments/<inventaire> ansible-vitam-exploitation/migration_r9_r10_ingestcontracts.yml --ask-vault-pass``
 
 Le template ``upgrade_contracts.js`` contient : 
 
@@ -92,11 +92,11 @@ Réindexation ES Data
 
 La montée de version vers la *release* R11 requiert une réindexation totale d'ElasticSearch. Cette réindexation s'effectue à l'aide du playbook :
 
-``ansible-playbook -i environments/<inventaire> ansible-vitam-exploitation/reindex_es_data.yml --vault-password-file vault_pass.txt --extra-vars=@environments/vitam-pf-vars.yml --extra-vars=@environments/environment_vars.yml``
+``ansible-playbook -i environments/<inventaire> ansible-vitam-exploitation/reindex_es_data.yml --vault-password-file vault_pass.txt``
 
 ou, si ``vault_pass.txt`` n'a pas été renseigné :
 
-``ansible-playbook -i environments/<inventaire> ansible-vitam-exploitation/reindex_es_data.yml  --ask-vault-pass --extra-vars=@environments/vitam-pf-vars.yml --extra-vars=@environments/environment_vars.yml``
+``ansible-playbook -i environments/<inventaire> ansible-vitam-exploitation/reindex_es_data.yml  --ask-vault-pass``
 
 .. note:: Ce `playbook` ne supprime pas les anciens indexes pour laisser à l'exploitant le soin de vérifier que la procédure de migration s'est correctement déroulée. A l'issue, la suppression des index devenus inutiles devra être réalisée manuellement.
 
