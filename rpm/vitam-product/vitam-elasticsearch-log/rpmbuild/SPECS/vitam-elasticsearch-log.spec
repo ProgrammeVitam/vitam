@@ -1,4 +1,4 @@
-%define        version 6.8.2
+%define        version 6.8.3
 Name:          vitam-elasticsearch-log
 Version:       %{version}
 Release:       2%{?dist}
