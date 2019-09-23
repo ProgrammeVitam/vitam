@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2019)
  * <p>
  * contact.vitam@culture.gouv.fr
@@ -73,7 +73,8 @@ public class AccessContractModel extends AbstractContractModel {
     /**
      * Work for access log
      */
-    public static final String ACCESS_LOG = "AccessLog";
+    private static final String ACCESS_LOG = "AccessLog";
+    public static final String RULE_CATEGORY_TO_FILTER = "RuleCategoryToFilter";
 
     @JsonProperty(DATA_OBJECT_VERSION)
     private Set<String> dataObjectVersion;
@@ -101,6 +102,9 @@ public class AccessContractModel extends AbstractContractModel {
 
     @JsonProperty(ACCESS_LOG)
     private ActivationStatus accessLog;
+
+    @JsonProperty(RULE_CATEGORY_TO_FILTER)
+    private Set<RuleType> ruleCategoryToFilter;
 
     /**
      * Constructor without fields
@@ -181,7 +185,7 @@ public class AccessContractModel extends AbstractContractModel {
      * @param writingRestrictedDesc
      * @return AccessContractModel
      */
-    public AccessContractModel setWritingRestrictedDesc(Boolean writingRestrictedDesc) {
+    AccessContractModel setWritingRestrictedDesc(Boolean writingRestrictedDesc) {
         this.writingRestrictedDesc = writingRestrictedDesc;
         return this;
     }
@@ -278,6 +282,18 @@ public class AccessContractModel extends AbstractContractModel {
         return this;
     }
 
+
+    public Set<RuleType> getRuleCategoryToFilter() {
+        if(ruleCategoryToFilter == null) {
+            ruleCategoryToFilter = new HashSet<>();
+        }
+        return ruleCategoryToFilter;
+    }
+
+    void setRuleCategoryToFilter(Set<RuleType> ruleCategoryToFilter) {
+        this.ruleCategoryToFilter = ruleCategoryToFilter;
+    }
+
     public void initializeDefaultValue() {
         writingPermission = firstNonNull(writingPermission, false);
         writingRestrictedDesc = firstNonNull(writingRestrictedDesc, false);
@@ -285,5 +301,4 @@ public class AccessContractModel extends AbstractContractModel {
         everyDataObjectVersion = firstNonNull(everyDataObjectVersion, false);
         accessLog = firstNonNull(accessLog, ActivationStatus.INACTIVE);
     }
-
 }

@@ -87,6 +87,16 @@ export class AccessContractComponent extends PageComponent {
         delete this.updatedFields.DataObjectVersion;
       }
     }
+    if (key === 'RuleCategoryToFilter') {
+      if (this.updatedFields[key] === true) {
+        ObjectsService.pushAllWithoutDuplication(this.modifiedContract.RuleCategoryToFilter, ReferentialHelper.optionLists.RuleCategoryToFilter);
+        this.updatedFields.RuleCategoryToFilter = this.modifiedContract.RuleCategoryToFilter;
+      } else {
+        ObjectsService.pushAllWithoutDuplication(this.modifiedContract.RuleCategoryToFilter, this.contract.RuleCategoryToFilter);
+        delete this.updatedFields.RuleCategoryToFilter;
+      }
+
+    }
   }
 
   saveUpdate() {
@@ -134,6 +144,9 @@ export class AccessContractComponent extends PageComponent {
     this.contract = plainToClass(AccessContract, value.$results)[0];
     if (this.contract.DataObjectVersion === undefined) {
       this.contract.DataObjectVersion = [];
+    }
+    if (this.contract.RuleCategoryToFilter === undefined) {
+      this.contract.RuleCategoryToFilter = [];
     }
     this.modifiedContract = ObjectsService.clone(this.contract);
     this.isActif = this.modifiedContract.Status === 'ACTIVE';

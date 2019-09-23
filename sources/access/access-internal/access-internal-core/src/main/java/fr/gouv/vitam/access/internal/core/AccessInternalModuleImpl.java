@@ -272,8 +272,7 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
             if (!(parser instanceof SelectParserMultiple)) {
                 throw new InvalidParseOperationException(NOT_A_SELECT_OPERATION);
             }
-            jsonNode =
-                metaDataClient.selectUnits(jsonQuery);
+            jsonNode = metaDataClient.selectUnits(jsonQuery);
             LOGGER.debug("DEBUG {}", jsonNode);
         } catch (final InvalidParseOperationException e) {
             LOGGER.error(PARSING_ERROR, e);

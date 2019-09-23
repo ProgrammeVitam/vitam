@@ -90,6 +90,12 @@
     "indexed": true
   },
   {
+    "path": "RuleCategoryToFilter",
+    "type": "keyword",
+    "cardinality": "many",
+    "indexed": true
+  },
+  {
     "path": "WritingRestrictedDesc",
     "type": "bool",
     "cardinality": "one",
