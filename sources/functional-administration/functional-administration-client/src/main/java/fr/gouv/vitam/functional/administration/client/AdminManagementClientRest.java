@@ -512,7 +512,7 @@ class AdminManagementClientRest extends DefaultClient implements AdminManagement
     }
 
     @Override
-    public RequestResponse createorUpdateAccessionRegister(AccessionRegisterDetailModel register)
+    public RequestResponse createOrUpdateAccessionRegister(AccessionRegisterDetailModel register)
         throws AccessionRegisterException, AdminManagementClientServerException {
         ParametersChecker.checkParameter("Accession register is a mandatory parameter", register);
         Response response = null;

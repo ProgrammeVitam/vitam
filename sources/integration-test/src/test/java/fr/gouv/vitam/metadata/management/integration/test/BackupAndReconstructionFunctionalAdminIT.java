@@ -495,17 +495,17 @@ public class BackupAndReconstructionFunctionalAdminIT extends VitamRuleRunner {
             register1 =
                 JsonHandler.getFromInputStream(PropertiesUtils.getResourceAsStream(ACCESSION_REGISTER_DETAIL_DATA_1),
                     AccessionRegisterDetailModel.class);
-            client.createorUpdateAccessionRegister(register1);
+            client.createOrUpdateAccessionRegister(register1);
 
             register2 =
                 JsonHandler.getFromInputStream(PropertiesUtils.getResourceAsStream(ACCESSION_REGISTER_DETAIL_DATA_2),
                     AccessionRegisterDetailModel.class);
-            client.createorUpdateAccessionRegister(register2);
+            client.createOrUpdateAccessionRegister(register2);
 
             register3 =
                 JsonHandler.getFromInputStream(PropertiesUtils.getResourceAsStream(ACCESSION_REGISTER_DETAIL_DATA_3),
                     AccessionRegisterDetailModel.class);
-            client.createorUpdateAccessionRegister(register3);
+            client.createOrUpdateAccessionRegister(register3);
         }
 
         final VitamRepositoryProvider vitamRepository = VitamRepositoryFactory.get();

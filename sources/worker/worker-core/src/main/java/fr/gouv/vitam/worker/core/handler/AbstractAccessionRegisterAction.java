@@ -58,10 +58,7 @@ import fr.gouv.vitam.common.model.administration.RegisterValueEventModel;
 import fr.gouv.vitam.common.server.HeaderIdHelper;
 import fr.gouv.vitam.functional.administration.client.AdminManagementClient;
 import fr.gouv.vitam.functional.administration.client.AdminManagementClientFactory;
-import fr.gouv.vitam.functional.administration.common.exception.AccessionRegisterException;
-import fr.gouv.vitam.functional.administration.common.exception.AdminManagementClientServerException;
 import fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess;
-import fr.gouv.vitam.metadata.api.exception.MetaDataClientServerException;
 import fr.gouv.vitam.metadata.api.model.ObjectGroupPerOriginatingAgency;
 import fr.gouv.vitam.metadata.api.model.UnitPerOriginatingAgency;
 import fr.gouv.vitam.metadata.client.MetaDataClient;
@@ -283,7 +280,7 @@ public abstract class AbstractAccessionRegisterAction extends ActionHandler impl
                 jsonNodeRegister.put("_v", 0);
                 jsonNodeRegister.remove("#id");
                 RequestResponse<AccessionRegisterDetailModel> resp =
-                    adminClient.createorUpdateAccessionRegister(register);
+                    adminClient.createOrUpdateAccessionRegister(register);
 
                 // If already exists in database
                 if (resp.getStatus() == javax.ws.rs.core.Response.Status.CONFLICT.getStatusCode()) {

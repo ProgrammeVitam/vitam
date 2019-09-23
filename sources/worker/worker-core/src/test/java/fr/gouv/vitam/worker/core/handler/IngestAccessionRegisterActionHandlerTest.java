@@ -41,17 +41,11 @@ import java.util.List;
 
 import javax.ws.rs.core.Response;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.node.ArrayNode;
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.error.ServiceName;
-import fr.gouv.vitam.common.error.VitamCode;
-import fr.gouv.vitam.common.error.VitamCodeHelper;
 import fr.gouv.vitam.common.error.VitamError;
-import fr.gouv.vitam.common.exception.VitamClientException;
 import fr.gouv.vitam.common.guid.GUID;
 import fr.gouv.vitam.common.guid.GUIDFactory;
-import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
@@ -67,7 +61,6 @@ import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.functional.administration.client.AdminManagementClient;
 import fr.gouv.vitam.functional.administration.client.AdminManagementClientFactory;
 import fr.gouv.vitam.functional.administration.common.exception.AdminManagementClientServerException;
-import fr.gouv.vitam.functional.administration.common.exception.DatabaseConflictException;
 import fr.gouv.vitam.metadata.api.exception.MetaDataClientServerException;
 import fr.gouv.vitam.metadata.api.model.UnitPerOriginatingAgency;
 import fr.gouv.vitam.metadata.client.MetaDataClient;
@@ -155,7 +148,7 @@ public class IngestAccessionRegisterActionHandlerTest {
 
         RequestResponse<AccessionRegisterDetailModel> res =
                 new RequestResponseOK<AccessionRegisterDetailModel>().setHttpCode(201);
-        when(adminManagementClient.createorUpdateAccessionRegister(any()))
+        when(adminManagementClient.createOrUpdateAccessionRegister(any()))
                 .thenReturn(res);
 
         // When
@@ -184,7 +177,7 @@ public class IngestAccessionRegisterActionHandlerTest {
                 .thenReturn(originatingAgencies);
 
 
-        when(adminManagementClient.createorUpdateAccessionRegister(any()))
+        when(adminManagementClient.createOrUpdateAccessionRegister(any()))
                 .thenThrow(new AdminManagementClientServerException("AdminManagementClientServerException"));
 
         AdminManagementClientFactory.changeMode(null);
@@ -231,7 +224,7 @@ public class IngestAccessionRegisterActionHandlerTest {
                         .setMessage(Response.Status.CONFLICT.getReasonPhrase())
                         .setDescription("Document already exists in database");
 
-        when(adminManagementClient.createorUpdateAccessionRegister(any()))
+        when(adminManagementClient.createOrUpdateAccessionRegister(any()))
                 .thenReturn(ve);
 
         AdminManagementClientFactory.changeMode(null);

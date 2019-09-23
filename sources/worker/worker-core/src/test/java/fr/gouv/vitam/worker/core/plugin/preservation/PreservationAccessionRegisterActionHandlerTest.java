@@ -137,7 +137,7 @@ public class PreservationAccessionRegisterActionHandlerTest {
 
         RequestResponse<AccessionRegisterDetailModel> res =
                 new RequestResponseOK<AccessionRegisterDetailModel>().setHttpCode(201);
-        when(adminManagementClient.createorUpdateAccessionRegister(any()))
+        when(adminManagementClient.createOrUpdateAccessionRegister(any()))
                 .thenReturn(res);
 
         // When
@@ -166,7 +166,7 @@ public class PreservationAccessionRegisterActionHandlerTest {
                 .thenReturn(originatingAgencies);
 
 
-        when(adminManagementClient.createorUpdateAccessionRegister(any()))
+        when(adminManagementClient.createOrUpdateAccessionRegister(any()))
                 .thenThrow(new AdminManagementClientServerException("AdminManagementClientServerException"));
 
         AdminManagementClientFactory.changeMode(null);
@@ -208,7 +208,7 @@ public class PreservationAccessionRegisterActionHandlerTest {
                         .setMessage(Response.Status.CONFLICT.getReasonPhrase())
                         .setDescription("Document already exists in database");
 
-        when(adminManagementClient.createorUpdateAccessionRegister(any()))
+        when(adminManagementClient.createOrUpdateAccessionRegister(any()))
                 .thenReturn(ve);
 
         AdminManagementClientFactory.changeMode(null);

@@ -192,7 +192,7 @@ public class AdminManagementClientMock extends AbstractMockClient implements Adm
     }
 
     @Override
-    public RequestResponse createorUpdateAccessionRegister(AccessionRegisterDetailModel register) {
+    public RequestResponse createOrUpdateAccessionRegister(AccessionRegisterDetailModel register) {
         String result;
         try {
             result = JsonHandler.writeAsString(register);
