@@ -19,3 +19,30 @@ Les commandes suivantes sont à lancer depuis le répertoire ``deployment`` sur 
 
 * Démarrage des différents cluster mongodb (playbook ``ansible-vitam-exploitation/start_mongodb.yml``)
 * Upgrade de mongodb en version 4.2 (`playbook` ``ansible-vitam-exploitation/migration_mongodb_42.yml``)
+
+Montée de version
+=================
+
+La montée de version vers la *release* R12 est réalisée par réinstallation de la solution logicielle :term:`VITAM` grâce aux *playbooks* ansible fournis, et selon la procédure d'installation classique décrite dans le :term:`DIN`.
+
+.. note:: Rappel : avant de procéder à la montée de version, on veillera tout particulièrement à la bonne mise en place des *repositories* :term:`VITAM` associés à la nouvelle version. Se reporter à la section du :term:`DIN` sur la mise en place des *repositories* :term:`VITAM`.
+
+.. caution:: À l'issue de l'exécution du déploiement de Vitam, les composants *externals* ainsi que les *timers* systemd seront redémarrés. Il est donc recommandé de jouer les étapes de migration suivantes dans la foulée.
+
+Etapes de migration
+===================
+
+Dans le cadre d'une montée de version R11 vers R12, il est nécessaire d'appliquer un `playbook` de migration de données à l'issue de réinstallation de la solution logicielle :term:`VITAM`.
+
+Nettoyage des DIPs depuis les offres
+------------------------------------
+
+La migration s'effectue, uniquement sur le site principal, à l'aide de la commande suivante :
+
+``ansible-playbook -i environments/<inventaire> ansible-vitam-exploitation/migration_r11_r12_dip_cleanup.yml --vault-password-file vault_pass.txt``
+
+ou, si ``vault_pass.txt`` n'a pas été renseigné :
+
+``ansible-playbook -i environments/<inventaire> ansible-vitam-exploitation/migration_r11_r12_dip_cleanup.yml --ask-vault-pass``
+
+.. warning:: Selon la volumétrie des données précédement chargées, le `playbook` peut durer quelques minutes.
