@@ -186,7 +186,7 @@ public class CheckDataObjectPackageActionHandlerTest {
         in.add(new IOParameter()
             .setUri(new ProcessingUri(UriPrefix.WORKSPACE, "StorageInfo/storageInfo.json")));
         in.add(new IOParameter()
-                .setUri(new ProcessingUri(UriPrefix.WORKSPACE, "referential/ingestContract.json")));
+                .setUri(new ProcessingUri(UriPrefix.WORKSPACE, "referential/contracts.json")));
         out.add(new IOParameter()
             .setUri(new ProcessingUri(UriPrefix.WORKSPACE, "UpdateObjectGroup/existing_object_group.json")));
 
@@ -222,7 +222,7 @@ public class CheckDataObjectPackageActionHandlerTest {
             .thenReturn(new RequestResponseOK().addResult(uriListWorkspaceOK));
         when(workspaceClient.getObject(any(), eq("StorageInfo/storageInfo.json")))
             .thenReturn(Response.status(Status.OK).entity(storageInfo).build());
-        when(workspaceClient.getObject(any(), eq("referential/ingestContract.json")))
+        when(workspaceClient.getObject(any(), eq("referential/contracts.json")))
                 .thenReturn(Response.status(Status.OK).entity(ingestContract).build());
         when(adminManagementClient.findIngestContractsByID(anyString()))
             .thenReturn(ClientMockResultHelper.getIngestContracts());

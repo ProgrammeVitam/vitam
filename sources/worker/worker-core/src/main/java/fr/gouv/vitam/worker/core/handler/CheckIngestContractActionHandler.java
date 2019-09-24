@@ -43,7 +43,6 @@ import fr.gouv.vitam.common.model.administration.ActivationStatus;
 import fr.gouv.vitam.common.model.administration.ContextModel;
 import fr.gouv.vitam.common.model.administration.ContextStatus;
 import fr.gouv.vitam.common.model.administration.IngestContractModel;
-import fr.gouv.vitam.common.model.administration.ManagementContractModel;
 import fr.gouv.vitam.common.parameter.ParameterHelper;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.functional.administration.client.AdminManagementClient;
@@ -52,6 +51,7 @@ import fr.gouv.vitam.functional.administration.common.exception.AdminManagementC
 import fr.gouv.vitam.functional.administration.common.exception.ReferentialNotFoundException;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
+import fr.gouv.vitam.storage.engine.client.StorageClientFactory;
 import fr.gouv.vitam.worker.common.HandlerIO;
 import org.apache.commons.lang3.StringUtils;
 
@@ -75,14 +75,17 @@ public class CheckIngestContractActionHandler extends ActionHandler {
     final ItemStatus itemStatus = new ItemStatus(HANDLER_ID);
 
     private AdminManagementClientFactory adminManagementClientFactory;
+    private StorageClientFactory storageClientFactory;
 
     public CheckIngestContractActionHandler() {
-        this(AdminManagementClientFactory.getInstance());
+        this(AdminManagementClientFactory.getInstance(), StorageClientFactory.getInstance());
     }
 
     @VisibleForTesting
-    public CheckIngestContractActionHandler(AdminManagementClientFactory adminManagementClientFactory) {
+    public CheckIngestContractActionHandler(AdminManagementClientFactory adminManagementClientFactory,
+            StorageClientFactory storageClientFactory) {
         this.adminManagementClientFactory = adminManagementClientFactory;
+        this.storageClientFactory = storageClientFactory;
     }
 
 
@@ -222,7 +225,10 @@ public class CheckIngestContractActionHandler extends ActionHandler {
                             CheckIngestContractStatus tempStatus = checkIngestContractInTheContext(contractIdentifier);
                             if (CheckIngestContractStatus.OK.equals(tempStatus)
                                     && StringUtils.isNotBlank(result.getManagementContractId())) {
-                                return checkManagementContract(result.getManagementContractId());
+                                ManagmentContractChecker managementContractChecker = new ManagmentContractChecker(
+                                        result.getManagementContractId(), adminManagementClientFactory,
+                                        storageClientFactory);
+                                return managementContractChecker.check();
                             } else {
                                 return tempStatus;
                             }
@@ -239,43 +245,6 @@ public class CheckIngestContractActionHandler extends ActionHandler {
             // Case when the manifest's contract is not in the database of contracts
             LOGGER.error("Contract not found :", e);
             return CheckIngestContractStatus.CONTRACT_UNKNOWN;
-        }
-
-        return CheckIngestContractStatus.KO;
-    }
-
-    private CheckIngestContractStatus checkManagementContract(String managementContractId) {
-        try (AdminManagementClient adminManagementClient = adminManagementClientFactory.getClient()) {
-            RequestResponse<ManagementContractModel> ManagementContractResponse = adminManagementClient
-                    .findManagementContractsByID(managementContractId);
-            if (ManagementContractResponse.isOk()) {
-
-                List<ManagementContractModel> results = ((RequestResponseOK<ManagementContractModel>) ManagementContractResponse)
-                        .getResults();
-                if (results.isEmpty()) {
-                    LOGGER.error("CheckContract : The Management Contract " + managementContractId
-                            + "  not found in database");
-                    return CheckIngestContractStatus.MANAGEMENT_CONTRACT_UNKNOWN;
-                } else {
-                    final ManagementContractModel managementContract = Iterables.getFirst(results, null);
-
-                    if (!ActivationStatus.ACTIVE.equals(managementContract.getStatus())) {
-                        LOGGER.error(
-                                "CheckContract : The Management Contract " + managementContract + "  is not activated");
-                        return CheckIngestContractStatus.MANAGEMENT_CONTRACT_INACTIVE;
-                    }
-                    // TODO check validity of management contract WITH COMMON CODE
-                    // CheckIngestContractStatus.MANAGEMENT_CONTRACT_INVALID;
-                    return CheckIngestContractStatus.OK;
-                }
-            }
-        } catch (ReferentialNotFoundException e) {
-            LOGGER.error("Management Contract not found :", e);
-            return CheckIngestContractStatus.MANAGEMENT_CONTRACT_UNKNOWN;
-
-        } catch (AdminManagementClientServerException | InvalidParseOperationException e) {
-            LOGGER.error("Context check error :", e);
-            return CheckIngestContractStatus.FATAL;
         }
 
         return CheckIngestContractStatus.KO;

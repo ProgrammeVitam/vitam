@@ -52,8 +52,8 @@
             ],
             "out": [
               {
-                "name": "ingestContract.json",
-                "uri": "WORKSPACE:referential/ingestContract.json"
+                "name": "contracts.json",
+                "uri": "WORKSPACE:referential/contracts.json"
               }
             ]
           }
@@ -160,8 +160,8 @@
                 "uri": "MEMORY:groupObjectId"
               },
               {
-                "name": "ingestContract.json",
-                "uri": "WORKSPACE:referential/ingestContract.json"
+                "name": "contracts.json",
+                "uri": "WORKSPACE:referential/contracts.json"
               }
             ]
           }

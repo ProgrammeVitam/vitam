@@ -135,7 +135,8 @@ public class ExtractSedaActionHandlerTest {
         "extractSedaActionHandler/SIP_WITH_SPECIAL_CHARACTERS.xml";
     private static final String SIP_ARBORESCENCE = "SIP_Arborescence.xml";
     private static final String STORAGE_INFO_JSON = "extractSedaActionHandler/storageInfo.json";
-    private static final String INGEST_CONTRACT_JSON = "extractSedaActionHandler/ingestContract.json";
+    private static final String CONTRACTS_JSON = "extractSedaActionHandler/contracts.json";
+    private static final String CONTRACTS_MC_JSON = "extractSedaActionHandler/contracts_mc.json";
     private static final String OK_MULTI_COMMENT = "extractSedaActionHandler/OK_multi_comment.xml";
     private static final String OK_SIGNATURE = "extractSedaActionHandler/signature.xml";
     private static final String OK_RULES_WOUT_ID = "extractSedaActionHandler/manifestRulesWithoutId.xml";
@@ -244,13 +245,13 @@ public class ExtractSedaActionHandlerTest {
         in.add(new IOParameter()
             .setUri(new ProcessingUri(UriPrefix.WORKSPACE, "StorageInfo/storageInfo.json")));
         in.add(new IOParameter()
-            .setUri(new ProcessingUri(UriPrefix.WORKSPACE, "referential/ingestContract.json")));
+            .setUri(new ProcessingUri(UriPrefix.WORKSPACE, "referential/contracts.json")));
 
         final InputStream storageInfo = PropertiesUtils.getResourceAsStream(STORAGE_INFO_JSON);
         when(workspaceClient.getObject(any(), eq("StorageInfo/storageInfo.json")))
                 .thenReturn(Response.status(Status.OK).entity(storageInfo).build());
-        final InputStream ingestContract = PropertiesUtils.getResourceAsStream(INGEST_CONTRACT_JSON);
-        when(workspaceClient.getObject(any(), eq("referential/ingestContract.json")))
+        final InputStream ingestContract = PropertiesUtils.getResourceAsStream(CONTRACTS_JSON);
+        when(workspaceClient.getObject(any(), eq("referential/contracts.json")))
                 .thenReturn(Response.status(Status.OK).entity(ingestContract).build());
         when(workspaceClient.isExistingFolder(any(), any())).thenReturn(true);
         handlerIO.addInIOParameters(in);
@@ -1250,8 +1251,8 @@ public class ExtractSedaActionHandlerTest {
         final InputStream storageInfo = PropertiesUtils.getResourceAsStream(STORAGE_INFO_JSON);
         when(workspaceClient.getObject(any(), eq("StorageInfo/storageInfo_mc.json")))
                 .thenReturn(Response.status(Status.OK).entity(storageInfo).build());
-        final InputStream ingestContract = PropertiesUtils.getResourceAsStream(INGEST_CONTRACT_JSON);
-        when(workspaceClient.getObject(any(), eq("referential/ingestContract_mc.json")))
+        final InputStream ingestContract = PropertiesUtils.getResourceAsStream(CONTRACTS_MC_JSON);
+        when(workspaceClient.getObject(any(), eq("referential/contracts.json")))
                 .thenReturn(Response.status(Status.OK).entity(ingestContract).build());
         prepareResponseOKForAdminManagementClientFindIngestContracts(INGEST_CONTRACT_MASTER_MANDATORY_FALSE);
         final InputStream seda_arborescence = PropertiesUtils.getResourceAsStream(SIP_ARBORESCENCE);

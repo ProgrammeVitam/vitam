@@ -40,8 +40,8 @@
             ],
             "out": [
               {
-                "name": "ingestContract.json",
-                "uri": "WORKSPACE:referential/ingestContract.json"
+                "name": "contracts.json",
+                "uri": "WORKSPACE:referential/contracts.json"
               }
             ]
           }
@@ -52,8 +52,8 @@
             "behavior": "BLOCKING",
             "in": [
               {
-                "name": "ingestContract.json",
-                "uri": "WORKSPACE:referential/ingestContract.json"
+                "name": "contracts.json",
+                "uri": "WORKSPACE:referential/contracts.json"
               }
             ],
             "out": [
@@ -82,8 +82,8 @@
                 "uri": "WORKSPACE:StorageInfo/storageInfo.json"
               },              
               {
-                "name": "ingestContract.json",
-                "uri": "WORKSPACE:referential/ingestContract.json"
+                "name": "contracts.json",
+                "uri": "WORKSPACE:referential/contracts.json"
               }
             ],
             "out": [
@@ -182,8 +182,8 @@
                 "uri": "MEMORY:groupObjectId"
               },
               {
-                "name": "ingestContract.json",
-                "uri": "WORKSPACE:referential/ingestContract.json"
+                "name": "contracts.json",
+                "uri": "WORKSPACE:referential/contracts.json"
               }
             ]
           }
@@ -277,8 +277,8 @@
             "behavior": "BLOCKING",
             "in": [
               {
-                "name": "ingestContract.json",
-                "uri": "WORKSPACE:referential/ingestContract.json"
+                "name": "contracts.json",
+                "uri": "WORKSPACE:referential/contracts.json"
               }
             ]
           }
