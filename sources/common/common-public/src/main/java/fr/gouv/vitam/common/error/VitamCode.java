@@ -488,6 +488,7 @@ public enum VitamCode {
         "DatabaseException while accessing database through repository service"),
 
     METADATA_NOT_FOUND(ServiceName.METADATA, DomainName.DATABASE, "03", Status.NOT_FOUND, "Metadata not found"),
+    METADATA_INTERNAL_SERVER_ERROR(ServiceName.METADATA, DomainName.DATABASE, "04", Status.INTERNAL_SERVER_ERROR, "Metadata internal server error"),
 
 
     LOGBOOK_EXTERNAL_INTERNAL_SERVER_ERROR(ServiceName.LOGBOOK, DomainName.NETWORK, "O0", Status.INTERNAL_SERVER_ERROR,

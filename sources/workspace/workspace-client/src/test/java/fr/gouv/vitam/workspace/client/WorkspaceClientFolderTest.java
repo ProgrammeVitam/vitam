@@ -33,7 +33,6 @@ import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.server.application.junit.ResteasyTestApplication;
 import fr.gouv.vitam.common.serverv2.VitamServerTestRunner;
-import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageAlreadyExistException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
 import org.junit.AfterClass;
@@ -151,12 +150,6 @@ public class WorkspaceClientFolderTest extends ResteasyTestApplication {
         when(mock.post()).thenReturn(Response.status(Status.INTERNAL_SERVER_ERROR).build());
         client.createFolder(CONTAINER_NAME, FOLDER_NAME);
 
-    }
-
-    @Test(expected = ContentAddressableStorageAlreadyExistException.class)
-    public void givenFolderAlreadyExistsWhenCreateFolderThenRaiseAnException() throws Exception {
-        when(mock.post()).thenReturn(Response.status(Status.CONFLICT).build());
-        client.createFolder(CONTAINER_NAME, FOLDER_NAME);
     }
 
     @Test

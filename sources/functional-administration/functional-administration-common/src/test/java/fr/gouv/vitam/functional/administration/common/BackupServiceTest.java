@@ -56,7 +56,6 @@ import fr.gouv.vitam.storage.engine.client.exception.StorageNotFoundClientExcept
 import fr.gouv.vitam.storage.engine.client.exception.StorageServerClientException;
 import fr.gouv.vitam.storage.engine.common.model.DataCategory;
 import fr.gouv.vitam.storage.engine.common.model.request.ObjectDescription;
-import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageAlreadyExistException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
 import fr.gouv.vitam.workspace.client.WorkspaceClient;
@@ -142,12 +141,6 @@ public class BackupServiceTest {
         willThrow(ContentAddressableStorageServerException.class).given(workspaceClient).createContainer(any());
         //When
         final String description = "Unable to store file in workSpace";
-        assertThatThrownBy(() -> backupService.backup(inputStream, REPORT, URI))
-            .isInstanceOf(BackupServiceException.class)
-            .hasMessageContaining(description);
-        //Given
-        willThrow(ContentAddressableStorageAlreadyExistException.class).given(workspaceClient).createContainer(any());
-        //When
         assertThatThrownBy(() -> backupService.backup(inputStream, REPORT, URI))
             .isInstanceOf(BackupServiceException.class)
             .hasMessageContaining(description);

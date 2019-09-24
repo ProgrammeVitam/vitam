@@ -79,7 +79,6 @@ import fr.gouv.vitam.metadata.core.validation.MetadataValidationException;
 import fr.gouv.vitam.processing.common.ProcessingEntry;
 import fr.gouv.vitam.processing.management.client.ProcessingManagementClient;
 import fr.gouv.vitam.processing.management.client.ProcessingManagementClientFactory;
-import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageAlreadyExistException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
 import fr.gouv.vitam.workspace.client.WorkspaceClient;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
@@ -634,7 +633,7 @@ public class MetadataResource extends ApplicationStatusResource {
         } catch (BadRequestException e) {
             return buildErrorResponse(VitamCode.GLOBAL_EMPTY_QUERY, null);
         } catch (InvalidGuidOperationException | LogbookClientBadRequestException | LogbookClientAlreadyExistsException |
-            LogbookClientServerException | ContentAddressableStorageAlreadyExistException | ContentAddressableStorageServerException |
+            LogbookClientServerException | ContentAddressableStorageServerException |
             InvalidParseOperationException | InternalServerException | VitamClientException e) {
             LOGGER.error(e);
             return Response.status(INTERNAL_SERVER_ERROR)

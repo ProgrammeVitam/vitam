@@ -1,16 +1,22 @@
 package fr.gouv.vitam.workspace.common;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 /**
  * CompressInformation POJO containing information on files to be compressed
  */
 public class CompressInformation {
 
+    @JsonProperty("files")
     private List<String> files = new ArrayList<>();
-
+    @JsonProperty("outputFile")
     private String outputFile;
+    @JsonProperty("outputContainer")
+    private String outputContainer;
 
     /**
      * Default constructor
@@ -25,9 +31,10 @@ public class CompressInformation {
      * @param files list of files to be compressed
      * @param outputFile output file
      */
-    public CompressInformation(List<String> files, String outputFile) {
+    public CompressInformation(List<String> files, String outputFile, String outputContainer) {
         this.files = files;
         this.outputFile = outputFile;
+        this.outputContainer = outputContainer;
     }
 
     /**
@@ -66,25 +73,29 @@ public class CompressInformation {
         this.outputFile = outputFile;
     }
 
+    public String getOutputContainer() {
+        return outputContainer;
+    }
+
+    public CompressInformation setOutputContainer(String outputContainer) {
+        this.outputContainer = outputContainer;
+        return this;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o)
             return true;
         if (o == null || getClass() != o.getClass())
             return false;
-
         CompressInformation that = (CompressInformation) o;
-
-        if (files != null ? !files.equals(that.files) : that.files != null)
-            return false;
-        return outputFile != null ? outputFile.equals(that.outputFile) : that.outputFile == null;
+        return Objects.equals(files, that.files) &&
+            Objects.equals(outputFile, that.outputFile) &&
+            Objects.equals(outputContainer, that.outputContainer);
     }
 
     @Override
     public int hashCode() {
-        int result = files != null ? files.hashCode() : 0;
-        result = 31 * result + (outputFile != null ? outputFile.hashCode() : 0);
-        return result;
+        return Objects.hash(files, outputFile, outputContainer);
     }
-
 }

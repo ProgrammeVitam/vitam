@@ -592,26 +592,6 @@ public class HandlerIOImpl implements HandlerIO, VitamAutoCloseable {
     }
 
     @Override
-    public void zipWorkspace(String outputFile, String... inputFiles)
-        throws ContentAddressableStorageException {
-
-        LOGGER.debug("Try to push stream to workspace...");
-        try (WorkspaceClient workspaceClient = workspaceClientFactory.getClient()) {
-            // call workspace
-            if (workspaceClient.isExistingContainer(containerName)) {
-                CompressInformation compressInformation = new CompressInformation();
-                Collections.addAll(compressInformation.getFiles(), inputFiles);
-                compressInformation.setOutputFile(outputFile);
-                workspaceClient.compress(containerName, compressInformation);
-            } else {
-                LOGGER.error(containerName + "already exist");
-                throw new ContentAddressableStorageAlreadyExistException(containerName + "already exist");
-            }
-        }
-
-    }
-
-    @Override
     public void enableAsync(boolean async) throws WorkerspaceQueueException {
         if (async) {
             this.asyncWorkspaceTransfer.startTransfer(VitamConfiguration.getAsyncWorkspaceQueueSize());

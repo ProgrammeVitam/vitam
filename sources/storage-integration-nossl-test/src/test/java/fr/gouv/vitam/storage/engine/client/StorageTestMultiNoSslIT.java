@@ -95,7 +95,6 @@ import fr.gouv.vitam.storage.engine.server.rest.StorageConfiguration;
 import fr.gouv.vitam.storage.engine.server.rest.StorageMain;
 import fr.gouv.vitam.storage.offers.rest.DefaultOfferMain;
 import fr.gouv.vitam.storage.offers.rest.OfferConfiguration;
-import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageAlreadyExistException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
 import fr.gouv.vitam.workspace.client.WorkspaceClient;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
@@ -125,11 +124,10 @@ public class StorageTestMultiNoSslIT {
 
     private static final String OFFER_FOLDER = "offer";
     private static final String WORKSPACE_FOLDER = "workspace";
-    private static final String TMP_FOLDER = "tmp";
     private static final String CONTAINER = "object";
     private static String OBJECT_ID;
     private static int size = 500;
-    static TemporaryFolder folder = new TemporaryFolder();
+    private static TemporaryFolder folder = new TemporaryFolder();
     @Rule
     public RunWithCustomExecutorRule runInThread =
         new RunWithCustomExecutorRule(VitamThreadPoolExecutor.getDefaultExecutor());
@@ -255,7 +253,7 @@ public class StorageTestMultiNoSslIT {
         VitamClientFactory.resetConnections();
     }
 
-    public static void afterTest() {
+    private static void afterTest() {
         cleanWorkspace();
         mongoRule.handleAfter();
         try {
@@ -287,7 +285,7 @@ public class StorageTestMultiNoSslIT {
     private static void populateWorkspace() throws ContentAddressableStorageServerException {
         try {
             workspaceClient.createContainer(CONTAINER);
-        } catch (ContentAddressableStorageAlreadyExistException | ContentAddressableStorageServerException e) {
+        } catch (ContentAddressableStorageServerException e) {
             // nothing
         }
 
@@ -417,7 +415,7 @@ public class StorageTestMultiNoSslIT {
         // initialize Workspace
         try {
             workspaceClient.createContainer(CONTAINER);
-        } catch (ContentAddressableStorageAlreadyExistException | ContentAddressableStorageServerException e) {
+        } catch (ContentAddressableStorageServerException e) {
             // nothing
         }
         LOGGER.info("START creation of {} files in Workspace", NB_MULTIPLE_THREADS);

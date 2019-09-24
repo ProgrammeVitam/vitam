@@ -1628,65 +1628,6 @@ public class StorageResource extends ApplicationStatusResource implements VitamA
      *
      * @param httpServletRequest http servlet request to get requester
      * @param headers http header
-     * @param guid the id of the object
-     * @param createObjectDescription the object description
-     * @return Response
-     */
-    @Path("/dip/{guid}")
-    @POST
-    @Produces(MediaType.APPLICATION_JSON)
-    @Consumes(MediaType.APPLICATION_JSON)
-    public Response createDIP(@Context HttpServletRequest httpServletRequest,
-        @Context HttpHeaders headers,
-        @PathParam("guid") String guid, ObjectDescription createObjectDescription) {
-        // If the POST is a creation request
-        if (createObjectDescription != null) {
-            return createObjectByType(headers, guid, createObjectDescription, DataCategory.DIP,
-                httpServletRequest.getRemoteAddr());
-        } else {
-            return getObjectInformationWithPost(headers, guid);
-        }
-    }
-
-    /**
-     * read a dip
-     *
-     * @param httpServletRequest http servlet request to get requester
-     * @param headers http header
-     * @param guid the id of the object
-     * @return Response
-     */
-    @Path("/dip/{guid}")
-    @GET
-    @Produces(MediaType.APPLICATION_OCTET_STREAM)
-    public Response readDIP(@Context HttpServletRequest httpServletRequest,
-        @Context HttpHeaders headers,
-        @PathParam("guid") String guid) {
-        // If the POST is a creation request
-        VitamCode vitamCode = checkTenantAndHeaders(headers, VitamHttpHeader.STRATEGY_ID);
-        if (vitamCode != null) {
-            return buildErrorResponse(vitamCode);
-        }
-        String strategyId = HttpHeaderHelper.getHeaderValues(headers, VitamHttpHeader.STRATEGY_ID).get(0);
-        try {
-            return new VitamAsyncInputStreamResponse(
-                getByCategory(guid, DataCategory.DIP, strategyId, vitamCode, null),
-                Status.OK, MediaType.APPLICATION_OCTET_STREAM_TYPE);
-        } catch (final StorageNotFoundException exc) {
-            LOGGER.error(exc);
-            vitamCode = VitamCode.STORAGE_NOT_FOUND;
-        } catch (final StorageException exc) {
-            LOGGER.error(exc);
-            vitamCode = VitamCode.STORAGE_TECHNICAL_INTERNAL_ERROR;
-        }
-        return buildErrorResponse(vitamCode);
-    }
-
-    /**
-     * Post a new object
-     *
-     * @param httpServletRequest http servlet request to get requester
-     * @param headers http header
      * @param profileFileName the id of the object
      * @param createObjectDescription the object description
      * @return Response

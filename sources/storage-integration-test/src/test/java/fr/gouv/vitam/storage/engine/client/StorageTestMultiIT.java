@@ -102,7 +102,6 @@ import fr.gouv.vitam.storage.engine.server.rest.StorageConfiguration;
 import fr.gouv.vitam.storage.engine.server.rest.StorageMain;
 import fr.gouv.vitam.storage.offers.rest.DefaultOfferMain;
 import fr.gouv.vitam.storage.offers.rest.OfferConfiguration;
-import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageAlreadyExistException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
 import fr.gouv.vitam.workspace.client.WorkspaceClient;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
@@ -136,7 +135,7 @@ public class StorageTestMultiIT {
     private static final String CONTAINER = "object";
     private static String OBJECT_ID;
     private static int size = 500;
-    static TemporaryFolder folder = new TemporaryFolder();
+    private static TemporaryFolder folder = new TemporaryFolder();
 
     @Rule
     public RunWithCustomExecutorRule runInThread =
@@ -298,7 +297,7 @@ public class StorageTestMultiIT {
         try (WorkspaceClient workspaceClient = WorkspaceClientFactory.getInstance().getClient()) {
             try {
                 workspaceClient.createContainer(CONTAINER);
-            } catch (ContentAddressableStorageAlreadyExistException | ContentAddressableStorageServerException e) {
+            } catch (ContentAddressableStorageServerException e) {
                 // nothing
             }
 
@@ -313,7 +312,7 @@ public class StorageTestMultiIT {
         try (WorkspaceClient workspaceClient = WorkspaceClientFactory.getInstance().getClient()) {
             try {
                 workspaceClient.createContainer(CONTAINER);
-            } catch (ContentAddressableStorageAlreadyExistException | ContentAddressableStorageServerException e) {
+            } catch (ContentAddressableStorageServerException e) {
                 // nothing
             }
 
@@ -574,7 +573,7 @@ public class StorageTestMultiIT {
         // initialize Workspace
         try {
             workspaceClient.createContainer(CONTAINER);
-        } catch (ContentAddressableStorageAlreadyExistException | ContentAddressableStorageServerException e) {
+        } catch (ContentAddressableStorageServerException e) {
             // nothing
         }
         LOGGER.info("START creation of {} files in Workspace", NB_MULTIPLE_THREADS);

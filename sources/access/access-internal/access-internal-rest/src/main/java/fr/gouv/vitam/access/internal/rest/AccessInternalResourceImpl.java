@@ -111,7 +111,6 @@ import fr.gouv.vitam.processing.management.client.ProcessingManagementClient;
 import fr.gouv.vitam.processing.management.client.ProcessingManagementClientFactory;
 import fr.gouv.vitam.storage.engine.client.StorageClientFactory;
 import fr.gouv.vitam.storage.engine.common.exception.StorageNotFoundException;
-import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageAlreadyExistException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
 import fr.gouv.vitam.workspace.client.WorkspaceClient;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
@@ -405,7 +404,7 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
             RequestResponse<JsonNode> jsonNodeRequestResponse = processingClient.executeOperationProcess(
                 operationId, Contexts.EXPORT_DIP.name(), RESUME.getValue());
             return jsonNodeRequestResponse.toResponse();
-        } catch (ContentAddressableStorageServerException | ContentAddressableStorageAlreadyExistException |
+        } catch (ContentAddressableStorageServerException |
             InvalidGuidOperationException | LogbookClientServerException | LogbookClientBadRequestException |
             LogbookClientAlreadyExistsException |
             VitamClientException | InternalServerException | InvalidCreateOperationException e) {
@@ -506,7 +505,7 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
                 return jsonNodeRequestResponse.toResponse();
             }
 
-        } catch (ContentAddressableStorageServerException | ContentAddressableStorageAlreadyExistException |
+        } catch (ContentAddressableStorageServerException |
             InvalidGuidOperationException | LogbookClientServerException | LogbookClientBadRequestException |
             LogbookClientAlreadyExistsException |
             VitamClientException | InternalServerException e) {
@@ -602,7 +601,7 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
                 return jsonNodeRequestResponse.toResponse();
             }
 
-        } catch (ContentAddressableStorageServerException | ContentAddressableStorageAlreadyExistException |
+        } catch (ContentAddressableStorageServerException |
             InvalidGuidOperationException | LogbookClientServerException | LogbookClientBadRequestException | LogbookClientAlreadyExistsException |
             VitamClientException | InternalServerException e) {
             LOGGER.error("An error occurred during " + eliminationWorkflowContext.getEventType() + " workflow", e);
@@ -1039,7 +1038,7 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
                 processingClient
                     .executeOperationProcess(operationId, Contexts.MASS_UPDATE_UNIT_DESC.name(), RESUME.getValue());
             return requestResponse.toResponse();
-        } catch (ContentAddressableStorageServerException | ContentAddressableStorageAlreadyExistException | LogbookClientBadRequestException |
+        } catch (ContentAddressableStorageServerException | LogbookClientBadRequestException |
             LogbookClientAlreadyExistsException | InvalidGuidOperationException | LogbookClientServerException | VitamClientException | InternalServerException e) {
             LOGGER.error("An error occured while mass updating archive units", e);
             return Response.status(INTERNAL_SERVER_ERROR)
@@ -1108,7 +1107,7 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
                     .executeOperationProcess(operationId, Contexts.MASS_UPDATE_UNIT_RULE.name(), RESUME.getValue());
             return requestResponse.toResponse();
 
-        } catch (ContentAddressableStorageServerException | ContentAddressableStorageAlreadyExistException | LogbookClientBadRequestException |
+        } catch (ContentAddressableStorageServerException | LogbookClientBadRequestException |
             LogbookClientAlreadyExistsException | InvalidGuidOperationException | LogbookClientServerException | VitamClientException | InternalServerException e) {
             LOGGER.error("An error occured while mass updating archive units", e);
             return Response.status(INTERNAL_SERVER_ERROR)

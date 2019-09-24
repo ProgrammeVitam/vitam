@@ -56,6 +56,12 @@ Dans le cas echéant (uncompress KO) la methode génère une exception avec un m
                
             La méthode retourne un Json contenant des informations sur un objet présent sur le workspace (et des exceptions en cas d'erreur : objet non existant, erreur server).
 
+    - purgeOldFilesInContainer : Cette méthode permet de purger les  anciens fichiers dans un conteneur (date de dernière modification date d'au moins une durée donnée)
+
+        - Paramètres :
+            - containerName::String
+            - timeToLive::TimeToLive
+
 2.2 - Exemple d'utilisation
 ---------------------------
 

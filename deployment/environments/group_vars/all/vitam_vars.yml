@@ -103,6 +103,8 @@ vitam_timers:
           frequency: "*-*-* *:0/5:00"
         - name: vitam-metadata-computed-inherited-rules
           frequency: "*-*-* 02:30:00"
+        - name: vitam-metadata-purge-dip
+          frequency: "*-*-* 02:15:00"
 
 
 ### consul ###
@@ -414,6 +416,8 @@ vitam:
         schemaValidatorCacheMaxEntries: 100
         schemaValidatorCacheTimeoutInSeconds: 300
         acceptableRequestTime: 10 # value in seconds
+        # DIP cleanup delay (in minutes)
+        dipTimeToLiveInMinutes: 10080 # 7 days
         # metricslevel: DEBUG
         # metricsinterval: 3
         # metricsunit: MINUTES

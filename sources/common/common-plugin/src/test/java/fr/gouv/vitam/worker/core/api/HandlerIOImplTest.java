@@ -180,20 +180,4 @@ public class HandlerIOImplTest {
             io.addInIOParameters(in);
         }
     }
-
-    @Test
-    public void should_compress_file() throws Exception {
-        // Given
-        String containerName = "containerName";
-        HandlerIO handlerIO = new HandlerIOImpl(workspaceClientFactory, logbookLifeCyclesClientFactory, containerName, "workerId", OBJECT_IDS);
-        when(workspaceClient.isExistingContainer(containerName)).thenReturn(true);
-
-        // When
-        handlerIO.zipWorkspace("test.zip", "1", "2");
-
-        // Then
-        CompressInformation compressInformation = new CompressInformation(Lists.newArrayList("1", "2"), "test.zip");
-        verify(workspaceClient).compress(containerName, compressInformation);
-    }
-
 }

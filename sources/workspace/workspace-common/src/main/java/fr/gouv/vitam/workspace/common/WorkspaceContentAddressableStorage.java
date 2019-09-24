@@ -31,7 +31,6 @@ import java.io.InputStream;
 import java.net.URI;
 import java.util.List;
 
-import javax.ws.rs.container.AsyncResponse;
 import javax.ws.rs.core.Response;
 
 import com.fasterxml.jackson.databind.JsonNode;
@@ -43,6 +42,7 @@ import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageCompressed
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
+import fr.gouv.vitam.workspace.api.model.TimeToLive;
 
 public interface WorkspaceContentAddressableStorage {
 
@@ -295,4 +295,7 @@ public interface WorkspaceContentAddressableStorage {
      *             Thrown when get action failed due some other failure
      */
     long countObjects(String containerName) throws ContentAddressableStorageException;
+
+    void purgeOldFilesInContainer(String containerName, TimeToLive timeToLive)
+        throws ContentAddressableStorageException;
 }

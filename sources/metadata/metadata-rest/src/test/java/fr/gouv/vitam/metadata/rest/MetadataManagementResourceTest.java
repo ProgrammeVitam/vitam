@@ -28,7 +28,10 @@ package fr.gouv.vitam.metadata.rest;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatCode;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import java.util.ArrayList;
@@ -53,6 +56,7 @@ import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClientFactory;
 import fr.gouv.vitam.metadata.api.config.MetaDataConfiguration;
 import fr.gouv.vitam.metadata.api.exception.MetaDataException;
 import fr.gouv.vitam.metadata.core.database.collections.MetadataCollections;
+import fr.gouv.vitam.metadata.core.dip.DipPurgeService;
 import fr.gouv.vitam.metadata.core.graph.ReclassificationDistributionService;
 import fr.gouv.vitam.metadata.core.graph.StoreGraphException;
 import fr.gouv.vitam.metadata.core.graph.StoreGraphService;
@@ -61,6 +65,7 @@ import fr.gouv.vitam.metadata.core.model.ReconstructionRequestItem;
 import fr.gouv.vitam.metadata.core.model.ReconstructionResponseItem;
 import fr.gouv.vitam.metadata.core.reconstruction.ReconstructionService;
 import fr.gouv.vitam.processing.management.client.ProcessingManagementClientFactory;
+import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
 import org.junit.AfterClass;
 import org.junit.Before;
@@ -83,8 +88,10 @@ public class MetadataManagementResourceTest {
     private ReconstructionRequestItem requestItem;
     private ReclassificationDistributionService reclassificationDistributionService;
     private MetadataManagementResource reconstructionResource;
+    private DipPurgeService dipPurgeService;
 
     private static int tenant = VitamConfiguration.getAdminTenant();
+
     @Before
     public void setup() {
         reconstructionService = mock(ReconstructionService.class);
@@ -95,12 +102,14 @@ public class MetadataManagementResourceTest {
         requestItem.setCollection("unit").setTenant(10).setLimit(100);
         MetaDataConfiguration configuration = new MetaDataConfiguration();
         configuration.setUrlProcessing("http://processing.service.consul:8203/");
+        dipPurgeService = mock(DipPurgeService.class);
         reconstructionResource =
             new MetadataManagementResource(reconstructionService, storeGraphService, graphBuilderService, reclassificationDistributionService,
                 ProcessingManagementClientFactory.getInstance(),
                 LogbookOperationsClientFactory.getInstance(),
                 WorkspaceClientFactory.getInstance(),
-                configuration);
+                configuration, dipPurgeService);
+        VitamConfiguration.setTenants(Arrays.asList(0, 1, 2));
     }
 
     @BeforeClass
@@ -285,4 +294,43 @@ public class MetadataManagementResourceTest {
             .isInstanceOf(IllegalArgumentException.class);
     }
 
+    @Test
+    @RunWithCustomExecutor
+    public void purgeExpiredDipFilesShouldReturnOKWhenServiceOK() throws Exception {
+
+        // Given
+
+        // When
+        Response response = reconstructionResource.purgeExpiredDipFiles();
+
+        // Then
+        verify(dipPurgeService).purgeExpiredDipFiles();
+        assertThat(response.getStatus()).isEqualTo(Status.OK.getStatusCode());
+    }
+
+    @Test
+    @RunWithCustomExecutor
+    public void purgeExpiredDipFilesShouldReturnInternalServerWhenServiceError() throws Exception {
+
+        // Given
+        doThrow(new ContentAddressableStorageServerException("")).when(dipPurgeService).purgeExpiredDipFiles();
+
+        // When
+        Response response = reconstructionResource.purgeExpiredDipFiles();
+
+        // Then
+        assertThat(response.getStatus()).isEqualTo(Status.INTERNAL_SERVER_ERROR.getStatusCode());
+    }
+
+    @Test
+    @RunWithCustomExecutor
+    public void migrationPurgeDipFilesFromOffersTest() throws Exception {
+
+        // When
+        Response response = reconstructionResource.migrationPurgeDipFilesFromOffers();
+
+        // Then
+        verify(dipPurgeService, times(VitamConfiguration.getTenants().size())).migrationPurgeDipFilesFromOffers();
+        assertThat(response.getStatus()).isEqualTo(Status.OK.getStatusCode());
+    }
 }

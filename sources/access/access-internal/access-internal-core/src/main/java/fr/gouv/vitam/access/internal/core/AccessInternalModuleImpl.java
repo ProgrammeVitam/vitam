@@ -163,6 +163,7 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
      * Access contract
      */
     private static final String ACCESS_CONTRACT = "AccessContract";
+    private static final String DIP_CONTAINER = "DIP";
 
     private final LogbookLifeCyclesClientFactory logbookLifeCyclesClientFactory;
     private final LogbookOperationsClientFactory logbookOperationsClientFactory;
@@ -535,6 +536,7 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
             CompressInformation compressInformation = new CompressInformation();
             compressInformation.setFiles(inputFiles);
             compressInformation.setOutputFile(outputFile);
+            compressInformation.setOutputContainer(containerName);
             workspaceClient.compress(containerName, compressInformation);
         } else {
             LOGGER.error(containerName + " does not exist");
@@ -1690,13 +1692,17 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
     }
 
     @Override
-    public Response findDIPByOperationId(String id) throws AccessInternalExecutionException {
-        try (StorageClient storageClient = storageClientFactory.getClient()) {
-            final Response response = storageClient.getContainerAsync(VitamConfiguration.getDefaultStrategy(), id,
-                DataCategory.DIP, AccessLogUtils.getNoLogAccessLog());
-            return new VitamAsyncInputStreamResponse(response, Status.OK, MediaType.APPLICATION_OCTET_STREAM_TYPE);
-        } catch (final StorageServerClientException | StorageNotFoundException e) {
+    public Response findDIPByOperationId(String id)
+        throws AccessInternalExecutionException {
+        try (WorkspaceClient workspaceClient = workspaceClientFactory.getClient()) {
+            Response dip = workspaceClient.getObject(
+                DIP_CONTAINER, VitamThreadUtils.getVitamSession().getTenantId() + "/" + id);
+            return new VitamAsyncInputStreamResponse(dip, Status.OK, MediaType.APPLICATION_OCTET_STREAM_TYPE);
+        } catch (ContentAddressableStorageServerException e) {
             throw new AccessInternalExecutionException(e);
+        } catch (ContentAddressableStorageNotFoundException e) {
+            LOGGER.warn("DIP file not found " + id);
+            return Response.status(Status.NOT_FOUND).build();
         }
     }
 

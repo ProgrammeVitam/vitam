@@ -25,6 +25,7 @@
     - reconstruction.sh
     - storegraph.sh
     - computed_inherited_rules.sh
+    - purge_dip.sh
     - reconstruction_payload.json
 
 - name: Copy the metadata reconstruction conf
@@ -92,3 +93,22 @@
     state: "started"
   when: ( inventory_hostname == groups["hosts-metadata"] | last ) and
         ( primary_site | lower == "true" )
+
+
+- name: Ensure vitam-metadata-purge-dip timer is stopped
+  systemd:
+    name: "vitam-metadata-purge-dip.timer"
+    daemon_reload: "yes"
+    enabled: "no"
+    state: "stopped"
+  when: ( primary_site | lower == "false" ) or
+    ( inventory_hostname != groups["hosts-metadata"] | last )
+
+- name: Ensure vitam-metadata-purge-dip timer is started
+  systemd:
+    name: "vitam-metadata-purge-dip.timer"
+    daemon_reload: "yes"
+    enabled: "yes"
+    state: "started"
+  when: ( inventory_hostname == groups["hosts-metadata"] | last ) and
+    ( primary_site | lower == "true" )

@@ -73,7 +73,6 @@ import fr.gouv.vitam.storage.engine.client.exception.StorageNotFoundClientExcept
 import fr.gouv.vitam.storage.engine.client.exception.StorageServerClientException;
 import fr.gouv.vitam.storage.engine.common.model.DataCategory;
 import fr.gouv.vitam.storage.engine.common.model.request.ObjectDescription;
-import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageAlreadyExistException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
 import fr.gouv.vitam.workspace.client.WorkspaceClient;
@@ -374,12 +373,7 @@ public class LogbookOperationsImpl implements LogbookOperations {
         String containerName = tenantId + "_" + DataCategory.BACKUP_OPERATION.getFolder();
         // Ugly hack to mock workspaceFactoryClient
         try (WorkspaceClient workspaceClient = workspaceClientFactory.getClient()) {
-            try {
-                workspaceClient.createContainer(containerName);
-            } catch (ContentAddressableStorageAlreadyExistException ignored) {
-                // Already exists ? So, it's good
-                SysErrLogger.FAKE_LOGGER.ignoreLog(ignored);
-            }
+            workspaceClient.createContainer(containerName);
             workspaceClient.putObject(containerName, operationGuid, JsonHandler.writeToInpustream
                 (logbookOperation));
             try (StorageClient storageClient = storageClientFactory.getClient()) {

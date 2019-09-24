@@ -71,6 +71,7 @@ import fr.gouv.vitam.metadata.api.config.MetaDataConfiguration;
 import fr.gouv.vitam.metadata.api.model.ReclassificationChildNodeExportRequest;
 import fr.gouv.vitam.metadata.core.MetaDataImpl;
 import fr.gouv.vitam.metadata.core.database.collections.MetadataCollections;
+import fr.gouv.vitam.metadata.core.dip.DipPurgeService;
 import fr.gouv.vitam.metadata.core.graph.GraphComputeServiceImpl;
 import fr.gouv.vitam.metadata.core.graph.ReclassificationDistributionService;
 import fr.gouv.vitam.metadata.core.graph.StoreGraphService;
@@ -81,7 +82,6 @@ import fr.gouv.vitam.metadata.core.reconstruction.ReconstructionService;
 import fr.gouv.vitam.processing.common.ProcessingEntry;
 import fr.gouv.vitam.processing.management.client.ProcessingManagementClient;
 import fr.gouv.vitam.processing.management.client.ProcessingManagementClientFactory;
-import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageAlreadyExistException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
 import fr.gouv.vitam.workspace.client.WorkspaceClient;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
@@ -136,13 +136,18 @@ public class MetadataManagementResource {
     private static final String PURGE_GRAPH_ONLY_DOCUMENTS_URI = "/purgeGraphOnlyDocuments";
     private static final String STORE_GRAPH_PROGRESS_URI = "/storegraph/progress";
     private static final String COMPUTE_GRAPH_PROGRESS_URI = "/computegraph/progress";
-    private static final String COMPUTED_INHERITED_RULES_OBSOLETE_URI = "/units/computedInheritedRules/processObsoletes";
+    private static final String COMPUTED_INHERITED_RULES_OBSOLETE_URI =
+        "/units/computedInheritedRules/processObsoletes";
+    private static final String PURGE_EXPIRED_DIP_FILES_URI = "/purgeDIP";
+    private static final String MIGRATION_PURGE_EXPIRED_FROM_OFFERS = "/migrationDeleteDipFromOffers";
 
     /**
      * Error/Exceptions messages.
      */
-    private static final String RECONSTRUCTION_JSON_MANDATORY_PARAMETERS_MSG = "the Json input of reconstruction's parameters is mandatory.";
-    private static final String RECONSTRUCTION_EXCEPTION_MSG = "ERROR: Exception has been thrown when reconstructing Vitam collections: ";
+    private static final String RECONSTRUCTION_JSON_MANDATORY_PARAMETERS_MSG =
+        "the Json input of reconstruction's parameters is mandatory.";
+    private static final String RECONSTRUCTION_EXCEPTION_MSG =
+        "ERROR: Exception has been thrown when reconstructing Vitam collections: ";
     private static final String STORE_GRAPH_EXCEPTION_MSG = "ERROR: Exception has been thrown when sotre graph: ";
     private static final String COMPUTE_GRAPH_EXCEPTION_MSG = "ERROR: Exception has been thrown when compute graph: ";
     private static final String ERROR_MSG = "{\"ErrorMsg\":\"";
@@ -154,6 +159,7 @@ public class MetadataManagementResource {
     private final ProcessingManagementClientFactory processingManagementClientFactory;
     private final LogbookOperationsClientFactory logbookOperationsClientFactory;
     private final WorkspaceClientFactory workspaceClientFactory;
+    private final DipPurgeService dipPurgeService;
 
     @VisibleForTesting
     MetadataManagementResource(VitamRepositoryProvider vitamRepositoryProvider,
@@ -165,7 +171,8 @@ public class MetadataManagementResource {
             ProcessingManagementClientFactory.getInstance(),
             LogbookOperationsClientFactory.getInstance(),
             WorkspaceClientFactory.getInstance(),
-            configuration);
+            configuration,
+            new DipPurgeService(configuration.getDipTimeToLiveInMinutes()));
     }
 
     @VisibleForTesting
@@ -177,7 +184,7 @@ public class MetadataManagementResource {
         ProcessingManagementClientFactory processingManagementClientFactory,
         LogbookOperationsClientFactory logbookOperationsClientFactory,
         WorkspaceClientFactory workspaceClientFactory,
-        MetaDataConfiguration configuration) {
+        MetaDataConfiguration configuration, DipPurgeService dipPurgeService) {
         this.reconstructionService = reconstructionService;
         this.storeGraphService = storeGraphService;
         this.graphComputeService = graphComputeService;
@@ -185,6 +192,7 @@ public class MetadataManagementResource {
         this.processingManagementClientFactory = processingManagementClientFactory;
         this.logbookOperationsClientFactory = logbookOperationsClientFactory;
         this.workspaceClientFactory = workspaceClientFactory;
+        this.dipPurgeService = dipPurgeService;
 
         ProcessingManagementClientFactory.changeConfigurationUrl(configuration.getUrlProcessing());
     }
@@ -422,16 +430,16 @@ public class MetadataManagementResource {
     public Response processObsoleteComputedInheritedRules() {
         try {
             boolean isError = false;
-            for(int tenant :VitamConfiguration.getTenants()) {
+            for (int tenant : VitamConfiguration.getTenants()) {
                 VitamThreadUtils.getVitamSession().setTenantId(tenant);
                 JsonNode dslQuery = getObsoleteComputedInheritedRulesDsl();
                 Response response = computedInheritedRulesCalculation(dslQuery);
-                if(!response.getStatusInfo().equals(Response.Status.OK)) {
+                if (!response.getStatusInfo().equals(Response.Status.OK)) {
                     isError = true;
                 }
             }
 
-            if(isError) {
+            if (isError) {
                 return Response.status(INTERNAL_SERVER_ERROR).build();
             }
             return Response.status(OK).build();
@@ -440,6 +448,52 @@ public class MetadataManagementResource {
             return Response.status(BAD_REQUEST)
                 .entity(ERROR_MSG + e.getMessage() + "\"}")
                 .build();
+        }
+    }
+
+    @Path(PURGE_EXPIRED_DIP_FILES_URI)
+    @DELETE
+    @Produces(MediaType.APPLICATION_JSON)
+    @VitamAuthentication(authentLevel = AuthenticationLevel.BASIC_AUTHENT)
+    public Response purgeExpiredDipFiles() {
+
+        try {
+            VitamThreadUtils.getVitamSession().initIfAbsent(VitamConfiguration.getAdminTenant());
+
+            this.dipPurgeService.purgeExpiredDipFiles();
+
+            return Response.status(OK).build();
+        } catch (Exception e) {
+            LOGGER.error(e);
+            return VitamCodeHelper.toVitamError(VitamCode.METADATA_INTERNAL_SERVER_ERROR, e.getMessage())
+                .toResponse();
+        }
+    }
+
+    @Path(MIGRATION_PURGE_EXPIRED_FROM_OFFERS)
+    @DELETE
+    @Produces(MediaType.APPLICATION_JSON)
+    @VitamAuthentication(authentLevel = AuthenticationLevel.BASIC_AUTHENT)
+    public Response migrationPurgeDipFilesFromOffers() {
+        try {
+
+            for (Integer tenant : VitamConfiguration.getTenants()) {
+
+                LOGGER.info("Running DIP cleanup from offers for tenant " + tenant);
+
+                VitamThreadUtils.getVitamSession().setTenantId(tenant);
+                VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newRequestIdGUID(tenant));
+
+                this.dipPurgeService.migrationPurgeDipFilesFromOffers();
+
+                LOGGER.info("Running DIP finished successfully");
+            }
+
+            return Response.status(OK).build();
+        } catch (Exception e) {
+            LOGGER.error(e);
+            return VitamCodeHelper.toVitamError(VitamCode.METADATA_INTERNAL_SERVER_ERROR, e.getMessage())
+                .toResponse();
         }
     }
 
@@ -464,7 +518,9 @@ public class MetadataManagementResource {
         try (ProcessingManagementClient processingClient = processingManagementClientFactory.getClient();
             LogbookOperationsClient logbookOperationsClient = logbookOperationsClientFactory.getClient();
             WorkspaceClient workspaceClient = workspaceClientFactory.getClient()) {
-            String message = VitamLogbookMessages.getLabelOp(COMPUTE_INHERITED_RULES.getEventType() + ".STARTED") + " : " + operationGuid;
+            String message =
+                VitamLogbookMessages.getLabelOp(COMPUTE_INHERITED_RULES.getEventType() + ".STARTED") + " : " +
+                    operationGuid;
             LogbookOperationParameters initParameters = LogbookParametersFactory.newLogbookOperationParameters(
                 operationGuid,
                 COMPUTE_INHERITED_RULES.getEventType(),
@@ -480,14 +536,16 @@ public class MetadataManagementResource {
 
             workspaceClient.putObject(operationGuid.getId(), "query.json", writeToInpustream(dslQuery));
 
-            processingClient.initVitamProcess(new ProcessingEntry(operationGuid.getId(), COMPUTE_INHERITED_RULES.name()));
+            processingClient
+                .initVitamProcess(new ProcessingEntry(operationGuid.getId(), COMPUTE_INHERITED_RULES.name()));
 
-            RequestResponse<JsonNode> response = processingClient.executeOperationProcess(operationGuid.getId(), COMPUTE_INHERITED_RULES.name(), RESUME.getValue());
+            RequestResponse<JsonNode> response = processingClient
+                .executeOperationProcess(operationGuid.getId(), COMPUTE_INHERITED_RULES.name(), RESUME.getValue());
             return response.setHttpCode(Response.Status.OK.getStatusCode()).toResponse();
         } catch (BadRequestException e) {
             return buildErrorResponse(VitamCode.GLOBAL_EMPTY_QUERY, null);
         } catch (LogbookClientBadRequestException | LogbookClientAlreadyExistsException |
-            LogbookClientServerException | ContentAddressableStorageAlreadyExistException | ContentAddressableStorageServerException |
+            LogbookClientServerException | ContentAddressableStorageServerException |
             InvalidParseOperationException | InternalServerException | VitamClientException e) {
             LOGGER.error(e);
             return Response.status(INTERNAL_SERVER_ERROR)

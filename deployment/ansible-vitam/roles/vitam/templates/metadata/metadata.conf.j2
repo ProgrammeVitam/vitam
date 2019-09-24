@@ -9,6 +9,9 @@ archiveUnitProfileCacheTimeoutInSeconds: {{ vitam.metadata.archiveUnitProfileCac
 schemaValidatorCacheMaxEntries: {{ vitam.metadata.schemaValidatorCacheMaxEntries }}
 schemaValidatorCacheTimeoutInSeconds: {{ vitam.metadata.schemaValidatorCacheTimeoutInSeconds }}
 
+# DIP purge service (in minutes)
+dipTimeToLiveInMinutes: {{ vitam.metadata.dipTimeToLiveInMinutes }}
+
 # Configuration MongoDB
 mongoDbNodes:
 {% for server in groups['hosts-mongos-data'] %}

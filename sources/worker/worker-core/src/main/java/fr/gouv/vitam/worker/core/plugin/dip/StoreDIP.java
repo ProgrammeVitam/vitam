@@ -26,84 +26,75 @@
  */
 package fr.gouv.vitam.worker.core.plugin.dip;
 
+import fr.gouv.vitam.common.logging.VitamLogger;
+import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.StatusCode;
+import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
-import fr.gouv.vitam.storage.engine.client.StorageClient;
-import fr.gouv.vitam.storage.engine.client.StorageClientFactory;
-import fr.gouv.vitam.storage.engine.client.exception.StorageAlreadyExistsClientException;
-import fr.gouv.vitam.storage.engine.client.exception.StorageNotFoundClientException;
-import fr.gouv.vitam.storage.engine.client.exception.StorageServerClientException;
-import fr.gouv.vitam.storage.engine.common.model.DataCategory;
-import fr.gouv.vitam.storage.engine.common.model.request.ObjectDescription;
 import fr.gouv.vitam.worker.common.HandlerIO;
 import fr.gouv.vitam.worker.core.handler.ActionHandler;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
+import fr.gouv.vitam.workspace.client.WorkspaceClient;
+import fr.gouv.vitam.workspace.common.CompressInformation;
+
+import java.util.Collections;
 
 import static fr.gouv.vitam.common.model.IngestWorkflowConstants.SEDA_FILE;
-
-import fr.gouv.vitam.common.VitamConfiguration;
 
 /**
  * ZIP the dip and move it from workspace to storage
  */
 public class StoreDIP extends ActionHandler {
 
+    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(StoreDIP.class);
+
     private static final String STORE_DIP = "STORE_DIP";
-    public static final String ARCHIVE_ZIP = "archive.zip";
-    public static final String CONTENT = "Content";
+    static final String CONTENT = "Content";
+    static final String DIP_CONTAINER = "DIP";
 
-    /**
-     * factory of a storage client
-     */
-    private final StorageClientFactory storageClientFactory;
-
-    /**
-     * default constructor
-     */
-    public StoreDIP() {
-        storageClientFactory = StorageClientFactory.getInstance();
-    }
-
-    /**
-     *
-     * @param params
-     * @param handler
-     * @return
-     * @throws ProcessingException
-     * @throws ContentAddressableStorageServerException
-     */
     @Override
     public ItemStatus execute(WorkerParameters params, HandlerIO handler)
         throws ProcessingException, ContentAddressableStorageServerException {
 
         final ItemStatus itemStatus = new ItemStatus(STORE_DIP);
 
-        try (final StorageClient storageClient = storageClientFactory.getClient()) {
-            String output = ARCHIVE_ZIP;
-            handler.zipWorkspace(output, SEDA_FILE, CONTENT);
-            final ObjectDescription description = new ObjectDescription();
-            description.setWorkspaceContainerGUID(params.getContainerName());
-            description.setWorkspaceObjectURI(output);
+        try {
+            String dipTenantFolder = Integer.toString(VitamThreadUtils.getVitamSession().getTenantId());
+            String dipZipFileName = params.getContainerName();
 
-            storageClient.storeFileFromWorkspace(
-                VitamConfiguration.getDefaultStrategy(),
-                DataCategory.DIP,
-                params.getContainerName(), description);
+            zipWorkspace(handler, dipTenantFolder, dipZipFileName, SEDA_FILE, CONTENT);
 
             itemStatus.increment(StatusCode.OK);
-        } catch (StorageAlreadyExistsClientException | StorageNotFoundClientException |
-            StorageServerClientException | ContentAddressableStorageException e) {
+        } catch (ContentAddressableStorageException e) {
             throw new ProcessingException(e);
         }
         return new ItemStatus(STORE_DIP).setItemsStatus(STORE_DIP, itemStatus);
     }
 
-    @Override
-    public void checkMandatoryIOParameter(HandlerIO handler) throws ProcessingException {
+    private void zipWorkspace(HandlerIO handler, String outputDir, String outputFile, String... inputFiles)
+        throws ContentAddressableStorageException {
 
+        LOGGER.debug("Try to compress into workspace...");
+        try (WorkspaceClient workspaceClient = handler.getWorkspaceClientFactory().getClient()) {
+
+            // Ensure target folder exists
+            workspaceClient.createContainer(DIP_CONTAINER);
+            workspaceClient.createFolder(DIP_CONTAINER, outputDir);
+
+            // compress
+            CompressInformation compressInformation = new CompressInformation();
+            Collections.addAll(compressInformation.getFiles(), inputFiles);
+            compressInformation.setOutputFile(outputDir + "/" + outputFile);
+            compressInformation.setOutputContainer(DIP_CONTAINER);
+            workspaceClient.compress(handler.getContainerName(), compressInformation);
+        }
     }
 
+    @Override
+    public void checkMandatoryIOParameter(HandlerIO handler) throws ProcessingException {
+        // Nothing to check
+    }
 }

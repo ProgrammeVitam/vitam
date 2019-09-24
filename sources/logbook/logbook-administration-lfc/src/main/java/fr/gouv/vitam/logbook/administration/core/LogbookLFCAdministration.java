@@ -65,7 +65,6 @@ import fr.gouv.vitam.processing.common.ProcessingEntry;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameterName;
 import fr.gouv.vitam.processing.management.client.ProcessingManagementClient;
 import fr.gouv.vitam.processing.management.client.ProcessingManagementClientFactory;
-import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageAlreadyExistException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
 import fr.gouv.vitam.workspace.client.WorkspaceClient;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
@@ -245,7 +244,7 @@ public class LogbookLFCAdministration {
     private void createContainer(String containerName) throws VitamClientException {
         try (WorkspaceClient workspaceClient = workspaceClientFactory.getClient();) {
             workspaceClient.createContainer(containerName);
-        } catch (ContentAddressableStorageAlreadyExistException | ContentAddressableStorageServerException e) {
+        } catch (ContentAddressableStorageServerException e) {
             LOGGER.error(e.getMessage());
             throw new VitamClientException(e);
         }
