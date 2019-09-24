@@ -107,7 +107,7 @@
         <maven.failsafe.version>2.19.1</maven.failsafe.version>
         <maven.javadoc.version>3.1.1</maven.javadoc.version>
         <maven.exec.version>1.6.0</maven.exec.version>
-	    <maven.dependencycheck.version>5.2.1</maven.dependencycheck.version>
+	<maven.dependencycheck.version>5.2.2</maven.dependencycheck.version>
         <git-commit-id-plugin.version>3.0.1</git-commit-id-plugin.version>
         <maven-antrun-plugin.version>1.8</maven-antrun-plugin.version>
         <license-maven-plugin.version>1.20</license-maven-plugin.version>
