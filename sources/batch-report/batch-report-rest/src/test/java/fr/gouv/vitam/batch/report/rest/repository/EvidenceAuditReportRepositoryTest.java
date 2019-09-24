@@ -96,7 +96,7 @@ public class EvidenceAuditReportRepositoryTest {
             EvidenceStatus.OK.name(), "audit OK for aebaaaaaaeg7sn7vabtioallotfxytyaaaaq", "OBJECTGROUP",
             listEvidenceAuditReportObject, "cc9221173b12e75f7a8f629d49632ffbb87538b13d82ab7cc02e8b3486131fb609c6303bb7b5f67962e45b068e74cb40aa8c8906bcbb9db9fd6ebbe89929d655", DEFAULT_STRATEGY, offerHashesUnit,EvidenceStatus.OK
         .name());
-        evidenceAuditReportEntryOK = new EvidenceAuditObjectModel(GUIDFactory.newGUID().toString(), processId, TENANT_ID,
+        evidenceAuditReportEntryOK = new EvidenceAuditObjectModel(processId, TENANT_ID,
             LocalDateUtil.getFormattedDateForMongo(LocalDateUtil.now()), evidenceAuditReportEntry1);
 
 
@@ -112,7 +112,7 @@ public class EvidenceAuditReportRepositoryTest {
             EvidenceStatus.KO.name(), "audit OK for aebaaaaaaeg7sn7vabtioallotfxytyaaaaq", "OBJECTGROUP",
             listEvidenceAuditReportObject2, "cc9221173b12e75f7a8f629d49632ffbb87538b13d82ab7cc02e8b3486131fb609c6303bb7b5f67962e45b068e74cb40aa8c8906bcbb9db9fd6ebbe89929d655", DEFAULT_STRATEGY, offerHashesUnit2,EvidenceStatus.KO
             .name());
-        evidenceAuditReportEntryKO = new EvidenceAuditObjectModel(GUIDFactory.newGUID().toString(), processId, TENANT_ID,
+        evidenceAuditReportEntryKO = new EvidenceAuditObjectModel(processId, TENANT_ID,
             LocalDateUtil.getFormattedDateForMongo(LocalDateUtil.now()), evidenceAuditReportEntry2);
 
         Map<String,String> offerHashesObject3 = new HashMap<>();
@@ -132,7 +132,7 @@ public class EvidenceAuditReportRepositoryTest {
             listEvidenceAuditReportObject3, "cc9221173b12e75f7a8f629d49632ffbb87538b13d82ab7cc02e8b3486131fb609c6303bb7b5f67962e45b068e74cb40aa8c8906bcbb9db9fd6ebbe89929d655", DEFAULT_STRATEGY, offerHashesUnit3,EvidenceStatus.WARN
             .name());
 
-        evidenceAuditReportEntryWARN = new EvidenceAuditObjectModel(GUIDFactory.newGUID().toString(), processId, TENANT_ID,
+        evidenceAuditReportEntryWARN = new EvidenceAuditObjectModel(processId, TENANT_ID,
             LocalDateUtil.getFormattedDateForMongo(LocalDateUtil.now()), evidenceAuditReportEntry3);
 
     }

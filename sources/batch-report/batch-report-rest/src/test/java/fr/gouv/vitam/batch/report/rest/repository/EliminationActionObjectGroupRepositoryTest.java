@@ -199,7 +199,6 @@ public class EliminationActionObjectGroupRepositoryTest {
                 EliminationActionObjectGroupModel
                     eliminationActionObjectGroupModel = new EliminationActionObjectGroupModel();
                 eliminationActionObjectGroupModel.setProcessId(reportBody.getProcessId());
-                eliminationActionObjectGroupModel.setId(GUIDFactory.newGUID().toString());
                 eliminationActionObjectGroupModel.setTenant(0);
                 LocalDateTime localDateTime = LocalDateTime.now();
                 eliminationActionObjectGroupModel.setCreationDateTime(localDateTime.toString());

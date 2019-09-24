@@ -35,7 +35,7 @@ import static com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL;
 @JsonInclude(NON_NULL)
 public class PreservationReportModel {
 
-    public static final String ID = "_id";
+    public static final String DETAIL_ID = "id";
     public static final String UNIT_ID = "unitId";
     public static final String OBJECT_GROUP_ID = "objectGroupId";
     public static final String PROCESS_ID = "processId";
@@ -48,8 +48,8 @@ public class PreservationReportModel {
     public static final String OUTPUT_NAME = "outputName";
 
 
-    @JsonProperty(ID)
-    private String id;
+    @JsonProperty(DETAIL_ID)
+    private String detailId;
 
     @JsonProperty(PROCESS_ID)
     private String processId;
@@ -84,8 +84,8 @@ public class PreservationReportModel {
     public PreservationReportModel() {
     }
 
-    public PreservationReportModel(String id, String processId, int tenant, String creationDateTime, PreservationStatus status, String unitId, String objectGroupId, ActionTypePreservation action, String analyseResult, String inputName, String outputName) {
-        this.id = id;
+    public PreservationReportModel(String detailId, String processId, int tenant, String creationDateTime, PreservationStatus status, String unitId, String objectGroupId, ActionTypePreservation action, String analyseResult, String inputName, String outputName) {
+        this.detailId = detailId;
         this.processId = processId;
         this.tenant = tenant;
         this.creationDateTime = creationDateTime;
@@ -98,14 +98,16 @@ public class PreservationReportModel {
         this.outputName = outputName;
     }
 
-    public String getId() {
-        return id;
+    @JsonProperty(DETAIL_ID)
+    public String getDetailId() {
+        return detailId;
     }
 
-    public void setId(String id) {
-        this.id = id;
+    public void setDetailId(String detailId) {
+        this.detailId = detailId;
     }
 
+    @JsonProperty(PROCESS_ID)
     public String getProcessId() {
         return processId;
     }

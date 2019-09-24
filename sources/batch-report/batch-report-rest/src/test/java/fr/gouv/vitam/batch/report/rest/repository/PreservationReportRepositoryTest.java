@@ -84,10 +84,10 @@ public class PreservationReportRepositoryTest {
 
         // When
         Document report = preservationReportCollection.find(
-            and(eq("_id", "aeaaaaaaaagw45nxabw2ualhc4jvawqaaaaq"), eq(PreservationReportModel.TENANT, 0))).first();
+            and(eq("id", "aeaaaaaaaagw45nxabw2ualhc4jvawqaaaaq"), eq(PreservationReportModel.TENANT, 0))).first();
 
         // Then
-        assertThat(report.get("_id")).isEqualTo(preservationReportModel.getId());
+        assertThat(report.get("id")).isEqualTo(preservationReportModel.getDetailId());
         assertThat(report.get("objectGroupId")).isEqualTo(preservationReportModel.getObjectGroupId());
         assertThat(PreservationStatus.valueOf(report.get("status").toString())).isEqualTo(preservationReportModel.getStatus());
         assertThat(report.get("analyseResult")).isEqualTo(preservationReportModel.getAnalyseResult());

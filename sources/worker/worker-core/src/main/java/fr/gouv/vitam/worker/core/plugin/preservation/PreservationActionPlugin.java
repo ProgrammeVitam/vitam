@@ -283,7 +283,7 @@ public class PreservationActionPlugin extends ActionHandler {
             IterableUtils.find(entries, j -> j.getObjectId().equals(value.getInputPreservation().getName()));
 
         return new PreservationReportModel(
-            outputs.getRequestId(),
+            GUIDFactory.newGUID().toString(),
             outputs.getId(),
             tenant,
             now.toString(),
