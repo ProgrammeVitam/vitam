@@ -95,12 +95,6 @@ public class PreservationFinalizationPluginTest {
     private WorkspaceClient workspaceClient;
 
     @Mock
-    private StorageClientFactory storageClientFactory;
-
-    @Mock
-    private StorageClient storageClient;
-
-    @Mock
     private BatchReportClientFactory batchReportFactory;
 
     @Mock
@@ -121,7 +115,6 @@ public class PreservationFinalizationPluginTest {
     public void setUp() throws Exception {
         given(batchReportFactory.getClient()).willReturn(batchReportClient);
         given(workspaceClientFactory.getClient()).willReturn(workspaceClient);
-        given(storageClientFactory.getClient()).willReturn(storageClient);
         given(logbookOperationsClientFactory.getClient()).willReturn(logbookOperationsClient);
         plugin = new PreservationFinalizationPlugin(preservationReportService, logbookOperationsClient);
 

@@ -38,6 +38,7 @@ import fr.gouv.vitam.batch.report.model.entry.EliminationActionObjectGroupReport
 import fr.gouv.vitam.batch.report.model.entry.EliminationActionUnitReportEntry;
 import fr.gouv.vitam.batch.report.model.entry.EvidenceAuditReportEntry;
 import fr.gouv.vitam.batch.report.model.entry.PreservationReportEntry;
+import fr.gouv.vitam.batch.report.model.entry.UnitComputedInheritedRulesInvalidationReportEntry;
 import fr.gouv.vitam.batch.report.model.entry.UpdateUnitMetadataReportEntry;
 import fr.gouv.vitam.batch.report.rest.service.BatchReportServiceImpl;
 import fr.gouv.vitam.common.GlobalDataRest;
@@ -47,7 +48,6 @@ import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
-import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.server.application.resources.ApplicationStatusResource;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.functional.administration.common.exception.BackupServiceException;
@@ -56,7 +56,6 @@ import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerExce
 import javax.ws.rs.BadRequestException;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
-import javax.ws.rs.GET;
 import javax.ws.rs.HeaderParam;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
@@ -65,7 +64,6 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import java.io.IOException;
-import java.util.List;
 
 /**
  * public resource to mass-report
@@ -82,9 +80,8 @@ public class BatchReportResource extends ApplicationStatusResource {
         new TypeReference<ReportBody<EliminationActionObjectGroupReportEntry>>() {};
     private static final TypeReference<ReportBody<PreservationReportEntry>> reportPreservationType = new TypeReference<ReportBody<PreservationReportEntry>>() {};
     private static final TypeReference<ReportBody<UpdateUnitMetadataReportEntry>> reportMassUpdateType = new TypeReference<ReportBody<UpdateUnitMetadataReportEntry>>() {};
-    private static final String COMPUTE_INHERITED_RULES_INVALIDATION = "/computedInheritedRulesInvalidation";
-    private final TypeReference<List<String>> typeReference = new TypeReference<List<String>>() {};
     private final static TypeReference<ReportBody<EvidenceAuditReportEntry>> reportEvidenceAuditType = new TypeReference<ReportBody<EvidenceAuditReportEntry>>() {};
+    private final static TypeReference<ReportBody<UnitComputedInheritedRulesInvalidationReportEntry>> unitComputedInheritedRuleInvalidationType = new TypeReference<ReportBody<UnitComputedInheritedRulesInvalidationReportEntry>>() {};
 
     private BatchReportServiceImpl batchReportServiceImpl;
 
@@ -126,6 +123,10 @@ public class BatchReportResource extends ApplicationStatusResource {
                     ReportBody<EvidenceAuditReportEntry> evidenceAuditReportBody = JsonHandler.getFromJsonNode(body, reportEvidenceAuditType);
                     batchReportServiceImpl.appendEvidenceAuditReport(evidenceAuditReportBody.getProcessId(), evidenceAuditReportBody.getEntries(), tenantId);
                     break;
+                case UNIT_COMPUTED_INHERITED_RULES_INVALIDATION:
+                    ReportBody<UnitComputedInheritedRulesInvalidationReportEntry> unitInvalidationReportEntry = JsonHandler.getFromJsonNode(body, unitComputedInheritedRuleInvalidationType);
+                    batchReportServiceImpl.appendUnitComputedInheritedRulesInvalidationReport(unitInvalidationReportEntry.getProcessId(), unitInvalidationReportEntry.getEntries(), tenantId);
+                    break;
                 default:
                     throw new IllegalStateException("Unsupported report type " + reportType);
             }
@@ -166,60 +167,31 @@ public class BatchReportResource extends ApplicationStatusResource {
     @POST
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
-    public Response exportDistinctObjectGroup(@PathParam("processId") String processId, JsonNode body)
+    public Response exportDistinctObjectGroup(@PathParam("processId") String processId, ReportExportRequest reportExportRequest)
         throws ContentAddressableStorageServerException, IOException {
 
         try {
             ParametersChecker.checkParameter(EMPTY_PROCESSID_ERROR_MESSAGE, processId);
 
-            ReportExportRequest reportExportRequest = parseEliminationReportRequest(body);
             int tenantId = VitamThreadUtils.getVitamSession().getTenantId();
 
             batchReportServiceImpl.exportEliminationActionDistinctObjectGroupOfDeletedUnits(processId, reportExportRequest.getFilename(), tenantId);
             return Response.status(Response.Status.OK).build();
-        } catch (InvalidParseOperationException | IllegalArgumentException e) {
+        } catch (IllegalArgumentException e) {
             throw new BadRequestException(e);
         }
     }
 
-    @Path(COMPUTE_INHERITED_RULES_INVALIDATION + "/{processId}")
+    @Path("computedInheritedRulesInvalidation/{processId}")
     @POST
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
-    public Response appendUnitsProgeny(@PathParam("processId") String processId, JsonNode body) {
-        try {
-            List<String> unitsToTag = JsonHandler.getFromJsonNode(body, typeReference);
-            batchReportServiceImpl.appendUnitsProgeny(unitsToTag, processId);
-            return Response.status(Response.Status.OK).build();
-        } catch (InvalidParseOperationException e) {
-            LOGGER.error("Error : " + e.getMessage());
-        }
+    public Response exportUnitsToInvalidate(@PathParam("processId") String processId, ReportExportRequest reportExportRequest)
+        throws IOException, ContentAddressableStorageServerException {
+        int tenantId = VitamThreadUtils.getVitamSession().getTenantId();
 
-        return Response.status(Response.Status.BAD_REQUEST).build();
-    }
-
-    @Path(COMPUTE_INHERITED_RULES_INVALIDATION + "/{processId}")
-    @DELETE
-    @Produces(MediaType.APPLICATION_JSON)
-    @Consumes(MediaType.APPLICATION_JSON)
-    public Response deleteUnitsProgeny(@PathParam("processId") String processId) {
-        batchReportServiceImpl.deleteUnitsAndProgeny(processId);
-
-        return Response.status(Response.Status.ACCEPTED).build();
-    }
-
-    @Path(COMPUTE_INHERITED_RULES_INVALIDATION + "/{processId}")
-    @GET
-    @Produces(MediaType.APPLICATION_JSON)
-    @Consumes(MediaType.APPLICATION_JSON)
-    public Response getUnitsToInvalidate(@PathParam("processId") String processId) {
-        RequestResponse<JsonNode> result = batchReportServiceImpl.findUnits(processId);
-
-        if(result.isOk()) {
-            return Response.status(Response.Status.OK).entity(result.setHttpCode(Response.Status.FOUND.getStatusCode())).build();
-        }
-
-        return Response.status(Response.Status.BAD_REQUEST).entity(result.setHttpCode(Response.Status.BAD_REQUEST.getStatusCode())).build();
+        batchReportServiceImpl.exportUnitsToInvalidate(processId, tenantId, reportExportRequest);
+        return Response.status(Response.Status.CREATED).build();
     }
 
     @Path("/preservation/export/{processId}")
@@ -301,6 +273,9 @@ public class BatchReportResource extends ApplicationStatusResource {
                     break;
                 case EVIDENCE_AUDIT:
                     batchReportServiceImpl.deleteEvidenceAuditByIdAndTenant(processId, tenantId);
+                    break;
+                case UNIT_COMPUTED_INHERITED_RULES_INVALIDATION:
+                    batchReportServiceImpl.deleteUnitComputedInheritedRulesInvalidationReport(processId, tenantId);
                     break;
                 default:
                     Response.Status status = Response.Status.BAD_REQUEST;

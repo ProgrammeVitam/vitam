@@ -53,7 +53,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 public class PreservationReportRepositoryTest {
 
     private static final int TENANT_ID = 0;
-    public static final String PRESERVATION_REPORT = "PreservationReport" + GUIDFactory.newGUID().getId();
+    private static final String PRESERVATION_REPORT = "PreservationReport" + GUIDFactory.newGUID().getId();
 
     @Rule
     public MongoRule mongoRule =

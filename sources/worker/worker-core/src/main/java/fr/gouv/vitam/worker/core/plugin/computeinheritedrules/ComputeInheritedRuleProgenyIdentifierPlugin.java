@@ -23,7 +23,7 @@
  *
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
-*/
+ */
 
 package fr.gouv.vitam.worker.core.plugin.computeinheritedrules;
 
@@ -32,6 +32,11 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.google.common.annotations.VisibleForTesting;
 import fr.gouv.vitam.batch.report.client.BatchReportClient;
 import fr.gouv.vitam.batch.report.client.BatchReportClientFactory;
+import fr.gouv.vitam.batch.report.model.ReportBody;
+import fr.gouv.vitam.batch.report.model.ReportExportRequest;
+import fr.gouv.vitam.batch.report.model.ReportType;
+import fr.gouv.vitam.batch.report.model.entry.UnitComputedInheritedRulesInvalidationReportEntry;
+import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.database.builder.query.BooleanQuery;
 import fr.gouv.vitam.common.database.builder.query.ExistsQuery;
 import fr.gouv.vitam.common.database.builder.query.InQuery;
@@ -43,13 +48,12 @@ import fr.gouv.vitam.common.database.utils.ScrollSpliterator;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamClientInternalException;
 import fr.gouv.vitam.common.exception.VitamRuntimeException;
-import fr.gouv.vitam.common.json.JsonHandler;
+import fr.gouv.vitam.common.iterables.BulkIterator;
+import fr.gouv.vitam.common.iterables.SpliteratorIterator;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.ItemStatus;
-import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.StatusCode;
-import fr.gouv.vitam.metadata.api.exception.MetaDataException;
 import fr.gouv.vitam.metadata.client.MetaDataClient;
 import fr.gouv.vitam.metadata.client.MetaDataClientFactory;
 import fr.gouv.vitam.metadata.core.database.configuration.GlobalDatasDb;
@@ -58,74 +62,70 @@ import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 import fr.gouv.vitam.worker.common.HandlerIO;
 import fr.gouv.vitam.worker.core.distribution.JsonLineGenericIterator;
 import fr.gouv.vitam.worker.core.distribution.JsonLineModel;
-import fr.gouv.vitam.worker.core.distribution.JsonLineWriter;
 import fr.gouv.vitam.worker.core.handler.ActionHandler;
 import fr.gouv.vitam.worker.core.plugin.ScrollSpliteratorHelper;
+import org.apache.commons.collections4.IteratorUtils;
 import org.apache.commons.lang.StringUtils;
 
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Objects;
-import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
-import java.util.stream.StreamSupport;
 
 import static fr.gouv.vitam.worker.core.utils.PluginHelper.buildBulkItemStatus;
 
 public class ComputeInheritedRuleProgenyIdentifierPlugin extends ActionHandler {
 
-    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(ComputeInheritedRuleProgenyIdentifierPlugin.class);
+    private static final VitamLogger LOGGER =
+        VitamLoggerFactory.getInstance(ComputeInheritedRuleProgenyIdentifierPlugin.class);
 
     private static final String PLUGIN_NAME = "COMPUTE_INHERITED_RULES_PROGENY_IDENTIFIER";
-    private static final int DISTRIBUTION_FILE_RANK = 0;
     private static final TypeReference<JsonLineModel> TYPE_REFERENCE = new TypeReference<JsonLineModel>() {};
+    private static final String UNITS_JSONL_FILE_NAME = "unitsToInvalidate.jsonl";
+
     private final MetaDataClientFactory metaDataClientFactory;
     private final BatchReportClientFactory batchReportClientFactory;
     private final int bulkSize;
 
     public ComputeInheritedRuleProgenyIdentifierPlugin() {
         this(MetaDataClientFactory.getInstance(), BatchReportClientFactory.getInstance(), GlobalDatasDb.LIMIT_LOAD);
+        // Default constructor for workflow initialization by Worker
     }
 
     @VisibleForTesting
-    ComputeInheritedRuleProgenyIdentifierPlugin(MetaDataClientFactory metaDataClientFactory, BatchReportClientFactory batchReportClientFactory, int bulkSize) {
+    ComputeInheritedRuleProgenyIdentifierPlugin(MetaDataClientFactory metaDataClientFactory,
+        BatchReportClientFactory batchReportClientFactory, int bulkSize) {
         this.metaDataClientFactory = metaDataClientFactory;
         this.batchReportClientFactory = batchReportClientFactory;
         this.bulkSize = bulkSize;
     }
 
     @Override
-    public List<ItemStatus> executeList(WorkerParameters workerParameters, HandlerIO handler) throws ProcessingException {
+    public List<ItemStatus> executeList(WorkerParameters workerParameters, HandlerIO handler)
+        throws ProcessingException {
         String processId = handler.getContainerName();
 
-        if(StringUtils.isEmpty(processId)) {
+        if (StringUtils.isEmpty(processId)) {
             LOGGER.error("processId null or empty.");
             return buildBulkItemStatus(workerParameters, PLUGIN_NAME, StatusCode.FATAL);
         }
 
         handler.setCurrentObjectId(workerParameters.getObjectNameList().get(0));
-        try(InputStream inputStream = new FileInputStream((File) handler.getInput(0));
+        try (InputStream inputStream = new FileInputStream((File) handler.getInput(0));
             JsonLineGenericIterator<JsonLineModel> lines = new JsonLineGenericIterator<>(inputStream, TYPE_REFERENCE);
-            BatchReportClient batchReportClient = batchReportClientFactory.getClient()) {
-            AtomicInteger counter = new AtomicInteger();
-            lines.stream()
-                .collect(Collectors.groupingBy(line -> counter.getAndIncrement() / bulkSize))
-                .forEach((it, unitsToBatch) -> findAndSaveUnitsProgeny(unitsToBatch, processId)); // don't care about "it", but "it" is mandatory...
+            BatchReportClient batchReportClient = batchReportClientFactory.getClient();
+            MetaDataClient metaDataClient = metaDataClientFactory.getClient()) {
 
-            String distribFileName = handler.getOutput(DISTRIBUTION_FILE_RANK).getPath();
-            File distribFile = handler.getNewLocalFile(distribFileName);
+            Iterator<List<JsonLineModel>> bulkLines = new BulkIterator<>(lines, bulkSize);
+            bulkLines.forEachRemaining(
+                unitsToBatch -> findAndSaveUnitsProgeny(metaDataClient, batchReportClient, unitsToBatch, processId));
 
-            ScrollSpliterator<JsonNode> scrollRequest = ScrollSpliteratorHelper.createUnitsToInvalidateScrollSpliterator(batchReportClient, processId, bulkSize);
+            batchReportClient.exportUnitsToInvalidate(processId, new ReportExportRequest(UNITS_JSONL_FILE_NAME));
 
-            createDistributionFile(scrollRequest, distribFile);
-            batchReportClient.deleteUnitsAndProgeny(processId);
-
-            // move file to workspace
-            handler.transferFileToWorkspace(distribFileName, distribFile, true, false);
         } catch (IOException | VitamClientInternalException e) {
             throw new ProcessingException(e);
         }
@@ -133,20 +133,16 @@ public class ComputeInheritedRuleProgenyIdentifierPlugin extends ActionHandler {
         return buildBulkItemStatus(workerParameters, PLUGIN_NAME, StatusCode.OK);
     }
 
-    private void findAndSaveUnitsProgeny(List<JsonLineModel> unitsToBatch, String operationId) {
-        SelectMultiQuery select = new SelectMultiQuery();
-
-        JsonNode projection = JsonHandler.createObjectNode()
-            .set("$fields", JsonHandler.createObjectNode().put(VitamFieldsHelper.id(), 1));
-
-        select.addProjection(projection);
+    private void findAndSaveUnitsProgeny(MetaDataClient metaDataClient,
+        BatchReportClient batchReportClient, List<JsonLineModel> unitsToBatch,
+        String operationId) {
 
         String[] parentsIds = unitsToBatch.stream()
             .map(JsonLineModel::getId)
             .toArray(String[]::new);
 
-        try (MetaDataClient metaDataClient = metaDataClientFactory.getClient();
-             BatchReportClient batchReportClient = batchReportClientFactory.getClient()) {
+        try {
+
             InQuery childrenUnitsQuery = QueryHelper.in(VitamFieldsHelper.allunitups(), parentsIds);
             InQuery parentsUnitsQuery = QueryHelper.in(VitamFieldsHelper.id(), parentsIds);
             BooleanQuery parentsAndProgenyUnits = QueryHelper.or().add(childrenUnitsQuery, parentsUnitsQuery);
@@ -154,42 +150,42 @@ public class ComputeInheritedRuleProgenyIdentifierPlugin extends ActionHandler {
             ExistsQuery unitsToIndex = QueryHelper.exists(VitamFieldsHelper.validComputedInheritedRules());
             BooleanQuery unitsToInvalidate = QueryHelper.and().add(unitsToIndex, parentsAndProgenyUnits);
 
+            SelectMultiQuery select = new SelectMultiQuery();
             select.setQuery(unitsToInvalidate);
-            JsonNode response = metaDataClient.selectUnits(select.getFinalSelect());
-            List<String> unitsIds = getIdsFromResponse(response);
+            select.addUsedProjection(VitamFieldsHelper.id());
 
-            if(!unitsIds.isEmpty()) {
-                batchReportClient.saveUnitsAndProgeny(operationId, unitsIds);
-            }
-        } catch (InvalidCreateOperationException | MetaDataException | InvalidParseOperationException | VitamClientInternalException e) {
-            throw new VitamRuntimeException(e);
-        }
-    }
+            // Query against ES via cursor
+            ScrollSpliterator<JsonNode> unitIterator =
+                ScrollSpliteratorHelper.createUnitScrollSplitIterator(metaDataClient, select);
 
-    private List<String> getIdsFromResponse(JsonNode response) throws InvalidParseOperationException {
-        List<JsonNode> results = RequestResponseOK.getFromJsonNode(response).getResults();
+            // Process in batch mode
+            Iterator<List<String>> bulkUnitIdsIterator = new BulkIterator<>(
+                IteratorUtils.transformedIterator(
+                    new SpliteratorIterator<>(unitIterator),
+                    result -> Objects.requireNonNull(result.get(VitamFieldsHelper.id()).asText())
+                ),
+                VitamConfiguration.getBatchSize()
+            );
 
-        return results.stream()
-            .map(result -> Objects.requireNonNull(result.get(VitamFieldsHelper.id()).asText()))
-            .collect(Collectors.toList());
-    }
-
-    private void createDistributionFile(final ScrollSpliterator<JsonNode> scrollRequest, File distribFile)
-        throws ProcessingException {
-        try (JsonLineWriter jsonLineWriter = new JsonLineWriter(new FileOutputStream(distribFile))) {
-
-            StreamSupport.stream(scrollRequest, false).forEach(
-                item -> {
+            bulkUnitIdsIterator.forEachRemaining(
+                unitsIds -> {
                     try {
-                        jsonLineWriter.addEntry(new JsonLineModel(item.textValue()));
-                    } catch (IOException e) {
+                        List<UnitComputedInheritedRulesInvalidationReportEntry> entries = unitsIds.stream()
+                            .distinct()
+                            .map(UnitComputedInheritedRulesInvalidationReportEntry::new)
+                            .collect(Collectors.toList());
+                        ReportBody<UnitComputedInheritedRulesInvalidationReportEntry> report =
+                            new ReportBody<>(operationId,
+                                ReportType.UNIT_COMPUTED_INHERITED_RULES_INVALIDATION, entries);
+                        batchReportClient.appendReportEntries(report);
+                    } catch (VitamClientInternalException e) {
                         throw new VitamRuntimeException(e);
                     }
                 }
             );
 
-        } catch (IOException | VitamRuntimeException | IllegalStateException e) {
-            throw new ProcessingException("Could not generate and save file", e);
+        } catch (InvalidCreateOperationException | InvalidParseOperationException e) {
+            throw new VitamRuntimeException(e);
         }
     }
 }
