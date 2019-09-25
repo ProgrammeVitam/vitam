@@ -1,0 +1,14 @@
+---
+
+vitam_additional_securityprofiles:
+  - name: applicative01
+    identifier: spidentifier01 # manadatory, cannot be naither null nor blank
+    hasFullAccess: false # true/false
+    permissions: "null" # possible keypairs are stored in "modèle de données"  ; for example : "contexts:read"
+    contexts:
+      - name: contextappli01
+        identifier: myContextIdentifier # please leave blank if associated tenants are "master" (if over release 9,related to existence of CONTEXT in vitam_tenants_usage_external directive for tenant)
+        status: ACTIVE # ACTIVE or INACTIVE
+        enable_control: true # can be true or false , must be true if fine permissions tuning (see above) ; if false, no permissions
+        permissions: "[ { \"tenant\": 2, \"AccessContracts\": [], \"IngestContracts\": [] }]" # you can specify different permissions for all tenants that have to be associated to "[{perms1},{perms2}, ...]" where permsX is  something like { \"tenant\": 2, \"AccessContracts\": [], \"IngestContracts\": [] }
+        certificates: ['cert1.crt'] # list of public certificates files stored in {{inventory_dir}}/certs/client-external/clients/
