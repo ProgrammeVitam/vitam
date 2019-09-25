@@ -33,17 +33,21 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.collect.ListMultimap;
 import fr.gouv.culture.archivesdefrance.seda.v2.ArchiveUnitType;
 import fr.gouv.culture.archivesdefrance.seda.v2.BinaryDataObjectType;
+import fr.gouv.culture.archivesdefrance.seda.v2.CodeListVersionsType;
+import fr.gouv.culture.archivesdefrance.seda.v2.CodeType;
 import fr.gouv.culture.archivesdefrance.seda.v2.DataObjectGroupType;
 import fr.gouv.culture.archivesdefrance.seda.v2.DataObjectOrArchiveUnitReferenceType;
 import fr.gouv.culture.archivesdefrance.seda.v2.DataObjectPackageType;
 import fr.gouv.culture.archivesdefrance.seda.v2.DataObjectRefType;
 import fr.gouv.culture.archivesdefrance.seda.v2.EventLogBookOgType;
+import fr.gouv.culture.archivesdefrance.seda.v2.IdentifierType;
 import fr.gouv.culture.archivesdefrance.seda.v2.LogBookOgType;
 import fr.gouv.culture.archivesdefrance.seda.v2.LogBookType;
+import fr.gouv.culture.archivesdefrance.seda.v2.ManagementMetadataType;
 import fr.gouv.culture.archivesdefrance.seda.v2.MinimalDataObjectType;
 import fr.gouv.culture.archivesdefrance.seda.v2.ObjectFactory;
+import fr.gouv.culture.archivesdefrance.seda.v2.OrganizationWithIdType;
 import fr.gouv.vitam.common.LocalDateUtil;
-import fr.gouv.vitam.common.SedaConstants;
 import fr.gouv.vitam.common.accesslog.AccessLogUtils;
 import fr.gouv.vitam.common.database.builder.query.Query;
 import fr.gouv.vitam.common.database.builder.query.QueryHelper;
@@ -111,6 +115,7 @@ import static fr.gouv.vitam.common.SedaConstants.TAG_ARCHIVAL_AGREEMENT;
 import static fr.gouv.vitam.common.SedaConstants.TAG_ARCHIVE_DELIVERY_REQUEST_REPLY;
 import static fr.gouv.vitam.common.SedaConstants.TAG_ARCHIVE_TRANSFER;
 import static fr.gouv.vitam.common.SedaConstants.TAG_AUTHORIZATION_REASON_CODE_LIST_VERSION;
+import static fr.gouv.vitam.common.SedaConstants.TAG_AUTHORIZATION_REQUEST_REPLY_IDENTIFIER;
 import static fr.gouv.vitam.common.SedaConstants.TAG_CLASSIFICATION_RULE_CODE_LIST_VERSION;
 import static fr.gouv.vitam.common.SedaConstants.TAG_CODE_LIST_VERSIONS;
 import static fr.gouv.vitam.common.SedaConstants.TAG_COMMENT;
@@ -123,7 +128,6 @@ import static fr.gouv.vitam.common.SedaConstants.TAG_DESCRIPTIVE_METADATA;
 import static fr.gouv.vitam.common.SedaConstants.TAG_DISSEMINATION_RULE_CODE_LIST_VERSION;
 import static fr.gouv.vitam.common.SedaConstants.TAG_ENCODING_CODE_LIST_VERSION;
 import static fr.gouv.vitam.common.SedaConstants.TAG_FILE_FORMAT_CODE_LIST_VERSION;
-import static fr.gouv.vitam.common.SedaConstants.TAG_IDENTIFIER;
 import static fr.gouv.vitam.common.SedaConstants.TAG_MANAGEMENT_METADATA;
 import static fr.gouv.vitam.common.SedaConstants.TAG_MESSAGE_DIGEST_ALGORITHM_CODE_LIST_VERSION;
 import static fr.gouv.vitam.common.SedaConstants.TAG_MESSAGE_IDENTIFIER;
@@ -136,7 +140,6 @@ import static fr.gouv.vitam.common.SedaConstants.TAG_REPLY_CODE_LIST_VERSION;
 import static fr.gouv.vitam.common.SedaConstants.TAG_REQUESTER;
 import static fr.gouv.vitam.common.SedaConstants.TAG_REUSE_RULE_CODE_LIST_VERSION;
 import static fr.gouv.vitam.common.SedaConstants.TAG_STORAGE_RULE_CODE_LIST_VERSION;
-import static fr.gouv.vitam.common.SedaConstants.TAG_SUBMISSIONAGENCYIDENTIFIER;
 import static fr.gouv.vitam.common.SedaConstants.TAG_TRANSFERRING_AGENCY;
 import static fr.gouv.vitam.common.SedaConstants.TAG_TRANSFER_REQUEST_REPLY_IDENTIFIER;
 import static fr.gouv.vitam.common.SedaConstants.TAG_UNIT_IDENTIFIER;
@@ -159,7 +162,6 @@ public class ManifestBuilder implements AutoCloseable {
             LOGGER.error("unable to create jaxb context", e);
         }
     }
-
     private final XMLStreamWriter writer;
     private final Marshaller marshaller;
     private final ArchiveUnitMapper archiveUnitMapper;
@@ -189,13 +191,14 @@ public class ManifestBuilder implements AutoCloseable {
 
     public void startDocument(String operationId, ExportType exportType,
         ExportRequestParameters exportRequestParameters)
-        throws XMLStreamException, JAXBException, ExportException {
+        throws XMLStreamException, JAXBException {
         writer.writeStartDocument();
         switch (exportType) {
             case ArchiveTransfer:
                 writer.writeStartElement(TAG_ARCHIVE_TRANSFER);
                 break;
             case ArchiveDeliveryRequestReply:
+            case MinimalArchiveDeliveryRequestReply:
                 writer.writeStartElement(TAG_ARCHIVE_DELIVERY_REQUEST_REPLY);
                 break;
         }
@@ -207,18 +210,21 @@ public class ManifestBuilder implements AutoCloseable {
 
         switch (exportType) {
             case ArchiveTransfer:
-                writer.writeNamespace("id", "ID");// TODO: 06/09/2019 what ID should be ?
+            case ArchiveDeliveryRequestReply:
+                writeComment(exportRequestParameters.getComment());
+                writeDate(LocalDateUtil.getFormattedDate(LocalDateTime.now()));
+                writeMessageIdentifier(operationId);
+                writeArchivalAgreement(exportRequestParameters.getArchivalAgreement());
+                writeCodeListVersions(ParameterHelper.getTenantParameter());
                 break;
+            default:
+                // Old DIP
         }
-
-        writeComment(exportRequestParameters.getComment());
-        writeDate(LocalDateUtil.getFormattedDate(LocalDateTime.now()));
-        writeMessageIdentifier(operationId);
-        writeArchivalAgreement(exportRequestParameters.getArchivalAgreement());
-        writeCodeListVersions(ParameterHelper.getTenantParameter());
     }
 
-    Map<String, JsonNode> writeGOT(JsonNode og, String linkedAU, Set<String> dataObjectVersionFilter, boolean exportWithLogBookLFC) throws JsonProcessingException, JAXBException, ProcessingException, XMLStreamException {
+    Map<String, JsonNode> writeGOT(JsonNode og, String linkedAU, Set<String> dataObjectVersionFilter,
+        boolean exportWithLogBookLFC)
+        throws JsonProcessingException, JAXBException, ProcessingException {
         ObjectGroupResponse objectGroup = objectMapper.treeToValue(og, ObjectGroupResponse.class);
         // Usage access control
         AccessContractModel accessContractModel = VitamThreadUtils.getVitamSession().getContract();
@@ -268,7 +274,7 @@ public class ManifestBuilder implements AutoCloseable {
         Map<String, JsonNode> maps = new HashMap<>();
 
         try {
-            final DataObjectPackageType  xmlObject = objectGroupMapper.map(objectGroup);
+            final DataObjectPackageType xmlObject = objectGroupMapper.map(objectGroup);
             List<Object> dataObjectGroupList = xmlObject.getDataObjectGroupOrBinaryDataObjectOrPhysicalDataObject();
 
             if (dataObjectGroupList.isEmpty()) {
@@ -282,7 +288,8 @@ public class ManifestBuilder implements AutoCloseable {
                 dataObjectGroup.setLogBook(logBookOgType);
             }
 
-            List<MinimalDataObjectType> binaryDataObjectOrPhysicalDataObject = dataObjectGroup.getBinaryDataObjectOrPhysicalDataObject();
+            List<MinimalDataObjectType> binaryDataObjectOrPhysicalDataObject =
+                dataObjectGroup.getBinaryDataObjectOrPhysicalDataObject();
             for (MinimalDataObjectType minimalDataObjectType : binaryDataObjectOrPhysicalDataObject) {
                 if (minimalDataObjectType instanceof BinaryDataObjectType) {
                     BinaryDataObjectType binaryDataObjectType = (BinaryDataObjectType) minimalDataObjectType;
@@ -294,10 +301,13 @@ public class ManifestBuilder implements AutoCloseable {
                     String xmlQualifier = dataObjectVersion[0];
                     Integer xmlVersion = Integer.parseInt(dataObjectVersion[1]);
 
-                    ObjectNode objectInfos =
-                        (ObjectNode) AccessLogUtils.getWorkerInfo(xmlQualifier, xmlVersion, binaryDataObjectType.getSize().longValue(), linkedAU, fileName);
-                    objectInfos.put("strategyId", strategiesByVersion.get(minimalDataObjectType.getDataObjectVersion()));
-                    maps.put(minimalDataObjectType.getId(), objectInfos);
+                    ObjectNode objectInfo =
+                        (ObjectNode) AccessLogUtils
+                            .getWorkerInfo(xmlQualifier, xmlVersion, binaryDataObjectType.getSize().longValue(),
+                                linkedAU, fileName);
+                    objectInfo
+                        .put("strategyId", strategiesByVersion.get(minimalDataObjectType.getDataObjectVersion()));
+                    maps.put(minimalDataObjectType.getId(), objectInfo);
                 }
             }
             marshallHackForNonXmlRootObject(dataObjectGroup);
@@ -311,20 +321,22 @@ public class ManifestBuilder implements AutoCloseable {
         // Hack from https://docs.oracle.com/javase/7/docs/api/javax/xml/bind/Marshaller.html
         // Marshalling content tree rooted by a JAXB element
         // Using the dataObjectGroup.getClass() in order to have no namespace or type issue
-        marshaller.marshal(new JAXBElement(new QName(NAMESPACE_URI, TAG_DATA_OBJECT_GROUP), dataObjectGroup.getClass(), dataObjectGroup), writer);
+        marshaller.marshal(new JAXBElement(new QName(NAMESPACE_URI, TAG_DATA_OBJECT_GROUP), dataObjectGroup.getClass(),
+            dataObjectGroup), writer);
     }
 
-    private LogBookOgType getLogBookOgType(String id) throws LogbookClientException, InvalidParseOperationException, JAXBException {
+    private LogBookOgType getLogBookOgType(String id)
+        throws LogbookClientException, InvalidParseOperationException {
         try (LogbookLifeCyclesClient client = logbookLifeCyclesClientFactory.getClient()) {
             JsonNode response = client.selectObjectGroupLifeCycleById(id, new Select().getFinalSelect());
 
             List<EventLogBookOgType> events = RequestResponseOK.getFromJsonNode(response)
-                    .getResults()
-                    .stream()
-                    .map(LogbookLifeCycleObjectGroup::new)
-                    .flatMap(lifecycle -> Stream.concat(lifecycle.events().stream(), Stream.of(lifecycle)))
-                    .map(LogbookMapper::getEventOGTypeFromDocument)
-                    .collect(Collectors.toList());
+                .getResults()
+                .stream()
+                .map(LogbookLifeCycleObjectGroup::new)
+                .flatMap(lifecycle -> Stream.concat(lifecycle.events().stream(), Stream.of(lifecycle)))
+                .map(LogbookMapper::getEventOGTypeFromDocument)
+                .collect(Collectors.toList());
 
             LogBookOgType logbookType = new LogBookOgType();
             logbookType.getEvent()
@@ -334,16 +346,6 @@ public class ManifestBuilder implements AutoCloseable {
         }
     }
 
-    /**
-     * write an archiveUnit.
-     *
-     * @param result
-     * @param multimap
-     * @param ogs
-     * @throws JsonProcessingException
-     * @throws DatatypeConfigurationException
-     * @throws JAXBException
-     */
     void writeArchiveUnit(JsonNode result, ListMultimap<String, String> multimap, Map<String, String> ogs,
         boolean exportWithLogBookLFC)
         throws JsonProcessingException, DatatypeConfigurationException, JAXBException, ProcessingException {
@@ -456,194 +458,182 @@ public class ManifestBuilder implements AutoCloseable {
         writer.writeEndElement();
     }
 
-    void writeArchivalAgreement(String archivalAgreement) throws XMLStreamException, ExportException {
+    void writeArchivalAgreement(String archivalAgreement) throws XMLStreamException {
         if (Strings.isNullOrEmpty(archivalAgreement)) {
-            throw new ExportException(TAG_ARCHIVAL_AGREEMENT + " parameter is required");
+            return;
         }
         writer.writeStartElement(NAMESPACE_URI, TAG_ARCHIVAL_AGREEMENT);
         writer.writeCharacters(archivalAgreement);
         writer.writeEndElement();
     }
 
-    void writeRelatedTransferReference(String relatedTransferReference) throws XMLStreamException {
-        if (Strings.isNullOrEmpty(relatedTransferReference)) {
-            return;
-        }
-        writer.writeStartElement(NAMESPACE_URI, TAG_RELATED_TRANSFER_REFERENCE);
-        writer.writeCharacters(relatedTransferReference);
-        writer.writeEndElement();
-    }
-
-    void writeTransferRequestReplyIdentifier(String transferRequestReplyIdentifier)
-        throws XMLStreamException {
-        if (Strings.isNullOrEmpty(transferRequestReplyIdentifier)) {
-            return;
-        }
-        writer.writeStartElement(NAMESPACE_URI, TAG_TRANSFER_REQUEST_REPLY_IDENTIFIER);
-        writer.writeCharacters(transferRequestReplyIdentifier);
-        writer.writeEndElement();
-    }
-
-    void writeMessageRequestIdentifier(String messageRequestIdentifier)
-        throws XMLStreamException, ExportException {
-        if (Strings.isNullOrEmpty(messageRequestIdentifier)) {
-            throw new ExportException(TAG_MESSAGE_REQUEST_IDENTIFIER + " parameter is required");
-        }
-        writer.writeStartElement(NAMESPACE_URI, TAG_MESSAGE_REQUEST_IDENTIFIER);
-        writer.writeCharacters(messageRequestIdentifier);
-        writer.writeEndElement();
-    }
-
-    void writeRequester(String requester)
-        throws XMLStreamException, ExportException {
-        if (Strings.isNullOrEmpty(requester)) {
-            throw new ExportException(TAG_REQUESTER + " parameter is required");
-        }
-        writer.writeStartElement(NAMESPACE_URI, TAG_REQUESTER);
-        writer.writeCharacters(requester);
-        writer.writeEndElement();
-    }
-
-    void writeAuthorizationRequestReplyIdentifier(String authorizationRequestReplyIdentifier)
-        throws XMLStreamException {
-        if (Strings.isNullOrEmpty(authorizationRequestReplyIdentifier)) {
-            return;
-        }
-        writer.writeStartElement(NAMESPACE_URI, TAG_MESSAGE_REQUEST_IDENTIFIER);
-        writer.writeCharacters(authorizationRequestReplyIdentifier);
-        writer.writeEndElement();
-    }
-
-    void writeUnitIdentifier(String unitIdentifier)
-        throws XMLStreamException {
-        if (Strings.isNullOrEmpty(unitIdentifier)) {
-            return;
-        }
-        writer.writeStartElement(NAMESPACE_URI, TAG_UNIT_IDENTIFIER);
-        writer.writeCharacters(unitIdentifier);
-        writer.writeEndElement();
-    }
 
     void writeManagementMetadata(String originatingAgency, String submissionAgencyIdentifier)
-        throws JAXBException, XMLStreamException, ExportException {
+        throws JAXBException, ExportException {
         if (Strings.isNullOrEmpty(originatingAgency)) {
             throw new ExportException(TAG_ORIGINATINGAGENCYIDENTIFIER + " parameter is required");
         }
-        writer.writeStartElement(NAMESPACE_URI, TAG_MANAGEMENT_METADATA);
-
-        marshaller.marshal(new JAXBElement<>(new QName(NAMESPACE_URI, TAG_ORIGINATINGAGENCYIDENTIFIER), String.class, originatingAgency), writer);
+        ManagementMetadataType managementMetadataType = new ManagementMetadataType();
+        IdentifierType identifierType = new IdentifierType();
+        identifierType.setValue(originatingAgency);
+        managementMetadataType.setOriginatingAgencyIdentifier(identifierType);
 
         if (!Strings.isNullOrEmpty(submissionAgencyIdentifier)) {
-            marshaller.marshal(new JAXBElement<>(new QName(NAMESPACE_URI, TAG_SUBMISSIONAGENCYIDENTIFIER),
-                String.class, submissionAgencyIdentifier), writer);
+            identifierType = new IdentifierType();
+            identifierType.setValue(submissionAgencyIdentifier);
+            managementMetadataType.setSubmissionAgencyIdentifier(identifierType);
+
         }
 
-        writer.writeEndElement();
+        marshaller.marshal(
+            new JAXBElement(new QName(NAMESPACE_URI, TAG_MANAGEMENT_METADATA), managementMetadataType.getClass(),
+                managementMetadataType), writer);
+
     }
 
-    void writeArchivalAgency(String archivalAgency)
-        throws JAXBException, XMLStreamException, ExportException {
-        if (Strings.isNullOrEmpty(archivalAgency)) {
-            throw new ExportException(TAG_ARCHIVAL_AGENCY + " parameter is required");
-        }
-        writer.writeStartElement(NAMESPACE_URI, TAG_ARCHIVAL_AGENCY);
+    void writeCodeListVersions(int tenant) throws JAXBException {
+        CodeListVersionsType codeListVersionsType = new CodeListVersionsType();
+        CodeType value = new CodeType();
+        value.setValue(TAG_REPLY_CODE_LIST_VERSION + tenant);
+        codeListVersionsType.setReplyCodeListVersion(value);
 
-        marshaller.marshal(new JAXBElement<>(new QName(NAMESPACE_URI, TAG_IDENTIFIER),
-            String.class, archivalAgency), writer);
+        value = new CodeType();
+        value.setValue(TAG_MESSAGE_DIGEST_ALGORITHM_CODE_LIST_VERSION + tenant);
+        codeListVersionsType.setMessageDigestAlgorithmCodeListVersion(value);
 
-        writer.writeEndElement();
-    }
+        value = new CodeType();
+        value.setValue(TAG_MIME_TYPE_CODE_LIST_VERSION + tenant);
+        codeListVersionsType.setMimeTypeCodeListVersion(value);
 
-    void writeTransferringAgency(String transferringAgency)
-        throws JAXBException, XMLStreamException, ExportException {
-        if (Strings.isNullOrEmpty(transferringAgency)) {
-            throw new ExportException(TAG_TRANSFERRING_AGENCY + " parameter is required");
-        }
-        writer.writeStartElement(NAMESPACE_URI, TAG_TRANSFERRING_AGENCY);
+        value = new CodeType();
+        value.setValue(TAG_ENCODING_CODE_LIST_VERSION + tenant);
+        codeListVersionsType.setEncodingCodeListVersion(value);
 
-        marshaller.marshal(new JAXBElement<>(new QName(NAMESPACE_URI, TAG_IDENTIFIER),
-            String.class, transferringAgency), writer);
+        value = new CodeType();
+        value.setValue(TAG_FILE_FORMAT_CODE_LIST_VERSION + tenant);
+        codeListVersionsType.setFileFormatCodeListVersion(value);
 
-        writer.writeEndElement();
-    }
+        value = new CodeType();
+        value.setValue(TAG_COMPRESSION_ALGORITHM_CODE_LIST_VERSION + tenant);
+        codeListVersionsType.setCompressionAlgorithmCodeListVersion(value);
 
-    void writeCodeListVersions(int tenant) throws JAXBException, XMLStreamException {
-        writer.writeStartElement(NAMESPACE_URI, TAG_CODE_LIST_VERSIONS);
+        value = new CodeType();
+        value.setValue(TAG_DATA_OBJECT_VERSION_CODE_LIST_VERSION + tenant);
+        codeListVersionsType.setDataObjectVersionCodeListVersion(value);
 
-        marshaller.marshal(new JAXBElement<>(new QName(NAMESPACE_URI, TAG_REPLY_CODE_LIST_VERSION),
-            String.class, TAG_REPLY_CODE_LIST_VERSION + tenant), writer);
+        value = new CodeType();
+        value.setValue(TAG_STORAGE_RULE_CODE_LIST_VERSION + tenant);
+        codeListVersionsType.setStorageRuleCodeListVersion(value);
 
-        marshaller.marshal(new JAXBElement<>(new QName(NAMESPACE_URI, TAG_MESSAGE_DIGEST_ALGORITHM_CODE_LIST_VERSION),
-            String.class, TAG_MESSAGE_DIGEST_ALGORITHM_CODE_LIST_VERSION + tenant), writer);
+        value = new CodeType();
+        value.setValue(TAG_APPRAISAL_RULE_CODE_LIST_VERSION + tenant);
+        codeListVersionsType.setAppraisalRuleCodeListVersion(value);
 
-        marshaller.marshal(new JAXBElement<>(new QName(NAMESPACE_URI, TAG_MIME_TYPE_CODE_LIST_VERSION),
-            String.class, TAG_MIME_TYPE_CODE_LIST_VERSION + tenant), writer);
+        value = new CodeType();
+        value.setValue(TAG_ACCESS_RULE_CODE_LIST_VERSION + tenant);
+        codeListVersionsType.setAccessRuleCodeListVersion(value);
 
-        marshaller.marshal(new JAXBElement<>(new QName(NAMESPACE_URI, TAG_ENCODING_CODE_LIST_VERSION),
-            String.class, TAG_ENCODING_CODE_LIST_VERSION + tenant), writer);
+        value = new CodeType();
+        value.setValue(TAG_DISSEMINATION_RULE_CODE_LIST_VERSION + tenant);
+        codeListVersionsType.setDisseminationRuleCodeListVersion(value);
 
-        marshaller.marshal(new JAXBElement<>(new QName(NAMESPACE_URI, TAG_FILE_FORMAT_CODE_LIST_VERSION),
-            String.class, TAG_FILE_FORMAT_CODE_LIST_VERSION + tenant), writer);
+        value = new CodeType();
+        value.setValue(TAG_REUSE_RULE_CODE_LIST_VERSION + tenant);
+        codeListVersionsType.setReuseRuleCodeListVersion(value);
 
-        marshaller.marshal(new JAXBElement<>(new QName(NAMESPACE_URI, TAG_COMPRESSION_ALGORITHM_CODE_LIST_VERSION),
-            String.class, TAG_COMPRESSION_ALGORITHM_CODE_LIST_VERSION + tenant), writer);
+        value = new CodeType();
+        value.setValue(TAG_CLASSIFICATION_RULE_CODE_LIST_VERSION + tenant);
+        codeListVersionsType.setClassificationRuleCodeListVersion(value);
 
-        marshaller.marshal(new JAXBElement<>(new QName(NAMESPACE_URI, TAG_DATA_OBJECT_VERSION_CODE_LIST_VERSION),
-            String.class, TAG_DATA_OBJECT_VERSION_CODE_LIST_VERSION + tenant), writer);
+        value = new CodeType();
+        value.setValue(TAG_AUTHORIZATION_REASON_CODE_LIST_VERSION + tenant);
+        codeListVersionsType.setAuthorizationReasonCodeListVersion(value);
 
-        marshaller.marshal(new JAXBElement<>(new QName(NAMESPACE_URI, TAG_STORAGE_RULE_CODE_LIST_VERSION),
-            String.class, TAG_STORAGE_RULE_CODE_LIST_VERSION + tenant), writer);
+        value = new CodeType();
+        value.setValue(TAG_RELATIONSHIP_CODE_LIST_VERSION + tenant);
+        codeListVersionsType.setRelationshipCodeListVersion(value);
 
-        marshaller.marshal(new JAXBElement<>(new QName(NAMESPACE_URI, TAG_APPRAISAL_RULE_CODE_LIST_VERSION),
-            String.class, TAG_APPRAISAL_RULE_CODE_LIST_VERSION + tenant), writer);
-
-        marshaller.marshal(new JAXBElement<>(new QName(NAMESPACE_URI, TAG_ACCESS_RULE_CODE_LIST_VERSION),
-            String.class, TAG_ACCESS_RULE_CODE_LIST_VERSION + tenant), writer);
-
-        marshaller.marshal(new JAXBElement<>(new QName(NAMESPACE_URI, TAG_DISSEMINATION_RULE_CODE_LIST_VERSION),
-            String.class, TAG_DISSEMINATION_RULE_CODE_LIST_VERSION + tenant), writer);
-
-        marshaller.marshal(new JAXBElement<>(new QName(NAMESPACE_URI, TAG_REUSE_RULE_CODE_LIST_VERSION),
-            String.class, TAG_REUSE_RULE_CODE_LIST_VERSION + tenant), writer);
-
-        marshaller.marshal(new JAXBElement<>(new QName(NAMESPACE_URI, TAG_CLASSIFICATION_RULE_CODE_LIST_VERSION),
-            String.class, TAG_CLASSIFICATION_RULE_CODE_LIST_VERSION + tenant), writer);
-
-        marshaller.marshal(new JAXBElement<>(new QName(NAMESPACE_URI, TAG_AUTHORIZATION_REASON_CODE_LIST_VERSION),
-            String.class, TAG_AUTHORIZATION_REASON_CODE_LIST_VERSION + tenant), writer);
-
-        marshaller.marshal(new JAXBElement<>(new QName(NAMESPACE_URI, TAG_RELATIONSHIP_CODE_LIST_VERSION),
-            String.class, TAG_RELATIONSHIP_CODE_LIST_VERSION + tenant), writer);
-
-        writer.writeEndElement();
+        marshaller
+            .marshal(new JAXBElement(new QName(NAMESPACE_URI, TAG_CODE_LIST_VERSIONS), codeListVersionsType.getClass(),
+                codeListVersionsType), writer);
     }
 
     void writeFooter(ExportType exportType, ExportRequestParameters parameters)
-        throws XMLStreamException, ExportException, JAXBException {
+        throws JAXBException {
+        IdentifierType identifierType;
+        OrganizationWithIdType organizationWithIdType;
         switch (exportType) {
             case ArchiveTransfer:
                 if (CollectionUtils.isNotEmpty(parameters.getRelatedTransferReference())) {
                     for (String elem : parameters.getRelatedTransferReference()) {
-                        writeRelatedTransferReference(elem);
+                        identifierType = new IdentifierType();
+                        identifierType.setValue(elem);
+
+                        marshaller.marshal(
+                            new JAXBElement(new QName(NAMESPACE_URI, TAG_RELATED_TRANSFER_REFERENCE),
+                                IdentifierType.class, identifierType), writer);
                     }
                 }
-                writeTransferRequestReplyIdentifier(parameters.getTransferRequestReplyIdentifier());
-                break;
-            case ArchiveDeliveryRequestReply:
-                writeMessageRequestIdentifier(parameters.getMessageRequestIdentifier());
-                writeAuthorizationRequestReplyIdentifier(parameters.getAuthorizationRequestReplyIdentifier());
-                writeUnitIdentifier("TODO");
+
+                if (!Strings.isNullOrEmpty(parameters.getTransferRequestReplyIdentifier())) {
+                    identifierType = new IdentifierType();
+                    identifierType.setValue(parameters.getTransferRequestReplyIdentifier());
+                    marshaller.marshal(
+                        new JAXBElement(new QName(NAMESPACE_URI, TAG_TRANSFER_REQUEST_REPLY_IDENTIFIER),
+                            IdentifierType.class,
+                            identifierType), writer);
+                }
+
+                organizationWithIdType = new OrganizationWithIdType();
+                identifierType = new IdentifierType();
+                identifierType.setValue(parameters.getArchivalAgencyIdentifier());
+                organizationWithIdType.setIdentifier(identifierType);
+                marshaller.marshal(
+                    new JAXBElement(new QName(NAMESPACE_URI, TAG_ARCHIVAL_AGENCY), OrganizationWithIdType.class,
+                        organizationWithIdType), writer);
+
+                organizationWithIdType = new OrganizationWithIdType();
+                identifierType = new IdentifierType();
+                identifierType.setValue("VITAM");// TODO: 25/09/2019 add to request param or configuration
+                organizationWithIdType.setIdentifier(identifierType);
+                marshaller.marshal(
+                    new JAXBElement(new QName(NAMESPACE_URI, TAG_TRANSFERRING_AGENCY), OrganizationWithIdType.class,
+                        organizationWithIdType), writer);
 
                 break;
-        }
-
-        writeArchivalAgency(parameters.getArchivalAgencyIdentifier());
-
-        switch (exportType) {
-            case ArchiveTransfer:
-                writeTransferringAgency("TODO");
             case ArchiveDeliveryRequestReply:
-                writeRequester(parameters.getRequesterIdentifier());
+                identifierType = new IdentifierType();
+                identifierType.setValue(parameters.getMessageRequestIdentifier());
+                marshaller.marshal(new JAXBElement(new QName(NAMESPACE_URI, TAG_MESSAGE_REQUEST_IDENTIFIER),
+                    IdentifierType.class, identifierType), writer);
+
+                if (!Strings.isNullOrEmpty(parameters.getAuthorizationRequestReplyIdentifier())) {
+                    identifierType = new IdentifierType();
+                    identifierType.setValue(parameters.getAuthorizationRequestReplyIdentifier());
+                    marshaller
+                        .marshal(new JAXBElement(new QName(NAMESPACE_URI, TAG_AUTHORIZATION_REQUEST_REPLY_IDENTIFIER),
+                            IdentifierType.class, identifierType), writer);
+                }
+
+                identifierType = new IdentifierType();
+                identifierType.setValue("Not Implemented");
+                marshaller
+                    .marshal(new JAXBElement(new QName(NAMESPACE_URI, TAG_UNIT_IDENTIFIER),
+                        IdentifierType.class, identifierType), writer);
+
+                organizationWithIdType = new OrganizationWithIdType();
+                identifierType = new IdentifierType();
+                identifierType.setValue(parameters.getArchivalAgencyIdentifier());
+                organizationWithIdType.setIdentifier(identifierType);
+                marshaller.marshal(new JAXBElement(new QName(NAMESPACE_URI, TAG_ARCHIVAL_AGENCY),
+                    OrganizationWithIdType.class, organizationWithIdType), writer);
+
+                organizationWithIdType = new OrganizationWithIdType();
+                identifierType = new IdentifierType();
+                identifierType.setValue(parameters.getRequesterIdentifier());
+                organizationWithIdType.setIdentifier(identifierType);
+                marshaller.marshal(new JAXBElement(new QName(NAMESPACE_URI, TAG_REQUESTER),
+                    OrganizationWithIdType.class, organizationWithIdType), writer);
                 break;
         }
     }
@@ -654,6 +644,10 @@ public class ManifestBuilder implements AutoCloseable {
     }
 
     void validate(ExportType exportType, ExportRequestParameters exportRequestParameters) throws ExportException {
+
+        if (null == exportRequestParameters) {
+            throw new ExportException("Export type (" + exportType + ") export request parameters mustn't be null");
+        }
 
         String msg = "";
         switch (exportType) {

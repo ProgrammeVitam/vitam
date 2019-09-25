@@ -31,6 +31,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.annotations.VisibleForTesting;
+import com.google.common.base.Strings;
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.ListMultimap;
@@ -65,7 +66,6 @@ import fr.gouv.vitam.worker.core.plugin.ScrollSpliteratorHelper;
 import javax.xml.bind.JAXBException;
 import javax.xml.datatype.DatatypeConfigurationException;
 import javax.xml.stream.XMLStreamException;
-
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -113,7 +113,8 @@ public class CreateManifest extends ActionHandler {
         this(MetaDataClientFactory.getInstance());
     }
 
-    @VisibleForTesting CreateManifest(MetaDataClientFactory metaDataClientFactory) {
+    @VisibleForTesting
+    CreateManifest(MetaDataClientFactory metaDataClientFactory) {
         this.metaDataClientFactory = metaDataClientFactory;
 
         ObjectNode fields = JsonHandler.createObjectNode();
@@ -139,8 +140,14 @@ public class CreateManifest extends ActionHandler {
             DipExportRequest exportRequest = JsonHandler
                 .getFromJsonNode(handlerIO.getJsonFromWorkspace(DIP_REQUEST_FILE_NAME), DipExportRequest.class);
 
-            // Validate request
-            manifestBuilder.validate(exportRequest.getExportType(), exportRequest.getExportRequestParameters());
+            switch (exportRequest.getExportType()) {
+                case ArchiveDeliveryRequestReply:
+                case ArchiveTransfer:
+                    // Validate request
+                    manifestBuilder.validate(exportRequest.getExportType(), exportRequest.getExportRequestParameters());
+                    break;
+            }
+
 
             // Write manifest first line information
             manifestBuilder.startDocument(param.getContainerName(), exportRequest.getExportType(),
@@ -150,7 +157,8 @@ public class CreateManifest extends ActionHandler {
             ListMultimap<String, String> multimap = ArrayListMultimap.create();
             Set<String> originatingAgencies = new HashSet<>();
             String originatingAgency =
-                VitamConfiguration.getDefaultOriginatingAgencyForExport(ParameterHelper.getTenantParameter());
+                VitamConfiguration.getDefaultOriginatingAgencyForExport(
+                    ParameterHelper.getTenantParameter());
             Map<String, String> ogs = new HashMap<>();
 
             SelectParserMultiple parser = new SelectParserMultiple();
@@ -235,13 +243,37 @@ public class CreateManifest extends ActionHandler {
                 });
             manifestBuilder.endDescriptiveMetadata();
 
-            manifestBuilder.writeManagementMetadata(originatingAgency,
-                exportRequest.getExportRequestParameters().getSubmissionAgencyIdentifier());
+            switch (exportRequest.getExportType()) {
+                case ArchiveTransfer:
+                    originatingAgency = exportRequest.getExportRequestParameters().getOriginatingAgencyIdentifier();
+                    break;
+                case ArchiveDeliveryRequestReply:
+                    if (Strings.isNullOrEmpty(originatingAgency)) {
+                        originatingAgency = exportRequest.getExportRequestParameters().getOriginatingAgencyIdentifier();
+                    }
+                    break;
+            }
+
+            manifestBuilder
+                .writeManagementMetadata(originatingAgency,
+                    exportRequest.getExportRequestParameters().getSubmissionAgencyIdentifier());
+
             manifestBuilder.endDataObjectPackage();
 
-            manifestBuilder.writeFooter(exportRequest.getExportType(), exportRequest.getExportRequestParameters());
+            switch (exportRequest.getExportType()) {
+                case ArchiveDeliveryRequestReply:
+                case ArchiveTransfer:
+                    manifestBuilder
+                        .writeFooter(exportRequest.getExportType(), exportRequest.getExportRequestParameters());
+                    break;
+            }
 
             manifestBuilder.closeManifest();
+
+            handlerIO.addOutputResult(MANIFEST_XML_RANK, manifestFile, true, false);
+
+            itemStatus.increment(StatusCode.OK);
+
         } catch (ExportException e) {
             itemStatus.increment(StatusCode.KO);
             ObjectNode infoNode = JsonHandler.createObjectNode();
@@ -252,10 +284,6 @@ public class CreateManifest extends ActionHandler {
             throw new ProcessingException(e);
         }
 
-        handlerIO.addOutputResult(MANIFEST_XML_RANK, manifestFile, true, false);
-
-
-        itemStatus.increment(StatusCode.OK);
         return new ItemStatus(CREATE_MANIFEST).setItemsStatus(CREATE_MANIFEST, itemStatus);
     }
 

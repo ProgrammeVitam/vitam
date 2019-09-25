@@ -427,7 +427,7 @@ public class VitamConfiguration {
     /**
      * Map to override defalt Originating agency for each tenant for a DIP Export with multiple originating agencies
      */
-    private static Map<Integer, String> defaultOriginatingAgencyByTenant = new HashMap<Integer, String>();
+    private static Map<Integer, String> defaultOriginatingAgencyByTenant = new HashMap<>();
     /**
      * Default LANG
      */

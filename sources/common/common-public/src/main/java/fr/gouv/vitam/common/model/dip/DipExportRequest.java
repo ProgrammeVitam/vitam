@@ -7,26 +7,34 @@ public class DipExportRequest {
     public static final String DIP_REQUEST_FILE_NAME = "dip_export_query.json";
 
     @JsonProperty("dataObjectVersionToExport")
-    private DataObjectVersions  dataObjectVersionToExport;
+    private DataObjectVersions dataObjectVersionToExport;
 
     @JsonProperty("exportType")
-    private ExportType exportType = ExportType.ArchiveDeliveryRequestReply;
+    private ExportType exportType = ExportType.MinimalArchiveDeliveryRequestReply;
 
     @JsonProperty("exportRequestParameters")
     private ExportRequestParameters exportRequestParameters;
 
 
     @JsonProperty("exportWithLogBookLFC")
-    private boolean exportWithLogBookLFC;    @JsonProperty("dslRequest")
+    private boolean exportWithLogBookLFC;
 
+    @JsonProperty("dslRequest")
     private JsonNode dslRequest;
 
 
-    public DipExportRequest() {}
+    public DipExportRequest() {
+    }
 
 
     public DipExportRequest(JsonNode dslRequest) {
         this.dslRequest = dslRequest;
+    }
+
+    public DipExportRequest(DataObjectVersions dataObjectVersionToExport, JsonNode dslRequest, boolean withLogBookLFC) {
+        this.dataObjectVersionToExport = dataObjectVersionToExport;
+        this.dslRequest = dslRequest;
+        this.exportWithLogBookLFC = withLogBookLFC;
     }
 
     public DataObjectVersions getDataObjectVersionToExport() {

@@ -36,13 +36,10 @@ public class ExportRequestParameters {
     public static final String IDENTIFIER = "Identifier";
 
     @JsonProperty(SedaConstants.TAG_ARCHIVAL_AGREEMENT)
-    private String archivalAgreement; // Cardinality (1-1) for ArchiveTransfer
+    private String archivalAgreement; // Cardinality (1-1) for ArchiveTransfer optional for ArchiveDeliveryRequestReply
 
     @JsonProperty(SedaConstants.TAG_ORIGINATINGAGENCYIDENTIFIER)
-    private String originatingAgencyIdentifier; // Cardinality (1-1)
-
-    @JsonProperty(SedaConstants.TAG_ORIGINATINGAGENCY)
-    private String originatingAgency;
+    private String originatingAgencyIdentifier; // Cardinality (1-1) for ArchiveTransfer must be given from query
 
     @JsonProperty(SedaConstants.TAG_COMMENT)
     private String comment;
@@ -83,14 +80,6 @@ public class ExportRequestParameters {
 
     public void setOriginatingAgencyIdentifier(String originatingAgencyIdentifier) {
         this.originatingAgencyIdentifier = originatingAgencyIdentifier;
-    }
-
-    public String getOriginatingAgency() {
-        return originatingAgency;
-    }
-
-    public void setOriginatingAgency(String originatingAgency) {
-        this.originatingAgency = originatingAgency;
     }
 
     public String getComment() {
