@@ -512,7 +512,7 @@ class AdminManagementClientRest extends DefaultClient implements AdminManagement
     }
 
     @Override
-    public RequestResponse createorUpdateAccessionRegister(AccessionRegisterDetailModel register)
+    public RequestResponse createOrUpdateAccessionRegister(AccessionRegisterDetailModel register)
         throws AccessionRegisterException, AdminManagementClientServerException {
         ParametersChecker.checkParameter("Accession register is a mandatory parameter", register);
         Response response = null;
@@ -526,7 +526,7 @@ class AdminManagementClientRest extends DefaultClient implements AdminManagement
                     break;
                 case CONFLICT:
                     // When Accession Register detail already exists
-                    LOGGER.debug(Response.Status.CREATED.getReasonPhrase());
+                    LOGGER.debug(Response.Status.CONFLICT.getReasonPhrase());
                     break;
 
                 case BAD_REQUEST:
