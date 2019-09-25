@@ -25,6 +25,48 @@ def remove_skipped_servers(result):
             new_list.append(elem)
     return new_list
 
+def get_certificates(securityprofiles_struct, securityprofile_identifier):
+    '''Get present certificates list from a securityprofiles structure'''
+    certificates_list = []
+    for secuprof in securityprofiles_struct:
+        if secuprof['identifier'] == securityprofile_identifier \
+        and 'contexts' in secuprof.keys():
+            for context in secuprof['contexts']:
+                if 'certificates' in context.keys():
+                    certificates_list += context['certificates']
+    return certificates_list
+
+def get_certificates_from_context_id(securityprofiles_struct, securityprofile_identifier, context_id):
+    '''Get present certificates list from a securityprofiles structure'''
+    certificates_list = []
+    for secuprof in securityprofiles_struct:
+        if secuprof['identifier'] == securityprofile_identifier \
+        and 'contexts' in secuprof.keys():
+            for context in secuprof['contexts']:
+                if 'certificates' in context.keys() and context_id == context['identifier']:
+                    certificates_list += context['certificates']
+    return certificates_list
+
+def get_certificates_from_context_name(securityprofiles_struct, securityprofile_identifier, context_name):
+    '''Get present certificates list from a securityprofiles structure'''
+    certificates_list = []
+    for secuprof in securityprofiles_struct:
+        if secuprof['identifier'] == securityprofile_identifier \
+        and 'contexts' in secuprof.keys():
+                for context in secuprof['contexts']:
+                    if 'certificates' in context.keys() and context_name == context['name']:
+                        certificates_list += context['certificates']
+    return certificates_list
+
+def get_contexts(securityprofiles_struct, securityprofile_identifier):
+    '''Get present certificates list from a securityprofiles structure'''
+    contexts_list = []
+    for secuprof in securityprofiles_struct:
+        if secuprof['identifier'] == securityprofile_identifier \
+        and 'contexts' in secuprof.keys():
+                for context in secuprof['contexts']:
+                    contexts_list.append(context['name'])
+    return contexts_list
 
 class FilterModule(object):
     ''' Ansible vitam jinja2 filters '''
@@ -33,5 +75,9 @@ class FilterModule(object):
         return {
             # jinja2 overrides
             'client_url': client_url,
-            'remove_skipped_servers': remove_skipped_servers
+            'remove_skipped_servers': remove_skipped_servers,
+            'get_certificates': get_certificates,
+            'get_certificates_from_context_id': get_certificates_from_context_id,
+            'get_certificates_from_context_name': get_certificates_from_context_name,
+            'get_contexts': get_contexts
         }
