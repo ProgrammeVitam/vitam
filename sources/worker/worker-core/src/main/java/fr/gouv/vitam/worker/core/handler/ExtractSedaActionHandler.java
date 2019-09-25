@@ -43,6 +43,7 @@ import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.SedaConstants;
 import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.database.builder.query.QueryHelper;
+import fr.gouv.vitam.common.database.builder.query.VitamFieldsHelper;
 import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
 import fr.gouv.vitam.common.database.builder.request.single.Select;
 import fr.gouv.vitam.common.database.parser.query.ParserTokens;
@@ -317,6 +318,7 @@ public class ExtractSedaActionHandler extends ActionHandler {
         }
     }
 
+    private ContractsDetailsModel contracts;
     private Unmarshaller unmarshaller;
     private ArchiveUnitListener listener;
 
@@ -778,22 +780,22 @@ public class ExtractSedaActionHandler extends ActionHandler {
 
             // Retrieve storage info
             final JsonNode storageInfo = JsonHandler.getFromFile((File) handlerIO.getInput(STORAGE_INFO_INPUT_RANK));
-            final ContractsDetailsModel contractsDetailsModel = JsonHandler.getFromFile(
+            contracts = JsonHandler.getFromFile(
                     (File) handlerIO.getInput(CONTRACTS_INPUT_RANK),
                     ContractsDetailsModel.class);
             
             JsonNode storageUnitInfo = storageInfo.get(VitamConfiguration.getDefaultStrategy());
             JsonNode storageObjectGroupInfo = storageInfo.get(VitamConfiguration.getDefaultStrategy());
             JsonNode storageObjectInfo = storageInfo.get(VitamConfiguration.getDefaultStrategy());
-            if (contractsDetailsModel.getManagementContractModel() != null && contractsDetailsModel.getManagementContractModel().getStorage() != null) {
-                if (StringUtils.isNotBlank(contractsDetailsModel.getManagementContractModel().getStorage().getUnitStrategy())) {
-                    storageUnitInfo = storageInfo.get(contractsDetailsModel.getManagementContractModel().getStorage().getUnitStrategy());
+            if (contracts.getManagementContractModel() != null && contracts.getManagementContractModel().getStorage() != null) {
+                if (StringUtils.isNotBlank(contracts.getManagementContractModel().getStorage().getUnitStrategy())) {
+                    storageUnitInfo = storageInfo.get(contracts.getManagementContractModel().getStorage().getUnitStrategy());
                 }
-                if (StringUtils.isNotBlank(contractsDetailsModel.getManagementContractModel().getStorage().getObjectGroupStrategy())) {
-                    storageObjectGroupInfo = storageInfo.get(contractsDetailsModel.getManagementContractModel().getStorage().getObjectGroupStrategy());
+                if (StringUtils.isNotBlank(contracts.getManagementContractModel().getStorage().getObjectGroupStrategy())) {
+                    storageObjectGroupInfo = storageInfo.get(contracts.getManagementContractModel().getStorage().getObjectGroupStrategy());
                 }
-                if (StringUtils.isNotBlank(contractsDetailsModel.getManagementContractModel().getStorage().getObjectStrategy())) {
-                    storageObjectInfo = storageInfo.get(contractsDetailsModel.getManagementContractModel().getStorage().getObjectStrategy());
+                if (StringUtils.isNotBlank(contracts.getManagementContractModel().getStorage().getObjectStrategy())) {
+                    storageObjectInfo = storageInfo.get(contracts.getManagementContractModel().getStorage().getObjectStrategy());
                 }
             }
 
@@ -1414,6 +1416,8 @@ public class ExtractSedaActionHandler extends ActionHandler {
                 // Add storage information to archive unit
                 addStorageInformation(archiveUnit, storageUnitInfo);
 
+                addValidComputedInheritedRulesInformation(archiveUnit);
+
                 isRootArchive =
                     attachmentByIngestContractAndManageRulesInformation(archiveUnit, manifestUnitId, unitGuid,
                         archiveUnitTree, globalMgtIdExtra);
@@ -1457,6 +1461,14 @@ public class ExtractSedaActionHandler extends ActionHandler {
     private void addStorageInformation(ObjectNode archiveUnit, JsonNode storageUnitInfo) {
         ObjectNode archiveUnitNode = (ObjectNode) archiveUnit.get(SedaConstants.TAG_ARCHIVE_UNIT);
         archiveUnitNode.set(SedaConstants.STORAGE, storageUnitInfo);
+    }
+
+    private void addValidComputedInheritedRulesInformation(ObjectNode archiveUnit) {
+        if (contracts.getIngestContractModel() != null
+            && contracts.getIngestContractModel().isComputeInheritedRulesAtIngest()) {
+            ObjectNode archiveUnitNode = (ObjectNode) archiveUnit.get(SedaConstants.TAG_ARCHIVE_UNIT);
+            archiveUnitNode.put(VitamFieldsHelper.validComputedInheritedRules(), false);
+        }
     }
 
     /**

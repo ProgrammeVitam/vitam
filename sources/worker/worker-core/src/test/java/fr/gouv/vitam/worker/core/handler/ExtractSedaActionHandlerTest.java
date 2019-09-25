@@ -26,31 +26,13 @@
  *******************************************************************************/
 package fr.gouv.vitam.worker.core.handler;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.reset;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
-
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.Response.Status;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.List;
-
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.SystemPropertyUtil;
+import fr.gouv.vitam.common.database.builder.query.VitamFieldsHelper;
+import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.RequestResponseOK;
@@ -75,17 +57,49 @@ import fr.gouv.vitam.metadata.client.MetaDataClientFactory;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 import fr.gouv.vitam.processing.common.parameter.WorkerParametersFactory;
 import fr.gouv.vitam.worker.core.impl.HandlerIOImpl;
+import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
 import fr.gouv.vitam.workspace.client.WorkspaceClient;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
 import org.assertj.core.util.Lists;
 import org.junit.After;
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
+import org.mockito.ArgumentCaptor;
+import org.mockito.ArgumentMatchers;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnit;
 import org.mockito.junit.MockitoRule;
+
+import javax.ws.rs.core.Response;
+import javax.ws.rs.core.Response.Status;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.InputStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.ArrayList;
+import java.util.List;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.booleanThat;
+import static org.mockito.ArgumentMatchers.contains;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.atLeastOnce;
+import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.reset;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 public class ExtractSedaActionHandlerTest {
 
@@ -137,11 +151,14 @@ public class ExtractSedaActionHandlerTest {
     private static final String STORAGE_INFO_JSON = "extractSedaActionHandler/storageInfo.json";
     private static final String CONTRACTS_JSON = "extractSedaActionHandler/contracts.json";
     private static final String CONTRACTS_MC_JSON = "extractSedaActionHandler/contracts_mc.json";
+    private static final String INGEST_CONTRACT_JSON_COMPUTEINHERITEDRULESATINGEST =
+        "extractSedaActionHandler/INGEST_CONTRACT_COMPUTEINHERITEDRULESATINGEST.json";
     private static final String OK_MULTI_COMMENT = "extractSedaActionHandler/OK_multi_comment.xml";
     private static final String OK_SIGNATURE = "extractSedaActionHandler/signature.xml";
     private static final String OK_RULES_WOUT_ID = "extractSedaActionHandler/manifestRulesWithoutId.xml";
     private static final String KO_CYCLE = "extractSedaActionHandler/KO_cycle.xml";
     private static final String KO_AU_REF_OBJ = "extractSedaActionHandler/KO_AU_REF_OBJ.xml";
+    private static final String ARCHIVE_UNIT = "ArchiveUnit";
     private HandlerIOImpl handlerIO;
     private List<IOParameter> out;
     private List<IOParameter> in;
@@ -1257,13 +1274,62 @@ public class ExtractSedaActionHandlerTest {
         prepareResponseOKForAdminManagementClientFindIngestContracts(INGEST_CONTRACT_MASTER_MANDATORY_FALSE);
         final InputStream seda_arborescence = PropertiesUtils.getResourceAsStream(SIP_ARBORESCENCE);
         when(workspaceClient.getObject(any(), eq("SIP/manifest.xml")))
-                .thenReturn(Response.status(Status.OK).entity(seda_arborescence).build());
+            .thenReturn(Response.status(Status.OK).entity(seda_arborescence).build());
         handlerIO.addOutIOParameters(out);
 
         final ItemStatus response = handler.execute(params, handlerIO);
         assertEquals(StatusCode.OK, response.getGlobalStatus());
         JsonNode evDetData = JsonHandler.getFromString((String) response.getData("eventDetailData"));
         assertNotNull(evDetData);
+    }
+
+    @Test
+    @RunWithCustomExecutor
+    public void givenSipWithIngestContractHavingComputeInheritedRulesThenUnitsContainsValidComputedInheritedRules()
+        throws Exception {
+        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
+        prepareResponseOKForAdminManagementClientFindIngestContracts(
+            INGEST_CONTRACT_JSON_COMPUTEINHERITEDRULESATINGEST);
+        final InputStream sedaLocal = new FileInputStream(PropertiesUtils.findFile(SIP_ARBORESCENCE));
+        when(workspaceClient.getObject(any(), eq("SIP/manifest.xml")))
+            .thenReturn(Response.status(Status.OK).entity(sedaLocal).build());
+        final InputStream ingestContract = PropertiesUtils.getResourceAsStream(CONTRACTS_JSON);
+        when(workspaceClient.getObject(any(), eq("referential/contracts.json")))
+                .thenReturn(Response.status(Status.OK).entity(ingestContract).build());
+        handlerIO.addOutIOParameters(out);
+
+        saveWorkspacePutObject();
+
+        final ItemStatus response = handler.execute(params, handlerIO);
+        handlerIO.close();
+        ArgumentCaptor<String> fileNameArgumentCaptor = ArgumentCaptor.forClass(String.class);
+        verify(workspaceClient).putObject(anyString(), ArgumentMatchers.startsWith("Units/"), any(InputStream.class));
+        verify(workspaceClient, atLeastOnce())
+            .putObject(anyString(), fileNameArgumentCaptor.capture(), any(InputStream.class));
+
+        JsonNode unitJson = getSavedWorkspaceObject(fileNameArgumentCaptor.getAllValues().stream()
+            .filter(str -> str.startsWith("Units/"))
+            .findFirst().get());
+
+        assertNotNull(unitJson);
+        Assert.assertFalse(unitJson.get(ARCHIVE_UNIT).get(VitamFieldsHelper.validComputedInheritedRules()).booleanValue());
+        assertEquals(StatusCode.OK, response.getGlobalStatus());
+    }
+
+    private void saveWorkspacePutObject() throws ContentAddressableStorageServerException {
+        doAnswer(invocation -> {
+            String filename = invocation.getArgument(1);
+            InputStream inputStream = invocation.getArgument(2);
+            Path filePath = Paths.get(folder.getRoot().getAbsolutePath(), filename);
+            Files.createDirectories(filePath.getParent());
+            Files.copy(inputStream, filePath);
+            return null;
+        }).when(workspaceClient).putObject(anyString(), anyString(), any(InputStream.class));
+    }
+
+    private JsonNode getSavedWorkspaceObject(String filename) throws InvalidParseOperationException {
+        Path filePath = Paths.get(folder.getRoot().getAbsolutePath(), filename);
+        return JsonHandler.getFromFile(filePath.toFile());
     }
 
 }
