@@ -149,7 +149,7 @@ public class PreservationAccessionRegisterActionHandlerTest {
 
     @Test
     @RunWithCustomExecutor
-    public void testResponseKOCouldNotCreateRegister() throws Exception {
+    public void testResponseFATALCouldNotCreateRegister() throws Exception {
         // Given
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         GUID operationId = GUIDFactory.newGUID();
@@ -179,7 +179,7 @@ public class PreservationAccessionRegisterActionHandlerTest {
         final ItemStatus response = accessionRegisterHandler.execute(params, handlerIO);
 
         // Then
-        assertEquals(StatusCode.KO, response.getGlobalStatus());
+        assertEquals(StatusCode.FATAL, response.getGlobalStatus());
 
     }
 
