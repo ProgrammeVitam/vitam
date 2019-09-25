@@ -11,6 +11,15 @@
     host: "{{ ip_service }}"
     port: "{{ composant.port_http }}"
     state: started
+  when: composant.groupe == "data"
+  listen: restart elasticsearch
+
+- name: wait until port is open
+  wait_for:
+    host: "{{ ip_admin }}"
+    port: "{{ composant.port_http }}"
+    state: started
+  when: composant.groupe == "log"
   listen: restart elasticsearch
 
 - name: create systemd tmpfiles
