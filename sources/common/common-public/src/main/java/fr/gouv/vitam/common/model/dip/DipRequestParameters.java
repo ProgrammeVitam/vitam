@@ -29,9 +29,7 @@ package fr.gouv.vitam.common.model.dip;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import fr.gouv.vitam.common.SedaConstants;
 
-import java.util.List;
-
-public class ExportRequestParameters {
+public class DipRequestParameters {
 
     public static final String IDENTIFIER = "Identifier";
 
@@ -50,12 +48,6 @@ public class ExportRequestParameters {
     @JsonProperty(SedaConstants.TAG_MESSAGE_REQUEST_IDENTIFIER)
     private String messageRequestIdentifier; // ArchiveDeliveryRequestReply only Cardinality (1-1)
 
-    @JsonProperty(SedaConstants.TAG_RELATED_TRANSFER_REFERENCE)
-    private List<String> relatedTransferReference; // ArchiveTransfer only
-
-    @JsonProperty(SedaConstants.TAG_TRANSFER_REQUEST_REPLY_IDENTIFIER)
-    private String transferRequestReplyIdentifier; // ArchiveTransfer only
-
     @JsonProperty(SedaConstants.TAG_AUTHORIZATION_REQUEST_REPLY_IDENTIFIER)
     private String authorizationRequestReplyIdentifier; // ArchiveDeliveryRequestReply only
 
@@ -65,55 +57,6 @@ public class ExportRequestParameters {
     @JsonProperty(SedaConstants.TAG_REQUESTER + IDENTIFIER)
     private String requesterIdentifier; // ArchiveDeliveryRequestReply only Cardinality (1-1)
 
-    public ExportRequestParameters() {
-        //Empty
-    }
-
-    // Dip Constructor
-    public ExportRequestParameters(String archivalAgreement, String originatingAgencyIdentifier, String comment,
-        String submissionAgencyIdentifier, String messageRequestIdentifier,
-        String authorizationRequestReplyIdentifier, String archivalAgencyIdentifier, String requesterIdentifier) {
-        this.archivalAgreement = archivalAgreement;
-        this.originatingAgencyIdentifier = originatingAgencyIdentifier;
-        this.comment = comment;
-        this.submissionAgencyIdentifier = submissionAgencyIdentifier;
-        this.messageRequestIdentifier = messageRequestIdentifier;
-        this.authorizationRequestReplyIdentifier = authorizationRequestReplyIdentifier;
-        this.archivalAgencyIdentifier = archivalAgencyIdentifier;
-        this.requesterIdentifier = requesterIdentifier;
-    }
-
-    // Transfer Constructor
-    public ExportRequestParameters(String archivalAgreement, String originatingAgencyIdentifier, String comment,
-        String submissionAgencyIdentifier, List<String> relatedTransferReference,
-        String transferRequestReplyIdentifier, String archivalAgencyIdentifier) {
-        this.archivalAgreement = archivalAgreement;
-        this.originatingAgencyIdentifier = originatingAgencyIdentifier;
-        this.comment = comment;
-        this.submissionAgencyIdentifier = submissionAgencyIdentifier;
-        this.relatedTransferReference = relatedTransferReference;
-        this.transferRequestReplyIdentifier = transferRequestReplyIdentifier;
-        this.archivalAgencyIdentifier = archivalAgencyIdentifier;
-    }
-
-    public static ExportRequestParameters from(DipRequestParameters dipRequestParameters) {
-        return new ExportRequestParameters(dipRequestParameters.getArchivalAgreement(),
-            dipRequestParameters.getOriginatingAgencyIdentifier(), dipRequestParameters.getComment(),
-            dipRequestParameters.getSubmissionAgencyIdentifier(),
-            dipRequestParameters.getMessageRequestIdentifier(),
-            dipRequestParameters.getAuthorizationRequestReplyIdentifier(),
-            dipRequestParameters.getArchivalAgencyIdentifier(), dipRequestParameters.getRequesterIdentifier());
-    }
-
-
-    public static ExportRequestParameters from(TransferRequestParameters transferRequestParameters) {
-        return new ExportRequestParameters(transferRequestParameters.getArchivalAgreement(),
-            transferRequestParameters.getOriginatingAgencyIdentifier(), transferRequestParameters.getComment(),
-            transferRequestParameters.getSubmissionAgencyIdentifier(),
-            transferRequestParameters.getRelatedTransferReference(),
-            transferRequestParameters.getTransferRequestReplyIdentifier(),
-            transferRequestParameters.getArchivalAgencyIdentifier());
-    }
 
     public String getArchivalAgreement() {
         return archivalAgreement;
@@ -153,22 +96,6 @@ public class ExportRequestParameters {
 
     public void setMessageRequestIdentifier(String messageRequestIdentifier) {
         this.messageRequestIdentifier = messageRequestIdentifier;
-    }
-
-    public List<String> getRelatedTransferReference() {
-        return relatedTransferReference;
-    }
-
-    public void setRelatedTransferReference(List<String> relatedTransferReference) {
-        this.relatedTransferReference = relatedTransferReference;
-    }
-
-    public String getTransferRequestReplyIdentifier() {
-        return transferRequestReplyIdentifier;
-    }
-
-    public void setTransferRequestReplyIdentifier(String transferRequestReplyIdentifier) {
-        this.transferRequestReplyIdentifier = transferRequestReplyIdentifier;
     }
 
     public String getAuthorizationRequestReplyIdentifier() {

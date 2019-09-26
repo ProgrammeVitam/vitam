@@ -37,6 +37,27 @@ public class DipExportRequest {
         this.exportWithLogBookLFC = withLogBookLFC;
     }
 
+    public static DipExportRequest from(DipRequest dipRequest) {
+        DipExportRequest dipExportRequest =
+            new DipExportRequest(dipRequest.getDataObjectVersionToExport(), dipRequest.getDslRequest(),
+                dipRequest.isExportWithLogBookLFC());
+        dipExportRequest.setExportType(dipRequest.getDipExportType().getExportType());
+        dipExportRequest.setExportRequestParameters(ExportRequestParameters.from(dipRequest.getDipRequestParameters()));
+
+        return dipExportRequest;
+    }
+
+    public static DipExportRequest from(TransferRequest transferRequest) {
+        DipExportRequest dipExportRequest =
+            new DipExportRequest(transferRequest.getDataObjectVersionToExport(), transferRequest.getDslRequest(),
+                transferRequest.isTransferWithLogBookLFC());
+        dipExportRequest.setExportType(ExportType.ArchiveTransfer);
+        dipExportRequest
+            .setExportRequestParameters(ExportRequestParameters.from(transferRequest.getTransferRequestParameters()));
+
+        return dipExportRequest;
+    }
+
     public DataObjectVersions getDataObjectVersionToExport() {
         return dataObjectVersionToExport;
     }

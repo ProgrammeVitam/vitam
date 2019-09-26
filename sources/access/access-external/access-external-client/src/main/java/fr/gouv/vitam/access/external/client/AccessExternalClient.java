@@ -36,6 +36,8 @@ import fr.gouv.vitam.common.exception.VitamClientException;
 import fr.gouv.vitam.common.external.client.BasicClient;
 import fr.gouv.vitam.common.model.PreservationRequest;
 import fr.gouv.vitam.common.model.RequestResponse;
+import fr.gouv.vitam.common.model.dip.DipRequest;
+import fr.gouv.vitam.common.model.dip.TransferRequest;
 import fr.gouv.vitam.common.model.elimination.EliminationRequestBody;
 import fr.gouv.vitam.common.model.logbook.LogbookLifecycle;
 import fr.gouv.vitam.common.model.logbook.LogbookOperation;
@@ -169,6 +171,8 @@ public interface AccessExternalClient extends BasicClient {
     RequestResponse<JsonNode> exportDIP(VitamContext vitamContext,
                                         JsonNode dslRequest) throws VitamClientException;
 
+    RequestResponse<JsonNode> transfer(VitamContext vitamContext,
+        TransferRequest transferRequest) throws VitamClientException;
     /**
      * getDIPById<br>
      * <br>

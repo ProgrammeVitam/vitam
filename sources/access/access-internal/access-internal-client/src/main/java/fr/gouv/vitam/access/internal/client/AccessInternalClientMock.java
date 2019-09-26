@@ -106,8 +106,8 @@ class AccessInternalClientMock extends AbstractMockClient implements AccessInter
      *
      * @param massUpdateUnitRuleRequest the request to be used to update archive units rules
      * @return a response containing a json node object including queries, context and results
-     * @throws InvalidParseOperationException        if the query is not well formatted
-     * @throws AccessInternalClientServerException   if the server encountered an exception
+     * @throws InvalidParseOperationException if the query is not well formatted
+     * @throws AccessInternalClientServerException if the server encountered an exception
      * @throws AccessInternalClientNotFoundException if the requested unit does not exist
      * @throws AccessUnauthorizedException
      * @throws AccessInternalRuleExecutionException
@@ -192,12 +192,12 @@ class AccessInternalClientMock extends AbstractMockClient implements AccessInter
     }
 
     @Override
-    public RequestResponse<JsonNode> exportDIPByUsageFilter(DipExportRequest dipExportRequest) {
+    public RequestResponse<JsonNode> exportByUsageFilter(DipExportRequest dipExportRequest) {
         return new RequestResponseOK<>();
     }
 
     @Override
-    public Response findDIPByID(String id) throws AccessInternalClientServerException {
+    public Response findExportByID(String id) throws AccessInternalClientServerException {
         return Response.ok().build();
     }
 

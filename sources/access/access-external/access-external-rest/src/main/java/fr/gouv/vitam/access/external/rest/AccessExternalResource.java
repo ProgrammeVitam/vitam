@@ -43,6 +43,7 @@ import fr.gouv.vitam.common.dsl.schema.DslSchema;
 import fr.gouv.vitam.common.dsl.schema.ValidationException;
 import fr.gouv.vitam.common.dsl.schema.validator.BatchProcessingQuerySchemaValidator;
 import fr.gouv.vitam.common.dsl.schema.validator.DslValidator;
+import fr.gouv.vitam.common.dsl.schema.validator.SelectMultipleSchemaValidator;
 import fr.gouv.vitam.common.error.VitamCode;
 import fr.gouv.vitam.common.error.VitamCodeHelper;
 import fr.gouv.vitam.common.error.VitamError;
@@ -57,6 +58,8 @@ import fr.gouv.vitam.common.model.PreservationRequest;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseError;
 import fr.gouv.vitam.common.model.RequestResponseOK;
+import fr.gouv.vitam.common.model.dip.DipExportRequest;
+import fr.gouv.vitam.common.model.dip.TransferRequest;
 import fr.gouv.vitam.common.model.elimination.EliminationRequestBody;
 import fr.gouv.vitam.common.model.massupdate.MassUpdateUnitRuleRequest;
 import fr.gouv.vitam.common.security.SanityChecker;
@@ -231,6 +234,56 @@ public class AccessExternalResource extends ApplicationStatusResource {
         }
     }
 
+
+    @POST
+    @Path("/transfers")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    @Secured(permission = "transfers:create", description = "Générer le SIP pour transfer à partir d'un DSL")
+    public Response transfer(TransferRequest transferRequest) {
+        try (AccessInternalClient client = accessInternalClientFactory.getClient()) {
+            SanityChecker.checkJsonAll(transferRequest.getDslRequest());
+            SelectMultipleSchemaValidator validator = new SelectMultipleSchemaValidator();
+            validator.validate(transferRequest.getDslRequest());
+
+            RequestResponse response = client.exportByUsageFilter(DipExportRequest.from(transferRequest));
+            if (response.isOk()) {
+                return Response.status(Status.ACCEPTED.getStatusCode()).entity(response).build();
+            } else {
+                return response.toResponse();
+            }
+        } catch (final AccessInternalClientServerException e) {
+            LOGGER.error(PREDICATES_FAILED_EXCEPTION, e);
+            return Response.status(Status.PRECONDITION_FAILED)
+                .entity(getErrorEntity(Status.PRECONDITION_FAILED, e.getLocalizedMessage())).build();
+        } catch (final Exception e) {
+            LOGGER.error("Technical Exception ", e);
+            return Response.status(Status.INTERNAL_SERVER_ERROR)
+                .entity(getErrorEntity(Status.INTERNAL_SERVER_ERROR, e.getLocalizedMessage())).build();
+        }
+    }
+
+    @GET
+    @Path("/transfers/{id}")
+    @Produces(MediaType.APPLICATION_OCTET_STREAM)
+    @Secured(permission = "transfers:id:read", description = "Récupérer le SIP du transfer")
+    public Response findTransferByID(@PathParam("id") String id) {
+
+        Status status;
+        try (AccessInternalClient client = accessInternalClientFactory.getClient()) {
+            Response response = client.findExportByID(id);
+            if (response.getStatusInfo().getFamily() == Status.Family.SUCCESSFUL) {
+                return new VitamAsyncInputStreamResponse(response, Status.OK, MediaType.APPLICATION_OCTET_STREAM_TYPE);
+            } else {
+                return response;
+            }
+        } catch (final AccessInternalClientServerException e) {
+            LOGGER.error(PREDICATES_FAILED_EXCEPTION, e);
+            status = Status.PRECONDITION_FAILED;
+            return Response.status(status).entity(getErrorEntity(status, e.getLocalizedMessage())).build();
+        }
+    }
+
     /**
      * Performs a reclassification workflow.
      *
@@ -366,11 +419,11 @@ public class AccessExternalResource extends ApplicationStatusResource {
     @Path("/dipexport/{id}/dip")
     @Produces(MediaType.APPLICATION_OCTET_STREAM)
     @Secured(permission = "dipexport:id:dip:read", description = "Récupérer le DIP")
-    public Response findDIPByID(@PathParam("id") String id) {
+    public Response findExportByID(@PathParam("id") String id) {
 
         Status status;
         try (AccessInternalClient client = accessInternalClientFactory.getClient()) {
-            Response response = client.findDIPByID(id);
+            Response response = client.findExportByID(id);
             if (response.getStatusInfo().getFamily() == Status.Family.SUCCESSFUL) {
                 return new VitamAsyncInputStreamResponse(response, Status.OK, MediaType.APPLICATION_OCTET_STREAM_TYPE);
             } else {

@@ -7,6 +7,7 @@ import fr.gouv.vitam.common.external.client.AbstractMockClient;
 import fr.gouv.vitam.common.external.client.ClientMockResultHelper;
 import fr.gouv.vitam.common.model.PreservationRequest;
 import fr.gouv.vitam.common.model.RequestResponse;
+import fr.gouv.vitam.common.model.dip.TransferRequest;
 import fr.gouv.vitam.common.model.elimination.EliminationRequestBody;
 import fr.gouv.vitam.common.model.logbook.LogbookLifecycle;
 import fr.gouv.vitam.common.model.logbook.LogbookOperation;
@@ -86,8 +87,14 @@ class AccessExternalClientMock extends AbstractMockClient implements AccessExter
 
     @Override
     public RequestResponse<JsonNode> exportDIP(VitamContext vitamContext,
-                                               JsonNode dslRequest) throws VitamClientException {
+        JsonNode dslRequest) throws VitamClientException {
         return ClientMockResultHelper.getDIPSimpleResult(dslRequest);
+    }
+
+    @Override
+    public RequestResponse<JsonNode> transfer(VitamContext vitamContext, TransferRequest transferRequest)
+        throws VitamClientException {
+        throw new IllegalStateException("Not implemented");
     }
 
     @Override
@@ -108,8 +115,9 @@ class AccessExternalClientMock extends AbstractMockClient implements AccessExter
         return ClientMockResultHelper.getArchiveUnitSimpleResult(updateQuery);
     }
 
-    @Override public RequestResponse<JsonNode> massUpdateUnitsRules(VitamContext vitamContext, JsonNode queryJson)
-            throws VitamClientException {
+    @Override
+    public RequestResponse<JsonNode> massUpdateUnitsRules(VitamContext vitamContext, JsonNode queryJson)
+        throws VitamClientException {
         return ClientMockResultHelper.getArchiveUnitSimpleResult(queryJson);
     }
 
@@ -124,8 +132,10 @@ class AccessExternalClientMock extends AbstractMockClient implements AccessExter
         throw new UnsupportedOperationException("Will not be implemented");
     }
 
-    @Override public Response getAccessLog(VitamContext vitamContext, JsonNode params) {
-        return new AbstractMockClient.FakeInboundResponse(Status.OK, new ByteArrayInputStream("accessLogTest".getBytes()),
+    @Override
+    public Response getAccessLog(VitamContext vitamContext, JsonNode params) {
+        return new AbstractMockClient.FakeInboundResponse(Status.OK,
+            new ByteArrayInputStream("accessLogTest".getBytes()),
             MediaType.APPLICATION_OCTET_STREAM_TYPE, null);
     }
 
@@ -141,7 +151,8 @@ class AccessExternalClientMock extends AbstractMockClient implements AccessExter
         throw new UnsupportedOperationException("Will not be implemented");
     }
 
-    @Override public RequestResponse<JsonNode> launchPreservation(VitamContext vitamContext,
+    @Override
+    public RequestResponse<JsonNode> launchPreservation(VitamContext vitamContext,
         PreservationRequest preservationRequest) {
         throw new UnsupportedOperationException("Will not be implemented");
     }

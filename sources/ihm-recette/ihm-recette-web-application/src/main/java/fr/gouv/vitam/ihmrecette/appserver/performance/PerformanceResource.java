@@ -26,17 +26,11 @@
  */
 package fr.gouv.vitam.ihmrecette.appserver.performance;
 
-import static java.lang.String.format;
-
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.io.InputStream;
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
-import java.util.List;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.stream.Collectors;
+import fr.gouv.vitam.common.GlobalDataRest;
+import fr.gouv.vitam.common.ParametersChecker;
+import fr.gouv.vitam.common.logging.VitamLogger;
+import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.common.thread.VitamThreadFactory;
 
 import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;
@@ -48,25 +42,30 @@ import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.InputStream;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.util.List;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.stream.Collectors;
 
-import fr.gouv.vitam.common.GlobalDataRest;
-import fr.gouv.vitam.common.ParametersChecker;
-import fr.gouv.vitam.common.logging.VitamLogger;
-import fr.gouv.vitam.common.logging.VitamLoggerFactory;
-import fr.gouv.vitam.common.server.application.resources.VitamResource;
-import fr.gouv.vitam.common.thread.VitamThreadFactory;
+import static java.lang.String.format;
 
 /**
  * resource defining performance
  */
 @Path("/v1/api/performances")
-public class PerformanceResource implements VitamResource {
+public class PerformanceResource {
 
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(PerformanceResource.class);
 
     private static final DateTimeFormatter DATE_TIME_FORMATTER = DateTimeFormatter.ofPattern("yyyyMMdd_HHmmss");
 
-    private ExecutorService performanceTestLauncher = Executors.newSingleThreadExecutor(VitamThreadFactory.getInstance());
+    private ExecutorService performanceTestLauncher =
+        Executors.newSingleThreadExecutor(VitamThreadFactory.getInstance());
 
     private PerformanceService performanceService;
 
@@ -76,7 +75,7 @@ public class PerformanceResource implements VitamResource {
 
     /**
      * @param model
-     * @return Response 
+     * @return Response
      * @throws InterruptedException
      * @throws FileNotFoundException
      */

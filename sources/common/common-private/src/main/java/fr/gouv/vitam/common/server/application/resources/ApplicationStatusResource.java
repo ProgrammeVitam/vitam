@@ -27,8 +27,8 @@
 
 package fr.gouv.vitam.common.server.application.resources;
 
-import java.util.ArrayList;
-import java.util.List;
+import fr.gouv.vitam.common.VitamConfiguration;
+import fr.gouv.vitam.common.security.rest.Unsecured;
 
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
@@ -37,17 +37,12 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
-import fr.gouv.vitam.common.VitamConfiguration;
-import fr.gouv.vitam.common.security.rest.Unsecured;
-
 
 /**
  * Implementation of VitamResources which handle common tasks for all sub-implementation
- *
- *
  */
 @Path("/")
-public class ApplicationStatusResource implements VitamResource {
+public class ApplicationStatusResource {
     /**
      * Status for Application resource path
      */
@@ -57,7 +52,6 @@ public class ApplicationStatusResource implements VitamResource {
     private final VitamStatusService statusService;
 
     /**
-     *
      * Constructor InternalVitamResources using implicit BasicVitamStatusServiceImpl
      */
     public ApplicationStatusResource() {
@@ -65,7 +59,6 @@ public class ApplicationStatusResource implements VitamResource {
     }
 
     /**
-     *
      * Constructor InternalVitamResources
      *
      * @param statusService
@@ -91,7 +84,7 @@ public class ApplicationStatusResource implements VitamResource {
             return Response.status(Status.SERVICE_UNAVAILABLE).build();
         }
     }
-    
+
     /**
      * Retrieve all the tenants defined on the plateform
      *

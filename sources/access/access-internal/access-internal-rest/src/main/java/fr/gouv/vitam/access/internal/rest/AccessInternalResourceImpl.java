@@ -82,6 +82,7 @@ import fr.gouv.vitam.common.model.VitamSession;
 import fr.gouv.vitam.common.model.administration.AccessContractModel;
 import fr.gouv.vitam.common.model.administration.ActivationStatus;
 import fr.gouv.vitam.common.model.dip.DipExportRequest;
+import fr.gouv.vitam.common.model.dip.ExportType;
 import fr.gouv.vitam.common.model.elimination.EliminationRequestBody;
 import fr.gouv.vitam.common.model.massupdate.MassUpdateUnitRuleRequest;
 import fr.gouv.vitam.common.model.massupdate.RuleActions;
@@ -343,6 +344,7 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
         DipExportRequest dipExportRequest = new DipExportRequest();
         dipExportRequest.setDslRequest(dslRequest);
         dipExportRequest.setExportWithLogBookLFC(false);
+        dipExportRequest.setExportType(ExportType.MinimalArchiveDeliveryRequestReply);
 
         return exportDIPByRequest(dipExportRequest, false);
     }

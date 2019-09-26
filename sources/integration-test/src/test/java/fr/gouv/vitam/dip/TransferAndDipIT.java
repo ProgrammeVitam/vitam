@@ -298,7 +298,7 @@ public class TransferAndDipIT extends VitamRuleRunner {
         prepareVitamSession();
         getVitamSession().setRequestId(operationGuid);
         try (AccessInternalClient client = AccessInternalClientFactory.getInstance().getClient()) {
-            client.exportDIPByUsageFilter(dipExportRequest);
+            client.exportByUsageFilter(dipExportRequest);
 
             awaitForWorkflowTerminationWithStatus(operationGuid, StatusCode.OK);
             try (InputStream dip = getDip(operationGuid.getId())) {
@@ -321,7 +321,7 @@ public class TransferAndDipIT extends VitamRuleRunner {
 
             String evIdProc = logbook.get("evIdProc").asText();
 
-            return client.findDIPByID(evIdProc).readEntity(InputStream.class);
+            return client.findExportByID(evIdProc).readEntity(InputStream.class);
         }
     }
 
