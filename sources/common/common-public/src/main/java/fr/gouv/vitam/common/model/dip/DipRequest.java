@@ -10,7 +10,7 @@ public class DipRequest  {
     @JsonProperty("dipExportType")
     private DipExportType dipExportType = DipExportType.MINIMAL;
 
-    @JsonProperty("exportRequestParameters")
+    @JsonProperty("dipRequestParameters")
     private DipRequestParameters dipRequestParameters;
 
 

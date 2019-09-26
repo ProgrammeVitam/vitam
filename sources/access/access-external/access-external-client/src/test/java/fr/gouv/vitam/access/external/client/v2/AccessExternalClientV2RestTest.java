@@ -76,7 +76,7 @@ public class AccessExternalClientV2RestTest extends ResteasyTestApplication {
         @Path("/dipexport")
         @Consumes(MediaType.APPLICATION_JSON)
         @Produces(MediaType.APPLICATION_JSON)
-        public Response exportDIP(DipExportRequest dipExportRequest) {
+        public Response exportDIP(DipRequest dipRequest) {
             return expectedResponse.post();
         }
     }

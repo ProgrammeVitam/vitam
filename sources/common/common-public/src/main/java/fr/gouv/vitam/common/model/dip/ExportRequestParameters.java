@@ -102,6 +102,10 @@ public class ExportRequestParameters {
     }
 
     public static ExportRequestParameters from(DipRequestParameters dipRequestParameters) {
+        if (null == dipRequestParameters) {
+            return null;
+        }
+
         return new ExportRequestParameters(dipRequestParameters.getArchivalAgreement(),
             dipRequestParameters.getOriginatingAgencyIdentifier(), dipRequestParameters.getComment(),
             dipRequestParameters.getSubmissionAgencyIdentifier(),

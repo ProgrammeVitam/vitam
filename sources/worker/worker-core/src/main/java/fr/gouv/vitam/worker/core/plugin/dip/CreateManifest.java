@@ -254,9 +254,11 @@ public class CreateManifest extends ActionHandler {
                     break;
             }
 
+            String submissionAgencyIdentifier = exportRequest.getExportRequestParameters() != null ?
+                exportRequest.getExportRequestParameters().getSubmissionAgencyIdentifier() :
+                null;
             manifestBuilder
-                .writeManagementMetadata(originatingAgency,
-                    exportRequest.getExportRequestParameters().getSubmissionAgencyIdentifier());
+                .writeManagementMetadata(originatingAgency, submissionAgencyIdentifier);
 
             manifestBuilder.endDataObjectPackage();
 
@@ -264,7 +266,8 @@ public class CreateManifest extends ActionHandler {
                 case ArchiveDeliveryRequestReply:
                 case ArchiveTransfer:
                     if (Strings.isNullOrEmpty(exportRequest.getExportRequestParameters().getTransferringAgency())) {
-                        exportRequest.getExportRequestParameters().setTransferringAgency(VitamConfiguration.getVitamDefaultTransferringAgency());
+                        exportRequest.getExportRequestParameters()
+                            .setTransferringAgency(VitamConfiguration.getVitamDefaultTransferringAgency());
                     }
                     manifestBuilder
                         .writeFooter(exportRequest.getExportType(), exportRequest.getExportRequestParameters());
