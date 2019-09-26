@@ -1,0 +1,32 @@
+{
+  "_id" : "aecaaaaaacbkveqgabgemalnnrprq5qaaaaq",
+  "evId" : "aecaaaaaacbkveqgabgemalnnrprq5qaaaaq",
+  "evType" : "IMPORT_ONTOLOGY",
+  "evDateTime" : "2019-09-26T07:00:34.572",
+  "evIdProc" : "aecaaaaaacbkveqgabgemalnnrprq5qaaaaq",
+  "evTypeProc" : "MASTERDATA",
+  "outcome" : "STARTED",
+  "outDetail" : "IMPORT_ONTOLOGY.STARTED",
+  "outMessg" : "D\u00E9but du processus d'import de l'ontologie",
+  "agId" : "{\"Name\":\"youdsys-XPS-15-9570\",\"Role\":\"UnknownRole\",\"ServerId\":1521127942,\"SiteId\":0,\"GlobalPlatformId\":44732934}",
+  "agIdApp" : "Context_IT",
+  "evIdReq" : "aecaaaaaacbkveqgabgemalnnrprq5qaaaaq",
+  "obId" : "aecaaaaaacbkveqgabgemalnnrprq5qaaaaq",
+  "events" : [ {
+    "evId" : "aecaaaaaagbkveqgabgemalnnrprtbyaaaaq",
+    "evType" : "STP_BACKUP_ONTOLOGY",
+    "evDateTime" : "2019-09-26T07:00:34.823",
+    "evDetData" : "{\"FileName\":\"1_aeaaaaaaaabkveqgabgemalnnrppuaaaaaaqOntology_4.json\",\"Digest\":\"abaa48d3a5a4887f23dcd891a03eb75412b6936bc009b61711a2718680d9acca7c8042bddc26c3366e00f6966d77b4c9aaa65f9b196a3ca8b670d238b91762ee\",\"DigestType\":\"SHA-512\"}",
+    "evIdProc" : "aecaaaaaacbkveqgabgemalnnrprq5qaaaaq",
+    "evTypeProc" : "MASTERDATA",
+    "outcome" : "OK",
+    "outDetail" : "STP_BACKUP_ONTOLOGY.OK",
+    "outMessg" : "!STP_BACKUP_ONTOLOGY.OK!",
+    "agId" : "{\"Name\":\"youdsys-XPS-15-9570\",\"Role\":\"UnknownRole\",\"ServerId\":1521127942,\"SiteId\":0,\"GlobalPlatformId\":44732934}",
+    "evIdReq" : "aecaaaaaacbkveqgabgemalnnrprq5qaaaaq",
+    "obId" : "aecaaaaaacbkveqgabgemalnnrprq5qaaaaq"
+  } ],
+  "_tenant" : 1,
+  "_v" : 1,
+  "_lastPersistedDate" : "2019-09-26T07:00:34.825"
+}

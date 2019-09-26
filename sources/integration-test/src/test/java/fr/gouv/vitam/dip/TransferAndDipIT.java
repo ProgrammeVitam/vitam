@@ -29,6 +29,7 @@ package fr.gouv.vitam.dip;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
+import com.mongodb.client.model.Filters;
 import fr.gouv.vitam.access.internal.client.AccessInternalClient;
 import fr.gouv.vitam.access.internal.client.AccessInternalClientFactory;
 import fr.gouv.vitam.access.internal.rest.AccessInternalMain;
@@ -64,9 +65,11 @@ import fr.gouv.vitam.functional.administration.rest.AdminManagementMain;
 import fr.gouv.vitam.ingest.internal.client.IngestInternalClient;
 import fr.gouv.vitam.ingest.internal.client.IngestInternalClientFactory;
 import fr.gouv.vitam.ingest.internal.upload.rest.IngestInternalMain;
+import fr.gouv.vitam.logbook.common.parameters.Contexts;
 import fr.gouv.vitam.logbook.common.parameters.LogbookOperationParameters;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParametersFactory;
 import fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess;
+import fr.gouv.vitam.logbook.common.server.database.collections.LogbookCollections;
 import fr.gouv.vitam.logbook.rest.LogbookMain;
 import fr.gouv.vitam.metadata.rest.MetadataMain;
 import fr.gouv.vitam.processing.common.model.ProcessWorkflow;
@@ -80,6 +83,7 @@ import fr.gouv.vitam.workspace.rest.WorkspaceMain;
 import org.apache.commons.compress.archivers.zip.ZipArchiveEntry;
 import org.apache.commons.compress.archivers.zip.ZipFile;
 import org.apache.commons.io.IOUtils;
+import org.bson.Document;
 import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
@@ -301,6 +305,18 @@ public class TransferAndDipIT extends VitamRuleRunner {
             client.exportByUsageFilter(dipExportRequest);
 
             awaitForWorkflowTerminationWithStatus(operationGuid, StatusCode.OK);
+            Document document = (Document) LogbookCollections.OPERATION.getCollection()
+                .find(Filters.eq(getVitamSession().getRequestId())).first();
+
+            switch (dipExportRequest.getExportType()) {
+                case ArchiveTransfer:
+                    assertThat(document.getString("evType")).isEqualTo(Contexts.ARCHIVE_TRANSFER.getEventType());
+                    break;
+                case ArchiveDeliveryRequestReply:
+                case MinimalArchiveDeliveryRequestReply:
+                    assertThat(document.getString("evType")).isEqualTo(Contexts.EXPORT_DIP.getEventType());
+                    break;
+            }
             try (InputStream dip = getDip(operationGuid.getId())) {
                 File dipFile = File.createTempFile("tmp", ".zip", new File(VitamConfiguration.getVitamTmpFolder()));
                 IOUtils.copy(dip, new FileOutputStream(dipFile));
