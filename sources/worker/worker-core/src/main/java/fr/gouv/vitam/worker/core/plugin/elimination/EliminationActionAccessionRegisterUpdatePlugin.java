@@ -46,7 +46,6 @@ import fr.gouv.vitam.functional.administration.client.AdminManagementClient;
 import fr.gouv.vitam.functional.administration.client.AdminManagementClientFactory;
 import fr.gouv.vitam.functional.administration.common.exception.AccessionRegisterException;
 import fr.gouv.vitam.functional.administration.common.exception.AdminManagementClientServerException;
-import fr.gouv.vitam.functional.administration.common.exception.DatabaseConflictException;
 import fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
@@ -159,7 +158,7 @@ public class EliminationActionAccessionRegisterUpdatePlugin extends ActionHandle
                 .setLastUpdate(updateDate);
 
             RequestResponse<AccessionRegisterDetailModel> resp =
-                adminManagementClient.createorUpdateAccessionRegister(accessionRegisterDetailModel);
+                adminManagementClient.createOrUpdateAccessionRegister(accessionRegisterDetailModel);
 
             if (resp.getStatus() == javax.ws.rs.core.Response.Status.CONFLICT.getStatusCode()) {
                 throw new EliminationException(
