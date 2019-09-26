@@ -8,7 +8,9 @@
     dest: /etc/rsyslog.d/vitam_transport.conf
     owner: root
     mode: 0644
-  when: groups['hosts-logstash']|length > 0
+  when: 
+    - groups['hosts-logstash']|length > 0
+    - consul_disabled is not defined or consul_disabled |lower != "true"
   notify:
     - restart rsyslog
 
