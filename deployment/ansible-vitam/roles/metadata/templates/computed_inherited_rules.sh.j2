@@ -13,7 +13,7 @@ function log() {
 
 function local_curl() {
     COLLECTION=${1}
-    curl -s -X GET -H "X-Tenant-Id: {{ vitam_tenant_admin }}" -H "Content-Type: application/json" --user "${VITAM_ADMIN_AUTH}" ${COMPUTED_INHERITED_RULES_URL}
+    curl -s -X POST -H "X-Tenant-Id: {{ vitam_tenant_admin }}" -H "Content-Type: application/json" --user "${VITAM_ADMIN_AUTH}" ${COMPUTED_INHERITED_RULES_URL}
     log "INFO" "${MSG}"
 }
 
