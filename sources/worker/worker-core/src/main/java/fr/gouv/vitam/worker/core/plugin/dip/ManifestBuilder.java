@@ -594,7 +594,7 @@ public class ManifestBuilder implements AutoCloseable {
 
                 organizationWithIdType = new OrganizationWithIdType();
                 identifierType = new IdentifierType();
-                identifierType.setValue("VITAM");// TODO: 25/09/2019 add to request param or configuration
+                identifierType.setValue(parameters.getTransferringAgency());
                 organizationWithIdType.setIdentifier(identifierType);
                 marshaller.marshal(
                     new JAXBElement(new QName(NAMESPACE_URI, TAG_TRANSFERRING_AGENCY), OrganizationWithIdType.class,

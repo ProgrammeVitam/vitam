@@ -389,7 +389,7 @@ export class MySelectionComponent extends PageComponent {
 
     switch (this.selectedOption) {
       case 'EXPORT':
-        this.archiveUnitService.exportDIP(query, ReferentialHelper.optionLists.DataObjectVersion).subscribe(
+        this.archiveUnitService.exportMinimal(query, ReferentialHelper.optionLists.DataObjectVersion).subscribe(
           () => this.displayActionEnded(this.selectedOption, true),
           () => this.displayActionEnded(this.selectedOption, false)
         );

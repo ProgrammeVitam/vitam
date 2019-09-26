@@ -38,6 +38,7 @@ import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.model.ProcessState;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.dip.DipExportRequest;
+import fr.gouv.vitam.common.model.dip.DipRequest;
 import fr.gouv.vitam.common.xml.XMLInputFactoryUtils;
 import org.apache.commons.collections.EnumerationUtils;
 import org.apache.commons.compress.archivers.zip.ZipArchiveEntry;
@@ -85,7 +86,7 @@ public class DipStep {
         String query = world.getQuery();
         JsonNode jsonNode = JsonHandler.getFromString(query);
 
-        DipExportRequest dipExportRequest = new DipExportRequest(jsonNode);
+        DipRequest dipExportRequest = new DipRequest(jsonNode);
         RequestResponse response = world.getAdminClientV2().exportDIP(vitamContext, dipExportRequest);
 
         assertThat(response.isOk()).isTrue();

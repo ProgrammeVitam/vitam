@@ -56,6 +56,10 @@ public class TransferRequestParameters {
     @JsonProperty(SedaConstants.TAG_ARCHIVAL_AGENCY + IDENTIFIER)
     private String archivalAgencyIdentifier; // Cardinality (1-1)
 
+    @JsonProperty(SedaConstants.TAG_TRANSFERRING_AGENCY)
+    private String transferringAgency; // ArchiveTransfer only
+
+
     public String getArchivalAgreement() {
         return archivalAgreement;
     }
@@ -110,5 +114,13 @@ public class TransferRequestParameters {
 
     public void setArchivalAgencyIdentifier(String archivalAgencyIdentifier) {
         this.archivalAgencyIdentifier = archivalAgencyIdentifier;
+    }
+
+    public String getTransferringAgency() {
+        return transferringAgency;
+    }
+
+    public void setTransferringAgency(String transferringAgency) {
+        this.transferringAgency = transferringAgency;
     }
 }

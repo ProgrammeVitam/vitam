@@ -263,6 +263,9 @@ public class CreateManifest extends ActionHandler {
             switch (exportRequest.getExportType()) {
                 case ArchiveDeliveryRequestReply:
                 case ArchiveTransfer:
+                    if (Strings.isNullOrEmpty(exportRequest.getExportRequestParameters().getTransferringAgency())) {
+                        exportRequest.getExportRequestParameters().setTransferringAgency(VitamConfiguration.getVitamDefaultTransferringAgency());
+                    }
                     manifestBuilder
                         .writeFooter(exportRequest.getExportType(), exportRequest.getExportRequestParameters());
                     break;

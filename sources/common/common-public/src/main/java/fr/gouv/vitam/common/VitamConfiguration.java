@@ -428,6 +428,9 @@ public class VitamConfiguration {
      * Map to override defalt Originating agency for each tenant for a DIP Export with multiple originating agencies
      */
     private static Map<Integer, String> defaultOriginatingAgencyByTenant = new HashMap<>();
+
+    private static String vitamDefaultTransferringAgency = "VITAM";
+
     /**
      * Default LANG
      */
@@ -953,6 +956,10 @@ public class VitamConfiguration {
 
         if (null != parameters.getDefaultOriginatingAgencyForExport()) {
             setDefaultOriginatingAgencyByTenant(parameters.getDefaultOriginatingAgencyForExport());
+        }
+
+        if (null != parameters.getVitamDefaultTransferringAgency()) {
+            setVitamDefaultTransferringAgency(parameters.getVitamDefaultTransferringAgency());
         }
 
         if (null != parameters.getStoreGraphElementsPerFile()) {
@@ -2094,6 +2101,14 @@ public class VitamConfiguration {
      */
     public static void setDefaultOriginatingAgencyByTenant(Map<Integer, String> defaultOriginatingAgencyForExport) {
         VitamConfiguration.defaultOriginatingAgencyByTenant = defaultOriginatingAgencyForExport;
+    }
+
+    public static void setVitamDefaultTransferringAgency(String vitamDefaultTransferringAgency) {
+        VitamConfiguration.vitamDefaultTransferringAgency = vitamDefaultTransferringAgency;
+    }
+
+    public static String getVitamDefaultTransferringAgency() {
+        return vitamDefaultTransferringAgency;
     }
 
     /**

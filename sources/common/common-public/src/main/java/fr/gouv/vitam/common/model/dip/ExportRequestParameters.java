@@ -35,14 +35,14 @@ public class ExportRequestParameters {
 
     public static final String IDENTIFIER = "Identifier";
 
+    @JsonProperty(SedaConstants.TAG_COMMENT)
+    private String comment;
+
     @JsonProperty(SedaConstants.TAG_ARCHIVAL_AGREEMENT)
     private String archivalAgreement; // Cardinality (1-1) for ArchiveTransfer optional for ArchiveDeliveryRequestReply
 
     @JsonProperty(SedaConstants.TAG_ORIGINATINGAGENCYIDENTIFIER)
     private String originatingAgencyIdentifier; // Cardinality (1-1) for ArchiveTransfer must be given from query
-
-    @JsonProperty(SedaConstants.TAG_COMMENT)
-    private String comment;
 
     @JsonProperty(SedaConstants.TAG_SUBMISSIONAGENCYIDENTIFIER)
     private String submissionAgencyIdentifier;
@@ -65,6 +65,9 @@ public class ExportRequestParameters {
     @JsonProperty(SedaConstants.TAG_REQUESTER + IDENTIFIER)
     private String requesterIdentifier; // ArchiveDeliveryRequestReply only Cardinality (1-1)
 
+    @JsonProperty(SedaConstants.TAG_TRANSFERRING_AGENCY)
+    private String transferringAgency; // ArchiveTransfer only
+
     public ExportRequestParameters() {
         //Empty
     }
@@ -86,7 +89,8 @@ public class ExportRequestParameters {
     // Transfer Constructor
     public ExportRequestParameters(String archivalAgreement, String originatingAgencyIdentifier, String comment,
         String submissionAgencyIdentifier, List<String> relatedTransferReference,
-        String transferRequestReplyIdentifier, String archivalAgencyIdentifier) {
+        String transferRequestReplyIdentifier, String archivalAgencyIdentifier,
+        String transferringAgency) {
         this.archivalAgreement = archivalAgreement;
         this.originatingAgencyIdentifier = originatingAgencyIdentifier;
         this.comment = comment;
@@ -94,6 +98,7 @@ public class ExportRequestParameters {
         this.relatedTransferReference = relatedTransferReference;
         this.transferRequestReplyIdentifier = transferRequestReplyIdentifier;
         this.archivalAgencyIdentifier = archivalAgencyIdentifier;
+        this.transferringAgency = transferringAgency;
     }
 
     public static ExportRequestParameters from(DipRequestParameters dipRequestParameters) {
@@ -112,7 +117,7 @@ public class ExportRequestParameters {
             transferRequestParameters.getSubmissionAgencyIdentifier(),
             transferRequestParameters.getRelatedTransferReference(),
             transferRequestParameters.getTransferRequestReplyIdentifier(),
-            transferRequestParameters.getArchivalAgencyIdentifier());
+            transferRequestParameters.getArchivalAgencyIdentifier(), transferRequestParameters.getTransferringAgency());
     }
 
     public String getArchivalAgreement() {
@@ -193,5 +198,13 @@ public class ExportRequestParameters {
 
     public void setRequesterIdentifier(String requesterIdentifier) {
         this.requesterIdentifier = requesterIdentifier;
+    }
+
+    public String getTransferringAgency() {
+        return transferringAgency;
+    }
+
+    public void setTransferringAgency(String transferringAgency) {
+        this.transferringAgency = transferringAgency;
     }
 }

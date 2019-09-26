@@ -295,6 +295,9 @@ public class VitamConfigurationParameters {
      */
     private Map<Integer, String> defaultOriginatingAgencyForExport;
 
+    private String vitamDefaultTransferringAgency;
+
+
     /**
      * Setter for vitamCleanPeriod;
      */
@@ -1254,6 +1257,14 @@ public class VitamConfigurationParameters {
      */
     public void setDefaultOriginatingAgencyForExport(Map<Integer, String> defaultOriginatingAgencyForExport) {
         this.defaultOriginatingAgencyForExport = defaultOriginatingAgencyForExport;
+    }
+
+    public String getVitamDefaultTransferringAgency() {
+        return vitamDefaultTransferringAgency;
+    }
+
+    public void setVitamDefaultTransferringAgency(String vitamDefaultTransferringAgency) {
+        this.vitamDefaultTransferringAgency = vitamDefaultTransferringAgency;
     }
 
     /**

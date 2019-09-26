@@ -264,7 +264,7 @@ public class AccessExternalResource extends ApplicationStatusResource {
     }
 
     @GET
-    @Path("/transfers/{id}")
+    @Path("/transfers/{id}/sip")
     @Produces(MediaType.APPLICATION_OCTET_STREAM)
     @Secured(permission = "transfers:id:read", description = "Récupérer le SIP du transfer")
     public Response findTransferByID(@PathParam("id") String id) {

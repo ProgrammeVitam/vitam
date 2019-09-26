@@ -85,7 +85,8 @@ import fr.gouv.vitam.common.model.administration.IngestContractModel;
 import fr.gouv.vitam.common.model.administration.ManagementContractModel;
 import fr.gouv.vitam.common.model.administration.OntologyModel;
 import fr.gouv.vitam.common.model.administration.ProfileModel;
-import fr.gouv.vitam.common.model.dip.DipExportRequest;
+import fr.gouv.vitam.common.model.dip.DipRequest;
+import fr.gouv.vitam.common.model.dip.TransferRequest;
 import fr.gouv.vitam.common.model.elimination.EliminationRequestBody;
 import fr.gouv.vitam.common.model.logbook.LogbookEventOperation;
 import fr.gouv.vitam.common.model.logbook.LogbookLifecycle;
@@ -3700,10 +3701,26 @@ public class WebApplicationResource extends ApplicationStatusResource {
     @Path("/archiveunit/dipexport")
     @Produces(MediaType.APPLICATION_JSON)
     @RequiresPermissions("dipexportv2:create")
-    public Response createDIPForExport(@Context HttpServletRequest request, DipExportRequest criteria) {
+    public Response createDIPForExport(@Context HttpServletRequest request, DipRequest criteria) {
         ParametersChecker.checkParameter(SEARCH_CRITERIA_MANDATORY_MSG, criteria);
         try {
             final RequestResponse<JsonNode> response = userInterfaceTransactionManager.exportDIP(
+                criteria, userInterfaceTransactionManager.getVitamContext(request));
+            return Response.status(Status.OK).entity(response).build();
+        } catch (VitamClientException e) {
+            LOGGER.error(ACCESS_SERVER_EXCEPTION_MSG, e);
+            return Response.status(Status.INTERNAL_SERVER_ERROR).build();
+        }
+    }
+
+    @POST
+    @Path("/archiveunit/transfers")
+    @Produces(MediaType.APPLICATION_JSON)
+    @RequiresPermissions("transfers:create")
+    public Response createTransferSIP(@Context HttpServletRequest request, TransferRequest criteria) {
+        ParametersChecker.checkParameter(SEARCH_CRITERIA_MANDATORY_MSG, criteria);
+        try {
+            final RequestResponse<JsonNode> response = userInterfaceTransactionManager.transferSIP(
                 criteria, userInterfaceTransactionManager.getVitamContext(request));
             return Response.status(Status.OK).entity(response).build();
         } catch (VitamClientException e) {
@@ -3730,12 +3747,28 @@ public class WebApplicationResource extends ApplicationStatusResource {
         String personalCert = userInterfaceTransactionManager.getPersonalCertificate(request);
         threadPoolExecutor
             .execute(() -> {
-                asyncGetDIPStream(asyncResponse, id, tenantId, contractId, personalCert);
+                asyncGetExtportStream(asyncResponse, id, tenantId, contractId, personalCert, false);
             });
     }
 
-    private void asyncGetDIPStream(AsyncResponse asyncResponse, String dipId, Integer tenantId,
-        String contracId, String personalCert) {
+    @GET
+    @Path("/archiveunit/transfers/{id}")
+    @Produces(MediaType.APPLICATION_OCTET_STREAM)
+    @RequiresPermissions("transfers:read")
+    public void getTransferSIPAsInputStreamAsync(@Context HttpServletRequest request,
+        @PathParam("id") String id, @Suspended final AsyncResponse asyncResponse) {
+
+        Integer tenantId = userInterfaceTransactionManager.getTenantId(request);
+        String contractId = userInterfaceTransactionManager.getContractId(request);
+        String personalCert = userInterfaceTransactionManager.getPersonalCertificate(request);
+        threadPoolExecutor
+            .execute(() -> {
+                asyncGetExtportStream(asyncResponse, id, tenantId, contractId, personalCert, true);
+            });
+    }
+
+    private void asyncGetExtportStream(AsyncResponse asyncResponse, String dipId, Integer tenantId,
+        String contracId, String personalCert, boolean isTransfer) {
         try {
             SanityChecker.checkJsonAll(JsonHandler.toJsonNode(dipId));
             ParametersChecker.checkParameter(SEARCH_CRITERIA_MANDATORY_MSG, dipId);
@@ -3748,8 +3781,8 @@ public class WebApplicationResource extends ApplicationStatusResource {
             return;
         }
         try {
-            userInterfaceTransactionManager.downloadDIP(asyncResponse, dipId,
-                userInterfaceTransactionManager.getVitamContext(tenantId, contracId, personalCert));
+            userInterfaceTransactionManager.downloadExports(asyncResponse, dipId,
+                userInterfaceTransactionManager.getVitamContext(tenantId, contracId, personalCert), isTransfer);
         } catch (final VitamClientException exc) {
             LOGGER.error(ACCESS_SERVER_EXCEPTION_MSG, exc);
             AsyncInputStreamHelper.asyncResponseResume(asyncResponse,

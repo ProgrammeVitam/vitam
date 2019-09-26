@@ -38,6 +38,7 @@ class AccessExternalClientRest extends DefaultClient implements AccessExternalCl
     private static final String BLANK_USAGE = "usage should be filled";
     private static final String BLANK_VERSION = "usage version should be filled";
     private static final String BLANK_DIP_ID = "DIP identifier should be filled";
+    private static final String BLANK_TRANSFER_ID = "Transfer identifier should be filled";
     private static final String MISSING_VITAM_CONTEXT = "Missing vitam context";
     private static final String MISSING_RECLASSIFICATION_REQUEST = "Missing reclassification request";
     private static final String MISSING_ELIMINATION_REQUEST = "Missing elimination request";
@@ -303,6 +304,26 @@ class AccessExternalClientRest extends DefaultClient implements AccessExternalCl
         } finally {
             consumeAnyEntityAndClose(response);
         }
+    }
+
+    @Override
+    public Response getTransferById(VitamContext vitamContext, String transferId)
+        throws VitamClientException {
+
+        ParametersChecker.checkParameter(BLANK_TRANSFER_ID, transferId);
+
+        Response response;
+
+        try {
+            response =
+                performRequest(HttpMethod.GET, AccessExtAPI.TRANSFER_API + "/" + transferId + "/sip", vitamContext.getHeaders(),
+                    null, MediaType.APPLICATION_JSON_TYPE, MediaType.APPLICATION_OCTET_STREAM_TYPE, false);
+
+        } catch (final VitamClientInternalException e) {
+            LOGGER.error(VITAM_CLIENT_INTERNAL_EXCEPTION, e);
+            throw new VitamClientException(e);
+        }
+        return response;
     }
 
     @Override

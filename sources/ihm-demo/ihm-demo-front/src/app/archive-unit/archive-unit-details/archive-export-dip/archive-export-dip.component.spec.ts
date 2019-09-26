@@ -19,7 +19,8 @@ import { Router } from '@angular/router';
 
 const ArchiveUnitServiceStub = {
   exportDIP: (body) => Observable.of(new VitamResponse()),
-  downloadDIP: (id) => Observable.of(new VitamResponse())
+  downloadDIP: (id) => Observable.of(new VitamResponse()),
+  downloadTransferSIP: (id) => Observable.of(new VitamResponse())
 };
 
 const ReferentialsServiceStub = {

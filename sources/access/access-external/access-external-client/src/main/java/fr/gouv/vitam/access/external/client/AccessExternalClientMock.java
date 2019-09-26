@@ -98,6 +98,11 @@ class AccessExternalClientMock extends AbstractMockClient implements AccessExter
     }
 
     @Override
+    public Response getTransferById(VitamContext vitamContext, String transferId) throws VitamClientException {
+        throw new IllegalStateException("Not implemented");
+    }
+
+    @Override
     public Response getDIPById(VitamContext vitamContext, String dipId)
         throws VitamClientException {
         return new AbstractMockClient.FakeInboundResponse(Status.OK, new ByteArrayInputStream("test".getBytes()),
