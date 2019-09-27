@@ -48,6 +48,7 @@ import fr.gouv.culture.archivesdefrance.seda.v2.MinimalDataObjectType;
 import fr.gouv.culture.archivesdefrance.seda.v2.ObjectFactory;
 import fr.gouv.culture.archivesdefrance.seda.v2.OrganizationWithIdType;
 import fr.gouv.vitam.common.LocalDateUtil;
+import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.accesslog.AccessLogUtils;
 import fr.gouv.vitam.common.database.builder.query.Query;
 import fr.gouv.vitam.common.database.builder.query.QueryHelper;
@@ -162,13 +163,15 @@ public class ManifestBuilder implements AutoCloseable {
             LOGGER.error("unable to create jaxb context", e);
         }
     }
+
     private final XMLStreamWriter writer;
     private final Marshaller marshaller;
     private final ArchiveUnitMapper archiveUnitMapper;
     private final ObjectMapper objectMapper;
     private final ObjectFactory objectFactory;
     private ObjectGroupMapper objectGroupMapper;
-    private LogbookLifeCyclesClientFactory logbookLifeCyclesClientFactory = LogbookLifeCyclesClientFactory.getInstance();
+    private LogbookLifeCyclesClientFactory logbookLifeCyclesClientFactory =
+        LogbookLifeCyclesClientFactory.getInstance();
 
 
     /**
@@ -494,63 +497,83 @@ public class ManifestBuilder implements AutoCloseable {
     void writeCodeListVersions(int tenant) throws JAXBException {
         CodeListVersionsType codeListVersionsType = new CodeListVersionsType();
         CodeType value = new CodeType();
-        value.setValue(TAG_REPLY_CODE_LIST_VERSION + tenant);
+        value.setValue(VitamConfiguration.getVitamDefaultCodeListVersion()
+            .getOrDefault(TAG_REPLY_CODE_LIST_VERSION, TAG_REPLY_CODE_LIST_VERSION) + tenant);
         codeListVersionsType.setReplyCodeListVersion(value);
 
         value = new CodeType();
-        value.setValue(TAG_MESSAGE_DIGEST_ALGORITHM_CODE_LIST_VERSION + tenant);
+        value.setValue(VitamConfiguration.getVitamDefaultCodeListVersion()
+            .getOrDefault(TAG_MESSAGE_DIGEST_ALGORITHM_CODE_LIST_VERSION,
+                TAG_MESSAGE_DIGEST_ALGORITHM_CODE_LIST_VERSION) + tenant);
         codeListVersionsType.setMessageDigestAlgorithmCodeListVersion(value);
 
         value = new CodeType();
-        value.setValue(TAG_MIME_TYPE_CODE_LIST_VERSION + tenant);
+        value.setValue(VitamConfiguration.getVitamDefaultCodeListVersion()
+            .getOrDefault(TAG_MIME_TYPE_CODE_LIST_VERSION, TAG_MIME_TYPE_CODE_LIST_VERSION) + tenant);
         codeListVersionsType.setMimeTypeCodeListVersion(value);
 
         value = new CodeType();
-        value.setValue(TAG_ENCODING_CODE_LIST_VERSION + tenant);
+        value.setValue(VitamConfiguration.getVitamDefaultCodeListVersion()
+            .getOrDefault(TAG_ENCODING_CODE_LIST_VERSION, TAG_ENCODING_CODE_LIST_VERSION) + tenant);
         codeListVersionsType.setEncodingCodeListVersion(value);
 
         value = new CodeType();
-        value.setValue(TAG_FILE_FORMAT_CODE_LIST_VERSION + tenant);
+        value.setValue(VitamConfiguration.getVitamDefaultCodeListVersion()
+            .getOrDefault(TAG_FILE_FORMAT_CODE_LIST_VERSION, TAG_FILE_FORMAT_CODE_LIST_VERSION) + tenant);
         codeListVersionsType.setFileFormatCodeListVersion(value);
 
         value = new CodeType();
-        value.setValue(TAG_COMPRESSION_ALGORITHM_CODE_LIST_VERSION + tenant);
+        value.setValue(VitamConfiguration.getVitamDefaultCodeListVersion()
+            .getOrDefault(TAG_COMPRESSION_ALGORITHM_CODE_LIST_VERSION, TAG_COMPRESSION_ALGORITHM_CODE_LIST_VERSION) +
+            tenant);
         codeListVersionsType.setCompressionAlgorithmCodeListVersion(value);
 
         value = new CodeType();
-        value.setValue(TAG_DATA_OBJECT_VERSION_CODE_LIST_VERSION + tenant);
+        value.setValue(VitamConfiguration.getVitamDefaultCodeListVersion()
+            .getOrDefault(TAG_DATA_OBJECT_VERSION_CODE_LIST_VERSION, TAG_DATA_OBJECT_VERSION_CODE_LIST_VERSION) +
+            tenant);
         codeListVersionsType.setDataObjectVersionCodeListVersion(value);
 
         value = new CodeType();
-        value.setValue(TAG_STORAGE_RULE_CODE_LIST_VERSION + tenant);
+        value.setValue(VitamConfiguration.getVitamDefaultCodeListVersion()
+            .getOrDefault(TAG_STORAGE_RULE_CODE_LIST_VERSION, TAG_STORAGE_RULE_CODE_LIST_VERSION) + tenant);
         codeListVersionsType.setStorageRuleCodeListVersion(value);
 
         value = new CodeType();
-        value.setValue(TAG_APPRAISAL_RULE_CODE_LIST_VERSION + tenant);
+        value.setValue(VitamConfiguration.getVitamDefaultCodeListVersion()
+            .getOrDefault(TAG_APPRAISAL_RULE_CODE_LIST_VERSION, TAG_APPRAISAL_RULE_CODE_LIST_VERSION) + tenant);
         codeListVersionsType.setAppraisalRuleCodeListVersion(value);
 
         value = new CodeType();
-        value.setValue(TAG_ACCESS_RULE_CODE_LIST_VERSION + tenant);
+        value.setValue(VitamConfiguration.getVitamDefaultCodeListVersion()
+            .getOrDefault(TAG_ACCESS_RULE_CODE_LIST_VERSION, TAG_ACCESS_RULE_CODE_LIST_VERSION) + tenant);
         codeListVersionsType.setAccessRuleCodeListVersion(value);
 
         value = new CodeType();
-        value.setValue(TAG_DISSEMINATION_RULE_CODE_LIST_VERSION + tenant);
+        value.setValue(VitamConfiguration.getVitamDefaultCodeListVersion()
+            .getOrDefault(TAG_DISSEMINATION_RULE_CODE_LIST_VERSION, TAG_DISSEMINATION_RULE_CODE_LIST_VERSION) + tenant);
         codeListVersionsType.setDisseminationRuleCodeListVersion(value);
 
         value = new CodeType();
-        value.setValue(TAG_REUSE_RULE_CODE_LIST_VERSION + tenant);
+        value.setValue(VitamConfiguration.getVitamDefaultCodeListVersion()
+            .getOrDefault(TAG_REUSE_RULE_CODE_LIST_VERSION, TAG_REUSE_RULE_CODE_LIST_VERSION) + tenant);
         codeListVersionsType.setReuseRuleCodeListVersion(value);
 
         value = new CodeType();
-        value.setValue(TAG_CLASSIFICATION_RULE_CODE_LIST_VERSION + tenant);
+        value.setValue(VitamConfiguration.getVitamDefaultCodeListVersion()
+            .getOrDefault(TAG_CLASSIFICATION_RULE_CODE_LIST_VERSION, TAG_CLASSIFICATION_RULE_CODE_LIST_VERSION) +
+            tenant);
         codeListVersionsType.setClassificationRuleCodeListVersion(value);
 
         value = new CodeType();
-        value.setValue(TAG_AUTHORIZATION_REASON_CODE_LIST_VERSION + tenant);
+        value.setValue(VitamConfiguration.getVitamDefaultCodeListVersion()
+            .getOrDefault(TAG_AUTHORIZATION_REASON_CODE_LIST_VERSION, TAG_AUTHORIZATION_REASON_CODE_LIST_VERSION) +
+            tenant);
         codeListVersionsType.setAuthorizationReasonCodeListVersion(value);
 
         value = new CodeType();
-        value.setValue(TAG_RELATIONSHIP_CODE_LIST_VERSION + tenant);
+        value.setValue(VitamConfiguration.getVitamDefaultCodeListVersion()
+            .getOrDefault(TAG_RELATIONSHIP_CODE_LIST_VERSION, TAG_RELATIONSHIP_CODE_LIST_VERSION) + tenant);
         codeListVersionsType.setRelationshipCodeListVersion(value);
 
         marshaller

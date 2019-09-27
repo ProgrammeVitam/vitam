@@ -29,6 +29,7 @@ package fr.gouv.vitam.common;
 import com.google.common.base.Strings;
 import fr.gouv.vitam.common.configuration.ClassificationLevel;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -296,6 +297,8 @@ public class VitamConfigurationParameters {
     private Map<Integer, String> defaultOriginatingAgencyForExport;
 
     private String vitamDefaultTransferringAgency;
+
+    private Map<String, String>  vitamDefaultCodeListVersion;
 
 
     /**
@@ -1265,6 +1268,15 @@ public class VitamConfigurationParameters {
 
     public void setVitamDefaultTransferringAgency(String vitamDefaultTransferringAgency) {
         this.vitamDefaultTransferringAgency = vitamDefaultTransferringAgency;
+    }
+
+
+    public Map<String, String> getVitamDefaultCodeListVersion() {
+        return vitamDefaultCodeListVersion;
+    }
+
+    public void setVitamDefaultCodeListVersion(Map<String, String> vitamDefaultCodeListVersion) {
+        this.vitamDefaultCodeListVersion = vitamDefaultCodeListVersion;
     }
 
     /**
