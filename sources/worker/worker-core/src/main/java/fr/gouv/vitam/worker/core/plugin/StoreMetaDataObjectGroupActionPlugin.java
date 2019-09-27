@@ -215,12 +215,12 @@ public class StoreMetaDataObjectGroupActionPlugin extends ActionHandler {
     private void saveDocumentWithLfcInStorage(String containerName, MultiValuedMap<String, String> objectGroupIdsByStrategies)
         throws VitamException {
 
-        List<String> workspaceURIs = new ArrayList<>();
-        List<String> objectNames = new ArrayList<>();
-
         Stopwatch storeStorage = Stopwatch.createStarted();
 
         for (String strategy : objectGroupIdsByStrategies.keySet()) {
+
+            List<String> workspaceURIs = new ArrayList<>();
+            List<String> objectNames = new ArrayList<>();
 
             Collection<String> objectGroupIds = objectGroupIdsByStrategies.get(strategy);
 
