@@ -46,6 +46,7 @@ import fr.gouv.vitam.metadata.client.MetaDataClientFactory;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 import fr.gouv.vitam.processing.common.parameter.WorkerParametersFactory;
 import fr.gouv.vitam.worker.common.HandlerIO;
+import org.apache.commons.lang.StringUtils;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Rule;
@@ -58,6 +59,9 @@ import org.xmlunit.builder.Input;
 
 import java.io.File;
 import java.io.FileInputStream;
+import java.nio.charset.Charset;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -297,6 +301,70 @@ public class CreateManifestTest {
         Assert.assertThat(Input.fromFile(manifestFile), hasXPath("//vitam:ArchiveDeliveryRequestReply/vitam:DataObjectPackage/vitam:ManagementMetadata/vitam:OriginatingAgencyIdentifier",
                 equalTo("FRAN_NP_005568"))
                 .withNamespaceContext(prefix2Uri));
+    }
+
+    @Test
+    @RunWithCustomExecutor
+    public void givenSipWhenUnitsLinkedToOneDataObjectGroupThenDipContainOneDataObjectGroupElement() throws Exception {
+        // Given
+        HandlerIO handlerIO = mock(HandlerIO.class);
+        MetaDataClient metaDataClient = mock(MetaDataClient.class);
+        given(metaDataClientFactory.getClient()).willReturn(metaDataClient);
+        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
+        AccessContractModel accessContractModel = new AccessContractModel();
+        accessContractModel.setEveryDataObjectVersion(false);
+        accessContractModel.setDataObjectVersion(new HashSet<>(Arrays.asList("PhysicalMaster", "BinaryMaster_1")));
+        accessContractModel.setEveryOriginatingAgency(true);
+
+        VitamThreadUtils.getVitamSession().setContract(accessContractModel);
+
+        JsonNode queryUnit =
+            JsonHandler.getFromInputStream(getClass().getResourceAsStream("/CreateManifest/querybug5160.json"));
+
+        JsonNode queryUnitWithTree =
+            JsonHandler.getFromInputStream(getClass().getResourceAsStream("/CreateManifest/queryWithTreeProjectionbug5160.json"));
+
+        JsonNode queryObjectGroup =
+            JsonHandler.getFromInputStream(getClass().getResourceAsStream("/CreateManifest/queryObjectGroupbug5160.json"));
+
+        given(handlerIO.getJsonFromWorkspace("query.json")).willReturn(queryUnit);
+
+        given(metaDataClient.selectUnits(queryUnit.deepCopy())).willReturn(
+            JsonHandler.getFromInputStream(getClass().getResourceAsStream("/CreateManifest/resultMetadatabug5160.json")));
+
+        given(metaDataClient.selectUnits(queryUnitWithTree)).willReturn(
+            JsonHandler.getFromInputStream(getClass().getResourceAsStream("/CreateManifest/resultMetadatabug5160.json")));
+
+        given(metaDataClient.selectObjectGroups(queryObjectGroup)).willReturn(
+            JsonHandler.getFromInputStream(getClass().getResourceAsStream("/CreateManifest/resultObjectGroup5160.json")));
+
+        File manifestFile = tempFolder.newFile();
+        given(handlerIO.getOutput(MANIFEST_XML_RANK)).willReturn(new ProcessingUri(UriPrefix.WORKSPACE, manifestFile.getPath()));
+        given(handlerIO.getNewLocalFile(manifestFile.getPath())).willReturn(manifestFile);
+
+        File guidToPathFile = tempFolder.newFile();
+        given(handlerIO.getOutput(GUID_TO_INFO_RANK))
+            .willReturn(new ProcessingUri(UriPrefix.WORKSPACE, guidToPathFile.getPath()));
+        given(handlerIO.getNewLocalFile(guidToPathFile.getPath())).willReturn(guidToPathFile);
+
+        File binaryFile = tempFolder.newFile();
+        given(handlerIO.getOutput(BINARIES_RANK))
+            .willReturn(new ProcessingUri(UriPrefix.WORKSPACE, binaryFile.getPath()));
+        given(handlerIO.getNewLocalFile(binaryFile.getPath())).willReturn(binaryFile);
+        DipExportRequest dipExportRequest = new DipExportRequest();
+        dipExportRequest.setExportWithLogBookLFC(true);
+        dipExportRequest.setDslRequest(queryUnit);
+        given(handlerIO.getJsonFromWorkspace("dip_export_query.json")).willReturn(JsonHandler.toJsonNode(dipExportRequest));
+
+        // When
+        ItemStatus itemStatus = createManifest.execute(WorkerParametersFactory.newWorkerParameters(), handlerIO);
+
+        // Then
+        assertThat(itemStatus.getGlobalStatus()).isEqualTo(StatusCode.OK);
+
+        Assert.assertThat(StringUtils.countMatches(Files.readAllLines(Paths.get(manifestFile.getPath()),
+            Charset.defaultCharset()).get(0),"<DataObjectGroup id=\"aebaaaaaaefjz7wkabvpoalnfgzdwfyaaaaq\">"), equalTo(1));
+
     }
 
 }
