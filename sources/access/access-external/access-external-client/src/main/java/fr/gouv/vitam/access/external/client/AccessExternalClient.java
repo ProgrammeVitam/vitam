@@ -36,6 +36,8 @@ import fr.gouv.vitam.common.exception.VitamClientException;
 import fr.gouv.vitam.common.external.client.BasicClient;
 import fr.gouv.vitam.common.model.PreservationRequest;
 import fr.gouv.vitam.common.model.RequestResponse;
+import fr.gouv.vitam.common.model.dip.DipRequest;
+import fr.gouv.vitam.common.model.dip.TransferRequest;
 import fr.gouv.vitam.common.model.elimination.EliminationRequestBody;
 import fr.gouv.vitam.common.model.logbook.LogbookLifecycle;
 import fr.gouv.vitam.common.model.logbook.LogbookOperation;
@@ -50,6 +52,7 @@ public interface AccessExternalClient extends BasicClient {
 
     /**
      * selectUnits /units
+     *
      * @param vitamContext the vitam context
      * @param selectQuery the select query
      * @return Json representation
@@ -60,6 +63,7 @@ public interface AccessExternalClient extends BasicClient {
 
     /**
      * selectUnitbyId GET(POST overrided) /units/{id}
+     *
      * @param vitamContext the vitam context
      * @param selectQuery the select query
      * @param unitId the unit id to select
@@ -71,6 +75,7 @@ public interface AccessExternalClient extends BasicClient {
 
     /**
      * updateUnitbyId UPDATE /units/{id}
+     *
      * @param vitamContext the vitam context
      * @param updateQuery the update query
      * @param unitId the unit id to update
@@ -82,6 +87,7 @@ public interface AccessExternalClient extends BasicClient {
 
     /**
      * selectObjectById
+     *
      * @param vitamContext the vitam context
      * @param selectQuery the select query
      * @param unitId the unit id for getting object
@@ -96,6 +102,7 @@ public interface AccessExternalClient extends BasicClient {
      * getObjectAsInputStream<br>
      * <br>
      * <b>The caller is responsible to close the Response after consuming the inputStream.</b>
+     *
      * @param vitamContext the vitam context
      * @param unitId the unit id for getting the object
      * @param usage kind of usage
@@ -112,6 +119,7 @@ public interface AccessExternalClient extends BasicClient {
 
     /**
      * selectOperation
+     *
      * @param vitamContext the vitam context
      * @param select the select query
      * @return logbookOperation representation
@@ -125,6 +133,7 @@ public interface AccessExternalClient extends BasicClient {
 
     /**
      * selectOperationbyId
+     *
      * @param vitamContext the vitam context
      * @param operationId the operation id
      * @param select the select query
@@ -167,7 +176,10 @@ public interface AccessExternalClient extends BasicClient {
      * @throws VitamClientException
      */
     RequestResponse<JsonNode> exportDIP(VitamContext vitamContext,
-                                        JsonNode dslRequest) throws VitamClientException;
+        JsonNode dslRequest) throws VitamClientException;
+
+    RequestResponse<JsonNode> transfer(VitamContext vitamContext,
+        TransferRequest transferRequest) throws VitamClientException;
 
     /**
      * getDIPById<br>
@@ -183,7 +195,17 @@ public interface AccessExternalClient extends BasicClient {
         throws VitamClientException;
 
     /**
+     * Get Transfer SIP
+     *
+     * @param vitamContext
+     * @param transferId
+     * @return
+     */
+    Response getTransferById(VitamContext vitamContext, String transferId) throws VitamClientException;
+
+    /**
      * Performs a reclassification workflow.
+     *
      * @param vitamContext the vitam context
      * @param reclassificationRequest List of attachment and detachment operations in unit graph.
      * @return Response
@@ -194,6 +216,7 @@ public interface AccessExternalClient extends BasicClient {
 
     /**
      * Mass update of archive units.
+     *
      * @param vitamContext the vitam context
      * @param updateQuery the update query
      * @return Json representation
@@ -204,6 +227,7 @@ public interface AccessExternalClient extends BasicClient {
 
     /**
      * Mass update of archive units rules.
+     *
      * @param vitamContext the vitam context
      * @param updateRulesQuery the update request (query and actions)
      * @return Json representation
@@ -214,6 +238,7 @@ public interface AccessExternalClient extends BasicClient {
 
     /**
      * selectObjects /objects
+     *
      * @param vitamContext the vitam context
      * @param selectQuery the select query
      * @return Json representation
@@ -257,6 +282,7 @@ public interface AccessExternalClient extends BasicClient {
 
     /**
      * Get AccessLog file matching the given params
+     *
      * @param vitamContext the vitam context
      * @param params Could contains StartDate and EndDate information for file filter
      * @return accesslog file
@@ -267,6 +293,7 @@ public interface AccessExternalClient extends BasicClient {
 
     /**
      * compute inherited rules.
+     *
      * @param vitamContext the vitam context
      * @param ComputedInheritedRulesQuery the query request (query and actions)
      * @return Json representation
@@ -277,12 +304,14 @@ public interface AccessExternalClient extends BasicClient {
 
     /**
      * compute inherited rules.
+     *
      * @param vitamContext the vitam context
      * @param deleteComputedInheritedRulesQuery the query request (query and actions)
      * @return Json representation
      * @throws VitamClientException
      */
-    RequestResponse<JsonNode> deleteComputedInheritedRules(VitamContext vitamContext, JsonNode deleteComputedInheritedRulesQuery)
+    RequestResponse<JsonNode> deleteComputedInheritedRules(VitamContext vitamContext,
+        JsonNode deleteComputedInheritedRulesQuery)
         throws VitamClientException;
 
     RequestResponse<JsonNode> launchPreservation(VitamContext vitamContext, PreservationRequest preservationRequest)

@@ -29,6 +29,7 @@ package fr.gouv.vitam.common;
 import com.google.common.base.Strings;
 import fr.gouv.vitam.common.configuration.ClassificationLevel;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -294,6 +295,11 @@ public class VitamConfigurationParameters {
      * default originatingAgency for DIP export when multiple originatingAgencies are in conflict in exported AU
      */
     private Map<Integer, String> defaultOriginatingAgencyForExport;
+
+    private String vitamDefaultTransferringAgency;
+
+    private Map<String, String>  vitamDefaultCodeListVersion;
+
 
     /**
      * Setter for vitamCleanPeriod;
@@ -1254,6 +1260,23 @@ public class VitamConfigurationParameters {
      */
     public void setDefaultOriginatingAgencyForExport(Map<Integer, String> defaultOriginatingAgencyForExport) {
         this.defaultOriginatingAgencyForExport = defaultOriginatingAgencyForExport;
+    }
+
+    public String getVitamDefaultTransferringAgency() {
+        return vitamDefaultTransferringAgency;
+    }
+
+    public void setVitamDefaultTransferringAgency(String vitamDefaultTransferringAgency) {
+        this.vitamDefaultTransferringAgency = vitamDefaultTransferringAgency;
+    }
+
+
+    public Map<String, String> getVitamDefaultCodeListVersion() {
+        return vitamDefaultCodeListVersion;
+    }
+
+    public void setVitamDefaultCodeListVersion(Map<String, String> vitamDefaultCodeListVersion) {
+        this.vitamDefaultCodeListVersion = vitamDefaultCodeListVersion;
     }
 
     /**

@@ -191,6 +191,15 @@ public class AccessExtAPI {
     public static final String DIP_API = "/" + DIP;
 
     /**
+     * TRANSFER base uri
+     */
+    public static final String TRANSFER = "transfers";
+    /**
+     * TRANSFER uri
+     */
+    public static final String TRANSFER_API = "/" + TRANSFER;
+
+    /**
      * Security profiles uri
      */
     public static final String SECURITY_PROFILES = "securityprofiles";

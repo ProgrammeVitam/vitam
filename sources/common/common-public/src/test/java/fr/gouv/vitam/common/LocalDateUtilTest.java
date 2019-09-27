@@ -35,6 +35,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.attribute.FileTime;
 import java.text.ParseException;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
@@ -118,6 +119,8 @@ public class LocalDateUtilTest {
         assertEquals(dt.toEpochSecond(ZoneOffset.UTC), date.getTime());
         assertTrue(LocalDateUtil.getFormattedDate(date).contains("T"));
         assertTrue(LocalDateUtil.getFormattedDate(date).contains("+"));
+        assertTrue(LocalDateUtil.getFormattedDate(LocalDateTime.now()).length()==19);
+
     }
 
     @Test

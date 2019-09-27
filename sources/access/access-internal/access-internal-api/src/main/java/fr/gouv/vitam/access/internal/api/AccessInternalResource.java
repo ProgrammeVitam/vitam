@@ -31,7 +31,6 @@ import com.fasterxml.jackson.databind.JsonNode;
 import fr.gouv.vitam.common.model.dip.DipExportRequest;
 import fr.gouv.vitam.common.model.elimination.EliminationRequestBody;
 import fr.gouv.vitam.common.model.massupdate.MassUpdateUnitRuleRequest;
-import fr.gouv.vitam.common.server.application.resources.VitamResource;
 import fr.gouv.vitam.metadata.api.exception.MetaDataClientServerException;
 import fr.gouv.vitam.metadata.api.exception.MetaDataDocumentSizeException;
 import fr.gouv.vitam.metadata.api.exception.MetaDataExecutionException;
@@ -42,7 +41,7 @@ import javax.ws.rs.core.Response;
 /**
  * Access Resource REST API
  */
-public interface AccessInternalResource extends VitamResource {
+public interface AccessInternalResource {
 
     /**
      * gets archive units with Json query
@@ -164,6 +163,7 @@ public interface AccessInternalResource extends VitamResource {
 
     /**
      * gets accesslog file by id as an InputStream
+     *
      * @param headers request headers
      * @param params given params in order to filter accessLog files
      * @return

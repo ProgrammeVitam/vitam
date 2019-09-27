@@ -15,9 +15,26 @@ import { AccessContractService } from '../../../common/access-contract.service';
 export class ArchiveExportDIPComponent implements OnInit {
   @Input() id: string = '';
   @Input() operation: string = '';
-  exportType = 'AU';
+  exportChoice = 'AU';
   display = false;
 
+  comment: string;
+  archivalAgreement: string;
+  originatingAgencyIdentifier: string;
+  submissionAgencyIdentifier: string;
+  archivalAgencyIdentifier: string;
+
+  // for transfer onl;
+  relatedTransferReference: string;
+  transferRequestReplyIdentifier: string;
+  transferringAgency: string;
+
+  // for DIP onl;
+  messageRequestIdentifier: string;
+  requesterIdentifier: string;
+  authorizationRequestReplyIdentifier: string;
+
+  //====
   contract: AccessContract;
   updatedFields: any = {};
 
@@ -38,7 +55,7 @@ export class ArchiveExportDIPComponent implements OnInit {
 
   getQuery() {
     let query: any;
-    if (this.exportType === 'AU') {
+    if (this.exportChoice === 'AU') {
       query = {
         "$query": [
           {
@@ -50,7 +67,7 @@ export class ArchiveExportDIPComponent implements OnInit {
         "$filter": {},
         "$projection": {}
       };
-    } else if (this.exportType === 'INGEST') {
+    } else if (this.exportChoice === 'INGEST') {
       query = {
         "$query": [
           {
@@ -88,8 +105,20 @@ export class ArchiveExportDIPComponent implements OnInit {
     return query
   }
 
-  exportDIP() {
-    this.archiveUnitService.exportDIP(this.getQuery(), this.updatedFields.DataObjectVersion).subscribe(() => this.display = true);
+  export(type: string) {
+      switch(type) {
+        case 'MINIMAL':
+           this.archiveUnitService.exportMinimal(this.getQuery(), this.updatedFields.DataObjectVersion).subscribe(() => this.display = true);
+            break;
+        case 'FULL':
+            this.archiveUnitService.exportFull(this.getQuery(), this.updatedFields.DataObjectVersion, {ArchivalAgreement: this.archivalAgreement, OriginatingAgencyIdentifier: this.originatingAgencyIdentifier, Comment: this.comment, SubmissionAgencyIdentifier: this.submissionAgencyIdentifier, ArchivalAgencyIdentifier: this.archivalAgencyIdentifier, MessageRequestIdentifier:this.messageRequestIdentifier, RequesterIdentifier: this.requesterIdentifier, AuthorizationRequestReplyIdentifier: this.authorizationRequestReplyIdentifier}).subscribe(() => this.display = true);
+            break;
+        case 'TRANSFER':
+            this.archiveUnitService.transfer(this.getQuery(), this.updatedFields.DataObjectVersion, {ArchivalAgreement: this.archivalAgreement, OriginatingAgencyIdentifier: this.originatingAgencyIdentifier, Comment: this.comment, SubmissionAgencyIdentifier: this.submissionAgencyIdentifier, ArchivalAgencyIdentifier: this.archivalAgencyIdentifier, RelatedTransferReference: (this.relatedTransferReference ? this.relatedTransferReference.split(';') : null), TransferRequestReplyIdentifier: this.transferRequestReplyIdentifier, TransferringAgency: this.transferringAgency}).subscribe(() => this.display = true);
+            break;
+        default:
+           console.log("Not found exportType", type)
+      }
   }
 
   initCurrentContract(accessContract: string) {

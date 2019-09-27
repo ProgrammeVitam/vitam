@@ -1,4 +1,4 @@
-/**
+/*******************************************************************************
  * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2019)
  *
  * contact.vitam@culture.gouv.fr
@@ -23,12 +23,13 @@
  *
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
- */
-package fr.gouv.vitam.common.server.application.resources;
+ *******************************************************************************/
+package fr.gouv.vitam.worker.core.plugin.dip;
 
-/**
- * Generic interface of Vitam Application Ressource
- */
-public interface VitamResource {
-    // Empty
+import fr.gouv.vitam.common.exception.VitamException;
+
+public class ExportException extends VitamException {
+    public ExportException(String message) {
+        super(message);
+    }
 }

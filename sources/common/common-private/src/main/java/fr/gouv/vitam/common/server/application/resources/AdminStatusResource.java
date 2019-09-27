@@ -26,16 +26,7 @@
  *******************************************************************************/
 package fr.gouv.vitam.common.server.application.resources;
 
-import javax.ws.rs.Consumes;
-import javax.ws.rs.GET;
-import javax.ws.rs.Path;
-import javax.ws.rs.Produces;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.Response.Status;
-
 import com.fasterxml.jackson.databind.node.ObjectNode;
-
 import fr.gouv.vitam.common.ServerIdentity;
 import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
@@ -44,6 +35,14 @@ import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.AdminStatusMessage;
 
+import javax.ws.rs.Consumes;
+import javax.ws.rs.GET;
+import javax.ws.rs.Path;
+import javax.ws.rs.Produces;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
+import javax.ws.rs.core.Response.Status;
+
 
 /**
  * AdminStatusResource : Manage Admin Functionality through Admin URI
@@ -51,7 +50,7 @@ import fr.gouv.vitam.common.model.AdminStatusMessage;
 @Path(VitamConfiguration.ADMIN_PATH)
 @Consumes("application/json")
 @Produces("application/json")
-public class AdminStatusResource implements VitamResource {
+public class AdminStatusResource {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(AdminStatusResource.class);
     /**
      * Status for Administration resource path
@@ -113,14 +112,14 @@ public class AdminStatusResource implements VitamResource {
     public Response adminStatus() {
         try {
             final AdminStatusMessage message =
-                    new AdminStatusMessage(
-                            JsonHandler.toJsonNode(ServerIdentity.getInstance()),
-                            statusService.getResourcesStatus(),
-                            statusService.getAdminStatus(),
-                            JsonHandler.toJsonNode(VersionHelper.getVersionSummary()));
+                new AdminStatusMessage(
+                    JsonHandler.toJsonNode(ServerIdentity.getInstance()),
+                    statusService.getResourcesStatus(),
+                    statusService.getAdminStatus(),
+                    JsonHandler.toJsonNode(VersionHelper.getVersionSummary()));
             if (message.getStatus()) {
                 return Response.ok(message,
-                        MediaType.APPLICATION_JSON).build();
+                    MediaType.APPLICATION_JSON).build();
             } else {
                 return Response.status(Status.SERVICE_UNAVAILABLE).entity(message).build();
             }
@@ -141,7 +140,7 @@ public class AdminStatusResource implements VitamResource {
     public Response adminVersion() {
         try {
             return Response.ok(JsonHandler.toJsonNode(VersionHelper.getVersionDetailedInfo()),
-                    MediaType.APPLICATION_JSON).build();
+                MediaType.APPLICATION_JSON).build();
         } catch (final InvalidParseOperationException e) {
             LOGGER.error(e);
             return Response.status(Status.SERVICE_UNAVAILABLE).build();
@@ -158,6 +157,6 @@ public class AdminStatusResource implements VitamResource {
         ObjectNode status;
         status = autotestService.getAutotestStatus();
         return Response.status(status.get("httpCode").asInt())
-                .entity(status).build();
+            .entity(status).build();
     }
 }

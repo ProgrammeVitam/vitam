@@ -7,18 +7,28 @@ public class DipExportRequest {
     public static final String DIP_REQUEST_FILE_NAME = "dip_export_query.json";
 
     @JsonProperty("dataObjectVersionToExport")
-    private DataObjectVersions  dataObjectVersionToExport;
+    private DataObjectVersions dataObjectVersionToExport;
 
-    @JsonProperty("dslRequest")
-    private JsonNode dslRequest;
+    @JsonProperty("exportType")
+    private ExportType exportType = ExportType.MinimalArchiveDeliveryRequestReply;
+
+    @JsonProperty("exportRequestParameters")
+    private ExportRequestParameters exportRequestParameters;
+
 
     @JsonProperty("exportWithLogBookLFC")
     private boolean exportWithLogBookLFC;
 
-    public DipExportRequest() {}
+    @JsonProperty("dslRequest")
+    private JsonNode dslRequest;
 
-    public DipExportRequest(DataObjectVersions dataObjectVersionToExport, JsonNode dslRequest) {
-        this(dataObjectVersionToExport, dslRequest, false);
+
+    public DipExportRequest() {
+    }
+
+
+    public DipExportRequest(JsonNode dslRequest) {
+        this.dslRequest = dslRequest;
     }
 
     public DipExportRequest(DataObjectVersions dataObjectVersionToExport, JsonNode dslRequest, boolean withLogBookLFC) {
@@ -27,8 +37,25 @@ public class DipExportRequest {
         this.exportWithLogBookLFC = withLogBookLFC;
     }
 
-    public DipExportRequest(JsonNode dslRequest) {
-        this.dslRequest = dslRequest;
+    public static DipExportRequest from(DipRequest dipRequest) {
+        DipExportRequest dipExportRequest =
+            new DipExportRequest(dipRequest.getDataObjectVersionToExport(), dipRequest.getDslRequest(),
+                dipRequest.isExportWithLogBookLFC());
+        dipExportRequest.setExportType(dipRequest.getDipExportType().getExportType());
+        dipExportRequest.setExportRequestParameters(ExportRequestParameters.from(dipRequest.getDipRequestParameters()));
+
+        return dipExportRequest;
+    }
+
+    public static DipExportRequest from(TransferRequest transferRequest) {
+        DipExportRequest dipExportRequest =
+            new DipExportRequest(transferRequest.getDataObjectVersionToExport(), transferRequest.getDslRequest(),
+                transferRequest.isTransferWithLogBookLFC());
+        dipExportRequest.setExportType(ExportType.ArchiveTransfer);
+        dipExportRequest
+            .setExportRequestParameters(ExportRequestParameters.from(transferRequest.getTransferRequestParameters()));
+
+        return dipExportRequest;
     }
 
     public DataObjectVersions getDataObjectVersionToExport() {
@@ -45,6 +72,22 @@ public class DipExportRequest {
 
     public void setDslRequest(JsonNode dslRequest) {
         this.dslRequest = dslRequest;
+    }
+
+    public ExportType getExportType() {
+        return exportType;
+    }
+
+    public void setExportType(ExportType exportType) {
+        this.exportType = exportType;
+    }
+
+    public ExportRequestParameters getExportRequestParameters() {
+        return exportRequestParameters;
+    }
+
+    public void setExportRequestParameters(ExportRequestParameters exportRequestParameters) {
+        this.exportRequestParameters = exportRequestParameters;
     }
 
     public boolean isExportWithLogBookLFC() {

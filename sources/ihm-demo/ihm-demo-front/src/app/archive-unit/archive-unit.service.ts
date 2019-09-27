@@ -16,6 +16,7 @@ export class ArchiveUnitService {
   UNIT = 'unit';
   UNIT_WITH_INHERITED_RULES = 'unitsWithInheritedRules';
   EXPORT = 'dipexport';
+  TRANSFER = 'transfers';
   AUDIT = 'evidenceaudit';
   PROBATIVE_VALUE = 'probativevalueexport';
   OBJECTS = 'objects';
@@ -69,13 +70,35 @@ export class ArchiveUnitService {
     return this.resourceService.post(`${this.ARCHIVE_UNIT_SEARCH_API}/${this.UNITS}`, headers, body);
   }
 
-  exportDIP(query: {$query: object, $projection: object, $filter: object}, dataObjectVersions: string[]): Observable<VitamResponse> {
+  exportMinimal(query: {$query: object, $projection: object, $filter: object}, dataObjectVersions: string[]): Observable<VitamResponse> {
     const body = {
       dslRequest: query,
       dataObjectVersionToExport: {dataObjectVersions},
-      exportWithLogBookLFC: true
+      exportWithLogBookLFC: true,
+      dipExportType: 'MINIMAL'
     };
     return this.resourceService.post(`${this.ARCHIVE_UNIT_API}/${this.EXPORT}`, undefined, body);
+  }
+
+  exportFull(query: {$query: object, $projection: object, $filter: object}, dataObjectVersions: string[], dipParam: object): Observable<VitamResponse> {
+    const body = {
+      dslRequest: query,
+      dataObjectVersionToExport: {dataObjectVersions},
+      exportWithLogBookLFC: true,
+      dipExportType: 'FULL',
+      dipRequestParameters: dipParam
+    };
+    return this.resourceService.post(`${this.ARCHIVE_UNIT_API}/${this.EXPORT}`, undefined, body);
+  }
+
+  transfer(query: {$query: object, $projection: object, $filter: object}, dataObjectVersions: string[],transferParam: object): Observable<VitamResponse> {
+    const body = {
+      dslRequest: query,
+      dataObjectVersionToExport: {dataObjectVersions},
+      transferWithLogBookLFC: true,
+      transferRequestParameters: transferParam
+    };
+    return this.resourceService.post(`${this.ARCHIVE_UNIT_API}/${this.TRANSFER}`, undefined, body);
   }
 
   audit(body: any): Observable<VitamResponse> {
@@ -101,6 +124,10 @@ export class ArchiveUnitService {
 
   downloadDIP(id: string) {
     return this.resourceService.get(`${this.ARCHIVE_UNIT_API}/${this.EXPORT}/${id}`, null, 'blob');
+  }
+
+  downloadTransferSIP(id: string) {
+    return this.resourceService.get(`${this.ARCHIVE_UNIT_API}/${this.TRANSFER}/${id}`, null, 'blob');
   }
 
   updateMetadata(id: string, updateRequest: any) {

@@ -1,9 +1,5 @@
 package fr.gouv.vitam.access.external.client.v2;
 
-import javax.ws.rs.HttpMethod;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
-
 import com.fasterxml.jackson.databind.JsonNode;
 import fr.gouv.vitam.access.external.api.AccessExtAPI;
 import fr.gouv.vitam.common.client.VitamContext;
@@ -13,7 +9,11 @@ import fr.gouv.vitam.common.external.client.DefaultClient;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.RequestResponse;
-import fr.gouv.vitam.common.model.dip.DipExportRequest;
+import fr.gouv.vitam.common.model.dip.DipRequest;
+
+import javax.ws.rs.HttpMethod;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
 
 /**
  * Rest client implementation for Access External
@@ -30,13 +30,13 @@ class AccessExternalClientV2Rest extends DefaultClient implements AccessExternal
     }
 
     @Override
-    public RequestResponse<JsonNode> exportDIP(VitamContext vitamContext, DipExportRequest dipExportRequest)
+    public RequestResponse<JsonNode> exportDIP(VitamContext vitamContext, DipRequest dipRequest)
         throws VitamClientException {
         Response response = null;
 
         try {
             response = performRequest(HttpMethod.POST, AccessExtAPI.DIP_API, vitamContext.getHeaders(),
-                dipExportRequest, MediaType.APPLICATION_JSON_TYPE, MediaType.APPLICATION_JSON_TYPE, false);
+                dipRequest, MediaType.APPLICATION_JSON_TYPE, MediaType.APPLICATION_JSON_TYPE, false);
             return RequestResponse.parseFromResponse(response, JsonNode.class);
         } catch (IllegalStateException e) {
             LOGGER.error(COULD_NOT_PARSE_SERVER_RESPONSE, e);

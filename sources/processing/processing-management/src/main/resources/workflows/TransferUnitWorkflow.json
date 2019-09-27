@@ -1,0 +1,95 @@
+{
+  "id": "ARCHIVE_TRANSFER",
+  "name": "transfer archive unit ",
+  "identifier": "ARCHIVE_TRANSFER",
+  "typeProc": "ARCHIVE_TRANSFER",
+  "comment": "Default transfer archiveUnit",
+  "lifecycleLog": "DISABLED",
+  "steps": [
+    {
+      "workerGroupId": "DefaultWorker",
+      "stepName": "STP_CREATE_MANIFEST",
+      "behavior": "BLOCKING",
+      "distribution": {
+        "kind": "REF"
+      },
+      "actions": [
+        {
+          "action": {
+            "actionKey": "CHECK_DISTRIBUTION_THRESHOLD",
+            "behavior": "BLOCKING",
+            "in": [
+              {
+                "name": "queryType",
+                "uri": "VALUE:SELECT"
+              },
+              {
+                "name": "queryUri",
+                "uri": "VALUE:query.json"
+              }
+            ]
+          }
+        },
+        {
+          "action": {
+            "actionKey": "CREATE_MANIFEST",
+            "behavior": "BLOCKING",
+            "out": [
+              {
+                "name": "manifest",
+                "uri": "WORKSPACE:manifest.xml"
+              },
+              {
+                "name": "guid_to_path",
+                "uri": "WORKSPACE:data/guid_to_path.json"
+              },
+              {
+                "name": "binaries",
+                "uri": "WORKSPACE:data/binaries.json"
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "workerGroupId": "DefaultWorker",
+      "stepName": "STP_PUT_BINARY_ON_WORKSPACE",
+      "behavior": "BLOCKING",
+      "distribution": {
+        "kind": "LIST_IN_FILE",
+        "element": "data/binaries.json"
+      },
+      "actions": [
+        {
+          "action": {
+            "actionKey": "PUT_BINARY_ON_WORKSPACE",
+            "behavior": "BLOCKING",
+            "in": [
+              {
+                "name": "guid_to_path",
+                "uri": "WORKSPACE:data/guid_to_path.json"
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "workerGroupId": "DefaultWorker",
+      "stepName": "STP_STORE_MANIFEST",
+      "behavior": "BLOCKING",
+      "distribution": {
+        "kind": "REF"
+      },
+      "actions": [
+        {
+          "action": {
+            "actionKey": "STORE_MANIFEST",
+            "behavior": "BLOCKING"
+          }
+        }
+      ]
+    }
+  ]
+}

@@ -27,10 +27,11 @@
 package fr.gouv.vitam.dip;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
+import com.mongodb.client.model.Filters;
 import fr.gouv.vitam.access.internal.client.AccessInternalClient;
 import fr.gouv.vitam.access.internal.client.AccessInternalClientFactory;
-import fr.gouv.vitam.access.internal.common.exception.AccessInternalClientServerException;
 import fr.gouv.vitam.access.internal.rest.AccessInternalMain;
 import fr.gouv.vitam.batch.report.rest.BatchReportMain;
 import fr.gouv.vitam.common.CommonMediaType;
@@ -45,8 +46,6 @@ import fr.gouv.vitam.common.database.builder.query.QueryHelper;
 import fr.gouv.vitam.common.database.builder.query.VitamFieldsHelper;
 import fr.gouv.vitam.common.database.builder.request.multiple.SelectMultiQuery;
 import fr.gouv.vitam.common.elasticsearch.ElasticsearchRule;
-import fr.gouv.vitam.common.exception.AccessUnauthorizedException;
-import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamException;
 import fr.gouv.vitam.common.format.identification.FormatIdentifierFactory;
 import fr.gouv.vitam.common.guid.GUID;
@@ -56,17 +55,21 @@ import fr.gouv.vitam.common.model.ProcessState;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.model.dip.DataObjectVersions;
 import fr.gouv.vitam.common.model.dip.DipExportRequest;
+import fr.gouv.vitam.common.model.dip.ExportRequestParameters;
+import fr.gouv.vitam.common.model.dip.ExportType;
 import fr.gouv.vitam.common.model.processing.WorkFlow;
+import fr.gouv.vitam.common.stream.StreamUtils;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.functional.administration.rest.AdminManagementMain;
 import fr.gouv.vitam.ingest.internal.client.IngestInternalClient;
 import fr.gouv.vitam.ingest.internal.client.IngestInternalClientFactory;
 import fr.gouv.vitam.ingest.internal.upload.rest.IngestInternalMain;
-import fr.gouv.vitam.logbook.common.exception.LogbookClientException;
+import fr.gouv.vitam.logbook.common.parameters.Contexts;
 import fr.gouv.vitam.logbook.common.parameters.LogbookOperationParameters;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParametersFactory;
 import fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess;
+import fr.gouv.vitam.logbook.common.server.database.collections.LogbookCollections;
 import fr.gouv.vitam.logbook.rest.LogbookMain;
 import fr.gouv.vitam.metadata.rest.MetadataMain;
 import fr.gouv.vitam.processing.common.model.ProcessWorkflow;
@@ -80,17 +83,15 @@ import fr.gouv.vitam.workspace.rest.WorkspaceMain;
 import org.apache.commons.compress.archivers.zip.ZipArchiveEntry;
 import org.apache.commons.compress.archivers.zip.ZipFile;
 import org.apache.commons.io.IOUtils;
+import org.bson.Document;
 import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
 import org.junit.Test;
 
-import javax.ws.rs.core.Response;
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
-import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
@@ -105,7 +106,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 
-public class DipIT extends VitamRuleRunner {
+public class TransferAndDipIT extends VitamRuleRunner {
     private static final Integer tenantId = 0;
     private static final long SLEEP_TIME = 20L;
     private static final long NB_TRY = 18000; // equivalent to 16 minute
@@ -114,7 +115,7 @@ public class DipIT extends VitamRuleRunner {
 
     @ClassRule
     public static VitamServerRunner runner =
-        new VitamServerRunner(DipIT.class, mongoRule.getMongoDatabase().getName(),
+        new VitamServerRunner(TransferAndDipIT.class, mongoRule.getMongoDatabase().getName(),
             ElasticsearchRule.getClusterName(),
             Sets.newHashSet(
                 MetadataMain.class,
@@ -134,7 +135,8 @@ public class DipIT extends VitamRuleRunner {
     @BeforeClass
     public static void setUpBeforeClass() throws Exception {
         handleBeforeClass(0, 1);
-        String CONFIG_SIEGFRIED_PATH = PropertiesUtils.getResourcePath("integration-ingest-internal/format-identifiers.conf").toString();
+        String CONFIG_SIEGFRIED_PATH =
+            PropertiesUtils.getResourcePath("integration-ingest-internal/format-identifiers.conf").toString();
 
         FormatIdentifierFactory.getInstance().changeConfigurationFile(CONFIG_SIEGFRIED_PATH);
 
@@ -157,9 +159,12 @@ public class DipIT extends VitamRuleRunner {
 
     @Test
     @RunWithCustomExecutor
-    public void should_export_DIP_with_logbook() throws Exception {
+    public void should_export_DIP_with_all_data() throws Exception {
         // Given
-        final GUID ingestGUID = ingestSip();
+        String SIP_OK_PHYSICAL_ARCHIVE = "integration-ingest-internal/OK_ArchivesPhysiques.zip";
+        InputStream zipInputStreamSipObject = PropertiesUtils.getResourceAsStream(SIP_OK_PHYSICAL_ARCHIVE);
+        final GUID ingestGUID = ingestSip(zipInputStreamSipObject,
+            StatusCode.WARNING); // As FormatIdentifierMock is used, pdf is identified as Plain Text File => WARNING
 
         SelectMultiQuery select = new SelectMultiQuery();
         select.setQuery(QueryHelper.in(VitamFieldsHelper.operations(), ingestGUID.toString()));
@@ -167,17 +172,42 @@ public class DipIT extends VitamRuleRunner {
         DipExportRequest dipExportRequest = new DipExportRequest(
             new DataObjectVersions(Collections.singleton("BinaryMaster")),
             select.getFinalSelect(),
-            true                                                                                    // <- here with logbook
+            true
+            // <- here with logbook
         );
 
-        // When
+        dipExportRequest.setExportType(ExportType.ArchiveDeliveryRequestReply);
+
+        ExportRequestParameters exportRequestParameters = new ExportRequestParameters();
+        exportRequestParameters.setMessageRequestIdentifier("Required MessageRequestIdentifier");
+        exportRequestParameters.setArchivalAgencyIdentifier("Required ArchivalAgencyIdentifier");
+        exportRequestParameters.setRequesterIdentifier("Required RequesterIdentifier");
+
+        exportRequestParameters.setComment("Not Required comment for ArchiveDeliveryRequestReply");
+        exportRequestParameters
+            .setAuthorizationRequestReplyIdentifier("Not Required  AuthorizationRequestReplyIdentifier");
+        exportRequestParameters.setArchivalAgreement("Not Required ArchivalAgreement");
+        exportRequestParameters.setOriginatingAgencyIdentifier("Not Required OriginatingAgencyIdentifier");
+        exportRequestParameters.setSubmissionAgencyIdentifier("Not Required SubmissionAgencyIdentifier");
+        exportRequestParameters
+            .setRelatedTransferReference(Lists.newArrayList("RelatedTransferReference1", "RelatedTransferReference2"));
+
+        dipExportRequest.setExportRequestParameters(exportRequestParameters);
+
+        // When ArchiveDeliveryRequestReply
         String manifest = createAndExtractDip(dipExportRequest);
 
         // Then
         assertThat(manifest).contains("<?xml version=\"1.0\" ?><ArchiveDeliveryRequestReply");
         assertThat(manifest).contains("</ArchiveDeliveryRequestReply>");
+        String header = PropertiesUtils.getResourceAsString("dip/header1");
+        header = header.replace("OPERATION_ID_REPLACE", getVitamSession().getRequestId());
+        assertThat(manifest).contains(header);
 
-        assertThat(manifest).contains("</BinaryDataObject><LogBook><Event><EventIdentifier>"); // tag for GOT logbook LFC
+        String footer = PropertiesUtils.getResourceAsString("dip/footer1");
+        assertThat(manifest).contains(footer);
+        assertThat(manifest)
+            .contains("</BinaryDataObject><LogBook><Event><EventIdentifier>"); // tag for GOT logbook LFC
         assertThat(manifest).contains("<Management><LogBook><Event><EventIdentifier>"); // tag for AU logbook LFC
     }
 
@@ -185,16 +215,21 @@ public class DipIT extends VitamRuleRunner {
     @RunWithCustomExecutor
     public void should_export_DIP_without_logbook() throws Exception {
         // Given
-        final GUID ingestGUID = ingestSip();
-
+        String SIP_OK_PHYSICAL_ARCHIVE = "integration-ingest-internal/OK_ArchivesPhysiques.zip";
+        InputStream zipInputStreamSipObject = PropertiesUtils.getResourceAsStream(SIP_OK_PHYSICAL_ARCHIVE);
+        final GUID ingestGUID = ingestSip(zipInputStreamSipObject,
+            StatusCode.WARNING); // As FormatIdentifierMock is used, pdf is identified as Plain Text File => WARNING
         SelectMultiQuery select = new SelectMultiQuery();
         select.setQuery(QueryHelper.in(VitamFieldsHelper.operations(), ingestGUID.toString()));
 
         DipExportRequest dipExportRequest = new DipExportRequest(
             new DataObjectVersions(Collections.singleton("BinaryMaster")),
             select.getFinalSelect(),
-            false                                                                                    // <- here without logbook
+            false
+            // <- here without logbook
         );
+
+        dipExportRequest.setExportType(ExportType.MinimalArchiveDeliveryRequestReply);
 
         // When
         String manifest = createAndExtractDip(dipExportRequest);
@@ -203,41 +238,123 @@ public class DipIT extends VitamRuleRunner {
         assertThat(manifest).contains("<?xml version=\"1.0\" ?><ArchiveDeliveryRequestReply");
         assertThat(manifest).contains("</ArchiveDeliveryRequestReply>");
 
-        assertThat(manifest).doesNotContain("</BinaryDataObject><LogBook><Event><EventIdentifier>"); // tag for GOT logbook LFC
+        assertThat(manifest)
+            .doesNotContain("</BinaryDataObject><LogBook><Event><EventIdentifier>"); // tag for GOT logbook LFC
         assertThat(manifest).doesNotContain("<Management><LogBook><Event><EventIdentifier>"); // tag for AU logbook LFC
     }
 
-    private String createAndExtractDip(DipExportRequest dipExportRequest) throws AccessInternalClientServerException, LogbookClientException, InvalidParseOperationException, AccessUnauthorizedException, IOException {
+    @Test
+    @RunWithCustomExecutor
+    public void should_transfer_without_logbook() throws Exception {
+        // Given
+        String SIP_OK_PHYSICAL_ARCHIVE = "integration-ingest-internal/OK_ArchivesPhysiques.zip";
+        InputStream zipInputStreamSipObject = PropertiesUtils.getResourceAsStream(SIP_OK_PHYSICAL_ARCHIVE);
+
+        final GUID ingestGUID = ingestSip(zipInputStreamSipObject,
+            StatusCode.WARNING); // As FormatIdentifierMock is used, pdf is identified as Plain Text File => WARNING
+
+        SelectMultiQuery select = new SelectMultiQuery();
+        select.setQuery(QueryHelper.in(VitamFieldsHelper.operations(), ingestGUID.toString()));
+
+        DipExportRequest dipExportRequest = new DipExportRequest(
+            new DataObjectVersions(Collections.singleton("BinaryMaster")),
+            select.getFinalSelect(),
+            false
+            // <- here without logbook
+        );
+
+        dipExportRequest.setExportType(ExportType.ArchiveTransfer);
+
+        ExportRequestParameters exportRequestParameters = new ExportRequestParameters();
+        exportRequestParameters.setMessageRequestIdentifier(ingestGUID.getId());
+        exportRequestParameters.setArchivalAgencyIdentifier("Identifier4");
+        exportRequestParameters.setRequesterIdentifier("Required RequesterIdentifier");
+
+        exportRequestParameters.setComment("Not Required comment for ArchiveDeliveryRequestReply");
+        exportRequestParameters
+            .setAuthorizationRequestReplyIdentifier("Not Required  AuthorizationRequestReplyIdentifier");
+        exportRequestParameters.setArchivalAgreement("ArchivalAgreement0");
+        exportRequestParameters.setOriginatingAgencyIdentifier("FRAN_NP_050056");
+        exportRequestParameters.setSubmissionAgencyIdentifier("FRAN_NP_050056");
+        exportRequestParameters
+            .setRelatedTransferReference(Lists.newArrayList("RelatedTransferReference1", "RelatedTransferReference2"));
+        exportRequestParameters.setTransferRequestReplyIdentifier("Not required TransferRequestReplyIdentifier");
+        dipExportRequest.setExportRequestParameters(exportRequestParameters);
+
+        String manifest = createAndExtractDip(dipExportRequest);
+
+        // Then
+        assertThat(manifest).contains("<?xml version=\"1.0\" ?><ArchiveTransfer");
+        assertThat(manifest).contains("</ArchiveTransfer>");
+
+        String header = PropertiesUtils.getResourceAsString("dip/header3");
+        header = header.replace("OPERATION_ID_REPLACE", getVitamSession().getRequestId());
+        assertThat(manifest).contains(header);
+
+        String footer = PropertiesUtils.getResourceAsString("dip/footer3");
+        assertThat(manifest).contains(footer);
+
+        assertThat(manifest)
+            .doesNotContain("</BinaryDataObject><LogBook><Event><EventIdentifier>"); // tag for GOT logbook LFC
+        assertThat(manifest).doesNotContain("<Management><LogBook><Event><EventIdentifier>"); // tag for AU logbook LFC
+
+        // try Ingest the Transfer SIP
+        InputStream transferSipStream = getDip(getVitamSession().getRequestId());
+
+        ingestSip(transferSipStream,
+            StatusCode.OK); // As FormatIdentifierMock is used, pdf signature was modified in the first ingest. After transfer manifest and FormatIdentifierMock return the same mime type => status code OK
+
+    }
+
+    private String createAndExtractDip(DipExportRequest dipExportRequest)
+        throws Exception {
         GUID operationGuid = GUIDFactory.newOperationLogbookGUID(tenantId);
         prepareVitamSession();
         getVitamSession().setRequestId(operationGuid);
         try (AccessInternalClient client = AccessInternalClientFactory.getInstance().getClient()) {
-            client.exportDIPByUsageFilter(dipExportRequest);
+            client.exportByUsageFilter(dipExportRequest);
 
             awaitForWorkflowTerminationWithStatus(operationGuid, StatusCode.OK);
+            Document document = (Document) LogbookCollections.OPERATION.getCollection()
+                .find(Filters.eq(getVitamSession().getRequestId())).first();
 
-            JsonNode logbook = client.selectOperationById(operationGuid.getId(), new SelectMultiQuery().getFinalSelect()).toJsonNode()
-                .get("$results")
-                .get(0);
-
-            String evIdProc = logbook.get("evIdProc").asText();
-
-            Response dip = client.findDIPByID(evIdProc);
-
-            File dipFile = File.createTempFile("tmp", ".zip", new File(VitamConfiguration.getVitamTmpFolder()));
-            IOUtils.copy(dip.readEntity(InputStream.class), new FileOutputStream(dipFile));
-            ZipFile zipFile = new ZipFile(dipFile);
-            ZipArchiveEntry manifest = zipFile.getEntry("manifest.xml");
-            return IOUtils.toString(zipFile.getInputStream(manifest), StandardCharsets.UTF_8.name());
+            switch (dipExportRequest.getExportType()) {
+                case ArchiveTransfer:
+                    assertThat(document.getString("evType")).isEqualTo(Contexts.ARCHIVE_TRANSFER.getEventType());
+                    break;
+                case ArchiveDeliveryRequestReply:
+                case MinimalArchiveDeliveryRequestReply:
+                    assertThat(document.getString("evType")).isEqualTo(Contexts.EXPORT_DIP.getEventType());
+                    break;
+            }
+            try (InputStream dip = getDip(operationGuid.getId())) {
+                File dipFile = File.createTempFile("tmp", ".zip", new File(VitamConfiguration.getVitamTmpFolder()));
+                IOUtils.copy(dip, new FileOutputStream(dipFile));
+                ZipFile zipFile = new ZipFile(dipFile);
+                ZipArchiveEntry manifest = zipFile.getEntry("manifest.xml");
+                return IOUtils.toString(zipFile.getInputStream(manifest), StandardCharsets.UTF_8.name());
+            }
         }
     }
 
-    private GUID ingestSip() throws FileNotFoundException, VitamException {
+    private InputStream getDip(String operationId)
+        throws Exception {
+        try (AccessInternalClient client = AccessInternalClientFactory.getInstance().getClient()) {
+            JsonNode logbook =
+                client.selectOperationById(operationId, new SelectMultiQuery().getFinalSelect()).toJsonNode()
+                    .get("$results")
+                    .get(0);
+
+            String evIdProc = logbook.get("evIdProc").asText();
+
+            return client.findExportByID(evIdProc).readEntity(InputStream.class);
+        }
+    }
+
+    private GUID ingestSip(InputStream inputStream, StatusCode expectedStatusCode) throws VitamException {
         GUID operationGuid = GUIDFactory.newOperationLogbookGUID(tenantId);
         prepareVitamSession();
         VitamThreadUtils.getVitamSession().setRequestId(operationGuid);
-        String SIP_OK_PHYSICAL_ARCHIVE = "integration-ingest-internal/OK_ArchivesPhysiques.zip";
-        InputStream zipInputStreamSipObject = PropertiesUtils.getResourceAsStream(SIP_OK_PHYSICAL_ARCHIVE);
 
         List<LogbookOperationParameters> params = new ArrayList<>();
         LogbookOperationParameters initParameters = LogbookParametersFactory.newLogbookOperationParameters(
@@ -257,9 +374,11 @@ public class DipIT extends VitamRuleRunner {
 
             client.initWorkflow(ingest);
 
-            client.upload(zipInputStreamSipObject, CommonMediaType.ZIP_TYPE, ingest, ProcessAction.RESUME.name());
+            client.upload(inputStream, CommonMediaType.ZIP_TYPE, ingest, ProcessAction.RESUME.name());
 
-            awaitForWorkflowTerminationWithStatus(operationGuid, StatusCode.WARNING);
+            awaitForWorkflowTerminationWithStatus(operationGuid, expectedStatusCode);
+        } finally {
+            StreamUtils.closeSilently(inputStream);
         }
         return operationGuid;
     }
@@ -273,7 +392,8 @@ public class DipIT extends VitamRuleRunner {
     private void awaitForWorkflowTerminationWithStatus(GUID operationGuid, StatusCode status) {
         waitOperation(NB_TRY, SLEEP_TIME, operationGuid.toString());
 
-        ProcessWorkflow processWorkflow = ProcessMonitoringImpl.getInstance().findOneProcessWorkflow(operationGuid.toString(), tenantId);
+        ProcessWorkflow processWorkflow =
+            ProcessMonitoringImpl.getInstance().findOneProcessWorkflow(operationGuid.toString(), tenantId);
 
         assertNotNull(processWorkflow);
         assertEquals(ProcessState.COMPLETED, processWorkflow.getState());

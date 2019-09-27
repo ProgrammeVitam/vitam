@@ -10,7 +10,7 @@ import {ResourcesService} from "../../../common/resources.service";
 export class ArchiveUnitSelectionComponent implements OnInit {
   @Input() id = '';
   @Input() operation = '';
-  exportType = 'AU';
+  exportChoice = 'AU';
   display = false;
   displayError = false;
 
@@ -19,7 +19,7 @@ export class ArchiveUnitSelectionComponent implements OnInit {
   ngOnInit() { }
 
   addToBasket() {
-    const isIngest: boolean = this.exportType === 'INGEST';
+    const isIngest: boolean = this.exportChoice === 'INGEST';
     this.mySelectionService.getIdsToSelect(isIngest, isIngest ? this.operation : this.id).subscribe(
       (response) => {
         const ids: string[] = response.$results.reduce(
@@ -27,7 +27,7 @@ export class ArchiveUnitSelectionComponent implements OnInit {
             x.push(y['#id']);
             return x;
           }, []);
-        this.mySelectionService.addToSelection(this.exportType === 'FULL', ids, this.resourcesService.getTenant());
+        this.mySelectionService.addToSelection(this.exportChoice === 'FULL', ids, this.resourcesService.getTenant());
         this.display = true;
       }, () => {
         this.displayError = true;

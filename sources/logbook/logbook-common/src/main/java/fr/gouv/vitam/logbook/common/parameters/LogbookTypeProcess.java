@@ -97,6 +97,10 @@ public enum LogbookTypeProcess {
      */
     EXPORT_DIP,
     /**
+     * transfer du SIP
+     */
+    ARCHIVE_TRANSFER,
+    /**
      * Migration
      */
     DATA_MIGRATION,

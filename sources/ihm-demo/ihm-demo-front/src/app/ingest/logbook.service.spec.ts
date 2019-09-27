@@ -18,7 +18,8 @@ const ResourcesServiceStub = {
 };
 
 let ArchiveUnitServiceStub = {
-  downloadDIP: (id) => Observable.of(new VitamResponse())
+  downloadDIP: (id) => Observable.of(new VitamResponse()),
+  downloadTransferSIP: (id) => Observable.of(new VitamResponse())
 };
 
 describe('LogbookService', () => {

@@ -1,32 +1,129 @@
 <p-panel [header]="'Génération du DIP'" [toggleable]="true" [collapsed]="false" *ngIf="id">
-  <div class="ui-g">
-    <div class="ui-g-4 textAlignLeft">
-      <p-radioButton value="AU" label="Unité archivistique" [(ngModel)]="exportType"></p-radioButton>
-    </div>
-    <div class="ui-g-8">
-      <vitam-metadata-field [title]="'Liste blanche des usages'" [updateMode]="true" [originalTitle]="'DataObjectVersion'" [optionsFilter]="updatedFields"
-      [value]="updatedFields" [labelSize]="4" class="ui-g-6" [(updatedFields)]="updatedFields"></vitam-metadata-field>
-    </div>
-    <div class="ui-g-4 textAlignLeft">
-      <p-radioButton value="FULL" label="Unité archivistique et sa descendance" [(ngModel)]="exportType"></p-radioButton>
-    </div>
-    <div class="ui-g-8"></div>
-    <div class="ui-g-4 textAlignLeft">
-      <p-radioButton value="INGEST" label="Ensemble de l'entrée" [(ngModel)]="exportType"></p-radioButton>
-    </div>
-    <div class="ui-g-8"></div>
-    <div class="ui-g-2">
-      <button pButton type="button" (click)="exportDIP()" label="Exporter"></button>
-    </div>
-  </div>
-                              
+    <div class="ui-g">
+        <div class="ui-g-4 textAlignLeft">
+            <p-radioButton value="AU" label="Unité archivistique" [(ngModel)]="exportChoice"></p-radioButton>
+        </div>
+        <div class="ui-g-8">
+            <vitam-metadata-field [title]="'Liste blanche des usages'" [updateMode]="true"
+                                  [originalTitle]="'DataObjectVersion'" [optionsFilter]="updatedFields"
+                                  [value]="updatedFields" [labelSize]="4" class="ui-g-6"
+                                  [(updatedFields)]="updatedFields"></vitam-metadata-field>
+        </div>
+        <div class="ui-g-4 textAlignLeft">
+            <p-radioButton value="FULL" label="Unité archivistique et sa descendance"
+                           [(ngModel)]="exportChoice"></p-radioButton>
+        </div>
+        <div class="ui-g-8"></div>
+        <div class="ui-g-4 textAlignLeft">
+            <p-radioButton value="INGEST" label="Ensemble de l'entrée" [(ngModel)]="exportChoice"></p-radioButton>
+        </div>
 
-  <p-dialog header="Génération DIP" [(visible)]="display">
-    La génération du DIP est en cours...<br/>
-    Vous pourrez le télécharger dans le journal des opérations.
-    <p-footer>
-      <button pButton type="button" (click)="display = false" label="OK"></button>
-    </p-footer>
-  </p-dialog>
+        <div class="ui-g-12"></div>
+        <div class="ui-g-12">
+            <h3>Common parameters</h3>
+        </div>
+
+        <div class="ui-g-4 textAlignLeft">
+            <span>Comment</span>
+            <br/>
+            <input type="text" pInputText placeholder="Commentaire" [(ngModel)]="comment"/>
+        </div>
+        <div class="ui-g-4 textAlignLeft">
+            <span>Archival Agreement (Transfer Required)</span>
+            <br/>
+            <input type="text" pInputText placeholder="Archival Agreement" [(ngModel)]="archivalAgreement"/>
+        </div>
+        <div class="ui-g-4 textAlignLeft">
+            <span>Originating Agency Identifier (Transfer Required)</span>
+            <br/>
+            <input type="text" pInputText placeholder="Originating Agency Identifier"
+                   [(ngModel)]="originatingAgencyIdentifier"/>
+        </div>
+        <div class="ui-g-4 textAlignLeft">
+            <span>Submission Agency Identifier</span>
+            <br/>
+            <input type="text" pInputText placeholder="Submission Agency Identifier"
+                   [(ngModel)]="submissionAgencyIdentifier"/>
+        </div>
+
+        <div class="ui-g-4 textAlignLeft">
+            <span>Archival Agency Identifier (Required)</span>
+            <br/>
+            <input type="text" pInputText placeholder="Archival Agency Identifier"
+                   [(ngModel)]="archivalAgencyIdentifier"/>
+        </div>
+
+        <div class="ui-g-12"></div>
+        <div class="ui-g-12">
+            <h3>Transfer only parameters</h3>
+        </div>
+
+        <div class="ui-g-4 textAlignLeft">
+            <span>Related Transfer Reference (use ; separator)</span>
+            <br/>
+            <input type="text" pInputText placeholder="Related Transfer Reference"
+                   [(ngModel)]="relatedTransferReference"/>
+        </div>
+
+        <div class="ui-g-4 textAlignLeft">
+            <span>Transfer Request Reply Identifier</span>
+            <br/>
+            <input type="text" pInputText placeholder="Transfer Request Reply Identifier"
+                   [(ngModel)]="transferRequestReplyIdentifier"/>
+        </div>
+
+        <div class="ui-g-4 textAlignLeft">
+            <span>Transferring Agency</span>
+            <br/>
+            <input type="text" pInputText placeholder="Transferring Agency" [(ngModel)]="transferringAgency"/>
+        </div>
+
+        <div class="ui-g-12"></div>
+        <div class="ui-g-12">
+            <h3>DIP only parameters</h3>
+        </div>
+
+        <div class="ui-g-4 textAlignLeft">
+            <span>Message Request Identifier (Required) </span>
+            <br/>
+            <input type="text" pInputText placeholder="Message Request Identifier"
+                   [(ngModel)]="messageRequestIdentifier"/>
+        </div>
+
+        <div class="ui-g-4 textAlignLeft">
+            <span>Requester Identifier (Required)</span>
+            <br/>
+            <input type="text" pInputText placeholder="Requester Identifier" [(ngModel)]="requesterIdentifier"/>
+        </div>
+
+        <div class="ui-g-4 textAlignLeft">
+            <span>Authorization Request Reply Identifier</span>
+            <br/>
+            <input type="text" pInputText placeholder="Authorization Request Reply Identifier"
+                   [(ngModel)]="authorizationRequestReplyIdentifier"/>
+        </div>
+
+        <div class="ui-g-12"></div>
+        <div class="ui-g-12">
+            <div class="ui-g-2">
+                <button pButton type="button" (click)="export('MINIMAL')" label="DIP Minimal"></button>
+            </div>
+            <div class="ui-g-2">
+                <button pButton type="button" (click)="export('FULL')" label=" DIP Full"></button>
+            </div>
+            <div class="ui-g-2">
+                <button pButton type="button" (click)="export('TRANSFER')" label="Transfer"></button>
+            </div>
+        </div>
+    </div>
+
+
+    <p-dialog header="Génération DIP" [(visible)]="display">
+        La génération du DIP ou Transfer est en cours...<br/>
+        Vous pourrez le télécharger dans le journal des opérations.
+        <p-footer>
+            <button pButton type="button" (click)="display = false" label="OK"></button>
+        </p-footer>
+    </p-dialog>
 
 </p-panel>

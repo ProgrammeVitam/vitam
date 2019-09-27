@@ -35,6 +35,7 @@ import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.dip.DipExportRequest;
+import fr.gouv.vitam.common.model.dip.DipRequest;
 import fr.gouv.vitam.common.security.SanityChecker;
 import fr.gouv.vitam.common.security.rest.EndpointInfo;
 import fr.gouv.vitam.common.security.rest.SecureEndpointRegistry;
@@ -103,7 +104,7 @@ public class AccessExternalResourceV2 extends ApplicationStatusResource {
     /**
      * get units list by query
      *
-     * @param dipExportRequest the query to get units
+     * @param dipRequest the query to get units
      * @return Response
      */
     @POST
@@ -111,12 +112,12 @@ public class AccessExternalResourceV2 extends ApplicationStatusResource {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     @Secured(permission = "dipexportv2:create", description = "Générer le DIP à partir d'un DSL")
-    public Response exportDIP(DipExportRequest dipExportRequest) {
+    public Response exportDIP(DipRequest dipRequest) {
         try (AccessInternalClient client = accessInternalClientFactory.getClient()) {
-            SanityChecker.checkJsonAll(dipExportRequest.getDslRequest());
+            SanityChecker.checkJsonAll(dipRequest.getDslRequest());
             SelectMultipleSchemaValidator validator = new SelectMultipleSchemaValidator();
-            validator.validate(dipExportRequest.getDslRequest());
-            RequestResponse response = client.exportDIPByUsageFilter(dipExportRequest);
+            validator.validate(dipRequest.getDslRequest());
+            RequestResponse response = client.exportByUsageFilter(DipExportRequest.from(dipRequest));
             if (response.isOk()) {
                 return Response.status(Status.ACCEPTED.getStatusCode()).entity(response).build();
             } else {

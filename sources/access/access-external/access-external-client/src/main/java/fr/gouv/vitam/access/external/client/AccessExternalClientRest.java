@@ -12,6 +12,7 @@ import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.PreservationRequest;
 import fr.gouv.vitam.common.model.RequestResponse;
+import fr.gouv.vitam.common.model.dip.TransferRequest;
 import fr.gouv.vitam.common.model.elimination.EliminationRequestBody;
 import fr.gouv.vitam.common.model.logbook.LogbookLifecycle;
 import fr.gouv.vitam.common.model.logbook.LogbookOperation;
@@ -37,6 +38,7 @@ class AccessExternalClientRest extends DefaultClient implements AccessExternalCl
     private static final String BLANK_USAGE = "usage should be filled";
     private static final String BLANK_VERSION = "usage version should be filled";
     private static final String BLANK_DIP_ID = "DIP identifier should be filled";
+    private static final String BLANK_TRANSFER_ID = "Transfer identifier should be filled";
     private static final String MISSING_VITAM_CONTEXT = "Missing vitam context";
     private static final String MISSING_RECLASSIFICATION_REQUEST = "Missing reclassification request";
     private static final String MISSING_ELIMINATION_REQUEST = "Missing elimination request";
@@ -285,6 +287,46 @@ class AccessExternalClientRest extends DefaultClient implements AccessExternalCl
     }
 
     @Override
+    public RequestResponse<JsonNode> transfer(VitamContext vitamContext, TransferRequest transferRequest)
+        throws VitamClientException {
+        Response response = null;
+
+        try {
+            response = performRequest(HttpMethod.POST, AccessExtAPI.TRANSFER_API, vitamContext.getHeaders(),
+                transferRequest, MediaType.APPLICATION_JSON_TYPE, MediaType.APPLICATION_JSON_TYPE, false);
+            return RequestResponse.parseFromResponse(response, JsonNode.class);
+        } catch (IllegalStateException e) {
+            LOGGER.error(COULD_NOT_PARSE_SERVER_RESPONSE, e);
+            throw createExceptionFromResponse(response);
+        } catch (VitamClientInternalException e) {
+            LOGGER.error(VITAM_CLIENT_INTERNAL_EXCEPTION, e);
+            throw new VitamClientException(e);
+        } finally {
+            consumeAnyEntityAndClose(response);
+        }
+    }
+
+    @Override
+    public Response getTransferById(VitamContext vitamContext, String transferId)
+        throws VitamClientException {
+
+        ParametersChecker.checkParameter(BLANK_TRANSFER_ID, transferId);
+
+        Response response;
+
+        try {
+            response =
+                performRequest(HttpMethod.GET, AccessExtAPI.TRANSFER_API + "/" + transferId + "/sip", vitamContext.getHeaders(),
+                    null, MediaType.APPLICATION_JSON_TYPE, MediaType.APPLICATION_OCTET_STREAM_TYPE, false);
+
+        } catch (final VitamClientInternalException e) {
+            LOGGER.error(VITAM_CLIENT_INTERNAL_EXCEPTION, e);
+            throw new VitamClientException(e);
+        }
+        return response;
+    }
+
+    @Override
     public Response getDIPById(VitamContext vitamContext, String dipId)
         throws VitamClientException {
 
@@ -307,7 +349,7 @@ class AccessExternalClientRest extends DefaultClient implements AccessExternalCl
     /**
      * Performs a reclassification workflow.
      *
-     * @param vitamContext            the vitam context
+     * @param vitamContext the vitam context
      * @param reclassificationRequest List of attachment and detachment operations in unit graph.
      */
     public RequestResponse<JsonNode> reclassification(VitamContext vitamContext, JsonNode reclassificationRequest)
@@ -495,8 +537,10 @@ class AccessExternalClientRest extends DefaultClient implements AccessExternalCl
         throws VitamClientException {
         Response response = null;
         try {
-            response = performRequest(HttpMethod.POST, UNITS+AccessExtAPI.COMPUTEDINHERITEDRULES, vitamContext.getHeaders(), updateQuery,
-                MediaType.APPLICATION_JSON_TYPE, MediaType.APPLICATION_JSON_TYPE, false);
+            response =
+                performRequest(HttpMethod.POST, UNITS + AccessExtAPI.COMPUTEDINHERITEDRULES, vitamContext.getHeaders(),
+                    updateQuery,
+                    MediaType.APPLICATION_JSON_TYPE, MediaType.APPLICATION_JSON_TYPE, false);
             return RequestResponse.parseFromResponse(response, JsonNode.class);
         } catch (IllegalStateException e) {
             LOGGER.error(COULD_NOT_PARSE_SERVER_RESPONSE, e);
@@ -514,7 +558,8 @@ class AccessExternalClientRest extends DefaultClient implements AccessExternalCl
         JsonNode deleteComputedInheritedRulesQuery) throws VitamClientException {
         Response response = null;
         try {
-            response = performRequest(HttpMethod.DELETE, UNITS+AccessExtAPI.COMPUTEDINHERITEDRULES, vitamContext.getHeaders(), deleteComputedInheritedRulesQuery,
+            response = performRequest(HttpMethod.DELETE, UNITS + AccessExtAPI.COMPUTEDINHERITEDRULES,
+                vitamContext.getHeaders(), deleteComputedInheritedRulesQuery,
                 MediaType.APPLICATION_JSON_TYPE, MediaType.APPLICATION_JSON_TYPE, false);
             return RequestResponse.parseFromResponse(response, JsonNode.class);
         } catch (IllegalStateException e) {

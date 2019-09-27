@@ -242,20 +242,20 @@ public interface AccessInternalClient extends MockOrRestClient {
     /**
      * launch a DIP operation by a DSL query
      *
-     * @param dipExportRequest query for the DIP creation
+     * @param dipExportRequest query for the DIP/Tranfer creation
      * @return
      * @throws AccessInternalClientServerException
      */
-    RequestResponse<JsonNode> exportDIPByUsageFilter(DipExportRequest dipExportRequest) throws AccessInternalClientServerException;
+    RequestResponse<JsonNode> exportByUsageFilter(DipExportRequest dipExportRequest) throws AccessInternalClientServerException;
 
     /**
-     * get a zip file containing a DIP by an operation id
+     * get a zip file containing a DIP/Transfer by an operation id
      *
      * @param id operationId
      * @return stream containing zip file
      * @throws AccessInternalClientServerException
      */
-    Response findDIPByID(String id) throws AccessInternalClientServerException;
+    Response findExportByID(String id) throws AccessInternalClientServerException;
 
     /**
      * Performs a reclassification workflow.

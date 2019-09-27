@@ -427,7 +427,12 @@ public class VitamConfiguration {
     /**
      * Map to override defalt Originating agency for each tenant for a DIP Export with multiple originating agencies
      */
-    private static Map<Integer, String> defaultOriginatingAgencyByTenant = new HashMap<Integer, String>();
+    private static Map<Integer, String> defaultOriginatingAgencyByTenant = new HashMap<>();
+
+    private static String vitamDefaultTransferringAgency = "VITAM";
+
+    private static Map<String, String> vitamDefaultCodeListVersion = new HashMap<>();
+
     /**
      * Default LANG
      */
@@ -953,6 +958,14 @@ public class VitamConfiguration {
 
         if (null != parameters.getDefaultOriginatingAgencyForExport()) {
             setDefaultOriginatingAgencyByTenant(parameters.getDefaultOriginatingAgencyForExport());
+        }
+
+        if (null != parameters.getVitamDefaultTransferringAgency()) {
+            setVitamDefaultTransferringAgency(parameters.getVitamDefaultTransferringAgency());
+        }
+
+        if (null != parameters.getVitamDefaultCodeListVersion()) {
+            setVitamDefaultCodeListVersion(parameters.getVitamDefaultCodeListVersion());
         }
 
         if (null != parameters.getStoreGraphElementsPerFile()) {
@@ -2096,6 +2109,23 @@ public class VitamConfiguration {
         VitamConfiguration.defaultOriginatingAgencyByTenant = defaultOriginatingAgencyForExport;
     }
 
+    public static void setVitamDefaultTransferringAgency(String vitamDefaultTransferringAgency) {
+        VitamConfiguration.vitamDefaultTransferringAgency = vitamDefaultTransferringAgency;
+    }
+
+    public static String getVitamDefaultTransferringAgency() {
+        return vitamDefaultTransferringAgency;
+    }
+
+    public static Map<String, String> getVitamDefaultCodeListVersion() {
+        return vitamDefaultCodeListVersion;
+    }
+
+    public static void setVitamDefaultCodeListVersion(
+        Map<String, String> vitamDefaultCodeListVersion) {
+        VitamConfiguration.vitamDefaultCodeListVersion = vitamDefaultCodeListVersion;
+    }
+
     /**
      * Get the maxResultWindow
      *
@@ -2397,7 +2427,8 @@ public class VitamConfiguration {
         return indexInheritedRulesWithAPIV2OutputByTenant;
     }
 
-    public static void setIndexInheritedRulesWithAPIV2OutputByTenant(List<String> indexInheritedRulesWithAPIV2OutputByTenant) {
+    public static void setIndexInheritedRulesWithAPIV2OutputByTenant(
+        List<String> indexInheritedRulesWithAPIV2OutputByTenant) {
         VitamConfiguration.indexInheritedRulesWithAPIV2OutputByTenant = indexInheritedRulesWithAPIV2OutputByTenant;
     }
 }

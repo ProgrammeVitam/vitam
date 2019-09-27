@@ -54,6 +54,8 @@ import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.administration.AccessionRegisterSummaryModel;
 import fr.gouv.vitam.common.model.administration.AccessionRegisterSymbolicModel;
 import fr.gouv.vitam.common.model.dip.DipExportRequest;
+import fr.gouv.vitam.common.model.dip.DipRequest;
+import fr.gouv.vitam.common.model.dip.TransferRequest;
 import fr.gouv.vitam.common.model.elimination.EliminationRequestBody;
 import fr.gouv.vitam.common.model.logbook.LogbookLifecycle;
 import fr.gouv.vitam.common.model.logbook.LogbookOperation;
@@ -597,38 +599,53 @@ public class UserInterfaceTransactionManager {
     /**
      * generate a DIP to be exported
      *
-     * @param dipExportRequest search criteria as DSL query
+     * @param dipRequest search criteria as DSL query
      * @param context VitamContext
      * @return a JsonNode for dip results
      * @throws InvalidParseOperationException unable to parse query
      * @throws VitamClientException access client exception
      */
-    public RequestResponse<JsonNode> exportDIP(DipExportRequest dipExportRequest, VitamContext context)
+    public RequestResponse<JsonNode> exportDIP(DipRequest dipRequest, VitamContext context)
         throws VitamClientException {
         try (AccessExternalClientV2 client = accessExternalClientV2Factory.getClient()) {
-            return client.exportDIP(context, dipExportRequest);
+            return client.exportDIP(context, dipRequest);
+        }
+    }
+
+
+    public RequestResponse<JsonNode> transferSIP(TransferRequest transferRequest, VitamContext context)
+        throws VitamClientException {
+        try (AccessExternalClient client = accessExternalClientFactory.getClient()) {
+            return client.transfer(context, transferRequest);
         }
     }
 
     /**
+     * Download DIP or Transfer SIP
      * @param asyncResponse AsyncResponse
-     * @param dipId dip id
+     * @param exportId exportId
      * @param context vitam context
      * @return
      * @throws UnsupportedEncodingException
      * @throws VitamClientException
      */
-    public boolean downloadDIP(AsyncResponse asyncResponse, String dipId, VitamContext context)
+    public boolean downloadExports(AsyncResponse asyncResponse, String exportId, VitamContext context, boolean isTransfer)
         throws UnsupportedEncodingException, VitamClientException {
         Response response = null;
         try (AccessExternalClient client = accessExternalClientFactory.getClient()) {
-            response = client.getDIPById(
-                context,
-                dipId);
+            String prefix;
+            if (isTransfer) {
+                response = client.getTransferById(context, exportId);
+                prefix = "TRANSFER";
+            } else {
+                response = client.getDIPById(context, exportId);
+                prefix = "DIP";
+            }
+
             final AsyncInputStreamHelper helper = new AsyncInputStreamHelper(asyncResponse, response);
             final Response.ResponseBuilder responseBuilder = Response.status(response.getStatus())
                 .header("Content-Disposition",
-                    "filename=\"" + URLDecoder.decode("DIP-" + dipId + ".zip", "UTF-8") + "\"")
+                    "filename=\"" + URLDecoder.decode(prefix + "-" + exportId + ".zip", "UTF-8") + "\"")
                 .type(response.getMediaType());
             helper.writeResponse(responseBuilder);
         } finally {

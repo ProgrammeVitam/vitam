@@ -82,6 +82,7 @@ import fr.gouv.vitam.common.model.VitamSession;
 import fr.gouv.vitam.common.model.administration.AccessContractModel;
 import fr.gouv.vitam.common.model.administration.ActivationStatus;
 import fr.gouv.vitam.common.model.dip.DipExportRequest;
+import fr.gouv.vitam.common.model.dip.ExportType;
 import fr.gouv.vitam.common.model.elimination.EliminationRequestBody;
 import fr.gouv.vitam.common.model.massupdate.MassUpdateUnitRuleRequest;
 import fr.gouv.vitam.common.model.massupdate.RuleActions;
@@ -174,7 +175,8 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
     private DipService objectDipService;
 
     private static final String END_OF_EXECUTION_OF_DSL_VITAM_FROM_ACCESS = "End of execution of DSL Vitam from Access";
-    private static final String EXECUTION_OF_DSL_VITAM_FROM_ACCESS_ONGOING = "Execution of DSL Vitam from Access ongoing...";
+    private static final String EXECUTION_OF_DSL_VITAM_FROM_ACCESS_ONGOING =
+        "Execution of DSL Vitam from Access ongoing...";
     private static final String BAD_REQUEST_EXCEPTION = "Bad request Exception ";
     private static final String NOT_FOUND_EXCEPTION = "Not Found Exception ";
     private static final String ACCESS_MODULE = "ACCESS";
@@ -343,6 +345,7 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
         DipExportRequest dipExportRequest = new DipExportRequest();
         dipExportRequest.setDslRequest(dslRequest);
         dipExportRequest.setExportWithLogBookLFC(false);
+        dipExportRequest.setExportType(ExportType.MinimalArchiveDeliveryRequestReply);
 
         return exportDIPByRequest(dipExportRequest, false);
     }
@@ -370,17 +373,34 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
         try (ProcessingManagementClient processingClient = processingManagementClientFactory.getClient();
             LogbookOperationsClient logbookOperationsClient = logbookOperationsClientFactory.getClient();
             WorkspaceClient workspaceClient = workspaceClientFactory.getClient()) {
+
+            Contexts contexts;
+            LogbookTypeProcess logbookTypeProcess;
+            switch (dipExportRequest.getExportType()) {
+                case ArchiveDeliveryRequestReply:
+                case MinimalArchiveDeliveryRequestReply:
+                    contexts = Contexts.EXPORT_DIP;
+                    logbookTypeProcess = LogbookTypeProcess.EXPORT_DIP;
+                    break;
+                case ArchiveTransfer:
+                    contexts = Contexts.ARCHIVE_TRANSFER;
+                    logbookTypeProcess = LogbookTypeProcess.ARCHIVE_TRANSFER;
+                    break;
+                default:
+                    throw new IllegalArgumentException(
+                        "Not implemented ExportType :" + dipExportRequest.getExportType());
+            }
             checkEmptyQuery(dipExportRequest.getDslRequest());
             String operationId = getVitamSession().getRequestId();
 
             final LogbookOperationParameters initParameters =
                 LogbookParametersFactory.newLogbookOperationParameters(
                     GUIDReader.getGUID(operationId),
-                    Contexts.EXPORT_DIP.getEventType(),
+                    contexts.getEventType(),
                     GUIDReader.getGUID(operationId),
-                    LogbookTypeProcess.EXPORT_DIP,
+                    logbookTypeProcess,
                     STARTED,
-                    VitamLogbookMessages.getLabelOp("EXPORT_DIP.STARTED") + " : " + GUIDReader.getGUID(operationId),
+                    VitamLogbookMessages.getLabelOp(contexts + ".STARTED") + " : " + GUIDReader.getGUID(operationId),
                     GUIDReader.getGUID(operationId));
 
             if (applyFilter) {
@@ -391,24 +411,26 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
             logbookOperationsClient.create(initParameters);
 
             workspaceClient.createContainer(operationId);
-            JsonNode filteredQueryQsl = applyAccessContractRestrictionForUnitForSelect(dipExportRequest.getDslRequest(), getVitamSession().getContract());
+            JsonNode filteredQueryQsl = applyAccessContractRestrictionForUnitForSelect(dipExportRequest.getDslRequest(),
+                getVitamSession().getContract());
             dipExportRequest.setDslRequest(filteredQueryQsl);
             workspaceClient.putObject(operationId, QUERY_FILE, writeToInpustream(filteredQueryQsl));
             workspaceClient.putObject(operationId, DIP_REQUEST_FILE_NAME, writeToInpustream(dipExportRequest));
 
-            ProcessingEntry processingEntry = new ProcessingEntry(operationId, Contexts.EXPORT_DIP.name());
+            ProcessingEntry processingEntry = new ProcessingEntry(operationId, contexts.name());
             boolean mustLog = ActivationStatus.ACTIVE.equals(getVitamSession().getContract().getAccessLog());
-            processingEntry.getExtraParams().put(WorkerParameterName.mustLogAccessOnObject.name(), Boolean.toString(mustLog));
+            processingEntry.getExtraParams()
+                .put(WorkerParameterName.mustLogAccessOnObject.name(), Boolean.toString(mustLog));
             processingClient.initVitamProcess(processingEntry);
 
             RequestResponse<JsonNode> jsonNodeRequestResponse = processingClient.executeOperationProcess(
-                operationId, Contexts.EXPORT_DIP.name(), RESUME.getValue());
+                operationId, contexts.name(), RESUME.getValue());
             return jsonNodeRequestResponse.toResponse();
         } catch (ContentAddressableStorageServerException |
             InvalidGuidOperationException | LogbookClientServerException | LogbookClientBadRequestException |
             LogbookClientAlreadyExistsException |
             VitamClientException | InternalServerException | InvalidCreateOperationException e) {
-            LOGGER.error("Error while generating DIP", e);
+            LOGGER.error("Error while generating " + dipExportRequest.getExportType(), e);
             return Response.status(INTERNAL_SERVER_ERROR)
                 .entity(getErrorEntity(INTERNAL_SERVER_ERROR, e.getMessage())).build();
         } catch (final InvalidParseOperationException e) {
@@ -997,7 +1019,8 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
             SanityChecker.checkJsonAll(queryDsl);
 
             // Check the writing rights
-            if (getVitamSession().getContract().getWritingPermission() == null || !getVitamSession().getContract().getWritingPermission()) {
+            if (getVitamSession().getContract().getWritingPermission() == null ||
+                !getVitamSession().getContract().getWritingPermission()) {
                 status = Status.UNAUTHORIZED;
                 return Response.status(status).entity(getErrorEntity(status, WRITE_PERMISSION_NOT_ALLOWED)).build();
             }
@@ -1211,7 +1234,8 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
             LOGGER.error("Error on computedInheritedRules delete request", e);
             return Response.status(INTERNAL_SERVER_ERROR)
                 .entity(getErrorEntity(INTERNAL_SERVER_ERROR,
-                    String.format("An error occurred during %s workflow", COMPUTE_INHERITED_RULES_DELETE.getEventType())))
+                    String
+                        .format("An error occurred during %s workflow", COMPUTE_INHERITED_RULES_DELETE.getEventType())))
                 .build();
         }
     }
