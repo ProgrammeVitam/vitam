@@ -584,6 +584,8 @@ public class SedaConstants {
      * LFC UNITS FOLDER path
      */
     public static final String LFC_UNITS_FOLDER = "LFCUnits";
+
+    public static final String TAG_LOGBOOK = "LogBook";
     
     private SedaConstants() {
         // Empty constructor

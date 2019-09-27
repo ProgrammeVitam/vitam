@@ -1,4 +1,4 @@
-/*******************************************************************************
+/*
  * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2019)
  *
  * contact.vitam@culture.gouv.fr
@@ -23,9 +23,10 @@
  *
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
- *******************************************************************************/
+ */
 package fr.gouv.vitam.worker.core.handler;
 
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
@@ -39,6 +40,7 @@ import de.odysseus.staxon.json.JsonXMLOutputFactory;
 import fr.gouv.culture.archivesdefrance.seda.v2.ArchiveUnitType;
 import fr.gouv.culture.archivesdefrance.seda.v2.DataObjectOrArchiveUnitReferenceType;
 import fr.gouv.culture.archivesdefrance.seda.v2.RelatedObjectReferenceType;
+import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.SedaConstants;
 import fr.gouv.vitam.common.VitamConfiguration;
@@ -69,17 +71,18 @@ import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.model.UnitType;
+import fr.gouv.vitam.common.model.administration.ContractsDetailsModel;
 import fr.gouv.vitam.common.model.administration.IngestContractCheckState;
 import fr.gouv.vitam.common.model.administration.IngestContractModel;
-import fr.gouv.vitam.common.model.administration.ContractsDetailsModel;
 import fr.gouv.vitam.common.model.administration.OntologyModel;
+import fr.gouv.vitam.common.model.administration.RuleType;
+import fr.gouv.vitam.common.model.logbook.LogbookEvent;
 import fr.gouv.vitam.common.model.unit.GotObj;
 import fr.gouv.vitam.common.model.unit.ManagementModel;
 import fr.gouv.vitam.common.model.unit.RuleCategoryModel;
 import fr.gouv.vitam.common.model.unit.RuleModel;
 import fr.gouv.vitam.common.parameter.ParameterHelper;
 import fr.gouv.vitam.common.performance.PerformanceLogger;
-import fr.gouv.vitam.common.model.administration.RuleType;
 import fr.gouv.vitam.common.xml.XMLInputFactoryUtils;
 import fr.gouv.vitam.functional.administration.client.AdminManagementClient;
 import fr.gouv.vitam.functional.administration.client.AdminManagementClientFactory;
@@ -155,6 +158,7 @@ import java.io.StringWriter;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -166,8 +170,20 @@ import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
+import static fr.gouv.vitam.common.SedaConstants.TAG_LOGBOOK;
 import static fr.gouv.vitam.common.model.IngestWorkflowConstants.SEDA_FILE;
 import static fr.gouv.vitam.common.model.IngestWorkflowConstants.SEDA_FOLDER;
+import static fr.gouv.vitam.logbook.common.parameters.LogbookParameterName.agentIdentifier;
+import static fr.gouv.vitam.logbook.common.parameters.LogbookParameterName.eventDateTime;
+import static fr.gouv.vitam.logbook.common.parameters.LogbookParameterName.eventIdentifier;
+import static fr.gouv.vitam.logbook.common.parameters.LogbookParameterName.eventIdentifierProcess;
+import static fr.gouv.vitam.logbook.common.parameters.LogbookParameterName.eventType;
+import static fr.gouv.vitam.logbook.common.parameters.LogbookParameterName.eventTypeProcess;
+import static fr.gouv.vitam.logbook.common.parameters.LogbookParameterName.objectIdentifier;
+import static fr.gouv.vitam.logbook.common.parameters.LogbookParameterName.outcome;
+import static fr.gouv.vitam.logbook.common.parameters.LogbookParameterName.outcomeDetail;
+import static fr.gouv.vitam.logbook.common.parameters.LogbookParameterName.outcomeDetailMessage;
+import static fr.gouv.vitam.logbook.common.parameters.LogbookParameterName.parentEventIdentifier;
 
 /**
  * Handler class used to extract metaData. </br>
@@ -177,6 +193,7 @@ public class ExtractSedaActionHandler extends ActionHandler {
 
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(ExtractSedaActionHandler.class);
 
+    private static final TypeReference<List<LogbookEvent>> LIST_TYPE_REFERENCE = new TypeReference<List<LogbookEvent>>() {};
     private static final PerformanceLogger PERFORMANCE_LOGGER = PerformanceLogger.getInstance();
 
     // OUT RANK
@@ -783,7 +800,7 @@ public class ExtractSedaActionHandler extends ActionHandler {
             contracts = JsonHandler.getFromFile(
                     (File) handlerIO.getInput(CONTRACTS_INPUT_RANK),
                     ContractsDetailsModel.class);
-            
+
             JsonNode storageUnitInfo = storageInfo.get(VitamConfiguration.getDefaultStrategy());
             JsonNode storageObjectGroupInfo = storageInfo.get(VitamConfiguration.getDefaultStrategy());
             JsonNode storageObjectInfo = storageInfo.get(VitamConfiguration.getDefaultStrategy());
@@ -1398,6 +1415,7 @@ public class ExtractSedaActionHandler extends ActionHandler {
             }
             final String manifestUnitId = element.getKey();
             boolean isRootArchive = true;
+            List<LogbookEvent> logbookLifeCycle = null;
 
             // 1- create Unit life cycles
             createUnitLifeCycle(unitGuid, containerId);
@@ -1409,6 +1427,11 @@ public class ExtractSedaActionHandler extends ActionHandler {
             if (unitTmpFileForRead.exists()) {
                 // Get the archiveUnit
                 ObjectNode archiveUnit = (ObjectNode) JsonHandler.getFromFile(unitTmpFileForRead);
+
+                JsonNode logbookLifeCycleAsNode = archiveUnit.get("LogbookLifeCycleExternal");
+                if (logbookLifeCycleAsNode != null) {
+                    logbookLifeCycle = JsonHandler.getFromJsonNode(logbookLifeCycleAsNode, LIST_TYPE_REFERENCE);
+                }
 
                 // Management rules id to add
                 Set<String> globalMgtIdExtra = new HashSet<>();
@@ -1443,6 +1466,10 @@ public class ExtractSedaActionHandler extends ActionHandler {
             // 3- Update created Unit life cycles
             addFinalStatusToUnitLifeCycle(unitGuid, manifestUnitId, isRootArchive);
 
+            if (logbookLifeCycle != null) {
+                createExternalLifeCycleLogbook(logbookLifeCycle, containerId, unitGuid);
+            }
+
             uuids.add(unitGuid);
 
             if (uuids.size() == BATCH_SIZE) {
@@ -1456,6 +1483,52 @@ public class ExtractSedaActionHandler extends ActionHandler {
             bulkLifeCycleUnit(containerId, logbookLifeCycleClient, uuids);
             uuids.clear();
         }
+    }
+
+    private void createExternalLifeCycleLogbook(List<LogbookEvent> externalModelEvents, String processId, String guid) throws LogbookClientNotFoundException {
+        LogbookLifeCycleParameters parent = createExternalParentLogbookLifeCycle(processId, guid);
+        handlerIO.getHelper().updateDelegate(parent);
+
+        for (LogbookEvent eventModel : externalModelEvents) {
+            LogbookLifeCycleParameters external = toLogbookLifeCycleParameters(eventModel, parent.getParameterValue(eventIdentifier), processId, guid);
+            handlerIO.getHelper().updateDelegateWithKey(guid, external);
+        }
+    }
+
+    private LogbookLifeCycleParameters createExternalParentLogbookLifeCycle(String processId, String guid) {
+        LogbookLifeCycleParameters parent = new LogbookLifeCycleParameters(LogbookParametersFactory.getDefaultLifeCycleMandatory());
+        Map<String, String> parameters = new HashMap<>();
+        parameters.put(eventIdentifier.name(), GUIDFactory.newGUID().getId());
+        parameters.put(eventType.name(), "LFC.EXTERNAL_LOGBOOK");
+        parameters.put(eventDateTime.name(), LocalDateUtil.getFormattedDateForMongo(LocalDateUtil.now()));
+        parameters.put(eventTypeProcess.name(), LogbookTypeProcess.INGEST.name());
+        parameters.put(eventIdentifierProcess.name(), processId);
+        parameters.put(outcome.name(), StatusCode.OK.name());
+        parameters.put(outcomeDetail.name(), "LFC.EXTERNAL_LOGBOOK.OK");
+        parameters.put(outcomeDetailMessage.name(), "Succès de la récupération des journaux de cycle de vie de l’archive transférée");
+        parameters.put(objectIdentifier.name(), guid);
+        parent.setMap(parameters);
+        return parent;
+    }
+
+    private LogbookLifeCycleParameters toLogbookLifeCycleParameters(LogbookEvent eventModel, String parentId, String identifierProcess, String guid) {
+        LogbookLifeCycleParameters logbookLifeCycleParameters = new LogbookLifeCycleParameters(Collections.singleton(LogbookParameterName.eventDateTime));
+
+        Map<String, String> parameters = new HashMap<>();
+        parameters.put(eventIdentifier.name(), eventModel.getEvId());
+        parameters.put(parentEventIdentifier.name(), parentId);
+        parameters.put(eventType.name(), eventModel.getEvType());
+        parameters.put(eventDateTime.name(), eventModel.getEvDateTime());
+        parameters.put(eventIdentifierProcess.name(), StringUtils.isBlank(eventModel.getEvIdProc()) ? identifierProcess : eventModel.getEvIdProc());
+        parameters.put(eventTypeProcess.name(), eventModel.getEvTypeProc());
+        parameters.put(outcome.name(), eventModel.getOutcome());
+        parameters.put(outcomeDetail.name(), eventModel.getOutDetail());
+        parameters.put(outcomeDetailMessage.name(), eventModel.getOutMessg());
+        parameters.put(agentIdentifier.name(), eventModel.getAgId());
+        parameters.put(objectIdentifier.name(), StringUtils.isBlank(eventModel.getObId()) ? guid : eventModel.getObId());
+
+        logbookLifeCycleParameters.setMap(parameters);
+        return logbookLifeCycleParameters;
     }
 
     private void addStorageInformation(ObjectNode archiveUnit, JsonNode storageUnitInfo) {
@@ -1771,15 +1844,15 @@ public class ExtractSedaActionHandler extends ActionHandler {
             if (!existingUnitGuids.contains(unitGuid)) {
                 subLlcp = LogbookLifeCyclesClientHelper.copy(llcp);
                 // generate new eventId for task
-                subLlcp.putParameterValue(LogbookParameterName.eventIdentifier,
+                subLlcp.putParameterValue(eventIdentifier,
                     GUIDFactory.newEventGUID(ParameterHelper.getTenantParameter()).toString());
                 // set parentEventId
-                subLlcp.putParameterValue(LogbookParameterName.parentEventIdentifier, eventId);
+                subLlcp.putParameterValue(parentEventIdentifier, eventId);
                 // set status for sub task
                 subLlcp.setFinalStatus(HANDLER_ID, LFC_CREATION_SUB_TASK_ID, StatusCode.OK, null);
             }
             // generate new eventId for task
-            llcp.putParameterValue(LogbookParameterName.eventIdentifier, eventId);
+            llcp.putParameterValue(eventIdentifier, eventId);
             // set status for task
             llcp.setFinalStatus(HANDLER_ID, null, StatusCode.OK, null);
 
@@ -1827,9 +1900,9 @@ public class ExtractSedaActionHandler extends ActionHandler {
         logbookLifecycleUnitParameters.setFinalStatus(LFC_INITIAL_CREATION_EVENT_TYPE, null, StatusCode.OK, null);
 
         logbookLifecycleUnitParameters.putParameterValue(LogbookParameterName.eventIdentifierProcess, containerId);
-        logbookLifecycleUnitParameters.putParameterValue(LogbookParameterName.eventIdentifier,
+        logbookLifecycleUnitParameters.putParameterValue(eventIdentifier,
             GUIDFactory.newEventGUID(ParameterHelper.getTenantParameter()).toString());
-        logbookLifecycleUnitParameters.putParameterValue(LogbookParameterName.eventTypeProcess,
+        logbookLifecycleUnitParameters.putParameterValue(eventTypeProcess,
             logbookTypeProcess.name());
 
         return logbookLifecycleUnitParameters;
@@ -2126,6 +2199,19 @@ public class ExtractSedaActionHandler extends ActionHandler {
                     jsonWriter.add(event);
                 }
             }
+
+            XMLEvent event = reader.peek();
+            if (event.isStartElement() && event.asStartElement().getName().getLocalPart().equals(TAG_LOGBOOK)) {
+                reader.nextEvent();
+            }
+
+            LogBookEventIterator eventsIterator = new LogBookEventIterator(reader);
+            List<LogbookEvent> logbookEvents = eventsIterator.stream()
+                .collect(Collectors.toList());
+
+            File logbookTmpFile = handlerIO.getNewLocalFile(elementGuid + "_logbook_OG" + JSON_EXTENSION);
+            JsonHandler.writeAsFile(logbookEvents, logbookTmpFile);
+
             reader.close();
             jsonWriter.close();
             tmpFileWriter.close();
@@ -2138,14 +2224,8 @@ public class ExtractSedaActionHandler extends ActionHandler {
             }
 
 
-        } catch (final XMLStreamException e) {
-            LOGGER.debug("Can not read input stream");
-            throw new ProcessingException(e);
-        } catch (final InvalidParseOperationException e) {
-            LOGGER.debug("Can not parse data object json");
-            throw new ProcessingException(e);
-        } catch (final IOException e) {
-            LOGGER.debug("Closing stream error");
+        } catch (final InvalidParseOperationException | IOException | XMLStreamException e) {
+            LOGGER.error(e);
             throw new ProcessingException(e);
         }
 
@@ -2314,9 +2394,9 @@ public class ExtractSedaActionHandler extends ActionHandler {
 
         logbookLifecycleObjectGroupParameters.putParameterValue(LogbookParameterName.eventIdentifierProcess,
             containerId);
-        logbookLifecycleObjectGroupParameters.putParameterValue(LogbookParameterName.eventIdentifier,
+        logbookLifecycleObjectGroupParameters.putParameterValue(eventIdentifier,
             GUIDFactory.newEventGUID(ParameterHelper.getTenantParameter()).toString());
-        logbookLifecycleObjectGroupParameters.putParameterValue(LogbookParameterName.eventTypeProcess,
+        logbookLifecycleObjectGroupParameters.putParameterValue(eventTypeProcess,
             typeProcess.name());
 
         handlerIO.getHelper().createDelegate(logbookLifecycleObjectGroupParameters);
@@ -2460,7 +2540,7 @@ public class ExtractSedaActionHandler extends ActionHandler {
                     .filter(objectId -> !updatedObjectGroupIds.contains(objectId))
                     .collect(Collectors.toList());
             if (!objectIdWithoutUpdatedOG.isEmpty()) {
-                String objectGroupsId = objectIdWithoutMaster.stream().collect(Collectors.joining(" , "));
+                String objectGroupsId = String.join(" , ", objectIdWithoutMaster);
                 throw new ProcessingObjectGroupMasterMandatoryException(String.format(
                     "BinaryMaster or PhysicalMaster is not present for objectGroup : %s",
                     objectGroupsId), objectGroupsId);
@@ -2487,15 +2567,14 @@ public class ExtractSedaActionHandler extends ActionHandler {
             }
             List<String> ogId = new ArrayList<>();
 
-            existingUnitIdWithExistingObjectGroup.entrySet().stream()
-                .map(Entry::getKey)
+            existingUnitIdWithExistingObjectGroup.keySet()
                 .forEach(unitGuid -> unitIdToGuid.entrySet().stream()
                     .filter(entry -> entry.getValue().contains(unitGuid))
                     .findFirst()
                     .ifPresent(unitmap -> ogId.add(unitIdToGroupId.get(unitmap.getKey()))));
-            String objectGroupsId = ogId.stream().collect(Collectors.joining(" , "));
+            String objectGroupsId = String.join(" , ", ogId);
             String unitsId =
-                existingUnitIdWithExistingObjectGroup.keySet().stream().collect(Collectors.joining(" , "));
+                String.join(" , ", existingUnitIdWithExistingObjectGroup.keySet());
             throw new ProcessingObjectGroupEveryDataObjectVersionException(
                 "Ingest Contract don't authorized ObjectGroup attachment",
                 unitsId, objectGroupsId);
@@ -2529,7 +2608,7 @@ public class ExtractSedaActionHandler extends ActionHandler {
                 LOGGER.warn("Folder has been deleted, it's a replay for this operation : " + containerId);
             }
         } catch (ContentAddressableStorageException e1) {
-            LOGGER.warn("Couldnt delete folder", e1);
+            LOGGER.warn("Couldn't delete folder", e1);
         }
 
         List<String> uuids = new ArrayList<>();
@@ -2577,6 +2656,15 @@ public class ExtractSedaActionHandler extends ActionHandler {
                     final File dataObjectFile =
                         handlerIO.getNewLocalFile(dataObjectIdToGuid.get(id) + JSON_EXTENSION);
                     JsonNode dataObjectNode = JsonHandler.getFromFile(dataObjectFile).get(BINARY_DATA_OBJECT);
+
+                    List<LogbookEvent> events = JsonHandler.getFromFileAsTypeRefence(
+                        handlerIO.getNewLocalFile(dataObjectIdToGuid.get(id) + "_logbook_OG" + JSON_EXTENSION),
+                        LIST_TYPE_REFERENCE
+                    );
+
+                    if (!events.isEmpty()) {
+                        createExternalLifeCycleLogbook(events, containerId, objectGroupGuid);
+                    }
 
                     boolean isPhysical = false;
                     if (dataObjectNode == null) {
@@ -2680,15 +2768,15 @@ public class ExtractSedaActionHandler extends ActionHandler {
                         .updateDelegate((LogbookLifeCycleObjectGroupParameters) guidToLifeCycleParameters
                             .get(objectGroupGuid).setFinalStatus(HANDLER_ID, null, StatusCode.OK,
                                 null)
-                            .putParameterValue(LogbookParameterName.eventIdentifier, eventId));
+                            .putParameterValue(eventIdentifier, eventId));
                     // Add creation sub task event (add new eventId and set status for subtask before update delegate)
                     handlerIO.getHelper()
                         .updateDelegate((LogbookLifeCycleObjectGroupParameters) guidToLifeCycleParameters
                             .get(objectGroupGuid).setFinalStatus(HANDLER_ID, LFC_CREATION_SUB_TASK_ID, StatusCode.OK,
                                 null)
-                            .putParameterValue(LogbookParameterName.eventIdentifier,
+                            .putParameterValue(eventIdentifier,
                                 GUIDFactory.newEventGUID(ParameterHelper.getTenantParameter()).toString())
-                            .putParameterValue(LogbookParameterName.parentEventIdentifier, eventId));
+                            .putParameterValue(parentEventIdentifier, eventId));
 
                 }
 
@@ -2907,9 +2995,9 @@ public class ExtractSedaActionHandler extends ActionHandler {
             (LogbookLifeCycleParameters) initLogbookLifeCycleParameters(guid, isArchive, isObjectGroup);
         lfcParameters.setFinalStatus(LFC_INITIAL_CREATION_EVENT_TYPE, null, StatusCode.KO, null);
         lfcParameters.putParameterValue(LogbookParameterName.eventIdentifierProcess, containerId);
-        lfcParameters.putParameterValue(LogbookParameterName.eventIdentifier,
+        lfcParameters.putParameterValue(eventIdentifier,
             GUIDFactory.newEventGUID(ParameterHelper.getTenantParameter()).toString());
-        lfcParameters.putParameterValue(LogbookParameterName.eventTypeProcess, logbookTypeProcess.name());
+        lfcParameters.putParameterValue(eventTypeProcess, logbookTypeProcess.name());
 
         // do not create a lifecycle if guid is incorrect.
         try {

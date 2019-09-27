@@ -56,7 +56,6 @@ import fr.gouv.vitam.common.database.builder.query.action.SetAction;
 import fr.gouv.vitam.common.database.builder.query.action.UnsetAction;
 import fr.gouv.vitam.common.database.builder.query.action.UpdateActionHelper;
 import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken;
-import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
 import fr.gouv.vitam.common.database.builder.request.multiple.SelectMultiQuery;
 import fr.gouv.vitam.common.database.builder.request.multiple.UpdateMultiQuery;
 import fr.gouv.vitam.common.database.builder.request.single.Select;
@@ -99,6 +98,7 @@ import fr.gouv.vitam.common.model.rules.InheritedRuleCategoryResponseModel;
 import fr.gouv.vitam.common.model.rules.UnitInheritedRulesResponseModel;
 import fr.gouv.vitam.common.model.unit.CustodialHistoryModel;
 import fr.gouv.vitam.common.model.unit.DataObjectReference;
+import fr.gouv.vitam.common.model.unit.EventTypeModel;
 import fr.gouv.vitam.common.stream.SizedInputStream;
 import fr.gouv.vitam.common.stream.StreamUtils;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
@@ -111,7 +111,6 @@ import fr.gouv.vitam.ingest.internal.client.IngestInternalClientFactory;
 import fr.gouv.vitam.ingest.internal.upload.rest.IngestInternalMain;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientAlreadyExistsException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientBadRequestException;
-import fr.gouv.vitam.logbook.common.exception.LogbookClientException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientServerException;
 import fr.gouv.vitam.logbook.common.parameters.LogbookOperationParameters;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParameterName;
@@ -123,6 +122,8 @@ import fr.gouv.vitam.logbook.common.server.database.collections.LogbookDocument;
 import fr.gouv.vitam.logbook.common.server.database.collections.LogbookElasticsearchAccess;
 import fr.gouv.vitam.logbook.common.server.database.collections.LogbookMongoDbName;
 import fr.gouv.vitam.logbook.common.server.database.collections.LogbookOperation;
+import fr.gouv.vitam.logbook.lifecycles.client.LogbookLifeCyclesClient;
+import fr.gouv.vitam.logbook.lifecycles.client.LogbookLifeCyclesClientFactory;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClient;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClientFactory;
 import fr.gouv.vitam.logbook.rest.LogbookMain;
@@ -130,7 +131,6 @@ import fr.gouv.vitam.metadata.client.MetaDataClient;
 import fr.gouv.vitam.metadata.client.MetaDataClientFactory;
 import fr.gouv.vitam.metadata.core.database.collections.MetadataCollections;
 import fr.gouv.vitam.metadata.core.database.collections.ObjectGroup;
-import fr.gouv.vitam.metadata.core.database.collections.Unit;
 import fr.gouv.vitam.metadata.rest.MetadataMain;
 import fr.gouv.vitam.processing.common.model.ProcessWorkflow;
 import fr.gouv.vitam.processing.engine.core.monitoring.ProcessMonitoringImpl;
@@ -165,6 +165,7 @@ import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
@@ -255,6 +256,7 @@ public class IngestInternalIT extends VitamRuleRunner {
     private static String CONFIG_SIEGFRIED_PATH = "";
     private static String SIP_TREE = "integration-ingest-internal/test_arbre.zip";
     private static String SIP_FILE_OK_NAME = "integration-ingest-internal/SIP-ingest-internal-ok.zip";
+    private static String SIP_WITH_LOGBOOK = "integration-ingest-internal/sip_with_logbook.zip";
     private static String SIP_SIP_ALL_METADATA_WITH_CUSTODIALHISTORYFILE =
         "integration-ingest-internal/sip_all_metadata_with_custodialhistoryfile.zip";
     private static String SIP_NB_OBJ_INCORRECT_IN_MANIFEST = "integration-ingest-internal/SIP_Conformity_KO.zip";
@@ -293,6 +295,8 @@ public class IngestInternalIT extends VitamRuleRunner {
         "integration-ingest-internal/SIP-ingest-internal-ok.zip";
     private static String SIP_ALGO_INCORRECT_IN_MANIFEST = "integration-ingest-internal/SIP_INCORRECT_ALGORITHM.zip";
     private static LogbookElasticsearchAccess esClient;
+
+    private static final TypeReference<List<EventTypeModel>> LIST_TYPE_REFERENCE = new TypeReference<List<EventTypeModel>>() {};
     private WorkFlow holding = WorkFlow.of(HOLDING_SCHEME, HOLDING_SCHEME_IDENTIFIER, "MASTERDATA");
     private WorkFlow ingestSip = WorkFlow.of(WORKFLOW_ID, CONTEXT_ID, "INGEST");
 
@@ -401,9 +405,8 @@ public class IngestInternalIT extends VitamRuleRunner {
 
             // Try to check AU
             final MetaDataClient metadataClient = MetaDataClientFactory.getInstance().getClient();
-            SelectMultiQuery select = new SelectMultiQuery();
-            select.addQueries(QueryHelper.eq("Title", "Sensibilisation API"));
-            final JsonNode node = metadataClient.selectUnits(select.getFinalSelect());
+            final JsonNode node = getArchiveUnitWithTitle(metadataClient, "Sensibilisation API");
+            SelectMultiQuery select;
             LOGGER.debug(JsonHandler.prettyPrint(node));
             final JsonNode result = node.get("$results");
             assertNotNull(result);
@@ -638,9 +641,8 @@ public class IngestInternalIT extends VitamRuleRunner {
 
             // Try to check AU
             final MetaDataClient metadataClient = MetaDataClientFactory.getInstance().getClient();
-            SelectMultiQuery select = new SelectMultiQuery();
-            select.addQueries(QueryHelper.eq("Title", "Sed blandit mi dolor"));
-            final JsonNode node = metadataClient.selectUnits(select.getFinalSelect());
+            final JsonNode node = getArchiveUnitWithTitle(metadataClient, "Sed blandit mi dolor");
+            SelectMultiQuery select;
             LOGGER.debug(JsonHandler.prettyPrint(node));
             final JsonNode result = node.get("$results");
             assertNotNull(result);
@@ -774,9 +776,7 @@ public class IngestInternalIT extends VitamRuleRunner {
 
             // Try to check AU
             final MetaDataClient metadataClient = MetaDataClientFactory.getInstance().getClient();
-            SelectMultiQuery select = new SelectMultiQuery();
-            select.addQueries(QueryHelper.eq("Title", "Root AU ATTACHED"));
-            final JsonNode node = metadataClient.selectUnits(select.getFinalSelect());
+            final JsonNode node = getArchiveUnitWithTitle(metadataClient, "Root AU ATTACHED");
             LOGGER.debug(JsonHandler.prettyPrint(node));
             final JsonNode result = node.get("$results");
             assertNotNull(result);
@@ -843,9 +843,7 @@ public class IngestInternalIT extends VitamRuleRunner {
 
             // Try to check AU - arborescence and parents stuff, without roots
             final MetaDataClient metadataClient = MetaDataClientFactory.getInstance().getClient();
-            SelectMultiQuery select = new SelectMultiQuery();
-            select.addQueries(QueryHelper.eq("Title", "Arbre simple"));
-            final JsonNode node = metadataClient.selectUnits(select.getFinalSelect());
+            final JsonNode node = getArchiveUnitWithTitle(metadataClient, "Arbre simple");
             LOGGER.debug(JsonHandler.prettyPrint(node));
             final JsonNode result = node.get("$results");
             assertNotNull(result);
@@ -1265,9 +1263,7 @@ public class IngestInternalIT extends VitamRuleRunner {
 
         // Try to check AU
         final MetaDataClient metadataClient = MetaDataClientFactory.getInstance().getClient();
-        SelectMultiQuery select = new SelectMultiQuery();
-        select.addQueries(QueryHelper.eq("Title", "Unit with Management META DATA rules"));
-        final JsonNode node = metadataClient.selectUnits(select.getFinalSelect());
+        final JsonNode node = getArchiveUnitWithTitle(metadataClient, "Unit with Management META DATA rules");
         LOGGER.debug(JsonHandler.prettyPrint(node));
         final JsonNode result = node.get("$results");
         assertNotNull(result);
@@ -1323,9 +1319,7 @@ public class IngestInternalIT extends VitamRuleRunner {
 
         // Try to check AU
         final MetaDataClient metadataClient = MetaDataClientFactory.getInstance().getClient();
-        SelectMultiQuery select = new SelectMultiQuery();
-        select.addQueries(QueryHelper.eq("Title", "UNIT with both rules"));
-        final JsonNode node = metadataClient.selectUnits(select.getFinalSelect());
+        final JsonNode node = getArchiveUnitWithTitle(metadataClient, "UNIT with both rules");
         LOGGER.debug(JsonHandler.prettyPrint(node));
         final JsonNode result = node.get("$results");
         assertNotNull(result);
@@ -1377,9 +1371,7 @@ public class IngestInternalIT extends VitamRuleRunner {
 
         // Try to check AU
         final MetaDataClient metadataClient = MetaDataClientFactory.getInstance().getClient();
-        SelectMultiQuery select = new SelectMultiQuery();
-        select.addQueries(QueryHelper.eq("Title", "LEVANT"));
-        final JsonNode node = metadataClient.selectUnits(select.getFinalSelect());
+        final JsonNode node = getArchiveUnitWithTitle(metadataClient, "LEVANT");
         LOGGER.debug(JsonHandler.prettyPrint(node));
         final JsonNode result = node.get("$results");
         assertNotNull(result);
@@ -2396,9 +2388,8 @@ public class IngestInternalIT extends VitamRuleRunner {
 
             // Try to check AU
             final MetaDataClient metadataClient = MetaDataClientFactory.getInstance().getClient();
-            SelectMultiQuery select = new SelectMultiQuery();
-            select.addQueries(QueryHelper.eq("Title", "Sed blandit mi dolor"));
-            final JsonNode node = metadataClient.selectUnits(select.getFinalSelect());
+            final JsonNode node = getArchiveUnitWithTitle(metadataClient, "Sed blandit mi dolor");
+            SelectMultiQuery select;
             LOGGER.debug(JsonHandler.prettyPrint(node));
             final JsonNode result = node.get("$results");
             assertNotNull(result);
@@ -2690,10 +2681,7 @@ public class IngestInternalIT extends VitamRuleRunner {
 
         // Try to check AU and custodialHistoryModel
         final MetaDataClient metadataClient = MetaDataClientFactory.getInstance().getClient();
-        SelectMultiQuery select = new SelectMultiQuery();
-        select.addQueries(
-            QueryHelper.eq("Title", "Les ruines de la Grande Guerre. - Belleau. - Une tranchée près de la gare."));
-        final JsonNode node = metadataClient.selectUnits(select.getFinalSelect());
+        final JsonNode node = getArchiveUnitWithTitle(metadataClient, "Les ruines de la Grande Guerre. - Belleau. - Une tranchée près de la gare.");
 
         final JsonNode result = node.get("$results");
         assertNotNull(result);
@@ -2712,4 +2700,50 @@ public class IngestInternalIT extends VitamRuleRunner {
 
     }
 
+    @RunWithCustomExecutor
+    @Test
+    public void should_ingest_SIP_with_logbook() throws Exception {
+        GUID operationGuid = GUIDFactory.newOperationLogbookGUID(tenantId);
+        prepareVitamSession();
+        VitamThreadUtils.getVitamSession().setRequestId(operationGuid);
+
+        InputStream zipInputStreamSipObject = PropertiesUtils.getResourceAsStream(SIP_WITH_LOGBOOK);
+
+        LogbookOperationParameters initParameters = LogbookParametersFactory.newLogbookOperationParameters(
+            operationGuid, "Process_SIP_unitary", operationGuid,
+            LogbookTypeProcess.INGEST, StatusCode.STARTED,
+            operationGuid.toString(),
+            operationGuid);
+
+        IngestInternalClientFactory.getInstance().changeServerPort(VitamServerRunner.PORT_SERVICE_INGEST_INTERNAL);
+        IngestInternalClient client = IngestInternalClientFactory.getInstance().getClient();
+        client.uploadInitialLogbook(Collections.singletonList(initParameters));
+
+        client.initWorkflow(ingestSip);
+
+        client.upload(zipInputStreamSipObject, CommonMediaType.ZIP_TYPE, ingestSip, ProcessAction.RESUME.name());
+
+        awaitForWorkflowTerminationWithStatus(operationGuid, StatusCode.WARNING);
+
+        try (MetaDataClient metadataClient = MetaDataClientFactory.getInstance().getClient();
+            LogbookLifeCyclesClient logbookLifeCyclesClient = LogbookLifeCyclesClientFactory.getInstance().getClient()) {
+            JsonNode nodeForLogbookOG = getArchiveUnitWithTitle(metadataClient, "AU-with-logbook-for-sip-logbook-test");
+            JsonNode nodeForLogbookAU = getArchiveUnitWithTitle(metadataClient, "AU-for-logbook-test-with-logbook-au");
+
+            JsonNode objectGroupLifeCycle = logbookLifeCyclesClient.getRawObjectGroupLifeCycleById(nodeForLogbookOG.get("$results").get(0).get("#object").asText());
+            JsonNode unitLifeCycle = logbookLifeCyclesClient.getRawUnitLifeCycleById(nodeForLogbookAU.get("$results").get(0).get("#id").asText());
+
+            List<EventTypeModel> eventsOG = JsonHandler.getFromJsonNode(objectGroupLifeCycle.get("events"), LIST_TYPE_REFERENCE);
+            List<EventTypeModel> eventsAU = JsonHandler.getFromJsonNode(unitLifeCycle.get("events"), LIST_TYPE_REFERENCE);
+
+            assertThat(eventsOG.stream().filter(e -> e.getEventType().equals("LFC.EXTERNAL_LOGBOOK")).findFirst()).isNotEmpty();
+            assertThat(eventsAU.stream().filter(e -> e.getEventType().equals("LFC.EXTERNAL_LOGBOOK")).findFirst()).isNotEmpty();
+        }
+    }
+
+    private JsonNode getArchiveUnitWithTitle(MetaDataClient metadataClient, String name) throws Exception {
+        SelectMultiQuery select = new SelectMultiQuery();
+        select.addQueries(QueryHelper.eq("Title", name));
+        return metadataClient.selectUnits(select.getFinalSelect());
+    }
 }

@@ -1,4 +1,4 @@
-/*******************************************************************************
+/*
  * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2019)
  *
  * contact.vitam@culture.gouv.fr
@@ -23,28 +23,31 @@
  *
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
- *******************************************************************************/
+ */
 package fr.gouv.vitam.common.model.unit;
 
-/**
- * ArchiveUnitRoot class
- */
+import fr.gouv.vitam.common.model.logbook.LogbookEvent;
+
+import java.util.List;
+
 public class ArchiveUnitRoot {
 
     private ArchiveUnitModel archiveUnit;
+    private List<LogbookEvent> LogbookLifeCycleExternal;
 
-    /**
-     * Constructor
-     */
     public ArchiveUnitRoot() {
         archiveUnit = new ArchiveUnitModel();
     }
 
-    /**
-     * Get Archive Unit
-     * @return the archive unit as a {@link ArchiveUnitModel}
-     */
     public ArchiveUnitModel getArchiveUnit() {
         return archiveUnit;
+    }
+
+    public List<LogbookEvent> getLogbookLifeCycleExternal() {
+        return LogbookLifeCycleExternal;
+    }
+
+    public void setLogbookLifeCycleExternal(List<LogbookEvent> logbookLifeCycleExternal) {
+        this.LogbookLifeCycleExternal = logbookLifeCycleExternal;
     }
 }
