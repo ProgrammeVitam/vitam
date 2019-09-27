@@ -34,6 +34,7 @@ import fr.gouv.culture.archivesdefrance.seda.v2.ClassificationRuleType;
 import fr.gouv.culture.archivesdefrance.seda.v2.DataObjectRefType;
 import fr.gouv.culture.archivesdefrance.seda.v2.DescriptiveMetadataContentType;
 import fr.gouv.culture.archivesdefrance.seda.v2.DisseminationRuleType;
+import fr.gouv.culture.archivesdefrance.seda.v2.EventType;
 import fr.gouv.culture.archivesdefrance.seda.v2.FinalActionAppraisalCodeType;
 import fr.gouv.culture.archivesdefrance.seda.v2.FinalActionStorageCodeType;
 import fr.gouv.culture.archivesdefrance.seda.v2.IdentifierType;
@@ -41,6 +42,7 @@ import fr.gouv.culture.archivesdefrance.seda.v2.ManagementHistoryType;
 import fr.gouv.culture.archivesdefrance.seda.v2.ManagementType;
 import fr.gouv.culture.archivesdefrance.seda.v2.ReuseRuleType;
 import fr.gouv.culture.archivesdefrance.seda.v2.StorageRuleType;
+import fr.gouv.vitam.common.model.logbook.LogbookEvent;
 import fr.gouv.vitam.common.model.unit.ArchiveUnitHistoryModel;
 import fr.gouv.vitam.common.model.unit.ArchiveUnitModel;
 import fr.gouv.vitam.common.model.unit.ArchiveUnitRoot;
@@ -50,6 +52,8 @@ import fr.gouv.vitam.common.model.unit.ManagementModel;
 import fr.gouv.vitam.common.model.unit.RuleCategoryModel;
 import fr.gouv.vitam.processing.common.exception.ProcessingMalformedDataException;
 import fr.gouv.vitam.processing.common.exception.ProcessingObjectReferenceException;
+import org.apache.xerces.dom.ElementNSImpl;
+import org.w3c.dom.Node;
 
 import javax.xml.bind.JAXBElement;
 import java.util.List;
@@ -99,11 +103,51 @@ public class ArchiveUnitMapper {
 
         archiveUnit.setDataObjectReference(mapDataObjectReference(archiveUnitType));
 
-        fillManagement(archiveUnitType.getManagement(), archiveUnit.getManagement());
+        ManagementType management = archiveUnitType.getManagement();
+        fillManagement(management, archiveUnit.getManagement());
         if (archiveUnitType.getContent() != null && archiveUnitType.getContent().getHistory() != null) {
             fillHistory(archiveUnitType.getContent().getHistory(), archiveUnit.getHistory());
         }
+
+        if (management != null && management.getLogBook() != null) {
+            List<LogbookEvent> logbookExternal = management.getLogBook()
+                .getEvent()
+                .stream()
+                .map(this::toLogbookEvent)
+                .collect(Collectors.toList());
+
+            archiveUnitRoot.setLogbookLifeCycleExternal(logbookExternal);
+        }
+
         return archiveUnitRoot;
+    }
+
+    private LogbookEvent toLogbookEvent(EventType eventType) {
+        LogbookEvent logbookEvent = new LogbookEvent();
+
+        logbookEvent.setEvId(eventType.getEventIdentifier());
+        logbookEvent.setEvTypeProc(eventType.getEventTypeCode());
+        logbookEvent.setEvType(eventType.getEventType());
+        logbookEvent.setEvDateTime(eventType.getEventDateTime());
+        logbookEvent.setOutcome(eventType.getOutcome());
+        logbookEvent.setOutDetail(eventType.getOutcomeDetail());
+        logbookEvent.setOutMessg(eventType.getOutcomeDetailMessage());
+        logbookEvent.setEvDetData(eventType.getEventDetailData());
+        logbookEvent.setAgId(getElementAsText(eventType, "AgentIdentifier"));
+        logbookEvent.setObId(getElementAsText(eventType, "ObjectIdentifier"));
+
+        return logbookEvent;
+    }
+
+    private String getElementAsText(EventType eventType, String name) {
+        return eventType.getAny()
+            .stream()
+            .map(object -> (ElementNSImpl) object)
+            .filter(element -> element.getLocalName().equals(name))
+            .findFirst()
+            .map(element -> ((ElementNSImpl) element).getFirstChild())
+            .map(Node::getTextContent)
+            .orElse(null);
     }
 
     public DataObjectReference mapDataObjectReference(ArchiveUnitType archiveUnitType)
