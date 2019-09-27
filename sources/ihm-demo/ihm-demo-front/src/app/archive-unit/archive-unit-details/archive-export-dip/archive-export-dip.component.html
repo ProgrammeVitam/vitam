@@ -18,68 +18,93 @@
             <p-radioButton value="INGEST" label="Ensemble de l'entrée" [(ngModel)]="exportChoice"></p-radioButton>
         </div>
 
-        <div class="ui-g-8"></div>
+        <div class="ui-g-12"></div>
+        <div class="ui-g-12">
+            <h3>Common parameters</h3>
+        </div>
+
         <div class="ui-g-4 textAlignLeft">
-            <span>Commentaire</span>
+            <span>Comment</span>
+            <br/>
             <input type="text" pInputText placeholder="Commentaire" [(ngModel)]="comment"/>
         </div>
         <div class="ui-g-4 textAlignLeft">
-            <span>Archival Agreement (Required for Transfer Optional for DIP) </span>
+            <span>Archival Agreement (Transfer Required)</span>
+            <br/>
             <input type="text" pInputText placeholder="Archival Agreement" [(ngModel)]="archivalAgreement"/>
         </div>
         <div class="ui-g-4 textAlignLeft">
-            <span>Originating Agency Identifier (Required for DIP)</span>
+            <span>Originating Agency Identifier (Transfer Required)</span>
+            <br/>
             <input type="text" pInputText placeholder="Originating Agency Identifier"
                    [(ngModel)]="originatingAgencyIdentifier"/>
         </div>
         <div class="ui-g-4 textAlignLeft">
             <span>Submission Agency Identifier</span>
+            <br/>
             <input type="text" pInputText placeholder="Submission Agency Identifier"
                    [(ngModel)]="submissionAgencyIdentifier"/>
         </div>
 
         <div class="ui-g-4 textAlignLeft">
-            <span>Archival Agency Identifier (Transfer and DIP Required)</span>
+            <span>Archival Agency Identifier (Required)</span>
+            <br/>
             <input type="text" pInputText placeholder="Archival Agency Identifier"
                    [(ngModel)]="archivalAgencyIdentifier"/>
         </div>
 
+        <div class="ui-g-12"></div>
+        <div class="ui-g-12">
+            <h3>Transfer only parameters</h3>
+        </div>
+
         <div class="ui-g-4 textAlignLeft">
-            <span>Related Transfer Reference (Transfer Only, Not Required) </span>
+            <span>Related Transfer Reference (use ; separator)</span>
+            <br/>
             <input type="text" pInputText placeholder="Related Transfer Reference"
                    [(ngModel)]="relatedTransferReference"/>
         </div>
 
         <div class="ui-g-4 textAlignLeft">
-            <span>Transfer Request Reply Identifier (Transfer Only, Not Required)</span>
+            <span>Transfer Request Reply Identifier</span>
+            <br/>
             <input type="text" pInputText placeholder="Transfer Request Reply Identifier"
                    [(ngModel)]="transferRequestReplyIdentifier"/>
         </div>
 
         <div class="ui-g-4 textAlignLeft">
-            <span>Transferring Agency (Transfer Only, Not Required)</span>
+            <span>Transferring Agency</span>
+            <br/>
             <input type="text" pInputText placeholder="Transferring Agency" [(ngModel)]="transferringAgency"/>
         </div>
 
+        <div class="ui-g-12"></div>
+        <div class="ui-g-12">
+            <h3>DIP only parameters</h3>
+        </div>
+
         <div class="ui-g-4 textAlignLeft">
-            <span>Message Request Identifier (Required for Transfer) </span>
+            <span>Message Request Identifier (Required) </span>
+            <br/>
             <input type="text" pInputText placeholder="Message Request Identifier"
                    [(ngModel)]="messageRequestIdentifier"/>
         </div>
 
         <div class="ui-g-4 textAlignLeft">
-            <span>Requester Identifier (Required for Transfer)</span>
+            <span>Requester Identifier (Required)</span>
+            <br/>
             <input type="text" pInputText placeholder="Requester Identifier" [(ngModel)]="requesterIdentifier"/>
         </div>
 
         <div class="ui-g-4 textAlignLeft">
-            <span>Authorization Request Reply Identifier (DIP Only Not Required)</span>
+            <span>Authorization Request Reply Identifier</span>
+            <br/>
             <input type="text" pInputText placeholder="Authorization Request Reply Identifier"
                    [(ngModel)]="authorizationRequestReplyIdentifier"/>
         </div>
 
-      <div class="ui-g-4"></div>
-        <div class="ui-g-8">
+        <div class="ui-g-12"></div>
+        <div class="ui-g-12">
             <div class="ui-g-2">
                 <button pButton type="button" (click)="export('MINIMAL')" label="DIP Minimal"></button>
             </div>
@@ -94,7 +119,7 @@
 
 
     <p-dialog header="Génération DIP" [(visible)]="display">
-        La génération du DIP est en cours...<br/>
+        La génération du DIP ou Transfer est en cours...<br/>
         Vous pourrez le télécharger dans le journal des opérations.
         <p-footer>
             <button pButton type="button" (click)="display = false" label="OK"></button>

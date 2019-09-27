@@ -1,15 +1,15 @@
 <p-panel [header]="'Ajouter au panier'" [toggleable]="true" [collapsed]="true" *ngIf="id">
   <div class="ui-g">
     <div class="ui-g-4 textAlignLeft">
-      <p-radioButton value="AU" label="Unité archivistique" [(ngModel)]="exportType"></p-radioButton>
+      <p-radioButton value="AU" label="Unité archivistique" [(ngModel)]="exportChoice"></p-radioButton>
     </div>
     <div class="ui-g-8"></div>
     <div class="ui-g-4 textAlignLeft">
-      <p-radioButton value="FULL" label="Unité archivistique et sa descendance" [(ngModel)]="exportType"></p-radioButton>
+      <p-radioButton value="FULL" label="Unité archivistique et sa descendance" [(ngModel)]="exportChoice"></p-radioButton>
     </div>
     <div class="ui-g-8"></div>
     <div class="ui-g-4 textAlignLeft">
-      <p-radioButton value="INGEST" label="Ensemble de l'entrée" [(ngModel)]="exportType"></p-radioButton>
+      <p-radioButton value="INGEST" label="Ensemble de l'entrée" [(ngModel)]="exportChoice"></p-radioButton>
     </div>
     <div class="ui-g-8"></div>
     <div class="ui-g-2">
