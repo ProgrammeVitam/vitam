@@ -159,7 +159,7 @@ public class TransferAndDipIT extends VitamRuleRunner {
 
     @Test
     @RunWithCustomExecutor
-    public void should_export_DIP_with_logbook() throws Exception {
+    public void should_export_DIP_with_all_data() throws Exception {
         // Given
         String SIP_OK_PHYSICAL_ARCHIVE = "integration-ingest-internal/OK_ArchivesPhysiques.zip";
         InputStream zipInputStreamSipObject = PropertiesUtils.getResourceAsStream(SIP_OK_PHYSICAL_ARCHIVE);
@@ -200,11 +200,12 @@ public class TransferAndDipIT extends VitamRuleRunner {
         // Then
         assertThat(manifest).contains("<?xml version=\"1.0\" ?><ArchiveDeliveryRequestReply");
         assertThat(manifest).contains("</ArchiveDeliveryRequestReply>");
-        assertThat(manifest).contains(
-            "</Date><MessageIdentifier>" + getVitamSession().getRequestId() +
-                "</MessageIdentifier><ArchivalAgreement>Not Required ArchivalAgreement</ArchivalAgreement><CodeListVersions><ReplyCodeListVersion>ReplyCodeListVersion0</ReplyCodeListVersion><MessageDigestAlgorithmCodeListVersion>MessageDigestAlgorithmCodeListVersion0</MessageDigestAlgorithmCodeListVersion><MimeTypeCodeListVersion>MimeTypeCodeListVersion0</MimeTypeCodeListVersion><EncodingCodeListVersion>EncodingCodeListVersion0</EncodingCodeListVersion><FileFormatCodeListVersion>FileFormatCodeListVersion0</FileFormatCodeListVersion><CompressionAlgorithmCodeListVersion>CompressionAlgorithmCodeListVersion0</CompressionAlgorithmCodeListVersion><DataObjectVersionCodeListVersion>DataObjectVersionCodeListVersion0</DataObjectVersionCodeListVersion><StorageRuleCodeListVersion>StorageRuleCodeListVersion0</StorageRuleCodeListVersion><AppraisalRuleCodeListVersion>AppraisalRuleCodeListVersion0</AppraisalRuleCodeListVersion><AccessRuleCodeListVersion>AccessRuleCodeListVersion0</AccessRuleCodeListVersion><DisseminationRuleCodeListVersion>DisseminationRuleCodeListVersion0</DisseminationRuleCodeListVersion><ReuseRuleCodeListVersion>ReuseRuleCodeListVersion0</ReuseRuleCodeListVersion><ClassificationRuleCodeListVersion>ClassificationRuleCodeListVersion0</ClassificationRuleCodeListVersion><AuthorizationReasonCodeListVersion>AuthorizationReasonCodeListVersion0</AuthorizationReasonCodeListVersion><RelationshipCodeListVersion>RelationshipCodeListVersion0</RelationshipCodeListVersion></CodeListVersions><DataObjectPackage>");
-        assertThat(manifest).contains(
-            "</DescriptiveMetadata><ManagementMetadata><OriginatingAgencyIdentifier>FRAN_NP_050056</OriginatingAgencyIdentifier><SubmissionAgencyIdentifier>Not Required SubmissionAgencyIdentifier</SubmissionAgencyIdentifier></ManagementMetadata></DataObjectPackage><MessageRequestIdentifier>Required MessageRequestIdentifier</MessageRequestIdentifier><AuthorizationRequestReplyIdentifier>Not Required  AuthorizationRequestReplyIdentifier</AuthorizationRequestReplyIdentifier><UnitIdentifier>Not Implemented</UnitIdentifier><ArchivalAgency><Identifier>Required ArchivalAgencyIdentifier</Identifier></ArchivalAgency><Requester><Identifier>Required RequesterIdentifier</Identifier></Requester></ArchiveDeliveryRequestReply>");
+        String header = PropertiesUtils.getResourceAsString("dip/header1");
+        header = header.replace("OPERATION_ID_REPLACE", getVitamSession().getRequestId());
+        assertThat(manifest).contains(header);
+
+        String footer = PropertiesUtils.getResourceAsString("dip/footer1");
+        assertThat(manifest).contains(footer);
         assertThat(manifest)
             .contains("</BinaryDataObject><LogBook><Event><EventIdentifier>"); // tag for GOT logbook LFC
         assertThat(manifest).contains("<Management><LogBook><Event><EventIdentifier>"); // tag for AU logbook LFC
@@ -212,7 +213,39 @@ public class TransferAndDipIT extends VitamRuleRunner {
 
     @Test
     @RunWithCustomExecutor
-    public void should_export_without_logbook() throws Exception {
+    public void should_export_DIP_without_logbook() throws Exception {
+        // Given
+        String SIP_OK_PHYSICAL_ARCHIVE = "integration-ingest-internal/OK_ArchivesPhysiques.zip";
+        InputStream zipInputStreamSipObject = PropertiesUtils.getResourceAsStream(SIP_OK_PHYSICAL_ARCHIVE);
+        final GUID ingestGUID = ingestSip(zipInputStreamSipObject,
+            StatusCode.WARNING); // As FormatIdentifierMock is used, pdf is identified as Plain Text File => WARNING
+        SelectMultiQuery select = new SelectMultiQuery();
+        select.setQuery(QueryHelper.in(VitamFieldsHelper.operations(), ingestGUID.toString()));
+
+        DipExportRequest dipExportRequest = new DipExportRequest(
+            new DataObjectVersions(Collections.singleton("BinaryMaster")),
+            select.getFinalSelect(),
+            false
+            // <- here without logbook
+        );
+
+        dipExportRequest.setExportType(ExportType.MinimalArchiveDeliveryRequestReply);
+
+        // When
+        String manifest = createAndExtractDip(dipExportRequest);
+
+        // Then
+        assertThat(manifest).contains("<?xml version=\"1.0\" ?><ArchiveDeliveryRequestReply");
+        assertThat(manifest).contains("</ArchiveDeliveryRequestReply>");
+
+        assertThat(manifest)
+            .doesNotContain("</BinaryDataObject><LogBook><Event><EventIdentifier>"); // tag for GOT logbook LFC
+        assertThat(manifest).doesNotContain("<Management><LogBook><Event><EventIdentifier>"); // tag for AU logbook LFC
+    }
+
+    @Test
+    @RunWithCustomExecutor
+    public void should_transfer_without_logbook() throws Exception {
         // Given
         String SIP_OK_PHYSICAL_ARCHIVE = "integration-ingest-internal/OK_ArchivesPhysiques.zip";
         InputStream zipInputStreamSipObject = PropertiesUtils.getResourceAsStream(SIP_OK_PHYSICAL_ARCHIVE);
@@ -230,7 +263,7 @@ public class TransferAndDipIT extends VitamRuleRunner {
             // <- here without logbook
         );
 
-        dipExportRequest.setExportType(ExportType.ArchiveDeliveryRequestReply);
+        dipExportRequest.setExportType(ExportType.ArchiveTransfer);
 
         ExportRequestParameters exportRequestParameters = new ExportRequestParameters();
         exportRequestParameters.setMessageRequestIdentifier(ingestGUID.getId());
@@ -245,50 +278,27 @@ public class TransferAndDipIT extends VitamRuleRunner {
         exportRequestParameters.setSubmissionAgencyIdentifier("FRAN_NP_050056");
         exportRequestParameters
             .setRelatedTransferReference(Lists.newArrayList("RelatedTransferReference1", "RelatedTransferReference2"));
-
+        exportRequestParameters.setTransferRequestReplyIdentifier("Not required TransferRequestReplyIdentifier");
         dipExportRequest.setExportRequestParameters(exportRequestParameters);
 
-        // When
         String manifest = createAndExtractDip(dipExportRequest);
-
-        // Then
-        assertThat(manifest).contains("<?xml version=\"1.0\" ?><ArchiveDeliveryRequestReply");
-        assertThat(manifest).contains("</ArchiveDeliveryRequestReply>");
-        assertThat(manifest).contains(
-            "</Date><MessageIdentifier>" + getVitamSession().getRequestId() +
-                "</MessageIdentifier><ArchivalAgreement>ArchivalAgreement0</ArchivalAgreement><CodeListVersions><ReplyCodeListVersion>ReplyCodeListVersion0</ReplyCodeListVersion><MessageDigestAlgorithmCodeListVersion>MessageDigestAlgorithmCodeListVersion0</MessageDigestAlgorithmCodeListVersion><MimeTypeCodeListVersion>MimeTypeCodeListVersion0</MimeTypeCodeListVersion><EncodingCodeListVersion>EncodingCodeListVersion0</EncodingCodeListVersion><FileFormatCodeListVersion>FileFormatCodeListVersion0</FileFormatCodeListVersion><CompressionAlgorithmCodeListVersion>CompressionAlgorithmCodeListVersion0</CompressionAlgorithmCodeListVersion><DataObjectVersionCodeListVersion>DataObjectVersionCodeListVersion0</DataObjectVersionCodeListVersion><StorageRuleCodeListVersion>StorageRuleCodeListVersion0</StorageRuleCodeListVersion><AppraisalRuleCodeListVersion>AppraisalRuleCodeListVersion0</AppraisalRuleCodeListVersion><AccessRuleCodeListVersion>AccessRuleCodeListVersion0</AccessRuleCodeListVersion><DisseminationRuleCodeListVersion>DisseminationRuleCodeListVersion0</DisseminationRuleCodeListVersion><ReuseRuleCodeListVersion>ReuseRuleCodeListVersion0</ReuseRuleCodeListVersion><ClassificationRuleCodeListVersion>ClassificationRuleCodeListVersion0</ClassificationRuleCodeListVersion><AuthorizationReasonCodeListVersion>AuthorizationReasonCodeListVersion0</AuthorizationReasonCodeListVersion><RelationshipCodeListVersion>RelationshipCodeListVersion0</RelationshipCodeListVersion></CodeListVersions><DataObjectPackage>");
-        assertThat(manifest).contains(
-            "</DescriptiveMetadata><ManagementMetadata><OriginatingAgencyIdentifier>FRAN_NP_050056</OriginatingAgencyIdentifier><SubmissionAgencyIdentifier>FRAN_NP_050056</SubmissionAgencyIdentifier></ManagementMetadata></DataObjectPackage><MessageRequestIdentifier>" +
-                ingestGUID.getId() +
-                "</MessageRequestIdentifier><AuthorizationRequestReplyIdentifier>Not Required  AuthorizationRequestReplyIdentifier</AuthorizationRequestReplyIdentifier><UnitIdentifier>Not Implemented</UnitIdentifier><ArchivalAgency><Identifier>Identifier4</Identifier></ArchivalAgency><Requester><Identifier>Required RequesterIdentifier</Identifier></Requester></ArchiveDeliveryRequestReply>");
-
-        assertThat(manifest)
-            .doesNotContain("</BinaryDataObject><LogBook><Event><EventIdentifier>"); // tag for GOT logbook LFC
-        assertThat(manifest).doesNotContain("<Management><LogBook><Event><EventIdentifier>"); // tag for AU logbook LFC
-
-
-        // Test Transfer
-        dipExportRequest.setExportType(ExportType.ArchiveTransfer);
-        dipExportRequest.getExportRequestParameters()
-            .setTransferRequestReplyIdentifier("Not required TransferRequestReplyIdentifier");
-        manifest = createAndExtractDip(dipExportRequest);
-
 
         // Then
         assertThat(manifest).contains("<?xml version=\"1.0\" ?><ArchiveTransfer");
         assertThat(manifest).contains("</ArchiveTransfer>");
-        assertThat(manifest).contains(
-            "</Date><MessageIdentifier>" + getVitamSession().getRequestId() +
-                "</MessageIdentifier><ArchivalAgreement>ArchivalAgreement0</ArchivalAgreement><CodeListVersions><ReplyCodeListVersion>ReplyCodeListVersion0</ReplyCodeListVersion><MessageDigestAlgorithmCodeListVersion>MessageDigestAlgorithmCodeListVersion0</MessageDigestAlgorithmCodeListVersion><MimeTypeCodeListVersion>MimeTypeCodeListVersion0</MimeTypeCodeListVersion><EncodingCodeListVersion>EncodingCodeListVersion0</EncodingCodeListVersion><FileFormatCodeListVersion>FileFormatCodeListVersion0</FileFormatCodeListVersion><CompressionAlgorithmCodeListVersion>CompressionAlgorithmCodeListVersion0</CompressionAlgorithmCodeListVersion><DataObjectVersionCodeListVersion>DataObjectVersionCodeListVersion0</DataObjectVersionCodeListVersion><StorageRuleCodeListVersion>StorageRuleCodeListVersion0</StorageRuleCodeListVersion><AppraisalRuleCodeListVersion>AppraisalRuleCodeListVersion0</AppraisalRuleCodeListVersion><AccessRuleCodeListVersion>AccessRuleCodeListVersion0</AccessRuleCodeListVersion><DisseminationRuleCodeListVersion>DisseminationRuleCodeListVersion0</DisseminationRuleCodeListVersion><ReuseRuleCodeListVersion>ReuseRuleCodeListVersion0</ReuseRuleCodeListVersion><ClassificationRuleCodeListVersion>ClassificationRuleCodeListVersion0</ClassificationRuleCodeListVersion><AuthorizationReasonCodeListVersion>AuthorizationReasonCodeListVersion0</AuthorizationReasonCodeListVersion><RelationshipCodeListVersion>RelationshipCodeListVersion0</RelationshipCodeListVersion></CodeListVersions><DataObjectPackage><DataObjectGroup");
-        assertThat(manifest).contains(
-            "</DescriptiveMetadata><ManagementMetadata><OriginatingAgencyIdentifier>FRAN_NP_050056</OriginatingAgencyIdentifier><SubmissionAgencyIdentifier>FRAN_NP_050056</SubmissionAgencyIdentifier></ManagementMetadata></DataObjectPackage><RelatedTransferReference>RelatedTransferReference1</RelatedTransferReference><RelatedTransferReference>RelatedTransferReference2</RelatedTransferReference><TransferRequestReplyIdentifier>Not required TransferRequestReplyIdentifier</TransferRequestReplyIdentifier><ArchivalAgency><Identifier>Identifier4</Identifier></ArchivalAgency><TransferringAgency><Identifier>VITAM</Identifier></TransferringAgency></ArchiveTransfer>");
+
+        String header = PropertiesUtils.getResourceAsString("dip/header3");
+        header = header.replace("OPERATION_ID_REPLACE", getVitamSession().getRequestId());
+        assertThat(manifest).contains(header);
+
+        String footer = PropertiesUtils.getResourceAsString("dip/footer3");
+        assertThat(manifest).contains(footer);
 
         assertThat(manifest)
             .doesNotContain("</BinaryDataObject><LogBook><Event><EventIdentifier>"); // tag for GOT logbook LFC
         assertThat(manifest).doesNotContain("<Management><LogBook><Event><EventIdentifier>"); // tag for AU logbook LFC
 
         // try Ingest the Transfer SIP
-
         InputStream transferSipStream = getDip(getVitamSession().getRequestId());
 
         ingestSip(transferSipStream,
