@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2019)
  *
  * contact.vitam@culture.gouv.fr
@@ -26,13 +26,6 @@
  */
 package fr.gouv.vitam.logbook.common.parameters;
 
-import java.util.Map;
-import java.util.Map.Entry;
-import java.util.Queue;
-import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentLinkedQueue;
-
 import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.ServerIdentity;
 import fr.gouv.vitam.common.parameter.ParameterHelper;
@@ -40,9 +33,17 @@ import fr.gouv.vitam.logbook.common.client.ErrorMessage;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientAlreadyExistsException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientNotFoundException;
 
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Queue;
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentLinkedQueue;
+
 /**
  * Helper implementation of LogbookLifeCyclesClient
  */
+@Deprecated
 public class LogbookLifeCyclesClientHelper {
     private static final ServerIdentity SERVER_IDENTITY = ServerIdentity.getInstance();
     private final Map<String, Queue<LogbookLifeCycleParameters>> delegatedCreations = new ConcurrentHashMap<>();
@@ -184,5 +185,21 @@ public class LogbookLifeCyclesClientHelper {
     public void clear() {
         delegatedCreations.clear();
         delegatedUpdates.clear();
+    }
+
+    public void updateDelegateWithKey(String key, LogbookLifeCycleParameters parameters) {
+        parameters.putParameterValue(LogbookParameterName.agentIdentifier, SERVER_IDENTITY.getJsonIdentity());
+        parameters.putParameterValue(LogbookParameterName.eventDateTime, LocalDateUtil.now().toString());
+        ParameterHelper.checkNullOrEmptyParameters(parameters.getMapParameters(), parameters.getMandatoriesParameters());
+
+        Queue<LogbookLifeCycleParameters> queue = delegatedCreations.get(key);
+        if (queue == null) {
+            queue = delegatedUpdates.get(key);
+            if (queue == null) {
+                queue = new ConcurrentLinkedQueue<>();
+                delegatedUpdates.put(key, queue);
+            }
+        }
+        queue.add(copy(parameters));
     }
 }

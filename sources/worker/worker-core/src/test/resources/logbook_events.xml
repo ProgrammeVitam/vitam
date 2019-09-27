@@ -1,0 +1,23 @@
+<LogBook>
+    <Event>
+        <EventIdentifier>aedqaaaaacglsdgpaa3ikalnhzhaxfiaaaaq</EventIdentifier>
+        <EventTypeCode>INGEST</EventTypeCode>
+        <EventType>LFC.CHECK_MANIFEST</EventType>
+        <EventDateTime>2019-09-17T08:19:25.206</EventDateTime>
+        <Outcome>OK</Outcome>
+        <OutcomeDetail>LFC.CHECK_MANIFEST.OK</OutcomeDetail>
+        <OutcomeDetailMessage>Succès de la vérification de la cohérence du bordereau de transfert</OutcomeDetailMessage>
+        <EventDetailData>{ }</EventDetailData>
+        <AgentIdentifier>{"Name":"5ca8d99a4a94","Role":"worker","ServerId":1555631311,"SiteId":1,"GlobalPlatformId":213454031}</AgentIdentifier>
+    </Event>
+    <Event>
+        <EventIdentifier>aedqaaaaacglsdgpaa3ikalnhzhaxfiaaaba</EventIdentifier>
+        <EventTypeCode>INGEST</EventTypeCode>
+        <EventType>LFC.CHECK_MANIFEST.LFC_CREATION</EventType>
+        <EventDateTime>2019-09-17T08:19:25.207</EventDateTime>
+        <Outcome>OK</Outcome>
+        <OutcomeDetail>LFC.CHECK_MANIFEST.LFC_CREATION.OK</OutcomeDetail>
+        <OutcomeDetailMessage>Succès de la création du journal du cycle de vie</OutcomeDetailMessage>
+        <AgentIdentifier>{"Name":"5ca8d99a4a94","Role":"worker","ServerId":1555631311,"SiteId":1,"GlobalPlatformId":213454031}</AgentIdentifier>
+    </Event>
+</LogBook>
