@@ -219,12 +219,12 @@ public class StoreMetaDataUnitActionPlugin extends ActionHandler {
     private void saveDocumentWithLfcInStorage(String containerName, MultiValuedMap<String, String> unitIdsByStrategies)
         throws VitamException {
 
-        List<String> workspaceURIs = new ArrayList<>();
-        List<String> objectNames = new ArrayList<>();
-
         Stopwatch storeStorage = Stopwatch.createStarted();
 
         for (String strategy : unitIdsByStrategies.keySet()) {
+
+            List<String> workspaceURIs = new ArrayList<>();
+            List<String> objectNames = new ArrayList<>();
 
             Collection<String> unitIds = unitIdsByStrategies.get(strategy);
 
