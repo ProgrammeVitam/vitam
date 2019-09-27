@@ -571,6 +571,7 @@ public class IngestInternalResource extends ApplicationStatusResource {
             }
 
         } catch (final ZipFilesNameNotAllowedException e) {
+            LOGGER.error("Unzip error :", e);
             try {
                 callLogbookUpdate(parameters, StatusCode.KO, INGEST_INT_UPLOAD,
                     VitamLogbookMessages.getCodeOp(INGEST_INT_UPLOAD, StatusCode.KO));
@@ -579,20 +580,19 @@ public class IngestInternalResource extends ApplicationStatusResource {
                 return Response.status(Status.INTERNAL_SERVER_ERROR).build();
             }
 
-            LOGGER.error("Error while unzip file : " + e.getMessage(), e);
             return Response.status(Status.NOT_ACCEPTABLE).build();
 
         } catch (final ContentAddressableStorageException | VitamApplicationServerException | InternalServerException e) {
+            LOGGER.error("Unexpected error was thrown : " + e.getMessage(), e);
             try {
                 callLogbookUpdate(parameters, StatusCode.FATAL, INGEST_INT_UPLOAD,
                     e.getMessage());
             } catch (final LogbookClientException e1) {
                 LOGGER.error(e1);
             }
-
-            LOGGER.error("Unexpected error was thrown : " + e.getMessage(), e);
             return Response.status(Status.SERVICE_UNAVAILABLE).build();
         } catch (IllegalArgumentException | BadRequestException | InvalidGuidOperationException | LogbookClientBadRequestException e) {
+            LOGGER.error("Unexpected error was thrown : " + e.getMessage(), e);
             if (null != parameters) {
                 try {
                     parameters.putParameterValue(LogbookParameterName.eventIdentifier,
@@ -604,7 +604,6 @@ public class IngestInternalResource extends ApplicationStatusResource {
                     LOGGER.error(e1);
                 }
             }
-            LOGGER.error("Unexpected error was thrown : " + e.getMessage(), e);
             return Response.status(Status.BAD_REQUEST).build();
         } catch (IngestInternalException e) {
             LOGGER.error("Unexpected error was thrown : " + e.getMessage(), e);
@@ -651,6 +650,7 @@ public class IngestInternalResource extends ApplicationStatusResource {
             IllegalArgumentException |
             VitamClientException |
             InternalServerException exc) {
+            LOGGER.error(exc);
             try {
                 callLogbookUpdate(parameters, StatusCode.FATAL,
                     INGEST_WORKFLOW,

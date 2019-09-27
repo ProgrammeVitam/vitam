@@ -76,7 +76,7 @@ public class LightweightWorkflowLock {
      * @param currentProcessId the current process id (filtred from result)
      * @return the list of concurrent workflows if any, or an empty list if no concurrent workflow is found.
      */
-    public List<ProcessDetail> listConcurrentWorkflow(List<String> workflowIds, String currentProcessId)
+    public List<ProcessDetail> listConcurrentWorkflows(List<String> workflowIds, String currentProcessId)
         throws VitamClientException {
 
         try (ProcessingManagementClient client = processingManagementClientFactory.getClient()) {

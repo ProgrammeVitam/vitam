@@ -125,7 +125,7 @@ class ProcessingManagementClientRest extends DefaultClient implements Processing
             LOGGER.debug(e);
             throw e;
         } catch (final Exception e) {
-            throw new InternalServerException(BAD_REQUEST_EXCEPTION);
+            throw new InternalServerException(INTERNAL_SERVER_ERROR);
         } finally {
             consumeAnyEntityAndClose(response);
         }

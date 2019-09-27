@@ -594,12 +594,12 @@ public class ProcessManagementImpl implements ProcessManagement {
     }
 
     public List<ProcessDetail> getFilteredProcess(ProcessQuery query, Integer tenantId) {
-        List<ProcessWorkflow> listWorkflow = this.findAllProcessWorkflow(tenantId);
-        listWorkflow.sort((a, b) -> b.getProcessDate().compareTo(a.getProcessDate()));
+        List<ProcessWorkflow> listWorkflows = this.findAllProcessWorkflow(tenantId);
+        listWorkflows.sort((a, b) -> b.getProcessDate().compareTo(a.getProcessDate()));
 
         List<ProcessDetail> results = new ArrayList<>();
 
-        for (ProcessWorkflow processWorkflow : listWorkflow) {
+        for (ProcessWorkflow processWorkflow : listWorkflows) {
             ProcessDetail workflow = new ProcessDetail();
             workflow = getNextAndPreviousSteps(processWorkflow, workflow);
             if (query.getId() != null && !query.getId().equals(processWorkflow.getOperationId())) {

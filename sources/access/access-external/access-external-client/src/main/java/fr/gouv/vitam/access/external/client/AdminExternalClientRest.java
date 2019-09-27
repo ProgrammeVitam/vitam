@@ -688,10 +688,8 @@ public class AdminExternalClientRest extends DefaultClient implements AdminExter
             return RequestResponse.parseFromResponse(response, ProcessDetail.class);
 
         } catch (VitamClientException e) {
-            LOGGER.error("VitamClientInternalException: ", e);
             throw e;
         } catch (Exception e) {
-            LOGGER.error("VitamClientInternalException: ", e);
             throw createExceptionFromResponse(response);
         } finally {
             consumeAnyEntityAndClose(response);
@@ -719,10 +717,8 @@ public class AdminExternalClientRest extends DefaultClient implements AdminExter
             return RequestResponse.parseFromResponse(response, ItemStatus.class);
 
         } catch (VitamClientException e) {
-            LOGGER.error("VitamClientInternalException: ", e);
             throw e;
         } catch (Exception e) {
-            LOGGER.error("VitamClientInternalException: ", e);
             throw createExceptionFromResponse(response);
         } finally {
             consumeAnyEntityAndClose(response);
@@ -793,10 +789,8 @@ public class AdminExternalClientRest extends DefaultClient implements AdminExter
             return RequestResponse.parseFromResponse(response, ItemStatus.class);
 
         } catch (VitamClientException e) {
-            LOGGER.error("VitamClientInternalException: ", e);
             throw e;
         } catch (Exception e) {
-            LOGGER.error("VitamClientInternalException: ", e);
             throw createExceptionFromResponse(response);
         } finally {
             consumeAnyEntityAndClose(response);
@@ -821,10 +815,8 @@ public class AdminExternalClientRest extends DefaultClient implements AdminExter
             return RequestResponse.parseFromResponse(response, ItemStatus.class);
 
         } catch (VitamClientException e) {
-            LOGGER.error("VitamClientInternalException: ", e);
             throw e;
         } catch (Exception e) {
-            LOGGER.error("VitamClientInternalException: ", e);
             throw createExceptionFromResponse(response);
         } finally {
             consumeAnyEntityAndClose(response);
@@ -843,10 +835,8 @@ public class AdminExternalClientRest extends DefaultClient implements AdminExter
             return RequestResponse.parseFromResponse(response, WorkFlow.class);
 
         } catch (VitamClientException e) {
-            LOGGER.error("VitamClientInternalException: ", e);
             throw e;
         } catch (Exception e) {
-            LOGGER.error("VitamClientInternalException: ", e);
             throw createExceptionFromResponse(response);
         } finally {
             consumeAnyEntityAndClose(response);
