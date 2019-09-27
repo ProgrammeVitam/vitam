@@ -495,18 +495,11 @@ public class IngestExternalImpl implements IngestExternal {
                 helper.updateDelegate(endParameters);
                 helper.updateDelegate(antivirusParameters);
 
-                logbookAndGenerateATR(preUploadResume, guid, antivirusParameters.getStatus(),
-                    isFileInfected, helper,
+                logbookAndGenerateATR(preUploadResume, guid, antivirusParameters.getStatus(), isFileInfected, helper,
                     SANITY_CHECK_SIP, "");
             }
 
             try (IngestInternalClient ingestClient = ingestInternalClientFactory.getClient()) {
-                // before calling the ingestClient: LogbookOperationParameters as Ingest-Internal started
-                // after calling the ingestClient: LogbookOperationParameters as Ingest-Internal "status"
-                // and in async mode add LogbookOperationParameters as Ingest-External-ATR-Forward START
-                // and LogbookOperationParameters as Ingest-External-ATR-Forward OK
-                // then call back ingestClient with updateFinalLogbook
-
                 ingestClient.uploadInitialLogbook(helper.removeCreateDelegate(guid.getId()));
 
                 if (!isFileInfected && isSupportedMedia && manifestFileName != null &&

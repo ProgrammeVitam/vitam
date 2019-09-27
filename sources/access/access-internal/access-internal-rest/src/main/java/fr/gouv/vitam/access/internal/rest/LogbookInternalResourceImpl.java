@@ -394,7 +394,9 @@ public class LogbookInternalResourceImpl {
             RequestResponse<ItemStatus> response =
                 processingClient.executeCheckTraceabilityWorkFlow(checkOperationGUID.getId(), query,
                     LogbookTypeProcess.CHECK.name(), ProcessAction.RESUME.getValue());
-            LOGGER.debug("Check in Resource launched" + response.toString());
+            if (LOGGER.isDebugEnabled()) {
+                LOGGER.debug("Check in Resource launched" + response.toString());
+            }
 
             if (!response.isOk()) {
                 return response.toResponse();

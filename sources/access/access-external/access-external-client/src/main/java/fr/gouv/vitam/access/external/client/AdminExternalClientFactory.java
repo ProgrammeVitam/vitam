@@ -28,6 +28,7 @@ package fr.gouv.vitam.access.external.client;
 
 import java.io.IOException;
 
+import com.google.common.annotations.VisibleForTesting;
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.external.client.VitamClientFactory;
 import fr.gouv.vitam.common.client.configuration.ClientConfiguration;
@@ -111,7 +112,8 @@ public class AdminExternalClientFactory extends VitamClientFactory<AdminExternal
         getInstance().initialisation(configuration, getInstance().getResourcePath());
     }
 
-    public static final void changeMode(String configurationFile) {
+    @VisibleForTesting
+    public static final void changeModeFromFile(String configurationFile) {
         SecureClientConfiguration configuration = changeConfigurationFile(configurationFile);
         getInstance().initialisation(configuration, getInstance().getResourcePath());
     }

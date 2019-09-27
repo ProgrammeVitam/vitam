@@ -519,7 +519,7 @@ public class AccessExternalResource extends ApplicationStatusResource {
             RequestResponse<JsonNode> result = client.selectObjectbyId(queryJson, idObjectGroup);
             int st = result.isOk() ? Status.OK.getStatusCode() : result.getHttpCode();
 
-            if (!result.isOk() && result instanceof VitamError) {
+            if (!result.isOk()) {
                 VitamError error = (VitamError) result;
                 return buildErrorFromError(VitamCode.ACCESS_EXTERNAL_SELECT_OBJECT_BY_ID_ERROR, error.getMessage(),
                     error);

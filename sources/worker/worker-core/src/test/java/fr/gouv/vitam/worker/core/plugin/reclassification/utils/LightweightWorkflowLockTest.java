@@ -74,7 +74,7 @@ public class LightweightWorkflowLockTest {
 
         // When
         List<ProcessDetail> processDetails =
-            lightweightWorkflowLock.listConcurrentWorkflow(Collections.singletonList(workflowId), currentProcessId);
+            lightweightWorkflowLock.listConcurrentWorkflows(Collections.singletonList(workflowId), currentProcessId);
 
         // Then
         ArgumentCaptor<ProcessQuery> processQueryArgumentCaptor = ArgumentCaptor.forClass(ProcessQuery.class);
@@ -94,7 +94,7 @@ public class LightweightWorkflowLockTest {
             new LightweightWorkflowLock(processingManagementClientFactory);
 
         // When / Then
-        assertThatThrownBy(() -> lightweightWorkflowLock.listConcurrentWorkflow(Collections.singletonList("any"), "any"))
+        assertThatThrownBy(() -> lightweightWorkflowLock.listConcurrentWorkflows(Collections.singletonList("any"), "any"))
             .isInstanceOf(VitamClientException.class);
     }
 }

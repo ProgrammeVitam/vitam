@@ -375,7 +375,7 @@ public class IngestInternalResourceTest extends ResteasyTestApplication {
         ItemStatus result = new ItemStatus();
         result.setGlobalState(ProcessState.COMPLETED);
         result.increment(StatusCode.FATAL);
-        result.setItemId("Itzm");
+        result.setItemId("Item");
 
         RequestResponseOK<ItemStatus> responseOK = new RequestResponseOK<ItemStatus>().addResult(result);
         responseOK.setHttpCode(Status.ACCEPTED.getStatusCode());

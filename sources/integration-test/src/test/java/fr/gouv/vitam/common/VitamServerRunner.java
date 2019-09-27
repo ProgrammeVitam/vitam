@@ -502,7 +502,7 @@ public class VitamServerRunner extends ExternalResource {
     private void startAccessExternalServer() throws VitamApplicationServerException {
         if (null != accessExternalMain) {
             AccessExternalClientFactory.getInstance().changeMode(ACCESS_EXTERNAL_CLIENT_CONF);
-            AdminExternalClientFactory.getInstance().changeMode(ACCESS_EXTERNAL_CLIENT_CONF);
+            AdminExternalClientFactory.getInstance().changeModeFromFile(ACCESS_EXTERNAL_CLIENT_CONF);
             return;
         }
         SystemPropertyUtil
@@ -510,7 +510,7 @@ public class VitamServerRunner extends ExternalResource {
                 Integer.toString(PORT_SERVICE_ACCESS_EXTERNAL));
         LOGGER.warn("=== VitamServerRunner start  AccessExternalMain");
         AccessExternalClientFactory.getInstance().changeMode(ACCESS_EXTERNAL_CLIENT_CONF);
-        AdminExternalClientFactory.getInstance().changeMode(ACCESS_EXTERNAL_CLIENT_CONF);
+        AdminExternalClientFactory.getInstance().changeModeFromFile(ACCESS_EXTERNAL_CLIENT_CONF);
         accessExternalMain =
             new AccessExternalMain(ACCESS_EXTERNAL_CONF);
         accessExternalMain.start();
@@ -791,7 +791,7 @@ public class VitamServerRunner extends ExternalResource {
         internalSecurityConfiguration.getMongoDbNodes().get(0).setDbPort(MongoRule.getDataBasePort());
         PropertiesUtils.writeYaml(securityInternalConfigurationFile, internalSecurityConfiguration);
 
-        LOGGER.warn("=== VitamServerRunner start  WorkspaceMain");
+        LOGGER.warn("=== VitamServerRunner start  Identity");
         InternalSecurityClientFactory.getInstance()
             .changeMode(new ClientConfigurationImpl("localhost", PORT_SERVICE_IDENTITY));
         identityMain = new IdentityMain(IDENTITY_CONF);

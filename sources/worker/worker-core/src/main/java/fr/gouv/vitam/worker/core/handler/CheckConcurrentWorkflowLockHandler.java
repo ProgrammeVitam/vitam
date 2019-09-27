@@ -87,7 +87,7 @@ public class CheckConcurrentWorkflowLockHandler extends ActionHandler {
                 .collect(Collectors.toList());
 
             List<ProcessDetail> concurrentWorkflows = lightweightWorkflowLock
-                .listConcurrentWorkflow(workflowIds, param.getContainerName());
+                .listConcurrentWorkflows(workflowIds, param.getContainerName());
 
             if (!concurrentWorkflows.isEmpty()) {
 
