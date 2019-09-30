@@ -1,0 +1,20 @@
+{
+  "$roots": [],
+  "$query": [
+    {
+      "$eq": {
+        "#operations": "aeeaaaaaagfjz7wkabudcalnfgzbfqqaaaaq"
+      },
+      "$depth": 1000
+    }
+  ],
+  "$filter": {
+    "$scrollId": "START",
+    "$scrollTimeout": 60000,
+    "$limit": 10000
+  },
+  "$projection": {},
+  "$facets": []
+}
+
+

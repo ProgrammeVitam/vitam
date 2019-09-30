@@ -1,0 +1,120 @@
+{
+  "httpCode": 302,
+  "$hits": {
+    "total": 1,
+    "offset": 0,
+    "limit": 0,
+    "size": 1
+  },
+  "$results": [
+    {
+      "FileInfo": {},
+      "#id": "aebaaaaaaefjz7wkabvpoalnfgzdwfyaaaaq",
+      "#nbobjects": 2,
+      "#qualifiers": [
+        {
+          "qualifier": "PhysicalMaster",
+          "#nbc": 1,
+          "versions": [
+            {
+              "DataObjectGroupId": "aebaaaaaaefjz7wkabvpoalnfgzdwfyaaaaq",
+              "DataObjectVersion": "PhysicalMaster_1",
+              "PhysicalId": 12345,
+              "PhysicalDimensions": {
+                "Height": {
+                  "unit": "centimetre",
+                  "dValue": 21
+                },
+                "Length": {
+                  "unit": "centimetre",
+                  "dValue": 29.7
+                },
+                "Weight": {
+                  "unit": "kilogram",
+                  "dValue": 1
+                }
+              },
+              "#id": "aeaaaaaaaafjz7wkabvpoalnfgzdwhiaaaaq",
+              "#opi": "aeeaaaaaagfjz7wkabudcalnfgzbfqqaaaaq"
+            }
+          ]
+        },
+        {
+          "qualifier": "BinaryMaster",
+          "#nbc": 1,
+          "versions": [
+            {
+              "DataObjectGroupId": "aebaaaaaaefjz7wkabvpoalnfgzdwfyaaaaq",
+              "DataObjectVersion": "BinaryMaster_1",
+              "FormatIdentification": {
+                "FormatLitteral": "Plain Text File",
+                "MimeType": "text/plain",
+                "FormatId": "x-fmt/111"
+              },
+              "FileInfo": {
+                "Filename": "Montparnasse.txt",
+                "CreatingApplicationName": "CreatingApplicationName0",
+                "CreatingApplicationVersion": "CreatingApplicationVersion0",
+                "DateCreatedByApplication": "2006-05-04T18:13:51.0",
+                "CreatingOs": "CreatingOs0",
+                "CreatingOsVersion": "CreatingOsVersion0",
+                "LastModified": "2017-04-04T08:07:06.487+02:00"
+              },
+              "Size": 6,
+              "Uri": "Content/ID13.txt",
+              "MessageDigest": "86c0bc701ef6b5dd21b080bc5bb2af38097baa6237275da83a52f092c9eae3e4e4b0247391620bd732fe824d18bd3bb6c37e62ec73a8cf3585c6a799399861b1",
+              "Algorithm": "SHA-512",
+              "#id": "aeaaaaaaaafjz7wkabvpoalnfgzdweyaaaaq",
+              "#opi": "aeeaaaaaagfjz7wkabudcalnfgzbfqqaaaaq",
+              "#storage": {
+                "offerIds": [
+                  "offer-fs-1.service.consul"
+                ],
+                "strategyId": "default",
+                "#nbc": 1
+              }
+            }
+          ]
+        }
+      ],
+      "#type": "",
+      "#tenant": 1,
+      "#unitups": [
+        "aeaqaaaaaefjz7wkabvpoalnfgzdwlyaaaaq",
+        "aeaqaaaaaefjz7wkabvpoalnfgzdzjaaaaaq"
+      ],
+      "#allunitups": [
+        "aeaqaaaaaefjz7wkabvpoalnfgzdwlyaaaaq",
+        "aeaqaaaaaefjz7wkabvpoalnfgzdzjaaaaaq"
+      ],
+      "#operations": [
+        "aeeaaaaaagfjz7wkabudcalnfgzbfqqaaaaq"
+      ],
+      "#opi": "aeeaaaaaagfjz7wkabudcalnfgzbfqqaaaaq",
+      "#originating_agency": "Identifier0",
+      "#originating_agencies": [
+        "Identifier0"
+      ],
+      "#storage": {
+        "offerIds": [
+          "offer-fs-1.service.consul"
+        ],
+        "strategyId": "default",
+        "#nbc": 1
+      },
+      "#version": 1
+    }
+  ],
+  "$facetResults": [],
+  "$context": {
+    "$query": {
+      "$in": {
+        "#id": [
+          "aebaaaaaaefjz7wkabvpoalnfgzdwfyaaaaq"
+        ]
+      }
+    },
+    "$filter": {},
+    "$projection": {}
+  }
+}
