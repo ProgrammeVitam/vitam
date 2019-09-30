@@ -1516,7 +1516,7 @@ public class ExtractSedaActionHandler extends ActionHandler {
 
         Map<String, String> parameters = new HashMap<>();
         parameters.put(eventIdentifier.name(), eventModel.getEvId());
-        parameters.put(parentEventIdentifier.name(), parentId);
+        parameters.put(parentEventIdentifier.name(), StringUtils.isBlank(eventModel.getEvParentId()) ? parentId : eventModel.getEvParentId());
         parameters.put(eventType.name(), eventModel.getEvType());
         parameters.put(eventDateTime.name(), eventModel.getEvDateTime());
         parameters.put(eventIdentifierProcess.name(), StringUtils.isBlank(eventModel.getEvIdProc()) ? identifierProcess : eventModel.getEvIdProc());
