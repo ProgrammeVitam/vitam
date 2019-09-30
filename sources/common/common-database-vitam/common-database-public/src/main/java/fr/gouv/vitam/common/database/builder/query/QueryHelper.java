@@ -468,7 +468,9 @@ public class QueryHelper {
      * @param variableName key name
      * @return an ExistsQuery using Missing operator
      * @throws InvalidCreateOperationException when creating query errors
+     * @deprecated Use $not + $exists
      */
+    @Deprecated
     public static final ExistsQuery missing(final String variableName)
         throws InvalidCreateOperationException {
         return new ExistsQuery(QUERY.MISSING, variableName);

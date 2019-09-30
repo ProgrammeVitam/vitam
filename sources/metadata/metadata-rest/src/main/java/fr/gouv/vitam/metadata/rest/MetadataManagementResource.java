@@ -504,7 +504,7 @@ public class MetadataManagementResource {
         obsoleteQuery.add(QueryHelper.eq(VitamFieldsHelper.validComputedInheritedRules(), false));
 
         BooleanQuery incoherentValuesQuery = QueryHelper.and();
-        incoherentValuesQuery.add(QueryHelper.missing(VitamFieldsHelper.computedInheritedRules()));
+        incoherentValuesQuery.add(QueryHelper.not().add(QueryHelper.exists(VitamFieldsHelper.computedInheritedRules())));
         incoherentValuesQuery.add(QueryHelper.exists(VitamFieldsHelper.validComputedInheritedRules()));
 
         obsoleteQuery.add(incoherentValuesQuery);
