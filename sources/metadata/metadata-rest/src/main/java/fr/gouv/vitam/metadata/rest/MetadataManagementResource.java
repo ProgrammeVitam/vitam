@@ -54,6 +54,7 @@ import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.AuthenticationLevel;
 import fr.gouv.vitam.common.model.GraphComputeResponse;
 import fr.gouv.vitam.common.model.GraphComputeResponse.GraphComputeAction;
+import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseError;
 import fr.gouv.vitam.common.model.StatusCode;
@@ -511,6 +512,7 @@ public class MetadataManagementResource {
         return select.getFinalSelect();
     }
 
+    // FIXME: 15/09/2019 workflow should be init/start from internals or functional admin
     private Response computedInheritedRulesCalculation(JsonNode dslQuery) {
         GUID operationGuid = GUIDFactory.newGUID();
         VitamThreadUtils.getVitamSession().setRequestId(operationGuid);
@@ -539,9 +541,8 @@ public class MetadataManagementResource {
             processingClient
                 .initVitamProcess(new ProcessingEntry(operationGuid.getId(), COMPUTE_INHERITED_RULES.name()));
 
-            RequestResponse<JsonNode> response = processingClient
-                .executeOperationProcess(operationGuid.getId(), COMPUTE_INHERITED_RULES.name(), RESUME.getValue());
-            return response.setHttpCode(Response.Status.OK.getStatusCode()).toResponse();
+            RequestResponse<ItemStatus> response = processingClient.executeOperationProcess(operationGuid.getId(), COMPUTE_INHERITED_RULES.name(), RESUME.getValue());
+            return response.toResponse();
         } catch (BadRequestException e) {
             return buildErrorResponse(VitamCode.GLOBAL_EMPTY_QUERY, null);
         } catch (LogbookClientBadRequestException | LogbookClientAlreadyExistsException |

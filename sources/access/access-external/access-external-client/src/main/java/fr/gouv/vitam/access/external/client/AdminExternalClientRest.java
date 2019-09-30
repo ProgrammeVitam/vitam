@@ -687,12 +687,10 @@ public class AdminExternalClientRest extends DefaultClient implements AdminExter
                 MediaType.APPLICATION_JSON_TYPE, MediaType.APPLICATION_JSON_TYPE);
             return RequestResponse.parseFromResponse(response, ProcessDetail.class);
 
-        } catch (IllegalStateException e) {
-            LOGGER.error(COULD_NOT_PARSE_SERVER_RESPONSE, e);
+        } catch (VitamClientException e) {
+            throw e;
+        } catch (Exception e) {
             throw createExceptionFromResponse(response);
-        } catch (VitamClientInternalException e) {
-            LOGGER.error(VITAM_CLIENT_INTERNAL_EXCEPTION, e);
-            throw new VitamClientException(e);
         } finally {
             consumeAnyEntityAndClose(response);
         }
@@ -718,12 +716,10 @@ public class AdminExternalClientRest extends DefaultClient implements AdminExter
                     MediaType.APPLICATION_JSON_TYPE);
             return RequestResponse.parseFromResponse(response, ItemStatus.class);
 
-        } catch (IllegalStateException e) {
-            LOGGER.error(COULD_NOT_PARSE_SERVER_RESPONSE, e);
+        } catch (VitamClientException e) {
+            throw e;
+        } catch (Exception e) {
             throw createExceptionFromResponse(response);
-        } catch (VitamClientInternalException e) {
-            LOGGER.error(VITAM_CLIENT_INTERNAL_EXCEPTION, e);
-            throw new VitamClientException(e);
         } finally {
             consumeAnyEntityAndClose(response);
         }
@@ -792,12 +788,10 @@ public class AdminExternalClientRest extends DefaultClient implements AdminExter
                     MediaType.APPLICATION_JSON_TYPE);
             return RequestResponse.parseFromResponse(response, ItemStatus.class);
 
-        } catch (IllegalStateException e) {
-            LOGGER.error(COULD_NOT_PARSE_SERVER_RESPONSE, e);
+        } catch (VitamClientException e) {
+            throw e;
+        } catch (Exception e) {
             throw createExceptionFromResponse(response);
-        } catch (VitamClientInternalException e) {
-            LOGGER.error(VITAM_CLIENT_INTERNAL_EXCEPTION, e);
-            throw new VitamClientException(e);
         } finally {
             consumeAnyEntityAndClose(response);
         }
@@ -820,12 +814,10 @@ public class AdminExternalClientRest extends DefaultClient implements AdminExter
                     MediaType.APPLICATION_JSON_TYPE);
             return RequestResponse.parseFromResponse(response, ItemStatus.class);
 
-        } catch (IllegalStateException e) {
-            LOGGER.error(COULD_NOT_PARSE_SERVER_RESPONSE, e);
+        } catch (VitamClientException e) {
+            throw e;
+        } catch (Exception e) {
             throw createExceptionFromResponse(response);
-        } catch (VitamClientInternalException e) {
-            LOGGER.error(VITAM_CLIENT_INTERNAL_EXCEPTION, e);
-            throw new VitamClientException(e);
         } finally {
             consumeAnyEntityAndClose(response);
         }
@@ -842,12 +834,10 @@ public class AdminExternalClientRest extends DefaultClient implements AdminExter
                 performRequest(HttpMethod.GET, AccessExtAPI.WORKFLOWS_API, headers, MediaType.APPLICATION_JSON_TYPE);
             return RequestResponse.parseFromResponse(response, WorkFlow.class);
 
-        } catch (IllegalStateException e) {
-            LOGGER.error(COULD_NOT_PARSE_SERVER_RESPONSE, e);
+        } catch (VitamClientException e) {
+            throw e;
+        } catch (Exception e) {
             throw createExceptionFromResponse(response);
-        } catch (VitamClientInternalException e) {
-            LOGGER.error(VITAM_CLIENT_INTERNAL_EXCEPTION, e);
-            throw new VitamClientException(e);
         } finally {
             consumeAnyEntityAndClose(response);
         }

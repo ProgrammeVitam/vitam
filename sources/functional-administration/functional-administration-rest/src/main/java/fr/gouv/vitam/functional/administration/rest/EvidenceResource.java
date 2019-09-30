@@ -47,6 +47,7 @@ import fr.gouv.vitam.common.i18n.VitamLogbookMessages;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.ProcessAction;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseError;
@@ -194,7 +195,7 @@ public class EvidenceResource {
 
             processingClient.initVitamProcess(operationId, Contexts.EVIDENCE_AUDIT.name());
 
-            RequestResponse<JsonNode> jsonNodeRequestResponse =
+            RequestResponse<ItemStatus> jsonNodeRequestResponse =
                 processingClient.executeOperationProcess(operationId, Contexts.EVIDENCE_AUDIT.name(), ProcessAction.RESUME.getValue());
             return jsonNodeRequestResponse.toResponse();
 
@@ -250,7 +251,7 @@ public class EvidenceResource {
             processingClient
                 .initVitamProcess(operationId, Contexts.RECTIFICATION_AUDIT.name());
 
-            RequestResponse<JsonNode> jsonNodeRequestResponse =
+            RequestResponse<ItemStatus> jsonNodeRequestResponse =
                 processingClient.executeOperationProcess(operationId, Contexts.RECTIFICATION_AUDIT.name(), ProcessAction.RESUME.getValue());
             return jsonNodeRequestResponse.toResponse();
 

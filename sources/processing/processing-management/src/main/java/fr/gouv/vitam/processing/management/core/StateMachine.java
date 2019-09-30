@@ -348,11 +348,12 @@ public class StateMachine implements IEventsState, IEventsProcessEngine {
             }
         } else if (isPause()) {
             status = StatusCode.FATAL;
+            targetState = ProcessState.COMPLETED;
             if (stepIndex == -1) {
                 state = ProcessState.COMPLETED;
-                targetState = ProcessState.COMPLETED;
                 this.persistProcessWorkflow();
             } else {
+                state = ProcessState.RUNNING;
                 this.executeFinallyStep(null);
             }
         }

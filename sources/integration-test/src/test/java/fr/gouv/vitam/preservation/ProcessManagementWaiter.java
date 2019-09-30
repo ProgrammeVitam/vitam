@@ -42,7 +42,7 @@ public class ProcessManagementWaiter {
 
         int nbtimes = 0;
         ProcessingManagementClient processingClient = ProcessingManagementClientFactory.getInstance().getClient();
-        while (!processingClient.isOperationCompleted(operationId)) {
+        while (!processingClient.isNotRunning(operationId)) {
             try {
                 Thread.sleep(timeToSleep);
             } catch (InterruptedException e) {

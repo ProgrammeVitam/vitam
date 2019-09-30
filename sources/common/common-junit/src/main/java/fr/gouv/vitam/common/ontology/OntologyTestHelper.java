@@ -1,4 +1,4 @@
-/**
+/*******************************************************************************
  * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2019)
  *
  * contact.vitam@culture.gouv.fr
@@ -23,37 +23,30 @@
  *
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
- */
-package fr.gouv.vitam.processing.management.client;
+ *******************************************************************************/
+package fr.gouv.vitam.common.ontology;
 
-import static org.junit.Assert.fail;
+import fr.gouv.vitam.common.logging.VitamLogger;
+import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import org.apache.commons.lang3.StringUtils;
 
-import org.junit.Test;
+import java.io.IOException;
+import java.io.InputStream;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 
-import fr.gouv.vitam.common.exception.VitamApplicationServerException;
-import fr.gouv.vitam.common.exception.VitamClientException;
-import fr.gouv.vitam.common.exception.WorkflowNotFoundException;
-import fr.gouv.vitam.processing.common.exception.ProcessingException;
+public class OntologyTestHelper {
+    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(OntologyTestHelper.class);
 
-/**
- *
- */
-public class ProcessingManagementClientMockTest {
+    public static final String ANSIBLE_PATH_TO_ONTOLOGY =
+        "/deployment/ansible-vitam/roles/init_contexts_and_security_profiles/files/VitamOntology.json";
 
-    @Test
-    public void fakeTest()
-        throws  WorkflowNotFoundException,
-        ProcessingException, VitamApplicationServerException {
-        ProcessingManagementClientFactory.changeMode(null);
-        final ProcessingManagementClient client = ProcessingManagementClientFactory.getInstance().getClient();
-        client.checkStatus();
-        client.registerWorker(null, null, null);
-        client.unregisterWorker(null, null);
-        try {
-            client.getWorkflowDefinitions();
-        } catch (VitamClientException e) {
-            fail("Should not raized an exception");
-        }
+    public static InputStream loadOntologies() throws IOException {
+        String dir = Paths.get("").toAbsolutePath().toString();
+        String userDir = StringUtils.substringBefore(dir, "/sources/");
+        String ontologyPath = userDir + ANSIBLE_PATH_TO_ONTOLOGY;
+
+        LOGGER.error("user.dir: " + dir + " ontology : " + ontologyPath);
+        return Files.newInputStream(Paths.get(ontologyPath));
     }
-
 }

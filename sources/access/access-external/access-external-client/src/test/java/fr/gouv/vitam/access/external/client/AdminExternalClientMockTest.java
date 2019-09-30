@@ -8,6 +8,7 @@ import java.io.ByteArrayInputStream;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
+import fr.gouv.vitam.common.external.client.configuration.SecureClientConfiguration;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -32,7 +33,7 @@ public class AdminExternalClientMockTest {
 
     @Before
     public void givenMockConfExistWhenAccessExternalCreateMockedClientThenReturnOK() {
-        AdminExternalClientFactory.changeMode(null);
+        AdminExternalClientFactory.changeMode((SecureClientConfiguration)null);
         client = AdminExternalClientFactory.getInstance().getClient();
         assertNotNull(client);
     }

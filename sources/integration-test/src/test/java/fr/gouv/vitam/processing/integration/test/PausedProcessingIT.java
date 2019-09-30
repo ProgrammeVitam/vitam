@@ -27,6 +27,7 @@
 
 package fr.gouv.vitam.processing.integration.test;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
@@ -35,7 +36,6 @@ import java.io.InputStream;
 
 import javax.ws.rs.core.Response;
 
-import com.fasterxml.jackson.databind.JsonNode;
 import com.google.common.collect.Sets;
 import fr.gouv.vitam.common.CommonMediaType;
 import fr.gouv.vitam.common.DataLoader;
@@ -56,7 +56,6 @@ import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
-import fr.gouv.vitam.functional.administration.common.server.FunctionalAdminCollections;
 import fr.gouv.vitam.functional.administration.rest.AdminManagementMain;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientAlreadyExistsException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientBadRequestException;
@@ -68,7 +67,6 @@ import fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClient;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClientFactory;
 import fr.gouv.vitam.logbook.rest.LogbookMain;
-import fr.gouv.vitam.metadata.core.database.collections.MetadataCollections;
 import fr.gouv.vitam.metadata.rest.MetadataMain;
 import fr.gouv.vitam.processing.common.model.PauseRecover;
 import fr.gouv.vitam.processing.common.model.ProcessStep;
@@ -76,13 +74,11 @@ import fr.gouv.vitam.processing.common.model.ProcessWorkflow;
 import fr.gouv.vitam.processing.engine.core.monitoring.ProcessMonitoringImpl;
 import fr.gouv.vitam.processing.management.client.ProcessingManagementClientFactory;
 import fr.gouv.vitam.processing.management.rest.ProcessManagementMain;
-import fr.gouv.vitam.storage.engine.client.StorageClientFactory;
 import fr.gouv.vitam.worker.server.rest.WorkerMain;
 import fr.gouv.vitam.workspace.client.WorkspaceClient;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
 import fr.gouv.vitam.workspace.rest.WorkspaceMain;
 import org.assertj.core.api.Assertions;
-import org.bson.Document;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
@@ -149,7 +145,7 @@ public class PausedProcessingIT extends VitamRuleRunner {
 
     private void wait(String operationId) {
         int nbTry = 0;
-        while (!ProcessingManagementClientFactory.getInstance().getClient().isOperationCompleted(operationId)) {
+        while (!ProcessingManagementClientFactory.getInstance().getClient().isNotRunning(operationId)) {
             try {
                 Thread.sleep(SLEEP_TIME);
             } catch (InterruptedException e) {
@@ -196,11 +192,11 @@ public class PausedProcessingIT extends VitamRuleRunner {
             .initVitamProcess(containerName, Contexts.DEFAULT_WORKFLOW.name());
         // wait a little bit
 
-        RequestResponse<JsonNode> resp = ProcessingManagementClientFactory.getInstance().getClient()
+        RequestResponse<ItemStatus> resp = ProcessingManagementClientFactory.getInstance().getClient()
             .executeOperationProcess(containerName, Contexts.DEFAULT_WORKFLOW.name(), ProcessAction.NEXT.getValue());
         // wait a little bit
         assertNotNull(resp);
-
+        assertThat(resp.isOk()).isTrue();
         assertEquals(Response.Status.ACCEPTED.getStatusCode(), resp.getStatus());
 
         wait(containerName);
@@ -325,9 +321,10 @@ public class PausedProcessingIT extends VitamRuleRunner {
                 .initVitamProcess(containerName, Contexts.DEFAULT_WORKFLOW.name());
 
             // process execute
-            RequestResponse<JsonNode> resp = ProcessingManagementClientFactory.getInstance().getClient()
+            RequestResponse<ItemStatus> resp = ProcessingManagementClientFactory.getInstance().getClient()
                 .executeOperationProcess(containerName, Contexts.DEFAULT_WORKFLOW.name(), ProcessAction.NEXT.getValue());
             assertNotNull(resp);
+            assertThat(resp.isOk()).isTrue();
             assertEquals(Response.Status.ACCEPTED.getStatusCode(), resp.getStatus());
 
             // check process

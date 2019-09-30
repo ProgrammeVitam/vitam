@@ -1,0 +1,617 @@
+{
+  "_id": "OPERATION_ID_REPLACE",
+  "evId": "OPERATION_ID_REPLACE",
+  "evType": "PROCESS_SIP_UNITARY",
+  "evIdProc": "OPERATION_ID_REPLACE",
+  "evTypeProc": "INGEST",
+  "outcome": "STARTED",
+  "outDetail": "PROCESS_SIP_UNITARY.STARTED",
+  "outMessg": "D\u00E9but du processus d'entr\u00E9e du SIP : OPERATION_ID_REPLACE",
+  "agIdApp": "Context_IT",
+  "evIdAppSession": "ApplicationSessionId",
+  "evIdReq": "OPERATION_ID_REPLACE",
+  "agIdExt": "{\"originatingAgency\":\"FRAN_NP_009913\",\"TransferringAgency\":\"Identifier5\",\"ArchivalAgency\":\"Identifier4\"}",
+  "rightsStatementIdentifier": "{\"ArchivalAgreement\":\"ArchivalAgreement0\"}",
+  "obId": "OPERATION_ID_REPLACE",
+  "obIdIn": "SIP passant contenant 2 groupes d'objets",
+  "events": [
+    {
+      "evType": "STP_SANITY_CHECK_SIP.STARTED",
+      "evIdProc": "OPERATION_ID_REPLACE",
+      "evTypeProc": "INGEST",
+      "outcome": "OK",
+      "outDetail": "STP_SANITY_CHECK_SIP.STARTED.OK",
+      "outMessg": "Succ\u00E8s du d\u00E9but du processus des contr\u00F4les pr\u00E9alables \u00E0 l'entr\u00E9e",
+      "evIdReq": "OPERATION_ID_REPLACE",
+      "obId": "OPERATION_ID_REPLACE"
+    },
+    {
+      "evType": "STP_SANITY_CHECK_SIP",
+      "evIdProc": "OPERATION_ID_REPLACE",
+      "evTypeProc": "INGEST",
+      "outcome": "OK",
+      "outDetail": "STP_SANITY_CHECK_SIP.OK",
+      "outMessg": "Succ\u00E8s du processus des contr\u00F4les pr\u00E9alables \u00E0 l'entr\u00E9e",
+      "evIdReq": "OPERATION_ID_REPLACE",
+      "obId": "OPERATION_ID_REPLACE"
+    },
+    {
+      "evType": "SANITY_CHECK_SIP",
+      "evIdProc": "OPERATION_ID_REPLACE",
+      "evTypeProc": "INGEST",
+      "outcome": "OK",
+      "outDetail": "SANITY_CHECK_SIP.OK",
+      "outMessg": "Succ\u00E8s du contr\u00F4le sanitaire du SIP : aucun virus d\u00E9tect\u00E9",
+      "evIdReq": "OPERATION_ID_REPLACE",
+      "obId": "OPERATION_ID_REPLACE"
+    },
+    {
+      "evType": "CHECK_CONTAINER",
+      "evIdProc": "OPERATION_ID_REPLACE",
+      "evTypeProc": "INGEST",
+      "outcome": "OK",
+      "outDetail": "CHECK_CONTAINER.OK",
+      "outMessg": "Succ\u00E8s du contr\u00F4le du format du conteneur du SIP",
+      "evIdReq": "OPERATION_ID_REPLACE",
+      "obId": "OPERATION_ID_REPLACE"
+    },
+    {
+      "evType": "MANIFEST_FILE_NAME_CHECK",
+      "evIdProc": "OPERATION_ID_REPLACE",
+      "evTypeProc": "INGEST",
+      "outcome": "OK",
+      "outDetail": "MANIFEST_FILE_NAME_CHECK.OK",
+      "outMessg": "Succ\u00E8s du contr\u00F4le du nom du bordereau de transfert : nom du fichier conforme",
+      "evIdReq": "OPERATION_ID_REPLACE",
+      "obId": "OPERATION_ID_REPLACE"
+    },
+    {
+      "evType": "STP_UPLOAD_SIP.STARTED",
+      "evIdProc": "OPERATION_ID_REPLACE",
+      "evTypeProc": "INGEST",
+      "outcome": "OK",
+      "outDetail": "STP_UPLOAD_SIP.STARTED.OK",
+      "outMessg": "Succ\u00E8s du d\u00E9but du processus de r\u00E9ception du SIP",
+      "evIdReq": "OPERATION_ID_REPLACE",
+      "obId": "OPERATION_ID_REPLACE"
+    },
+    {
+      "evType": "STP_UPLOAD_SIP",
+      "evIdProc": "OPERATION_ID_REPLACE",
+      "evTypeProc": "INGEST",
+      "outcome": "OK",
+      "outDetail": "STP_UPLOAD_SIP.OK",
+      "outMessg": "Succ\u00E8s du processus de r\u00E9ception du SIP",
+      "evIdReq": "OPERATION_ID_REPLACE",
+      "obId": "OPERATION_ID_REPLACE"
+    },
+    {
+      "evType": "STP_INGEST_CONTROL_SIP.STARTED",
+      "evIdProc": "OPERATION_ID_REPLACE",
+      "evTypeProc": "INGEST",
+      "outcome": "OK",
+      "outDetail": "STP_INGEST_CONTROL_SIP.STARTED.OK",
+      "outMessg": "Succ\u00E8s du d\u00E9but du processus du contr\u00F4le du SIP",
+      "evIdReq": "OPERATION_ID_REPLACE",
+      "obId": "OPERATION_ID_REPLACE"
+    },
+    {
+      "evType": "STP_INGEST_CONTROL_SIP",
+      "evIdProc": "OPERATION_ID_REPLACE",
+      "evTypeProc": "INGEST",
+      "outcome": "OK",
+      "outDetail": "STP_INGEST_CONTROL_SIP.OK",
+      "outMessg": "Succ\u00E8s du processus du contr\u00F4le du SIP",
+      "evIdReq": "OPERATION_ID_REPLACE",
+      "rightsStatementIdentifier": "{\"ArchivalAgreement\":\"ArchivalAgreement0\"}",
+      "obId": "OPERATION_ID_REPLACE",
+      "obIdIn": "SIP passant contenant 2 groupes d'objets"
+    },
+    {
+      "evType": "CHECK_SEDA",
+      "evDetData": "{}",
+      "evIdProc": "OPERATION_ID_REPLACE",
+      "evTypeProc": "INGEST",
+      "outcome": "OK",
+      "outDetail": "CHECK_SEDA.OK",
+      "outMessg": "Succ\u00E8s de la v\u00E9rification globale du SIP Detail=  OK:1",
+      "evIdReq": "OPERATION_ID_REPLACE"
+    },
+    {
+      "evType": "CHECK_HEADER",
+      "evDetData": "{\"EvDetailReq\":\"2eme SIP\",\"ArchivalAgreement\":\"ArchivalAgreement0\"}",
+      "evIdProc": "OPERATION_ID_REPLACE",
+      "evTypeProc": "INGEST",
+      "outcome": "OK",
+      "outDetail": "CHECK_HEADER.OK",
+      "outMessg": "Succ\u00E8s de la v\u00E9rification g\u00E9n\u00E9rale du bordereau de transfert Detail=  OK:2",
+      "evIdReq": "OPERATION_ID_REPLACE"
+    },
+    {
+      "evType": "CHECK_HEADER.CHECK_AGENT",
+      "evIdProc": "OPERATION_ID_REPLACE",
+      "evTypeProc": "INGEST",
+      "outcome": "OK",
+      "outDetail": "CHECK_HEADER.CHECK_AGENT.OK",
+      "outMessg": "Succ\u00E8s de la v\u00E9rification de la pr\u00E9sence et du contr\u00F4le des services agents Detail=  OK:1",
+      "evIdReq": "OPERATION_ID_REPLACE"
+    },
+    {
+      "evType": "CHECK_HEADER.CHECK_CONTRACT_INGEST",
+      "evIdProc": "OPERATION_ID_REPLACE",
+      "evTypeProc": "INGEST",
+      "outcome": "OK",
+      "outDetail": "CHECK_HEADER.CHECK_CONTRACT_INGEST.OK",
+      "outMessg": "Succ\u00E8s de la v\u00E9rification de la pr\u00E9sence et du contr\u00F4le du contrat d'entr\u00E9e Detail=  OK:1",
+      "evIdReq": "OPERATION_ID_REPLACE"
+    },
+    {
+      "evType": "PREPARE_STORAGE_INFO",
+      "evDetData": "{}",
+      "evIdProc": "OPERATION_ID_REPLACE",
+      "evTypeProc": "INGEST",
+      "outcome": "OK",
+      "outDetail": "PREPARE_STORAGE_INFO.OK",
+      "outMessg": "Succ\u00E8s de la pr\u00E9paration des informations de stockage Detail=  OK:1",
+      "evIdReq": "OPERATION_ID_REPLACE"
+    },
+    {
+      "evType": "CHECK_DATAOBJECTPACKAGE",
+      "evIdProc": "OPERATION_ID_REPLACE",
+      "evTypeProc": "INGEST",
+      "outcome": "OK",
+      "outDetail": "CHECK_DATAOBJECTPACKAGE.OK",
+      "outMessg": "Succ\u00E8s de la v\u00E9rification des objets et groupes d'objets Detail=  OK:1",
+      "evIdReq": "OPERATION_ID_REPLACE"
+    },
+    {
+      "evType": "CHECK_DATAOBJECTPACKAGE.CHECK_MANIFEST_DATAOBJECT_VERSION",
+      "evIdProc": "OPERATION_ID_REPLACE",
+      "evTypeProc": "INGEST",
+      "outcome": "OK",
+      "outDetail": "CHECK_DATAOBJECTPACKAGE.CHECK_MANIFEST_DATAOBJECT_VERSION.OK",
+      "outMessg": "Succ\u00E8s de la v\u00E9rification des usages des objets Detail=  OK:1",
+      "evIdReq": "OPERATION_ID_REPLACE"
+    },
+    {
+      "evType": "CHECK_DATAOBJECTPACKAGE.CHECK_MANIFEST_OBJECTNUMBER",
+      "evIdProc": "OPERATION_ID_REPLACE",
+      "evTypeProc": "INGEST",
+      "outcome": "OK",
+      "outDetail": "CHECK_DATAOBJECTPACKAGE.CHECK_MANIFEST_OBJECTNUMBER.OK",
+      "outMessg": "Succ\u00E8s de la v\u00E9rification du nombre d'objets Detail=  OK:2",
+      "evIdReq": "OPERATION_ID_REPLACE"
+    },
+    {
+      "evType": "CHECK_DATAOBJECTPACKAGE.CHECK_MANIFEST",
+      "evIdProc": "OPERATION_ID_REPLACE",
+      "evTypeProc": "INGEST",
+      "outcome": "OK",
+      "outDetail": "CHECK_DATAOBJECTPACKAGE.CHECK_MANIFEST.OK",
+      "outMessg": "Succ\u00E8s du contr\u00F4le de coh\u00E9rence du bordereau de transfert Detail=  OK:1",
+      "evIdReq": "OPERATION_ID_REPLACE",
+      "agIdExt": "{\"originatingAgency\":\"FRAN_NP_009913\",\"TransferringAgency\":\"Identifier5\",\"ArchivalAgency\":\"Identifier4\"}",
+      "rightsStatementIdentifier": "{\"ArchivalAgreement\":\"ArchivalAgreement0\"}"
+    },
+    {
+      "evType": "CHECK_DATAOBJECTPACKAGE.CHECK_CONSISTENCY",
+      "evIdProc": "OPERATION_ID_REPLACE",
+      "evTypeProc": "INGEST",
+      "outcome": "OK",
+      "outDetail": "CHECK_DATAOBJECTPACKAGE.CHECK_CONSISTENCY.OK",
+      "outMessg": "Succ\u00E8s de la v\u00E9rification de la coh\u00E9rence entre objets, groupes d'objets et unit\u00E9s archivistiques Detail=  OK:2",
+      "evIdReq": "OPERATION_ID_REPLACE"
+    },
+    {
+      "evType": "STP_OG_CHECK_AND_TRANSFORME.STARTED",
+      "evIdProc": "OPERATION_ID_REPLACE",
+      "evTypeProc": "INGEST",
+      "outcome": "OK",
+      "outDetail": "STP_OG_CHECK_AND_TRANSFORME.STARTED.OK",
+      "outMessg": "Succ\u00E8s du d\u00E9but du processus de v\u00E9rification et de traitement des objets et des groupes d'objets",
+      "evIdReq": "OPERATION_ID_REPLACE",
+      "obId": "OPERATION_ID_REPLACE"
+    },
+    {
+      "evType": "STP_OG_CHECK_AND_TRANSFORME",
+      "evIdProc": "OPERATION_ID_REPLACE",
+      "evTypeProc": "INGEST",
+      "outcome": "OK",
+      "outDetail": "STP_OG_CHECK_AND_TRANSFORME.OK",
+      "outMessg": "Succ\u00E8s du processus de v\u00E9rification et de traitement des objets et des groupes d'objets",
+      "evIdReq": "OPERATION_ID_REPLACE",
+      "obId": "OPERATION_ID_REPLACE",
+      "obIdIn": "SIP passant contenant 2 groupes d'objets"
+    },
+    {
+      "evType": "CHECK_DIGEST",
+      "evDetData": "{}",
+      "evIdProc": "OPERATION_ID_REPLACE",
+      "evTypeProc": "INGEST",
+      "outcome": "OK",
+      "outDetail": "CHECK_DIGEST.OK",
+      "outMessg": "Succ\u00E8s de la v\u00E9rification de l'empreinte des objets Detail=  OK:2",
+      "evIdReq": "OPERATION_ID_REPLACE"
+    },
+    {
+      "evType": "OG_OBJECTS_FORMAT_CHECK",
+      "evDetData": "{}",
+      "evIdProc": "OPERATION_ID_REPLACE",
+      "evTypeProc": "INGEST",
+      "outcome": "OK",
+      "outDetail": "OG_OBJECTS_FORMAT_CHECK.OK",
+      "outMessg": "Succ\u00E8s de l'identification des formats Detail=  OK:2",
+      "evIdReq": "OPERATION_ID_REPLACE"
+    },
+    {
+      "evType": "STP_UNIT_CHECK_AND_PROCESS.STARTED",
+      "evIdProc": "OPERATION_ID_REPLACE",
+      "evTypeProc": "INGEST",
+      "outcome": "OK",
+      "outDetail": "STP_UNIT_CHECK_AND_PROCESS.STARTED.OK",
+      "outMessg": "Succ\u00E8s du d\u00E9but du processus de contr\u00F4le et traitements des unit\u00E9s archivistiques",
+      "evIdReq": "OPERATION_ID_REPLACE",
+      "obId": "OPERATION_ID_REPLACE"
+    },
+    {
+      "evType": "STP_UNIT_CHECK_AND_PROCESS",
+      "evIdProc": "OPERATION_ID_REPLACE",
+      "evTypeProc": "INGEST",
+      "outcome": "OK",
+      "outDetail": "STP_UNIT_CHECK_AND_PROCESS.OK",
+      "outMessg": "Succ\u00E8s du processus de contr\u00F4le et traitements des unit\u00E9s archivistiques",
+      "evIdReq": "OPERATION_ID_REPLACE",
+      "obId": "OPERATION_ID_REPLACE",
+      "obIdIn": "SIP passant contenant 2 groupes d'objets"
+    },
+    {
+      "evType": "CHECK_UNIT_SCHEMA",
+      "evDetData": "{}",
+      "evIdProc": "OPERATION_ID_REPLACE",
+      "evTypeProc": "INGEST",
+      "outcome": "OK",
+      "outDetail": "CHECK_UNIT_SCHEMA.OK",
+      "outMessg": "Succ\u00E8s de la v\u00E9rification globale de l'unit\u00E9 archivistique Detail=  OK:4",
+      "evIdReq": "OPERATION_ID_REPLACE"
+    },
+    {
+      "evType": "CHECK_ARCHIVE_UNIT_PROFILE",
+      "evDetData": "{}",
+      "evIdProc": "OPERATION_ID_REPLACE",
+      "evTypeProc": "INGEST",
+      "outcome": "OK",
+      "outDetail": "CHECK_ARCHIVE_UNIT_PROFILE.OK",
+      "outMessg": "Succ\u00E8s de la v\u00E9rification de la conformit\u00E9 aux profils d'unit\u00E9 archivistique Detail=  OK:4",
+      "evIdReq": "OPERATION_ID_REPLACE"
+    },
+    {
+      "evType": "CHECK_CLASSIFICATION_LEVEL",
+      "evDetData": "{}",
+      "evIdProc": "OPERATION_ID_REPLACE",
+      "evTypeProc": "INGEST",
+      "outcome": "OK",
+      "outDetail": "CHECK_CLASSIFICATION_LEVEL.OK",
+      "outMessg": "Succ\u00E8s de la v\u00E9rification du niveau de classification Detail=  OK:4",
+      "evIdReq": "OPERATION_ID_REPLACE"
+    },
+    {
+      "evType": "UNITS_RULES_COMPUTE",
+      "evDetData": "{}",
+      "evIdProc": "OPERATION_ID_REPLACE",
+      "evTypeProc": "INGEST",
+      "outcome": "OK",
+      "outDetail": "UNITS_RULES_COMPUTE.OK",
+      "outMessg": "Succ\u00E8s de l'application des r\u00E8gles de gestion et du calcul des dates d'\u00E9ch\u00E9ance Detail=  OK:4",
+      "evIdReq": "OPERATION_ID_REPLACE"
+    },
+    {
+      "evType": "STP_STORAGE_AVAILABILITY_CHECK.STARTED",
+      "evIdProc": "OPERATION_ID_REPLACE",
+      "evTypeProc": "INGEST",
+      "outcome": "OK",
+      "outDetail": "STP_STORAGE_AVAILABILITY_CHECK.STARTED.OK",
+      "outMessg": "D\u00E9but du processus de v\u00E9rification pr\u00E9alable \u00E0 la prise en charge",
+      "evIdReq": "OPERATION_ID_REPLACE",
+      "obId": "OPERATION_ID_REPLACE"
+    },
+    {
+      "evType": "STP_STORAGE_AVAILABILITY_CHECK",
+      "evIdProc": "OPERATION_ID_REPLACE",
+      "evTypeProc": "INGEST",
+      "outcome": "OK",
+      "outDetail": "STP_STORAGE_AVAILABILITY_CHECK.OK",
+      "outMessg": "Succ\u00E8s du processus de v\u00E9rification pr\u00E9alable \u00E0 la prise en charge",
+      "evIdReq": "OPERATION_ID_REPLACE",
+      "obId": "OPERATION_ID_REPLACE",
+      "obIdIn": "SIP passant contenant 2 groupes d'objets"
+    },
+    {
+      "evType": "STORAGE_AVAILABILITY_CHECK",
+      "evDetData": "{\"offer2\":\"OK\",\"offer1\":\"OK\"}",
+      "evIdProc": "OPERATION_ID_REPLACE",
+      "evTypeProc": "INGEST",
+      "outcome": "OK",
+      "outDetail": "STORAGE_AVAILABILITY_CHECK.OK",
+      "outMessg": "Succ\u00E8s de la v\u00E9rification de la disponibilit\u00E9 de toutes les offres de stockage Detail=  OK:1",
+      "evIdReq": "OPERATION_ID_REPLACE"
+    },
+    {
+      "evType": "STORAGE_AVAILABILITY_CHECK.STORAGE_AVAILABILITY_CHECK",
+      "evIdProc": "OPERATION_ID_REPLACE",
+      "evTypeProc": "INGEST",
+      "outcome": "OK",
+      "outDetail": "STORAGE_AVAILABILITY_CHECK.STORAGE_AVAILABILITY_CHECK.OK",
+      "outMessg": "Succ\u00E8s de la v\u00E9rification de la disponibilit\u00E9 de l'offre de stockage Detail=  OK:1",
+      "evIdReq": "OPERATION_ID_REPLACE"
+    },
+    {
+      "evType": "STP_OBJ_STORING.STARTED",
+      "evIdProc": "OPERATION_ID_REPLACE",
+      "evTypeProc": "INGEST",
+      "outcome": "OK",
+      "outDetail": "STP_OBJ_STORING.STARTED.OK",
+      "outMessg": "Succ\u00E8s du d\u00E9but du processus d'\u00E9criture et d'indexation des objets sur les offres de stockage",
+      "evIdReq": "OPERATION_ID_REPLACE",
+      "obId": "OPERATION_ID_REPLACE"
+    },
+    {
+      "evType": "STP_OBJ_STORING",
+      "evIdProc": "OPERATION_ID_REPLACE",
+      "evTypeProc": "INGEST",
+      "outcome": "OK",
+      "outDetail": "STP_OBJ_STORING.OK",
+      "outMessg": "Succ\u00E8s du processus d'\u00E9criture et d'indexation des objets sur les offres de stockage",
+      "evIdReq": "OPERATION_ID_REPLACE",
+      "obId": "OPERATION_ID_REPLACE",
+      "obIdIn": "SIP passant contenant 2 groupes d'objets"
+    },
+    {
+      "evType": "OBJ_STORAGE",
+      "evDetData": "{}",
+      "evIdProc": "OPERATION_ID_REPLACE",
+      "evTypeProc": "INGEST",
+      "outcome": "OK",
+      "outDetail": "OBJ_STORAGE.OK",
+      "outMessg": "Succ\u00E8s de l'\u00E9criture des objets et des groupes d'objets sur les offres de stockage Detail=  OK:2",
+      "evIdReq": "OPERATION_ID_REPLACE"
+    },
+    {
+      "evType": "OG_METADATA_INDEXATION",
+      "evDetData": "{}",
+      "evIdProc": "OPERATION_ID_REPLACE",
+      "evTypeProc": "INGEST",
+      "outcome": "OK",
+      "outDetail": "OG_METADATA_INDEXATION.OK",
+      "outMessg": "Succ\u00E8s de l'indexation des m\u00E9tadonn\u00E9es des objets et des groupes d'objets Detail=  OK:2",
+      "evIdReq": "OPERATION_ID_REPLACE"
+    },
+    {
+      "evType": "STP_UNIT_METADATA.STARTED",
+      "evIdProc": "OPERATION_ID_REPLACE",
+      "evTypeProc": "INGEST",
+      "outcome": "OK",
+      "outDetail": "STP_UNIT_METADATA.STARTED.OK",
+      "outMessg": "Succ\u00E8s du d\u00E9but du processus d'indexation des m\u00E9tadonn\u00E9es des unit\u00E9s archivistiques",
+      "evIdReq": "OPERATION_ID_REPLACE",
+      "obId": "OPERATION_ID_REPLACE"
+    },
+    {
+      "evType": "STP_UNIT_METADATA",
+      "evIdProc": "OPERATION_ID_REPLACE",
+      "evTypeProc": "INGEST",
+      "outcome": "OK",
+      "outDetail": "STP_UNIT_METADATA.OK",
+      "outMessg": "Succ\u00E8s du processus d'indexation des m\u00E9tadonn\u00E9es des unit\u00E9s archivistiques",
+      "evIdReq": "OPERATION_ID_REPLACE",
+      "obId": "OPERATION_ID_REPLACE",
+      "obIdIn": "SIP passant contenant 2 groupes d'objets"
+    },
+    {
+      "evType": "UNIT_METADATA_INDEXATION",
+      "evDetData": "{}",
+      "evIdProc": "OPERATION_ID_REPLACE",
+      "evTypeProc": "INGEST",
+      "outcome": "OK",
+      "outDetail": "UNIT_METADATA_INDEXATION.OK",
+      "outMessg": "Succ\u00E8s de l'indexation des m\u00E9tadonn\u00E9es de l'unit\u00E9 archivistique Detail=  OK:4",
+      "evIdReq": "OPERATION_ID_REPLACE"
+    },
+    {
+      "evType": "STP_OG_STORING.STARTED",
+      "evIdProc": "OPERATION_ID_REPLACE",
+      "evTypeProc": "INGEST",
+      "outcome": "OK",
+      "outDetail": "STP_OG_STORING.STARTED.OK",
+      "outMessg": "Succ\u00E8s du d\u00E9but du processus d'\u00E9criture des m\u00E9tadonn\u00E9es des groupes d'objets sur les offres de stockage",
+      "evIdReq": "OPERATION_ID_REPLACE",
+      "obId": "OPERATION_ID_REPLACE"
+    },
+    {
+      "evType": "STP_OG_STORING",
+      "evIdProc": "OPERATION_ID_REPLACE",
+      "evTypeProc": "INGEST",
+      "outcome": "OK",
+      "outDetail": "STP_OG_STORING.OK",
+      "outMessg": "Succ\u00E8s du processus d'\u00E9criture des m\u00E9tadonn\u00E9es des groupes d'objets sur les offres de stockage",
+      "evIdReq": "OPERATION_ID_REPLACE",
+      "obId": "OPERATION_ID_REPLACE",
+      "obIdIn": "SIP passant contenant 2 groupes d'objets"
+    },
+    {
+      "evType": "COMMIT_LIFE_CYCLE_OBJECT_GROUP",
+      "evDetData": "{}",
+      "evIdProc": "OPERATION_ID_REPLACE",
+      "evTypeProc": "INGEST",
+      "outcome": "OK",
+      "outDetail": "COMMIT_LIFE_CYCLE_OBJECT_GROUP.OK",
+      "outMessg": "Succ\u00E8s de l'enregistrement des journaux du cycle de vie des groupes d'objets Detail=  OK:2",
+      "evIdReq": "OPERATION_ID_REPLACE"
+    },
+    {
+      "evType": "OG_METADATA_STORAGE",
+      "evDetData": "{}",
+      "evIdProc": "OPERATION_ID_REPLACE",
+      "evTypeProc": "INGEST",
+      "outcome": "OK",
+      "outDetail": "OG_METADATA_STORAGE.OK",
+      "outMessg": "Succ\u00E8s de l'\u00E9criture des m\u00E9tadonn\u00E9es des objets et groupes d'objets sur l'offre de stockage Detail=  OK:2",
+      "evIdReq": "OPERATION_ID_REPLACE"
+    },
+    {
+      "evType": "STP_UNIT_STORING.STARTED",
+      "evIdProc": "OPERATION_ID_REPLACE",
+      "evTypeProc": "INGEST",
+      "outcome": "OK",
+      "outDetail": "STP_UNIT_STORING.STARTED.OK",
+      "outMessg": "Succ\u00E8s du d\u00E9but du processus d'\u00E9criture des unit\u00E9s archivistiques sur les offres de stockage",
+      "evIdReq": "OPERATION_ID_REPLACE",
+      "obId": "OPERATION_ID_REPLACE"
+    },
+    {
+      "evType": "STP_UNIT_STORING",
+      "evIdProc": "OPERATION_ID_REPLACE",
+      "evTypeProc": "INGEST",
+      "outcome": "OK",
+      "outDetail": "STP_UNIT_STORING.OK",
+      "outMessg": "Succ\u00E8s du processus d'\u00E9criture des unit\u00E9s archivistiques sur les offres de stockage",
+      "evIdReq": "OPERATION_ID_REPLACE",
+      "obId": "OPERATION_ID_REPLACE",
+      "obIdIn": "SIP passant contenant 2 groupes d'objets"
+    },
+    {
+      "evType": "COMMIT_LIFE_CYCLE_UNIT",
+      "evDetData": "{}",
+      "evIdProc": "OPERATION_ID_REPLACE",
+      "evTypeProc": "INGEST",
+      "outcome": "OK",
+      "outDetail": "COMMIT_LIFE_CYCLE_UNIT.OK",
+      "outMessg": "Succ\u00E8s de l'enregistrement des journaux du cycle de vie des unit\u00E9s archivistiques Detail=  OK:4",
+      "evIdReq": "OPERATION_ID_REPLACE"
+    },
+    {
+      "evType": "UNIT_METADATA_STORAGE",
+      "evDetData": "{}",
+      "evIdProc": "OPERATION_ID_REPLACE",
+      "evTypeProc": "INGEST",
+      "outcome": "OK",
+      "outDetail": "UNIT_METADATA_STORAGE.OK",
+      "outMessg": "Succ\u00E8s de l'enregistrement des m\u00E9tadonn\u00E9es des unit\u00E9s archivistiques Detail=  OK:4",
+      "evIdReq": "OPERATION_ID_REPLACE"
+    },
+    {
+      "evType": "STP_UPDATE_OBJECT_GROUP.STARTED",
+      "evIdProc": "OPERATION_ID_REPLACE",
+      "evTypeProc": "INGEST",
+      "outcome": "OK",
+      "outDetail": "STP_UPDATE_OBJECT_GROUP.STARTED.OK",
+      "outMessg": "Succ\u00E8s du d\u00E9but du processus de mise \u00E0 jour du groupe d'objets",
+      "evIdReq": "OPERATION_ID_REPLACE",
+      "obId": "OPERATION_ID_REPLACE"
+    },
+    {
+      "evType": "STP_UPDATE_OBJECT_GROUP",
+      "evIdProc": "OPERATION_ID_REPLACE",
+      "evTypeProc": "INGEST",
+      "outcome": "OK",
+      "outDetail": "STP_UPDATE_OBJECT_GROUP.OK",
+      "outMessg": "Succ\u00E8s du processus de mise \u00E0 jour du groupe d'objets",
+      "evIdReq": "OPERATION_ID_REPLACE",
+      "obId": "OPERATION_ID_REPLACE",
+      "obIdIn": "SIP passant contenant 2 groupes d'objets"
+    },
+    {
+      "evType": "OBJECTS_LIST_EMPTY",
+      "evIdProc": "OPERATION_ID_REPLACE",
+      "evTypeProc": "INGEST",
+      "outcome": "OK",
+      "outDetail": "OBJECTS_LIST_EMPTY.OK",
+      "outMessg": "Succ\u00E8s de l'\u00E9tablissement de la liste des \u00E9l\u00E9ments",
+      "evIdReq": "OPERATION_ID_REPLACE",
+      "obId": "OPERATION_ID_REPLACE"
+    },
+    {
+      "evType": "STP_ACCESSION_REGISTRATION.STARTED",
+      "evIdProc": "OPERATION_ID_REPLACE",
+      "evTypeProc": "INGEST",
+      "outcome": "OK",
+      "outDetail": "STP_ACCESSION_REGISTRATION.STARTED.OK",
+      "outMessg": "Succ\u00E8s du d\u00E9but du processus d'alimentation du Registre des Fonds",
+      "evIdReq": "OPERATION_ID_REPLACE",
+      "obId": "OPERATION_ID_REPLACE"
+    },
+    {
+      "evType": "STP_ACCESSION_REGISTRATION",
+      "evIdProc": "OPERATION_ID_REPLACE",
+      "evTypeProc": "INGEST",
+      "outcome": "OK",
+      "outDetail": "STP_ACCESSION_REGISTRATION.OK",
+      "outMessg": "Succ\u00E8s du processus d'alimentation du Registre des Fonds",
+      "evIdReq": "OPERATION_ID_REPLACE",
+      "obId": "OPERATION_ID_REPLACE",
+      "obIdIn": "SIP passant contenant 2 groupes d'objets"
+    },
+    {
+      "evType": "ACCESSION_REGISTRATION",
+      "evDetData": "{\"Volumetry\":[{\"ObjectSize\":{\"ingested\":12,\"deleted\":0,\"remained\":12},\"#tenant\":0,\"OriginatingAgency\":\"FRAN_NP_009913\",\"SubmissionAgency\":\"FRAN_NP_009913\",\"ArchivalAgreement\":\"ArchivalAgreement0\",\"EndDate\":\"2019-09-18T21:14:30.884\",\"StartDate\":\"2019-09-18T21:14:30.884\",\"LastUpdate\":\"2019-09-18T21:14:30.884\",\"Status\":\"STORED_AND_COMPLETED\",\"TotalObjectGroups\":{\"ingested\":2,\"deleted\":0,\"remained\":2},\"TotalUnits\":{\"ingested\":4,\"deleted\":0,\"remained\":4},\"TotalObjects\":{\"ingested\":2,\"deleted\":0,\"remained\":2},\"Opc\":\"OPERATION_ID_REPLACE\",\"Opi\":\"OPERATION_ID_REPLACE\",\"OpType\":\"INGEST\",\"Events\":[{\"Opc\":\"OPERATION_ID_REPLACE\",\"OpType\":\"INGEST\",\"Gots\":2,\"Units\":4,\"Objects\":2,\"ObjSize\":12,\"CreationDate\":\"2019-09-18T23:14:30.886\"}],\"OperationIds\":[\"OPERATION_ID_REPLACE\"],\"_id\":\"aehaaaaaaaalob2haa7s2alniy5amzaaaaaq\",\"_tenant\":0,\"_v\":0}]}",
+      "evIdProc": "OPERATION_ID_REPLACE",
+      "evTypeProc": "INGEST",
+      "outcome": "OK",
+      "outDetail": "ACCESSION_REGISTRATION.OK",
+      "outMessg": "Succ\u00E8s de l'alimentation du Registre des Fonds Detail=  OK:1",
+      "evIdReq": "OPERATION_ID_REPLACE"
+    },
+    {
+      "evType": "STP_INGEST_FINALISATION.STARTED",
+      "evIdProc": "OPERATION_ID_REPLACE",
+      "evTypeProc": "INGEST",
+      "outcome": "OK",
+      "outDetail": "STP_INGEST_FINALISATION.STARTED.OK",
+      "outMessg": "Succ\u00E8s du d\u00E9but du processus de finalisation de l'entr\u00E9e",
+      "evIdReq": "OPERATION_ID_REPLACE",
+      "obId": "OPERATION_ID_REPLACE"
+    },
+    {
+      "evType": "STP_INGEST_FINALISATION",
+      "evIdProc": "OPERATION_ID_REPLACE",
+      "evTypeProc": "INGEST",
+      "outcome": "OK",
+      "outDetail": "STP_INGEST_FINALISATION.OK",
+      "outMessg": "Succ\u00E8s du processus de finalisation de l'entr\u00E9e",
+      "evIdReq": "OPERATION_ID_REPLACE",
+      "obId": "OPERATION_ID_REPLACE",
+      "obIdIn": "SIP passant contenant 2 groupes d'objets"
+    },
+    {
+      "evType": "ATR_NOTIFICATION",
+      "evDetData": "{\"FileName\":\"ATR_OPERATION_ID_REPLACE\", \"MessageDigest\": \"807a6230ded0099b32efcc26854f87a3fd82081d2ceb35581731c79f14aa54b518cc15e4a3a88cccc5c26faee2d46170baf3ee577c1ada3f484b3e579cb8b174\", \"Algorithm\": \"SHA512\"}",
+      "evIdProc": "OPERATION_ID_REPLACE",
+      "evTypeProc": "INGEST",
+      "outcome": "OK",
+      "outDetail": "ATR_NOTIFICATION.OK",
+      "outMessg": "Succ\u00E8s de la notification de la fin de l'op\u00E9ration d'entr\u00E9e \u00E0 l'op\u00E9rateur de versement Detail=  OK:1",
+      "evIdReq": "OPERATION_ID_REPLACE"
+    },
+    {
+      "evType": "ROLL_BACK",
+      "evDetData": "{}",
+      "evIdProc": "OPERATION_ID_REPLACE",
+      "evTypeProc": "INGEST",
+      "outcome": "OK",
+      "outDetail": "ROLL_BACK.OK",
+      "outMessg": "Succ\u00E8s de la mise en coh\u00E9rence des journaux du cycle de vie Detail=  OK:1",
+      "evIdReq": "OPERATION_ID_REPLACE"
+    },
+    {
+      "evType": "PROCESS_SIP_UNITARY",
+      "evIdProc": "OPERATION_ID_REPLACE",
+      "evTypeProc": "INGEST",
+      "outcome": "OK",
+      "outDetail": "PROCESS_SIP_UNITARY.OK",
+      "outMessg": "Succ\u00E8s du processus d'entr\u00E9e du SIP",
+      "evIdReq": "OPERATION_ID_REPLACE",
+      "obId": "OPERATION_ID_REPLACE"
+    }
+  ],
+  "_tenant": 0,
+  "_v": 25
+}

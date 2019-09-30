@@ -30,9 +30,6 @@ import com.fasterxml.jackson.databind.JsonNode;
 import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.SingletonUtils;
 import fr.gouv.vitam.common.client.AbstractMockClient;
-import fr.gouv.vitam.common.exception.BadRequestException;
-import fr.gouv.vitam.common.exception.InternalServerException;
-import fr.gouv.vitam.common.exception.VitamClientException;
 import fr.gouv.vitam.common.exception.WorkflowNotFoundException;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.model.ItemStatus;
@@ -53,11 +50,8 @@ import fr.gouv.vitam.common.model.processing.ProcessingUri;
 import fr.gouv.vitam.common.model.processing.Step;
 import fr.gouv.vitam.common.model.processing.WorkFlow;
 import fr.gouv.vitam.processing.common.ProcessingEntry;
-import fr.gouv.vitam.processing.common.exception.ProcessingBadRequestException;
-import fr.gouv.vitam.processing.common.exception.WorkerAlreadyExistsException;
 import fr.gouv.vitam.processing.common.model.WorkerBean;
 
-import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -76,13 +70,7 @@ public class ProcessingManagementClientMock extends AbstractMockClient implement
     }
 
     @Override
-    public boolean isOperationCompleted(String operationId) {
-        return false;
-    }
-
-    @Override
-    public ItemStatus getOperationProcessStatus(String id)
-        throws VitamClientException, InternalServerException, BadRequestException {
+    public ItemStatus getOperationProcessStatus(String id) {
         final List<Integer> status = new ArrayList<>();
         status.add(0);
         status.add(0);
@@ -96,8 +84,7 @@ public class ProcessingManagementClientMock extends AbstractMockClient implement
 
 
     @Override
-    public ItemStatus getOperationProcessExecutionDetails(String id)
-        throws VitamClientException, InternalServerException, BadRequestException {
+    public RequestResponse<ItemStatus> getOperationProcessExecutionDetails(String id) {
         final List<Integer> status = new ArrayList<>();
         status.add(0);
         status.add(0);
@@ -105,15 +92,18 @@ public class ProcessingManagementClientMock extends AbstractMockClient implement
         status.add(0);
         status.add(0);
         status.add(0);
-        return new ItemStatus("FakeId", "FakeMessage", StatusCode.OK, status, SingletonUtils.singletonMap(), null,
-            null, null);
+        ItemStatus itemStatus =
+            new ItemStatus("FakeId", "FakeMessage", StatusCode.OK, status, SingletonUtils.singletonMap(), null,
+                null, null);
+
+        return new RequestResponseOK<ItemStatus>().addResult(itemStatus)
+            .setHttpCode(StatusCode.OK.getEquivalentHttpStatus().getStatusCode());
     }
 
 
 
     @Override
-    public ItemStatus cancelOperationProcessExecution(String id)
-        throws InternalServerException, VitamClientException {
+    public RequestResponse<ItemStatus> cancelOperationProcessExecution(String id) {
         final List<Integer> status = new ArrayList<>();
         status.add(0);
         status.add(0);
@@ -125,53 +115,48 @@ public class ProcessingManagementClientMock extends AbstractMockClient implement
             new ItemStatus("FakeId", "FakeMessage", StatusCode.OK, status, SingletonUtils.singletonMap(), null,
                 null, null);
 
-        return itemStatus;
+        return new RequestResponseOK<ItemStatus>().addResult(itemStatus);
     }
 
 
 
     @Override
-    public RequestResponse<ItemStatus> updateOperationActionProcess(String actionId, String operationId)
-        throws InternalServerException, VitamClientException {
+    public RequestResponse<ItemStatus> updateOperationActionProcess(String actionId, String operationId) {
         return new RequestResponseOK<>();
     }
 
 
 
     @Override
-    public RequestResponse<JsonNode> executeOperationProcess(String operationId, String workflow, String actionId)
-        throws InternalServerException, VitamClientException {
-        return new RequestResponseOK<JsonNode>().addHeader(GlobalDataRest.X_GLOBAL_EXECUTION_STATE,
+    public RequestResponse<ItemStatus> executeOperationProcess(String operationId, String workflow, String actionId) {
+        return new RequestResponseOK<ItemStatus>().addHeader(GlobalDataRest.X_GLOBAL_EXECUTION_STATE,
             FAKE_EXECUTION_STATUS);
-
     }
 
-
     @Override
-    public void registerWorker(String familyId, String workerId, WorkerBean workerDescription)
-        throws ProcessingBadRequestException, WorkerAlreadyExistsException {
-        // TODO Auto-generated method stub
-
+    public boolean isNotRunning(String operationId) {
+        return false;
     }
 
-
-
     @Override
-    public void unregisterWorker(String familyId, String workerId) throws ProcessingBadRequestException {
-        // TODO Auto-generated method stub
-
+    public boolean isNotRunning(String operationId, ProcessState expectedProcessState) {
+        return false;
     }
 
-
+    @Override
+    public void registerWorker(String familyId, String workerId, WorkerBean workerDescription) {
+    }
 
     @Override
-    public void initVitamProcess(String container, String workflowId)
-        throws InternalServerException, BadRequestException {}
-
-
+    public void unregisterWorker(String familyId, String workerId) {
+    }
 
     @Override
-    public RequestResponse<ProcessDetail> listOperationsDetails(ProcessQuery query) throws VitamClientException {
+    public void initVitamProcess(String container, String workflowId) {
+    }
+
+    @Override
+    public RequestResponse<ProcessDetail> listOperationsDetails(ProcessQuery query) {
         ProcessDetail pw = new ProcessDetail();
         pw.setOperationId(GUIDFactory.newOperationLogbookGUID(0).toString());
         pw.setGlobalState(ProcessState.RUNNING.toString());
@@ -180,20 +165,20 @@ public class ProcessingManagementClientMock extends AbstractMockClient implement
     }
 
     @Override
-    public Response executeCheckTraceabilityWorkFlow(String checkOperationId, JsonNode query, String workflowId, String actionId)
-        throws InternalServerException, WorkflowNotFoundException {
-        // TODO Add headers to response
-        return Response.ok().build();
+    public RequestResponse<ItemStatus> executeCheckTraceabilityWorkFlow(String checkOperationId, JsonNode query,
+        String workflowId, String actionId)
+        throws WorkflowNotFoundException {
+        return new RequestResponseOK<>();
     }
 
     @Override
-    public RequestResponse<WorkFlow> getWorkflowDefinitions() throws VitamClientException {
+    public RequestResponse<WorkFlow> getWorkflowDefinitions() {
         List<WorkFlow> workflowDefinitions = new ArrayList<>();
         WorkFlow workflow = new WorkFlow();
 
         List<Action> actions = new ArrayList<>();
-        actions.add(getAction("CHECK_DIGEST", ProcessBehavior.BLOCKING, new ArrayList<IOParameter>(
-            Arrays.asList(new IOParameter().setName("algo").setUri(new ProcessingUri("VALUE", "SHA-512")))),
+        actions.add(getAction("CHECK_DIGEST", ProcessBehavior.BLOCKING, new ArrayList<>(
+                Arrays.asList(new IOParameter().setName("algo").setUri(new ProcessingUri("VALUE", "SHA-512")))),
             null));
         actions.add(getAction("OG_OBJECTS_FORMAT_CHECK", ProcessBehavior.BLOCKING, null, null));
 
@@ -202,7 +187,8 @@ public class ProcessingManagementClientMock extends AbstractMockClient implement
             .setWorkerGroupId("DefaultWorker")
             .setStepName("STP_OG_CHECK_AND_TRANSFORME")
             .setBehavior(ProcessBehavior.BLOCKING)
-            .setDistribution(new Distribution().setKind(DistributionKind.LIST_ORDERING_IN_FILE).setElement("ObjectGroup"))
+            .setDistribution(
+                new Distribution().setKind(DistributionKind.LIST_ORDERING_IN_FILE).setElement("ObjectGroup"))
             .setActions(actions));
 
         workflow.setId("DefaultIngestWorkflow");
@@ -217,19 +203,18 @@ public class ProcessingManagementClientMock extends AbstractMockClient implement
     }
 
     @Override
-    public Optional<WorkFlow> getWorkflowDetails(String WorkflowIdentifier) throws VitamClientException {
-       throw new IllegalStateException("Method getWorkflowDetails not implemented");
+    public Optional<WorkFlow> getWorkflowDetails(String WorkflowIdentifier) {
+        throw new IllegalStateException("Method getWorkflowDetails not implemented");
     }
 
     @Override
-    public void initVitamProcess(ProcessingEntry entry)
-        throws InternalServerException, BadRequestException {
+    public void initVitamProcess(ProcessingEntry entry) {
 
     }
 
     /**
      * Create a POJO action
-     * 
+     *
      * @param actionKey action key
      * @param actionBehavior action behavior
      * @param in list of IO ins
@@ -250,12 +235,12 @@ public class ProcessingManagementClientMock extends AbstractMockClient implement
 
     @Override
     public RequestResponse<ProcessPause> forcePause(ProcessPause info) {
-        return new RequestResponseOK().addResult(info).setHttpCode(Status.OK.getStatusCode());
+        return new RequestResponseOK<ProcessPause>().addResult(info).setHttpCode(Status.OK.getStatusCode());
     }
 
     @Override
     public RequestResponse<ProcessPause> removeForcePause(ProcessPause info) {
-        return new RequestResponseOK().addResult(info).setHttpCode(Status.OK.getStatusCode());
+        return new RequestResponseOK<ProcessPause>().addResult(info).setHttpCode(Status.OK.getStatusCode());
     }
 
 

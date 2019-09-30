@@ -27,7 +27,6 @@
 
 package fr.gouv.vitam.processing.integration.test;
 
-import com.fasterxml.jackson.databind.JsonNode;
 import com.github.tomakehurst.wiremock.client.WireMock;
 import com.github.tomakehurst.wiremock.junit.WireMockClassRule;
 import com.google.common.collect.Sets;
@@ -194,7 +193,7 @@ public class ProperlyStopStartProcessingIT extends VitamRuleRunner {
 
     private void wait(String operationId) {
         int nbTry = 0;
-        while (!ProcessingManagementClientFactory.getInstance().getClient().isOperationCompleted(operationId)) {
+        while (!ProcessingManagementClientFactory.getInstance().getClient().isNotRunning(operationId, ProcessState.COMPLETED)) {
             try {
                 Thread.sleep(SLEEP_TIME);
             } catch (InterruptedException e) {
@@ -230,10 +229,11 @@ public class ProperlyStopStartProcessingIT extends VitamRuleRunner {
         ProcessWorkflow processWorkflow =
             ProcessMonitoringImpl.getInstance().findOneProcessWorkflow(containerName, TENANT_ID);
 
-        RequestResponse<JsonNode> resp = ProcessingManagementClientFactory.getInstance().getClient()
+        RequestResponse<ItemStatus> resp = ProcessingManagementClientFactory.getInstance().getClient()
             .executeOperationProcess(containerName, Contexts.DEFAULT_WORKFLOW.name(), ProcessAction.RESUME.getValue());
         // wait a little bit
         assertThat(resp).isNotNull();
+        assertThat(resp.isOk()).isTrue();
         assertThat(resp.getStatus()).isEqualTo(Response.Status.ACCEPTED.getStatusCode());
 
         waitStep(processWorkflow, 2);

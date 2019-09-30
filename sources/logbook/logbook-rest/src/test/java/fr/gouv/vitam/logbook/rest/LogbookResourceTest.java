@@ -70,6 +70,7 @@ import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.LifeCycleStatusCode;
 import fr.gouv.vitam.common.model.ProcessState;
+import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.mongo.MongoRule;
 import fr.gouv.vitam.common.server.application.configuration.MongoDbNode;
@@ -254,7 +255,7 @@ public class LogbookResourceTest {
         processingInstanceRule.stubFor(WireMock.post(WireMock.urlMatching("/processing/v1/operations/(.*)")).willReturn
             (WireMock.aResponse().withStatus(200)));
         processingInstanceRule.stubFor(WireMock.put(WireMock.urlMatching("/processing/v1/operations/(.*)")).willReturn
-            (WireMock.aResponse().withStatus(202).withBody(JsonHandler.unprettyPrint(new ItemStatus()))
+            (WireMock.aResponse().withStatus(202).withBody(JsonHandler.unprettyPrint(new RequestResponseOK<>()))
                 .withHeader(GlobalDataRest.X_TENANT_ID, Integer.toString(TENANT_ID)).withHeader(HttpHeaders
                     .CONTENT_TYPE, MediaType.APPLICATION_JSON)));
     }

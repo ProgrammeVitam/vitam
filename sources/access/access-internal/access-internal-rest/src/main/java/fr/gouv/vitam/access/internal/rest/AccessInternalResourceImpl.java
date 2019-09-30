@@ -73,6 +73,8 @@ import fr.gouv.vitam.common.mapping.dip.UnitDipServiceImpl;
 import fr.gouv.vitam.common.mapping.serializer.IdentifierTypeDeserializer;
 import fr.gouv.vitam.common.mapping.serializer.LevelTypeDeserializer;
 import fr.gouv.vitam.common.mapping.serializer.TextByLangDeserializer;
+import fr.gouv.vitam.common.model.ItemStatus;
+import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.PreservationRequest;
 import fr.gouv.vitam.common.model.ProcessAction;
 import fr.gouv.vitam.common.model.RequestResponse;
@@ -423,8 +425,8 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
                 .put(WorkerParameterName.mustLogAccessOnObject.name(), Boolean.toString(mustLog));
             processingClient.initVitamProcess(processingEntry);
 
-            RequestResponse<JsonNode> jsonNodeRequestResponse = processingClient.executeOperationProcess(
-                operationId, contexts.name(), RESUME.getValue());
+            RequestResponse<ItemStatus> jsonNodeRequestResponse = processingClient.executeOperationProcess(
+                operationId, Contexts.EXPORT_DIP.name(), RESUME.getValue());
             return jsonNodeRequestResponse.toResponse();
         } catch (ContentAddressableStorageServerException |
             InvalidGuidOperationException | LogbookClientServerException | LogbookClientBadRequestException |
@@ -521,7 +523,7 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
 
                 processingClient.initVitamProcess(operationId, Contexts.RECLASSIFICATION.name());
 
-                RequestResponse<JsonNode> jsonNodeRequestResponse =
+                RequestResponse<ItemStatus> jsonNodeRequestResponse =
                     processingClient.executeOperationProcess(operationId, Contexts.RECLASSIFICATION.name(),
                         processAction.getValue());
                 return jsonNodeRequestResponse.toResponse();
@@ -617,7 +619,7 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
 
                 processingClient.initVitamProcess(new ProcessingEntry(operationId, eliminationWorkflowContext.name()));
 
-                RequestResponse<JsonNode> jsonNodeRequestResponse =
+                RequestResponse<ItemStatus> jsonNodeRequestResponse =
                     processingClient
                         .executeOperationProcess(operationId, eliminationWorkflowContext.name(), RESUME.getValue());
                 return jsonNodeRequestResponse.toResponse();
@@ -1057,7 +1059,7 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
                             getVitamSession().getContract())));
             processingClient.initVitamProcess(operationId, Contexts.MASS_UPDATE_UNIT_DESC.name());
 
-            RequestResponse<JsonNode> requestResponse =
+            RequestResponse<ItemStatus> requestResponse =
                 processingClient
                     .executeOperationProcess(operationId, Contexts.MASS_UPDATE_UNIT_DESC.name(), RESUME.getValue());
             return requestResponse.toResponse();
@@ -1125,7 +1127,7 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
                 .putObject(operationId, "actions.json", writeToInpustream(ruleActions));
             processingClient.initVitamProcess(operationId, Contexts.MASS_UPDATE_UNIT_RULE.name());
 
-            RequestResponse<JsonNode> requestResponse =
+            RequestResponse<ItemStatus> requestResponse =
                 processingClient
                     .executeOperationProcess(operationId, Contexts.MASS_UPDATE_UNIT_RULE.name(), RESUME.getValue());
             return requestResponse.toResponse();

@@ -85,7 +85,7 @@ public class InternalSecurityClientFactory extends VitamClientFactory<InternalSe
     /**
      * @param configuration null for MOCK
      */
-    static final void changeMode(ClientConfiguration configuration) {
+    public static final void changeMode(ClientConfiguration configuration) {
         getInstance().initialisation(configuration, getInstance().getResourcePath());
     }
 

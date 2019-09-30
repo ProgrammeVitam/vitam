@@ -36,6 +36,7 @@ import java.io.InputStream;
 
 import javax.xml.stream.XMLStreamException;
 
+import fr.gouv.vitam.common.external.client.configuration.SecureClientConfiguration;
 import fr.gouv.vitam.common.stream.StreamUtils;
 import fr.gouv.vitam.common.client.VitamContext;
 import org.apache.commons.io.IOUtils;
@@ -57,7 +58,7 @@ public class IngestExternalClientMockTest {
 
     @Test(expected = IngestExternalException.class)
     public void givenNullStreamThenThrowIngestExternalException() throws IngestExternalException, XMLStreamException {
-        IngestExternalClientFactory.changeMode(null);
+        IngestExternalClientFactory.changeMode((SecureClientConfiguration)null);
 
         final IngestExternalClient client =
             IngestExternalClientFactory.getInstance().getClient();
@@ -68,7 +69,7 @@ public class IngestExternalClientMockTest {
 
     @Test
     public void givenNonEmptyStreamThenUploadWithSuccess() throws IngestExternalException, XMLStreamException {
-        IngestExternalClientFactory.changeMode(null);
+        IngestExternalClientFactory.changeMode((SecureClientConfiguration)null);
 
         final IngestExternalClient client =
             IngestExternalClientFactory.getInstance().getClient();
@@ -83,7 +84,7 @@ public class IngestExternalClientMockTest {
 
     @Test
     public void givenNonEmptyLocalFileThenUploadWithSuccess() throws IngestExternalException, XMLStreamException {
-        IngestExternalClientFactory.changeMode(null);
+        IngestExternalClientFactory.changeMode((SecureClientConfiguration)null);
 
         final IngestExternalClient client =
             IngestExternalClientFactory.getInstance().getClient();
@@ -98,7 +99,7 @@ public class IngestExternalClientMockTest {
     @Test
     public void givenNonEmptyStreamWhenDownloadSuccess()
         throws VitamClientException {
-        IngestExternalClientFactory.changeMode(null);
+        IngestExternalClientFactory.changeMode((SecureClientConfiguration)null);
 
         final IngestExternalClient client =
             IngestExternalClientFactory.getInstance().getClient();

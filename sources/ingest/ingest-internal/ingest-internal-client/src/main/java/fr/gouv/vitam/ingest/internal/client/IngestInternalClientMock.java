@@ -26,28 +26,12 @@
  *******************************************************************************/
 package fr.gouv.vitam.ingest.internal.client;
 
-import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
-
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.Response.Status;
-
-import com.fasterxml.jackson.databind.JsonNode;
-
 import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.SingletonUtils;
 import fr.gouv.vitam.common.client.AbstractMockClient;
 import fr.gouv.vitam.common.client.ClientMockResultHelper;
 import fr.gouv.vitam.common.client.IngestCollection;
-import fr.gouv.vitam.common.exception.BadRequestException;
-import fr.gouv.vitam.common.exception.InternalServerException;
-import fr.gouv.vitam.common.exception.VitamClientException;
-import fr.gouv.vitam.common.exception.VitamClientInternalException;
-import fr.gouv.vitam.common.exception.VitamException;
 import fr.gouv.vitam.common.guid.GUID;
 import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.ProcessQuery;
@@ -58,6 +42,14 @@ import fr.gouv.vitam.common.model.processing.ProcessDetail;
 import fr.gouv.vitam.common.model.processing.WorkFlow;
 import fr.gouv.vitam.common.stream.StreamUtils;
 import fr.gouv.vitam.logbook.common.parameters.LogbookOperationParameters;
+
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
+import javax.ws.rs.core.Response.Status;
+import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
 
 /**
  * Mock client implementation for Ingest Internal
@@ -74,23 +66,21 @@ public class IngestInternalClientMock extends AbstractMockClient implements Inge
      */
     public static final String ID = "identifier1";
     private static final String FAKE_EXECUTION_STATUS = "Fake";
-    protected StatusCode globalStatus;
 
     @Override
-    public void upload(InputStream inputStream, MediaType archiveType, WorkFlow workflowIdentifier, String action) throws VitamException {
+    public void upload(InputStream inputStream, MediaType archiveType, WorkFlow workflowIdentifier, String action) {
         ParametersChecker.checkParameter(PARAMS_CANNOT_BE_NULL, inputStream, archiveType);
         StreamUtils.closeSilently(inputStream);
 
     }
 
     @Override
-    public void uploadInitialLogbook(Iterable<LogbookOperationParameters> logbookParametersList){
+    public void uploadInitialLogbook(Iterable<LogbookOperationParameters> logbookParametersList) {
         ParametersChecker.checkParameter(PARAMS_CANNOT_BE_NULL, logbookParametersList);
     }
 
     @Override
-    public void uploadFinalLogbook(Iterable<LogbookOperationParameters> logbookParametersList)
-        throws VitamClientException {
+    public void uploadFinalLogbook(Iterable<LogbookOperationParameters> logbookParametersList) {
         ParametersChecker.checkParameter(PARAMS_CANNOT_BE_NULL, logbookParametersList);
 
     }
@@ -101,62 +91,55 @@ public class IngestInternalClientMock extends AbstractMockClient implements Inge
     }
 
     @Override
-    public void storeATR(GUID guid, InputStream input) throws VitamClientException {}
+    public void storeATR(GUID guid, InputStream input) {
+    }
 
-    public ItemStatus getOperationProcessStatus(String id) throws VitamClientException {
+    public ItemStatus getOperationProcessStatus(String id) {
         return new ItemStatus(ID);
     }
 
     @Override
-    public ItemStatus getOperationProcessExecutionDetails(String id) throws VitamClientException {
-        return new ItemStatus(ID);
+    public RequestResponse<ItemStatus> getOperationProcessExecutionDetails(String id) {
+        return new RequestResponseOK<ItemStatus>().addResult(new ItemStatus(ID));
     }
 
     @Override
-    public ItemStatus cancelOperationProcessExecution(String id) throws VitamClientException {
+    public RequestResponse<ItemStatus> cancelOperationProcessExecution(String id) {
         final List<Integer> status = new ArrayList<>();
         status.add(Status.OK.getStatusCode());
         final ItemStatus itemStatus =
             new ItemStatus(id, "FakeMessage - The operation has been canceled", StatusCode.OK, status,
                 SingletonUtils.singletonMap(), null,
                 null, null);
-        return itemStatus;
+        return new RequestResponseOK<ItemStatus>().addResult(itemStatus)
+            .addHeader(GlobalDataRest.X_GLOBAL_EXECUTION_STATE,
+                FAKE_EXECUTION_STATUS).setHttpCode(Status.ACCEPTED.getStatusCode());
     }
 
     @Override
-    public RequestResponse<ItemStatus> updateOperationActionProcess(String actionId, String operationId)
-        throws VitamClientException {
-        return new RequestResponseOK<JsonNode>().addHeader(GlobalDataRest.X_GLOBAL_EXECUTION_STATE,
+    public RequestResponse<ItemStatus> updateOperationActionProcess(String actionId, String operationId) {
+        return new RequestResponseOK<ItemStatus>().addHeader(GlobalDataRest.X_GLOBAL_EXECUTION_STATE,
             FAKE_EXECUTION_STATUS).setHttpCode(Status.OK.getStatusCode());
     }
 
     @Override
-    public RequestResponse<JsonNode> executeOperationProcess(String operationId, String workflow, String contextId,
-        String actionId)
-        throws VitamClientException {
-        return new RequestResponseOK<JsonNode>().addHeader(GlobalDataRest.X_GLOBAL_EXECUTION_STATE,
-            FAKE_EXECUTION_STATUS).setHttpCode(Status.OK.getStatusCode());
-
+    public void initWorkflow(WorkFlow contextId) {
     }
 
-    @Override
-    public void initWorkflow(WorkFlow contextId) throws VitamClientException, VitamException {}
-
 
     @Override
-    public RequestResponse<ProcessDetail> listOperationsDetails(ProcessQuery query)
-        throws VitamClientInternalException {
+    public RequestResponse<ProcessDetail> listOperationsDetails(ProcessQuery query) {
         return new RequestResponseOK<ProcessDetail>().addResult(new ProcessDetail())
             .setHttpCode(Status.OK.getStatusCode());
     }
 
     @Override
-    public RequestResponse<WorkFlow> getWorkflowDefinitions() throws VitamClientException {
+    public RequestResponse<WorkFlow> getWorkflowDefinitions() {
         return new RequestResponseOK<WorkFlow>().addResult(new WorkFlow()).setHttpCode(Status.OK.getStatusCode());
     }
 
     @Override
-    public Optional<WorkFlow> getWorkflowDetails(String WorkflowIdentifier) throws VitamClientException {
-       return Optional.of(WorkFlow.of("DEFAULT_WORKFLOW", "PROCESS_SIP_UNITARY", "INGEST"));
+    public Optional<WorkFlow> getWorkflowDetails(String WorkflowIdentifier) {
+        return Optional.of(WorkFlow.of("DEFAULT_WORKFLOW", "PROCESS_SIP_UNITARY", "INGEST"));
     }
 }

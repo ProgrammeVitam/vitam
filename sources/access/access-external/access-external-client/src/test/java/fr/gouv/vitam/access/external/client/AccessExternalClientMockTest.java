@@ -1,6 +1,7 @@
 package fr.gouv.vitam.access.external.client;
 
 import fr.gouv.vitam.common.client.VitamContext;
+import fr.gouv.vitam.common.external.client.configuration.SecureClientConfiguration;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.model.elimination.EliminationRequestBody;
 import org.junit.Before;
@@ -31,7 +32,7 @@ public class AccessExternalClientMockTest {
 
     @Before
     public void givenMockConfExistWhenAccessExternalCreateMockedClientThenReturnOK() {
-        AccessExternalClientFactory.changeMode(null);
+        AccessExternalClientFactory.changeMode((SecureClientConfiguration)null);
         client = AccessExternalClientFactory.getInstance().getClient();
         assertNotNull(client);
     }

@@ -26,16 +26,20 @@
  */
 package fr.gouv.vitam.securityInternal.integration.test;
 
+import com.google.common.collect.Sets;
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.VitamRuleRunner;
+import fr.gouv.vitam.common.VitamServerRunner;
 import fr.gouv.vitam.common.client.DefaultClient;
 import fr.gouv.vitam.common.client.TestVitamClientFactory;
 import fr.gouv.vitam.common.client.VitamClientFactory;
 import fr.gouv.vitam.common.client.VitamRestTestClient;
+import fr.gouv.vitam.common.elasticsearch.ElasticsearchRule;
 import fr.gouv.vitam.common.exception.VitamClientInternalException;
 import fr.gouv.vitam.common.logging.SysErrLogger;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
+import fr.gouv.vitam.ingest.external.integration.test.IngestExternalIT;
 import fr.gouv.vitam.security.internal.client.InternalSecurityClient;
 import fr.gouv.vitam.security.internal.client.InternalSecurityClientFactory;
 import fr.gouv.vitam.security.internal.common.exception.InternalSecurityException;
@@ -55,12 +59,12 @@ import org.bson.Document;
 import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
+import org.junit.ClassRule;
 import org.junit.Test;
 
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
-
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
@@ -76,6 +80,7 @@ import static fr.gouv.vitam.security.internal.rest.repository.IdentityRepository
 import static fr.gouv.vitam.security.internal.rest.repository.PersonalRepository.PERSONAL_COLLECTION;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.assertj.core.api.Assertions.entry;
 import static org.assertj.core.api.Assertions.fail;
 
 public class SecurityInternalIT extends VitamRuleRunner {
@@ -94,37 +99,24 @@ public class SecurityInternalIT extends VitamRuleRunner {
     private static final String BASIC_AUTHN_USER = "user";
     private static final String BASIC_AUTHN_PWD = "pwd";
 
-    private static InternalSecurityClient internalSecurityClient;
+    @ClassRule
+    public static VitamServerRunner runner =
+        new VitamServerRunner(SecurityInternalIT.class, mongoRule.getMongoDatabase().getName(),
+            ElasticsearchRule.getClusterName(),
+            Sets.newHashSet(IdentityMain.class));
 
     @BeforeClass
     public static void setUpBeforeClass() throws Exception {
         handleBeforeClass(0, 1);
-        File securityInternalConfigurationFile = PropertiesUtils.findFile(IDENTITY_CONF);
-        final InternalSecurityConfiguration internalSecurityConfiguration =
-            PropertiesUtils.readYaml(securityInternalConfigurationFile, InternalSecurityConfiguration.class);
-        internalSecurityConfiguration.getMongoDbNodes().get(0).setDbPort(mongoRule.getDataBasePort());
-        PropertiesUtils.writeYaml(securityInternalConfigurationFile, internalSecurityConfiguration);
 
-        identityMain = new IdentityMain(securityInternalConfigurationFile.getAbsolutePath());
-
-        identityMain.start();
-        internalSecurityClient = InternalSecurityClientFactory.getInstance().getClient();
     }
 
     @AfterClass
     public static void shutdownAfterClass() throws Exception {
         handleAfterClass(0, 1);
         runAfter();
-        try {
-            if (identityMain != null) {
-                identityMain.stop();
-            }
-        } catch (Exception e) {
-            SysErrLogger.FAKE_LOGGER.syserr("", e);
-        }
-        if (internalSecurityClient != null) {
-            internalSecurityClient.close();
-        }
+        // Only started in this IT test
+        runner.stopIdentityServer(true);
         VitamClientFactory.resetConnections();
     }
 
@@ -143,7 +135,7 @@ public class SecurityInternalIT extends VitamRuleRunner {
         byte[] certificate = toByteArray(stream);
         //WHEN //THEN
         assertThatThrownBy(
-            () -> internalSecurityClient.checkPersonalCertificate(certificate, "tt:read"))
+            () -> InternalSecurityClientFactory.getInstance().getClient().checkPersonalCertificate(certificate, "tt:read"))
             .isInstanceOf(InternalSecurityException.class);
     }
 
@@ -153,7 +145,7 @@ public class SecurityInternalIT extends VitamRuleRunner {
         // When / Then
         VitamThreadUtils.getVitamSession().setTenantId(0);
         assertThatThrownBy(
-            () -> internalSecurityClient.checkPersonalCertificate(null, "tt:read"))
+            () -> InternalSecurityClientFactory.getInstance().getClient().checkPersonalCertificate(null, "tt:read"))
             .isInstanceOf(InternalSecurityException.class);
     }
 
@@ -166,7 +158,7 @@ public class SecurityInternalIT extends VitamRuleRunner {
         InputStream stream = getClass().getResourceAsStream("/certificate.pem");
         byte[] certificate = toByteArray(stream);
         //when
-        internalSecurityClient.checkPersonalCertificate(certificate, "status:read");
+        InternalSecurityClientFactory.getInstance().getClient().checkPersonalCertificate(certificate, "status:read");
     }
 
     //Admin Test resources
@@ -177,7 +169,7 @@ public class SecurityInternalIT extends VitamRuleRunner {
         VitamThreadUtils.getVitamSession().setTenantId(0);
         InputStream stream = getClass().getResourceAsStream("/certificate.pem");
         byte[] certificate = toByteArray(stream);
-        String url = "http://localhost:29003/v1/api/personalCertificate";
+        String url = "http://localhost:"+runner.PORT_SERVICE_IDENTITY_ADMIN+"/v1/api/personalCertificate";
         // When
         HttpClient client = HttpClientBuilder.create().build();
         HttpPost post = new HttpPost(url);
@@ -196,7 +188,7 @@ public class SecurityInternalIT extends VitamRuleRunner {
         // Given
         VitamThreadUtils.getVitamSession().setTenantId(0);
         should_create_certificate_transmitted();
-        String url = "http://localhost:29003/v1/api/personalCertificate";
+        String url = "http://localhost:"+runner.PORT_SERVICE_IDENTITY_ADMIN+"/v1/api/personalCertificate";
         InputStream stream = getClass().getResourceAsStream("/certificate.pem");
         byte[] certificate = toByteArray(stream);
 
@@ -228,7 +220,7 @@ public class SecurityInternalIT extends VitamRuleRunner {
         identityInsertModel.setCertificate(toByteArray(getClass().getResourceAsStream(IDENTITY_CERT_FILE)));
 
         final TestVitamClientFactory<DefaultClient> testClientFactory =
-            new TestVitamClientFactory<>(29003, "/v1/api");
+            new TestVitamClientFactory<>(runner.PORT_SERVICE_IDENTITY_ADMIN, "/v1/api");
         VitamRestTestClient restClient = new VitamRestTestClient(testClientFactory);
 
         restClient.given().body(identityInsertModel, MediaType.APPLICATION_JSON_TYPE).status(
@@ -293,9 +285,9 @@ public class SecurityInternalIT extends VitamRuleRunner {
             CertificateStatus.VALID.name()))).size()).isEqualTo(0);
 
         final TestVitamClientFactory<DefaultClient> testAdminClientFactory =
-            new TestVitamClientFactory<>(29003, "/v1/api"),
+            new TestVitamClientFactory<>(runner.PORT_SERVICE_IDENTITY_ADMIN, "/v1/api"),
             testBusinessClientFactory =
-                new TestVitamClientFactory<>(8208, "/v1/api");
+                new TestVitamClientFactory<>(runner.PORT_SERVICE_IDENTITY, "/v1/api");
 
         VitamRestTestClient adminRestClient = new VitamRestTestClient(testAdminClientFactory),
             businessRestClient = new VitamRestTestClient(testBusinessClientFactory);

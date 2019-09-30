@@ -74,7 +74,6 @@ import fr.gouv.vitam.common.exception.InternalServerException;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamClientException;
 import fr.gouv.vitam.common.exception.VitamRuntimeException;
-import fr.gouv.vitam.common.format.identification.FormatIdentifierFactory;
 import fr.gouv.vitam.common.guid.GUID;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.i18n.VitamLogbookMessages;
@@ -142,6 +141,7 @@ import fr.gouv.vitam.worker.server.rest.WorkerMain;
 import fr.gouv.vitam.workspace.rest.WorkspaceMain;
 import io.restassured.RestAssured;
 import org.apache.commons.io.FileUtils;
+import org.apache.xml.resolver.apps.resolver;
 import org.bson.Document;
 import org.elasticsearch.action.search.SearchResponse;
 import org.elasticsearch.index.query.QueryBuilder;
@@ -172,6 +172,7 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 import static fr.gouv.vitam.common.VitamServerRunner.PORT_SERVICE_LOGBOOK;
@@ -253,7 +254,6 @@ public class IngestInternalIT extends VitamRuleRunner {
                 ProcessManagementMain.class,
                 AccessInternalMain.class,
                 IngestInternalMain.class));
-    private static String CONFIG_SIEGFRIED_PATH = "";
     private static String SIP_TREE = "integration-ingest-internal/test_arbre.zip";
     private static String SIP_FILE_OK_NAME = "integration-ingest-internal/SIP-ingest-internal-ok.zip";
     private static String SIP_WITH_LOGBOOK = "integration-ingest-internal/sip_with_logbook.zip";
@@ -303,11 +303,6 @@ public class IngestInternalIT extends VitamRuleRunner {
     @BeforeClass
     public static void setUpBeforeClass() throws Exception {
         handleBeforeClass(0, 1);
-        CONFIG_SIEGFRIED_PATH =
-            PropertiesUtils.getResourcePath("integration-ingest-internal/format-identifiers.conf").toString();
-
-        FormatIdentifierFactory.getInstance().changeConfigurationFile(CONFIG_SIEGFRIED_PATH);
-
         // ES client
         final List<ElasticsearchNode> esNodes = new ArrayList<>();
         esNodes.add(new ElasticsearchNode("localhost", ElasticsearchRule.getTcpPort()));
@@ -379,8 +374,7 @@ public class IngestInternalIT extends VitamRuleRunner {
             VitamThreadUtils.getVitamSession().setRequestId(operationGuid);
 
             // workspace client unzip SIP in workspace
-            final InputStream zipInputStreamSipObject =
-                PropertiesUtils.getResourceAsStream(SIP_FILE_OK_NAME);
+            final InputStream zipInputStreamSipObject = PropertiesUtils.getResourceAsStream(SIP_FILE_OK_NAME);
 
             // init default logbook operation
             final List<LogbookOperationParameters> params = new ArrayList<>();
@@ -1857,16 +1851,32 @@ public class IngestInternalIT extends VitamRuleRunner {
             assertEquals(ProcessState.PAUSE, processWorkflow.getState());
             assertEquals(StatusCode.OK, processWorkflow.getStatus());
 
-            ItemStatus itemStatus1 =
+            RequestResponse<ItemStatus> requestResponse =
                 client2.getOperationProcessExecutionDetails(operationGuid.toString());
-            assertEquals(StatusCode.OK, itemStatus1.getGlobalStatus());
+            assertThat(requestResponse.isOk()).isTrue();
+            RequestResponseOK<ItemStatus> responseOK = (RequestResponseOK<ItemStatus>) requestResponse;
+            assertThat(responseOK.getResults().iterator().next().getGlobalStatus()).isEqualTo(StatusCode.OK);
 
             assertNotNull(client2.getWorkflowDefinitions());
 
             // then finally we cancel the ingest
-            ItemStatus itemStatusFinal = client2.cancelOperationProcessExecution(operationGuid.toString());
-            // FATAL is thrown but this could be a bug somewher, so when it is fixed, change the value here
-            assertEquals(StatusCode.FATAL, itemStatusFinal.getGlobalStatus());
+            requestResponse = client2.cancelOperationProcessExecution(operationGuid.toString());
+            assertThat(requestResponse.isOk()).isTrue();
+            responseOK = (RequestResponseOK<ItemStatus>) requestResponse;
+            assertThat(responseOK.getResults().iterator().hasNext()).isTrue();
+            assertThat(responseOK.getResults().iterator().next().getGlobalStatus()).isEqualTo(StatusCode.FATAL);
+
+            awaitForWorkflowTerminationWithStatus(operationGuid, StatusCode.FATAL);
+
+            while (!ProcessState.COMPLETED.equals(processWorkflow.getState())) {
+            TimeUnit.MILLISECONDS.sleep(20l);
+                processWorkflow =
+                    ProcessMonitoringImpl.getInstance().findOneProcessWorkflow(operationGuid.toString(), tenantId);
+            }
+
+            assertNotNull(processWorkflow);
+            assertEquals(ProcessState.COMPLETED, processWorkflow.getState());
+            assertEquals(StatusCode.FATAL, processWorkflow.getStatus());
 
         } catch (final Exception e) {
             LOGGER.error(e);

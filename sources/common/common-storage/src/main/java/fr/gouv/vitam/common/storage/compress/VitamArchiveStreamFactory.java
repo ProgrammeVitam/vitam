@@ -80,7 +80,7 @@ public class VitamArchiveStreamFactory {
             case CommonMediaType.BZIP2:
                 return new TarArchiveInputStream(new BZip2CompressorInputStream(in));
             default:
-                throw new ArchiveException("Archiver: " + mediaType + " not found.");
+                throw new ArchiveException("Archive: " + mediaType + " not found.");
         }
     }
 }

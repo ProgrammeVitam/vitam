@@ -43,6 +43,7 @@ import fr.gouv.vitam.common.i18n.VitamLogbookMessages;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.AuthenticationLevel;
+import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.ProcessAction;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.StatusCode;
@@ -168,7 +169,7 @@ public class AdminDataMigrationResource {
 
             processingClient.initVitamProcess(guid.getId(), Contexts.DATA_MIGRATION.name());
 
-            RequestResponse<JsonNode> jsonNodeRequestResponse =
+            RequestResponse<ItemStatus> jsonNodeRequestResponse =
                     processingClient.executeOperationProcess(guid.getId(), Contexts.DATA_MIGRATION.name(), ProcessAction.RESUME.getValue());
             return jsonNodeRequestResponse.toResponse();
 

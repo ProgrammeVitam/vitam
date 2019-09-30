@@ -26,8 +26,6 @@
  *******************************************************************************/
 package fr.gouv.vitam.processing.engine.core.monitoring;
 
-import java.util.List;
-
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.exception.WorkflowNotFoundException;
 import fr.gouv.vitam.processing.common.model.ProcessWorkflow;
@@ -48,7 +46,6 @@ public class ProcessMonitoringImpl implements ProcessMonitoring {
 
 
     /**
-     *
      * Get the Process Monitoring instance
      *
      * @return the ProcessMonitoring instance
@@ -63,11 +60,5 @@ public class ProcessMonitoringImpl implements ProcessMonitoring {
         throws WorkflowNotFoundException {
         ParametersChecker.checkParameter("operationId cannot be null", operationId);
         return processDataAccess.findOneProcessWorkflow(operationId, tenantId);
-    }
-
-
-    @Override
-    public List<ProcessWorkflow> findAllProcessWorkflow(Integer tenantId) {
-        return processDataAccess.findAllProcessWorkflow(tenantId);
     }
 }

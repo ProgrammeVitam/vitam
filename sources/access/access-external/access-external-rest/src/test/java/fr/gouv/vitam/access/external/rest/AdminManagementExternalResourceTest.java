@@ -1,40 +1,9 @@
 package fr.gouv.vitam.access.external.rest;
 
-import static fr.gouv.vitam.common.GlobalDataRest.X_HTTP_METHOD_OVERRIDE;
-import static fr.gouv.vitam.common.database.builder.query.QueryHelper.eq;
-import static io.restassured.RestAssured.given;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyBoolean;
-import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.Mockito.doReturn;
-import static org.mockito.Mockito.doThrow;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.reset;
-import static org.mockito.Mockito.when;
-
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Set;
-import java.util.stream.IntStream;
-
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.Response.Status;
-
-import org.hamcrest.CoreMatchers;
-import org.junit.AfterClass;
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.Test;
-
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.collect.Lists;
-
 import fr.gouv.vitam.access.external.api.AccessExtAPI;
 import fr.gouv.vitam.access.external.api.AdminCollections;
 import fr.gouv.vitam.access.internal.client.AccessInternalClient;
@@ -59,7 +28,6 @@ import fr.gouv.vitam.common.error.VitamCodeHelper;
 import fr.gouv.vitam.common.error.VitamError;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamApplicationServerException;
-import fr.gouv.vitam.common.exception.WorkflowNotFoundException;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.junit.FakeInputStream;
@@ -73,6 +41,7 @@ import fr.gouv.vitam.common.model.ProcessQuery;
 import fr.gouv.vitam.common.model.ProcessState;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
+import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.model.administration.AgenciesModel;
 import fr.gouv.vitam.common.server.application.junit.ResteasyTestApplication;
 import fr.gouv.vitam.common.server.application.resources.VitamStatusService;
@@ -90,8 +59,37 @@ import fr.gouv.vitam.logbook.common.parameters.Contexts;
 import fr.gouv.vitam.logbook.common.parameters.LogbookOperationParameters;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParameterName;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParametersFactory;
-import io.restassured.RestAssured;
 import io.restassured.http.ContentType;
+import org.hamcrest.CoreMatchers;
+import org.junit.AfterClass;
+import org.junit.Before;
+import org.junit.BeforeClass;
+import org.junit.Test;
+
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
+import javax.ws.rs.core.Response.Status;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Set;
+import java.util.stream.IntStream;
+
+import static fr.gouv.vitam.common.GlobalDataRest.X_HTTP_METHOD_OVERRIDE;
+import static fr.gouv.vitam.common.database.builder.query.QueryHelper.eq;
+import static io.restassured.RestAssured.basePath;
+import static io.restassured.RestAssured.given;
+import static io.restassured.RestAssured.port;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyBoolean;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.reset;
+import static org.mockito.Mockito.when;
 
 public class AdminManagementExternalResourceTest extends ResteasyTestApplication {
 
@@ -187,8 +185,8 @@ public class AdminManagementExternalResourceTest extends ResteasyTestApplication
         junitHelper = JunitHelper.getInstance();
         serverPort = junitHelper.findAvailablePort();
 
-        RestAssured.port = serverPort;
-        RestAssured.basePath = RESOURCE_URI;
+        port = serverPort;
+        basePath = RESOURCE_URI;
 
         try {
             application =
@@ -1463,7 +1461,7 @@ public class AdminManagementExternalResourceTest extends ResteasyTestApplication
     @Test
     public void listResourceEndpoints()
         throws Exception {
-        RestAssured.given()
+        given()
             .accept(MediaType.APPLICATION_JSON)
             .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
             .when().options("/")
@@ -1879,7 +1877,7 @@ public class AdminManagementExternalResourceTest extends ResteasyTestApplication
         requestResponseOK.setHttpCode(Status.OK.getStatusCode());
         when(ingestInternalClient.listOperationsDetails(any())).thenReturn(requestResponseOK);
 
-        RestAssured.given()
+        given()
             .contentType(MediaType.APPLICATION_JSON)
             .accept(MediaType.APPLICATION_JSON)
             .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
@@ -1890,12 +1888,20 @@ public class AdminManagementExternalResourceTest extends ResteasyTestApplication
 
     @Test
     public void cancelOperationTest() throws Exception {
-        when(ingestInternalClient.cancelOperationProcessExecution(any())).thenReturn(new ItemStatus());
-        RestAssured.given()
+        ItemStatus result = new ItemStatus();
+        result.setGlobalState(ProcessState.COMPLETED);
+        result.increment(StatusCode.FATAL);
+        result.setItemId("Itzm");
+
+        RequestResponseOK<ItemStatus> responseOK = new RequestResponseOK<ItemStatus>().addResult(result);
+        responseOK.setHttpCode(Status.ACCEPTED.getStatusCode());
+
+        when(ingestInternalClient.cancelOperationProcessExecution(any())).thenReturn(responseOK);
+        given()
             .accept(MediaType.APPLICATION_JSON)
             .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
             .when().delete("operations/1")
-            .then().statusCode(Status.OK.getStatusCode());
+            .then().statusCode(Status.ACCEPTED.getStatusCode());
     }
 
     @Test
@@ -1904,7 +1910,7 @@ public class AdminManagementExternalResourceTest extends ResteasyTestApplication
         when(ingestInternalClient.getOperationProcessStatus(anyString())).thenReturn(new ItemStatus().setGlobalState(
             ProcessState.RUNNING));
 
-        RestAssured.given()
+        given()
             .accept(MediaType.APPLICATION_JSON)
             .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
             .when().head("operations/1")
@@ -1914,21 +1920,26 @@ public class AdminManagementExternalResourceTest extends ResteasyTestApplication
     @Test
     public void getWorkFlowStatusTest()
         throws Exception {
-        when(ingestInternalClient.getOperationProcessExecutionDetails(anyString())).thenReturn(new ItemStatus());
-        RestAssured.given()
+        when(ingestInternalClient.getOperationProcessExecutionDetails(anyString())).thenReturn(
+            new RequestResponseOK<ItemStatus>().addResult(new ItemStatus()).setHttpCode(Status.OK.getStatusCode()));
+        given()
             .contentType(MediaType.APPLICATION_JSON)
             .accept(MediaType.APPLICATION_JSON)
             .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
-            .body(new ProcessQuery())
             .when().get("operations/1")
             .then().statusCode(Status.OK.getStatusCode());
     }
 
     @Test
     public void getWorkFlowNotFoundTest() throws Exception {
-        doThrow(new WorkflowNotFoundException("not found")).when(ingestInternalClient)
-            .getOperationProcessExecutionDetails(anyString());
-        RestAssured.given()
+        VitamError vitamError = new VitamError("fake").setHttpCode(Status.NOT_FOUND.getStatusCode())
+            .setContext("Fake")
+            .setState("code_vitam")
+            .setMessage("msg")
+            .setDescription("description");
+
+        when(ingestInternalClient.getOperationProcessExecutionDetails(anyString())).thenReturn(vitamError);
+        given()
             .contentType(MediaType.APPLICATION_JSON)
             .accept(MediaType.APPLICATION_JSON)
             .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
@@ -1944,7 +1955,7 @@ public class AdminManagementExternalResourceTest extends ResteasyTestApplication
         when(ingestInternalClient.getWorkflowDefinitions()).thenReturn(requestResponseOK);
 
 
-        RestAssured.given()
+        given()
             .accept(MediaType.APPLICATION_JSON)
             .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
             .when().get("workflows/")
@@ -1959,7 +1970,7 @@ public class AdminManagementExternalResourceTest extends ResteasyTestApplication
         when(ingestInternalClient.updateOperationActionProcess(anyString(), anyString()))
             .thenReturn(objectRequestResponseOK);
 
-        RestAssured.given()
+        given()
             .contentType(MediaType.APPLICATION_JSON)
             .accept(MediaType.APPLICATION_JSON)
             .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
@@ -1971,7 +1982,7 @@ public class AdminManagementExternalResourceTest extends ResteasyTestApplication
 
     @Test
     public void updateWorkFlowStatusWithoutHeadersTest() {
-        RestAssured.given()
+        given()
             .contentType(MediaType.APPLICATION_JSON)
             .accept(MediaType.APPLICATION_JSON)
             .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
@@ -2089,7 +2100,7 @@ public class AdminManagementExternalResourceTest extends ResteasyTestApplication
 
         when(ingestInternalClient.downloadObjectAsync(anyString(), any()))
             .thenReturn(response);
-        RestAssured.given()
+        given()
             .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
             .header(GlobalDataRest.X_CONTEXT_ID, Contexts.DEFAULT_WORKFLOW)
             .when().get(AccessExtAPI.RULES_REPORT_API + "/id")

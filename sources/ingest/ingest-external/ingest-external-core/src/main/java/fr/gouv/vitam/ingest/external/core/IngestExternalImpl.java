@@ -27,10 +27,12 @@
 package fr.gouv.vitam.ingest.external.core;
 
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.mongodb.util.JSON;
 import fr.gouv.vitam.common.CharsetUtils;
 import fr.gouv.vitam.common.CommonMediaType;
 import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.ParametersChecker;
+import fr.gouv.vitam.common.error.VitamError;
 import fr.gouv.vitam.common.exception.InvalidGuidOperationException;
 import fr.gouv.vitam.common.exception.VitamClientException;
 import fr.gouv.vitam.common.exception.VitamException;
@@ -50,7 +52,9 @@ import fr.gouv.vitam.common.i18n.VitamLogbookMessages;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.ProcessState;
+import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.model.VitamConstants;
 import fr.gouv.vitam.common.model.processing.WorkFlow;
@@ -159,7 +163,7 @@ public class IngestExternalImpl implements IngestExternal {
     @Override
     public PreUploadResume preUploadAndResume(InputStream input, String workflowIdentifier, GUID guid,
         AsyncResponse asyncResponse)
-        throws IngestExternalException, WorkspaceClientServerException, VitamClientException {
+        throws IngestExternalException, VitamClientException, WorkspaceClientServerException {
         ParametersChecker.checkParameter("input is a mandatory parameter", input);
         VitamThreadUtils.getVitamSession().setRequestId(guid);
 
@@ -231,7 +235,7 @@ public class IngestExternalImpl implements IngestExternal {
         } catch (IOException ex) {
             LOGGER.error("Cannot load WorkspaceFileSystem ", ex);
             throw new IllegalStateException(ex);
-        }   catch (final ContentAddressableStorageException e) {
+        } catch (final ContentAddressableStorageException e) {
             LOGGER.error(CAN_NOT_STORE_FILE, e);
             throw new IngestExternalException(e);
         }
@@ -489,20 +493,13 @@ public class IngestExternalImpl implements IngestExternal {
                 helper.updateDelegate(endParameters);
                 helper.updateDelegate(antivirusParameters);
 
-                logbookAndGenerateATR(preUploadResume, guid, antivirusParameters.getStatus(),
-                    isFileInfected, helper,
+                logbookAndGenerateATR(preUploadResume, guid, antivirusParameters.getStatus(), isFileInfected, helper,
                     SANITY_CHECK_SIP, "");
             }
 
-            try (IngestInternalClient ingestClient =
-                ingestInternalClientFactory.getClient()) {
-                // FIXME P1 one should finalize the Logbook Operation with new entries like
-                // before calling the ingestClient: LogbookOperationParameters as Ingest-Internal started
-                // after calling the ingestClient: LogbookOperationParameters as Ingest-Internal "status"
-                // and in async mode add LogbookOperationParameters as Ingest-External-ATR-Forward START
-                // and LogbookOperationParameters as Ingest-External-ATR-Forward OK
-                // then call back ingestClient with updateFinalLogbook
+            try (IngestInternalClient ingestClient = ingestInternalClientFactory.getClient()) {
                 ingestClient.uploadInitialLogbook(helper.removeCreateDelegate(guid.getId()));
+
                 if (!isFileInfected && isSupportedMedia && manifestFileName != null &&
                     manifestFileName.isManifestFile()) {
 
@@ -566,10 +563,20 @@ public class IngestExternalImpl implements IngestExternal {
 
     private void cancelOperation(GUID guid) throws IngestExternalException {
         try (IngestInternalClient ingestClient = ingestInternalClientFactory.getClient()) {
-            ingestClient.cancelOperationProcessExecution(guid.getId());
-        } catch (final Exception e) {
+            RequestResponse<ItemStatus> requestResponse =
+                ingestClient.cancelOperationProcessExecution(guid.getId());
+
+            if (!requestResponse.isOk()) {
+                VitamError error = (VitamError) requestResponse;
+                throw new IngestExternalException("Error occurs while cancel operation : " + error.getMessage());
+            }
+        } catch (IngestExternalException e) {
+            throw e;
+        } catch (
+            final Exception e) {
             throw new IngestExternalException(e);
         }
+
     }
 
     /**
@@ -662,7 +669,7 @@ public class IngestExternalImpl implements IngestExternal {
             getAtrNotificationEvent(operationId, logbookTypeProcess, atrStatusCode, finalisationEventId);
 
         if (!StatusCode.OK.equals(atrStatusCode)) {
-            // Erase informations of finalisation event if atrStatusCode is not OK
+            // Erase information of finalisation event if atrStatusCode is not OK
             // Because parent event should have the correct status if atr fail
             stpIngestFinalisationParameters.setStatus(atrStatusCode);
             stpIngestFinalisationParameters.putParameterValue(LogbookParameterName.outcomeDetailMessage,
@@ -839,8 +846,8 @@ public class IngestExternalImpl implements IngestExternal {
             .createArchiveInputStream(CommonMediaType.valueOf(mimeType), in)) {
             ArchiveEntry entry;
             while ((entry = archiveInputStream.getNextEntry()) != null) {
+                LOGGER.debug("SIP Files : " + entry.getName());
                 if (archiveInputStream.canReadEntryData(entry)) {
-                    LOGGER.info("SIP Files : " + entry.getName());
                     if (!entry.isDirectory() && entry.getName().split("/").length == 1) {
                         manifestFileName.setFileName(entry.getName());
                         if (entry.getName().matches(VitamConstants.MANIFEST_FILE_NAME_REGEX)) {
