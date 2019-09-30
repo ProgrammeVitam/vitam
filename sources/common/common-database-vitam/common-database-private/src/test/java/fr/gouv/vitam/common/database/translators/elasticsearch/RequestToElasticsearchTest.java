@@ -29,6 +29,7 @@ package fr.gouv.vitam.common.database.translators.elasticsearch;
 import com.fasterxml.jackson.databind.JsonNode;
 import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
 import fr.gouv.vitam.common.database.collections.DynamicParserTokens;
+import fr.gouv.vitam.common.database.collections.VitamDescriptionResolver;
 import fr.gouv.vitam.common.database.parser.request.multiple.DeleteParserMultiple;
 import fr.gouv.vitam.common.database.parser.request.multiple.SelectParserMultiple;
 import fr.gouv.vitam.common.exception.VitamException;
@@ -146,7 +147,7 @@ public class RequestToElasticsearchTest {
             final SelectToElasticsearch rte = createSelect(exampleSelectElasticsearch);
             final QueryBuilder queryBuilderRoot = rte.getInitialRoots("_up");
             final int size = rte.getNbQueries();
-            DynamicParserTokens parserTokens = new DynamicParserTokens(Collections.emptyMap(), Collections.emptyList());
+            DynamicParserTokens parserTokens = new DynamicParserTokens(new VitamDescriptionResolver(Collections.emptyList()), Collections.emptyList());
             for (int i = 0; i < size; i++) {
                 final QueryBuilder queryBuilderCommand = rte.getNthQueries(i, new FakeMetadataVarNameAdapter(), parserTokens);
                 final QueryBuilder queryBuilderseudoRequest = rte.getRequest(queryBuilderCommand, queryBuilderRoot);
@@ -197,7 +198,7 @@ public class RequestToElasticsearchTest {
             final SelectToElasticsearch rte = createSelect(nestedSearchQuery);
             final QueryBuilder queryBuilderRoot = rte.getInitialRoots("_up");
             final int size = rte.getNbQueries();
-            DynamicParserTokens parserTokens = new DynamicParserTokens(Collections.emptyMap(), Collections.emptyList());
+            DynamicParserTokens parserTokens = new DynamicParserTokens(new VitamDescriptionResolver(Collections.emptyList()), Collections.emptyList());
             for (int i = 0; i < size; i++) {
                 final QueryBuilder queryBuilderCommand = rte.getNthQueries(i, new FakeMetadataVarNameAdapter(), parserTokens);
                 final QueryBuilder queryBuilderseudoRequest = rte.getRequest(queryBuilderCommand, queryBuilderRoot);

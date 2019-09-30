@@ -12,7 +12,7 @@ import fr.gouv.vitam.common.database.builder.request.single.Select;
 import fr.gouv.vitam.common.database.builder.request.single.Update;
 import fr.gouv.vitam.common.database.collections.VitamCollection;
 import fr.gouv.vitam.common.database.collections.VitamCollectionHelper;
-import fr.gouv.vitam.common.database.collections.VitamDescriptionLoader;
+import fr.gouv.vitam.common.database.collections.VitamDescriptionResolver;
 import fr.gouv.vitam.common.database.collections.VitamDescriptionType;
 import fr.gouv.vitam.common.database.server.elasticsearch.ElasticsearchAccess;
 import fr.gouv.vitam.common.database.server.elasticsearch.ElasticsearchNode;
@@ -44,9 +44,7 @@ import org.junit.Test;
 
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
@@ -86,11 +84,10 @@ public class DbRequestSingleTest {
     public static void setUp() throws Exception {
         final List<ElasticsearchNode> nodes = new ArrayList<>();
         nodes.add(new ElasticsearchNode(HOST_NAME, elasticsearchRule.getTcpPort()));
-        Map<String, VitamDescriptionType> descriptions = new HashMap<>();
-        descriptions.put("Title", new VitamDescriptionType("Title", text, one, true));
-        VitamDescriptionLoader descriptionLoader = new VitamDescriptionLoader(descriptions);
-
-        vitamCollection = VitamCollectionHelper.getCollection(CollectionSample.class, true, false, PREFIX, descriptionLoader);
+        List<VitamDescriptionType> descriptions = Collections.singletonList(
+            new VitamDescriptionType("Title", null, text, one, true));
+        VitamDescriptionResolver vitamDescriptionResolver = new VitamDescriptionResolver(descriptions);
+        vitamCollection = VitamCollectionHelper.getCollection(CollectionSample.class, true, false, PREFIX, vitamDescriptionResolver);
         esClient = new ElasticsearchAccess(ElasticsearchRule.VITAM_CLUSTER, nodes);
         vitamCollection.initialize(esClient);
         vitamCollection.initialize(mongoRule.getMongoDatabase(), true);

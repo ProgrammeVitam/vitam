@@ -33,6 +33,7 @@ import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.database.collections.DynamicParserTokens;
 import fr.gouv.vitam.common.database.collections.VitamCollection;
+import fr.gouv.vitam.common.database.collections.VitamDescriptionResolver;
 import fr.gouv.vitam.common.database.collections.VitamDescriptionType;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
@@ -100,7 +101,7 @@ public class ModelValidatorUtils {
             List<OntologyModel> ontologyModels = loadOntology(collectionName);
 
             Map<String, VitamDescriptionType> descriptionTypeByName =
-                Maps.filterKeys(vitamCollection.getDescriptionLoader().getDescriptionTypeByName(),
+                Maps.filterKeys(vitamCollection.getVitamDescriptionResolver().getDescriptionTypeByStaticName(),
                     key -> !Objects.equals(key, "Title.keyword"));
 
             // Validate vitam-description file VS ontology file
@@ -330,7 +331,7 @@ public class ModelValidatorUtils {
             softly.fail("Unexpected key '" + unexpectedKey + "' in ES mapping");
         }
 
-        DynamicParserTokens parserTokens = new DynamicParserTokens(descriptionTypeByName, Collections.emptyList());
+        DynamicParserTokens parserTokens = new DynamicParserTokens(new VitamDescriptionResolver(new ArrayList<>(descriptionTypeByName.values())), Collections.emptyList());
         for (Map.Entry<String, ElasticsearchMappingType> entry : mappingTypes.entrySet()) {
 
             String fieldName = entry.getKey();
