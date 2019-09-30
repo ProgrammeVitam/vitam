@@ -1069,7 +1069,7 @@ public class ProcessingIT extends VitamRuleRunner {
         processingClient.initVitamProcess(containerName, Contexts.EXPORT_DIP.name());
 
         // When
-        RequestResponse<JsonNode> jsonNodeRequestResponse =
+        RequestResponse<ItemStatus> jsonNodeRequestResponse =
             processingClient.executeOperationProcess(containerName, DEFAULT_WORKFLOW.name(),
                 RESUME.getValue());
 
@@ -2245,7 +2245,7 @@ public class ProcessingIT extends VitamRuleRunner {
             .putObject(computedInheritedRulesProcess, "query.json", writeToInpustream(select.getFinalSelect()));
         processingClient
             .initVitamProcess(new ProcessingEntry(computedInheritedRulesProcess, COMPUTE_INHERITED_RULES.name()));
-        RequestResponse<JsonNode> cirResponse = processingClient
+        RequestResponse<ItemStatus> cirResponse = processingClient
             .executeOperationProcess(computedInheritedRulesProcess, COMPUTE_INHERITED_RULES.name(), RESUME.getValue());
         assertNotNull(cirResponse);
         assertEquals(Status.ACCEPTED.getStatusCode(), cirResponse.getStatus());
