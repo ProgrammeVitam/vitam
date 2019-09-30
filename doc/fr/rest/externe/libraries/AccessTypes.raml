@@ -180,3 +180,134 @@ types:
       - Dissemination
       - Thumbnail
       - TextContent
+
+  DipRequest:
+      displayName: Requête pour faire un export DIP
+      description: Requête pour faire un export DIP
+      type: object
+      properties:
+        dipExportType:
+          description: Le type d'export DIP
+          type: string
+          enum: [MINIMAL, FULL]
+          required: true
+        exportWithLogBookLFC:
+          description: True pour inclure les logbook de cycle de vie des unités archivistiques et groupes d'objets
+          type: boolean
+          required: false
+        dslRequest:
+          description: Contient la requête de recherche
+          type: DslTypes.DslMultipleQuery
+          required: true
+        dataObjectVersionToExport:
+          description: L'identifiant du scénario de préservation
+          type: object
+          required: false
+          properties:
+            dataObjectVersions:
+              description: Liste des versions d'objets à inclure dans l'export
+              type: array
+              items:
+                type: string
+        dipRequestParameters:
+          description: Les paramètres nécessaires pour faire un export DIP, ce champs est obligatoire quand le dipExportType est FULL
+          type: object
+          required: false
+          properties:
+            ArchivalAgreement:
+              description: Contrat d'entrée
+              type: string
+              required: false
+            OriginatingAgencyIdentifier:
+              description: Identifiant du service producteur
+              type: string
+              required: false
+            Comment:
+              description: Intitulé
+              type: string
+              required: false
+            SubmissionAgencyIdentifier:
+              description: Identifiant du service versant
+              type: string
+              required: false
+            ArchivalAgencyIdentifier:
+              description: Identifiant du service d'archives. Si Vitam trouve un seul service d'archives pour la selection d'unités archivistiques, ce service sera utilisé par défaut.
+              type: string
+              required: true
+            MessageRequestIdentifier:
+              description: Identifiant de la demande
+              type: string
+              required: true
+            RequesterIdentifier:
+              description: Identifiant du demandeur
+              type: string
+              required: true
+            AuthorizationRequestReplyIdentifier:
+              description: Identifiant de la réponse à une demande d'autorisation
+              type: string
+              required: false
+      example: !include examples/dipRequest.json
+
+  TransferRequest:
+      displayName: Requête pour faire un transfert
+      description: Requête pour faire un transfert d'unités archivistiques
+      type: object
+      properties:
+        exportWithLogBookLFC:
+          description: True pour inclure les logbook de cycle de vie des unités archivistiques et groupes d'objets
+          type: boolean
+          required: false
+        dslRequest:
+          description: Contient la requête de recherche
+          type: DslTypes.DslMultipleQuery
+          required: true
+        dataObjectVersionToExport:
+          description: L'identifiant du scénario de préservation
+          type: object
+          required: false
+          properties:
+            dataObjectVersions:
+              description: Liste des versions d'objets à inclure dans l'export
+              type: array
+              items:
+                type: string
+        transferRequestParameters:
+          description: Les paramètres nécessaires pour faire un transfert d'unités archivistiques
+          type: object
+          required: true
+          properties:
+            ArchivalAgreement:
+              description: Contrat d'entrée
+              type: string
+              required: true
+            OriginatingAgencyIdentifier:
+              description: Identifiant du service producteur
+              type: string
+              required: true
+            ArchivalAgencyIdentifier:
+              description: Identifiant du service d'archives
+              type: string
+              required: true
+            Comment:
+              description: Intitulé
+              type: string
+              required: false
+            SubmissionAgencyIdentifier:
+              description: Identifiant du service versant
+              type: string
+              required: false
+            TransferringAgency:
+              description: Service versant
+              type: string
+              required: false
+            TransferRequestReplyIdentifier:
+              description: Identifiant de la réponse à une demande de transfert
+              type: string
+              required: false
+            RelatedTransferReference:
+              description: Référence à un transfert d'archives lié
+              type: array
+              required: false
+              items:
+                type: string
+      example: !include examples/transferRequest.json

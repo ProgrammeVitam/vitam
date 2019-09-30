@@ -184,7 +184,7 @@ documentation:
     Une autre requête pourra être exécutée par la suite pour télécharger le fichier Zip généré.
   post:
     description: |
-          response : JSON asynchronous state / HTTP CODE 202 or  500 for KO
+          response : JSON asynchronous state / HTTP CODE 202 or  500 for Internal Server Error
           La requête utilise le langage de requête DSL de type **recherche multiple (SELECT MULTIPLE)** de Vitam en entrée.
     is: [AccessTraits.DipCreationResponseAsync]
 
@@ -202,7 +202,7 @@ documentation:
           required: true
           enum: [ "application/octet-stream" ]
       description: |
-        Requête qui retourne les résultate composés des métadonnées et des objets binaires dans un fichier zip
+        Requête qui retourne les résultats composés des métadonnées et des objets binaires dans un fichier zip
         'Accept' header est 'application/octet-stream'
       responses:
         202:
@@ -210,6 +210,84 @@ documentation:
           body:
             application/octet-stream:
               description: Binary object as a zip file
+        412:
+          description: Precondition Failed, some predicates are incorrect, therefore the operation is not possible
+          body:
+            application/json:
+
+/v2/dipexport:
+  displayName: DIP Export V2
+  description: |
+    API qui définit les requêtes pour générer un DIP (Dissemination Information Package : ZIP contenant les métadonnées et les objets) pour une sélection d'Unités d'archives.
+    La requête est composée  d'une dslRequest (DSL) et d'autres paramètres nécessaires pour le service. Un processus générant le DIP V2 selon le DSL passé sera lancé.
+    Une autre requête pourra être exécutée par la suite pour télécharger le fichier Zip généré.
+  post:
+    description: |
+          response : JSON asynchronous state / HTTP CODE 202 or  500 for internal error
+          La requête utilise le langage de requête DSL de type **recherche multiple (SELECT MULTIPLE)** de Vitam en entrée.
+    is: [AccessTraits.DipV2Async]
+
+  /{id}/dip/:
+    uriParameters:
+        id:
+          required: true
+          description: Identifiant de l'opération d'export DIP V2.
+    displayName: Téléchargement du DIP V2
+    description: |
+      Télécharger le DIP généré par l'opération passée en paramètre
+    get:
+      headers:
+        Accept:
+          required: true
+          enum: [ "application/octet-stream" ]
+      description: |
+        Requête qui retourne les résultats composés des métadonnées et des objets binaires dans un fichier zip
+        'Accept' header est 'application/octet-stream'
+      responses:
+        202:
+          description: Returns the generated zip file
+          body:
+            application/octet-stream:
+              description: Binary object as a zip file
+        412:
+          description: Precondition Failed, some predicates are incorrect, therefore the operation is not possible
+          body:
+            application/json:
+
+/tranfers:
+  displayName: Transfert d'archives
+  description: |
+    API qui définit les requêtes pour générer un transfert d'une sélection d'unités d'archives.
+    La requête est composée  d'une dslRequest (DSL) et d'autres paramètres nécessaires pour le service. Un processus générant le SIP selon le DSL passé sera lancé.
+    Une autre requête pourra être exécutée par la suite pour télécharger le fichier Zip généré.
+  post:
+    description: |
+          response : JSON asynchronous state / HTTP CODE (202, 200)  or  (412, 500 else)
+          La requête utilise le langage de requête DSL de type **recherche multiple (SELECT MULTIPLE)** de Vitam en entrée.
+    is: [AccessTraits.TransferCreationResponseAsync]
+
+  /{id}/sip/:
+    uriParameters:
+        id:
+          required: true
+          description: Identifiant de l'opération du transfert d'archives.
+    displayName: Téléchargement du SIP
+    description: |
+      Télécharger le SIP généré par l'opération passée en paramètre
+    get:
+      headers:
+        Accept:
+          required: true
+          enum: [ "application/octet-stream" ]
+      description: |
+        Requête qui retourne un SIP au format ZIP
+        'Accept' header est 'application/octet-stream'
+      responses:
+        202:
+          description: Returns the generated SIP file
+          body:
+            application/octet-stream:
+              description: Binary object as a SIP file
         412:
           description: Precondition Failed, some predicates are incorrect, therefore the operation is not possible
           body:
