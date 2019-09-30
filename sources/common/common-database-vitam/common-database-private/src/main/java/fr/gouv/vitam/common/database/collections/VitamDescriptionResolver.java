@@ -26,52 +26,50 @@
  *******************************************************************************/
 package fr.gouv.vitam.common.database.collections;
 
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.List;
+import java.util.Map;
+import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
-/**
- * Vitam Collection Helper
- */
-public class VitamCollectionHelper {
-    
-    /**
-     * Metadata collections
-     */
-    private static final Set<String> METADATA_COLLECTIONS = new HashSet<>(Arrays.asList("Unit", "ObjectGroup"));
-    /**
-     * Logbook collections
-     */
-    private static final Set<String> LOGBOOK_COLLECTIONS = new HashSet<>(Arrays.asList("Operation"));
-    
-    /**
-     * getCollection with collection class
-     *
-     * @param clasz a class of a unknown type
-     * @param multitenant
-     * @param usingScore
-     * @return VitamCollection
-     */
-    public static VitamCollection getCollection(final Class<?> clasz, boolean multitenant, boolean usingScore, String prefix, VitamDescriptionResolver vitamDescriptionResolver) {
-        return new VitamCollection(clasz, multitenant, usingScore, prefix, vitamDescriptionResolver);
+public class VitamDescriptionResolver {
+
+    private final Map<String, VitamDescriptionType> descriptionTypeByStaticName;
+    private final Map<Pattern, VitamDescriptionType> descriptionTypeByNamePattern;
+    private List<VitamDescriptionType> vitamDescriptionTypes;
+
+    public VitamDescriptionResolver(List<VitamDescriptionType> vitamDescriptionTypes) {
+
+        this.vitamDescriptionTypes = vitamDescriptionTypes;
+
+        this.descriptionTypeByStaticName = vitamDescriptionTypes.stream()
+            .filter(vitamDescriptionType -> vitamDescriptionType.getPath() != null)
+            .collect(Collectors.toMap(VitamDescriptionType::getPath, v -> v));
+
+        this.descriptionTypeByNamePattern = vitamDescriptionTypes.stream()
+            .filter(vitamDescriptionType -> vitamDescriptionType.getPath() == null)
+            .collect(Collectors.toMap(VitamDescriptionResolver::createPatternMatcher, v -> v));
     }
-    
-    /**
-     * check if the collection is a metadata one
-     * @param collectionName
-     * @return true if yes
-     */
-    public static boolean isMetadataCollection(String collectionName) {
-        return METADATA_COLLECTIONS.contains(collectionName);
+
+    private static Pattern createPatternMatcher(VitamDescriptionType vitamDescriptionType) {
+        return Pattern.compile("^" + vitamDescriptionType.getPathRegex() + "$");
     }
-    
-    /**
-     * check if the collection is a logbook one
-     * 
-     * @param collectionName
-     * @return true if yes
-     */
-    public static boolean isLogbookCollection(String collectionName) {
-        return LOGBOOK_COLLECTIONS.contains(collectionName);
+
+    public VitamDescriptionType resolve(String name) {
+        if (descriptionTypeByStaticName.containsKey(name)) {
+            return descriptionTypeByStaticName.get(name);
+        }
+
+        for (Map.Entry<Pattern, VitamDescriptionType> entry : descriptionTypeByNamePattern
+            .entrySet()) {
+            if (entry.getKey().matcher(name).matches()) {
+                return entry.getValue();
+            }
+        }
+
+        return null;
+    }
+
+    public Map<String, VitamDescriptionType> getDescriptionTypeByStaticName() {
+        return descriptionTypeByStaticName;
     }
 }
