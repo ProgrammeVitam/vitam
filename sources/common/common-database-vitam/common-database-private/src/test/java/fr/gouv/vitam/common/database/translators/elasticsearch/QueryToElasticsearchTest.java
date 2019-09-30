@@ -31,6 +31,7 @@ import fr.gouv.vitam.common.database.builder.query.Query;
 import fr.gouv.vitam.common.database.builder.request.multiple.SelectMultiQuery;
 import fr.gouv.vitam.common.database.collections.DynamicParserTokens;
 import fr.gouv.vitam.common.database.collections.VitamCollection;
+import fr.gouv.vitam.common.database.collections.VitamDescriptionResolver;
 import fr.gouv.vitam.common.database.parser.request.multiple.SelectParserMultiple;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
@@ -170,7 +171,7 @@ public class QueryToElasticsearchTest {
             final SelectParserMultiple parser = createSelect(example);
             final SelectMultiQuery select = parser.getRequest();
             final QueryBuilder queryBuilderRoot = QueryToElasticsearch.getRoots("_up", select.getRoots());
-            DynamicParserTokens parserTokens = new DynamicParserTokens(Collections.emptyMap(), Collections.emptyList());
+            DynamicParserTokens parserTokens = new DynamicParserTokens(new VitamDescriptionResolver(Collections.emptyList()), Collections.emptyList());
             final List<SortBuilder> sortBuilders = QueryToElasticsearch.getSorts(parser,
                 parser.hasFullTextQuery() || VitamCollection.containMatch(), true, parserTokens);
             final List<AggregationBuilder> facetBuilders = QueryToElasticsearch.getFacets(parser, parserTokens);
@@ -236,7 +237,7 @@ public class QueryToElasticsearchTest {
 
             final SelectMultiQuery select = parser.getRequest();
             final QueryBuilder queryBuilderRoot = QueryToElasticsearch.getRoots("_up", select.getRoots());
-            DynamicParserTokens parserTokens = new DynamicParserTokens(Collections.emptyMap(), Collections.emptyList());
+            DynamicParserTokens parserTokens = new DynamicParserTokens(new VitamDescriptionResolver(Collections.emptyList()), Collections.emptyList());
             final List<SortBuilder> sortBuilders = QueryToElasticsearch.getSorts(parser,
                 parser.hasFullTextQuery() || VitamCollection.containMatch(), true, parserTokens);
             final List<AggregationBuilder> facetBuilders = QueryToElasticsearch.getFacets(parser, parserTokens);
@@ -323,7 +324,7 @@ public class QueryToElasticsearchTest {
             final SelectParserMultiple parser = createSelect(nestedSearchQuery);
             final SelectMultiQuery select = parser.getRequest();
             assertTrue(select.getFacets().get(0).getCurrentFacet().get("$terms").get("$subobject").asText().equals("#qualifiers.versions"));
-            DynamicParserTokens parserTokens = new DynamicParserTokens(Collections.emptyMap(), Collections.emptyList());
+            DynamicParserTokens parserTokens = new DynamicParserTokens(new VitamDescriptionResolver(Collections.emptyList()), Collections.emptyList());
             final List<AggregationBuilder> facetBuilders = QueryToElasticsearch.getFacets(parser, parserTokens);
             assertEquals(1, facetBuilders.size());
             assertTrue(facetBuilders.get(0) instanceof NestedAggregationBuilder);

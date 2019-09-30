@@ -3,6 +3,7 @@ package fr.gouv.vitam.common.database.server;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import fr.gouv.vitam.common.database.collections.DynamicParserTokens;
+import fr.gouv.vitam.common.database.collections.VitamDescriptionResolver;
 import fr.gouv.vitam.common.database.collections.VitamDescriptionType;
 import fr.gouv.vitam.common.database.parser.request.AbstractParser;
 import fr.gouv.vitam.common.database.parser.request.adapter.SingleVarNameAdapter;
@@ -21,6 +22,7 @@ import org.junit.Test;
 import java.time.temporal.ChronoUnit;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import static fr.gouv.vitam.common.database.collections.VitamDescriptionType.VitamCardinality.one;
@@ -160,9 +162,9 @@ public class MongoDbInMemoryTest {
     public void setUp() throws InvalidParseOperationException {
         // Init jsonDocument with values (from real document or only some json ?)
         jsonDocument = JsonHandler.getFromString(jsonNodeValue);
-        HashMap<String, VitamDescriptionType> descriptionTypeByName = new HashMap<>();
-        descriptionTypeByName.put("OriginatingAgency", new VitamDescriptionType("Title", text, one, true));
-        DynamicParserTokens parserTokens = new DynamicParserTokens(descriptionTypeByName, Collections.emptyList());
+        List<VitamDescriptionType> descriptions = Collections.singletonList(
+            new VitamDescriptionType("OriginatingAgency", null, text, one, true));
+        DynamicParserTokens parserTokens = new DynamicParserTokens(new VitamDescriptionResolver(descriptions), Collections.emptyList());
         mDIM = new MongoDbInMemory(jsonDocument, parserTokens);
     }
 
@@ -641,7 +643,7 @@ public class MongoDbInMemoryTest {
     @Test
     public void should_not_throw_npe_when_update_with_rule_without_start_date() throws Exception {
         // Given
-        DynamicParserTokens parserTokens = new DynamicParserTokens(Collections.emptyMap(), Collections.emptyList());
+        DynamicParserTokens parserTokens = new DynamicParserTokens(new VitamDescriptionResolver(Collections.emptyList()), Collections.emptyList());
         JsonNode documentToUpdate = JsonHandler.getFromString(
             "{\n" +
             "  \"_mgt\": {\n" +

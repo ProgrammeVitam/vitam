@@ -37,6 +37,7 @@ import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.database.collections.VitamCollection;
 import fr.gouv.vitam.common.database.collections.VitamCollectionHelper;
 import fr.gouv.vitam.common.database.collections.VitamDescriptionLoader;
+import fr.gouv.vitam.common.database.collections.VitamDescriptionResolver;
 import fr.gouv.vitam.common.database.parser.request.adapter.SingleVarNameAdapter;
 import fr.gouv.vitam.common.database.parser.request.adapter.VarNameAdapter;
 import fr.gouv.vitam.functional.administration.common.*;
@@ -129,7 +130,7 @@ public enum FunctionalAdminCollections {
      */
     ONTOLOGY(Ontology.class, false, false);
 
-    private final VitamDescriptionLoader vitamDescriptionLoader;
+    private final VitamDescriptionResolver vitamDescriptionResolver;
     private VitamCollection vitamCollection;
 
     @VisibleForTesting
@@ -220,8 +221,9 @@ public enum FunctionalAdminCollections {
     FunctionalAdminCollections(final Class<?> clasz, boolean multiTenant, boolean usingScore) {
         this.multitenant = multiTenant;
         this.usingScore = usingScore;
-        vitamDescriptionLoader = new VitamDescriptionLoader(clasz.getSimpleName());
-        vitamCollection = VitamCollectionHelper.getCollection(clasz, multiTenant, usingScore, "", vitamDescriptionLoader);
+        VitamDescriptionLoader vitamDescriptionLoader = new VitamDescriptionLoader(clasz.getSimpleName());
+        vitamDescriptionResolver = vitamDescriptionLoader.getVitamDescriptionResolver();
+        vitamCollection = VitamCollectionHelper.getCollection(clasz, multiTenant, usingScore, "", vitamDescriptionResolver);
 
     }
 
@@ -363,7 +365,7 @@ public enum FunctionalAdminCollections {
         return false;
     }
 
-    public VitamDescriptionLoader getVitamDescriptionLoader() {
-        return vitamDescriptionLoader;
+    public VitamDescriptionResolver getVitamDescriptionResolver() {
+        return vitamDescriptionResolver;
     }
 }

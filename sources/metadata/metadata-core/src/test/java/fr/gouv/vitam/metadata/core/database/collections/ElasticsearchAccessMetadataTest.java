@@ -31,6 +31,7 @@ import com.google.common.collect.Lists;
 import fr.gouv.vitam.common.database.builder.query.Query;
 import fr.gouv.vitam.common.database.collections.DynamicParserTokens;
 import fr.gouv.vitam.common.database.collections.VitamCollection;
+import fr.gouv.vitam.common.database.collections.VitamDescriptionResolver;
 import fr.gouv.vitam.common.database.parser.request.multiple.SelectParserMultiple;
 import fr.gouv.vitam.common.database.server.elasticsearch.ElasticsearchNode;
 import fr.gouv.vitam.common.database.translators.elasticsearch.QueryToElasticsearch;
@@ -172,7 +173,7 @@ public class ElasticsearchAccessMetadataTest {
         parser.parse(queryNode);
         List<SortBuilder> sorts = new ArrayList<>();
         List<Query> queries = parser.getRequest().getQueries();
-        DynamicParserTokens parserTokens = new DynamicParserTokens(Collections.emptyMap(), Collections.emptyList());
+        DynamicParserTokens parserTokens = new DynamicParserTokens(new VitamDescriptionResolver(Collections.emptyList()), Collections.emptyList());
         for (Query elasticQuery : queries) {
             SortBuilder sortBuilder = new FieldSortBuilder("_max");
             sortBuilder.order(SortOrder.DESC);

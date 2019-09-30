@@ -142,7 +142,7 @@ public class DbRequestSingle {
     public DbRequestResult execute(Select request)
         throws InvalidParseOperationException, DatabaseException, BadRequestException, InvalidCreateOperationException,
         VitamDBException, SchemaValidationException {
-        DynamicParserTokens parserTokens = new DynamicParserTokens(vitamCollection.getDescriptionLoader().getDescriptionTypeByName(), ontologyLoader.loadOntologies());
+        DynamicParserTokens parserTokens = new DynamicParserTokens(vitamCollection.getVitamDescriptionResolver(), ontologyLoader.loadOntologies());
         return findDocuments(request.getFinalSelect(), parserTokens);
     }
 
@@ -157,7 +157,7 @@ public class DbRequestSingle {
     public DbRequestResult execute(Delete request)
         throws InvalidParseOperationException, DatabaseException, BadRequestException, InvalidCreateOperationException,
         VitamDBException, SchemaValidationException {
-        DynamicParserTokens parserTokens = new DynamicParserTokens(vitamCollection.getDescriptionLoader().getDescriptionTypeByName(), ontologyLoader.loadOntologies());
+        DynamicParserTokens parserTokens = new DynamicParserTokens(vitamCollection.getVitamDescriptionResolver(), ontologyLoader.loadOntologies());
         return deleteDocuments(request.getFinalDelete(), parserTokens);
     }
 
@@ -165,14 +165,14 @@ public class DbRequestSingle {
         throws InvalidParseOperationException, DatabaseException, BadRequestException, InvalidCreateOperationException,
         VitamDBException, SchemaValidationException {
 
-        DynamicParserTokens parserTokens = new DynamicParserTokens(vitamCollection.getDescriptionLoader().getDescriptionTypeByName(), ontologyLoader.loadOntologies());
+        DynamicParserTokens parserTokens = new DynamicParserTokens(vitamCollection.getVitamDescriptionResolver(), ontologyLoader.loadOntologies());
         return updateDocuments(request.getFinalUpdate(), documentValidator, parserTokens);
     }
 
     public DbRequestResult execute(Update request, Integer version, DocumentValidator documentValidator)
         throws InvalidParseOperationException, DatabaseException, BadRequestException, InvalidCreateOperationException,
         VitamDBException, SchemaValidationException {
-        DynamicParserTokens parserTokens = new DynamicParserTokens(vitamCollection.getDescriptionLoader().getDescriptionTypeByName(), ontologyLoader.loadOntologies());
+        DynamicParserTokens parserTokens = new DynamicParserTokens(vitamCollection.getVitamDescriptionResolver(), ontologyLoader.loadOntologies());
         // FIXME either use version parameter or delete it
         return updateDocuments(request.getFinalUpdate(), documentValidator, parserTokens);
     }

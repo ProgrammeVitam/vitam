@@ -98,10 +98,10 @@ public class VitamCollectionTest {
     public void shouldCreateVitamCollection() {
         final List<Class<?>> classList = new ArrayList<>();
         classList.add(CollectionSample.class);
-        VitamDescriptionLoader descriptionLoader = new VitamDescriptionLoader(Collections.emptyMap());
+        VitamDescriptionResolver vitamDescriptionResolver = new VitamDescriptionResolver(Collections.emptyList());
         final VitamCollection vitamCollection =
             VitamCollectionHelper
-                .getCollection(CollectionSample.class, true, false, PREFIX + CollectionSample.class.getSimpleName(), descriptionLoader);
+                .getCollection(CollectionSample.class, true, false, PREFIX + CollectionSample.class.getSimpleName(), vitamDescriptionResolver);
 
         assertEquals(vitamCollection.getClasz(), CollectionSample.class);
         vitamCollection.initialize(esClient);
