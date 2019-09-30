@@ -34,6 +34,7 @@ import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.database.collections.VitamCollection;
 import fr.gouv.vitam.common.database.collections.VitamCollectionHelper;
 import fr.gouv.vitam.common.database.collections.VitamDescriptionLoader;
+import fr.gouv.vitam.common.database.collections.VitamDescriptionResolver;
 import org.bson.Document;
 
 import java.util.ArrayList;
@@ -55,7 +56,7 @@ public enum MetadataCollections {
      */
     OBJECTGROUP(ObjectGroup.class);
 
-    private final VitamDescriptionLoader vitamDescriptionLoader;
+    private final VitamDescriptionResolver vitamDescriptionResolver;
     private VitamCollection vitamCollection;
 
     @VisibleForTesting
@@ -131,8 +132,9 @@ public enum MetadataCollections {
     }
 
     MetadataCollections(final Class<?> clasz) {
-        vitamDescriptionLoader = new VitamDescriptionLoader(clasz.getSimpleName());
-        vitamCollection = VitamCollectionHelper.getCollection(clasz, true, clasz.equals(Unit.class), "", vitamDescriptionLoader);
+        VitamDescriptionLoader vitamDescriptionLoader = new VitamDescriptionLoader(clasz.getSimpleName());
+        vitamDescriptionResolver = vitamDescriptionLoader.getVitamDescriptionResolver();
+        vitamCollection = VitamCollectionHelper.getCollection(clasz, true, clasz.equals(Unit.class), "", vitamDescriptionResolver);
     }
 
     public static List<Class<?>> getClasses() {
@@ -222,8 +224,8 @@ public enum MetadataCollections {
         throw new IllegalArgumentException(collection + " is not in enum MetadataCollections.");
     }
 
-    public VitamDescriptionLoader getVitamDescriptionLoader() {
-        return vitamDescriptionLoader;
+    public VitamDescriptionResolver getVitamDescriptionResolver() {
+        return vitamDescriptionResolver;
     }
 }
 

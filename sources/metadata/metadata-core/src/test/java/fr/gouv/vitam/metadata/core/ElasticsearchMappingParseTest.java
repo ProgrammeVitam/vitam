@@ -64,7 +64,7 @@ public class ElasticsearchMappingParseTest {
 
         Map<String, String> result = parseMapping(resourceFileName);
 
-        DynamicParserTokens parserTokens = new DynamicParserTokens(collection.getVitamDescriptionLoader().getDescriptionTypeByName(), Collections.emptyList());
+        DynamicParserTokens parserTokens = new DynamicParserTokens(collection.getVitamDescriptionResolver(), Collections.emptyList());
 
         for (Map.Entry<String, String> entry : result.entrySet()) {
 
