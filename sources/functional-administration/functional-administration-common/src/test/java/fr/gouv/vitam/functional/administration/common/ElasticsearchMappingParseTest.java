@@ -28,7 +28,6 @@ package fr.gouv.vitam.functional.administration.common;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import fr.gouv.vitam.common.database.collections.DynamicParserTokens;
-import fr.gouv.vitam.common.database.collections.VitamDescriptionLoader;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
@@ -103,9 +102,7 @@ public class ElasticsearchMappingParseTest {
     private void parseAndValidateMappingFile(String resourceFileName,
         FunctionalAdminCollections collections) throws InvalidParseOperationException {
 
-        VitamDescriptionLoader descriptionLoader = collections.getVitamCollection().getDescriptionLoader();
-
-        DynamicParserTokens parserTokens = new DynamicParserTokens(descriptionLoader.getDescriptionTypeByName(), Collections.emptyList());
+        DynamicParserTokens parserTokens = new DynamicParserTokens(collections.getVitamCollection().getVitamDescriptionResolver(), Collections.emptyList());
 
         Map<String, String> result = parseMapping(resourceFileName);
 

@@ -35,36 +35,35 @@ import fr.gouv.vitam.common.exception.VitamRuntimeException;
 import fr.gouv.vitam.common.json.JsonHandler;
 
 import java.io.FileNotFoundException;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 public class VitamDescriptionLoader {
     private static final TypeReference<List<VitamDescriptionType>> LIST_TYPE_REFERENCE = new TypeReference<List<VitamDescriptionType>>() {};
 
-    private final Map<String, VitamDescriptionType> descriptionTypeByName;
+    private final VitamDescriptionResolver vitamDescriptionResolver;
 
     @VisibleForTesting
-    public VitamDescriptionLoader(Map<String, VitamDescriptionType> descriptionTypeByName) {
-        this.descriptionTypeByName = descriptionTypeByName;
+    public VitamDescriptionLoader(List<VitamDescriptionType> descriptionTypeByName) {
+        this.vitamDescriptionResolver = new VitamDescriptionResolver(descriptionTypeByName);
     }
 
     public VitamDescriptionLoader(String collectionName) {
-        this.descriptionTypeByName = getDescriptions(collectionName + "-vitam-description.json");
+        this(loadDescriptions(collectionName + "-vitam-description.json"));
     }
 
-    private Map<String, VitamDescriptionType> getDescriptions(String fileName) {
+    private static List<VitamDescriptionType> loadDescriptions(String fileName) {
         try {
-            return Collections.unmodifiableList(JsonHandler.getFromInputStreamAsTypeRefence(PropertiesUtils.getResourceAsStream(fileName), LIST_TYPE_REFERENCE))
-                .stream()
-                .collect(Collectors.toMap(VitamDescriptionType::getPath, v -> v));
+            return new ArrayList<>(Collections.unmodifiableList(JsonHandler
+                .getFromInputStreamAsTypeRefence(PropertiesUtils.getResourceAsStream(fileName), LIST_TYPE_REFERENCE)));
         } catch (InvalidParseOperationException | FileNotFoundException | InvalidFormatException e) {
             throw new VitamRuntimeException(e);
         }
     }
 
-    public Map<String, VitamDescriptionType> getDescriptionTypeByName() {
-        return descriptionTypeByName;
+    public VitamDescriptionResolver getVitamDescriptionResolver() {
+        return vitamDescriptionResolver;
     }
 }

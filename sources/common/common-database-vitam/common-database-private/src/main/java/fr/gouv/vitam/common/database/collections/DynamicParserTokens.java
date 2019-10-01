@@ -37,16 +37,16 @@ import java.util.stream.Collectors;
 public class DynamicParserTokens {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(DynamicParserTokens.class);
 
-    private final Map<String, VitamDescriptionType> descriptionTypeByName;
+    private final VitamDescriptionResolver vitamDescriptionResolver;
     private final Map<String, OntologyModel> ontologyModelsByName;
 
-    public DynamicParserTokens(Map<String, VitamDescriptionType> descriptionTypeByName, List<OntologyModel> ontologyModels) {
-        this.descriptionTypeByName = descriptionTypeByName;
+    public DynamicParserTokens(VitamDescriptionResolver vitamDescriptionResolver, List<OntologyModel> ontologyModels) {
+        this.vitamDescriptionResolver = vitamDescriptionResolver;
         this.ontologyModelsByName = ontologyModels.stream().collect(Collectors.toMap(OntologyModel::getIdentifier, o -> o));
     }
 
     public boolean isNotAnalyzed(String name) {
-        VitamDescriptionType description = descriptionTypeByName.get(name);
+        VitamDescriptionType description = vitamDescriptionResolver.resolve(name);
 
         if (description != null) {
             return !description.getType().equals(VitamDescriptionType.VitamType.text);
@@ -62,7 +62,7 @@ public class DynamicParserTokens {
     }
 
     public boolean isAnArray(String name) {
-        VitamDescriptionType description = descriptionTypeByName.get(name);
+        VitamDescriptionType description = vitamDescriptionResolver.resolve(name);
         if (description == null) {
             LOGGER.info(String.format("By default unknown fields are array so here '%s' is an ARRAY.", name));
             return true;

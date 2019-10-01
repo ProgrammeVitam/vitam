@@ -50,7 +50,7 @@ import static com.mongodb.client.model.Indexes.hashed;
  */
 public class VitamCollection {
     private final Class<?> clasz;
-    private final VitamDescriptionLoader descriptionLoader;
+    private final VitamDescriptionResolver vitamDescriptionResolver;
     private String name;
     private MongoCollection<?> collection;
     private ElasticsearchAccess esClient;
@@ -92,9 +92,9 @@ public class VitamCollection {
         return TYPEUNIQUE;
     }
 
-    protected VitamCollection(final Class<?> clasz, final boolean isMultiTenant, final boolean useScore, String prefix, VitamDescriptionLoader descriptionLoader) {
+    protected VitamCollection(final Class<?> clasz, final boolean isMultiTenant, final boolean useScore, String prefix, VitamDescriptionResolver vitamDescriptionResolver) {
         this.clasz = clasz;
-        this.descriptionLoader = descriptionLoader;
+        this.vitamDescriptionResolver = vitamDescriptionResolver;
         name = prefix + clasz.getSimpleName();
         this.isMultiTenant = isMultiTenant;
         this.useScore = useScore;
@@ -238,7 +238,7 @@ public class VitamCollection {
         this.createIndexByTenant = createIndexByTenant;
     }
 
-    public VitamDescriptionLoader getDescriptionLoader() {
-        return descriptionLoader;
+    public VitamDescriptionResolver getVitamDescriptionResolver() {
+        return vitamDescriptionResolver;
     }
 }

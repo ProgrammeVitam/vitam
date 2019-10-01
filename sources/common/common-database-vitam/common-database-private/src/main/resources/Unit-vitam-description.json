@@ -443,6 +443,12 @@
     "cardinality": "one"
   },
   {
+    "pathRegex": "Description_.[a-zA-Z]{1,8}(-[a-zA-Z0-9]{1,8})*",
+    "type": "text",
+    "indexed": true,
+    "cardinality": "one"
+  },
+  {
     "path": "DescriptionLanguage",
     "type": "keyword",
     "indexed": true,
@@ -1615,6 +1621,12 @@
   {
     "path": "Titles",
     "type": "object",
+    "indexed": true,
+    "cardinality": "one"
+  },
+  {
+    "pathRegex": "Title_.[a-zA-Z]{1,8}(-[a-zA-Z0-9]{1,8})*",
+    "type": "text",
     "indexed": true,
     "cardinality": "one"
   },

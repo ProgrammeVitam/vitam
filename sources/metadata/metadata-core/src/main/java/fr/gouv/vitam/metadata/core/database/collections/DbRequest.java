@@ -192,8 +192,7 @@ public class DbRequest {
                 LOGGER.debug("DEBUG update {} to update to {}", jsonDocument,
                     JsonHandler.prettyPrint(ruleActions));
             }
-            DynamicParserTokens parserTokens = new DynamicParserTokens(metadataCollections.getVitamDescriptionLoader().getDescriptionTypeByName(),
-                ontologyModels);
+            DynamicParserTokens parserTokens = new DynamicParserTokens(metadataCollections.getVitamDescriptionResolver(), ontologyModels);
             final MongoDbInMemory mongoInMemory = new MongoDbInMemory(jsonDocument,
                 parserTokens);
 
@@ -286,7 +285,7 @@ public class DbRequest {
             roots = checkObjectGroupStartupRoots(requestParser);
         }
 
-        DynamicParserTokens parserTokens = new DynamicParserTokens(metadataCollections.getVitamDescriptionLoader().getDescriptionTypeByName(), ontologies);
+        DynamicParserTokens parserTokens = new DynamicParserTokens(metadataCollections.getVitamDescriptionResolver(), ontologies);
 
         Result<MetadataDocument<?>> result = roots;
         int rank = 0;
@@ -930,7 +929,7 @@ public class DbRequest {
             final Integer documentVersion = document.getVersion();
 
             final JsonNode jsonDocument = JsonHandler.toJsonNode(document);
-            DynamicParserTokens parserTokens = new DynamicParserTokens(metadataCollection.getVitamDescriptionLoader().getDescriptionTypeByName(), ontologyModels);
+            DynamicParserTokens parserTokens = new DynamicParserTokens(metadataCollection.getVitamDescriptionResolver(), ontologyModels);
             final MongoDbInMemory mongoInMemory = new MongoDbInMemory(jsonDocument, parserTokens);
             final ObjectNode updatedJsonDocument = (ObjectNode) mongoInMemory.getUpdateJson(requestParser);
 

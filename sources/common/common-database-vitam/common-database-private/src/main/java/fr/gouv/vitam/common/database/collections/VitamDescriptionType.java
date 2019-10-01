@@ -34,13 +34,15 @@ import java.util.Objects;
 
 public class VitamDescriptionType {
     private final String path;
+    private final String pathRegex;
     private final VitamType type;
     private final VitamCardinality cardinality;
     private final boolean indexed;
 
     @JsonCreator
-    public VitamDescriptionType(@JsonProperty("path") String path, @JsonProperty("type") VitamType type, @JsonProperty("cardinality") VitamCardinality cardinality, @JsonProperty("indexed") boolean indexed) {
+    public VitamDescriptionType(@JsonProperty("path") String path, @JsonProperty("pathRegex") String pathRegex, @JsonProperty("type") VitamType type, @JsonProperty("cardinality") VitamCardinality cardinality, @JsonProperty("indexed") boolean indexed) {
         this.path = path;
+        this.pathRegex = pathRegex;
         this.type = type;
         this.cardinality = cardinality;
         this.indexed = indexed;
@@ -49,6 +51,11 @@ public class VitamDescriptionType {
     @JsonProperty("path")
     public String getPath() {
         return path;
+    }
+
+    @JsonProperty("pathRegex")
+    public String getPathRegex() {
+        return pathRegex;
     }
 
     @JsonProperty("type")
@@ -83,7 +90,7 @@ public class VitamDescriptionType {
     @JsonIgnore
     @Override
     public int hashCode() {
-        return Objects.hash(path, type, cardinality, indexed);
+        return Objects.hash(path, pathRegex, type, cardinality, indexed);
     }
 
     @JsonIgnore
@@ -91,6 +98,7 @@ public class VitamDescriptionType {
     public String toString() {
         return "VitamDescriptionType{" +
             "path='" + path + '\'' +
+            ", pathRegex='" + pathRegex + '\'' +
             ", type=" + type +
             ", cardinality=" + cardinality +
             ", indexed=" + indexed +

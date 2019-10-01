@@ -1,0 +1,15 @@
+{
+  "$query": [
+    {
+      "$match": {
+        "Title": "reportage juillet"
+      }
+    }
+  ],
+  "$threshold": 1000,
+  "$action": [
+    {
+      "$set": { "Title_.fr": "Good title" }
+    }
+  ]
+}
