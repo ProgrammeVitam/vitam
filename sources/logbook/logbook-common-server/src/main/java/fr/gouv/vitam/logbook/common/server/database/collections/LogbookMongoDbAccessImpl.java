@@ -1487,7 +1487,7 @@ public final class LogbookMongoDbAccessImpl extends MongoDbAccess implements Log
         Integer tenantId = HeaderIdHelper.getTenantId();
         final SelectToElasticsearch requestToEs = new SelectToElasticsearch(parser);
         DynamicParserTokens parserTokens =
-            new DynamicParserTokens(collection.getVitamDescriptionLoader().getDescriptionTypeByName(), ontologyLoader.loadOntologies());
+            new DynamicParserTokens(collection.getVitamDescriptionResolver(), ontologyLoader.loadOntologies());
         List<SortBuilder> sorts = requestToEs.getFinalOrderBy(collection.getVitamCollection().isUseScore(), parserTokens);
         SearchResponse elasticSearchResponse =
             collection.getEsClient()

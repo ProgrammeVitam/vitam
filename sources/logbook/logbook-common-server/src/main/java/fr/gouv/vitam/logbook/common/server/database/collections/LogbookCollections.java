@@ -34,6 +34,7 @@ import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.database.collections.VitamCollection;
 import fr.gouv.vitam.common.database.collections.VitamCollectionHelper;
 import fr.gouv.vitam.common.database.collections.VitamDescriptionLoader;
+import fr.gouv.vitam.common.database.collections.VitamDescriptionResolver;
 import org.bson.Document;
 
 import java.util.ArrayList;
@@ -67,7 +68,7 @@ public enum LogbookCollections {
      */
     LIFECYCLE_OBJECTGROUP_IN_PROCESS(LogbookLifeCycleObjectGroupInProcess.class);
 
-    private final VitamDescriptionLoader vitamDescriptionLoader;
+    private final VitamDescriptionResolver vitamDescriptionResolver;
     private VitamCollection vitamCollection;
 
     @VisibleForTesting
@@ -148,8 +149,9 @@ public enum LogbookCollections {
     public final static String ID = "_id";
 
     LogbookCollections(final Class<?> clasz) {
-        vitamDescriptionLoader = new VitamDescriptionLoader(clasz.getSimpleName());
-        vitamCollection = VitamCollectionHelper.getCollection(clasz, true, false, "", vitamDescriptionLoader);
+        VitamDescriptionLoader vitamDescriptionLoader = new VitamDescriptionLoader(clasz.getSimpleName());
+        vitamDescriptionResolver = vitamDescriptionLoader.getVitamDescriptionResolver();
+        vitamCollection = VitamCollectionHelper.getCollection(clasz, true, false, "", vitamDescriptionResolver);
     }
 
     public static List<Class<?>> getClasses() {
@@ -216,7 +218,7 @@ public enum LogbookCollections {
         return (LogbookElasticsearchAccess) vitamCollection.getEsClient();
     }
 
-    public VitamDescriptionLoader getVitamDescriptionLoader() {
-        return vitamDescriptionLoader;
+    public VitamDescriptionResolver getVitamDescriptionResolver() {
+        return vitamDescriptionResolver;
     }
 }
