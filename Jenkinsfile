@@ -245,16 +245,16 @@ pipeline {
                         , allowEmptyArchive: true
 
                     )
-                    githubNotify status: "SUCCESS" description: "Build successul"
+                    githubNotify status: "SUCCESS", description: "Build successul"
                 }
                 failure {
-                    githubNotify status: "FAILURE" description: "Build failed"
+                    githubNotify status: "FAILURE", description: "Build failed"
                 }
                 unstable {
-                    githubNotify status: "FAILURE" description: "Build unstable"
+                    githubNotify status: "FAILURE", description: "Build unstable"
                 }
                 aborted {
-                    githubNotify status: "ERROR" description: "Build canceled"
+                    githubNotify status: "ERROR", description: "Build canceled"
                 }
             }
         }
