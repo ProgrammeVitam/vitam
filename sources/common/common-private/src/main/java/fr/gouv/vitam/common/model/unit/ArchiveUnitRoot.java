@@ -31,20 +31,16 @@ package fr.gouv.vitam.common.model.unit;
  */
 public class ArchiveUnitRoot {
 
-    private ArchiveUnitModel archiveUnit;
+    private ArchiveUnitInternalModel archiveUnit;
 
     /**
      * Constructor
      */
     public ArchiveUnitRoot() {
-        archiveUnit = new ArchiveUnitModel();
+        archiveUnit = new ArchiveUnitInternalModel();
     }
 
-    /**
-     * Get Archive Unit
-     * @return the archive unit as a {@link ArchiveUnitModel}
-     */
-    public ArchiveUnitModel getArchiveUnit() {
+    public ArchiveUnitInternalModel getArchiveUnit() {
         return archiveUnit;
     }
 }

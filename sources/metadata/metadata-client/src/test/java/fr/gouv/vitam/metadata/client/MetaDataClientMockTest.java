@@ -31,13 +31,6 @@ public class MetaDataClientMockTest {
     }
 
     @Test
-    public void insertUnitTest()
-        throws MetaDataExecutionException, MetaDataNotFoundException, MetaDataAlreadyExistException,
-        MetaDataDocumentSizeException, MetaDataClientServerException, InvalidParseOperationException {
-        assertNotNull(client.insertUnit(JsonHandler.getFromString(VALID_QUERY)));
-    }
-
-    @Test
     public void selectUnitsTest()
         throws MetaDataExecutionException, MetaDataDocumentSizeException, MetaDataClientServerException,
         InvalidParseOperationException, VitamDBException {

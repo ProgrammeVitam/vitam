@@ -51,6 +51,7 @@ import fr.gouv.vitam.metadata.api.exception.MetaDataDocumentSizeException;
 import fr.gouv.vitam.metadata.api.exception.MetaDataExecutionException;
 import fr.gouv.vitam.metadata.api.exception.MetaDataNotFoundException;
 import fr.gouv.vitam.metadata.api.exception.MetadataInvalidSelectException;
+import fr.gouv.vitam.metadata.api.model.BulkUnitInsertRequest;
 import fr.gouv.vitam.metadata.api.model.ObjectGroupPerOriginatingAgency;
 import fr.gouv.vitam.metadata.api.model.UnitPerOriginatingAgency;
 
@@ -59,23 +60,7 @@ import fr.gouv.vitam.metadata.api.model.UnitPerOriginatingAgency;
  */
 public interface MetaDataClient extends BasicClient {
 
-    /**
-     * @param insertQuery as JsonNode <br>
-     * null is not allowed
-     * @return the result as JsonNode
-     * @throws InvalidParseOperationException
-     * @throws MetaDataExecutionException
-     * @throws MetaDataNotFoundException
-     * @throws MetaDataAlreadyExistException
-     * @throws MetaDataDocumentSizeException
-     * @throws MetaDataClientServerException
-     */
-    JsonNode insertUnit(JsonNode insertQuery)
-        throws InvalidParseOperationException, MetaDataExecutionException,
-        MetaDataNotFoundException, MetaDataAlreadyExistException, MetaDataDocumentSizeException,
-        MetaDataClientServerException;
-
-    JsonNode insertUnitBulk(List<ObjectNode> insertQuery)
+    JsonNode insertUnitBulk(BulkUnitInsertRequest request)
         throws InvalidParseOperationException, MetaDataExecutionException, MetaDataNotFoundException,
         MetaDataAlreadyExistException, MetaDataDocumentSizeException, MetaDataClientServerException;
 

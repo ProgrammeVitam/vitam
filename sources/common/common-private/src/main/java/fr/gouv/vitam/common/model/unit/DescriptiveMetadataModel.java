@@ -51,95 +51,131 @@ import fr.gouv.culture.archivesdefrance.seda.v2.TextType;
  */
 public class DescriptiveMetadataModel {
 
+    @JsonProperty("DescriptionLevel")
     private LevelType descriptionLevel;
 
+    @JsonProperty("Title")
     private String title;
 
+    @JsonProperty("Title_")
     private TextByLang title_;
 
+    @JsonProperty("FilePlanPosition")
     private List<String> filePlanPosition;
 
+    @JsonProperty("SystemId")
     private List<String> systemId;
 
+    @JsonProperty("OriginatingSystemId")
     private List<String> originatingSystemId;
 
+    @JsonProperty("ArchivalAgencyArchiveUnitIdentifier")
     private List<String> archivalAgencyArchiveUnitIdentifier;
 
+    @JsonProperty("OriginatingAgencyArchiveUnitIdentifier")
     private List<String> originatingAgencyArchiveUnitIdentifier;
 
+    @JsonProperty("TransferringAgencyArchiveUnitIdentifier")
     private List<String> transferringAgencyArchiveUnitIdentifier;
 
+    @JsonProperty("Description")
     private String description;
 
+    @JsonProperty("Description_")
     private TextByLang description_;
 
+    @JsonProperty("CustodialHistory")
     private CustodialHistoryModel custodialHistory;
 
+    @JsonProperty("Type")
     private TextType type;
 
+    @JsonProperty("DocumentType")
     private TextType documentType;
 
+    @JsonProperty("Language")
     private List<String> language;
 
+    @JsonProperty("DescriptionLanguage")
     private String descriptionLanguage;
 
+    @JsonProperty("Status")
     private String status;
 
+    @JsonProperty("Version")
     private String version;
 
+    @JsonProperty("Tag")
     private List<String> tag;
 
+    @JsonProperty("Keyword")
     private List<KeywordsType> keyword;
 
+    @JsonProperty("Coverage")
     private CoverageType coverage;
 
+    @JsonProperty("OriginatingAgency")
     private OrganizationType originatingAgency;
 
+    @JsonProperty("SubmissionAgency")
     private OrganizationType submissionAgency;
 
+    @JsonProperty("AuthorizedAgent")
     private List<AgentTypeModel> authorizedAgent;
 
+    @JsonProperty("Writer")
     private List<AgentTypeModel> writer;
 
+    @JsonProperty("Addressee")
     private List<AgentTypeModel> addressee;
 
+    @JsonProperty("Recipient")
     private List<AgentTypeModel> recipient;
 
+    @JsonProperty("Transmitter")
     private List<AgentTypeModel> transmitter;
 
+    @JsonProperty("Sender")
     private List<AgentTypeModel> sender;
 
+    @JsonProperty("Source")
     private String source;
 
+    @JsonProperty("RelatedObjectReference")
     private RelatedObjectReferenceType relatedObjectReference;
 
+    @JsonProperty("CreatedDate")
     private String createdDate;
 
+    @JsonProperty("TransactedDate")
     private String transactedDate;
 
+    @JsonProperty("AcquiredDate")
     private String acquiredDate;
 
+    @JsonProperty("SentDate")
     private String sentDate;
 
+    @JsonProperty("ReceivedDate")
     private String receivedDate;
 
+    @JsonProperty("RegisteredDate")
     private String registeredDate;
 
+    @JsonProperty("StartDate")
     private String startDate;
 
+    @JsonProperty("EndDate")
     private String endDate;
 
+    @JsonProperty("Event")
     private List<EventType> event;
 
+    @JsonProperty("Signature")
     private List<SignatureType> signature;
 
+    @JsonProperty("Gps")
     private GpsType gps;
-
-    @JsonProperty("_sedaVersion")
-    private String sedaVersion;
-
-    @JsonProperty("_implementationVersion")
-    private String implementationVersion;
 
     @JsonIgnore
     private Map<String, Object> any = new HashMap<>();
@@ -791,33 +827,4 @@ public class DescriptiveMetadataModel {
         }
         this.any.put(key, value);
     }
-
-    /**
-     * @return sedaVersion
-     */
-    public String getSedaVersion() {
-        return sedaVersion;
-    }
-
-    /**
-     * @param sedaVersion
-     */
-    public void setSedaVersion(String sedaVersion) {
-        this.sedaVersion = sedaVersion;
-    }
-
-    /**
-     * @return implementationVersion
-     */
-    public String getImplementationVersion() {
-        return implementationVersion;
-    }
-
-    /**
-     * @param implementationVersion
-     */
-    public void setImplementationVersion(String implementationVersion) {
-        this.implementationVersion = implementationVersion;
-    }
-
 }

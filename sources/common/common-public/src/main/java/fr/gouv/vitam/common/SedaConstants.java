@@ -454,11 +454,6 @@ public class SedaConstants {
      */
     public static final String TAG_RULE_NEED_AUTHORISATION = "NeedAuthorization";
 
-    /**
-     * tag of Management
-     */
-    public static final String TAG_MANAGEMENT = "Management";
-
     // Tag's attributes used in SEDA
     public static final String TAG_ATTRIBUTE_LANG = "lang";
     public static final String TAG_ATTRIBUTE_UNIT = "unit";

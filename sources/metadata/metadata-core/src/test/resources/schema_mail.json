@@ -38,20 +38,20 @@
         "array"
       ]
     },
-    "Management": {
-      "id": "http://example.com/root.json/ArchiveUnit/Management",
+    "_mgt": {
+      "id": "http://example.com/root.json/ArchiveUnit/_mgt",
       "additionalProperties": false,
       "properties": {
         "AppraisalRule": {
           "type": "object",
-          "id": "http://example.com/root.json/ArchiveUnit/Management/AppraisalRule",
+          "id": "http://example.com/root.json/ArchiveUnit/_mgt/AppraisalRule",
           "properties": {
             "Rules": {
               "type": "array",
-              "id": "http://example.com/root.json/ArchiveUnit/Management/AppraisalRule/Rules",
+              "id": "http://example.com/root.json/ArchiveUnit/_mgt/AppraisalRule/Rules",
               "description": "An explanation about the purpose of this instance.",
               "items": {
-                "id": "http://example.com/root.json/ArchiveUnit/Management/AppraisalRule/Rules/Item/0",
+                "id": "http://example.com/root.json/ArchiveUnit/_mgt/AppraisalRule/Rules/Item/0",
                 "type": "object",
                 "properties": {
                   "Rule": {
@@ -102,14 +102,14 @@
         },
         "StorageRule": {
           "type": "object",
-          "id": "http://example.com/root.json/ArchiveUnit/Management/StorageRule",
+          "id": "http://example.com/root.json/ArchiveUnit/_mgt/StorageRule",
           "properties": {
             "Rules": {
               "type": "array",
-              "id": "http://example.com/root.json/ArchiveUnit/Management/StorageRule/Rules",
+              "id": "http://example.com/root.json/ArchiveUnit/_mgt/StorageRule/Rules",
               "description": "An explanation about the purpose of this instance.",
               "items": {
-                "id": "http://example.com/root.json/ArchiveUnit/Management/StorageRule/Rules/Item/0",
+                "id": "http://example.com/root.json/ArchiveUnit/_mgt/StorageRule/Rules/Item/0",
                 "type": "object",
                 "properties": {
                   "Rule": {
@@ -152,14 +152,14 @@
         },
         "AccessRule": {
           "type": "object",
-          "id": "http://example.com/root.json/ArchiveUnit/Management/AccessRule",
+          "id": "http://example.com/root.json/ArchiveUnit/_mgt/AccessRule",
           "properties": {
             "Rules": {
               "type": "array",
-              "id": "http://example.com/root.json/ArchiveUnit/Management/AccessRule/Rules",
+              "id": "http://example.com/root.json/ArchiveUnit/_mgt/AccessRule/Rules",
               "description": "An explanation about the purpose of this instance.",
               "items": {
-                "id": "http://example.com/root.json/ArchiveUnit/Management/AccessRule/Rules/Item/0",
+                "id": "http://example.com/root.json/ArchiveUnit/_mgt/AccessRule/Rules/Item/0",
                 "type": "object",
                 "properties": {
                   "Rule": {

@@ -3,7 +3,7 @@
     "_id": "aeaqaaaaaahfrfvaaahrgak25v5fttiaaaaq",
     "StartDate": "2017-12-12T23:00:00.000Z",
     "EndDate": "2017-12-12T23:00:00.000Z",
-    "Management": {
+    "_mgt": {
       "StorageRule": {
         "Rules": [
           {

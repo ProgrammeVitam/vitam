@@ -28,7 +28,7 @@
       "g1String"
     ],
   	"Writer":[{"BirthDate":"2016-09-26Z"}],    
-    "Management": {
+    "_mgt": {
       "AccessRule": {
         "Rules": [
           {

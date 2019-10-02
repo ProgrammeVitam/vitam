@@ -47,6 +47,7 @@ import fr.gouv.vitam.metadata.api.exception.MetaDataAlreadyExistException;
 import fr.gouv.vitam.metadata.api.exception.MetaDataDocumentSizeException;
 import fr.gouv.vitam.metadata.api.exception.MetaDataExecutionException;
 import fr.gouv.vitam.metadata.api.exception.MetaDataNotFoundException;
+import fr.gouv.vitam.metadata.api.model.BulkUnitInsertRequest;
 import fr.gouv.vitam.metadata.api.model.ObjectGroupPerOriginatingAgency;
 import fr.gouv.vitam.metadata.core.MetaDataImpl;
 import fr.gouv.vitam.metadata.core.model.UpdateUnit;
@@ -105,80 +106,17 @@ public class MetadataResource extends ApplicationStatusResource {
     /**
      * Insert unit with json request
      *
-     * @param insertRequest the insert request in JsonNode format
-     * @return Response
-     */
-    @Path("units")
-    @POST
-    @Consumes(APPLICATION_JSON)
-    @Produces(APPLICATION_JSON)
-    public Response insertUnit(JsonNode insertRequest) {
-        Status status;
-        try {
-            metaData.insertUnit(insertRequest);
-        } catch (final MetaDataExecutionException ve) {
-            LOGGER.error(ve);
-            status = Status.INTERNAL_SERVER_ERROR;
-            return Response.status(status)
-                .entity(new VitamError(status.name()).setHttpCode(status.getStatusCode())
-                    .setContext(INGEST)
-                    .setState(CODE_VITAM)
-                    .setMessage(status.getReasonPhrase())
-                    .setDescription(ve.getMessage()))
-                .build();
-        } catch (final InvalidParseOperationException e) {
-            LOGGER.error(e);
-            status = Status.BAD_REQUEST;
-            return Response.status(status)
-                .entity(new VitamError(status.name()).setHttpCode(status.getStatusCode())
-                    .setContext(INGEST)
-                    .setState(CODE_VITAM)
-                    .setMessage(status.getReasonPhrase())
-                    .setDescription(e.getMessage()))
-                .build();
-        } catch (final MetaDataNotFoundException e) {
-            LOGGER.error(e);
-            status = Status.NOT_FOUND;
-            return Response.status(status)
-                .entity(new VitamError(status.name()).setHttpCode(status.getStatusCode())
-                    .setContext(INGEST)
-                    .setState(CODE_VITAM)
-                    .setMessage(status.getReasonPhrase())
-                    .setDescription(e.getMessage()))
-                .build();
-        } catch (final MetaDataAlreadyExistException e) {
-            LOGGER.error(e);
-            status = Status.CONFLICT;
-            return Response.status(status)
-                .entity(new VitamError(status.name()).setHttpCode(status.getStatusCode())
-                    .setContext(INGEST)
-                    .setState(CODE_VITAM)
-                    .setMessage(status.getReasonPhrase())
-                    .setDescription(e.getMessage()))
-                .build();
-        }
-        RequestResponseOK responseOK = new RequestResponseOK(insertRequest);
-        responseOK.setHits(1, 0, 1)
-            .setHttpCode(Status.CREATED.getStatusCode());
-        return Response.status(Status.CREATED)
-            .entity(responseOK)
-            .build();
-    }
-
-    /**
-     * Insert unit with json request
-     *
-     * @param jsonNodes the insert request in JsonNode format
+     * @param request the bulk insert request
      * @return Response
      */
     @Path("units/bulk")
     @POST
     @Consumes(APPLICATION_JSON)
     @Produces(APPLICATION_JSON)
-    public Response insertUnitBulk(List<JsonNode> jsonNodes) {
+    public Response insertUnitBulk(BulkUnitInsertRequest request) {
         Status status;
         try {
-            metaData.insertUnits(jsonNodes);
+            metaData.insertUnits(request);
         } catch (final MetaDataExecutionException ve) {
             LOGGER.error(ve);
             status = Status.INTERNAL_SERVER_ERROR;
@@ -221,12 +159,7 @@ public class MetadataResource extends ApplicationStatusResource {
                 .build();
         }
 
-        // transform request in jsonNode to add it in answer
-        ArrayNode arrayNode = JsonHandler.createArrayNode();
-        jsonNodes.forEach(arrayNode::add);
-
-        RequestResponseOK responseOK = new RequestResponseOK(arrayNode);
-        responseOK.setHits(arrayNode.size(), 0, arrayNode.size())
+        RequestResponseOK responseOK = new RequestResponseOK()
             .setHttpCode(Status.CREATED.getStatusCode());
         return Response.status(Status.CREATED)
             .entity(responseOK)

@@ -1,4 +1,4 @@
-/*******************************************************************************
+/*
  * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2019)
  *
  * contact.vitam@culture.gouv.fr
@@ -23,7 +23,7 @@
  *
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
- *******************************************************************************/
+ */
 package fr.gouv.vitam.worker.core.mapping;
 
 import com.google.common.collect.Iterables;
@@ -41,8 +41,9 @@ import fr.gouv.culture.archivesdefrance.seda.v2.ManagementHistoryType;
 import fr.gouv.culture.archivesdefrance.seda.v2.ManagementType;
 import fr.gouv.culture.archivesdefrance.seda.v2.ReuseRuleType;
 import fr.gouv.culture.archivesdefrance.seda.v2.StorageRuleType;
+import fr.gouv.vitam.common.model.VitamConstants;
 import fr.gouv.vitam.common.model.unit.ArchiveUnitHistoryModel;
-import fr.gouv.vitam.common.model.unit.ArchiveUnitModel;
+import fr.gouv.vitam.common.model.unit.ArchiveUnitInternalModel;
 import fr.gouv.vitam.common.model.unit.ArchiveUnitRoot;
 import fr.gouv.vitam.common.model.unit.DataObjectReference;
 import fr.gouv.vitam.common.model.unit.DescriptiveMetadataModel;
@@ -52,6 +53,7 @@ import fr.gouv.vitam.processing.common.exception.ProcessingMalformedDataExceptio
 import fr.gouv.vitam.processing.common.exception.ProcessingObjectReferenceException;
 
 import javax.xml.bind.JAXBElement;
+import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -75,15 +77,23 @@ public class ArchiveUnitMapper {
      * @param archiveUnitType
      * @param id
      * @param groupId
+     * @param operationId
+     * @param unitType
      * @return ArchiveUnitRoot
      */
-    public ArchiveUnitRoot map(ArchiveUnitType archiveUnitType, String id, String groupId)
+    public ArchiveUnitRoot map(ArchiveUnitType archiveUnitType, String id, String groupId, String operationId,
+        String unitType)
         throws ProcessingMalformedDataException, ProcessingObjectReferenceException {
 
         ArchiveUnitRoot archiveUnitRoot = new ArchiveUnitRoot();
-        ArchiveUnitModel archiveUnit = archiveUnitRoot.getArchiveUnit();
+        ArchiveUnitInternalModel archiveUnit = archiveUnitRoot.getArchiveUnit();
         archiveUnit.setId(id);
         archiveUnit.setOg(groupId);
+
+        archiveUnit.setOpi(operationId);
+        archiveUnit.setOps(Collections.singletonList(operationId));
+
+        archiveUnit.setUnitType(unitType);
 
         IdentifierType archiveUnitProfile = archiveUnitType.getArchiveUnitProfile();
         if (archiveUnitProfile != null) {
@@ -97,16 +107,25 @@ public class ArchiveUnitMapper {
             archiveUnit.setDescriptiveMetadataModel(new DescriptiveMetadataModel());
         }
 
-        archiveUnit.setDataObjectReference(mapDataObjectReference(archiveUnitType));
+        mapAndValidateDataObjectReference(archiveUnitType);
 
         fillManagement(archiveUnitType.getManagement(), archiveUnit.getManagement());
         if (archiveUnitType.getContent() != null && archiveUnitType.getContent().getHistory() != null) {
             fillHistory(archiveUnitType.getContent().getHistory(), archiveUnit.getHistory());
         }
+
+        archiveUnit.setSedaVersion(VitamConstants.SEDA_CURRENT_VERSION);
+        String vitamImplVersion = this.getClass().getPackage().getImplementationVersion();
+        if (vitamImplVersion != null) {
+            archiveUnit.setImplementationVersion(vitamImplVersion);
+        } else {
+            archiveUnit.setImplementationVersion("");
+        }
+
         return archiveUnitRoot;
     }
 
-    public DataObjectReference mapDataObjectReference(ArchiveUnitType archiveUnitType)
+    public DataObjectReference mapAndValidateDataObjectReference(ArchiveUnitType archiveUnitType)
         throws ProcessingObjectReferenceException {
         List<DataObjectReference> objectReferences =
             archiveUnitType.getArchiveUnitOrDataObjectReferenceOrDataObjectGroup().stream()

@@ -127,8 +127,7 @@ public class IndexUnitActionPluginTest {
         when(metaDataClientFactory.getClient()).thenReturn(metadataClient);
         plugin = new IndexUnitActionPlugin(metaDataClientFactory);
         globalSEDAParameter = PropertiesUtils.getResourceFile(ATR_GLOBAL_SEDA_PARAMETERS);
-        when(handlerIO.getInput(0)).thenReturn("INGEST");
-        when(handlerIO.getInput(1)).thenReturn(globalSEDAParameter);
+        when(handlerIO.getInput(0)).thenReturn(globalSEDAParameter);
 
     }
 

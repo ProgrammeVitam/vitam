@@ -24,44 +24,53 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  *******************************************************************************/
-package fr.gouv.vitam.common.utils;
+package fr.gouv.vitam.metadata.api.model;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.JsonNode;
-import fr.gouv.vitam.common.SedaConstants;
-import fr.gouv.vitam.common.VitamConfiguration;
-import fr.gouv.vitam.common.json.JsonHandler;
 
-/**
- * classification level service
- */
-public class ClassificationLevelUtil {
+import java.util.Set;
 
-    private static final String PATH_CLASSIFICATION_LEVEL
-        = SedaConstants.TAG_ARCHIVE_UNIT + "."
-        + SedaConstants.PREFIX_MGT + "."
-        + SedaConstants.TAG_RULE_CLASSIFICATION + "."
-        + SedaConstants.TAG_RULE_CLASSIFICATION_LEVEL;
+public class BulkUnitInsertEntry {
 
-    private ClassificationLevelUtil() {
+    public BulkUnitInsertEntry() {
+        // Empty constructor for deserialization
     }
 
-    public static boolean checkClassificationLevel(JsonNode archiveUnit) {
-        String classificationLevelValue = null;
-        JsonNode classificationLevel = JsonHandler.findNode(archiveUnit, PATH_CLASSIFICATION_LEVEL);
-
-        if (!classificationLevel.isMissingNode()) {
-            classificationLevelValue = classificationLevel.asText();
-        }
-
-        return checkClassificationLevel(classificationLevelValue);
+    public BulkUnitInsertEntry(Set<String> parentUnitIds, JsonNode unit) {
+        this.parentUnitIds = parentUnitIds;
+        this.unit = unit;
     }
 
-    public static boolean checkClassificationLevel(String classificationLevelValue) {
-        if (classificationLevelValue != null) {
-            return VitamConfiguration.getClassificationLevel().getAllowList().contains(classificationLevelValue);
-        } else {
-            return VitamConfiguration.getClassificationLevel().authorizeNotDefined();
-        }
+    @JsonProperty("up")
+    private Set<String> parentUnitIds;
+
+    @JsonProperty("unit")
+    private JsonNode unit;
+
+    public Set<String> getParentUnitIds() {
+        return parentUnitIds;
     }
 
+    public BulkUnitInsertEntry setParentUnitIds(Set<String> parentUnitIds) {
+        this.parentUnitIds = parentUnitIds;
+        return this;
+    }
+
+    public JsonNode getUnit() {
+        return unit;
+    }
+
+    public BulkUnitInsertEntry setUnit(JsonNode unit) {
+        this.unit = unit;
+        return this;
+    }
+
+    @Override
+    public String toString() {
+        return "BulkUnitInsertEntry{" +
+            "parentUnitIds=" + parentUnitIds +
+            ", unit=" + unit +
+            '}';
+    }
 }

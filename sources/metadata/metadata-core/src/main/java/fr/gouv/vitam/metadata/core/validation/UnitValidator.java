@@ -46,9 +46,7 @@ import java.util.Optional;
 
 public class UnitValidator {
 
-    public static final String JSON_SCHEMA_ARCHIVE_UNIT_SCHEMA_JSON = "json-schema/archive-unit-schema.json";
-
-    private static final String MANAGEMENT = "Management";
+    private static final String JSON_SCHEMA_ARCHIVE_UNIT_SCHEMA_JSON = "/json-schema/archive-unit-schema.json";
 
     private final CachedArchiveUnitProfileLoader archiveUnitProfileLoader;
     private final CachedSchemaValidatorLoader schemaValidatorLoader;
@@ -76,10 +74,8 @@ public class UnitValidator {
 
         try {
 
-            ObjectNode archiveUnitWithManagement = hotfixManagementFieldForSchemaValidation(archiveUnit);
-
             // Validate internal / built-in unit schema
-            this.builtInSchemaValidator.validateJson(archiveUnitWithManagement);
+            this.builtInSchemaValidator.validateJson(archiveUnit);
 
         } catch (JsonSchemaValidationException e) {
             throw new MetadataValidationException(MetadataValidationErrorCode.SCHEMA_VALIDATION_FAILURE,
@@ -91,10 +87,8 @@ public class UnitValidator {
     public void validateArchiveUnitProfile(ObjectNode archiveUnit)
         throws MetadataValidationException {
 
-        ObjectNode archiveUnitWithManagement = hotfixManagementFieldForSchemaValidation(archiveUnit);
-
         // Validate external schema (archive unit profile), if any
-        JsonNode archiveUnitProfileNode = archiveUnitWithManagement.get(SedaConstants.TAG_ARCHIVE_UNIT_PROFILE);
+        JsonNode archiveUnitProfileNode = archiveUnit.get(SedaConstants.TAG_ARCHIVE_UNIT_PROFILE);
         if (archiveUnitProfileNode != null) {
             String aupId = archiveUnitProfileNode.textValue();
             Optional<ArchiveUnitProfileModel> archiveUnitProfile =
@@ -111,7 +105,7 @@ public class UnitValidator {
             try {
                 JsonSchemaValidator externalSchemaValidator =
                     schemaValidatorLoader.loadSchemaValidator(archiveUnitProfile.get().getControlSchema());
-                externalSchemaValidator.validateJson(archiveUnitWithManagement);
+                externalSchemaValidator.validateJson(archiveUnit);
 
             } catch (JsonSchemaValidationException e) {
                 throw new MetadataValidationException(
@@ -146,27 +140,6 @@ public class UnitValidator {
         } catch (InvalidParseOperationException e) {
             throw new RuntimeException("Invalid archive unit profile", e);
         }
-    }
-
-    @Deprecated
-    private ObjectNode hotfixManagementFieldForSchemaValidation(ObjectNode archiveUnit) {
-
-        // FIXME : Dirty hack because AUP validates internal DB schema with an ugly transformation:
-        //  "_mgt" field is validated as "Management" for (bad) historical reasons
-
-        // Soft copy
-        ObjectNode archiveUnitCopy = JsonHandler.createObjectNode();
-        for (String field : IteratorUtils.asIterable(archiveUnit.fieldNames())) {
-            archiveUnitCopy.set(field, archiveUnit.get(field));
-        }
-
-        // Rename _mgt to Management
-        JsonNode mgtNode = archiveUnitCopy.remove("_mgt");
-        if (mgtNode != null) {
-            archiveUnitCopy.set(MANAGEMENT, mgtNode);
-        }
-
-        return archiveUnitCopy;
     }
 
     public void validateStartAndEndDates(JsonNode archiveUnit) throws MetadataValidationException {

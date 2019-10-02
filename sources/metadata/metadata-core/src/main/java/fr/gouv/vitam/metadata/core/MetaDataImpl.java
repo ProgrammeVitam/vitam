@@ -86,6 +86,7 @@ import fr.gouv.vitam.metadata.api.exception.MetaDataAlreadyExistException;
 import fr.gouv.vitam.metadata.api.exception.MetaDataDocumentSizeException;
 import fr.gouv.vitam.metadata.api.exception.MetaDataExecutionException;
 import fr.gouv.vitam.metadata.api.exception.MetaDataNotFoundException;
+import fr.gouv.vitam.metadata.api.model.BulkUnitInsertRequest;
 import fr.gouv.vitam.metadata.api.model.ObjectGroupPerOriginatingAgency;
 import fr.gouv.vitam.metadata.core.database.collections.DbRequest;
 import fr.gouv.vitam.metadata.core.database.collections.MetadataCollections;
@@ -241,30 +242,12 @@ public class MetaDataImpl {
         return mongoDbAccess;
     }
 
-    public void insertUnit(JsonNode insertRequest)
-        throws InvalidParseOperationException, MetaDataExecutionException,
-        MetaDataAlreadyExistException, MetaDataNotFoundException {
-        List<JsonNode> requests = new ArrayList<>();
-        requests.add(insertRequest);
-        insertUnits(requests);
-    }
-
-    public void insertUnits(List<JsonNode> insertRequests)
+    public void insertUnits(BulkUnitInsertRequest request)
         throws InvalidParseOperationException, MetaDataExecutionException,
         MetaDataAlreadyExistException, MetaDataNotFoundException {
         try {
-            List<InsertParserMultiple> collect = insertRequests.stream().map(insertRequest -> {
-                    InsertParserMultiple insertParser = new InsertParserMultiple(DEFAULT_VARNAME_ADAPTER);
-                    try {
-                        insertParser.parse(insertRequest);
-                    } catch (InvalidParseOperationException e) {
-                        throw new VitamRuntimeException(e);
-                    }
-                    return insertParser;
-                }
-            ).collect(Collectors.toList());
 
-            dbRequest.execInsertUnitRequests(collect);
+            dbRequest.execInsertUnitRequests(request);
 
         } catch (VitamRuntimeException e) {
             if (e.getCause() instanceof InvalidParseOperationException) {
