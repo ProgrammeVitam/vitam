@@ -17,7 +17,7 @@ pipeline {
     environment {
         MVN_BASE = "/usr/local/maven/bin/mvn --settings ${pwd()}/.ci/settings.xml"
         MVN_COMMAND = "${MVN_BASE} --show-version --batch-mode --errors --fail-at-end -DinstallAtEnd=true -DdeployAtEnd=true "
-        DEPLOY_GOAL = " " // Deploy goal used by maven ; typically "deploy" for master* branches & "" (nothing) for everything else (we don't deploy) ; keep a space so can work in other branches than develop
+        DEPLOY_GOAL = "install" // Deploy goal used by maven ; typically "deploy" for master* branches & "" (nothing) for everything else (we don't deploy) ; keep a space so can work in other branches than develop
         CI = credentials("app-jenkins")
         SERVICE_SONAR_URL = credentials("service-sonar-url")
         SERVICE_NEXUS_URL = credentials("service-nexus-url")
@@ -107,35 +107,23 @@ pipeline {
                 echo "We are on master branch (${env.GIT_BRANCH}) ; deploy goal is \"${env.DEPLOY_GOAL}\""
             }
         }
-		
-		// special case for MR
-        stage("Notify gitlab if merge request") {
+
+        stage ("Execute unit and integration tests on master branches") {
             when {
-                not{
-                    anyOf {
-                        branch "develop*"
-                        branch "master_*"
-                        branch "master"
-                        tag pattern: "^[1-9]+\\.[0-9]+\\.[0-9]+-?[0-9]*\$", comparator: "REGEXP"
-                    }
+                anyOf {
+                    branch "develop*"
+                    branch "master_*"
+                    branch "master"
+                    tag pattern: "^[1-9]+\\.[0-9]+\\.[0-9]+-?[0-9]*\$", comparator: "REGEXP"
                 }
             }
-            steps {
-                updateGitlabCommitStatus name: 'mergerequest', state: 'running'
-            }
-        }
-		
-        stage ("Execute unit and integration tests") {
-         // when {
-        //     //     environment(name: 'CHANGED_VITAM', value: 'true')
-        //     // }
             steps {
                 dir('sources') {
                     script {
                         docker.withRegistry("http://${env.SERVICE_DOCKER_PULL_URL}") {
-                            docker.image("${env.SERVICE_DOCKER_PULL_URL}/elasticsearch/elasticsearch:6.8.2").withRun('-p 9200:9200 -p 9300:9300 -e "discovery.type=single-node" -e "cluster.name=elasticsearch-data"') { c ->
+                            docker.image("${env.SERVICE_DOCKER_PULL_URL}/elasticsearch/elasticsearch:6.8.3").withRun('-p 9200:9200 -p 9300:9300 -e "discovery.type=single-node" -e "cluster.name=elasticsearch-data"') { c ->
                                 docker.withRegistry("http://${env.SERVICE_DOCKER_PULL_URL}") {
-                                    docker.image("${env.SERVICE_DOCKER_PULL_URL}/mongo:4.0.11").withRun('-p 27017:27017') { o ->
+                                    docker.image("${env.SERVICE_DOCKER_PULL_URL}/mongo:4.2.0").withRun('-p 27017:27017') { o ->
                                         sh 'while ! curl -v http://localhost:9200; do sleep 2; done'
                                         sh 'curl -X PUT http://localhost:9200/_template/default -H \'Content-Type: application/json\' -d \'{"index_patterns": ["*"],"order": -1,"settings": {"number_of_shards": "1","number_of_replicas": "0"}}\''
                                         sh '$MVN_COMMAND -f pom.xml clean verify org.owasp:dependency-check-maven:aggregate sonar:sonar -Dsonar.branch=$GIT_BRANCH -Ddownloader.quick.query.timestamp=false'
@@ -161,24 +149,116 @@ pipeline {
             }
         }
 
-        // special case for MR
-        stage("Report to gitlab if merge request") {
+        stage ("Execute unit and integration tests on merge requests") {
             when {
                 not{
                     anyOf {
                         branch "develop*"
                         branch "master_*"
                         branch "master"
+                        branch "PR*" // do not try to update on github status
                         tag pattern: "^[1-9]+\\.[0-9]+\\.[0-9]+-?[0-9]*\$", comparator: "REGEXP"
                     }
                 }
-                
+            }
+            environment {
+                MVN_COMMAND = "${MVN_BASE} --show-version --batch-mode --errors --fail-never -DinstallAtEnd=true -DdeployAtEnd=true "
             }
             steps {
-                updateGitlabCommitStatus name: 'mergerequest', state: 'success'
-				addGitLabMRComment comment: "pipeline-job : [analyse sonar](https://sonar.dev.programmevitam.fr/dashboard?id=fr.gouv.vitam%3Aparent%3A${gitlabSourceBranch}) de la branche"
+                updateGitlabCommitStatus name: 'mergerequest', state: "running"
+                dir('sources') {
+                    script {
+                        docker.withRegistry("http://${env.SERVICE_DOCKER_PULL_URL}") {
+                            docker.image("${env.SERVICE_DOCKER_PULL_URL}/elasticsearch/elasticsearch:6.8.2").withRun('-p 9200:9200 -p 9300:9300 -e "discovery.type=single-node" -e "cluster.name=elasticsearch-data"') { c ->
+                                docker.withRegistry("http://${env.SERVICE_DOCKER_PULL_URL}") {
+                                    docker.image("${env.SERVICE_DOCKER_PULL_URL}/mongo:4.2.0").withRun('-p 27017:27017') { o ->
+                                        sh 'while ! curl -v http://localhost:9200; do sleep 2; done'
+                                        sh 'curl -X PUT http://localhost:9200/_template/default -H \'Content-Type: application/json\' -d \'{"index_patterns": ["*"],"order": -1,"settings": {"number_of_shards": "1","number_of_replicas": "0"}}\''
+                                        sh '$MVN_COMMAND -f pom.xml clean verify org.owasp:dependency-check-maven:aggregate sonar:sonar -Dsonar.branch=$GIT_BRANCH -Ddownloader.quick.query.timestamp=false'
+                                    }
+                        		}
+                            }
+                        }
+                    }
+                }
+            }
+            post {
+                always {
+                    junit 'sources/**/target/surefire-reports/*.xml'
+                }
+                success {
+                    archiveArtifacts (
+                        artifacts: '**/dependency-check-report.html'
+                        , fingerprint: true
+                        , allowEmptyArchive: true
+
+                    )
+                    updateGitlabCommitStatus name: 'mergerequest', state: "success"
+				    addGitLabMRComment comment: "pipeline-job : [analyse sonar](https://sonar.dev.programmevitam.fr/dashboard?id=fr.gouv.vitam%3Aparent%3A${gitlabSourceBranch}) de la branche"
+                }
+                failure {
+                    updateGitlabCommitStatus name: 'mergerequest', state: "failed"
+                }
+                unstable {
+                    updateGitlabCommitStatus name: 'mergerequest', state: "failed"
+                }
+                aborted {
+                    updateGitlabCommitStatus name: 'mergerequest', state: "canceled"
+                }
             }
         }
+
+        stage ("Execute unit and integration tests on pull requests") {
+            when {
+                branch "PR*" // do not try to update on github status
+            }
+            environment {
+                MVN_COMMAND = "${MVN_BASE} --show-version --batch-mode --errors --fail-never -DinstallAtEnd=true -DdeployAtEnd=true "
+            }
+            steps {
+                // updateGitlabCommitStatus name: 'mergerequest', state: "running"
+                githubNotify status: "PENDING"
+                dir('sources') {
+                    script {
+                        docker.withRegistry("http://${env.SERVICE_DOCKER_PULL_URL}") {
+                            docker.image("${env.SERVICE_DOCKER_PULL_URL}/elasticsearch/elasticsearch:6.8.2").withRun('-p 9200:9200 -p 9300:9300 -e "discovery.type=single-node" -e "cluster.name=elasticsearch-data"') { c ->
+                                docker.withRegistry("http://${env.SERVICE_DOCKER_PULL_URL}") {
+                                    docker.image("${env.SERVICE_DOCKER_PULL_URL}/mongo:4.2.0").withRun('-p 27017:27017') { o ->
+                                        sh 'while ! curl -v http://localhost:9200; do sleep 2; done'
+                                        sh 'curl -X PUT http://localhost:9200/_template/default -H \'Content-Type: application/json\' -d \'{"index_patterns": ["*"],"order": -1,"settings": {"number_of_shards": "1","number_of_replicas": "0"}}\''
+                                        sh '$MVN_COMMAND -f pom.xml clean verify org.owasp:dependency-check-maven:aggregate sonar:sonar -Dsonar.branch=$GIT_BRANCH -Ddownloader.quick.query.timestamp=false'
+                                    }
+                        		}
+                            }
+                        }
+                    }
+                }
+            }
+            post {
+                always {
+                    junit 'sources/**/target/surefire-reports/*.xml'
+                }
+                success {
+                    archiveArtifacts (
+                        artifacts: '**/dependency-check-report.html'
+                        , fingerprint: true
+                        , allowEmptyArchive: true
+
+                    )
+                    githubNotify status: "SUCCESS" description: "Build successul"
+                }
+                failure {
+                    githubNotify status: "FAILURE" description: "Build failed"
+                }
+                unstable {
+                    githubNotify status: "FAILURE" description: "Build unstable"
+                }
+                aborted {
+                    githubNotify status: "ERROR" description: "Build canceled"
+                }
+            }
+        }
+
 
         stage("Build packages") {
             when {
@@ -199,7 +279,7 @@ pipeline {
                 parallel(
                     "Package VITAM solution" : {
                         dir('sources') {
-                            sh '$MVN_COMMAND -f pom.xml -Dmaven.test.skip=true -DskipTests=true clean package javadoc:aggregate-jar rpm:attached-rpm jdeb:jdeb $DEPLOY_GOAL'
+                            sh '$MVN_COMMAND -f pom.xml -Dmaven.test.skip=true -DskipTests=true clean javadoc:aggregate-jar $DEPLOY_GOAL jdeb:jdeb rpm:attached-rpm'
                             // -T 1C // Doesn't work with the javadoc:aggregate-jar goal
                         }
                     },
@@ -233,7 +313,7 @@ pipeline {
             }
             steps {
                 dir('doc') {
-                    sh '$MVN_COMMAND -f pom.xml -T 1C clean package rpm:attached-rpm jdeb:jdeb $DEPLOY_GOAL'
+                    sh '$MVN_COMMAND -f pom.xml -T 1C clean install jdeb:jdeb rpm:attached-rpm $DEPLOY_GOAL'
                 }
             }
             post {
