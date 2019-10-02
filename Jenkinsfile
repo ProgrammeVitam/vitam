@@ -218,7 +218,7 @@ pipeline {
             }
             steps {
                 // updateGitlabCommitStatus name: 'mergerequest', state: "running"
-                githubNotify status: "PENDING", credentialsId: "${env.GITHUB_ACCOUNT}"
+                githubNotify status: "PENDING", credentialsId: "GITHUB_ACCOUNT"
                 dir('sources') {
                     script {
                         docker.withRegistry("http://${env.SERVICE_DOCKER_PULL_URL}") {
