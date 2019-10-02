@@ -5,7 +5,7 @@
 	},
 	"ArchiveUnit": {
 		"ArchiveUnitProfile": "PresentationType",
-		"Management": {
+		"_mgt": {
 			"StorageRule": {
 				"Rules": [
 					{

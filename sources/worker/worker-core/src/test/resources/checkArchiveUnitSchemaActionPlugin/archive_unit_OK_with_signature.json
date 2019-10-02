@@ -1,6 +1,6 @@
 {
   "ArchiveUnit" : {
-    "Management" : {
+    "_mgt" : {
       "AccessRule" : {
         "Rules" : [ {
           "Rule" : "ACC-00001",

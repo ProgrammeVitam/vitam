@@ -228,10 +228,6 @@
             "behavior": "BLOCKING",
             "in": [
               {
-                "name": "UnitType",
-                "uri": "VALUE:FILING_UNIT"
-              },
-              {
                 "name": "globalSEDAParameters.file",
                 "uri": "WORKSPACE:ATR/globalSEDAParameters.json"
               }

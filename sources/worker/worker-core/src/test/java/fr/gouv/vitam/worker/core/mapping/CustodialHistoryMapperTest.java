@@ -26,16 +26,8 @@
  */
 package fr.gouv.vitam.worker.core.mapping;
 
-import static junit.framework.TestCase.assertNotNull;
-import static junit.framework.TestCase.assertTrue;
-
-import java.util.List;
-
-import javax.xml.bind.JAXBContext;
-import javax.xml.bind.Unmarshaller;
-
 import fr.gouv.culture.archivesdefrance.seda.v2.ArchiveUnitType;
-import fr.gouv.vitam.common.model.unit.ArchiveUnitModel;
+import fr.gouv.vitam.common.model.unit.ArchiveUnitInternalModel;
 import fr.gouv.vitam.common.model.unit.ArchiveUnitRoot;
 import fr.gouv.vitam.common.model.unit.CustodialHistoryModel;
 import fr.gouv.vitam.common.model.unit.DataObjectReference;
@@ -43,6 +35,13 @@ import fr.gouv.vitam.common.model.unit.DescriptiveMetadataModel;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
+
+import javax.xml.bind.JAXBContext;
+import javax.xml.bind.Unmarshaller;
+import java.util.List;
+
+import static junit.framework.TestCase.assertNotNull;
+import static junit.framework.TestCase.assertTrue;
 
 /**
  * test class for {@link ElementMapper}
@@ -71,16 +70,16 @@ public class CustodialHistoryMapperTest {
             "/element_unit_with_custodial_history.xml"));
 
         // When
-        ArchiveUnitRoot archiveUnitRoot = archiveUnitMapper.map(archiveUnitType, "", "");
+        ArchiveUnitRoot archiveUnitRoot = archiveUnitMapper.map(archiveUnitType, "", "", "operationId", "INGEST");
 
         // Then
-        ArchiveUnitModel archiveUnit = archiveUnitRoot.getArchiveUnit();
+        ArchiveUnitInternalModel archiveUnit = archiveUnitRoot.getArchiveUnit();
         DescriptiveMetadataModel descriptiveMetadataModel = archiveUnit.getDescriptiveMetadataModel();
         assertNotNull(descriptiveMetadataModel);
 
         CustodialHistoryModel custodialHistoryModel = descriptiveMetadataModel.getCustodialHistory();
         assertNotNull(custodialHistoryModel);
-    
+
         List<String> custodialHistoryItem = custodialHistoryModel.getCustodialHistoryItem();
         assertNotNull(custodialHistoryItem);
         assertTrue(custodialHistoryItem.size() == 2);

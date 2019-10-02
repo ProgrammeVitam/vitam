@@ -1,7 +1,7 @@
 {
   "$schema": "http://json-schema.org/draft-04/schema#",
   "properties": {
-    "Management": {
+    "_mgt": {
       "patternProperties": {
         ".*": {
           "properties": {

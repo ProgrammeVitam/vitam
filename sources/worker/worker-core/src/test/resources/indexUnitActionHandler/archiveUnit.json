@@ -1,6 +1,6 @@
 {
 	"ArchiveUnit": {
-		"Management": {
+		"_mgt": {
 			"StorageRule": {
 				"Rules": [
 					{

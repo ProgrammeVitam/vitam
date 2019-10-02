@@ -63,7 +63,7 @@ public class Unit extends MetadataDocument<Unit> {
     /**
      * Management : { various rules per themes }
      */
-    static final String MANAGEMENT = "_mgt";
+    public static final String MANAGEMENT = "_mgt";
 
     /**
      * elimination
@@ -75,7 +75,7 @@ public class Unit extends MetadataDocument<Unit> {
     /**
      * UnitType : normal or holding scheme
      */
-    static final String UNIT_TYPE = "_unitType";
+    public static final String UNIT_TYPE = "_unitType";
     public static final String GRAPH = "_graph";
     public static final String PARENT_ORIGINATING_AGENCIES = "_us_sp";
     static final String HISTORY = "_history";

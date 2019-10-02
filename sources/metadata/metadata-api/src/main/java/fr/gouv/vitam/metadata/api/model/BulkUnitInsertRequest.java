@@ -1,4 +1,4 @@
-/*
+/*******************************************************************************
  * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2019)
  *
  * contact.vitam@culture.gouv.fr
@@ -23,31 +23,39 @@
  *
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
- */
-package fr.gouv.vitam.common.model.unit;
+ *******************************************************************************/
+package fr.gouv.vitam.metadata.api.model;
 
-import fr.gouv.vitam.common.model.logbook.LogbookEvent;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 import java.util.List;
 
-public class ArchiveUnitRoot {
+public class BulkUnitInsertRequest {
 
-    private ArchiveUnitInternalModel archiveUnit;
-    private List<LogbookEvent> LogbookLifeCycleExternal;
-
-    public ArchiveUnitRoot() {
-        archiveUnit = new ArchiveUnitInternalModel();
+    public BulkUnitInsertRequest() {
+        // Empty constructor for deserialization
     }
 
-    public ArchiveUnitInternalModel getArchiveUnit() {
-        return archiveUnit;
+    public BulkUnitInsertRequest(List<BulkUnitInsertEntry> units) {
+        this.units = units;
     }
 
-    public List<LogbookEvent> getLogbookLifeCycleExternal() {
-        return LogbookLifeCycleExternal;
+    @JsonProperty("units")
+    private List<BulkUnitInsertEntry> units;
+
+    public List<BulkUnitInsertEntry> getUnits() {
+        return units;
     }
 
-    public void setLogbookLifeCycleExternal(List<LogbookEvent> logbookLifeCycleExternal) {
-        this.LogbookLifeCycleExternal = logbookLifeCycleExternal;
+    public BulkUnitInsertRequest setUnits(List<BulkUnitInsertEntry> units) {
+        this.units = units;
+        return this;
+    }
+
+    @Override
+    public String toString() {
+        return "BulkUnitInsertRequest{" +
+            "units=" + units +
+            '}';
     }
 }

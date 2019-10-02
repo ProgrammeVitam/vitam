@@ -441,7 +441,7 @@ public class JsonHandlerTest {
     @Test
     public void testFindNode() throws Exception {
         JsonNode unit = JsonHandler.getFromFile(PropertiesUtils.getResourceFile("archive-unit_OK.json"));
-        JsonNode node = JsonHandler.findNode(unit, "ArchiveUnit.Management.ClassificationRule.ClassificationLevel");
+        JsonNode node = JsonHandler.findNode(unit, "ArchiveUnit._mgt.ClassificationRule.ClassificationLevel");
         assertEquals("ClassificationLevel", node.asText());
     }
 

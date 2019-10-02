@@ -59,6 +59,8 @@ import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
 import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
 import fr.gouv.vitam.metadata.api.config.MetaDataConfiguration;
+import fr.gouv.vitam.metadata.api.model.BulkUnitInsertEntry;
+import fr.gouv.vitam.metadata.api.model.BulkUnitInsertRequest;
 import fr.gouv.vitam.metadata.core.database.collections.ElasticsearchAccessMetadata;
 import fr.gouv.vitam.metadata.core.database.collections.MetadataCollections;
 import fr.gouv.vitam.metadata.core.database.collections.MongoDbAccessMetadataImpl;
@@ -81,10 +83,10 @@ public class UpdateUnitResourceTest {
     private static final Integer TENANT_ID_0 = 0;
     private static final List tenantList = Collections.singletonList(TENANT_ID_0);
     private static final String DATA =
-        "{ \"#id\": \"aeaqaaaaaeaaaaakaarp4akuuf2ldmyaaaaq\", \"#tenant\": 0, " + "\"data\": \"data2\" }";
+        "{ \"_id\": \"aeaqaaaaaeaaaaakaarp4akuuf2ldmyaaaaq\", \"_tenant\": 0, " + "\"data\": \"data2\" }";
     private static final String DATA2 =
-        "{ \"#id\": \"aeaqaaaaaeaaaaakaarp4akuuf2ldmyaaaab\", \"#tenant\": 0, " + "\"data\": \"data2\", " +
-            "\"Title\": \"Archive3\", \"#management\": {\"NeedAuthorization\": true}," +
+        "{ \"_id\": \"aeaqaaaaaeaaaaakaarp4akuuf2ldmyaaaab\", \"_tenant\": 0, " + "\"data\": \"data2\", " +
+            "\"Title\": \"Archive3\", \"_mgt\": {\"NeedAuthorization\": true}," +
             " \"DescriptionLevel\": \"Item\" }";
 
     private static final String ID_UNIT = "aeaqaaaaaeaaaaakaarp4akuuf2ldmyaaaab";
@@ -168,14 +170,16 @@ public class UpdateUnitResourceTest {
         MetadataCollections.afterTest(0);
     }
 
-    private static final JsonNode buildDSLWithOptions(String data) throws InvalidParseOperationException {
-        return JsonHandler.getFromString("{ $roots : [], $query : [], $data : " + data + " }");
+    private static final BulkUnitInsertRequest bulkInsertRequest(String data) throws InvalidParseOperationException {
+        return new BulkUnitInsertRequest(Collections.singletonList(
+            new BulkUnitInsertEntry(Collections.emptySet(), JsonHandler.getFromString(data))
+        ));
     }
 
-    private static final JsonNode buildDSLWithOptionsRoot(String data, String root)
-        throws InvalidParseOperationException {
-        return JsonHandler
-            .getFromString("{ $roots : [ '" + root + "' ], $query : [], $data : " + data + " }");
+    private static final BulkUnitInsertRequest bulkInsertRequest(String data, String root) throws InvalidParseOperationException {
+        return new BulkUnitInsertRequest(Collections.singletonList(
+            new BulkUnitInsertEntry(Collections.singleton(root), JsonHandler.getFromString(data))
+        ));
     }
 
     private static String createJsonStringWithDepth(int depth) {
@@ -196,16 +200,16 @@ public class UpdateUnitResourceTest {
             .contentType(ContentType.JSON)
             .header(GlobalDataRest.X_TENANT_ID, TENANT_ID_0)
             .header(GlobalDataRest.X_REQUEST_ID, GUIDFactory.newRequestIdGUID(TENANT_ID).toString())
-            .body(buildDSLWithOptions(DATA2)).when()
-            .post("/units").then()
+            .body(bulkInsertRequest(DATA2)).when()
+            .post("/units/bulk").then()
             .statusCode(Status.CREATED.getStatusCode());
 
         with()
             .contentType(ContentType.JSON)
             .header(GlobalDataRest.X_TENANT_ID, TENANT_ID_0)
             .header(GlobalDataRest.X_REQUEST_ID, GUIDFactory.newRequestIdGUID(TENANT_ID).toString())
-            .body(buildDSLWithOptionsRoot(DATA, ID_UNIT)).when()
-            .post("/units").then()
+            .body(bulkInsertRequest(DATA, ID_UNIT)).when()
+            .post("/units/bulk").then()
             .statusCode(Status.CREATED.getStatusCode());
 
         esClient.refreshIndex(MetadataCollections.UNIT, TENANT_ID_0);
@@ -261,7 +265,7 @@ public class UpdateUnitResourceTest {
         GlobalDatasParser.limitRequest = 99;
         given()
             .contentType(ContentType.JSON)
-            .body(buildDSLWithOptions(createJsonStringWithDepth(101))).when()
+            .body(bulkInsertRequest(createJsonStringWithDepth(101))).when()
             .put("/units/" + ID_UNIT).then()
             .statusCode(Status.PRECONDITION_FAILED.getStatusCode());
         GlobalDatasParser.limitRequest = limitRequest;
@@ -271,7 +275,7 @@ public class UpdateUnitResourceTest {
     public void shouldReturnErrorRequestBadRequest() throws Exception {
         given()
             .contentType(ContentType.JSON)
-            .body(buildDSLWithOptions("lkvhvgvuyqvkvj")).when()
+            .body(bulkInsertRequest("lkvhvgvuyqvkvj")).when()
             .put("/units/" + ID_UNIT).then()
             .statusCode(Status.BAD_REQUEST.getStatusCode());
     }

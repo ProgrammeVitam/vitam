@@ -4,7 +4,7 @@
 		"dev-note": "This test pseudo-AU is not required to match the general Json Schema for AU",
 		"_id": "aeaqaaaaaahfrfvaaahrgak25v5fttiaaaaq",
 		"ArchiveUnitProfile": "AUP_0001",
-		"Management": {
+		"_mgt": {
 			"StorageRule": {
 				"Rules": [
 					{

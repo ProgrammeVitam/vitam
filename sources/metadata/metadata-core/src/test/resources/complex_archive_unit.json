@@ -55,7 +55,7 @@
       "DataObjectGroupReferenceId" : "ID21"
     },
     "_og" : "aebaaaaaaaabpv3caaw3oak3scwsixiaaaaq",
-    "Management" : { }
+    "_mgt" : { }
   },
   "_work" : {
     "_up" : [ "aeaqaaaaaaabpv3caaw3oak3scwsmdyaaaaq" ],

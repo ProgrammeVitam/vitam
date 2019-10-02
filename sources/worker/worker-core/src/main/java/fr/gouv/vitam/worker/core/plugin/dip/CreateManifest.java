@@ -71,6 +71,8 @@ import fr.gouv.vitam.worker.core.plugin.ScrollSpliteratorHelper;
 import fr.gouv.vitam.worker.core.plugin.transfer.TransferReportHeader;
 import fr.gouv.vitam.worker.core.plugin.transfer.TransferReportLine;
 import fr.gouv.vitam.worker.core.plugin.transfer.TransferStatus;
+import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.collections4.ListUtils;
 
 import javax.xml.bind.JAXBException;
 import javax.xml.datatype.DatatypeConfigurationException;
@@ -82,6 +84,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -272,9 +275,9 @@ public class CreateManifest extends ActionHandler {
                         ArchiveUnitModel unit =
                             manifestBuilder.writeArchiveUnit(result, multimap, ogs, exportWithLogBookLFC);
                         if (ArchiveTransfer.equals(exportRequest.getExportType())) {
-                            List<String> opts = unit.getOpts();
-                            TransferStatus status = opts.isEmpty() ?
-                                TransferStatus.OK :
+                            List<String> opts = ListUtils.defaultIfNull(unit.getOpts(), new ArrayList<>());
+                            TransferStatus status = opts.isEmpty()?
+                                TransferStatus.OK:
                                 TransferStatus.ALREADY_IN_TRANSFER;
                             opts.add(param.getContainerName());
                             ObjectNode updateMultiQuery = getUpdateQuery(opts);

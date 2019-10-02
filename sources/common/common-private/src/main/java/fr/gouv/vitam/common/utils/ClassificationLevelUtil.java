@@ -27,10 +27,8 @@
 package fr.gouv.vitam.common.utils;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import com.google.common.annotations.VisibleForTesting;
 import fr.gouv.vitam.common.SedaConstants;
 import fr.gouv.vitam.common.VitamConfiguration;
-import fr.gouv.vitam.common.configuration.ClassificationLevel;
 import fr.gouv.vitam.common.json.JsonHandler;
 
 /**
@@ -38,15 +36,9 @@ import fr.gouv.vitam.common.json.JsonHandler;
  */
 public class ClassificationLevelUtil {
 
-    private static final String PATH_CLASSIFICATION_LEVEL_1
+    private static final String PATH_CLASSIFICATION_LEVEL
         = SedaConstants.TAG_ARCHIVE_UNIT + "."
-        + SedaConstants.TAG_MANAGEMENT + "."
-        + SedaConstants.TAG_RULE_CLASSIFICATION + "."
-        + SedaConstants.TAG_RULE_CLASSIFICATION_LEVEL;
-
-    private static final String PATH_CLASSIFICATION_LEVEL_2
-        = SedaConstants.TAG_ARCHIVE_UNIT
-        + ".#management."
+        + SedaConstants.PREFIX_MGT + "."
         + SedaConstants.TAG_RULE_CLASSIFICATION + "."
         + SedaConstants.TAG_RULE_CLASSIFICATION_LEVEL;
 
@@ -55,10 +47,7 @@ public class ClassificationLevelUtil {
 
     public static boolean checkClassificationLevel(JsonNode archiveUnit) {
         String classificationLevelValue = null;
-        JsonNode classificationLevel = JsonHandler.findNode(archiveUnit, PATH_CLASSIFICATION_LEVEL_1);
-        if (classificationLevel.isMissingNode()) {
-            classificationLevel = JsonHandler.findNode(archiveUnit, PATH_CLASSIFICATION_LEVEL_2);
-        }
+        JsonNode classificationLevel = JsonHandler.findNode(archiveUnit, PATH_CLASSIFICATION_LEVEL);
 
         if (!classificationLevel.isMissingNode()) {
             classificationLevelValue = classificationLevel.asText();
@@ -69,13 +58,10 @@ public class ClassificationLevelUtil {
 
     public static boolean checkClassificationLevel(String classificationLevelValue) {
         if (classificationLevelValue != null) {
-            if (!VitamConfiguration.getClassificationLevel().getAllowList().contains(classificationLevelValue)) {
-                return false;
-            }
+            return VitamConfiguration.getClassificationLevel().getAllowList().contains(classificationLevelValue);
         } else {
             return VitamConfiguration.getClassificationLevel().authorizeNotDefined();
         }
-        return true;
     }
 
 }

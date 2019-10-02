@@ -6,7 +6,7 @@
 		"ArchiveUnitProfile": "AUP_0001",
 		"Title": "Archive2",
 		"DescriptionLevel": "Item",
-		"Management": {
+		"_mgt": {
 			"StorageRule": {
 				"Rules": [
 					{

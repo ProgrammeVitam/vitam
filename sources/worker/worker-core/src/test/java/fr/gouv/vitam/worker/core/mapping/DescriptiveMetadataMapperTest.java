@@ -119,21 +119,4 @@ public class DescriptiveMetadataMapperTest {
             .extracting("lang", "value")
             .contains(tuple("fr", "description"));
     }
-
-    @Test
-    public void shouldFillCurrentSedaVersionAndImplementationVersion() {
-        // Given
-        DescriptiveMetadataContentType metadataContentType = new DescriptiveMetadataContentType();
-        TextType title = new TextType();
-        title.setValue("titre");
-        metadataContentType.getTitle().add(title);
-
-        // When
-        DescriptiveMetadataModel descriptiveMetadataModel = descriptiveMetadataMapper.map(metadataContentType);
-
-        // Then
-        assertThat(descriptiveMetadataModel.getSedaVersion()).isEqualTo(VitamConstants.SEDA_CURRENT_VERSION);
-        assertThat(descriptiveMetadataModel.getImplementationVersion()).isEqualTo("");
-    }
-
 }

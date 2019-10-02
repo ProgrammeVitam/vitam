@@ -42,9 +42,10 @@ import fr.gouv.culture.archivesdefrance.seda.v2.ManagementHistoryType;
 import fr.gouv.culture.archivesdefrance.seda.v2.ManagementType;
 import fr.gouv.culture.archivesdefrance.seda.v2.ReuseRuleType;
 import fr.gouv.culture.archivesdefrance.seda.v2.StorageRuleType;
+import fr.gouv.vitam.common.model.VitamConstants;
 import fr.gouv.vitam.common.model.logbook.LogbookEvent;
 import fr.gouv.vitam.common.model.unit.ArchiveUnitHistoryModel;
-import fr.gouv.vitam.common.model.unit.ArchiveUnitModel;
+import fr.gouv.vitam.common.model.unit.ArchiveUnitInternalModel;
 import fr.gouv.vitam.common.model.unit.ArchiveUnitRoot;
 import fr.gouv.vitam.common.model.unit.DataObjectReference;
 import fr.gouv.vitam.common.model.unit.DescriptiveMetadataModel;
@@ -56,6 +57,7 @@ import org.apache.xerces.dom.ElementNSImpl;
 import org.w3c.dom.Node;
 
 import javax.xml.bind.JAXBElement;
+import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -79,15 +81,23 @@ public class ArchiveUnitMapper {
      * @param archiveUnitType
      * @param id
      * @param groupId
+     * @param operationId
+     * @param unitType
      * @return ArchiveUnitRoot
      */
-    public ArchiveUnitRoot map(ArchiveUnitType archiveUnitType, String id, String groupId)
+    public ArchiveUnitRoot map(ArchiveUnitType archiveUnitType, String id, String groupId, String operationId,
+        String unitType)
         throws ProcessingMalformedDataException, ProcessingObjectReferenceException {
 
         ArchiveUnitRoot archiveUnitRoot = new ArchiveUnitRoot();
-        ArchiveUnitModel archiveUnit = archiveUnitRoot.getArchiveUnit();
+        ArchiveUnitInternalModel archiveUnit = archiveUnitRoot.getArchiveUnit();
         archiveUnit.setId(id);
         archiveUnit.setOg(groupId);
+
+        archiveUnit.setOpi(operationId);
+        archiveUnit.setOps(Collections.singletonList(operationId));
+
+        archiveUnit.setUnitType(unitType);
 
         IdentifierType archiveUnitProfile = archiveUnitType.getArchiveUnitProfile();
         if (archiveUnitProfile != null) {
@@ -101,7 +111,7 @@ public class ArchiveUnitMapper {
             archiveUnit.setDescriptiveMetadataModel(new DescriptiveMetadataModel());
         }
 
-        archiveUnit.setDataObjectReference(mapDataObjectReference(archiveUnitType));
+        mapAndValidateDataObjectReference(archiveUnitType);
 
         ManagementType management = archiveUnitType.getManagement();
         fillManagement(management, archiveUnit.getManagement());
@@ -117,6 +127,14 @@ public class ArchiveUnitMapper {
                 .collect(Collectors.toList());
 
             archiveUnitRoot.setLogbookLifeCycleExternal(logbookExternal);
+        }
+
+        archiveUnit.setSedaVersion(VitamConstants.SEDA_CURRENT_VERSION);
+        String vitamImplVersion = this.getClass().getPackage().getImplementationVersion();
+        if (vitamImplVersion != null) {
+            archiveUnit.setImplementationVersion(vitamImplVersion);
+        } else {
+            archiveUnit.setImplementationVersion("");
         }
 
         return archiveUnitRoot;
@@ -150,7 +168,7 @@ public class ArchiveUnitMapper {
             .orElse(null);
     }
 
-    public DataObjectReference mapDataObjectReference(ArchiveUnitType archiveUnitType)
+    public DataObjectReference mapAndValidateDataObjectReference(ArchiveUnitType archiveUnitType)
         throws ProcessingObjectReferenceException {
         List<DataObjectReference> objectReferences =
             archiveUnitType.getArchiveUnitOrDataObjectReferenceOrDataObjectGroup().stream()
