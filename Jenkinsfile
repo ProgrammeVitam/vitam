@@ -29,6 +29,7 @@ pipeline {
         SERVICE_NOPROXY = credentials("http_nonProxyHosts")
         SERVICE_DOCKER_PULL_URL=credentials("SERVICE_DOCKER_PULL_URL")
         SERVICE_REPOSITORY_URL=credentials("service-repository-url")
+        GITHUB_ACCOUNT = credentials("github-account")
     }
 
     options {
@@ -217,7 +218,7 @@ pipeline {
             }
             steps {
                 // updateGitlabCommitStatus name: 'mergerequest', state: "running"
-                githubNotify status: "PENDING"
+                githubNotify status: "PENDING", credentialsId: "${env.GITHUB_ACCOUNT}"
                 dir('sources') {
                     script {
                         docker.withRegistry("http://${env.SERVICE_DOCKER_PULL_URL}") {
