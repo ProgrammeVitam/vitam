@@ -26,6 +26,7 @@
  */
 package fr.gouv.vitam.worker.core.plugin.evidence;
 
+import com.google.common.annotations.VisibleForTesting;
 import fr.gouv.vitam.common.exception.VitamException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
@@ -54,21 +55,28 @@ import java.util.Optional;
  * DataRectificationStep class
  */
 public class DataRectificationStep extends ActionHandler {
-    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(DataRectificationStep.class);
-
     public static final String ZIP = "zip";
+    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(DataRectificationStep.class);
     private static final String CORRECTIVE_AUDIT = "CORRECTIVE_AUDIT";
     private static final String CORRECT = "correct" + File.separator;
-    private DataRectificationService dataRectificationService;
     private static final String ALTER = "alter";
+    private final StoreMetaDataObjectGroupActionPlugin storeMetaDataObjectGroupActionPlugin;
+    private final StoreMetaDataUnitActionPlugin storeMetaDataUnitActionPlugin;
+    private DataRectificationService dataRectificationService;
 
-    private DataRectificationStep(
-        DataRectificationService dataRectificationService) {
+    @VisibleForTesting
+    public DataRectificationStep(
+        DataRectificationService dataRectificationService,
+        StoreMetaDataObjectGroupActionPlugin storeMetaDataObjectGroupActionPlugin,
+        StoreMetaDataUnitActionPlugin storeMetaDataUnitActionPlugin) {
         this.dataRectificationService = dataRectificationService;
+        this.storeMetaDataObjectGroupActionPlugin = storeMetaDataObjectGroupActionPlugin;
+        this.storeMetaDataUnitActionPlugin = storeMetaDataUnitActionPlugin;
     }
 
     public DataRectificationStep() {
-        this(new DataRectificationService());
+        this(new DataRectificationService(), new StoreMetaDataObjectGroupActionPlugin(),
+            new StoreMetaDataUnitActionPlugin());
     }
 
     @Override
@@ -77,8 +85,7 @@ public class DataRectificationStep extends ActionHandler {
 
         ItemStatus itemStatus = new ItemStatus(CORRECTIVE_AUDIT);
 
-        try (StoreMetaDataObjectGroupActionPlugin storeMetaDataObjectGroupActionPlugin = new StoreMetaDataObjectGroupActionPlugin();
-            StoreMetaDataUnitActionPlugin storeMetaDataUnitActionPlugin = new StoreMetaDataUnitActionPlugin()) {
+        try {
             List<IdentifierType> identifierTypes = new ArrayList<>();
 
             File file = handler.getFileFromWorkspace(ALTER + File.separator + param.getObjectName());
@@ -113,22 +120,17 @@ public class DataRectificationStep extends ActionHandler {
 
                     if (type.getType().equals(DataCategory.OBJECTGROUP.name()) ||
                         type.getType().equals(DataCategory.OBJECT.name())
-                        ) {
-
-
+                    ) {
                         storeMetaDataObjectGroupActionPlugin.storeDocumentsWithLfc(
                             param, handler, Collections.singletonList(type.getId())
                         );
                     }
 
                     if (type.getType().equals(DataCategory.UNIT.name())) {
-
-
                         storeMetaDataUnitActionPlugin.storeDocumentsWithLfc(
                             param, handler, Collections.singletonList(type.getId()));
                     }
                 }
-
             }
 
             itemStatus.increment(StatusCode.OK);

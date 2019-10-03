@@ -72,7 +72,8 @@ public class DataRectificationService {
     private String UNIT_CORRECTIVE_AUDIT = "UNIT_CORRECTIVE_AUDIT";
     private String OBJECT_GROUP_CORRECTIVE_AUDIT = "OBJECT_GROUP_CORRECTIVE_AUDIT";
 
-    @VisibleForTesting DataRectificationService(StorageClientFactory storageClientFactory,
+    @VisibleForTesting
+    DataRectificationService(StorageClientFactory storageClientFactory,
         LogbookLifeCyclesClientFactory logbookLifeCyclesClientFactory) {
         this.storageClientFactory = storageClientFactory;
         this.logbookLifeCyclesClientFactory = logbookLifeCyclesClientFactory;
@@ -139,7 +140,7 @@ public class DataRectificationService {
                 String.format("offer '%s'  has been corrected from offer %s  for object id %s ", badOffers.get(0),
                     goodOffers.get(0), object.getIdentifier());
             storageClientFactory.getClient()
-                .copyObjectToOneOfferAnother(object.getIdentifier() , DataCategory.OBJECT, goodOffers.get(0),
+                .copyObjectToOneOfferAnother(object.getIdentifier(), DataCategory.OBJECT, goodOffers.get(0),
                     badOffers.get(0), object.getStrategyId());
 
             updateLifecycleObject(containerName, line.getIdentifier(), OBJECT_CORRECTIVE_AUDIT,
