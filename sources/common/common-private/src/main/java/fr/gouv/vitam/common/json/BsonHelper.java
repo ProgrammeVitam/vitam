@@ -37,6 +37,8 @@ import com.fasterxml.jackson.databind.PropertyNamingStrategy;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 
+import java.util.Map;
+
 public class BsonHelper {
 
     private static final JsonFactory JSON_FACTORY = new JsonFactory();
@@ -50,10 +52,13 @@ public class BsonHelper {
 
         objectMapper.configure(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS, false);
 
+        // Replace objectMapper.configure(SerializationFeature.WRITE_NULL_MAP_VALUES, true);
+        objectMapper.configOverride(Map.class).setIncludeAsProperty(JsonInclude.Value.construct(JsonInclude.Include.ALWAYS, JsonInclude.Include.ALWAYS));
+
+
         objectMapper.setSerializationInclusion(JsonInclude.Include.ALWAYS); // Serialize all fields
         objectMapper.disable(SerializationFeature.INDENT_OUTPUT); // Unpretty print
 
-        objectMapper.configure(SerializationFeature.WRITE_NULL_MAP_VALUES, true);
         objectMapper.configure(SerializationFeature.WRITE_EMPTY_JSON_ARRAYS, true);
         objectMapper.configure(SerializationFeature.WRITE_SINGLE_ELEM_ARRAYS_UNWRAPPED, false);
         objectMapper.configure(JsonParser.Feature.ALLOW_SINGLE_QUOTES, true);

@@ -26,11 +26,6 @@
  */
 package fr.gouv.vitam.functional.administration.common;
 
-import static org.junit.Assert.assertEquals;
-
-import java.io.InputStream;
-import java.util.Map;
-
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.model.administration.RegisterValueDetailModel;
@@ -38,9 +33,15 @@ import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
 import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
+import net.javacrumbs.jsonunit.JsonAssert;
 import org.bson.Document;
 import org.junit.Rule;
 import org.junit.Test;
+
+import java.io.InputStream;
+import java.util.Map;
+
+import static org.junit.Assert.assertEquals;
 
 public class AccessionRegisterSummaryTest {
 
@@ -65,10 +66,11 @@ public class AccessionRegisterSummaryTest {
             .setTotalUnits(initialValue);
 
         assertEquals(id, register.get("_id"));
-        assertEquals(initialValue, register.getTotalObjectGroups());
-        assertEquals(initialValue, register.getTotalObjectSize());
-        assertEquals(initialValue, register.getTotalUnits());
-        assertEquals(initialValue, register.getTotalObjects());
+        JsonAssert.assertJsonEquals(initialValue, register.getTotalObjectGroups());
+        JsonAssert.assertJsonEquals(initialValue, register.getTotalObjectSize());
+        JsonAssert.assertJsonEquals(initialValue, register.getTotalUnits());
+        JsonAssert.assertJsonEquals(initialValue, register.getTotalObjects());
+
 
         final InputStream stream =
             Thread.currentThread().getContextClassLoader().getResourceAsStream("accession-register.json");
