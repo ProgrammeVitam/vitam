@@ -29,6 +29,7 @@ pipeline {
         SERVICE_NOPROXY = credentials("http_nonProxyHosts")
         SERVICE_DOCKER_PULL_URL=credentials("SERVICE_DOCKER_PULL_URL")
         SERVICE_REPOSITORY_URL=credentials("service-repository-url")
+        GITHUB_ACCOUNT_TOKEN = credentials("vitam-prg-token")
     }
 
     options {
@@ -156,6 +157,7 @@ pipeline {
                         branch "develop*"
                         branch "master_*"
                         branch "master"
+                        branch "PR*" // do not try to update on github status
                         tag pattern: "^[1-9]+\\.[0-9]+\\.[0-9]+-?[0-9]*\$", comparator: "REGEXP"
                     }
                 }
@@ -203,6 +205,59 @@ pipeline {
                 }
                 aborted {
                     updateGitlabCommitStatus name: 'mergerequest', state: "canceled"
+                }
+            }
+        }
+
+        stage ("Execute unit and integration tests on pull requests") {
+            when {
+                branch "PR*" // do not try to update on github status
+            }
+            environment {
+                MVN_COMMAND = "${MVN_BASE} --show-version --batch-mode --errors --fail-never -DinstallAtEnd=true -DdeployAtEnd=true "
+            }
+            steps {
+                // updateGitlabCommitStatus name: 'mergerequest', state: "running"
+                // script {
+                    githubNotify status: "PENDING", description: "Building & testing", credentialsId: "vitam-prg-token"
+                // }
+                dir('sources') {
+                    script {
+                        docker.withRegistry("http://${env.SERVICE_DOCKER_PULL_URL}") {
+                            docker.image("${env.SERVICE_DOCKER_PULL_URL}/elasticsearch/elasticsearch:6.8.2").withRun('-p 9200:9200 -p 9300:9300 -e "discovery.type=single-node" -e "cluster.name=elasticsearch-data"') { c ->
+                                docker.withRegistry("http://${env.SERVICE_DOCKER_PULL_URL}") {
+                                    docker.image("${env.SERVICE_DOCKER_PULL_URL}/mongo:4.2.0").withRun('-p 27017:27017') { o ->
+                                        sh 'while ! curl -v http://localhost:9200; do sleep 2; done'
+                                        sh 'curl -X PUT http://localhost:9200/_template/default -H \'Content-Type: application/json\' -d \'{"index_patterns": ["*"],"order": -1,"settings": {"number_of_shards": "1","number_of_replicas": "0"}}\''
+                                        sh '$MVN_COMMAND -f pom.xml clean verify org.owasp:dependency-check-maven:aggregate sonar:sonar -Dsonar.branch=$GIT_BRANCH -Ddownloader.quick.query.timestamp=false'
+                                    }
+                        		}
+                            }
+                        }
+                    }
+                }
+            }
+            post {
+                always {
+                    junit 'sources/**/target/surefire-reports/*.xml'
+                }
+                success {
+                    archiveArtifacts (
+                        artifacts: '**/dependency-check-report.html'
+                        , fingerprint: true
+                        , allowEmptyArchive: true
+
+                    )
+                    githubNotify status: "SUCCESS", description: "Build successul", credentialsId: "vitam-prg-token"
+                }
+                failure {
+                    githubNotify status: "FAILURE", description: "Build failed", credentialsId: "vitam-prg-token"
+                }
+                unstable {
+                    githubNotify status: "FAILURE", description: "Build unstable", credentialsId: "vitam-prg-token"
+                }
+                aborted {
+                    githubNotify status: "ERROR", description: "Build canceled", credentialsId: "vitam-prg-token"
                 }
             }
         }
