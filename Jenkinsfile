@@ -29,6 +29,7 @@ pipeline {
         SERVICE_NOPROXY = credentials("http_nonProxyHosts")
         SERVICE_DOCKER_PULL_URL=credentials("SERVICE_DOCKER_PULL_URL")
         SERVICE_REPOSITORY_URL=credentials("service-repository-url")
+        GITHUB_ACCOUNT_TOKEN = credentials("vitam-prg-token")
     }
 
     options {
@@ -116,12 +117,23 @@ pipeline {
                         branch "develop*"
                         branch "master_*"
                         branch "master"
+                        branch "PR*" // do not try to update on github status
                         tag pattern: "^[1-9]+\\.[0-9]+\\.[0-9]+-?[0-9]*\$", comparator: "REGEXP"
                     }
                 }
             }
             steps {
                 updateGitlabCommitStatus name: 'mergerequest', state: 'running'
+            }
+        }
+
+        // special case for PR
+        stage("Notify github if pull request") {
+            when {
+                branch "PR*"
+            }
+            steps {
+                githubNotify status: "PENDING", description: "Building & testing", credentialsId: "vitam-prg-token"
             }
         }
 		
@@ -169,6 +181,7 @@ pipeline {
                         branch "develop*"
                         branch "master_*"
                         branch "master"
+                        branch "PR*" // do not try to update on github status
                         tag pattern: "^[1-9]+\\.[0-9]+\\.[0-9]+-?[0-9]*\$", comparator: "REGEXP"
                     }
                 }
@@ -177,6 +190,16 @@ pipeline {
             steps {
                 updateGitlabCommitStatus name: 'mergerequest', state: 'success'
 				addGitLabMRComment comment: "pipeline-job : [analyse sonar](https://sonar.dev.programmevitam.fr/dashboard?id=fr.gouv.vitam%3Aparent%3A${gitlabSourceBranch}) de la branche"
+            }
+        }
+
+         // special case for PR
+        stage("Report to github if pull request") {
+            when {
+                branch "PR*" // do not try to update on github status
+            }
+            steps {
+                githubNotify status: "SUCCESS", description: "Build successul", credentialsId: "vitam-prg-token"
             }
         }
 
