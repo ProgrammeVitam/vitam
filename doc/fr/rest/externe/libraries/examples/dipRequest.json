@@ -7,14 +7,14 @@
   },
   "transferWithLogBookLFC": true,
   "dipRequestParameters": {
-    "ArchivalAgreement": "ArchivalAgreement",
-    "OriginatingAgencyIdentifier": "OriginatingAgencyIdentifier",
-    "Comment": "Comment",
-    "SubmissionAgencyIdentifier": "SubmissionAgencyIdentifier",
-    "MessageRequestIdentifier": "MessageRequestIdentifier",
-    "AuthorizationRequestReplyIdentifier": "AuthorizationRequestReplyIdentifier",
-    "ArchivalAgencyIdentifier": "ArchivalAgencyIdentifier",
-    "RequesterIdentifier": "RequesterIdentifier"
+    "archivalAgreement": "ArchivalAgreement",
+    "originatingAgencyIdentifier": "OriginatingAgencyIdentifier",
+    "comment": "Comment",
+    "submissionAgencyIdentifier": "SubmissionAgencyIdentifier",
+    "messageRequestIdentifier": "MessageRequestIdentifier",
+    "authorizationRequestReplyIdentifier": "AuthorizationRequestReplyIdentifier",
+    "archivalAgencyIdentifier": "ArchivalAgencyIdentifier",
+    "requesterIdentifier": "RequesterIdentifier"
   },
   "dslRequest": {
     "$roots": [

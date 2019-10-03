@@ -27,37 +27,34 @@
 package fr.gouv.vitam.common.model.dip;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import fr.gouv.vitam.common.SedaConstants;
 
 import java.util.List;
 
 public class TransferRequestParameters {
 
-    private static final String IDENTIFIER = "Identifier";
+    @JsonProperty(ExportRequestParameters.ARCHIVAL_AGREEMENT)
+    private String archivalAgreement; // Required
 
-    @JsonProperty(SedaConstants.TAG_ARCHIVAL_AGREEMENT)
-    private String archivalAgreement; // Cardinality (1-1) for ArchiveTransfer optional for ArchiveDeliveryRequestReply
+    @JsonProperty(ExportRequestParameters.ORIGINATING_AGENCY_IDENTIFIER)
+    private String originatingAgencyIdentifier; // Required
 
-    @JsonProperty(SedaConstants.TAG_ORIGINATINGAGENCYIDENTIFIER)
-    private String originatingAgencyIdentifier; // Cardinality (1-1) for ArchiveTransfer must be given from query
+    @JsonProperty(ExportRequestParameters.ARCHIVAL_AGENCY_IDENTIFIER)
+    private String archivalAgencyIdentifier; // Required
 
-    @JsonProperty(SedaConstants.TAG_COMMENT)
+    @JsonProperty(ExportRequestParameters.COMMENT)
     private String comment;
 
-    @JsonProperty(SedaConstants.TAG_SUBMISSIONAGENCYIDENTIFIER)
+    @JsonProperty(ExportRequestParameters.SUBMISSION_AGENCY_IDENTIFIER)
     private String submissionAgencyIdentifier;
 
-    @JsonProperty(SedaConstants.TAG_RELATED_TRANSFER_REFERENCE)
-    private List<String> relatedTransferReference; // ArchiveTransfer only
+    @JsonProperty(ExportRequestParameters.RELATED_TRANSFER_REFERENCE)
+    private List<String> relatedTransferReference;
 
-    @JsonProperty(SedaConstants.TAG_TRANSFER_REQUEST_REPLY_IDENTIFIER)
-    private String transferRequestReplyIdentifier; // ArchiveTransfer only
+    @JsonProperty(ExportRequestParameters.TRANSFER_REQUEST_REPLY_IDENTIFIER)
+    private String transferRequestReplyIdentifier;
 
-    @JsonProperty(SedaConstants.TAG_ARCHIVAL_AGENCY + IDENTIFIER)
-    private String archivalAgencyIdentifier; // Cardinality (1-1)
-
-    @JsonProperty(SedaConstants.TAG_TRANSFERRING_AGENCY)
-    private String transferringAgency; // ArchiveTransfer only
+    @JsonProperty(ExportRequestParameters.TRANSFERRING_AGENCY)
+    private String transferringAgency;
 
 
     public String getArchivalAgreement() {

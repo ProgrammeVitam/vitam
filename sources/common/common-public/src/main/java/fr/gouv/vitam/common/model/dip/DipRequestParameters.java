@@ -27,35 +27,32 @@
 package fr.gouv.vitam.common.model.dip;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import fr.gouv.vitam.common.SedaConstants;
 
 public class DipRequestParameters {
 
-    public static final String IDENTIFIER = "Identifier";
+    @JsonProperty(ExportRequestParameters.ARCHIVAL_AGREEMENT)
+    private String archivalAgreement;
 
-    @JsonProperty(SedaConstants.TAG_ARCHIVAL_AGREEMENT)
-    private String archivalAgreement; // Cardinality (1-1) for ArchiveTransfer optional for ArchiveDeliveryRequestReply
+    @JsonProperty(ExportRequestParameters.ORIGINATING_AGENCY_IDENTIFIER)
+    private String originatingAgencyIdentifier;
 
-    @JsonProperty(SedaConstants.TAG_ORIGINATINGAGENCYIDENTIFIER)
-    private String originatingAgencyIdentifier; // Cardinality (1-1) for ArchiveTransfer must be given from query
-
-    @JsonProperty(SedaConstants.TAG_COMMENT)
+    @JsonProperty(ExportRequestParameters.COMMENT)
     private String comment;
 
-    @JsonProperty(SedaConstants.TAG_SUBMISSIONAGENCYIDENTIFIER)
+    @JsonProperty(ExportRequestParameters.SUBMISSION_AGENCY_IDENTIFIER)
     private String submissionAgencyIdentifier;
 
-    @JsonProperty(SedaConstants.TAG_MESSAGE_REQUEST_IDENTIFIER)
-    private String messageRequestIdentifier; // ArchiveDeliveryRequestReply only Cardinality (1-1)
+    @JsonProperty(ExportRequestParameters.MESSAGE_REQUEST_IDENTIFIER)
+    private String messageRequestIdentifier; // Required
 
-    @JsonProperty(SedaConstants.TAG_AUTHORIZATION_REQUEST_REPLY_IDENTIFIER)
-    private String authorizationRequestReplyIdentifier; // ArchiveDeliveryRequestReply only
+    @JsonProperty(ExportRequestParameters.ARCHIVAL_AGENCY_IDENTIFIER)
+    private String archivalAgencyIdentifier; // Required
 
-    @JsonProperty(SedaConstants.TAG_ARCHIVAL_AGENCY + IDENTIFIER)
-    private String archivalAgencyIdentifier; // Cardinality (1-1)
+    @JsonProperty(ExportRequestParameters.REQUESTER_IDENTIFIER)
+    private String requesterIdentifier; // Required
 
-    @JsonProperty(SedaConstants.TAG_REQUESTER + IDENTIFIER)
-    private String requesterIdentifier; // ArchiveDeliveryRequestReply only Cardinality (1-1)
+    @JsonProperty(ExportRequestParameters.AUTHORIZATION_REQUEST_REPLY_IDENTIFIER)
+    private String authorizationRequestReplyIdentifier;
 
 
     public String getArchivalAgreement() {

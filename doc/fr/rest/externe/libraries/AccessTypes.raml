@@ -214,35 +214,35 @@ types:
           type: object
           required: false
           properties:
-            ArchivalAgreement:
+            archivalAgreement:
               description: Contrat d'entrée
               type: string
               required: false
-            OriginatingAgencyIdentifier:
+            originatingAgencyIdentifier:
               description: Identifiant du service producteur
               type: string
               required: false
-            Comment:
+            comment:
               description: Intitulé
               type: string
               required: false
-            SubmissionAgencyIdentifier:
+            submissionAgencyIdentifier:
               description: Identifiant du service versant
               type: string
               required: false
-            ArchivalAgencyIdentifier:
+            archivalAgencyIdentifier:
               description: Identifiant du service d'archives. Si Vitam trouve un seul service d'archives pour la selection d'unités archivistiques, ce service sera utilisé par défaut.
               type: string
               required: true
-            MessageRequestIdentifier:
+            messageRequestIdentifier:
               description: Identifiant de la demande
               type: string
               required: true
-            RequesterIdentifier:
+            requesterIdentifier:
               description: Identifiant du demandeur
               type: string
               required: true
-            AuthorizationRequestReplyIdentifier:
+            authorizationRequestReplyIdentifier:
               description: Identifiant de la réponse à une demande d'autorisation
               type: string
               required: false
@@ -276,35 +276,35 @@ types:
           type: object
           required: true
           properties:
-            ArchivalAgreement:
+            archivalAgreement:
               description: Contrat d'entrée
               type: string
               required: true
-            OriginatingAgencyIdentifier:
+            originatingAgencyIdentifier:
               description: Identifiant du service producteur
               type: string
               required: true
-            ArchivalAgencyIdentifier:
+            archivalAgencyIdentifier:
               description: Identifiant du service d'archives
               type: string
               required: true
-            Comment:
+            comment:
               description: Intitulé
               type: string
               required: false
-            SubmissionAgencyIdentifier:
+            submissionAgencyIdentifier:
               description: Identifiant du service versant
               type: string
               required: false
-            TransferringAgency:
+            transferringAgency:
               description: Service versant
               type: string
               required: false
-            TransferRequestReplyIdentifier:
+            transferRequestReplyIdentifier:
               description: Identifiant de la réponse à une demande de transfert
               type: string
               required: false
-            RelatedTransferReference:
+            relatedTransferReference:
               description: Référence à un transfert d'archives lié
               type: array
               required: false

@@ -6,16 +6,16 @@
   },
   "transferWithLogBookLFC": true,
   "transferRequestParameters": {
-    "ArchivalAgreement": "ArchivalAgreement",
-    "OriginatingAgencyIdentifier": "OriginatingAgencyIdentifier",
-    "Comment": "Comment",
-    "SubmissionAgencyIdentifier": "SubmissionAgencyIdentifier",
-    "RelatedTransferReference": [
+    "archivalAgreement": "ArchivalAgreement",
+    "originatingAgencyIdentifier": "OriginatingAgencyIdentifier",
+    "comment": "Comment",
+    "submissionAgencyIdentifier": "SubmissionAgencyIdentifier",
+    "relatedTransferReference": [
       "RelatedTransferReference"
     ],
-    "TransferRequestReplyIdentifier": "TransferRequestReplyIdentifier",
-    "ArchivalAgencyIdentifier": "ArchivalAgencyIdentifier",
-    "TransferringAgency": "TransferringAgency"
+    "transferRequestReplyIdentifier": "TransferRequestReplyIdentifier",
+    "archivalAgencyIdentifier": "ArchivalAgencyIdentifier",
+    "transferringAgency": "TransferringAgency"
   },
   "dslRequest": {
     "$roots": [
