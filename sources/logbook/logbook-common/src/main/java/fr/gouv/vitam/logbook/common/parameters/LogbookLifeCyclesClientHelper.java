@@ -189,7 +189,6 @@ public class LogbookLifeCyclesClientHelper {
 
     public void updateDelegateWithKey(String key, LogbookLifeCycleParameters parameters) {
         parameters.putParameterValue(LogbookParameterName.agentIdentifier, SERVER_IDENTITY.getJsonIdentity());
-        parameters.putParameterValue(LogbookParameterName.eventDateTime, LocalDateUtil.now().toString());
         ParameterHelper.checkNullOrEmptyParameters(parameters.getMapParameters(), parameters.getMandatoriesParameters());
 
         Queue<LogbookLifeCycleParameters> queue = delegatedCreations.get(key);

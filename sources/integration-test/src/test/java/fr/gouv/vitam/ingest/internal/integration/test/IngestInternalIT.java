@@ -257,6 +257,7 @@ public class IngestInternalIT extends VitamRuleRunner {
     private static String SIP_TREE = "integration-ingest-internal/test_arbre.zip";
     private static String SIP_FILE_OK_NAME = "integration-ingest-internal/SIP-ingest-internal-ok.zip";
     private static String SIP_WITH_LOGBOOK = "integration-ingest-internal/sip_with_logbook.zip";
+    private static String SIP_WITH_MALFORMED_LOGBOOK = "integration-ingest-internal/sip_with_malformed_logbook.zip";
     private static String SIP_SIP_ALL_METADATA_WITH_CUSTODIALHISTORYFILE =
         "integration-ingest-internal/sip_all_metadata_with_custodialhistoryfile.zip";
     private static String SIP_NB_OBJ_INCORRECT_IN_MANIFEST = "integration-ingest-internal/SIP_Conformity_KO.zip";
@@ -2749,6 +2750,32 @@ public class IngestInternalIT extends VitamRuleRunner {
             assertThat(eventsOG.stream().filter(e -> e.getEventType().equals("LFC.EXTERNAL_LOGBOOK")).findFirst()).isNotEmpty();
             assertThat(eventsAU.stream().filter(e -> e.getEventType().equals("LFC.EXTERNAL_LOGBOOK")).findFirst()).isNotEmpty();
         }
+    }
+
+    @RunWithCustomExecutor
+    @Test
+    public void should_NOT_ingest_SIP_with_malformed_logbook() throws Exception {
+        GUID operationGuid = GUIDFactory.newOperationLogbookGUID(tenantId);
+        prepareVitamSession();
+        VitamThreadUtils.getVitamSession().setRequestId(operationGuid);
+
+        InputStream zipInputStreamSipObject = PropertiesUtils.getResourceAsStream(SIP_WITH_MALFORMED_LOGBOOK);
+
+        LogbookOperationParameters initParameters = LogbookParametersFactory.newLogbookOperationParameters(
+            operationGuid, "Process_SIP_unitary", operationGuid,
+            LogbookTypeProcess.INGEST, StatusCode.STARTED,
+            operationGuid.toString(),
+            operationGuid);
+
+        IngestInternalClientFactory.getInstance().changeServerPort(VitamServerRunner.PORT_SERVICE_INGEST_INTERNAL);
+        IngestInternalClient client = IngestInternalClientFactory.getInstance().getClient();
+        client.uploadInitialLogbook(Collections.singletonList(initParameters));
+
+        client.initWorkflow(ingestSip);
+
+        client.upload(zipInputStreamSipObject, CommonMediaType.ZIP_TYPE, ingestSip, ProcessAction.RESUME.name());
+
+        awaitForWorkflowTerminationWithStatus(operationGuid, StatusCode.KO);
     }
 
     private JsonNode getArchiveUnitWithTitle(MetaDataClient metadataClient, String name) throws Exception {

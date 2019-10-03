@@ -155,6 +155,7 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.StringWriter;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -165,6 +166,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Objects;
 import java.util.Queue;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
@@ -1485,7 +1487,7 @@ public class ExtractSedaActionHandler extends ActionHandler {
         }
     }
 
-    private void createExternalLifeCycleLogbook(List<LogbookEvent> externalModelEvents, String processId, String guid) throws LogbookClientNotFoundException {
+    private void createExternalLifeCycleLogbook(List<LogbookEvent> externalModelEvents, String processId, String guid) throws LogbookClientNotFoundException, ProcessingMalformedDataException {
         LogbookLifeCycleParameters parent = createExternalParentLogbookLifeCycle(processId, guid);
         handlerIO.getHelper().updateDelegate(parent);
 
@@ -1511,8 +1513,10 @@ public class ExtractSedaActionHandler extends ActionHandler {
         return parent;
     }
 
-    private LogbookLifeCycleParameters toLogbookLifeCycleParameters(LogbookEvent eventModel, String parentId, String identifierProcess, String guid) {
+    private LogbookLifeCycleParameters toLogbookLifeCycleParameters(LogbookEvent eventModel, String parentId, String identifierProcess, String guid) throws ProcessingMalformedDataException {
         LogbookLifeCycleParameters logbookLifeCycleParameters = new LogbookLifeCycleParameters(Collections.singleton(LogbookParameterName.eventDateTime));
+
+        checkEveDateTime(eventModel);
 
         Map<String, String> parameters = new HashMap<>();
         parameters.put(eventIdentifier.name(), eventModel.getEvId());
@@ -1529,6 +1533,15 @@ public class ExtractSedaActionHandler extends ActionHandler {
 
         logbookLifeCycleParameters.setMap(parameters);
         return logbookLifeCycleParameters;
+    }
+
+    private void checkEveDateTime(LogbookEvent eventModel) throws ProcessingMalformedDataException {
+        String evDateTime = eventModel.getEvDateTime();
+        LocalDateTime now = LocalDateTime.now();
+        LocalDateTime localDateTime = LocalDateUtil.parseMongoFormattedDate(Objects.requireNonNull(evDateTime, "EventDateTime cannot be null."));
+        if (localDateTime.isAfter(now)) {
+            throw new ProcessingMalformedDataException(String.format("EventDateTime in Logbook Event cannot be in the future, here '%s' is after '%s'.", evDateTime, now));
+        }
     }
 
     private void addStorageInformation(ObjectNode archiveUnit, JsonNode storageUnitInfo) {
