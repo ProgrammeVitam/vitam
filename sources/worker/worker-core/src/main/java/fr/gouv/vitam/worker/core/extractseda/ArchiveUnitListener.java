@@ -38,14 +38,15 @@ import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.google.common.base.Strings;
 import fr.gouv.culture.archivesdefrance.seda.v2.ArchiveUnitIdentifierKeyType;
 import fr.gouv.culture.archivesdefrance.seda.v2.ArchiveUnitType;
+import fr.gouv.culture.archivesdefrance.seda.v2.CustodialHistoryType;
 import fr.gouv.culture.archivesdefrance.seda.v2.DataObjectOrArchiveUnitReferenceType;
 import fr.gouv.culture.archivesdefrance.seda.v2.DataObjectRefType;
+import fr.gouv.culture.archivesdefrance.seda.v2.DescriptiveMetadataContentType;
 import fr.gouv.culture.archivesdefrance.seda.v2.IdentifierType;
 import fr.gouv.culture.archivesdefrance.seda.v2.KeyType;
 import fr.gouv.culture.archivesdefrance.seda.v2.LevelType;
 import fr.gouv.culture.archivesdefrance.seda.v2.ObjectGroupRefType;
 import fr.gouv.culture.archivesdefrance.seda.v2.RelatedObjectReferenceType;
-import fr.gouv.culture.archivesdefrance.seda.v2.SignatureType;
 import fr.gouv.culture.archivesdefrance.seda.v2.TextType;
 import fr.gouv.vitam.common.SedaConstants;
 import fr.gouv.vitam.common.database.builder.query.Query;
@@ -150,20 +151,14 @@ public class ArchiveUnitListener extends Unmarshaller.Listener {
     private static final String LFC_INITIAL_CREATION_EVENT_TYPE = "LFC_CREATION";
 
     private static final String ARCHIVE_UNIT_TMP_FILE_PREFIX = "AU_TMP_";
-
-    private ArchiveUnitMapper archiveUnitMapper;
-
-    private HandlerIO handlerIO;
-
-    private ObjectNode archiveUnitTree;
-
     private final Map<String, String> unitIdToGuid;
     private final Map<String, String> guidToUnitId;
-
+    private final Map<String, JsonNode> existingGOTs;
+    private ArchiveUnitMapper archiveUnitMapper;
+    private HandlerIO handlerIO;
+    private ObjectNode archiveUnitTree;
     private ObjectMapper objectMapper;
-
     private Map<String, String> unitIdToGroupId;
-
     private Map<String, List<String>> objectGroupIdToUnitId;
     private Map<String, String> dataObjectIdToObjectGroupId;
     private Map<String, GotObj> dataObjectIdWithoutObjectGroupId;
@@ -178,7 +173,6 @@ public class ArchiveUnitListener extends Unmarshaller.Listener {
     private Map<String, Set<String>> unitIdToSetOfRuleId;
     private UnitType workflowUnitType;
     private List<String> originatingAgencies;
-    private final Map<String, JsonNode> existingGOTs;
     private IngestContractModel ingestContract;
     private Map<String, Boolean> isThereManifestRelatedReferenceRemained;
     private Map<String, String> existingGOTGUIDToNewGotGUIDInAttachment;
@@ -254,6 +248,28 @@ public class ArchiveUnitListener extends Unmarshaller.Listener {
         this.adminManagementClientFactory = adminManagementClientFactory;
     }
 
+    private static ObjectMapper getObjectMapper() {
+        ObjectMapper objectMapper = new ObjectMapper();
+        objectMapper.setPropertyNamingStrategy(PropertyNamingStrategy.UPPER_CAMEL_CASE);
+        objectMapper.setSerializationInclusion(JsonInclude.Include.NON_NULL);
+        objectMapper.setSerializationInclusion(JsonInclude.Include.NON_EMPTY);
+        objectMapper.enable(SerializationFeature.INDENT_OUTPUT);
+
+        SimpleModule module = new SimpleModule();
+        module.addSerializer(TextType.class, new TextTypeSerializer());
+        module.addSerializer(LevelType.class, new LevelTypeSerializer());
+        module.addSerializer(IdentifierType.class, new IdentifierTypeSerializer());
+        module.addSerializer(XMLGregorianCalendar.class, new XMLGregorianCalendarSerializer());
+        module.addSerializer(TextByLang.class, new TextByLangSerializer());
+        module.addSerializer(KeyType.class, new KeywordTypeSerializer());
+
+        objectMapper.registerModule(module);
+        JavaTimeModule module1 = new JavaTimeModule();
+        objectMapper.registerModule(module1);
+
+        return objectMapper;
+    }
+
     /**
      * listener call after end of unmarshall
      *
@@ -320,7 +336,7 @@ public class ArchiveUnitListener extends Unmarshaller.Listener {
                 archiveUnitNode = JsonHandler.createObjectNode();
                 // or go search for it
             }
-
+            fillCustodialHistoryReference(archiveUnitType);
             // Add new Archive Unit Entry
             archiveUnitTree.set(sedaAchiveUnitId, archiveUnitNode);
 
@@ -368,6 +384,40 @@ public class ArchiveUnitListener extends Unmarshaller.Listener {
         }
 
         super.afterUnmarshal(target, parent);
+    }
+
+    private void fillCustodialHistoryReference(ArchiveUnitType archiveUnitType) {
+        DescriptiveMetadataContentType content = archiveUnitType.getContent();
+        if (content == null || content.getCustodialHistory() == null ||
+            content.getCustodialHistory().getCustodialHistoryFile() == null) {
+            return;
+        }
+
+        CustodialHistoryType custodialHistoryType = content.getCustodialHistory();
+        DataObjectRefType dataObjectReference = content.getCustodialHistory().getCustodialHistoryFile();
+
+        String objectGroupReferenceId = dataObjectReference.getDataObjectGroupReferenceId();
+        String objectReferenceId = dataObjectReference.getDataObjectReferenceId();
+
+        DataObjectRefType custodialHistoryFile = new DataObjectRefType();
+        if (dataObjectReference != null) {
+            if (objectGroupReferenceId != null) {
+                custodialHistoryFile
+                    .setDataObjectGroupReferenceId(objectGroupIdToGuid.get(objectGroupReferenceId));
+                custodialHistoryType.setCustodialHistoryFile(custodialHistoryFile);
+                content.setCustodialHistory(custodialHistoryType);
+                archiveUnitType.setContent(content);
+            }
+
+            if (objectReferenceId != null) {
+                String objectId = dataObjectIdToObjectGroupId.get(objectReferenceId);
+                custodialHistoryFile.setDataObjectReferenceId(objectGroupIdToGuid.get(objectId));
+                custodialHistoryType.setCustodialHistoryFile(custodialHistoryFile);
+                content.setCustodialHistory(custodialHistoryType);
+                archiveUnitType.setContent(content);
+            }
+        }
+
     }
 
     private void checkAutoAttachmentsByIngestContract() {
@@ -847,7 +897,6 @@ public class ArchiveUnitListener extends Unmarshaller.Listener {
         return null;
     }
 
-
     private void fillArchiveUnitTree(String archiveUnitId, ArchiveUnitType archiveUnitType) {
 
         String childArchiveUnitRef = archiveUnitType.getArchiveUnitRefId();
@@ -938,7 +987,6 @@ public class ArchiveUnitListener extends Unmarshaller.Listener {
         // Update guidToLifeCycleParameters
         guidToLifeCycleParameters.put(unitGuid, logbookLifecycleUnitParameters);
     }
-
 
     private LogbookParameters initLogbookLifeCycleParameters(String guid, boolean isArchive, boolean isObjectGroup) {
         LogbookParameters logbookLifeCycleParameters = guidToLifeCycleParameters.get(guid);
@@ -1058,28 +1106,6 @@ public class ArchiveUnitListener extends Unmarshaller.Listener {
             throw new RuntimeException(
                 new ProcessingException("Existing ObjectGroup " + objectGroupId + " was not found"));
         }
-    }
-
-    private static ObjectMapper getObjectMapper() {
-        ObjectMapper objectMapper = new ObjectMapper();
-        objectMapper.setPropertyNamingStrategy(PropertyNamingStrategy.UPPER_CAMEL_CASE);
-        objectMapper.setSerializationInclusion(JsonInclude.Include.NON_NULL);
-        objectMapper.setSerializationInclusion(JsonInclude.Include.NON_EMPTY);
-        objectMapper.enable(SerializationFeature.INDENT_OUTPUT);
-
-        SimpleModule module = new SimpleModule();
-        module.addSerializer(TextType.class, new TextTypeSerializer());
-        module.addSerializer(LevelType.class, new LevelTypeSerializer());
-        module.addSerializer(IdentifierType.class, new IdentifierTypeSerializer());
-        module.addSerializer(XMLGregorianCalendar.class, new XMLGregorianCalendarSerializer());
-        module.addSerializer(TextByLang.class, new TextByLangSerializer());
-        module.addSerializer(KeyType.class, new KeywordTypeSerializer());
-
-        objectMapper.registerModule(module);
-        JavaTimeModule module1 = new JavaTimeModule();
-        objectMapper.registerModule(module1);
-
-        return objectMapper;
     }
 
     /**
