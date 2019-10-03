@@ -219,7 +219,7 @@ pipeline {
             steps {
                 // updateGitlabCommitStatus name: 'mergerequest', state: "running"
                 // script {
-                //     githubNotify status: "PENDING", credentialsId: "github-account"
+                    githubNotify status: "PENDING", credentialsId: "vitam-prg-token"
                 // }
                 dir('sources') {
                     script {
