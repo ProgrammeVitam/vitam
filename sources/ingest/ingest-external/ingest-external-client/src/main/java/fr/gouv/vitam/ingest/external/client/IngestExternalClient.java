@@ -55,7 +55,6 @@ public interface IngestExternalClient extends MockOrRestClient {
      * @return response
      * @throws IngestExternalException
      */
-    // TODO P0 : add file name
     RequestResponse<Void> ingest(VitamContext vitamContext, InputStream stream,
         String contextId,
         String action)

@@ -67,6 +67,7 @@ import fr.gouv.vitam.common.model.administration.OntologyModel;
 import fr.gouv.vitam.common.model.administration.ProfileModel;
 import fr.gouv.vitam.common.model.administration.SecurityProfileModel;
 import fr.gouv.vitam.common.model.processing.WorkFlow;
+import fr.gouv.vitam.common.ontology.OntologyTestHelper;
 import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.functional.administration.client.AdminManagementClient;
@@ -85,8 +86,7 @@ import fr.gouv.vitam.processing.integration.test.ProcessingIT;
  * As it test all referential import
  */
 public class DataLoader {
-    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(ProcessingIT.class);
-    private static final String ONTOLOGY_JSON = "VitamOntology.json";
+    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(DataLoader.class);
 
     int tenantId = 0;
     String dataFodler = null;
@@ -134,8 +134,7 @@ public class DataLoader {
             VitamThreadUtils.getVitamSession().setTenantId(VitamConfiguration.getAdminTenant());
             VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newOperationLogbookGUID(tenantId));
             client.importOntologies(true, JsonHandler
-                .getFromFileAsTypeRefence(
-                    PropertiesUtils.getResourceFile(ONTOLOGY_JSON),
+                .getFromInputStreamAsTypeRefence(OntologyTestHelper.loadOntologies(),
                     new TypeReference<List<OntologyModel>>() {
                     }));
             VitamThreadUtils.getVitamSession().setTenantId(initialTenant);

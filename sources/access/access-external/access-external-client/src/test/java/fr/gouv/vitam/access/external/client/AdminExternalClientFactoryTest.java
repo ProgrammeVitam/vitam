@@ -6,6 +6,7 @@ import static org.junit.Assert.assertNotSame;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
+import fr.gouv.vitam.common.external.client.configuration.SecureClientConfiguration;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -42,7 +43,7 @@ public class AdminExternalClientFactoryTest {
 
         }
 
-        AdminExternalClientFactory.changeMode(null);
+        AdminExternalClientFactory.changeMode((SecureClientConfiguration)null);
 
         final AdminExternalClient client =
             AdminExternalClientFactory.getInstance().getClient();
@@ -67,7 +68,7 @@ public class AdminExternalClientFactoryTest {
         assertTrue(client instanceof AdminExternalClientRest);
         assertEquals(VitamClientType.PRODUCTION, AdminExternalClientFactory.getInstance().getVitamClientType());
 
-        AdminExternalClientFactory.changeMode(null);
+        AdminExternalClientFactory.changeMode((SecureClientConfiguration)null);
         final AdminExternalClient client2 =
             AdminExternalClientFactory.getInstance().getClient();
         assertTrue(client2 instanceof AdminExternalClientMock);

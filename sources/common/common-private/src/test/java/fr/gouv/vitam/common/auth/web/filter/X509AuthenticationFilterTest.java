@@ -73,7 +73,6 @@ import java.security.cert.X509Certificate;
 import java.util.Date;
 
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 

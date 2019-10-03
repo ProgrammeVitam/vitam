@@ -48,6 +48,7 @@ import fr.gouv.vitam.common.i18n.VitamLogbookMessages;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.ProbativeValueRequest;
 import fr.gouv.vitam.common.model.ProcessAction;
 import fr.gouv.vitam.common.model.RequestResponse;
@@ -182,7 +183,7 @@ public class ProbativeValueResource {
 
                 processingClient.initVitamProcess(operationId, Contexts.EXPORT_PROBATIVE_VALUE.name());
 
-                RequestResponse<JsonNode> jsonNodeRequestResponse =
+                RequestResponse<ItemStatus> jsonNodeRequestResponse =
                     processingClient.executeOperationProcess(operationId, Contexts.EXPORT_PROBATIVE_VALUE.name(), ProcessAction.RESUME.getValue());
                 return jsonNodeRequestResponse.toResponse();
 

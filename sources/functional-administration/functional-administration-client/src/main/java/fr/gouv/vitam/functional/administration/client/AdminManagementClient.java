@@ -602,7 +602,7 @@ public interface AdminManagementClient extends MockOrRestClient {
      * @param operationId operation Id
      * @return RequestResponse
      */
-    RequestResponse rectificationAudit(String operationId) throws AdminManagementClientServerException;
+    RequestResponse<JsonNode> rectificationAudit(String operationId) throws AdminManagementClientServerException;
 
     /**
      * Launch an probative value export for the query

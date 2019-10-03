@@ -6,7 +6,7 @@
 		<artifactId>parent</artifactId>
 		<version>2.11.3-SNAPSHOT</version>
 	</parent>
-	<artifactId>storage-integration-no-ssl-test</artifactId>
+	<artifactId>storage-integration-nossl-test</artifactId>
 	<name>Storage Integration NoSSL Test</name>
 
 	<build>

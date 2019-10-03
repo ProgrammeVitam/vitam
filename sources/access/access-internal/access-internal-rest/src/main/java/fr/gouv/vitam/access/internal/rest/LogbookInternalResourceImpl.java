@@ -37,7 +37,6 @@ import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.accesslog.AccessLogInfoModel;
 import fr.gouv.vitam.common.accesslog.AccessLogUtils;
-import fr.gouv.vitam.common.client.DefaultClient;
 import fr.gouv.vitam.common.database.builder.query.QueryHelper;
 import fr.gouv.vitam.common.database.builder.query.VitamFieldsHelper;
 import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
@@ -60,6 +59,8 @@ import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.ProcessAction;
+import fr.gouv.vitam.common.model.ProcessState;
+import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.security.SanityChecker;
@@ -372,7 +373,6 @@ public class LogbookInternalResourceImpl {
 
         // Get TenantID
         Integer tenantId = VitamThreadUtils.getVitamSession().getTenantId();
-        Response response = null;
         GUID checkOperationGUID = null;
         LOGGER.debug("Start Check in Resource");
         try (LogbookOperationsClient logbookOperationsClient = logbookOperationsClientFactory.getClient();
@@ -391,14 +391,19 @@ public class LogbookInternalResourceImpl {
 
             LOGGER.debug("Started Check in Resource");
             // Run the WORKFLOW
-            response =
+            RequestResponse<ItemStatus> response =
                 processingClient.executeCheckTraceabilityWorkFlow(checkOperationGUID.getId(), query,
                     LogbookTypeProcess.CHECK.name(), ProcessAction.RESUME.getValue());
-            LOGGER.debug("Check in Resource launched");
+            if (LOGGER.isDebugEnabled()) {
+                LOGGER.debug("Check in Resource launched" + response.toString());
+            }
 
+            if (!response.isOk()) {
+                return response.toResponse();
+            }
 
             int nbTry = 0;
-            boolean done = processingClient.isOperationCompleted(checkOperationGUID.getId());
+            boolean done = processingClient.isNotRunning(checkOperationGUID.getId(), ProcessState.COMPLETED);
 
             while (!done) {
                 try {
@@ -409,7 +414,7 @@ public class LogbookInternalResourceImpl {
                 if (nbTry == NB_TRY)
                     break;
                 nbTry++;
-                done = processingClient.isOperationCompleted(checkOperationGUID.getId());
+                done = processingClient.isNotRunning(checkOperationGUID.getId(), ProcessState.COMPLETED);
             }
             LOGGER.debug("End of Check in Resource: {} nbTry {}", done, nbTry);
             if (done) {
@@ -442,8 +447,6 @@ public class LogbookInternalResourceImpl {
             LOGGER.error(e);
             final Status status = Status.NOT_FOUND;
             return Response.status(status).entity(getErrorEntity(status, e.getMessage())).build();
-        } finally {
-            DefaultClient.staticConsumeAnyEntityAndClose(response);
         }
     }
 
@@ -510,7 +513,8 @@ public class LogbookInternalResourceImpl {
 
             AccessLogInfoModel logInfo = AccessLogUtils.getNoLogAccessLog();
             final Response response =
-                storageClient.getContainerAsync(VitamConfiguration.getDefaultStrategy(), fileName, dataCategory, logInfo);
+                storageClient
+                    .getContainerAsync(VitamConfiguration.getDefaultStrategy(), fileName, dataCategory, logInfo);
             if (response.getStatus() == Status.OK.getStatusCode()) {
                 Map<String, String> headers = new HashMap<>();
                 headers.put(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_OCTET_STREAM);

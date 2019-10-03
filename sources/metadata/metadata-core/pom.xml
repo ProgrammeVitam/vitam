@@ -92,18 +92,4 @@
 			<scope>test</scope>
 		</dependency>
 	</dependencies>
-	<build>
-		<testResources>
-			<testResource>
-				<directory>src/test/resources</directory>
-			</testResource>
-			<!-- Include ontologie file from ansible deployment configuration to avoid duplication -->
-			<testResource>
-				<directory>../../../deployment/ansible-vitam/roles/init_contexts_and_security_profiles/files</directory>
-				<includes>
-					<include>VitamOntology.json</include>
-				</includes>
-			</testResource>
-		</testResources>
-	</build>
 </project>

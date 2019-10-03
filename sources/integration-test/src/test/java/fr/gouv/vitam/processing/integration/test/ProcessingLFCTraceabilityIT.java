@@ -754,7 +754,7 @@ public class ProcessingLFCTraceabilityIT extends VitamRuleRunner {
 
     private void wait(String operationId) {
         int nbTry = 0;
-        while (!processingClient.isOperationCompleted(operationId)) {
+        while (!processingClient.isNotRunning(operationId)) {
             try {
                 Thread.sleep(SLEEP_TIME);
             } catch (InterruptedException e) {
@@ -804,9 +804,10 @@ public class ProcessingLFCTraceabilityIT extends VitamRuleRunner {
 
         // call processing
         processingClient.initVitamProcess(containerName2, Contexts.DEFAULT_WORKFLOW.name());
-        final RequestResponse<JsonNode> ret2 =
+        final RequestResponse<ItemStatus> ret2 =
             processingClient.executeOperationProcess(containerName2, Contexts.DEFAULT_WORKFLOW.name(), ProcessAction.RESUME.getValue());
         assertNotNull(ret2);
+        assertThat(ret2.isOk()).isTrue();
         assertEquals(Status.ACCEPTED.getStatusCode(), ret2.getStatus());
         wait(containerName2);
         assertCompletedWithStatus(containerName2, StatusCode.OK);

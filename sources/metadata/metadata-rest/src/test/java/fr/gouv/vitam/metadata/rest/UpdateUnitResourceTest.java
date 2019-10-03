@@ -26,6 +26,16 @@
  *******************************************************************************/
 package fr.gouv.vitam.metadata.rest;
 
+import static io.restassured.RestAssured.given;
+import static io.restassured.RestAssured.with;
+
+import java.io.File;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+
+import javax.ws.rs.core.Response.Status;
+
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import fr.gouv.vitam.common.GlobalDataRest;
@@ -43,6 +53,7 @@ import fr.gouv.vitam.common.junit.JunitHelper;
 import fr.gouv.vitam.common.logging.SysErrLogger;
 import fr.gouv.vitam.common.model.administration.OntologyModel;
 import fr.gouv.vitam.common.mongo.MongoRule;
+import fr.gouv.vitam.common.ontology.OntologyTestHelper;
 import fr.gouv.vitam.common.server.application.configuration.MongoDbNode;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
@@ -61,18 +72,7 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 
-import javax.ws.rs.core.Response.Status;
-import java.io.File;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-
-import static io.restassured.RestAssured.given;
-import static io.restassured.RestAssured.with;
-
 public class UpdateUnitResourceTest {
-
-    private static final String ONTOLOGY_JSON = "VitamOntology.json";
 
     @Rule
     public RunWithCustomExecutorRule runInThread =
@@ -144,7 +144,7 @@ public class UpdateUnitResourceTest {
         RestAssured.basePath = DATA_URI;
 
         ClientMockResultHelper.setOntologies(JsonHandler.getFromInputStreamAsTypeRefence(
-            PropertiesUtils.getResourceAsStream(ONTOLOGY_JSON), new TypeReference<List<OntologyModel>>() {
+            OntologyTestHelper.loadOntologies(), new TypeReference<List<OntologyModel>>() {
             }));
     }
 

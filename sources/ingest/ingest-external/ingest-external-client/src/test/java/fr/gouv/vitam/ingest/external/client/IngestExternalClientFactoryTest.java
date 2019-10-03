@@ -29,6 +29,7 @@ package fr.gouv.vitam.ingest.external.client;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
+import fr.gouv.vitam.common.external.client.configuration.SecureClientConfiguration;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -53,7 +54,7 @@ public class IngestExternalClientFactoryTest {
         assertEquals(VitamClientType.PRODUCTION, IngestExternalClientFactory.getInstance().getVitamClientType());
 
         // Change to mock type and test
-        IngestExternalClientFactory.changeMode(null);
+        IngestExternalClientFactory.changeMode((SecureClientConfiguration)null);
         final IngestExternalClient client2 = IngestExternalClientFactory.getInstance().getClient();
         assertTrue(client2 instanceof IngestExternalClientMock);
         assertEquals(VitamClientType.MOCK, IngestExternalClientFactory.getInstance().getVitamClientType());

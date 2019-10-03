@@ -26,16 +26,14 @@
  *******************************************************************************/
 package fr.gouv.vitam.common.logging;
 
-import java.lang.reflect.InvocationTargetException;
-
 /**
  * Creates an {@link VitamLogger} or changes the default factory implementation. This factory allows you to choose what
  * logging framework VITAM should use. The default factory is {@link LogbackLoggerFactory}. If SLF4J is not available,
- * {@link Log4JLoggerFactory} is used. If Log4J is not available, {@link JdkLoggerFactory} is used. You can change it to
+ * Log4JLoggerFactory is used. If Log4J is not available, {@link JdkLoggerFactory} is used. You can change it to
  * your preferred logging framework before other VITAM classes are loaded:
  *
  * <pre>
- * {@link VitamLoggerFactory}.setDefaultFactory(new {@link Log4JLoggerFactory}());
+ * {@link VitamLoggerFactory}.setDefaultFactory(new Log4JLoggerFactory());
  * </pre>
  *
  * Please note that the new default factory is effective only for the classes which were loaded after the default
@@ -78,9 +76,10 @@ public abstract class VitamLoggerFactory {
         } catch (ClassNotFoundException | NoClassDefFoundError e) {
             // ignore
             SysErrLogger.FAKE_LOGGER.ignoreLog(e);
-        } catch (IllegalAccessException | IllegalArgumentException |
-            InvocationTargetException | NoSuchMethodException | SecurityException e) {
-            SysErrLogger.FAKE_LOGGER.syserr("Issue while initializing Identiy", e);
+        } catch (Throwable e) {
+            System.err.println("Issue while initializing Identiy :" + e.getMessage());
+            e.printStackTrace(System.err);
+            throw new RuntimeException("Issue while initializing Identiy", e);
         }
         initialized = true;
     }

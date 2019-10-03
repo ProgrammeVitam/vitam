@@ -53,6 +53,8 @@ import fr.gouv.vitam.logbook.common.parameters.LogbookOperationParameters;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParameters;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParametersFactory;
 import fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess;
+import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClient;
+import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClientFactory;
 import fr.gouv.vitam.processing.management.client.ProcessingManagementClient;
 import fr.gouv.vitam.processing.management.client.ProcessingManagementClientFactory;
 import fr.gouv.vitam.storage.engine.common.model.DataCategory;
@@ -77,6 +79,7 @@ import java.util.Set;
 import static io.restassured.RestAssured.get;
 import static io.restassured.RestAssured.given;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
@@ -107,11 +110,15 @@ public class IngestInternalResourceTest extends ResteasyTestApplication {
     private final static ProcessingManagementClientFactory processingManagementClientFactory =
         mock(ProcessingManagementClientFactory.class);
 
+    private final static LogbookOperationsClientFactory logbookOperationsClientFactory =
+        mock(LogbookOperationsClientFactory.class);
+
 
 
     private GUID ingestGuid;
     private ProcessingManagementClient processingClient;
     private WorkspaceClient workspaceClient;
+    private LogbookOperationsClient logbookOperationsClient;
 
     private List<LogbookParameters> operationList = new ArrayList<>();
     private List<LogbookParameters> operationList2 = new ArrayList<>();
@@ -120,7 +127,8 @@ public class IngestInternalResourceTest extends ResteasyTestApplication {
     public Set<Object> getResources() {
         return Sets
             .newHashSet(new HeaderIdContainerFilter(),
-                new IngestInternalResource(workspaceClientFactory, processingManagementClientFactory));
+                new IngestInternalResource(workspaceClientFactory, processingManagementClientFactory,
+                    logbookOperationsClientFactory));
     }
 
     @BeforeClass
@@ -140,8 +148,10 @@ public class IngestInternalResourceTest extends ResteasyTestApplication {
     public void setUp() throws Exception {
         processingClient = mock(ProcessingManagementClient.class);
         workspaceClient = mock(WorkspaceClient.class);
+        logbookOperationsClient = mock(LogbookOperationsClient.class);
         when(processingManagementClientFactory.getClient()).thenReturn(processingClient);
         when(workspaceClientFactory.getClient()).thenReturn(workspaceClient);
+        when(logbookOperationsClientFactory.getClient()).thenReturn(logbookOperationsClient);
 
 
         ingestGuid = GUIDFactory.newManifestGUID(0);
@@ -234,8 +244,10 @@ public class IngestInternalResourceTest extends ResteasyTestApplication {
             PropertiesUtils.getResourceAsStream("SIP_mauvais_format.pdf");
 
         given()
-            .headers(GlobalDataRest.X_REQUEST_ID, ingestGuid.getId(), GlobalDataRest.X_ACTION, ProcessAction.INIT,
-                GlobalDataRest.X_CONTEXT_ID, INIT_CONTEXT)
+            .headers(
+                GlobalDataRest.X_REQUEST_ID, ingestGuid.getId(),
+                GlobalDataRest.X_ACTION, ProcessAction.INIT,
+                GlobalDataRest.X_CONTEXT_ID, INIT_CONTEXT, GlobalDataRest.X_TYPE_PROCESS, "INGEST")
             .body(inputStreamZip).contentType(CommonMediaType.ZIP)
             .when().post(INGEST_URL)
             .then().statusCode(Status.INTERNAL_SERVER_ERROR.getStatusCode());
@@ -300,22 +312,6 @@ public class IngestInternalResourceTest extends ResteasyTestApplication {
     }
 
     @Test
-    public void givenOperationIdUnavailableWhenUploadSipAsStreamThenRaiseAnExceptionProcessingException()
-        throws Exception {
-        doThrow(new ContentAddressableStorageServerException("Test")).when(workspaceClient)
-            .uncompressObject(any(), any(), any(), any());
-        try (InputStream inputStream = PropertiesUtils.getResourceAsStream("SIP_bordereau_avec_objet_OK.zip")) {
-            given()
-                .headers(GlobalDataRest.X_REQUEST_ID, ingestGuid.getId(), GlobalDataRest.X_ACTION, ProcessAction.START,
-                    GlobalDataRest.X_CONTEXT_ID, START_CONTEXT)
-                .body(inputStream).contentType(CommonMediaType.ZIP)
-                .when().post(OPERATION_URL)
-                .then().statusCode(Status.INTERNAL_SERVER_ERROR.getStatusCode());
-        }
-    }
-
-
-    @Test
     public void givenOperationIdUnavailableWhenupdateOperationProcessStatusThenRaiseAnExceptionProcessingException()
         throws Exception {
         doThrow(new VitamClientException("")).when(processingClient).updateOperationActionProcess(
@@ -345,8 +341,12 @@ public class IngestInternalResourceTest extends ResteasyTestApplication {
     @Test
     public void givenOperationIdWhengetDetailedStatusThenReturnOk()
         throws Exception {
-        when(processingClient.getOperationProcessStatus(any())).thenReturn(new ItemStatus().setGlobalState(
-            ProcessState.COMPLETED));
+        ItemStatus itemStatus = new ItemStatus().setGlobalState(
+            ProcessState.COMPLETED);
+
+        RequestResponseOK<ItemStatus> objectRequestResponseOK =
+            new RequestResponseOK<ItemStatus>().addResult(itemStatus).setHttpCode(Status.OK.getStatusCode());
+        when(processingClient.getOperationProcessExecutionDetails(anyString())).thenReturn(objectRequestResponseOK);
 
         given()
             .headers(GlobalDataRest.X_REQUEST_ID, ingestGuid.getId(), GlobalDataRest.X_ACTION, ProcessAction.RESUME,
@@ -372,11 +372,19 @@ public class IngestInternalResourceTest extends ResteasyTestApplication {
     @Test
     public void givenOperationIdWhenDeleteOperationProcessThenOK()
         throws Exception {
-        when(processingClient.cancelOperationProcessExecution(any())).thenReturn(new ItemStatus());
+        ItemStatus result = new ItemStatus();
+        result.setGlobalState(ProcessState.COMPLETED);
+        result.increment(StatusCode.FATAL);
+        result.setItemId("Item");
+
+        RequestResponseOK<ItemStatus> responseOK = new RequestResponseOK<ItemStatus>().addResult(result);
+        responseOK.setHttpCode(Status.ACCEPTED.getStatusCode());
+
+        when(processingClient.cancelOperationProcessExecution(anyString())).thenReturn(responseOK);
         given()
             .headers(GlobalDataRest.X_REQUEST_ID, ingestGuid.getId())
             .when().delete(OPERATION_URL)
-            .then().statusCode(Status.OK.getStatusCode());
+            .then().statusCode(Status.ACCEPTED.getStatusCode());
     }
 
     @Test

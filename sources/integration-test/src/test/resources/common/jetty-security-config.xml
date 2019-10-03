@@ -154,8 +154,10 @@
                 </Item>
             </Array>
         </Arg>
-        <Set name="host">0.0.0.0</Set>
-        <Set name="port">8208</Set>
+        <Set name="host">localhost</Set>
+        <Set name="port">
+            <SystemProperty name="jetty.identity.port" default="8005"/>
+        </Set>
         <Set name="name">business</Set>
         <Set name="idleTimeout">
             <Property name="http.timeout" default="86400"/>
@@ -184,7 +186,7 @@
             </Array>
         </Arg>
         <Set name="host">0.0.0.0</Set>
-        <Set name="port">29003</Set>
+        <Set name="port">28005</Set>
         <Set name="name">admin</Set>
         <Set name="idleTimeout">
             <Property name="http.timeout" default="86400"/>

@@ -27,29 +27,12 @@
 
 package fr.gouv.vitam.processing.integration.test;
 
-import static fr.gouv.vitam.common.VitamServerRunner.NB_TRY;
-import static fr.gouv.vitam.common.VitamServerRunner.SLEEP_TIME;
-import static fr.gouv.vitam.common.database.builder.query.QueryHelper.and;
-import static fr.gouv.vitam.common.database.builder.query.QueryHelper.exists;
-import static fr.gouv.vitam.preservation.ProcessManagementWaiter.waitOperation;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-
-import java.io.InputStream;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.Response.Status;
-
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.google.common.collect.Sets;
 import fr.gouv.vitam.common.CommonMediaType;
 import fr.gouv.vitam.common.DataLoader;
 import fr.gouv.vitam.common.PropertiesUtils;
-import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.VitamRuleRunner;
 import fr.gouv.vitam.common.VitamServerRunner;
 import fr.gouv.vitam.common.client.VitamClientFactory;
@@ -63,7 +46,6 @@ import fr.gouv.vitam.common.format.identification.FormatIdentifierFactory;
 import fr.gouv.vitam.common.guid.GUID;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.json.JsonHandler;
-import fr.gouv.vitam.common.logging.SysErrLogger;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.ItemStatus;
@@ -80,7 +62,6 @@ import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.functional.administration.client.AdminManagementClient;
 import fr.gouv.vitam.functional.administration.client.AdminManagementClientFactory;
 import fr.gouv.vitam.functional.administration.rest.AdminManagementMain;
-import fr.gouv.vitam.ingest.internal.integration.test.IngestInternalIT;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientAlreadyExistsException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientBadRequestException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientNotFoundException;
@@ -113,6 +94,20 @@ import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
 import org.junit.Test;
+
+import javax.ws.rs.core.Response;
+import javax.ws.rs.core.Response.Status;
+import java.io.InputStream;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import static fr.gouv.vitam.common.database.builder.query.QueryHelper.and;
+import static fr.gouv.vitam.common.database.builder.query.QueryHelper.exists;
+import static fr.gouv.vitam.preservation.ProcessManagementWaiter.waitOperation;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 
 public class ReplayProcessingIT extends VitamRuleRunner {
 
@@ -384,12 +379,14 @@ public class ReplayProcessingIT extends VitamRuleRunner {
             while (true) {
                 if (!executedOnce) {
                     // First launch of the step
-                    RequestResponse<JsonNode> resp =
-                        processingClient.executeOperationProcess(containerName, Contexts.DEFAULT_WORKFLOW.name(), ProcessAction.NEXT.getValue());
+                    RequestResponse<ItemStatus> resp =
+                        processingClient.executeOperationProcess(containerName, Contexts.DEFAULT_WORKFLOW.name(),
+                            ProcessAction.NEXT.getValue());
                     // wait a little bit
                     assertNotNull(resp);
+                    assertThat(resp.isOk()).isTrue();
                     assertEquals(Response.Status.ACCEPTED.getStatusCode(), resp.getStatus());
-                    waitOperation(NB_TRY, SLEEP_TIME,containerName);
+                    waitOperation(NB_TRY, SLEEP_TIME, containerName);
 
                     ProcessQuery query = new ProcessQuery();
                     query.setId(containerName);
@@ -414,7 +411,7 @@ public class ReplayProcessingIT extends VitamRuleRunner {
                             containerName);
                     assertNotNull(ret);
                     assertEquals(Response.Status.ACCEPTED.getStatusCode(), ret.getStatus());
-                    waitOperation(NB_TRY, SLEEP_TIME,containerName);
+                    waitOperation(NB_TRY, SLEEP_TIME, containerName);
 
                     ProcessQuery query = new ProcessQuery();
                     query.setId(containerName);
@@ -439,7 +436,7 @@ public class ReplayProcessingIT extends VitamRuleRunner {
                     containerName);
             assertNotNull(ret);
             assertEquals(Response.Status.ACCEPTED.getStatusCode(), ret.getStatus());
-            waitOperation(NB_TRY, SLEEP_TIME,containerName);
+            waitOperation(NB_TRY, SLEEP_TIME, containerName);
             processWorkflow =
                 ProcessMonitoringImpl.getInstance().findOneProcessWorkflow(containerName, TENANT_ID);
             assertNotNull(processWorkflow);
@@ -447,12 +444,15 @@ public class ReplayProcessingIT extends VitamRuleRunner {
             assertEquals(StatusCode.OK, processWorkflow.getStatus());
 
         } else {
-            final RequestResponse<JsonNode> ret =
-                processingClient.executeOperationProcess(containerName, Contexts.DEFAULT_WORKFLOW.name(), ProcessAction.RESUME.getValue());
+            final RequestResponse<ItemStatus> ret =
+                processingClient.executeOperationProcess(containerName, Contexts.DEFAULT_WORKFLOW.name(),
+                    ProcessAction.RESUME.getValue());
+
             assertNotNull(ret);
+            assertThat(ret.isOk()).isTrue();
             assertEquals(Status.ACCEPTED.getStatusCode(), ret.getStatus());
 
-            waitOperation(NB_TRY, SLEEP_TIME,containerName);
+            waitOperation(NB_TRY, SLEEP_TIME, containerName);
             ProcessWorkflow processWorkflow =
                 ProcessMonitoringImpl.getInstance().findOneProcessWorkflow(containerName, TENANT_ID);
             assertNotNull(processWorkflow);

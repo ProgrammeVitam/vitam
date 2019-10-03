@@ -144,9 +144,6 @@ class AdminManagementClientRest extends DefaultClient implements AdminManagement
         super(factory);
     }
 
-    // TODO P1 : Refactorisation à réfléchir pour ne pas avoir une seule classe gérant tous les endpoints (formats,
-    // régles
-    // de gestions, contrat , etc)
     @Override
     public Response checkFormat(InputStream stream) throws ReferentialException {
         ParametersChecker.checkParameter("stream is a mandatory parameter", stream);

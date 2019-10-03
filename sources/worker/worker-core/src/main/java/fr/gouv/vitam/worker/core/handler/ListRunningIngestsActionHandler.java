@@ -31,6 +31,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.google.common.annotations.VisibleForTesting;
+import fr.gouv.vitam.common.exception.InternalServerException;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamClientException;
 import fr.gouv.vitam.common.json.JsonHandler;
@@ -104,6 +105,7 @@ public class ListRunningIngestsActionHandler extends ActionHandler {
         listProcessTypes.add(LogbookTypeProcess.FILINGSCHEME.toString());
         pq.setListProcessTypes(listProcessTypes);
         try (ProcessingManagementClient processManagementClient = processingManagementClientFactory.getClient()) {
+            // FIXME: 15/09/2019 what if response is VitamError
             RequestResponseOK<ProcessDetail> response =
                 (RequestResponseOK<ProcessDetail>) processManagementClient.listOperationsDetails(pq);
             List<ProcessDetail> ingestsInProcess = response.getResults();

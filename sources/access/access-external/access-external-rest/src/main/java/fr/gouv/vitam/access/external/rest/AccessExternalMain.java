@@ -46,6 +46,7 @@ import javax.ws.rs.core.Application;
 public class AccessExternalMain {
 
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(AccessExternalMain.class);
+    public static final String PARAMETER_JETTY_SERVER_PORT = "jetty.access-external.port";
 
     private static final String CONF_FILE_NAME = "access-external.conf";
     private static final String MODULE_NAME = ServerIdentity.getInstance().getRole();

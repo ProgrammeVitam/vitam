@@ -28,6 +28,7 @@ package fr.gouv.vitam.worker.core.utils;
 
 import com.google.common.annotations.VisibleForTesting;
 import fr.gouv.vitam.common.error.VitamError;
+import fr.gouv.vitam.common.exception.InternalServerException;
 import fr.gouv.vitam.common.exception.VitamClientException;
 import fr.gouv.vitam.common.model.ProcessQuery;
 import fr.gouv.vitam.common.model.ProcessState;

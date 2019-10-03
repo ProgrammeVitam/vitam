@@ -90,23 +90,23 @@ public class InternalSecurityFilter implements ContainerRequestFilter {
     @Context
     private HttpServletRequest httpServletRequest;
 
-    private InternalSecurityClient internalSecurityClient;
+    private InternalSecurityClientFactory internalSecurityClientFactory;
 
-    private AdminManagementClient adminManagementClient;
+    private AdminManagementClientFactory adminManagementClientFactory;
 
     public InternalSecurityFilter() {
         super();
-        internalSecurityClient = InternalSecurityClientFactory.getInstance().getClient();
-        adminManagementClient = AdminManagementClientFactory.getInstance().getClient();
+        this.internalSecurityClientFactory = InternalSecurityClientFactory.getInstance();
+        this.adminManagementClientFactory = AdminManagementClientFactory.getInstance();
     }
 
     @VisibleForTesting
     InternalSecurityFilter(HttpServletRequest httpServletRequest,
-        InternalSecurityClient internalSecurityClient,
-        AdminManagementClient adminManagementClient) {
+        InternalSecurityClientFactory internalSecurityClientFactory,
+        AdminManagementClientFactory adminManagementClientFactory) {
         this.httpServletRequest = httpServletRequest;
-        this.internalSecurityClient = internalSecurityClient;
-        this.adminManagementClient = adminManagementClient;
+        this.internalSecurityClientFactory = internalSecurityClientFactory;
+        this.adminManagementClientFactory = adminManagementClientFactory;
     }
 
     @Override
@@ -127,7 +127,7 @@ public class InternalSecurityFilter implements ContainerRequestFilter {
 
         final X509Certificate cert = clientCertChain[0];
 
-        try {
+        try (InternalSecurityClient internalSecurityClient = internalSecurityClientFactory.getClient()) {
             Optional<IdentityModel> result = internalSecurityClient.findIdentity(cert.getEncoded());
 
             IdentityModel identityModel = result
@@ -271,7 +271,7 @@ public class InternalSecurityFilter implements ContainerRequestFilter {
      */
     private ContextModel getContext(IdentityModel identityModel) {
         final String contextId = identityModel.getContextId();
-        try {
+        try (AdminManagementClient adminManagementClient = adminManagementClientFactory.getClient()) {
             RequestResponse<ContextModel>
                 contextResponse = adminManagementClient.findContextById(contextId);
 

@@ -485,7 +485,8 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
         checkParameter(JSON_SELECT_IS_MANDATORY, select);
         try (AdminManagementClient client = adminManagementClientFactory.getClient()) {
             Status status = client.importIngestContracts(getFromStringAsTypeRefence(select.toString(),
-                new TypeReference<List<IngestContractModel>>() {}));
+                new TypeReference<List<IngestContractModel>>() {
+                }));
 
             if (Status.BAD_REQUEST.getStatusCode() == status.getStatusCode()) {
                 return Response.status(Status.BAD_REQUEST)
@@ -530,7 +531,8 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
         checkParameter(JSON_SELECT_IS_MANDATORY, contract);
         try (AdminManagementClient client = adminManagementClientFactory.getClient()) {
             Status status = client.importAccessContracts(getFromStringAsTypeRefence(contract.toString(),
-                new TypeReference<List<AccessContractModel>>() {}));
+                new TypeReference<List<AccessContractModel>>() {
+                }));
 
             if (Status.BAD_REQUEST.getStatusCode() == status.getStatusCode()) {
                 return Response.status(Status.BAD_REQUEST)
@@ -575,7 +577,8 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
         checkParameter(JSON_SELECT_IS_MANDATORY, select);
         try (AdminManagementClient client = adminManagementClientFactory.getClient()) {
             Status status = client.importContexts(getFromStringAsTypeRefence(select.toString(),
-                new TypeReference<List<ContextModel>>() {}));
+                new TypeReference<List<ContextModel>>() {
+                }));
 
             // Send the http response with the entity and the status got from internalService;
             ResponseBuilder ResponseBuilder = Response.status(status)
@@ -613,7 +616,8 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
                 SanityChecker.checkJsonAll(json);
                 RequestResponse requestResponse =
                     client.createProfiles(getFromStringAsTypeRefence(json.toString(),
-                        new TypeReference<List<ProfileModel>>() {}));
+                        new TypeReference<List<ProfileModel>>() {
+                        }));
                 return Response.status(requestResponse.getStatus())
                     .entity(requestResponse).build();
 
@@ -669,7 +673,8 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
             SanityChecker.checkJsonAll(select);
             RequestResponse requestResponse =
                 client.createProfiles(getFromStringAsTypeRefence(select.toString(),
-                    new TypeReference<List<ProfileModel>>() {}));
+                    new TypeReference<List<ProfileModel>>() {
+                    }));
             return Response.status(requestResponse.getStatus())
                 .entity(requestResponse).build();
 
@@ -706,7 +711,8 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
                 SanityChecker.checkJsonAll(json);
                 RequestResponse requestResponse =
                     client.createArchiveUnitProfiles(getFromStringAsTypeRefence(json.toString(),
-                        new TypeReference<List<ArchiveUnitProfileModel>>() {}));
+                        new TypeReference<List<ArchiveUnitProfileModel>>() {
+                        }));
                 return Response.status(requestResponse.getStatus())
                     .entity(requestResponse).build();
 
@@ -763,7 +769,8 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
             SanityChecker.checkJsonAll(select);
             RequestResponse requestResponse =
                 client.createArchiveUnitProfiles(getFromStringAsTypeRefence(select.toString(),
-                    new TypeReference<List<ArchiveUnitProfileModel>>() {}));
+                    new TypeReference<List<ArchiveUnitProfileModel>>() {
+                    }));
             return Response.status(requestResponse.getStatus())
                 .entity(requestResponse).build();
 
@@ -1931,9 +1938,9 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
                 .setMessage(status.getReasonPhrase())
                 .setDescription(e.getMessage())).build();
         } catch (IOException e) {
-            LOGGER.error("Technical exception",e);
+            LOGGER.error("Technical exception", e);
             return Response.status(Status.INTERNAL_SERVER_ERROR)
-                    .entity(getErrorEntity(Status.INTERNAL_SERVER_ERROR, e.getLocalizedMessage())).build();
+                .entity(getErrorEntity(Status.INTERNAL_SERVER_ERROR, e.getLocalizedMessage())).build();
         }
     }
 
@@ -1955,7 +1962,8 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
         try (AdminManagementClient client = adminManagementClientFactory.getClient()) {
             SanityChecker.checkJsonAll(document);
             Status status = client.importSecurityProfiles(getFromStringAsTypeRefence(document.toString(),
-                new TypeReference<List<SecurityProfileModel>>() {}));
+                new TypeReference<List<SecurityProfileModel>>() {
+                }));
 
             // Send the http response with no entity and the status got from internalService;
             ResponseBuilder ResponseBuilder = Response.status(status);
@@ -2241,38 +2249,11 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
     @Secured(permission = "operations:id:read", description = "Récupérer le statut d'une opération donnée")
     public Response getOperationProcessExecutionDetails(@PathParam("id") String id) {
         Status status;
-        ItemStatus itemStatus = null;
         try (IngestInternalClient ingestInternalClient = ingestInternalClientFactory.getClient()) {
-            itemStatus = ingestInternalClient.getOperationProcessExecutionDetails(id);
-            return new RequestResponseOK<ItemStatus>().addResult(itemStatus).setHttpCode(Status.OK.getStatusCode())
-                .toResponse();
-        } catch (final WorkflowNotFoundException e) {
-            LOGGER.error("Workflow not found exception: ", e);
-            status = Status.NOT_FOUND;
-            return Response.status(status)
-                .entity(VitamCodeHelper
-                    .toVitamError(VitamCode.INGEST_EXTERNAL_NOT_FOUND, e.getLocalizedMessage())
-                    .setHttpCode(status.getStatusCode()))
-                .build();
+            return ingestInternalClient.getOperationProcessExecutionDetails(id).toResponse();
         } catch (final IllegalArgumentException e) {
             LOGGER.error("Illegal argument: ", e);
             status = Status.PRECONDITION_FAILED;
-            return Response.status(status)
-                .entity(VitamCodeHelper
-                    .toVitamError(VitamCode.INGEST_EXTERNAL_GET_OPERATION_PROCESS_DETAIL_ERROR, e.getLocalizedMessage())
-                    .setHttpCode(status.getStatusCode()))
-                .build();
-        } catch (InternalServerException e) {
-            LOGGER.error("Could get operation detail: ", e);
-            status = INTERNAL_SERVER_ERROR;
-            return Response.status(status)
-                .entity(VitamCodeHelper
-                    .toVitamError(VitamCode.INGEST_EXTERNAL_GET_OPERATION_PROCESS_DETAIL_ERROR, e.getLocalizedMessage())
-                    .setHttpCode(status.getStatusCode()))
-                .build();
-        } catch (BadRequestException e) {
-            LOGGER.error("Request invalid while trying to get operation detail: ", e);
-            status = Status.BAD_REQUEST;
             return Response.status(status)
                 .entity(VitamCodeHelper
                     .toVitamError(VitamCode.INGEST_EXTERNAL_GET_OPERATION_PROCESS_DETAIL_ERROR, e.getLocalizedMessage())
@@ -2320,18 +2301,10 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
             LOGGER.error("Unauthorized action for update ", e);
             return VitamCodeHelper
                 .toVitamError(VitamCode.INGEST_EXTERNAL_UNAUTHORIZED, e.getLocalizedMessage()).toResponse();
-        } catch (InternalServerException e) {
-            LOGGER.error("Could not update operation process ", e);
-            return VitamCodeHelper
-                .toVitamError(VitamCode.INGEST_EXTERNAL_INTERNAL_SERVER_ERROR, e.getLocalizedMessage()).toResponse();
         } catch (VitamClientException e) {
             LOGGER.error("Client exception while trying to update operation process ", e);
             return VitamCodeHelper
                 .toVitamError(VitamCode.INGEST_EXTERNAL_INTERNAL_CLIENT_ERROR, e.getLocalizedMessage())
-                .toResponse();
-        } catch (BadRequestException e) {
-            LOGGER.error("Request invalid while trying to update operation process ", e);
-            return VitamCodeHelper.toVitamError(VitamCode.INGEST_EXTERNAL_BAD_REQUEST, e.getLocalizedMessage())
                 .toResponse();
         }
     }
@@ -2354,23 +2327,12 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
             SanityChecker.checkParameter(id);
             VitamThreadUtils.getVitamSession().setRequestId(id);
 
-            final ItemStatus itemStatus = ingestInternalClient.cancelOperationProcessExecution(id);
-            return new RequestResponseOK<ItemStatus>().addResult(itemStatus).setHttpCode(Status.OK.getStatusCode())
-                .toResponse();
+            final RequestResponse requestResponse = ingestInternalClient.cancelOperationProcessExecution(id);
+            return requestResponse.toResponse();
         } catch (final IllegalArgumentException | InvalidParseOperationException e) {
             LOGGER.error("Illegal argument: ", e);
             vitamError =
                 VitamCodeHelper.toVitamError(VitamCode.INGEST_EXTERNAL_ILLEGAL_ARGUMENT, e.getLocalizedMessage());
-        } catch (WorkflowNotFoundException e) {
-            LOGGER.error("Cound not find workflow: ", e);
-            vitamError = VitamCodeHelper.toVitamError(VitamCode.INGEST_EXTERNAL_NOT_FOUND, e.getLocalizedMessage());
-        } catch (InternalServerException e) {
-            LOGGER.error("Cound not cancel operation: ", e);
-            vitamError =
-                VitamCodeHelper.toVitamError(VitamCode.INGEST_EXTERNAL_INTERNAL_SERVER_ERROR, e.getLocalizedMessage());
-        } catch (BadRequestException e) {
-            LOGGER.error("Request invalid while trying to cancel operation: ", e);
-            vitamError = VitamCodeHelper.toVitamError(VitamCode.INGEST_EXTERNAL_UNAUTHORIZED, e.getLocalizedMessage());
         } catch (VitamClientException e) {
             LOGGER.error("Client exception while trying to cancel operation: ", e);
             vitamError =
@@ -2569,7 +2531,8 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
             SanityChecker.checkJsonAll(ontologies);
             RequestResponse requestResponse =
                 client.importOntologies(forceUpdate, getFromStringAsTypeRefence(ontologies.toString(),
-                    new TypeReference<List<OntologyModel>>() {}));
+                    new TypeReference<List<OntologyModel>>() {
+                    }));
             return Response.status(requestResponse.getStatus())
                 .entity(requestResponse).build();
 
@@ -2733,7 +2696,8 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
 
             RequestResponse requestResponse =
                 client.importGriffins(getFromStringAsTypeRefence(griffins.toString(),
-                    new TypeReference<List<GriffinModel>>() {}));
+                    new TypeReference<List<GriffinModel>>() {
+                    }));
 
             return Response.status(requestResponse.getStatus())
                 .entity(requestResponse).build();
@@ -2812,7 +2776,8 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
 
             RequestResponse requestResponse =
                 client.importPreservationScenarios(getFromStringAsTypeRefence(preservationScenarios.toString(),
-                    new TypeReference<List<PreservationScenarioModel>>() {}));
+                    new TypeReference<List<PreservationScenarioModel>>() {
+                    }));
 
             return Response.status(requestResponse.getStatus())
                 .entity(requestResponse).build();

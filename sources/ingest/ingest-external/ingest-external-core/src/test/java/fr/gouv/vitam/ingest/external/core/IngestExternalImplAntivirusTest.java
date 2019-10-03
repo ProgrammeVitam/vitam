@@ -30,6 +30,7 @@ import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.format.identification.FormatIdentifierFactory;
 import fr.gouv.vitam.common.guid.GUID;
 import fr.gouv.vitam.common.guid.GUIDFactory;
+import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.parameter.ParameterHelper;
 import fr.gouv.vitam.common.server.application.junit.AsyncResponseJunitTest;
@@ -80,6 +81,7 @@ public class IngestExternalImplAntivirusTest {
         when(ingestInternalClientFactor.getClient()).thenReturn(ingestInternalClient);
         when(ingestInternalClient.getWorkflowDetails(anyString()))
             .thenReturn(new IngestInternalClientMock().getWorkflowDetails("DEFAULT_WORKFLOW"));
+        when(ingestInternalClient.cancelOperationProcessExecution(anyString())).thenReturn(new RequestResponseOK<>());
     }
 
     @RunWithCustomExecutor
