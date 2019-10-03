@@ -2549,10 +2549,19 @@ public class IngestInternalIT extends VitamRuleRunner {
         String expectedTitleOfCustodialItem = "Ce champ est obligatoire";
         assertThat(model.getCustodialHistoryItem()).isEqualTo(Arrays.asList(expectedTitleOfCustodialItem));
 
+        final String referenceGUID = model.getCustodialHistoryFile().getDataObjectReferenceId();
+        // Check reference of custodialHistory
+        select = new SelectMultiQuery();
+        select.addRoots(referenceGUID);
+        final JsonNode jsonResponse = metadataClient.selectObjectGrouptbyId(select.getFinalSelect(), referenceGUID);
+        RequestResponseOK<ObjectGroup> objectGroupResponse =
+            JsonHandler.getFromJsonNode(jsonResponse, RequestResponseOK.class, ObjectGroup.class);
+        assertThat(objectGroupResponse).isNotNull();
+
         DataObjectReference reference = model.getCustodialHistoryFile();
         assertNotNull(reference);
-        String expectedDataObjectReference = "ID22";
-        assertThat(reference.getDataObjectReferenceId()).isEqualTo(expectedDataObjectReference);
+        String oldExpectedDataObjectReference = "ID22";
+        assertThat(reference.getDataObjectReferenceId()).isNotEqualTo(oldExpectedDataObjectReference);
         assertNull(reference.getDataObjectGroupReferenceId());
 
     }
