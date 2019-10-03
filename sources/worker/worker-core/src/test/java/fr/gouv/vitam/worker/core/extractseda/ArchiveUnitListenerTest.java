@@ -1,26 +1,13 @@
 package fr.gouv.vitam.worker.core.extractseda;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.fail;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
-
-import java.io.File;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-
-import javax.xml.bind.JAXBElement;
-
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import fr.gouv.culture.archivesdefrance.seda.v2.ArchiveUnitIdentifierKeyType;
 import fr.gouv.culture.archivesdefrance.seda.v2.ArchiveUnitType;
+import fr.gouv.culture.archivesdefrance.seda.v2.CustodialHistoryType;
+import fr.gouv.culture.archivesdefrance.seda.v2.DataObjectRefType;
+import fr.gouv.culture.archivesdefrance.seda.v2.DescriptiveMetadataContentType;
 import fr.gouv.culture.archivesdefrance.seda.v2.ManagementType;
 import fr.gouv.culture.archivesdefrance.seda.v2.UpdateOperationType;
 import fr.gouv.vitam.common.json.JsonHandler;
@@ -38,9 +25,25 @@ import fr.gouv.vitam.processing.common.exception.ProcessingNotFoundException;
 import fr.gouv.vitam.processing.common.exception.ProcessingUnitLinkingException;
 import fr.gouv.vitam.worker.common.HandlerIO;
 import fr.gouv.vitam.worker.core.impl.HandlerIOImpl;
+import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.Rule;
 import org.junit.Test;
+
+import javax.xml.bind.JAXBElement;
+import java.io.File;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.fail;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 /**
  */
@@ -396,4 +399,90 @@ public class ArchiveUnitListenerTest {
         assertThat(agenciesList).hasSize(2);
     }
 
+    @Test
+    @RunWithCustomExecutor
+    public void testAfterUnmarshalCustodialHistoryShouldNotThrowException() throws Exception {
+        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
+
+        ArchiveUnitType target = mock(ArchiveUnitType.class);
+        JAXBElement parent = mock(JAXBElement.class);
+
+        List<String> agenciesList = new ArrayList<>();
+        Map<String, String> unitIdToGuid = new HashMap<>();
+        Map<String, String> guidToUnitId = new HashMap<>();
+        Map<String, String> objectGroupIdToGuid = new HashMap<>();
+        Map<String, String> dataObjectIdToObjectGroupId = new HashMap<>();
+        objectGroupIdToGuid.put("ID0011","aeaaaaaaaaaam7mxabxccakzrw466heqaaaaq");
+        dataObjectIdToObjectGroupId.put("ID22","ID0011");
+        HandlerIO handlerIO = mock(HandlerIO.class);
+        Map<String, LogbookLifeCycleParameters> guidToLifeCycleParameters = new HashMap<>();
+        ArchiveUnitListener archiveUnitListener =
+            new ArchiveUnitListener(handlerIO, JsonHandler.createObjectNode(), unitIdToGuid, guidToUnitId, null, null, dataObjectIdToObjectGroupId,
+                null, guidToLifeCycleParameters, new HashSet<>(), LogbookTypeProcess.INGEST_TEST, "OperationID",
+                metaDataClientFactory, objectGroupIdToGuid, null, null, UnitType.INGEST,
+                agenciesList, null, null, null, null, null);
+
+        when(handlerIO.getNewLocalFile(anyString())).thenReturn(new File(" "));
+        when(parent.isGlobalScope()).thenReturn(true);
+
+        ArchiveUnitType archiveUnitType = new ArchiveUnitType();
+        DescriptiveMetadataContentType content = new DescriptiveMetadataContentType();
+        CustodialHistoryType custodialHistoryType = new CustodialHistoryType();
+        DataObjectRefType dataObjectRefType = new DataObjectRefType();
+        dataObjectRefType.setDataObjectGroupReferenceId("ID0011");
+        custodialHistoryType.setCustodialHistoryFile(dataObjectRefType);
+        content.setCustodialHistory(custodialHistoryType);
+        archiveUnitType.setContent(content);
+
+        boolean throwException = false;
+        try {
+            archiveUnitListener.afterUnmarshal(archiveUnitType, parent);
+        } catch (Exception e) {
+            e.printStackTrace();
+            throwException = true;
+            fail("Should not throws an exception");
+        }
+        Assert.assertFalse(throwException);
+    }
+
+    @Test
+    @RunWithCustomExecutor
+    public void testAfterUnmarshalCustodialHistoryShouldThrowException() throws Exception {
+        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
+
+        ArchiveUnitType target = mock(ArchiveUnitType.class);
+        JAXBElement parent = mock(JAXBElement.class);
+
+        List<String> agenciesList = new ArrayList<>();
+        Map<String, String> unitIdToGuid = new HashMap<>();
+        Map<String, String> guidToUnitId = new HashMap<>();
+        HandlerIO handlerIO = mock(HandlerIO.class);
+        Map<String, LogbookLifeCycleParameters> guidToLifeCycleParameters = new HashMap<>();
+        ArchiveUnitListener archiveUnitListener =
+            new ArchiveUnitListener(handlerIO, JsonHandler.createObjectNode(), unitIdToGuid, guidToUnitId, null, null, null,
+                null, guidToLifeCycleParameters, new HashSet<>(), LogbookTypeProcess.INGEST_TEST, "OperationID",
+                metaDataClientFactory, null, null, null, UnitType.INGEST,
+                agenciesList, null, null, null, null, null);
+
+        when(handlerIO.getNewLocalFile(anyString())).thenReturn(new File(" "));
+        when(parent.isGlobalScope()).thenReturn(true);
+
+        ArchiveUnitType archiveUnitType = new ArchiveUnitType();
+        DescriptiveMetadataContentType content = new DescriptiveMetadataContentType();
+        CustodialHistoryType custodialHistoryType = new CustodialHistoryType();
+        DataObjectRefType dataObjectRefType = new DataObjectRefType();
+        dataObjectRefType.setDataObjectGroupReferenceId("ID0011");
+        custodialHistoryType.setCustodialHistoryFile(dataObjectRefType);
+        content.setCustodialHistory(custodialHistoryType);
+        archiveUnitType.setContent(content);
+
+        boolean throwException = false;
+        try {
+            archiveUnitListener.afterUnmarshal(archiveUnitType, parent);
+        } catch (Exception e) {
+            e.printStackTrace();
+            throwException = true;
+        }
+        Assert.assertTrue(throwException);
+    }
 }
