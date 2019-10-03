@@ -29,7 +29,7 @@ pipeline {
         SERVICE_NOPROXY = credentials("http_nonProxyHosts")
         SERVICE_DOCKER_PULL_URL=credentials("SERVICE_DOCKER_PULL_URL")
         SERVICE_REPOSITORY_URL=credentials("service-repository-url")
-        GITHUB_ACCOUNT = credentials("github-account")
+        GITHUB_ACCOUNT_TOKEN = credentials("vitam-prg-token")
     }
 
     options {
@@ -248,16 +248,16 @@ pipeline {
                         , allowEmptyArchive: true
 
                     )
-                    githubNotify status: "SUCCESS", description: "Build successul"
+                    githubNotify status: "SUCCESS", description: "Build successul", credentialsId: "vitam-prg-token"
                 }
                 failure {
-                    githubNotify status: "FAILURE", description: "Build failed"
+                    githubNotify status: "FAILURE", description: "Build failed", credentialsId: "vitam-prg-token"
                 }
                 unstable {
-                    githubNotify status: "FAILURE", description: "Build unstable"
+                    githubNotify status: "FAILURE", description: "Build unstable", credentialsId: "vitam-prg-token"
                 }
                 aborted {
-                    githubNotify status: "ERROR", description: "Build canceled"
+                    githubNotify status: "ERROR", description: "Build canceled", credentialsId: "vitam-prg-token"
                 }
             }
         }
