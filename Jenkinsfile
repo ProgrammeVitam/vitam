@@ -27,6 +27,7 @@ pipeline {
         SERVICE_PROXY_HOST = credentials("http-proxy-host")
         SERVICE_PROXY_PORT = credentials("http-proxy-port")
         SERVICE_DOCKER_PULL_URL=credentials("SERVICE_DOCKER_PULL_URL")
+        GITHUB_ACCOUNT_TOKEN = credentials("vitam-prg-token")
     }
 
     options {
@@ -114,6 +115,7 @@ pipeline {
                         branch "develop*"
                         branch "master_*"
                         branch "master"
+                        branch "PR*"
                         tag pattern: "^[1-9]+\\.[0-9]+\\.[0-9]+-?[0-9]*\$", comparator: "REGEXP"
                     }
                 }
@@ -122,11 +124,17 @@ pipeline {
                 updateGitlabCommitStatus name: 'mergerequest', state: 'running'
             }
         }
+
+        stage("Notify github if pull request") {
+            when {
+                branch "PR*"
+            }
+            steps {
+                githubNotify status: "PENDING", description: "Building & testing", credentialsId: "vitam-prg-token"
+            }
+        }
 		
         stage ("Execute unit and integration tests") {
-         // when {
-        //     //     environment(name: 'CHANGED_VITAM', value: 'true')
-        //     // }
             steps {
                 dir('sources') {
                     script {
@@ -138,7 +146,7 @@ pipeline {
                                             sh 'curl -X PUT http://localhost:9200/_template/default -H \'Content-Type: application/json\' -d \'{"index_patterns": ["*"],"order": -1,"settings": {"number_of_shards": "1","number_of_replicas": "0"}}\''
                                             sh '$MVN_COMMAND -f pom.xml clean verify sonar:sonar -Dsonar.branch=$GIT_BRANCH'
                                     }
-                		}
+                		        }
                             }
                         }
                     }
@@ -159,6 +167,7 @@ pipeline {
                         branch "develop*"
                         branch "master_*"
                         branch "master"
+                        branch "PR*" // if Pull Request
                         tag pattern: "^[1-9]+\\.[0-9]+\\.[0-9]+-?[0-9]*\$", comparator: "REGEXP"
                     }
                 }
@@ -167,6 +176,15 @@ pipeline {
             steps {
                 updateGitlabCommitStatus name: 'mergerequest', state: 'success'
 				addGitLabMRComment comment: "pipeline-job : [analyse sonar](https://sonar.dev.programmevitam.fr/dashboard?id=fr.gouv.vitam%3Aparent%3A${gitlabSourceBranch}) de la branche"
+            }
+        }
+
+        stage("Report to github if pull request") {
+            when {
+                branch "PR*" // if Pull Request
+            }
+            steps {
+                githubNotify status: "SUCCESS", description: "Build successul", credentialsId: "vitam-prg-token"
             }
         }
 
