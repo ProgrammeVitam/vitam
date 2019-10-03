@@ -388,34 +388,36 @@ public class ArchiveUnitListener extends Unmarshaller.Listener {
 
     private void fillCustodialHistoryReference(ArchiveUnitType archiveUnitType) {
         DescriptiveMetadataContentType content = archiveUnitType.getContent();
-        if (content != null && content.getCustodialHistory() != null) {
-            CustodialHistoryType custodialHistoryType = content.getCustodialHistory();
+        if (content == null || content.getCustodialHistory() == null ||
+            content.getCustodialHistory().getCustodialHistoryFile() == null) {
+            return;
+        }
 
-            if (custodialHistoryType.getCustodialHistoryFile() != null) {
-                DataObjectRefType dataObjectReference = custodialHistoryType.getCustodialHistoryFile();
+        CustodialHistoryType custodialHistoryType = content.getCustodialHistory();
+        DataObjectRefType dataObjectReference = content.getCustodialHistory().getCustodialHistoryFile();
 
-                if (dataObjectReference != null) {
-                    String objectGroupReferenceId = dataObjectReference.getDataObjectGroupReferenceId();
-                    String objectReferenceId = dataObjectReference.getDataObjectReferenceId();
+        String objectGroupReferenceId = dataObjectReference.getDataObjectGroupReferenceId();
+        String objectReferenceId = dataObjectReference.getDataObjectReferenceId();
 
-                    DataObjectRefType custodialHistoryFile = new DataObjectRefType();
-                    if (objectGroupReferenceId != null) {
-                        custodialHistoryFile
-                            .setDataObjectGroupReferenceId(objectGroupIdToGuid.get(objectGroupReferenceId));
-                        custodialHistoryType.setCustodialHistoryFile(custodialHistoryFile);
-                        content.setCustodialHistory(custodialHistoryType);
-                        archiveUnitType.setContent(content);
-                    }
-                    if (objectReferenceId != null) {
-                        String objectId = dataObjectIdToObjectGroupId.get(objectReferenceId);
-                        custodialHistoryFile.setDataObjectReferenceId(objectGroupIdToGuid.get(objectId));
-                        custodialHistoryType.setCustodialHistoryFile(custodialHistoryFile);
-                        content.setCustodialHistory(custodialHistoryType);
-                        archiveUnitType.setContent(content);
-                    }
-                }
+        DataObjectRefType custodialHistoryFile = new DataObjectRefType();
+        if (dataObjectReference != null) {
+            if (objectGroupReferenceId != null) {
+                custodialHistoryFile
+                    .setDataObjectGroupReferenceId(objectGroupIdToGuid.get(objectGroupReferenceId));
+                custodialHistoryType.setCustodialHistoryFile(custodialHistoryFile);
+                content.setCustodialHistory(custodialHistoryType);
+                archiveUnitType.setContent(content);
+            }
+
+            if (objectReferenceId != null) {
+                String objectId = dataObjectIdToObjectGroupId.get(objectReferenceId);
+                custodialHistoryFile.setDataObjectReferenceId(objectGroupIdToGuid.get(objectId));
+                custodialHistoryType.setCustodialHistoryFile(custodialHistoryFile);
+                content.setCustodialHistory(custodialHistoryType);
+                archiveUnitType.setContent(content);
             }
         }
+
     }
 
     private void checkAutoAttachmentsByIngestContract() {
