@@ -210,7 +210,7 @@ public interface AdminManagementClient extends MockOrRestClient {
      * @throws AccessionRegisterException when AccessionRegisterDetailexception occurs
      * @throws AdminManagementClientServerException when
      */
-    RequestResponse<AccessionRegisterDetailModel> createorUpdateAccessionRegister(AccessionRegisterDetailModel register)
+    RequestResponse<AccessionRegisterDetailModel> createOrUpdateAccessionRegister(AccessionRegisterDetailModel register)
         throws AccessionRegisterException, AdminManagementClientServerException;
 
     /**
