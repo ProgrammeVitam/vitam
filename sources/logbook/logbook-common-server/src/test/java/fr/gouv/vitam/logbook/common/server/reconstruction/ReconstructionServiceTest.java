@@ -54,7 +54,6 @@ import fr.gouv.vitam.common.database.api.impl.VitamElasticsearchRepository;
 import fr.gouv.vitam.common.database.api.impl.VitamMongoRepository;
 import fr.gouv.vitam.common.exception.DatabaseException;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
-import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.model.administration.AccessionRegisterDetailModel;
@@ -63,13 +62,9 @@ import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
 import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
 import fr.gouv.vitam.functional.administration.client.AdminManagementClient;
 import fr.gouv.vitam.functional.administration.client.AdminManagementClientFactory;
-import fr.gouv.vitam.functional.administration.common.exception.AccessionRegisterException;
-import fr.gouv.vitam.functional.administration.common.exception.AdminManagementClientServerException;
-import fr.gouv.vitam.functional.administration.common.exception.DatabaseConflictException;
 import fr.gouv.vitam.logbook.common.model.reconstruction.ReconstructionRequestItem;
 import fr.gouv.vitam.logbook.common.model.reconstruction.ReconstructionResponseItem;
 import fr.gouv.vitam.logbook.common.server.database.collections.LogbookTransformData;
-import fr.gouv.vitam.logbook.common.server.exception.LogbookException;
 import fr.gouv.vitam.storage.engine.common.model.OfferLog;
 
 /**
@@ -124,7 +119,7 @@ public class ReconstructionServiceTest {
             .thenReturn(getLogbokBackupModel("100", 100L));
         when(restoreBackupService.loadData("default", "101", 101L))
             .thenReturn(getLogbokBackupModel("101", 101L));
-        when(adminManagementClient.createorUpdateAccessionRegister(Mockito.any()))
+        when(adminManagementClient.createOrUpdateAccessionRegister(Mockito.any()))
             .thenReturn(
                 new RequestResponseOK<AccessionRegisterDetailModel>().setHttpCode(Status.CREATED.getStatusCode()));
 
@@ -153,7 +148,7 @@ public class ReconstructionServiceTest {
             .thenThrow(new StorageNotFoundException(""));
         when(restoreBackupService.loadData("default", "101", 101L))
             .thenReturn(getLogbokBackupModel("101", 101L));
-        when(adminManagementClient.createorUpdateAccessionRegister(Mockito.any()))
+        when(adminManagementClient.createOrUpdateAccessionRegister(Mockito.any()))
             .thenReturn(
                 new RequestResponseOK<AccessionRegisterDetailModel>().setHttpCode(Status.CREATED.getStatusCode()));
 
@@ -242,7 +237,7 @@ public class ReconstructionServiceTest {
         when(restoreBackupService.loadData("default", "101", 101L))
             .thenReturn(getLogbokBackupModel("101", 101L));
         Mockito.doThrow(new DatabaseException("mongo error")).when(mongoRepository).save(Mockito.any(List.class));
-        when(adminManagementClient.createorUpdateAccessionRegister(Mockito.any())).thenReturn(
+        when(adminManagementClient.createOrUpdateAccessionRegister(Mockito.any())).thenReturn(
             new RequestResponseOK<AccessionRegisterDetailModel>().setHttpCode(Status.CREATED.getStatusCode()));
 
 
@@ -271,7 +266,7 @@ public class ReconstructionServiceTest {
         when(restoreBackupService.loadData("default", "101", 101L))
             .thenReturn(getLogbokBackupModel("101", 101L));
         Mockito.doThrow(new DatabaseException("mongo error")).when(esRepository).save(Mockito.any(List.class));
-        when(adminManagementClient.createorUpdateAccessionRegister(Mockito.any()))
+        when(adminManagementClient.createOrUpdateAccessionRegister(Mockito.any()))
             .thenReturn(new RequestResponseOK<>());
 
         ReconstructionService reconstructionService =

@@ -684,7 +684,7 @@ public class ProcessingIT extends VitamRuleRunner {
             register.setEndDate(LocalDateUtil.getFormattedDateForMongo("01/01/2017"));
             register.setStartDate(LocalDateUtil.getFormattedDateForMongo("01/01/2017"));
             register.setLastUpdate(LocalDateUtil.getFormattedDateForMongo("01/01/2017"));
-            functionalClient.createorUpdateAccessionRegister(register);
+            functionalClient.createOrUpdateAccessionRegister(register);
 
             // Test Audit
             final GUID opId = GUIDFactory.newRequestIdGUID(tenantId);

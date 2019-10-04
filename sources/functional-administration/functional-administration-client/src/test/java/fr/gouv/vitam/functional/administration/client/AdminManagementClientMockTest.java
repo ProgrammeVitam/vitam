@@ -200,7 +200,7 @@ public class AdminManagementClientMockTest {
     @RunWithCustomExecutor
     public void givenClientMockWhenCreateAccessionRegister() throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
-        client.createorUpdateAccessionRegister(new AccessionRegisterDetailModel());
+        client.createOrUpdateAccessionRegister(new AccessionRegisterDetailModel());
     }
 
     @Test

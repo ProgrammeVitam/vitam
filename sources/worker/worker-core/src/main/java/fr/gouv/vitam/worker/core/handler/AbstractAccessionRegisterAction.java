@@ -58,10 +58,7 @@ import fr.gouv.vitam.common.model.administration.RegisterValueEventModel;
 import fr.gouv.vitam.common.server.HeaderIdHelper;
 import fr.gouv.vitam.functional.administration.client.AdminManagementClient;
 import fr.gouv.vitam.functional.administration.client.AdminManagementClientFactory;
-import fr.gouv.vitam.functional.administration.common.exception.AccessionRegisterException;
-import fr.gouv.vitam.functional.administration.common.exception.AdminManagementClientServerException;
 import fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess;
-import fr.gouv.vitam.metadata.api.exception.MetaDataClientServerException;
 import fr.gouv.vitam.metadata.api.model.ObjectGroupPerOriginatingAgency;
 import fr.gouv.vitam.metadata.api.model.UnitPerOriginatingAgency;
 import fr.gouv.vitam.metadata.client.MetaDataClient;
@@ -87,7 +84,7 @@ public abstract class AbstractAccessionRegisterAction extends ActionHandler impl
     }
 
     public AbstractAccessionRegisterAction(MetaDataClientFactory metaDataClientFactory,
-                                           AdminManagementClientFactory adminManagementClientFactory) {
+        AdminManagementClientFactory adminManagementClientFactory) {
         this.metaDataClientFactory = metaDataClientFactory;
         this.adminManagementClientFactory = adminManagementClientFactory;
     }
@@ -159,7 +156,7 @@ public abstract class AbstractAccessionRegisterAction extends ActionHandler impl
 
         int tenantId = HeaderIdHelper.getTenantId();
         try (AdminManagementClient adminClient = adminManagementClientFactory.getClient();
-             MetaDataClient metaDataClient = metaDataClientFactory.getClient()) {
+            MetaDataClient metaDataClient = metaDataClientFactory.getClient()) {
             AccessionRegisterInfo accessionRegisterInfo = new AccessionRegisterInfo();
             if (LogbookTypeProcess.INGEST.equals(getOperationType())) {
                 prepareAccessionRegisterInformation(params, handler, accessionRegisterInfo);
@@ -168,7 +165,8 @@ public abstract class AbstractAccessionRegisterAction extends ActionHandler impl
             // Operation id
             String operationId = params.getContainerName();
 
-            List<ObjectGroupPerOriginatingAgency> objectGroupPerOriginatingAgencies = metaDataClient.selectAccessionRegisterOnObjectByOperationId(operationId);
+            List<ObjectGroupPerOriginatingAgency> objectGroupPerOriginatingAgencies =
+                metaDataClient.selectAccessionRegisterOnObjectByOperationId(operationId);
 
             // Operation / agency / ObjectGroupPerOriginatingAgency
             Map<String, Map<String, ObjectGroupPerOriginatingAgency>> byOperationMap = new HashMap<>();
@@ -182,7 +180,8 @@ public abstract class AbstractAccessionRegisterAction extends ActionHandler impl
                     String qualifierVersionOpi = o.getOperation();
                     String agency = o.getAgency();
 
-                    Map<String, ObjectGroupPerOriginatingAgency> byAgencyMap = byOperationMap.getOrDefault(qualifierVersionOpi, new HashMap<>());
+                    Map<String, ObjectGroupPerOriginatingAgency> byAgencyMap =
+                        byOperationMap.getOrDefault(qualifierVersionOpi, new HashMap<>());
 
                     if (byAgencyMap.isEmpty()) {
                         byOperationMap.put(qualifierVersionOpi, byAgencyMap);
@@ -205,7 +204,8 @@ public abstract class AbstractAccessionRegisterAction extends ActionHandler impl
 
             // The number of operations should be equal to 1 and the operation should be equal to current operation
             if (byOperationMap.keySet().size() > 1) {
-                LOGGER.warn("Compute AccessionRegister :  Multiple operations found [" + byOperationMap.keySet() + "]. Only current operation [" + operationId + "] should be returned ");
+                LOGGER.warn("Compute AccessionRegister :  Multiple operations found [" + byOperationMap.keySet() +
+                    "]. Only current operation [" + operationId + "] should be returned ");
             }
 
             // Get ingest originating agency
@@ -233,7 +233,8 @@ public abstract class AbstractAccessionRegisterAction extends ActionHandler impl
                 unitPerOriginatingAgenciesMap.put(o.getValue(), o);
             }
 
-            Map<String, ObjectGroupPerOriginatingAgency> objectGroupPerOriginatingAgenciesMap = byOperationMap.getOrDefault(operationId, new HashMap<>());
+            Map<String, ObjectGroupPerOriginatingAgency> objectGroupPerOriginatingAgenciesMap =
+                byOperationMap.getOrDefault(operationId, new HashMap<>());
 
 
             if (unitPerOriginatingAgenciesMap.isEmpty() && objectGroupPerOriginatingAgenciesMap.isEmpty()) {
@@ -241,34 +242,35 @@ public abstract class AbstractAccessionRegisterAction extends ActionHandler impl
             }
 
             Set<String> agencies = Stream.concat(unitPerOriginatingAgenciesMap.keySet().stream(),
-                    objectGroupPerOriginatingAgenciesMap.keySet().stream()).collect(
-                    Collectors.toSet());
+                objectGroupPerOriginatingAgenciesMap.keySet().stream()).collect(
+                Collectors.toSet());
 
 
             for (String agency : agencies) {
-                if (LogbookTypeProcess.INGEST.equals(getOperationType()) && !agency.equals(accessionRegisterInfo.getOriginatingAgency())) {
+                if (LogbookTypeProcess.INGEST.equals(getOperationType()) &&
+                    !agency.equals(accessionRegisterInfo.getOriginatingAgency())) {
                     continue;
                 }
                 final AccessionRegisterDetailModel register = generateAccessionRegister(params,
-                        operationId,
-                        operationId,
-                        objectGroupPerOriginatingAgenciesMap
-                                .getOrDefault(agency, new ObjectGroupPerOriginatingAgency().setAgency(agency)),
-                        unitPerOriginatingAgenciesMap.getOrDefault(agency, new UnitPerOriginatingAgency(agency, 0)),
-                        accessionRegisterInfo,
-                        tenantId);
+                    operationId,
+                    operationId,
+                    objectGroupPerOriginatingAgenciesMap
+                        .getOrDefault(agency, new ObjectGroupPerOriginatingAgency().setAgency(agency)),
+                    unitPerOriginatingAgenciesMap.getOrDefault(agency, new UnitPerOriginatingAgency(agency, 0)),
+                    accessionRegisterInfo,
+                    tenantId);
 
                 if (null == register) {
                     if (LOGGER.isDebugEnabled()) {
                         LOGGER.debug(
-                                "All count equals to 0 => register not created for Originating Agency: " + agency);
+                            "All count equals to 0 => register not created for Originating Agency: " + agency);
                     }
                     continue;
                 }
 
                 if (LOGGER.isDebugEnabled()) {
                     LOGGER.debug("register ID / Originating Agency: " + register.getId() + " / " +
-                            register.getOriginatingAgency());
+                        register.getOriginatingAgency());
                 }
 
                 // ugly hack > using raw and non raw method
@@ -277,12 +279,15 @@ public abstract class AbstractAccessionRegisterAction extends ActionHandler impl
                 jsonNodeRegister.put("_tenant", tenantId);
                 jsonNodeRegister.put("_v", 0);
                 jsonNodeRegister.remove("#id");
-                RequestResponse<AccessionRegisterDetailModel> resp = adminClient.createorUpdateAccessionRegister(register);
+                RequestResponse<AccessionRegisterDetailModel> resp =
+                    adminClient.createOrUpdateAccessionRegister(register);
 
                 // If already exists in database
                 if (resp.getStatus() == javax.ws.rs.core.Response.Status.CONFLICT.getStatusCode()) {
                     // If the current ingest operation and the accession register detail already exists, then already executed
-                    LOGGER.warn(String.format("Step already executed, this is a replayed step for this operation : %s .", operationId));
+                    LOGGER.warn(String
+                        .format("Step already executed, this is a replayed step for this operation : %s .",
+                            operationId));
                     alreadyExecuted = true;
 
                 } else {
@@ -308,16 +313,7 @@ public abstract class AbstractAccessionRegisterAction extends ActionHandler impl
                 }
                 itemStatus.increment(StatusCode.OK);
             }
-        } catch (ProcessingException | AdminManagementClientServerException e) {
-            LOGGER.error("Inputs/outputs are not correct", e);
-            itemStatus.increment(StatusCode.KO);
-        } catch (InvalidParseOperationException e) {
-            LOGGER.error("Can not parse register", e);
-            itemStatus.increment(StatusCode.KO);
-        } catch (AccessionRegisterException e) {
-            LOGGER.error("Can not create func register", e);
-            itemStatus.increment(StatusCode.KO);
-        } catch (MetaDataClientServerException e) {
+        } catch (Exception e) {
             LOGGER.error("unable to call metadata Client", e);
             itemStatus.increment(StatusCode.FATAL);
         }
@@ -328,19 +324,20 @@ public abstract class AbstractAccessionRegisterAction extends ActionHandler impl
 
     protected abstract String getHandlerId();
 
-    protected abstract void prepareAccessionRegisterInformation(WorkerParameters params, HandlerIO handler, AccessionRegisterInfo accessionRegisterInfo) throws ProcessingException, InvalidParseOperationException;
+    protected abstract void prepareAccessionRegisterInformation(WorkerParameters params, HandlerIO handler,
+        AccessionRegisterInfo accessionRegisterInfo) throws ProcessingException, InvalidParseOperationException;
 
     protected abstract LogbookTypeProcess getOperationType();
 
 
     private AccessionRegisterDetailModel generateAccessionRegister(
-            WorkerParameters params,
-            String ingestOperation,
-            String currentOperation,
-            ObjectGroupPerOriginatingAgency objectGroupPerOriginatingAgency,
-            UnitPerOriginatingAgency unitPerOriginatingAgency,
-            AccessionRegisterInfo accessionRegisterInfo,
-            int tenantId) {
+        WorkerParameters params,
+        String ingestOperation,
+        String currentOperation,
+        ObjectGroupPerOriginatingAgency objectGroupPerOriginatingAgency,
+        UnitPerOriginatingAgency unitPerOriginatingAgency,
+        AccessionRegisterInfo accessionRegisterInfo,
+        int tenantId) {
 
         String unitAgency = unitPerOriginatingAgency.getValue();
 
@@ -359,11 +356,11 @@ public abstract class AbstractAccessionRegisterAction extends ActionHandler impl
         }
 
         RegisterValueDetailModel totalUnits =
-                new RegisterValueDetailModel().setIngested(unitCount).setRemained(unitCount);
+            new RegisterValueDetailModel().setIngested(unitCount).setRemained(unitCount);
         RegisterValueDetailModel totalObjectsGroups =
-                new RegisterValueDetailModel().setIngested(nbGot).setRemained(nbGot);
+            new RegisterValueDetailModel().setIngested(nbGot).setRemained(nbGot);
         RegisterValueDetailModel totalObjects =
-                new RegisterValueDetailModel().setIngested(nbObject).setRemained(nbObject);
+            new RegisterValueDetailModel().setIngested(nbObject).setRemained(nbObject);
         RegisterValueDetailModel objectSize = new RegisterValueDetailModel().setIngested(size).setRemained(size);
 
         String updateDate = LocalDateUtil.getFormattedDateForMongo(LocalDateUtil.now());
@@ -371,42 +368,43 @@ public abstract class AbstractAccessionRegisterAction extends ActionHandler impl
         GUID guid = GUIDFactory.newAccessionRegisterDetailGUID(tenantId);
 
         RegisterValueEventModel registerValueEvent = new RegisterValueEventModel()
-                .setOperation(currentOperation)
-                .setOperationType(getOperationType().name())
-                .setTotalUnits(totalUnits.getRemained())
-                .setTotalGots(totalObjectsGroups.getRemained())
-                .setTotalObjects(totalObjects.getRemained())
-                .setObjectSize(objectSize.getRemained())
-                .setCreationdate(LocalDateUtil.getFormattedDateForMongo(LocalDateTime.now()));
+            .setOperation(currentOperation)
+            .setOperationType(getOperationType().name())
+            .setTotalUnits(totalUnits.getRemained())
+            .setTotalGots(totalObjectsGroups.getRemained())
+            .setTotalObjects(totalObjects.getRemained())
+            .setObjectSize(objectSize.getRemained())
+            .setCreationdate(LocalDateUtil.getFormattedDateForMongo(LocalDateTime.now()));
 
         return new AccessionRegisterDetailModel()
-                .setId(guid.toString())
-                .setOpc(currentOperation)
-                .setOriginatingAgency(unitAgency)
-                .setSubmissionAgency(accessionRegisterInfo.getSubmissionAgency())
-                .setArchivalAgreement(accessionRegisterInfo.getArchivalAgreement())
-                .setAcquisitionInformation(accessionRegisterInfo.getAcquisitionInformation())
-                .setLegalStatus(accessionRegisterInfo.getLegalStatus())
-                .setArchivalProfile(accessionRegisterInfo.getArchivalProfile())
-                .setEndDate(updateDate)
-                .setLastUpdate(updateDate)
-                .setStartDate(updateDate)
-                .setStatus(AccessionRegisterStatus.STORED_AND_COMPLETED)
-                .setTotalObjectsGroups(totalObjectsGroups)
-                .setTotalUnits(totalUnits)
-                .setTotalObjects(totalObjects)
-                .setObjectSize(objectSize)
-                .setOpi(ingestOperation)
-                .setOperationType(getOperationType().name())
-                .addEvent(registerValueEvent)
-                .addOperationsId(params.getContainerName())
-                .setTenant(tenantId);
+            .setId(guid.toString())
+            .setOpc(currentOperation)
+            .setOriginatingAgency(unitAgency)
+            .setSubmissionAgency(accessionRegisterInfo.getSubmissionAgency())
+            .setArchivalAgreement(accessionRegisterInfo.getArchivalAgreement())
+            .setAcquisitionInformation(accessionRegisterInfo.getAcquisitionInformation())
+            .setLegalStatus(accessionRegisterInfo.getLegalStatus())
+            .setArchivalProfile(accessionRegisterInfo.getArchivalProfile())
+            .setEndDate(updateDate)
+            .setLastUpdate(updateDate)
+            .setStartDate(updateDate)
+            .setStatus(AccessionRegisterStatus.STORED_AND_COMPLETED)
+            .setTotalObjectsGroups(totalObjectsGroups)
+            .setTotalUnits(totalUnits)
+            .setTotalObjects(totalObjects)
+            .setObjectSize(objectSize)
+            .setOpi(ingestOperation)
+            .setOperationType(getOperationType().name())
+            .addEvent(registerValueEvent)
+            .addOperationsId(params.getContainerName())
+            .setTenant(tenantId);
     }
 
 
     @Override
     public void checkMandatoryIOParameter(HandlerIO handler) throws ProcessingException {
-        if (LogbookTypeProcess.INGEST.equals(getOperationType()) && !handler.checkHandlerIO(0, Lists.newArrayList(File.class))) {
+        if (LogbookTypeProcess.INGEST.equals(getOperationType()) &&
+            !handler.checkHandlerIO(0, Lists.newArrayList(File.class))) {
             throw new ProcessingException(HandlerIOImpl.NOT_CONFORM_PARAM);
         }
     }

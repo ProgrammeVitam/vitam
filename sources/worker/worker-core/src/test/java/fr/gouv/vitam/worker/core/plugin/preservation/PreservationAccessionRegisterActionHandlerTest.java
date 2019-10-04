@@ -142,7 +142,7 @@ public class PreservationAccessionRegisterActionHandlerTest {
 
         RequestResponse<AccessionRegisterDetailModel> res =
                 new RequestResponseOK<AccessionRegisterDetailModel>().setHttpCode(201);
-        when(adminManagementClient.createorUpdateAccessionRegister(any()))
+        when(adminManagementClient.createOrUpdateAccessionRegister(any()))
                 .thenReturn(res);
 
         // When
@@ -154,7 +154,7 @@ public class PreservationAccessionRegisterActionHandlerTest {
 
     @Test
     @RunWithCustomExecutor
-    public void testResponseKOCouldNotCreateRegister() throws Exception {
+    public void testResponseFATALCouldNotCreateRegister() throws Exception {
         // Given
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         GUID operationId = GUIDFactory.newGUID();
@@ -171,7 +171,7 @@ public class PreservationAccessionRegisterActionHandlerTest {
                 .thenReturn(originatingAgencies);
 
 
-        when(adminManagementClient.createorUpdateAccessionRegister(any()))
+        when(adminManagementClient.createOrUpdateAccessionRegister(any()))
                 .thenThrow(new AdminManagementClientServerException("AdminManagementClientServerException"));
 
         AdminManagementClientFactory.changeMode(null);
@@ -184,7 +184,7 @@ public class PreservationAccessionRegisterActionHandlerTest {
         final ItemStatus response = accessionRegisterHandler.execute(params, handlerIO);
 
         // Then
-        assertEquals(StatusCode.KO, response.getGlobalStatus());
+        assertEquals(StatusCode.FATAL, response.getGlobalStatus());
 
     }
 
@@ -213,7 +213,7 @@ public class PreservationAccessionRegisterActionHandlerTest {
                         .setMessage(Response.Status.CONFLICT.getReasonPhrase())
                         .setDescription("Document already exists in database");
 
-        when(adminManagementClient.createorUpdateAccessionRegister(any()))
+        when(adminManagementClient.createOrUpdateAccessionRegister(any()))
                 .thenReturn(ve);
 
         AdminManagementClientFactory.changeMode(null);
