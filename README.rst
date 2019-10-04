@@ -22,7 +22,7 @@ Il a pour objectif :
 * les documents sont sous "La Licence Ouverte V2" et le code sous CeCILL 2.1
 * La "La Licence Ouverte V2" est compatible avec le [Creative Commons CC-By-SA 2.0 license](https://creativecommons.org/licenses/by-sa/2.0/); Une copie de cette licence est disponible dans le fichier [Licence\_CC-By-SA\_2.0-en.txt](./Licence_CC-By-SA_2.0-en.txt).
 
-Pour plus d’information sur le programme, voir `www.programmevitam.fr <http://www.programmevitam.fr/pages/1-presentation/>`_.
+Pour plus d’information sur le programme, voir `www.programmevitam.fr <http://www.programmevitam.fr/pages/presentation/>`_.
 
 
 La solution logicielle Vitam
