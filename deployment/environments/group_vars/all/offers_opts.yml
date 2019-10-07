@@ -93,6 +93,13 @@ vitam_offers:
   #   s3MaxConnections: 1000
   #   # s3ConnectionTimeout (optional): Max time (in milliseconds) for waiting to establish connection (10000 by default in java client, 200000 by default in ansible scripts)
   #   s3ConnectionTimeout: 200000
+  #   # s3SocketTimeout (optional): Max time (in milliseconds) for reading from a connected socket (50000 by default)
+  #   s3SocketTimeout: 50000
+  #   # s3RequestTimeout (optional): Max time (in milliseconds) for a request (0 by default, disabled)
+  #   s3RequestTimeout: 0
+  #   # s3ClientExecutionTimeout (optional): Max time (in milliseconds) for a request by java client (0 by default, disabled)
+  #   s3ClientExecutionTimeout: 0
+
   # example_swift_v1:
   #    provider: openstack-swift
   #    swiftKeystoneAuthUrl: https://keystone/auth/1.0
