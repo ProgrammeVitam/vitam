@@ -7,6 +7,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
+import net.javacrumbs.jsonunit.JsonAssert;
 import org.bson.Document;
 import org.junit.Rule;
 import org.junit.Test;
@@ -58,10 +59,10 @@ public class AccessionRegisterDetailTest {
 
         assertEquals(id, register.get("_id"));
         assertEquals(id, register.getOriginatingAgency());
-        assertEquals(initialValue, register.getTotalObjectGroups());
-        assertEquals(initialValue, register.getTotalObjectSize());
-        assertEquals(initialValue, register.getTotalUnits());
-        assertEquals(initialValue, register.getTotalObjects());
+        JsonAssert.assertJsonEquals(initialValue, register.getTotalObjectGroups());
+        JsonAssert.assertJsonEquals(initialValue, register.getTotalObjectSize());
+        JsonAssert.assertJsonEquals(initialValue, register.getTotalUnits());
+        JsonAssert.assertJsonEquals(initialValue, register.getTotalObjects());
         assertEquals(LocalDateUtil.getFormattedDateForMongo(DATE), register.getEndDate());
         assertEquals(TEST, register.getAcquisitionInformation());
         assertEquals(TEST, register.getLegalStatus());

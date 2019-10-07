@@ -26,7 +26,6 @@
  *******************************************************************************/
 package fr.gouv.vitam.worker.core.plugin.evidence;
 
-import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.annotations.VisibleForTesting;
 import fr.gouv.vitam.common.exception.InvalidGuidOperationException;
@@ -40,16 +39,13 @@ import fr.gouv.vitam.common.model.LifeCycleStatusCode;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.parameter.ParameterHelper;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientBadRequestException;
-import fr.gouv.vitam.logbook.common.exception.LogbookClientException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientNotFoundException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientServerException;
 import fr.gouv.vitam.logbook.common.parameters.LogbookLifeCycleObjectGroupParameters;
 import fr.gouv.vitam.logbook.common.parameters.LogbookLifeCycleUnitParameters;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParameterName;
 import fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess;
-import fr.gouv.vitam.logbook.lifecycles.client.LogbookLifeCyclesClient;
 import fr.gouv.vitam.logbook.lifecycles.client.LogbookLifeCyclesClientFactory;
-import fr.gouv.vitam.metadata.client.MetaDataClientFactory;
 import fr.gouv.vitam.storage.engine.client.StorageClientFactory;
 import fr.gouv.vitam.storage.engine.client.exception.StorageServerClientException;
 import fr.gouv.vitam.storage.engine.common.model.DataCategory;
@@ -71,22 +67,21 @@ import static fr.gouv.vitam.logbook.common.parameters.LogbookParametersFactory.n
 public class DataRectificationService {
 
     final private StorageClientFactory storageClientFactory;
-    final private MetaDataClientFactory metaDataClientFactory;
     final private LogbookLifeCyclesClientFactory logbookLifeCyclesClientFactory;
+
     private String OBJECT_CORRECTIVE_AUDIT = "OBJECT_CORRECTIVE_AUDIT";
     private String UNIT_CORRECTIVE_AUDIT = "UNIT_CORRECTIVE_AUDIT";
     private String OBJECT_GROUP_CORRECTIVE_AUDIT = "OBJECT_GROUP_CORRECTIVE_AUDIT";
 
-    @VisibleForTesting DataRectificationService(StorageClientFactory storageClientFactory,
-        MetaDataClientFactory metaDataClientFactory,
+    @VisibleForTesting
+    DataRectificationService(StorageClientFactory storageClientFactory,
         LogbookLifeCyclesClientFactory logbookLifeCyclesClientFactory) {
         this.storageClientFactory = storageClientFactory;
-        this.metaDataClientFactory = metaDataClientFactory;
         this.logbookLifeCyclesClientFactory = logbookLifeCyclesClientFactory;
     }
 
     DataRectificationService() {
-        this(StorageClientFactory.getInstance(), MetaDataClientFactory.getInstance(),
+        this(StorageClientFactory.getInstance(),
             LogbookLifeCyclesClientFactory.getInstance());
     }
 
@@ -148,7 +143,7 @@ public class DataRectificationService {
                 String.format("offer '%s'  has been corrected from offer %s  for object id %s ", badOffers.get(0),
                     goodOffers.get(0), object.getIdentifier());
             storageClientFactory.getClient()
-                .copyObjectToOneOfferAnother(object.getIdentifier() , DataCategory.OBJECT, goodOffers.get(0),
+                .copyObjectToOneOfferAnother(object.getIdentifier(), DataCategory.OBJECT, goodOffers.get(0),
                     badOffers.get(0));
 
             updateLifecycleObject(containerName, line.getIdentifier(), OBJECT_CORRECTIVE_AUDIT,

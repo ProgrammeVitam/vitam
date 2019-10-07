@@ -107,7 +107,7 @@
         <commons-io.version>2.6</commons-io.version>
         <commons-lang3>3.8.1</commons-lang3>
         <easymock.version>4.0.2</easymock.version>
-        <jackson.version>2.9.9</jackson.version>
+        <jackson.version>2.10.0</jackson.version>
         <elasticsearch.version>6.5.4</elasticsearch.version>
         <elasticsearch.client.transport.version>${elasticsearch.version}</elasticsearch.client.transport.version>
         <mongo.version>3.4.3</mongo.version>
