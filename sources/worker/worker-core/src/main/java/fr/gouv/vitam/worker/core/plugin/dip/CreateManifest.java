@@ -202,9 +202,7 @@ public class CreateManifest extends ActionHandler {
                     for (JsonNode object : objects) {
                         List<String> linkedUnits = unitsForObjectGroupId.get(
                             object.get(ParserTokens.PROJECTIONARGS.ID.exactToken()).textValue());
-                        for (String linkedUnit: linkedUnits) {
-                            idBinaryWithFileName.putAll(manifestBuilder.writeGOT(object, linkedUnit, dataObjectVersionFilter));
-                        }
+                            idBinaryWithFileName.putAll(manifestBuilder.writeGOT(object, linkedUnits.get(linkedUnits.size()-1), dataObjectVersionFilter));
                     }
                 }
 

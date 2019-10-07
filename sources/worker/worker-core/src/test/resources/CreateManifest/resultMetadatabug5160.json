@@ -1,0 +1,103 @@
+{
+  "httpCode": 302,
+  "$hits": {
+    "total": 2,
+    "offset": 0,
+    "limit": 10000,
+    "size": 2,
+    "scrollId": null
+  },
+  "$results": [
+    {
+      "DescriptionLevel": "Item",
+      "Title": "Park Street (Green Line)",
+      "#id": "aeaqaaaaaefjz7wkabvpoalnfgzdzjaaaaaq",
+      "#tenant": 1,
+      "#object": "aebaaaaaaefjz7wkabvpoalnfgzdwfyaaaaq",
+      "#unitups": [],
+      "#min": 1,
+      "#max": 1,
+      "#allunitups": [],
+      "#management": {},
+      "#unitType": "INGEST",
+      "#operations": [
+        "aeeaaaaaagfjz7wkabudcalnfgzbfqqaaaaq"
+      ],
+      "#opi": "aeeaaaaaagfjz7wkabudcalnfgzbfqqaaaaq",
+      "#originating_agency": "Identifier0",
+      "#originating_agencies": [
+        "Identifier0"
+      ],
+      "#storage": {
+        "offerIds": [
+          "offer-fs-1.service.consul"
+        ],
+        "strategyId": "default",
+        "#nbc": 1
+      },
+      "#version": 0,
+      "#sedaVersion": "2.1"
+    },
+    {
+      "DescriptionLevel": "Item",
+      "Title": "Park Street (Red Line)",
+      "TransactedDate": "2017-04-04T08:07:06",
+      "#id": "aeaqaaaaaefjz7wkabvpoalnfgzdwlyaaaaq",
+      "#tenant": 1,
+      "#object": "aebaaaaaaefjz7wkabvpoalnfgzdwfyaaaaq",
+      "#unitups": [],
+      "#min": 1,
+      "#max": 1,
+      "#allunitups": [],
+      "#management": {
+        "AppraisalRule": {
+          "Rules": [
+            {
+              "Rule": "APP-00048",
+              "StartDate": "2015-01-01",
+              "EndDate": "2016-01-01"
+            }
+          ],
+          "FinalAction": "Destroy"
+        }
+      },
+      "#unitType": "INGEST",
+      "#operations": [
+        "aeeaaaaaagfjz7wkabudcalnfgzbfqqaaaaq"
+      ],
+      "#opi": "aeeaaaaaagfjz7wkabudcalnfgzbfqqaaaaq",
+      "#originating_agency": "Identifier0",
+      "#originating_agencies": [
+        "Identifier0"
+      ],
+      "#storage": {
+        "offerIds": [
+          "offer-fs-1.service.consul"
+        ],
+        "strategyId": "default",
+        "#nbc": 1
+      },
+      "#version": 0,
+      "#sedaVersion": "2.1"
+    }
+  ],
+  "$facetResults": [],
+  "$context": {
+    "$roots": [],
+    "$query": [
+      {
+        "$eq": {
+          "#operations": "aeeaaaaaagfjz7wkabudcalnfgzbfqqaaaaq"
+        },
+        "$depth": 1000
+      }
+    ],
+    "$filter": {
+      "$scrollId": "START",
+      "$limit": 10000,
+      "$scrollTimeout": 60000
+    },
+    "$projection": {},
+    "$facets": []
+  }
+}
