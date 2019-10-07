@@ -165,6 +165,8 @@ public class AdminManagementResource extends ApplicationStatusResource {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(AdminManagementResource.class);
 
     private static final SingleVarNameAdapter DEFAULT_VARNAME_ADAPTER = new SingleVarNameAdapter();
+    private static final String FUNCTIONAL_ADMINISTRATION_MODULE = "FUNCTIONAL_ADMINISTRATION_MODULE";
+
     private static final String ATTACHMENT_FILENAME = "attachment; filename=ErrorReport.json";
     private static final String SELECT_IS_A_MANDATORY_PARAMETER = "select is a mandatory parameter";
     private static final String AUDIT_URI = "/audit";
@@ -1139,6 +1141,8 @@ public class AdminManagementResource extends ApplicationStatusResource {
             (message != null && !message.trim().isEmpty()) ? message
                 : (status.getReasonPhrase() != null ? status.getReasonPhrase() : status.name());
         return new VitamError(status.name()).setHttpCode(status.getStatusCode())
+            .setContext(FUNCTIONAL_ADMINISTRATION_MODULE)
+            .setState(status.name())
             .setMessage(status.getReasonPhrase()).setDescription(aMessage);
     }
 }
