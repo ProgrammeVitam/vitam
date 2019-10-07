@@ -153,10 +153,11 @@ public class IngestExternalClientRestTest extends ResteasyTestApplication {
         when(mock.post())
             .thenReturn(Response.accepted().header(GlobalDataRest.X_REQUEST_ID, FAKE_X_REQUEST_ID).build());
 
-        final InputStream streamToUpload = IOUtils.toInputStream(MOCK_INPUTSTREAM_CONTENT, CharsetUtils.UTF_8);
-        RequestResponse<Void> resp =
-            client.ingest(new VitamContext(TENANT_ID), streamToUpload, CONTEXT_ID, EXECUTION_MODE);
-        assertEquals(resp.getHttpCode(), Status.ACCEPTED.getStatusCode());
+        try (final InputStream streamToUpload = IOUtils.toInputStream(MOCK_INPUTSTREAM_CONTENT, CharsetUtils.UTF_8)) {
+            RequestResponse<Void> resp =
+                client.ingest(new VitamContext(TENANT_ID), streamToUpload, CONTEXT_ID, EXECUTION_MODE);
+            assertEquals(resp.getHttpCode(), Status.ACCEPTED.getStatusCode());
+        }
     }
 
 
@@ -168,11 +169,12 @@ public class IngestExternalClientRestTest extends ResteasyTestApplication {
             new AbstractMockClient.FakeInboundResponse(Status.NOT_FOUND, JsonHandler.writeToInpustream(error),
                 MediaType.APPLICATION_OCTET_STREAM_TYPE, new MultivaluedHashMap<String, Object>());
         when(mock.get()).thenReturn(fakeResponse);
-        InputStream input =
+        try (InputStream input =
             client.downloadObjectAsync(new VitamContext(TENANT_ID), "1", IngestCollection.MANIFESTS)
-                .readEntity(InputStream.class);
-        VitamError response = JsonHandler.getFromInputStream(input, VitamError.class);
-        assertEquals(Status.NOT_FOUND.getStatusCode(), response.getHttpCode());
+                .readEntity(InputStream.class)) {
+            VitamError response = JsonHandler.getFromInputStream(input, VitamError.class);
+            assertEquals(Status.NOT_FOUND.getStatusCode(), response.getHttpCode());
+        }
     }
 
 
@@ -198,12 +200,10 @@ public class IngestExternalClientRestTest extends ResteasyTestApplication {
 
         when(mock.get()).thenReturn(ClientMockResultHelper.getObjectStream());
 
-        final InputStream fakeUploadResponseInputStream =
+        try (final InputStream fakeUploadResponseInputStream =
             client.downloadObjectAsync(new VitamContext(TENANT_ID), "1", IngestCollection.MANIFESTS)
-                .readEntity(InputStream.class);
-        assertNotNull(fakeUploadResponseInputStream);
-
-        try {
+                .readEntity(InputStream.class)) {
+            assertNotNull(fakeUploadResponseInputStream);
             assertTrue(IOUtils.contentEquals(fakeUploadResponseInputStream,
                 IOUtils.toInputStream("test", CharsetUtils.UTF_8)));
         } catch (final IOException e) {
