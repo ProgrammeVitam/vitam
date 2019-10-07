@@ -25,12 +25,12 @@
 @rem accept its terms.
 @rem ***************************************************************************
 @echo on
-raml2html -i Acces.raml -t template\template.nunjucks -o web\Acces.html
-raml2html -i Ingest.raml -t template\template.nunjucks -o web\Ingest.html
-raml2html -i Logbook.raml -t template\template.nunjucks -o web\Logbook.html
-raml2html -i Metadata.raml -t template\template.nunjucks -o web\Metadata.html
-raml2html -i Processing.raml -t template\template.nunjucks -o web\Processing.html
-raml2html -i Storage.raml -t template\template.nunjucks -o web\Storage.html
-raml2html -i Worker.raml -t template\template.nunjucks -o web\Worker.html
-raml2html -i Workspace.raml -t template\template.nunjucks -o web\Workspace.html
-raml2html -i Technical-administration.raml -t template\template.nunjucks -o web\Technical-administration.html
+raml2html -i Acces.raml -o web\Acces.html
+raml2html -i Ingest.raml -o web\Ingest.html
+raml2html -i Logbook.raml -o web\Logbook.html
+raml2html -i Metadata.raml -o web\Metadata.html
+raml2html -i Processing.raml -o web\Processing.html
+raml2html -i Storage.raml -o web\Storage.html
+raml2html -i Worker.raml -o web\Worker.html
+raml2html -i Workspace.raml -o web\Workspace.html
+raml2html -i Technical-administration.raml -o web\Technical-administration.html
