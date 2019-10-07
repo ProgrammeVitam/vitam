@@ -38,5 +38,5 @@ mkdir -p ${OUTPUT_DIR}
 for I in `cat index`
 do
 	echo ${I}
-	raml2html -i ${I}.raml -t template/template.nunjucks -o ${OUTPUT_DIR}/${I}.html
+	raml2html -i ${I}.raml -o ${OUTPUT_DIR}/${I}.html
 done

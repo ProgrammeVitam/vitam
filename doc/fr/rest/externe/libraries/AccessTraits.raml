@@ -201,10 +201,54 @@ traits:
             schema: StandardTypes.AsyncStatus
             example: !include examples/dip.json
       500:
-        description: Renvoie le statut final de l'opération DIP en KO
+        description: Renvoie ce statut en cas d'erreur interne
         body:
           application/json:
-            description: Rapport final du DIP
+            description: Internal server error
+
+  DipV2Async:
+    description: Requête de création d'un DIP v2
+    is: [ StandardTraits.StandardOptionalHeader, StandardTraits.StandardHeader202 ]
+    body:
+      application/json:
+        description: Body contient la requête DSL **multiple** au format JSON.
+        type: AccessTypes.DipRequest
+    responses:
+      202:
+        description: |
+          Renvoie le statut de l'opération de DIP V2
+        body:
+          application/json:
+            description: Operation de DIP V2 acceptée
+            schema: StandardTypes.AsyncStatus
+            example: !include examples/dip.json
+      500:
+        description: Renvoie ce statut en cas d'erreur interne
+        body:
+          application/json:
+            description: Internal server error
+
+  TransferCreationResponseAsync:
+    description: Requête de création d'un transfer SIP
+    is: [ StandardTraits.StandardOptionalHeader, StandardTraits.StandardHeader202 ]
+    body:
+      application/json:
+        description: Body contient la requête ayant un DSL **multiple** et d'autres paramètres au format JSON.
+        type: AccessTypes.TransferRequest
+    responses:
+      202:
+        description: |
+          Renvoie le statut de l'opération de Transfer
+        body:
+          application/json:
+            description: Operation de Transfer acceptée
+            schema: StandardTypes.AsyncStatus
+            example: !include examples/transfer.json
+      500:
+        description: Renvoie ce statut en cas d'erreur interne
+        body:
+          application/json:
+            description: Internal server error
 
   EliminationResponseAsync:
     description: Requête d'élimination
