@@ -1,4 +1,4 @@
-package fr.gouv.vitam.batch.report.rest.service; /*******************************************************************************
+/*******************************************************************************
  * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2019)
  *
  * contact.vitam@culture.gouv.fr
@@ -24,6 +24,8 @@ package fr.gouv.vitam.batch.report.rest.service; /******************************
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  *******************************************************************************/
+package fr.gouv.vitam.batch.report.rest.service;
+
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import fr.gouv.vitam.batch.report.model.EvidenceAuditFullStatusCount;
@@ -330,7 +332,7 @@ public class BatchReportServiceImplTest {
         when(storageClient.storeFileFromWorkspace(anyString(), any(), anyString(), any())).thenReturn(null);
 
         EvidenceAuditStatsModel auditStatus =
-            new EvidenceAuditStatsModel(1, 0, new EvidenceAuditFullStatusCount());
+            new EvidenceAuditStatsModel(1, 0, 1, new EvidenceAuditFullStatusCount());
         Document evidenceAuditData = getEvidenceAuditDocument(processId);
         FakeMongoCursor<Document> fakeMongoCursor = new FakeMongoCursor<>(Collections.singletonList(evidenceAuditData));
 
