@@ -27,16 +27,19 @@ import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.client.VitamClientFactory;
 import fr.gouv.vitam.common.database.builder.query.action.SetAction;
 import fr.gouv.vitam.common.database.builder.query.action.UpdateActionHelper;
+import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
 import fr.gouv.vitam.common.database.builder.request.single.Select;
 import fr.gouv.vitam.common.database.builder.request.single.Update;
 import fr.gouv.vitam.common.database.server.elasticsearch.ElasticsearchNode;
 import fr.gouv.vitam.common.elasticsearch.ElasticsearchRule;
 import fr.gouv.vitam.common.error.VitamError;
+import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.administration.AccessContractModel;
 import fr.gouv.vitam.common.model.administration.ContextModel;
+import fr.gouv.vitam.common.model.administration.ContextStatus;
 import fr.gouv.vitam.common.model.administration.IngestContractModel;
 import fr.gouv.vitam.common.model.administration.SecurityProfileModel;
 import fr.gouv.vitam.common.mongo.MongoRule;
@@ -49,6 +52,7 @@ import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.functional.administration.common.Context;
 import fr.gouv.vitam.functional.administration.common.FunctionalBackupService;
 import fr.gouv.vitam.functional.administration.common.counter.VitamCounterService;
+import fr.gouv.vitam.functional.administration.common.exception.ReferentialException;
 import fr.gouv.vitam.functional.administration.common.server.ElasticsearchAccessFunctionalAdmin;
 import fr.gouv.vitam.functional.administration.common.server.FunctionalAdminCollections;
 import fr.gouv.vitam.functional.administration.common.server.MongoDbAccessAdminFactory;
@@ -81,6 +85,7 @@ import static fr.gouv.vitam.common.database.builder.query.QueryHelper.eq;
 import static fr.gouv.vitam.common.database.collections.VitamCollection.getMongoClientOptions;
 import static fr.gouv.vitam.common.guid.GUIDFactory.newOperationLogbookGUID;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
@@ -199,15 +204,14 @@ public class ContextServiceImplTest {
         when(ingestContractService.findByIdentifier(INGEST_CONTRACT_ID)).thenReturn(ingestContractModels.get(0));
 
         final File fileContexts = PropertiesUtils.getResourceFile("contexts_empty.json");
-        final List<ContextModel> ModelList =
+        final List<ContextModel> contextModelList =
             JsonHandler.getFromFileAsTypeRefence(fileContexts, new TypeReference<List<ContextModel>>() {
             });
 
-        RequestResponse<ContextModel> response = contextService.createContexts(ModelList);
+        RequestResponse<ContextModel> response = contextService.createContexts(contextModelList);
         assertThat(response.isOk()).isTrue();
 
         verifyZeroInteractions(ingestContractService);
-        verifyZeroInteractions(accessContractService);
 
         verify(functionalBackupService).saveCollectionAndSequence(any(),
             Mockito.eq(ContextServiceImpl.CONTEXTS_BACKUP_EVENT), Mockito.eq(FunctionalAdminCollections.CONTEXT),
@@ -223,14 +227,7 @@ public class ContextServiceImplTest {
         permissionNode.set("AccessContracts", JsonHandler.createArrayNode());
         permissionsNode.set("Permissions", JsonHandler.createArrayNode().add(permissionNode));
         final SetAction setPermission = UpdateActionHelper.set(permissionsNode);
-        final Select select = new Select();
-        select.setQuery(eq("Name", "My_Context_1"));
-        final ContextModel context =
-            contextService
-                .findContexts(select.getFinalSelect())
-                .getDocuments(Context.class, ContextModel.class).get(0);
-
-
+        final ContextModel context = getContextModel("My_Context_1");
         final Update update = new Update();
         update.addActions(setPermission);
         update.setQuery(and().add(eq("Permissions.tenant", 0))
@@ -280,19 +277,13 @@ public class ContextServiceImplTest {
         when(ingestContractService.findByIdentifier(INGEST_CONTRACT_ID)).thenReturn(ingestContractModels.get(0));
 
         final File fileContexts = PropertiesUtils.getResourceFile("contexts_empty.json");
-        final List<ContextModel> ModelList =
+        final List<ContextModel> contextModelList =
             JsonHandler.getFromFileAsTypeRefence(fileContexts, new TypeReference<List<ContextModel>>() {
             });
 
-        RequestResponse<ContextModel> response = contextService.createContexts(ModelList);
+        RequestResponse<ContextModel> response = contextService.createContexts(contextModelList);
         assertThat(response.isOk()).isTrue();
-
-        final Select select = new Select();
-        select.setQuery(eq("Name", "My_Context_1"));
-        final ContextModel context =
-            contextService
-                .findContexts(select.getFinalSelect())
-                .getDocuments(Context.class, ContextModel.class).get(0);
+        final ContextModel context = getContextModel("My_Context_1");
 
         reset(functionalBackupService);
 
@@ -308,20 +299,107 @@ public class ContextServiceImplTest {
     public void givenContextImportedWithInvalidIngestContract() throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
 
-        String INGEST_CONTRACT_ID = "NON-EXISTING-CONTRACT";
+        String INGEST_CONTRACT_ID = "NON-EXISTING-INGEST_CONTRACT";
         when(ingestContractService.findByIdentifier(INGEST_CONTRACT_ID)).thenReturn(null);
 
-        final File fileContexts = PropertiesUtils.getResourceFile("KO_contexts_invalid_contract.json");
-        final List<ContextModel> ModelList =
+        final File fileContexts = PropertiesUtils.getResourceFile("KO_contexts_invalid_ingest_contract.json");
+        final List<ContextModel> contextModelList =
             JsonHandler.getFromFileAsTypeRefence(fileContexts, new TypeReference<List<ContextModel>>() {
             });
 
-        RequestResponse<ContextModel> response = contextService.createContexts(ModelList);
+        RequestResponse<ContextModel> response = contextService.createContexts(contextModelList);
         assertThat(response.isOk()).isFalse();
 
-        verifyZeroInteractions(accessContractService);
+        assertThat(((VitamError) response).getErrors().get(0).getDescription()).isEqualTo("The ingest contract NON-EXISTING-INGEST_CONTRACT of tenant 0 does not exist");
         verifyZeroInteractions(functionalBackupService);
     }
+
+    @Test
+    @RunWithCustomExecutor
+    public void givenContextImportedWithInvalidAccessContract() throws Exception {
+        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
+
+        String ACCESS_CONTRACT_ID = "NON-EXISTING-ACCESS_CONTRACT";
+        when(accessContractService.findByIdentifier(ACCESS_CONTRACT_ID)).thenReturn(null);
+
+        final File fileContexts = PropertiesUtils.getResourceFile("KO_contexts_invalid_access_contract.json");
+        final List<ContextModel> contextModelList =
+            JsonHandler.getFromFileAsTypeRefence(fileContexts, new TypeReference<List<ContextModel>>() {
+            });
+
+        RequestResponse<ContextModel> response = contextService.createContexts(contextModelList);
+        assertThat(response.isOk()).isFalse();
+
+        assertThat(((VitamError) response).getErrors().get(0).getDescription()).isEqualTo("The access contract NON-EXISTING-ACCESS_CONTRACT of tenant 0 does not exist");
+        verifyZeroInteractions(ingestContractService);
+        verifyZeroInteractions(functionalBackupService);
+    }
+
+    @Test
+    @RunWithCustomExecutor
+    public void givenContextImportedWithInvalidAccessAndIngestContract() throws Exception {
+        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
+
+        String INGEST_CONTRACT_ID = "NON-EXISTING-INGEST_CONTRACT";
+        when(ingestContractService.findByIdentifier(INGEST_CONTRACT_ID)).thenReturn(null);
+
+        String ACCESS_CONTRACT_ID = "NON-EXISTING-ACCESS_CONTRACT";
+        when(accessContractService.findByIdentifier(ACCESS_CONTRACT_ID)).thenReturn(null);
+
+        final File fileContexts = PropertiesUtils.getResourceFile("KO_contexts_invalid_ingest_and_access_contract.json");
+        final List<ContextModel> contextModelList =
+            JsonHandler.getFromFileAsTypeRefence(fileContexts, new TypeReference<List<ContextModel>>() {
+            });
+
+        RequestResponse<ContextModel> response = contextService.createContexts(contextModelList);
+        assertThat(response.isOk()).isFalse();
+
+        assertThat(((VitamError) response).getErrors().get(0).getDescription()).isEqualTo("The ingest contract NON-EXISTING-INGEST_CONTRACT of tenant 0 does not exist");
+        assertThat(((VitamError) response).getErrors().get(1).getDescription()).isEqualTo("The access contract NON-EXISTING-ACCESS_CONTRACT of tenant 0 does not exist");
+        assertThat(((VitamError) response).getErrors().get(2).getDescription()).isEqualTo("The ingest contract NON-EXISTING-INGEST_CONTRACT of tenant 1 does not exist");
+        assertThat(((VitamError) response).getErrors().get(3).getDescription()).isEqualTo("The access contract NON-EXISTING-ACCESS_CONTRACT of tenant 1 does not exist");
+        verifyZeroInteractions(functionalBackupService);
+    }
+
+    @Test
+    @RunWithCustomExecutor
+    public void givenNoSlaveModeContextImportedWithoutStatusThenSetDefaultINACTIVE() throws Exception {
+        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
+
+        final File fileContexts = PropertiesUtils.getResourceFile("KO_contexts_without_status_not_slave.json");
+        final List<ContextModel> contextModelList =
+            JsonHandler.getFromFileAsTypeRefence(fileContexts, new TypeReference<List<ContextModel>>() {
+            });
+
+        RequestResponse<ContextModel> response = contextService.createContexts(contextModelList);
+        assertThat(response.isOk()).isTrue();
+        final ContextModel context = getContextModel("Contexte_KO_Champ_Statut_manquant_not_slave");
+        assertEquals(context.getStatus(), ContextStatus.INACTIVE);
+        assertThat(context.getIdentifier()).startsWith("CT-");
+        verify(functionalBackupService, times(1)).saveCollectionAndSequence(any(), any(), any(), any());
+
+    }
+
+    @Test
+    @RunWithCustomExecutor
+    public void givenSlaveModeContextImportedWithoutStatusThenSetDefaultINACTIVE() throws Exception {
+        VitamThreadUtils.getVitamSession().setTenantId(2);
+
+        final File fileContexts = PropertiesUtils.getResourceFile("KO_contexts_without_status_slave.json");
+        final List<ContextModel> contextModelList =
+            JsonHandler.getFromFileAsTypeRefence(fileContexts, new TypeReference<List<ContextModel>>() {
+            });
+
+        RequestResponse<ContextModel> response = contextService.createContexts(contextModelList);
+        assertThat(response.isOk()).isTrue();
+        final ContextModel context = getContextModel("Contexte_KO_Champ_Statut_manquant");
+        assertEquals(context.getStatus(), ContextStatus.INACTIVE);
+        assertEquals(context.getIdentifier(),"Context_Identifier");
+
+        verify(functionalBackupService, times(1)).saveCollectionAndSequence(any(), any(), any(), any());
+
+    }
+
 
     @Test
     @RunWithCustomExecutor
@@ -330,11 +408,11 @@ public class ContextServiceImplTest {
         VitamThreadUtils.getVitamSession().setTenantId(EXTERNAL_TENANT);
 
         final File fileContexts = PropertiesUtils.getResourceFile("contexts_empty_1.json");
-        final List<ContextModel> ModelList =
+        final List<ContextModel> contextModelList =
             JsonHandler.getFromFileAsTypeRefence(fileContexts, new TypeReference<List<ContextModel>>() {
             });
 
-        RequestResponse<ContextModel> response = contextService.createContexts(ModelList);
+        RequestResponse<ContextModel> response = contextService.createContexts(contextModelList);
         assertThat(response.isOk()).isTrue();
 
         verify(functionalBackupService).saveCollectionAndSequence(any(),
@@ -350,11 +428,11 @@ public class ContextServiceImplTest {
     public void givenTestImportExternalIdentifier_KO() throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(EXTERNAL_TENANT);
         final File fileContexts = PropertiesUtils.getResourceFile("contexts_empty.json");
-        final List<ContextModel> ModelList =
+        final List<ContextModel> contextModelList =
             JsonHandler.getFromFileAsTypeRefence(fileContexts, new TypeReference<List<ContextModel>>() {
             });
 
-        RequestResponse<ContextModel> response = contextService.createContexts(ModelList);
+        RequestResponse<ContextModel> response = contextService.createContexts(contextModelList);
         assertThat(response.isOk()).isFalse();
 
         verifyZeroInteractions(ingestContractService);
@@ -367,13 +445,56 @@ public class ContextServiceImplTest {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
 
         final File fileContexts = PropertiesUtils.getResourceFile("KO_context_non_existing_tenant.json");
-        final List<ContextModel> ModelList =
+        final List<ContextModel> contextModelList =
             JsonHandler.getFromFileAsTypeRefence(fileContexts, new TypeReference<List<ContextModel>>() {
             });
 
-        RequestResponse<ContextModel> response = contextService.createContexts(ModelList);
+        RequestResponse<ContextModel> response = contextService.createContexts(contextModelList);
         assertThat(response.isOk()).isFalse();
         assertThat(((VitamError) response).getErrors().get(0).getDescription()).isEqualTo("The tenant 112211 does not exist");
         assertThat(((VitamError) response).getErrors().get(0).getMessage()).isEqualTo("STP_IMPORT_CONTEXT.UNKNOWN_VALUE.KO");
+    }
+
+    @Test
+    @RunWithCustomExecutor
+    public void givenContextImportedWithoutRequiredFieldMasterMode() throws Exception {
+        VitamThreadUtils.getVitamSession().setTenantId(0);
+
+        final File fileContexts = PropertiesUtils.getResourceFile(
+            "OK_context_without_identifier_when_no_slave_mode.json");
+        final List<ContextModel> contextModelList =
+            JsonHandler.getFromFileAsTypeRefence(fileContexts, new TypeReference<List<ContextModel>>() {
+            });
+
+        RequestResponse<ContextModel> response = contextService.createContexts(contextModelList);
+        assertThat(response.isOk()).isTrue();
+    }
+
+    @Test
+    @RunWithCustomExecutor
+    public void givenContextImportedWithoutRequiredFieldSlaveMode() throws Exception {
+        VitamThreadUtils.getVitamSession().setTenantId(2);
+
+        final File fileContexts = PropertiesUtils.getResourceFile(
+            "OK_context_without_identifier_when_slave_mode.json");
+        final List<ContextModel> contextModelList =
+            JsonHandler.getFromFileAsTypeRefence(fileContexts, new TypeReference<List<ContextModel>>() {
+            });
+
+        RequestResponse<ContextModel> response = contextService.createContexts(contextModelList);
+        assertThat(response.isOk()).isFalse();
+        assertThat(((VitamError) response).getErrors().get(0).getDescription()).isEqualTo("The field Identifier is mandatory");
+        assertThat(((VitamError) response).getErrors().get(0).getMessage()).isEqualTo("STP_IMPORT_CONTEXT.EMPTY_REQUIRED_FIELD.KO");
+        verifyNoMoreInteractions(functionalBackupService);
+    }
+
+    private ContextModel getContextModel(String contextName)
+        throws InvalidCreateOperationException, InvalidParseOperationException,
+        ReferentialException {
+        final Select select = new Select();
+        select.setQuery(eq("Name", contextName));
+        return contextService
+            .findContexts(select.getFinalSelect())
+            .getDocuments(Context.class, ContextModel.class).get(0);
     }
 }
