@@ -34,10 +34,8 @@ import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.client.ClientMockResultHelper;
 import fr.gouv.vitam.common.client.IngestCollection;
 import fr.gouv.vitam.common.error.VitamError;
-import fr.gouv.vitam.common.exception.BadRequestException;
 import fr.gouv.vitam.common.exception.VitamClientException;
 import fr.gouv.vitam.common.exception.VitamClientInternalException;
-import fr.gouv.vitam.common.exception.WorkflowNotFoundException;
 import fr.gouv.vitam.common.guid.GUID;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.model.ItemStatus;
@@ -257,26 +255,26 @@ public class IngestInternalClientRestTest extends ResteasyTestApplication {
         final List<LogbookOperationParameters> operationList = new ArrayList<>();
 
         final GUID ingestGuid = GUIDFactory.newGUID();
-        final GUID conatinerGuid = GUIDFactory.newGUID();
+        final GUID containerGuid = GUIDFactory.newGUID();
         final LogbookOperationParameters externalOperationParameters1 =
             LogbookParametersFactory.newLogbookOperationParameters(
                 ingestGuid,
                 "Ingest external",
-                conatinerGuid,
+                containerGuid,
                 LogbookTypeProcess.INGEST,
                 StatusCode.STARTED,
                 "Start Ingest external",
-                conatinerGuid);
+                containerGuid);
 
         final LogbookOperationParameters externalOperationParameters2 =
             LogbookParametersFactory.newLogbookOperationParameters(
                 ingestGuid,
                 "Ingest external",
-                conatinerGuid,
+                containerGuid,
                 LogbookTypeProcess.INGEST,
                 StatusCode.OK,
                 "End Ingest external",
-                conatinerGuid);
+                containerGuid);
         operationList.add(externalOperationParameters1);
         operationList.add(externalOperationParameters2);
 
@@ -320,15 +318,17 @@ public class IngestInternalClientRestTest extends ResteasyTestApplication {
         operationList.add(externalOperationParameters1);
         operationList.add(externalOperationParameters2);
 
-        InputStream inputStreamATR = PropertiesUtils.getResourceAsStream("ATR_example.xml");
-        when(mockLogbook.post()).thenReturn(Response.status(Status.CREATED).build());
-        when(mock.post()).thenReturn(
-            Response.status(Status.INTERNAL_SERVER_ERROR).entity(FileUtil.readInputStream(inputStreamATR)).build());
-        client.uploadInitialLogbook(operationList);
-        final InputStream inputStream =
-            PropertiesUtils.getResourceAsStream("SIP_bordereau_avec_objet_OK.zip");
-        WorkFlow workflow = WorkFlow.of(WROKFLOW_ID, WROKFLOW_IDENTIFIER, INGEST);
-        client.upload(inputStream, CommonMediaType.ZIP_TYPE, workflow, X_ACTION);
+        try (InputStream inputStreamATR = PropertiesUtils.getResourceAsStream("ATR_example.xml")) {
+            when(mockLogbook.post()).thenReturn(Response.status(Status.CREATED).build());
+            when(mock.post()).thenReturn(
+                Response.status(Status.INTERNAL_SERVER_ERROR).entity(FileUtil.readInputStream(inputStreamATR)).build());
+            client.uploadInitialLogbook(operationList);
+            try (final InputStream inputStream =
+                PropertiesUtils.getResourceAsStream("SIP_bordereau_avec_objet_OK.zip")) {
+                WorkFlow workflow = WorkFlow.of(WROKFLOW_ID, WROKFLOW_IDENTIFIER, INGEST);
+                client.upload(inputStream, CommonMediaType.ZIP_TYPE, workflow, X_ACTION);
+            }
+        }
     }
 
     @Test
@@ -362,12 +362,13 @@ public class IngestInternalClientRestTest extends ResteasyTestApplication {
         when(mockLogbook.post()).thenReturn(Response.status(Status.CREATED).build());
         when(mock.post()).thenReturn(Response.status(Status.INTERNAL_SERVER_ERROR).build());
 
-        final InputStream inputStream =
-            PropertiesUtils.getResourceAsStream("SIP_bordereau_avec_objet_OK.zip");
+        try (final InputStream inputStream =
+            PropertiesUtils.getResourceAsStream("SIP_bordereau_avec_objet_OK.zip")) {
 
-        client.uploadInitialLogbook(operationList);
-        WorkFlow workflow = WorkFlow.of(WROKFLOW_ID, WROKFLOW_IDENTIFIER, INGEST);
-        client.upload(inputStream, CommonMediaType.ZIP_TYPE, workflow, X_ACTION);
+            client.uploadInitialLogbook(operationList);
+            WorkFlow workflow = WorkFlow.of(WROKFLOW_ID, WROKFLOW_IDENTIFIER, INGEST);
+            client.upload(inputStream, CommonMediaType.ZIP_TYPE, workflow, X_ACTION);
+        }
 
     }
 
@@ -401,11 +402,12 @@ public class IngestInternalClientRestTest extends ResteasyTestApplication {
         operationList.add(externalOperationParameters2);
         when(mockLogbook.post()).thenReturn(Response.status(Status.CREATED).build());
         when(mock.post()).thenReturn(Response.status(Status.INTERNAL_SERVER_ERROR).build());
-        final InputStream inputStream =
-            PropertiesUtils.getResourceAsStream("SIP_mauvais_format.pdf");
-        client.uploadInitialLogbook(operationList);
-        WorkFlow workflow = WorkFlow.of(WROKFLOW_ID, WROKFLOW_IDENTIFIER, INGEST);
-        client.upload(inputStream, CommonMediaType.ZIP_TYPE, workflow, X_ACTION);
+        try (final InputStream inputStream =
+            PropertiesUtils.getResourceAsStream("SIP_mauvais_format.pdf")) {
+            client.uploadInitialLogbook(operationList);
+            WorkFlow workflow = WorkFlow.of(WROKFLOW_ID, WROKFLOW_IDENTIFIER, INGEST);
+            client.upload(inputStream, CommonMediaType.ZIP_TYPE, workflow, X_ACTION);
+        }
 
     }
 
@@ -415,9 +417,9 @@ public class IngestInternalClientRestTest extends ResteasyTestApplication {
 
         when(mock.get()).thenReturn(ClientMockResultHelper.getObjectStream());
 
-        final InputStream fakeUploadResponseInputStream =
-            client.downloadObjectAsync("1", IngestCollection.MANIFESTS).readEntity(InputStream.class);
-        try {
+        try (final InputStream fakeUploadResponseInputStream =
+            client.downloadObjectAsync("1", IngestCollection.MANIFESTS).readEntity(InputStream.class)) {
+
             assertTrue(IOUtils.contentEquals(fakeUploadResponseInputStream,
                 StreamUtils.toInputStream("test")));
         } catch (final IOException e) {
@@ -430,10 +432,11 @@ public class IngestInternalClientRestTest extends ResteasyTestApplication {
     public void givenInputstreamWhenDownloadObjectThenStoreATR()
         throws Exception {
         when(mock.get()).thenReturn(ClientMockResultHelper.getObjectStream());
-        final InputStream fakeUploadResponseInputStream =
-            client.downloadObjectAsync("1", IngestCollection.MANIFESTS).readEntity(InputStream.class);
-        assertNotNull(fakeUploadResponseInputStream);
-        client.storeATR(GUIDFactory.newGUID(), fakeUploadResponseInputStream);
+        try (final InputStream fakeUploadResponseInputStream =
+            client.downloadObjectAsync("1", IngestCollection.MANIFESTS).readEntity(InputStream.class)) {
+            assertNotNull(fakeUploadResponseInputStream);
+            client.storeATR(GUIDFactory.newGUID(), fakeUploadResponseInputStream);
+        }
     }
 
     @Test(expected = IngestInternalClientNotFoundException.class)

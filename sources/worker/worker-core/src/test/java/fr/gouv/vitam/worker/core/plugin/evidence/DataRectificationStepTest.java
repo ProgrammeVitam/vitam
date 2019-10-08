@@ -106,8 +106,6 @@ public class DataRectificationStepTest {
         "    \"default-bis\" : \"z6bb18b91044ef4c92ec47e558ebdfc822a02c8c9d768de6653e7f353f6e2f0b00cb3d53b05dde3080f66b9601b020c03ae2e48c7629e9f7ccf59c23b2d18ecb8\"\n" +
         "  }\n" +
         "}";
-    private static final LogbookOperationsClientFactory logbookOperationsClientFactory =
-        mock(LogbookOperationsClientFactory.class);
     private static final String FAKE_REQUEST_ID = "FakeRequestId";
     private static final String FAKE_CONTEXT_ID = "FakeContextId";
     private static final Integer TENANT = 0;
@@ -154,8 +152,7 @@ public class DataRectificationStepTest {
         when(metaDataClientFactory.getClient()).thenReturn(metaDataClient);
         when(storageClientFactory.getClient()).thenReturn(storageClient);
 
-        dataRectificationService = new DataRectificationService(storageClientFactory, logbookLifeCyclesClientFactory,
-            logbookOperationsClientFactory);
+        dataRectificationService = new DataRectificationService(storageClientFactory, logbookLifeCyclesClientFactory);
         dataRectificationStep =
             new DataRectificationStep(dataRectificationService, storeMetaDataObjectGroupActionPlugin,
                 storeMetaDataUnitActionPlugin);

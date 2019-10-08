@@ -174,7 +174,7 @@
         <commons-io.version>2.6</commons-io.version>
         <commons-lang3>3.8.1</commons-lang3>
         <easymock.version>4.0.2</easymock.version>
-        <jackson.version>2.10.0.pr2</jackson.version>
+        <jackson.version>2.10.0</jackson.version>
         <apache-shiro.version>1.4.0</apache-shiro.version>
         <assertj.version>3.11.1</assertj.version>
         <rest-assured.version>3.3.0</rest-assured.version>

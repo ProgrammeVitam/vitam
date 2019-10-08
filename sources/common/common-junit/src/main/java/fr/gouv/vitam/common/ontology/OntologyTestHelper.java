@@ -46,7 +46,7 @@ public class OntologyTestHelper {
         String userDir = StringUtils.substringBefore(dir, "/sources/");
         String ontologyPath = userDir + ANSIBLE_PATH_TO_ONTOLOGY;
 
-        LOGGER.error("user.dir: " + dir + " ontology : " + ontologyPath);
+        LOGGER.debug("user.dir: " + dir + " ontology : " + ontologyPath);
         return Files.newInputStream(Paths.get(ontologyPath));
     }
 }
