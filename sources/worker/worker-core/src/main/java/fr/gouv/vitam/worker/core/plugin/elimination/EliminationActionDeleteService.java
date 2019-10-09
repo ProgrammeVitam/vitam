@@ -136,16 +136,9 @@ public class EliminationActionDeleteService {
     }
 
     public void detachObjectGroupFromDeleteParentUnits(String processId, String objectGroupId,
-        Set<String> parentUnitsToRemove, String action)
+        Set<String> parentUnitsToRemove)
         throws EliminationException {
 
-        removeObjectGroupParentUnits(objectGroupId, parentUnitsToRemove);
-
-        updateObjectGroupLifecycle(processId, objectGroupId, parentUnitsToRemove, action);
-    }
-
-    private void removeObjectGroupParentUnits(String objectGroupId, Set<String> parentUnitsToRemove)
-        throws EliminationException {
         try (MetaDataClient metaDataClient = metaDataClientFactory.getClient()) {
 
             UpdateMultiQuery updateMultiQuery = new UpdateMultiQuery();
@@ -158,25 +151,6 @@ public class EliminationActionDeleteService {
 
         } catch (MetaDataClientServerException | MetaDataExecutionException | InvalidParseOperationException | InvalidCreateOperationException e) {
             throw new EliminationException(StatusCode.FATAL, "An error occurred during object group detachment", e);
-        }
-    }
-
-    private void updateObjectGroupLifecycle(String processId, String objectGroupId, Set<String> parentUnitsToRemove,
-        String action) throws EliminationException {
-        try (LogbookLifeCyclesClient logbookLifeCyclesClient = logbookLifeCyclesClientFactory.getClient()) {
-
-            EliminationActionObjectGroupEventDetails eventDetails = new EliminationActionObjectGroupEventDetails()
-                .setRemovedParents(parentUnitsToRemove);
-            LogbookLifeCycleObjectGroupParameters logbookLCParam = createObjectGroupLfcParameters(
-                GUIDReader.getGUID(processId), StatusCode.OK,
-                GUIDReader.getGUID(objectGroupId), action, eventDetails,
-                LogbookTypeProcess.ELIMINATION);
-
-            logbookLifeCyclesClient.update(logbookLCParam, LifeCycleStatusCode.LIFE_CYCLE_COMMITTED);
-
-        } catch (VitamException e) {
-            throw new EliminationException(StatusCode.FATAL,
-                "An error occurred during lifecycle update for object group " + objectGroupId, e);
         }
     }
 }
