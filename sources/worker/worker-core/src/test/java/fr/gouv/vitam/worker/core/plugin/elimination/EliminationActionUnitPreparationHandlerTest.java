@@ -1,4 +1,4 @@
-/*******************************************************************************
+/*
  * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2019)
  *
  * contact.vitam@culture.gouv.fr
@@ -23,41 +23,13 @@
  *
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
- *******************************************************************************/
+*/
 package fr.gouv.vitam.worker.core.plugin.elimination;
 
-import static fr.gouv.vitam.worker.core.plugin.elimination.EliminationActionUnitPreparationHandler.DATE_REQUEST_IN_FUTURE;
-import static fr.gouv.vitam.worker.core.plugin.elimination.EliminationActionUnitPreparationHandler.REQUEST_JSON;
-import static fr.gouv.vitam.worker.core.plugin.elimination.EliminationActionUnitPreparationHandler.UNITS_TO_DELETE_FILE;
-import static java.util.Collections.emptyList;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.doAnswer;
-import static org.mockito.Mockito.doReturn;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
-
-import java.io.File;
-import java.io.FileInputStream;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-
-import org.apache.commons.collections4.IteratorUtils;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.TemporaryFolder;
-import org.mockito.ArgumentCaptor;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnit;
-import org.mockito.junit.MockitoRule;
-
+import com.fasterxml.jackson.core.type.TypeReference;
 import fr.gouv.vitam.batch.report.model.entry.EliminationActionUnitReportEntry;
 import fr.gouv.vitam.common.PropertiesUtils;
+import fr.gouv.vitam.common.database.utils.MetadataDocumentHelper;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.model.ItemStatus;
@@ -71,15 +43,47 @@ import fr.gouv.vitam.metadata.client.MetaDataClientFactory;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 import fr.gouv.vitam.processing.common.parameter.WorkerParametersFactory;
 import fr.gouv.vitam.worker.common.HandlerIO;
-import fr.gouv.vitam.worker.core.distribution.JsonLineIterator;
+import fr.gouv.vitam.worker.core.distribution.JsonLineGenericIterator;
 import fr.gouv.vitam.worker.core.distribution.JsonLineModel;
 import fr.gouv.vitam.worker.core.plugin.elimination.model.EliminationActionUnitStatus;
 import fr.gouv.vitam.worker.core.plugin.elimination.model.EliminationAnalysisResult;
 import fr.gouv.vitam.worker.core.plugin.elimination.model.EliminationEventDetails;
 import fr.gouv.vitam.worker.core.plugin.elimination.model.EliminationGlobalStatus;
 import fr.gouv.vitam.worker.core.plugin.elimination.report.EliminationActionReportService;
+import org.apache.commons.collections4.IteratorUtils;
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Rule;
+import org.junit.Test;
+import org.junit.rules.TemporaryFolder;
+import org.mockito.ArgumentCaptor;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.MockitoJUnit;
+import org.mockito.junit.MockitoRule;
+
+import java.io.File;
+import java.io.FileInputStream;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+
+import static fr.gouv.vitam.worker.core.plugin.elimination.EliminationActionUnitPreparationHandler.DATE_REQUEST_IN_FUTURE;
+import static fr.gouv.vitam.worker.core.plugin.elimination.EliminationActionUnitPreparationHandler.REQUEST_JSON;
+import static fr.gouv.vitam.worker.core.plugin.elimination.EliminationActionUnitPreparationHandler.UNITS_TO_DELETE_FILE;
+import static java.util.Collections.emptyList;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 public class EliminationActionUnitPreparationHandlerTest {
+
+    private static final TypeReference<JsonLineModel> TYPE_REFERENCE = new TypeReference<JsonLineModel>() {
+    };
 
     @Rule
     public RunWithCustomExecutorRule runInThread =
@@ -140,7 +144,7 @@ public class EliminationActionUnitPreparationHandlerTest {
     }
 
     @After
-    public void tearDown() throws Exception {
+    public void tearDown() {
     }
 
     @Test
@@ -193,18 +197,18 @@ public class EliminationActionUnitPreparationHandlerTest {
         verify(handler).transferFileToWorkspace(
             eq(UNITS_TO_DELETE_FILE), fileArgumentCaptor.capture(), eq(true), eq(false));
 
-        try (JsonLineIterator jsonLineIterator = new JsonLineIterator(
-            new FileInputStream(fileArgumentCaptor.getValue()))) {
+        try (JsonLineGenericIterator<JsonLineModel> jsonLineIterator = new JsonLineGenericIterator<>(
+            new FileInputStream(fileArgumentCaptor.getValue()), TYPE_REFERENCE)) {
             List<JsonLineModel> entries = IteratorUtils.toList(jsonLineIterator);
 
             assertThat(entries).hasSize(2);
             assertThat(entries.get(0).getId()).isEqualTo("id_unit_1");
             assertThat(entries.get(0).getDistribGroup()).isEqualTo(2);
-            assertThat(entries.get(0).getParams().get("strategyId").asText()).isEqualTo("default-fake");
+            assertThat(MetadataDocumentHelper.getStrategyIdFromUnit(entries.get(0).getParams())).isEqualTo("default-fake");
 
             assertThat(entries.get(1).getId()).isEqualTo("id_unit_3");
             assertThat(entries.get(1).getDistribGroup()).isEqualTo(1);
-            assertThat(entries.get(1).getParams().get("strategyId").asText()).isEqualTo("default-fake");
+            assertThat(MetadataDocumentHelper.getStrategyIdFromUnit(entries.get(1).getParams())).isEqualTo("default-fake");
         }
     }
 
@@ -245,23 +249,23 @@ public class EliminationActionUnitPreparationHandlerTest {
         verify(handler).transferFileToWorkspace(
             eq(UNITS_TO_DELETE_FILE), fileArgumentCaptor.capture(), eq(true), eq(false));
 
-        try (JsonLineIterator jsonLineIterator = new JsonLineIterator(
-            new FileInputStream(fileArgumentCaptor.getValue()))) {
+        try (JsonLineGenericIterator<JsonLineModel> jsonLineIterator = new JsonLineGenericIterator<>(
+            new FileInputStream(fileArgumentCaptor.getValue()), TYPE_REFERENCE)) {
             List<JsonLineModel> entries = IteratorUtils.toList(jsonLineIterator);
 
             assertThat(entries).hasSize(4);
             assertThat(entries.get(0).getId()).isEqualTo("id_unit_1");
             assertThat(entries.get(0).getDistribGroup()).isEqualTo(2);
-            assertThat(entries.get(0).getParams().get("strategyId").asText()).isEqualTo("default-fake");
+            assertThat(MetadataDocumentHelper.getStrategyIdFromUnit(entries.get(0).getParams())).isEqualTo("default-fake");
             assertThat(entries.get(1).getId()).isEqualTo("id_unit_2");
             assertThat(entries.get(1).getDistribGroup()).isEqualTo(2);
-            assertThat(entries.get(1).getParams().get("strategyId").asText()).isEqualTo("default-fake");
+            assertThat(MetadataDocumentHelper.getStrategyIdFromUnit(entries.get(1).getParams())).isEqualTo("default-fake");
             assertThat(entries.get(2).getId()).isEqualTo("id_unit_3");
             assertThat(entries.get(2).getDistribGroup()).isEqualTo(1);
-            assertThat(entries.get(2).getParams().get("strategyId").asText()).isEqualTo("default-fake");
+            assertThat(MetadataDocumentHelper.getStrategyIdFromUnit(entries.get(2).getParams())).isEqualTo("default-fake");
             assertThat(entries.get(3).getId()).isEqualTo("id_unit_4");
             assertThat(entries.get(3).getDistribGroup()).isEqualTo(1);
-            assertThat(entries.get(3).getParams().get("strategyId").asText()).isEqualTo("default-fake");
+            assertThat(MetadataDocumentHelper.getStrategyIdFromUnit(entries.get(3).getParams())).isEqualTo("default-fake");
         }
     }
 
@@ -297,8 +301,8 @@ public class EliminationActionUnitPreparationHandlerTest {
         verify(handler).transferFileToWorkspace(
             eq(UNITS_TO_DELETE_FILE), fileArgumentCaptor.capture(), eq(true), eq(false));
 
-        try (JsonLineIterator jsonLineIterator = new JsonLineIterator(
-            new FileInputStream(fileArgumentCaptor.getValue()))) {
+        try (JsonLineGenericIterator<JsonLineModel> jsonLineIterator = new JsonLineGenericIterator<>(
+            new FileInputStream(fileArgumentCaptor.getValue()), TYPE_REFERENCE)) {
             List<JsonLineModel> entries = IteratorUtils.toList(jsonLineIterator);
             assertThat(entries).isEmpty();
         }

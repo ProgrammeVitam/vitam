@@ -53,10 +53,10 @@ import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOper
 import fr.gouv.vitam.common.database.builder.request.multiple.SelectMultiQuery;
 import fr.gouv.vitam.common.database.collections.VitamCollection;
 import fr.gouv.vitam.common.database.server.mongodb.VitamDocument;
+import fr.gouv.vitam.common.elasticsearch.ElasticsearchRule;
 import fr.gouv.vitam.common.exception.AccessUnauthorizedException;
 import fr.gouv.vitam.common.exception.BadRequestException;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
-import fr.gouv.vitam.common.exception.VitamDBException;
 import fr.gouv.vitam.common.format.identification.FormatIdentifierFactory;
 import fr.gouv.vitam.common.guid.GUID;
 import fr.gouv.vitam.common.guid.GUIDFactory;
@@ -138,7 +138,7 @@ import static org.junit.Assert.assertNotNull;
  */
 public class EndToEndEliminationIT extends VitamRuleRunner {
     private static final Integer tenantId = 0;
-    private static final long SLEEP_TIME = 20l;
+    private static final long SLEEP_TIME = 20L;
     private static final long NB_TRY = 18000; // equivalent to 16 minute
     private static final String METADATA_PATH = "/metadata/v1";
     private static final String PROCESSING_PATH = "/processing/v1";
@@ -152,7 +152,7 @@ public class EndToEndEliminationIT extends VitamRuleRunner {
     private static final String BATCH_REPORT_PATH = "/batchreport/v1";
     private static final String WORKFLOW_ID = "DEFAULT_WORKFLOW";
     private static final String WORKFLOW_IDENTIFIER = "PROCESS_SIP_UNITARY";
-    private static final String SAINT_DENIS_UNIVERSITÉ_LIGNE_13 = "1_Saint Denis Université (ligne 13)";
+    private static final String SAINT_DENIS_UNIVERSITE_LIGNE_13 = "1_Saint Denis Université (ligne 13)";
     private static final String SAINT_DENIS_BASILIQUE = "Saint Denis Basilique";
     private static final String CARREFOUR_PLEYEL = "Carrefour Pleyel";
     private static final String SAINT_LAZARE = "Saint-Lazare";
@@ -162,7 +162,7 @@ public class EndToEndEliminationIT extends VitamRuleRunner {
     @ClassRule
     public static VitamServerRunner runner =
         new VitamServerRunner(EndToEndEliminationIT.class, mongoRule.getMongoDatabase().getName(),
-            elasticsearchRule.getClusterName(),
+            ElasticsearchRule.getClusterName(),
             Sets.newHashSet(
                 MetadataMain.class,
                 WorkerMain.class,
@@ -212,7 +212,7 @@ public class EndToEndEliminationIT extends VitamRuleRunner {
     }
 
     @Before
-    public void setUpBefore() throws Exception {
+    public void setUpBefore() {
         VitamThreadUtils.getVitamSession().setRequestId(newOperationLogbookGUID(0));
     }
 
@@ -234,7 +234,7 @@ public class EndToEndEliminationIT extends VitamRuleRunner {
 
     @RunWithCustomExecutor
     @Test
-    public void testServersStatus() throws Exception {
+    public void testServersStatus() {
         RestAssured.port = VitamServerRunner.PORT_SERVICE_PROCESSING;
         RestAssured.basePath = PROCESSING_PATH;
         get("/status").then().statusCode(Status.NO_CONTENT.getStatusCode());
@@ -364,7 +364,7 @@ public class EndToEndEliminationIT extends VitamRuleRunner {
         Map<String, JsonNode> ingestedUnitsByTitle = mapByField(ingestedUnits, "Title");
 
         Set<String> expectedRemainingUnitIds = new HashSet<>(Arrays.asList(
-            getId(ingestedUnitsByTitle.get(SAINT_DENIS_UNIVERSITÉ_LIGNE_13)),
+            getId(ingestedUnitsByTitle.get(SAINT_DENIS_UNIVERSITE_LIGNE_13)),
             getId(ingestedUnitsByTitle.get(SAINT_DENIS_BASILIQUE)),
             getId(ingestedUnitsByTitle.get(CARREFOUR_PLEYEL))
         ));
@@ -380,7 +380,7 @@ public class EndToEndEliminationIT extends VitamRuleRunner {
 
         Set<String> ingestedGotIds = getIds(ingestedGots);
         Set<String> expectedRemainingGotIds = new HashSet<>(Arrays.asList(
-            getObjectGroupId(ingestedUnitsByTitle.get(SAINT_DENIS_UNIVERSITÉ_LIGNE_13)),
+            getObjectGroupId(ingestedUnitsByTitle.get(SAINT_DENIS_UNIVERSITE_LIGNE_13)),
             getObjectGroupId(ingestedUnitsByTitle.get(SAINT_DENIS_BASILIQUE))
         ));
         Set<String> expectedDeletedGotIds = SetUtils.difference(ingestedGotIds, expectedRemainingGotIds);
@@ -469,7 +469,7 @@ public class EndToEndEliminationIT extends VitamRuleRunner {
                 EliminationActionUnitStatus.GLOBAL_STATUS_KEEP);
             assertThat(unitReportByTitle.get(SAINT_DENIS_BASILIQUE).getStatus()).isEqualTo(
                 EliminationActionUnitStatus.NON_DESTROYABLE_HAS_CHILD_UNITS);
-            assertThat(unitReportByTitle.get(SAINT_DENIS_UNIVERSITÉ_LIGNE_13).getStatus()).isEqualTo(
+            assertThat(unitReportByTitle.get(SAINT_DENIS_UNIVERSITE_LIGNE_13).getStatus()).isEqualTo(
                 EliminationActionUnitStatus.NON_DESTROYABLE_HAS_CHILD_UNITS);
             assertThat(unitReportByTitle.get(SAINT_LAZARE).getStatus()).isEqualTo(
                 EliminationActionUnitStatus.DELETED);
@@ -659,7 +659,7 @@ public class EndToEndEliminationIT extends VitamRuleRunner {
     private RequestResponseOK<JsonNode> selectGotsByOpi(GUID ingestOperationGuid,
         AccessInternalClient accessInternalClient)
         throws InvalidCreateOperationException, InvalidParseOperationException, AccessInternalClientServerException,
-        AccessInternalClientNotFoundException, AccessUnauthorizedException, BadRequestException, VitamDBException {
+        AccessInternalClientNotFoundException, AccessUnauthorizedException, BadRequestException {
         SelectMultiQuery checkEliminationGotDslRequest = new SelectMultiQuery();
         checkEliminationGotDslRequest.addQueries(
             QueryHelper.eq(VitamFieldsHelper.initialOperation(), ingestOperationGuid.toString()));
@@ -671,7 +671,7 @@ public class EndToEndEliminationIT extends VitamRuleRunner {
     private RequestResponseOK<JsonNode> selectUnitsByOpi(GUID ingestOperationGuid,
         AccessInternalClient accessInternalClient)
         throws InvalidCreateOperationException, InvalidParseOperationException, AccessInternalClientServerException,
-        AccessInternalClientNotFoundException, AccessUnauthorizedException, BadRequestException, VitamDBException {
+        AccessInternalClientNotFoundException, AccessUnauthorizedException, BadRequestException {
         SelectMultiQuery checkEliminationDslRequest = new SelectMultiQuery();
         checkEliminationDslRequest.addQueries(
             QueryHelper.eq(VitamFieldsHelper.initialOperation(), ingestOperationGuid.toString()));

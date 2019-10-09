@@ -1,4 +1,4 @@
-/*******************************************************************************
+/*
  * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2019)
  *
  * contact.vitam@culture.gouv.fr
@@ -23,35 +23,12 @@
  *
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
- *******************************************************************************/
+ */
 package fr.gouv.vitam.worker.core.plugin.elimination;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.doAnswer;
-import static org.mockito.Mockito.doReturn;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
-
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
-
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnit;
-import org.mockito.junit.MockitoRule;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.collect.ImmutableMap;
-
 import fr.gouv.vitam.batch.report.model.entry.EliminationActionUnitReportEntry;
 import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.database.builder.query.VitamFieldsHelper;
@@ -71,6 +48,27 @@ import fr.gouv.vitam.processing.common.parameter.WorkerParametersFactory;
 import fr.gouv.vitam.worker.common.HandlerIO;
 import fr.gouv.vitam.worker.core.plugin.elimination.model.EliminationActionUnitStatus;
 import fr.gouv.vitam.worker.core.plugin.elimination.report.EliminationActionReportService;
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Rule;
+import org.junit.Test;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.MockitoJUnit;
+import org.mockito.junit.MockitoRule;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Map;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 public class EliminationActionDeleteUnitPluginTest {
 
@@ -115,11 +113,8 @@ public class EliminationActionDeleteUnitPluginTest {
             .setRequestId(VitamThreadUtils.getVitamSession().getRequestId())
             .setProcessId(VitamThreadUtils.getVitamSession().getRequestId())
             .setObjectNameList(Arrays.asList("id_unit_1", "id_unit_2", "id_unit_3", "id_unit_4", "id_unit_5"))
-            .setObjectMetadataList(Arrays.asList(JsonHandler.createObjectNode().put("strategyId", "default-fake"),
-                    JsonHandler.createObjectNode().put("strategyId", "default-fake"),
-                    JsonHandler.createObjectNode().put("strategyId", "default-fake"),
-                    JsonHandler.createObjectNode().put("strategyId", "default-fake"),
-                    JsonHandler.createObjectNode().put("strategyId", "default-fake")))
+            .setObjectMetadataList(Arrays.asList(
+                buildUnit(1), buildUnit(2), buildUnit(3), buildUnit(4), buildUnit(5)))
             .setCurrentStep("StepName");
 
         reportEntries = new ArrayList<>();
@@ -130,23 +125,22 @@ public class EliminationActionDeleteUnitPluginTest {
     }
 
     @After
-    public void tearDown() throws Exception {
+    public void tearDown() {
     }
 
     @Test
     @RunWithCustomExecutor
     public void testExecuteList_OK() throws Exception {
 
-        Map<String, String> unitIdsWithStrategies = ImmutableMap.of("id_unit_2", "default-fake", "id_unit_5",
-                "default-fake");
-        
-        /* id_unit_3 not found */
-        JsonNode units = buildUnits(Arrays.asList(1, 2, 4, 5));
+        Map<String, String> unitIdsWithStrategies = ImmutableMap.of("id_unit_2", "default-fake",
+            "id_unit_3", "default-fake",
+            "id_unit_5", "default-fake");
+
         /* id_unit_1 has too many children */
         JsonNode childUnitsForUnit1 = buildChildUnitsResponse("id_unit_1", VitamConfiguration.getBatchSize());
         /* id_unit_4 has a single child. Other units do not have any children */
         JsonNode childUnitsForUnit4 = buildChildUnitsResponse("id_unit_4", 1);
-        when(metaDataClient.selectUnits(any())).thenReturn(units, childUnitsForUnit1, childUnitsForUnit4);
+        when(metaDataClient.selectUnits(any())).thenReturn(childUnitsForUnit1, childUnitsForUnit4);
 
         List<ItemStatus> itemStatus = instance.executeList(params, handler);
 
@@ -154,10 +148,12 @@ public class EliminationActionDeleteUnitPluginTest {
         assertThat(itemStatus.stream().filter(i -> i.getGlobalStatus() == StatusCode.OK)).hasSize(3);
         assertThat(itemStatus.stream().filter(i -> i.getGlobalStatus() == StatusCode.WARNING)).hasSize(2);
 
-        assertThat(reportEntries).hasSize(4);
+        assertThat(reportEntries).hasSize(5);
         assertThat(reportEntries.stream().filter(e -> e.getUnitId().equals("id_unit_1")).findFirst().get()
             .getStatus()).isEqualTo(EliminationActionUnitStatus.NON_DESTROYABLE_HAS_CHILD_UNITS.name());
         assertThat(reportEntries.stream().filter(e -> e.getUnitId().equals("id_unit_2")).findFirst().get()
+            .getStatus()).isEqualTo(EliminationActionUnitStatus.DELETED.name());
+        assertThat(reportEntries.stream().filter(e -> e.getUnitId().equals("id_unit_3")).findFirst().get()
             .getStatus()).isEqualTo(EliminationActionUnitStatus.DELETED.name());
         assertThat(reportEntries.stream().filter(e -> e.getUnitId().equals("id_unit_4")).findFirst().get()
             .getStatus()).isEqualTo(EliminationActionUnitStatus.NON_DESTROYABLE_HAS_CHILD_UNITS.name());
@@ -167,20 +163,15 @@ public class EliminationActionDeleteUnitPluginTest {
         verify(eliminationActionDeleteService).deleteUnits(eq(unitIdsWithStrategies));
     }
 
-    private JsonNode buildUnits(List<Integer> indexes) {
-        RequestResponseOK<JsonNode> units = new RequestResponseOK<>();
-        for (Integer i : indexes) {
-            ObjectNode storage = JsonHandler.createObjectNode();
-            storage.put("strategyId", "default-fake");
-            JsonNode unit = JsonHandler.createObjectNode()
-                .put(VitamFieldsHelper.id(), "id_unit_" + i)
-                .put(VitamFieldsHelper.object(), "id_got_" + i)
-                .put(VitamFieldsHelper.originatingAgency(), "sp_" + i)
-                .put(VitamFieldsHelper.initialOperation(), "opi_" + i)
-                .set(VitamFieldsHelper.storage(), storage);
-            units.addResult(unit);
-        }
-        return units.toJsonNode();
+    private JsonNode buildUnit(Integer index) {
+        ObjectNode storage = JsonHandler.createObjectNode();
+        storage.put("strategyId", "default-fake");
+        return JsonHandler.createObjectNode()
+            .put(VitamFieldsHelper.id(), "id_unit_" + index)
+            .put(VitamFieldsHelper.object(), "id_got_" + index)
+            .put(VitamFieldsHelper.originatingAgency(), "sp_" + index)
+            .put(VitamFieldsHelper.initialOperation(), "opi_" + index)
+            .set(VitamFieldsHelper.storage(), storage);
     }
 
     private JsonNode buildChildUnitsResponse(String unitId, int count) {

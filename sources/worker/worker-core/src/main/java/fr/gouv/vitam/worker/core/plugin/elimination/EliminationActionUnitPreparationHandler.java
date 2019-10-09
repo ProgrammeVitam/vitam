@@ -166,7 +166,6 @@ public class EliminationActionUnitPreparationHandler extends ActionHandler {
 
                     JsonNode unit = unitIterator.next();
                     String unitId = unit.get(VitamFieldsHelper.id()).asText();
-                    String strategyId = MetadataDocumentHelper.getStrategyIdFromUnit(unit);
 
                     EliminationAnalysisResult eliminationAnalysisResult = EliminationUtils
                         .computeEliminationAnalysisForUnitWithInheritedRules(unit, eliminationAnalysisService, param,
@@ -175,10 +174,8 @@ public class EliminationActionUnitPreparationHandler extends ActionHandler {
                     switch (eliminationAnalysisResult.getGlobalStatus()) {
 
                         case DESTROY:
-                            ObjectNode params = JsonHandler.createObjectNode();
-                            params.put("strategyId", strategyId) ;
                             unitsToDeleteWriter
-                                .addEntry(new JsonLineModel(unitId, unit.get(VitamFieldsHelper.max()).asInt(), params));
+                                .addEntry(new JsonLineModel(unitId, unit.get(VitamFieldsHelper.max()).asInt(), unit));
                             nbDestroyableUnits++;
                             break;
 
