@@ -745,6 +745,9 @@ public class StorageDistributionImpl implements StorageDistribution {
             case DISTRIBUTIONREPORTS:
                 description.append("DISTRIBUTION_REPORTS ");
                 break;
+            case ARCHIVAL_TRANSFER_REPLY:
+                description.append("ARCHIVAL_TRANSFER_REPLY ");
+                break;
             default:
                 throw new UnsupportedOperationException(NOT_IMPLEMENTED_MSG);
         }

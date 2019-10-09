@@ -128,6 +128,7 @@ public enum LogbookTypeProcess {
      * Compute inherited rules process
      */
     COMPUTE_INHERITED_RULES,
+    TRANSFER_REPLY,
     /**
      * Compute inherited rules process delete
      */

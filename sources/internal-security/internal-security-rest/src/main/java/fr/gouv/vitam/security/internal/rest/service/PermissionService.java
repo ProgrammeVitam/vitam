@@ -55,7 +55,7 @@ public class PermissionService {
         if (personalCertificatePermissionConfig.getPermissionsRequiringPersonalCertificate() != null
             && personalCertificatePermissionConfig.getPermissionsRequiringPersonalCertificate().contains(permission)) {
 
-            LOGGER.debug("Required personal certificate for permission {0}", permission);
+            LOGGER.debug("Required personal certificate for permission {}", permission);
 
             return new IsPersonalCertificateRequiredModel(
                 IsPersonalCertificateRequiredModel.Response.REQUIRED_PERSONAL_CERTIFICATE);
@@ -64,13 +64,13 @@ public class PermissionService {
         if (personalCertificatePermissionConfig.getPermissionsWithoutPersonalCertificate() != null
             && personalCertificatePermissionConfig.getPermissionsWithoutPersonalCertificate().contains(permission)) {
 
-            LOGGER.debug("Non required personal certificate for permission {0}", permission);
+            LOGGER.debug("Non required personal certificate for permission {}", permission);
 
             return new IsPersonalCertificateRequiredModel(
                 IsPersonalCertificateRequiredModel.Response.IGNORED_PERSONAL_CERTIFICATE);
         }
 
-        LOGGER.error("Unknown permission {0}", permission);
+        LOGGER.error("Unknown permission {}", permission);
 
         return new IsPersonalCertificateRequiredModel(
             IsPersonalCertificateRequiredModel.Response.ERROR_UNKNOWN_PERMISSION);

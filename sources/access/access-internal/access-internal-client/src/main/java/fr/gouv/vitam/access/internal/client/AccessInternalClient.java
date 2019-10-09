@@ -354,4 +354,6 @@ public interface AccessInternalClient extends MockOrRestClient {
      * @throws AccessInternalClientServerException AccessInternalClientServerException
      */
     RequestResponse<JsonNode> deleteComputeInheritedRules(JsonNode dslQuery) throws AccessInternalClientServerException;
+
+    RequestResponse startTransferReplyWorkflow(String transferReply) throws AccessInternalClientServerException;
 }

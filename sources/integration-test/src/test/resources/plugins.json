@@ -248,9 +248,9 @@
   "COMPUTE_INHERITED_RULES_ACTION": {
     "className": "fr.gouv.vitam.worker.core.plugin.computeinheritedrules.ComputeInheritedRulesActionPlugin"
   },
- "COMPUTE_INHERITED_RULES_FINALIZATION": {
+  "COMPUTE_INHERITED_RULES_FINALIZATION": {
     "className": "fr.gouv.vitam.worker.core.plugin.computeinheritedrules.ComputeInheritedRulesFinalizationPlugin"
- },
+  },
   "COMPUTE_INHERITED_RULES_PROGENY_IDENTIFIER": {
     "className": "fr.gouv.vitam.worker.core.plugin.computeinheritedrules.ComputeInheritedRuleProgenyIdentifierPlugin"
   },
@@ -259,5 +259,14 @@
   },
   "COMPUTE_INHERITED_RULES_DELETE": {
     "className": "fr.gouv.vitam.worker.core.plugin.computeinheritedrules.ComputeInheritedRulesDeletePlugin"
+  },
+  "SAVE_ARCHIVAL_TRANSFER_REPLY": {
+    "className": "fr.gouv.vitam.worker.core.plugin.transfer.reply.SaveAtrPlugin"
+  },
+  "VERIFY_ARCHIVAL_TRANSFER_REPLY": {
+    "className": "fr.gouv.vitam.worker.core.plugin.transfer.reply.VerifyAtrPlugin"
+  },
+  "TRANSFER_REPLY_FINALIZATION": {
+    "className": "fr.gouv.vitam.worker.core.plugin.transfer.reply.TransferReplyFinalizationPlugin"
   }
 }

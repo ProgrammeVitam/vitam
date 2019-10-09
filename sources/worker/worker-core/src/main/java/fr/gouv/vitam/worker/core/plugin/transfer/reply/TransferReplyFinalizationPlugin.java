@@ -24,17 +24,27 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  */
-package fr.gouv.vitam.common.xml;
+package fr.gouv.vitam.worker.core.plugin.transfer.reply;
 
-import javax.xml.stream.XMLInputFactory;
+import fr.gouv.vitam.common.logging.VitamLogger;
+import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.common.model.ItemStatus;
+import fr.gouv.vitam.processing.common.exception.ProcessingException;
+import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
+import fr.gouv.vitam.worker.common.HandlerIO;
+import fr.gouv.vitam.worker.core.handler.ActionHandler;
+import fr.gouv.vitam.worker.core.utils.PluginHelper.EventDetails;
+import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
 
-public class XMLInputFactoryUtils {
+import static fr.gouv.vitam.common.model.StatusCode.OK;
+import static fr.gouv.vitam.worker.core.utils.PluginHelper.buildItemStatus;
 
-    public static XMLInputFactory newInstance() {
-        XMLInputFactory xmlInputFactory = XMLInputFactory.newInstance();
-        xmlInputFactory.setProperty(XMLInputFactory.SUPPORT_DTD, Boolean.FALSE);
-        xmlInputFactory.setProperty(XMLInputFactory.IS_SUPPORTING_EXTERNAL_ENTITIES, Boolean.FALSE);
-        xmlInputFactory.setProperty(XMLInputFactory.IS_REPLACING_ENTITY_REFERENCES, Boolean.FALSE);
-        return xmlInputFactory;
+public class TransferReplyFinalizationPlugin extends ActionHandler {
+    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(TransferReplyFinalizationPlugin.class);
+    private static final String PLUGIN_NAME = "TRANSFER_REPLY_FINALIZATION";
+
+    @Override
+    public ItemStatus execute(WorkerParameters param, HandlerIO handler) throws ProcessingException, ContentAddressableStorageServerException {
+        return buildItemStatus(PLUGIN_NAME, OK, EventDetails.of("Transfer reply finalization OK"));
     }
 }

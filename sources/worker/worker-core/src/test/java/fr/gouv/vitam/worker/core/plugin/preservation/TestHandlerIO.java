@@ -116,7 +116,7 @@ public class TestHandlerIO implements HandlerIO {
 
     @Override
     public String getContainerName() {
-        throw new RuntimeException("Not implemented");
+        return "DEFAULT_CONTAINER_NAME";
     }
 
     @Override

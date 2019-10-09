@@ -58,7 +58,7 @@ public class ValidationXsdUtils {
     /**
      * Filename of the catalog file ; should be found in the classpath.
      */
-    private static final String CATALOG_FILENAME = "xsd_validation/catalog.xml";
+    public static final String CATALOG_FILENAME = "xsd_validation/catalog.xml";
 
     private static final ValidationXsdUtils instance = new ValidationXsdUtils();
     public static ValidationXsdUtils getInstance() {

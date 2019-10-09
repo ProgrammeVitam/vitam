@@ -1,0 +1,62 @@
+{
+  "id": "TRANSFER_REPLY",
+  "name": "Transfer reply workflow",
+  "identifier": "TRANSFER_REPLY",
+  "typeProc": "TRANSFER_REPLY",
+  "comment": "Default transfer reply action workflow",
+  "steps": [
+    {
+      "workerGroupId": "DefaultWorker",
+      "stepName": "STP_TRANSFER_REPLY_PREPARATION",
+      "behavior": "BLOCKING",
+      "distribution": {
+        "kind": "REF"
+      },
+      "actions": [
+        {
+          "action": {
+            "actionKey": "VERIFY_ARCHIVAL_TRANSFER_REPLY",
+            "behavior": "BLOCKING",
+            "lifecycleLog": "DISABLED",
+            "out": [
+              {
+                "name": "atrFileSerialized",
+                "uri": "MEMORY:atrFileSerialized"
+              }
+            ]
+          }
+        },
+        {
+          "action": {
+            "actionKey": "SAVE_ARCHIVAL_TRANSFER_REPLY",
+            "behavior": "BLOCKING",
+            "lifecycleLog": "DISABLED",
+            "in": [
+              {
+                "name": "atrFileSerialized",
+                "uri": "MEMORY:atrFileSerialized"
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "workerGroupId": "DefaultWorker",
+      "stepName": "STP_TRANSFER_REPLY_FINALIZATION",
+      "behavior": "BLOCKING",
+      "distribution": {
+        "kind": "REF"
+      },
+      "actions": [
+        {
+          "action": {
+            "actionKey": "TRANSFER_REPLY_FINALIZATION",
+            "behavior": "BLOCKING",
+            "lifecycleLog": "DISABLED"
+          }
+        }
+      ]
+    }
+  ]
+}

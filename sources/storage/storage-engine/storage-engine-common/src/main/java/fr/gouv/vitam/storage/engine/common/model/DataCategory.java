@@ -141,6 +141,10 @@ public enum DataCategory {
      */
     ACCESSION_REGISTER_DETAIL("accessionregistersdetail", "accessionregisterdetail", true, true),
     /**
+     * Archival Transfer Reply
+     */
+    ARCHIVAL_TRANSFER_REPLY("archivaltransferreply", "archivaltransferreply", false, false),
+    /**
      * Accession Register Detail
      */
     ACCESSION_REGISTER_SYMBOLIC("accessionregisterssymbolic", "accessionregistersymbolic", true, true);
