@@ -172,7 +172,7 @@ public class EliminationActionUnitPreparationHandler extends ActionHandler {
                         case DESTROY:
 
                             unitsToDeleteWriter
-                                .addEntry(new JsonLineModel(unitId, unit.get(VitamFieldsHelper.max()).asInt(), null));
+                                .addEntry(new JsonLineModel(unitId, unit.get(VitamFieldsHelper.max()).asInt(), unit));
                             nbDestroyableUnits++;
                             break;
 

@@ -1,6 +1,33 @@
+/*
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2019)
+ *
+ * contact.vitam@culture.gouv.fr
+ *
+ * This software is a computer program whose purpose is to implement a digital archiving back-office system managing
+ * high volumetry securely and efficiently.
+ *
+ * This software is governed by the CeCILL 2.1 license under French law and abiding by the rules of distribution of free
+ * software. You can use, modify and/ or redistribute the software under the terms of the CeCILL 2.1 license as
+ * circulated by CEA, CNRS and INRIA at the following URL "http://www.cecill.info".
+ *
+ * As a counterpart to the access to the source code and rights to copy, modify and redistribute granted by the license,
+ * users are provided only with a limited warranty and the software's author, the holder of the economic rights, and the
+ * successive licensors have only limited liability.
+ *
+ * In this respect, the user's attention is drawn to the risks associated with loading, using, modifying and/or
+ * developing or reproducing the software by the user in light of its specific status of free software, that may mean
+ * that it is complicated to manipulate, and that also therefore means that it is reserved for developers and
+ * experienced professionals having in-depth computer knowledge. Users are therefore encouraged to load and test the
+ * software's suitability as regards their requirements in conditions enabling the security of their systems and/or data
+ * to be ensured and, more generally, to use and operate it in the same conditions as regards security.
+ *
+ * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
+ * accept its terms.
+ */
 package fr.gouv.vitam.worker.core.plugin.elimination;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.database.builder.query.VitamFieldsHelper;
 import fr.gouv.vitam.common.guid.GUIDFactory;
@@ -85,6 +112,8 @@ public class EliminationActionDeleteUnitPluginTest {
             .setRequestId(VitamThreadUtils.getVitamSession().getRequestId())
             .setProcessId(VitamThreadUtils.getVitamSession().getRequestId())
             .setObjectNameList(Arrays.asList("id_unit_1", "id_unit_2", "id_unit_3", "id_unit_4", "id_unit_5"))
+            .setObjectMetadataList(Arrays.asList(
+                buildUnit(1), buildUnit(2), buildUnit(3), buildUnit(4), buildUnit(5)))
             .setCurrentStep("StepName");
 
         reportEntries = new ArrayList<>();
@@ -95,20 +124,18 @@ public class EliminationActionDeleteUnitPluginTest {
     }
 
     @After
-    public void tearDown() throws Exception {
+    public void tearDown() {
     }
 
     @Test
     @RunWithCustomExecutor
     public void testExecuteList_OK() throws Exception {
 
-        /* id_unit_3 not found */
-        JsonNode units = buildUnits(Arrays.asList(1, 2, 4, 5));
         /* id_unit_1 has too many children */
         JsonNode childUnitsForUnit1 = buildChildUnitsResponse("id_unit_1", VitamConfiguration.getBatchSize());
         /* id_unit_4 has a single child. Other units do not have any children */
         JsonNode childUnitsForUnit4 = buildChildUnitsResponse("id_unit_4", 1);
-        when(metaDataClient.selectUnits(any())).thenReturn(units, childUnitsForUnit1, childUnitsForUnit4);
+        when(metaDataClient.selectUnits(any())).thenReturn(childUnitsForUnit1, childUnitsForUnit4);
 
         List<ItemStatus> itemStatus = instance.executeList(params, handler);
 
@@ -116,30 +143,30 @@ public class EliminationActionDeleteUnitPluginTest {
         assertThat(itemStatus.stream().filter(i -> i.getGlobalStatus() == StatusCode.OK)).hasSize(3);
         assertThat(itemStatus.stream().filter(i -> i.getGlobalStatus() == StatusCode.WARNING)).hasSize(2);
 
-        assertThat(reportEntries).hasSize(4);
+        assertThat(reportEntries).hasSize(5);
         assertThat(reportEntries.stream().filter(e -> e.getUnitId().equals("id_unit_1")).findFirst().get()
             .getStatus()).isEqualTo(EliminationActionUnitStatus.NON_DESTROYABLE_HAS_CHILD_UNITS);
         assertThat(reportEntries.stream().filter(e -> e.getUnitId().equals("id_unit_2")).findFirst().get()
+            .getStatus()).isEqualTo(EliminationActionUnitStatus.DELETED);
+        assertThat(reportEntries.stream().filter(e -> e.getUnitId().equals("id_unit_3")).findFirst().get()
             .getStatus()).isEqualTo(EliminationActionUnitStatus.DELETED);
         assertThat(reportEntries.stream().filter(e -> e.getUnitId().equals("id_unit_4")).findFirst().get()
             .getStatus()).isEqualTo(EliminationActionUnitStatus.NON_DESTROYABLE_HAS_CHILD_UNITS);
         assertThat(reportEntries.stream().filter(e -> e.getUnitId().equals("id_unit_5")).findFirst().get()
             .getStatus()).isEqualTo(EliminationActionUnitStatus.DELETED);
 
-        verify(eliminationActionDeleteService).deleteUnits(eq(new HashSet<>(Arrays.asList("id_unit_2", "id_unit_5"))));
+        verify(eliminationActionDeleteService).deleteUnits(eq(new HashSet<>(Arrays.asList("id_unit_2", "id_unit_3", "id_unit_5"))));
     }
 
-    private JsonNode buildUnits(List<Integer> indexes) {
-        RequestResponseOK<JsonNode> units = new RequestResponseOK<>();
-        for (Integer i : indexes) {
-            JsonNode unit = JsonHandler.createObjectNode()
-                .put(VitamFieldsHelper.id(), "id_unit_" + i)
-                .put(VitamFieldsHelper.object(), "id_got_" + i)
-                .put(VitamFieldsHelper.originatingAgency(), "sp_" + i)
-                .put(VitamFieldsHelper.initialOperation(), "opi_" + i);
-            units.addResult(unit);
-        }
-        return units.toJsonNode();
+    private JsonNode buildUnit(Integer index) {
+        ObjectNode storage = JsonHandler.createObjectNode();
+        storage.put("strategyId", "default-fake");
+        return JsonHandler.createObjectNode()
+            .put(VitamFieldsHelper.id(), "id_unit_" + index)
+            .put(VitamFieldsHelper.object(), "id_got_" + index)
+            .put(VitamFieldsHelper.originatingAgency(), "sp_" + index)
+            .put(VitamFieldsHelper.initialOperation(), "opi_" + index)
+            .set(VitamFieldsHelper.storage(), storage);
     }
 
     private JsonNode buildChildUnitsResponse(String unitId, int count) {

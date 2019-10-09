@@ -34,7 +34,6 @@ import fr.gouv.vitam.common.database.builder.query.VitamFieldsHelper;
 import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
 import fr.gouv.vitam.common.database.builder.request.multiple.SelectMultiQuery;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
-import fr.gouv.vitam.common.exception.VitamDBException;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.ItemStatus;
@@ -116,8 +115,7 @@ public class EliminationActionDeleteUnitPlugin extends ActionHandler {
     public List<ItemStatus> executeList(WorkerParameters param, HandlerIO handler) {
 
         try {
-            Set<String> unitIds = new HashSet<>(param.getObjectNameList());
-            List<ItemStatus> itemStatuses = processUnits(param.getContainerName(), unitIds);
+            List<ItemStatus> itemStatuses = processUnits(param.getContainerName(), param.getObjectMetadataList());
 
             return itemStatuses;
 
@@ -128,27 +126,26 @@ public class EliminationActionDeleteUnitPlugin extends ActionHandler {
         }
     }
 
-    private List<ItemStatus> processUnits(String processId, Set<String> unitIds)
+    private List<ItemStatus> processUnits(String processId, List<JsonNode> units)
         throws EliminationException {
 
-        Map<String, JsonNode> units = loadUnits(unitIds);
+        List<String> unitIds = units.stream()
+            .map(unit -> unit.get(VitamFieldsHelper.id()).asText())
+            .collect(Collectors.toList());
 
-        Set<String> foundUnitIds = units.keySet();
-
-        Set<String> notFoundUnitIds = SetUtils.difference(unitIds, foundUnitIds);
+        Map<String, JsonNode> unitsById = units.stream()
+            .collect(Collectors.toMap(
+                unit -> unit.get(VitamFieldsHelper.id()).asText(),
+                unit -> unit
+            ));
 
         List<ItemStatus> itemStatuses = new ArrayList<>();
 
-        for (String unitId : notFoundUnitIds) {
-            LOGGER.info("Unit " + unitId + " does not exist. Already deleted?");
-            itemStatuses.add(buildItemStatus(ELIMINATION_ACTION_DELETE_UNIT, StatusCode.OK, null));
-        }
-
         List<EliminationActionUnitReportEntry> eliminationUnitReportEntries = new ArrayList<>();
 
-        Set<String> unitsToDelete = getUnitsToDelete(foundUnitIds);
+        Set<String> unitsToDelete = getUnitsToDelete(unitsById.keySet());
 
-        for (String unitId : foundUnitIds) {
+        for (String unitId : unitIds) {
 
             EliminationActionUnitStatus eliminationActionUnitStatus;
             if (unitsToDelete.contains(unitId)) {
@@ -161,7 +158,7 @@ public class EliminationActionDeleteUnitPlugin extends ActionHandler {
                 itemStatuses.add(buildItemStatus(ELIMINATION_ACTION_DELETE_UNIT, StatusCode.WARNING, null));
             }
 
-            JsonNode unit = units.get(unitId);
+            JsonNode unit = unitsById.get(unitId);
             String initialOperation = unit.get(VitamFieldsHelper.initialOperation()).asText();
             String objectGroupId =
                 unit.has(VitamFieldsHelper.object()) ? unit.get(VitamFieldsHelper.object()).asText() : null;
@@ -183,29 +180,6 @@ public class EliminationActionDeleteUnitPlugin extends ActionHandler {
         }
 
         return itemStatuses;
-    }
-
-    private Map<String, JsonNode> loadUnits(Set<String> unitIds) throws EliminationException {
-        try (MetaDataClient client = metaDataClientFactory.getClient()) {
-
-            SelectMultiQuery selectMultiQuery = new SelectMultiQuery();
-            selectMultiQuery.addRoots(unitIds.toArray(new String[0]));
-            selectMultiQuery.addUsedProjection(
-                VitamFieldsHelper.id(),
-                VitamFieldsHelper.object(),
-                VitamFieldsHelper.originatingAgency(),
-                VitamFieldsHelper.initialOperation());
-
-            JsonNode jsonNode = client.selectUnits(selectMultiQuery.getFinalSelect());
-            RequestResponseOK<JsonNode> requestResponseOK = RequestResponseOK.getFromJsonNode(jsonNode);
-
-            return requestResponseOK.getResults().stream()
-                .collect(Collectors.toMap(
-                    (unit) -> unit.get(VitamFieldsHelper.id()).asText(), unit -> unit));
-
-        } catch (MetaDataExecutionException | MetaDataDocumentSizeException | MetaDataClientServerException | InvalidParseOperationException e) {
-            throw new EliminationException(StatusCode.FATAL, "Could not load units", e);
-        }
     }
 
     private Set<String> getUnitsToDelete(Set<String> unitIds) throws EliminationException {
@@ -236,14 +210,14 @@ public class EliminationActionDeleteUnitPlugin extends ActionHandler {
 
             return result;
 
-        } catch (InvalidParseOperationException | InvalidCreateOperationException | VitamDBException | MetaDataExecutionException | MetaDataDocumentSizeException | MetaDataClientServerException e) {
+        } catch (InvalidParseOperationException | InvalidCreateOperationException | MetaDataExecutionException | MetaDataDocumentSizeException | MetaDataClientServerException e) {
             throw new EliminationException(StatusCode.FATAL, "Could not check child units", e);
         }
     }
 
     private RequestResponseOK<JsonNode> selectChildUnits(MetaDataClient metaDataClient, Set<String> unitsToFetch)
         throws InvalidCreateOperationException, InvalidParseOperationException, MetaDataExecutionException,
-        MetaDataDocumentSizeException, MetaDataClientServerException, VitamDBException {
+        MetaDataDocumentSizeException, MetaDataClientServerException {
         SelectMultiQuery selectAllUnitsUp = new SelectMultiQuery();
         selectAllUnitsUp.addQueries(QueryHelper.in(VitamFieldsHelper.unitups(), unitsToFetch.toArray(new String[0])));
         selectAllUnitsUp.setLimitFilter(0, VitamConfiguration.getBatchSize());
