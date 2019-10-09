@@ -120,10 +120,8 @@ public class EliminationActionDeleteServiceTest {
 
         String opId = GUIDFactory.newGUID().toString();
         String gotId = GUIDFactory.newGUID().toString();
-        instance.detachObjectGroupFromDeleteParentUnits(opId, gotId, new HashSet<>(Arrays.asList("unit1", "unit2")),
-            "PluginAction");
+        instance.detachObjectGroupFromDeleteParentUnits(opId, gotId, new HashSet<>(Arrays.asList("unit1", "unit2")));
 
         verify(metaDataClient).updateObjectGroupById(any(), eq(gotId));
-        verify(logbookLifeCyclesClient).update(any(), eq(LifeCycleStatusCode.LIFE_CYCLE_COMMITTED));
     }
 }

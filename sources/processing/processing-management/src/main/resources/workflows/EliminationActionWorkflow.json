@@ -110,7 +110,7 @@
           "action": {
             "behavior": "BLOCKING",
             "actionKey": "ELIMINATION_ACTION_DETACH_OBJECT_GROUP",
-            "lifecycleLog": "DISABLED"
+            "lifecycleLog": "FLUSH_LFC"
           }
         },
         {

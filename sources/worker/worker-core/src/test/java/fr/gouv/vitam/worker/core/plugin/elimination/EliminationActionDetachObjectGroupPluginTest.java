@@ -80,8 +80,7 @@ public class EliminationActionDetachObjectGroupPluginTest {
 
         verify(eliminationActionDeleteService)
             .detachObjectGroupFromDeleteParentUnits(eq(VitamThreadUtils.getVitamSession().getRequestId()),
-                eq("id_got_1"), eq(new HashSet<>(singletonList("id_unit_1"))),
-                eq(EliminationActionDetachObjectGroupPlugin.getId()));
+                eq("id_got_1"), eq(new HashSet<>(singletonList("id_unit_1"))));
     }
 
     @Test
@@ -89,7 +88,7 @@ public class EliminationActionDetachObjectGroupPluginTest {
     public void testExecute_WhenExceptionExpectFatal() throws Exception {
 
         doThrow(new EliminationException(StatusCode.FATAL, null)).when(eliminationActionDeleteService)
-            .detachObjectGroupFromDeleteParentUnits(any(), any(), any(), any());
+            .detachObjectGroupFromDeleteParentUnits(any(), any(), any());
 
         ItemStatus itemStatus = instance.execute(params, handler);
 
