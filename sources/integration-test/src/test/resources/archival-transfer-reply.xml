@@ -1,0 +1,135 @@
+<ArchiveTransferReply xmlns="fr:gouv:culture:archivesdefrance:seda:v2.1" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                      xsi:schemaLocation="fr:gouv:culture:archivesdefrance:seda:v2.1 seda-vitam-2.1-main.xsd">
+    <Date>2019-10-04T09:22:33.617Z</Date>
+    <MessageIdentifier>aeeaaaaaachnfr3yab6tmalnsyj3uiqaaaaq</MessageIdentifier>
+    <ArchivalAgreement>ArchivalAgreement0</ArchivalAgreement>
+    <CodeListVersions>
+        <ReplyCodeListVersion>ReplyCodeListVersion0</ReplyCodeListVersion>
+        <MessageDigestAlgorithmCodeListVersion>MessageDigestAlgorithmCodeListVersion0</MessageDigestAlgorithmCodeListVersion>
+        <FileFormatCodeListVersion>FileFormatCodeListVersion0</FileFormatCodeListVersion>
+    </CodeListVersions>
+    <DataObjectPackage>
+        <DataObjectGroup id="aebaaaaaaaglsdgpaa3ikalnhzgfanqaaaba">
+            <BinaryDataObject id="aeaaaaaaaaglsdgpaa3ikalnhzgfanqaaaaq">
+                <DataObjectSystemId>aeaaaaaaaahgxrcpabuxsalnsyj4glyaaaaq</DataObjectSystemId>
+                <DataObjectGroupSystemId>aebaaaaaaahgxrcpabuxsalnsyj4gmaaaaaq</DataObjectGroupSystemId>
+                <DataObjectVersion>BinaryMaster</DataObjectVersion>
+            </BinaryDataObject>
+            <LogBook>
+                <Event>
+                    <EventTypeCode>LFC.OG_OBJECTS_FORMAT_CHECK.FILE_FORMAT</EventTypeCode>
+                    <EventType>Vérification du format</EventType>
+                    <EventDateTime>2019-09-17T08:19:29.789</EventDateTime>
+                    <Outcome>WARNING</Outcome>
+                    <OutcomeDetail>LFC.OG_OBJECTS_FORMAT_CHECK.FILE_FORMAT.WARNING</OutcomeDetail>
+                    <OutcomeDetailMessage>Avertissement lors de la vérification du format</OutcomeDetailMessage>
+                </Event>
+                <Event>
+                    <EventTypeCode>LFC.OG_OBJECTS_FORMAT_CHECK</EventTypeCode>
+                    <EventType>Vérification des formats</EventType>
+                    <EventDateTime>2019-09-17T08:19:29.790</EventDateTime>
+                    <Outcome>WARNING</Outcome>
+                    <OutcomeDetail>LFC.OG_OBJECTS_FORMAT_CHECK.WARNING</OutcomeDetail>
+                    <OutcomeDetailMessage>Avertissement lors de la vérification des formats : des informations relatives aux formats ont été complétées par la
+                        solution logicielle Vitam
+                    </OutcomeDetailMessage>
+                </Event>
+                <Event>
+                    <EventTypeCode>LFC.OG_OBJECTS_FORMAT_CHECK.FILE_FORMAT</EventTypeCode>
+                    <EventType>Vérification du format</EventType>
+                    <EventDateTime>2019-10-04T09:22:22.914</EventDateTime>
+                    <Outcome>WARNING</Outcome>
+                    <OutcomeDetail>LFC.OG_OBJECTS_FORMAT_CHECK.FILE_FORMAT.WARNING</OutcomeDetail>
+                    <OutcomeDetailMessage>Avertissement lors de la vérification du format</OutcomeDetailMessage>
+                    <DataObjectReferenceId>aeaaaaaaaaglsdgpaa3ikalnhzgfanqaaaaq</DataObjectReferenceId>
+                </Event>
+                <Event>
+                    <EventTypeCode>LFC.OG_OBJECTS_FORMAT_CHECK</EventTypeCode>
+                    <EventType>Vérification des formats</EventType>
+                    <EventDateTime>2019-10-04T09:22:22.914</EventDateTime>
+                    <Outcome>WARNING</Outcome>
+                    <OutcomeDetail>LFC.OG_OBJECTS_FORMAT_CHECK.WARNING</OutcomeDetail>
+                    <OutcomeDetailMessage>Avertissement lors de la vérification des formats : des informations relatives aux formats ont été complétées par la
+                        solution logicielle Vitam
+                    </OutcomeDetailMessage>
+                </Event>
+            </LogBook>
+        </DataObjectGroup>
+        <DataObjectGroup id="ID20">
+            <BinaryDataObject id="ID21">
+                <DataObjectSystemId>aeaaaaaaaahgxrcpabuxsalnsyj4gmyaaaaq</DataObjectSystemId>
+                <DataObjectGroupSystemId>aebaaaaaaahgxrcpabuxsalnsyj4gmyaaaba</DataObjectGroupSystemId>
+                <DataObjectVersion>BinaryMaster</DataObjectVersion>
+            </BinaryDataObject>
+            <LogBook>
+                <Event>
+                    <EventTypeCode>LFC.OG_OBJECTS_FORMAT_CHECK.FILE_FORMAT</EventTypeCode>
+                    <EventType>Vérification du format</EventType>
+                    <EventDateTime>2019-10-04T09:22:22.914</EventDateTime>
+                    <Outcome>WARNING</Outcome>
+                    <OutcomeDetail>LFC.OG_OBJECTS_FORMAT_CHECK.FILE_FORMAT.WARNING</OutcomeDetail>
+                    <OutcomeDetailMessage>Avertissement lors de la vérification du format</OutcomeDetailMessage>
+                    <DataObjectReferenceId>ID21</DataObjectReferenceId>
+                </Event>
+                <Event>
+                    <EventTypeCode>LFC.OG_OBJECTS_FORMAT_CHECK</EventTypeCode>
+                    <EventType>Vérification des formats</EventType>
+                    <EventDateTime>2019-10-04T09:22:22.914</EventDateTime>
+                    <Outcome>WARNING</Outcome>
+                    <OutcomeDetail>LFC.OG_OBJECTS_FORMAT_CHECK.WARNING</OutcomeDetail>
+                    <OutcomeDetailMessage>Avertissement lors de la vérification des formats : des informations relatives aux formats ont été complétées par la
+                        solution logicielle Vitam
+                    </OutcomeDetailMessage>
+                </Event>
+            </LogBook>
+        </DataObjectGroup>
+        <DescriptiveMetadata>
+            <ArchiveUnit id="ID18">
+                <Management/>
+                <Content>
+                    <SystemId>aeaqaaaaaahgxrcpabuxsalnsyj4gziaaaba</SystemId>
+                </Content>
+            </ArchiveUnit>
+            <ArchiveUnit id="ID22">
+                <Management/>
+                <Content>
+                    <SystemId>aeaqaaaaaahgxrcpabuxsalnsyj4gzqaaaba</SystemId>
+                </Content>
+            </ArchiveUnit>
+            <ArchiveUnit id="ID14">
+                <Management/>
+                <Content>
+                    <SystemId>aeaqaaaaaahgxrcpabuxsalnsyj4gpqaaabq</SystemId>
+                </Content>
+            </ArchiveUnit>
+        </DescriptiveMetadata>
+        <ManagementMetadata/>
+    </DataObjectPackage>
+    <ReplyCode>WARNING</ReplyCode>
+    <Operation>
+        <Event>
+            <EventTypeCode>STP_OG_CHECK_AND_TRANSFORME</EventTypeCode>
+            <EventType>Processus de vérification et traitements des objets et des groupes d'objets</EventType>
+            <EventDateTime>2019-10-04T09:22:22.948</EventDateTime>
+            <Outcome>WARNING</Outcome>
+            <OutcomeDetail>STP_OG_CHECK_AND_TRANSFORME.WARNING</OutcomeDetail>
+            <OutcomeDetailMessage>Avertissement lors du processus de vérification et traitement des objets et des groupes d'objets</OutcomeDetailMessage>
+        </Event>
+        <Event>
+            <EventTypeCode>OG_OBJECTS_FORMAT_CHECK</EventTypeCode>
+            <EventType>Identification des formats</EventType>
+            <EventDateTime>2019-10-04T09:22:22.948</EventDateTime>
+            <Outcome>WARNING</Outcome>
+            <OutcomeDetail>OG_OBJECTS_FORMAT_CHECK.WARNING</OutcomeDetail>
+            <OutcomeDetailMessage>Avertissement lors de l'identification des formats Detail= WARNING:2</OutcomeDetailMessage>
+        </Event>
+    </Operation>
+    <MessageRequestIdentifier>SIP passant contenant 2 groupes d'objets</MessageRequestIdentifier>
+    <GrantDate>2019-10-04T09:22:33.617Z</GrantDate>
+    <ArchivalAgency>
+        <Identifier>Identifier4</Identifier>
+    </ArchivalAgency>
+    <TransferringAgency>
+        <Identifier>Identifier5</Identifier>
+    </TransferringAgency>
+</ArchiveTransferReply>

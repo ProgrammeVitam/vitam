@@ -24,17 +24,25 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  */
-package fr.gouv.vitam.common.xml;
+package fr.gouv.vitam.worker.core.plugin.transfer.reply;
 
-import javax.xml.stream.XMLInputFactory;
+import fr.gouv.vitam.common.model.ItemStatus;
+import org.junit.Test;
 
-public class XMLInputFactoryUtils {
+import static fr.gouv.vitam.common.model.StatusCode.OK;
+import static org.assertj.core.api.Assertions.assertThat;
 
-    public static XMLInputFactory newInstance() {
-        XMLInputFactory xmlInputFactory = XMLInputFactory.newInstance();
-        xmlInputFactory.setProperty(XMLInputFactory.SUPPORT_DTD, Boolean.FALSE);
-        xmlInputFactory.setProperty(XMLInputFactory.IS_SUPPORTING_EXTERNAL_ENTITIES, Boolean.FALSE);
-        xmlInputFactory.setProperty(XMLInputFactory.IS_REPLACING_ENTITY_REFERENCES, Boolean.FALSE);
-        return xmlInputFactory;
+public class TransferReplyFinalizationPluginTest {
+
+    @Test
+    public void should_transfer_reply_finalization_ok() throws Exception {
+        // Given
+        TransferReplyFinalizationPlugin transferReplyFinalizationPlugin = new TransferReplyFinalizationPlugin();
+
+        // When
+        ItemStatus result = transferReplyFinalizationPlugin.execute(null, null);
+
+        // Then
+        assertThat(result.getGlobalStatus()).isEqualTo(OK);
     }
 }

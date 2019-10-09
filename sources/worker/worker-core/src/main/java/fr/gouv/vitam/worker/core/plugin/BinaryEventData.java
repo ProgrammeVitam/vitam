@@ -1,4 +1,4 @@
-package fr.gouv.vitam.worker.core.plugin.preservation.model;
+package fr.gouv.vitam.worker.core.plugin;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;

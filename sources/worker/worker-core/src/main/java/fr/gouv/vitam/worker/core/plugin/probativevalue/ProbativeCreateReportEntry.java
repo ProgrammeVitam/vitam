@@ -155,7 +155,7 @@ import static fr.gouv.vitam.storage.engine.common.model.DataCategory.OBJECT;
 import static fr.gouv.vitam.worker.core.handler.VerifyMerkleTreeActionHandler.computeMerkleTree;
 import static fr.gouv.vitam.worker.core.plugin.CheckConformityActionPlugin.CALC_CHECK;
 import static fr.gouv.vitam.worker.core.plugin.StoreObjectGroupActionPlugin.STORING_OBJECT_TASK_ID;
-import static fr.gouv.vitam.worker.core.plugin.preservation.model.BinaryEventData.MESSAGE_DIGEST;
+import static fr.gouv.vitam.worker.core.plugin.BinaryEventData.MESSAGE_DIGEST;
 import static fr.gouv.vitam.worker.core.plugin.probativevalue.pojo.ChecksInformation.EVENTS_OBJECT_GROUP_DIGEST_DATABASE_TRACEABILITY_COMPARISON;
 import static fr.gouv.vitam.worker.core.plugin.probativevalue.pojo.ChecksInformation.EVENTS_OPERATION_DATABASE_TRACEABILITY_COMPARISON;
 import static fr.gouv.vitam.worker.core.plugin.probativevalue.pojo.ChecksInformation.FILE_DIGEST_LFC_DATABASE_COMPARISON;

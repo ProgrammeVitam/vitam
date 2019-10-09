@@ -254,4 +254,8 @@ class AccessInternalClientMock extends AbstractMockClient implements AccessInter
         throw new IllegalStateException("Stop using mocks in production");
     }
 
+    @Override
+    public RequestResponse startTransferReplyWorkflow(String transferReply) {
+        throw new IllegalStateException("Stop using mocks in production");
+    }
 }

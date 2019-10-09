@@ -43,6 +43,7 @@ import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.PreservationRequest;
 import fr.gouv.vitam.common.model.RequestResponse;
+import fr.gouv.vitam.common.model.VitamSession;
 import fr.gouv.vitam.common.model.dip.DipExportRequest;
 import fr.gouv.vitam.common.model.elimination.EliminationRequestBody;
 import fr.gouv.vitam.common.model.massupdate.MassUpdateUnitRuleRequest;
@@ -62,6 +63,7 @@ import javax.ws.rs.core.Response.Status;
 import static fr.gouv.vitam.common.GlobalDataRest.X_ACCESS_CONTRAT_ID;
 import static javax.ws.rs.core.MediaType.APPLICATION_JSON_TYPE;
 import static javax.ws.rs.core.MediaType.APPLICATION_OCTET_STREAM_TYPE;
+import static javax.ws.rs.core.MediaType.APPLICATION_XML_TYPE;
 
 /**
  * Access client <br>
@@ -808,6 +810,23 @@ class AccessInternalClientRest extends DefaultClient implements AccessInternalCl
         try {
             response = performRequest(HttpMethod.DELETE, "/units/computedInheritedRules", headers, dslQuery,
                 APPLICATION_JSON_TYPE, APPLICATION_JSON_TYPE);
+            return RequestResponse.parseFromResponse(response);
+        } catch (VitamClientInternalException e) {
+            throw new AccessInternalClientServerException(INTERNAL_SERVER_ERROR, e);
+        } finally {
+            consumeAnyEntityAndClose(response);
+        }
+    }
+
+    @Override
+    public RequestResponse startTransferReplyWorkflow(String transferReply) throws AccessInternalClientServerException {
+        VitamSession vitamSession = VitamThreadUtils.getVitamSession();
+        vitamSession.checkValidRequestId();
+        MultivaluedMap<String, Object> headers = new MultivaluedHashMap<>();
+        headers.add(X_ACCESS_CONTRAT_ID, vitamSession.getContractId());
+        Response response = null;
+        try {
+            response = performRequest(HttpMethod.POST, "/transfers/reply", headers, transferReply, APPLICATION_XML_TYPE, APPLICATION_JSON_TYPE);
             return RequestResponse.parseFromResponse(response);
         } catch (VitamClientInternalException e) {
             throw new AccessInternalClientServerException(INTERNAL_SERVER_ERROR, e);

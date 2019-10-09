@@ -1,4 +1,4 @@
-/*******************************************************************************
+/*
  * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2019)
  *
  * contact.vitam@culture.gouv.fr
@@ -23,7 +23,7 @@
  *
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
- *******************************************************************************/
+ */
 package fr.gouv.vitam.access.external.rest;
 
 import com.fasterxml.jackson.databind.JsonNode;
@@ -93,16 +93,13 @@ import java.io.InputStream;
 import java.util.List;
 import java.util.Map;
 
-/**
- * Access External Resource
- */
 @Path("/access-external/v1")
 public class AccessExternalResource extends ApplicationStatusResource {
+    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(AccessExternalResource.class);
 
     private static final String PREDICATES_FAILED_EXCEPTION = "Predicates Failed Exception ";
     private static final String ACCESS_EXTERNAL_MODULE = "ACCESS_EXTERNAL";
     private static final String CODE_VITAM = "code_vitam";
-    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(AccessExternalResource.class);
     private static final String CONTRACT_ACCESS_NOT_ALLOW = "Contract access does not allow ";
     private static final String UNIT_NOT_FOUND = "Unit not found";
     private static final String REQ_RES_DOES_NOT_EXIST = "Request resource does not exist";
@@ -111,11 +108,6 @@ public class AccessExternalResource extends ApplicationStatusResource {
     private final SecureEndpointRegistry secureEndpointRegistry;
     private final AccessInternalClientFactory accessInternalClientFactory;
 
-    /**
-     * Constructor
-     *
-     * @param secureEndpointRegistry endpoint list registry
-     */
     public AccessExternalResource(SecureEndpointRegistry secureEndpointRegistry) {
         this(secureEndpointRegistry, AccessInternalClientFactory.getInstance());
     }
@@ -125,7 +117,6 @@ public class AccessExternalResource extends ApplicationStatusResource {
         AccessInternalClientFactory accessInternalClientFactory) {
         this.secureEndpointRegistry = secureEndpointRegistry;
         this.accessInternalClientFactory = accessInternalClientFactory;
-        LOGGER.debug("AccessExternalResourceV2 initialized");
     }
 
     /**
@@ -260,6 +251,22 @@ public class AccessExternalResource extends ApplicationStatusResource {
             LOGGER.error("Technical Exception ", e);
             return Response.status(Status.INTERNAL_SERVER_ERROR)
                 .entity(getErrorEntity(Status.INTERNAL_SERVER_ERROR, e.getLocalizedMessage())).build();
+        }
+    }
+
+    @POST
+    @Path("/transfers/reply")
+    @Consumes(MediaType.APPLICATION_XML)
+    @Produces(MediaType.APPLICATION_JSON)
+    @Secured(permission = "transfers:reply", description = "Start transfer reply workflow.")
+    public Response transferReply(String transferReply) {
+        try (AccessInternalClient client = accessInternalClientFactory.getClient()) {
+            return client.startTransferReplyWorkflow(transferReply).toResponse();
+        } catch (Exception e) {
+            LOGGER.error(e);
+            return Response.status(Status.INTERNAL_SERVER_ERROR)
+                .entity(getErrorEntity(Status.INTERNAL_SERVER_ERROR, e.getLocalizedMessage()))
+                .build();
         }
     }
 

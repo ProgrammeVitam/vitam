@@ -74,7 +74,6 @@ import fr.gouv.vitam.common.mapping.serializer.IdentifierTypeDeserializer;
 import fr.gouv.vitam.common.mapping.serializer.LevelTypeDeserializer;
 import fr.gouv.vitam.common.mapping.serializer.TextByLangDeserializer;
 import fr.gouv.vitam.common.model.ItemStatus;
-import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.PreservationRequest;
 import fr.gouv.vitam.common.model.ProcessAction;
 import fr.gouv.vitam.common.model.RequestResponse;
@@ -146,6 +145,7 @@ import static fr.gouv.vitam.common.model.dip.DipExportRequest.DIP_REQUEST_FILE_N
 import static fr.gouv.vitam.common.thread.VitamThreadUtils.getVitamSession;
 import static fr.gouv.vitam.logbook.common.parameters.Contexts.COMPUTE_INHERITED_RULES_DELETE;
 import static fr.gouv.vitam.logbook.common.parameters.Contexts.PRESERVATION;
+import static fr.gouv.vitam.logbook.common.parameters.Contexts.TRANSFER_REPLY;
 import static javax.ws.rs.core.Response.Status.INTERNAL_SERVER_ERROR;
 
 /**
@@ -451,6 +451,44 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
             .put(ACCESS_CONTRACT, getVitamSession().getContract().getIdentifier());
         initParameters.putParameterValue(LogbookParameterName.rightsStatementIdentifier,
             rightsStatementIdentifier.toString());
+    }
+
+    @POST
+    @Path("/transfers/reply")
+    @Consumes(MediaType.APPLICATION_XML)
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response transferReply(String transferReply) {
+        try (ProcessingManagementClient processingClient = processingManagementClientFactory.getClient();
+             LogbookOperationsClient logbookOperationsClient = logbookOperationsClientFactory.getClient();
+             WorkspaceClient workspaceClient = workspaceClientFactory.getClient()) {
+
+            String operationId = getVitamSession().getRequestId();
+
+            LogbookOperationParameters masterTransferReplyLfcEvent = LogbookParametersFactory.newLogbookOperationParameters(
+                GUIDReader.getGUID(operationId),
+                TRANSFER_REPLY.getEventType(),
+                GUIDReader.getGUID(operationId),
+                LogbookTypeProcess.TRANSFER_REPLY,
+                STARTED,
+                String.format("%s : %s", VitamLogbookMessages.getLabelOp("TRANSFER_REPLY.STARTED"), GUIDReader.getGUID(operationId)),
+                GUIDReader.getGUID(operationId)
+            );
+            addRightsStatementIdentifier(masterTransferReplyLfcEvent);
+
+            logbookOperationsClient.create(masterTransferReplyLfcEvent);
+
+            workspaceClient.createContainer(operationId);
+            workspaceClient.putObject(operationId, "ATR-for-transfer-reply-in-workspace.xml", new ByteArrayInputStream(transferReply.getBytes()));
+
+            processingClient.initVitamProcess(operationId, TRANSFER_REPLY.name());
+            return processingClient.executeOperationProcess(operationId, TRANSFER_REPLY.name(), RESUME.getValue())
+                .toResponse();
+        } catch (Exception e) {
+            LOGGER.error(e);
+            return Response.status(INTERNAL_SERVER_ERROR)
+                .entity(getErrorEntity(INTERNAL_SERVER_ERROR, e.getMessage()))
+                .build();
+        }
     }
 
     @Override
