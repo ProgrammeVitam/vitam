@@ -159,7 +159,7 @@ public class SanityChecker {
      * @throws InvalidParseOperationException when Sanity Check is in error
      */
     public static final void checkJsonAll(JsonNode json) throws InvalidParseOperationException {
-        if (json == null) {
+        if (json == null || json.isMissingNode()) {
             throw new InvalidParseOperationException(JSON_IS_NOT_VALID_FROM_SANITIZE_CHECK);
         }
         final String jsonish = JsonHandler.writeAsString(json);

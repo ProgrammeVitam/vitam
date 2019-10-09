@@ -27,12 +27,10 @@
 package fr.gouv.vitam.functional.administration.common;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.mongodb.BasicDBObject;
-import com.mongodb.client.model.IndexOptions;
 import fr.gouv.vitam.common.database.server.mongodb.VitamDocument;
+import fr.gouv.vitam.common.exception.InvalidParseOperationException;
+import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.model.administration.RegisterValueDetailModel;
-import fr.gouv.vitam.functional.administration.common.server.FunctionalAdminCollections;
 import org.bson.Document;
 
 /**
@@ -147,7 +145,12 @@ public class AccessionRegisterSummary extends VitamDocument<AccessionRegisterSum
      * @return String
      */
     public RegisterValueDetailModel getTotalUnits() {
-        return new ObjectMapper().convertValue(this.get(TOTAL_UNITS), RegisterValueDetailModel.class);
+        try {
+            return JsonHandler
+                .getFromJsonNode(JsonHandler.toJsonNode(this.get(TOTAL_UNITS)), RegisterValueDetailModel.class);
+        } catch (InvalidParseOperationException e) {
+            throw new IllegalStateException(e);
+        }
     }
 
     /**
@@ -163,7 +166,12 @@ public class AccessionRegisterSummary extends VitamDocument<AccessionRegisterSum
      * @return String
      */
     public RegisterValueDetailModel getTotalObjectGroups() {
-        return new ObjectMapper().convertValue(this.get(TOTAL_OBJECTGROUPS), RegisterValueDetailModel.class);
+        try {
+            return JsonHandler
+                .getFromJsonNode(JsonHandler.toJsonNode(this.get(TOTAL_OBJECTGROUPS)), RegisterValueDetailModel.class);
+        } catch (InvalidParseOperationException e) {
+            throw new IllegalStateException(e);
+        }
     }
 
     /**
@@ -179,7 +187,12 @@ public class AccessionRegisterSummary extends VitamDocument<AccessionRegisterSum
      * @return String
      */
     public RegisterValueDetailModel getTotalObjects() {
-        return new ObjectMapper().convertValue(this.get(TOTAL_OBJECTS), RegisterValueDetailModel.class);
+        try {
+            return JsonHandler
+                .getFromJsonNode(JsonHandler.toJsonNode(this.get(TOTAL_OBJECTS)), RegisterValueDetailModel.class);
+        } catch (InvalidParseOperationException e) {
+            throw new IllegalStateException(e);
+        }
     }
 
     /**
@@ -195,7 +208,12 @@ public class AccessionRegisterSummary extends VitamDocument<AccessionRegisterSum
      * @return String
      */
     public RegisterValueDetailModel getTotalObjectSize() {
-        return new ObjectMapper().convertValue(this.get(OBJECT_SIZE), RegisterValueDetailModel.class);
+        try {
+            return JsonHandler
+                .getFromJsonNode(JsonHandler.toJsonNode(this.get(OBJECT_SIZE)), RegisterValueDetailModel.class);
+        } catch (InvalidParseOperationException e) {
+            throw new IllegalStateException(e);
+        }
     }
 
 
