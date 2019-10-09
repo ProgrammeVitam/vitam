@@ -42,8 +42,6 @@ import fr.gouv.vitam.common.VitamRuleRunner;
 import fr.gouv.vitam.common.VitamServerRunner;
 import fr.gouv.vitam.common.client.VitamClientFactory;
 import fr.gouv.vitam.common.client.configuration.ClientConfigurationImpl;
-import fr.gouv.vitam.common.database.api.VitamRepositoryFactory;
-import fr.gouv.vitam.common.database.api.VitamRepositoryProvider;
 import fr.gouv.vitam.common.database.translators.mongodb.MongoDbHelper;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.BsonHelper;
@@ -92,7 +90,6 @@ import retrofit2.http.GET;
 import retrofit2.http.Header;
 import retrofit2.http.POST;
 
-import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
@@ -100,6 +97,7 @@ import java.text.ParseException;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 import static com.mongodb.client.model.Indexes.ascending;
@@ -293,7 +291,7 @@ public class MigrationIT extends VitamRuleRunner {
     public void startMetadataDataMigration_emptyDb() throws Exception {
 
         Response<MetadataMigrationAdminResource.ResponseMessage>
-            response = metadataAdminMigrationService.startDataMigration(getBasicAuthnToken()).execute();
+            response = metadataAdminMigrationService.startDataMigration(getBasicAuthToken()).execute();
         assertThat(response.isSuccessful()).isTrue();
 
         awaitTermination();
@@ -303,7 +301,7 @@ public class MigrationIT extends VitamRuleRunner {
     public void startMetadataDataMigration_emptyDataSet() throws Exception {
 
         Response<MetadataMigrationAdminResource.ResponseMessage>
-            response = metadataAdminMigrationService.startDataMigration(getBasicAuthnToken()).execute();
+            response = metadataAdminMigrationService.startDataMigration(getBasicAuthToken()).execute();
         assertThat(response.isSuccessful()).isTrue();
 
         awaitTermination();
@@ -320,7 +318,7 @@ public class MigrationIT extends VitamRuleRunner {
 
         // When
         Response<MetadataMigrationAdminResource.ResponseMessage> response =
-            metadataAdminMigrationService.startDataMigration(getBasicAuthnToken()).execute();
+            metadataAdminMigrationService.startDataMigration(getBasicAuthToken()).execute();
         assertThat(response.isSuccessful()).isTrue();
         awaitTermination();
 
@@ -352,7 +350,7 @@ public class MigrationIT extends VitamRuleRunner {
     public void startAccessionRegisterMigration_emptyDb() throws Exception {
 
         Response<MetadataMigrationAdminResource.ResponseMessage>
-            response = accessionRegisterAdminMigrationService.startDataMigration(getBasicAuthnToken()).execute();
+            response = accessionRegisterAdminMigrationService.startDataMigration(getBasicAuthToken()).execute();
         assertThat(response.isSuccessful()).isTrue();
 
         awaitTermination();
@@ -362,7 +360,7 @@ public class MigrationIT extends VitamRuleRunner {
     public void startAccessionRegisterMigration_emptyDataSet() throws Exception {
 
         Response<MetadataMigrationAdminResource.ResponseMessage>
-            response = accessionRegisterAdminMigrationService.startDataMigration(getBasicAuthnToken()).execute();
+            response = accessionRegisterAdminMigrationService.startDataMigration(getBasicAuthToken()).execute();
         assertThat(response.isSuccessful()).isTrue();
 
         awaitTermination();
@@ -382,7 +380,7 @@ public class MigrationIT extends VitamRuleRunner {
 
         // When
         Response<MetadataMigrationAdminResource.ResponseMessage>
-            response = accessionRegisterAdminMigrationService.startDataMigration(getBasicAuthnToken()).execute();
+            response = accessionRegisterAdminMigrationService.startDataMigration(getBasicAuthToken()).execute();
         assertThat(response.isSuccessful()).isTrue();
         awaitTermination();
 
@@ -412,8 +410,9 @@ public class MigrationIT extends VitamRuleRunner {
         VitamThreadUtils.getVitamSession().setTenantId(0);
         RestoreBackupServiceImpl restoreBackupService = new RestoreBackupServiceImpl();
         Iterator<List<OfferLog>> listingIterator =
-            restoreBackupService.getListing(VitamConfiguration.getDefaultStrategy(), DataCategory.ACCESSION_REGISTER_DETAIL, 0L, 100,
-                Order.ASC);
+            restoreBackupService
+                .getListing(VitamConfiguration.getDefaultStrategy(), DataCategory.ACCESSION_REGISTER_DETAIL, 0L, 100,
+                    Order.ASC);
         List<OfferLog> listing =
             IteratorUtils.toList(listingIterator).stream()
                 .flatMap(Collection::stream)
@@ -428,7 +427,7 @@ public class MigrationIT extends VitamRuleRunner {
 
 
         // When purge
-        response = accessionRegisterAdminMigrationService.startDataPurge(getBasicAuthnToken()).execute();
+        response = accessionRegisterAdminMigrationService.startDataPurge(getBasicAuthToken()).execute();
         assertThat(response.isSuccessful()).isTrue();
         awaitTermination();
 
@@ -450,9 +449,9 @@ public class MigrationIT extends VitamRuleRunner {
 
     private void awaitTermination() throws InterruptedException, IOException {
 
-        // Wait for 30 seconds max
-        for (int i = 0; i < 30; i++) {
-            Thread.sleep(1000);
+        // Wait for 60 seconds max
+        for (int i = 0; i < 120; i++) {
+            TimeUnit.MILLISECONDS.sleep(500);
 
             Response<MetadataMigrationAdminResource.ResponseMessage> responseMigrationInProgress =
                 metadataAdminMigrationService.checkDataMigrationInProgress().execute();
@@ -509,7 +508,7 @@ public class MigrationIT extends VitamRuleRunner {
         return dataSet;
     }
 
-    private String getBasicAuthnToken() {
+    private String getBasicAuthToken() {
         return Credentials.basic(BASIC_AUTHN_USER, BASIC_AUTHN_PWD);
     }
 
@@ -517,7 +516,7 @@ public class MigrationIT extends VitamRuleRunner {
 
         @POST("/metadata/v1/migration")
         Call<MetadataMigrationAdminResource.ResponseMessage> startDataMigration(
-            @Header("Authorization") String basicAuthnToken);
+            @Header("Authorization") String basicAuthToken);
 
         @GET("/metadata/v1/migration/status")
         Call<MetadataMigrationAdminResource.ResponseMessage> checkDataMigrationInProgress();
@@ -528,11 +527,11 @@ public class MigrationIT extends VitamRuleRunner {
 
         @POST("/adminmanagement/v1/migration/accessionregister/migrate")
         Call<MetadataMigrationAdminResource.ResponseMessage> startDataMigration(
-            @Header("Authorization") String basicAuthnToken);
+            @Header("Authorization") String basicAuthToken);
 
         @POST("/adminmanagement/v1/migration/accessionregister/purge")
         Call<MetadataMigrationAdminResource.ResponseMessage> startDataPurge(
-            @Header("Authorization") String basicAuthnToken);
+            @Header("Authorization") String basicAuthToken);
 
 
         @GET("/adminmanagement/v1/migration/accessionregister/status")
