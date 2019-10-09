@@ -27,11 +27,11 @@
 package fr.gouv.vitam.storage.engine.common.utils;
 
 import fr.gouv.vitam.common.VitamConfiguration;
-import fr.gouv.vitam.storage.engine.common.referential.model.OfferReference;
 import fr.gouv.vitam.storage.engine.common.referential.model.StorageStrategy;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 /**
  * Storage strategy utils.
@@ -39,25 +39,29 @@ import java.util.Optional;
 public class StorageStrategyUtils {
 
     public static void checkStrategy(String storageStrategy, List<StorageStrategy> referentialStrategies,
-            String variableName, boolean referentOfferMandatory)
-            throws StorageStrategyNotFoundException, ReferentOfferNotFoundException {
+            String variableName, boolean defaultStrategyOffersMandatory)
+            throws StorageStrategyNotFoundException, DefaultOffersNotFoundException {
         Optional<StorageStrategy> referentialStrategy = referentialStrategies.stream()
                 .filter(strategy -> storageStrategy.equals(strategy.getId())).findFirst();
         if (!referentialStrategy.isPresent()) {
             throw new StorageStrategyNotFoundException("Strategy was not found", storageStrategy, variableName);
         }
-        if (referentOfferMandatory) {
+        if (defaultStrategyOffersMandatory) {
             Optional<StorageStrategy> defaultStrategy = referentialStrategies.stream()
                     .filter(strategy -> VitamConfiguration.getDefaultStrategy().equals(strategy.getId())).findFirst();
             if (!defaultStrategy.isPresent()) {
                 throw new StorageStrategyNotFoundException("Strategy was not found", storageStrategy, variableName);
             }
-            OfferReference referentOffer = defaultStrategy.get().getOffers().stream()
-                    .filter(offer -> offer.isEnabled() && offer.isReferent()).findFirst().get();
-            if (referentialStrategy.get().getOffers().stream()
-                    .filter(offer -> referentOffer.getId().equals(offer.getId())).count() < 1) {
-                throw new ReferentOfferNotFoundException("Strategy does not contains mandatory referent offer ",
-                        storageStrategy, referentOffer.getId(), variableName);
+
+
+            List<String> defaultStrategyOfferIds = defaultStrategy.get().getOffers().stream()
+                    .filter(offer -> offer.isEnabled()).map(offer -> offer.getId()).collect(Collectors.toList());
+            List<String> referentialStrategyOfferIds = referentialStrategy.get().getOffers().stream()
+                    .filter(offer -> offer.isEnabled()).map(offer -> offer.getId()).collect(Collectors.toList());
+            defaultStrategyOfferIds.removeAll(referentialStrategyOfferIds);
+            if (!defaultStrategyOfferIds.isEmpty()) {
+                throw new DefaultOffersNotFoundException("Strategy does not contains mandatory default strategy offer(s) ",
+                        storageStrategy, defaultStrategyOfferIds, variableName);
             }
         }
     }

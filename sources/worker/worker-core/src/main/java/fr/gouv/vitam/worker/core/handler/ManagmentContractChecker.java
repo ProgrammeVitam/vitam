@@ -26,7 +26,6 @@
  *******************************************************************************/
 package fr.gouv.vitam.worker.core.handler;
 
-import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Iterables;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.logging.VitamLogger;
@@ -44,7 +43,7 @@ import fr.gouv.vitam.storage.engine.client.StorageClient;
 import fr.gouv.vitam.storage.engine.client.StorageClientFactory;
 import fr.gouv.vitam.storage.engine.client.exception.StorageServerClientException;
 import fr.gouv.vitam.storage.engine.common.referential.model.StorageStrategy;
-import fr.gouv.vitam.storage.engine.common.utils.ReferentOfferNotFoundException;
+import fr.gouv.vitam.storage.engine.common.utils.DefaultOffersNotFoundException;
 import fr.gouv.vitam.storage.engine.common.utils.StorageStrategyNotFoundException;
 import fr.gouv.vitam.storage.engine.common.utils.StorageStrategyUtils;
 import fr.gouv.vitam.worker.core.handler.CheckIngestContractActionHandler.CheckIngestContractStatus;
@@ -112,7 +111,7 @@ public class ManagmentContractChecker {
                                 StorageStrategyUtils.checkStrategy(managementContract.getStorage().getObjectStrategy(),
                                         strategies, ManagementContract.OBJECT_STRATEGY, false);
                             }
-                        } catch (StorageStrategyNotFoundException | ReferentOfferNotFoundException exc) {
+                        } catch (StorageStrategyNotFoundException | DefaultOffersNotFoundException exc) {
                             LOGGER.error(exc);
                             return CheckIngestContractStatus.MANAGEMENT_CONTRACT_INVALID;
                         }

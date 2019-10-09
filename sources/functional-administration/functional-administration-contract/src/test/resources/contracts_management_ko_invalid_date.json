@@ -9,9 +9,9 @@
 		"ActivationDate": "2017-04-10T11:30:33.798",
 		"DeactivationDate": null,
 		"Storage": {
-			"UnitStrategy": "default-fake-unit",
-			"ObjectGroupStrategy": "default-fake-got",
-			"ObjectStrategy": "default-fake-object"
+			"UnitStrategy": "fake-md",
+			"ObjectGroupStrategy": "fake-md",
+			"ObjectStrategy": "fake-object"
 		}
 	}
 ]

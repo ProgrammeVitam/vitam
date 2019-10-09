@@ -636,11 +636,11 @@ public class ManagementContractImplTest {
         assertThat(((VitamError) response).getErrors().get(0).getMessage())
                 .isEqualTo("STP_IMPORT_MANAGEMENT_CONTRACT.STRATEGY_VALIDATION_ERROR.KO");
         assertThat(((VitamError) response).getErrors().get(0).getDescription()).isEqualTo(
-                "Storage Strategy (default-fake-object) does not contains referent offer (offer-one) for the field Storage.UnitStrategy");
+                "Storage Strategy (fake-object) does not contains default strategy offer(s) (offer-one,offer-two) for the field Storage.UnitStrategy");
         assertThat(((VitamError) response).getErrors().get(1).getMessage())
                 .isEqualTo("STP_IMPORT_MANAGEMENT_CONTRACT.STRATEGY_VALIDATION_ERROR.KO");
         assertThat(((VitamError) response).getErrors().get(1).getDescription()).isEqualTo(
-                "Storage Strategy (default-fake-object) does not contains referent offer (offer-one) for the field Storage.ObjectGroupStrategy");
+                "Storage Strategy (fake-object) does not contains default strategy offer(s) (offer-one,offer-two) for the field Storage.ObjectGroupStrategy");
         assertThat(((VitamError) response).getState()).isEqualTo("KO");
         assertThat(((VitamError) response).getHttpCode()).isEqualTo(Response.Status.BAD_REQUEST.getStatusCode());
 
@@ -759,10 +759,10 @@ public class ManagementContractImplTest {
             throws VitamException, InvalidCreateOperationException, FileNotFoundException {
         // Given
         final SetAction updateName = UpdateActionHelper.set("Name", "New name");
-        final SetAction updateStorageUnit = UpdateActionHelper.set("Storage.UnitStrategy", "default-fake-unit");
+        final SetAction updateStorageUnit = UpdateActionHelper.set("Storage.UnitStrategy", "fake-md");
         final SetAction updateStorageObjectGroup = UpdateActionHelper.set("Storage.ObjectGroupStrategy",
-                "default-fake-got");
-        final SetAction updateStorageObject = UpdateActionHelper.set("Storage.ObjectStrategy", "default-fake-object");
+                "fake-md");
+        final SetAction updateStorageObject = UpdateActionHelper.set("Storage.ObjectStrategy", "fake-object");
 
         final Update update = new Update();
         update.setQuery(QueryHelper.eq("Identifier", "IdentifierMC1"));
@@ -984,12 +984,12 @@ public class ManagementContractImplTest {
 
     @Test
     @RunWithCustomExecutor
-    public void when_update_should_return_error_given_strategy_missing_referent_offer()
+    public void when_update_should_return_error_given_strategy_missing_default_offer()
             throws VitamException, InvalidCreateOperationException, FileNotFoundException {
         // Given
-        final SetAction updateStorageUnit = UpdateActionHelper.set("Storage.UnitStrategy", "default-fake-object");
+        final SetAction updateStorageUnit = UpdateActionHelper.set("Storage.UnitStrategy", "fake-invalid-md");
         final SetAction updateStorageObjectGroup = UpdateActionHelper.set("Storage.ObjectGroupStrategy",
-                "default-fake-object");
+                "fake-invalid-md");
         final Update update = new Update();
         update.setQuery(QueryHelper.eq("Identifier", "IdentifierMC1"));
         update.addActions(updateStorageUnit, updateStorageObjectGroup);
@@ -1013,11 +1013,11 @@ public class ManagementContractImplTest {
         assertThat(((VitamError) response).getErrors().get(0).getMessage())
                 .isEqualTo("STP_UPDATE_MANAGEMENT_CONTRACT.STRATEGY_VALIDATION_ERROR.KO");
         assertThat(((VitamError) response).getErrors().get(0).getDescription()).isEqualTo(
-                "Storage Strategy (default-fake-object) does not contains referent offer (offer-one) for the field Storage.UnitStrategy");
+                "Storage Strategy (fake-invalid-md) does not contains default strategy offer(s) (offer-two) for the field Storage.UnitStrategy");
         assertThat(((VitamError) response).getErrors().get(1).getMessage())
                 .isEqualTo("STP_UPDATE_MANAGEMENT_CONTRACT.STRATEGY_VALIDATION_ERROR.KO");
         assertThat(((VitamError) response).getErrors().get(1).getDescription()).isEqualTo(
-                "Storage Strategy (default-fake-object) does not contains referent offer (offer-one) for the field Storage.ObjectGroupStrategy");
+                "Storage Strategy (fake-invalid-md) does not contains default strategy offer(s) (offer-two) for the field Storage.ObjectGroupStrategy");
         assertThat(((VitamError) response).getState()).isEqualTo("KO");
         assertThat(((VitamError) response).getHttpCode()).isEqualTo(Response.Status.BAD_REQUEST.getStatusCode());
 
@@ -1039,7 +1039,7 @@ public class ManagementContractImplTest {
     @Test
     @RunWithCustomExecutor
     public void when_update_should_return_error_given_storage_set_strategy_not_found()
-            throws VitamException, InvalidCreateOperationException, FileNotFoundException {
+            throws VitamException, FileNotFoundException {
         // Given
         String update = "{ \"$action\": [{ \"$set\": {  \"Storage\" : { \"UnitStrategy\" : \"default-not-found-unit\", \"ObjectGroupStrategy\" : \"default-not-found-got\", \"ObjectStrategy\" : \"default-not-found-object\" } } } ] }";
 
@@ -1091,10 +1091,10 @@ public class ManagementContractImplTest {
 
     @Test
     @RunWithCustomExecutor
-    public void when_update_should_return_error_given_storage_set_strategy_missing_referent_offer()
-            throws VitamException, InvalidCreateOperationException, FileNotFoundException {
+    public void when_update_should_return_error_given_storage_set_strategy_missing_default_offer()
+            throws VitamException, FileNotFoundException {
         // Given
-        String update = "{ \"$action\": [{ \"$set\": {  \"Storage\" : { \"UnitStrategy\" : \"default-fake-object\", \"ObjectGroupStrategy\" : \"default-fake-object\" } } } ] }";
+        String update = "{ \"$action\": [{ \"$set\": {  \"Storage\" : { \"UnitStrategy\" : \"fake-invalid-md\", \"ObjectGroupStrategy\" : \"fake-object\" } } } ] }";
 
         DbRequestResult findResultMock = mock(DbRequestResult.class);
         when(findResultMock.getCount()).thenReturn(1l);
@@ -1115,11 +1115,11 @@ public class ManagementContractImplTest {
         assertThat(((VitamError) response).getErrors().get(0).getMessage())
                 .isEqualTo("STP_UPDATE_MANAGEMENT_CONTRACT.STRATEGY_VALIDATION_ERROR.KO");
         assertThat(((VitamError) response).getErrors().get(0).getDescription()).isEqualTo(
-                "Storage Strategy (default-fake-object) does not contains referent offer (offer-one) for the field Storage.UnitStrategy");
+                "Storage Strategy (fake-invalid-md) does not contains default strategy offer(s) (offer-two) for the field Storage.UnitStrategy");
         assertThat(((VitamError) response).getErrors().get(1).getMessage())
                 .isEqualTo("STP_UPDATE_MANAGEMENT_CONTRACT.STRATEGY_VALIDATION_ERROR.KO");
         assertThat(((VitamError) response).getErrors().get(1).getDescription()).isEqualTo(
-                "Storage Strategy (default-fake-object) does not contains referent offer (offer-one) for the field Storage.ObjectGroupStrategy");
+                "Storage Strategy (fake-object) does not contains default strategy offer(s) (offer-one,offer-two) for the field Storage.ObjectGroupStrategy");
         assertThat(((VitamError) response).getState()).isEqualTo("KO");
         assertThat(((VitamError) response).getHttpCode()).isEqualTo(Response.Status.BAD_REQUEST.getStatusCode());
 
