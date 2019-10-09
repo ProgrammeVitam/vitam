@@ -480,6 +480,45 @@ public class ArchiveUnitProfileServiceImplTest {
 
     @Test
     @RunWithCustomExecutor
+    public void givenTestImportExternalIdentifierSlaveMode() throws Exception {
+
+        VitamThreadUtils.getVitamSession().setTenantId(EXTERNAL_TENANT);
+        final File fileMetadataProfile = PropertiesUtils.getResourceFile("aup_without_identifier_slave_mode.json");
+        final List<ArchiveUnitProfileModel> profileModelList =
+            JsonHandler
+                .getFromFileAsTypeRefence(fileMetadataProfile, new TypeReference<List<ArchiveUnitProfileModel>>() {
+                });
+        final RequestResponse response = archiveUnitProfileService.createArchiveUnitProfiles(profileModelList);
+        assertThat(response.isOk()).isFalse();
+        assertThat(((VitamError) response).getErrors().get(0).getDescription()).isEqualTo("The field Identifier is mandatory");
+        assertThat(((VitamError) response).getErrors().get(0).getMessage()).isEqualTo("IMPORT_ARCHIVEUNITPROFILE.EMPTY_REQUIRED_FIELD.KO");
+        verifyZeroInteractions(functionalBackupService);
+
+    }
+
+    @Test
+    @RunWithCustomExecutor
+    public void givenTestImportExternalIdentifierMasterMode() throws Exception {
+
+        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
+        final File fileMetadataProfile = PropertiesUtils.getResourceFile("aup_without_identifier_master_mode.json");
+        final List<ArchiveUnitProfileModel> profileModelList =
+            JsonHandler
+                .getFromFileAsTypeRefence(fileMetadataProfile, new TypeReference<List<ArchiveUnitProfileModel>>() {
+                });
+        final RequestResponse response = archiveUnitProfileService.createArchiveUnitProfiles(profileModelList);
+        final RequestResponseOK<ArchiveUnitProfileModel> responseCast =
+            (RequestResponseOK<ArchiveUnitProfileModel>) response;
+        assertThat(responseCast.getResults()).hasSize(1);
+
+        // We juste test the first profile
+        final ArchiveUnitProfileModel acm = responseCast.getResults().iterator().next();
+        assertThat(acm).isNotNull();
+        assertThat(acm.getIdentifier()).startsWith("AUP-");
+
+    }
+    @Test
+    @RunWithCustomExecutor
     public void givenTestFindAllThenReturnTwoProfiles() throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         final File fileMetadataProfile = PropertiesUtils.getResourceFile("AUP_ok_id.json");
