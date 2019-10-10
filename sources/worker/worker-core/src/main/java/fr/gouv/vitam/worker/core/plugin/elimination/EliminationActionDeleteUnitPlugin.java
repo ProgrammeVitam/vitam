@@ -50,8 +50,8 @@ import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 import fr.gouv.vitam.storage.engine.client.exception.StorageServerClientException;
 import fr.gouv.vitam.worker.common.HandlerIO;
+import fr.gouv.vitam.worker.core.exception.ProcessingStatusException;
 import fr.gouv.vitam.worker.core.handler.ActionHandler;
-import fr.gouv.vitam.worker.core.plugin.elimination.exception.EliminationException;
 import fr.gouv.vitam.worker.core.plugin.elimination.model.EliminationActionUnitStatus;
 import fr.gouv.vitam.worker.core.plugin.elimination.report.EliminationActionReportService;
 import fr.gouv.vitam.worker.core.plugin.elimination.report.EliminationActionUnitReportEntry;
@@ -119,7 +119,7 @@ public class EliminationActionDeleteUnitPlugin extends ActionHandler {
 
             return itemStatuses;
 
-        } catch (EliminationException e) {
+        } catch (ProcessingStatusException e) {
             LOGGER.error("Elimination action delete unit failed with status " + e.getStatusCode(), e);
             return singletonList(
                 buildItemStatus(ELIMINATION_ACTION_DELETE_UNIT, e.getStatusCode(), e.getEventDetails()));
@@ -127,7 +127,7 @@ public class EliminationActionDeleteUnitPlugin extends ActionHandler {
     }
 
     private List<ItemStatus> processUnits(String processId, List<JsonNode> units)
-        throws EliminationException {
+        throws ProcessingStatusException {
 
         List<String> unitIds = units.stream()
             .map(unit -> unit.get(VitamFieldsHelper.id()).asText())
@@ -175,19 +175,19 @@ public class EliminationActionDeleteUnitPlugin extends ActionHandler {
             eliminationActionDeleteService.deleteUnits(unitsToDelete);
         } catch (MetaDataExecutionException | MetaDataClientServerException |
             LogbookClientBadRequestException | StorageServerClientException | LogbookClientServerException e) {
-            throw new EliminationException(StatusCode.FATAL,
+            throw new ProcessingStatusException(StatusCode.FATAL,
                 "Could not delete units [" + String.join(", ", unitsToDelete) + "]", e);
         }
 
         return itemStatuses;
     }
 
-    private Set<String> getUnitsToDelete(Set<String> unitIds) throws EliminationException {
+    private Set<String> getUnitsToDelete(Set<String> unitIds) throws ProcessingStatusException {
         Set<String> unitsWithChildren = getUnitsWithChildren(unitIds);
         return SetUtils.difference(unitIds, unitsWithChildren);
     }
 
-    private Set<String> getUnitsWithChildren(Set<String> unitIds) throws EliminationException {
+    private Set<String> getUnitsWithChildren(Set<String> unitIds) throws ProcessingStatusException {
 
         try (MetaDataClient metaDataClient = metaDataClientFactory.getClient()) {
 
@@ -211,7 +211,7 @@ public class EliminationActionDeleteUnitPlugin extends ActionHandler {
             return result;
 
         } catch (InvalidParseOperationException | InvalidCreateOperationException | MetaDataExecutionException | MetaDataDocumentSizeException | MetaDataClientServerException e) {
-            throw new EliminationException(StatusCode.FATAL, "Could not check child units", e);
+            throw new ProcessingStatusException(StatusCode.FATAL, "Could not check child units", e);
         }
     }
 

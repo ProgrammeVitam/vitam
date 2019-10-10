@@ -55,11 +55,11 @@ import fr.gouv.vitam.metadata.client.MetaDataClientFactory;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 import fr.gouv.vitam.worker.common.HandlerIO;
+import fr.gouv.vitam.worker.core.exception.ProcessingStatusException;
 import fr.gouv.vitam.worker.core.handler.ActionHandler;
 import fr.gouv.vitam.worker.core.plugin.reclassification.dsl.ParsedReclassificationDslRequest;
 import fr.gouv.vitam.worker.core.plugin.reclassification.dsl.ParsedReclassificationDslRequestEntry;
 import fr.gouv.vitam.worker.core.plugin.reclassification.dsl.ReclassificationRequestDslParser;
-import fr.gouv.vitam.worker.core.plugin.reclassification.exception.ReclassificationException;
 import fr.gouv.vitam.worker.core.plugin.reclassification.model.ReclassificationEventDetails;
 import fr.gouv.vitam.worker.core.plugin.reclassification.model.ReclassificationOrders;
 import fr.gouv.vitam.worker.core.plugin.reclassification.utils.UnitGraphInfoLoader;
@@ -168,7 +168,7 @@ public class ReclassificationPreparationLoadRequestHandler extends ActionHandler
             // Store request
             storeReclassificationOrders(handler, reclassificationOrders);
 
-        } catch (ReclassificationException e) {
+        } catch (ProcessingStatusException e) {
             LOGGER.error("Reclassification request loading failed with status [" + e.getStatusCode() + "]", e);
             return buildItemStatus(RECLASSIFICATION_PREPARATION_LOAD_REQUEST, e.getStatusCode(), e.getEventDetails());
         }
@@ -178,16 +178,16 @@ public class ReclassificationPreparationLoadRequestHandler extends ActionHandler
         return buildItemStatus(RECLASSIFICATION_PREPARATION_LOAD_REQUEST, StatusCode.OK, null);
     }
 
-    private JsonNode loadReclassificationRequestJsonFromWorkspace(HandlerIO handler) throws ReclassificationException {
+    private JsonNode loadReclassificationRequestJsonFromWorkspace(HandlerIO handler) throws ProcessingStatusException {
         try {
             return handler.getJsonFromWorkspace("request.json");
         } catch (ProcessingException e) {
-            throw new ReclassificationException(StatusCode.FATAL, COULD_NOT_LOAD_REQUEST_FROM_WORKSPACE, e);
+            throw new ProcessingStatusException(StatusCode.FATAL, COULD_NOT_LOAD_REQUEST_FROM_WORKSPACE, e);
         }
     }
 
     private ParsedReclassificationDslRequest parseReclassificationDslRequest(JsonNode reclassificationDslJson)
-        throws ReclassificationException {
+        throws ProcessingStatusException {
 
         ParsedReclassificationDslRequest parsedReclassificationDslRequest;
         try {
@@ -195,7 +195,7 @@ public class ReclassificationPreparationLoadRequestHandler extends ActionHandler
                 reclassificationRequestDslParser.parseReclassificationRequest(reclassificationDslJson);
         } catch (InvalidParseOperationException e) {
             String error = COULD_NOT_PARSE_RECLASSIFICATION_REQUEST;
-            throw new ReclassificationException(StatusCode.KO,
+            throw new ProcessingStatusException(StatusCode.KO,
                 new ReclassificationEventDetails().setError(error),
                 error, e);
         }
@@ -204,21 +204,21 @@ public class ReclassificationPreparationLoadRequestHandler extends ActionHandler
     }
 
     private void checkMaxRequestCount(ParsedReclassificationDslRequest parsedReclassificationDslRequest)
-        throws ReclassificationException {
+        throws ProcessingStatusException {
         if (parsedReclassificationDslRequest.getEntries().size() > maxBulkThreshold) {
             String error = String.format("Too many reclassification requests (count= %d, max= %d)",
                 parsedReclassificationDslRequest.getEntries().size(), maxBulkThreshold);
-            throw new ReclassificationException(StatusCode.KO, new ReclassificationEventDetails().setError(error),
+            throw new ProcessingStatusException(StatusCode.KO, new ReclassificationEventDetails().setError(error),
                 error);
         }
     }
 
     private AccessContractModel getAccessContract()
-        throws ReclassificationException {
+        throws ProcessingStatusException {
 
         String accessContractId = VitamThreadUtils.getVitamSession().getContractId();
         if (accessContractId == null) {
-            throw new ReclassificationException(StatusCode.KO,
+            throw new ProcessingStatusException(StatusCode.KO,
                 new ReclassificationEventDetails().setError(NO_ACCESS_CONTRACT_PROVIDED),
                 NO_ACCESS_CONTRACT_PROVIDED);
         }
@@ -234,7 +234,7 @@ public class ReclassificationPreparationLoadRequestHandler extends ActionHandler
             RequestResponse<AccessContractModel> response = client.findAccessContracts(queryDsl);
 
             if (!response.isOk() || ((RequestResponseOK<AccessContractModel>) response).getResults().size() == 0) {
-                throw new ReclassificationException(StatusCode.KO,
+                throw new ProcessingStatusException(StatusCode.KO,
                     new ReclassificationEventDetails().setError(ACCESS_CONTRACT_NOT_FOUND_OR_NOT_ACTIVE),
                     String.format("Access contract not found or not active '%s'", accessContractId));
             }
@@ -242,13 +242,13 @@ public class ReclassificationPreparationLoadRequestHandler extends ActionHandler
             List<AccessContractModel> contracts = ((RequestResponseOK<AccessContractModel>) response).getResults();
             return contracts.get(0);
         } catch (InvalidParseOperationException | InvalidCreateOperationException | AdminManagementClientServerException e) {
-            throw new ReclassificationException(StatusCode.FATAL,
+            throw new ProcessingStatusException(StatusCode.FATAL,
                 String.format("An error occurred during access contract loading '%s'", accessContractId), e);
         }
     }
 
     private void checkParentAccessContract(ParsedReclassificationDslRequest parsedReclassificationDslRequest,
-        AccessContractModel accessContractModel) throws ReclassificationException {
+        AccessContractModel accessContractModel) throws ProcessingStatusException {
 
         try (MetaDataClient metaDataClient = metaDataClientFactory.getClient()) {
 
@@ -278,18 +278,18 @@ public class ReclassificationPreparationLoadRequestHandler extends ActionHandler
 
             ReclassificationEventDetails eventDetails = new ReclassificationEventDetails().setError(error)
                 .setMissingOrForbiddenUnits(firstNotFoundUnitIds);
-            throw new ReclassificationException(StatusCode.KO, eventDetails, error);
+            throw new ProcessingStatusException(StatusCode.KO, eventDetails, error);
 
         } catch (InvalidCreateOperationException | InvalidParseOperationException | VitamDBException
             | MetaDataExecutionException | MetaDataDocumentSizeException | MetaDataClientServerException e) {
-            throw new ReclassificationException(StatusCode.FATAL, "Could not check unit ids", e);
+            throw new ProcessingStatusException(StatusCode.FATAL, "Could not check unit ids", e);
         }
     }
 
     private ReclassificationOrders selectReclassificationOrders(
         ParsedReclassificationDslRequest parsedReclassificationDslRequest,
         AccessContractModel accessContractModel)
-        throws ReclassificationException {
+        throws ProcessingStatusException {
 
         try (MetaDataClient metaDataClient = metaDataClientFactory.getClient()) {
 
@@ -312,29 +312,29 @@ public class ReclassificationPreparationLoadRequestHandler extends ActionHandler
 
         } catch (InvalidParseOperationException | InvalidCreateOperationException e) {
             String error = "Could not parse reclassification request";
-            throw new ReclassificationException(StatusCode.KO,
+            throw new ProcessingStatusException(StatusCode.KO,
                 new ReclassificationEventDetails().setError(error),
                 error, e);
         } catch (VitamDBException | MetaDataExecutionException | MetaDataDocumentSizeException | MetaDataClientServerException e) {
             String error = "Could not select units to update";
-            throw new ReclassificationException(StatusCode.FATAL,
+            throw new ProcessingStatusException(StatusCode.FATAL,
                 new ReclassificationEventDetails().setError(error),
                 error, e);
         }
     }
 
-    private void checkMinUnitsToUpdate(ReclassificationOrders reclassificationOrders) throws ReclassificationException {
+    private void checkMinUnitsToUpdate(ReclassificationOrders reclassificationOrders) throws ProcessingStatusException {
         if (reclassificationOrders.getChildToParentAttachments().isEmpty()
             && reclassificationOrders.getChildToParentDetachments().isEmpty()) {
             String error = NO_UNITS_TO_UPDATE;
-            throw new ReclassificationException(StatusCode.KO,
+            throw new ProcessingStatusException(StatusCode.KO,
                 new ReclassificationEventDetails().setError(error),
                 error);
         }
     }
 
     private void checkMaxDistinctUnits(ReclassificationOrders reclassificationUpdates)
-        throws ReclassificationException {
+        throws ProcessingStatusException {
 
         Set<String> childUnitIds = union(
             reclassificationUpdates.getChildToParentAttachments().keySet(),
@@ -344,13 +344,13 @@ public class ReclassificationPreparationLoadRequestHandler extends ActionHandler
             String error = String.format(
                 "Too many units in reclassification request (count= %d, max=%d)",
                 childUnitIds.size(), maxUnitsThreshold);
-            throw new ReclassificationException(StatusCode.KO, new ReclassificationEventDetails().setError(error),
+            throw new ProcessingStatusException(StatusCode.KO, new ReclassificationEventDetails().setError(error),
                 error);
         }
     }
 
     private void checkAttachmentAndDetachmentForSameParent(ReclassificationOrders reclassificationOrders)
-        throws ReclassificationException {
+        throws ProcessingStatusException {
 
         Set<String> unitsWithBothAttachmentsAndDetachments = SetUtils.intersection(
             reclassificationOrders.getChildToParentAttachments().keySet(),
@@ -365,7 +365,7 @@ public class ReclassificationPreparationLoadRequestHandler extends ActionHandler
 
             if (!duplicateIds.isEmpty()) {
                 String error = CANNOT_ATTACH_DETACH_SAME_PARENT_UNITS;
-                throw new ReclassificationException(StatusCode.KO,
+                throw new ProcessingStatusException(StatusCode.KO,
                     new ReclassificationEventDetails().setError(error),
                     error);
             }
@@ -373,11 +373,11 @@ public class ReclassificationPreparationLoadRequestHandler extends ActionHandler
     }
 
     private void storeReclassificationOrders(HandlerIO handler, ReclassificationOrders reclassificationOrders)
-        throws ReclassificationException {
+        throws ProcessingStatusException {
         try {
             handler.addOutputResult(RECLASSIFICATION_ORDERS_PARAMETER_RANK, reclassificationOrders, false);
         } catch (ProcessingException e) {
-            throw new ReclassificationException(StatusCode.FATAL, "Could not store reclassification orders", e);
+            throw new ProcessingStatusException(StatusCode.FATAL, "Could not store reclassification orders", e);
         }
     }
 

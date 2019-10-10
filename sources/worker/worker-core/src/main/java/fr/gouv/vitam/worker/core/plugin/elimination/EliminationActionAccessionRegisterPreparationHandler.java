@@ -34,8 +34,8 @@ import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 import fr.gouv.vitam.worker.common.HandlerIO;
+import fr.gouv.vitam.worker.core.exception.ProcessingStatusException;
 import fr.gouv.vitam.worker.core.handler.ActionHandler;
-import fr.gouv.vitam.worker.core.plugin.elimination.exception.EliminationException;
 import fr.gouv.vitam.worker.core.plugin.elimination.report.EliminationActionReportService;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
 
@@ -83,7 +83,7 @@ public class EliminationActionAccessionRegisterPreparationHandler extends Action
             LOGGER.info("Elimination action accession register preparation succeeded");
             return buildItemStatus(ELIMINATION_ACTION_ACCESSION_REGISTER_PREPARATION, StatusCode.OK, null);
 
-        } catch (EliminationException e) {
+        } catch (ProcessingStatusException e) {
             LOGGER.error(
                 String
                     .format("Elimination action accession register preparation failed with status [%s]",
@@ -94,7 +94,7 @@ public class EliminationActionAccessionRegisterPreparationHandler extends Action
         }
     }
 
-    private void exportAccessionRegister(String processId) throws EliminationException {
+    private void exportAccessionRegister(String processId) throws ProcessingStatusException {
 
         eliminationActionReportService.exportAccessionRegisters(processId);
 

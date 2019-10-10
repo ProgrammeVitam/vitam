@@ -11,7 +11,7 @@ import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 import fr.gouv.vitam.processing.common.parameter.WorkerParametersFactory;
 import fr.gouv.vitam.worker.common.HandlerIO;
-import fr.gouv.vitam.worker.core.plugin.elimination.exception.EliminationException;
+import fr.gouv.vitam.worker.core.exception.ProcessingStatusException;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
@@ -87,7 +87,7 @@ public class EliminationActionDetachObjectGroupPluginTest {
     @RunWithCustomExecutor
     public void testExecute_WhenExceptionExpectFatal() throws Exception {
 
-        doThrow(new EliminationException(StatusCode.FATAL, null)).when(eliminationActionDeleteService)
+        doThrow(new ProcessingStatusException(StatusCode.FATAL, null)).when(eliminationActionDeleteService)
             .detachObjectGroupFromDeleteParentUnits(any(), any(), any());
 
         ItemStatus itemStatus = instance.execute(params, handler);

@@ -38,7 +38,7 @@ import fr.gouv.vitam.metadata.core.rules.model.InheritedRuleCategoryResponseMode
 import fr.gouv.vitam.metadata.core.rules.model.UnitInheritedRulesResponseModel;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 import fr.gouv.vitam.worker.common.HandlerIO;
-import fr.gouv.vitam.worker.core.plugin.elimination.exception.EliminationException;
+import fr.gouv.vitam.worker.core.exception.ProcessingStatusException;
 import fr.gouv.vitam.worker.core.plugin.elimination.model.EliminationAnalysisResult;
 import fr.gouv.vitam.worker.core.plugin.elimination.model.EliminationEventDetails;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundException;
@@ -60,7 +60,7 @@ public final class EliminationUtils {
     public static EliminationAnalysisResult computeEliminationAnalysisForUnitWithInheritedRules(JsonNode unit,
         EliminationAnalysisService eliminationAnalysisService,
         WorkerParameters param,
-        LocalDate expirationDate) throws EliminationException {
+        LocalDate expirationDate) throws ProcessingStatusException {
 
         InheritedRuleCategoryResponseModel inheritedRuleCategory =
             EliminationUtils.parseAppraisalRuleCategory(unit);
@@ -79,7 +79,7 @@ public final class EliminationUtils {
 
 
     private static InheritedRuleCategoryResponseModel parseAppraisalRuleCategory(JsonNode unit)
-        throws EliminationException {
+        throws ProcessingStatusException {
 
         try {
             JsonNode inheritedRules = unit.get(MetadataRuleService.INHERITED_RULES);
@@ -90,20 +90,20 @@ public final class EliminationUtils {
             return unitInheritedRulesResponseModel.getRuleCategories().get(VitamConstants.TAG_RULE_APPRAISAL);
 
         } catch (InvalidParseOperationException e) {
-            throw new EliminationException(StatusCode.FATAL, "Could not parse unit information", e);
+            throw new ProcessingStatusException(StatusCode.FATAL, "Could not parse unit information", e);
         }
     }
 
-    public static EliminationRequestBody loadRequestJsonFromWorkspace(HandlerIO handler) throws EliminationException {
+    public static EliminationRequestBody loadRequestJsonFromWorkspace(HandlerIO handler) throws ProcessingStatusException {
         try {
             return JsonHandler.getFromInputStream(
                 handler.getInputStreamFromWorkspace(REQUEST_JSON), EliminationRequestBody.class);
         } catch (ContentAddressableStorageServerException | ContentAddressableStorageNotFoundException | IOException e) {
-            throw new EliminationException(StatusCode.FATAL, COULD_NOT_LOAD_REQUEST_FROM_WORKSPACE, e);
+            throw new ProcessingStatusException(StatusCode.FATAL, COULD_NOT_LOAD_REQUEST_FROM_WORKSPACE, e);
         } catch (InvalidParseOperationException e) {
             EliminationEventDetails eventDetails = new EliminationEventDetails()
                 .setError(INVALID_REQUEST);
-            throw new EliminationException(StatusCode.KO, eventDetails, INVALID_REQUEST, e);
+            throw new ProcessingStatusException(StatusCode.KO, eventDetails, INVALID_REQUEST, e);
         }
     }
 }

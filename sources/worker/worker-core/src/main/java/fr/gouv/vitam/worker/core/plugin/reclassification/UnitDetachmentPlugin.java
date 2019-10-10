@@ -55,8 +55,8 @@ import fr.gouv.vitam.metadata.client.MetaDataClientFactory;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 import fr.gouv.vitam.worker.common.HandlerIO;
+import fr.gouv.vitam.worker.core.exception.ProcessingStatusException;
 import fr.gouv.vitam.worker.core.handler.ActionHandler;
-import fr.gouv.vitam.worker.core.plugin.reclassification.exception.ReclassificationException;
 import fr.gouv.vitam.worker.core.plugin.reclassification.model.ReclassificationEventDetails;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
 
@@ -112,7 +112,7 @@ public class UnitDetachmentPlugin extends ActionHandler {
 
             updateUnitLifeCycle(param, unitId, parentUnitsToRemove);
 
-        } catch (ReclassificationException e) {
+        } catch (ProcessingStatusException e) {
             LOGGER.error("Unit detachment failed with status [" + e.getStatusCode() + "]", e);
             return buildItemStatus(UNIT_DETACHMENT, e.getStatusCode(), e.getEventDetails());
         }
@@ -123,17 +123,17 @@ public class UnitDetachmentPlugin extends ActionHandler {
     }
 
     private Set<String> getParentsToRemove(HandlerIO handler, String unitId)
-        throws ProcessingException, ReclassificationException {
+        throws ProcessingException, ProcessingStatusException {
         try {
             JsonNode detachmentJson = handler
                 .getJsonFromWorkspace(UNITS_TO_DETACH_DIR + "/" + unitId);
             return JsonHandler.getFromJsonNode(detachmentJson, Set.class);
         } catch (InvalidParseOperationException e) {
-            throw new ReclassificationException(StatusCode.FATAL, "Could not parse detachment json", e);
+            throw new ProcessingStatusException(StatusCode.FATAL, "Could not parse detachment json", e);
         }
     }
 
-    private void updateUnit(String unitId, Set<String> parentUnitsToAdd) throws ReclassificationException {
+    private void updateUnit(String unitId, Set<String> parentUnitsToAdd) throws ProcessingStatusException {
 
         try (
             MetaDataClient metaDataClient = metaDataClientFactory.getClient()) {
@@ -146,13 +146,13 @@ public class UnitDetachmentPlugin extends ActionHandler {
             metaDataClient.updateUnitById(updateMultiQuery.getFinalUpdate(), unitId);
 
         } catch (MetaDataDocumentSizeException | MetaDataClientServerException | MetaDataExecutionException | MetaDataNotFoundException | InvalidParseOperationException | InvalidCreateOperationException e) {
-            throw new ReclassificationException(StatusCode.FATAL, "An error occurred during unit detachment", e);
+            throw new ProcessingStatusException(StatusCode.FATAL, "An error occurred during unit detachment", e);
         }
 
     }
 
     private void updateUnitLifeCycle(WorkerParameters param, String unitId, Set<String> parentUnitsToRemove)
-        throws ReclassificationException {
+        throws ProcessingStatusException {
         try (LogbookLifeCyclesClient logbookLifeCyclesClient = logbookLifeCyclesClientFactory.getClient()) {
 
             ReclassificationEventDetails eventDetails = new ReclassificationEventDetails()
@@ -164,7 +164,7 @@ public class UnitDetachmentPlugin extends ActionHandler {
             logbookLifeCyclesClient.update(logbookLCParam, LifeCycleStatusCode.LIFE_CYCLE_COMMITTED);
 
         } catch (VitamException e) {
-            throw new ReclassificationException(StatusCode.FATAL,
+            throw new ProcessingStatusException(StatusCode.FATAL,
                 "An error occurred during lifecycle update for unit " + unitId, e);
         }
     }

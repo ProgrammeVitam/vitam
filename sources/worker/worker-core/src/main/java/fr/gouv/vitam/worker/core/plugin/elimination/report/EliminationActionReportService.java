@@ -42,7 +42,7 @@ import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.stream.VitamAsyncInputStream;
 import fr.gouv.vitam.worker.core.distribution.JsonLineIterator;
 import fr.gouv.vitam.worker.core.distribution.JsonLineModel;
-import fr.gouv.vitam.worker.core.plugin.elimination.exception.EliminationException;
+import fr.gouv.vitam.worker.core.exception.ProcessingStatusException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
 import fr.gouv.vitam.workspace.client.WorkspaceClient;
@@ -77,19 +77,19 @@ public class EliminationActionReportService {
     }
 
     public void appendUnitEntries(String processId, List<EliminationActionUnitReportEntry> entries)
-        throws EliminationException {
+        throws ProcessingStatusException {
 
         appendEntries(processId, entries, ReportType.ELIMINATION_ACTION_UNIT);
     }
 
     public void appendObjectGroupEntries(String processId, List<EliminationActionObjectGroupReportEntry> entries)
-        throws EliminationException {
+        throws ProcessingStatusException {
 
         appendEntries(processId, entries, ReportType.ELIMINATION_ACTION_OBJECTGROUP);
     }
 
     private void appendEntries(String processId, List<?> entries, ReportType reportType)
-        throws EliminationException {
+        throws ProcessingStatusException {
 
         List<JsonNode> metadataEntries = entries.stream()
             .map(EliminationActionReportService::pojoToJson).collect(Collectors.toList());
@@ -101,7 +101,7 @@ public class EliminationActionReportService {
             reportBody.setEntries(metadataEntries);
             batchReportClient.appendReportEntries(reportBody);
         } catch (VitamClientInternalException e) {
-            throw new EliminationException(StatusCode.FATAL, "Could not append entries into report", e);
+            throw new ProcessingStatusException(StatusCode.FATAL, "Could not append entries into report", e);
         }
     }
 
@@ -114,7 +114,7 @@ public class EliminationActionReportService {
     }
 
     public CloseableIterator<EliminationActionUnitReportEntry> exportUnits(String processId)
-        throws EliminationException {
+        throws ProcessingStatusException {
 
         try (BatchReportClient batchReportClient = batchReportClientFactory.getClient()) {
 
@@ -122,7 +122,7 @@ public class EliminationActionReportService {
                 new ReportExportRequest(UNIT_REPORT_JSONL));
 
         } catch (VitamClientInternalException e) {
-            throw new EliminationException(StatusCode.FATAL, "Could not generate unit report to workspace", e);
+            throw new ProcessingStatusException(StatusCode.FATAL, "Could not generate unit report to workspace", e);
         }
 
         try (WorkspaceClient workspaceClient = workspaceClientFactory.getClient()) {
@@ -140,11 +140,11 @@ public class EliminationActionReportService {
             });
 
         } catch (ContentAddressableStorageServerException | ContentAddressableStorageNotFoundException e) {
-            throw new EliminationException(StatusCode.FATAL, "Could not load report from workspace", e);
+            throw new ProcessingStatusException(StatusCode.FATAL, "Could not load report from workspace", e);
         }
     }
 
-    public CloseableIterator<String> exportDistinctObjectGroups(String processId) throws EliminationException {
+    public CloseableIterator<String> exportDistinctObjectGroups(String processId) throws ProcessingStatusException {
 
         try (BatchReportClient batchReportClient = batchReportClientFactory.getClient()) {
 
@@ -152,7 +152,7 @@ public class EliminationActionReportService {
                 new ReportExportRequest(DISTINCT_REPORT_JSONL));
 
         } catch (VitamClientInternalException e) {
-            throw new EliminationException(StatusCode.FATAL,
+            throw new ProcessingStatusException(StatusCode.FATAL,
                 "Could not generate distinct object group report for deleted units to workspace", e);
         }
 
@@ -164,12 +164,12 @@ public class EliminationActionReportService {
             return CloseableIteratorUtils.map(jsonLineIterator, JsonLineModel::getId);
 
         } catch (ContentAddressableStorageServerException | ContentAddressableStorageNotFoundException e) {
-            throw new EliminationException(StatusCode.FATAL, "Could not load report from workspace", e);
+            throw new ProcessingStatusException(StatusCode.FATAL, "Could not load report from workspace", e);
         }
     }
 
     public CloseableIterator<EliminationActionObjectGroupReportExportEntry> exportObjectGroups(String processId)
-        throws EliminationException {
+        throws ProcessingStatusException {
 
         try (BatchReportClient batchReportClient = batchReportClientFactory.getClient()) {
 
@@ -177,7 +177,7 @@ public class EliminationActionReportService {
                 new ReportExportRequest(OBJECT_GROUP_REPORT_JSONL));
 
         } catch (VitamClientInternalException e) {
-            throw new EliminationException(StatusCode.FATAL, "Could not generate unit report to workspace", e);
+            throw new ProcessingStatusException(StatusCode.FATAL, "Could not generate unit report to workspace", e);
         }
 
         try (WorkspaceClient workspaceClient = workspaceClientFactory.getClient()) {
@@ -196,11 +196,11 @@ public class EliminationActionReportService {
             });
 
         } catch (ContentAddressableStorageServerException | ContentAddressableStorageNotFoundException e) {
-            throw new EliminationException(StatusCode.FATAL, "Could not load report from workspace", e);
+            throw new ProcessingStatusException(StatusCode.FATAL, "Could not load report from workspace", e);
         }
     }
 
-    public void exportAccessionRegisters(String processId) throws EliminationException {
+    public void exportAccessionRegisters(String processId) throws ProcessingStatusException {
 
         try (BatchReportClient batchReportClient = batchReportClientFactory.getClient()) {
 
@@ -209,17 +209,17 @@ public class EliminationActionReportService {
                 new ReportExportRequest(ACCESSION_REGISTER_REPORT_JSONL));
 
         } catch (VitamClientInternalException e) {
-            throw new EliminationException(StatusCode.FATAL,
+            throw new ProcessingStatusException(StatusCode.FATAL,
                 "Could not generate elimination action accession register reports (" + processId + ")", e);
         }
     }
 
-    public void cleanupReport(String processId) throws EliminationException {
+    public void cleanupReport(String processId) throws ProcessingStatusException {
         try (BatchReportClient batchReportClient = batchReportClientFactory.getClient()) {
             batchReportClient.cleanupReport(processId, ReportType.ELIMINATION_ACTION_UNIT);
             batchReportClient.cleanupReport(processId, ReportType.ELIMINATION_ACTION_OBJECTGROUP);
         } catch (VitamClientInternalException e) {
-            throw new EliminationException(StatusCode.FATAL,
+            throw new ProcessingStatusException(StatusCode.FATAL,
                 "Could not cleanup elimination action reports (" + processId + ")", e);
         }
     }

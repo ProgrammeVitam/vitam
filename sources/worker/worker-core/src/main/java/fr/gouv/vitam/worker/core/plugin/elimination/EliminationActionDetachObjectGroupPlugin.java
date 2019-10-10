@@ -36,8 +36,8 @@ import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 import fr.gouv.vitam.worker.common.HandlerIO;
+import fr.gouv.vitam.worker.core.exception.ProcessingStatusException;
 import fr.gouv.vitam.worker.core.handler.ActionHandler;
-import fr.gouv.vitam.worker.core.plugin.elimination.exception.EliminationException;
 
 import java.util.Set;
 
@@ -93,7 +93,7 @@ public class EliminationActionDetachObjectGroupPlugin extends ActionHandler {
 
             return buildItemStatus(ELIMINATION_ACTION_DETACH_OBJECT_GROUP, StatusCode.OK, null);
 
-        } catch (EliminationException e) {
+        } catch (ProcessingStatusException e) {
             LOGGER.error("Object group " + objectGroupId + " detachment from parents failed with status" +
                 " [" + e.getStatusCode() + "]", e);
             return buildItemStatus(ELIMINATION_ACTION_DETACH_OBJECT_GROUP, e.getStatusCode(), e.getEventDetails());
@@ -101,11 +101,11 @@ public class EliminationActionDetachObjectGroupPlugin extends ActionHandler {
     }
 
     private Set<String> getParentUnitsToRemove(WorkerParameters params)
-        throws EliminationException {
+        throws ProcessingStatusException {
         try {
             return JsonHandler.getFromJsonNode(params.getObjectMetadata(), STRING_SET_TYPE_REFERENCE);
         } catch (Exception e) {
-            throw new EliminationException(StatusCode.FATAL, "Could not retrieve parent units to detach", e);
+            throw new ProcessingStatusException(StatusCode.FATAL, "Could not retrieve parent units to detach", e);
         }
     }
 

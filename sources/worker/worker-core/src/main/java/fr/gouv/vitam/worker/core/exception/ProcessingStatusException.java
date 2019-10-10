@@ -24,57 +24,31 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  *******************************************************************************/
-package fr.gouv.vitam.worker.core.plugin.elimination.exception;
+package fr.gouv.vitam.worker.core.exception;
 
-import fr.gouv.vitam.common.exception.VitamException;
 import fr.gouv.vitam.common.model.StatusCode;
-import fr.gouv.vitam.worker.core.plugin.elimination.model.EliminationEventDetails;
 
-/**
- * checkUnitOrphanException
- */
-public class EliminationException extends VitamException {
-
+public class ProcessingStatusException extends Exception {
 
     private final StatusCode statusCode;
-    private final EliminationEventDetails eventDetails;
+    private final Object eventDetails;
 
-    /**
-     * @param statusCode associated status code
-     * @param message associated message
-     * @param cause associated cause
-     */
-    public EliminationException(StatusCode statusCode, String message, Throwable cause) {
+    public ProcessingStatusException(StatusCode statusCode, String message, Throwable cause) {
         this(statusCode, null, message, cause);
     }
 
-    /**
-     * @param statusCode associated status code
-     * @param message associated message
-     */
-    public EliminationException(StatusCode statusCode, String message) {
+    public ProcessingStatusException(StatusCode statusCode, String message) {
         this(statusCode, null, message, null);
     }
 
-    /**
-     * @param statusCode associated status code
-     * @param eventDetails event details
-     * @param message associated message
-     * @param cause associated cause
-     */
-    public EliminationException(StatusCode statusCode, EliminationEventDetails eventDetails, String message,
+    public ProcessingStatusException(StatusCode statusCode, Object eventDetails, String message,
         Throwable cause) {
         super(message, cause);
         this.statusCode = statusCode;
         this.eventDetails = eventDetails;
     }
 
-    /**
-     * @param statusCode associated status code
-     * @param eventDetails associated event details
-     * @param message associated message
-     */
-    public EliminationException(StatusCode statusCode, EliminationEventDetails eventDetails, String message) {
+    public ProcessingStatusException(StatusCode statusCode, Object eventDetails, String message) {
         this(statusCode, eventDetails, message, null);
     }
 
@@ -82,7 +56,7 @@ public class EliminationException extends VitamException {
         return statusCode;
     }
 
-    public EliminationEventDetails getEventDetails() {
+    public Object getEventDetails() {
         return eventDetails;
     }
 }
