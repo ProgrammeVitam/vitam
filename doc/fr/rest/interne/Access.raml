@@ -281,6 +281,31 @@ documentation:
         Response model for one Logbook unit life cycle item. The request is using POST with X-Http-Method-Override: GET
       is: [LogbookTraits.UnitLifeCycleItemResponse, StandardTraits.OverrideGet]
 
+/transfers/reply:
+  displayName: Transfer Reply
+  description: |
+    Démarage du traitement de l'ATR adressé par le SAE cible dans le cas d'un transfert
+  post:
+    headers:
+      Accept:
+        required: true
+        enum: [ "application/xml" ]
+      Content-Type:
+        required: true
+        enum: [ "application/json" ]
+    description: |
+      Démarage du traitement de l'ATR adressé par le SAE cible dans le cas d'un transfert
+    is: [AccessTraits.TransferReplyResponseAsync]
+    responses:
+      200:
+        description: Lancement du traitement
+        body:
+          application/json:
+      500:
+        description: Des erreurs interne
+        body:
+          application/json:
+
 /objectlifecycles:
   displayName: Object Life Cycle Logbook
   description: |

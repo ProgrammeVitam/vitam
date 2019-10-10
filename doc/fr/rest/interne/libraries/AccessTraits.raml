@@ -328,3 +328,25 @@ traits:
           application/json:
             description: Metadata
             example: !include examples/accessObjectRawResponse.json
+
+  TransferReplyResponseAsync:
+    description: Requête de transfert reply
+    is: [ StandardTraits.StandardOptionalHeader, StandardTraits.StandardHeader202 ]
+    body:
+      application/json:
+        description: Body contient la requête ayant un DSL **multiple** et d'autres paramètres au format JSON.
+        type: AccessTypes.TransferRequest
+    responses:
+      202:
+        description: |
+          Renvoie le statut de l'opération de Transfer
+        body:
+          application/json:
+            description: Operation de Transfer acceptée
+            schema: StandardTypes.AsyncStatus
+            example: !include examples/transfer.json
+      500:
+        description: Renvoie ce statut en cas d'erreur interne
+        body:
+          application/json:
+            description: Internal server error
