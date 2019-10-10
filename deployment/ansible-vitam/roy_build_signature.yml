@@ -1,9 +1,11 @@
 ---
 
 - hosts: hosts-worker
+  gather_facts: no
   roles:
     - roy_build_signature
 
 - hosts: hosts-ingest-external
+  gather_facts: no
   roles:
     - roy_build_signature

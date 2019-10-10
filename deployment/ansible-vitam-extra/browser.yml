@@ -1,5 +1,6 @@
 ---
 
 - hosts: vitam
+  any_errors_fatal: true
   roles:
     - vitam_browser

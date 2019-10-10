@@ -14,6 +14,7 @@
 # Confirm launching this playbook
 - hosts: all
   any_errors_fatal: yes
+  gather_facts: no
   vars_prompt:
     name: "confirmation"
     prompt: "Are you sure you want to run this playbook? Answer with 'YES'"
@@ -32,30 +33,35 @@
 
 ### HOSTS NORMALIZATION ###
 - hosts: vitam
+  gather_facts: no
   any_errors_fatal: true
   roles:
     - normalize-host
 
 ### syslog daemon install
 - hosts: vitam
+  gather_facts: no
   any_errors_fatal: true
   roles:
     - syslogd
 
 ### CONSUL INSTALLATION ###
 - hosts: hosts-consul-server
+  gather_facts: no
   any_errors_fatal: true
   serial: 1
   roles:
     - consul
 
 - hosts: vitam
+  gather_facts: no
   any_errors_fatal: true
   roles:
     - { role: consul, when: "( inventory_hostname not in groups['hosts-consul-server'] ) and ( consul_disabled is not defined or consul_disabled |lower != 'true' )" }
 
 # ### ELASTICSEARCH LOG INSTALLATION ###
 - hosts: hosts-elasticsearch-log
+  gather_facts: no
   any_errors_fatal: true
   roles:
     - elasticsearch-cluster
@@ -67,11 +73,13 @@
 
 ### LOG SERVER INSTALLATION ###
 - hosts: hosts-logstash
+  gather_facts: no
   any_errors_fatal: true
   roles:
     - logstash
 
 - hosts: hosts-kibana-log
+  gather_facts: no
   any_errors_fatal: true
   roles:
     - kibana
@@ -85,12 +93,14 @@
 
 ### syslog daemon configuration ###
 - hosts: vitam
+  gather_facts: no
   any_errors_fatal: true
   roles:
     - syslogd_configure
 
 ### ELASTICSEARCH DATA INSTALLATION ###
 - hosts: hosts-elasticsearch-data
+  gather_facts: no
   any_errors_fatal: true
   roles:
     - elasticsearch-cluster
@@ -99,12 +109,15 @@
     composant: "{{ elasticsearch.data }}"
 
 - hosts: hosts-cerebro
+  gather_facts: no
   any_errors_fatal: true
   roles:
     - role: cerebro
 
 # OMA: to be discussed wether place & servers are best one..
 - hosts: hosts-kibana-data
+  gather_facts: no
+  any_errors_fatal: true
   roles:
     - vitam
   vars:
@@ -112,6 +125,7 @@
 
 ## KIBANA DATA INSTALLATION ###
 - hosts: hosts-kibana-data
+  gather_facts: no
   any_errors_fatal: true
   roles:
     - kibana
@@ -129,6 +143,7 @@
 
 ## VITAM ####################################################################
 - hosts: hosts-storage-offer-default
+  gather_facts: no
   any_errors_fatal: true
   roles:
     - simulate_tape
@@ -142,6 +157,7 @@
     vitam_certificate_client_type: "storage"
 
 - hosts: hosts-storage-engine
+  gather_facts: no
   any_errors_fatal: true
   roles:
     - vitam
@@ -156,6 +172,7 @@
 
 
 - hosts: hosts-metadata
+  gather_facts: no
   any_errors_fatal: true
   serial: 1
   roles:
@@ -168,6 +185,7 @@
 
 
 - hosts: hosts-logbook
+  gather_facts: no
   any_errors_fatal: true
   serial: 1
   roles:
@@ -181,6 +199,7 @@
 
 
 - hosts: hosts-workspace
+  gather_facts: no
   any_errors_fatal: true
   roles:
     - vitam
@@ -189,6 +208,7 @@
 
 
 - hosts: hosts-functional-administration
+  gather_facts: no
   any_errors_fatal: true
   serial: 1
   roles:
@@ -201,6 +221,7 @@
 
 
 - hosts: hosts-security-internal
+  gather_facts: no
   any_errors_fatal: true
   roles:
     - vitam
@@ -209,6 +230,7 @@
     vitam_struct: "{{ vitam.security_internal }}"
 
 - hosts: hosts-processing
+  gather_facts: no
   any_errors_fatal: true
   roles:
     - vitam
@@ -216,6 +238,7 @@
     vitam_struct: "{{ vitam.processing }}"
 
 - hosts: hosts-batch-report
+  gather_facts: no
   any_errors_fatal: true
   roles:
     - vitam
@@ -223,6 +246,7 @@
     vitam_struct: "{{ vitam.batchreport }}"
 
 - hosts: hosts-worker
+  gather_facts: no
   any_errors_fatal: true
   roles:
     - siegfried
@@ -233,6 +257,7 @@
     vitam_timestamp_usage: secure-logbook
 
 - hosts: hosts-access-internal
+  gather_facts: no
   any_errors_fatal: true
   roles:
     - vitam
@@ -240,6 +265,7 @@
     vitam_struct: "{{ vitam.accessinternal }}"
 
 - hosts: hosts-access-external
+  gather_facts: no
   any_errors_fatal: true
   roles:
     - vitam
@@ -253,6 +279,7 @@
 
 # 2 differents steps, due to https://github.com/ansible/ansible/issues/15476
 - hosts: hosts-access-external
+  gather_facts: no
   any_errors_fatal: true
   roles:
     - { role: init_pronom, when: primary_site | lower == "true" }
@@ -265,6 +292,7 @@
     vitam_certificate_client_type: "external"
 
 - hosts: hosts-ingest-internal
+  gather_facts: no
   any_errors_fatal: true
   roles:
     - vitam
@@ -272,6 +300,7 @@
     vitam_struct: "{{ vitam.ingestinternal }}"
 
 - hosts: hosts-ingest-external
+  gather_facts: no
   any_errors_fatal: true
   roles:
     - siegfried
@@ -288,6 +317,7 @@
     vitam_certificate_client_type: "external"
 
 - hosts: hosts-ihm-demo
+  gather_facts: no
   any_errors_fatal: true
   roles:
     - vitam
