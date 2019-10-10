@@ -50,6 +50,7 @@ import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.model.AuditOptions;
 import fr.gouv.vitam.common.model.ProcessAction;
+import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.model.administration.AccessContractModel;
 import fr.gouv.vitam.common.model.administration.ActivationStatus;
@@ -228,7 +229,8 @@ public class AuditIT extends VitamRuleRunner {
             options.setAuditType("tenant");
             options.setObjectId("" + tenantId);
 
-            adminClient.launchAuditWorkflow(options);
+            RequestResponse<JsonNode> response = adminClient.launchAuditWorkflow(options);
+            assertThat(response.isOk()).isTrue();
             waitOperation(NB_TRY, SLEEP_TIME, operationGuid.toString());
 
             // When
@@ -294,7 +296,7 @@ public class AuditIT extends VitamRuleRunner {
 
         doIngest("elimination/TEST_ELIMINATION.zip");
         doIngest("preservation/OG_with_3_parents.zip");
-        
+
         // Given
         try (AccessInternalClient accessClient = AccessInternalClientFactory.getInstance().getClient();
                 AdminManagementClient adminClient = AdminManagementClientFactory.getInstance().getClient()) {
@@ -309,7 +311,8 @@ public class AuditIT extends VitamRuleRunner {
             options.setAuditType("originatingagency");
             options.setObjectId("FRAN_NP_009913");
 
-            adminClient.launchAuditWorkflow(options);
+            RequestResponse<JsonNode> response = adminClient.launchAuditWorkflow(options);
+            assertThat(response.isOk()).as(response.toString()).isTrue();
             waitOperation(NB_TRY, SLEEP_TIME, operationGuid.toString());
 
             // When

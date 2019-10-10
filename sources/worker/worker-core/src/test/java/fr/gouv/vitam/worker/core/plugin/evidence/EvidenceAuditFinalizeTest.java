@@ -58,7 +58,6 @@ public class EvidenceAuditFinalizeTest {
     @Rule public MockitoRule mockitoRule = MockitoJUnit.rule();
 
     @Rule public TemporaryFolder tempFolder = new TemporaryFolder();
-    @Mock private BackupService backupService;
     private EvidenceAuditFinalize evidenceAuditFinalize;
     private static final String JOP_EVIDENCE_AUDIT_RESULTS_OK = "/evidenceAudit/JOP_EVIDENCE_AUDIT_OK.json";
     private static final String JOP_EVIDENCE_AUDIT_RESULTS_WARNING = "/evidenceAudit/JOP_EVIDENCE_AUDIT_WARNING.json";
