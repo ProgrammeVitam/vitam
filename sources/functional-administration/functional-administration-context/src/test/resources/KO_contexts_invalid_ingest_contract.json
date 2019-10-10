@@ -1,0 +1,19 @@
+[
+  {
+    "Name": "My_Context_1",
+    "Status": "ACTIVE",
+    "SecurityProfile" : "SEC_PROFILE-000001",
+    "Permissions": [
+      {
+        "tenant": 0,
+        "AccessContracts": [],
+        "IngestContracts": ["NON-EXISTING-INGEST_CONTRACT"]
+      },
+      {
+        "tenant": 1,
+        "AccessContracts": [],
+        "IngestContracts": []
+      }
+    ]
+  }
+]
