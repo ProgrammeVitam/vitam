@@ -100,7 +100,7 @@ public class CheckIntegrityObjectPlugin extends ActionHandler {
                             continue;
                         }
 
-                        checkDigest = messageDigest.equals(digest);
+                        checkDigest = checkDigest && messageDigest.equals(digest);
                     }
 
                     if (checkDigest) {
