@@ -2,12 +2,13 @@ package fr.gouv.vitam.worker.core.plugin.audit;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.reset;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
+import java.io.FileNotFoundException;
 import java.util.List;
 
+import fr.gouv.vitam.common.PropertiesUtils;
+import org.apache.commons.io.FileUtils;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -79,7 +80,7 @@ public class AuditCheckObjectPluginTest {
     @Test
     public void shouldCheckExistenceObjectsOfObjectGroup()
             throws InvalidParseOperationException, ContentAddressableStorageServerException, ProcessingException,
-            VitamClientInternalException, AuditException {
+            AuditException, FileNotFoundException {
 
         // Given
         HandlerIO handler = mock(HandlerIO.class);
@@ -96,9 +97,10 @@ public class AuditCheckObjectPluginTest {
         params.putParameterValue(WorkerParameterName.auditActions, "AUDIT_FILE_EXISTING");
 
         AuditCheckObjectGroupResult result = generateOkAuditResult();
-        when(auditExistenceService.check(any())).thenReturn(result);
-        Mockito.doNothing().when(auditReportService).appendAuditEntries(processIdCaptor.capture(),
+        when(auditExistenceService.check(any(), any())).thenReturn(result);
+        doNothing().when(auditReportService).appendAuditEntries(processIdCaptor.capture(),
                 auditReportEntryCaptor.capture());
+        when(handler.getInput(0)).thenReturn(PropertiesUtils.getResourceFile("AuditObjectWorkflow/strategies.json"));
 
         // When
         ItemStatus status = auditCheckObjectPlugin.execute(params, handler);
@@ -115,7 +117,7 @@ public class AuditCheckObjectPluginTest {
     @Test
     public void shouldCheckIntegrityObjectsOfObjectGroup()
             throws InvalidParseOperationException, ContentAddressableStorageServerException, ProcessingException,
-            VitamClientInternalException, AuditException {
+            AuditException, FileNotFoundException {
 
         // Given
         HandlerIO handler = mock(HandlerIO.class);
@@ -133,9 +135,10 @@ public class AuditCheckObjectPluginTest {
 
         AuditCheckObjectGroupResult result = generateOkAuditResult();
 
-        when(auditIntegrityService.check(any())).thenReturn(result);
-        Mockito.doNothing().when(auditReportService).appendAuditEntries(processIdCaptor.capture(),
+        when(auditIntegrityService.check(any(), any())).thenReturn(result);
+        doNothing().when(auditReportService).appendAuditEntries(processIdCaptor.capture(),
                 auditReportEntryCaptor.capture());
+        when(handler.getInput(0)).thenReturn(PropertiesUtils.getResourceFile("AuditObjectWorkflow/strategies.json"));
 
         // When
         ItemStatus status = auditCheckObjectPlugin.execute(params, handler);
@@ -151,7 +154,7 @@ public class AuditCheckObjectPluginTest {
     @Test
     public void shouldFatalWhenProcessingException()
             throws InvalidParseOperationException, ContentAddressableStorageServerException, ProcessingException,
-            VitamClientInternalException, AuditException {
+            AuditException {
 
         // Given
         HandlerIO handler = mock(HandlerIO.class);
@@ -167,7 +170,7 @@ public class AuditCheckObjectPluginTest {
                 .setCurrentStep("StepName");
         params.putParameterValue(WorkerParameterName.auditActions, "AUDIT_FILE_INTEGRITY");
 
-        when(auditIntegrityService.check(any())).thenThrow(new AuditException(StatusCode.FATAL, "storage error"));
+        when(auditIntegrityService.check(any(), any())).thenThrow(new AuditException(StatusCode.FATAL, "storage error"));
 
         // When
         ItemStatus status = auditCheckObjectPlugin.execute(params, handler);
@@ -181,7 +184,7 @@ public class AuditCheckObjectPluginTest {
     @Test
     public void shouldFatalWhenReportClientException()
             throws InvalidParseOperationException, ContentAddressableStorageServerException, ProcessingException,
-            VitamClientInternalException, AuditException {
+            AuditException {
 
         // Given
         HandlerIO handler = mock(HandlerIO.class);
@@ -198,7 +201,7 @@ public class AuditCheckObjectPluginTest {
         params.putParameterValue(WorkerParameterName.auditActions, "AUDIT_FILE_EXISTING");
 
         AuditCheckObjectGroupResult result = generateOkAuditResult();
-        when(auditExistenceService.check(any())).thenReturn(result);
+        when(auditExistenceService.check(any(), any())).thenReturn(result);
         Mockito.doThrow(new AuditException(StatusCode.FATAL, "report error")).when(auditReportService).appendAuditEntries(any(), any());
 
         // When

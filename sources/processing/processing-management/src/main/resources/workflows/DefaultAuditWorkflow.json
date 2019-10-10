@@ -34,7 +34,13 @@
         {
           "action": {
             "actionKey": "LIST_OBJECTGROUP_ID",
-            "behavior": "BLOCKING"
+            "behavior": "BLOCKING",
+            "out": [
+              {
+                "name": "strategies.json",
+                "uri": "WORKSPACE:StorageInfo/strategies.json"
+              }
+            ]
           }
         }
       ]
@@ -54,7 +60,13 @@
           "action": {
             "actionKey": "AUDIT_CHECK_OBJECT",
             "behavior": "NOBLOCKING",
-            "lifecycleLog": "DISABLED"
+            "lifecycleLog": "DISABLED",
+            "in": [
+              {
+                "name": "strategies.json",
+                "uri": "WORKSPACE:StorageInfo/strategies.json"
+              }
+            ]
           }
         }
       ]

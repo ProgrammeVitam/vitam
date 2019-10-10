@@ -27,6 +27,7 @@
 package fr.gouv.vitam.storage.engine.common.utils;
 
 import fr.gouv.vitam.common.VitamConfiguration;
+
 import fr.gouv.vitam.storage.engine.common.referential.model.StorageStrategy;
 
 import java.util.List;
@@ -64,6 +65,16 @@ public class StorageStrategyUtils {
                         storageStrategy, defaultStrategyOfferIds, variableName);
             }
         }
+    }
+
+    public static List<String> loadOfferIds(String storageStrategyId, List<StorageStrategy> storageStrategies) throws StorageStrategyNotFoundException {
+        Optional<StorageStrategy> storageStrategy = storageStrategies.stream()
+                .filter(strategy -> strategy.getId().equals(storageStrategyId))
+                .findFirst();
+        if (!storageStrategy.isPresent()) {
+            throw new StorageStrategyNotFoundException(String.format("Could not find strategy %s", storageStrategyId));
+        }
+        return storageStrategy.get().getOffers().stream().map(offer -> offer.getId()).collect(Collectors.toList());
     }
 
 }
