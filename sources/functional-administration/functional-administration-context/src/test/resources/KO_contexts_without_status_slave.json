@@ -1,0 +1,12 @@
+[
+  {
+    "Identifier": "Context_Identifier",
+    "Name": "Contexte_KO_Champ_Statut_manquant",
+    "Permissions": [
+      {
+        "tenant": 1
+      }
+    ],
+    "SecurityProfile": "SEC_PROFILE-000001"
+  }
+]
