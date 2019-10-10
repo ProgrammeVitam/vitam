@@ -49,11 +49,11 @@ import static fr.gouv.vitam.worker.core.plugin.probativevalue.pojo.ChecksInforma
 
 public enum ChecksInformation {
     // Local integrity checks
-    FILE_DIGEST_OFFER_DATABASE_COMPARISON(LOCAL_INTEGRITY, OFFER, DATABASE, COMPARISON, FILE_DIGEST, "Comparing file digest stored in offers with file digest found in storing/calculation logbook events in database."),
-    FILE_DIGEST_LFC_DATABASE_COMPARISON(LOCAL_INTEGRITY, DATABASE, DATABASE, COMPARISON, FILE_DIGEST, "Comparing file digest found in object group with file digest found in storing/calculation logbook events in database."),
-    FILE_DIGEST_DATABASE_TRACEABILITY_COMPARISON(LOCAL_INTEGRITY, DATABASE, TRACEABILITY_FILE, COMPARISON, FILE_DIGEST, "Comparing file digest found in storing/calculation logbook events in database with file digest found in traceability secured file."),
-    EVENTS_OBJECT_GROUP_DIGEST_DATABASE_TRACEABILITY_COMPARISON(LOCAL_INTEGRITY, DATABASE, TRACEABILITY_FILE, COMPARISON, EVENT_OBJECT_GROUP,"Comparing object group lfc digest found in database with object group lfc digest found in traceability secured file."),
-    EVENTS_OPERATION_DATABASE_TRACEABILITY_COMPARISON(LOCAL_INTEGRITY, DATABASE, TRACEABILITY_FILE, COMPARISON, EVENT_OPERATION, "Comparing operation found in database with operation found in traceability secured file."),
+    FILE_DIGEST_OFFER_DATABASE_COMPARISON(LOCAL_INTEGRITY, OFFER, DATABASE, COMPARISON, FILE_DIGEST, "Comparing binary file digest stored in offers with binary file digest found in object group database."),
+    FILE_DIGEST_LFC_DATABASE_COMPARISON(LOCAL_INTEGRITY, DATABASE, DATABASE, COMPARISON, FILE_DIGEST, "Comparing binary file digest found in object group database with binary file digest found in logbook lifecycle object group database."),
+    FILE_DIGEST_DATABASE_TRACEABILITY_COMPARISON(LOCAL_INTEGRITY, DATABASE, TRACEABILITY_FILE, COMPARISON, FILE_DIGEST, "Comparing binary file digest found in object group database with binary file digest found in traceability secured file."),
+    EVENTS_OBJECT_GROUP_DIGEST_DATABASE_TRACEABILITY_COMPARISON(LOCAL_INTEGRITY, DATABASE, TRACEABILITY_FILE, COMPARISON, EVENT_OBJECT_GROUP,"Comparing object group lfc digest computed from logbook lifecycle object group database with object group lfc digest found in traceability secured file."),
+    EVENTS_OPERATION_DATABASE_TRACEABILITY_COMPARISON(LOCAL_INTEGRITY, DATABASE, TRACEABILITY_FILE, COMPARISON, EVENT_OPERATION, "Comparing operation ID found in database with operation ID found in traceability secured file."),
 
     // Merkle integrity checks
     MERKLE_OPERATION_DIGEST_DATABASE_TRACEABILITY_COMPARISON(MERKLE_INTEGRITY, DATABASE, TRACEABILITY_FILE, COMPARISON, MERKLE_TREE_ROOT_OPERATION_DIGEST, "Comparing operation merkle digest found in database with operation merkle digest found in traceability secured file."),
