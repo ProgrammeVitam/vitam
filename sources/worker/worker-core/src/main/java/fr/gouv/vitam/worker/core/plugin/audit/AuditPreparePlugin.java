@@ -50,6 +50,14 @@ import java.util.List;
 import java.util.Map;
 
 import com.google.common.collect.Iterators;
+import fr.gouv.vitam.common.model.RequestResponse;
+import fr.gouv.vitam.common.model.RequestResponseOK;
+import fr.gouv.vitam.storage.engine.client.StorageClient;
+import fr.gouv.vitam.storage.engine.client.StorageClientFactory;
+import fr.gouv.vitam.storage.engine.client.exception.StorageClientException;
+import fr.gouv.vitam.storage.engine.client.exception.StorageServerClientException;
+import fr.gouv.vitam.storage.engine.common.referential.model.StorageStrategy;
+import fr.gouv.vitam.worker.core.plugin.audit.exception.AuditException;
 import org.apache.commons.collections4.IteratorUtils;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.Pair;
@@ -99,16 +107,19 @@ public class AuditPreparePlugin extends ActionHandler {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(AuditPreparePlugin.class);
     private static final String AUDIT_PREPARATION = "LIST_OBJECTGROUP_ID";
     protected static final String OBJECT_GROUPS_TO_AUDIT_JSONL = "AUDIT_OG";
+    private static final int STRATEGIES_OUT_RANK = 0;
 
     private final MetaDataClientFactory metaDataClientFactory;
+    private final StorageClientFactory storageClientFactory;
 
     public AuditPreparePlugin() {
-        this(MetaDataClientFactory.getInstance());
+        this(MetaDataClientFactory.getInstance(), StorageClientFactory.getInstance());
     }
 
     @VisibleForTesting
-    AuditPreparePlugin(MetaDataClientFactory metaDataClientFactory) {
+    AuditPreparePlugin(MetaDataClientFactory metaDataClientFactory, StorageClientFactory storageClientFactory) {
         this.metaDataClientFactory = metaDataClientFactory;
+        this.storageClientFactory = storageClientFactory;
     }
 
     @Override
@@ -118,6 +129,7 @@ public class AuditPreparePlugin extends ActionHandler {
         try (MetaDataClient metaDataClient = metaDataClientFactory.getClient()) {
 
             SelectMultiQuery query = generateAuditQuery(handler);
+            storeStrategies(handler);
             computePreparation(query, handler, metaDataClient);
             return buildItemStatus(AUDIT_PREPARATION, StatusCode.OK, createObjectNode());
             
@@ -278,6 +290,23 @@ public class AuditPreparePlugin extends ActionHandler {
 
         }
         return auditDistributionLine;
+    }
+
+    private void storeStrategies(HandlerIO handlerIO)
+            throws InvalidParseOperationException, ProcessingException {
+        try (final StorageClient storageClient = storageClientFactory.getClient()) {
+            RequestResponse<StorageStrategy> storageStrategies = storageClient.getStorageStrategies();
+            if (storageStrategies.isOk()) {
+                File tempFile = handlerIO.getNewLocalFile(handlerIO.getOutput(STRATEGIES_OUT_RANK).getPath());
+                JsonHandler.writeAsFile(((RequestResponseOK<StorageStrategy>)storageStrategies).getResultsAsJsonNodes(), tempFile);
+                handlerIO.addOutputResult(STRATEGIES_OUT_RANK, tempFile, true, false);
+            } else {
+                throw new StorageServerClientException("Exception while retrieving storage strategies");
+            }
+        } catch (StorageServerClientException e) {
+            LOGGER.error("Storage server errors : ", e);
+            throw new ProcessingException(String.format("Storage server errors : %s", e));
+        }
     }
 
 }

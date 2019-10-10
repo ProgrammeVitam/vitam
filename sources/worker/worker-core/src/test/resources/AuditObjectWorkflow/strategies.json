@@ -1,0 +1,13 @@
+[
+  {
+    "id": "default",
+    "offers": [
+      {
+        "id": "offer1"
+      },
+      {
+        "id": "offer2"
+      }
+    ]
+  }
+]

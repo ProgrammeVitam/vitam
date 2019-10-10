@@ -38,6 +38,12 @@ public class StorageStrategyNotFoundException extends VitamException {
         this.strategyId = strategyId;
         this.variableName = variableName;
     }
+
+    public StorageStrategyNotFoundException(String message) {
+        super(message);
+        strategyId = null;
+        variableName = null;
+    }
     
     public String getStrategyId() {
         return strategyId;

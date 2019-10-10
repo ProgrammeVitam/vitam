@@ -26,6 +26,9 @@
  *******************************************************************************/
 package fr.gouv.vitam.worker.core.plugin.audit;
 
+import fr.gouv.vitam.storage.engine.common.referential.model.StorageStrategy;
+import fr.gouv.vitam.storage.engine.common.utils.StorageStrategyNotFoundException;
+import fr.gouv.vitam.storage.engine.common.utils.StorageStrategyUtils;
 import org.apache.commons.lang.StringUtils;
 
 import com.fasterxml.jackson.databind.JsonNode;
@@ -44,6 +47,8 @@ import fr.gouv.vitam.worker.core.plugin.audit.model.AuditCheckObjectGroupResult;
 import fr.gouv.vitam.worker.core.plugin.audit.model.AuditCheckObjectResult;
 import fr.gouv.vitam.worker.core.plugin.audit.model.AuditObject;
 import fr.gouv.vitam.worker.core.plugin.audit.model.AuditObjectGroup;
+
+import java.util.List;
 
 /**
  * AuditIntegrityService
@@ -70,10 +75,11 @@ public class AuditIntegrityService {
      * Check the integrity of all binary objects in GOT.
      * 
      * @param gotDetail got details
+     * @param storageStrategies deployed storage strategies
      * @return result of integrity check
      * @throws AuditException exception
      */
-    public AuditCheckObjectGroupResult check(AuditObjectGroup gotDetail) throws AuditException {
+    public AuditCheckObjectGroupResult check(AuditObjectGroup gotDetail, List<StorageStrategy> storageStrategies) throws AuditException {
         AuditCheckObjectGroupResult result = new AuditCheckObjectGroupResult();
         result.setIdObjectGroup(gotDetail.getId());
 
@@ -86,9 +92,10 @@ public class AuditIntegrityService {
                 AuditCheckObjectResult auditCheckObjectResult = new AuditCheckObjectResult();
                 auditCheckObjectResult.setIdObject(object.getId());
                 StorageJson storageInformation = object.getStorage();
+                List<String> offerIds = StorageStrategyUtils.loadOfferIds(storageInformation.getStrategyId(), storageStrategies);
                 JsonNode offerToMetadata = storageClient.getInformation(storageInformation.getStrategyId(),
-                        DataCategory.OBJECT, object.getId(), storageInformation.getOfferIds(), true);
-                for (String offerId : storageInformation.getOfferIds()) {
+                        DataCategory.OBJECT, object.getId(), offerIds, true);
+                for (String offerId : offerIds) {
                     JsonNode metadata = offerToMetadata.findValue(offerId);
                     if (metadata == null || object.getMessageDigest() == null || !metadata.has("digest")) {
                         auditCheckObjectResult.getOfferStatuses().put(offerId, StatusCode.KO);
@@ -104,7 +111,7 @@ public class AuditIntegrityService {
                 result.getObjectStatuses().add(auditCheckObjectResult);
             }
             result.setStatus(result.getObjectsGlobalStatus());
-        } catch (StorageClientException e) {
+        } catch (StorageClientException | StorageStrategyNotFoundException e) {
             LOGGER.error("Storage server errors : ", e);
             throw new AuditException(StatusCode.FATAL, String.format("Storage server errors : %s", e));
         }

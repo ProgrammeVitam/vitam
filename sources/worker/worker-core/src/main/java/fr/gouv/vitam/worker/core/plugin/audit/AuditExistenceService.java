@@ -26,9 +26,14 @@
  *******************************************************************************/
 package fr.gouv.vitam.worker.core.plugin.audit;
 
+import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
+import fr.gouv.vitam.storage.engine.common.referential.model.StorageStrategy;
+import fr.gouv.vitam.storage.engine.common.utils.StorageStrategyNotFoundException;
+import fr.gouv.vitam.storage.engine.common.utils.StorageStrategyUtils;
 import org.apache.commons.lang3.BooleanUtils;
 
 import com.google.common.annotations.VisibleForTesting;
@@ -71,12 +76,13 @@ public class AuditExistenceService {
 
     /**
      * Check the existence of all objects in GOT.
-     * 
-     * @param gotDetail got details
+     *
+     * @param gotDetail         got details
+     * @param storageStrategies deployed storage strategies
      * @return result of existence check
      * @throws AuditException exception
      */
-    public AuditCheckObjectGroupResult check(AuditObjectGroup gotDetail) throws AuditException {
+    public AuditCheckObjectGroupResult check(AuditObjectGroup gotDetail, List<StorageStrategy> storageStrategies) throws AuditException {
         AuditCheckObjectGroupResult result = new AuditCheckObjectGroupResult();
         result.setIdObjectGroup(gotDetail.getId());
 
@@ -87,16 +93,18 @@ public class AuditExistenceService {
                 if (PHYSICAL_MASTER.equals(object.getQualifier())) {
                     // Get global information for physical master
                     StorageRacineModel storageInformation = gotDetail.getStorage();
+                    List<String> offerIds = StorageStrategyUtils.loadOfferIds(storageInformation.getStrategyId(), storageStrategies);
                     Map<String, Boolean> existsResult = storageClient.exists(storageInformation.getStrategyId(),
-                            DataCategory.OBJECT, object.getId(), storageInformation.getOfferIds());
+                            DataCategory.OBJECT, object.getId(), offerIds);
                     auditCheckObjectResult.getOfferStatuses()
                             .putAll(existsResult.entrySet().stream().collect(Collectors.toMap(Map.Entry::getKey,
                                     e -> BooleanUtils.isTrue(e.getValue()) ? StatusCode.KO : StatusCode.OK)));
                 } else {
                     // Get object information
                     StorageJson storageInformation = object.getStorage();
+                    List<String> offerIds = StorageStrategyUtils.loadOfferIds(storageInformation.getStrategyId(), storageStrategies);
                     Map<String, Boolean> existsResult = storageClient.exists(storageInformation.getStrategyId(),
-                            DataCategory.OBJECT, object.getId(), storageInformation.getOfferIds());
+                            DataCategory.OBJECT, object.getId(), offerIds);
                     auditCheckObjectResult.getOfferStatuses()
                             .putAll(existsResult.entrySet().stream().collect(Collectors.toMap(Map.Entry::getKey,
                                     e -> BooleanUtils.isTrue(e.getValue()) ? StatusCode.OK : StatusCode.KO)));
@@ -104,7 +112,7 @@ public class AuditExistenceService {
                 result.getObjectStatuses().add(auditCheckObjectResult);
             }
             result.setStatus(result.getObjectsGlobalStatus());
-        } catch (StorageClientException e) {
+        } catch (StorageClientException | StorageStrategyNotFoundException e) {
             LOGGER.error("Storage server errors : ", e);
             throw new AuditException(StatusCode.FATAL, String.format("Storage server errors : %s", e));
         }

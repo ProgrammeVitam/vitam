@@ -28,12 +28,17 @@ package fr.gouv.vitam.worker.core.plugin.audit;
 
 import static fr.gouv.vitam.worker.core.utils.PluginHelper.buildItemStatus;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.JsonNode;
+import fr.gouv.vitam.common.model.administration.IngestContractModel;
+import fr.gouv.vitam.storage.engine.common.referential.model.StorageStrategy;
 import org.apache.commons.collections4.IterableUtils;
 
 import com.google.common.annotations.VisibleForTesting;
@@ -64,6 +69,7 @@ public class AuditCheckObjectPlugin extends ActionHandler {
 
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(AuditCheckObjectPlugin.class);
     public static final String AUDIT_CHECK_OBJECT = "AUDIT_CHECK_OBJECT";
+    private static final int STRATEGIES_IN_RANK = 0;
     private AuditExistenceService auditExistenceService;
     private AuditIntegrityService auditIntegrityService;
     private AuditReportService auditReportService;
@@ -74,7 +80,7 @@ public class AuditCheckObjectPlugin extends ActionHandler {
 
     @VisibleForTesting
     AuditCheckObjectPlugin(AuditExistenceService auditExistenceService, AuditIntegrityService auditIntegrityService,
-            AuditReportService auditReportService) {
+                           AuditReportService auditReportService) {
         this.auditExistenceService = auditExistenceService;
         this.auditIntegrityService = auditIntegrityService;
         this.auditReportService = auditReportService;
@@ -100,14 +106,15 @@ public class AuditCheckObjectPlugin extends ActionHandler {
         Map<WorkerParameterName, String> mapParameters = param.getMapParameters();
         String action = mapParameters.get(WorkerParameterName.auditActions);
         AuditObjectGroup gotDetail = loadAuditLine(param);
+        List<StorageStrategy> storageStrategies = loadStorageStrategies(handler);
         String actionType = null;
         AuditCheckObjectGroupResult result = null;
 
         if (AuditExistenceService.CHECK_EXISTENCE_ID.equals(action)) {
-            result = auditExistenceService.check(gotDetail);
+            result = auditExistenceService.check(gotDetail, storageStrategies);
             actionType = AuditExistenceService.CHECK_EXISTENCE_ID;
         } else if (AuditIntegrityService.CHECK_INTEGRITY_ID.equals(action)) {
-            result = auditIntegrityService.check(gotDetail);
+            result = auditIntegrityService.check(gotDetail, storageStrategies);
             actionType = AuditIntegrityService.CHECK_INTEGRITY_ID;
         }
         addReportEntry(param.getContainerName(), createAuditObjectGroupReportEntry(gotDetail, result, actionType));
@@ -130,27 +137,36 @@ public class AuditCheckObjectPlugin extends ActionHandler {
         return auditDistributionLine;
     }
 
+    private List<StorageStrategy> loadStorageStrategies(HandlerIO handler) throws AuditException {
+        try {
+            return JsonHandler.getFromFileAsTypeRefence((File) handler.getInput(STRATEGIES_IN_RANK), new TypeReference<List<StorageStrategy>>() {
+            });
+        } catch (InvalidParseOperationException e) {
+            throw new AuditException(StatusCode.FATAL, "Could not load storage strategies datas", e);
+        }
+    }
+
     private AuditObjectGroupReportEntry createAuditObjectGroupReportEntry(AuditObjectGroup gotDetail,
-            AuditCheckObjectGroupResult result, String outcome) {
-        
+                                                                          AuditCheckObjectGroupResult result, String outcome) {
+
         AuditObjectGroupReportEntry auditObjectGroupReportEntry = new AuditObjectGroupReportEntry(gotDetail.getId(),
                 gotDetail.getUnitUps(), gotDetail.getSp(), gotDetail.getOpi(), new ArrayList<AuditObjectVersion>(),
                 ReportStatus.parseFromStatusCode(result.getStatus()), outcome);
 
         for (AuditCheckObjectResult objectResult : result.getObjectStatuses()) {
-            
+
             AuditObject auditObject = IterableUtils.find(gotDetail.getObjects(),
                     object -> object.getId().equals(objectResult.getIdObject()));
-            
+
             AuditObjectVersion objectVersion = new AuditObjectVersion(auditObject.getId(), auditObject.getOpi(),
                     auditObject.getQualifier(), auditObject.getVersion(),
                     (List<ReportItemStatus>) objectResult.getOfferStatuses().entrySet().stream()
                             .map(e -> new ReportItemStatus(e.getKey(), ReportStatus.parseFromStatusCode(e.getValue())))
                             .collect(Collectors.toList()),
                     ReportStatus.parseFromStatusCode(objectResult.getGlobalStatus()));
-            
+
             auditObjectGroupReportEntry.getObjectVersions().add(objectVersion);
-            
+
         }
         return auditObjectGroupReportEntry;
 

@@ -11,9 +11,10 @@ import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.when;
 
 import java.io.File;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 
+import fr.gouv.vitam.storage.engine.common.referential.model.OfferReference;
+import fr.gouv.vitam.storage.engine.common.referential.model.StorageStrategy;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -65,7 +66,7 @@ public class AuditExistenceServiceTest {
                 getClass().getResourceAsStream("/AuditObjectWorkflow/objectGroup_1.json"), JsonLineModel.class);
         AuditObjectGroup detail = getFromJsonNode(objectGroupLine.getParams(), AuditObjectGroup.class);
 
-        final AuditCheckObjectGroupResult response = service.check(detail);
+        final AuditCheckObjectGroupResult response = service.check(detail, loadStorageStrategiesMock());
         assertThat(response.getStatus()).isEqualTo(StatusCode.OK);
         assertThat(response.getObjectStatuses().size()).isEqualTo(1);
         assertThat(response.getObjectStatuses().get(0)).isNotNull();
@@ -94,7 +95,7 @@ public class AuditExistenceServiceTest {
                 getClass().getResourceAsStream("/AuditObjectWorkflow/objectGroup_3.json"), JsonLineModel.class);
         AuditObjectGroup detail = getFromJsonNode(objectGroupLine.getParams(), AuditObjectGroup.class);
 
-        final AuditCheckObjectGroupResult response = service.check(detail);
+        final AuditCheckObjectGroupResult response = service.check(detail, loadStorageStrategiesMock());
         assertThat(response.getStatus()).isEqualTo(StatusCode.KO);
         assertThat(response.getObjectStatuses().size()).isEqualTo(2);
         assertThat(response.getObjectStatuses().get(0)).isNotNull();
@@ -128,7 +129,7 @@ public class AuditExistenceServiceTest {
                 getClass().getResourceAsStream("/AuditObjectWorkflow/objectGroup_3.json"), JsonLineModel.class);
         AuditObjectGroup detail = getFromJsonNode(objectGroupLine.getParams(), AuditObjectGroup.class);
 
-        final AuditCheckObjectGroupResult response = service.check(detail);
+        final AuditCheckObjectGroupResult response = service.check(detail, loadStorageStrategiesMock());
         assertThat(response.getStatus()).isEqualTo(StatusCode.KO);
         assertThat(response.getObjectStatuses().size()).isEqualTo(2);
         assertThat(response.getObjectStatuses().get(1)).isNotNull();
@@ -154,9 +155,20 @@ public class AuditExistenceServiceTest {
         AuditObjectGroup detail = getFromJsonNode(objectGroupLine.getParams(), AuditObjectGroup.class);
 
         assertThatThrownBy(() -> {
-            service.check(detail);
+            service.check(detail, loadStorageStrategiesMock());
         }).isInstanceOf(AuditException.class);
 
     }
 
+    private List<StorageStrategy> loadStorageStrategiesMock(){
+        StorageStrategy defaultStrategy = new StorageStrategy();
+        defaultStrategy.setId("default");
+        OfferReference offer1 = new OfferReference();
+        offer1.setId("offer-fs-1.service.int.consul");
+        OfferReference offer2 = new OfferReference();
+        offer2.setId("offer-fs-2.service.int.consul");
+        List<OfferReference> offers = new ArrayList<>();
+        defaultStrategy.setOffers(offers);
+        return Collections.singletonList(defaultStrategy);
+    }
 }
