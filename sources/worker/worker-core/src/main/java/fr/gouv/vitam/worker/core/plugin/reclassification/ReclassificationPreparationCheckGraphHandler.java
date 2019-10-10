@@ -44,8 +44,8 @@ import fr.gouv.vitam.metadata.client.MetaDataClientFactory;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 import fr.gouv.vitam.worker.common.HandlerIO;
+import fr.gouv.vitam.worker.core.exception.ProcessingStatusException;
 import fr.gouv.vitam.worker.core.handler.ActionHandler;
-import fr.gouv.vitam.worker.core.plugin.reclassification.exception.ReclassificationException;
 import fr.gouv.vitam.worker.core.plugin.reclassification.model.IllegalUnitTypeAttachment;
 import fr.gouv.vitam.worker.core.plugin.reclassification.model.ReclassificationEventDetails;
 import fr.gouv.vitam.worker.core.plugin.reclassification.model.ReclassificationOrders;
@@ -117,7 +117,7 @@ public class ReclassificationPreparationCheckGraphHandler extends ActionHandler 
             // Check graph (check unit types & graph cycles)
             checkGraphCoherence(reclassificationOrders);
 
-        } catch (ReclassificationException e) {
+        } catch (ProcessingStatusException e) {
             LOGGER.error("Reclassification graph check failed with status [" + e.getStatusCode() + "]", e);
             return buildItemStatus(RECLASSIFICATION_PREPARATION_CHECK_GRAPH, e.getStatusCode(), e.getEventDetails());
         }
@@ -131,7 +131,7 @@ public class ReclassificationPreparationCheckGraphHandler extends ActionHandler 
         return (ReclassificationOrders) handler.getInput(RECLASSIFICATION_ORDERS_PARAMETER_RANK);
     }
 
-    private void checkGraphCoherence(ReclassificationOrders reclassificationUpdates) throws ReclassificationException {
+    private void checkGraphCoherence(ReclassificationOrders reclassificationUpdates) throws ProcessingStatusException {
 
         // Load all units & their parents recursively
         Map<String, UnitGraphInfo> unitGraphByIds = loadAllUnitGraphByIds(reclassificationUpdates);
@@ -144,7 +144,7 @@ public class ReclassificationPreparationCheckGraphHandler extends ActionHandler 
     }
 
     private Map<String, UnitGraphInfo> loadAllUnitGraphByIds(ReclassificationOrders reclassificationOrders)
-        throws ReclassificationException {
+        throws ProcessingStatusException {
 
         try (MetaDataClient metaDataClient = metaDataClientFactory.getClient()) {
 
@@ -167,14 +167,14 @@ public class ReclassificationPreparationCheckGraphHandler extends ActionHandler 
                 ReclassificationEventDetails eventDetails =
                     new ReclassificationEventDetails().setError(COULD_NOT_LOAD_UNITS)
                         .setNotFoundUnits(firstNotFoundUnits);
-                throw new ReclassificationException(StatusCode.FATAL, eventDetails, COULD_NOT_LOAD_UNITS);
+                throw new ProcessingStatusException(StatusCode.FATAL, eventDetails, COULD_NOT_LOAD_UNITS);
             }
 
             return result;
 
         } catch (InvalidCreateOperationException | InvalidParseOperationException | MetaDataExecutionException
             | VitamDBException | MetaDataDocumentSizeException | MetaDataClientServerException e) {
-            throw new ReclassificationException(StatusCode.FATAL, "Could not load unit graph information", e);
+            throw new ProcessingStatusException(StatusCode.FATAL, "Could not load unit graph information", e);
         }
     }
 
@@ -189,7 +189,7 @@ public class ReclassificationPreparationCheckGraphHandler extends ActionHandler 
 
     private void checkAttachmentUnitTypeCoherence(
         ReclassificationOrders reclassificationOrders,
-        Map<String, UnitGraphInfo> unitGraphByIds) throws ReclassificationException {
+        Map<String, UnitGraphInfo> unitGraphByIds) throws ProcessingStatusException {
 
         List<IllegalUnitTypeAttachment> illegalUnitTypeAttachments = new ArrayList<>();
 
@@ -215,12 +215,12 @@ public class ReclassificationPreparationCheckGraphHandler extends ActionHandler 
 
             ReclassificationEventDetails eventDetails = new ReclassificationEventDetails().setError(error)
                 .setIllegalUnitTypeAttachments(firstIllegalUnitTypeAttachments);
-            throw new ReclassificationException(StatusCode.KO, eventDetails, error);
+            throw new ProcessingStatusException(StatusCode.KO, eventDetails, error);
         }
     }
 
     private void checkCycles(ReclassificationOrders reclassificationOrders,
-        Map<String, UnitGraphInfo> unitGraphByIds) throws ReclassificationException {
+        Map<String, UnitGraphInfo> unitGraphByIds) throws ProcessingStatusException {
 
         GraphCycleDetector graphCycleDetector = new GraphCycleDetector();
 
@@ -249,7 +249,7 @@ public class ReclassificationPreparationCheckGraphHandler extends ActionHandler 
                 new ReclassificationEventDetails().setError(error)
                     .setUnitsWithCycles(firstGraphCycles);
 
-            throw new ReclassificationException(StatusCode.KO, eventDetails, error);
+            throw new ProcessingStatusException(StatusCode.KO, eventDetails, error);
         }
     }
 

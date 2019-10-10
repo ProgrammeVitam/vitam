@@ -28,7 +28,6 @@ package fr.gouv.vitam.worker.core.plugin.elimination;
 
 import static fr.gouv.vitam.common.database.builder.query.action.UpdateActionHelper.add;
 import static fr.gouv.vitam.common.database.builder.query.action.UpdateActionHelper.pull;
-import static fr.gouv.vitam.worker.core.utils.PluginHelper.createObjectGroupLfcParameters;
 
 import java.util.Map;
 import java.util.Set;
@@ -39,15 +38,10 @@ import fr.gouv.vitam.common.database.builder.query.VitamFieldsHelper;
 import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
 import fr.gouv.vitam.common.database.builder.request.multiple.UpdateMultiQuery;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
-import fr.gouv.vitam.common.exception.VitamException;
-import fr.gouv.vitam.common.guid.GUIDReader;
-import fr.gouv.vitam.common.model.LifeCycleStatusCode;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientBadRequestException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientServerException;
-import fr.gouv.vitam.logbook.common.parameters.LogbookLifeCycleObjectGroupParameters;
-import fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess;
 import fr.gouv.vitam.logbook.lifecycles.client.LogbookLifeCyclesClient;
 import fr.gouv.vitam.logbook.lifecycles.client.LogbookLifeCyclesClientFactory;
 import fr.gouv.vitam.metadata.api.exception.MetaDataClientServerException;
@@ -58,8 +52,7 @@ import fr.gouv.vitam.storage.engine.client.StorageClient;
 import fr.gouv.vitam.storage.engine.client.StorageClientFactory;
 import fr.gouv.vitam.storage.engine.client.exception.StorageServerClientException;
 import fr.gouv.vitam.storage.engine.common.model.DataCategory;
-import fr.gouv.vitam.worker.core.plugin.elimination.exception.EliminationException;
-import fr.gouv.vitam.worker.core.plugin.elimination.model.EliminationActionObjectGroupEventDetails;
+import fr.gouv.vitam.worker.core.exception.ProcessingStatusException;
 import joptsimple.internal.Strings;
 
 /**
@@ -135,7 +128,7 @@ public class EliminationActionDeleteService {
 
     public void detachObjectGroupFromDeleteParentUnits(String processId, String objectGroupId,
         Set<String> parentUnitsToRemove)
-        throws EliminationException {
+        throws ProcessingStatusException {
 
         try (MetaDataClient metaDataClient = metaDataClientFactory.getClient()) {
 
@@ -148,7 +141,7 @@ public class EliminationActionDeleteService {
             metaDataClient.updateObjectGroupById(updateMultiQuery.getFinalUpdate(), objectGroupId);
 
         } catch (MetaDataClientServerException | MetaDataExecutionException | InvalidParseOperationException | InvalidCreateOperationException e) {
-            throw new EliminationException(StatusCode.FATAL, "An error occurred during object group detachment", e);
+            throw new ProcessingStatusException(StatusCode.FATAL, "An error occurred during object group detachment", e);
         }
     }
 }

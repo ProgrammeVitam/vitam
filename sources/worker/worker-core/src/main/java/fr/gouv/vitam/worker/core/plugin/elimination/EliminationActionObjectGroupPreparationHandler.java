@@ -74,8 +74,8 @@ import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 import fr.gouv.vitam.worker.common.HandlerIO;
 import fr.gouv.vitam.worker.core.distribution.JsonLineModel;
 import fr.gouv.vitam.worker.core.distribution.JsonLineWriter;
+import fr.gouv.vitam.worker.core.exception.ProcessingStatusException;
 import fr.gouv.vitam.worker.core.handler.ActionHandler;
-import fr.gouv.vitam.worker.core.plugin.elimination.exception.EliminationException;
 import fr.gouv.vitam.worker.core.plugin.elimination.model.EliminationActionObjectGroupStatus;
 import fr.gouv.vitam.worker.core.plugin.elimination.report.EliminationActionReportService;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
@@ -155,7 +155,7 @@ public class EliminationActionObjectGroupPreparationHandler extends ActionHandle
                 }
 
             } catch (IOException | InvalidParseOperationException e) {
-                throw new EliminationException(StatusCode.FATAL, "Could not generate object group distribution", e);
+                throw new ProcessingStatusException(StatusCode.FATAL, "Could not generate object group distribution", e);
             }
 
             handler.transferFileToWorkspace(OBJECT_GROUPS_TO_DELETE_FILE, objectGroupsToDeleteFile, true, false);
@@ -164,7 +164,7 @@ public class EliminationActionObjectGroupPreparationHandler extends ActionHandle
             LOGGER.info("Elimination action object group preparation succeeded");
             return buildItemStatus(ELIMINATION_ACTION_OBJECT_GROUP_PREPARATION, StatusCode.OK, null);
 
-        } catch (EliminationException e) {
+        } catch (ProcessingStatusException e) {
             LOGGER.error(
                 String.format("Elimination action object group preparation failed with status [%s]", e.getStatusCode()),
                 e);
@@ -175,7 +175,7 @@ public class EliminationActionObjectGroupPreparationHandler extends ActionHandle
     private void process(Set<String> objectGroupIds, JsonLineWriter objectGroupsToDeleteWriter,
         JsonLineWriter objectGroupsToDetachWriter,
         String processId)
-        throws EliminationException, IOException, InvalidParseOperationException {
+        throws ProcessingStatusException, IOException, InvalidParseOperationException {
 
         Map<String, ObjectGroupResponse> objectGroups = loadObjectGroups(objectGroupIds);
 
@@ -261,7 +261,7 @@ public class EliminationActionObjectGroupPreparationHandler extends ActionHandle
     }
 
     private Map<String, ObjectGroupResponse> loadObjectGroups(Set<String> objectGroupIds)
-        throws EliminationException {
+        throws ProcessingStatusException {
 
         try (MetaDataClient client = metaDataClientFactory.getClient()) {
 
@@ -288,11 +288,11 @@ public class EliminationActionObjectGroupPreparationHandler extends ActionHandle
 
 
         } catch (MetaDataExecutionException | MetaDataDocumentSizeException | MetaDataClientServerException | InvalidParseOperationException e) {
-            throw new EliminationException(StatusCode.FATAL, "Could not load object groups", e);
+            throw new ProcessingStatusException(StatusCode.FATAL, "Could not load object groups", e);
         }
     }
 
-    private Set<String> getExistingParentUnits(Set<String> parentUnitIds) throws EliminationException {
+    private Set<String> getExistingParentUnits(Set<String> parentUnitIds) throws ProcessingStatusException {
 
         try (MetaDataClient client = metaDataClientFactory.getClient()) {
 
@@ -317,7 +317,7 @@ public class EliminationActionObjectGroupPreparationHandler extends ActionHandle
             return foundUnitIds;
 
         } catch (MetaDataExecutionException | MetaDataDocumentSizeException | MetaDataClientServerException | InvalidParseOperationException e) {
-            throw new EliminationException(StatusCode.FATAL, "Could not load object group parent units", e);
+            throw new ProcessingStatusException(StatusCode.FATAL, "Could not load object group parent units", e);
         }
     }
 
