@@ -18,22 +18,9 @@
 
 package fr.gouv.vitam.functional.administration.archiveunitprofiles.api.impl;
 
-import static fr.gouv.vitam.common.database.builder.query.QueryHelper.eq;
-
-import javax.ws.rs.core.Response;
-import java.io.FileNotFoundException;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
-import java.util.stream.Collectors;
-
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import com.github.fge.jsonschema.core.exceptions.ProcessingException;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Joiner;
 import fr.gouv.vitam.common.LocalDateUtil;
@@ -84,6 +71,17 @@ import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClient;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClientFactory;
 import fr.gouv.vitam.metadata.client.MetaDataClient;
 import fr.gouv.vitam.metadata.client.MetaDataClientFactory;
+
+import javax.ws.rs.core.Response;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
+import java.util.stream.Collectors;
+
+import static fr.gouv.vitam.common.database.builder.query.QueryHelper.eq;
 
 /**
  * The implementation of the archive unit profile CRUD
@@ -250,7 +248,7 @@ public class ArchiveUnitProfileServiceImpl implements ArchiveUnitProfileService 
 
                         VitamError vitamError =
                             new VitamError(VitamCode.ARCHIVE_UNIT_PROFILE_VALIDATION_ERROR.getItem())
-                                .setMessage(ArchiveUnitProfileManager.DUPLICATE_IN_DATABASE)
+                                .setMessage(ArchiveUnitProfileManager.EMPTY_REQUIRED_FIELD)
                                 .setDescription(result.get().getReason())
                                 .setState(StatusCode.KO.name());
                         vitamError.setContext("FunctionalModule-ArchiveUnitProfile");
