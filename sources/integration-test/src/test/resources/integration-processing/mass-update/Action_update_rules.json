@@ -1,0 +1,19 @@
+{
+  "add": [],
+  "update": [
+    {
+      "ReuseRule": {
+        "Rules": [
+          {
+            "OldRule": "REU-00001",
+            "Rule": "REU-00001",
+            "StartDate": "2019-10-11"
+          }
+        ]
+      }
+    }
+  ],
+  "delete": [],
+  "addOrUpdateMetadata": {},
+  "deleteMetadata": {}
+}

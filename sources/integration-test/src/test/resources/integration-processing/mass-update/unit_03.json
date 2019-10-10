@@ -1,0 +1,44 @@
+{
+  "_id": "aeaqaaaaaagbcaacaang6ak4ts6palibbbbq",
+  "_og": "",
+  "_mgt": {
+    "ReuseRule": {
+      "Rules": [
+        {
+          "Rule": "REU-00001",
+          "StartDate": "2019-10-10",
+          "EndDate": "2029-10-10"
+        }
+      ]
+    }
+  },
+  "DescriptionLevel": "RecordGrp",
+  "Title": "reportage juillet",
+  "Description": "Unit de rattachement",
+  "StartDate": "2016-12-15T15:54:18",
+  "EndDate": "2016-12-15T15:54:18",
+  "_ops": [],
+  "_sps": [
+    "FR_ORG_AGEN"
+  ],
+  "_sp": "FR_ORG_AGEN",
+  "_storage": {
+    "_nbc": 2,
+    "offerIds": [
+      "offer1",
+      "offer2"
+    ],
+    "strategyId": "offerId"
+  },
+  "_unitType": "INGEST",
+  "_tenant": 0,
+  "_max": 1,
+  "_min": 1,
+  "_up": [],
+  "_nbc": 1,
+  "_us": [],
+  "_graph": [],
+  "_us_sp": {},
+  "_v": 0,
+  "_tenant": 0
+}
