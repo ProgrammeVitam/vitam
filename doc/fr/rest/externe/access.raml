@@ -254,7 +254,7 @@ documentation:
           body:
             application/json:
 
-/tranfers:
+/transfers:
   displayName: Transfert d'archives
   description: |
     API qui définit les requêtes pour générer un transfert d'une sélection d'unités d'archives.
@@ -427,6 +427,31 @@ documentation:
             description: Success response
       412:
         description: Precondition Failed, some predicates are incorrect, therefore the operation is not possible
+        body:
+          application/json:
+
+/transfers/reply:
+  displayName: Transfer Reply
+  description: |
+    Démarage du traitement de l'ATR adressé par le SAE cible dans le cas d'un transfert
+  post:
+    headers:
+      Accept:
+        required: true
+        enum: [ "application/xml" ]
+      Content-Type:
+        required: true
+        enum: [ "application/json" ]
+    description: |
+      Démarage du traitement de l'ATR adressé par le SAE cible dans le cas d'un transfert
+    is: [AccessTraits.TransferReplyResponseAsync]
+    responses:
+      200:
+        description: Lancement du traitement
+        body:
+          application/json:
+      500:
+        description: Des erreurs interne
         body:
           application/json:
 

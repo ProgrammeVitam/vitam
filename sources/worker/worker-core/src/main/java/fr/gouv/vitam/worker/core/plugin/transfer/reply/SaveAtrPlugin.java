@@ -56,7 +56,7 @@ import static fr.gouv.vitam.worker.core.utils.PluginHelper.buildItemStatus;
 
 public class SaveAtrPlugin extends ActionHandler {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(SaveAtrPlugin.class);
-    private static final String PLUGIN_NAME = "SAVE_ARCHIVAL_TRANSFER_REPLY";
+    public static final String PLUGIN_NAME = "SAVE_ARCHIVAL_TRANSFER_REPLY";
 
     private final StorageClientFactory storageClientFactory;
 

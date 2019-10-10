@@ -26,12 +26,14 @@
  */
 package fr.gouv.vitam.dip;
 
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import com.mongodb.client.model.Filters;
 import fr.gouv.vitam.access.internal.client.AccessInternalClient;
 import fr.gouv.vitam.access.internal.client.AccessInternalClientFactory;
+import fr.gouv.vitam.access.internal.common.exception.AccessInternalClientServerException;
 import fr.gouv.vitam.access.internal.rest.AccessInternalMain;
 import fr.gouv.vitam.batch.report.rest.BatchReportMain;
 import fr.gouv.vitam.common.CommonMediaType;
@@ -40,16 +42,20 @@ import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.VitamRuleRunner;
 import fr.gouv.vitam.common.VitamServerRunner;
+import fr.gouv.vitam.common.client.IngestCollection;
 import fr.gouv.vitam.common.client.VitamClientFactory;
 import fr.gouv.vitam.common.client.VitamClientFactoryInterface;
 import fr.gouv.vitam.common.database.builder.query.QueryHelper;
 import fr.gouv.vitam.common.database.builder.query.VitamFieldsHelper;
 import fr.gouv.vitam.common.database.builder.request.multiple.SelectMultiQuery;
 import fr.gouv.vitam.common.elasticsearch.ElasticsearchRule;
+import fr.gouv.vitam.common.exception.AccessUnauthorizedException;
+import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamException;
 import fr.gouv.vitam.common.format.identification.FormatIdentifierFactory;
 import fr.gouv.vitam.common.guid.GUID;
 import fr.gouv.vitam.common.guid.GUIDFactory;
+import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.model.ProcessAction;
 import fr.gouv.vitam.common.model.ProcessState;
 import fr.gouv.vitam.common.model.StatusCode;
@@ -57,6 +63,7 @@ import fr.gouv.vitam.common.model.dip.DataObjectVersions;
 import fr.gouv.vitam.common.model.dip.DipExportRequest;
 import fr.gouv.vitam.common.model.dip.ExportRequestParameters;
 import fr.gouv.vitam.common.model.dip.ExportType;
+import fr.gouv.vitam.common.model.logbook.LogbookEventOperation;
 import fr.gouv.vitam.common.model.processing.WorkFlow;
 import fr.gouv.vitam.common.stream.StreamUtils;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
@@ -64,7 +71,10 @@ import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.functional.administration.rest.AdminManagementMain;
 import fr.gouv.vitam.ingest.internal.client.IngestInternalClient;
 import fr.gouv.vitam.ingest.internal.client.IngestInternalClientFactory;
+import fr.gouv.vitam.ingest.internal.common.exception.IngestInternalClientNotFoundException;
+import fr.gouv.vitam.ingest.internal.common.exception.IngestInternalClientServerException;
 import fr.gouv.vitam.ingest.internal.upload.rest.IngestInternalMain;
+import fr.gouv.vitam.logbook.common.exception.LogbookClientException;
 import fr.gouv.vitam.logbook.common.parameters.Contexts;
 import fr.gouv.vitam.logbook.common.parameters.LogbookOperationParameters;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParametersFactory;
@@ -78,6 +88,8 @@ import fr.gouv.vitam.processing.management.rest.ProcessManagementMain;
 import fr.gouv.vitam.storage.engine.client.StorageClientFactory;
 import fr.gouv.vitam.storage.engine.server.rest.StorageMain;
 import fr.gouv.vitam.storage.offers.rest.DefaultOfferMain;
+import fr.gouv.vitam.worker.core.plugin.transfer.reply.SaveAtrPlugin;
+import fr.gouv.vitam.worker.core.plugin.transfer.reply.VerifyAtrPlugin;
 import fr.gouv.vitam.worker.server.rest.WorkerMain;
 import fr.gouv.vitam.workspace.rest.WorkspaceMain;
 import org.apache.commons.compress.archivers.zip.ZipArchiveEntry;
@@ -90,8 +102,10 @@ import org.junit.BeforeClass;
 import org.junit.ClassRule;
 import org.junit.Test;
 
+import javax.ws.rs.core.Response;
 import java.io.File;
 import java.io.FileOutputStream;
+import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
@@ -100,9 +114,12 @@ import java.util.List;
 
 import static fr.gouv.vitam.common.VitamServerRunner.PORT_SERVICE_INGEST_INTERNAL;
 import static fr.gouv.vitam.common.guid.GUIDFactory.newOperationLogbookGUID;
+import static fr.gouv.vitam.common.model.logbook.LogbookEvent.EV_TYPE;
+import static fr.gouv.vitam.common.model.logbook.LogbookEvent.OUTCOME;
 import static fr.gouv.vitam.common.thread.VitamThreadUtils.getVitamSession;
 import static fr.gouv.vitam.preservation.ProcessManagementWaiter.waitOperation;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.AssertionsForClassTypes.tuple;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 
@@ -112,6 +129,7 @@ public class TransferAndDipIT extends VitamRuleRunner {
     private static final long NB_TRY = 18000; // equivalent to 16 minute
     private static final String WORKFLOW_ID = "DEFAULT_WORKFLOW";
     private static final String CONTEXT_ID = "PROCESS_SIP_UNITARY";
+    private final static TypeReference<List<LogbookEventOperation>> TYPE_REFERENCE = new TypeReference<List<LogbookEventOperation>>() {};
 
     @ClassRule
     public static VitamServerRunner runner =
@@ -306,8 +324,98 @@ public class TransferAndDipIT extends VitamRuleRunner {
 
     }
 
-    private String createAndExtractDip(DipExportRequest dipExportRequest)
-        throws Exception {
+    @Test
+    @RunWithCustomExecutor
+    public void should_ingest_then_transfer_then_start_transfer_reply_in_OK() throws Exception {
+        // Given
+        GUID ingestGuid = ingestSip(PropertiesUtils.getResourceAsStream("integration-ingest-internal/OK_ArchivesPhysiques.zip"), StatusCode.WARNING);
+
+        GUID transferGuid = newOperationLogbookGUID(tenantId);
+        InputStream transferSip = transfer(ingestGuid, transferGuid);
+
+        GUID transferredIngestedSip = ingestSip(transferSip, StatusCode.OK);
+        String atr = getAtrTransferredSip(transferredIngestedSip);
+
+        // When
+        GUID transferReplyWorkflowGuid = makeTransferReplyWorkflow(atr);
+        List<LogbookEventOperation> logbookEvents = getLogbookEvents(transferReplyWorkflowGuid);
+
+        // Then
+        assertThat(logbookEvents).extracting(EV_TYPE, OUTCOME)
+            .contains(
+                tuple(VerifyAtrPlugin.PLUGIN_NAME, StatusCode.OK.name()),
+                tuple(SaveAtrPlugin.PLUGIN_NAME, StatusCode.OK.name()),
+                tuple(LogbookTypeProcess.TRANSFER_REPLY.name(), StatusCode.OK.name())
+            );
+    }
+
+    private List<LogbookEventOperation> getLogbookEvents(GUID transferReplyWorkflowGuid) throws LogbookClientException, InvalidParseOperationException, AccessUnauthorizedException {
+        try (AccessInternalClient client = AccessInternalClientFactory.getInstance().getClient()){
+            JsonNode logbookEvents = client.selectOperationById(transferReplyWorkflowGuid.getId(), new SelectMultiQuery().getFinalSelect()).toJsonNode()
+                    .get("$results")
+                    .get(0)
+                    .get("events");
+
+            return JsonHandler.getFromJsonNode(logbookEvents, TYPE_REFERENCE);
+        }
+    }
+
+    private GUID makeTransferReplyWorkflow(String atr) throws AccessInternalClientServerException {
+        GUID transferReplyWorkflowGuid = GUIDFactory.newOperationLogbookGUID(tenantId);
+        VitamThreadUtils.getVitamSession().setRequestId(transferReplyWorkflowGuid);
+        try (AccessInternalClient client = AccessInternalClientFactory.getInstance().getClient()){
+            client.startTransferReplyWorkflow(atr);
+            awaitForWorkflowTerminationWithStatus(transferReplyWorkflowGuid, StatusCode.OK);
+        }
+        return transferReplyWorkflowGuid;
+    }
+
+    private String getAtrTransferredSip(GUID transferredIngestedSip) throws InvalidParseOperationException, IngestInternalClientServerException, IngestInternalClientNotFoundException, IOException {
+        try (IngestInternalClient ingestExternalClient = IngestInternalClientFactory.getInstance().getClient()) {
+            Response response = ingestExternalClient.downloadObjectAsync(transferredIngestedSip.getId(), IngestCollection.REPORTS);
+
+            try (InputStream manifestAsStream = response.readEntity(InputStream.class)) {
+                return IOUtils.toString(manifestAsStream, StandardCharsets.UTF_8.name());
+            }
+
+        }
+    }
+
+    private InputStream transfer(GUID ingestGUID, GUID transferGuid) throws Exception {
+        VitamThreadUtils.getVitamSession().setRequestId(transferGuid);
+        SelectMultiQuery select = new SelectMultiQuery();
+        select.setQuery(QueryHelper.in(VitamFieldsHelper.operations(), ingestGUID.toString()));
+
+        DipExportRequest dipExportRequest = new DipExportRequest(
+            new DataObjectVersions(Collections.singleton("BinaryMaster")),
+            select.getFinalSelect(),
+            false
+        );
+
+        ExportRequestParameters exportRequestParameters = new ExportRequestParameters();
+        exportRequestParameters.setMessageRequestIdentifier(ingestGUID.getId());
+        exportRequestParameters.setArchivalAgencyIdentifier("Identifier4");
+        exportRequestParameters.setRequesterIdentifier("Required RequesterIdentifier");
+        exportRequestParameters.setArchivalAgreement("ArchivalAgreement0");
+        exportRequestParameters.setOriginatingAgencyIdentifier("FRAN_NP_050056");
+        exportRequestParameters.setSubmissionAgencyIdentifier("FRAN_NP_050056");
+        exportRequestParameters.setRelatedTransferReference(Lists.newArrayList("RelatedTransferReference1", "RelatedTransferReference2"));
+
+        dipExportRequest.setExportType(ExportType.ArchiveTransfer);
+        dipExportRequest.setExportRequestParameters(exportRequestParameters);
+
+        prepareVitamSession();
+        getVitamSession().setRequestId(transferGuid);
+        try (AccessInternalClient client = AccessInternalClientFactory.getInstance().getClient()) {
+            client.exportByUsageFilter(dipExportRequest);
+
+            awaitForWorkflowTerminationWithStatus(transferGuid, StatusCode.OK);
+
+            return getDip(transferGuid.getId());
+        }
+    }
+
+    private String createAndExtractDip(DipExportRequest dipExportRequest) throws Exception {
         GUID operationGuid = GUIDFactory.newOperationLogbookGUID(tenantId);
         prepareVitamSession();
         getVitamSession().setRequestId(operationGuid);
