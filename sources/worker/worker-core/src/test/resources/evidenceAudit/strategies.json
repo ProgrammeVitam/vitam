@@ -1,0 +1,12 @@
+[
+  {
+    "id": "default",
+    "offers": [
+      {
+        "id": "offer1",
+        "referent": false,
+        "status": "ACTIVE"
+      }
+    ]
+  }
+]

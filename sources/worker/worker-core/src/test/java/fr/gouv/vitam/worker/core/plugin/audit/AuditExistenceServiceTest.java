@@ -168,6 +168,8 @@ public class AuditExistenceServiceTest {
         OfferReference offer2 = new OfferReference();
         offer2.setId("offer-fs-2.service.int.consul");
         List<OfferReference> offers = new ArrayList<>();
+        offers.add(offer1);
+        offers.add(offer2);
         defaultStrategy.setOffers(offers);
         return Collections.singletonList(defaultStrategy);
     }

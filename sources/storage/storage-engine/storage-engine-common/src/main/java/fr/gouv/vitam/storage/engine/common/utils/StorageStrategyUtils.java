@@ -74,7 +74,7 @@ public class StorageStrategyUtils {
         if (!storageStrategy.isPresent()) {
             throw new StorageStrategyNotFoundException(String.format("Could not find strategy %s", storageStrategyId));
         }
-        return storageStrategy.get().getOffers().stream().map(offer -> offer.getId()).collect(Collectors.toList());
+        return storageStrategy.get().getOffers().stream().filter(offer -> offer.isEnabled()).map(offer -> offer.getId()).collect(Collectors.toList());
     }
 
 }

@@ -376,9 +376,9 @@ public class EvidenceAuditIT extends VitamRuleRunner {
 
     @Test
     @RunWithCustomExecutor
-    public void tshould_execute_evidence_audit_workflow_wit_fatal_error() throws Exception {
+    public void tshould_execute_evidence_audit_workflow_with_fatal_error() throws Exception {
         String ingestOperationId2 = dataLoader.doIngest("evidence/3_UNITS_2_GOTS.zip");
-        addOfferInMetadatasUnit();
+        setFakeStrategyInMetadatasUnit();
 
         // Given
         try (AccessInternalClient accessClient = AccessInternalClientFactory.getInstance().getClient();
@@ -403,7 +403,7 @@ public class EvidenceAuditIT extends VitamRuleRunner {
         }
     }
 
-    private void addOfferInMetadatasUnit()
+    private void setFakeStrategyInMetadatasUnit()
         throws Exception {
 
         GUID operationGuid = GUIDFactory.newOperationLogbookGUID(tenantId);
@@ -424,7 +424,7 @@ public class EvidenceAuditIT extends VitamRuleRunner {
         final String unitId = unit.get("#id").asText();
         assertThat(unit).isNotNull();
         Bson filter = Filters.eq("_id", unitId);
-        Bson update = Updates.push("_storage.offerIds", "nonRefOffer");
+        Bson update = Updates.set("_storage.strategyId", "fake-strategy");
         UpdateResult updateResult = MetadataCollections.UNIT.getCollection().updateOne(filter, update);
         assertEquals(updateResult.getModifiedCount(), 1);
     }

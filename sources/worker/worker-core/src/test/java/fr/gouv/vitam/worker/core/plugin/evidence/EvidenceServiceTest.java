@@ -54,6 +54,8 @@ import fr.gouv.vitam.storage.engine.client.StorageClient;
 import fr.gouv.vitam.storage.engine.client.StorageClientFactory;
 import fr.gouv.vitam.storage.engine.common.exception.StorageNotFoundException;
 import fr.gouv.vitam.storage.engine.common.model.DataCategory;
+import fr.gouv.vitam.storage.engine.common.referential.model.OfferReference;
+import fr.gouv.vitam.storage.engine.common.referential.model.StorageStrategy;
 import fr.gouv.vitam.worker.core.plugin.evidence.exception.EvidenceAuditException;
 import fr.gouv.vitam.worker.core.plugin.evidence.exception.EvidenceStatus;
 import fr.gouv.vitam.worker.core.plugin.evidence.report.EvidenceAuditParameters;
@@ -71,6 +73,9 @@ import javax.ws.rs.core.Response;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 
 import static fr.gouv.vitam.common.database.builder.query.QueryHelper.and;
 import static fr.gouv.vitam.common.database.builder.query.QueryHelper.gte;
@@ -165,7 +170,7 @@ public class EvidenceServiceTest {
 
 
         EvidenceAuditParameters parameters =
-            evidenceService.evidenceAuditsChecks("aeaqaaaaaaguu2zzaazsualbwlwdgwaaaaaq", MetadataType.UNIT);
+            evidenceService.evidenceAuditsChecks("aeaqaaaaaaguu2zzaazsualbwlwdgwaaaaaq", MetadataType.UNIT, loadStorageStrategiesMock());
         EvidenceAuditParameters expected = JsonHandler.getFromFile(PropertiesUtils.getResourceFile(result), EvidenceAuditParameters.class);
         assertThat(parameters.getHashLfcFromDatabase()).isEqualTo(expected.getHashLfcFromDatabase());
         assertThat(parameters.getHashMdFromDatabase()).isEqualTo(expected.getHashMdFromDatabase());
@@ -209,7 +214,7 @@ public class EvidenceServiceTest {
             .thenReturn(JsonHandler.toJsonNode(new RequestResponseOK<JsonNode>()));
 
         EvidenceAuditParameters parameters =
-            evidenceService.evidenceAuditsChecks("aeaqaaaaaaguu2zzaazsualbwlwdgwaaaaaq", MetadataType.UNIT);
+            evidenceService.evidenceAuditsChecks("aeaqaaaaaaguu2zzaazsualbwlwdgwaaaaaq", MetadataType.UNIT, loadStorageStrategiesMock());
 
         assertThat(parameters.getEvidenceStatus()).isEqualTo(EvidenceStatus.WARN);
         assertThat(parameters.getAuditMessage()).contains("No traceability operation found matching date");
@@ -291,6 +296,16 @@ public class EvidenceServiceTest {
                 .isInstanceOf(EvidenceAuditException.class)
                 .hasMessage("Could not retrieve traceability zip file 'test'");
         }
+    }
 
+    private List<StorageStrategy> loadStorageStrategiesMock(){
+        StorageStrategy defaultStrategy = new StorageStrategy();
+        defaultStrategy.setId("default");
+        OfferReference offer1 = new OfferReference();
+        offer1.setId("offer-fs-1.service.consul");
+        List<OfferReference> offers = new ArrayList<>();
+        offers.add(offer1);
+        defaultStrategy.setOffers(offers);
+        return Collections.singletonList(defaultStrategy);
     }
 }

@@ -33,7 +33,7 @@
         },
         {
           "action": {
-            "actionKey": "LIST_OBJECTGROUP_ID",
+            "actionKey": "PREPARE_STORAGE_STRATEGIES",
             "behavior": "BLOCKING",
             "out": [
               {
@@ -41,6 +41,12 @@
                 "uri": "WORKSPACE:StorageInfo/strategies.json"
               }
             ]
+          }
+        },
+        {
+          "action": {
+            "actionKey": "LIST_OBJECTGROUP_ID",
+            "behavior": "BLOCKING"
           }
         }
       ]

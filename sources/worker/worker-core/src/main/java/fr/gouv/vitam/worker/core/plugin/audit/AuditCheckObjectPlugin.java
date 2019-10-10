@@ -36,8 +36,6 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.JsonNode;
-import fr.gouv.vitam.common.model.administration.IngestContractModel;
 import fr.gouv.vitam.storage.engine.common.referential.model.StorageStrategy;
 import org.apache.commons.collections4.IterableUtils;
 
