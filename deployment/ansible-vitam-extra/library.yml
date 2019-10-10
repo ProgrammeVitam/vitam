@@ -1,6 +1,8 @@
 ---
 
 - hosts: library
+  gather_facts: no
+  any_errors_fatal: true
   roles:
     - vitam
   vars:
