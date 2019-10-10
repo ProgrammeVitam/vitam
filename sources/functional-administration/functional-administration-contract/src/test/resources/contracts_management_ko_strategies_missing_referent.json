@@ -9,9 +9,9 @@
 		"ActivationDate": "2017-04-10T11:30:33.798",
 		"DeactivationDate": null,
 		"Storage": {
-			"UnitStrategy": "default-fake-object",
-			"ObjectGroupStrategy": "default-fake-got",
-			"ObjectStrategy": "default-fake-object"
+			"UnitStrategy": "fake-object",
+			"ObjectGroupStrategy": "fake-md",
+			"ObjectStrategy": "fake-object"
 		}
 	},
 	{
@@ -24,9 +24,9 @@
 		"ActivationDate": "2017-04-10T11:30:33.798",
 		"DeactivationDate": null,
 		"Storage": {
-			"UnitStrategy": "default-fake-unit",
-			"ObjectGroupStrategy": "default-fake-object",
-			"ObjectStrategy": "default-fake-object"
+			"UnitStrategy": "fake-md",
+			"ObjectGroupStrategy": "fake-object",
+			"ObjectStrategy": "fake-object"
 		}
 	}
 ]

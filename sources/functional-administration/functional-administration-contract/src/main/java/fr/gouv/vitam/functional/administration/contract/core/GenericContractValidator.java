@@ -26,9 +26,11 @@
  */
 package fr.gouv.vitam.functional.administration.contract.core;
 
+import java.util.List;
 import java.util.Optional;
 
 import fr.gouv.vitam.common.model.administration.AbstractContractModel;
+import org.apache.commons.lang3.StringUtils;
 
 /**
  * Used to validate contracts (any class that extends AbstractContractModel) and
@@ -92,7 +94,7 @@ public interface GenericContractValidator<T extends AbstractContractModel> {
         private static final String ERR_INCONSISTENT_CONTRACT_DEFINITION = "Error while validating contract (%s) : %s";
 
         private static final String ERR_STORAGE_STRATEGY_NOT_FOUND = "Storage Strategy (%s) not found for the field %s";
-        private static final String ERR_STORAGE_STRATEGY_DOES_NOT_CONTAINS_REFERENT_OFFER = "Storage Strategy (%s) does not contains referent offer (%s) for the field %s";
+        private static final String ERR_STORAGE_STRATEGY_DOES_NOT_CONTAINS_REFERENT_OFFER = "Storage Strategy (%s) does not contains default strategy offer(s) (%s) for the field %s";
 
         private String reason;
 
@@ -272,14 +274,14 @@ public interface GenericContractValidator<T extends AbstractContractModel> {
          * Reject if storage strategy does not contains referent
          *
          * @param storageStrategy
-         * @param referentOffer
+         * @param defaultOffersIds
          * @param fieldName
          * @return GenericRejectionCause
          */
         public static GenericRejectionCause rejectStorageStrategyDoesNotContainsReferent(String storageStrategy,
-                                                                                         String referentOffer, String fieldName) {
+                                                                                         List<String> defaultOffersIds, String fieldName) {
             return new GenericRejectionCause(String.format(ERR_STORAGE_STRATEGY_DOES_NOT_CONTAINS_REFERENT_OFFER,
-                    storageStrategy, referentOffer, fieldName));
+                    storageStrategy, StringUtils.join(defaultOffersIds, ","), fieldName));
         }
 
         /**

@@ -286,13 +286,11 @@ public class CheckIngestContractActionHandlerTest {
      * @param status
      * @param unitStrategy
      * @param gotStrategy
-     * @param objecttStrategy
+     * @param objectStrategy
      * @return the created instance.
-     * @throws InvalidParseOperationException
      */
     private static RequestResponse<ManagementContractModel> createManagementContractWithStrategies(
-            ActivationStatus status, String unitStrategy, String gotStrategy, String objectStrategy)
-            throws InvalidParseOperationException {
+            ActivationStatus status, String unitStrategy, String gotStrategy, String objectStrategy) {
         ManagementContractModel contract = new ManagementContractModel();
         contract.setIdentifier(MANAGEMENT_CONTRACT_IDENTIFIER);
         contract.setStatus(status);
@@ -309,17 +307,15 @@ public class CheckIngestContractActionHandlerTest {
      *
      * @param status
      * @return the created instance.
-     * @throws InvalidParseOperationException
      */
-    private static RequestResponse<ManagementContractModel> createManagementContract(ActivationStatus status)
-            throws InvalidParseOperationException {
+    private static RequestResponse<ManagementContractModel> createManagementContract(ActivationStatus status) {
         ManagementContractModel contract = new ManagementContractModel();
         contract.setIdentifier(MANAGEMENT_CONTRACT_IDENTIFIER);
         contract.setStatus(status);
         StorageDetailModel storageDetailModel = new StorageDetailModel();
-        storageDetailModel.setUnitStrategy("withReferent");
-        storageDetailModel.setObjectGroupStrategy("withReferent");
-        storageDetailModel.setObjectStrategy("withoutReferent");
+        storageDetailModel.setUnitStrategy("withDefault");
+        storageDetailModel.setObjectGroupStrategy("withDefault");
+        storageDetailModel.setObjectStrategy("withoutDefault");
         contract.setStorage(storageDetailModel);
         return ClientMockResultHelper.createResponse(contract);
     }
@@ -334,15 +330,16 @@ public class CheckIngestContractActionHandlerTest {
         defaultStrategy.setId("default");
         defaultStrategy.setOffers(Arrays.asList(createOfferReference("offerReferent", true),
                 createOfferReference("offerNotReferent", false)));
-        StorageStrategy withReferentStrategy = new StorageStrategy();
-        withReferentStrategy.setId("withReferent");
-        withReferentStrategy.setOffers(Arrays.asList(createOfferReference("offerReferent", true)));
-        StorageStrategy withoutReferentStrategy = new StorageStrategy();
-        withoutReferentStrategy.setId("withoutReferent");
-        withoutReferentStrategy.setOffers(Arrays.asList(createOfferReference("offerNotReferent", false)));
+        StorageStrategy withDefaultStrategy = new StorageStrategy();
+        withDefaultStrategy.setId("withDefault");
+        withDefaultStrategy.setOffers(Arrays.asList(createOfferReference("offerReferent", true),
+                createOfferReference("offerNotReferent", false)));
+        StorageStrategy withoutDefaultStrategy = new StorageStrategy();
+        withoutDefaultStrategy.setId("withoutDefault");
+        withoutDefaultStrategy.setOffers(Arrays.asList(createOfferReference("offerNotReferent", false)));
 
         return ClientMockResultHelper
-                .createResponse(Arrays.asList(defaultStrategy, withReferentStrategy, withoutReferentStrategy));
+                .createResponse(Arrays.asList(defaultStrategy, withDefaultStrategy, withoutDefaultStrategy));
     }
 
     private static OfferReference createOfferReference(String offerReferenceId, boolean isReferent) {

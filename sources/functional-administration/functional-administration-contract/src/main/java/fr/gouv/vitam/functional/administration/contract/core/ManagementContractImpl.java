@@ -31,7 +31,6 @@ import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.ParametersChecker;
-import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.database.builder.query.VitamFieldsHelper;
 import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken;
 import fr.gouv.vitam.common.database.server.DbRequestResult;
@@ -75,9 +74,8 @@ import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClientFactory;
 import fr.gouv.vitam.storage.engine.client.StorageClient;
 import fr.gouv.vitam.storage.engine.client.StorageClientFactory;
 import fr.gouv.vitam.storage.engine.common.exception.StorageException;
-import fr.gouv.vitam.storage.engine.common.referential.model.OfferReference;
 import fr.gouv.vitam.storage.engine.common.referential.model.StorageStrategy;
-import fr.gouv.vitam.storage.engine.common.utils.ReferentOfferNotFoundException;
+import fr.gouv.vitam.storage.engine.common.utils.DefaultOffersNotFoundException;
 import fr.gouv.vitam.storage.engine.common.utils.StorageStrategyNotFoundException;
 import fr.gouv.vitam.storage.engine.common.utils.StorageStrategyUtils;
 
@@ -633,11 +631,11 @@ public class ManagementContractImpl implements ContractService<ManagementContrac
                     } catch (StorageStrategyNotFoundException storageStrategyNotFoundException) {
                         return Optional.of(GenericContractValidator.GenericRejectionCause.rejectStorageStrategyMissing(
                                 storageStrategyNotFoundException.getStrategyId(), storageStrategyNotFoundException.getVariableName()));
-                    } catch (ReferentOfferNotFoundException referentOfferNotFoundException) {
+                    } catch (DefaultOffersNotFoundException referentOfferNotFoundException) {
                         return Optional.of(GenericContractValidator.GenericRejectionCause
                                 .rejectStorageStrategyDoesNotContainsReferent(
                                         referentOfferNotFoundException.getStrategyId(),
-                                        referentOfferNotFoundException.getReferentOfferId(),
+                                        referentOfferNotFoundException.getDefaultOffersIds(),
                                         referentOfferNotFoundException.getVariableName()));
                     }
 

@@ -8,14 +8,11 @@
         },
         {
           "id": "offer-two"
-        },
-        {
-          "id": "offer-three"
         }
       ]
     },
     {
-      "id": "default-fake-unit",
+      "id": "fake-md",
       "offers": [
         {
           "id": "offer-one",
@@ -27,19 +24,16 @@
       ]
     },
     {
-      "id": "default-fake-got",
+      "id": "fake-invalid-md",
       "offers": [
         {
           "id": "offer-one",
           "referent": true
-        },
-        {
-          "id": "offer-two"
         }
       ]
     },
     {
-      "id": "default-fake-object",
+      "id": "fake-object",
       "offers": [
         {
           "id": "offer-three"
