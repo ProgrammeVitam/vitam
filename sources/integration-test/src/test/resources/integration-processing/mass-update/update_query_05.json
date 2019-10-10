@@ -1,0 +1,24 @@
+{
+  "$roots": [],
+  "$query": [
+    {
+      "$or": [
+        {
+          "$in": {
+            "#id": [
+              "aeaqaaaaaagbcaacaang6ak4ts6palibbbbq"
+            ]
+          }
+        },
+        {
+          "$in": {
+            "#allunitups": []
+          }
+        }
+      ],
+      "$depth": 1000
+    }
+  ],
+  "$filter": {},
+  "$action": []
+}

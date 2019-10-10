@@ -1,0 +1,17 @@
+{
+  "add": [],
+  "update": [],
+  "delete": [
+    {
+      "ReuseRule": {
+        "Rules": [
+          {
+            "Rule": "REU-00001"
+          }
+        ]
+      }
+    }
+  ],
+  "addOrUpdateMetadata": {},
+  "deleteMetadata": {}
+}

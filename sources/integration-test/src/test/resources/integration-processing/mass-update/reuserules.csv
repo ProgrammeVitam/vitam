@@ -1,0 +1,3 @@
+RuleId,RuleType,RuleValue,RuleDescription,RuleDuration,RuleMeasurement
+REU-00001,ReuseRule,Actes de décès,"Durée d’exclusivité accordé à la société XXX pour la réutilisation du produit de la numérisation des registres d’état civil du département de XXX
+L’échéance est calculée à partir de la date de signature du contrat",10,Year
