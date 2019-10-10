@@ -1,0 +1,11 @@
+[
+  {
+    "Name": "Contexte_KO_Champ_Statut_manquant_not_slave",
+    "Permissions": [
+      {
+        "tenant": 1
+      }
+    ],
+    "SecurityProfile": "SEC_PROFILE-000001"
+  }
+]
