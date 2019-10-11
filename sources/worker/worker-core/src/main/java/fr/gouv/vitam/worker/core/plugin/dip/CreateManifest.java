@@ -46,12 +46,16 @@ import fr.gouv.vitam.common.database.parser.query.ParserTokens;
 import fr.gouv.vitam.common.database.parser.request.multiple.SelectParserMultiple;
 import fr.gouv.vitam.common.database.utils.ScrollSpliterator;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
+import fr.gouv.vitam.common.exception.VitamRuntimeException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.model.dip.DipExportRequest;
+import fr.gouv.vitam.common.model.unit.ArchiveUnitModel;
 import fr.gouv.vitam.common.parameter.ParameterHelper;
+import fr.gouv.vitam.functional.administration.common.BackupService;
+import fr.gouv.vitam.functional.administration.common.exception.BackupServiceException;
 import fr.gouv.vitam.metadata.api.exception.MetaDataClientServerException;
 import fr.gouv.vitam.metadata.api.exception.MetaDataDocumentSizeException;
 import fr.gouv.vitam.metadata.api.exception.MetaDataExecutionException;
@@ -59,17 +63,24 @@ import fr.gouv.vitam.metadata.client.MetaDataClient;
 import fr.gouv.vitam.metadata.client.MetaDataClientFactory;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
+import fr.gouv.vitam.storage.engine.common.model.DataCategory;
 import fr.gouv.vitam.worker.common.HandlerIO;
 import fr.gouv.vitam.worker.core.handler.ActionHandler;
 import fr.gouv.vitam.worker.core.plugin.ScrollSpliteratorHelper;
+import fr.gouv.vitam.worker.core.plugin.transfer.TransferReportHeader;
+import fr.gouv.vitam.worker.core.plugin.transfer.TransferReportLine;
+import fr.gouv.vitam.worker.core.plugin.transfer.TransferStatus;
 
 import javax.xml.bind.JAXBException;
 import javax.xml.datatype.DatatypeConfigurationException;
 import javax.xml.stream.XMLStreamException;
+import java.io.BufferedOutputStream;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.nio.charset.StandardCharsets;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -90,7 +101,10 @@ import static fr.gouv.vitam.common.database.parser.query.ParserTokens.PROJECTION
 import static fr.gouv.vitam.common.database.parser.query.ParserTokens.PROJECTIONARGS.ORIGINATING_AGENCY;
 import static fr.gouv.vitam.common.database.parser.query.ParserTokens.PROJECTIONARGS.UNITUPS;
 import static fr.gouv.vitam.common.database.parser.request.GlobalDatasParser.DEFAULT_SCROLL_TIMEOUT;
+import static fr.gouv.vitam.common.json.JsonHandler.unprettyPrint;
 import static fr.gouv.vitam.common.model.dip.DipExportRequest.DIP_REQUEST_FILE_NAME;
+import static fr.gouv.vitam.common.model.dip.ExportType.ArchiveTransfer;
+import static java.nio.charset.StandardCharsets.UTF_8;
 
 /**
  * create manifest and put in on workspace
@@ -99,22 +113,24 @@ public class CreateManifest extends ActionHandler {
     static final int MANIFEST_XML_RANK = 0;
     static final int GUID_TO_INFO_RANK = 1;
     static final int BINARIES_RANK = 2;
+    static final int REPORT = 3;
 
     private static final String CREATE_MANIFEST = "CREATE_MANIFEST";
     private static final int MAX_ELEMENT_IN_QUERY = 1000;
 
     private MetaDataClientFactory metaDataClientFactory;
     private ObjectNode projection;
+    private BackupService backupService;
 
     /**
      * constructor use for plugin instantiation
      */
     public CreateManifest() {
-        this(MetaDataClientFactory.getInstance());
+        this(MetaDataClientFactory.getInstance(), new BackupService());
     }
 
     @VisibleForTesting
-    CreateManifest(MetaDataClientFactory metaDataClientFactory) {
+    CreateManifest(MetaDataClientFactory metaDataClientFactory, BackupService backupService) {
         this.metaDataClientFactory = metaDataClientFactory;
 
         ObjectNode fields = JsonHandler.createObjectNode();
@@ -125,26 +141,41 @@ public class CreateManifest extends ActionHandler {
 
         this.projection = JsonHandler.createObjectNode();
         this.projection.set(FIELDS.exactToken(), fields);
+        this.backupService = backupService;
     }
 
     @Override
     public ItemStatus execute(WorkerParameters param, HandlerIO handlerIO) throws ProcessingException {
-
         final ItemStatus itemStatus = new ItemStatus(CREATE_MANIFEST);
         File manifestFile = handlerIO.getNewLocalFile(handlerIO.getOutput(MANIFEST_XML_RANK).getPath());
+        File report = handlerIO.getNewLocalFile(handlerIO.getOutput(REPORT).getPath());
 
         try (MetaDataClient client = metaDataClientFactory.getClient();
             OutputStream outputStream = new FileOutputStream(manifestFile);
+            FileOutputStream fileOutputStream = new FileOutputStream(report);
+            FileInputStream reportFile = new FileInputStream(report);
+            BufferedOutputStream buffOut = new BufferedOutputStream(fileOutputStream);
             ManifestBuilder manifestBuilder = new ManifestBuilder(outputStream)) {
 
             DipExportRequest exportRequest = JsonHandler
                 .getFromJsonNode(handlerIO.getJsonFromWorkspace(DIP_REQUEST_FILE_NAME), DipExportRequest.class);
+            TransferReportHeader reportHeader = new TransferReportHeader(exportRequest.getDslRequest());
+
+            if (ArchiveTransfer.equals(exportRequest.getExportType())) {
+                buffOut.write(unprettyPrint(JsonHandler.createObjectNode()).getBytes(UTF_8)); // header vide
+                buffOut.write(System.lineSeparator().getBytes(StandardCharsets.UTF_8));
+                buffOut.write(unprettyPrint(reportHeader).getBytes(StandardCharsets.UTF_8));  // context
+                buffOut.write(System.lineSeparator().getBytes(StandardCharsets.UTF_8));
+                buffOut.flush();
+            }
 
             switch (exportRequest.getExportType()) {
                 case ArchiveDeliveryRequestReply:
                 case ArchiveTransfer:
                     // Validate request
                     manifestBuilder.validate(exportRequest.getExportType(), exportRequest.getExportRequestParameters());
+                    break;
+                default:
                     break;
             }
 
@@ -236,8 +267,14 @@ public class CreateManifest extends ActionHandler {
             StreamSupport.stream(scrollRequest, false)
                 .forEach(result -> {
                     try {
-                        manifestBuilder.writeArchiveUnit(result, multimap, ogs, exportWithLogBookLFC);
-                    } catch (JsonProcessingException | JAXBException | DatatypeConfigurationException | ProcessingException e) {
+                        ArchiveUnitModel unit = manifestBuilder.writeArchiveUnit(result, multimap, ogs, exportWithLogBookLFC);
+                        if (ArchiveTransfer.equals(exportRequest.getExportType())) {
+                            TransferReportLine reportLine = new TransferReportLine(unit.getId(), TransferStatus.OK);
+                            buffOut.write(unprettyPrint(reportLine).getBytes(StandardCharsets.UTF_8));
+                            buffOut.write(System.lineSeparator().getBytes(StandardCharsets.UTF_8));
+                            buffOut.flush();
+                        }
+                    } catch (JAXBException | DatatypeConfigurationException | IOException | ProcessingException e) {
                         throw new IllegalArgumentException(e);
                     }
                 });
@@ -251,6 +288,8 @@ public class CreateManifest extends ActionHandler {
                     if (Strings.isNullOrEmpty(originatingAgency)) {
                         originatingAgency = exportRequest.getExportRequestParameters().getOriginatingAgencyIdentifier();
                     }
+                    break;
+                default:
                     break;
             }
 
@@ -272,6 +311,8 @@ public class CreateManifest extends ActionHandler {
                     manifestBuilder
                         .writeFooter(exportRequest.getExportType(), exportRequest.getExportRequestParameters());
                     break;
+                default:
+                    break;
             }
 
             manifestBuilder.closeManifest();
@@ -280,13 +321,18 @@ public class CreateManifest extends ActionHandler {
 
             itemStatus.increment(StatusCode.OK);
 
+            if (ArchiveTransfer.equals(exportRequest.getExportType())) {
+                backupService.backup(reportFile, DataCategory.REPORT, handlerIO.getContainerName() + ".json");
+            }
+
         } catch (ExportException e) {
             itemStatus.increment(StatusCode.KO);
             ObjectNode infoNode = JsonHandler.createObjectNode();
             infoNode.put("Reason", e.getMessage());
             String evDetData = JsonHandler.unprettyPrint(infoNode);
             itemStatus.setEvDetailData(evDetData);
-        } catch (IOException | MetaDataExecutionException | InvalidCreateOperationException | MetaDataClientServerException | XMLStreamException | JAXBException | MetaDataDocumentSizeException | InvalidParseOperationException e) {
+        } catch (IOException | MetaDataExecutionException | InvalidCreateOperationException | MetaDataClientServerException
+            | XMLStreamException | JAXBException | MetaDataDocumentSizeException | InvalidParseOperationException | BackupServiceException e) {
             throw new ProcessingException(e);
         }
 

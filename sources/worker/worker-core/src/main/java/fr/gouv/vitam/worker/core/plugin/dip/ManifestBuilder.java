@@ -349,11 +349,16 @@ public class ManifestBuilder implements AutoCloseable {
         }
     }
 
-    void writeArchiveUnit(JsonNode result, ListMultimap<String, String> multimap, Map<String, String> ogs,
-        boolean exportWithLogBookLFC)
-        throws JsonProcessingException, DatatypeConfigurationException, JAXBException, ProcessingException {
-
+    ArchiveUnitModel writeArchiveUnit(JsonNode result, ListMultimap<String, String> multimap, Map<String, String> ogs, boolean exportWithLogBookLFC)
+        throws JsonProcessingException, JAXBException, DatatypeConfigurationException, ProcessingException {
         ArchiveUnitModel archiveUnitModel = objectMapper.treeToValue(result, ArchiveUnitModel.class);
+        writeArchiveUnit(archiveUnitModel, multimap, ogs, exportWithLogBookLFC);
+        return archiveUnitModel;
+    }
+
+    private void writeArchiveUnit(ArchiveUnitModel archiveUnitModel, ListMultimap<String, String> multimap, Map<String, String> ogs, boolean exportWithLogBookLFC)
+        throws DatatypeConfigurationException, JAXBException, ProcessingException {
+
         final ArchiveUnitType xmlUnit = archiveUnitMapper.map(archiveUnitModel);
 
         List<ArchiveUnitType> unitChildren = new ArrayList<>();
