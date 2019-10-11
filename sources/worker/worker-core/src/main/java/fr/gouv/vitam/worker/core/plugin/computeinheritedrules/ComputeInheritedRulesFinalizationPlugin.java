@@ -1,4 +1,4 @@
-/*******************************************************************************
+/*
  * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2019)
  *
  * contact.vitam@culture.gouv.fr
@@ -23,7 +23,7 @@
  *
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
- *******************************************************************************/
+ */
 package fr.gouv.vitam.worker.core.plugin.computeinheritedrules;
 
 import com.google.common.annotations.VisibleForTesting;
@@ -39,7 +39,6 @@ import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 import fr.gouv.vitam.worker.common.HandlerIO;
 import fr.gouv.vitam.worker.core.handler.ActionHandler;
-import fr.gouv.vitam.worker.core.plugin.reclassification.ReclassificationFinalizationHandler;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
 
 import static fr.gouv.vitam.worker.core.utils.PluginHelper.buildItemStatus;
@@ -49,8 +48,7 @@ import static fr.gouv.vitam.worker.core.utils.PluginHelper.buildItemStatus;
  */
 public class ComputeInheritedRulesFinalizationPlugin extends ActionHandler {
 
-    private static final VitamLogger LOGGER =
-        VitamLoggerFactory.getInstance(ReclassificationFinalizationHandler.class);
+    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(ComputeInheritedRulesFinalizationPlugin.class);
 
     private static final String COMPUTE_INHERITED_RULES_FINALIZATION = "COMPUTE_INHERITED_RULES_FINALIZATION";
 
@@ -76,7 +74,6 @@ public class ComputeInheritedRulesFinalizationPlugin extends ActionHandler {
     }
 
     private void cleanupBatchReport(HandlerIO handler) throws ProcessingException {
-
         // Cleanup units
         try (BatchReportClient batchReportClient = batchReportClientFactory.getClient()) {
             String processId = handler.getContainerName();

@@ -46,6 +46,10 @@
               {
                 "name": "binaries",
                 "uri": "WORKSPACE:data/binaries.json"
+              },
+              {
+                "name": "report",
+                "uri": "WORKSPACE:data/report.json"
               }
             ]
           }

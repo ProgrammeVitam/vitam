@@ -1,4 +1,4 @@
-/*******************************************************************************
+/*
  * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2019)
  *
  * contact.vitam@culture.gouv.fr
@@ -23,41 +23,52 @@
  *
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
- *******************************************************************************/
+ */
 package fr.gouv.vitam.common.model.dip;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import fr.gouv.vitam.common.SedaConstants;
 
 import java.util.List;
 
+import static fr.gouv.vitam.common.SedaConstants.TAG_ARCHIVAL_AGENCY;
+import static fr.gouv.vitam.common.SedaConstants.TAG_ARCHIVAL_AGREEMENT;
+import static fr.gouv.vitam.common.SedaConstants.TAG_COMMENT;
+import static fr.gouv.vitam.common.SedaConstants.TAG_ORIGINATINGAGENCYIDENTIFIER;
+import static fr.gouv.vitam.common.SedaConstants.TAG_RELATED_TRANSFER_REFERENCE;
+import static fr.gouv.vitam.common.SedaConstants.TAG_SUBMISSIONAGENCYIDENTIFIER;
+import static fr.gouv.vitam.common.SedaConstants.TAG_TRANSFERRING_AGENCY;
+import static fr.gouv.vitam.common.SedaConstants.TAG_TRANSFER_REQUEST_REPLY_IDENTIFIER;
+
 public class TransferRequestParameters {
+    private static final String IDENTIFIER = "Identifier";
 
-    @JsonProperty(ExportRequestParameters.ARCHIVAL_AGREEMENT)
-    private String archivalAgreement; // Required
+    @JsonProperty(TAG_ARCHIVAL_AGREEMENT)
+    private String archivalAgreement; // Cardinality (1-1) for ArchiveTransfer optional for ArchiveDeliveryRequestReply
 
-    @JsonProperty(ExportRequestParameters.ORIGINATING_AGENCY_IDENTIFIER)
-    private String originatingAgencyIdentifier; // Required
+    @JsonProperty(TAG_ORIGINATINGAGENCYIDENTIFIER)
+    private String originatingAgencyIdentifier; // Cardinality (1-1) for ArchiveTransfer must be given from query
 
-    @JsonProperty(ExportRequestParameters.ARCHIVAL_AGENCY_IDENTIFIER)
-    private String archivalAgencyIdentifier; // Required
-
-    @JsonProperty(ExportRequestParameters.COMMENT)
+    @JsonProperty(TAG_COMMENT)
     private String comment;
 
-    @JsonProperty(ExportRequestParameters.SUBMISSION_AGENCY_IDENTIFIER)
+    @JsonProperty(TAG_SUBMISSIONAGENCYIDENTIFIER)
     private String submissionAgencyIdentifier;
 
-    @JsonProperty(ExportRequestParameters.RELATED_TRANSFER_REFERENCE)
-    private List<String> relatedTransferReference;
+    @JsonProperty(TAG_RELATED_TRANSFER_REFERENCE)
+    private List<String> relatedTransferReference; // ArchiveTransfer only
 
-    @JsonProperty(ExportRequestParameters.TRANSFER_REQUEST_REPLY_IDENTIFIER)
-    private String transferRequestReplyIdentifier;
+    @JsonProperty(TAG_TRANSFER_REQUEST_REPLY_IDENTIFIER)
+    private String transferRequestReplyIdentifier; // ArchiveTransfer only
 
-    @JsonProperty(ExportRequestParameters.TRANSFERRING_AGENCY)
-    private String transferringAgency;
+    @JsonProperty(TAG_ARCHIVAL_AGENCY + IDENTIFIER)
+    private String archivalAgencyIdentifier; // Cardinality (1-1)
+
+    @JsonProperty(TAG_TRANSFERRING_AGENCY)
+    private String transferringAgency; // ArchiveTransfer only
 
 
-    public String getArchivalAgreement() {
+    String getArchivalAgreement() {
         return archivalAgreement;
     }
 
@@ -65,7 +76,7 @@ public class TransferRequestParameters {
         this.archivalAgreement = archivalAgreement;
     }
 
-    public String getOriginatingAgencyIdentifier() {
+    String getOriginatingAgencyIdentifier() {
         return originatingAgencyIdentifier;
     }
 
@@ -81,7 +92,7 @@ public class TransferRequestParameters {
         this.comment = comment;
     }
 
-    public String getSubmissionAgencyIdentifier() {
+    String getSubmissionAgencyIdentifier() {
         return submissionAgencyIdentifier;
     }
 
@@ -89,7 +100,7 @@ public class TransferRequestParameters {
         this.submissionAgencyIdentifier = submissionAgencyIdentifier;
     }
 
-    public List<String> getRelatedTransferReference() {
+    List<String> getRelatedTransferReference() {
         return relatedTransferReference;
     }
 
@@ -97,7 +108,7 @@ public class TransferRequestParameters {
         this.relatedTransferReference = relatedTransferReference;
     }
 
-    public String getTransferRequestReplyIdentifier() {
+    String getTransferRequestReplyIdentifier() {
         return transferRequestReplyIdentifier;
     }
 
@@ -105,7 +116,7 @@ public class TransferRequestParameters {
         this.transferRequestReplyIdentifier = transferRequestReplyIdentifier;
     }
 
-    public String getArchivalAgencyIdentifier() {
+    String getArchivalAgencyIdentifier() {
         return archivalAgencyIdentifier;
     }
 
@@ -113,7 +124,7 @@ public class TransferRequestParameters {
         this.archivalAgencyIdentifier = archivalAgencyIdentifier;
     }
 
-    public String getTransferringAgency() {
+    String getTransferringAgency() {
         return transferringAgency;
     }
 

@@ -35,12 +35,14 @@ import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.model.administration.AccessContractModel;
 import fr.gouv.vitam.common.model.dip.DipExportRequest;
 import fr.gouv.vitam.common.model.dip.ExportRequestParameters;
+import fr.gouv.vitam.common.model.dip.ExportType;
 import fr.gouv.vitam.common.model.processing.ProcessingUri;
 import fr.gouv.vitam.common.model.processing.UriPrefix;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
 import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
+import fr.gouv.vitam.functional.administration.common.BackupService;
 import fr.gouv.vitam.metadata.client.MetaDataClient;
 import fr.gouv.vitam.metadata.client.MetaDataClientFactory;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
@@ -63,18 +65,29 @@ import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import static fr.gouv.vitam.common.model.dip.DipExportRequest.DIP_REQUEST_FILE_NAME;
+import static fr.gouv.vitam.common.model.dip.ExportType.ArchiveTransfer;
 import static fr.gouv.vitam.worker.core.plugin.dip.CreateManifest.BINARIES_RANK;
 import static fr.gouv.vitam.worker.core.plugin.dip.CreateManifest.GUID_TO_INFO_RANK;
 import static fr.gouv.vitam.worker.core.plugin.dip.CreateManifest.MANIFEST_XML_RANK;
+import static fr.gouv.vitam.worker.core.plugin.dip.CreateManifest.REPORT;
+import static junit.framework.TestCase.assertEquals;
+import static junit.framework.TestCase.assertTrue;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.core.IsEqual.equalTo;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.BDDMockito.given;
+import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 import static org.xmlunit.matchers.EvaluateXPathMatcher.hasXPath;
 
 public class CreateManifestTest {
@@ -92,6 +105,9 @@ public class CreateManifestTest {
     @Mock
     private MetaDataClientFactory metaDataClientFactory;
 
+    @Mock
+    private BackupService backupService;
+
     private static final int TENANT_ID = 0;
     
     private CreateManifest createManifest;
@@ -104,7 +120,7 @@ public class CreateManifestTest {
 
     @Before
     public void setUp() throws Exception {
-        createManifest = new CreateManifest(metaDataClientFactory);
+        createManifest = new CreateManifest(metaDataClientFactory, backupService);
     }
 
     @Test
@@ -144,6 +160,10 @@ public class CreateManifestTest {
         File manifestFile = tempFolder.newFile();
         given(handlerIO.getOutput(MANIFEST_XML_RANK)).willReturn(new ProcessingUri(UriPrefix.WORKSPACE, manifestFile.getPath()));
         given(handlerIO.getNewLocalFile(manifestFile.getPath())).willReturn(manifestFile);
+
+        File reportFile = tempFolder.newFile();
+        given(handlerIO.getOutput(REPORT)).willReturn(new ProcessingUri(UriPrefix.WORKSPACE, reportFile.getPath()));
+        given(handlerIO.getNewLocalFile(reportFile.getPath())).willReturn(reportFile);
 
         File guidToPathFile = tempFolder.newFile();
         given(handlerIO.getOutput(GUID_TO_INFO_RANK))
@@ -253,6 +273,10 @@ public class CreateManifestTest {
         given(handlerIO.getOutput(MANIFEST_XML_RANK)).willReturn(new ProcessingUri(UriPrefix.WORKSPACE, manifestFile.getPath()));
         given(handlerIO.getNewLocalFile(manifestFile.getPath())).willReturn(manifestFile);
 
+        File reportFile = tempFolder.newFile();
+        given(handlerIO.getOutput(REPORT)).willReturn(new ProcessingUri(UriPrefix.WORKSPACE, reportFile.getPath()));
+        given(handlerIO.getNewLocalFile(reportFile.getPath())).willReturn(reportFile);
+
         File guidToPathFile = tempFolder.newFile();
         given(handlerIO.getOutput(GUID_TO_INFO_RANK))
                 .willReturn(new ProcessingUri(UriPrefix.WORKSPACE, guidToPathFile.getPath()));
@@ -342,6 +366,10 @@ public class CreateManifestTest {
         given(handlerIO.getOutput(MANIFEST_XML_RANK)).willReturn(new ProcessingUri(UriPrefix.WORKSPACE, manifestFile.getPath()));
         given(handlerIO.getNewLocalFile(manifestFile.getPath())).willReturn(manifestFile);
 
+        File reportFile = tempFolder.newFile();
+        given(handlerIO.getOutput(REPORT)).willReturn(new ProcessingUri(UriPrefix.WORKSPACE, reportFile.getPath()));
+        given(handlerIO.getNewLocalFile(reportFile.getPath())).willReturn(reportFile);
+
         File guidToPathFile = tempFolder.newFile();
         given(handlerIO.getOutput(GUID_TO_INFO_RANK))
             .willReturn(new ProcessingUri(UriPrefix.WORKSPACE, guidToPathFile.getPath()));
@@ -367,4 +395,86 @@ public class CreateManifestTest {
 
     }
 
+    @Test
+    @RunWithCustomExecutor
+    public void should_create_report() throws Exception {
+        // Given
+        HandlerIO handlerIO = mock(HandlerIO.class);
+        MetaDataClient metaDataClient = mock(MetaDataClient.class);
+        given(metaDataClientFactory.getClient()).willReturn(metaDataClient);
+        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
+        AccessContractModel accessContractModel = new AccessContractModel();
+        accessContractModel.setEveryDataObjectVersion(true);
+        accessContractModel.setEveryOriginatingAgency(true);
+
+        VitamThreadUtils.getVitamSession().setContract(accessContractModel);
+
+        JsonNode queryUnit = JsonHandler.getFromInputStream(getClass().getResourceAsStream("/CreateManifest/query.json"));
+
+        JsonNode queryUnitWithTree = JsonHandler.getFromInputStream(getClass().getResourceAsStream("/CreateManifest/queryWithTreeProjection.json"));
+
+        JsonNode queryObjectGroup = JsonHandler.getFromInputStream(getClass().getResourceAsStream("/CreateManifest/queryObjectGroup.json"));
+
+        given(handlerIO.getJsonFromWorkspace("query.json")).willReturn(queryUnit);
+
+        given(metaDataClient.selectUnits(queryUnit.deepCopy())).willReturn(
+            JsonHandler.getFromInputStream(getClass().getResourceAsStream("/CreateManifest/resultMetadata.json")));
+
+        given(metaDataClient.selectUnits(queryUnitWithTree)).willReturn(
+            JsonHandler.getFromInputStream(getClass().getResourceAsStream("/CreateManifest/resultMetadataTree.json")));
+
+        given(metaDataClient.selectObjectGroups(queryObjectGroup)).willReturn(
+            JsonHandler.getFromInputStream(getClass().getResourceAsStream("/CreateManifest/resultObjectGroup.json")));
+
+        File manifestFile = tempFolder.newFile();
+        given(handlerIO.getOutput(MANIFEST_XML_RANK)).willReturn(new ProcessingUri(UriPrefix.WORKSPACE, manifestFile.getPath()));
+        given(handlerIO.getNewLocalFile(manifestFile.getPath())).willReturn(manifestFile);
+
+        File reportFile = tempFolder.newFile();
+        given(handlerIO.getOutput(REPORT)).willReturn(new ProcessingUri(UriPrefix.WORKSPACE, reportFile.getPath()));
+        given(handlerIO.getNewLocalFile(reportFile.getPath())).willReturn(reportFile);
+
+        File guidToPathFile = tempFolder.newFile();
+        given(handlerIO.getOutput(GUID_TO_INFO_RANK))
+            .willReturn(new ProcessingUri(UriPrefix.WORKSPACE, guidToPathFile.getPath()));
+        given(handlerIO.getNewLocalFile(guidToPathFile.getPath())).willReturn(guidToPathFile);
+
+        File binaryFile = tempFolder.newFile();
+        given(handlerIO.getOutput(BINARIES_RANK)).willReturn(new ProcessingUri(UriPrefix.WORKSPACE, binaryFile.getPath()));
+        given(handlerIO.getNewLocalFile(binaryFile.getPath())).willReturn(binaryFile);
+
+        DipExportRequest dipExportRequest = new DipExportRequest();
+        dipExportRequest.setExportWithLogBookLFC(true);
+        dipExportRequest.setDslRequest(queryUnit);
+        dipExportRequest.setExportType(ArchiveTransfer);
+        ExportRequestParameters exportRequestParameters = new ExportRequestParameters();
+        exportRequestParameters.setArchivalAgreement("ArchivalAgreement");
+        exportRequestParameters.setOriginatingAgencyIdentifier("OriginatingAgencyIdentifier");
+        exportRequestParameters.setComment("Comment");
+        exportRequestParameters.setSubmissionAgencyIdentifier("SubmissionAgencyIdentifier");
+        exportRequestParameters.setRelatedTransferReference(Collections.singletonList("RelatedTransferReference"));
+        exportRequestParameters.setTransferRequestReplyIdentifier("TransferRequestReplyIdentifier");
+        exportRequestParameters.setArchivalAgencyIdentifier("ArchivalAgencyIdentifier");
+        exportRequestParameters.setTransferringAgency("TransferringAgency");
+        dipExportRequest.setExportRequestParameters(exportRequestParameters);
+        given(handlerIO.getJsonFromWorkspace(DIP_REQUEST_FILE_NAME)).willReturn(JsonHandler.toJsonNode(dipExportRequest));
+
+        given(backupService.backup(any(), any(), anyString())).willReturn(null);
+
+        WorkerParameters wp = WorkerParametersFactory.newWorkerParameters();
+
+        // When
+        ItemStatus itemStatus = createManifest.execute(wp, handlerIO);
+
+        // Then
+        assertThat(itemStatus.getGlobalStatus()).isEqualTo(StatusCode.OK);
+        List<String> lines = Files.lines(reportFile.toPath())
+            .map(String::trim)
+            .collect(Collectors.toList());
+        assertThat(lines.size()).isEqualTo(6); // 4 units + 2 report header
+        assertEquals("{\"id\":\"aeaqaaaaaadf6mc4aathcak7tmtgdnaaaaba\",\"status\":\"OK\"}", lines.get(2));
+        assertEquals("{\"id\":\"aeaqaaaaaadf6mc4aathcak7tmtgdmyaaaba\",\"status\":\"OK\"}", lines.get(3));
+        assertEquals("{\"id\":\"aeaqaaaaaadf6mc4aathcak7tmtgdayaaaca\",\"status\":\"OK\"}", lines.get(4));
+        assertEquals("{\"id\":\"aeaqaaaaaadf6mc4aathcak7tmtgdniaaaba\",\"status\":\"OK\"}", lines.get(5));
+    }
 }

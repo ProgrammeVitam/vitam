@@ -256,6 +256,7 @@ export class LogbookOperationComponent extends PageComponent {
         break;
       case 'ARCHIVE_TRANSFER':
         logbookService.downloadTransferSIP(item.evIdProc);
+        logbookService.downloadReport(item.evIdProc);
         break;
       case 'MASTERDATA':
         if (item.evType.toUpperCase() === 'STP_IMPORT_RULES' || item.evType.toUpperCase() === 'IMPORT_AGENCIES' || item.evType.toUpperCase() === 'IMPORT_ONTOLOGY') {
