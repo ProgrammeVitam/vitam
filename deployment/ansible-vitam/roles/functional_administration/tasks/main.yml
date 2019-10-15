@@ -52,7 +52,7 @@
         daemon_reload: "yes"
         enabled: "yes"
         state: "started"
-      when: inventory_hostname == groups["hosts-functional-administration"] | last
+      when: inventory_hostname == groups["hosts_functional_administration"] | last
 
     - name: Ensure vitam-functional-administration-reconstruction timer is stopped
       systemd:
@@ -74,7 +74,7 @@
         daemon_reload: "yes"
         enabled: "yes"
         state: "started"
-      when: inventory_hostname == groups["hosts-functional-administration"] | last
+      when: inventory_hostname == groups["hosts_functional_administration"] | last
 
   when: primary_site | lower == "true"
 
@@ -94,7 +94,7 @@
         daemon_reload: "yes"
         enabled: "yes"
         state: "started"
-      when: inventory_hostname == groups["hosts-functional-administration"] | last
+      when: inventory_hostname == groups["hosts_functional_administration"] | last
 
     - name: Ensure vitam-functional-administration-accession-register-reconstruction timer is started
       systemd:
@@ -102,7 +102,7 @@
         daemon_reload: "yes"
         enabled: "yes"
         state: "started"
-      when: inventory_hostname == groups["hosts-functional-administration"] | last
+      when: inventory_hostname == groups["hosts_functional_administration"] | last
 
     - name: Ensure vitam-create-accession-register-symbolic timer is stopped
       systemd:
@@ -110,6 +110,6 @@
         daemon_reload: "yes"
         enabled: "yes"
         state: "stopped"
-      when: inventory_hostname == groups["hosts-functional-administration"] | last
+      when: inventory_hostname == groups["hosts_functional_administration"] | last
 
   when: primary_site | lower == "false"

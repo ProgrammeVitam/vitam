@@ -56,7 +56,7 @@ log {source(s_all);filter(f_facility);filter(f_logstash_{{ composant| regex_repl
 log {source(s_sys);filter(f_logstash_{{ composant| regex_replace('-','_') }}_queue_filter);destination(d_logstash);};
 
 {% endfor %}
-{% elif (groups['hosts-logstash']|length) > 0 %}
+{% elif (groups['hosts_logstash']|length) > 0 %}
 options {
 #     flush_lines (0);
      sync(0);

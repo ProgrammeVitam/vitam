@@ -12,4 +12,4 @@
   when:
     - disable_internet_repositories_install == false
     - vitam.ingestexternal.antivirus == 'clamav'
-    - inventory_hostname in groups['hosts-ingest-external']
+    - inventory_hostname in groups['hosts_ingest_external']

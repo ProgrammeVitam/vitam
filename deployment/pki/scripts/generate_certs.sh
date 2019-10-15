@@ -215,9 +215,9 @@ if [ ! -f "${ENVIRONNEMENT_FILE}" ]; then
 fi
 
 # Get consul_domain
-CONSUL_DOMAIN=$(read_ansible_var "consul_domain" "hosts-processing[0]")
+CONSUL_DOMAIN=$(read_ansible_var "consul_domain" "hosts_processing[0]")
 # Get vitam_site_name
-VITAM_SITE_NAME=$(read_ansible_var "vitam_site_name" "hosts-processing[0]")
+VITAM_SITE_NAME=$(read_ansible_var "vitam_site_name" "hosts_processing[0]")
 
 # Cleaning or creating vault file for certs
 initVault certs
@@ -232,11 +232,11 @@ copyCAFromPki timestamping
 # Generate hosts certificates
 pki_logger "Génération des certificats serveurs"
 # Method                                    # Component name         # Host group name
-generateHostCertAndStorePassphrase          ingest-external          hosts-ingest-external
-generateHostCertAndStorePassphrase          access-external          hosts-access-external
-generateHostCertAndStorePassphrase          offer                    hosts-storage-offer-default
-generateHostCertAndStorePassphrase          ihm-recette              hosts-ihm-recette
-generateHostCertAndStorePassphrase          ihm-demo                 hosts-ihm-demo
+generateHostCertAndStorePassphrase          ingest-external          hosts_ingest_external
+generateHostCertAndStorePassphrase          access-external          hosts_access_external
+generateHostCertAndStorePassphrase          offer                    hosts_storage_offer_default
+generateHostCertAndStorePassphrase          ihm-recette              hosts_ihm_recette
+generateHostCertAndStorePassphrase          ihm-demo                 hosts_ihm_demo
 
 # Generate timestamp certificates
 pki_logger "Génération des certificats timestamping"

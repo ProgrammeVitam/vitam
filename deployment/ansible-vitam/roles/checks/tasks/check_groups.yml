@@ -9,28 +9,28 @@
         - primary_site | lower == "true"
         - groups[item]|count < 1
       with_items:
-        - hosts-ingest-external
-        - hosts-access-external
-        - hosts-ingest-internal
-        - hosts-processing
-        - hosts-batch-report
-        - hosts-worker
-        - hosts-access-internal
-        - hosts-metadata
-        - hosts-functional-administration
-        - hosts-logbook
-        - hosts-workspace
-        - hosts-storage-engine
-        - hosts-security-internal
-        - hosts-storage-offer-default
-        - hosts-mongos-offer
-        - hosts-mongoc-offer
-        - hosts-mongod-offer
-        - hosts-elasticsearch-data
-        - hosts-mongos-data
-        - hosts-mongoc-data
-        - hosts-mongod-data
-        - hosts-consul-server
+        - hosts_ingest_external
+        - hosts_access_external
+        - hosts_ingest_internal
+        - hosts_processing
+        - hosts_batch_report
+        - hosts_worker
+        - hosts_access_internal
+        - hosts_metadata
+        - hosts_functional_administration
+        - hosts_logbook
+        - hosts_workspace
+        - hosts_storage_engine
+        - hosts_security_internal
+        - hosts_storage_offer_default
+        - hosts_mongos_offer
+        - hosts_mongoc_offer
+        - hosts_mongod_offer
+        - hosts_elasticsearch_data
+        - hosts_mongos_data
+        - hosts_mongoc_data
+        - hosts_mongod_data
+        - hosts_consul_server
 
     - name: Check groups
       fail:
@@ -39,18 +39,18 @@
         - primary_site | lower == "false"
         - groups[item]|count < 1
       with_items:
-        - hosts-metadata
-        - hosts-functional-administration
-        - hosts-logbook
-        - hosts-storage-engine
-        - hosts-storage-offer-default
-        - hosts-mongos-offer
-        - hosts-mongoc-offer
-        - hosts-mongod-offer
-        - hosts-elasticsearch-data
-        - hosts-mongos-data
-        - hosts-mongoc-data
-        - hosts-mongod-data
-        - hosts-consul-server
+        - hosts_metadata
+        - hosts_functional_administration
+        - hosts_logbook
+        - hosts_storage_engine
+        - hosts_storage_offer_default
+        - hosts_mongos_offer
+        - hosts_mongoc_offer
+        - hosts_mongod_offer
+        - hosts_elasticsearch_data
+        - hosts_mongos_data
+        - hosts_mongoc_data
+        - hosts_mongod_data
+        - hosts_consul_server
 
   run_once: true

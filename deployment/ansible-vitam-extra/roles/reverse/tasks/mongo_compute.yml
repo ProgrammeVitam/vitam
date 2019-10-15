@@ -5,7 +5,7 @@
     mongo_cluster_list: "{{ mongo_cluster_list + [hostvars[item]['mongo_cluster_name']] }}"
   when: hostvars[item]['mongo_cluster_name'] not in mongo_cluster_list
   with_items:
-    - "{{ groups['hosts-mongos-data'] + groups['hosts-mongos-offer'] }}"
+    - "{{ groups['hosts_mongos_data'] + groups['hosts_mongos_offer'] }}"
 
 - name: Compute the mongos server list
   set_fact:
@@ -14,4 +14,4 @@
   when:
     - "hostvars[item]['mongo_cluster_name'] not in mongo_cluster_list_to_process"
   with_items:
-    - "{{ groups['hosts-mongos-data'] + groups['hosts-mongos-offer'] }}"
+    - "{{ groups['hosts_mongos_data'] + groups['hosts_mongos_offer'] }}"

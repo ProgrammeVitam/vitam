@@ -26,7 +26,7 @@ workspaceUrl: {{vitam.workspace | client_url}}
 
 # Configuration MongoDB
 mongoDbNodes:
-{% for server in groups['hosts-mongos-data'] %}
+{% for server in groups['hosts_mongos_data'] %}
 - dbHost: {{ hostvars[server]['ip_service'] }}
   dbPort: {{ mongodb.mongos_port }}
 {% endfor %}
@@ -43,7 +43,7 @@ dbPassword: {{ mongodb['mongo-data']['admin']['password'] }}
 # ElasticSearch
 clusterName: {{ vitam_struct.cluster_name }}
 elasticsearchNodes:
-{% for server in groups['hosts-elasticsearch-data'] %}
+{% for server in groups['hosts_elasticsearch_data'] %}
 - hostName: {{ hostvars[server]['ip_service'] }}
   tcpPort: {{ elasticsearch.data.port_tcp }}
 {% endfor %}

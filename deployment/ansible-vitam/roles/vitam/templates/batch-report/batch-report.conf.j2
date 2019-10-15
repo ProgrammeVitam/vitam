@@ -1,6 +1,6 @@
 # Configuration MongoDB
 mongoDbNodes:
-{% for server in groups['hosts-mongos-data'] %}
+{% for server in groups['hosts_mongos_data'] %}
 - dbHost: {{ hostvars[server]['ip_service'] }}
   dbPort: {{ mongodb.mongos_port }}
 {% endfor %}

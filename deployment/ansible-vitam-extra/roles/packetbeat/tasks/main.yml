@@ -39,8 +39,8 @@
 - name: import dashboards
   shell:  /usr/bin/packetbeat setup --dashboards
   run_once: true
-  when: "{{ (groups['hosts-kibana-log'] | length) > 0}}"
-  delegate_to: "{{ groups['hosts-kibana-log'][0] }}"
+  when: "{{ (groups['hosts_kibana_log'] | length) > 0}}"
+  delegate_to: "{{ groups['hosts_kibana_log'][0] }}"
   retries: 5
   delay: 30
   register: result

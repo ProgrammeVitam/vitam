@@ -5,7 +5,7 @@
     method: POST
     body: "[{ \"Name\": \"{{ admin_context_name }}\",\"Identifier\": \"CT-000001\", \"Status\": \"ACTIVE\", \"SecurityProfile\": \"{{ admin_security_profile }}\", \"Permissions\": [ {% for tenant in admin_context_tenants %}{ \"tenant\": {{ tenant }}, \"AccessContracts\": [], \"IngestContracts\": [] }{% if not loop.last %},{% endif %}{% endfor %} ] }]"
     status_code: 200,201
-    url: "http://{{ hostvars[groups['hosts-functional-administration'][0]]['ip_admin'] }}:{{ vitam.functional_administration.port_admin }}/v1/admin/contexts"
+    url: "http://{{ hostvars[groups['hosts_functional_administration'][0]]['ip_admin'] }}:{{ vitam.functional_administration.port_admin }}/v1/admin/contexts"
     body_format: "json"
     timeout: "{{ vitam_defaults.services.api_call_timeout }}"
     headers:
@@ -20,7 +20,7 @@
 
 - name: "Wait until service security-internal is up"
   wait_for:
-      host: "{{ hostvars[groups['hosts-security-internal'][0]]['ip_admin'] }}"
+      host: "{{ hostvars[groups['hosts_security_internal'][0]]['ip_admin'] }}"
       port: "{{ vitam.security_internal.port_admin }}"
       state: "started"
       timeout: "{{ vitam_defaults.services.start_timeout }}"
@@ -32,7 +32,7 @@
     body: "{ \"contextId\" : \"{{ functional_adm_json.results[0].Identifier }}\" , \"certificate\" : \"{{ lookup('file','{{ inventory_dir }}/certs/client-external/clients/{{ item }}') | b64encode }}\" }"
     status_code: 201
     timeout: "{{ vitam_defaults.services.api_call_timeout }}"
-    url: http://{{ hostvars[groups['hosts-security-internal'][0]]['ip_admin'] }}:{{ vitam.security_internal.port_admin }}/v1/api/identity
+    url: http://{{ hostvars[groups['hosts_security_internal'][0]]['ip_admin'] }}:{{ vitam.security_internal.port_admin }}/v1/api/identity
     body_format: "json"
   run_once: true
   with_items:
@@ -44,7 +44,7 @@
     body: "{{ lookup('file','{{ inventory_dir }}/certs/client-vitam-users/clients/{{ item }}') }}"
     status_code: 204
     timeout: "{{ vitam_defaults.services.api_call_timeout }}" 
-    url: http://{{ hostvars[groups['hosts-security-internal'][0]]['ip_admin'] }}:{{ vitam.security_internal.port_admin }}/v1/api/personalCertificate
+    url: http://{{ hostvars[groups['hosts_security_internal'][0]]['ip_admin'] }}:{{ vitam.security_internal.port_admin }}/v1/api/personalCertificate
     body_format: "raw"
     headers:
       Content-Type: "application/octet-stream"

@@ -3,7 +3,7 @@
 
 - name: set temporary var
   set_fact:
-    groupe_es: "hosts-elasticsearch-{{ composant.groupe }}"
+    groupe_es: "hosts_elasticsearch_{{ composant.groupe }}"
 
 - name: check all nodes are in the cluster
   uri:

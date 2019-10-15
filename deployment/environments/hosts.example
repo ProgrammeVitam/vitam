@@ -5,7 +5,7 @@
 [hosts:children]
 vitam
 reverse
-hosts-dev-tools
+hosts_dev_tools
 ldap
 
 
@@ -25,126 +25,126 @@ ldap
 [library]
 # TODO: Put here servers where this service will be deployed : library
 
-[hosts-dev-tools]
+[hosts_dev_tools]
 # TODO: Put here servers where this service will be deployed : mongo-express, elasticsearch-head
 
 [elasticsearch:children] # EXTRA : elasticsearch
-hosts-elasticsearch-data
-hosts-elasticsearch-log
+hosts_elasticsearch_data
+hosts_elasticsearch_log
 
 ########### VITAM services ###########
 
 # Group definition ; DO NOT MODIFY
 [vitam:children]
-zone-external
-zone-access
-zone-applicative
-zone-storage
-zone-data
-zone-admin
+zone_external
+zone_access
+zone_applicative
+zone_storage
+zone_data
+zone_admin
 library
 
 
 ##### Zone externe
 
 
-[zone-external:children]
-hosts-ihm-demo
-hosts-ihm-recette
+[zone_external:children]
+hosts_ihm_demo
+hosts_ihm_recette
 
 
-[hosts-ihm-demo]
+[hosts_ihm_demo]
 # TODO: Put here servers where this service will be deployed : ihm-demo. If you own another frontend, it is recommended to leave this group blank
 # If you don't need consul for ihm-demo, you can set this var after each hostname :
 # consul_disabled=true
 
-[hosts-ihm-recette]
+[hosts_ihm_recette]
 # TODO: Put here servers where this service will be deployed : ihm-recette (extra feature)
 
 
 ##### Zone access
 
 # Group definition ; DO NOT MODIFY
-[zone-access:children]
-hosts-ingest-external
-hosts-access-external
+[zone_access:children]
+hosts_ingest_external
+hosts_access_external
 
-[hosts-ingest-external]
+[hosts_ingest_external]
 # TODO: Put here servers where this service will be deployed : ingest-external
 
 
-[hosts-access-external]
+[hosts_access_external]
 # TODO: Put here servers where this service will be deployed : access-external
 
 
 ##### Zone applicative
 
 # Group definition ; DO NOT MODIFY
-[zone-applicative:children]
-hosts-ingest-internal
-hosts-processing
-hosts-batch-report
-hosts-worker
-hosts-access-internal
-hosts-metadata
-hosts-functional-administration
-hosts-logbook
-hosts-workspace
-hosts-storage-engine
-hosts-security-internal
+[zone_applicative:children]
+hosts_ingest_internal
+hosts_processing
+hosts_batch_report
+hosts_worker
+hosts_access_internal
+hosts_metadata
+hosts_functional_administration
+hosts_logbook
+hosts_workspace
+hosts_storage_engine
+hosts_security_internal
 
-[hosts-security-internal]
+[hosts_security_internal]
 # TODO: Put here servers where this service will be deployed : security-internal
 
 
-[hosts-logbook]
+[hosts_logbook]
 # TODO: Put here servers where this service will be deployed : logbook
 
 
-[hosts-workspace]
+[hosts_workspace]
 # TODO: Put the server where this service will be deployed : workspace
 # WARNING: put only one server for this service, not more !
 
 
-[hosts-ingest-internal]
+[hosts_ingest_internal]
 # TODO: Put here servers where this service will be deployed : ingest-internal
 
 
-[hosts-access-internal]
+[hosts_access_internal]
 # TODO: Put here servers where this service will be deployed : access-internal
 
 
-[hosts-metadata]
+[hosts_metadata]
 # TODO: Put here servers where this service will be deployed : metadata
 
 
-[hosts-functional-administration]
+[hosts_functional_administration]
 # TODO: Put here servers where this service will be deployed : functional-administration
 
 
-[hosts-processing]
+[hosts_processing]
 # TODO: Put the server where this service will be deployed : processing
 # WARNING: put only one server for this service, not more !
 
 
-[hosts-storage-engine]
+[hosts_storage_engine]
 # TODO: Put here servers where this service will be deployed : storage-engine
 
-[hosts-batch-report]
+[hosts_batch_report]
 # TODO: Put here servers where this service will be deployed : batch-report
 
-[hosts-worker]
+[hosts_worker]
 # TODO: Put here servers where this service will be deployed : worker
 # Optional parameter after each host : vitam_worker_capacity=<integer> ; please refer to your infrastructure for defining this number ; default is ansible_processor_vcpus value (cpu number in /proc/cpuinfo file)
 
 
 ##### Zone storage
 
-[zone-storage:children] # DO NOT MODIFY
-hosts-storage-offer-default
-hosts-mongodb-offer
+[zone_storage:children] # DO NOT MODIFY
+hosts_storage_offer_default
+hosts_mongodb_offer
 
-[hosts-storage-offer-default]
+[hosts_storage_offer_default]
 # TODO: Put here servers where this service will be deployed : storage-offer-default
 # LIMIT : only 1 offer per machine and 1 machine per offer
 # Mandatory param for each offer is offer_conf and points to offer_opts.yml & vault-vitam.yml (with same tree)
@@ -155,17 +155,17 @@ hosts-mongodb-offer
 # for s3
 # hostname-offre-3.vitam offer_conf=offer-s3-1
 
-[hosts-mongodb-offer:children]
-hosts-mongos-offer
-hosts-mongoc-offer
-hosts-mongod-offer
+[hosts_mongodb_offer:children]
+hosts_mongos_offer
+hosts_mongoc_offer
+hosts_mongod_offer
 
-[hosts-mongos-offer]
-# WARNING : DO NOT COLLOCATE WITH [hosts-mongos-data]
+[hosts_mongos_offer]
+# WARNING : DO NOT COLLOCATE WITH [hosts_mongos_data]
 # TODO: put here servers where this service will be deployed : mongos cluster for storage offers
 # Mandatory param : mongo_cluster_name : name of the cluster (should exist in the offer_conf configuration)
 # The recommended practice is to install the mongos instance on the same servers as the mongoc instances
-# Example (for a more complete one, see the one in the group hosts-mongos-data) :
+# Example (for a more complete one, see the one in the group hosts_mongos_data) :
 # vitam-mongo-swift-offer-01   mongo_cluster_name=offer-swift-1
 # vitam-mongo-swift-offer-02   mongo_cluster_name=offer-swift-1
 # vitam-mongo-fs-offer-01      mongo_cluster_name=offer-fs-1
@@ -173,8 +173,8 @@ hosts-mongod-offer
 # vitam-mongo-s3-offer-01      mongo_cluster_name=offer-s3-1
 # vitam-mongo-s3-offer-02      mongo_cluster_name=offer-s3-1
 
-[hosts-mongoc-offer]
-# WARNING : DO NOT COLLOCATE WITH [hosts-mongoc-data]
+[hosts_mongoc_offer]
+# WARNING : DO NOT COLLOCATE WITH [hosts_mongoc_data]
 # TODO: put here servers where this service will be deployed : mongoc cluster for storage offers
 # Mandatory param : mongo_cluster_name : name of the cluster (should exist in the offer_conf configuration)
 # Optional param : mandatory for 1 node of the shard, some init commands will be executed on it
@@ -191,8 +191,8 @@ hosts-mongod-offer
 # vitam-mongo-s3-offer-02      mongo_cluster_name=offer-s3-1
 # vitam-s3-offer               mongo_cluster_name=offer-s3-1                       mongo_arbiter=true
 
-[hosts-mongod-offer]
-# WARNING : DO NOT COLLOCATE WITH [hosts-mongod-data]
+[hosts_mongod_offer]
+# WARNING : DO NOT COLLOCATE WITH [hosts_mongod_data]
 # TODO: put here servers where this service will be deployed : mongod cluster for storage offers
 # Mandatory param : mongo_cluster_name : name of the cluster (should exist in the offer_conf configuration)
 # Mandatory param : id of the current shard, increment by 1 from 0 to n
@@ -214,11 +214,11 @@ hosts-mongod-offer
 ##### Zone data
 
 # Group definition ; DO NOT MODIFY
-[zone-data:children]
-hosts-elasticsearch-data
-hosts-mongodb-data
+[zone_data:children]
+hosts_elasticsearch_data
+hosts_mongodb_data
 
-[hosts-elasticsearch-data]
+[hosts_elasticsearch_data]
 # TODO: Put here servers where this service will be deployed : elasticsearch-data cluster
 # 2 params available for huge environments (parameter to be declared after each server) :
 #    is_data=true/false
@@ -232,13 +232,13 @@ hosts-mongodb-data
 
 
 # Group definition ; DO NOT MODIFY
-[hosts-mongodb-data:children]
-hosts-mongos-data
-hosts-mongoc-data
-hosts-mongod-data
+[hosts_mongodb_data:children]
+hosts_mongos_data
+hosts_mongoc_data
+hosts_mongod_data
 
-[hosts-mongos-data]
-# WARNING : DO NOT COLLOCATE WITH [hosts-mongos-offer]
+[hosts_mongos_data]
+# WARNING : DO NOT COLLOCATE WITH [hosts_mongos_offer]
 # TODO: Put here servers where this service will be deployed : mongos cluster
 # Mandatory param : mongo_cluster_name=mongo-data  ("mongo-data" is mandatory)
 # The recommended practice is to install the mongos instance on the same servers as the mongoc instances
@@ -247,8 +247,8 @@ hosts-mongod-data
 # vitam-mdbs-02   mongo_cluster_name=mongo-data
 # vitam-mdbs-03   mongo_cluster_name=mongo-data
 
-[hosts-mongoc-data]
-# WARNING : DO NOT COLLOCATE WITH [hosts-mongoc-offer]
+[hosts_mongoc_data]
+# WARNING : DO NOT COLLOCATE WITH [hosts_mongoc_offer]
 # TODO: Put here servers where this service will be deployed : mongoc cluster
 # Mandatory param : mongo_cluster_name=mongo-data  ("mongo-data" is mandatory)
 # Optional param : mandatory for 1 node of the shard, some init commands will be executed on it
@@ -258,8 +258,8 @@ hosts-mongod-data
 # vitam-mdbc-02   mongo_cluster_name=mongo-data
 # vitam-mdbc-03   mongo_cluster_name=mongo-data
 
-[hosts-mongod-data]
-# WARNING : DO NOT COLLOCATE WITH [hosts-mongod-offer]
+[hosts_mongod_data]
+# WARNING : DO NOT COLLOCATE WITH [hosts_mongod_offer]
 # TODO: Put here servers where this service will be deployed : mongod cluster
 # Each replica_set should have an odd number of members (2n + 1)
 # Reminder: For Vitam, one mongodb shard is using one replica_set
@@ -279,36 +279,36 @@ hosts-mongod-data
 ###### Zone admin
 
 # Group definition ; DO NOT MODIFY
-[zone-admin:children]
-hosts-cerebro
-hosts-consul-server
-hosts-kibana-data
-log-servers
-hosts-elasticsearch-log
+[zone_admin:children]
+hosts_cerebro
+hosts_consul_server
+hosts_kibana_data
+log_servers
+hosts_elasticsearch_log
 
-[hosts-cerebro]
+[hosts_cerebro]
 # TODO: Put here servers where this service will be deployed : vitam-elasticsearch-cerebro
 
-[hosts-consul-server]
+[hosts_consul_server]
 # TODO: Put here servers where this service will be deployed : consul
 
-[hosts-kibana-data]
+[hosts_kibana_data]
 # TODO: Put here servers where this service will be deployed : kibana (for data cluster)
 
-[log-servers:children]
-hosts-kibana-log
-hosts-logstash
+[log_servers:children]
+hosts_kibana_log
+hosts_logstash
 
 
-[hosts-kibana-log]
+[hosts_kibana_log]
 # TODO: Put here servers where this service will be deployed : kibana (for log cluster)
 
-[hosts-logstash]
+[hosts_logstash]
 # TODO: Put here servers where this service will be deployed : logstash
 # IF you connect VITAM to external SIEM, DO NOT FILL THE SECTION
 
 
-[hosts-elasticsearch-log]
+[hosts_elasticsearch_log]
 # TODO: Put here servers where this service will be deployed : elasticsearch-log cluster
 # IF you connect VITAM to external SIEM, DO NOT FILL THE SECTION
 

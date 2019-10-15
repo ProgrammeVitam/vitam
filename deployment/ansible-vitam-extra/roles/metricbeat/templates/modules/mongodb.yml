@@ -1,4 +1,4 @@
-{% if inventory_hostname in groups['hosts-mongoc-data'] %}
+{% if inventory_hostname in groups['hosts_mongoc_data'] %}
 - module: mongodb
   hosts: ["{{ ip_service }}:{{ mongodb.mongoc_port }}"]
   metricsets: ["collstats","dbstats", "status"]
@@ -7,7 +7,7 @@
   period: {{ metricbeat.mongodb.period }}s
 {% endif %}
 
-{% if inventory_hostname in groups['hosts-mongod-data'] %}
+{% if inventory_hostname in groups['hosts_mongod_data'] %}
 - module: mongodb
   hosts: ["{{ ip_service }}:{{ mongodb.mongod_port }}"]
   metricsets: ["dbstats", "status", "metrics", "replstatus"]
@@ -16,7 +16,7 @@
   period: {{ metricbeat.mongodb.period }}s
 {% endif %}
 
-{% if inventory_hostname in groups['hosts-mongos-data'] %}
+{% if inventory_hostname in groups['hosts_mongos_data'] %}
 - module: mongodb
   hosts: ["{{ ip_service }}:{{ mongodb.mongos_port }}"]
   metricsets: ["dbstats", "status"]
@@ -25,7 +25,7 @@
   period: {{ metricbeat.mongodb.period }}s
 {% endif %}
 
-{% if inventory_hostname in groups['hosts-mongoc-offer'] and inventory_hostname not in groups['hosts-mongoc-data'] %}
+{% if inventory_hostname in groups['hosts_mongoc_offer'] and inventory_hostname not in groups['hosts_mongoc_data'] %}
 - module: mongodb
   hosts: ["{{ ip_service }}:{{ mongodb.mongoc_port }}"]
   metricsets: ["collstats","dbstats", "status"]
@@ -34,7 +34,7 @@
   period: {{ metricbeat.mongodb.period }}s
 {% endif %}
 
-{% if inventory_hostname in groups['hosts-mongod-offer'] and inventory_hostname not in groups['hosts-mongod-data'] %}
+{% if inventory_hostname in groups['hosts_mongod_offer'] and inventory_hostname not in groups['hosts_mongod_data'] %}
 - module: mongodb
   hosts: ["{{ ip_service }}:{{ mongodb.mongod_port }}"]
   metricsets: ["dbstats", "status"]
@@ -43,7 +43,7 @@
   period: {{ metricbeat.mongodb.period }}s
 {% endif %}
 
-{% if inventory_hostname in groups['hosts-mongos-offer'] and inventory_hostname not in groups['hosts-mongos-data'] %}
+{% if inventory_hostname in groups['hosts_mongos_offer'] and inventory_hostname not in groups['hosts_mongos_data'] %}
 - module: mongodb
   hosts: ["{{ ip_service }}:{{ mongodb.mongos_port }}"]
   metricsets: ["dbstats", "status"]

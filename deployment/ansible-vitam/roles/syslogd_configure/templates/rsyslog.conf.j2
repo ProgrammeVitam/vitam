@@ -93,7 +93,7 @@ $ActionQueueHighWatermark 100000
 $ActionQueueLowWatermark 10000
 :programname, startswith, "curator"  @@{{ external_siem.host }}:{{ external_siem.port }}
 & stop
-{% elif (groups['hosts-logstash']|length) > 0 %}
+{% elif (groups['hosts_logstash']|length) > 0 %}
 $ModLoad imudp
 $UDPServerRun 514
 

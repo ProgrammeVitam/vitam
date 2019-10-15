@@ -43,28 +43,14 @@
   with_fileglob:
     - "{{ role_path }}/templates/modules/*yml"
 
-# - name: Upload dashboards zip file
-#   copy:
-#     src: "beats-dashboards-{{ beats_version }}.zip"
-#     dest: /tmp/beats-dashboards-{{ beats_version }}.zip
-
-
-# # OMA: needs more testing ; when recreating, ... Needs Internet access !!!
-# - name: import metricbeat dashboard into kibana
-#   shell: /usr/share/metricbeat/scripts/import_dashboards -file /tmp/beats-dashboards-{{ beats_version }}.zip -es http://{{ elasticsearch.log.host }}:{{ elasticsearch.log.port_http }}
-#   run_once: true
-#   when: "{{ (groups['hosts-kibana-log'] | length) > 0}}"
-#   delegate_to: "{{ groups['hosts-kibana-log'][0] }}"
-#   notify:
-#     - restart kibana
 
 # OMA : Has to be /usr/bin/metricbeat !
 # https://artifacts.elastic.co/downloads/beats/beats-dashboards/beats-dashboards-6.3.0.zip
 - name: import dashboards
   shell: /usr/bin/metricbeat setup --dashboards
   run_once: true
-  when: "{{ (groups['hosts-kibana-log'] | length) > 0}}"
-  delegate_to: "{{ groups['hosts-kibana-log'][0] }}"
+  when: "{{ (groups['hosts_kibana_log'] | length) > 0}}"
+  delegate_to: "{{ groups['hosts_kibana_log'][0] }}"
   retries: 5
   delay: 30
   register: result

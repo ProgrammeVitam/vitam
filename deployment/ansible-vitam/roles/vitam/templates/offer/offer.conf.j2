@@ -5,7 +5,7 @@ jettyConfig: jetty-config.xml
 authentication : {{ vitam_struct.https_enabled }}
 # Configuration MongoDB
 mongoDbNodes:
-{% for server in groups['hosts-mongos-offer'] %}
+{% for server in groups['hosts_mongos_offer'] %}
 {% if hostvars[server]['mongo_cluster_name'] == offer_conf or inventory_hostname in single_vm_hostnames %}
 - dbHost: {{ hostvars[server]['ip_service'] }}
   dbPort: {{ mongodb.mongos_port }}

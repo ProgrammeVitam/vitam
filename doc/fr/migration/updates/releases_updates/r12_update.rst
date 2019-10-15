@@ -6,6 +6,19 @@ Notes et procédures spécifiques R12
 Prérequis à la montée de version
 ================================
 
+Mise à jour de l'inventaire
+----------------------------
+
+Les versions récentes de ansible préconisent de ne plus utiliser le caractère "-" dans les noms de groupes ansible.
+
+Pour effectuer cette modification, un script de migration est mis à disposition pour mettre en conformité votre "ancien" inventaire dans une forme compatible avec les outils de déploiement de la *release* 12.
+
+La commande à lancer est ::
+
+   cd deployment
+   ./upgrade_inventory.sh ${fichier_d_inventaire}
+
+
 Montée de version MongoDB 4.0 vers 4.2
 --------------------------------------
 

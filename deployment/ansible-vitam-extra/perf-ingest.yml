@@ -1,6 +1,6 @@
 ---
 
-- hosts: hosts-ihm-recette
+- hosts: hosts_ihm_recette
   roles:
     - test-perf-ingest
   vars:

@@ -1,24 +1,10 @@
 ---
 
-# - hosts: hosts-kibana-log
-#   any_errors_fatal: true
-#   roles:
-#     - kibana_log_dashboards
-#   vars:
-#     composant: "{{ kibana.log }}"
-#     # groupe: log
-#     elasticsearch_host: "{{ elasticsearch.log.host }}"
-#     elasticsearch_port: "{{ elasticsearch.log.port_http }}"
-#     # kibana_port: "{{ kibana.log.port }}"
-
-- hosts: hosts-kibana-data
+- hosts: hosts_kibana_data
   any_errors_fatal: true
   roles:
-    #- kibana
     - kibana_data_dashboards
   vars:
     composant: "{{ kibana.data }}"
-    #groupe: data
     elasticsearch_host: "{{ vitam.elastickibanainterceptor.host }}"
     elasticsearch_port: "{{ vitam.elastickibanainterceptor.port_service }}"
-    #kibana_port: "{{ kibana.kibana_data.port }}"

@@ -9,7 +9,7 @@
 [hosts:children]
 vitam
 reverse
-hosts-dev-tools
+hosts_dev_tools
 ldap
 
 ########### Tests environments specifics ###########
@@ -22,172 +22,172 @@ ldap
 
 [library] # EXTRA : Library server
 
-[hosts-dev-tools]
+[hosts_dev_tools]
 
 [elasticsearch:children] # EXTRA : elasticsearch
-hosts-elasticsearch-data
-hosts-elasticsearch-log
+hosts_elasticsearch_data
+hosts_elasticsearch_log
 
 ########### VITAM services ###########
 
 [vitam:children]
-hosts-ihm-recette
-zone-external
-zone-access
-zone-applicative
-zone-storage
-zone-data
-zone-admin
+hosts_ihm_recette
+zone_external
+zone_access
+zone_applicative
+zone_storage
+zone_data
+zone_admin
 library
 
 ##### Zone externe
 
-[hosts-ihm-recette]
+[hosts_ihm_recette]
 small-vm-2
 
-[zone-external:children]
-hosts-ihm-demo
+[zone_external:children]
+hosts_ihm_demo
 
-[hosts-ihm-demo]
+[hosts_ihm_demo]
 small-vm-2
 
 
 ##### Zone access
 
-[zone-access:children]
-hosts-ingest-external
-hosts-access-external
+[zone_access:children]
+hosts_ingest_external
+hosts_access_external
 
-[hosts-ingest-external]
+[hosts_ingest_external]
 small-vm-1
 
-[hosts-access-external]
+[hosts_access_external]
 small-vm-1
 
 ##### Zone applicative
 
-[zone-applicative:children]
-hosts-ingest-internal
-hosts-processing
-hosts-batch-report
-hosts-worker
-hosts-access-internal
-hosts-metadata
-hosts-functional-administration
-hosts-logbook
-hosts-workspace
-hosts-storage-engine
-hosts-security-internal
+[zone_applicative:children]
+hosts_ingest_internal
+hosts_processing
+hosts_batch_report
+hosts_worker
+hosts_access_internal
+hosts_metadata
+hosts_functional_administration
+hosts_logbook
+hosts_workspace
+hosts_storage_engine
+hosts_security_internal
 
-[hosts-security-internal]
+[hosts_security_internal]
 small-vm-2
 
-[hosts-logbook]
+[hosts_logbook]
 small-vm-2
 
-[hosts-workspace]
+[hosts_workspace]
 small-vm-1
 
-[hosts-ingest-internal]
+[hosts_ingest_internal]
 small-vm-1
 
-[hosts-access-internal]
+[hosts_access_internal]
 small-vm-1
 
-[hosts-metadata]
+[hosts_metadata]
 small-vm-2
 
-[hosts-functional-administration]
+[hosts_functional_administration]
 small-vm-2
 
-[hosts-processing]
+[hosts_processing]
 small-vm-1
 
-[hosts-storage-engine]
+[hosts_storage_engine]
 small-vm-1
 
-[hosts-batch-report]
+[hosts_batch_report]
 small-vm-2
 
-[hosts-worker]
+[hosts_worker]
 small-vm-1
 
 
 ##### Zone storage
 
-[zone-storage:children]
-hosts-storage-offer-default
-hosts-mongodb-offer
+[zone_storage:children]
+hosts_storage_offer_default
+hosts_mongodb_offer
 
-[hosts-storage-offer-default]
+[hosts_storage_offer_default]
 small-vm-3 offer_conf=offer-fs-1
 
-[hosts-mongodb-offer:children]
-hosts-mongos-offer
-hosts-mongoc-offer
-hosts-mongod-offer
+[hosts_mongodb_offer:children]
+hosts_mongos_offer
+hosts_mongoc_offer
+hosts_mongod_offer
 
-[hosts-mongos-offer]
+[hosts_mongos_offer]
 small-vm-3    mongo_cluster_name=offer-fs-1
 
-[hosts-mongoc-offer]
+[hosts_mongoc_offer]
 small-vm-3    mongo_cluster_name=offer-fs-1                       mongo_rs_bootstrap=true
 
-[hosts-mongod-offer]
+[hosts_mongod_offer]
 small-vm-3    mongo_cluster_name=offer-fs-1   mongo_shard_id=0    mongo_rs_bootstrap=true
 
 ##### Zone data
 
-[zone-data:children]
-hosts-elasticsearch-data
-hosts-mongodb-data
+[zone_data:children]
+hosts_elasticsearch_data
+hosts_mongodb_data
 
-[hosts-elasticsearch-data]
+[hosts_elasticsearch_data]
 small-vm-2 elasticsearch_memory=256m
 
-[hosts-mongodb-data:children]
-hosts-mongos-data
-hosts-mongoc-data
-hosts-mongod-data
+[hosts_mongodb_data:children]
+hosts_mongos_data
+hosts_mongoc_data
+hosts_mongod_data
 
-[hosts-mongodb-data:vars]
+[hosts_mongodb_data:vars]
 mongo_cluster_name=mongo-data
 
-[hosts-mongos-data]
+[hosts_mongos_data]
 small-vm-2  mongo_cluster_name=mongo-data
 
-[hosts-mongoc-data]
+[hosts_mongoc_data]
 small-vm-2  mongo_cluster_name=mongo-data                        mongo_rs_bootstrap=true
 
-[hosts-mongod-data]
+[hosts_mongod_data]
 small-vm-2  mongo_cluster_name=mongo-data      mongo_shard_id=0  mongo_rs_bootstrap=true
 
 ###### Zone admin
 
-[zone-admin:children]
-hosts-cerebro
-hosts-consul-server
-hosts-kibana-data
-log-servers
-hosts-elasticsearch-log
+[zone_admin:children]
+hosts_cerebro
+hosts_consul_server
+hosts_kibana_data
+log_servers
+hosts_elasticsearch_log
 
-[hosts-cerebro]
+[hosts_cerebro]
 small-vm-3
 
-[hosts-consul-server]
+[hosts_consul_server]
 small-vm-3
 
-[hosts-kibana-data]
+[hosts_kibana_data]
 
-[log-servers:children]
-hosts-kibana-log
-hosts-logstash
+[log_servers:children]
+hosts_kibana_log
+hosts_logstash
 
-[hosts-logstash]
+[hosts_logstash]
 
-[hosts-kibana-log]
+[hosts_kibana_log]
 
-[hosts-elasticsearch-log]
+[hosts_elasticsearch_log]
 
 ########### Global vars ###########
 
