@@ -60,7 +60,7 @@ public interface ContextValidator {
         private static final String ERR_NO_EXISTANCE_ACCESS = "The access contract %s of tenant %d does not exist";
         private static final String ERR_INVALID_SECURITY_PROFILE = "The security profile %s does not exist";
         private static final String ERR_NO_EXISTANCE_TENANT = "The tenant %d does not exist";
-
+        private static final String ERR_NULL_TENANT = "The tenant field for permissions should not be null";
         private String reason;
 
         /**
@@ -113,6 +113,14 @@ public interface ContextValidator {
             return new ContextRejectionCause(String.format(ERR_NO_EXISTANCE_TENANT, tenantId));
         }
 
+        /**
+         * Reject if the tenant does not exist
+         *
+         * @return ContextRejectionCause
+         */
+        public static ContextRejectionCause rejectNullTenant() {
+            return new ContextRejectionCause(ERR_NULL_TENANT);
+        }
         /**
          * 
          * @param contextName the context name
