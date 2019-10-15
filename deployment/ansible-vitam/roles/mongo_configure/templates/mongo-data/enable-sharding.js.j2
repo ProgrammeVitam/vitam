@@ -15,9 +15,11 @@ sh.enableSharding("logbook")
 
 // Add the sharding key for the sharded collections
 
-sh.shardCollection("metadata.Unit"                        ,{ _id: "hashed" })
-sh.shardCollection("metadata.ObjectGroup"                 ,{ _id: "hashed" })
+sh.shardCollection("metadata.Unit"                                 ,{ _id: "hashed" })
+sh.shardCollection("metadata.ObjectGroup"                          ,{ _id: "hashed" })
 
-sh.shardCollection("logbook.LogbookOperation"             ,{ _id: "hashed" })
-sh.shardCollection("logbook.LogbookLifeCycleUnit"         ,{ _id: "hashed" })
-sh.shardCollection("logbook.LogbookLifeCycleObjectGroup"  ,{ _id: "hashed" })
+sh.shardCollection("logbook.LogbookOperation"                      ,{ _id: "hashed" })
+sh.shardCollection("logbook.LogbookLifeCycleUnit"                  ,{ _id: "hashed" })
+sh.shardCollection("logbook.LogbookLifeCycleObjectGroup"           ,{ _id: "hashed" })
+sh.shardCollection("logbook.LogbookLifeCycleUnitInProcess"         ,{ _id: "hashed" })
+sh.shardCollection("logbook.LogbookLifeCycleObjectGroupInProcess"  ,{ _id: "hashed" })
