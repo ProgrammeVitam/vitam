@@ -246,7 +246,8 @@ public class ContextServiceImpl implements ContextService {
                         manager.checkEmptyIdentifierSlaveModeValidator().validate(cm);
                     for (ContextRejectionCause result : results) {
                         error.addToErrors(
-                            new VitamError(VitamCode.CONTEXT_VALIDATION_ERROR.getItem()).setMessage(EMPTY_REQUIRED_FIELD)
+                            new VitamError(VitamCode.CONTEXT_VALIDATION_ERROR.getItem())
+                                .setMessage(EMPTY_REQUIRED_FIELD)
                                 .setDescription(result.getReason()).setState(StatusCode.KO.name()));
                     }
                 }
@@ -585,7 +586,7 @@ public class ContextServiceImpl implements ContextService {
             throws ReferentialException, InvalidParseOperationException {
             for (final ContextValidator validator : validators.keySet()) {
                 final List<ContextRejectionCause> validatorErrors = validator.validate(context);
-                if(!validatorErrors.isEmpty()) {
+                if (!validatorErrors.isEmpty()) {
                     for (ContextRejectionCause validatorError : validatorErrors) {
                         // there is a validation error on this context
                         /* context is valid, add it to the list to persist */
@@ -802,13 +803,14 @@ public class ContextServiceImpl implements ContextService {
         private ContextValidator createMandatoryParamsValidator() {
             return (context) -> {
 
-                List<ContextRejectionCause> validationErrors =  new ArrayList<>();
+                List<ContextRejectionCause> validationErrors = new ArrayList<>();
                 if (StringUtils.isBlank(context.getName())) {
                     validationErrors.add(ContextValidator.ContextRejectionCause.rejectMandatoryMissing(Context.NAME));
                 }
 
                 if (StringUtils.isBlank(context.getSecurityProfileIdentifier())) {
-                    validationErrors.add(ContextValidator.ContextRejectionCause.rejectMandatoryMissing(Context.SECURITY_PROFILE));
+                    validationErrors
+                        .add(ContextValidator.ContextRejectionCause.rejectMandatoryMissing(Context.SECURITY_PROFILE));
                 }
 
                 if (context.getStatus() == null) {
@@ -853,7 +855,7 @@ public class ContextServiceImpl implements ContextService {
                     final boolean exist = FunctionalAdminCollections.CONTEXT.getCollection().count(clause) > 0;
                     if (exist) {
                         return Collections.singletonList(ContextValidator.ContextRejectionCause
-                                .rejectDuplicatedInDatabase(context.getIdentifier()));
+                            .rejectDuplicatedInDatabase(context.getIdentifier()));
                     }
                 }
                 return Collections.emptyList();
@@ -867,24 +869,30 @@ public class ContextServiceImpl implements ContextService {
          */
         private ContextValidator checkContract() {
             return (context) -> {
-                ContextValidator.ContextRejectionCause rejection = null;
-
                 List<ContextRejectionCause> validationErrors = new ArrayList<>();
                 final List<PermissionModel> pmList = context.getPermissions();
                 for (final PermissionModel pm : pmList) {
-                    final int tenant = pm.getTenant();
-
-                    final Set<String> icList = pm.getIngestContract();
-                    for (final String ic : icList) {
-                        if (!checkIdentifierOfIngestContract(ic, tenant)) {
-                            validationErrors.add(ContextValidator.ContextRejectionCause.rejectNoExistanceOfIngestContract(ic, tenant));
+                    if (pm.getTenant() == null) {
+                        validationErrors.add(
+                            ContextValidator.ContextRejectionCause.rejectNullTenant());
+                    } else {
+                        final int tenant = pm.getTenant();
+                        final Set<String> icList = pm.getIngestContract();
+                        for (final String ic : icList) {
+                            if (!checkIdentifierOfIngestContract(ic, tenant)) {
+                                validationErrors.add(
+                                    ContextValidator.ContextRejectionCause
+                                        .rejectNoExistanceOfIngestContract(ic, tenant));
+                            }
                         }
-                    }
 
-                    final Set<String> acList = pm.getAccessContract();
-                    for (final String ac : acList) {
-                        if (!checkIdentifierOfAccessContract(ac, tenant)) {
-                            validationErrors.add(ContextValidator.ContextRejectionCause.rejectNoExistanceOfAccessContract(ac,tenant));
+                        final Set<String> acList = pm.getAccessContract();
+                        for (final String ac : acList) {
+                            if (!checkIdentifierOfAccessContract(ac, tenant)) {
+                                validationErrors.add(
+                                    ContextValidator.ContextRejectionCause
+                                        .rejectNoExistanceOfAccessContract(ac, tenant));
+                            }
                         }
                     }
                 }
@@ -903,10 +911,16 @@ public class ContextServiceImpl implements ContextService {
                 List<ContextRejectionCause> validationErrors = new ArrayList<>();
                 final List<PermissionModel> pmList = context.getPermissions();
                 for (final PermissionModel pm : pmList) {
-                    final int tenant = pm.getTenant();
-                    List<Integer> tenants = VitamConfiguration.getTenants();
-                    if (!tenants.contains(tenant)) {
-                        return Collections.singletonList(ContextValidator.ContextRejectionCause.rejectNoExistanceOfTenant(tenant));
+                    if (pm.getTenant() == null) {
+                        validationErrors.add(
+                            ContextValidator.ContextRejectionCause.rejectNullTenant());
+                    } else {
+                        final int tenant = pm.getTenant();
+                        List<Integer> tenants = VitamConfiguration.getTenants();
+                        if (!tenants.contains(tenant)) {
+                            validationErrors.add(
+                                ContextValidator.ContextRejectionCause.rejectNoExistanceOfTenant(tenant));
+                        }
                     }
                 }
 
@@ -945,7 +959,6 @@ public class ContextServiceImpl implements ContextService {
          */
         private ContextValidator checkEmptyIdentifierSlaveModeValidator() {
             return (context) -> {
-                List<ContextRejectionCause> validationErrors = new ArrayList<>();
                 if (context.getIdentifier() == null || context.getIdentifier().isEmpty()) {
                     return Collections.singletonList(ContextValidator.ContextRejectionCause.rejectMandatoryMissing(
                         Context.IDENTIFIER));

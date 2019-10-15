@@ -400,6 +400,22 @@ public class ContextServiceImplTest {
 
     }
 
+    @Test
+    @RunWithCustomExecutor
+    public void givenContextImportedWithoutTenantAssociatedForContractsThenKO() throws Exception {
+        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
+
+        final File fileContexts = PropertiesUtils.getResourceFile("KO_contexts_without_tenant_in_permission.json");
+        final List<ContextModel> contextModelList =
+            JsonHandler.getFromFileAsTypeRefence(fileContexts, new TypeReference<List<ContextModel>>() {
+            });
+
+        RequestResponse<ContextModel> response = contextService.createContexts(contextModelList);
+        assertThat(response.isOk()).isFalse();
+        assertThat(((VitamError) response).getErrors().get(0).getDescription()).isEqualTo("The tenant field for permissions should not be null");
+        verifyZeroInteractions(functionalBackupService);
+
+    }
 
     @Test
     @RunWithCustomExecutor
