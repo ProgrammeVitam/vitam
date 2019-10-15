@@ -5,65 +5,65 @@
 # mongo_configure needs to be played as we create the offer db
 
 # mongodb commons (yum install, etc...)
-- hosts: hosts-mongodb-offer
+- hosts: hosts_mongodb_offer
   any_errors_fatal: true
   roles:
     - { role: mongo_common, when: "inventory_hostname not in single_vm_hostnames" }
 
 # Mongoc replicas configuration
-- hosts: hosts-mongoc-offer
+- hosts: hosts_mongoc_offer
   any_errors_fatal: true
   roles:
     - { role: mongoc, when: "inventory_hostname not in single_vm_hostnames" }
   vars:
     mongo_bin: mongod
-    mongod: "hosts-mongod-offer"
-    group_name: "hosts-mongoc-offer"
+    mongod: "hosts_mongod_offer"
+    group_name: "hosts_mongoc_offer"
 
 # Mongod replicas configuration
-- hosts: hosts-mongod-offer
+- hosts: hosts_mongod_offer
   any_errors_fatal: true
   roles:
     - { role: mongod, when: "inventory_hostname not in single_vm_hostnames" }
   vars:
     mongo_bin: mongod
-    mongoc: "hosts-mongoc-offer"
-    group_name: "hosts-mongod-offer"
+    mongoc: "hosts_mongoc_offer"
+    group_name: "hosts_mongod_offer"
 
 # Mongos configuration
-- hosts: hosts-mongos-offer
+- hosts: hosts_mongos_offer
   any_errors_fatal: true
   roles:
     - { role: mongos, when: "inventory_hostname not in single_vm_hostnames" }
   vars:
     mongo_bin: mongos
-    group_name: "hosts-mongos-offer"
-    mongoc: "hosts-mongoc-offer"
-    mongod: "hosts-mongod-offer"
-    mongos: "hosts-mongos-offer"
+    group_name: "hosts_mongos_offer"
+    mongoc: "hosts_mongoc_offer"
+    mongod: "hosts_mongod_offer"
+    mongos: "hosts_mongos_offer"
 
 # HUGE FIXME: BEURK
 # force mongo_cluster_name when deploying to localhost (dev docker)
 
-- hosts: hosts-mongos-offer
+- hosts: hosts_mongos_offer
   any_errors_fatal: true
   roles:
     - { role: mongo_configure, when: "inventory_hostname in single_vm_hostnames" }
   vars:
     mongo_bin: mongos
-    group_name: "hosts-mongos-offer"
-    mongoc: "hosts-mongoc-offer"
-    mongod: "hosts-mongod-offer"
-    mongos: "hosts-mongos-offer"
+    group_name: "hosts_mongos_offer"
+    mongoc: "hosts_mongoc_offer"
+    mongod: "hosts_mongod_offer"
+    mongos: "hosts_mongos_offer"
     mongo_cluster_name: "offer-fs-1"
 
-- hosts: hosts-mongos-offer
+- hosts: hosts_mongos_offer
   any_errors_fatal: true
   roles:
     - { role: mongo_configure, when: "inventory_hostname not in single_vm_hostnames" }
   vars:
     mongo_bin: mongos
-    group_name: "hosts-mongos-offer"
-    mongoc: "hosts-mongoc-offer"
-    mongod: "hosts-mongod-offer"
-    mongos: "hosts-mongos-offer"
+    group_name: "hosts_mongos_offer"
+    mongoc: "hosts_mongoc_offer"
+    mongod: "hosts_mongod_offer"
+    mongos: "hosts_mongos_offer"

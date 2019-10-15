@@ -1,40 +1,40 @@
 ---
 
 # mongodb commons (yum install, etc...)
-- hosts: hosts-mongodb-data
+- hosts: hosts_mongodb_data
   any_errors_fatal: true
   roles:
     - mongo_common
 
 # Mongoc replicas configuration
-- hosts: hosts-mongoc-data
+- hosts: hosts_mongoc_data
   any_errors_fatal: true
   roles:
     - mongoc
   vars:
     mongo_bin: mongod
-    mongod: "hosts-mongod-data"
-    group_name: "hosts-mongoc-data"
+    mongod: "hosts_mongod_data"
+    group_name: "hosts_mongoc_data"
 
 # Mongod replicas configuration
-- hosts: hosts-mongod-data
+- hosts: hosts_mongod_data
   any_errors_fatal: true
   roles:
     - mongod
   vars:
     mongo_bin: mongod
-    mongoc: "hosts-mongoc-data"
-    group_name: "hosts-mongod-data"
+    mongoc: "hosts_mongoc_data"
+    group_name: "hosts_mongod_data"
 
 # Mongos configuration
-- hosts: hosts-mongos-data
+- hosts: hosts_mongos_data
   any_errors_fatal: true
   roles:
     - mongos
     - mongo_configure
   vars:
     mongo_bin: mongos
-    group_name: "hosts-mongos-data"
-    mongoc: "hosts-mongoc-data"
-    mongod: "hosts-mongod-data"
-    mongos: "hosts-mongos-data"
+    group_name: "hosts_mongod_data"
+    mongoc: "hosts_mongoc_data"
+    mongod: "hosts_mongod_data"
+    mongos: "hosts_mongos_data"

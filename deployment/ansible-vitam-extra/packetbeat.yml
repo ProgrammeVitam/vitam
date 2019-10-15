@@ -2,4 +2,4 @@
 
 - hosts: vitam
   roles:
-    - {role: packetbeat, when: "{{groups['hosts-elasticsearch-log'] | length > 0}}" }
+    - {role: packetbeat, when: "{{groups['hosts_elasticsearch_log'] | length > 0}}" }

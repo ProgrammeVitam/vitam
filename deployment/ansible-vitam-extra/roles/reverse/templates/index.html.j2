@@ -81,7 +81,7 @@
 						<div class="col-md-2"><a href="/{{ vitam.ihm_demo.baseuri }}/" class="btn btn-primary btn-xs" target="_blank">IHM demo</a> </div>
 						<div class="col-md-2"><a href="/{{ vitam.ihm_recette.baseuri }}/" class="btn btn-primary btn-xs" target="_blank">IHM recette</a> </div>
 					</p>
-{% if groups['hosts-kibana-data']|length >0 %}
+{% if groups['hosts_kibana_data']|length >0 %}
 					<p class="row" style="vertical-align: middle">
 						<div class="col-md-3">Kibana métier</div>
 						<div class="col-md-2"><a href="/kibana_data/app/kibana" class="btn btn-primary btn-xs" target="_blank">Kibana</a></div>
@@ -98,7 +98,7 @@
 				<div class="panel-body">
 
 
-{% if groups['hosts-kibana-log']|length >0 %}
+{% if groups['hosts_kibana_log']|length >0 %}
 					<p class="row" style="vertical-align: middle">
 						<div class="col-md-3">Kibana log</div>
 						<div class="col-md-2"><a href="/kibana_log/app/kibana" class="btn btn-primary btn-xs" target="_blank">Kibana</a> <a href="/kibana_log/api/status" class="btn btn-primary btn-xs" target="_blank">Statut</a></div>
@@ -114,14 +114,14 @@
 					</p>
 {% endif %}
 
-{% if groups['hosts-consul-server']|length >0 %}
+{% if groups['hosts_consul_server']|length >0 %}
 					<p class="row" style="vertical-align: middle">
 						<div class="col-md-3">Consul</div>
 						<div class="col-md-2"><a href="/ui" class="btn btn-primary btn-xs" target="_blank">Portail Consul</a>&nbsp;<a href="/v1/health/state/any?pretty" class="btn btn-primary btn-xs" target="_blank">Services health</a></div>
 					</p>
 {% endif %}
 
-{% if groups['hosts-dev-tools']|length >0 %}
+{% if groups['hosts_dev_tools']|length >0 %}
 					<p class="row" style="vertical-align: middle">
 						<div class="col-md-3">MongoDB</div>
 						<div class="col-md-9">
@@ -132,16 +132,16 @@
 					</p>
 {% endif %}
 
-{% if groups['hosts-elasticsearch-log']|length >0 %}
+{% if groups['hosts_elasticsearch_log']|length >0 %}
 					<p class="row" style="vertical-align: middle">
 						<div class="col-md-3">Elasticsearch logs</div>
 						<div class="col-md-9">
-{% if groups['hosts-dev-tools']|length >0 %}
+{% if groups['hosts_dev_tools']|length >0 %}
 
 							<a href="/head/" class="btn btn-primary btn-xs" target="_blank">Plugin Head</a>
 
 {% endif %}
-{% if groups['hosts-cerebro']|length >0 %}
+{% if groups['hosts_cerebro']|length >0 %}
 
 							<a href="/{{ cerebro.baseuri }}/#/overview?host={{ elasticsearch.log|client_url }}" class="btn btn-primary btn-xs" target="_blank">Cerebro</a>
 {% endif %}
@@ -152,16 +152,16 @@
 					</p>
 {% endif %}
 
-{% if groups['hosts-elasticsearch-data']|length >0 %}
+{% if groups['hosts_elasticsearch_data']|length >0 %}
 					<p class="row" style="vertical-align: middle">
 						<div class="col-md-3">Elasticsearch data</div>
 						<div class="col-md-9">
 
-{% if groups['hosts-dev-tools']|length >0 %}
+{% if groups['hosts_dev_tools']|length >0 %}
 
 							<a href="/head/" class="btn btn-primary btn-xs" target="_blank">Plugin Head</a>
 {% endif %}
-{% if groups['hosts-cerebro']|length >0 %}
+{% if groups['hosts_cerebro']|length >0 %}
 
 							<a href="/{{ cerebro.baseuri }}/#/overview?host={{ elasticsearch.data|client_url }}" class="btn btn-primary btn-xs" target="_blank">Cerebro</a>
 {% endif %}
@@ -188,7 +188,7 @@
                             {% for groupe in groups %}
                                 {% if item in groups[groupe] %}
                                     {% if (groupe not in ('hosts','all','vitam','reverse','elasticsearch','mongo_common')) and (not(groupe is search('^zone'))) %}
-                                        {{ groupe|regex_replace('hosts-', '') }}<br/>
+                                        {{ groupe|regex_replace('hosts_', '')| replace('_','-') }}<br/>
                                     {% endif %}
                                 {% endif %}
                             {% endfor %}
@@ -196,7 +196,7 @@
                         <div class="col-md-2">
                             {% for groupe in groups %}
                                 {% if groupe is search('^zone') %}
-                                    {% if item in groups[groupe] %}{{ groupe }}<br/>{% endif %}
+                                    {% if item in groups[groupe] %}{{ groupe| replace('_',' ') }}<br/>{% endif %}
                                 {% endif %}
                             {% endfor %}
                         </div>

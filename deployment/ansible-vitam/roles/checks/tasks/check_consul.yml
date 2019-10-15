@@ -6,9 +6,9 @@
   when: consul_disabled is defined and
         consul_disabled |lower == "true" and
         (
-          inventory_hostname in groups['zone-access'] or
-          inventory_hostname in groups['zone-applicative'] or
-          inventory_hostname in groups['zone-storage'] or
-          inventory_hostname in groups['zone-data'] or
-          inventory_hostname in groups['zone-admin']
+          inventory_hostname in groups['zone_access'] or
+          inventory_hostname in groups['zone_applicative'] or
+          inventory_hostname in groups['zone_storage'] or
+          inventory_hostname in groups['zone_data'] or
+          inventory_hostname in groups['zone_admin']
         )

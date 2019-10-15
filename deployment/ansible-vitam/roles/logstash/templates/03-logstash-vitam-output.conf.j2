@@ -16,7 +16,7 @@ output
                 template => "/vitam/conf/logstash/extra/elasticsearch-template.json"
                 index => "logstash-vitam-%{+YYYY.MM.dd}"
 
-                 hosts =>  [{% for host in groups['hosts-elasticsearch-log'] %}"{{ hostvars[host]['ip_admin'] }}:{{ elasticsearch.log.port_http }}"{% if not loop.last %},{% endif %}{% endfor %}]
+                 hosts =>  [{% for host in groups['hosts_elasticsearch_log'] %}"{{ hostvars[host]['ip_admin'] }}:{{ elasticsearch.log.port_http }}"{% if not loop.last %},{% endif %}{% endfor %}]
 
             }
         }
@@ -26,7 +26,7 @@ output
             {
                 template => "/vitam/conf/logstash/extra/elasticsearch-template.json"
                 index => "logstash-logs-%{+YYYY.MM.dd}"
-                hosts => [{% for host in groups['hosts-elasticsearch-log'] %}"{{ hostvars[host]['ip_admin'] }}:{{ elasticsearch.log.port_http }}"{% if not loop.last %},{% endif %}{% endfor %}]
+                hosts => [{% for host in groups['hosts_elasticsearch_log'] %}"{{ hostvars[host]['ip_admin'] }}:{{ elasticsearch.log.port_http }}"{% if not loop.last %},{% endif %}{% endfor %}]
             }
         }
         else
@@ -35,7 +35,7 @@ output
             {
                 template => "/vitam/conf/logstash/extra/elasticsearch-template.json"
                 index => "logstash-uncatched-%{+YYYY.MM.dd}"
-                hosts => [{% for host in groups['hosts-elasticsearch-log'] %}"{{ hostvars[host]['ip_admin'] }}:{{ elasticsearch.log.port_http }}"{% if not loop.last %},{% endif %}{% endfor %}]
+                hosts => [{% for host in groups['hosts_elasticsearch_log'] %}"{{ hostvars[host]['ip_admin'] }}:{{ elasticsearch.log.port_http }}"{% if not loop.last %},{% endif %}{% endfor %}]
             }
         }
     }
@@ -45,7 +45,7 @@ output
         elasticsearch
         {
             index => "logstash-failure-%{+YYYY.MM.dd}"
-            hosts => [{% for host in groups['hosts-elasticsearch-log'] %}"{{ hostvars[host]['ip_admin'] }}:{{ elasticsearch.log.port_http }}"{% if not loop.last %},{% endif %}{% endfor %}]
+            hosts => [{% for host in groups['hosts_elasticsearch_log'] %}"{{ hostvars[host]['ip_admin'] }}:{{ elasticsearch.log.port_http }}"{% if not loop.last %},{% endif %}{% endfor %}]
         }
     }
 

@@ -120,7 +120,7 @@ setup.template.settings:
 # The tags of the shipper are included in their own field with each
 # transaction published.
 #tags: ["service-X", "web-tier"]
-tags: [{% for groupe in groups %}{% if groupe |search('^zone') %}{% if inventory_hostname in groups[groupe] %}"{{ groupe }}",{% endif %}{% endif %}{% if inventory_hostname in groups[groupe] %}{% if (groupe not in ('hosts','all','vitam','reverse','elasticsearch','mongo_common')) and (not(groupe|search('^zone'))) %}"{{ groupe|regex_replace('hosts-', '') }}",{% endif %}{% endif %}{% endfor %}"vitam"]
+tags: [{% for groupe in groups %}{% if groupe |search('^zone') %}{% if inventory_hostname in groups[groupe] %}"{{ groupe }}",{% endif %}{% endif %}{% if inventory_hostname in groups[groupe] %}{% if (groupe not in ('hosts','all','vitam','reverse','elasticsearch','mongo_common')) and (not(groupe|search('^zone'))) %}"{{ groupe|regex_replace('hosts_', '') }}",{% endif %}{% endif %}{% endfor %}"vitam"]
 
 # Optional fields that you can specify to add additional information to the
 # output.
@@ -151,7 +151,7 @@ setup.kibana:
   # In case you specify and additional path, the scheme is required: http://localhost:5601/path
   # IPv6 addresses should always be defined as: https://[2001:db8::1]:5601
   #host: "localhost:5601"
-  host: "{{ hostvars[groups['hosts-kibana-log'][0]].ip_admin }}:{{ kibana.log.port }}"
+  host: "{{ hostvars[groups['hosts_kibana_log'][0]].ip_admin }}:{{ kibana.log.port }}"
 
   # Kibana Space ID
   # ID of the Kibana Space into which the dashboards should be loaded. By default,
@@ -179,7 +179,7 @@ setup.kibana:
 #-------------------------- Elasticsearch output ------------------------------
 output.elasticsearch:
   # Array of hosts to connect to.
-  hosts: [{% for item in groups['hosts-elasticsearch-log'] %}"{{ hostvars[item]['ip_admin'] }}:{{ elasticsearch.log.port_http }}"{% if not loop.last %},{% endif %}{% endfor %}]
+  hosts: [{% for item in groups['hosts_elasticsearch_log'] %}"{{ hostvars[item]['ip_admin'] }}:{{ elasticsearch.log.port_http }}"{% if not loop.last %},{% endif %}{% endfor %}]
 
   # Optional protocol and basic auth credentials.
   #protocol: "https"

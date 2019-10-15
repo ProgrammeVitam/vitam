@@ -6,15 +6,15 @@
       set_fact:
           offer_conf_types: "{{ offer_conf_types + [hostvars[item]['offer_conf']] }}"
       with_inventory_hostnames:
-          - hosts-storage-offer-default
+          - hosts_storage_offer_default
 
     - name: Check for each mongos
       fail:
           msg: "No mongo_cluster_name defined for offer : {{ hostvars[item]['mongo_cluster_name'] }}"
       when: hostvars[item]['mongo_cluster_name'] not in offer_conf_types
       with_inventory_hostnames:
-          - hosts-mongos-offer
-          - hosts-mongoc-offer
-          - hosts-mongod-offer
+          - hosts_mongos_offer
+          - hosts_mongoc_offer
+          - hosts_mongod_offer
 
   run_once: true

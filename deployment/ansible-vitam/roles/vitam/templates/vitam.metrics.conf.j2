@@ -20,13 +20,13 @@
 #  	- 0.0.0.0:80
 #  	- 8.8.8.8:22
 
-{% if (groups['hosts-elasticsearch-log'] | length) > 0  %}
+{% if (groups['hosts_elasticsearch_log'] | length) > 0  %}
 metricsJersey: true
 metricsJVM: true
 
 metricReporter: ELASTICSEARCH
 metricReporterHosts:
-{% for host in groups['hosts-elasticsearch-log'] %}
+{% for host in groups['hosts_elasticsearch_log'] %}
    - "{{ hostvars[host]['ip_admin'] }}:{{ elasticsearch.log.port_http }}"
 {% endfor %}
 metricLogLevel: {{ vitam_struct.metricslevel|default('DEBUG') }}

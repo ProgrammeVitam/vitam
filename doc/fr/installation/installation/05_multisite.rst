@@ -65,7 +65,7 @@ Site 3:
         - dc2:
           wan: ["dc2-host-1","dc2-host-2","dc2-host-3"]
 
-Il faut également prévoir de déclarer, lors de l'installation de chaque site distant,  la variable ``ip_wan`` pour les partitions hébergeant les serveurs Consul (groupe ansible ``hosts-consul-server``) et les offres de stockage (groupe ansible ``hosts-storage-offer-default``, considérées distantes par le site primaire).
+Il faut également prévoir de déclarer, lors de l'installation de chaque site distant,  la variable ``ip_wan`` pour les partitions hébergeant les serveurs Consul (groupe ansible ``hosts_consul_server``) et les offres de stockage (groupe ansible ``hosts_storage_offer_default``, considérées distantes par le site primaire).
 Ces ajouts sont à faire dans ``environments/host_vars/<nom partition>``.
 
 Exemple ::

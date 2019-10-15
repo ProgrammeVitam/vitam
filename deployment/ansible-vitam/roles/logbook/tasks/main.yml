@@ -39,7 +39,7 @@
     enabled: "yes"
     state: "started"
   when: ( primary_site | lower == "false" ) and
-        ( groups['hosts-logbook'] | last == inventory_hostname )
+        ( groups['hosts_logbook'] | last == inventory_hostname )
 
 - name: Make sure logbook reconstruction timer is disabled
   systemd:
@@ -48,7 +48,7 @@
     enabled: "no"
     state: "stopped"
   when: ( primary_site | lower == "true" ) or
-        ( groups['hosts-logbook'] | last != inventory_hostname )
+        ( groups['hosts_logbook'] | last != inventory_hostname )
 
 
 # Logbook traceability
@@ -65,7 +65,7 @@
     - vitam-traceability-operations.timer
     - vitam-traceability-audit.timer
   when: ( primary_site | lower == "true" ) and
-        ( groups['hosts-logbook'] | last == inventory_hostname )
+        ( groups['hosts_logbook'] | last == inventory_hostname )
 
 - name: Make sure Secure logbook systemd timers are disabled
   systemd:
@@ -79,4 +79,4 @@
     - vitam-traceability-operations.timer
     - vitam-traceability-audit.timer
   when: ( primary_site | lower == "false" ) or
-        ( groups['hosts-logbook'] | last != inventory_hostname )
+        ( groups['hosts_logbook'] | last != inventory_hostname )

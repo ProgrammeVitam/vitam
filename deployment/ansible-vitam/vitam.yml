@@ -46,7 +46,7 @@
     - syslogd
 
 ### CONSUL INSTALLATION ###
-- hosts: hosts-consul-server
+- hosts: hosts_consul_server
   gather_facts: no
   any_errors_fatal: true
   serial: 1
@@ -57,11 +57,10 @@
   gather_facts: no
   any_errors_fatal: true
   roles:
-    - { role: consul, when: "( inventory_hostname not in groups['hosts-consul-server'] ) and ( consul_disabled is not defined or consul_disabled |lower != 'true' )" }
+    - { role: consul, when: "( inventory_hostname not in groups['hosts_consul_server'] ) and ( consul_disabled is not defined or consul_disabled |lower != 'true' )" }
 
 # ### ELASTICSEARCH LOG INSTALLATION ###
-- hosts: hosts-elasticsearch-log
-  gather_facts: no
+- hosts: hosts_elasticsearch_log
   any_errors_fatal: true
   roles:
     - elasticsearch-cluster
@@ -72,13 +71,12 @@
 
 
 ### LOG SERVER INSTALLATION ###
-- hosts: hosts-logstash
-  gather_facts: no
+- hosts: hosts_logstash
   any_errors_fatal: true
   roles:
     - logstash
 
-- hosts: hosts-kibana-log
+- hosts: hosts_kibana_log
   gather_facts: no
   any_errors_fatal: true
   roles:
@@ -99,8 +97,7 @@
     - syslogd_configure
 
 ### ELASTICSEARCH DATA INSTALLATION ###
-- hosts: hosts-elasticsearch-data
-  gather_facts: no
+- hosts: hosts_elasticsearch_data
   any_errors_fatal: true
   roles:
     - elasticsearch-cluster
@@ -108,14 +105,14 @@
   vars:
     composant: "{{ elasticsearch.data }}"
 
-- hosts: hosts-cerebro
+- hosts: hosts_cerebro
   gather_facts: no
   any_errors_fatal: true
   roles:
     - role: cerebro
 
 # OMA: to be discussed wether place & servers are best one..
-- hosts: hosts-kibana-data
+- hosts: hosts_kibana_data
   gather_facts: no
   any_errors_fatal: true
   roles:
@@ -124,7 +121,7 @@
     vitam_struct: "{{ vitam.elastickibanainterceptor }}"
 
 ## KIBANA DATA INSTALLATION ###
-- hosts: hosts-kibana-data
+- hosts: hosts_kibana_data
   gather_facts: no
   any_errors_fatal: true
   roles:
@@ -142,7 +139,7 @@
 - import_playbook: mongodb_offer.yml
 
 ## VITAM ####################################################################
-- hosts: hosts-storage-offer-default
+- hosts: hosts_storage_offer_default
   gather_facts: no
   any_errors_fatal: true
   roles:
@@ -156,7 +153,7 @@
     password_grantedstore: "{{ grantedstores.client_storage }}"
     vitam_certificate_client_type: "storage"
 
-- hosts: hosts-storage-engine
+- hosts: hosts_storage_engine
   gather_facts: no
   any_errors_fatal: true
   roles:
@@ -171,7 +168,7 @@
 
 
 
-- hosts: hosts-metadata
+- hosts: hosts_metadata
   gather_facts: no
   any_errors_fatal: true
   serial: 1
@@ -184,7 +181,7 @@
     timers_list: "{{ vitam_timers.metadata }}"
 
 
-- hosts: hosts-logbook
+- hosts: hosts_logbook
   gather_facts: no
   any_errors_fatal: true
   serial: 1
@@ -198,7 +195,7 @@
     timers_list: "{{ vitam_timers.logbook }}"
 
 
-- hosts: hosts-workspace
+- hosts: hosts_workspace
   gather_facts: no
   any_errors_fatal: true
   roles:
@@ -207,7 +204,7 @@
     vitam_struct: "{{ vitam.workspace }}"
 
 
-- hosts: hosts-functional-administration
+- hosts: hosts_functional_administration
   gather_facts: no
   any_errors_fatal: true
   serial: 1
@@ -220,7 +217,7 @@
     timers_list: "{{ vitam_timers.functional_administration }}"
 
 
-- hosts: hosts-security-internal
+- hosts: hosts_security_internal
   gather_facts: no
   any_errors_fatal: true
   roles:
@@ -229,7 +226,7 @@
   vars:
     vitam_struct: "{{ vitam.security_internal }}"
 
-- hosts: hosts-processing
+- hosts: hosts_processing
   gather_facts: no
   any_errors_fatal: true
   roles:
@@ -237,7 +234,7 @@
   vars:
     vitam_struct: "{{ vitam.processing }}"
 
-- hosts: hosts-batch-report
+- hosts: hosts_batch_report
   gather_facts: no
   any_errors_fatal: true
   roles:
@@ -245,7 +242,7 @@
   vars:
     vitam_struct: "{{ vitam.batchreport }}"
 
-- hosts: hosts-worker
+- hosts: hosts_worker
   gather_facts: no
   any_errors_fatal: true
   roles:
@@ -256,7 +253,7 @@
     vitam_struct: "{{ vitam.worker }}"
     vitam_timestamp_usage: secure-logbook
 
-- hosts: hosts-access-internal
+- hosts: hosts_access_internal
   gather_facts: no
   any_errors_fatal: true
   roles:
@@ -264,7 +261,7 @@
   vars:
     vitam_struct: "{{ vitam.accessinternal }}"
 
-- hosts: hosts-access-external
+- hosts: hosts_access_external
   gather_facts: no
   any_errors_fatal: true
   roles:
@@ -278,7 +275,7 @@
     vitam_certificate_client_type: "external"
 
 # 2 differents steps, due to https://github.com/ansible/ansible/issues/15476
-- hosts: hosts-access-external
+- hosts: hosts_access_external
   gather_facts: no
   any_errors_fatal: true
   roles:
@@ -291,7 +288,7 @@
     password_grantedstore: "{{ grantedstores.client_external }}"
     vitam_certificate_client_type: "external"
 
-- hosts: hosts-ingest-internal
+- hosts: hosts_ingest_internal
   gather_facts: no
   any_errors_fatal: true
   roles:
@@ -299,7 +296,7 @@
   vars:
     vitam_struct: "{{ vitam.ingestinternal }}"
 
-- hosts: hosts-ingest-external
+- hosts: hosts_ingest_external
   gather_facts: no
   any_errors_fatal: true
   roles:
@@ -316,7 +313,7 @@
     password_grantedstore: "{{ grantedstores.client_external }}"
     vitam_certificate_client_type: "external"
 
-- hosts: hosts-ihm-demo
+- hosts: hosts_ihm_demo
   gather_facts: no
   any_errors_fatal: true
   roles:

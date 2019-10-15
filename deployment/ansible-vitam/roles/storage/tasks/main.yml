@@ -50,7 +50,7 @@
     enabled: "yes"
     state: "started"
   when: ( primary_site | lower == "true" ) and
-        ( inventory_hostname == groups['hosts-storage-engine'] | last )
+        ( inventory_hostname == groups['hosts_storage_engine'] | last )
 
 - name: Ensure storage traceability systemd timer is stopped
   systemd:
@@ -59,4 +59,4 @@
     enabled: "no"
     state: "stopped"
   when: ( primary_site | lower == "false" ) or
-        ( inventory_hostname != groups['hosts-storage-engine'] | last )
+        ( inventory_hostname != groups['hosts_storage_engine'] | last )

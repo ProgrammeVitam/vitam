@@ -20,7 +20,7 @@ storage:
 # network interfaces
 net:
   port: {{ mongodb.mongoc_port }}
-  bindIp: {{ ip_service }}{% if groups['hosts-dev-tools'] | length > 0 and ip_service != ip_admin %},{{ ip_admin }}{% endif %}
+  bindIp: {{ ip_service }}{% if groups['hosts_dev_tools'] | length > 0 and ip_service != ip_admin %},{{ ip_admin }}{% endif %}
 
   unixDomainSocket:
     enabled: true

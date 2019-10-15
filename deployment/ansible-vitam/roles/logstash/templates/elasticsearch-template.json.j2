@@ -2,7 +2,7 @@
   "index_patterns": ["logstash-*"],
   "settings" : {
     "index.refresh_interval" : "10s",
-    {% if groups['hosts-elasticsearch-log']|length > 1 %}
+    {% if groups['hosts_elasticsearch_log']|length > 1 %}
     "number_of_replicas": {{ kibana.log.metrics.replica }},
     {% else %}
     "number_of_replicas": 0,

@@ -43,12 +43,6 @@
   delay: 10
   run_once: true
 
-# TODO : same thing but check before create that there are enough servers within cluster for replica number
-# - name: check wether replica number for metrics-vitam is compatible with inventory
-#   fail: msg="Too much replica defined for metrics index in elasticsearch-log"
-#   when: groups['hosts-elasticsearch-log']|length <= kibana.log.metrics.replica and groups['hosts-elasticsearch-log']|length>1
-#   tags: load_kibana_log
-
 - name: load default index template in Elasticsearch cluster {{ composant.cluster_name }}
   run_once: true
   uri:

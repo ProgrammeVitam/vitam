@@ -33,7 +33,7 @@ Pour configurer le déploiement, il est nécessaire de créer, dans le répertoi
 
 Pour chaque type de `host`, indiquer le(s) serveur(s) défini(s), pour chaque fonction. Une colocalisation de composants est possible (Cf. le paragraphe idoine du :term:`DAT`)
 
-.. note:: Concernant le groupe `hosts-consul-server`, il est nécessaire de déclarer au minimum 3 machines.
+.. note:: Concernant le groupe `hosts_consul_server`, il est nécessaire de déclarer au minimum 3 machines.
 
 .. warning:: Il n'est pas possible de colocaliser les clusters MongoDB `data` et `offer`.
 
@@ -89,7 +89,7 @@ Fichier le fichier |repertoire_inventory| ``/group_vars/all/cots_vars.yml`` :
 
 Dans le cas du choix du :term:`COTS` d'envoi des messages syslog dans logastsh, il est possible de choisir entre ``syslog-ng`` et ``rsyslog``. Il faut alors modifier la valeur de la directive ``syslog.name`` ; la valeur par défaut est ``rsyslog``.
 
-.. note:: si vous  décommentez et renseignez les valeurs dans le bloc ``external_siem``, les messages seront envoyés (par ``syslog`` ou ``syslog-ng``, selon votre choix de déploiement) dans un :term:`SIEM` externe à la solution logicielle :term:`VITAM`, aux valeurs indiquées dans le bloc ; il n'est alors pas nécessaire de renseigner de partitions pour les groupes ansible ``[hosts-logstash]`` et ``[hosts-elasticsearch-log]``.
+.. note:: si vous  décommentez et renseignez les valeurs dans le bloc ``external_siem``, les messages seront envoyés (par ``syslog`` ou ``syslog-ng``, selon votre choix de déploiement) dans un :term:`SIEM` externe à la solution logicielle :term:`VITAM`, aux valeurs indiquées dans le bloc ; il n'est alors pas nécessaire de renseigner de partitions pour les groupes ansible ``[hosts_logstash]`` et ``[hosts_elasticsearch_log]``.
 
 .. _pkiconfsection:
 

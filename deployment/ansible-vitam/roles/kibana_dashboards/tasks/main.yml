@@ -27,7 +27,7 @@
 
 - name: creating group_var variable
   set_fact:
-    group_var: "hosts-elasticsearch-{{ composant.groupe }}"
+    group_var: "hosts_elasticsearch_{{ composant.groupe }}"
   tags: load_kibana
 
 - name: check wether default replica number is compatible with inventory for data cluster

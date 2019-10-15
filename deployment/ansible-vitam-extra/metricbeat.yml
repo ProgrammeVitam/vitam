@@ -3,4 +3,4 @@
 - hosts: vitam
   any_errors_fatal: true
   roles:
-    - {role: metricbeat, when: "{{groups['hosts-elasticsearch-log'] | length > 0}}" }
+    - {role: metricbeat, when: "{{groups['hosts_elasticsearch_log'] | length > 0}}" }

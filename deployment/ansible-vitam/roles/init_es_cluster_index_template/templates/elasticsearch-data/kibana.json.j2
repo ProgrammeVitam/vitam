@@ -2,7 +2,7 @@
   "index_patterns": [".kibana*"],
   "order": "1",
   "settings" : {
-    {% if groups['hosts-elasticsearch-data']|length > 1 %}
+    {% if groups['hosts_elasticsearch_data']|length > 1 %}
     "number_of_replicas": {{ kibana.data.replica }},
     {% else %}
     "number_of_replicas": 0,

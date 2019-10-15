@@ -46,13 +46,13 @@ auth = {
 
 # A list of known hosts
 hosts = [
-{% if groups['hosts-elasticsearch-log']|length > 0 %}
+{% if groups['hosts_elasticsearch_log']|length > 0 %}
   {
     host = "http://{{ elasticsearch.log.host }}:{{ elasticsearch.log.port_http }}"
     name = "{{ elasticsearch.log.cluster_name }}"
   },
 {% endif %}
-{% if groups['hosts-elasticsearch-data']|length > 0 %}
+{% if groups['hosts_elasticsearch_data']|length > 0 %}
   {
     host = "http://{{ elasticsearch.data.host }}:{{ elasticsearch.data.port_http }}"
     name = "{{ elasticsearch.data.cluster_name }}"

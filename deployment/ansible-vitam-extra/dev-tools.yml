@@ -5,18 +5,18 @@
   roles:
     - checks
 
-- hosts: hosts-dev-tools
+- hosts: hosts_dev_tools
   roles:
     - {role: elasticsearch-head, when: "inventory_hostname not in single_vm_hostnames"}
 
-- hosts: hosts-mongos-data
+- hosts: hosts_mongos_data
   roles:
     - {role: mongo-express, when: "inventory_hostname not in single_vm_hostnames"}
   vars:
-    group_name: "hosts-mongos-data"
+    group_name: "hosts_mongos_data"
 
-- hosts: hosts-mongos-offer
+- hosts: hosts_mongos_offer
   roles:
     - {role: mongo-express, when: "inventory_hostname not in single_vm_hostnames"}
   vars:
-    group_name: "hosts-mongos-offer"
+    group_name: "hosts_mongos_offer"

@@ -38,7 +38,7 @@ Validation via Consul
 
 Consul possède une :term:`IHM` pour afficher l'état des services :term:`VITAM` et supervise le "/admin/v1/status" de chaque composant :term:`VITAM`, ainsi que des check TCP sur les bases de données.
 
-Pour se connecter à Consul : ``http//<Nom du 1er host dans le groupe ansible hosts-consul-server>:8500/ui``
+Pour se connecter à Consul : ``http//<Nom du 1er host dans le groupe ansible hosts_consul_server>:8500/ui``
 
 Pour chaque service, la couleur à gauche du composant doit être verte (correspondant à un statut OK).
 

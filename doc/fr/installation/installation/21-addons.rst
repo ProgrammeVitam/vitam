@@ -112,9 +112,9 @@ Gestion par VITAM
 -------------------
 
 Pour une gestion des logs par :term:`VITAM`, il est nécessaire de déclarer les serveurs ad-hoc dans le fichier d'inventaire pour les 3 groupes suivants :
-    - hosts-logstash
-    - hosts-kibana-log
-    - hosts-elasticsearch-log
+    - hosts_logstash
+    - hosts_kibana_log
+    - hosts_elasticsearch_log
 
 
 Redirection des logs sur un :term:`SIEM` tiers

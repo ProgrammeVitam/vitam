@@ -25,7 +25,7 @@ setup.template.settings:
   index.number_of_shards: {{ kibana.log.metricbeat.shards }}
   index.codec: best_compression
   #_source.enabled: false
-{% if groups['hosts-elasticsearch-log']|length > 1 %}
+{% if groups['hosts_elasticsearch_log']|length > 1 %}
   index.number_of_replicas: {{ kibana.log.metricbeat.replica }}
 {% else %}
   index.number_of_replicas: 0
@@ -41,7 +41,7 @@ name: {{ inventory_hostname }}
 # transaction published.
 #tags: ["service-X", "web-tier"]
 
-tags: [{% for groupe in groups %}{% if groupe is search('^zone') %}{% if inventory_hostname in groups[groupe] %}"{{ groupe }}",{% endif %}{% endif %}{% if inventory_hostname in groups[groupe] %}{% if (groupe not in ('hosts','all','vitam','reverse','elasticsearch','mongo_common')) and (not(groupe is search('^zone'))) %}"{{ groupe|regex_replace('hosts-', '') }}",{% endif %}{% endif %}{% endfor %}"vitam"]
+tags: [{% for groupe in groups %}{% if groupe is search('^zone') %}{% if inventory_hostname in groups[groupe] %}"{{ groupe }}",{% endif %}{% endif %}{% if inventory_hostname in groups[groupe] %}{% if (groupe not in ('hosts','all','vitam','reverse','elasticsearch','mongo_common')) and (not(groupe is search('^zone'))) %}"{{ groupe|regex_replace('hosts_', '') }}",{% endif %}{% endif %}{% endfor %}"vitam"]
 
 # Optional fields that you can specify to add additional information to the
 # output.
@@ -61,7 +61,7 @@ fields:
 # website.
 #setup.dashboards.url:
 
-{% if groups['hosts-kibana-log']|length > 0 %}
+{% if groups['hosts_kibana_log']|length > 0 %}
 
 #============================== Kibana =====================================
 
@@ -75,7 +75,7 @@ setup.kibana:
   # IPv6 addresses should always be defined as: https://[2001:db8::1]:5601
   #host: "localhost:5601"
   
-  host: "{{ hostvars[groups['hosts-kibana-log'][0]].ip_admin }}:{{ kibana.log.port }}"
+  host: "{{ hostvars[groups['hosts_kibana_log'][0]].ip_admin }}:{{ kibana.log.port }}"
 {% endif %}
 
 #============================= Elastic Cloud ==================================
@@ -98,7 +98,7 @@ setup.kibana:
 #-------------------------- Elasticsearch output ------------------------------
 output.elasticsearch:
   # Array of hosts to connect to.
-  hosts: [{% for item in groups['hosts-elasticsearch-log'] %}"{{ hostvars[item]['ip_admin'] }}:{{ elasticsearch.log.port_http }}"{% if not loop.last %},{% endif %}{% endfor %}]
+  hosts: [{% for item in groups['hosts_elasticsearch_log'] %}"{{ hostvars[item]['ip_admin'] }}:{{ elasticsearch.log.port_http }}"{% if not loop.last %},{% endif %}{% endfor %}]
   # see https://www.elastic.co/guide/en/beats/libbeat/6.4/upgrading-5-to-6.html for further details
   template.overwrite: true
 

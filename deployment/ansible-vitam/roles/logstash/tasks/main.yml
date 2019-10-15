@@ -3,7 +3,7 @@
 #### Logstash installation ####
 - name: check wether replica number for logstash is compatible with inventory
   fail: msg="Too much replica defined for logstash index in elasticsearch-log"
-  when: groups['hosts-elasticsearch-log']|length <= kibana.log.logs.replica and groups['hosts-elasticsearch-log']|length>1
+  when: groups['hosts_elasticsearch_log']|length <= kibana.log.logs.replica and groups['hosts_elasticsearch_log']|length>1
 
 
 - name: Install java (prerequisite for other components)

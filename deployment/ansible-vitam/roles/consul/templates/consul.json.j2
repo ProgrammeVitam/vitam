@@ -7,7 +7,7 @@
   "enable_script_checks": true,
 
 
-  {% if inventory_hostname in groups['hosts-consul-server'] %}
+  {% if inventory_hostname in groups['hosts_consul_server'] %}
 
   {% if consul_remote_sites is defined %}
     {% if consul_remote_sites is sequence %}
@@ -16,7 +16,7 @@
   "translate_wan_addrs": true,
   {% endif %}{% endif %}{% endif %}
 
-  "bootstrap_expect": {{ groups['hosts-consul-server']|length }},
+  "bootstrap_expect": {{ groups['hosts_consul_server']|length }},
   "server": true,
   "ui": true,
   "addresses" : {
@@ -29,7 +29,7 @@
 {% endif %}
   "domain": "{{ consul_domain }}",
   "datacenter": "{{ vitam_site_name }}",
-  "retry_join": [ {% for item in groups['hosts-consul-server'] %}"{{ hostvars[item][consul.network] }}"{% if not loop.last %},{% endif %}{% endfor %} ],
+  "retry_join": [ {% for item in groups['hosts_consul_server'] %}"{{ hostvars[item][consul.network] }}"{% if not loop.last %},{% endif %}{% endfor %} ],
   "retry_interval": "{{ consul.retry_interval }}s",
   "enable_syslog": true,
   "disable_remote_exec": true,

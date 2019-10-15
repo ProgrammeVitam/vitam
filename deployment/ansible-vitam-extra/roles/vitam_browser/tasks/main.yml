@@ -111,5 +111,5 @@
         - htaccess
 
   when:
-    - inventory_hostname in groups['hosts-storage-offer-default']
+    - inventory_hostname in groups['hosts_storage_offer_default']
     - vitam_offers[hostvars[inventory_hostname]['offer_conf']]['provider'] not in ['filesystem-hash','tape-library']

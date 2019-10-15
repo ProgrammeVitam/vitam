@@ -11,9 +11,9 @@
   when:  inventory_hostname in groups['vitam']
 
 - include_tasks: check_offers.yml
-  when:  inventory_hostname in groups['hosts-storage-offer-default']
+  when:  inventory_hostname in groups['hosts_storage_offer_default']
 
 - import_tasks: check_strategies_offers.yml
 
 - include_tasks: check_offers_mongo.yml
-  when:  ( inventory_hostname in groups['hosts-storage-offer-default'] and ansible_virtualization_type != "docker" and inventory_hostname not in single_vm_hostnames )
+  when:  ( inventory_hostname in groups['hosts_storage_offer_default'] and ansible_virtualization_type != "docker" and inventory_hostname not in single_vm_hostnames )

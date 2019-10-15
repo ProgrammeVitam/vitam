@@ -45,7 +45,7 @@
     enabled: "no"
     state: "stopped"
   when: ( primary_site | lower == "true" ) or
-        ( inventory_hostname != groups["hosts-metadata"] | last )
+        ( inventory_hostname != groups["hosts_metadata"] | last )
 
 - name: Ensure vitam-metadata-reconstruction timer is started
   systemd:
@@ -53,7 +53,7 @@
     daemon_reload: "yes"
     enabled: "yes"
     state: "started"
-  when: ( inventory_hostname == groups["hosts-metadata"] | last ) and
+  when: ( inventory_hostname == groups["hosts_metadata"] | last ) and
         ( primary_site | lower == "false" )
 
 
@@ -65,7 +65,7 @@
     enabled: "no"
     state: "stopped"
   when: ( primary_site | lower == "false" ) or
-        ( inventory_hostname != groups["hosts-metadata"] | last )
+        ( inventory_hostname != groups["hosts_metadata"] | last )
 
 - name: Ensure vitam-metadata-store-graph timer is started
   systemd:
@@ -73,7 +73,7 @@
     daemon_reload: "yes"
     enabled: "yes"
     state: "started"
-  when: ( inventory_hostname == groups["hosts-metadata"] | last ) and
+  when: ( inventory_hostname == groups["hosts_metadata"] | last ) and
         ( primary_site | lower == "true" )
 
 - name: Ensure vitam-metadata-computed-inherited-rules timer is stopped
@@ -83,7 +83,7 @@
     enabled: "no"
     state: "stopped"
   when: ( primary_site | lower == "false" ) or
-        ( inventory_hostname != groups["hosts-metadata"] | last )
+        ( inventory_hostname != groups["hosts_metadata"] | last )
 
 - name: Ensure vitam-metadata-computed-inherited-rules timer is started
   systemd:
@@ -91,7 +91,7 @@
     daemon_reload: "yes"
     enabled: "yes"
     state: "started"
-  when: ( inventory_hostname == groups["hosts-metadata"] | last ) and
+  when: ( inventory_hostname == groups["hosts_metadata"] | last ) and
         ( primary_site | lower == "true" )
 
 
@@ -102,7 +102,7 @@
     enabled: "no"
     state: "stopped"
   when: ( primary_site | lower == "false" ) or
-    ( inventory_hostname != groups["hosts-metadata"] | last )
+    ( inventory_hostname != groups["hosts_metadata"] | last )
 
 - name: Ensure vitam-metadata-purge-dip timer is started
   systemd:
@@ -110,5 +110,5 @@
     daemon_reload: "yes"
     enabled: "yes"
     state: "started"
-  when: ( inventory_hostname == groups["hosts-metadata"] | last ) and
+  when: ( inventory_hostname == groups["hosts_metadata"] | last ) and
     ( primary_site | lower == "true" )

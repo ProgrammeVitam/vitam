@@ -2,7 +2,7 @@
   "index_patterns": ["*"],
   "order": "0",
   "settings" : {
-    {% if groups['hosts-elasticsearch-log']|length > 1 %}
+    {% if groups['hosts_elasticsearch_log']|length > 1 %}
     "number_of_replicas": {{ composant.index_templates.default.replica }},
     {% else %}
     "number_of_replicas": 0,
