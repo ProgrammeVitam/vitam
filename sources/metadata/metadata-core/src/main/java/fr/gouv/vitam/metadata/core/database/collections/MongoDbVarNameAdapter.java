@@ -153,6 +153,8 @@ public class MongoDbVarNameAdapter extends VarNameAdapter {
                         return Unit.COMPUTED_INHERITED_RULES + extension;
                     case VALIDCOMPUTEDINHERITEDRULES:
                         return Unit.VALID_COMPUTED_INHERITED_RULES;
+                    case OPTS:
+                        return Unit.OPERATION_TRANSFERS;
                     case GRAPH_LAST_PERISTED_DATE:
                         return MetadataDocument.GRAPH_LAST_PERSISTED_DATE;
                     case PARENT_ORIGINATING_AGENCIES:

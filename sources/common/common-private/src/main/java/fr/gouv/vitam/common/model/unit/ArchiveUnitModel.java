@@ -1,4 +1,4 @@
-/*******************************************************************************
+/*
  * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2019)
  *
  * contact.vitam@culture.gouv.fr
@@ -23,7 +23,7 @@
  *
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
- *******************************************************************************/
+ */
 package fr.gouv.vitam.common.model.unit;
 
 import com.fasterxml.jackson.annotation.JsonGetter;
@@ -44,6 +44,9 @@ public class ArchiveUnitModel {
 
     @JsonProperty("_og")
     private String og;
+
+    @JsonProperty("_opts")
+    private List<String> opts;
 
     private String archiveUnitProfile;
 
@@ -155,5 +158,18 @@ public class ArchiveUnitModel {
     @JsonSetter("#history")
     public void setHistory(List<ArchiveUnitHistoryModel> history) {
         this.history = history;
+    }
+
+    @JsonGetter("#opts")
+    public List<String> getOpts() {
+        if (this.opts == null) {
+            return new ArrayList<>();
+        }
+        return this.opts;
+    }
+
+    @JsonSetter("#opts")
+    public void setOpts(List<String> opts) {
+        this.opts = opts;
     }
 }

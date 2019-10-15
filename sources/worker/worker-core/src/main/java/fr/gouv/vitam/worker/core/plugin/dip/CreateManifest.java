@@ -39,8 +39,10 @@ import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.database.builder.query.InQuery;
 import fr.gouv.vitam.common.database.builder.query.QueryHelper;
 import fr.gouv.vitam.common.database.builder.query.VitamFieldsHelper;
+import fr.gouv.vitam.common.database.builder.query.action.SetAction;
 import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
 import fr.gouv.vitam.common.database.builder.request.multiple.SelectMultiQuery;
+import fr.gouv.vitam.common.database.builder.request.multiple.UpdateMultiQuery;
 import fr.gouv.vitam.common.database.builder.request.single.Select;
 import fr.gouv.vitam.common.database.parser.query.ParserTokens;
 import fr.gouv.vitam.common.database.parser.request.multiple.SelectParserMultiple;
@@ -59,6 +61,7 @@ import fr.gouv.vitam.functional.administration.common.exception.BackupServiceExc
 import fr.gouv.vitam.metadata.api.exception.MetaDataClientServerException;
 import fr.gouv.vitam.metadata.api.exception.MetaDataDocumentSizeException;
 import fr.gouv.vitam.metadata.api.exception.MetaDataExecutionException;
+import fr.gouv.vitam.metadata.api.exception.MetaDataNotFoundException;
 import fr.gouv.vitam.metadata.client.MetaDataClient;
 import fr.gouv.vitam.metadata.client.MetaDataClientFactory;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
@@ -117,6 +120,7 @@ public class CreateManifest extends ActionHandler {
 
     private static final String CREATE_MANIFEST = "CREATE_MANIFEST";
     private static final int MAX_ELEMENT_IN_QUERY = 1000;
+    private static final String REASON_FIELD = "Reason";
 
     private MetaDataClientFactory metaDataClientFactory;
     private ObjectNode projection;
@@ -269,12 +273,30 @@ public class CreateManifest extends ActionHandler {
                     try {
                         ArchiveUnitModel unit = manifestBuilder.writeArchiveUnit(result, multimap, ogs, exportWithLogBookLFC);
                         if (ArchiveTransfer.equals(exportRequest.getExportType())) {
-                            TransferReportLine reportLine = new TransferReportLine(unit.getId(), TransferStatus.OK);
+                            List<String> opts = unit.getOpts();
+                            TransferStatus status = opts.isEmpty()?
+                                TransferStatus.OK:
+                                TransferStatus.ALREADY_IN_TRANSFER;
+                            opts.add(param.getContainerName());
+                            ObjectNode updateMultiQuery = getUpdateQuery(opts);
+
+                            if(TransferStatus.ALREADY_IN_TRANSFER.equals(status)) {
+                                itemStatus.increment(StatusCode.WARNING);
+                                ObjectNode infoNode = JsonHandler.createObjectNode();
+                                infoNode.put(REASON_FIELD, String.format("unit %s already in transfer", unit.getId()));
+                                String evDetData = JsonHandler.unprettyPrint(infoNode);
+                                itemStatus.setEvDetailData(evDetData);
+                            }
+
+                            client.updateUnitById(updateMultiQuery, unit.getId());
+                            TransferReportLine reportLine = new TransferReportLine(unit.getId(), status);
                             buffOut.write(unprettyPrint(reportLine).getBytes(StandardCharsets.UTF_8));
                             buffOut.write(System.lineSeparator().getBytes(StandardCharsets.UTF_8));
                             buffOut.flush();
                         }
-                    } catch (JAXBException | DatatypeConfigurationException | IOException | ProcessingException e) {
+                    } catch (JAXBException | DatatypeConfigurationException | IOException | ProcessingException |
+                        InvalidParseOperationException | InvalidCreateOperationException | MetaDataNotFoundException |
+                        MetaDataExecutionException | MetaDataDocumentSizeException | MetaDataClientServerException e) {
                         throw new IllegalArgumentException(e);
                     }
                 });
@@ -328,7 +350,7 @@ public class CreateManifest extends ActionHandler {
         } catch (ExportException e) {
             itemStatus.increment(StatusCode.KO);
             ObjectNode infoNode = JsonHandler.createObjectNode();
-            infoNode.put("Reason", e.getMessage());
+            infoNode.put(REASON_FIELD, e.getMessage());
             String evDetData = JsonHandler.unprettyPrint(infoNode);
             itemStatus.setEvDetailData(evDetData);
         } catch (IOException | MetaDataExecutionException | InvalidCreateOperationException | MetaDataClientServerException
@@ -343,7 +365,7 @@ public class CreateManifest extends ActionHandler {
         if (total == 0) {
             itemStatus.increment(StatusCode.KO);
             ObjectNode infoNode = JsonHandler.createObjectNode();
-            infoNode.put("Reason", "the DSL query has no result");
+            infoNode.put(REASON_FIELD, "the DSL query has no result");
             String evdev = JsonHandler.unprettyPrint(infoNode);
             itemStatus.setEvDetailData(evdev);
             return true;
@@ -381,6 +403,17 @@ public class CreateManifest extends ActionHandler {
         // put file in workspace
         handlerIO.addOutputResult(GUID_TO_INFO_RANK, guidToInfo, true, false);
         handlerIO.addOutputResult(BINARIES_RANK, binaryListFile, true, false);
+    }
+
+    private ObjectNode getUpdateQuery(List<String> opts) throws InvalidParseOperationException, InvalidCreateOperationException {
+        Map<String, JsonNode> action = new HashMap<>();
+        UpdateMultiQuery updateMultiQuery = new UpdateMultiQuery();
+        action.put(VitamFieldsHelper.opts(), JsonHandler.toJsonNode(opts));
+
+        SetAction setOPTS = new SetAction(action);
+
+        updateMultiQuery.addActions(setOPTS);
+        return updateMultiQuery.getFinalUpdateById();
     }
 
     @Override

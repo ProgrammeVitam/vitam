@@ -200,7 +200,11 @@ public class ParserTokens extends BuilderToken {
          * Vitam computedInheritedRules field
          */
         COMPUTEDINHERITEDRULES("computedInheritedRules"),
-        VALIDCOMPUTEDINHERITEDRULES("validComputedInheritedRules");
+        VALIDCOMPUTEDINHERITEDRULES("validComputedInheritedRules"),
+        /**
+         * TRANSFER
+         */
+        OPTS("opts");
 
 
         private static final String NOT_FOUND = "Not found";
