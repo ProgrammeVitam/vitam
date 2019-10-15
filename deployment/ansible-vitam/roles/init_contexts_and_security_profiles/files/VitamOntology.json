@@ -1051,6 +1051,17 @@
     ]
   },
   {
+    "Identifier": "_opts",
+    "ApiField": "#opts",
+    "Description": "Mapping : unit-es-mapping.json. Identifiants de l’opération dans laquelle l'unité archivistique est en cours de transfert",
+    "Type": "KEYWORD",
+    "Origin": "INTERNAL",
+    "ShortName": "Opérations de transfert",
+    "Collections": [
+      "Unit"
+    ]
+  },
+  {
     "Identifier": "_ops",
     "ApiField": "#operations",
     "Description": "Mapping : unit-es-mapping.json. Identifiants d’opérations auxquelles cette unité archivistique a participé.",

@@ -1415,6 +1415,9 @@
     "_sps": {
       "type": "keyword"
     },
+    "_opts": {
+      "type": "keyword"
+    },
     "_uds": {
       "type": "object"
     },

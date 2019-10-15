@@ -170,6 +170,9 @@ public class MongoDbMetadataResponseFilter {
                 case VALIDCOMPUTEDINHERITEDRULES:
                     replace(document, Unit.VALID_COMPUTED_INHERITED_RULES, PROJECTIONARGS.VALIDCOMPUTEDINHERITEDRULES.exactToken());
                     break;
+                case OPTS:
+                    replace(document, Unit.OPERATION_TRANSFERS, PROJECTIONARGS.OPTS.exactToken());
+                    break;
                 case SEDAVERSION:
                     replace(document, MetadataDocument.SEDAVERSION, VitamFieldsHelper.sedaVersion());
                     break;

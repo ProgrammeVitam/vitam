@@ -749,7 +749,10 @@ public abstract class BuilderToken {
          */
         COMPUTED_INHERITED_RULES("computedInheritedRules"),
 
-        VALID_COMPUTED_INHERITED_RULES("validComputedInheritedRules");
+        VALID_COMPUTED_INHERITED_RULES("validComputedInheritedRules"),
+
+        OPERATION_TRANSFERS("opts");
+
 
 
         private final String exactToken;

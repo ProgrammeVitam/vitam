@@ -1,0 +1,186 @@
+{
+  "httpCode": 302,
+  "$hits": {
+    "total": 4,
+    "offset": 0,
+    "limit": 0,
+    "size": 4,
+    "scrollId": null
+  },
+  "$results": [
+    {
+      "DescriptionLevel": "Item",
+      "Title": "The Open Archival Information System (OAIS) Reference Model: Introductory Guide (2nd Edition)",
+      "Titles": {
+        "fr": "The Open Archival Information System (OAIS) Reference Model: Introductory Guide (2nd Edition)"
+      },
+      "Descriptions": {},
+      "TransactedDate": "2014-12-07T09:52:56",
+      "#id": "aeaqaaaaaadf6mc4aathcak7tmtgdnaaaaba",
+      "#nbunits": 0,
+      "#tenant": 0,
+      "#object": "aebaaaaaaadf6mc4aathcak7tmtgc7qaaaaq",
+      "#opts": [
+        "aeeaaaaaachxl55haauoualnzitlk6yaaaaq"
+      ],
+      "#unitups": [
+        "aeaqaaaaaadf6mc4aathcak7tmtgdayaaaca"
+      ],
+      "#min": 1,
+      "#max": 2,
+      "#allunitups": [
+        "aeaqaaaaaadf6mc4aathcak7tmtgdayaaaca"
+      ],
+      "#management": {
+      },
+      "#unitType": "INGEST",
+      "#uds": {
+        "aeaqaaaaaadf6mc4aathcak7tmtgdayaaaca": 1
+      },
+      "#operations": [
+        "aedaaaaaacdf6mc4aathcak7tmtfxiiaaaba"
+      ],
+      "#originating_agency": "FRAN_NP_005568",
+      "#originating_agencies": [
+        "FRAN_NP_005568"
+      ],
+      "#storage": {
+        "_nbc":1,
+        "strategyId": "default-fake",
+        "offerIds": [
+          "fakeOfferId"
+        ]
+      },
+      "#version": 1
+    },
+    {
+      "DescriptionLevel": "Item",
+      "Title": "Recommandation for Space Data System Practices - Reference Model for an Open Archival Information System (OAIS)",
+      "Titles": {
+        "fr": "Recommandation for Space Data System Practices - Reference Model for an Open Archival Information System (OAIS)"
+      },
+      "Descriptions": {},
+      "TransactedDate": "2012-06-20T18:58:18",
+      "#id": "aeaqaaaaaadf6mc4aathcak7tmtgdmyaaaba",
+      "#nbunits": 0,
+      "#tenant": 0,
+      "#object": "aebaaaaaaadf6mc4aathcak7tmtgc6yaaaaq",
+      "#unitups": [
+        "aeaqaaaaaadf6mc4aathcak7tmtgdayaaaca"
+      ],
+      "#min": 1,
+      "#max": 2,
+      "#allunitups": [
+        "aeaqaaaaaadf6mc4aathcak7tmtgdayaaaca"
+      ],
+      "#management": {
+      },
+      "#unitType": "INGEST",
+      "#uds": {
+        "aeaqaaaaaadf6mc4aathcak7tmtgdayaaaca": 1
+      },
+      "#operations": [
+        "aedaaaaaacdf6mc4aathcak7tmtfxiiaaaba"
+      ],
+      "#originating_agency": "FRAN_NP_005568",
+      "#originating_agencies": [
+        "FRAN_NP_005568"
+      ],
+      "#storage": {
+        "_nbc": 1,
+        "strategyId": "default-fake",
+        "offerIds": [
+          "fakeOfferId"
+        ]
+      },
+      "#version": 1
+    },
+    {
+      "DescriptionLevel": "File",
+      "Title": "Documentation sur la norme OAIS",
+      "Titles": {
+        "fr": "Documentation sur la norme OAIS"
+      },
+      "Descriptions": {},
+      "StartDate": "2012-06-20T18:58:18",
+      "EndDate": "2014-12-07T09:52:56",
+      "#id": "aeaqaaaaaadf6mc4aathcak7tmtgdayaaaca",
+      "#nbunits": 3,
+      "#tenant": 0,
+      "#unitups": [],
+      "#min": 1,
+      "#max": 1,
+      "#allunitups": [],
+      "#management": {
+      },
+      "#unitType": "INGEST",
+      "#uds": {},
+      "#operations": [
+        "aedaaaaaacdf6mc4aathcak7tmtfxiiaaaba"
+      ],
+      "#originating_agency": "FRAN_NP_005568",
+      "#originating_agencies": [
+        "FRAN_NP_005568"
+      ],
+      "#storage": {
+        "_nbc":1,
+        "strategyId": "default-fake",
+        "offerIds": [
+          "fakeOfferId"
+        ]
+      },
+      "#version": 1
+    },
+    {
+      "DescriptionLevel": "Item",
+      "Title": "Draft recommandation for Space Data System Standards - Producer-Archive Interface Specification (PAIS)",
+      "Titles": {
+        "fr": "Draft recommandation for Space Data System Standards - Producer-Archive Interface Specification (PAIS)"
+      },
+      "Descriptions": {},
+      "TransactedDate": "2013-11-24T17:52:10",
+      "#id": "aeaqaaaaaadf6mc4aathcak7tmtgdniaaaba",
+      "#nbunits": 0,
+      "#tenant": 0,
+      "#object": "aebaaaaaaadf6mc4aathcak7tmtgc7yaaaaq",
+      "#unitups": [
+        "aeaqaaaaaadf6mc4aathcak7tmtgdayaaaca"
+      ],
+      "#min": 1,
+      "#max": 2,
+      "#allunitups": [
+        "aeaqaaaaaadf6mc4aathcak7tmtgdayaaaca"
+      ],
+      "#management": {
+      },
+      "#unitType": "INGEST",
+      "#uds": {
+        "aeaqaaaaaadf6mc4aathcak7tmtgdayaaaca": 1
+      },
+      "#operations": [
+        "aedaaaaaacdf6mc4aathcak7tmtfxiiaaaba"
+      ],
+      "#originating_agency": "FRAN_NP_005568",
+      "#originating_agencies": [
+        "FRAN_NP_005568"
+      ],
+      "#storage": {
+        "_nbc":1,
+        "strategyId": "default-fake",
+        "offerIds": [
+          "fakeOfferId"
+        ]
+      },
+      "#version": 1
+    }
+  ],
+  "$context": {
+    "$query": {
+      "$eq": {
+        "#operations": "aedaaaaaacdf6mc4aathcak7tmtfxiiaaaba"
+      }
+    },
+    "$filter": {},
+    "$projection": {}
+  }
+}

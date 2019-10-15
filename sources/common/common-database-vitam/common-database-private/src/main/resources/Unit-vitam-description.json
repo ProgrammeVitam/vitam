@@ -2880,6 +2880,12 @@
     "cardinality": "many"
   },
   {
+    "path": "_opts",
+    "type": "keyword",
+    "indexed": true,
+    "cardinality": "many"
+  },
+  {
     "path": "_storage",
     "type": "object",
     "indexed": true,

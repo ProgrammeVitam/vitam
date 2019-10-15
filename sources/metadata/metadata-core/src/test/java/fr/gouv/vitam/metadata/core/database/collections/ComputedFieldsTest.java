@@ -1,4 +1,4 @@
-/*******************************************************************************
+/*
  * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2019)
  *
  * contact.vitam@culture.gouv.fr
@@ -23,7 +23,7 @@
  *
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
- *******************************************************************************/
+ */
 package fr.gouv.vitam.metadata.core.database.collections;
 
 import fr.gouv.vitam.common.database.server.mongodb.VitamDocument;
@@ -53,7 +53,7 @@ public class ComputedFieldsTest {
             MetadataDocument.ORIGINATING_AGENCIES, Unit.COMPUTED_INHERITED_RULES, Unit.VALID_COMPUTED_INHERITED_RULES);
 
     private static List<String> expectedUnitMainFields = Arrays
-        .asList(Unit.MANAGEMENT, Unit.UNIT_TYPE, Unit.STORAGERULE, Unit.APPRAISALRULE, Unit.ACCESSRULE,
+        .asList(Unit.MANAGEMENT, Unit.UNIT_TYPE, Unit.STORAGERULE, Unit.APPRAISALRULE, Unit.ACCESSRULE, Unit.OPERATION_TRANSFERS,
             Unit.DISSEMINATIONRULE, Unit.REUSERULE, Unit.CLASSIFICATIONRULE, Unit.RULE, Unit.END, Unit.STORAGERULES,
             Unit.STORAGEEND, Unit.APPRAISALRULES, Unit.APPRAISALEND, Unit.ACCESSRULES, Unit.ACCESSEND,
             Unit.DISSEMINATIONRULES, Unit.DISSEMINATIONEND, Unit.REUSERULES, Unit.REUSEEND, Unit.CLASSIFICATIONRULES,
