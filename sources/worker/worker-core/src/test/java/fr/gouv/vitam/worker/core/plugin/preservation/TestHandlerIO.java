@@ -153,6 +153,7 @@ public class TestHandlerIO implements HandlerIO {
     @Override
     public void transferInputStreamToWorkspace(String workspacePath, InputStream inputStream, Path filePath,
         boolean asyncIO) {
+        this.inputStreamMap.put(workspacePath, inputStream);
     }
 
     @Override
