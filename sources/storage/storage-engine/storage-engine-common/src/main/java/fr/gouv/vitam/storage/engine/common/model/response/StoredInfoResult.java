@@ -27,25 +27,16 @@
 
 package fr.gouv.vitam.storage.engine.common.model.response;
 
-import java.util.ArrayList;
 import java.util.List;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.node.ArrayNode;
-import fr.gouv.vitam.common.SedaConstants;
-import fr.gouv.vitam.common.exception.VitamException;
 import fr.gouv.vitam.common.json.JsonHandler;
-import fr.gouv.vitam.common.logging.AbstractVitamLogger;
-import fr.gouv.vitam.common.logging.VitamLogger;
-import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 
 /**
  * Data structure representing global result from a 'createObject' request
  */
 public class StoredInfoResult {
-    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(StoredInfoResult.class);
     private String id;
     private String info;
     private String objectGroupId;
@@ -282,42 +273,4 @@ public class StoredInfoResult {
         return JsonHandler.prettyPrint(this);
     }
 
-
-    /**
-     * Creates an instance of StoredInfoResult from metadata json _storage field
-     *
-     * @param metadataJsonNode input metadata JsonNode for the complete collection Tree
-     * @return an object of type StoredInfoResult for wrapping basic storage info
-     * @throws IllegalArgumentException thrown if storage info can't be parsed successfully
-     */
-    public static StoredInfoResult fromMetadataJson(JsonNode metadataJsonNode)
-        throws IllegalArgumentException {
-        StoredInfoResult metadataOptimisticBasicStorageInfos = new StoredInfoResult();
-
-        JsonNode storageNode = metadataJsonNode.get(SedaConstants.STORAGE);
-
-        if (storageNode != null && storageNode.isObject()) {
-
-            JsonNode offersIds = storageNode.get(SedaConstants.OFFER_IDS);
-            JsonNode strategy = storageNode.get(SedaConstants.STRATEGY_ID);
-
-            if (offersIds == null || !offersIds.isArray()) {
-                throw new IllegalArgumentException(
-                    String.format("no OfferIds found in or jsonNode was not an ArrayNode in '%s'", storageNode));
-            }
-            if (strategy == null || strategy.asText().isEmpty()) {
-                throw new IllegalArgumentException(
-                    String.format("no strategy found in or jsonNode in '%s'", storageNode));
-            }
-
-            List<String> offerIds = new ArrayList<>();
-            for (final JsonNode offerItem : ((ArrayNode) offersIds)) {
-                offerIds.add(offerItem.asText());
-            }
-            metadataOptimisticBasicStorageInfos.setOfferIds(offerIds);
-            metadataOptimisticBasicStorageInfos.setStrategy(strategy.asText());
-        }
-
-        return metadataOptimisticBasicStorageInfos;
-    }
 }

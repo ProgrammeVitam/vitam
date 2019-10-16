@@ -73,6 +73,9 @@ import fr.gouv.vitam.storage.engine.common.exception.StorageException;
 import fr.gouv.vitam.storage.engine.common.exception.StorageNotFoundException;
 import fr.gouv.vitam.storage.engine.common.model.DataCategory;
 import fr.gouv.vitam.storage.engine.common.model.response.StoredInfoResult;
+import fr.gouv.vitam.storage.engine.common.referential.model.StorageStrategy;
+import fr.gouv.vitam.storage.engine.common.utils.StorageStrategyNotFoundException;
+import fr.gouv.vitam.storage.engine.common.utils.StorageStrategyUtils;
 import fr.gouv.vitam.worker.core.plugin.evidence.exception.EvidenceAuditException;
 import fr.gouv.vitam.worker.core.plugin.evidence.exception.EvidenceStatus;
 import fr.gouv.vitam.worker.core.plugin.evidence.report.EvidenceAuditParameters;
@@ -81,6 +84,7 @@ import fr.gouv.vitam.worker.core.plugin.evidence.report.EvidenceAuditReportObjec
 import org.apache.commons.lang.StringUtils;
 
 import javax.ws.rs.core.Response;
+
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
@@ -99,7 +103,6 @@ import static fr.gouv.vitam.common.database.builder.query.QueryHelper.exists;
 import static fr.gouv.vitam.common.database.builder.query.QueryHelper.gte;
 import static fr.gouv.vitam.common.database.builder.query.QueryHelper.in;
 import static fr.gouv.vitam.common.model.RequestResponseOK.TAG_RESULTS;
-import static fr.gouv.vitam.storage.engine.common.model.response.StoredInfoResult.fromMetadataJson;
 
 /**
  * Evidence Service class
@@ -323,7 +326,7 @@ public class EvidenceService {
     }
 
     private void extractObjectStorageMetadataResultMap(JsonNode metadata,
-        EvidenceAuditParameters auditParameters) throws StorageException {
+        EvidenceAuditParameters auditParameters, List<StorageStrategy> storageStrategies) throws StorageException {
 
         JsonNode qualifiers = metadata.get(SedaConstants.PREFIX_QUALIFIERS);
 
@@ -343,7 +346,7 @@ public class EvidenceService {
                         }
                         String objectId = version.get(VitamDocument.ID).asText();
 
-                        StoredInfoResult mdOptimisticStorageInfo = fromMetadataJson(version);
+                        StoredInfoResult mdOptimisticStorageInfo = fromMetadataJson(version, storageStrategies);
                         mdOptimisticStorageInfoMap.put(objectId, mdOptimisticStorageInfo);
 
                         JsonNode storageMetadataResultListJsonNode =
@@ -504,8 +507,9 @@ public class EvidenceService {
      *
      * @param id           the id
      * @param metadataType the metadataType
+     * @param storageStrategies the storageStrategies
      */
-    public EvidenceAuditParameters evidenceAuditsChecks(String id, MetadataType metadataType) {
+    public EvidenceAuditParameters evidenceAuditsChecks(String id, MetadataType metadataType, List<StorageStrategy> storageStrategies) {
         EvidenceAuditParameters auditParameters = new EvidenceAuditParameters();
         try {
             auditParameters.setId(id);
@@ -515,7 +519,7 @@ public class EvidenceService {
             JsonNode metadata = getRawMetadata(id, metadataType);
 
 
-            StoredInfoResult mdOptimisticStorageInfo = fromMetadataJson(metadata);
+            StoredInfoResult mdOptimisticStorageInfo = fromMetadataJson(metadata, storageStrategies);
             auditParameters.setMdOptimisticStorageInfo(mdOptimisticStorageInfo);
 
             // Get lifecycle from DB
@@ -543,7 +547,7 @@ public class EvidenceService {
 
             if (metadataType.equals(MetadataType.OBJECTGROUP)) {
 
-                extractObjectStorageMetadataResultMap(metadata, auditParameters);
+                extractObjectStorageMetadataResultMap(metadata, auditParameters, storageStrategies);
             }
 
             // calculate and store digests
@@ -854,5 +858,49 @@ public class EvidenceService {
         final Digest digest = new Digest(digestType);
         digest.update(CanonicalJsonFormatter.serializeToByteArray(jsonNode));
         return digest.digest64();
+    }
+    
+
+
+    /**
+     * Creates an instance of StoredInfoResult from metadata json _storage field
+     *
+     * @param metadataJsonNode input metadata JsonNode for the complete collection Tree
+     * @param storageStrategies list of strategies deployed in storage engine
+     * @return an object of type StoredInfoResult for wrapping basic storage info
+     * @throws IllegalArgumentException thrown if storage info can't be parsed successfully
+     */
+    private StoredInfoResult fromMetadataJson(JsonNode metadataJsonNode, List<StorageStrategy> storageStrategies)
+            throws IllegalArgumentException {
+        StoredInfoResult metadataOptimisticBasicStorageInfos = new StoredInfoResult();
+
+        JsonNode storageNode = metadataJsonNode.get(SedaConstants.STORAGE);
+
+        if (storageNode != null && storageNode.isObject()) {
+
+            JsonNode strategy = storageNode.get(SedaConstants.STRATEGY_ID);
+
+            if (strategy == null || strategy.asText().isEmpty()) {
+                throw new IllegalArgumentException(
+                        String.format("no strategy found in or jsonNode in '%s'", storageNode));
+            }
+
+            List<String> offersIds = null;
+            try {
+                offersIds = StorageStrategyUtils.loadOfferIds(strategy.asText(), storageStrategies);
+            } catch (StorageStrategyNotFoundException e) {
+                throw new IllegalArgumentException(
+                        String.format("strategy '%s' not found in storage engine", strategy.asText()));
+            }
+
+            if (offersIds == null || offersIds.isEmpty()) {
+                throw new IllegalArgumentException(
+                        String.format("no active OfferIds found in storage strategy '%s'", strategy.asText()));
+            }
+            metadataOptimisticBasicStorageInfos.setOfferIds(offersIds);
+            metadataOptimisticBasicStorageInfos.setStrategy(strategy.asText());
+        }
+
+        return metadataOptimisticBasicStorageInfos;
     }
 }

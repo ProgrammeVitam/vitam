@@ -50,6 +50,7 @@ import static fr.gouv.vitam.common.json.JsonHandler.getFromString;
 import static fr.gouv.vitam.common.json.JsonHandler.writeAsFile;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -90,8 +91,9 @@ public class EvidenceAuditDatabaseCheckTest {
             .getFromFile(PropertiesUtils.getResourceFile("evidenceAudit/parameters.json"),
                 EvidenceAuditParameters.class);
         when(handlerIO.getNewLocalFile("test.tmp")).thenReturn(file2);
+        when(handlerIO.getInput(0)).thenReturn(PropertiesUtils.getResourceFile("evidenceAudit/strategies.json"));
 
-        when(evidenceService.evidenceAuditsChecks("test", MetadataType.UNIT)).thenReturn(evidenceAuditParameters);
+        when(evidenceService.evidenceAuditsChecks(eq("test"), eq(MetadataType.UNIT), any())).thenReturn(evidenceAuditParameters);
 
         ItemStatus execute =
             evidenceAuditDatabaseCheck.execute(defaultWorkerParameters, handlerIO);
@@ -111,4 +113,5 @@ public class EvidenceAuditDatabaseCheckTest {
         assertThat(execute.getGlobalStatus()).isEqualTo(StatusCode.FATAL);
 
     }
+
 }

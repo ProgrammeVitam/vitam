@@ -43,7 +43,7 @@ public class OntologyTestHelper {
 
     public static InputStream loadOntologies() throws IOException {
         String dir = Paths.get("").toAbsolutePath().toString();
-        String userDir = StringUtils.substringBefore(dir, "/sources/");
+        String userDir = StringUtils.substringBeforeLast(dir, "/sources/");
         String ontologyPath = userDir + ANSIBLE_PATH_TO_ONTOLOGY;
 
         LOGGER.debug("user.dir: " + dir + " ontology : " + ontologyPath);

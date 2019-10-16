@@ -17,6 +17,18 @@
       "actions": [
         {
           "action": {
+            "actionKey": "PREPARE_STORAGE_STRATEGIES",
+            "behavior": "BLOCKING",
+            "out": [
+              {
+                "name": "strategies.json",
+                "uri": "WORKSPACE:StorageInfo/strategies.json"
+              }
+            ]
+          }
+        },
+        {
+          "action": {
             "actionKey": "EVIDENCE_AUDIT_LIST_OBJECT",
             "behavior": "BLOCKING"
           }
@@ -35,7 +47,13 @@
         {
           "action": {
             "actionKey": "EVIDENCE_AUDIT_CHECK_DATABASE",
-            "behavior": "BLOCKING"
+            "behavior": "BLOCKING",
+            "in": [
+              {
+                "name": "strategies.json",
+                "uri": "WORKSPACE:StorageInfo/strategies.json"
+              }
+            ]
           }
         }
       ]

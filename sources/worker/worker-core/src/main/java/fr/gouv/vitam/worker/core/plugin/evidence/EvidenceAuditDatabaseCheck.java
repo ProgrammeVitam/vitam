@@ -26,11 +26,13 @@
  *******************************************************************************/
 package fr.gouv.vitam.worker.core.plugin.evidence;
 
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.annotations.VisibleForTesting;
 import fr.gouv.vitam.batch.report.model.EvidenceAuditReportObject;
 import fr.gouv.vitam.batch.report.model.entry.EvidenceAuditReportEntry;
+import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
@@ -40,8 +42,10 @@ import fr.gouv.vitam.common.model.MetadataType;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
+import fr.gouv.vitam.storage.engine.common.referential.model.StorageStrategy;
 import fr.gouv.vitam.worker.common.HandlerIO;
 import fr.gouv.vitam.worker.core.handler.ActionHandler;
+import fr.gouv.vitam.worker.core.plugin.audit.exception.AuditException;
 import fr.gouv.vitam.worker.core.plugin.evidence.exception.EvidenceAuditException;
 import fr.gouv.vitam.worker.core.plugin.evidence.exception.EvidenceStatus;
 import fr.gouv.vitam.worker.core.plugin.evidence.report.EvidenceAuditParameters;
@@ -52,6 +56,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 
 import static fr.gouv.vitam.common.json.JsonHandler.unprettyPrint;
 
@@ -64,6 +69,7 @@ public class EvidenceAuditDatabaseCheck extends ActionHandler {
     private static final String DATA = "data";
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(EvidenceAuditDatabaseCheck.class);
     private static final String REPORTS = "reports";
+    private static final int STRATEGIES_IN_RANK = 0;
     private EvidenceService evidenceService;
     private EvidenceAuditReportService evidenceAuditReportService;
 
@@ -90,7 +96,8 @@ public class EvidenceAuditDatabaseCheck extends ActionHandler {
 
             MetadataType metadataType = MetadataType.valueOf(objectIdToAudit.get(METADA_TYPE).textValue());
 
-            EvidenceAuditParameters parameters = evidenceService.evidenceAuditsChecks(objectToAuditId, metadataType);
+            List<StorageStrategy> storageStrategies = loadStorageStrategies(handlerIO);
+            EvidenceAuditParameters parameters = evidenceService.evidenceAuditsChecks(objectToAuditId, metadataType, storageStrategies);
 
             File newLocalFile = handlerIO.getNewLocalFile(objectToAuditId + ".tmp");
             JsonHandler.writeAsFile(parameters, newLocalFile);
@@ -170,4 +177,14 @@ public class EvidenceAuditDatabaseCheck extends ActionHandler {
         }
         return list;
     }
+    
+    private List<StorageStrategy> loadStorageStrategies(HandlerIO handler) throws AuditException {
+        try {
+            return JsonHandler.getFromFileAsTypeRefence((File) handler.getInput(STRATEGIES_IN_RANK), new TypeReference<List<StorageStrategy>>() {
+            });
+        } catch (InvalidParseOperationException e) {
+            throw new AuditException(StatusCode.FATAL, "Could not load storage strategies datas", e);
+        }
+    }
+
 }

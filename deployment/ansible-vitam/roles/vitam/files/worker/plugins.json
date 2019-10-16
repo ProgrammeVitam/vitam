@@ -273,5 +273,8 @@
   },
   "TRANSFER_REPLY_FINALIZATION": {
     "className": "fr.gouv.vitam.worker.core.plugin.transfer.reply.TransferReplyFinalizationPlugin"
+  },
+  "PREPARE_STORAGE_STRATEGIES": {
+    "className": "fr.gouv.vitam.worker.core.plugin.PrepareStorageStrategiesPlugin"
   }
 }
