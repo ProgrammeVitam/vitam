@@ -44,7 +44,7 @@ vitam_offers:
     #Max time (in milliseconds) for waiting to establish connection
     swiftConnectionTimeout: 200000
     #Max time (in milliseconds) waiting for a data from the server (socket)
-    swiftReadTimeout: 200000
+    swiftReadTimeout: 60000
     #Time (in seconds) to renew a token before expiration occurs (blocking)
     swiftHardRenewTokenDelayBeforeExpireTime: 60
 
@@ -77,7 +77,7 @@ vitam_offers:
   # swiftMaxConnectionsPerRoute: 200
   # swiftMaxConnections: 1000
   # swiftConnectionTimeout: 200000
-  # swiftReadTimeout: 2000
+  # swiftReadTimeout: 60000
   # Time (in seconds) to renew a token before expiration occurs
   # swiftHardRenewTokenDelayBeforeExpireTime: 60
   # swiftSoftRenewTokenDelayBeforeExpireTime: 300
