@@ -36,6 +36,12 @@
                 "name": "atrFileSerialized",
                 "uri": "MEMORY:atrFileSerialized"
               }
+            ],
+            "out": [
+              {
+                "name": "TransferReplyContext",
+                "uri": "WORKSPACE:TransferReplyContext.json"
+              }
             ]
           }
         }

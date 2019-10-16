@@ -28,15 +28,18 @@ package fr.gouv.vitam.worker.core.plugin.transfer.reply;
 
 import fr.gouv.culture.archivesdefrance.seda.v2.ArchiveTransferReplyType;
 import fr.gouv.culture.archivesdefrance.seda.v2.IdentifierType;
+import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.storage.engine.client.StorageClient;
 import fr.gouv.vitam.storage.engine.client.StorageClientFactory;
 import fr.gouv.vitam.storage.engine.client.exception.StorageNotFoundClientException;
 import fr.gouv.vitam.storage.engine.common.model.response.StoredInfoResult;
 import fr.gouv.vitam.worker.core.plugin.preservation.TestHandlerIO;
+import fr.gouv.vitam.worker.core.plugin.transfer.reply.model.TransferReplyContext;
 import org.junit.Before;
 import org.junit.Test;
 
+import java.io.File;
 import java.util.Collections;
 
 import static fr.gouv.vitam.common.model.StatusCode.FATAL;
@@ -107,10 +110,28 @@ public class SaveAtrPluginTest {
         when(storageClient.storeFileFromWorkspace(anyString(), any(), anyString(), any())).thenReturn(storedInfo);
 
         // When
-        ItemStatus execute = saveAtrPlugin.execute(null, handler);
+        saveAtrPlugin.execute(null, handler);
 
         // Then
         verify(storageClient, atMostOnce()).storeFileFromWorkspace(anyString(), any(), anyString(), any());
+    }
+
+    @Test
+    public void should_save_ids_in_workspace() throws Exception {
+        // Given
+        final TransferReplyContext expected = new TransferReplyContext("ATR_MESSAGE_REQUEST_IDENTIFIER", "ATR_MESSAGE_IDENTIFIER");
+        TestHandlerIO handler = new TestHandlerIO();
+        handler.addOutputResult(0, createATR());
+        StoredInfoResult storedInfo = new StoredInfoResult();
+        storedInfo.setOfferIds(Collections.emptyList());
+
+        when(storageClient.storeFileFromWorkspace(anyString(), any(), anyString(), any())).thenReturn(storedInfo);
+
+        // When
+        saveAtrPlugin.execute(null, handler);
+
+        // Then
+        assertThat(JsonHandler.getFromInputStream(handler.getInputStreamFromWorkspace(handler.getContainerName() + File.separator + TransferReplyContext.class.getSimpleName() + ".json"), TransferReplyContext.class)).isEqualTo(expected);
     }
 
     private ArchiveTransferReplyType createATR() {
@@ -118,6 +139,10 @@ public class SaveAtrPluginTest {
         IdentifierType value = new IdentifierType();
         value.setValue("ATR_MESSAGE_IDENTIFIER");
         atr.setMessageIdentifier(value);
+
+        IdentifierType messageRequestIdentifier = new IdentifierType();
+        messageRequestIdentifier.setValue("ATR_MESSAGE_REQUEST_IDENTIFIER");
+        atr.setMessageRequestIdentifier(messageRequestIdentifier);
         return atr;
     }
 }

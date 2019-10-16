@@ -29,6 +29,8 @@ package fr.gouv.vitam.worker.core.plugin.transfer.reply;
 import com.google.common.annotations.VisibleForTesting;
 import fr.gouv.culture.archivesdefrance.seda.v2.ArchiveTransferReplyType;
 import fr.gouv.vitam.common.VitamConfiguration;
+import fr.gouv.vitam.common.exception.InvalidParseOperationException;
+import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.ItemStatus;
@@ -44,9 +46,12 @@ import fr.gouv.vitam.storage.engine.common.model.response.StoredInfoResult;
 import fr.gouv.vitam.worker.common.HandlerIO;
 import fr.gouv.vitam.worker.core.handler.ActionHandler;
 import fr.gouv.vitam.worker.core.plugin.BinaryEventData;
+import fr.gouv.vitam.worker.core.plugin.transfer.reply.model.TransferReplyContext;
 import fr.gouv.vitam.worker.core.utils.PluginHelper.EventDetails;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
 
+import java.io.File;
+import java.io.InputStream;
 import java.util.Collections;
 
 import static fr.gouv.vitam.common.model.StatusCode.FATAL;
@@ -78,11 +83,20 @@ public class SaveAtrPlugin extends ActionHandler {
             ObjectDescription description = getDescription(messageIdentifier, handler.getContainerName());
             StoredInfoResult storedInfo = storageClient.storeFileFromWorkspace(VitamConfiguration.getDefaultStrategy(), description.getType(), description.getObjectName(), description);
 
+            handler.transferInputStreamToWorkspace(handler.getContainerName() + File.separator + TransferReplyContext.class.getSimpleName() + ".json", streamFromIds(atr), null, false);
+
             return buildItemStatus(PLUGIN_NAME, OK, Collections.singletonMap(messageIdentifier, BinaryEventData.from(storedInfo)));
-        } catch (StorageAlreadyExistsClientException | StorageNotFoundClientException | StorageServerClientException e) {
+        } catch (StorageAlreadyExistsClientException | StorageNotFoundClientException | StorageServerClientException | InvalidParseOperationException e) {
             LOGGER.error(e);
             return buildItemStatus(PLUGIN_NAME, FATAL, EventDetails.of(e.getMessage()));
         }
+    }
+
+    private InputStream streamFromIds(ArchiveTransferReplyType atr) throws InvalidParseOperationException {
+        return JsonHandler.writeToInpustream(new TransferReplyContext(
+            atr.getMessageRequestIdentifier().getValue(),
+            atr.getMessageIdentifier().getValue()
+        ));
     }
 
     private ObjectDescription getDescription(String messageIdentifier, String containerName) {
