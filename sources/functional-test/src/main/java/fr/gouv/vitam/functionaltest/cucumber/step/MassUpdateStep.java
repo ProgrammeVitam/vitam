@@ -27,6 +27,7 @@
 package fr.gouv.vitam.functionaltest.cucumber.step;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import cucumber.api.java.en.When;
 import fr.gouv.vitam.access.external.client.VitamPoolingClient;
 import fr.gouv.vitam.common.client.VitamContext;
@@ -35,6 +36,9 @@ import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.model.ProcessState;
 import fr.gouv.vitam.common.model.RequestResponse;
 
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 import static fr.gouv.vitam.common.GlobalDataRest.X_REQUEST_ID;
@@ -106,6 +110,20 @@ public class MassUpdateStep {
         }
 
         assertThat(operationId).as(format("%s not found for request", X_REQUEST_ID)).isNotNull();
+    }
+
+    @When("^je lance la mise à jour de masse des règles de gestion pour avoir les codes réponses")
+    public  void rulesUpdateRaw() throws VitamException {
+        VitamContext vitamContext = new VitamContext(world.getTenantId());
+        vitamContext.setApplicationSessionId(world.getApplicationSessionId());
+        vitamContext.setAccessContract(world.getContractId());
+
+        String query = world.getQuery();
+        JsonNode queryString = JsonHandler.getFromString(query);
+        RequestResponse<JsonNode> requestResponse = world.getAccessClient().massUpdateUnitsRules(vitamContext, queryString);
+
+        JsonNode codes = JsonHandler.toJsonNode(Collections.singletonMap("Code", String.valueOf(requestResponse.getHttpCode())));
+        world.setResults(Collections.singletonList(codes));
     }
 
 }
