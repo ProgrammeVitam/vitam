@@ -29,6 +29,7 @@ import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.TemporaryFolder;
 
 import javax.xml.bind.JAXBElement;
 import java.io.File;
@@ -55,6 +56,7 @@ public class ArchiveUnitListenerTest {
     public RunWithCustomExecutorRule runInThread =
         new RunWithCustomExecutorRule(VitamThreadPoolExecutor.getDefaultExecutor());
 
+    @Rule public TemporaryFolder temporaryFolder = new TemporaryFolder();
 
     private static MetaDataClientFactory metaDataClientFactory;
     private static MetaDataClient metaDataClient;
@@ -274,8 +276,8 @@ public class ArchiveUnitListenerTest {
         unit.set("#originating_agencies", agencies);
 
         resp.addResult(unit);
-
-        when(handlerIO.getNewLocalFile(anyString())).thenReturn(new File(""));
+        File file = temporaryFolder.newFile();
+        when(handlerIO.getNewLocalFile(anyString())).thenReturn(file);
 
         when(metaDataClient.selectUnits(any())).thenReturn(resp.toJsonNode());
 
@@ -327,8 +329,8 @@ public class ArchiveUnitListenerTest {
         unit.set("#originating_agencies", agencies);
 
         resp.addResult(unit);
-
-        when(handlerIO.getNewLocalFile(anyString())).thenReturn(new File(""));
+        File file = temporaryFolder.newFile();
+        when(handlerIO.getNewLocalFile(anyString())).thenReturn(file);
 
         when(metaDataClient.selectUnits(any())).thenReturn(resp.toJsonNode());
 
@@ -384,8 +386,8 @@ public class ArchiveUnitListenerTest {
         unit.set("#originating_agencies", agencies);
 
         resp.addResult(unit);
-
-        when(handlerIO.getNewLocalFile(anyString())).thenReturn(new File(""));
+        File file = temporaryFolder.newFile();
+        when(handlerIO.getNewLocalFile(anyString())).thenReturn(file);
 
         when(metaDataClient.selectUnits(any())).thenReturn(resp.toJsonNode());
 
@@ -421,8 +423,8 @@ public class ArchiveUnitListenerTest {
                 null, guidToLifeCycleParameters, new HashSet<>(), LogbookTypeProcess.INGEST_TEST, "OperationID",
                 metaDataClientFactory, objectGroupIdToGuid, null, null, UnitType.INGEST,
                 agenciesList, null, null, null, null, null);
-
-        when(handlerIO.getNewLocalFile(anyString())).thenReturn(new File(" "));
+        File file = temporaryFolder.newFile();
+        when(handlerIO.getNewLocalFile(anyString())).thenReturn(file);
         when(parent.isGlobalScope()).thenReturn(true);
 
         ArchiveUnitType archiveUnitType = new ArchiveUnitType();
@@ -463,8 +465,8 @@ public class ArchiveUnitListenerTest {
                 null, guidToLifeCycleParameters, new HashSet<>(), LogbookTypeProcess.INGEST_TEST, "OperationID",
                 metaDataClientFactory, null, null, null, UnitType.INGEST,
                 agenciesList, null, null, null, null, null);
-
-        when(handlerIO.getNewLocalFile(anyString())).thenReturn(new File(" "));
+        File file = temporaryFolder.newFile();
+        when(handlerIO.getNewLocalFile(anyString())).thenReturn(file);
         when(parent.isGlobalScope()).thenReturn(true);
 
         ArchiveUnitType archiveUnitType = new ArchiveUnitType();
