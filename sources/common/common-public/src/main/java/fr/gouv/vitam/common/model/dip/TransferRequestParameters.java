@@ -27,44 +27,41 @@
 package fr.gouv.vitam.common.model.dip;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import fr.gouv.vitam.common.SedaConstants;
 
 import java.util.List;
 
-import static fr.gouv.vitam.common.SedaConstants.TAG_ARCHIVAL_AGENCY;
-import static fr.gouv.vitam.common.SedaConstants.TAG_ARCHIVAL_AGREEMENT;
-import static fr.gouv.vitam.common.SedaConstants.TAG_COMMENT;
-import static fr.gouv.vitam.common.SedaConstants.TAG_ORIGINATINGAGENCYIDENTIFIER;
-import static fr.gouv.vitam.common.SedaConstants.TAG_RELATED_TRANSFER_REFERENCE;
-import static fr.gouv.vitam.common.SedaConstants.TAG_SUBMISSIONAGENCYIDENTIFIER;
-import static fr.gouv.vitam.common.SedaConstants.TAG_TRANSFERRING_AGENCY;
-import static fr.gouv.vitam.common.SedaConstants.TAG_TRANSFER_REQUEST_REPLY_IDENTIFIER;
+import static fr.gouv.vitam.common.model.dip.ExportRequestParameters.ARCHIVAL_AGENCY_IDENTIFIER;
+import static fr.gouv.vitam.common.model.dip.ExportRequestParameters.ARCHIVAL_AGREEMENT;
+import static fr.gouv.vitam.common.model.dip.ExportRequestParameters.COMMENT;
+import static fr.gouv.vitam.common.model.dip.ExportRequestParameters.ORIGINATING_AGENCY_IDENTIFIER;
+import static fr.gouv.vitam.common.model.dip.ExportRequestParameters.RELATED_TRANSFER_REFERENCE;
+import static fr.gouv.vitam.common.model.dip.ExportRequestParameters.SUBMISSION_AGENCY_IDENTIFIER;
+import static fr.gouv.vitam.common.model.dip.ExportRequestParameters.TRANSFERRING_AGENCY;
+import static fr.gouv.vitam.common.model.dip.ExportRequestParameters.TRANSFER_REQUEST_REPLY_IDENTIFIER;
 
 public class TransferRequestParameters {
-    private static final String IDENTIFIER = "Identifier";
-
-    @JsonProperty(TAG_ARCHIVAL_AGREEMENT)
+    @JsonProperty(ARCHIVAL_AGREEMENT)
     private String archivalAgreement; // Cardinality (1-1) for ArchiveTransfer optional for ArchiveDeliveryRequestReply
 
-    @JsonProperty(TAG_ORIGINATINGAGENCYIDENTIFIER)
+    @JsonProperty(ORIGINATING_AGENCY_IDENTIFIER)
     private String originatingAgencyIdentifier; // Cardinality (1-1) for ArchiveTransfer must be given from query
 
-    @JsonProperty(TAG_COMMENT)
+    @JsonProperty(COMMENT)
     private String comment;
 
-    @JsonProperty(TAG_SUBMISSIONAGENCYIDENTIFIER)
+    @JsonProperty(SUBMISSION_AGENCY_IDENTIFIER)
     private String submissionAgencyIdentifier;
 
-    @JsonProperty(TAG_RELATED_TRANSFER_REFERENCE)
+    @JsonProperty(RELATED_TRANSFER_REFERENCE)
     private List<String> relatedTransferReference; // ArchiveTransfer only
 
-    @JsonProperty(TAG_TRANSFER_REQUEST_REPLY_IDENTIFIER)
+    @JsonProperty(TRANSFER_REQUEST_REPLY_IDENTIFIER)
     private String transferRequestReplyIdentifier; // ArchiveTransfer only
 
-    @JsonProperty(TAG_ARCHIVAL_AGENCY + IDENTIFIER)
+    @JsonProperty(ARCHIVAL_AGENCY_IDENTIFIER)
     private String archivalAgencyIdentifier; // Cardinality (1-1)
 
-    @JsonProperty(TAG_TRANSFERRING_AGENCY)
+    @JsonProperty(TRANSFERRING_AGENCY)
     private String transferringAgency; // ArchiveTransfer only
 
 
