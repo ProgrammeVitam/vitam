@@ -164,6 +164,7 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
      */
     private static final String ACCESS_CONTRACT = "AccessContract";
     private static final String DIP_CONTAINER = "DIP";
+    private static final String TRANSFER_SIP_CONTAINER = "TRANSFER";
 
     private final LogbookLifeCyclesClientFactory logbookLifeCyclesClientFactory;
     private final LogbookOperationsClientFactory logbookOperationsClientFactory;
@@ -1702,6 +1703,21 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
             throw new AccessInternalExecutionException(e);
         } catch (ContentAddressableStorageNotFoundException e) {
             LOGGER.warn("DIP file not found " + id);
+            return Response.status(Status.NOT_FOUND).build();
+        }
+    }
+
+    @Override
+    public Response findTransferSIPByOperationId(String id)
+        throws AccessInternalExecutionException {
+        try (WorkspaceClient workspaceClient = workspaceClientFactory.getClient()) {
+            Response dip = workspaceClient.getObject(
+                TRANSFER_SIP_CONTAINER, VitamThreadUtils.getVitamSession().getTenantId() + "/" + id);
+            return new VitamAsyncInputStreamResponse(dip, Status.OK, MediaType.APPLICATION_OCTET_STREAM_TYPE);
+        } catch (ContentAddressableStorageServerException e) {
+            throw new AccessInternalExecutionException(e);
+        } catch (ContentAddressableStorageNotFoundException e) {
+            LOGGER.warn("TRANSFER SIP file not found " + id);
             return Response.status(Status.NOT_FOUND).build();
         }
     }

@@ -260,6 +260,15 @@ public interface AccessInternalClient extends MockOrRestClient {
     Response findExportByID(String id) throws AccessInternalClientServerException;
 
     /**
+     * get a zip file containing a SIP/Transfer by an operation id
+     *
+     * @param id operationId
+     * @return stream containing zip file
+     * @throws AccessInternalClientServerException
+     */
+    Response findTransferSIPByID(String id) throws AccessInternalClientServerException;
+
+    /**
      * Performs a reclassification workflow.
      *
      * @param reclassificationRequest List of attachment and detachment operations in unit graph.

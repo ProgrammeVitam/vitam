@@ -1,0 +1,17 @@
+[Unit]
+Description=Launch vitam transfers SIP purge for metadata
+
+Wants=network.target
+After=network.target
+
+[Service]
+Type=oneshot
+EnvironmentFile=/vitam/conf/metadata/reconstruction.conf
+ExecStart=/vitam/script/metadata/purge_transfersSIP.sh
+User=vitam
+Group=vitam
+StandardOutput=syslog
+StandardError=syslog
+
+[Install]
+WantedBy=multi-user.target

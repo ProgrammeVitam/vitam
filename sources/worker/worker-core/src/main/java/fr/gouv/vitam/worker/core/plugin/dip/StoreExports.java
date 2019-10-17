@@ -45,50 +45,63 @@ import java.util.Collections;
 import static fr.gouv.vitam.common.model.IngestWorkflowConstants.SEDA_FILE;
 
 /**
- * ZIP the dip and move it from workspace to storage
+ * ZIP the ExportsPurge and move it from workspace to storage
  */
-public class StoreDIP extends ActionHandler {
+public class StoreExports extends ActionHandler {
 
-    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(StoreDIP.class);
+    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(StoreExports.class);
 
     private static final String STORE_DIP = "STORE_DIP";
+    private static final String TRANSFER_DIP = "TRANSFER_DIP";
+    static String ARCHIVE_TRANSFER = "ARCHIVE_TRANSFER";
     static final String CONTENT = "Content";
     static final String DIP_CONTAINER = "DIP";
+    static final String TRANSFER_CONTAINER = "TRANSFER";
+
 
     @Override
     public ItemStatus execute(WorkerParameters params, HandlerIO handler)
         throws ProcessingException, ContentAddressableStorageServerException {
 
-        final ItemStatus itemStatus = new ItemStatus(STORE_DIP);
+        String container;
+        String status_action;
+        if(params.getWorkflowIdentifier().equals(ARCHIVE_TRANSFER))
+        {
+            container = TRANSFER_CONTAINER;
+            status_action = TRANSFER_DIP;
+        } else {
+            container = DIP_CONTAINER;
+            status_action = STORE_DIP;
+        }
+
+        final ItemStatus itemStatus = new ItemStatus(status_action);
 
         try {
             String dipTenantFolder = Integer.toString(VitamThreadUtils.getVitamSession().getTenantId());
             String dipZipFileName = params.getContainerName();
 
-            zipWorkspace(handler, dipTenantFolder, dipZipFileName, SEDA_FILE, CONTENT);
-
+            zipWorkspace(handler, dipTenantFolder, dipZipFileName, container, SEDA_FILE, CONTENT);
             itemStatus.increment(StatusCode.OK);
         } catch (ContentAddressableStorageException e) {
             throw new ProcessingException(e);
         }
-        return new ItemStatus(STORE_DIP).setItemsStatus(STORE_DIP, itemStatus);
+        return new ItemStatus(status_action).setItemsStatus(status_action, itemStatus);
     }
 
-    private void zipWorkspace(HandlerIO handler, String outputDir, String outputFile, String... inputFiles)
+    private void zipWorkspace(HandlerIO handler, String outputDir, String outputFile, String container, String... inputFiles)
         throws ContentAddressableStorageException {
 
         LOGGER.debug("Try to compress into workspace...");
         try (WorkspaceClient workspaceClient = handler.getWorkspaceClientFactory().getClient()) {
-
             // Ensure target folder exists
-            workspaceClient.createContainer(DIP_CONTAINER);
-            workspaceClient.createFolder(DIP_CONTAINER, outputDir);
+            workspaceClient.createContainer(container);
+            workspaceClient.createFolder(container, outputDir);
 
             // compress
             CompressInformation compressInformation = new CompressInformation();
             Collections.addAll(compressInformation.getFiles(), inputFiles);
             compressInformation.setOutputFile(outputDir + "/" + outputFile);
-            compressInformation.setOutputContainer(DIP_CONTAINER);
+            compressInformation.setOutputContainer(container);
             workspaceClient.compress(handler.getContainerName(), compressInformation);
         }
     }

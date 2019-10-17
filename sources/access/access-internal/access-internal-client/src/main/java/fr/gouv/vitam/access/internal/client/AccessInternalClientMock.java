@@ -202,6 +202,11 @@ class AccessInternalClientMock extends AbstractMockClient implements AccessInter
     }
 
     @Override
+    public Response findTransferSIPByID(String id) throws AccessInternalClientServerException {
+        return Response.ok().build();
+    }
+
+    @Override
     public RequestResponse<JsonNode> reclassification(JsonNode reclassificationRequest) {
         throw new IllegalStateException("Stop using mocks in production");
     }

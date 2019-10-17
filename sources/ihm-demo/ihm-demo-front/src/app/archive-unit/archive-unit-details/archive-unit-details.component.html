@@ -22,7 +22,7 @@
 </vitam-loading-block>
 
 <vitam-archive-export-dip *ngIf="data" [id]="data['#id']"
-                          [operation]="data['#operations'][0]"></vitam-archive-export-dip>
+                          [operation]="data['#operations'][0]" [opts]="data['#opts']"></vitam-archive-export-dip>
 
 <vitam-archive-unit-selection *ngIf="data" [id]="data['#id']"
                               [operation]="data['#operations'][0]"></vitam-archive-unit-selection>

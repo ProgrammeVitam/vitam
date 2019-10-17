@@ -1,5 +1,5 @@
 [Unit]
-Description=Launch vitam dip purge for metadata
+Description=Launch vitam transfers SIP purge for metadata
 
 [Timer]
 OnCalendar=*-*-* 02:20:00

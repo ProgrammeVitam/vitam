@@ -50,6 +50,7 @@ public class MetaDataConfiguration extends DbConfigurationImpl {
     private int schemaValidatorCacheTimeoutInSeconds = 300;
 
     private int dipTimeToLiveInMinutes = 60 * 24 * 7;
+    private int transfersSIPTimeToLiveInMinutes = 60 * 24 * 7;
 
     /**
      * MetaDataConfiguration constructor
@@ -189,5 +190,13 @@ public class MetaDataConfiguration extends DbConfigurationImpl {
     public MetaDataConfiguration setDipTimeToLiveInMinutes(int dipTimeToLiveInMinutes) {
         this.dipTimeToLiveInMinutes = dipTimeToLiveInMinutes;
         return this;
+    }
+
+    public int getTransfersSIPTimeToLiveInMinutes() {
+        return transfersSIPTimeToLiveInMinutes;
+    }
+
+    public void setTransfersSIPTimeToLiveInMinutes(int transfersSIPTimeToLiveInMinutes) {
+        this.transfersSIPTimeToLiveInMinutes = transfersSIPTimeToLiveInMinutes;
     }
 }

@@ -6,6 +6,7 @@ import { AccessContract } from '../../../referentials/details/access-contract/ac
 import { ReferentialsService } from '../../../referentials/referentials.service';
 import { ErrorService } from '../../../common/error.service';
 import { AccessContractService } from '../../../common/access-contract.service';
+import { LogbookService } from '../../../ingest/logbook.service';
 
 @Component({
   selector: 'vitam-archive-export-dip',
@@ -15,8 +16,11 @@ import { AccessContractService } from '../../../common/access-contract.service';
 export class ArchiveExportDIPComponent implements OnInit {
   @Input() id: string = '';
   @Input() operation: string = '';
+  @Input() opts: string[] ;
   exportChoice = 'AU';
   display = false;
+  displayExportTransferSIP = false;
+  operationtransfer :string;
 
   comment: string;
   archivalAgreement: string;
@@ -40,6 +44,7 @@ export class ArchiveExportDIPComponent implements OnInit {
 
   constructor(private archiveUnitService: ArchiveUnitService,
     private searchReferentialsService: ReferentialsService,
+    private logbookService : LogbookService,
     private errorService: ErrorService,
     private referentialHelper: ReferentialHelper,
     private accessContractService: AccessContractService) { }
@@ -51,6 +56,11 @@ export class ArchiveExportDIPComponent implements OnInit {
         this.initCurrentContract(contractId);
       }
     );
+    if(this.opts)
+    {
+      this.displayExportTransferSIP = true;
+      this.operationtransfer = this.opts[this.opts.length-1];
+    }
   }
 
   getQuery() {
@@ -116,6 +126,9 @@ export class ArchiveExportDIPComponent implements OnInit {
         case 'TRANSFER':
             this.archiveUnitService.transfer(this.getQuery(), this.updatedFields.DataObjectVersion, {archivalAgreement: this.archivalAgreement, originatingAgencyIdentifier: this.originatingAgencyIdentifier, comment: this.comment, submissionAgencyIdentifier: this.submissionAgencyIdentifier, archivalAgencyIdentifier: this.archivalAgencyIdentifier, relatedTransferReference: (this.relatedTransferReference ? this.relatedTransferReference.split(';') : null), transferRequestReplyIdentifier: this.transferRequestReplyIdentifier, transferringAgency: this.transferringAgency}).subscribe(() => this.display = true);
             break;
+        case 'TRANSFERSIP':
+          this.logbookService.downloadTransferSIP(this.operationtransfer);
+          break;          
         default:
            console.log("Not found exportType", type)
       }

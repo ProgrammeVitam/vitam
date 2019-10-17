@@ -279,7 +279,7 @@ public class AccessExternalResource extends ApplicationStatusResource {
 
         Status status;
         try (AccessInternalClient client = accessInternalClientFactory.getClient()) {
-            Response response = client.findExportByID(id);
+            Response response = client.findTransferSIPByID(id);
             if (response.getStatusInfo().getFamily() == Status.Family.SUCCESSFUL) {
                 return new VitamAsyncInputStreamResponse(response, Status.OK, MediaType.APPLICATION_OCTET_STREAM_TYPE);
             } else {
