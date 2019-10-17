@@ -204,7 +204,7 @@ public class ContractsStep {
 
             final List<IngestContractModel> ingestContractModelList =
                 JsonHandler
-                    .getFromFileAsTypeRefence(sip.toFile(), new TypeReference<List<IngestContractModel>>() {
+                    .getFromFileAsTypeReference(sip.toFile(), new TypeReference<List<IngestContractModel>>() {
                     });
 
             if (ingestContractModelList != null && !ingestContractModelList.isEmpty() && response.isOk()) {
@@ -252,7 +252,7 @@ public class ContractsStep {
         if (expectedSuccessStatus == null || expectedSuccessStatus) {
             final List<IngestContractModel> accessContractModelList =
                 JsonHandler
-                    .getFromFileAsTypeRefence(sip.toFile(), new TypeReference<List<IngestContractModel>>() {
+                    .getFromFileAsTypeReference(sip.toFile(), new TypeReference<List<IngestContractModel>>() {
                     });
 
             if (accessContractModelList != null && !accessContractModelList.isEmpty()) {

@@ -198,14 +198,14 @@ public class ContextServiceImplTest {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         final File fileIngest = PropertiesUtils.getResourceFile("referential_contracts_ok.json");
         final List<IngestContractModel> ingestContractModels =
-            JsonHandler.getFromFileAsTypeRefence(fileIngest, new TypeReference<List<IngestContractModel>>() {
+            JsonHandler.getFromFileAsTypeReference(fileIngest, new TypeReference<List<IngestContractModel>>() {
             });
         String INGEST_CONTRACT_ID = "IC-000001";
         when(ingestContractService.findByIdentifier(INGEST_CONTRACT_ID)).thenReturn(ingestContractModels.get(0));
 
         final File fileContexts = PropertiesUtils.getResourceFile("contexts_empty.json");
         final List<ContextModel> contextModelList =
-            JsonHandler.getFromFileAsTypeRefence(fileContexts, new TypeReference<List<ContextModel>>() {
+            JsonHandler.getFromFileAsTypeReference(fileContexts, new TypeReference<List<ContextModel>>() {
             });
 
         RequestResponse<ContextModel> response = contextService.createContexts(contextModelList);
@@ -271,14 +271,14 @@ public class ContextServiceImplTest {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         final File fileIngest = PropertiesUtils.getResourceFile("referential_contracts_ok.json");
         final List<IngestContractModel> ingestContractModels =
-            JsonHandler.getFromFileAsTypeRefence(fileIngest, new TypeReference<List<IngestContractModel>>() {
+            JsonHandler.getFromFileAsTypeReference(fileIngest, new TypeReference<List<IngestContractModel>>() {
             });
         String INGEST_CONTRACT_ID = "IC-000001";
         when(ingestContractService.findByIdentifier(INGEST_CONTRACT_ID)).thenReturn(ingestContractModels.get(0));
 
         final File fileContexts = PropertiesUtils.getResourceFile("contexts_empty.json");
         final List<ContextModel> contextModelList =
-            JsonHandler.getFromFileAsTypeRefence(fileContexts, new TypeReference<List<ContextModel>>() {
+            JsonHandler.getFromFileAsTypeReference(fileContexts, new TypeReference<List<ContextModel>>() {
             });
 
         RequestResponse<ContextModel> response = contextService.createContexts(contextModelList);
@@ -304,7 +304,7 @@ public class ContextServiceImplTest {
 
         final File fileContexts = PropertiesUtils.getResourceFile("KO_contexts_invalid_ingest_contract.json");
         final List<ContextModel> contextModelList =
-            JsonHandler.getFromFileAsTypeRefence(fileContexts, new TypeReference<List<ContextModel>>() {
+            JsonHandler.getFromFileAsTypeReference(fileContexts, new TypeReference<List<ContextModel>>() {
             });
 
         RequestResponse<ContextModel> response = contextService.createContexts(contextModelList);
@@ -324,7 +324,7 @@ public class ContextServiceImplTest {
 
         final File fileContexts = PropertiesUtils.getResourceFile("KO_contexts_invalid_access_contract.json");
         final List<ContextModel> contextModelList =
-            JsonHandler.getFromFileAsTypeRefence(fileContexts, new TypeReference<List<ContextModel>>() {
+            JsonHandler.getFromFileAsTypeReference(fileContexts, new TypeReference<List<ContextModel>>() {
             });
 
         RequestResponse<ContextModel> response = contextService.createContexts(contextModelList);
@@ -348,7 +348,7 @@ public class ContextServiceImplTest {
 
         final File fileContexts = PropertiesUtils.getResourceFile("KO_contexts_invalid_ingest_and_access_contract.json");
         final List<ContextModel> contextModelList =
-            JsonHandler.getFromFileAsTypeRefence(fileContexts, new TypeReference<List<ContextModel>>() {
+            JsonHandler.getFromFileAsTypeReference(fileContexts, new TypeReference<List<ContextModel>>() {
             });
 
         RequestResponse<ContextModel> response = contextService.createContexts(contextModelList);
@@ -368,7 +368,7 @@ public class ContextServiceImplTest {
 
         final File fileContexts = PropertiesUtils.getResourceFile("KO_contexts_without_status_not_slave.json");
         final List<ContextModel> contextModelList =
-            JsonHandler.getFromFileAsTypeRefence(fileContexts, new TypeReference<List<ContextModel>>() {
+            JsonHandler.getFromFileAsTypeReference(fileContexts, new TypeReference<List<ContextModel>>() {
             });
 
         RequestResponse<ContextModel> response = contextService.createContexts(contextModelList);
@@ -387,7 +387,7 @@ public class ContextServiceImplTest {
 
         final File fileContexts = PropertiesUtils.getResourceFile("KO_contexts_without_status_slave.json");
         final List<ContextModel> contextModelList =
-            JsonHandler.getFromFileAsTypeRefence(fileContexts, new TypeReference<List<ContextModel>>() {
+            JsonHandler.getFromFileAsTypeReference(fileContexts, new TypeReference<List<ContextModel>>() {
             });
 
         RequestResponse<ContextModel> response = contextService.createContexts(contextModelList);
@@ -407,7 +407,7 @@ public class ContextServiceImplTest {
 
         final File fileContexts = PropertiesUtils.getResourceFile("KO_contexts_without_tenant_in_permission.json");
         final List<ContextModel> contextModelList =
-            JsonHandler.getFromFileAsTypeRefence(fileContexts, new TypeReference<List<ContextModel>>() {
+            JsonHandler.getFromFileAsTypeReference(fileContexts, new TypeReference<List<ContextModel>>() {
             });
 
         RequestResponse<ContextModel> response = contextService.createContexts(contextModelList);
@@ -425,7 +425,7 @@ public class ContextServiceImplTest {
 
         final File fileContexts = PropertiesUtils.getResourceFile("contexts_empty_1.json");
         final List<ContextModel> contextModelList =
-            JsonHandler.getFromFileAsTypeRefence(fileContexts, new TypeReference<List<ContextModel>>() {
+            JsonHandler.getFromFileAsTypeReference(fileContexts, new TypeReference<List<ContextModel>>() {
             });
 
         RequestResponse<ContextModel> response = contextService.createContexts(contextModelList);
@@ -445,7 +445,7 @@ public class ContextServiceImplTest {
         VitamThreadUtils.getVitamSession().setTenantId(EXTERNAL_TENANT);
         final File fileContexts = PropertiesUtils.getResourceFile("contexts_empty.json");
         final List<ContextModel> contextModelList =
-            JsonHandler.getFromFileAsTypeRefence(fileContexts, new TypeReference<List<ContextModel>>() {
+            JsonHandler.getFromFileAsTypeReference(fileContexts, new TypeReference<List<ContextModel>>() {
             });
 
         RequestResponse<ContextModel> response = contextService.createContexts(contextModelList);
@@ -462,7 +462,7 @@ public class ContextServiceImplTest {
 
         final File fileContexts = PropertiesUtils.getResourceFile("KO_context_non_existing_tenant.json");
         final List<ContextModel> contextModelList =
-            JsonHandler.getFromFileAsTypeRefence(fileContexts, new TypeReference<List<ContextModel>>() {
+            JsonHandler.getFromFileAsTypeReference(fileContexts, new TypeReference<List<ContextModel>>() {
             });
 
         RequestResponse<ContextModel> response = contextService.createContexts(contextModelList);
@@ -479,7 +479,7 @@ public class ContextServiceImplTest {
         final File fileContexts = PropertiesUtils.getResourceFile(
             "OK_context_without_identifier_when_no_slave_mode.json");
         final List<ContextModel> contextModelList =
-            JsonHandler.getFromFileAsTypeRefence(fileContexts, new TypeReference<List<ContextModel>>() {
+            JsonHandler.getFromFileAsTypeReference(fileContexts, new TypeReference<List<ContextModel>>() {
             });
 
         RequestResponse<ContextModel> response = contextService.createContexts(contextModelList);
@@ -494,7 +494,7 @@ public class ContextServiceImplTest {
         final File fileContexts = PropertiesUtils.getResourceFile(
             "OK_context_without_identifier_when_slave_mode.json");
         final List<ContextModel> contextModelList =
-            JsonHandler.getFromFileAsTypeRefence(fileContexts, new TypeReference<List<ContextModel>>() {
+            JsonHandler.getFromFileAsTypeReference(fileContexts, new TypeReference<List<ContextModel>>() {
             });
 
         RequestResponse<ContextModel> response = contextService.createContexts(contextModelList);

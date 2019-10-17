@@ -315,7 +315,7 @@ public class LogbookCheckConsistencyIT extends VitamRuleRunner {
             // import contract
             VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newOperationLogbookGUID(TENANT_0));
             File fileContracts = PropertiesUtils.getResourceFile(REFERENTIAL_CONTRACTS_OK_JSON);
-            List<IngestContractModel> IngestContractModelList = JsonHandler.getFromFileAsTypeRefence(fileContracts,
+            List<IngestContractModel> IngestContractModelList = JsonHandler.getFromFileAsTypeReference(fileContracts,
                 new TypeReference<List<IngestContractModel>>() {
                 });
             client.importIngestContracts(IngestContractModelList);
@@ -324,7 +324,7 @@ public class LogbookCheckConsistencyIT extends VitamRuleRunner {
             VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newOperationLogbookGUID(TENANT_0));
             File fileAccessContracts = PropertiesUtils.getResourceFile(ACCESS_CONTRATS_JSON);
             List<AccessContractModel> accessContractModelList = JsonHandler
-                .getFromFileAsTypeRefence(fileAccessContracts, new TypeReference<List<AccessContractModel>>() {
+                .getFromFileAsTypeReference(fileAccessContracts, new TypeReference<List<AccessContractModel>>() {
                 });
             client.importAccessContracts(accessContractModelList);
 
@@ -332,7 +332,7 @@ public class LogbookCheckConsistencyIT extends VitamRuleRunner {
             // Import Security Profile
             VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newOperationLogbookGUID(TENANT_0));
             client.importSecurityProfiles(JsonHandler
-                .getFromFileAsTypeRefence(
+                .getFromFileAsTypeReference(
                     PropertiesUtils.getResourceFile("integration-logbook/data/security_profile_ok.json"),
                     new TypeReference<List<SecurityProfileModel>>() {
                     }));
@@ -340,7 +340,7 @@ public class LogbookCheckConsistencyIT extends VitamRuleRunner {
             // Import Context
             VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newOperationLogbookGUID(TENANT_0));
             client.importContexts(JsonHandler
-                .getFromFileAsTypeRefence(PropertiesUtils.getResourceFile("integration-logbook/data/contexts.json"),
+                .getFromFileAsTypeReference(PropertiesUtils.getResourceFile("integration-logbook/data/contexts.json"),
                     new TypeReference<List<ContextModel>>() {
                     }));
 

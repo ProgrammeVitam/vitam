@@ -34,7 +34,7 @@ import static fr.gouv.vitam.common.database.parser.query.ParserTokens.PROJECTION
 import static fr.gouv.vitam.common.database.parser.query.ParserTokens.PROJECTIONARGS.OBJECT;
 import static fr.gouv.vitam.common.json.JsonHandler.createObjectNode;
 import static fr.gouv.vitam.common.json.JsonHandler.getFromJsonNode;
-import static fr.gouv.vitam.common.json.JsonHandler.getFromStringAsTypeRefence;
+import static fr.gouv.vitam.common.json.JsonHandler.getFromStringAsTypeReference;
 import static fr.gouv.vitam.common.json.JsonHandler.writeToInpustream;
 import static fr.gouv.vitam.common.model.PreservationVersion.FIRST;
 import static fr.gouv.vitam.common.model.StatusCode.KO;
@@ -383,7 +383,7 @@ public class PreservationPreparationPlugin extends ActionHandler {
             JsonNode response = metaDataClientFactory.getClient().selectObjectGroups(finalSelect);
 
             JsonNode results = response.get("$results");
-            return getFromStringAsTypeRefence(results.toString(), new TypeReference<List<ObjectGroupResponse>>() {
+            return getFromStringAsTypeReference(results.toString(), new TypeReference<List<ObjectGroupResponse>>() {
             });
 
         } catch (VitamException | InvalidFormatException | InvalidCreateOperationException e) {

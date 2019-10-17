@@ -145,7 +145,7 @@ public class UpdateUnitResourceTest {
         RestAssured.port = serverPort;
         RestAssured.basePath = DATA_URI;
 
-        ClientMockResultHelper.setOntologies(JsonHandler.getFromInputStreamAsTypeRefence(
+        ClientMockResultHelper.setOntologies(JsonHandler.getFromInputStreamAsTypeReference(
             OntologyTestHelper.loadOntologies(), new TypeReference<List<OntologyModel>>() {
             }));
     }

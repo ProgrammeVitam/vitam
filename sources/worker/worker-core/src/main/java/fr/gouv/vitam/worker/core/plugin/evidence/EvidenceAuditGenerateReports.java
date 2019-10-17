@@ -96,7 +96,7 @@ public class EvidenceAuditGenerateReports extends ActionHandler {
                 Charset.defaultCharset());
 
             ArrayList<String> listIds =
-                JsonHandler.getFromFileAsTypeRefence(listOfObjectByFile, new TypeReference<ArrayList<String>>() {
+                JsonHandler.getFromFileAsTypeReference(listOfObjectByFile, new TypeReference<ArrayList<String>>() {
                 });
 
             EvidenceService evidenceService = new EvidenceService();

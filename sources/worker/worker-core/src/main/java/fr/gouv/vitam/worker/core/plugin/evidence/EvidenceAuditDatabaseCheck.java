@@ -180,7 +180,7 @@ public class EvidenceAuditDatabaseCheck extends ActionHandler {
     
     private List<StorageStrategy> loadStorageStrategies(HandlerIO handler) throws AuditException {
         try {
-            return JsonHandler.getFromFileAsTypeRefence((File) handler.getInput(STRATEGIES_IN_RANK), new TypeReference<List<StorageStrategy>>() {
+            return JsonHandler.getFromFileAsTypeReference((File) handler.getInput(STRATEGIES_IN_RANK), new TypeReference<List<StorageStrategy>>() {
             });
         } catch (InvalidParseOperationException e) {
             throw new AuditException(StatusCode.FATAL, "Could not load storage strategies datas", e);

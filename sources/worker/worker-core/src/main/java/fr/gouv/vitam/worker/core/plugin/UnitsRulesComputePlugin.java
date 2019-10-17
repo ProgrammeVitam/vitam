@@ -422,7 +422,7 @@ public class UnitsRulesComputePlugin extends ActionHandler {
                 continue;
             }
 
-            RequestResponse<FileRules> fr = JsonHandler.getFromStringAsTypeRefence(rulesInDB.toString(),
+            RequestResponse<FileRules> fr = JsonHandler.getFromStringAsTypeReference(rulesInDB.toString(),
                 new TypeReference<RequestResponseOK<FileRules>>() {
                 });
             if (fr.isOk()) {

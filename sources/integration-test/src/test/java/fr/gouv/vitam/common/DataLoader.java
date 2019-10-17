@@ -79,7 +79,6 @@ import fr.gouv.vitam.logbook.common.parameters.LogbookParametersFactory;
 import fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClient;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClientFactory;
-import fr.gouv.vitam.processing.integration.test.ProcessingIT;
 
 /**
  * This class replace FunctionalAdminIT
@@ -134,7 +133,7 @@ public class DataLoader {
             VitamThreadUtils.getVitamSession().setTenantId(VitamConfiguration.getAdminTenant());
             VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newOperationLogbookGUID(tenantId));
             client.importOntologies(true, JsonHandler
-                .getFromInputStreamAsTypeRefence(OntologyTestHelper.loadOntologies(),
+                .getFromInputStreamAsTypeReference(OntologyTestHelper.loadOntologies(),
                     new TypeReference<List<OntologyModel>>() {
                     }));
             VitamThreadUtils.getVitamSession().setTenantId(initialTenant);
@@ -159,7 +158,7 @@ public class DataLoader {
 
             File fileProfiles = PropertiesUtils.getResourceFile(dataFodler + "/OK_profil.json");
             List<ProfileModel> profileModelList =
-                JsonHandler.getFromFileAsTypeRefence(fileProfiles, new TypeReference<List<ProfileModel>>() {
+                JsonHandler.getFromFileAsTypeReference(fileProfiles, new TypeReference<List<ProfileModel>>() {
                 });
             client.createProfiles(profileModelList);
 
@@ -174,7 +173,7 @@ public class DataLoader {
             VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newOperationLogbookGUID(tenantId));
             File fileContracts =
                 PropertiesUtils.getResourceFile(dataFodler + "/referential_contracts_ok.json");
-            List<IngestContractModel> IngestContractModelList = JsonHandler.getFromFileAsTypeRefence(fileContracts,
+            List<IngestContractModel> IngestContractModelList = JsonHandler.getFromFileAsTypeReference(fileContracts,
                 new TypeReference<List<IngestContractModel>>() {
                 });
             Response.Status importStatus = client.importIngestContracts(IngestContractModelList);
@@ -184,7 +183,7 @@ public class DataLoader {
             File fileAccessContracts = PropertiesUtils
                 .getResourceFile(dataFodler + "/access_contracts.json");
             List<AccessContractModel> accessContractModelList = JsonHandler
-                .getFromFileAsTypeRefence(fileAccessContracts, new TypeReference<List<AccessContractModel>>() {
+                .getFromFileAsTypeReference(fileAccessContracts, new TypeReference<List<AccessContractModel>>() {
                 });
             client.importAccessContracts(accessContractModelList);
 
@@ -192,7 +191,7 @@ public class DataLoader {
             // Import Security Profile
             VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newOperationLogbookGUID(tenantId));
             client.importSecurityProfiles(JsonHandler
-                .getFromFileAsTypeRefence(
+                .getFromFileAsTypeReference(
                     PropertiesUtils.getResourceFile(dataFodler + "/security_profile_ok.json"),
                     new TypeReference<List<SecurityProfileModel>>() {
                     }));
@@ -200,14 +199,14 @@ public class DataLoader {
             // Import Context
             VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newOperationLogbookGUID(tenantId));
             client.importContexts(JsonHandler
-                .getFromFileAsTypeRefence(PropertiesUtils.getResourceFile(dataFodler + "/contexts.json"),
+                .getFromFileAsTypeReference(PropertiesUtils.getResourceFile(dataFodler + "/contexts.json"),
                     new TypeReference<List<ContextModel>>() {
                     }));
 
             // Import Archive Unit Profile
             VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newOperationLogbookGUID(tenantId));
             client.createArchiveUnitProfiles(JsonHandler
-                .getFromFileAsTypeRefence(
+                .getFromFileAsTypeReference(
                     PropertiesUtils.getResourceFile(dataFodler + "/archive-unit-profile.json"),
                     new TypeReference<List<ArchiveUnitProfileModel>>() {
                     }));

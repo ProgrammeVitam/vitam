@@ -27,7 +27,7 @@
 package fr.gouv.vitam.functional;
 
 import static fr.gouv.vitam.common.guid.GUIDFactory.newOperationLogbookGUID;
-import static fr.gouv.vitam.common.json.JsonHandler.getFromStringAsTypeRefence;
+import static fr.gouv.vitam.common.json.JsonHandler.getFromStringAsTypeReference;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import javax.ws.rs.core.Response;
@@ -142,7 +142,7 @@ public class IngestContractIT extends VitamRuleRunner {
         try (AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient();
             LogbookOperationsClient logbookOperationsClient = LogbookOperationsClientFactory.getInstance().getClient()) {
             Response.Status status = client.importIngestContracts(
-                getFromStringAsTypeRefence(JsonHandler.getFromInputStream(contract).toString(),
+                getFromStringAsTypeReference(JsonHandler.getFromInputStream(contract).toString(),
                 new TypeReference<List<IngestContractModel>>() {}));
             Select select = new Select();
             select.setQuery(QueryHelper.eq("evType", "STP_IMPORT_INGEST_CONTRACT"));

@@ -243,7 +243,7 @@ public class JsonHandlerTest {
         }
 
         try {
-            JsonHandler.getFromStringAsTypeRefence("{}", null);
+            JsonHandler.getFromStringAsTypeReference("{}", null);
             fail(ResourcesPublicUtilTest.SHOULD_RAIZED_AN_EXCEPTION);
         } catch (final InvalidParseOperationException | InvalidFormatException e) {// NOSONAR
             // Ignore
@@ -268,7 +268,7 @@ public class JsonHandlerTest {
             // Ignore
         }
         try {
-            JsonHandler.getFromFileAsTypeRefence(new File(""), null);
+            JsonHandler.getFromFileAsTypeReference(new File(""), null);
             fail(ResourcesPublicUtilTest.SHOULD_RAIZED_AN_EXCEPTION);
         } catch (final InvalidParseOperationException e) {// NOSONAR
             // Ignore

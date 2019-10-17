@@ -278,7 +278,7 @@ public class ProcessDistributorImpl implements ProcessDistributor {
                 try (final WorkspaceClient workspaceClient = workspaceClientFactory.getClient()) {
 
                     final List<URI> objectsListUri =
-                        JsonHandler.getFromStringAsTypeRefence(
+                        JsonHandler.getFromStringAsTypeReference(
                             workspaceClient.getListUriDigitalObjectFromFolder(workParams.getContainerName(),
                                 step.getDistribution().getElement())
                                 .toJsonNode().get("$results").get(0).toString(),

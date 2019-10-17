@@ -64,7 +64,7 @@ public class JsonLineGenericIterator<T> implements CloseableIterator<T> {
     @Override
     public T next() {
         try {
-            return JsonHandler.getFromStringAsTypeRefence(lineIterator.next(), typeReference);
+            return JsonHandler.getFromStringAsTypeReference(lineIterator.next(), typeReference);
         } catch (InvalidParseOperationException | InvalidFormatException e) {
             throw new RuntimeException("Could not parse json line entry", e);
         }

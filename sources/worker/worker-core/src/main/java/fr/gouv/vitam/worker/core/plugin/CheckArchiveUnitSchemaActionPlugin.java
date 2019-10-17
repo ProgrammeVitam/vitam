@@ -253,7 +253,7 @@ public class CheckArchiveUnitSchemaActionPlugin extends ActionHandler {
                 throw new IllegalStateException("Ontology file not found");
             }
 
-            List<OntologyModel> ontologies = JsonHandler.getFromFileAsTypeRefence(ontologyFile, LIST_TYPE_REFERENCE);
+            List<OntologyModel> ontologies = JsonHandler.getFromFileAsTypeReference(ontologyFile, LIST_TYPE_REFERENCE);
             OntologyValidator ontologyValidator = new OntologyValidator(() -> ontologies);
 
             return ontologyValidator.verifyAndReplaceFields(archiveUnitJson);

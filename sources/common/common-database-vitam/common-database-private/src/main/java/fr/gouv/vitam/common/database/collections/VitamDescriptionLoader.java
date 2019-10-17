@@ -38,7 +38,6 @@ import java.io.FileNotFoundException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.Map;
 
 public class VitamDescriptionLoader {
     private static final TypeReference<List<VitamDescriptionType>> LIST_TYPE_REFERENCE = new TypeReference<List<VitamDescriptionType>>() {};
@@ -57,7 +56,7 @@ public class VitamDescriptionLoader {
     private static List<VitamDescriptionType> loadDescriptions(String fileName) {
         try {
             return new ArrayList<>(Collections.unmodifiableList(JsonHandler
-                .getFromInputStreamAsTypeRefence(PropertiesUtils.getResourceAsStream(fileName), LIST_TYPE_REFERENCE)));
+                .getFromInputStreamAsTypeReference(PropertiesUtils.getResourceAsStream(fileName), LIST_TYPE_REFERENCE)));
         } catch (InvalidParseOperationException | FileNotFoundException | InvalidFormatException e) {
             throw new VitamRuntimeException(e);
         }

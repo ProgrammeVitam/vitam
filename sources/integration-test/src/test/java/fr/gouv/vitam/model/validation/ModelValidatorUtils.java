@@ -27,10 +27,8 @@
 package fr.gouv.vitam.model.validation;
 
 import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.exc.InvalidFormatException;
 import com.google.common.collect.Maps;
 import fr.gouv.vitam.common.ParametersChecker;
-import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.database.collections.DynamicParserTokens;
 import fr.gouv.vitam.common.database.collections.VitamCollection;
 import fr.gouv.vitam.common.database.collections.VitamDescriptionResolver;
@@ -52,7 +50,6 @@ import org.apache.commons.collections4.multimap.ArrayListValuedHashMap;
 import org.apache.commons.lang3.StringUtils;
 import org.assertj.core.api.SoftAssertions;
 
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
@@ -153,7 +150,7 @@ public class ModelValidatorUtils {
         InputStream resourceAsStream = OntologyTestHelper.loadOntologies();
 
         List<OntologyModel> ontologyModels =
-            JsonHandler.getFromInputStreamAsTypeRefence(resourceAsStream, LIST_TYPE_REFERENCE);
+            JsonHandler.getFromInputStreamAsTypeReference(resourceAsStream, LIST_TYPE_REFERENCE);
 
         return ontologyModels.stream()
             .filter(ontologyModel -> ontologyModel.getCollections().contains(collectionName))

@@ -59,7 +59,6 @@ import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundEx
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
 import fr.gouv.vitam.workspace.client.WorkspaceClient;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
-import fr.gouv.vitam.workspace.common.CompressInformation;
 
 import javax.ws.rs.core.Response;
 import java.io.File;
@@ -73,7 +72,6 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -529,7 +527,7 @@ public class HandlerIOImpl implements HandlerIO, VitamAutoCloseable {
     public List<URI> getUriList(String containerName, String folderName) throws ProcessingException {
         try (WorkspaceClient workspaceClient = workspaceClientFactory.getClient()) {
             return JsonHandler
-                .getFromStringAsTypeRefence(workspaceClient.getListUriDigitalObjectFromFolder(containerName, folderName)
+                .getFromStringAsTypeReference(workspaceClient.getListUriDigitalObjectFromFolder(containerName, folderName)
                     .toJsonNode().get("$results").get(0).toString(), new TypeReference<List<URI>>() {
                 });
         } catch (ContentAddressableStorageServerException | InvalidParseOperationException | InvalidFormatException e) {

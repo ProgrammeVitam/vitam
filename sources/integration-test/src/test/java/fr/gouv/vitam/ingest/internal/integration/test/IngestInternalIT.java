@@ -1698,7 +1698,7 @@ public class IngestInternalIT extends VitamRuleRunner {
         // import contrat
         File fileAccessContracts = PropertiesUtils.getResourceFile("access_contrats.json");
         List<AccessContractModel> accessContractModelList = JsonHandler
-            .getFromFileAsTypeRefence(fileAccessContracts, new TypeReference<List<AccessContractModel>>() {
+            .getFromFileAsTypeReference(fileAccessContracts, new TypeReference<List<AccessContractModel>>() {
             });
         client.importAccessContracts(accessContractModelList);
         VitamThreadUtils.getVitamSession().setRequestId(newOperationLogbookGUID(tenantId));
@@ -1980,7 +1980,7 @@ public class IngestInternalIT extends VitamRuleRunner {
         // UniqueTitleParent : aeaqaaaaaahmtusqabktwaldc34sm5yaaaaq
         // UniqueTitleChild : aeaqaaaaaahmtusqabktwaldc34sm5iaaabq
         final List<Document> unitList =
-            JsonHandler.getFromFileAsTypeRefence(PropertiesUtils
+            JsonHandler.getFromFileAsTypeReference(PropertiesUtils
                     .getResourceFile("integration-ingest-internal/data/units_tree_access_contract_test.json"),
                 new TypeReference<List<Document>>() {
                 });
