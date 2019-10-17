@@ -34,6 +34,7 @@ import cucumber.api.java.en.When;
 import fr.gouv.vitam.access.external.client.VitamPoolingClient;
 import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.client.VitamContext;
+import fr.gouv.vitam.common.exception.VitamClientException;
 import fr.gouv.vitam.common.exception.VitamException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.model.ProcessAction;
@@ -191,9 +192,26 @@ public class TransferStep {
         }
     }
 
-    @When("^je lance un transfert reply")
-    public void transfer_reply() {
-        // TODO: 17/10/2019 getAtrFile from world and do transferReply
+    @When("^je receptionne l'ATR du versement d'un transfert")
+    public void transfer_reply() throws VitamException, IOException {
+        try (InputStream inputStream = Files.newInputStream(world.getAtrFile(), StandardOpenOption.READ)) {
+            RequestResponse response = world.getAccessClient().transferReply(
+                new VitamContext(world.getTenantId()).setApplicationSessionId(world.getApplicationSessionId()),
+                inputStream);
+            assertThat(response.isOk()).isTrue();
+            
+            final String operationId = response.getHeaderString(GlobalDataRest.X_REQUEST_ID);
+            world.setOperationId(operationId);
+            final VitamPoolingClient vitamPoolingClient = new VitamPoolingClient(world.getAdminClient());
+            boolean process_timeout = vitamPoolingClient
+                .wait(world.getTenantId(), operationId, ProcessState.COMPLETED, 1800, 1_000L, TimeUnit.MILLISECONDS);
+            if (!process_timeout) {
+                Assertions
+                    .fail("Sip transfer reply processing not finished : operation (" + operationId +
+                        "). Timeout exceeded.");
+            }
+            assertThat(operationId).as(format("%s not found for request", X_REQUEST_ID)).isNotNull();
+        }
     }
 
     private int countElements(InputStream inputStream, String path) throws XMLStreamException {
