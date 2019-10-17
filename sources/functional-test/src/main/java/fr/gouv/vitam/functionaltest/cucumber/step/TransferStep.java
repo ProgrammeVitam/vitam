@@ -1,4 +1,4 @@
-/*
+/*******************************************************************************
  * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2019)
  *
  * contact.vitam@culture.gouv.fr
@@ -23,7 +23,7 @@
  *
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
- */
+ *******************************************************************************/
 package fr.gouv.vitam.functionaltest.cucumber.step;
 
 
@@ -32,17 +32,20 @@ import cucumber.api.java.After;
 import cucumber.api.java.en.Then;
 import cucumber.api.java.en.When;
 import fr.gouv.vitam.access.external.client.VitamPoolingClient;
+import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.client.VitamContext;
 import fr.gouv.vitam.common.exception.VitamException;
 import fr.gouv.vitam.common.json.JsonHandler;
+import fr.gouv.vitam.common.model.ProcessAction;
 import fr.gouv.vitam.common.model.ProcessState;
 import fr.gouv.vitam.common.model.RequestResponse;
-import fr.gouv.vitam.common.model.export.dip.DipRequest;
+import fr.gouv.vitam.common.model.dip.TransferRequest;
 import fr.gouv.vitam.common.xml.XMLInputFactoryUtils;
 import org.apache.commons.collections.EnumerationUtils;
 import org.apache.commons.compress.archivers.zip.ZipArchiveEntry;
 import org.apache.commons.compress.archivers.zip.ZipFile;
 import org.apache.commons.io.FileUtils;
+import org.assertj.core.api.Assertions;
 
 import javax.ws.rs.core.Response;
 import javax.xml.stream.XMLEventReader;
@@ -52,30 +55,33 @@ import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.events.StartElement;
 import javax.xml.stream.events.XMLEvent;
 import java.io.File;
+import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.StandardCopyOption;
+import java.nio.file.StandardOpenOption;
 import java.util.List;
 import java.util.Stack;
 import java.util.concurrent.TimeUnit;
 
 import static fr.gouv.vitam.common.GlobalDataRest.X_REQUEST_ID;
+import static fr.gouv.vitam.logbook.common.parameters.Contexts.DEFAULT_WORKFLOW;
 import static java.lang.String.format;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Java6Assertions.fail;
 
-public class DipStep {
+public class TransferStep {
 
     private World world;
 
-    public DipStep(World world) {
+    public TransferStep(World world) {
         this.world = world;
     }
 
-    @When("^j'exporte le dip$")
-    public void exportDip() throws VitamException {
+    @When("^je lance un transfert$")
+    public void transfer() throws VitamException {
 
-        cleanTempDipFile();
+        cleanTempFile();
 
         VitamContext vitamContext = new VitamContext(world.getTenantId());
         vitamContext.setApplicationSessionId(world.getApplicationSessionId());
@@ -83,9 +89,8 @@ public class DipStep {
 
         String query = world.getQuery();
         JsonNode jsonNode = JsonHandler.getFromString(query);
-
-        DipRequest dipExportRequest = new DipRequest(jsonNode);
-        RequestResponse response = world.getAdminClientV2().exportDIP(vitamContext, dipExportRequest);
+        TransferRequest transferRequest = JsonHandler.getFromJsonNode(jsonNode, TransferRequest.class);
+        RequestResponse response = world.getAccessClient().transfer(vitamContext, transferRequest);
 
         assertThat(response.isOk()).isTrue();
 
@@ -97,65 +102,65 @@ public class DipStep {
             .wait(world.getTenantId(), operationId, ProcessState.COMPLETED, 100, 1_000L, TimeUnit.MILLISECONDS);
 
         if (!processTimeout) {
-            fail("dip processing not finished. Timeout exceeded.");
+            fail("Transfer processing not finished. Timeout exceeded.");
         }
 
         assertThat(operationId).as(format("%s not found for request", X_REQUEST_ID)).isNotNull();
     }
 
-    @When("^je télécharge le dip$")
-    public void downloadDip() throws Exception {
+    @When("^je télécharge le sip du transfert$")
+    public void downloadSipTransfer() throws Exception {
 
         VitamContext vitamContext = new VitamContext(world.getTenantId());
         vitamContext.setApplicationSessionId(world.getApplicationSessionId());
         vitamContext.setAccessContract(world.getContractId());
 
-        Response response = world.getAccessClient().getDIPById(vitamContext, world.getOperationId());
+        Response response = world.getAccessClient().getTransferById(vitamContext, world.getOperationId());
         assertThat(response.getStatus()).isEqualTo(Response.Status.OK.getStatusCode());
 
-        File tempFile = Files.createTempFile("DIP-" + world.getOperationId(), ".zip").toFile();
-        try (InputStream dipInputStream = response.readEntity(InputStream.class)) {
-            Files.copy(dipInputStream, tempFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
+        File tempFile = Files.createTempFile("TRANSFER-" + world.getOperationId(), ".zip").toFile();
+        try (InputStream tansferInputStream = response.readEntity(InputStream.class)) {
+            Files.copy(tansferInputStream, tempFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
         }
         response.close();
 
-        world.setDipFile(tempFile.toPath());
+        world.setTransferFile(tempFile.toPath());
     }
 
-    @Then("^le dip contient (\\d+) unités archivistiques$")
-    public void checkDipUnitCount(int nbUnits) throws Exception {
+    @Then("^le transfert contient (\\d+) unités archivistiques$")
+    public void checkSipTransferUnitCount(int nbUnits) throws Exception {
 
-        ZipFile zipFile = new ZipFile(world.getDipFile().toFile());
+        ZipFile zipFile = new ZipFile(world.getTransferFile().toFile());
         // Check manifest
         ZipArchiveEntry manifest = zipFile.getEntry("manifest.xml");
         try (InputStream is = zipFile.getInputStream(manifest)) {
             int cpt =
-                countElements(is, "ArchiveDeliveryRequestReply/DataObjectPackage/DescriptiveMetadata/ArchiveUnit");
+                countElements(is, "ArchiveTransfer/DataObjectPackage/DescriptiveMetadata/ArchiveUnit");
             assertThat(cpt).isEqualTo(nbUnits);
         }
     }
 
-    @Then("^le dip contient (\\d+) groupes d'objets$")
-    public void checkDipObjectGroupCount(int nbObjectGroups) throws Exception {
+    @Then("^le transfert contient (\\d+) groupes d'objets$")
+    public void checkSipTransferObjectGroupCount(int nbObjectGroups) throws Exception {
 
-        ZipFile zipFile = new ZipFile(world.getDipFile().toFile());
+        ZipFile zipFile = new ZipFile(world.getTransferFile().toFile());
         // Check manifest
         ZipArchiveEntry manifest = zipFile.getEntry("manifest.xml");
         try (InputStream is = zipFile.getInputStream(manifest)) {
-            int cpt = countElements(is, "ArchiveDeliveryRequestReply/DataObjectPackage/DataObjectGroup");
+            int cpt = countElements(is, "ArchiveTransfer/DataObjectPackage/DataObjectGroup");
             assertThat(cpt).isEqualTo(nbObjectGroups);
         }
     }
 
-    @Then("^le dip contient (\\d+) objets dont (\\d+) sont binaires$")
-    public void checkDipObjectCount(int nbObjects, int nbBinaryObjects) throws Exception {
+    @Then("^le transfert contient (\\d+) objets dont (\\d+) sont binaires$")
+    public void checkSipTransferObjectCount(int nbObjects, int nbBinaryObjects) throws Exception {
 
-        ZipFile zipFile = new ZipFile(world.getDipFile().toFile());
+        ZipFile zipFile = new ZipFile(world.getTransferFile().toFile());
         // Check manifest
         ZipArchiveEntry manifest = zipFile.getEntry("manifest.xml");
         try (InputStream is = zipFile.getInputStream(manifest)) {
             int cpt =
-                countElements(is, "ArchiveDeliveryRequestReply/DataObjectPackage/DataObjectGroup/BinaryDataObject");
+                countElements(is, "ArchiveTransfer/DataObjectPackage/DataObjectGroup/BinaryDataObject");
             assertThat(cpt).isEqualTo(nbObjects);
         }
 
@@ -165,6 +170,30 @@ public class DipStep {
             .count();
 
         assertThat(binaryFiles).isEqualTo(nbBinaryObjects);
+    }
+
+    @When("^j'upload le sip du transfert")
+    public void upload_this_sip_transfer() throws VitamException, IOException {
+        try (InputStream inputStream = Files.newInputStream(world.getTransferFile(), StandardOpenOption.READ)) {
+            RequestResponse response = world.getIngestClient()
+                .ingest(new VitamContext(world.getTenantId()).setApplicationSessionId(world.getApplicationSessionId()),
+                    inputStream, DEFAULT_WORKFLOW.name(), ProcessAction.RESUME.name());
+            final String operationId = response.getHeaderString(GlobalDataRest.X_REQUEST_ID);
+            world.setOperationId(operationId);
+            final VitamPoolingClient vitamPoolingClient = new VitamPoolingClient(world.getAdminClient());
+            boolean process_timeout = vitamPoolingClient
+                .wait(world.getTenantId(), operationId, ProcessState.COMPLETED, 1800, 1_000L, TimeUnit.MILLISECONDS);
+            if (!process_timeout) {
+                Assertions
+                    .fail("Sip transfer processing not finished : operation (" + operationId + "). Timeout exceeded.");
+            }
+            assertThat(operationId).as(format("%s not found for request", X_REQUEST_ID)).isNotNull();
+        }
+    }
+
+    @When("^je lance un transfert reply")
+    public void transfer_reply() {
+        // TODO: 17/10/2019 getAtrFile from world and do transferReply
     }
 
     private int countElements(InputStream inputStream, String path) throws XMLStreamException {
@@ -196,13 +225,13 @@ public class DipStep {
 
     @After
     public void afterScenario() {
-        cleanTempDipFile();
+        cleanTempFile();
     }
 
-    private void cleanTempDipFile() {
-        if (world.getDipFile() != null) {
-            FileUtils.deleteQuietly(world.getDipFile().toFile());
-            world.setDipFile(null);
+    private void cleanTempFile() {
+        if (world.getTransferFile() != null) {
+            FileUtils.deleteQuietly(world.getTransferFile().toFile());
+            world.setTransferFile(null);
         }
     }
 }
