@@ -43,8 +43,8 @@ import fr.gouv.vitam.metadata.api.exception.MetaDataExecutionException;
 import fr.gouv.vitam.metadata.client.MetaDataClient;
 import fr.gouv.vitam.metadata.client.MetaDataClientFactory;
 import fr.gouv.vitam.worker.common.HandlerIO;
+import fr.gouv.vitam.worker.core.exception.ProcessingStatusException;
 import fr.gouv.vitam.worker.core.handler.ActionHandler;
-import fr.gouv.vitam.worker.core.plugin.elimination.exception.EliminationException;
 import fr.gouv.vitam.worker.core.plugin.elimination.model.EliminationEventDetails;
 
 import static fr.gouv.vitam.worker.core.plugin.elimination.EliminationUtils.loadRequestJsonFromWorkspace;
@@ -108,7 +108,7 @@ public abstract class EliminationCheckDistributionThresholdBase extends ActionHa
             EliminationEventDetails eventDetails = new EliminationEventDetails()
                 .setError("An error occurred during elimination distribution check");
             return buildItemStatus(action, StatusCode.FATAL, eventDetails);
-        } catch (EliminationException e) {
+        } catch (ProcessingStatusException e) {
             return buildItemStatus(action, e.getStatusCode(), e.getEventDetails());
         }
     }

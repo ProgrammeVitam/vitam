@@ -50,8 +50,8 @@ import fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 import fr.gouv.vitam.worker.common.HandlerIO;
+import fr.gouv.vitam.worker.core.exception.ProcessingStatusException;
 import fr.gouv.vitam.worker.core.handler.ActionHandler;
-import fr.gouv.vitam.worker.core.plugin.elimination.exception.EliminationException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
 
 import java.time.LocalDateTime;
@@ -97,7 +97,7 @@ public class EliminationActionAccessionRegisterUpdatePlugin extends ActionHandle
             LOGGER.info("Elimination action accession register update succeeded");
             return buildItemStatus(ELIMINATION_ACTION_ACCESSION_REGISTER_UPDATE, StatusCode.OK, null);
 
-        } catch (EliminationException e) {
+        } catch (ProcessingStatusException e) {
             LOGGER.error(String.format(
                 "Elimination action accession register update failed with status [%s]", e.getStatusCode()), e);
             return buildItemStatus(ELIMINATION_ACTION_ACCESSION_REGISTER_UPDATE, e.getStatusCode(),
@@ -105,7 +105,7 @@ public class EliminationActionAccessionRegisterUpdatePlugin extends ActionHandle
         }
     }
 
-    private void updateAccessionRegister(WorkerParameters param) throws EliminationException {
+    private void updateAccessionRegister(WorkerParameters param) throws ProcessingStatusException {
 
         EliminationActionAccessionRegisterModel eliminationActionAccessionRegisterModel =
             loadEliminationActionAccessionRegisterModel(param);
@@ -161,24 +161,24 @@ public class EliminationActionAccessionRegisterUpdatePlugin extends ActionHandle
                 adminManagementClient.createOrUpdateAccessionRegister(accessionRegisterDetailModel);
 
             if (resp.getStatus() == javax.ws.rs.core.Response.Status.CONFLICT.getStatusCode()) {
-                throw new EliminationException(
+                throw new ProcessingStatusException(
                     StatusCode.ALREADY_EXECUTED, "Plugin already executed");
             }
 
         } catch (AdminManagementClientServerException | AccessionRegisterException e) {
-            throw new EliminationException(StatusCode.FATAL, "[Consistency ERROR] An error occurred during accession register update", e);
+            throw new ProcessingStatusException(StatusCode.FATAL, "[Consistency ERROR] An error occurred during accession register update", e);
         }
     }
 
     private EliminationActionAccessionRegisterModel loadEliminationActionAccessionRegisterModel(WorkerParameters param)
-        throws EliminationException {
+        throws ProcessingStatusException {
         EliminationActionAccessionRegisterModel eliminationActionAccessionRegisterModel;
         try {
             eliminationActionAccessionRegisterModel =
                 JsonHandler.getFromJsonNode(param.getObjectMetadata(), EliminationActionAccessionRegisterModel.class);
 
         } catch (InvalidParseOperationException e) {
-            throw new EliminationException(StatusCode.FATAL, "Could not load accession register data", e);
+            throw new ProcessingStatusException(StatusCode.FATAL, "Could not load accession register data", e);
         }
         return eliminationActionAccessionRegisterModel;
     }

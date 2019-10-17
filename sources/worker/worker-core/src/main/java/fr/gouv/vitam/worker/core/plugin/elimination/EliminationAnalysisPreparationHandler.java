@@ -47,9 +47,9 @@ import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 import fr.gouv.vitam.worker.common.HandlerIO;
 import fr.gouv.vitam.worker.core.distribution.JsonLineModel;
 import fr.gouv.vitam.worker.core.distribution.JsonLineWriter;
+import fr.gouv.vitam.worker.core.exception.ProcessingStatusException;
 import fr.gouv.vitam.worker.core.handler.ActionHandler;
 import fr.gouv.vitam.worker.core.plugin.ScrollSpliteratorHelper;
-import fr.gouv.vitam.worker.core.plugin.elimination.exception.EliminationException;
 import fr.gouv.vitam.worker.core.plugin.elimination.model.EliminationAnalysisResult;
 import fr.gouv.vitam.worker.core.plugin.elimination.model.EliminationEventDetails;
 import fr.gouv.vitam.worker.core.plugin.elimination.model.EliminationGlobalStatus;
@@ -119,7 +119,7 @@ public class EliminationAnalysisPreparationHandler extends ActionHandler {
                 .setExpirationDate(eliminationRequestBody.getDate());
             return buildItemStatus(ELIMINATION_ANALYSIS_PREPARATION, StatusCode.OK, eventDetails);
 
-        } catch (EliminationException e) {
+        } catch (ProcessingStatusException e) {
             LOGGER.error("Elimination analysis preparation failed with status [" + e.getStatusCode() + "]", e);
             return buildItemStatus(ELIMINATION_ANALYSIS_PREPARATION, e.getStatusCode(), e.getEventDetails());
         }
@@ -127,7 +127,7 @@ public class EliminationAnalysisPreparationHandler extends ActionHandler {
 
     private void process(EliminationRequestBody eliminationRequestBody,
         WorkerParameters param, HandlerIO handler)
-        throws EliminationException {
+        throws ProcessingStatusException {
 
         LocalDate expirationDate = getExpirationDate(eliminationRequestBody);
         SelectMultiQuery request = getRequest(eliminationRequestBody.getDslRequest());
@@ -167,26 +167,26 @@ public class EliminationAnalysisPreparationHandler extends ActionHandler {
             handler.transferFileToWorkspace(UNITS_JSONL_FILE, unitDistributionFile, true, false);
 
         } catch (IOException | ProcessingException | InvalidParseOperationException e) {
-            throw new EliminationException(StatusCode.FATAL,
+            throw new ProcessingStatusException(StatusCode.FATAL,
                 "Could not generate unit and/or object group distributions", e);
         } finally {
             FileUtils.deleteQuietly(unitDistributionFile);
         }
     }
 
-    private LocalDate getExpirationDate(EliminationRequestBody eliminationRequestBody) throws EliminationException {
+    private LocalDate getExpirationDate(EliminationRequestBody eliminationRequestBody) throws ProcessingStatusException {
         LocalDate expirationDate;
         try {
             expirationDate = LocalDate.parse(eliminationRequestBody.getDate());
         } catch (DateTimeParseException e) {
             EliminationEventDetails eventDetails = new EliminationEventDetails()
                 .setError(COULD_NOT_PARSE_DATE_FROM_REQUEST);
-            throw new EliminationException(StatusCode.KO, eventDetails, COULD_NOT_PARSE_DATE_FROM_REQUEST, e);
+            throw new ProcessingStatusException(StatusCode.KO, eventDetails, COULD_NOT_PARSE_DATE_FROM_REQUEST, e);
         }
         return expirationDate;
     }
 
-    private SelectMultiQuery getRequest(JsonNode dslRequest) throws EliminationException {
+    private SelectMultiQuery getRequest(JsonNode dslRequest) throws ProcessingStatusException {
 
         try {
 
@@ -205,7 +205,7 @@ public class EliminationAnalysisPreparationHandler extends ActionHandler {
         } catch (InvalidParseOperationException e) {
             EliminationEventDetails eventDetails = new EliminationEventDetails()
                 .setError(COULD_NOT_PARSE_DSL_REQUEST);
-            throw new EliminationException(StatusCode.KO, eventDetails, COULD_NOT_PARSE_DSL_REQUEST, e);
+            throw new ProcessingStatusException(StatusCode.KO, eventDetails, COULD_NOT_PARSE_DSL_REQUEST, e);
         }
     }
 

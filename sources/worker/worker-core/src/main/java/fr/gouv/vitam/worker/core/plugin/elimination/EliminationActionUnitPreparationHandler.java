@@ -61,9 +61,9 @@ import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 import fr.gouv.vitam.worker.common.HandlerIO;
 import fr.gouv.vitam.worker.core.distribution.JsonLineModel;
 import fr.gouv.vitam.worker.core.distribution.JsonLineWriter;
+import fr.gouv.vitam.worker.core.exception.ProcessingStatusException;
 import fr.gouv.vitam.worker.core.handler.ActionHandler;
 import fr.gouv.vitam.worker.core.plugin.ScrollSpliteratorHelper;
-import fr.gouv.vitam.worker.core.plugin.elimination.exception.EliminationException;
 import fr.gouv.vitam.worker.core.plugin.elimination.model.EliminationActionUnitStatus;
 import fr.gouv.vitam.worker.core.plugin.elimination.model.EliminationAnalysisResult;
 import fr.gouv.vitam.worker.core.plugin.elimination.model.EliminationEventDetails;
@@ -130,7 +130,7 @@ public class EliminationActionUnitPreparationHandler extends ActionHandler {
 
             return itemStatus;
 
-        } catch (EliminationException e) {
+        } catch (ProcessingStatusException e) {
             LOGGER.error("Elimination action unit preparation failed with status [" + e.getStatusCode() + "]", e);
             return buildItemStatus(ELIMINATION_ACTION_UNIT_PREPARATION, e.getStatusCode(), e.getEventDetails());
         }
@@ -138,7 +138,7 @@ public class EliminationActionUnitPreparationHandler extends ActionHandler {
 
     private ItemStatus process(EliminationRequestBody eliminationRequestBody,
         WorkerParameters param, HandlerIO handler)
-        throws EliminationException {
+        throws ProcessingStatusException {
 
         LocalDate expirationDate = getAndValidateExpirationDate(eliminationRequestBody);
 
@@ -166,7 +166,6 @@ public class EliminationActionUnitPreparationHandler extends ActionHandler {
 
                     JsonNode unit = unitIterator.next();
                     String unitId = unit.get(VitamFieldsHelper.id()).asText();
-                    String strategyId = MetadataDocumentHelper.getStrategyIdFromUnit(unit);
 
                     EliminationAnalysisResult eliminationAnalysisResult = EliminationUtils
                         .computeEliminationAnalysisForUnitWithInheritedRules(unit, eliminationAnalysisService, param,
@@ -175,10 +174,8 @@ public class EliminationActionUnitPreparationHandler extends ActionHandler {
                     switch (eliminationAnalysisResult.getGlobalStatus()) {
 
                         case DESTROY:
-                            ObjectNode params = JsonHandler.createObjectNode();
-                            params.put("strategyId", strategyId) ;
                             unitsToDeleteWriter
-                                .addEntry(new JsonLineModel(unitId, unit.get(VitamFieldsHelper.max()).asInt(), params));
+                                .addEntry(new JsonLineModel(unitId, unit.get(VitamFieldsHelper.max()).asInt(), unit));
                             nbDestroyableUnits++;
                             break;
 
@@ -223,7 +220,7 @@ public class EliminationActionUnitPreparationHandler extends ActionHandler {
             }
 
         } catch (IOException | ProcessingException e) {
-            throw new EliminationException(StatusCode.FATAL,
+            throw new ProcessingStatusException(StatusCode.FATAL,
                 "Could not generate unit distribution file", e);
         }
     }
@@ -232,7 +229,7 @@ public class EliminationActionUnitPreparationHandler extends ActionHandler {
         return new BufferedConsumer<>(UNIT_REPORT_BUFFER_SIZE, entries -> {
             try {
                 eliminationActionReportService.appendUnitEntries(processId, entries);
-            } catch (EliminationException e) {
+            } catch (ProcessingStatusException e) {
                 throw new RuntimeException(e);
             }
         });
@@ -245,14 +242,14 @@ public class EliminationActionUnitPreparationHandler extends ActionHandler {
     }
 
     private LocalDate getAndValidateExpirationDate(EliminationRequestBody eliminationRequestBody)
-        throws EliminationException {
+        throws ProcessingStatusException {
         LocalDate expirationDate;
         try {
             expirationDate = LocalDate.parse(eliminationRequestBody.getDate());
         } catch (DateTimeParseException e) {
             EliminationEventDetails eventDetails = new EliminationEventDetails()
                 .setError(COULD_NOT_PARSE_DATE_FROM_REQUEST);
-            throw new EliminationException(StatusCode.KO, eventDetails, COULD_NOT_PARSE_DATE_FROM_REQUEST, e);
+            throw new ProcessingStatusException(StatusCode.KO, eventDetails, COULD_NOT_PARSE_DATE_FROM_REQUEST, e);
         }
 
         LocalDate today = LocalDate.now();
@@ -260,14 +257,14 @@ public class EliminationActionUnitPreparationHandler extends ActionHandler {
             EliminationEventDetails eventDetails = new EliminationEventDetails()
                 .setExpirationDate(eliminationRequestBody.getDate())
                 .setError(DATE_REQUEST_IN_FUTURE);
-            throw new EliminationException(StatusCode.KO, eventDetails,
+            throw new ProcessingStatusException(StatusCode.KO, eventDetails,
                 DATE_REQUEST_IN_FUTURE + " " + expirationDate.toString());
         }
 
         return expirationDate;
     }
 
-    private SelectMultiQuery getRequest(JsonNode dslRequest) throws EliminationException {
+    private SelectMultiQuery getRequest(JsonNode dslRequest) throws ProcessingStatusException {
 
         try {
 
@@ -294,7 +291,7 @@ public class EliminationActionUnitPreparationHandler extends ActionHandler {
         } catch (InvalidParseOperationException e) {
             EliminationEventDetails eventDetails = new EliminationEventDetails()
                 .setError(COULD_NOT_PARSE_DSL_REQUEST);
-            throw new EliminationException(StatusCode.KO, eventDetails, COULD_NOT_PARSE_DSL_REQUEST, e);
+            throw new ProcessingStatusException(StatusCode.KO, eventDetails, COULD_NOT_PARSE_DSL_REQUEST, e);
         }
     }
 

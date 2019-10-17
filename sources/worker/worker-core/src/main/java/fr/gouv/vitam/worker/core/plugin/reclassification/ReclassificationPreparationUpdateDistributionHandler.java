@@ -40,8 +40,8 @@ import fr.gouv.vitam.metadata.client.MetaDataClientFactory;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 import fr.gouv.vitam.worker.common.HandlerIO;
+import fr.gouv.vitam.worker.core.exception.ProcessingStatusException;
 import fr.gouv.vitam.worker.core.handler.ActionHandler;
-import fr.gouv.vitam.worker.core.plugin.reclassification.exception.ReclassificationException;
 import fr.gouv.vitam.worker.core.plugin.reclassification.model.ReclassificationOrders;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
 import org.apache.commons.collections4.SetUtils;
@@ -100,7 +100,7 @@ public class ReclassificationPreparationUpdateDistributionHandler extends Action
             // Prepare distributions
             prepareUpdates(reclassificationOrders, handler);
 
-        } catch (ReclassificationException e) {
+        } catch (ProcessingStatusException e) {
             LOGGER.error("Reclassification update distribution failed with status [" + e.getStatusCode() + "]", e);
             return buildItemStatus(RECLASSIFICATION_PREPARATION_UPDATE_DISTRIBUTION, e.getStatusCode(),
                 e.getEventDetails());
@@ -116,7 +116,7 @@ public class ReclassificationPreparationUpdateDistributionHandler extends Action
     }
 
     private void prepareUpdates(ReclassificationOrders reclassificationUpdates,
-        HandlerIO handler) throws ReclassificationException {
+        HandlerIO handler) throws ProcessingStatusException {
 
         prepareDetachments(reclassificationUpdates, handler);
 
@@ -127,7 +127,7 @@ public class ReclassificationPreparationUpdateDistributionHandler extends Action
     }
 
     private void prepareDetachments(ReclassificationOrders reclassificationOrders, HandlerIO handler)
-        throws ReclassificationException {
+        throws ProcessingStatusException {
 
         for (String childUnitId : reclassificationOrders.getChildToParentDetachments().keySet()) {
             storeToWorkspace(handler, reclassificationOrders.getChildToParentDetachments().get(childUnitId),
@@ -136,7 +136,7 @@ public class ReclassificationPreparationUpdateDistributionHandler extends Action
     }
 
     private void prepareAttachments(ReclassificationOrders reclassificationOrders, HandlerIO handler)
-        throws ReclassificationException {
+        throws ProcessingStatusException {
 
         for (String childUnitId : reclassificationOrders.getChildToParentAttachments().keySet()) {
             storeToWorkspace(handler, reclassificationOrders.getChildToParentAttachments().get(childUnitId),
@@ -145,7 +145,7 @@ public class ReclassificationPreparationUpdateDistributionHandler extends Action
     }
 
     private void prepareUnitAndObjectGroupGraphUpdates(ReclassificationOrders reclassificationOrders)
-        throws ReclassificationException {
+        throws ProcessingStatusException {
 
         try (MetaDataClient metaDataClient = metaDataClientFactory.getClient()) {
 
@@ -157,16 +157,16 @@ public class ReclassificationPreparationUpdateDistributionHandler extends Action
                 unitIds, UNITS_TO_UPDATE_JSONL_FILE, OG_TO_UPDATE_JSONL_FILE);
 
         } catch (VitamClientException | MetaDataExecutionException e) {
-            throw new ReclassificationException(StatusCode.FATAL,
+            throw new ProcessingStatusException(StatusCode.FATAL,
                 COULD_NOT_EXPORT_THE_LIST_OF_UNITS_AND_OBJECT_GROUPS_TO_UPDATE, e);
         }
     }
 
-    private void storeToWorkspace(HandlerIO handler, Object data, String filePath) throws ReclassificationException {
+    private void storeToWorkspace(HandlerIO handler, Object data, String filePath) throws ProcessingStatusException {
         try (InputStream inputStream = JsonHandler.writeToInpustream(data)) {
             handler.transferInputStreamToWorkspace(filePath, inputStream, null, false);
         } catch (InvalidParseOperationException | IOException | ProcessingException e) {
-            throw new ReclassificationException(StatusCode.FATAL, "Could not store to workspace: " + filePath, e);
+            throw new ProcessingStatusException(StatusCode.FATAL, "Could not store to workspace: " + filePath, e);
         }
     }
 

@@ -34,8 +34,8 @@ import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 import fr.gouv.vitam.worker.common.HandlerIO;
+import fr.gouv.vitam.worker.core.exception.ProcessingStatusException;
 import fr.gouv.vitam.worker.core.handler.ActionHandler;
-import fr.gouv.vitam.worker.core.plugin.elimination.exception.EliminationException;
 import fr.gouv.vitam.worker.core.plugin.elimination.report.EliminationActionReportService;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
 
@@ -81,7 +81,7 @@ public class EliminationActionFinalizationHandler extends ActionHandler {
             LOGGER.info("Elimination action finalization succeeded");
             return buildItemStatus(ELIMINATION_ACTION_FINALIZATION, StatusCode.OK, null);
 
-        } catch (EliminationException e) {
+        } catch (ProcessingStatusException e) {
             LOGGER.error(
                 String.format("Elimination action finalization failed with status [%s]", e.getStatusCode()), e);
             return buildItemStatus(ELIMINATION_ACTION_FINALIZATION, e.getStatusCode(), e.getEventDetails());

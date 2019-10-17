@@ -40,7 +40,6 @@ import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.google.common.annotations.VisibleForTesting;
 
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
-import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.ItemStatus;
@@ -53,8 +52,8 @@ import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 import fr.gouv.vitam.storage.engine.client.exception.StorageServerClientException;
 import fr.gouv.vitam.worker.common.HandlerIO;
+import fr.gouv.vitam.worker.core.exception.ProcessingStatusException;
 import fr.gouv.vitam.worker.core.handler.ActionHandler;
-import fr.gouv.vitam.worker.core.plugin.elimination.exception.EliminationException;
 
 /**
  * Elimination action delete object group plugin.
@@ -109,7 +108,7 @@ public class EliminationActionDeleteObjectGroupPlugin extends ActionHandler {
 
             return buildBulkItemStatus(param, ELIMINATION_ACTION_DELETE_OBJECT_GROUP, StatusCode.OK);
 
-        } catch (EliminationException e) {
+        } catch (ProcessingStatusException e) {
             LOGGER.error("Elimination action delete object groups failed with status " + e.getStatusCode(), e);
             return singletonList(
                 buildItemStatus(ELIMINATION_ACTION_DELETE_OBJECT_GROUP, e.getStatusCode(), e.getEventDetails()));
@@ -118,7 +117,7 @@ public class EliminationActionDeleteObjectGroupPlugin extends ActionHandler {
     }
 
     private void processObjectGroups(Map<String, String> objectGroupIdsWithStrategies)
-        throws EliminationException {
+        throws ProcessingStatusException {
 
         LOGGER.info("Deleting object groups [" + String.join(", ", objectGroupIdsWithStrategies.keySet()) + "]");
 
@@ -128,12 +127,12 @@ public class EliminationActionDeleteObjectGroupPlugin extends ActionHandler {
 
         } catch (InvalidParseOperationException | MetaDataExecutionException | MetaDataClientServerException |
             LogbookClientBadRequestException | StorageServerClientException | LogbookClientServerException e) {
-            throw new EliminationException(StatusCode.FATAL,
+            throw new ProcessingStatusException(StatusCode.FATAL,
                 "Could not delete object groups [" + String.join(", ", objectGroupIdsWithStrategies.keySet()) + "]", e);
         }
     }
 
-    private void processObjects(Map<String, String> objectIdsWithStrategies) throws EliminationException {
+    private void processObjects(Map<String, String> objectIdsWithStrategies) throws ProcessingStatusException {
 
         if (LOGGER.isDebugEnabled()) {
             LOGGER.debug("Deleting object binaries [" + String.join(", ", objectIdsWithStrategies.keySet()) + "]");
@@ -144,18 +143,18 @@ public class EliminationActionDeleteObjectGroupPlugin extends ActionHandler {
             eliminationActionDeleteService.deleteObjects(objectIdsWithStrategies);
 
         } catch (StorageServerClientException e) {
-            throw new EliminationException(StatusCode.FATAL,
+            throw new ProcessingStatusException(StatusCode.FATAL,
                 "Could not delete object groups [" + String.join(", ", objectIdsWithStrategies.keySet()) + "]", e);
         }
 
     }
 
-    private Map<String, String> loadObjectsToDelete(WorkerParameters param) throws EliminationException {
+    private Map<String, String> loadObjectsToDelete(WorkerParameters param) throws ProcessingStatusException {
 
         Map<String, String> objectsWithStrategiesToDelete = new HashMap<String, String>();
         for (JsonNode jsonNode : param.getObjectMetadataList()) {
             if (jsonNode.has("objects") && !jsonNode.get("objects").isArray()) {
-                throw new EliminationException(StatusCode.FATAL, "Could not retrieve object ids to delete");
+                throw new ProcessingStatusException(StatusCode.FATAL, "Could not retrieve object ids to delete");
             }
             ArrayNode objectDetails = (ArrayNode) jsonNode.get("objects");
             for (JsonNode objectDetail : objectDetails) {
