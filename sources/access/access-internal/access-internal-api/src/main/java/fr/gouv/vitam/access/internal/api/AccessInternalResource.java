@@ -37,6 +37,7 @@ import fr.gouv.vitam.metadata.api.exception.MetaDataExecutionException;
 
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.Response;
+import java.io.InputStream;
 
 /**
  * Access Resource REST API
@@ -195,4 +196,5 @@ public interface AccessInternalResource {
     Response getObjects(JsonNode dslQuery)
         throws MetaDataDocumentSizeException, MetaDataExecutionException, MetaDataClientServerException;
 
+    Response transferReply(InputStream transferReply);
 }

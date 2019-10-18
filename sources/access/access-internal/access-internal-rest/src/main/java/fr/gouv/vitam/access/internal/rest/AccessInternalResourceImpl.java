@@ -457,7 +457,7 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
     @Path("/transfers/reply")
     @Consumes(MediaType.APPLICATION_XML)
     @Produces(MediaType.APPLICATION_JSON)
-    public Response transferReply(String transferReply) {
+    public Response transferReply(InputStream transferReply) {
         try (ProcessingManagementClient processingClient = processingManagementClientFactory.getClient();
              LogbookOperationsClient logbookOperationsClient = logbookOperationsClientFactory.getClient();
              WorkspaceClient workspaceClient = workspaceClientFactory.getClient()) {
@@ -478,7 +478,7 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
             logbookOperationsClient.create(masterTransferReplyLfcEvent);
 
             workspaceClient.createContainer(operationId);
-            workspaceClient.putObject(operationId, "ATR-for-transfer-reply-in-workspace.xml", new ByteArrayInputStream(transferReply.getBytes()));
+            workspaceClient.putObject(operationId, "ATR-for-transfer-reply-in-workspace.xml", transferReply);
 
             processingClient.initVitamProcess(operationId, TRANSFER_REPLY.name());
             return processingClient.executeOperationProcess(operationId, TRANSFER_REPLY.name(), RESUME.getValue())

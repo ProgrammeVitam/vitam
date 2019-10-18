@@ -259,7 +259,7 @@ public class AccessExternalResource extends ApplicationStatusResource {
     @Consumes(MediaType.APPLICATION_XML)
     @Produces(MediaType.APPLICATION_JSON)
     @Secured(permission = "transfers:reply", description = "Start transfer reply workflow.")
-    public Response transferReply(String transferReply) {
+    public Response transferReply(InputStream transferReply) {
         try (AccessInternalClient client = accessInternalClientFactory.getClient()) {
             return client.startTransferReplyWorkflow(transferReply).toResponse();
         } catch (Exception e) {

@@ -26,6 +26,13 @@
  *******************************************************************************/
 package fr.gouv.vitam.access.internal.rest;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import fr.gouv.vitam.access.internal.api.AccessInternalResource;
+import fr.gouv.vitam.common.GlobalDataRest;
+import fr.gouv.vitam.common.model.dip.DipExportRequest;
+import fr.gouv.vitam.common.model.elimination.EliminationRequestBody;
+import fr.gouv.vitam.common.model.massupdate.MassUpdateUnitRuleRequest;
+
 import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;
 import javax.ws.rs.HeaderParam;
@@ -37,14 +44,7 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
-
-import com.fasterxml.jackson.databind.JsonNode;
-
-import fr.gouv.vitam.access.internal.api.AccessInternalResource;
-import fr.gouv.vitam.common.GlobalDataRest;
-import fr.gouv.vitam.common.model.dip.DipExportRequest;
-import fr.gouv.vitam.common.model.elimination.EliminationRequestBody;
-import fr.gouv.vitam.common.model.massupdate.MassUpdateUnitRuleRequest;
+import java.io.InputStream;
 
 /**
  * Using the Mock Class in order to simulate Access Client Resource if config file does not exist
@@ -236,4 +236,12 @@ public class AccessResourceMock implements AccessInternalResource {
         return Response.status(200).entity(queryDsqlForGot).build();
     }
 
+    @POST
+    @Path("/transfers/reply")
+    @Consumes(MediaType.APPLICATION_XML)
+    @Produces(MediaType.APPLICATION_JSON)
+    @Override
+    public Response transferReply(InputStream transferReply) {
+        return Response.status(200).entity(queryDsqlForGot).build();
+    }
 }

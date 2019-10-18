@@ -103,6 +103,7 @@ import org.junit.ClassRule;
 import org.junit.Test;
 
 import javax.ws.rs.core.Response;
+import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -364,7 +365,7 @@ public class TransferAndDipIT extends VitamRuleRunner {
         GUID transferReplyWorkflowGuid = GUIDFactory.newOperationLogbookGUID(tenantId);
         VitamThreadUtils.getVitamSession().setRequestId(transferReplyWorkflowGuid);
         try (AccessInternalClient client = AccessInternalClientFactory.getInstance().getClient()){
-            client.startTransferReplyWorkflow(atr);
+            client.startTransferReplyWorkflow(new ByteArrayInputStream(atr.getBytes()));
             awaitForWorkflowTerminationWithStatus(transferReplyWorkflowGuid, StatusCode.OK);
         }
         return transferReplyWorkflowGuid;
