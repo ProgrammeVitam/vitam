@@ -16,6 +16,7 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 import java.io.ByteArrayInputStream;
+import java.io.InputStream;
 
 /**
  * Mock client implementation for Access External
@@ -171,6 +172,11 @@ class AccessExternalClientMock extends AbstractMockClient implements AccessExter
     @Override
     public RequestResponse<JsonNode> startEliminationAction(VitamContext vitamContext,
         EliminationRequestBody eliminationRequestBody) throws VitamClientException {
+        throw new UnsupportedOperationException("Will not be implemented");
+    }
+
+    @Override
+    public RequestResponse<JsonNode> transferReply(VitamContext vitamContext, InputStream transferReply) {
         throw new UnsupportedOperationException("Will not be implemented");
     }
 }

@@ -60,6 +60,8 @@ import javax.ws.rs.core.MultivaluedMap;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
+import java.io.InputStream;
+
 import static fr.gouv.vitam.common.GlobalDataRest.X_ACCESS_CONTRAT_ID;
 import static javax.ws.rs.core.MediaType.APPLICATION_JSON_TYPE;
 import static javax.ws.rs.core.MediaType.APPLICATION_OCTET_STREAM_TYPE;
@@ -819,7 +821,7 @@ class AccessInternalClientRest extends DefaultClient implements AccessInternalCl
     }
 
     @Override
-    public RequestResponse startTransferReplyWorkflow(String transferReply) throws AccessInternalClientServerException {
+    public RequestResponse<JsonNode> startTransferReplyWorkflow(InputStream transferReply) throws AccessInternalClientServerException {
         VitamSession vitamSession = VitamThreadUtils.getVitamSession();
         vitamSession.checkValidRequestId();
         MultivaluedMap<String, Object> headers = new MultivaluedHashMap<>();

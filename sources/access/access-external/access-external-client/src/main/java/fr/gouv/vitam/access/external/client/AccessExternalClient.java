@@ -36,7 +36,6 @@ import fr.gouv.vitam.common.exception.VitamClientException;
 import fr.gouv.vitam.common.external.client.BasicClient;
 import fr.gouv.vitam.common.model.PreservationRequest;
 import fr.gouv.vitam.common.model.RequestResponse;
-import fr.gouv.vitam.common.model.dip.DipRequest;
 import fr.gouv.vitam.common.model.dip.TransferRequest;
 import fr.gouv.vitam.common.model.elimination.EliminationRequestBody;
 import fr.gouv.vitam.common.model.logbook.LogbookLifecycle;
@@ -44,6 +43,7 @@ import fr.gouv.vitam.common.model.logbook.LogbookOperation;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientException;
 
 import javax.ws.rs.core.Response;
+import java.io.InputStream;
 
 /**
  * Access External Client Interface
@@ -316,4 +316,6 @@ public interface AccessExternalClient extends BasicClient {
 
     RequestResponse<JsonNode> launchPreservation(VitamContext vitamContext, PreservationRequest preservationRequest)
         throws VitamClientException;
+
+    RequestResponse<JsonNode> transferReply(VitamContext vitamContext, InputStream transferReply) throws VitamClientException;
 }

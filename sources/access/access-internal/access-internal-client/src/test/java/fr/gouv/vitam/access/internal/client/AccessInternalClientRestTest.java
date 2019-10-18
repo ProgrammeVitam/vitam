@@ -309,6 +309,15 @@ public class AccessInternalClientRestTest extends ResteasyTestApplication {
 
         @Override
         @POST
+        @Path("/transfers/reply")
+        @Consumes(MediaType.APPLICATION_XML)
+        @Produces(MediaType.APPLICATION_JSON)
+        public Response transferReply(InputStream transferReply) {
+            return expectedResponse.post();
+        }
+
+        @Override
+        @POST
         @Path("/elimination/analysis")
         @Consumes(MediaType.APPLICATION_JSON)
         @Produces(MediaType.APPLICATION_JSON)

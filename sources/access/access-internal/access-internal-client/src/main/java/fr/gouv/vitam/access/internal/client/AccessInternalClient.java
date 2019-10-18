@@ -44,6 +44,7 @@ import fr.gouv.vitam.logbook.common.exception.LogbookClientException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientServerException;
 
 import javax.ws.rs.core.Response;
+import java.io.InputStream;
 
 /**
  * Access client interface
@@ -355,5 +356,5 @@ public interface AccessInternalClient extends MockOrRestClient {
      */
     RequestResponse<JsonNode> deleteComputeInheritedRules(JsonNode dslQuery) throws AccessInternalClientServerException;
 
-    RequestResponse startTransferReplyWorkflow(String transferReply) throws AccessInternalClientServerException;
+    RequestResponse<JsonNode> startTransferReplyWorkflow(InputStream transferReply) throws AccessInternalClientServerException;
 }

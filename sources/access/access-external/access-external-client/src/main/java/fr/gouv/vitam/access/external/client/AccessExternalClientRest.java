@@ -22,6 +22,7 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.MultivaluedHashMap;
 import javax.ws.rs.core.MultivaluedMap;
 import javax.ws.rs.core.Response;
+import java.io.InputStream;
 
 /**
  * Rest client implementation for Access External
@@ -561,6 +562,23 @@ class AccessExternalClientRest extends DefaultClient implements AccessExternalCl
             response = performRequest(HttpMethod.DELETE, UNITS + AccessExtAPI.COMPUTEDINHERITEDRULES,
                 vitamContext.getHeaders(), deleteComputedInheritedRulesQuery,
                 MediaType.APPLICATION_JSON_TYPE, MediaType.APPLICATION_JSON_TYPE, false);
+            return RequestResponse.parseFromResponse(response, JsonNode.class);
+        } catch (IllegalStateException e) {
+            LOGGER.error(COULD_NOT_PARSE_SERVER_RESPONSE, e);
+            throw createExceptionFromResponse(response);
+        } catch (VitamClientInternalException e) {
+            LOGGER.error(VITAM_CLIENT_INTERNAL_EXCEPTION, e);
+            throw new VitamClientException(e);
+        } finally {
+            consumeAnyEntityAndClose(response);
+        }
+    }
+
+    @Override
+    public RequestResponse transferReply(VitamContext vitamContext, InputStream transferReply) throws VitamClientException {
+        Response response = null;
+        try {
+            response = performRequest(HttpMethod.POST, "/transfers/reply", vitamContext.getHeaders(), transferReply, MediaType.APPLICATION_XML_TYPE, MediaType.APPLICATION_JSON_TYPE, false);
             return RequestResponse.parseFromResponse(response, JsonNode.class);
         } catch (IllegalStateException e) {
             LOGGER.error(COULD_NOT_PARSE_SERVER_RESPONSE, e);

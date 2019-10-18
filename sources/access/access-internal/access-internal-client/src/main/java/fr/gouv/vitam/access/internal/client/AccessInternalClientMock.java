@@ -255,7 +255,7 @@ class AccessInternalClientMock extends AbstractMockClient implements AccessInter
     }
 
     @Override
-    public RequestResponse startTransferReplyWorkflow(String transferReply) {
+    public RequestResponse<JsonNode> startTransferReplyWorkflow(InputStream transferReply) {
         throw new IllegalStateException("Stop using mocks in production");
     }
 }
