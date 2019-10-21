@@ -74,7 +74,7 @@ export class AccessionRegisterComponent extends PageComponent {
 
   pageOnInit() {
     this.activatedRoute.params.subscribe(params => {
-      this.id = params['id'];
+      this.id = decodeURIComponent(params['id']);
       this.getSymbolic();
       this.updateBreadcrumb(params['type']);
       this.paginate({first: 0, rows: this.nbRows})
