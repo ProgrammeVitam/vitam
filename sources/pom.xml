@@ -139,7 +139,7 @@
         <diffutils.version>1.3.0</diffutils.version>
         <jaxb2.version>1.0.2</jaxb2.version>
         <httpclient.version>4.5.7</httpclient.version>
-        <netty.version>4.1.31.Final</netty.version>
+        <netty.version>4.1.42.Final</netty.version>
         <commons-compress.version>1.18</commons-compress.version>
         <easystream.version>1.2.15</easystream.version>
         <zjsonpatch.version>0.4.7</zjsonpatch.version>
