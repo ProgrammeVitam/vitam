@@ -76,9 +76,9 @@ export class AgenciesComponent extends PageComponent {
 
   goToSummaryRegisterPage() {
     if (this.router.url.indexOf('/agencies/accessionRegister/') > -1) {
-      this.router.navigate(['admin/accessionRegister/accessionRegister/' + this.id]);
+      this.router.navigate(['admin/accessionRegister/accessionRegister/' + encodeURIComponent(this.id)]);
     } else {
-      this.router.navigate(['admin/accessionRegister/all/' + this.id]);
+      this.router.navigate(['admin/accessionRegister/all/' + encodeURIComponent(this.id)]);
     }
   }
 }
