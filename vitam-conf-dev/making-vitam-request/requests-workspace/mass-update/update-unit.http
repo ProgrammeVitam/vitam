@@ -1,0 +1,84 @@
+# Configuration
+@access-contract = ContratTNR
+@tenant = 0
+@unit-id
+
+### Mise à jours des unité archivistique dont la Description contient 'Cette unité de description doit hériter' et remplacement par 'Cette unité de description hérite'
+POST {{url}}/access-external/v1/units
+Accept: application/json
+Content-Type: application/json
+X-Access-Contract-Id: {{access-contract}}
+X-Tenant-Id: {{tenant}}
+
+{
+  "$roots": [],
+  "$query": [
+    {
+      "$match_phrase": {
+        "Description": "Cette unité de description doit hériter"
+      }
+    }
+  ],
+  "$action": [
+    {
+      "$setregex": {
+        "$target": "Description",
+        "$controlPattern": "Cette unité de description doit hériter",
+        "$updatePattern": "Cette unité de description hérite"
+      }
+    }
+  ],
+  "$threshold": 5
+}
+
+### Ajout de la métadonnée MyText sur l'unité archivistique dont l'identifiant est 'aeaqaaaaaahnh5o2aanzsaln2sr6tnaaaaba'
+POST {{url}}/access-external/v1/units
+Accept: application/json
+Content-Type: application/json
+X-Access-Contract-Id: {{access-contract}}
+X-Tenant-Id: {{tenant}}
+
+{
+  "$roots": [],
+  "$query": [
+    {
+      "$eq": {
+        "#id" : "aeaqaaaaaahnh5o2aanzsaln2sr6tnaaaaba"
+      }
+    }
+  ],
+  "$action": [
+    {
+      "$set": {
+        "MyText": "TNR - Régie autonome des transports parisiens"
+      }
+    }
+  ],
+  "$threshold": 10000
+}
+
+### Suppression de la métadonnée 'Description' sur l'unité archivistique dont l'identifiant est 'aeaqaaaaaahnh5o2aanzsaln2sr6tnaaaaba'
+POST {{url}}/access-external/v1/units
+Accept: application/json
+Content-Type: application/json
+X-Access-Contract-Id: {{access-contract}}
+X-Tenant-Id: {{tenant}}
+
+{
+  "$roots": [],
+  "$query": [
+    {
+      "$eq": {
+        "#id": "aeaqaaaaaahnh5o2aanzsaln2sr6tnaaaaba"
+      }
+    }
+  ],
+  "$action": [
+    {
+      "$unset": [
+        "Description"
+      ]
+    }
+  ],
+  "$threshold": 10000
+}

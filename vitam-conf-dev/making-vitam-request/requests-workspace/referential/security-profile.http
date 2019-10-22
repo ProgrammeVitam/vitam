@@ -1,0 +1,41 @@
+# Configuration
+@tenant = 0
+
+### Récupération du profile de sécurité dont le nom est 'admin-security-profile'
+GET {{url}}/admin-external/v1/securityprofiles/
+Accept: application/json
+Content-Type: application/json
+X-Tenant-Id: {{tenant}}
+
+{
+  "$query": {
+      "$eq": {
+        "Name": "admin-security-profile"
+      }
+    },
+  "$filter": {
+    "$offset": 0,
+    "$limit": 100
+  },
+  "$projection": {}
+}
+
+### Création d'un profil de sécurité avec le nom 'demo-security-profile007'
+POST {{url}}/admin-external/v1/securityprofiles/
+Accept: application/json
+Content-Type: application/json
+X-Tenant-Id: {{tenant}}
+
+[
+  {
+    "Identifier": "demo-security-profile007",
+    "Name": "demo-security-profile007",
+    "FullAccess": false,
+    "Permissions": [
+        "securityprofiles:create",
+        "securityprofiles:read",
+        "securityprofiles:id:read",
+        "securityprofiles:id:update"
+    ]
+  }
+]

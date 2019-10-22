@@ -1,0 +1,76 @@
+# Configuration
+@access-contract = ContratTNR
+@tenant = 0
+@operation-id = aeaqaaaaaahnh5a2aanzsaln2sr6tnaaaaba
+
+### Lancement du workflow de transfert sur l'unité archivistique dont l'identifiant est 'aeaqaaaaaahnh5o2aanzsaln2sr6tnaaaaba'
+POST {{url}}/access-external/v1/transfers
+Accept: application/json
+Content-Type: application/json
+X-Tenant-Id: {{tenant}}
+X-Access-Contract-Id: {{access-contract}}
+
+{
+  "transferRequestParameters": {
+    "archivalAgreement": "ArchivalAgreement0",
+    "originatingAgencyIdentifier": "FRAN_NP_009913",
+    "comment": "intituté",
+    "submissionAgencyIdentifier": "Identifier3",
+    "relatedTransferReference": [
+      "reference1",
+      "reference2"
+    ],
+    "archivalAgencyIdentifier": "Identifier4",
+    "transferringAgency": "Identifier5"
+  },
+  "transferWithLogBookLFC": true,
+  "dslRequest": {
+    "$query": [
+      {
+        "$eq": {
+          "#id": "aeaqaaaaaahnh5o2aanzsaln2sr6tnaaaaba"
+        }
+      }
+    ],
+    "$projection": {}
+  }
+}
+
+### Vérification de la complétude de l'opération de transfert en cours grâce au 'X-Request-Id' de la réponse du transfert
+GET {{url}}/admin-external/v1/operations/{{operation-id}}
+Accept: application/json
+X-Tenant-Id: {{tenant}}
+X-Access-Contract-Id: {{access-contract}}
+
+### Récupération du résultat de l'opération de transfert précédente grâce au 'X-Request-Id' de la réponse du transfert
+POST {{url}}/access-external/v1/logbookoperations
+Accept: application/json
+Content-Type: application/json
+X-Access-Contract-Id: {{access-contract}}
+X-Tenant-Id: {{tenant}}
+
+{
+  "$query": {
+    "$eq": {
+      "#id": "{{operation-id}}"
+    }
+  },
+  "$filter": {
+    "$offset": 0,
+    "$limit": 100
+  },
+  "$projection": {}
+}
+
+### Récupération du rapport de transfert
+GET {{url}}/admin-external/v1/rulesreport/{{operation-id}}
+X-Access-Contract-Id: {{access-contract}}
+X-Tenant-Id: {{tenant}}
+Accept: application/octet-stream
+
+### Récupération du SIP de transfert
+GET {{url}}/access-external/v1/transfers/{{operation-id}}/sip
+X-Access-Contract-Id: {{access-contract}}
+X-Tenant-Id: {{tenant}}
+Accept: application/octet-stream
+Content-Disposition: filename=TRANSFER-{{operation-id}}.zip

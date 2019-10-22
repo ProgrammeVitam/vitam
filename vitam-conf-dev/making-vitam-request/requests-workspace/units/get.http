@@ -1,0 +1,45 @@
+# Configuration
+@access-contract = ContratTNR
+@tenant = 0
+@unit-id = aeaqaaaaaahnh5o2aanzsaln2sr6tnaaaaba
+
+### Récupération d'une partie (l'id) d'une unité archivistique dont l'identifiant est 'aeaqaaaaaahnh5o2aanzsaln2sr6tnaaaaba'
+GET {{url}}/access-external/v1/units/{{unit-id}}
+Accept: application/json
+Content-Type: application/json
+X-Access-Contract-Id: {{access-contract}}
+X-Tenant-Id: {{tenant}}
+
+{
+  "$projection": {
+    "$fields": {
+      "#id": 1
+    }
+  }
+}
+
+### Récupération d'une partie (le storage) d'une unité archivistique dont l'identifiant est 'aeaqaaaaaahnh5o2aanzsaln2sr6tnaaaaba'
+GET {{url}}/access-external/v1/units/{{unit-id}}
+Accept: application/json
+Content-Type: application/json
+X-Access-Contract-Id: {{access-contract}}
+X-Tenant-Id: {{tenant}}
+
+{
+  "$projection": {
+    "$fields": {
+      "#storage": 1
+    }
+  }
+}
+
+### Récupération de l'une unité archivistique dont l'identifiant est 'aeaqaaaaaahnh5o2aanzsaln2sr6tnaaaaba'
+GET {{url}}/access-external/v1/units/{{unit-id}}
+Accept: application/json
+Content-Type: application/json
+X-Access-Contract-Id: {{access-contract}}
+X-Tenant-Id: {{tenant}}
+
+{
+  "$projection": {}
+}

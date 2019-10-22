@@ -1,0 +1,23 @@
+# Configuration
+@access-contract = ContratTNR
+@tenant = 0
+
+### Import des fichier de format pronom Droid
+POST {{url}}/admin-external/v1/formats
+Accept: application/json
+Content-Type: application/octet-stream
+X-Tenant-Id: {{tenant}}
+X-Access-Contract-Id: {{access-contract}}
+X-Filename: droid-pronom-example.xml
+
+< ../examples/droid-pronom-example.xml
+
+### Vérification des fichier de format pronom Droid
+POST {{url}}/admin-external/v1/formatsfilecheck
+Accept: application/octet-stream
+Content-Type: application/octet-stream
+X-Tenant-Id: {{tenant}}
+X-Access-Contract-Id: {{access-contract}}
+X-Filename: droid-pronom-example.xml
+
+< ../examples/droid-pronom-example.xml
