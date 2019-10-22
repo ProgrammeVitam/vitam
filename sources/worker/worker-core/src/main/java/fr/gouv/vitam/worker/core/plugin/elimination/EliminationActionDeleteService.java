@@ -31,15 +31,10 @@ import fr.gouv.vitam.common.database.builder.query.VitamFieldsHelper;
 import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
 import fr.gouv.vitam.common.database.builder.request.multiple.UpdateMultiQuery;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
-import fr.gouv.vitam.common.exception.VitamException;
-import fr.gouv.vitam.common.guid.GUIDReader;
-import fr.gouv.vitam.common.model.LifeCycleStatusCode;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientBadRequestException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientServerException;
-import fr.gouv.vitam.logbook.common.parameters.LogbookLifeCycleObjectGroupParameters;
-import fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess;
 import fr.gouv.vitam.logbook.lifecycles.client.LogbookLifeCyclesClient;
 import fr.gouv.vitam.logbook.lifecycles.client.LogbookLifeCyclesClientFactory;
 import fr.gouv.vitam.metadata.api.exception.MetaDataClientServerException;
@@ -50,8 +45,7 @@ import fr.gouv.vitam.storage.engine.client.StorageClient;
 import fr.gouv.vitam.storage.engine.client.StorageClientFactory;
 import fr.gouv.vitam.storage.engine.client.exception.StorageServerClientException;
 import fr.gouv.vitam.storage.engine.common.model.DataCategory;
-import fr.gouv.vitam.worker.core.plugin.elimination.exception.EliminationException;
-import fr.gouv.vitam.worker.core.plugin.elimination.model.EliminationActionObjectGroupEventDetails;
+import fr.gouv.vitam.worker.core.exception.ProcessingStatusException;
 import joptsimple.internal.Strings;
 
 import java.util.Collection;
@@ -60,7 +54,6 @@ import java.util.Set;
 
 import static fr.gouv.vitam.common.database.builder.query.action.UpdateActionHelper.add;
 import static fr.gouv.vitam.common.database.builder.query.action.UpdateActionHelper.pull;
-import static fr.gouv.vitam.worker.core.utils.PluginHelper.createObjectGroupLfcParameters;
 
 /**
  * EliminationActionDeleteService class
@@ -136,16 +129,9 @@ public class EliminationActionDeleteService {
     }
 
     public void detachObjectGroupFromDeleteParentUnits(String processId, String objectGroupId,
-        Set<String> parentUnitsToRemove, String action)
-        throws EliminationException {
+        Set<String> parentUnitsToRemove)
+        throws ProcessingStatusException {
 
-        removeObjectGroupParentUnits(objectGroupId, parentUnitsToRemove);
-
-        updateObjectGroupLifecycle(processId, objectGroupId, parentUnitsToRemove, action);
-    }
-
-    private void removeObjectGroupParentUnits(String objectGroupId, Set<String> parentUnitsToRemove)
-        throws EliminationException {
         try (MetaDataClient metaDataClient = metaDataClientFactory.getClient()) {
 
             UpdateMultiQuery updateMultiQuery = new UpdateMultiQuery();
@@ -157,26 +143,7 @@ public class EliminationActionDeleteService {
             metaDataClient.updateObjectGroupById(updateMultiQuery.getFinalUpdate(), objectGroupId);
 
         } catch (MetaDataClientServerException | MetaDataExecutionException | InvalidParseOperationException | InvalidCreateOperationException e) {
-            throw new EliminationException(StatusCode.FATAL, "An error occurred during object group detachment", e);
-        }
-    }
-
-    private void updateObjectGroupLifecycle(String processId, String objectGroupId, Set<String> parentUnitsToRemove,
-        String action) throws EliminationException {
-        try (LogbookLifeCyclesClient logbookLifeCyclesClient = logbookLifeCyclesClientFactory.getClient()) {
-
-            EliminationActionObjectGroupEventDetails eventDetails = new EliminationActionObjectGroupEventDetails()
-                .setRemovedParents(parentUnitsToRemove);
-            LogbookLifeCycleObjectGroupParameters logbookLCParam = createObjectGroupLfcParameters(
-                GUIDReader.getGUID(processId), StatusCode.OK,
-                GUIDReader.getGUID(objectGroupId), action, eventDetails,
-                LogbookTypeProcess.ELIMINATION);
-
-            logbookLifeCyclesClient.update(logbookLCParam, LifeCycleStatusCode.LIFE_CYCLE_COMMITTED);
-
-        } catch (VitamException e) {
-            throw new EliminationException(StatusCode.FATAL,
-                "An error occurred during lifecycle update for object group " + objectGroupId, e);
+            throw new ProcessingStatusException(StatusCode.FATAL, "An error occurred during object group detachment", e);
         }
     }
 }

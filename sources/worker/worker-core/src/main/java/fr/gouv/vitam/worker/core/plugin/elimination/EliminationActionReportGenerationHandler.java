@@ -29,6 +29,14 @@ package fr.gouv.vitam.worker.core.plugin.elimination;
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.google.common.annotations.VisibleForTesting;
 import fr.gouv.vitam.common.collection.CloseableIterator;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.google.common.annotations.VisibleForTesting;
+import fr.gouv.vitam.batch.report.model.OperationSummary;
+import fr.gouv.vitam.batch.report.model.Report;
+import fr.gouv.vitam.batch.report.model.ReportResults;
+import fr.gouv.vitam.batch.report.model.ReportSummary;
+import fr.gouv.vitam.batch.report.model.ReportType;
+import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
@@ -40,8 +48,8 @@ import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 import fr.gouv.vitam.storage.engine.common.model.DataCategory;
 import fr.gouv.vitam.worker.common.HandlerIO;
+import fr.gouv.vitam.worker.core.exception.ProcessingStatusException;
 import fr.gouv.vitam.worker.core.handler.ActionHandler;
-import fr.gouv.vitam.worker.core.plugin.elimination.exception.EliminationException;
 import fr.gouv.vitam.worker.core.plugin.elimination.report.EliminationActionObjectGroupReportExportEntry;
 import fr.gouv.vitam.worker.core.plugin.elimination.report.EliminationActionReportService;
 import fr.gouv.vitam.worker.core.plugin.elimination.report.EliminationActionUnitReportEntry;
@@ -53,6 +61,7 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.time.LocalDateTime;
 
 import static fr.gouv.vitam.worker.core.utils.PluginHelper.buildItemStatus;
 
@@ -104,15 +113,14 @@ public class EliminationActionReportGenerationHandler extends ActionHandler {
 
             LOGGER.info("Elimination action finalization succeeded");
             return buildItemStatus(ELIMINATION_ACTION_REPORT_GENERATION, StatusCode.OK, null);
-
-        } catch (EliminationException e) {
+        } catch (ProcessingStatusException e) {
             LOGGER.error(
                 String.format("Elimination action finalization failed with status [%s]", e.getStatusCode()), e);
             return buildItemStatus(ELIMINATION_ACTION_REPORT_GENERATION, e.getStatusCode(), e.getEventDetails());
         }
     }
 
-    private File generateEliminationReport(WorkerParameters param, HandlerIO handler) throws EliminationException {
+    private File generateEliminationReport(WorkerParameters param, HandlerIO handler) throws ProcessingStatusException {
         File report = handler.getNewLocalFile(REPORT_JSON);
 
         try (OutputStream outputStream = new BufferedOutputStream(new FileOutputStream(report));
@@ -151,18 +159,18 @@ public class EliminationActionReportGenerationHandler extends ActionHandler {
             jsonGenerator.writeEndObject();
 
         } catch (IOException e) {
-            throw new EliminationException(StatusCode.FATAL, "Could not export elimination report", e);
+            throw new ProcessingStatusException(StatusCode.FATAL, "Could not export elimination report", e);
         }
         return report;
     }
 
-    private void storeEliminationReport(HandlerIO handler, File report) throws EliminationException {
+    private void storeEliminationReport(HandlerIO handler, File report) throws ProcessingStatusException {
         try {
             backupService.backup(new FileInputStream(report), DataCategory.REPORT,
                 handler.getContainerName() + ".json");
 
         } catch (IOException | BackupServiceException e) {
-            throw new EliminationException(StatusCode.FATAL, "Could not store elimination report", e);
+            throw new ProcessingStatusException(StatusCode.FATAL, "Could not store elimination report", e);
         }
     }
 
