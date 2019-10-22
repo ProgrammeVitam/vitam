@@ -1,0 +1,32 @@
+# Configuration
+@access-contract = ContratTNR
+@tenant = 0
+@index-name = unit_0_20180809_163925
+
+### Lancement de la réindexation de la collection 'Unit' sur le tenant '0'
+POST {{url}}/adminmanagement/v1/reindex/
+Accept: application/json
+Content-Type: application/json
+X-Access-Contract-Id: {{access-contract}}
+X-Tenant-Id: {{tenant}}
+
+[
+  {
+    "collection": "Unit",
+    "tenants": [0]
+  }
+]
+
+### Changement d'index elasticsearch grâce au résultat de la requête précédente
+POST {{url}}/adminmanagement/v1/alias/
+Accept: application/json
+Content-Type: application/json
+X-Access-Contract-Id: {{access-contract}}
+X-Tenant-Id: {{tenant}}
+
+[
+  {
+    "alias": "Unit",
+    "indexName": "{{indexName}}"
+  }
+]

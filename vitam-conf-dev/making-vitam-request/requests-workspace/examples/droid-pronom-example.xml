@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<FFSignatureFile DateCreated="2019-05-09T10:17:52" Version="95" xmlns="http://www.nationalarchives.gov.uk/pronom/SignatureFile">
+    <InternalSignatureCollection>
+        <InternalSignature ID="9" Specificity="Specific">
+            <ByteSequence Reference="BOFoffset">
+                <SubSequence MinFragLength="0" Position="1"
+                             SubSeqMaxOffset="0" SubSeqMinOffset="0">
+                    <Sequence>49492A00</Sequence>
+                    <DefaultShift>5</DefaultShift>
+                    <Shift Byte="00">1</Shift>
+                    <Shift Byte="2A">2</Shift>
+                    <Shift Byte="49">3</Shift>
+                </SubSequence>
+            </ByteSequence>
+        </InternalSignature>
+    </InternalSignatureCollection>
+    <FileFormatCollection>
+        <FileFormat ID="8" MIMEType="application/msword"
+                    Name="Microsoft Word for Macintosh Document" PUID="x-fmt/1" Version="3.0">
+            <InternalSignatureID>485</InternalSignatureID>
+            <Extension>mcw</Extension>
+        </FileFormat>
+    </FileFormatCollection>
+</FFSignatureFile>

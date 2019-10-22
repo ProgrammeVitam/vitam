@@ -1,0 +1,72 @@
+{
+  "rest-client.environmentVariables": {
+    "INT": {
+      "url": "https://int.env.programmevitam.fr/"
+    },
+    "R11x": {
+      "url": "https://intr11x.env.programmevitam.fr/"
+    },
+    "R9x": {
+      "url": "https://intr9x.env.programmevitam.fr/"
+    },
+    "iteraction rec": {
+      "url": "https://iteration.rec.env.programmevitam.fr/"
+    },
+    "R9 partenaire": {
+      "url": "https://r9.env.programmevitam.fr/"
+    },
+    "R11 partenaire": {
+      "url": "https://r11.env.programmevitam.fr/"
+    }
+  },
+  "rest-client.certificates": {
+    "127.0.0.1:8444": {
+      "pfx": "vitam/vitam-conf-dev/conf/ihm-demo/keystore_ihm-demo.p12",
+      "passphrase": "azerty4"
+    },
+    "127.0.0.1:8443": {
+      "pfx": "vitam/vitam-conf-dev/conf/ihm-demo/keystore_ihm-demo.p12",
+      "passphrase": "azerty4"
+    },
+    "127.0.0.1:8445": {
+      "pfx": "vitam/vitam-conf-dev/conf/ihm-demo/keystore_ihm-demo.p12",
+      "passphrase": "azerty4"
+    },
+    "iteration.rec.env.programmevitam.fr": {
+      "cert": "vitam-certif/vitam-vitam_2.crt",
+      "key": "vitam-certif/vitam-vitam_2.key"
+    },
+    "int.env.programmevitam.fr": {
+      "cert": "vitam-certif/vitam-vitam_2.crt",
+      "key": "vitam-certif/vitam-vitam_2.key"
+    },
+    "meu.env.programmevitam.fr": {
+      "cert": "vitam-certif/vitam-vitam_2.crt",
+      "key": "vitam-certif/vitam-vitam_2.key"
+    },
+    "bu.env.programmevitam.fr": {
+      "cert": "vitam-certif/vitam-vitam_2.crt",
+      "key": "vitam-certif/vitam-vitam_2.key"
+    },
+    "ga.env.programmevitam.fr": {
+      "cert": "vitam-certif/vitam-vitam_2.crt",
+      "key": "vitam-certif/vitam-vitam_2.key"
+    },
+    "intr9x.env.programmevitam.fr": {
+      "cert": "vitam-certif/vitam-vitam_2.crt",
+      "key": "vitam-certif/vitam-vitam_2.key"
+    },
+    "r9.env.programmevitam.fr": {
+      "cert": "vitam-certif/vitam-vitam_2.crt",
+      "key": "vitam-certif/vitam-vitam_2.key"
+    },
+    "intr11x.env.programmevitam.fr": {
+      "cert": "vitam-certif/vitam-vitam_2.crt",
+      "key": "vitam-certif/vitam-vitam_2.key"
+    },
+    "r11.env.programmevitam.fr": {
+      "cert": "vitam-certif/vitam-vitam_2.crt",
+      "key": "vitam-certif/vitam-vitam_2.key"
+    }
+  }
+}

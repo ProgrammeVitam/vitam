@@ -1,0 +1,296 @@
+# Configuration
+@access-contract = ContratTNR
+@tenant = 0
+@unit-id = aeaqaaaaaahnh5o2aal76aln3teqq4qaaaba
+
+### Supression d'une catégorie afin d'avoir une l'unité archivistique sans DisseminationRule
+POST {{url}}/access-external/v1/units/rules
+Accept: application/json
+Content-Type: application/json
+X-Access-Contract-Id: {{access-contract}}
+X-Tenant-Id: {{tenant}}
+
+{
+  "dslRequest": {
+    "$roots": [],
+    "$query": [
+      {
+        "$in": {
+          "#id": [
+            "{{unit-id}}"
+          ]
+        }
+      }
+    ],
+    "$threshold": 10000
+  },
+  "ruleActions": {
+    "add": [],
+    "update": [],
+    "delete": [
+      {
+        "DisseminationRule": null
+      }
+    ],
+    "addOrUpdateMetadata": {},
+    "deleteMetadata": {}
+  }
+}
+
+### Blocage total de l'héritage sur des AU qui n'ont aucun blocage d'héritage
+POST {{url}}/access-external/v1/units/rules
+Accept: application/json
+Content-Type: application/json
+X-Access-Contract-Id: {{access-contract}}
+X-Tenant-Id: {{tenant}}
+
+{
+  "dslRequest": {
+    "$roots": [],
+    "$query": [
+      {
+        "$in": {
+          "#id": [
+            "{{unit-id}}"
+          ]
+        }
+      }
+    ],
+    "$threshold": 10000
+  },
+  "ruleActions": {
+    "add": [
+      {
+        "DisseminationRule": {
+          "PreventInheritance": true
+        }
+      }
+    ],
+    "update": [],
+    "delete": [],
+    "addOrUpdateMetadata": {},
+    "deleteMetadata": {}
+  }
+}
+
+
+### Blocage partiel de l'héritage sur des AU qui n'ont aucun blocage d'héritage
+POST {{url}}/access-external/v1/units/rules
+Accept: application/json
+Content-Type: application/json
+X-Access-Contract-Id: {{access-contract}}
+X-Tenant-Id: {{tenant}}
+
+{
+  "dslRequest": {
+    "$roots": [],
+    "$query": [
+      {
+        "$in": {
+          "#id": [
+            "{{unit-id}}"
+          ]
+        }
+      }
+    ],
+    "$threshold": 10000
+  },
+  "ruleActions": {
+    "add": [
+      {
+        "DisseminationRule": {
+          "PreventInheritance": false,
+          "PreventRulesId": ["DIS-00001"]
+        }
+      }
+    ],
+    "update": [],
+    "delete": [],
+    "addOrUpdateMetadata": {},
+    "deleteMetadata": {}
+  }
+}
+
+### Suppression du blocage total d'héritage sur des AU qui bloquent tout l'héritage
+POST {{url}}/access-external/v1/units/rules
+Accept: application/json
+Content-Type: application/json
+X-Access-Contract-Id: {{access-contract}}
+X-Tenant-Id: {{tenant}}
+
+{
+  "dslRequest": {
+    "$roots": [],
+    "$query": [
+      {
+        "$in": {
+          "#id": [
+            "{{unit-id}}"
+          ]
+        }
+      }
+    ],
+    "$threshold": 10000
+  },
+  "ruleActions": {
+    "add": [],
+    "update": [],
+    "delete": [
+      {
+        "DisseminationRule": {
+            "PreventInheritance" : null
+        }
+      }
+    ],
+    "addOrUpdateMetadata": {},
+    "deleteMetadata": {}
+  }
+}
+
+### Variante pour mettre à jour `PreventInheritance` à false
+POST {{url}}/access-external/v1/units/rules
+Accept: application/json
+Content-Type: application/json
+X-Access-Contract-Id: {{access-contract}}
+X-Tenant-Id: {{tenant}}
+
+{
+  "dslRequest": {
+    "$roots": [],
+    "$query": [
+      {
+        "$in": {
+          "#id": [
+            "{{unit-id}}"
+          ]
+        }
+      }
+    ],
+    "$threshold": 10000
+  },
+  "ruleActions": {
+    "add": [],
+    "update": [
+    {
+        "DisseminationRule": {
+            "PreventInheritance" : false
+        }
+    }
+    ],
+    "delete": [],
+    "addOrUpdateMetadata": {},
+    "deleteMetadata": {}
+  }
+}
+
+### Suppression du blocage partiel d'héritage sur des AUI qui bloquent une partie de l'héritage
+POST {{url}}/access-external/v1/units/rules
+Accept: application/json
+Content-Type: application/json
+X-Access-Contract-Id: {{access-contract}}
+X-Tenant-Id: {{tenant}}
+
+{
+  "dslRequest": {
+    "$roots": [],
+    "$query": [
+      {
+        "$in": {
+          "#id": [
+            "{{unit-id}}"
+          ]
+        }
+      }
+    ],
+    "$threshold": 10000
+  },
+  "ruleActions": {
+    "add": [],
+    "update": [],
+    "delete": [
+      {
+        "DisseminationRule": {
+            "PreventRulesId" : null
+        }
+      }
+    ],
+    "addOrUpdateMetadata": {},
+    "deleteMetadata": {}
+  }
+}
+
+### Modification des conditions de blocage pour passer d'un blocage total à un blocage partiel
+POST {{url}}/access-external/v1/units/rules
+Accept: application/json
+Content-Type: application/json
+X-Access-Contract-Id: {{access-contract}}
+X-Tenant-Id: {{tenant}}
+
+{
+  "dslRequest": {
+    "$roots": [],
+    "$query": [
+      {
+        "$in": {
+          "#id": [
+            "{{unit-id}}"
+          ]
+        }
+      }
+    ],
+    "$threshold": 10000
+  },
+  "ruleActions": {
+    "add": [],
+    "update": [
+      {
+        "DisseminationRule": {
+          "PreventInheritance": false,
+          "PreventRulesId": [
+            "DIS-00001"
+          ]
+        }
+      }
+    ],
+    "delete": [],
+    "addOrUpdateMetadata": {},
+    "deleteMetadata": {}
+  }
+}
+
+### Modification des conditions de blocage pour passer d'un blocage partiel à un blocage total
+POST {{url}}/access-external/v1/units/rules
+Accept: application/json
+Content-Type: application/json
+X-Access-Contract-Id: {{access-contract}}
+X-Tenant-Id: {{tenant}}
+
+{
+  "dslRequest": {
+    "$roots": [],
+    "$query": [
+      {
+        "$in": {
+          "#id": [
+            "{{unit-id}}"
+          ]
+        }
+      }
+    ],
+    "$threshold": 10000
+  },
+  "ruleActions": {
+    "add": [],
+    "update": [
+      {
+        "DisseminationRule": {
+          "PreventInheritance": true,
+          "PreventRulesId": []
+        }
+      }
+    ],
+    "delete": [],
+    "addOrUpdateMetadata": {},
+    "deleteMetadata": {}
+  }
+}

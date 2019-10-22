@@ -1,0 +1,95 @@
+# Configuration
+@access-contract = ContratTNR
+@tenant = 0
+@unit-id = aeaqaaaaaahnh5o2aanzsaln2sr6tnaaaaba
+
+### Mise a jour du titre et de la description de l'unité archivistique 'aeaqaaaaaahnh5o2aanzsaln2sr6tnaaaaba'
+PUT {{url}}/access-external/v1/units//{{unit-id}}
+Accept: application/json
+Content-Type: application/json
+X-Access-Contract-Id: {{access-contract}}
+X-Tenant-Id: {{tenant}}
+
+{
+  "$action": [
+    {
+      "$set": {
+        "Title": "Image de lac du fond d'écran du premier ministre",
+        "Description": "Bah des images de fond d'écran quoi"
+      }
+    }
+  ]
+}
+
+### Ajout d'une date de fin et de début à l'unité archivistique 'aeaqaaaaaahnh5o2aanzsaln2sr6tnaaaaba'
+PUT {{url}}/access-external/v1/units//{{unit-id}}
+Accept: application/json
+Content-Type: application/json
+X-Access-Contract-Id: {{access-contract}}
+X-Tenant-Id: {{tenant}}
+
+{
+  "$action": [
+    {
+      "$set": {
+        "StartDate": "2019-10-18T22:00:00",
+        "EndDate": "2021-10-20T21:59:59.999"
+      }
+    }
+  ]
+}
+
+### Suppression d'une de début à l'unité archivistique 'aeaqaaaaaahnh5o2aanzsaln2sr6tnaaaaba'
+PUT {{url}}/access-external/v1/units//{{unit-id}}
+Accept: application/json
+Content-Type: application/json
+X-Access-Contract-Id: {{access-contract}}
+X-Tenant-Id: {{tenant}}
+
+{
+  "$action": [
+    {
+      "$unset": [
+        "StartDate"
+      ]
+    }
+  ]
+}
+
+### Ajout de la règle de dissémination 'DIS-00003' à l'unité archivistique 'aeaqaaaaaahnh5o2aanzsaln2sr6tnaaaaba'
+PUT {{url}}/access-external/v1/units//{{unit-id}}
+Accept: application/json
+Content-Type: application/json
+X-Access-Contract-Id: {{access-contract}}
+X-Tenant-Id: {{tenant}}
+
+{
+  "$action": [
+    {
+      "$set": {
+        "#management.DisseminationRule.Rules": [
+          {
+            "Rule": "DIS-00003"
+          }
+        ]
+      }
+    }
+  ]
+}
+
+### Ajout de l'AUP 'AUP_IDENTIFIER' à l'unité archivistique 'aeaqaaaaaahnh5o2aanzsaln2sr6tnaaaaba'
+PUT {{url}}/access-external/v1/units//{{unit-id}}
+Accept: application/json
+Content-Type: application/json
+X-Access-Contract-Id: {{access-contract}}
+X-Tenant-Id: {{tenant}}
+
+{
+  "$action": [
+    {
+      "$set": {
+        "ArchiveUnitProfile": "AUP_IDENTIFIER"
+      }
+    }
+  ]
+}

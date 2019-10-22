@@ -1,0 +1,62 @@
+# Configuration
+@access-contract = ContratTNR
+@tenant = 0
+
+### Reclassement de l'unitée archivistique dont l'identifiant est 'aeaqaaaaaafnrnfpabijualehok5n6yaaaaq' rattachement de l'unité archivistique 'aeaqaaaaaafnrnfpabijualehokvjliaaaaq' et détachement de l'unité archivistique 'aeaqaaaaaafnrnfpabijualehok5n5iaaabq'
+POST {{url}}/access-external/v1/reclassification/
+Accept: application/json
+Content-Type: application/json
+X-Access-Contract-Id: {{access-contract}}
+X-Tenant-Id: {{tenant}}
+
+[
+  {
+    "$roots": [],
+    "$query": [{ "$eq": { "#id": "aeaqaaaaaafnrnfpabijualehok5n6yaaaaq" } }],
+    "$action": [
+      {
+        "$add": {
+          "#unitups": [ "aeaqaaaaaafnrnfpabijualehokvjliaaaaq" ]
+        },
+        "$pull": {
+          "#unitups": [ "aeaqaaaaaafnrnfpabijualehok5n5iaaabq" ]
+        }
+      }
+    ]
+  }
+]
+
+#### Reclassement de l'unité archivistique dont le titre correspond à 'Mon Titre', rattachement de l'unité 'aeaqaaaaaafnrnfpabijualehokvjliaaaaq' et détachement de l'unité 'aeaqaaaaaafnrnfpabijualehok5n5iaaabq' et aussi reclassement de l'unitée archivistique dont l'identifiant est 'aeaqaaaaaafnrnfpabijualehok5n6yaaaaq' rattachement de l'unité archivistique 'aeaqaaaaaafnrnfpabijualehokvjliaaaaq'
+POST {{url}}/access-external/v1/reclassification/
+Accept: application/json
+Content-Type: application/json
+X-Access-Contract-Id: {{access-contract}}
+X-Tenant-Id: {{tenant}}
+
+[
+  {
+    "$roots": [],
+    "$query": [{ "$match": { "Title": "Mon Titre" } }],
+    "$action": [
+      {
+        "$pull": {
+          "#unitups": [ "aeaqaaaaaafnrnfpabijualehokvjliaaaaq" ]
+        },
+        "$add": {
+          "#unitups": [ "aeaqaaaaaafnrnfpabijualehok5n5iaaabq" ]
+        }
+      }
+    ]
+  },
+  {
+    "$roots": [],
+    "$query": [{ "$eq": { "#id": "aeaqaaaaaafnrnfpabijualehok5n6yaaaaq" } }],
+    "$action": [
+      {
+        "$add": {
+          "#unitups": [ "aeaqaaaaaafnrnfpabijualehokvjliaaaaq" ]
+        }
+      }
+    ]
+  }
+]
