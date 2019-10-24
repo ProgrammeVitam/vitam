@@ -101,7 +101,7 @@ vitam_strategy
 
 Fichier: ``deployment/environments/group_vars/all/offer_opts.yml``
 
-Cette variable référence la stratégie de stockage sur le site courant.
+Cette variable référence la stratégie de stockage de plateforme *default* sur le site courant.
 Si l'offre se situe sur un site distant, il est nécessaire de préciser le nom du site sur lequel elle se trouve comme dans l'exemple ci-dessous.
 Il est fortement conseillé de prendre comme offre référente une des offres locale au site.
 Les sites secondaires doivent uniquement écrire sur leur(s) offre(s) locale(s).
@@ -155,6 +155,152 @@ Exemple pour le site 3 (site secondaire):
           # status: INACTIVE (valeur par défaut: ACTIVE)
           # asyncRead: true # ONLY ENABLE WHEN tape-library
           # vitam_site_name: prod-dc2 # OPtional, needed only when call to distant site (indicate distant vitam_site_name)
+
+
+
+other_strategies
+----------------
+
+Fichier: ``deployment/environments/group_vars/all/offer_opts.yml``
+
+Cette variable référence les stratégies de stockage additionnelles sur le site courant. **Elles ne sont déclarées et utilisées que dans unle cas du multi-stratégies.**
+Si l'offre se situe sur un site distant, il est nécessaire de préciser le nom du site sur lequel elle se trouve comme dans l'exemple ci-dessous.
+Les sites secondaires doivent uniquement écrire sur leur(s) offre(s) locale(s).
+
+
+Les offres correspondant à l'exemple ``other_strategies`` sont les suivantes:
+
+.. code-block:: yaml
+
+    vitam_offers:
+        offer-fs-1:
+            provider: filesystem-hash
+        offer-fs-2:
+            provider: filesystem-hash
+        offer-fs-3:
+            provider: filesystem-hash
+        offer-s3-1:
+            provider: amazon-s3-v1
+        offer-s3-2:
+            provider: amazon-s3-v1
+        offer-s3-3:
+            provider: amazon-s3-v1
+
+Exemple pour le site 1 (site primaire):
+
+.. code-block:: yaml
+
+    other_strategoies:
+        metadata:
+            - name: offer-fs-1
+            referent: false
+            # status: INACTIVE (valeur par défaut: ACTIVE)
+            # id: idoffre # OPTIONAL, if used, MUST BE UNIQUE & same on each site
+            # asyncRead: true # ONLY ENABLE WHEN tape-library
+            # vitam_site_name: site1 # OPtional, needed only when call to distant site (indicate distant vitam_site_name)
+            referent: false
+            - name: offer-fs-2
+            vitam_site_name: site2
+            # status: INACTIVE (valeur par défaut: ACTIVE)
+            # id: idoffre # OPTIONAL, if used, MUST BE UNIQUE & same on each site
+            # asyncRead: true # ONLY ENABLE WHEN tape-library
+            - name: offer-fs-3
+            referent: false
+            vitam_site_name: site3
+            # status: INACTIVE (valeur par défaut: ACTIVE)
+            # id: idoffre # OPTIONAL, if used, MUST BE UNIQUE & same on each site
+            # asyncRead: true # ONLY ENABLE WHEN tape-library
+            - name: offer-s3-1
+            referent: false
+            # status: INACTIVE (valeur par défaut: ACTIVE)
+            # id: idoffre # OPTIONAL, if used, MUST BE UNIQUE & same on each site
+            # asyncRead: true # ONLY ENABLE WHEN tape-library
+            # vitam_site_name: site1 # OPtional, needed only when call to distant site (indicate distant vitam_site_name)
+            - name: offer-s3-2
+            referent: false
+            vitam_site_name: site2
+            # status: INACTIVE (valeur par défaut: ACTIVE)
+            # id: idoffre # OPTIONAL, if used, MUST BE UNIQUE & same on each site
+            # asyncRead: true # ONLY ENABLE WHEN tape-library
+            - name: offer-s3-3
+            referent: false
+            vitam_site_name: site3
+            # status: INACTIVE (valeur par défaut: ACTIVE)
+            # id: idoffre # OPTIONAL, if used, MUST BE UNIQUE & same on each site
+            # asyncRead: true # ONLY ENABLE WHEN tape-library
+        binary:
+            - name: offer-s3-1
+            referent: false
+            # status: INACTIVE (valeur par défaut: ACTIVE)
+            # id: idoffre # OPTIONAL, if used, MUST BE UNIQUE & same on each site
+            # asyncRead: true # ONLY ENABLE WHEN tape-library
+            # vitam_site_name: site1 # OPtional, needed only when call to distant site (indicate distant vitam_site_name)
+            - name: offer-s3-2
+            referent: false
+            vitam_site_name: site2
+            # status: INACTIVE (valeur par défaut: ACTIVE)
+            # id: idoffre # OPTIONAL, if used, MUST BE UNIQUE & same on each site
+            # asyncRead: true # ONLY ENABLE WHEN tape-library
+            - name: offer-s3-3
+            referent: false
+            vitam_site_name: site3
+            # status: INACTIVE (valeur par défaut: ACTIVE)
+            # id: idoffre # OPTIONAL, if used, MUST BE UNIQUE & same on each site
+            # asyncRead: true # ONLY ENABLE WHEN tape-library
+
+
+Exemple pour le site 2 (site secondaire):
+
+.. code-block:: yaml
+
+    other_strategies:
+        metadata:
+            - name: offer-fs-2
+            referent: false
+            # id: idoffre # OPTIONAL, if used, MUST BE UNIQUE & same on each site
+            # status: INACTIVE (valeur par défaut: ACTIVE)
+            # asyncRead: true # ONLY ENABLE WHEN tape-library
+            # vitam_site_name: site2 # OPtional, needed only when call to distant site (indicate distant vitam_site_name)
+            - name: offer-s3-2
+            referent: false
+            # status: INACTIVE (valeur par défaut: ACTIVE)
+            # id: idoffre # OPTIONAL, if used, MUST BE UNIQUE & same on each site
+            # asyncRead: true # ONLY ENABLE WHEN tape-library
+            # vitam_site_name: site2 # OPtional, needed only when call to distant site (indicate distant vitam_site_name)
+        binary:
+            - name: offer-s3-2
+            referent: false
+            # status: INACTIVE (valeur par défaut: ACTIVE)
+            # id: idoffre # OPTIONAL, if used, MUST BE UNIQUE & same on each site
+            # asyncRead: true # ONLY ENABLE WHEN tape-library
+            # vitam_site_name: site2 # OPtional, needed only when call to distant site (indicate distant vitam_site_name)
+
+Exemple pour le site 3 (site secondaire):
+
+.. code-block:: yaml
+
+    other_strategies:
+        metadata:
+            - name: offer-fs-3
+            referent: false
+            # id: idoffre # OPTIONAL, if used, MUST BE UNIQUE & same on each site
+            # status: INACTIVE (valeur par défaut: ACTIVE)
+            # asyncRead: true # ONLY ENABLE WHEN tape-library
+            # vitam_site_name: site3 # OPtional, needed only when call to distant site (indicate distant vitam_site_name)
+            - name: offer-s3-3
+            referent: false
+            # status: INACTIVE (valeur par défaut: ACTIVE)
+            # id: idoffre # OPTIONAL, if used, MUST BE UNIQUE & same on each site
+            # asyncRead: true # ONLY ENABLE WHEN tape-library
+            # vitam_site_name: site3 # OPtional, needed only when call to distant site (indicate distant vitam_site_name)
+        binary:
+            - name: offer-s3-3
+            referent: false
+            # status: INACTIVE (valeur par défaut: ACTIVE)
+            # id: idoffre # OPTIONAL, if used, MUST BE UNIQUE & same on each site
+            # asyncRead: true # ONLY ENABLE WHEN tape-library
+            # vitam_site_name: site3 # OPtional, needed only when call to distant site (indicate distant vitam_site_name)
+
 
 plateforme_secret
 -----------------

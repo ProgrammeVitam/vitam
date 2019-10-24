@@ -1,0 +1,10 @@
+"Type","Données prises en charge par le module","Default strategy","Additionnal strategy"
+"métier","Fichier de définition d'un référentiel","REF : X",
+"métier","Référentiels métier","REF : X",
+"métier","JOP (Journal des opérations)","REF : X",
+"métier","JOP sécurisé (Journal des opérations sécurisé)","REF : X",
+"métier","JCV Unit / ObjectGroup","REF : X","REF: X"
+"métier","JCV sécurisé","REF : X",
+"métier","ArchiveUnit (AU), ObjectGroup (GOT)","REF : X","REF: X"
+"métier","BinaryObject (BDO)","REF : X","X"
+"métier","Sécurisation du journal des écritures","REF : X",

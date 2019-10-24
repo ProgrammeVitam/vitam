@@ -73,7 +73,7 @@ Se référer aux commentaires dans le fichier pour le renseigner correctement.
 
 .. note:: Dans le cas d'un déploiement multi-sites, dans la section ``vitam_strategy``, la directive ``vitam_site_name`` définit pour l'offre associée le nom du datacenter Consul. Par défaut, si non définie, c'est la valeur de la variable ``vitam_site_name`` définie dans l'inventaire qui est prise en compte.
 
-.. warning:: La cohérence entre l'inventaire et la section ``vitam_strategy`` est critique pour le bon déploiement et fonctionnement de la solution logicielle VITAM. En particulier, la liste d'offres de ``vitam_strategy`` doit correspondre *exactement* aux noms d'offres déclarés dans l'inventaire (ou les inventaires de chaque datacenter, en cas de fonctionnement multi-site).
+.. warning:: La cohérence entre l'inventaire et la section ``vitam_strategy`` (et ``other_strategies`` si multi-stratégies) est critique pour le bon déploiement et fonctionnement de la solution logicielle VITAM. En particulier, la liste d'offres de ``vitam_strategy`` doit correspondre *exactement* aux noms d'offres déclarés dans l'inventaire (ou les inventaires de chaque datacenter, en cas de fonctionnement multi-site).
 
 .. warning:: Ne pas oublier, en cas de connexion à un keystone en https, de répercuter dans la :term:`PKI` la clé publique de la :term:`CA` du keystone.
 

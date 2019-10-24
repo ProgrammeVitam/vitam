@@ -21,7 +21,7 @@ vitam_strategy:
 #    vitam_site_name: distant-dc2
 #    id: idoffre # OPTIONAL, but IF ACTIVATED, MUST BE UNIQUE & SAME if on another site
 
-# !!! PREVIEW V3 !!! DO NOT DECLARE 'other_strategies' FOR NOW.
+# WARNING : multi-strategy is a BETA functionality
 # More strategies can be added but are optional
 # Strategy name must only use [a-z][a-z0-9-]* pattern
 # This list of offers is ordered. It can and has to be completed if more offers are necessary

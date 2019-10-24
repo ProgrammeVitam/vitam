@@ -92,4 +92,12 @@ Itération 16
 - Revue de l'architecture golbale du stockage. Mise en place du CAS MANAGER et du CAS CONTAINER.
 - Refactoring des éléments communs entre les offres et le workspace. Mise en place d'une implémentation workspace spécifique de stockage en mode filesystem
 
+R12
+---
 
+Travaux pour la gestion du multi-stratégie dans VITAM : modifications du module storage-engine
+
+- Refactoring pour ajouter le header *X-Strategy-Id* sur les point d'API ne les déclarant pas (débuté en R11)
+- Ajout de la configuration multi-stratégie et de sa gestion dans le module
+
+Hors du module storage-engine, possibilité d'utiliser d'autre stratégies que celle de plateforme VITAM d'identifiant *default*.
