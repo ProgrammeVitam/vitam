@@ -30,17 +30,28 @@ import fr.gouv.culture.archivesdefrance.seda.v2.ArchiveTransferReplyType;
 import fr.gouv.culture.archivesdefrance.seda.v2.IdentifierType;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.model.ItemStatus;
+import fr.gouv.vitam.common.model.processing.ProcessingUri;
 import fr.gouv.vitam.storage.engine.client.StorageClient;
 import fr.gouv.vitam.storage.engine.client.StorageClientFactory;
 import fr.gouv.vitam.storage.engine.client.exception.StorageNotFoundClientException;
 import fr.gouv.vitam.storage.engine.common.model.response.StoredInfoResult;
+import fr.gouv.vitam.worker.common.HandlerIO;
 import fr.gouv.vitam.worker.core.plugin.preservation.TestHandlerIO;
 import fr.gouv.vitam.worker.core.plugin.transfer.reply.model.TransferReplyContext;
 import org.junit.Before;
+import org.junit.ClassRule;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.TemporaryFolder;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.MockitoJUnit;
+import org.mockito.junit.MockitoRule;
 
 import java.io.File;
 import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
 
 import static fr.gouv.vitam.common.model.StatusCode.FATAL;
 import static fr.gouv.vitam.common.model.StatusCode.OK;
@@ -48,28 +59,54 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.atMostOnce;
-import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 
 public class SaveAtrPluginTest {
+
+    @Rule
+    public MockitoRule mockitoRule = MockitoJUnit.rule();
+
+    @ClassRule
+    public static TemporaryFolder tempFolder = new TemporaryFolder();
+
+    @Mock
+    private HandlerIO handler;
+    @Mock
     private StorageClient storageClient;
+    @Mock
+    private StorageClientFactory storageClientFactory;
+    @InjectMocks
     private SaveAtrPlugin saveAtrPlugin;
+
+    private Map<String, File> tempFiles = new HashMap<>();
 
     @Before
     public void setup() {
-        storageClient = mock(StorageClient.class);
-        StorageClientFactory storageClientFactory = mock(StorageClientFactory.class);
+
         when(storageClientFactory.getClient()).thenReturn(storageClient);
 
-        saveAtrPlugin = new SaveAtrPlugin(storageClientFactory);
+        doAnswer((args) -> {
+            String filename = args.getArgument(0);
+            File file = tempFolder.newFile(filename);
+            tempFiles.put(filename, file);
+            return file;
+        }).when(handler).getNewLocalFile((anyString()));
     }
 
     @Test
-    public void should_save_atr_successfully() throws Exception {
+    public void should_save_atr_and_context_successfully() throws Exception {
         // Given
-        TestHandlerIO handler = new TestHandlerIO();
-        handler.addOutputResult(0, createATR());
+        doReturn(createATR()).when(handler).getInput(0);
+        doReturn(new ProcessingUri().setPath("file_to_save")).when(handler).getOutput(0);
+        doReturn("container").when(handler).getContainerName();
+
+        final TransferReplyContext expected =
+            new TransferReplyContext("ATR_MESSAGE_REQUEST_IDENTIFIER", "ATR_MESSAGE_IDENTIFIER");
+
         StoredInfoResult storedInfo = new StoredInfoResult();
         storedInfo.setOfferIds(Collections.emptyList());
 
@@ -80,58 +117,32 @@ public class SaveAtrPluginTest {
 
         // Then
         assertThat(execute.getGlobalStatus()).isEqualTo(OK);
+
+        // Saved ATR
+        verify(storageClient).storeFileFromWorkspace(anyString(), any(), anyString(), any());
+
+        // Check context
+        verify(handler).getNewLocalFile("file_to_save");
+        verify(handler).addOutputResult(0, tempFiles.values().iterator().next(), true, false);
+        assertThat(JsonHandler.getFromFile(tempFiles.values().iterator().next(),
+            TransferReplyContext.class)).isEqualTo(expected);
     }
 
     @Test
     public void should_end_FATAL_in_case_of_storage_error() throws Exception {
         // Given
-        TestHandlerIO handler = new TestHandlerIO();
-        handler.addOutputResult(0, createATR());
-        StoredInfoResult storedInfo = new StoredInfoResult();
-        storedInfo.setOfferIds(Collections.emptyList());
+        doReturn(createATR()).when(handler).getInput(0);
+        doReturn(new ProcessingUri().setPath("file_to_save")).when(handler).getOutput(0);
+        doReturn("container").when(handler).getContainerName();
 
-        when(storageClient.storeFileFromWorkspace(anyString(), any(), anyString(), any())).thenThrow(new StorageNotFoundClientException("ERROR"));
+        when(storageClient.storeFileFromWorkspace(anyString(), any(), anyString(), any()))
+            .thenThrow(new StorageNotFoundClientException("ERROR"));
 
         // When
         ItemStatus execute = saveAtrPlugin.execute(null, handler);
 
         // Then
         assertThat(execute.getGlobalStatus()).isEqualTo(FATAL);
-    }
-
-    @Test
-    public void should_store_ATR() throws Exception {
-        // Given
-        TestHandlerIO handler = new TestHandlerIO();
-        handler.addOutputResult(0, createATR());
-        StoredInfoResult storedInfo = new StoredInfoResult();
-        storedInfo.setOfferIds(Collections.emptyList());
-
-        when(storageClient.storeFileFromWorkspace(anyString(), any(), anyString(), any())).thenReturn(storedInfo);
-
-        // When
-        saveAtrPlugin.execute(null, handler);
-
-        // Then
-        verify(storageClient, atMostOnce()).storeFileFromWorkspace(anyString(), any(), anyString(), any());
-    }
-
-    @Test
-    public void should_save_ids_in_workspace() throws Exception {
-        // Given
-        final TransferReplyContext expected = new TransferReplyContext("ATR_MESSAGE_REQUEST_IDENTIFIER", "ATR_MESSAGE_IDENTIFIER");
-        TestHandlerIO handler = new TestHandlerIO();
-        handler.addOutputResult(0, createATR());
-        StoredInfoResult storedInfo = new StoredInfoResult();
-        storedInfo.setOfferIds(Collections.emptyList());
-
-        when(storageClient.storeFileFromWorkspace(anyString(), any(), anyString(), any())).thenReturn(storedInfo);
-
-        // When
-        saveAtrPlugin.execute(null, handler);
-
-        // Then
-        assertThat(JsonHandler.getFromInputStream(handler.getInputStreamFromWorkspace(handler.getContainerName() + File.separator + TransferReplyContext.class.getSimpleName() + ".json"), TransferReplyContext.class)).isEqualTo(expected);
     }
 
     private ArchiveTransferReplyType createATR() {

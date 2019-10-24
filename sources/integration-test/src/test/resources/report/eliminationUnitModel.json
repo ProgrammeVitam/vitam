@@ -3,21 +3,6 @@
   "reportType":"ELIMINATION_ACTION_UNIT",
   "entries": [
     {
-      "opi": "opi0",
-      "objectGroupId": "id2",
-      "originatingAgency": "sp1",
-      "status": "DELETED",
-      "id": "unitId1"
-    },
-    {
-      "opi": "opi1",
-      "objectGroupId": "id1",
-      "originatingAgency": "sp1",
-      "status": "NON_DESTROYABLE_HAS_CHILD_UNITS",
-      "id": "unitId2"
-
-    },
-    {
       "opi": "opi2",
       "objectGroupId": "id1",
       "originatingAgency": "sp1",
@@ -30,20 +15,6 @@
       "originatingAgency": "sp2",
       "status": "GLOBAL_STATUS_CONFLICT",
       "id": "unitId4"
-    },
-    {
-      "opi": "opi0",
-      "objectGroupId": "id2",
-      "originatingAgency": "sp1",
-      "status": "DELETED",
-      "id": "unitId5"
-    },
-    {
-      "opi": "opi0",
-      "objectGroupId": "id4",
-      "originatingAgency": "sp1",
-      "status": "DELETED",
-      "id": "unitId6"
     }
   ]
 }

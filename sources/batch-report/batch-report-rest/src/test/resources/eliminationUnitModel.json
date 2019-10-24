@@ -6,41 +6,28 @@
       "opi": "opi0",
       "objectGroupId": "id2",
       "originatingAgency": "sp1",
-      "status": "DELETED",
-      "unitId": "unitId1",
-      "outcome": "Outcome - TEST",
-      "detailType": "Unit",
+      "status": "GLOBAL_STATUS_KEEP",
       "id": "unitId1"
     },
     {
       "opi": "opi1",
       "objectGroupId": "id1",
       "originatingAgency": "sp1",
-      "status": "PARTIAL_DESTROY",
-      "unitId": "unitId2",
-      "outcome": "Outcome - TEST",
-      "detailType": "Unit",
+      "status": "GLOBAL_STATUS_KEEP",
       "id": "unitId2"
-
     },
     {
       "opi": "opi2",
       "objectGroupId": "id1",
       "originatingAgency": "sp1",
-      "status": "DELETED",
-      "unitId": "unitId3",
-      "outcome": "Outcome - TEST",
-      "detailType": "Unit",
+      "status": "GLOBAL_STATUS_CONFLICT",
       "id": "unitId3"
     },
     {
       "opi": "opi3",
       "objectGroupId": "id3",
       "originatingAgency": "sp2",
-      "status": "DELETED",
-      "unitId": "unitId4",
-      "outcome": "Outcome - TEST",
-      "detailType": "Unit",
+      "status": "GLOBAL_STATUS_CONFLICT",
       "id": "unitId4"
     }
   ]

@@ -31,70 +31,37 @@ import fr.gouv.vitam.batch.report.client.BatchReportClient;
 import fr.gouv.vitam.batch.report.client.BatchReportClientFactory;
 import fr.gouv.vitam.batch.report.model.Report;
 import fr.gouv.vitam.batch.report.model.ReportBody;
-import fr.gouv.vitam.batch.report.model.entry.EliminationActionObjectGroupReportEntry;
+import fr.gouv.vitam.batch.report.model.ReportType;
 import fr.gouv.vitam.batch.report.model.entry.EliminationActionUnitReportEntry;
 import fr.gouv.vitam.batch.report.model.entry.ReportEntry;
-import fr.gouv.vitam.batch.report.model.ReportExportRequest;
-import fr.gouv.vitam.batch.report.model.ReportType;
-import fr.gouv.vitam.common.collection.CloseableIterator;
-import fr.gouv.vitam.common.collection.CloseableIteratorUtils;
 import fr.gouv.vitam.common.exception.VitamClientInternalException;
 import fr.gouv.vitam.common.model.StatusCode;
-import fr.gouv.vitam.common.stream.VitamAsyncInputStream;
-import fr.gouv.vitam.worker.core.distribution.JsonLineIterator;
-import fr.gouv.vitam.worker.core.distribution.JsonLineModel;
 import fr.gouv.vitam.worker.core.exception.ProcessingStatusException;
-import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundException;
-import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
-import fr.gouv.vitam.workspace.client.WorkspaceClient;
-import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
 
-import javax.ws.rs.core.Response;
 import java.util.List;
 
 public class EliminationActionReportService {
 
-    static final String UNIT_REPORT_JSONL = "unitReport.jsonl";
-    static final String OBJECT_GROUP_REPORT_JSONL = "objectGroupReport.jsonl";
-    static final String DISTINCT_REPORT_JSONL = "unitObjectGroups.jsonl";
-    static final String ACCESSION_REGISTER_REPORT_JSONL = "accession_register.jsonl";
-
     private final BatchReportClientFactory batchReportClientFactory;
-    private final WorkspaceClientFactory workspaceClientFactory;
 
     public EliminationActionReportService() {
         this(
-            BatchReportClientFactory.getInstance(),
-            WorkspaceClientFactory.getInstance());
+            BatchReportClientFactory.getInstance());
     }
 
     @VisibleForTesting
     EliminationActionReportService(
-        BatchReportClientFactory batchReportClientFactory,
-        WorkspaceClientFactory workspaceClientFactory) {
+        BatchReportClientFactory batchReportClientFactory) {
         this.batchReportClientFactory = batchReportClientFactory;
-        this.workspaceClientFactory = workspaceClientFactory;
     }
 
     public void appendUnitEntries(String processId, List<EliminationActionUnitReportEntry> entries)
         throws ProcessingStatusException {
 
-        appendEntries(processId, entries, ReportType.ELIMINATION_ACTION_UNIT);
-    }
-
-    public void appendObjectGroupEntries(String processId, List<EliminationActionObjectGroupReportEntry> entries)
-        throws ProcessingStatusException {
-
-        appendEntries(processId, entries, ReportType.ELIMINATION_ACTION_OBJECTGROUP);
-    }
-
-    private void appendEntries(String processId, List<? extends ReportEntry> entries, ReportType reportType)
-        throws ProcessingStatusException {
-
         try (BatchReportClient batchReportClient = batchReportClientFactory.getClient()) {
-            ReportBody reportBody = new ReportBody();
+            ReportBody<EliminationActionUnitReportEntry> reportBody = new ReportBody<>();
             reportBody.setProcessId(processId);
-            reportBody.setReportType(reportType);
+            reportBody.setReportType(ReportType.ELIMINATION_ACTION_UNIT);
             reportBody.setEntries(entries);
             batchReportClient.appendReportEntries(reportBody);
         } catch (VitamClientInternalException e) {
@@ -110,48 +77,9 @@ public class EliminationActionReportService {
         }
     }
 
-    public CloseableIterator<String> exportDistinctObjectGroups(String processId) throws ProcessingStatusException {
-
-        try (BatchReportClient batchReportClient = batchReportClientFactory.getClient()) {
-
-            batchReportClient.generateEliminationActionDistinctObjectGroupInUnitReport(processId,
-                new ReportExportRequest(DISTINCT_REPORT_JSONL));
-
-        } catch (VitamClientInternalException e) {
-            throw new ProcessingStatusException(StatusCode.FATAL,
-                "Could not generate distinct object group report for deleted units to workspace", e);
-        }
-
-        try (WorkspaceClient workspaceClient = workspaceClientFactory.getClient()) {
-
-            Response reportResponse = workspaceClient.getObject(processId, DISTINCT_REPORT_JSONL);
-            JsonLineIterator jsonLineIterator = new JsonLineIterator(new VitamAsyncInputStream(reportResponse));
-
-            return CloseableIteratorUtils.map(jsonLineIterator, JsonLineModel::getId);
-
-        } catch (ContentAddressableStorageServerException | ContentAddressableStorageNotFoundException e) {
-            throw new ProcessingStatusException(StatusCode.FATAL, "Could not load report from workspace", e);
-        }
-    }
-
-    public void exportAccessionRegisters(String processId) throws ProcessingStatusException {
-
-        try (BatchReportClient batchReportClient = batchReportClientFactory.getClient()) {
-
-            batchReportClient.generateEliminationActionAccessionRegisterReport(
-                processId,
-                new ReportExportRequest(ACCESSION_REGISTER_REPORT_JSONL));
-
-        } catch (VitamClientInternalException e) {
-            throw new ProcessingStatusException(StatusCode.FATAL,
-                "Could not generate elimination action accession register reports (" + processId + ")", e);
-        }
-    }
-
     public void cleanupReport(String processId) throws ProcessingStatusException {
         try (BatchReportClient batchReportClient = batchReportClientFactory.getClient()) {
             batchReportClient.cleanupReport(processId, ReportType.ELIMINATION_ACTION_UNIT);
-            batchReportClient.cleanupReport(processId, ReportType.ELIMINATION_ACTION_OBJECTGROUP);
         } catch (VitamClientInternalException e) {
             throw new ProcessingStatusException(StatusCode.FATAL,
                 "Could not cleanup elimination action reports (" + processId + ")", e);

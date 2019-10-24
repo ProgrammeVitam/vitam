@@ -72,6 +72,7 @@ import java.util.Objects;
 import static fr.gouv.vitam.common.model.StatusCode.FATAL;
 import static fr.gouv.vitam.common.model.StatusCode.KO;
 import static fr.gouv.vitam.common.model.StatusCode.OK;
+import static fr.gouv.vitam.common.model.StatusCode.WARNING;
 import static fr.gouv.vitam.common.xml.ValidationXsdUtils.CATALOG_FILENAME;
 import static fr.gouv.vitam.common.xml.ValidationXsdUtils.HTTP_WWW_W3_ORG_XML_XML_SCHEMA_V1_1;
 import static fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess.ARCHIVE_TRANSFER;
@@ -151,7 +152,8 @@ public class VerifyAtrPlugin extends ActionHandler {
             }
 
             LogbookEventOperation lastTransferEventOperation = events.get(events.size() - 1);
-            if (!lastTransferEventOperation.getOutcome().equals(OK.name())) {
+            if (!lastTransferEventOperation.getOutcome().equals(OK.name()) &&
+                !lastTransferEventOperation.getOutcome().equals(WARNING.name())) {
                 return false;
             }
         }

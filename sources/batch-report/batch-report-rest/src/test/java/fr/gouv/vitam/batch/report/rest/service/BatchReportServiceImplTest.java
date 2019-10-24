@@ -44,18 +44,23 @@ import fr.gouv.vitam.batch.report.model.ReportSummary;
 import fr.gouv.vitam.batch.report.model.ReportType;
 import fr.gouv.vitam.batch.report.model.UnitComputedInheritedRulesInvalidationModel;
 import fr.gouv.vitam.batch.report.model.entry.AuditObjectGroupReportEntry;
-import fr.gouv.vitam.batch.report.model.entry.EliminationActionObjectGroupReportEntry;
 import fr.gouv.vitam.batch.report.model.entry.EliminationActionUnitReportEntry;
 import fr.gouv.vitam.batch.report.model.entry.EvidenceAuditReportEntry;
 import fr.gouv.vitam.batch.report.model.entry.PreservationReportEntry;
+import fr.gouv.vitam.batch.report.model.entry.PurgeObjectGroupReportEntry;
+import fr.gouv.vitam.batch.report.model.entry.PurgeUnitReportEntry;
+import fr.gouv.vitam.batch.report.model.entry.TransferReplyUnitReportEntry;
 import fr.gouv.vitam.batch.report.model.entry.UnitComputedInheritedRulesInvalidationReportEntry;
 import fr.gouv.vitam.batch.report.rest.repository.AuditReportRepository;
-import fr.gouv.vitam.batch.report.rest.repository.EliminationActionObjectGroupRepository;
 import fr.gouv.vitam.batch.report.rest.repository.EliminationActionUnitRepository;
 import fr.gouv.vitam.batch.report.rest.repository.EvidenceAuditReportRepository;
 import fr.gouv.vitam.batch.report.rest.repository.PreservationReportRepository;
+import fr.gouv.vitam.batch.report.rest.repository.PurgeObjectGroupRepository;
+import fr.gouv.vitam.batch.report.rest.repository.PurgeUnitRepository;
+import fr.gouv.vitam.batch.report.rest.repository.TransferReplyUnitRepository;
 import fr.gouv.vitam.batch.report.rest.repository.UnitComputedInheritedRulesInvalidationRepository;
 import fr.gouv.vitam.batch.report.rest.repository.UpdateUnitReportRepository;
+import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.collection.CloseableIteratorUtils;
 import fr.gouv.vitam.common.database.server.mongodb.EmptyMongoCursor;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
@@ -71,7 +76,9 @@ import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerExce
 import fr.gouv.vitam.workspace.client.WorkspaceClient;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
 import net.javacrumbs.jsonunit.JsonAssert;
+import org.apache.commons.collections4.IteratorUtils;
 import org.assertj.core.api.ThrowableAssert.ThrowingCallable;
+import org.assertj.core.util.Streams;
 import org.bson.Document;
 import org.junit.Before;
 import org.junit.Rule;
@@ -97,6 +104,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import static fr.gouv.vitam.batch.report.model.entry.PreservationReportEntry.ACTION;
 import static fr.gouv.vitam.batch.report.model.entry.PreservationReportEntry.ANALYSE_RESULT;
@@ -137,7 +145,11 @@ public class BatchReportServiceImplTest {
     @Mock
     private EliminationActionUnitRepository eliminationActionUnitRepository;
     @Mock
-    private EliminationActionObjectGroupRepository eliminationActionObjectGroupRepository;
+    private PurgeUnitRepository purgeUnitRepository;
+    @Mock
+    private PurgeObjectGroupRepository purgeObjectGroupRepository;
+    @Mock
+    private TransferReplyUnitRepository transferReplyUnitRepository;
     @Mock
     private PreservationReportRepository preservationReportRepository;
     @Mock
@@ -163,13 +175,16 @@ public class BatchReportServiceImplTest {
 
     private String PROCESS_ID = "123456789";
     private int TENANT_ID = 0;
+    private static final TypeReference<JsonNode> JSON_NODE_TYPE_REFERENCE = new TypeReference<JsonNode>() {
+    };
 
     @Before
     public void setUp() throws Exception {
         backupService = new BackupService(workspaceClientFactory, storageClientFactory);
 
         batchReportServiceImpl = new BatchReportServiceImpl(eliminationActionUnitRepository,
-            eliminationActionObjectGroupRepository, updateUnitMetadataReportEntry, backupService,
+            purgeUnitRepository, purgeObjectGroupRepository, transferReplyUnitRepository, updateUnitMetadataReportEntry,
+            backupService,
             workspaceClientFactory,
             preservationReportRepository, auditReportRepository, unitComputedInheritedRulesInvalidationRepository,
             evidenceAuditReportRepository);
@@ -177,16 +192,29 @@ public class BatchReportServiceImplTest {
 
 
     @Test
-    public void should_append_elimination_object_group_report() throws Exception {
+    public void should_append_purge_object_group_report() throws Exception {
         // Given
-        InputStream stream = getClass().getResourceAsStream("/eliminationObjectGroupModel.json");
+        InputStream stream = getClass().getResourceAsStream("/purgeObjectGroupModel.json");
         ReportBody reportBody =
-            JsonHandler.getFromInputStream(stream, ReportBody.class, EliminationActionObjectGroupReportEntry.class);
+            JsonHandler.getFromInputStream(stream, ReportBody.class, PurgeObjectGroupReportEntry.class);
         // When
         // Then
         assertThatCode(() ->
             batchReportServiceImpl
-                .appendEliminationActionObjectGroupReport(PROCESS_ID, reportBody.getEntries(), TENANT_ID))
+                .appendPurgeObjectGroupReport(PROCESS_ID, reportBody.getEntries(), TENANT_ID))
+            .doesNotThrowAnyException();
+    }
+
+    @Test
+    public void should_append_purge_unit_report() throws Exception {
+        // Given
+        InputStream stream = getClass().getResourceAsStream("/purgeUnitModel.json");
+        ReportBody<PurgeUnitReportEntry> reportBody =
+            JsonHandler.getFromInputStream(stream, ReportBody.class, PurgeUnitReportEntry.class);
+        // When
+        // Then
+        assertThatCode(() ->
+            batchReportServiceImpl.appendPurgeUnitReport(PROCESS_ID, reportBody.getEntries(), TENANT_ID))
             .doesNotThrowAnyException();
     }
 
@@ -200,6 +228,19 @@ public class BatchReportServiceImplTest {
         // Then
         assertThatCode(() ->
             batchReportServiceImpl.appendEliminationActionUnitReport(PROCESS_ID, reportBody.getEntries(), TENANT_ID))
+            .doesNotThrowAnyException();
+    }
+
+    @Test
+    public void should_append_transfer_reply_unit_report() throws Exception {
+        // Given
+        InputStream stream = getClass().getResourceAsStream("/transferReplyUnitModel.json");
+        ReportBody reportBody =
+            JsonHandler.getFromInputStream(stream, ReportBody.class, TransferReplyUnitReportEntry.class);
+        // When
+        // Then
+        assertThatCode(() ->
+            batchReportServiceImpl.appendTransferReplyUnitReport(PROCESS_ID, reportBody.getEntries(), TENANT_ID))
             .doesNotThrowAnyException();
     }
 
@@ -290,13 +331,13 @@ public class BatchReportServiceImplTest {
         when(emptyMongoCursor.next()).thenReturn(document);
         when(emptyMongoCursor.next()).thenReturn(document);
         when(emptyMongoCursor.hasNext()).thenReturn(true).thenReturn(false);
-        when(eliminationActionObjectGroupRepository
+        when(purgeObjectGroupRepository
             .findCollectionByProcessIdTenant(PROCESS_ID, TENANT_ID))
             .thenReturn(emptyMongoCursor);
         when(workspaceClient.isExistingContainer(PROCESS_ID)).thenReturn(true);
         // When
         batchReportServiceImpl
-            .exportEliminationActionObjectGroupReport(PROCESS_ID, "objectGroupReport.json", TENANT_ID);
+            .exportPurgeObjectGroupReport(PROCESS_ID, "objectGroupReport.json", TENANT_ID);
         // Then
         try (BufferedReader reader = new BufferedReader(new InputStreamReader(new FileInputStream(report.toFile())))) {
             while (reader.ready()) {
@@ -414,20 +455,16 @@ public class BatchReportServiceImplTest {
         Path report = initialisePathWithFileName(filename);
         initialiseMockWhenPutObjectInWorkspace(report);
 
-        Document unitData = getUnitDocument();
-        FakeMongoCursor<Document> fakeUnitMongoCursor = new FakeMongoCursor<>(Collections.singletonList(unitData));
-        Document objectGroupData = getObjectGroupDocument();
-        FakeMongoCursor<Document> fakeObjectGroupMongoCursor =
-            new FakeMongoCursor<>(Collections.singletonList(objectGroupData));
+        List<Document> eliminationActionUnitDocs = getDocuments("eliminationAction_nonEliminableUnits.json");
+        List<Document> unitPurgeDocs = getDocuments("eliminationAction_unitPurge.json");
+        List<Document> objectGroupPurgeDocs = getDocuments("eliminationAction_objectGroupPurge.json");
 
-        when(eliminationActionUnitRepository
-            .findCollectionByProcessIdTenant(PROCESS_ID, TENANT_ID))
-            .thenReturn(fakeUnitMongoCursor);
-        when(eliminationActionObjectGroupRepository
-            .findCollectionByProcessIdTenant(PROCESS_ID, TENANT_ID))
-            .thenReturn(fakeObjectGroupMongoCursor);
-
-
+        when(eliminationActionUnitRepository.findCollectionByProcessIdTenant(PROCESS_ID, TENANT_ID))
+            .thenReturn(new FakeMongoCursor<>(eliminationActionUnitDocs));
+        when(purgeUnitRepository.findCollectionByProcessIdTenant(PROCESS_ID, TENANT_ID))
+            .thenReturn(new FakeMongoCursor<>(unitPurgeDocs));
+        when(purgeObjectGroupRepository.findCollectionByProcessIdTenant(PROCESS_ID, TENANT_ID))
+            .thenReturn(new FakeMongoCursor<>(objectGroupPurgeDocs));
 
         OperationSummary operationSummary =
             new OperationSummary(TENANT_ID, PROCESS_ID, "", "", "", "", JsonHandler.createObjectNode(),
@@ -443,14 +480,80 @@ public class BatchReportServiceImplTest {
         batchReportServiceImpl.storeReport(reportInfo);
 
         // Then
-        String accumulatorExpected = JsonHandler.unprettyPrint(operationSummary)
-            + "\n" + JsonHandler.unprettyPrint(reportSummary)
-            + "\n" + JsonHandler.unprettyPrint(context)
-            + "\n" + BsonHelper.stringify(unitData)
-            + "\n" + BsonHelper.stringify(objectGroupData);
+        // FIXME : Fix header in eliminationAction_expectedReport.jsonl
+        assertJsonlReportsEqual(
+            new FileInputStream(report.toFile()),
+            PropertiesUtils.getResourceAsStream("eliminationAction_expectedReport.jsonl"));
+    }
 
-        JsonAssert
-            .assertJsonEquals(JsonHandler.getFromFile(report.toFile()), JsonHandler.getFromString(accumulatorExpected));
+    @Test
+    public void should_store_transfer_reply_report() throws Exception {
+        // Given
+        when(workspaceClientFactory.getClient()).thenReturn(workspaceClient);
+        when(workspaceClient.isExistingContainer(PROCESS_ID)).thenReturn(true);
+        when(storageClientFactory.getClient()).thenReturn(storageClient);
+        when(storageClient.storeFileFromWorkspace(anyString(), any(), anyString(), any())).thenReturn(null);
+
+        String filename = "report.jsonl";
+        Path report = initialisePathWithFileName(filename);
+        initialiseMockWhenPutObjectInWorkspace(report);
+
+        List<Document> transferReplyUnitDocs = getDocuments("transferReply_alreadyDeletedUnits.json");
+        List<Document> unitPurgeDocs = getDocuments("transferReply_unitPurge.json");
+        List<Document> objectGroupPurgeDocs = getDocuments("transferReply_objectGroupPurge.json");
+
+        when(transferReplyUnitRepository.findCollectionByProcessIdTenant(PROCESS_ID, TENANT_ID))
+            .thenReturn(new FakeMongoCursor<>(transferReplyUnitDocs));
+        when(purgeUnitRepository.findCollectionByProcessIdTenant(PROCESS_ID, TENANT_ID))
+            .thenReturn(new FakeMongoCursor<>(unitPurgeDocs));
+        when(purgeObjectGroupRepository.findCollectionByProcessIdTenant(PROCESS_ID, TENANT_ID))
+            .thenReturn(new FakeMongoCursor<>(objectGroupPurgeDocs));
+
+        OperationSummary operationSummary =
+            new OperationSummary(TENANT_ID, PROCESS_ID, "", "", "", "", JsonHandler.createObjectNode(),
+                JsonHandler.createObjectNode());
+        ReportResults reportResults = new ReportResults(1, 0, 0, 1);
+        ReportSummary reportSummary =
+            new ReportSummary(null, null, ReportType.TRANSFER_REPLY, reportResults, JsonHandler.createObjectNode());
+        JsonNode context = JsonHandler.createObjectNode();
+
+        Report reportInfo = new Report(operationSummary, reportSummary, context);
+
+        // When
+        batchReportServiceImpl.storeReport(reportInfo);
+
+        // Then
+        // FIXME : Fix header in transferReply_expectedReport.jsonl
+        assertJsonlReportsEqual(
+            new FileInputStream(report.toFile()),
+            PropertiesUtils.getResourceAsStream("transferReply_expectedReport.jsonl"));
+    }
+
+    private void assertJsonlReportsEqual(InputStream actualInputStream, InputStream expectedReportInputStream)
+        throws InvalidParseOperationException {
+        try (
+            JsonLineGenericIterator<JsonNode> resultReportIterator = new JsonLineGenericIterator<>(
+                actualInputStream, JSON_NODE_TYPE_REFERENCE);
+            JsonLineGenericIterator<JsonNode> expectedReportIterator = new JsonLineGenericIterator<>(
+                expectedReportInputStream,
+                JSON_NODE_TYPE_REFERENCE);
+        ) {
+
+            JsonAssert.assertJsonEquals(
+                JsonHandler.toJsonNode(IteratorUtils.toList(resultReportIterator)),
+                JsonHandler.toJsonNode(IteratorUtils.toList(expectedReportIterator))
+            );
+        }
+    }
+
+    private List<Document> getDocuments(String resourcesFile)
+        throws InvalidParseOperationException, FileNotFoundException {
+        JsonNode alreadyDeletedUnits = JsonHandler
+            .getFromInputStream(PropertiesUtils.getResourceAsStream(resourcesFile));
+
+        return Streams.stream(alreadyDeletedUnits.elements())
+            .map(unit -> Document.parse(unit.toString()))
+            .collect(Collectors.toList());
     }
 
     @Test
@@ -509,13 +612,12 @@ public class BatchReportServiceImplTest {
         initialiseMockWhenPutObjectInWorkspace(report);
         when(emptyMongoCursor.next()).thenReturn(objectGroupId);
         when(emptyMongoCursor.hasNext()).thenReturn(true).thenReturn(false);
-        when(eliminationActionUnitRepository
-            .distinctObjectGroupOfDeletedUnits(PROCESS_ID, TENANT_ID))
+        when(purgeUnitRepository.distinctObjectGroupOfDeletedUnits(PROCESS_ID, TENANT_ID))
             .thenReturn(emptyMongoCursor);
         when(workspaceClient.isExistingContainer(PROCESS_ID)).thenReturn(true);
         // When
         batchReportServiceImpl
-            .exportEliminationActionDistinctObjectGroupOfDeletedUnits(PROCESS_ID, "distinct_objectgroup_report",
+            .exportPurgeDistinctObjectGroupOfDeletedUnits(PROCESS_ID, "distinct_objectgroup_report",
                 TENANT_ID);
         // Then
         try (BufferedReader reader = new BufferedReader(new InputStreamReader(new FileInputStream(report.toFile())))) {
@@ -593,16 +695,16 @@ public class BatchReportServiceImplTest {
         }
     }
 
-    private Document getUnitDocument() {
+    private Document getUnitDocument(String id, String status) {
         Document document = new Document();
-        document.put("id", "aeaaaaaaaafr5hk6abgeualfvd6jsniaaaaq");
+        document.put("id", id);
         document.put("distribGroup", null);
         document.put("params", JsonHandler.createObjectNode()
             .put("id", "aeaaaaaaaafr5hk6abgeualfvd6jsniaaaaq")
             .put("opi", "test")
             .put("objectGroupId", "12345687")
             .put("unitId", "unitId")
-            .put("status", "DESTROY"));
+            .put("status", status));
         return document;
     }
 
@@ -641,7 +743,7 @@ public class BatchReportServiceImplTest {
         return document;
     }
 
-    private Document getAuditDocument(String processId) throws InvalidParseOperationException, FileNotFoundException {
+    private Document getAuditDocument(String processId) throws InvalidParseOperationException {
         String reportDoc = JsonHandler
             .unprettyPrint(
                 JsonHandler.getFromInputStream(getClass().getResourceAsStream("/auditObjectGroupDocument.json")));

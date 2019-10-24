@@ -1,0 +1,8 @@
+{"tenant":0,"evId":"123456789","evType":"","outcome":"","outDetail":"","outMsg":"","rightsStatementIdentifier":{},"evDetData":{}}
+{"reportType":"TRANSFER_REPLY","vitamResults":{"OK":1,"KO":0,"WARNING":0,"total":1},"extendedInfo":{}}
+{}
+{"id":"unitId1","params":{"type":"Unit","status":"ALREADY_DELETED","id":"unitId1"}}
+{"id":"unitId4","params":{"type":"Unit","status":"ALREADY_DELETED","id":"unitId4"}}
+{"id":"unitId2","params":{"type":"Unit","opi":"opi0","objectGroupId":"id2","originatingAgency":"sp1","status":"DELETED","unitId":"unitId1","id":"unitId2"}}
+{"id":"objectGroup1","params":{"type":"ObjectGroup","opi":"opi0","id":"objectGroup1","originatingAgency":"sp1","status":"DELETED","objectIds":["binary1","binary2"]}}
+{"id":"objectGroup2","params":{"type":"ObjectGroup","opi":"opi1","id":"objectGroup2","originatingAgency":"sp1","status":"PARTIAL_DESTROY","deletedParentUnitIds":["unitId2"]}}

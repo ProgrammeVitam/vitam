@@ -31,12 +31,15 @@ import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.StatusCode;
+import fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 import fr.gouv.vitam.worker.common.HandlerIO;
 import fr.gouv.vitam.worker.core.exception.ProcessingStatusException;
 import fr.gouv.vitam.worker.core.handler.ActionHandler;
 import fr.gouv.vitam.worker.core.plugin.elimination.report.EliminationActionReportService;
+import fr.gouv.vitam.worker.core.plugin.purge.PurgeAccessionRegisterPreparationHandler;
+import fr.gouv.vitam.worker.core.plugin.purge.PurgeReportService;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
 
 import static fr.gouv.vitam.worker.core.utils.PluginHelper.buildItemStatus;
@@ -44,23 +47,16 @@ import static fr.gouv.vitam.worker.core.utils.PluginHelper.buildItemStatus;
 /**
  * Elimination action accession register preparation handler.
  */
-public class EliminationActionAccessionRegisterPreparationHandler extends ActionHandler {
-
-    private static final VitamLogger LOGGER =
-        VitamLoggerFactory.getInstance(EliminationActionAccessionRegisterPreparationHandler.class);
+public class EliminationActionAccessionRegisterPreparationHandler extends PurgeAccessionRegisterPreparationHandler {
 
     private static final String ELIMINATION_ACTION_ACCESSION_REGISTER_PREPARATION =
         "ELIMINATION_ACTION_ACCESSION_REGISTER_PREPARATION";
-
-
-    private final EliminationActionReportService eliminationActionReportService;
 
     /**
      * Default constructor
      */
     public EliminationActionAccessionRegisterPreparationHandler() {
-        this(
-            new EliminationActionReportService());
+        super(ELIMINATION_ACTION_ACCESSION_REGISTER_PREPARATION);
     }
 
     /***
@@ -68,41 +64,8 @@ public class EliminationActionAccessionRegisterPreparationHandler extends Action
      */
     @VisibleForTesting
     EliminationActionAccessionRegisterPreparationHandler(
-        EliminationActionReportService eliminationActionReportService) {
-        this.eliminationActionReportService = eliminationActionReportService;
-    }
-
-    @Override
-    public ItemStatus execute(WorkerParameters param, HandlerIO handler)
-        throws ProcessingException, ContentAddressableStorageServerException {
-
-        try {
-
-            exportAccessionRegister(param.getContainerName());
-
-            LOGGER.info("Elimination action accession register preparation succeeded");
-            return buildItemStatus(ELIMINATION_ACTION_ACCESSION_REGISTER_PREPARATION, StatusCode.OK, null);
-
-        } catch (ProcessingStatusException e) {
-            LOGGER.error(
-                String
-                    .format("Elimination action accession register preparation failed with status [%s]",
-                        e.getStatusCode()),
-                e);
-            return buildItemStatus(ELIMINATION_ACTION_ACCESSION_REGISTER_PREPARATION, e.getStatusCode(),
-                e.getEventDetails());
-        }
-    }
-
-    private void exportAccessionRegister(String processId) throws ProcessingStatusException {
-
-        eliminationActionReportService.exportAccessionRegisters(processId);
-
-    }
-
-    @Override
-    public void checkMandatoryIOParameter(HandlerIO handler) throws ProcessingException {
-        // NOP.
+        PurgeReportService purgeReportService) {
+        super(ELIMINATION_ACTION_ACCESSION_REGISTER_PREPARATION, purgeReportService);
     }
 
     public static String getId() {

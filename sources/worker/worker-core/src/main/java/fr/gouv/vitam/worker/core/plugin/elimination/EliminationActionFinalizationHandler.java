@@ -37,6 +37,7 @@ import fr.gouv.vitam.worker.common.HandlerIO;
 import fr.gouv.vitam.worker.core.exception.ProcessingStatusException;
 import fr.gouv.vitam.worker.core.handler.ActionHandler;
 import fr.gouv.vitam.worker.core.plugin.elimination.report.EliminationActionReportService;
+import fr.gouv.vitam.worker.core.plugin.purge.PurgeReportService;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
 
 import static fr.gouv.vitam.worker.core.utils.PluginHelper.buildItemStatus;
@@ -53,12 +54,13 @@ public class EliminationActionFinalizationHandler extends ActionHandler {
     private static final String ELIMINATION_ACTION_FINALIZATION = "ELIMINATION_ACTION_FINALIZATION";
 
     private final EliminationActionReportService eliminationActionReportService;
+    private final PurgeReportService purgeReportService;
 
     /**
      * Default constructor
      */
     public EliminationActionFinalizationHandler() {
-        this(new EliminationActionReportService());
+        this(new EliminationActionReportService(), new PurgeReportService());
     }
 
     /***
@@ -66,8 +68,10 @@ public class EliminationActionFinalizationHandler extends ActionHandler {
      */
     @VisibleForTesting
     EliminationActionFinalizationHandler(
-        EliminationActionReportService eliminationActionReportService) {
+        EliminationActionReportService eliminationActionReportService,
+        PurgeReportService purgeReportService) {
         this.eliminationActionReportService = eliminationActionReportService;
+        this.purgeReportService = purgeReportService;
     }
 
     @Override
@@ -77,6 +81,7 @@ public class EliminationActionFinalizationHandler extends ActionHandler {
         try {
 
             eliminationActionReportService.cleanupReport(param.getContainerName());
+            purgeReportService.cleanupReport(param.getContainerName());
 
             LOGGER.info("Elimination action finalization succeeded");
             return buildItemStatus(ELIMINATION_ACTION_FINALIZATION, StatusCode.OK, null);

@@ -27,9 +27,7 @@
 package fr.gouv.vitam.batch.report.model;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.databind.JsonNode;
 import fr.gouv.vitam.batch.report.model.entry.EliminationActionUnitReportEntry;
-import fr.gouv.vitam.batch.report.model.entry.ReportEntry;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.Objects;
@@ -116,15 +114,15 @@ public class EliminationActionUnitModel {
 
     private static String getMetadataId(EliminationActionUnitModel eliminationActionUnitModel) {
         if (eliminationActionUnitModel.getMetadata() == null
-            || StringUtils.isEmpty(eliminationActionUnitModel.getMetadata().getDetailId())) {
+            || StringUtils.isEmpty(eliminationActionUnitModel.getMetadata().getId())) {
             throw new IllegalArgumentException("Invalid metadata");
         }
 
-        return eliminationActionUnitModel.getMetadata().getDetailId();
+        return eliminationActionUnitModel.getMetadata().getId();
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(metadata.getUnitId(), processId, tenant);
+        return Objects.hash(metadata.getId(), processId, tenant);
     }
 }

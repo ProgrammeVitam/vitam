@@ -9,12 +9,23 @@ db = db.getSiblingDB('report')
 // Create indexes EliminationActionUnit
 db.EliminationActionUnit.createIndex( { "processId" : 1, "_tenant" : 1 } )
 db.EliminationActionUnit.createIndex( { "processId" : 1, "_tenant" : 1, "_metadata.id" : 1 } )
-db.EliminationActionUnit.createIndex( { "processId" : 1, "_tenant" : 1, "_metadata.status" : 1 } )
+db.EliminationActionUnit.dropIndex( { "processId" : 1, "_tenant" : 1, "_metadata.status" : 1 } )
 
-// Create indexes EliminationActionObjectGroup
-db.EliminationActionObjectGroup.createIndex( { "processId" : 1, "_tenant" : 1 } )
-db.EliminationActionObjectGroup.createIndex( { "processId" : 1, "_tenant" : 1, "_metadata.id" : 1 } )
-db.EliminationActionObjectGroup.createIndex( { "processId" : 1, "_tenant" : 1, "_metadata.status" : 1 } )
+// Drop obsolete EliminationActionObjectGroup
+db.EliminationActionObjectGroup.drop();
+
+// Create indexes PurgeUnit
+db.PurgeUnit.createIndex( { "processId" : 1, "_tenant" : 1 } )
+db.PurgeUnit.createIndex( { "processId" : 1, "_tenant" : 1, "_metadata.id" : 1 } )
+db.PurgeUnit.createIndex( { "processId" : 1, "_tenant" : 1, "_metadata.status" : 1 } )
+
+// Create indexes PurgeObjectGroup
+db.PurgeObjectGroup.createIndex( { "processId" : 1, "_tenant" : 1 } )
+db.PurgeObjectGroup.createIndex( { "processId" : 1, "_tenant" : 1, "_metadata.id" : 1 } )
+
+// Create indexes TransferReplyUnit
+db.TransferReplyUnit.createIndex( { "processId" : 1, "_tenant" : 1 } )
+db.TransferReplyUnit.createIndex( { "processId" : 1, "_tenant" : 1, "_metadata.id" : 1 } )
 
 // Create indexes PreservationReport
 db.PreservationReport.createIndex({"processId" : 1, "_tenant" : 1})

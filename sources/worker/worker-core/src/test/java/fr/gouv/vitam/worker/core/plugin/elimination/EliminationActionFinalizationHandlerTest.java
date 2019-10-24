@@ -1,5 +1,6 @@
 package fr.gouv.vitam.worker.core.plugin.elimination;
 
+import fr.gouv.vitam.batch.report.model.ReportType;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.StatusCode;
@@ -11,6 +12,7 @@ import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 import fr.gouv.vitam.processing.common.parameter.WorkerParametersFactory;
 import fr.gouv.vitam.worker.common.HandlerIO;
 import fr.gouv.vitam.worker.core.plugin.elimination.report.EliminationActionReportService;
+import fr.gouv.vitam.worker.core.plugin.purge.PurgeReportService;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -23,6 +25,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoMoreInteractions;
 
 public class EliminationActionFinalizationHandlerTest {
 
@@ -35,6 +38,9 @@ public class EliminationActionFinalizationHandlerTest {
 
     @Mock
     private EliminationActionReportService eliminationActionReportService;
+
+    @Mock
+    private PurgeReportService purgeReportService;
 
     @InjectMocks
     private EliminationActionFinalizationHandler instance;
@@ -70,7 +76,7 @@ public class EliminationActionFinalizationHandlerTest {
 
         // Then
         assertThat(itemStatus.getGlobalStatus()).isEqualTo(StatusCode.OK);
-        verify(eliminationActionReportService)
-            .cleanupReport(any());
+        verify(eliminationActionReportService).cleanupReport(any());
+        verify(purgeReportService).cleanupReport(any());
     }
 }

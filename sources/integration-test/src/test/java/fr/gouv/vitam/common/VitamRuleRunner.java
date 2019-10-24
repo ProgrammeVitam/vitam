@@ -1,8 +1,10 @@
 package fr.gouv.vitam.common;
 
 import fr.gouv.vitam.batch.report.rest.repository.AuditReportRepository;
-import fr.gouv.vitam.batch.report.rest.repository.EliminationActionObjectGroupRepository;
+import fr.gouv.vitam.batch.report.rest.repository.PurgeObjectGroupRepository;
 import fr.gouv.vitam.batch.report.rest.repository.EliminationActionUnitRepository;
+import fr.gouv.vitam.batch.report.rest.repository.PurgeUnitRepository;
+import fr.gouv.vitam.batch.report.rest.repository.TransferReplyUnitRepository;
 import fr.gouv.vitam.common.database.collections.VitamCollection;
 import fr.gouv.vitam.common.database.offset.OffsetRepository;
 import fr.gouv.vitam.common.database.server.elasticsearch.ElasticsearchNode;
@@ -66,10 +68,11 @@ public class VitamRuleRunner {
             OfferCollections.OFFER_LOG.getName(),
             PersonalRepository.PERSONAL_COLLECTION,
             IdentityRepository.CERTIFICATE_COLLECTION,
-            EliminationActionObjectGroupRepository.ELIMINATION_ACTION_OBJECT_GROUP,
+            PurgeObjectGroupRepository.PURGE_OBJECT_GROUP,
+            PurgeUnitRepository.PURGE_UNIT,
             EliminationActionUnitRepository.ELIMINATION_ACTION_UNIT,
+            TransferReplyUnitRepository.TRANSFER_REPLY_UNIT,
             AuditReportRepository.AUDIT_OBJECT_GROUP);
-
 
     @ClassRule
     public static ElasticsearchRule elasticsearchRule = new ElasticsearchRule();

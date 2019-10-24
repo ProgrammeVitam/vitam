@@ -1,0 +1,79 @@
+{
+  "processId": "123456789",
+  "reportType":"PURGE_UNIT",
+  "entries": [
+    {
+      "opi": "opi0",
+      "objectGroupId": "id2",
+      "originatingAgency": "sp1",
+      "status": "DELETED",
+      "id": "unitId2"
+    },
+    {
+      "opi": "opi0",
+      "objectGroupId": "id4",
+      "originatingAgency": "sp1",
+      "status": "DELETED",
+      "id": "unitId4"
+    },
+    {
+      "opi": "opi0",
+      "objectGroupId": "id5",
+      "originatingAgency": "sp1",
+      "status": "DELETED",
+      "id": "unitId5"
+    },
+    {
+      "opi": "opi1",
+      "objectGroupId": "id1",
+      "originatingAgency": "sp1",
+      "status": "DELETED",
+      "id": "unitId1"
+
+    },
+    {
+      "opi": "opi1",
+      "objectGroupId": "id1",
+      "originatingAgency": "sp1",
+      "status": "DELETED",
+      "id": "unitId1"
+
+    },
+    {
+      "opi": "opi3",
+      "objectGroupId": "id3",
+      "originatingAgency": "sp2",
+      "status": "DELETED",
+      "id": "unitId3"
+    },
+    {
+      "opi": "opi3",
+      "objectGroupId": "id6",
+      "originatingAgency": "sp2",
+      "status": "PARTIAL_DESTROY",
+      "id": "unitId6"
+    },
+    {
+      "opi": "opi3",
+      "objectGroupId": "id8",
+      "originatingAgency": "sp2",
+      "status": "DELETED",
+      "id": "unitId8"
+    },
+    {
+      "opi": "opi5",
+      "objectGroupId": "id7",
+      "originatingAgency": "sp2",
+      "status": "PARTIAL_DESTROY",
+      "id": "unitId7"
+    },
+    {
+      "opi": "opi9",
+      "objectGroupId": "id9",
+      "originatingAgency": "sp1",
+      "status": "DELETED",
+      "id": "unitId9"
+    }
+  ]
+}
+

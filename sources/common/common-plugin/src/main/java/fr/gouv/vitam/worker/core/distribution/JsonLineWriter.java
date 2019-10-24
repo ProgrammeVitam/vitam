@@ -38,6 +38,7 @@ public class JsonLineWriter implements AutoCloseable {
 
     private final Writer writer;
     private boolean isEmpty = true;
+    private boolean isClosed = false;
 
     public JsonLineWriter(OutputStream outputStream) {
         this.writer = new BufferedWriter(new OutputStreamWriter(outputStream));
@@ -68,7 +69,11 @@ public class JsonLineWriter implements AutoCloseable {
 
     @Override
     public void close() throws IOException {
+        if(isClosed) {
+            return;
+        }
         writer.flush();
         writer.close();
+        isClosed = true;
     }
 }
