@@ -8,7 +8,7 @@ Afin d'y répondre de la façon la plus adéquate et afin de configurer correcte
 
 - Questions techniques : 
     - Topologie de déploiement et dimensionnement de l'environnement ? 
-    - Espace de stockage (volumétrie métier cible, techologie d'offre de stockage, etc.) ? 
+    - Espace de stockage (volumétrie métier cible, technologies d'offres de stockage, nombre d'offres, etc.) ? 
     - Sécurisation des flux http (récupération des clés publiques des servcies versants, sécurisation des flux d'accès aux offres, etc.) ? 
 
 - Questions liées au métier : 
