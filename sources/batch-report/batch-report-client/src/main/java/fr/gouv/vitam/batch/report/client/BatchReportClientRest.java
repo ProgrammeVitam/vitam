@@ -44,7 +44,6 @@ import javax.ws.rs.HttpMethod;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.MultivaluedHashMap;
 import javax.ws.rs.core.Response;
-import java.util.List;
 
 /**
  * BatchReportClientRest
@@ -54,10 +53,10 @@ public class BatchReportClientRest extends DefaultClient implements BatchReportC
     private static final String APPEND = "append";
     private static final String STORE = "store";
     private static final String CLEANUP = "cleanup";
-    private static final String EXPORT_ELIMINATION_ACTION_UNIT_DISTINCT_OBJECTGROUPS =
-        "elimination_action_unit/objectgroup_export/";
-    private static final String EXPORT_ELIMINATION_ACTION_ACCESSION_REGISTER =
-        "elimination_action/accession_register_export/";
+    private static final String EXPORT_PURGE_UNIT_DISTINCT_OBJECTGROUPS =
+        "purge_unit/objectgroup_export/";
+    private static final String EXPORT_PURGE_ACCESSION_REGISTER =
+        "purge/accession_register_export/";
     private static final String UNITS_AND_PROGENY_INVALIDATION = "/computedInheritedRulesInvalidation/";
     private static final String EMPTY_BODY_ERROR_MESSAGE = "Body should be filled";
 
@@ -71,13 +70,13 @@ public class BatchReportClientRest extends DefaultClient implements BatchReportC
     }
 
     @Override
-    public void generateEliminationActionDistinctObjectGroupInUnitReport(String processId,
+    public void generatePurgeDistinctObjectGroupInUnitReport(String processId,
         ReportExportRequest reportExportRequest) throws VitamClientInternalException {
 
         ParametersChecker.checkParameter("processId and reportExportRequest should be filled", processId,
             reportExportRequest);
 
-        httpPost(EXPORT_ELIMINATION_ACTION_UNIT_DISTINCT_OBJECTGROUPS + processId, reportExportRequest);
+        httpPost(EXPORT_PURGE_UNIT_DISTINCT_OBJECTGROUPS + processId, reportExportRequest);
     }
 
     @Override
@@ -109,13 +108,13 @@ public class BatchReportClientRest extends DefaultClient implements BatchReportC
     }
 
     @Override
-    public void generateEliminationActionAccessionRegisterReport(String processId,
+    public void generatePurgeAccessionRegisterReport(String processId,
         ReportExportRequest reportExportRequest) throws VitamClientInternalException {
 
         ParametersChecker.checkParameter("processId and reportExportRequest should be filled", processId,
             reportExportRequest);
 
-        httpPost(EXPORT_ELIMINATION_ACTION_ACCESSION_REGISTER + processId, reportExportRequest);
+        httpPost(EXPORT_PURGE_ACCESSION_REGISTER + processId, reportExportRequest);
     }
 
     @Override

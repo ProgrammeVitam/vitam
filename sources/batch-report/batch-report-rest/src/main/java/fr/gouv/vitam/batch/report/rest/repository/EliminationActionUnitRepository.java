@@ -27,14 +27,10 @@
 package fr.gouv.vitam.batch.report.rest.repository;
 
 import com.google.common.annotations.VisibleForTesting;
-import com.mongodb.client.DistinctIterable;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoCursor;
-import com.mongodb.client.model.Accumulators;
 import com.mongodb.client.model.Aggregates;
 import com.mongodb.client.model.Projections;
-import com.mongodb.client.model.Sorts;
-import fr.gouv.vitam.batch.report.model.EliminationActionObjectGroupModel;
 import fr.gouv.vitam.batch.report.model.EliminationActionUnitModel;
 import fr.gouv.vitam.common.database.server.mongodb.MongoDbAccess;
 import org.bson.Document;
@@ -47,9 +43,6 @@ import java.util.stream.Collectors;
 
 import static com.mongodb.client.model.Filters.and;
 import static com.mongodb.client.model.Filters.eq;
-import static fr.gouv.vitam.batch.report.model.EliminationActionAccessionRegisterModel.OPI;
-import static fr.gouv.vitam.batch.report.model.EliminationActionAccessionRegisterModel.ORIGINATING_AGENCY;
-import static fr.gouv.vitam.batch.report.model.EliminationActionAccessionRegisterModel.TOTAL_UNITS;
 
 /**
  * ReportRepository
@@ -57,7 +50,6 @@ import static fr.gouv.vitam.batch.report.model.EliminationActionAccessionRegiste
 public class EliminationActionUnitRepository extends ReportCommonRepository {
 
     public static final String ELIMINATION_ACTION_UNIT = "EliminationActionUnit";
-    public static final String METADATA_OBJECT_GROUP_ID = "_metadata.objectGroupId";
     private final MongoCollection<Document> unitReportCollection;
 
     @VisibleForTesting
@@ -91,6 +83,7 @@ public class EliminationActionUnitRepository extends ReportCommonRepository {
                     new Document("id", "$_metadata.id"),
                     new Document("distribGroup", null),
                     new Document("params.id", "$_metadata.id"),
+                    new Document("params.type", new Document("$literal", "Unit")),
                     new Document("params.status", "$_metadata.status"),
                     new Document("params.opi", "$_metadata.opi"),
                     new Document("params.originatingAgency", "$_metadata.originatingAgency"),
@@ -105,54 +98,5 @@ public class EliminationActionUnitRepository extends ReportCommonRepository {
 
     public void deleteReportByIdAndTenant(String processId, int tenantId) {
         super.deleteReportByIdAndTenant(processId, tenantId, unitReportCollection);
-    }
-
-    /**
-     * Aggregation on distinct objectGroupId, with status DELETED
-     *
-     * @param processId processId
-     * @param tenantId tenantId
-     * @return cursor over distinct objectGroupId
-     */
-    public MongoCursor<String> distinctObjectGroupOfDeletedUnits(String processId, int tenantId) {
-        DistinctIterable<String> distinctObjectGroup =
-            unitReportCollection
-                .distinct(METADATA_OBJECT_GROUP_ID, and(eq(EliminationActionUnitModel.PROCESS_ID, processId),
-                    eq("_metadata.status", "DELETED"), eq(EliminationActionUnitModel.TENANT, tenantId)), String.class);
-        return distinctObjectGroup.iterator();
-    }
-
-    /**
-     * Compute Own AccessionRegisterDetails
-     */
-    public MongoCursor<Document> computeOwnAccessionRegisterDetails(String processId, int tenantId) {
-        return unitReportCollection.aggregate(
-            Arrays.asList(
-                // Filter
-                Aggregates.match(and(
-                    eq(EliminationActionObjectGroupModel.PROCESS_ID, processId),
-                    eq(EliminationActionObjectGroupModel.TENANT, tenantId),
-                    eq("_metadata.status", "DELETED")
-                )),
-                // Group By
-                Aggregates.group("$_metadata." + OPI,
-                    Accumulators.first(ORIGINATING_AGENCY, "$_metadata." + ORIGINATING_AGENCY),
-                    Accumulators.sum(TOTAL_UNITS, 1)
-                ),
-                // Projection
-                Aggregates.project(Projections.fields(
-                    new Document("_id", 0),
-                    new Document(OPI, "$_id"),
-                    new Document(ORIGINATING_AGENCY, 1),
-                    new Document(TOTAL_UNITS, 1)
-                    )
-                ),
-                // Sort
-                Aggregates.sort(Sorts.descending("opi"))
-            )
-        )
-            // Aggregation query requires more than 100MB to proceed.
-            .allowDiskUse(true)
-            .iterator();
     }
 }

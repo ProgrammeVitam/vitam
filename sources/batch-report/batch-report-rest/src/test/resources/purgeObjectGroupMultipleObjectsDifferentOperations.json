@@ -1,0 +1,95 @@
+{
+  "processId": "123456789",
+  "reportType":"PURGE_OBJECTGROUP",
+  "entries": [
+    {
+      "opi": "opi0",
+      "id": "id0",
+      "originatingAgency": "sp1",
+      "status": "DELETED",
+      "objectIds":[
+        "binary1",
+        "binary2"
+      ],
+      "objectVersions": [
+        {
+          "opi": "opi0",
+          "size": 3
+        },
+        {
+          "opi": "opi1",
+          "size": 6
+        },
+        {
+          "opi": "opi2",
+          "size": 6
+        }
+      ]
+    },
+    {
+      "opi": "opi0",
+      "id": "id1",
+      "originatingAgency": "sp1",
+      "status": "DELETED",
+      "objectIds":[
+        "binary1",
+        "binary2"
+      ],
+      "objectVersions": [
+        {
+          "opi": "opi0",
+          "size": 4
+        },
+        {
+          "opi": "opi1",
+          "size": 6
+        },
+        {
+          "opi": "opi2",
+          "size": 6
+        }
+      ]
+    },
+    {
+      "opi": "opi1",
+      "id": "id2",
+      "originatingAgency": "sp1",
+      "status": "DELETED",
+      "objectIds":[
+        "binary1",
+        "binary2"
+      ],
+      "objectVersions": [
+        {
+          "opi": "opi1",
+          "size": 1
+        },
+        {
+          "opi": "opi2",
+          "size": 6
+        }
+      ]
+    },
+    {
+      "opi": "opi2",
+      "id": "id3",
+      "originatingAgency": "sp1",
+      "status": "DELETED",
+      "objectIds":[
+        "binary1",
+        "binary2"
+      ],
+      "objectVersions": [
+        {
+          "opi": "opi2",
+          "size": 2
+        },
+        {
+          "opi": "opi3",
+          "size": 6
+        }
+      ]
+    }
+  ]
+}
+

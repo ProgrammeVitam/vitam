@@ -26,23 +26,81 @@
  */
 package fr.gouv.vitam.worker.core.plugin.transfer.reply;
 
+import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.model.ItemStatus;
+import fr.gouv.vitam.common.model.StatusCode;
+import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
+import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
+import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
+import fr.gouv.vitam.common.thread.VitamThreadUtils;
+import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
+import fr.gouv.vitam.processing.common.parameter.WorkerParametersFactory;
+import fr.gouv.vitam.worker.common.HandlerIO;
+import fr.gouv.vitam.worker.core.plugin.elimination.report.EliminationActionReportService;
+import fr.gouv.vitam.worker.core.plugin.purge.PurgeReportService;
+import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.MockitoJUnit;
+import org.mockito.junit.MockitoRule;
 
-import static fr.gouv.vitam.common.model.StatusCode.OK;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.verify;
 
 public class TransferReplyFinalizationPluginTest {
 
-    @Test
-    public void should_transfer_reply_finalization_ok() throws Exception {
-        // Given
-        TransferReplyFinalizationPlugin transferReplyFinalizationPlugin = new TransferReplyFinalizationPlugin();
+    @Rule
+    public RunWithCustomExecutorRule runInThread =
+        new RunWithCustomExecutorRule(VitamThreadPoolExecutor.getDefaultExecutor());
 
-        // When
-        ItemStatus result = transferReplyFinalizationPlugin.execute(null, null);
+    @Rule
+    public MockitoRule mockitoRule = MockitoJUnit.rule();
+
+    @Mock
+    private TransferReplyReportService eliminationActionReportService;
+
+    @Mock
+    private PurgeReportService purgeReportService;
+
+    @InjectMocks
+    private TransferReplyFinalizationPlugin instance;
+
+    @Mock
+    private HandlerIO handler;
+
+    private WorkerParameters params;
+
+    @Before
+    public void setUp() throws Exception {
+
+        VitamThreadUtils.getVitamSession().setTenantId(0);
+        VitamThreadUtils.getVitamSession().setRequestId("opId");
+
+        params = WorkerParametersFactory.newWorkerParameters().setWorkerGUID(GUIDFactory
+            .newGUID()).setContainerName(VitamThreadUtils.getVitamSession().getRequestId())
+            .setRequestId(VitamThreadUtils.getVitamSession().getRequestId())
+            .setContainerName(VitamThreadUtils.getVitamSession().getRequestId())
+            .setObjectName("REF")
+            .setCurrentStep("StepName");
+
+        doReturn(VitamThreadUtils.getVitamSession().getRequestId())
+            .when(handler).getContainerName();
+    }
+
+    @Test
+    @RunWithCustomExecutor
+    public void should_transfer_reply_finalization_ok() throws Exception {
+
+        // Given / When
+        ItemStatus itemStatus = instance.execute(params, handler);
 
         // Then
-        assertThat(result.getGlobalStatus()).isEqualTo(OK);
+        assertThat(itemStatus.getGlobalStatus()).isEqualTo(StatusCode.OK);
+        verify(eliminationActionReportService).cleanupReport(any());
+        verify(purgeReportService).cleanupReport(any());
     }
 }

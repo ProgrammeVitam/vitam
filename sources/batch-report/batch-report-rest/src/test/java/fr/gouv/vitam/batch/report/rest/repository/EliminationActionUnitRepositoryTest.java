@@ -1,4 +1,4 @@
-package fr.gouv.vitam.batch.report.rest.repository; /*******************************************************************************
+/*
  * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2019)
  *
  * contact.vitam@culture.gouv.fr
@@ -23,8 +23,12 @@ package fr.gouv.vitam.batch.report.rest.repository; /***************************
  *
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
- *******************************************************************************/
+ */
+package fr.gouv.vitam.batch.report.rest.repository;
+
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.exc.InvalidFormatException;
 import com.mongodb.client.FindIterable;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoCursor;
@@ -51,18 +55,17 @@ import java.util.stream.Collectors;
 
 import static com.mongodb.client.model.Filters.and;
 import static com.mongodb.client.model.Filters.eq;
-import static fr.gouv.vitam.batch.report.model.EliminationActionAccessionRegisterModel.OPI;
-import static fr.gouv.vitam.batch.report.model.EliminationActionAccessionRegisterModel.ORIGINATING_AGENCY;
-import static fr.gouv.vitam.batch.report.model.EliminationActionAccessionRegisterModel.TOTAL_UNITS;
 import static fr.gouv.vitam.common.database.collections.VitamCollection.getMongoClientOptions;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.groups.Tuple.tuple;
 
 public class EliminationActionUnitRepositoryTest {
 
     private final static String ELIMINATION_ACTION_UNIT = "EliminationActionUnit" + GUIDFactory.newGUID().getId();
     private static final int TENANT_ID = 0;
     private static final String PROCESS_ID = "123456789";
+    private static final TypeReference<ReportBody<EliminationActionUnitReportEntry>>
+        TYPE_REFERENCE = new TypeReference<ReportBody<EliminationActionUnitReportEntry>>() {
+    };
 
     @Rule
     public MongoRule mongoRule =
@@ -73,7 +76,7 @@ public class EliminationActionUnitRepositoryTest {
     private MongoCollection<Document> eliminationUnitCollection;
 
     @Before
-    public void setUp() throws Exception {
+    public void setUp() {
         MongoDbAccess mongoDbAccess = new SimpleMongoDBAccess(mongoRule.getMongoClient(), MongoRule.VITAM_DB);
         repository = new EliminationActionUnitRepository(mongoDbAccess, ELIMINATION_ACTION_UNIT);
         eliminationUnitCollection = mongoRule.getMongoCollection(ELIMINATION_ACTION_UNIT);
@@ -81,7 +84,7 @@ public class EliminationActionUnitRepositoryTest {
 
     @Test
     public void should_bulk_append_unit_report_and_check_metadata_id_unicity()
-        throws InvalidParseOperationException {
+        throws Exception {
         // Given
         List<EliminationActionUnitModel> eliminationActionUnitModels = getDocuments("/eliminationUnitModel.json");
         // When
@@ -96,7 +99,7 @@ public class EliminationActionUnitRepositoryTest {
         Object metadata = first.get("_metadata");
         JsonNode metadataNode = JsonHandler.toJsonNode(metadata);
         JsonNode expected = JsonHandler.getFromString(
-            "{\"outcome\":\"Outcome - TEST\",\"detailType\":\"Unit\",\"id\":\"unitId1\",\"unitId\":\"unitId1\",\"originatingAgency\":\"sp1\",\"opi\":\"opi0\",\"objectGroupId\":\"id2\",\"status\":\"DELETED\"}");
+            "{\"id\":\"unitId1\",\"originatingAgency\":\"sp1\",\"opi\":\"opi0\",\"objectGroupId\":\"id2\",\"status\":\"GLOBAL_STATUS_KEEP\"}");
         assertThat(metadataNode).isNotNull().isEqualTo(expected);
         repository.bulkAppendReport(eliminationActionUnitModels);
         assertThat(eliminationUnitCollection.countDocuments()).isEqualTo(4);
@@ -104,7 +107,7 @@ public class EliminationActionUnitRepositoryTest {
 
     @Test
     public void should_bulk_append_unit_report_and_check_no_duplicate()
-        throws InvalidParseOperationException {
+        throws Exception {
         // Given
         List<EliminationActionUnitModel> eliminationActionUnitModels1 =
             getDocuments("/eliminationUnitWithDuplicateUnit.json");
@@ -123,39 +126,12 @@ public class EliminationActionUnitRepositoryTest {
         Assertions.assertThat(documents.size()).isEqualTo(9);
     }
 
-    @Test
-    public void compute_own_accession_register_ok()
-        throws InvalidParseOperationException {
-        // Given
-        List<EliminationActionUnitModel> eliminationActionUnitModels =
-            getDocuments("/eliminationUnitWithDuplicateUnit.json");
-        // When
-        repository.bulkAppendReport(eliminationActionUnitModels);
-
-        EliminationActionUnitModel first = eliminationActionUnitModels.iterator().next();
-        // When
-        MongoCursor<Document> iterator = repository.computeOwnAccessionRegisterDetails(first.getProcessId(), TENANT_ID);
-        List<Document> documents = new ArrayList<>();
-        while (iterator.hasNext()) {
-            documents.add(iterator.next());
-        }
-
-        // Then
-        Assertions.assertThat(documents.size()).isEqualTo(4);
-
-        Assertions.assertThat(documents)
-            .extracting(OPI, ORIGINATING_AGENCY, TOTAL_UNITS)
-            .containsSequence(
-                tuple("opi9", "sp1", 1),
-                tuple("opi3", "sp2", 2),
-                tuple("opi1", "sp1", 1),
-                tuple("opi0", "sp1", 3)
-            );
-    }
-
-    private List<EliminationActionUnitModel> getDocuments(String filename) throws InvalidParseOperationException {
+    private List<EliminationActionUnitModel> getDocuments(String filename)
+        throws InvalidParseOperationException, InvalidFormatException {
         InputStream stream = getClass().getResourceAsStream(filename);
-        ReportBody<EliminationActionUnitReportEntry> reportBody = JsonHandler.getFromInputStream(stream, ReportBody.class, EliminationActionUnitReportEntry.class);
+        ReportBody<EliminationActionUnitReportEntry> reportBody =
+            JsonHandler.getFromInputStreamAsTypeRefence(stream, TYPE_REFERENCE);
+
         return reportBody.getEntries().stream()
             .map(md -> {
                 EliminationActionUnitModel eliminationActionUnitModel = new EliminationActionUnitModel();
@@ -186,27 +162,10 @@ public class EliminationActionUnitRepositoryTest {
     }
 
     @Test
-    public void should_find_distinct_objectGroup_for_the_given_unit_deleted() throws Exception {
-        // Given
-        List<EliminationActionUnitModel> eliminationObjectGroupModels = getDocuments("/eliminationUnitModel.json");
-        repository.bulkAppendReport(eliminationObjectGroupModels);
-        // When
-        MongoCursor<String> mongoCursor = repository.distinctObjectGroupOfDeletedUnits(PROCESS_ID, TENANT_ID);
-        // Then
-        List<String> documentIds = new ArrayList<>();
-        while (mongoCursor.hasNext()) {
-            documentIds.add(mongoCursor.next());
-        }
-        assertThat(documentIds).isNotEmpty();
-        assertThat(documentIds.size()).isEqualTo(3);
-        assertThat(documentIds).contains("id2", "id3", "id1");
-    }
-
-    @Test
     public void should_delete_elimination_by_processId_and_tenant() throws Exception {
         // Given
-        List<EliminationActionUnitModel> eliminationObjectGroupModels = getDocuments("/eliminationUnitModel.json");
-        repository.bulkAppendReport(eliminationObjectGroupModels);
+        List<EliminationActionUnitModel> eliminationActionUnitModels = getDocuments("/eliminationUnitModel.json");
+        repository.bulkAppendReport(eliminationActionUnitModels);
         // When
         repository.deleteReportByIdAndTenant(PROCESS_ID, TENANT_ID);
         // Then

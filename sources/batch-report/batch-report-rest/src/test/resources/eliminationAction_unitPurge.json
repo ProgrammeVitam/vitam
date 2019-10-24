@@ -1,0 +1,14 @@
+[
+  {
+    "id": "unitId2",
+    "params": {
+      "type": "Unit",
+      "opi": "opi0",
+      "objectGroupId": "id2",
+      "originatingAgency": "sp1",
+      "status": "DELETED",
+      "unitId": "unitId1",
+      "id": "unitId2"
+    }
+  }
+]

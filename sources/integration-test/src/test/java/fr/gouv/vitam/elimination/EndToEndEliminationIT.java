@@ -27,17 +27,18 @@
 package fr.gouv.vitam.elimination;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.google.common.collect.Iterators;
 import com.google.common.collect.Sets;
+import com.google.common.collect.Streams;
 import com.mongodb.client.model.Filters;
 import fr.gouv.vitam.access.internal.client.AccessInternalClient;
 import fr.gouv.vitam.access.internal.client.AccessInternalClientFactory;
 import fr.gouv.vitam.access.internal.common.exception.AccessInternalClientNotFoundException;
 import fr.gouv.vitam.access.internal.common.exception.AccessInternalClientServerException;
 import fr.gouv.vitam.access.internal.rest.AccessInternalMain;
-import fr.gouv.vitam.batch.report.model.entry.EliminationActionObjectGroupReportEntry;
-import fr.gouv.vitam.batch.report.model.entry.EliminationActionUnitReportEntry;
 import fr.gouv.vitam.batch.report.rest.BatchReportMain;
 import fr.gouv.vitam.common.CommonMediaType;
 import fr.gouv.vitam.common.DataLoader;
@@ -59,7 +60,6 @@ import fr.gouv.vitam.common.exception.BadRequestException;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.format.identification.FormatIdentifierFactory;
 import fr.gouv.vitam.common.guid.GUID;
-import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.SysErrLogger;
 import fr.gouv.vitam.common.model.ProcessAction;
@@ -98,13 +98,16 @@ import fr.gouv.vitam.storage.engine.client.exception.StorageServerClientExceptio
 import fr.gouv.vitam.storage.engine.common.model.DataCategory;
 import fr.gouv.vitam.storage.engine.server.rest.StorageMain;
 import fr.gouv.vitam.storage.offers.rest.DefaultOfferMain;
-import fr.gouv.vitam.worker.core.plugin.elimination.model.EliminationActionObjectGroupStatus;
+import fr.gouv.vitam.worker.core.distribution.JsonLineGenericIterator;
 import fr.gouv.vitam.worker.core.plugin.elimination.model.EliminationActionUnitStatus;
+import fr.gouv.vitam.worker.core.plugin.purge.PurgeObjectGroupStatus;
+import fr.gouv.vitam.worker.core.plugin.purge.PurgeUnitStatus;
 import fr.gouv.vitam.worker.server.rest.WorkerMain;
 import fr.gouv.vitam.workspace.rest.WorkspaceMain;
 import io.restassured.RestAssured;
 import net.javacrumbs.jsonunit.JsonAssert;
 import org.apache.commons.collections4.SetUtils;
+import org.apache.commons.io.IOUtils;
 import org.assertj.core.util.Lists;
 import org.elasticsearch.index.query.QueryBuilders;
 import org.junit.AfterClass;
@@ -115,9 +118,11 @@ import org.junit.Test;
 
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
+import java.io.ByteArrayInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
@@ -184,6 +189,15 @@ public class EndToEndEliminationIT extends VitamRuleRunner {
     private static String ACCESSION_REGISTER_SUMMARY =
         "elimination/accession_regoister_summary.json";
     private WorkFlow workflow = WorkFlow.of(WORKFLOW_ID, WORKFLOW_IDENTIFIER, "INGEST");
+    private TypeReference<JsonNode> JSON_NODE_TYPE_REFERENCE =
+        new TypeReference<JsonNode>() {
+        };
+    private TypeReference<UnitReportEntry> UNIT_REPORT_TYPE_REFERENCE =
+        new TypeReference<UnitReportEntry>() {
+        };
+    private TypeReference<ObjectGroupReportEntry> OG_REPORT_TYPE_REFERENCE =
+        new TypeReference<ObjectGroupReportEntry>() {
+        };
 
     @BeforeClass
     public static void setUpBeforeClass() throws Exception {
@@ -279,7 +293,7 @@ public class EndToEndEliminationIT extends VitamRuleRunner {
     @RunWithCustomExecutor
     @Test
     public void testEliminationAction() throws Exception {
-        final GUID ingestOperationGuid = GUIDFactory.newOperationLogbookGUID(tenantId);
+        final GUID ingestOperationGuid = newOperationLogbookGUID(tenantId);
         prepareVitamSession();
         VitamThreadUtils.getVitamSession().setRequestId(ingestOperationGuid);
         // workspace client unzip SIP in workspace
@@ -318,7 +332,7 @@ public class EndToEndEliminationIT extends VitamRuleRunner {
         assertThat(ingestedObjectIds).hasSize(3);
 
         // elimination action
-        final GUID eliminationActionOperationGuid = GUIDFactory.newOperationLogbookGUID(tenantId);
+        final GUID eliminationActionOperationGuid = newOperationLogbookGUID(tenantId);
         VitamThreadUtils.getVitamSession().setRequestId(eliminationActionOperationGuid);
 
         SelectMultiQuery analysisDslRequest = new SelectMultiQuery();
@@ -436,10 +450,11 @@ public class EndToEndEliminationIT extends VitamRuleRunner {
                     eliminationActionOperationGuid.toString() + ".jsonl", DataCategory.REPORT,
                     AccessLogUtils.getNoLogAccessLog());
 
-                assertThat(reportResponse.getStatus()).isEqualTo(Response.Status.OK.getStatusCode());
+                assertThat(reportResponse.getStatus()).isEqualTo(Status.OK.getStatusCode());
 
                 // FIXME: Find how to instanceiate JsonLine as Java in order to check report content
-                // checkReport(reportResponse, ingestedUnits, ingestedUnitsByTitle, ingestOperationGuid, ingestedGots, detachedGotId);
+                checkReport(reportResponse, ingestedUnits, ingestedUnitsByTitle, ingestOperationGuid, ingestedGots,
+                    detachedGotId);
 
             } finally {
                 consumeAnyEntityAndClose(reportResponse);
@@ -450,74 +465,101 @@ public class EndToEndEliminationIT extends VitamRuleRunner {
     private void checkReport(Response reportResponse, RequestResponseOK<JsonNode> ingestedUnits,
         Map<String, JsonNode> ingestedUnitsByTitle,
         GUID ingestOperationGuid, RequestResponseOK<JsonNode> ingestedGots, String detachedGotId)
-        throws IOException, InvalidParseOperationException {
-        try (InputStream is = reportResponse.readEntity(InputStream.class)) {
-            ReportModel report = JsonHandler.getFromInputStream(is, ReportModel.class);
+        throws IOException {
+
+        String data = IOUtils.toString(reportResponse.readEntity(InputStream.class), StandardCharsets.UTF_8);
+        System.out.println(data);
+
+        try (InputStream is = new ByteArrayInputStream(data.getBytes(StandardCharsets.UTF_8));
+            JsonLineGenericIterator<JsonNode> reportIterator = new JsonLineGenericIterator<>(is,
+                JSON_NODE_TYPE_REFERENCE)) {
+
+            // Skip context headers
+            reportIterator.skip();
+            reportIterator.skip();
+            reportIterator.skip();
 
             //Check report units
-            assertThat(report.units).hasSize(6);
+            Map<String, UnitReportEntry> unitReportByTitle = Streams.stream(
+                Iterators.transform(
+                    Iterators.limit(reportIterator, 6),
+                    entry -> asTypeReference(entry, UNIT_REPORT_TYPE_REFERENCE))
+            ).collect(Collectors.toMap(entry -> getTitle(getUnitById(ingestedUnits, entry.id)), entry -> entry));
 
-            Map<String, EliminationActionUnitReportEntry> unitReportByTitle = report.units.stream()
-                .collect(Collectors.toMap(
-                    entry -> ingestedUnits.getResults().stream()
-                        .filter(unit -> unit.get(VitamFieldsHelper.id()).asText().equals(entry.getUnitId()))
-                        .map(this::getTitle)
-                        .findFirst().get()
-                    , entry -> entry));
+            assertThat(unitReportByTitle).hasSize(6);
 
-            assertThat(unitReportByTitle.get(CARREFOUR_PLEYEL).getStatus()).isEqualTo(
-                EliminationActionUnitStatus.GLOBAL_STATUS_KEEP);
-            assertThat(unitReportByTitle.get(SAINT_DENIS_BASILIQUE).getStatus()).isEqualTo(
-                EliminationActionUnitStatus.NON_DESTROYABLE_HAS_CHILD_UNITS);
-            assertThat(unitReportByTitle.get(SAINT_DENIS_UNIVERSITE_LIGNE_13).getStatus()).isEqualTo(
-                EliminationActionUnitStatus.NON_DESTROYABLE_HAS_CHILD_UNITS);
-            assertThat(unitReportByTitle.get(SAINT_LAZARE).getStatus()).isEqualTo(
-                EliminationActionUnitStatus.DELETED);
-            assertThat(unitReportByTitle.get(MARX_DORMOY).getStatus()).isEqualTo(
-                EliminationActionUnitStatus.DELETED);
-            assertThat(unitReportByTitle.get(MONTPARNASSE).getStatus()).isEqualTo(
-                EliminationActionUnitStatus.DELETED);
+            assertThat(unitReportByTitle.get(CARREFOUR_PLEYEL).params.status).isEqualTo(
+                EliminationActionUnitStatus.GLOBAL_STATUS_KEEP.name());
+            assertThat(unitReportByTitle.get(SAINT_DENIS_BASILIQUE).params.status).isEqualTo(
+                PurgeUnitStatus.NON_DESTROYABLE_HAS_CHILD_UNITS.name());
+            assertThat(unitReportByTitle.get(SAINT_DENIS_UNIVERSITE_LIGNE_13).params.status).isEqualTo(
+                PurgeUnitStatus.NON_DESTROYABLE_HAS_CHILD_UNITS.name());
+            assertThat(unitReportByTitle.get(SAINT_LAZARE).params.status).isEqualTo(
+                PurgeUnitStatus.DELETED.name());
+            assertThat(unitReportByTitle.get(MARX_DORMOY).params.status).isEqualTo(
+                PurgeUnitStatus.DELETED.name());
+            assertThat(unitReportByTitle.get(MONTPARNASSE).params.status).isEqualTo(
+                PurgeUnitStatus.DELETED.name());
 
-            for (EliminationActionUnitReportEntry unitReport : report.units) {
+            for (UnitReportEntry unitReport : unitReportByTitle.values()) {
 
-                JsonNode unit = ingestedUnits.getResults().stream()
-                    .filter(ingestedUnit -> getId(ingestedUnit)
-                        .equals(unitReport.getUnitId()))
-                    .findFirst().get();
+                JsonNode unit = getUnitById(ingestedUnits, unitReport.id);
 
-                assertThat(unitReport.getInitialOperation()).isEqualTo(ingestOperationGuid.toString());
-                assertThat(unitReport.getOriginatingAgency()).isEqualTo(ORIGINATING_AGENCY);
-                assertThat(unitReport.getObjectGroupId())
-                    .isEqualTo(getObjectGroupId(unit));
+                assertThat(unitReport.params.opi).isEqualTo(ingestOperationGuid.toString());
+                assertThat(unitReport.params.originatingAgency).isEqualTo(ORIGINATING_AGENCY);
+                assertThat(unitReport.params.objectGroupId).isEqualTo(getObjectGroupId(unit));
             }
 
-            //Check report gots
-            assertThat(report.objectGroups).hasSize(2);
+            //Check report object groups
+            List<ObjectGroupReportEntry> objectGroupReports = Streams.stream(
+                Iterators.transform(
+                    Iterators.limit(reportIterator, 2),
+                    entry -> asTypeReference(entry, OG_REPORT_TYPE_REFERENCE))
+            ).collect(Collectors.toList());
+
+            assertThat(objectGroupReports).hasSize(2);
 
             String deletedGotId = getObjectGroupId(ingestedUnitsByTitle.get(MARX_DORMOY));
-            EliminationActionObjectGroupReportEntry deletedGotReport = report.objectGroups.stream()
-                .filter(got -> got.getObjectGroupId().equals(deletedGotId))
+            ObjectGroupReportEntry deletedGotReport = objectGroupReports.stream()
+                .filter(got -> got.id.equals(deletedGotId))
                 .findFirst().get();
-            assertThat(deletedGotReport.getStatus()).isEqualTo(EliminationActionObjectGroupStatus.DELETED);
-            assertThat(deletedGotReport.getInitialOperation()).isEqualTo(ingestOperationGuid.toString());
-            assertThat(deletedGotReport.getOriginatingAgency()).isEqualTo(ORIGINATING_AGENCY);
-            assertThat(deletedGotReport.getObjectIds()).containsExactlyInAnyOrderElementsOf(
-                getObjectIds(ingestedGots.getResults().stream()
-                    .filter(got -> getId(got).equals(deletedGotId))
-                    .findFirst().get()));
-            assertThat(deletedGotReport.getDeletedParentUnitIds()).isNullOrEmpty();
+            assertThat(deletedGotReport.params.status).isEqualTo(PurgeObjectGroupStatus.DELETED.name());
+            assertThat(deletedGotReport.params.opi).isEqualTo(ingestOperationGuid.toString());
+            assertThat(deletedGotReport.params.originatingAgency).isEqualTo(ORIGINATING_AGENCY);
+            assertThat(deletedGotReport.params.objectIds).containsExactlyInAnyOrderElementsOf(
+                getObjectIds(getUnitById(ingestedGots, deletedGotId)));
+            assertThat(deletedGotReport.params.deletedParentUnitIds).isNullOrEmpty();
 
-            EliminationActionObjectGroupReportEntry detachedGotReport = report.objectGroups.stream()
-                .filter(got -> got.getObjectGroupId().equals(detachedGotId))
+            ObjectGroupReportEntry detachedGotReport = objectGroupReports.stream()
+                .filter(got -> got.id.equals(detachedGotId))
                 .findFirst().get();
-            assertThat(detachedGotReport.getStatus())
-                .isEqualTo(EliminationActionObjectGroupStatus.PARTIAL_DETACHMENT);
-            assertThat(detachedGotReport.getInitialOperation()).isEqualTo(ingestOperationGuid.toString());
-            assertThat(detachedGotReport.getOriginatingAgency()).isEqualTo(ORIGINATING_AGENCY);
-            assertThat(detachedGotReport.getObjectIds()).isNullOrEmpty();
-            assertThat(detachedGotReport.getDeletedParentUnitIds()).containsExactlyInAnyOrder(
+            assertThat(detachedGotReport.params.status)
+                .isEqualTo(PurgeObjectGroupStatus.PARTIAL_DETACHMENT.name());
+            assertThat(detachedGotReport.params.opi).isEqualTo(ingestOperationGuid.toString());
+            assertThat(detachedGotReport.params.originatingAgency).isEqualTo(ORIGINATING_AGENCY);
+            assertThat(detachedGotReport.params.objectIds).isNullOrEmpty();
+            assertThat(detachedGotReport.params.deletedParentUnitIds).containsExactlyInAnyOrder(
                 getId(ingestedUnitsByTitle.get(MONTPARNASSE)));
+
+            // Check end of report
+            assertThat(reportIterator.hasNext()).isFalse();
         }
+    }
+
+    private <T> T asTypeReference(JsonNode entry, TypeReference<T> typeReference) {
+        try {
+            return JsonHandler.getFromJsonNode(entry, typeReference);
+        } catch (InvalidParseOperationException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    private JsonNode getUnitById(RequestResponseOK<JsonNode> ingestedUnits, String id) {
+        System.out.println(ingestedUnits);
+        System.out.println(id);
+        return ingestedUnits.getResults().stream()
+            .filter(ingestedUnit -> getId(ingestedUnit).equals(id))
+            .findFirst().orElseThrow(() -> new RuntimeException("No such unit " + id));
     }
 
     private void assertJsonEquals(String resourcesFile, JsonNode actual, List<String> excludeFields)
@@ -588,7 +630,8 @@ public class EndToEndEliminationIT extends VitamRuleRunner {
 
             List<String> offers = storageClient.getOffers(VitamConfiguration.getDefaultStrategy());
             JsonNode information =
-                storageClient.getInformation(VitamConfiguration.getDefaultStrategy(), dataCategory, filename, offers, false);
+                storageClient
+                    .getInformation(VitamConfiguration.getDefaultStrategy(), dataCategory, filename, offers, false);
             boolean fileFound = information.size() > 0;
             assertThat(fileFound).isEqualTo((boolean) shouldExist);
         }
@@ -692,13 +735,48 @@ public class EndToEndEliminationIT extends VitamRuleRunner {
         assertEquals(ok, processWorkflow.getStatus());
     }
 
-
-    private static class ReportModel {
-        @JsonProperty("units")
-        private List<EliminationActionUnitReportEntry> units;
-
-        @JsonProperty("objectGroups")
-        private List<EliminationActionObjectGroupReportEntry> objectGroups;
+    private static class UnitReportEntry {
+        @JsonProperty("id")
+        String id;
+        @JsonProperty("params")
+        UnitReportParams params;
     }
 
+
+    private static class UnitReportParams {
+        @JsonProperty("id")
+        String id;
+        @JsonProperty("status")
+        String status;
+        @JsonProperty("opi")
+        String opi;
+        @JsonProperty("originatingAgency")
+        String originatingAgency;
+        @JsonProperty("objectGroupId")
+        String objectGroupId;
+    }
+
+
+    private static class ObjectGroupReportEntry {
+        @JsonProperty("id")
+        String id;
+        @JsonProperty("params")
+        ObjectGroupReportParams params;
+    }
+
+
+    private static class ObjectGroupReportParams {
+        @JsonProperty("id")
+        String id;
+        @JsonProperty("status")
+        String status;
+        @JsonProperty("opi")
+        String opi;
+        @JsonProperty("originatingAgency")
+        String originatingAgency;
+        @JsonProperty("objectIds")
+        List<String> objectIds;
+        @JsonProperty("deletedParentUnitIds")
+        List<String> deletedParentUnitIds;
+    }
 }

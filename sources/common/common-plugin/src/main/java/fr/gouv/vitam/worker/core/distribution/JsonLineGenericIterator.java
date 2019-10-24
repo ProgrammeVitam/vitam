@@ -70,6 +70,10 @@ public class JsonLineGenericIterator<T> implements CloseableIterator<T> {
         }
     }
 
+    public void skip() {
+        this.lineIterator.next();
+    }
+
     @Override
     public void close() {
         try {

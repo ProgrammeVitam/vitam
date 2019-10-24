@@ -49,8 +49,10 @@ import fr.gouv.vitam.worker.core.plugin.BinaryEventData;
 import fr.gouv.vitam.worker.core.plugin.transfer.reply.model.TransferReplyContext;
 import fr.gouv.vitam.worker.core.utils.PluginHelper.EventDetails;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
+import org.apache.commons.io.FileUtils;
 
 import java.io.File;
+import java.io.IOException;
 import java.io.InputStream;
 import java.util.Collections;
 
@@ -62,6 +64,7 @@ import static fr.gouv.vitam.worker.core.utils.PluginHelper.buildItemStatus;
 public class SaveAtrPlugin extends ActionHandler {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(SaveAtrPlugin.class);
     public static final String PLUGIN_NAME = "SAVE_ARCHIVAL_TRANSFER_REPLY";
+    private static final int TRANSFER_REPLY_CONTEXT_OUT_RANK = 0;
 
     private final StorageClientFactory storageClientFactory;
 
@@ -83,10 +86,12 @@ public class SaveAtrPlugin extends ActionHandler {
             ObjectDescription description = getDescription(messageIdentifier, handler.getContainerName());
             StoredInfoResult storedInfo = storageClient.storeFileFromWorkspace(VitamConfiguration.getDefaultStrategy(), description.getType(), description.getObjectName(), description);
 
-            handler.transferInputStreamToWorkspace(handler.getContainerName() + File.separator + TransferReplyContext.class.getSimpleName() + ".json", streamFromIds(atr), null, false);
+            File tempFile = handler.getNewLocalFile(handler.getOutput(TRANSFER_REPLY_CONTEXT_OUT_RANK).getPath());
+            FileUtils.copyInputStreamToFile(streamFromIds(atr), tempFile);
+            handler.addOutputResult(TRANSFER_REPLY_CONTEXT_OUT_RANK, tempFile, true, false);
 
             return buildItemStatus(PLUGIN_NAME, OK, Collections.singletonMap(messageIdentifier, BinaryEventData.from(storedInfo)));
-        } catch (StorageAlreadyExistsClientException | StorageNotFoundClientException | StorageServerClientException | InvalidParseOperationException e) {
+        } catch (StorageAlreadyExistsClientException | StorageNotFoundClientException | StorageServerClientException | InvalidParseOperationException | IOException e) {
             LOGGER.error(e);
             return buildItemStatus(PLUGIN_NAME, FATAL, EventDetails.of(e.getMessage()));
         }

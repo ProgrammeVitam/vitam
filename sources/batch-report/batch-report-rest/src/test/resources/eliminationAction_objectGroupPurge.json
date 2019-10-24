@@ -1,0 +1,29 @@
+[
+  {
+    "id": "objectGroup1",
+    "params": {
+      "type": "ObjectGroup",
+      "opi": "opi0",
+      "id": "objectGroup1",
+      "originatingAgency": "sp1",
+      "status": "DELETED",
+      "objectIds": [
+        "binary1",
+        "binary2"
+      ]
+    }
+  },
+  {
+    "id": "objectGroup2",
+    "params": {
+      "type": "ObjectGroup",
+      "opi": "opi1",
+      "id": "objectGroup2",
+      "originatingAgency": "sp1",
+      "status": "PARTIAL_DESTROY",
+      "deletedParentUnitIds": [
+        "unitId2"
+      ]
+    }
+  }
+]

@@ -17,7 +17,6 @@
           "action": {
             "actionKey": "VERIFY_ARCHIVAL_TRANSFER_REPLY",
             "behavior": "BLOCKING",
-            "lifecycleLog": "DISABLED",
             "out": [
               {
                 "name": "atrFileSerialized",
@@ -30,7 +29,6 @@
           "action": {
             "actionKey": "SAVE_ARCHIVAL_TRANSFER_REPLY",
             "behavior": "BLOCKING",
-            "lifecycleLog": "DISABLED",
             "in": [
               {
                 "name": "atrFileSerialized",
@@ -43,6 +41,158 @@
                 "uri": "WORKSPACE:TransferReplyContext.json"
               }
             ]
+          }
+        },
+        {
+          "action": {
+            "actionKey": "TRANSFER_REPLY_UNIT_PREPARATION",
+            "behavior": "BLOCKING",
+            "in": [
+              {
+                "name": "TransferReplyContext",
+                "uri": "WORKSPACE:TransferReplyContext.json"
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "workerGroupId": "DefaultWorker",
+      "stepName": "STP_TRANSFER_REPLY_DELETE_UNIT",
+      "behavior": "BLOCKING",
+      "distribution": {
+        "kind": "LIST_IN_JSONL_FILE",
+        "element": "units_to_delete.jsonl",
+        "type": "Units",
+        "statusOnEmptyDistribution": "WARNING"
+      },
+      "actions": [
+        {
+          "action": {
+            "behavior": "BLOCKING",
+            "actionKey": "TRANSFER_REPLY_DELETE_UNIT",
+            "lifecycleLog": "DISABLED"
+          }
+        }
+      ]
+    },
+    {
+      "workerGroupId": "DefaultWorker",
+      "stepName": "STP_TRANSFER_REPLY_OBJECT_GROUP_PREPARATION",
+      "behavior": "BLOCKING",
+      "distribution": {
+        "kind": "REF"
+      },
+      "actions": [
+        {
+          "action": {
+            "actionKey": "TRANSFER_REPLY_OBJECT_GROUP_PREPARATION",
+            "behavior": "BLOCKING"
+          }
+        }
+      ]
+    },
+    {
+      "workerGroupId": "DefaultWorker",
+      "stepName": "STP_TRANSFER_REPLY_DELETE_OBJECT_GROUP",
+      "behavior": "BLOCKING",
+      "distribution": {
+        "kind": "LIST_IN_JSONL_FILE",
+        "element": "object_groups_to_delete.jsonl",
+        "type": "ObjectGroup",
+        "statusOnEmptyDistribution": "OK"
+      },
+      "actions": [
+        {
+          "action": {
+            "behavior": "BLOCKING",
+            "actionKey": "TRANSFER_REPLY_DELETE_OBJECT_GROUP",
+            "lifecycleLog": "DISABLED"
+          }
+        }
+      ]
+    },
+    {
+      "workerGroupId": "DefaultWorker",
+      "stepName": "STP_TRANSFER_REPLY_DETACH_OBJECT_GROUP",
+      "behavior": "BLOCKING",
+      "distribution": {
+        "kind": "LIST_IN_JSONL_FILE",
+        "element": "object_groups_to_detach.jsonl",
+        "type": "ObjectGroup",
+        "statusOnEmptyDistribution": "OK"
+      },
+      "actions": [
+        {
+          "action": {
+            "behavior": "BLOCKING",
+            "actionKey": "TRANSFER_REPLY_DETACH_OBJECT_GROUP",
+            "lifecycleLog": "FLUSH_LFC"
+          }
+        },
+        {
+          "action": {
+            "actionKey": "OG_METADATA_STORAGE",
+            "behavior": "BLOCKING",
+            "lifecycleLog": "DISABLED"
+          }
+        },
+        {
+          "action": {
+            "behavior": "BLOCKING",
+            "actionKey": "OBJECT_GROUP_GRAPH_COMPUTE",
+            "lifecycleLog": "DISABLED"
+          }
+        }
+      ]
+    },
+    {
+      "workerGroupId": "DefaultWorker",
+      "stepName": "STP_TRANSFER_REPLY_ACCESSION_REGISTER_PREPARATION",
+      "behavior": "BLOCKING",
+      "distribution": {
+        "kind": "REF"
+      },
+      "actions": [
+        {
+          "action": {
+            "actionKey": "TRANSFER_REPLY_ACCESSION_REGISTER_PREPARATION",
+            "behavior": "BLOCKING"
+          }
+        }
+      ]
+    },
+    {
+      "workerGroupId": "DefaultWorker",
+      "stepName": "STP_TRANSFER_REPLY_ACCESSION_REGISTER_UPDATE",
+      "behavior": "BLOCKING",
+      "distribution": {
+        "kind": "LIST_IN_JSONL_FILE",
+        "element": "accession_register.jsonl"
+      },
+      "actions": [
+        {
+          "action": {
+            "actionKey": "TRANSFER_REPLY_ACCESSION_REGISTER_UPDATE",
+            "behavior": "BLOCKING",
+            "lifecycleLog": "DISABLED"
+          }
+        }
+      ]
+    },
+    {
+      "workerGroupId": "DefaultWorker",
+      "stepName": "STP_TRANSFER_REPLY_REPORT_GENERATION",
+      "behavior": "BLOCKING",
+      "distribution": {
+        "kind": "REF"
+      },
+      "actions": [
+        {
+          "action": {
+            "actionKey": "TRANSFER_REPLY_REPORT_GENERATION",
+            "behavior": "BLOCKING"
           }
         }
       ]

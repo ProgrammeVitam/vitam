@@ -1,0 +1,36 @@
+{
+  "processId": "123456789",
+  "reportType":"PURGE_UNIT",
+  "entries": [
+    {
+      "opi": "opi0",
+      "objectGroupId": "id2",
+      "originatingAgency": "sp1",
+      "status": "DELETED",
+      "id": "unitId1"
+    },
+    {
+      "opi": "opi1",
+      "objectGroupId": "id1",
+      "originatingAgency": "sp1",
+      "status": "NON_DESTROYABLE_HAS_CHILD_UNITS",
+      "id": "unitId2"
+
+    },
+    {
+      "opi": "opi0",
+      "objectGroupId": "id2",
+      "originatingAgency": "sp1",
+      "status": "DELETED",
+      "id": "unitId5"
+    },
+    {
+      "opi": "opi0",
+      "objectGroupId": "id4",
+      "originatingAgency": "sp1",
+      "status": "DELETED",
+      "id": "unitId6"
+    }
+  ]
+}
+

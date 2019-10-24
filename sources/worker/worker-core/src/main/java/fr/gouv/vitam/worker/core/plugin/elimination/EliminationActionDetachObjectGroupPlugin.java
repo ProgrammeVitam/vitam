@@ -26,42 +26,22 @@
  *******************************************************************************/
 package fr.gouv.vitam.worker.core.plugin.elimination;
 
-import com.fasterxml.jackson.core.type.TypeReference;
 import com.google.common.annotations.VisibleForTesting;
-import fr.gouv.vitam.common.json.JsonHandler;
-import fr.gouv.vitam.common.logging.VitamLogger;
-import fr.gouv.vitam.common.logging.VitamLoggerFactory;
-import fr.gouv.vitam.common.model.ItemStatus;
-import fr.gouv.vitam.common.model.StatusCode;
-import fr.gouv.vitam.processing.common.exception.ProcessingException;
-import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
-import fr.gouv.vitam.worker.common.HandlerIO;
-import fr.gouv.vitam.worker.core.exception.ProcessingStatusException;
-import fr.gouv.vitam.worker.core.handler.ActionHandler;
-
-import java.util.Set;
-
-import static fr.gouv.vitam.worker.core.utils.PluginHelper.buildItemStatus;
+import fr.gouv.vitam.worker.core.plugin.purge.PurgeDeleteService;
+import fr.gouv.vitam.worker.core.plugin.purge.PurgeDetachObjectGroupPlugin;
 
 /**
  * Elimination action detach object group plugin.
  */
-public class EliminationActionDetachObjectGroupPlugin extends ActionHandler {
-
-    private static final VitamLogger LOGGER =
-        VitamLoggerFactory.getInstance(EliminationActionDetachObjectGroupPlugin.class);
-    private static final TypeReference<Set<String>> STRING_SET_TYPE_REFERENCE = new TypeReference<Set<String>>() {
-    };
+public class EliminationActionDetachObjectGroupPlugin extends PurgeDetachObjectGroupPlugin {
 
     private static final String ELIMINATION_ACTION_DETACH_OBJECT_GROUP = "ELIMINATION_ACTION_DETACH_OBJECT_GROUP";
-
-    private final EliminationActionDeleteService eliminationActionDeleteService;
 
     /**
      * Default constructor
      */
     public EliminationActionDetachObjectGroupPlugin() {
-        this(new EliminationActionDeleteService());
+        super(ELIMINATION_ACTION_DETACH_OBJECT_GROUP);
     }
 
     /***
@@ -69,49 +49,8 @@ public class EliminationActionDetachObjectGroupPlugin extends ActionHandler {
      */
     @VisibleForTesting
     EliminationActionDetachObjectGroupPlugin(
-        EliminationActionDeleteService eliminationActionDeleteService) {
-        this.eliminationActionDeleteService = eliminationActionDeleteService;
-    }
-
-    @Override
-    public ItemStatus execute(WorkerParameters param, HandlerIO handler)
-        throws ProcessingException {
-
-        String objectGroupId = param.getObjectName();
-        try {
-            Set<String> parentUnitsToRemove = getParentUnitsToRemove(param);
-
-            if (LOGGER.isDebugEnabled()) {
-                LOGGER.debug("Detaching deleted parents [" + String.join(", ", parentUnitsToRemove) + "]" +
-                    " from object group " + objectGroupId);
-            }
-
-            eliminationActionDeleteService.detachObjectGroupFromDeleteParentUnits(
-                param.getProcessId(), objectGroupId, parentUnitsToRemove);
-
-            LOGGER.info("Object group " + objectGroupId + " detachment from parents succeeded");
-
-            return buildItemStatus(ELIMINATION_ACTION_DETACH_OBJECT_GROUP, StatusCode.OK, null);
-
-        } catch (ProcessingStatusException e) {
-            LOGGER.error("Object group " + objectGroupId + " detachment from parents failed with status" +
-                " [" + e.getStatusCode() + "]", e);
-            return buildItemStatus(ELIMINATION_ACTION_DETACH_OBJECT_GROUP, e.getStatusCode(), e.getEventDetails());
-        }
-    }
-
-    private Set<String> getParentUnitsToRemove(WorkerParameters params)
-        throws ProcessingStatusException {
-        try {
-            return JsonHandler.getFromJsonNode(params.getObjectMetadata(), STRING_SET_TYPE_REFERENCE);
-        } catch (Exception e) {
-            throw new ProcessingStatusException(StatusCode.FATAL, "Could not retrieve parent units to detach", e);
-        }
-    }
-
-    @Override
-    public void checkMandatoryIOParameter(HandlerIO handler) throws ProcessingException {
-        // NOP.
+        PurgeDeleteService purgeDeleteService) {
+        super(ELIMINATION_ACTION_DETACH_OBJECT_GROUP, purgeDeleteService);
     }
 
     public static String getId() {

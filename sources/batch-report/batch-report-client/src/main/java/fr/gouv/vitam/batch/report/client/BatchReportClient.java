@@ -39,14 +39,14 @@ import fr.gouv.vitam.common.external.client.BasicClient;
 public interface BatchReportClient extends BasicClient {
 
     /**
-     * Generate elimination action district object groups for units by status and process Id.
+     * Generate purge district object groups for units by status and process Id.
      * Report is stored in JSONL format in workspace.
      *
      * @param processId
      * @param reportExportRequest report export request
      * @throws VitamClientInternalException
      */
-    void generateEliminationActionDistinctObjectGroupInUnitReport(String processId,
+    void generatePurgeDistinctObjectGroupInUnitReport(String processId,
         ReportExportRequest reportExportRequest) throws VitamClientInternalException;
 
     /**
@@ -72,7 +72,7 @@ public interface BatchReportClient extends BasicClient {
      * @param reportExportRequest report export request
      * @throws VitamClientInternalException
      */
-    void generateEliminationActionAccessionRegisterReport(String processId,
+    void generatePurgeAccessionRegisterReport(String processId,
         ReportExportRequest reportExportRequest) throws VitamClientInternalException;
 
     /**

@@ -1,0 +1,12 @@
+[
+  {
+    "id": "unitId1",
+    "params": {
+      "id": "unitId1",
+      "opi": "opi0",
+      "objectGroupId": "id2",
+      "originatingAgency": "sp1",
+      "status": "GLOBAL_STATUS_CONFLICT"
+    }
+  }
+]

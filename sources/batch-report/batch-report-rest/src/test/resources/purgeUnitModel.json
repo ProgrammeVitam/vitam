@@ -1,0 +1,44 @@
+{
+  "processId": "123456789",
+  "reportType": "PURGE_UNIT",
+  "entries": [
+    {
+      "opi": "opi0",
+      "objectGroupId": "id2",
+      "originatingAgency": "sp1",
+      "status": "DELETED",
+      "unitId": "unitId1",
+      "detailType": "Unit",
+      "id": "unitId1"
+    },
+    {
+      "opi": "opi1",
+      "objectGroupId": "id1",
+      "originatingAgency": "sp1",
+      "status": "PARTIAL_DESTROY",
+      "unitId": "unitId2",
+      "detailType": "Unit",
+      "id": "unitId2"
+
+    },
+    {
+      "opi": "opi2",
+      "objectGroupId": "id1",
+      "originatingAgency": "sp1",
+      "status": "DELETED",
+      "unitId": "unitId3",
+      "detailType": "Unit",
+      "id": "unitId3"
+    },
+    {
+      "opi": "opi3",
+      "objectGroupId": "id3",
+      "originatingAgency": "sp2",
+      "status": "DELETED",
+      "unitId": "unitId4",
+      "detailType": "Unit",
+      "id": "unitId4"
+    }
+  ]
+}
+

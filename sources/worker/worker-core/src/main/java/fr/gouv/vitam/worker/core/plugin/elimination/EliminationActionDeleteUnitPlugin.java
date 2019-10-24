@@ -26,72 +26,24 @@
  *******************************************************************************/
 package fr.gouv.vitam.worker.core.plugin.elimination;
 
-import com.fasterxml.jackson.databind.JsonNode;
 import com.google.common.annotations.VisibleForTesting;
-import fr.gouv.vitam.batch.report.model.entry.EliminationActionUnitReportEntry;
-import fr.gouv.vitam.common.VitamConfiguration;
-import fr.gouv.vitam.common.database.builder.query.QueryHelper;
-import fr.gouv.vitam.common.database.builder.query.VitamFieldsHelper;
-import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
-import fr.gouv.vitam.common.database.builder.request.multiple.SelectMultiQuery;
-import fr.gouv.vitam.common.database.utils.MetadataDocumentHelper;
-import fr.gouv.vitam.common.exception.InvalidParseOperationException;
-import fr.gouv.vitam.common.logging.VitamLogger;
-import fr.gouv.vitam.common.logging.VitamLoggerFactory;
-import fr.gouv.vitam.common.model.ItemStatus;
-import fr.gouv.vitam.common.model.RequestResponseOK;
-import fr.gouv.vitam.common.model.StatusCode;
-import fr.gouv.vitam.logbook.common.exception.LogbookClientBadRequestException;
-import fr.gouv.vitam.logbook.common.exception.LogbookClientServerException;
-import fr.gouv.vitam.metadata.api.exception.MetaDataClientServerException;
-import fr.gouv.vitam.metadata.api.exception.MetaDataDocumentSizeException;
-import fr.gouv.vitam.metadata.api.exception.MetaDataExecutionException;
-import fr.gouv.vitam.metadata.client.MetaDataClient;
 import fr.gouv.vitam.metadata.client.MetaDataClientFactory;
-import fr.gouv.vitam.processing.common.exception.ProcessingException;
-import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
-import fr.gouv.vitam.storage.engine.client.exception.StorageServerClientException;
-import fr.gouv.vitam.worker.common.HandlerIO;
-import fr.gouv.vitam.worker.core.exception.ProcessingStatusException;
-import fr.gouv.vitam.worker.core.handler.ActionHandler;
-import fr.gouv.vitam.worker.core.plugin.elimination.model.EliminationActionUnitStatus;
-import fr.gouv.vitam.worker.core.plugin.elimination.report.EliminationActionReportService;
-import org.apache.commons.collections4.SetUtils;
-
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
-import java.util.Set;
-import java.util.stream.Collectors;
-
-import static fr.gouv.vitam.worker.core.utils.PluginHelper.buildItemStatus;
-import static java.util.Collections.singletonList;
-
+import fr.gouv.vitam.worker.core.plugin.purge.PurgeDeleteService;
+import fr.gouv.vitam.worker.core.plugin.purge.PurgeReportService;
+import fr.gouv.vitam.worker.core.plugin.purge.PurgeUnitPlugin;
 
 /**
  * Elimination action delete unit plugin.
  */
-public class EliminationActionDeleteUnitPlugin extends ActionHandler {
-
-    private static final VitamLogger LOGGER =
-        VitamLoggerFactory.getInstance(EliminationActionDeleteUnitPlugin.class);
+public class EliminationActionDeleteUnitPlugin extends PurgeUnitPlugin {
 
     private static final String ELIMINATION_ACTION_DELETE_UNIT = "ELIMINATION_ACTION_DELETE_UNIT";
-
-    private final EliminationActionDeleteService eliminationActionDeleteService;
-    private final MetaDataClientFactory metaDataClientFactory;
-    private final EliminationActionReportService eliminationActionReportService;
 
     /**
      * Default constructor
      */
     public EliminationActionDeleteUnitPlugin() {
-        this(
-            new EliminationActionDeleteService(),
-            MetaDataClientFactory.getInstance(),
-            new EliminationActionReportService());
+        super(ELIMINATION_ACTION_DELETE_UNIT);
     }
 
     /***
@@ -99,164 +51,10 @@ public class EliminationActionDeleteUnitPlugin extends ActionHandler {
      */
     @VisibleForTesting
     EliminationActionDeleteUnitPlugin(
-        EliminationActionDeleteService eliminationActionDeleteService,
+        PurgeDeleteService purgeDeleteService,
         MetaDataClientFactory metaDataClientFactory,
-        EliminationActionReportService eliminationActionReportService) {
-        this.eliminationActionDeleteService = eliminationActionDeleteService;
-        this.metaDataClientFactory = metaDataClientFactory;
-        this.eliminationActionReportService = eliminationActionReportService;
-    }
-
-    @Override
-    public ItemStatus execute(WorkerParameters param, HandlerIO handler)
-        throws ProcessingException {
-        throw new ProcessingException("No need to implements method");
-    }
-
-    @Override
-    public List<ItemStatus> executeList(WorkerParameters param, HandlerIO handler) {
-
-        try {
-            List<ItemStatus> itemStatuses = processUnits(param.getContainerName(), param.getObjectMetadataList());
-
-            return itemStatuses;
-
-        } catch (ProcessingStatusException e) {
-            LOGGER.error("Elimination action delete unit failed with status " + e.getStatusCode(), e);
-            return singletonList(
-                buildItemStatus(ELIMINATION_ACTION_DELETE_UNIT, e.getStatusCode(), e.getEventDetails()));
-        }
-    }
-
-    private List<ItemStatus> processUnits(String processId, List<JsonNode> units)
-        throws ProcessingStatusException {
-
-        List<String> unitIds = units.stream()
-            .map(unit -> unit.get(VitamFieldsHelper.id()).asText())
-            .collect(Collectors.toList());
-
-        Map<String, JsonNode> unitsById = units.stream()
-            .collect(Collectors.toMap(
-                unit -> unit.get(VitamFieldsHelper.id()).asText(),
-                unit -> unit
-            ));
-
-        List<ItemStatus> itemStatuses = new ArrayList<>();
-
-        List<EliminationActionUnitReportEntry> eliminationUnitReportEntries = new ArrayList<>();
-
-        Set<String> unitsToDelete = getUnitsToDelete(unitsById.keySet());
-
-        Map<String, String> unitIdsWithStrategiesToDelete = unitsById.entrySet().stream()
-            .filter(e -> unitsToDelete.contains(e.getKey()))
-            .collect(Collectors.toMap(Entry::getKey,
-                entry -> MetadataDocumentHelper.getStrategyIdFromUnit(entry.getValue())
-            ));
-
-        for (String unitId : unitIds) {
-
-            EliminationActionUnitStatus eliminationActionUnitStatus;
-            if (unitsToDelete.contains(unitId)) {
-                LOGGER.info("Unit " + unitId + " will be deleted");
-                eliminationActionUnitStatus = EliminationActionUnitStatus.DELETED;
-                itemStatuses.add(buildItemStatus(ELIMINATION_ACTION_DELETE_UNIT, StatusCode.OK, null));
-            } else {
-                LOGGER.info("Unit " + unitId + " cannot be deleted because it has child units attached to it.");
-                eliminationActionUnitStatus = EliminationActionUnitStatus.NON_DESTROYABLE_HAS_CHILD_UNITS;
-                itemStatuses.add(buildItemStatus(ELIMINATION_ACTION_DELETE_UNIT, StatusCode.WARNING, null));
-            }
-
-            JsonNode unit = unitsById.get(unitId);
-            String initialOperation = unit.get(VitamFieldsHelper.initialOperation()).asText();
-            String objectGroupId =
-                unit.has(VitamFieldsHelper.object()) ? unit.get(VitamFieldsHelper.object()).asText() : null;
-            String originatingAgency = unit.has(VitamFieldsHelper.originatingAgency()) ?
-                unit.get(VitamFieldsHelper.originatingAgency()).asText() : null;
-
-            eliminationUnitReportEntries.add(new EliminationActionUnitReportEntry(
-                unitId, originatingAgency, initialOperation, objectGroupId, eliminationActionUnitStatus.name(), "Outcome - TO BE DEFINED")); // FIXME !
-        }
-
-        eliminationActionReportService.appendUnitEntries(processId, eliminationUnitReportEntries);
-
-        try {
-            eliminationActionDeleteService.deleteUnits(unitIdsWithStrategiesToDelete);
-        } catch (MetaDataExecutionException | MetaDataClientServerException |
-            LogbookClientBadRequestException | StorageServerClientException | LogbookClientServerException e) {
-            throw new ProcessingStatusException(StatusCode.FATAL,
-                "Could not delete units [" + String.join(", ", unitsToDelete) + "]", e);
-        }
-
-        return itemStatuses;
-    }
-
-    private Set<String> getUnitsToDelete(Set<String> unitIds) throws ProcessingStatusException {
-        Set<String> unitsWithChildren = getUnitsWithChildren(unitIds);
-        return SetUtils.difference(unitIds, unitsWithChildren);
-    }
-
-    private Set<String> getUnitsWithChildren(Set<String> unitIds) throws ProcessingStatusException {
-
-        try (MetaDataClient metaDataClient = metaDataClientFactory.getClient()) {
-
-            Set<String> unitsToFetch = new HashSet<>(unitIds);
-            Set<String> result = new HashSet<>();
-
-            while (!unitsToFetch.isEmpty()) {
-
-                RequestResponseOK<JsonNode> responseOK = selectChildUnits(metaDataClient, unitsToFetch);
-
-                Set<String> unitsWithChildren = parseUnitsWithChildren(responseOK.getResults(), unitsToFetch);
-
-                result.addAll(unitsWithChildren);
-                unitsToFetch.removeAll(unitsWithChildren);
-
-                if (noMoreResults(responseOK)) {
-                    break;
-                }
-            }
-
-            return result;
-
-        } catch (InvalidParseOperationException | InvalidCreateOperationException | MetaDataExecutionException | MetaDataDocumentSizeException | MetaDataClientServerException e) {
-            throw new ProcessingStatusException(StatusCode.FATAL, "Could not check child units", e);
-        }
-    }
-
-    private RequestResponseOK<JsonNode> selectChildUnits(MetaDataClient metaDataClient, Set<String> unitsToFetch)
-        throws InvalidCreateOperationException, InvalidParseOperationException, MetaDataExecutionException,
-        MetaDataDocumentSizeException, MetaDataClientServerException {
-        SelectMultiQuery selectAllUnitsUp = new SelectMultiQuery();
-        selectAllUnitsUp.addQueries(QueryHelper.in(VitamFieldsHelper.unitups(), unitsToFetch.toArray(new String[0])));
-        selectAllUnitsUp.setLimitFilter(0, VitamConfiguration.getBatchSize());
-        selectAllUnitsUp.addUsedProjection(VitamFieldsHelper.unitups());
-        JsonNode response = metaDataClient.selectUnits(selectAllUnitsUp.getFinalSelect());
-        return RequestResponseOK.getFromJsonNode(response);
-    }
-
-    private Set<String> parseUnitsWithChildren(List<JsonNode> results, Set<String> unitsToFetch) {
-        Set<String> foundUnitIds = new HashSet<>();
-
-        for (JsonNode childUnit : results) {
-            childUnit.get(VitamFieldsHelper.unitups()).elements()
-                .forEachRemaining(jsonNode -> {
-                    String unitId = jsonNode.asText();
-                    if (unitsToFetch.contains(unitId)) {
-                        foundUnitIds.add(unitId);
-                    }
-                });
-        }
-
-        return foundUnitIds;
-    }
-
-    private boolean noMoreResults(RequestResponseOK<JsonNode> responseOK) {
-        return responseOK.getHits().getTotal() < VitamConfiguration.getBatchSize();
-    }
-
-    @Override
-    public void checkMandatoryIOParameter(HandlerIO handler) throws ProcessingException {
-        // NOP.
+        PurgeReportService purgeReportService) {
+        super(ELIMINATION_ACTION_DELETE_UNIT, purgeDeleteService, metaDataClientFactory, purgeReportService);
     }
 
     public static String getId() {

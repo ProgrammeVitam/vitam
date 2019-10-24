@@ -30,9 +30,11 @@ import com.fasterxml.jackson.jaxrs.base.JsonParseExceptionMapper;
 import com.mongodb.MongoClient;
 import com.mongodb.MongoClientOptions;
 import fr.gouv.vitam.batch.report.rest.repository.AuditReportRepository;
-import fr.gouv.vitam.batch.report.rest.repository.EliminationActionObjectGroupRepository;
+import fr.gouv.vitam.batch.report.rest.repository.PurgeObjectGroupRepository;
 import fr.gouv.vitam.batch.report.rest.repository.EliminationActionUnitRepository;
 import fr.gouv.vitam.batch.report.rest.repository.EvidenceAuditReportRepository;
+import fr.gouv.vitam.batch.report.rest.repository.PurgeUnitRepository;
+import fr.gouv.vitam.batch.report.rest.repository.TransferReplyUnitRepository;
 import fr.gouv.vitam.batch.report.rest.repository.UnitComputedInheritedRulesInvalidationRepository;
 import fr.gouv.vitam.batch.report.rest.repository.PreservationReportRepository;
 import fr.gouv.vitam.batch.report.rest.repository.UpdateUnitReportRepository;
@@ -85,8 +87,11 @@ public class BusinessApplication extends ConfigurationApplication {
 
             EliminationActionUnitRepository eliminationActionUnitRepository =
                 new EliminationActionUnitRepository(mongoDbAccess);
-            EliminationActionObjectGroupRepository eliminationActionObjectGroupRepository =
-                new EliminationActionObjectGroupRepository(mongoDbAccess);
+            PurgeUnitRepository purgeUnitRepository =
+                new PurgeUnitRepository(mongoDbAccess);
+            PurgeObjectGroupRepository purgeObjectGroupRepository =
+                new PurgeObjectGroupRepository(mongoDbAccess);
+            TransferReplyUnitRepository transferReplyUnitRepository = new TransferReplyUnitRepository(mongoDbAccess);
             PreservationReportRepository preservationReportRepository =
                 new PreservationReportRepository(mongoDbAccess);
             AuditReportRepository auditReportRepository = new AuditReportRepository(mongoDbAccess);
@@ -97,9 +102,10 @@ public class BusinessApplication extends ConfigurationApplication {
             UpdateUnitReportRepository updateUnitReportRepository = new UpdateUnitReportRepository(mongoDbAccess);
             EvidenceAuditReportRepository evidenceAuditReportRepository = new EvidenceAuditReportRepository(mongoDbAccess);
             BatchReportServiceImpl batchReportServiceImpl =
-                new BatchReportServiceImpl(eliminationActionUnitRepository, eliminationActionObjectGroupRepository,
-                    workspaceClientFactory, preservationReportRepository, auditReportRepository, updateUnitReportRepository,
-                    unitComputedInheritedRulesInvalidationRepository,evidenceAuditReportRepository);
+                new BatchReportServiceImpl(eliminationActionUnitRepository, purgeUnitRepository,
+                    purgeObjectGroupRepository, transferReplyUnitRepository, workspaceClientFactory,
+                    preservationReportRepository, auditReportRepository, updateUnitReportRepository,
+                    unitComputedInheritedRulesInvalidationRepository, evidenceAuditReportRepository);
 
             commonBusinessApplication = new CommonBusinessApplication();
             singletons.addAll(commonBusinessApplication.getResources());

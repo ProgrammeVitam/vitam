@@ -180,13 +180,13 @@ public class EliminationActionUnitPreparationHandlerTest {
 
         assertThat(reportEntries).hasSize(2);
 
-        assertThat(reportEntries.get(0).getUnitId()).isEqualTo("id_unit_2");
+        assertThat(reportEntries.get(0).getId()).isEqualTo("id_unit_2");
         assertThat(reportEntries.get(0).getOriginatingAgency()).isEqualTo("sp_2");
         assertThat(reportEntries.get(0).getInitialOperation()).isEqualTo("opi2");
         assertThat(reportEntries.get(0).getStatus()).isEqualTo(EliminationActionUnitStatus.GLOBAL_STATUS_KEEP.name());
         assertThat(reportEntries.get(0).getObjectGroupId()).isEqualTo("id_got_2");
 
-        assertThat(reportEntries.get(1).getUnitId()).isEqualTo("id_unit_4");
+        assertThat(reportEntries.get(1).getId()).isEqualTo("id_unit_4");
         assertThat(reportEntries.get(1).getOriginatingAgency()).isEqualTo("sp_4");
         assertThat(reportEntries.get(1).getInitialOperation()).isEqualTo("opi4");
         assertThat(reportEntries.get(1).getStatus())

@@ -1,0 +1,18 @@
+[
+  {
+    "id": "unitId1",
+    "params": {
+      "type": "Unit",
+      "status": "ALREADY_DELETED",
+      "id": "unitId1"
+    }
+  },
+  {
+    "id": "unitId4",
+    "params": {
+      "type": "Unit",
+      "status": "ALREADY_DELETED",
+      "id": "unitId4"
+    }
+  }
+]

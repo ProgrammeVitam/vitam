@@ -1,0 +1,19 @@
+{
+  "processId": "123456789",
+  "reportType": "TRANSFER_REPLY_UNIT",
+  "entries": [
+    {
+      "status": "ALREADY_DELETED",
+      "id": "unitId1"
+    },
+    {
+      "status": "ALREADY_DELETED",
+      "id": "unitId4"
+    },
+    {
+      "status": "ALREADY_DELETED",
+      "id": "unitId4"
+    }
+  ]
+}
+

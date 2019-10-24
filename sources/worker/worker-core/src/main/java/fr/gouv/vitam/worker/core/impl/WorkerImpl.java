@@ -83,6 +83,10 @@ import fr.gouv.vitam.worker.core.plugin.reclassification.ReclassificationFinaliz
 import fr.gouv.vitam.worker.core.plugin.reclassification.ReclassificationPreparationCheckGraphHandler;
 import fr.gouv.vitam.worker.core.plugin.reclassification.ReclassificationPreparationLoadRequestHandler;
 import fr.gouv.vitam.worker.core.plugin.reclassification.ReclassificationPreparationUpdateDistributionHandler;
+import fr.gouv.vitam.worker.core.plugin.transfer.reply.TransferReplyAccessionRegisterPreparationHandler;
+import fr.gouv.vitam.worker.core.plugin.transfer.reply.TransferReplyObjectGroupPreparationHandler;
+import fr.gouv.vitam.worker.core.plugin.transfer.reply.TransferReplyReportGenerationHandler;
+import fr.gouv.vitam.worker.core.plugin.transfer.reply.TransferReplyUnitPreparationHandler;
 
 import java.util.HashMap;
 import java.util.List;
@@ -216,6 +220,13 @@ public class WorkerImpl implements Worker {
             new EliminationActionAccessionRegisterPreparationHandler());
         actions.put(EliminationActionReportGenerationHandler.getId(), new EliminationActionReportGenerationHandler());
         actions.put(EliminationActionFinalizationHandler.getId(), new EliminationActionFinalizationHandler());
+
+        actions.put(TransferReplyUnitPreparationHandler.getId(), new TransferReplyUnitPreparationHandler());
+        actions.put(TransferReplyObjectGroupPreparationHandler.getId(),
+            new TransferReplyObjectGroupPreparationHandler());
+        actions.put(TransferReplyAccessionRegisterPreparationHandler.getId(),
+            new TransferReplyAccessionRegisterPreparationHandler());
+        actions.put(TransferReplyReportGenerationHandler.getId(), new TransferReplyReportGenerationHandler());
     }
 
     @Override

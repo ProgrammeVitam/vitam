@@ -34,10 +34,12 @@ import fr.gouv.vitam.batch.report.model.ReportBody;
 import fr.gouv.vitam.batch.report.model.ReportExportRequest;
 import fr.gouv.vitam.batch.report.model.ReportType;
 import fr.gouv.vitam.batch.report.model.entry.AuditObjectGroupReportEntry;
-import fr.gouv.vitam.batch.report.model.entry.EliminationActionObjectGroupReportEntry;
 import fr.gouv.vitam.batch.report.model.entry.EliminationActionUnitReportEntry;
 import fr.gouv.vitam.batch.report.model.entry.EvidenceAuditReportEntry;
 import fr.gouv.vitam.batch.report.model.entry.PreservationReportEntry;
+import fr.gouv.vitam.batch.report.model.entry.PurgeObjectGroupReportEntry;
+import fr.gouv.vitam.batch.report.model.entry.PurgeUnitReportEntry;
+import fr.gouv.vitam.batch.report.model.entry.TransferReplyUnitReportEntry;
 import fr.gouv.vitam.batch.report.model.entry.UnitComputedInheritedRulesInvalidationReportEntry;
 import fr.gouv.vitam.batch.report.model.entry.UpdateUnitMetadataReportEntry;
 import fr.gouv.vitam.batch.report.rest.service.BatchReportServiceImpl;
@@ -76,8 +78,12 @@ public class BatchReportResource extends ApplicationStatusResource {
     private static final TypeReference<ReportBody<AuditObjectGroupReportEntry>> reportAuditType = new TypeReference<ReportBody<AuditObjectGroupReportEntry>>() {};
     private static final TypeReference<ReportBody<EliminationActionUnitReportEntry>> reportEliminationActionUnitType =
         new TypeReference<ReportBody<EliminationActionUnitReportEntry>>() {};
-    private static final TypeReference<ReportBody<EliminationActionObjectGroupReportEntry>> reportEliminationActionObjectGroupType =
-        new TypeReference<ReportBody<EliminationActionObjectGroupReportEntry>>() {};
+    private static final TypeReference<ReportBody<PurgeUnitReportEntry>> reportPurgeUnitType =
+        new TypeReference<ReportBody<PurgeUnitReportEntry>>() {};
+    private static final TypeReference<ReportBody<PurgeObjectGroupReportEntry>> reportPurgeObjectGroupType =
+        new TypeReference<ReportBody<PurgeObjectGroupReportEntry>>() {};
+    private static final TypeReference<ReportBody<TransferReplyUnitReportEntry>> reportTransferReplyUnitType =
+        new TypeReference<ReportBody<TransferReplyUnitReportEntry>>() {};
     private static final TypeReference<ReportBody<PreservationReportEntry>> reportPreservationType = new TypeReference<ReportBody<PreservationReportEntry>>() {};
     private static final TypeReference<ReportBody<UpdateUnitMetadataReportEntry>> reportMassUpdateType = new TypeReference<ReportBody<UpdateUnitMetadataReportEntry>>() {};
     private final static TypeReference<ReportBody<EvidenceAuditReportEntry>> reportEvidenceAuditType = new TypeReference<ReportBody<EvidenceAuditReportEntry>>() {};
@@ -103,9 +109,17 @@ public class BatchReportResource extends ApplicationStatusResource {
                     ReportBody<EliminationActionUnitReportEntry> eliminationUnitReportBody = JsonHandler.getFromJsonNode(body, reportEliminationActionUnitType);
                     batchReportServiceImpl.appendEliminationActionUnitReport(eliminationUnitReportBody.getProcessId(), eliminationUnitReportBody.getEntries(), tenantId);
                     break;
-                case ELIMINATION_ACTION_OBJECTGROUP:
-                    ReportBody<EliminationActionObjectGroupReportEntry> eliminationObjectGroupReportBody = JsonHandler.getFromJsonNode(body, reportEliminationActionObjectGroupType);
-                    batchReportServiceImpl.appendEliminationActionObjectGroupReport(eliminationObjectGroupReportBody.getProcessId(), eliminationObjectGroupReportBody.getEntries(), tenantId);
+                case PURGE_UNIT:
+                    ReportBody<PurgeUnitReportEntry> purgeUnitReportBody = JsonHandler.getFromJsonNode(body, reportPurgeUnitType);
+                    batchReportServiceImpl.appendPurgeUnitReport(purgeUnitReportBody.getProcessId(), purgeUnitReportBody.getEntries(), tenantId);
+                    break;
+                case PURGE_OBJECTGROUP:
+                    ReportBody<PurgeObjectGroupReportEntry> purgeObjectGroupReportBody = JsonHandler.getFromJsonNode(body, reportPurgeObjectGroupType);
+                    batchReportServiceImpl.appendPurgeObjectGroupReport(purgeObjectGroupReportBody.getProcessId(), purgeObjectGroupReportBody.getEntries(), tenantId);
+                    break;
+                case TRANSFER_REPLY_UNIT:
+                    ReportBody<TransferReplyUnitReportEntry> transferReplyUnitReportBody = JsonHandler.getFromJsonNode(body, reportTransferReplyUnitType);
+                    batchReportServiceImpl.appendTransferReplyUnitReport(transferReplyUnitReportBody.getProcessId(), transferReplyUnitReportBody.getEntries(), tenantId);
                     break;
                 case PRESERVATION:
                     ReportBody<PreservationReportEntry> preservationReportBody = JsonHandler.getFromJsonNode(body, reportPreservationType);
@@ -163,7 +177,7 @@ public class BatchReportResource extends ApplicationStatusResource {
         }
     }
 
-    @Path("/elimination_action_unit/objectgroup_export/{processId}")
+    @Path("/purge_unit/objectgroup_export/{processId}")
     @POST
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
@@ -175,7 +189,7 @@ public class BatchReportResource extends ApplicationStatusResource {
 
             int tenantId = VitamThreadUtils.getVitamSession().getTenantId();
 
-            batchReportServiceImpl.exportEliminationActionDistinctObjectGroupOfDeletedUnits(processId, reportExportRequest.getFilename(), tenantId);
+            batchReportServiceImpl.exportPurgeDistinctObjectGroupOfDeletedUnits(processId, reportExportRequest.getFilename(), tenantId);
             return Response.status(Response.Status.OK).build();
         } catch (IllegalArgumentException e) {
             throw new BadRequestException(e);
@@ -213,34 +227,25 @@ public class BatchReportResource extends ApplicationStatusResource {
         }
     }
 
-    @Path("/elimination_action/accession_register_export/{processId}")
+    @Path("/purge/accession_register_export/{processId}")
     @POST
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
-    public Response exportEliminationActionAccessionRegister(@PathParam("processId") String processId, JsonNode body)
+    public Response exportPurgeAccessionRegister(@PathParam("processId") String processId, ReportExportRequest reportExportRequest)
         throws ContentAddressableStorageServerException, IOException {
 
         try {
 
             ParametersChecker.checkParameter(EMPTY_PROCESSID_ERROR_MESSAGE, processId);
 
-            ReportExportRequest reportExportRequest = parseEliminationReportRequest(body);
             int tenantId = VitamThreadUtils.getVitamSession().getTenantId();
 
-            batchReportServiceImpl.exportEliminationActionAccessionRegister(processId, reportExportRequest.getFilename(), tenantId);
+            batchReportServiceImpl.exportPurgeAccessionRegister(processId, reportExportRequest.getFilename(), tenantId);
 
             return Response.status(Response.Status.OK).build();
         } catch (InvalidParseOperationException | IllegalArgumentException e) {
             throw new BadRequestException(e);
         }
-    }
-
-    private ReportExportRequest parseEliminationReportRequest(JsonNode body)
-        throws InvalidParseOperationException {
-        ReportExportRequest reportExportRequest =
-            JsonHandler.getFromJsonNode(body, ReportExportRequest.class);
-        ParametersChecker.checkParameter(reportExportRequest.getFilename());
-        return reportExportRequest;
     }
 
     @Path("/cleanup/{reportType}/{processId}")
@@ -259,8 +264,14 @@ public class BatchReportResource extends ApplicationStatusResource {
                 case ELIMINATION_ACTION_UNIT:
                     batchReportServiceImpl.deleteEliminationUnitByProcessId(processId, tenantId);
                     break;
-                case ELIMINATION_ACTION_OBJECTGROUP:
-                    batchReportServiceImpl.deleteEliminationObjectGroupByIdAndTenant(processId, tenantId);
+                case PURGE_UNIT:
+                    batchReportServiceImpl.deletePurgeUnitByProcessId(processId, tenantId);
+                    break;
+                case PURGE_OBJECTGROUP:
+                    batchReportServiceImpl.deletePurgeObjectGroupByIdAndTenant(processId, tenantId);
+                    break;
+                case TRANSFER_REPLY_UNIT:
+                    batchReportServiceImpl.deleteTransferReplyUnitByProcessId(processId, tenantId);
                     break;
                 case PRESERVATION:
                     batchReportServiceImpl.deletePreservationByIdAndTenant(processId, tenantId);

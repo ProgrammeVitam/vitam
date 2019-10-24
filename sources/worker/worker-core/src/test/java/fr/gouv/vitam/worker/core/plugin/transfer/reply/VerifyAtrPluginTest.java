@@ -33,6 +33,7 @@ import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.RequestResponseOK;
+import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.model.logbook.LogbookEventOperation;
 import fr.gouv.vitam.common.model.logbook.LogbookOperation;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClient;
@@ -93,7 +94,23 @@ public class VerifyAtrPluginTest {
         // Given
         String messageRequestIdentifier = "AWESOME-ID";
         given(unmarshaller.unmarshal(any(XMLStreamReader.class), eq((ArchiveTransferReplyType.class)))).willReturn(getJaxbAtr(messageRequestIdentifier));
-        given(logbookOperationsClient.selectOperationById(messageRequestIdentifier)).willReturn(getLogbookOperation());
+        given(logbookOperationsClient.selectOperationById(messageRequestIdentifier)).willReturn(getLogbookOperation(OK));
+        TestHandlerIO handler = new TestHandlerIO();
+        handler.setInputStreamFromWorkspace(new ByteArrayInputStream("<ArchiveTransferReply></ArchiveTransferReply>".getBytes()));
+
+        // When
+        ItemStatus result = verifyAtrPlugin.execute(null, handler);
+
+        // Then
+        assertThat(result.getGlobalStatus()).isEqualTo(OK);
+    }
+
+    @Test
+    public void should_verify_plugin_with_transfer_operation_warning_return_OK() throws Exception {
+        // Given
+        String messageRequestIdentifier = "AWESOME-ID";
+        given(unmarshaller.unmarshal(any(XMLStreamReader.class), eq((ArchiveTransferReplyType.class)))).willReturn(getJaxbAtr(messageRequestIdentifier));
+        given(logbookOperationsClient.selectOperationById(messageRequestIdentifier)).willReturn(getLogbookOperation(StatusCode.WARNING));
         TestHandlerIO handler = new TestHandlerIO();
         handler.setInputStreamFromWorkspace(new ByteArrayInputStream("<ArchiveTransferReply></ArchiveTransferReply>".getBytes()));
 
@@ -162,11 +179,11 @@ public class VerifyAtrPluginTest {
         );
     }
 
-    private JsonNode getLogbookOperation() throws InvalidParseOperationException {
+    private JsonNode getLogbookOperation(StatusCode statusCode) throws InvalidParseOperationException {
         LogbookOperation logbookOperation = new LogbookOperation();
         logbookOperation.setEvType(ARCHIVE_TRANSFER.name());
         LogbookEventOperation lastEvent = new LogbookEventOperation();
-        lastEvent.setOutcome(OK.name());
+        lastEvent.setOutcome(statusCode.name());
         logbookOperation.setEvents(Collections.singletonList(lastEvent));
         RequestResponseOK<JsonNode> responseOK = new RequestResponseOK<>();
         responseOK.addResult(JsonHandler.toJsonNode(logbookOperation));

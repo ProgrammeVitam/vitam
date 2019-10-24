@@ -26,29 +26,16 @@
  *******************************************************************************/
 package fr.gouv.vitam.worker.core.plugin.elimination;
 
-import static fr.gouv.vitam.worker.core.plugin.elimination.EliminationUtils.loadRequestJsonFromWorkspace;
-import static fr.gouv.vitam.worker.core.utils.PluginHelper.buildItemStatus;
-
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.time.LocalDate;
-import java.time.format.DateTimeParseException;
-import java.util.Iterator;
-
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.annotations.VisibleForTesting;
-
 import fr.gouv.vitam.batch.report.model.entry.EliminationActionUnitReportEntry;
+import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.database.builder.query.VitamFieldsHelper;
 import fr.gouv.vitam.common.database.builder.request.multiple.SelectMultiQuery;
 import fr.gouv.vitam.common.database.parser.request.multiple.SelectParserMultiple;
-import fr.gouv.vitam.common.database.utils.MetadataDocumentHelper;
 import fr.gouv.vitam.common.database.utils.ScrollSpliterator;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.iterables.SpliteratorIterator;
-import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.ItemStatus;
@@ -72,6 +59,16 @@ import fr.gouv.vitam.worker.core.plugin.elimination.report.EliminationActionRepo
 import fr.gouv.vitam.worker.core.utils.BufferedConsumer;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
 
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.time.LocalDate;
+import java.time.format.DateTimeParseException;
+import java.util.Iterator;
+
+import static fr.gouv.vitam.worker.core.plugin.elimination.EliminationUtils.loadRequestJsonFromWorkspace;
+import static fr.gouv.vitam.worker.core.utils.PluginHelper.buildItemStatus;
+
 /**
  * Elimination action unit preparation handler.
  */
@@ -87,7 +84,6 @@ public class EliminationActionUnitPreparationHandler extends ActionHandler {
 
     static final String REQUEST_JSON = "request.json";
     static final String UNITS_TO_DELETE_FILE = "units_to_delete.jsonl";
-    private static final int UNIT_REPORT_BUFFER_SIZE = 1000;
 
     private final MetaDataClientFactory metaDataClientFactory;
     private final EliminationAnalysisService eliminationAnalysisService;
@@ -194,7 +190,7 @@ public class EliminationActionUnitPreparationHandler extends ActionHandler {
                                 getField(unit, VitamFieldsHelper.originatingAgency()),
                                 getField(unit, VitamFieldsHelper.initialOperation()),
                                 getField(unit, VitamFieldsHelper.object()),
-                                status.name(), "outcome - TO BE DEFINED")); // FIXME !
+                                status.name()));
 
                             nbNonDestroyableUnits++;
 
@@ -226,7 +222,7 @@ public class EliminationActionUnitPreparationHandler extends ActionHandler {
     }
 
     private BufferedConsumer<EliminationActionUnitReportEntry> createReportAppender(String processId) {
-        return new BufferedConsumer<>(UNIT_REPORT_BUFFER_SIZE, entries -> {
+        return new BufferedConsumer<>(VitamConfiguration.getBatchSize(), entries -> {
             try {
                 eliminationActionReportService.appendUnitEntries(processId, entries);
             } catch (ProcessingStatusException e) {
