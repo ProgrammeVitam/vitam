@@ -14,7 +14,8 @@
 ## Synchronize and download
 Download and synchronize the workspace with:
 ```shell script
-git clone https://gitlab.dev.programmevitam.fr/vitam/vitam.git --depth 1
-git fetch 
-git checkout origin/master -- vitam-conf-dev/making-vitam-request/requests-workspace
+git init
+git remote add origin vitam.git 
+git fetch origin develop --depth 1
+git checkout origin/develop -- vitam-conf-dev/making-vitam-request/requests-workspace
 ```
