@@ -30,28 +30,37 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 
 public class DipRequestParameters {
 
-    @JsonProperty(ExportRequestParameters.ARCHIVAL_AGREEMENT)
+    public static final String REQUESTER_IDENTIFIER = "requesterIdentifier";
+    public static final String ARCHIVAL_AGENCY_IDENTIFIER = "archivalAgencyIdentifier";
+    public static final String AUTHORIZATION_REQUEST_REPLY_IDENTIFIER = "authorizationRequestReplyIdentifier";
+    public static final String MESSAGE_REQUEST_IDENTIFIER = "messageRequestIdentifier";
+    public static final String SUBMISSION_AGENCY_IDENTIFIER = "submissionAgencyIdentifier";
+    public static final String ORIGINATING_AGENCY_IDENTIFIER = "originatingAgencyIdentifier";
+    public static final String ARCHIVAL_AGREEMENT = "archivalAgreement";
+    public static final String COMMENT = "comment";
+
+    @JsonProperty(ARCHIVAL_AGREEMENT)
     private String archivalAgreement;
 
-    @JsonProperty(ExportRequestParameters.ORIGINATING_AGENCY_IDENTIFIER)
+    @JsonProperty(ORIGINATING_AGENCY_IDENTIFIER)
     private String originatingAgencyIdentifier;
 
-    @JsonProperty(ExportRequestParameters.COMMENT)
+    @JsonProperty(COMMENT)
     private String comment;
 
-    @JsonProperty(ExportRequestParameters.SUBMISSION_AGENCY_IDENTIFIER)
+    @JsonProperty(SUBMISSION_AGENCY_IDENTIFIER)
     private String submissionAgencyIdentifier;
 
-    @JsonProperty(ExportRequestParameters.MESSAGE_REQUEST_IDENTIFIER)
+    @JsonProperty(MESSAGE_REQUEST_IDENTIFIER)
     private String messageRequestIdentifier; // Required
 
-    @JsonProperty(ExportRequestParameters.ARCHIVAL_AGENCY_IDENTIFIER)
+    @JsonProperty(ARCHIVAL_AGENCY_IDENTIFIER)
     private String archivalAgencyIdentifier; // Required
 
-    @JsonProperty(ExportRequestParameters.REQUESTER_IDENTIFIER)
+    @JsonProperty(REQUESTER_IDENTIFIER)
     private String requesterIdentifier; // Required
 
-    @JsonProperty(ExportRequestParameters.AUTHORIZATION_REQUEST_REPLY_IDENTIFIER)
+    @JsonProperty(AUTHORIZATION_REQUEST_REPLY_IDENTIFIER)
     private String authorizationRequestReplyIdentifier;
 
 

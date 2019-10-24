@@ -37,8 +37,8 @@ import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.NoWritingPermissionException;
 import fr.gouv.vitam.common.model.PreservationRequest;
 import fr.gouv.vitam.common.model.RequestResponse;
-import fr.gouv.vitam.common.model.dip.DipExportRequest;
 import fr.gouv.vitam.common.model.elimination.EliminationRequestBody;
+import fr.gouv.vitam.common.model.export.ExportRequest;
 import fr.gouv.vitam.common.model.massupdate.MassUpdateUnitRuleRequest;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientServerException;
@@ -56,11 +56,11 @@ public interface AccessInternalClient extends MockOrRestClient {
      *
      * @param selectQuery the query used to select units
      * @return a response containing a json node object including DSL queries and results
-     * @throws InvalidParseOperationException        if the query is not well formatted
-     * @throws AccessInternalClientServerException   if the server encountered an exception
+     * @throws InvalidParseOperationException if the query is not well formatted
+     * @throws AccessInternalClientServerException if the server encountered an exception
      * @throws AccessInternalClientNotFoundException if the requested unit does not exist
      * @throws AccessUnauthorizedException
-     * @throws BadRequestException                   if empty query is found
+     * @throws BadRequestException if empty query is found
      */
     RequestResponse<JsonNode> selectUnits(JsonNode selectQuery)
         throws InvalidParseOperationException, AccessInternalClientServerException,
@@ -72,8 +72,8 @@ public interface AccessInternalClient extends MockOrRestClient {
      * @param sqlQuery the query to be executed
      * @param id the id of the unit
      * @return a response containing a json node object including DSL queries, context and results
-     * @throws InvalidParseOperationException        if the query is not well formatted
-     * @throws AccessInternalClientServerException   if the server encountered an exception
+     * @throws InvalidParseOperationException if the query is not well formatted
+     * @throws AccessInternalClientServerException if the server encountered an exception
      * @throws AccessInternalClientNotFoundException if the requested unit does not exist
      * @throws AccessUnauthorizedException
      */
@@ -87,8 +87,8 @@ public interface AccessInternalClient extends MockOrRestClient {
      * @param updateQuery the query to be executed as an update
      * @param unitId the id of the unit
      * @return a response containing a json node object including DSL queries, context and results
-     * @throws InvalidParseOperationException        if the query is not well formatted
-     * @throws AccessInternalClientServerException   if the server encountered an exception
+     * @throws InvalidParseOperationException if the query is not well formatted
+     * @throws AccessInternalClientServerException if the server encountered an exception
      * @throws AccessInternalClientNotFoundException if the requested unit does not exist
      * @throws AccessUnauthorizedException
      * @throws AccessInternalRuleExecutionException
@@ -102,8 +102,8 @@ public interface AccessInternalClient extends MockOrRestClient {
      *
      * @param updateQuery the query to be executed to update archive units
      * @return a response containing a json node object including DSL queries, context and results
-     * @throws InvalidParseOperationException        if the query is not well formatted
-     * @throws AccessInternalClientServerException   if the server encountered an exception
+     * @throws InvalidParseOperationException if the query is not well formatted
+     * @throws AccessInternalClientServerException if the server encountered an exception
      * @throws AccessInternalClientNotFoundException if the requested unit does not exist
      * @throws AccessUnauthorizedException
      * @throws AccessInternalRuleExecutionException
@@ -117,8 +117,8 @@ public interface AccessInternalClient extends MockOrRestClient {
      *
      * @param massUpdateUnitRuleRequest the request to be used to update archive units rules
      * @return a response containing a json node object including queries, context and results
-     * @throws InvalidParseOperationException        if the query is not well formatted
-     * @throws AccessInternalClientServerException   if the server encountered an exception
+     * @throws InvalidParseOperationException if the query is not well formatted
+     * @throws AccessInternalClientServerException if the server encountered an exception
      * @throws AccessInternalClientNotFoundException if the requested unit does not exist
      * @throws AccessUnauthorizedException
      * @throws AccessInternalRuleExecutionException
@@ -133,8 +133,8 @@ public interface AccessInternalClient extends MockOrRestClient {
      * @param selectObjectQuery the query to be executed
      * @param objectId the Id of the ObjectGroup
      * @return a response containing a json node object including DSL queries, context and results
-     * @throws InvalidParseOperationException        if the query is not well formatted
-     * @throws AccessInternalClientServerException   if the server encountered an exception
+     * @throws InvalidParseOperationException if the query is not well formatted
+     * @throws AccessInternalClientServerException if the server encountered an exception
      * @throws AccessInternalClientNotFoundException if the requested object does not exist
      * @throws AccessUnauthorizedException
      */
@@ -150,8 +150,8 @@ public interface AccessInternalClient extends MockOrRestClient {
      * @param version the requested version of the usage
      * @param unitId the id used by the user to have access to the object
      * @return Response containing InputStream for the object data
-     * @throws InvalidParseOperationException        if the query is not well formatted
-     * @throws AccessInternalClientServerException   if the server encountered an exception
+     * @throws InvalidParseOperationException if the query is not well formatted
+     * @throws AccessInternalClientServerException if the server encountered an exception
      * @throws AccessInternalClientNotFoundException if the requested object does not exist
      * @throws AccessUnauthorizedException
      */
@@ -247,7 +247,8 @@ public interface AccessInternalClient extends MockOrRestClient {
      * @return
      * @throws AccessInternalClientServerException
      */
-    RequestResponse<JsonNode> exportByUsageFilter(DipExportRequest dipExportRequest) throws AccessInternalClientServerException;
+    RequestResponse<JsonNode> exportByUsageFilter(ExportRequest dipExportRequest)
+        throws AccessInternalClientServerException;
 
     /**
      * get a zip file containing a DIP/Transfer by an operation id
@@ -272,11 +273,11 @@ public interface AccessInternalClient extends MockOrRestClient {
      *
      * @param selectQuery the query used to select objects
      * @return a response containing a json node object including DSL queries and results
-     * @throws InvalidParseOperationException        if the query is not well formatted
-     * @throws AccessInternalClientServerException   if the server encountered an exception
+     * @throws InvalidParseOperationException if the query is not well formatted
+     * @throws AccessInternalClientServerException if the server encountered an exception
      * @throws AccessInternalClientNotFoundException if the requested object does not exist
      * @throws AccessUnauthorizedException
-     * @throws BadRequestException                   if empty query is found
+     * @throws BadRequestException if empty query is found
      */
     RequestResponse<JsonNode> selectObjects(JsonNode selectQuery)
         throws InvalidParseOperationException, AccessInternalClientServerException,
@@ -287,11 +288,11 @@ public interface AccessInternalClient extends MockOrRestClient {
      *
      * @param selectQuery : select query
      * @return a response containing a json node object including DSL queries and results
-     * @throws InvalidParseOperationException        if the query is not well formatted
-     * @throws AccessInternalClientServerException   if the server encountered an exception
+     * @throws InvalidParseOperationException if the query is not well formatted
+     * @throws AccessInternalClientServerException if the server encountered an exception
      * @throws AccessInternalClientNotFoundException if the requested unit does not exist
      * @throws AccessUnauthorizedException
-     * @throws BadRequestException                   if empty query is found
+     * @throws BadRequestException if empty query is found
      */
     RequestResponse<JsonNode> selectUnitsWithInheritedRules(JsonNode selectQuery)
         throws InvalidParseOperationException, AccessInternalClientServerException,
@@ -301,9 +302,9 @@ public interface AccessInternalClient extends MockOrRestClient {
      * Get Zipped AccessLog files as Stream
      *
      * @return a response containing zipped accessLog files as Stream
-     * @throws AccessInternalClientServerException   if the server encountered an exception
+     * @throws AccessInternalClientServerException if the server encountered an exception
      * @throws AccessInternalClientNotFoundException if the requested object does not exist
-     * @throws InvalidParseOperationException        if the query is not well formatted
+     * @throws InvalidParseOperationException if the query is not well formatted
      * @throws AccessUnauthorizedException
      */
     Response downloadAccessLogFile(JsonNode params)
@@ -356,5 +357,6 @@ public interface AccessInternalClient extends MockOrRestClient {
      */
     RequestResponse<JsonNode> deleteComputeInheritedRules(JsonNode dslQuery) throws AccessInternalClientServerException;
 
-    RequestResponse<JsonNode> startTransferReplyWorkflow(InputStream transferReply) throws AccessInternalClientServerException;
+    RequestResponse<JsonNode> startTransferReplyWorkflow(InputStream transferReply)
+        throws AccessInternalClientServerException;
 }

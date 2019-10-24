@@ -39,8 +39,8 @@ import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
-import fr.gouv.vitam.common.model.dip.DipExportRequest;
 import fr.gouv.vitam.common.model.elimination.EliminationRequestBody;
+import fr.gouv.vitam.common.model.export.ExportRequest;
 import fr.gouv.vitam.common.model.massupdate.MassUpdateUnitRuleRequest;
 import fr.gouv.vitam.common.server.application.junit.ResteasyTestApplication;
 import fr.gouv.vitam.common.server.application.resources.ApplicationStatusResource;
@@ -156,7 +156,7 @@ public class AccessInternalClientRestTest extends ResteasyTestApplication {
         }
 
         @Override
-        public Response exportDIPByUsageFilter(DipExportRequest dipExportRequest) {
+        public Response exportByUsageFilter(ExportRequest exportRequest) {
             return null;
         }
 

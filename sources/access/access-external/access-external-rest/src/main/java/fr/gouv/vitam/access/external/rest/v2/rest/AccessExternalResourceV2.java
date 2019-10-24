@@ -34,8 +34,8 @@ import fr.gouv.vitam.common.error.VitamError;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.RequestResponse;
-import fr.gouv.vitam.common.model.dip.DipExportRequest;
-import fr.gouv.vitam.common.model.dip.DipRequest;
+import fr.gouv.vitam.common.model.export.ExportRequest;
+import fr.gouv.vitam.common.model.export.dip.DipRequest;
 import fr.gouv.vitam.common.security.SanityChecker;
 import fr.gouv.vitam.common.security.rest.EndpointInfo;
 import fr.gouv.vitam.common.security.rest.SecureEndpointRegistry;
@@ -117,7 +117,7 @@ public class AccessExternalResourceV2 extends ApplicationStatusResource {
             SanityChecker.checkJsonAll(dipRequest.getDslRequest());
             SelectMultipleSchemaValidator validator = new SelectMultipleSchemaValidator();
             validator.validate(dipRequest.getDslRequest());
-            RequestResponse response = client.exportByUsageFilter(DipExportRequest.from(dipRequest));
+            RequestResponse response = client.exportByUsageFilter(ExportRequest.from(dipRequest));
             if (response.isOk()) {
                 return Response.status(Status.ACCEPTED.getStatusCode()).entity(response).build();
             } else {

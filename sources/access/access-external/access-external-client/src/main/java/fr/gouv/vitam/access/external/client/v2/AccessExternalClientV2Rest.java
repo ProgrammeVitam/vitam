@@ -9,7 +9,8 @@ import fr.gouv.vitam.common.external.client.DefaultClient;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.RequestResponse;
-import fr.gouv.vitam.common.model.dip.DipRequest;
+import fr.gouv.vitam.common.model.dip.DipExportRequest;
+import fr.gouv.vitam.common.model.export.dip.DipRequest;
 
 import javax.ws.rs.HttpMethod;
 import javax.ws.rs.core.MediaType;
@@ -47,5 +48,11 @@ class AccessExternalClientV2Rest extends DefaultClient implements AccessExternal
         } finally {
             consumeAnyEntityAndClose(response);
         }
+    }
+
+    @Override
+    public RequestResponse<JsonNode> exportDIP(VitamContext vitamContext, DipExportRequest dipExportRequest)
+        throws VitamClientException {
+        return exportDIP(vitamContext, new DipRequest(dipExportRequest));
     }
 }

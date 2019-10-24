@@ -33,9 +33,8 @@ import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.model.administration.AccessContractModel;
-import fr.gouv.vitam.common.model.dip.DipExportRequest;
-import fr.gouv.vitam.common.model.dip.ExportRequestParameters;
-import fr.gouv.vitam.common.model.dip.ExportType;
+import fr.gouv.vitam.common.model.export.ExportRequest;
+import fr.gouv.vitam.common.model.export.ExportRequestParameters;
 import fr.gouv.vitam.common.model.processing.ProcessingUri;
 import fr.gouv.vitam.common.model.processing.UriPrefix;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
@@ -73,21 +72,18 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 import static fr.gouv.vitam.common.model.dip.DipExportRequest.DIP_REQUEST_FILE_NAME;
-import static fr.gouv.vitam.common.model.dip.ExportType.ArchiveTransfer;
+import static fr.gouv.vitam.common.model.export.ExportType.ArchiveTransfer;
 import static fr.gouv.vitam.worker.core.plugin.dip.CreateManifest.BINARIES_RANK;
 import static fr.gouv.vitam.worker.core.plugin.dip.CreateManifest.GUID_TO_INFO_RANK;
 import static fr.gouv.vitam.worker.core.plugin.dip.CreateManifest.MANIFEST_XML_RANK;
 import static fr.gouv.vitam.worker.core.plugin.dip.CreateManifest.REPORT;
 import static junit.framework.TestCase.assertEquals;
-import static junit.framework.TestCase.assertTrue;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.core.IsEqual.equalTo;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.BDDMockito.given;
-import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
 import static org.xmlunit.matchers.EvaluateXPathMatcher.hasXPath;
 
 public class CreateManifestTest {
@@ -109,7 +105,7 @@ public class CreateManifestTest {
     private BackupService backupService;
 
     private static final int TENANT_ID = 0;
-    
+
     private CreateManifest createManifest;
 
     private static Map<String, String> prefix2Uri = new HashMap<>();
@@ -141,7 +137,8 @@ public class CreateManifestTest {
             JsonHandler.getFromInputStream(getClass().getResourceAsStream("/CreateManifest/query.json"));
 
         JsonNode queryUnitWithTree =
-            JsonHandler.getFromInputStream(getClass().getResourceAsStream("/CreateManifest/queryWithTreeProjection.json"));
+            JsonHandler
+                .getFromInputStream(getClass().getResourceAsStream("/CreateManifest/queryWithTreeProjection.json"));
 
         JsonNode queryObjectGroup =
             JsonHandler.getFromInputStream(getClass().getResourceAsStream("/CreateManifest/queryObjectGroup.json"));
@@ -158,7 +155,8 @@ public class CreateManifestTest {
             JsonHandler.getFromInputStream(getClass().getResourceAsStream("/CreateManifest/resultObjectGroup.json")));
 
         File manifestFile = tempFolder.newFile();
-        given(handlerIO.getOutput(MANIFEST_XML_RANK)).willReturn(new ProcessingUri(UriPrefix.WORKSPACE, manifestFile.getPath()));
+        given(handlerIO.getOutput(MANIFEST_XML_RANK))
+            .willReturn(new ProcessingUri(UriPrefix.WORKSPACE, manifestFile.getPath()));
         given(handlerIO.getNewLocalFile(manifestFile.getPath())).willReturn(manifestFile);
 
         File reportFile = tempFolder.newFile();
@@ -175,10 +173,10 @@ public class CreateManifestTest {
             .willReturn(new ProcessingUri(UriPrefix.WORKSPACE, binaryFile.getPath()));
         given(handlerIO.getNewLocalFile(binaryFile.getPath())).willReturn(binaryFile);
 
-        DipExportRequest dipExportRequest = new DipExportRequest();
-        dipExportRequest.setExportWithLogBookLFC(true);
-        dipExportRequest.setDslRequest(queryUnit);
-        given(handlerIO.getJsonFromWorkspace(DIP_REQUEST_FILE_NAME)).willReturn(JsonHandler.toJsonNode(dipExportRequest));
+        ExportRequest exportRequest = new ExportRequest();
+        exportRequest.setExportWithLogBookLFC(true);
+        exportRequest.setDslRequest(queryUnit);
+        given(handlerIO.getJsonFromWorkspace(DIP_REQUEST_FILE_NAME)).willReturn(JsonHandler.toJsonNode(exportRequest));
 
         WorkerParameters wp = WorkerParametersFactory.newWorkerParameters();
 
@@ -196,16 +194,16 @@ public class CreateManifestTest {
             .containsKey("aeaaaaaaaabhu53raawyuak7tm2uaqqaaaba")
             .doesNotContainKey("aeaaaaaaaabhu53raawyuak7tm2uaqiaaaaq");
 
-        assertThat(((Map)linkBetweenBinaryIdAndFileName.get("aeaaaaaaaabhu53raawyuak7tm2uapqaaaaq")).get("FILE_NAME"))
+        assertThat(((Map) linkBetweenBinaryIdAndFileName.get("aeaaaaaaaabhu53raawyuak7tm2uapqaaaaq")).get("FILE_NAME"))
             .isEqualTo("Content/aeaaaaaaaabhu53raawyuak7tm2uapqaaaaq.pdf");
-        assertThat(((Map)linkBetweenBinaryIdAndFileName.get("aeaaaaaaaabhu53raawyuak7tm2uapqaaaaq")).get("strategyId"))
+        assertThat(((Map) linkBetweenBinaryIdAndFileName.get("aeaaaaaaaabhu53raawyuak7tm2uapqaaaaq")).get("strategyId"))
             .isEqualTo("default-fake");
 
-        assertThat(((Map)linkBetweenBinaryIdAndFileName.get("aeaaaaaaaabhu53raawyuak7tm2uaqiaaaaq"))).isNull();
+        assertThat(((Map) linkBetweenBinaryIdAndFileName.get("aeaaaaaaaabhu53raawyuak7tm2uaqiaaaaq"))).isNull();
 
-        assertThat(((Map)linkBetweenBinaryIdAndFileName.get("aeaaaaaaaabhu53raawyuak7tm2uaqqaaaba")).get("FILE_NAME"))
+        assertThat(((Map) linkBetweenBinaryIdAndFileName.get("aeaaaaaaaabhu53raawyuak7tm2uaqqaaaba")).get("FILE_NAME"))
             .isEqualTo("Content/aeaaaaaaaabhu53raawyuak7tm2uaqqaaaba.pdf");
-        assertThat(((Map)linkBetweenBinaryIdAndFileName.get("aeaaaaaaaabhu53raawyuak7tm2uaqqaaaba")).get("strategyId"))
+        assertThat(((Map) linkBetweenBinaryIdAndFileName.get("aeaaaaaaaabhu53raawyuak7tm2uaqqaaaba")).get("strategyId"))
             .isEqualTo("default-fake-2");
 
         ArrayNode fromFile = (ArrayNode) JsonHandler.getFromFile(binaryFile);
@@ -214,16 +212,20 @@ public class CreateManifestTest {
             .containsExactlyInAnyOrder("aeaaaaaaaabhu53raawyuak7tm2uapqaaaaq", "aeaaaaaaaabhu53raawyuak7tm2uaqqaaaba")
             .doesNotContain("aeaaaaaaaabhu53raawyuak7tm2uaqiaaaaq");
 
-        Assert.assertThat(Input.fromFile(manifestFile), hasXPath("//vitam:ArchiveDeliveryRequestReply/vitam:DataObjectPackage/vitam:DataObjectGroup/vitam:BinaryDataObject/vitam:Uri",
+        Assert.assertThat(Input.fromFile(manifestFile), hasXPath(
+            "//vitam:ArchiveDeliveryRequestReply/vitam:DataObjectPackage/vitam:DataObjectGroup/vitam:BinaryDataObject/vitam:Uri",
             equalTo("Content/aeaaaaaaaabhu53raawyuak7tm2uapqaaaaq.pdf"))
             .withNamespaceContext(prefix2Uri));
-        Assert.assertThat(Input.fromFile(manifestFile), hasXPath("//vitam:ArchiveDeliveryRequestReply/vitam:DataObjectPackage/vitam:ManagementMetadata/vitam:OriginatingAgencyIdentifier",
+        Assert.assertThat(Input.fromFile(manifestFile), hasXPath(
+            "//vitam:ArchiveDeliveryRequestReply/vitam:DataObjectPackage/vitam:ManagementMetadata/vitam:OriginatingAgencyIdentifier",
             equalTo("FRAN_NP_005568"))
             .withNamespaceContext(prefix2Uri));
-        Assert.assertThat(Input.fromFile(manifestFile), hasXPath("//vitam:ArchiveDeliveryRequestReply/vitam:DataObjectPackage/vitam:DataObjectGroup/vitam:PhysicalDataObject/vitam:PhysicalId",
-                equalTo("1 Num 1/204-4"))
-                .withNamespaceContext(prefix2Uri));
-        Assert.assertThat(Input.fromFile(manifestFile), hasXPath("//vitam:ArchiveDeliveryRequestReply/vitam:DataObjectPackage/vitam:DescriptiveMetadata/vitam:ArchiveUnit/vitam:Management/vitam:LogBook/vitam:Event/vitam:EventIdentifier",
+        Assert.assertThat(Input.fromFile(manifestFile), hasXPath(
+            "//vitam:ArchiveDeliveryRequestReply/vitam:DataObjectPackage/vitam:DataObjectGroup/vitam:PhysicalDataObject/vitam:PhysicalId",
+            equalTo("1 Num 1/204-4"))
+            .withNamespaceContext(prefix2Uri));
+        Assert.assertThat(Input.fromFile(manifestFile), hasXPath(
+            "//vitam:ArchiveDeliveryRequestReply/vitam:DataObjectPackage/vitam:DescriptiveMetadata/vitam:ArchiveUnit/vitam:Management/vitam:LogBook/vitam:Event/vitam:EventIdentifier",
             equalTo("aedqaaaaacaam7mxaaaamakvhiv4rsqaaaaq")).withNamespaceContext(prefix2Uri));
     }
 
@@ -245,32 +247,35 @@ public class CreateManifestTest {
         VitamThreadUtils.getVitamSession().setContract(accessContractModel);
 
         JsonNode queryUnit =
-                JsonHandler.getFromInputStream(getClass().getResourceAsStream("/CreateManifest/query.json"));
+            JsonHandler.getFromInputStream(getClass().getResourceAsStream("/CreateManifest/query.json"));
 
         JsonNode queryDataObjectVersion =
-                JsonHandler.getFromInputStream(getClass().getResourceAsStream("/CreateManifest/dataObjectVersionFilter.json"));
+            JsonHandler
+                .getFromInputStream(getClass().getResourceAsStream("/CreateManifest/dataObjectVersionFilter.json"));
 
         JsonNode queryUnitWithTree =
-                JsonHandler.getFromInputStream(getClass().getResourceAsStream("/CreateManifest/queryWithTreeProjection.json"));
+            JsonHandler
+                .getFromInputStream(getClass().getResourceAsStream("/CreateManifest/queryWithTreeProjection.json"));
 
         JsonNode queryObjectGroup =
-                JsonHandler.getFromInputStream(getClass().getResourceAsStream("/CreateManifest/queryObjectGroup.json"));
+            JsonHandler.getFromInputStream(getClass().getResourceAsStream("/CreateManifest/queryObjectGroup.json"));
 
         given(handlerIO.getJsonFromWorkspace("query.json")).willReturn(queryUnit);
 
         given(handlerIO.getJsonFromWorkspace("dataObjectVersionFilter.json")).willReturn(queryDataObjectVersion);
 
         given(metaDataClient.selectUnits(queryUnit.deepCopy())).willReturn(
-                JsonHandler.getFromInputStream(getClass().getResourceAsStream("/CreateManifest/resultMetadata.json")));
+            JsonHandler.getFromInputStream(getClass().getResourceAsStream("/CreateManifest/resultMetadata.json")));
 
         given(metaDataClient.selectUnits(queryUnitWithTree)).willReturn(
-                JsonHandler.getFromInputStream(getClass().getResourceAsStream("/CreateManifest/resultMetadataTree.json")));
+            JsonHandler.getFromInputStream(getClass().getResourceAsStream("/CreateManifest/resultMetadataTree.json")));
 
         given(metaDataClient.selectObjectGroups(queryObjectGroup)).willReturn(
-                JsonHandler.getFromInputStream(getClass().getResourceAsStream("/CreateManifest/resultObjectGroup.json")));
+            JsonHandler.getFromInputStream(getClass().getResourceAsStream("/CreateManifest/resultObjectGroup.json")));
 
         File manifestFile = tempFolder.newFile();
-        given(handlerIO.getOutput(MANIFEST_XML_RANK)).willReturn(new ProcessingUri(UriPrefix.WORKSPACE, manifestFile.getPath()));
+        given(handlerIO.getOutput(MANIFEST_XML_RANK))
+            .willReturn(new ProcessingUri(UriPrefix.WORKSPACE, manifestFile.getPath()));
         given(handlerIO.getNewLocalFile(manifestFile.getPath())).willReturn(manifestFile);
 
         File reportFile = tempFolder.newFile();
@@ -279,24 +284,24 @@ public class CreateManifestTest {
 
         File guidToPathFile = tempFolder.newFile();
         given(handlerIO.getOutput(GUID_TO_INFO_RANK))
-                .willReturn(new ProcessingUri(UriPrefix.WORKSPACE, guidToPathFile.getPath()));
+            .willReturn(new ProcessingUri(UriPrefix.WORKSPACE, guidToPathFile.getPath()));
         given(handlerIO.getNewLocalFile(guidToPathFile.getPath())).willReturn(guidToPathFile);
 
         File binaryFile = tempFolder.newFile();
         given(handlerIO.getOutput(BINARIES_RANK))
-                .willReturn(new ProcessingUri(UriPrefix.WORKSPACE, binaryFile.getPath()));
+            .willReturn(new ProcessingUri(UriPrefix.WORKSPACE, binaryFile.getPath()));
         given(handlerIO.getNewLocalFile(binaryFile.getPath())).willReturn(binaryFile);
-        DipExportRequest dipExportRequest = new DipExportRequest();
-        dipExportRequest.setExportWithLogBookLFC(true);
-        dipExportRequest.setDslRequest(queryUnit);
+        ExportRequest exportRequest = new ExportRequest();
+        exportRequest.setExportWithLogBookLFC(true);
+        exportRequest.setDslRequest(queryUnit);
         ExportRequestParameters exportRequestParameters = new ExportRequestParameters();
         exportRequestParameters.setMessageRequestIdentifier(GUIDFactory.newGUID().getId());
         exportRequestParameters.setArchivalAgencyIdentifier("ArchivalAgency");
         exportRequestParameters.setRequesterIdentifier("Vitam-Bis");
 
-        dipExportRequest.setExportRequestParameters(exportRequestParameters);
+        exportRequest.setExportRequestParameters(exportRequestParameters);
 
-        given(handlerIO.getJsonFromWorkspace(DIP_REQUEST_FILE_NAME)).willReturn(JsonHandler.toJsonNode(dipExportRequest));
+        given(handlerIO.getJsonFromWorkspace(DIP_REQUEST_FILE_NAME)).willReturn(JsonHandler.toJsonNode(exportRequest));
 
         // When
         ItemStatus itemStatus = createManifest.execute(WorkerParametersFactory.newWorkerParameters(), handlerIO);
@@ -305,26 +310,28 @@ public class CreateManifestTest {
         assertThat(itemStatus.getGlobalStatus()).isEqualTo(StatusCode.OK);
 
         Map<String, Object> linkBetweenBinaryIdAndFileName =
-                JsonHandler.getMapFromInputStream(new FileInputStream(guidToPathFile));
+            JsonHandler.getMapFromInputStream(new FileInputStream(guidToPathFile));
 
         assertThat(linkBetweenBinaryIdAndFileName).hasSize(1);
         assertThat(linkBetweenBinaryIdAndFileName)
-                .containsKey("aeaaaaaaaabhu53raawyuak7tm2uapqaaaaq");
+            .containsKey("aeaaaaaaaabhu53raawyuak7tm2uapqaaaaq");
 
-        assertThat(((Map)linkBetweenBinaryIdAndFileName.get("aeaaaaaaaabhu53raawyuak7tm2uapqaaaaq")).get("FILE_NAME"))
-                .isEqualTo("Content/aeaaaaaaaabhu53raawyuak7tm2uapqaaaaq.pdf");
+        assertThat(((Map) linkBetweenBinaryIdAndFileName.get("aeaaaaaaaabhu53raawyuak7tm2uapqaaaaq")).get("FILE_NAME"))
+            .isEqualTo("Content/aeaaaaaaaabhu53raawyuak7tm2uapqaaaaq.pdf");
 
         ArrayNode fromFile = (ArrayNode) JsonHandler.getFromFile(binaryFile);
 
         assertThat(fromFile).hasSize(1).extracting(JsonNode::asText)
-                .containsExactlyInAnyOrder("aeaaaaaaaabhu53raawyuak7tm2uapqaaaaq");
+            .containsExactlyInAnyOrder("aeaaaaaaaabhu53raawyuak7tm2uapqaaaaq");
 
-        Assert.assertThat(Input.fromFile(manifestFile), hasXPath("//vitam:ArchiveDeliveryRequestReply/vitam:DataObjectPackage/vitam:DataObjectGroup/vitam:BinaryDataObject/vitam:Uri",
-                equalTo("Content/aeaaaaaaaabhu53raawyuak7tm2uapqaaaaq.pdf"))
-                .withNamespaceContext(prefix2Uri));
-        Assert.assertThat(Input.fromFile(manifestFile), hasXPath("//vitam:ArchiveDeliveryRequestReply/vitam:DataObjectPackage/vitam:ManagementMetadata/vitam:OriginatingAgencyIdentifier",
-                equalTo("FRAN_NP_005568"))
-                .withNamespaceContext(prefix2Uri));
+        Assert.assertThat(Input.fromFile(manifestFile), hasXPath(
+            "//vitam:ArchiveDeliveryRequestReply/vitam:DataObjectPackage/vitam:DataObjectGroup/vitam:BinaryDataObject/vitam:Uri",
+            equalTo("Content/aeaaaaaaaabhu53raawyuak7tm2uapqaaaaq.pdf"))
+            .withNamespaceContext(prefix2Uri));
+        Assert.assertThat(Input.fromFile(manifestFile), hasXPath(
+            "//vitam:ArchiveDeliveryRequestReply/vitam:DataObjectPackage/vitam:ManagementMetadata/vitam:OriginatingAgencyIdentifier",
+            equalTo("FRAN_NP_005568"))
+            .withNamespaceContext(prefix2Uri));
     }
 
     @Test
@@ -346,24 +353,30 @@ public class CreateManifestTest {
             JsonHandler.getFromInputStream(getClass().getResourceAsStream("/CreateManifest/querybug5160.json"));
 
         JsonNode queryUnitWithTree =
-            JsonHandler.getFromInputStream(getClass().getResourceAsStream("/CreateManifest/queryWithTreeProjectionbug5160.json"));
+            JsonHandler.getFromInputStream(
+                getClass().getResourceAsStream("/CreateManifest/queryWithTreeProjectionbug5160.json"));
 
         JsonNode queryObjectGroup =
-            JsonHandler.getFromInputStream(getClass().getResourceAsStream("/CreateManifest/queryObjectGroupbug5160.json"));
+            JsonHandler
+                .getFromInputStream(getClass().getResourceAsStream("/CreateManifest/queryObjectGroupbug5160.json"));
 
         given(handlerIO.getJsonFromWorkspace("query.json")).willReturn(queryUnit);
 
         given(metaDataClient.selectUnits(queryUnit.deepCopy())).willReturn(
-            JsonHandler.getFromInputStream(getClass().getResourceAsStream("/CreateManifest/resultMetadatabug5160.json")));
+            JsonHandler
+                .getFromInputStream(getClass().getResourceAsStream("/CreateManifest/resultMetadatabug5160.json")));
 
         given(metaDataClient.selectUnits(queryUnitWithTree)).willReturn(
-            JsonHandler.getFromInputStream(getClass().getResourceAsStream("/CreateManifest/resultMetadatabug5160.json")));
+            JsonHandler
+                .getFromInputStream(getClass().getResourceAsStream("/CreateManifest/resultMetadatabug5160.json")));
 
         given(metaDataClient.selectObjectGroups(queryObjectGroup)).willReturn(
-            JsonHandler.getFromInputStream(getClass().getResourceAsStream("/CreateManifest/resultObjectGroup5160.json")));
+            JsonHandler
+                .getFromInputStream(getClass().getResourceAsStream("/CreateManifest/resultObjectGroup5160.json")));
 
         File manifestFile = tempFolder.newFile();
-        given(handlerIO.getOutput(MANIFEST_XML_RANK)).willReturn(new ProcessingUri(UriPrefix.WORKSPACE, manifestFile.getPath()));
+        given(handlerIO.getOutput(MANIFEST_XML_RANK))
+            .willReturn(new ProcessingUri(UriPrefix.WORKSPACE, manifestFile.getPath()));
         given(handlerIO.getNewLocalFile(manifestFile.getPath())).willReturn(manifestFile);
 
         File reportFile = tempFolder.newFile();
@@ -379,10 +392,10 @@ public class CreateManifestTest {
         given(handlerIO.getOutput(BINARIES_RANK))
             .willReturn(new ProcessingUri(UriPrefix.WORKSPACE, binaryFile.getPath()));
         given(handlerIO.getNewLocalFile(binaryFile.getPath())).willReturn(binaryFile);
-        DipExportRequest dipExportRequest = new DipExportRequest();
-        dipExportRequest.setExportWithLogBookLFC(true);
-        dipExportRequest.setDslRequest(queryUnit);
-        given(handlerIO.getJsonFromWorkspace("dip_export_query.json")).willReturn(JsonHandler.toJsonNode(dipExportRequest));
+        ExportRequest exportRequest = new ExportRequest();
+        exportRequest.setExportWithLogBookLFC(true);
+        exportRequest.setDslRequest(queryUnit);
+        given(handlerIO.getJsonFromWorkspace("export_query.json")).willReturn(JsonHandler.toJsonNode(exportRequest));
 
         // When
         ItemStatus itemStatus = createManifest.execute(WorkerParametersFactory.newWorkerParameters(), handlerIO);
@@ -391,7 +404,8 @@ public class CreateManifestTest {
         assertThat(itemStatus.getGlobalStatus()).isEqualTo(StatusCode.OK);
 
         Assert.assertThat(StringUtils.countMatches(Files.readAllLines(Paths.get(manifestFile.getPath()),
-            Charset.defaultCharset()).get(0),"<DataObjectGroup id=\"aebaaaaaaefjz7wkabvpoalnfgzdwfyaaaaq\">"), equalTo(1));
+            Charset.defaultCharset()).get(0), "<DataObjectGroup id=\"aebaaaaaaefjz7wkabvpoalnfgzdwfyaaaaq\">"),
+            equalTo(1));
 
     }
 
@@ -409,11 +423,14 @@ public class CreateManifestTest {
 
         VitamThreadUtils.getVitamSession().setContract(accessContractModel);
 
-        JsonNode queryUnit = JsonHandler.getFromInputStream(getClass().getResourceAsStream("/CreateManifest/query.json"));
+        JsonNode queryUnit =
+            JsonHandler.getFromInputStream(getClass().getResourceAsStream("/CreateManifest/query.json"));
 
-        JsonNode queryUnitWithTree = JsonHandler.getFromInputStream(getClass().getResourceAsStream("/CreateManifest/queryWithTreeProjection.json"));
+        JsonNode queryUnitWithTree = JsonHandler
+            .getFromInputStream(getClass().getResourceAsStream("/CreateManifest/queryWithTreeProjection.json"));
 
-        JsonNode queryObjectGroup = JsonHandler.getFromInputStream(getClass().getResourceAsStream("/CreateManifest/queryObjectGroup.json"));
+        JsonNode queryObjectGroup =
+            JsonHandler.getFromInputStream(getClass().getResourceAsStream("/CreateManifest/queryObjectGroup.json"));
 
         given(handlerIO.getJsonFromWorkspace("query.json")).willReturn(queryUnit);
 
@@ -427,7 +444,8 @@ public class CreateManifestTest {
             JsonHandler.getFromInputStream(getClass().getResourceAsStream("/CreateManifest/resultObjectGroup.json")));
 
         File manifestFile = tempFolder.newFile();
-        given(handlerIO.getOutput(MANIFEST_XML_RANK)).willReturn(new ProcessingUri(UriPrefix.WORKSPACE, manifestFile.getPath()));
+        given(handlerIO.getOutput(MANIFEST_XML_RANK))
+            .willReturn(new ProcessingUri(UriPrefix.WORKSPACE, manifestFile.getPath()));
         given(handlerIO.getNewLocalFile(manifestFile.getPath())).willReturn(manifestFile);
 
         File reportFile = tempFolder.newFile();
@@ -440,13 +458,14 @@ public class CreateManifestTest {
         given(handlerIO.getNewLocalFile(guidToPathFile.getPath())).willReturn(guidToPathFile);
 
         File binaryFile = tempFolder.newFile();
-        given(handlerIO.getOutput(BINARIES_RANK)).willReturn(new ProcessingUri(UriPrefix.WORKSPACE, binaryFile.getPath()));
+        given(handlerIO.getOutput(BINARIES_RANK))
+            .willReturn(new ProcessingUri(UriPrefix.WORKSPACE, binaryFile.getPath()));
         given(handlerIO.getNewLocalFile(binaryFile.getPath())).willReturn(binaryFile);
 
-        DipExportRequest dipExportRequest = new DipExportRequest();
-        dipExportRequest.setExportWithLogBookLFC(true);
-        dipExportRequest.setDslRequest(queryUnit);
-        dipExportRequest.setExportType(ArchiveTransfer);
+        ExportRequest exportRequest = new ExportRequest();
+        exportRequest.setExportWithLogBookLFC(true);
+        exportRequest.setDslRequest(queryUnit);
+        exportRequest.setExportType(ArchiveTransfer);
         ExportRequestParameters exportRequestParameters = new ExportRequestParameters();
         exportRequestParameters.setArchivalAgreement("ArchivalAgreement");
         exportRequestParameters.setOriginatingAgencyIdentifier("OriginatingAgencyIdentifier");
@@ -456,8 +475,8 @@ public class CreateManifestTest {
         exportRequestParameters.setTransferRequestReplyIdentifier("TransferRequestReplyIdentifier");
         exportRequestParameters.setArchivalAgencyIdentifier("ArchivalAgencyIdentifier");
         exportRequestParameters.setTransferringAgency("TransferringAgency");
-        dipExportRequest.setExportRequestParameters(exportRequestParameters);
-        given(handlerIO.getJsonFromWorkspace(DIP_REQUEST_FILE_NAME)).willReturn(JsonHandler.toJsonNode(dipExportRequest));
+        exportRequest.setExportRequestParameters(exportRequestParameters);
+        given(handlerIO.getJsonFromWorkspace(DIP_REQUEST_FILE_NAME)).willReturn(JsonHandler.toJsonNode(exportRequest));
 
         given(backupService.backup(any(), any(), anyString())).willReturn(null);
 
@@ -492,16 +511,20 @@ public class CreateManifestTest {
 
         VitamThreadUtils.getVitamSession().setContract(accessContractModel);
 
-        JsonNode queryUnit = JsonHandler.getFromInputStream(getClass().getResourceAsStream("/CreateManifest/query.json"));
+        JsonNode queryUnit =
+            JsonHandler.getFromInputStream(getClass().getResourceAsStream("/CreateManifest/query.json"));
 
-        JsonNode queryUnitWithTree = JsonHandler.getFromInputStream(getClass().getResourceAsStream("/CreateManifest/queryWithTreeProjection.json"));
+        JsonNode queryUnitWithTree = JsonHandler
+            .getFromInputStream(getClass().getResourceAsStream("/CreateManifest/queryWithTreeProjection.json"));
 
-        JsonNode queryObjectGroup = JsonHandler.getFromInputStream(getClass().getResourceAsStream("/CreateManifest/queryObjectGroup.json"));
+        JsonNode queryObjectGroup =
+            JsonHandler.getFromInputStream(getClass().getResourceAsStream("/CreateManifest/queryObjectGroup.json"));
 
         given(handlerIO.getJsonFromWorkspace("query.json")).willReturn(queryUnit);
 
         given(metaDataClient.selectUnits(queryUnit.deepCopy())).willReturn(
-            JsonHandler.getFromInputStream(getClass().getResourceAsStream("/CreateManifest/resultMetadataWithTransfer.json")));
+            JsonHandler
+                .getFromInputStream(getClass().getResourceAsStream("/CreateManifest/resultMetadataWithTransfer.json")));
 
         given(metaDataClient.selectUnits(queryUnitWithTree)).willReturn(
             JsonHandler.getFromInputStream(getClass().getResourceAsStream("/CreateManifest/resultMetadataTree.json")));
@@ -510,7 +533,8 @@ public class CreateManifestTest {
             JsonHandler.getFromInputStream(getClass().getResourceAsStream("/CreateManifest/resultObjectGroup.json")));
 
         File manifestFile = tempFolder.newFile();
-        given(handlerIO.getOutput(MANIFEST_XML_RANK)).willReturn(new ProcessingUri(UriPrefix.WORKSPACE, manifestFile.getPath()));
+        given(handlerIO.getOutput(MANIFEST_XML_RANK))
+            .willReturn(new ProcessingUri(UriPrefix.WORKSPACE, manifestFile.getPath()));
         given(handlerIO.getNewLocalFile(manifestFile.getPath())).willReturn(manifestFile);
 
         File reportFile = tempFolder.newFile();
@@ -523,13 +547,14 @@ public class CreateManifestTest {
         given(handlerIO.getNewLocalFile(guidToPathFile.getPath())).willReturn(guidToPathFile);
 
         File binaryFile = tempFolder.newFile();
-        given(handlerIO.getOutput(BINARIES_RANK)).willReturn(new ProcessingUri(UriPrefix.WORKSPACE, binaryFile.getPath()));
+        given(handlerIO.getOutput(BINARIES_RANK))
+            .willReturn(new ProcessingUri(UriPrefix.WORKSPACE, binaryFile.getPath()));
         given(handlerIO.getNewLocalFile(binaryFile.getPath())).willReturn(binaryFile);
 
-        DipExportRequest dipExportRequest = new DipExportRequest();
-        dipExportRequest.setExportWithLogBookLFC(true);
-        dipExportRequest.setDslRequest(queryUnit);
-        dipExportRequest.setExportType(ArchiveTransfer);
+        ExportRequest exportRequest = new ExportRequest();
+        exportRequest.setExportWithLogBookLFC(true);
+        exportRequest.setDslRequest(queryUnit);
+        exportRequest.setExportType(ArchiveTransfer);
         ExportRequestParameters exportRequestParameters = new ExportRequestParameters();
         exportRequestParameters.setArchivalAgreement("ArchivalAgreement");
         exportRequestParameters.setOriginatingAgencyIdentifier("OriginatingAgencyIdentifier");
@@ -539,8 +564,8 @@ public class CreateManifestTest {
         exportRequestParameters.setTransferRequestReplyIdentifier("TransferRequestReplyIdentifier");
         exportRequestParameters.setArchivalAgencyIdentifier("ArchivalAgencyIdentifier");
         exportRequestParameters.setTransferringAgency("TransferringAgency");
-        dipExportRequest.setExportRequestParameters(exportRequestParameters);
-        given(handlerIO.getJsonFromWorkspace(DIP_REQUEST_FILE_NAME)).willReturn(JsonHandler.toJsonNode(dipExportRequest));
+        exportRequest.setExportRequestParameters(exportRequestParameters);
+        given(handlerIO.getJsonFromWorkspace(DIP_REQUEST_FILE_NAME)).willReturn(JsonHandler.toJsonNode(exportRequest));
 
         given(backupService.backup(any(), any(), anyString())).willReturn(null);
 

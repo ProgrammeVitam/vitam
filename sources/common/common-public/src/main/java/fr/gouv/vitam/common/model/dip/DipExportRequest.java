@@ -4,17 +4,10 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.JsonNode;
 
 public class DipExportRequest {
-    public static final String DIP_REQUEST_FILE_NAME = "dip_export_query.json";
+    public static final String DIP_REQUEST_FILE_NAME = "export_query.json";
 
     @JsonProperty("dataObjectVersionToExport")
     private DataObjectVersions dataObjectVersionToExport;
-
-    @JsonProperty("exportType")
-    private ExportType exportType = ExportType.MinimalArchiveDeliveryRequestReply;
-
-    @JsonProperty("exportRequestParameters")
-    private ExportRequestParameters exportRequestParameters;
-
 
     @JsonProperty("exportWithLogBookLFC")
     private boolean exportWithLogBookLFC;
@@ -37,27 +30,6 @@ public class DipExportRequest {
         this.exportWithLogBookLFC = withLogBookLFC;
     }
 
-    public static DipExportRequest from(DipRequest dipRequest) {
-        DipExportRequest dipExportRequest =
-            new DipExportRequest(dipRequest.getDataObjectVersionToExport(), dipRequest.getDslRequest(),
-                dipRequest.isExportWithLogBookLFC());
-        dipExportRequest.setExportType(dipRequest.getDipExportType().getExportType());
-        dipExportRequest.setExportRequestParameters(ExportRequestParameters.from(dipRequest.getDipRequestParameters()));
-
-        return dipExportRequest;
-    }
-
-    public static DipExportRequest from(TransferRequest transferRequest) {
-        DipExportRequest dipExportRequest =
-            new DipExportRequest(transferRequest.getDataObjectVersionToExport(), transferRequest.getDslRequest(),
-                transferRequest.isTransferWithLogBookLFC());
-        dipExportRequest.setExportType(ExportType.ArchiveTransfer);
-        dipExportRequest
-            .setExportRequestParameters(ExportRequestParameters.from(transferRequest.getTransferRequestParameters()));
-
-        return dipExportRequest;
-    }
-
     public DataObjectVersions getDataObjectVersionToExport() {
         return dataObjectVersionToExport;
     }
@@ -72,22 +44,6 @@ public class DipExportRequest {
 
     public void setDslRequest(JsonNode dslRequest) {
         this.dslRequest = dslRequest;
-    }
-
-    public ExportType getExportType() {
-        return exportType;
-    }
-
-    public void setExportType(ExportType exportType) {
-        this.exportType = exportType;
-    }
-
-    public ExportRequestParameters getExportRequestParameters() {
-        return exportRequestParameters;
-    }
-
-    public void setExportRequestParameters(ExportRequestParameters exportRequestParameters) {
-        this.exportRequestParameters = exportRequestParameters;
     }
 
     public boolean isExportWithLogBookLFC() {

@@ -1,7 +1,8 @@
-package fr.gouv.vitam.common.model.dip;
+package fr.gouv.vitam.common.model.export.transfer;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.JsonNode;
+import fr.gouv.vitam.common.model.dip.DataObjectVersions;
 
 public class TransferRequest {
     @JsonProperty("dataObjectVersionToExport")

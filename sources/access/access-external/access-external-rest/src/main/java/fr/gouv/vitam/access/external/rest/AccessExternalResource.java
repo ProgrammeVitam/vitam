@@ -59,7 +59,8 @@ import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseError;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.dip.DipExportRequest;
-import fr.gouv.vitam.common.model.dip.TransferRequest;
+import fr.gouv.vitam.common.model.export.ExportRequest;
+import fr.gouv.vitam.common.model.export.transfer.TransferRequest;
 import fr.gouv.vitam.common.model.elimination.EliminationRequestBody;
 import fr.gouv.vitam.common.model.massupdate.MassUpdateUnitRuleRequest;
 import fr.gouv.vitam.common.security.SanityChecker;
@@ -237,7 +238,7 @@ public class AccessExternalResource extends ApplicationStatusResource {
             SelectMultipleSchemaValidator validator = new SelectMultipleSchemaValidator();
             validator.validate(transferRequest.getDslRequest());
 
-            RequestResponse response = client.exportByUsageFilter(DipExportRequest.from(transferRequest));
+            RequestResponse response = client.exportByUsageFilter(ExportRequest.from(transferRequest));
             if (response.isOk()) {
                 return Response.status(Status.ACCEPTED.getStatusCode()).entity(response).build();
             } else {

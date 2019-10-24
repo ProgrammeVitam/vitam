@@ -52,7 +52,7 @@
     status_code: 200,201,204
     url: "http://{{ hostvars[groups['hosts_functional_administration'][0]]['ip_admin'] }}:{{ vitam.functional_administration.port_admin }}/v1/admin/context/{{ item.Identifier }}"
   with_items:
-   - "{{ context_check_json.results }}"
+   - "{{ context_check_json.results }}"²
   run_once: true
 
 - name: Delete security profile "{{ admin_security_profile }}"

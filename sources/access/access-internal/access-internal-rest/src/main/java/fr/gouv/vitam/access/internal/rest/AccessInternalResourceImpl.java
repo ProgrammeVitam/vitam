@@ -82,9 +82,9 @@ import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.VitamSession;
 import fr.gouv.vitam.common.model.administration.AccessContractModel;
 import fr.gouv.vitam.common.model.administration.ActivationStatus;
-import fr.gouv.vitam.common.model.dip.DipExportRequest;
-import fr.gouv.vitam.common.model.dip.ExportType;
 import fr.gouv.vitam.common.model.elimination.EliminationRequestBody;
+import fr.gouv.vitam.common.model.export.ExportRequest;
+import fr.gouv.vitam.common.model.export.ExportType;
 import fr.gouv.vitam.common.model.massupdate.MassUpdateUnitRuleRequest;
 import fr.gouv.vitam.common.model.massupdate.RuleActions;
 import fr.gouv.vitam.common.model.unit.TextByLang;
@@ -344,33 +344,33 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     public Response exportDIP(JsonNode dslRequest) {
-        DipExportRequest dipExportRequest = new DipExportRequest();
-        dipExportRequest.setDslRequest(dslRequest);
-        dipExportRequest.setExportWithLogBookLFC(false);
-        dipExportRequest.setExportType(ExportType.MinimalArchiveDeliveryRequestReply);
+        ExportRequest exportRequest = new ExportRequest();
+        exportRequest.setDslRequest(dslRequest);
+        exportRequest.setExportWithLogBookLFC(false);
+        exportRequest.setExportType(ExportType.MinimalArchiveDeliveryRequestReply);
 
-        return exportDIPByRequest(dipExportRequest, false);
+        return exportByRequest(exportRequest, false);
     }
 
     /**
      * get Archive Unit list by query based on identifier
      *
-     * @param dipExportRequest as DipExportRequest
+     * @param exportRequest as DipExportRequest
      * @return an archive unit result list
      */
     @Override
     @POST
-    @Path("/dipexport/usagefilter")
+    @Path("/export/usagefilter")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    public Response exportDIPByUsageFilter(DipExportRequest dipExportRequest) {
-        return exportDIPByRequest(dipExportRequest, true);
+    public Response exportByUsageFilter(ExportRequest exportRequest) {
+        return exportByRequest(exportRequest, true);
     }
 
-    private Response exportDIPByRequest(DipExportRequest dipExportRequest, boolean applyFilter) {
+    private Response exportByRequest(ExportRequest exportRequest, boolean applyFilter) {
         Status status;
-        LOGGER.debug(START_SELECT_UNITS_DEBUG_MSG, dipExportRequest.getDslRequest());
-        LOGGER.debug("DEBUG: usage list to export {}", dipExportRequest.getDataObjectVersionToExport());
+        LOGGER.debug(START_SELECT_UNITS_DEBUG_MSG, exportRequest.getDslRequest());
+        LOGGER.debug("DEBUG: usage list to export {}", exportRequest.getDataObjectVersionToExport());
 
         try (ProcessingManagementClient processingClient = processingManagementClientFactory.getClient();
             LogbookOperationsClient logbookOperationsClient = logbookOperationsClientFactory.getClient();
@@ -378,7 +378,7 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
 
             Contexts contexts;
             LogbookTypeProcess logbookTypeProcess;
-            switch (dipExportRequest.getExportType()) {
+            switch (exportRequest.getExportType()) {
                 case ArchiveDeliveryRequestReply:
                 case MinimalArchiveDeliveryRequestReply:
                     contexts = Contexts.EXPORT_DIP;
@@ -390,9 +390,9 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
                     break;
                 default:
                     throw new IllegalArgumentException(
-                        "Not implemented ExportType :" + dipExportRequest.getExportType());
+                        "Not implemented ExportType :" + exportRequest.getExportType());
             }
-            checkEmptyQuery(dipExportRequest.getDslRequest());
+            checkEmptyQuery(exportRequest.getDslRequest());
             String operationId = getVitamSession().getRequestId();
 
             final LogbookOperationParameters initParameters =
@@ -413,11 +413,11 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
             logbookOperationsClient.create(initParameters);
 
             workspaceClient.createContainer(operationId);
-            JsonNode filteredQueryQsl = applyAccessContractRestrictionForUnitForSelect(dipExportRequest.getDslRequest(),
+            JsonNode filteredQueryQsl = applyAccessContractRestrictionForUnitForSelect(exportRequest.getDslRequest(),
                 getVitamSession().getContract());
-            dipExportRequest.setDslRequest(filteredQueryQsl);
+            exportRequest.setDslRequest(filteredQueryQsl);
             workspaceClient.putObject(operationId, QUERY_FILE, writeToInpustream(filteredQueryQsl));
-            workspaceClient.putObject(operationId, DIP_REQUEST_FILE_NAME, writeToInpustream(dipExportRequest));
+            workspaceClient.putObject(operationId, DIP_REQUEST_FILE_NAME, writeToInpustream(exportRequest));
 
             ProcessingEntry processingEntry = new ProcessingEntry(operationId, contexts.name());
             boolean mustLog = ActivationStatus.ACTIVE.equals(getVitamSession().getContract().getAccessLog());
@@ -432,7 +432,7 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
             InvalidGuidOperationException | LogbookClientServerException | LogbookClientBadRequestException |
             LogbookClientAlreadyExistsException |
             VitamClientException | InternalServerException | InvalidCreateOperationException e) {
-            LOGGER.error("Error while generating " + dipExportRequest.getExportType(), e);
+            LOGGER.error("Error while generating " + exportRequest.getExportType(), e);
             return Response.status(INTERNAL_SERVER_ERROR)
                 .entity(getErrorEntity(INTERNAL_SERVER_ERROR, e.getMessage())).build();
         } catch (final InvalidParseOperationException e) {
@@ -459,20 +459,22 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
     @Produces(MediaType.APPLICATION_JSON)
     public Response transferReply(InputStream transferReply) {
         try (ProcessingManagementClient processingClient = processingManagementClientFactory.getClient();
-             LogbookOperationsClient logbookOperationsClient = logbookOperationsClientFactory.getClient();
-             WorkspaceClient workspaceClient = workspaceClientFactory.getClient()) {
+            LogbookOperationsClient logbookOperationsClient = logbookOperationsClientFactory.getClient();
+            WorkspaceClient workspaceClient = workspaceClientFactory.getClient()) {
 
             String operationId = getVitamSession().getRequestId();
 
-            LogbookOperationParameters masterTransferReplyLfcEvent = LogbookParametersFactory.newLogbookOperationParameters(
-                GUIDReader.getGUID(operationId),
-                TRANSFER_REPLY.getEventType(),
-                GUIDReader.getGUID(operationId),
-                LogbookTypeProcess.TRANSFER_REPLY,
-                STARTED,
-                String.format("%s : %s", VitamLogbookMessages.getLabelOp("TRANSFER_REPLY.STARTED"), GUIDReader.getGUID(operationId)),
-                GUIDReader.getGUID(operationId)
-            );
+            LogbookOperationParameters masterTransferReplyLfcEvent =
+                LogbookParametersFactory.newLogbookOperationParameters(
+                    GUIDReader.getGUID(operationId),
+                    TRANSFER_REPLY.getEventType(),
+                    GUIDReader.getGUID(operationId),
+                    LogbookTypeProcess.TRANSFER_REPLY,
+                    STARTED,
+                    String.format("%s : %s", VitamLogbookMessages.getLabelOp("TRANSFER_REPLY.STARTED"),
+                        GUIDReader.getGUID(operationId)),
+                    GUIDReader.getGUID(operationId)
+                );
             addRightsStatementIdentifier(masterTransferReplyLfcEvent);
 
             logbookOperationsClient.create(masterTransferReplyLfcEvent);

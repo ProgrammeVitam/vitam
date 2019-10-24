@@ -30,6 +30,7 @@ package fr.gouv.vitam.access.internal.api;
 import com.fasterxml.jackson.databind.JsonNode;
 import fr.gouv.vitam.common.model.dip.DipExportRequest;
 import fr.gouv.vitam.common.model.elimination.EliminationRequestBody;
+import fr.gouv.vitam.common.model.export.ExportRequest;
 import fr.gouv.vitam.common.model.massupdate.MassUpdateUnitRuleRequest;
 import fr.gouv.vitam.metadata.api.exception.MetaDataClientServerException;
 import fr.gouv.vitam.metadata.api.exception.MetaDataDocumentSizeException;
@@ -62,10 +63,10 @@ public interface AccessInternalResource {
     Response exportDIP(JsonNode dslRequest);
 
     /**
-     * @param dipExportRequest
+     * @param exportRequest
      * @return
      */
-    Response exportDIPByUsageFilter(DipExportRequest dipExportRequest);
+    Response exportByUsageFilter(ExportRequest exportRequest);
 
     /**
      * @param id of operation (X-Request-Id)

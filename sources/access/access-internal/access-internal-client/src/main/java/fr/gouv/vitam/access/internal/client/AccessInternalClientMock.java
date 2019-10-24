@@ -44,8 +44,8 @@ import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.PreservationRequest;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
-import fr.gouv.vitam.common.model.dip.DipExportRequest;
 import fr.gouv.vitam.common.model.elimination.EliminationRequestBody;
+import fr.gouv.vitam.common.model.export.ExportRequest;
 import fr.gouv.vitam.common.model.massupdate.MassUpdateUnitRuleRequest;
 import fr.gouv.vitam.common.stream.StreamUtils;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientException;
@@ -192,12 +192,12 @@ class AccessInternalClientMock extends AbstractMockClient implements AccessInter
     }
 
     @Override
-    public RequestResponse<JsonNode> exportByUsageFilter(DipExportRequest dipExportRequest) {
+    public RequestResponse<JsonNode> exportByUsageFilter(ExportRequest exportRequest) {
         return new RequestResponseOK<>();
     }
 
     @Override
-    public Response findExportByID(String id) throws AccessInternalClientServerException {
+    public Response findExportByID(String id) {
         return Response.ok().build();
     }
 

@@ -4,8 +4,7 @@ import com.google.common.collect.Sets;
 import fr.gouv.vitam.common.client.VitamContext;
 import fr.gouv.vitam.common.external.client.ClientMockResultHelper;
 import fr.gouv.vitam.common.json.JsonHandler;
-import fr.gouv.vitam.common.model.dip.DipExportRequest;
-import fr.gouv.vitam.common.model.dip.DipRequest;
+import fr.gouv.vitam.common.model.export.dip.DipRequest;
 import fr.gouv.vitam.common.server.application.junit.ResteasyTestApplication;
 import fr.gouv.vitam.common.serverv2.VitamServerTestRunner;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
@@ -113,7 +112,8 @@ public class AccessExternalClientV2RestTest extends ResteasyTestApplication {
     @RunWithCustomExecutor
     public void givenExportDIPNoQueryThen415() throws Exception {
         when(mock.post()).thenReturn(Response.status(Status.UNSUPPORTED_MEDIA_TYPE).build());
-        assertThat(client.exportDIP(new VitamContext(TENANT_ID).setAccessContract(CONTRACT), null).getHttpCode())
+        assertThat(
+            client.exportDIP(new VitamContext(TENANT_ID).setAccessContract(CONTRACT), (DipRequest) null).getHttpCode())
             .isEqualTo(Status.UNSUPPORTED_MEDIA_TYPE.getStatusCode());
     }
 

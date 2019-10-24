@@ -1,9 +1,11 @@
-package fr.gouv.vitam.common.model.dip;
+package fr.gouv.vitam.common.model.export.dip;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.JsonNode;
+import fr.gouv.vitam.common.model.dip.DataObjectVersions;
+import fr.gouv.vitam.common.model.dip.DipExportRequest;
 
-public class DipRequest  {
+public class DipRequest {
     @JsonProperty("dataObjectVersionToExport")
     private DataObjectVersions dataObjectVersionToExport;
 
@@ -33,6 +35,12 @@ public class DipRequest  {
         this.dataObjectVersionToExport = dataObjectVersionToExport;
         this.dslRequest = dslRequest;
         this.exportWithLogBookLFC = withLogBookLFC;
+    }
+
+    public DipRequest(DipExportRequest dipExportRequest) {
+        this(dipExportRequest.getDataObjectVersionToExport(), dipExportRequest.getDslRequest(),
+            dipExportRequest.isExportWithLogBookLFC());
+        this.dipExportType = DipExportType.MINIMAL;
     }
 
     public DataObjectVersions getDataObjectVersionToExport() {

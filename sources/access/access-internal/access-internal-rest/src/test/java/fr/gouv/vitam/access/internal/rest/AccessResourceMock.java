@@ -29,8 +29,8 @@ package fr.gouv.vitam.access.internal.rest;
 import com.fasterxml.jackson.databind.JsonNode;
 import fr.gouv.vitam.access.internal.api.AccessInternalResource;
 import fr.gouv.vitam.common.GlobalDataRest;
-import fr.gouv.vitam.common.model.dip.DipExportRequest;
 import fr.gouv.vitam.common.model.elimination.EliminationRequestBody;
+import fr.gouv.vitam.common.model.export.ExportRequest;
 import fr.gouv.vitam.common.model.massupdate.MassUpdateUnitRuleRequest;
 
 import javax.ws.rs.Consumes;
@@ -48,7 +48,6 @@ import java.io.InputStream;
 
 /**
  * Using the Mock Class in order to simulate Access Client Resource if config file does not exist
- *
  */
 @Path("/accessMock")
 @Consumes("application/json")
@@ -56,10 +55,10 @@ import java.io.InputStream;
 public class AccessResourceMock implements AccessInternalResource {
 
     final String queryDsqlForGot =
-            "{ \"$query\" : [ { \"$exists\": \"#id\" } ], " +
-                    " \"$filter\": { \"$orderby\": \"#id\" }, " +
-                    " \"$projection\" : { } " +
-                    " }";
+        "{ \"$query\" : [ { \"$exists\": \"#id\" } ], " +
+            " \"$filter\": { \"$orderby\": \"#id\" }, " +
+            " \"$projection\" : { } " +
+            " }";
 
     /**
      * Empty Constructor
@@ -100,10 +99,10 @@ public class AccessResourceMock implements AccessInternalResource {
 
     @Override
     @POST
-    @Path("/dipexport/usagefilter")
+    @Path("/export/usagefilter")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    public Response exportDIPByUsageFilter(DipExportRequest dipExportRequest) {
+    public Response exportByUsageFilter(ExportRequest exportRequest) {
         return null;
     }
 
@@ -202,14 +201,15 @@ public class AccessResourceMock implements AccessInternalResource {
         return Response.status(200).entity("{\"objectGroup\":\"OK_MockObjectGroup\"}").build();
     }
 
-    @Override public Response getAccessLogStreamAsync(HttpHeaders headers, JsonNode params) {
+    @Override
+    public Response getAccessLogStreamAsync(HttpHeaders headers, JsonNode params) {
         return Response.status(200).entity("{\"accessLog\":\"OK_AccessLog\"}").build();
     }
 
     /**
      * Mass update of archive units with Json query
      *
-     * @param dslQuery  DSL, null not allowed
+     * @param dslQuery DSL, null not allowed
      * @return the response
      */
     @POST
@@ -220,10 +220,12 @@ public class AccessResourceMock implements AccessInternalResource {
 
     /**
      * Mass update of archive units rules
+     *
      * @param massUpdateUnitRuleRequest wrapper for {DSL, RuleActions}, null not allowed
      * @return the response
      */
-    @Override public Response massUpdateUnitsRules(MassUpdateUnitRuleRequest massUpdateUnitRuleRequest) {
+    @Override
+    public Response massUpdateUnitsRules(MassUpdateUnitRuleRequest massUpdateUnitRuleRequest) {
         return null;
     }
 
