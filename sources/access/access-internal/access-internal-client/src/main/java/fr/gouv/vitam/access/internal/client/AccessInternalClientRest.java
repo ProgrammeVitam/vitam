@@ -44,7 +44,6 @@ import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.PreservationRequest;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.VitamSession;
-import fr.gouv.vitam.common.model.dip.DipExportRequest;
 import fr.gouv.vitam.common.model.elimination.EliminationRequestBody;
 import fr.gouv.vitam.common.model.export.ExportRequest;
 import fr.gouv.vitam.common.model.massupdate.MassUpdateUnitRuleRequest;
@@ -98,7 +97,7 @@ class AccessInternalClientRest extends DefaultClient implements AccessInternalCl
     private static final String CHECKS_OPERATION_TRACEABILITY_OK = "Checks operation traceability is OK";
     private static final String OBJECTS = "objects/";
     private static final String DIPEXPORT = "dipexport/";
-    private static final String DIPEXPORT_BY_USAGE_FILTER = "dipexport/usagefilter";
+    private static final String EXPORT_BY_USAGE_FILTER = "export/usagefilter";
     private static final String UNITS = "units/";
     private static final String UNITS_RULES = "/units/rules";
     private static final String UNITS_WITH_INHERITED_RULES = "unitsWithInheritedRules";
@@ -579,7 +578,7 @@ class AccessInternalClientRest extends DefaultClient implements AccessInternalCl
         VitamThreadUtils.getVitamSession().checkValidRequestId();
         Response response = null;
         try {
-            response = performRequest(HttpMethod.POST, DIPEXPORT_BY_USAGE_FILTER, null, exportRequest,
+            response = performRequest(HttpMethod.POST, EXPORT_BY_USAGE_FILTER, null, exportRequest,
                 APPLICATION_JSON_TYPE, APPLICATION_JSON_TYPE);
             return RequestResponse.parseFromResponse(response);
         } catch (final VitamClientInternalException e) {

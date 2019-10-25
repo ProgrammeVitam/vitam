@@ -141,7 +141,7 @@ import static fr.gouv.vitam.common.database.utils.AccessContractRestrictionHelpe
 import static fr.gouv.vitam.common.json.JsonHandler.writeToInpustream;
 import static fr.gouv.vitam.common.model.ProcessAction.RESUME;
 import static fr.gouv.vitam.common.model.StatusCode.STARTED;
-import static fr.gouv.vitam.common.model.dip.DipExportRequest.DIP_REQUEST_FILE_NAME;
+import static fr.gouv.vitam.common.model.export.ExportRequest.EXPORT_QUERY_FILE_NAME;
 import static fr.gouv.vitam.common.thread.VitamThreadUtils.getVitamSession;
 import static fr.gouv.vitam.logbook.common.parameters.Contexts.COMPUTE_INHERITED_RULES_DELETE;
 import static fr.gouv.vitam.logbook.common.parameters.Contexts.PRESERVATION;
@@ -416,8 +416,10 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
             JsonNode filteredQueryQsl = applyAccessContractRestrictionForUnitForSelect(exportRequest.getDslRequest(),
                 getVitamSession().getContract());
             exportRequest.setDslRequest(filteredQueryQsl);
+            // QUERY_FILE is required for the first step that check Threshold
+            // EXPORT_QUERY_FILE_NAME is required for step
             workspaceClient.putObject(operationId, QUERY_FILE, writeToInpustream(filteredQueryQsl));
-            workspaceClient.putObject(operationId, DIP_REQUEST_FILE_NAME, writeToInpustream(exportRequest));
+            workspaceClient.putObject(operationId, EXPORT_QUERY_FILE_NAME, writeToInpustream(exportRequest));
 
             ProcessingEntry processingEntry = new ProcessingEntry(operationId, contexts.name());
             boolean mustLog = ActivationStatus.ACTIVE.equals(getVitamSession().getContract().getAccessLog());

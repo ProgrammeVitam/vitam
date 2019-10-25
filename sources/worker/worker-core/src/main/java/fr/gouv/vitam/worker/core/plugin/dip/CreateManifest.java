@@ -103,7 +103,7 @@ import static fr.gouv.vitam.common.database.parser.query.ParserTokens.PROJECTION
 import static fr.gouv.vitam.common.database.parser.query.ParserTokens.PROJECTIONARGS.UNITUPS;
 import static fr.gouv.vitam.common.database.parser.request.GlobalDatasParser.DEFAULT_SCROLL_TIMEOUT;
 import static fr.gouv.vitam.common.json.JsonHandler.unprettyPrint;
-import static fr.gouv.vitam.common.model.dip.DipExportRequest.DIP_REQUEST_FILE_NAME;
+import static fr.gouv.vitam.common.model.export.ExportRequest.EXPORT_QUERY_FILE_NAME;
 import static fr.gouv.vitam.common.model.export.ExportType.ArchiveTransfer;
 import static java.nio.charset.StandardCharsets.UTF_8;
 
@@ -160,11 +160,11 @@ public class CreateManifest extends ActionHandler {
             ManifestBuilder manifestBuilder = new ManifestBuilder(outputStream)) {
 
             ExportRequest exportRequest = JsonHandler
-                .getFromJsonNode(handlerIO.getJsonFromWorkspace(DIP_REQUEST_FILE_NAME), ExportRequest.class);
+                .getFromJsonNode(handlerIO.getJsonFromWorkspace(EXPORT_QUERY_FILE_NAME), ExportRequest.class);
             TransferReportHeader reportHeader = new TransferReportHeader(exportRequest.getDslRequest());
 
             if (ArchiveTransfer.equals(exportRequest.getExportType())) {
-                buffOut.write(unprettyPrint(JsonHandler.createObjectNode()).getBytes(UTF_8)); // header vide
+                buffOut.write(unprettyPrint(JsonHandler.createObjectNode()).getBytes(UTF_8)); // header empty
                 buffOut.write(System.lineSeparator().getBytes(StandardCharsets.UTF_8));
                 buffOut.write(unprettyPrint(reportHeader).getBytes(StandardCharsets.UTF_8));  // context
                 buffOut.write(System.lineSeparator().getBytes(StandardCharsets.UTF_8));

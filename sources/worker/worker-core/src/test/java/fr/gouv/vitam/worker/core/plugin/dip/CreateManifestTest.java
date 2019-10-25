@@ -71,7 +71,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-import static fr.gouv.vitam.common.model.dip.DipExportRequest.DIP_REQUEST_FILE_NAME;
+import static fr.gouv.vitam.common.model.export.ExportRequest.EXPORT_QUERY_FILE_NAME;
 import static fr.gouv.vitam.common.model.export.ExportType.ArchiveTransfer;
 import static fr.gouv.vitam.worker.core.plugin.dip.CreateManifest.BINARIES_RANK;
 import static fr.gouv.vitam.worker.core.plugin.dip.CreateManifest.GUID_TO_INFO_RANK;
@@ -176,7 +176,7 @@ public class CreateManifestTest {
         ExportRequest exportRequest = new ExportRequest();
         exportRequest.setExportWithLogBookLFC(true);
         exportRequest.setDslRequest(queryUnit);
-        given(handlerIO.getJsonFromWorkspace(DIP_REQUEST_FILE_NAME)).willReturn(JsonHandler.toJsonNode(exportRequest));
+        given(handlerIO.getJsonFromWorkspace(EXPORT_QUERY_FILE_NAME)).willReturn(JsonHandler.toJsonNode(exportRequest));
 
         WorkerParameters wp = WorkerParametersFactory.newWorkerParameters();
 
@@ -301,7 +301,7 @@ public class CreateManifestTest {
 
         exportRequest.setExportRequestParameters(exportRequestParameters);
 
-        given(handlerIO.getJsonFromWorkspace(DIP_REQUEST_FILE_NAME)).willReturn(JsonHandler.toJsonNode(exportRequest));
+        given(handlerIO.getJsonFromWorkspace(EXPORT_QUERY_FILE_NAME)).willReturn(JsonHandler.toJsonNode(exportRequest));
 
         // When
         ItemStatus itemStatus = createManifest.execute(WorkerParametersFactory.newWorkerParameters(), handlerIO);
@@ -476,7 +476,7 @@ public class CreateManifestTest {
         exportRequestParameters.setArchivalAgencyIdentifier("ArchivalAgencyIdentifier");
         exportRequestParameters.setTransferringAgency("TransferringAgency");
         exportRequest.setExportRequestParameters(exportRequestParameters);
-        given(handlerIO.getJsonFromWorkspace(DIP_REQUEST_FILE_NAME)).willReturn(JsonHandler.toJsonNode(exportRequest));
+        given(handlerIO.getJsonFromWorkspace(EXPORT_QUERY_FILE_NAME)).willReturn(JsonHandler.toJsonNode(exportRequest));
 
         given(backupService.backup(any(), any(), anyString())).willReturn(null);
 
@@ -565,7 +565,7 @@ public class CreateManifestTest {
         exportRequestParameters.setArchivalAgencyIdentifier("ArchivalAgencyIdentifier");
         exportRequestParameters.setTransferringAgency("TransferringAgency");
         exportRequest.setExportRequestParameters(exportRequestParameters);
-        given(handlerIO.getJsonFromWorkspace(DIP_REQUEST_FILE_NAME)).willReturn(JsonHandler.toJsonNode(exportRequest));
+        given(handlerIO.getJsonFromWorkspace(EXPORT_QUERY_FILE_NAME)).willReturn(JsonHandler.toJsonNode(exportRequest));
 
         given(backupService.backup(any(), any(), anyString())).willReturn(null);
 

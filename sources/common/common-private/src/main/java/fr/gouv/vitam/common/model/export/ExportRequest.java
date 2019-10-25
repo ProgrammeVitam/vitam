@@ -7,7 +7,7 @@ import fr.gouv.vitam.common.model.export.dip.DipRequest;
 import fr.gouv.vitam.common.model.export.transfer.TransferRequest;
 
 public class ExportRequest {
-    public static final String DIP_REQUEST_FILE_NAME = "export_query.json";
+    public static final String EXPORT_QUERY_FILE_NAME = "export_query.json";
 
     @JsonProperty("dataObjectVersionToExport")
     private DataObjectVersions dataObjectVersionToExport;
