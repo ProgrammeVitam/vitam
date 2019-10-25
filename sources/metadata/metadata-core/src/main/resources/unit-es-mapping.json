@@ -117,16 +117,9 @@
           "type": "keyword"
         },
         "OrganizationDescriptiveMetadata": {
-          "properties": {
-            "Identifier": {
-              "type": "keyword"
-            },
-              "OrganizationDescriptiveMetadata": {
-                "type": "object"
-              }
-            }
-          }
+          "type": "object"
         }
+      }
     },
     "OriginatingAgencyArchiveUnitIdentifier": {
       "type": "keyword"
@@ -157,6 +150,9 @@
       "properties": {
         "Identifier": {
           "type": "keyword"
+        },
+        "OrganizationDescriptiveMetadata": {
+          "type": "object"
         }
       }
     },

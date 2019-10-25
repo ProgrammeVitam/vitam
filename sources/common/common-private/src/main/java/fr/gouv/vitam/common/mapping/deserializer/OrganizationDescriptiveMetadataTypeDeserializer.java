@@ -48,6 +48,8 @@ import java.util.Map;
 public class OrganizationDescriptiveMetadataTypeDeserializer
     extends JsonDeserializer<OrganizationDescriptiveMetadataType> {
 
+    private ObjectMapper mapper = new ObjectMapper();
+
     /**
      * @param jp representation (json, xml, string)
      * @param ctxt
@@ -58,7 +60,7 @@ public class OrganizationDescriptiveMetadataTypeDeserializer
     public OrganizationDescriptiveMetadataType deserialize(JsonParser jp, DeserializationContext ctxt)
         throws IOException {
         JsonNode node = jp.getCodec().readTree(jp);
-        ObjectMapper mapper = new ObjectMapper();
+
         Map<String, Object> map = mapper.convertValue(node, new TypeReference<Map<String, Object>>() {
         });
         List<Element> elements = TransformJsonTreeToListOfXmlElement.mapJsonToElement(Collections.singletonList(map));

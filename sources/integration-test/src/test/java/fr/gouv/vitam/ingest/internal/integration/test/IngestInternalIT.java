@@ -2836,8 +2836,8 @@ public class IngestInternalIT extends VitamRuleRunner {
         String identifierType = result.get(0).get("OriginatingAgency").get("Identifier").asText();
         assertEquals(identifierType,"RATP");
         assertThat(result.get(0).get("OriginatingAgency").get("OrganizationDescriptiveMetadata").get("DescriptionOA").get(0).asText()).isEqualTo("La RATP est un établissement public");
-        assertThat(result.get(0).get("OriginatingAgency").get("OrganizationDescriptiveMetadata").get("XXXX").get(0).get("YYYY").get(0).asText()).isEqualTo("description YYYY");
-        assertThat(result.get(0).get("SubmissionAgency").get("OrganizationDescriptiveMetadata").get("AAAA").get(0).get("BBBB").get(0).asText()).isEqualTo("description BBBB");
+        //assertThat(result.get(0).get("OriginatingAgency").get("OrganizationDescriptiveMetadata").get("XXXX").get(0).get("YYYY").get(0).asText()).isEqualTo("description YYYY");
+        //assertThat(result.get(0).get("SubmissionAgency").get("OrganizationDescriptiveMetadata").get("AAAA").get(0).get("BBBB").get(0).asText()).isEqualTo("description BBBB");
     }
 
     private JsonNode getArchiveUnitWithTitle(MetaDataClient metadataClient, String name, String titleType) throws Exception {
