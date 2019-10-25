@@ -1,4 +1,4 @@
-package fr.gouv.vitam.worker.core.plugin.computeinheritedrules; /*******************************************************************************
+package fr.gouv.vitam.worker.core.plugin.computeinheritedrules; /*
  * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2019)
  *
  * contact.vitam@culture.gouv.fr
@@ -23,7 +23,7 @@ package fr.gouv.vitam.worker.core.plugin.computeinheritedrules; /***************
  *
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
- *******************************************************************************/
+ */
 import com.fasterxml.jackson.databind.JsonNode;
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.VitamConfiguration;
