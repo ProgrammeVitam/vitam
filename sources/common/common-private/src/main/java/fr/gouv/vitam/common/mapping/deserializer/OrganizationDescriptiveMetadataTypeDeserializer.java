@@ -1,4 +1,4 @@
-/*
+/*******************************************************************************
  * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2019)
  *
  * contact.vitam@culture.gouv.fr
@@ -23,34 +23,48 @@
  *
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
- */
-package fr.gouv.vitam.common.mapping.serializer;
+ *******************************************************************************/
+package fr.gouv.vitam.common.mapping.deserializer;
 
 import com.fasterxml.jackson.core.JsonParser;
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.DeserializationContext;
 import com.fasterxml.jackson.databind.JsonDeserializer;
 import com.fasterxml.jackson.databind.JsonNode;
-import fr.gouv.culture.archivesdefrance.seda.v2.TextType;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import fr.gouv.culture.archivesdefrance.seda.v2.OrganizationDescriptiveMetadataType;
+import fr.gouv.vitam.common.mapping.dip.TransformJsonTreeToListOfXmlElement;
+import org.w3c.dom.Element;
 
 import java.io.IOException;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
 
-public class TextTypeDeSerializer extends JsonDeserializer<TextType> {
+/**
+ * Deserialize a (json, xml, string) representation to IdentifierType
+ * To be registered in jackson objectMapper
+ */
+public class OrganizationDescriptiveMetadataTypeDeserializer
+    extends JsonDeserializer<OrganizationDescriptiveMetadataType> {
 
     /**
-     * Convert json, xml, string to TextType
-     *
-     * @param jp   (json, xml, string) representation
+     * @param jp representation (json, xml, string)
      * @param ctxt
-     * @return the TextType
-     * @throws java.io.IOException
+     * @return the OrganizationDescriptiveMetadata type
+     * @throws IOException
      */
     @Override
-    public TextType deserialize(JsonParser jp, DeserializationContext ctxt) throws IOException {
+    public OrganizationDescriptiveMetadataType deserialize(JsonParser jp, DeserializationContext ctxt)
+        throws IOException {
         JsonNode node = jp.getCodec().readTree(jp);
-
-        TextType textType = new TextType();
-        textType.setValue(node.asText());
-
-        return textType;
+        ObjectMapper mapper = new ObjectMapper();
+        Map<String, Object> map = mapper.convertValue(node, new TypeReference<Map<String, Object>>() {
+        });
+        List<Element> elements = TransformJsonTreeToListOfXmlElement.mapJsonToElement(Collections.singletonList(map));
+        OrganizationDescriptiveMetadataType organizationDescriptiveMetadataType =
+            new OrganizationDescriptiveMetadataType();
+        organizationDescriptiveMetadataType.getAny().addAll(elements);
+        return organizationDescriptiveMetadataType;
     }
 }

@@ -1,4 +1,4 @@
-/*
+/*******************************************************************************
  * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2019)
  *
  * contact.vitam@culture.gouv.fr
@@ -23,36 +23,37 @@
  *
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
- */
-package fr.gouv.vitam.common.mapping.serializer;
+ *******************************************************************************/
+package fr.gouv.vitam.worker.core.extractseda;
 
-import com.fasterxml.jackson.core.JsonParser;
-import com.fasterxml.jackson.databind.DeserializationContext;
-import com.fasterxml.jackson.databind.JsonDeserializer;
-import com.fasterxml.jackson.databind.JsonNode;
-import fr.gouv.culture.archivesdefrance.seda.v2.CodeKeywordType;
-import fr.gouv.culture.archivesdefrance.seda.v2.KeyType;
+import com.fasterxml.jackson.core.JsonGenerator;
+import com.fasterxml.jackson.databind.SerializerProvider;
+import com.fasterxml.jackson.databind.ser.std.StdSerializer;
+import fr.gouv.culture.archivesdefrance.seda.v2.OrganizationDescriptiveMetadataType;
+import fr.gouv.vitam.worker.core.mapping.ElementMapper;
 
 import java.io.IOException;
+import java.util.Map;
 
-/**
- * Deserialize a (json, xml, string) representation to LevelType
- * To be registered in jackson objectMapper
- */
-public class KeywordTypeDeserializer extends JsonDeserializer<KeyType> {
-    /**
-     *
-     * @param jp (json, xml, string) representation
-     * @param ctxt
-     * @return a keyword type
-     * @throws IOException
-     */
+
+public class OrganizationDescriptiveMetadataTypeSerializer extends StdSerializer<OrganizationDescriptiveMetadataType> {
+
+
+    public OrganizationDescriptiveMetadataTypeSerializer() {
+        this(null);
+    }
+
+
+    public OrganizationDescriptiveMetadataTypeSerializer(Class<OrganizationDescriptiveMetadataType> type) {
+        super(type);
+    }
+
     @Override
-    public KeyType deserialize(JsonParser jp, DeserializationContext ctxt) throws IOException {
-        JsonNode node = jp.getCodec().readTree(jp);
-        KeyType keywordType = new KeyType();
-        keywordType.setValue(CodeKeywordType.fromValue(node.asText()));
-        return keywordType;
+    public void serialize(OrganizationDescriptiveMetadataType organizationDescriptiveMetadataType, JsonGenerator gen, SerializerProvider provider)
+        throws IOException {
+        ElementMapper elementMapper = new ElementMapper();
+        Map<String, Object> stringObjectMap = elementMapper.toMap(organizationDescriptiveMetadataType.getAny());
+        provider.defaultSerializeValue(stringObjectMap,gen);
     }
 
 }

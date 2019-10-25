@@ -115,8 +115,18 @@
       "properties": {
         "Identifier": {
           "type": "keyword"
+        },
+        "OrganizationDescriptiveMetadata": {
+          "properties": {
+            "Identifier": {
+              "type": "keyword"
+            },
+              "OrganizationDescriptiveMetadata": {
+                "type": "object"
+              }
+            }
+          }
         }
-      }
     },
     "OriginatingAgencyArchiveUnitIdentifier": {
       "type": "keyword"

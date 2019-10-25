@@ -786,6 +786,12 @@
     "cardinality": "one"
   },
   {
+    "path": "OriginatingAgency.OrganizationDescriptiveMetadata",
+    "type": "object",
+    "indexed": true,
+    "cardinality": "many"
+  },
+  {
     "path": "OriginatingAgencyArchiveUnitIdentifier",
     "type": "keyword",
     "indexed": true,
@@ -1864,6 +1870,12 @@
     "type": "keyword",
     "indexed": true,
     "cardinality": "one"
+  },
+  {
+    "path": "SubmissionAgency.OrganizationDescriptiveMetadata",
+    "type": "object",
+    "indexed": true,
+    "cardinality": "many"
   },
   {
     "path": "SystemId",
