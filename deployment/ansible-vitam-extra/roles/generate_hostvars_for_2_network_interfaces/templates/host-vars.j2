@@ -1,9 +1,0 @@
-
-{% if ansible_eth0 is defined %}
-ip_service: {{ ansible_eth0.ipv4.address }}
-{% endif %}
-
-{% if ansible_eth1 is defined %}
-ip_admin: {{ ansible_eth1.ipv4.address }}
-{% endif %}
-
