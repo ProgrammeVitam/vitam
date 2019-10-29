@@ -52,7 +52,7 @@ export class AccessionRegisterEvent {
   Gots: number;
   ObjSize: number;
   Objects: number;
-  OpType: "INGEST" | "ELIMINATION";
+  OpType: 'INGEST' | 'ELIMINATION' | 'TRANFER_REPLY';
   Opc: string;
   Units: number;
 }

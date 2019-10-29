@@ -210,14 +210,22 @@ export class AccessionRegisterComponent extends PageComponent {
 
     mouseEvent.data.Events.forEach(event => {
       const eventText = document.createElement('li');
-      const text = document.createTextNode(event.OpType == 'INGEST'
-        ? `l'opération d'entrée (id : ${event.Opc}) a créé ${event.Units} unités archivistiques, ${event.Gots} groupes d'objets techniques et ${event.Objects} objets pour une taille totale de ${event.ObjSize} octets.`
-        : `l'opération d'élimination (id : ${event.Opc}) a supprimé ${event.Units} unités archivistiques, ${event.Gots} groupes d'objets techniques et ${event.Objects} objets pour une taille totale de ${event.ObjSize} octets.`
-      );
+      const text = document.createTextNode(this.getOperationType(event));
       eventText.appendChild(text);
       eventsUniqueCell.appendChild(eventText);
     });
 
     accessionRegisterDetailElement['after'](eventsHtml);
+  }
+
+  getOperationType(event) {
+    switch (event.OpType) {
+      case 'INGEST':
+        return `l'opération d'entrée (id : ${event.Opc}) a créé ${event.Units} unités archivistiques, ${event.Gots} groupes d'objets techniques et ${event.Objects} objets pour une taille totale de ${event.ObjSize} octets.`;
+      case 'ELIMINATION':
+        return `l'opération d'élimination (id : ${event.Opc}) a supprimé ${event.Units} unités archivistiques, ${event.Gots} groupes d'objets techniques et ${event.Objects} objets pour une taille totale de ${event.ObjSize} octets.`;
+      case 'TRANSFER_REPLY':
+        return `l'opération d'acquittement de transfert (id : ${event.Opc}) a supprimé ${event.Units} unités archivistiques, ${event.Gots} groupes d'objets techniques et ${event.Objects} objets pour une taille totale de ${event.ObjSize} octets.`;
+    }
   }
 }

@@ -129,7 +129,7 @@ export class LogbookOperationComponent extends PageComponent {
 
   static handleReports(item): string[] {
     const evType = item.evTypeProc.toUpperCase();
-    if (['AUDIT', 'EXPORT_DIP', 'ARCHIVE_TRANSFER', 'INGEST', 'MASS_UPDATE'].indexOf(evType) > -1 || item.evType.toUpperCase() === 'STP_IMPORT_RULES'
+    if (['AUDIT', 'EXPORT_DIP', 'ARCHIVE_TRANSFER', 'TRANSFER_REPLY', 'INGEST', 'MASS_UPDATE'].indexOf(evType) > -1 || item.evType.toUpperCase() === 'STP_IMPORT_RULES'
       || item.evType.toUpperCase() === 'IMPORT_AGENCIES' || item.evType.toUpperCase() === 'HOLDINGSCHEME'
       || item.evType.toUpperCase() === 'IMPORT_ONTOLOGY' || item.evType.toUpperCase() === 'STP_REFERENTIAL_FORMAT_IMPORT'
       || item.evType.toUpperCase() === 'DATA_MIGRATION' || item.evType.toUpperCase() === 'ELIMINATION_ACTION'
@@ -257,6 +257,9 @@ export class LogbookOperationComponent extends PageComponent {
       case 'ARCHIVE_TRANSFER':
         logbookService.downloadTransferSIP(item.evIdProc);
         logbookService.downloadReport(item.evIdProc);
+        break;
+      case 'TRANSFER_REPLY':
+        logbookService.downloadBatchReport(item.evIdProc);
         break;
       case 'MASTERDATA':
         if (item.evType.toUpperCase() === 'STP_IMPORT_RULES' || item.evType.toUpperCase() === 'IMPORT_AGENCIES' || item.evType.toUpperCase() === 'IMPORT_ONTOLOGY') {

@@ -106,7 +106,7 @@ import static fr.gouv.vitam.common.client.VitamClientFactoryInterface.VitamClien
 import static fr.gouv.vitam.common.guid.GUIDFactory.newOperationLogbookGUID;
 import static fr.gouv.vitam.common.stream.StreamUtils.consumeAnyEntityAndClose;
 import static fr.gouv.vitam.common.thread.VitamThreadUtils.getVitamSession;
-import static fr.gouv.vitam.elimination.EndToEndEliminationIT.prepareVitamSession;
+import static fr.gouv.vitam.purge.EndToEndEliminationAndTransferReplyIT.prepareVitamSession;
 import static fr.gouv.vitam.preservation.ProcessManagementWaiter.waitOperation;
 import static java.util.Collections.singletonList;
 import static org.assertj.core.api.Assertions.assertThat;

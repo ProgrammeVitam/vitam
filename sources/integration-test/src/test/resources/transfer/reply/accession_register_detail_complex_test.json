@@ -1,0 +1,71 @@
+[
+  {
+    "_id": "aehaaaaaaaczw4dvabkayalocmrvfjyaaaaq",
+    "ObjectSize": {
+      "ingested": 18.0,
+      "deleted": 6.0,
+      "remained": 12.0
+    },
+    "AcquisitionInformation": "Versement",
+    "LegalStatus": "Public Archive",
+    "OriginatingAgency": "RATP",
+    "SubmissionAgency": "RATP",
+    "ArchivalAgreement": "ArchivalAgreement0",
+    "EndDate": "2019-10-28T16:11:52.359",
+    "StartDate": "2019-10-28T16:11:52.359",
+    "LastUpdate": "2019-10-28T17:12:06.889",
+    "Status": "STORED_AND_COMPLETED",
+    "TotalObjectGroups": {
+      "ingested": 3.0,
+      "deleted": 1.0,
+      "remained": 2.0
+    },
+    "TotalUnits": {
+      "ingested": 6.0,
+      "deleted": 3.0,
+      "remained": 3.0
+    },
+    "TotalObjects": {
+      "ingested": 4.0,
+      "deleted": 1.0,
+      "remained": 3.0
+    },
+    "Opc": "aecaaaaaacczw4dvabkayalocmrt3gyaaaba",
+    "Opi": "aecaaaaaacczw4dvabkayalocmrt3gyaaaba",
+    "OpType": "INGEST",
+    "Events": [
+      {
+        "Opc": "aecaaaaaacczw4dvabkayalocmrt3gyaaaba",
+        "OpType": "INGEST",
+        "Gots": 3,
+        "Units": 6,
+        "Objects": 4,
+        "ObjSize": 18,
+        "CreationDate": "2019-10-28T17:11:52.360"
+      },
+      {
+        "Opc": "aecaaaaaacczw4dvabkayalocmrw3kaaaaaq",
+        "OpType": "TRANSFER_REPLY",
+        "Gots": 0,
+        "Units": -1,
+        "Objects": 0,
+        "ObjSize": 0,
+        "CreationDate": "2019-10-28T17:12:01.056"
+      },
+      {
+        "Opc": "aecaaaaaacczw4dvabkayalocmrykkaaaaaq",
+        "OpType": "TRANSFER_REPLY",
+        "Gots": -1,
+        "Units": -2,
+        "Objects": -1,
+        "ObjSize": -6,
+        "CreationDate": "2019-10-28T17:12:06.889"
+      }
+    ],
+    "OperationIds": [
+      "aecaaaaaacczw4dvabkayalocmrt3gyaaaba"
+    ],
+    "_tenant": 0,
+    "_v": 2
+  }
+]
