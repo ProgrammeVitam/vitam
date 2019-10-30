@@ -84,7 +84,7 @@ public class TransferReplyUnitRepository extends ReportCommonRepository {
                     new Document("distribGroup", null),
                     new Document("params.id", "$_metadata.id"),
                     new Document("params.type", new Document("$literal", "Unit")),
-                    new Document("params.objectGroupId", "$_metadata.objectGroupId")
+                    new Document("params.status", "$_metadata.status")
                     )
                 ))
         )

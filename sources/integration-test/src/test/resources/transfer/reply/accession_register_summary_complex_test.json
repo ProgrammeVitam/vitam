@@ -1,0 +1,29 @@
+[
+  {
+    "_id": "aefaaaaaaaczw4dvabryealocmupfqyaaaaq",
+    "OriginatingAgency": "RATP",
+    "TotalObjects": {
+      "ingested": 9.0,
+      "deleted": 1.0,
+      "remained": 8.0
+    },
+    "TotalObjectGroups": {
+      "ingested": 6.0,
+      "deleted": 1.0,
+      "remained": 5.0
+    },
+    "TotalUnits": {
+      "ingested": 11.0,
+      "deleted": 3.0,
+      "remained": 8.0
+    },
+    "ObjectSize": {
+      "ingested": 36.0,
+      "deleted": 6.0,
+      "remained": 30.0
+    },
+    "CreationDate": "2019-10-28T16:18:01.027",
+    "_v": 5,
+    "_tenant": 0
+  }
+]

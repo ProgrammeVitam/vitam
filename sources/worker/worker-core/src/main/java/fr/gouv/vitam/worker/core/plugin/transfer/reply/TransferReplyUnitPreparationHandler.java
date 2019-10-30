@@ -69,6 +69,7 @@ import fr.gouv.vitam.worker.core.plugin.transfer.reply.model.TransferReplyContex
 import fr.gouv.vitam.worker.core.plugin.transfer.reply.utils.SortedLevelJsonLineWriter;
 import fr.gouv.vitam.worker.core.utils.BufferedConsumer;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
+import org.apache.commons.collections4.SetUtils;
 
 import java.io.File;
 import java.io.IOException;
@@ -79,6 +80,7 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import static fr.gouv.vitam.worker.core.utils.PluginHelper.buildItemStatus;
 
@@ -155,11 +157,14 @@ public class TransferReplyUnitPreparationHandler extends ActionHandler {
                 VitamConfiguration.getBatchSize());
 
             while (bulkUnitIds.hasNext()) {
-                List<String> unitIds = bulkUnitIds.next();
+                Set<String> unitIds = new HashSet<>(bulkUnitIds.next());
 
                 // Check non existing units in DB => ALREADY_DELETED
                 List<JsonNode> jsonUnits = selectUnits(metaDataClient, unitIds);
-                Set<String> notFoundUnitIds = new HashSet<>(unitIds);
+                Set<String> foundUnitIds = jsonUnits.stream()
+                    .map(unit -> unit.get(VitamFieldsHelper.id()).asText())
+                    .collect(Collectors.toSet());
+                Set<String> notFoundUnitIds = SetUtils.difference(unitIds, foundUnitIds);
                 for (String notFoundUnitId : notFoundUnitIds) {
                     reportAppender.appendEntry(new TransferReplyUnitReportEntry(notFoundUnitId,
                         TransferReplyUnitStatus.ALREADY_DELETED.name()));
@@ -169,8 +174,6 @@ public class TransferReplyUnitPreparationHandler extends ActionHandler {
                 for (JsonNode unit : jsonUnits) {
                     String unitId = unit.get(VitamFieldsHelper.id()).asText();
                     int level = unit.get(VitamFieldsHelper.max()).asInt();
-
-                    notFoundUnitIds.remove(unitId);
                     unitToPurgeWriter.addEntry(new JsonLineModel(unitId, level, unit));
                 }
             }
@@ -194,7 +197,7 @@ public class TransferReplyUnitPreparationHandler extends ActionHandler {
         });
     }
 
-    private List<JsonNode> selectUnits(MetaDataClient metaDataClient, List<String> unitIds)
+    private List<JsonNode> selectUnits(MetaDataClient metaDataClient, Collection<String> unitIds)
         throws ProcessingStatusException {
 
         try {

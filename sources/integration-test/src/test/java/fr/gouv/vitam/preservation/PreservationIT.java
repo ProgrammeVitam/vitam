@@ -151,7 +151,7 @@ import static fr.gouv.vitam.common.model.PreservationVersion.FIRST;
 import static fr.gouv.vitam.common.model.PreservationVersion.LAST;
 import static fr.gouv.vitam.common.model.administration.ActionTypePreservation.GENERATE;
 import static fr.gouv.vitam.common.thread.VitamThreadUtils.getVitamSession;
-import static fr.gouv.vitam.elimination.EndToEndEliminationIT.prepareVitamSession;
+import static fr.gouv.vitam.purge.EndToEndEliminationAndTransferReplyIT.prepareVitamSession;
 import static fr.gouv.vitam.metadata.client.MetaDataClientFactory.getInstance;
 import static fr.gouv.vitam.preservation.ProcessManagementWaiter.waitOperation;
 import static java.util.Collections.singletonList;

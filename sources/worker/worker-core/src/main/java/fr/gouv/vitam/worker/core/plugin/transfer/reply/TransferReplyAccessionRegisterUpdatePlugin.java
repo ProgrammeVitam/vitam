@@ -40,7 +40,7 @@ public class TransferReplyAccessionRegisterUpdatePlugin extends PurgeAccessionRe
      * Default constructor
      */
     public TransferReplyAccessionRegisterUpdatePlugin() {
-        super(TRANSFER_REPLY_ACCESSION_REGISTER_UPDATE, LogbookTypeProcess.ELIMINATION);
+        super(TRANSFER_REPLY_ACCESSION_REGISTER_UPDATE, LogbookTypeProcess.TRANSFER_REPLY);
     }
 
     /***
@@ -48,7 +48,7 @@ public class TransferReplyAccessionRegisterUpdatePlugin extends PurgeAccessionRe
      */
     @VisibleForTesting
     TransferReplyAccessionRegisterUpdatePlugin(AdminManagementClientFactory adminManagementClientFactory) {
-        super(TRANSFER_REPLY_ACCESSION_REGISTER_UPDATE, LogbookTypeProcess.ELIMINATION,
+        super(TRANSFER_REPLY_ACCESSION_REGISTER_UPDATE, LogbookTypeProcess.TRANSFER_REPLY,
             adminManagementClientFactory);
     }
 
