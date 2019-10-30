@@ -40,4 +40,6 @@ acceptableRequestTime: {{ vitam_struct.vitam_component.acceptableRequestTime|def
 
 # Ontology cache settings (max entries in cache & retention timeout in seconds)
 ontologyCacheMaxEntries: {{ vitam.ontologyCacheMaxEntries }}
-ontologyCacheTimeoutInSeconds: {{ vitam.ontologyCacheTimeoutInSeconds }}
+
+# Elasticsearch scroll timeout settings
+elasticSearchScrollTimeoutInMilliseconds: {{ vitam.elasticSearchScrollTimeoutInMilliseconds }}

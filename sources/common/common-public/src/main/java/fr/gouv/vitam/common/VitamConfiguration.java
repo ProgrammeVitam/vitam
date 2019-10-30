@@ -171,6 +171,10 @@ public class VitamConfiguration {
 
     private static Integer vitamCleanPeriod = 1;
 
+    private static Integer elasticSearchScrollTimeoutInMilliseconds = 60_000 * 5;
+
+    private static Integer elasticSearchScrollLimit = 10_000;
+
     /**
      * Default Chunk Size
      */
@@ -938,6 +942,14 @@ public class VitamConfiguration {
 
         if (null != parameters.getOntologyCacheTimeoutInSeconds()) {
             setOntologyCacheTimeoutInSeconds(parameters.getOntologyCacheTimeoutInSeconds());
+        }
+
+        if (null != parameters.getElasticSearchScrollTimeoutInMilliseconds()) {
+            setElasticSearchScrollTimeoutInMilliseconds(parameters.getElasticSearchScrollTimeoutInMilliseconds());
+        }
+
+        if (null != parameters.getElasticSearchScrollLimit()) {
+            setElasticSearchScrollLimit(parameters.getElasticSearchScrollLimit());
         }
     }
 
@@ -2250,5 +2262,21 @@ public class VitamConfiguration {
 
     public static void setVitamGriffinInputFilesFolder(String vitamGriffinInputFilesFolder) {
         VitamConfiguration.vitamGriffinInputFilesFolder = vitamGriffinInputFilesFolder;
+    }
+
+    public static Integer getElasticSearchScrollTimeoutInMilliseconds() {
+        return elasticSearchScrollTimeoutInMilliseconds;
+    }
+
+    public static void setElasticSearchScrollTimeoutInMilliseconds(Integer elasticSearchScrollTimeoutInMilliseconds) {
+        VitamConfiguration.elasticSearchScrollTimeoutInMilliseconds = elasticSearchScrollTimeoutInMilliseconds;
+    }
+
+    public static Integer getElasticSearchScrollLimit() {
+        return elasticSearchScrollLimit;
+    }
+
+    public static void setElasticSearchScrollLimit(Integer elasticSearchScrollLimit) {
+        VitamConfiguration.elasticSearchScrollLimit = elasticSearchScrollLimit;
     }
 }

@@ -219,7 +219,7 @@ public class CreateManifest extends ActionHandler {
                         } catch (MetaDataExecutionException | MetaDataDocumentSizeException | MetaDataClientServerException | InvalidParseOperationException e) {
                             throw new IllegalStateException(e);
                         }
-                    }, GlobalDatasDb.DEFAULT_SCROLL_TIMEOUT, GlobalDatasDb.LIMIT_LOAD);
+                    }, VitamConfiguration.getElasticSearchScrollTimeoutInMilliseconds(), VitamConfiguration.getElasticSearchScrollLimit());
 
                 manifestBuilder.startDescriptiveMetadata();
                 StreamSupport.stream(scrollRequest, false).forEach(result -> {

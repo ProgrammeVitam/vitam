@@ -245,7 +245,7 @@ public class GraphComputeServiceImpl implements GraphComputeService {
                     // WARN: But if we want to use it in workflow, then we have to distinguish between KO and FATAL
                     throw new IllegalStateException(e);
                 }
-            }, GlobalDatasDb.DEFAULT_SCROLL_TIMEOUT, GlobalDatasDb.LIMIT_LOAD);
+            }, VitamConfiguration.getElasticSearchScrollTimeoutInMilliseconds(), VitamConfiguration.getElasticSearchScrollLimit());
     }
 
 
