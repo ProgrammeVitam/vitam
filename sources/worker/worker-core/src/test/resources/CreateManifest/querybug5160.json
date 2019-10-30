@@ -10,7 +10,7 @@
   ],
   "$filter": {
     "$scrollId": "START",
-    "$scrollTimeout": 60000,
+    "$scrollTimeout": 300000,
     "$limit": 10000
   },
   "$projection": {},

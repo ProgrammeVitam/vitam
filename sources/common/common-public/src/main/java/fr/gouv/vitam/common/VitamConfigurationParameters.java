@@ -327,6 +327,10 @@ public class VitamConfigurationParameters {
 
     private Integer ontologyCacheTimeoutInSeconds = 300;
 
+    private Integer elasticSearchScrollTimeoutInMilliseconds;
+
+    private Integer elasticSearchScrollLimit;
+
     /**
      * VitamData empty constructor for YAMLFactory
      */
@@ -1316,5 +1320,21 @@ public class VitamConfigurationParameters {
 
     public void setOntologyCacheTimeoutInSeconds(int ontologyCacheTimeoutInSeconds) {
         this.ontologyCacheTimeoutInSeconds = ontologyCacheTimeoutInSeconds;
+    }
+
+    public Integer getElasticSearchScrollTimeoutInMilliseconds() {
+        return elasticSearchScrollTimeoutInMilliseconds;
+    }
+
+    public void setElasticSearchScrollTimeoutInMilliseconds(Integer elasticSearchScrollTimeoutInMilliseconds) {
+        this.elasticSearchScrollTimeoutInMilliseconds = elasticSearchScrollTimeoutInMilliseconds;
+    }
+
+    public Integer getElasticSearchScrollLimit() {
+        return elasticSearchScrollLimit;
+    }
+
+    public void setElasticSearchScrollLimit(Integer elasticSearchScrollLimit) {
+        this.elasticSearchScrollLimit = elasticSearchScrollLimit;
     }
 }

@@ -67,7 +67,7 @@ public class EvidenceAuditPrepareTest {
         "  }\n" +
         "}";
     private static String query2 =
-        "{\"$roots\":[],\"$query\":[{\"$eq\":{\"Title\":\"monsip\"},\"$depth\":1000}],\"$filter\":{\"$scrollId\":\"START\",\"$limit\":10000,\"$scrollTimeout\":60000},\"$projection\":{\"$fields\":{\"#id\":1,\"#object\":1}},\"$facets\":[]}";
+        "{\"$roots\":[],\"$query\":[{\"$eq\":{\"Title\":\"monsip\"},\"$depth\":1000}],\"$filter\":{\"$scrollId\":\"START\",\"$limit\":10000,\"$scrollTimeout\":300000},\"$projection\":{\"$fields\":{\"#id\":1,\"#object\":1}},\"$facets\":[]}";
     @Rule public MockitoRule mockitoRule = MockitoJUnit.rule();
     @Rule public TemporaryFolder tempFolder = new TemporaryFolder();
     @Mock public HandlerIO handlerIO;

@@ -122,6 +122,8 @@ vitam:
     # Ontology cache settings (max entries in cache & retention timeout in seconds)
     ontologyCacheMaxEntries: 100
     ontologyCacheTimeoutInSeconds: 300
+    # Elasticsearch scroll timeout in milliseconds settings
+    elasticSearchScrollTimeoutInMilliseconds: 300000
     accessexternal:
         # Component name: do not modify
         vitam_component: access-external
