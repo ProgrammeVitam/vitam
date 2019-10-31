@@ -30,6 +30,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import fr.gouv.vitam.common.database.builder.query.BooleanQuery;
 import fr.gouv.vitam.common.database.builder.query.CompareQuery;
 import fr.gouv.vitam.common.database.builder.query.ExistsQuery;
+import fr.gouv.vitam.common.database.builder.query.InQuery;
 import fr.gouv.vitam.common.database.builder.query.Query;
 import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken;
 import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
@@ -58,6 +59,8 @@ import static fr.gouv.vitam.common.database.builder.query.QueryHelper.nin;
 import static fr.gouv.vitam.common.database.builder.query.QueryHelper.not;
 import static fr.gouv.vitam.common.database.builder.query.QueryHelper.or;
 import static fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.PROJECTIONARGS.ORIGINATING_AGENCIES;
+import static fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.PROJECTIONARGS.UNITTYPE;
+import static fr.gouv.vitam.common.model.UnitType.HOLDING_UNIT;
 
 public final class AccessContractRestrictionHelper {
 
@@ -125,9 +128,7 @@ public final class AccessContractRestrictionHelper {
      * @return JsonNode contains restriction
      * @throws InvalidCreateOperationException
      */
-    private static void applyAccessContractRestriction(RequestParserMultiple parser, AccessContractModel contract,
-        boolean isUnit)
-        throws InvalidCreateOperationException {
+    private static void applyAccessContractRestriction(RequestParserMultiple parser, AccessContractModel contract, boolean isUnit) throws InvalidCreateOperationException {
         Set<String> rootUnits = contract.getRootUnits();
         Set<String> excludedRootUnits = contract.getExcludedRootUnits();
 
@@ -135,11 +136,9 @@ public final class AccessContractRestrictionHelper {
 
         BooleanQuery restrictionQueries = and();
 
-        // If unit then query _id else (GOT) then query _up
-        String fieldToQuery = BuilderToken.PROJECTIONARGS.ID.exactToken();
-        if (!isUnit) {
-            fieldToQuery = BuilderToken.PROJECTIONARGS.UNITUPS.exactToken();
-        }
+        String fieldToQuery = isUnit
+            ? BuilderToken.PROJECTIONARGS.ID.exactToken()
+            : BuilderToken.PROJECTIONARGS.UNITUPS.exactToken();
 
         if (!rootUnits.isEmpty()) {
             String[] rootUnitsArray = rootUnits.toArray(new String[0]);
@@ -168,10 +167,15 @@ public final class AccessContractRestrictionHelper {
 
         // Filter on originating Agencies
         if (!contract.getEveryOriginatingAgency()) {
-            queryList = new ArrayList<>(parser.getRequest().getQueries());
+            Set<String> prodServices = contract.getOriginatingAgencies();
 
-            Query originatingAgencyRestriction = getOriginatingAgencyRestrictionQuery(contract);
-            restrictionQueries.add(originatingAgencyRestriction);
+            InQuery originatingAgencyRestriction = in(ORIGINATING_AGENCIES.exactToken(), prodServices.toArray(new String[0]));
+
+            Query restriction = isUnit
+                ? or().add(originatingAgencyRestriction, eq(UNITTYPE.exactToken(), HOLDING_UNIT.name()))
+                : originatingAgencyRestriction;
+
+            restrictionQueries.add(restriction);
         }
 
         if (!restrictionQueries.getQueries().isEmpty()) {
@@ -198,15 +202,6 @@ public final class AccessContractRestrictionHelper {
             rulesRestrictionQuery.add(maxEndDateExistsAndReached);
         }
         return rulesRestrictionQuery;
-    }
-
-    private static Query getOriginatingAgencyRestrictionQuery(AccessContractModel contract) throws InvalidCreateOperationException {
-        Set<String> prodServices = contract.getOriginatingAgencies();
-        return or()
-            .add(
-                in(ORIGINATING_AGENCIES.exactToken(), prodServices.toArray(new String[0])),
-                eq(BuilderToken.PROJECTIONARGS.UNITTYPE.exactToken(), UnitType.HOLDING_UNIT.name())
-            );
     }
 
     /**
