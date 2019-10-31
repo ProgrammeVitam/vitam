@@ -4,12 +4,7 @@
   "type": "object",
   "additionalProperties": false,
   "patternProperties": {
-    "^_": {
-      "description": "autorise tous les champs techniques"
-    },
-    "^DataObjectReference$": {},
-    "^_implementationVersion$": {},
-    "^_sedaVersion$": {}
+    "^DataObjectReference$": {}
   },
   "anyOf": [
     {
@@ -25,12 +20,6 @@
     }
   ],
   "properties": {
-    "_id": {
-      "type": "string"
-    },
-    "_og": {
-      "type": "string"
-    },
     "ArchiveUnitProfile": {
       "description": "champ obligatoire",
       "type": [
@@ -38,7 +27,7 @@
         "array"
       ]
     },
-    "_mgt": {
+    "#management": {
       "id": "http://example.com/root.json/ArchiveUnit/_mgt",
       "additionalProperties": false,
       "properties": {

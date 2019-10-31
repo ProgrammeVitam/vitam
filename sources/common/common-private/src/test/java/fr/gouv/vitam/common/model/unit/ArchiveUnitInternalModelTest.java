@@ -24,44 +24,36 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  */
-package fr.gouv.vitam.common.json;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import fr.gouv.vitam.common.PropertiesUtils;
-import fr.gouv.vitam.common.model.administration.ArchiveUnitProfileModel;
+package fr.gouv.vitam.common.model.unit;
+
 import org.junit.Test;
 
-import java.util.List;
+import java.lang.reflect.Field;
+import java.util.Arrays;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
 
-public class SchemaValidationUtilsTest {
-
-    private static final String ARCHIVE_UNIT_PROFILE_OK_JSON_FILE = "archive_unit_profile_OK.json";
+public class ArchiveUnitInternalModelTest {
 
     @Test
-    public void testExtractFieldsFromSchema() throws Exception {
-        // Given
-        JsonNode jsonArcUnit =
-            JsonHandler.getFromInputStream(PropertiesUtils.getResourceAsStream(ARCHIVE_UNIT_PROFILE_OK_JSON_FILE));
-        ArchiveUnitProfileModel archiveUnitProfile =
-            JsonHandler.getFromJsonNode(jsonArcUnit, ArchiveUnitProfileModel.class);
-        // When
-        List<String> extractFields =
-            SchemaValidationUtils.extractFieldsFromSchema(archiveUnitProfile.getControlSchema());
+    public void checkInternalExternalFieldMapping() {
 
-        // Then
-        assertEquals(extractFields.size(), 14);
-        // assert child fields are present
-        assertTrue(extractFields.contains("Rule"));
-        assertTrue(extractFields.contains("StartDate"));
-        assertTrue(extractFields.contains("PreventRulesId"));
-        // assert parent fields are not present
-        assertFalse(extractFields.contains("Rules"));
-        assertFalse(extractFields.contains("#management"));
+        Map<String, Field> externalModelFields = Arrays.stream(ArchiveUnitModel.class.getDeclaredFields())
+            .collect(Collectors.toMap(Field::getName, field -> field));
+
+        Map<String, Field> internalModelFields = Arrays.stream(ArchiveUnitInternalModel.class.getDeclaredFields())
+            .collect(Collectors.toMap(Field::getName, field -> field));
+
+
+        assertThat(externalModelFields.keySet()).withFailMessage("Expected same field names")
+            .isEqualTo(internalModelFields.keySet());
+        for (String fieldName : internalModelFields.keySet()) {
+            assertThat(internalModelFields.get(fieldName).getType())
+                .withFailMessage("Expected same field type for field " + fieldName)
+                .isEqualTo(externalModelFields.get(fieldName).getType());
+        }
     }
 }
