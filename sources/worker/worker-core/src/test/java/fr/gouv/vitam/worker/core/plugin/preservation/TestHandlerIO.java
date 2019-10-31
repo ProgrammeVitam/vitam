@@ -61,6 +61,7 @@ public class TestHandlerIO implements HandlerIO {
     private Map<String, InputStream> inputStreamMap = new HashMap<>();
     private Map<String, File> transferedFileToWorkspaceMap = new HashMap<>();
     private Map<String, JsonNode> jsonFromWorkspace = new HashMap<>();
+    private ProcessingUri output;
 
     @Override
     public void addInIOParameters(List<IOParameter> list) {
@@ -94,7 +95,7 @@ public class TestHandlerIO implements HandlerIO {
 
     @Override
     public ProcessingUri getOutput(int rank) {
-        throw new RuntimeException("Not implemented");
+        return output;
     }
 
     @Override
@@ -109,9 +110,8 @@ public class TestHandlerIO implements HandlerIO {
     }
 
     @Override
-    public HandlerIO addOutputResult(int rank, Object object, boolean deleteLocal, boolean asyncIO)
-        throws ProcessingException {
-        throw new RuntimeException("Not implemented");
+    public HandlerIO addOutputResult(int rank, Object object, boolean deleteLocal, boolean asyncIO) throws ProcessingException {
+        return addOutputResult(rank, object);
     }
 
     @Override
@@ -264,5 +264,9 @@ public class TestHandlerIO implements HandlerIO {
 
     public void setJsonFromWorkspace(String name, JsonNode jsonFromWorkspace) {
         this.jsonFromWorkspace.put(name, jsonFromWorkspace);
+    }
+
+    public void setOutputWithPath(String path) {
+        this.output = new ProcessingUri("VALUE", path);
     }
 }

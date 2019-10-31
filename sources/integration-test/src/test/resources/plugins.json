@@ -279,6 +279,9 @@
   "SAVE_ARCHIVAL_TRANSFER_REPLY": {
     "className": "fr.gouv.vitam.worker.core.plugin.transfer.reply.SaveAtrPlugin"
   },
+  "CHECK_ATR_AND_ADD_IT_TO_WORKSPACE": {
+    "className": "fr.gouv.vitam.worker.core.plugin.transfer.reply.CheckAtrAndAddItToWorkspacePlugin"
+  },
   "VERIFY_ARCHIVAL_TRANSFER_REPLY": {
     "className": "fr.gouv.vitam.worker.core.plugin.transfer.reply.VerifyAtrPlugin"
   },
