@@ -1,4 +1,4 @@
-/*******************************************************************************
+/*
  * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2019)
  *
  * contact.vitam@culture.gouv.fr
@@ -23,7 +23,7 @@
  *
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
- *******************************************************************************/
+ */
 package fr.gouv.vitam.functional.administration.common.impl;
 
 import com.google.common.annotations.VisibleForTesting;
@@ -39,6 +39,7 @@ import com.mongodb.client.model.Accumulators;
 import com.mongodb.client.model.Aggregates;
 import com.mongodb.client.model.Projections;
 import com.mongodb.client.model.ReplaceOneModel;
+
 import com.mongodb.client.model.UpdateOptions;
 import com.mongodb.client.model.WriteModel;
 import fr.gouv.vitam.common.LocalDateUtil;
@@ -67,7 +68,6 @@ import fr.gouv.vitam.functional.administration.common.api.ReconstructionService;
 import fr.gouv.vitam.functional.administration.common.api.RestoreBackupService;
 import fr.gouv.vitam.functional.administration.common.server.FunctionalAdminCollections;
 import fr.gouv.vitam.storage.engine.common.exception.StorageException;
-import fr.gouv.vitam.storage.engine.common.exception.StorageNotFoundException;
 import fr.gouv.vitam.storage.engine.common.model.DataCategory;
 import fr.gouv.vitam.storage.engine.common.model.OfferLog;
 import fr.gouv.vitam.storage.engine.common.model.Order;
@@ -90,6 +90,7 @@ import static com.mongodb.client.model.Filters.eq;
 import static com.mongodb.client.model.Filters.in;
 import static fr.gouv.vitam.common.database.server.mongodb.VitamDocument.ID;
 import static fr.gouv.vitam.common.database.server.mongodb.VitamDocument.TENANT_ID;
+import static fr.gouv.vitam.common.database.server.mongodb.VitamDocument.VERSION;
 
 /**
  * Reconstrution of Vitam Collections.<br>
@@ -128,12 +129,14 @@ public class ReconstructionServiceImpl implements ReconstructionService {
 
     private OffsetRepository offsetRepository;
 
-    public ReconstructionServiceImpl(VitamRepositoryProvider vitamRepositoryProvider, OffsetRepository offsetRepository) {
+    public ReconstructionServiceImpl(VitamRepositoryProvider vitamRepositoryProvider,
+        OffsetRepository offsetRepository) {
         this(vitamRepositoryProvider, new RestoreBackupServiceImpl(), offsetRepository);
     }
 
     @VisibleForTesting
-    public ReconstructionServiceImpl(VitamRepositoryProvider vitamRepositoryProvider, RestoreBackupService recoverBuckupService, OffsetRepository offsetRepository) {
+    public ReconstructionServiceImpl(VitamRepositoryProvider vitamRepositoryProvider,
+        RestoreBackupService recoverBuckupService, OffsetRepository offsetRepository) {
         this.vitamRepositoryProvider = vitamRepositoryProvider;
         this.recoverBuckupService = recoverBuckupService;
         this.offsetRepository = offsetRepository;
@@ -143,24 +146,26 @@ public class ReconstructionServiceImpl implements ReconstructionService {
      * purge collection content and reconstruct the content.
      *
      * @param collection the collection to reconstruct.
-     * @param tenants    the given tenant.
+     * @param tenants the given tenant.
      */
     @Override
     public void reconstruct(FunctionalAdminCollections collection, Integer... tenants) throws DatabaseException {
 
         ParametersChecker.checkParameter("All parameters [%s, %s] are required.", collection, tenants);
         LOGGER.debug(String
-                .format("Start reconstruction of the %s collection on the Vitam tenant %s.", collection.getType(),
-                        tenants));
+            .format("Start reconstruction of the %s collection on the Vitam tenant %s.", collection.getType(),
+                tenants));
 
         Integer originalTenant = VitamThreadUtils.getVitamSession().getTenantId();
 
-        final VitamMongoRepository mongoRepository = vitamRepositoryProvider.getVitamMongoRepository(collection.getVitamCollection());
+        final VitamMongoRepository mongoRepository =
+            vitamRepositoryProvider.getVitamMongoRepository(collection.getVitamCollection());
         final VitamElasticsearchRepository elasticsearchRepository =
-                vitamRepositoryProvider.getVitamESRepository(collection.getVitamCollection());
+            vitamRepositoryProvider.getVitamESRepository(collection.getVitamCollection());
 
         final VitamMongoRepository sequenceRepository =
-                vitamRepositoryProvider.getVitamMongoRepository(FunctionalAdminCollections.VITAM_SEQUENCE.getVitamCollection());
+            vitamRepositoryProvider
+                .getVitamMongoRepository(FunctionalAdminCollections.VITAM_SEQUENCE.getVitamCollection());
 
         switch (collection) {
             case CONTEXT:
@@ -168,7 +173,7 @@ public class ReconstructionServiceImpl implements ReconstructionService {
             case SECURITY_PROFILE:
             case VITAM_SEQUENCE:
                 // TODO: 1/3/18 admin tenant must be request from configuration
-                tenants = new Integer[]{ADMIN_TENANT};
+                tenants = new Integer[] {ADMIN_TENANT};
                 break;
         }
         try {
@@ -178,7 +183,7 @@ public class ReconstructionServiceImpl implements ReconstructionService {
 
                 // get the last version of the backup copies.
                 Optional<CollectionBackupModel> collectionBackup =
-                        recoverBuckupService.readLatestSavedFile(STRATEGY_ID, collection);
+                    recoverBuckupService.readLatestSavedFile(STRATEGY_ID, collection);
 
                 // reconstruct Vitam collection from the backup copy.
                 if (collectionBackup.isPresent()) {
@@ -203,9 +208,9 @@ public class ReconstructionServiceImpl implements ReconstructionService {
 
                     // log the recontruction of Vitam collection.
                     LOGGER.debug(String
-                            .format(
-                                    "[Reconstruction]: the collection {%s} has been reconstructed on the tenants {%s} at %s",
-                                    collectionBackup, tenants, LocalDateUtil.now()));
+                        .format(
+                            "[Reconstruction]: the collection {%s} has been reconstructed on the tenants {%s} at %s",
+                            collectionBackup, tenants, LocalDateUtil.now()));
                 }
             }
         } finally {
@@ -219,7 +224,7 @@ public class ReconstructionServiceImpl implements ReconstructionService {
      *
      * @param reconstructionItem request for reconstruction
      * @return response of reconstruction
-     * @throws DatabaseException        database exception
+     * @throws DatabaseException database exception
      * @throws IllegalArgumentException invalid input
      */
     public ReconstructionResponseItem reconstruct(ReconstructionRequestItem reconstructionItem) {
@@ -230,18 +235,21 @@ public class ReconstructionServiceImpl implements ReconstructionService {
             throw new IllegalArgumentException(RECONSTRUCTION_LIMIT_POSITIVE_MSG);
         }
         LOGGER
-                .info(String.format(
-                        "[Reconstruction]: Reconstruction of {%s} Collection on {%s} Vitam tenant",
-                        reconstructionItem.getCollection(), reconstructionItem.getTenant()));
+            .info(String.format(
+                "[Reconstruction]: Reconstruction of {%s} Collection on {%s} Vitam tenant",
+                reconstructionItem.getCollection(), reconstructionItem.getTenant()));
 
-        if (FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL.getName().toLowerCase().equals(reconstructionItem.getCollection().toLowerCase())) {
+        if (FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL.getName().toLowerCase()
+            .equals(reconstructionItem.getCollection().toLowerCase())) {
             return reconstructCollection(FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL,
-                    reconstructionItem.getTenant(), reconstructionItem.getLimit());
-        } else if (FunctionalAdminCollections.ACCESSION_REGISTER_SYMBOLIC.getName().toLowerCase().equals(reconstructionItem.getCollection().toLowerCase())) {
+                reconstructionItem.getTenant(), reconstructionItem.getLimit());
+        } else if (FunctionalAdminCollections.ACCESSION_REGISTER_SYMBOLIC.getName().toLowerCase()
+            .equals(reconstructionItem.getCollection().toLowerCase())) {
             return reconstructCollection(FunctionalAdminCollections.ACCESSION_REGISTER_SYMBOLIC,
-                    reconstructionItem.getTenant(), reconstructionItem.getLimit());
+                reconstructionItem.getTenant(), reconstructionItem.getLimit());
         } else {
-            throw new IllegalArgumentException(String.format("ERROR: Invalid collection {%s}", reconstructionItem.getCollection()));
+            throw new IllegalArgumentException(
+                String.format("ERROR: Invalid collection {%s}", reconstructionItem.getCollection()));
         }
     }
 
@@ -249,20 +257,21 @@ public class ReconstructionServiceImpl implements ReconstructionService {
      * Reconstruct collection.
      *
      * @param collection collection
-     * @param tenant     tenant
-     * @param limit      number of data to reconstruct
+     * @param tenant tenant
+     * @param limit number of data to reconstruct
      * @return response of reconstruction
      */
-    private ReconstructionResponseItem reconstructCollection(FunctionalAdminCollections collection, int tenant, int limit) {
+    private ReconstructionResponseItem reconstructCollection(FunctionalAdminCollections collection, int tenant,
+        int limit) {
 
         final long offset = offsetRepository.findOffsetBy(tenant, collection.getName());
         ParametersChecker.checkParameter("Parameter collection is required.", collection);
         LOGGER.info(String
-                .format(
-                        "[Reconstruction]: Start reconstruction of the {%s} collection on the Vitam tenant {%s} for %s elements starting from {%s}.",
-                        collection.name(), tenant, limit, offset));
+            .format(
+                "[Reconstruction]: Start reconstruction of the {%s} collection on the Vitam tenant {%s} for %s elements starting from {%s}.",
+                collection.name(), tenant, limit, offset));
         ReconstructionResponseItem response =
-                new ReconstructionResponseItem().setCollection(collection.name()).setTenant(tenant);
+            new ReconstructionResponseItem().setCollection(collection.name()).setTenant(tenant);
         Integer originalTenant = VitamThreadUtils.getVitamSession().getTenantId();
 
         long newOffset = offset;
@@ -289,7 +298,7 @@ public class ReconstructionServiceImpl implements ReconstructionService {
 
             Set<String> originatingAgencies = new HashSet<>();
 
-            while(offerLogIterator.hasNext()) {
+            while (offerLogIterator.hasNext()) {
 
                 List<OfferLog> listingBulk = offerLogIterator.next();
 
@@ -297,7 +306,8 @@ public class ReconstructionServiceImpl implements ReconstructionService {
                 for (OfferLog offerLog : listingBulk) {
 
                     AccessionRegisterBackupModel model = recoverBuckupService
-                        .loadData(STRATEGY_ID, collection, offerLog.getFileName(), offerLog.getSequence());
+                        .loadData(STRATEGY_ID, collection, offerLog.getFileName(),
+                            offerLog.getSequence());
                     if (model.getAccessionRegister() != null && model.getOffset() != null) {
                         originatingAgencies.add((model.getAccessionRegister().getString("OriginatingAgency")));
                         dataFromOffer.add(model);
@@ -315,15 +325,15 @@ public class ReconstructionServiceImpl implements ReconstructionService {
 
 
                 reconstructCollectionAccessionRegister(collection, dataFromOffer,
-                        VitamConfiguration.getOptimisticLockRetryNumber());
+                    VitamConfiguration.getOptimisticLockRetryNumber());
                 AccessionRegisterBackupModel last = Iterables.getLast(dataFromOffer);
                 newOffset = last.getOffset();
 
 
                 // log the reconstruction of Vitam collection.
                 LOGGER.info(String.format(
-                        "[Reconstruction]: the collection {%s} has been reconstructed on the tenant {%s} from {offset:%s} at %s",
-                        collection.name(), tenant, offset, LocalDateUtil.now()));
+                    "[Reconstruction]: the collection {%s} has been reconstructed on the tenant {%s} from {offset:%s} at %s",
+                    collection.name(), tenant, offset, LocalDateUtil.now()));
             }
 
             if (collection.equals(FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL)) {
@@ -332,8 +342,8 @@ public class ReconstructionServiceImpl implements ReconstructionService {
             response.setStatus(StatusCode.OK);
         } catch (DatabaseException de) {
             LOGGER.error(String.format(
-                    "[Reconstruction]: Exception has been thrown when reconstructing Vitam collection {%s} metadatas on the tenant {%s} from {offset:%s}",
-                    collection, tenant, offset), de);
+                "[Reconstruction]: Exception has been thrown when reconstructing Vitam collection {%s} metadatas on the tenant {%s} from {offset:%s}",
+                collection, tenant, offset), de);
             newOffset = offset;
             response.setStatus(StatusCode.KO);
         } catch (StorageException se) {
@@ -350,27 +360,30 @@ public class ReconstructionServiceImpl implements ReconstructionService {
     /**
      * Reconstruct metadatas in databases
      *
-     * @param collection    the concerning collection
+     * @param collection the concerning collection
      * @param dataFromOffer list of items to back up
      * @throws DatabaseException databaseException
      */
-    private void reconstructCollectionAccessionRegister(FunctionalAdminCollections collection, List<AccessionRegisterBackupModel> dataFromOffer,
-                                                        Integer nbRetry)
-            throws DatabaseException {
+    private void reconstructCollectionAccessionRegister(FunctionalAdminCollections collection,
+        List<AccessionRegisterBackupModel> dataFromOffer,
+        Integer nbRetry)
+        throws DatabaseException {
         if (nbRetry < 0) {
             throw new DatabaseException("Optimistic lock number of retry reached");
         }
         LOGGER.info("[Reconstruction]: Back up of Accession Register bulk");
 
         // Create bulk of ReplaceOneModel
-        List<WriteModel<Document>> metadatas =
-                dataFromOffer.stream().map(AccessionRegisterBackupModel::getAccessionRegister).map(this::createReplaceOneModel)
-                        .collect(Collectors.toList());
+        List<WriteModel<Document>> metadataList =
+            dataFromOffer.stream().map(AccessionRegisterBackupModel::getAccessionRegister)
+                .map(this::createReplaceOneModel)
+                .collect(Collectors.toList());
         try {
-            this.bulkMongo(collection, metadatas);
+            this.bulkMongo(collection, metadataList);
         } catch (DatabaseException e) {
             if (e.getCause() instanceof MongoBulkWriteException) {
-                LOGGER.warn("[Reconstruction]: [Optimistic_Lock]: optimistic lock occurs while reconstruct Accession Register");
+                LOGGER.warn(
+                    "[Reconstruction]: [Optimistic_Lock]: optimistic lock occurs while reconstruct Accession Register");
 
                 try {
                     Thread.sleep(ThreadLocalRandom.current().nextInt(VitamConfiguration.getOptimisticLockSleepTime()));
@@ -389,14 +402,14 @@ public class ReconstructionServiceImpl implements ReconstructionService {
         }
 
         List<Document> documents =
-                dataFromOffer.stream().map(AccessionRegisterBackupModel::getAccessionRegister).collect(Collectors.toList());
+            dataFromOffer.stream().map(AccessionRegisterBackupModel::getAccessionRegister).collect(Collectors.toList());
         bulkElasticsearch(collection, documents);
     }
 
     private void restoreSequence(VitamMongoRepository sequenceRepository,
-                                 VitamSequence sequenceCollection) throws DatabaseException {
+        VitamSequence sequenceCollection) throws DatabaseException {
         sequenceRepository
-                .removeByNameAndTenant(sequenceCollection.getName(), sequenceCollection.getTenantId());
+            .removeByNameAndTenant(sequenceCollection.getName(), sequenceCollection.getTenantId());
         sequenceRepository.save(sequenceCollection);
     }
 
@@ -405,8 +418,8 @@ public class ReconstructionServiceImpl implements ReconstructionService {
 
         ParametersChecker.checkParameter("The collection parameter is required.", collection);
         LOGGER.debug(String
-                .format("Start reconstruction of the %s collection on all of the Vitam tenants.",
-                        collection.getType()));
+            .format("Start reconstruction of the %s collection on all of the Vitam tenants.",
+                collection.getType()));
 
         // get the list of vitam tenants from the configuration.
         List<Integer> tenants = VitamConfiguration.getTenants();
@@ -436,7 +449,7 @@ public class ReconstructionServiceImpl implements ReconstructionService {
      * @throws DatabaseException
      */
     private void bulkMongo(FunctionalAdminCollections faCollection, List<WriteModel<Document>> collection)
-            throws DatabaseException {
+        throws DatabaseException {
         this.vitamRepositoryProvider.getVitamMongoRepository(faCollection.getVitamCollection()).update(collection);
     }
 
@@ -444,11 +457,11 @@ public class ReconstructionServiceImpl implements ReconstructionService {
      * Bulk save in elasticsearch
      *
      * @param faCollection
-     * @param collection   of documents
+     * @param collection of documents
      * @throws DatabaseException
      */
     private void bulkElasticsearch(FunctionalAdminCollections faCollection, List<Document> collection)
-            throws DatabaseException {
+        throws DatabaseException {
         this.vitamRepositoryProvider.getVitamESRepository(faCollection.getVitamCollection()).save(collection);
     }
 
@@ -466,31 +479,39 @@ public class ReconstructionServiceImpl implements ReconstructionService {
             List<Document> documents = agregateAccessionRegisterSummary(originatingAgencies, tenant);
             Set<Document> accessionRegisterSummary = new HashSet<>();
             for (Document registerSummaryDoc : documents) {
-                registerSummaryDoc.append(TENANT_ID, tenant)
-                        .append(AccessionRegisterSummary.CREATION_DATE, LocalDateUtil.getFormattedDateForMongo(
-                                LocalDateTime.now()));
+                registerSummaryDoc
+                    .append(TENANT_ID, tenant)
+                    .append(VERSION, 0)
+                    .append(AccessionRegisterSummary.CREATION_DATE, LocalDateUtil.getFormattedDateForMongo(
+                        LocalDateTime.now()));
 
                 BasicDBObject searchQuery = new BasicDBObject();
-                searchQuery.put(AccessionRegisterSummary.ORIGINATING_AGENCY, registerSummaryDoc.getString(AccessionRegisterSummary.ORIGINATING_AGENCY));
-                MongoCursor registerSummaryIt = (FunctionalAdminCollections.ACCESSION_REGISTER_SUMMARY.getCollection().find(searchQuery)).iterator();
+                searchQuery.put(AccessionRegisterSummary.ORIGINATING_AGENCY,
+                    registerSummaryDoc.getString(AccessionRegisterSummary.ORIGINATING_AGENCY));
+                MongoCursor registerSummaryIt =
+                    (FunctionalAdminCollections.ACCESSION_REGISTER_SUMMARY.getCollection().find(searchQuery))
+                        .iterator();
                 if (registerSummaryIt.hasNext()) {
                     registerSummaryDoc.append(ID, ((AccessionRegisterSummary) registerSummaryIt.next()).get(ID));
                 } else {
-                    registerSummaryDoc.append(ID, GUIDFactory.newAccessionRegisterSummaryGUID(ParameterHelper.getTenantParameter()).getId());
+                    registerSummaryDoc.append(ID,
+                        GUIDFactory.newAccessionRegisterSummaryGUID(ParameterHelper.getTenantParameter()).getId());
                 }
                 accessionRegisterSummary.add(registerSummaryDoc);
             }
 
             // Create bulk of ReplaceOneModel
             List<WriteModel<Document>> collectionWM =
-                    accessionRegisterSummary.stream().map(this::createReplaceOneModel)
-                            .collect(Collectors.toList());
+                accessionRegisterSummary.stream().map(this::createReplaceOneModel)
+                    .collect(Collectors.toList());
             try {
                 this.bulkMongo(FunctionalAdminCollections.ACCESSION_REGISTER_SUMMARY, collectionWM);
-                this.bulkElasticsearch(FunctionalAdminCollections.ACCESSION_REGISTER_SUMMARY, Lists.newArrayList(accessionRegisterSummary));
+                this.bulkElasticsearch(FunctionalAdminCollections.ACCESSION_REGISTER_SUMMARY,
+                    Lists.newArrayList(accessionRegisterSummary));
             } catch (DatabaseException e) {
                 if (e.getCause() instanceof MongoBulkWriteException) {
-                    LOGGER.warn("[Reconstruction]: [Optimistic_Lock]: optimistic lock occurs while reconstruct Accession Register");
+                    LOGGER.warn(
+                        "[Reconstruction]: [Optimistic_Lock]: optimistic lock occurs while reconstruct Accession Register");
                 } else {
                     LOGGER.error(e);
                 }
@@ -504,57 +525,58 @@ public class ReconstructionServiceImpl implements ReconstructionService {
 
     @Override
     public List<Document> agregateAccessionRegisterSummary(Set<String> originatingAgencies, Integer tenant) {
-        MongoCollection<Document> accessionRegisterDetailCollection = FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL.getCollection();
+        MongoCollection<Document> accessionRegisterDetailCollection =
+            FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL.getCollection();
         AggregateIterable<Document> aggregate =
-                accessionRegisterDetailCollection.aggregate(Arrays.asList(
-                        Aggregates.match(
-                                and(
-                                        in(AccessionRegisterDetail.ORIGINATING_AGENCY, originatingAgencies),
-                                        eq(AccessionRegisterDetail.TENANT_ID, tenant)
-                                )
-                        ),
-                        Aggregates.group("$" + AccessionRegisterDetail.ORIGINATING_AGENCY,
-                                Accumulators.sum(TOTAL_OBJECT_GROUPS_INGESTED, "$TotalObjectGroups.ingested"),
-                                Accumulators.sum(TOTAL_OBJECT_GROUPS_DELETED, "$TotalObjectGroups.deleted"),
-                                Accumulators.sum(TOTAL_OBJECT_GROUPS_REMAINED, "$TotalObjectGroups.remained"),
+            accessionRegisterDetailCollection.aggregate(Arrays.asList(
+                Aggregates.match(
+                    and(
+                        in(AccessionRegisterDetail.ORIGINATING_AGENCY, originatingAgencies),
+                        eq(AccessionRegisterDetail.TENANT_ID, tenant)
+                    )
+                ),
+                Aggregates.group("$" + AccessionRegisterDetail.ORIGINATING_AGENCY,
+                    Accumulators.sum(TOTAL_OBJECT_GROUPS_INGESTED, "$TotalObjectGroups.ingested"),
+                    Accumulators.sum(TOTAL_OBJECT_GROUPS_DELETED, "$TotalObjectGroups.deleted"),
+                    Accumulators.sum(TOTAL_OBJECT_GROUPS_REMAINED, "$TotalObjectGroups.remained"),
 
-                                Accumulators.sum(TOTAL_UNITS_INGESTED, "$TotalUnits.ingested"),
-                                Accumulators.sum(TOTAL_UNITS_DELETED, "$TotalUnits.deleted"),
-                                Accumulators.sum(TOTAL_UNITS_REMAINED, "$TotalUnits.remained"),
+                    Accumulators.sum(TOTAL_UNITS_INGESTED, "$TotalUnits.ingested"),
+                    Accumulators.sum(TOTAL_UNITS_DELETED, "$TotalUnits.deleted"),
+                    Accumulators.sum(TOTAL_UNITS_REMAINED, "$TotalUnits.remained"),
 
-                                Accumulators.sum(TOTAL_OBJECT_INGEST, "$TotalObjects.ingested"),
-                                Accumulators.sum(TOTAL_OBJECT_DELETED, "$TotalObjects.deleted"),
-                                Accumulators.sum(TOTAL_OBJECT_REMAINED, "$TotalObjects.remained"),
-                                Accumulators.sum(OBJECT_SIZE_INGESTED, "$ObjectSize.ingested"),
-                                Accumulators.sum(OBJECT_SIZE_DELETED, "$ObjectSize.deleted"),
-                                Accumulators.sum(OBJECT_SIZE_REMAINED, "$ObjectSize.remained")
-                        ),
-                        Aggregates.project(Projections.fields(
-                                new Document("_id", 0),
-                                new Document(AccessionRegisterDetail.ORIGINATING_AGENCY, "$_id"),
+                    Accumulators.sum(TOTAL_OBJECT_INGEST, "$TotalObjects.ingested"),
+                    Accumulators.sum(TOTAL_OBJECT_DELETED, "$TotalObjects.deleted"),
+                    Accumulators.sum(TOTAL_OBJECT_REMAINED, "$TotalObjects.remained"),
+                    Accumulators.sum(OBJECT_SIZE_INGESTED, "$ObjectSize.ingested"),
+                    Accumulators.sum(OBJECT_SIZE_DELETED, "$ObjectSize.deleted"),
+                    Accumulators.sum(OBJECT_SIZE_REMAINED, "$ObjectSize.remained")
+                ),
+                Aggregates.project(Projections.fields(
+                    new Document("_id", 0),
+                    new Document(AccessionRegisterDetail.ORIGINATING_AGENCY, "$_id"),
 
-                                new Document(AccessionRegisterSummary.TOTAL_OBJECTGROUPS, new Document()
-                                        .append(AccessionRegisterSummary.INGESTED, "$" + TOTAL_OBJECT_GROUPS_INGESTED)
-                                        .append(AccessionRegisterSummary.DELETED, "$" + TOTAL_OBJECT_GROUPS_DELETED)
-                                        .append(AccessionRegisterSummary.REMAINED, "$" + TOTAL_OBJECT_GROUPS_REMAINED)
-                                ),
-                                new Document(AccessionRegisterSummary.TOTAL_UNITS, new Document()
-                                        .append(AccessionRegisterSummary.INGESTED, "$" + TOTAL_UNITS_INGESTED)
-                                        .append(AccessionRegisterSummary.DELETED, "$" + TOTAL_UNITS_DELETED)
-                                        .append(AccessionRegisterSummary.REMAINED, "$" + TOTAL_UNITS_REMAINED)
-                                ),
-                                new Document(AccessionRegisterSummary.TOTAL_OBJECTS, new Document()
-                                        .append(AccessionRegisterSummary.INGESTED, "$" + TOTAL_OBJECT_INGEST)
-                                        .append(AccessionRegisterSummary.DELETED, "$" + TOTAL_OBJECT_DELETED)
-                                        .append(AccessionRegisterSummary.REMAINED, "$" + TOTAL_OBJECT_REMAINED)
-                                ),
-                                new Document(AccessionRegisterSummary.OBJECT_SIZE, new Document()
-                                        .append(AccessionRegisterSummary.INGESTED, "$" + OBJECT_SIZE_INGESTED)
-                                        .append(AccessionRegisterSummary.DELETED, "$" + OBJECT_SIZE_DELETED)
-                                        .append(AccessionRegisterSummary.REMAINED, "$" + OBJECT_SIZE_REMAINED)
-                                )
-                        ))
-                ), Document.class);
+                    new Document(AccessionRegisterSummary.TOTAL_OBJECTGROUPS, new Document()
+                        .append(AccessionRegisterSummary.INGESTED, "$" + TOTAL_OBJECT_GROUPS_INGESTED)
+                        .append(AccessionRegisterSummary.DELETED, "$" + TOTAL_OBJECT_GROUPS_DELETED)
+                        .append(AccessionRegisterSummary.REMAINED, "$" + TOTAL_OBJECT_GROUPS_REMAINED)
+                    ),
+                    new Document(AccessionRegisterSummary.TOTAL_UNITS, new Document()
+                        .append(AccessionRegisterSummary.INGESTED, "$" + TOTAL_UNITS_INGESTED)
+                        .append(AccessionRegisterSummary.DELETED, "$" + TOTAL_UNITS_DELETED)
+                        .append(AccessionRegisterSummary.REMAINED, "$" + TOTAL_UNITS_REMAINED)
+                    ),
+                    new Document(AccessionRegisterSummary.TOTAL_OBJECTS, new Document()
+                        .append(AccessionRegisterSummary.INGESTED, "$" + TOTAL_OBJECT_INGEST)
+                        .append(AccessionRegisterSummary.DELETED, "$" + TOTAL_OBJECT_DELETED)
+                        .append(AccessionRegisterSummary.REMAINED, "$" + TOTAL_OBJECT_REMAINED)
+                    ),
+                    new Document(AccessionRegisterSummary.OBJECT_SIZE, new Document()
+                        .append(AccessionRegisterSummary.INGESTED, "$" + OBJECT_SIZE_INGESTED)
+                        .append(AccessionRegisterSummary.DELETED, "$" + OBJECT_SIZE_DELETED)
+                        .append(AccessionRegisterSummary.REMAINED, "$" + OBJECT_SIZE_REMAINED)
+                    )
+                ))
+            ), Document.class);
 
         return Lists.newArrayList(aggregate.iterator());
     }
