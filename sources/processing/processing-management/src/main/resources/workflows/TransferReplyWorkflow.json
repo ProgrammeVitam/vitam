@@ -37,6 +37,24 @@
             ],
             "out": [
               {
+                "name": "atrFileSerialized",
+                "uri": "MEMORY:atrFileSerialized"
+              }
+            ]
+          }
+        },
+        {
+          "action": {
+            "actionKey": "CHECK_ATR_AND_ADD_IT_TO_WORKSPACE",
+            "behavior": "BLOCKING",
+            "in": [
+              {
+                "name": "atrFileSerialized",
+                "uri": "MEMORY:atrFileSerialized"
+              }
+            ],
+            "out": [
+              {
                 "name": "TransferReplyContext",
                 "uri": "WORKSPACE:TransferReplyContext.json"
               }

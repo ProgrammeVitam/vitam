@@ -26,9 +26,7 @@
  */
 package fr.gouv.vitam.worker.core.plugin.transfer.reply;
 
-import com.google.common.annotations.VisibleForTesting;
 import fr.gouv.culture.archivesdefrance.seda.v2.ArchiveTransferReplyType;
-import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
@@ -36,16 +34,8 @@ import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
-import fr.gouv.vitam.storage.engine.client.StorageClient;
-import fr.gouv.vitam.storage.engine.client.StorageClientFactory;
-import fr.gouv.vitam.storage.engine.client.exception.StorageAlreadyExistsClientException;
-import fr.gouv.vitam.storage.engine.client.exception.StorageNotFoundClientException;
-import fr.gouv.vitam.storage.engine.client.exception.StorageServerClientException;
-import fr.gouv.vitam.storage.engine.common.model.request.ObjectDescription;
-import fr.gouv.vitam.storage.engine.common.model.response.StoredInfoResult;
 import fr.gouv.vitam.worker.common.HandlerIO;
 import fr.gouv.vitam.worker.core.handler.ActionHandler;
-import fr.gouv.vitam.worker.core.plugin.BinaryEventData;
 import fr.gouv.vitam.worker.core.plugin.transfer.reply.model.TransferReplyContext;
 import fr.gouv.vitam.worker.core.utils.PluginHelper.EventDetails;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
@@ -54,52 +44,49 @@ import org.apache.commons.io.FileUtils;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.Collections;
 
 import static fr.gouv.vitam.common.model.StatusCode.FATAL;
+import static fr.gouv.vitam.common.model.StatusCode.KO;
 import static fr.gouv.vitam.common.model.StatusCode.OK;
-import static fr.gouv.vitam.storage.engine.common.model.DataCategory.ARCHIVAL_TRANSFER_REPLY;
+import static fr.gouv.vitam.common.model.StatusCode.WARNING;
 import static fr.gouv.vitam.worker.core.utils.PluginHelper.buildItemStatus;
 
-public class SaveAtrPlugin extends ActionHandler {
-    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(SaveAtrPlugin.class);
-    public static final String PLUGIN_NAME = "SAVE_ARCHIVAL_TRANSFER_REPLY";
+public class CheckAtrAndAddItToWorkspacePlugin extends ActionHandler {
+    public static final String PLUGIN_NAME = "CHECK_ATR_AND_ADD_IT_TO_WORKSPACE";
 
-    private final StorageClientFactory storageClientFactory;
-
-    public SaveAtrPlugin() {
-        this(StorageClientFactory.getInstance());
-    }
-
-    @VisibleForTesting
-    public SaveAtrPlugin(StorageClientFactory storageClientFactory) {
-        this.storageClientFactory = storageClientFactory;
-    }
+    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(CheckAtrAndAddItToWorkspacePlugin.class);
+    private static final int TRANSFER_REPLY_CONTEXT_OUT_RANK = 0;
 
     @Override
     public ItemStatus execute(WorkerParameters param, HandlerIO handler) throws ProcessingException, ContentAddressableStorageServerException {
         ArchiveTransferReplyType atr = (ArchiveTransferReplyType) handler.getInput(0);
-        try (StorageClient storageClient = storageClientFactory.getClient()) {
+        try {
             String messageIdentifier = atr.getMessageIdentifier().getValue();
 
-            ObjectDescription description = getDescription(messageIdentifier, handler.getContainerName());
-            StoredInfoResult storedInfo = storageClient.storeFileFromWorkspace(VitamConfiguration.getDefaultStrategy(), description.getType(), description.getObjectName(), description);
+            if (!isStatusValid(atr)) {
+                return buildItemStatus(PLUGIN_NAME, KO, EventDetails.of(String.format("ATR '%s' is KO, workflow will stop here.", messageIdentifier)));
+            }
 
-            handler.addOutputResult(0, atr);
+            File tempFile = handler.getNewLocalFile(handler.getOutput(TRANSFER_REPLY_CONTEXT_OUT_RANK).getPath());
+            FileUtils.copyInputStreamToFile(streamFromIds(atr), tempFile);
+            handler.addOutputResult(TRANSFER_REPLY_CONTEXT_OUT_RANK, tempFile, true, false);
 
-            return buildItemStatus(PLUGIN_NAME, OK, Collections.singletonMap(messageIdentifier, BinaryEventData.from(storedInfo)));
-        } catch (StorageAlreadyExistsClientException | StorageNotFoundClientException | StorageServerClientException e) {
+            return buildItemStatus(PLUGIN_NAME, OK, EventDetails.of(String.format("ATR '%s' is OK.", messageIdentifier)));
+        } catch (IOException | InvalidParseOperationException e) {
             LOGGER.error(e);
             return buildItemStatus(PLUGIN_NAME, FATAL, EventDetails.of(e.getMessage()));
         }
     }
 
-    private ObjectDescription getDescription(String messageIdentifier, String containerName) {
-        ObjectDescription description = new ObjectDescription();
-        description.setWorkspaceContainerGUID(containerName);
-        description.setObjectName(messageIdentifier);
-        description.setWorkspaceObjectURI("ATR-for-transfer-reply-in-workspace.xml");
-        description.setType(ARCHIVAL_TRANSFER_REPLY);
-        return description;
+    private boolean isStatusValid(ArchiveTransferReplyType atr) {
+        return OK.name().equalsIgnoreCase(atr.getReplyCode())
+            || WARNING.name().equalsIgnoreCase(atr.getReplyCode());
+    }
+
+    private InputStream streamFromIds(ArchiveTransferReplyType atr) throws InvalidParseOperationException {
+        return JsonHandler.writeToInpustream(new TransferReplyContext(
+            atr.getMessageRequestIdentifier().getValue(),
+            atr.getMessageIdentifier().getValue()
+        ));
     }
 }
