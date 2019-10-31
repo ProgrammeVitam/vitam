@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2019)
  *
  * contact.vitam@culture.gouv.fr
@@ -349,6 +349,9 @@ public class VitamConfigurationParameters {
     private Integer httpClientFirstAttemptWaitingTime;
     private Integer httpClientWaitingTime;
     private Integer httpClientRandomWaitingSleep;
+
+    private Integer elasticSearchScrollTimeoutInMilliseconds;
+    private Integer elasticSearchScrollLimit;
 
     /**
      * VitamData empty constructor for YAMLFactory
@@ -1042,7 +1045,7 @@ public class VitamConfigurationParameters {
 
     /**
      * Getter
-     * 
+     *
      * @return keywordMaxLength
      */
     public Integer getKeywordMaxLength() {
@@ -1051,7 +1054,7 @@ public class VitamConfigurationParameters {
 
     /**
      * Setter
-     * 
+     *
      * @param keywordMaxLength
      */
     public void setKeywordMaxLength(Integer keywordMaxLength) {
@@ -1060,7 +1063,7 @@ public class VitamConfigurationParameters {
 
     /**
      * Getter
-     * 
+     *
      * @return textMaxLength
      */
     public Integer getTextMaxLength() {
@@ -1069,7 +1072,7 @@ public class VitamConfigurationParameters {
 
     /**
      * Setter
-     * 
+     *
      * @param textMaxLength
      */
     public void setTextMaxLength(Integer textMaxLength) {
@@ -1349,7 +1352,7 @@ public class VitamConfigurationParameters {
 
     /**
      * Get operation Max Size For External Logbook
-     * 
+     *
      * @return operationMaxSizeForExternal
      */
     public Long getOperationMaxSizeForExternal() {
@@ -1358,7 +1361,7 @@ public class VitamConfigurationParameters {
 
     /**
      * set operation Max Size For External Logbook
-     * 
+     *
      * @param operationMaxSizeForExternal the max size
      */
     public void setOperationMaxSizeForExternal(Long operationMaxSizeForExternal) {
@@ -1413,6 +1416,23 @@ public class VitamConfigurationParameters {
     public void setOntologyCacheTimeoutInSeconds(int ontologyCacheTimeoutInSeconds) {
         this.ontologyCacheTimeoutInSeconds = ontologyCacheTimeoutInSeconds;
     }
+
+    public Integer getElasticSearchScrollTimeoutInMilliseconds() {
+        return elasticSearchScrollTimeoutInMilliseconds;
+    }
+
+    public void setElasticSearchScrollTimeoutInMilliseconds(Integer elasticSearchScrollTimeoutInMilliseconds) {
+        this.elasticSearchScrollTimeoutInMilliseconds = elasticSearchScrollTimeoutInMilliseconds;
+    }
+
+    public Integer getElasticSearchScrollLimit() {
+        return elasticSearchScrollLimit;
+    }
+
+    public void setElasticSearchScrollLimit(Integer elasticSearchScrollLimit) {
+        this.elasticSearchScrollLimit = elasticSearchScrollLimit;
+    }
+
 
     public Integer getHttpClientRetry() {
         return httpClientRetry;
