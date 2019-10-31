@@ -472,7 +472,7 @@ public class BackupAndReconstructionFunctionalAdminIT extends VitamRuleRunner {
 
     @Test
     @RunWithCustomExecutor
-    public void testBackupAndReconstructAccessionRegiterDetailOk() throws Exception {
+    public void testBackupAndReconstructAccessionRegisterDetailOk() throws Exception {
 
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_1);
         VitamThreadUtils.getVitamSession().setRequestId(newOperationLogbookGUID(TENANT_1));
@@ -654,6 +654,8 @@ public class BackupAndReconstructionFunctionalAdminIT extends VitamRuleRunner {
         assertThat(registerSummaryDocs.size()).isEqualTo(2);
 
         for (JsonNode doc : registerSummaryDocs) {
+            assertEquals(0, doc.get("_v").asInt());
+
             if (doc.get("OriginatingAgency").asText().equals("OG_1")) {
                 assertEquals("2000", doc.get("TotalObjectGroups").get("ingested").asText());
                 assertEquals("0", doc.get("TotalObjectGroups").get("deleted").asText());
