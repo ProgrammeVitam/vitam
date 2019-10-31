@@ -1,0 +1,53 @@
+{
+  "$schema": "http://json-schema.org/draft-04/schema#",
+  "properties": {
+    "ArchiveUnitProfile": {
+      "type": "string"
+    },
+    "#management": {
+      "type": "object",
+      "properties": {
+        "StorageRule": {
+          "type": "object"
+        },
+        "AppraisalRule": {
+          "type": "object"
+        },
+        "ReuseRule": {
+          "type": "object"
+        },
+        "ClassificationRule": {
+          "type": "object"
+        },
+        "NeedAuthorization": {
+          "type": "boolean"
+        }
+      },
+      "ArchiveUnit": {
+        "ArchiveUnitRefId": "ID_CHILD"
+      }
+    },
+    "Title": {
+      "type": "string"
+    },
+    "DescriptionLevel": {
+      "enum": [
+        "Item",
+        "RecordGrp"
+      ]
+    },
+    "CustomField": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "AuthorizedAgent": {
+      "type": "array",
+      "items": {
+        "type": "object"
+      }
+    }
+  },
+  "additionalProperties": false
+}

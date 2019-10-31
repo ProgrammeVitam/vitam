@@ -1,6 +1,5 @@
 {
 	"ArchiveUnit": {
-		"dev-note": "This test pseudo-AU is not required to match the general Json Schema for AU",
 		"_id": "aeaqaaaaaahfrfvaaahrgak25v5fttiaaaaq",
 		"ArchiveUnitProfile": "AUP_0001",
 		"_mgt": {
@@ -63,23 +62,9 @@
 				"ClassificationReassessingDate": "2016-05-02",
 				"NeedReassessingAuthorization": false
 			},
-			"NeedAuthorization": true,
-			"AnyOtherField": "AnyOtherValue",
-			"UpdateOperation": {
-				"SystemId": "",
-				"ToDelete": {
-					"ArchiveUnitRefId": [
-						"DEL001",
-						"DEL002"
-					],
-					"FullUpdate": false
-				}
-			},
-			"ArchiveUnit": {
-				"ArchiveUnitRefId": "ID_CHILD"
-			}
+			"NeedAuthorization": true
 		},
-		"AnyOtherField": "AnyOtherValue",
+		"CustomField": ["CustomField"],
 		"DescriptionLevel": "Item",
 		"Title": "My title",
 		"AuthorizedAgent": [

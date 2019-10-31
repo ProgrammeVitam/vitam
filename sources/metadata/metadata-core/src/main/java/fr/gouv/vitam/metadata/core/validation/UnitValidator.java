@@ -30,6 +30,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.SedaConstants;
+import fr.gouv.vitam.common.database.builder.query.VitamFieldsHelper;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamRuntimeException;
 import fr.gouv.vitam.common.json.InvalidJsonSchemaException;
@@ -38,10 +39,12 @@ import fr.gouv.vitam.common.json.JsonSchemaValidationException;
 import fr.gouv.vitam.common.json.JsonSchemaValidator;
 import fr.gouv.vitam.common.model.administration.ArchiveUnitProfileModel;
 import fr.gouv.vitam.common.model.administration.ArchiveUnitProfileStatus;
+import fr.gouv.vitam.metadata.core.database.collections.Unit;
 import org.apache.commons.collections4.IteratorUtils;
 
 import java.text.ParseException;
 import java.util.Date;
+import java.util.Map;
 import java.util.Optional;
 
 public class UnitValidator {
@@ -105,7 +108,10 @@ public class UnitValidator {
             try {
                 JsonSchemaValidator externalSchemaValidator =
                     schemaValidatorLoader.loadSchemaValidator(archiveUnitProfile.get().getControlSchema());
-                externalSchemaValidator.validateJson(archiveUnit);
+
+                ObjectNode normalizedArchiveUnit = normalizeArchiveUnitForArchiveUnitProfileValidation(archiveUnit);
+
+                externalSchemaValidator.validateJson(normalizedArchiveUnit);
 
             } catch (JsonSchemaValidationException e) {
                 throw new MetadataValidationException(
@@ -115,6 +121,27 @@ public class UnitValidator {
                 throw new VitamRuntimeException("Invalid ArchiveUnitProfile", e);
             }
         }
+    }
+
+    private ObjectNode normalizeArchiveUnitForArchiveUnitProfileValidation(ObjectNode archiveUnit) {
+
+        /*
+         * > Keep external fields (Title, Description...)
+         * > Rename field _mgt into #management
+         * > Skip all other internal fields (_id, _us, _v...)
+         */
+
+        ObjectNode result = JsonHandler.createObjectNode();
+        for (Map.Entry<String, JsonNode> entry : IteratorUtils.asIterable(archiveUnit.fields())) {
+            if (!entry.getKey().startsWith("_")) {
+                result.set(entry.getKey(), entry.getValue());
+            } else if (entry.getKey().equals(Unit.MANAGEMENT)) {
+                result.set(VitamFieldsHelper.management(), entry.getValue());
+            } else {
+                // Skip field
+            }
+        }
+        return result;
     }
 
     private void validateArchiveUnitProfile(ArchiveUnitProfileModel archiveUnitProfile)
