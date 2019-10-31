@@ -40,7 +40,10 @@ import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
-import fr.gouv.vitam.common.model.*;
+import fr.gouv.vitam.common.model.ItemStatus;
+import fr.gouv.vitam.common.model.MetadataType;
+import fr.gouv.vitam.common.model.RequestResponseOK;
+import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.stream.StreamUtils;
 import fr.gouv.vitam.metadata.client.MetaDataClient;
 import fr.gouv.vitam.metadata.client.MetaDataClientFactory;
@@ -51,7 +54,6 @@ import fr.gouv.vitam.storage.engine.client.StorageClientFactory;
 import fr.gouv.vitam.storage.engine.client.exception.StorageServerClientException;
 import fr.gouv.vitam.storage.engine.common.exception.StorageNotFoundException;
 import fr.gouv.vitam.storage.engine.common.model.DataCategory;
-import fr.gouv.vitam.storage.engine.common.referential.model.StorageStrategy;
 import fr.gouv.vitam.worker.common.HandlerIO;
 import fr.gouv.vitam.worker.core.handler.ActionHandler;
 import fr.gouv.vitam.worker.core.plugin.ScrollSpliteratorHelper;
@@ -69,9 +71,6 @@ import java.util.stream.StreamSupport;
 import static fr.gouv.vitam.common.json.JsonHandler.createObjectNode;
 import static fr.gouv.vitam.common.stream.StreamUtils.consumeAnyEntityAndClose;
 
-/**
- * EvidenceAuditPrepare class
- */
 public class EvidenceAuditPrepare extends ActionHandler {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(EvidenceAuditPrepare.class);
 
@@ -81,6 +80,7 @@ public class EvidenceAuditPrepare extends ActionHandler {
     private static final String METADA_TYPE = "metadaType";
     private static final String OBJECT = "#object";
     private static final String ID = "id";
+
     private MetaDataClientFactory metaDataClientFactory;
     private StorageClientFactory storageClientFactory;
 
@@ -89,7 +89,8 @@ public class EvidenceAuditPrepare extends ActionHandler {
         this.storageClientFactory = StorageClientFactory.getInstance();
     }
 
-    @VisibleForTesting EvidenceAuditPrepare(MetaDataClientFactory metaDataClientFactory) {
+    @VisibleForTesting
+    EvidenceAuditPrepare(MetaDataClientFactory metaDataClientFactory) {
         this.metaDataClientFactory = metaDataClientFactory;
     }
 
@@ -165,8 +166,15 @@ public class EvidenceAuditPrepare extends ActionHandler {
             JsonNode projection = createObjectNode().set(FIELDS_KEY, objectNode);
             select.setProjection(projection);
 
-            ScrollSpliterator<JsonNode> scrollRequest = ScrollSpliteratorHelper
-                .createUnitScrollSplitIterator(client, select);
+            ScrollSpliterator<JsonNode> scrollRequest = new ScrollSpliterator<>(select,
+                query -> {
+                    try {
+                        JsonNode jsonNode = client.selectUnits(query.getFinalSelect());
+                        return RequestResponseOK.getFromJsonNode(jsonNode);
+                    } catch (Exception e) {
+                        throw new IllegalStateException(e);
+                    }
+                }, VitamConfiguration.getElasticSearchScrollTimeoutInMilliseconds(), VitamConfiguration.getElasticSearchScrollLimit());
 
             StreamSupport.stream(scrollRequest, false).forEach(
                 item -> {

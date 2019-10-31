@@ -146,7 +146,7 @@ public class ReclassificationDistributionService {
                 } catch (MetaDataExecutionException | MetaDataDocumentSizeException | InvalidParseOperationException | VitamDBException | BadRequestException | MetaDataNotFoundException e) {
                     throw new IllegalStateException(e);
                 }
-            }, GlobalDatasDb.DEFAULT_SCROLL_TIMEOUT, GlobalDatasDb.LIMIT_LOAD);
+            }, VitamConfiguration.getElasticSearchScrollTimeoutInMilliseconds(), VitamConfiguration.getElasticSearchScrollLimit());
 
         return new SpliteratorIterator<>(scrollRequest);
     }

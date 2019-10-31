@@ -28,13 +28,10 @@ package fr.gouv.vitam.worker.core.plugin;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import fr.gouv.vitam.batch.report.client.BatchReportClient;
-import fr.gouv.vitam.common.database.builder.request.configuration.GlobalDatas;
+import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.database.builder.request.multiple.SelectMultiQuery;
-import fr.gouv.vitam.common.database.parser.request.GlobalDatasParser;
 import fr.gouv.vitam.common.database.utils.ScrollSpliterator;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
-import fr.gouv.vitam.common.exception.VitamClientInternalException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.RequestResponseOK;
@@ -58,7 +55,7 @@ public class ScrollSpliteratorHelper {
      */
     public static ScrollSpliterator<JsonNode> createUnitScrollSplitIterator(final MetaDataClient client,
         final SelectMultiQuery selectMultiQuery) {
-        return createUnitScrollSplitIterator(client, selectMultiQuery, GlobalDatas.LIMIT_LOAD);
+        return createUnitScrollSplitIterator(client, selectMultiQuery, VitamConfiguration.getElasticSearchScrollLimit());
 
 
     }
@@ -81,7 +78,7 @@ public class ScrollSpliteratorHelper {
                 } catch (MetaDataExecutionException | MetaDataDocumentSizeException | MetaDataClientServerException | InvalidParseOperationException e) {
                     throw new IllegalStateException(e);
                 }
-            }, GlobalDatasParser.DEFAULT_SCROLL_TIMEOUT, bachSize);
+            }, VitamConfiguration.getElasticSearchScrollTimeoutInMilliseconds(), bachSize);
     }
 
     /***
@@ -101,8 +98,7 @@ public class ScrollSpliteratorHelper {
                 } catch (MetaDataExecutionException | MetaDataDocumentSizeException | MetaDataClientServerException | InvalidParseOperationException e) {
                     throw new IllegalStateException(e);
                 }
-            }, GlobalDatasParser
-            .DEFAULT_SCROLL_TIMEOUT, bachSize);
+            }, VitamConfiguration.getElasticSearchScrollTimeoutInMilliseconds(), bachSize);
 
     }
 
@@ -114,7 +110,7 @@ public class ScrollSpliteratorHelper {
      */
     public static ScrollSpliterator<JsonNode> createObjectGroupScrollSplitIterator(final MetaDataClient client,
         final SelectMultiQuery selectMultiQuery) {
-        return createObjectGroupScrollSplitIterator(client, selectMultiQuery, GlobalDatas.LIMIT_LOAD);
+        return createObjectGroupScrollSplitIterator(client, selectMultiQuery, VitamConfiguration.getElasticSearchScrollLimit());
     }
 
     public static ScrollSpliterator<JsonNode> getUnitWithInheritedRulesScrollSpliterator(SelectMultiQuery request,
@@ -127,7 +123,7 @@ public class ScrollSpliteratorHelper {
                 } catch (InvalidParseOperationException | MetaDataExecutionException | MetaDataDocumentSizeException | MetaDataClientServerException e) {
                     throw new IllegalStateException(e);
                 }
-            }, GlobalDatasParser.DEFAULT_SCROLL_TIMEOUT, GlobalDatas.LIMIT_LOAD);
+            }, VitamConfiguration.getElasticSearchScrollTimeoutInMilliseconds(), VitamConfiguration.getElasticSearchScrollLimit());
     }
 
     /**Check number of result

@@ -257,15 +257,15 @@ public class CreateManifest extends ActionHandler {
             SelectParserMultiple initialQueryParser = new SelectParserMultiple();
             initialQueryParser.parse(exportRequest.getDslRequest());
 
-            scrollRequest = new ScrollSpliterator<>(initialQueryParser.getRequest(),
-                query -> {
-                    try {
-                        JsonNode node = client.selectUnits(query.getFinalSelect());
-                        return RequestResponseOK.getFromJsonNode(node);
-                    } catch (MetaDataExecutionException | MetaDataDocumentSizeException | MetaDataClientServerException | InvalidParseOperationException e) {
-                        throw new IllegalStateException(e);
-                    }
-                }, DEFAULT_SCROLL_TIMEOUT, LIMIT_LOAD);
+                scrollRequest = new ScrollSpliterator<>(initialQueryParser.getRequest(),
+                    query -> {
+                        try {
+                            JsonNode node = client.selectUnits(query.getFinalSelect());
+                            return RequestResponseOK.getFromJsonNode(node);
+                        } catch (MetaDataExecutionException | MetaDataDocumentSizeException | MetaDataClientServerException | InvalidParseOperationException e) {
+                            throw new IllegalStateException(e);
+                        }
+                    }, VitamConfiguration.getElasticSearchScrollTimeoutInMilliseconds(), VitamConfiguration.getElasticSearchScrollLimit());
 
             manifestBuilder.startDescriptiveMetadata();
             StreamSupport.stream(scrollRequest, false)
