@@ -2,7 +2,6 @@ package fr.gouv.vitam.metadata.core.validation;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import com.fasterxml.jackson.databind.node.TextNode;
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.SedaConstants;
 import fr.gouv.vitam.common.json.JsonHandler;
@@ -23,6 +22,7 @@ public class UnitValidatorTest {
     private static final String AU_JSON_MAIL_FILE = "au_mail.json";
     private static final String SCHEMA_JSON_MAIL_FILE = "schema_mail.json";
     private static final String OBJECT_BIRTH_PLACE_JSON_FILE = "object_birth_place_archive_unit.json";
+    private static final String OBJECT_ORGANIZATION_DESCRIPTIVE_METADATA_JSON_FILE = "test_unit_with_organizationDescriptiveMetadata.json";
     private static final String STRING_BIRTH_PLACE_JSON_FILE = "string_birth_place_archive_unit.json";
     private static final String COMPLEX_JSON_FILE = "complex_archive_unit.json";
     private static final String AU_SAME_DATES_JSON_FILE = "archive_unit_same_dates.json";
@@ -45,6 +45,20 @@ public class UnitValidatorTest {
         unitValidator.validateUnit(unitJson);
     }
 
+    @Test
+    public void givenComplexArchiveUnitJsonThenValidateJsonObjectOrganizationDescriptiveMetadataOK() throws Exception {
+
+        // Given
+        CachedArchiveUnitProfileLoader archiveUnitProfileLoader = mock(CachedArchiveUnitProfileLoader.class);
+        CachedSchemaValidatorLoader schemaValidatorLoader = mock(CachedSchemaValidatorLoader.class);
+        UnitValidator unitValidator = new UnitValidator(archiveUnitProfileLoader, schemaValidatorLoader);
+
+        ObjectNode unitJson = (ObjectNode) JsonHandler.getFromInputStream(
+            PropertiesUtils.getResourceAsStream(OBJECT_ORGANIZATION_DESCRIPTIVE_METADATA_JSON_FILE)).get(TAG_ARCHIVE_UNIT);
+
+        // When / Then
+        unitValidator.validateUnit(unitJson);
+    }
     @Test
     public void givenComplexArchiveUnitJsonThenValidateJsonObjectBirthPlaceKO() throws Exception {
 

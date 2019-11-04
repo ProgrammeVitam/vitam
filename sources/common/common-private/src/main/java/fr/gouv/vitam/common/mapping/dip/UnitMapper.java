@@ -34,12 +34,14 @@ import com.fasterxml.jackson.databind.module.SimpleModule;
 import fr.gouv.culture.archivesdefrance.seda.v2.IdentifierType;
 import fr.gouv.culture.archivesdefrance.seda.v2.KeyType;
 import fr.gouv.culture.archivesdefrance.seda.v2.LevelType;
+import fr.gouv.culture.archivesdefrance.seda.v2.OrganizationDescriptiveMetadataType;
 import fr.gouv.culture.archivesdefrance.seda.v2.TextType;
-import fr.gouv.vitam.common.mapping.serializer.IdentifierTypeDeserializer;
-import fr.gouv.vitam.common.mapping.serializer.KeywordTypeDeserializer;
-import fr.gouv.vitam.common.mapping.serializer.LevelTypeDeserializer;
-import fr.gouv.vitam.common.mapping.serializer.TextByLangDeserializer;
-import fr.gouv.vitam.common.mapping.serializer.TextTypeDeSerializer;
+import fr.gouv.vitam.common.mapping.deserializer.IdentifierTypeDeserializer;
+import fr.gouv.vitam.common.mapping.deserializer.KeywordTypeDeserializer;
+import fr.gouv.vitam.common.mapping.deserializer.LevelTypeDeserializer;
+import fr.gouv.vitam.common.mapping.deserializer.OrganizationDescriptiveMetadataTypeDeserializer;
+import fr.gouv.vitam.common.mapping.deserializer.TextByLangDeserializer;
+import fr.gouv.vitam.common.mapping.deserializer.TextTypeDeSerializer;
 import fr.gouv.vitam.common.model.unit.TextByLang;
 
 /**
@@ -59,6 +61,7 @@ public interface UnitMapper {
         module.addDeserializer(TextByLang.class, new TextByLangDeserializer());
         module.addDeserializer(LevelType.class, new LevelTypeDeserializer());
         module.addDeserializer(IdentifierType.class, new IdentifierTypeDeserializer());
+        module.addDeserializer(OrganizationDescriptiveMetadataType.class, new OrganizationDescriptiveMetadataTypeDeserializer(objectMapper));
         module.addDeserializer(TextType.class, new TextTypeDeSerializer());
         module.addDeserializer(KeyType.class, new KeywordTypeDeserializer());
 

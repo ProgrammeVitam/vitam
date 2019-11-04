@@ -24,43 +24,36 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  */
-package fr.gouv.vitam.common.mapping.serializer;
+package fr.gouv.vitam.common.mapping.deserializer;
 
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.databind.DeserializationContext;
 import com.fasterxml.jackson.databind.JsonDeserializer;
 import com.fasterxml.jackson.databind.JsonNode;
-import fr.gouv.culture.archivesdefrance.seda.v2.TextType;
-import fr.gouv.vitam.common.model.unit.TextByLang;
+import fr.gouv.culture.archivesdefrance.seda.v2.IdentifierType;
 
 import java.io.IOException;
-import java.util.ArrayList;
 
 /**
- * Deserialize a (json, xml, string) representation to TextByLang To be registered in jackson objectMapper
+ * Deserialize a (json, xml, string) representation to IdentifierType
+ * To be registered in jackson objectMapper
  */
-public class TextByLangDeserializer extends JsonDeserializer<TextByLang> {
-
+public class IdentifierTypeDeserializer extends JsonDeserializer<IdentifierType> {
     /**
-     * Convert json, xml, string to TextByLang
-     * 
-     * @param jp (json, xml, string) representation
+     *
+     * @param jp representation (json, xml, string)
      * @param ctxt
-     * @return the text by lang
+     * @return the identifier type
      * @throws IOException
      */
     @Override
-    public TextByLang deserialize(JsonParser jp, DeserializationContext ctxt) throws IOException {
+    public IdentifierType deserialize(JsonParser jp, DeserializationContext ctxt) throws IOException {
         JsonNode node = jp.getCodec().readTree(jp);
 
-        ArrayList<TextType> textTypes = new ArrayList<>();
+        IdentifierType identifierType = new IdentifierType();
+        identifierType.setValue(node.asText());
 
-        node.fields().forEachRemaining(stringJsonNodeEntry -> {
-            TextType textType = new TextType();
-            textType.setLang(stringJsonNodeEntry.getKey());
-            textType.setValue(stringJsonNodeEntry.getValue().asText());
-            textTypes.add(textType);
-        });
-        return new TextByLang(textTypes);
+        return identifierType;
     }
+
 }

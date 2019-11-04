@@ -26,21 +26,37 @@
  */
 package fr.gouv.vitam.common.mapping.dip;
 
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import fr.gouv.culture.archivesdefrance.seda.v2.ArchiveUnitType;
+import fr.gouv.culture.archivesdefrance.seda.v2.IdentifierType;
 import fr.gouv.culture.archivesdefrance.seda.v2.ManagementType;
+import fr.gouv.culture.archivesdefrance.seda.v2.OrganizationDescriptiveMetadataType;
+import fr.gouv.culture.archivesdefrance.seda.v2.OrganizationType;
 import fr.gouv.culture.archivesdefrance.seda.v2.RuleIdType;
+import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.SedaConstants;
+import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.model.unit.ArchiveUnitModel;
 import fr.gouv.vitam.common.model.unit.DescriptiveMetadataModel;
 import fr.gouv.vitam.common.model.unit.RuleCategoryModel;
 import fr.gouv.vitam.common.model.unit.RuleModel;
+import org.junit.Assert;
 import org.junit.Test;
+import org.w3c.dom.Element;
 
 import javax.xml.datatype.XMLGregorianCalendar;
+import java.io.File;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class ArchiveUnitMapperTest {
+
+    public static final String SIMPLE_UNIT_WITH_ORG_DESC_METADATA = "unit_sample_org_desc_metadata.json";
 
     @Test
     public void should_map_unit_with_empty_fields() throws Exception {
@@ -78,6 +94,11 @@ public class ArchiveUnitMapperTest {
         //StorageRule
         rule = generateRule(SedaConstants.TAG_RULE_STORAGE);
         archiveUnitModel.getManagement().setRuleCategoryModel(rule, SedaConstants.TAG_RULE_STORAGE);
+
+        // OriginatingAgency
+        OrganizationType organizationType = getOrganizationTye();
+
+        archiveUnitModel.getDescriptiveMetadataModel().setOriginatingAgency(organizationType);
 
         // When
         ArchiveUnitType archiveUnitType = archiveUnitMapper.map(archiveUnitModel);
@@ -181,6 +202,42 @@ public class ArchiveUnitMapperTest {
         assertThat(date.getMonth()).isEqualTo(1);
         assertThat(date.getDay()).isEqualTo(1);
         assertThat(management.getStorageRule().getFinalAction().value()).isEqualTo("Copy");
+
+        // OrganizationType
+        Assert
+            .assertEquals(archiveUnitType.getContent().getOriginatingAgency().getIdentifier().getValue(), "Identifier");
+        Assert.assertEquals(
+            archiveUnitType.getContent().getOriginatingAgency().getOrganizationDescriptiveMetadata().getAny().size(),
+            3);
+    }
+
+    /**
+     * Generate OrganizationType
+     *
+     * @return
+     */
+    private OrganizationType getOrganizationTye() throws Exception {
+        File sample_unit = PropertiesUtils.getResourceFile(SIMPLE_UNIT_WITH_ORG_DESC_METADATA);
+        JsonNode node = JsonHandler.getFromFile(sample_unit);
+
+        ObjectMapper mapper = new ObjectMapper();
+        Map<String, Object> map = mapper.convertValue(node, new TypeReference<Map<String, Object>>() {
+        });
+
+        OrganizationType organizationType = new OrganizationType();
+
+        IdentifierType identifierType = new IdentifierType();
+        identifierType.setValue("Identifier");
+
+        List<Element> elements = TransformJsonTreeToListOfXmlElement.mapJsonToElement(Collections.singletonList(map));
+        OrganizationDescriptiveMetadataType organizationDescriptiveMetadataType =
+            new OrganizationDescriptiveMetadataType();
+        organizationDescriptiveMetadataType.getAny().addAll(elements);
+
+        organizationType.setIdentifier(identifierType);
+        organizationType.setOrganizationDescriptiveMetadata(organizationDescriptiveMetadataType);
+
+        return organizationType;
     }
 
 

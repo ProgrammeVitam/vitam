@@ -24,31 +24,40 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  */
-package fr.gouv.vitam.common.mapping.serializer;
+package fr.gouv.vitam.common.mapping.deserializer;
 
 import com.fasterxml.jackson.core.JsonParser;
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.DeserializationContext;
 import com.fasterxml.jackson.databind.JsonDeserializer;
 import com.fasterxml.jackson.databind.JsonNode;
-import fr.gouv.culture.archivesdefrance.seda.v2.LevelType;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import fr.gouv.culture.archivesdefrance.seda.v2.OrganizationDescriptiveMetadataType;
+import fr.gouv.vitam.common.mapping.dip.TransformJsonTreeToListOfXmlElement;
+import org.w3c.dom.Element;
 
 import java.io.IOException;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
 
-/**
- * Deserialize a (json, xml, string) representation to LevelType To be registered in jackson objectMapper
- */
-public class LevelTypeDeserializer extends JsonDeserializer<LevelType> {
-    /**
-     *
-     * @param jp (json, xml, string) representation
-     * @param ctxt
-     * @return the level type
-     * @throws IOException
-     */
-    @Override
-    public LevelType deserialize(JsonParser jp, DeserializationContext ctxt) throws IOException {
-        JsonNode node = jp.getCodec().readTree(jp);
-        return LevelType.fromValue(node.asText());
+public class OrganizationDescriptiveMetadataTypeDeserializer extends JsonDeserializer<OrganizationDescriptiveMetadataType> {
+    private static final TypeReference<Map<String, Object>> REFERENCE = new TypeReference<Map<String, Object>>() {};
+
+    private ObjectMapper objectMapper;
+
+    public OrganizationDescriptiveMetadataTypeDeserializer(ObjectMapper objectMapper) {
+        this.objectMapper = objectMapper;
     }
 
+    @Override
+    public OrganizationDescriptiveMetadataType deserialize(JsonParser jp, DeserializationContext ctxt) throws IOException {
+        JsonNode node = jp.getCodec().readTree(jp);
+
+        Map<String, Object> map = objectMapper.convertValue(node, REFERENCE);
+        List<Element> elements = TransformJsonTreeToListOfXmlElement.mapJsonToElement(Collections.singletonList(map));
+        OrganizationDescriptiveMetadataType organizationDescriptiveMetadataType = new OrganizationDescriptiveMetadataType();
+        organizationDescriptiveMetadataType.getAny().addAll(elements);
+        return organizationDescriptiveMetadataType;
+    }
 }

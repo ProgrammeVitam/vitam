@@ -24,41 +24,36 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  */
-package fr.gouv.vitam.common.format.identification.exception;
+package fr.gouv.vitam.worker.core.extractseda;
 
-import fr.gouv.vitam.common.exception.VitamException;
+import com.fasterxml.jackson.core.JsonGenerator;
+import com.fasterxml.jackson.databind.SerializerProvider;
+import com.fasterxml.jackson.databind.ser.std.StdSerializer;
+import fr.gouv.culture.archivesdefrance.seda.v2.OrganizationDescriptiveMetadataType;
+import fr.gouv.vitam.worker.core.mapping.ElementMapper;
 
-/**
- * Define a Format Identifier Configuration Not Found Exception to be thrown when the format identifier configuration
- * cannot be found.
- */
-public class FormatIdentifierFactoryException extends VitamException {
+import java.io.IOException;
+import java.util.Map;
 
-    /**
-     *
-     */
-    private static final long serialVersionUID = -3288206303819769296L;
 
-    /**
-     * @param message associated message
-     */
-    public FormatIdentifierFactoryException(String message) {
-        super(message);
+public class OrganizationDescriptiveMetadataTypeSerializer extends StdSerializer<OrganizationDescriptiveMetadataType> {
+
+
+    public OrganizationDescriptiveMetadataTypeSerializer() {
+        this(null);
     }
 
-    /**
-     * @param cause associated cause
-     */
-    public FormatIdentifierFactoryException(Throwable cause) {
-        super(cause);
+
+    public OrganizationDescriptiveMetadataTypeSerializer(Class<OrganizationDescriptiveMetadataType> type) {
+        super(type);
     }
 
-    /**
-     * @param messsage associated message
-     * @param cause associated cause
-     */
-    public FormatIdentifierFactoryException(String messsage, Throwable cause) {
-        super(messsage, cause);
+    @Override
+    public void serialize(OrganizationDescriptiveMetadataType organizationDescriptiveMetadataType, JsonGenerator gen, SerializerProvider provider)
+        throws IOException {
+        ElementMapper elementMapper = new ElementMapper();
+        Map<String, Object> stringObjectMap = elementMapper.toMap(organizationDescriptiveMetadataType.getAny());
+        provider.defaultSerializeValue(stringObjectMap,gen);
     }
+
 }
-

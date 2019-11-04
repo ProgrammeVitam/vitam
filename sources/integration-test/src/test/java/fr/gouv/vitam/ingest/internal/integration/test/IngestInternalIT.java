@@ -195,6 +195,8 @@ public class IngestInternalIT extends VitamRuleRunner {
     private static final String HOLDING_SCHEME_IDENTIFIER = "HOLDINGSCHEME";
     private static final String LINE_3 = "line 3";
     private static final String LINE_2 = "line 2";
+    private static final String TITLE = "Title";
+    private static final String TITLE_FR = "Title_.fr";
     private static final String JEU_DONNEES_OK_REGLES_CSV_CSV = "jeu_donnees_OK_regles_CSV.csv";
     private static final Integer tenantId = 0;
     private static final long SLEEP_TIME = 20L;
@@ -294,6 +296,8 @@ public class IngestInternalIT extends VitamRuleRunner {
     private static String OK_OBIDIN_MESSAGE_IDENTIFIER =
         "integration-ingest-internal/SIP-ingest-internal-ok.zip";
     private static String SIP_ALGO_INCORRECT_IN_MANIFEST = "integration-ingest-internal/SIP_INCORRECT_ALGORITHM.zip";
+    private static String SIP_WITH_ORGANIZATION_METADATA_DESCRIPTION_FREE_TAGS =
+        "integration-ingest-internal/sip_with_organization_descriptive_metadata_free_tags.zip";
     private static LogbookElasticsearchAccess esClient;
 
     private static final TypeReference<List<EventTypeModel>> LIST_TYPE_REFERENCE = new TypeReference<List<EventTypeModel>>() {};
@@ -399,7 +403,7 @@ public class IngestInternalIT extends VitamRuleRunner {
 
             // Try to check AU
             final MetaDataClient metadataClient = MetaDataClientFactory.getInstance().getClient();
-            final JsonNode node = getArchiveUnitWithTitle(metadataClient, "Sensibilisation API");
+            final JsonNode node = getArchiveUnitWithTitle(metadataClient, "Sensibilisation API",TITLE);
             SelectMultiQuery select;
             LOGGER.debug(JsonHandler.prettyPrint(node));
             final JsonNode result = node.get("$results");
@@ -635,7 +639,7 @@ public class IngestInternalIT extends VitamRuleRunner {
 
             // Try to check AU
             final MetaDataClient metadataClient = MetaDataClientFactory.getInstance().getClient();
-            final JsonNode node = getArchiveUnitWithTitle(metadataClient, "Sed blandit mi dolor");
+            final JsonNode node = getArchiveUnitWithTitle(metadataClient, "Sed blandit mi dolor", TITLE);
             SelectMultiQuery select;
             LOGGER.debug(JsonHandler.prettyPrint(node));
             final JsonNode result = node.get("$results");
@@ -770,7 +774,7 @@ public class IngestInternalIT extends VitamRuleRunner {
 
             // Try to check AU
             final MetaDataClient metadataClient = MetaDataClientFactory.getInstance().getClient();
-            final JsonNode node = getArchiveUnitWithTitle(metadataClient, "Root AU ATTACHED");
+            final JsonNode node = getArchiveUnitWithTitle(metadataClient, "Root AU ATTACHED", TITLE);
             LOGGER.debug(JsonHandler.prettyPrint(node));
             final JsonNode result = node.get("$results");
             assertNotNull(result);
@@ -837,7 +841,7 @@ public class IngestInternalIT extends VitamRuleRunner {
 
             // Try to check AU - arborescence and parents stuff, without roots
             final MetaDataClient metadataClient = MetaDataClientFactory.getInstance().getClient();
-            final JsonNode node = getArchiveUnitWithTitle(metadataClient, "Arbre simple");
+            final JsonNode node = getArchiveUnitWithTitle(metadataClient, "Arbre simple", TITLE);
             LOGGER.debug(JsonHandler.prettyPrint(node));
             final JsonNode result = node.get("$results");
             assertNotNull(result);
@@ -1257,7 +1261,7 @@ public class IngestInternalIT extends VitamRuleRunner {
 
         // Try to check AU
         final MetaDataClient metadataClient = MetaDataClientFactory.getInstance().getClient();
-        final JsonNode node = getArchiveUnitWithTitle(metadataClient, "Unit with Management META DATA rules");
+        final JsonNode node = getArchiveUnitWithTitle(metadataClient, "Unit with Management META DATA rules", TITLE);
         LOGGER.debug(JsonHandler.prettyPrint(node));
         final JsonNode result = node.get("$results");
         assertNotNull(result);
@@ -1313,7 +1317,7 @@ public class IngestInternalIT extends VitamRuleRunner {
 
         // Try to check AU
         final MetaDataClient metadataClient = MetaDataClientFactory.getInstance().getClient();
-        final JsonNode node = getArchiveUnitWithTitle(metadataClient, "UNIT with both rules");
+        final JsonNode node = getArchiveUnitWithTitle(metadataClient, "UNIT with both rules", TITLE);
         LOGGER.debug(JsonHandler.prettyPrint(node));
         final JsonNode result = node.get("$results");
         assertNotNull(result);
@@ -1365,7 +1369,7 @@ public class IngestInternalIT extends VitamRuleRunner {
 
         // Try to check AU
         final MetaDataClient metadataClient = MetaDataClientFactory.getInstance().getClient();
-        final JsonNode node = getArchiveUnitWithTitle(metadataClient, "LEVANT");
+        final JsonNode node = getArchiveUnitWithTitle(metadataClient, "LEVANT", TITLE);
         LOGGER.debug(JsonHandler.prettyPrint(node));
         final JsonNode result = node.get("$results");
         assertNotNull(result);
@@ -2398,7 +2402,7 @@ public class IngestInternalIT extends VitamRuleRunner {
 
             // Try to check AU
             final MetaDataClient metadataClient = MetaDataClientFactory.getInstance().getClient();
-            final JsonNode node = getArchiveUnitWithTitle(metadataClient, "Sed blandit mi dolor");
+            final JsonNode node = getArchiveUnitWithTitle(metadataClient, "Sed blandit mi dolor", TITLE);
             SelectMultiQuery select;
             LOGGER.debug(JsonHandler.prettyPrint(node));
             final JsonNode result = node.get("$results");
@@ -2692,7 +2696,7 @@ public class IngestInternalIT extends VitamRuleRunner {
         // Try to check AU and custodialHistoryModel
         final MetaDataClient metadataClient = MetaDataClientFactory.getInstance().getClient();
         final JsonNode node = getArchiveUnitWithTitle(metadataClient,
-            "Les ruines de la Grande Guerre. - Belleau. - Une tranchée près de la gare.");
+            "Les ruines de la Grande Guerre. - Belleau. - Une tranchée près de la gare.", TITLE);
 
         final JsonNode result = node.get("$results");
         assertNotNull(result);
@@ -2749,8 +2753,8 @@ public class IngestInternalIT extends VitamRuleRunner {
 
         try (MetaDataClient metadataClient = MetaDataClientFactory.getInstance().getClient();
             LogbookLifeCyclesClient logbookLifeCyclesClient = LogbookLifeCyclesClientFactory.getInstance().getClient()) {
-            JsonNode nodeForLogbookOG = getArchiveUnitWithTitle(metadataClient, "AU-with-logbook-for-sip-logbook-test");
-            JsonNode nodeForLogbookAU = getArchiveUnitWithTitle(metadataClient, "AU-for-logbook-test-with-logbook-au");
+            JsonNode nodeForLogbookOG = getArchiveUnitWithTitle(metadataClient, "AU-with-logbook-for-sip-logbook-test", TITLE);
+            JsonNode nodeForLogbookAU = getArchiveUnitWithTitle(metadataClient, "AU-for-logbook-test-with-logbook-au", TITLE);
 
             JsonNode objectGroupLifeCycle = logbookLifeCyclesClient.getRawObjectGroupLifeCycleById(nodeForLogbookOG.get("$results").get(0).get("#object").asText());
             JsonNode unitLifeCycle = logbookLifeCyclesClient.getRawUnitLifeCycleById(nodeForLogbookAU.get("$results").get(0).get("#id").asText());
@@ -2789,9 +2793,54 @@ public class IngestInternalIT extends VitamRuleRunner {
         awaitForWorkflowTerminationWithStatus(operationGuid, StatusCode.KO);
     }
 
-    private JsonNode getArchiveUnitWithTitle(MetaDataClient metadataClient, String name) throws Exception {
+    @RunWithCustomExecutor
+    @Test
+    public void testIngestWithOrganizationDescriptiveMetadataFreeTagsThenOK() throws Exception {
+        final GUID operationGuid = GUIDFactory.newOperationLogbookGUID(tenantId);
+        prepareVitamSession();
+        VitamThreadUtils.getVitamSession().setRequestId(operationGuid);
+
+        // workspace client unzip SIP in workspace
+        final InputStream zipInputStreamSipObject =
+            PropertiesUtils.getResourceAsStream(SIP_WITH_ORGANIZATION_METADATA_DESCRIPTION_FREE_TAGS);
+
+        // init default logbook operation
+        final List<LogbookOperationParameters> params = new ArrayList<>();
+        final LogbookOperationParameters initParameters = LogbookParametersFactory.newLogbookOperationParameters(
+            operationGuid, "Process_SIP_unitary", operationGuid,
+            LogbookTypeProcess.INGEST, StatusCode.STARTED,
+            operationGuid != null ? operationGuid.toString() : "outcomeDetailMessage",
+            operationGuid);
+        params.add(initParameters);
+
+        // call ingest
+        IngestInternalClientFactory.getInstance().changeServerPort(runner.PORT_SERVICE_INGEST_INTERNAL);
+        final IngestInternalClient client = IngestInternalClientFactory.getInstance().getClient();
+        client.uploadInitialLogbook(params);
+
+        // init workflow before execution
+        client.initWorkflow(ingestSip);
+
+        client.upload(zipInputStreamSipObject, CommonMediaType.ZIP_TYPE, ingestSip, ProcessAction.RESUME.name());
+
+        awaitForWorkflowTerminationWithStatus(operationGuid, StatusCode.WARNING);
+
+        // Try to check AU and custodialHistoryModel
+        final MetaDataClient metadataClient = MetaDataClientFactory.getInstance().getClient();
+        final JsonNode node = getArchiveUnitWithTitle(metadataClient,
+            "Chemin des Dames - Ce que fut le Monument d'Hurtebise", TITLE_FR);
+
+        final JsonNode result = node.get("$results");
+        assertNotNull(result);
+
+        String identifierType = result.get(0).get("OriginatingAgency").get("Identifier").asText();
+        assertEquals(identifierType,"RATP");
+        assertThat(result.get(0).get("OriginatingAgency").get("OrganizationDescriptiveMetadata").get("DescriptionOA").get(0).asText()).isEqualTo("La RATP est un établissement public");
+    }
+
+    private JsonNode getArchiveUnitWithTitle(MetaDataClient metadataClient, String name, String titleType) throws Exception {
         SelectMultiQuery select = new SelectMultiQuery();
-        select.addQueries(QueryHelper.eq("Title", name));
+        select.addQueries(QueryHelper.eq(titleType, name));
         return metadataClient.selectUnits(select.getFinalSelect());
     }
 }
