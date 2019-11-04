@@ -39,7 +39,6 @@
 * Jean-Paul Pham
 * Julien Georges - Adamant
 
-
 ## Those who have gone a long (or short) way with us
 
 * David Carella
@@ -97,7 +96,6 @@
 * Germain Ledroit
 
 
-
 ## Thanks for collaboration
 
 * French Ministry of Culture - Adamant
@@ -119,8 +117,6 @@
 * TGIR Huma-Num
 * Central Agency for Social Security Organizations (ACOSS)
 * Vaucluse Departmental Council
-
-
 
 ## Thanks for support
 
