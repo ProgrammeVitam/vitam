@@ -41,31 +41,22 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
-/**
- * Deserialize a (json, xml, string) representation to IdentifierType
- * To be registered in jackson objectMapper
- */
-public class OrganizationDescriptiveMetadataTypeDeserializer
-    extends JsonDeserializer<OrganizationDescriptiveMetadataType> {
+public class OrganizationDescriptiveMetadataTypeDeserializer extends JsonDeserializer<OrganizationDescriptiveMetadataType> {
+    private static final TypeReference<Map<String, Object>> REFERENCE = new TypeReference<Map<String, Object>>() {};
 
-    private ObjectMapper mapper = new ObjectMapper();
+    private ObjectMapper objectMapper;
 
-    /**
-     * @param jp representation (json, xml, string)
-     * @param ctxt
-     * @return the OrganizationDescriptiveMetadata type
-     * @throws IOException
-     */
+    public OrganizationDescriptiveMetadataTypeDeserializer(ObjectMapper objectMapper) {
+        this.objectMapper = objectMapper;
+    }
+
     @Override
-    public OrganizationDescriptiveMetadataType deserialize(JsonParser jp, DeserializationContext ctxt)
-        throws IOException {
+    public OrganizationDescriptiveMetadataType deserialize(JsonParser jp, DeserializationContext ctxt) throws IOException {
         JsonNode node = jp.getCodec().readTree(jp);
 
-        Map<String, Object> map = mapper.convertValue(node, new TypeReference<Map<String, Object>>() {
-        });
+        Map<String, Object> map = objectMapper.convertValue(node, REFERENCE);
         List<Element> elements = TransformJsonTreeToListOfXmlElement.mapJsonToElement(Collections.singletonList(map));
-        OrganizationDescriptiveMetadataType organizationDescriptiveMetadataType =
-            new OrganizationDescriptiveMetadataType();
+        OrganizationDescriptiveMetadataType organizationDescriptiveMetadataType = new OrganizationDescriptiveMetadataType();
         organizationDescriptiveMetadataType.getAny().addAll(elements);
         return organizationDescriptiveMetadataType;
     }

@@ -61,7 +61,7 @@ public interface UnitMapper {
         module.addDeserializer(TextByLang.class, new TextByLangDeserializer());
         module.addDeserializer(LevelType.class, new LevelTypeDeserializer());
         module.addDeserializer(IdentifierType.class, new IdentifierTypeDeserializer());
-        module.addDeserializer(OrganizationDescriptiveMetadataType.class, new OrganizationDescriptiveMetadataTypeDeserializer());
+        module.addDeserializer(OrganizationDescriptiveMetadataType.class, new OrganizationDescriptiveMetadataTypeDeserializer(objectMapper));
         module.addDeserializer(TextType.class, new TextTypeDeSerializer());
         module.addDeserializer(KeyType.class, new KeywordTypeDeserializer());
 

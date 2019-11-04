@@ -751,7 +751,7 @@ public class AccessInternalResourceImplTest extends ResteasyTestApplication {
         module.addDeserializer(LevelType.class, new LevelTypeDeserializer());
         module.addDeserializer(IdentifierType.class, new IdentifierTypeDeserializer());
         module.addDeserializer(OrganizationDescriptiveMetadataType.class,
-            new OrganizationDescriptiveMetadataTypeDeserializer());
+            new OrganizationDescriptiveMetadataTypeDeserializer(objectMapper));
 
         objectMapper.registerModule(module);
 
