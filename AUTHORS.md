@@ -1,22 +1,16 @@
 # Authors of Vitam
 
-## Release 11 (V2) active development team (08/2019)
+## Release 12 (V2) active development team (11/2019)
 
 ### French government team
 
-* Edouard Vasseur (Archivist Leader)
 * Mehdi Afnaï
-* Pierre Ané
-* Mélanie Rebours
 * Emmanuel Laborde
 * Jean-Séverin Lair
 * Marion Ville
 * Nathalie Morin
 * Thierry Devillechabrolle
-
-### Linagora team
-
-* Mahmoud Sayad
+* Alice Grippon
 
 ### Smile - Ulteam
 
@@ -27,10 +21,8 @@
 * Romain Chauveau
 * Nabil El Hajjioui
 * Gaëlle Fournier
-* Olga Zviezdicheva
 * Aziz Darkaoui
-* Gaëlle Fournier
-* Germain Ledroit
+* Guillaume Bulart
 
 ### Thales integration team
 
@@ -46,7 +38,6 @@
 * Emmanuel Castro
 * Jean-Paul Pham
 * Julien Georges - Adamant
-* Germain Ledroit et Gaëlle Fournier - CEA
 
 
 ## Those who have gone a long (or short) way with us
@@ -98,6 +89,12 @@
 * Abderrahim Fraoucene
 * Antoine Paris
 * Jean-Eudes Couignoux
+* Edouard Vasseur
+* Pierre Ané
+* Mélanie Rebours
+* Mahmoud Sayad
+* Olga Zviezdicheva
+* Germain Ledroit
 
 
 
@@ -123,7 +120,8 @@
 * Central Agency for Social Security Organizations (ACOSS)
 * Vaucluse Departmental Council
 
+
+
 ## Thanks for support
 
 * Julie Garnier
-* Genarda Kuci
