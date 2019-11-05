@@ -7,7 +7,7 @@ After=network.target
 [Service]
 Type=oneshot
 EnvironmentFile=/vitam/conf/metadata/reconstruction.conf
-ExecStart=/vitam/script/metadata/purge_transfersSIP.sh
+ExecStart=/vitam/script/metadata/purge_transfers_sip.sh
 User=vitam
 Group=vitam
 StandardOutput=syslog

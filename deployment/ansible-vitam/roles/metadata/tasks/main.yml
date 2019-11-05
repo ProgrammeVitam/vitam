@@ -26,7 +26,7 @@
     - storegraph.sh
     - computed_inherited_rules.sh
     - purge_dip.sh
-    - purge_transfersSIP.sh
+    - purge_transfers_sip.sh
     - reconstruction_payload.json
 
 - name: Copy the metadata reconstruction conf
