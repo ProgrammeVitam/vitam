@@ -1,7 +1,7 @@
 Notes et procédures spécifiques R12
 ###################################
 
-.. caution:: Rappel : la montée de version vers la *release* R11 s’effectue depuis la *release* R9 (LTS V2) ou la *release* R10 (V2, *deprecated*) et doit être réalisée en s’appuyant sur les dernières versions *bugfixes* publiées. 
+.. caution:: Rappel : la montée de version vers la *release* R12 s’effectue depuis la *release* R9 (LTS V2), la *release* R10 (V2, *deprecated*) ou la *release* R11 (V2, *deprecated*) et doit être réalisée en s’appuyant sur les dernières versions *bugfixes* publiées. 
 
 Prérequis à la montée de version
 ================================
@@ -59,3 +59,18 @@ ou, si ``vault_pass.txt`` n'a pas été renseigné :
 ``ansible-playbook -i environments/<inventaire> ansible-vitam-exploitation/migration_r11_r12_dip_cleanup.yml --ask-vault-pass``
 
 .. warning:: Selon la volumétrie des données précédement chargées, le `playbook` peut durer quelques minutes.
+
+Procédure de réindexation de la collection Unit
+-----------------------------------------------
+
+Sous ``deployment``, exécuter la commande suivante :
+
+``ansible-playbook -i environments/<inventaire> ansible-vitam-exploitation/reindex_es_data.yml --vault-password-file vault_pass.txt --tags unit``
+
+ou, si ``vault_pass.txt`` n'a pas été renseigné :
+
+``ansible-playbook -i environments/<inventaire> ansible-vitam-exploitation/reindex_es_data.yml --ask-vault-pass --tags unit``
+
+Les changement apportés touchent le mapping Elasticsearch de la collection ``Unit``. 
+
+.. note:: Ce `playbook` ne supprime pas les anciens indexes pour laisser à l'exploitant le soin de verifier que la procedure de migration s'est correctement déroulée. A l'issue, la suppression des index devenus inutiles devra être realisée manuellement. 
