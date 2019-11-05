@@ -53,6 +53,7 @@ import fr.gouv.vitam.common.digest.DigestType;
 import fr.gouv.vitam.common.exception.CycleFoundException;
 import fr.gouv.vitam.common.exception.InvalidGuidOperationException;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
+import fr.gouv.vitam.common.exception.VitamClientException;
 import fr.gouv.vitam.common.exception.VitamRuntimeException;
 import fr.gouv.vitam.common.graph.DirectedCycle;
 import fr.gouv.vitam.common.graph.DirectedGraph;
@@ -102,6 +103,7 @@ import fr.gouv.vitam.logbook.common.parameters.LogbookParametersFactory;
 import fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess;
 import fr.gouv.vitam.logbook.common.server.database.collections.LogbookMongoDbName;
 import fr.gouv.vitam.logbook.lifecycles.client.LogbookLifeCyclesClient;
+import fr.gouv.vitam.metadata.client.MetaDataClient;
 import fr.gouv.vitam.metadata.client.MetaDataClientFactory;
 import fr.gouv.vitam.metadata.core.database.collections.Unit;
 import fr.gouv.vitam.processing.common.exception.ArchiveUnitContainDataObjectException;
@@ -115,6 +117,7 @@ import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.processing.common.exception.ProcessingMalformedDataException;
 import fr.gouv.vitam.processing.common.exception.ProcessingManifestReferenceException;
 import fr.gouv.vitam.processing.common.exception.ProcessingNotFoundException;
+import fr.gouv.vitam.processing.common.exception.ProcessingNotValidLinkingException;
 import fr.gouv.vitam.processing.common.exception.ProcessingObjectGroupEveryDataObjectVersionException;
 import fr.gouv.vitam.processing.common.exception.ProcessingObjectGroupLinkingException;
 import fr.gouv.vitam.processing.common.exception.ProcessingObjectGroupMasterMandatoryException;
@@ -195,8 +198,9 @@ import static fr.gouv.vitam.logbook.common.parameters.LogbookParameterName.paren
 public class ExtractSedaActionHandler extends ActionHandler {
 
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(ExtractSedaActionHandler.class);
-
-    private static final TypeReference<List<LogbookEvent>> LIST_TYPE_REFERENCE = new TypeReference<List<LogbookEvent>>() {};
+    private static final TypeReference<List<LogbookEvent>> LIST_TYPE_REFERENCE =
+        new TypeReference<List<LogbookEvent>>() {
+        };
     private static final PerformanceLogger PERFORMANCE_LOGGER = PerformanceLogger.getInstance();
 
     // OUT RANK
@@ -231,6 +235,7 @@ public class ExtractSedaActionHandler extends ActionHandler {
     public static final String SUBTASK_ATTACHMENT_REQUIRED = "ATTACHMENT_REQUIRED";
     public static final String SUBTASK_UNAUTHORIZED_ATTACHMENT = "UNAUTHORIZED_ATTACHMENT";
     public static final String SUBTASK_UNAUTHORIZED_ATTACHMENT_BY_CONTRACT = "UNAUTHORIZED_ATTACHMENT_BY_CONTRACT";
+    public static final String SUBTASK_UNAUTHORIZED_ATTACHMENT_BY_BAD_SP = "SUBTASK_UNAUTHORIZED_ATTACHMENT_BY_BAD_SP";
     public static final String SUBTASK_INVALID_GUID_ATTACHMENT = "INVALID_GUID_ATTACHMENT";
     public static final String SUBTASK_MODIFY_PARENT_EXISTING_UNIT_UNAUTHORIZED =
         "MODIFY_PARENT_EXISTING_UNIT_UNAUTHORIZED";
@@ -604,6 +609,11 @@ public class ExtractSedaActionHandler extends ActionHandler {
             updateDetailItemStatus(globalCompositeItemStatus,
                 e.getMessage(),
                 SUBTASK_UNAUTHORIZED_ATTACHMENT_BY_CONTRACT);
+            globalCompositeItemStatus.increment(StatusCode.KO);
+        } catch (final ProcessingNotValidLinkingException e) {
+            updateDetailItemStatus(globalCompositeItemStatus,
+                e.getMessage(),
+                SUBTASK_UNAUTHORIZED_ATTACHMENT_BY_BAD_SP);
             globalCompositeItemStatus.increment(StatusCode.KO);
         } catch (final ProcessingAttachmentRequiredException e) {
             updateDetailItemStatus(globalCompositeItemStatus,
@@ -2749,11 +2759,6 @@ public class ExtractSedaActionHandler extends ActionHandler {
                 final ArrayNode qualifiersNode = getObjectGroupQualifiers(categoryMap, containerId);
                 objectGroup.set(SedaConstants.PREFIX_QUALIFIERS, qualifiersNode);
                 final ObjectNode workNode = getObjectGroupWork(categoryMap, containerId, storageObjectInfo);
-                // In case of attachment, this will be true, we will then add information about existing og in work
-                if (existingGot) {
-                    workNode.put(SedaConstants.TAG_DATA_OBJECT_GROUP_EXISTING_REFERENCEID,
-                        existingUnitIdWithExistingObjectGroup.get(unitParentGUID));
-                }
                 objectGroup.set(SedaConstants.PREFIX_WORK, workNode);
                 objectGroup.set(SedaConstants.PREFIX_UP, unitParent);
 
@@ -2765,7 +2770,12 @@ public class ExtractSedaActionHandler extends ActionHandler {
                 objectGroup.set(SedaConstants.PREFIX_ORIGINATING_AGENCIES,
                     JsonHandler.createArrayNode().add(originatingAgency));
                 objectGroup.set(SedaConstants.STORAGE, storageObjectGroupInfo);
-
+                // In case of attachment, this will be true, we will then add information about existing og in work
+                if (existingGot) {
+                    String existingOg = existingUnitIdWithExistingObjectGroup.get(unitParentGUID);
+                    workNode.put(SedaConstants.TAG_DATA_OBJECT_GROUP_EXISTING_REFERENCEID, existingOg);
+                    checkOriginatingAgencyAttachementConformity(objectGroup, existingOg);
+                }
                 JsonHandler.writeAsFile(objectGroup, tmpFile);
 
                 handlerIO.transferFileToWorkspace(
@@ -2827,6 +2837,34 @@ public class ExtractSedaActionHandler extends ActionHandler {
         }
 
         manageExistingObjectGroups(containerId, logbookLifeCycleClient, typeProcess, uuids);
+    }
+
+    private void checkOriginatingAgencyAttachementConformity(ObjectNode objectGroup, String existingOg)
+        throws ProcessingException {
+
+        try (MetaDataClient metaDataClient = metaDataClientFactory.getClient()) {
+
+            RequestResponse<JsonNode> requestResponse = metaDataClient.getObjectGroupByIdRaw(existingOg);
+            if (!requestResponse.isOk()) {
+                throw new ProcessingException("error retrieving object for attachement");
+            }
+            JsonNode ogInDB = ((RequestResponseOK<JsonNode>) requestResponse).getFirstResult();
+            // attachement not allowed when different originating agenices then KO
+            String originatingAgency = objectGroup.get(SedaConstants.PREFIX_ORIGINATING_AGENCY).asText();
+            String ogOriginatingAgency = "";
+            if (ogInDB.get(SedaConstants.PREFIX_ORIGINATING_AGENCY) != null) {
+                ogOriginatingAgency = ogInDB.get(SedaConstants.PREFIX_ORIGINATING_AGENCY).asText();
+            }
+
+            if (originatingAgency != null && !originatingAgency.equals(ogOriginatingAgency)) {
+                throw new ProcessingNotValidLinkingException(
+                    "Not allowed object attachement of originating agency (" + originatingAgency +
+                        ") to other originating agency (" + ogOriginatingAgency + ")");
+            }
+
+        } catch (VitamClientException e) {
+            throw new ProcessingException(e);
+        }
     }
 
     private void deleteFileIfExist(File file) {

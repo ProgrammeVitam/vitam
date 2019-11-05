@@ -1,0 +1,112 @@
+<?xml version="1.0" ?>
+<ArchiveTransfer xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:pr="info:lc/xmlns/premis-v2"
+                 xmlns="fr:gouv:culture:archivesdefrance:seda:v2.1"
+                 xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                 xsi:schemaLocation="fr:gouv:culture:archivesdefrance:seda:v2.1 seda-2.1-main.xsd" xml:id="ID1">
+    <Comment>2eme SIP</Comment>
+    <Date>2016-10-18T11:20:26</Date>
+    <MessageIdentifier>MessageIdentifier0</MessageIdentifier>
+    <ArchivalAgreement>ContratEntree_MasterIsMandatory_false_002</ArchivalAgreement>
+    <CodeListVersions>
+        <ReplyCodeListVersion>ReplyCodeListVersion0</ReplyCodeListVersion>
+        <MessageDigestAlgorithmCodeListVersion>MessageDigestAlgorithmCodeListVersion0
+        </MessageDigestAlgorithmCodeListVersion>
+        <MimeTypeCodeListVersion>MimeTypeCodeListVersion0</MimeTypeCodeListVersion>
+        <EncodingCodeListVersion>EncodingCodeListVersion0</EncodingCodeListVersion>
+        <FileFormatCodeListVersion>FileFormatCodeListVersion0</FileFormatCodeListVersion>
+        <CompressionAlgorithmCodeListVersion>CompressionAlgorithmCodeListVersion0</CompressionAlgorithmCodeListVersion>
+        <DataObjectVersionCodeListVersion>DataObjectVersionCodeListVersion0</DataObjectVersionCodeListVersion>
+        <StorageRuleCodeListVersion>StorageRuleCodeListVersion0</StorageRuleCodeListVersion>
+        <AppraisalRuleCodeListVersion>AppraisalRuleCodeListVersion0</AppraisalRuleCodeListVersion>
+        <AccessRuleCodeListVersion>AccessRuleCodeListVersion0</AccessRuleCodeListVersion>
+        <DisseminationRuleCodeListVersion>DisseminationRuleCodeListVersion0</DisseminationRuleCodeListVersion>
+        <ReuseRuleCodeListVersion>ReuseRuleCodeListVersion0</ReuseRuleCodeListVersion>
+        <ClassificationRuleCodeListVersion>ClassificationRuleCodeListVersion0</ClassificationRuleCodeListVersion>
+        <AuthorizationReasonCodeListVersion>AuthorizationReasonCodeListVersion0</AuthorizationReasonCodeListVersion>
+        <RelationshipCodeListVersion>RelationshipCodeListVersion0</RelationshipCodeListVersion>
+    </CodeListVersions>
+    <DataObjectPackage xml:id="ID2">
+        <BinaryDataObject id="ID5">
+            <DataObjectGroupId>ID4</DataObjectGroupId>
+            <DataObjectVersion>Thumbnail</DataObjectVersion>
+            <Uri>Content/ID5.pdf</Uri>
+            <MessageDigest algorithm="SHA-512"
+            >
+                76705bbf0257934e5b274864f3711ca563a80d172c1d9a2931d785ff8c0bb0424e35d3b0a92180b34b253fe23d2b56cd360405f42f7cea8f1fadb315e73ffd12
+            </MessageDigest>
+            <Size>58933</Size>
+            <FormatIdentification>
+                <FormatLitteral>Acrobat PDF 1.4 - Portable Document Format</FormatLitteral>
+                <MimeType>application/pdf</MimeType>
+                <FormatId>fmt/18</FormatId>
+            </FormatIdentification>
+            <FileInfo>
+                <Filename>Annuaire_projet.pdf</Filename>
+                <LastModified>2016-03-23T14:58:30.943+01:00</LastModified>
+            </FileInfo>
+        </BinaryDataObject>
+        <BinaryDataObject id="ID21">
+            <DataObjectGroupId>ID20</DataObjectGroupId>
+            <DataObjectVersion>BinaryMaster</DataObjectVersion>
+            <Uri>Content/ID5.pdf</Uri>
+            <MessageDigest algorithm="SHA-512"
+            >
+                76705bbf0257934e5b274864f3711ca563a80d172c1d9a2931d785ff8c0bb0424e35d3b0a92180b34b253fe23d2b56cd360405f42f7cea8f1fadb315e73ffd12
+            </MessageDigest>
+            <Size>58933</Size>
+            <FormatIdentification>
+                <FormatLitteral>Acrobat PDF 1.4 - Portable Document Format</FormatLitteral>
+                <MimeType>application/pdf</MimeType>
+                <FormatId>fmt/18</FormatId>
+            </FormatIdentification>
+            <FileInfo>
+                <Filename>Annuaire_projet.pdf</Filename>
+                <LastModified>2016-03-23T14:58:30.943+01:00</LastModified>
+            </FileInfo>
+        </BinaryDataObject>
+        <DescriptiveMetadata>
+            <ArchiveUnit id="ID3">
+                <Content>
+                    <DescriptionLevel>RecordGrp</DescriptionLevel>
+                    <Title>content</Title>
+                    <Description>C:\Users\mehdi.afnai\Desktop\content</Description>
+                    <StartDate>2016-03-23T14:58:30</StartDate>
+                    <EndDate>2016-03-23T14:58:30</EndDate>
+                </Content>
+                <DataObjectReference>
+                    <DataObjectGroupReferenceId>ID20</DataObjectGroupReferenceId>
+                </DataObjectReference>
+                <ArchiveUnit id="ID7">
+                    <ArchiveUnitRefId>ID6</ArchiveUnitRefId>
+                </ArchiveUnit>
+            </ArchiveUnit>
+            <ArchiveUnit id="ID6">
+                <Management>
+                    <UpdateOperation>
+                        <SystemId>aeaqaaaaaafla2gpab4wualdfinpdziaaaaq</SystemId>
+                    </UpdateOperation>
+                </Management>
+                <Content>
+                    <DescriptionLevel>Item</DescriptionLevel>
+                    <Title>Annuaire_projet.pdf</Title>
+                    <Description>Pseudo Archive Unit du fichier
+                        :C:\Users\mehdi.afnai\Desktop\content\Annuaire_projet.pdf
+                    </Description>
+                    <TransactedDate>2016-03-23T14:58:30</TransactedDate>
+                </Content>
+                <DataObjectReference>
+                    <DataObjectGroupReferenceId>ID4</DataObjectGroupReferenceId>
+                </DataObjectReference>
+            </ArchiveUnit>
+        </DescriptiveMetadata>
+        <ManagementMetadata>
+            <OriginatingAgencyIdentifier>SomeOriginatingAgency</OriginatingAgencyIdentifier>
+        </ManagementMetadata>
+    </DataObjectPackage>
+    <ArchivalAgency>
+        <Identifier>Identifier4</Identifier>
+    </ArchivalAgency>
+    <TransferringAgency>
+        <Identifier>Identifier5</Identifier>
+    </TransferringAgency>
+</ArchiveTransfer>
