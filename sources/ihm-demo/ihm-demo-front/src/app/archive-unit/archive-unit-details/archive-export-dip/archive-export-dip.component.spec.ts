@@ -16,6 +16,11 @@ import { ErrorService } from '../../../common/error.service';
 import { AccessContractService } from '../../../common/access-contract.service';
 import {DialogService} from '../../../common/dialog/dialog.service';
 import { Router } from '@angular/router';
+import { LogbookService } from "../../../ingest/logbook.service";
+
+const LogbookServiceStub = {
+  getResults: () => Observable.of(new VitamResponse())
+};
 
 const ArchiveUnitServiceStub = {
   exportDIP: (body) => Observable.of(new VitamResponse()),
@@ -47,7 +52,8 @@ describe('ArchiveExportDIPComponent', () => {
         ReferentialHelper,
         { provide: Router, useValue: RouterStub },
         { provide: ArchiveUnitService, useValue: ArchiveUnitServiceStub },
-        { provide: ReferentialsService, useValue: ReferentialsServiceStub }
+        { provide: ReferentialsService, useValue: ReferentialsServiceStub },
+        { provide: LogbookService, useValue: LogbookServiceStub }
       ],
       schemas: [ NO_ERRORS_SCHEMA ]
     })

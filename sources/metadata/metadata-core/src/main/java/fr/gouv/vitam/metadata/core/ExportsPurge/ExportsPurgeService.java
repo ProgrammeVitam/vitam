@@ -24,8 +24,7 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  */
-package fr.gouv.vitam.metadata.core.dip;
-
+package fr.gouv.vitam.metadata.core.ExportsPurge;
 import com.google.common.annotations.VisibleForTesting;
 import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.logging.VitamLogger;
@@ -33,7 +32,6 @@ import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.storage.engine.client.OfferLogHelper;
 import fr.gouv.vitam.storage.engine.client.StorageClient;
 import fr.gouv.vitam.storage.engine.client.StorageClientFactory;
-import fr.gouv.vitam.storage.engine.client.StorageClientOfferLogIterator;
 import fr.gouv.vitam.storage.engine.client.exception.StorageServerClientException;
 import fr.gouv.vitam.storage.engine.common.model.DataCategory;
 import fr.gouv.vitam.storage.engine.common.model.OfferLog;
@@ -46,33 +44,31 @@ import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
 import java.time.temporal.ChronoUnit;
 import java.util.Iterator;
 
-public class DipPurgeService {
+public class ExportsPurgeService {
 
-    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(DipPurgeService.class);
-
-    private static final String DIP_CONTAINER = "DIP";
+    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(ExportsPurgeService.class);
 
     private final WorkspaceClientFactory workspaceClientFactory;
     private final StorageClientFactory storageClientFactory;
     private final int timeToLiveInMinutes;
 
-    public DipPurgeService(int timeToLiveInMinutes) {
+    public ExportsPurgeService(int timeToLiveInMinutes) {
         this(WorkspaceClientFactory.getInstance(), StorageClientFactory.getInstance(), timeToLiveInMinutes);
     }
 
     @VisibleForTesting
-    public DipPurgeService(WorkspaceClientFactory workspaceClientFactory,
+    public ExportsPurgeService(WorkspaceClientFactory workspaceClientFactory,
         StorageClientFactory storageClientFactory, int timeToLiveInMinutes) {
         this.workspaceClientFactory = workspaceClientFactory;
         this.storageClientFactory = storageClientFactory;
         this.timeToLiveInMinutes = timeToLiveInMinutes;
     }
 
-    public void purgeExpiredDipFiles() throws ContentAddressableStorageServerException {
+    public void purgeExpiredFiles(String container) throws ContentAddressableStorageServerException {
 
         try (WorkspaceClient workspaceClient = this.workspaceClientFactory.getClient()) {
             workspaceClient.purgeOldFilesInContainer(
-                DIP_CONTAINER,
+                container,
                 new TimeToLive(this.timeToLiveInMinutes, ChronoUnit.MINUTES));
         }
     }

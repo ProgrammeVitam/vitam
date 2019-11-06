@@ -108,9 +108,14 @@ public class AccessResourceMock implements AccessInternalResource {
 
     @Override
     @GET
-    @Path("/dipexport/{id}/dip")
+    @Path("/export/{id}/dipexport")
     @Consumes(MediaType.APPLICATION_OCTET_STREAM)
     public Response findDIPByID(@PathParam("id") String id) {
+        return null;
+    }
+
+    @Override
+    public Response findTransferSIPByID(String id) throws IllegalStateException {
         return null;
     }
 

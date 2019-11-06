@@ -56,7 +56,7 @@ import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClientFactory;
 import fr.gouv.vitam.metadata.api.config.MetaDataConfiguration;
 import fr.gouv.vitam.metadata.api.exception.MetaDataException;
 import fr.gouv.vitam.metadata.core.database.collections.MetadataCollections;
-import fr.gouv.vitam.metadata.core.dip.DipPurgeService;
+import fr.gouv.vitam.metadata.core.ExportsPurge.ExportsPurgeService;
 import fr.gouv.vitam.metadata.core.graph.ReclassificationDistributionService;
 import fr.gouv.vitam.metadata.core.graph.StoreGraphException;
 import fr.gouv.vitam.metadata.core.graph.StoreGraphService;
@@ -88,7 +88,9 @@ public class MetadataManagementResourceTest {
     private ReconstructionRequestItem requestItem;
     private ReclassificationDistributionService reclassificationDistributionService;
     private MetadataManagementResource reconstructionResource;
-    private DipPurgeService dipPurgeService;
+    private ExportsPurgeService exportsPurgeService;
+    private String DIP_CONTAINER = "DIP";
+
 
     private static int tenant = VitamConfiguration.getAdminTenant();
 
@@ -102,13 +104,13 @@ public class MetadataManagementResourceTest {
         requestItem.setCollection("unit").setTenant(10).setLimit(100);
         MetaDataConfiguration configuration = new MetaDataConfiguration();
         configuration.setUrlProcessing("http://processing.service.consul:8203/");
-        dipPurgeService = mock(DipPurgeService.class);
+        exportsPurgeService = mock(ExportsPurgeService.class);
         reconstructionResource =
             new MetadataManagementResource(reconstructionService, storeGraphService, graphBuilderService, reclassificationDistributionService,
                 ProcessingManagementClientFactory.getInstance(),
                 LogbookOperationsClientFactory.getInstance(),
                 WorkspaceClientFactory.getInstance(),
-                configuration, dipPurgeService);
+                configuration, exportsPurgeService);
         VitamConfiguration.setTenants(Arrays.asList(0, 1, 2));
     }
 
@@ -304,7 +306,7 @@ public class MetadataManagementResourceTest {
         Response response = reconstructionResource.purgeExpiredDipFiles();
 
         // Then
-        verify(dipPurgeService).purgeExpiredDipFiles();
+        verify(exportsPurgeService).purgeExpiredFiles(DIP_CONTAINER);
         assertThat(response.getStatus()).isEqualTo(Status.OK.getStatusCode());
     }
 
@@ -313,7 +315,7 @@ public class MetadataManagementResourceTest {
     public void purgeExpiredDipFilesShouldReturnInternalServerWhenServiceError() throws Exception {
 
         // Given
-        doThrow(new ContentAddressableStorageServerException("")).when(dipPurgeService).purgeExpiredDipFiles();
+        doThrow(new ContentAddressableStorageServerException("")).when(exportsPurgeService).purgeExpiredFiles(DIP_CONTAINER);
 
         // When
         Response response = reconstructionResource.purgeExpiredDipFiles();
@@ -330,7 +332,7 @@ public class MetadataManagementResourceTest {
         Response response = reconstructionResource.migrationPurgeDipFilesFromOffers();
 
         // Then
-        verify(dipPurgeService, times(VitamConfiguration.getTenants().size())).migrationPurgeDipFilesFromOffers();
+        verify(exportsPurgeService, times(VitamConfiguration.getTenants().size())).migrationPurgeDipFilesFromOffers();
         assertThat(response.getStatus()).isEqualTo(Status.OK.getStatusCode());
     }
 }

@@ -139,6 +139,15 @@ public interface AccessInternalModule {
     Response findDIPByOperationId(String id) throws AccessInternalExecutionException;
 
     /**
+     * retrieve a SIP file according to an operationId
+     *
+     * @param id operation id
+     * @return zip file containing a SIP
+     * @throws AccessInternalExecutionException
+     */
+    Response findTransferSIPByOperationId(String id) throws AccessInternalExecutionException;
+
+    /**
      * select Objects Group based on DSL query
      *
      * @param queryJson as String { $query : query}

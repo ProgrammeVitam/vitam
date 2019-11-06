@@ -1,4 +1,4 @@
-package fr.gouv.vitam.metadata.core.dip;
+package fr.gouv.vitam.metadata.core.ExportsPurge;
 
 import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.VitamConfiguration;
@@ -24,8 +24,9 @@ import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 
-public class DipPurgeServiceTest {
+public class ExportsPurgeServiceTest {
 
+    private static final String DIP_CONTAINER = "DIP";
     @Test
     public void purgeExpiredDipFilesTest() throws ContentAddressableStorageServerException {
 
@@ -33,13 +34,13 @@ public class DipPurgeServiceTest {
         WorkspaceClient workspaceClient = mock(WorkspaceClient.class);
         WorkspaceClientFactory workspaceClientFactory = mock(WorkspaceClientFactory.class);
         doReturn(workspaceClient).when(workspaceClientFactory).getClient();
-        DipPurgeService dipPurgeService = new DipPurgeService(workspaceClientFactory, null, 10);
+        ExportsPurgeService exportsPurgeService = new ExportsPurgeService(workspaceClientFactory, null, 10);
 
         // When
-        dipPurgeService.purgeExpiredDipFiles();
+        exportsPurgeService.purgeExpiredFiles(DIP_CONTAINER);
 
         // Then
-        verify(workspaceClient).purgeOldFilesInContainer("DIP", new TimeToLive(10, ChronoUnit.MINUTES));
+        verify(workspaceClient).purgeOldFilesInContainer(DIP_CONTAINER, new TimeToLive(10, ChronoUnit.MINUTES));
     }
 
     @Test
@@ -60,10 +61,10 @@ public class DipPurgeServiceTest {
             .when(storageClient).getOfferLogs(VitamConfiguration.getDefaultStrategy(), DataCategory.DIP,
                 null, VitamConfiguration.getChunkSize(), Order.ASC);
 
-        DipPurgeService dipPurgeService = new DipPurgeService(null, storageClientFactory, 10);
+        ExportsPurgeService exportsPurgeService = new ExportsPurgeService(null, storageClientFactory, 10);
 
         // When
-        dipPurgeService.migrationPurgeDipFilesFromOffers();
+        exportsPurgeService.migrationPurgeDipFilesFromOffers();
 
         // Then
         verify(storageClient).delete(VitamConfiguration.getDefaultStrategy(), DataCategory.DIP, "file1");

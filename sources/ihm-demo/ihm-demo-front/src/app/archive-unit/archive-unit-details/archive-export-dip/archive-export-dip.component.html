@@ -114,6 +114,9 @@
             <div class="ui-g-2">
                 <button pButton type="button" (click)="export('TRANSFER')" label="Transfer"></button>
             </div>
+            <div class="ui-g-2">
+                <button pButton type="button" *ngIf="displayExportTransferSIP" (click)="export('TRANSFERSIP')" label="Export Transfer SIP"></button>
+            </div>
         </div>
     </div>
 

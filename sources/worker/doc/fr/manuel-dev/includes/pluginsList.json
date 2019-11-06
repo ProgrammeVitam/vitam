@@ -118,7 +118,7 @@
 		"propertiesFile": "create_unit_secure_file_plugin.properties"
 	},
 	"STORE_MANIFEST": {
-		"className": "fr.gouv.vitam.worker.core.plugin.dip.StoreDIP",
+		"className": "fr.gouv.vitam.worker.core.plugin.dip.StoreExports",
 		"propertiesFile": "create_unit_secure_file_plugin.properties"
 	},
 	"OBJECT_GROUP_UPDATE": {

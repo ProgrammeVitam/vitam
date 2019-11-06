@@ -72,7 +72,7 @@ import fr.gouv.vitam.metadata.api.config.MetaDataConfiguration;
 import fr.gouv.vitam.metadata.api.model.ReclassificationChildNodeExportRequest;
 import fr.gouv.vitam.metadata.core.MetaDataImpl;
 import fr.gouv.vitam.metadata.core.database.collections.MetadataCollections;
-import fr.gouv.vitam.metadata.core.dip.DipPurgeService;
+import fr.gouv.vitam.metadata.core.ExportsPurge.ExportsPurgeService;
 import fr.gouv.vitam.metadata.core.graph.GraphComputeServiceImpl;
 import fr.gouv.vitam.metadata.core.graph.ReclassificationDistributionService;
 import fr.gouv.vitam.metadata.core.graph.StoreGraphService;
@@ -140,7 +140,10 @@ public class MetadataManagementResource {
     private static final String COMPUTED_INHERITED_RULES_OBSOLETE_URI =
         "/units/computedInheritedRules/processObsoletes";
     private static final String PURGE_EXPIRED_DIP_FILES_URI = "/purgeDIP";
+    private static final String PURGE_EXPIRED_TRANSFER_SIP_FILES_URI = "/purgeTransfersSIP";
     private static final String MIGRATION_PURGE_EXPIRED_FROM_OFFERS = "/migrationDeleteDipFromOffers";
+    private String DIP_CONTAINER ="DIP";
+    private String TRANSFERS_CONTAINER ="TRANSFER";
 
     /**
      * Error/Exceptions messages.
@@ -160,7 +163,7 @@ public class MetadataManagementResource {
     private final ProcessingManagementClientFactory processingManagementClientFactory;
     private final LogbookOperationsClientFactory logbookOperationsClientFactory;
     private final WorkspaceClientFactory workspaceClientFactory;
-    private final DipPurgeService dipPurgeService;
+    private final ExportsPurgeService exportsPurgeService;
 
     @VisibleForTesting
     MetadataManagementResource(VitamRepositoryProvider vitamRepositoryProvider,
@@ -173,7 +176,7 @@ public class MetadataManagementResource {
             LogbookOperationsClientFactory.getInstance(),
             WorkspaceClientFactory.getInstance(),
             configuration,
-            new DipPurgeService(configuration.getDipTimeToLiveInMinutes()));
+            new ExportsPurgeService(configuration.getTransfersSIPTimeToLiveInMinutes()));
     }
 
     @VisibleForTesting
@@ -185,7 +188,8 @@ public class MetadataManagementResource {
         ProcessingManagementClientFactory processingManagementClientFactory,
         LogbookOperationsClientFactory logbookOperationsClientFactory,
         WorkspaceClientFactory workspaceClientFactory,
-        MetaDataConfiguration configuration, DipPurgeService dipPurgeService) {
+        MetaDataConfiguration configuration,
+        ExportsPurgeService exportsPurgeService) {
         this.reconstructionService = reconstructionService;
         this.storeGraphService = storeGraphService;
         this.graphComputeService = graphComputeService;
@@ -193,11 +197,10 @@ public class MetadataManagementResource {
         this.processingManagementClientFactory = processingManagementClientFactory;
         this.logbookOperationsClientFactory = logbookOperationsClientFactory;
         this.workspaceClientFactory = workspaceClientFactory;
-        this.dipPurgeService = dipPurgeService;
+        this.exportsPurgeService = exportsPurgeService;
 
         ProcessingManagementClientFactory.changeConfigurationUrl(configuration.getUrlProcessing());
     }
-
     /**
      * API to access and launch the Vitam reconstruction service for metadatas.<br/>
      *
@@ -461,7 +464,26 @@ public class MetadataManagementResource {
         try {
             VitamThreadUtils.getVitamSession().initIfAbsent(VitamConfiguration.getAdminTenant());
 
-            this.dipPurgeService.purgeExpiredDipFiles();
+            this.exportsPurgeService.purgeExpiredFiles(DIP_CONTAINER);
+
+            return Response.status(OK).build();
+        } catch (Exception e) {
+            LOGGER.error(e);
+            return VitamCodeHelper.toVitamError(VitamCode.METADATA_INTERNAL_SERVER_ERROR, e.getMessage())
+                .toResponse();
+        }
+    }
+
+    @Path(PURGE_EXPIRED_TRANSFER_SIP_FILES_URI)
+    @DELETE
+    @Produces(MediaType.APPLICATION_JSON)
+    @VitamAuthentication(authentLevel = AuthenticationLevel.BASIC_AUTHENT)
+    public Response purgeExpiredTransfersSIPFiles() {
+
+        try {
+            VitamThreadUtils.getVitamSession().initIfAbsent(VitamConfiguration.getAdminTenant());
+
+            this.exportsPurgeService.purgeExpiredFiles(TRANSFERS_CONTAINER);
 
             return Response.status(OK).build();
         } catch (Exception e) {
@@ -485,7 +507,7 @@ public class MetadataManagementResource {
                 VitamThreadUtils.getVitamSession().setTenantId(tenant);
                 VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newRequestIdGUID(tenant));
 
-                this.dipPurgeService.migrationPurgeDipFilesFromOffers();
+                this.exportsPurgeService.migrationPurgeDipFilesFromOffers();
 
                 LOGGER.info("Running DIP finished successfully");
             }

@@ -130,6 +130,7 @@ public class TransferAndDipIT extends VitamRuleRunner {
     private static final long NB_TRY = 18000; // equivalent to 16 minute
     private static final String WORKFLOW_ID = "DEFAULT_WORKFLOW";
     private static final String CONTEXT_ID = "PROCESS_SIP_UNITARY";
+    private String transfers_operation = "Transfers";
     private final static TypeReference<List<LogbookEventOperation>> TYPE_REFERENCE = new TypeReference<List<LogbookEventOperation>>() {};
 
     @ClassRule
@@ -214,7 +215,7 @@ public class TransferAndDipIT extends VitamRuleRunner {
         exportRequest.setExportRequestParameters(exportRequestParameters);
 
         // When ArchiveDeliveryRequestReply
-        String manifest = createAndExtractDip(exportRequest);
+        String manifest = createAndExtractDip(exportRequest, "ExportDIP");
 
         // Then
         assertThat(manifest).contains("<?xml version=\"1.0\" ?><ArchiveDeliveryRequestReply");
@@ -251,7 +252,7 @@ public class TransferAndDipIT extends VitamRuleRunner {
         exportRequest.setExportType(ExportType.MinimalArchiveDeliveryRequestReply);
 
         // When
-        String manifest = createAndExtractDip(exportRequest);
+        String manifest = createAndExtractDip(exportRequest, "ExportDIP");
 
         // Then
         assertThat(manifest).contains("<?xml version=\"1.0\" ?><ArchiveDeliveryRequestReply");
@@ -300,7 +301,7 @@ public class TransferAndDipIT extends VitamRuleRunner {
         exportRequestParameters.setTransferRequestReplyIdentifier("Not required TransferRequestReplyIdentifier");
         exportRequest.setExportRequestParameters(exportRequestParameters);
 
-        String manifest = createAndExtractDip(exportRequest);
+        String manifest = createAndExtractDip(exportRequest, "Transfers");
 
         // Then
         assertThat(manifest).contains("<?xml version=\"1.0\" ?><ArchiveTransfer");
@@ -318,7 +319,7 @@ public class TransferAndDipIT extends VitamRuleRunner {
         assertThat(manifest).doesNotContain("<Management><LogBook><Event><EventIdentifier>"); // tag for AU logbook LFC
 
         // try Ingest the Transfer SIP
-        InputStream transferSipStream = getDip(getVitamSession().getRequestId());
+        InputStream transferSipStream = getTransferSIP(getVitamSession().getRequestId());
 
         ingestSip(transferSipStream,
             StatusCode.OK); // As FormatIdentifierMock is used, pdf signature was modified in the first ingest. After transfer manifest and FormatIdentifierMock return the same mime type => status code OK
@@ -363,7 +364,7 @@ public class TransferAndDipIT extends VitamRuleRunner {
         exportRequestParameters.setTransferRequestReplyIdentifier("Not required TransferRequestReplyIdentifier");
         dipExportRequest.setExportRequestParameters(exportRequestParameters);
 
-        String manifest = createAndExtractDip(dipExportRequest);
+        String manifest = createAndExtractDip(dipExportRequest, "Transfers");
 
         // Then
         assertThat(manifest).contains("<?xml version=\"1.0\" ?><ArchiveTransfer");
@@ -381,7 +382,7 @@ public class TransferAndDipIT extends VitamRuleRunner {
         assertThat(manifest).contains("<Management><LogBook><Event><EventIdentifier>"); // tag for AU logbook LFC
 
         // try Ingest the Transfer SIP
-        InputStream transferSipStream = getDip(getVitamSession().getRequestId());
+        InputStream transferSipStream = getTransferSIP(getVitamSession().getRequestId());
 
         ingestSip(transferSipStream,
             StatusCode.OK); // As FormatIdentifierMock is used, pdf signature was modified in the first ingest. After transfer manifest and FormatIdentifierMock return the same mime type => status code OK
@@ -484,11 +485,11 @@ public class TransferAndDipIT extends VitamRuleRunner {
 
             awaitForWorkflowTerminationWithStatus(transferGuid, StatusCode.OK);
 
-            return getDip(transferGuid.getId());
+            return getTransferSIP(transferGuid.getId());
         }
     }
 
-    private String createAndExtractDip(ExportRequest exportRequest) throws Exception {
+    private String createAndExtractDip(ExportRequest exportRequest, String operation) throws Exception {
         GUID operationGuid = GUIDFactory.newOperationLogbookGUID(tenantId);
         prepareVitamSession();
         getVitamSession().setRequestId(operationGuid);
@@ -508,12 +509,24 @@ public class TransferAndDipIT extends VitamRuleRunner {
                     assertThat(document.getString("evType")).isEqualTo(Contexts.EXPORT_DIP.getEventType());
                     break;
             }
-            try (InputStream dip = getDip(operationGuid.getId())) {
-                File dipFile = File.createTempFile("tmp", ".zip", new File(VitamConfiguration.getVitamTmpFolder()));
-                IOUtils.copy(dip, new FileOutputStream(dipFile));
-                ZipFile zipFile = new ZipFile(dipFile);
-                ZipArchiveEntry manifest = zipFile.getEntry("manifest.xml");
-                return IOUtils.toString(zipFile.getInputStream(manifest), StandardCharsets.UTF_8.name());
+            if(operation.equals(transfers_operation))
+            {
+                try (InputStream dip = getTransferSIP(operationGuid.getId())) {
+                    File dipFile = File.createTempFile("tmp", ".zip", new File(VitamConfiguration.getVitamTmpFolder()));
+                    IOUtils.copy(dip, new FileOutputStream(dipFile));
+                    ZipFile zipFile = new ZipFile(dipFile);
+                    ZipArchiveEntry manifest = zipFile.getEntry("manifest.xml");
+                    return IOUtils.toString(zipFile.getInputStream(manifest), StandardCharsets.UTF_8.name());
+                }
+
+            } else {
+                try (InputStream dip = getDip(operationGuid.getId())) {
+                    File dipFile = File.createTempFile("tmp", ".zip", new File(VitamConfiguration.getVitamTmpFolder()));
+                    IOUtils.copy(dip, new FileOutputStream(dipFile));
+                    ZipFile zipFile = new ZipFile(dipFile);
+                    ZipArchiveEntry manifest = zipFile.getEntry("manifest.xml");
+                    return IOUtils.toString(zipFile.getInputStream(manifest), StandardCharsets.UTF_8.name());
+                }
             }
         }
     }
@@ -522,6 +535,20 @@ public class TransferAndDipIT extends VitamRuleRunner {
         throws Exception {
         try (AccessInternalClient client = AccessInternalClientFactory.getInstance().getClient()) {
             return client.findExportByID(operationId).readEntity(InputStream.class);
+        }
+    }
+
+    private InputStream getTransferSIP(String operationId)
+        throws Exception {
+        try (AccessInternalClient client = AccessInternalClientFactory.getInstance().getClient()) {
+            JsonNode logbook =
+                client.selectOperationById(operationId, new SelectMultiQuery().getFinalSelect()).toJsonNode()
+                    .get("$results")
+                    .get(0);
+
+            String evIdProc = logbook.get("evIdProc").asText();
+
+            return client.findTransferSIPByID(evIdProc).readEntity(InputStream.class);
         }
     }
 

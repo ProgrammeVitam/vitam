@@ -297,7 +297,7 @@ public class ManifestBuilder implements AutoCloseable {
                 if (minimalDataObjectType instanceof BinaryDataObjectType) {
                     BinaryDataObjectType binaryDataObjectType = (BinaryDataObjectType) minimalDataObjectType;
                     String extension = FilenameUtils.getExtension(binaryDataObjectType.getUri());
-                    String fileName = StoreDIP.CONTENT + "/" + binaryDataObjectType.getId() + "." + extension;
+                    String fileName = StoreExports.CONTENT + "/" + binaryDataObjectType.getId() + "." + extension;
                     binaryDataObjectType.setUri(fileName);
 
                     String[] dataObjectVersion = minimalDataObjectType.getDataObjectVersion().split("_");

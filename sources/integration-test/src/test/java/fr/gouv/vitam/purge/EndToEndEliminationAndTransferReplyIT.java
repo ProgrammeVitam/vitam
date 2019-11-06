@@ -1076,7 +1076,7 @@ public class EndToEndEliminationAndTransferReplyIT extends VitamRuleRunner {
     private InputStream getTransferSip(String operationId)
         throws Exception {
         try (AccessInternalClient client = AccessInternalClientFactory.getInstance().getClient()) {
-            return client.findExportByID(operationId).readEntity(InputStream.class);
+            return client.findTransferSIPByID(operationId).readEntity(InputStream.class);
         }
     }
 

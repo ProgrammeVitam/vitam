@@ -75,6 +75,12 @@ public interface AccessInternalResource {
     Response findDIPByID(String id);
 
     /**
+     * @param id of operation (X-Request-Id)
+     * @return
+     */
+    Response findTransferSIPByID(String id);
+
+    /**
      * Starts a reclassification workflow.
      *
      * @param reclassificationRequest Reclassification request.

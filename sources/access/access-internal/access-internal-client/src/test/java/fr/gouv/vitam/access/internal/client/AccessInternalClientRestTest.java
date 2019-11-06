@@ -166,6 +166,11 @@ public class AccessInternalClientRestTest extends ResteasyTestApplication {
         }
 
         @Override
+        public Response findTransferSIPByID(String id) throws IllegalStateException {
+            return null;
+        }
+
+        @Override
         @POST
         @Path("/reclassification")
         @Consumes(MediaType.APPLICATION_JSON)

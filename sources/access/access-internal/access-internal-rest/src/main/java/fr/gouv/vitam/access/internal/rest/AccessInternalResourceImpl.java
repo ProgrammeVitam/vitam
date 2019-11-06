@@ -510,6 +510,20 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
         }
     }
 
+    @Override
+    @GET
+    @Path("/transferexport/{id}/sip")
+    @Consumes(MediaType.APPLICATION_OCTET_STREAM)
+    public Response findTransferSIPByID(@PathParam("id") String id) {
+        try {
+            return accessModule.findTransferSIPByOperationId(id);
+        } catch (AccessInternalExecutionException e) {
+            LOGGER.error(BAD_REQUEST_EXCEPTION, e);
+            Status status = Status.BAD_REQUEST;
+            return Response.status(status).entity(getErrorEntity(status, e.getMessage())).build();
+        }
+    }
+
 
     /**
      * Starts a reclassification workflow.

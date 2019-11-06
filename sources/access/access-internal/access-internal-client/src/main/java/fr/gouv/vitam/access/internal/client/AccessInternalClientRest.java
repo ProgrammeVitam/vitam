@@ -98,6 +98,7 @@ class AccessInternalClientRest extends DefaultClient implements AccessInternalCl
     private static final String OBJECTS = "objects/";
     private static final String DIPEXPORT = "dipexport/";
     private static final String EXPORT_BY_USAGE_FILTER = "export/usagefilter";
+    private static final String TRANSFER_EXPORT = "transferexport/";
     private static final String UNITS = "units/";
     private static final String UNITS_RULES = "/units/rules";
     private static final String UNITS_WITH_INHERITED_RULES = "unitsWithInheritedRules";
@@ -594,6 +595,18 @@ class AccessInternalClientRest extends DefaultClient implements AccessInternalCl
         VitamThreadUtils.getVitamSession().checkValidRequestId();
         try {
             return performRequest(HttpMethod.GET, DIPEXPORT + id + "/dip", null,
+                APPLICATION_OCTET_STREAM_TYPE);
+        } catch (final VitamClientInternalException e) {
+            throw new AccessInternalClientServerException(INTERNAL_SERVER_ERROR, e); // access-common
+        }
+    }
+
+    @Override
+    public Response findTransferSIPByID(String id) throws AccessInternalClientServerException {
+        ParametersChecker.checkParameter(BLANK_DSL, id);
+        VitamThreadUtils.getVitamSession().checkValidRequestId();
+        try {
+            return performRequest(HttpMethod.GET, TRANSFER_EXPORT + id + "/sip", null,
                 APPLICATION_OCTET_STREAM_TYPE);
         } catch (final VitamClientInternalException e) {
             throw new AccessInternalClientServerException(INTERNAL_SERVER_ERROR, e); // access-common
