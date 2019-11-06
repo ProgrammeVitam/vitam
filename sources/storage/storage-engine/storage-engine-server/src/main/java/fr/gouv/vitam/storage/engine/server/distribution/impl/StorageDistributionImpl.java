@@ -36,6 +36,8 @@ import com.google.common.collect.Lists;
 import fr.gouv.vitam.common.retryable.DelegateRetry;
 import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.ParametersChecker;
+import fr.gouv.vitam.common.retryable.Retryable;
+import fr.gouv.vitam.common.retryable.RetryableOnException;
 import fr.gouv.vitam.common.retryable.RetryableOnResult;
 import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.accesslog.AccessLogInfoModel;
@@ -196,6 +198,7 @@ public class StorageDistributionImpl implements StorageDistribution {
     private static final String ATTEMPT = " attempt ";
     private static final String OFFERS_LIST_IS_MANDATORY = "Offers List is mandatory";
     public static final String DIGEST = "digest";
+    private static final RetryableParameters PARAMETERS = new RetryableParameters(3, 1, 5, 3, SECONDS);
 
     private final String urlWorkspace;
     private final TransfertTimeoutHelper transfertTimeoutHelper;
@@ -1388,7 +1391,9 @@ public class StorageDistributionImpl implements StorageDistribution {
             final Driver driver = retrieveDriverInternal(offerReference.getId());
             final StorageOffer offer = OFFER_PROVIDER.getStorageOffer(offerReference.getId());
             try {
-                deleteObject(context.getObjectId(), context.getTenantId(), driver, offer, context.getCategory());
+                Retryable<Void, StorageTechnicalException> retryable =  new RetryableOnException<>(PARAMETERS, e -> e instanceof StorageTechnicalException);
+                retryable.execute(() -> deleteObject(context.getObjectId(), context.getTenantId(), driver, offer, context.getCategory()));
+
                 deleteOutcomeByOfferId.put(driver.getName(), StorageLogbookOutcome.OK);
             } catch (Exception e) {
                 LOGGER.error(String.format("An error occurred during object delete %s/%s from offer %s",
