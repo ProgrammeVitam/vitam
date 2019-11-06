@@ -76,6 +76,11 @@ public enum ElasticsearchCollections {
      * Access contract collection
      */
     ACCESS_CONTRACT("/accesscontract-es-mapping.json", "accesscontract"),
+
+    /**
+     * Management contract collection
+     */
+    MANAGEMENT_CONTRACT("/managementcontract-es-mapping.json", "managementcontract"),
     /**
      * Profile collection
      */
