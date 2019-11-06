@@ -26,16 +26,6 @@
  */
 package fr.gouv.vitam.common.external.client;
 
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.MultivaluedHashMap;
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.Response.Status;
-import java.io.ByteArrayInputStream;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.List;
-
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
@@ -66,10 +56,19 @@ import fr.gouv.vitam.common.model.administration.ProfileModel;
 import fr.gouv.vitam.common.model.administration.ProfileStatus;
 import fr.gouv.vitam.common.model.administration.RegisterValueDetailModel;
 import fr.gouv.vitam.common.model.administration.StorageDetailModel;
-import fr.gouv.vitam.common.model.dip.DipExportRequest;
 import fr.gouv.vitam.common.model.logbook.LogbookEventOperation;
 import fr.gouv.vitam.common.model.logbook.LogbookLifecycle;
 import fr.gouv.vitam.common.model.logbook.LogbookOperation;
+
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.MultivaluedHashMap;
+import javax.ws.rs.core.Response;
+import javax.ws.rs.core.Response.Status;
+import java.io.ByteArrayInputStream;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.List;
 
 /**
  * Results for client mock
@@ -91,8 +90,6 @@ public class ClientMockResultHelper {
             "\"#object\":\"aeaaaaaaaaaam7mxaa7hcakyq4z6sjqaaaaq\",\"#unitups\":[\"aeaaaaaaaaaam7mxaa7hcakyq4z6soyaaaaq\"],\"#min\":1,\"#max\":2," +
             "\"#allunitups\":[\"aeaaaaaaaaaam7mxaa7hcakyq4z6soyaaaaq\"],\"#operations\":[\"aedqaaaaacaam7mxabhniakyq4z4ewaaaaaq\"]}";
 
-    // FIXME to remove in 2905
-    @Deprecated
     private static final String LOGBOOK_OPERATION =
         "\"evId\": \"aedqaaaaacaam7mxaaaamakvhiv4rsqaaaaq\"," +
             "\"evType\": \"Process_SIP_unitary\"," +
@@ -176,7 +173,7 @@ public class ClientMockResultHelper {
             "\"NumberOfElements\":4,\"FileName\":\"0_LogbookOperation_20170406_230103.zip\",\"Size\":4141}}]}";
 
     public static final String SECURITY_PROFILES =
-            "{" +
+        "{" +
             "\"_id\":\"aeaaaaaaaaaaaaabaa4ikakyetcaaaabbbcc\"," +
             "\"Identifier\": \"SEC_PROFILE-000001\"," +
             "\"Name\": \"TEST_PROFILE_1\"," +
@@ -188,7 +185,8 @@ public class ClientMockResultHelper {
             "}";
 
 
-    private ClientMockResultHelper() {}
+    private ClientMockResultHelper() {
+    }
 
 
     /**
@@ -357,7 +355,7 @@ public class ClientMockResultHelper {
         contract.setActivationdate("2016-11-04");
         contract.setDeactivationdate("2016-11-03");
         contract.setStorage(new StorageDetailModel().setUnitStrategy("default").setObjectGroupStrategy("default")
-                .setObjectStrategy("default"));
+            .setObjectStrategy("default"));
         return contract;
     }
 
@@ -397,10 +395,10 @@ public class ClientMockResultHelper {
         profile.setDeactivationdate("2016-11-03");
         return profile;
     }
-    
+
     private static ArchiveUnitProfileModel getArchiveUnitItem() {
         ArchiveUnitProfileModel profile = new ArchiveUnitProfileModel();
-        
+
         profile.setId("aeaaaaaaaaaaaaabaa4ikakyetch6mqaaacq");
         profile.setTenant(0);
         profile.setIdentifier("FAKE_IDENTIFIER");
@@ -411,7 +409,7 @@ public class ClientMockResultHelper {
         profile.setLastupdate("2016-11-05");
         profile.setActivationdate("2016-11-04");
         profile.setDeactivationdate("2016-11-03");
-        
+
         return profile;
     }
 
@@ -501,7 +499,7 @@ public class ClientMockResultHelper {
 
     /**
      * FIXME to remove in 2905
-     * 
+     *
      * @return a default Logbook Result
      * @throws InvalidParseOperationException
      */
@@ -521,7 +519,7 @@ public class ClientMockResultHelper {
 
     /**
      * FIXME to remove in 2905
-     * 
+     *
      * @return a default Logbook operations response Result
      * @throws InvalidParseOperationException
      */
@@ -563,7 +561,7 @@ public class ClientMockResultHelper {
      * @return a default response
      * @throws InvalidParseOperationException
      */
-    public static RequestResponse createReponse(Object s) throws InvalidParseOperationException {
+    public static RequestResponse createReponse(Object s) {
         return new RequestResponseOK().addResult(s);
     }
 
@@ -593,7 +591,6 @@ public class ClientMockResultHelper {
     }
 
     /**
-     *
      * @return a default Access Register Summary
      */
     public static RequestResponse<AccessionRegisterSummaryModel> getAccessionRegisterSummary() {
@@ -602,7 +599,6 @@ public class ClientMockResultHelper {
     }
 
     /**
-     *
      * @return a default Access Register Detail
      * @throws InvalidParseOperationException
      */
@@ -611,42 +607,38 @@ public class ClientMockResultHelper {
     }
 
     /**
-     *
      * @return a default Format
      */
     public static RequestResponse<FileFormatModel> getFormat() {
         return new RequestResponseOK<FileFormatModel>().addResult(getFormatItem())
             .setHttpCode(Status.OK.getStatusCode());
     }
-    
-    /**
-    *
-    * @param statusCode 
-     * @return a default Format
-    */
-   public static RequestResponse<FileFormatModel> getFormat(int statusCode) {
-       return new RequestResponseOK<FileFormatModel>().addResult(getFormatItem())
-           .setHttpCode(statusCode);
-   }
 
     /**
-     *
+     * @param statusCode
+     * @return a default Format
+     */
+    public static RequestResponse<FileFormatModel> getFormat(int statusCode) {
+        return new RequestResponseOK<FileFormatModel>().addResult(getFormatItem())
+            .setHttpCode(statusCode);
+    }
+
+    /**
      * @return a default Rule
      */
     public static RequestResponse<FileRulesModel> getRule() {
         return new RequestResponseOK<FileRulesModel>().addResult(getRuleItem())
             .setHttpCode(Status.OK.getStatusCode());
     }
-    
+
     /**
-    *
-    * @param statusCode 
+     * @param statusCode
      * @return a default Rule
-    */
-   public static RequestResponse<FileRulesModel> getRule(int statusCode) {
-       return new RequestResponseOK<FileRulesModel>().addResult(getRuleItem())
-           .setHttpCode(statusCode);
-   }
+     */
+    public static RequestResponse<FileRulesModel> getRule(int statusCode) {
+        return new RequestResponseOK<FileRulesModel>().addResult(getRuleItem())
+            .setHttpCode(statusCode);
+    }
 
     /**
      * @return a RequestResponse containing contracts json
@@ -681,9 +673,9 @@ public class ClientMockResultHelper {
         return new RequestResponseOK<AgenciesModel>().addResult(getAgenciesModel())
             .setHttpCode(Status.OK.getStatusCode());
     }
-    
+
     /**
-     * @param statusCode 
+     * @param statusCode
      * @return a RequestResponse containing agencies json
      */
     public static RequestResponse<AgenciesModel> getAgencies(int statusCode) {
@@ -704,7 +696,7 @@ public class ClientMockResultHelper {
     }
 
 
-    
+
     /**
      * @param statusCode
      * @return a RequestResponse containing Ontology json
@@ -714,59 +706,24 @@ public class ClientMockResultHelper {
     }
 
     /**
-     *
      * @return a default list of Formats
      * @throws InvalidParseOperationException
      */
-    public static RequestResponse<FileFormatModel> getFormatList() throws InvalidParseOperationException {
+    public static RequestResponse<FileFormatModel> getFormatList() {
         return new RequestResponseOK<FileFormatModel>().addResult(getFormatItem())
             .setHttpCode(Status.OK.getStatusCode());
     }
 
-    /**
-     *
-     * @return a default list of Rules
-     */
-    public static RequestResponse<FileRulesModel> getRuleList(String ruleId) {
-        FileRulesModel rule = getRuleItem();
-        String oldRuleId = rule.getRuleId();
-        rule.setRuleId(oldRuleId);
-        switch (ruleId.substring(0, 3)) {
-            case "STO":
-                rule.setRuleType("StorageRule");
-                break;
-            case "CLA":
-                rule.setRuleType("ClassificationRule");
-                break;
-            case "ACC":
-                rule.setRuleType("AccessRule");
-                break;
-            case "APP":
-                rule.setRuleType("AppraisalRule");
-                break;
-            case "DIS":
-                rule.setRuleType("DisseminationRule");
-                break;
-            case "REU":
-                rule.setRuleType("ReuseRule");
-                break;
-            default:
-                rule.setRuleType(oldRuleId);
-        }
-
-        return new RequestResponseOK<FileRulesModel>().addResult(rule).setHttpCode(Status.OK.getStatusCode());
-    }
 
     public static RequestResponse<FileRulesModel> getRuleList() {
         return new RequestResponseOK<FileRulesModel>().addResult(getRuleItem()).setHttpCode(Status.OK.getStatusCode());
     }
 
     /**
-     *
      * @return a default list of Rules
      * @throws InvalidParseOperationException
      */
-    public static RequestResponse getEmptyResult() throws InvalidParseOperationException {
+    public static RequestResponse getEmptyResult() {
         return new RequestResponseOK<>().setHttpCode(Status.OK.getStatusCode());
     }
 
@@ -806,7 +763,6 @@ public class ClientMockResultHelper {
     }
 
     /**
-     *
      * @param id
      * @return a default ArchiveUnit result
      * @throws InvalidParseOperationException
@@ -816,45 +772,25 @@ public class ClientMockResultHelper {
     }
 
     /**
-     * @return a default operation traceability
      * @throws InvalidParseOperationException
-     */
-    public static RequestResponse getOperationTraceabilityDetails()
-        throws InvalidParseOperationException {
-        return createReponse(TRACEABILITY_OPERATION);
-    }
-
-    /**
-     * @throws InvalidParseOperationException
-     * 
      */
     public static RequestResponse checkOperationTraceability() throws InvalidParseOperationException {
         return createReponse(TRACEABILITY_OPERATION);
     }
 
     /**
-     * @throws InvalidParseOperationException
-     * 
-     */
-    public static RequestResponse getTraceabilityOperationMock() throws InvalidParseOperationException {
-        return createReponse(TRACEABILITY_LOGBOOK_OPERATION);
-    }
-
-    /**
-     * 
-     * @return 
+     * @return
      * @throws VitamClientException
      */
     public static RequestResponse getSecurityProfiles() throws VitamClientException {
         try {
             return createReponse(SECURITY_PROFILES);
         } catch (InvalidParseOperationException e) {
-            throw new  VitamClientException(e);
+            throw new VitamClientException(e);
         }
     }
-    
+
     /**
-     * 
      * @param statusCode
      * @return
      * @throws VitamClientException
@@ -863,24 +799,14 @@ public class ClientMockResultHelper {
         try {
             return createReponse(SECURITY_PROFILES, statusCode);
         } catch (InvalidParseOperationException e) {
-            throw new  VitamClientException(e);
+            throw new VitamClientException(e);
         }
     }
 
-
-	public static RequestResponse<JsonNode> getDIPSimpleResult(
-            DipExportRequest dipExportRequest) {
-		// TODO Mock for real for DIP !
-		return new RequestResponseOK<JsonNode>(dipExportRequest.getDslRequest()).addResult(getUnitSimpleItem())
-	            .setHttpCode(Status.OK.getStatusCode());
-	}
-
-
     public static RequestResponse<JsonNode> getDIPSimpleResult(
-            JsonNode dslRequest) {
-        // TODO Mock for real for DIP !
+        JsonNode dslRequest) {
         return new RequestResponseOK<JsonNode>(dslRequest).addResult(getUnitSimpleItem())
-                .setHttpCode(Status.OK.getStatusCode());
+            .setHttpCode(Status.OK.getStatusCode());
     }
 
 
@@ -890,12 +816,12 @@ public class ClientMockResultHelper {
 
 
     public static RequestResponse<ProfileModel> getProbativeValue(int statusCode) {
-        //TODO Mock response to produce the probative value
         return new RequestResponseOK<ProfileModel>().addResult(getProfileItem()).setHttpCode(statusCode);
     }
 
     /**
      * Get archive unit profiles mock with the given status code
+     *
      * @param statusCode
      * @return a mock of archive unit profiles
      */

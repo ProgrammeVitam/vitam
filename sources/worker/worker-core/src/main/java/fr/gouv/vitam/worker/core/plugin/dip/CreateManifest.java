@@ -26,7 +26,6 @@
  */
 package fr.gouv.vitam.worker.core.plugin.dip;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
@@ -48,12 +47,11 @@ import fr.gouv.vitam.common.database.parser.query.ParserTokens;
 import fr.gouv.vitam.common.database.parser.request.multiple.SelectParserMultiple;
 import fr.gouv.vitam.common.database.utils.ScrollSpliterator;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
-import fr.gouv.vitam.common.exception.VitamRuntimeException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.StatusCode;
-import fr.gouv.vitam.common.model.dip.DipExportRequest;
+import fr.gouv.vitam.common.model.export.ExportRequest;
 import fr.gouv.vitam.common.model.unit.ArchiveUnitModel;
 import fr.gouv.vitam.common.parameter.ParameterHelper;
 import fr.gouv.vitam.functional.administration.common.BackupService;
@@ -105,8 +103,8 @@ import static fr.gouv.vitam.common.database.parser.query.ParserTokens.PROJECTION
 import static fr.gouv.vitam.common.database.parser.query.ParserTokens.PROJECTIONARGS.UNITUPS;
 import static fr.gouv.vitam.common.database.parser.request.GlobalDatasParser.DEFAULT_SCROLL_TIMEOUT;
 import static fr.gouv.vitam.common.json.JsonHandler.unprettyPrint;
-import static fr.gouv.vitam.common.model.dip.DipExportRequest.DIP_REQUEST_FILE_NAME;
-import static fr.gouv.vitam.common.model.dip.ExportType.ArchiveTransfer;
+import static fr.gouv.vitam.common.model.export.ExportRequest.EXPORT_QUERY_FILE_NAME;
+import static fr.gouv.vitam.common.model.export.ExportType.ArchiveTransfer;
 import static java.nio.charset.StandardCharsets.UTF_8;
 
 /**
@@ -161,12 +159,12 @@ public class CreateManifest extends ActionHandler {
             BufferedOutputStream buffOut = new BufferedOutputStream(fileOutputStream);
             ManifestBuilder manifestBuilder = new ManifestBuilder(outputStream)) {
 
-            DipExportRequest exportRequest = JsonHandler
-                .getFromJsonNode(handlerIO.getJsonFromWorkspace(DIP_REQUEST_FILE_NAME), DipExportRequest.class);
+            ExportRequest exportRequest = JsonHandler
+                .getFromJsonNode(handlerIO.getJsonFromWorkspace(EXPORT_QUERY_FILE_NAME), ExportRequest.class);
             TransferReportHeader reportHeader = new TransferReportHeader(exportRequest.getDslRequest());
 
             if (ArchiveTransfer.equals(exportRequest.getExportType())) {
-                buffOut.write(unprettyPrint(JsonHandler.createObjectNode()).getBytes(UTF_8)); // header vide
+                buffOut.write(unprettyPrint(JsonHandler.createObjectNode()).getBytes(UTF_8)); // header empty
                 buffOut.write(System.lineSeparator().getBytes(StandardCharsets.UTF_8));
                 buffOut.write(unprettyPrint(reportHeader).getBytes(StandardCharsets.UTF_8));  // context
                 buffOut.write(System.lineSeparator().getBytes(StandardCharsets.UTF_8));
@@ -271,16 +269,17 @@ public class CreateManifest extends ActionHandler {
             StreamSupport.stream(scrollRequest, false)
                 .forEach(result -> {
                     try {
-                        ArchiveUnitModel unit = manifestBuilder.writeArchiveUnit(result, multimap, ogs, exportWithLogBookLFC);
+                        ArchiveUnitModel unit =
+                            manifestBuilder.writeArchiveUnit(result, multimap, ogs, exportWithLogBookLFC);
                         if (ArchiveTransfer.equals(exportRequest.getExportType())) {
                             List<String> opts = unit.getOpts();
-                            TransferStatus status = opts.isEmpty()?
-                                TransferStatus.OK:
+                            TransferStatus status = opts.isEmpty() ?
+                                TransferStatus.OK :
                                 TransferStatus.ALREADY_IN_TRANSFER;
                             opts.add(param.getContainerName());
                             ObjectNode updateMultiQuery = getUpdateQuery(opts);
 
-                            if(TransferStatus.ALREADY_IN_TRANSFER.equals(status)) {
+                            if (TransferStatus.ALREADY_IN_TRANSFER.equals(status)) {
                                 itemStatus.increment(StatusCode.WARNING);
                                 ObjectNode infoNode = JsonHandler.createObjectNode();
                                 infoNode.put(REASON_FIELD, String.format("unit %s already in transfer", unit.getId()));
@@ -405,7 +404,8 @@ public class CreateManifest extends ActionHandler {
         handlerIO.addOutputResult(BINARIES_RANK, binaryListFile, true, false);
     }
 
-    private ObjectNode getUpdateQuery(List<String> opts) throws InvalidParseOperationException, InvalidCreateOperationException {
+    private ObjectNode getUpdateQuery(List<String> opts)
+        throws InvalidParseOperationException, InvalidCreateOperationException {
         Map<String, JsonNode> action = new HashMap<>();
         UpdateMultiQuery updateMultiQuery = new UpdateMultiQuery();
         action.put(VitamFieldsHelper.opts(), JsonHandler.toJsonNode(opts));
