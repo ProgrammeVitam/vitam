@@ -11,12 +11,14 @@ import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoCursor;
 import com.mongodb.client.model.BulkWriteOptions;
 import com.mongodb.client.model.DeleteOneModel;
+import com.mongodb.client.model.Filters;
 import com.mongodb.client.model.InsertOneModel;
 import com.mongodb.client.model.UpdateOneModel;
 import fr.gouv.vitam.common.database.server.mongodb.VitamDocument;
 import fr.gouv.vitam.common.parameter.ParameterHelper;
 import fr.gouv.vitam.metadata.api.exception.MetaDataAlreadyExistException;
 import fr.gouv.vitam.metadata.api.exception.MetaDataExecutionException;
+import org.bson.Document;
 import org.bson.conversions.Bson;
 
 import java.util.ArrayList;
@@ -110,24 +112,28 @@ public class MongoDbMetadataRepository<T extends VitamDocument> {
      * @throws MetaDataExecutionException MetaDataExecutionException
      */
     public void delete(List<T> metadataDocuments) throws MetaDataExecutionException {
-
         BulkWriteOptions options = new BulkWriteOptions();
         options.ordered(false);
         try {
-            List<DeleteOneModel<T>> collect = new ArrayList<>();
-            metadataDocuments.forEach(metadataDocument -> {
-                DeleteOneModel<T> tDeleteOneModel = new DeleteOneModel<>(metadataDocument);
-                collect.add(tDeleteOneModel);
-            });
-            BulkWriteResult bulkWriteResult = mongoCollectionSupplier.get().bulkWrite(collect, options);
-            if (bulkWriteResult.getDeletedCount() != metadataDocuments.size()) {
-                throw new MetaDataExecutionException(
-                    String.format("Error while bulk delete document count : %s != size : %s :",
-                        bulkWriteResult.getDeletedCount(), metadataDocuments.size()));
+            List<DeleteOneModel<T>> toDeleteModels = metadataDocuments.stream()
+                .map(filter -> new DeleteOneModel<T>(filter))
+                .collect(Collectors.toList());
+
+            BulkWriteResult bulkWriteResult = mongoCollectionSupplier.get().bulkWrite(toDeleteModels, options);
+
+            if (bulkWriteResult.getDeletedCount() != metadataDocuments.size() && doubleCheckExistingDocuments(metadataDocuments)) {
+                throw new MetaDataExecutionException(String.format("Error while bulk delete document count : %s != size : %s :", bulkWriteResult.getDeletedCount(), metadataDocuments.size()));
             }
         } catch (final MongoException | IllegalArgumentException e) {
             throw new MetaDataExecutionException(e);
         }
+    }
+
+    private boolean doubleCheckExistingDocuments(List<T> documents) {
+        List<Document> ids = documents.stream()
+            .map(d -> new Document().append(ID, d.get(ID)))
+            .collect(Collectors.toList());
+        return mongoCollectionSupplier.get().countDocuments(in(ID, ids)) > 0;
     }
 
     public void update(Map<String, Bson> updates) throws MetaDataExecutionException {
