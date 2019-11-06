@@ -176,7 +176,7 @@ public class MetadataManagementResource {
             LogbookOperationsClientFactory.getInstance(),
             WorkspaceClientFactory.getInstance(),
             configuration,
-            new ExportsPurgeService(configuration.getDipTimeToLiveInMinutes()));
+            new ExportsPurgeService(configuration.getTransfersSIPTimeToLiveInMinutes()));
     }
 
     @VisibleForTesting
