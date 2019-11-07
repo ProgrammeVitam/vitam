@@ -70,10 +70,10 @@ import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.model.dip.DataObjectVersions;
-import fr.gouv.vitam.common.model.dip.DipExportRequest;
-import fr.gouv.vitam.common.model.dip.ExportRequestParameters;
-import fr.gouv.vitam.common.model.dip.ExportType;
 import fr.gouv.vitam.common.model.elimination.EliminationRequestBody;
+import fr.gouv.vitam.common.model.export.ExportRequest;
+import fr.gouv.vitam.common.model.export.ExportRequestParameters;
+import fr.gouv.vitam.common.model.export.ExportType;
 import fr.gouv.vitam.common.model.objectgroup.ObjectGroupResponse;
 import fr.gouv.vitam.common.model.objectgroup.QualifiersModel;
 import fr.gouv.vitam.common.model.objectgroup.VersionsModel;
@@ -150,6 +150,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import static com.google.common.collect.Lists.newArrayList;
 import static fr.gouv.vitam.common.guid.GUIDFactory.newOperationLogbookGUID;
 import static io.restassured.RestAssured.get;
 import static java.util.stream.Collectors.toMap;
@@ -1041,7 +1042,7 @@ public class EndToEndEliminationAndTransferReplyIT extends VitamRuleRunner {
         SelectMultiQuery select = new SelectMultiQuery();
         select.setQuery(QueryHelper.in(VitamFieldsHelper.id(), unitIds.toArray(new String[0])));
 
-        DipExportRequest dipExportRequest = new DipExportRequest(
+        ExportRequest dipExportRequest = new ExportRequest(
             new DataObjectVersions(),
             select.getFinalSelect(),
             true
@@ -1053,8 +1054,7 @@ public class EndToEndEliminationAndTransferReplyIT extends VitamRuleRunner {
         exportRequestParameters.setArchivalAgreement("ArchivalAgreement0");
         exportRequestParameters.setOriginatingAgencyIdentifier("RATP");
         exportRequestParameters.setSubmissionAgencyIdentifier("RATP");
-        exportRequestParameters.setRelatedTransferReference(
-            com.google.common.collect.Lists.newArrayList("RelatedTransferReference1", "RelatedTransferReference2"));
+        exportRequestParameters.setRelatedTransferReference(Arrays.asList("RelatedTransferReference1", "RelatedTransferReference2"));
 
         dipExportRequest.setExportType(ExportType.ArchiveTransfer);
         dipExportRequest.setExportRequestParameters(exportRequestParameters);
