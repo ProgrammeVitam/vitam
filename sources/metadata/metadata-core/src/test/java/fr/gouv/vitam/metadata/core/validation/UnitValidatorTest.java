@@ -59,6 +59,7 @@ public class UnitValidatorTest {
         // When / Then
         unitValidator.validateUnit(unitJson);
     }
+
     @Test
     public void givenComplexArchiveUnitJsonThenValidateJsonObjectBirthPlaceKO() throws Exception {
 

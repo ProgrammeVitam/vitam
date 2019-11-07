@@ -26,6 +26,7 @@ import fr.gouv.vitam.metadata.api.exception.MetaDataDocumentSizeException;
 import fr.gouv.vitam.metadata.api.exception.MetaDataExecutionException;
 import fr.gouv.vitam.metadata.api.exception.MetaDataNotFoundException;
 import fr.gouv.vitam.metadata.api.exception.MetadataInvalidSelectException;
+import fr.gouv.vitam.metadata.api.model.BulkUnitInsertRequest;
 import fr.gouv.vitam.metadata.api.model.ObjectGroupPerOriginatingAgency;
 import fr.gouv.vitam.metadata.api.model.UnitPerOriginatingAgency;
 
@@ -38,14 +39,7 @@ public class MetaDataClientMock extends AbstractMockClient implements MetaDataCl
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(MetaDataClientMock.class);
 
     @Override
-    public JsonNode insertUnit(JsonNode insertQuery)
-        throws InvalidParseOperationException, MetaDataExecutionException, MetaDataNotFoundException,
-        MetaDataAlreadyExistException, MetaDataDocumentSizeException, MetaDataClientServerException {
-        return ClientMockResultHelper.getMetaDataResult().toJsonNode();
-    }
-
-    @Override
-    public JsonNode insertUnitBulk(List<ObjectNode> insertQuery) throws InvalidParseOperationException, MetaDataExecutionException, MetaDataNotFoundException, MetaDataAlreadyExistException, MetaDataDocumentSizeException, MetaDataClientServerException {
+    public JsonNode insertUnitBulk(BulkUnitInsertRequest request) throws InvalidParseOperationException, MetaDataExecutionException, MetaDataNotFoundException, MetaDataAlreadyExistException, MetaDataDocumentSizeException, MetaDataClientServerException {
         ArrayNode arrayNode = JsonHandler.createArrayNode();
         JsonNode jsonNode = ClientMockResultHelper.getMetaDataResult().toJsonNode();
         arrayNode.add(jsonNode);

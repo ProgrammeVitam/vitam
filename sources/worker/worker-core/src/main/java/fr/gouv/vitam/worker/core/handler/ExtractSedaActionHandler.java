@@ -103,6 +103,7 @@ import fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess;
 import fr.gouv.vitam.logbook.common.server.database.collections.LogbookMongoDbName;
 import fr.gouv.vitam.logbook.lifecycles.client.LogbookLifeCyclesClient;
 import fr.gouv.vitam.metadata.client.MetaDataClientFactory;
+import fr.gouv.vitam.metadata.core.database.collections.Unit;
 import fr.gouv.vitam.processing.common.exception.ArchiveUnitContainDataObjectException;
 import fr.gouv.vitam.processing.common.exception.ArchiveUnitContainSpecialCharactersException;
 import fr.gouv.vitam.processing.common.exception.ExceptionType;
@@ -1662,10 +1663,10 @@ public class ExtractSedaActionHandler extends ActionHandler {
         ObjectNode archiveUnitNode = (ObjectNode) archiveUnit.get(SedaConstants.TAG_ARCHIVE_UNIT);
         ManagementModel archiveUnitManagementModel;
 
-        if (archiveUnitNode.has(SedaConstants.TAG_MANAGEMENT) &&
-            archiveUnitNode.get(SedaConstants.TAG_MANAGEMENT) instanceof ObjectNode) {
+        if (archiveUnitNode.has(Unit.MANAGEMENT) &&
+            archiveUnitNode.get(Unit.MANAGEMENT) instanceof ObjectNode) {
             archiveUnitManagementModel =
-                JsonHandler.getFromJsonNode(archiveUnitNode.get(SedaConstants.TAG_MANAGEMENT), ManagementModel.class);
+                JsonHandler.getFromJsonNode(archiveUnitNode.get(Unit.MANAGEMENT), ManagementModel.class);
         } else {
             archiveUnitManagementModel = new ManagementModel();
         }
@@ -1703,7 +1704,7 @@ public class ExtractSedaActionHandler extends ActionHandler {
                 }
             }
         }
-        archiveUnitNode.set(SedaConstants.TAG_MANAGEMENT, archiveUnitMgtNode);
+        archiveUnitNode.set(SedaConstants.PREFIX_MGT, archiveUnitMgtNode);
     }
 
     /**

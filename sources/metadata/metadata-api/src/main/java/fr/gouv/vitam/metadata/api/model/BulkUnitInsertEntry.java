@@ -1,4 +1,4 @@
-/*
+/*******************************************************************************
  * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2019)
  *
  * contact.vitam@culture.gouv.fr
@@ -23,31 +23,54 @@
  *
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
- */
-package fr.gouv.vitam.common.model.unit;
+ *******************************************************************************/
+package fr.gouv.vitam.metadata.api.model;
 
-import fr.gouv.vitam.common.model.logbook.LogbookEvent;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.JsonNode;
 
-import java.util.List;
+import java.util.Set;
 
-public class ArchiveUnitRoot {
+public class BulkUnitInsertEntry {
 
-    private ArchiveUnitInternalModel archiveUnit;
-    private List<LogbookEvent> LogbookLifeCycleExternal;
-
-    public ArchiveUnitRoot() {
-        archiveUnit = new ArchiveUnitInternalModel();
+    public BulkUnitInsertEntry() {
+        // Empty constructor for deserialization
     }
 
-    public ArchiveUnitInternalModel getArchiveUnit() {
-        return archiveUnit;
+    public BulkUnitInsertEntry(Set<String> parentUnitIds, JsonNode unit) {
+        this.parentUnitIds = parentUnitIds;
+        this.unit = unit;
     }
 
-    public List<LogbookEvent> getLogbookLifeCycleExternal() {
-        return LogbookLifeCycleExternal;
+    @JsonProperty("up")
+    private Set<String> parentUnitIds;
+
+    @JsonProperty("unit")
+    private JsonNode unit;
+
+    public Set<String> getParentUnitIds() {
+        return parentUnitIds;
     }
 
-    public void setLogbookLifeCycleExternal(List<LogbookEvent> logbookLifeCycleExternal) {
-        this.LogbookLifeCycleExternal = logbookLifeCycleExternal;
+    public BulkUnitInsertEntry setParentUnitIds(Set<String> parentUnitIds) {
+        this.parentUnitIds = parentUnitIds;
+        return this;
+    }
+
+    public JsonNode getUnit() {
+        return unit;
+    }
+
+    public BulkUnitInsertEntry setUnit(JsonNode unit) {
+        this.unit = unit;
+        return this;
+    }
+
+    @Override
+    public String toString() {
+        return "BulkUnitInsertEntry{" +
+            "parentUnitIds=" + parentUnitIds +
+            ", unit=" + unit +
+            '}';
     }
 }

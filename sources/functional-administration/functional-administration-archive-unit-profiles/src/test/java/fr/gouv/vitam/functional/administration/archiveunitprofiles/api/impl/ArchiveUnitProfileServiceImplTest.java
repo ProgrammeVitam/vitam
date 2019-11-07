@@ -413,9 +413,7 @@ public class ArchiveUnitProfileServiceImplTest {
         VitamThreadUtils.getVitamSession().setTenantId(EXTERNAL_TENANT);
         String id3 = ((RequestResponseOK<ArchiveUnitProfileModel>) response).getResults().iterator().next().getIdentifier();
         final ArchiveUnitProfileModel acm = archiveUnitProfileService.findByIdentifier(id3);
-        assertThat(acm).isNotNull();
-        assertThat(acm.getFields()).isNotNull();
-        assertTrue(acm.getFields().size() > 0);
+        assertEquals(acm.getFields().size(), 14);
     }
 
     @Test

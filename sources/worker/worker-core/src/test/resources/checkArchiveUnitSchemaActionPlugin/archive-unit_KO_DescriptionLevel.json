@@ -4,7 +4,7 @@
 		"_tenant": 0,
 		"Title": "Archive2",
 		"DescriptionLevel": "Archive3",
-		"Management": {
+		"_mgt": {
 			"StorageRule": {
 				"Rules": [
 					{

@@ -24,30 +24,36 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  */
+
 package fr.gouv.vitam.common.model.unit;
 
-import fr.gouv.vitam.common.model.logbook.LogbookEvent;
+import org.junit.Test;
 
-import java.util.List;
+import java.lang.reflect.Field;
+import java.util.Arrays;
+import java.util.Map;
+import java.util.stream.Collectors;
 
-public class ArchiveUnitRoot {
+import static org.assertj.core.api.Assertions.assertThat;
 
-    private ArchiveUnitInternalModel archiveUnit;
-    private List<LogbookEvent> LogbookLifeCycleExternal;
+public class ArchiveUnitInternalModelTest {
 
-    public ArchiveUnitRoot() {
-        archiveUnit = new ArchiveUnitInternalModel();
-    }
+    @Test
+    public void checkInternalExternalFieldMapping() {
 
-    public ArchiveUnitInternalModel getArchiveUnit() {
-        return archiveUnit;
-    }
+        Map<String, Field> externalModelFields = Arrays.stream(ArchiveUnitModel.class.getDeclaredFields())
+            .collect(Collectors.toMap(Field::getName, field -> field));
 
-    public List<LogbookEvent> getLogbookLifeCycleExternal() {
-        return LogbookLifeCycleExternal;
-    }
+        Map<String, Field> internalModelFields = Arrays.stream(ArchiveUnitInternalModel.class.getDeclaredFields())
+            .collect(Collectors.toMap(Field::getName, field -> field));
 
-    public void setLogbookLifeCycleExternal(List<LogbookEvent> logbookLifeCycleExternal) {
-        this.LogbookLifeCycleExternal = logbookLifeCycleExternal;
+
+        assertThat(externalModelFields.keySet()).withFailMessage("Expected same field names")
+            .isEqualTo(internalModelFields.keySet());
+        for (String fieldName : internalModelFields.keySet()) {
+            assertThat(internalModelFields.get(fieldName).getType())
+                .withFailMessage("Expected same field type for field " + fieldName)
+                .isEqualTo(externalModelFields.get(fieldName).getType());
+        }
     }
 }

@@ -59,6 +59,8 @@ import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.functional.administration.common.server.ElasticsearchAccessFunctionalAdmin;
 import fr.gouv.vitam.functional.administration.common.server.FunctionalAdminCollections;
 import fr.gouv.vitam.metadata.api.config.MetaDataConfiguration;
+import fr.gouv.vitam.metadata.api.model.BulkUnitInsertEntry;
+import fr.gouv.vitam.metadata.api.model.BulkUnitInsertRequest;
 import fr.gouv.vitam.metadata.core.database.collections.ElasticsearchAccessMetadata;
 import fr.gouv.vitam.metadata.core.database.collections.MetadataCollections;
 import fr.gouv.vitam.metadata.core.database.collections.MetadataDocument;
@@ -68,6 +70,7 @@ import io.restassured.RestAssured;
 import io.restassured.http.ContentType;
 import net.javacrumbs.jsonunit.JsonAssert;
 import net.javacrumbs.jsonunit.core.Option;
+import org.apache.commons.collections4.SetUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.bson.Document;
 import org.junit.After;
@@ -86,6 +89,8 @@ import java.io.IOException;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
 
 import static io.restassured.RestAssured.get;
@@ -98,8 +103,10 @@ import static org.hamcrest.Matchers.equalTo;
 
 public class MetadataResourceTest {
     private static final String DATA =
-        "{ \"#id\": \"aeaqaaaaaaaaaaabaawkwak2ha24fdaaaaaq\", " + "\"data\": \"data1\" }";
+        "{ \"_id\": \"aeaqaaaaaaaaaaabaawkwak2ha24fdaaaaaq\", " + "\"data\": \"data1\" }";
     private static final String DATA2 =
+        "{ \"_id\": \"aeaqaaaaaeaaaaakaarp4akuuf2ldmyaaaab\"," + "\"data\": \"data2\" }";
+    private static final String OG_DATA =
         "{ \"#id\": \"aeaqaaaaaeaaaaakaarp4akuuf2ldmyaaaab\"," + "\"data\": \"data2\" }";
     private static final String INVALID_DATA = "{ \"INVALID\": true }";
 
@@ -189,10 +196,18 @@ public class MetadataResourceTest {
     }
 
     private static final JsonNode buildDSLWithOptions(String data) throws Exception {
-        return JsonHandler.getFromString("{ $roots : [], $query : [], $data : " + data + " }");
+        return JsonHandler.toJsonNode(new BulkUnitInsertRequest(Collections.singletonList(
+            new BulkUnitInsertEntry(Collections.emptySet(), JsonHandler.getFromString(data))
+        )));
     }
 
-    private static final JsonNode buildDSLWithOptionsRoots(String data, String... roots) throws Exception {
+    private static final JsonNode buildInsertUnitRequest(String data, String... roots) throws Exception {
+        return JsonHandler.toJsonNode(new BulkUnitInsertRequest(Collections.singletonList(
+            new BulkUnitInsertEntry(new HashSet<>(Arrays.asList(roots)), JsonHandler.getFromString(data))
+        )));
+    }
+
+    private static final JsonNode buildInsertObjectGroupRequest(String data, String... roots) throws Exception {
         return JsonHandler.getFromString("{ $roots : [ " + joinIds(roots) + "], $query : [], $data : " + data + " }");
     }
 
@@ -234,8 +249,7 @@ public class MetadataResourceTest {
             .contentType(ContentType.JSON)
             .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
             .body(INVALID_DATA).when()
-            .post("/units").then()
-            .body(equalTo(generateResponseErrorFromStatus(Status.BAD_REQUEST, "Parse in error for Insert: empty data")))
+            .post("units/bulk").then()
             .statusCode(Status.BAD_REQUEST.getStatusCode());
     }
 
@@ -245,14 +259,14 @@ public class MetadataResourceTest {
             .contentType(ContentType.JSON)
             .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
             .body(buildDSLWithOptions(DATA)).when()
-            .post("/units").then()
+            .post("units/bulk").then()
             .statusCode(Status.CREATED.getStatusCode());
 
         given()
             .contentType(ContentType.JSON)
             .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
             .body(buildDSLWithOptions(DATA)).when()
-            .post("/units").then()
+            .post("units/bulk").then()
             .body(equalTo(generateResponseErrorFromStatus(Status.CONFLICT,
                 "Metadata already exists: [aeaqaaaaaaaaaaabaawkwak2ha24fdaaaaaq]")))
             .statusCode(Status.CONFLICT.getStatusCode());
@@ -264,14 +278,14 @@ public class MetadataResourceTest {
             .contentType(ContentType.JSON)
             .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
             .body(buildDSLWithOptions(DATA)).when()
-            .post("/units").then()
+            .post("units/bulk").then()
             .statusCode(Status.CREATED.getStatusCode());
 
         given()
             .contentType(ContentType.JSON)
             .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
-            .body(buildDSLWithOptionsRoots(DATA2, "aeaqaaaaaaaaaaabaawkwak2ha24fdaaaaaq")).when()
-            .post("/units").then()
+            .body(buildInsertUnitRequest(DATA2, "aeaqaaaaaaaaaaabaawkwak2ha24fdaaaaaq")).when()
+            .post("units/bulk").then()
             .statusCode(Status.CREATED.getStatusCode());
     }
 
@@ -327,13 +341,13 @@ public class MetadataResourceTest {
 
     private void createUnit(String id, String sp, String... directParents) throws Exception {
 
-        String unitData = "{" + "\"#id\": \"" + id + "\"," + "\"#originating_agency\": \"" + sp + "\"" + "}";
+        String unitData = "{" + "\"_id\": \"" + id + "\"," + "\"_sp\": \"" + sp + "\"" + "}";
 
         with()
             .contentType(ContentType.JSON)
             .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
-            .body(buildDSLWithOptionsRoots(unitData, directParents)).when()
-            .post("/units").then()
+            .body(buildInsertUnitRequest(unitData, directParents)).when()
+            .post("units/bulk").then()
             .statusCode(Status.CREATED.getStatusCode());
     }
 
@@ -369,7 +383,7 @@ public class MetadataResourceTest {
         given()
             .contentType("metadataMain/xml")
             .body(buildDSLWithOptions(DATA)).when()
-            .post("/units").then()
+            .post("units/bulk").then()
             .statusCode(Status.UNSUPPORTED_MEDIA_TYPE.getStatusCode());
     }
 
@@ -378,28 +392,12 @@ public class MetadataResourceTest {
         given()
             .contentType(ContentType.JSON)
             .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
-            .body(buildDSLWithOptionsRoots(DATA, "aeaqaaaaaeaaaaakaarp4akuuf2ldmyaaaab")).when()
-            .post("/units")
+            .body(buildInsertUnitRequest(DATA, "aeaqaaaaaeaaaaakaarp4akuuf2ldmyaaaab")).when()
+            .post("/units/bulk")
             .then()
             .body(equalTo(generateResponseErrorFromStatus(Status.NOT_FOUND,
                 "Cannot find parents: [aeaqaaaaaeaaaaakaarp4akuuf2ldmyaaaab]")))
             .statusCode(Status.NOT_FOUND.getStatusCode());
-    }
-
-    @Test
-    public void shouldReturnErrorRequestBadRequestIfDocumentIsTooLarge() throws Exception {
-        final int limitRequest = GlobalDatasParser.limitRequest;
-        GlobalDatasParser.limitRequest = 99;
-        try {
-            given()
-                .contentType(ContentType.JSON)
-                .body(buildDSLWithOptions(createJsonStringWithDepth(60))).when()
-                .post("/units").then()
-                .body(equalTo(generateResponseErrorFromStatus(Status.BAD_REQUEST, "String exceeds sanity check of 99")))
-                .statusCode(Status.BAD_REQUEST.getStatusCode());
-        } finally {
-            GlobalDatasParser.limitRequest = limitRequest;
-        }
     }
 
     @Test
@@ -409,8 +407,7 @@ public class MetadataResourceTest {
             .contentType(ContentType.JSON)
             .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
             .body(buildDSLWithOptions(DATA)).when()
-            .post("/units").then()
-            .body(equalTo(responseOK))
+            .post("units/bulk").then()
             .statusCode(Status.CREATED.getStatusCode());
     }
 
@@ -432,19 +429,19 @@ public class MetadataResourceTest {
             .contentType(ContentType.JSON)
             .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
             .body(buildDSLWithOptions(DATA)).when()
-            .post("/units").then()
+            .post("units/bulk").then()
             .statusCode(Status.CREATED.getStatusCode());
         with()
             .contentType(ContentType.JSON)
             .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
-            .body(buildDSLWithOptionsRoots(DATA2, "aeaqaaaaaaaaaaabaawkwak2ha24fdaaaaaq")).when()
+            .body(buildInsertObjectGroupRequest(OG_DATA, "aeaqaaaaaaaaaaabaawkwak2ha24fdaaaaaq")).when()
             .post("/objectgroups").then()
             .statusCode(Status.CREATED.getStatusCode());
 
         given()
             .contentType(ContentType.JSON)
             .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
-            .body(buildDSLWithOptionsRoots(DATA2, "aeaqaaaaaaaaaaabaawkwak2ha24fdaaaaaq")).when()
+            .body(buildInsertObjectGroupRequest(OG_DATA, "aeaqaaaaaaaaaaabaawkwak2ha24fdaaaaaq")).when()
             .post("/objectgroups").then()
             .body(equalTo(generateResponseErrorFromStatus(Status.CONFLICT,
                 "Metadata already exists: [aeaqaaaaaeaaaaakaarp4akuuf2ldmyaaaab]")))

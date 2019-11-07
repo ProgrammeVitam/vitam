@@ -33,7 +33,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import org.apache.commons.io.IOUtils;
+import fr.gouv.vitam.metadata.api.model.BulkUnitInsertEntry;
+import fr.gouv.vitam.metadata.api.model.BulkUnitInsertRequest;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
@@ -62,12 +63,14 @@ import fr.gouv.vitam.metadata.api.exception.MetaDataException;
 import fr.gouv.vitam.metadata.api.exception.MetaDataNotFoundException;
 import fr.gouv.vitam.metadata.client.MetaDataClient;
 import fr.gouv.vitam.metadata.client.MetaDataClientFactory;
+import fr.gouv.vitam.metadata.core.database.collections.Unit;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 import fr.gouv.vitam.worker.common.HandlerIO;
 import fr.gouv.vitam.worker.core.handler.ActionHandler;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
+import org.apache.commons.io.IOUtils;
 
 /**
  * IndexUnitAction Plugin
@@ -79,8 +82,7 @@ public class IndexUnitActionPlugin extends ActionHandler {
 
     private static final String ARCHIVE_UNIT = "ArchiveUnit";
     private static final String TAG_WORK = "_work";
-    private static final String TAG_MANAGEMENT = "Management";
-    private static final int SEDA_PARAMETERS_RANK = 1;
+    private static final int SEDA_PARAMETERS_RANK = 0;
 
     private final MetaDataClientFactory metaDataClientFactory;
 
@@ -170,13 +172,14 @@ public class IndexUnitActionPlugin extends ActionHandler {
                 }
             }
 
-            List<ObjectNode> collect = queryCaches.stream()
+            List<BulkUnitInsertEntry> entries = queryCaches.stream()
                 .map(query -> query.requestMultiple)
-                .map(query -> ((InsertMultiQuery) query).getFinalInsert())
+                .map(query -> ((InsertMultiQuery) query))
+                .map(query -> new BulkUnitInsertEntry(query.getRoots(), query.getData()))
                 .collect(Collectors.toList());
             StatusCode statusCode;
             try {
-                metadataClient.insertUnitBulk(collect);
+                metadataClient.insertUnitBulk(new BulkUnitInsertRequest(entries));
                 statusCode = StatusCode.OK;
             } catch (final IllegalArgumentException e) {
                 throw e;
@@ -248,17 +251,12 @@ public class IndexUnitActionPlugin extends ActionHandler {
                 query.addRoots(parents);
             }
             if (!Boolean.TRUE.equals(existing)) {
-                // insert case
-                if (handlerIO.getInput() != null && !handlerIO.getInput().isEmpty()) {
-                    String unitType = UnitType.getUnitTypeString((String) handlerIO.getInput(0));
-                    data.put(VitamFieldsHelper.unitType(), unitType);
-                }
                 ((InsertMultiQuery) query).addData(data);
                 return new QueryCache(false, query, null);
             } else {
                 ((UpdateMultiQuery) query)
                     .addActions(UpdateActionHelper.push(VitamFieldsHelper.operations(), params.getContainerName()));
-                String existingAuGUID = data.get("#id").asText();
+                String existingAuGUID = data.get("_id").asText();
                 return new QueryCache(true, query, existingAuGUID);
             }
 
@@ -282,20 +280,6 @@ public class IndexUnitActionPlugin extends ActionHandler {
         }
     }
 
-    /**
-     * Convert xml archive unit to json node for insert/update.
-     *
-     * @param input       xml archive unit
-     * @param containerId container id
-     * @param objectName  unit file name
-     * @param handlerIO
-     *
-     * @return map of data
-     *
-     * @throws InvalidParseOperationException exception while reading temporary json file
-     * @throws ProcessingException            exception while reading xml file
-     */
-    // FIXME do we need to create a new file or not ?
     private JsonNode prepareArchiveUnitJson(InputStream input, String containerId, String objectName, HandlerIO handlerIO)
         throws InvalidParseOperationException, ProcessingException {
         try {
@@ -308,12 +292,6 @@ public class IndexUnitActionPlugin extends ActionHandler {
         JsonNode archiveUnit = JsonHandler.getFromInputStream(input);
         ObjectNode archiveUnitNode = (ObjectNode) archiveUnit.get(ARCHIVE_UNIT);
 
-        // replace _id by #id
-        archiveUnitNode.set("#id", archiveUnitNode.get("_id"));
-        archiveUnitNode.remove("_id");
-
-        // replace Management by _mgt
-        ObjectNode managementNode = (ObjectNode) archiveUnitNode.get(TAG_MANAGEMENT);
         final JsonNode sedaParameters = JsonHandler.getFromFile((File) handlerIO.getInput(SEDA_PARAMETERS_RANK));
         if (sedaParameters.get(SedaConstants.TAG_ARCHIVE_TRANSFER)
             .get(SedaConstants.TAG_DATA_OBJECT_PACKAGE).get(SedaConstants.TAG_ORIGINATINGAGENCYIDENTIFIER) != null) {
@@ -324,21 +302,9 @@ public class IndexUnitActionPlugin extends ActionHandler {
             ArrayNode originatingAgencies = JsonHandler.createArrayNode();
             originatingAgencies.add(prodService);
 
-            archiveUnitNode.set(VitamFieldsHelper.originatingAgencies(), originatingAgencies);
-            archiveUnitNode.put(VitamFieldsHelper.originatingAgency(), prodService);
+            archiveUnitNode.set(Unit.ORIGINATING_AGENCIES, originatingAgencies);
+            archiveUnitNode.put(Unit.ORIGINATING_AGENCY, prodService);
         }
-        archiveUnitNode.set(VitamFieldsHelper.management(), managementNode);
-        archiveUnitNode.remove(TAG_MANAGEMENT);
-
-        // remove DataObjectReference
-        // FIXME is it normal to have this TAG "DataObjectReference" after ExtractSeda since "_og" contains the guids
-        archiveUnitNode.remove("DataObjectReference");
-
-
-        // add #operations
-        archiveUnitNode.putArray(VitamFieldsHelper.operations()).add(containerId);
-        archiveUnitNode.put(SedaConstants.PREFIX_OPI, containerId);
-
         return archiveUnit;
 
     }

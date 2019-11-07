@@ -188,7 +188,7 @@ public class UnitsRulesComputePluginTest {
         assertEquals(response.getGlobalStatus(), StatusCode.OK);
 
         // check objectName file updated
-        JsonNode storageRule0 = archiveUnit.get("ArchiveUnit").get("Management").get("StorageRule").get("Rules").get(0);
+        JsonNode storageRule0 = archiveUnit.get("ArchiveUnit").get("_mgt").get("StorageRule").get("Rules").get(0);
         assertNotNull(storageRule0);
         assertNotNull(storageRule0.get("EndDate"));
         assertEquals("2016-04-10", storageRule0.get("EndDate").asText());
@@ -233,7 +233,7 @@ public class UnitsRulesComputePluginTest {
         assertEquals(response.getGlobalStatus(), StatusCode.OK);
 
         // check objectName file updated
-        JsonNode management = archiveUnit_MGT_only.get("ArchiveUnit").get("Management");
+        JsonNode management = archiveUnit_MGT_only.get("ArchiveUnit").get("_mgt");
         assertNotNull(management);
         assertNull(management.get("StorageRule"));
     }
@@ -262,7 +262,7 @@ public class UnitsRulesComputePluginTest {
         assertEquals(response.getGlobalStatus(), StatusCode.OK);
 
         // check objectName file updated
-        JsonNode storageRule0 = archiveUnit.get("ArchiveUnit").get("Management").get("StorageRule").get("Rules").get(0);
+        JsonNode storageRule0 = archiveUnit.get("ArchiveUnit").get("_mgt").get("StorageRule").get("Rules").get(0);
         assertNotNull(storageRule0);
         assertNotNull(storageRule0.get("EndDate"));
         assertEquals("2016-04-10", storageRule0.get("EndDate").asText());
@@ -289,7 +289,7 @@ public class UnitsRulesComputePluginTest {
 
         // check objectName file updated
         JsonNode accessRule0 =
-            archiveUnit_ARBO_MD_RG_COMPLEXE.get("ArchiveUnit").get("Management").get("AccessRule").get("Rules").get(0);
+            archiveUnit_ARBO_MD_RG_COMPLEXE.get("ArchiveUnit").get("_mgt").get("AccessRule").get("Rules").get(0);
         assertNotNull(accessRule0);
         assertNotNull(accessRule0.get("EndDate"));
         assertEquals("2120-01-01", accessRule0.get("EndDate").asText());
@@ -383,7 +383,7 @@ public class UnitsRulesComputePluginTest {
 
         // check objectName file updated
         JsonNode storageRule1 =
-            archiveUnit_MGT_MD.get("ArchiveUnit").get("Management").get("StorageRule").get("Rules").get(1);
+            archiveUnit_MGT_MD.get("ArchiveUnit").get("_mgt").get("StorageRule").get("Rules").get(1);
         assertNotNull(storageRule1);
         assertNotNull(storageRule1.get("EndDate"));
         assertEquals("2016-04-10", storageRule1.get("EndDate").asText());

@@ -1,7 +1,7 @@
 {
     "ArchiveUnit": {
 		"_id": "aeaqaaaaaahfrfvaaahrgak25v5fttiaaaaq",
-		"Management": {
+		"_mgt": {
 			"StorageRule": {
 				"Rules": [
 					{

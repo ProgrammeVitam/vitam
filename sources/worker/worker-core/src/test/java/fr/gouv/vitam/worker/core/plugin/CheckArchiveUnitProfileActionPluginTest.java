@@ -23,7 +23,7 @@
  *
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
-*/
+ */
 
 package fr.gouv.vitam.worker.core.plugin;
 
@@ -48,6 +48,8 @@ import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
 import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
 import fr.gouv.vitam.functional.administration.client.AdminManagementClient;
 import fr.gouv.vitam.functional.administration.client.AdminManagementClientFactory;
+import fr.gouv.vitam.functional.administration.common.exception.AdminManagementClientServerException;
+import fr.gouv.vitam.functional.administration.common.exception.ReferentialNotFoundException;
 import fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess;
 import fr.gouv.vitam.logbook.lifecycles.client.LogbookLifeCyclesClient;
 import fr.gouv.vitam.logbook.lifecycles.client.LogbookLifeCyclesClientFactory;
@@ -58,6 +60,8 @@ import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 import fr.gouv.vitam.processing.common.parameter.WorkerParametersFactory;
 import fr.gouv.vitam.worker.core.impl.HandlerIOImpl;
+import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundException;
+import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
 import fr.gouv.vitam.workspace.client.WorkspaceClient;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
 import org.assertj.core.util.Lists;
@@ -83,7 +87,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -100,48 +103,19 @@ public class CheckArchiveUnitProfileActionPluginTest {
     private AdminManagementClient adminManagementClient;
 
     private static final String ARCHIVE_UNIT = "checkArchiveUnitProfileActionPlugin/archive-unit_OK.json";
-    private static final String ARCHIVE_UNIT_INVALID = "checkArchiveUnitProfileActionPlugin/archive-unit_Invalid.json";
-    private static final String ARCHIVE_UNIT_INVALID_DATE =
-        "checkArchiveUnitProfileActionPlugin/archive-unit_Invalid_date.json";
-    private static final String ARCHIVE_UNIT_INVALID_RULE_START_DATE =
-        "checkArchiveUnitProfileActionPlugin/archive-unit_KO_Rule_StartDate.json";
     private static final String ARCHIVE_UNIT_INVALID_XML =
         "checkArchiveUnitProfileActionPlugin/archive-unit_Invalid.xml";
     private static final String ARCHIVE_UNIT_INVALID_DESCRIPTION =
         "checkArchiveUnitProfileActionPlugin/archive-unit_KO_DescriptionLevel.json";
-    private static final String ARCHIVE_UNIT_FINAL = "checkArchiveUnitProfileActionPlugin/archive-unit_OK_final.json";
 
-    private static final String ARCHIVE_UNIT_SCHEMA =
-        "json-schema/archive-unit-schema.json"; // from common-public
-    private static final String ARCHIVE_UNIT_SCHEMA_CONVERAGE =
-            "checkArchiveUnitProfileActionPlugin/archive-unit-profile-with-mandatory-coverage.json";
-    private static final String ARCHIVE_UNIT_SCHEMA_CUSTOM_DESCRIPTION_LEVEL =
+    private static final String ARCHIVE_UNIT_PROFILE_SCHEMA =
+        "checkArchiveUnitProfileActionPlugin/archive-unit-profile.json";
+    private static final String ARCHIVE_UNIT_PROFILE_SCHEMA_CONVERAGE =
+        "checkArchiveUnitProfileActionPlugin/archive-unit-profile-with-mandatory-coverage.json";
+    private static final String ARCHIVE_UNIT_PROFILE_SCHEMA_CUSTOM_DESCRIPTION_LEVEL =
         "checkArchiveUnitProfileActionPlugin/archive-unit-profile-description-level.json";
-    private static final String ARCHIVE_UNIT_SCHEMA_CUSTOM_START_DATE =
-        "checkArchiveUnitProfileActionPlugin/archive-unit-profile-startdate-format.json";
+
     private static final String GUID_MAP_JSON = "GUID_TO_ARCHIVE_ID_MAP.json";
-    private static final String ARCHIVE_UNIT_UP = "checkArchiveUnitProfileActionPlugin/archive-unit_with_up.json";
-    private static final String ARCHIVE_UNIT_WO_UP = "checkArchiveUnitProfileActionPlugin/archive-unit_without_up.json";
-    private static final String ARCHIVE_UNIT_SCHEMA_REQUIRING_UP = "checkArchiveUnitProfileActionPlugin/archive-unit-profile-requiring-up.json";
-    private static final String ARCHIVE_UNIT_SCHEMA_NOT_REQUIRING_UP = "checkArchiveUnitProfileActionPlugin/archive-unit-profile-not-requiring-up.json";
-
-
-    private final InputStream archiveUnit;
-    private final InputStream archiveUnitFinal;
-
-    private final InputStream archiveUnitInvalid;
-    private final InputStream archiveUnitInvalidDate;
-    private final InputStream archiveUnitInvalidRuleStartDate;
-    private final InputStream archiveUnitInvalidDescription;
-    private final InputStream archiveUnitInvalidXml;
-    private final InputStream archiveUnitSchema;
-    private final InputStream archiveUnitSchemaWithCoverage;
-    private final InputStream archiveUnitSchemaCustomDescriptionLevel;
-    private final InputStream archiveUnitSchemaCustomStartDate;
-    private final InputStream archiveUnitSchemaRequiringUp;
-    private final InputStream archiveUnitSchemaNOTRequiringUp;
-    private final InputStream archiveUnitWithUP;
-    private final InputStream archiveUnitWithoutUP;
 
     private HandlerIOImpl handlerIO;
     private GUID guid = GUIDFactory.newGUID();
@@ -155,26 +129,6 @@ public class CheckArchiveUnitProfileActionPluginTest {
 
     @Rule
     public TemporaryFolder temporaryFolder = new TemporaryFolder();
-
-
-    public CheckArchiveUnitProfileActionPluginTest() throws FileNotFoundException {
-        archiveUnit = PropertiesUtils.getResourceAsStream(ARCHIVE_UNIT);
-        archiveUnitFinal = PropertiesUtils.getResourceAsStream(ARCHIVE_UNIT_FINAL);
-        archiveUnitInvalid = PropertiesUtils.getResourceAsStream(ARCHIVE_UNIT_INVALID);
-        archiveUnitInvalidDate = PropertiesUtils.getResourceAsStream(ARCHIVE_UNIT_INVALID_DATE);
-        archiveUnitInvalidXml = PropertiesUtils.getResourceAsStream(ARCHIVE_UNIT_INVALID_XML);
-        archiveUnitInvalidRuleStartDate = PropertiesUtils.getResourceAsStream(ARCHIVE_UNIT_INVALID_RULE_START_DATE);
-        archiveUnitInvalidDescription = PropertiesUtils.getResourceAsStream(ARCHIVE_UNIT_INVALID_DESCRIPTION);
-        archiveUnitSchema = PropertiesUtils.getResourceAsStream(ARCHIVE_UNIT_SCHEMA);
-        archiveUnitSchemaWithCoverage = PropertiesUtils.getResourceAsStream(ARCHIVE_UNIT_SCHEMA_CONVERAGE);
-        archiveUnitSchemaCustomDescriptionLevel =
-            PropertiesUtils.getResourceAsStream(ARCHIVE_UNIT_SCHEMA_CUSTOM_DESCRIPTION_LEVEL);
-        archiveUnitSchemaCustomStartDate = PropertiesUtils.getResourceAsStream(ARCHIVE_UNIT_SCHEMA_CUSTOM_START_DATE);
-        archiveUnitSchemaRequiringUp = PropertiesUtils.getResourceAsStream(ARCHIVE_UNIT_SCHEMA_REQUIRING_UP);
-        archiveUnitSchemaNOTRequiringUp = PropertiesUtils.getResourceAsStream(ARCHIVE_UNIT_SCHEMA_NOT_REQUIRING_UP);
-        archiveUnitWithUP = PropertiesUtils.getResourceAsStream(ARCHIVE_UNIT_UP);
-        archiveUnitWithoutUP = PropertiesUtils.getResourceAsStream(ARCHIVE_UNIT_WO_UP);
-    }
 
     @Before
     public void setUp() throws Exception {
@@ -229,44 +183,19 @@ public class CheckArchiveUnitProfileActionPluginTest {
 
     @Test
     public void givenCorrectArchiveUnitJsonWhenExecuteThenReturnResponseOK() throws Exception {
-        when(workspaceClient.getObject(any(), eq("Units/archiveUnit.json")))
-            .thenReturn(Response.status(Status.OK).entity(archiveUnit).build());
-        when(adminManagementClient.findArchiveUnitProfilesByID("AUP_0001"))
-            .thenReturn(createArchiveUnitProfile(archiveUnitSchema));
+        givenArchiveUnit(ARCHIVE_UNIT);
+        givenArchiveUnitProfile(ARCHIVE_UNIT_PROFILE_SCHEMA);
+
         final ItemStatus response = plugin.execute(params, handlerIO);
         assertEquals(response.getGlobalStatus(), OK);
-    }
-
-    @Test
-    public void givenFinalArchiveUnitJsonWhenExecuteThenReturnResponseOK() throws Exception {
-        when(workspaceClient.getObject(any(), eq("Units/archiveUnit.json")))
-            .thenReturn(Response.status(Status.OK).entity(archiveUnitFinal).build());
-        when(adminManagementClient.findArchiveUnitProfilesByID("AUP_0001"))
-            .thenReturn(createArchiveUnitProfile(archiveUnitSchema));
-        final ItemStatus response = plugin.execute(params, handlerIO);
-        assertEquals(response.getGlobalStatus(), OK);
-    }
-
-    @Test
-    public void givenInvalidArchiveUnitJsonWhenExecuteThenReturnResponseKO() throws Exception {
-        // Invalid archive unit -> missing title in it
-        when(workspaceClient.getObject(any(), eq("Units/archiveUnit.json")))
-            .thenReturn(Response.status(Status.OK).entity(archiveUnitInvalid).build());
-        when(adminManagementClient.findArchiveUnitProfilesByID("AUP_0001"))
-            .thenReturn(createArchiveUnitProfile(archiveUnitSchema));
-        final ItemStatus response = plugin.execute(params, handlerIO);
-        assertEquals(response.getGlobalStatus(), KO);
-        assertThat(response.getGlobalOutcomeDetailSubcode()).isEqualTo(
-            CheckArchiveUnitProfileActionPlugin.OUTCOME_DETAILS_NOT_AU_JSON_VALID);
     }
 
     @Test
     public void givenInvalidArchiveUnitXMLWhenExecuteThenReturnResponseKO() throws Exception {
         // Invalid archive unit -> XML File
-        when(workspaceClient.getObject(any(), eq("Units/archiveUnit.json")))
-            .thenReturn(Response.status(Status.OK).entity(archiveUnitInvalidXml).build());
-        when(adminManagementClient.findArchiveUnitProfilesByID("AUP_0001"))
-            .thenReturn(createArchiveUnitProfile(archiveUnitSchema));
+        givenArchiveUnit(ARCHIVE_UNIT_INVALID_XML);
+        givenArchiveUnitProfile(ARCHIVE_UNIT_PROFILE_SCHEMA);
+
         final ItemStatus response = plugin.execute(params, handlerIO);
         assertEquals(response.getGlobalStatus(), FATAL);
     }
@@ -274,10 +203,8 @@ public class CheckArchiveUnitProfileActionPluginTest {
     @Test
     public void givenNoCoverageArchiveUnitJsonWhenExecuteThenReturnResponseKO() throws Exception {
         // archive unit has no Coverage when schema requires one
-        when(workspaceClient.getObject(any(), eq("Units/archiveUnit.json")))
-            .thenReturn(Response.status(Status.OK).entity(archiveUnit).build());
-        when(adminManagementClient.findArchiveUnitProfilesByID("AUP_0001"))
-            .thenReturn(createArchiveUnitProfile(archiveUnitSchemaWithCoverage));
+        givenArchiveUnit(ARCHIVE_UNIT);
+        givenArchiveUnitProfile(ARCHIVE_UNIT_PROFILE_SCHEMA_CONVERAGE);
 
         final ItemStatus response = plugin.execute(params, handlerIO);
         assertEquals(response.getGlobalStatus(), KO);
@@ -288,10 +215,8 @@ public class CheckArchiveUnitProfileActionPluginTest {
     @Test
     public void givenInvalidDescriptionLevelInArchiveUnitJsonWhenExecuteThenReturnResponseKO() throws Exception {
         // archive unit has no description when schema requires one
-        when(workspaceClient.getObject(any(), eq("Units/archiveUnit.json")))
-            .thenReturn(Response.status(Status.OK).entity(archiveUnitInvalidDescription).build());
-        when(adminManagementClient.findArchiveUnitProfilesByID("AUP_0001"))
-            .thenReturn(createArchiveUnitProfile(archiveUnitSchemaCustomDescriptionLevel));
+        givenArchiveUnit(ARCHIVE_UNIT_INVALID_DESCRIPTION);
+        givenArchiveUnitProfile(ARCHIVE_UNIT_PROFILE_SCHEMA_CUSTOM_DESCRIPTION_LEVEL);
 
         final ItemStatus response = plugin.execute(params, handlerIO);
         assertEquals(response.getGlobalStatus(), KO);
@@ -303,12 +228,10 @@ public class CheckArchiveUnitProfileActionPluginTest {
     public void givenInactiveSchemaControlAUProfileInArchiveUnitJsonWhenExecuteThenReturnResponseKO()
         throws Exception {
         // archive unit has no description when schema requires one
-        when(workspaceClient.getObject(any(), eq("Units/archiveUnit.json")))
-            .thenReturn(Response.status(Status.OK).entity(archiveUnit).build());
+        givenArchiveUnit(ARCHIVE_UNIT);
         //Inactive Status
-        when(adminManagementClient.findArchiveUnitProfilesByID("AUP_0001"))
-            .thenReturn(createCustomArchiveUnitProfile(archiveUnitSchema, ArchiveUnitProfileStatus.INACTIVE,
-                CtrlSchemaValueSetterFlagEnum.NOT_SET));
+        givenArchiveUnitProfile(ARCHIVE_UNIT_PROFILE_SCHEMA,
+            ArchiveUnitProfileStatus.INACTIVE, CtrlSchemaValueSetterFlagEnum.NOT_SET);
 
         ItemStatus response = plugin.execute(params, handlerIO);
         assertEquals(KO, response.getGlobalStatus());
@@ -321,13 +244,11 @@ public class CheckArchiveUnitProfileActionPluginTest {
         throws Exception {
 
         // archive unit has no description when schema requires one
-        when(workspaceClient.getObject(any(), eq("Units/archiveUnit.json")))
-            .thenReturn(Response.status(Status.OK).entity(archiveUnit).build());
+        givenArchiveUnit(ARCHIVE_UNIT);
 
         //Empty control schema
-        when(adminManagementClient.findArchiveUnitProfilesByID("AUP_0001"))
-            .thenReturn(createCustomArchiveUnitProfile(archiveUnitSchema, ArchiveUnitProfileStatus.ACTIVE,
-                CtrlSchemaValueSetterFlagEnum.NOT_SET));
+        givenArchiveUnitProfile(ARCHIVE_UNIT_PROFILE_SCHEMA,
+            ArchiveUnitProfileStatus.ACTIVE, CtrlSchemaValueSetterFlagEnum.NOT_SET);
 
         ItemStatus response = plugin.execute(params, handlerIO);
         assertEquals(KO, response.getGlobalStatus());
@@ -341,14 +262,11 @@ public class CheckArchiveUnitProfileActionPluginTest {
         throws Exception {
 
         // archive unit has no description when schema requires one
-        when(workspaceClient.getObject(any(), eq("Units/archiveUnit.json")))
-            .thenReturn(Response.status(Status.OK).entity(archiveUnit).build());
+        givenArchiveUnit(ARCHIVE_UNIT);
 
         //JSon Empty control schema
-        InputStream archiveUnitSchemaBis = PropertiesUtils.getResourceAsStream(ARCHIVE_UNIT_SCHEMA);
-        when(adminManagementClient.findArchiveUnitProfilesByID("AUP_0001"))
-            .thenReturn(createCustomArchiveUnitProfile(archiveUnitSchemaBis, ArchiveUnitProfileStatus.ACTIVE,
-                CtrlSchemaValueSetterFlagEnum.SET_AS_EMPTY_JSON));
+        givenArchiveUnitProfile(ARCHIVE_UNIT_PROFILE_SCHEMA, ArchiveUnitProfileStatus.ACTIVE,
+            CtrlSchemaValueSetterFlagEnum.SET_AS_EMPTY_JSON);
 
         ItemStatus response = plugin.execute(params, handlerIO);
         assertEquals(KO, response.getGlobalStatus());
@@ -361,84 +279,18 @@ public class CheckArchiveUnitProfileActionPluginTest {
         throws Exception {
 
         // archive unit has no description when schema requires one
-        when(workspaceClient.getObject(any(), eq("Units/archiveUnit.json")))
-            .thenReturn(Response.status(Status.OK).entity(archiveUnit).build());
+        givenArchiveUnit(ARCHIVE_UNIT);
 
         //All OK
-        InputStream archiveUnitSchemaBis = PropertiesUtils.getResourceAsStream(ARCHIVE_UNIT_SCHEMA);
-        when(adminManagementClient.findArchiveUnitProfilesByID("AUP_0001"))
-            .thenReturn(createCustomArchiveUnitProfile(archiveUnitSchemaBis, ArchiveUnitProfileStatus.ACTIVE,
-                CtrlSchemaValueSetterFlagEnum.SET));
+        givenArchiveUnitProfile(ARCHIVE_UNIT_PROFILE_SCHEMA, ArchiveUnitProfileStatus.ACTIVE,
+            CtrlSchemaValueSetterFlagEnum.SET);
 
         ItemStatus response = plugin.execute(params, handlerIO);
         assertEquals(OK, response.getGlobalStatus());
     }
 
-    @Test
-    public void should_accept_when_up_required_and_present() throws Exception {
-        // Given
-        Response response = Response.status(Status.OK).entity(archiveUnitWithUP).build(); // <- with UP
-        given(workspaceClient.getObject(any(), eq("Units/archiveUnit.json"))).willReturn(response);
-
-        RequestResponse<ArchiveUnitProfileModel> aup = createArchiveUnitProfile(archiveUnitSchemaRequiringUp); // <- require UP
-        given(adminManagementClient.findArchiveUnitProfilesByID("AUP_0001")).willReturn(aup);
-
-        // When
-        ItemStatus status = plugin.execute(params, handlerIO);
-
-        // Then
-        assertThat(status.getGlobalStatus()).isEqualTo(OK);
-    }
-
-    @Test
-    public void should_reject_when_up_required_and_NOT_present() throws Exception {
-        // Given
-        Response response = Response.status(Status.OK).entity(archiveUnitWithoutUP).build(); // <- without UP
-        given(workspaceClient.getObject(any(), eq("Units/archiveUnit.json"))).willReturn(response);
-
-        RequestResponse<ArchiveUnitProfileModel> aup = createArchiveUnitProfile(archiveUnitSchemaRequiringUp); // <- require UP
-        given(adminManagementClient.findArchiveUnitProfilesByID("AUP_0001")).willReturn(aup);
-
-        // When
-        ItemStatus status = plugin.execute(params, handlerIO);
-
-        // Then
-        assertThat(status.getGlobalStatus()).isEqualTo(KO);
-    }
-
-    @Test
-    public void should_accept_present_up_when_not_required() throws Exception {
-        // Given
-        Response response = Response.status(Status.OK).entity(archiveUnitWithUP).build(); // <- with UP
-        given(workspaceClient.getObject(any(), eq("Units/archiveUnit.json"))).willReturn(response);
-
-        RequestResponse<ArchiveUnitProfileModel> aup = createArchiveUnitProfile(archiveUnitSchemaNOTRequiringUp); // <- not required UP
-        given(adminManagementClient.findArchiveUnitProfilesByID("AUP_0001")).willReturn(aup);
-
-        // When
-        ItemStatus status = plugin.execute(params, handlerIO);
-
-        // Then
-        assertThat(status.getGlobalStatus()).isEqualTo(OK);
-    }
-
-    @Test
-    public void should_accept_absent_up_when_not_required() throws Exception {
-        // Given
-        Response response = Response.status(Status.OK).entity(archiveUnitWithUP).build(); // <- without UP
-        given(workspaceClient.getObject(any(), eq("Units/archiveUnit.json"))).willReturn(response);
-
-        RequestResponse<ArchiveUnitProfileModel> aup = createArchiveUnitProfile(archiveUnitSchemaNOTRequiringUp); // <- not required UP
-        given(adminManagementClient.findArchiveUnitProfilesByID("AUP_0001")).willReturn(aup);
-
-        // When
-        ItemStatus status = plugin.execute(params, handlerIO);
-
-        // Then
-        assertThat(status.getGlobalStatus()).isEqualTo(OK);
-    }
-
-    private RequestResponse<ArchiveUnitProfileModel> createArchiveUnitProfile(InputStream schema) throws InvalidParseOperationException {
+    private RequestResponse<ArchiveUnitProfileModel> createArchiveUnitProfile(InputStream schema)
+        throws InvalidParseOperationException {
         ArchiveUnitProfileModel archiveUnitProfileModel = new ArchiveUnitProfileModel();
         archiveUnitProfileModel.setIdentifier("AUP_0001");
         archiveUnitProfileModel.setId(GUIDFactory.newProfileGUID(0).toString());
@@ -449,7 +301,8 @@ public class CheckArchiveUnitProfileActionPluginTest {
         return ClientMockResultHelper.createResponse(archiveUnitProfileModel);
     }
 
-    private RequestResponse<ArchiveUnitProfileModel> createCustomArchiveUnitProfile(InputStream schema, ArchiveUnitProfileStatus aupStatus,
+    private RequestResponse<ArchiveUnitProfileModel> createCustomArchiveUnitProfile(InputStream schema,
+        ArchiveUnitProfileStatus aupStatus,
         CtrlSchemaValueSetterFlagEnum ctrlSchemaSetterFlag) throws InvalidParseOperationException {
         ArchiveUnitProfileModel archiveUnitProfileModel = new ArchiveUnitProfileModel();
         archiveUnitProfileModel.setIdentifier("AUP_0001");
@@ -466,6 +319,35 @@ public class CheckArchiveUnitProfileActionPluginTest {
         }
 
         return ClientMockResultHelper.createResponse(archiveUnitProfileModel);
+    }
+
+    private void givenArchiveUnit(String archiveUnit)
+        throws ContentAddressableStorageNotFoundException, ContentAddressableStorageServerException,
+        FileNotFoundException {
+        when(workspaceClient.getObject(any(), eq("Units/archiveUnit.json")))
+            .thenReturn(Response.status(Status.OK).entity(
+                PropertiesUtils.getResourceAsStream(archiveUnit)
+            ).build());
+    }
+
+    private void givenArchiveUnitProfile(String archiveUnitSchema)
+        throws InvalidParseOperationException, AdminManagementClientServerException, ReferentialNotFoundException,
+        FileNotFoundException {
+        when(adminManagementClient.findArchiveUnitProfilesByID("AUP_0001"))
+            .thenReturn(createArchiveUnitProfile(
+                PropertiesUtils.getResourceAsStream(archiveUnitSchema)
+            ));
+    }
+
+    private void givenArchiveUnitProfile(String resourceFile, ArchiveUnitProfileStatus inactive,
+        CtrlSchemaValueSetterFlagEnum notSet)
+        throws InvalidParseOperationException, AdminManagementClientServerException, ReferentialNotFoundException,
+        FileNotFoundException {
+
+        when(adminManagementClient.findArchiveUnitProfilesByID("AUP_0001"))
+            .thenReturn(createCustomArchiveUnitProfile(
+                PropertiesUtils.getResourceAsStream(resourceFile), inactive,
+                notSet));
     }
 
     private enum CtrlSchemaValueSetterFlagEnum {

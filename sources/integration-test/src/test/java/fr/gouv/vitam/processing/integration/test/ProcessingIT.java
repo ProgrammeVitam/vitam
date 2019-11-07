@@ -53,7 +53,6 @@ import fr.gouv.vitam.common.database.builder.query.action.SetAction;
 import fr.gouv.vitam.common.database.builder.query.action.UpdateActionHelper;
 import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.GLOBAL;
 import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.PROJECTIONARGS;
-import fr.gouv.vitam.common.database.builder.request.multiple.InsertMultiQuery;
 import fr.gouv.vitam.common.database.builder.request.multiple.SelectMultiQuery;
 import fr.gouv.vitam.common.database.builder.request.multiple.UpdateMultiQuery;
 import fr.gouv.vitam.common.database.builder.request.single.Select;
@@ -101,6 +100,8 @@ import fr.gouv.vitam.logbook.common.server.database.collections.LogbookCollectio
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClient;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClientFactory;
 import fr.gouv.vitam.logbook.rest.LogbookMain;
+import fr.gouv.vitam.metadata.api.model.BulkUnitInsertEntry;
+import fr.gouv.vitam.metadata.api.model.BulkUnitInsertRequest;
 import fr.gouv.vitam.metadata.client.MetaDataClient;
 import fr.gouv.vitam.metadata.client.MetaDataClientFactory;
 import fr.gouv.vitam.metadata.core.UnitInheritedRule;
@@ -156,6 +157,8 @@ import java.nio.file.SimpleFileVisitor;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
@@ -426,17 +429,11 @@ public class ProcessingIT extends VitamRuleRunner {
             workspaceClient.uncompressObject(containerName, SIP_FOLDER, CommonMediaType.ZIP,
                 zipInputStreamSipObject);
             // call processing
-            metaDataClient.insertUnit(
-                new InsertMultiQuery()
-                    .addData((ObjectNode) JsonHandler
-                        .getFromFile(PropertiesUtils.getResourceFile("integration-processing/unit_metadata.json")))
-                    .getFinalInsert());
-
-            metaDataClient.insertUnit(
-                new InsertMultiQuery()
-                    .addData(
-                        (ObjectNode) JsonHandler.getFromFile(PropertiesUtils.getResourceFile(PROCESSING_UNIT_PLAN)))
-                    .getFinalInsert());
+            metaDataClient.insertUnitBulk(
+                new BulkUnitInsertRequest(Arrays.asList(
+                    new BulkUnitInsertEntry(Collections.emptySet(), JsonHandler.getFromFile(PropertiesUtils.getResourceFile("integration-processing/unit_metadata.json"))),
+                    new BulkUnitInsertEntry(Collections.emptySet(), JsonHandler.getFromFile(PropertiesUtils.getResourceFile(PROCESSING_UNIT_PLAN)))
+                )));
 
             metaDataClient.refreshUnits();
             // import contract
@@ -539,18 +536,14 @@ public class ProcessingIT extends VitamRuleRunner {
             workspaceClient.createContainer(containerName);
             workspaceClient.uncompressObject(containerName, SIP_FOLDER, CommonMediaType.ZIP,
                 zipInputStreamSipObject);
-            // call processing
-            metaDataClient.insertUnit(
-                new InsertMultiQuery()
-                    .addData((ObjectNode) JsonHandler
-                        .getFromFile(PropertiesUtils.getResourceFile("integration-processing/unit_metadata.json")))
-                    .getFinalInsert());
 
-            metaDataClient.insertUnit(
-                new InsertMultiQuery()
-                    .addData(
-                        (ObjectNode) JsonHandler.getFromFile(PropertiesUtils.getResourceFile(PROCESSING_UNIT_PLAN)))
-                    .getFinalInsert());
+
+            // call processing
+            metaDataClient.insertUnitBulk(
+                new BulkUnitInsertRequest(Arrays.asList(
+                    new BulkUnitInsertEntry(Collections.emptySet(), JsonHandler.getFromFile(PropertiesUtils.getResourceFile("integration-processing/unit_metadata.json"))),
+                    new BulkUnitInsertEntry(Collections.emptySet(), JsonHandler.getFromFile(PropertiesUtils.getResourceFile(PROCESSING_UNIT_PLAN)))
+                )));
 
             metaDataClient.refreshUnits();
             // import contract
@@ -2716,17 +2709,11 @@ public class ProcessingIT extends VitamRuleRunner {
             workspaceClient.uncompressObject(containerName, SIP_FOLDER, CommonMediaType.ZIP,
                 zipInputStreamSipObject);
             // call processing
-            metaDataClient.insertUnit(
-                new InsertMultiQuery()
-                    .addData((ObjectNode) JsonHandler
-                        .getFromFile(PropertiesUtils.getResourceFile("integration-processing/unit_metadata.json")))
-                    .getFinalInsert());
-
-            metaDataClient.insertUnit(
-                new InsertMultiQuery()
-                    .addData(
-                        (ObjectNode) JsonHandler.getFromFile(PropertiesUtils.getResourceFile(PROCESSING_UNIT_PLAN)))
-                    .getFinalInsert());
+            metaDataClient.insertUnitBulk(
+                new BulkUnitInsertRequest(Arrays.asList(
+                    new BulkUnitInsertEntry(Collections.emptySet(), JsonHandler.getFromFile(PropertiesUtils.getResourceFile("integration-processing/unit_metadata.json"))),
+                    new BulkUnitInsertEntry(Collections.emptySet(), JsonHandler.getFromFile(PropertiesUtils.getResourceFile(PROCESSING_UNIT_PLAN)))
+                )));
 
             metaDataClient.refreshUnits();
             // import contract

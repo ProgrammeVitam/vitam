@@ -46,6 +46,7 @@ import fr.gouv.vitam.metadata.api.exception.MetaDataClientServerException;
 import fr.gouv.vitam.metadata.api.exception.MetaDataDocumentSizeException;
 import fr.gouv.vitam.metadata.api.exception.MetaDataExecutionException;
 import fr.gouv.vitam.metadata.api.exception.MetaDataNotFoundException;
+import fr.gouv.vitam.metadata.api.model.BulkUnitInsertRequest;
 import fr.gouv.vitam.metadata.api.model.ObjectGroupPerOriginatingAgency;
 import fr.gouv.vitam.metadata.api.model.UnitPerOriginatingAgency;
 import org.junit.AfterClass;
@@ -67,6 +68,7 @@ import java.io.InputStream;
 import java.util.List;
 import java.util.Set;
 
+import static javax.ws.rs.core.MediaType.APPLICATION_JSON;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -117,14 +119,6 @@ public class MetaDataClientRestTest extends ResteasyTestApplication {
 
         public MockResource(ExpectedResults expectedResponse) {
             this.expectedResponse = expectedResponse;
-        }
-
-        @Path("units")
-        @POST
-        @Consumes(MediaType.APPLICATION_JSON)
-        @Produces(MediaType.APPLICATION_JSON)
-        public Response insertUnit(String request) {
-            return expectedResponse.post();
         }
 
         @Path("units")
@@ -220,54 +214,6 @@ public class MetaDataClientRestTest extends ResteasyTestApplication {
         public Response switchIndexes(JsonNode options) {
             return expectedResponse.post();
         }
-    }
-
-    @Test
-    public void givenParentNotFoundRequestWhenInsertThenReturnNotFound() {
-        when(mock.post()).thenReturn(Response.status(Status.NOT_FOUND).build());
-        assertThatThrownBy(() -> client.insertUnit(JsonHandler.getFromString(VALID_QUERY)))
-            .isInstanceOf(MetaDataNotFoundException.class);
-    }
-
-    @Test
-    public void givenUnitAlreadyExistsWhenInsertThenReturnConflict() {
-        when(mock.post()).thenReturn(Response.status(Status.CONFLICT).build());
-        assertThatThrownBy(() -> client.insertUnit(JsonHandler.getFromString(VALID_QUERY)))
-            .isInstanceOf(MetaDataAlreadyExistException.class);
-    }
-
-    @Test
-    public void givenEntityTooLargeRequestWhenInsertThenReturnRequestEntityTooLarge() {
-        when(mock.post()).thenReturn(Response.status(Status.REQUEST_ENTITY_TOO_LARGE).build());
-        assertThatThrownBy(() -> client.insertUnit(JsonHandler.getFromString(VALID_QUERY)))
-            .isInstanceOf(MetaDataDocumentSizeException.class);
-    }
-
-    @Test
-    public void shouldRaiseExceptionWhenExecution() {
-        when(mock.post()).thenReturn(Response.status(Status.INTERNAL_SERVER_ERROR).build());
-        assertThatThrownBy(() -> client.insertUnit(JsonHandler.getFromString(VALID_QUERY)))
-            .isInstanceOf(MetaDataExecutionException.class);
-    }
-
-    @Test
-    public void givenInvalidRequestWhenInsertThenReturnBadRequest() {
-        when(mock.post()).thenReturn(Response.status(Status.BAD_REQUEST).build());
-        assertThatThrownBy(() -> client.insertUnit(JsonHandler.getFromString(VALID_QUERY)))
-            .isInstanceOf(InvalidParseOperationException.class);
-    }
-
-    @Test
-    public void given_emptyRequest_When_Insert_ThenReturn_BadRequest() {
-        assertThatThrownBy(() -> client.insertUnit(JsonHandler.getFromString("")))
-            .isInstanceOf(InvalidParseOperationException.class);
-    }
-
-    @Test
-    public void insertUnitTest() throws Exception {
-        when(mock.post())
-            .thenReturn(Response.status(Status.CREATED).entity(JsonHandler.createObjectNode()).build());
-        client.insertUnit(JsonHandler.getFromString(VALID_QUERY));
     }
 
     @Test

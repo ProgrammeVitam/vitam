@@ -4,7 +4,7 @@
 		"_existing": "true"
 	},
 	"ArchiveUnit": {
-		"Management": {
+		"_mgt": {
 			"UpdateOperation": {
 				"SystemId": "GUID_ARCHIVE_UNIT_PARENT"
 			}
