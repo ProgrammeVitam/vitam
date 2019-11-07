@@ -69,7 +69,7 @@
                 <Content>
                     <DescriptionLevel>RecordGrp</DescriptionLevel>
                     <Title>content</Title>
-                    <Description>C:\Users\mehdi.afnai\Desktop\content</Description>
+                    <Description>dossier content</Description>
                     <StartDate>2016-03-23T14:58:30</StartDate>
                     <EndDate>2016-03-23T14:58:30</EndDate>
                 </Content>
@@ -90,7 +90,6 @@
                     <DescriptionLevel>Item</DescriptionLevel>
                     <Title>Annuaire_projet.pdf</Title>
                     <Description>Pseudo Archive Unit du fichier
-                        :C:\Users\mehdi.afnai\Desktop\content\Annuaire_projet.pdf
                     </Description>
                     <TransactedDate>2016-03-23T14:58:30</TransactedDate>
                 </Content>
