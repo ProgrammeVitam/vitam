@@ -42,7 +42,7 @@ public interface Retryable<T, E extends Exception> {
         try {
             long sleepTime = getSleepTime(attempt, param, randomSleep);
             TimeUnit timeUnit = param.getTimeUnit();
-            LOGGER.warn("Will retry '{}' in '{}' {}.", name, sleepTime, timeUnit.name());
+            LOGGER.warn("Retryable='{}' - Will retry '{}' in '{}' {}.", name, sleepTime, timeUnit.name());
             timeUnit.sleep(sleepTime);
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();

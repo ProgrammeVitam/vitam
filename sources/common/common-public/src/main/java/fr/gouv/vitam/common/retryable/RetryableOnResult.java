@@ -60,13 +60,14 @@ public class RetryableOnResult<T, E extends Exception> implements Retryable<T, E
     @Override
     public T exec(DelegateRetry<T, E> delegate) throws E {
         while (counter.getAndIncrement() < param.getNbRetry()) {
+            LOGGER.warn("Retryable='{}' - Attempt '{}' of '{}'.", delegate.toString(), counter.get(), param.getNbRetry());
             T result = delegate.call();
             if (counter.get() >= param.getNbRetry() || retryOn.negate().test(result)) {
+                LOGGER.warn("Retryable='{}' - Stop retry at attempt '{}' and return result of type '{}'.", counter.get(), result.getClass().getSimpleName());
                 return result;
             }
             onResult.accept(result);
             sleep(counter.get(), delegate.toString(), LOGGER, param, randomSleep);
-            LOGGER.warn("Retry '{}', attempt '{}' of '{}'.", delegate.toString(), counter.get(), param.getNbRetry());
         }
 
         throw new IllegalStateException("Unreachable statement.");

@@ -66,9 +66,11 @@ public class RetryableOnException<T, E extends Exception> implements Retryable<T
     public T exec(DelegateRetry<T, E> delegate) throws E {
         while (counter.getAndIncrement() < param.getNbRetry()) {
             try {
+                LOGGER.warn("Retryable='{}' - Attempt '{}' of '{}'.", delegate.toString(), counter.get(), param.getNbRetry());
                 return delegate.call();
             } catch (Exception e) {
                 if (counter.get() >= param.getNbRetry() || retryOn.negate().test(e)) {
+                    LOGGER.warn("Retryable='{}' - Stop retry at attempt '{}' and throw exception of type '{}'.", counter.get(), e.getClass().getSimpleName());
                     throw e;
                 }
                 manageCatch(e, delegate.toString());
@@ -82,10 +84,12 @@ public class RetryableOnException<T, E extends Exception> implements Retryable<T
     public void execute(DelegateRetryVoid<E> delegate) throws E {
         while (counter.getAndIncrement() < param.getNbRetry()) {
             try {
+                LOGGER.warn("Retryable='{}' - Attempt '{}' of '{}'.", delegate.toString(), counter.get(), param.getNbRetry());
                 delegate.call();
                 return;
             } catch (Exception e) {
                 if (counter.get() >= param.getNbRetry() || retryOn.negate().test(e)) {
+                    LOGGER.warn("Retryable='{}' - Stop retry at attempt '{}' and throw exception of type '{}'.", counter.get(), e.getClass().getSimpleName());
                     throw e;
                 }
                 manageCatch(e, delegate.toString());
@@ -97,8 +101,7 @@ public class RetryableOnException<T, E extends Exception> implements Retryable<T
 
     private void manageCatch(Exception e, String name) {
         onException.accept(e);
-        LOGGER.warn("Got an exception '{}' from a retryable '{}'.", e.getMessage(), name);
+        LOGGER.warn(String.format("Retryable='%s' - Got an exception of type '%s'.", name, e.getClass().getSimpleName()), e);
         sleep(counter.get(), name, LOGGER, param, randomSleep);
-        LOGGER.warn("Retry '{}', attempt '{}' of '{}'.", name, counter.get(), param.getNbRetry());
     }
 }
