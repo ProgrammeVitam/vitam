@@ -158,6 +158,30 @@ public class ProbativeCreateDistributionFileTest {
     }
 
     @Test
+    public void should_return_item_status_OK_when_no_object() throws Exception {
+        // Given
+        File newLocalFile = tempFolder.newFile();
+        TestHandlerIO handlerIO = new TestHandlerIO();
+        handlerIO.setNewLocalFile(newLocalFile);
+
+        ProbativeValueRequest probativeValueRequest = new ProbativeValueRequest(JsonHandler.createObjectNode(), "BinaryMaster", "1");
+        handlerIO.setInputStreamFromWorkspace(new ByteArrayInputStream(JsonHandler.fromPojoToBytes(probativeValueRequest)));
+
+        ObjectNode selectedUnitGOT = JsonHandler.createObjectNode();
+        selectedUnitGOT.put("#id", "BATMAN_ID");
+
+        RequestResponseOK requestResponseOK = new RequestResponseOK();
+        requestResponseOK.addResult(selectedUnitGOT);
+        given(metaDataClient.selectUnits(any())).willReturn(JsonHandler.toJsonNode(requestResponseOK));
+
+        // When
+        ItemStatus itemStatus = probativeCreateDistribution.execute(null, handlerIO);
+
+        // Then
+        assertThat(itemStatus.getGlobalStatus()).isEqualTo(StatusCode.OK);
+    }
+
+    @Test
     public void should_return_item_status_KO_when_any_error() throws Exception {
         // Given
         File newLocalFile = tempFolder.newFile();
