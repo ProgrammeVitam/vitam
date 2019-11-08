@@ -85,7 +85,7 @@ public class MassUpdateStep {
         assertThat(operationId).as(format("%s not found for request", X_REQUEST_ID)).isNotNull();
     }
 
-    @When("^je lance la mise à jour de masse des règles de gestion")
+    @When("^je lance la mise à jour de masse des règles de gestion$")
     public  void rulesUpdate() throws VitamException {
         VitamContext vitamContext = new VitamContext(world.getTenantId());
         vitamContext.setApplicationSessionId(world.getApplicationSessionId());
@@ -112,7 +112,7 @@ public class MassUpdateStep {
         assertThat(operationId).as(format("%s not found for request", X_REQUEST_ID)).isNotNull();
     }
 
-    @When("^je lance la mise à jour de masse des règles de gestion pour avoir les codes réponses")
+    @When("^je lance la mise à jour de masse des règles de gestion pour avoir les codes réponses$")
     public  void rulesUpdateRaw() throws VitamException {
         VitamContext vitamContext = new VitamContext(world.getTenantId());
         vitamContext.setApplicationSessionId(world.getApplicationSessionId());
