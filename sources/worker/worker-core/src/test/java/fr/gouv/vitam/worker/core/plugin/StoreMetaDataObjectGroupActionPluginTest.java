@@ -92,9 +92,9 @@ public class StoreMetaDataObjectGroupActionPluginTest {
     private static final String OG_MD_2 =
         "storeMetadataObjectGroupPlugin/aebaaaaaaaakwtamaaxakak32oqku2qaaaaq_md.json";
 
-    public static final String OG_LFC_WITH_MD_1 =
+    private static final String OG_LFC_WITH_MD_1 =
         "storeMetadataObjectGroupPlugin/aebaaaaaaaag3r7caarvuak2ij3chpyaaaaq_md_with_lfc.json";
-    public static final String OG_LFC_WITH_MD_2 =
+    private static final String OG_LFC_WITH_MD_2 =
         "storeMetadataObjectGroupPlugin/aebaaaaaaaakwtamaaxakak32oqku2qaaaaq_md_with_lfc.json";
 
     private WorkspaceClient workspaceClient;
@@ -187,7 +187,7 @@ public class StoreMetaDataObjectGroupActionPluginTest {
         final List<ItemStatus> response = plugin.executeList(params, action);
 
         // Then
-        checkItemStatus(response, StatusCode.KO);
+        checkItemStatus(response, StatusCode.FATAL);
     }
 
     @Test
@@ -315,7 +315,7 @@ public class StoreMetaDataObjectGroupActionPluginTest {
         final List<ItemStatus> response = plugin.executeList(params, action);
 
         // Then
-        checkItemStatus(response, StatusCode.KO);
+        checkItemStatus(response, StatusCode.FATAL);
     }
 
     private void checkItemStatus(List<ItemStatus> response, StatusCode ok) {

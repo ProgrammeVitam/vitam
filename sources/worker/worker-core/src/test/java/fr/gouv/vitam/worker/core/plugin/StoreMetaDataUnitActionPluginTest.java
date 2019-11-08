@@ -88,9 +88,9 @@ public class StoreMetaDataUnitActionPluginTest {
     private static final String UNIT_MD = "storeMetadataUnitPlugin/aeaqaaaaaaag3r7cabf4aak2izdloiiaaaaq_md.json";
     private static final String UNIT_MD_2 = "storeMetadataUnitPlugin/aeaqaaaaamhbbettabfs4ali3tyuitiaaabq_md.json";
 
-    public static final String UNIT_LFC_WITH_MD_1 =
+    private static final String UNIT_LFC_WITH_MD_1 =
         "storeMetadataUnitPlugin/aeaqaaaaaaag3r7cabf4aak2izdloiiaaaaq_md_with_lfc.json";
-    public static final String UNIT_LFC_WITH_MD_2 =
+    private static final String UNIT_LFC_WITH_MD_2 =
         "storeMetadataUnitPlugin/aeaqaaaaamhbbettabfs4ali3tyuitiaaabq_md_with_lfc.json";
 
     private WorkspaceClient workspaceClient;
@@ -183,7 +183,7 @@ public class StoreMetaDataUnitActionPluginTest {
         final List<ItemStatus> response = plugin.executeList(params, action);
 
         // Then
-        checkItemStatus(response, StatusCode.KO);
+        checkItemStatus(response, StatusCode.FATAL);
     }
 
     @Test
@@ -311,7 +311,7 @@ public class StoreMetaDataUnitActionPluginTest {
         final List<ItemStatus> response = plugin.executeList(params, action);
 
         // Then
-        checkItemStatus(response, StatusCode.KO);
+        checkItemStatus(response, StatusCode.FATAL);
     }
 
     private void checkItemStatus(List<ItemStatus> response, StatusCode ok) {
