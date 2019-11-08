@@ -197,7 +197,7 @@ public class PurgeObjectGroupRepositoryTest {
         throws InvalidParseOperationException, InvalidFormatException {
         InputStream stream = getClass().getResourceAsStream(filename);
         ReportBody<PurgeObjectGroupReportEntry> reportBody =
-            JsonHandler.getFromInputStreamAsTypeRefence(stream, TYPE_REFERENCE);
+            JsonHandler.getFromInputStreamAsTypeReference(stream, TYPE_REFERENCE);
         return reportBody.getEntries().stream()
             .map(md -> {
                 PurgeObjectGroupModel
