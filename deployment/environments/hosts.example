@@ -146,14 +146,18 @@ hosts_mongodb_offer
 
 [hosts_storage_offer_default]
 # TODO: Put here servers where this service will be deployed : storage-offer-default
-# LIMIT : only 1 offer per machine and 1 machine per offer
+# LIMIT : only 1 offer per machine 
+# LIMIT and 1 machine per offer when filesystem or filesystem-hash provider
+# Possibility to declare multiple machines with same provider only when provider is s3 or swift.
 # Mandatory param for each offer is offer_conf and points to offer_opts.yml & vault-vitam.yml (with same tree)
 # for swift
 # hostname-offre-1.vitam offer_conf=offer-swift-1
+# hostname-offre-2.vitam offer_conf=offer-swift-1
 # for filesystem
 # hostname-offre-2.vitam offer_conf=offer-fs-1
 # for s3
 # hostname-offre-3.vitam offer_conf=offer-s3-1
+# hostname-offre-4.vitam offer_conf=offer-s3-1
 
 [hosts_mongodb_offer:children]
 hosts_mongos_offer
