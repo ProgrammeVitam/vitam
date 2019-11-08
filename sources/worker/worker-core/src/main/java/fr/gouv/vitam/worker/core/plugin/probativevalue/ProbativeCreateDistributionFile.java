@@ -52,11 +52,13 @@ import fr.gouv.vitam.worker.core.handler.ActionHandler;
 import fr.gouv.vitam.worker.core.plugin.ScrollSpliteratorHelper;
 import fr.gouv.vitam.worker.core.utils.PluginHelper.EventDetails;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
+import org.apache.commons.lang3.StringUtils;
 
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -101,9 +103,15 @@ public class ProbativeCreateDistributionFile extends ActionHandler {
             List<String> elementIds = new ArrayList<>();
             while (iterator.hasNext()) {
                 JsonNode element = iterator.next();
+
+                JsonNode objectValue = element.path(VitamFieldsHelper.object());
+                if (objectValue.isMissingNode() || objectValue.isNull() || StringUtils.isBlank(objectValue.asText())) {
+                    continue;
+                }
+
                 elementIds.add(element.get(VitamFieldsHelper.id()).asText());
 
-                if (iterator.hasNext() && (previousElement == null || element.get(VitamFieldsHelper.object()).equals(previousElement.get(VitamFieldsHelper.object())))) {
+                if (iterator.hasNext() && (previousElement == null || objectValue.equals(previousElement.get(VitamFieldsHelper.object())))) {
                     previousElement = element;
                     continue;
                 }
