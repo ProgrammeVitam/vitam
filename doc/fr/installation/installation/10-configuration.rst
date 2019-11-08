@@ -45,6 +45,8 @@ Pour chaque type de "host", indiquer le(s) serveur(s) défini(s) pour chaque fon
 
 .. caution:: Concernant la valeur de ``vitam_site_name``, seuls les caractères alphanumériques et le tiret ("-") sont autorisés.
 
+.. note:: Il est possible de multi-instancier le composant "storage-offer-default" dans le cas d'un *provider* de type objet (s3, swift). Il faut ajouter ``offer_conf=<le nom>``.
+
 Fichier ``vitam_security.yml``
 -------------------------------
 
