@@ -175,8 +175,10 @@ public class TransferStep {
     @When("^j'upload le sip du transfert")
     public void upload_this_sip_transfer() throws VitamException, IOException {
         try (InputStream inputStream = Files.newInputStream(world.getTransferFile(), StandardOpenOption.READ)) {
+            VitamContext vitamContext =
+                new VitamContext(world.getTenantId()).setApplicationSessionId(world.getApplicationSessionId());
             RequestResponse response = world.getIngestClient()
-                .ingest(new VitamContext(world.getTenantId()).setApplicationSessionId(world.getApplicationSessionId()),
+                .ingest(vitamContext,
                     inputStream, DEFAULT_WORKFLOW.name(), ProcessAction.RESUME.name());
             final String operationId = response.getHeaderString(GlobalDataRest.X_REQUEST_ID);
             world.setOperationId(operationId);
@@ -194,11 +196,16 @@ public class TransferStep {
     @When("^je receptionne l'ATR du versement d'un transfert")
     public void transfer_reply() throws VitamException, IOException {
         try (InputStream inputStream = Files.newInputStream(world.getAtrFile(), StandardOpenOption.READ)) {
+            VitamContext vitamContext =
+                new VitamContext(world.getTenantId())
+                    .setApplicationSessionId(world.getApplicationSessionId())
+                    .setAccessContract(world.getContractId());
+
             RequestResponse response = world.getAccessClient().transferReply(
-                new VitamContext(world.getTenantId()).setApplicationSessionId(world.getApplicationSessionId()),
+                vitamContext,
                 inputStream);
             assertThat(response.isOk()).isTrue();
-            
+
             final String operationId = response.getHeaderString(GlobalDataRest.X_REQUEST_ID);
             world.setOperationId(operationId);
             final VitamPoolingClient vitamPoolingClient = new VitamPoolingClient(world.getAdminClient());
