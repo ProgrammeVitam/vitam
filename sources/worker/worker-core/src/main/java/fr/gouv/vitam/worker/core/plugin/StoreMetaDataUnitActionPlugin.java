@@ -119,9 +119,6 @@ public class StoreMetaDataUnitActionPlugin extends ActionHandler {
 
             return this.getItemStatuses(unitIds, StatusCode.OK);
 
-        } catch (ProcessingException e) {
-            LOGGER.error(e);
-            return this.getItemStatuses(unitIds, StatusCode.KO);
         } catch (VitamException e) {
             LOGGER.error("An error occurred during unit storage", e);
             return this.getItemStatuses(unitIds, StatusCode.FATAL);

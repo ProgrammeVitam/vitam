@@ -115,9 +115,6 @@ public class StoreMetaDataObjectGroupActionPlugin extends ActionHandler {
 
             return this.getItemStatuses(objectGroupIds, StatusCode.OK);
 
-        } catch (ProcessingException e) {
-            LOGGER.error(e);
-            return this.getItemStatuses(objectGroupIds, StatusCode.KO);
         } catch (VitamException e) {
             LOGGER.error("An error occurred during object group storage", e);
             return this.getItemStatuses(objectGroupIds, StatusCode.FATAL);
