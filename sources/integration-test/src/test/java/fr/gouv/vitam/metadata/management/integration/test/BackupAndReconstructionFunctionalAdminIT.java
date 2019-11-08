@@ -333,7 +333,7 @@ public class BackupAndReconstructionFunctionalAdminIT extends VitamRuleRunner {
                 PropertiesUtils.getResourceFile(INTEGRATION_RECONSTRUCTION_DATA_SECURITY_PROFILE_1_JSON);
             List<SecurityProfileModel> securityProfileModelList =
                 JsonHandler
-                    .getFromFileAsTypeRefence(securityProfileFiles, new TypeReference<List<SecurityProfileModel>>() {
+                    .getFromFileAsTypeReference(securityProfileFiles, new TypeReference<List<SecurityProfileModel>>() {
                     });
             client.importSecurityProfiles(securityProfileModelList);
         }
@@ -394,7 +394,7 @@ public class BackupAndReconstructionFunctionalAdminIT extends VitamRuleRunner {
                 PropertiesUtils.getResourceFile(INTEGRATION_RECONSTRUCTION_DATA_SECURITY_PROFILE_2_JSON);
             List<SecurityProfileModel> securityProfileModelList =
                 JsonHandler
-                    .getFromFileAsTypeRefence(securityProfileFiles, new TypeReference<List<SecurityProfileModel>>() {
+                    .getFromFileAsTypeReference(securityProfileFiles, new TypeReference<List<SecurityProfileModel>>() {
                     });
             client.importSecurityProfiles(securityProfileModelList);
         }

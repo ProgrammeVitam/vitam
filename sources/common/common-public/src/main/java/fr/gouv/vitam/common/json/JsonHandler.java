@@ -321,7 +321,7 @@ public final class JsonHandler {
      * @return the object of type clasz
      * @throws InvalidParseOperationException if parse JsonNode object exception occurred
      */
-    public static <T> T getFromInputStreamAsTypeRefence(final InputStream inputStream, final TypeReference<T> clasz)
+    public static <T> T getFromInputStreamAsTypeReference(final InputStream inputStream, final TypeReference<T> clasz)
         throws InvalidParseOperationException, InvalidFormatException {
         try {
             ParametersChecker.checkParameter("value or class", inputStream, clasz);
@@ -339,7 +339,7 @@ public final class JsonHandler {
      * @return the object of type clasz
      * @throws InvalidParseOperationException if parse JsonNode object exception occurred
      */
-    public static <T> T getFromStringAsTypeRefence(final String value, final TypeReference<T> clasz)
+    public static <T> T getFromStringAsTypeReference(final String value, final TypeReference<T> clasz)
         throws InvalidParseOperationException, InvalidFormatException {
         try {
             ParametersChecker.checkParameter("value or class", value, clasz);
@@ -423,7 +423,7 @@ public final class JsonHandler {
      * @return the corresponding object
      * @throws InvalidParseOperationException if parse JsonNode object exception occurred
      */
-    public static final <T> T getFromFileAsTypeRefence(File file, TypeReference<T> valueTypeRef)
+    public static final <T> T getFromFileAsTypeReference(File file, TypeReference<T> valueTypeRef)
         throws InvalidParseOperationException {
         try {
             ParametersChecker.checkParameter("File or class", file, valueTypeRef);

@@ -99,7 +99,7 @@ import java.util.stream.Collectors;
 import static com.mongodb.client.model.Filters.and;
 import static com.mongodb.client.model.Filters.eq;
 import static com.mongodb.client.model.Filters.in;
-import static fr.gouv.vitam.common.json.JsonHandler.getFromStringAsTypeRefence;
+import static fr.gouv.vitam.common.json.JsonHandler.getFromStringAsTypeReference;
 
 /**
  * IngestContract implementation class
@@ -768,7 +768,7 @@ public class IngestContractImpl implements ContractService<IngestContractModel> 
             final JsonNode archiveProfilesNode = queryDsl.findValue(IngestContractModel.ARCHIVE_PROFILES);
             if (archiveProfilesNode != null) {
                 final Set<String> archiveProfiles =
-                        getFromStringAsTypeRefence(archiveProfilesNode.toString(), new TypeReference<Set<String>>() {});
+                        getFromStringAsTypeReference(archiveProfilesNode.toString(), new TypeReference<Set<String>>() {});
                 final IngestContractValidator validator =
                     validationService.createCheckProfilesExistsInDatabaseValidator();
                 final Optional<GenericRejectionCause> result =

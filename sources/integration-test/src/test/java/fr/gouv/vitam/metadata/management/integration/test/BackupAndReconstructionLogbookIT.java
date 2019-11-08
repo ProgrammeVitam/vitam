@@ -232,7 +232,7 @@ public class BackupAndReconstructionLogbookIT extends VitamRuleRunner {
         // import access contract
         File fileAccessContracts = PropertiesUtils.getResourceFile(ACCESS_CONTRACT);
         List<AccessContractModel> accessContractModelList = JsonHandler
-                .getFromFileAsTypeRefence(fileAccessContracts, new TypeReference<List<AccessContractModel>>() {
+                .getFromFileAsTypeReference(fileAccessContracts, new TypeReference<List<AccessContractModel>>() {
                 });
         adminManagementClient.importAccessContracts(accessContractModelList);
 

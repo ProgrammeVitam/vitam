@@ -62,12 +62,8 @@ import fr.gouv.vitam.worker.core.plugin.preservation.service.PreservationReportS
 import fr.gouv.vitam.worker.core.utils.PluginHelper.EventDetails;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
 
-import java.io.ByteArrayOutputStream;
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
 import java.io.InputStream;
-import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -109,7 +105,7 @@ public class PreservationFinalizationPlugin extends ActionHandler {
             PreservationRequest preservationRequest = JsonHandler.getFromInputStream(inputRequest, PreservationRequest.class);
             File griffinModelFile = handler.getFileFromWorkspace("griffinModel");
             List<GriffinModel> griffinModel =
-                JsonHandler.getFromFileAsTypeRefence(griffinModelFile, new TypeReference<List<GriffinModel>>() {});
+                JsonHandler.getFromFileAsTypeReference(griffinModelFile, new TypeReference<List<GriffinModel>>() {});
             PreservationScenarioModel scenarioModel = JsonHandler.getFromInputStream(scenarioModelInputStream, PreservationScenarioModel.class);
 
             JsonNode result = logbookOperationsClient.selectOperationById(param.getContainerName());

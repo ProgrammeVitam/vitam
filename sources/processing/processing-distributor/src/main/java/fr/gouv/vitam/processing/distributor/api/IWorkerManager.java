@@ -18,7 +18,6 @@
 package fr.gouv.vitam.processing.distributor.api;
 
 import com.fasterxml.jackson.core.type.TypeReference;
-import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
@@ -33,7 +32,6 @@ import fr.gouv.vitam.processing.distributor.v2.WorkerFamilyManager;
 
 import java.io.File;
 import java.util.List;
-import java.util.function.Supplier;
 
 /**
  * Manage the parallelism calls to worker in the same distributor
@@ -70,7 +68,7 @@ public interface IWorkerManager {
         // for now it is a file content json data
         try {
             List<WorkerBean> workerBeans =
-                JsonHandler.getFromFileAsTypeRefence(registerWorkerFile, new TypeReference<List<WorkerBean>>() {
+                JsonHandler.getFromFileAsTypeReference(registerWorkerFile, new TypeReference<List<WorkerBean>>() {
                 });
             for (WorkerBean workerBean : workerBeans) {
                 String workerId = workerBean.getWorkerId();

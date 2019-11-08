@@ -138,7 +138,7 @@ public class ManagementContractImplTest {
             throws VitamException, FileNotFoundException {
         // Given
         final File fileContracts = PropertiesUtils.getResourceFile("contracts_management_ok_no_identifiers.json");
-        final List<ManagementContractModel> contractModelList = JsonHandler.getFromFileAsTypeRefence(fileContracts,
+        final List<ManagementContractModel> contractModelList = JsonHandler.getFromFileAsTypeReference(fileContracts,
                 new TypeReference<List<ManagementContractModel>>() {
                 });
 
@@ -183,7 +183,7 @@ public class ManagementContractImplTest {
     public void when_create_should_init_fields_given_minimal_contract() throws VitamException, FileNotFoundException {
         // Given
         final File fileContracts = PropertiesUtils.getResourceFile("contracts_management_ok_minimal.json");
-        final List<ManagementContractModel> contractModelList = JsonHandler.getFromFileAsTypeRefence(fileContracts,
+        final List<ManagementContractModel> contractModelList = JsonHandler.getFromFileAsTypeReference(fileContracts,
                 new TypeReference<List<ManagementContractModel>>() {
                 });
 
@@ -221,7 +221,7 @@ public class ManagementContractImplTest {
             throws VitamException, FileNotFoundException {
         // Given
         final File fileContracts = PropertiesUtils.getResourceFile("contracts_management_ok_identifiers.json");
-        final List<ManagementContractModel> contractModelList = JsonHandler.getFromFileAsTypeRefence(fileContracts,
+        final List<ManagementContractModel> contractModelList = JsonHandler.getFromFileAsTypeReference(fileContracts,
                 new TypeReference<List<ManagementContractModel>>() {
                 });
 
@@ -279,7 +279,7 @@ public class ManagementContractImplTest {
             throws VitamException, FileNotFoundException {
         // Given
         final File fileContracts = PropertiesUtils.getResourceFile("contracts_management_ok_no_identifiers.json");
-        final List<ManagementContractModel> contractModelList = JsonHandler.getFromFileAsTypeRefence(fileContracts,
+        final List<ManagementContractModel> contractModelList = JsonHandler.getFromFileAsTypeReference(fileContracts,
                 new TypeReference<List<ManagementContractModel>>() {
                 });
 
@@ -326,7 +326,7 @@ public class ManagementContractImplTest {
             throws VitamException, FileNotFoundException {
         // Given
         final File fileContracts = PropertiesUtils.getResourceFile("contracts_management_ok_no_identifiers.json");
-        final List<ManagementContractModel> contractModelList = JsonHandler.getFromFileAsTypeRefence(fileContracts,
+        final List<ManagementContractModel> contractModelList = JsonHandler.getFromFileAsTypeReference(fileContracts,
                 new TypeReference<List<ManagementContractModel>>() {
                 });
 
@@ -369,7 +369,7 @@ public class ManagementContractImplTest {
             throws VitamException, FileNotFoundException {
         // Given
         final File fileContracts = PropertiesUtils.getResourceFile("contracts_management_ok_identifiers.json");
-        final List<ManagementContractModel> contractModelList = JsonHandler.getFromFileAsTypeRefence(fileContracts,
+        final List<ManagementContractModel> contractModelList = JsonHandler.getFromFileAsTypeReference(fileContracts,
                 new TypeReference<List<ManagementContractModel>>() {
                 });
 
@@ -417,7 +417,7 @@ public class ManagementContractImplTest {
     public void when_create_should_return_error_given_missing_name() throws VitamException, FileNotFoundException {
         // Given
         final File fileContracts = PropertiesUtils.getResourceFile("contracts_management_ko_missing_name.json");
-        final List<ManagementContractModel> contractModelList = JsonHandler.getFromFileAsTypeRefence(fileContracts,
+        final List<ManagementContractModel> contractModelList = JsonHandler.getFromFileAsTypeReference(fileContracts,
                 new TypeReference<List<ManagementContractModel>>() {
                 });
 
@@ -463,7 +463,7 @@ public class ManagementContractImplTest {
     public void when_create_should_return_error_given_invalid_date() throws VitamException, FileNotFoundException {
         // Given
         final File fileContracts = PropertiesUtils.getResourceFile("contracts_management_ko_invalid_date.json");
-        final List<ManagementContractModel> contractModelList = JsonHandler.getFromFileAsTypeRefence(fileContracts,
+        final List<ManagementContractModel> contractModelList = JsonHandler.getFromFileAsTypeReference(fileContracts,
                 new TypeReference<List<ManagementContractModel>>() {
                 });
 
@@ -508,7 +508,7 @@ public class ManagementContractImplTest {
     public void when_create_should_return_error_given_id_present() throws VitamException, FileNotFoundException {
         // Given
         final File fileContracts = PropertiesUtils.getResourceFile("contracts_management_ok_identifiers.json");
-        final List<ManagementContractModel> contractModelList = JsonHandler.getFromFileAsTypeRefence(fileContracts,
+        final List<ManagementContractModel> contractModelList = JsonHandler.getFromFileAsTypeReference(fileContracts,
                 new TypeReference<List<ManagementContractModel>>() {
                 });
         contractModelList.get(0).setId("guid_fake");
@@ -558,7 +558,7 @@ public class ManagementContractImplTest {
             throws VitamException, FileNotFoundException {
         // Given
         final File fileContracts = PropertiesUtils.getResourceFile("contracts_management_ko_strategies_not_found.json");
-        final List<ManagementContractModel> contractModelList = JsonHandler.getFromFileAsTypeRefence(fileContracts,
+        final List<ManagementContractModel> contractModelList = JsonHandler.getFromFileAsTypeReference(fileContracts,
                 new TypeReference<List<ManagementContractModel>>() {
                 });
 
@@ -614,7 +614,7 @@ public class ManagementContractImplTest {
         // Given
         final File fileContracts = PropertiesUtils
                 .getResourceFile("contracts_management_ko_strategies_missing_referent.json");
-        final List<ManagementContractModel> contractModelList = JsonHandler.getFromFileAsTypeRefence(fileContracts,
+        final List<ManagementContractModel> contractModelList = JsonHandler.getFromFileAsTypeReference(fileContracts,
                 new TypeReference<List<ManagementContractModel>>() {
                 });
 
@@ -665,7 +665,7 @@ public class ManagementContractImplTest {
             throws VitamException, FileNotFoundException {
         // Given
         final File fileContracts = PropertiesUtils.getResourceFile("contracts_management_ok_identifiers.json");
-        final List<ManagementContractModel> contractModelList = JsonHandler.getFromFileAsTypeRefence(fileContracts,
+        final List<ManagementContractModel> contractModelList = JsonHandler.getFromFileAsTypeReference(fileContracts,
                 new TypeReference<List<ManagementContractModel>>() {
                 });
 
@@ -713,7 +713,7 @@ public class ManagementContractImplTest {
             throws VitamException, FileNotFoundException {
         // Given
         final File fileContracts = PropertiesUtils.getResourceFile("contracts_management_ok_no_identifiers.json");
-        final List<ManagementContractModel> contractModelList = JsonHandler.getFromFileAsTypeRefence(fileContracts,
+        final List<ManagementContractModel> contractModelList = JsonHandler.getFromFileAsTypeReference(fileContracts,
                 new TypeReference<List<ManagementContractModel>>() {
                 });
 

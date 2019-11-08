@@ -984,17 +984,17 @@ public class MetadataManagementIT extends VitamRuleRunner {
 
             // Given initial unit data
             final List<Document> unitList =
-                JsonHandler.getFromFileAsTypeRefence(PropertiesUtils.getResourceFile(reclassification_units),
+                JsonHandler.getFromFileAsTypeReference(PropertiesUtils.getResourceFile(reclassification_units),
                     new TypeReference<List<Document>>() {
                     });
 
             final List<Document> gotList =
-                JsonHandler.getFromFileAsTypeRefence(PropertiesUtils.getResourceFile(reclassification_gots),
+                JsonHandler.getFromFileAsTypeReference(PropertiesUtils.getResourceFile(reclassification_gots),
                     new TypeReference<List<Document>>() {
                     });
 
             final List<JsonNode> unitsLfcJsonNodes =
-                JsonHandler.getFromFileAsTypeRefence(PropertiesUtils.getResourceFile(reclassification_units_lfc),
+                JsonHandler.getFromFileAsTypeReference(PropertiesUtils.getResourceFile(reclassification_units_lfc),
                     new TypeReference<List<JsonNode>>() {
                     });
 

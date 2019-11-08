@@ -146,7 +146,7 @@ import static fr.gouv.vitam.common.ParametersChecker.checkParameter;
 import static fr.gouv.vitam.common.dsl.schema.DslSchema.SELECT_SINGLE;
 import static fr.gouv.vitam.common.error.VitamCode.ACCESS_EXTERNAL_GET_ACCESSION_REGISTER_SYMBOLIC_ERROR;
 import static fr.gouv.vitam.common.error.VitamCodeHelper.getCode;
-import static fr.gouv.vitam.common.json.JsonHandler.getFromStringAsTypeRefence;
+import static fr.gouv.vitam.common.json.JsonHandler.getFromStringAsTypeReference;
 import static javax.ws.rs.core.MediaType.APPLICATION_JSON;
 import static javax.ws.rs.core.Response.Status.INTERNAL_SERVER_ERROR;
 
@@ -490,7 +490,7 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
     public Response importIngestContracts(JsonNode select) {
         checkParameter(JSON_SELECT_IS_MANDATORY, select);
         try (AdminManagementClient client = adminManagementClientFactory.getClient()) {
-            Status status = client.importIngestContracts(getFromStringAsTypeRefence(select.toString(),
+            Status status = client.importIngestContracts(getFromStringAsTypeReference(select.toString(),
                 new TypeReference<List<IngestContractModel>>() {
                 }));
 
@@ -536,7 +536,7 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
 
         checkParameter(JSON_SELECT_IS_MANDATORY, contract);
         try (AdminManagementClient client = adminManagementClientFactory.getClient()) {
-            Status status = client.importAccessContracts(getFromStringAsTypeRefence(contract.toString(),
+            Status status = client.importAccessContracts(getFromStringAsTypeReference(contract.toString(),
                 new TypeReference<List<AccessContractModel>>() {
                 }));
 
@@ -582,7 +582,7 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
 
         checkParameter(JSON_SELECT_IS_MANDATORY, contract);
         try (AdminManagementClient client = adminManagementClientFactory.getClient()) {
-            Status status = client.importManagementContracts(getFromStringAsTypeRefence(contract.toString(),
+            Status status = client.importManagementContracts(getFromStringAsTypeReference(contract.toString(),
                 new TypeReference<List<ManagementContractModel>>() {
                 }));
 
@@ -628,7 +628,7 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
 
         checkParameter(JSON_SELECT_IS_MANDATORY, select);
         try (AdminManagementClient client = adminManagementClientFactory.getClient()) {
-            Status status = client.importContexts(getFromStringAsTypeRefence(select.toString(),
+            Status status = client.importContexts(getFromStringAsTypeReference(select.toString(),
                 new TypeReference<List<ContextModel>>() {
                 }));
 
@@ -667,7 +667,7 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
                 JsonNode json = JsonHandler.getFromInputStream(document);
                 SanityChecker.checkJsonAll(json);
                 RequestResponse requestResponse =
-                    client.createProfiles(getFromStringAsTypeRefence(json.toString(),
+                    client.createProfiles(getFromStringAsTypeReference(json.toString(),
                         new TypeReference<List<ProfileModel>>() {
                         }));
                 return Response.status(requestResponse.getStatus())
@@ -724,7 +724,7 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
         try (AdminManagementClient client = adminManagementClientFactory.getClient()) {
             SanityChecker.checkJsonAll(select);
             RequestResponse requestResponse =
-                client.createProfiles(getFromStringAsTypeRefence(select.toString(),
+                client.createProfiles(getFromStringAsTypeReference(select.toString(),
                     new TypeReference<List<ProfileModel>>() {
                     }));
             return Response.status(requestResponse.getStatus())
@@ -762,7 +762,7 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
                 JsonNode json = JsonHandler.getFromInputStream(document);
                 SanityChecker.checkJsonAll(json);
                 RequestResponse requestResponse =
-                    client.createArchiveUnitProfiles(getFromStringAsTypeRefence(json.toString(),
+                    client.createArchiveUnitProfiles(getFromStringAsTypeReference(json.toString(),
                         new TypeReference<List<ArchiveUnitProfileModel>>() {
                         }));
                 return Response.status(requestResponse.getStatus())
@@ -820,7 +820,7 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
         try (AdminManagementClient client = adminManagementClientFactory.getClient()) {
             SanityChecker.checkJsonAll(select);
             RequestResponse requestResponse =
-                client.createArchiveUnitProfiles(getFromStringAsTypeRefence(select.toString(),
+                client.createArchiveUnitProfiles(getFromStringAsTypeReference(select.toString(),
                     new TypeReference<List<ArchiveUnitProfileModel>>() {
                     }));
             return Response.status(requestResponse.getStatus())
@@ -2133,7 +2133,7 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
         checkParameter("Json document is a mandatory parameter", document);
         try (AdminManagementClient client = adminManagementClientFactory.getClient()) {
             SanityChecker.checkJsonAll(document);
-            Status status = client.importSecurityProfiles(getFromStringAsTypeRefence(document.toString(),
+            Status status = client.importSecurityProfiles(getFromStringAsTypeReference(document.toString(),
                 new TypeReference<List<SecurityProfileModel>>() {
                 }));
 
@@ -2702,7 +2702,7 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
         try (AdminManagementClient client = adminManagementClientFactory.getClient()) {
             SanityChecker.checkJsonAll(ontologies);
             RequestResponse requestResponse =
-                client.importOntologies(forceUpdate, getFromStringAsTypeRefence(ontologies.toString(),
+                client.importOntologies(forceUpdate, getFromStringAsTypeReference(ontologies.toString(),
                     new TypeReference<List<OntologyModel>>() {
                     }));
             return Response.status(requestResponse.getStatus())
@@ -2867,7 +2867,7 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
             SanityChecker.checkJsonAll(griffins);
 
             RequestResponse requestResponse =
-                client.importGriffins(getFromStringAsTypeRefence(griffins.toString(),
+                client.importGriffins(getFromStringAsTypeReference(griffins.toString(),
                     new TypeReference<List<GriffinModel>>() {
                     }));
 
@@ -2947,7 +2947,7 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
             SanityChecker.checkJsonAll(preservationScenarios);
 
             RequestResponse requestResponse =
-                client.importPreservationScenarios(getFromStringAsTypeRefence(preservationScenarios.toString(),
+                client.importPreservationScenarios(getFromStringAsTypeReference(preservationScenarios.toString(),
                     new TypeReference<List<PreservationScenarioModel>>() {
                     }));
 

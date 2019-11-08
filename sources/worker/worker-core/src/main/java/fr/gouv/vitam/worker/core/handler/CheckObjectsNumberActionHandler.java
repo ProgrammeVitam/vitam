@@ -287,7 +287,7 @@ public class CheckObjectsNumberActionHandler extends ActionHandler {
             String encodedSeparator = URLEncoder.encode("/", CharsetUtils.UTF_8);
 
             final List<URI> uriListWorkspace =
-                JsonHandler.getFromStringAsTypeRefence(workspaceClient
+                JsonHandler.getFromStringAsTypeReference(workspaceClient
                     .getListUriDigitalObjectFromFolder(workParams.getContainerName(), VitamConstants.SIP_FOLDER)
                     .toJsonNode().get("$results").get(0).toString(), new TypeReference<List<URI>>() {
                 });

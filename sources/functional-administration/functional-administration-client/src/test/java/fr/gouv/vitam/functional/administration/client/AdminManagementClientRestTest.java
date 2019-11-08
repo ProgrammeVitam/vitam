@@ -604,19 +604,19 @@ public class AdminManagementClientRestTest extends ResteasyTestApplication {
     private List<AccessContractModel> getAccessContracts()
         throws FileNotFoundException, InvalidParseOperationException {
         File fileContracts = PropertiesUtils.getResourceFile("contracts_access_ok.json");
-        return JsonHandler.getFromFileAsTypeRefence(fileContracts, new TypeReference<List<AccessContractModel>>() {});
+        return JsonHandler.getFromFileAsTypeReference(fileContracts, new TypeReference<List<AccessContractModel>>() {});
     }
 
     private List<IngestContractModel> getIngestContracts()
         throws FileNotFoundException, InvalidParseOperationException {
         File fileContracts = PropertiesUtils.getResourceFile("referential_contracts_ok.json");
-        return JsonHandler.getFromFileAsTypeRefence(fileContracts, new TypeReference<List<IngestContractModel>>() {});
+        return JsonHandler.getFromFileAsTypeReference(fileContracts, new TypeReference<List<IngestContractModel>>() {});
     }
 
     private List<ManagementContractModel> getManagementContracts()
             throws FileNotFoundException, InvalidParseOperationException {
         File fileContracts = PropertiesUtils.getResourceFile("contracts_management_ok.json");
-        return JsonHandler.getFromFileAsTypeRefence(fileContracts, new TypeReference<List<ManagementContractModel>>() {});
+        return JsonHandler.getFromFileAsTypeReference(fileContracts, new TypeReference<List<ManagementContractModel>>() {});
     }
 
 
@@ -752,7 +752,7 @@ public class AdminManagementClientRestTest extends ResteasyTestApplication {
 
     private List<ProfileModel> getProfiles() throws FileNotFoundException, InvalidParseOperationException {
         File fileProfiles = PropertiesUtils.getResourceFile("profile_ok.json");
-        return JsonHandler.getFromFileAsTypeRefence(fileProfiles, new TypeReference<List<ProfileModel>>() {});
+        return JsonHandler.getFromFileAsTypeReference(fileProfiles, new TypeReference<List<ProfileModel>>() {});
     }
 
     @Test
@@ -797,7 +797,7 @@ public class AdminManagementClientRestTest extends ResteasyTestApplication {
 
     private List<ContextModel> getContexts() throws FileNotFoundException, InvalidParseOperationException {
         File fileContexts = PropertiesUtils.getResourceFile("contexts_ok.json");
-        return JsonHandler.getFromFileAsTypeRefence(fileContexts, new TypeReference<List<ContextModel>>() {});
+        return JsonHandler.getFromFileAsTypeReference(fileContexts, new TypeReference<List<ContextModel>>() {});
     }
 
     @Test
@@ -948,7 +948,7 @@ public class AdminManagementClientRestTest extends ResteasyTestApplication {
         throws FileNotFoundException, InvalidParseOperationException {
         File fileArchiveUnitProfiles = PropertiesUtils.getResourceFile("archive_unit_profile_ok.json");
         return JsonHandler
-            .getFromFileAsTypeRefence(fileArchiveUnitProfiles, new TypeReference<List<ArchiveUnitProfileModel>>() {});
+            .getFromFileAsTypeReference(fileArchiveUnitProfiles, new TypeReference<List<ArchiveUnitProfileModel>>() {});
     }
 
     @Test

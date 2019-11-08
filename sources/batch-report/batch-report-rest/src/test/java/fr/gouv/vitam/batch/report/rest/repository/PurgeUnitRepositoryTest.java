@@ -162,7 +162,7 @@ public class PurgeUnitRepositoryTest {
         throws Exception {
         InputStream stream = getClass().getResourceAsStream(filename);
         ReportBody<PurgeUnitReportEntry> reportBody =
-            JsonHandler.getFromInputStreamAsTypeRefence(stream, TYPE_REFERENCE);
+            JsonHandler.getFromInputStreamAsTypeReference(stream, TYPE_REFERENCE);
 
         return reportBody.getEntries().stream()
             .map(md -> {

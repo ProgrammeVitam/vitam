@@ -154,18 +154,18 @@ public class AccessService {
             } else {
                 if (isArray) {
                     Set<String> resultArray =
-                        JsonHandler.getFromStringAsTypeRefence(resultValue, new TypeReference<Set<String>>() {});
+                        JsonHandler.getFromStringAsTypeReference(resultValue, new TypeReference<Set<String>>() {});
 
                     Set<String> expectedrray =
-                        JsonHandler.getFromStringAsTypeRefence(resultExpected, new TypeReference<Set<String>>() {});
+                        JsonHandler.getFromStringAsTypeReference(resultExpected, new TypeReference<Set<String>>() {});
                     assertThat(resultArray).isEqualTo(expectedrray);
                 } else {
                     Set<Set<String>> resultArray =
-                        JsonHandler.getFromStringAsTypeRefence(resultValue, new TypeReference<Set<Set<String>>>() {});
+                        JsonHandler.getFromStringAsTypeReference(resultValue, new TypeReference<Set<Set<String>>>() {});
 
                     Set<Set<String>> expectedrray =
                         JsonHandler
-                            .getFromStringAsTypeRefence(resultExpected, new TypeReference<Set<Set<String>>>() {});
+                            .getFromStringAsTypeReference(resultExpected, new TypeReference<Set<Set<String>>>() {});
 
                     assertThat(expectedrray).isEqualTo(resultArray);
                 }

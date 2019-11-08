@@ -49,7 +49,7 @@ import static com.google.common.collect.ImmutableSet.of;
 import static com.google.common.collect.Lists.newArrayList;
 import static fr.gouv.vitam.common.PropertiesUtils.getResourceFile;
 import static fr.gouv.vitam.common.guid.GUIDFactory.newGUID;
-import static fr.gouv.vitam.common.json.JsonHandler.getFromFileAsTypeRefence;
+import static fr.gouv.vitam.common.json.JsonHandler.getFromFileAsTypeReference;
 import static fr.gouv.vitam.common.json.JsonHandler.getFromString;
 import static fr.gouv.vitam.common.model.administration.ActionTypePreservation.GENERATE;
 import static fr.gouv.vitam.common.thread.VitamThreadUtils.getVitamSession;
@@ -860,13 +860,13 @@ public class PreservationScenarioServiceTest {
 
     private List<PreservationScenarioModel> getPreservationScenarioModels(String s)
         throws InvalidParseOperationException, FileNotFoundException {
-        return getFromFileAsTypeRefence(getResourceFile(s), new TypeReference<List<PreservationScenarioModel>>() {
+        return getFromFileAsTypeReference(getResourceFile(s), new TypeReference<List<PreservationScenarioModel>>() {
         });
     }
 
     private List<FileFormatModel> getFileFormatModels(String s)
         throws InvalidParseOperationException, FileNotFoundException {
-        return getFromFileAsTypeRefence(getResourceFile(s), new TypeReference<List<FileFormatModel>>() {
+        return getFromFileAsTypeReference(getResourceFile(s), new TypeReference<List<FileFormatModel>>() {
         });
     }
 

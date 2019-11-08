@@ -3,7 +3,7 @@ package fr.gouv.vitam.worker.core.plugin.preservation;
 import static fr.gouv.vitam.common.json.JsonHandler.createObjectNode;
 import static fr.gouv.vitam.common.json.JsonHandler.getFromInputStream;
 import static fr.gouv.vitam.common.json.JsonHandler.getFromString;
-import static fr.gouv.vitam.common.json.JsonHandler.getFromStringAsTypeRefence;
+import static fr.gouv.vitam.common.json.JsonHandler.getFromStringAsTypeReference;
 import static fr.gouv.vitam.common.json.JsonHandler.toJsonNode;
 import static fr.gouv.vitam.common.model.PreservationVersion.LAST;
 import static fr.gouv.vitam.worker.core.plugin.preservation.PreservationPreparationPlugin.OBJECT_GROUPS_TO_PRESERVE_JSONL;
@@ -81,7 +81,7 @@ public class PreservationPreparationPluginTest {
             new PreservationPreparationPlugin(adminManagementClientFactory, metaDataClientFactory, workspaceClientFactory);
 
 
-        List<GriffinModel> list = getFromStringAsTypeRefence(griffinIds,
+        List<GriffinModel> list = getFromStringAsTypeReference(griffinIds,
             new TypeReference<List<GriffinModel>>() {
             });
         RequestResponseOK<GriffinModel> griffinRequestResponseOK = new RequestResponseOK<>();

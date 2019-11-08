@@ -585,7 +585,7 @@ public class ProbativeCreateReportEntry extends ActionHandler {
 
         try {
             File fileFromWorkspace = handlerIO.getFileFromWorkspace(traceabilityFilesDirectoryName(objectGroupId, evType) + File.separator + TRACEABILITY_GENERAL_CHECKS);
-            return JsonHandler.getFromFileAsTypeRefence(fileFromWorkspace, LIST_PROBATIVE);
+            return JsonHandler.getFromFileAsTypeReference(fileFromWorkspace, LIST_PROBATIVE);
         } catch (Exception e) {
             LOGGER.warn(e);
             return Collections.emptyList();

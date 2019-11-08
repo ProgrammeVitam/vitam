@@ -242,7 +242,7 @@ public class WorkspaceProcessDataManagement implements ProcessDataManagement {
         try (WorkspaceClient client = workspaceClientFactory.getClient()) {
             List<URI> uris =
                 JsonHandler
-                    .getFromStringAsTypeRefence(client.getListUriDigitalObjectFromFolder(PROCESS_CONTAINER, folderName)
+                    .getFromStringAsTypeReference(client.getListUriDigitalObjectFromFolder(PROCESS_CONTAINER, folderName)
                         .toJsonNode().get("$results").get(0).toString(), new TypeReference<List<URI>>() {
                     });
             for (URI uri : uris) {

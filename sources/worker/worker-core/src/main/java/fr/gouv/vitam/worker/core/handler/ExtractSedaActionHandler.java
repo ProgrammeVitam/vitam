@@ -2671,7 +2671,7 @@ public class ExtractSedaActionHandler extends ActionHandler {
                         handlerIO.getNewLocalFile(dataObjectIdToGuid.get(id) + JSON_EXTENSION);
                     JsonNode dataObjectNode = JsonHandler.getFromFile(dataObjectFile).get(BINARY_DATA_OBJECT);
 
-                    List<LogbookEvent> events = JsonHandler.getFromFileAsTypeRefence(
+                    List<LogbookEvent> events = JsonHandler.getFromFileAsTypeReference(
                         handlerIO.getNewLocalFile(dataObjectIdToGuid.get(id) + "_logbook_OG" + JSON_EXTENSION),
                         LIST_TYPE_REFERENCE
                     );

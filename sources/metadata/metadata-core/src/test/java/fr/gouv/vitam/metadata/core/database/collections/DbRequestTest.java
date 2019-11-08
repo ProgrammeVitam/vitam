@@ -824,7 +824,7 @@ public class DbRequestTest {
 
         // Base ontology with custom external types
         List<OntologyModel> ontologyModels = JsonHandler
-            .getFromInputStreamAsTypeRefence(OntologyTestHelper.loadOntologies(),
+            .getFromInputStreamAsTypeReference(OntologyTestHelper.loadOntologies(),
                 new TypeReference<List<OntologyModel>>() {
                 });
         ontologyModels.addAll(Arrays.asList(
@@ -902,7 +902,7 @@ public class DbRequestTest {
 
         // Base ontology with custom external types
         List<OntologyModel> ontologyModels = JsonHandler
-            .getFromInputStreamAsTypeRefence(OntologyTestHelper.loadOntologies(),
+            .getFromInputStreamAsTypeReference(OntologyTestHelper.loadOntologies(),
                 new TypeReference<List<OntologyModel>>() {
                 });
         ontologyModels.addAll(Arrays.asList(
@@ -960,7 +960,7 @@ public class DbRequestTest {
 
         // Base ontology
         List<OntologyModel> ontologyModels = JsonHandler
-            .getFromInputStreamAsTypeRefence(OntologyTestHelper.loadOntologies(),
+            .getFromInputStreamAsTypeReference(OntologyTestHelper.loadOntologies(),
                 new TypeReference<List<OntologyModel>>() {
                 });
 
@@ -1017,7 +1017,7 @@ public class DbRequestTest {
 
         // Base ontology
         List<OntologyModel> ontologyModels = JsonHandler
-            .getFromInputStreamAsTypeRefence(OntologyTestHelper.loadOntologies(),
+            .getFromInputStreamAsTypeReference(OntologyTestHelper.loadOntologies(),
                 new TypeReference<List<OntologyModel>>() {
                 });
 
@@ -2320,7 +2320,7 @@ public class DbRequestTest {
 
         // Base ontology with custom external types
         List<OntologyModel> ontologyModels = JsonHandler
-            .getFromInputStreamAsTypeRefence(OntologyTestHelper.loadOntologies(),
+            .getFromInputStreamAsTypeReference(OntologyTestHelper.loadOntologies(),
                 new TypeReference<List<OntologyModel>>() {
                 });
         ontologyModels.addAll(Arrays.asList(
@@ -2420,7 +2420,7 @@ public class DbRequestTest {
 
         // Base ontology
         List<OntologyModel> ontologyModels = JsonHandler
-            .getFromInputStreamAsTypeRefence(OntologyTestHelper.loadOntologies(),
+            .getFromInputStreamAsTypeReference(OntologyTestHelper.loadOntologies(),
                 new TypeReference<List<OntologyModel>>() {
                 });
 
@@ -2492,7 +2492,7 @@ public class DbRequestTest {
 
         // Base ontology
         List<OntologyModel> ontologyModels = JsonHandler
-            .getFromInputStreamAsTypeRefence(OntologyTestHelper.loadOntologies(),
+            .getFromInputStreamAsTypeReference(OntologyTestHelper.loadOntologies(),
                 new TypeReference<List<OntologyModel>>() {
                 });
 
@@ -2564,7 +2564,7 @@ public class DbRequestTest {
 
         // Base ontology
         List<OntologyModel> ontologyModels = JsonHandler
-            .getFromInputStreamAsTypeRefence(OntologyTestHelper.loadOntologies(),
+            .getFromInputStreamAsTypeReference(OntologyTestHelper.loadOntologies(),
                 new TypeReference<List<OntologyModel>>() {
                 });
 
@@ -2684,7 +2684,7 @@ public class DbRequestTest {
 
         // Base ontology
         List<OntologyModel> ontologyModels = JsonHandler
-            .getFromInputStreamAsTypeRefence(OntologyTestHelper.loadOntologies(),
+            .getFromInputStreamAsTypeReference(OntologyTestHelper.loadOntologies(),
                 new TypeReference<List<OntologyModel>>() {
                 });
 
@@ -2739,7 +2739,7 @@ public class DbRequestTest {
 
         // Base ontology
         List<OntologyModel> ontologyModels = JsonHandler
-            .getFromInputStreamAsTypeRefence(OntologyTestHelper.loadOntologies(),
+            .getFromInputStreamAsTypeReference(OntologyTestHelper.loadOntologies(),
                 new TypeReference<List<OntologyModel>>() {
                 });
 
@@ -2799,7 +2799,7 @@ public class DbRequestTest {
 
         // Base ontology
         List<OntologyModel> ontologyModels = JsonHandler
-            .getFromInputStreamAsTypeRefence(OntologyTestHelper.loadOntologies(),
+            .getFromInputStreamAsTypeReference(OntologyTestHelper.loadOntologies(),
                 new TypeReference<List<OntologyModel>>() {
                 });
 

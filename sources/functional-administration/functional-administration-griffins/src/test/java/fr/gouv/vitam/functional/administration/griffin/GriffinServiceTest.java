@@ -49,7 +49,7 @@ import java.util.Set;
 import static fr.gouv.vitam.common.PropertiesUtils.getResourceFile;
 import static fr.gouv.vitam.common.guid.GUIDFactory.newGUID;
 import static fr.gouv.vitam.common.guid.GUIDReader.getGUID;
-import static fr.gouv.vitam.common.json.JsonHandler.getFromFileAsTypeRefence;
+import static fr.gouv.vitam.common.json.JsonHandler.getFromFileAsTypeReference;
 import static fr.gouv.vitam.common.json.JsonHandler.getFromString;
 import static fr.gouv.vitam.common.thread.VitamThreadUtils.getVitamSession;
 import static fr.gouv.vitam.functional.administration.common.server.FunctionalAdminCollections.FORMATS;
@@ -173,7 +173,7 @@ public class GriffinServiceTest {
     @RunWithCustomExecutor
     public void shouldFailedValidateGriffinWhenDateIsNotCorrect() throws Exception {
         //Given
-        List<GriffinModel> listGriffins = JsonHandler.getFromFileAsTypeRefence(PropertiesUtils.getResourceFile("KO_griffin_false_date.json"), valueTypeRef);
+        List<GriffinModel> listGriffins = JsonHandler.getFromFileAsTypeReference(PropertiesUtils.getResourceFile("KO_griffin_false_date.json"), valueTypeRef);
         List<GriffinModel> allGriffinInDatabase = new ArrayList<>();
 
         DbRequestResult dbRequestResult = mock(DbRequestResult.class);
@@ -306,7 +306,7 @@ public class GriffinServiceTest {
     @RunWithCustomExecutor
     public void shouldImportGriffin() throws Exception {
         //Given
-        List<GriffinModel> listToImport = JsonHandler.getFromFileAsTypeRefence(PropertiesUtils.getResourceFile("griffins.json"), valueTypeRef);
+        List<GriffinModel> listToImport = JsonHandler.getFromFileAsTypeReference(PropertiesUtils.getResourceFile("griffins.json"), valueTypeRef);
 
         List<GriffinModel> allGriffinInDatabase = new ArrayList<>();
 
@@ -373,16 +373,16 @@ public class GriffinServiceTest {
 
     private List<PreservationScenarioModel> getPreservationScenarioModels(String s)
         throws InvalidParseOperationException, FileNotFoundException {
-        return getFromFileAsTypeRefence(getResourceFile(s), scenarioTypeRef);
+        return getFromFileAsTypeReference(getResourceFile(s), scenarioTypeRef);
     }
 
     private List<GriffinModel> getGriffinsModels(String s)
         throws InvalidParseOperationException, FileNotFoundException {
-        return getFromFileAsTypeRefence(getResourceFile(s), griffinTypeRef);
+        return getFromFileAsTypeReference(getResourceFile(s), griffinTypeRef);
     }
 
     private List<FileFormatModel> getFileFormatModels(String s)
         throws InvalidParseOperationException, FileNotFoundException {
-        return getFromFileAsTypeRefence(getResourceFile(s), fileFormatTypeRef);
+        return getFromFileAsTypeReference(getResourceFile(s), fileFormatTypeRef);
     }
 }

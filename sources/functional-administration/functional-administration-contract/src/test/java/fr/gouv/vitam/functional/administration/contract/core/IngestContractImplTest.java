@@ -199,7 +199,7 @@ public class IngestContractImplTest {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         final File fileContracts = PropertiesUtils.getResourceFile("referential_contracts_ok.json");
         final List<IngestContractModel> IngestContractModelList =
-            JsonHandler.getFromFileAsTypeRefence(fileContracts, new TypeReference<List<IngestContractModel>>() {
+            JsonHandler.getFromFileAsTypeReference(fileContracts, new TypeReference<List<IngestContractModel>>() {
             });
         final RequestResponse<IngestContractModel> response =
             ingestContractService.createContracts(IngestContractModelList);
@@ -235,7 +235,7 @@ public class IngestContractImplTest {
         final File fileContracts = PropertiesUtils.getResourceFile(
             "referential_contracts_ok_ComputeInheritedRulesAtIngest.json");
         final List<IngestContractModel> IngestContractModelList =
-            JsonHandler.getFromFileAsTypeRefence(fileContracts, new TypeReference<List<IngestContractModel>>() {
+            JsonHandler.getFromFileAsTypeReference(fileContracts, new TypeReference<List<IngestContractModel>>() {
             });
         final RequestResponse<IngestContractModel> response =
             ingestContractService.createContracts(IngestContractModelList);
@@ -270,7 +270,7 @@ public class IngestContractImplTest {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         final File fileContracts = PropertiesUtils.getResourceFile("referential_contracts_missingName.json");
         final List<IngestContractModel> IngestContractModelList =
-            JsonHandler.getFromFileAsTypeRefence(fileContracts, new TypeReference<List<IngestContractModel>>() {
+            JsonHandler.getFromFileAsTypeReference(fileContracts, new TypeReference<List<IngestContractModel>>() {
             });
         final RequestResponse<IngestContractModel> response =
             ingestContractService.createContracts(IngestContractModelList);
@@ -303,7 +303,7 @@ public class IngestContractImplTest {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         final File fileContracts = PropertiesUtils.getResourceFile("referential_contracts_profile_not_indb.json");
         final List<IngestContractModel> IngestContractModelList =
-            JsonHandler.getFromFileAsTypeRefence(fileContracts, new TypeReference<List<IngestContractModel>>() {
+            JsonHandler.getFromFileAsTypeReference(fileContracts, new TypeReference<List<IngestContractModel>>() {
             });
         final RequestResponse<IngestContractModel> response =
             ingestContractService.createContracts(IngestContractModelList);
@@ -352,7 +352,7 @@ public class IngestContractImplTest {
         final File fileMetadataProfile = PropertiesUtils.getResourceFile("profile_ok.json");
 
         final List<ProfileModel> profileModelList =
-            JsonHandler.getFromFileAsTypeRefence(fileMetadataProfile, new TypeReference<List<ProfileModel>>() {
+            JsonHandler.getFromFileAsTypeReference(fileMetadataProfile, new TypeReference<List<ProfileModel>>() {
             });
 
         dbImpl.insertDocuments(
@@ -361,7 +361,7 @@ public class IngestContractImplTest {
 
         final File fileContracts = PropertiesUtils.getResourceFile("referential_contracts_profile_indb.json");
         final List<IngestContractModel> IngestContractModelList =
-            JsonHandler.getFromFileAsTypeRefence(fileContracts, new TypeReference<List<IngestContractModel>>() {
+            JsonHandler.getFromFileAsTypeReference(fileContracts, new TypeReference<List<IngestContractModel>>() {
             });
         final RequestResponse<IngestContractModel> response =
             ingestContractService.createContracts(IngestContractModelList);
@@ -378,7 +378,7 @@ public class IngestContractImplTest {
         final File fileContracts = PropertiesUtils.getResourceFile("referential_contracts_ok.json");
 
         final List<IngestContractModel> ingestContractModelList =
-            JsonHandler.getFromFileAsTypeRefence(fileContracts, new TypeReference<List<IngestContractModel>>() {
+            JsonHandler.getFromFileAsTypeReference(fileContracts, new TypeReference<List<IngestContractModel>>() {
             });
         ingestContractModelList.get(0).setId(GUIDFactory.newGUID().getId());
         RequestResponse<IngestContractModel> response = ingestContractService.createContracts(ingestContractModelList);
@@ -411,7 +411,7 @@ public class IngestContractImplTest {
         final File fileContracts = PropertiesUtils.getResourceFile("referential_contracts_ok.json");
 
         List<IngestContractModel> IngestContractModelList =
-            JsonHandler.getFromFileAsTypeRefence(fileContracts, new TypeReference<List<IngestContractModel>>() {
+            JsonHandler.getFromFileAsTypeReference(fileContracts, new TypeReference<List<IngestContractModel>>() {
             });
         RequestResponse<IngestContractModel> response = ingestContractService.createContracts(IngestContractModelList);
 
@@ -421,7 +421,7 @@ public class IngestContractImplTest {
 
         // unset ids
         IngestContractModelList =
-            JsonHandler.getFromFileAsTypeRefence(fileContracts, new TypeReference<List<IngestContractModel>>() {
+            JsonHandler.getFromFileAsTypeReference(fileContracts, new TypeReference<List<IngestContractModel>>() {
             });
         response = ingestContractService.createContracts(IngestContractModelList);
 
@@ -459,7 +459,7 @@ public class IngestContractImplTest {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         final File fileContracts = PropertiesUtils.getResourceFile("referential_contracts_ok.json");
         final List<IngestContractModel> IngestContractModelList =
-            JsonHandler.getFromFileAsTypeRefence(fileContracts, new TypeReference<List<IngestContractModel>>() {
+            JsonHandler.getFromFileAsTypeReference(fileContracts, new TypeReference<List<IngestContractModel>>() {
             });
         final RequestResponse<IngestContractModel> response =
             ingestContractService.createContracts(IngestContractModelList);
@@ -500,7 +500,7 @@ public class IngestContractImplTest {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         final File fileContracts = PropertiesUtils.getResourceFile("referential_contracts_ok.json");
         final List<IngestContractModel> IngestContractModelList =
-            JsonHandler.getFromFileAsTypeRefence(fileContracts, new TypeReference<List<IngestContractModel>>() {
+            JsonHandler.getFromFileAsTypeReference(fileContracts, new TypeReference<List<IngestContractModel>>() {
             });
         final RequestResponse<IngestContractModel> response =
             ingestContractService.createContracts(IngestContractModelList);
@@ -531,7 +531,7 @@ public class IngestContractImplTest {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         final File fileContracts = PropertiesUtils.getResourceFile("referential_contracts_ok.json");
         final List<IngestContractModel> IngestContractModelList =
-            JsonHandler.getFromFileAsTypeRefence(fileContracts, new TypeReference<List<IngestContractModel>>() {
+            JsonHandler.getFromFileAsTypeReference(fileContracts, new TypeReference<List<IngestContractModel>>() {
             });
         final RequestResponse<IngestContractModel> response =
             ingestContractService.createContracts(IngestContractModelList);
@@ -562,7 +562,7 @@ public class IngestContractImplTest {
         VitamThreadUtils.getVitamSession().setTenantId(EXTERNAL_TENANT);
         final File fileContracts = PropertiesUtils.getResourceFile("referential_contracts_ok_identifier.json");
         final List<IngestContractModel> IngestContractModelList =
-            JsonHandler.getFromFileAsTypeRefence(fileContracts, new TypeReference<List<IngestContractModel>>() {
+            JsonHandler.getFromFileAsTypeReference(fileContracts, new TypeReference<List<IngestContractModel>>() {
             });
         RequestResponse<IngestContractModel> response = ingestContractService.createContracts(IngestContractModelList);
         assertThat(response.isOk()).isTrue();
@@ -597,7 +597,7 @@ public class IngestContractImplTest {
         VitamThreadUtils.getVitamSession().setTenantId(EXTERNAL_TENANT);
         final File fileContracts = PropertiesUtils.getResourceFile("referential_contracts_ok.json");
         final List<IngestContractModel> IngestContractModelList =
-            JsonHandler.getFromFileAsTypeRefence(fileContracts, new TypeReference<List<IngestContractModel>>() {
+            JsonHandler.getFromFileAsTypeReference(fileContracts, new TypeReference<List<IngestContractModel>>() {
             });
         final RequestResponse<IngestContractModel> response =
             ingestContractService.createContracts(IngestContractModelList);
@@ -629,7 +629,7 @@ public class IngestContractImplTest {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         final File fileContracts = PropertiesUtils.getResourceFile("referential_contracts_ok.json");
         final List<IngestContractModel> ingestContractModelList =
-            JsonHandler.getFromFileAsTypeRefence(fileContracts, new TypeReference<List<IngestContractModel>>() {
+            JsonHandler.getFromFileAsTypeReference(fileContracts, new TypeReference<List<IngestContractModel>>() {
             });
         ingestContractModelList.get(0).setDataObjectVersion(Collections.singleton("toto"));
         final RequestResponse<IngestContractModel> response =
@@ -677,7 +677,7 @@ public class IngestContractImplTest {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         final File fileContracts = PropertiesUtils.getResourceFile("referential_contracts_ok.json");
         final List<IngestContractModel> IngestContractModelList =
-            JsonHandler.getFromFileAsTypeRefence(fileContracts, new TypeReference<List<IngestContractModel>>() {
+            JsonHandler.getFromFileAsTypeReference(fileContracts, new TypeReference<List<IngestContractModel>>() {
             });
         final RequestResponse<IngestContractModel> response =
             ingestContractService.createContracts(IngestContractModelList);
@@ -699,7 +699,7 @@ public class IngestContractImplTest {
         final File fileContracts = PropertiesUtils.getResourceFile("referential_contracts_ok.json");
 
         final List<IngestContractModel> ingestModelList =
-            JsonHandler.getFromFileAsTypeRefence(fileContracts, new TypeReference<List<IngestContractModel>>() {
+            JsonHandler.getFromFileAsTypeReference(fileContracts, new TypeReference<List<IngestContractModel>>() {
             });
         final RequestResponse<IngestContractModel> response = ingestContractService.createContracts(ingestModelList);
 
@@ -813,7 +813,7 @@ public class IngestContractImplTest {
             PropertiesUtils.getResourceFile("referential_contracts_ok_ComputeInheritedRulesAtIngest.json");
 
         final List<IngestContractModel> ingestModelList =
-            JsonHandler.getFromFileAsTypeRefence(fileContracts, new TypeReference<List<IngestContractModel>>() {
+            JsonHandler.getFromFileAsTypeReference(fileContracts, new TypeReference<List<IngestContractModel>>() {
             });
         final RequestResponse<IngestContractModel> response = ingestContractService.createContracts(ingestModelList);
 
@@ -873,7 +873,7 @@ public class IngestContractImplTest {
         final File fileFormat = PropertiesUtils.getResourceFile(FORMAT_FILE);
 
         final List<FileFormatModel> fileFormatModelList =
-            JsonHandler.getFromFileAsTypeRefence(fileFormat, new TypeReference<List<FileFormatModel>>() {
+            JsonHandler.getFromFileAsTypeReference(fileFormat, new TypeReference<List<FileFormatModel>>() {
             });
 
         ArrayNode allFormatNodeArray = JsonHandler.createArrayNode();
@@ -886,7 +886,7 @@ public class IngestContractImplTest {
         //Contract format OK
         final File fileContracts = PropertiesUtils.getResourceFile("referential_contracts_with_formattype_ok.json");
         final List<IngestContractModel> ingestContractModelList =
-            JsonHandler.getFromFileAsTypeRefence(fileContracts, new TypeReference<List<IngestContractModel>>() {
+            JsonHandler.getFromFileAsTypeReference(fileContracts, new TypeReference<List<IngestContractModel>>() {
             });
 
         RequestResponse<IngestContractModel> response = ingestContractService.createContracts(ingestContractModelList);
@@ -906,7 +906,7 @@ public class IngestContractImplTest {
         //KO
         final File fileContractsKO = PropertiesUtils.getResourceFile("referential_contracts_with_formattype_ko.json");
         final List<IngestContractModel> ingestContractModelKOList =
-            JsonHandler.getFromFileAsTypeRefence(fileContractsKO, new TypeReference<List<IngestContractModel>>() {
+            JsonHandler.getFromFileAsTypeReference(fileContractsKO, new TypeReference<List<IngestContractModel>>() {
             });
 
         response = ingestContractService.createContracts(ingestContractModelKOList);
@@ -925,7 +925,7 @@ public class IngestContractImplTest {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         final File fileContracts = PropertiesUtils.getResourceFile("referential_contracts_ok.json");
         final List<IngestContractModel> IngestContractModelList =
-            JsonHandler.getFromFileAsTypeRefence(fileContracts, new TypeReference<List<IngestContractModel>>() {
+            JsonHandler.getFromFileAsTypeReference(fileContracts, new TypeReference<List<IngestContractModel>>() {
             });
         final RequestResponse<IngestContractModel> response =
             ingestContractService.createContracts(IngestContractModelList);
@@ -972,7 +972,7 @@ public class IngestContractImplTest {
 
         final File fileContracts = PropertiesUtils.getResourceFile("referential_contracts_link_parentId.json");
         final List<IngestContractModel> IngestContractModelList =
-            JsonHandler.getFromFileAsTypeRefence(fileContracts, new TypeReference<List<IngestContractModel>>() {
+            JsonHandler.getFromFileAsTypeReference(fileContracts, new TypeReference<List<IngestContractModel>>() {
             });
         final RequestResponse<IngestContractModel> response =
             ingestContractService.createContracts(IngestContractModelList);
@@ -1016,7 +1016,7 @@ public class IngestContractImplTest {
 
         final File fileContracts = PropertiesUtils.getResourceFile("referential_contracts_link_parentId.json");
         final List<IngestContractModel> IngestContractModelList =
-            JsonHandler.getFromFileAsTypeRefence(fileContracts, new TypeReference<List<IngestContractModel>>() {
+            JsonHandler.getFromFileAsTypeReference(fileContracts, new TypeReference<List<IngestContractModel>>() {
             });
         final RequestResponse<IngestContractModel> response =
             ingestContractService.createContracts(IngestContractModelList);
@@ -1061,7 +1061,7 @@ public class IngestContractImplTest {
 
         final File fileContracts = PropertiesUtils.getResourceFile("referential_contracts_link_parentId.json");
         final List<IngestContractModel> IngestContractModelList =
-            JsonHandler.getFromFileAsTypeRefence(fileContracts, new TypeReference<List<IngestContractModel>>() {
+            JsonHandler.getFromFileAsTypeReference(fileContracts, new TypeReference<List<IngestContractModel>>() {
             });
         final RequestResponse<IngestContractModel> response =
             ingestContractService.createContracts(IngestContractModelList);
@@ -1083,7 +1083,7 @@ public class IngestContractImplTest {
         final File fileContracts = PropertiesUtils.getResourceFile("referential_contracts_ok.json");
 
         final List<IngestContractModel> ingestModelList =
-            JsonHandler.getFromFileAsTypeRefence(fileContracts, new TypeReference<List<IngestContractModel>>() {
+            JsonHandler.getFromFileAsTypeReference(fileContracts, new TypeReference<List<IngestContractModel>>() {
             });
         final RequestResponse<IngestContractModel> response = ingestContractService.createContracts(ingestModelList);
 
@@ -1162,7 +1162,7 @@ public class IngestContractImplTest {
         final File fileContracts = PropertiesUtils.getResourceFile("referential_contracts_ok.json");
 
         final List<IngestContractModel> ingestModelList =
-            JsonHandler.getFromFileAsTypeRefence(fileContracts, new TypeReference<List<IngestContractModel>>() {
+            JsonHandler.getFromFileAsTypeReference(fileContracts, new TypeReference<List<IngestContractModel>>() {
             });
         final RequestResponse<IngestContractModel> response = ingestContractService.createContracts(ingestModelList);
         RequestResponseOK<IngestContractModel> responseCast = (RequestResponseOK<IngestContractModel>) response;
@@ -1208,7 +1208,7 @@ public class IngestContractImplTest {
 
         final File fileContracts = PropertiesUtils.getResourceFile("referential_contracts_managementContractId.json");
         final List<IngestContractModel> IngestContractModelList =
-            JsonHandler.getFromFileAsTypeRefence(fileContracts, new TypeReference<List<IngestContractModel>>() {
+            JsonHandler.getFromFileAsTypeReference(fileContracts, new TypeReference<List<IngestContractModel>>() {
             });
         final RequestResponse<IngestContractModel> response =
             ingestContractService.createContracts(IngestContractModelList);
@@ -1229,7 +1229,7 @@ public class IngestContractImplTest {
 
         final File fileContracts = PropertiesUtils.getResourceFile("referential_contracts_managementContractId.json");
         final List<IngestContractModel> IngestContractModelList =
-            JsonHandler.getFromFileAsTypeRefence(fileContracts, new TypeReference<List<IngestContractModel>>() {
+            JsonHandler.getFromFileAsTypeReference(fileContracts, new TypeReference<List<IngestContractModel>>() {
             });
         final RequestResponse<IngestContractModel> response =
             ingestContractService.createContracts(IngestContractModelList);

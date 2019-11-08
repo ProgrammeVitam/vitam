@@ -84,6 +84,8 @@ public class World {
     private List<JsonNode> results;
     private LogbookEvent logbookEvent;
     private Path dipFile;
+    private Path transferFile;
+    private Path atrFile;
 
     /**
      * id of the operation
@@ -353,7 +355,6 @@ public class World {
     }
 
     /**
-     *
      * @param objectGroupId
      */
     public void setObjectGroupId(String objectGroupId) {
@@ -361,7 +362,6 @@ public class World {
     }
 
     /**
-     *
      * @return objectGroupId
      */
     public String getObjectGroupId() {
@@ -490,6 +490,25 @@ public class World {
 
     public World setDipFile(Path dipFile) {
         this.dipFile = dipFile;
+        return this;
+    }
+
+    public Path getTransferFile() {
+        return transferFile;
+    }
+
+    public World setTransferFile(Path transferFile) {
+        this.transferFile = transferFile;
+        return this;
+
+    }
+
+    public Path getAtrFile() {
+        return atrFile;
+    }
+
+    public World setAtrFile(Path atrFile) {
+        this.atrFile = atrFile;
         return this;
     }
 }

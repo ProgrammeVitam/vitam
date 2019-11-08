@@ -232,7 +232,7 @@ public class WorkspaceClientFolderTest extends ResteasyTestApplication {
         throws ContentAddressableStorageServerException, InvalidParseOperationException, InvalidFormatException {
         when(mock.get()).thenReturn(Response.status(Status.OK).entity(Collections.<URI>emptyList()).build());
         final List<URI> uris =
-            JsonHandler.getFromStringAsTypeRefence(client.getListUriDigitalObjectFromFolder(CONTAINER_NAME, FOLDER_NAME)
+            JsonHandler.getFromStringAsTypeReference(client.getListUriDigitalObjectFromFolder(CONTAINER_NAME, FOLDER_NAME)
                 .toJsonNode().get("$results").get(0).toString(), new TypeReference<List<URI>>() {
             });
         assertTrue(uris.isEmpty());
@@ -248,7 +248,7 @@ public class WorkspaceClientFolderTest extends ResteasyTestApplication {
         when(mock.get()).thenReturn(
             Response.status(Status.OK).entity(uriListWorkspaceOK).build());
         final List<URI> uris =
-            JsonHandler.getFromStringAsTypeRefence(client.getListUriDigitalObjectFromFolder(CONTAINER_NAME, FOLDER_NAME)
+            JsonHandler.getFromStringAsTypeReference(client.getListUriDigitalObjectFromFolder(CONTAINER_NAME, FOLDER_NAME)
                 .toJsonNode().get("$results").get(0).toString(), new TypeReference<List<URI>>() {
             });
         assertTrue(!uris.isEmpty());

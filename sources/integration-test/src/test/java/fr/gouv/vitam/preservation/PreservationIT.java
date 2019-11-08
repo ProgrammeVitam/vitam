@@ -143,9 +143,9 @@ import static fr.gouv.vitam.common.client.VitamClientFactoryInterface.VitamClien
 import static fr.gouv.vitam.common.database.builder.query.QueryHelper.exists;
 import static fr.gouv.vitam.common.guid.GUIDFactory.newGUID;
 import static fr.gouv.vitam.common.guid.GUIDFactory.newOperationLogbookGUID;
-import static fr.gouv.vitam.common.json.JsonHandler.getFromFileAsTypeRefence;
+import static fr.gouv.vitam.common.json.JsonHandler.getFromFileAsTypeReference;
 import static fr.gouv.vitam.common.json.JsonHandler.getFromInputStream;
-import static fr.gouv.vitam.common.json.JsonHandler.getFromStringAsTypeRefence;
+import static fr.gouv.vitam.common.json.JsonHandler.getFromStringAsTypeReference;
 import static fr.gouv.vitam.common.json.JsonHandler.writeAsFile;
 import static fr.gouv.vitam.common.model.PreservationVersion.FIRST;
 import static fr.gouv.vitam.common.model.PreservationVersion.LAST;
@@ -463,8 +463,8 @@ public class PreservationIT extends VitamRuleRunner {
                         BufferedReader bufferedReaderExpected = new BufferedReader(new InputStreamReader(inputStreamExpected, StandardCharsets.UTF_8));
                         Optional<String> iteratorExpected = bufferedReaderExpected.lines().findFirst();
                         Optional<String> iterator1 = bufferedReader.lines().findFirst();
-                        OperationSummary operationSummaryExpected = JsonHandler.getFromStringAsTypeRefence(iteratorExpected.get(), OPERATION_SUMMARY_TYPE);
-                        OperationSummary operationSummary = JsonHandler.getFromStringAsTypeRefence(iterator1.get(), OPERATION_SUMMARY_TYPE);
+                        OperationSummary operationSummaryExpected = JsonHandler.getFromStringAsTypeReference(iteratorExpected.get(), OPERATION_SUMMARY_TYPE);
+                        OperationSummary operationSummary = JsonHandler.getFromStringAsTypeReference(iterator1.get(), OPERATION_SUMMARY_TYPE);
 
                         assertThat(operationSummary.getEvType()).isEqualTo(operationSummaryExpected.getEvType());
                         assertThat(operationSummary.getOutcome()).isEqualTo(operationSummaryExpected.getOutcome());
@@ -617,7 +617,7 @@ public class PreservationIT extends VitamRuleRunner {
             JsonNode response = client.selectObjectGroups(finalSelect);
 
             JsonNode results = response.get("$results");
-            return getFromStringAsTypeRefence(results.toString(), OBJECT_GROUP_RESPONSES_TYPE);
+            return getFromStringAsTypeReference(results.toString(), OBJECT_GROUP_RESPONSES_TYPE);
 
         } catch (VitamException | InvalidFormatException | InvalidCreateOperationException e) {
             throw new IllegalStateException(e);
@@ -626,12 +626,12 @@ public class PreservationIT extends VitamRuleRunner {
 
     private List<PreservationScenarioModel> getPreservationScenarioModels(String resourcesFile) throws Exception {
         File resourceFile = PropertiesUtils.getResourceFile(resourcesFile);
-        return getFromFileAsTypeRefence(resourceFile, PRESERVATION_SCENARIO_MODELS);
+        return getFromFileAsTypeReference(resourceFile, PRESERVATION_SCENARIO_MODELS);
     }
 
     private List<GriffinModel> getGriffinModels(String resourcesFile) throws FileNotFoundException, InvalidParseOperationException {
         File resourceFile = PropertiesUtils.getResourceFile(resourcesFile);
-        return getFromFileAsTypeRefence(resourceFile, GRIFFIN_MODELS_TYPE);
+        return getFromFileAsTypeReference(resourceFile, GRIFFIN_MODELS_TYPE);
     }
 
     private AccessContractModel getAccessContractModel() {

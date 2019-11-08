@@ -33,7 +33,7 @@ import static fr.gouv.vitam.common.database.builder.request.configuration.Builde
 import static fr.gouv.vitam.common.database.parser.query.ParserTokens.PROJECTIONARGS.ID;
 import static fr.gouv.vitam.common.database.parser.query.ParserTokens.PROJECTIONARGS.OBJECT;
 import static fr.gouv.vitam.common.json.JsonHandler.createObjectNode;
-import static fr.gouv.vitam.common.json.JsonHandler.getFromStringAsTypeRefence;
+import static fr.gouv.vitam.common.json.JsonHandler.getFromStringAsTypeReference;
 import static fr.gouv.vitam.common.model.StatusCode.FATAL;
 import static fr.gouv.vitam.worker.core.plugin.ScrollSpliteratorHelper.createUnitScrollSplitIterator;
 import static fr.gouv.vitam.worker.core.utils.PluginHelper.buildItemStatus;
@@ -50,14 +50,6 @@ import java.util.List;
 import java.util.Map;
 
 import com.google.common.collect.Iterators;
-import fr.gouv.vitam.common.model.RequestResponse;
-import fr.gouv.vitam.common.model.RequestResponseOK;
-import fr.gouv.vitam.storage.engine.client.StorageClient;
-import fr.gouv.vitam.storage.engine.client.StorageClientFactory;
-import fr.gouv.vitam.storage.engine.client.exception.StorageClientException;
-import fr.gouv.vitam.storage.engine.client.exception.StorageServerClientException;
-import fr.gouv.vitam.storage.engine.common.referential.model.StorageStrategy;
-import fr.gouv.vitam.worker.core.plugin.audit.exception.AuditException;
 import org.apache.commons.collections4.IteratorUtils;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.Pair;
@@ -253,7 +245,7 @@ public class AuditPreparePlugin extends ActionHandler {
             JsonNode response = metaDataClientFactory.getClient().selectObjectGroups(finalSelect);
 
             JsonNode results = response.get("$results");
-            return getFromStringAsTypeRefence(results.toString(), new TypeReference<List<ObjectGroupResponse>>() {
+            return getFromStringAsTypeReference(results.toString(), new TypeReference<List<ObjectGroupResponse>>() {
             });
 
         } catch (VitamException | InvalidFormatException | InvalidCreateOperationException e) {

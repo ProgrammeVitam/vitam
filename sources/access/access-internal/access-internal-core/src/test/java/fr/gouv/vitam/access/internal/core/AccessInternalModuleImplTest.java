@@ -56,7 +56,6 @@ import javax.ws.rs.core.Response.Status;
 
 import org.apache.commons.io.IOUtils;
 import org.assertj.core.api.Assertions;
-import org.assertj.core.api.ThrowableAssert.ThrowingCallable;
 import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
@@ -474,7 +473,7 @@ public class AccessInternalModuleImplTest {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
 
         JsonNode accessContractFile = JsonHandler.getFromFile(PropertiesUtils.findFile(ACCESS_CONTRACT_ALL_PERMISSION));
-        AccessContractModel accessContractModel = JsonHandler.getFromStringAsTypeRefence(accessContractFile.toString(),
+        AccessContractModel accessContractModel = JsonHandler.getFromStringAsTypeReference(accessContractFile.toString(),
             new TypeReference<AccessContractModel>() {
             });
         accessContractModel.setIdentifier("FakeIdentifier");
@@ -529,7 +528,7 @@ public class AccessInternalModuleImplTest {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
 
         JsonNode accessContractFile = JsonHandler.getFromFile(PropertiesUtils.findFile(ACCESS_CONTRACT_DESC_ONLY));
-        AccessContractModel accessContractModel = JsonHandler.getFromStringAsTypeRefence(accessContractFile.toString(),
+        AccessContractModel accessContractModel = JsonHandler.getFromStringAsTypeReference(accessContractFile.toString(),
             new TypeReference<AccessContractModel>() {
             });
         accessContractModel.setIdentifier("FakeIdentifier");
@@ -587,7 +586,7 @@ public class AccessInternalModuleImplTest {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
 
         JsonNode accessContractFile = JsonHandler.getFromFile(PropertiesUtils.findFile(ACCESS_CONTRACT_NO_PERMISSION));
-        AccessContractModel accessContractModel = JsonHandler.getFromStringAsTypeRefence(accessContractFile.toString(),
+        AccessContractModel accessContractModel = JsonHandler.getFromStringAsTypeReference(accessContractFile.toString(),
             new TypeReference<AccessContractModel>() {
             });
         accessContractModel.setIdentifier("FakeIdentifier");
@@ -645,7 +644,7 @@ public class AccessInternalModuleImplTest {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
 
         JsonNode accessContractFile = JsonHandler.getFromFile(PropertiesUtils.findFile(ACCESS_CONTRACT_ALL_PERMISSION));
-        AccessContractModel accessContractModel = JsonHandler.getFromStringAsTypeRefence(accessContractFile.toString(),
+        AccessContractModel accessContractModel = JsonHandler.getFromStringAsTypeReference(accessContractFile.toString(),
             new TypeReference<AccessContractModel>() {
             });
         accessContractModel.setIdentifier("FakeIdentifier");
@@ -681,7 +680,7 @@ public class AccessInternalModuleImplTest {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
 
         JsonNode accessContractFile = JsonHandler.getFromFile(PropertiesUtils.findFile(ACCESS_CONTRACT_ALL_PERMISSION));
-        AccessContractModel accessContractModel = JsonHandler.getFromStringAsTypeRefence(accessContractFile.toString(),
+        AccessContractModel accessContractModel = JsonHandler.getFromStringAsTypeReference(accessContractFile.toString(),
             new TypeReference<AccessContractModel>() {
             });
         accessContractModel.setIdentifier("FakeIdentifier");
@@ -729,7 +728,7 @@ public class AccessInternalModuleImplTest {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
 
         JsonNode accessContractFile = JsonHandler.getFromFile(PropertiesUtils.findFile(ACCESS_CONTRACT_ALL_PERMISSION));
-        AccessContractModel accessContractModel = JsonHandler.getFromStringAsTypeRefence(accessContractFile.toString(),
+        AccessContractModel accessContractModel = JsonHandler.getFromStringAsTypeReference(accessContractFile.toString(),
             new TypeReference<AccessContractModel>() {
             });
         accessContractModel.setIdentifier("FakeIdentifier");
@@ -822,7 +821,7 @@ public class AccessInternalModuleImplTest {
         throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         JsonNode accessContractFile = JsonHandler.getFromFile(PropertiesUtils.findFile(ACCESS_CONTRACT_ALL_PERMISSION));
-        AccessContractModel accessContractModel = JsonHandler.getFromStringAsTypeRefence(accessContractFile.toString(),
+        AccessContractModel accessContractModel = JsonHandler.getFromStringAsTypeReference(accessContractFile.toString(),
             new TypeReference<AccessContractModel>() {
             });
         accessContractModel.setIdentifier("FakeIdentifier");
@@ -847,7 +846,7 @@ public class AccessInternalModuleImplTest {
         throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         JsonNode accessContractFile = JsonHandler.getFromFile(PropertiesUtils.findFile(ACCESS_CONTRACT_ALL_PERMISSION));
-        AccessContractModel accessContractModel = JsonHandler.getFromStringAsTypeRefence(accessContractFile.toString(),
+        AccessContractModel accessContractModel = JsonHandler.getFromStringAsTypeReference(accessContractFile.toString(),
             new TypeReference<AccessContractModel>() {
             });
         accessContractModel.setIdentifier("FakeIdentifier");
@@ -875,7 +874,7 @@ public class AccessInternalModuleImplTest {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
 
         JsonNode accessContractFile = JsonHandler.getFromFile(PropertiesUtils.findFile(ACCESS_CONTRACT_ALL_PERMISSION));
-        AccessContractModel accessContractModel = JsonHandler.getFromStringAsTypeRefence(accessContractFile.toString(),
+        AccessContractModel accessContractModel = JsonHandler.getFromStringAsTypeReference(accessContractFile.toString(),
             new TypeReference<AccessContractModel>() {
             });
         accessContractModel.setIdentifier("FakeIdentifier");
@@ -1473,7 +1472,7 @@ public class AccessInternalModuleImplTest {
 
         JsonNode accessContractFile =
             JsonHandler.getFromFile(PropertiesUtils.findFile(ACCESS_CONTRACT_NO_WRITING_RESTRICTED_DESC));
-        AccessContractModel accessContractModel = JsonHandler.getFromStringAsTypeRefence(accessContractFile.toString(),
+        AccessContractModel accessContractModel = JsonHandler.getFromStringAsTypeReference(accessContractFile.toString(),
             new TypeReference<AccessContractModel>() {
             });
         accessContractModel.setIdentifier("FakeIdentifier");

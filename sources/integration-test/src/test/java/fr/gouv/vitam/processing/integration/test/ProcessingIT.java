@@ -439,7 +439,7 @@ public class ProcessingIT extends VitamRuleRunner {
             // import contract
             File fileContracts = PropertiesUtils.getResourceFile(INGEST_CONTRACTS_PLAN);
             List<IngestContractModel> IngestContractModelList =
-                JsonHandler.getFromFileAsTypeRefence(fileContracts, new TypeReference<List<IngestContractModel>>() {
+                JsonHandler.getFromFileAsTypeReference(fileContracts, new TypeReference<List<IngestContractModel>>() {
                 });
 
             functionalClient.importIngestContracts(IngestContractModelList);
@@ -549,7 +549,7 @@ public class ProcessingIT extends VitamRuleRunner {
             // import contract
             File fileContracts = PropertiesUtils.getResourceFile(INGEST_CONTRACTS_PLAN);
             List<IngestContractModel> IngestContractModelList =
-                JsonHandler.getFromFileAsTypeRefence(fileContracts, new TypeReference<List<IngestContractModel>>() {
+                JsonHandler.getFromFileAsTypeReference(fileContracts, new TypeReference<List<IngestContractModel>>() {
                 });
 
             functionalClient.importIngestContracts(IngestContractModelList);
@@ -2719,7 +2719,7 @@ public class ProcessingIT extends VitamRuleRunner {
             // import contract
             File fileContracts = PropertiesUtils.getResourceFile(INGEST_CONTRACTS_PLAN);
             List<IngestContractModel> IngestContractModelList =
-                JsonHandler.getFromFileAsTypeRefence(fileContracts, new TypeReference<List<IngestContractModel>>() {
+                JsonHandler.getFromFileAsTypeReference(fileContracts, new TypeReference<List<IngestContractModel>>() {
                 });
 
             functionalClient.importIngestContracts(IngestContractModelList);
