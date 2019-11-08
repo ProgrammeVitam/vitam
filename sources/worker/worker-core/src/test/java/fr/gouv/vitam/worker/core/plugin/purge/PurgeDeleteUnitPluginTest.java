@@ -41,6 +41,7 @@ import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
 import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
+import fr.gouv.vitam.logbook.lifecycles.client.LogbookLifeCyclesClientFactory;
 import fr.gouv.vitam.metadata.client.MetaDataClient;
 import fr.gouv.vitam.metadata.client.MetaDataClientFactory;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
@@ -87,6 +88,10 @@ public class PurgeDeleteUnitPluginTest {
 
     @Mock
     private PurgeReportService purgeReportService;
+
+    @Mock
+    private LogbookLifeCyclesClientFactory lfcClientFactory;
+
     private ArrayList<PurgeUnitReportEntry> reportEntries;
 
     private PurgeUnitPlugin instance;
@@ -118,7 +123,7 @@ public class PurgeDeleteUnitPluginTest {
             .when(purgeReportService)
             .appendUnitEntries(any(), any());
 
-        instance = new PurgeUnitPlugin("PLUGIN_ACTION", purgeDeleteService, metaDataClientFactory, purgeReportService);
+        instance = new PurgeUnitPlugin("PLUGIN_ACTION", purgeDeleteService, metaDataClientFactory, purgeReportService, lfcClientFactory);
     }
 
     @After

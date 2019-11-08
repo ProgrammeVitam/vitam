@@ -346,7 +346,7 @@ public class CreateManifest extends ActionHandler {
             itemStatus.increment(StatusCode.OK);
 
             if (ArchiveTransfer.equals(exportRequest.getExportType())) {
-                backupService.backup(reportFile, DataCategory.REPORT, handlerIO.getContainerName() + ".json");
+                backupService.backup(reportFile, DataCategory.REPORT, handlerIO.getContainerName() + ".jsonl");
             }
 
         } catch (ExportException e) {

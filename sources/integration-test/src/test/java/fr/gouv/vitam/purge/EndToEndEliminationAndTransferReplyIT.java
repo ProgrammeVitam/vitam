@@ -117,6 +117,10 @@ import fr.gouv.vitam.worker.core.plugin.elimination.model.EliminationActionUnitS
 import fr.gouv.vitam.worker.core.plugin.purge.PurgeObjectGroupStatus;
 import fr.gouv.vitam.worker.core.plugin.purge.PurgeUnitStatus;
 import fr.gouv.vitam.worker.server.rest.WorkerMain;
+import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundException;
+import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
+import fr.gouv.vitam.workspace.client.WorkspaceClient;
+import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
 import fr.gouv.vitam.workspace.rest.WorkspaceMain;
 import io.restassured.RestAssured;
 import net.javacrumbs.jsonunit.JsonAssert;
@@ -150,11 +154,12 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import static com.google.common.collect.Lists.newArrayList;
 import static fr.gouv.vitam.common.guid.GUIDFactory.newOperationLogbookGUID;
+import static fr.gouv.vitam.worker.core.plugin.dip.StoreExports.TRANSFER_CONTAINER;
 import static io.restassured.RestAssured.get;
 import static java.util.stream.Collectors.toMap;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 
@@ -183,7 +188,6 @@ public class EndToEndEliminationAndTransferReplyIT extends VitamRuleRunner {
     private static final String MONTPARNASSE = "Montparnasse.txt";
     private static final String ORIGINATING_AGENCY = "RATP";
     private static final String JSONL = ".jsonl";
-    private static final String JSON = ".json";
     private static final String XML = ".xml";
     @ClassRule
     public static VitamServerRunner runner =
@@ -537,7 +541,7 @@ public class EndToEndEliminationAndTransferReplyIT extends VitamRuleRunner {
         // Check transfer result
         checkTransferResult(ingestOperationGuid, ingestedUnits, ingestedObjectGroups, ingestedUnitIds,
             ingestedObjectGroupIds,
-            transferReplyOperationId, transferPurgedTransferUnitIds, transferAlreadyDeletedUnitIds,
+            transferReplyOperationId, transferReplyOperationId, transferPurgedTransferUnitIds, transferAlreadyDeletedUnitIds,
             transferNonDeletableUnitIds, transferDeletedObjectGroups, transferDetachedObjectGroups,
             accessInternalClient);
 
@@ -629,7 +633,7 @@ public class EndToEndEliminationAndTransferReplyIT extends VitamRuleRunner {
         // Check transfer 1 result
         checkTransferResult(ingestOperationGuid, ingestedUnits, ingestedObjectGroups, ingestedUnitIds,
             ingestedObjectGroupIds,
-            transferReplyOperationId1, transfer1PurgedTransferUnitIds, transfer1AlreadyDeletedUnitIds,
+            transferReplyOperationId1, transferReplyOperationId1, transfer1PurgedTransferUnitIds, transfer1AlreadyDeletedUnitIds,
             transfer1NonDeletableUnitIds, transfer1DeletedObjectGroups, transfer1DetachedObjectGroups,
             accessInternalClient);
 
@@ -655,15 +659,12 @@ public class EndToEndEliminationAndTransferReplyIT extends VitamRuleRunner {
 
         // Check transfer 2 result
         checkTransferResult(ingestOperationGuid, ingestedUnits, ingestedObjectGroups, ingestedUnitIds,
-            ingestedObjectGroupIds,
+            ingestedObjectGroupIds, transferReplyOperationId1,
             transferReplyOperationId2, transfer2PurgedTransferUnitIds, transfer2AlreadyDeletedUnitIds,
             transfer2NonDeletableUnitIds, transfer2DeletedObjectGroups, transfer2DetachedObjectGroups,
             accessInternalClient);
 
         // Check Accession Register Detail
-
-        System.out.println( JsonHandler.unprettyPrint(Lists.newArrayList(FunctionalAdminCollections.ACCESSION_REGISTER_SUMMARY.getCollection().find())));
-
         List<String> excludeFields = Lists
             .newArrayList("_id", "StartDate", "LastUpdate", "EndDate", "Opc", "Opi", "CreationDate", "OperationIds");
         assertJsonEquals("transfer/reply/accession_register_detail_complex_test.json", JsonHandler.toJsonNode(
@@ -680,14 +681,15 @@ public class EndToEndEliminationAndTransferReplyIT extends VitamRuleRunner {
 
     private void checkTransferResult(String ingestOperationGuid, RequestResponseOK<JsonNode> ingestedUnits,
         RequestResponseOK<JsonNode> ingestedObjectGroups, Set<String> ingestedUnitIds,
-        Set<String> ingestedObjectGroupIds, String transferReplyOperationId,
+        Set<String> ingestedObjectGroupIds, String transferReplyOperationId1, String transferReplyOperationId,
         List<String> expectedDeletedUnitIds, List<String> expectedAlreadyDeletedUnitIds,
         List<String> expectedNonDeletableUnitIds, List<String> expectedDeletedObjectGroups,
         List<String> expectedDetachedObjectGroups,
         AccessInternalClient accessInternalClient)
         throws StorageNotFoundClientException, StorageServerClientException, IOException, StorageNotFoundException,
         BadRequestException, InvalidParseOperationException, AccessUnauthorizedException,
-        AccessInternalClientServerException, AccessInternalClientNotFoundException, InvalidCreateOperationException {
+        AccessInternalClientServerException, AccessInternalClientNotFoundException, InvalidCreateOperationException, LogbookClientException,
+        ContentAddressableStorageServerException {
 
         // Check remaining units / object groups
         final RequestResponseOK<JsonNode> remainingUnits = selectUnitsByOpi(ingestOperationGuid, accessInternalClient);
@@ -715,6 +717,21 @@ public class EndToEndEliminationAndTransferReplyIT extends VitamRuleRunner {
                 checkObjectExistence(objectId, !shouldBePurged);
             }
         }
+
+        // Ensure exported units LFC modified
+        LogbookLifeCyclesClient logbookLifeCyclesClient = LogbookLifeCyclesClientFactory.getInstance().getClient();
+        List<JsonNode> unitLifeCycles =
+            logbookLifeCyclesClient.getRawUnitLifeCycleByIds(new ArrayList<>(expectedNonDeletableUnitIds));
+        for (JsonNode unitLifeCycle : unitLifeCycles) {
+            assertThat(unitLifeCycle.get("events").get(unitLifeCycle.get("events").size() - 1)
+                .get("outDetail").asText()).isEqualTo("LFC.UNIT_TRANSFERT_ABORT.OK");
+        }
+
+        // Check SIP transfer is deleted after atr reception
+        WorkspaceClient workspaceClient = WorkspaceClientFactory.getInstance().getClient();
+        assertThatThrownBy(() ->
+        workspaceClient.getObject(TRANSFER_CONTAINER, tenantId + "/" + transferReplyOperationId1))
+            .isInstanceOf(ContentAddressableStorageNotFoundException.class);
 
         // Check transfer reply report
         checkTransferReplyReport(transferReplyOperationId, ingestOperationGuid,
@@ -851,7 +868,7 @@ public class EndToEndEliminationAndTransferReplyIT extends VitamRuleRunner {
         Collection<String> alredyTransferedUnitIds)
         throws IOException, StorageNotFoundException, StorageServerClientException {
 
-        try (InputStream is = readStoredReport(transferOperationId + JSON);
+        try (InputStream is = readStoredReport(transferOperationId + JSONL);
             JsonLineGenericIterator<JsonNode> reportIterator =
                 new JsonLineGenericIterator<>(is, JSON_NODE_TYPE_REFERENCE)) {
 

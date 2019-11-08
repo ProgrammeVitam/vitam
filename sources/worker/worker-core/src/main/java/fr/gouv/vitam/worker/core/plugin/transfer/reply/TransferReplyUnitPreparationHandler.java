@@ -261,7 +261,7 @@ public class TransferReplyUnitPreparationHandler extends ActionHandler {
         throws StorageNotFoundException, StorageServerClientException {
         try (StorageClient storageClient = this.storageClientFactory.getClient()) {
             return new VitamAsyncInputStream(storageClient
-                .getContainerAsync(VitamConfiguration.getDefaultStrategy(), transferRequestId + ".json",
+                .getContainerAsync(VitamConfiguration.getDefaultStrategy(), transferRequestId + ".jsonl",
                     DataCategory.REPORT, AccessLogUtils.getNoLogAccessLog()));
         }
     }

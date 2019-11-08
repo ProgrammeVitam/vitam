@@ -201,6 +201,9 @@
     "className": "fr.gouv.vitam.worker.core.plugin.transfer.reply.TransferReplyAccessionRegisterUpdatePlugin",
     "propertiesFile": "transfer_reply_update_accession_register.properties"
   },
+  "TRANSFER_REPLY_DELETE_SIP":{
+    "className": "fr.gouv.vitam.worker.core.plugin.transfer.reply.TransferReplyDeleteSIP"
+  },
   "PROBATIVE_VALUE_CREATE_REPORT": {
     "className": "fr.gouv.vitam.worker.core.plugin.probativevalue.ProbativeCreateReport"
   },
