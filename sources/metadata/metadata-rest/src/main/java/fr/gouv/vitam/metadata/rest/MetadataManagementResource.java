@@ -142,8 +142,8 @@ public class MetadataManagementResource {
     private static final String PURGE_EXPIRED_DIP_FILES_URI = "/purgeDIP";
     private static final String PURGE_EXPIRED_TRANSFER_SIP_FILES_URI = "/purgeTransfersSIP";
     private static final String MIGRATION_PURGE_EXPIRED_FROM_OFFERS = "/migrationDeleteDipFromOffers";
-    private String DIP_CONTAINER ="DIP";
-    private String TRANSFERS_CONTAINER ="TRANSFER";
+    private static final String DIP_CONTAINER ="DIP";
+    private static final String TRANSFERS_CONTAINER ="TRANSFER";
 
     /**
      * Error/Exceptions messages.
@@ -201,6 +201,7 @@ public class MetadataManagementResource {
 
         ProcessingManagementClientFactory.changeConfigurationUrl(configuration.getUrlProcessing());
     }
+
     /**
      * API to access and launch the Vitam reconstruction service for metadatas.<br/>
      *

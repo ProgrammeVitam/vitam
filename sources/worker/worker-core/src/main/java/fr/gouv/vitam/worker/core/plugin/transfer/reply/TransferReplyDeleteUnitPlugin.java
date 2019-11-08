@@ -27,6 +27,7 @@
 package fr.gouv.vitam.worker.core.plugin.transfer.reply;
 
 import com.google.common.annotations.VisibleForTesting;
+import fr.gouv.vitam.logbook.lifecycles.client.LogbookLifeCyclesClientFactory;
 import fr.gouv.vitam.metadata.client.MetaDataClientFactory;
 import fr.gouv.vitam.worker.core.plugin.purge.PurgeDeleteService;
 import fr.gouv.vitam.worker.core.plugin.purge.PurgeReportService;
@@ -50,8 +51,9 @@ public class TransferReplyDeleteUnitPlugin extends PurgeUnitPlugin {
     TransferReplyDeleteUnitPlugin(
         PurgeDeleteService purgeDeleteService,
         MetaDataClientFactory metaDataClientFactory,
-        PurgeReportService purgeReportService) {
-        super(TRANSFER_REPLY_DELETE_UNIT, purgeDeleteService, metaDataClientFactory, purgeReportService);
+        PurgeReportService purgeReportService,
+        LogbookLifeCyclesClientFactory logbookLifeCyclesClientFactory) {
+        super(TRANSFER_REPLY_DELETE_UNIT, purgeDeleteService, metaDataClientFactory, purgeReportService, logbookLifeCyclesClientFactory);
     }
 
     public static String getId() {

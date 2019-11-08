@@ -130,7 +130,7 @@ public class TransferAndDipIT extends VitamRuleRunner {
     private static final long NB_TRY = 18000; // equivalent to 16 minute
     private static final String WORKFLOW_ID = "DEFAULT_WORKFLOW";
     private static final String CONTEXT_ID = "PROCESS_SIP_UNITARY";
-    private String transfers_operation = "Transfers";
+    private static final String TRANSFERS_OPERATION = "Transfers";
     private final static TypeReference<List<LogbookEventOperation>> TYPE_REFERENCE = new TypeReference<List<LogbookEventOperation>>() {};
 
     @ClassRule
@@ -416,12 +416,9 @@ public class TransferAndDipIT extends VitamRuleRunner {
             );
     }
 
-    private List<LogbookEventOperation> getLogbookEvents(GUID transferReplyWorkflowGuid)
-        throws LogbookClientException, InvalidParseOperationException, AccessUnauthorizedException {
-        try (AccessInternalClient client = AccessInternalClientFactory.getInstance().getClient()) {
-            JsonNode logbookEvents =
-                client.selectOperationById(transferReplyWorkflowGuid.getId(), new SelectMultiQuery().getFinalSelect())
-                    .toJsonNode()
+    private List<LogbookEventOperation> getLogbookEvents(GUID transferReplyWorkflowGuid) throws LogbookClientException, InvalidParseOperationException, AccessUnauthorizedException {
+        try (AccessInternalClient client = AccessInternalClientFactory.getInstance().getClient()){
+            JsonNode logbookEvents = client.selectOperationById(transferReplyWorkflowGuid.getId(), new SelectMultiQuery().getFinalSelect()).toJsonNode()
                     .get("$results")
                     .get(0)
                     .get("events");
@@ -509,7 +506,7 @@ public class TransferAndDipIT extends VitamRuleRunner {
                     assertThat(document.getString("evType")).isEqualTo(Contexts.EXPORT_DIP.getEventType());
                     break;
             }
-            if(operation.equals(transfers_operation))
+            if(operation.equals(TRANSFERS_OPERATION))
             {
                 try (InputStream dip = getTransferSIP(operationGuid.getId())) {
                     File dipFile = File.createTempFile("tmp", ".zip", new File(VitamConfiguration.getVitamTmpFolder()));

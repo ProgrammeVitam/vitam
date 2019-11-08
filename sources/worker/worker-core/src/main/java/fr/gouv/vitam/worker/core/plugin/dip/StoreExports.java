@@ -53,10 +53,10 @@ public class StoreExports extends ActionHandler {
 
     private static final String STORE_DIP = "STORE_DIP";
     private static final String TRANSFER_DIP = "TRANSFER_DIP";
-    static String ARCHIVE_TRANSFER = "ARCHIVE_TRANSFER";
+    static final String ARCHIVE_TRANSFER = "ARCHIVE_TRANSFER";
     static final String CONTENT = "Content";
     static final String DIP_CONTAINER = "DIP";
-    static final String TRANSFER_CONTAINER = "TRANSFER";
+    public static final String TRANSFER_CONTAINER = "TRANSFER";
 
 
     @Override
@@ -64,28 +64,28 @@ public class StoreExports extends ActionHandler {
         throws ProcessingException, ContentAddressableStorageServerException {
 
         String container;
-        String status_action;
+        String statusAction;
         if(params.getWorkflowIdentifier().equals(ARCHIVE_TRANSFER))
         {
             container = TRANSFER_CONTAINER;
-            status_action = TRANSFER_DIP;
+            statusAction = TRANSFER_DIP;
         } else {
             container = DIP_CONTAINER;
-            status_action = STORE_DIP;
+            statusAction = STORE_DIP;
         }
 
-        final ItemStatus itemStatus = new ItemStatus(status_action);
+        final ItemStatus itemStatus = new ItemStatus(statusAction);
 
         try {
-            String dipTenantFolder = Integer.toString(VitamThreadUtils.getVitamSession().getTenantId());
-            String dipZipFileName = params.getContainerName();
+            String tenantFolder = Integer.toString(VitamThreadUtils.getVitamSession().getTenantId());
+            String zipFileName = params.getContainerName();
 
-            zipWorkspace(handler, dipTenantFolder, dipZipFileName, container, SEDA_FILE, CONTENT);
+            zipWorkspace(handler, tenantFolder, zipFileName, container, SEDA_FILE, CONTENT);
             itemStatus.increment(StatusCode.OK);
         } catch (ContentAddressableStorageException e) {
             throw new ProcessingException(e);
         }
-        return new ItemStatus(status_action).setItemsStatus(status_action, itemStatus);
+        return new ItemStatus(statusAction).setItemsStatus(statusAction, itemStatus);
     }
 
     private void zipWorkspace(HandlerIO handler, String outputDir, String outputFile, String container, String... inputFiles)

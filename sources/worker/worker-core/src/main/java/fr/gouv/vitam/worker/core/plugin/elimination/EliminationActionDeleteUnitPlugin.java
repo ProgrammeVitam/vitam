@@ -27,6 +27,7 @@
 package fr.gouv.vitam.worker.core.plugin.elimination;
 
 import com.google.common.annotations.VisibleForTesting;
+import fr.gouv.vitam.logbook.lifecycles.client.LogbookLifeCyclesClientFactory;
 import fr.gouv.vitam.metadata.client.MetaDataClientFactory;
 import fr.gouv.vitam.worker.core.plugin.purge.PurgeDeleteService;
 import fr.gouv.vitam.worker.core.plugin.purge.PurgeReportService;
@@ -53,8 +54,9 @@ public class EliminationActionDeleteUnitPlugin extends PurgeUnitPlugin {
     EliminationActionDeleteUnitPlugin(
         PurgeDeleteService purgeDeleteService,
         MetaDataClientFactory metaDataClientFactory,
-        PurgeReportService purgeReportService) {
-        super(ELIMINATION_ACTION_DELETE_UNIT, purgeDeleteService, metaDataClientFactory, purgeReportService);
+        PurgeReportService purgeReportService,
+        LogbookLifeCyclesClientFactory lfcClientFactory) {
+        super(ELIMINATION_ACTION_DELETE_UNIT, purgeDeleteService, metaDataClientFactory, purgeReportService, lfcClientFactory);
     }
 
     public static String getId() {

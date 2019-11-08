@@ -72,6 +72,18 @@
               }
             ]
           }
+        },
+        {
+          "action": {
+            "actionKey": "TRANSFER_REPLY_DELETE_SIP",
+            "behavior": "BLOCKING",
+            "in": [
+              {
+                "name": "TransferReplyContext",
+                "uri": "WORKSPACE:TransferReplyContext.json"
+              }
+            ]
+          }
         }
       ]
     },
@@ -226,7 +238,7 @@
         {
           "action": {
             "actionKey": "TRANSFER_REPLY_FINALIZATION",
-            "behavior": "BLOCKING",
+            "behavior": "FINALLY",
             "lifecycleLog": "DISABLED"
           }
         }

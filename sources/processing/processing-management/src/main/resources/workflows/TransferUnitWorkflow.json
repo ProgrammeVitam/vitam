@@ -49,7 +49,7 @@
               },
               {
                 "name": "report",
-                "uri": "WORKSPACE:data/report.json"
+                "uri": "WORKSPACE:data/report.jsonl"
               }
             ]
           }
