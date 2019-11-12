@@ -96,7 +96,8 @@ Il faut alors modifier la valeur de la directive ``syslog.name`` ; la valeur par
 Déclaration des secrets
 =======================
 
-
+vitam
+------
 .. warning:: Cette section décrit des fichiers contenant des données sensibles. Il est important d'implémenter une politique de mot de passe robuste conforme à ce que l'ANSSI préconise. Par exemple: ne pas utiliser le même mot de passe pour chaque service, renouveler régulièrement son mot de passe, utiliser des majuscules, minuscules, chiffres et caractères spéciaux (Se référer à la documentation ANSSI https://www.ssi.gouv.fr/guide/mot-de-passe). En cas d'usage d'un fichier de mot de passe ("vault-password-file"), il faut renseigner ce mot de passe comme contenu du fichier et ne pas oublier de sécuriser ou supprimer ce fichier à l'issue de l'installation.
 
 
@@ -147,3 +148,29 @@ Cas des extra
 
 
 .. note:: le playbook ``vitam.yml`` comprend des étapes avec la mention ``no_log`` afin de ne pas afficher en clair des étapes comme les mots de passe des certificats. En cas d'erreur, il est possible de retirer la ligne dans le fichier pour une analyse plus fine d'un éventuel problème sur une de ces étapes.
+
+
+Commande ansible-vault
+-----------------------
+
+Certains fichiers présents sous |repertoire_inventory|/group_vars/all commençant par **vault-** doivent être protégés (encryptés) avec l'utilitaire ``ansible-vault``.
+
+.. note:: Ne pas oublier de mettre en conformité le fichier ``vault_pass.txt`` 
+
+Générer des fichiers *vaultés* depuis des fichier en clair
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Exemple du fichier ``vault-cots.example`` ::
+
+   cp vault-cots.example vault-cots.yml
+   ansible-vault encrypt vault-cots.yml
+
+
+
+Ré-encoder un fichier *vaulté*
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Exemple du fichier ``vault-cots.yml`` ::
+
+   ansible-vault rekey vault-cots.yml
+
