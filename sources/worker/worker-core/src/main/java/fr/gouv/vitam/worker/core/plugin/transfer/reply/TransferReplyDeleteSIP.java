@@ -68,10 +68,10 @@ public class TransferReplyDeleteSIP extends ActionHandler {
             String optId = transferReplyContext.getTransferMessageRequestIdentifier();
             String tenantFolder = Integer.toString(VitamThreadUtils.getVitamSession().getTenantId());
             workspaceClient.deleteObject(TRANSFER_CONTAINER, tenantFolder + "/" + optId);
-        } catch (InvalidParseOperationException | ContentAddressableStorageNotFoundException e) {
+        } catch (InvalidParseOperationException | ContentAddressableStorageServerException e) {
             LOGGER.error(e);
             return buildItemStatus(PLUGIN_NAME, FATAL, PluginHelper.EventDetails.of(e.getMessage()));
-        } catch (ContentAddressableStorageServerException e) {
+        } catch (ContentAddressableStorageNotFoundException e) {
             return buildItemStatus(PLUGIN_NAME, StatusCode.WARNING, "File not found");
         }
 
