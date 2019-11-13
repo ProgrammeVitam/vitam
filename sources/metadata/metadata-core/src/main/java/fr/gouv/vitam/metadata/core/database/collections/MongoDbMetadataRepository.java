@@ -14,6 +14,8 @@ import com.mongodb.client.model.DeleteOneModel;
 import com.mongodb.client.model.InsertOneModel;
 import com.mongodb.client.model.UpdateOneModel;
 import fr.gouv.vitam.common.database.server.mongodb.VitamDocument;
+import fr.gouv.vitam.common.logging.VitamLogger;
+import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.parameter.ParameterHelper;
 import fr.gouv.vitam.metadata.api.exception.MetaDataAlreadyExistException;
 import fr.gouv.vitam.metadata.api.exception.MetaDataExecutionException;
@@ -38,6 +40,9 @@ import static fr.gouv.vitam.metadata.core.database.collections.MetadataDocument.
  * Repository to access to metadata collection
  */
 public class MongoDbMetadataRepository<T extends VitamDocument> {
+
+    private static final VitamLogger LOGGER =
+        VitamLoggerFactory.getInstance(MongoDbMetadataRepository.class);
 
     private Supplier<MongoCollection<T>> mongoCollectionSupplier;
 
@@ -68,7 +73,8 @@ public class MongoDbMetadataRepository<T extends VitamDocument> {
         return vitamDocuments;
     }
 
-    public void insert(List<T> metadataDocuments) throws MetaDataExecutionException, MetaDataAlreadyExistException {
+    public void insert(List<T> metadataDocuments) throws MetaDataExecutionException {
+
         BulkWriteOptions options = new BulkWriteOptions();
         options.ordered(false);
 
@@ -88,16 +94,19 @@ public class MongoDbMetadataRepository<T extends VitamDocument> {
                         bulkWriteResult.getInsertedCount(), metadataDocuments.size()));
             }
         } catch (final MongoBulkWriteException e) {
-            List<String> ids = new ArrayList<>();
+
+            boolean hasBlockerErrors = false;
             for (BulkWriteError bulkWriteError : e.getWriteErrors()) {
                 if (bulkWriteError.getCategory() == ErrorCategory.DUPLICATE_KEY) {
-                    ids.add(metadataDocuments.get(bulkWriteError.getIndex()).getId());
+                    LOGGER.warn("Document already exists " + metadataDocuments.get(bulkWriteError.getIndex()).getId() + ". Ignoring quietly (idempotency)");
+                } else {
+                    hasBlockerErrors = true;
+                    LOGGER.error("An error occurred during metadata insert " + bulkWriteError);
                 }
             }
-            if (!ids.isEmpty()) {
-                throw new MetaDataAlreadyExistException("Metadata already exists: " + ids);
+            if(hasBlockerErrors) {
+                throw new MetaDataExecutionException(e);
             }
-            throw new MetaDataExecutionException(e);
         } catch (final MongoException | IllegalArgumentException e) {
             throw new MetaDataExecutionException(e);
         }

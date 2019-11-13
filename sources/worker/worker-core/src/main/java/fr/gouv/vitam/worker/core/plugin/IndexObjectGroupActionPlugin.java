@@ -140,12 +140,6 @@ public class IndexObjectGroupActionPlugin extends ActionHandler {
             if (!objectGroups.isEmpty()) {
                 try {
                     metadataClient.insertObjectGroups(objectGroups);
-                } catch (final MetaDataAlreadyExistException e) {
-                    LOGGER.warn(e);
-                    // FIXME (US 5769):  Now return StatusCode.OK but should be StatusCode.ALREADY_EXECUTED. Todo: Do not recreate LFC events if already created in case of StatusCode.ALREADY_EXECUTED;
-                    for (ItemStatus itemStatus : aggregateItemStatus) {
-                        itemStatus.increment(StatusCode.OK);
-                    }
                 } catch (final MetaDataException | InvalidParseOperationException e) {
                     LOGGER.error(e);
 

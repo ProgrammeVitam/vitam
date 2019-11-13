@@ -37,7 +37,7 @@ public class MetaDataClientMock extends AbstractMockClient implements MetaDataCl
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(MetaDataClientMock.class);
 
     @Override
-    public JsonNode insertUnitBulk(BulkUnitInsertRequest request) throws InvalidParseOperationException, MetaDataExecutionException, MetaDataNotFoundException, MetaDataAlreadyExistException, MetaDataDocumentSizeException, MetaDataClientServerException {
+    public JsonNode insertUnitBulk(BulkUnitInsertRequest request) throws InvalidParseOperationException, MetaDataExecutionException, MetaDataNotFoundException, MetaDataDocumentSizeException, MetaDataClientServerException {
         ArrayNode arrayNode = JsonHandler.createArrayNode();
         JsonNode jsonNode = ClientMockResultHelper.getMetaDataResult().toJsonNode();
         arrayNode.add(jsonNode);
@@ -87,14 +87,14 @@ public class MetaDataClientMock extends AbstractMockClient implements MetaDataCl
     @Override
     public JsonNode insertObjectGroup(JsonNode insertQuery)
         throws InvalidParseOperationException, MetaDataExecutionException, MetaDataNotFoundException,
-        MetaDataAlreadyExistException, MetaDataDocumentSizeException, MetaDataClientServerException {
+        MetaDataDocumentSizeException, MetaDataClientServerException {
         return ClientMockResultHelper.getMetaDataResult().toJsonNode();
     }
 
     @Override
     public JsonNode insertObjectGroups(List<JsonNode> insertQuery)
         throws InvalidParseOperationException, MetaDataExecutionException, MetaDataNotFoundException,
-        MetaDataAlreadyExistException, MetaDataDocumentSizeException, MetaDataClientServerException {
+        MetaDataDocumentSizeException, MetaDataClientServerException {
         return ClientMockResultHelper.getMetaDataResult().toJsonNode();
     }
 
