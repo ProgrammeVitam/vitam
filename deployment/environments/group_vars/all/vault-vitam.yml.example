@@ -9,7 +9,7 @@ consul_encrypt: Biz14ohqN4HtvZmrXp3N4A==
 
 mongodb:
   mongo-data:
-    passphrase: change_it_kM4L6zBgK527tWBb
+    passphrase: changeitkM4L6zBgK527tWBb
     admin:
       user: vitamdb-admin
       password: change_it_1MpG22m2MywvKW5E
@@ -35,7 +35,7 @@ mongodb:
       user: security-internal
       password: change_it_m39XvRQWixyDX566
   offer-fs-1:
-    passphrase: change_it_mB5rnk1M5TY61PqZ
+    passphrase: changeitmB5rnk1M5TY61PqZ
     admin:
       user: vitamdb-admin
       password: change_it_FLkM5emt63N73EcN
@@ -49,7 +49,7 @@ mongodb:
       user: offer
       password: change_it_pQi1T1yT9LAF8au8
   offer-fs-2:
-    passphrase: change_it_eSY1By57qZr4MX2s
+    passphrase: changeiteSY1By57qZr4MX2s
     admin:
       user: vitamdb-admin
       password: change_it_84aTMFZ7h8e2NgMe
@@ -63,7 +63,7 @@ mongodb:
       user: offer
       password: change_it_mLDYds957sNQ53mA
   offer-tape-1:
-    passphrase: change_it_mB5rnk1M5TY61PqZ
+    passphrase: changeitmB5rnk1M5TY61PqZ
     admin:
       user: vitamdb-admin
       password: change_it_FLkM5emt63N73EcN
@@ -77,7 +77,7 @@ mongodb:
       user: offer
       password: change_it_pQi1T1yT9LAF8au8
   offer-swift-1:
-    passphrase: change_it_gYvt42M2pKL6Zx3T
+    passphrase: changeitgYvt42M2pKL6Zx3T
     admin:
       user: vitamdb-admin
       password: change_it_e21hLp51WNa4sJFS
@@ -91,7 +91,7 @@ mongodb:
       user: offer
       password: change_it_AWJg2Bp3s69P6nMe
   offer-s3-1:
-    passphrase: change_it_uF1jVdR9NqdTG625
+    passphrase: changeituF1jVdR9NqdTG625
     admin:
       user: vitamdb-admin
       password: change_it_5b7cSWcS5M1NF4kv
@@ -105,7 +105,7 @@ mongodb:
       user: offer
       password: change_it_TuTB1i2k7iQW3zL2
   offer-tape-1:
-    passphrase: change_it_uF1jghT9NqdTG625
+    passphrase: changeituF1jghT9NqdTG625
     admin:
       user: vitamdb-admin
       password: change_it_5b7cSWcab91NF4kv
