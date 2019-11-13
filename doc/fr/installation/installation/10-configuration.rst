@@ -129,6 +129,8 @@ Voici la liste des vaults pour lesquels il est nécessaire de modifier le mot de
      :language: ini
      :linenos:
 
+.. caution:: Seuls les caractères alphanumériques sont valides pour les directives ``passphrase``.
+
 .. warning:: Le paramétrage du mode d'authentifications des utilisateurs à l':term:`IHM` démo est géré au niveau du fichier ``deployment/environments/group_vars/all/vitam_vars.yml``. Plusieurs modes d'authentifications sont proposés au niveau de la section ``authentication_realms``. Dans le cas d'une authentification se basant sur le mécanisme ``iniRealm`` (configuration ``shiro`` par défaut), les mots de passe déclarés dans la section ``vitam_users`` devront s'appuyer sur une politique de mot de passe robuste, comme indiqué en début de chapitre. Il est par ailleurs possible de  choisir un mode d'authentification s'appuyant sur un annuaire LDAP externe (``ldapRealm`` dans la section ``authentication_realms``).
 
 .. note:: Dans le cadre d'une installation avec au moins une offre `swift`, il faut déclarer, dans la section ``vitam_offers``, le nom de chaque offre et le mot de passe de connexion `swift` associé, défini dans le fichier ``offers_opts.yml``. L'exemple ci-dessus présente la déclaration du mot de passe pour l'offre swift `offer-swift-1`.
