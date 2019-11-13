@@ -47,13 +47,13 @@ import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.database.builder.query.QueryHelper;
 import fr.gouv.vitam.common.database.builder.query.VitamFieldsHelper;
 import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
+import fr.gouv.vitam.common.database.builder.request.multiple.SelectMultiQuery;
 import fr.gouv.vitam.common.database.builder.request.single.Select;
 import fr.gouv.vitam.common.database.parser.query.ParserTokens;
 import fr.gouv.vitam.common.digest.DigestType;
 import fr.gouv.vitam.common.exception.CycleFoundException;
 import fr.gouv.vitam.common.exception.InvalidGuidOperationException;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
-import fr.gouv.vitam.common.exception.VitamClientException;
 import fr.gouv.vitam.common.exception.VitamRuntimeException;
 import fr.gouv.vitam.common.graph.DirectedCycle;
 import fr.gouv.vitam.common.graph.DirectedGraph;
@@ -78,6 +78,7 @@ import fr.gouv.vitam.common.model.administration.IngestContractModel;
 import fr.gouv.vitam.common.model.administration.OntologyModel;
 import fr.gouv.vitam.common.model.administration.RuleType;
 import fr.gouv.vitam.common.model.logbook.LogbookEvent;
+import fr.gouv.vitam.common.model.objectgroup.ObjectGroupResponse;
 import fr.gouv.vitam.common.model.unit.GotObj;
 import fr.gouv.vitam.common.model.unit.ManagementModel;
 import fr.gouv.vitam.common.model.unit.RuleCategoryModel;
@@ -103,6 +104,9 @@ import fr.gouv.vitam.logbook.common.parameters.LogbookParametersFactory;
 import fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess;
 import fr.gouv.vitam.logbook.common.server.database.collections.LogbookMongoDbName;
 import fr.gouv.vitam.logbook.lifecycles.client.LogbookLifeCyclesClient;
+import fr.gouv.vitam.metadata.api.exception.MetaDataClientServerException;
+import fr.gouv.vitam.metadata.api.exception.MetaDataDocumentSizeException;
+import fr.gouv.vitam.metadata.api.exception.MetaDataExecutionException;
 import fr.gouv.vitam.metadata.client.MetaDataClient;
 import fr.gouv.vitam.metadata.client.MetaDataClientFactory;
 import fr.gouv.vitam.metadata.core.database.collections.Unit;
@@ -130,12 +134,14 @@ import fr.gouv.vitam.worker.common.HandlerIO;
 import fr.gouv.vitam.worker.common.utils.DataObjectDetail;
 import fr.gouv.vitam.worker.common.utils.DataObjectInfo;
 import fr.gouv.vitam.worker.common.utils.SedaUtils;
+import fr.gouv.vitam.worker.core.exception.ProcessingStatusException;
 import fr.gouv.vitam.worker.core.exception.WorkerspaceQueueException;
 import fr.gouv.vitam.worker.core.extractseda.ArchiveUnitListener;
 import fr.gouv.vitam.worker.core.impl.HandlerIOImpl;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
+import org.apache.commons.collections4.ListUtils;
 import org.apache.commons.lang3.StringUtils;
 
 import javax.xml.bind.JAXBContext;
@@ -253,7 +259,7 @@ public class ExtractSedaActionHandler extends ActionHandler {
     private static final String ARCHIVAL_AGENCY = "ArchivalAgency";
     private static final int BATCH_SIZE = 50;
     private static final String RULES = "Rules";
-
+    private static final int MAX_ELASTIC_REQUEST_SIZE = 1000;
     private static String ORIGIN_ANGENCY_NAME = "originatingAgency";
     private static final String ORIGIN_ANGENCY_SUBMISSION = "submissionAgency";
     private static final String ARCHIVAl_AGREEMENT = "ArchivalAgreement";
@@ -2611,6 +2617,7 @@ public class ExtractSedaActionHandler extends ActionHandler {
         JsonNode storageObjectGroupInfo, JsonNode storageObjectInfo)
         throws ProcessingException {
         boolean existingGot = false;
+        Map<String , ObjectNode> listObjectToValidate = new HashMap<>();
         completeDataObjectToObjectGroupMap();
 
         // Save maps
@@ -2774,7 +2781,9 @@ public class ExtractSedaActionHandler extends ActionHandler {
                 if (existingGot) {
                     String existingOg = existingUnitIdWithExistingObjectGroup.get(unitParentGUID);
                     workNode.put(SedaConstants.TAG_DATA_OBJECT_GROUP_EXISTING_REFERENCEID, existingOg);
-                    checkOriginatingAgencyAttachementConformity(objectGroup, existingOg);
+                    if(existingOg != null) {
+                        listObjectToValidate.put(existingOg, objectGroup);
+                    }
                 }
                 JsonHandler.writeAsFile(objectGroup, tmpFile);
 
@@ -2837,33 +2846,59 @@ public class ExtractSedaActionHandler extends ActionHandler {
         }
 
         manageExistingObjectGroups(containerId, logbookLifeCycleClient, typeProcess, uuids);
+        // Check Linking to Object Group by bad SP
+        if(!listObjectToValidate.isEmpty()){
+            try {
+                checkOriginatingAgencyAttachementConformity(listObjectToValidate);
+            } catch (ProcessingStatusException e) {
+                throw new ProcessingException(e);
+            }
+        }
     }
 
-    private void checkOriginatingAgencyAttachementConformity(ObjectNode objectGroup, String existingOg)
-        throws ProcessingException {
+    private void checkOriginatingAgencyAttachementConformity(Map<String, ObjectNode> listObjectToValidate)
+        throws ProcessingStatusException, ProcessingNotValidLinkingException {
 
-        try (MetaDataClient metaDataClient = metaDataClientFactory.getClient()) {
+        Set<String> objectGroupIds = listObjectToValidate.keySet();
+        Map<String, String> objectGroupsExistedIdsWithSp = loadExistingObjectGroups(objectGroupIds);
+        boolean validLinkingByOriginatingAgency = objectGroupsExistedIdsWithSp.values().stream().filter(o -> originatingAgency.equals(o)).count() == objectGroupIds.size();
 
-            RequestResponse<JsonNode> requestResponse = metaDataClient.getObjectGroupByIdRaw(existingOg);
-            if (!requestResponse.isOk()) {
-                throw new ProcessingException("error retrieving object for attachement");
+        if(!validLinkingByOriginatingAgency) {
+            throw new ProcessingNotValidLinkingException(
+                "Not allowed object attachement of originating agency (" + originatingAgency +
+                    ") to other originating agency");
+        }
+
+    }
+
+    private Map<String, String> loadExistingObjectGroups(Set<String> objectGroupIds)
+        throws ProcessingStatusException {
+
+        try (MetaDataClient client = metaDataClientFactory.getClient()) {
+
+            Map<String, String> objectGroups = new HashMap<>();
+
+            for (List<String> ids : ListUtils
+                .partition(new ArrayList<>(objectGroupIds), MAX_ELASTIC_REQUEST_SIZE)) {
+
+                SelectMultiQuery selectMultiQuery = new SelectMultiQuery();
+                selectMultiQuery.addRoots(ids.toArray(new String[0]));
+
+                JsonNode jsonNode = client.selectObjectGroups(selectMultiQuery.getFinalSelect());
+                RequestResponseOK<JsonNode> requestResponseOK = RequestResponseOK.getFromJsonNode(jsonNode);
+
+                for (JsonNode objectGroupJson : requestResponseOK.getResults()) {
+
+                    ObjectGroupResponse objectGroup =
+                        JsonHandler.getFromJsonNode(objectGroupJson, ObjectGroupResponse.class);
+
+                    objectGroups.put(objectGroup.getId(), objectGroup.getOriginatingAgency());
+                }
             }
-            JsonNode ogInDB = ((RequestResponseOK<JsonNode>) requestResponse).getFirstResult();
-            // attachement not allowed when different originating agenices then KO
-            String originatingAgency = objectGroup.get(SedaConstants.PREFIX_ORIGINATING_AGENCY).asText();
-            String ogOriginatingAgency = "";
-            if (ogInDB.get(SedaConstants.PREFIX_ORIGINATING_AGENCY) != null) {
-                ogOriginatingAgency = ogInDB.get(SedaConstants.PREFIX_ORIGINATING_AGENCY).asText();
-            }
+            return objectGroups;
 
-            if (originatingAgency != null && !originatingAgency.equals(ogOriginatingAgency)) {
-                throw new ProcessingNotValidLinkingException(
-                    "Not allowed object attachement of originating agency (" + originatingAgency +
-                        ") to other originating agency (" + ogOriginatingAgency + ")");
-            }
-
-        } catch (VitamClientException e) {
-            throw new ProcessingException(e);
+        } catch (MetaDataExecutionException | MetaDataDocumentSizeException | MetaDataClientServerException | InvalidParseOperationException  e) {
+            throw new ProcessingStatusException(StatusCode.FATAL, "Could not load object groups", e);
         }
     }
 
