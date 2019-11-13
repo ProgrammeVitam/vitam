@@ -96,7 +96,7 @@ public class MetaDataClientRest extends DefaultClient implements MetaDataClient 
     @Override
     public JsonNode insertUnitBulk(BulkUnitInsertRequest request)
         throws InvalidParseOperationException, MetaDataExecutionException, MetaDataNotFoundException,
-        MetaDataAlreadyExistException, MetaDataDocumentSizeException, MetaDataClientServerException {
+        MetaDataDocumentSizeException, MetaDataClientServerException {
         try {
             ParametersChecker.checkParameter(ErrorMessage.INSERT_UNITS_QUERY_NULL.getMessage(), request);
         } catch (final IllegalArgumentException e) {
@@ -111,8 +111,6 @@ public class MetaDataClientRest extends DefaultClient implements MetaDataClient 
                 throw new MetaDataExecutionException(INTERNAL_SERVER_ERROR);
             } else if (response.getStatus() == Response.Status.NOT_FOUND.getStatusCode()) {
                 throw new MetaDataNotFoundException(ErrorMessage.NOT_FOUND.getMessage());
-            } else if (response.getStatus() == Response.Status.CONFLICT.getStatusCode()) {
-                throw new MetaDataAlreadyExistException(ErrorMessage.DATA_ALREADY_EXISTS.getMessage());
             } else if (response.getStatus() == Response.Status.REQUEST_ENTITY_TOO_LARGE.getStatusCode()) {
                 throw new MetaDataDocumentSizeException(ErrorMessage.SIZE_TOO_LARGE.getMessage());
             } else if (response.getStatus() == Response.Status.BAD_REQUEST.getStatusCode()) {
@@ -304,7 +302,7 @@ public class MetaDataClientRest extends DefaultClient implements MetaDataClient 
     @Override
     public JsonNode insertObjectGroup(JsonNode insertQuery)
         throws InvalidParseOperationException, MetaDataExecutionException, MetaDataNotFoundException,
-        MetaDataAlreadyExistException, MetaDataDocumentSizeException, MetaDataClientServerException {
+        MetaDataDocumentSizeException, MetaDataClientServerException {
         ParametersChecker.checkParameter("Insert Request is a mandatory parameter", insertQuery);
         Response response = null;
         try {
@@ -315,8 +313,6 @@ public class MetaDataClientRest extends DefaultClient implements MetaDataClient 
                 throw new MetaDataExecutionException(INTERNAL_SERVER_ERROR);
             } else if (response.getStatus() == Response.Status.NOT_FOUND.getStatusCode()) {
                 throw new MetaDataNotFoundException(ErrorMessage.NOT_FOUND.getMessage());
-            } else if (response.getStatus() == Response.Status.CONFLICT.getStatusCode()) {
-                throw new MetaDataAlreadyExistException(ErrorMessage.DATA_ALREADY_EXISTS.getMessage());
             } else if (response.getStatus() == Response.Status.REQUEST_ENTITY_TOO_LARGE.getStatusCode()) {
                 throw new MetaDataDocumentSizeException(ErrorMessage.SIZE_TOO_LARGE.getMessage());
             } else if (response.getStatus() == Response.Status.BAD_REQUEST.getStatusCode()) {
@@ -335,7 +331,7 @@ public class MetaDataClientRest extends DefaultClient implements MetaDataClient 
     @Override
     public JsonNode insertObjectGroups(List<JsonNode> insertQueries)
         throws InvalidParseOperationException, MetaDataExecutionException, MetaDataNotFoundException,
-        MetaDataAlreadyExistException, MetaDataDocumentSizeException, MetaDataClientServerException {
+        MetaDataDocumentSizeException, MetaDataClientServerException {
         ParametersChecker.checkParameter("Insert Request is a mandatory parameter", insertQueries);
         Response response = null;
         try {
@@ -346,8 +342,6 @@ public class MetaDataClientRest extends DefaultClient implements MetaDataClient 
                 throw new MetaDataExecutionException(INTERNAL_SERVER_ERROR);
             } else if (response.getStatus() == Response.Status.NOT_FOUND.getStatusCode()) {
                 throw new MetaDataNotFoundException(ErrorMessage.NOT_FOUND.getMessage());
-            } else if (response.getStatus() == Response.Status.CONFLICT.getStatusCode()) {
-                throw new MetaDataAlreadyExistException(ErrorMessage.DATA_ALREADY_EXISTS.getMessage());
             } else if (response.getStatus() == Response.Status.REQUEST_ENTITY_TOO_LARGE.getStatusCode()) {
                 throw new MetaDataDocumentSizeException(ErrorMessage.SIZE_TOO_LARGE.getMessage());
             } else if (response.getStatus() == Response.Status.BAD_REQUEST.getStatusCode()) {

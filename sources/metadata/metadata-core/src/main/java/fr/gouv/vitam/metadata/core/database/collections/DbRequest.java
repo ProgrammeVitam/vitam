@@ -1070,13 +1070,10 @@ public class DbRequest {
      *
      * @param requestParser the InsertParserMultiple to execute
      * @throws MetaDataExecutionException when insert on metadata collection exception occurred
-     * @throws InvalidParseOperationException when json data exception occurred
-     * @throws MetaDataAlreadyExistException when insert metadata exception
      * @throws MetaDataNotFoundException when metadata not found exception
      */
     public void execInsertUnitRequest(InsertParserMultiple requestParser)
-        throws MetaDataExecutionException, MetaDataNotFoundException, InvalidParseOperationException,
-        MetaDataAlreadyExistException {
+        throws MetaDataExecutionException, MetaDataNotFoundException {
 
         LOGGER.debug("Exec db insert unit request: %s", requestParser);
         execInsertUnitRequests(new BulkUnitInsertRequest(Collections.singletonList(
@@ -1093,7 +1090,7 @@ public class DbRequest {
      * @throws MetaDataAlreadyExistException when insert metadata exception
      */
     public void execInsertObjectGroupRequests(List<InsertParserMultiple> requestParsers)
-        throws MetaDataExecutionException, InvalidParseOperationException, MetaDataAlreadyExistException {
+        throws MetaDataExecutionException, InvalidParseOperationException {
 
         LOGGER.debug("Exec db insert object group request: %s", requestParsers);
 
@@ -1108,18 +1105,10 @@ public class DbRequest {
 
         }
 
-        try {
-            Stopwatch mongoWatch = Stopwatch.createStarted();
-            mongoDbObjectGroupRepository.insert(objectGroups);
-            PerformanceLogger.getInstance().log("STP_OBJ_STORING", "OG_METADATA_INDEXATION", "storeMongo",
-                mongoWatch.elapsed(TimeUnit.MILLISECONDS));
-        } catch (MetaDataAlreadyExistException e) {
-            // Even ObjectGroup already exists in MongoDB, reindex in elastic search
-            LOGGER.warn(e);
-            persistInElasticSearch(MetadataCollections.OBJECTGROUP, tenantId, objectGroups, "STP_OBJ_STORING",
-                "OG_METADATA_INDEXATION");
-            throw e;
-        }
+        Stopwatch mongoWatch = Stopwatch.createStarted();
+        mongoDbObjectGroupRepository.insert(objectGroups);
+        PerformanceLogger.getInstance().log("STP_OBJ_STORING", "OG_METADATA_INDEXATION", "storeMongo",
+            mongoWatch.elapsed(TimeUnit.MILLISECONDS));
 
         persistInElasticSearch(MetadataCollections.OBJECTGROUP, tenantId, objectGroups, "STP_OBJ_STORING",
             "OG_METADATA_INDEXATION");
@@ -1190,12 +1179,10 @@ public class DbRequest {
      *
      * @param request list of unit insert requests
      * @throws MetaDataExecutionException when insert on metadata collection exception occurred
-     * @throws MetaDataAlreadyExistException when insert metadata exception
      * @throws MetaDataNotFoundException when metadata not found exception
      */
     public void execInsertUnitRequests(BulkUnitInsertRequest request)
-        throws MetaDataExecutionException, MetaDataNotFoundException,
-        MetaDataAlreadyExistException {
+        throws MetaDataExecutionException, MetaDataNotFoundException{
 
         LOGGER.debug("Exec db insert unit request: %s", request);
 
@@ -1244,20 +1231,13 @@ public class DbRequest {
                 computeAU.elapsed(TimeUnit.MILLISECONDS));
 
 
-            MetaDataAlreadyExistException metaDataAlreadyExistException = null;
             if (!unitToSave.isEmpty()) {
 
-                try {
-                    Stopwatch saveAU = Stopwatch.createStarted();
-                    mongoDbUnitRepository.insert(unitToSave);
-                    PerformanceLogger.getInstance()
-                        .log("STP_UNIT_METADATA", "UNIT_METADATA_INDEXATION", "saveUnitInMongo",
-                            saveAU.elapsed(TimeUnit.MILLISECONDS));
-
-                } catch (MetaDataAlreadyExistException e) {
-                    // Even Unit already exists in MongoDB, reindex in elastic search
-                    metaDataAlreadyExistException = e;
-                }
+                Stopwatch saveAU = Stopwatch.createStarted();
+                mongoDbUnitRepository.insert(unitToSave);
+                PerformanceLogger.getInstance()
+                    .log("STP_UNIT_METADATA", "UNIT_METADATA_INDEXATION", "saveUnitInMongo",
+                        saveAU.elapsed(TimeUnit.MILLISECONDS));
 
                 persistInElasticSearch(MetadataCollections.UNIT, tenantId, unitToSave, "STP_UNIT_METADATA",
                     "UNIT_METADATA_INDEXATION");
@@ -1277,14 +1257,6 @@ public class DbRequest {
                     .insertFullDocuments(MetadataCollections.OBJECTGROUP, tenantId, objectGroups);
                 PerformanceLogger.getInstance().log("STP_UNIT_METADATA", "UNIT_METADATA_INDEXATION", "saveGOTInElastic",
                     saveGOT.elapsed(TimeUnit.MILLISECONDS));
-            }
-
-            // In case of MetaDataAlreadyExistException, we assume that documents are re-indexed in elastic search and ObjectGroup are updated
-            // Then we Re-throw MetaDataAlreadyExistException
-            if (null != metaDataAlreadyExistException) {
-                LOGGER.warn(metaDataAlreadyExistException);
-                throw metaDataAlreadyExistException;
-
             }
 
         } catch (final MongoException e) {

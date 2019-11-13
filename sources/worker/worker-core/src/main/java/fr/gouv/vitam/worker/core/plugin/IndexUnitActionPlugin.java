@@ -56,9 +56,7 @@ import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.IngestWorkflowConstants;
 import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.StatusCode;
-import fr.gouv.vitam.common.model.UnitType;
 import fr.gouv.vitam.common.parameter.ParameterHelper;
-import fr.gouv.vitam.metadata.api.exception.MetaDataAlreadyExistException;
 import fr.gouv.vitam.metadata.api.exception.MetaDataException;
 import fr.gouv.vitam.metadata.api.exception.MetaDataNotFoundException;
 import fr.gouv.vitam.metadata.client.MetaDataClient;
@@ -185,10 +183,6 @@ public class IndexUnitActionPlugin extends ActionHandler {
                 throw e;
             } catch (InvalidParseOperationException | MetaDataNotFoundException e) {
                 throw new IllegalArgumentException(e);
-            } catch (final MetaDataAlreadyExistException e) {
-                LOGGER.warn(e);
-               // FIXME (US 5769) : Now return StatusCode.OK but should be StatusCode.ALREADY_EXECUTED. Todo: Do not recreate LFC events if already created in case of StatusCode.ALREADY_EXECUTED;
-                statusCode = StatusCode.OK;
             } catch (final MetaDataException e) {
                 LOGGER.error(e);
                 statusCode = StatusCode.FATAL;
