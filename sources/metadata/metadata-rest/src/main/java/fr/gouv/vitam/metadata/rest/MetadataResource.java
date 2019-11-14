@@ -205,16 +205,6 @@ public class MetadataResource extends ApplicationStatusResource {
                     .setMessage(status.getReasonPhrase())
                     .setDescription(e.getMessage()))
                 .build();
-        } catch (final MetaDataAlreadyExistException e) {
-            LOGGER.error(e);
-            status = Status.CONFLICT;
-            return Response.status(status)
-                .entity(new VitamError(status.name()).setHttpCode(status.getStatusCode())
-                    .setContext(INGEST)
-                    .setState(CODE_VITAM)
-                    .setMessage(status.getReasonPhrase())
-                    .setDescription(e.getMessage()))
-                .build();
         }
 
         RequestResponseOK responseOK = new RequestResponseOK()
@@ -721,16 +711,6 @@ public class MetadataResource extends ApplicationStatusResource {
                     .setMessage(status.getReasonPhrase())
                     .setDescription(e.getMessage()))
                 .build();
-        } catch (final MetaDataAlreadyExistException e) {
-            LOGGER.error(e);
-            status = Status.CONFLICT;
-            return Response.status(status)
-                .entity(new VitamError(status.name()).setHttpCode(status.getStatusCode())
-                    .setContext(INGEST)
-                    .setState(CODE_VITAM)
-                    .setMessage(status.getReasonPhrase())
-                    .setDescription(e.getMessage()))
-                .build();
         } catch (final MetaDataExecutionException e) {
             LOGGER.error(e);
             status = Status.INTERNAL_SERVER_ERROR;
@@ -767,16 +747,6 @@ public class MetadataResource extends ApplicationStatusResource {
         } catch (final InvalidParseOperationException e) {
             LOGGER.error(e);
             status = Status.BAD_REQUEST;
-            return Response.status(status)
-                .entity(new VitamError(status.name()).setHttpCode(status.getStatusCode())
-                    .setContext(INGEST)
-                    .setState(CODE_VITAM)
-                    .setMessage(status.getReasonPhrase())
-                    .setDescription(e.getMessage()))
-                .build();
-        } catch (final MetaDataAlreadyExistException e) {
-            LOGGER.error(e);
-            status = Status.CONFLICT;
             return Response.status(status)
                 .entity(new VitamError(status.name()).setHttpCode(status.getStatusCode())
                     .setContext(INGEST)

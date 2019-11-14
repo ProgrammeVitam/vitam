@@ -254,7 +254,7 @@ public class MetadataResourceTest {
     }
 
     @Test
-    public void shouldReturnErrorConflictIfIdDuplicated() throws Exception {
+    public void shouldReturnOKIfIdDuplicated() throws Exception {
         with()
             .contentType(ContentType.JSON)
             .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
@@ -267,9 +267,7 @@ public class MetadataResourceTest {
             .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
             .body(buildDSLWithOptions(DATA)).when()
             .post("units/bulk").then()
-            .body(equalTo(generateResponseErrorFromStatus(Status.CONFLICT,
-                "Metadata already exists: [aeaqaaaaaaaaaaabaawkwak2ha24fdaaaaaq]")))
-            .statusCode(Status.CONFLICT.getStatusCode());
+            .statusCode(Status.CREATED.getStatusCode());
     }
 
     @Test
@@ -424,7 +422,7 @@ public class MetadataResourceTest {
     }
 
     @Test
-    public void givenInsertObjectGroupWithIdDuplicatedThenReturnErrorConflict() throws Exception {
+    public void givenInsertObjectGroupWithIdDuplicatedThenReturnOK() throws Exception {
         with()
             .contentType(ContentType.JSON)
             .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
@@ -443,9 +441,7 @@ public class MetadataResourceTest {
             .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
             .body(buildInsertObjectGroupRequest(OG_DATA, "aeaqaaaaaaaaaaabaawkwak2ha24fdaaaaaq")).when()
             .post("/objectgroups").then()
-            .body(equalTo(generateResponseErrorFromStatus(Status.CONFLICT,
-                "Metadata already exists: [aeaqaaaaaeaaaaakaarp4akuuf2ldmyaaaab]")))
-            .statusCode(Status.CONFLICT.getStatusCode());
+            .statusCode(Status.CREATED.getStatusCode());
     }
 
     @Test
