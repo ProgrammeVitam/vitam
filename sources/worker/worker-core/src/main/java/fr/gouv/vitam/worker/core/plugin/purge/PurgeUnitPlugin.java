@@ -78,6 +78,7 @@ import java.util.stream.Collectors;
 
 import static fr.gouv.vitam.common.model.StatusCode.OK;
 import static fr.gouv.vitam.common.model.StatusCode.WARNING;
+import static fr.gouv.vitam.worker.core.plugin.transfer.reply.TransferReplyDeleteUnitPlugin.TRANSFER_REPLY_DELETE_UNIT;
 import static fr.gouv.vitam.worker.core.utils.PluginHelper.buildItemStatus;
 import static java.util.Collections.singletonList;
 
@@ -89,7 +90,7 @@ public class PurgeUnitPlugin extends ActionHandler {
 
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(PurgeUnitPlugin.class);
 
-    private static final String UNIT_TRANSFER_ABORT = "UNIT_TRANSFERT_ABORT";
+    private static final String UNIT_DELETION_ABORT = "UNIT_DELETION_ABORT";
 
     private final String actionId;
     private final PurgeDeleteService purgeDeleteService;
@@ -136,10 +137,7 @@ public class PurgeUnitPlugin extends ActionHandler {
     public List<ItemStatus> executeList(WorkerParameters param, HandlerIO handler) {
 
         try {
-            List<ItemStatus> itemStatuses = processUnits(param.getContainerName(), param);
-
-            return itemStatuses;
-
+            return processUnits(param.getContainerName(), param);
         } catch (ProcessingStatusException e) {
             LOGGER.error("Unit purge failed with status " + e.getStatusCode(), e);
             return singletonList(
@@ -180,16 +178,17 @@ public class PurgeUnitPlugin extends ActionHandler {
                 purgeUnitStatus = PurgeUnitStatus.DELETED;
                 itemStatuses.add(buildItemStatus(actionId, StatusCode.OK, null));
             } else {
-                LOGGER.info("Unit " + unitId + " cannot be deleted because it has child units attached to it.");
+                String msg = "Unit " + unitId + " cannot be deleted because it has child units attached to it.";
+                LOGGER.info(msg);
                 purgeUnitStatus = PurgeUnitStatus.NON_DESTROYABLE_HAS_CHILD_UNITS;
-                try {
-                    writeLfcForUnpurgedUnit(lfcClientFactory.getClient(), param, unitId);
-                    itemStatuses.add(buildItemStatus(actionId, WARNING, null));
-                } catch (InvalidGuidOperationException | LogbookClientServerException | LogbookClientBadRequestException | LogbookClientNotFoundException e) {
-                    LOGGER.error(e);
-                    itemStatuses.add(buildItemStatus(UNIT_TRANSFER_ABORT, WARNING,
-                        PluginHelper.EventDetails.of(String.format("Error '%s' while updating UNIT LFC.", e.getMessage()))
-                    ));
+                itemStatuses.add(buildItemStatus(actionId, WARNING, PluginHelper.EventDetails.of(msg)));
+                if(TRANSFER_REPLY_DELETE_UNIT.equals(actionId)) {
+                    try {
+                        writeLfcForUnpurgedUnit(lfcClientFactory.getClient(), param, unitId);
+                    } catch (InvalidGuidOperationException | LogbookClientServerException |
+                        LogbookClientBadRequestException | LogbookClientNotFoundException e) {
+                        LOGGER.error(e);
+                    }
                 }
             }
 
@@ -282,12 +281,12 @@ public class PurgeUnitPlugin extends ActionHandler {
         LogbookLifeCycleParameters logbookLfcParam =
             LogbookParametersFactory.newLogbookLifeCycleUnitParameters(
                 GUIDFactory.newEventGUID(ParameterHelper.getTenantParameter()),
-                VitamLogbookMessages.getEventTypeLfc(UNIT_TRANSFER_ABORT),
+                VitamLogbookMessages.getEventTypeLfc(UNIT_DELETION_ABORT),
                 GUIDReader.getGUID(param.getContainerName()),
                 param.getLogbookTypeProcess(),
                 OK,
-                VitamLogbookMessages.getOutcomeDetailLfc(UNIT_TRANSFER_ABORT, OK),
-                VitamLogbookMessages.getCodeLfc(UNIT_TRANSFER_ABORT, OK),
+                VitamLogbookMessages.getOutcomeDetailLfc(UNIT_DELETION_ABORT, OK),
+                VitamLogbookMessages.getCodeLfc(UNIT_DELETION_ABORT, OK),
                 GUIDReader.getGUID(unitId));
         lfcClient.update(logbookLfcParam, LifeCycleStatusCode.LIFE_CYCLE_COMMITTED);
     }
