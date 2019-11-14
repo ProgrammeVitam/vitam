@@ -724,7 +724,7 @@ public class EndToEndEliminationAndTransferReplyIT extends VitamRuleRunner {
             logbookLifeCyclesClient.getRawUnitLifeCycleByIds(new ArrayList<>(expectedNonDeletableUnitIds));
         for (JsonNode unitLifeCycle : unitLifeCycles) {
             assertThat(unitLifeCycle.get("events").get(unitLifeCycle.get("events").size() - 1)
-                .get("outDetail").asText()).isEqualTo("LFC.UNIT_TRANSFERT_ABORT.OK");
+                .get("outDetail").asText()).isEqualTo("LFC.UNIT_DELETION_ABORT.OK");
         }
 
         // Check SIP transfer is deleted after atr reception

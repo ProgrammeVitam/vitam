@@ -35,7 +35,7 @@ import fr.gouv.vitam.worker.core.plugin.purge.PurgeUnitPlugin;
 
 public class TransferReplyDeleteUnitPlugin extends PurgeUnitPlugin {
 
-    private static final String TRANSFER_REPLY_DELETE_UNIT = "TRANSFER_REPLY_DELETE_UNIT";
+    public static final String TRANSFER_REPLY_DELETE_UNIT = "TRANSFER_REPLY_DELETE_UNIT";
 
     /**
      * Default constructor
