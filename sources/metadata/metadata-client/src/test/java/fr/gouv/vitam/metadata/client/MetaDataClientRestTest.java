@@ -224,13 +224,6 @@ public class MetaDataClientRestTest extends ResteasyTestApplication {
     }
 
     @Test
-    public void givenUnitAlreadyExistsWhenInsertObjectGroupsThenReturnConflict() {
-        when(mock.post()).thenReturn(Response.status(Status.CONFLICT).build());
-        assertThatThrownBy(() -> client.insertObjectGroup(JsonHandler.getFromString(VALID_QUERY)))
-            .isInstanceOf(MetaDataAlreadyExistException.class);
-    }
-
-    @Test
     public void givenEntityTooLargeRequestWhenInsertObjectGroupsThenReturnRequestEntityTooLarge() {
         when(mock.post()).thenReturn(Response.status(Status.REQUEST_ENTITY_TOO_LARGE).build());
         assertThatThrownBy(() -> client.insertObjectGroup(JsonHandler.getFromString(VALID_QUERY)))
