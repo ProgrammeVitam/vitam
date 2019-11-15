@@ -64,7 +64,7 @@ public interface MetaDataClient extends BasicClient {
 
     JsonNode insertUnitBulk(BulkUnitInsertRequest request)
         throws InvalidParseOperationException, MetaDataExecutionException, MetaDataNotFoundException,
-        MetaDataAlreadyExistException, MetaDataDocumentSizeException, MetaDataClientServerException;
+        MetaDataDocumentSizeException, MetaDataClientServerException;
 
     /**
      * Search units by select query (DSL)
@@ -142,13 +142,12 @@ public interface MetaDataClient extends BasicClient {
      * @throws InvalidParseOperationException
      * @throws MetaDataExecutionException
      * @throws MetaDataNotFoundException
-     * @throws MetaDataAlreadyExistException
      * @throws MetaDataDocumentSizeException
      * @throws MetaDataClientServerException
      */
     JsonNode insertObjectGroup(JsonNode insertQuery)
         throws InvalidParseOperationException, MetaDataExecutionException,
-        MetaDataNotFoundException, MetaDataAlreadyExistException, MetaDataDocumentSizeException,
+        MetaDataNotFoundException, MetaDataDocumentSizeException,
         MetaDataClientServerException;
 
     /**
@@ -156,9 +155,6 @@ public interface MetaDataClient extends BasicClient {
      * @param updateQuery
      * @param objectGroupId
      * @throws InvalidParseOperationException
-     * @throws MetaDataNotFoundException
-     * @throws MetaDataAlreadyExistException
-     * @throws MetaDataDocumentSizeException
      * @throws MetaDataClientServerException
      * @throws MetaDataExecutionException
      */
@@ -167,7 +163,7 @@ public interface MetaDataClient extends BasicClient {
 
     JsonNode insertObjectGroups(List<JsonNode> insertQuery)
         throws InvalidParseOperationException, MetaDataExecutionException, MetaDataNotFoundException,
-        MetaDataAlreadyExistException, MetaDataDocumentSizeException, MetaDataClientServerException;
+        MetaDataDocumentSizeException, MetaDataClientServerException;
 
     /**
      * @param operationId

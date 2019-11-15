@@ -239,7 +239,7 @@ public class MetaDataImpl {
 
     public void insertUnits(BulkUnitInsertRequest request)
         throws InvalidParseOperationException, MetaDataExecutionException,
-        MetaDataAlreadyExistException, MetaDataNotFoundException {
+        MetaDataNotFoundException {
         try {
 
             dbRequest.execInsertUnitRequests(request);
@@ -267,8 +267,7 @@ public class MetaDataImpl {
     }
 
     public void insertObjectGroup(JsonNode objectGroupRequest)
-        throws InvalidParseOperationException, MetaDataExecutionException,
-        MetaDataAlreadyExistException {
+        throws InvalidParseOperationException, MetaDataExecutionException {
         final InsertParserMultiple insertParser = new InsertParserMultiple(DEFAULT_VARNAME_ADAPTER);
         insertParser.parse(objectGroupRequest);
         insertParser.getRequest().addHintFilter(BuilderToken.FILTERARGS.OBJECTGROUPS.exactToken());
@@ -277,8 +276,7 @@ public class MetaDataImpl {
     }
 
     public void insertObjectGroups(List<JsonNode> objectGroupRequest)
-        throws InvalidParseOperationException, MetaDataExecutionException,
-        MetaDataAlreadyExistException {
+        throws InvalidParseOperationException, MetaDataExecutionException {
 
         try {
             List<InsertParserMultiple> collect = objectGroupRequest.stream().map(insertRequest -> {

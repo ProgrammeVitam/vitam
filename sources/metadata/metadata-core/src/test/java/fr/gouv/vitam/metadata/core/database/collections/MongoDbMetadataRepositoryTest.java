@@ -22,6 +22,7 @@ import org.junit.Test;
 import static fr.gouv.vitam.common.database.server.mongodb.VitamDocument.VERSION;
 import static fr.gouv.vitam.metadata.core.database.collections.MetadataCollections.UNIT;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.assertj.core.groups.Tuple.tuple;
 import java.util.HashMap;
@@ -74,6 +75,29 @@ public class MongoDbMetadataRepositoryTest {
 
     @Test
     @RunWithCustomExecutor
+    public void should_ignore_duplicates_during_bulk_insert() throws Exception {
+        // Given
+        String id1 = GUIDFactory.newUnitGUID(TENANT_ID).toString();
+        String id2 = GUIDFactory.newUnitGUID(TENANT_ID).toString();
+        String id3 = GUIDFactory.newUnitGUID(TENANT_ID).toString();
+        Unit unit1 = createUnit(id1);
+        Unit unit2 = createUnit(id2);
+        Unit unit3 = createUnit(id3);
+
+        // When
+        unitMongoDbMetadataRepository.insert(Lists.newArrayList(unit1, unit2));
+        unitMongoDbMetadataRepository.insert(Lists.newArrayList(unit1, unit2, unit3));
+
+        // Then
+        MongoCollection<Document> mongoCollection = mongoRule.getMongoCollection(PREFIX + UNIT.getName());
+        assertThat(mongoCollection.countDocuments()).isEqualTo(3);
+        assertThat(mongoCollection.find())
+            .extracting("_id", VitamDocument.TENANT_ID, VERSION)
+            .containsExactly(tuple(id1, TENANT_ID, 0), tuple(id2, TENANT_ID, 0), tuple(id3, TENANT_ID, 0));
+    }
+
+    @Test
+    @RunWithCustomExecutor
     public void should_update_many_document_in_bulk_mode() throws Exception {
         // Given
         String id1 = GUIDFactory.newUnitGUID(TENANT_ID).toString();
@@ -100,7 +124,7 @@ public class MongoDbMetadataRepositoryTest {
 
     @Test
     @RunWithCustomExecutor
-    public void should_fail_when_store_two_document_with_same_id() throws Exception {
+    public void should_skip_when_store_two_document_with_same_id() {
         // Given
         String id1 = GUIDFactory.newUnitGUID(TENANT_ID).toString();
         String id3 = GUIDFactory.newUnitGUID(TENANT_ID).toString();
@@ -109,8 +133,8 @@ public class MongoDbMetadataRepositoryTest {
         Unit unit3 = createUnit(id3);
 
         // When
-        assertThatThrownBy(() -> unitMongoDbMetadataRepository.insert(Lists.newArrayList(unit1, unit2, unit3)))
-            .isInstanceOf(MetaDataAlreadyExistException.class).hasMessageContaining(id1);
+        assertThatCode(() -> unitMongoDbMetadataRepository.insert(Lists.newArrayList(unit1, unit2, unit3)))
+            .doesNotThrowAnyException();
     }
 
 
