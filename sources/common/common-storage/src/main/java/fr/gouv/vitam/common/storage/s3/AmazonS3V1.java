@@ -287,9 +287,7 @@ public class AmazonS3V1 extends ContentAddressableStorageAbstract {
         try {
             CopyObjectResult updateMetadataResult = client.copyObject(request);
             if (updateMetadataResult == null) {
-                LOGGER.error("Failed to update object metadata -> remove object");
-                DeleteObjectRequest deleteObjectRequest = new DeleteObjectRequest(bucketName, objectName);
-                client.deleteObject(deleteObjectRequest);
+                LOGGER.error("Failed to update object metadata -> try remove object");
                 throw new ContentAddressableStorageServerException(
                     "Cannot put object " + objectName + " on container " + containerName);
             }
@@ -332,7 +330,7 @@ public class AmazonS3V1 extends ContentAddressableStorageAbstract {
 
         } catch (SdkBaseException e) {
             LOGGER.debug(
-                String.format("Error when trying to dowload object %s from container %s. Reason: errorMessage=%s",
+                String.format("Error when trying to download object %s from container %s. Reason: errorMessage=%s",
                     objectName, containerName, e.getMessage()),
                 e);
             throw new ContentAddressableStorageServerException("Error when trying to download object", e);
