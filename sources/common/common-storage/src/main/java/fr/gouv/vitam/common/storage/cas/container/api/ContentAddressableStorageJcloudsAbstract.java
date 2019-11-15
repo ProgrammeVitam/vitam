@@ -148,7 +148,6 @@ public abstract class ContentAddressableStorageJcloudsAbstract extends ContentAd
             throw new ContentAddressableStorageNotFoundException(e);
         } catch (final Exception e) {
             LOGGER.error("Rollback", e.getMessage());
-            blobStore.removeBlob(containerName, objectName);
             throw new ContentAddressableStorageException(e);
         } finally {
             closeContext();

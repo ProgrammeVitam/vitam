@@ -243,8 +243,7 @@ public class Swift extends ContentAddressableStorageAbstract {
         metadataToUpdate.put(X_OBJECT_META_DIGEST_TYPE, digestType.getName());
         if (!osClient.get().objectStorage().objects().updateMetadata(ObjectLocation.create(containerName, objectName),
             metadataToUpdate)) {
-            LOGGER.error("Failed to update object metadata -> remove object");
-            osClient.get().objectStorage().objects().delete(containerName, objectName);
+            LOGGER.error("Failed to update object metadata -> try remove object");
             throw new ContentAddressableStorageServerException("Cannot put object " + objectName + " on container " +
                 containerName);
         }
