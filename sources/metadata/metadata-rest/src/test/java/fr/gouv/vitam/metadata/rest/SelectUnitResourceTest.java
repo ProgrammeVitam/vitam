@@ -48,6 +48,8 @@ import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
 import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
 import fr.gouv.vitam.metadata.api.config.MetaDataConfiguration;
+import fr.gouv.vitam.metadata.api.model.BulkUnitInsertEntry;
+import fr.gouv.vitam.metadata.api.model.BulkUnitInsertRequest;
 import fr.gouv.vitam.metadata.core.database.collections.ElasticsearchAccessMetadata;
 import fr.gouv.vitam.metadata.core.database.collections.MetadataCollections;
 import fr.gouv.vitam.metadata.core.database.collections.MongoDbAccessMetadataImpl;
@@ -61,11 +63,11 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 
-import javax.sound.midi.SysexMessage;
 import javax.ws.rs.core.Response.Status;
 import java.io.File;
 import java.io.InputStream;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 import static io.restassured.RestAssured.given;
@@ -115,11 +117,11 @@ public class SelectUnitResourceTest {
         "  }";
 
     private static final String DATA_0 =
-        "{ \"#id\": \"" + GUID_0 + "\", " + "\"data\": \"data2\", \"_mgt\": " + AU0_MGT +
+        "{ \"_id\": \"" + GUID_0 + "\", " + "\"data\": \"data2\", \"_mgt\": " + AU0_MGT +
             ", \"DescriptionLevel\" : \"Grp\" }";
 
     private static final String DATA_1 =
-        "{ \"#id\": \"" + GUID_1 + "\", " + "\"data\": \"data2\", \"_mgt\": " + AU1_MGT +
+        "{ \"_id\": \"" + GUID_1 + "\", " + "\"data\": \"data2\", \"_mgt\": " + AU1_MGT +
             ", \"DescriptionLevel\" : \"Item\" }";
 
     private static final String DATA_URI = "/metadata/v1";
@@ -234,14 +236,16 @@ public class SelectUnitResourceTest {
         MetadataCollections.afterTest(0);
     }
 
-    private static final JsonNode buildDSLWithOptions(String data) throws InvalidParseOperationException {
-        return JsonHandler
-            .getFromString("{ \"$roots\" : [], \"$query\" : [], \"$data\" : " + data + " }");
+    private static final BulkUnitInsertRequest bulkInsertRequest(String data) throws InvalidParseOperationException {
+        return new BulkUnitInsertRequest(Collections.singletonList(
+            new BulkUnitInsertEntry(Collections.emptySet(), JsonHandler.getFromString(data))
+        ));
     }
 
-    private static final JsonNode buildDSLWithRoots(String roots, String data) throws InvalidParseOperationException {
-        return JsonHandler
-            .getFromString("{ \"$roots\" : [ " + roots + " ], \"$query\" : [ ], \"$data\" : " + data + " }");
+    private static final BulkUnitInsertRequest bulkInsertRequest(String roots, String data) throws InvalidParseOperationException {
+        return new BulkUnitInsertRequest(Collections.singletonList(
+            new BulkUnitInsertEntry(Collections.singleton(roots), JsonHandler.getFromString(data))
+        ));
     }
 
 
@@ -264,22 +268,22 @@ public class SelectUnitResourceTest {
         with()
             .contentType(ContentType.JSON)
             .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
-            .body(buildDSLWithOptions(DATA_1)).when()
-            .post("/units").then()
+            .body(bulkInsertRequest(DATA_1)).when()
+            .post("/units/bulk").then()
             .statusCode(Status.CREATED.getStatusCode());
 
         with()
             .contentType(ContentType.JSON)
             .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
-            .body(buildDSLWithOptions(DATA_0)).when()
-            .post("/units").then()
+            .body(bulkInsertRequest(DATA_0)).when()
+            .post("/units/bulk").then()
             .statusCode(Status.CREATED.getStatusCode());
 
         given()
             .contentType(ContentType.JSON)
             .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
             .body(JsonHandler.getFromString(DATA_1)).when()
-            .post("/units").then()
+            .post("/units/bulk").then()
             .statusCode(Status.BAD_REQUEST.getStatusCode());
     }
 
@@ -319,18 +323,6 @@ public class SelectUnitResourceTest {
             .statusCode(Status.PRECONDITION_FAILED.getStatusCode());
     }
 
-    @Test
-    public void shouldReturn_Request_Entity_Too_Large_when_select_by_query_If_DocumentIsTooLarge() throws Exception {
-        final int limitRequest = GlobalDatasParser.limitRequest;
-        GlobalDatasParser.limitRequest = 99;
-        given()
-            .contentType(ContentType.JSON)
-            .body(buildDSLWithOptions(createJsonStringWithDepth(101)).asText()).when()
-            .post("/units/").then()
-            .statusCode(Status.PRECONDITION_FAILED.getStatusCode());
-        GlobalDatasParser.limitRequest = limitRequest;
-    }
-
     // select Unit by ID (request and uri)
 
     @Test
@@ -339,15 +331,15 @@ public class SelectUnitResourceTest {
         with()
             .contentType(ContentType.JSON)
             .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
-            .body(buildDSLWithOptions(DATA_1)).when()
-            .post("/units").then()
+            .body(bulkInsertRequest(DATA_1)).when()
+            .post("/units/bulk").then()
             .statusCode(Status.CREATED.getStatusCode());
 
         with()
             .contentType(ContentType.JSON)
             .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
-            .body(buildDSLWithOptions(DATA_0)).when()
-            .post("/units").then()
+            .body(bulkInsertRequest(DATA_0)).when()
+            .post("/units/bulk").then()
             .statusCode(Status.CREATED.getStatusCode());
 
         given()
@@ -365,15 +357,15 @@ public class SelectUnitResourceTest {
         with()
             .contentType(ContentType.JSON)
             .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
-            .body(buildDSLWithOptions(DATA_1)).when()
-            .post("/units").then()
+            .body(bulkInsertRequest(DATA_1)).when()
+            .post("/units/bulk").then()
             .statusCode(Status.CREATED.getStatusCode());
 
         with()
             .contentType(ContentType.JSON)
             .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
-            .body(buildDSLWithOptions(DATA_0)).when()
-            .post("/units").then()
+            .body(bulkInsertRequest(DATA_0)).when()
+            .post("/units/bulk").then()
             .statusCode(Status.CREATED.getStatusCode());
 
         InputStream stream = given()
@@ -450,15 +442,15 @@ public class SelectUnitResourceTest {
         with()
             .contentType(ContentType.JSON)
             .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
-            .body(buildDSLWithOptions(DATA_0)).when()
-            .post("/units").then()
+            .body(bulkInsertRequest(DATA_0)).when()
+            .post("/units/bulk").then()
             .statusCode(Status.CREATED.getStatusCode());
 
         with()
             .contentType(ContentType.JSON)
             .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
-            .body(buildDSLWithRoots("\"" + GUID_0 + "\"", DATA_1)).when()
-            .post("/units").then()
+            .body(bulkInsertRequest(GUID_0, DATA_1)).when()
+            .post("/units/bulk").then()
             .statusCode(Status.CREATED.getStatusCode());
 
         given()
@@ -500,7 +492,7 @@ public class SelectUnitResourceTest {
         GlobalDatasParser.limitRequest = 99;
         given()
             .contentType(ContentType.JSON)
-            .body(buildDSLWithOptions(createJsonStringWithDepth(101)).asText()).when()
+            .body(bulkInsertRequest(createJsonStringWithDepth(101))).when()
             .post("/units/" + GUID_0).then()
             .statusCode(Status.METHOD_NOT_ALLOWED.getStatusCode());
         GlobalDatasParser.limitRequest = limitRequest;
@@ -512,7 +504,7 @@ public class SelectUnitResourceTest {
         GlobalDatasParser.limitRequest = 99;
         given()
             .contentType(ContentType.JSON)
-            .body(buildDSLWithOptions(createJsonStringWithDepth(101))).when()
+            .body(bulkInsertRequest(createJsonStringWithDepth(101))).when()
             .post("/units/" + GUID_0).then()
             .statusCode(Status.METHOD_NOT_ALLOWED.getStatusCode());
         GlobalDatasParser.limitRequest = limitRequest;
@@ -523,7 +515,7 @@ public class SelectUnitResourceTest {
     public void shouldRaiseErrorOnBadRequest() throws Exception {
         given()
             .contentType(ContentType.JSON)
-            .body(buildDSLWithOptions("lkvhvgvuyqvkvj")).when()
+            .body(bulkInsertRequest("lkvhvgvuyqvkvj")).when()
             .get("/units/" + GUID_0).then()
             .statusCode(Status.BAD_REQUEST.getStatusCode());
     }
@@ -569,15 +561,15 @@ public class SelectUnitResourceTest {
         with()
             .contentType(ContentType.JSON)
             .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
-            .body(buildDSLWithOptions(DATA_0)).when()
-            .post("/units").then()
+            .body(bulkInsertRequest(DATA_0)).when()
+            .post("/units/bulk").then()
             .statusCode(Status.CREATED.getStatusCode());
 
         with()
             .contentType(ContentType.JSON)
             .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
-            .body(buildDSLWithRoots("\"" + GUID_0 + "\"", DATA_1)).when()
-            .post("/units").then()
+            .body(bulkInsertRequest(GUID_0, DATA_1)).when()
+            .post("/units/bulk").then()
             .statusCode(Status.CREATED.getStatusCode());
 
         InputStream stream = given()
@@ -603,15 +595,15 @@ public class SelectUnitResourceTest {
         with()
             .contentType(ContentType.JSON)
             .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
-            .body(buildDSLWithOptions(DATA_1)).when()
-            .post("/units").then()
+            .body(bulkInsertRequest(DATA_1)).when()
+            .post("/units/bulk").then()
             .statusCode(Status.CREATED.getStatusCode());
 
         with()
             .contentType(ContentType.JSON)
             .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
-            .body(buildDSLWithOptions(DATA_0)).when()
-            .post("/units").then()
+            .body(bulkInsertRequest(DATA_0)).when()
+            .post("/units/bulk").then()
             .statusCode(Status.CREATED.getStatusCode());
 
         InputStream stream = given()

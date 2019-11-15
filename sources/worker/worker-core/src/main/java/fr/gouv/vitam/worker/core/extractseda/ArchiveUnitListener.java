@@ -338,7 +338,10 @@ public class ArchiveUnitListener extends Unmarshaller.Listener {
 
             ArchiveUnitRoot archiveUnitRoot;
             try {
-                archiveUnitRoot = archiveUnitMapper.map(archiveUnitType, elementGUID, groupId);
+                String operationId = handlerIO.getContainerName();
+
+                archiveUnitRoot = archiveUnitMapper.map(archiveUnitType, elementGUID, groupId, operationId,
+                    workflowUnitType.name());
             } catch (ProcessingMalformedDataException | ProcessingObjectReferenceException e) {
                 throw new VitamRuntimeException(e);
             }
@@ -572,7 +575,7 @@ public class ArchiveUnitListener extends Unmarshaller.Listener {
                 existingUnitIdWithExistingObjectGroup.put(existingArchiveUnitGuid, unitInDB.get("#object").asText());
             } else {
                 DataObjectReference dataObjectReference =
-                    archiveUnitMapper.mapDataObjectReference(archiveUnitType);
+                    archiveUnitMapper.mapAndValidateDataObjectReference(archiveUnitType);
                 if (null != dataObjectReference) {
                     String got = dataObjectReference.getDataObjectGroupReferenceId();
                     throw new ProcessingObjectGroupLinkingException(

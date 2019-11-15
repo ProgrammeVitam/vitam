@@ -1,4 +1,4 @@
-/*******************************************************************************
+/*
  * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2019)
  *
  * contact.vitam@culture.gouv.fr
@@ -23,7 +23,7 @@
  *
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
- *******************************************************************************/
+ */
 package fr.gouv.vitam.common.model.unit;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -33,53 +33,53 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * ArchiveUnit external model (#id, #management...)
+ * ArchiveUnit internal model (_id, _mgt...)
  */
-public class ArchiveUnitModel {
+public class ArchiveUnitInternalModel {
 
-    @JsonProperty("#id")
+    @JsonProperty("_id")
     private String id;
 
-    @JsonProperty("#object")
+    @JsonProperty("_og")
     private String og;
 
     @JsonProperty("ArchiveUnitProfile")
     private String archiveUnitProfile;
 
-    @JsonProperty("#management")
+    @JsonProperty("_mgt")
     private ManagementModel management;
 
     @JsonUnwrapped
     private DescriptiveMetadataModel descriptiveMetadataModel;
 
-    @JsonProperty("#history")
+    @JsonProperty("_history")
     private List<ArchiveUnitHistoryModel> history = new ArrayList<>();
 
-    @JsonProperty("#sedaVersion")
+    @JsonProperty("_sedaVersion")
     private String sedaVersion;
 
-    @JsonProperty("#implementationVersion")
+    @JsonProperty("_implementationVersion")
     private String implementationVersion;
 
-    @JsonProperty("#unitType")
+    @JsonProperty("_unitType")
     private String unitType;
 
-    @JsonProperty("#opi")
+    @JsonProperty("_opi")
     private String opi;
 
-    @JsonProperty("#operations")
+    @JsonProperty("_ops")
     private List<String> ops;
 
-    @JsonProperty("#originating_agency")
+    @JsonProperty("_sp")
     private String originatingAgency;
 
-    @JsonProperty("#originating_agencies")
+    @JsonProperty("_sps")
     private List<String> originatingAgencies;
 
     /**
      * Constructor
      */
-    public ArchiveUnitModel() {
+    public ArchiveUnitInternalModel() {
         management = new ManagementModel();
     }
 
@@ -152,7 +152,7 @@ public class ArchiveUnitModel {
         return unitType;
     }
 
-    public ArchiveUnitModel setUnitType(String unitType) {
+    public ArchiveUnitInternalModel setUnitType(String unitType) {
         this.unitType = unitType;
         return this;
     }
@@ -161,7 +161,7 @@ public class ArchiveUnitModel {
         return opi;
     }
 
-    public ArchiveUnitModel setOpi(String opi) {
+    public ArchiveUnitInternalModel setOpi(String opi) {
         this.opi = opi;
         return this;
     }
@@ -170,18 +170,16 @@ public class ArchiveUnitModel {
         return ops;
     }
 
-    public ArchiveUnitModel setOps(List<String> ops) {
+    public ArchiveUnitInternalModel setOps(List<String> ops) {
         this.ops = ops;
         return this;
     }
-
-
 
     public String getOriginatingAgency() {
         return originatingAgency;
     }
 
-    public ArchiveUnitModel setOriginatingAgency(String originatingAgency) {
+    public ArchiveUnitInternalModel setOriginatingAgency(String originatingAgency) {
         this.originatingAgency = originatingAgency;
         return this;
     }
@@ -190,7 +188,7 @@ public class ArchiveUnitModel {
         return originatingAgencies;
     }
 
-    public ArchiveUnitModel setOriginatingAgencies(List<String> originatingAgencies) {
+    public ArchiveUnitInternalModel setOriginatingAgencies(List<String> originatingAgencies) {
         this.originatingAgencies = originatingAgencies;
         return this;
     }

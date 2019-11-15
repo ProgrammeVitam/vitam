@@ -378,7 +378,7 @@
     "ArchiveUnitProfile": {
       "$ref": "#/definitions/token"
     },
-    "Management": {
+    "_mgt": {
       "type": "object",
       "properties": {
         "StorageRule": {
@@ -1030,7 +1030,7 @@
   },
   "required": [
     "_id",
-    "Management",
+    "_mgt",
     "DescriptionLevel"
   ],
   "anyOf": [

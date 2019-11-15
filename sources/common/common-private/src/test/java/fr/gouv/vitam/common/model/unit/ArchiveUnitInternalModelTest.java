@@ -1,4 +1,4 @@
-/*******************************************************************************
+/*
  * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2019)
  *
  * contact.vitam@culture.gouv.fr
@@ -23,45 +23,37 @@
  *
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
- *******************************************************************************/
-package fr.gouv.vitam.common.utils;
-
-import com.fasterxml.jackson.databind.JsonNode;
-import fr.gouv.vitam.common.SedaConstants;
-import fr.gouv.vitam.common.VitamConfiguration;
-import fr.gouv.vitam.common.json.JsonHandler;
-
-/**
- * classification level service
  */
-public class ClassificationLevelUtil {
 
-    private static final String PATH_CLASSIFICATION_LEVEL
-        = SedaConstants.TAG_ARCHIVE_UNIT + "."
-        + SedaConstants.PREFIX_MGT + "."
-        + SedaConstants.TAG_RULE_CLASSIFICATION + "."
-        + SedaConstants.TAG_RULE_CLASSIFICATION_LEVEL;
+package fr.gouv.vitam.common.model.unit;
 
-    private ClassificationLevelUtil() {
-    }
+import org.junit.Test;
 
-    public static boolean checkClassificationLevel(JsonNode archiveUnit) {
-        String classificationLevelValue = null;
-        JsonNode classificationLevel = JsonHandler.findNode(archiveUnit, PATH_CLASSIFICATION_LEVEL);
+import java.lang.reflect.Field;
+import java.util.Arrays;
+import java.util.Map;
+import java.util.stream.Collectors;
 
-        if (!classificationLevel.isMissingNode()) {
-            classificationLevelValue = classificationLevel.asText();
+import static org.assertj.core.api.Assertions.assertThat;
+
+public class ArchiveUnitInternalModelTest {
+
+    @Test
+    public void checkInternalExternalFieldMapping() {
+
+        Map<String, Field> externalModelFields = Arrays.stream(ArchiveUnitModel.class.getDeclaredFields())
+            .collect(Collectors.toMap(Field::getName, field -> field));
+
+        Map<String, Field> internalModelFields = Arrays.stream(ArchiveUnitInternalModel.class.getDeclaredFields())
+            .collect(Collectors.toMap(Field::getName, field -> field));
+
+
+        assertThat(externalModelFields.keySet()).withFailMessage("Expected same field names")
+            .isEqualTo(internalModelFields.keySet());
+        for (String fieldName : internalModelFields.keySet()) {
+            assertThat(internalModelFields.get(fieldName).getType())
+                .withFailMessage("Expected same field type for field " + fieldName)
+                .isEqualTo(externalModelFields.get(fieldName).getType());
         }
-
-        return checkClassificationLevel(classificationLevelValue);
     }
-
-    public static boolean checkClassificationLevel(String classificationLevelValue) {
-        if (classificationLevelValue != null) {
-            return VitamConfiguration.getClassificationLevel().getAllowList().contains(classificationLevelValue);
-        } else {
-            return VitamConfiguration.getClassificationLevel().authorizeNotDefined();
-        }
-    }
-
 }

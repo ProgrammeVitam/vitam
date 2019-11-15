@@ -26,7 +26,7 @@
 			"&lt;0d63ae2b-6d1d-ccd0-0ef5-c2c7f71b1780@ratp.frr&gt;",
 			"&lt;0d63ae2b-6d1d-ccd0-0ef5-c3fee4908acd@ratp.fr&gt;"
 		],
-		"Management": {
+		"_mgt": {
 			"StorageRule": {
 				"Rules": [
 					{

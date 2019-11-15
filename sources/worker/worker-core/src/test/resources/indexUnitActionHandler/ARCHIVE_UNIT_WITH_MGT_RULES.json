@@ -2,7 +2,7 @@
 	"ArchiveUnit": {
 		"_id": "GUID_ARCHIVE_UNIT_PARENT",
 		"ArchiveUnitProfile": "PresentationType",
-		"Management": {
+		"_mgt": {
 			"StorageRule": {
 				"Rules": [
 					{

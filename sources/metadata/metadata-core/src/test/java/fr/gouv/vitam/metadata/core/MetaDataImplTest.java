@@ -53,6 +53,8 @@ import fr.gouv.vitam.functional.administration.client.AdminManagementClientFacto
 import fr.gouv.vitam.metadata.api.exception.MetaDataAlreadyExistException;
 import fr.gouv.vitam.metadata.api.exception.MetaDataExecutionException;
 import fr.gouv.vitam.metadata.api.exception.MetaDataNotFoundException;
+import fr.gouv.vitam.metadata.api.model.BulkUnitInsertEntry;
+import fr.gouv.vitam.metadata.api.model.BulkUnitInsertRequest;
 import fr.gouv.vitam.metadata.core.database.collections.DbRequest;
 import fr.gouv.vitam.metadata.core.database.collections.MetadataCollections;
 import fr.gouv.vitam.metadata.core.database.collections.MongoDbAccessMetadataImpl;
@@ -80,6 +82,7 @@ import java.util.Map.Entry;
 import static fr.gouv.vitam.common.model.StatusCode.OK;
 import static fr.gouv.vitam.metadata.core.model.UpdateUnitKey.UNIT_METADATA_UPDATE;
 import static java.util.Collections.emptyList;
+import static java.util.Collections.emptySet;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.tuple;
 import static org.junit.Assert.assertEquals;
@@ -95,6 +98,7 @@ import static org.mockito.ArgumentMatchers.isA;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @RunWithCustomExecutor
@@ -166,33 +170,22 @@ public class MetaDataImplTest {
     }
 
     @Test(expected = InvalidParseOperationException.class)
-    public void givenInsertUnitWhenDuplicateEntryThenThrowMetaDataAlreadyExistException() throws Exception {
-        doThrow(new InvalidParseOperationException("")).when(request).execInsertUnitRequests(any());
-        metaDataImpl.insertUnit(buildQueryJsonWithOptions("", DATA_INSERT));
-    }
-
-    @Test(expected = InvalidParseOperationException.class)
     public void givenInsertObjectGroupWhenDuplicateEntryThenThrowMetaDataAlreadyExistException() throws Exception {
         doThrow(new InvalidParseOperationException("")).when(request).execInsertObjectGroupRequests(any());
         metaDataImpl.insertObjectGroup(buildQueryJsonWithOptions("", DATA_INSERT));
     }
 
-    @Test(expected = MetaDataAlreadyExistException.class)
-    public void testMetaDataAlreadyExistExceptionExpected() throws Exception {
-        final MetaDataAlreadyExistException error = new MetaDataAlreadyExistException("");
-        doThrow(error).when(request).execInsertUnitRequests(any());
-        metaDataImpl.insertUnit(buildQueryJsonWithOptions("", DATA_INSERT));
-    }
+    @Test
+    public void givenInsertUnitThenOK() throws Exception {
 
-    @Test(expected = InvalidParseOperationException.class)
-    public void givenInsertUnitWhenStringTooLongThenThrowMetaDataDocumentSizeException() throws Exception {
-        try {
-            GlobalDatasParser.limitRequest = 1000;
-            final String bigData = "{ \"data\": \"" + createLongString(1001) + "\" }";
-            metaDataImpl.insertUnit(buildQueryJsonWithOptions("", bigData));
-        } finally {
-            GlobalDatasParser.limitRequest = GlobalDatasParser.DEFAULT_LIMIT_REQUEST;
-        }
+        // Given
+        BulkUnitInsertRequest bulkUnitInsertRequest = mock(BulkUnitInsertRequest.class);
+
+        // When
+        metaDataImpl.insertUnits(bulkUnitInsertRequest);
+
+        // Then
+        verify(request).execInsertUnitRequests(bulkUnitInsertRequest);
     }
 
     @Test(expected = InvalidParseOperationException.class)
@@ -204,12 +197,6 @@ public class MetaDataImplTest {
         } finally {
             GlobalDatasParser.limitRequest = GlobalDatasParser.DEFAULT_LIMIT_REQUEST;
         }
-    }
-
-    @Test(expected = MetaDataNotFoundException.class)
-    public void givenInsertUnitWhenParentNotFoundThenThrowMetaDataNotFoundException() throws Exception {
-        doThrow(MetaDataNotFoundException.class).when(request).execInsertUnitRequests(any());
-        metaDataImpl.insertUnit(buildQueryJsonWithOptions("", DATA_INSERT));
     }
 
     @Test(expected = InvalidParseOperationException.class)

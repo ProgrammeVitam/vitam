@@ -55,16 +55,13 @@ public class SchemaValidationUtilsTest {
             SchemaValidationUtils.extractFieldsFromSchema(archiveUnitProfile.getControlSchema());
 
         // Then
-        assertNotNull(extractFields);
-        assertThat(extractFields.size() > 1).isTrue();
-        assertEquals(extractFields.size(), 80);
+        assertEquals(extractFields.size(), 14);
         // assert child fields are present
         assertTrue(extractFields.contains("Rule"));
         assertTrue(extractFields.contains("StartDate"));
         assertTrue(extractFields.contains("PreventRulesId"));
         // assert parent fields are not present
         assertFalse(extractFields.contains("Rules"));
-        assertFalse(extractFields.contains("Management"));
-
+        assertFalse(extractFields.contains("#management"));
     }
 }

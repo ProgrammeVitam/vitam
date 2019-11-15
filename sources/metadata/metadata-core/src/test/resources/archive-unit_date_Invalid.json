@@ -2,7 +2,7 @@
 	"_id": "aeaqaaaaaahfrfvaaahrgak25v5fttiaaaaq",
 	"StartDate": "2016-09-26T12:41:28",
 	"EndDate": "2015-09-26T12:41:28",
-	"Management": {
+	"_mgt": {
 		"StorageRule": {
 			"Rules": [
 				{

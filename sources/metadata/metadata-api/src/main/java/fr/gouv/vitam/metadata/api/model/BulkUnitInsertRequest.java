@@ -24,44 +24,38 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  *******************************************************************************/
-package fr.gouv.vitam.common.utils;
+package fr.gouv.vitam.metadata.api.model;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import fr.gouv.vitam.common.SedaConstants;
-import fr.gouv.vitam.common.VitamConfiguration;
-import fr.gouv.vitam.common.json.JsonHandler;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
-/**
- * classification level service
- */
-public class ClassificationLevelUtil {
+import java.util.List;
 
-    private static final String PATH_CLASSIFICATION_LEVEL
-        = SedaConstants.TAG_ARCHIVE_UNIT + "."
-        + SedaConstants.PREFIX_MGT + "."
-        + SedaConstants.TAG_RULE_CLASSIFICATION + "."
-        + SedaConstants.TAG_RULE_CLASSIFICATION_LEVEL;
+public class BulkUnitInsertRequest {
 
-    private ClassificationLevelUtil() {
+    public BulkUnitInsertRequest() {
+        // Empty constructor for deserialization
     }
 
-    public static boolean checkClassificationLevel(JsonNode archiveUnit) {
-        String classificationLevelValue = null;
-        JsonNode classificationLevel = JsonHandler.findNode(archiveUnit, PATH_CLASSIFICATION_LEVEL);
-
-        if (!classificationLevel.isMissingNode()) {
-            classificationLevelValue = classificationLevel.asText();
-        }
-
-        return checkClassificationLevel(classificationLevelValue);
+    public BulkUnitInsertRequest(List<BulkUnitInsertEntry> units) {
+        this.units = units;
     }
 
-    public static boolean checkClassificationLevel(String classificationLevelValue) {
-        if (classificationLevelValue != null) {
-            return VitamConfiguration.getClassificationLevel().getAllowList().contains(classificationLevelValue);
-        } else {
-            return VitamConfiguration.getClassificationLevel().authorizeNotDefined();
-        }
+    @JsonProperty("units")
+    private List<BulkUnitInsertEntry> units;
+
+    public List<BulkUnitInsertEntry> getUnits() {
+        return units;
     }
 
+    public BulkUnitInsertRequest setUnits(List<BulkUnitInsertEntry> units) {
+        this.units = units;
+        return this;
+    }
+
+    @Override
+    public String toString() {
+        return "BulkUnitInsertRequest{" +
+            "units=" + units +
+            '}';
+    }
 }

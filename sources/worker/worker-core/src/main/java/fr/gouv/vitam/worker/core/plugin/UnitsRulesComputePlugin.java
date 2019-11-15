@@ -244,7 +244,7 @@ public class UnitsRulesComputePlugin extends ActionHandler {
             // Archive unit nodes
             JsonNode archiveUnitNode = archiveUnit.get(SedaConstants.TAG_ARCHIVE_UNIT);
             JsonNode workNode = archiveUnit.get(SedaConstants.PREFIX_WORK);
-            JsonNode managementNode = archiveUnitNode.get(SedaConstants.TAG_MANAGEMENT);
+            JsonNode managementNode = archiveUnitNode.get(SedaConstants.PREFIX_MGT);
 
 
             JsonNode unitTileNode = archiveUnitNode.get("Title");

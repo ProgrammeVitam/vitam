@@ -61,6 +61,7 @@ import fr.gouv.vitam.metadata.api.exception.MetaDataClientServerException;
 import fr.gouv.vitam.metadata.api.exception.MetaDataDocumentSizeException;
 import fr.gouv.vitam.metadata.api.exception.MetaDataExecutionException;
 import fr.gouv.vitam.metadata.api.exception.MetaDataNotFoundException;
+import fr.gouv.vitam.metadata.api.model.BulkUnitInsertRequest;
 import fr.gouv.vitam.metadata.api.model.ObjectGroupPerOriginatingAgency;
 import fr.gouv.vitam.metadata.api.model.ReclassificationChildNodeExportRequest;
 import fr.gouv.vitam.metadata.api.model.UnitPerOriginatingAgency;
@@ -89,52 +90,18 @@ public class MetaDataClientRest extends DefaultClient implements MetaDataClient 
     }
 
     @Override
-    public JsonNode insertUnit(JsonNode insertQuery)
+    public JsonNode insertUnitBulk(BulkUnitInsertRequest request)
         throws InvalidParseOperationException, MetaDataExecutionException, MetaDataNotFoundException,
         MetaDataAlreadyExistException, MetaDataDocumentSizeException, MetaDataClientServerException {
         try {
-            ParametersChecker.checkParameter(ErrorMessage.INSERT_UNITS_QUERY_NULL.getMessage(), insertQuery);
-        } catch (final IllegalArgumentException e) {
-            throw new InvalidParseOperationException(e);
-        }
-        Response response = null;
-        try {
-            response = performRequest(POST, "/units", null, insertQuery, APPLICATION_JSON_TYPE,
-                APPLICATION_JSON_TYPE);
-            if (response.getStatus() == Response.Status.INTERNAL_SERVER_ERROR.getStatusCode()) {
-                throw new MetaDataExecutionException(INTERNAL_SERVER_ERROR);
-            } else if (response.getStatus() == Response.Status.NOT_FOUND.getStatusCode()) {
-                throw new MetaDataNotFoundException(ErrorMessage.NOT_FOUND.getMessage());
-            } else if (response.getStatus() == Response.Status.CONFLICT.getStatusCode()) {
-                throw new MetaDataAlreadyExistException(ErrorMessage.DATA_ALREADY_EXISTS.getMessage());
-            } else if (response.getStatus() == Response.Status.REQUEST_ENTITY_TOO_LARGE.getStatusCode()) {
-                throw new MetaDataDocumentSizeException(ErrorMessage.SIZE_TOO_LARGE.getMessage());
-            } else if (response.getStatus() == Response.Status.BAD_REQUEST.getStatusCode()) {
-                throw new InvalidParseOperationException(ErrorMessage.INVALID_PARSE_OPERATION.getMessage());
-            } else if (response.getStatus() == Response.Status.PRECONDITION_FAILED.getStatusCode()) {
-                throw new IllegalArgumentException(ErrorMessage.INVALID_METADATA_VALUE.getMessage());
-            }
-            return JsonHandler.getFromString(response.readEntity(String.class));
-        } catch (final VitamClientInternalException e) {
-            throw new MetaDataClientServerException(INTERNAL_SERVER_ERROR, e);
-        } finally {
-            consumeAnyEntityAndClose(response);
-        }
-    }
-
-    @Override
-    public JsonNode insertUnitBulk(List<ObjectNode> insertQuery)
-        throws InvalidParseOperationException, MetaDataExecutionException, MetaDataNotFoundException,
-        MetaDataAlreadyExistException, MetaDataDocumentSizeException, MetaDataClientServerException {
-        try {
-            ParametersChecker.checkParameter(ErrorMessage.INSERT_UNITS_QUERY_NULL.getMessage(), insertQuery);
+            ParametersChecker.checkParameter(ErrorMessage.INSERT_UNITS_QUERY_NULL.getMessage(), request);
         } catch (final IllegalArgumentException e) {
             throw new InvalidParseOperationException(e);
         }
         Response response = null;
         try {
             response =
-                performRequest(POST, "/units/bulk", null, insertQuery, APPLICATION_JSON_TYPE,
+                performRequest(POST, "/units/bulk", null, request, APPLICATION_JSON_TYPE,
                     APPLICATION_JSON_TYPE);
             if (response.getStatus() == Response.Status.INTERNAL_SERVER_ERROR.getStatusCode()) {
                 throw new MetaDataExecutionException(INTERNAL_SERVER_ERROR);

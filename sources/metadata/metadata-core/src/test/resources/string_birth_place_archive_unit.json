@@ -19,6 +19,6 @@
     ],
     "_unitType": "INGEST",
     "_uds": {},
-    "Management" : { }
+    "_mgt" : { }
   }
 }

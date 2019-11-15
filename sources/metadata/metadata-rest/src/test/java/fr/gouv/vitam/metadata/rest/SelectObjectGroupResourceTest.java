@@ -45,6 +45,8 @@ import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
 import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
 import fr.gouv.vitam.metadata.api.config.MetaDataConfiguration;
+import fr.gouv.vitam.metadata.api.model.BulkUnitInsertEntry;
+import fr.gouv.vitam.metadata.api.model.BulkUnitInsertRequest;
 import fr.gouv.vitam.metadata.core.database.collections.ElasticsearchAccessMetadata;
 import fr.gouv.vitam.metadata.core.database.collections.MetadataCollections;
 import fr.gouv.vitam.metadata.core.database.collections.MongoDbAccessMetadataImpl;
@@ -61,6 +63,7 @@ import org.junit.rules.TemporaryFolder;
 import javax.ws.rs.core.Response.Status;
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 import static io.restassured.RestAssured.given;
@@ -75,10 +78,11 @@ public class SelectObjectGroupResourceTest {
     public RunWithCustomExecutorRule runInThread =
         new RunWithCustomExecutorRule(VitamThreadPoolExecutor.getDefaultExecutor());
 
-    private static final String DATA =
-        "{ \"#id\": \"aeaqaaaaaeaaaaakaarp4akuuf2ldmyaaaaq\", " + "\"data\": \"data2\" }";
-    private static final String DATA2 =
-        "{ \"#id\": \"aeaqaaaaaeaaaaakaarp4akuuf2ldmyaaaab\"," + "\"data\": \"data2\" }";
+    private static final String UNIT_DATA =
+        "{ \"_id\": \"aeaqaaaaaeaaaaakaarp4akuuf2ldmyaaaaq\", " + "\"data\": \"data2\" }";
+
+    private static final String OG_DATA2 =
+        "{ \"_id\": \"aeaqaaaaaeaaaaakaarp4akuuf2ldmyaaaab\"," + "\"data\": \"data2\" }";
 
 
     private static final String OBJECT_GROUP_ID = "aeaqaaaaaeaaaaakaarp4akuuf2ldmyaaaab";
@@ -190,13 +194,15 @@ public class SelectObjectGroupResourceTest {
         with()
             .contentType(ContentType.JSON)
             .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
-            .body(buildDSLWithOptions(DATA)).when()
-            .post("/units").then()
+            .body(new BulkUnitInsertRequest(Collections.singletonList(
+                new BulkUnitInsertEntry(Collections.emptySet(), JsonHandler.getFromString(UNIT_DATA))
+            ))).when()
+            .post("/units/bulk").then()
             .statusCode(Status.CREATED.getStatusCode());
         with()
             .contentType(ContentType.JSON)
             .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
-            .body(buildDSLWithOptionsRoot("aeaqaaaaaeaaaaakaarp4akuuf2ldmyaaaaq", DATA2)).when()
+            .body(buildDSLWithOptionsRoot("aeaqaaaaaeaaaaakaarp4akuuf2ldmyaaaaq", OG_DATA2)).when()
             .post(OBJECT_GROUPS_URI).then()
             .statusCode(Status.CREATED.getStatusCode());
 
@@ -241,19 +247,6 @@ public class SelectObjectGroupResourceTest {
             .then()
             .statusCode(Status.PRECONDITION_FAILED.getStatusCode());
     }
-
-    @Test
-    public void getObjectGroupRequestEntityTooLarge() throws Exception {
-        final int limitRequest = GlobalDatasParser.limitRequest;
-        GlobalDatasParser.limitRequest = 99;
-        given()
-            .contentType(ContentType.JSON)
-            .body(buildDSLWithOptions(createJsonStringWithDepth(101)).asText()).when()
-            .post("/units/").then()
-            .statusCode(Status.PRECONDITION_FAILED.getStatusCode());
-        GlobalDatasParser.limitRequest = limitRequest;
-    }
-
 
     @Test
     public void getObjectGroupEmptyQueryPreconditionFailed() {

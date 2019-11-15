@@ -84,6 +84,8 @@ import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.metadata.api.exception.MetaDataAlreadyExistException;
 import fr.gouv.vitam.metadata.api.exception.MetaDataExecutionException;
 import fr.gouv.vitam.metadata.api.exception.MetaDataNotFoundException;
+import fr.gouv.vitam.metadata.api.model.BulkUnitInsertEntry;
+import fr.gouv.vitam.metadata.api.model.BulkUnitInsertRequest;
 import fr.gouv.vitam.metadata.core.database.configuration.GlobalDatasDb;
 import fr.gouv.vitam.metadata.core.graph.GraphLoader;
 import fr.gouv.vitam.metadata.core.model.UpdatedDocument;
@@ -102,6 +104,7 @@ import org.elasticsearch.search.sort.SortBuilder;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -1076,7 +1079,9 @@ public class DbRequest {
         MetaDataAlreadyExistException {
 
         LOGGER.debug("Exec db insert unit request: %s", requestParser);
-        execInsertUnitRequests(Lists.newArrayList(requestParser));
+        execInsertUnitRequests(new BulkUnitInsertRequest(Collections.singletonList(
+            new BulkUnitInsertEntry(requestParser.getRequest().getRoots(), requestParser.getRequest().getData())
+        )));
     }
 
     /**
@@ -1183,17 +1188,16 @@ public class DbRequest {
     /**
      * Inserts a unit
      *
-     * @param requestParsers list of InsertParserMultiple to execute
+     * @param request list of unit insert requests
      * @throws MetaDataExecutionException when insert on metadata collection exception occurred
-     * @throws InvalidParseOperationException when json data exception occurred
      * @throws MetaDataAlreadyExistException when insert metadata exception
      * @throws MetaDataNotFoundException when metadata not found exception
      */
-    public void execInsertUnitRequests(Collection<InsertParserMultiple> requestParsers)
-        throws MetaDataExecutionException, MetaDataNotFoundException, InvalidParseOperationException,
+    public void execInsertUnitRequests(BulkUnitInsertRequest request)
+        throws MetaDataExecutionException, MetaDataNotFoundException,
         MetaDataAlreadyExistException {
 
-        LOGGER.debug("Exec db insert unit request: %s", requestParsers);
+        LOGGER.debug("Exec db insert unit request: %s", request);
 
         List<Unit> unitToSave = Lists.newArrayList();
         Map<String, ObjectGroupGraphUpdates> objectGroupGraphUpdatesMap = new HashMap<>();
@@ -1201,9 +1205,9 @@ public class DbRequest {
 
         try (GraphLoader graphLoader = new GraphLoader(mongoDbUnitRepository)) {
 
-            List<String> allRoots = new ArrayList<>();
-            for (InsertParserMultiple requestParser : requestParsers) {
-                allRoots.addAll(requestParser.getRequest().getRoots());
+            Set<String> allRoots = new HashSet<>();
+            for (BulkUnitInsertEntry entry : request.getUnits()) {
+                allRoots.addAll(entry.getParentUnitIds());
             }
 
             Stopwatch loadParentAU = Stopwatch.createStarted();
@@ -1213,11 +1217,10 @@ public class DbRequest {
 
             Stopwatch computeAU = Stopwatch.createStarted();
 
-            for (InsertParserMultiple requestParser : requestParsers) {
-                final InsertToMongodb requestToMongodb = new InsertToMongodb(requestParser);
-                final Unit unit = new Unit(requestToMongodb.getFinalData());
+            for (BulkUnitInsertEntry entry : request.getUnits()) {
+                final Unit unit = new Unit(entry.getUnit());
 
-                Set<String> roots = requestParser.getRequest().getRoots();
+                Set<String> roots = entry.getParentUnitIds();
 
                 UnitGraphModel unitGraphModel = new UnitGraphModel(unit);
                 roots.forEach(parentId -> {

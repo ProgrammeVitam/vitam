@@ -39,7 +39,6 @@ import com.github.fge.jsonschema.main.JsonSchemaFactory;
 import com.github.fge.jsonschema.messages.JsonSchemaValidationBundle;
 import com.github.fge.msgsimple.bundle.MessageBundle;
 import com.github.fge.msgsimple.load.MessageBundles;
-import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamRuntimeException;
 
@@ -58,12 +57,12 @@ public class JsonSchemaValidator {
 
     public static JsonSchemaValidator forBuiltInSchema(String schemaFilename) {
 
-        try (InputStream is = PropertiesUtils.getResourceAsStream(schemaFilename)) {
+        try (InputStream is = Object.class.getResourceAsStream(schemaFilename)) {
             JsonNode schemaJson = JsonHandler.getFromInputStream(is);
             JsonSchema jsonSchema = JSON_SCHEMA_FACTORY.getJsonSchema(schemaJson);
             return new JsonSchemaValidator(jsonSchema);
         } catch (InvalidParseOperationException | ProcessingException | IOException e) {
-            throw new VitamRuntimeException("Could not initialize built-in schema file " + schemaFilename);
+            throw new VitamRuntimeException("Could not initialize built-in schema file " + schemaFilename, e);
         }
     }
 

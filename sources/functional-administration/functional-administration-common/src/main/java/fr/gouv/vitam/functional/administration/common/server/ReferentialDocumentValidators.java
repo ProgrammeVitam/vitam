@@ -34,33 +34,33 @@ import fr.gouv.vitam.common.json.JsonSchemaValidator;
 public final class ReferentialDocumentValidators {
 
     private static final DocumentValidator ACCESS_CONTRACT_SCHEMA_VALIDATOR =
-        forBuiltInSchema("json-schema/access-contract-schema.json");
+        forBuiltInSchema("/json-schema/access-contract-schema.json");
     private static final DocumentValidator ACCESSION_REGISTER_DETAIL_SCHEMA_VALIDATOR =
-        forBuiltInSchema("json-schema/accession-register-detail.schema.json");
+        forBuiltInSchema("/json-schema/accession-register-detail.schema.json");
     private static final DocumentValidator ACCESSION_REGISTER_SUMMARY_SCHEMA_VALIDATOR =
-        forBuiltInSchema("json-schema/accession-register-summary.schema.json");
+        forBuiltInSchema("/json-schema/accession-register-summary.schema.json");
     private static final DocumentValidator AGENCIES_SCHEMA_VALIDATOR =
-        forBuiltInSchema("json-schema/agencies.schema.json");
+        forBuiltInSchema("/json-schema/agencies.schema.json");
     private static final DocumentValidator ARCHIVE_UNIT_PROFILE_SCHEMA_VALIDATOR =
-        forBuiltInSchema("json-schema/archive-unit-profile.schema.json");
+        forBuiltInSchema("/json-schema/archive-unit-profile.schema.json");
     private static final DocumentValidator CONTEXT_SCHEMA_VALIDATOR =
-        forBuiltInSchema("json-schema/context.schema.json");
+        forBuiltInSchema("/json-schema/context.schema.json");
     private static final DocumentValidator FILE_FORMAT_SCHEMA_VALIDATOR =
-        forBuiltInSchema("json-schema/file-format.schema.json");
+        forBuiltInSchema("/json-schema/file-format.schema.json");
     private static final DocumentValidator FILE_RULES_SCHEMA_VALIDATOR =
-        forBuiltInSchema("json-schema/file-rules.schema.json");
+        forBuiltInSchema("/json-schema/file-rules.schema.json");
     private static final DocumentValidator INGEST_CONTRACT_SCHEMA_VALIDATOR =
-        forBuiltInSchema("json-schema/ingest-contract.schema.json");
+        forBuiltInSchema("/json-schema/ingest-contract.schema.json");
     private static final DocumentValidator PROFILE_SCHEMA_VALIDATOR =
-        forBuiltInSchema("json-schema/profile.schema.json");
+        forBuiltInSchema("/json-schema/profile.schema.json");
     private static final DocumentValidator SECURITY_PROFILE_SCHEMA_VALIDATOR =
-        forBuiltInSchema("json-schema/security-profile.schema.json");
+        forBuiltInSchema("/json-schema/security-profile.schema.json");
     private static final DocumentValidator ONTOLOGY_SCHEMA_VALIDATOR =
-        forBuiltInSchema("json-schema/ontology.schema.json");
+        forBuiltInSchema("/json-schema/ontology.schema.json");
     private static final DocumentValidator GRIFFIN_SCHEMA =
-        forBuiltInSchema("json-schema/griffin-shema.schema.json");
+        forBuiltInSchema("/json-schema/griffin-shema.schema.json");
     private static final DocumentValidator PRESERVATION_SCENARIO_SCHEMA =
-        forBuiltInSchema("json-schema/preservation-scenario-shema.schema.json");
+        forBuiltInSchema("/json-schema/preservation-scenario-shema.schema.json");
     private static final DocumentValidator NULL_SCHEMA_VALIDATOR = (jsonNode) -> { /* NOP */ };
 
 
