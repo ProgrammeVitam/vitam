@@ -78,7 +78,6 @@ import fr.gouv.vitam.common.model.administration.IngestContractModel;
 import fr.gouv.vitam.common.model.administration.OntologyModel;
 import fr.gouv.vitam.common.model.administration.RuleType;
 import fr.gouv.vitam.common.model.logbook.LogbookEvent;
-import fr.gouv.vitam.common.model.objectgroup.ObjectGroupResponse;
 import fr.gouv.vitam.common.model.unit.GotObj;
 import fr.gouv.vitam.common.model.unit.ManagementModel;
 import fr.gouv.vitam.common.model.unit.RuleCategoryModel;
@@ -183,6 +182,8 @@ import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 import static fr.gouv.vitam.common.SedaConstants.TAG_LOGBOOK;
+import static fr.gouv.vitam.common.database.builder.query.QueryHelper.ne;
+import static fr.gouv.vitam.common.json.JsonHandler.createObjectNode;
 import static fr.gouv.vitam.common.model.IngestWorkflowConstants.SEDA_FILE;
 import static fr.gouv.vitam.common.model.IngestWorkflowConstants.SEDA_FOLDER;
 import static fr.gouv.vitam.logbook.common.parameters.LogbookParameterName.agentIdentifier;
@@ -2860,10 +2861,9 @@ public class ExtractSedaActionHandler extends ActionHandler {
         throws ProcessingStatusException, ProcessingNotValidLinkingException {
 
         Set<String> objectGroupIds = listObjectToValidate.keySet();
-        Map<String, String> objectGroupsExistedIdsWithSp = loadExistingObjectGroups(objectGroupIds);
-        boolean validLinkingByOriginatingAgency = objectGroupsExistedIdsWithSp.values().stream().filter(o -> originatingAgency.equals(o)).count() == objectGroupIds.size();
+        boolean objectGroupsExistedIdsWithSp = loadExistingObjectGroups(objectGroupIds);
 
-        if(!validLinkingByOriginatingAgency) {
+        if(!objectGroupsExistedIdsWithSp) {
             throw new ProcessingNotValidLinkingException(
                 "Not allowed object attachement of originating agency (" + originatingAgency +
                     ") to other originating agency");
@@ -2871,33 +2871,33 @@ public class ExtractSedaActionHandler extends ActionHandler {
 
     }
 
-    private Map<String, String> loadExistingObjectGroups(Set<String> objectGroupIds)
+    private boolean loadExistingObjectGroups(Set<String> objectGroupIds)
         throws ProcessingStatusException {
 
         try (MetaDataClient client = metaDataClientFactory.getClient()) {
-
-            Map<String, String> objectGroups = new HashMap<>();
 
             for (List<String> ids : ListUtils
                 .partition(new ArrayList<>(objectGroupIds), MAX_ELASTIC_REQUEST_SIZE)) {
 
                 SelectMultiQuery selectMultiQuery = new SelectMultiQuery();
                 selectMultiQuery.addRoots(ids.toArray(new String[0]));
+                selectMultiQuery.addQueries(ne(VitamFieldsHelper.originatingAgency(), originatingAgency));
+                ObjectNode objectNode = createObjectNode();
+                objectNode.put(VitamFieldsHelper.originatingAgency(), 1);
+                objectNode.put(VitamFieldsHelper.id(), 1);
+                JsonNode projection = createObjectNode().set("$fields", objectNode);
+                selectMultiQuery.setProjection(projection);
 
                 JsonNode jsonNode = client.selectObjectGroups(selectMultiQuery.getFinalSelect());
                 RequestResponseOK<JsonNode> requestResponseOK = RequestResponseOK.getFromJsonNode(jsonNode);
 
-                for (JsonNode objectGroupJson : requestResponseOK.getResults()) {
-
-                    ObjectGroupResponse objectGroup =
-                        JsonHandler.getFromJsonNode(objectGroupJson, ObjectGroupResponse.class);
-
-                    objectGroups.put(objectGroup.getId(), objectGroup.getOriginatingAgency());
+                if(!requestResponseOK.getResults().isEmpty()){
+                    return false;
                 }
             }
-            return objectGroups;
+            return true;
 
-        } catch (MetaDataExecutionException | MetaDataDocumentSizeException | MetaDataClientServerException | InvalidParseOperationException  e) {
+        } catch (MetaDataExecutionException | MetaDataDocumentSizeException | MetaDataClientServerException | InvalidParseOperationException | InvalidCreateOperationException e) {
             throw new ProcessingStatusException(StatusCode.FATAL, "Could not load object groups", e);
         }
     }

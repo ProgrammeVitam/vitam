@@ -1,91 +1,71 @@
 {
-  "httpCode": 302,
-  "$hits": {
-    "total": 5,
-    "offset": 0,
-    "limit": 0,
-    "size": 5
+  "_id": "aebaaaaaaae33g44ab77aalog3hdvnyaaaaq",
+  "_tenant": 0,
+  "_profil": "",
+  "FileInfo": {
+    "Filename": "Annuaire_projet.pdf",
+    "LastModified": "2016-03-23T14:58:30.943"
   },
-  "$results": [
+  "_qualifiers": [
     {
-      "FileInfo": {
-        "Filename": "GBlNSraIrmIpWQNmJlDzPYLOC8CBk0.pdf",
-        "LastModified": "2016-06-03T15:28:00.000+02:00"
-      },
-      "#id": "aeaaaaaaaaaam7mxabw5iakzn47qjaiaaaaq",
-      "#nbobjects": 1,
-      "#qualifiers": [
+      "qualifier": "BinaryMaster",
+      "_nbc": 1,
+      "versions": [
         {
-          "qualifier": "BinaryMaster",
-          "#nbc": 1,
-          "versions": [
-            {
-              "DataObjectGroupId": "aeaaaaaaaaaam7mxabw5iakzn47qjaiaaaaq",
-              "DataObjectVersion": "BinaryMaster_1",
-              "FormatIdentification": {
-                "FormatLitteral": "Plain Text File",
-                "MimeType": "text/plain",
-                "FormatId": "x-fmt/111"
-              },
-              "FileInfo": {
-                "Filename": "GBlNSraIrmIpWQNmJlDzPYLOC8CBk0.pdf",
-                "LastModified": "2016-06-03T15:28:00.000+02:00"
-              },
-              "Size": 29403,
-              "Uri": "Content/GBlNSraIrmIpWQNmJlDzPYLOC8CBk0.pdf",
-              "MessageDigest": "942bb63cc16bf5ca3ba7fabf40ce9be19c3185a36cd87ad17c63d6fad1aa29d4312d73f2d6a1ba1266c3a71fc4119dd476d2d776cf2ad2acd7a9a3dfa1f80dc7",
-              "Algorithm": "SHA-512",
-              "#id": "aeaaaaaaaabba3ylaatlgalhpig6aciaaaaq",
-              "#opi": "aecaaaaaacbba3ylaatlgalhpig53hqaaaaq",
-              "#storage": {
-                "offerIds": [
-                  "fakeOfferId"
-                ],
-                "strategyId": "default-fake",
-                "#nbc": 1
-              }
-            }
-          ]
+          "_id": "aeaaaaaaaae33g44ab77aalog3hdvnqaaaaq",
+          "DataObjectGroupId": "aebaaaaaaae33g44ab77aalog3hdvnyaaaaq",
+          "DataObjectVersion": "BinaryMaster_1",
+          "FormatIdentification": {
+            "FormatLitteral": "Acrobat PDF 1.4 - Portable Document Format",
+            "MimeType": "application/pdf",
+            "FormatId": "fmt/18"
+          },
+          "FileInfo": {
+            "Filename": "Annuaire_projet.pdf",
+            "LastModified": "2016-03-23T14:58:30.943"
+          },
+          "_opi": "aeeaaaaaace33g44aawdwalog3hdjmqaaaaq",
+          "Size": 58933,
+          "Uri": "Content/ID5.pdf",
+          "MessageDigest": "76705bbf0257934e5b274864f3711ca563a80d172c1d9a2931d785ff8c0bb0424e35d3b0a92180b34b253fe23d2b56cd360405f42f7cea8f1fadb315e73ffd12",
+          "Algorithm": "SHA-512",
+          "_storage": {
+            "_nbc": 1,
+            "offerIds": [
+              "offer-fs-1.service.consul"
+            ],
+            "strategyId": "default"
+          }
         }
-      ],
-      "#type": "",
-      "#tenant": 0,
-      "#unitups": [
-        "aeaqaaaaaabba3ylaakt2alhphdv2liaaaaq"
-      ],
-      "#allunitups": [
-        "aeaqaaaaaabba3ylaatlgalhpig6aniaaabq",
-        "aeaqaaaaaabba3ylaatlgalhpig6akqaaabq"
-      ],
-      "#operations": [
-        "aecaaaaaacbba3ylaatlgalhpig53hqaaaaq"
-      ],
-      "#opi": "aecaaaaaacbba3ylaatlgalhpig53hqaaaaq",
-      "#originating_agency": "FRAN_NP_005061",
-      "#originating_agencies": [
-        "FRAN_NP_005061"
-      ],
-      "#storage": {
-        "offerIds": [
-          "offer1",
-          "offer2"
-        ],
-        "strategyId": "default",
-        "#nbc": 2
-      },
-      "#version": 0
+      ]
     }
   ],
-  "$facetResults": [],
-  "$context": {
-    "$query": {
-      "$in": {
-        "#id": [
-          "aeaaaaaaaaaam7mxabw5iakzn47qjaiaaaaq"
-        ]
-      }
-    },
-    "$filter": {},
-    "$projection": {}
-  }
+  "_up": [
+    "aeaqaaaaaae33g44ab77aalog3hdvqaaaaaq"
+  ],
+  "_nbc": 1,
+  "_ops": [
+    "aeeaaaaaace33g44aawdwalog3hdjmqaaaaq",
+    "aeeaaaaaace33g44aawdwalog4spd7aaaaaq",
+    "aeeaaaaaace33g44aawdwalog4ukxcyaaaaq"
+  ],
+  "_opi": "aeeaaaaaace33g44aawdwalog3hdjmqaaaaq",
+  "_sp": "FRAN_NP_005061",
+  "_sps": [
+    "FRAN_NP_005061"
+  ],
+  "_storage": {
+    "_nbc": 1,
+    "offerIds": [
+      "offer-fs-1.service.consul"
+    ],
+    "strategyId": "default"
+  },
+  "_v": 3,
+  "_av": 3,
+  "_glpd": "2019-11-04T14:25:49.318",
+  "_us": [
+    "aeaqaaaaaae33g44ab77aalog3hdvqaaaaaq",
+    "aeaqaaaaaae33g44ab77aalog3hdvoaaaaba"
+  ]
 }

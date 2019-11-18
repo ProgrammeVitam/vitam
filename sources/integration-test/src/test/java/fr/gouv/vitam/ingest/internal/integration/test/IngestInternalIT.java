@@ -176,7 +176,6 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.ThreadLocalRandom;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 import java.util.zip.ZipEntry;
@@ -2894,7 +2893,7 @@ public class IngestInternalIT extends VitamRuleRunner {
         String unitId = unit.get("#id").asText();
 
         
-        String zipName = ThreadLocalRandom.current().nextInt(1, Integer.MAX_VALUE - 1) + ".zip";
+        String zipName = GUIDFactory.newGUID().toString() + ".zip";
         String LINK_AU_TO_GOT_KO_SP = "integration-ingest-internal/LINK_AU_TO_GOT_KO_SP";
         String ZIP_LINK_AU_TO_GOT_KO_SP = "integration-ingest-internal/data";
         // prepare zip

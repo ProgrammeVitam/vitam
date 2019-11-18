@@ -1005,7 +1005,7 @@ public class ExtractSedaActionHandlerTest {
             .getFromFile(PropertiesUtils.getResourceFile(UNIT_ATTACHED_SP_DB_RESPONSE));
         // When
         when(metadataClient.selectObjectGroups(any())).thenReturn(
-            getFromInputStream(getClass().getResourceAsStream("/checkMasterMandatoryInOGAndAttachmentInOG/og.json")));
+            getFromInputStream(getClass().getResourceAsStream("/checkMasterMandatoryInOGAndAttachmentInOG/og_results.json")));
         when(metadataClient.selectUnits(any()))
             .thenReturn(objectGroupLinkedToExistingOne);
         when(workspaceClient.getObject(any(), eq("SIP/manifest.xml")))
