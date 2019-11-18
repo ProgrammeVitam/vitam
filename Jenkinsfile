@@ -30,6 +30,7 @@ pipeline {
         SERVICE_DOCKER_PULL_URL=credentials("SERVICE_DOCKER_PULL_URL")
         SERVICE_REPOSITORY_URL=credentials("service-repository-url")
         GITHUB_ACCOUNT_TOKEN = credentials("vitam-prg-token")
+        ES_VERSION="6.8.4"
         MONGO_VERSION="4.2.1"
     }
 
