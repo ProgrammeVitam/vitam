@@ -1,5 +1,5 @@
 Name:          vitam-elasticsearch-cerebro
-Version:       0.8.4
+Version:       0.8.5
 Release:       1%{?dist}
 Summary:       Cerebro is a simple web administration tool for elasticsearch written in JavaScript + AngularJS + jQuery + Twitter bootstrap.
 Group:         Applications/File
