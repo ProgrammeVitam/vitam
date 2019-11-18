@@ -19,11 +19,11 @@ vitam_strategy:
 # Strategy name must only use [a-z][a-z0-9-]* pattern
 # Any strategy must contain at least one offer
 # This list of offers is ordered. It can and has to be completed if more offers are necessary
-# Offers can't be defined as referent other_strategies
+# Every strategy can define at most one referent offer.
 # other_strategies:
 #  metadata:
 #    - name: offer-fs-1
-#      referent: false
+#      referent: true
 #    - name: offer-fs-2
 #      referent: false
 #  binary:

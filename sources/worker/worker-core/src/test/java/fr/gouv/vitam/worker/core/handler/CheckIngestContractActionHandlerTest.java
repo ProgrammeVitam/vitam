@@ -228,7 +228,7 @@ public class CheckIngestContractActionHandlerTest {
                 .thenReturn(createIngestContract(ActivationStatus.ACTIVE, MANAGEMENT_CONTRACT_IDENTIFIER));
         when(adminClient.findContextById(any())).thenReturn(ClientMockResultHelper.getContexts(200));
         when(adminClient.findManagementContractsByID(any()))
-                .thenReturn(createManagementContractWithStrategies(ActivationStatus.ACTIVE,"withReferent","withoutReferent","withoutReferent"));
+                .thenReturn(createManagementContractWithStrategies(ActivationStatus.ACTIVE,"withDefault","withoutDefault","withoutDefault"));
         when(storageClient.getStorageStrategies()).thenReturn(createStorageStrategies());
         when(handlerIO.getInput(0)).thenReturn(getMandatoryValueMapInstance(true));
 
@@ -238,6 +238,7 @@ public class CheckIngestContractActionHandlerTest {
         ItemStatus response = handler.execute(getWorkerParametersInstance(), handlerIO);
         assertEquals(response.getGlobalOutcomeDetailSubcode(), "MANAGEMENT_CONTRACT_INVALID");
         assertEquals(response.getGlobalStatus(), StatusCode.KO);
+
     }
 
     @Test
@@ -252,7 +253,7 @@ public class CheckIngestContractActionHandlerTest {
                 .thenReturn(createIngestContract(ActivationStatus.ACTIVE, MANAGEMENT_CONTRACT_IDENTIFIER));
         when(adminClient.findContextById(any())).thenReturn(ClientMockResultHelper.getContexts(200));
         when(adminClient.findManagementContractsByID(any()))
-                .thenReturn(createManagementContractWithStrategies(ActivationStatus.ACTIVE,"withReferent","withReferent","withoutReferent"));
+                .thenReturn(createManagementContractWithStrategies(ActivationStatus.ACTIVE,"withDefault","withDefault","withoutDefault"));
         when(storageClient.getStorageStrategies()).thenThrow(new StorageServerClientException("exception fatal"));
         when(handlerIO.getInput(0)).thenReturn(getMandatoryValueMapInstance(true));
 

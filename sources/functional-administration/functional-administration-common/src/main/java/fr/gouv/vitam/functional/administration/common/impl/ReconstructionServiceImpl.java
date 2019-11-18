@@ -262,7 +262,7 @@ public class ReconstructionServiceImpl implements ReconstructionService {
     private ReconstructionResponseItem reconstructCollection(FunctionalAdminCollections collection, int tenant,
         int limit) {
 
-        final long offset = offsetRepository.findOffsetBy(tenant, collection.getName());
+        final long offset = offsetRepository.findOffsetBy(tenant, VitamConfiguration.getDefaultStrategy(), collection.getName());
         ParametersChecker.checkParameter("Parameter collection is required.", collection);
         LOGGER.info(String
             .format(
@@ -350,7 +350,7 @@ public class ReconstructionServiceImpl implements ReconstructionService {
             newOffset = offset;
             response.setStatus(StatusCode.KO);
         } finally {
-            offsetRepository.createOrUpdateOffset(tenant, collection.getName(), newOffset);
+            offsetRepository.createOrUpdateOffset(tenant, VitamConfiguration.getDefaultStrategy(), collection.getName(), newOffset);
             VitamThreadUtils.getVitamSession().setTenantId(originalTenant);
         }
         return response;

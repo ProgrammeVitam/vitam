@@ -27,8 +27,10 @@
       "id": "fake-invalid-md",
       "offers": [
         {
-          "id": "offer-one",
-          "referent": true
+          "id": "offer-one"
+        },
+        {
+          "id": "offer-two"
         }
       ]
     },
@@ -36,7 +38,8 @@
       "id": "fake-object",
       "offers": [
         {
-          "id": "offer-three"
+          "id": "offer-three",
+          "referent": false
         }
       ]
     }

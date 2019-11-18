@@ -55,6 +55,8 @@ import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.SysErrLogger;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.common.model.RequestResponse;
+import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.storage.compress.VitamArchiveStreamFactory;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
@@ -68,11 +70,16 @@ import fr.gouv.vitam.metadata.core.database.collections.MetadataDocument;
 import fr.gouv.vitam.metadata.core.database.collections.Unit;
 import fr.gouv.vitam.metadata.core.model.ReconstructionRequestItem;
 import fr.gouv.vitam.metadata.core.model.ReconstructionResponseItem;
+import fr.gouv.vitam.storage.engine.client.StorageClient;
+import fr.gouv.vitam.storage.engine.client.StorageClientFactory;
+import fr.gouv.vitam.storage.engine.client.exception.StorageClientException;
 import fr.gouv.vitam.storage.engine.common.exception.StorageException;
 import fr.gouv.vitam.storage.engine.common.exception.StorageNotFoundException;
 import fr.gouv.vitam.storage.engine.common.model.DataCategory;
 import fr.gouv.vitam.storage.engine.common.model.OfferLog;
 import fr.gouv.vitam.storage.engine.common.model.Order;
+import fr.gouv.vitam.storage.engine.common.referential.model.StorageStrategy;
+import fr.gouv.vitam.storage.engine.common.utils.StorageStrategyUtils;
 import org.apache.commons.compress.archivers.ArchiveEntry;
 import org.apache.commons.compress.archivers.ArchiveException;
 import org.apache.commons.compress.archivers.ArchiveInputStream;
@@ -86,13 +93,7 @@ import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.stream.Collectors;
 
@@ -127,6 +128,7 @@ public class ReconstructionService {
     private VitamRepositoryProvider vitamRepositoryProvider;
 
     private LogbookLifeCyclesClientFactory logbookLifeCyclesClientFactory;
+    private StorageClientFactory storageClientFactory;
 
     private OffsetRepository offsetRepository;
 
@@ -139,7 +141,7 @@ public class ReconstructionService {
     public ReconstructionService(VitamRepositoryProvider vitamRepositoryProvider,
         OffsetRepository offsetRepository) {
         this(vitamRepositoryProvider, new RestoreBackupService(), LogbookLifeCyclesClientFactory.getInstance(),
-            offsetRepository);
+            StorageClientFactory.getInstance(), offsetRepository);
     }
 
     /**
@@ -148,15 +150,17 @@ public class ReconstructionService {
      * @param vitamRepositoryProvider vitamRepositoryProvider
      * @param recoverBackupService recoverBackupService
      * @param logbookLifecycleClientFactory logbookLifecycleClientFactory
+     * @param storageClientFactory storageClientFactory
      * @param offsetRepository
      */
     @VisibleForTesting
     public ReconstructionService(VitamRepositoryProvider vitamRepositoryProvider,
         RestoreBackupService recoverBackupService, LogbookLifeCyclesClientFactory logbookLifecycleClientFactory,
-        OffsetRepository offsetRepository) {
+        StorageClientFactory storageClientFactory, OffsetRepository offsetRepository) {
         this.vitamRepositoryProvider = vitamRepositoryProvider;
         this.restoreBackupService = recoverBackupService;
         this.logbookLifeCyclesClientFactory = logbookLifecycleClientFactory;
+        this.storageClientFactory = storageClientFactory;
         this.offsetRepository = offsetRepository;
     }
 
@@ -199,7 +203,7 @@ public class ReconstructionService {
         VitamThreadUtils.getVitamSession().setTenantId(tenant);
 
 
-        final long offset = offsetRepository.findOffsetBy(tenant, collectionName);
+        final long offset = offsetRepository.findOffsetBy(tenant, VitamConfiguration.getDefaultStrategy(), collectionName);
         ParametersChecker.checkParameter("Parameter collection is required.", collectionName);
         LOGGER.info(String
             .format(
@@ -273,7 +277,7 @@ public class ReconstructionService {
             response.setStatus(StatusCode.KO);
 
         } finally {
-            offsetRepository.createOrUpdateOffset(tenant, collectionName, newOffset);
+            offsetRepository.createOrUpdateOffset(tenant, VitamConfiguration.getDefaultStrategy(), collectionName, newOffset);
         }
         return response;
     }
@@ -289,40 +293,86 @@ public class ReconstructionService {
      * @throws VitamRuntimeException storage error
      */
     private ReconstructionResponseItem reconstructCollection(MetadataCollections collection, int tenant, int limit) {
-
-        final long offset = offsetRepository.findOffsetBy(tenant, collection.getName());
-        ParametersChecker.checkParameter("Parameter collection is required.", collection);
-        LOGGER.info(String
-            .format(
-                "[Reconstruction]: Start reconstruction of the {%s} collection on the Vitam tenant {%s} for %s elements starting from {%s}.",
-                collection.name(), tenant, limit, offset));
+        
+        LOGGER.info(String.format(
+                "[Reconstruction]: Start reconstruction of the {%s} collection on the Vitam tenant {%s} for %s elements.",
+                collection.name(), tenant, limit));
         ReconstructionResponseItem response =
-            new ReconstructionResponseItem().setCollection(collection.name()).setTenant(tenant);
+                new ReconstructionResponseItem().setCollection(collection.name()).setTenant(tenant).setStatus(StatusCode.OK);
+        
+        final List<String> strategies = loadStrategies();
+
+        for(String strategy : strategies) { 
+            StatusCode currentStatusCode = reconstructCollection(collection, tenant, strategy, limit);
+            if(currentStatusCode.getStatusLevel() > response.getStatus().getStatusLevel()) {
+                response.setStatus(currentStatusCode);
+            }
+        }
+        
+        return response;
+    }
+
+    private List<String> loadStrategies() {
+        Integer originalTenant = VitamThreadUtils.getVitamSession().getTenantId();
+        try (StorageClient storageClient = storageClientFactory.getClient()) {
+            VitamThreadUtils.getVitamSession().setTenantId(VitamConfiguration.getAdminTenant());
+            RequestResponse<StorageStrategy> strategiesResponse = storageClient.getStorageStrategies();
+            if (!strategiesResponse.isOk()) {
+                LOGGER.error(strategiesResponse.toString());
+                throw new StorageException("Exception while retrieving storage strategies");
+            }
+            List<StorageStrategy> storageStrategies = ((RequestResponseOK<StorageStrategy>) strategiesResponse).getResults().stream()
+                    .filter(s -> s.getOffers().stream()
+                            .filter(offer -> offer.isReferent())
+                            .filter(offer -> offer.isEnabled())
+                            .count() == 1)
+                    .collect(Collectors.toList());
+
+            if (!StorageStrategyUtils.checkReferentOfferUsageInStrategiesValid(storageStrategies)) {
+                LOGGER.warn("One or more offers are referents in more than one strategy. As a consequence the reconstruction for these referent offers is executed as many times as they are declared in a strategy");
+            }
+
+            return storageStrategies.stream().map(StorageStrategy::getId).collect(Collectors.toList());
+        } catch (StorageException | StorageClientException e) {
+            throw new VitamRuntimeException(e);
+        } finally {
+            VitamThreadUtils.getVitamSession().setTenantId(originalTenant);
+        }
+    }
+    
+    private StatusCode reconstructCollection(MetadataCollections collection, int tenant, String strategy, int limit) {
+        StatusCode resultStatusCode;
+        final long offset = offsetRepository.findOffsetBy(tenant, strategy, collection.getName());
+        LOGGER.info(String.format(
+                "[Reconstruction]: Start reconstruction of the {%s} collection for the strategy {%s} on the Vitam tenant {%s} for %s elements starting from {%s}.",
+                collection.name(), strategy, tenant, limit, offset));
+
         Integer originalTenant = VitamThreadUtils.getVitamSession().getTenantId();
 
         long newOffset = offset;
 
         try {
-            // This is a hack, we must set manually the tenant is the VitamSession (used and transmitted in the
+            // This is a hack, we must set manually the tenant is the VitamSession (used and
+            // transmitted in the
             // headers)
             VitamThreadUtils.getVitamSession().setTenantId(tenant);
             DataCategory type;
             switch (collection) {
-                case UNIT:
-                    type = DataCategory.UNIT;
-                    break;
-                case OBJECTGROUP:
-                    type = DataCategory.OBJECTGROUP;
-                    break;
-                default:
-                    throw new IllegalArgumentException(String.format("ERROR: Invalid collection {%s}", collection));
+            case UNIT:
+                type = DataCategory.UNIT;
+                break;
+            case OBJECTGROUP:
+                type = DataCategory.OBJECTGROUP;
+                break;
+            default:
+                throw new IllegalArgumentException(String.format("ERROR: Invalid collection {%s}", collection));
             }
 
-            Iterator<OfferLog> listing =
-                restoreBackupService.getListing(VitamConfiguration.getDefaultStrategy(), type, offset, limit, Order.ASC,
+            Iterator<OfferLog> listing = 
+                restoreBackupService.getListing(strategy, type, offset, limit, Order.ASC,
                     VitamConfiguration.getRestoreBulkSize());
 
-            Iterator<List<OfferLog>> bulkListing =
+            Iterator<List<OfferLog>> bulkListing = 
                 Iterators.partition(listing, VitamConfiguration.getRestoreBulkSize());
 
             while (bulkListing.hasNext()) {
@@ -336,21 +386,20 @@ public class ReconstructionService {
 
                     switch (offerLog.getAction()) {
 
-                        case WRITE:
-                            writtenMetadata.add(offerLog);
-                            break;
+                    case WRITE:
+                        writtenMetadata.add(offerLog);
+                        break;
 
-                        case DELETE:
-                            deletedMetadataIds.add(metadataFilenameToGuid(offerLog.getFileName()));
-                            break;
+                    case DELETE:
+                        deletedMetadataIds.add(metadataFilenameToGuid(offerLog.getFileName()));
+                        break;
 
-                        default:
-                            throw new UnsupportedOperationException(
-                                "Unsupported offer log action " + offerLog.getAction());
+                    default:
+                        throw new UnsupportedOperationException("Unsupported offer log action " + offerLog.getAction());
                     }
                 }
 
-                processWrittenMetadata(collection, tenant, writtenMetadata);
+                processWrittenMetadata(collection, tenant, strategy, writtenMetadata);
 
                 processDeletedMetadata(collection, deletedMetadataIds);
 
@@ -358,29 +407,30 @@ public class ReconstructionService {
 
                 // log the reconstruction of Vitam collection.
                 LOGGER.info(String.format(
-                    "[Reconstruction]: the collection {%s} has been reconstructed on the tenant {%s} from {offset:%s} at %s",
-                    collection.name(), tenant, offset, LocalDateUtil.now()));
+                        "[Reconstruction]: the collection {%s} has been reconstructed for the strategy {%s} on the tenant {%s} from {offset:%s} at %s",
+                        collection.name(), strategy, tenant, offset, LocalDateUtil.now()));
             }
 
-            offsetRepository.createOrUpdateOffset(tenant, collection.getName(), newOffset);
+            offsetRepository.createOrUpdateOffset(tenant, strategy, collection.getName(), newOffset);
 
-            response.setStatus(StatusCode.OK);
+            resultStatusCode = StatusCode.OK;
 
         } catch (LogbookClientException | InvalidParseOperationException | StorageException | DatabaseException e) {
             LOGGER.error(String.format(
-                "[Reconstruction]: Exception has been thrown when reconstructing Vitam collection {%s} metadata & lifecycles on the tenant {%s} from {offset:%s}",
-                collection, tenant, offset), e);
-            response.setStatus(StatusCode.KO);
+                    "[Reconstruction]: Exception has been thrown when reconstructing Vitam collection {%s} metadata & lifecycles for the strategy {%s} on the tenant {%s} from {offset:%s}",
+                    collection, strategy, tenant, offset), e);
+            resultStatusCode = StatusCode.KO;
         } finally {
             VitamThreadUtils.getVitamSession().setTenantId(originalTenant);
         }
-        return response;
+        return resultStatusCode;
+
     }
 
     /**
      * reconstruct Vitam collection from the backup data.
      */
-    private void processWrittenMetadata(MetadataCollections collection, int tenant, List<OfferLog> writtenMetadata)
+    private void processWrittenMetadata(MetadataCollections collection, int tenant, String strategy, List<OfferLog> writtenMetadata)
         throws StorageException, DatabaseException, LogbookClientException, InvalidParseOperationException {
 
         if (writtenMetadata.isEmpty()) {
@@ -389,7 +439,7 @@ public class ReconstructionService {
 
         for (int retry = VitamConfiguration.getOptimisticLockRetryNumber(); retry > 0; retry--) {
 
-            List<MetadataBackupModel> dataFromOffer = loadMetadataSet(collection, tenant, writtenMetadata);
+            List<MetadataBackupModel> dataFromOffer = loadMetadataSet(collection, tenant, strategy, writtenMetadata);
 
             if (dataFromOffer.isEmpty()) {
                 // NOP
@@ -425,7 +475,7 @@ public class ReconstructionService {
         throw new DatabaseException("Optimistic lock number of retry reached");
     }
 
-    private List<MetadataBackupModel> loadMetadataSet(MetadataCollections collection, int tenant,
+    private List<MetadataBackupModel> loadMetadataSet(MetadataCollections collection, int tenant, String strategy,
         List<OfferLog> writtenMetadata) throws StorageException {
 
         // FIXME : parallel processing
@@ -434,7 +484,7 @@ public class ReconstructionService {
 
             try {
                 MetadataBackupModel model = restoreBackupService
-                    .loadData(VitamConfiguration.getDefaultStrategy(), collection, offerLog.getFileName(),
+                    .loadData(strategy, collection, offerLog.getFileName(), 
                         offerLog.getSequence());
 
                 if (model.getMetadatas() == null || model.getLifecycle() == null || model.getOffset() == null) {

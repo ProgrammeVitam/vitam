@@ -65,12 +65,14 @@ public class OffsetRepository {
      * Create or update offset
      *
      * @param tenant the tenant
+     * @param strategy the strategy id
      * @param collection the collection name
      */
-    public void createOrUpdateOffset(int tenant, String collection, long offset) {
+    public void createOrUpdateOffset(int tenant, String strategy, String collection, long offset) {
 
         Bson offsetFilter = and(
             eq("_tenant", tenant),
+            eq("strategy", strategy),
             eq("collection", collection)
         );
 
@@ -86,12 +88,14 @@ public class OffsetRepository {
      * Get current offset
      *
      * @param tenant the tenant
+     * @param strategy the strategy id
      * @param collection the collection name we want to reconstruct, bat can be any other unique name (graph)
      * @return the offset value for collection/tenant, 0L if not found
      */
-    public long findOffsetBy(int tenant, String collection) {
+    public long findOffsetBy(int tenant, String strategy, String collection) {
         Bson offsetFilter = and(
             eq("_tenant", tenant),
+            eq("strategy", strategy),
             eq("collection", collection)
         );
         FindIterable<Document> documents = offerCollection.find(offsetFilter);

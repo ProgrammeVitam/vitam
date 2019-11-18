@@ -25,7 +25,7 @@
 		"DeactivationDate": null,
 		"Storage": {
 			"UnitStrategy": "fake-md",
-			"ObjectGroupStrategy": "fake-object",
+			"ObjectGroupStrategy": "fake-invalid-md",
 			"ObjectStrategy": "fake-object"
 		}
 	}

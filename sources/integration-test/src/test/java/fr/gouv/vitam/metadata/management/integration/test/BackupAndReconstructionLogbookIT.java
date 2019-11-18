@@ -284,7 +284,7 @@ public class BackupAndReconstructionLogbookIT extends VitamRuleRunner {
         response = reconstructionService.reconstructCollection("" + TENANT_0, reconstructionItems).execute();
         assertThat(response.code()).isEqualTo(200);
         assertThat(response.body().size()).isEqualTo(1);
-        assertThat(offsetRepository.findOffsetBy(TENANT_0, "logbook")).isEqualTo(2L);
+        assertThat(offsetRepository.findOffsetBy(TENANT_0, VitamConfiguration.getDefaultStrategy(), "logbook")).isEqualTo(2L);
 
         assertThat(response.body().get(0).getTenant()).isEqualTo(0);
         assertThat(response.body().get(0).getStatus()).isEqualTo(StatusCode.OK);
@@ -299,18 +299,18 @@ public class BackupAndReconstructionLogbookIT extends VitamRuleRunner {
         // 2. relaunch reconstruct operations
         reconstructionItems = new ArrayList<>();
         reconstructionItems.add(reconstructionItem1);
-        offsetRepository.createOrUpdateOffset(TENANT_0, LOGBOOK, 0);
+        offsetRepository.createOrUpdateOffset(TENANT_0, VitamConfiguration.getDefaultStrategy(), LOGBOOK, 0);
 
         response = reconstructionService.reconstructCollection("" + TENANT_0, reconstructionItems).execute();
         assertThat(response.code()).isEqualTo(200);
         assertThat(response.body().size()).isEqualTo(1);
-        assertThat(offsetRepository.findOffsetBy(TENANT_0, LOGBOOK)).isEqualTo(2L);
+        assertThat(offsetRepository.findOffsetBy(TENANT_0, VitamConfiguration.getDefaultStrategy(), LOGBOOK)).isEqualTo(2L);
         assertThat(response.body().get(0).getStatus()).isEqualTo(StatusCode.OK);
 
 
         // 3. reconstruct next operation
         reconstructionItems = new ArrayList<>();
-        offsetRepository.createOrUpdateOffset(TENANT_0, LOGBOOK, 5L);
+        offsetRepository.createOrUpdateOffset(TENANT_0, VitamConfiguration.getDefaultStrategy(), LOGBOOK, 5L);
 
         reconstructionItem2 = new ReconstructionRequestItem();
         reconstructionItem2.setLimit(2);
@@ -319,7 +319,7 @@ public class BackupAndReconstructionLogbookIT extends VitamRuleRunner {
         response = reconstructionService.reconstructCollection("" + TENANT_0, reconstructionItems).execute();
         assertThat(response.code()).isEqualTo(200);
         assertThat(response.body().size()).isEqualTo(1);
-        assertThat(offsetRepository.findOffsetBy(TENANT_0, LOGBOOK)).isEqualTo(6L);
+        assertThat(offsetRepository.findOffsetBy(TENANT_0, VitamConfiguration.getDefaultStrategy(), LOGBOOK)).isEqualTo(6L);
         assertThat(response.body().get(0).getStatus()).isEqualTo(StatusCode.OK);
 
         logbookResponse = client.selectOperationById(LOGBOOK_0_GUID);
@@ -334,30 +334,30 @@ public class BackupAndReconstructionLogbookIT extends VitamRuleRunner {
         // 4. reconstruct nothing for logbook operation
         reconstructionItems = new ArrayList<>();
         reconstructionItems.add(reconstructionItem1);
-        offsetRepository.createOrUpdateOffset(TENANT_0, LOGBOOK, 7L);
+        offsetRepository.createOrUpdateOffset(TENANT_0, VitamConfiguration.getDefaultStrategy(), LOGBOOK, 7L);
 
 
         response = reconstructionService.reconstructCollection("" + TENANT_0, reconstructionItems).execute();
         assertThat(response.code()).isEqualTo(200);
         assertThat(response.body().size()).isEqualTo(1);
-        assertThat(offsetRepository.findOffsetBy(TENANT_0, LOGBOOK)).isEqualTo(9L);
+        assertThat(offsetRepository.findOffsetBy(TENANT_0, VitamConfiguration.getDefaultStrategy(), LOGBOOK)).isEqualTo(9L);
         assertThat(response.body().get(0).getStatus()).isEqualTo(StatusCode.OK);
 
         // 5. reconstruct on unused tenants
         reconstructionItems = new ArrayList<>();
-        offsetRepository.createOrUpdateOffset(TENANT_0, LOGBOOK, 0L);
+        offsetRepository.createOrUpdateOffset(TENANT_0, VitamConfiguration.getDefaultStrategy(), LOGBOOK, 0L);
         reconstructionItem1.setTenant(TENANT_1);
         reconstructionItems.add(reconstructionItem1);
 
         response = reconstructionService.reconstructCollection("" + TENANT_0, reconstructionItems).execute();
         assertThat(response.code()).isEqualTo(200);
         assertThat(response.body().size()).isEqualTo(1);
-        assertThat(offsetRepository.findOffsetBy(TENANT_0, LOGBOOK)).isEqualTo(0L);
+        assertThat(offsetRepository.findOffsetBy(TENANT_0, VitamConfiguration.getDefaultStrategy(), LOGBOOK)).isEqualTo(0L);
         assertThat(response.body().get(0).getStatus()).isEqualTo(StatusCode.OK);
 
         // 5. reconstruct all operations
         reconstructionItems = new ArrayList<>();
-        offsetRepository.createOrUpdateOffset(TENANT_0, LOGBOOK, 0L);
+        offsetRepository.createOrUpdateOffset(TENANT_0, VitamConfiguration.getDefaultStrategy(), LOGBOOK, 0L);
         reconstructionItem1.setTenant(TENANT_0);
         reconstructionItem1.setLimit(15);
         reconstructionItems.add(reconstructionItem1);
@@ -365,7 +365,7 @@ public class BackupAndReconstructionLogbookIT extends VitamRuleRunner {
         response = reconstructionService.reconstructCollection("" + TENANT_0, reconstructionItems).execute();
         assertThat(response.code()).isEqualTo(200);
         assertThat(response.body().size()).isEqualTo(1);
-        assertThat(offsetRepository.findOffsetBy(TENANT_0, LOGBOOK)).isEqualTo(10L);
+        assertThat(offsetRepository.findOffsetBy(TENANT_0, VitamConfiguration.getDefaultStrategy(), LOGBOOK)).isEqualTo(10L);
         assertThat(response.body().get(0).getStatus()).isEqualTo(StatusCode.OK);
 
         VitamConfiguration.setEnvironmentName("");

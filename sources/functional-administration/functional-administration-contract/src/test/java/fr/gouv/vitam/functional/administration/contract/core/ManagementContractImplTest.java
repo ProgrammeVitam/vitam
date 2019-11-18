@@ -636,11 +636,11 @@ public class ManagementContractImplTest {
         assertThat(((VitamError) response).getErrors().get(0).getMessage())
                 .isEqualTo("STP_IMPORT_MANAGEMENT_CONTRACT.STRATEGY_VALIDATION_ERROR.KO");
         assertThat(((VitamError) response).getErrors().get(0).getDescription()).isEqualTo(
-                "Storage Strategy (fake-object) does not contains default strategy offer(s) (offer-one,offer-two) for the field Storage.UnitStrategy");
+                "Storage Strategy (fake-object) does not contains one and only one 'referent' offer for the field Storage.UnitStrategy");
         assertThat(((VitamError) response).getErrors().get(1).getMessage())
                 .isEqualTo("STP_IMPORT_MANAGEMENT_CONTRACT.STRATEGY_VALIDATION_ERROR.KO");
         assertThat(((VitamError) response).getErrors().get(1).getDescription()).isEqualTo(
-                "Storage Strategy (fake-object) does not contains default strategy offer(s) (offer-one,offer-two) for the field Storage.ObjectGroupStrategy");
+                "Storage Strategy (fake-invalid-md) does not contains one and only one 'referent' offer for the field Storage.ObjectGroupStrategy");
         assertThat(((VitamError) response).getState()).isEqualTo("KO");
         assertThat(((VitamError) response).getHttpCode()).isEqualTo(Response.Status.BAD_REQUEST.getStatusCode());
 
@@ -1013,11 +1013,11 @@ public class ManagementContractImplTest {
         assertThat(((VitamError) response).getErrors().get(0).getMessage())
                 .isEqualTo("STP_UPDATE_MANAGEMENT_CONTRACT.STRATEGY_VALIDATION_ERROR.KO");
         assertThat(((VitamError) response).getErrors().get(0).getDescription()).isEqualTo(
-                "Storage Strategy (fake-invalid-md) does not contains default strategy offer(s) (offer-two) for the field Storage.UnitStrategy");
+                "Storage Strategy (fake-invalid-md) does not contains one and only one 'referent' offer for the field Storage.UnitStrategy");
         assertThat(((VitamError) response).getErrors().get(1).getMessage())
                 .isEqualTo("STP_UPDATE_MANAGEMENT_CONTRACT.STRATEGY_VALIDATION_ERROR.KO");
         assertThat(((VitamError) response).getErrors().get(1).getDescription()).isEqualTo(
-                "Storage Strategy (fake-invalid-md) does not contains default strategy offer(s) (offer-two) for the field Storage.ObjectGroupStrategy");
+                "Storage Strategy (fake-invalid-md) does not contains one and only one 'referent' offer for the field Storage.ObjectGroupStrategy");
         assertThat(((VitamError) response).getState()).isEqualTo("KO");
         assertThat(((VitamError) response).getHttpCode()).isEqualTo(Response.Status.BAD_REQUEST.getStatusCode());
 
@@ -1115,11 +1115,11 @@ public class ManagementContractImplTest {
         assertThat(((VitamError) response).getErrors().get(0).getMessage())
                 .isEqualTo("STP_UPDATE_MANAGEMENT_CONTRACT.STRATEGY_VALIDATION_ERROR.KO");
         assertThat(((VitamError) response).getErrors().get(0).getDescription()).isEqualTo(
-                "Storage Strategy (fake-invalid-md) does not contains default strategy offer(s) (offer-two) for the field Storage.UnitStrategy");
+                "Storage Strategy (fake-invalid-md) does not contains one and only one 'referent' offer for the field Storage.UnitStrategy");
         assertThat(((VitamError) response).getErrors().get(1).getMessage())
                 .isEqualTo("STP_UPDATE_MANAGEMENT_CONTRACT.STRATEGY_VALIDATION_ERROR.KO");
         assertThat(((VitamError) response).getErrors().get(1).getDescription()).isEqualTo(
-                "Storage Strategy (fake-object) does not contains default strategy offer(s) (offer-one,offer-two) for the field Storage.ObjectGroupStrategy");
+                "Storage Strategy (fake-object) does not contains one and only one 'referent' offer for the field Storage.ObjectGroupStrategy");
         assertThat(((VitamError) response).getState()).isEqualTo("KO");
         assertThat(((VitamError) response).getHttpCode()).isEqualTo(Response.Status.BAD_REQUEST.getStatusCode());
 
@@ -1250,8 +1250,8 @@ public class ManagementContractImplTest {
         when(findResultMock.getCount()).thenReturn(1l);
         when(findResultMock.getRequestResponseOK(any(JsonNode.class), eq(ManagementContract.class),
                 eq(ManagementContractModel.class)))
-                        .thenReturn(new RequestResponseOK<ManagementContractModel>()
-                                .addAllResults(Arrays.asList(getManagementContract("IdentifierMC1"))));
+                .thenReturn(new RequestResponseOK<ManagementContractModel>()
+                        .addAllResults(Arrays.asList(getManagementContract("IdentifierMC1"))));
         when(mongoAccess.findDocuments(any(), eq(FunctionalAdminCollections.MANAGEMENT_CONTRACT)))
                 .thenReturn(findResultMock);
 
@@ -1290,8 +1290,8 @@ public class ManagementContractImplTest {
                 .thenReturn(Arrays.asList(getManagementContract("IdentifierMC1")));
         when(findResultMock.getRequestResponseOK(any(JsonNode.class), eq(ManagementContract.class),
                 eq(ManagementContractModel.class)))
-                        .thenReturn(new RequestResponseOK<ManagementContractModel>()
-                                .addAllResults(Arrays.asList(getManagementContract("IdentifierMC1"))));
+                .thenReturn(new RequestResponseOK<ManagementContractModel>()
+                        .addAllResults(Arrays.asList(getManagementContract("IdentifierMC1"))));
         when(mongoAccess.findDocuments(any(), eq(FunctionalAdminCollections.MANAGEMENT_CONTRACT)))
                 .thenReturn(findResultMock);
 
@@ -1314,8 +1314,8 @@ public class ManagementContractImplTest {
                 .thenReturn(Arrays.asList());
         when(findResultMock.getRequestResponseOK(any(JsonNode.class), eq(ManagementContract.class),
                 eq(ManagementContractModel.class)))
-                        .thenReturn(new RequestResponseOK<ManagementContractModel>()
-                                .addAllResults(Arrays.asList(getManagementContract("IdentifierMC1"))));
+                .thenReturn(new RequestResponseOK<ManagementContractModel>()
+                        .addAllResults(Arrays.asList(getManagementContract("IdentifierMC1"))));
         when(mongoAccess.findDocuments(any(), eq(FunctionalAdminCollections.MANAGEMENT_CONTRACT)))
                 .thenReturn(findResultMock);
 
