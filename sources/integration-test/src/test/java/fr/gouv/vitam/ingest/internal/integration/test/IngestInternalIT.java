@@ -31,6 +31,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.NullNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.collect.Sets;
+import fr.gouv.culture.archivesdefrance.seda.v2.RelatedObjectReferenceType;
 import fr.gouv.vitam.access.internal.client.AccessInternalClient;
 import fr.gouv.vitam.access.internal.client.AccessInternalClientFactory;
 import fr.gouv.vitam.access.internal.common.exception.AccessInternalClientNotFoundException;
@@ -2495,7 +2496,7 @@ public class IngestInternalIT extends VitamRuleRunner {
 
     @RunWithCustomExecutor
     @Test
-    public void testIngestWithCustodialHistoryFileContainingDataObjectReferenceId() throws Exception {
+    public void testIngestexpectedTitleOfCustodialItemalHistoryFileContainingDataObjectReferenceId() throws Exception {
         final GUID operationGuid = GUIDFactory.newOperationLogbookGUID(tenantId);
         prepareVitamSession();
         VitamThreadUtils.getVitamSession().setRequestId(operationGuid);
@@ -2540,6 +2541,10 @@ public class IngestInternalIT extends VitamRuleRunner {
         assertNotNull(model);
         String expectedTitleOfCustodialItem = "Ce champ est obligatoire";
         assertThat(model.getCustodialHistoryItem()).isEqualTo(Arrays.asList(expectedTitleOfCustodialItem));
+
+        RelatedObjectReferenceType relatedObjectReferenceType = JsonHandler.getFromJsonNode(result.get(0).get("RelatedObjectReference"), RelatedObjectReferenceType.class);
+        assertNotNull(relatedObjectReferenceType);
+        assertThat(relatedObjectReferenceType.getRequires().get(0).getRepositoryArchiveUnitPID()).isNotEqualTo("ID04");
 
         final String referenceGUID = model.getCustodialHistoryFile().getDataObjectReferenceId();
         // Check reference of custodialHistory
