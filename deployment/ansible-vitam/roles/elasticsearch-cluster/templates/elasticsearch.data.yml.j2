@@ -136,3 +136,9 @@ thread_pool:
 
 # Note : the 0.5 in the previous expression is for there is only 1 CPU (else the thread pool size would be zero) ! ; Note bis : max 10 threads #
 # Note : in ES5 and further : the thread pool "refresh" is of type scaling with a keep-alive of 5m and a max of min(10, (# of available processors)/2)
+
+# related to https://www.elastic.co/guide/en/elasticsearch/reference/6.8/modules-fielddata.html
+indices.fielddata.cache.size: {{ (((elasticsearch_memory_value|int) * (composant.indices_fielddata_cache_size|float)) | round (0, 'floor')) | int }}{{ elasticsearch_memory_unit }}
+
+# related to https://www.elastic.co/guide/en/elasticsearch/reference/6.8/circuit-breaker.html#fielddata-circuit-breaker
+indices.breaker.fielddata.limit: {{ (((elasticsearch_memory_value|int) * (composant.indices_breaker_fielddata_limit|float)) | round (0, 'floor')) | int }}{{ elasticsearch_memory_unit }}
