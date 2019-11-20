@@ -44,8 +44,8 @@ X-Access-Contract-Id: {{access-contract}}
 X-Tenant-Id: {{tenant}}
 Accept: application/octet-stream
 
-### Vérification de la bonne suppression des unitées archivistique supprimé
-POST {{url}}/access-external/v1/units/
+### Vérification de la bonne suppression des unités archivistiques supprimées
+GET {{url}}/access-external/v1/units/
 Accept: application/json
 Content-Type: application/json
 X-Tenant-Id: {{tenant}}

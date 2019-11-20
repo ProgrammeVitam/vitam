@@ -63,7 +63,7 @@ X-Tenant-Id: {{tenant}}
 }
 
 ### Récupération du rapport de transfert
-GET {{url}}/admin-external/v1/rulesreport/{{operation-id}}
+GET {{url}}/admin-external/v1/batchreport/{{operation-id}}
 X-Access-Contract-Id: {{access-contract}}
 X-Tenant-Id: {{tenant}}
 Accept: application/octet-stream
