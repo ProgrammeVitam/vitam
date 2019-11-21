@@ -26,50 +26,20 @@
  */
 package fr.gouv.vitam.access.internal.common.exception;
 
-import fr.gouv.vitam.common.error.VitamCode;
-
-public class AccessInternalRuleExecutionException extends
-		AccessInternalException {
-
-	private static final long serialVersionUID = 3507862590422500648L;
-
-    public AccessInternalRuleExecutionException(String message) {
+public class PreconditionFailedClientException extends AccessInternalClientServerException {
+    public PreconditionFailedClientException(String message) {
         super(message);
     }
 
-    public AccessInternalRuleExecutionException(VitamCode code) {
-        super(code.name());
-    }
-
-    /**
-     * constructor with throwable
-     *
-     * @param cause cause to associate with the exception
-     */
-    public AccessInternalRuleExecutionException(Throwable cause) {
+    public PreconditionFailedClientException(Throwable cause) {
         super(cause);
     }
 
-    /**
-     * constructor with message and throwable
-     *
-     * @param message message to associate with the exception
-     * @param cause cause to associate with the exception
-     */
-    public AccessInternalRuleExecutionException(String message, Throwable cause) {
-        super(message, cause);
+    public PreconditionFailedClientException(String messsage, Throwable cause) {
+        super(messsage, cause);
     }
 
-    /**
-     * constructor with message throwable enableSuppression and writableStackTrace
-     *
-     * @param message associated message
-     * @param cause associated cause
-     * @param enableSuppression allow suppression or not
-     * @param writableStackTrace allow writable stack trace or not
-     */
-    public AccessInternalRuleExecutionException(String message, Throwable cause, boolean enableSuppression,
-        boolean writableStackTrace) {
+    public PreconditionFailedClientException(String message, Throwable cause, boolean enableSuppression, boolean writableStackTrace) {
         super(message, cause, enableSuppression, writableStackTrace);
     }
 }

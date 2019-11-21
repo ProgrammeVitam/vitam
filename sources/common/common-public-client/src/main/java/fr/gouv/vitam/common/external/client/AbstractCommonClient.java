@@ -28,6 +28,7 @@ package fr.gouv.vitam.common.external.client;
 
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.VitamConfiguration;
+import fr.gouv.vitam.common.client.VitamAutoClosableResponse;
 import fr.gouv.vitam.common.client.VitamClientFactoryInterface;
 import fr.gouv.vitam.common.client.configuration.ClientConfiguration;
 import fr.gouv.vitam.common.exception.VitamApplicationServerDisconnectException;
@@ -88,9 +89,7 @@ abstract class AbstractCommonClient implements BasicClient {
         }
         return source instanceof ConnectTimeoutException
             || source instanceof UnknownHostException
-            || source instanceof HttpHostConnectException
             || source instanceof NoHttpResponseException
-            || source instanceof NoRouteToHostException
             || source instanceof SocketException;
     };
 
@@ -177,16 +176,6 @@ abstract class AbstractCommonClient implements BasicClient {
         return retryable.exec(delegate);
     }
 
-    /**
-     * Perform a HTTP request to the server for synchronous call
-     *
-     * @param httpMethod HTTP method to use for request
-     * @param path URL to request
-     * @param headers headers HTTP to add to request, may be null
-     * @param accept asked type of response
-     * @return the response from the server
-     * @throws VitamClientInternalException
-     */
     protected Response performRequest(String httpMethod, String path, MultivaluedMap<String, Object> headers,
         MediaType accept)
         throws VitamClientInternalException {
@@ -198,18 +187,6 @@ abstract class AbstractCommonClient implements BasicClient {
         }
     }
 
-    /**
-     * Perform a HTTP request to the server for synchronous call
-     *
-     * @param httpMethod HTTP method to use for request
-     * @param path URL to request
-     * @param headers headers HTTP to add to request, may be null
-     * @param body body content of type contentType, may be null
-     * @param contentType the media type of the body to send, null if body is null
-     * @param accept asked type of response
-     * @return the response from the server
-     * @throws VitamClientInternalException
-     */
     protected Response performRequest(String httpMethod, String path, MultivaluedMap<String, Object> headers,
         Object body, MediaType contentType, MediaType accept)
         throws VitamClientInternalException {
@@ -225,19 +202,6 @@ abstract class AbstractCommonClient implements BasicClient {
         }
     }
 
-    /**
-     * Perform a HTTP request to the server for synchronous call
-     *
-     * @param httpMethod HTTP method to use for request
-     * @param path URL to request
-     * @param headers headers HTTP to add to request, may be null
-     * @param body body content of type contentType, may be null
-     * @param contentType the media type of the body to send, null if body is null
-     * @param accept asked type of response
-     * @param chunkedMode True use default client, else False use non Chunked mode client
-     * @return the response from the server
-     * @throws VitamClientInternalException
-     */
     protected Response performRequest(String httpMethod, String path, MultivaluedMap<String, Object> headers,
         Object body, MediaType contentType, MediaType accept, boolean chunkedMode)
         throws VitamClientInternalException {
