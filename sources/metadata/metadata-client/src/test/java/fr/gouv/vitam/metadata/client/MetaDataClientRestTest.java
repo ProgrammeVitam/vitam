@@ -540,7 +540,7 @@ public class MetaDataClientRestTest extends ResteasyTestApplication {
             // When
             client.getObjectGroupByIdRaw(null);
             // Then
-        }).isInstanceOf(IllegalArgumentException.class);
+        }).isInstanceOf(VitamClientException.class);
     }
 
 
@@ -588,7 +588,7 @@ public class MetaDataClientRestTest extends ResteasyTestApplication {
             // When
             client.getUnitByIdRaw(null);
             // Then
-        }).isInstanceOf(IllegalArgumentException.class);
+        }).isInstanceOf(VitamClientException.class);
     }
 
     @Test
