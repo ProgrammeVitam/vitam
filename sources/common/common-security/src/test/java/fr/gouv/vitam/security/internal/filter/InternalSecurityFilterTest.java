@@ -22,6 +22,7 @@ import java.security.cert.CertificateEncodingException;
 import java.security.cert.CertificateException;
 import java.security.cert.CertificateFactory;
 import java.security.cert.X509Certificate;
+import java.util.Base64;
 import java.util.Date;
 import java.util.Optional;
 
@@ -70,13 +71,13 @@ import fr.gouv.vitam.functional.administration.client.AdminManagementClient;
 import fr.gouv.vitam.security.internal.client.InternalSecurityClient;
 import fr.gouv.vitam.security.internal.common.model.IdentityModel;
 import fr.gouv.vitam.security.internal.exception.VitamSecurityException;
-import sun.misc.BASE64Encoder;
-import sun.security.provider.X509Factory;
 
 /**
  * Test class for internal Security
  */
 public class InternalSecurityFilterTest {
+    public static final String BEGIN_CERT = "-----BEGIN CERTIFICATE-----";
+    public static final String END_CERT = "-----END CERTIFICATE-----";
 
     public static final String FAKE_CONTEXT_ID = "FAKE_CONTEXT_ID";
     private X509Certificate cert;
@@ -142,14 +143,12 @@ public class InternalSecurityFilterTest {
     }
 
     private void x509CertificateToPem() throws CertificateEncodingException {
-        BASE64Encoder encoder = new BASE64Encoder();
-
         StringWriter sw = new StringWriter();
-        sw.write(X509Factory.BEGIN_CERT);
+        sw.write(BEGIN_CERT);
         sw.write("\n");
-        sw.write(encoder.encode(cert.getEncoded()));
+        sw.write(Base64.getEncoder().encodeToString(cert.getEncoded()));
         sw.write("\n");
-        sw.write(X509Factory.END_CERT);
+        sw.write(END_CERT);
 
         pem = sw.toString();
     }

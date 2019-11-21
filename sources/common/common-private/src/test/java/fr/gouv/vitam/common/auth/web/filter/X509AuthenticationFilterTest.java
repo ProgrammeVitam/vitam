@@ -50,8 +50,6 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mockito;
-import sun.misc.BASE64Encoder;
-import sun.security.provider.X509Factory;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -70,6 +68,7 @@ import java.security.cert.CertificateEncodingException;
 import java.security.cert.CertificateException;
 import java.security.cert.CertificateFactory;
 import java.security.cert.X509Certificate;
+import java.util.Base64;
 import java.util.Date;
 
 import static org.mockito.ArgumentMatchers.any;
@@ -77,6 +76,9 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 public class X509AuthenticationFilterTest extends AbstractShiroTest {
+    public static final String BEGIN_CERT = "-----BEGIN CERTIFICATE-----";
+    public static final String END_CERT = "-----END CERTIFICATE-----";
+
     private X509Certificate cert;
     private String pem;
 
@@ -84,14 +86,13 @@ public class X509AuthenticationFilterTest extends AbstractShiroTest {
     HttpServletResponse response = mock(HttpServletResponse.class);
     HttpServletRequest requestNull = mock(HttpServletRequest.class);
 
-    private X509Certificate loadCertificate(CertificateFactory cf,File f) throws CertificateException, IOException {
-        FileInputStream in=new FileInputStream(f);
+    private X509Certificate loadCertificate(CertificateFactory cf, File f) throws CertificateException, IOException {
+        FileInputStream in = new FileInputStream(f);
         try {
-            cert =(X509Certificate)cf.generateCertificate(in);
+            cert = (X509Certificate) cf.generateCertificate(in);
             cert.checkValidity();
             return cert;
-        }
-        finally {
+        } finally {
             in.close();
         }
     }
@@ -112,14 +113,12 @@ public class X509AuthenticationFilterTest extends AbstractShiroTest {
     }
 
     private void x509CertificateToPem() throws CertificateEncodingException {
-        BASE64Encoder encoder = new BASE64Encoder();
-
         StringWriter sw = new StringWriter();
-        sw.write(X509Factory.BEGIN_CERT);
+        sw.write(BEGIN_CERT);
         sw.write("\n");
-        sw.write(encoder.encode(cert.getEncoded()));
+        sw.write(Base64.getEncoder().encodeToString(cert.getEncoded()));
         sw.write("\n");
-        sw.write(X509Factory.END_CERT);
+        sw.write(END_CERT);
 
         pem = sw.toString();
     }
@@ -128,15 +127,15 @@ public class X509AuthenticationFilterTest extends AbstractShiroTest {
         throws NoSuchAlgorithmException, IOException, OperatorCreationException, CertificateException {
         KeyPairGenerator generator = KeyPairGenerator.getInstance("RSA");
         generator.initialize(1024, new SecureRandom());
-        KeyPair keyPair=  generator.generateKeyPair();
+        KeyPair keyPair = generator.generateKeyPair();
 
-        String dn= "localhost";
+        String dn = "localhost";
 
         X509v3CertificateBuilder builder = new X509v3CertificateBuilder(
             new X500Name("CN=" + dn),
             BigInteger.valueOf(new SecureRandom().nextLong()),
             new Date(System.currentTimeMillis() - 10000),
-            new Date(System.currentTimeMillis() + 24L*3600*1000),
+            new Date(System.currentTimeMillis() + 24L * 3600 * 1000),
             new X500Name("CN=" + dn),
             SubjectPublicKeyInfo.getInstance(keyPair.getPublic().getEncoded()));
 
@@ -144,13 +143,15 @@ public class X509AuthenticationFilterTest extends AbstractShiroTest {
         builder.addExtension(Extension.keyUsage, true, new KeyUsage(KeyUsage.digitalSignature));
         builder.addExtension(Extension.extendedKeyUsage, true, new ExtendedKeyUsage(KeyPurposeId.id_kp_clientAuth));
 
-        AlgorithmIdentifier signatureAlgorithmId = new DefaultSignatureAlgorithmIdentifierFinder().find("SHA256withRSA");
+        AlgorithmIdentifier signatureAlgorithmId =
+            new DefaultSignatureAlgorithmIdentifierFinder().find("SHA256withRSA");
         AlgorithmIdentifier digestAlgorithmId = new DefaultDigestAlgorithmIdentifierFinder().find(signatureAlgorithmId);
         AsymmetricKeyParameter privateKey = PrivateKeyFactory.createKey(keyPair.getPrivate().getEncoded());
 
 
         X509CertificateHolder
-            holder =  builder.build(new BcRSAContentSignerBuilder(signatureAlgorithmId, digestAlgorithmId).build(privateKey));
+            holder =
+            builder.build(new BcRSAContentSignerBuilder(signatureAlgorithmId, digestAlgorithmId).build(privateKey));
         Certificate certificate = holder.toASN1Structure();
 
         InputStream is = new ByteArrayInputStream(certificate.getEncoded());

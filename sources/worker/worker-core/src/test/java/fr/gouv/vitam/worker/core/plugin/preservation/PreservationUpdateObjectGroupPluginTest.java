@@ -112,7 +112,7 @@ public class PreservationUpdateObjectGroupPluginTest {
     @Test
     public void should_update_objectGroup_with_new_binary_to_same_source() throws Exception {
         // Given
-        InputStream objectGroupStream = Object.class.getResourceAsStream("/preservation/objectGroupDslResponse.json");
+        InputStream objectGroupStream = getClass().getResourceAsStream("/preservation/objectGroupDslResponse.json");
 
         RequestResponse<JsonNode> responseOK = new RequestResponseOK<JsonNode>()
             .addResult(JsonHandler.getFromInputStream(objectGroupStream))
@@ -139,7 +139,7 @@ public class PreservationUpdateObjectGroupPluginTest {
         testHandlerIO.addOutputResult(0, batchResults);
         testHandlerIO.setInputs(batchResults);
 
-        InputStream objectGroupStream = Object.class.getResourceAsStream("/preservation/objectGroupDslResponse.json");
+        InputStream objectGroupStream = getClass().getResourceAsStream("/preservation/objectGroupDslResponse.json");
 
         RequestResponse<JsonNode> responseOK = new RequestResponseOK<JsonNode>()
             .addResult(JsonHandler.getFromInputStream(objectGroupStream))
@@ -175,7 +175,7 @@ public class PreservationUpdateObjectGroupPluginTest {
         // Given
         ArgumentCaptor<JsonNode> finalQueryCaptor = ArgumentCaptor.forClass(JsonNode.class);
         ArgumentCaptor<String> gotIdCaptor = ArgumentCaptor.forClass(String.class);
-        InputStream objectGroupStream = Object.class.getResourceAsStream("/preservation/objectGroupDslResponse.json");
+        InputStream objectGroupStream = getClass().getResourceAsStream("/preservation/objectGroupDslResponse.json");
 
         RequestResponse<JsonNode> responseOK = new RequestResponseOK<JsonNode>()
             .addResult(JsonHandler.getFromInputStream(objectGroupStream))
@@ -203,7 +203,7 @@ public class PreservationUpdateObjectGroupPluginTest {
         testHandlerIO.addOutputResult(0, batchResults);
         testHandlerIO.setInputs(batchResults);
 
-        InputStream objectGroupStream = Object.class.getResourceAsStream("/preservation/objectGroupDslResponse.json");
+        InputStream objectGroupStream = getClass().getResourceAsStream("/preservation/objectGroupDslResponse.json");
 
         RequestResponse<JsonNode> responseOK = new RequestResponseOK<JsonNode>()
             .addResult(JsonHandler.getFromInputStream(objectGroupStream))
@@ -238,7 +238,7 @@ public class PreservationUpdateObjectGroupPluginTest {
         testHandlerIO.addOutputResult(0, batchResults);
         testHandlerIO.setInputs(batchResults);
 
-        InputStream objectGroupStream = Object.class.getResourceAsStream("/preservation/objectGroupDslResponse.json");
+        InputStream objectGroupStream = getClass().getResourceAsStream("/preservation/objectGroupDslResponse.json");
 
         RequestResponse<JsonNode> responseOK = new RequestResponseOK<JsonNode>()
             .addResult(JsonHandler.getFromInputStream(objectGroupStream))
@@ -291,7 +291,7 @@ public class PreservationUpdateObjectGroupPluginTest {
         testHandlerIO.addOutputResult(0, batchResults);
         testHandlerIO.setInputs(batchResults);
 
-        InputStream objectGroupStream = Object.class.getResourceAsStream("/preservation/objectGroupDslResponse.json");
+        InputStream objectGroupStream = getClass().getResourceAsStream("/preservation/objectGroupDslResponse.json");
 
         RequestResponse<JsonNode> responseOK = new RequestResponseOK<JsonNode>()
             .addResult(JsonHandler.getFromInputStream(objectGroupStream))
@@ -335,7 +335,7 @@ public class PreservationUpdateObjectGroupPluginTest {
         testHandlerIO.addOutputResult(0, batchResults);
         testHandlerIO.setInputs(batchResults);
 
-        InputStream objectGroupStream = Object.class.getResourceAsStream("/preservation/objectGroupDslResponse.json");
+        InputStream objectGroupStream = getClass().getResourceAsStream("/preservation/objectGroupDslResponse.json");
 
         RequestResponse<JsonNode> responseOK = new RequestResponseOK<JsonNode>()
             .addResult(JsonHandler.getFromInputStream(objectGroupStream))
@@ -367,7 +367,7 @@ public class PreservationUpdateObjectGroupPluginTest {
         testHandlerIO.addOutputResult(0, batchResults);
         testHandlerIO.setInputs(batchResults);
 
-        InputStream objectGroupStream = Object.class.getResourceAsStream("/preservation/objectGroupDslResponse.json");
+        InputStream objectGroupStream = getClass().getResourceAsStream("/preservation/objectGroupDslResponse.json");
 
         RequestResponse<JsonNode> responseOK = new RequestResponseOK<JsonNode>()
             .addResult(JsonHandler.getFromInputStream(objectGroupStream))
@@ -397,7 +397,7 @@ public class PreservationUpdateObjectGroupPluginTest {
         testHandlerIO.addOutputResult(0, batchResults);
         testHandlerIO.setInputs(batchResults);
 
-        InputStream objectGroupStream = Object.class.getResourceAsStream("/preservation/objectGroupDslResponse.json");
+        InputStream objectGroupStream = getClass().getResourceAsStream("/preservation/objectGroupDslResponse.json");
 
         RequestResponse<JsonNode> responseOK = new RequestResponseOK<JsonNode>()
             .addResult(JsonHandler.getFromInputStream(objectGroupStream))
@@ -428,7 +428,7 @@ public class PreservationUpdateObjectGroupPluginTest {
         testHandlerIO.addOutputResult(0, batchResults);
         testHandlerIO.setInputs(batchResults);
 
-        InputStream objectGroupStream = Object.class.getResourceAsStream("/preservation/objectGroupDslResponse.json");
+        InputStream objectGroupStream = getClass().getResourceAsStream("/preservation/objectGroupDslResponse.json");
 
         RequestResponse<JsonNode> responseOK = new RequestResponseOK<JsonNode>()
             .addResult(JsonHandler.getFromInputStream(objectGroupStream))
@@ -463,7 +463,7 @@ public class PreservationUpdateObjectGroupPluginTest {
         testHandlerIO.addOutputResult(0, batchResults);
         testHandlerIO.setInputs(batchResults);
 
-        InputStream objectGroupStream = Object.class.getResourceAsStream("/preservation/objectGroupDslResponse.json");
+        InputStream objectGroupStream = getClass().getResourceAsStream("/preservation/objectGroupDslResponse.json");
 
         RequestResponse<JsonNode> responseOK = new RequestResponseOK<JsonNode>()
             .addResult(JsonHandler.getFromInputStream(objectGroupStream))
@@ -488,7 +488,7 @@ public class PreservationUpdateObjectGroupPluginTest {
         testHandlerIO.setInputs(batchResults);
 
         InputStream objectGroupStream =
-            Object.class.getResourceAsStream(
+            getClass().getResourceAsStream(
                 "/preservation/objectGroupDslResponseWithoutBinaryMaster.json"); // <-- here no BinaryMaster
 
         RequestResponse<JsonNode> responseOK = new RequestResponseOK<JsonNode>()
@@ -514,7 +514,7 @@ public class PreservationUpdateObjectGroupPluginTest {
         testHandlerIO.addOutputResult(0, batchResults);
         testHandlerIO.setInputs(batchResults);
 
-        InputStream objectGroupStream = Object.class.getResourceAsStream("/preservation/objectGroupDslResponse.json");
+        InputStream objectGroupStream = getClass().getResourceAsStream("/preservation/objectGroupDslResponse.json");
 
         RequestResponse<JsonNode> responseOK = new RequestResponseOK<JsonNode>()
             .addResult(JsonHandler.getFromInputStream(objectGroupStream))
@@ -539,7 +539,7 @@ public class PreservationUpdateObjectGroupPluginTest {
         testHandlerIO.addOutputResult(0, batchResults);
         testHandlerIO.setInputs(batchResults);
 
-        InputStream objectGroupStream = Object.class.getResourceAsStream("/preservation/objectGroupDslResponse.json");
+        InputStream objectGroupStream = getClass().getResourceAsStream("/preservation/objectGroupDslResponse.json");
 
         RequestResponse<JsonNode> responseOK = new RequestResponseOK<JsonNode>()
             .addResult(JsonHandler.getFromInputStream(objectGroupStream))
@@ -564,7 +564,7 @@ public class PreservationUpdateObjectGroupPluginTest {
         testHandlerIO.addOutputResult(0, batchResults);
         testHandlerIO.setInputs(batchResults);
 
-        InputStream objectGroupStream = Object.class.getResourceAsStream("/preservation/objectGroupDslResponse.json");
+        InputStream objectGroupStream = getClass().getResourceAsStream("/preservation/objectGroupDslResponse.json");
 
         RequestResponse<JsonNode> responseOK = new RequestResponseOK<JsonNode>()
             .addResult(JsonHandler.getFromInputStream(objectGroupStream))
@@ -589,7 +589,7 @@ public class PreservationUpdateObjectGroupPluginTest {
         testHandlerIO.addOutputResult(0, batchResults);
         testHandlerIO.setInputs(batchResults);
 
-        InputStream objectGroupStream = Object.class.getResourceAsStream("/preservation/objectGroupDslResponse.json");
+        InputStream objectGroupStream = getClass().getResourceAsStream("/preservation/objectGroupDslResponse.json");
 
         RequestResponse<JsonNode> responseOK = new RequestResponseOK<JsonNode>()
             .addResult(JsonHandler.getFromInputStream(objectGroupStream))
@@ -613,7 +613,7 @@ public class PreservationUpdateObjectGroupPluginTest {
         testHandlerIO.addOutputResult(0, batchResults);
         testHandlerIO.setInputs(batchResults);
 
-        InputStream objectGroupStream = Object.class.getResourceAsStream("/preservation/objectGroupDslResponse.json");
+        InputStream objectGroupStream = getClass().getResourceAsStream("/preservation/objectGroupDslResponse.json");
 
         RequestResponse<JsonNode> responseOK = new RequestResponseOK<JsonNode>()
             .addResult(JsonHandler.getFromInputStream(objectGroupStream))
@@ -640,7 +640,7 @@ public class PreservationUpdateObjectGroupPluginTest {
         testHandlerIO.addOutputResult(0, batchResults);
         testHandlerIO.setInputs(batchResults);
 
-        InputStream objectGroupStream = Object.class.getResourceAsStream("/preservation/objectGroupDslResponse.json");
+        InputStream objectGroupStream = getClass().getResourceAsStream("/preservation/objectGroupDslResponse.json");
 
         RequestResponse<JsonNode> responseOK = new RequestResponseOK<JsonNode>()
             .addResult(JsonHandler.getFromInputStream(objectGroupStream))
@@ -652,7 +652,7 @@ public class PreservationUpdateObjectGroupPluginTest {
         // When
         List<ItemStatus> itemStatuses = plugin.executeList(parameter, testHandlerIO);
         // Then
-        InputStream differences = Object.class.getResourceAsStream("/preservation/Differences.json");
+        InputStream differences = getClass().getResourceAsStream("/preservation/Differences.json");
         JsonNode fromInputStream = JsonHandler.getFromInputStream(differences);
         String differencesEventDetailData = JsonHandler.unprettyPrint(fromInputStream);
         assertThat(itemStatuses.get(0).getData("eventDetailData")).isEqualTo(differencesEventDetailData);
@@ -792,7 +792,7 @@ public class PreservationUpdateObjectGroupPluginTest {
         output.setInputPreservation(new InputPreservation("aeaaaaaaaahiu6xhaaksgalhnbwn3siaaaaq", "fmt/43"));
         output.setFormatIdentification(new DbFormatIdentificationModel("fakeFormat", "text/winner", "x-fmt/42"));
         ExtractedMetadata extractedMetadata = new ExtractedMetadata();
-        InputStream rawInputStream = Object.class.getResourceAsStream("/preservation/rawMetadata_big_result.json");
+        InputStream rawInputStream = getClass().getResourceAsStream("/preservation/rawMetadata_big_result.json");
         JsonNode rawMetadata = JsonHandler.getFromInputStream(rawInputStream);
         extractedMetadata.setRawMetadata(rawMetadata.get("rawMetadata_big_content").asText());
         output.setExtractedMetadata(extractedMetadata);

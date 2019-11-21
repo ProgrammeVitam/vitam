@@ -177,38 +177,38 @@ public class ElasticsearchAccessFunctionalAdmin extends ElasticsearchAccess {
     private String getMapping(FunctionalAdminCollections collection) throws IOException {
         switch (collection) {
             case ACCESSION_REGISTER_SUMMARY:
-                return transferJsonToMapping(Object.class.getResourceAsStream(MAPPING_ACCESSION_REGISTER_SUMMARY_FILE));
+                return transferJsonToMapping(getClass().getResourceAsStream(MAPPING_ACCESSION_REGISTER_SUMMARY_FILE));
             case ACCESSION_REGISTER_DETAIL:
-                return transferJsonToMapping(Object.class.getResourceAsStream(MAPPING_ACCESSION_REGISTER_DETAIL_FILE));
+                return transferJsonToMapping(getClass().getResourceAsStream(MAPPING_ACCESSION_REGISTER_DETAIL_FILE));
             case ARCHIVE_UNIT_PROFILE:
-                return transferJsonToMapping(Object.class.getResourceAsStream(MAPPING_ARCHIVE_UNIT_PROFILE_FILE));
+                return transferJsonToMapping(getClass().getResourceAsStream(MAPPING_ARCHIVE_UNIT_PROFILE_FILE));
             case ONTOLOGY:
-                return transferJsonToMapping(Object.class.getResourceAsStream(MAPPING_ONTOLOGY_FILE));
+                return transferJsonToMapping(getClass().getResourceAsStream(MAPPING_ONTOLOGY_FILE));
             case ACCESSION_REGISTER_SYMBOLIC:
                 return transferJsonToMapping(
-                    Object.class.getResourceAsStream(MAPPING_ACCESSION_REGISTER_SYMBOLICS_FILE));
+                    getClass().getResourceAsStream(MAPPING_ACCESSION_REGISTER_SYMBOLICS_FILE));
             case FORMATS:
-                return transferJsonToMapping(Object.class.getResourceAsStream(MAPPING_FORMAT_FILE));
+                return transferJsonToMapping(getClass().getResourceAsStream(MAPPING_FORMAT_FILE));
             case RULES:
-                return transferJsonToMapping(Object.class.getResourceAsStream(MAPPING_RULE_FILE));
+                return transferJsonToMapping(getClass().getResourceAsStream(MAPPING_RULE_FILE));
             case INGEST_CONTRACT:
-                return transferJsonToMapping(Object.class.getResourceAsStream(MAPPING_INGESTCONTRACT_FILE));
+                return transferJsonToMapping(getClass().getResourceAsStream(MAPPING_INGESTCONTRACT_FILE));
             case MANAGEMENT_CONTRACT:
-                return transferJsonToMapping(Object.class.getResourceAsStream(MAPPING_MANAGEMENTCONTRACT_FILE));
+                return transferJsonToMapping(getClass().getResourceAsStream(MAPPING_MANAGEMENTCONTRACT_FILE));
             case ACCESS_CONTRACT:
-                return transferJsonToMapping(Object.class.getResourceAsStream(MAPPING_ACCESSCONTRACT_FILE));
+                return transferJsonToMapping(getClass().getResourceAsStream(MAPPING_ACCESSCONTRACT_FILE));
             case PROFILE:
-                return transferJsonToMapping(Object.class.getResourceAsStream(MAPPING_PROFILE_FILE));
+                return transferJsonToMapping(getClass().getResourceAsStream(MAPPING_PROFILE_FILE));
             case CONTEXT:
-                return transferJsonToMapping(Object.class.getResourceAsStream(MAPPING_CONTEXT_FILE));
+                return transferJsonToMapping(getClass().getResourceAsStream(MAPPING_CONTEXT_FILE));
             case AGENCIES:
-                return transferJsonToMapping(Object.class.getResourceAsStream(MAPPING_AGENCIES_FILE));
+                return transferJsonToMapping(getClass().getResourceAsStream(MAPPING_AGENCIES_FILE));
             case SECURITY_PROFILE:
-                return transferJsonToMapping(Object.class.getResourceAsStream(MAPPING_SECURITY_PROFILE_FILE));
+                return transferJsonToMapping(getClass().getResourceAsStream(MAPPING_SECURITY_PROFILE_FILE));
             case GRIFFIN:
-                return transferJsonToMapping(Object.class.getResourceAsStream(MAPPING_GRIFFIN_FILE));
+                return transferJsonToMapping(getClass().getResourceAsStream(MAPPING_GRIFFIN_FILE));
             case PRESERVATION_SCENARIO:
-                return transferJsonToMapping(Object.class.getResourceAsStream(MAPPING_PRESERVATION_SCENARIO_FILE));
+                return transferJsonToMapping(getClass().getResourceAsStream(MAPPING_PRESERVATION_SCENARIO_FILE));
             case VITAM_SEQUENCE:
             default:
                 LOGGER.warn(String.format("Trying to get mapping for collection '%s', but no mapping are configured.",
