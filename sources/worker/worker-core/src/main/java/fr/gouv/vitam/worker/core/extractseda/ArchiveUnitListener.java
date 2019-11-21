@@ -579,6 +579,29 @@ public class ArchiveUnitListener extends Unmarshaller.Listener {
                     }
                 }
             }
+
+            String repositoryArchiveUnitPID = relatedObjectReferenceItem.getRepositoryArchiveUnitPID();
+            if (repositoryArchiveUnitPID != null) {
+                if (dataObjectIdToGuid.containsKey(repositoryArchiveUnitPID)) {
+                    relatedObjectReferenceItem.setRepositoryArchiveUnitPID(objectGroupIdToGuid.get(repositoryArchiveUnitPID));
+                } else {
+                    isThereManifestRelatedReferenceRemained.put(archiveUnitId, true);
+                }
+            }
+
+            String getRepositoryObjectPID = relatedObjectReferenceItem.getRepositoryObjectPID();
+            if (getRepositoryObjectPID != null) {
+                if (dataObjectIdToGuid.containsKey(getRepositoryObjectPID)) {
+                    relatedObjectReferenceItem.setRepositoryObjectPID(objectGroupIdToGuid.get(getRepositoryObjectPID));
+                } else {
+                    isThereManifestRelatedReferenceRemained.put(archiveUnitId, true);
+                }
+            }
+
+            String externalReference = relatedObjectReferenceItem.getExternalReference();
+            if (externalReference != null) {
+                    relatedObjectReferenceItem.setExternalReference(externalReference);
+            }
         }
     }
 

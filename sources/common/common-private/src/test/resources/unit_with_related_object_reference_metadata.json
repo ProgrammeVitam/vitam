@@ -1,0 +1,67 @@
+{
+  "DescriptionLevel": "RecordGrp",
+  "Title": "4_ Porte de Clignancourt",
+  "Titles": {
+    "fr": "4_ Porte de Clignancourt"
+  },
+  "Description": "description",
+  "Descriptions": {
+    "fr": "description"
+  },
+  "StartDate": "2017-04-05T08:11:56",
+  "EndDate": "2017-04-05T08:11:56",
+  "OriginatingAgency": {
+    "Identifier": "RATP",
+    "OrganizationDescriptiveMetadata": {
+      "ZZZZ": [
+        "description libre ZZZZ"
+      ],
+      "XXXX": [
+        {
+          "YYYY": [
+            "description libre YYYY"
+          ]
+        }
+      ],
+      "DescriptionOA": [
+        "La RATP est un etablissement public"
+      ]
+    }
+  },
+  "RelatedObjectReference" : {
+    "IsVersionOf" : [],
+    "Replaces" : [],
+    "Requires" : [
+      {
+        "RepositoryArchiveUnitPID" : "aeaqaaaaaab2szrxabosoaloqmivdliaaaaq"
+      }
+    ],
+    "IsPartOf" : [],
+    "References" : []
+  },
+  "_unitType": "INGEST",
+  "_uds": {},
+  "#id": "aeaqaaaabagxylz4aavjeak6htn4a7qaaaba",
+  "#nbunits": 1,
+  "#tenant": 8,
+  "#unitups": [],
+  "#min": 1,
+  "#max": 1,
+  "#allunitups": [],
+  "#operations": [
+    "aedqaaaabcgggzc5abpjyak6htn4etiaaaaq"
+  ],
+  "#originating_agency": "RATP",
+  "#originating_agencies": [
+    "RATP"
+  ],
+  "#storage": {
+    "_nbc": 2,
+    "strategyId": "default",
+    "offerIds": [
+      "vitam-iaas-app-02.int",
+      "vitam-iaas-app-03.int"
+    ]
+  },
+  "#version": 1
+}
