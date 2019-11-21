@@ -1,0 +1,72 @@
+{
+  "httpCode": 0,
+  "$hits": {
+    "total": 1,
+    "offset": 0,
+    "limit": 10000,
+    "size": 1
+  },
+  "$results": [
+    {
+      "ObjectSize": {
+        "ingested": 18,
+        "deleted": 0,
+        "remained": 18
+      },
+      "AcquisitionInformation": "Versement",
+      "LegalStatus": "Public Archive",
+      "#id": "aehaaaaaaaarapxdaampoalor3ujhwaaaaaq",
+      "#tenant": 0,
+      "#version": 0,
+      "OriginatingAgency": "RATP",
+      "SubmissionAgency": "RATP",
+      "ArchivalAgreement": "ArchivalAgreement0",
+      "EndDate": "2019-11-21T17:00:37.208",
+      "StartDate": "2019-11-21T17:00:37.208",
+      "LastUpdate": "2019-11-21T17:00:37.208",
+      "Status": "STORED_AND_COMPLETED",
+      "TotalObjectGroups": {
+        "ingested": 3,
+        "deleted": 0,
+        "remained": 3
+      },
+      "TotalUnits": {
+        "ingested": 6,
+        "deleted": 0,
+        "remained": 6
+      },
+      "TotalObjects": {
+        "ingested": 4,
+        "deleted": 0,
+        "remained": 4
+      },
+      "Opc": "aecaaaaaacarapxdaampoalor3uhesaaaaaq",
+      "Opi": "aecaaaaaacarapxdaampoalor3uhesaaaaaq",
+      "OpType": "INGEST",
+      "Events": [
+        {
+          "Opc": "aecaaaaaacarapxdaampoalor3uhesaaaaaq",
+          "OpType": "INGEST",
+          "Gots": 3,
+          "Units": 6,
+          "Objects": 4,
+          "ObjSize": 18,
+          "CreationDate": "2019-11-21T18:00:37.209"
+        }
+      ],
+      "OperationIds": [
+        "aecaaaaaacarapxdaampoalor3uhesaaaaaq"
+      ]
+    }
+  ],
+  "$facetResults": [],
+  "$context": {
+    "$query": {
+      "$eq": {
+        "Opc": "aecaaaaaacarapxdaampoalor3uhesaaaaaq"
+      }
+    },
+    "$filter": {},
+    "$projection": {}
+  }
+}
