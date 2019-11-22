@@ -27,6 +27,8 @@ elasticsearch:
         consul_check_tcp: 10 # in seconds
         action_log_level: error
         https_enabled: false
+        indices_fielddata_cache_size: 0.3 # related to https://www.elastic.co/guide/en/elasticsearch/reference/6.5/modules-fielddata.html
+        indices_breaker_fielddata_limit: 0.4 # related to https://www.elastic.co/guide/en/elasticsearch/reference/6.5/circuit-breaker.html#fielddata-circuit-breaker
         # default index template
         index_templates:
             default:
@@ -63,6 +65,8 @@ elasticsearch:
         consul_check_tcp: 10 # in seconds
         action_log_level: debug
         https_enabled: false
+        indices_fielddata_cache_size: 0.3 # related to https://www.elastic.co/guide/en/elasticsearch/reference/6.5/modules-fielddata.html
+        indices_breaker_fielddata_limit: 0.4 # related to https://www.elastic.co/guide/en/elasticsearch/reference/6.5/circuit-breaker.html#fielddata-circuit-breaker
         # default index template
         index_templates:
             default:
