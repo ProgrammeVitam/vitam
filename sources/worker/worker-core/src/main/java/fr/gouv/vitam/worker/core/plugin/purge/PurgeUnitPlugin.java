@@ -178,8 +178,8 @@ public class PurgeUnitPlugin extends ActionHandler {
                 purgeUnitStatus = PurgeUnitStatus.DELETED;
                 itemStatuses.add(buildItemStatus(actionId, StatusCode.OK, null));
             } else {
-                String msg = "Unit " + unitId + " cannot be deleted because it has child units attached to it.";
-                LOGGER.info(msg);
+                String msg = "Unit cannot be deleted because it has child units attached to it.";
+                LOGGER.info(unitId + " " + msg);
                 purgeUnitStatus = PurgeUnitStatus.NON_DESTROYABLE_HAS_CHILD_UNITS;
                 itemStatuses.add(buildItemStatus(actionId, WARNING, PluginHelper.EventDetails.of(msg)));
                 if(TRANSFER_REPLY_DELETE_UNIT.equals(actionId)) {
