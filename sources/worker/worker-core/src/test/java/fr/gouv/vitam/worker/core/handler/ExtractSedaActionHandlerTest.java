@@ -35,6 +35,7 @@ import fr.gouv.vitam.common.database.builder.query.VitamFieldsHelper;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.model.ItemStatus;
+import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.model.administration.IngestContractModel;
@@ -84,20 +85,18 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 
+import static fr.gouv.vitam.common.json.JsonHandler.getFromInputStream;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.ArgumentMatchers.booleanThat;
-import static org.mockito.ArgumentMatchers.contains;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.atLeastOnce;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.reset;
-import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -121,7 +120,10 @@ public class ExtractSedaActionHandlerTest {
         "checkMasterMandatoryInOGAndAttachmentInOG/DataObjectGroupAttachmentToExistingWithTunbnail.xml";
     private static final String MANIFEST_WITH_ATTACHMENT_AND_USAGES_WITH_MASTER =
         "checkMasterMandatoryInOGAndAttachmentInOG/DataObjectGroupAttachmentToExistingWithTunbnailAndOtherMaster.xml";
+    private static final String MANIFEST_WITH_ATTACHMENT_TO_EXISTANT_WITH_DIFFERENT_SP =
+        "checkMasterMandatoryInOGAndAttachmentInOG/DataObjectGroupAttachmentToExistingWithDifferentOriginatingAgency.xml";
     private static final String UNIT_ATTACHED_DB_RESPONSE = "extractSedaActionHandler/addLink/_Unit_CHILD.json";
+    private static final String UNIT_ATTACHED_SP_DB_RESPONSE = "extractSedaActionHandler/addLink/Unit_Link.json";
     private ExtractSedaActionHandler handler;
 
     private static final String HANDLER_ID = "CHECK_MANIFEST";
@@ -971,6 +973,14 @@ public class ExtractSedaActionHandlerTest {
         JsonNode objectGroupLinkedToExistingOne = JsonHandler
             .getFromFile(PropertiesUtils.getResourceFile(UNIT_ATTACHED_DB_RESPONSE));
         // When
+        JsonNode objectGroupStream = JsonHandler
+            .getFromFile(PropertiesUtils.getResourceFile("checkMasterMandatoryInOGAndAttachmentInOG/og.json"));
+
+        RequestResponse<JsonNode> responseOK = new RequestResponseOK<JsonNode>()
+            .addResult(objectGroupStream)
+            .setHttpCode(Response.Status.OK.getStatusCode());
+        when(metadataClient.selectObjectGroups(any())).thenReturn(
+            getFromInputStream(getClass().getResourceAsStream("/checkMasterMandatoryInOGAndAttachmentInOG/og.json")));
         when(metadataClient.selectUnits(any()))
             .thenReturn(objectGroupLinkedToExistingOne);
         when(workspaceClient.getObject(any(), eq("SIP/manifest.xml")))
@@ -979,6 +989,35 @@ public class ExtractSedaActionHandlerTest {
         // Then
         final ItemStatus response = handler.execute(params, handlerIO);
         assertEquals(StatusCode.OK, response.getGlobalStatus());
+    }
+
+    @Test
+    @RunWithCustomExecutor
+    public void should_check_originating_agency_when_attachement_to_existant_with_different_sp_then_ko()
+        throws Exception {
+        // Given
+        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
+        assertNotNull(ExtractSedaActionHandler.getId());
+        final InputStream sedaLocal =
+            PropertiesUtils.getResourceAsStream(MANIFEST_WITH_ATTACHMENT_TO_EXISTANT_WITH_DIFFERENT_SP);
+        prepareResponseOKForAdminManagementClientFindIngestContracts(INGEST_CONTRACT_MASTER_MANDATORY_TRUE);
+        JsonNode objectGroupLinkedToExistingOne = JsonHandler
+            .getFromFile(PropertiesUtils.getResourceFile(UNIT_ATTACHED_SP_DB_RESPONSE));
+        // When
+        when(metadataClient.selectObjectGroups(any())).thenReturn(
+            getFromInputStream(getClass().getResourceAsStream("/checkMasterMandatoryInOGAndAttachmentInOG/og_results.json")));
+        when(metadataClient.selectUnits(any()))
+            .thenReturn(objectGroupLinkedToExistingOne);
+        when(workspaceClient.getObject(any(), eq("SIP/manifest.xml")))
+            .thenReturn(Response.status(Status.OK).entity(sedaLocal).build());
+        handlerIO.addOutIOParameters(out);
+        // Then
+        final ItemStatus response = handler.execute(params, handlerIO);
+        assertEquals(StatusCode.KO, response.getGlobalStatus());
+        JsonNode evDetData = JsonHandler.getFromString((String) response.getData("eventDetailData"));
+        assertEquals(
+            "Not allowed object attachement of originating agency (SomeOriginatingAgency) to other originating agency",
+            evDetData.get("evDetTechData").asText());
     }
 
     @Test
@@ -1038,6 +1077,8 @@ public class ExtractSedaActionHandlerTest {
             PropertiesUtils.getResourceAsStream(MANIFEST_WITH_BINARYMASTER);
         prepareResponseOKForAdminManagementClientFindIngestContracts(
             INGEST_CONTRACT_EVERYDATAOBJECTVERSION_TRUE);
+        when(metadataClient.selectObjectGroups(any())).thenReturn(
+            getFromInputStream(getClass().getResourceAsStream("/checkMasterMandatoryInOGAndAttachmentInOG/og.json")));
         JsonNode objectGroupLinkedToExistingOne = JsonHandler
             .getFromFile(PropertiesUtils.getResourceFile(UNIT_ATTACHED_DB_RESPONSE));
         // When
