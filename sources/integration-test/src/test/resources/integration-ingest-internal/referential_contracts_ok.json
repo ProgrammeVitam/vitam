@@ -33,6 +33,7 @@
 		"Name":"ContractWithAttachment",
 		"Identifier":"ContractWithAttachment",
 		"Description":"aDescription of the contract 3",
+		"DataObjectVersion": ["Thumbnail"],
 		"Status" : "ACTIVE",
 		"LastUpdate":"10/12/2016",
 		"CreationDate":"10/12/2016",

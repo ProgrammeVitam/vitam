@@ -1,0 +1,23 @@
+{
+  "httpCode": 302,
+  "$hits": {
+    "total": 5,
+    "offset": 0,
+    "limit": 0,
+    "size": 5
+  },
+  "$results": [
+    {
+      "#id": "aeaaaaaaaaaam7mxabw5iakzn47qjaiaaaaq",
+      "#nbobjects": 1,
+      "#originating_agency": "FRAN_NP_005061",
+      "#originating_agencies": [
+        "FRAN_NP_005061"
+      ]
+    }
+  ],
+  "$context": {
+    "$filter": {},
+    "$projection": {}
+  }
+}
