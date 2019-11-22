@@ -98,13 +98,12 @@ public class StorageLogAdministration {
      * @throws LogbookClientAlreadyExistsException if the logbook already exists
      * @throws LogbookClientServerException        if there's a problem connecting to the logbook functionnality
      */
-    public synchronized GUID backupStorageLog(String strategyId, Boolean backupWriteLog)
+    public synchronized void backupStorageLog(String strategyId, Boolean backupWriteLog, GUID eip)
         throws IOException, StorageLogException,
         LogbookClientBadRequestException, LogbookClientAlreadyExistsException, LogbookClientServerException {
         // TODO: use a distributed lock to launch this function only on one server (cf consul)
         final LogbookOperationsClientHelper helper = new LogbookOperationsClientHelper();
         Integer tenantId = ParameterHelper.getTenantParameter();
-        final GUID eip = GUIDFactory.newOperationLogbookGUID(tenantId);
         try {
 
             String evType;
@@ -131,7 +130,6 @@ public class StorageLogAdministration {
             LogbookOperationsClientFactory.getInstance().getClient()
                 .bulkCreate(eip.getId(), helper.removeCreateDelegate(eip.getId()));
         }
-        return eip;
     }
 
     private void storeLogFile(LogbookOperationsClientHelper helper, String strategyId, Integer tenantId, GUID eip,

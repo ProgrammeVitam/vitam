@@ -772,7 +772,7 @@ public class StorageResourceTest {
     public void backupStorageLogbook() {
         given().headers(VitamHttpHeader.TENANT_ID.getName(), TENANT_ID)
         .when().post("/storage/backup").then()
-            .statusCode(Status.PRECONDITION_FAILED.getStatusCode());
+            .statusCode(Status.INTERNAL_SERVER_ERROR.getStatusCode());
     }
 
     @Test
