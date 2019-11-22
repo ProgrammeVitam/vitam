@@ -7,7 +7,7 @@
       {
         "tenant": 0,
         "AccessContracts": [],
-        "IngestContracts": ["NON-EXISTING-CONTRACT"]
+        "IngestContracts": []
       },
       {
         "tenant": 1,
