@@ -30,7 +30,7 @@ import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.model.administration.ContextModel;
 import fr.gouv.vitam.functional.administration.common.exception.ReferentialException;
 
-import java.util.Optional;
+import java.util.List;
 
 /**
  * Context Validator class
@@ -40,11 +40,11 @@ public interface ContextValidator {
      * Validate a context object
      *
      * @param context to validate
-     * @return empty optional if OK, Else return the rejection cause
+     * @return empty list if OK, Else return the rejection causes
      * @throws ReferentialException in case referential exception is thrown
      * @throws InvalidParseOperationException in case of bad request
      */
-    Optional<ContextRejectionCause> validate(ContextModel context)
+    List<ContextRejectionCause> validate(ContextModel context)
         throws ReferentialException, InvalidParseOperationException;
 
     /**
@@ -56,8 +56,8 @@ public interface ContextValidator {
             "One or many contexts in the imported list have the same name : %s";
         private static final String ERR_MANDATORY_FIELD = "The field %s is mandatory";
         private static final String ERR_DUPLICATE_CONTEXT = "The context %s already exists in database";
-        private static final String ERR_NO_EXISTANCE_INGEST = "The ingest contract %s does not exist";
-        private static final String ERR_NO_EXISTANCE_ACCESS = "The access contract %s does not exist";
+        private static final String ERR_NO_EXISTANCE_INGEST = "The ingest contract %s of tenant %d does not exist";
+        private static final String ERR_NO_EXISTANCE_ACCESS = "The access contract %s of tenant %d does not exist";
         private static final String ERR_INVALID_SECURITY_PROFILE = "The security profile %s does not exist";
         private static final String ERR_NO_EXISTANCE_TENANT = "The tenant %d does not exist";
 
@@ -118,8 +118,8 @@ public interface ContextValidator {
          * @param contextName the context name
          * @return ContextRejectionCause
          */
-        public static ContextRejectionCause rejectNoExistanceOfIngestContract(String contextName) {
-            return new ContextRejectionCause(String.format(ERR_NO_EXISTANCE_INGEST, contextName));
+        public static ContextRejectionCause rejectNoExistanceOfIngestContract(String contextName, Integer tenant) {
+            return new ContextRejectionCause(String.format(ERR_NO_EXISTANCE_INGEST, contextName, tenant));
         }
 
         /**
@@ -127,8 +127,8 @@ public interface ContextValidator {
          * @param contextName the context name
          * @return ContextRejectionCause
          */
-        public static ContextRejectionCause rejectNoExistanceOfAccessContract(String contextName) {
-            return new ContextRejectionCause(String.format(ERR_NO_EXISTANCE_ACCESS, contextName));
+        public static ContextRejectionCause rejectNoExistanceOfAccessContract(String contextName, Integer tenant) {
+            return new ContextRejectionCause(String.format(ERR_NO_EXISTANCE_ACCESS, contextName, tenant));
         }
 
         /**
