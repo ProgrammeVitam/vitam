@@ -46,6 +46,27 @@ Voici la liste des greffons disponibles au moment de la présente publication :
 
 .. _confantivirus:
 
+
+Rétention liée aux logback
+===========================
+
+La solution logicielle :term:`VITAM` utilise logback pour la rotation des log, ainsi que leur rétention.
+
+Il est possible d'appliquer un paramétrage spécifique pour chaque composant VITAM.
+
+Editer le fichier ``environments/group_vars/all/vitam_vars.yml`` (et ``extra_vars.yml``, dans le cas des extra) et appliquer le paramétrage dans le bloc ``logback_total_size_cap`` de chaque composant sur lequel appliquer la modification de paramétrage.
+Pour chaque **APPENDER**, la valeur associée doit être exprimée en taille et unité (exemple : 14GB ; représente 14 gigabytes).
+
+.. note :: des *appenders* supplémentaires existent pour le composant storage-engine (appender offersync) et offer (offer_tape et offer_tape_backup).
+
+
+Cas des access_log
+-------------------
+
+Il est également possible d'appliquer un paramétrage différent par composant VITAM sur le logback *access*.
+
+Editer le fichier ``environments/group_vars/all/vitam_vars.yml`` (et ``extra_vars.yml``, dans le cas des extra) et appliquer le paramétrage dans les directives ``access_retention_days`` et ``access_total_size_GB`` de chaque composant sur lequel appliquer la modification de paramétrage.
+
 Paramétrage de l'antivirus (ingest-externe)
 ===========================================
 
