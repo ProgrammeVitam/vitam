@@ -52,7 +52,6 @@ import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.parameter.ParameterHelper;
-import fr.gouv.vitam.metadata.api.exception.MetaDataAlreadyExistException;
 import fr.gouv.vitam.metadata.api.exception.MetaDataClientServerException;
 import fr.gouv.vitam.metadata.api.exception.MetaDataException;
 import fr.gouv.vitam.metadata.api.exception.MetaDataExecutionException;
@@ -198,18 +197,6 @@ public class IndexObjectGroupActionPlugin extends ActionHandler {
             JsonNode ogInDB = null;
             if (requestResponse.isOk()) {
                 ogInDB = ((RequestResponseOK<JsonNode>) requestResponse).getFirstResult();
-                //compare the OriginatingAgency to the originating of the ObjectGroup. If differents then KO
-                String originatingAgency = json.get(SedaConstants.PREFIX_ORIGINATING_AGENCY).asText();
-                String ogOriginatingAgency = "";
-                if (ogInDB.get(SedaConstants.PREFIX_ORIGINATING_AGENCY) != null) {
-                    ogOriginatingAgency = ogInDB.get(SedaConstants.PREFIX_ORIGINATING_AGENCY).asText();
-                }
-
-                if (originatingAgency != null && !originatingAgency.equals(ogOriginatingAgency)) {
-                    itemStatus.increment(StatusCode.KO);
-                    itemStatus.setGlobalOutcomeDetailSubcode(AGENCY_CHECK);
-                    return null;
-                }
             }
 
             if (ogInDB != null) {
