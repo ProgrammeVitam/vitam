@@ -54,3 +54,49 @@ GET {{url}}/access-external/v1/dipexport/{{operation-id}}/dip
 Accept: application/octet-stream
 X-Tenant-Id: {{tenant}}
 X-Access-Contract-Id: {{access-contract}}
+
+### Lancement du workflow de création de DIP complet avec paramètres et LogBook sur une unité archivistique avec descendance dont l'identifiant est 'aeaqaaaaaahnh5o2aal76aln3teqq3qaaaba'
+POST {{url}}/access-external/v2/dipexport
+Accept: application/json
+Content-Type: application/json
+X-Tenant-Id: {{tenant}}
+X-Access-Contract-Id: {{access-contract}}
+
+{
+ "dipExportType": "FULL",
+    "dipRequestParameters": {
+        "archivalAgencyIdentifier": "Vitam",
+        "messageRequestIdentifier": "tot",
+        "requesterIdentifier": "tot"
+    },
+   "dataObjectVersionToExport": {
+        "dataObjectVersions": [
+            "BinaryMaster",
+            "Thumbnail",
+            "TextContent"
+        ]
+    },  
+  "exportWithLogBookLFC": true,
+  "dslRequest": {
+        "$query": [
+            {
+                "$or": [
+                    {
+                        "$eq": {
+                            "#id": "aeaqaaaaayhnbfxgaavmgalonijd6raaaaca"
+                        }
+                    },
+                    {
+                        "$in": {
+                            "#allunitups": [
+                                "aeaqaaaaayhnbfxgaavmgalonijd6raaaaca"
+                            ]
+                        }
+                    }
+                ]
+            }
+        ],
+        "$filter": {},
+        "$projection": {}
+    }
+}
