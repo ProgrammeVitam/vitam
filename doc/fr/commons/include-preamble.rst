@@ -107,6 +107,9 @@ Glossaire
    DIN
       Dossier d'INstallation
 
+   DIP 
+      `Dissemination Information Package`
+
    DMV
       Documentation de Montées de Version
 
