@@ -1620,6 +1620,21 @@ public class ExtractSedaActionHandler extends ActionHandler {
             if (archiveUnitRefId != null && (unitIdToGuid.containsKey(archiveUnitRefId))) {
                 relatedObjectReferenceItem.setArchiveUnitRefId(unitIdToGuid.get(archiveUnitRefId));
             }
+
+            String repositoryArchiveUnitPID = relatedObjectReferenceItem.getRepositoryArchiveUnitPID();
+            if (repositoryArchiveUnitPID != null && (unitIdToGuid.containsKey(repositoryArchiveUnitPID)) )  {
+                    relatedObjectReferenceItem.setRepositoryArchiveUnitPID(unitIdToGuid.get(repositoryArchiveUnitPID));
+            }
+
+            String repositoryObjectPID = relatedObjectReferenceItem.getRepositoryObjectPID();
+            if (repositoryObjectPID != null && (unitIdToGuid.containsKey(repositoryObjectPID)) )  {
+                relatedObjectReferenceItem.setRepositoryObjectPID(unitIdToGuid.get(repositoryObjectPID));
+            }
+
+            String externalReference = relatedObjectReferenceItem.getExternalReference();
+            if (externalReference != null)  {
+                relatedObjectReferenceItem.setExternalReference(externalReference);
+            }
         }
     }
 
