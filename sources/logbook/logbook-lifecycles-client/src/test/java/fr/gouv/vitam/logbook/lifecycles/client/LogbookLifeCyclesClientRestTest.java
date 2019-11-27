@@ -34,6 +34,7 @@ import fr.gouv.vitam.common.ServerIdentity;
 import fr.gouv.vitam.common.database.parameter.IndexParameters;
 import fr.gouv.vitam.common.database.parameter.SwitchIndexParameters;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
+import fr.gouv.vitam.common.exception.PreconditionFailedClientException;
 import fr.gouv.vitam.common.exception.VitamApplicationServerException;
 import fr.gouv.vitam.common.guid.GUID;
 import fr.gouv.vitam.common.guid.GUIDFactory;
@@ -80,6 +81,8 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
 
+import static fr.gouv.vitam.common.GlobalDataRest.X_EVENT_STATUS;
+import static fr.gouv.vitam.common.model.LifeCycleStatusCode.LIFE_CYCLE_COMMITTED;
 import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.junit.Assert.assertNotNull;
@@ -961,10 +964,8 @@ public class LogbookLifeCyclesClientRestTest extends ResteasyTestApplication {
         } catch (final LogbookClientException e) {
 
         }
-        assertNotNull(client.unitLifeCyclesByOperationIterator("id", LifeCycleStatusCode.LIFE_CYCLE_COMMITTED,
-            JsonHandler.createObjectNode()));
-        assertNotNull(client.objectGroupLifeCyclesByOperationIterator("id", LifeCycleStatusCode.LIFE_CYCLE_COMMITTED,
-            JsonHandler.createObjectNode()));
+        assertThatThrownBy(() -> client.unitLifeCyclesByOperationIterator("id", LIFE_CYCLE_COMMITTED, JsonHandler.createObjectNode())).isInstanceOf(LogbookClientServerException.class);
+        assertThatThrownBy(() -> client.objectGroupLifeCyclesByOperationIterator("id", LIFE_CYCLE_COMMITTED, JsonHandler.createObjectNode())).isInstanceOf(LogbookClientServerException.class);
     }
 
     @Test
@@ -1061,7 +1062,7 @@ public class LogbookLifeCyclesClientRestTest extends ResteasyTestApplication {
     public void getUnitLifeCycleStatusThenReturnOk()
         throws LogbookClientNotFoundException, LogbookClientServerException {
 
-        when(mock.head()).thenReturn(Response.status(Response.Status.OK).build());
+        when(mock.head()).thenReturn(Response.status(Response.Status.OK).header(X_EVENT_STATUS, LIFE_CYCLE_COMMITTED).build());
 
         GUID unitId = GUIDFactory.newUnitGUID(0);
         client.getUnitLifeCycleStatus(unitId.toString());
@@ -1091,7 +1092,7 @@ public class LogbookLifeCyclesClientRestTest extends ResteasyTestApplication {
     public void getObjectGroupLifeCycleStatusThenReturnOk()
         throws LogbookClientNotFoundException, LogbookClientServerException {
 
-        when(mock.head()).thenReturn(Response.status(Response.Status.OK).build());
+        when(mock.head()).thenReturn(Response.status(Response.Status.OK).header(X_EVENT_STATUS, LIFE_CYCLE_COMMITTED).build());
 
         GUID objectGroupId = GUIDFactory.newObjectGroupGUID(0);
         client.getObjectGroupLifeCycleStatus(objectGroupId.toString());

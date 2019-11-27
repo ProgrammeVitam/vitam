@@ -24,9 +24,15 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  */
-package fr.gouv.vitam.access.internal.common.exception;
+package fr.gouv.vitam.common.exception;
 
-public class ForbiddenClientException extends AccessInternalClientServerException {
+import fr.gouv.vitam.common.error.VitamError;
+
+public class ForbiddenClientException extends VitamException {
+    public ForbiddenClientException(VitamError vitamError) {
+        super(vitamError);
+    }
+
     public ForbiddenClientException(String message) {
         super(message);
     }
@@ -35,11 +41,7 @@ public class ForbiddenClientException extends AccessInternalClientServerExceptio
         super(cause);
     }
 
-    public ForbiddenClientException(String messsage, Throwable cause) {
-        super(messsage, cause);
-    }
-
-    public ForbiddenClientException(String message, Throwable cause, boolean enableSuppression, boolean writableStackTrace) {
-        super(message, cause, enableSuppression, writableStackTrace);
+    public ForbiddenClientException(String message, Throwable cause) {
+        super(message, cause);
     }
 }

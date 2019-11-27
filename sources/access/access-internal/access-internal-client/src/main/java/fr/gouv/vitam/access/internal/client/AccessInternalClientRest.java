@@ -29,9 +29,9 @@ package fr.gouv.vitam.access.internal.client;
 import com.fasterxml.jackson.databind.JsonNode;
 import fr.gouv.vitam.access.internal.common.exception.AccessInternalClientNotFoundException;
 import fr.gouv.vitam.access.internal.common.exception.AccessInternalClientServerException;
-import fr.gouv.vitam.access.internal.common.exception.ExpectationFailedClientException;
-import fr.gouv.vitam.access.internal.common.exception.ForbiddenClientException;
-import fr.gouv.vitam.access.internal.common.exception.PreconditionFailedClientException;
+import fr.gouv.vitam.common.exception.ExpectationFailedClientException;
+import fr.gouv.vitam.common.exception.ForbiddenClientException;
+import fr.gouv.vitam.common.exception.PreconditionFailedClientException;
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.client.DefaultClient;
 import fr.gouv.vitam.common.client.VitamRequestBuilder;
@@ -64,8 +64,8 @@ import static fr.gouv.vitam.common.client.VitamRequestBuilder.post;
 import static fr.gouv.vitam.common.client.VitamRequestBuilder.put;
 import static fr.gouv.vitam.common.thread.VitamThreadUtils.getVitamSession;
 import static fr.gouv.vitam.storage.engine.common.model.DataCategory.STORAGEACCESSLOG;
-import static javax.ws.rs.core.Response.Status.Family.REDIRECTION;
 import static javax.ws.rs.core.Response.Status.Family.SUCCESSFUL;
+import static javax.ws.rs.core.Response.Status.Family.REDIRECTION;
 import static javax.ws.rs.core.Response.Status.PRECONDITION_FAILED;
 
 class AccessInternalClientRest extends DefaultClient implements AccessInternalClient {
@@ -105,8 +105,9 @@ class AccessInternalClientRest extends DefaultClient implements AccessInternalCl
         AccessInternalClientServerException, AccessInternalClientNotFoundException, AccessUnauthorizedException,
         BadRequestException {
         try (Response response = make(get().withCheckRequestId().withPath(UNITS).withBody(selectQuery, BLANK_DSL).withJson())){
-            return RequestResponse.parseFromResponse(check(response));
-        } catch (VitamClientInternalException e) {
+            check(response);
+            return RequestResponse.parseFromResponse(response);
+        } catch (VitamClientInternalException | PreconditionFailedClientException | ExpectationFailedClientException e) {
             throw new AccessInternalClientServerException(e);
         } catch (ForbiddenClientException e) {
             throw new BadRequestException(e);
@@ -121,8 +122,9 @@ class AccessInternalClientRest extends DefaultClient implements AccessInternalCl
         AccessInternalClientServerException, AccessInternalClientNotFoundException, AccessUnauthorizedException {
         ParametersChecker.checkParameter(BLANK_UNIT_ID, idUnit);
         try (Response response = make(get().withCheckRequestId().withPath(UNITS + idUnit).withBody(selectQuery, BLANK_DSL).withJson())) {
-            return RequestResponse.parseFromResponse(check(response));
-        } catch (VitamClientInternalException | NoWritingPermissionException e) {
+            check(response);
+            return RequestResponse.parseFromResponse(response);
+        } catch (VitamClientInternalException | NoWritingPermissionException | PreconditionFailedClientException | ExpectationFailedClientException | ForbiddenClientException e) {
             throw new AccessInternalClientServerException(e);
         } catch (BadRequestException e) {
             throw new InvalidParseOperationException(e);
@@ -138,10 +140,11 @@ class AccessInternalClientRest extends DefaultClient implements AccessInternalCl
         Response response = null;
         try {
             response = make(put().withCheckRequestId().withPath(UNITS + unitId).withBody(updateQuery, BLANK_DSL).withJson());
-            return RequestResponse.parseFromResponse(check(response));
+            check(response);
+            return RequestResponse.parseFromResponse(response);
         } catch (BadRequestException e) {
             return RequestResponse.parseVitamError(response);
-        } catch (VitamClientInternalException e) {
+        } catch (VitamClientInternalException | ForbiddenClientException | ExpectationFailedClientException | PreconditionFailedClientException e) {
             throw new AccessInternalClientServerException(e);
         } finally {
             if (response != null) {
@@ -157,10 +160,11 @@ class AccessInternalClientRest extends DefaultClient implements AccessInternalCl
         Response response = null;
         try  {
             response = make(post().withCheckRequestId().withPath(UNITS).withBody(updateQuery, BLANK_DSL).withJson());
-            return RequestResponse.parseFromResponse(check(response));
+            check(response);
+            return RequestResponse.parseFromResponse(response);
         } catch (BadRequestException e) {
             return RequestResponse.parseVitamError(response);
-        } catch (VitamClientInternalException | AccessInternalClientNotFoundException e) {
+        } catch (VitamClientInternalException | AccessInternalClientNotFoundException | ForbiddenClientException | ExpectationFailedClientException | PreconditionFailedClientException e) {
             throw new AccessInternalClientServerException(e);
         } finally {
             if (response != null) {
@@ -174,10 +178,11 @@ class AccessInternalClientRest extends DefaultClient implements AccessInternalCl
         throws InvalidParseOperationException, AccessInternalClientServerException, NoWritingPermissionException,
         AccessUnauthorizedException {
         try (Response response = make(post().withCheckRequestId().withPath(UNITS_RULES).withBody(massUpdateUnitRuleRequest, BLANK_DSL).withJson())) {
-            return RequestResponse.parseFromResponse(check(response));
+            check(response);
+            return RequestResponse.parseFromResponse(response);
         } catch (BadRequestException e) {
             throw new InvalidParseOperationException(INVALID_PARSE_OPERATION);
-        } catch (VitamClientInternalException | AccessInternalClientNotFoundException e) {
+        } catch (VitamClientInternalException | AccessInternalClientNotFoundException | ForbiddenClientException | ExpectationFailedClientException | PreconditionFailedClientException e) {
             throw new AccessInternalClientServerException(e);
         }
     }
@@ -188,12 +193,13 @@ class AccessInternalClientRest extends DefaultClient implements AccessInternalCl
         AccessInternalClientServerException, AccessInternalClientNotFoundException, AccessUnauthorizedException {
         ParametersChecker.checkParameter(BLANK_OBJECT_ID, objectId);
         try (Response response = make(get().withCheckRequestId().withPath(OBJECTS + objectId).withBody(selectObjectQuery, BLANK_DSL).withJson())) {
-            return RequestResponse.parseFromResponse(check(response));
+            check(response);
+            return RequestResponse.parseFromResponse(response);
         } catch (PreconditionFailedClientException e) {
             throw new IllegalArgumentException(PRECONDITION_FAILED.name());
         } catch (BadRequestException e) {
             throw new InvalidParseOperationException(INVALID_PARSE_OPERATION);
-        } catch (VitamClientInternalException | NoWritingPermissionException e) {
+        } catch (VitamClientInternalException | NoWritingPermissionException | ForbiddenClientException | ExpectationFailedClientException e) {
             throw new AccessInternalClientServerException(e);
         }
     }
@@ -210,10 +216,12 @@ class AccessInternalClientRest extends DefaultClient implements AccessInternalCl
                 .withHeader(X_VERSION, version)
                 .withJsonOctet()
                 .withCheckRequestId();
-            return check(make(request));
+            Response response = make(request);
+            check(response);
+            return response;
         } catch (PreconditionFailedClientException e) {
             throw new IllegalArgumentException(e);
-        } catch (VitamClientInternalException | NoWritingPermissionException e) {
+        } catch (VitamClientInternalException | NoWritingPermissionException | ForbiddenClientException | ExpectationFailedClientException e) {
             throw new AccessInternalClientServerException(e);
         } catch (BadRequestException e) {
             throw new InvalidParseOperationException(e);
@@ -224,10 +232,11 @@ class AccessInternalClientRest extends DefaultClient implements AccessInternalCl
     public RequestResponse<JsonNode> selectOperation(JsonNode select)
         throws LogbookClientException, InvalidParseOperationException, AccessUnauthorizedException {
         try (Response response = make(get().withCheckRequestId().withPath(LOGBOOK_OPERATIONS_URL).withBody(select, "Select cannot be empty or null.").withJson())) {
-            return RequestResponse.parseFromResponse(check(response));
+            check(response);
+            return RequestResponse.parseFromResponse(response);
         } catch (BadRequestException e) {
             throw new InvalidParseOperationException(e);
-        } catch (AccessInternalClientServerException | AccessInternalClientNotFoundException | NoWritingPermissionException | VitamClientInternalException e) {
+        } catch (AccessInternalClientServerException | AccessInternalClientNotFoundException | NoWritingPermissionException | VitamClientInternalException | ForbiddenClientException | ExpectationFailedClientException | PreconditionFailedClientException e) {
             throw new LogbookClientException(e);
         }
     }
@@ -237,10 +246,11 @@ class AccessInternalClientRest extends DefaultClient implements AccessInternalCl
         throws LogbookClientException, InvalidParseOperationException, AccessUnauthorizedException {
         ParametersChecker.checkParameter("processId cannot be blank.", processId);
         try (Response response = make(get().withCheckRequestId().withPath(LOGBOOK_OPERATIONS_URL + "/" + processId).withBody(select, "Select cannot be empty or null.").withJson())){
-            return RequestResponse.parseFromResponse(check(response));
+            check(response);
+            return RequestResponse.parseFromResponse(response);
         } catch (BadRequestException e) {
             throw new InvalidParseOperationException(e);
-        } catch (AccessInternalClientServerException | AccessInternalClientNotFoundException | NoWritingPermissionException | VitamClientInternalException e) {
+        } catch (AccessInternalClientServerException | AccessInternalClientNotFoundException | NoWritingPermissionException | VitamClientInternalException | ForbiddenClientException | ExpectationFailedClientException | PreconditionFailedClientException e) {
             throw new LogbookClientException(e);
         }
     }
@@ -250,10 +260,11 @@ class AccessInternalClientRest extends DefaultClient implements AccessInternalCl
         throws LogbookClientException, InvalidParseOperationException, AccessUnauthorizedException {
         ParametersChecker.checkParameter("idUnit cannot be blank.", idUnit);
         try (Response response = make(get().withCheckRequestId().withPath(LOGBOOK_UNIT_LIFECYCLE_URL + "/" + idUnit).withBody(queryDsl, "QueryDsl cannot be empty or null.").withJson())) {
-            return RequestResponse.parseFromResponse(check(response));
+            check(response);
+            return RequestResponse.parseFromResponse(response);
         } catch (BadRequestException e) {
             throw new InvalidParseOperationException(e);
-        } catch (AccessInternalClientServerException | AccessInternalClientNotFoundException | NoWritingPermissionException | VitamClientInternalException e) {
+        } catch (AccessInternalClientServerException | AccessInternalClientNotFoundException | NoWritingPermissionException | VitamClientInternalException | ForbiddenClientException | ExpectationFailedClientException | PreconditionFailedClientException e) {
             throw new LogbookClientException(e);
         }
     }
@@ -263,10 +274,11 @@ class AccessInternalClientRest extends DefaultClient implements AccessInternalCl
         throws LogbookClientException, InvalidParseOperationException, AccessUnauthorizedException {
         ParametersChecker.checkParameter("idObject cannot be blank.", idObject);
         try (Response response = make(get().withCheckRequestId().withPath(LOGBOOK_OBJECT_LIFECYCLE_URL + "/" + idObject).withBody(queryDsl, "QueryDsl cannot be empty or null.").withJson())) {
-            return RequestResponse.parseFromResponse(check(response));
+            check(response);
+            return RequestResponse.parseFromResponse(response);
         } catch (BadRequestException e) {
             throw new InvalidParseOperationException(e);
-        } catch (AccessInternalClientServerException | AccessInternalClientNotFoundException | NoWritingPermissionException | VitamClientInternalException e) {
+        } catch (AccessInternalClientServerException | AccessInternalClientNotFoundException | NoWritingPermissionException | VitamClientInternalException | ForbiddenClientException | ExpectationFailedClientException | PreconditionFailedClientException e) {
             throw new LogbookClientException(e);
         }
     }
@@ -277,12 +289,13 @@ class AccessInternalClientRest extends DefaultClient implements AccessInternalCl
         Response response = null;
         try {
             response = make(post().withCheckRequestId().withPath(LOGBOOK_CHECK).withBody(query, "QueryDsl cannot be empty or null.").withJson());
-            return RequestResponse.parseFromResponse(check(response));
+            check(response);
+            return RequestResponse.parseFromResponse(response);
         } catch (BadRequestException | ForbiddenClientException | ExpectationFailedClientException | AccessInternalClientNotFoundException e) {
             Status status = response.getStatusInfo().toEnum();
             LOGGER.error("checks operation tracebility is " + status.name() + ":" + status.getReasonPhrase() + JsonHandler.prettyPrint(response.getEntity()));
             return RequestResponse.parseVitamError(response);
-        } catch (AccessInternalClientServerException | NoWritingPermissionException | VitamClientInternalException e) {
+        } catch (AccessInternalClientServerException | NoWritingPermissionException | VitamClientInternalException | PreconditionFailedClientException e) {
             throw new LogbookClientServerException(e);
         } finally {
             if (response != null) {
@@ -300,8 +313,9 @@ class AccessInternalClientRest extends DefaultClient implements AccessInternalCl
         Response response = null;
         try {
             response = make(get().withCheckRequestId().withPath("traceability/" + operationId + "/content").withOctetAccept());
-            return check(response);
-        } catch (VitamClientInternalException | NoWritingPermissionException e) {
+            check(response);
+            return response;
+        } catch (VitamClientInternalException | NoWritingPermissionException | ForbiddenClientException | ExpectationFailedClientException | PreconditionFailedClientException e) {
             throw new AccessInternalClientServerException(e);
         } catch (BadRequestException e) {
             throw new InvalidParseOperationException(e);
@@ -316,8 +330,9 @@ class AccessInternalClientRest extends DefaultClient implements AccessInternalCl
     public RequestResponse<JsonNode> exportDIP(JsonNode dslRequest)
         throws AccessInternalClientServerException {
         try (Response response = make(post().withCheckRequestId().withPath(DIPEXPORT).withBody(dslRequest, BLANK_DSL).withJson())) {
-            return RequestResponse.parseFromResponse(check(response));
-        } catch (BadRequestException | AccessInternalClientNotFoundException | AccessUnauthorizedException | NoWritingPermissionException | VitamClientInternalException e) {
+            check(response);
+            return RequestResponse.parseFromResponse(response);
+        } catch (BadRequestException | AccessInternalClientNotFoundException | AccessUnauthorizedException | NoWritingPermissionException | VitamClientInternalException | ForbiddenClientException | ExpectationFailedClientException | PreconditionFailedClientException e) {
             throw new AccessInternalClientServerException(e);
         }
     }
@@ -326,8 +341,9 @@ class AccessInternalClientRest extends DefaultClient implements AccessInternalCl
     public RequestResponse<JsonNode> exportByUsageFilter(ExportRequest exportRequest)
         throws AccessInternalClientServerException {
         try (Response response = make(post().withCheckRequestId().withPath(EXPORT_BY_USAGE_FILTER).withBody(exportRequest, BLANK_DSL).withJson())) {
-            return RequestResponse.parseFromResponse(check(response));
-        } catch (BadRequestException | AccessInternalClientNotFoundException | AccessUnauthorizedException | NoWritingPermissionException | VitamClientInternalException e) {
+            check(response);
+            return RequestResponse.parseFromResponse(response);
+        } catch (BadRequestException | AccessInternalClientNotFoundException | AccessUnauthorizedException | NoWritingPermissionException | VitamClientInternalException | ForbiddenClientException | ExpectationFailedClientException | PreconditionFailedClientException e) {
             throw new AccessInternalClientServerException(e);
         }
     }
@@ -356,8 +372,9 @@ class AccessInternalClientRest extends DefaultClient implements AccessInternalCl
     public RequestResponse<JsonNode> reclassification(JsonNode reclassificationRequest)
         throws AccessInternalClientServerException {
         try (Response response = make(post().withCheckRequestId().withPath("/reclassification").withBody(reclassificationRequest, "Missing reclassification request").withJson())) {
-            return RequestResponse.parseFromResponse(check(response));
-        } catch (BadRequestException | AccessInternalClientNotFoundException | AccessUnauthorizedException | NoWritingPermissionException | VitamClientInternalException e) {
+            check(response);
+            return RequestResponse.parseFromResponse(response);
+        } catch (BadRequestException | AccessInternalClientNotFoundException | AccessUnauthorizedException | NoWritingPermissionException | VitamClientInternalException | ForbiddenClientException | ExpectationFailedClientException | PreconditionFailedClientException e) {
             throw new AccessInternalClientServerException(e);
         }
     }
@@ -367,12 +384,13 @@ class AccessInternalClientRest extends DefaultClient implements AccessInternalCl
         AccessInternalClientServerException, AccessInternalClientNotFoundException, AccessUnauthorizedException,
         BadRequestException {
         try (Response response = make(get().withCheckRequestId().withPath(OBJECTS).withBody(selectQuery, BLANK_DSL).withJson())) {
-            return RequestResponse.parseFromResponse(check(response));
+            check(response);
+            return RequestResponse.parseFromResponse(response);
         } catch (BadRequestException e) {
             throw new InvalidParseOperationException(e);
         } catch (ForbiddenClientException e) {
             throw new BadRequestException(e);
-        } catch (VitamClientInternalException | NoWritingPermissionException e) {
+        } catch (VitamClientInternalException | NoWritingPermissionException | ExpectationFailedClientException | PreconditionFailedClientException e) {
             throw new AccessInternalClientServerException(e);
         }
     }
@@ -383,12 +401,13 @@ class AccessInternalClientRest extends DefaultClient implements AccessInternalCl
         AccessInternalClientServerException, AccessInternalClientNotFoundException, AccessUnauthorizedException,
         BadRequestException {
         try (Response response = make(get().withCheckRequestId().withPath(UNITS_WITH_INHERITED_RULES).withBody(selectQuery, BLANK_DSL).withJson())) {
-            return RequestResponse.parseFromResponse(check(response));
+            check(response);
+            return RequestResponse.parseFromResponse(response);
         } catch (BadRequestException e) {
             throw new InvalidParseOperationException(e);
         } catch (ForbiddenClientException e) {
             throw new BadRequestException(e);
-        } catch (VitamClientInternalException | NoWritingPermissionException e) {
+        } catch (VitamClientInternalException | NoWritingPermissionException | ExpectationFailedClientException | PreconditionFailedClientException e) {
             throw new AccessInternalClientServerException(e);
         }
     }
@@ -400,10 +419,11 @@ class AccessInternalClientRest extends DefaultClient implements AccessInternalCl
         Response response = null;
         try {
             response = make(get().withCheckRequestId().withPath(STORAGEACCESSLOG.getCollectionName()).withBody(params, BLANK_DSL).withJsonOctet());
-            return check(response);
+            check(response);
+            return response;
         } catch (BadRequestException e) {
             throw new InvalidParseOperationException(e);
-        } catch (VitamClientInternalException | NoWritingPermissionException e) {
+        } catch (VitamClientInternalException | NoWritingPermissionException | ForbiddenClientException | ExpectationFailedClientException | PreconditionFailedClientException e) {
             throw new AccessInternalClientServerException(e);
         } finally {
             if (response != null && !SUCCESSFUL.equals(response.getStatusInfo().toEnum().getFamily())) {
@@ -442,8 +462,9 @@ class AccessInternalClientRest extends DefaultClient implements AccessInternalCl
             .withJson()
             .withHeader(X_ACCESS_CONTRAT_ID, getVitamSession().getContractId());
         try (Response response = make(request)) {
-            return RequestResponse.parseFromResponse(check(response));
-        } catch (BadRequestException | AccessInternalClientNotFoundException | AccessUnauthorizedException | NoWritingPermissionException | VitamClientInternalException e) {
+            check(response);
+            return RequestResponse.parseFromResponse(response);
+        } catch (BadRequestException | AccessInternalClientNotFoundException | AccessUnauthorizedException | NoWritingPermissionException | VitamClientInternalException | ForbiddenClientException | ExpectationFailedClientException | PreconditionFailedClientException e) {
             throw new AccessInternalClientServerException(e);
         }
     }
@@ -458,8 +479,9 @@ class AccessInternalClientRest extends DefaultClient implements AccessInternalCl
             .withJson()
             .withHeader(X_ACCESS_CONTRAT_ID, getVitamSession().getContractId());
         try (Response response = make(request)){
-            return RequestResponse.parseFromResponse(check(response));
-        } catch (BadRequestException | AccessInternalClientNotFoundException | AccessUnauthorizedException | NoWritingPermissionException | VitamClientInternalException e) {
+            check(response);
+            return RequestResponse.parseFromResponse(response);
+        } catch (BadRequestException | AccessInternalClientNotFoundException | AccessUnauthorizedException | NoWritingPermissionException | VitamClientInternalException | ForbiddenClientException | ExpectationFailedClientException | PreconditionFailedClientException e) {
             throw new AccessInternalClientServerException(e);
         }
     }
@@ -474,8 +496,9 @@ class AccessInternalClientRest extends DefaultClient implements AccessInternalCl
             .withJson()
             .withHeader(X_ACCESS_CONTRAT_ID, getVitamSession().getContractId());
         try (Response response = make(request)) {
-            return RequestResponse.parseFromResponse(check(response));
-        } catch (BadRequestException | AccessInternalClientNotFoundException | AccessUnauthorizedException | NoWritingPermissionException | VitamClientInternalException e) {
+            check(response);
+            return RequestResponse.parseFromResponse(response);
+        } catch (BadRequestException | AccessInternalClientNotFoundException | AccessUnauthorizedException | NoWritingPermissionException | VitamClientInternalException | ForbiddenClientException | ExpectationFailedClientException | PreconditionFailedClientException e) {
             throw new AccessInternalClientServerException(e);
         }
     }
@@ -490,16 +513,17 @@ class AccessInternalClientRest extends DefaultClient implements AccessInternalCl
             .withCheckRequestId()
             .withHeader(X_ACCESS_CONTRAT_ID, getVitamSession().getContractId());
         try (Response response = make(request)) {
-            return RequestResponse.parseFromResponse(check(response));
-        } catch (BadRequestException | AccessInternalClientNotFoundException | AccessUnauthorizedException | NoWritingPermissionException | VitamClientInternalException e) {
+            check(response);
+            return RequestResponse.parseFromResponse(response);
+        } catch (BadRequestException | AccessInternalClientNotFoundException | AccessUnauthorizedException | NoWritingPermissionException | VitamClientInternalException | ForbiddenClientException | ExpectationFailedClientException | PreconditionFailedClientException e) {
             throw new AccessInternalClientServerException(e);
         }
     }
 
-    private Response check(Response response) throws AccessInternalClientServerException, AccessUnauthorizedException, AccessInternalClientNotFoundException, NoWritingPermissionException, BadRequestException {
+    private void check(Response response) throws AccessInternalClientServerException, AccessUnauthorizedException, AccessInternalClientNotFoundException, NoWritingPermissionException, BadRequestException, ForbiddenClientException, ExpectationFailedClientException, PreconditionFailedClientException {
         Status status = response.getStatusInfo().toEnum();
         if (SUCCESSFUL.equals(status.getFamily()) || REDIRECTION.equals(status.getFamily())) {
-            return response;
+            return;
         }
 
         switch (status) {

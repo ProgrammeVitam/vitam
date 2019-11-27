@@ -36,6 +36,7 @@ import java.util.Objects;
 
 import static javax.ws.rs.HttpMethod.DELETE;
 import static javax.ws.rs.HttpMethod.GET;
+import static javax.ws.rs.HttpMethod.HEAD;
 import static javax.ws.rs.HttpMethod.POST;
 import static javax.ws.rs.HttpMethod.PUT;
 import static javax.ws.rs.core.MediaType.APPLICATION_JSON_TYPE;
@@ -71,6 +72,10 @@ public class VitamRequestBuilder {
 
     public static VitamRequestBuilder delete() {
         return new VitamRequestBuilder(DELETE);
+    }
+
+    public static VitamRequestBuilder head() {
+        return new VitamRequestBuilder(HEAD);
     }
 
     public void runBeforeExecRequest() {
@@ -130,6 +135,11 @@ public class VitamRequestBuilder {
         return this;
     }
 
+    public VitamRequestBuilder withBody(Object body) {
+        this.body = Objects.requireNonNull(body, "Body cannot be null.");
+        return this;
+    }
+
     public VitamRequestBuilder withBefore(Runnable beforeExecRequest) {
         this.beforeExecRequest = beforeExecRequest;
         return this;
@@ -150,6 +160,17 @@ public class VitamRequestBuilder {
             this.headers = new MultivaluedHashMap<>();
         }
         this.headers.add(Objects.requireNonNull(key), Objects.requireNonNull(value));
+        return this;
+    }
+
+    public VitamRequestBuilder withHeaderIgnoreNull(String key, Object value) {
+        if (value == null) {
+            return this;
+        }
+        if (this.headers == null) {
+            this.headers = new MultivaluedHashMap<>();
+        }
+        this.headers.add(Objects.requireNonNull(key), value.toString());
         return this;
     }
 
