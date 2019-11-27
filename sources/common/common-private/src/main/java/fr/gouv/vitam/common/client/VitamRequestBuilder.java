@@ -50,7 +50,8 @@ public class VitamRequestBuilder {
     private MediaType contentType;
     private MediaType accept;
     private Object body;
-    private Runnable beforeExecRequest = () -> {};
+    private Runnable beforeExecRequest = () -> {
+    };
     private MultivaluedMap<String, Object> headers;
     private MultivaluedMap<String, Object> queryParams;
 
@@ -137,6 +138,11 @@ public class VitamRequestBuilder {
 
     public VitamRequestBuilder withBody(Object body) {
         this.body = Objects.requireNonNull(body, "Body cannot be null.");
+        return this;
+    }
+
+    public VitamRequestBuilder withBody(Object body) {
+        this.body = body;
         return this;
     }
 
