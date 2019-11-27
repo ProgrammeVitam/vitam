@@ -616,11 +616,6 @@ public class StorageDistributionImpl implements StorageDistribution {
             LOGGER.error(CANNOT_CREATE_MULTIPLE_INPUT_STREAM, e);
             throw new StorageTechnicalException(CANNOT_CREATE_MULTIPLE_INPUT_STREAM, e);
         }
-        // TODO : error management (US #2009)
-        if (!offersParams.getKoOffers().isEmpty()) {
-            deleteObjects(offersParams.getOkOffers(), dataContext.getTenantId(), dataContext.getCategory(),
-                dataContext.getObjectId());
-        }
         return parameters;
     }
 
@@ -1289,47 +1284,6 @@ public class StorageDistributionImpl implements StorageDistribution {
 
         }
         return resultByOffer;
-    }
-
-
-    @Deprecated
-    private void deleteObjects(List<String> offerIdList, Integer tenantId, DataCategory category, String
-        objectId)
-        throws StorageTechnicalException {
-        // Map here to keep offerId linked to Future
-        Map<String, Future<Boolean>> futureMap = new HashMap<>();
-        for (String offerId : offerIdList) {
-            final Driver driver = retrieveDriverInternal(offerId);
-            // TODO: review if digest value is really good ?
-            StorageRemoveRequest request =
-                new StorageRemoveRequest(tenantId, category.getFolder(), objectId);
-            futureMap.put(offerId, executor.submit(new DeleteThread(driver, request, offerId)));
-        }
-
-        for (Entry<String, Future<Boolean>> entry : futureMap.entrySet()) {
-            final Future<Boolean> future = entry.getValue();
-            String offerId = entry.getKey();
-            try {
-                Boolean bool = future.get(DELETE_TIMEOUT, TimeUnit.MILLISECONDS);
-                if (!bool) {
-                    LOGGER.error("Object not deleted: {}", objectId);
-                    throw new StorageTechnicalException(OBJECT_NOT_DELETED + objectId);
-                }
-            } catch (TimeoutException e) {
-                LOGGER.error(TIMEOUT_ON_OFFER_ID + offerId, e);
-                future.cancel(true);
-                // TODO: manage thread to take into account this interruption
-                LOGGER.error(INTERRUPTED_AFTER_TIMEOUT_ON_OFFER_ID + offerId, e);
-                throw new StorageTechnicalException(OBJECT_NOT_DELETED + objectId);
-            } catch (InterruptedException e) {
-                LOGGER.error(INTERRUPTED_ON_OFFER_ID + offerId, e);
-                throw new StorageTechnicalException(OBJECT_NOT_DELETED + objectId, e);
-            } catch (ExecutionException e) {
-                LOGGER.error(ERROR_ON_OFFER_ID + offerId, e);
-
-                throw new StorageTechnicalException(OBJECT_NOT_DELETED + objectId, e);
-            }
-        }
     }
 
     @Override
