@@ -200,7 +200,7 @@ public class StorageResource extends ApplicationStatusResource implements VitamA
     @Produces(MediaType.APPLICATION_JSON)
     public Response copy(@Context HttpServletRequest httpServletRequest, @Context HttpHeaders headers,
         @PathParam("id_object") String objectId) {
-        VitamCode vitamCode = checkTenantAndHeaders(headers, VitamHttpHeader.TENANT_ID, VitamHttpHeader.STRATEGY_ID, 
+        VitamCode vitamCode = checkTenantAndHeaders(headers, VitamHttpHeader.TENANT_ID, VitamHttpHeader.STRATEGY_ID,
                 VitamHttpHeader.X_CONTENT_SOURCE, VitamHttpHeader.X_CONTENT_DESTINATION, VitamHttpHeader.X_DATA_CATEGORY);
         if (vitamCode != null) {
             return buildErrorResponse(vitamCode);
@@ -807,7 +807,7 @@ public class StorageResource extends ApplicationStatusResource implements VitamA
         String strategyId = HttpHeaderHelper.getHeaderValues(headers, VitamHttpHeader.STRATEGY_ID).get(0);
         String listOffer = HttpHeaderHelper.getHeaderValues(headers, VitamHttpHeader.OFFERS_IDS).get(0);
         List<String> offerIds = Arrays.asList(listOffer.split(","));
-        
+
         try {
             Map<String, Boolean> resultByOffer = distribution.checkObjectExisting(strategyId, objectId, type, offerIds);
             final ResponseBuilder responseBuilder;
@@ -1186,7 +1186,7 @@ public class StorageResource extends ApplicationStatusResource implements VitamA
     }
 
     /**
-     * Backup storage log
+     * Backup access log
      *
      * @param headers http header
      * @return the response with a specific HTTP status
@@ -1195,15 +1195,18 @@ public class StorageResource extends ApplicationStatusResource implements VitamA
     @Path("/storage/backup/accesslog")
     @Produces(MediaType.APPLICATION_JSON)
     public Response backupStorageAccessLog(@Context HttpHeaders headers) {
-        VitamCode vitamCode = checkTenantAndHeaders(headers, VitamHttpHeader.STRATEGY_ID);
+        VitamCode vitamCode = checkTenantAndHeaders(headers);
         if (vitamCode != null) {
             return buildErrorResponse(vitamCode);
         }
-        
-        try {
-            String strategyId = HttpHeaderHelper.getHeaderValues(headers, VitamHttpHeader.STRATEGY_ID).get(0);
 
-            final GUID guid = storageLogAdministration.backupStorageLog(strategyId, false);
+        try {
+            Integer tenantId = VitamThreadUtils.getVitamSession().getTenantId();
+
+            final GUID guid = GUIDFactory.newOperationLogbookGUID(tenantId);
+            VitamThreadUtils.getVitamSession().setRequestId(guid);
+
+            storageLogAdministration.backupStorageLog(VitamConfiguration.getDefaultStrategy(), false, guid);
             final List<String> resultAsJson = new ArrayList<>();
             resultAsJson.add(guid.toString());
             return Response.status(Status.OK)
@@ -1230,15 +1233,18 @@ public class StorageResource extends ApplicationStatusResource implements VitamA
     @Path("/storage/backup")
     @Produces(MediaType.APPLICATION_JSON)
     public Response backupStorageLog(@Context HttpHeaders headers) {
-        VitamCode vitamCode = checkTenantAndHeaders(headers, VitamHttpHeader.STRATEGY_ID);
+        VitamCode vitamCode = checkTenantAndHeaders(headers);
         if (vitamCode != null) {
             return buildErrorResponse(vitamCode);
         }
 
         try {
-            String strategyId = HttpHeaderHelper.getHeaderValues(headers, VitamHttpHeader.STRATEGY_ID).get(0);
+            Integer tenantId = VitamThreadUtils.getVitamSession().getTenantId();
 
-            final GUID guid = storageLogAdministration.backupStorageLog(strategyId, true);
+            final GUID guid = GUIDFactory.newOperationLogbookGUID(tenantId);
+            VitamThreadUtils.getVitamSession().setRequestId(guid);
+
+            storageLogAdministration.backupStorageLog(VitamConfiguration.getDefaultStrategy(), true, guid);
             final List<String> resultAsJson = new ArrayList<>();
             resultAsJson.add(guid.toString());
             return Response.status(Status.OK)
@@ -1265,20 +1271,19 @@ public class StorageResource extends ApplicationStatusResource implements VitamA
     @Path("/storage/traceability")
     @Produces(MediaType.APPLICATION_JSON)
     public Response traceabilityStorageLogbook(@Context HttpHeaders headers) {
-        VitamCode vitamCode = checkTenantAndHeaders(headers, VitamHttpHeader.STRATEGY_ID);
+        VitamCode vitamCode = checkTenantAndHeaders(headers);
         if (vitamCode != null) {
             return buildErrorResponse(vitamCode);
         }
 
         try {
             Integer tenantId = VitamThreadUtils.getVitamSession().getTenantId();
-            String strategyId = HttpHeaderHelper.getHeaderValues(headers, VitamHttpHeader.STRATEGY_ID).get(0);
 
             final GUID guid = GUIDFactory.newOperationLogbookGUID(tenantId);
 
             VitamThreadUtils.getVitamSession().setRequestId(guid);
 
-            traceabilityLogbookAdministration.generateTraceabilityStorageLogbook(guid, strategyId);
+            traceabilityLogbookAdministration.generateTraceabilityStorageLogbook(guid, VitamConfiguration.getDefaultStrategy());
             return Response.status(Status.OK)
                 .entity(new RequestResponseOK<GUID>()
                     .addResult(guid))
@@ -1909,15 +1914,18 @@ public class StorageResource extends ApplicationStatusResource implements VitamA
 
     private VitamCode checkTenantAndHeaders(HttpHeaders headers, VitamHttpHeader... vitamHeaders) {
         if (VitamThreadUtils.getVitamSession().getTenantId() == null) {
+            LOGGER.error("Missing tenantId");
             return VitamCode.STORAGE_MISSING_HEADER;
         }
         try {
             HttpHeaderHelper.checkVitamHeaders(headers);
         } catch (IllegalStateException e) {
+            LOGGER.error("Header validation failed", e);
             return VitamCode.STORAGE_MISSING_HEADER;
         }
         for (VitamHttpHeader vitamHeader : vitamHeaders) {
             if (!HttpHeaderHelper.hasValuesFor(headers, vitamHeader)) {
+                LOGGER.error("Required header missing " + vitamHeader.getName());
                 return VitamCode.STORAGE_MISSING_HEADER;
             }
         }
