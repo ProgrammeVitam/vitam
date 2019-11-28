@@ -43,7 +43,6 @@ import fr.gouv.vitam.storage.driver.exception.StorageDriverConflictException;
 import fr.gouv.vitam.storage.driver.exception.StorageDriverException;
 import fr.gouv.vitam.storage.driver.exception.StorageDriverPreconditionFailedException;
 import fr.gouv.vitam.storage.driver.model.StoragePutRequest;
-import fr.gouv.vitam.storage.driver.model.StorageRemoveRequest;
 import fr.gouv.vitam.storage.engine.common.exception.StorageDriverNotFoundException;
 import fr.gouv.vitam.storage.engine.common.exception.StorageException;
 import fr.gouv.vitam.storage.engine.common.exception.StorageNotFoundException;
@@ -57,7 +56,6 @@ import fr.gouv.vitam.storage.engine.common.referential.model.HotStrategy;
 import fr.gouv.vitam.storage.engine.common.referential.model.OfferReference;
 import fr.gouv.vitam.storage.engine.common.referential.model.StorageOffer;
 import fr.gouv.vitam.storage.engine.common.referential.model.StorageStrategy;
-import fr.gouv.vitam.storage.engine.server.distribution.impl.DeleteThread;
 import fr.gouv.vitam.storage.engine.server.distribution.impl.OffersToCopyIn;
 import fr.gouv.vitam.storage.engine.server.distribution.impl.ThreadResponseData;
 import fr.gouv.vitam.storage.engine.server.distribution.impl.TransferThread;
@@ -266,11 +264,6 @@ public class StoragePopulateImpl implements VitamAutoCloseable {
             attempt++;
             tryAndRetry(objectId, category, file, tenantId, datas, attempt);
         }
-
-        // TODO : error management (US #2009)
-        if (!datas.getKoOffers().isEmpty()) {
-            deleteObjects(datas.getOkOffers(), tenantId, category, objectId);
-        }
     }
 
     private long getTransferTimeout(long sizeToTransfer) {
@@ -319,53 +312,6 @@ public class StoragePopulateImpl implements VitamAutoCloseable {
             offerReferences.addAll(hotStrategy.getOffers());
         }
         return offerReferences;
-    }
-
-    private void deleteObjects(List<String> offerIdList, Integer tenantId, DataCategory category, String objectId)
-        throws StorageTechnicalException {
-        // Map here to keep offerId linked to Future
-        Map<String, Future<Boolean>> futureMap = new HashMap<>();
-        for (String offerId : offerIdList) {
-            final Driver driver = retrieveDriverInternal(offerId);
-            // TODO: review if digest value is really good ?
-            StorageRemoveRequest request =
-                new StorageRemoveRequest(tenantId, category.getFolder(), objectId);
-            futureMap.put(offerId, executor.submit(new DeleteThread(driver, request, offerId)));
-        }
-
-        // wait all tasks submission
-        for (Entry<String, Future<Boolean>> entry : futureMap.entrySet()) {
-            final Future<Boolean> future = entry.getValue();
-            String offerId = entry.getKey();
-            try {
-                Boolean bool = future.get(DEFAULT_MINIMUM_TIMEOUT * 10, TimeUnit.MILLISECONDS);
-                if (!bool) {
-                    LOGGER.error("Object not deleted: {}", objectId);
-                    throw new StorageTechnicalException(OBJECT_NOT_DELETED + objectId);
-                }
-            } catch (TimeoutException e) {
-                LOGGER.error(TIMEOUT_ON_OFFER_ID + offerId, e);
-                future.cancel(true);
-                // TODO: manage thread to take into account this interruption
-                LOGGER.error(INTERRUPTED_AFTER_TIMEOUT_ON_OFFER_ID + offerId, e);
-                throw new StorageTechnicalException(OBJECT_NOT_DELETED + objectId);
-            } catch (InterruptedException e) {
-                LOGGER.error(INTERRUPTED_ON_OFFER_ID + offerId, e);
-                throw new StorageTechnicalException(OBJECT_NOT_DELETED + objectId, e);
-            } catch (ExecutionException e) {
-                LOGGER.error(ERROR_ON_OFFER_ID + offerId, e);
-                // TODO: review this exception to manage errors correctly
-                // Take into account Exception class
-                // For example, for particular exception do not retry (because
-                // it's useless)
-                // US : #2009
-                throw new StorageTechnicalException(OBJECT_NOT_DELETED + objectId, e);
-            } catch (NumberFormatException e) {
-                future.cancel(true);
-                LOGGER.error(WRONG_NUMBER_ON_WAIT_ON_OFFER_ID + offerId, e);
-                throw new StorageTechnicalException(OBJECT_NOT_DELETED + objectId, e);
-            }
-        }
     }
 
     @Override
