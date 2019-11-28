@@ -50,6 +50,7 @@ import fr.gouv.vitam.common.model.processing.ProcessDetail;
 import fr.gouv.vitam.common.model.processing.WorkFlow;
 import fr.gouv.vitam.ingest.internal.common.exception.IngestInternalClientNotFoundException;
 import fr.gouv.vitam.ingest.internal.common.exception.IngestInternalClientServerException;
+import fr.gouv.vitam.logbook.common.client.ErrorMessage;
 import fr.gouv.vitam.logbook.common.parameters.LogbookOperationParameters;
 import fr.gouv.vitam.workspace.api.exception.WorkspaceClientServerException;
 import fr.gouv.vitam.workspace.api.exception.ZipFilesNameNotAllowedException;
@@ -62,6 +63,12 @@ import javax.ws.rs.core.Response.Status;
 import java.io.InputStream;
 import java.util.Optional;
 
+import static fr.gouv.vitam.common.client.VitamRequestBuilder.get;
+import static fr.gouv.vitam.common.client.VitamRequestBuilder.post;
+import static fr.gouv.vitam.common.client.VitamRequestBuilder.put;
+import static javax.ws.rs.core.Response.Status.Family.REDIRECTION;
+import static javax.ws.rs.core.Response.Status.Family.SUCCESSFUL;
+import static javax.ws.rs.core.MediaType.APPLICATION_OCTET_STREAM_TYPE;
 
 /**
  * Rest client implementation for Ingest Internal
@@ -76,6 +83,8 @@ class IngestInternalClientRest extends DefaultClient implements IngestInternalCl
     private static final String INVALID_PARSE_OPERATION = "Invalid Parse Operation";
     private static final String NOT_FOUND_EXCEPTION = "Not Found Exception";
     private static final String UNAUTHORIZED = "Unauthorized";
+    private static final String SERVICE_UNAVAILABLE_EXCEPTION = "Workspace Server Error";
+    private static final String NOT_ACCEPTABLE_EXCEPTION = "File or folder name is not allowed";
 
 
     private static final String LOGBOOK_URL = "/logbooks";
@@ -100,90 +109,72 @@ class IngestInternalClientRest extends DefaultClient implements IngestInternalCl
     @Override
     public void uploadInitialLogbook(Iterable<LogbookOperationParameters> logbookParametersList)
         throws VitamException {
-        ParametersChecker.checkParameter("check Upload Parameter", logbookParametersList);
-
-        Response response = null;
-        try {
-            response = performRequest(HttpMethod.POST, LOGBOOK_URL, null,
-                logbookParametersList, MediaType.APPLICATION_JSON_TYPE,
-                MediaType.APPLICATION_JSON_TYPE, false);
-            if (response.getStatus() != Status.CREATED.getStatusCode()) {
-                throw new VitamClientException(Status.fromStatusCode(response.getStatus()).getReasonPhrase());
-            }
-        } finally {
-            consumeAnyEntityAndClose(response);
+        try (Response response = make(post()
+            .withPath(LOGBOOK_URL)
+            .withBody(logbookParametersList, "check Upload Parameter")
+            .withChunckedMode(false)
+            .withJson())) {
+            check(response);
         }
     }
 
     @Override
     public void upload(InputStream inputStream, MediaType archiveMimeType, WorkFlow workflow, String actionAfterInit)
         throws VitamException {
-        ParametersChecker.checkParameter("Params cannot be null", inputStream, archiveMimeType);
         ParametersChecker.checkParameter("context Id Request must not be null",
             workflow);
-        final MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
-        headers.add(GlobalDataRest.X_CONTEXT_ID, workflow.getIdentifier());
-        headers.add(GlobalDataRest.X_TYPE_PROCESS, workflow.getTypeProc());
-        headers.add(GlobalDataRest.X_ACTION, actionAfterInit);
-        headers.add(GlobalDataRest.X_ACTION_INIT, ProcessAction.START);
         Response response = null;
         try {
-            response = performRequest(HttpMethod.POST, INGEST_URL, headers,
-                inputStream, archiveMimeType, MediaType.APPLICATION_OCTET_STREAM_TYPE);
-            if (Status.ACCEPTED.getStatusCode() == response.getStatus()) {
-                LOGGER.info("SIP uploaded: " + Status.ACCEPTED.getReasonPhrase());
-            } else if (Status.NOT_ACCEPTABLE.getStatusCode() == response.getStatus()) {
-                throw new ZipFilesNameNotAllowedException("File or folder name is not allowed");
-
-            } else if (Status.SERVICE_UNAVAILABLE.getStatusCode() == response.getStatus()) {
-                throw new WorkspaceClientServerException("Workspace Server Error");
-            } else {
-                LOGGER.error("SIP Upload Error: " + Status.fromStatusCode(response.getStatus()).getReasonPhrase());
-            }
-        } catch (VitamClientInternalException e) {
-            throw new VitamException(e.getMessage());
+            response = make(post()
+                .withPath(INGEST_URL)
+                .withHeader(GlobalDataRest.X_CONTEXT_ID, workflow.getIdentifier())
+                .withHeader(GlobalDataRest.X_TYPE_PROCESS, workflow.getTypeProc())
+                .withHeader(GlobalDataRest.X_ACTION, actionAfterInit)
+                .withHeader(GlobalDataRest.X_ACTION_INIT, ProcessAction.START)
+                .withBody(inputStream, "Body cannot be null")
+                .withContentType(archiveMimeType)
+                .withOctetAccept()
+            );
+            check(response);
+        } catch (IngestInternalClientServerException e) {
+            LOGGER.error("SIP Upload Error: " + Status.fromStatusCode(response.getStatus()).getReasonPhrase());
+        } catch (VitamClientException e) {
+            throw new VitamClientException(e);
         } finally {
-            consumeAnyEntityAndClose(response);
+            if (response != null) {
+                response.close();
+            }
         }
     }
 
     @Override
     public void initWorkflow(WorkFlow workFlow) throws VitamException {
-        ParametersChecker.checkParameter("Params cannot be null", workFlow);
-        final MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
-        headers.add(GlobalDataRest.X_CONTEXT_ID, workFlow.getId());
-        headers.add(GlobalDataRest.X_TYPE_PROCESS, workFlow.getTypeProc());
-        headers.add(GlobalDataRest.X_ACTION_INIT, ProcessAction.INIT);
-        headers.add(GlobalDataRest.X_ACTION, ProcessAction.INIT);
-
-        Response response = null;
-        try {
-            response = performRequest(HttpMethod.POST, INGEST_URL, headers,
-                MediaType.APPLICATION_OCTET_STREAM_TYPE);
-            checkResponseStatus(response);
-
-        } catch (VitamClientInternalException e) {
-            LOGGER.error("VitamClientInternalException: ", e);
+        ParametersChecker.checkParameter("Params cannot be null",
+            workFlow);
+        try (Response response = make(post()
+            .withPath(INGEST_URL)
+            .withHeader(GlobalDataRest.X_CONTEXT_ID, workFlow.getId())
+            .withHeader(GlobalDataRest.X_TYPE_PROCESS, workFlow.getTypeProc())
+            .withHeader(GlobalDataRest.X_ACTION, ProcessAction.INIT)
+            .withHeader(GlobalDataRest.X_ACTION_INIT, ProcessAction.INIT)
+            .withOctetAccept()
+        )) {
+            check(response);
+        } catch (IngestInternalClientServerException | IngestInternalClientNotFoundException e) {
             throw new VitamClientException(e);
-        } finally {
-            consumeAnyEntityAndClose(response);
         }
     }
 
     @Override
     public void uploadFinalLogbook(Iterable<LogbookOperationParameters> logbookParametersList)
         throws VitamClientException {
-        ParametersChecker.checkParameter("check Upload Parameter", logbookParametersList);
-        Response response = null;
-        try {
-            response = performRequest(HttpMethod.PUT, LOGBOOK_URL, null,
-                logbookParametersList, MediaType.APPLICATION_JSON_TYPE,
-                MediaType.APPLICATION_JSON_TYPE, false);
-            if (response.getStatus() != Status.OK.getStatusCode()) {
-                throw new VitamClientException(Status.fromStatusCode(response.getStatus()).getReasonPhrase());
-            }
-        } finally {
-            consumeAnyEntityAndClose(response);
+        try (Response response = make(put()
+            .withPath(LOGBOOK_URL).withBody(logbookParametersList, "check Upload Parameter")
+            .withJson()
+            .withChunckedMode(false))) {
+            check(response);
+        } catch (InvalidParseOperationException | ZipFilesNameNotAllowedException | IngestInternalClientServerException | WorkspaceClientServerException | IngestInternalClientNotFoundException e) {
+            throw new VitamClientException(e);
         }
     }
 
@@ -196,54 +187,65 @@ class IngestInternalClientRest extends DefaultClient implements IngestInternalCl
         ParametersChecker.checkParameter(BLANK_TYPE, type);
 
         Response response = null;
-        Status status = Status.BAD_REQUEST;
-
         try {
-            response = performRequest(HttpMethod.GET, INGEST_URL + "/" + objectId + "/" + type.getCollectionName(),
-                null, MediaType.APPLICATION_OCTET_STREAM_TYPE);
-            status = Status.fromStatusCode(response.getStatus());
-            switch (status) {
-                case INTERNAL_SERVER_ERROR:
-                    LOGGER.error(INTERNAL_SERVER_ERROR + " : " + status.getReasonPhrase());
-                    throw new IngestInternalClientServerException(INTERNAL_SERVER_ERROR);
-                case NOT_FOUND:
-                    throw new IngestInternalClientNotFoundException(status.getReasonPhrase());
-                case BAD_REQUEST:
-                    throw new InvalidParseOperationException(INVALID_PARSE_OPERATION);
-                case PRECONDITION_FAILED:
-                    throw new IllegalArgumentException(response.getStatusInfo().getReasonPhrase());
-                case OK:
-                    break;
-                default:
-                    LOGGER.error(INTERNAL_SERVER_ERROR + " : " + status.getReasonPhrase());
-                    throw new IngestInternalClientServerException(
-                        INTERNAL_SERVER_ERROR + " : " + status.getReasonPhrase());
-            }
+            response = make(get()
+                .withPath(INGEST_URL + "/" + objectId + "/" + type.getCollectionName())
+                .withOctetAccept());
+            check(response);
             return response;
-        } catch (final VitamClientInternalException e) {
-            LOGGER.error("VitamClientInternalException: ", e);
+        } catch (VitamClientException | WorkspaceClientServerException | ZipFilesNameNotAllowedException e) {
             throw new IngestInternalClientServerException(e);
+        } catch (IngestInternalClientNotFoundException e) {
+            throw new IngestInternalClientNotFoundException(e);
         } finally {
-            if (status != Status.OK) {
-                consumeAnyEntityAndClose(response);
+            if (Status.fromStatusCode(response.getStatus()) != Status.OK) {
+                response.close();
             }
+        }
+
+
+    }
+
+    private void check(Response response)
+        throws VitamClientException, IngestInternalClientServerException, ZipFilesNameNotAllowedException,
+        WorkspaceClientServerException, InvalidParseOperationException, IngestInternalClientNotFoundException {
+        Status status = response.getStatusInfo().toEnum();
+        if (SUCCESSFUL.equals(status.getFamily()) || REDIRECTION.equals(status.getFamily())) {
+            return;
+        }
+
+        switch (status) {
+            case INTERNAL_SERVER_ERROR:
+                throw new IngestInternalClientServerException(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage());
+            case NOT_ACCEPTABLE:
+                throw new ZipFilesNameNotAllowedException(NOT_ACCEPTABLE_EXCEPTION);
+            case SERVICE_UNAVAILABLE:
+                throw new WorkspaceClientServerException(SERVICE_UNAVAILABLE_EXCEPTION);
+            case NOT_FOUND:
+                throw new IngestInternalClientNotFoundException(NOT_FOUND_EXCEPTION);
+            case BAD_REQUEST:
+                throw new InvalidParseOperationException(INVALID_PARSE_OPERATION);
+            case PRECONDITION_FAILED:
+                throw new VitamClientInternalException(
+                    REQUEST_PRECONDITION_FAILED + response.getStatusInfo().getReasonPhrase());
+            case UNAUTHORIZED:
+                throw new VitamClientInternalException(UNAUTHORIZED);
+            default:
+                throw new VitamClientException(Status.fromStatusCode(response.getStatus()).getReasonPhrase());
         }
     }
 
     @Override
     public void storeATR(GUID guid, InputStream input) throws VitamClientException {
-        Response response = null;
 
-        try {
-            response = performRequest(HttpMethod.POST, INGEST_URL + "/" + guid + REPORT,
-                null, input, MediaType.APPLICATION_OCTET_STREAM_TYPE,
-                MediaType.APPLICATION_OCTET_STREAM_TYPE);
 
-        } catch (VitamClientInternalException e) {
-            LOGGER.error("VitamClientInternalException: ", e);
+        try (Response response = make(post()
+            .withPath(INGEST_URL + "/" + guid + REPORT).withBody(input, "check input Parameter")
+            .withContentType(APPLICATION_OCTET_STREAM_TYPE)
+            .withOctetAccept())) {
+            check(response);
+        } catch (InvalidParseOperationException | ZipFilesNameNotAllowedException | IngestInternalClientServerException | WorkspaceClientServerException | IngestInternalClientNotFoundException e) {
             throw new VitamClientException(e);
-        } finally {
-            consumeAnyEntityAndClose(response);
         }
     }
 

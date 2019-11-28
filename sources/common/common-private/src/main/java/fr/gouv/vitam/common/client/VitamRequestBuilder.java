@@ -106,7 +106,7 @@ public class VitamRequestBuilder {
     }
 
     public VitamRequestBuilder withContentType(MediaType contentType) {
-        this.contentType = contentType;
+        this.contentType = Objects.requireNonNull(contentType, "can not set a null ContentType");
         return this;
     }
 
