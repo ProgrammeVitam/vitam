@@ -32,21 +32,20 @@ import fr.gouv.vitam.common.client.VitamRequestBuilder;
 import fr.gouv.vitam.common.exception.VitamClientInternalException;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.security.internal.common.exception.IdentityNotFoundException;
 import fr.gouv.vitam.security.internal.common.exception.InternalSecurityException;
 import fr.gouv.vitam.security.internal.common.model.IdentityModel;
 import fr.gouv.vitam.security.internal.common.model.IsPersonalCertificateRequiredModel;
 
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.MultivaluedHashMap;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 import java.util.Optional;
 
+import static javax.ws.rs.core.MediaType.APPLICATION_OCTET_STREAM_TYPE;
 import static javax.ws.rs.core.Response.Status.Family.SUCCESSFUL;
 
 public class InternalSecurityClientRest extends DefaultClient implements InternalSecurityClient {
 
-    protected static final String INTERNAL_SECURITY_ERROR = "Internal Security Error";
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(InternalSecurityClientRest.class);
 
     /**
@@ -62,11 +61,13 @@ public class InternalSecurityClientRest extends DefaultClient implements Interna
     public Optional<IdentityModel> findIdentity(byte[] certificate)
         throws VitamClientInternalException, InternalSecurityException {
         try (Response response = make(
-            VitamRequestBuilder.get().withPath("/identity/").withHeaders(new MultivaluedHashMap<>())
-                .withBody(certificate)
-                .withContentType(MediaType.APPLICATION_OCTET_STREAM_TYPE).withJsonAccept())) {
+            VitamRequestBuilder.get().withPath("/identity/")
+                .withBody(certificate, "Certificate not found")
+                .withContentType(APPLICATION_OCTET_STREAM_TYPE).withJsonAccept())) {
             check(response);
             return Optional.of(response.readEntity(IdentityModel.class));
+        } catch (IdentityNotFoundException e) {
+            return Optional.empty();
         }
     }
 
@@ -85,7 +86,8 @@ public class InternalSecurityClientRest extends DefaultClient implements Interna
         try (Response response = make(
             VitamRequestBuilder.get().withPath("/personalCertificate/permission-check/" + permission)
                 .withJsonAccept())) {
-            return check(response).readEntity(IsPersonalCertificateRequiredModel.class);
+            check(response);
+            return response.readEntity(IsPersonalCertificateRequiredModel.class);
         }
     }
 
@@ -94,25 +96,30 @@ public class InternalSecurityClientRest extends DefaultClient implements Interna
         throws VitamClientInternalException, InternalSecurityException {
         try (Response response = make(VitamRequestBuilder.get()
             .withPath("/personalCertificate/personal-certificate-check/" + permission)
-            .withHeaders(new MultivaluedHashMap<>()).withBody(certificate)
-            .withContentType(MediaType.APPLICATION_OCTET_STREAM_TYPE)
+            .withBody(certificate, "Certificate not found")
+            .withContentType(APPLICATION_OCTET_STREAM_TYPE)
             .withJsonAccept())) {
             check(response);
+        } catch(IllegalArgumentException e) {
+            throw new InternalSecurityException(e);
         }
     }
 
-    private Response check(Response response) throws InternalSecurityException {
+    private void check(Response response) throws InternalSecurityException {
         Status status = response.getStatusInfo().toEnum();
         if (SUCCESSFUL.equals(status.getFamily())) {
-            return response;
+            return;
         }
-
+        String message = response.readEntity(String.class);
+        LOGGER.error("http status is: {}, content is: {}", status, message);
         switch (status) {
             case NOT_FOUND:
+                LOGGER.error("http status is: {}, content is: {}", status, message);
+                throw new IdentityNotFoundException(message);
             case UNAUTHORIZED:
-                throw new InternalSecurityException(INTERNAL_SECURITY_ERROR);
             default:
-                throw new InternalSecurityException(INTERNAL_SECURITY_ERROR);
+                LOGGER.error("http status is: {}, content is: {}", status, message);
+                throw new InternalSecurityException(message);
         }
     }
 }

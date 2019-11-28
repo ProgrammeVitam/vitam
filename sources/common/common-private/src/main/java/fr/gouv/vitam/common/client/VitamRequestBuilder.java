@@ -141,11 +141,6 @@ public class VitamRequestBuilder {
         return this;
     }
 
-    public VitamRequestBuilder withBody(Object body) {
-        this.body = body;
-        return this;
-    }
-
     public VitamRequestBuilder withBefore(Runnable beforeExecRequest) {
         this.beforeExecRequest = beforeExecRequest;
         return this;
