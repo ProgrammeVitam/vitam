@@ -1,4 +1,4 @@
-/*******************************************************************************
+/*
  * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2019)
  *
  * contact.vitam@culture.gouv.fr
@@ -23,23 +23,26 @@
  *
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
- *******************************************************************************/
+ */
 package fr.gouv.vitam.storage.engine.server.rest;
 
 import com.google.common.annotations.VisibleForTesting;
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.guid.GUIDFactory;
+import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.AuthenticationLevel;
 import fr.gouv.vitam.common.security.rest.VitamAuthentication;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.storage.engine.common.model.DataCategory;
+import fr.gouv.vitam.storage.engine.common.model.request.OfferPartialSyncRequest;
 import fr.gouv.vitam.storage.engine.common.model.request.OfferSyncRequest;
 import fr.gouv.vitam.storage.engine.server.distribution.StorageDistribution;
 import fr.gouv.vitam.storage.engine.server.offersynchronization.OfferSyncService;
 import fr.gouv.vitam.storage.engine.server.offersynchronization.OfferSyncStatus;
+import org.elasticsearch.common.Strings;
 
 import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;
@@ -64,6 +67,7 @@ public class AdminOfferSyncResource {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(AdminOfferSyncResource.class);
 
     private final String OFFER_SYNC_URI = "/offerSync";
+    private final String OFFER_PARTIAL_SYNC_URI = "/offerPartialSync";
 
     /**
      * OfferSynchronization Service.
@@ -90,6 +94,74 @@ public class AdminOfferSyncResource {
         this.offerSyncService = offerSyncService;
     }
 
+    @Path(OFFER_PARTIAL_SYNC_URI)
+    @POST
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    @VitamAuthentication(authentLevel = AuthenticationLevel.BASIC_AUTHENT)
+    public Response startPartialSynchronization(OfferPartialSyncRequest offerPartialSyncRequest) {
+        ParametersChecker.checkParameter("source offer is mandatory.", offerPartialSyncRequest.getSourceOffer());
+        ParametersChecker.checkParameter("target offer is mandatory.", offerPartialSyncRequest.getTargetOffer());
+        if (offerPartialSyncRequest.getSourceOffer().equals(offerPartialSyncRequest.getTargetOffer())) {
+            throw new IllegalArgumentException("Source offer cannot be the same as target offer");
+        }
+
+        if (null == offerPartialSyncRequest.getItemsToSynchronize() ||
+            offerPartialSyncRequest.getItemsToSynchronize().isEmpty()) {
+            LOGGER.info("Items to synchronize is empty");
+            return Response.status(Response.Status.OK)
+                .header(X_REQUEST_ID, VitamThreadUtils.getVitamSession().getRequestId())
+                .build();
+        }
+
+        String validateRequestMsg = validateRequest(offerPartialSyncRequest);
+
+        if (validateRequestMsg.length() > 0) {
+            LOGGER.error(validateRequestMsg);
+            throw new IllegalArgumentException(validateRequestMsg);
+        }
+
+        boolean started = offerSyncService
+            .startSynchronization(offerPartialSyncRequest.getSourceOffer(), offerPartialSyncRequest.getTargetOffer(),
+                offerPartialSyncRequest.getStrategyId(), offerPartialSyncRequest.getItemsToSynchronize());
+
+        Response.Status status;
+        if (started) {
+            LOGGER.info("Offer synchronization started");
+            status = Response.Status.OK;
+        } else {
+            LOGGER.warn("Another synchronization process is already running");
+            status = Response.Status.CONFLICT;
+        }
+        return Response.status(status)
+            .header(X_REQUEST_ID, VitamThreadUtils.getVitamSession().getRequestId())
+            .build();
+    }
+
+    private String validateRequest(OfferPartialSyncRequest offerPartialSyncRequest) {
+        StringBuilder sb = new StringBuilder();
+        offerPartialSyncRequest.getItemsToSynchronize().forEach(o -> {
+            if (!VitamConfiguration.getTenants().contains(o.getTenantId())) {
+                sb.append("Invalid tenant " + o.getTenantId() + ", ");
+            }
+            if (Strings.isNullOrEmpty(o.getContainer())) {
+                sb.append("container required, ");
+            }
+
+            if (null == o.getFilenames() || o.getFilenames().isEmpty()) {
+                sb.append("filenames is required; ");
+            } else {
+                o.getFilenames().forEach(f -> {
+                    if (Strings.isNullOrEmpty(f)) {
+                        sb.append("File is required; ");
+                    }
+                });
+            }
+        });
+
+        return sb.toString();
+    }
+
     /**
      * Start offer synchronization. At most, one synchronization process can be started.
      */
@@ -102,7 +174,7 @@ public class AdminOfferSyncResource {
 
         ParametersChecker.checkParameter("source offer is mandatory.", offerSyncRequest.getSourceOffer());
         ParametersChecker.checkParameter("target offer is mandatory.", offerSyncRequest.getTargetOffer());
-        if(offerSyncRequest.getSourceOffer().equals(offerSyncRequest.getTargetOffer())) {
+        if (offerSyncRequest.getSourceOffer().equals(offerSyncRequest.getTargetOffer())) {
             throw new IllegalArgumentException("Source offer cannot be the same as target offer");
         }
         ParametersChecker.checkParameter("tenantId is mandatory.", offerSyncRequest.getTenantId());
@@ -121,7 +193,8 @@ public class AdminOfferSyncResource {
             offerSyncRequest.getOffset()));
 
         boolean started = offerSyncService
-            .startSynchronization(offerSyncRequest.getSourceOffer(), offerSyncRequest.getTargetOffer(), dataCategory,
+            .startSynchronization(offerSyncRequest.getSourceOffer(), offerSyncRequest.getTargetOffer(),
+                offerSyncRequest.getStrategyId(), dataCategory,
                 offerSyncRequest.getOffset());
 
         Response.Status status;

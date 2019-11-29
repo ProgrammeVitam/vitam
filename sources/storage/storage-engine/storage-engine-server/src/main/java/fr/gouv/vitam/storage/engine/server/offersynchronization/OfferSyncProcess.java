@@ -1,4 +1,4 @@
-/*******************************************************************************
+/*
  * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2019)
  *
  * contact.vitam@culture.gouv.fr
@@ -23,7 +23,7 @@
  *
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
- *******************************************************************************/
+ */
 package fr.gouv.vitam.storage.engine.server.offersynchronization;
 
 import com.google.common.collect.Iterables;
@@ -31,6 +31,8 @@ import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.StatusCode;
+import fr.gouv.vitam.common.retryable.RetryableOnException;
+import fr.gouv.vitam.common.retryable.RetryableParameters;
 import fr.gouv.vitam.common.stream.StreamUtils;
 import fr.gouv.vitam.common.thread.VitamThreadFactory;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
@@ -55,35 +57,43 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.stream.Collectors;
 
+import static java.util.concurrent.TimeUnit.SECONDS;
+
 /**
  * Synchronization of a storage offer from another one.
  */
 public class OfferSyncProcess {
-
-    /**
-     * Vitam Logger.
-     */
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(OfferSyncProcess.class);
-
-    private static final String STRATEGY_ID = "default";
 
     private final RestoreOfferBackupService restoreOfferBackupService;
     private final StorageDistribution distribution;
     private final int bulkSize;
     private final int offerSyncThreadPoolSize;
+    private final RetryableParameters retryableParameters;
 
     private OfferSyncStatus offerSyncStatus;
 
-    public OfferSyncProcess(
-        RestoreOfferBackupService restoreOfferBackupService,
-        StorageDistribution distribution, int bulkSize, int offerSyncThreadPoolSize) {
+    public OfferSyncProcess(RestoreOfferBackupService restoreOfferBackupService, StorageDistribution distribution,
+        int bulkSize, int offerSyncThreadPoolSize, int offerSyncNumberOfRetries, int offerSyncFirstAttemptWaitingTime,
+        int offerSyncWaitingTime) {
         this.restoreOfferBackupService = restoreOfferBackupService;
         this.distribution = distribution;
         this.bulkSize = bulkSize;
         this.offerSyncThreadPoolSize = offerSyncThreadPoolSize;
-        this.offerSyncStatus = new OfferSyncStatus(
-            VitamThreadUtils.getVitamSession().getRequestId(), StatusCode.UNKNOWN, null, null,
-            null, null, null, null, null);
+        this.offerSyncStatus =
+            new OfferSyncStatus(VitamThreadUtils.getVitamSession().getRequestId(), StatusCode.UNKNOWN, null, null, null,
+                null, null, null, null);
+        this.retryableParameters = new RetryableParameters(
+            offerSyncNumberOfRetries,
+            offerSyncFirstAttemptWaitingTime,
+            offerSyncWaitingTime,
+            10,
+            SECONDS
+        );
+    }
+
+    private static OfferLog getLastOfferLog(OfferLog offerLog1, OfferLog offerLog2) {
+        return offerLog1.getSequence() > offerLog2.getSequence() ? offerLog1 : offerLog2;
     }
 
     /**
@@ -91,9 +101,10 @@ public class OfferSyncProcess {
      *
      * @param sourceOffer the identifier of the source offer
      * @param targetOffer the identifier of the target offer
+     * @param strategyId the strategy containing the two offers
      * @param offset the offset of the process of the synchronisation
      */
-    public void synchronize(String sourceOffer, String targetOffer,
+    public void synchronize(String sourceOffer, String targetOffer, String strategyId,
         DataCategory dataCategory, Long offset) {
 
         this.offerSyncStatus = new OfferSyncStatus(
@@ -109,7 +120,7 @@ public class OfferSyncProcess {
             executor = Executors.newFixedThreadPool(
                 this.offerSyncThreadPoolSize, VitamThreadFactory.getInstance());
 
-            synchronize(executor, sourceOffer, targetOffer, dataCategory, offset);
+            synchronize(executor, sourceOffer, targetOffer, strategyId, dataCategory, offset);
             this.offerSyncStatus.setStatusCode(StatusCode.OK);
 
         } catch (Throwable e) {
@@ -129,28 +140,29 @@ public class OfferSyncProcess {
         return LocalDateUtil.getFormattedDateForMongo(LocalDateUtil.now());
     }
 
-    private void synchronize(ExecutorService executor, String sourceOffer, String targetOffer,
+    private void synchronize(ExecutorService executor, String sourceOffer, String targetOffer, String strategyId,
         DataCategory dataCategory, Long startOffset) throws StorageException {
 
         Long offset = startOffset;
         while (true) {
             // get the data to startSynchronization
             List<OfferLog> rawOfferLogs = restoreOfferBackupService.getListing(
-                STRATEGY_ID, sourceOffer, dataCategory, offset, bulkSize, Order.ASC);
+                strategyId, sourceOffer, dataCategory, offset, bulkSize, Order.ASC);
 
             if (rawOfferLogs.isEmpty()) {
                 break;
             }
 
             long lastSequence =
-                synchronizeOfferLogs(executor, sourceOffer, targetOffer, dataCategory, rawOfferLogs);
+                synchronizeOfferLogs(executor, sourceOffer, targetOffer, strategyId, dataCategory, rawOfferLogs,
+                    offset);
 
             this.offerSyncStatus.setCurrentOffset(lastSequence);
 
+            offset = lastSequence + 1;
+
             LOGGER.info(String.format("Offer synchronization safe point offset : %s (from %s to %s for category %s)",
                 offset, sourceOffer, targetOffer, dataCategory));
-
-            offset = lastSequence + 1;
 
             if (rawOfferLogs.size() < bulkSize) {
                 break;
@@ -162,7 +174,8 @@ public class OfferSyncProcess {
     }
 
     private long synchronizeOfferLogs(ExecutorService executor, String sourceOffer,
-        String destinationOffer, DataCategory dataCategory, List<OfferLog> rawOfferLogs) throws StorageException {
+        String destinationOffer, String strategyId, DataCategory dataCategory, List<OfferLog> rawOfferLogs, Long offset)
+        throws StorageException {
 
         int tenantId = VitamThreadUtils.getVitamSession().getTenantId();
         String requestId = VitamThreadUtils.getVitamSession().getRequestId();
@@ -173,25 +186,21 @@ public class OfferSyncProcess {
         List<CompletableFuture<Void>> completableFutures = new ArrayList<>();
         for (OfferLog offerLog : offerLogs) {
 
-            CompletableFuture<Void> completableFuture;
             switch (offerLog.getAction()) {
-
                 case WRITE:
-                    completableFuture = CompletableFuture.runAsync(
-                        RetryableRunnable.from(() -> copyObject(sourceOffer, destinationOffer, dataCategory, offerLog, tenantId, requestId)),
-                        executor);
+                    completableFutures.add(CompletableFuture.runAsync(() -> retryable().execute(
+                        () -> copyObject(sourceOffer, destinationOffer, dataCategory, offerLog.getContainer(),
+                            offerLog.getFileName(), tenantId, strategyId, requestId)), executor));
                     break;
-
                 case DELETE:
-                    completableFuture = CompletableFuture.runAsync(
-                        RetryableRunnable.from(() -> deleteObject(destinationOffer, dataCategory, offerLog, tenantId, requestId)),
-                        executor);
+                    completableFutures.add(CompletableFuture.runAsync(() -> retryable().execute(
+                        () -> deleteObject(destinationOffer, dataCategory, offerLog.getContainer(),
+                            offerLog.getFileName(), tenantId, strategyId, requestId)
+                    ), executor));
                     break;
-
                 default:
                     throw new UnsupportedOperationException("Unknown offer log action " + offerLog.getAction());
             }
-            completableFutures.add(completableFuture);
         }
 
         boolean allSucceeded = awaitCompletion(completableFutures);
@@ -199,13 +208,17 @@ public class OfferSyncProcess {
         if (!allSucceeded) {
             throw new StorageException(
                 "Error(s) occurred during offer synchronization " + sourceOffer + " > " + destinationOffer +
-                    " for container " + dataCategory);
+                    " for container " + dataCategory + " at start offset " + offset);
         }
 
         long lastSequence = Iterables.getLast(rawOfferLogs).getSequence();
         LOGGER.info("[OfferSync]: successful synchronization of dataCategory : {}, tenant : {}, offset : {}",
             dataCategory, tenantId, lastSequence);
         return lastSequence;
+    }
+
+    private RetryableOnException<Void, RuntimeStorageException> retryable() {
+        return new RetryableOnException<>(retryableParameters);
     }
 
     private boolean awaitCompletion(List<CompletableFuture<Void>> completableFutures) throws StorageException {
@@ -224,8 +237,42 @@ public class OfferSyncProcess {
         return allSucceeded;
     }
 
+    private void syncObject(String sourceOffer, String destinationOffer, DataCategory dataCategory,
+        String container, String fileName, int tenant, String strategyId, String requestId) {
+
+        VitamThreadUtils.getVitamSession().setTenantId(tenant);
+        VitamThreadUtils.getVitamSession().setRequestId(requestId);
+
+        Response resp = null;
+        try {
+            LOGGER.debug("Sync object " + container + "/" + fileName + " from offer " +
+                sourceOffer + " to offer " + destinationOffer);
+            try {
+                resp = distribution
+                    .getContainerByCategory(strategyId, fileName, dataCategory,
+                        sourceOffer);
+                LOGGER.debug("Copy object " + container + "/" + fileName + " from offer " +
+                    sourceOffer + " to offer " + destinationOffer);
+                // Assume file found so copy object to destination offer
+                distribution.storeDataInOffers(strategyId, fileName,
+                    dataCategory, null, Collections.singletonList(destinationOffer), resp);
+
+            } catch (StorageNotFoundException e) {
+                deleteObject(destinationOffer, dataCategory, container, fileName, tenant, strategyId, requestId);
+            }
+
+        } catch (StorageException e) {
+            throw new RuntimeStorageException(
+                "An error occurred during copying '" + container + "/" + fileName +
+                    "' from "
+                    + sourceOffer + " to " + destinationOffer, e);
+        } finally {
+            StreamUtils.consumeAnyEntityAndClose(resp);
+        }
+    }
+
     private void copyObject(String sourceOffer, String destinationOffer, DataCategory dataCategory,
-        OfferLog offerLog, int tenant, String requestId) {
+        String container, String fileName, int tenant, String strategyId, String requestId) {
 
         VitamThreadUtils.getVitamSession().setTenantId(tenant);
         VitamThreadUtils.getVitamSession().setRequestId(requestId);
@@ -237,14 +284,14 @@ public class OfferSyncProcess {
 
         Response resp = null;
         try {
-            LOGGER.debug("Copying object " + offerLog.getContainer() + "/" + offerLog.getFileName() + " from offer " +
+            LOGGER.debug("Copying object " + container + "/" + fileName + " from offer " +
                 sourceOffer + " to offer " + destinationOffer);
 
             resp = distribution
-                .getContainerByCategory(STRATEGY_ID, offerLog.getFileName(), dataCategory,
+                .getContainerByCategory(strategyId, fileName, dataCategory,
                     sourceOffer);
 
-            distribution.storeDataInOffers(STRATEGY_ID, offerLog.getFileName(),
+            distribution.storeDataInOffers(strategyId, fileName,
                 dataCategory, null, Collections.singletonList(destinationOffer), resp);
 
         } catch (StorageNotFoundException e) {
@@ -252,7 +299,7 @@ public class OfferSyncProcess {
             LOGGER.warn("File " + sourceOffer + " not found on " + sourceOffer + ". File deleted meanwhile?");
         } catch (StorageException e) {
             throw new RuntimeStorageException(
-                "An error occurred during copying '" + offerLog.getContainer() + "/" + offerLog.getFileName() +
+                "An error occurred during copying '" + container + "/" + fileName +
                     "' from "
                     + sourceOffer + " to " + destinationOffer, e);
         } finally {
@@ -260,7 +307,9 @@ public class OfferSyncProcess {
         }
     }
 
-    private void deleteObject(String destinationOffer, DataCategory dataCategory, OfferLog offerLog, int tenant,
+    private void deleteObject(String destinationOffer, DataCategory dataCategory, String container, String fileName,
+        int tenant,
+        String strategyId,
         String requestId) {
 
         VitamThreadUtils.getVitamSession().setTenantId(tenant);
@@ -268,17 +317,17 @@ public class OfferSyncProcess {
 
         try {
             // A deleted file should (presumably) never be rewritten
-            LOGGER.debug("Deleting object " + offerLog.getContainer() + "/" + offerLog.getFileName() + " from offer " +
+            LOGGER.debug("Deleting object " + container + "/" + fileName + " from offer " +
                 destinationOffer);
 
             DataContext context = new DataContext(
-                offerLog.getFileName(), dataCategory, null, tenant);
+                fileName, dataCategory, null, tenant, strategyId);
 
-            distribution.deleteObjectInOffers(STRATEGY_ID, context, Collections.singletonList(destinationOffer));
+            distribution.deleteObjectInOffers(strategyId, context, Collections.singletonList(destinationOffer));
 
         } catch (StorageException e) {
-            throw new RuntimeStorageException("An error occurred during deleting '" + offerLog.getContainer() + "/" +
-                offerLog.getFileName() + "' from " + destinationOffer, e);
+            throw new RuntimeStorageException("An error occurred during deleting '" + container + "/" +
+                fileName + "' from " + destinationOffer, e);
         }
     }
 
@@ -291,10 +340,6 @@ public class OfferSyncProcess {
                 offerLog -> offerLog,
                 OfferSyncProcess::getLastOfferLog)
             ).values();
-    }
-
-    private static OfferLog getLastOfferLog(OfferLog offerLog1, OfferLog offerLog2) {
-        return offerLog1.getSequence() > offerLog2.getSequence() ? offerLog1 : offerLog2;
     }
 
     public boolean isRunning() {
