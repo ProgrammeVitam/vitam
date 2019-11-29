@@ -60,7 +60,7 @@ public class RetryableOnResult<T, E extends Exception> implements Retryable<T, E
     @Override
     public T exec(DelegateRetry<T, E> delegate) throws E {
         while (counter.getAndIncrement() < param.getNbRetry()) {
-            LOGGER.warn("Retryable='{}' - Attempt '{}' of '{}'.", delegate.toString(), counter.get(), param.getNbRetry());
+            logAttemptDelegate(delegate.toString());
             T result = delegate.call();
             if (counter.get() >= param.getNbRetry() || retryOn.negate().test(result)) {
                 LOGGER.warn("Retryable='{}' - Stop retry at attempt '{}' and return result of type '{}'.", counter.get(), result.getClass().getSimpleName());
@@ -76,5 +76,13 @@ public class RetryableOnResult<T, E extends Exception> implements Retryable<T, E
     @Override
     public void execute(DelegateRetryVoid<E> delegate) throws E {
         throw new IllegalStateException("Cannot use this function");
+    }
+
+    private void logAttemptDelegate(String name) {
+        if (counter.get() == 1) {
+            LOGGER.debug("Retryable='{}' - Attempt '{}' of '{}'.", name, counter.get(), param.getNbRetry());
+        } else {
+            LOGGER.warn("Retryable='{}' - Attempt '{}' of '{}'.", name, counter.get(), param.getNbRetry());
+        }
     }
 }
