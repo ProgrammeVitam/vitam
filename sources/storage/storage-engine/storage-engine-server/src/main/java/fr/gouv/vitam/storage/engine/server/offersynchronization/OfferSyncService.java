@@ -32,9 +32,11 @@ import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.storage.engine.common.model.DataCategory;
+import fr.gouv.vitam.storage.engine.common.model.request.OfferPartialSyncItem;
 import fr.gouv.vitam.storage.engine.server.distribution.StorageDistribution;
 import fr.gouv.vitam.storage.engine.server.rest.StorageConfiguration;
 
+import java.util.List;
 import java.util.concurrent.atomic.AtomicReference;
 
 /**
@@ -78,7 +80,8 @@ public class OfferSyncService {
     @VisibleForTesting
     OfferSyncService(
         RestoreOfferBackupService restoreOfferBackupService,
-        StorageDistribution distribution, int bulkSize, int offerSyncThreadPoolSize, int offerSyncNumberOfRetries, int offerSyncFirstAttemptWaitingTime, int offerSyncWaitingTime) {
+        StorageDistribution distribution, int bulkSize, int offerSyncThreadPoolSize, int offerSyncNumberOfRetries,
+        int offerSyncFirstAttemptWaitingTime, int offerSyncWaitingTime) {
         this.restoreOfferBackupService = restoreOfferBackupService;
         this.distribution = distribution;
         this.bulkSize = bulkSize;
@@ -86,6 +89,14 @@ public class OfferSyncService {
         this.offerSyncNumberOfRetries = offerSyncNumberOfRetries;
         this.offerSyncFirstAttemptWaitingTime = offerSyncFirstAttemptWaitingTime;
         this.offerSyncWaitingTime = offerSyncWaitingTime;
+    }
+
+    public boolean startSynchronization(String sourceOffer, String targetOffer, String strategyId,
+        List<OfferPartialSyncItem> items) {
+
+        items.forEach(item -> {
+            // TODO: 29/11/2019 add task to queue
+        });
     }
 
     /**
@@ -124,10 +135,12 @@ public class OfferSyncService {
     }
 
     OfferSyncProcess createOfferSyncProcess() {
-        return new OfferSyncProcess(restoreOfferBackupService, distribution, bulkSize, offerSyncThreadPoolSize, offerSyncNumberOfRetries, offerSyncFirstAttemptWaitingTime, offerSyncWaitingTime);
+        return new OfferSyncProcess(restoreOfferBackupService, distribution, bulkSize, offerSyncThreadPoolSize,
+            offerSyncNumberOfRetries, offerSyncFirstAttemptWaitingTime, offerSyncWaitingTime);
     }
 
-    void runSynchronizationAsync(String sourceOffer, String targetOffer, String strategyId, DataCategory dataCategory, Long offset,
+    void runSynchronizationAsync(String sourceOffer, String targetOffer, String strategyId, DataCategory dataCategory,
+        Long offset,
         OfferSyncProcess offerSyncProcess) {
 
         int tenantId = VitamThreadUtils.getVitamSession().getTenantId();

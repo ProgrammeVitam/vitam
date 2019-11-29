@@ -73,12 +73,16 @@ public class OfferSyncProcess {
 
     private OfferSyncStatus offerSyncStatus;
 
-    public OfferSyncProcess(RestoreOfferBackupService restoreOfferBackupService, StorageDistribution distribution, int bulkSize, int offerSyncThreadPoolSize, int offerSyncNumberOfRetries, int offerSyncFirstAttemptWaitingTime, int offerSyncWaitingTime) {
+    public OfferSyncProcess(RestoreOfferBackupService restoreOfferBackupService, StorageDistribution distribution,
+        int bulkSize, int offerSyncThreadPoolSize, int offerSyncNumberOfRetries, int offerSyncFirstAttemptWaitingTime,
+        int offerSyncWaitingTime) {
         this.restoreOfferBackupService = restoreOfferBackupService;
         this.distribution = distribution;
         this.bulkSize = bulkSize;
         this.offerSyncThreadPoolSize = offerSyncThreadPoolSize;
-        this.offerSyncStatus = new OfferSyncStatus(VitamThreadUtils.getVitamSession().getRequestId(), StatusCode.UNKNOWN, null, null, null, null, null, null, null);
+        this.offerSyncStatus =
+            new OfferSyncStatus(VitamThreadUtils.getVitamSession().getRequestId(), StatusCode.UNKNOWN, null, null, null,
+                null, null, null, null);
         this.retryableParameters = new RetryableParameters(
             offerSyncNumberOfRetries,
             offerSyncFirstAttemptWaitingTime,
@@ -185,11 +189,13 @@ public class OfferSyncProcess {
             switch (offerLog.getAction()) {
                 case WRITE:
                     completableFutures.add(CompletableFuture.runAsync(() -> retryable().execute(
-                        () -> copyObject(sourceOffer, destinationOffer, dataCategory, offerLog, tenantId, strategyId, requestId)), executor));
+                        () -> copyObject(sourceOffer, destinationOffer, dataCategory, offerLog.getContainer(),
+                            offerLog.getFileName(), tenantId, strategyId, requestId)), executor));
                     break;
                 case DELETE:
                     completableFutures.add(CompletableFuture.runAsync(() -> retryable().execute(
-                        () -> deleteObject(destinationOffer, dataCategory, offerLog, tenantId, strategyId, requestId)
+                        () -> deleteObject(destinationOffer, dataCategory, offerLog.getContainer(),
+                            offerLog.getFileName(), tenantId, strategyId, requestId)
                     ), executor));
                     break;
                 default:
@@ -231,8 +237,42 @@ public class OfferSyncProcess {
         return allSucceeded;
     }
 
+    private void syncObject(String sourceOffer, String destinationOffer, DataCategory dataCategory,
+        String container, String fileName, int tenant, String strategyId, String requestId) {
+
+        VitamThreadUtils.getVitamSession().setTenantId(tenant);
+        VitamThreadUtils.getVitamSession().setRequestId(requestId);
+
+        Response resp = null;
+        try {
+            LOGGER.debug("Sync object " + container + "/" + fileName + " from offer " +
+                sourceOffer + " to offer " + destinationOffer);
+            try {
+                resp = distribution
+                    .getContainerByCategory(strategyId, fileName, dataCategory,
+                        sourceOffer);
+                LOGGER.debug("Copy object " + container + "/" + fileName + " from offer " +
+                    sourceOffer + " to offer " + destinationOffer);
+                // Assume file found so copy object to destination offer
+                distribution.storeDataInOffers(strategyId, fileName,
+                    dataCategory, null, Collections.singletonList(destinationOffer), resp);
+
+            } catch (StorageNotFoundException e) {
+                deleteObject(destinationOffer, dataCategory, container, fileName, tenant, strategyId, requestId);
+            }
+
+        } catch (StorageException e) {
+            throw new RuntimeStorageException(
+                "An error occurred during copying '" + container + "/" + fileName +
+                    "' from "
+                    + sourceOffer + " to " + destinationOffer, e);
+        } finally {
+            StreamUtils.consumeAnyEntityAndClose(resp);
+        }
+    }
+
     private void copyObject(String sourceOffer, String destinationOffer, DataCategory dataCategory,
-        OfferLog offerLog, int tenant, String strategyId, String requestId) {
+        String container, String fileName, int tenant, String strategyId, String requestId) {
 
         VitamThreadUtils.getVitamSession().setTenantId(tenant);
         VitamThreadUtils.getVitamSession().setRequestId(requestId);
@@ -244,14 +284,14 @@ public class OfferSyncProcess {
 
         Response resp = null;
         try {
-            LOGGER.debug("Copying object " + offerLog.getContainer() + "/" + offerLog.getFileName() + " from offer " +
+            LOGGER.debug("Copying object " + container + "/" + fileName + " from offer " +
                 sourceOffer + " to offer " + destinationOffer);
 
             resp = distribution
-                .getContainerByCategory(strategyId, offerLog.getFileName(), dataCategory,
+                .getContainerByCategory(strategyId, fileName, dataCategory,
                     sourceOffer);
 
-            distribution.storeDataInOffers(strategyId, offerLog.getFileName(),
+            distribution.storeDataInOffers(strategyId, fileName,
                 dataCategory, null, Collections.singletonList(destinationOffer), resp);
 
         } catch (StorageNotFoundException e) {
@@ -259,7 +299,7 @@ public class OfferSyncProcess {
             LOGGER.warn("File " + sourceOffer + " not found on " + sourceOffer + ". File deleted meanwhile?");
         } catch (StorageException e) {
             throw new RuntimeStorageException(
-                "An error occurred during copying '" + offerLog.getContainer() + "/" + offerLog.getFileName() +
+                "An error occurred during copying '" + container + "/" + fileName +
                     "' from "
                     + sourceOffer + " to " + destinationOffer, e);
         } finally {
@@ -267,7 +307,8 @@ public class OfferSyncProcess {
         }
     }
 
-    private void deleteObject(String destinationOffer, DataCategory dataCategory, OfferLog offerLog, int tenant,
+    private void deleteObject(String destinationOffer, DataCategory dataCategory, String container, String fileName,
+        int tenant,
         String strategyId,
         String requestId) {
 
@@ -276,17 +317,17 @@ public class OfferSyncProcess {
 
         try {
             // A deleted file should (presumably) never be rewritten
-            LOGGER.debug("Deleting object " + offerLog.getContainer() + "/" + offerLog.getFileName() + " from offer " +
+            LOGGER.debug("Deleting object " + container + "/" + fileName + " from offer " +
                 destinationOffer);
 
             DataContext context = new DataContext(
-                offerLog.getFileName(), dataCategory, null, tenant, strategyId);
+                fileName, dataCategory, null, tenant, strategyId);
 
             distribution.deleteObjectInOffers(strategyId, context, Collections.singletonList(destinationOffer));
 
         } catch (StorageException e) {
-            throw new RuntimeStorageException("An error occurred during deleting '" + offerLog.getContainer() + "/" +
-                offerLog.getFileName() + "' from " + destinationOffer, e);
+            throw new RuntimeStorageException("An error occurred during deleting '" + container + "/" +
+                fileName + "' from " + destinationOffer, e);
         }
     }
 
