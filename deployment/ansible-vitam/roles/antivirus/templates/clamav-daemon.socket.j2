@@ -4,3 +4,6 @@ ListenStream=127.0.0.1:{{ clamav.port }}
 SocketUser=clamav
 SocketGroup=clamav
 RemoveOnStop=True
+
+[Install]
+WantedBy=sockets.target
