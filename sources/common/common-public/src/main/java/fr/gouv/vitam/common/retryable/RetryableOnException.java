@@ -66,7 +66,7 @@ public class RetryableOnException<T, E extends Exception> implements Retryable<T
     public T exec(DelegateRetry<T, E> delegate) throws E {
         while (counter.getAndIncrement() < param.getNbRetry()) {
             try {
-                LOGGER.warn("Retryable='{}' - Attempt '{}' of '{}'.", delegate.toString(), counter.get(), param.getNbRetry());
+                logAttemptDelegate(delegate.toString());
                 return delegate.call();
             } catch (Exception e) {
                 if (counter.get() >= param.getNbRetry() || retryOn.negate().test(e)) {
@@ -84,7 +84,7 @@ public class RetryableOnException<T, E extends Exception> implements Retryable<T
     public void execute(DelegateRetryVoid<E> delegate) throws E {
         while (counter.getAndIncrement() < param.getNbRetry()) {
             try {
-                LOGGER.warn("Retryable='{}' - Attempt '{}' of '{}'.", delegate.toString(), counter.get(), param.getNbRetry());
+                logAttemptDelegate(delegate.toString());
                 delegate.call();
                 return;
             } catch (Exception e) {
@@ -103,5 +103,13 @@ public class RetryableOnException<T, E extends Exception> implements Retryable<T
         onException.accept(e);
         LOGGER.warn(String.format("Retryable='%s' - Got an exception of type '%s'.", name, e.getClass().getSimpleName()), e);
         sleep(counter.get(), name, LOGGER, param, randomSleep);
+    }
+
+    private void logAttemptDelegate(String name) {
+        if (counter.get() == 1) {
+            LOGGER.debug("Retryable='{}' - Attempt '{}' of '{}'.", name, counter.get(), param.getNbRetry());
+        } else {
+            LOGGER.warn("Retryable='{}' - Attempt '{}' of '{}'.", name, counter.get(), param.getNbRetry());
+        }
     }
 }
