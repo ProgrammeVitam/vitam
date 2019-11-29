@@ -4,7 +4,7 @@
 	<parent>
 		<groupId>fr.gouv.vitam</groupId>
 		<artifactId>metadata</artifactId>
-		<version>2.16.0</version>
+		<version>2.17.0-SNAPSHOT</version>
 	</parent>
 	<artifactId>metadata-client</artifactId>
 	<name>metadata Client</name>
