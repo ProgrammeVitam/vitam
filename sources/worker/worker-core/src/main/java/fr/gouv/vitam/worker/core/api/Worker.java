@@ -26,6 +26,7 @@
  */
 package fr.gouv.vitam.worker.core.api;
 
+import com.google.common.annotations.VisibleForTesting;
 import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.VitamAutoCloseable;
 import fr.gouv.vitam.common.model.processing.Step;
@@ -65,6 +66,7 @@ public interface Worker extends VitamAutoCloseable {
      * @param actionHandler action handler
      * @return the worker instance
      */
+    @VisibleForTesting
     Worker addActionHandler(String actionName, ActionHandler actionHandler);
 
 
