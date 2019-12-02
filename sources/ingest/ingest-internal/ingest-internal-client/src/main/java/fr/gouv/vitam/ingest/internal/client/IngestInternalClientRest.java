@@ -30,7 +30,9 @@ import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.client.DefaultClient;
 import fr.gouv.vitam.common.client.IngestCollection;
+import fr.gouv.vitam.common.client.VitamRequestBuilder;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
+import fr.gouv.vitam.common.exception.NotAcceptableClientException;
 import fr.gouv.vitam.common.exception.VitamClientException;
 import fr.gouv.vitam.common.exception.VitamClientInternalException;
 import fr.gouv.vitam.common.exception.VitamException;
@@ -66,7 +68,6 @@ import static fr.gouv.vitam.common.client.VitamRequestBuilder.get;
 import static fr.gouv.vitam.common.client.VitamRequestBuilder.head;
 import static fr.gouv.vitam.common.client.VitamRequestBuilder.post;
 import static fr.gouv.vitam.common.client.VitamRequestBuilder.put;
-import static javax.ws.rs.core.MediaType.APPLICATION_OCTET_STREAM_TYPE;
 import static javax.ws.rs.core.Response.Status.Family.REDIRECTION;
 import static javax.ws.rs.core.Response.Status.Family.SUCCESSFUL;
 
@@ -113,7 +114,6 @@ class IngestInternalClientRest extends DefaultClient implements IngestInternalCl
         try (Response response = make(post()
             .withPath(LOGBOOK_URL)
             .withBody(logbookParametersList, "check Upload Parameter")
-            .withChunckedMode(false)
             .withJson())) {
             check(response);
         }
@@ -124,27 +124,23 @@ class IngestInternalClientRest extends DefaultClient implements IngestInternalCl
         throws VitamException {
         ParametersChecker.checkParameter("context Id Request must not be null",
             workflow);
-        Response response = null;
-        try {
-            response = make(post()
-                .withPath(INGEST_URL)
-                .withHeader(GlobalDataRest.X_CONTEXT_ID, workflow.getIdentifier())
-                .withHeader(GlobalDataRest.X_TYPE_PROCESS, workflow.getTypeProc())
-                .withHeader(GlobalDataRest.X_ACTION, actionAfterInit)
-                .withHeader(GlobalDataRest.X_ACTION_INIT, ProcessAction.START)
-                .withBody(inputStream, "Body cannot be null")
-                .withContentType(archiveMimeType)
-                .withOctetAccept()
-            );
+        VitamRequestBuilder request = post()
+            .withPath(INGEST_URL)
+            .withHeader(GlobalDataRest.X_CONTEXT_ID, workflow.getIdentifier())
+            .withHeader(GlobalDataRest.X_TYPE_PROCESS, workflow.getTypeProc())
+            .withHeader(GlobalDataRest.X_ACTION, actionAfterInit)
+            .withHeader(GlobalDataRest.X_ACTION_INIT, ProcessAction.START)
+            .withBody(inputStream, "Body cannot be null")
+            .withContentType(archiveMimeType)
+            .withOctetAccept();
+        try (Response response = make(request)) {
             check(response);
-        } catch (IngestInternalClientServerException e) {
-            LOGGER.error("SIP Upload Error: " + Status.fromStatusCode(response.getStatus()).getReasonPhrase());
+        } catch (NotAcceptableClientException e) {
+            throw new ZipFilesNameNotAllowedException("File or folder name is not allowed");
+        } catch (IngestInternalClientServerException | WorkspaceClientServerException e) {
+            throw new IngestInternalClientServerException(e);
         } catch (VitamClientException e) {
-            throw new VitamClientException(e);
-        } finally {
-            if (response != null) {
-                response.close();
-            }
+            throw new VitamException(e);
         }
     }
 
@@ -152,14 +148,14 @@ class IngestInternalClientRest extends DefaultClient implements IngestInternalCl
     public void initWorkflow(WorkFlow workFlow) throws VitamException {
         ParametersChecker.checkParameter("Params cannot be null",
             workFlow);
-        try (Response response = make(post()
+        VitamRequestBuilder request = post()
             .withPath(INGEST_URL)
             .withHeader(GlobalDataRest.X_CONTEXT_ID, workFlow.getId())
             .withHeader(GlobalDataRest.X_TYPE_PROCESS, workFlow.getTypeProc())
             .withHeader(GlobalDataRest.X_ACTION, ProcessAction.INIT)
             .withHeader(GlobalDataRest.X_ACTION_INIT, ProcessAction.INIT)
-            .withOctetAccept()
-        )) {
+            .withOctetAccept();
+        try (Response response = make(request)) {
             check(response);
         } catch (IngestInternalClientServerException | IngestInternalClientNotFoundException e) {
             throw new VitamClientException(e);
@@ -171,13 +167,10 @@ class IngestInternalClientRest extends DefaultClient implements IngestInternalCl
         throws VitamClientException {
         try (Response response = make(put()
             .withPath(LOGBOOK_URL).withBody(logbookParametersList, "check Upload Parameter")
-            .withJson()
-            .withChunckedMode(false))) {
+            .withJson())) {
             check(response);
-        } catch (InvalidParseOperationException | ZipFilesNameNotAllowedException | IngestInternalClientServerException | WorkspaceClientServerException | IngestInternalClientNotFoundException e) {
+        } catch (InvalidParseOperationException | NotAcceptableClientException | IngestInternalClientServerException | WorkspaceClientServerException | IngestInternalClientNotFoundException | IngestInternalClientConflictException e) {
             throw new VitamClientException(e);
-        } catch (IngestInternalClientConflictException e) {
-            e.printStackTrace();
         }
     }
 
@@ -196,12 +189,12 @@ class IngestInternalClientRest extends DefaultClient implements IngestInternalCl
                 .withOctetAccept());
             check(response);
             return response;
-        } catch (VitamClientException | WorkspaceClientServerException | ZipFilesNameNotAllowedException e) {
+        } catch (VitamClientException | WorkspaceClientServerException | NotAcceptableClientException e) {
             throw new IngestInternalClientServerException(e);
         } catch (IngestInternalClientNotFoundException e) {
             throw new IngestInternalClientNotFoundException(e);
         } finally {
-            if (Status.fromStatusCode(response.getStatus()) != Status.OK) {
+            if (Status.fromStatusCode(response.getStatus()).getFamily() != SUCCESSFUL) {
                 response.close();
             }
         }
@@ -215,10 +208,10 @@ class IngestInternalClientRest extends DefaultClient implements IngestInternalCl
 
         try (Response response = make(post()
             .withPath(INGEST_URL + "/" + guid + REPORT).withBody(input, "check input Parameter")
-            .withContentType(APPLICATION_OCTET_STREAM_TYPE)
+            .withOctetContentType()
             .withOctetAccept())) {
             check(response);
-        } catch (InvalidParseOperationException | ZipFilesNameNotAllowedException | IngestInternalClientServerException | WorkspaceClientServerException | IngestInternalClientNotFoundException e) {
+        } catch (InvalidParseOperationException | NotAcceptableClientException | IngestInternalClientServerException | WorkspaceClientServerException | IngestInternalClientNotFoundException e) {
             throw new VitamClientException(e);
         }
     }
@@ -235,7 +228,7 @@ class IngestInternalClientRest extends DefaultClient implements IngestInternalCl
         )) {
             check(response);
             return RequestResponse.parseFromResponse(response, ItemStatus.class);
-        } catch (InvalidParseOperationException | ZipFilesNameNotAllowedException | IngestInternalClientServerException | WorkspaceClientServerException | IngestInternalClientNotFoundException e) {
+        } catch (InvalidParseOperationException | NotAcceptableClientException | IngestInternalClientServerException | WorkspaceClientServerException | IngestInternalClientNotFoundException e) {
             throw new VitamClientException(e);
         }
     }
@@ -254,9 +247,9 @@ class IngestInternalClientRest extends DefaultClient implements IngestInternalCl
                 .setLogbookTypeProcess(response.getHeaderString(GlobalDataRest.X_CONTEXT_ID))
                 .increment(StatusCode.valueOf(response.getHeaderString(GlobalDataRest.X_GLOBAL_EXECUTION_STATUS)));
 
-        } catch (InvalidParseOperationException | ZipFilesNameNotAllowedException | WorkspaceClientServerException e) {
+        } catch (InvalidParseOperationException | NotAcceptableClientException | WorkspaceClientServerException e) {
             throw new VitamClientException(e);
-        } catch (IngestInternalClientNotFoundException | IngestInternalClientServerException e) {
+        } catch (VitamClientInternalException | IngestInternalClientNotFoundException | WorkflowNotFoundException | IngestInternalClientServerException e) {
             throw new VitamClientInternalException(e);
         }
     }
@@ -264,20 +257,16 @@ class IngestInternalClientRest extends DefaultClient implements IngestInternalCl
     @Override
     public RequestResponse<ItemStatus> getOperationProcessExecutionDetails(String id) throws VitamClientException {
         ParametersChecker.checkParameter(BLANK_OPERATION_ID, id);
-        Response response = null;
-        try {
-            response = make(get()
-                .withPath(OPERATION_URI + "/" + id)
-                .withJsonAccept()
-            );
+        try (Response response = make(get()
+            .withPath(OPERATION_URI + "/" + id)
+            .withJsonAccept()
+        )) {
             check(response);
             return RequestResponse.parseFromResponse(response, ItemStatus.class);
-        } catch (InvalidParseOperationException | ZipFilesNameNotAllowedException | WorkspaceClientServerException e) {
+        } catch (InvalidParseOperationException | NotAcceptableClientException | WorkspaceClientServerException e) {
             throw new VitamClientException(e);
         } catch (VitamClientInternalException | IngestInternalClientServerException | IngestInternalClientNotFoundException e) {
-            return RequestResponse.parseFromResponse(response, ItemStatus.class);
-        } finally {
-            response.close();
+            throw new VitamClientInternalException(e);
         }
     }
 
@@ -293,10 +282,10 @@ class IngestInternalClientRest extends DefaultClient implements IngestInternalCl
             );
             check(response);
             return RequestResponse.parseFromResponse(response, ItemStatus.class);
-        } catch (InvalidParseOperationException | ZipFilesNameNotAllowedException | WorkspaceClientServerException e) {
+        } catch (InvalidParseOperationException | NotAcceptableClientException | WorkspaceClientServerException e) {
             throw new VitamClientException(e);
         } catch (VitamClientInternalException | IngestInternalClientServerException | IngestInternalClientNotFoundException | IngestInternalClientConflictException e) {
-            return RequestResponse.parseFromResponse(response, ItemStatus.class);
+            throw new VitamClientInternalException(e);
         } finally {
             if (response != null) {
                 response.close();
@@ -315,10 +304,10 @@ class IngestInternalClientRest extends DefaultClient implements IngestInternalCl
             );
             check(response);
             return RequestResponse.parseFromResponse(response, ProcessDetail.class);
-        } catch (InvalidParseOperationException | ZipFilesNameNotAllowedException | WorkspaceClientServerException e) {
+        } catch (InvalidParseOperationException | NotAcceptableClientException | WorkspaceClientServerException e) {
             throw new VitamClientException(e);
         } catch (VitamClientInternalException | IngestInternalClientServerException | IngestInternalClientNotFoundException | IngestInternalClientConflictException e) {
-            return RequestResponse.parseFromResponse(response, ItemStatus.class);
+            throw new VitamClientInternalException(e);
         } finally {
             if (response != null) {
                 response.close();
@@ -336,10 +325,10 @@ class IngestInternalClientRest extends DefaultClient implements IngestInternalCl
             );
             check(response);
             return RequestResponse.parseFromResponse(response, WorkFlow.class);
-        } catch (InvalidParseOperationException | ZipFilesNameNotAllowedException | WorkspaceClientServerException e) {
+        } catch (InvalidParseOperationException | NotAcceptableClientException | WorkspaceClientServerException e) {
             throw new VitamClientException(e);
         } catch (VitamClientInternalException | IngestInternalClientServerException | IngestInternalClientNotFoundException | IngestInternalClientConflictException e) {
-            return RequestResponse.parseFromResponse(response, ItemStatus.class);
+            throw new VitamClientInternalException(e);
         } finally {
             if (response != null) {
                 response.close();
@@ -357,7 +346,7 @@ class IngestInternalClientRest extends DefaultClient implements IngestInternalCl
             );
             check(response);
             return Optional.of(response.readEntity(WorkFlow.class));
-        } catch (InvalidParseOperationException | ZipFilesNameNotAllowedException | IngestInternalClientServerException | WorkspaceClientServerException e) {
+        } catch (InvalidParseOperationException | NotAcceptableClientException | IngestInternalClientServerException | WorkspaceClientServerException e) {
             throw new VitamClientException("Internal Error Server : " + response.readEntity(String.class));
         } catch (IngestInternalClientNotFoundException e) {
             return Optional.empty();
@@ -369,8 +358,9 @@ class IngestInternalClientRest extends DefaultClient implements IngestInternalCl
     }
 
     private void check(Response response)
-        throws VitamClientException, IngestInternalClientServerException, ZipFilesNameNotAllowedException,
-        WorkspaceClientServerException, InvalidParseOperationException, IngestInternalClientNotFoundException {
+        throws VitamClientException, IngestInternalClientServerException,
+        WorkspaceClientServerException, InvalidParseOperationException, IngestInternalClientNotFoundException,
+        NotAcceptableClientException {
         Status status = response.getStatusInfo().toEnum();
         if (SUCCESSFUL.equals(status.getFamily()) || REDIRECTION.equals(status.getFamily())) {
             return;
@@ -380,7 +370,7 @@ class IngestInternalClientRest extends DefaultClient implements IngestInternalCl
             case INTERNAL_SERVER_ERROR:
                 throw new IngestInternalClientServerException(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage());
             case NOT_ACCEPTABLE:
-                throw new ZipFilesNameNotAllowedException(NOT_ACCEPTABLE_EXCEPTION);
+                throw new NotAcceptableClientException(NOT_ACCEPTABLE_EXCEPTION);
             case NO_CONTENT:
                 throw new WorkflowNotFoundException(PROCESS_WORKFLOW_NOT_FOUND_FOR_OPERATION);
             case SERVICE_UNAVAILABLE:
