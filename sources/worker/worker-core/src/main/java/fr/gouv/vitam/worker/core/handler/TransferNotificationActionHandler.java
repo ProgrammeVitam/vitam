@@ -133,14 +133,14 @@ public class TransferNotificationActionHandler extends ActionHandler {
     private static final String XML = ".xml";
     private static final String HANDLER_ID = "ATR_NOTIFICATION";
     private static final String NAMESPACE_URI = "fr:gouv:culture:archivesdefrance:seda:v2.1";
+    private static final MarshallerObjectCache marshallerObjectCache = new MarshallerObjectCache();
+    private static final ObjectFactory objectFactory = new ObjectFactory();
 
     private HandlerIO handlerIO;
     private static final String EVENT_ID_PROCESS = "evIdProc";
 
     private List<Class<?>> handlerInitialIOList = new ArrayList<>();
-    private final MarshallerObjectCache marshallerObjectCache = new MarshallerObjectCache();
     private StatusCode workflowStatus = StatusCode.UNKNOWN;
-    private final ObjectFactory objectFactory = new ObjectFactory();
 
     private boolean isBlankTestWorkflow = false;
     private static final String TEST_STATUS_PREFIX = "Test ";

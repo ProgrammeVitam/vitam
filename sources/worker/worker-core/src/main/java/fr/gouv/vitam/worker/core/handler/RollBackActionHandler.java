@@ -44,8 +44,6 @@ public class RollBackActionHandler extends ActionHandler {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(RollBackActionHandler.class);
     private static final String HANDLER_ID = "ROLL_BACK";
 
-    private HandlerIO handlerIO;
-
     /**
      * Default Constructor
      *
@@ -62,11 +60,10 @@ public class RollBackActionHandler extends ActionHandler {
     }
 
     @Override
-    public ItemStatus execute(WorkerParameters params, HandlerIO param) {
+    public ItemStatus execute(WorkerParameters params, HandlerIO handlerIO) {
         checkMandatoryParameters(params);
         final ItemStatus itemStatus = new ItemStatus(HANDLER_ID);
 
-        handlerIO = param;
         try {
             checkMandatoryIOParameter(handlerIO);
 
