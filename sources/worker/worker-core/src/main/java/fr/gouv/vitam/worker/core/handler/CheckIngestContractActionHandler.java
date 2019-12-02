@@ -69,9 +69,6 @@ public class CheckIngestContractActionHandler extends ActionHandler {
 
     private static final String HANDLER_ID = "CHECK_CONTRACT_INGEST";
 
-    private HandlerIO handlerIO;
-    final ItemStatus itemStatus = new ItemStatus(HANDLER_ID);
-
     private AdminManagementClientFactory adminManagementClientFactory;
 
     public CheckIngestContractActionHandler() {
@@ -94,14 +91,13 @@ public class CheckIngestContractActionHandler extends ActionHandler {
     @Override
     public ItemStatus execute(WorkerParameters params, HandlerIO ioParam) {
         checkMandatoryParameters(params);
-        handlerIO = ioParam;
         final ItemStatus itemStatus = new ItemStatus(HANDLER_ID);
         CheckIngestContractStatus status;
         try {
             ObjectNode infoNode = JsonHandler.createObjectNode();
             checkMandatoryIOParameter(ioParam);
             final Map<String, Object> mandatoryValueMap =
-                (Map<String, Object>) handlerIO.getInput(SEDA_PARAMETERS_RANK);
+                (Map<String, Object>) ioParam.getInput(SEDA_PARAMETERS_RANK);
             String contractIdentifier = null;
 
             if (null != mandatoryValueMap.get(SedaConstants.TAG_ARCHIVAL_AGREEMENT) &&
