@@ -203,6 +203,7 @@ hosts_mongod_offer
 # Optional param : mandatory for 1 node of the shard, some init commands will be executed on it
 # Optional param : mongo_arbiter=true : the node will be only an arbiter ; do not add this paramter on a mongo_rs_bootstrap node
 # Optional param : mongod_memory=x ; this will force the wiredtiger cache size to x (unit is GB) ; can be usefull when colocalization with elasticsearch
+# Optional param : is_small=true ; this will force the priority for this server to be lower when electing master ; hardware can be downgraded for this machine
 # Recommended practice in production: use 3 instances per shard
 # Example :
 # vitam-mongo-swift-offer-01   mongo_cluster_name=offer-swift-1    mongo_shard_id=0                   mongo_rs_bootstrap=true
@@ -212,7 +213,7 @@ hosts_mongod_offer
 # vitam-mongo-fs-offer-02      mongo_cluster_name=offer-fs-1       mongo_shard_id=0
 # vitam-fs-offer               mongo_cluster_name=offer-fs-1       mongo_shard_id=0                   mongo_arbiter=true
 # vitam-mongo-s3-offer-01      mongo_cluster_name=offer-s3-1       mongo_shard_id=0                   mongo_rs_bootstrap=true
-# vitam-mongo-s3-offer-02      mongo_cluster_name=offer-s3-1       mongo_shard_id=0
+# vitam-mongo-s3-offer-02      mongo_cluster_name=offer-s3-1       mongo_shard_id=0                   is_small=true # PSsmin, this machine needs less hardware
 # vitam-s3-offer               mongo_cluster_name=offer-s3-1       mongo_shard_id=0                   mongo_arbiter=true
 
 ##### Zone data
