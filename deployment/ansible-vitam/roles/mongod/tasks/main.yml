@@ -161,6 +161,20 @@
       tags:
         - update_mongodb_configuration
 
+    - name: Copy the script which fine tunes usage (PSsmin)
+      template:
+        src: "tune-usage.js.j2"
+        dest: "{{ vitam_defaults.folder.root_path }}/app/mongod/tune-usage.js"
+        owner: "{{ vitam_defaults.users.vitamdb }}"
+        group: "{{ vitam_defaults.users.group }}"
+        mode: "{{ vitam_defaults.folder.conf_permission }}"
+      tags:
+        - update_mongodb_configuration
+
+    - name: Apply tuning PSSmin
+      command: mongo --host {{ ip_service }} --port {{ mongodb.mongod_port }} {{ vitam_defaults.folder.root_path }}/app/mongod/tune-usage.js
+      tags:
+        - update_mongodb_configuration
     # Create the local shard admin user
 
     - name: Copy the script which create the local users
