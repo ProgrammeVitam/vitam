@@ -131,16 +131,15 @@
     state: stopped
     enabled: no
 
-- name: ensure defautl config file is readable for anyone
+- name: ensure default config file is readable for anyone
   file:
     path: "/etc/{{ sysconfig_dir }}/elasticsearch"
-    mode: 0665
+    mode: 0664
 
-# Change default behavior in this fucking file
 - name: change default config ES_PATH_CONF value
   lineinfile:
     path: "/etc/{{ sysconfig_dir }}/elasticsearch"
-    regexp: 'ES_PATH_CONF=/etc/elasticsearch'
+    regexp: '^ES_PATH_CONF='
     line: "ES_PATH_CONF={{ elasticsearch_conf_dir }}"
 #### Configuration ####
 
