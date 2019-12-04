@@ -8,10 +8,11 @@ import 'rxjs/add/observable/of';
 import { BreadcrumbService } from '../../common/breadcrumb.service';
 import { ResourcesService } from '../../common/resources.service';
 import { TenantService } from "../../common/tenant.service";
+import { EggService } from "../../common/egg/egg.service";
 import { QueryDslService } from '../query-dsl/query-dsl.service';
 import { DagVisualizationComponent } from './dag-visualization.component';
 import { VisModule, VisNetworkService } from 'ng2-vis';
-import {HttpHeaders} from "@angular/common/http";
+import { HttpHeaders } from "@angular/common/http";
 
 const ResourcesServiceStub = {
   post: (url, header?: HttpHeaders, body?: any) => Observable.of('OK'),
@@ -61,13 +62,13 @@ const QueryDslServiceStub = {
     return !!jsonRequest;
   },
   executeRequest: (query, contractId: string, requestedCollection: string,
-                   requestMethod: string, xAction: string, objectId: string) => {
+    requestMethod: string, xAction: string, objectId: string) => {
     if (contractId) {
       return Observable.of({
-          httpCode: 200,
-          $result: {},
-          $context: {}
-        }
+        httpCode: 200,
+        $result: {},
+        $context: {}
+      }
       )
     } else {
       return Observable.of({
@@ -84,6 +85,9 @@ const QueryDslServiceStub = {
 const TenantServiceStub = {
   getState: () => Observable.of('0')
 };
+const EggServiceStub = {
+  getState: () => false
+};
 
 describe('DagVisualizationComponent', () => {
   let component: DagVisualizationComponent;
@@ -98,7 +102,8 @@ describe('DagVisualizationComponent', () => {
         VisNetworkService,
         { provide: ResourcesService, useValue: ResourcesServiceStub },
         { provide: QueryDslService, useValue: QueryDslServiceStub },
-        { provide: TenantService, useValue: TenantServiceStub }
+        { provide: TenantService, useValue: TenantServiceStub },
+        { provide: EggService, useValue: EggServiceStub }
       ],
       imports: [
         InputTextModule,

@@ -1,12 +1,13 @@
-import {Component} from '@angular/core';
-import {Title} from '@angular/platform-browser';
-import {SelectItem} from 'primeng/primeng';
-import {Subscription} from 'rxjs/Subscription';
-import {BreadcrumbElement, BreadcrumbService} from '../../common/breadcrumb.service';
-import {PageComponent} from '../../common/page/page-component';
-import {Contract} from '../../common/contract';
-import {TenantService} from '../../common/tenant.service';
-import {QueryDslService} from '../query-dsl/query-dsl.service';
+import { Component } from '@angular/core';
+import { Title } from '@angular/platform-browser';
+import { SelectItem } from 'primeng/primeng';
+import { Subscription } from 'rxjs/Subscription';
+import { BreadcrumbElement, BreadcrumbService } from '../../common/breadcrumb.service';
+import { PageComponent } from '../../common/page/page-component';
+import { Contract } from '../../common/contract';
+import { TenantService } from '../../common/tenant.service';
+import { EggService } from '../../common/egg/egg.service';
+import { QueryDslService } from '../query-dsl/query-dsl.service';
 
 import {
   VisNode,
@@ -18,8 +19,8 @@ import {
 } from 'ng2-vis';
 
 const breadcrumb: BreadcrumbElement[] = [
-  {label: 'Tests', routerLink: ''},
-  {label: 'Visualisation du Graphe', routerLink: 'tests/dag-visualization'}
+  { label: 'Tests', routerLink: '' },
+  { label: 'Visualisation du Graphe', routerLink: 'tests/dag-visualization' }
 ];
 
 class VitamNetworkData implements VisNetworkData {
@@ -46,8 +47,9 @@ export class DagVisualizationComponent extends PageComponent {
   tenant: string;
 
   constructor(public breadcrumbService: BreadcrumbService, public queryDslService: QueryDslService,
-              private visNetworkService: VisNetworkService,
-              public titleService: Title, public tenantService: TenantService) {
+    private visNetworkService: VisNetworkService,
+    public titleService: Title, public tenantService: TenantService,
+    public eggService: EggService) {
     super('Visualisation du Graphe', breadcrumb, titleService, breadcrumbService)
   }
 
@@ -59,7 +61,7 @@ export class DagVisualizationComponent extends PageComponent {
     const contractIdentifier = !this.selectedContract ? null : this.selectedContract.Identifier;
     const jsonRequest = {
       $roots: [],
-      $query: [{$in: {}}],
+      $query: [{ $in: {} }],
       $projection: {}
     };
     if (contractIdentifier != null) {
@@ -69,27 +71,49 @@ export class DagVisualizationComponent extends PageComponent {
     // manage errors
     this.queryDslService.executeRequest(jsonRequest, contractIdentifier,
       selectedCollection, selectedMethod, selectedAction, null).subscribe(
-      (response) => {
-        this.requestResponse = JSON.stringify(response, null, 2);
-        if (response.httpCode >= 400) {
+        (response) => {
+          this.requestResponse = JSON.stringify(response, null, 2);
+          if (response.httpCode >= 400) {
+            this.showError = true;
+            this.showGraph = false;
+          } else {
+            this.showError = false;
+            this.showGraph = true;
+            this.displayDag(response.$results);
+          }
+        },
+        (error) => {
           this.showError = true;
           this.showGraph = false;
-        } else {
-          this.showError = false;
-          this.showGraph = true;
-          this.displayDag(response.$results);
+          try {
+            this.requestResponse = JSON.stringify(JSON.parse(error._body), null, 2);
+          } catch (e) {
+            this.requestResponse = error._body;
+          }
         }
-      },
-      (error) => {
-        this.showError = true;
-        this.showGraph = false;
-        try {
-          this.requestResponse = JSON.stringify(JSON.parse(error._body), null, 2);
-        } catch (e) {
-          this.requestResponse = error._body;
+      );
+  }
+
+  public sendRequestGot(parentUnitId): void {
+    const selectedCollection = 'OBJECTGROUP';
+    const selectedMethod = 'GET';
+    const selectedAction = 'GET';
+    const contractIdentifier = !this.selectedContract ? null : this.selectedContract.Identifier;
+    const jsonRequest = { $projection: {} };
+
+    this.queryDslService.executeRequest(jsonRequest, contractIdentifier,
+      selectedCollection, selectedMethod, selectedAction, parentUnitId).subscribe(
+        (response) => {
+          return JSON.stringify(response, null, 2);
+        },
+        (error) => {
+          try {
+            return JSON.stringify(JSON.parse(error._body), null, 2);
+          } catch (e) {
+            return error._body;
+          }
         }
-      }
-    );
+      );
   }
 
   public getContracts(): Subscription {
@@ -97,7 +121,7 @@ export class DagVisualizationComponent extends PageComponent {
       (response) => {
         this.contractsList = response.map(
           (contract) => {
-            return {label: contract.Name, value: contract}
+            return { label: contract.Name, value: contract }
           }
         );
       }
@@ -136,29 +160,29 @@ export class DagVisualizationComponent extends PageComponent {
         id: units[i]['#id'],
         label: units[i]['Title'],
         // options
-        widthConstraint: {maximum: 200},
-        heightConstraint: {maximum: 200},
+        widthConstraint: { maximum: 200 },
+        heightConstraint: { maximum: 200 },
         group: units[i]['#max']
       });
       if (units[i]['#unitups'] !== undefined) {
         const nbUps = units[i]['#unitups'].length;
         for (let e = 0; e < nbUps; e++) {
-          unitEdges.push({from: units[i]['#id'], to: units[i]['#unitups'][e], arrows:'to'});
+          unitEdges.push({ from: units[i]['#id'], to: units[i]['#unitups'][e], arrows: 'to' });
         }
       }
       if (units[i]['#object'] !== undefined) {
         const gotId = units[i]['#object'];
 
-        if(gotNodes.find(function(e) { return e.id === gotId } ) === undefined) {
+        if (gotNodes.find(function (e) { return e.id === gotId }) === undefined) {
           gotNodes.push({
             id: gotId,
             label: "ObjectGroup: " + gotId,
             // options
-            widthConstraint: {maximum: 200},
-            heightConstraint: {maximum: 200}
+            widthConstraint: { maximum: 200 },
+            heightConstraint: { maximum: 200 }
           });
         }
-        gotEdges.push({from: gotId, to: units[i]['#id'], arrows:'to ', dashes:true});
+        gotEdges.push({ from: gotId, to: units[i]['#id'], arrows: 'to ', dashes: true });
       }
     }
 
@@ -180,7 +204,7 @@ export class DagVisualizationComponent extends PageComponent {
           sortMethod: 'directed'
         }
       },
-      interaction: {hover: true},
+      interaction: { hover: true },
       nodes: {
         shape: 'box'
       }
@@ -195,11 +219,34 @@ export class DagVisualizationComponent extends PageComponent {
         for (let i = 0; i < units.length; i++) {
           if (units[i]['#id'] === eventData[1].nodes[0]) {
             this.detail = JSON.stringify(units[i], null, 2);
+          } else if (units[i]['#object'] === eventData[1].nodes[0]) {
+            const selectedCollection = 'OBJECTGROUP';
+            const selectedMethod = 'GET';
+            const selectedAction = 'GET';
+            const contractIdentifier = !this.selectedContract ? null : this.selectedContract.Identifier;
+            const jsonRequest = { $projection: {} };
+            this.queryDslService.executeRequest(jsonRequest, contractIdentifier,
+              selectedCollection, selectedMethod, selectedAction, units[i]['#id']).subscribe(
+                (response) => {
+                  this.detail = JSON.stringify(response["$results"], null, 2);
+                },
+                (error) => {
+                  try {
+                    this.detail = JSON.stringify(JSON.parse(error._body), null, 2);
+                  } catch (e) {
+                    this.detail = error._body;
+                  }
+                }
+              );
           }
         }
       }
     });
 
+  }
+
+  toggleEgg() {
+    this.eggService.changeState(!this.eggService.getState());
   }
 
 }

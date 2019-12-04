@@ -16,6 +16,8 @@ import { AppComponent } from './app.component';
 import { MenuComponent } from './common/menu/menu.component';
 import { BreadcrumbComponent } from './common/breadcrumb/breadcrumb.component';
 import { ResultsComponent } from './common/results/results.component';
+import { EggComponent } from './common/egg/egg.component';
+import { EggService } from './common/egg/egg.service';
 import { FunctionalTestsComponent } from './tests/functional-tests/functional-tests.component';
 import { FunctionalTestsDetailComponent } from './tests/functional-tests/detail/functional-tests-detail.component';
 import { PerfComponent } from './tests/perf/perf.component';
@@ -45,6 +47,7 @@ import { TestAuditCorrectionComponent } from './admin/test-audit-correction/test
 import { TestAuditCorrectionService } from './admin/test-audit-correction/test-audit-correction.service';
 import { FunctionalTestsFeatureComponent } from './tests/functional-tests-feature/functional-tests-feature.component';
 import {FunctionalTestsFeatureService} from './tests/functional-tests-feature.service';
+import { ConfigurationComponent } from './admin/configuration/configuration.component';
 
 const appRoutes: Routes = [
   {
@@ -58,6 +61,9 @@ const appRoutes: Routes = [
   },
   {
     path: 'admin/link-au', component: LinkAuComponent
+  },
+  {
+    path: 'admin/configuration', component: ConfigurationComponent
   },
   {
     path: 'login', component: AuthenticationComponent
@@ -94,6 +100,7 @@ const appRoutes: Routes = [
     MenuComponent,
     BreadcrumbComponent,
     ResultsComponent,
+    EggComponent,
     FunctionalTestsComponent,
     FunctionalTestsDetailComponent,
     PerfComponent,
@@ -108,7 +115,8 @@ const appRoutes: Routes = [
     LoadStorageComponent,
     LinkAuComponent,
     TestAuditCorrectionComponent,
-    FunctionalTestsFeatureComponent
+    FunctionalTestsFeatureComponent,
+    ConfigurationComponent
 
 ],
   imports: [
@@ -145,6 +153,7 @@ const appRoutes: Routes = [
     PerfService,
     AuthenticationService,
     TenantService,
+    EggService,
     VisNetworkService,
     LoadStorageService,
     LinkAuService,
