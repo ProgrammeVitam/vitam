@@ -990,6 +990,7 @@ public class ProcessingIT extends VitamRuleRunner {
         // Given
         prepareVitamSession();
 
+        String opi = ingestSIP(OK_SIP_SIGNATURE, DEFAULT_WORKFLOW.name(), StatusCode.OK);
 
         String containerName = createOperationContainer();
 
@@ -1001,8 +1002,11 @@ public class ProcessingIT extends VitamRuleRunner {
             JsonHandler.createObjectNode().put("correctiveOption", false);
         workspaceClient.putObject(containerName, "evidenceOptions", JsonHandler.writeToInpustream(options));
 
+        Select select = new Select();
+        select.setQuery(QueryHelper.eq("#opi", opi));
+
         workspaceClient
-            .putObject(containerName, "query.json", JsonHandler.writeToInpustream(new Select().getFinalSelect()));
+            .putObject(containerName, "query.json", JsonHandler.writeToInpustream(select.getFinalSelect()));
 
         processingClient.initVitamProcess(containerName, Contexts.EVIDENCE_AUDIT.name());
         // When
@@ -1022,6 +1026,7 @@ public class ProcessingIT extends VitamRuleRunner {
         assertNotNull(processWorkflow);
 
         assertEquals(ProcessState.COMPLETED, processWorkflow.getState());
+        assertEquals(StatusCode.WARNING, processWorkflow.getStatus());
     }
 
     @RunWithCustomExecutor
@@ -1828,6 +1833,9 @@ public class ProcessingIT extends VitamRuleRunner {
             initParameters.putParameterValue(LogbookParameterName.outcomeDetailMessage,
                 VitamLogbookMessages.getLabelOp("EXPORT_DIP.STARTED") + " : " + operationId);
         }
+        ObjectNode rightsStatementIdentifier = JsonHandler.createObjectNode();
+        rightsStatementIdentifier.put("AccessContract", VitamThreadUtils.getVitamSession().getContractId());
+        initParameters.putParameterValue(LogbookParameterName.rightsStatementIdentifier, rightsStatementIdentifier.toString());
         logbookClient.create(initParameters);
     }
 
