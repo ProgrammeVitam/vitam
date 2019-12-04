@@ -382,6 +382,47 @@ public class IngestInternalIT extends VitamRuleRunner {
         get("/status").then().statusCode(Status.NO_CONTENT.getStatusCode());
     }
 
+    @Test
+    @RunWithCustomExecutor
+    public void should_finish_in_COMPLETED_FATAL_when_ATR_step_fails() throws Exception {
+        // Given
+        GUID operationGuid = GUIDFactory.newOperationLogbookGUID(tenantId);
+        prepareVitamSession(tenantId, "OUR_FAILING_CONTRACT", "Context_IT");
+        VitamThreadUtils.getVitamSession().setRequestId(operationGuid);
+
+        InputStream zipInputStreamSipObject = PropertiesUtils.getResourceAsStream(SIP_FILE_OK_NAME);
+
+        List<LogbookOperationParameters> params = Collections.singletonList(
+            LogbookParametersFactory.newLogbookOperationParameters(
+                operationGuid,
+                "Process_SIP_unitary",
+                operationGuid,
+                LogbookTypeProcess.INGEST,
+                StatusCode.STARTED,
+                operationGuid.toString(),
+                operationGuid
+            )
+        );
+
+        IngestInternalClientFactory.getInstance().changeServerPort(runner.PORT_SERVICE_INGEST_INTERNAL);
+        IngestInternalClient client = IngestInternalClientFactory.getInstance().getClient();
+        client.uploadInitialLogbook(params);
+
+        client.initWorkflow(ingestSip);
+
+        client.upload(zipInputStreamSipObject, CommonMediaType.ZIP_TYPE, ingestSip, ProcessAction.RESUME.name());
+
+        awaitForWorkflowTerminationWithStatus(operationGuid, StatusCode.FATAL, ProcessState.PAUSE);
+
+        VitamThreadUtils.getVitamSession().setContractId("SHHHH_ITS_ALL_FINE_CONTRACT_UNICORN");
+
+        // When
+        client.updateOperationActionProcess(ProcessAction.RESUME.getValue(), operationGuid.getId());
+
+        // Then
+        awaitForWorkflowTerminationWithStatus(operationGuid, StatusCode.OK, ProcessState.COMPLETED);
+    }
+
     @RunWithCustomExecutor
     @Test
     public void testIngestInternal() throws Exception {
@@ -2469,6 +2510,10 @@ public class IngestInternalIT extends VitamRuleRunner {
     }
 
     private void awaitForWorkflowTerminationWithStatus(GUID operationGuid, StatusCode status) {
+        awaitForWorkflowTerminationWithStatus(operationGuid, status, ProcessState.COMPLETED);
+    }
+
+    private void awaitForWorkflowTerminationWithStatus(GUID operationGuid, StatusCode status, ProcessState processState) {
 
         waitOperation(NB_TRY, SLEEP_TIME, operationGuid.toString());
 
@@ -2476,7 +2521,7 @@ public class IngestInternalIT extends VitamRuleRunner {
             ProcessMonitoringImpl.getInstance().findOneProcessWorkflow(operationGuid.toString(), tenantId);
         
         assertNotNull(processWorkflow);
-        assertEquals(ProcessState.COMPLETED, processWorkflow.getState());
+        assertEquals(processState, processWorkflow.getState());
         assertEquals(status, processWorkflow.getStatus());
     }
 

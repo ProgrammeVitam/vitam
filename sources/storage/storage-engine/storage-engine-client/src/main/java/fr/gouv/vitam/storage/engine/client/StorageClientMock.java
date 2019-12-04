@@ -45,6 +45,8 @@ import javax.ws.rs.core.MultivaluedHashMap;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
+import fr.gouv.vitam.common.model.VitamSession;
+import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import org.apache.commons.io.IOUtils;
 
 import com.fasterxml.jackson.databind.JsonNode;
@@ -136,6 +138,9 @@ public class StorageClientMock extends AbstractMockClient implements StorageClie
     public StoredInfoResult storeFileFromWorkspace(String strategyId, DataCategory type, String guid,
         ObjectDescription description)
         throws StorageAlreadyExistsClientException, StorageNotFoundClientException, StorageServerClientException {
+        if (description.getWorkspaceObjectURI().equals("ATR/responseReply.xml") && VitamThreadUtils.getVitamSession().getContractId().equals("OUR_FAILING_CONTRACT")) {
+            throw new StorageAlreadyExistsClientException("Not found.");
+        }
         return generateStoredInfoResult(guid);
     }
 
