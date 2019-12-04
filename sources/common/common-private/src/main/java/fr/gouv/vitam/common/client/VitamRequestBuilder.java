@@ -50,7 +50,8 @@ public class VitamRequestBuilder {
     private MediaType contentType;
     private MediaType accept;
     private Object body;
-    private Runnable beforeExecRequest = () -> {};
+    private Runnable beforeExecRequest = () -> {
+    };
     private MultivaluedMap<String, Object> headers;
     private MultivaluedMap<String, Object> queryParams;
 
