@@ -1,0 +1,42 @@
+<div>
+    <div class="pad-b-20px">
+
+        <div class="pad-b-20px">
+            <p-panel header="Stratégies de stockage">
+                <div class="ui-g" *ngFor="let strategy of strategyList">
+                    <p-panel header="{{strategy.label}}" class="ui-g-12 ui-md-6 ui-lg-4">
+                        <div class="ui-g">
+                            <div *ngFor="let offer of strategy.value.offers" [ngClass]="{'offer-label':true,'referent':offer.referent,'async':offer.async,'disabled':!offer.enabled}">{{offer.id}}</div>
+                        </div>
+                    </p-panel>
+                </div>
+                <div class="ui-g">
+                    <p-fieldset legend="Légende" [toggleable]="true" [collapsed]="true">
+                        <div class="ui-g">
+                            <table>
+                                <tr>
+                                    <td>Types de l'offre de stockage :</td>
+                                    <td>
+                                        <div class="offer-label">Offre</div>
+                                    </td>
+                                    <td>
+                                        <div class="offer-label referent">Offre référente</div>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>Status de l'offre de stockage :</td>
+                                    <td>
+                                        <div class="offer-label">Offre active</div>
+                                    </td>
+                                    <td>
+                                        <div class="offer-label disabled">Offre inactive</div>
+                                    </td>
+                                </tr>
+                            </table>
+                        </div>
+                    </p-fieldset>
+                </div>
+            </p-panel>
+
+        </div>
+    </div>

@@ -1,0 +1,21 @@
+.offer-label {
+    text-align: center;
+    padding: 8px;
+    margin: 2px;
+    border: 2px solid #444;
+    width: auto;
+    height: 40px;
+    float: left;
+}
+  
+.offer-label.referent  {
+    background: #eaf8d8;
+}
+  
+.offer-label.async  {
+    background: #d8eaf8;
+}
+
+.offer-label.disabled  {
+    border: 2px dashed #444;
+}

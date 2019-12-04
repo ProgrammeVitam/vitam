@@ -92,6 +92,7 @@ import fr.gouv.vitam.storage.engine.common.exception.StorageNotFoundException;
 import fr.gouv.vitam.storage.engine.common.exception.StorageTechnicalException;
 import fr.gouv.vitam.storage.engine.common.model.DataCategory;
 import fr.gouv.vitam.storage.engine.common.model.TapeReadRequestReferentialEntity;
+import fr.gouv.vitam.storage.engine.common.referential.model.StorageStrategy;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shiro.authc.UsernamePasswordToken;
@@ -251,10 +252,18 @@ public class WebApplicationResource extends ApplicationStatusResource {
     @Produces(MediaType.APPLICATION_JSON)
     public Response getStrategies(@HeaderParam(GlobalDataRest.X_TENANT_ID) String xTenantId) {
 
-        try {
+        try (final StorageClient storageClient =
+                     StorageClientFactory.getInstance().getClient()) {
             VitamThreadUtils.getVitamSession().setTenantId(Integer.parseInt(xTenantId));
-            return Response.status(Status.OK).entity(populateService.getStrategies()).build();
-        } catch (StorageException e) {
+            RequestResponse<StorageStrategy> requestResponse = storageClient.getStorageStrategies();
+            if (requestResponse.isOk()) {
+                return Response.status(Status.OK).entity(((RequestResponseOK<StorageStrategy>) requestResponse).getResults()).build();
+            } else if (requestResponse instanceof VitamError) {
+                LOGGER.error(requestResponse.toString());
+                return Response.status(Status.INTERNAL_SERVER_ERROR).entity(requestResponse).build();
+            }
+            return Response.status(Status.INTERNAL_SERVER_ERROR).build();
+        } catch (StorageServerClientException e) {
             LOGGER.error(INTERNAL_SERVER_ERROR_MSG, e);
             return Response.status(Status.INTERNAL_SERVER_ERROR).build();
         }
