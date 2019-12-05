@@ -106,6 +106,9 @@ public class AdminOfferSyncResource {
             throw new IllegalArgumentException("Source offer cannot be the same as target offer");
         }
 
+        VitamThreadUtils.getVitamSession().setTenantId(VitamConfiguration.getAdminTenant());
+        VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newRequestIdGUID(VitamConfiguration.getAdminTenant()));
+
         if (null == offerPartialSyncRequest.getItemsToSynchronize() ||
             offerPartialSyncRequest.getItemsToSynchronize().isEmpty()) {
             LOGGER.info("Items to synchronize is empty");

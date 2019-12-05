@@ -1,36 +1,49 @@
 package fr.gouv.vitam.storage.engine.server.offersynchronization;
 
+import com.google.common.collect.Lists;
 import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
+import fr.gouv.vitam.common.thread.VitamThreadFactory;
 import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
+import fr.gouv.vitam.logbook.common.parameters.LogbookOperationParameters;
+import fr.gouv.vitam.storage.engine.common.exception.StorageException;
 import fr.gouv.vitam.storage.engine.common.exception.StorageNotFoundException;
 import fr.gouv.vitam.storage.engine.common.model.DataCategory;
 import fr.gouv.vitam.storage.engine.common.model.OfferLog;
 import fr.gouv.vitam.storage.engine.common.model.OfferLogAction;
 import fr.gouv.vitam.storage.engine.common.model.Order;
+import fr.gouv.vitam.storage.engine.common.model.request.OfferPartialSyncItem;
 import fr.gouv.vitam.storage.engine.server.distribution.StorageDistribution;
 import fr.gouv.vitam.storage.engine.server.distribution.impl.DataContext;
+import org.junit.AfterClass;
 import org.junit.Before;
+import org.junit.BeforeClass;
 import org.junit.ClassRule;
 import org.junit.Rule;
 import org.junit.Test;
+import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
+import org.mockito.internal.verification.Times;
 import org.mockito.junit.MockitoJUnit;
 import org.mockito.junit.MockitoRule;
 
 import javax.ws.rs.core.Response;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.stream.Collectors;
 
 import static java.util.Collections.singletonList;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentCaptor.forClass;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyString;
@@ -56,6 +69,7 @@ public class OfferSyncProcessTest {
     @Rule
     public MockitoRule mockitoRule = MockitoJUnit.rule();
 
+
     @Mock
     private RestoreOfferBackupService restoreOfferBackupService;
 
@@ -65,6 +79,19 @@ public class OfferSyncProcessTest {
     private List<OfferLog> sourceOfferLogs;
     private Map<String, byte[]> sourceDataFiles;
     private Map<String, byte[]> targetDataFiles;
+
+    private static ExecutorService executorService;
+
+    @BeforeClass
+    public static void beforeClass() {
+        executorService = Executors.newFixedThreadPool(4, VitamThreadFactory.getInstance());
+    }
+
+
+    @AfterClass
+    public static void afterClass() {
+        executorService.shutdown();
+    }
 
     @Before
     public void setup() throws Exception {
@@ -99,7 +126,9 @@ public class OfferSyncProcessTest {
             }
             return Response.ok(data).build();
 
-        }).when(distribution).getContainerByCategory(eq(VitamConfiguration.getDefaultStrategy()), anyString(), eq(DATA_CATEGORY), eq(SOURCE));
+        }).when(distribution)
+            .getContainerByCategory(eq(VitamConfiguration.getDefaultStrategy()), anyString(), eq(DATA_CATEGORY),
+                eq(SOURCE));
 
         doAnswer((args) -> {
 
@@ -133,10 +162,12 @@ public class OfferSyncProcessTest {
 
         // Given
         OfferSyncProcess instance = new OfferSyncProcess(restoreOfferBackupService,
-            distribution, 10, 4, 1, 1, 1);
+            distribution, 10, 1, 1, 1);
 
         // When
-        instance.synchronize(SOURCE, TARGET, VitamConfiguration.getDefaultStrategy(), DATA_CATEGORY, null);
+        instance
+            .synchronize(executorService, SOURCE, TARGET, VitamConfiguration.getDefaultStrategy(), DATA_CATEGORY,
+                null);
 
         // Then
         assertThat(targetDataFiles).isEqualTo(sourceDataFiles);
@@ -154,10 +185,12 @@ public class OfferSyncProcessTest {
         givenDataSetInSourceOffer();
 
         OfferSyncProcess instance = new OfferSyncProcess(restoreOfferBackupService,
-            distribution, 100, 4, 1, 1, 1);
+            distribution, 100, 1, 1, 1);
 
         // When
-        instance.synchronize(SOURCE, TARGET, VitamConfiguration.getDefaultStrategy(), DATA_CATEGORY, null);
+        instance
+            .synchronize(executorService, SOURCE, TARGET, VitamConfiguration.getDefaultStrategy(), DATA_CATEGORY,
+                null);
 
         // Then
         assertThat(targetDataFiles).isEqualTo(sourceDataFiles);
@@ -178,10 +211,12 @@ public class OfferSyncProcessTest {
         givenDataSetInSourceOffer();
 
         OfferSyncProcess instance = new OfferSyncProcess(restoreOfferBackupService,
-            distribution, 10, 4, 1, 1, 1);
+            distribution, 10, 1, 1, 1);
 
         // When
-        instance.synchronize(SOURCE, TARGET, VitamConfiguration.getDefaultStrategy(), DATA_CATEGORY, null);
+        instance
+            .synchronize(executorService, SOURCE, TARGET, VitamConfiguration.getDefaultStrategy(), DATA_CATEGORY,
+                null);
 
         // Then
         assertThat(targetDataFiles).isEqualTo(sourceDataFiles);
@@ -210,10 +245,12 @@ public class OfferSyncProcessTest {
         // Given
         givenDataSetInSourceOfferPart1();
         OfferSyncProcess instance = new OfferSyncProcess(restoreOfferBackupService,
-            distribution, 100, 4, 1, 1, 1);
+            distribution, 100, 1, 1, 1);
 
         // When
-        instance.synchronize(SOURCE, TARGET, VitamConfiguration.getDefaultStrategy(), DATA_CATEGORY, null);
+        instance
+            .synchronize(executorService, SOURCE, TARGET, VitamConfiguration.getDefaultStrategy(), DATA_CATEGORY,
+                null);
 
         // Then
         verifySynchronizationStatus(instance, null, 2L);
@@ -227,7 +264,9 @@ public class OfferSyncProcessTest {
         givenDataSetInSourceOfferPart2();
 
         // When
-        instance.synchronize(SOURCE, TARGET, VitamConfiguration.getDefaultStrategy(), DATA_CATEGORY, 3L);
+        instance
+            .synchronize(executorService, SOURCE, TARGET, VitamConfiguration.getDefaultStrategy(), DATA_CATEGORY,
+                3L);
 
         // Then
         verifySynchronizationStatus(instance, 3L, 12L);
@@ -245,10 +284,12 @@ public class OfferSyncProcessTest {
         // Given
         givenDataSetInSourceOfferPart1();
         OfferSyncProcess instance = new OfferSyncProcess(restoreOfferBackupService,
-            distribution, 100, 4, 1, 1, 1);
+            distribution, 100, 1, 1, 1);
 
         // When
-        instance.synchronize(SOURCE, TARGET, VitamConfiguration.getDefaultStrategy(), DATA_CATEGORY, null);
+        instance
+            .synchronize(executorService, SOURCE, TARGET, VitamConfiguration.getDefaultStrategy(), DATA_CATEGORY,
+                null);
 
         // Then
         verifySynchronizationStatus(instance, null, 2L);
@@ -261,11 +302,71 @@ public class OfferSyncProcessTest {
         // Given not updates
 
         // When
-        instance.synchronize(SOURCE, TARGET, VitamConfiguration.getDefaultStrategy(), DATA_CATEGORY, 3L);
+        instance
+            .synchronize(executorService, SOURCE, TARGET, VitamConfiguration.getDefaultStrategy(), DATA_CATEGORY,
+                3L);
 
         // Then
         verifySynchronizationStatus(instance, 3L, null);
         assertThat(targetDataFiles).isEqualTo(sourceDataFiles);
+    }
+
+
+    @Test
+    @RunWithCustomExecutor
+    public void partial_synchronize_existing_and_delete_not_found() throws StorageException {
+        // Given
+        givenDataSetInSourceOffer();
+        OfferSyncProcess instance = new OfferSyncProcess(restoreOfferBackupService,
+            distribution, 100, 1, 1, 1);
+
+        // When
+        List<OfferPartialSyncItem> items = new ArrayList<>();
+        OfferPartialSyncItem offerPartialSyncItem = new OfferPartialSyncItem();
+        offerPartialSyncItem.setContainer(DATA_CATEGORY.getCollectionName());
+        offerPartialSyncItem.setTenantId(TENANT_ID);
+        offerPartialSyncItem.setFilenames(Lists.newArrayList("file2", "file6", "file5"));
+
+        items.add(offerPartialSyncItem);
+        instance
+            .synchronize(executorService, SOURCE, TARGET, VitamConfiguration.getDefaultStrategy(), items);
+
+        // Then
+        assertThat(instance.isRunning()).isFalse();
+        assertThat(instance.getOfferSyncStatus().getStatusCode()).isEqualTo(StatusCode.OK);
+        assertThat(instance.getOfferSyncStatus().getStartDate()).isNotNull();
+        assertThat(instance.getOfferSyncStatus().getEndDate()).isNotNull();
+        assertThat(instance.getOfferSyncStatus().getSourceOffer()).isEqualTo(SOURCE);
+        assertThat(instance.getOfferSyncStatus().getTargetOffer()).isEqualTo(TARGET);
+        assertThat(instance.getOfferSyncStatus().getRequestId())
+            .isEqualTo(VitamThreadUtils.getVitamSession().getRequestId());
+
+        assertThat(targetDataFiles).containsKeys("file2", "file6");
+
+        ArgumentCaptor<DataContext> contextArgumentCaptor = forClass(DataContext.class);
+        ArgumentCaptor<String> strategyCaptor = forClass(String.class);
+        ArgumentCaptor<List<String>> offersCaptor = forClass(List.class);
+        verify(distribution, times(1))
+            .deleteObjectInOffers(strategyCaptor.capture(), contextArgumentCaptor.capture(), offersCaptor.capture());
+        assertThat(contextArgumentCaptor.getValue().getObjectId()).isEqualTo("file5");
+
+
+        ArgumentCaptor<String> fileName = forClass(String.class);
+
+        verify(distribution, times(2))
+            .storeDataInOffers(forClass(String.class).capture(), fileName.capture(),
+                forClass(DataCategory.class).capture(), forClass(String.class).capture(),
+                forClass(List.class).capture(), forClass(Response.class).capture());
+
+        assertThat(fileName.getAllValues()).contains("file2", "file6");
+
+    }
+
+
+    @Test
+    @RunWithCustomExecutor
+    public void partial_synchronize_delete_in_target_as_empty_source_offer() throws Exception {
+
     }
 
     private void givenDataSetInSourceOffer() {
