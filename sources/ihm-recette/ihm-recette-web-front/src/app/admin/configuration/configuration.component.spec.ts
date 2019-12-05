@@ -1,3 +1,5 @@
+import { async, ComponentFixture, TestBed } from '@angular/core/testing';
+
 import { Observable } from 'rxjs/Observable';
 import { PanelModule, FieldsetModule } from 'primeng/primeng';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
