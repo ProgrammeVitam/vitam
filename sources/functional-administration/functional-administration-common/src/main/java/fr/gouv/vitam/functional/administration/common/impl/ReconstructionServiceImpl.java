@@ -472,11 +472,6 @@ public class ReconstructionServiceImpl implements ReconstructionService {
     public void computeAccessionRegisterSummary(Set<String> originatingAgencies, Integer tenant) {
 
         ParametersChecker.checkParameter("All params are required", originatingAgencies, tenant);
-
-        if (originatingAgencies.isEmpty()) {
-            return;
-        }
-        
         int originalTenant = VitamThreadUtils.getVitamSession().getTenantId();
 
         try {
