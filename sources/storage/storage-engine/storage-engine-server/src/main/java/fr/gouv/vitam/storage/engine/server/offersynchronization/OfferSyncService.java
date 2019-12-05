@@ -29,6 +29,7 @@ package fr.gouv.vitam.storage.engine.server.offersynchronization;
 import com.google.common.annotations.VisibleForTesting;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.common.thread.VitamThreadFactory;
 import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.storage.engine.common.model.DataCategory;
@@ -37,12 +38,16 @@ import fr.gouv.vitam.storage.engine.server.distribution.StorageDistribution;
 import fr.gouv.vitam.storage.engine.server.rest.StorageConfiguration;
 
 import java.util.List;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 
 /**
  * Manages offer synchronization service.
  */
-public class OfferSyncService {
+public class OfferSyncService implements AutoCloseable {
 
     /**
      * Vitam Logger.
@@ -57,6 +62,7 @@ public class OfferSyncService {
     private final int offerSyncFirstAttemptWaitingTime;
     private final int offerSyncWaitingTime;
 
+    private ExecutorService executor;
     private final AtomicReference<OfferSyncProcess> lastOfferSyncService = new AtomicReference<>(null);
 
     /**
@@ -89,14 +95,53 @@ public class OfferSyncService {
         this.offerSyncNumberOfRetries = offerSyncNumberOfRetries;
         this.offerSyncFirstAttemptWaitingTime = offerSyncFirstAttemptWaitingTime;
         this.offerSyncWaitingTime = offerSyncWaitingTime;
+        // Keep at most 1 thread if all thread are idle
+        this.executor = new ThreadPoolExecutor(1, offerSyncThreadPoolSize,
+            0L, TimeUnit.MILLISECONDS,
+            new LinkedBlockingQueue<>(),
+            VitamThreadFactory.getInstance());
     }
 
     public boolean startSynchronization(String sourceOffer, String targetOffer, String strategyId,
         List<OfferPartialSyncItem> items) {
+        OfferSyncProcess offerSyncProcess = createOfferSyncProcess();
 
-        items.forEach(item -> {
-            // TODO: 29/11/2019 add task to queue
+        OfferSyncProcess currentOfferSyncProcess = lastOfferSyncService.updateAndGet((previousOfferSyncService) -> {
+            if (previousOfferSyncService != null && previousOfferSyncService.isRunning()) {
+                return previousOfferSyncService;
+            }
+            return offerSyncProcess;
         });
+
+        // Ensure no concurrent synchronization service running
+        if (offerSyncProcess != currentOfferSyncProcess) {
+            LOGGER.error("Another synchronization workflow is already running " + currentOfferSyncProcess.toString());
+            return false;
+        }
+
+        runSynchronizationAsync(sourceOffer, targetOffer, strategyId, items, offerSyncProcess);
+
+        return true;
+    }
+
+    private void runSynchronizationAsync(String sourceOffer, String targetOffer, String strategyId,
+        List<OfferPartialSyncItem> items, OfferSyncProcess offerSyncProcess) {
+
+        int tenantId = VitamThreadUtils.getVitamSession().getTenantId();
+        String requestId = VitamThreadUtils.getVitamSession().getRequestId();
+
+        VitamThreadPoolExecutor.getDefaultExecutor().execute(
+            () -> {
+                try {
+                    VitamThreadUtils.getVitamSession().setTenantId(tenantId);
+                    VitamThreadUtils.getVitamSession().setRequestId(requestId);
+
+                    offerSyncProcess.synchronize(executor, sourceOffer, targetOffer, strategyId, items);
+                } catch (Exception e) {
+                    LOGGER.error("An error occurred during partial synchronization process execution", e);
+                }
+            }
+        );
     }
 
     /**
@@ -135,8 +180,8 @@ public class OfferSyncService {
     }
 
     OfferSyncProcess createOfferSyncProcess() {
-        return new OfferSyncProcess(restoreOfferBackupService, distribution, bulkSize, offerSyncThreadPoolSize,
-            offerSyncNumberOfRetries, offerSyncFirstAttemptWaitingTime, offerSyncWaitingTime);
+        return new OfferSyncProcess(restoreOfferBackupService, distribution, bulkSize, offerSyncNumberOfRetries,
+            offerSyncFirstAttemptWaitingTime, offerSyncWaitingTime);
     }
 
     void runSynchronizationAsync(String sourceOffer, String targetOffer, String strategyId, DataCategory dataCategory,
@@ -152,7 +197,7 @@ public class OfferSyncService {
                     VitamThreadUtils.getVitamSession().setTenantId(tenantId);
                     VitamThreadUtils.getVitamSession().setRequestId(requestId);
 
-                    offerSyncProcess.synchronize(sourceOffer, targetOffer, strategyId, dataCategory, offset);
+                    offerSyncProcess.synchronize(executor, sourceOffer, targetOffer, strategyId, dataCategory, offset);
                 } catch (Exception e) {
                     LOGGER.error("An error occurred during synchronization process execution", e);
                 }
@@ -171,6 +216,19 @@ public class OfferSyncService {
             return null;
         } else {
             return offerSyncProcess.getOfferSyncStatus();
+        }
+    }
+
+    @VisibleForTesting
+    public ExecutorService getExecutor() {
+        return executor;
+    }
+
+    @Override
+    public void close() throws Exception {
+        if (null != executor) {
+            executor.shutdown();
+            executor.awaitTermination(10, TimeUnit.SECONDS);
         }
     }
 }
