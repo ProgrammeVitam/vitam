@@ -34,6 +34,7 @@ import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.client.ClientMockResultHelper;
 import fr.gouv.vitam.common.client.IngestCollection;
 import fr.gouv.vitam.common.error.VitamError;
+import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamClientException;
 import fr.gouv.vitam.common.exception.VitamClientInternalException;
 import fr.gouv.vitam.common.guid.GUID;
@@ -52,11 +53,13 @@ import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
 import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
 import fr.gouv.vitam.ingest.internal.common.exception.IngestInternalClientNotFoundException;
+import fr.gouv.vitam.ingest.internal.common.exception.IngestInternalClientServerException;
 import fr.gouv.vitam.logbook.common.parameters.LogbookOperationParameters;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParametersFactory;
 import fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess;
+import fr.gouv.vitam.workspace.api.exception.ZipFilesNameNotAllowedException;
 import org.apache.commons.io.IOUtils;
-import org.assertj.core.api.Assertions;
+import org.assertj.core.api.ThrowableAssert.ThrowingCallable;
 import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
@@ -82,9 +85,12 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.Queue;
 import java.util.Set;
 
+import static org.assertj.core.api.Assertions.assertThatCode;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
@@ -97,29 +103,22 @@ import static org.mockito.Mockito.when;
 @RunWithCustomExecutor
 public class IngestInternalClientRestTest extends ResteasyTestApplication {
 
+    public static final String INGEST = "INGEST";
     private static final String PATH = "/ingest/v1";
     private static final String WROKFLOW_ID = "PROCESS_SIP_UNITARY";
     private static final String WROKFLOW_IDENTIFIER = "DEFAULT_WORKFLOW";
     private static final String X_ACTION = "RESUME";
     private static final String ID = "id1";
-    public static final String INGEST = "INGEST";
-
+    private final static ExpectedResults mock = mock(ExpectedResults.class);
+    private final static ExpectedResults mockLogbook = mock(ExpectedResults.class);
     @ClassRule
     public static RunWithCustomExecutorRule runInThread =
         new RunWithCustomExecutorRule(VitamThreadPoolExecutor.getDefaultExecutor());
-
-
-    private static IngestInternalClientRest client;
-
-    private final static ExpectedResults mock = mock(ExpectedResults.class);
-    private final static ExpectedResults mockLogbook = mock(ExpectedResults.class);
-
     static IngestInternalClientFactory factory = IngestInternalClientFactory.getInstance();
-
     public static VitamServerTestRunner
         vitamServerTestRunner =
         new VitamServerTestRunner(IngestInternalClientRestTest.class, factory);
-
+    private static IngestInternalClientRest client;
 
     @BeforeClass
     public static void setUpBeforeClass() throws Throwable {
@@ -142,6 +141,462 @@ public class IngestInternalClientRestTest extends ResteasyTestApplication {
     public Set<Object> getResources() {
         return Sets.newHashSet(new MockResource(mock, mockLogbook));
     }
+
+    @Test
+    public void givenStartedServerWhenUploadSipThenReturnOK() throws Exception {
+
+        final List<LogbookOperationParameters> operationList = new ArrayList<>();
+
+        final GUID ingestGuid = GUIDFactory.newGUID();
+        final GUID containerGuid = GUIDFactory.newGUID();
+        final LogbookOperationParameters externalOperationParameters1 =
+            LogbookParametersFactory.newLogbookOperationParameters(
+                ingestGuid,
+                "Ingest external",
+                containerGuid,
+                LogbookTypeProcess.INGEST,
+                StatusCode.STARTED,
+                "Start Ingest external",
+                containerGuid);
+
+        final LogbookOperationParameters externalOperationParameters2 =
+            LogbookParametersFactory.newLogbookOperationParameters(
+                ingestGuid,
+                "Ingest external",
+                containerGuid,
+                LogbookTypeProcess.INGEST,
+                StatusCode.OK,
+                "End Ingest external",
+                containerGuid);
+        operationList.add(externalOperationParameters1);
+        operationList.add(externalOperationParameters2);
+
+        InputStream inputStreamATR = PropertiesUtils.getResourceAsStream("ATR_example.xml");
+        when(mockLogbook.post()).thenReturn(Response.status(Status.CREATED).build());
+        when(mock.post())
+            .thenReturn(Response.status(Status.OK).entity(FileUtil.readInputStream(inputStreamATR)).build());
+        final InputStream inputStream =
+            PropertiesUtils.getResourceAsStream("SIP_bordereau_avec_objet_OK.zip");
+        client.uploadInitialLogbook(operationList);
+        WorkFlow workflow = WorkFlow.of(WROKFLOW_ID, WROKFLOW_IDENTIFIER, INGEST);
+        assertThatCode(() -> client.upload(inputStream, CommonMediaType.ZIP_TYPE, workflow, X_ACTION))
+            .doesNotThrowAnyException();
+    }
+
+    @Test
+    public void givenVirusWhenUploadSipThenReturnKO() throws Exception {
+
+        final List<LogbookOperationParameters> operationList = new ArrayList<>();
+
+        final GUID ingestGuid = GUIDFactory.newGUID();
+        final GUID conatinerGuid = GUIDFactory.newGUID();
+        final LogbookOperationParameters externalOperationParameters1 =
+            LogbookParametersFactory.newLogbookOperationParameters(
+                ingestGuid,
+                "Ingest external",
+                conatinerGuid,
+                LogbookTypeProcess.INGEST,
+                StatusCode.STARTED,
+                "Start Ingest external",
+                conatinerGuid);
+
+        final LogbookOperationParameters externalOperationParameters2 =
+            LogbookParametersFactory.newLogbookOperationParameters(
+                ingestGuid,
+                "Ingest external",
+                conatinerGuid,
+                LogbookTypeProcess.INGEST,
+                StatusCode.KO,
+                "End Ingest external",
+                conatinerGuid);
+        operationList.add(externalOperationParameters1);
+        operationList.add(externalOperationParameters2);
+
+        try (InputStream inputStreamATR = PropertiesUtils.getResourceAsStream("ATR_example.xml")) {
+            when(mockLogbook.post()).thenReturn(Response.status(Status.CREATED).build());
+            when(mock.post()).thenReturn(
+                Response.status(Status.INTERNAL_SERVER_ERROR).entity(FileUtil.readInputStream(inputStreamATR)).build());
+            client.uploadInitialLogbook(operationList);
+            try (final InputStream inputStream =
+                PropertiesUtils.getResourceAsStream("SIP_bordereau_avec_objet_OK.zip")) {
+                WorkFlow workflow = WorkFlow.of(WROKFLOW_ID, WROKFLOW_IDENTIFIER, INGEST);
+                ThrowingCallable throwingCallable =
+                    () -> client.upload(inputStream, CommonMediaType.ZIP_TYPE, workflow, X_ACTION);
+                assertThatThrownBy(throwingCallable)
+                    .isInstanceOf(IngestInternalClientServerException.class);
+            }
+        }
+    }
+
+    @Test
+    public void givenServerErrorWhenPostSipThenRaiseAnException() throws Exception {
+
+        final List<LogbookOperationParameters> operationList = new ArrayList<>();
+
+        final GUID ingestGuid = GUIDFactory.newGUID();
+        final GUID conatinerGuid = GUIDFactory.newGUID();
+        final LogbookOperationParameters externalOperationParameters1 =
+            LogbookParametersFactory.newLogbookOperationParameters(
+                ingestGuid,
+                "Ingest external",
+                conatinerGuid,
+                LogbookTypeProcess.INGEST,
+                StatusCode.STARTED,
+                "Start Ingest external",
+                conatinerGuid);
+
+        final LogbookOperationParameters externalOperationParameters2 =
+            LogbookParametersFactory.newLogbookOperationParameters(
+                ingestGuid,
+                "Ingest external",
+                conatinerGuid,
+                LogbookTypeProcess.INGEST,
+                StatusCode.OK,
+                "End Ingest external",
+                conatinerGuid);
+        operationList.add(externalOperationParameters1);
+        operationList.add(externalOperationParameters2);
+        when(mockLogbook.post()).thenReturn(Response.status(Status.CREATED).build());
+        when(mock.post()).thenReturn(Response.status(Status.INTERNAL_SERVER_ERROR).build());
+
+        try (final InputStream inputStream =
+            PropertiesUtils.getResourceAsStream("SIP_bordereau_avec_objet_OK.zip")) {
+            client.uploadInitialLogbook(operationList);
+            WorkFlow workflow = WorkFlow.of(WROKFLOW_ID, WROKFLOW_IDENTIFIER, INGEST);
+            ThrowingCallable throwingCallable =
+                () -> client.upload(inputStream, CommonMediaType.ZIP_TYPE, workflow, X_ACTION);
+            assertThatThrownBy(throwingCallable)
+                .isInstanceOf(IngestInternalClientServerException.class);
+        }
+
+    }
+
+    @Test
+    public void givenStartedServerWhenUploadSipNonZipThenReturnKO() throws Exception {
+
+        final List<LogbookOperationParameters> operationList = new ArrayList<>();
+
+        final GUID ingestGuid = GUIDFactory.newGUID();
+        final GUID conatinerGuid = GUIDFactory.newGUID();
+        final LogbookOperationParameters externalOperationParameters1 =
+            LogbookParametersFactory.newLogbookOperationParameters(
+                ingestGuid,
+                "Ingest external",
+                conatinerGuid,
+                LogbookTypeProcess.INGEST,
+                StatusCode.STARTED,
+                "Start Ingest external",
+                conatinerGuid);
+
+        final LogbookOperationParameters externalOperationParameters2 =
+            LogbookParametersFactory.newLogbookOperationParameters(
+                ingestGuid,
+                "Ingest external",
+                conatinerGuid,
+                LogbookTypeProcess.INGEST,
+                StatusCode.OK,
+                "End Ingest external",
+                conatinerGuid);
+        operationList.add(externalOperationParameters1);
+        operationList.add(externalOperationParameters2);
+        when(mockLogbook.post()).thenReturn(Response.status(Status.CREATED).build());
+        when(mock.post()).thenReturn(Response.status(Status.NOT_ACCEPTABLE).build());
+        try (final InputStream inputStream =
+            PropertiesUtils.getResourceAsStream("SIP_mauvais_format.pdf")) {
+            client.uploadInitialLogbook(operationList);
+            WorkFlow workflow = WorkFlow.of(WROKFLOW_ID, WROKFLOW_IDENTIFIER, INGEST);
+            ThrowingCallable throwingCallable =
+                () -> client.upload(inputStream, CommonMediaType.ZIP_TYPE, workflow, X_ACTION);
+            assertThatThrownBy(throwingCallable)
+                .isInstanceOf(ZipFilesNameNotAllowedException.class);
+        }
+
+    }
+
+    @Test
+    public void givenInputstreamWhenDownloadObjectThenReturnOK()
+        throws Exception {
+
+        when(mock.get()).thenReturn(ClientMockResultHelper.getObjectStream());
+
+        try (final InputStream fakeUploadResponseInputStream =
+            client.downloadObjectAsync("1", IngestCollection.MANIFESTS).readEntity(InputStream.class)) {
+
+            assertTrue(IOUtils.contentEquals(fakeUploadResponseInputStream,
+                StreamUtils.toInputStream("test")));
+        } catch (final IOException e) {
+            e.printStackTrace();
+            fail();
+        }
+    }
+
+    @Test
+    public void givenInputstreamWhenDownloadObjectThenStoreATR()
+        throws Exception {
+        when(mock.get()).thenReturn(ClientMockResultHelper.getObjectStream());
+        try (final InputStream fakeUploadResponseInputStream =
+            client.downloadObjectAsync("1", IngestCollection.MANIFESTS).readEntity(InputStream.class)) {
+            assertNotNull(fakeUploadResponseInputStream);
+            client.storeATR(GUIDFactory.newGUID(), fakeUploadResponseInputStream);
+        }
+    }
+
+    @Test
+    public void givenNotFoundWhenDownloadObjectThenReturnKo() {
+        when(mock.get()).thenReturn(Response.status(Status.NOT_FOUND.getStatusCode()).build());
+        ThrowingCallable throwingCallable =
+            () -> client.downloadObjectAsync("1", IngestCollection.MANIFESTS).readEntity(InputStream.class);
+        assertThatThrownBy(throwingCallable)
+            .isInstanceOf(IngestInternalClientNotFoundException.class);
+    }
+
+    @Test
+    public void givenInternalServerErrorWhenDownloadObjectThenThrowIngestInternalClientServerException() {
+        when(mock.get()).thenReturn(Response.status(Status.INTERNAL_SERVER_ERROR.getStatusCode()).build());
+        ThrowingCallable throwingCallable =
+            () -> client.downloadObjectAsync("1", IngestCollection.MANIFESTS).readEntity(InputStream.class);
+        assertThatThrownBy(throwingCallable)
+            .isInstanceOf(IngestInternalClientServerException.class);
+    }
+
+    @Test
+    public void givenBadRequestWhenDownloadObjectThenThrowInvalidParseOperationException() {
+        when(mock.get()).thenReturn(Response.status(Status.BAD_REQUEST.getStatusCode()).build());
+        ThrowingCallable throwingCallable =
+            () -> client.downloadObjectAsync("1", IngestCollection.MANIFESTS).readEntity(InputStream.class);
+        assertThatThrownBy(throwingCallable)
+            .isInstanceOf(InvalidParseOperationException.class);
+    }
+
+    @Test
+    public void givenHeadOperationStatusThenReturnOK() {
+        // 404
+        when(mock.head()).thenReturn(Response.status(Status.NOT_FOUND).build());
+        ThrowingCallable throwingCallable = () -> client.getOperationProcessStatus(ID);
+        assertThatThrownBy(throwingCallable)
+            .isInstanceOf(VitamClientInternalException.class);
+    }
+
+    @Test
+    public void givenHeadOperationStatusPreconditionFailedThenThrowInternalServerError() {
+        // 412
+        when(mock.head()).thenReturn(Response.status(Status.PRECONDITION_FAILED).build());
+        ThrowingCallable throwingCallable = () -> client.getOperationProcessStatus(ID);
+        assertThatThrownBy(throwingCallable)
+            .isInstanceOf(VitamClientInternalException.class);
+    }
+
+    @Test
+    public void givenHeadOperationOKThenOK() {
+        Response.ResponseBuilder builder = Response.status(Status.ACCEPTED)
+            .header(GlobalDataRest.X_GLOBAL_EXECUTION_STATE, ProcessState.COMPLETED)
+            .header(GlobalDataRest.X_GLOBAL_EXECUTION_STATUS, StatusCode.OK)
+            .header(GlobalDataRest.X_CONTEXT_ID, LogbookTypeProcess.INGEST.toString());
+        when(mock.head())
+            .thenReturn(builder.build());
+        assertThatCode(() -> client.getOperationProcessStatus(ID)).doesNotThrowAnyException();
+    }
+
+    @Test
+    public void givenHeadOperationthInternalServerErrorThenThrowInternalServerError() {
+        // 500
+        when(mock.head()).thenReturn(Response.status(Status.INTERNAL_SERVER_ERROR).build());
+        ThrowingCallable throwingCallable = () -> client.getOperationProcessStatus(ID);
+        assertThatThrownBy(throwingCallable)
+            .isInstanceOf(VitamClientInternalException.class);
+    }
+
+    @Test
+    public void givenHeadOperationStatusThenThrowUnauthorized() {
+        // 401
+        when(mock.head()).thenReturn(Response.status(Status.UNAUTHORIZED).build());
+        ThrowingCallable throwingCallable = () -> client.getOperationProcessStatus(ID);
+        assertThatThrownBy(throwingCallable)
+            .isInstanceOf(VitamClientInternalException.class);
+    }
+
+    @Test
+    public void testPreconditionFailedWhenGetOperationProcessExecutionDetails() {
+
+        VitamError vitamError =
+            new VitamError("code").setMessage("msg")
+                .setDescription("desc").setContext("ctx").setState("st");
+        ThrowingCallable throwingCallable;
+
+        // 412
+        when(mock.get()).thenReturn(Response.status(Status.PRECONDITION_FAILED).entity(vitamError).build());
+        throwingCallable = () -> client.getOperationProcessExecutionDetails(ID);
+        assertThatThrownBy(throwingCallable)
+            .isInstanceOf(VitamClientInternalException.class);
+
+        // 500
+        when(mock.get()).thenReturn(Response.status(Status.INTERNAL_SERVER_ERROR).entity(vitamError).build());
+        throwingCallable = () -> client.getOperationProcessExecutionDetails(ID);
+        assertThatThrownBy(throwingCallable)
+            .isInstanceOf(VitamClientInternalException.class);
+
+        // 404
+        when(mock.get()).thenReturn(Response.status(Status.NOT_FOUND).entity(vitamError).build());
+        throwingCallable = () -> client.getOperationProcessExecutionDetails(ID);
+        assertThatThrownBy(throwingCallable)
+            .isInstanceOf(VitamClientInternalException.class);
+    }
+
+    @Test
+    public void givenDeleteOperationStatusErrors() {
+
+        VitamError vitamError =
+            new VitamError("code").setMessage("msg")
+                .setDescription("desc").setContext("ctx").setState("st");
+        ThrowingCallable throwingCallable;
+
+        // 500
+        when(mock.delete()).thenReturn(Response.status(Status.INTERNAL_SERVER_ERROR).entity(vitamError).build());
+        throwingCallable = () -> client.cancelOperationProcessExecution(ID);
+        assertThatThrownBy(throwingCallable)
+            .isInstanceOf(VitamClientInternalException.class);
+
+        // 409
+        when(mock.delete()).thenReturn(Response.status(Status.CONFLICT).entity(vitamError).build());
+        throwingCallable = () -> client.cancelOperationProcessExecution(ID);
+        assertThatThrownBy(throwingCallable)
+            .isInstanceOf(VitamClientInternalException.class);
+
+        // 412
+        when(mock.delete()).thenReturn(Response.status(Status.PRECONDITION_FAILED).entity(vitamError).build());
+        throwingCallable = () -> client.cancelOperationProcessExecution(ID);
+        assertThatThrownBy(throwingCallable)
+            .isInstanceOf(VitamClientInternalException.class);
+
+        // 404
+        when(mock.delete()).thenReturn(Response.status(Status.NOT_FOUND).entity(vitamError).build());
+        throwingCallable = () -> client.cancelOperationProcessExecution(ID);
+        assertThatThrownBy(throwingCallable)
+            .isInstanceOf(VitamClientInternalException.class);
+    }
+
+    @Test
+    public void givenDeleteOKThenOK()
+        throws Exception {
+        ItemStatus result = new ItemStatus();
+        result.setGlobalState(ProcessState.COMPLETED);
+        result.increment(StatusCode.FATAL);
+        result.setItemId("Itzm");
+
+        RequestResponseOK<ItemStatus> responseOK = new RequestResponseOK<ItemStatus>().addResult(result);
+        responseOK.setHttpCode(Status.ACCEPTED.getStatusCode());
+
+
+        when(mock.delete())
+            .thenReturn(Response.status(Status.ACCEPTED).entity(responseOK).build());
+        RequestResponse<ItemStatus> response = client.cancelOperationProcessExecution(ID);
+        assertEquals(response.isOk(), true);
+        RequestResponseOK<ItemStatus> respOK = (RequestResponseOK<ItemStatus>) response;
+        assertEquals(respOK.getResults().iterator().hasNext(), true);
+        assertEquals(respOK.getResults().iterator().next().getGlobalStatus(), StatusCode.FATAL);
+        assertEquals(respOK.getResults().iterator().next().getGlobalState(), ProcessState.COMPLETED);
+    }
+
+    @Test
+    public void givenUnauthorizedInitWorkFlowThenThrowVitamClientInternalException() {
+        // 401
+        when(mock.post()).thenReturn(Response.status(Status.UNAUTHORIZED).build());
+        WorkFlow workflow = WorkFlow.of(WROKFLOW_ID, WROKFLOW_IDENTIFIER, INGEST);
+        ThrowingCallable throwingCallable = () -> client.initWorkflow(workflow);
+        assertThatThrownBy(throwingCallable)
+            .isInstanceOf(VitamClientException.class);
+    }
+
+    @Test
+    public void givenInitWorkFlowThenReturnResponseAccepted() {
+        // 202
+        when(mock.post()).thenReturn(Response.status(Status.ACCEPTED).build());
+        WorkFlow workflow = WorkFlow.of(WROKFLOW_ID, WROKFLOW_IDENTIFIER, INGEST);
+        assertThatCode(() -> client.initWorkflow(workflow)).doesNotThrowAnyException();
+    }
+
+    @Test
+    public void givenInitWorkFlowNotFoundThenThrowVitamClientInternalException() {
+        // 404
+        when(mock.post()).thenReturn(Response.status(Status.NOT_FOUND).build());
+        WorkFlow workflow = WorkFlow.of(WROKFLOW_ID, WROKFLOW_IDENTIFIER, INGEST);
+        ThrowingCallable throwingCallable = () -> client.initWorkflow(workflow);
+        assertThatThrownBy(throwingCallable)
+            .isInstanceOf(VitamClientException.class);
+    }
+
+    @Test
+    public void givenInitWorkFlowInternalServerErrorThenThrowVitamClientInternalException() {
+        // 500
+        when(mock.post()).thenReturn(Response.status(Status.INTERNAL_SERVER_ERROR).build());
+        WorkFlow workflow = WorkFlow.of(WROKFLOW_ID, WROKFLOW_IDENTIFIER, INGEST);
+        ThrowingCallable throwingCallable = () -> client.initWorkflow(workflow);
+        assertThatThrownBy(throwingCallable)
+            .isInstanceOf(VitamClientException.class);
+    }
+
+    @Test
+    public void givenOKWhenDefinitionsWorkflowThenReturnMap() throws Exception {
+        List<WorkFlow> desired = new ArrayList<>();
+        desired.add(new WorkFlow().setId("TEST").setComment("TEST comment"));
+        RequestResponseOK<WorkFlow> expected = new RequestResponseOK<>();
+        expected.addAllResults(desired);
+        expected.setHits(1, 0, 1, 1);
+        expected.setHttpCode(Status.OK.getStatusCode());
+        when(mock.get()).thenReturn(Response.status(Status.OK).entity(expected).build());
+        RequestResponse<WorkFlow> requestResponse = client.getWorkflowDefinitions();
+        assertEquals(expected.getHttpCode(), requestResponse.getHttpCode());
+    }
+
+    @Test
+    public void givenNotFoundWhenDefinitionsWorkflowThenReturnVitamError() {
+        when(mock.get()).thenReturn(Response.status(Status.NOT_FOUND).build());
+        ThrowingCallable throwingCallable = () -> client.getWorkflowDefinitions();
+        assertThatThrownBy(throwingCallable)
+            .isInstanceOf(VitamClientInternalException.class);
+    }
+
+    @Test
+    public void givenNotFoundWhenGetWorkFlowDetailThenReturnOptionalEmpty() throws Exception {
+        when(mock.get()).thenReturn(Response.status(Status.NOT_FOUND).build());
+        Optional<WorkFlow> requestReponse = client.getWorkflowDetails("FAKE_WORKFLOW");
+        assertEquals(Boolean.FALSE, requestReponse.isPresent());
+    }
+
+    @Test
+    public void givenNotFoundWhenListOperationsThenReturnVitamError() throws Exception {
+        when(mock.get()).thenReturn(Response.status(Status.NOT_FOUND).build());
+        ThrowingCallable throwingCallable = () -> client.listOperationsDetails(new ProcessQuery());
+        assertThatThrownBy(throwingCallable)
+            .isInstanceOf(VitamClientInternalException.class);
+    }
+
+    @Test
+    public void givenPreconditionFailedWhenDefinitionsWorkflowThenReturnVitamError() throws Exception {
+        when(mock.get()).thenReturn(Response.status(Status.PRECONDITION_FAILED).build());
+        ThrowingCallable throwingCallable = () -> client.getWorkflowDefinitions();
+        assertThatThrownBy(throwingCallable)
+            .isInstanceOf(VitamClientInternalException.class);
+
+    }
+
+    @Test
+    public void givenUnauthaurizedWhenDefinitionsWorkflowThenReturnVitamError() throws Exception {
+        when(mock.get()).thenReturn(Response.status(Status.UNAUTHORIZED).build());
+        ThrowingCallable throwingCallable = () -> client.getWorkflowDefinitions();
+        assertThatThrownBy(throwingCallable)
+            .isInstanceOf(VitamClientInternalException.class);
+
+    }
+
+    @Test
+    public void givenInternalServerErrorWhenDefinitionsWorkflowThenReturnVitamError() {
+        when(mock.get()).thenReturn(Response.status(Status.INTERNAL_SERVER_ERROR).build());
+        ThrowingCallable throwingCallable = () -> client.getWorkflowDefinitions();
+        assertThatThrownBy(throwingCallable)
+            .isInstanceOf(VitamClientInternalException.class);
+    }
+
 
     @Path(PATH)
     public static class MockResource {
@@ -247,417 +702,6 @@ public class IngestInternalClientRestTest extends ResteasyTestApplication {
         public Response getWorkflowDetails(@PathParam("workfowId") String workfowId) {
             return expectedResponse.get();
         }
-    }
-
-    @Test
-    public void givenStartedServerWhenUploadSipThenReturnOK() throws Exception {
-
-        final List<LogbookOperationParameters> operationList = new ArrayList<>();
-
-        final GUID ingestGuid = GUIDFactory.newGUID();
-        final GUID containerGuid = GUIDFactory.newGUID();
-        final LogbookOperationParameters externalOperationParameters1 =
-            LogbookParametersFactory.newLogbookOperationParameters(
-                ingestGuid,
-                "Ingest external",
-                containerGuid,
-                LogbookTypeProcess.INGEST,
-                StatusCode.STARTED,
-                "Start Ingest external",
-                containerGuid);
-
-        final LogbookOperationParameters externalOperationParameters2 =
-            LogbookParametersFactory.newLogbookOperationParameters(
-                ingestGuid,
-                "Ingest external",
-                containerGuid,
-                LogbookTypeProcess.INGEST,
-                StatusCode.OK,
-                "End Ingest external",
-                containerGuid);
-        operationList.add(externalOperationParameters1);
-        operationList.add(externalOperationParameters2);
-
-        InputStream inputStreamATR = PropertiesUtils.getResourceAsStream("ATR_example.xml");
-        when(mockLogbook.post()).thenReturn(Response.status(Status.CREATED).build());
-        when(mock.post())
-            .thenReturn(Response.status(Status.OK).entity(FileUtil.readInputStream(inputStreamATR)).build());
-        final InputStream inputStream =
-            PropertiesUtils.getResourceAsStream("SIP_bordereau_avec_objet_OK.zip");
-        client.uploadInitialLogbook(operationList);
-        WorkFlow workflow = WorkFlow.of(WROKFLOW_ID, WROKFLOW_IDENTIFIER, INGEST);
-        client.upload(inputStream, CommonMediaType.ZIP_TYPE, workflow, X_ACTION);
-    }
-
-    @Test
-    public void givenVirusWhenUploadSipThenReturnKO() throws Exception {
-
-        final List<LogbookOperationParameters> operationList = new ArrayList<>();
-
-        final GUID ingestGuid = GUIDFactory.newGUID();
-        final GUID conatinerGuid = GUIDFactory.newGUID();
-        final LogbookOperationParameters externalOperationParameters1 =
-            LogbookParametersFactory.newLogbookOperationParameters(
-                ingestGuid,
-                "Ingest external",
-                conatinerGuid,
-                LogbookTypeProcess.INGEST,
-                StatusCode.STARTED,
-                "Start Ingest external",
-                conatinerGuid);
-
-        final LogbookOperationParameters externalOperationParameters2 =
-            LogbookParametersFactory.newLogbookOperationParameters(
-                ingestGuid,
-                "Ingest external",
-                conatinerGuid,
-                LogbookTypeProcess.INGEST,
-                StatusCode.KO,
-                "End Ingest external",
-                conatinerGuid);
-        operationList.add(externalOperationParameters1);
-        operationList.add(externalOperationParameters2);
-
-        try (InputStream inputStreamATR = PropertiesUtils.getResourceAsStream("ATR_example.xml")) {
-            when(mockLogbook.post()).thenReturn(Response.status(Status.CREATED).build());
-            when(mock.post()).thenReturn(
-                Response.status(Status.INTERNAL_SERVER_ERROR).entity(FileUtil.readInputStream(inputStreamATR)).build());
-            client.uploadInitialLogbook(operationList);
-            try (final InputStream inputStream =
-                PropertiesUtils.getResourceAsStream("SIP_bordereau_avec_objet_OK.zip")) {
-                WorkFlow workflow = WorkFlow.of(WROKFLOW_ID, WROKFLOW_IDENTIFIER, INGEST);
-                client.upload(inputStream, CommonMediaType.ZIP_TYPE, workflow, X_ACTION);
-            }
-        }
-    }
-
-    @Test
-    public void givenServerErrorWhenPostSipThenRaiseAnException() throws Exception {
-
-        final List<LogbookOperationParameters> operationList = new ArrayList<>();
-
-        final GUID ingestGuid = GUIDFactory.newGUID();
-        final GUID conatinerGuid = GUIDFactory.newGUID();
-        final LogbookOperationParameters externalOperationParameters1 =
-            LogbookParametersFactory.newLogbookOperationParameters(
-                ingestGuid,
-                "Ingest external",
-                conatinerGuid,
-                LogbookTypeProcess.INGEST,
-                StatusCode.STARTED,
-                "Start Ingest external",
-                conatinerGuid);
-
-        final LogbookOperationParameters externalOperationParameters2 =
-            LogbookParametersFactory.newLogbookOperationParameters(
-                ingestGuid,
-                "Ingest external",
-                conatinerGuid,
-                LogbookTypeProcess.INGEST,
-                StatusCode.OK,
-                "End Ingest external",
-                conatinerGuid);
-        operationList.add(externalOperationParameters1);
-        operationList.add(externalOperationParameters2);
-        when(mockLogbook.post()).thenReturn(Response.status(Status.CREATED).build());
-        when(mock.post()).thenReturn(Response.status(Status.INTERNAL_SERVER_ERROR).build());
-
-        try (final InputStream inputStream =
-            PropertiesUtils.getResourceAsStream("SIP_bordereau_avec_objet_OK.zip")) {
-
-            client.uploadInitialLogbook(operationList);
-            WorkFlow workflow = WorkFlow.of(WROKFLOW_ID, WROKFLOW_IDENTIFIER, INGEST);
-            client.upload(inputStream, CommonMediaType.ZIP_TYPE, workflow, X_ACTION);
-        }
-
-    }
-
-    @Test
-    public void givenStartedServerWhenUploadSipNonZipThenReturnKO() throws Exception {
-
-        final List<LogbookOperationParameters> operationList = new ArrayList<>();
-
-        final GUID ingestGuid = GUIDFactory.newGUID();
-        final GUID conatinerGuid = GUIDFactory.newGUID();
-        final LogbookOperationParameters externalOperationParameters1 =
-            LogbookParametersFactory.newLogbookOperationParameters(
-                ingestGuid,
-                "Ingest external",
-                conatinerGuid,
-                LogbookTypeProcess.INGEST,
-                StatusCode.STARTED,
-                "Start Ingest external",
-                conatinerGuid);
-
-        final LogbookOperationParameters externalOperationParameters2 =
-            LogbookParametersFactory.newLogbookOperationParameters(
-                ingestGuid,
-                "Ingest external",
-                conatinerGuid,
-                LogbookTypeProcess.INGEST,
-                StatusCode.OK,
-                "End Ingest external",
-                conatinerGuid);
-        operationList.add(externalOperationParameters1);
-        operationList.add(externalOperationParameters2);
-        when(mockLogbook.post()).thenReturn(Response.status(Status.CREATED).build());
-        when(mock.post()).thenReturn(Response.status(Status.INTERNAL_SERVER_ERROR).build());
-        try (final InputStream inputStream =
-            PropertiesUtils.getResourceAsStream("SIP_mauvais_format.pdf")) {
-            client.uploadInitialLogbook(operationList);
-            WorkFlow workflow = WorkFlow.of(WROKFLOW_ID, WROKFLOW_IDENTIFIER, INGEST);
-            client.upload(inputStream, CommonMediaType.ZIP_TYPE, workflow, X_ACTION);
-        }
-
-    }
-
-    @Test
-    public void givenInputstreamWhenDownloadObjectThenReturnOK()
-        throws Exception {
-
-        when(mock.get()).thenReturn(ClientMockResultHelper.getObjectStream());
-
-        try (final InputStream fakeUploadResponseInputStream =
-            client.downloadObjectAsync("1", IngestCollection.MANIFESTS).readEntity(InputStream.class)) {
-
-            assertTrue(IOUtils.contentEquals(fakeUploadResponseInputStream,
-                StreamUtils.toInputStream("test")));
-        } catch (final IOException e) {
-            e.printStackTrace();
-            fail();
-        }
-    }
-
-    @Test
-    public void givenInputstreamWhenDownloadObjectThenStoreATR()
-        throws Exception {
-        when(mock.get()).thenReturn(ClientMockResultHelper.getObjectStream());
-        try (final InputStream fakeUploadResponseInputStream =
-            client.downloadObjectAsync("1", IngestCollection.MANIFESTS).readEntity(InputStream.class)) {
-            assertNotNull(fakeUploadResponseInputStream);
-            client.storeATR(GUIDFactory.newGUID(), fakeUploadResponseInputStream);
-        }
-    }
-
-    @Test(expected = IngestInternalClientNotFoundException.class)
-    public void givenNotFoundWhenDownloadObjectThenReturnKo()
-        throws Exception {
-        when(mock.get()).thenReturn(Response.status(Status.NOT_FOUND.getStatusCode()).build());
-        client.downloadObjectAsync("1", IngestCollection.MANIFESTS).readEntity(InputStream.class);
-    }
-
-    @Test(expected = VitamClientInternalException.class)
-    public void givenHeadOperationStatusThenReturnOK()
-        throws Exception {
-
-        when(mock.head()).thenReturn(Response.status(Status.NOT_FOUND).build());
-        client.getOperationProcessStatus(ID);
-
-    }
-
-    @Test(expected = VitamClientInternalException.class)
-    public void givenHeadOperationStatusPreconditionFailedThenThrowInternalServerError()
-        throws Exception {
-
-        when(mock.head()).thenReturn(Response.status(Status.PRECONDITION_FAILED).build());
-        client.getOperationProcessStatus(ID);
-
-    }
-
-    @Test
-    public void givenHeadOperationOKThenOK()
-        throws Exception {
-
-        Response.ResponseBuilder builder = Response.status(Status.ACCEPTED)
-            .header(GlobalDataRest.X_GLOBAL_EXECUTION_STATE, ProcessState.COMPLETED)
-            .header(GlobalDataRest.X_GLOBAL_EXECUTION_STATUS, StatusCode.OK)
-            .header(GlobalDataRest.X_CONTEXT_ID, LogbookTypeProcess.INGEST.toString());
-        when(mock.head())
-            .thenReturn(builder.build());
-        ItemStatus status = client.getOperationProcessStatus(ID);
-        assertEquals(status.getGlobalStatus(), StatusCode.OK);
-
-    }
-
-    @Test(expected = VitamClientInternalException.class)
-    public void givenHeadOperationthInternalServerErrorThenThrowInternalServerError()
-        throws Exception {
-
-        when(mock.head()).thenReturn(Response.status(Status.INTERNAL_SERVER_ERROR).build());
-        client.getOperationProcessStatus(ID);
-
-    }
-
-    @Test(expected = VitamClientInternalException.class)
-    public void givenHeadOperationStatusThenThrowUnauthorized()
-        throws Exception {
-
-        when(mock.head()).thenReturn(Response.status(Status.UNAUTHORIZED).build());
-        client.getOperationProcessStatus(ID);
-
-    }
-
-    @Test
-    public void testPreconditionFailedWhenGetOperationProcessExecutionDetails()
-        throws Exception {
-
-        VitamError vitamError =
-            new VitamError("code").setMessage("msg")
-                .setDescription("desc").setContext("ctx").setState("st");
-        // 412
-        when(mock.get()).thenReturn(Response.status(Status.PRECONDITION_FAILED).entity(vitamError).build());
-        RequestResponse<ItemStatus> res = client.getOperationProcessExecutionDetails(ID);
-        Assertions.assertThat(res.isOk()).isFalse();
-        Assertions.assertThat(res.getHttpCode()).isEqualTo(Status.PRECONDITION_FAILED.getStatusCode());
-
-
-        // 500
-        when(mock.get()).thenReturn(Response.status(Status.INTERNAL_SERVER_ERROR).entity(vitamError).build());
-        res = client.getOperationProcessExecutionDetails(ID);
-        Assertions.assertThat(res.isOk()).isFalse();
-        Assertions.assertThat(res.getHttpCode()).isEqualTo(Status.INTERNAL_SERVER_ERROR.getStatusCode());
-
-        // 404
-        when(mock.get()).thenReturn(Response.status(Status.NOT_FOUND).entity(vitamError).build());
-        res = client.getOperationProcessExecutionDetails(ID);
-        Assertions.assertThat(res.isOk()).isFalse();
-        Assertions.assertThat(res.getHttpCode()).isEqualTo(Status.NOT_FOUND.getStatusCode());
-
-
-    }
-
-    @Test
-    public void givenDeleteOperationStatusErrors()
-        throws Exception {
-
-        VitamError vitamError =
-            new VitamError("code").setMessage("msg")
-                .setDescription("desc").setContext("ctx").setState("st");
-        // 500
-        when(mock.delete()).thenReturn(Response.status(Status.INTERNAL_SERVER_ERROR).entity(vitamError).build());
-        RequestResponse<ItemStatus> res = client.cancelOperationProcessExecution(ID);
-        Assertions.assertThat(res.isOk()).isFalse();
-        Assertions.assertThat(res.getHttpCode()).isEqualTo(Status.INTERNAL_SERVER_ERROR.getStatusCode());
-
-        // 409
-        when(mock.delete()).thenReturn(Response.status(Status.CONFLICT).entity(vitamError).build());
-        res = client.cancelOperationProcessExecution(ID);
-        Assertions.assertThat(res.isOk()).isFalse();
-        Assertions.assertThat(res.getHttpCode()).isEqualTo(Status.CONFLICT.getStatusCode());
-
-        // 412
-        when(mock.delete()).thenReturn(Response.status(Status.PRECONDITION_FAILED).entity(vitamError).build());
-        res = client.cancelOperationProcessExecution(ID);
-        Assertions.assertThat(res.isOk()).isFalse();
-        Assertions.assertThat(res.getHttpCode()).isEqualTo(Status.PRECONDITION_FAILED.getStatusCode());
-
-        // 404
-        when(mock.delete()).thenReturn(Response.status(Status.NOT_FOUND).entity(vitamError).build());
-        res = client.cancelOperationProcessExecution(ID);
-        Assertions.assertThat(res.isOk()).isFalse();
-        Assertions.assertThat(res.getHttpCode()).isEqualTo(Status.NOT_FOUND.getStatusCode());
-    }
-
-    @Test
-    public void givenDeleteOKThenOK()
-        throws Exception {
-        ItemStatus result = new ItemStatus();
-        result.setGlobalState(ProcessState.COMPLETED);
-        result.increment(StatusCode.FATAL);
-        result.setItemId("Itzm");
-
-        RequestResponseOK<ItemStatus> responseOK = new RequestResponseOK<ItemStatus>().addResult(result);
-        responseOK.setHttpCode(Status.ACCEPTED.getStatusCode());
-
-
-        when(mock.delete())
-            .thenReturn(Response.status(Status.ACCEPTED).entity(responseOK).build());
-        RequestResponse<ItemStatus> response = client.cancelOperationProcessExecution(ID);
-        assertEquals(response.isOk(), true);
-        RequestResponseOK<ItemStatus> respOK = (RequestResponseOK<ItemStatus>) response;
-        assertEquals(respOK.getResults().iterator().hasNext(), true);
-        assertEquals(respOK.getResults().iterator().next().getGlobalStatus(), StatusCode.FATAL);
-        assertEquals(respOK.getResults().iterator().next().getGlobalState(), ProcessState.COMPLETED);
-    }
-
-    @Test(expected = VitamClientException.class)
-    public void givenUnauthorizedInitWorkFlowThenThrowVitamClientInternalException()
-        throws Exception {
-        when(mock.post()).thenReturn(Response.status(Status.UNAUTHORIZED).build());
-        WorkFlow workflow = WorkFlow.of(WROKFLOW_ID, WROKFLOW_IDENTIFIER, INGEST);
-        client.initWorkflow(workflow);
-
-    }
-
-    @Test
-    public void givenInitWorkFlowThenReturnResponseAccepted()
-        throws Exception {
-
-        when(mock.post()).thenReturn(Response.status(Status.ACCEPTED).build());
-        WorkFlow workflow = WorkFlow.of(WROKFLOW_ID, WROKFLOW_IDENTIFIER, INGEST);
-        client.initWorkflow(workflow);
-
-    }
-
-    @Test(expected = VitamClientException.class)
-    public void givenInitWorkFlowNotFoundThenThrowVitamClientInternalException()
-        throws Exception {
-
-        when(mock.post()).thenReturn(Response.status(Status.NOT_FOUND).build());
-        WorkFlow workflow = WorkFlow.of(WROKFLOW_ID, WROKFLOW_IDENTIFIER, INGEST);
-        client.initWorkflow(workflow);
-
-    }
-
-    @Test(expected = VitamClientException.class)
-    public void givenInitWorkFlowInternalServerErrorThenThrowVitamClientInternalException()
-        throws Exception {
-
-        when(mock.post()).thenReturn(Response.status(Status.INTERNAL_SERVER_ERROR).build());
-        WorkFlow workflow = WorkFlow.of(WROKFLOW_ID, WROKFLOW_IDENTIFIER, INGEST);
-        client.initWorkflow(workflow);
-
-    }
-
-    @Test
-    public void givenOKWhenDefinitionsWorkflowThenReturnMap() throws Exception {
-        List<WorkFlow> desired = new ArrayList<>();
-        desired.add(new WorkFlow().setId("TEST").setComment("TEST comment"));
-        RequestResponseOK<WorkFlow> expected = new RequestResponseOK<>();
-        expected.addAllResults(desired);
-        expected.setHits(1, 0, 1, 1);
-        expected.setHttpCode(Status.OK.getStatusCode());
-        when(mock.get()).thenReturn(Response.status(Status.OK).entity(expected).build());
-        RequestResponse<WorkFlow> requestResponse = client.getWorkflowDefinitions();
-        assertEquals(expected.getHttpCode(), requestResponse.getHttpCode());
-    }
-
-    @Test
-    public void givenNotFoundWhenDefinitionsWorkflowThenReturnVitamError() throws Exception {
-        when(mock.get()).thenReturn(Response.status(Status.NOT_FOUND).build());
-        RequestResponse<WorkFlow> requestReponse = client.getWorkflowDefinitions();
-        assertEquals(Status.NOT_FOUND.getStatusCode(), requestReponse.getHttpCode());
-    }
-
-    @Test
-    public void givenPreconditionFailedWhenDefinitionsWorkflowThenReturnVitamError() throws Exception {
-        when(mock.get()).thenReturn(Response.status(Status.PRECONDITION_FAILED).build());
-        RequestResponse<WorkFlow> requestReponse = client.getWorkflowDefinitions();
-        assertEquals(Status.PRECONDITION_FAILED.getStatusCode(), requestReponse.getHttpCode());
-    }
-
-    @Test
-    public void givenUnauthaurizedWhenDefinitionsWorkflowThenReturnVitamError() throws Exception {
-        when(mock.get()).thenReturn(Response.status(Status.UNAUTHORIZED).build());
-        RequestResponse<WorkFlow> requestReponse = client.getWorkflowDefinitions();
-        assertEquals(Status.UNAUTHORIZED.getStatusCode(), requestReponse.getHttpCode());
-    }
-
-    @Test
-    public void givenInternalServerErrorWhenDefinitionsWorkflowThenReturnVitamError() throws Exception {
-        when(mock.get()).thenReturn(Response.status(Status.INTERNAL_SERVER_ERROR).build());
-        RequestResponse<WorkFlow> requestReponse = client.getWorkflowDefinitions();
-        assertEquals(Status.INTERNAL_SERVER_ERROR.getStatusCode(), requestReponse.getHttpCode());
     }
 
 }

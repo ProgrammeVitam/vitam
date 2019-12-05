@@ -108,6 +108,7 @@ import fr.gouv.vitam.functional.administration.client.AdminManagementClientFacto
 import fr.gouv.vitam.functional.administration.rest.AdminManagementMain;
 import fr.gouv.vitam.ingest.internal.client.IngestInternalClient;
 import fr.gouv.vitam.ingest.internal.client.IngestInternalClientFactory;
+import fr.gouv.vitam.ingest.internal.common.exception.IngestInternalClientServerException;
 import fr.gouv.vitam.ingest.internal.upload.rest.IngestInternalMain;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientAlreadyExistsException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientBadRequestException;
@@ -139,6 +140,7 @@ import fr.gouv.vitam.storage.engine.client.StorageClient;
 import fr.gouv.vitam.storage.engine.client.StorageClientFactory;
 import fr.gouv.vitam.storage.engine.common.model.DataCategory;
 import fr.gouv.vitam.worker.server.rest.WorkerMain;
+import fr.gouv.vitam.workspace.api.exception.ZipFilesNameNotAllowedException;
 import fr.gouv.vitam.workspace.rest.WorkspaceMain;
 import io.restassured.RestAssured;
 import org.apache.commons.io.FileUtils;
@@ -251,6 +253,9 @@ public class IngestInternalIT extends VitamRuleRunner {
         "functional-admin/file-rules/error_report_reference_with_wrong_coma.json";
     private static final String ERROR_REPORT_UNKNOW_DURATION =
         "functional-admin/file-rules/error_report_unknow_duration.json";
+    private static final TypeReference<List<EventTypeModel>> LIST_TYPE_REFERENCE =
+        new TypeReference<List<EventTypeModel>>() {
+        };
     @ClassRule
     public static VitamServerRunner runner =
         new VitamServerRunner(IngestInternalIT.class, mongoRule.getMongoDatabase().getName(),
@@ -266,6 +271,8 @@ public class IngestInternalIT extends VitamRuleRunner {
                 IngestInternalMain.class));
     private static String SIP_TREE = "integration-ingest-internal/test_arbre.zip";
     private static String SIP_FILE_OK_NAME = "integration-ingest-internal/SIP-ingest-internal-ok.zip";
+    private static String SIP_FILE_KO_FORMAT = "integration-ingest-internal/SIP_mauvais_format.pdf";
+    private static String SIP_CONTENT_KO_FORMAT = "integration-ingest-internal/SIP-ingest-internal-Content-KO.zip";
     private static String SIP_WITH_LOGBOOK = "integration-ingest-internal/sip_with_logbook.zip";
     private static String SIP_WITH_MALFORMED_LOGBOOK = "integration-ingest-internal/sip_with_malformed_logbook.zip";
     private static String SIP_SIP_ALL_METADATA_WITH_CUSTODIALHISTORYFILE =
@@ -312,8 +319,6 @@ public class IngestInternalIT extends VitamRuleRunner {
     private static String OK_ATTACHMENT_GOT_SP_DIFFERENTS =
         "integration-ingest-internal/rattachement_objet_GOT_mauvaisSP_TC.zip";
     private static LogbookElasticsearchAccess esClient;
-
-    private static final TypeReference<List<EventTypeModel>> LIST_TYPE_REFERENCE = new TypeReference<List<EventTypeModel>>() {};
     private WorkFlow holding = WorkFlow.of(HOLDING_SCHEME, HOLDING_SCHEME_IDENTIFIER, "MASTERDATA");
     private WorkFlow ingestSip = WorkFlow.of(WORKFLOW_ID, CONTEXT_ID, "INGEST");
 
@@ -424,11 +429,79 @@ public class IngestInternalIT extends VitamRuleRunner {
     }
 
     @RunWithCustomExecutor
+    @Test (expected = IngestInternalClientServerException.class)
+    public void testIngestInternalUploadSipWithBadFormatThenKO() throws Exception {
+        final GUID operationGuid = GUIDFactory.newOperationLogbookGUID(tenantId);
+        try {
+            prepareVitamSession(tenantId, "aName3", "Context_IT");
+            VitamThreadUtils.getVitamSession().setRequestId(operationGuid);
+
+            // workspace client unzip SIP in workspace
+            final InputStream zipInputStreamSipObject = PropertiesUtils.getResourceAsStream(SIP_FILE_KO_FORMAT);
+
+            // init default logbook operation
+            final List<LogbookOperationParameters> params = new ArrayList<>();
+            final LogbookOperationParameters initParameters = LogbookParametersFactory.newLogbookOperationParameters(
+                operationGuid, "Process_SIP_unitary", operationGuid,
+                LogbookTypeProcess.INGEST, StatusCode.STARTED,
+                operationGuid != null ? operationGuid.toString() : "outcomeDetailMessage",
+                operationGuid);
+            params.add(initParameters);
+
+            // call ingest
+            IngestInternalClientFactory.getInstance().changeServerPort(runner.PORT_SERVICE_INGEST_INTERNAL);
+            final IngestInternalClient client = IngestInternalClientFactory.getInstance().getClient();
+            client.uploadInitialLogbook(params);
+
+            // init workflow before execution
+            client.initWorkflow(ingestSip);
+            client.upload(zipInputStreamSipObject, CommonMediaType.ZIP_TYPE, ingestSip, ProcessAction.RESUME.name());
+        } catch (final Exception e) {
+            LOGGER.error(e);
+            throw e;
+        }
+    }
+
+    @RunWithCustomExecutor
+    @Test (expected = ZipFilesNameNotAllowedException.class)
+    public void testIngestInternalUploadSipWithBadContentFormatThenKO() throws Exception {
+        final GUID operationGuid = GUIDFactory.newOperationLogbookGUID(tenantId);
+        try {
+            prepareVitamSession(tenantId, "aName3", "Context_IT");
+            VitamThreadUtils.getVitamSession().setRequestId(operationGuid);
+
+            // workspace client unzip SIP in workspace
+            final InputStream zipInputStreamSipObject = PropertiesUtils.getResourceAsStream(SIP_CONTENT_KO_FORMAT);
+
+            // init default logbook operation
+            final List<LogbookOperationParameters> params = new ArrayList<>();
+            final LogbookOperationParameters initParameters = LogbookParametersFactory.newLogbookOperationParameters(
+                operationGuid, "Process_SIP_unitary", operationGuid,
+                LogbookTypeProcess.INGEST, StatusCode.STARTED,
+                operationGuid != null ? operationGuid.toString() : "outcomeDetailMessage",
+                operationGuid);
+            params.add(initParameters);
+
+            // call ingest
+            IngestInternalClientFactory.getInstance().changeServerPort(runner.PORT_SERVICE_INGEST_INTERNAL);
+            final IngestInternalClient client = IngestInternalClientFactory.getInstance().getClient();
+            client.uploadInitialLogbook(params);
+
+            // init workflow before execution
+            client.initWorkflow(ingestSip);
+            client.upload(zipInputStreamSipObject, CommonMediaType.ZIP_TYPE, ingestSip, ProcessAction.RESUME.name());
+        } catch (final Exception e) {
+            LOGGER.error(e);
+            throw e;
+        }
+    }
+
+    @RunWithCustomExecutor
     @Test
     public void testIngestInternal() throws Exception {
         final GUID operationGuid = GUIDFactory.newOperationLogbookGUID(tenantId);
         try {
-            prepareVitamSession(tenantId,"aName3", "Context_IT");
+            prepareVitamSession(tenantId, "aName3", "Context_IT");
             VitamThreadUtils.getVitamSession().setRequestId(operationGuid);
 
             // workspace client unzip SIP in workspace
@@ -452,12 +525,12 @@ public class IngestInternalIT extends VitamRuleRunner {
             client.initWorkflow(ingestSip);
 
             client.upload(zipInputStreamSipObject, CommonMediaType.ZIP_TYPE, ingestSip, ProcessAction.RESUME.name());
-            
+
             awaitForWorkflowTerminationWithStatus(operationGuid, StatusCode.OK);
 
             // Try to check AU
             final MetaDataClient metadataClient = MetaDataClientFactory.getInstance().getClient();
-            final JsonNode node = getArchiveUnitWithTitle(metadataClient, "Sensibilisation API",TITLE);
+            final JsonNode node = getArchiveUnitWithTitle(metadataClient, "Sensibilisation API", TITLE);
             SelectMultiQuery select;
             LOGGER.debug(JsonHandler.prettyPrint(node));
             final JsonNode result = node.get("$results");
@@ -466,7 +539,8 @@ public class IngestInternalIT extends VitamRuleRunner {
             assertNotNull(unit);
             final String og = unit.get("#object").asText();
             assertThat(unit.get("#management").get("NeedAuthorization").asBoolean()).isFalse();
-            assertThat(unit.get("#storage").get("strategyId").asText()).isEqualTo(VitamConfiguration.getDefaultStrategy());
+            assertThat(unit.get("#storage").get("strategyId").asText())
+                .isEqualTo(VitamConfiguration.getDefaultStrategy());
             // Try to check OG
             select = new SelectMultiQuery();
             select.addRoots(og);
@@ -663,7 +737,7 @@ public class IngestInternalIT extends VitamRuleRunner {
     public void testPhysicalArchiveIngestInternal() throws Exception {
         final GUID operationGuid = GUIDFactory.newOperationLogbookGUID(tenantId);
         try {
-            prepareVitamSession(tenantId,"aName3", "Context_IT");
+            prepareVitamSession(tenantId, "aName3", "Context_IT");
             VitamThreadUtils.getVitamSession().setRequestId(operationGuid);
             // workspace client unzip SIP in workspace
             final InputStream zipInputStreamSipObject =
@@ -729,7 +803,7 @@ public class IngestInternalIT extends VitamRuleRunner {
     @RunWithCustomExecutor
     public void should_download_csv_referential() throws Exception {
         // Given
-        prepareVitamSession(tenantId,"aName3", "Context_IT");
+        prepareVitamSession(tenantId, "aName3", "Context_IT");
 
         FileInputStream stream = new FileInputStream(PropertiesUtils.findFile(FILE_AGENCIES_OK));
         String operationId;
@@ -798,7 +872,7 @@ public class IngestInternalIT extends VitamRuleRunner {
         // do the ingest
         final GUID operationGuid = GUIDFactory.newOperationLogbookGUID(tenantId);
         try {
-            prepareVitamSession(tenantId,"aName3", "Context_IT");
+            prepareVitamSession(tenantId, "aName3", "Context_IT");
             VitamThreadUtils.getVitamSession().setRequestId(operationGuid);
             // workspace client unzip SIP in workspace
             final InputStream zipInputStreamSipObject =
@@ -865,7 +939,7 @@ public class IngestInternalIT extends VitamRuleRunner {
 
     private String doIngestOfTreeAndGetOneParentAU() throws Exception {
         try {
-            prepareVitamSession(tenantId,"aName3", "Context_IT");
+            prepareVitamSession(tenantId, "aName3", "Context_IT");
             final GUID operationGuid = GUIDFactory.newOperationLogbookGUID(tenantId);
             VitamThreadUtils.getVitamSession().setRequestId(operationGuid);
             // workspace client unzip SIP in workspace
@@ -930,7 +1004,7 @@ public class IngestInternalIT extends VitamRuleRunner {
     public void testPhysicalArchiveWithBinaryMasterInPhysical() throws Exception {
         final GUID operationGuid = GUIDFactory.newOperationLogbookGUID(tenantId);
         try {
-            prepareVitamSession(tenantId,"aName3", "Context_IT");
+            prepareVitamSession(tenantId, "aName3", "Context_IT");
             VitamThreadUtils.getVitamSession().setRequestId(operationGuid);
             // workspace client unzip SIP in workspace
             final InputStream zipInputStreamSipObject =
@@ -976,7 +1050,7 @@ public class IngestInternalIT extends VitamRuleRunner {
     public void testPhysicalArchiveWithPhysicalMasterInBinary() throws Exception {
         final GUID operationGuid = GUIDFactory.newOperationLogbookGUID(tenantId);
         try {
-            prepareVitamSession(tenantId,"aName3", "Context_IT");
+            prepareVitamSession(tenantId, "aName3", "Context_IT");
             // workspace client unzip SIP in workspace
             final InputStream zipInputStreamSipObject =
                 PropertiesUtils.getResourceAsStream(SIP_KO_PHYSICAL_ARCHIVE_PHYSICAL_IN_BINARY);
@@ -1022,7 +1096,7 @@ public class IngestInternalIT extends VitamRuleRunner {
     public void testPhysicalArchiveWithEmptyPhysicalId() throws Exception {
         final GUID operationGuid = GUIDFactory.newOperationLogbookGUID(tenantId);
         try {
-            prepareVitamSession(tenantId,"aName3", "Context_IT");
+            prepareVitamSession(tenantId, "aName3", "Context_IT");
             VitamThreadUtils.getVitamSession().setRequestId(operationGuid);
             // workspace client unzip SIP in workspace
             final InputStream zipInputStreamSipObject =
@@ -1087,7 +1161,7 @@ public class IngestInternalIT extends VitamRuleRunner {
     @Test
     public void testIngestInternal2182CA1() throws Exception {
         final GUID operationGuid = GUIDFactory.newOperationLogbookGUID(tenantId);
-        prepareVitamSession(tenantId,"aName3", "Context_IT");
+        prepareVitamSession(tenantId, "aName3", "Context_IT");
         VitamThreadUtils.getVitamSession().setRequestId(operationGuid);
         // workspace client unzip SIP in workspace
         final InputStream zipInputStreamSipObject =
@@ -1141,7 +1215,7 @@ public class IngestInternalIT extends VitamRuleRunner {
     @Test
     public void testIngestInternal1791CA1() throws Exception {
         final GUID operationGuid = GUIDFactory.newOperationLogbookGUID(tenantId);
-        prepareVitamSession(tenantId,"aName3", "Context_IT");
+        prepareVitamSession(tenantId, "aName3", "Context_IT");
         VitamThreadUtils.getVitamSession().setRequestId(operationGuid);
         // workspace client unzip SIP in workspace
         final InputStream zipInputStreamSipObject =
@@ -1194,7 +1268,7 @@ public class IngestInternalIT extends VitamRuleRunner {
     @Test
     public void testIngestInternal1791CA2() throws Exception {
         final GUID operationGuid = GUIDFactory.newOperationLogbookGUID(tenantId);
-        prepareVitamSession(tenantId,"aName3", "Context_IT");
+        prepareVitamSession(tenantId, "aName3", "Context_IT");
         VitamThreadUtils.getVitamSession().setRequestId(operationGuid);
         // workspace client unzip SIP in workspace
         final InputStream zipInputStreamSipObject =
@@ -1247,7 +1321,7 @@ public class IngestInternalIT extends VitamRuleRunner {
     @RunWithCustomExecutor
     @Test
     public void testIngestWithManifestIncorrectObjectNumber() throws Exception {
-        prepareVitamSession(tenantId,"aName3", "Context_IT");
+        prepareVitamSession(tenantId, "aName3", "Context_IT");
         final GUID operationGuid = GUIDFactory.newOperationLogbookGUID(tenantId);
         VitamThreadUtils.getVitamSession().setRequestId(operationGuid);
         // TODO: 6/6/17 why objectGuid ? The test fail on the logbook
@@ -1282,7 +1356,7 @@ public class IngestInternalIT extends VitamRuleRunner {
     @RunWithCustomExecutor
     @Test
     public void testIngestWithManifestHavingMgtRules() throws Exception {
-        prepareVitamSession(tenantId,"aName3", "Context_IT");
+        prepareVitamSession(tenantId, "aName3", "Context_IT");
         final GUID operationGuid = GUIDFactory.newOperationLogbookGUID(tenantId);
         VitamThreadUtils.getVitamSession().setRequestId(operationGuid);
         // ProcessDataAccessImpl processData = ProcessDataAccessImpl.getInstance();
@@ -1332,7 +1406,7 @@ public class IngestInternalIT extends VitamRuleRunner {
     @RunWithCustomExecutor
     @Test
     public void testIngestWithManifestHavingBothUnitMgtAndMgtMetaDataRules() throws Exception {
-        prepareVitamSession(tenantId,"aName3", "Context_IT");
+        prepareVitamSession(tenantId, "aName3", "Context_IT");
         final GUID operationGuid = GUIDFactory.newOperationLogbookGUID(tenantId);
         VitamThreadUtils.getVitamSession().setRequestId(operationGuid);
 
@@ -1391,7 +1465,7 @@ public class IngestInternalIT extends VitamRuleRunner {
     @RunWithCustomExecutor
     @Test
     public void testIngestWithManifestHavingBothUnitMgtAndMgtMetaDataRulesWithoutObjects() throws Exception {
-        prepareVitamSession(tenantId,"aName3", "Context_IT");
+        prepareVitamSession(tenantId, "aName3", "Context_IT");
         final GUID operationGuid = GUIDFactory.newOperationLogbookGUID(tenantId);
         VitamThreadUtils.getVitamSession().setRequestId(operationGuid);
 
@@ -1442,7 +1516,7 @@ public class IngestInternalIT extends VitamRuleRunner {
     @Test
     public void testIngestWithAddresseeFieldsInManifest() throws Exception {
         // Now that HTML patterns are refused, this test is now KO
-        prepareVitamSession(tenantId,"aName3", "Context_IT");
+        prepareVitamSession(tenantId, "aName3", "Context_IT");
         final GUID operationGuid = GUIDFactory.newOperationLogbookGUID(tenantId);
         VitamThreadUtils.getVitamSession().setRequestId(operationGuid);
         // workspace client unzip SIP in workspace
@@ -1495,7 +1569,7 @@ public class IngestInternalIT extends VitamRuleRunner {
     @RunWithCustomExecutor
     @Test
     public void testIngestWithServiceLevelInManifest() throws Exception {
-        prepareVitamSession(tenantId,"aName3", "Context_IT");
+        prepareVitamSession(tenantId, "aName3", "Context_IT");
         final GUID operationGuid = GUIDFactory.newOperationLogbookGUID(tenantId);
         VitamThreadUtils.getVitamSession().setRequestId(operationGuid);
         // workspace client unzip SIP in workspace
@@ -1550,7 +1624,7 @@ public class IngestInternalIT extends VitamRuleRunner {
     @RunWithCustomExecutor
     @Test
     public void testIngestWithoutServiceLevelInManifest() throws Exception {
-        prepareVitamSession(tenantId,"aName3", "Context_IT");
+        prepareVitamSession(tenantId, "aName3", "Context_IT");
         final GUID operationGuid = GUIDFactory.newOperationLogbookGUID(tenantId);
         VitamThreadUtils.getVitamSession().setRequestId(operationGuid);
         // workspace client unzip SIP in workspace
@@ -1606,7 +1680,7 @@ public class IngestInternalIT extends VitamRuleRunner {
     public void testProdServicesOK() throws Exception {
         final GUID operationGuid = GUIDFactory.newOperationLogbookGUID(tenantId);
         try {
-            prepareVitamSession(tenantId,"aName3", "Context_IT");
+            prepareVitamSession(tenantId, "aName3", "Context_IT");
             VitamThreadUtils.getVitamSession().setRequestId(operationGuid);
             // workspace client unzip SIP in workspace
             final InputStream zipInputStreamSipObject =
@@ -1711,7 +1785,7 @@ public class IngestInternalIT extends VitamRuleRunner {
     @Test
     @RunWithCustomExecutor
     public void shouldImportRulesFile() throws Exception {
-        prepareVitamSession(tenantId,"aName3", "Context_IT");
+        prepareVitamSession(tenantId, "aName3", "Context_IT");
         AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient();
         VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newOperationLogbookGUID(tenantId));
         final Status status = client.importRulesFile(
@@ -1725,7 +1799,7 @@ public class IngestInternalIT extends VitamRuleRunner {
     @Test
     @RunWithCustomExecutor
     public void shouldImportAgencies() throws Exception {
-        prepareVitamSession(tenantId,"aName3", "Context_IT");
+        prepareVitamSession(tenantId, "aName3", "Context_IT");
 
         FileInputStream stream = new FileInputStream(PropertiesUtils.findFile(FILE_AGENCIES_OK));
 
@@ -1767,7 +1841,7 @@ public class IngestInternalIT extends VitamRuleRunner {
     @Test
     @RunWithCustomExecutor
     public void shouldRetrieveReportWhenCheckFileRules() throws Exception {
-        prepareVitamSession(tenantId,"aName3", "Context_IT");
+        prepareVitamSession(tenantId, "aName3", "Context_IT");
         FileInputStream stream = new FileInputStream(PropertiesUtils.findFile(FILE_RULES_KO_DUPLICATED_REFERENCE));
         FileInputStream streamErrorReport = new FileInputStream(PropertiesUtils.findFile(ERROR_REPORT_CONTENT));
         checkFileRulesWithCustomReferential(stream, streamErrorReport, LINE_3);
@@ -1777,7 +1851,7 @@ public class IngestInternalIT extends VitamRuleRunner {
     @Test
     @RunWithCustomExecutor
     public void shouldRetrieveReportWhencheckFileRulesError6000Day() throws Exception {
-        prepareVitamSession(tenantId,"aName3", "Context_IT");
+        prepareVitamSession(tenantId, "aName3", "Context_IT");
         FileInputStream stream = new FileInputStream(PropertiesUtils.findFile(FILE_RULES_KO_600000_DAY));
         FileInputStream streamErrorReport = new FileInputStream(PropertiesUtils.findFile(ERROR_REPORT_6000_DAYS));
         checkFileRulesWithCustomReferential(stream, streamErrorReport, LINE_2);
@@ -1786,7 +1860,7 @@ public class IngestInternalIT extends VitamRuleRunner {
     @Test
     @RunWithCustomExecutor
     public void shouldRetrieveReportWhencheckFileRulesError9000Years() throws Exception {
-        prepareVitamSession(tenantId,"aName3", "Context_IT");
+        prepareVitamSession(tenantId, "aName3", "Context_IT");
         FileInputStream stream = new FileInputStream(PropertiesUtils.findFile(FILE_RULES_KO_90000_YEAR));
         FileInputStream streamErrorReport = new FileInputStream(PropertiesUtils.findFile(ERROR_REPORT_9000_YEARS));
         checkFileRulesWithCustomReferential(stream, streamErrorReport, LINE_2);
@@ -1795,7 +1869,7 @@ public class IngestInternalIT extends VitamRuleRunner {
     @Test
     @RunWithCustomExecutor
     public void shouldRetrieveReportWhenCheckFileRulesErrorAnarchyRules() throws Exception {
-        prepareVitamSession(tenantId,"aName3", "Context_IT");
+        prepareVitamSession(tenantId, "aName3", "Context_IT");
         FileInputStream stream = new FileInputStream(PropertiesUtils.findFile(FILE_RULES_KO_ANARCHY_RULE));
         FileInputStream streamErrorReport =
             new FileInputStream(PropertiesUtils.findFile(ERROR_REPORT_ANARCHY_RULE));
@@ -1805,7 +1879,7 @@ public class IngestInternalIT extends VitamRuleRunner {
     @Test
     @RunWithCustomExecutor
     public void shouldRetrieveReportWhenCheckFileRulesDecadeMeasurement() throws Exception {
-        prepareVitamSession(tenantId,"aName3", "Context_IT");
+        prepareVitamSession(tenantId, "aName3", "Context_IT");
         FileInputStream stream = new FileInputStream(PropertiesUtils.findFile(FILE_RULES_KO_DECADE_MEASURE));
         FileInputStream streamErrorReport =
             new FileInputStream(PropertiesUtils.findFile(ERROR_REPORT_DECADE_MEASURE));
@@ -1815,7 +1889,7 @@ public class IngestInternalIT extends VitamRuleRunner {
     @Test
     @RunWithCustomExecutor
     public void shouldRetrieveReportWhenCheckFileRulesErrorNegativeDuration() throws Exception {
-        prepareVitamSession(tenantId,"aName3", "Context_IT");
+        prepareVitamSession(tenantId, "aName3", "Context_IT");
         FileInputStream stream = new FileInputStream(PropertiesUtils.findFile(FILE_RULES_KO_NEGATIVE_DURATION));
         FileInputStream streamErrorReport =
             new FileInputStream(PropertiesUtils.findFile(ERROR_REPORT_NEGATIVE_DURATION));
@@ -1825,7 +1899,7 @@ public class IngestInternalIT extends VitamRuleRunner {
     @Test
     @RunWithCustomExecutor
     public void shouldRetrieveReportWhenCheckFileRulesErrorWrongComa() throws Exception {
-        prepareVitamSession(tenantId,"aName3", "Context_IT");
+        prepareVitamSession(tenantId, "aName3", "Context_IT");
         FileInputStream stream =
             new FileInputStream(PropertiesUtils.findFile(FILE_RULES_KO_REFERENCE_WITH_WRONG_COMMA));
         FileInputStream streamErrorReport =
@@ -1837,7 +1911,7 @@ public class IngestInternalIT extends VitamRuleRunner {
     @Test
     @RunWithCustomExecutor
     public void shouldRetrieveReportWhenCheckFileRulesErrorUnknowDuration() throws Exception {
-        prepareVitamSession(tenantId,"aName3", "Context_IT");
+        prepareVitamSession(tenantId, "aName3", "Context_IT");
         final FileInputStream stream =
             new FileInputStream(PropertiesUtils.findFile(FILE_RULES_KO_UNKNOWN_DURATION));
         final FileInputStream expectedStreamErrorReport =
@@ -1873,7 +1947,7 @@ public class IngestInternalIT extends VitamRuleRunner {
 
         final GUID operationGuid = GUIDFactory.newOperationLogbookGUID(tenantId);
         try {
-            prepareVitamSession(tenantId,"aName3", "Context_IT");
+            prepareVitamSession(tenantId, "aName3", "Context_IT");
 
             VitamThreadUtils.getVitamSession().setRequestId(operationGuid);
             // workspace client unzip SIP in workspace
@@ -1927,7 +2001,7 @@ public class IngestInternalIT extends VitamRuleRunner {
             awaitForWorkflowTerminationWithStatus(operationGuid, StatusCode.FATAL);
 
             while (!ProcessState.COMPLETED.equals(processWorkflow.getState())) {
-            TimeUnit.MILLISECONDS.sleep(20l);
+                TimeUnit.MILLISECONDS.sleep(20l);
                 processWorkflow =
                     ProcessMonitoringImpl.getInstance().findOneProcessWorkflow(operationGuid.toString(), tenantId);
             }
@@ -1972,7 +2046,7 @@ public class IngestInternalIT extends VitamRuleRunner {
     @Test
     public void testIngestInternal4396() throws Exception {
         final GUID operationGuid = GUIDFactory.newOperationLogbookGUID(tenantId);
-        prepareVitamSession(tenantId,"aName3", "Context_IT");
+        prepareVitamSession(tenantId, "aName3", "Context_IT");
         VitamThreadUtils.getVitamSession().setRequestId(operationGuid);
         // workspace client unzip SIP in workspace
         final InputStream zipInputStreamSipObject =
@@ -2029,7 +2103,7 @@ public class IngestInternalIT extends VitamRuleRunner {
         throws FileNotFoundException, InvalidParseOperationException, DatabaseException {
 
         final GUID operationGuid = GUIDFactory.newOperationLogbookGUID(tenantId);
-        prepareVitamSession(tenantId,"aName3", "Context_IT");
+        prepareVitamSession(tenantId, "aName3", "Context_IT");
         VitamThreadUtils.getVitamSession().setRequestId(operationGuid);
         // UniqueTitleParent : aeaqaaaaaahmtusqabktwaldc34sm5yaaaaq
         // UniqueTitleChild : aeaqaaaaaahmtusqabktwaldc34sm5iaaabq
@@ -2163,7 +2237,8 @@ public class IngestInternalIT extends VitamRuleRunner {
             accessContractModel.getOriginatingAgencies().clear();
             accessContractModel.setEveryOriginatingAgency(true);
             accessContractModel.getRuleCategoryToFilter().add(RuleType.DisseminationRule);
-            newJson = AccessContractRestrictionHelper.applyAccessContractRestrictionForUnitForSelect(selectMultiple.getFinalSelect(), accessContractModel);
+            newJson = AccessContractRestrictionHelper
+                .applyAccessContractRestrictionForUnitForSelect(selectMultiple.getFinalSelect(), accessContractModel);
             assertThat(newJson).isNotNull();
             result = accessInternalModule.selectUnit(newJson);
             assertThat(result).isNotNull();
@@ -2212,7 +2287,7 @@ public class IngestInternalIT extends VitamRuleRunner {
     @Test
     public void testIngestSipWithComplexRules() throws Exception {
         final GUID operationGuid = GUIDFactory.newOperationLogbookGUID(tenantId);
-        prepareVitamSession(tenantId,"aName3", "Context_IT");
+        prepareVitamSession(tenantId, "aName3", "Context_IT");
         VitamThreadUtils.getVitamSession().setRequestId(operationGuid);
         // workspace client unzip SIP in workspace
         final InputStream zipInputStreamSipObject =
@@ -2338,7 +2413,7 @@ public class IngestInternalIT extends VitamRuleRunner {
     @Test
     public void testEliminationAnalysisOverSipWithComplexRules() throws Exception {
         final GUID ingestOperationGuid = GUIDFactory.newOperationLogbookGUID(tenantId);
-        prepareVitamSession(tenantId,"aName3", "Context_IT");
+        prepareVitamSession(tenantId, "aName3", "Context_IT");
         VitamThreadUtils.getVitamSession().setRequestId(ingestOperationGuid);
         // workspace client unzip SIP in workspace
         final InputStream zipInputStreamSipObject =
@@ -2425,7 +2500,7 @@ public class IngestInternalIT extends VitamRuleRunner {
     public void testLFCAccessForUnitAndGot() throws Exception {
         final GUID operationGuid = GUIDFactory.newOperationLogbookGUID(tenantId);
         try {
-            prepareVitamSession(tenantId,"aName3", "Context_IT");
+            prepareVitamSession(tenantId, "aName3", "Context_IT");
             VitamThreadUtils.getVitamSession().setContractId("aName4");
             VitamThreadUtils.getVitamSession().setRequestId(operationGuid);
             // workspace client unzip SIP in workspace
@@ -2519,7 +2594,7 @@ public class IngestInternalIT extends VitamRuleRunner {
 
         ProcessWorkflow processWorkflow =
             ProcessMonitoringImpl.getInstance().findOneProcessWorkflow(operationGuid.toString(), tenantId);
-        
+
         assertNotNull(processWorkflow);
         assertEquals(processState, processWorkflow.getState());
         assertEquals(status, processWorkflow.getStatus());
@@ -2532,7 +2607,7 @@ public class IngestInternalIT extends VitamRuleRunner {
     public void testExternalLogbook() throws Exception {
         final GUID operationGuid = GUIDFactory.newOperationLogbookGUID(tenantId);
         final GUID operationGuidForRequestId = GUIDFactory.newOperationLogbookGUID(tenantId);
-        prepareVitamSession(tenantId,"aName3", "Context_IT");
+        prepareVitamSession(tenantId, "aName3", "Context_IT");
         VitamThreadUtils.getVitamSession().setRequestId(operationGuidForRequestId);
 
         // external logbook creation
@@ -2634,7 +2709,7 @@ public class IngestInternalIT extends VitamRuleRunner {
     @RunWithCustomExecutor
     @Test
     public void testIngestAndFillLogbookObIdInWithManifestMessageIdentifier() throws Exception {
-        prepareVitamSession(tenantId,"aName3", "Context_IT");
+        prepareVitamSession(tenantId, "aName3", "Context_IT");
         final GUID operationGuid = GUIDFactory.newOperationLogbookGUID(tenantId);
         VitamThreadUtils.getVitamSession().setRequestId(operationGuid);
         // workspace client unzip SIP in workspace
@@ -2672,7 +2747,7 @@ public class IngestInternalIT extends VitamRuleRunner {
     @RunWithCustomExecutor
     @Test
     public void testIngestWithManifestIncorrectAlgorithm() throws Exception {
-        prepareVitamSession(tenantId,"aName3", "Context_IT");
+        prepareVitamSession(tenantId, "aName3", "Context_IT");
         final GUID operationGuid = GUIDFactory.newOperationLogbookGUID(tenantId);
         VitamThreadUtils.getVitamSession().setRequestId(operationGuid);
 
@@ -2723,7 +2798,7 @@ public class IngestInternalIT extends VitamRuleRunner {
     @Test
     public void testIngestWithCustodialHistoryFileContainingDataObjectReferenceId() throws Exception {
         final GUID operationGuid = GUIDFactory.newOperationLogbookGUID(tenantId);
-        prepareVitamSession(tenantId,"aName3", "Context_IT");
+        prepareVitamSession(tenantId, "aName3", "Context_IT");
         VitamThreadUtils.getVitamSession().setRequestId(operationGuid);
 
         // workspace client unzip SIP in workspace
@@ -2765,7 +2840,8 @@ public class IngestInternalIT extends VitamRuleRunner {
         String expectedTitleOfCustodialItem = "Ce champ est obligatoire";
         assertThat(model.getCustodialHistoryItem()).isEqualTo(Arrays.asList(expectedTitleOfCustodialItem));
 
-        RelatedObjectReferenceType relatedObjectReferenceType = JsonHandler.getFromJsonNode(result.get(0).get("RelatedObjectReference"), RelatedObjectReferenceType.class);
+        RelatedObjectReferenceType relatedObjectReferenceType =
+            JsonHandler.getFromJsonNode(result.get(0).get("RelatedObjectReference"), RelatedObjectReferenceType.class);
         assertNotNull(relatedObjectReferenceType);
         assertThat(relatedObjectReferenceType.getRequires().get(0).getRepositoryArchiveUnitPID()).isNotEqualTo("ID04");
 
@@ -2791,7 +2867,7 @@ public class IngestInternalIT extends VitamRuleRunner {
     @Test
     public void should_ingest_SIP_with_logbook() throws Exception {
         GUID operationGuid = GUIDFactory.newOperationLogbookGUID(tenantId);
-        prepareVitamSession(tenantId,"aName3", "Context_IT");
+        prepareVitamSession(tenantId, "aName3", "Context_IT");
         VitamThreadUtils.getVitamSession().setRequestId(operationGuid);
 
         InputStream zipInputStreamSipObject = PropertiesUtils.getResourceAsStream(SIP_WITH_LOGBOOK);
@@ -2813,18 +2889,27 @@ public class IngestInternalIT extends VitamRuleRunner {
         awaitForWorkflowTerminationWithStatus(operationGuid, StatusCode.WARNING);
 
         try (MetaDataClient metadataClient = MetaDataClientFactory.getInstance().getClient();
-            LogbookLifeCyclesClient logbookLifeCyclesClient = LogbookLifeCyclesClientFactory.getInstance().getClient()) {
-            JsonNode nodeForLogbookOG = getArchiveUnitWithTitle(metadataClient, "AU-with-logbook-for-sip-logbook-test", TITLE);
-            JsonNode nodeForLogbookAU = getArchiveUnitWithTitle(metadataClient, "AU-for-logbook-test-with-logbook-au", TITLE);
+            LogbookLifeCyclesClient logbookLifeCyclesClient = LogbookLifeCyclesClientFactory.getInstance()
+                .getClient()) {
+            JsonNode nodeForLogbookOG =
+                getArchiveUnitWithTitle(metadataClient, "AU-with-logbook-for-sip-logbook-test", TITLE);
+            JsonNode nodeForLogbookAU =
+                getArchiveUnitWithTitle(metadataClient, "AU-for-logbook-test-with-logbook-au", TITLE);
 
-            JsonNode objectGroupLifeCycle = logbookLifeCyclesClient.getRawObjectGroupLifeCycleById(nodeForLogbookOG.get("$results").get(0).get("#object").asText());
-            JsonNode unitLifeCycle = logbookLifeCyclesClient.getRawUnitLifeCycleById(nodeForLogbookAU.get("$results").get(0).get("#id").asText());
+            JsonNode objectGroupLifeCycle = logbookLifeCyclesClient
+                .getRawObjectGroupLifeCycleById(nodeForLogbookOG.get("$results").get(0).get("#object").asText());
+            JsonNode unitLifeCycle = logbookLifeCyclesClient
+                .getRawUnitLifeCycleById(nodeForLogbookAU.get("$results").get(0).get("#id").asText());
 
-            List<EventTypeModel> eventsOG = JsonHandler.getFromJsonNode(objectGroupLifeCycle.get("events"), LIST_TYPE_REFERENCE);
-            List<EventTypeModel> eventsAU = JsonHandler.getFromJsonNode(unitLifeCycle.get("events"), LIST_TYPE_REFERENCE);
+            List<EventTypeModel> eventsOG =
+                JsonHandler.getFromJsonNode(objectGroupLifeCycle.get("events"), LIST_TYPE_REFERENCE);
+            List<EventTypeModel> eventsAU =
+                JsonHandler.getFromJsonNode(unitLifeCycle.get("events"), LIST_TYPE_REFERENCE);
 
-            assertThat(eventsOG.stream().filter(e -> e.getEventType().equals("LFC.EXTERNAL_LOGBOOK")).findFirst()).isNotEmpty();
-            assertThat(eventsAU.stream().filter(e -> e.getEventType().equals("LFC.EXTERNAL_LOGBOOK")).findFirst()).isNotEmpty();
+            assertThat(eventsOG.stream().filter(e -> e.getEventType().equals("LFC.EXTERNAL_LOGBOOK")).findFirst())
+                .isNotEmpty();
+            assertThat(eventsAU.stream().filter(e -> e.getEventType().equals("LFC.EXTERNAL_LOGBOOK")).findFirst())
+                .isNotEmpty();
         }
     }
 
@@ -2832,7 +2917,7 @@ public class IngestInternalIT extends VitamRuleRunner {
     @Test
     public void should_NOT_ingest_SIP_with_malformed_logbook() throws Exception {
         GUID operationGuid = GUIDFactory.newOperationLogbookGUID(tenantId);
-        prepareVitamSession(tenantId,"aName3", "Context_IT");
+        prepareVitamSession(tenantId, "aName3", "Context_IT");
         VitamThreadUtils.getVitamSession().setRequestId(operationGuid);
 
         InputStream zipInputStreamSipObject = PropertiesUtils.getResourceAsStream(SIP_WITH_MALFORMED_LOGBOOK);
@@ -2858,7 +2943,7 @@ public class IngestInternalIT extends VitamRuleRunner {
     @Test
     public void testIngestWithOrganizationDescriptiveMetadataFreeTagsThenOK() throws Exception {
         final GUID operationGuid = GUIDFactory.newOperationLogbookGUID(tenantId);
-        prepareVitamSession(tenantId,"aName3", "Context_IT");
+        prepareVitamSession(tenantId, "aName3", "Context_IT");
         VitamThreadUtils.getVitamSession().setRequestId(operationGuid);
 
         // workspace client unzip SIP in workspace
@@ -2895,15 +2980,17 @@ public class IngestInternalIT extends VitamRuleRunner {
         assertNotNull(result);
 
         String identifierType = result.get(0).get("OriginatingAgency").get("Identifier").asText();
-        assertEquals(identifierType,"RATP");
-        assertThat(result.get(0).get("OriginatingAgency").get("OrganizationDescriptiveMetadata").get("DescriptionOA").get(0).asText()).isEqualTo("La RATP est un établissement public");
+        assertEquals(identifierType, "RATP");
+        assertThat(
+            result.get(0).get("OriginatingAgency").get("OrganizationDescriptiveMetadata").get("DescriptionOA").get(0)
+                .asText()).isEqualTo("La RATP est un établissement public");
     }
 
     @RunWithCustomExecutor
     @Test
     public void testIngestWithObjectAttachementWithDifferentOriginatingThenKO() throws Exception {
         final GUID operationGuid = GUIDFactory.newOperationLogbookGUID(tenantId);
-        prepareVitamSession(tenantId,"aName", "Context_IT");
+        prepareVitamSession(tenantId, "aName", "Context_IT");
         VitamThreadUtils.getVitamSession().setRequestId(operationGuid);
 
         InputStream zipInputStreamSipObject =
@@ -2941,7 +3028,7 @@ public class IngestInternalIT extends VitamRuleRunner {
         assertNotNull(unit);
         String unitId = unit.get("#id").asText();
 
-        
+
         String zipName = GUIDFactory.newGUID().toString() + ".zip";
         String LINK_AU_TO_GOT_KO_SP = "integration-ingest-internal/LINK_AU_TO_GOT_KO_SP";
         String ZIP_LINK_AU_TO_GOT_KO_SP = "integration-ingest-internal/data";
@@ -2952,12 +3039,12 @@ public class IngestInternalIT extends VitamRuleRunner {
         zipFolder(PropertiesUtils.getResourcePath(LINK_AU_TO_GOT_KO_SP),
             PropertiesUtils.getResourcePath(ZIP_LINK_AU_TO_GOT_KO_SP).toAbsolutePath().toString() +
                 "/" + zipName);
-        
+
         String SIP_TO_ATTACH = ZIP_LINK_AU_TO_GOT_KO_SP + "/" + zipName;
 
         final GUID operationGuidAttachement = GUIDFactory.newOperationLogbookGUID(tenantId);
 
-        prepareVitamSession(tenantId,"aName", "Context_IT");
+        prepareVitamSession(tenantId, "aName", "Context_IT");
 
         VitamThreadUtils.getVitamSession().setRequestId(operationGuidAttachement);
 
@@ -2980,7 +3067,8 @@ public class IngestInternalIT extends VitamRuleRunner {
 
         // init workflow before execution
         _client.initWorkflow(ingestSip);
-        _client.upload(zipInputStreamSipObjectLinking, CommonMediaType.ZIP_TYPE, ingestSip, ProcessAction.RESUME.name());
+        _client
+            .upload(zipInputStreamSipObjectLinking, CommonMediaType.ZIP_TYPE, ingestSip, ProcessAction.RESUME.name());
         awaitForWorkflowTerminationWithStatus(operationGuidAttachement, StatusCode.KO);
 
 
@@ -2995,7 +3083,8 @@ public class IngestInternalIT extends VitamRuleRunner {
         for (final Document event : logbookOperationEvents) {
             if (StatusCode.KO.toString()
                 .equals(event.get(LogbookMongoDbName.outcome.getDbname()).toString()) &&
-                event.get(LogbookMongoDbName.outcomeDetail.getDbname()).equals("CHECK_DATAOBJECTPACKAGE.CHECK_MANIFEST.SUBTASK_UNAUTHORIZED_ATTACHMENT_BY_BAD_SP.KO")) {
+                event.get(LogbookMongoDbName.outcomeDetail.getDbname())
+                    .equals("CHECK_DATAOBJECTPACKAGE.CHECK_MANIFEST.SUBTASK_UNAUTHORIZED_ATTACHMENT_BY_BAD_SP.KO")) {
                 checkKOLinkingSuccess = false;
                 break;
             }
@@ -3003,7 +3092,9 @@ public class IngestInternalIT extends VitamRuleRunner {
         assertFalse(checkKOLinkingSuccess);
 
         try {
-            Files.delete(new File(PropertiesUtils.getResourcePath(ZIP_LINK_AU_TO_GOT_KO_SP).toAbsolutePath().toString() + "/" + zipName).toPath());
+            Files.delete(new File(
+                PropertiesUtils.getResourcePath(ZIP_LINK_AU_TO_GOT_KO_SP).toAbsolutePath().toString() + "/" + zipName)
+                .toPath());
         } catch (Exception e) {
             SysErrLogger.FAKE_LOGGER.ignoreLog(e);
         }
@@ -3039,7 +3130,8 @@ public class IngestInternalIT extends VitamRuleRunner {
         }
     }
 
-    private JsonNode getArchiveUnitWithTitle(MetaDataClient metadataClient, String name, String titleType) throws Exception {
+    private JsonNode getArchiveUnitWithTitle(MetaDataClient metadataClient, String name, String titleType)
+        throws Exception {
         SelectMultiQuery select = new SelectMultiQuery();
         select.addQueries(QueryHelper.eq(titleType, name));
         return metadataClient.selectUnits(select.getFinalSelect());
