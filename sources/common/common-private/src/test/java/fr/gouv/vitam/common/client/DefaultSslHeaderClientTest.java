@@ -41,8 +41,6 @@ import fr.gouv.vitam.common.serverv2.VitamServerTestRunner;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
-import sun.misc.BASE64Encoder;
-import sun.security.provider.X509Factory;
 
 import javax.ws.rs.Path;
 import javax.ws.rs.core.MultivaluedHashMap;
@@ -52,6 +50,7 @@ import java.security.KeyStore;
 import java.security.cert.CertificateEncodingException;
 import java.security.cert.X509Certificate;
 import java.util.ArrayList;
+import java.util.Base64;
 import java.util.Enumeration;
 import java.util.List;
 import java.util.Set;
@@ -59,6 +58,10 @@ import java.util.Set;
 import static org.junit.Assert.fail;
 
 public class DefaultSslHeaderClientTest extends ResteasyTestApplication {
+
+    public static final String BEGIN_CERT = "-----BEGIN CERTIFICATE-----";
+    public static final String END_CERT = "-----END CERTIFICATE-----";
+
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(DefaultSslHeaderClientTest.class);
 
     private static final String BASE_URI = "/ingest-ext/v1";
@@ -89,14 +92,12 @@ public class DefaultSslHeaderClientTest extends ResteasyTestApplication {
 
     private static String x509CertificateToPemWithWiteSpaceApacheFormat(X509Certificate cert)
         throws CertificateEncodingException {
-        BASE64Encoder encoder = new BASE64Encoder();
-
         StringWriter sw = new StringWriter();
-        sw.write(X509Factory.BEGIN_CERT);
+        sw.write(BEGIN_CERT);
         sw.write(" ");
-        sw.write(encoder.encode(cert.getEncoded()));
+        sw.write(Base64.getEncoder().encodeToString(cert.getEncoded()));
         sw.write(" ");
-        sw.write(X509Factory.END_CERT);
+        sw.write(END_CERT);
         return sw.toString().replaceAll("\n", " ");
     }
 

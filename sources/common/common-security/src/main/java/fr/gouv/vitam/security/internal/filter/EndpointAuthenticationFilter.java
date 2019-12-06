@@ -29,6 +29,7 @@ package fr.gouv.vitam.security.internal.filter;
 
 import java.io.IOException;
 import java.util.Arrays;
+import java.util.Base64;
 import java.util.List;
 
 import javax.ws.rs.container.ContainerRequestContext;
@@ -43,7 +44,6 @@ import fr.gouv.vitam.common.model.AuthenticationLevel;
 import fr.gouv.vitam.common.model.BasicAuthModel;
 import fr.gouv.vitam.common.security.rest.VitamAuthentication;
 import fr.gouv.vitam.common.server.application.configuration.DefaultVitamApplicationConfiguration;
-import sun.misc.BASE64Decoder;
 
 import static org.apache.http.client.config.AuthSchemes.BASIC;
 
@@ -103,12 +103,8 @@ public class EndpointAuthenticationFilter implements ContainerRequestFilter {
                 "VitamAuthentication failed: VitamAuthentication informations are missing.");
         }
 
-        try {
-            byte[] bytes = new BASE64Decoder().decodeBuffer(credentials[1]);
-            decodedAuthent = new String(bytes);
-        } catch (IOException ioe) {
-            LOGGER.error("ERROR: Exception has been thrown when decoding the basic authentication: ", ioe);
-        }
+        byte[] bytes = Base64.getDecoder().decode(credentials[1]);
+        decodedAuthent = new String(bytes);
 
         // validate the authentication information with the Vitam configuration.
         List<String> decodedAuthentgInfos = Arrays.asList(decodedAuthent.split(":"));

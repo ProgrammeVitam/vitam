@@ -134,7 +134,7 @@ public class PreservationStorageMetadataAndLfcTest {
     @Test
     public void should_save_metadata_and_lfc_in_storage() throws Exception {
         // Given
-        InputStream stream = Object.class.getResourceAsStream("/preservation/objectGroup.json");
+        InputStream stream = getClass().getResourceAsStream("/preservation/objectGroup.json");
         JsonNode document = JsonHandler.getFromInputStream(stream);
         RequestResponse<JsonNode> responseOK = new RequestResponseOK<JsonNode>().addResult(document)
                 .setHttpCode(Response.Status.OK.getStatusCode());

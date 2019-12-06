@@ -53,7 +53,6 @@ import org.bouncycastle.tsp.TimeStampResponse;
 import org.bouncycastle.tsp.TimeStampToken;
 import org.junit.Before;
 import org.junit.Test;
-import sun.misc.IOUtils;
 
 public class TimeStampSignatureWithKeystoreTest {
 

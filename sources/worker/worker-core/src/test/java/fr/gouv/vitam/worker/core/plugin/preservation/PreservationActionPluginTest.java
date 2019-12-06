@@ -143,12 +143,12 @@ public class PreservationActionPluginTest {
             new PreservationActionPlugin(storageClientFactory, reportService, inputFolder.toPath().toString(), execFolder.toPath().toString());
 
         Path target = Files.createDirectory(execFolder.toPath().resolve(griffinId));
-        String src = Object.class.getResource("/preservation/griffin").toURI().getPath();
+        String src = getClass().getResource("/preservation/griffin").toURI().getPath();
         Files.copy(Paths.get(src), target.resolve("griffin"));
         target.resolve("griffin").toFile().setExecutable(true);
 
         target = Files.createDirectory(execFolder.toPath().resolve(griffinInfinteLoopId));
-        src = Object.class.getResource("/preservation/griffin_infite_loop").toURI().getPath();
+        src = getClass().getResource("/preservation/griffin_infite_loop").toURI().getPath();
         Files.copy(Paths.get(src), target.resolve("griffin"));
         target.resolve("griffin").toFile().setExecutable(true);
 
