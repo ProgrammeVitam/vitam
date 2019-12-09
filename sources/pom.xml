@@ -877,7 +877,7 @@
                         <targetOS>linux</targetOS>
                         <requires>
                             <require>systemd</require>
-                            <require>${java.version}</require>
+                            <require>java-${java.version}.0</require>
                             <require>vitam-user-${unix.user}</require>
                         </requires>
                         <defaultDirmode>750</defaultDirmode>
