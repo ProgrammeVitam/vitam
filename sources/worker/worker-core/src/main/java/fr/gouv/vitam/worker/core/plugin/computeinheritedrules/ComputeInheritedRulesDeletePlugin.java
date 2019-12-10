@@ -104,8 +104,8 @@ public class ComputeInheritedRulesDeletePlugin extends ActionHandler {
     private ObjectNode getUpdateQuery() throws InvalidCreateOperationException {
 
         UpdateMultiQuery updateMultiQuery = new UpdateMultiQuery();
-        updateMultiQuery.addActions(new UnsetAction("#computedInheritedRules"));
-        updateMultiQuery.addActions(new UnsetAction("#validComputedInheritedRules"));
+        updateMultiQuery.addActions(new UnsetAction(VitamFieldsHelper.computedInheritedRules()));
+        updateMultiQuery.addActions(new UnsetAction(VitamFieldsHelper.validComputedInheritedRules()));
 
         return updateMultiQuery.getFinalUpdateById();
     }
