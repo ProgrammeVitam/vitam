@@ -123,8 +123,9 @@ public class ComputeInheritedRulesDeletePluginTest {
         ComputeInheritedRulesDeletePlugin.executeList(workerParameters, HandlerIO);
         // Then
         JsonNode updatedUnit = objectNodeArgumentCaptor.getValue();
-        assertThat(updatedUnit.toString()).isEqualTo(
-            "{\"$action\":[{\"$unset\":[\"#computedInheritedRules\"]},{\"$unset\":[\"#validComputedInheritedRules\"]}]}");
+        assertThat(updatedUnit.toString())
+            .isEqualTo(
+                "{\"$action\":[{\"$unset\":[\"#computedInheritedRules\"]},{\"$unset\":[\"#validComputedInheritedRules\"]}]}");
     }
 
     private ArgumentCaptor<JsonNode> initializeMockWithResponse(JsonNode response)

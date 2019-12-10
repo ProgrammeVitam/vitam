@@ -31,7 +31,6 @@ import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.SystemPropertyUtil;
-import fr.gouv.vitam.common.database.builder.query.VitamFieldsHelper;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.model.ItemStatus;
@@ -55,6 +54,7 @@ import fr.gouv.vitam.logbook.lifecycles.client.LogbookLifeCyclesClientFactory;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClientFactory;
 import fr.gouv.vitam.metadata.client.MetaDataClient;
 import fr.gouv.vitam.metadata.client.MetaDataClientFactory;
+import fr.gouv.vitam.metadata.core.database.collections.Unit;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 import fr.gouv.vitam.processing.common.parameter.WorkerParametersFactory;
 import fr.gouv.vitam.worker.core.impl.HandlerIOImpl;
@@ -1353,7 +1353,7 @@ public class ExtractSedaActionHandlerTest {
             .findFirst().get());
 
         assertNotNull(unitJson);
-        Assert.assertFalse(unitJson.get(ARCHIVE_UNIT).get(VitamFieldsHelper.validComputedInheritedRules()).booleanValue());
+        Assert.assertFalse(unitJson.get(ARCHIVE_UNIT).get(Unit.VALID_COMPUTED_INHERITED_RULES).booleanValue());
         assertEquals(StatusCode.OK, response.getGlobalStatus());
     }
 

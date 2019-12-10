@@ -1571,7 +1571,7 @@ public class ExtractSedaActionHandler extends ActionHandler {
         if (contracts.getIngestContractModel() != null
             && contracts.getIngestContractModel().isComputeInheritedRulesAtIngest()) {
             ObjectNode archiveUnitNode = (ObjectNode) archiveUnit.get(SedaConstants.TAG_ARCHIVE_UNIT);
-            archiveUnitNode.put(VitamFieldsHelper.validComputedInheritedRules(), false);
+            archiveUnitNode.put(Unit.VALID_COMPUTED_INHERITED_RULES, false);
         }
     }
 
