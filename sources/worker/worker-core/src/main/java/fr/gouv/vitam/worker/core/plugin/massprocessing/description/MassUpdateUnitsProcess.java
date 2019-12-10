@@ -199,34 +199,29 @@ public class MassUpdateUnitsProcess extends StoreMetadataObjectActionHandler {
         }
     }
 
-    private ItemStatus postUpdate(WorkerParameters workerParameters, HandlerIO handler, MetaDataClient mdClient, LogbookLifeCyclesClient lfcClient, StorageClient storageClient, List<UpdateUnitMetadataReportEntry> entries, JsonNode result) {
-        String unitId = result.get(ID).asText();
-        String key = result.get(KEY).asText();
-        String statusAsString = result.get(STATUS).asText();
+    private ItemStatus postUpdate(WorkerParameters workerParameters, HandlerIO handler, MetaDataClient mdClient, LogbookLifeCyclesClient lfcClient, StorageClient storageClient, List<UpdateUnitMetadataReportEntry> entries, JsonNode unitNode) {
+        String unitId = unitNode.get(ID).asText();
+        String key = unitNode.get(KEY).asText();
+        String statusAsString = unitNode.get(STATUS).asText();
         StatusCode status = StatusCode.valueOf(statusAsString);
-        String message = result.get(MESSAGE).asText();
+        String message = unitNode.get(MESSAGE).asText();
 
-        String diff = result.get(DIFF).asText();
+        String diff = unitNode.get(DIFF).asText();
 
         if ((!"null".equals(diff) || !StringUtils.isBlank(diff)) && (status.equals(OK) || status.equals(WARNING))) {
             try {
-                writeLfcForUpdateUnit(lfcClient, workerParameters, unitId, diff);
-            } catch (LogbookClientServerException | LogbookClientNotFoundException | InvalidParseOperationException | InvalidGuidOperationException e) {
-                return buildItemStatus(MASS_UPDATE_UNITS, FATAL, EventDetails.of(String.format("Error '%s' while updating UNIT LFC.", e.getMessage())));
-            } catch (LogbookClientBadRequestException e) {
-                return buildItemStatus(MASS_UPDATE_UNITS, KO, EventDetails.of(String.format("Error '%s' while updating UNIT LFC.", e.getMessage())));
+                writeLfcToMongo(lfcClient, workerParameters, unitId, diff);
+            } catch (LogbookClientServerException | LogbookClientNotFoundException | InvalidParseOperationException |
+                InvalidGuidOperationException | LogbookClientBadRequestException e) {
+                LOGGER.error(e);
+                return buildItemStatus(MASS_UPDATE_UNITS, FATAL, EventDetails.of(String.format("Error '%s' while updating UNIT's LFC.", e.getMessage())));
             }
 
             try {
-                saveUnitWithLfc(mdClient, lfcClient, storageClient, handler, workerParameters, unitId, unitId + JSON);
+                storeUnitAndLfcToOffer(mdClient, lfcClient, storageClient, handler, workerParameters, unitId, unitId + JSON);
             } catch (VitamException e) {
-                // rollback LFC
-                try {
-                    lfcClient.rollBackUnitsByOperation(workerParameters.getContainerName());
-                } catch (LogbookClientNotFoundException | LogbookClientBadRequestException | LogbookClientServerException e1) {
-                    LOGGER.error(String.format("Error while storing UNIT with LFC %s.", e));
-                    return buildItemStatus(MASS_UPDATE_UNITS, FATAL, EventDetails.of(String.format("Error while storing UNIT with LFC %s.", e)));
-                }
+                LOGGER.error(e);
+                return buildItemStatus(MASS_UPDATE_UNITS, FATAL, EventDetails.of(String.format("Error while storing UNIT with LFC %s.", e.getMessage())));
             }
         }
 
@@ -248,7 +243,7 @@ public class MassUpdateUnitsProcess extends StoreMetadataObjectActionHandler {
         return buildItemStatus(MASS_UPDATE_UNITS, OK, EventDetails.of("Mass update OK"));
     }
 
-    private void writeLfcForUpdateUnit(LogbookLifeCyclesClient lfcClient, WorkerParameters param, String unitId, String diff)
+    private void writeLfcToMongo(LogbookLifeCyclesClient lfcClient, WorkerParameters param, String unitId, String diff)
         throws LogbookClientNotFoundException, LogbookClientBadRequestException, LogbookClientServerException,
             InvalidParseOperationException, InvalidGuidOperationException {
 
@@ -290,7 +285,7 @@ public class MassUpdateUnitsProcess extends StoreMetadataObjectActionHandler {
      * @param fileName      stored unit file name
      * @throws VitamException when an error occurs
      */
-    protected void saveUnitWithLfc(MetaDataClient mdClient, LogbookLifeCyclesClient lfcClient,
+    protected void storeUnitAndLfcToOffer(MetaDataClient mdClient, LogbookLifeCyclesClient lfcClient,
             StorageClient storageClient, HandlerIO handler, WorkerParameters params, String guid, String fileName)
             throws VitamException {
 
