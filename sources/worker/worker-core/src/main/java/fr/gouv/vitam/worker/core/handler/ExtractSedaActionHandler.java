@@ -77,7 +77,9 @@ import fr.gouv.vitam.common.model.administration.IngestContractCheckState;
 import fr.gouv.vitam.common.model.administration.IngestContractModel;
 import fr.gouv.vitam.common.model.administration.OntologyModel;
 import fr.gouv.vitam.common.model.administration.RuleType;
+import fr.gouv.vitam.common.model.administration.StorageDetailModel;
 import fr.gouv.vitam.common.model.logbook.LogbookEvent;
+import fr.gouv.vitam.common.model.objectgroup.StorageRacineModel;
 import fr.gouv.vitam.common.model.unit.GotObj;
 import fr.gouv.vitam.common.model.unit.ManagementModel;
 import fr.gouv.vitam.common.model.unit.RuleCategoryModel;
@@ -129,6 +131,7 @@ import fr.gouv.vitam.processing.common.exception.ProcessingTooManyUnitsFoundExce
 import fr.gouv.vitam.processing.common.exception.ProcessingTooManyVersionsByUsageException;
 import fr.gouv.vitam.processing.common.exception.ProcessingUnitLinkingException;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
+import fr.gouv.vitam.storage.engine.common.referential.model.StorageStrategy;
 import fr.gouv.vitam.worker.common.HandlerIO;
 import fr.gouv.vitam.worker.common.utils.DataObjectDetail;
 import fr.gouv.vitam.worker.common.utils.DataObjectInfo;
@@ -1564,7 +1567,9 @@ public class ExtractSedaActionHandler extends ActionHandler {
 
     private void addStorageInformation(ObjectNode archiveUnit, JsonNode storageUnitInfo) {
         ObjectNode archiveUnitNode = (ObjectNode) archiveUnit.get(SedaConstants.TAG_ARCHIVE_UNIT);
-        archiveUnitNode.set(SedaConstants.STORAGE, storageUnitInfo);
+        ObjectNode storage = JsonHandler.createObjectNode();
+        storage.put(SedaConstants.STRATEGY_ID, storageUnitInfo.get(SedaConstants.STRATEGY_ID).asText());
+        archiveUnitNode.set(SedaConstants.STORAGE, storage);
     }
 
     private void addValidComputedInheritedRulesInformation(ObjectNode archiveUnit) {
@@ -2792,7 +2797,9 @@ public class ExtractSedaActionHandler extends ActionHandler {
                 objectGroup.put(SedaConstants.PREFIX_ORIGINATING_AGENCY, originatingAgency);
                 objectGroup.set(SedaConstants.PREFIX_ORIGINATING_AGENCIES,
                     JsonHandler.createArrayNode().add(originatingAgency));
-                objectGroup.set(SedaConstants.STORAGE, storageObjectGroupInfo);
+                ObjectNode storageObjectGroup = JsonHandler.createObjectNode();
+                storageObjectGroup.put(SedaConstants.STRATEGY_ID, storageObjectGroupInfo.get(SedaConstants.STRATEGY_ID).asText());
+                objectGroup.set(SedaConstants.STORAGE, storageObjectGroup);
                 // In case of attachment, this will be true, we will then add information about existing og in work
                 if (existingGot) {
                     String existingOg = existingUnitIdWithExistingObjectGroup.get(unitParentGUID);
@@ -3035,7 +3042,9 @@ public class ExtractSedaActionHandler extends ActionHandler {
                 if (phsyical) {
                     objectNode.set(SedaConstants.TAG_PHYSICAL_ID, node.get(SedaConstants.TAG_PHYSICAL_ID));
                 } else {
-                    objectNode.set(SedaConstants.STORAGE, storageObjectInfo);
+                    ObjectNode storageObject = JsonHandler.createObjectNode();
+                    storageObject.put(SedaConstants.STRATEGY_ID, storageObjectInfo.get(SedaConstants.STRATEGY_ID).asText());
+                    objectNode.set(SedaConstants.STORAGE, storageObject);
                 }
 
                 arrayNode.add(objectNode);

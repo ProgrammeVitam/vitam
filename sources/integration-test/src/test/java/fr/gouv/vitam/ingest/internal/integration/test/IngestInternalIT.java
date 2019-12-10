@@ -316,8 +316,6 @@ public class IngestInternalIT extends VitamRuleRunner {
         "integration-ingest-internal/sip_with_organization_descriptive_metadata_free_tags.zip";
     private static String SIP_ATTACHMENT_WITH_OBJECT =
         "integration-ingest-internal/OK_OBJECT.zip";
-    private static String OK_ATTACHMENT_GOT_SP_DIFFERENTS =
-        "integration-ingest-internal/rattachement_objet_GOT_mauvaisSP_TC.zip";
     private static LogbookElasticsearchAccess esClient;
     private WorkFlow holding = WorkFlow.of(HOLDING_SCHEME, HOLDING_SCHEME_IDENTIFIER, "MASTERDATA");
     private WorkFlow ingestSip = WorkFlow.of(WORKFLOW_ID, CONTEXT_ID, "INGEST");
@@ -541,6 +539,7 @@ public class IngestInternalIT extends VitamRuleRunner {
             assertThat(unit.get("#management").get("NeedAuthorization").asBoolean()).isFalse();
             assertThat(unit.get("#storage").get("strategyId").asText())
                 .isEqualTo(VitamConfiguration.getDefaultStrategy());
+            assertThat(unit.get("#storage").has("offerIds")).isFalse();
             // Try to check OG
             select = new SelectMultiQuery();
             select.addRoots(og);

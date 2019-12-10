@@ -26,23 +26,18 @@
  */
 package fr.gouv.vitam.ihmrecette.appserver.populate;
 
-import java.util.List;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
  * Object mapping Storage Response
  */
+@JsonIgnoreProperties({"_nbc", "offerIds"})
 public class ObjectStorageJson {
 
     @JsonProperty("strategyId")
     private String strategyId;
-
-    @JsonProperty("_nbc")
-    private int nbc;
-
-    @JsonProperty("offerIds")
-    private List<String> offerIds;
 
     public String getStrategyId() {
         return strategyId;
@@ -51,22 +46,5 @@ public class ObjectStorageJson {
     public void setStrategyId(String strategyId) {
         this.strategyId = strategyId;
     }
-
-    public int getNbc() {
-        return nbc;
-    }
-
-    public void setNbc(int nbc) {
-        this.nbc = nbc;
-    }
-
-    public List<String> getOfferIds() {
-        return offerIds;
-    }
-
-    public void setOfferIds(List<String> offerIds) {
-        this.offerIds = offerIds;
-    }
-
 
 }

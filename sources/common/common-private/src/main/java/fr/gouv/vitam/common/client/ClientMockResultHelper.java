@@ -89,7 +89,7 @@ public class ClientMockResultHelper {
         "    \"_max\": 2," +
         "    \"_tenant\": 0," + 
         "    \"_v\": 1,\n" + 
-        "    \"_storage\": {\"_nbc\": 1,\"strategyId\": \"default\",\"offerIds\": [\"localhost\"]}" + 
+        "    \"_storage\": {\"strategyId\": \"default\"}" + 
         "}";
 
     public static final String GOT_RAW =
@@ -109,7 +109,7 @@ public class ClientMockResultHelper {
         "                    \"Uri\": \"Content/ID7.ods\"," + 
         "                    \"MessageDigest\": \"c117854cbca3e51ea94c4bd2bcf4a6756209e6c65ddbf696313e1801b2235ff33d44b2bb272e714c335a44a3b4f92d399056b94dff4dfe6b7038fa56f23b438e\"," + 
         "                    \"Algorithm\": \"SHA-512\"," + 
-        "                    \"_storage\": {\"_nbc\": 1,\"offerIds\": [\"localhost\"],\"strategyId\": \"default\"}" + 
+        "                    \"_storage\": {\"strategyId\": \"default\"}" + 
         "            }]" + 
         "    }]," + 
         "    \"_up\": [\"aeaqaaaabufhszkyabon6albarqq7qiaaakq\"]," + 
@@ -117,7 +117,7 @@ public class ClientMockResultHelper {
         "    \"_ops\": [\"aedqaaaaacfe6vjwab36ealbbrqw2uyaaaaq\"]," + 
         "    \"_sp\": \"Vitam\"," + 
         "    \"_sps\": [\"Vitam\"]," + 
-        "    \"_storage\": {\"_nbc\": 1,\"offerIds\": [\"localhost\"],\"strategyId\": \"default\"}," + 
+        "    \"_storage\": {\"strategyId\": \"default\"}," + 
         "    \"_tenant\": 0," + 
         "    \"_v\": 1 }";
     

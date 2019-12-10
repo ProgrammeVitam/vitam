@@ -31,8 +31,6 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import fr.gouv.vitam.common.model.preservation.OtherMetadata;
 
-import java.util.List;
-import java.util.Map;
 import java.util.Objects;
 
 /**

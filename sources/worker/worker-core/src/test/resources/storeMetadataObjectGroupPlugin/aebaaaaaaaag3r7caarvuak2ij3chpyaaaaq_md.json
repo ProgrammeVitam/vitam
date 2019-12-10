@@ -29,11 +29,6 @@
                     "MessageDigest": "664ac614a819df2a97d2a5df57dcad91d6ec38b0fffc793e80c56b4553a14ac7a5f0bce3bb71af419b0bb8f151ad3d512867454eeb818e01818a31989c13319b",
                     "Algorithm": "SHA-512",
                     "_storage": {
-                        "_nbc": 2,
-                        "offerIds": [
-                            "vitam-iaas-app-02.itrec",
-                            "vitam-iaas-app-01.itrec"
-                        ],
                         "strategyId": "default"
                     }
                 }
@@ -52,11 +47,6 @@
         "RATP"
     ],
     "_storage": {
-        "_nbc": 2,
-        "offerIds": [
-            "vitam-iaas-app-02.itrec",
-            "vitam-iaas-app-01.itrec"
-        ],
         "strategyId": "default-got-fake"
     },
     "_v": 1

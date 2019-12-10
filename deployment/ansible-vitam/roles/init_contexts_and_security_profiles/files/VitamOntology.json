@@ -1101,7 +1101,7 @@
   {
     "Identifier": "offerIds",
     "ApiField": "offerIds",
-    "Description": "Mapping : unit-es-mapping.json",
+    "Description": "Mapping : unit-es-mapping.json. Deprecated.",
     "Type": "KEYWORD",
     "Origin": "INTERNAL",
     "ShortName": "offerIds",

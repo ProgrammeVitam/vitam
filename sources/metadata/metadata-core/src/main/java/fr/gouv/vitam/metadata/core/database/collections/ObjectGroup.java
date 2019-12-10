@@ -28,8 +28,6 @@ package fr.gouv.vitam.metadata.core.database.collections;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.mongodb.client.MongoCollection;
-import fr.gouv.vitam.common.logging.VitamLogger;
-import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import org.bson.Document;
 
 
@@ -45,8 +43,6 @@ import org.bson.Document;
  * @formatter:on
  */
 public class ObjectGroup extends MetadataDocument<ObjectGroup> {
-    private static final VitamLogger LOGGER =
-        VitamLoggerFactory.getInstance(ObjectGroup.class);
     private static final long serialVersionUID = -1761786017392977575L;
 
     /**
@@ -71,14 +67,6 @@ public class ObjectGroup extends MetadataDocument<ObjectGroup> {
      * storage to objectGroup
      */
     public static final String VERSIONS_STORAGE = VERSIONS + "." + "storage";
-    /**
-     * Copies
-     */
-    public static final String OBJECTCOPIES = VERSIONS_STORAGE + "." + "_nbc";
-    /**
-     * Storage Id
-     */
-    public static final String OBJECTSTORAGE = VERSIONS_STORAGE + "." + "offerIds";
     /**
      * Storage Id
      */
@@ -119,13 +107,6 @@ public class ObjectGroup extends MetadataDocument<ObjectGroup> {
      * depths
      */
     public static final String OGDEPTHS = "_ops";
-
-    /**
-     * Total number of copies
-     */
-    private int nbCopy;
-
-    // TODO P1 add Nested objects or Parent/child relationships
 
     /**
      * Empty constructor
