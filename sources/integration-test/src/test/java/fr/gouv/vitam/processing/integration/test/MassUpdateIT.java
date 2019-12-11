@@ -344,7 +344,7 @@ public class MassUpdateIT extends VitamRuleRunner {
                 JsonHandler.getFromFileAsTypeReference(accessContracts, TYPE_LIST_CONTRACT);
             functionalClient.importAccessContracts(accessContractList);
 
-        // When
+            // When
             JsonNode query =
                 JsonHandler.getFromFile(
                     PropertiesUtils.findFile(MASS_UPDATE_QUERY_KO));
@@ -358,7 +358,7 @@ public class MassUpdateIT extends VitamRuleRunner {
             RequestResponse<ItemStatus> ret =
                 processingClient.updateOperationActionProcess(ProcessAction.RESUME.getValue(), containerName);
 
-        // Then
+            // Then
             assertNotNull(ret);
             assertEquals(Response.Status.ACCEPTED.getStatusCode(), ret.getStatus());
 
@@ -704,7 +704,7 @@ public class MassUpdateIT extends VitamRuleRunner {
                 JsonHandler.getFromFileAsTypeReference(accessContracts, TYPE_LIST_CONTRACT);
             functionalClient.importAccessContracts(accessContractList);
             functionalClient.importRulesFile(getClass().getResourceAsStream(INTEGRATION_PROCESSING_MASS_UPDATE_RULE),
-                    "Rules.json");
+                "Rules.json");
 
             VitamThreadUtils.getVitamSession().setRequestId(operationGuid);
             processingClient = ProcessingManagementClientFactory.getInstance().getClient();
