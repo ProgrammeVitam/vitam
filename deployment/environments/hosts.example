@@ -227,6 +227,7 @@ hosts-mongodb-data
 # 2 params available for huge environments (parameter to be declared after each server) :
 #    is_data=true/false
 #    is_master=true/false
+#    for site/room balancing : is_balancing=<whatever> so replica can be applied on all sites/rooms ; default is vitam_site_name
 #    other options are not handled yet
 # defaults are set to true, if undefined. If defined, at least one server MUST be is_data=true
 # Examples :
