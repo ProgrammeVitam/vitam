@@ -26,21 +26,10 @@
  */
 package fr.gouv.vitam.ingest.external.client;
 
-import static org.apache.http.HttpHeaders.EXPECT;
-import static org.apache.http.protocol.HTTP.EXPECT_CONTINUE;
-
-import java.io.InputStream;
-
-import javax.ws.rs.HttpMethod;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.MultivaluedHashMap;
-import javax.ws.rs.core.MultivaluedMap;
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.Response.Status;
-
 import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.client.VitamContext;
+import fr.gouv.vitam.common.client.VitamRequestBuilder;
 import fr.gouv.vitam.common.error.VitamCode;
 import fr.gouv.vitam.common.error.VitamError;
 import fr.gouv.vitam.common.exception.VitamClientException;
@@ -53,7 +42,21 @@ import fr.gouv.vitam.common.model.LocalFile;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.StatusCode;
+import fr.gouv.vitam.ingest.external.api.exception.IngestExternalClientNotFoundException;
+import fr.gouv.vitam.ingest.external.api.exception.IngestExternalClientServerException;
 import fr.gouv.vitam.ingest.external.api.exception.IngestExternalException;
+
+import javax.ws.rs.core.MultivaluedMap;
+import javax.ws.rs.core.Response;
+import javax.ws.rs.core.Response.Status;
+import java.io.InputStream;
+
+import static fr.gouv.vitam.common.client.VitamRequestBuilder.get;
+import static fr.gouv.vitam.common.client.VitamRequestBuilder.post;
+import static javax.ws.rs.core.Response.Status.Family.REDIRECTION;
+import static javax.ws.rs.core.Response.Status.Family.SUCCESSFUL;
+import static org.apache.http.HttpHeaders.EXPECT;
+import static org.apache.http.protocol.HTTP.EXPECT_CONTINUE;
 
 /**
  * Ingest External client
@@ -75,53 +78,28 @@ class IngestExternalClientRest extends DefaultClient implements IngestExternalCl
         String action)
         throws IngestExternalException {
 
-        ParametersChecker.checkParameter("Stream is a mandatory parameter", stream);
         ParametersChecker.checkParameter("Tenant identifier is a mandatory parameter", vitamContext.getTenantId());
-        Response response = null;
+
         final MultivaluedMap<String, Object> headers = vitamContext.getHeaders();
         headers.add(GlobalDataRest.X_CONTEXT_ID, contextId);
         headers.add(GlobalDataRest.X_ACTION, action);
         headers.add(EXPECT, EXPECT_CONTINUE);
 
-        try {
-            response = performRequest(HttpMethod.POST, INGEST_URL, headers,
-                stream, MediaType.APPLICATION_OCTET_STREAM_TYPE, MediaType.APPLICATION_XML_TYPE);
-            final Status status = Status.fromStatusCode(response.getStatus());
-            switch (status) {
-                case ACCEPTED:
-                    LOGGER.debug(Status.ACCEPTED.getReasonPhrase());
-                    return new RequestResponseOK<Void>().parseHeadersFromResponse(response)
-                        .setHttpCode(response.getStatus());
-                case BAD_REQUEST:
-                case PARTIAL_CONTENT:
-                case INTERNAL_SERVER_ERROR:
-                    LOGGER.error(ErrorMessage.INGEST_EXTERNAL_UPLOAD_ERROR.getMessage());
-                    final VitamError vitamError = new VitamError(VitamCode.INGEST_EXTERNAL_UPLOAD_ERROR.getItem())
-                        .setMessage(VitamCode.INGEST_EXTERNAL_UPLOAD_ERROR.getMessage())
-                        .setState(StatusCode.KO.name())
-                        .setContext(INGEST_EXTERNAL_MODULE);
+        VitamRequestBuilder request = post()
+            .withPath(INGEST_URL)
+            .withHeaders(headers)
+            .withBody(stream, "Stream is a mandatory parameter")
+            .withOctetContentType()
+            .withXMLAccept();
 
-                    return vitamError.setHttpCode(status.getStatusCode())
-                        .setDescription(VitamCode.INGEST_EXTERNAL_UPLOAD_ERROR.getMessage() + " Cause : " +
-                            status.getReasonPhrase());
-                case SERVICE_UNAVAILABLE:
-                    LOGGER.error(ErrorMessage.INGEST_EXTERNAL_UPLOAD_ERROR.getMessage());
-                    final VitamError vitamErrorFatal = new VitamError(VitamCode.INGEST_EXTERNAL_UPLOAD_ERROR.getItem())
-                        .setMessage(response.readEntity(String.class))
-                        .setState(StatusCode.FATAL.name())
-                        .setContext("IngestExternalModule");
-
-                    return vitamErrorFatal.setHttpCode(status.getStatusCode())
-                        .setDescription(VitamCode.INGEST_EXTERNAL_UPLOAD_ERROR.getMessage() + " Cause : " +
-                            status.getReasonPhrase());
-                default:
-                    throw new IngestExternalException("Unknown error: " + status.getReasonPhrase());
-            }
-        } catch (final VitamClientInternalException e) {
-            LOGGER.error("Ingest External Internal Server Error", e);
+        try (Response response = make(request)) {
+            check(response);
+            return new RequestResponseOK<Void>().parseHeadersFromResponse(response)
+                .setHttpCode(response.getStatus());
+        } catch (IngestExternalClientServerException vitamError) {
+            return vitamError.getVitamError();
+        } catch (VitamClientInternalException | IngestExternalClientNotFoundException e) {
             throw new IngestExternalException("Ingest External Internal Server Error", e);
-        } finally {
-            consumeAnyEntityAndClose(response);
         }
     }
 
@@ -132,16 +110,20 @@ class IngestExternalClientRest extends DefaultClient implements IngestExternalCl
         ParametersChecker.checkParameter(BLANK_OBJECT_ID, objectId);
         ParametersChecker.checkParameter(BLANK_TYPE, type);
 
-        Response response;
+        Response response = null;
+        VitamRequestBuilder request = get()
+            .withPath(INGEST_URL + "/" + objectId + "/" + type.getCollectionName())
+            .withHeaders(vitamContext.getHeaders())
+            .withOctetAccept();
         try {
-            response = performRequest(HttpMethod.GET, INGEST_URL + "/" + objectId + "/" + type.getCollectionName(),
-                vitamContext.getHeaders(), MediaType.APPLICATION_OCTET_STREAM_TYPE);
-
-        } catch (final VitamClientInternalException e) {
-            LOGGER.error("VitamClientInternalException: ", e);
+            response = make(request);
+            check(response);
+            return response;
+        } catch (IngestExternalClientServerException | IngestExternalException e) {
             throw new VitamClientException(e);
+        } catch (IngestExternalClientNotFoundException e) {
+            return response;
         }
-        return response;
     }
 
     @Override
@@ -149,55 +131,65 @@ class IngestExternalClientRest extends DefaultClient implements IngestExternalCl
         String action)
         throws IngestExternalException {
 
-        ParametersChecker.checkParameter("localFile is a mandatory parameter", localFile);
         ParametersChecker.checkParameter("Tenant identifier is a mandatory parameter", vitamContext.getTenantId());
-        Response response = null;
         final MultivaluedMap<String, Object> headers = vitamContext.getHeaders();
         headers.add(GlobalDataRest.X_CONTEXT_ID, contextId);
         headers.add(GlobalDataRest.X_ACTION, action);
         headers.add(EXPECT, EXPECT_CONTINUE);
 
-        try {
-            response = performRequest(HttpMethod.POST, INGEST_URL, headers,
-                localFile, MediaType.APPLICATION_JSON_TYPE, MediaType.APPLICATION_XML_TYPE);
-            final Status status = Status.fromStatusCode(response.getStatus());
-            switch (status) {
-                case ACCEPTED:
-                    LOGGER.debug(Status.ACCEPTED.getReasonPhrase());
-                    return new RequestResponseOK<Void>().parseHeadersFromResponse(response)
-                        .setHttpCode(response.getStatus());
-                case BAD_REQUEST:
-                case PARTIAL_CONTENT:
-                case INTERNAL_SERVER_ERROR:
-                    LOGGER.error(ErrorMessage.INGEST_EXTERNAL_UPLOAD_ERROR.getMessage());
-                    final VitamError vitamError = new VitamError(VitamCode.INGEST_EXTERNAL_UPLOAD_ERROR.getItem())
-                        .setMessage(VitamCode.INGEST_EXTERNAL_UPLOAD_ERROR.getMessage())
-                        .setState(StatusCode.KO.name())
-                        .setContext(INGEST_EXTERNAL_MODULE);
-
-                    return vitamError.setHttpCode(status.getStatusCode())
-                        .setDescription(VitamCode.INGEST_EXTERNAL_UPLOAD_ERROR.getMessage() + " Cause : " +
-                            status.getReasonPhrase());
-                case SERVICE_UNAVAILABLE:
-                    LOGGER.error(ErrorMessage.INGEST_EXTERNAL_UPLOAD_ERROR.getMessage());
-                    final VitamError vitamErrorFatal = new VitamError(VitamCode.INGEST_EXTERNAL_UPLOAD_ERROR.getItem())
-                        .setMessage(response.readEntity(String.class))
-                        .setState(StatusCode.FATAL.name())
-                        .setContext("IngestExternalModule");
-
-                    return vitamErrorFatal.setHttpCode(status.getStatusCode())
-                        .setDescription(VitamCode.INGEST_EXTERNAL_UPLOAD_ERROR.getMessage() + " Cause : " +
-                            status.getReasonPhrase());
-                default:
-                    throw new IngestExternalException("Unknown error: " + status.getReasonPhrase());
-            }
-        } catch (final VitamClientInternalException e) {
-            LOGGER.error("Ingest External Internal Server Error", e);
+        VitamRequestBuilder request = post()
+            .withPath(INGEST_URL)
+            .withHeader(GlobalDataRest.X_CONTEXT_ID, contextId)
+            .withHeader(GlobalDataRest.X_ACTION, action)
+            .withHeader(EXPECT, EXPECT_CONTINUE)
+            .withBody(localFile, "localFile is a mandatory parameter")
+            .withJsonContentType()
+            .withXMLAccept();
+        try (Response response = make(request)) {
+            check(response);
+            return new RequestResponseOK<Void>().parseHeadersFromResponse(response)
+                .setHttpCode(response.getStatus());
+        } catch (IngestExternalClientServerException vitamError) {
+            return vitamError.getVitamError();
+        } catch (VitamClientInternalException | IngestExternalClientNotFoundException e) {
             throw new IngestExternalException("Ingest External Internal Server Error", e);
-        } finally {
-            consumeAnyEntityAndClose(response);
         }
     }
 
+    private void check(Response response)
+        throws IngestExternalException, IngestExternalClientServerException,
+        IngestExternalClientNotFoundException {
+        Status status = response.getStatusInfo().toEnum();
+        if (SUCCESSFUL.equals(status.getFamily()) || REDIRECTION.equals(status.getFamily())) {
+            return;
+        }
 
+        switch (status) {
+            case BAD_REQUEST:
+            case PARTIAL_CONTENT:
+            case INTERNAL_SERVER_ERROR:
+                final VitamError vitamError = new VitamError(VitamCode.INGEST_EXTERNAL_UPLOAD_ERROR.getItem())
+                    .setHttpCode(status.getStatusCode())
+                    .setDescription(
+                        VitamCode.INGEST_EXTERNAL_UPLOAD_ERROR.getMessage() + " Cause : " + status.getReasonPhrase())
+                    .setMessage(VitamCode.INGEST_EXTERNAL_UPLOAD_ERROR.getMessage())
+                    .setState(StatusCode.KO.name())
+                    .setContext(INGEST_EXTERNAL_MODULE);
+                throw new IngestExternalClientServerException(vitamError);
+
+            case SERVICE_UNAVAILABLE:
+                final VitamError vitamErrorFatal = new VitamError(VitamCode.INGEST_EXTERNAL_UPLOAD_ERROR.getItem())
+                    .setHttpCode(status.getStatusCode())
+                    .setDescription(
+                        VitamCode.INGEST_EXTERNAL_UPLOAD_ERROR.getMessage() + " Cause : " + status.getReasonPhrase())
+                    .setMessage(VitamCode.INGEST_EXTERNAL_UPLOAD_ERROR.getMessage())
+                    .setState(StatusCode.FATAL.name())
+                    .setContext(INGEST_EXTERNAL_MODULE);
+                throw new IngestExternalClientServerException(vitamErrorFatal);
+            case NOT_FOUND:
+                throw new IngestExternalClientNotFoundException("Not Found");
+            default:
+                throw new IngestExternalException(Status.fromStatusCode(response.getStatus()).getReasonPhrase());
+        }
+    }
 }

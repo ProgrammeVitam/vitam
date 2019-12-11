@@ -27,37 +27,24 @@
 
 package fr.gouv.vitam.ingest.external.api.exception;
 
-/**
- * Exception indicating a resource requested by a client was not found on the server.
- */
+import fr.gouv.vitam.common.error.VitamError;
+
 public class IngestExternalClientNotFoundException extends IngestExternalClientException {
     private static final long serialVersionUID = -559328374023039896L;
 
-    /**
-     * constructor with message
-     *
-     * @param message associated message
-     */
     public IngestExternalClientNotFoundException(String message) {
         super(message);
     }
 
-    /**
-     * constructor with throwable
-     *
-     * @param cause associated cause
-     */
     public IngestExternalClientNotFoundException(Throwable cause) {
         super(cause);
     }
 
-    /**
-     * constructor with message and throwable
-     *
-     * @param messsage associated message
-     * @param cause associated cause
-     */
     public IngestExternalClientNotFoundException(String messsage, Throwable cause) {
         super(messsage, cause);
+    }
+
+    public IngestExternalClientNotFoundException(VitamError vitamError) {
+        super(vitamError);
     }
 }
