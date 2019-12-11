@@ -48,6 +48,7 @@ import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.elimination.EliminationRequestBody;
 import fr.gouv.vitam.common.model.export.ExportRequest;
 import fr.gouv.vitam.common.model.massupdate.MassUpdateUnitRuleRequest;
+import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientServerException;
 
@@ -96,6 +97,8 @@ class AccessInternalClientRest extends DefaultClient implements AccessInternalCl
     private static final String UNITS_RULES = "/units/rules";
     private static final String UNITS_WITH_INHERITED_RULES = "unitsWithInheritedRules";
 
+    private static final Runnable CHECK_REQUEST_ID = () -> VitamThreadUtils.getVitamSession().checkValidRequestId();
+
     AccessInternalClientRest(AccessInternalClientFactory factory) {
         super(factory);
     }
@@ -104,7 +107,7 @@ class AccessInternalClientRest extends DefaultClient implements AccessInternalCl
     public RequestResponse<JsonNode> selectUnits(JsonNode selectQuery) throws InvalidParseOperationException,
         AccessInternalClientServerException, AccessInternalClientNotFoundException, AccessUnauthorizedException,
         BadRequestException {
-        try (Response response = make(get().withCheckRequestId().withPath(UNITS).withBody(selectQuery, BLANK_DSL).withJson())){
+        try (Response response = make(get().withBefore(CHECK_REQUEST_ID).withPath(UNITS).withBody(selectQuery, BLANK_DSL).withJson())){
             check(response);
             return RequestResponse.parseFromResponse(response);
         } catch (VitamClientInternalException | PreconditionFailedClientException | ExpectationFailedClientException e) {
@@ -121,7 +124,7 @@ class AccessInternalClientRest extends DefaultClient implements AccessInternalCl
         throws InvalidParseOperationException,
         AccessInternalClientServerException, AccessInternalClientNotFoundException, AccessUnauthorizedException {
         ParametersChecker.checkParameter(BLANK_UNIT_ID, idUnit);
-        try (Response response = make(get().withCheckRequestId().withPath(UNITS + idUnit).withBody(selectQuery, BLANK_DSL).withJson())) {
+        try (Response response = make(get().withBefore(CHECK_REQUEST_ID).withPath(UNITS + idUnit).withBody(selectQuery, BLANK_DSL).withJson())) {
             check(response);
             return RequestResponse.parseFromResponse(response);
         } catch (VitamClientInternalException | NoWritingPermissionException | PreconditionFailedClientException | ExpectationFailedClientException | ForbiddenClientException e) {
@@ -139,7 +142,7 @@ class AccessInternalClientRest extends DefaultClient implements AccessInternalCl
         ParametersChecker.checkParameter(BLANK_UNIT_ID, unitId);
         Response response = null;
         try {
-            response = make(put().withCheckRequestId().withPath(UNITS + unitId).withBody(updateQuery, BLANK_DSL).withJson());
+            response = make(put().withBefore(CHECK_REQUEST_ID).withPath(UNITS + unitId).withBody(updateQuery, BLANK_DSL).withJson());
             check(response);
             return RequestResponse.parseFromResponse(response);
         } catch (BadRequestException e) {
@@ -159,7 +162,7 @@ class AccessInternalClientRest extends DefaultClient implements AccessInternalCl
         NoWritingPermissionException, AccessUnauthorizedException {
         Response response = null;
         try  {
-            response = make(post().withCheckRequestId().withPath(UNITS).withBody(updateQuery, BLANK_DSL).withJson());
+            response = make(post().withBefore(CHECK_REQUEST_ID).withPath(UNITS).withBody(updateQuery, BLANK_DSL).withJson());
             check(response);
             return RequestResponse.parseFromResponse(response);
         } catch (BadRequestException e) {
@@ -177,7 +180,7 @@ class AccessInternalClientRest extends DefaultClient implements AccessInternalCl
     public RequestResponse<JsonNode> updateUnitsRules(MassUpdateUnitRuleRequest massUpdateUnitRuleRequest)
         throws InvalidParseOperationException, AccessInternalClientServerException, NoWritingPermissionException,
         AccessUnauthorizedException {
-        try (Response response = make(post().withCheckRequestId().withPath(UNITS_RULES).withBody(massUpdateUnitRuleRequest, BLANK_DSL).withJson())) {
+        try (Response response = make(post().withBefore(CHECK_REQUEST_ID).withPath(UNITS_RULES).withBody(massUpdateUnitRuleRequest, BLANK_DSL).withJson())) {
             check(response);
             return RequestResponse.parseFromResponse(response);
         } catch (BadRequestException e) {
@@ -192,7 +195,7 @@ class AccessInternalClientRest extends DefaultClient implements AccessInternalCl
         throws InvalidParseOperationException,
         AccessInternalClientServerException, AccessInternalClientNotFoundException, AccessUnauthorizedException {
         ParametersChecker.checkParameter(BLANK_OBJECT_ID, objectId);
-        try (Response response = make(get().withCheckRequestId().withPath(OBJECTS + objectId).withBody(selectObjectQuery, BLANK_DSL).withJson())) {
+        try (Response response = make(get().withBefore(CHECK_REQUEST_ID).withPath(OBJECTS + objectId).withBody(selectObjectQuery, BLANK_DSL).withJson())) {
             check(response);
             return RequestResponse.parseFromResponse(response);
         } catch (PreconditionFailedClientException e) {
@@ -215,7 +218,7 @@ class AccessInternalClientRest extends DefaultClient implements AccessInternalCl
                 .withHeader(X_QUALIFIER, usage)
                 .withHeader(X_VERSION, version)
                 .withJsonOctet()
-                .withCheckRequestId();
+                .withBefore(CHECK_REQUEST_ID);
             Response response = make(request);
             check(response);
             return response;
@@ -231,7 +234,7 @@ class AccessInternalClientRest extends DefaultClient implements AccessInternalCl
     @Override
     public RequestResponse<JsonNode> selectOperation(JsonNode select)
         throws LogbookClientException, InvalidParseOperationException, AccessUnauthorizedException {
-        try (Response response = make(get().withCheckRequestId().withPath(LOGBOOK_OPERATIONS_URL).withBody(select, "Select cannot be empty or null.").withJson())) {
+        try (Response response = make(get().withBefore(CHECK_REQUEST_ID).withPath(LOGBOOK_OPERATIONS_URL).withBody(select, "Select cannot be empty or null.").withJson())) {
             check(response);
             return RequestResponse.parseFromResponse(response);
         } catch (BadRequestException e) {
@@ -245,7 +248,7 @@ class AccessInternalClientRest extends DefaultClient implements AccessInternalCl
     public RequestResponse<JsonNode> selectOperationById(String processId, JsonNode select)
         throws LogbookClientException, InvalidParseOperationException, AccessUnauthorizedException {
         ParametersChecker.checkParameter("processId cannot be blank.", processId);
-        try (Response response = make(get().withCheckRequestId().withPath(LOGBOOK_OPERATIONS_URL + "/" + processId).withBody(select, "Select cannot be empty or null.").withJson())){
+        try (Response response = make(get().withBefore(CHECK_REQUEST_ID).withPath(LOGBOOK_OPERATIONS_URL + "/" + processId).withBody(select, "Select cannot be empty or null.").withJson())){
             check(response);
             return RequestResponse.parseFromResponse(response);
         } catch (BadRequestException e) {
@@ -259,7 +262,7 @@ class AccessInternalClientRest extends DefaultClient implements AccessInternalCl
     public RequestResponse<JsonNode> selectUnitLifeCycleById(String idUnit, JsonNode queryDsl)
         throws LogbookClientException, InvalidParseOperationException, AccessUnauthorizedException {
         ParametersChecker.checkParameter("idUnit cannot be blank.", idUnit);
-        try (Response response = make(get().withCheckRequestId().withPath(LOGBOOK_UNIT_LIFECYCLE_URL + "/" + idUnit).withBody(queryDsl, "QueryDsl cannot be empty or null.").withJson())) {
+        try (Response response = make(get().withBefore(CHECK_REQUEST_ID).withPath(LOGBOOK_UNIT_LIFECYCLE_URL + "/" + idUnit).withBody(queryDsl, "QueryDsl cannot be empty or null.").withJson())) {
             check(response);
             return RequestResponse.parseFromResponse(response);
         } catch (BadRequestException e) {
@@ -273,7 +276,7 @@ class AccessInternalClientRest extends DefaultClient implements AccessInternalCl
     public RequestResponse<JsonNode> selectObjectGroupLifeCycleById(String idObject, JsonNode queryDsl)
         throws LogbookClientException, InvalidParseOperationException, AccessUnauthorizedException {
         ParametersChecker.checkParameter("idObject cannot be blank.", idObject);
-        try (Response response = make(get().withCheckRequestId().withPath(LOGBOOK_OBJECT_LIFECYCLE_URL + "/" + idObject).withBody(queryDsl, "QueryDsl cannot be empty or null.").withJson())) {
+        try (Response response = make(get().withBefore(CHECK_REQUEST_ID).withPath(LOGBOOK_OBJECT_LIFECYCLE_URL + "/" + idObject).withBody(queryDsl, "QueryDsl cannot be empty or null.").withJson())) {
             check(response);
             return RequestResponse.parseFromResponse(response);
         } catch (BadRequestException e) {
@@ -288,7 +291,7 @@ class AccessInternalClientRest extends DefaultClient implements AccessInternalCl
         throws LogbookClientServerException, InvalidParseOperationException, AccessUnauthorizedException {
         Response response = null;
         try {
-            response = make(post().withCheckRequestId().withPath(LOGBOOK_CHECK).withBody(query, "QueryDsl cannot be empty or null.").withJson());
+            response = make(post().withBefore(CHECK_REQUEST_ID).withPath(LOGBOOK_CHECK).withBody(query, "QueryDsl cannot be empty or null.").withJson());
             check(response);
             return RequestResponse.parseFromResponse(response);
         } catch (BadRequestException | ForbiddenClientException | ExpectationFailedClientException | AccessInternalClientNotFoundException e) {
@@ -312,7 +315,7 @@ class AccessInternalClientRest extends DefaultClient implements AccessInternalCl
         ParametersChecker.checkParameter(BLANK_TRACEABILITY_OPERATION_ID, operationId);
         Response response = null;
         try {
-            response = make(get().withCheckRequestId().withPath("traceability/" + operationId + "/content").withOctetAccept());
+            response = make(get().withBefore(CHECK_REQUEST_ID).withPath("traceability/" + operationId + "/content").withOctetAccept());
             check(response);
             return response;
         } catch (VitamClientInternalException | NoWritingPermissionException | ForbiddenClientException | ExpectationFailedClientException | PreconditionFailedClientException e) {
@@ -329,7 +332,7 @@ class AccessInternalClientRest extends DefaultClient implements AccessInternalCl
     @Override
     public RequestResponse<JsonNode> exportDIP(JsonNode dslRequest)
         throws AccessInternalClientServerException {
-        try (Response response = make(post().withCheckRequestId().withPath(DIPEXPORT).withBody(dslRequest, BLANK_DSL).withJson())) {
+        try (Response response = make(post().withBefore(CHECK_REQUEST_ID).withPath(DIPEXPORT).withBody(dslRequest, BLANK_DSL).withJson())) {
             check(response);
             return RequestResponse.parseFromResponse(response);
         } catch (BadRequestException | AccessInternalClientNotFoundException | AccessUnauthorizedException | NoWritingPermissionException | VitamClientInternalException | ForbiddenClientException | ExpectationFailedClientException | PreconditionFailedClientException e) {
@@ -340,7 +343,7 @@ class AccessInternalClientRest extends DefaultClient implements AccessInternalCl
     @Override
     public RequestResponse<JsonNode> exportByUsageFilter(ExportRequest exportRequest)
         throws AccessInternalClientServerException {
-        try (Response response = make(post().withCheckRequestId().withPath(EXPORT_BY_USAGE_FILTER).withBody(exportRequest, BLANK_DSL).withJson())) {
+        try (Response response = make(post().withBefore(CHECK_REQUEST_ID).withPath(EXPORT_BY_USAGE_FILTER).withBody(exportRequest, BLANK_DSL).withJson())) {
             check(response);
             return RequestResponse.parseFromResponse(response);
         } catch (BadRequestException | AccessInternalClientNotFoundException | AccessUnauthorizedException | NoWritingPermissionException | VitamClientInternalException | ForbiddenClientException | ExpectationFailedClientException | PreconditionFailedClientException e) {
@@ -352,7 +355,7 @@ class AccessInternalClientRest extends DefaultClient implements AccessInternalCl
     public Response findExportByID(String id) throws AccessInternalClientServerException {
         ParametersChecker.checkParameter(BLANK_DSL, id);
         try {
-            return make(get().withCheckRequestId().withPath(DIPEXPORT + id + "/dip").withOctetAccept());
+            return make(get().withBefore(CHECK_REQUEST_ID).withPath(DIPEXPORT + id + "/dip").withOctetAccept());
         } catch (final VitamClientInternalException e) {
             throw new AccessInternalClientServerException(INTERNAL_SERVER_ERROR, e); // access-common
         }
@@ -362,7 +365,7 @@ class AccessInternalClientRest extends DefaultClient implements AccessInternalCl
     public Response findTransferSIPByID(String id) throws AccessInternalClientServerException {
         ParametersChecker.checkParameter(BLANK_DSL, id);
         try {
-            return make(get().withCheckRequestId().withPath(TRANSFER_EXPORT + id + "/sip").withOctetAccept());
+            return make(get().withBefore(CHECK_REQUEST_ID).withPath(TRANSFER_EXPORT + id + "/sip").withOctetAccept());
         } catch (final VitamClientInternalException e) {
             throw new AccessInternalClientServerException(INTERNAL_SERVER_ERROR, e); // access-common
         }
@@ -371,7 +374,7 @@ class AccessInternalClientRest extends DefaultClient implements AccessInternalCl
     @Override
     public RequestResponse<JsonNode> reclassification(JsonNode reclassificationRequest)
         throws AccessInternalClientServerException {
-        try (Response response = make(post().withCheckRequestId().withPath("/reclassification").withBody(reclassificationRequest, "Missing reclassification request").withJson())) {
+        try (Response response = make(post().withBefore(CHECK_REQUEST_ID).withPath("/reclassification").withBody(reclassificationRequest, "Missing reclassification request").withJson())) {
             check(response);
             return RequestResponse.parseFromResponse(response);
         } catch (BadRequestException | AccessInternalClientNotFoundException | AccessUnauthorizedException | NoWritingPermissionException | VitamClientInternalException | ForbiddenClientException | ExpectationFailedClientException | PreconditionFailedClientException e) {
@@ -383,7 +386,7 @@ class AccessInternalClientRest extends DefaultClient implements AccessInternalCl
     public RequestResponse<JsonNode> selectObjects(JsonNode selectQuery) throws InvalidParseOperationException,
         AccessInternalClientServerException, AccessInternalClientNotFoundException, AccessUnauthorizedException,
         BadRequestException {
-        try (Response response = make(get().withCheckRequestId().withPath(OBJECTS).withBody(selectQuery, BLANK_DSL).withJson())) {
+        try (Response response = make(get().withBefore(CHECK_REQUEST_ID).withPath(OBJECTS).withBody(selectQuery, BLANK_DSL).withJson())) {
             check(response);
             return RequestResponse.parseFromResponse(response);
         } catch (BadRequestException e) {
@@ -400,7 +403,7 @@ class AccessInternalClientRest extends DefaultClient implements AccessInternalCl
         throws InvalidParseOperationException,
         AccessInternalClientServerException, AccessInternalClientNotFoundException, AccessUnauthorizedException,
         BadRequestException {
-        try (Response response = make(get().withCheckRequestId().withPath(UNITS_WITH_INHERITED_RULES).withBody(selectQuery, BLANK_DSL).withJson())) {
+        try (Response response = make(get().withBefore(CHECK_REQUEST_ID).withPath(UNITS_WITH_INHERITED_RULES).withBody(selectQuery, BLANK_DSL).withJson())) {
             check(response);
             return RequestResponse.parseFromResponse(response);
         } catch (BadRequestException e) {
@@ -418,7 +421,7 @@ class AccessInternalClientRest extends DefaultClient implements AccessInternalCl
         InvalidParseOperationException, AccessUnauthorizedException {
         Response response = null;
         try {
-            response = make(get().withCheckRequestId().withPath(STORAGEACCESSLOG.getCollectionName()).withBody(params, BLANK_DSL).withJsonOctet());
+            response = make(get().withBefore(CHECK_REQUEST_ID).withPath(STORAGEACCESSLOG.getCollectionName()).withBody(params, BLANK_DSL).withJsonOctet());
             check(response);
             return response;
         } catch (BadRequestException e) {
@@ -435,7 +438,7 @@ class AccessInternalClientRest extends DefaultClient implements AccessInternalCl
     @Override
     public RequestResponse<JsonNode> startEliminationAnalysis(EliminationRequestBody eliminationRequestBody)
         throws AccessInternalClientServerException {
-        try (Response response = make(post().withCheckRequestId().withPath("/elimination/analysis").withBody(eliminationRequestBody, "Missing elimination request").withJson())) {
+        try (Response response = make(post().withBefore(CHECK_REQUEST_ID).withPath("/elimination/analysis").withBody(eliminationRequestBody, "Missing elimination request").withJson())) {
             return RequestResponse.parseFromResponse(response);
         } catch (VitamClientInternalException e) {
             throw new AccessInternalClientServerException(e);
@@ -445,7 +448,7 @@ class AccessInternalClientRest extends DefaultClient implements AccessInternalCl
     @Override
     public RequestResponse<JsonNode> startEliminationAction(EliminationRequestBody eliminationRequestBody)
         throws AccessInternalClientServerException {
-        try (Response response = make(post().withCheckRequestId().withPath("/elimination/action").withBody(eliminationRequestBody, "Missing elimination request").withJson())) {
+        try (Response response = make(post().withBefore(CHECK_REQUEST_ID).withPath("/elimination/action").withBody(eliminationRequestBody, "Missing elimination request").withJson())) {
             return RequestResponse.parseFromResponse(response);
         } catch (VitamClientInternalException e) {
             throw new AccessInternalClientServerException(e);
@@ -456,7 +459,7 @@ class AccessInternalClientRest extends DefaultClient implements AccessInternalCl
     public RequestResponse<JsonNode> startPreservation(PreservationRequest preservationRequest)
         throws AccessInternalClientServerException {
         VitamRequestBuilder request = post()
-            .withCheckRequestId()
+            .withBefore(CHECK_REQUEST_ID)
             .withPath("/preservation")
             .withBody(preservationRequest, "Missing request")
             .withJson()
@@ -473,7 +476,7 @@ class AccessInternalClientRest extends DefaultClient implements AccessInternalCl
     public RequestResponse<JsonNode> startComputeInheritedRules(JsonNode dslQuery)
         throws AccessInternalClientServerException {
         VitamRequestBuilder request = post()
-            .withCheckRequestId()
+            .withBefore(CHECK_REQUEST_ID)
             .withPath("/units/computedInheritedRules")
             .withBody(dslQuery, "Missing request")
             .withJson()
@@ -490,7 +493,7 @@ class AccessInternalClientRest extends DefaultClient implements AccessInternalCl
     public RequestResponse<JsonNode> deleteComputeInheritedRules(JsonNode dslQuery)
         throws AccessInternalClientServerException {
         VitamRequestBuilder request = delete()
-            .withCheckRequestId()
+            .withBefore(CHECK_REQUEST_ID)
             .withPath("/units/computedInheritedRules")
             .withBody(dslQuery, "Missing request")
             .withJson()
@@ -510,7 +513,7 @@ class AccessInternalClientRest extends DefaultClient implements AccessInternalCl
             .withBody(transferReply, "Missing transfer reply")
             .withJsonAccept()
             .withXMLContentType()
-            .withCheckRequestId()
+            .withBefore(CHECK_REQUEST_ID)
             .withHeader(X_ACCESS_CONTRAT_ID, getVitamSession().getContractId());
         try (Response response = make(request)) {
             check(response);

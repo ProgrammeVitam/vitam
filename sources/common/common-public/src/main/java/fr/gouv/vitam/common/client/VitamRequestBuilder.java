@@ -27,7 +27,6 @@
 package fr.gouv.vitam.common.client;
 
 import fr.gouv.vitam.common.ParametersChecker;
-import fr.gouv.vitam.common.thread.VitamThreadUtils;
 
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.MultivaluedHashMap;
@@ -148,11 +147,6 @@ public class VitamRequestBuilder {
 
     public VitamRequestBuilder withBefore(Runnable beforeExecRequest) {
         this.beforeExecRequest = beforeExecRequest;
-        return this;
-    }
-
-    public VitamRequestBuilder withCheckRequestId() {
-        this.beforeExecRequest = () -> VitamThreadUtils.getVitamSession().checkValidRequestId();
         return this;
     }
 
