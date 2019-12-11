@@ -330,7 +330,7 @@ public class MassUpdateIT extends VitamRuleRunner {
                 JsonHandler.getFromFileAsTypeRefence(accessContracts, TYPE_LIST_CONTRACT);
             functionalClient.importAccessContracts(accessContractList);
 
-        // When
+            // When
             JsonNode query =
                 JsonHandler.getFromFile(
                     PropertiesUtils.findFile(MASS_UPDATE_QUERY_KO));
@@ -344,7 +344,7 @@ public class MassUpdateIT extends VitamRuleRunner {
             RequestResponse<ItemStatus> ret =
                 processingClient.updateOperationActionProcess(ProcessAction.RESUME.getValue(), containerName);
 
-        // Then
+            // Then
             assertNotNull(ret);
             assertEquals(Response.Status.ACCEPTED.getStatusCode(), ret.getStatus());
 

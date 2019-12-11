@@ -26,32 +26,7 @@
  */
 package fr.gouv.vitam.worker.core.plugin.massprocessing;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.BDDMockito.given;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
-
-import java.io.File;
-import java.io.InputStream;
-import java.util.Arrays;
-import java.util.List;
-
-import javax.ws.rs.core.Response;
-
-import org.assertj.core.util.Lists;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.TemporaryFolder;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnit;
-import org.mockito.junit.MockitoRule;
-
 import com.fasterxml.jackson.databind.JsonNode;
-
 import fr.gouv.vitam.batch.report.client.BatchReportClient;
 import fr.gouv.vitam.batch.report.client.BatchReportClientFactory;
 import fr.gouv.vitam.common.LocalDateUtil;
@@ -77,6 +52,7 @@ import fr.gouv.vitam.metadata.client.MetaDataClient;
 import fr.gouv.vitam.metadata.client.MetaDataClientFactory;
 import fr.gouv.vitam.metadata.core.model.UpdateUnit;
 import fr.gouv.vitam.metadata.core.model.UpdateUnitKey;
+import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 import fr.gouv.vitam.processing.common.parameter.WorkerParametersFactory;
 import fr.gouv.vitam.storage.engine.client.StorageClient;
@@ -87,6 +63,31 @@ import fr.gouv.vitam.worker.common.HandlerIO;
 import fr.gouv.vitam.worker.core.plugin.massprocessing.description.MassUpdateUnitsProcess;
 import fr.gouv.vitam.workspace.client.WorkspaceClient;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
+import org.assertj.core.util.Lists;
+import org.junit.Before;
+import org.junit.Rule;
+import org.junit.Test;
+import org.junit.rules.TemporaryFolder;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.MockitoJUnit;
+import org.mockito.junit.MockitoRule;
+
+import javax.ws.rs.core.Response;
+import java.io.File;
+import java.io.InputStream;
+import java.util.Arrays;
+import java.util.List;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyBoolean;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.BDDMockito.given;
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 public class MassUpdateUnitsProcessTest {
     private static final String CONTAINER_NAME = "aebaaaaaaaag3r7cabf4aak2izdlnwiaaaop";
@@ -207,6 +208,45 @@ public class MassUpdateUnitsProcessTest {
         assertThat(itemStatuses.size()).isEqualTo(2);
         assertThat(itemStatuses.get(0).getGlobalStatus()).isEqualTo(StatusCode.OK);
         assertThat(itemStatuses.get(1).getGlobalStatus()).isEqualTo(StatusCode.OK);
+    }
+
+    @Test
+    @RunWithCustomExecutor
+    public void should_a_storage_error_produce_a_fatal_item_status() throws Exception {
+        // Given
+        String operationId = GUIDFactory.newRequestIdGUID(TENANT_ID).toString();
+        final WorkerParameters params =
+            WorkerParametersFactory.newWorkerParameters().setWorkerGUID(GUIDFactory
+                .newGUID()).setContainerName(CONTAINER_NAME).setUrlMetadata("http://localhost:8083")
+                .setUrlWorkspace("http://localhost:8083")
+                .setObjectNameList(Lists.newArrayList(UNIT1_GUID, UNIT2_GUID))
+                .setProcessId(operationId)
+                .setLogbookTypeProcess(LogbookTypeProcess.MASS_UPDATE);
+        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
+
+        JsonNode query =
+            JsonHandler.getFromInputStream(getClass().getResourceAsStream("/MassUpdateUnitsProcess/query.json"));
+        given(handlerIO.getJsonFromWorkspace("query.json")).willReturn(query);
+        String workerId = GUIDFactory.newRequestIdGUID(TENANT_ID).toString();
+        RequestResponseOK<JsonNode> responseOK = new RequestResponseOK<>();
+        responseOK.addResult(JsonHandler.toJsonNode(new UpdateUnit("aeaqaaaaaahxpfgvab4ygalehsmdu5iaaaaq", StatusCode.OK, UpdateUnitKey.UNIT_METADATA_UPDATE, "update ok", "-    Title : monSIP 5\n+    Title : monSIP 6\n-    #version : 3\n+    #version : 4")));
+        responseOK.addResult(JsonHandler.toJsonNode(new UpdateUnit("aeaqaaaaaahxpfgvab4ygalehsmdvcyaaaaq", StatusCode.OK, UpdateUnitKey.UNIT_METADATA_UPDATE, "update ok", "-    Title : monSIP 5\n+    Title : monSIP 6\n-    #version : 3\n+    #version : 4")));
+
+        given(handlerIO.getWorkerId()).willReturn(workerId);
+        doThrow(new ProcessingException("exception")).when(handlerIO).transferInputStreamToWorkspace(anyString(), any(), any(), anyBoolean());
+        given(metadataClient.updateUnitBulk(any())).willReturn(responseOK);
+        given(metadataClient.getUnitByIdRaw(any())).willReturn(unitResponse);
+        given(storageClient.storeFileFromWorkspace(eq("other_strategy"), any(), any(), any()))
+            .willReturn(getStoredInfoResult());
+
+        // When
+        List<ItemStatus> itemStatuses = massUpdateUnitsProcess.executeList(params, handlerIO);
+
+        // Then
+        assertThat(itemStatuses).isNotNull();
+        assertThat(itemStatuses.size()).isEqualTo(2);
+        assertThat(itemStatuses.get(0).getGlobalStatus()).isEqualTo(StatusCode.FATAL);
+        assertThat(itemStatuses.get(1).getGlobalStatus()).isEqualTo(StatusCode.FATAL);
     }
 
     private StoredInfoResult getStoredInfoResult() {
