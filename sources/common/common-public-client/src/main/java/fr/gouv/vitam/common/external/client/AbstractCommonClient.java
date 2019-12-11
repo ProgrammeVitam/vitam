@@ -30,6 +30,7 @@ import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.client.VitamAutoClosableResponse;
 import fr.gouv.vitam.common.client.VitamClientFactoryInterface;
+import fr.gouv.vitam.common.client.VitamRequestBuilder;
 import fr.gouv.vitam.common.client.configuration.ClientConfiguration;
 import fr.gouv.vitam.common.exception.VitamApplicationServerDisconnectException;
 import fr.gouv.vitam.common.exception.VitamApplicationServerException;
@@ -43,7 +44,6 @@ import fr.gouv.vitam.common.retryable.RetryableParameters;
 import fr.gouv.vitam.common.stream.StreamUtils;
 import org.apache.http.NoHttpResponseException;
 import org.apache.http.conn.ConnectTimeoutException;
-import org.apache.http.conn.HttpHostConnectException;
 
 import javax.ws.rs.HttpMethod;
 import javax.ws.rs.ProcessingException;
@@ -59,7 +59,6 @@ import javax.ws.rs.core.MultivaluedMap;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 import java.io.InputStream;
-import java.net.NoRouteToHostException;
 import java.net.SocketException;
 import java.net.UnknownHostException;
 import java.util.List;
@@ -73,12 +72,12 @@ abstract class AbstractCommonClient implements BasicClient {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(AbstractCommonClient.class);
 
     protected static final String INTERNAL_SERVER_ERROR = "Internal Server Error";
+
     private static final String BODY_AND_CONTENT_TYPE_CANNOT_BE_NULL = "Body and ContentType cannot be null";
     private static final String ARGUMENT_CANNOT_BE_NULL_EXCEPT_HEADERS = "Argument cannot be null except headers";
 
-    final VitamClientFactory<?> clientFactory;
-
     private final RetryableParameters retryableParameters;
+    final VitamClientFactory<?> clientFactory;
     private Client client;
     private Client clientNotChunked;
 
@@ -158,6 +157,44 @@ abstract class AbstractCommonClient implements BasicClient {
         }
     }
 
+    public Response make(VitamRequestBuilder vitamRequestBuilder) throws VitamClientInternalException {
+        vitamRequestBuilder.runBeforeExecRequest();
+        return new VitamAutoClosableResponse(
+            performRequest(
+                vitamRequestBuilder.getHttpMethod(),
+                vitamRequestBuilder.getPath(),
+                vitamRequestBuilder.getHeaders(),
+                vitamRequestBuilder.getBody(),
+                vitamRequestBuilder.getContentType(),
+                vitamRequestBuilder.getAccept(),
+                vitamRequestBuilder.isChunckedMode()
+            )
+        );
+    }
+
+    protected Response performRequest(String httpMethod, String path, MultivaluedMap<String, Object> headers,
+        MediaType accept)
+        throws VitamClientInternalException {
+        return performRequest(httpMethod, path, headers, null, null, accept, false);
+    }
+
+    protected Response performRequest(String httpMethod, String path, MultivaluedMap<String, Object> headers,
+        Object body, MediaType contentType, MediaType accept)
+        throws VitamClientInternalException {
+        return performRequest(httpMethod, path, headers, body, contentType, accept, getChunkedMode());
+    }
+
+    protected Response performRequest(String httpMethod, String path, MultivaluedMap<String, Object> headers,
+        Object body, MediaType contentType, MediaType accept, boolean chunkedMode)
+        throws VitamClientInternalException {
+        try {
+            final Builder builder = buildRequest(httpMethod, path, headers, accept, chunkedMode);
+            return retryIfNecessary(httpMethod, body, contentType, builder);
+        } catch (final ProcessingException e) {
+            throw new VitamClientInternalException(e);
+        }
+    }
+
     private Response retryIfNecessary(String httpMethod, Object body, MediaType contentType, Builder builder) {
         if (body instanceof InputStream) {
             Entity<Object> entity = Entity.entity(body, contentType);
@@ -174,47 +211,6 @@ abstract class AbstractCommonClient implements BasicClient {
 
         RetryableOnException<Response, ProcessingException> retryable = retryable();
         return retryable.exec(delegate);
-    }
-
-    protected Response performRequest(String httpMethod, String path, MultivaluedMap<String, Object> headers,
-        MediaType accept)
-        throws VitamClientInternalException {
-        try {
-            final Builder builder = buildRequest(httpMethod, path, headers, accept, false);
-            return retryIfNecessary(httpMethod, null, null, builder);
-        } catch (final ProcessingException e) {
-            throw new VitamClientInternalException(e);
-        }
-    }
-
-    protected Response performRequest(String httpMethod, String path, MultivaluedMap<String, Object> headers,
-        Object body, MediaType contentType, MediaType accept)
-        throws VitamClientInternalException {
-        if (body == null) {
-            return performRequest(httpMethod, path, headers, accept);
-        }
-        try {
-            ParametersChecker.checkParameter(BODY_AND_CONTENT_TYPE_CANNOT_BE_NULL, body, contentType);
-            final Builder builder = buildRequest(httpMethod, path, headers, accept, getChunkedMode());
-            return retryIfNecessary(httpMethod, body, contentType, builder);
-        } catch (final ProcessingException e) {
-            throw new VitamClientInternalException(e);
-        }
-    }
-
-    protected Response performRequest(String httpMethod, String path, MultivaluedMap<String, Object> headers,
-        Object body, MediaType contentType, MediaType accept, boolean chunkedMode)
-        throws VitamClientInternalException {
-        if (body == null) {
-            return performRequest(httpMethod, path, headers, accept);
-        }
-        try {
-            ParametersChecker.checkParameter(BODY_AND_CONTENT_TYPE_CANNOT_BE_NULL, body, contentType);
-            final Builder builder = buildRequest(httpMethod, path, headers, accept, chunkedMode);
-            return retryIfNecessary(httpMethod, body, contentType, builder);
-        } catch (final ProcessingException e) {
-            throw new VitamClientInternalException(e);
-        }
     }
 
     private <T> Future<T> retryIfNecessary(String httpMethod, Object body, MediaType contentType, AsyncInvoker builder, InvocationCallback<T> callback) {
@@ -235,20 +231,24 @@ abstract class AbstractCommonClient implements BasicClient {
         return retryable.exec(delegate);
     }
 
-    /**
-     * Perform an Async HTTP request to the server with callback
-     *
-     * @param httpMethod HTTP method to use for request
-     * @param path URL to request
-     * @param headers headers HTTP to add to request, may be null
-     * @param body body content of type contentType, may be null
-     * @param contentType the media type of the body to send, null if body is null
-     * @param accept asked type of response
-     * @param callback
-     * @param <T> the type of the Future result (generally Response)
-     * @return the response from the server as Future
-     * @throws VitamClientInternalException
-     */
+    private Future<Response> retryIfNecessary(String httpMethod, Object body, MediaType contentType, AsyncInvoker builder) {
+        if (body instanceof InputStream) {
+            Entity<Object> entity = Entity.entity(body, contentType);
+            return builder.method(httpMethod, entity);
+        }
+
+        DelegateRetry<Future<Response>, ProcessingException> delegate = () -> {
+            if (body == null) {
+                return builder.method(httpMethod);
+            }
+            Entity<Object> entity = Entity.entity(body, contentType);
+            return builder.method(httpMethod, entity);
+        };
+
+        RetryableOnException<Future<Response>, ProcessingException> retryable = retryable();
+        return retryable.exec(delegate);
+    }
+
     protected <T> Future<T> performAsyncRequest(String httpMethod, String path,
         MultivaluedHashMap<String, Object> headers, Object body, MediaType contentType, MediaType accept,
         InvocationCallback<T> callback)
@@ -268,36 +268,6 @@ abstract class AbstractCommonClient implements BasicClient {
         }
     }
 
-    private Future<Response> retryIfNecessary(String httpMethod, Object body, MediaType contentType, AsyncInvoker builder) {
-        if (body instanceof InputStream) {
-            Entity<Object> entity = Entity.entity(body, contentType);
-            return builder.method(httpMethod, entity);
-        }
-
-        DelegateRetry<Future<Response>, ProcessingException> delegate = () -> {
-            if (body == null) {
-                return builder.method(httpMethod);
-            }
-            Entity<Object> entity = Entity.entity(body, contentType);
-            return builder.method(httpMethod, entity);
-        };
-
-        RetryableOnException<Future<Response>, ProcessingException> retryable = retryable();
-        return retryable.exec(delegate);
-    }
-
-    /**
-     * Perform an Async HTTP request to the server with full control of action on caller
-     *
-     * @param httpMethod HTTP method to use for request
-     * @param path URL to request
-     * @param headers headers HTTP to add to request, may be null
-     * @param body body content of type contentType, may be null
-     * @param contentType the media type of the body to send, null if body is null
-     * @param accept asked type of response
-     * @return the response from the server as a Future
-     * @throws VitamClientInternalException
-     */
     protected Future<Response> performAsyncRequest(String httpMethod, String path,
         MultivaluedHashMap<String, Object> headers, Object body, MediaType contentType, MediaType accept)
         throws VitamClientInternalException {
@@ -315,13 +285,6 @@ abstract class AbstractCommonClient implements BasicClient {
         }
     }
 
-    /**
-     * Handle all errors and throw a VitamClientException in case the response does not contains a vitamError type
-     * result.
-     *
-     * @param response response
-     * @return VitamClientException exception thrown for the response
-     */
     protected VitamClientException createExceptionFromResponse(Response response) {
         VitamClientException exception = new VitamClientException(INTERNAL_SERVER_ERROR);
         if (response != null && response.getStatusInfo() != null) {
@@ -352,29 +315,13 @@ abstract class AbstractCommonClient implements BasicClient {
         }
     }
 
-    @Override
-    public String toString() {
-        return new StringBuilder("VitamClient: { ").append(clientFactory.toString()).append(" }").toString();
-    }
-
     private Builder buildRequest(String httpMethod, String path, MultivaluedMap<String, Object> headers,
         MediaType accept,
         boolean chunkedMode) {
         return buildRequest(httpMethod, getServiceUrl(), path, headers, accept, chunkedMode);
     }
 
-    /**
-     * Build a HTTP request to the server for synchronous call without Body
-     *
-     * @param httpMethod HTTP method to use for request
-     * @param url base url
-     * @param path URL to request
-     * @param headers headers HTTP to add to request, may be null
-     * @param accept asked type of response
-     * @param chunkedMode True use default client, else False use non Chunked mode client
-     * @return the builder ready to be performed
-     */
-    final Builder buildRequest(String httpMethod, String url, String path, MultivaluedMap<String, Object> headers,
+    public Builder buildRequest(String httpMethod, String url, String path, MultivaluedMap<String, Object> headers,
         MediaType accept, boolean chunkedMode) {
         ParametersChecker.checkParameter(ARGUMENT_CANNOT_BE_NULL_EXCEPT_HEADERS, httpMethod, path, accept);
         final Builder builder = getHttpClient(chunkedMode).target(url).path(path).request().accept(accept);
@@ -394,21 +341,10 @@ abstract class AbstractCommonClient implements BasicClient {
         return builder;
     }
 
-    /**
-     * Get the internal Http client
-     *
-     * @return the client
-     */
     Client getHttpClient() {
         return getHttpClient(getChunkedMode());
     }
 
-    /**
-     * Get the internal Http client according to the chunk mode
-     *
-     * @param useChunkedMode
-     * @return the client
-     */
     Client getHttpClient(boolean useChunkedMode) {
         if (useChunkedMode) {
             return client;
@@ -421,14 +357,16 @@ abstract class AbstractCommonClient implements BasicClient {
         return clientFactory.getClientConfiguration();
     }
 
-    /**
-     * @return the client chunked mode default configuration
-     */
     boolean getChunkedMode() {
         return clientFactory.getChunkedMode();
     }
 
     private <T, E extends Exception> RetryableOnException<T, E> retryable() {
         return new RetryableOnException<>(retryableParameters, retryOnException);
+    }
+
+    @Override
+    public String toString() {
+        return "VitamClient: { " + clientFactory.toString() + " }";
     }
 }

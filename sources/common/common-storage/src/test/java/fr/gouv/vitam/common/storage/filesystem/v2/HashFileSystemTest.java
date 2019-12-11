@@ -36,6 +36,7 @@ import fr.gouv.vitam.common.storage.cas.container.api.ContentAddressableStorageA
 import fr.gouv.vitam.common.storage.cas.container.api.ContentAddressableStorageTestAbstract;
 import fr.gouv.vitam.common.storage.constants.ExtendedAttributes;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import java.io.File;
