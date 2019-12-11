@@ -138,7 +138,9 @@ public class StorageClientMock extends AbstractMockClient implements StorageClie
     public StoredInfoResult storeFileFromWorkspace(String strategyId, DataCategory type, String guid,
         ObjectDescription description)
         throws StorageAlreadyExistsClientException, StorageNotFoundClientException, StorageServerClientException {
-        if (description.getWorkspaceObjectURI().equals("ATR/responseReply.xml") && VitamThreadUtils.getVitamSession().getContractId().equals("OUR_FAILING_CONTRACT")) {
+        if ((description.getWorkspaceObjectURI().equals("ATR/responseReply.xml")
+            || description.getWorkspaceObjectURI().contains("Units/aeaqaaaaaagbcaacaang6ak4ts6paliacabq.json"))
+            && VitamThreadUtils.getVitamSession().getContractId().equals("OUR_FAILING_CONTRACT")) {
             throw new StorageAlreadyExistsClientException("Not found.");
         }
         return generateStoredInfoResult(guid);

@@ -26,6 +26,7 @@
  */
 package fr.gouv.vitam.metadata.core.database.collections;
 
+import com.fasterxml.jackson.core.JsonPointer;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.annotations.VisibleForTesting;
@@ -39,9 +40,11 @@ import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoCursor;
 import com.mongodb.client.result.DeleteResult;
 import com.mongodb.client.result.UpdateResult;
+import fr.gouv.vitam.common.SedaConstants;
 import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.database.builder.query.Query;
 import fr.gouv.vitam.common.database.builder.query.VitamFieldsHelper;
+import fr.gouv.vitam.common.database.builder.query.action.Action;
 import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken;
 import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.FILTERARGS;
 import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.QUERY;
@@ -109,6 +112,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
@@ -127,6 +131,8 @@ import static fr.gouv.vitam.common.database.builder.query.action.UpdateActionHel
  */
 public class DbRequest {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(DbRequest.class);
+
+    private static final JsonPointer JSON_POINTER_TO_OPS = JsonPointer.compile("/$push/_ops/0");
 
     private static final String HISTORY_TRIGGER_NAME = "history-triggers.json";
     private static final String QUERY2 = "query: ";
@@ -925,6 +931,7 @@ public class DbRequest {
                 eq(MetadataDocument.TENANT_ID, VitamThreadUtils.getVitamSession().getTenantId())
             )).first();
 
+
             if (document == null) {
                 throw new MetaDataNotFoundException("Document not found by id " + documentId);
             }
@@ -932,6 +939,10 @@ public class DbRequest {
             final Integer documentVersion = document.getVersion();
 
             final JsonNode jsonDocument = JsonHandler.toJsonNode(document);
+            if (noChangesAndOpsAlreadyContainingOperation(requestParser, document)) {
+                return new UpdatedDocument(documentId, jsonDocument, jsonDocument);
+            }
+
             DynamicParserTokens parserTokens = new DynamicParserTokens(metadataCollection.getVitamDescriptionResolver(), ontologyModels);
             final MongoDbInMemory mongoInMemory = new MongoDbInMemory(jsonDocument, parserTokens);
             final ObjectNode updatedJsonDocument = (ObjectNode) mongoInMemory.getUpdateJson(requestParser);
@@ -985,6 +996,17 @@ public class DbRequest {
         }
 
         throw new MetaDataExecutionException("Can not modify document " + documentId);
+    }
+
+    private boolean noChangesAndOpsAlreadyContainingOperation(RequestParserMultiple requestParser, MetadataDocument<?> document) {
+        Optional<Action> actionWithOp = requestParser.getRequest().getActions().stream().filter(a -> !a.getCurrentAction().at(JSON_POINTER_TO_OPS).isMissingNode()).findFirst();
+        if (!actionWithOp.isPresent()) {
+            return false;
+        }
+        String opsToAdd = actionWithOp.get().getCurrentObject().at(JSON_POINTER_TO_OPS).asText();
+        Collection<String> existingOps = document.getCollectionOrEmpty(SedaConstants.PREFIX_OPS);
+
+        return existingOps.contains(opsToAdd);
     }
 
     private int incrementDocumentVersionIfRequired(MetadataCollections metadataCollection,

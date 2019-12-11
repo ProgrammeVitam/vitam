@@ -26,12 +26,12 @@
  */
 package fr.gouv.vitam.workspace.client;
 
-import java.net.URI;
-
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.client.VitamClientFactory;
 import fr.gouv.vitam.common.client.configuration.ClientConfiguration;
 import fr.gouv.vitam.common.client.configuration.ClientConfigurationImpl;
+
+import java.net.URI;
 
 /**
  * WorkspaceClient factory for creating workspace client

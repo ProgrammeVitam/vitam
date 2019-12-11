@@ -53,6 +53,8 @@ import fr.gouv.vitam.common.model.ProcessState;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.model.administration.AccessContractModel;
+import fr.gouv.vitam.common.model.logbook.LogbookEvent;
+import fr.gouv.vitam.common.model.logbook.LogbookLifecycle;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.functional.administration.client.AdminManagementClient;
@@ -125,6 +127,8 @@ public class MassUpdateIT extends VitamRuleRunner {
         "integration-processing/mass-update/unit_02.json";
     private static final String INTEGRATION_PROCESSING_MASS_UPDATE_UNIT_03_JSON =
         "integration-processing/mass-update/unit_03.json";
+    private static final String INTEGRATION_PROCESSING_MASS_UPDATE_UNIT_04_JSON =
+        "integration-processing/mass-update/unit_04.json";
     private static final String MASS_UPDATE_QUERY_KO =
         "integration-processing/mass-update/update_query_KO.json";
     private static final String INTEGRATION_PROCESSING_MASS_UPDATE_UPDATE_QUERY_01_JSON =
@@ -145,6 +149,8 @@ public class MassUpdateIT extends VitamRuleRunner {
         "integration-processing/mass-update/unit_lfc_01.json";
     private static final String INTEGRATION_PROCESSING_MASS_UPDATE_UNIT_LFC_02_JSON =
         "integration-processing/mass-update/unit_lfc_02.json";
+    private static final String INTEGRATION_PROCESSING_MASS_UPDATE_UNIT_LFC_04_JSON =
+        "integration-processing/mass-update/unit_lfc_04.json";
     private static String INTEGRATION_PROCESSING_MASS_UPDATE_ADD_RULE =
         "integration-processing/mass-update/Action_add_rules.json";
     private static String INTEGRATION_PROCESSING_MASS_UPDATE_UPDATE_RULE =
@@ -182,7 +188,7 @@ public class MassUpdateIT extends VitamRuleRunner {
                 BatchReportMain.class
             ));
 
-    private static final long SLEEP_TIME = 20l;
+    private static final long SLEEP_TIME = 20L;
     private static final long NB_TRY = 18000;
     private static final TypeReference<List<AccessContractModel>> TYPE_LIST_CONTRACT = new TypeReference<List<AccessContractModel>>() {};
     private static final TypeReference<List<Document>> TYPE_LIST_UNIT = new TypeReference<List<Document>>() {};
@@ -194,7 +200,7 @@ public class MassUpdateIT extends VitamRuleRunner {
     @BeforeClass
     public static void setUpBeforeClass() throws Exception {
         handleBeforeClass(0, 1);
-        PropertiesUtils.getResourcePath("integration-processing/bigworker.conf").toString();
+        PropertiesUtils.getResourcePath("integration-processing/bigworker.conf");
         FormatIdentifierFactory.getInstance().changeConfigurationFile(runner.FORMAT_IDENTIFIERS_CONF);
         processMonitoring = ProcessMonitoringImpl.getInstance();
         StorageClientFactory storageClientFactory = StorageClientFactory.getInstance();
@@ -432,8 +438,7 @@ public class MassUpdateIT extends VitamRuleRunner {
             assertThat((List<String>) updatedUnit.get().get(Unit.OPS)).contains(operationGuid.getId());
 
             LogbookOperationsClient logbookClient = LogbookOperationsClientFactory.getInstance().getClient();
-            fr.gouv.vitam.common.database.builder.request.single.Select selectQuery =
-                new Select();
+            Select selectQuery = new Select();
             selectQuery.setQuery(QueryHelper.eq(EV_ID_PROC, containerName));
             JsonNode logbookResult = logbookClient.selectOperation(selectQuery.getFinalSelect());
             assertEquals(logbookResult.get(RESULTS).get(0).get(EVENTS).get(0).get(OUT_DETAIL).asText(),
@@ -528,7 +533,7 @@ public class MassUpdateIT extends VitamRuleRunner {
                 "Le Reportage photographique juillet n°17642 est réalisé en 1789 sous le titre: Reportage photographique juillet n°17642");
 
             LogbookOperationsClient logbookClient = LogbookOperationsClientFactory.getInstance().getClient();
-            fr.gouv.vitam.common.database.builder.request.single.Select selectQuery =
+            Select selectQuery =
                 new Select();
             selectQuery.setQuery(QueryHelper.eq(EV_ID_PROC, containerName));
             JsonNode logbookResult = logbookClient.selectOperation(selectQuery.getFinalSelect());
@@ -604,7 +609,7 @@ public class MassUpdateIT extends VitamRuleRunner {
             assertThat(((Document)updatedUnit.get().get(TITLE_)).get("fr")).isEqualTo("Good title");
 
             LogbookOperationsClient logbookClient = LogbookOperationsClientFactory.getInstance().getClient();
-            fr.gouv.vitam.common.database.builder.request.single.Select selectQuery =
+            Select selectQuery =
                 new Select();
             selectQuery.setQuery(QueryHelper.eq(EV_ID_PROC, containerName));
             JsonNode logbookResult = logbookClient.selectOperation(selectQuery.getFinalSelect());
@@ -612,6 +617,104 @@ public class MassUpdateIT extends VitamRuleRunner {
                 "MASS_UPDATE_FINALIZE.OK");
             assertEquals(logbookResult.get(RESULTS).get(0).get(EVENTS).get(1).get(OUT_DETAIL).asText(),
                 "MASS_UPDATE_UNIT_DESC.OK");
+        }
+    }
+
+    @RunWithCustomExecutor
+    @Test
+    public void should_not_reinsert_lfc_when_redo_massupdate() throws Exception {
+        // Given
+        VitamThreadUtils.getVitamSession().setTenantId(TENANT_0);
+        VitamThreadUtils.getVitamSession().setContractId("OUR_FAILING_CONTRACT");
+        VitamThreadUtils.getVitamSession().setContextId(CONTEXT_ID);
+
+        try (AdminManagementClient functionalClient = AdminManagementClientFactory.getInstance().getClient()) {
+            final GUID operationGuid = GUIDFactory.newOperationLogbookGUID(TENANT_0);
+            final String containerName = operationGuid.getId();
+            final String unitId = "aeaqaaaaaagbcaacaang6ak4ts6paliacabq";
+            VitamThreadUtils.getVitamSession().setRequestId(operationGuid);
+            createLogbookOperation(operationGuid, operationGuid, null, LogbookTypeProcess.MASS_UPDATE);
+
+            workspaceClient = WorkspaceClientFactory.getInstance().getClient();
+            workspaceClient.createContainer(containerName);
+
+            // insert units and LFC
+            insertUnitAndLFC(INTEGRATION_PROCESSING_MASS_UPDATE_UNIT_04_JSON,
+                INTEGRATION_PROCESSING_MASS_UPDATE_UNIT_LFC_04_JSON);
+
+            // import contract
+            VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newOperationLogbookGUID(TENANT_0));
+            File accessContracts = PropertiesUtils
+                .getResourceFile(INTEGRATION_PROCESSING_MASS_UPDATE_CONTRACT_PERMISSION_RESTRICTED_DESC_JSON);
+            List<AccessContractModel> accessContractList =
+                JsonHandler.getFromFileAsTypeReference(accessContracts, TYPE_LIST_CONTRACT);
+            functionalClient.importAccessContracts(accessContractList);
+
+            VitamThreadUtils.getVitamSession().setRequestId(operationGuid);
+            processingClient = ProcessingManagementClientFactory.getInstance().getClient();
+            JsonNode query =
+                JsonHandler.getFromFile(
+                    PropertiesUtils.findFile(INTEGRATION_PROCESSING_MASS_UPDATE_UPDATE_QUERY_03_JSON));
+            workspaceClient
+                .putObject(operationGuid.getId(), QUERY, JsonHandler.writeToInpustream(query));
+            workspaceClient
+                .putObject(operationGuid.getId(), ACTION,
+                    JsonHandler.writeToInpustream(JsonHandler.createObjectNode()));
+            processingClient
+                .initVitamProcess(containerName, Contexts.MASS_UPDATE_UNIT_DESC.name());
+
+            RequestResponse<ItemStatus> ret =
+                processingClient.updateOperationActionProcess(ProcessAction.RESUME.getValue(), containerName);
+            assertNotNull(ret);
+            assertEquals(Response.Status.ACCEPTED.getStatusCode(), ret.getStatus());
+
+            wait(containerName);
+            ProcessWorkflow processWorkflow = processMonitoring.findOneProcessWorkflow(containerName, TENANT_0);
+            assertNotNull(processWorkflow);
+            assertEquals(ProcessState.PAUSE, processWorkflow.getState());
+            assertEquals(StatusCode.FATAL, processWorkflow.getStatus());
+
+            VitamThreadUtils.getVitamSession().setContractId(CONTRACT_ID);
+            ret = processingClient.updateOperationActionProcess(ProcessAction.RESUME.getValue(), containerName);
+            assertNotNull(ret);
+            assertEquals(Response.Status.ACCEPTED.getStatusCode(), ret.getStatus());
+
+            wait(containerName);
+            processWorkflow = processMonitoring.findOneProcessWorkflow(containerName, TENANT_0);
+            assertNotNull(processWorkflow);
+            assertEquals(ProcessState.COMPLETED, processWorkflow.getState());
+            assertEquals(StatusCode.OK, processWorkflow.getStatus());
+
+            Optional<Document> updatedUnit =
+                VitamRepositoryFactory.get().getVitamMongoRepository(MetadataCollections.UNIT.getVitamCollection())
+                    .getByID(unitId, TENANT_0);
+            assertTrue(updatedUnit.isPresent());
+            assertThat(updatedUnit.get().get(TITLE)).isEqualTo("Reportage photographique juillet n°17642");
+
+            LogbookOperationsClient logbookClient = LogbookOperationsClientFactory.getInstance().getClient();
+            Select selectQuery =
+                new Select();
+            selectQuery.setQuery(QueryHelper.eq(EV_ID_PROC, containerName));
+            JsonNode logbookResult = logbookClient.selectOperation(selectQuery.getFinalSelect());
+            assertEquals(logbookResult.get(RESULTS).get(0).get(EVENTS).get(0).get(OUT_DETAIL).asText(),
+                "MASS_UPDATE_FINALIZE.OK");
+
+            JsonNode logbookResult2 = logbookClient.selectOperation(selectQuery.getFinalSelect());
+            assertEquals(logbookResult2.get(RESULTS).get(0).get(EVENTS).get(0).get(OUT_DETAIL).asText(),
+                "MASS_UPDATE_FINALIZE.OK");
+
+            LogbookLifeCyclesClient logbookLifeCyclesClient = LogbookLifeCyclesClientFactory.getInstance().getClient();
+            JsonNode unitLfc = logbookLifeCyclesClient
+                .selectUnitLifeCycleById(updatedUnit.get().get("_id", String.class), new Select().getFinalSelectById());
+
+            JsonNode lfcJsonNode = unitLfc.get("$results").get(0);
+            LogbookLifecycle lfc = JsonHandler.getFromJsonNode(lfcJsonNode, LogbookLifecycle.class);
+            List<LogbookEvent> events = lfc.getEvents();
+            List<LogbookEvent> updateEvents = events.stream()
+                .filter(e -> "LFC.UNIT_METADATA_UPDATE".equals(e.getEvType()) && containerName.equals(e.getEvIdProc()))
+                .collect(Collectors.toList());
+
+            assertEquals(updateEvents.size(), 1);
         }
     }
 
@@ -740,7 +843,7 @@ public class MassUpdateIT extends VitamRuleRunner {
             assertThat(((Document) ((ArrayList) ((Document) ((Document) updatedUnit.get().get(MGT)).get(REUSERULE)).get(RULES)).get(0)).get(RULE)).isEqualTo("REU-00001");
 
             LogbookOperationsClient logbookClient = LogbookOperationsClientFactory.getInstance().getClient();
-            fr.gouv.vitam.common.database.builder.request.single.Select selectQuery =
+            Select selectQuery =
                 new Select();
             selectQuery.setQuery(QueryHelper.eq(EV_ID_PROC, containerName));
             JsonNode logbookResult = logbookClient.selectOperation(selectQuery.getFinalSelect());
@@ -813,7 +916,7 @@ public class MassUpdateIT extends VitamRuleRunner {
             assertThat(((Document) ((ArrayList) ((Document) ((Document) updatedUnit.get().get(MGT)).get(REUSERULE)).get(RULES)).get(0)).get(STARTDATE).toString()).isEqualTo("2019-10-11");
 
             LogbookOperationsClient logbookClient = LogbookOperationsClientFactory.getInstance().getClient();
-            fr.gouv.vitam.common.database.builder.request.single.Select selectQuery =
+            Select selectQuery =
                 new Select();
             selectQuery.setQuery(QueryHelper.eq(EV_ID_PROC, containerName));
             JsonNode logbookResult = logbookClient.selectOperation(selectQuery.getFinalSelect());
@@ -886,7 +989,7 @@ public class MassUpdateIT extends VitamRuleRunner {
             assertThat(((ArrayList) ((Document)   ((Document) updatedUnit.get().get(MGT)).get(REUSERULE)).get(RULES)).size()).isEqualTo(0);
 
             LogbookOperationsClient logbookClient = LogbookOperationsClientFactory.getInstance().getClient();
-            fr.gouv.vitam.common.database.builder.request.single.Select selectQuery =
+            Select selectQuery =
                 new Select();
             selectQuery.setQuery(QueryHelper.eq(EV_ID_PROC, containerName));
             JsonNode logbookResult = logbookClient.selectOperation(selectQuery.getFinalSelect());
