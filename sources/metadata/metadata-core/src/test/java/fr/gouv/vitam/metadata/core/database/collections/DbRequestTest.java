@@ -52,6 +52,7 @@ import fr.gouv.vitam.common.database.parser.request.multiple.SelectParserMultipl
 import fr.gouv.vitam.common.database.parser.request.multiple.UpdateParserMultiple;
 import fr.gouv.vitam.common.database.server.elasticsearch.ElasticsearchAccess;
 import fr.gouv.vitam.common.database.server.elasticsearch.ElasticsearchNode;
+import fr.gouv.vitam.common.database.server.mongodb.VitamDocument;
 import fr.gouv.vitam.common.elasticsearch.ElasticsearchRule;
 import fr.gouv.vitam.common.exception.ArchiveUnitOntologyValidationException;
 import fr.gouv.vitam.common.exception.BadRequestException;
@@ -2871,5 +2872,63 @@ public class DbRequestTest {
             updatedDocument.getAfterUpdate().get("_mgt").get("DisseminationRule").get("Inheritance")
                 .get("PreventInheritance").asText())).isEqualTo(Boolean.FALSE);
 
+    }
+
+    @Test
+    @RunWithCustomExecutor
+    public void should_return_and_updated_document_with_no_diff_when_ops_already_present() throws Exception {
+        // Given
+        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID_0);
+        VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newRequestIdGUID(TENANT_ID_0));
+
+        String uuid = "aeaqaaaabeghay2jabzuaalbarkww4iaaaba";
+
+        // Base ontology with custom external types
+        List<OntologyModel> ontologyModels = JsonHandler.getFromInputStreamAsTypeReference(OntologyTestHelper.loadOntologies(), new TypeReference<List<OntologyModel>>() {});
+        ontologyModels.addAll(Arrays.asList(
+            new OntologyModel().setType(OntologyType.BOOLEAN).setOrigin(OntologyOrigin.EXTERNAL).setIdentifier("Flag"),
+            new OntologyModel().setType(OntologyType.LONG).setOrigin(OntologyOrigin.EXTERNAL).setIdentifier("Number")
+        ));
+
+        final Unit initialUnit = new Unit(
+            JsonHandler.getFromFile(PropertiesUtils.getResourceFile("unitToUpdate.json")));
+
+        MetadataCollections.UNIT.getCollection().insertOne(initialUnit);
+        MetadataCollections.UNIT.getEsClient().insertFullDocument(MetadataCollections.UNIT, 0, uuid, initialUnit);
+
+        // AUP Schema
+        AdminManagementClientFactory adminManagementClientFactory = mock(AdminManagementClientFactory.class);
+        AdminManagementClient adminManagementClient = mock(AdminManagementClient.class);
+        doReturn(adminManagementClient).when(adminManagementClientFactory).getClient();
+        doReturn(new RequestResponseOK<ArchiveUnitProfileModel>().addResult(new ArchiveUnitProfileModel()
+            .setControlSchema(PropertiesUtils.getResourceAsString("unitAUP_OK.json"))
+            .setStatus(ArchiveUnitProfileStatus.ACTIVE)
+        )).when(adminManagementClient).findArchiveUnitProfilesByID("AUP_IDENTIFIER");
+        CachedArchiveUnitProfileLoader archiveUnitProfileLoader =
+            new CachedArchiveUnitProfileLoader(adminManagementClientFactory, 100, 300);
+
+        DbRequest dbRequest = new DbRequest(
+            new MongoDbMetadataRepository<Unit>(() -> MetadataCollections.UNIT.getCollection()),
+            new MongoDbMetadataRepository<ObjectGroup>(() -> MetadataCollections.OBJECTGROUP.getCollection()),
+            fieldHistoryManager
+        );
+
+        UpdateMultiQuery update = new UpdateMultiQuery();
+        update.addActions(push("#operations", "aedqaaaabggsoscfaat22albarkwtiqaaaaq"));             // <- here existing operation ID
+
+        UpdateParserMultiple updateParser = new UpdateParserMultiple(mongoDbVarNameAdapter);
+        updateParser.parse(update.getFinalUpdate());
+
+        CachedSchemaValidatorLoader schemaValidatorLoader = new CachedSchemaValidatorLoader(100, 300);
+
+        OntologyValidator ontologyValidator = new OntologyValidator(() -> ontologyModels);
+        UnitValidator unitValidator = new UnitValidator(archiveUnitProfileLoader, schemaValidatorLoader);
+
+        // When
+        UpdatedDocument updatedDocument = dbRequest.execUpdateRequest(updateParser, uuid, MetadataCollections.UNIT, ontologyValidator, unitValidator, Collections.emptyList());
+
+        // Then
+        String diff = String.join("\n", VitamDocument.getConcernedDiffLines(VitamDocument.getUnifiedDiff(JsonHandler.prettyPrint(updatedDocument.getBeforeUpdate()), JsonHandler.prettyPrint(updatedDocument.getAfterUpdate()))));
+        assertThat(diff).isEmpty();
     }
 }

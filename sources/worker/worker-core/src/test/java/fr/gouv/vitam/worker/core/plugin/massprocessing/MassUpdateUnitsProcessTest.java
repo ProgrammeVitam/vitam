@@ -39,6 +39,8 @@ import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.StatusCode;
+import fr.gouv.vitam.common.model.logbook.LogbookEvent;
+import fr.gouv.vitam.common.model.logbook.LogbookLifecycle;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
 import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
@@ -54,7 +56,6 @@ import fr.gouv.vitam.metadata.core.model.UpdateUnit;
 import fr.gouv.vitam.metadata.core.model.UpdateUnitKey;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
-import fr.gouv.vitam.processing.common.parameter.WorkerParametersFactory;
 import fr.gouv.vitam.storage.engine.client.StorageClient;
 import fr.gouv.vitam.storage.engine.client.StorageClientFactory;
 import fr.gouv.vitam.storage.engine.common.model.DataCategory;
@@ -76,9 +77,10 @@ import org.mockito.junit.MockitoRule;
 import javax.ws.rs.core.Response;
 import java.io.File;
 import java.io.InputStream;
-import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
+import static fr.gouv.vitam.processing.common.parameter.WorkerParametersFactory.newWorkerParameters;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyBoolean;
@@ -87,14 +89,16 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 public class MassUpdateUnitsProcessTest {
+    private static final int TENANT_ID = 0;
+
     private static final String CONTAINER_NAME = "aebaaaaaaaag3r7cabf4aak2izdlnwiaaaop";
     private static final String UNIT1_GUID = "aeaqaaaaaaag3r7cabf4aak2izdloiiaaaa1";
     private static final String UNIT2_GUID = "aeaqaaaaaaag3r7cabf4aak2izdloiiaaaa2";
-    private static final int TENANT_ID = 0;
-
     private static final String UNIT = "MassUpdateUnitsProcess/unitMd.json";
     private static final String METDATA_UNIT_RESPONSE_JSON = "MassUpdateUnitsProcess/unit.json";
     private static final String LFC_UNIT_RESPONSE_JSON = "MassUpdateUnitsProcess/lfc.json";
@@ -174,7 +178,7 @@ public class MassUpdateUnitsProcessTest {
         // Given
         String operationId = GUIDFactory.newRequestIdGUID(TENANT_ID).toString();
         final WorkerParameters params =
-            WorkerParametersFactory.newWorkerParameters().setWorkerGUID(GUIDFactory
+            newWorkerParameters().setWorkerGUID(GUIDFactory
                 .newGUID()).setContainerName(CONTAINER_NAME).setUrlMetadata("http://localhost:8083")
                 .setUrlWorkspace("http://localhost:8083")
                 .setObjectNameList(Lists.newArrayList(UNIT1_GUID, UNIT2_GUID))
@@ -216,7 +220,7 @@ public class MassUpdateUnitsProcessTest {
         // Given
         String operationId = GUIDFactory.newRequestIdGUID(TENANT_ID).toString();
         final WorkerParameters params =
-            WorkerParametersFactory.newWorkerParameters().setWorkerGUID(GUIDFactory
+            newWorkerParameters().setWorkerGUID(GUIDFactory
                 .newGUID()).setContainerName(CONTAINER_NAME).setUrlMetadata("http://localhost:8083")
                 .setUrlWorkspace("http://localhost:8083")
                 .setObjectNameList(Lists.newArrayList(UNIT1_GUID, UNIT2_GUID))
@@ -238,23 +242,79 @@ public class MassUpdateUnitsProcessTest {
         given(metadataClient.getUnitByIdRaw(any())).willReturn(unitResponse);
         given(storageClient.storeFileFromWorkspace(eq("other_strategy"), any(), any(), any()))
             .willReturn(getStoredInfoResult());
+        given(lfcClient.getRawUnitLifeCycleById(any())).willReturn(lfcResponse);
 
         // When
         List<ItemStatus> itemStatuses = massUpdateUnitsProcess.executeList(params, handlerIO);
 
         // Then
         assertThat(itemStatuses).isNotNull();
-        assertThat(itemStatuses.size()).isEqualTo(2);
-        assertThat(itemStatuses.get(0).getGlobalStatus()).isEqualTo(StatusCode.FATAL);
-        assertThat(itemStatuses.get(1).getGlobalStatus()).isEqualTo(StatusCode.FATAL);
+        assertThat(itemStatuses).hasSize(2);
+        assertThat(itemStatuses).extracting(ItemStatus::getGlobalStatus).containsOnly(StatusCode.FATAL, StatusCode.FATAL);
+    }
+
+    @Test
+    @RunWithCustomExecutor
+    public void should_not_save_in_mongo_lfc_already_saved() throws Exception {
+        // Given
+        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
+        String processId = GUIDFactory.newRequestIdGUID(TENANT_ID).toString();
+
+        WorkerParameters params = newWorkerParameters()
+            .setWorkerGUID(GUIDFactory.newGUID())
+            .setContainerName(processId)
+            .setUrlMetadata("http://localhost:8083")
+            .setUrlWorkspace("http://localhost:8083")
+            .setObjectNameList(Lists.newArrayList(UNIT1_GUID, UNIT2_GUID))
+            .setProcessId(processId)
+            .setLogbookTypeProcess(LogbookTypeProcess.MASS_UPDATE);
+
+        JsonNode query = JsonHandler.getFromInputStream(getClass().getResourceAsStream("/MassUpdateUnitsProcess/query.json"));
+        given(handlerIO.getJsonFromWorkspace("query.json")).willReturn(query);
+
+        RequestResponseOK<JsonNode> responseOK = new RequestResponseOK<>();
+        JsonNode updatedUnit = JsonHandler.toJsonNode(
+            new UpdateUnit(
+                "MY_ID_YEAH",
+                StatusCode.OK,
+                UpdateUnitKey.UNIT_METADATA_NO_CHANGES,
+                "Unit updated with UNKNOWN changes.",
+                "UNKNOWN diff, there are some changes but they cannot be trace."
+            )
+        );
+        responseOK.addResult(updatedUnit);
+        given(metadataClient.updateUnitBulk(any())).willReturn(responseOK);
+
+        given(handlerIO.getWorkerId()).willReturn(processId);
+        given(handlerIO.getContainerName()).willReturn(processId);
+        given(storageClient.storeFileFromWorkspace(eq("other_strategy"), any(), any(), any())).willReturn(getStoredInfoResult());
+
+        LogbookLifecycle lfc = new LogbookLifecycle();
+        LogbookEvent event = new LogbookEvent();
+        event.setEvIdProc(processId);
+        lfc.setEvents(Collections.singletonList(event));
+        given(lfcClient.getRawUnitLifeCycleById("MY_ID_YEAH")).willReturn(JsonHandler.toJsonNode(lfc));
+
+        given(metadataClient.getUnitByIdRaw("MY_ID_YEAH")).willReturn(unitResponse);
+
+        // When
+        List<ItemStatus> itemStatuses = massUpdateUnitsProcess.executeList(params, handlerIO);
+
+        // Then
+        verify(lfcClient, never()).update(any(), any());
+        assertThat(itemStatuses.size()).isEqualTo(1);
+        assertThat(itemStatuses).extracting(ItemStatus::getGlobalStatus).containsOnly(StatusCode.OK);
     }
 
     private StoredInfoResult getStoredInfoResult() {
-        StoredInfoResult result = new StoredInfoResult();
-        result.setNbCopy(1).setCreationTime(LocalDateUtil.now().toString()).setId("id")
-            .setLastAccessTime(LocalDateUtil.now().toString()).setLastModifiedTime(LocalDateUtil.now().toString())
-            .setObjectGroupId("id").setOfferIds(Arrays.asList("id1")).setStrategy(VitamConfiguration.getDefaultStrategy());
-        return result;
+        return new StoredInfoResult()
+            .setNbCopy(1)
+            .setCreationTime(LocalDateUtil.now().toString())
+            .setId("id")
+            .setLastAccessTime(LocalDateUtil.now().toString())
+            .setLastModifiedTime(LocalDateUtil.now().toString())
+            .setObjectGroupId("id")
+            .setOfferIds(Collections.singletonList("id1"))
+            .setStrategy(VitamConfiguration.getDefaultStrategy());
     }
-
 }

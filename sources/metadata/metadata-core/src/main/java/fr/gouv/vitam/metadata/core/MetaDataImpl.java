@@ -80,7 +80,6 @@ import fr.gouv.vitam.functional.administration.client.AdminManagementClientFacto
 import fr.gouv.vitam.functional.administration.client.AdminManagementOntologyLoader;
 import fr.gouv.vitam.functional.administration.common.AccessionRegisterDetail;
 import fr.gouv.vitam.functional.administration.common.server.AccessionRegisterSymbolic;
-import fr.gouv.vitam.metadata.api.exception.MetaDataAlreadyExistException;
 import fr.gouv.vitam.metadata.api.exception.MetaDataDocumentSizeException;
 import fr.gouv.vitam.metadata.api.exception.MetaDataExecutionException;
 import fr.gouv.vitam.metadata.api.exception.MetaDataNotFoundException;
@@ -733,9 +732,8 @@ public class MetaDataImpl {
                     JsonHandler.prettyPrint(updatedDocument.getAfterUpdate()))));
 
             if (diffs.isEmpty()) {
-                LOGGER.warn("No updates found for unit update " + unitId);
-                // FIXME : Return OK for idempotency?
-                return error(unitId, KO, UNIT_METADATA_NO_CHANGES, "No updates.");
+                LOGGER.warn(String.format("UNKNOWN updates for unit update %s.", unitId));
+                return new UpdateUnit(unitId, StatusCode.OK, UNIT_METADATA_NO_CHANGES, "Unit updated with UNKNOWN changes.", "UNKNOWN diff, there are some changes but they cannot be trace.");
             }
 
             return new UpdateUnit(unitId, StatusCode.OK, UNIT_METADATA_UPDATE, "Update unit OK.", diffs);
@@ -776,8 +774,8 @@ public class MetaDataImpl {
                     JsonHandler.prettyPrint(updatedDocument.getAfterUpdate()))));
 
             if (diffs.isEmpty()) {
-                // FIXME : Return OK for idempotency?
-                return error(unitId, KO, UNIT_METADATA_NO_CHANGES, "No updates.");
+                LOGGER.warn(String.format("UNKNOWN updates for unit update %s.", unitId));
+                return new UpdateUnit(unitId, StatusCode.OK, UNIT_METADATA_NO_CHANGES, "Unit updated with UNKNOWN changes.", "UNKNOWN diff, there are some changes but they cannot be trace.");
             }
 
             return new UpdateUnit(unitId, StatusCode.OK, UNIT_METADATA_UPDATE, "Update unit rules OK.", diffs);
