@@ -30,9 +30,7 @@ import com.google.common.collect.Iterables;
 import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
-import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.StatusCode;
-import fr.gouv.vitam.common.model.processing.Step;
 import fr.gouv.vitam.common.retryable.RetryableOnException;
 import fr.gouv.vitam.common.retryable.RetryableParameters;
 import fr.gouv.vitam.common.stream.StreamUtils;
@@ -47,14 +45,12 @@ import fr.gouv.vitam.storage.engine.server.distribution.StorageDistribution;
 import fr.gouv.vitam.storage.engine.server.distribution.impl.DataContext;
 import fr.gouv.vitam.storage.engine.server.exception.RuntimeStorageException;
 import org.apache.commons.lang3.tuple.ImmutablePair;
-import org.apache.logging.log4j.util.Strings;
 
 import javax.ws.rs.core.Response;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
-import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Executor;
@@ -103,7 +99,7 @@ public class OfferSyncProcess {
     }
 
     public void synchronize(ExecutorService executor, String sourceOffer, String targetOffer, String strategyId,
-        DataCategory dataCategory, Long startOffset) throws StorageException {
+        DataCategory dataCategory, Long startOffset) {
 
         this.offerSyncStatus = new OfferSyncStatus(
             VitamThreadUtils.getVitamSession().getRequestId(), StatusCode.UNKNOWN, getCurrentDate(), null,
@@ -145,7 +141,7 @@ public class OfferSyncProcess {
                 startOffset, offset));
             this.offerSyncStatus.setStatusCode(StatusCode.OK);
 
-        } catch (Throwable e) {
+        } catch (Exception e) {
             this.offerSyncStatus.setStatusCode(StatusCode.KO);
             LOGGER.error(String.format(
                 "[OfferSync]: An exception has been thrown when synchronizing {%s} offer from {%s} source offer with {%s} offset.",
@@ -203,9 +199,9 @@ public class OfferSyncProcess {
         return new RetryableOnException<>(retryableParameters);
     }
 
-    private boolean awaitCompletion(List<CompletableFuture<Void>> completableFutures) throws StorageException {
+    private <T> boolean awaitCompletion(List<CompletableFuture<T>> completableFutures) throws StorageException {
         boolean allSucceeded = true;
-        for (CompletableFuture<Void> completableFuture : completableFutures) {
+        for (CompletableFuture<T> completableFuture : completableFutures) {
             try {
                 completableFuture.get();
             } catch (InterruptedException e) {
@@ -365,68 +361,37 @@ public class OfferSyncProcess {
 
                     }, executor)
                         .exceptionally(ex -> {
-                            LOGGER.error(ex);
+                            LOGGER.error("[Error sync file]: " + item.getContainer() + "/" + fileName, ex);
                             // Return the failed fileName (needed to be logged)
                             return item.getContainer() + "/" + fileName;
 
                         }));
 
                     if (completableFutureList.size() >= bulkSize) {
-                        List<String> failedFiles = CompletableFuture
-                            .allOf(completableFutureList.toArray(new CompletableFuture[completableFutureList.size()]))
-                            .thenApply(v -> completableFutureList
-                                .stream()
-                                .map(CompletableFuture::join)
-                                .collect(Collectors.toList())
 
-                            ).thenApplyAsync((List<String> allTreatedFiles) -> allTreatedFiles
-                                .stream()
-                                // Keep only failed files
-                                .filter(Strings::isNotEmpty)
-                                .collect(Collectors.toList())
-                            ).get();
+                        boolean allSucceeded = awaitCompletion(completableFutureList);
 
-                        completableFutureList.clear();
-
-                        if (!failedFiles.isEmpty()) {
+                        if (!allSucceeded) {
                             throw new StorageException(
-                                "Error(s) occurred during offer synchronization " + sourceOffer + " > " + targetOffer +
-                                    " for  files " + failedFiles);
+                                "Error(s) occurred during offer synchronization " + sourceOffer + " > " + targetOffer);
                         }
                     }
 
                 }
             }
 
-            if (completableFutureList.size() > 0) {
+            if (!completableFutureList.isEmpty()) {
+                boolean allSucceeded = awaitCompletion(completableFutureList);
 
-                List<String> failedFiles = CompletableFuture
-                    .allOf(completableFutureList.toArray(new CompletableFuture[completableFutureList.size()]))
-                    .thenApply(v -> completableFutureList
-                        .stream()
-                        .map(CompletableFuture::join)
-                        .collect(Collectors.toList())
-
-                    ).thenApplyAsync((List<String> allTreatedFiles) -> allTreatedFiles
-                        .stream()
-                        // Keep only failed files
-                        .filter(Strings::isNotEmpty)
-                        .collect(Collectors.toList())
-                    ).get();
-
-                completableFutureList.clear();
-
-                if (!failedFiles.isEmpty()) {
+                if (!allSucceeded) {
                     throw new StorageException(
-                        "Error(s) occurred during offer synchronization " + sourceOffer + " > " + targetOffer +
-                            " for  files " + failedFiles);
+                        "Error(s) occurred during offer synchronization " + sourceOffer + " > " + targetOffer);
                 }
-
             }
 
             this.offerSyncStatus.setStatusCode(StatusCode.OK);
 
-        } catch (Throwable e) {
+        } catch (Exception e) {
             this.offerSyncStatus.setStatusCode(StatusCode.KO);
             LOGGER.error(String.format(
                 "[OfferSync]: An exception has been thrown when synchronizing {%s} offer from {%s} source offer :",
@@ -434,19 +399,5 @@ public class OfferSyncProcess {
         } finally {
             this.offerSyncStatus.setEndDate(getCurrentDate());
         }
-    }
-
-    private CompletableFuture<Boolean> getItemStatusCompletableFuture(Step step, Set<ItemStatus> cancelled,
-        Set<ItemStatus> paused, CompletableFuture<List<Boolean>> sequence) {
-
-        return sequence
-            .thenApplyAsync((List<Boolean> is) -> is.stream()
-                .reduce(Boolean::logicalAnd).get());
-
-    }
-
-    private static <T> CompletableFuture<List<T>> sequence(List<CompletableFuture<T>> futures) {
-        return CompletableFuture.allOf(futures.toArray(new CompletableFuture[futures.size()]))
-            .thenApply(v -> futures.stream().map(CompletableFuture::join).collect(Collectors.<T>toList()));
     }
 }

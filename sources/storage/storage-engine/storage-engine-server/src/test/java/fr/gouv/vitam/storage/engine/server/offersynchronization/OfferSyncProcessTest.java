@@ -9,7 +9,6 @@ import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
 import fr.gouv.vitam.common.thread.VitamThreadFactory;
 import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
-import fr.gouv.vitam.logbook.common.parameters.LogbookOperationParameters;
 import fr.gouv.vitam.storage.engine.common.exception.StorageException;
 import fr.gouv.vitam.storage.engine.common.exception.StorageNotFoundException;
 import fr.gouv.vitam.storage.engine.common.model.DataCategory;
@@ -27,13 +26,11 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
-import org.mockito.internal.verification.Times;
 import org.mockito.junit.MockitoJUnit;
 import org.mockito.junit.MockitoRule;
 
 import javax.ws.rs.core.Response;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -365,8 +362,57 @@ public class OfferSyncProcessTest {
 
     @Test
     @RunWithCustomExecutor
-    public void partial_synchronize_delete_in_target_as_empty_source_offer() throws Exception {
+    public void partial_synchronize_delete_in_target_files_not_in_source_offer() throws Exception {
+        // Given
+        givenDataSetInSourceOfferPart1();
+        givenDataSetInTargetOffer();
 
+        assertThat(targetDataFiles).hasSize(1);
+        assertThat(targetDataFiles).containsKeys("file11");
+
+
+        OfferSyncProcess instance = new OfferSyncProcess(restoreOfferBackupService,
+            distribution, 100, 1, 1, 1);
+
+        // When
+        List<OfferPartialSyncItem> items = new ArrayList<>();
+        OfferPartialSyncItem offerPartialSyncItem = new OfferPartialSyncItem();
+        offerPartialSyncItem.setContainer(DATA_CATEGORY.getCollectionName());
+        offerPartialSyncItem.setTenantId(TENANT_ID);
+        offerPartialSyncItem.setFilenames(Lists.newArrayList("file11", "file1", "file2"));
+
+        items.add(offerPartialSyncItem);
+        instance
+            .synchronize(executorService, SOURCE, TARGET, VitamConfiguration.getDefaultStrategy(), items);
+
+        // Then
+        assertThat(instance.isRunning()).isFalse();
+        assertThat(instance.getOfferSyncStatus().getStatusCode()).isEqualTo(StatusCode.OK);
+        assertThat(instance.getOfferSyncStatus().getStartDate()).isNotNull();
+        assertThat(instance.getOfferSyncStatus().getEndDate()).isNotNull();
+        assertThat(instance.getOfferSyncStatus().getSourceOffer()).isEqualTo(SOURCE);
+        assertThat(instance.getOfferSyncStatus().getTargetOffer()).isEqualTo(TARGET);
+        assertThat(instance.getOfferSyncStatus().getRequestId())
+            .isEqualTo(VitamThreadUtils.getVitamSession().getRequestId());
+
+        assertThat(targetDataFiles).containsKeys("file1", "file2");
+
+        ArgumentCaptor<DataContext> contextArgumentCaptor = forClass(DataContext.class);
+        ArgumentCaptor<String> strategyCaptor = forClass(String.class);
+        ArgumentCaptor<List<String>> offersCaptor = forClass(List.class);
+        verify(distribution, times(1))
+            .deleteObjectInOffers(strategyCaptor.capture(), contextArgumentCaptor.capture(), offersCaptor.capture());
+        assertThat(contextArgumentCaptor.getValue().getObjectId()).isEqualTo("file11");
+
+
+        ArgumentCaptor<String> fileName = forClass(String.class);
+
+        verify(distribution, times(2))
+            .storeDataInOffers(forClass(String.class).capture(), fileName.capture(),
+                forClass(DataCategory.class).capture(), forClass(String.class).capture(),
+                forClass(List.class).capture(), forClass(Response.class).capture());
+
+        assertThat(fileName.getAllValues()).contains("file1", "file2");
     }
 
     private void givenDataSetInSourceOffer() {
@@ -377,6 +423,10 @@ public class OfferSyncProcessTest {
     private void givenDataSetInSourceOfferPart1() {
         givenFileWriteOrder("file1", 1L, "data1".getBytes());
         givenFileWriteOrder("file2", 2L, "data2".getBytes());
+    }
+
+    private void givenDataSetInTargetOffer() {
+        targetDataFiles.put("file11", "data11".getBytes());
     }
 
     private void givenDataSetInSourceOfferPart2() {
