@@ -124,7 +124,7 @@ public class OfferSyncService implements AutoCloseable {
         return true;
     }
 
-    private void runSynchronizationAsync(String sourceOffer, String targetOffer, String strategyId,
+    void runSynchronizationAsync(String sourceOffer, String targetOffer, String strategyId,
         List<OfferPartialSyncItem> items, OfferSyncProcess offerSyncProcess) {
 
         int tenantId = VitamThreadUtils.getVitamSession().getTenantId();

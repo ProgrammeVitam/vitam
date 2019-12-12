@@ -1,4 +1,4 @@
-/*******************************************************************************
+/*
  * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2019)
  *
  * contact.vitam@culture.gouv.fr
@@ -23,7 +23,7 @@
  *
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
- *******************************************************************************/
+ */
 package fr.gouv.vitam.storage.engine.client;
 
 import com.fasterxml.jackson.databind.JsonNode;
@@ -36,7 +36,10 @@ import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.common.model.RequestResponse;
+import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.StatusCode;
+import fr.gouv.vitam.common.model.administration.ActivationStatus;
 import fr.gouv.vitam.common.mongo.MongoRule;
 import fr.gouv.vitam.common.stream.StreamUtils;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
@@ -44,19 +47,30 @@ import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
 import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.common.tmp.TempFolderRule;
+import fr.gouv.vitam.storage.engine.client.exception.StorageAlreadyExistsClientException;
 import fr.gouv.vitam.storage.engine.client.exception.StorageNotFoundClientException;
 import fr.gouv.vitam.storage.engine.client.exception.StorageServerClientException;
+import fr.gouv.vitam.storage.engine.common.collection.OfferCollections;
 import fr.gouv.vitam.storage.engine.common.model.DataCategory;
+import fr.gouv.vitam.storage.engine.common.model.OfferSequence;
+import fr.gouv.vitam.storage.engine.common.model.request.BulkObjectStoreRequest;
 import fr.gouv.vitam.storage.engine.common.model.request.ObjectDescription;
+import fr.gouv.vitam.storage.engine.common.model.request.OfferPartialSyncItem;
+import fr.gouv.vitam.storage.engine.common.model.request.OfferPartialSyncRequest;
 import fr.gouv.vitam.storage.engine.common.model.request.OfferSyncRequest;
+import fr.gouv.vitam.storage.engine.common.model.response.BulkObjectStoreResponse;
+import fr.gouv.vitam.storage.engine.common.referential.model.StorageStrategy;
 import fr.gouv.vitam.storage.engine.server.offersynchronization.OfferSyncStatus;
-import fr.gouv.vitam.storage.offers.common.database.OfferCollections;
+import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageAlreadyExistException;
+import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
 import fr.gouv.vitam.workspace.client.WorkspaceClient;
 import okhttp3.Credentials;
 import okhttp3.OkHttpClient;
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.commons.lang3.time.StopWatch;
 import org.assertj.core.api.Assertions;
+import org.bson.Document;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
@@ -78,6 +92,7 @@ import retrofit2.http.POST;
 import java.io.BufferedWriter;
 import java.io.ByteArrayInputStream;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
@@ -85,8 +100,11 @@ import java.io.Writer;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Random;
+import java.util.concurrent.ThreadLocalRandom;
 import java.util.concurrent.TimeUnit;
 
 import static fr.gouv.vitam.common.GlobalDataRest.X_REQUEST_ID;
@@ -95,6 +113,7 @@ import static fr.gouv.vitam.storage.engine.common.model.DataCategory.UNIT;
 import static org.apache.commons.io.FileUtils.cleanDirectory;
 import static org.apache.commons.io.FileUtils.deleteDirectory;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.assertj.core.api.Assertions.fail;
 import static org.assertj.core.util.Lists.newArrayList;
 
@@ -117,10 +136,11 @@ public class StorageTwoOffersIT {
     static final String WORKSPACE_URL = "http://localhost:" + PORT_SERVICE_WORKSPACE;
 
     private static final int TENANT_0 = 0;
+    private static final int TENANT_1 = 0;
     private static final String DIGEST = "digest";
     private static final String SECOND_OFFER_ID = "default2";
     private static final String OFFER_ID = "default";
-    private static final String STRATEGY_ID = "default";
+    private static final String STRATEGY_ID = VitamConfiguration.getDefaultStrategy();
     private static final String DB_OFFER1 = "vitamoffer1";
     private static final String DB_OFFER2 = "vitamoffer2";
 
@@ -226,8 +246,32 @@ public class StorageTwoOffersIT {
 
     private void storeObjectInOffers(String objectId, DataCategory dataCategory, byte[] data,
         String... offerIds) throws InvalidParseOperationException, StorageServerClientException {
-        storageClient.create(objectId, dataCategory, new ByteArrayInputStream(data), (long) data.length,
-            Arrays.asList(offerIds));
+        storageClient
+            .create(VitamConfiguration.getDefaultStrategy(), objectId, dataCategory, new ByteArrayInputStream(data),
+                (long) data.length,
+                Arrays.asList(offerIds));
+    }
+
+
+    @Test
+    @RunWithCustomExecutor
+    public void checkStrategyConfigutation() throws Exception {
+        VitamThreadUtils.getVitamSession().setTenantId(TENANT_0);
+        RequestResponse<StorageStrategy> response = storageClient.getStorageStrategies();
+        assertThat(response.isOk());
+        assertThat(((RequestResponseOK<StorageStrategy>) response).getFirstResult().getOffers().size()).isEqualTo(2);
+        assertThat(((RequestResponseOK<StorageStrategy>) response).getFirstResult().getOffers().get(0).isReferent())
+            .isTrue();
+        assertThat(((RequestResponseOK<StorageStrategy>) response).getFirstResult().getOffers().get(0).getId())
+            .isEqualTo("default");
+        assertThat(((RequestResponseOK<StorageStrategy>) response).getFirstResult().getOffers().get(0).getStatus())
+            .isEqualTo(ActivationStatus.ACTIVE);
+        assertThat(((RequestResponseOK<StorageStrategy>) response).getFirstResult().getOffers().get(1).isReferent())
+            .isFalse();
+        assertThat(((RequestResponseOK<StorageStrategy>) response).getFirstResult().getOffers().get(1).getId())
+            .isEqualTo("default2");
+        assertThat(((RequestResponseOK<StorageStrategy>) response).getFirstResult().getOffers().get(1).getStatus())
+            .isEqualTo(ActivationStatus.ACTIVE);
     }
 
     @Test
@@ -268,7 +312,7 @@ public class StorageTwoOffersIT {
         assertThat(information.get(OFFER_ID).get(DIGEST)).isNotEqualTo(information.get(SECOND_OFFER_ID).get(DIGEST));
 
         // correct the offer 2
-        storageClient.copyObjectToOneOfferAnother(id, DataCategory.OBJECT, OFFER_ID, SECOND_OFFER_ID);
+        storageClient.copyObjectToOneOfferAnother(id, DataCategory.OBJECT, OFFER_ID, SECOND_OFFER_ID, STRATEGY_ID);
 
         // verify That the copy has been correctly done
         information =
@@ -280,8 +324,9 @@ public class StorageTwoOffersIT {
     // write directly in file of second offer
     private void alterFileInSecondOffer(String id) throws IOException {
         String path = SECOND_FOLDER + File.separator + "0_object" + File.separator + id;
-        Writer writer = new BufferedWriter(new FileWriter(path));
-        writer.write(id + "test");
+        try (Writer writer = new BufferedWriter(new FileWriter(path))) {
+            writer.write(id + "test");
+        }
     }
 
     @Test
@@ -308,7 +353,6 @@ public class StorageTwoOffersIT {
 
         String digestObject1SecondOffer = informationObject1.get(SECOND_OFFER_ID).get(DIGEST).textValue();
         String digestObject2SecondOffer = informationObject2.get(SECOND_OFFER_ID).get(DIGEST).textValue();
-
 
         //WHEN
         //delete object1 in second offer
@@ -483,7 +527,7 @@ public class StorageTwoOffersIT {
         Response<Void> offerSyncResponseItemCall = startSynchronization(null);
 
         // Then
-        verifyOfferSyncStatus(offerSyncResponseItemCall, null, NB_ACTIONS);
+        verifyOfferSyncStatus(offerSyncResponseItemCall, true, null, NB_ACTIONS);
 
 
         for (int i = 0; i < cpt; i++) {
@@ -494,6 +538,114 @@ public class StorageTwoOffersIT {
             byte[] expectedData = ("Data" + i).getBytes(StandardCharsets.UTF_8);
 
             checkFileExistenceAndContent(filename, OBJECT, exists, expectedData, SECOND_OFFER_ID);
+        }
+    }
+
+
+    @Test
+    @RunWithCustomExecutor
+    public void testPartialSynchronizationOneOfferFromAnother() throws Exception {
+        // Given
+        OfferPartialSyncRequest offerPartialSyncRequest = new OfferPartialSyncRequest()
+            .setSourceOffer(OFFER_ID)
+            .setTargetOffer(SECOND_OFFER_ID)
+            .setStrategyId(STRATEGY_ID)
+            .setItemsToSynchronize(newArrayList());
+
+        // Write 5 file in source offer tenant 0
+        OfferPartialSyncItem offerPartialSyncItem =
+            new OfferPartialSyncItem()
+                .setContainer(OBJECT.getCollectionName())
+                .setFilenames(newArrayList()).setTenantId(TENANT_0);
+        VitamThreadUtils.getVitamSession().setTenantId(TENANT_0);
+        for (int i = 0; i < 5; i++) {
+            // Save in offer source
+            String filename = "ObjectId" + i;
+            byte[] data = ("Data" + i).getBytes(StandardCharsets.UTF_8);
+            storeObjectInOffers(filename, OBJECT, data, OFFER_ID);
+            offerPartialSyncItem.getFilenames().add(filename);
+        }
+        offerPartialSyncRequest.getItemsToSynchronize().add(offerPartialSyncItem);
+
+
+        // Write 5 file in source offer tenant 1
+        offerPartialSyncItem =
+            new OfferPartialSyncItem().setContainer(OBJECT.getCollectionName()).setFilenames(newArrayList()).setTenantId(TENANT_1);
+        VitamThreadUtils.getVitamSession().setTenantId(TENANT_1);
+        for (int i = 5; i < 10; i++) {
+            // Save in offer source
+            String filename = "ObjectId" + i;
+            byte[] data = ("Data" + i).getBytes(StandardCharsets.UTF_8);
+            storeObjectInOffers(filename, OBJECT, data, OFFER_ID);
+            offerPartialSyncItem.getFilenames().add(filename);
+        }
+        offerPartialSyncRequest.getItemsToSynchronize().add(offerPartialSyncItem);
+
+
+        // Write 5 file in target offer tenant 0
+        offerPartialSyncItem =
+            new OfferPartialSyncItem().setContainer(OBJECT.getCollectionName()).setFilenames(newArrayList()).setTenantId(TENANT_0);
+        VitamThreadUtils.getVitamSession().setTenantId(TENANT_0);
+        for (int i = 10; i < 15; i++) {
+            // Save in offer source
+            String filename = "ObjectId" + i;
+            byte[] data = ("Data" + i).getBytes(StandardCharsets.UTF_8);
+            storeObjectInOffers(filename, OBJECT, data, SECOND_OFFER_ID);
+            offerPartialSyncItem.getFilenames().add(filename);
+        }
+        offerPartialSyncRequest.getItemsToSynchronize().add(offerPartialSyncItem);
+
+
+        // Write 5 file in target offer tenant 1
+        offerPartialSyncItem =
+            new OfferPartialSyncItem().setContainer(OBJECT.getCollectionName()).setFilenames(newArrayList()).setTenantId(TENANT_1);
+        VitamThreadUtils.getVitamSession().setTenantId(TENANT_1);
+        for (int i = 15; i < 20; i++) {
+            // Save in offer source
+            String filename = "ObjectId" + i;
+            byte[] data = ("Data" + i).getBytes(StandardCharsets.UTF_8);
+            storeObjectInOffers(filename, OBJECT, data, SECOND_OFFER_ID);
+            offerPartialSyncItem.getFilenames().add(filename);
+        }
+        offerPartialSyncRequest.getItemsToSynchronize().add(offerPartialSyncItem);
+
+
+        // Write 5 file in source and target offer tenant 0
+        offerPartialSyncItem =
+            new OfferPartialSyncItem().setContainer(OBJECT.getCollectionName()).setFilenames(newArrayList()).setTenantId(TENANT_0);
+        VitamThreadUtils.getVitamSession().setTenantId(TENANT_0);
+        for (int i = 20; i < 25; i++) {
+            // Save in offer source
+            String filename = "ObjectId" + i;
+            byte[] data = ("Data" + i).getBytes(StandardCharsets.UTF_8);
+            storeObjectInOffers(filename, OBJECT, data, OFFER_ID, SECOND_OFFER_ID);
+            offerPartialSyncItem.getFilenames().add(filename);
+        }
+        offerPartialSyncRequest.getItemsToSynchronize().add(offerPartialSyncItem);
+
+        // When
+        Response<Void> offerSyncResponseItemCall =
+            offerSyncAdminResource.startSynchronization(offerPartialSyncRequest, getBasicAuthnToken()).execute();
+        // Then
+        verifyOfferSyncStatus(offerSyncResponseItemCall, false, null, 25);
+
+
+        for (int i = 0; i < 25; i++) {
+
+            String filename = "ObjectId" + i;
+            byte[] expectedData = ("Data" + i).getBytes(StandardCharsets.UTF_8);
+            if (i >= 5 && i < 10 || i >= 15 && i < 20) {
+                VitamThreadUtils.getVitamSession().setTenantId(TENANT_1);
+            } else {
+                VitamThreadUtils.getVitamSession().setTenantId(TENANT_0);
+            }
+
+            // files exists only in target offer. synchro from source offer should remove them as they does not exists in source offer
+            if (i >= 10 && i < 20) {
+                checkFileExistenceAndContent(filename, OBJECT, false, expectedData, SECOND_OFFER_ID);
+            } else {
+                checkFileExistenceAndContent(filename, OBJECT, true, expectedData, SECOND_OFFER_ID);
+            }
         }
     }
 
@@ -514,7 +666,7 @@ public class StorageTwoOffersIT {
             Response<Void> offerSyncResponseItemCall = startSynchronization(null);
 
             // Then
-            verifyOfferSyncStatus(offerSyncResponseItemCall, null, 4);
+            verifyOfferSyncStatus(offerSyncResponseItemCall, true, null, 4);
 
 
             checkFileExistenceAndContent("file1", OBJECT, true, "data1".getBytes(), SECOND_OFFER_ID);
@@ -539,7 +691,7 @@ public class StorageTwoOffersIT {
         Response<Void> offerSyncResponseItemCall = startSynchronization(null);
 
         // Then
-        verifyOfferSyncStatus(offerSyncResponseItemCall, null, 4L);
+        verifyOfferSyncStatus(offerSyncResponseItemCall, true, null, 4L);
         checkFileExistenceAndContent("file1", OBJECT, true, "data1".getBytes(), SECOND_OFFER_ID);
         checkFileExistenceAndContent("file2", OBJECT, false, null, SECOND_OFFER_ID);
         checkFileExistenceAndContent("file3", OBJECT, true, "data3".getBytes(), SECOND_OFFER_ID);
@@ -552,7 +704,7 @@ public class StorageTwoOffersIT {
         Response<Void> offerSyncResponseItemCall2 = startSynchronization(4L);
 
         // Then
-        verifyOfferSyncStatus(offerSyncResponseItemCall2, 4L, 6L);
+        verifyOfferSyncStatus(offerSyncResponseItemCall2, true, 4L, 6L);
         checkFileExistenceAndContent("file1", OBJECT, false, null, SECOND_OFFER_ID);
         checkFileExistenceAndContent("file2", OBJECT, false, null, SECOND_OFFER_ID);
         checkFileExistenceAndContent("file3", OBJECT, true, "data3".getBytes(), SECOND_OFFER_ID);
@@ -565,11 +717,13 @@ public class StorageTwoOffersIT {
                 .setTargetOffer(SECOND_OFFER_ID)
                 .setOffset(offset)
                 .setContainer(DataCategory.OBJECT.getCollectionName())
+                .setStrategyId(STRATEGY_ID)
                 .setTenantId(TENANT_0),
             getBasicAuthnToken()).execute();
     }
 
-    private void verifyOfferSyncStatus(Response<Void> offerSyncResponseItemCall, Long startOffset, long expectedOffset)
+    private void verifyOfferSyncStatus(Response<Void> offerSyncResponseItemCall, boolean checkOffsetAndContainer,
+        Long startOffset, long expectedOffset)
         throws IOException {
         assertThat(offerSyncResponseItemCall.code()).isEqualTo(200);
 
@@ -584,11 +738,14 @@ public class StorageTwoOffersIT {
         assertThat(offerSyncStatus.getEndDate()).isNotNull();
         assertThat(offerSyncStatus.getSourceOffer()).isEqualTo(OFFER_ID);
         assertThat(offerSyncStatus.getTargetOffer()).isEqualTo(SECOND_OFFER_ID);
-        assertThat(offerSyncStatus.getContainer()).isEqualTo(DataCategory.OBJECT.getCollectionName());
         assertThat(offerSyncStatus.getRequestId())
             .isEqualTo(offerSyncResponseItemCall.headers().get(X_REQUEST_ID));
-        assertThat(offerSyncStatus.getStartOffset()).isEqualTo(startOffset);
-        assertThat(offerSyncStatus.getCurrentOffset()).isEqualTo(expectedOffset);
+
+        if (checkOffsetAndContainer) {
+            assertThat(offerSyncStatus.getContainer()).isEqualTo(DataCategory.OBJECT.getCollectionName());
+            assertThat(offerSyncStatus.getStartOffset()).isEqualTo(startOffset);
+            assertThat(offerSyncStatus.getCurrentOffset()).isEqualTo(expectedOffset);
+        }
     }
 
     private void deleteObjectFromOffers(String filename, DataCategory dataCategory,
@@ -629,6 +786,261 @@ public class StorageTwoOffersIT {
         }
     }
 
+    @Test
+    @RunWithCustomExecutor
+    public void testBulkStoreFilesFromWorkspaceOK() throws Exception {
+        VitamThreadUtils.getVitamSession().setTenantId(TENANT_0);
+
+        // Given
+        int nbFiles = 10;
+        String workspaceContainer = GUIDFactory.newGUID().toString();
+        List<String> workspaceUris = new ArrayList<>();
+        List<String> objectIds = new ArrayList<>();
+        for (int i = 0; i < nbFiles; i++) {
+            workspaceUris.add(GUIDFactory.newGUID().toString());
+            objectIds.add(GUIDFactory.newGUID().toString());
+        }
+
+        List<File> files = createTempFileSet(nbFiles);
+
+        writeFilesToWorkspace(workspaceContainer, workspaceUris, files);
+
+        // When
+        BulkObjectStoreResponse bulkObjectStoreResponse = storageClient.bulkStoreFilesFromWorkspace(
+            STRATEGY_ID, new BulkObjectStoreRequest(workspaceContainer, workspaceUris, OBJECT, objectIds));
+
+        // Then
+        assertThat(bulkObjectStoreResponse.getDigestType()).isEqualTo(DigestType.SHA512.getName());
+        assertThat(bulkObjectStoreResponse.getOfferIds()).containsExactlyInAnyOrder(OFFER_ID, SECOND_OFFER_ID);
+
+        Map<String, String> fileDigests = new HashMap<>();
+        for (int i = 0; i < nbFiles; i++) {
+            fileDigests.put(objectIds.get(i), new Digest(DigestType.SHA512).update(files.get(i)).digestHex());
+        }
+        assertThat(bulkObjectStoreResponse.getObjectDigests()).isEqualTo(fileDigests);
+
+        for (int i = 0; i < nbFiles; i++) {
+            checkFileExistenceAndContent(objectIds.get(i), DataCategory.OBJECT, true,
+                FileUtils.readFileToByteArray(files.get(i)), OFFER_ID, SECOND_OFFER_ID);
+        }
+
+        checkOfferLog(mongoRuleOffer1, nbFiles);
+        checkOfferLog(mongoRuleOffer2, nbFiles);
+        checkOfferSequence(mongoRuleOffer1, nbFiles);
+        checkOfferSequence(mongoRuleOffer2, nbFiles);
+    }
+
+    @Test
+    @RunWithCustomExecutor
+    public void testBulkStoreFilesFromWorkspaceNotFound() throws Exception {
+        VitamThreadUtils.getVitamSession().setTenantId(TENANT_0);
+
+        // Given
+        int nbFiles = 10;
+        String workspaceContainer = GUIDFactory.newGUID().toString();
+        List<String> workspaceUris = new ArrayList<>();
+        List<String> objectIds = new ArrayList<>();
+        for (int i = 0; i < nbFiles; i++) {
+            workspaceUris.add(GUIDFactory.newGUID().toString());
+            objectIds.add(GUIDFactory.newGUID().toString());
+        }
+
+        List<File> files = createTempFileSet(nbFiles);
+
+        writeFilesToWorkspace(workspaceContainer, workspaceUris, files);
+
+        // Unknown uri at index 5
+        workspaceUris.set(5, GUIDFactory.newGUID().toString());
+
+        // When / Then
+        assertThatThrownBy(() -> storageClient.bulkStoreFilesFromWorkspace(
+            STRATEGY_ID, new BulkObjectStoreRequest(workspaceContainer, workspaceUris, OBJECT, objectIds))
+        ).isInstanceOf(StorageServerClientException.class);
+
+        // Check files have NOT been stored in offers
+        for (int i = 0; i < nbFiles; i++) {
+            checkFileExistenceAndContent(objectIds.get(i), DataCategory.OBJECT, false,
+                FileUtils.readFileToByteArray(files.get(i)), OFFER_ID, SECOND_OFFER_ID);
+        }
+
+        checkOfferLog(mongoRuleOffer1, 0);
+        checkOfferLog(mongoRuleOffer2, 0);
+        checkOfferSequence(mongoRuleOffer1, 0);
+        checkOfferSequence(mongoRuleOffer2, 0);
+    }
+
+    @Test
+    @RunWithCustomExecutor
+    public void testBulkStoreFilesFromWorkspaceIdempotency() throws Exception {
+        VitamThreadUtils.getVitamSession().setTenantId(TENANT_0);
+
+        // Given
+        int nbFiles = 10;
+        String workspaceContainer = GUIDFactory.newGUID().toString();
+        List<String> workspaceUris = new ArrayList<>();
+        List<String> objectIds = new ArrayList<>();
+        for (int i = 0; i < nbFiles; i++) {
+            workspaceUris.add(GUIDFactory.newGUID().toString());
+            objectIds.add(GUIDFactory.newGUID().toString());
+        }
+
+        List<File> files = createTempFileSet(nbFiles);
+
+        writeFilesToWorkspace(workspaceContainer, workspaceUris, files);
+
+        // When
+        BulkObjectStoreResponse bulkObjectStoreResponse1 = storageClient.bulkStoreFilesFromWorkspace(
+            STRATEGY_ID, new BulkObjectStoreRequest(workspaceContainer, workspaceUris, OBJECT, objectIds));
+
+        BulkObjectStoreResponse bulkObjectStoreResponse2 = storageClient.bulkStoreFilesFromWorkspace(
+            STRATEGY_ID, new BulkObjectStoreRequest(workspaceContainer, workspaceUris, OBJECT, objectIds));
+
+        // Then
+        assertThat(bulkObjectStoreResponse1).isEqualToComparingFieldByFieldRecursively(
+            bulkObjectStoreResponse2);
+
+        for (int i = 0; i < nbFiles; i++) {
+            checkFileExistenceAndContent(objectIds.get(i), DataCategory.OBJECT, true,
+                FileUtils.readFileToByteArray(files.get(i)), OFFER_ID, SECOND_OFFER_ID);
+        }
+
+        checkOfferLog(mongoRuleOffer1, nbFiles * 2);
+        checkOfferLog(mongoRuleOffer2, nbFiles * 2);
+        checkOfferSequence(mongoRuleOffer1, nbFiles * 2);
+        checkOfferSequence(mongoRuleOffer2, nbFiles * 2);
+    }
+
+    @Test
+    @RunWithCustomExecutor
+    public void testBulkStoreFilesFromWorkspaceOverrideRewritableContainer() throws Exception {
+        VitamThreadUtils.getVitamSession().setTenantId(TENANT_0);
+
+        // Given
+        int nbFiles = 10;
+        String workspaceContainer = GUIDFactory.newGUID().toString();
+        List<String> workspaceUris1 = new ArrayList<>();
+        List<String> workspaceUris2 = new ArrayList<>();
+        List<String> objectIds = new ArrayList<>();
+        for (int i = 0; i < nbFiles; i++) {
+            workspaceUris1.add(GUIDFactory.newGUID().toString());
+            workspaceUris2.add(GUIDFactory.newGUID().toString());
+            objectIds.add(GUIDFactory.newGUID().toString());
+        }
+
+        List<File> files1 = createTempFileSet(nbFiles);
+        List<File> files2 = createTempFileSet(nbFiles);
+
+        writeFilesToWorkspace(workspaceContainer, workspaceUris1, files1);
+        writeFilesToWorkspace(workspaceContainer, workspaceUris2, files2);
+
+        storageClient.bulkStoreFilesFromWorkspace(
+            STRATEGY_ID, new BulkObjectStoreRequest(workspaceContainer, workspaceUris1, UNIT, objectIds));
+
+        // When
+        BulkObjectStoreResponse bulkObjectStoreResponse2 = storageClient.bulkStoreFilesFromWorkspace(
+            STRATEGY_ID, new BulkObjectStoreRequest(workspaceContainer, workspaceUris2, UNIT, objectIds));
+
+        // Then
+        assertThat(bulkObjectStoreResponse2.getDigestType()).isEqualTo(DigestType.SHA512.getName());
+        assertThat(bulkObjectStoreResponse2.getOfferIds()).containsExactlyInAnyOrder(OFFER_ID, SECOND_OFFER_ID);
+
+        Map<String, String> fileDigests = new HashMap<>();
+        for (int i = 0; i < nbFiles; i++) {
+            fileDigests.put(objectIds.get(i), new Digest(DigestType.SHA512).update(files2.get(i)).digestHex());
+        }
+        assertThat(bulkObjectStoreResponse2.getObjectDigests()).isEqualTo(fileDigests);
+
+        for (int i = 0; i < nbFiles; i++) {
+            checkFileExistenceAndContent(objectIds.get(i), DataCategory.UNIT, true,
+                FileUtils.readFileToByteArray(files2.get(i)), OFFER_ID, SECOND_OFFER_ID);
+        }
+
+        checkOfferLog(mongoRuleOffer1, nbFiles * 2);
+        checkOfferLog(mongoRuleOffer2, nbFiles * 2);
+        checkOfferSequence(mongoRuleOffer1, nbFiles * 2);
+        checkOfferSequence(mongoRuleOffer2, nbFiles * 2);
+    }
+
+    @Test
+    @RunWithCustomExecutor
+    public void testBulkStoreFilesFromWorkspaceKoWhenTryOverrideNonRewritableContainer() throws Exception {
+        VitamThreadUtils.getVitamSession().setTenantId(TENANT_0);
+
+        // Given
+        int nbFiles = 10;
+        String workspaceContainer = GUIDFactory.newGUID().toString();
+        List<String> workspaceUris1 = new ArrayList<>();
+        List<String> workspaceUris2 = new ArrayList<>();
+        List<String> objectIds = new ArrayList<>();
+        for (int i = 0; i < nbFiles; i++) {
+            workspaceUris1.add(GUIDFactory.newGUID().toString());
+            workspaceUris2.add(GUIDFactory.newGUID().toString());
+            objectIds.add(GUIDFactory.newGUID().toString());
+        }
+
+        List<File> files1 = createTempFileSet(nbFiles);
+        List<File> files2 = createTempFileSet(nbFiles);
+
+        writeFilesToWorkspace(workspaceContainer, workspaceUris1, files1);
+
+        storageClient.bulkStoreFilesFromWorkspace(
+            STRATEGY_ID, new BulkObjectStoreRequest(workspaceContainer, workspaceUris1, OBJECT, objectIds));
+
+        writeFilesToWorkspace(workspaceContainer, workspaceUris2, files2);
+
+        // When / Then
+        assertThatThrownBy(() -> storageClient.bulkStoreFilesFromWorkspace(
+            STRATEGY_ID, new BulkObjectStoreRequest(workspaceContainer, workspaceUris2, OBJECT, objectIds))
+        ).isInstanceOf(StorageAlreadyExistsClientException.class);
+        for (int i = 0; i < nbFiles; i++) {
+            checkFileExistenceAndContent(objectIds.get(i), DataCategory.OBJECT, true,
+                FileUtils.readFileToByteArray(files1.get(i)), OFFER_ID, SECOND_OFFER_ID);
+        }
+
+        checkOfferLog(mongoRuleOffer1, nbFiles);
+        checkOfferLog(mongoRuleOffer2, nbFiles);
+        checkOfferSequence(mongoRuleOffer1, nbFiles);
+        checkOfferSequence(mongoRuleOffer2, nbFiles);
+    }
+
+    private void writeFilesToWorkspace(String workspaceContainer, List<String> workspaceUris,
+        List<File> files)
+        throws ContentAddressableStorageAlreadyExistException, ContentAddressableStorageServerException, IOException {
+        // Write to workspace
+        if (!workspaceClient.isExistingContainer(workspaceContainer)) {
+            workspaceClient.createContainer(workspaceContainer);
+        }
+        for (int i = 0; i < files.size(); i++) {
+            try (InputStream inputStream = new FileInputStream(files.get(i))) {
+                workspaceClient.putObject(workspaceContainer, workspaceUris.get(i), inputStream);
+            }
+        }
+    }
+
+    private List<File> createTempFileSet(int nbFiles) throws IOException {
+        // Create test files
+        List<File> files = new ArrayList<>();
+        for (int i = 0; i < nbFiles; i++) {
+            File file = tempFolder.newFile();
+            FileUtils.writeStringToFile(file,
+                RandomStringUtils.random(ThreadLocalRandom.current().nextInt(100, 10000)),
+                StandardCharsets.US_ASCII);
+            files.add(file);
+        }
+        return files;
+    }
+
+    private void checkOfferLog(MongoRule mongoRuleOffer1, int size) {
+        assertThat(mongoRuleOffer1.getMongoCollection(OfferCollections.OFFER_LOG.getName()).countDocuments())
+            .isEqualTo(size);
+    }
+
+    private void checkOfferSequence(MongoRule mongoRule, int size) {
+        Document seqDoc = mongoRule.getMongoCollection(OfferCollections.OFFER_SEQUENCE.getName()).find().first();
+        long offerSeq = seqDoc == null ? 0L : ((Number) seqDoc.get(OfferSequence.COUNTER_FIELD)).longValue();
+        assertThat(offerSeq).isEqualTo(size);
+    }
+
     @AfterClass
     public static void afterClass() throws Exception {
 
@@ -654,7 +1066,17 @@ public class StorageTwoOffersIT {
         return Credentials.basic(BASIC_AUTHN_USER, BASIC_AUTHN_PWD);
     }
 
+
     public interface OfferSyncAdminResource {
+
+        @POST("/storage/v1/offerPartialSync")
+        @Headers({
+            "Accept: application/json",
+            "Content-Type: application/json"
+        })
+        Call<Void> startSynchronization(
+            @Body OfferPartialSyncRequest offerPartialSyncRequest,
+            @Header("Authorization") String basicAuthnToken);
 
         @POST("/storage/v1/offerSync")
         @Headers({
@@ -664,6 +1086,7 @@ public class StorageTwoOffersIT {
         Call<Void> startSynchronization(
             @Body OfferSyncRequest offerSyncRequest,
             @Header("Authorization") String basicAuthnToken);
+
 
         @HEAD("/storage/v1/offerSync")
         Call<Void> isOfferSynchronizationRunning(

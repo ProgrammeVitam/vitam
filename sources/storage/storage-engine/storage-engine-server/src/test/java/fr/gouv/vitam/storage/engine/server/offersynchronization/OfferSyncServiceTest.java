@@ -7,6 +7,7 @@ import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
 import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.storage.engine.common.model.DataCategory;
+import fr.gouv.vitam.storage.engine.common.model.request.OfferPartialSyncItem;
 import fr.gouv.vitam.storage.engine.server.distribution.StorageDistribution;
 import org.junit.Before;
 import org.junit.Rule;
@@ -15,13 +16,17 @@ import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnit;
 import org.mockito.junit.MockitoRule;
 
+import java.util.ArrayList;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.TimeUnit;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyList;
+import static org.mockito.ArgumentMatchers.anyListOf;
 import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.doNothing;
@@ -107,6 +112,41 @@ public class OfferSyncServiceTest {
         assertThat(result1).isTrue();
         assertThat(result2).isFalse();
     }
+
+
+    @Test
+    @RunWithCustomExecutor
+    public void startSynchronizationShouldFailIfAnotherPartialSyncProcessIsAlreadyRunning() {
+
+        // Given
+        OfferSyncProcess offerSyncProcess1 = mock(OfferSyncProcess.class);
+        OfferSyncProcess offerSyncProcess2 = mock(OfferSyncProcess.class);
+        when(offerSyncProcess1.isRunning()).thenReturn(true);
+
+        OfferSyncService instance =
+            spy(new OfferSyncService(restoreOfferBackupService, distribution, 1000, 16, 1, 1, 1));
+        doNothing().when(instance).runSynchronizationAsync(anyString(), anyString(), anyString(), anyList(), any());
+        when(instance.createOfferSyncProcess()).thenReturn(offerSyncProcess1, offerSyncProcess2);
+
+        // When
+        ArrayList<OfferPartialSyncItem> items1 = new ArrayList<>();
+        ArrayList<OfferPartialSyncItem> items2 = new ArrayList<>();
+        boolean result1 = instance
+            .startSynchronization(SOURCE, TARGET, VitamConfiguration.getDefaultStrategy(), items1);
+        boolean result2 = instance
+            .startSynchronization(SOURCE, TARGET, VitamConfiguration.getDefaultStrategy(), items2);
+
+        // Then
+        verify(instance)
+            .runSynchronizationAsync(SOURCE, TARGET, VitamConfiguration.getDefaultStrategy(), items1,
+                offerSyncProcess1);
+        verify(instance, never())
+            .runSynchronizationAsync(SOURCE, TARGET, VitamConfiguration.getDefaultStrategy(), items2,
+                offerSyncProcess2);
+        assertThat(result1).isTrue();
+        assertThat(result2).isFalse();
+    }
+
 
     @Test
     @RunWithCustomExecutor

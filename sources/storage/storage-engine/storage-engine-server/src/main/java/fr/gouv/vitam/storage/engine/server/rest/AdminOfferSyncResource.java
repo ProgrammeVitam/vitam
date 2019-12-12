@@ -37,6 +37,7 @@ import fr.gouv.vitam.common.model.AuthenticationLevel;
 import fr.gouv.vitam.common.security.rest.VitamAuthentication;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.storage.engine.common.model.DataCategory;
+import fr.gouv.vitam.storage.engine.common.model.request.OfferPartialSyncItem;
 import fr.gouv.vitam.storage.engine.common.model.request.OfferPartialSyncRequest;
 import fr.gouv.vitam.storage.engine.common.model.request.OfferSyncRequest;
 import fr.gouv.vitam.storage.engine.server.distribution.StorageDistribution;
@@ -66,8 +67,8 @@ public class AdminOfferSyncResource {
      */
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(AdminOfferSyncResource.class);
 
-    private final String OFFER_SYNC_URI = "/offerSync";
-    private final String OFFER_PARTIAL_SYNC_URI = "/offerPartialSync";
+    private static final String OFFER_SYNC_URI = "/offerSync";
+    private static final String OFFER_PARTIAL_SYNC_URI = "/offerPartialSync";
 
     /**
      * OfferSynchronization Service.
@@ -107,13 +108,17 @@ public class AdminOfferSyncResource {
         }
 
         VitamThreadUtils.getVitamSession().setTenantId(VitamConfiguration.getAdminTenant());
-        VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newRequestIdGUID(VitamConfiguration.getAdminTenant()));
+        VitamThreadUtils.getVitamSession()
+            .setRequestId(GUIDFactory.newRequestIdGUID(VitamConfiguration.getAdminTenant()));
 
         if (null == offerPartialSyncRequest.getItemsToSynchronize() ||
             offerPartialSyncRequest.getItemsToSynchronize().isEmpty()) {
             LOGGER.info("Items to synchronize is empty");
-            return Response.status(Response.Status.OK)
+            return Response.status(Response.Status.BAD_REQUEST)
                 .header(X_REQUEST_ID, VitamThreadUtils.getVitamSession().getRequestId())
+                .entity(JsonHandler
+                    .unprettyPrint(
+                        JsonHandler.createObjectNode().put("Error", "ItemsToSynchronize parameter is empty")))
                 .build();
         }
 
@@ -130,7 +135,7 @@ public class AdminOfferSyncResource {
 
         Response.Status status;
         if (started) {
-            LOGGER.info("Offer synchronization started");
+            LOGGER.info("Offer partial synchronization started");
             status = Response.Status.OK;
         } else {
             LOGGER.warn("Another synchronization process is already running");
@@ -143,9 +148,9 @@ public class AdminOfferSyncResource {
 
     private String validateRequest(OfferPartialSyncRequest offerPartialSyncRequest) {
         StringBuilder sb = new StringBuilder();
-        offerPartialSyncRequest.getItemsToSynchronize().forEach(o -> {
+        for (OfferPartialSyncItem o : offerPartialSyncRequest.getItemsToSynchronize()) {
             if (!VitamConfiguration.getTenants().contains(o.getTenantId())) {
-                sb.append("Invalid tenant " + o.getTenantId() + ", ");
+                sb.append("Invalid tenant ").append(o.getTenantId()).append(", ");
             }
             if (Strings.isNullOrEmpty(o.getContainer())) {
                 sb.append("container required, ");
@@ -160,7 +165,7 @@ public class AdminOfferSyncResource {
                     }
                 });
             }
-        });
+        }
 
         return sb.toString();
     }
@@ -187,7 +192,8 @@ public class AdminOfferSyncResource {
             throw new IllegalArgumentException("Invalid tenant " + offerSyncRequest.getTenantId());
         }
         VitamThreadUtils.getVitamSession().setTenantId(offerSyncRequest.getTenantId());
-        VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newRequestIdGUID(offerSyncRequest.getTenantId()));
+        VitamThreadUtils.getVitamSession()
+            .setRequestId(GUIDFactory.newRequestIdGUID(offerSyncRequest.getTenantId()));
 
         DataCategory dataCategory = DataCategory.getByCollectionName(offerSyncRequest.getContainer());
 
