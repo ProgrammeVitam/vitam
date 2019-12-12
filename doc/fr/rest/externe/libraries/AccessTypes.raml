@@ -83,9 +83,7 @@ types:
                 }
               }
             ],
-            "$threshold": 40,
-            "$filter": {},
-            "$projection": {}
+            "$threshold": 40
            },
           "scenarioId" : "PSC-000001",
           "targetUsage": "BinaryMaster",
@@ -254,7 +252,11 @@ types:
       type: object
       properties:
         exportWithLogBookLFC:
-          description: True pour inclure les logbook de cycle de vie des unités archivistiques et groupes d'objets
+          description: True pour inclure les logbook de cycle de vie des unités archivistiques et groupes d'objets pour le DIP
+          type: boolean
+          required: false
+        transferWithLogBookLFC:
+          description: True pour inclure les logbook de cycle de vie des unités archivistiques et groupes d'objets pour le transfert
           type: boolean
           required: false
         dslRequest:
