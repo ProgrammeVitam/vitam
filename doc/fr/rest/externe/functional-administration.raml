@@ -75,11 +75,11 @@ documentation:
     get:
       description: Retourne une liste de Formats contenant 1 seul résultat en cas de succès.
       is: [AdminTraits.AdminItemResponse]
-    headers:
-      X-Tenant-Id:
-        required: true
-      X-Access-Contract-Id:
-        required: false
+      headers:
+        X-Tenant-Id:
+          required: true
+        X-Access-Contract-Id:
+          required: false
     post:
       description: |
         Retourne une liste de Formats contenant 1 seul résultat en cas de succès. La requête utilise POST avec X-Http-Method-Override: GET
@@ -111,6 +111,7 @@ documentation:
       Requête qui retourne des résultats contenant des Règles de gestion.
       La requête utilise le langage de requête DSL de type **recherche simple (SELECT SINGLE)** de Vitam en entrée et retourne une liste de Règles de gestion selon le DSL Vitam en cas de succès.
     is: [AdminTraits.AdminListingResponse]
+    headers:
       X-Tenant-Id:
         required: true
       X-Access-Contract-Id:
@@ -141,6 +142,7 @@ documentation:
       description: |
         Retourne une liste de Règles de gestion contenant 1 seul résultat en cas de succès.
       is: [AdminTraits.AdminItemResponse]
+      headers:
         X-Tenant-Id:
           required: true
         X-Access-Contract-Id:
@@ -352,19 +354,21 @@ documentation:
       description: |
         Retourne une liste de Contrats d'entrée contenant 1 seul résultat en cas de succès.
       is: [AdminTraits.AdminListingResponse]
-      X-Tenant-Id:
-        required: true
-      X-Access-Contract-Id:
-        required: false
+      headers:
+        X-Tenant-Id:
+          required: true
+        X-Access-Contract-Id:
+          required: false
     put:
-       description: |
+      description: |
         Requête qui modifie un Contrat d'entrée.
         La requête utilise le langage de requête DSL de type **modification unitaire (UPDATE BY ID)** de Vitam en entrée et retourne le statut de la mise à jour en résultat selon le DSL Vitam en cas de succès.
-       is: [AdminTraits.AdminUpdate]
-      X-Tenant-Id:
-        required: true
-      X-Access-Contract-Id:
-        required: false
+      is: [AdminTraits.AdminUpdate]
+      headers:
+        X-Tenant-Id:
+          required: true
+        X-Access-Contract-Id:
+          required: false
 
 /managementcontracts:
   displayName: Management contracts
@@ -465,20 +469,20 @@ documentation:
          Retourne une liste de Contexte contenant 1 seul résultat en cas de succès.
       is: [AdminTraits.AdminListingResponse]
       headers:
-      X-Tenant-Id:
-        required: true
-      X-Access-Contract-Id:
-        required: false
+        X-Tenant-Id:
+          required: true
+        X-Access-Contract-Id:
+          required: false
     put:
-       description: |
+      description: |
         Requête qui modifie un Contexte.
         La requête utilise le langage de requête DSL de type **modification unitaire (UPDATE BY ID)** de Vitam en entrée et retourne le statut de la mise à jour en résultat selon le DSL Vitam en cas de succès.
-       is: [AdminTraits.AdminUpload]
+      is: [AdminTraits.AdminUpload]
       headers:
-      X-Tenant-Id:
-        required: true
-      X-Access-Contract-Id:
-        required: false
+        X-Tenant-Id:
+          required: true
+        X-Access-Contract-Id:
+          required: false
 
 /profiles:
   displayName: Profiles
@@ -506,7 +510,6 @@ documentation:
       X-Http-Method-Override:
         description: Requis pour effectuer un GET avec une requête json en body.
         required: false
-      headers:
       X-Tenant-Id:
         required: true
       X-Access-Contract-Id:
@@ -539,10 +542,10 @@ documentation:
           description: Spécifie la réponse attendue. 'json' pour les métadonénes du profile, 'octet-stream' pour le fichier XSD ou RNG lié.
           required: true
           enum: [ "application/json", "application/octet-stream" ]
-      X-Tenant-Id:
-        required: true
-      X-Access-Contract-Id:
-        required: false
+        X-Tenant-Id:
+          required: true
+        X-Access-Contract-Id:
+          required: false
     put:
        description: |
         Requête qui modifie les métadonnées d'un profil si la requête envoie un json (Content-Type = application/json).
@@ -550,10 +553,10 @@ documentation:
         Sinon, la requête doit spécifier le Content-Type comme application/octet-stream. Dans ce cas, elle permet de mettre à jour le fichier RNG ou XSD lié.
        is: [AdminTraits.AdminUpload, AdminTraits.AdminProfileUpload]
        headers:
-         Content-Type:
-           description: Requis pour importer des profils.
-           required: false
-           enum: [ "application/json", "application/octet-stream" ]
+          Content-Type:
+            description: Requis pour importer des profils.
+            required: false
+            enum: [ "application/json", "application/octet-stream" ]
           X-Tenant-Id:
             required: true
           X-Access-Contract-Id:
@@ -592,10 +595,10 @@ documentation:
         la requête renvoie alors le griffon au format json.
       is: [AdminTraits.AdminListingResponse]
       headers:
-      X-Tenant-Id:
-        required: true
-      X-Access-Contract-Id:
-        required: false
+        X-Tenant-Id:
+          required: true
+        X-Access-Contract-Id:
+          required: false
 
 /preservationScenario:
   displayName: scénario de préservation
@@ -745,16 +748,16 @@ documentation:
       description: |
         Retourne une liste de Profils de sécurité contenant 1 seul résultat en cas de succès.
       is: [AdminTraits.AdminItemResponse]
-    headers:
-      X-Tenant-Id:
-        required: true
-      X-Access-Contract-Id:
-        required: false
+      headers:
+        X-Tenant-Id:
+          required: true
+        X-Access-Contract-Id:
+          required: false
     put:
-       description: |
+      description: |
         Requête qui modifie un Profil de sécurité.
         La requête utilise le langage de requête DSL de type **modification unitaire (UPDATE BY ID)** de Vitam en entrée et retourne le statut de la mise à jour en résultat selon le DSL Vitam en cas de succès.
-       is: [AdminTraits.AdminUpload]
+      is: [AdminTraits.AdminUpload]
       headers:
         X-Tenant-Id:
           required: true
