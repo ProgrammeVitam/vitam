@@ -78,8 +78,6 @@ import org.apache.commons.compress.archivers.ArchiveException;
 import org.apache.commons.compress.archivers.ArchiveInputStream;
 import org.bson.Document;
 import org.bson.conversions.Bson;
-import org.bson.json.JsonMode;
-import org.bson.json.JsonWriterSettings;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -229,7 +227,8 @@ public class ReconstructionService {
         try {
             // get the list of data to backup.
             Iterator<OfferLog> listing =
-                restoreBackupService.getListing(STRATEGY_ID, dataCategory, offset, limit, Order.ASC, VitamConfiguration.getRestoreBulkSize());
+                restoreBackupService.getListing(STRATEGY_ID, dataCategory, offset, limit, Order.ASC,
+                    VitamConfiguration.getRestoreBulkSize());
 
             while (listing.hasNext()) {
 
@@ -319,7 +318,7 @@ public class ReconstructionService {
             }
 
             Iterator<OfferLog> listing = restoreBackupService.getListing(STRATEGY_ID, type, offset, limit, Order.ASC,
-                    VitamConfiguration.getRestoreBulkSize());
+                VitamConfiguration.getRestoreBulkSize());
 
             Iterator<List<OfferLog>> bulkListing = new BulkIterator<>(listing, VitamConfiguration.getRestoreBulkSize());
 
@@ -668,14 +667,8 @@ public class ReconstructionService {
         arrayNode.forEach(o -> {
             //Create UpdateOneModel
             try {
+                ids.add(o.get(Unit.ID).asText());
                 collection.add(createUpdateOneModel(o));
-                /**
-                 * Take only documents having graph data and business data to be indexed in elasticsearch
-                 * Skip all documents with only graph data
-                 */
-                if (null != o.get(Unit.TENANT_ID)) {
-                    ids.add(o.get(Unit.ID).asText());
-                }
             } catch (InvalidParseOperationException e) {
                 throw new VitamFatalRuntimeException(e);
             }
@@ -705,17 +698,17 @@ public class ReconstructionService {
      * Bulk save in ElasticSearch
      *
      * @param metaDaCollection
-     * @param collection of id of documents
+     * @param ids of documents to index in elasticsearch
      * @throws DatabaseException
      */
-    private void bulkElasticSearch(MetadataCollections metaDaCollection, Set<String> collection)
+    private void bulkElasticSearch(MetadataCollections metaDaCollection, Set<String> ids)
         throws DatabaseException {
 
-        if (collection.isEmpty()) {
+        if (ids.isEmpty()) {
             return;
         }
         // Index in ElasticSearch only documents with existing _tenant field. Else, documents have only graph data and only exists in MongoDB
-        Bson query = and(exists(Unit.TENANT_ID, true), in(ID, collection));
+        Bson query = and(exists(Unit.TENANT_ID, true), in(ID, ids));
         FindIterable<Document> fit =
             this.vitamRepositoryProvider.getVitamMongoRepository(metaDaCollection.getVitamCollection())
                 .findDocuments(query, VitamConfiguration.getBatchSize());
