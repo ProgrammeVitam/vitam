@@ -1,0 +1,15 @@
+{
+        "ZZZZ": [
+          "description libre ZZZZ"
+        ],
+        "XXXX": [
+          {
+            "YYYY": [
+              "description libre YYYY"
+            ]
+          }
+        ],
+        "DescriptionOA": [
+          "La RATP est un etablissement public"
+        ]
+}

@@ -1,4 +1,4 @@
-/*******************************************************************************
+/*
  * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2019)
  *
  * contact.vitam@culture.gouv.fr
@@ -23,37 +23,32 @@
  *
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
- *******************************************************************************/
-package fr.gouv.vitam.common.mapping.serializer;
+ */
+package fr.gouv.vitam.common.mapping.deserializer;
 
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.databind.DeserializationContext;
 import com.fasterxml.jackson.databind.JsonDeserializer;
 import com.fasterxml.jackson.databind.JsonNode;
-import fr.gouv.culture.archivesdefrance.seda.v2.IdentifierType;
+import fr.gouv.culture.archivesdefrance.seda.v2.LevelType;
 
 import java.io.IOException;
 
 /**
- * Deserialize a (json, xml, string) representation to IdentifierType
- * To be registered in jackson objectMapper
+ * Deserialize a (json, xml, string) representation to LevelType To be registered in jackson objectMapper
  */
-public class IdentifierTypeDeserializer extends JsonDeserializer<IdentifierType> {
+public class LevelTypeDeserializer extends JsonDeserializer<LevelType> {
     /**
      *
-     * @param jp representation (json, xml, string)
+     * @param jp (json, xml, string) representation
      * @param ctxt
-     * @return the identifier type
+     * @return the level type
      * @throws IOException
      */
     @Override
-    public IdentifierType deserialize(JsonParser jp, DeserializationContext ctxt) throws IOException {
+    public LevelType deserialize(JsonParser jp, DeserializationContext ctxt) throws IOException {
         JsonNode node = jp.getCodec().readTree(jp);
-
-        IdentifierType identifierType = new IdentifierType();
-        identifierType.setValue(node.asText());
-
-        return identifierType;
+        return LevelType.fromValue(node.asText());
     }
 
 }

@@ -1,0 +1,37 @@
+{
+  "ArchiveUnit": {
+    "_id": "aeaqaaaaaae33g44aactkaln7x4667qaaaaq",
+    "DescriptionLevel": "Item",
+    "Title_": {
+      "fr": "French Title",
+      "en": "English Title"
+    },
+    "Description": "Dummy Description",
+    "OriginatingAgency": {
+      "Identifier": "RATP",
+      "OrganizationDescriptiveMetadata": {
+        "YYYY": [
+          "description libre"
+        ],
+        "XXXX": [
+          {
+            "ZZZZ": [
+              "description libre"
+            ]
+          }
+        ],
+        "DescriptionOA": [
+          "La RATP est un \u00E9tablissement public"
+        ]
+      }
+    },
+    "_mgt": {},
+    "_storage": {
+      "_nbc": 1,
+      "offerIds": [
+        "offer-fs-1.service.consul"
+      ],
+      "strategyId": "default"
+    }
+  }
+}

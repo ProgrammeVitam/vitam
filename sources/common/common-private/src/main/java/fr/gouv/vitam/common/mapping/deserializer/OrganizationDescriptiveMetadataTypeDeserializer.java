@@ -1,4 +1,4 @@
-/*******************************************************************************
+/*
  * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2019)
  *
  * contact.vitam@culture.gouv.fr
@@ -23,44 +23,41 @@
  *
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
- *******************************************************************************/
-package fr.gouv.vitam.common.mapping.serializer;
+ */
+package fr.gouv.vitam.common.mapping.deserializer;
 
 import com.fasterxml.jackson.core.JsonParser;
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.DeserializationContext;
 import com.fasterxml.jackson.databind.JsonDeserializer;
 import com.fasterxml.jackson.databind.JsonNode;
-import fr.gouv.culture.archivesdefrance.seda.v2.TextType;
-import fr.gouv.vitam.common.model.unit.TextByLang;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import fr.gouv.culture.archivesdefrance.seda.v2.OrganizationDescriptiveMetadataType;
+import fr.gouv.vitam.common.mapping.dip.TransformJsonTreeToListOfXmlElement;
+import org.w3c.dom.Element;
 
 import java.io.IOException;
-import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
 
-/**
- * Deserialize a (json, xml, string) representation to TextByLang To be registered in jackson objectMapper
- */
-public class TextByLangDeserializer extends JsonDeserializer<TextByLang> {
+public class OrganizationDescriptiveMetadataTypeDeserializer extends JsonDeserializer<OrganizationDescriptiveMetadataType> {
+    private static final TypeReference<Map<String, Object>> REFERENCE = new TypeReference<Map<String, Object>>() {};
 
-    /**
-     * Convert json, xml, string to TextByLang
-     * 
-     * @param jp (json, xml, string) representation
-     * @param ctxt
-     * @return the text by lang
-     * @throws IOException
-     */
+    private ObjectMapper objectMapper;
+
+    public OrganizationDescriptiveMetadataTypeDeserializer(ObjectMapper objectMapper) {
+        this.objectMapper = objectMapper;
+    }
+
     @Override
-    public TextByLang deserialize(JsonParser jp, DeserializationContext ctxt) throws IOException {
+    public OrganizationDescriptiveMetadataType deserialize(JsonParser jp, DeserializationContext ctxt) throws IOException {
         JsonNode node = jp.getCodec().readTree(jp);
 
-        ArrayList<TextType> textTypes = new ArrayList<>();
-
-        node.fields().forEachRemaining(stringJsonNodeEntry -> {
-            TextType textType = new TextType();
-            textType.setLang(stringJsonNodeEntry.getKey());
-            textType.setValue(stringJsonNodeEntry.getValue().asText());
-            textTypes.add(textType);
-        });
-        return new TextByLang(textTypes);
+        Map<String, Object> map = objectMapper.convertValue(node, REFERENCE);
+        List<Element> elements = TransformJsonTreeToListOfXmlElement.mapJsonToElement(Collections.singletonList(map));
+        OrganizationDescriptiveMetadataType organizationDescriptiveMetadataType = new OrganizationDescriptiveMetadataType();
+        organizationDescriptiveMetadataType.getAny().addAll(elements);
+        return organizationDescriptiveMetadataType;
     }
 }
