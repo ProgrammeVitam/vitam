@@ -27,6 +27,7 @@
 
 package fr.gouv.vitam.ingest.external.api.exception;
 
+import fr.gouv.vitam.common.error.VitamError;
 import fr.gouv.vitam.common.exception.VitamException;
 
 /**
@@ -61,5 +62,9 @@ public class IngestExternalClientException extends VitamException {
      */
     public IngestExternalClientException(String messsage, Throwable cause) {
         super(messsage, cause);
+    }
+
+    public IngestExternalClientException(VitamError vitamError) {
+        super(vitamError);
     }
 }

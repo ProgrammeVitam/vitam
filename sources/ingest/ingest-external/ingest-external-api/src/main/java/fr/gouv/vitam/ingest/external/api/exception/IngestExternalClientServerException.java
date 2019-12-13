@@ -27,36 +27,25 @@
 
 package fr.gouv.vitam.ingest.external.api.exception;
 
+import fr.gouv.vitam.common.error.VitamError;
+
 /**
  * Exception indicating the resource server has an internal error.
  */
 public class IngestExternalClientServerException extends IngestExternalClientException {
     private static final long serialVersionUID = -988106617135087796L;
 
-    /**
-     * constructor with message
-     *
-     * @param message associated message
-     */
     public IngestExternalClientServerException(String message) {
         super(message);
     }
 
-    /**
-     * constructor with throwable
-     *
-     * @param cause associated cause
-     */
     public IngestExternalClientServerException(Throwable cause) {
         super(cause);
     }
 
-    /**
-     * constructor with message and throwable
-     *
-     * @param messsage associated message
-     * @param cause associated cause
-     */
+    public IngestExternalClientServerException(VitamError vitamError) {
+        super(vitamError);
+    }
     public IngestExternalClientServerException(String messsage, Throwable cause) {
         super(messsage, cause);
     }

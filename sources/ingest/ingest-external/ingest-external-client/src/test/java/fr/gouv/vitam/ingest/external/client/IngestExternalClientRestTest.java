@@ -74,23 +74,17 @@ import static org.mockito.Mockito.when;
 @SuppressWarnings("rawtypes")
 public class IngestExternalClientRestTest extends ResteasyTestApplication {
 
-    protected static final String HOSTNAME = "localhost";
-    protected static final String PATH = "/ingest-external/v1";
-    protected static IngestExternalClientRest client;
     private static final String MOCK_INPUTSTREAM_CONTENT = "VITAM-Ingest External Client Rest Mock InputStream";
     private static final String FAKE_X_REQUEST_ID = GUIDFactory.newRequestIdGUID(0).getId();
-    final int TENANT_ID = 0;
     private static final String CONTEXT_ID = "defaultContext";
     private static final String EXECUTION_MODE = "defaultContext";
-    private static final String ID = "id1";
-
     private final static ExpectedResults mock = mock(ExpectedResults.class);
-
+    protected static IngestExternalClientRest client;
     static IngestExternalClientFactory factory = IngestExternalClientFactory.getInstance();
     public static VitamServerTestRunner
         vitamServerTestRunner =
         new VitamServerTestRunner(IngestExternalClientRestTest.class, factory);
-
+    final int TENANT_ID = 0;
 
     @BeforeClass
     public static void setUpBeforeClass() throws Throwable {
@@ -107,40 +101,6 @@ public class IngestExternalClientRestTest extends ResteasyTestApplication {
     public Set<Object> getResources() {
         return Sets.newHashSet(new MockResource(mock));
     }
-
-    @Path("/ingest-external/v1")
-    public static class MockResource {
-        private final ExpectedResults expectedResponse;
-
-        public MockResource(ExpectedResults expectedResponse) {
-            this.expectedResponse = expectedResponse;
-        }
-
-        @POST
-        @Path("ingests")
-        @Consumes(MediaType.APPLICATION_OCTET_STREAM)
-        public Response upload(InputStream stream) {
-            Response resp = expectedResponse.post();
-            return resp;
-        }
-
-        @POST
-        @Path("ingests")
-        @Consumes(MediaType.APPLICATION_JSON)
-        public Response uploadLocal(LocalFile localFile) {
-            Response resp = expectedResponse.post();
-            return resp;
-        }
-
-        @GET
-        @Path("/ingests/{objectId}/{type}")
-        @Produces(MediaType.APPLICATION_OCTET_STREAM)
-        public Response downloadObject(@PathParam("objectId") String objectId, @PathParam("type") String type) {
-            return expectedResponse.get();
-        }
-
-    }
-
 
     @Test
     public void givenErrorWhenUploadThenReturnBadRequestErrorWithBody() throws Exception {
@@ -160,7 +120,6 @@ public class IngestExternalClientRestTest extends ResteasyTestApplication {
         }
     }
 
-
     @Test
     public void givenNotFoundWhenDownloadObjectThenReturn404()
         throws VitamClientException, InvalidParseOperationException, IOException {
@@ -176,7 +135,6 @@ public class IngestExternalClientRestTest extends ResteasyTestApplication {
             assertEquals(Status.NOT_FOUND.getStatusCode(), response.getHttpCode());
         }
     }
-
 
     @Test
     public void givenUploadLocalFileThenReturnOK() throws Exception {
@@ -210,6 +168,40 @@ public class IngestExternalClientRestTest extends ResteasyTestApplication {
             e.printStackTrace();
             fail();
         }
+    }
+
+
+    @Path("/ingest-external/v1")
+    public static class MockResource {
+        private final ExpectedResults expectedResponse;
+
+        public MockResource(ExpectedResults expectedResponse) {
+            this.expectedResponse = expectedResponse;
+        }
+
+        @POST
+        @Path("ingests")
+        @Consumes(MediaType.APPLICATION_OCTET_STREAM)
+        public Response upload(InputStream stream) {
+            Response resp = expectedResponse.post();
+            return resp;
+        }
+
+        @POST
+        @Path("ingests")
+        @Consumes(MediaType.APPLICATION_JSON)
+        public Response uploadLocal(LocalFile localFile) {
+            Response resp = expectedResponse.post();
+            return resp;
+        }
+
+        @GET
+        @Path("/ingests/{objectId}/{type}")
+        @Produces(MediaType.APPLICATION_OCTET_STREAM)
+        public Response downloadObject(@PathParam("objectId") String objectId, @PathParam("type") String type) {
+            return expectedResponse.get();
+        }
+
     }
 
 
