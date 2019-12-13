@@ -36,6 +36,7 @@ import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.model.logbook.LogbookEventOperation;
 import fr.gouv.vitam.common.model.logbook.LogbookOperation;
+import fr.gouv.vitam.logbook.common.exception.LogbookClientNotFoundException;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClient;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClientFactory;
 import fr.gouv.vitam.worker.core.plugin.preservation.TestHandlerIO;
@@ -165,6 +166,24 @@ public class VerifyAtrPluginTest {
 
         // Then
         assertThat(result.getGlobalStatus()).isEqualTo(KO);
+    }
+
+    @Test
+    public void should_return_KO_unknown_transfer_operation() throws Exception {
+        // Given
+        String messageRequestIdentifier = "AWESOME-ID";
+        given(unmarshaller.unmarshal(any(XMLStreamReader.class), eq((ArchiveTransferReplyType.class)))).willReturn(getJaxbAtr(messageRequestIdentifier));
+        given(logbookOperationsClient.selectOperationById(messageRequestIdentifier)).willThrow(new LogbookClientNotFoundException(""));
+        TestHandlerIO handler = new TestHandlerIO();
+        handler.setInputStreamFromWorkspace(new ByteArrayInputStream("<ArchiveTransferReply></ArchiveTransferReply>".getBytes()));
+
+        // When
+        ItemStatus result = verifyAtrPlugin.execute(null, handler);
+
+        // Then
+        assertThat(result.getGlobalStatus()).isEqualTo(KO);
+        assertThat(result.getEvDetailData())
+            .isEqualTo("{\"Event\":\"Field MessageRequestIdentifier in ATR does not correspond to an existing transfer operation.\"}");
     }
 
     private JAXBElement<ArchiveTransferReplyType> getJaxbAtr(String messageRequestIdentifier) {
