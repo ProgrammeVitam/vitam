@@ -30,8 +30,8 @@ import java.io.IOException;
 
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.client.configuration.ClientConfiguration;
-import fr.gouv.vitam.common.external.client.VitamClientFactory;
-import fr.gouv.vitam.common.external.client.configuration.SecureClientConfigurationImpl;
+import fr.gouv.vitam.common.client.VitamClientFactory;
+import fr.gouv.vitam.common.client.configuration.SecureClientConfigurationImpl;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 
