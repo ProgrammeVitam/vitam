@@ -10,10 +10,10 @@ https://repo.mongodb.org/apt/debian/dists/stretch/mongodb-org/4.2/main/binary-am
 https://repo.mongodb.org/apt/debian/dists/stretch/mongodb-org/4.2/main/binary-amd64/mongodb-org-tools_4.2.1_amd64.deb
 https://repo.mongodb.org/apt/debian/dists/stretch/mongodb-org/4.2/main/binary-amd64/mongodb-org_4.2.1_amd64.deb
 
-https://artifacts.elastic.co/downloads/elasticsearch/elasticsearch-6.8.4.deb
-https://artifacts.elastic.co/downloads/logstash/logstash-6.8.4.deb
-https://artifacts.elastic.co/downloads/kibana/kibana-6.8.4-amd64.deb
+https://artifacts.elastic.co/downloads/elasticsearch/elasticsearch-6.8.5.deb
+https://artifacts.elastic.co/downloads/logstash/logstash-6.8.5.deb
+https://artifacts.elastic.co/downloads/kibana/kibana-6.8.5-amd64.deb
 https://packages.elastic.co/curator/5/debian/pool/main/e/elasticsearch-curator/elasticsearch-curator_5.5.0_amd64.deb
 
-https://artifacts.elastic.co/downloads/beats/metricbeat/metricbeat-6.8.4-amd64.deb
-https://artifacts.elastic.co/downloads/beats/packetbeat/packetbeat-6.8.4-amd64.deb
+https://artifacts.elastic.co/downloads/beats/metricbeat/metricbeat-6.8.5-amd64.deb
+https://artifacts.elastic.co/downloads/beats/packetbeat/packetbeat-6.8.5-amd64.deb
