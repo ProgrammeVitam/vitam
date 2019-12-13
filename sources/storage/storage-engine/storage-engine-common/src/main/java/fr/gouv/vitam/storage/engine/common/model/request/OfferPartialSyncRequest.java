@@ -27,12 +27,6 @@ import java.util.List;
 public class OfferPartialSyncRequest {
 
     /**
-     * strategyId
-     */
-    @JsonProperty("strategyId")
-    private String strategyId;
-
-    /**
      * sourceOffer identifier.
      */
     @JsonProperty("sourceOffer")
@@ -53,15 +47,6 @@ public class OfferPartialSyncRequest {
      */
     public OfferPartialSyncRequest() {
         super();
-    }
-
-    public String getStrategyId() {
-        return strategyId;
-    }
-
-    public OfferPartialSyncRequest setStrategyId(String strategyId) {
-        this.strategyId = strategyId;
-        return this;
     }
 
     public String getSourceOffer() {

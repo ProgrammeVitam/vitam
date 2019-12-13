@@ -131,7 +131,7 @@ public class AdminOfferSyncResource {
 
         boolean started = offerSyncService
             .startSynchronization(offerPartialSyncRequest.getSourceOffer(), offerPartialSyncRequest.getTargetOffer(),
-                offerPartialSyncRequest.getStrategyId(), offerPartialSyncRequest.getItemsToSynchronize());
+                VitamConfiguration.getDefaultStrategy(), offerPartialSyncRequest.getItemsToSynchronize());
 
         Response.Status status;
         if (started) {
@@ -203,7 +203,7 @@ public class AdminOfferSyncResource {
 
         boolean started = offerSyncService
             .startSynchronization(offerSyncRequest.getSourceOffer(), offerSyncRequest.getTargetOffer(),
-                offerSyncRequest.getStrategyId(), dataCategory,
+                VitamConfiguration.getDefaultStrategy(), dataCategory,
                 offerSyncRequest.getOffset());
 
         Response.Status status;
