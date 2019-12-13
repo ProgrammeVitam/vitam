@@ -118,7 +118,7 @@ public class VerifyAtrPlugin extends ActionHandler {
             }
 
             return buildItemStatus(PLUGIN_NAME, KO, EventDetails.of("Field MessageRequestIdentifier in ATR does not correspond to an existing transfer operation."));
-        } catch (UnmarshalException | LogbookClientNotFoundException e) {
+        } catch (UnmarshalException e) {
             LOGGER.error(e);
             return buildItemStatus(PLUGIN_NAME, KO, EventDetails.of(e.getMessage()));
         } catch (JAXBException | ContentAddressableStorageNotFoundException | IOException | XMLStreamException | LogbookClientException | InvalidParseOperationException e) {
@@ -129,7 +129,7 @@ public class VerifyAtrPlugin extends ActionHandler {
         }
     }
 
-    private boolean hasExistingTransferOperation(IdentifierType messageRequestIdentifier) throws LogbookClientException, InvalidParseOperationException {
+    private boolean hasExistingTransferOperation(IdentifierType messageRequestIdentifier) throws InvalidParseOperationException, LogbookClientException {
         if (messageRequestIdentifier == null || StringUtils.isBlank(messageRequestIdentifier.getValue())) {
             return false;
         }
@@ -156,6 +156,8 @@ public class VerifyAtrPlugin extends ActionHandler {
                 !lastTransferEventOperation.getOutcome().equals(WARNING.name())) {
                 return false;
             }
+        } catch (LogbookClientNotFoundException e) {
+            return false;
         }
 
         return true;
