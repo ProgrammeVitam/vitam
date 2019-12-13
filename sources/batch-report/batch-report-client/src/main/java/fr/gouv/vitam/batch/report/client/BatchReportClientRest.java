@@ -34,7 +34,7 @@ import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.client.VitamClientFactoryInterface;
 import fr.gouv.vitam.common.exception.VitamClientInternalException;
-import fr.gouv.vitam.common.external.client.DefaultClient;
+import fr.gouv.vitam.common.client.DefaultClient;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
 
 import javax.ws.rs.HttpMethod;
