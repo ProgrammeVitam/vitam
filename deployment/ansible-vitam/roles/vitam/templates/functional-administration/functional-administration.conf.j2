@@ -30,6 +30,7 @@ elasticsearchNodes:
 
 # ExternalId configuration
 listEnableExternalIdentifiers:
+{% if vitam_tenants_usage_external is iterable %}
 {% for tenant in vitam_tenants_usage_external %}
 {% if tenant.identifiers is defined %}
   {{ tenant.name }}:
@@ -38,8 +39,10 @@ listEnableExternalIdentifiers:
 {% endfor %}
 {% endif %}
 {% endfor %}
+{% endif %}
 
 listMinimumRuleDuration:
+{% if vitam_tenant_rule_duration is iterable %}
 {% for tenant in vitam_tenant_rule_duration %}
   {{ tenant.name }}:
 {% for rule in tenant.rules %}
@@ -48,3 +51,5 @@ listMinimumRuleDuration:
 {% endfor %}
 {% endfor %}
 {% endfor %}
+{% endif %}
+
