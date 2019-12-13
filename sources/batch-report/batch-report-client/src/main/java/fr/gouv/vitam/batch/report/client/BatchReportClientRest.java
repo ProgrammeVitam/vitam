@@ -36,7 +36,7 @@ import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.client.VitamClientFactoryInterface;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamClientInternalException;
-import fr.gouv.vitam.common.external.client.DefaultClient;
+import fr.gouv.vitam.common.client.DefaultClient;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
 
