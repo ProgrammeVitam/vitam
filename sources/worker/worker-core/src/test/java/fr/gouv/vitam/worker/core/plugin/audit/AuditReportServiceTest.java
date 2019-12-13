@@ -83,7 +83,7 @@ public class AuditReportServiceTest {
     public void should_append_audit_report_entries() {
         // Given
         AuditObjectVersion version = new AuditObjectVersion("objectId1", "objectOpi1", "objectQualifier1",
-                "objectVersion1", new ArrayList<ReportItemStatus>() {
+                "objectVersion1", "strategyId1", new ArrayList<ReportItemStatus>() {
                     {
                         add(new ReportItemStatus("offerId1", ReportStatus.OK));
                         add(new ReportItemStatus("offerId2", ReportStatus.OK));

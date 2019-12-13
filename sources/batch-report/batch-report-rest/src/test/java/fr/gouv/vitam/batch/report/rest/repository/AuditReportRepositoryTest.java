@@ -86,9 +86,9 @@ public class AuditReportRepositoryTest {
 
         List<AuditObjectVersion> objectVersions1 = new ArrayList<AuditObjectVersion>();
         objectVersions1
-                .add(generateVersion("objectId1", "objectOpi1", "objectQualifier1", "objectVersion1", ReportStatus.OK, ReportStatus.KO, ReportStatus.KO));
+                .add(generateVersion("objectId1", "objectOpi1", "objectQualifier1", "objectVersion1", "strategyId1", ReportStatus.OK, ReportStatus.KO, ReportStatus.KO));
         objectVersions1
-                .add(generateVersion("objectId2", "objectOpi2", "objectQualifier2", "objectVersion2", ReportStatus.OK, ReportStatus.KO, ReportStatus.KO));
+                .add(generateVersion("objectId2", "objectOpi2", "objectQualifier2", "objectVersion2", "strategyId2", ReportStatus.OK, ReportStatus.KO, ReportStatus.KO));
         AuditObjectGroupReportEntry auditObjectGroupEntry1 = new AuditObjectGroupReportEntry("objectGroupId1",
                 Collections.singletonList("unitId"), "originatingAgency1", "opi", objectVersions1, ReportStatus.KO, "outcome");
         auditReportEntryKO = new AuditObjectGroupModel(processId,
@@ -96,9 +96,9 @@ public class AuditReportRepositoryTest {
 
         List<AuditObjectVersion> objectVersions2 = new ArrayList<AuditObjectVersion>();
         objectVersions2
-                .add(generateVersion("objectId3", "objectOpi1", "objectQualifier1", "objectVersion1", ReportStatus.OK, ReportStatus.OK, ReportStatus.OK));
+                .add(generateVersion("objectId3", "objectOpi1", "objectQualifier1", "objectVersion1", "strategyId1", ReportStatus.OK, ReportStatus.OK, ReportStatus.OK));
         objectVersions2
-                .add(generateVersion("objectId4", "objectOpi2", "objectQualifier2", "objectVersion2", ReportStatus.OK, ReportStatus.OK, ReportStatus.OK));
+                .add(generateVersion("objectId4", "objectOpi2", "objectQualifier2", "objectVersion2", "strategyId2", ReportStatus.OK, ReportStatus.OK, ReportStatus.OK));
         AuditObjectGroupReportEntry auditObjectGroupEntry2 = new AuditObjectGroupReportEntry("objectGroupId2",
                 Collections.singletonList("unitId"), "originatingAgency1", "opi", objectVersions2, ReportStatus.OK, "outcome");
         auditReportEntryOK = new AuditObjectGroupModel(processId,
@@ -106,8 +106,8 @@ public class AuditReportRepositoryTest {
 
         List<AuditObjectVersion> objectVersions3 = new ArrayList<AuditObjectVersion>();
         objectVersions3
-                .add(generateVersion("objectId5", "objectOpi1", "objectQualifier1", "objectVersion1", ReportStatus.OK, ReportStatus.OK, ReportStatus.OK));
-        objectVersions3.add(generateVersion("objectId6", "objectOpi3", "objectQualifier2", "objectVersion2", ReportStatus.OK,
+                .add(generateVersion("objectId5", "objectOpi1", "objectQualifier1", "objectVersion1", "strategyId1", ReportStatus.OK, ReportStatus.OK, ReportStatus.OK));
+        objectVersions3.add(generateVersion("objectId6", "objectOpi3", "objectQualifier2", "objectVersion2", "strategyId2", ReportStatus.OK,
                 ReportStatus.WARNING, ReportStatus.WARNING));
         AuditObjectGroupReportEntry auditObjectGroupEntry3 = new AuditObjectGroupReportEntry("objectGroupId3",
                 Collections.singletonList("unitId"), "originatingAgency2", "opi", objectVersions3, ReportStatus.WARNING,
@@ -277,8 +277,8 @@ public class AuditReportRepositoryTest {
     }
 
     private AuditObjectVersion generateVersion(String objectId, String objectOpi, String objectQualifier,
-            String objectVersion, ReportStatus offer1Status, ReportStatus offer2Status, ReportStatus objectStatus) {
-        return new AuditObjectVersion(objectId, objectOpi, objectQualifier, objectVersion,
+            String objectVersion, String objectStrategy, ReportStatus offer1Status, ReportStatus offer2Status, ReportStatus objectStatus) {
+        return new AuditObjectVersion(objectId, objectOpi, objectQualifier, objectVersion, objectStrategy,
                 new ArrayList<ReportItemStatus>() {
                     {
                         add(new ReportItemStatus("offerId1", offer1Status));

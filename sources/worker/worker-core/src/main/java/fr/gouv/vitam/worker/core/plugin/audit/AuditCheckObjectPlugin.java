@@ -145,7 +145,7 @@ public class AuditCheckObjectPlugin extends ActionHandler {
     }
 
     private AuditObjectGroupReportEntry createAuditObjectGroupReportEntry(AuditObjectGroup gotDetail,
-                                                                          AuditCheckObjectGroupResult result, String outcome) {
+            AuditCheckObjectGroupResult result, String outcome) {
 
         AuditObjectGroupReportEntry auditObjectGroupReportEntry = new AuditObjectGroupReportEntry(gotDetail.getId(),
                 gotDetail.getUnitUps(), gotDetail.getSp(), gotDetail.getOpi(), new ArrayList<AuditObjectVersion>(),
@@ -156,8 +156,12 @@ public class AuditCheckObjectPlugin extends ActionHandler {
             AuditObject auditObject = IterableUtils.find(gotDetail.getObjects(),
                     object -> object.getId().equals(objectResult.getIdObject()));
 
+            String strategyId = null;
+            if (auditObject.getStorage() != null) {
+                strategyId = auditObject.getStorage().getStrategyId();
+            }
             AuditObjectVersion objectVersion = new AuditObjectVersion(auditObject.getId(), auditObject.getOpi(),
-                    auditObject.getQualifier(), auditObject.getVersion(),
+                    auditObject.getQualifier(), auditObject.getVersion(), strategyId,
                     (List<ReportItemStatus>) objectResult.getOfferStatuses().entrySet().stream()
                             .map(e -> new ReportItemStatus(e.getKey(), ReportStatus.parseFromStatusCode(e.getValue())))
                             .collect(Collectors.toList()),
