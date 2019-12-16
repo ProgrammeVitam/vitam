@@ -58,6 +58,7 @@ import java.util.Collections;
 
 import static fr.gouv.vitam.common.model.StatusCode.FATAL;
 import static fr.gouv.vitam.common.model.StatusCode.OK;
+import static fr.gouv.vitam.common.model.StatusCode.WARNING;
 import static fr.gouv.vitam.storage.engine.common.model.DataCategory.ARCHIVAL_TRANSFER_REPLY;
 import static fr.gouv.vitam.worker.core.utils.PluginHelper.buildItemStatus;
 
@@ -88,7 +89,10 @@ public class SaveAtrPlugin extends ActionHandler {
             handler.addOutputResult(0, atr);
 
             return buildItemStatus(PLUGIN_NAME, OK, Collections.singletonMap(messageIdentifier, BinaryEventData.from(storedInfo)));
-        } catch (StorageAlreadyExistsClientException | StorageNotFoundClientException | StorageServerClientException e) {
+        } catch (StorageAlreadyExistsClientException e) {
+            LOGGER.warn(e);
+            return buildItemStatus(PLUGIN_NAME, WARNING, EventDetails.of(e.getMessage(), "ATR already exists but it will continue."));
+        } catch (StorageNotFoundClientException | StorageServerClientException e) {
             LOGGER.error(e);
             return buildItemStatus(PLUGIN_NAME, FATAL, EventDetails.of(e.getMessage()));
         }
