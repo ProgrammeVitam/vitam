@@ -86,7 +86,7 @@ public enum VitamCode {
         "driver %s mapping !"),
     STORAGE_DRIVER_MAPPING_INITIALIZE(ServiceName.STORAGE, DomainName.IO, "12", Status.INTERNAL_SERVER_ERROR, "Cannot" +
         " initialize FileDriverMapper, error on configuration file, please check it"),
-    STORAGE_DRIVER_OBJECT_ALREADY_EXISTS(ServiceName.STORAGE, DomainName.ILLEGAL, "13", Status.METHOD_NOT_ALLOWED,
+    STORAGE_DRIVER_OBJECT_ALREADY_EXISTS(ServiceName.STORAGE, DomainName.ILLEGAL, "13", Status.CONFLICT,
         "Cannot override an existing object (%s)"),
     STORAGE_CONTAINER_NOT_FOUND(ServiceName.STORAGE, DomainName.STORAGE, "14", Status.NOT_FOUND,
         "Container with name %s not " +

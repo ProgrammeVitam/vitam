@@ -319,7 +319,7 @@ public class StorageResourceTest {
             .headers(VitamHttpHeader.STRATEGY_ID.getName(), STRATEGY_ID, VitamHttpHeader.TENANT_ID.getName(),
                 TENANT_ID_Ardyexist)
             .body(createObjectDescription).when().post(REPORTS_URI + REPORT_ID_URI, ID_O1).then()
-            .statusCode(Status.METHOD_NOT_ALLOWED.getStatusCode());
+            .statusCode(Status.CONFLICT.getStatusCode());
 
         given().contentType(ContentType.JSON)
             .headers(VitamHttpHeader.STRATEGY_ID.getName(), STRATEGY_ID, VitamHttpHeader.TENANT_ID.getName(), TENANT_ID)
@@ -344,7 +344,7 @@ public class StorageResourceTest {
             .headers(VitamHttpHeader.STRATEGY_ID.getName(), STRATEGY_ID, VitamHttpHeader.TENANT_ID.getName(),
                 TENANT_ID_Ardyexist)
             .body(createObjectDescription).when().post(MANIFESTS_URI + MANIFEST_ID_URI, ID_O1).then()
-            .statusCode(Status.METHOD_NOT_ALLOWED.getStatusCode());
+            .statusCode(Status.CONFLICT.getStatusCode());
 
         given().contentType(ContentType.JSON)
             .headers(VitamHttpHeader.STRATEGY_ID.getName(), STRATEGY_ID, VitamHttpHeader.TENANT_ID.getName(), TENANT_ID)
@@ -370,7 +370,7 @@ public class StorageResourceTest {
             .headers(VitamHttpHeader.STRATEGY_ID.getName(), STRATEGY_ID, VitamHttpHeader.TENANT_ID.getName(),
                 TENANT_ID_Ardyexist)
             .body(createObjectDescription).when().post(PROFILE_URI + PROFILE_ID_URI, ID_O1).then()
-            .statusCode(Status.METHOD_NOT_ALLOWED.getStatusCode());
+            .statusCode(Status.CONFLICT.getStatusCode());
 
         given().contentType(ContentType.JSON)
             .headers(VitamHttpHeader.STRATEGY_ID.getName(), STRATEGY_ID, VitamHttpHeader.TENANT_ID.getName(), TENANT_ID)
@@ -425,7 +425,7 @@ public class StorageResourceTest {
             .headers(VitamHttpHeader.STRATEGY_ID.getName(), STRATEGY_ID, VitamHttpHeader.TENANT_ID.getName(),
                 TENANT_ID_Ardyexist)
             .body(createObjectDescription).when().post(STORAGELOG + STORAGELOG_ID_URI, ID_O1).then()
-            .statusCode(Status.METHOD_NOT_ALLOWED.getStatusCode());
+            .statusCode(Status.CONFLICT.getStatusCode());
 
         given().contentType(ContentType.JSON)
             .headers(VitamHttpHeader.STRATEGY_ID.getName(), STRATEGY_ID, VitamHttpHeader.TENANT_ID.getName(), TENANT_ID)
@@ -452,7 +452,7 @@ public class StorageResourceTest {
             .headers(VitamHttpHeader.STRATEGY_ID.getName(), STRATEGY_ID, VitamHttpHeader.TENANT_ID.getName(),
                 TENANT_ID_Ardyexist)
             .body(createObjectDescription).when().post(STORAGERULE + STORAGERULE_ID_URI, ID_O1).then()
-            .statusCode(Status.METHOD_NOT_ALLOWED.getStatusCode());
+            .statusCode(Status.CONFLICT.getStatusCode());
 
         given().contentType(ContentType.JSON)
             .headers(VitamHttpHeader.STRATEGY_ID.getName(), STRATEGY_ID, VitamHttpHeader.TENANT_ID.getName(), TENANT_ID)
@@ -496,8 +496,9 @@ public class StorageResourceTest {
         given().contentType(ContentType.JSON)
             .headers(VitamHttpHeader.STRATEGY_ID.getName(), STRATEGY_ID, VitamHttpHeader.TENANT_ID.getName(),
                 TENANT_ID_Ardyexist)
-            .body(createObjectDescription).when().post(storageBackup + storageBackupIdUri, ID_O1).then()
-            .statusCode(Status.METHOD_NOT_ALLOWED.getStatusCode());
+            .body(createObjectDescription).when().post(storageBackup + storageBackupIdUri, ID_O1)
+            .then()
+            .statusCode(Status.CONFLICT.getStatusCode());
 
         given().contentType(ContentType.JSON)
             .headers(VitamHttpHeader.STRATEGY_ID.getName(), STRATEGY_ID, VitamHttpHeader.TENANT_ID.getName(), TENANT_ID)

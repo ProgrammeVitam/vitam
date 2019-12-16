@@ -63,7 +63,7 @@ public class CheckAtrAndAddItToWorkspacePlugin extends ActionHandler {
         try {
             String messageIdentifier = atr.getMessageIdentifier().getValue();
 
-            if (!isStatusValid(atr)) {
+            if (!isValidStatus(atr)) {
                 return buildItemStatus(PLUGIN_NAME, KO, EventDetails.of(String.format("ATR '%s' is KO, workflow will stop here.", messageIdentifier)));
             }
 
@@ -78,7 +78,7 @@ public class CheckAtrAndAddItToWorkspacePlugin extends ActionHandler {
         }
     }
 
-    private boolean isStatusValid(ArchiveTransferReplyType atr) {
+    private boolean isValidStatus(ArchiveTransferReplyType atr) {
         return OK.name().equalsIgnoreCase(atr.getReplyCode())
             || WARNING.name().equalsIgnoreCase(atr.getReplyCode());
     }
