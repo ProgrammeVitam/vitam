@@ -26,24 +26,27 @@
  */
 package fr.gouv.vitam.batch.report.client;
 
-import com.fasterxml.jackson.databind.JsonNode;
+import com.google.common.annotations.VisibleForTesting;
 import fr.gouv.vitam.batch.report.model.Report;
 import fr.gouv.vitam.batch.report.model.ReportBody;
 import fr.gouv.vitam.batch.report.model.ReportExportRequest;
 import fr.gouv.vitam.batch.report.model.ReportType;
 import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.ParametersChecker;
-import fr.gouv.vitam.common.client.VitamClientFactoryInterface;
-import fr.gouv.vitam.common.exception.InvalidParseOperationException;
-import fr.gouv.vitam.common.exception.VitamClientInternalException;
 import fr.gouv.vitam.common.client.DefaultClient;
-import fr.gouv.vitam.common.json.JsonHandler;
+import fr.gouv.vitam.common.client.VitamClientFactoryInterface;
+import fr.gouv.vitam.common.client.VitamRequestBuilder;
+import fr.gouv.vitam.common.exception.VitamClientInternalException;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
 
-import javax.ws.rs.HttpMethod;
 import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.MultivaluedHashMap;
 import javax.ws.rs.core.Response;
+
+import static fr.gouv.vitam.common.client.VitamRequestBuilder.delete;
+import static fr.gouv.vitam.common.client.VitamRequestBuilder.post;
+import static javax.ws.rs.core.Response.Status.Family.REDIRECTION;
+import static javax.ws.rs.core.Response.Status.Family.SUCCESSFUL;
+import static javax.ws.rs.core.Response.Status.fromStatusCode;
 
 /**
  * BatchReportClientRest
@@ -53,112 +56,112 @@ public class BatchReportClientRest extends DefaultClient implements BatchReportC
     private static final String APPEND = "append";
     private static final String STORE = "store";
     private static final String CLEANUP = "cleanup";
-    private static final String EXPORT_PURGE_UNIT_DISTINCT_OBJECTGROUPS =
-        "purge_unit/objectgroup_export/";
-    private static final String EXPORT_PURGE_ACCESSION_REGISTER =
-        "purge/accession_register_export/";
+    private static final String EXPORT_PURGE_UNIT_DISTINCT_OBJECTGROUPS = "purge_unit/objectgroup_export/";
+    private static final String EXPORT_PURGE_ACCESSION_REGISTER = "purge/accession_register_export/";
     private static final String UNITS_AND_PROGENY_INVALIDATION = "/computedInheritedRulesInvalidation/";
-    private static final String EMPTY_BODY_ERROR_MESSAGE = "Body should be filled";
 
     /**
      * Constructor using given scheme (http)
      *
      * @param factory The client factory
      */
-    public BatchReportClientRest(VitamClientFactoryInterface<?> factory) {
+    @VisibleForTesting
+    BatchReportClientRest(VitamClientFactoryInterface<?> factory) {
         super(factory);
     }
 
     @Override
     public void generatePurgeDistinctObjectGroupInUnitReport(String processId,
         ReportExportRequest reportExportRequest) throws VitamClientInternalException {
+        ParametersChecker.checkParameter("processId should be filled", processId);
 
-        ParametersChecker.checkParameter("processId and reportExportRequest should be filled", processId,
-            reportExportRequest);
-
-        httpPost(EXPORT_PURGE_UNIT_DISTINCT_OBJECTGROUPS + processId, reportExportRequest);
+        VitamRequestBuilder request = post()
+            .withPath(EXPORT_PURGE_UNIT_DISTINCT_OBJECTGROUPS + processId)
+            .withBody(reportExportRequest)
+            .withHeader(GlobalDataRest.X_TENANT_ID, VitamThreadUtils.getVitamSession().getTenantId())
+            .withJson();
+        try (Response response = make(request)) {
+            check(response);
+        }
     }
 
     @Override
     public void appendReportEntries(ReportBody reportBody)
         throws VitamClientInternalException {
-        ParametersChecker.checkParameter(EMPTY_BODY_ERROR_MESSAGE, reportBody);
-
-        JsonNode body;
-        try {
-            body = JsonHandler.toJsonNode(reportBody);
-        } catch (InvalidParseOperationException e) {
-            throw new VitamClientInternalException(e);
+        VitamRequestBuilder request = post()
+            .withPath(APPEND)
+            .withBody(reportBody)
+            .withHeader(GlobalDataRest.X_TENANT_ID, VitamThreadUtils.getVitamSession().getTenantId())
+            .withJson();
+        try (Response response = make(request)) {
+            check(response);
         }
-
-        httpPost(APPEND, body);
     }
 
     @Override
     public void storeReport(Report reportEntry) throws VitamClientInternalException {
-        ParametersChecker.checkParameter(EMPTY_BODY_ERROR_MESSAGE, reportEntry);
-
-        httpPost(STORE, reportEntry);
+        VitamRequestBuilder request = post()
+            .withPath(STORE)
+            .withBody(reportEntry)
+            .withHeader(GlobalDataRest.X_TENANT_ID, VitamThreadUtils.getVitamSession().getTenantId())
+            .withJson();
+        try (Response response = make(request)) {
+            check(response);
+        }
     }
 
     @Override
     public void exportUnitsToInvalidate(String processId, ReportExportRequest reportExportRequest) throws VitamClientInternalException {
         ParametersChecker.checkParameter("processId parameter should be filled", processId);
-        httpPost(UNITS_AND_PROGENY_INVALIDATION + processId, reportExportRequest);
+
+        VitamRequestBuilder request = post()
+            .withPath(UNITS_AND_PROGENY_INVALIDATION + processId)
+            .withBody(reportExportRequest)
+            .withHeader(GlobalDataRest.X_TENANT_ID, VitamThreadUtils.getVitamSession().getTenantId())
+            .withJson();
+        try (Response response = make(request)) {
+            check(response);
+        }
     }
 
     @Override
     public void generatePurgeAccessionRegisterReport(String processId,
         ReportExportRequest reportExportRequest) throws VitamClientInternalException {
 
-        ParametersChecker.checkParameter("processId and reportExportRequest should be filled", processId,
-            reportExportRequest);
+        ParametersChecker.checkParameter("processId should be filled", processId);
 
-        httpPost(EXPORT_PURGE_ACCESSION_REGISTER + processId, reportExportRequest);
+        VitamRequestBuilder request = post()
+            .withPath(EXPORT_PURGE_ACCESSION_REGISTER + processId)
+            .withBody(reportExportRequest)
+            .withHeader(GlobalDataRest.X_TENANT_ID, VitamThreadUtils.getVitamSession().getTenantId())
+            .withJson();
+        try (Response response = make(request)) {
+            check(response);
+        }
     }
 
     @Override
     public void cleanupReport(String processId, ReportType reportType)
         throws VitamClientInternalException {
-
         ParametersChecker.checkParameter("processId and reportType should be filled", processId, reportType);
 
-        httpDelete(CLEANUP + "/" + reportType + "/" + processId);
-    }
-
-    private void httpPost(String path, Object body)
-        throws VitamClientInternalException {
-        httpRequest(HttpMethod.POST, path, body);
-    }
-
-    private void httpDelete(String path)
-        throws VitamClientInternalException {
-        httpRequest(HttpMethod.DELETE, path, null);
-    }
-
-    private void httpRequest(String httpMethod, String path, Object body) throws VitamClientInternalException {
-
-        Response response = null;
-        try {
-            response = performRequest(httpMethod, path, body);
-            if(response.getStatusInfo().getFamily() != Response.Status.Family.SUCCESSFUL) {
-                throw new VitamClientInternalException("Batch report server returned failure status " + response.getStatusInfo().getStatusCode());
-            }
-        } finally {
-            consumeAnyEntityAndClose(response);
+        VitamRequestBuilder request = delete()
+            .withPath(CLEANUP + "/" + reportType + "/" + processId)
+            .withHeader(GlobalDataRest.X_TENANT_ID, VitamThreadUtils.getVitamSession().getTenantId())
+            .withAccept(MediaType.APPLICATION_JSON_TYPE);
+        try (Response response = make(request)) {
+            check(response);
         }
     }
 
-    private Response performRequest(String httpMethod, String path, Object body) throws VitamClientInternalException {
-        int tenantId = VitamThreadUtils.getVitamSession().getTenantId();
-
-        final MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
-        headers.add(GlobalDataRest.X_TENANT_ID, tenantId);
-        if (body == null) {
-            return performRequest(httpMethod, path, headers, MediaType.APPLICATION_JSON_TYPE);
+    private void check(Response response) throws VitamClientInternalException {
+        Response.Status status = response.getStatusInfo().toEnum();
+        if (SUCCESSFUL.equals(status.getFamily()) || REDIRECTION.equals(status.getFamily())) {
+            return;
         }
 
-        return performRequest(httpMethod, path, headers, body, MediaType.APPLICATION_JSON_TYPE, MediaType.APPLICATION_JSON_TYPE);
-
+        throw new VitamClientInternalException(String
+            .format("Error with the response, get status: '%d' and reason '%s'.", response.getStatus(),
+                fromStatusCode(response.getStatus()).getReasonPhrase()));
     }
 }
