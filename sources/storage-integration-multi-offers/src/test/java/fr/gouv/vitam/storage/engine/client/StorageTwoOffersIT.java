@@ -55,6 +55,8 @@ import fr.gouv.vitam.storage.engine.common.model.DataCategory;
 import fr.gouv.vitam.storage.engine.common.model.OfferSequence;
 import fr.gouv.vitam.storage.engine.common.model.request.BulkObjectStoreRequest;
 import fr.gouv.vitam.storage.engine.common.model.request.ObjectDescription;
+import fr.gouv.vitam.storage.engine.common.model.request.OfferPartialSyncItem;
+import fr.gouv.vitam.storage.engine.common.model.request.OfferPartialSyncRequest;
 import fr.gouv.vitam.storage.engine.common.model.request.OfferSyncRequest;
 import fr.gouv.vitam.storage.engine.common.model.response.BulkObjectStoreResponse;
 import fr.gouv.vitam.storage.engine.common.referential.model.StorageStrategy;
@@ -134,6 +136,7 @@ public class StorageTwoOffersIT {
     static final String WORKSPACE_URL = "http://localhost:" + PORT_SERVICE_WORKSPACE;
 
     private static final int TENANT_0 = 0;
+    private static final int TENANT_1 = 0;
     private static final String DIGEST = "digest";
     private static final String SECOND_OFFER_ID = "default2";
     private static final String OFFER_ID = "default";
@@ -243,8 +246,10 @@ public class StorageTwoOffersIT {
 
     private void storeObjectInOffers(String objectId, DataCategory dataCategory, byte[] data,
         String... offerIds) throws InvalidParseOperationException, StorageServerClientException {
-        storageClient.create(VitamConfiguration.getDefaultStrategy(), objectId, dataCategory, new ByteArrayInputStream(data), (long) data.length,
-            Arrays.asList(offerIds));
+        storageClient
+            .create(VitamConfiguration.getDefaultStrategy(), objectId, dataCategory, new ByteArrayInputStream(data),
+                (long) data.length,
+                Arrays.asList(offerIds));
     }
 
 
@@ -254,15 +259,21 @@ public class StorageTwoOffersIT {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_0);
         RequestResponse<StorageStrategy> response = storageClient.getStorageStrategies();
         assertThat(response.isOk());
-        assertThat(((RequestResponseOK<StorageStrategy>)response).getFirstResult().getOffers().size()).isEqualTo(2);
-        assertThat(((RequestResponseOK<StorageStrategy>)response).getFirstResult().getOffers().get(0).isReferent()).isTrue();
-        assertThat(((RequestResponseOK<StorageStrategy>)response).getFirstResult().getOffers().get(0).getId()).isEqualTo("default");
-        assertThat(((RequestResponseOK<StorageStrategy>)response).getFirstResult().getOffers().get(0).getStatus()).isEqualTo(ActivationStatus.ACTIVE);
-        assertThat(((RequestResponseOK<StorageStrategy>)response).getFirstResult().getOffers().get(1).isReferent()).isFalse();
-        assertThat(((RequestResponseOK<StorageStrategy>)response).getFirstResult().getOffers().get(1).getId()).isEqualTo("default2");
-        assertThat(((RequestResponseOK<StorageStrategy>)response).getFirstResult().getOffers().get(1).getStatus()).isEqualTo(ActivationStatus.ACTIVE);
+        assertThat(((RequestResponseOK<StorageStrategy>) response).getFirstResult().getOffers().size()).isEqualTo(2);
+        assertThat(((RequestResponseOK<StorageStrategy>) response).getFirstResult().getOffers().get(0).isReferent())
+            .isTrue();
+        assertThat(((RequestResponseOK<StorageStrategy>) response).getFirstResult().getOffers().get(0).getId())
+            .isEqualTo("default");
+        assertThat(((RequestResponseOK<StorageStrategy>) response).getFirstResult().getOffers().get(0).getStatus())
+            .isEqualTo(ActivationStatus.ACTIVE);
+        assertThat(((RequestResponseOK<StorageStrategy>) response).getFirstResult().getOffers().get(1).isReferent())
+            .isFalse();
+        assertThat(((RequestResponseOK<StorageStrategy>) response).getFirstResult().getOffers().get(1).getId())
+            .isEqualTo("default2");
+        assertThat(((RequestResponseOK<StorageStrategy>) response).getFirstResult().getOffers().get(1).getStatus())
+            .isEqualTo(ActivationStatus.ACTIVE);
     }
-    
+
     @Test
     @RunWithCustomExecutor
     public void checkStoreInOffers() throws Exception {
@@ -516,7 +527,7 @@ public class StorageTwoOffersIT {
         Response<Void> offerSyncResponseItemCall = startSynchronization(null);
 
         // Then
-        verifyOfferSyncStatus(offerSyncResponseItemCall, null, NB_ACTIONS);
+        verifyOfferSyncStatus(offerSyncResponseItemCall, true, null, NB_ACTIONS);
 
 
         for (int i = 0; i < cpt; i++) {
@@ -527,6 +538,114 @@ public class StorageTwoOffersIT {
             byte[] expectedData = ("Data" + i).getBytes(StandardCharsets.UTF_8);
 
             checkFileExistenceAndContent(filename, OBJECT, exists, expectedData, SECOND_OFFER_ID);
+        }
+    }
+
+
+    @Test
+    @RunWithCustomExecutor
+    public void testPartialSynchronizationOneOfferFromAnother() throws Exception {
+        // Given
+        OfferPartialSyncRequest offerPartialSyncRequest = new OfferPartialSyncRequest()
+            .setSourceOffer(OFFER_ID)
+            .setTargetOffer(SECOND_OFFER_ID)
+            .setStrategyId(STRATEGY_ID)
+            .setItemsToSynchronize(newArrayList());
+
+        // Write 5 file in source offer tenant 0
+        OfferPartialSyncItem offerPartialSyncItem =
+            new OfferPartialSyncItem()
+                .setContainer(OBJECT.getCollectionName())
+                .setFilenames(newArrayList()).setTenantId(TENANT_0);
+        VitamThreadUtils.getVitamSession().setTenantId(TENANT_0);
+        for (int i = 0; i < 5; i++) {
+            // Save in offer source
+            String filename = "ObjectId" + i;
+            byte[] data = ("Data" + i).getBytes(StandardCharsets.UTF_8);
+            storeObjectInOffers(filename, OBJECT, data, OFFER_ID);
+            offerPartialSyncItem.getFilenames().add(filename);
+        }
+        offerPartialSyncRequest.getItemsToSynchronize().add(offerPartialSyncItem);
+
+
+        // Write 5 file in source offer tenant 1
+        offerPartialSyncItem =
+            new OfferPartialSyncItem().setContainer(OBJECT.getCollectionName()).setFilenames(newArrayList()).setTenantId(TENANT_1);
+        VitamThreadUtils.getVitamSession().setTenantId(TENANT_1);
+        for (int i = 5; i < 10; i++) {
+            // Save in offer source
+            String filename = "ObjectId" + i;
+            byte[] data = ("Data" + i).getBytes(StandardCharsets.UTF_8);
+            storeObjectInOffers(filename, OBJECT, data, OFFER_ID);
+            offerPartialSyncItem.getFilenames().add(filename);
+        }
+        offerPartialSyncRequest.getItemsToSynchronize().add(offerPartialSyncItem);
+
+
+        // Write 5 file in target offer tenant 0
+        offerPartialSyncItem =
+            new OfferPartialSyncItem().setContainer(OBJECT.getCollectionName()).setFilenames(newArrayList()).setTenantId(TENANT_0);
+        VitamThreadUtils.getVitamSession().setTenantId(TENANT_0);
+        for (int i = 10; i < 15; i++) {
+            // Save in offer source
+            String filename = "ObjectId" + i;
+            byte[] data = ("Data" + i).getBytes(StandardCharsets.UTF_8);
+            storeObjectInOffers(filename, OBJECT, data, SECOND_OFFER_ID);
+            offerPartialSyncItem.getFilenames().add(filename);
+        }
+        offerPartialSyncRequest.getItemsToSynchronize().add(offerPartialSyncItem);
+
+
+        // Write 5 file in target offer tenant 1
+        offerPartialSyncItem =
+            new OfferPartialSyncItem().setContainer(OBJECT.getCollectionName()).setFilenames(newArrayList()).setTenantId(TENANT_1);
+        VitamThreadUtils.getVitamSession().setTenantId(TENANT_1);
+        for (int i = 15; i < 20; i++) {
+            // Save in offer source
+            String filename = "ObjectId" + i;
+            byte[] data = ("Data" + i).getBytes(StandardCharsets.UTF_8);
+            storeObjectInOffers(filename, OBJECT, data, SECOND_OFFER_ID);
+            offerPartialSyncItem.getFilenames().add(filename);
+        }
+        offerPartialSyncRequest.getItemsToSynchronize().add(offerPartialSyncItem);
+
+
+        // Write 5 file in source and target offer tenant 0
+        offerPartialSyncItem =
+            new OfferPartialSyncItem().setContainer(OBJECT.getCollectionName()).setFilenames(newArrayList()).setTenantId(TENANT_0);
+        VitamThreadUtils.getVitamSession().setTenantId(TENANT_0);
+        for (int i = 20; i < 25; i++) {
+            // Save in offer source
+            String filename = "ObjectId" + i;
+            byte[] data = ("Data" + i).getBytes(StandardCharsets.UTF_8);
+            storeObjectInOffers(filename, OBJECT, data, OFFER_ID, SECOND_OFFER_ID);
+            offerPartialSyncItem.getFilenames().add(filename);
+        }
+        offerPartialSyncRequest.getItemsToSynchronize().add(offerPartialSyncItem);
+
+        // When
+        Response<Void> offerSyncResponseItemCall =
+            offerSyncAdminResource.startSynchronization(offerPartialSyncRequest, getBasicAuthnToken()).execute();
+        // Then
+        verifyOfferSyncStatus(offerSyncResponseItemCall, false, null, 25);
+
+
+        for (int i = 0; i < 25; i++) {
+
+            String filename = "ObjectId" + i;
+            byte[] expectedData = ("Data" + i).getBytes(StandardCharsets.UTF_8);
+            if (i >= 5 && i < 10 || i >= 15 && i < 20) {
+                VitamThreadUtils.getVitamSession().setTenantId(TENANT_1);
+            } else {
+                VitamThreadUtils.getVitamSession().setTenantId(TENANT_0);
+            }
+
+            // files exists only in target offer. synchro from source offer should remove them as they does not exists in source offer
+            if (i >= 10 && i < 20) {
+                checkFileExistenceAndContent(filename, OBJECT, false, expectedData, SECOND_OFFER_ID);
+            } else {
+                checkFileExistenceAndContent(filename, OBJECT, true, expectedData, SECOND_OFFER_ID);
+            }
         }
     }
 
@@ -547,7 +666,7 @@ public class StorageTwoOffersIT {
             Response<Void> offerSyncResponseItemCall = startSynchronization(null);
 
             // Then
-            verifyOfferSyncStatus(offerSyncResponseItemCall, null, 4);
+            verifyOfferSyncStatus(offerSyncResponseItemCall, true, null, 4);
 
 
             checkFileExistenceAndContent("file1", OBJECT, true, "data1".getBytes(), SECOND_OFFER_ID);
@@ -572,7 +691,7 @@ public class StorageTwoOffersIT {
         Response<Void> offerSyncResponseItemCall = startSynchronization(null);
 
         // Then
-        verifyOfferSyncStatus(offerSyncResponseItemCall, null, 4L);
+        verifyOfferSyncStatus(offerSyncResponseItemCall, true, null, 4L);
         checkFileExistenceAndContent("file1", OBJECT, true, "data1".getBytes(), SECOND_OFFER_ID);
         checkFileExistenceAndContent("file2", OBJECT, false, null, SECOND_OFFER_ID);
         checkFileExistenceAndContent("file3", OBJECT, true, "data3".getBytes(), SECOND_OFFER_ID);
@@ -585,7 +704,7 @@ public class StorageTwoOffersIT {
         Response<Void> offerSyncResponseItemCall2 = startSynchronization(4L);
 
         // Then
-        verifyOfferSyncStatus(offerSyncResponseItemCall2, 4L, 6L);
+        verifyOfferSyncStatus(offerSyncResponseItemCall2, true, 4L, 6L);
         checkFileExistenceAndContent("file1", OBJECT, false, null, SECOND_OFFER_ID);
         checkFileExistenceAndContent("file2", OBJECT, false, null, SECOND_OFFER_ID);
         checkFileExistenceAndContent("file3", OBJECT, true, "data3".getBytes(), SECOND_OFFER_ID);
@@ -603,7 +722,8 @@ public class StorageTwoOffersIT {
             getBasicAuthnToken()).execute();
     }
 
-    private void verifyOfferSyncStatus(Response<Void> offerSyncResponseItemCall, Long startOffset, long expectedOffset)
+    private void verifyOfferSyncStatus(Response<Void> offerSyncResponseItemCall, boolean checkOffsetAndContainer,
+        Long startOffset, long expectedOffset)
         throws IOException {
         assertThat(offerSyncResponseItemCall.code()).isEqualTo(200);
 
@@ -618,11 +738,14 @@ public class StorageTwoOffersIT {
         assertThat(offerSyncStatus.getEndDate()).isNotNull();
         assertThat(offerSyncStatus.getSourceOffer()).isEqualTo(OFFER_ID);
         assertThat(offerSyncStatus.getTargetOffer()).isEqualTo(SECOND_OFFER_ID);
-        assertThat(offerSyncStatus.getContainer()).isEqualTo(DataCategory.OBJECT.getCollectionName());
         assertThat(offerSyncStatus.getRequestId())
             .isEqualTo(offerSyncResponseItemCall.headers().get(X_REQUEST_ID));
-        assertThat(offerSyncStatus.getStartOffset()).isEqualTo(startOffset);
-        assertThat(offerSyncStatus.getCurrentOffset()).isEqualTo(expectedOffset);
+
+        if (checkOffsetAndContainer) {
+            assertThat(offerSyncStatus.getContainer()).isEqualTo(DataCategory.OBJECT.getCollectionName());
+            assertThat(offerSyncStatus.getStartOffset()).isEqualTo(startOffset);
+            assertThat(offerSyncStatus.getCurrentOffset()).isEqualTo(expectedOffset);
+        }
     }
 
     private void deleteObjectFromOffers(String filename, DataCategory dataCategory,
@@ -914,7 +1037,7 @@ public class StorageTwoOffersIT {
 
     private void checkOfferSequence(MongoRule mongoRule, int size) {
         Document seqDoc = mongoRule.getMongoCollection(OfferCollections.OFFER_SEQUENCE.getName()).find().first();
-        long offerSeq = seqDoc == null? 0L : ((Number) seqDoc.get(OfferSequence.COUNTER_FIELD)).longValue();
+        long offerSeq = seqDoc == null ? 0L : ((Number) seqDoc.get(OfferSequence.COUNTER_FIELD)).longValue();
         assertThat(offerSeq).isEqualTo(size);
     }
 
@@ -943,7 +1066,17 @@ public class StorageTwoOffersIT {
         return Credentials.basic(BASIC_AUTHN_USER, BASIC_AUTHN_PWD);
     }
 
+
     public interface OfferSyncAdminResource {
+
+        @POST("/storage/v1/offerPartialSync")
+        @Headers({
+            "Accept: application/json",
+            "Content-Type: application/json"
+        })
+        Call<Void> startSynchronization(
+            @Body OfferPartialSyncRequest offerPartialSyncRequest,
+            @Header("Authorization") String basicAuthnToken);
 
         @POST("/storage/v1/offerSync")
         @Headers({
@@ -953,6 +1086,7 @@ public class StorageTwoOffersIT {
         Call<Void> startSynchronization(
             @Body OfferSyncRequest offerSyncRequest,
             @Header("Authorization") String basicAuthnToken);
+
 
         @HEAD("/storage/v1/offerSync")
         Call<Void> isOfferSynchronizationRunning(
