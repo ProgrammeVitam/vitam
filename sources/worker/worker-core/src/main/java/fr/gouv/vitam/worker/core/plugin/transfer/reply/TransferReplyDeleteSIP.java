@@ -24,7 +24,6 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  */
-
 package fr.gouv.vitam.worker.core.plugin.transfer.reply;
 
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
@@ -38,7 +37,7 @@ import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 import fr.gouv.vitam.worker.common.HandlerIO;
 import fr.gouv.vitam.worker.core.handler.ActionHandler;
 import fr.gouv.vitam.worker.core.plugin.transfer.reply.model.TransferReplyContext;
-import fr.gouv.vitam.worker.core.utils.PluginHelper;
+import fr.gouv.vitam.worker.core.utils.PluginHelper.EventDetails;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
 import fr.gouv.vitam.workspace.client.WorkspaceClient;
@@ -48,6 +47,7 @@ import java.io.File;
 import static fr.gouv.vitam.common.model.StatusCode.FATAL;
 import static fr.gouv.vitam.worker.core.plugin.dip.StoreExports.TRANSFER_CONTAINER;
 import static fr.gouv.vitam.worker.core.utils.PluginHelper.buildItemStatus;
+import static fr.gouv.vitam.worker.core.utils.PluginHelper.buildItemStatusWithMessage;
 
 public class TransferReplyDeleteSIP extends ActionHandler {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(SaveAtrPlugin.class);
@@ -56,7 +56,6 @@ public class TransferReplyDeleteSIP extends ActionHandler {
     private static final int TRANSFER_REPLY_CONTEXT_IN_RANK = 0;
 
     public TransferReplyDeleteSIP() {
-
     }
 
     @Override
@@ -70,11 +69,11 @@ public class TransferReplyDeleteSIP extends ActionHandler {
             workspaceClient.deleteObject(TRANSFER_CONTAINER, tenantFolder + "/" + optId);
         } catch (InvalidParseOperationException | ContentAddressableStorageServerException e) {
             LOGGER.error(e);
-            return buildItemStatus(PLUGIN_NAME, FATAL, PluginHelper.EventDetails.of(e.getMessage()));
+            return buildItemStatus(PLUGIN_NAME, FATAL, EventDetails.of(e.getMessage()));
         } catch (ContentAddressableStorageNotFoundException e) {
-            return buildItemStatus(PLUGIN_NAME, StatusCode.WARNING, "File not found");
+            return buildItemStatusWithMessage(PLUGIN_NAME, StatusCode.WARNING, "File not found");
         }
 
-        return buildItemStatus(PLUGIN_NAME, StatusCode.OK, null);
+        return buildItemStatusWithMessage(PLUGIN_NAME, StatusCode.OK, "Delete SIP ok.");
     }
 }
