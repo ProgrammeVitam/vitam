@@ -47,6 +47,8 @@ public class AuditObjectVersion {
     private String qualifier;
     @JsonProperty("version")
     private String version;
+    @JsonProperty("strategyId")
+    private String strategyId;
     @JsonProperty("offerIds")
     private List<ReportItemStatus> offerStatuses;
     @JsonProperty("status")
@@ -55,13 +57,14 @@ public class AuditObjectVersion {
     public AuditObjectVersion() {
     }
 
-    public AuditObjectVersion(String id, String opi, String qualifier, String version, List<ReportItemStatus> offerStatuses,
+    public AuditObjectVersion(String id, String opi, String qualifier, String version, String strategyId, List<ReportItemStatus> offerStatuses,
             ReportStatus status) {
         super();
         this.id = id;
         this.opi = opi;
         this.qualifier = qualifier;
         this.version = version;
+        this.strategyId = strategyId;
         this.offerStatuses = offerStatuses;
         this.status = status;
     }
@@ -98,6 +101,14 @@ public class AuditObjectVersion {
         this.version = version;
     }
 
+    public String getStrategyId() {
+        return strategyId;
+    }
+    
+    public void setStrategyId(String strategyId) {
+        this.strategyId = strategyId;
+    }
+    
     public List<ReportItemStatus> getOfferStatuses() {
         return offerStatuses;
     }

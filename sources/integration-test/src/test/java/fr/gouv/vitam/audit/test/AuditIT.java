@@ -41,6 +41,7 @@ import fr.gouv.vitam.common.VitamRuleRunner;
 import fr.gouv.vitam.common.VitamServerRunner;
 import fr.gouv.vitam.common.accesslog.AccessLogUtils;
 import fr.gouv.vitam.common.client.VitamClientFactory;
+import fr.gouv.vitam.common.database.builder.query.QueryHelper;
 import fr.gouv.vitam.common.database.builder.request.multiple.SelectMultiQuery;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamException;
@@ -51,9 +52,12 @@ import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.model.AuditOptions;
 import fr.gouv.vitam.common.model.ProcessAction;
 import fr.gouv.vitam.common.model.RequestResponse;
+import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.model.administration.AccessContractModel;
 import fr.gouv.vitam.common.model.administration.ActivationStatus;
+import fr.gouv.vitam.common.model.objectgroup.ObjectGroupResponse;
+import fr.gouv.vitam.common.model.objectgroup.QualifiersModel;
 import fr.gouv.vitam.common.model.processing.WorkFlow;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
@@ -67,6 +71,8 @@ import fr.gouv.vitam.logbook.common.parameters.LogbookOperationParameters;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParametersFactory;
 import fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess;
 import fr.gouv.vitam.logbook.rest.LogbookMain;
+import fr.gouv.vitam.metadata.client.MetaDataClient;
+import fr.gouv.vitam.metadata.client.MetaDataClientFactory;
 import fr.gouv.vitam.metadata.core.database.collections.MetadataCollections;
 import fr.gouv.vitam.metadata.rest.MetadataMain;
 import fr.gouv.vitam.processing.data.core.ProcessDataAccessImpl;
@@ -89,6 +95,7 @@ import org.junit.ClassRule;
 import org.junit.Test;
 
 import javax.ws.rs.core.Response;
+
 import java.io.BufferedReader;
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -98,6 +105,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Optional;
 
 import static fr.gouv.vitam.common.VitamServerRunner.NB_TRY;
 import static fr.gouv.vitam.common.VitamServerRunner.PORT_SERVICE_ACCESS_INTERNAL;
@@ -106,8 +114,8 @@ import static fr.gouv.vitam.common.client.VitamClientFactoryInterface.VitamClien
 import static fr.gouv.vitam.common.guid.GUIDFactory.newOperationLogbookGUID;
 import static fr.gouv.vitam.common.stream.StreamUtils.consumeAnyEntityAndClose;
 import static fr.gouv.vitam.common.thread.VitamThreadUtils.getVitamSession;
-import static fr.gouv.vitam.purge.EndToEndEliminationAndTransferReplyIT.prepareVitamSession;
 import static fr.gouv.vitam.preservation.ProcessManagementWaiter.waitOperation;
+import static fr.gouv.vitam.purge.EndToEndEliminationAndTransferReplyIT.prepareVitamSession;
 import static java.util.Collections.singletonList;
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -237,7 +245,7 @@ public class AuditIT extends VitamRuleRunner {
             ArrayNode jsonNode = (ArrayNode) accessClient
                     .selectOperationById(operationGuid.getId(), new SelectMultiQuery().getFinalSelect()).toJsonNode()
                     .get("$results").get(0).get("events");
-            System.out.println(JsonHandler.prettyPrint(jsonNode));
+
             // Then
             assertThat(jsonNode.iterator()).extracting(j -> j.get("outcome").asText())
                     .allMatch(outcome -> outcome.equals(StatusCode.OK.name()));
@@ -319,7 +327,6 @@ public class AuditIT extends VitamRuleRunner {
             ArrayNode jsonNode = (ArrayNode) accessClient
                     .selectOperationById(operationGuid.getId(), new SelectMultiQuery().getFinalSelect()).toJsonNode()
                     .get("$results").get(0).get("events");
-            System.out.println(JsonHandler.prettyPrint(jsonNode));
             // Then
             assertThat(jsonNode.iterator()).extracting(j -> j.get("outcome").asText())
                     .allMatch(outcome -> outcome.equals(StatusCode.OK.name()));
@@ -359,6 +366,88 @@ public class AuditIT extends VitamRuleRunner {
             assertThat(reportLines.get(2).get("auditActions").asText()).isEqualTo("AUDIT_FILE_INTEGRITY");
             assertThat(reportLines.get(2).get("auditType").asText()).isEqualTo("originatingagency");
             assertThat(reportLines.get(2).get("objectId").asText()).isEqualTo("FRAN_NP_009913");
+        }
+    }
+
+    @Test
+    @RunWithCustomExecutor
+    public void should_execute_audit_workflow_existence_with_error() throws Exception {
+        
+        String ingestOperationId1 = doIngest("elimination/TEST_ELIMINATION.zip");
+        
+        try (MetaDataClient metadataClient = MetaDataClientFactory.getInstance().getClient();
+                StorageClient storageClient = StorageClientFactory.getInstance().getClient()) {
+            SelectMultiQuery select = new SelectMultiQuery();
+            select.setQuery(QueryHelper.in("#operations", ingestOperationId1));
+            JsonNode resp = metadataClient.selectObjectGroups(select.getFinalSelect());
+            RequestResponseOK<JsonNode> responseOK = RequestResponseOK.getFromJsonNode(resp);
+            ObjectGroupResponse got = JsonHandler.getFromJsonNode(responseOK.getFirstResult(), ObjectGroupResponse.class);
+            Optional<QualifiersModel> binaryMasters = got.getQualifiers().stream().filter(qualifier ->  "BinaryMaster".equals(qualifier.getQualifier())).findFirst();
+            storageClient.delete(binaryMasters.get().getVersions().get(0).getStorage().getStrategyId(),
+                    DataCategory.OBJECT, binaryMasters.get().getVersions().get(0).getId());
+        }
+
+        // Given
+        try (AccessInternalClient accessClient = AccessInternalClientFactory.getInstance().getClient();
+                AdminManagementClient adminClient = AdminManagementClientFactory.getInstance().getClient()) {
+            GUID operationGuid = GUIDFactory.newOperationLogbookGUID(tenantId);
+            VitamThreadUtils.getVitamSession().setTenantId(tenantId);
+            VitamThreadUtils.getVitamSession().setContractId(contractId);
+            VitamThreadUtils.getVitamSession().setContextId("Context_IT");
+            VitamThreadUtils.getVitamSession().setRequestId(operationGuid);
+
+            AuditOptions options = new AuditOptions();
+            options.setAuditActions(AuditExistenceService.CHECK_EXISTENCE_ID);
+            options.setAuditType("tenant");
+            options.setObjectId("" + tenantId);
+
+            RequestResponse<JsonNode> response = adminClient.launchAuditWorkflow(options);
+            assertThat(response.isOk()).isTrue();
+            waitOperation(NB_TRY, SLEEP_TIME, operationGuid.toString());
+
+            // When
+            ArrayNode jsonNode = (ArrayNode) accessClient
+                    .selectOperationById(operationGuid.getId(), new SelectMultiQuery().getFinalSelect()).toJsonNode()
+                    .get("$results").get(0).get("events");
+            System.out.println(JsonHandler.prettyPrint(jsonNode));
+            // Then
+            assertThat(jsonNode.iterator()).extracting(j -> j.get("outcome").asText())
+                .anyMatch(outcome -> outcome.equals(StatusCode.KO.name()));
+
+            // Check report
+            List<JsonNode> reportLines = null;
+            try (StorageClient storageClient = StorageClientFactory.getInstance().getClient()) {
+                Response reportResponse = null;
+                try {
+                    reportResponse = storageClient.getContainerAsync(VitamConfiguration.getDefaultStrategy(),
+                            operationGuid.toString() + ".jsonl", DataCategory.REPORT,
+                            AccessLogUtils.getNoLogAccessLog());
+                    assertThat(reportResponse.getStatus()).isEqualTo(Response.Status.OK.getStatusCode());
+                    reportLines = getReport(reportResponse);
+                } finally {
+                    consumeAnyEntityAndClose(reportResponse);
+                }
+            }
+            assertThat(reportLines.size()).isEqualTo(4);
+            assertThat(reportLines.get(1).get("vitamResults").get("OK").asInt()).isEqualTo(2);
+            assertThat(reportLines.get(1).get("vitamResults").get("WARNING").asInt()).isEqualTo(0);
+            assertThat(reportLines.get(1).get("vitamResults").get("KO").asInt()).isEqualTo(1);
+            assertThat(reportLines.get(1).get("extendedInfo").get("nbObjectGroups").asInt()).isEqualTo(3);
+            assertThat(reportLines.get(1).get("extendedInfo").get("nbObjects").asInt()).isEqualTo(4);
+            assertThat(reportLines.get(1).get("extendedInfo").get("opis").isArray()).isTrue();
+            assertThat(reportLines.get(1).get("extendedInfo").get("opis").get(0).asText()).isEqualTo(ingestOperationId1);
+            assertThat(reportLines.get(1).get("extendedInfo").get("globalResults").get("objectGroupsCount").get("KO").asInt()).isEqualTo(1);
+            assertThat(reportLines.get(1).get("extendedInfo").get("globalResults").get("objectsCount").get("KO").asInt()).isEqualTo(1);
+            assertThat(reportLines.get(1).get("extendedInfo").get("originatingAgencyResults").get("RATP").get("objectGroupsCount").get("KO").asInt()).isEqualTo(1);
+            assertThat(reportLines.get(1).get("extendedInfo").get("originatingAgencyResults").get("RATP").get("objectsCount").get("KO").asInt()).isEqualTo(1);
+            assertThat(reportLines.get(2).get("auditActions").asText()).isEqualTo("AUDIT_FILE_EXISTING");
+            assertThat(reportLines.get(2).get("auditType").asText()).isEqualTo("tenant");
+            assertThat(reportLines.get(2).get("objectId").asText()).isEqualTo("0");
+            assertThat(reportLines.get(3).get("params").get("status").asText()).isEqualTo("KO");
+            assertThat(reportLines.get(3).get("params").get("objectVersions").get(0).get("qualifier").asText()).isEqualTo("BinaryMaster");
+            assertThat(reportLines.get(3).get("params").get("objectVersions").get(0).get("version").asText()).isEqualTo("BinaryMaster_1");
+            assertThat(reportLines.get(3).get("params").get("objectVersions").get(0).get("strategyId").asText()).isEqualTo("default");
+            
         }
     }
 

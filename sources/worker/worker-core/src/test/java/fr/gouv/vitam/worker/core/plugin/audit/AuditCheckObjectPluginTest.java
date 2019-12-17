@@ -8,7 +8,6 @@ import java.io.FileNotFoundException;
 import java.util.List;
 
 import fr.gouv.vitam.common.PropertiesUtils;
-import org.apache.commons.io.FileUtils;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -24,7 +23,6 @@ import com.fasterxml.jackson.databind.JsonNode;
 
 import fr.gouv.vitam.batch.report.model.entry.AuditObjectGroupReportEntry;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
-import fr.gouv.vitam.common.exception.VitamClientInternalException;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.model.ItemStatus;
