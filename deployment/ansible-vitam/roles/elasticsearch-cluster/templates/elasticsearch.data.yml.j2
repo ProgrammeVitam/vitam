@@ -80,7 +80,20 @@ discovery.zen.ping.unicast.hosts: [ {% for host in groups['hosts_elasticsearch_d
 #
 # Prevent the "split brain" by configuring the majority of nodes (total number of nodes / 2 + 1):
 #
+{% if composant.discovery_zen_minimum_master_nodes is defined %}
+discovery.zen.minimum_master_nodes: {{ composant.discovery_zen_minimum_master_nodes }}
+
+{% else %}
+{% if groups['hosts_elasticsearch_data']|length < 4 %}
+# for small deployments ; should be located only in "one rack_id"
 discovery.zen.minimum_master_nodes: {{ ((groups['hosts_elasticsearch_data']|length / 2)+1)| round (0, 'floor')| int }}
+
+{% else %}
+# Between ((N/2)-1) and (N/2) ; may be usefull when 2 "rooms"
+discovery.zen.minimum_master_nodes: {{ (groups['hosts_elasticsearch_data']|length / 2)| round (0, 'floor')| int }}
+
+{% endif %}
+{% endif %}
 #
 # For more information, see the documentation at:
 # <http://www.elastic.co/guide/en/elasticsearch/reference/current/modules-discovery.html>
