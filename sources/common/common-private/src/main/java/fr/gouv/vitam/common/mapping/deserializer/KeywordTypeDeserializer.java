@@ -1,4 +1,4 @@
-/*******************************************************************************
+/*
  * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2019)
  *
  * contact.vitam@culture.gouv.fr
@@ -23,32 +23,36 @@
  *
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
- *******************************************************************************/
-package fr.gouv.vitam.common.mapping.serializer;
+ */
+package fr.gouv.vitam.common.mapping.deserializer;
 
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.databind.DeserializationContext;
 import com.fasterxml.jackson.databind.JsonDeserializer;
 import com.fasterxml.jackson.databind.JsonNode;
-import fr.gouv.culture.archivesdefrance.seda.v2.LevelType;
+import fr.gouv.culture.archivesdefrance.seda.v2.CodeKeywordType;
+import fr.gouv.culture.archivesdefrance.seda.v2.KeyType;
 
 import java.io.IOException;
 
 /**
- * Deserialize a (json, xml, string) representation to LevelType To be registered in jackson objectMapper
+ * Deserialize a (json, xml, string) representation to LevelType
+ * To be registered in jackson objectMapper
  */
-public class LevelTypeDeserializer extends JsonDeserializer<LevelType> {
+public class KeywordTypeDeserializer extends JsonDeserializer<KeyType> {
     /**
      *
      * @param jp (json, xml, string) representation
      * @param ctxt
-     * @return the level type
+     * @return a keyword type
      * @throws IOException
      */
     @Override
-    public LevelType deserialize(JsonParser jp, DeserializationContext ctxt) throws IOException {
+    public KeyType deserialize(JsonParser jp, DeserializationContext ctxt) throws IOException {
         JsonNode node = jp.getCodec().readTree(jp);
-        return LevelType.fromValue(node.asText());
+        KeyType keywordType = new KeyType();
+        keywordType.setValue(CodeKeywordType.fromValue(node.asText()));
+        return keywordType;
     }
 
 }

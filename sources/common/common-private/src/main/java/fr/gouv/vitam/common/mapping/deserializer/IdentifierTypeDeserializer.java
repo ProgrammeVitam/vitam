@@ -1,4 +1,4 @@
-/*******************************************************************************
+/*
  * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2019)
  *
  * contact.vitam@culture.gouv.fr
@@ -23,36 +23,37 @@
  *
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
- *******************************************************************************/
-package fr.gouv.vitam.common.mapping.serializer;
+ */
+package fr.gouv.vitam.common.mapping.deserializer;
 
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.databind.DeserializationContext;
 import com.fasterxml.jackson.databind.JsonDeserializer;
 import com.fasterxml.jackson.databind.JsonNode;
-import fr.gouv.culture.archivesdefrance.seda.v2.CodeKeywordType;
-import fr.gouv.culture.archivesdefrance.seda.v2.KeyType;
+import fr.gouv.culture.archivesdefrance.seda.v2.IdentifierType;
 
 import java.io.IOException;
 
 /**
- * Deserialize a (json, xml, string) representation to LevelType
+ * Deserialize a (json, xml, string) representation to IdentifierType
  * To be registered in jackson objectMapper
  */
-public class KeywordTypeDeserializer extends JsonDeserializer<KeyType> {
+public class IdentifierTypeDeserializer extends JsonDeserializer<IdentifierType> {
     /**
      *
-     * @param jp (json, xml, string) representation
+     * @param jp representation (json, xml, string)
      * @param ctxt
-     * @return a keyword type
+     * @return the identifier type
      * @throws IOException
      */
     @Override
-    public KeyType deserialize(JsonParser jp, DeserializationContext ctxt) throws IOException {
+    public IdentifierType deserialize(JsonParser jp, DeserializationContext ctxt) throws IOException {
         JsonNode node = jp.getCodec().readTree(jp);
-        KeyType keywordType = new KeyType();
-        keywordType.setValue(CodeKeywordType.fromValue(node.asText()));
-        return keywordType;
+
+        IdentifierType identifierType = new IdentifierType();
+        identifierType.setValue(node.asText());
+
+        return identifierType;
     }
 
 }

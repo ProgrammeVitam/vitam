@@ -294,6 +294,8 @@ public class IngestInternalIT extends VitamRuleRunner {
         "integration-ingest-internal/OK_OBJECT.zip";
     private static String OK_ATTACHMENT_GOT_SP_DIFFERENTS =
         "integration-ingest-internal/rattachement_objet_GOT_mauvaisSP_TC.zip";
+    private static String SIP_WITH_ORGANIZATION_METADATA_DESCRIPTION_FREE_TAGS =
+        "integration-ingest-internal/sip_with_organization_descriptive_metadata_free_tags.zip";
     private static LogbookElasticsearchAccess esClient;
     private WorkFlow holding = WorkFlow.of(HOLDING_SCHEME, HOLDING_SCHEME_IDENTIFIER, "MASTERDATA");
     private WorkFlow ingestSip = WorkFlow.of(WORKFLOW_ID, CONTEXT_ID, "INGEST");
@@ -2722,6 +2724,51 @@ public class IngestInternalIT extends VitamRuleRunner {
         } catch (Exception e) {
             SysErrLogger.FAKE_LOGGER.ignoreLog(e);
         }
+    }
+
+    @RunWithCustomExecutor
+    @Test
+    public void testIngestWithOrganizationDescriptiveMetadataFreeTagsThenOK() throws Exception {
+        final GUID operationGuid = GUIDFactory.newOperationLogbookGUID(tenantId);
+        prepareVitamSession();
+        VitamThreadUtils.getVitamSession().setRequestId(operationGuid);
+
+        // workspace client unzip SIP in workspace
+        final InputStream zipInputStreamSipObject =
+            PropertiesUtils.getResourceAsStream(SIP_WITH_ORGANIZATION_METADATA_DESCRIPTION_FREE_TAGS);
+
+        // init default logbook operation
+        final List<LogbookOperationParameters> params = new ArrayList<>();
+        final LogbookOperationParameters initParameters = LogbookParametersFactory.newLogbookOperationParameters(
+            operationGuid, "Process_SIP_unitary", operationGuid,
+            LogbookTypeProcess.INGEST, StatusCode.STARTED,
+            operationGuid != null ? operationGuid.toString() : "outcomeDetailMessage",
+            operationGuid);
+        params.add(initParameters);
+
+        // call ingest
+        IngestInternalClientFactory.getInstance().changeServerPort(runner.PORT_SERVICE_INGEST_INTERNAL);
+        final IngestInternalClient client = IngestInternalClientFactory.getInstance().getClient();
+        client.uploadInitialLogbook(params);
+
+        // init workflow before execution
+        client.initWorkflow(ingestSip);
+
+        client.upload(zipInputStreamSipObject, CommonMediaType.ZIP_TYPE, ingestSip, ProcessAction.RESUME.name());
+
+        awaitForWorkflowTerminationWithStatus(operationGuid, StatusCode.WARNING);
+
+        // Try to check AU and custodialHistoryModel
+        final MetaDataClient metadataClient = MetaDataClientFactory.getInstance().getClient();
+        final JsonNode node = getArchiveUnitWithTitle(metadataClient,
+            "Chemin des Dames - Ce que fut le Monument d'Hurtebise", "Title_.fr");
+
+        final JsonNode result = node.get("$results");
+        assertNotNull(result);
+
+        String identifierType = result.get(0).get("OriginatingAgency").get("Identifier").asText();
+        assertEquals(identifierType,"RATP");
+        assertThat(result.get(0).get("OriginatingAgency").get("OrganizationDescriptiveMetadata").get("DescriptionOA").get(0).asText()).isEqualTo("La RATP est un établissement public");
     }
 
     private void putSystemIdInManifest(String targetFilename, String textToReplace, String replacementText)

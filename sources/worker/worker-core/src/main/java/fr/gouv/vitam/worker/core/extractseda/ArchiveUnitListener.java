@@ -46,6 +46,7 @@ import fr.gouv.culture.archivesdefrance.seda.v2.IdentifierType;
 import fr.gouv.culture.archivesdefrance.seda.v2.KeyType;
 import fr.gouv.culture.archivesdefrance.seda.v2.LevelType;
 import fr.gouv.culture.archivesdefrance.seda.v2.ObjectGroupRefType;
+import fr.gouv.culture.archivesdefrance.seda.v2.OrganizationDescriptiveMetadataType;
 import fr.gouv.culture.archivesdefrance.seda.v2.RelatedObjectReferenceType;
 import fr.gouv.culture.archivesdefrance.seda.v2.SignatureType;
 import fr.gouv.culture.archivesdefrance.seda.v2.TextType;
@@ -256,6 +257,7 @@ public class ArchiveUnitListener extends Unmarshaller.Listener {
         module.addSerializer(TextType.class, new TextTypeSerializer());
         module.addSerializer(LevelType.class, new LevelTypeSerializer());
         module.addSerializer(IdentifierType.class, new IdentifierTypeSerializer());
+        module.addSerializer(OrganizationDescriptiveMetadataType.class, new OrganizationDescriptiveMetadataTypeSerializer());
         module.addSerializer(XMLGregorianCalendar.class, new XMLGregorianCalendarSerializer());
         module.addSerializer(TextByLang.class, new TextByLangSerializer());
         module.addSerializer(KeyType.class, new KeywordTypeSerializer());

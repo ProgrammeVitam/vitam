@@ -101,6 +101,9 @@
         "properties": {
           "Identifier": {
             "type": "keyword"
+          },
+          "OrganizationDescriptiveMetadata": {
+            "type": "object"
           }
         }
       },
@@ -133,6 +136,9 @@
         "properties": {
           "Identifier": {
             "type": "keyword"
+          },
+          "OrganizationDescriptiveMetadata": {
+            "type": "object"
           }
         }
       },
@@ -1462,5 +1468,3 @@
     }
   }
 }
-
-
