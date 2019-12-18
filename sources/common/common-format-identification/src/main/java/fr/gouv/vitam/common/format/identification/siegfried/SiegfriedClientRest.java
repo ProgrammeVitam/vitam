@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2019)
  *
  * contact.vitam@culture.gouv.fr
@@ -24,42 +24,42 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  */
-
 package fr.gouv.vitam.common.format.identification.siegfried;
 
 import java.nio.file.Path;
 
-import javax.ws.rs.HttpMethod;
-import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.MultivaluedHashMap;
+import javax.ws.rs.core.MultivaluedMap;
 import javax.ws.rs.core.Response;
 
 import com.fasterxml.jackson.databind.JsonNode;
 
 import fr.gouv.vitam.common.BaseXx;
 import fr.gouv.vitam.common.client.DefaultClient;
+import fr.gouv.vitam.common.client.VitamRequestBuilder;
+import fr.gouv.vitam.common.exception.VitamClientInternalException;
 import fr.gouv.vitam.common.format.identification.exception.FormatIdentifierNotFoundException;
 import fr.gouv.vitam.common.format.identification.exception.FormatIdentifierTechnicalException;
-import fr.gouv.vitam.common.logging.VitamLogger;
-import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 
-/**
- * HTTP implementation of siegfried client.
- */
+import static fr.gouv.vitam.common.client.VitamRequestBuilder.get;
+import static fr.gouv.vitam.common.format.identification.siegfried.SiegfriedQueryParams.BASE64;
+import static fr.gouv.vitam.common.format.identification.siegfried.SiegfriedQueryParams.FORMAT;
+import static fr.gouv.vitam.common.format.identification.siegfried.SiegfriedQueryParams.SCAN_ENTRIES_WITHIN_ZIP;
+import static javax.ws.rs.core.Response.Status.Family.REDIRECTION;
+import static javax.ws.rs.core.Response.Status.Family.SUCCESSFUL;
+import static javax.ws.rs.core.Response.Status.NOT_FOUND;
+import static javax.ws.rs.core.Response.Status.fromStatusCode;
+
 public class SiegfriedClientRest extends DefaultClient implements SiegfriedClient {
-    private static final String INTERNAL_ERROR_MSG = "Internal server error";
+    public static final MultivaluedMap<String, Object> SIEGFRIED_QUERY_PARAMS = new MultivaluedHashMap<>();
+    static {
+        SIEGFRIED_QUERY_PARAMS.putSingle(FORMAT.getParameter(), FORMAT.getValue());
+        SIEGFRIED_QUERY_PARAMS.putSingle(BASE64.getParameter(), BASE64.getValue());
+        SIEGFRIED_QUERY_PARAMS.putSingle(SCAN_ENTRIES_WITHIN_ZIP.getParameter(), SCAN_ENTRIES_WITHIN_ZIP.getValue());
+    }
 
-    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(SiegfriedClientRest.class);
-
-    private static  final String GET_URL_PARAM = "";//?base64=true";
-
-    /**
-     * Create a new Siegfried HTTP Client
-     *
-     * @param factory
-     */
     SiegfriedClientRest(SiegfriedClientFactory factory) {
         super(factory);
     }
@@ -67,55 +67,31 @@ public class SiegfriedClientRest extends DefaultClient implements SiegfriedClien
     @Override
     public RequestResponse<JsonNode> analysePath(Path filePath)
         throws FormatIdentifierTechnicalException, FormatIdentifierNotFoundException {
-        LOGGER.debug("Path to analyze: " + filePath);
-        return handleCommonResponse(callSiegfried(filePath));
+        String encodedFilePath = BaseXx.getBase64UrlWithPadding(filePath.toString().getBytes());
+        VitamRequestBuilder request = get().withPath("/" + encodedFilePath).withQueryParams(SIEGFRIED_QUERY_PARAMS).withJsonAccept();
+        try (Response response = make(request)) {
+            check(response);
+            return new RequestResponseOK().addResult(response.readEntity(JsonNode.class));
+        } catch (VitamClientInternalException e) {
+            throw new FormatIdentifierTechnicalException(e);
+        }
     }
 
     @Override
     public RequestResponse<JsonNode> status(Path filePath)
         throws FormatIdentifierTechnicalException, FormatIdentifierNotFoundException {
-        return handleCommonResponse(callSiegfried(filePath));
+        return analysePath(filePath);
     }
 
-    private Response callSiegfried(Path filePath) throws FormatIdentifierTechnicalException {
-        LOGGER.debug("Call siegfried server");
-        final String encodedFilePath = BaseXx.getBase64UrlWithPadding(filePath.toString().getBytes());
-        Response response = null;
-        try {
-            response =
-                performRequest(HttpMethod.GET, "/" + encodedFilePath, null, getQueryParameters(), MediaType.APPLICATION_JSON_TYPE);
-        } catch (final Exception e) {
-            LOGGER.error("While call Siegfried HTTP Client", e);
-            consumeAnyEntityAndClose(response);
-            throw new FormatIdentifierTechnicalException(e);
+    private void check(Response response) throws FormatIdentifierNotFoundException, FormatIdentifierTechnicalException {
+        Response.Status status = response.getStatusInfo().toEnum();
+        if (SUCCESSFUL.equals(status.getFamily()) || REDIRECTION.equals(status.getFamily())) {
+            return;
         }
-
-        return response;
-    }
-
-    private RequestResponse handleCommonResponse(Response response)
-        throws FormatIdentifierTechnicalException, FormatIdentifierNotFoundException {
-        try {
-            final Response.Status status = Response.Status.fromStatusCode(response.getStatus());
-            switch (status) {
-                case OK:
-                    return new RequestResponseOK().addResult(response.readEntity(JsonNode.class));
-                case NOT_FOUND:
-                    throw new FormatIdentifierNotFoundException(status.getReasonPhrase());
-                default:
-                    LOGGER.error(INTERNAL_ERROR_MSG + status.getReasonPhrase());
-                    throw new FormatIdentifierTechnicalException(INTERNAL_ERROR_MSG);
-            }
-        } finally {
-            consumeAnyEntityAndClose(response);
+        String message = String.format("Error with the response, get status: '%d' and reason '%s'.", response.getStatus(), fromStatusCode(response.getStatus()).getReasonPhrase());
+        if (NOT_FOUND.equals(status)) {
+            throw new FormatIdentifierNotFoundException(message);
         }
-    }
-
-    private MultivaluedHashMap<String, Object> getQueryParameters() {
-        final MultivaluedHashMap<String, Object> queryParametersMap = new MultivaluedHashMap<>();
-        for(SiegfriedQueryParams parameter : SiegfriedQueryParams.values()) {
-            queryParametersMap.add(parameter.getParameter(), parameter.getValue());
-        }
-        return queryParametersMap;
+        throw new FormatIdentifierTechnicalException(message);
     }
 }
