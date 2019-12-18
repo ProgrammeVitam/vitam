@@ -26,23 +26,17 @@
  */
 package fr.gouv.vitam.common.model.objectgroup;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
-
-import java.util.List;
 
 /**
  * DTO for map #storage in objectGroup
  */
+@JsonIgnoreProperties({"#nbc", "offerIds"})
 public class StorageRacineModel {
 
     @JsonProperty("strategyId")
     private String strategyId;
-
-    @JsonProperty("#nbc")
-    private String nbc;
-
-    @JsonProperty("offerIds")
-    private List<String> offerIds;
 
     public String getStrategyId() {
         return strategyId;
@@ -52,19 +46,4 @@ public class StorageRacineModel {
         this.strategyId = strategyId;
     }
 
-    public String getNbc() {
-        return nbc;
-    }
-
-    public void setNbc(String nbc) {
-        this.nbc = nbc;
-    }
-
-    public List<String> getOfferIds() {
-        return offerIds;
-    }
-
-    public void setOfferIds(List<String> offerIds) {
-        this.offerIds = offerIds;
-    }
 }

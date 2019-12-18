@@ -491,16 +491,16 @@ public class ProcessingIT extends VitamRuleRunner {
             Document unitCheck = resultCheckUnits.first();
             assertThat(unitCheck.get("_storage")).isNotNull();
             Document storageUnit = (Document) unitCheck.get("_storage");
-            assertThat(storageUnit.get("_nbc")).isNotNull();
-            assertThat(storageUnit.get("_nbc")).isEqualTo(2);
+            assertThat(storageUnit.get("_nbc")).isNull();
+            assertThat(storageUnit.get("offerIds")).isNull();
 
             // check if units are valid
             MongoIterable<Document> resultCheckObjectGroups = MetadataCollections.OBJECTGROUP.getCollection().find();
             Document objectGroupCheck = resultCheckObjectGroups.first();
             assertThat(objectGroupCheck.get("_storage")).isNotNull();
             Document storageObjectGroup = (Document) objectGroupCheck.get("_storage");
-            assertThat(storageObjectGroup.get("_nbc")).isNotNull();
-            assertThat(storageObjectGroup.get("_nbc")).isEqualTo(2);
+            assertThat(storageObjectGroup.get("_nbc")).isNull();
+            assertThat(storageObjectGroup.get("offerIds")).isNull();
 
             List<Document> qualifiers = (List<Document>) objectGroupCheck.get("_qualifiers");
             assertThat(qualifiers.size()).isEqualTo(3);
@@ -512,8 +512,8 @@ public class ProcessingIT extends VitamRuleRunner {
             assertThat(versions.size()).isEqualTo(1);
             Document version = versions.get(0);
             Document storageVersion = (Document) version.get("_storage");
-            assertThat(storageVersion.get("_nbc")).isNotNull();
-            assertThat(storageVersion.get("_nbc")).isEqualTo(1);
+            assertThat(storageVersion.get("_nbc")).isNull();
+            assertThat(storageVersion.get("offerIds")).isNull();
         }
     }
 
@@ -601,16 +601,16 @@ public class ProcessingIT extends VitamRuleRunner {
             Document unitCheck = resultCheckUnits.first();
             assertThat(unitCheck.get("_storage")).isNotNull();
             Document storageUnit = (Document) unitCheck.get("_storage");
-            assertThat(storageUnit.get("_nbc")).isNotNull();
-            assertThat(storageUnit.get("_nbc")).isEqualTo(2);
+            assertThat(storageUnit.get("_nbc")).isNull();
+            assertThat(storageUnit.get("offerIds")).isNull();
 
             // check if units are valid
             MongoIterable<Document> resultCheckObjectGroups = MetadataCollections.OBJECTGROUP.getCollection().find();
             Document objectGroupCheck = resultCheckObjectGroups.first();
             assertThat(objectGroupCheck.get("_storage")).isNotNull();
             Document storageObjectGroup = (Document) objectGroupCheck.get("_storage");
-            assertThat(storageObjectGroup.get("_nbc")).isNotNull();
-            assertThat(storageObjectGroup.get("_nbc")).isEqualTo(2);
+            assertThat(storageObjectGroup.get("_nbc")).isNull();
+            assertThat(storageObjectGroup.get("offerIds")).isNull();
 
             List<Document> qualifiers = (List<Document>) objectGroupCheck.get("_qualifiers");
             assertThat(qualifiers.size()).isEqualTo(3);
@@ -622,8 +622,8 @@ public class ProcessingIT extends VitamRuleRunner {
             assertThat(versions.size()).isEqualTo(1);
             Document version = versions.get(0);
             Document storageVersion = (Document) version.get("_storage");
-            assertThat(storageVersion.get("_nbc")).isNotNull();
-            assertThat(storageVersion.get("_nbc")).isEqualTo(1);
+            assertThat(storageVersion.get("_nbc")).isNull();
+            assertThat(storageVersion.get("offerIds")).isNull();
         }
     }
 

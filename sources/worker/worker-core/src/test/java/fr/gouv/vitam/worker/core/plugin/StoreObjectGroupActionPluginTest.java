@@ -26,28 +26,14 @@
  */
 package fr.gouv.vitam.worker.core.plugin;
 
-import static org.junit.Assert.assertEquals;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.doReturn;
-import static org.mockito.Mockito.doThrow;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
-
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.Response.Status;
-import java.io.FileNotFoundException;
-import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
-
+import com.fasterxml.jackson.core.JsonPointer;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.google.common.collect.Maps;
 import fr.gouv.vitam.common.PropertiesUtils;
+import fr.gouv.vitam.common.SystemPropertyUtil;
+import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.guid.GUIDFactory;
+import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.model.processing.IOParameter;
@@ -64,12 +50,46 @@ import fr.gouv.vitam.storage.engine.client.StorageClientFactory;
 import fr.gouv.vitam.storage.engine.client.exception.StorageServerClientException;
 import fr.gouv.vitam.storage.engine.common.model.response.BulkObjectStoreResponse;
 import fr.gouv.vitam.worker.core.impl.HandlerIOImpl;
+import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
 import fr.gouv.vitam.workspace.client.WorkspaceClient;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
 import org.assertj.core.util.Lists;
 import org.junit.After;
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.TemporaryFolder;
+import org.mockito.ArgumentCaptor;
+import org.mockito.ArgumentMatchers;
+
+import javax.ws.rs.core.Response;
+import javax.ws.rs.core.Response.Status;
+
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.InputStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Map;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.assertNotNull;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.atLeastOnce;
+import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 
 
@@ -94,6 +114,8 @@ public class StoreObjectGroupActionPluginTest {
     private final InputStream objectGroup;
     private final InputStream objectGroup2;
     private List<IOParameter> out;
+    @Rule
+    public TemporaryFolder folder = new TemporaryFolder();
 
     public StoreObjectGroupActionPluginTest() throws FileNotFoundException {
         objectGroup = PropertiesUtils.getResourceAsStream(OBJECT_GROUP);
@@ -119,6 +141,10 @@ public class StoreObjectGroupActionPluginTest {
         when(metaDataClientFactory.getClient()).thenReturn(metaDataClient);
         when(storageClientFactory.getClient()).thenReturn(storageClient);
 
+        File tempFolder = folder.newFolder();
+        System.setProperty("vitam.tmp.folder", tempFolder.getAbsolutePath());
+        SystemPropertyUtil.refresh();
+        
         action = new HandlerIOImpl(workspaceClientFactory, logbookLifeCyclesClientFactory, CONTAINER_NAME, "workerId",
             com.google.common.collect.Lists.newArrayList());
 
@@ -173,6 +199,8 @@ public class StoreObjectGroupActionPluginTest {
 
 
         plugin = new StoreObjectGroupActionPlugin(storageClientFactory);
+        
+        
 
         final List<ItemStatus> response = plugin.executeList(paramsObjectGroups, action);
         assertEquals(StatusCode.OK, response.get(0).getGlobalStatus());
@@ -196,11 +224,28 @@ public class StoreObjectGroupActionPluginTest {
         doReturn(getStorageResult("aeaaaaaaaaakwtamaaxakak32oqku2iaaaaq",
                 "942bb63cc16bf5ca3ba7fabf40ce9be19c3185a36cd87ad17c63d6fad1aa29d4312d73f2d6a1ba1266c3a71fc4119dd476d2d776cf2ad2acd7a9a3dfa1f80dc7"))
                 .when(storageClient).bulkStoreFilesFromWorkspace(any(), any());
-
+        
         plugin = new StoreObjectGroupActionPlugin(storageClientFactory);
+        saveWorkspacePutObject();
 
         final List<ItemStatus> response = plugin.executeList(paramsObjectGroups, action);
         assertEquals(StatusCode.OK, response.get(0).getGlobalStatus());
+        
+        ArgumentCaptor<String> fileNameArgumentCaptor = ArgumentCaptor.forClass(String.class);
+        verify(workspaceClient).putObject(anyString(), ArgumentMatchers.startsWith("ObjectGroup/"), any(InputStream.class));
+        verify(workspaceClient, atLeastOnce()).putObject(anyString(), fileNameArgumentCaptor.capture(), any(InputStream.class));
+        String gotFilename = fileNameArgumentCaptor.getAllValues().stream()
+                .filter(str -> str.startsWith("ObjectGroup/"))
+                .findFirst().get();
+        JsonNode gotJson = getSavedWorkspaceObject(gotFilename);
+        assertNotNull(gotJson);
+        final JsonPointer storagePointer = JsonPointer.compile("/_qualifiers/1/versions/0/_storage");
+        final JsonPointer storageStrategyPointer = JsonPointer.compile("/_qualifiers/1/versions/0/_storage/strategyId");
+        final JsonPointer storageOfferIdPointer = JsonPointer.compile("/_qualifiers/1/versions/0/_storage/offerIds");
+        assertTrue(gotJson.at(storagePointer).isObject());
+        assertEquals("default", gotJson.at(storageStrategyPointer).asText());
+        assertTrue(gotJson.at(storageOfferIdPointer).isMissingNode());
+        
     }
 
     private BulkObjectStoreResponse getStorageResult(String objectId, String objectDigest) {
@@ -210,6 +255,22 @@ public class StoreObjectGroupActionPluginTest {
         objectDigests.put(objectId, objectDigest);
         storedInfoResult.setObjectDigests(objectDigests);
         return storedInfoResult;
+    }
+    
+    private void saveWorkspacePutObject() throws ContentAddressableStorageServerException {
+        doAnswer(invocation -> {
+            String filename = invocation.getArgument(1);
+            InputStream inputStream = invocation.getArgument(2);
+            Path filePath = Paths.get(folder.getRoot().getAbsolutePath(), filename);
+            Files.createDirectories(filePath.getParent());
+            Files.copy(inputStream, filePath);
+            return null;
+        }).when(workspaceClient).putObject(anyString(), anyString(), any(InputStream.class));
+    }
+    
+    private JsonNode getSavedWorkspaceObject(String filename) throws InvalidParseOperationException {
+        Path filePath = Paths.get(folder.getRoot().getAbsolutePath(), filename);
+        return JsonHandler.getFromFile(filePath.toFile());
     }
 
 }

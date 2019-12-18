@@ -171,8 +171,7 @@ public class UnitGraph {
 
         UnitModel unitModel = new UnitModel();
 
-        List<String> offerIds = StoragePopulateImpl.getOfferIds();
-        unitModel.setStorageModel(new StorageModel(offerIds.size(), VitamConfiguration.getDefaultStrategy(), offerIds));
+        unitModel.setStorageModel(new StorageModel(VitamConfiguration.getDefaultStrategy()));
 
         if (rootId != null) {
             rootUnit = cache.getUnchecked(rootId);
@@ -261,8 +260,7 @@ public class UnitGraph {
         UnitModel parentUnit, int objectSize) {
         ObjectGroupModel gotModel = new ObjectGroupModel();
 
-        List<String> offerIds = StoragePopulateImpl.getOfferIds();
-        gotModel.setStorageModel(new StorageModel(offerIds.size(), VitamConfiguration.getDefaultStrategy(), offerIds));
+        gotModel.setStorageModel(new StorageModel(VitamConfiguration.getDefaultStrategy()));
 
         gotModel.setId(guid);
         gotModel.setTenant(tenantId);
@@ -296,8 +294,6 @@ public class UnitGraph {
             version.setSize(objectSize);
             ObjectStorageJson objectStorageJson = new ObjectStorageJson();
             objectStorageJson.setStrategyId(VitamConfiguration.getDefaultStrategy());
-            objectStorageJson.setNbc(StoragePopulateImpl.getNbc());
-            objectStorageJson.setOfferIds(StoragePopulateImpl.getOfferIds());
 
             version.setStorage(objectStorageJson);
 

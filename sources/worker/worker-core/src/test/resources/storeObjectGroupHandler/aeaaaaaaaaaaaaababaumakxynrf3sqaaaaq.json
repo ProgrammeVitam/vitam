@@ -152,11 +152,6 @@
           "Algorithm" : "SHA-256",
           "Size": 186536,
           "_storage": {
-            "_nbc": 2,
-            "offerIds": [
-              "vitam-iaas-app-02.itrec",
-              "vitam-iaas-app-01.itrec"
-            ],
             "strategyId": "default"
           }
         } ]
@@ -171,11 +166,6 @@
           "Algorithm" : "SHA-512",
           "Size": 40740,
           "_storage": {
-            "_nbc": 2,
-            "offerIds": [
-              "vitam-iaas-app-02.itrec",
-              "vitam-iaas-app-01.itrec"
-            ],
             "strategyId": "default"
           }
         } ]
@@ -190,11 +180,6 @@
           "Algorithm" : "MD5",
           "Size": 18079,
           "_storage": {
-            "_nbc": 2,
-            "offerIds": [
-              "vitam-iaas-app-02.itrec",
-              "vitam-iaas-app-01.itrec"
-            ],
             "strategyId": "default"
           }
         } ]

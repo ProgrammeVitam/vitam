@@ -30,6 +30,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import fr.gouv.vitam.common.PropertiesUtils;
+import fr.gouv.vitam.common.SedaConstants;
 import fr.gouv.vitam.common.SystemPropertyUtil;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
@@ -41,6 +42,7 @@ import fr.gouv.vitam.common.model.administration.IngestContractModel;
 import fr.gouv.vitam.common.model.processing.IOParameter;
 import fr.gouv.vitam.common.model.processing.ProcessingUri;
 import fr.gouv.vitam.common.model.processing.UriPrefix;
+import fr.gouv.vitam.common.stream.StreamUtils;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
 import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
@@ -61,6 +63,7 @@ import fr.gouv.vitam.worker.core.impl.HandlerIOImpl;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
 import fr.gouv.vitam.workspace.client.WorkspaceClient;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
+import org.apache.commons.io.IOUtils;
 import org.assertj.core.util.Lists;
 import org.junit.After;
 import org.junit.Assert;
@@ -71,6 +74,7 @@ import org.junit.rules.TemporaryFolder;
 import org.mockito.ArgumentCaptor;
 import org.mockito.ArgumentMatchers;
 import org.mockito.Mock;
+import org.mockito.Mockito;
 import org.mockito.junit.MockitoJUnit;
 import org.mockito.junit.MockitoRule;
 
@@ -78,6 +82,7 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -151,6 +156,7 @@ public class ExtractSedaActionHandlerTest {
         "extractSedaActionHandler/SIP_WITH_SPECIAL_CHARACTERS.xml";
     private static final String SIP_ARBORESCENCE = "SIP_Arborescence.xml";
     private static final String STORAGE_INFO_JSON = "extractSedaActionHandler/storageInfo.json";
+    private static final String STORAGE_INFO_MC_JSON = "extractSedaActionHandler/storageInfo_mc.json";
     private static final String CONTRACTS_JSON = "extractSedaActionHandler/contracts.json";
     private static final String CONTRACTS_MC_JSON = "extractSedaActionHandler/contracts_mc.json";
     private static final String INGEST_CONTRACT_JSON_COMPUTEINHERITEDRULESATINGEST =
@@ -1306,19 +1312,65 @@ public class ExtractSedaActionHandlerTest {
     public void givenContractMCWhenExecuteThenReturnResponseOK() throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         assertNotNull(ExtractSedaActionHandler.getId());
-        final InputStream storageInfo = PropertiesUtils.getResourceAsStream(STORAGE_INFO_JSON);
-        when(workspaceClient.getObject(any(), eq("StorageInfo/storageInfo_mc.json")))
+        final InputStream storageInfo = PropertiesUtils.getResourceAsStream(STORAGE_INFO_MC_JSON);
+        when(workspaceClient.getObject(any(), eq("StorageInfo/storageInfo.json")))
                 .thenReturn(Response.status(Status.OK).entity(storageInfo).build());
         final InputStream ingestContract = PropertiesUtils.getResourceAsStream(CONTRACTS_MC_JSON);
         when(workspaceClient.getObject(any(), eq("referential/contracts.json")))
                 .thenReturn(Response.status(Status.OK).entity(ingestContract).build());
+        
         prepareResponseOKForAdminManagementClientFindIngestContracts(INGEST_CONTRACT_MASTER_MANDATORY_FALSE);
         final InputStream seda_arborescence = PropertiesUtils.getResourceAsStream(SIP_ARBORESCENCE);
         when(workspaceClient.getObject(any(), eq("SIP/manifest.xml")))
             .thenReturn(Response.status(Status.OK).entity(seda_arborescence).build());
+        
+        
+        Files.delete(Paths.get(System.getProperty("vitam.tmp.folder")+"/ExtractSedaActionHandlerTest_workerId/StorageInfo/storageInfo.json"));
+        Files.delete(Paths.get(System.getProperty("vitam.tmp.folder")+"/ExtractSedaActionHandlerTest_workerId/referential/contracts.json"));
+        
+        String objectId = "SIP/manifest.xml";
+        HandlerIOImpl handlerIO =
+            new HandlerIOImpl(workspaceClientFactory, logbookLifeCyclesClientFactory, "ExtractSedaActionHandlerTest",
+                "workerId",
+                Lists.newArrayList(objectId));
+        handlerIO.setCurrentObjectId(objectId);
+
+        handlerIO.addInIOParameters(in);
         handlerIO.addOutIOParameters(out);
+        
+        saveWorkspacePutObject();
 
         final ItemStatus response = handler.execute(params, handlerIO);
+        handlerIO.close();
+        
+        ArgumentCaptor<String> fileNameArgumentCaptor = ArgumentCaptor.forClass(String.class);
+        verify(workspaceClient).putObject(anyString(), ArgumentMatchers.startsWith("Units/"), any(InputStream.class));
+        verify(workspaceClient).putObject(anyString(), ArgumentMatchers.startsWith("ObjectGroup/"), any(InputStream.class));
+        verify(workspaceClient, atLeastOnce())
+        .putObject(anyString(), fileNameArgumentCaptor.capture(), any(InputStream.class));
+        
+        JsonNode unitJson = getSavedWorkspaceObject(fileNameArgumentCaptor.getAllValues().stream()
+            .filter(str -> str.startsWith("Units/"))
+            .findFirst().get());
+        assertNotNull(unitJson);
+        assertEquals("default",unitJson.get(ARCHIVE_UNIT).get(SedaConstants.STORAGE).get(SedaConstants.STRATEGY_ID).asText());
+        
+        JsonNode gotJson = getSavedWorkspaceObject(fileNameArgumentCaptor.getAllValues().stream()
+                .filter(str -> str.startsWith("ObjectGroup/"))
+                .findFirst().get());
+        assertNotNull(gotJson);
+        assertEquals("default", gotJson.get(SedaConstants.STORAGE).get(SedaConstants.STRATEGY_ID).asText());
+        Assert.assertFalse(gotJson.get(SedaConstants.STORAGE).has(SedaConstants.OFFER_IDS));
+        Assert.assertFalse(gotJson.get(SedaConstants.PREFIX_WORK).get(SedaConstants.PREFIX_QUALIFIERS)
+                .get("PhysicalMaster").get(SedaConstants.TAG_VERSIONS).get(0).has(SedaConstants.STORAGE));
+        assertEquals("offerId",
+                gotJson.get(SedaConstants.PREFIX_WORK).get(SedaConstants.PREFIX_QUALIFIERS).get("BinaryMaster")
+                        .get(SedaConstants.TAG_VERSIONS).get(0).get(SedaConstants.STORAGE)
+                        .get(SedaConstants.STRATEGY_ID).asText());
+        Assert.assertFalse(gotJson.get(SedaConstants.PREFIX_WORK).get(SedaConstants.PREFIX_QUALIFIERS).get("BinaryMaster")
+                        .get(SedaConstants.TAG_VERSIONS).get(0).get(SedaConstants.STORAGE)
+                        .has(SedaConstants.OFFER_IDS));
+        
         assertEquals(StatusCode.OK, response.getGlobalStatus());
         JsonNode evDetData = JsonHandler.getFromString((String) response.getData("eventDetailData"));
         assertNotNull(evDetData);

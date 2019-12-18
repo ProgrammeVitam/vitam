@@ -138,11 +138,6 @@
 					"_id" : "aeaaaaaaaaaam7myaaaamakxfgivurqaaaaq",
 					"Uri" : "content/e3e02a356a2e903a03c6b8b6c7a36e6ad4b50d29c6a5360c79a60719812c54cd5433caa227de9856ee80d95ff9f84f416090a62ee52f681e0a29b9b07d75d51a.odp",
 					"_storage": {
-						"_nbc": 2,
-						"offerIds": [
-							"vitam-iaas-app-02.itrec",
-							"vitam-iaas-app-01.itrec"
-						],
 						"strategyId": "default"
 					}
 				} ]
@@ -154,11 +149,6 @@
 					"_id" : "aeaaaaaaaaaam7myaaaamakxfgivuuiaaaaq",
 					"Uri" : "content/e3e02a356a2e903a03c6b8b6c7a36e6ad4b50d29c6a5360c79a60719812c54cd5433caa227de9856ee80d95ff9f84f416090a62ee52f681e0a29b9b07d75d51a.pdf",
 					"_storage": {
-						"_nbc": 2,
-						"offerIds": [
-							"vitam-iaas-app-02.itrec",
-							"vitam-iaas-app-01.itrec"
-						],
 						"strategyId": "default"
 					}
 				} ]
@@ -170,11 +160,6 @@
 					"_id" : "aeaaaaaaaaaam7myaaaamakxfgivuuyaaaaq",
 					"Uri" : "content/e3e02a356a2e903a03c6b8b6c7a36e6ad4b50d29c6a5360c79a60719812c54cd5433caa227de9856ee80d95ff9f84f416090a62ee52f681e0a29b9b07d75d51a.png",
 					"_storage": {
-						"_nbc": 2,
-						"offerIds": [
-							"vitam-iaas-app-02.itrec",
-							"vitam-iaas-app-01.itrec"
-						],
 						"strategyId": "default"
 					}
 				} ]
@@ -186,11 +171,6 @@
 					"_id" : "aeaaaaaaaaaam7myaaaamakxfgivuvaaaaaq",
 					"Uri" : "content/e3e02a356a2e903a03c6b8b6c7a36e6ad4b50d29c6a5360c79a60719812c54cd5433caa227de9856ee80d95ff9f84f416090a62ee52f681e0a29b9b07d75d51a.txt",
 					"_storage": {
-						"_nbc": 2,
-						"offerIds": [
-							"vitam-iaas-app-02.itrec",
-							"vitam-iaas-app-01.itrec"
-						],
 						"strategyId": "default"
 					}
 				} ]

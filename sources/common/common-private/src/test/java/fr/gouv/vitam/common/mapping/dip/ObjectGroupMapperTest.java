@@ -93,7 +93,6 @@ public class ObjectGroupMapperTest {
         StringWriter writer = new StringWriter();
         marshaller.marshal(dataObjectPackageType, writer);
 
-        assertEquals("1",objectGroupSource.getStorage().getNbc());
         final List<Object> dataObjectGroupList  =
             dataObjectPackageType.getDataObjectGroupOrBinaryDataObjectOrPhysicalDataObject();
 

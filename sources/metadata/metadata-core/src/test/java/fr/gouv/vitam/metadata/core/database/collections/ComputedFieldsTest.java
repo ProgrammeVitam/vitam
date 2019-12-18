@@ -67,9 +67,8 @@ public class ComputedFieldsTest {
     private static List<String> expectedGotComputedFields =
         Arrays.asList(MetadataDocument.ORIGINATING_AGENCIES, MetadataDocument.GRAPH_LAST_PERSISTED_DATE, Unit.UNITUPS);
 
-    private static List<String> expectedGotMainFields =
-        Arrays.asList(ObjectGroup.USAGES, ObjectGroup.STORAGE, ObjectGroup.VERSIONS, ObjectGroup.DATAOBJECTVERSION,
-            ObjectGroup.VERSIONS_STORAGE, ObjectGroup.OBJECTCOPIES, ObjectGroup.OBJECTSTORAGE,
+    private static List<String> expectedGotMainFields = Arrays.asList(ObjectGroup.USAGES, ObjectGroup.STORAGE,
+            ObjectGroup.VERSIONS, ObjectGroup.DATAOBJECTVERSION, ObjectGroup.VERSIONS_STORAGE,
             ObjectGroup.OBJECTSTRATEHY, ObjectGroup.OBJECTVERSION, ObjectGroup.OBJECTID, ObjectGroup.OBJECTSIZE,
             ObjectGroup.OBJECTFORMAT, ObjectGroup.OBJECTDIGEST, ObjectGroup.OBJECTDIGEST_VALUE,
             ObjectGroup.OBJECTDIGEST_TYPE, ObjectGroup.COPIES, ObjectGroup.OGDEPTHS, MetadataDocument.QUALIFIERS,

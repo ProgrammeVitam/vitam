@@ -29,8 +29,6 @@ package fr.gouv.vitam.worker.core.plugin;
 import com.fasterxml.jackson.databind.JsonNode;
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.SedaConstants;
-import fr.gouv.vitam.common.VitamConfiguration;
-import fr.gouv.vitam.common.database.utils.MetadataDocumentHelper;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
@@ -46,9 +44,7 @@ import fr.gouv.vitam.storage.engine.common.model.request.BulkObjectStoreRequest;
 import fr.gouv.vitam.storage.engine.common.model.response.BulkObjectStoreResponse;
 import fr.gouv.vitam.worker.common.HandlerIO;
 import org.apache.commons.collections4.ListValuedMap;
-import org.apache.commons.collections4.MultiValuedMap;
 import org.apache.commons.collections4.multimap.ArrayListValuedHashMap;
-import org.apache.commons.collections4.multimap.HashSetValuedHashMap;
 
 import java.util.*;
 

@@ -30,10 +30,8 @@ import java.util.List;
 import java.util.Map;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import fr.gouv.vitam.common.SedaConstants;
-import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
@@ -118,16 +116,7 @@ public abstract class StoreObjectActionHandler extends ActionHandler {
                 BulkObjectStoreResponse result = resultByStrategy.get(strategy);
                 LOGGER.debug("DEBUG strategy: {}", strategy);
                 LOGGER.debug("DEBUG result: {}", result);
-                List<String> offers = result.getOfferIds();
                 ObjectNode storage = JsonHandler.createObjectNode();
-                storage.put(SedaConstants.TAG_NB, result.getOfferIds().size());
-                ArrayNode offersId = JsonHandler.createArrayNode();
-                if (offers != null) {
-                    for (String id : offers) {
-                        offersId.add(id);
-                    }
-                }
-                storage.set(SedaConstants.OFFER_IDS, offersId);
                 storage.put(SedaConstants.STRATEGY_ID, strategy);
                 ((ObjectNode) nodes.get(objectGuid.getKey())).set(SedaConstants.STORAGE, storage);
                 LOGGER.debug("DEBUG node: {}", nodes.get(objectGuid.getKey()));
@@ -153,8 +142,7 @@ public abstract class StoreObjectActionHandler extends ActionHandler {
                 object.put(FILE_NAME, objectDigest.getKey());
                 object.put(ALGORITHM, result.getDigestType());
                 object.put(DIGEST, objectDigest.getValue());
-                List<String> offers = result.getOfferIds();
-                object.put(OFFERS, offers != null ? String.join(",", offers) : "");
+                object.put(OFFERS, result.getOfferIds() != null ? String.join(",", result.getOfferIds()) : "");
                 itemStatusByObject.get(objectDigest.getKey()).increment(StatusCode.OK);
                 itemStatusByObject.get(objectDigest.getKey()).setEvDetailData(JsonHandler.unprettyPrint(object));
 

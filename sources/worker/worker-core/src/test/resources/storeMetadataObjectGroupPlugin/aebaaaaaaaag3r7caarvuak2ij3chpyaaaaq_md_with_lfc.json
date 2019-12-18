@@ -33,11 +33,6 @@
 						"Uri": "Content/ID35.txt",
 						"_id": "aeaaaaaaaahf6prnabgnkala2wiqhhqaaaaq",
 						"_storage": {
-							"_nbc": 2,
-							"offerIds": [
-								"vitam-iaas-app-02.itrec",
-								"vitam-iaas-app-01.itrec"
-							],
 							"strategyId": "default"
 						}
 					}
@@ -46,11 +41,6 @@
 		],
 		"_sp": "RATP",
 		"_storage": {
-			"_nbc": 2,
-			"offerIds": [
-				"vitam-iaas-app-02.itrec",
-				"vitam-iaas-app-01.itrec"
-			],
 			"strategyId": "default-got-fake"
 		},
 		"_tenant": 0,
