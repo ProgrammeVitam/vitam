@@ -1,4 +1,4 @@
-/*******************************************************************************
+/*
  * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2019)
  *
  * contact.vitam@culture.gouv.fr
@@ -23,7 +23,7 @@
  *
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
- *******************************************************************************/
+ */
 package fr.gouv.vitam.storage.engine.server.rest;
 
 import fr.gouv.vitam.common.VitamConfiguration;
@@ -86,7 +86,7 @@ public class AdminOfferSyncResourceTest {
         OfferSyncRequest offerSyncRequest = createOfferSyncRequest();
 
         when(offerSyncService
-            .startSynchronization(OFFER_FS_1_SERVICE_CONSUL, OFFER_FS_2_SERVICE_CONSUL, DataCategory.UNIT, null))
+            .startSynchronization(OFFER_FS_1_SERVICE_CONSUL, OFFER_FS_2_SERVICE_CONSUL, VitamConfiguration.getDefaultStrategy(), DataCategory.UNIT, null))
             .thenReturn(true);
 
         AdminOfferSyncResource instance = new AdminOfferSyncResource(offerSyncService);
@@ -107,7 +107,7 @@ public class AdminOfferSyncResourceTest {
         OfferSyncRequest offerSyncRequest = createOfferSyncRequest();
 
         when(offerSyncService
-            .startSynchronization(OFFER_FS_1_SERVICE_CONSUL, OFFER_FS_2_SERVICE_CONSUL, DataCategory.UNIT, null))
+            .startSynchronization(OFFER_FS_1_SERVICE_CONSUL, OFFER_FS_2_SERVICE_CONSUL, VitamConfiguration.getDefaultStrategy(), DataCategory.UNIT, null))
             .thenReturn(false);
 
         AdminOfferSyncResource instance = new AdminOfferSyncResource(offerSyncService);

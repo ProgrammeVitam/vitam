@@ -1,11 +1,13 @@
 package fr.gouv.vitam.storage.engine.server.offersynchronization;
 
+import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
 import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.storage.engine.common.model.DataCategory;
+import fr.gouv.vitam.storage.engine.common.model.request.OfferPartialSyncItem;
 import fr.gouv.vitam.storage.engine.server.distribution.StorageDistribution;
 import org.junit.Before;
 import org.junit.Rule;
@@ -14,12 +16,17 @@ import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnit;
 import org.mockito.junit.MockitoRule;
 
+import java.util.ArrayList;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.TimeUnit;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyList;
+import static org.mockito.ArgumentMatchers.anyListOf;
 import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.doNothing;
@@ -59,15 +66,19 @@ public class OfferSyncServiceTest {
 
         // Given
         OfferSyncProcess offerSyncProcess = mock(OfferSyncProcess.class);
-        OfferSyncService instance = spy(new OfferSyncService(restoreOfferBackupService, distribution, 1000, 16));
-        doNothing().when(instance).runSynchronizationAsync(any(), any(), any(), anyLong(), any());
+        OfferSyncService instance =
+            spy(new OfferSyncService(restoreOfferBackupService, distribution, 1000, 16, 1, 1, 1));
+        doNothing().when(instance).runSynchronizationAsync(any(), any(), any(), any(), anyLong(), any());
         when(instance.createOfferSyncProcess()).thenReturn(offerSyncProcess);
 
         // When
-        boolean result = instance.startSynchronization(SOURCE, TARGET, DATA_CATEGORY, OFFSET);
+        boolean result = instance
+            .startSynchronization(SOURCE, TARGET, VitamConfiguration.getDefaultStrategy(), DATA_CATEGORY, OFFSET);
 
         // Then
-        verify(instance).runSynchronizationAsync(SOURCE, TARGET, DATA_CATEGORY, OFFSET, offerSyncProcess);
+        verify(instance)
+            .runSynchronizationAsync(SOURCE, TARGET, VitamConfiguration.getDefaultStrategy(), DATA_CATEGORY, OFFSET,
+                offerSyncProcess);
         assertThat(result).isTrue();
     }
 
@@ -80,21 +91,62 @@ public class OfferSyncServiceTest {
         OfferSyncProcess offerSyncProcess2 = mock(OfferSyncProcess.class);
         when(offerSyncProcess1.isRunning()).thenReturn(true);
 
-        OfferSyncService instance = spy(new OfferSyncService(restoreOfferBackupService, distribution, 1000, 16));
-        doNothing().when(instance).runSynchronizationAsync(any(), any(), any(), anyLong(), any());
+        OfferSyncService instance =
+            spy(new OfferSyncService(restoreOfferBackupService, distribution, 1000, 16, 1, 1, 1));
+        doNothing().when(instance).runSynchronizationAsync(any(), any(), any(), any(), anyLong(), any());
         when(instance.createOfferSyncProcess()).thenReturn(offerSyncProcess1, offerSyncProcess2);
 
         // When
-        boolean result1 = instance.startSynchronization(SOURCE, TARGET, DATA_CATEGORY, OFFSET);
-        boolean result2 = instance.startSynchronization(SOURCE, TARGET, DATA_CATEGORY, OFFSET);
+        boolean result1 = instance
+            .startSynchronization(SOURCE, TARGET, VitamConfiguration.getDefaultStrategy(), DATA_CATEGORY, OFFSET);
+        boolean result2 = instance
+            .startSynchronization(SOURCE, TARGET, VitamConfiguration.getDefaultStrategy(), DATA_CATEGORY, OFFSET);
 
         // Then
-        verify(instance).runSynchronizationAsync(SOURCE, TARGET, DATA_CATEGORY, OFFSET, offerSyncProcess1);
+        verify(instance)
+            .runSynchronizationAsync(SOURCE, TARGET, VitamConfiguration.getDefaultStrategy(), DATA_CATEGORY, OFFSET,
+                offerSyncProcess1);
         verify(instance, never())
-            .runSynchronizationAsync(SOURCE, TARGET, DATA_CATEGORY, OFFSET, offerSyncProcess2);
+            .runSynchronizationAsync(SOURCE, TARGET, VitamConfiguration.getDefaultStrategy(), DATA_CATEGORY, OFFSET,
+                offerSyncProcess2);
         assertThat(result1).isTrue();
         assertThat(result2).isFalse();
     }
+
+
+    @Test
+    @RunWithCustomExecutor
+    public void startSynchronizationShouldFailIfAnotherPartialSyncProcessIsAlreadyRunning() {
+
+        // Given
+        OfferSyncProcess offerSyncProcess1 = mock(OfferSyncProcess.class);
+        OfferSyncProcess offerSyncProcess2 = mock(OfferSyncProcess.class);
+        when(offerSyncProcess1.isRunning()).thenReturn(true);
+
+        OfferSyncService instance =
+            spy(new OfferSyncService(restoreOfferBackupService, distribution, 1000, 16, 1, 1, 1));
+        doNothing().when(instance).runSynchronizationAsync(anyString(), anyString(), anyString(), anyList(), any());
+        when(instance.createOfferSyncProcess()).thenReturn(offerSyncProcess1, offerSyncProcess2);
+
+        // When
+        ArrayList<OfferPartialSyncItem> items1 = new ArrayList<>();
+        ArrayList<OfferPartialSyncItem> items2 = new ArrayList<>();
+        boolean result1 = instance
+            .startSynchronization(SOURCE, TARGET, VitamConfiguration.getDefaultStrategy(), items1);
+        boolean result2 = instance
+            .startSynchronization(SOURCE, TARGET, VitamConfiguration.getDefaultStrategy(), items2);
+
+        // Then
+        verify(instance)
+            .runSynchronizationAsync(SOURCE, TARGET, VitamConfiguration.getDefaultStrategy(), items1,
+                offerSyncProcess1);
+        verify(instance, never())
+            .runSynchronizationAsync(SOURCE, TARGET, VitamConfiguration.getDefaultStrategy(), items2,
+                offerSyncProcess2);
+        assertThat(result1).isTrue();
+        assertThat(result2).isFalse();
+    }
+
 
     @Test
     @RunWithCustomExecutor
@@ -105,17 +157,24 @@ public class OfferSyncServiceTest {
         OfferSyncProcess offerSyncProcess2 = mock(OfferSyncProcess.class);
         when(offerSyncProcess1.isRunning()).thenReturn(false);
 
-        OfferSyncService instance = spy(new OfferSyncService(restoreOfferBackupService, distribution, 1000, 16));
-        doNothing().when(instance).runSynchronizationAsync(any(), any(), any(), anyLong(), any());
+        OfferSyncService instance =
+            spy(new OfferSyncService(restoreOfferBackupService, distribution, 1000, 16, 1, 1, 1));
+        doNothing().when(instance).runSynchronizationAsync(any(), any(), any(), any(), anyLong(), any());
         when(instance.createOfferSyncProcess()).thenReturn(offerSyncProcess1, offerSyncProcess2);
 
         // When
-        boolean result1 = instance.startSynchronization(SOURCE, TARGET, DATA_CATEGORY, OFFSET);
-        boolean result2 = instance.startSynchronization(SOURCE, TARGET, DATA_CATEGORY, OFFSET);
+        boolean result1 = instance
+            .startSynchronization(SOURCE, TARGET, VitamConfiguration.getDefaultStrategy(), DATA_CATEGORY, OFFSET);
+        boolean result2 = instance
+            .startSynchronization(SOURCE, TARGET, VitamConfiguration.getDefaultStrategy(), DATA_CATEGORY, OFFSET);
 
         // Then
-        verify(instance).runSynchronizationAsync(SOURCE, TARGET, DATA_CATEGORY, OFFSET, offerSyncProcess1);
-        verify(instance).runSynchronizationAsync(SOURCE, TARGET, DATA_CATEGORY, OFFSET, offerSyncProcess2);
+        verify(instance)
+            .runSynchronizationAsync(SOURCE, TARGET, VitamConfiguration.getDefaultStrategy(), DATA_CATEGORY, OFFSET,
+                offerSyncProcess1);
+        verify(instance)
+            .runSynchronizationAsync(SOURCE, TARGET, VitamConfiguration.getDefaultStrategy(), DATA_CATEGORY, OFFSET,
+                offerSyncProcess2);
         assertThat(result1).isTrue();
         assertThat(result2).isTrue();
     }
@@ -125,7 +184,8 @@ public class OfferSyncServiceTest {
     public void isRunningShouldReturnFalseWhenNoProcessStarted() {
 
         // Given
-        OfferSyncService instance = spy(new OfferSyncService(restoreOfferBackupService, distribution, 1000, 16));
+        OfferSyncService instance =
+            spy(new OfferSyncService(restoreOfferBackupService, distribution, 1000, 16, 1, 1, 1));
 
         // When
         boolean isRunning = instance.isRunning();
@@ -142,12 +202,14 @@ public class OfferSyncServiceTest {
         OfferSyncProcess offerSyncProcess = mock(OfferSyncProcess.class);
         when(offerSyncProcess.isRunning()).thenReturn(true);
 
-        OfferSyncService instance = spy(new OfferSyncService(restoreOfferBackupService, distribution, 1000, 16));
-        doNothing().when(instance).runSynchronizationAsync(any(), any(), any(), anyLong(), any());
+        OfferSyncService instance =
+            spy(new OfferSyncService(restoreOfferBackupService, distribution, 1000, 16, 1, 1, 1));
+        doNothing().when(instance).runSynchronizationAsync(any(), any(), any(), any(), anyLong(), any());
         when(instance.createOfferSyncProcess()).thenReturn(offerSyncProcess);
 
         // When
-        boolean processStarted = instance.startSynchronization(SOURCE, TARGET, DATA_CATEGORY, OFFSET);
+        boolean processStarted = instance
+            .startSynchronization(SOURCE, TARGET, VitamConfiguration.getDefaultStrategy(), DATA_CATEGORY, OFFSET);
         boolean isRunning = instance.isRunning();
 
         // Then
@@ -157,42 +219,47 @@ public class OfferSyncServiceTest {
 
     @Test
     @RunWithCustomExecutor
-    public void isRunningShouldReturnFalseWhenPreviousProcessEnded() {
+    public void isRunningShouldReturnFalseWhenPreviousProcessEnded() throws Exception {
 
         // Given
         OfferSyncProcess offerSyncProcess = mock(OfferSyncProcess.class);
         when(offerSyncProcess.isRunning()).thenReturn(false);
 
-        OfferSyncService instance = spy(new OfferSyncService(restoreOfferBackupService, distribution, 1000, 16));
-        doNothing().when(instance).runSynchronizationAsync(any(), any(), any(), anyLong(), any());
-        when(instance.createOfferSyncProcess()).thenReturn(offerSyncProcess);
+        try (OfferSyncService instance = spy(
+            new OfferSyncService(restoreOfferBackupService, distribution, 1000, 16, 1, 1, 1))) {
+            doNothing().when(instance).runSynchronizationAsync(any(), any(), any(), any(), anyLong(), any());
+            when(instance.createOfferSyncProcess()).thenReturn(offerSyncProcess);
 
-        // When
-        boolean processStarted = instance.startSynchronization(SOURCE, TARGET, DATA_CATEGORY, OFFSET);
-        boolean isRunning = instance.isRunning();
+            // When
+            boolean processStarted = instance
+                .startSynchronization(SOURCE, TARGET, VitamConfiguration.getDefaultStrategy(), DATA_CATEGORY, OFFSET);
+            boolean isRunning = instance.isRunning();
 
-        // Then
-        assertThat(processStarted).isTrue();
-        assertThat(isRunning).isFalse();
+            // Then
+            assertThat(processStarted).isTrue();
+            assertThat(isRunning).isFalse();
+        }
     }
 
     @Test
     @RunWithCustomExecutor
-    public void getLastSynchronizationStatusShouldNullWhenNoProcessStarted() {
+    public void getLastSynchronizationStatusShouldNullWhenNoProcessStarted() throws Exception {
 
         // Given
-        OfferSyncService instance = spy(new OfferSyncService(restoreOfferBackupService, distribution, 1000, 16));
+        try (OfferSyncService instance =
+            spy(new OfferSyncService(restoreOfferBackupService, distribution, 1000, 16, 1, 1, 1))) {
 
-        // When
-        OfferSyncStatus status = instance.getLastSynchronizationStatus();
+            // When
+            OfferSyncStatus status = instance.getLastSynchronizationStatus();
 
-        // Then
-        assertThat(status).isNull();
+            // Then
+            assertThat(status).isNull();
+        }
     }
 
     @Test
     @RunWithCustomExecutor
-    public void getLastSynchronizationStatusShouldReturnStatusWhenProcessRunning() {
+    public void getLastSynchronizationStatusShouldReturnStatusWhenProcessRunning() throws Exception {
 
         // Given
         OfferSyncStatus offerSyncStatus = mock(OfferSyncStatus.class);
@@ -201,22 +268,25 @@ public class OfferSyncServiceTest {
         when(offerSyncProcess.getOfferSyncStatus()).thenReturn(offerSyncStatus);
 
 
-        OfferSyncService instance = spy(new OfferSyncService(restoreOfferBackupService, distribution, 1000, 16));
-        doNothing().when(instance).runSynchronizationAsync(any(), any(), any(), anyLong(), any());
-        when(instance.createOfferSyncProcess()).thenReturn(offerSyncProcess);
+        try (OfferSyncService instance =
+            spy(new OfferSyncService(restoreOfferBackupService, distribution, 1000, 16, 1, 1, 1))) {
+            doNothing().when(instance).runSynchronizationAsync(any(), any(), any(), any(), anyLong(), any());
+            when(instance.createOfferSyncProcess()).thenReturn(offerSyncProcess);
 
-        // When
-        boolean processStarted = instance.startSynchronization(SOURCE, TARGET, DATA_CATEGORY, OFFSET);
-        OfferSyncStatus status = instance.getLastSynchronizationStatus();
+            // When
+            boolean processStarted = instance
+                .startSynchronization(SOURCE, TARGET, VitamConfiguration.getDefaultStrategy(), DATA_CATEGORY, OFFSET);
+            OfferSyncStatus status = instance.getLastSynchronizationStatus();
 
-        // Then
-        assertThat(processStarted).isTrue();
-        assertThat(status).isEqualTo(offerSyncStatus);
+            // Then
+            assertThat(processStarted).isTrue();
+            assertThat(status).isEqualTo(offerSyncStatus);
+        }
     }
 
     @Test
     @RunWithCustomExecutor
-    public void getLastSynchronizationStatusShouldReturnStatusWhenProcessEnded() {
+    public void getLastSynchronizationStatusShouldReturnStatusWhenProcessEnded() throws Exception {
 
         // Given
         OfferSyncStatus offerSyncStatus = mock(OfferSyncStatus.class);
@@ -225,17 +295,20 @@ public class OfferSyncServiceTest {
         when(offerSyncProcess.getOfferSyncStatus()).thenReturn(offerSyncStatus);
 
 
-        OfferSyncService instance = spy(new OfferSyncService(restoreOfferBackupService, distribution, 1000, 16));
-        doNothing().when(instance).runSynchronizationAsync(any(), any(), any(), anyLong(), any());
-        when(instance.createOfferSyncProcess()).thenReturn(offerSyncProcess);
+        try (OfferSyncService instance =
+            spy(new OfferSyncService(restoreOfferBackupService, distribution, 1000, 16, 1, 1, 1))) {
+            doNothing().when(instance).runSynchronizationAsync(any(), any(), any(), any(), anyLong(), any());
+            when(instance.createOfferSyncProcess()).thenReturn(offerSyncProcess);
 
-        // When
-        boolean processStarted = instance.startSynchronization(SOURCE, TARGET, DATA_CATEGORY, OFFSET);
-        OfferSyncStatus status = instance.getLastSynchronizationStatus();
+            // When
+            boolean processStarted = instance
+                .startSynchronization(SOURCE, TARGET, VitamConfiguration.getDefaultStrategy(), DATA_CATEGORY, OFFSET);
+            OfferSyncStatus status = instance.getLastSynchronizationStatus();
 
-        // Then
-        assertThat(processStarted).isTrue();
-        assertThat(status).isEqualTo(offerSyncStatus);
+            // Then
+            assertThat(processStarted).isTrue();
+            assertThat(status).isEqualTo(offerSyncStatus);
+        }
     }
 
     @Test
@@ -248,15 +321,21 @@ public class OfferSyncServiceTest {
         doAnswer((args) -> {
             countDownLatch.countDown();
             return null;
-        }).when(offerSyncProcess).synchronize(any(), any(), any(), eq(OFFSET));
+        }).when(offerSyncProcess).synchronize(any(), any(), any(), any(), any(), eq(OFFSET));
 
-        OfferSyncService instance = new OfferSyncService(restoreOfferBackupService, distribution, 1000, 16);
+        try (OfferSyncService instance = new OfferSyncService(restoreOfferBackupService, distribution, 1000, 1, 1, 1,
+            16)) {
 
-        // When
-        instance.runSynchronizationAsync(SOURCE, TARGET, DATA_CATEGORY, OFFSET, offerSyncProcess);
-        countDownLatch.await(1, TimeUnit.MINUTES);
+            // When
+            instance
+                .runSynchronizationAsync(SOURCE, TARGET, VitamConfiguration.getDefaultStrategy(), DATA_CATEGORY, OFFSET,
+                    offerSyncProcess);
+            countDownLatch.await(1, TimeUnit.MINUTES);
 
-        // Then
-        verify(offerSyncProcess).synchronize(SOURCE, TARGET, DATA_CATEGORY, OFFSET);
+            // Then
+            verify(offerSyncProcess)
+                .synchronize(instance.getExecutor(), SOURCE, TARGET, VitamConfiguration.getDefaultStrategy(),
+                    DATA_CATEGORY, OFFSET);
+        }
     }
 }

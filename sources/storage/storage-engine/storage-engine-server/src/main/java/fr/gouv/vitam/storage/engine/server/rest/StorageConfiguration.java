@@ -50,6 +50,10 @@ public final class StorageConfiguration extends DefaultVitamApplicationConfigura
     private int offerSynchronizationBulkSize = 1000;
     private int offerSyncThreadPoolSize = 32;
 
+    private int offerSyncNumberOfRetries = 3;
+    private int offerSyncFirstAttemptWaitingTime = 15;
+    private int offerSyncWaitingTime = 30;
+
     /**
      * StorageConfiguration empty constructor for YAMLFactory
      */
@@ -229,6 +233,33 @@ public final class StorageConfiguration extends DefaultVitamApplicationConfigura
 
     public StorageConfiguration setOfferSyncThreadPoolSize(int offerSyncThreadPoolSize) {
         this.offerSyncThreadPoolSize = offerSyncThreadPoolSize;
+        return this;
+    }
+
+    public int getOfferSyncNumberOfRetries() {
+        return offerSyncNumberOfRetries;
+    }
+
+    public StorageConfiguration setOfferSyncNumberOfRetries(int offerSyncNumberOfRetries) {
+        this.offerSyncNumberOfRetries = offerSyncNumberOfRetries;
+        return this;
+    }
+
+    public int getOfferSyncFirstAttemptWaitingTime() {
+        return offerSyncFirstAttemptWaitingTime;
+    }
+
+    public StorageConfiguration setOfferSyncFirstAttemptWaitingTime(int offerSyncFirstAttemptWaitingTime) {
+        this.offerSyncFirstAttemptWaitingTime = offerSyncFirstAttemptWaitingTime;
+        return this;
+    }
+
+    public int getOfferSyncWaitingTime() {
+        return offerSyncWaitingTime;
+    }
+
+    public StorageConfiguration setOfferSyncWaitingTime(int offerSyncWaitingTime) {
+        this.offerSyncWaitingTime = offerSyncWaitingTime;
         return this;
     }
 }
