@@ -114,6 +114,11 @@ public class VitamRequestBuilder {
         return this;
     }
 
+    public VitamRequestBuilder withNoContentType() {
+        this.contentType = null;
+        return this;
+    }
+
     public VitamRequestBuilder withJsonAccept() {
         this.accept = APPLICATION_JSON_TYPE;
         return this;
@@ -160,6 +165,17 @@ public class VitamRequestBuilder {
             this.headers = new MultivaluedHashMap<>();
         }
         this.headers.add(Objects.requireNonNull(key), Objects.requireNonNull(value));
+        return this;
+    }
+
+    public VitamRequestBuilder withHeaderReplaceExisting(String key, Object value) {
+        if (value == null) {
+            return this;
+        }
+        if (this.headers == null) {
+            this.headers = new MultivaluedHashMap<>();
+        }
+        this.headers.putSingle(Objects.requireNonNull(key), value);
         return this;
     }
 

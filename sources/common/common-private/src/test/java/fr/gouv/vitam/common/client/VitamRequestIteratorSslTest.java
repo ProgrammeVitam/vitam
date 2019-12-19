@@ -37,7 +37,6 @@ import static org.mockito.Mockito.when;
 
 import javax.ws.rs.BadRequestException;
 import javax.ws.rs.GET;
-import javax.ws.rs.HttpMethod;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.Context;
@@ -61,6 +60,7 @@ import fr.gouv.vitam.common.client.configuration.SecureClientConfiguration;
 import fr.gouv.vitam.common.client.configuration.SecureClientConfigurationImpl;
 import fr.gouv.vitam.common.exception.VitamApplicationServerDisconnectException;
 import fr.gouv.vitam.common.exception.VitamException;
+import fr.gouv.vitam.common.exception.VitamRuntimeException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.SysErrLogger;
 import fr.gouv.vitam.common.logging.VitamLogger;
@@ -127,9 +127,6 @@ public class VitamRequestIteratorSslTest extends ResteasyTestApplication {
         @Produces(MediaType.APPLICATION_JSON)
         public Response iterator(@Context HttpHeaders headers) {
             final Response response = mock.get();
-            final boolean checkStart = VitamRequestIterator.isNewCursor(headers);
-            VitamRequestIterator.isEndOfCursor(headers);
-            assertEquals(startup, checkStart);
             startup = false;
             return response;
         }
@@ -284,7 +281,7 @@ public class VitamRequestIteratorSslTest extends ResteasyTestApplication {
         startup = true;
         try (final DefaultClient client = factory.getClient();
             VitamRequestIterator<ObjectNode> iterator =
-                new VitamRequestIterator<>(client, HttpMethod.GET, "/iterator", ObjectNode.class, null, null)) {
+                new VitamRequestIterator<>(client, VitamRequestBuilder.get().withPath("/iterator"), ObjectNode.class)) {
             final RequestResponseOK response = new RequestResponseOK(JsonHandler.createObjectNode());
             final ObjectNode node1 = JsonHandler.createObjectNode().put("val", 1);
             final ObjectNode node2 = JsonHandler.createObjectNode().put("val", 2);
@@ -323,7 +320,7 @@ public class VitamRequestIteratorSslTest extends ResteasyTestApplication {
         startup = true;
         try (final DefaultClient client = factory.getClient();
             VitamRequestIterator iterator =
-                new VitamRequestIterator(client, HttpMethod.GET, "/iterator", ObjectNode.class, null, null)) {
+                new VitamRequestIterator<>(client, VitamRequestBuilder.get().withPath("/iterator"), ObjectNode.class)) {
             final RequestResponseOK response = new RequestResponseOK();
             final ResponseBuilder builder = Response.status(Status.NOT_FOUND);
             when(mock.get())
@@ -337,7 +334,7 @@ public class VitamRequestIteratorSslTest extends ResteasyTestApplication {
         startup = true;
         try (final DefaultClient client = factory.getClient();
             VitamRequestIterator iterator =
-                new VitamRequestIterator(client, HttpMethod.GET, "/iterator", ObjectNode.class, null, null)) {
+                new VitamRequestIterator<>(client, VitamRequestBuilder.get().withPath("/iterator"), ObjectNode.class)) {
             final RequestResponseOK response = new RequestResponseOK();
             final ResponseBuilder builder = Response.status(Status.BAD_REQUEST);
             when(mock.get())
@@ -345,7 +342,7 @@ public class VitamRequestIteratorSslTest extends ResteasyTestApplication {
             try {
                 assertFalse(iterator.hasNext());
                 fail("should raized an exception");
-            } catch (final BadRequestException e) {
+            } catch (final VitamRuntimeException e) {
 
             }
         }
@@ -356,7 +353,7 @@ public class VitamRequestIteratorSslTest extends ResteasyTestApplication {
         startup = true;
         try (final DefaultClient client = factory.getClient();
             VitamRequestIterator<ObjectNode> iterator =
-                new VitamRequestIterator<>(client, HttpMethod.GET, "/iterator", ObjectNode.class, null, null)) {
+                new VitamRequestIterator<>(client, VitamRequestBuilder.get().withPath("/iterator"), ObjectNode.class)) {
             final RequestResponseOK response = new RequestResponseOK(JsonHandler.createObjectNode());
             final ObjectNode node1 = JsonHandler.createObjectNode().put("val", 1);
             final ObjectNode node2 = JsonHandler.createObjectNode().put("val", 2);
@@ -384,7 +381,7 @@ public class VitamRequestIteratorSslTest extends ResteasyTestApplication {
         startup = true;
         try (final DefaultClient client = factory.getClient();
             VitamRequestIterator<ObjectNode> iterator =
-                new VitamRequestIterator<>(client, HttpMethod.GET, "/iterator", ObjectNode.class, null, null)) {
+                new VitamRequestIterator<>(client, VitamRequestBuilder.get().withPath("/iterator"), ObjectNode.class)) {
             final RequestResponseOK response = new RequestResponseOK(JsonHandler.createObjectNode());
             final ObjectNode node1 = JsonHandler.createObjectNode().put("val", 1);
             final ObjectNode node2 = JsonHandler.createObjectNode().put("val", 2);
@@ -423,7 +420,7 @@ public class VitamRequestIteratorSslTest extends ResteasyTestApplication {
         startup = true;
         try (final DefaultClient client = factory.getClient();
             VitamRequestIterator iterator =
-                new VitamRequestIterator(client, HttpMethod.GET, "/iterator", ObjectNode.class, null, null)) {
+                new VitamRequestIterator<>(client, VitamRequestBuilder.get().withPath("/iterator"), ObjectNode.class)) {
             final RequestResponseOK response = new RequestResponseOK(JsonHandler.createObjectNode());
             final ObjectNode node1 = JsonHandler.createObjectNode().put("val", 1);
             final ObjectNode node2 = JsonHandler.createObjectNode().put("val", 2);
@@ -442,7 +439,7 @@ public class VitamRequestIteratorSslTest extends ResteasyTestApplication {
         startup = true;
         try (final DefaultClient client = factory.getClient();
             VitamRequestIterator<ObjectNode> iterator =
-                new VitamRequestIterator<>(client, HttpMethod.GET, "/iterator", ObjectNode.class, null, null)) {
+                new VitamRequestIterator<>(client, VitamRequestBuilder.get().withPath("/iterator"), ObjectNode.class)) {
             final RequestResponseOK response = new RequestResponseOK(JsonHandler.createObjectNode());
             final ObjectNode node1 = JsonHandler.createObjectNode().put("val", 1);
             final ObjectNode node2 = JsonHandler.createObjectNode().put("val", 2);

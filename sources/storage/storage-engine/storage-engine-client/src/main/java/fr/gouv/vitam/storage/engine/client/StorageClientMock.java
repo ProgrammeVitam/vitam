@@ -45,6 +45,7 @@ import javax.ws.rs.core.MultivaluedHashMap;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
+import fr.gouv.vitam.common.client.VitamRequestBuilder;
 import fr.gouv.vitam.common.model.VitamSession;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import org.apache.commons.io.IOUtils;
@@ -216,9 +217,7 @@ public class StorageClientMock extends AbstractMockClient implements StorageClie
 
     @Override
     public VitamRequestIterator<JsonNode> listContainer(String strategyId, DataCategory type) {
-        MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
-        headers.add(GlobalDataRest.X_CURSOR, true);
-        return new VitamRequestIterator<>(this, HttpMethod.GET, type.getFolder(), JsonNode.class, headers, JsonHandler.createObjectNode());
+        throw new IllegalStateException("Stop use this please");
     }
 
     @Override
