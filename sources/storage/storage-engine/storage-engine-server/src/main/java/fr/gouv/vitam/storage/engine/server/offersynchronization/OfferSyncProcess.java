@@ -236,11 +236,7 @@ public class OfferSyncProcess {
                 dataCategory, null, Collections.singletonList(destinationOffer), resp);
 
         } catch (StorageNotFoundException e) {
-            try {
-                deleteObject(destinationOffer, dataCategory, container, fileName, tenant, strategyId, requestId);
-            } catch (Exception ee) {
-                ee.printStackTrace();
-            }
+            deleteObject(destinationOffer, dataCategory, container, fileName, tenant, strategyId, requestId);
         } catch (StorageException e) {
             throw new RuntimeStorageException(
                 "An error occurred during copying '" + container + "/" + fileName +
@@ -340,7 +336,7 @@ public class OfferSyncProcess {
             sourceOffer, targetOffer, null, null, null);
         try {
 
-            final List<CompletableFuture<String>> completableFutureList = new ArrayList<>();
+            final List<CompletableFuture<Void>> completableFutureList = new ArrayList<>();
 
             for (OfferPartialSyncItem item : items) {
                 DataCategory dataCategory = DataCategory.getByCollectionName(item.getContainer());
@@ -351,21 +347,10 @@ public class OfferSyncProcess {
 
                 for (String fileName : item.getFilenames()) {
 
-                    completableFutureList.add(CompletableFuture.supplyAsync(() -> {
-
+                    completableFutureList.add(CompletableFuture.runAsync(() -> retryable().execute(() ->
                         syncObject(sourceOffer, targetOffer, dataCategory, item.getContainer(), fileName, tenant,
-                            strategyId, requestId);
-
-                        // Return empty as information is not needed
-                        return "";
-
-                    }, executor)
-                        .exceptionally(ex -> {
-                            LOGGER.error("[Error sync file]: " + item.getContainer() + "/" + fileName, ex);
-                            // Return the failed fileName (needed to be logged)
-                            return item.getContainer() + "/" + fileName;
-
-                        }));
+                            strategyId, requestId)
+                    ), executor));
 
                     if (completableFutureList.size() >= bulkSize) {
 
