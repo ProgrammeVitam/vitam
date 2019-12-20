@@ -181,4 +181,29 @@ public class UnitDipServiceImplTest {
                 equalTo("La RATP est un etablissement public")).withNamespaceContext(prefix2Uri));
 
     }
+
+    @Test
+    public void should_map_json_unit_to_xml_with_related_object_reference_metadata()
+        throws InvalidParseOperationException {
+        // Given
+        ArchiveUnitMapper archiveUnitMapper = new ArchiveUnitMapper();
+        UnitDipServiceImpl unitDipService = new UnitDipServiceImpl(archiveUnitMapper, buildObjectMapper());
+
+        InputStream inputStream = getClass().getResourceAsStream(
+            "/unit_with_related_object_reference_metadata.json");
+        JsonNode jsonNode = JsonHandler.getFromInputStream(inputStream);
+
+        Map<String, String> prefix2Uri = new HashMap<>();
+        prefix2Uri.put("vitam", "fr:gouv:culture:archivesdefrance:seda:v2.1");
+
+        // When
+        Response response = unitDipService.jsonToXml(jsonNode, "");
+
+        // Then
+        String entity = (String) response.getEntity();
+        assertThat(fromString(entity),
+            hasXPath("//vitam:RelatedObjectReference/vitam:Requires/vitam:RepositoryArchiveUnitPID",
+                equalTo("aeaqaaaaaab2szrxabosoaloqmivdliaaaaq")).withNamespaceContext(prefix2Uri));
+
+    }
 }
