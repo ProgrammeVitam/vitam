@@ -422,6 +422,10 @@ public class VitamConfiguration {
      * Threshold for elimination action
      */
     private static long eliminationActionThreshold = 10_000L;
+    /**
+     * Threshold for computed inherited rules nocturne batch
+     */
+    private static long computedInheritedRulesThreshold = 100_000_000L;
     private static int ontologyCacheMaxEntries = 100;
     private static int ontologyCacheTimeoutInSeconds = 300;
     /**
@@ -940,6 +944,9 @@ public class VitamConfiguration {
         }
         if (null != parameters.getEliminationActionThreshold()) {
             setEliminationActionThreshold(parameters.getEliminationActionThreshold());
+        }
+        if (null != parameters.getComputedInheritedRulesThreshold()) {
+            setComputedInheritedRulesThreshold(parameters.getComputedInheritedRulesThreshold());
         }
         if (null != parameters.getCacheControlDelay()) {
             setCacheControlDelay(parameters.getCacheControlDelay());
@@ -2084,6 +2091,13 @@ public class VitamConfiguration {
         VitamConfiguration.eliminationActionThreshold = eliminationActionThreshold;
     }
 
+    public static long getComputedInheritedRulesThreshold() {
+        return computedInheritedRulesThreshold;
+    }
+
+    public static void setComputedInheritedRulesThreshold(long computedInheritedRulesThreshold) {
+        VitamConfiguration.computedInheritedRulesThreshold = computedInheritedRulesThreshold;
+    }
 
     /**
      * @return operationMaxSizeForExternal

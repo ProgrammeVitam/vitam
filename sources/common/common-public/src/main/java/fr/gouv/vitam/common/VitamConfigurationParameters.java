@@ -29,7 +29,6 @@ package fr.gouv.vitam.common;
 import com.google.common.base.Strings;
 import fr.gouv.vitam.common.configuration.ClassificationLevel;
 
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -134,6 +133,11 @@ public class VitamConfigurationParameters {
      * Max entries allowed for elimination action
      */
     private Long eliminationActionThreshold;
+
+    /**
+     * Max entries allowed for computed inherited rules nocturne batch
+     */
+    private Long computedInheritedRulesThreshold;
 
     /**
      * Expire time for the cache entries in seconds (5 minutes by default)
@@ -1172,6 +1176,14 @@ public class VitamConfigurationParameters {
 
     public void setEliminationActionThreshold(Long eliminationActionThreshold) {
         this.eliminationActionThreshold = eliminationActionThreshold;
+    }
+
+    public Long getComputedInheritedRulesThreshold() {
+        return computedInheritedRulesThreshold;
+    }
+
+    public void setComputedInheritedRulesThreshold(Long computedInheritedRulesThreshold) {
+        this.computedInheritedRulesThreshold = computedInheritedRulesThreshold;
     }
 
     /**

@@ -36,7 +36,7 @@ import fr.gouv.vitam.common.database.builder.query.BooleanQuery;
 import fr.gouv.vitam.common.database.builder.query.QueryHelper;
 import fr.gouv.vitam.common.database.builder.query.VitamFieldsHelper;
 import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
-import fr.gouv.vitam.common.database.builder.request.single.Select;
+import fr.gouv.vitam.common.database.builder.request.multiple.SelectMultiQuery;
 import fr.gouv.vitam.common.database.offset.OffsetRepository;
 import fr.gouv.vitam.common.error.ServiceName;
 import fr.gouv.vitam.common.error.VitamCode;
@@ -70,9 +70,9 @@ import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClient;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClientFactory;
 import fr.gouv.vitam.metadata.api.config.MetaDataConfiguration;
 import fr.gouv.vitam.metadata.api.model.ReclassificationChildNodeExportRequest;
+import fr.gouv.vitam.metadata.core.ExportsPurge.ExportsPurgeService;
 import fr.gouv.vitam.metadata.core.MetaDataImpl;
 import fr.gouv.vitam.metadata.core.database.collections.MetadataCollections;
-import fr.gouv.vitam.metadata.core.ExportsPurge.ExportsPurgeService;
 import fr.gouv.vitam.metadata.core.graph.GraphComputeServiceImpl;
 import fr.gouv.vitam.metadata.core.graph.ReclassificationDistributionService;
 import fr.gouv.vitam.metadata.core.graph.StoreGraphService;
@@ -522,7 +522,7 @@ public class MetadataManagementResource {
     }
 
     private JsonNode getObsoleteComputedInheritedRulesDsl() throws InvalidCreateOperationException {
-        Select select = new Select();
+        SelectMultiQuery selectMultiQuery = new SelectMultiQuery();
         BooleanQuery obsoleteQuery = QueryHelper.or();
         obsoleteQuery.add(QueryHelper.eq(VitamFieldsHelper.validComputedInheritedRules(), false));
 
@@ -531,8 +531,9 @@ public class MetadataManagementResource {
         incoherentValuesQuery.add(QueryHelper.exists(VitamFieldsHelper.validComputedInheritedRules()));
 
         obsoleteQuery.add(incoherentValuesQuery);
-        select.setQuery(obsoleteQuery);
-        return select.getFinalSelect();
+        selectMultiQuery.setQuery(obsoleteQuery);
+        selectMultiQuery.setThreshold(VitamConfiguration.getComputedInheritedRulesThreshold());
+        return selectMultiQuery.getFinalSelect();
     }
 
     // FIXME: 15/09/2019 workflow should be init/start from internals or functional admin
