@@ -19,8 +19,6 @@
 package fr.gouv.vitam.processing.management.core;
 
 import com.google.common.annotations.VisibleForTesting;
-import com.google.common.collect.Maps;
-import fr.gouv.vitam.common.SedaConstants;
 import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.StateNotAllowedException;
@@ -62,7 +60,6 @@ import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
 import java.time.LocalDateTime;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 
@@ -194,12 +191,12 @@ public class StateMachine implements IEventsState, IEventsProcessEngine {
     }
 
     @Override
-    public void shutdown() throws StateNotAllowedException {
+    public void shutdown() {
         this.doPause(PauseRecover.RECOVER_FROM_SERVER_PAUSE);
     }
 
     @Override
-    synchronized public void cancel() throws StateNotAllowedException, ProcessingException {
+    synchronized public void cancel() throws StateNotAllowedException {
         this.state.eval(ProcessState.COMPLETED);
         doCompleted();
     }
@@ -327,9 +324,8 @@ public class StateMachine implements IEventsState, IEventsProcessEngine {
      * Change the state of the process to completed Can be called only from running or pause state If running state, the
      * next step will be completed
      *
-     * @throws StateNotAllowedException
      */
-    protected void doCompleted() throws StateNotAllowedException, ProcessingException {
+    protected void doCompleted() {
         if (isRunning()) {
             targetState = ProcessState.COMPLETED;
             if (!isLastStep()) {
@@ -347,7 +343,9 @@ public class StateMachine implements IEventsState, IEventsProcessEngine {
                 this.persistProcessWorkflow();
             } else {
                 state = ProcessState.RUNNING;
-                this.executeFinallyStep(null);
+                final WorkerParameters workerParameters =
+                    WorkerParametersFactory.newWorkerParameters().setMap(processWorkflow.getParameters());
+                this.executeFinallyStep(workerParameters);
             }
         }
 
