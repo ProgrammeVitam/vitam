@@ -84,24 +84,24 @@ public class ProcessEngineImplTest {
 
     @Rule
     public RunWithCustomExecutorRule runInThread =
-            new RunWithCustomExecutorRule(VitamThreadPoolExecutor.getDefaultExecutor());
+        new RunWithCustomExecutorRule(VitamThreadPoolExecutor.getDefaultExecutor());
 
     @Before
     public void init() throws WorkflowNotFoundException, ProcessingException {
         LogbookOperationsClientFactory.changeMode(null);
         workParams = WorkerParametersFactory.newWorkerParameters();
         workParams.setWorkerGUID(GUIDFactory.newGUID())
-                .setUrlMetadata("http://localhost:8083")
-                .setUrlWorkspace("http://localhost:8083")
-                .setContainerName(GUIDFactory.newGUID().getId())
-                .setRequestId(GUIDFactory.newOperationLogbookGUID(TENANT_ID).toString())
-                .setLogbookTypeProcess(LogbookTypeProcess.INGEST_TEST);
+            .setUrlMetadata("http://localhost:8083")
+            .setUrlWorkspace("http://localhost:8083")
+            .setContainerName(GUIDFactory.newGUID().getId())
+            .setRequestId(GUIDFactory.newOperationLogbookGUID(TENANT_ID).toString())
+            .setLogbookTypeProcess(LogbookTypeProcess.INGEST_TEST);
 
         processDistributor = mock(ProcessDistributor.class);
 
         processData = ProcessDataAccessImpl.getInstance();
         processEngine =
-                ProcessEngineFactory.get().create(workParams, processDistributor);
+            ProcessEngineFactory.get().create(workParams, processDistributor);
     }
 
     @Test(expected = IllegalArgumentException.class)
@@ -133,21 +133,21 @@ public class ProcessEngineImplTest {
 
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         final ProcessWorkflow processWorkflow =
-                processData.initProcessWorkflow(populate(WORKFLOW_FILE), workParams.getContainerName()
-                );
+            processData.initProcessWorkflow(populate(WORKFLOW_FILE), workParams.getContainerName()
+            );
 
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
 
         when(processDistributor.distribute(any(), any(), any(), any()))
-                .thenReturn(new ItemStatus().increment(StatusCode.KO));
+            .thenReturn(new ItemStatus().increment(StatusCode.KO));
 
         IEventsProcessEngine iEventsProcessEngine = mock(IEventsProcessEngine.class);
         processEngine.setCallback(iEventsProcessEngine);
         ProcessStep step = processWorkflow.getSteps().iterator().next();
         doAnswer(o -> step.setStepStatusCode(StatusCode.KO)).when(iEventsProcessEngine)
-                .onComplete(any(), any());
+            .onComplete(any(), any());
         doAnswer(o -> step.setStepStatusCode(StatusCode.STARTED)).when(iEventsProcessEngine).onUpdate(any());
-        processEngine.start(step, workParams, null, PauseRecover.NO_RECOVER);
+        processEngine.start(step, workParams, PauseRecover.NO_RECOVER);
 
         // Because of start is async
         // Sleep to be sur that completableFeature is called in the Engine
@@ -170,23 +170,23 @@ public class ProcessEngineImplTest {
 
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         final ProcessWorkflow processWorkflow =
-                processData.initProcessWorkflow(populate(WORKFLOW_FILE), workParams.getContainerName()
-                );
+            processData.initProcessWorkflow(populate(WORKFLOW_FILE), workParams.getContainerName()
+            );
 
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
 
         when(processDistributor.distribute(any(), any(), any(), any()))
-                .thenReturn(new ItemStatus().increment(StatusCode.OK));
+            .thenReturn(new ItemStatus().increment(StatusCode.OK));
 
         IEventsProcessEngine iEventsProcessEngine = mock(IEventsProcessEngine.class);
         processEngine.setCallback(iEventsProcessEngine);
 
         ProcessStep step = processWorkflow.getSteps().iterator().next();
         doAnswer(o -> step.setStepStatusCode(StatusCode.OK)).when(iEventsProcessEngine)
-                .onComplete(any(), any());
+            .onComplete(any(), any());
         doAnswer(o -> step.setStepStatusCode(StatusCode.STARTED)).when(iEventsProcessEngine).onUpdate(any());
 
-        processEngine.start(step, workParams, null, PauseRecover.NO_RECOVER);
+        processEngine.start(step, workParams, PauseRecover.NO_RECOVER);
 
         // Because of start is async
         // Sleep to be sur that completableFeature is called in the Engine
@@ -209,9 +209,9 @@ public class ProcessEngineImplTest {
     public void startTestIEventsProcessEngineRequiredKO() throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         final ProcessWorkflow processWorkflow =
-                processData.initProcessWorkflow(populate(WORKFLOW_FILE), workParams.getContainerName()
-                );
-        processEngine.start(processWorkflow.getSteps().iterator().next(), workParams, null, PauseRecover.NO_RECOVER);
+            processData.initProcessWorkflow(populate(WORKFLOW_FILE), workParams.getContainerName()
+            );
+        processEngine.start(processWorkflow.getSteps().iterator().next(), workParams, PauseRecover.NO_RECOVER);
 
     }
 

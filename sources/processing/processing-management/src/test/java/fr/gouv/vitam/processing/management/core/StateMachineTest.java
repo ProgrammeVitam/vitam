@@ -246,7 +246,7 @@ public class StateMachineTest {
             .create(processWorkflow, processEngine, dataManagement, workspaceClientFactory,
                 logbookOperationsClientFactory);
 
-        doAnswer(invocation -> null).when(processEngine).start(any(), any(), any(), any());
+        doAnswer(invocation -> null).when(processEngine).start(any(), any(), any());
         stateMachine.next(workParams);
         try {
             stateMachine.next(workParams);
