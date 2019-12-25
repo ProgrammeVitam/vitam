@@ -74,9 +74,8 @@ public interface IEventsState {
      * To prevent deadlock, this method is not synchronized, Because onComplete and onPauseOrCancel are synchronized and
      * called from ProcessEngine
      * 
-     * @throws StateNotAllowedException
      */
-    void shutdown() throws StateNotAllowedException;
+    void shutdown();
 
     /**
      * Cancel as soon as possible the processWorkflow, To do that, the step pauseCancelAction is updated to be
@@ -84,9 +83,8 @@ public interface IEventsState {
      * PauseOrCancelAction.ACTION_CANCEL have no impact on the finally step - The finally step cannot be cancelled
      * 
      * @throws StateNotAllowedException
-     * @throws ProcessingException
      */
-    void cancel() throws StateNotAllowedException, ProcessingException;
+    void cancel() throws StateNotAllowedException;
 
     /**
      * @return true is processWorkflow is completed or Pause

@@ -50,6 +50,7 @@ import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.processing.common.exception.ProcessingStorageWorkspaceException;
 import fr.gouv.vitam.processing.common.model.ProcessStep;
 import fr.gouv.vitam.processing.common.model.ProcessWorkflow;
+import fr.gouv.vitam.processing.common.parameter.WorkerParameterName;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 import fr.gouv.vitam.processing.common.parameter.WorkerParametersFactory;
 import fr.gouv.vitam.processing.data.core.ProcessDataAccess;
@@ -186,11 +187,8 @@ public class ProcessManagementImpl implements ProcessManagement {
                 continue;
             }
 
-            try {
-                stateMachine.shutdown();
-            } catch (StateNotAllowedException e) {
-                LOGGER.error("Error while pause the processWorkflow : " + operationId, e);
-            }
+            stateMachine.shutdown();
+
         }
         PROCESS_MONITORS.clear();
     }
@@ -213,6 +211,11 @@ public class ProcessManagementImpl implements ProcessManagement {
         final ProcessWorkflow processWorkflow = processData
             .initProcessWorkflow(workFlow.get(), workerParameters.getContainerName());
         processWorkflow.setWorkflowId(workflowId);
+
+        for (WorkerParameterName workerParameterName : workerParameters.getMapParameters().keySet()) {
+            processWorkflow.getParameters()
+                .put(workerParameterName.name(), workerParameters.getParameterValue(workerParameterName));
+        }
 
         try {
             workspaceProcessDataManagement.persistProcessWorkflow(VitamConfiguration.getWorkspaceWorkflowsFolder(),
@@ -557,16 +560,17 @@ public class ProcessManagementImpl implements ProcessManagement {
             ProcessWorkflow processWorkflow = map.get(operationId);
             if (processWorkflow.getState().equals(ProcessState.PAUSE)) {
                 // Create & start ProcessEngine Thread
-                WorkerParameters workerParameters =
-                    WorkerParametersFactory.newWorkerParameters()
-                        .setUrlMetadata(urlMetadata)
-                        .setUrlWorkspace(urlWorkspace)
-                        .setLogbookTypeProcess(processWorkflow.getLogbookTypeProcess())
-                        .setContainerName(operationId)
-                        .setWorkflowIdentifier(processWorkflow.getWorkflowId());
+                WorkerParameters workerParameters = WorkerParametersFactory
+                    .newWorkerParameters()
+                    .setMap(processWorkflow.getParameters()) // Start with inject original process workflow parameters
+                    .setUrlMetadata(urlMetadata)
+                    .setUrlWorkspace(urlWorkspace)
+                    .setLogbookTypeProcess(processWorkflow.getLogbookTypeProcess())
+                    .setContainerName(operationId)
+                    .setWorkflowIdentifier(processWorkflow.getWorkflowId());
 
-                final ProcessEngine processEngine = ProcessEngineFactory.get().create(workerParameters,
-                    this.processDistributor);
+                final ProcessEngine processEngine =
+                    ProcessEngineFactory.get().create(workerParameters, this.processDistributor);
                 final StateMachine stateMachine = StateMachineFactory.get().create(processWorkflow, processEngine);
                 processEngine.setCallback(stateMachine);
 

@@ -26,15 +26,17 @@
  */
 package fr.gouv.vitam.processing.common.model;
 
-import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.model.ProcessState;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess;
+
+import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 /**
  * Proccess Workflow contains a different operations and status attribute
@@ -75,15 +77,19 @@ public class ProcessWorkflow {
 
     /**
      * This Should be :
-     *  PauseRecover.RECOVER_FROM_API_PAUSE when pause origin is API
-     *  PauseRecover.RECOVER_FROM_SERVER_PAUSE when pause origin is SERVER
+     * PauseRecover.RECOVER_FROM_API_PAUSE when pause origin is API
+     * PauseRecover.RECOVER_FROM_SERVER_PAUSE when pause origin is SERVER
      *
-     *  Should be updated to PauseRecover.NO_RECOVER after the execution of the next step
+     * Should be updated to PauseRecover.NO_RECOVER after the execution of the next step
      */
     private PauseRecover pauseRecover = PauseRecover.NO_RECOVER;
 
+
+    private Map<String, String> parameters = new HashMap<>();
+
     /**
      * Set the state of the workflow process
+     *
      * @return ProcessState
      */
     public ProcessState getState() {
@@ -92,6 +98,7 @@ public class ProcessWorkflow {
 
     /**
      * Get the state of the workflow process
+     *
      * @param state
      */
     public ProcessWorkflow setState(ProcessState state) {
@@ -113,6 +120,7 @@ public class ProcessWorkflow {
 
     /**
      * get the status of the processWorkflow
+     *
      * @return StatusCode
      */
     public StatusCode getStatus() {
@@ -121,6 +129,7 @@ public class ProcessWorkflow {
 
     /**
      * set the status of the workflow
+     *
      * @param status
      * @return this
      */
@@ -150,7 +159,6 @@ public class ProcessWorkflow {
 
     /**
      * @param processDate the processDate to set
-     *
      * @return this
      */
     public ProcessWorkflow setProcessDate(Date processDate) {
@@ -168,7 +176,6 @@ public class ProcessWorkflow {
 
     /**
      * @param operationId the operationId to set
-     *
      * @return this
      */
 
@@ -186,7 +193,6 @@ public class ProcessWorkflow {
 
     /**
      * @param messageIdentifier the messageIdentifier to set
-     *
      * @return this
      */
     public ProcessWorkflow setMessageIdentifier(String messageIdentifier) {
@@ -204,7 +210,6 @@ public class ProcessWorkflow {
 
     /**
      * @param prodService the prodService to set
-     *
      * @return this
      */
     public ProcessWorkflow setProdService(String prodService) {
@@ -262,7 +267,6 @@ public class ProcessWorkflow {
     }
 
     /**
-     *
      * @return The context id
      */
     public String getContextId() {
@@ -305,5 +309,14 @@ public class ProcessWorkflow {
 
     public void setPauseRecover(PauseRecover pauseRecover) {
         this.pauseRecover = pauseRecover;
+    }
+
+    public Map<String, String> getParameters() {
+        return parameters;
+    }
+
+    public void setParameters(
+        Map<String, String> parameters) {
+        this.parameters = parameters;
     }
 }
