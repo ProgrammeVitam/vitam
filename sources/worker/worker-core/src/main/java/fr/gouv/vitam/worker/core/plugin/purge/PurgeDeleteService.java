@@ -125,7 +125,7 @@ public class PurgeDeleteService {
         }
     }
 
-    public void detachObjectGroupFromDeleteParentUnits(String processId, String objectGroupId,
+    public void detachObjectGroupFromDeleteParentUnits(String objectGroupId,
         Set<String> parentUnitsToRemove)
         throws ProcessingStatusException {
 

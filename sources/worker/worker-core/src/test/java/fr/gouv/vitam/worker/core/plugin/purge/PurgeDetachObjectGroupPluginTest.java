@@ -80,8 +80,7 @@ public class PurgeDetachObjectGroupPluginTest {
         assertThat(itemStatus.getGlobalStatus()).isEqualTo(StatusCode.OK);
 
         verify(purgeDeleteService)
-            .detachObjectGroupFromDeleteParentUnits(eq(VitamThreadUtils.getVitamSession().getRequestId()),
-                eq("id_got_1"), eq(new HashSet<>(singletonList("id_unit_1"))));
+            .detachObjectGroupFromDeleteParentUnits(eq("id_got_1"), eq(new HashSet<>(singletonList("id_unit_1"))));
     }
 
     @Test
@@ -89,7 +88,7 @@ public class PurgeDetachObjectGroupPluginTest {
     public void testExecute_WhenExceptionExpectFatal() throws Exception {
 
         doThrow(new ProcessingStatusException(StatusCode.FATAL, null)).when(purgeDeleteService)
-            .detachObjectGroupFromDeleteParentUnits(any(), any(), any());
+            .detachObjectGroupFromDeleteParentUnits(any(), any());
 
         ItemStatus itemStatus = instance.execute(params, handler);
 
