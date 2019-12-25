@@ -120,7 +120,7 @@ public class PurgeDeleteServiceTest {
 
         String opId = GUIDFactory.newGUID().toString();
         String gotId = GUIDFactory.newGUID().toString();
-        instance.detachObjectGroupFromDeleteParentUnits(opId, gotId, new HashSet<>(Arrays.asList("unit1", "unit2")));
+        instance.detachObjectGroupFromDeleteParentUnits(gotId, new HashSet<>(Arrays.asList("unit1", "unit2")));
 
         verify(metaDataClient).updateObjectGroupById(any(), eq(gotId));
     }
