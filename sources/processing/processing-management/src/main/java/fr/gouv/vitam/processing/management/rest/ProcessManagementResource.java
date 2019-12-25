@@ -236,6 +236,7 @@ public class ProcessManagementResource extends ApplicationStatusResource {
             .newWorkerParameters()
             .setContainerName(process.getContainer())
             .setRequestId(reqId)
+            .setProcessId(process.getContainer())
             .setUrlMetadata(config.getUrlMetadata())
             .setUrlWorkspace(config.getUrlWorkspace());
         if (process.getExtraParams().size() > 0) {
@@ -365,6 +366,8 @@ public class ProcessManagementResource extends ApplicationStatusResource {
             .newWorkerParameters()
             .setContainerName(id)
             .setRequestId(reqId)
+            .setProcessId(id)
+
             .setUrlMetadata(config.getUrlMetadata())
             .setUrlWorkspace(config.getUrlWorkspace());
 
