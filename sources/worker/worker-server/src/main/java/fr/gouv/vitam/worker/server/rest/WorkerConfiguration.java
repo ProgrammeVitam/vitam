@@ -42,7 +42,7 @@ public final class WorkerConfiguration extends DefaultVitamApplicationConfigurat
     private String urlWorkspace;
     private String registerServerHost;
     private int registerServerPort;
-    private long registerDelay = 60;
+    private long registerDelay = 60; //in seconds
     private int registerRetry = 5;
     private int capacity = 1;
     private String workerFamily = "DefaultWorker";

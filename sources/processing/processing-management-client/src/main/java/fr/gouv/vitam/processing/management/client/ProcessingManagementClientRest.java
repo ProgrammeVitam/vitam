@@ -51,7 +51,6 @@ import fr.gouv.vitam.common.model.processing.WorkFlow;
 import fr.gouv.vitam.processing.common.ProcessingEntry;
 import fr.gouv.vitam.processing.common.exception.ProcessingBadRequestException;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
-import fr.gouv.vitam.processing.common.exception.WorkerAlreadyExistsException;
 import fr.gouv.vitam.processing.common.model.WorkerBean;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameterName;
 
@@ -360,7 +359,7 @@ class ProcessingManagementClientRest extends DefaultClient implements Processing
 
     @Override
     public void registerWorker(String familyId, String workerId, WorkerBean workerDescription)
-        throws ProcessingBadRequestException, WorkerAlreadyExistsException {
+        throws VitamClientInternalException, ProcessingBadRequestException {
         ParametersChecker.checkParameter("familyId is a mandatory parameter", familyId);
         ParametersChecker.checkParameter("workerId is a mandatory parameter", workerId);
         ParametersChecker.checkParameter("workerDescription is a mandatory parameter", workerDescription);
@@ -368,19 +367,19 @@ class ProcessingManagementClientRest extends DefaultClient implements Processing
         try {
             response =
                 performRequest(HttpMethod.POST, "/worker_family/" + familyId + "/" + "workers" + "/" + workerId, null,
-                    JsonHandler.toJsonNode(workerDescription), MediaType.APPLICATION_JSON_TYPE,
+                    JsonHandler.unprettyPrint(workerDescription), MediaType.APPLICATION_JSON_TYPE,
                     MediaType.APPLICATION_JSON_TYPE);
 
             if (response.getStatus() == Status.BAD_REQUEST.getStatusCode()) {
                 throw new ProcessingBadRequestException("Bad Request");
-            } else if (response.getStatus() == Status.CONFLICT.getStatusCode()) {
-                throw new WorkerAlreadyExistsException("Worker already exist");
+            } else if (response.getStatus() == Status.INTERNAL_SERVER_ERROR.getStatusCode()) {
+                throw new VitamClientInternalException(
+                    "Internal error while trying to register worker : family (" + familyId + "), workerId (" +
+                        workerId + "");
             }
         } catch (final VitamClientInternalException e) {
-            LOGGER.debug(PROCESSING_INTERNAL_SERVER_ERROR, e);
-            throw new ProcessingBadRequestException(INTERNAL_SERVER_ERROR, e);
-        } catch (final InvalidParseOperationException e) {
-            throw new IllegalArgumentException(ILLEGAL_ARGUMENT, e);
+            LOGGER.error(PROCESSING_INTERNAL_SERVER_ERROR, e);
+            throw e;
         } finally {
             consumeAnyEntityAndClose(response);
         }

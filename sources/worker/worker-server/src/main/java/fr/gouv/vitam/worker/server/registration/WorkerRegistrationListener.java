@@ -26,15 +26,20 @@
  */
 package fr.gouv.vitam.worker.server.registration;
 
-import javax.servlet.ServletContextEvent;
-import javax.servlet.ServletContextListener;
-
+import com.google.common.annotations.VisibleForTesting;
 import fr.gouv.vitam.common.ServerIdentity;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.common.thread.VitamThreadFactory;
 import fr.gouv.vitam.processing.management.client.ProcessingManagementClient;
 import fr.gouv.vitam.processing.management.client.ProcessingManagementClientFactory;
 import fr.gouv.vitam.worker.server.rest.WorkerConfiguration;
+
+import javax.servlet.ServletContextEvent;
+import javax.servlet.ServletContextListener;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Listener used for registration between the current worker and the processing server
@@ -43,39 +48,55 @@ public class WorkerRegistrationListener implements ServletContextListener {
 
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(WorkerRegistrationListener.class);
 
-    /**
-     * Worker configuration used to retrieve the register configuration
-     */
+    private final ScheduledExecutorService executorService =
+        Executors.newScheduledThreadPool(1, VitamThreadFactory.getInstance());
     private final WorkerConfiguration configuration;
 
-    /**
-     * Constructor.
-     *
-     * @param configuration configuration
-     */
+    private final ProcessingManagementClientFactory processingManagementClientFactory;
+
+    private final WorkerRegister workerRegister;
+
+
     public WorkerRegistrationListener(WorkerConfiguration configuration) {
         this.configuration = configuration;
+        ProcessingManagementClientFactory.changeConfigurationUrl(configuration.getProcessingUrl());
+        this.processingManagementClientFactory = ProcessingManagementClientFactory.getInstance();
+        this.workerRegister = new WorkerRegister(configuration, processingManagementClientFactory);
+    }
+
+    @VisibleForTesting
+    public WorkerRegistrationListener(WorkerConfiguration configuration,
+        ProcessingManagementClientFactory processingManagementClientFactory) {
+        this.configuration = configuration;
+        this.processingManagementClientFactory = processingManagementClientFactory;
+        this.workerRegister = new WorkerRegister(configuration, processingManagementClientFactory);
     }
 
     @Override
     public void contextInitialized(ServletContextEvent sce) {
         LOGGER.debug("ServletContextListener started");
-        ProcessingManagementClientFactory.changeConfigurationUrl(configuration.getProcessingUrl());
-        final WorkerRegister register = new WorkerRegister(configuration);
-        final Thread thread = new Thread(register);
-        thread.start();
+        executorService
+            .scheduleWithFixedDelay(this.workerRegister, 0, configuration.getRegisterDelay(), TimeUnit.SECONDS);
     }
 
     @Override
     public void contextDestroyed(ServletContextEvent sce) {
         LOGGER.debug("ServletContextListener destroyed");
-        ProcessingManagementClientFactory.changeConfigurationUrl(configuration.getProcessingUrl());
-        try (ProcessingManagementClient processingClient =
-            ProcessingManagementClientFactory.getInstance().getClient()) {
-            processingClient.unregisterWorker(configuration.getWorkerFamily(),
-                String.valueOf(ServerIdentity.getInstance().getGlobalPlatformId()));
-        } catch (final Exception e) {
-            LOGGER.error("WorkerUnRegister run : unregister call failed on " + configuration.getProcessingUrl(), e);
+        executorService.shutdownNow();
+        try {
+            executorService.awaitTermination(10, TimeUnit.SECONDS);
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            LOGGER.warn(e);
+        } finally {
+            try (ProcessingManagementClient processingClient = processingManagementClientFactory.getClient()) {
+                processingClient.unregisterWorker(configuration.getWorkerFamily(),
+                    String.valueOf(ServerIdentity.getInstance().getGlobalPlatformId()));
+            } catch (final Exception e) {
+                LOGGER.error(
+                    "WorkerUnRegister run : unregister call failed => Processing (" + configuration.getProcessingUrl() +
+                        ") will unregister worker automatically ", e);
+            }
         }
     }
 

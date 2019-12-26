@@ -19,6 +19,7 @@
 package fr.gouv.vitam.processing.distributor.v2;
 
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 import java.util.function.Supplier;
 
 import fr.gouv.vitam.common.GlobalDataRest;
@@ -140,14 +141,15 @@ public class WorkerTask implements Supplier<ItemStatus> {
                 int numberCallCheckStatus = 0;
                 while (!checkStatus && numberCallCheckStatus < GlobalDataRest.STATUS_CHECK_RETRY) {
                     checkStatus =
-                        checkStatusWorker(workerBean.getConfiguration().getServerHost(),
+                        checkStatusWorker(workerClient, workerBean.getConfiguration().getServerHost(),
                             workerBean.getConfiguration().getServerPort());
                     numberCallCheckStatus++;
                     if (!checkStatus) {
                         try {
-                            this.wait(1000);
+                            TimeUnit.MILLISECONDS.sleep(1000);
                         } catch (final InterruptedException e1) {
                             LOGGER.warn(e);
+                            Thread.currentThread().interrupt();
                         }
                     }
                 }
@@ -155,6 +157,7 @@ public class WorkerTask implements Supplier<ItemStatus> {
                     throw new WorkerUnreachableException(workerBean.getWorkerId(), e);
                 }
                 throw new WorkerExecutorException(e);
+
             } finally {
                 workerClient.close();
             }
@@ -177,11 +180,7 @@ public class WorkerTask implements Supplier<ItemStatus> {
         }
     }
 
-    boolean checkStatusWorker(String serverHost, int serverPort) {
-        WorkerClientConfiguration workerClientConfiguration =
-            new WorkerClientConfiguration(serverHost, serverPort);
-        WorkerClientFactory.changeMode(workerClientConfiguration);
-        WorkerClient workerClient = WorkerClientFactory.getInstance(workerClientConfiguration).getClient();
+    boolean checkStatusWorker(WorkerClient workerClient, String serverHost, int serverPort) {
         try {
             workerClient.checkStatus();
             return true;

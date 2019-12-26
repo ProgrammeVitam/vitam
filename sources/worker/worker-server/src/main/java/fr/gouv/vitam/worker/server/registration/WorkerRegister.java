@@ -26,10 +26,10 @@
  */
 package fr.gouv.vitam.worker.server.registration;
 
+import com.google.common.annotations.VisibleForTesting;
 import fr.gouv.vitam.common.ServerIdentity;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
-import fr.gouv.vitam.processing.common.exception.WorkerAlreadyExistsException;
 import fr.gouv.vitam.processing.common.model.WorkerBean;
 import fr.gouv.vitam.processing.common.model.WorkerRemoteConfiguration;
 import fr.gouv.vitam.processing.management.client.ProcessingManagementClient;
@@ -40,74 +40,44 @@ import fr.gouv.vitam.worker.server.rest.WorkerConfiguration;
  * Worker register task : register the current worker server to the processing server.
  */
 public class WorkerRegister implements Runnable {
-
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(WorkerRegister.class);
-
-    /**
-     * Default Family name
-     */
-    public static final String DEFAULT_FAMILY = "DefaultWorker";
 
     /**
      * Worker configuration used to retrieve the register configuration
      */
     private final WorkerConfiguration configuration;
 
-    /**
-     * Constructor.
-     *
-     * @param configuration configuration
-     */
-    public WorkerRegister(WorkerConfiguration configuration) {
+    public static final String DEFAULT_FAMILY = "DefaultWorker";
+
+    private final ProcessingManagementClientFactory processingManagementClientFactory;
+
+    @VisibleForTesting
+    public WorkerRegister(WorkerConfiguration configuration,
+        ProcessingManagementClientFactory processingManagementClientFactory) {
         this.configuration = configuration;
+        this.processingManagementClientFactory = processingManagementClientFactory;
     }
 
-    // TODO P2 bad registration should stop the worker or setup an requestable information on bad status
     @Override
     public synchronized void run() {
         LOGGER.debug("WorkerRegister run : begin");
-        if (configuration.getRegisterRetry() == -1) {
-            return;
-        }
-        int nbRegisterCall = 0;
-        final long delay = configuration.getRegisterDelay() * 1000;
-        try (final ProcessingManagementClient processingClient =
-            ProcessingManagementClientFactory.getInstance().getClient()) {
-            boolean registerOk = false;
-            while (!registerOk && configuration.getRegisterRetry() >= nbRegisterCall) {
-                LOGGER.debug("WorkerRegister run : try register");
-                registerOk = register(processingClient);
-                nbRegisterCall++;
-                if (!registerOk) {
-                    LOGGER.debug("WorkerRegister run : try register failed");
-                    try {
-                        this.wait(delay);
-                    } catch (final InterruptedException e) {
-                        LOGGER.error("WorkerRegister run : wait failed", e);
-                    }
-                }
-            }
-        }
-        LOGGER.debug("WorkerRegister run : end");
-    }
 
-    private boolean register(ProcessingManagementClient processingClient) {
         final WorkerRemoteConfiguration remoteConfiguration = new WorkerRemoteConfiguration(
             configuration.getRegisterServerHost(), configuration.getRegisterServerPort());
 
         final WorkerBean workerBean =
             new WorkerBean(ServerIdentity.getInstance().getName(), configuration.getWorkerFamily(),
                 configuration.getCapacity(), 1, "active", remoteConfiguration);
-        try {
+
+        try (ProcessingManagementClient processingClient = processingManagementClientFactory.getClient()) {
             processingClient.registerWorker(configuration.getWorkerFamily(),
                 String.valueOf(ServerIdentity.getInstance().getGlobalPlatformId()), workerBean);
-            return true;
-        } catch (final WorkerAlreadyExistsException e) {
-            LOGGER.warn("WorkerRegister run : register call failed on " + configuration.getProcessingUrl(), e);
-            return true;
         } catch (final Exception e) {
-            LOGGER.error("WorkerRegister run : register call failed on " + configuration.getProcessingUrl(), e);
-            return false;
+            LOGGER.error(
+                "WorkerRegister failed (" + configuration.getProcessingUrl() + ").Retry in " +
+                    configuration.getRegisterDelay() + " seconds", e);
         }
+
+        LOGGER.debug("WorkerRegister run : end");
     }
 }

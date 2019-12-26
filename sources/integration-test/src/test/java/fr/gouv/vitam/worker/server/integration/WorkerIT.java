@@ -52,7 +52,6 @@ import fr.gouv.vitam.functional.administration.client.AdminManagementClientFacto
 import fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess;
 import fr.gouv.vitam.logbook.rest.LogbookMain;
 import fr.gouv.vitam.metadata.rest.MetadataMain;
-import fr.gouv.vitam.processing.common.exception.WorkerAlreadyExistsException;
 import fr.gouv.vitam.processing.common.model.WorkerBean;
 import fr.gouv.vitam.processing.common.model.WorkerRemoteConfiguration;
 import fr.gouv.vitam.processing.common.parameter.DefaultWorkerParameters;
@@ -96,15 +95,15 @@ public class WorkerIT extends VitamRuleRunner {
 
     @ClassRule
     public static VitamServerRunner runner =
-            new VitamServerRunner(WorkerIT.class, mongoRule.getMongoDatabase().getName(),
-                    elasticsearchRule.getClusterName(),
-                    Sets.newHashSet(
-                            MetadataMain.class,
-                            WorkerMain.class,
-                            LogbookMain.class,
-                            WorkspaceMain.class,
-                            ProcessManagementMain.class
-                    ));
+        new VitamServerRunner(WorkerIT.class, mongoRule.getMongoDatabase().getName(),
+            elasticsearchRule.getClusterName(),
+            Sets.newHashSet(
+                MetadataMain.class,
+                WorkerMain.class,
+                LogbookMain.class,
+                WorkspaceMain.class,
+                ProcessManagementMain.class
+            ));
 
     private static final String SIP_FOLDER = "SIP";
     private static final String METADATA_PATH = "/metadata/v1";
@@ -174,39 +173,39 @@ public class WorkerIT extends VitamRuleRunner {
 
     private void printAndCheckXmlConfiguration() throws Exception {
         LOGGER.warn("XML Configuration: " +
-                "\n\tjavax.xml.parsers.SAXParserFactory: " +
-                SystemPropertyUtil.getNoCheck("javax.xml.parsers.SAXParserFactory") +
-                "\n\tjavax.xml.parsers.DocumentBuilderFactory: " +
-                SystemPropertyUtil.getNoCheck("javax.xml.parsers.DocumentBuilderFactory") +
-                "\n\tjavax.xml.datatype.DatatypeFactory: " +
-                SystemPropertyUtil.getNoCheck("javax.xml.datatype.DatatypeFactory") +
-                "\n\tjavax.xml.stream.XMLEventFactory: " +
-                SystemPropertyUtil.getNoCheck("javax.xml.stream.XMLEventFactory") +
-                "\n\tjavax.xml.stream.XMLInputFactory: " +
-                SystemPropertyUtil.getNoCheck("javax.xml.stream.XMLInputFactory") +
-                "\n\tjavax.xml.stream.XMLOutputFactory: " +
-                SystemPropertyUtil.getNoCheck("javax.xml.stream.XMLOutputFactory") +
-                "\n\tjavax.xml.transform.TransformerFactory: " +
-                SystemPropertyUtil.getNoCheck("javax.xml.transform.TransformerFactory") +
-                "\n\tjavax.xml.validation.SchemaFactory: " +
-                SystemPropertyUtil.getNoCheck("javax.xml.validation.SchemaFactory") +
-                "\n\tjavax.xml.xpath.XPathFactory: " + SystemPropertyUtil.getNoCheck("javax.xml.xpath.XPathFactory"));
+            "\n\tjavax.xml.parsers.SAXParserFactory: " +
+            SystemPropertyUtil.getNoCheck("javax.xml.parsers.SAXParserFactory") +
+            "\n\tjavax.xml.parsers.DocumentBuilderFactory: " +
+            SystemPropertyUtil.getNoCheck("javax.xml.parsers.DocumentBuilderFactory") +
+            "\n\tjavax.xml.datatype.DatatypeFactory: " +
+            SystemPropertyUtil.getNoCheck("javax.xml.datatype.DatatypeFactory") +
+            "\n\tjavax.xml.stream.XMLEventFactory: " +
+            SystemPropertyUtil.getNoCheck("javax.xml.stream.XMLEventFactory") +
+            "\n\tjavax.xml.stream.XMLInputFactory: " +
+            SystemPropertyUtil.getNoCheck("javax.xml.stream.XMLInputFactory") +
+            "\n\tjavax.xml.stream.XMLOutputFactory: " +
+            SystemPropertyUtil.getNoCheck("javax.xml.stream.XMLOutputFactory") +
+            "\n\tjavax.xml.transform.TransformerFactory: " +
+            SystemPropertyUtil.getNoCheck("javax.xml.transform.TransformerFactory") +
+            "\n\tjavax.xml.validation.SchemaFactory: " +
+            SystemPropertyUtil.getNoCheck("javax.xml.validation.SchemaFactory") +
+            "\n\tjavax.xml.xpath.XPathFactory: " + SystemPropertyUtil.getNoCheck("javax.xml.xpath.XPathFactory"));
 
         LOGGER.warn("XML Implementation: " +
-                "\n\tjavax.xml.parsers.SAXParserFactory: " +
-                javax.xml.parsers.SAXParserFactory.newInstance().getClass() +
-                "\n\tjavax.xml.parsers.DocumentBuilderFactory: " +
-                javax.xml.parsers.DocumentBuilderFactory.newInstance().getClass() +
-                "\n\tjavax.xml.datatype.DatatypeFactory: " +
-                javax.xml.datatype.DatatypeFactory.newInstance().getClass() +
-                "\n\tjavax.xml.stream.XMLEventFactory: " + javax.xml.stream.XMLEventFactory.newFactory().getClass() +
-                "\n\tjavax.xml.stream.XMLInputFactory: " + XMLInputFactoryUtils.newInstance().getClass() +
-                "\n\tjavax.xml.stream.XMLOutputFactory: " + javax.xml.stream.XMLOutputFactory.newInstance().getClass() +
-                "\n\tjavax.xml.transform.TransformerFactory: " +
-                javax.xml.transform.TransformerFactory.newInstance().getClass() +
-                "\n\tjavax.xml.validation.SchemaFactory: " +
-                javax.xml.validation.SchemaFactory.newInstance("http://www.w3.org/XML/XMLSchema/v1.1").getClass() +
-                "\n\tjavax.xml.xpath.XPathFactory: " + javax.xml.xpath.XPathFactory.newInstance().getClass());
+            "\n\tjavax.xml.parsers.SAXParserFactory: " +
+            javax.xml.parsers.SAXParserFactory.newInstance().getClass() +
+            "\n\tjavax.xml.parsers.DocumentBuilderFactory: " +
+            javax.xml.parsers.DocumentBuilderFactory.newInstance().getClass() +
+            "\n\tjavax.xml.datatype.DatatypeFactory: " +
+            javax.xml.datatype.DatatypeFactory.newInstance().getClass() +
+            "\n\tjavax.xml.stream.XMLEventFactory: " + javax.xml.stream.XMLEventFactory.newFactory().getClass() +
+            "\n\tjavax.xml.stream.XMLInputFactory: " + XMLInputFactoryUtils.newInstance().getClass() +
+            "\n\tjavax.xml.stream.XMLOutputFactory: " + javax.xml.stream.XMLOutputFactory.newInstance().getClass() +
+            "\n\tjavax.xml.transform.TransformerFactory: " +
+            javax.xml.transform.TransformerFactory.newInstance().getClass() +
+            "\n\tjavax.xml.validation.SchemaFactory: " +
+            javax.xml.validation.SchemaFactory.newInstance("http://www.w3.org/XML/XMLSchema/v1.1").getClass() +
+            "\n\tjavax.xml.xpath.XPathFactory: " + javax.xml.xpath.XPathFactory.newInstance().getClass());
     }
 
     @Test
@@ -225,13 +224,13 @@ public class WorkerIT extends VitamRuleRunner {
 
         // workspace client dezip SIP in workspace
         final InputStream zipInputStreamSipObject =
-                PropertiesUtils.getResourceAsStream(SIP_FILE_OK_NAME);
+            PropertiesUtils.getResourceAsStream(SIP_FILE_OK_NAME);
         workspaceClient = WorkspaceClientFactory.getInstance().getClient();
         workspaceClient.createContainer(CONTAINER_NAME);
         workspaceClient.uncompressObject(CONTAINER_NAME, SIP_FOLDER, CommonMediaType.ZIP, zipInputStreamSipObject);
 
         final InputStream storageInfoJson =
-                PropertiesUtils.getResourceAsStream(STORAGE_INFO_JSON);
+            PropertiesUtils.getResourceAsStream(STORAGE_INFO_JSON);
         workspaceClient.putObject(CONTAINER_NAME, STORAGE_INFO_PATH, storageInfoJson);
 
         // call processing
@@ -239,12 +238,12 @@ public class WorkerIT extends VitamRuleRunner {
 
         workerClient = WorkerClientFactory.getInstance(workerClientConfiguration).getClient();
         final ItemStatus retStepControl =
-                workerClient.submitStep(getDescriptionStep("integration-worker/step_control_SIP.json"));
+            workerClient.submitStep(getDescriptionStep("integration-worker/step_control_SIP.json"));
         assertNotNull(retStepControl);
         assertEquals(StatusCode.OK, retStepControl.getGlobalStatus());
 
         final ItemStatus retStepCheckStorage =
-                workerClient.submitStep(getDescriptionStep("integration-worker/step_storage_SIP.json"));
+            workerClient.submitStep(getDescriptionStep("integration-worker/step_storage_SIP.json"));
         assertNotNull(retStepCheckStorage);
         assertEquals(StatusCode.OK, retStepCheckStorage.getGlobalStatus());
 
@@ -276,13 +275,13 @@ public class WorkerIT extends VitamRuleRunner {
 
         // workspace client dezip SIP in workspace
         final InputStream zipInputStreamSipObject =
-                PropertiesUtils.getResourceAsStream(SIP_ARBO_COMPLEXE_FILE_OK);
+            PropertiesUtils.getResourceAsStream(SIP_ARBO_COMPLEXE_FILE_OK);
         workspaceClient = WorkspaceClientFactory.getInstance().getClient();
         workspaceClient.createContainer(CONTAINER_NAME);
         workspaceClient.uncompressObject(CONTAINER_NAME, SIP_FOLDER, CommonMediaType.ZIP, zipInputStreamSipObject);
 
         final InputStream storageInfoJson =
-                PropertiesUtils.getResourceAsStream(STORAGE_INFO_JSON);
+            PropertiesUtils.getResourceAsStream(STORAGE_INFO_JSON);
         workspaceClient.putObject(CONTAINER_NAME, STORAGE_INFO_PATH, storageInfoJson);
 
 
@@ -291,13 +290,13 @@ public class WorkerIT extends VitamRuleRunner {
 
         workerClient = WorkerClientFactory.getInstance(workerClientConfiguration).getClient();
         final ItemStatus retStepControl =
-                workerClient.submitStep(getDescriptionStep("integration-worker/step_control_SIP.json"));
+            workerClient.submitStep(getDescriptionStep("integration-worker/step_control_SIP.json"));
         assertNotNull(retStepControl);
         assertEquals(StatusCode.OK, retStepControl.getGlobalStatus());
 
 
         final ItemStatus retStepCheckStorage =
-                workerClient.submitStep(getDescriptionStep("integration-worker/step_storage_SIP.json"));
+            workerClient.submitStep(getDescriptionStep("integration-worker/step_storage_SIP.json"));
         assertNotNull(retStepCheckStorage);
         assertEquals(StatusCode.OK, retStepCheckStorage.getGlobalStatus());
 
@@ -331,13 +330,13 @@ public class WorkerIT extends VitamRuleRunner {
         VitamThreadUtils.getVitamSession().setContextId("Context_IT");
         // workspace client dezip SIP in workspace
         final InputStream zipInputStreamSipObject =
-                PropertiesUtils.getResourceAsStream(SIP_WITHOUT_MANIFEST);
+            PropertiesUtils.getResourceAsStream(SIP_WITHOUT_MANIFEST);
         workspaceClient = WorkspaceClientFactory.getInstance().getClient();
         workspaceClient.createContainer(CONTAINER_NAME);
         workspaceClient.uncompressObject(CONTAINER_NAME, SIP_FOLDER, CommonMediaType.ZIP, zipInputStreamSipObject);
 
         final InputStream storageInfoJson =
-                PropertiesUtils.getResourceAsStream(STORAGE_INFO_JSON);
+            PropertiesUtils.getResourceAsStream(STORAGE_INFO_JSON);
         workspaceClient.putObject(CONTAINER_NAME, STORAGE_INFO_PATH, storageInfoJson);
 
         // call processing
@@ -345,7 +344,7 @@ public class WorkerIT extends VitamRuleRunner {
 
         workerClient = WorkerClientFactory.getInstance(workerClientConfiguration).getClient();
         final ItemStatus retStepControl =
-                workerClient.submitStep(getDescriptionStep("integration-worker/step_control_SIP.json"));
+            workerClient.submitStep(getDescriptionStep("integration-worker/step_control_SIP.json"));
         assertNotNull(retStepControl);
         assertEquals(StatusCode.KO, retStepControl.getGlobalStatus());
 
@@ -362,13 +361,13 @@ public class WorkerIT extends VitamRuleRunner {
         VitamThreadUtils.getVitamSession().setContextId("Context_IT");
         // workspace client dezip SIP in workspace
         final InputStream zipInputStreamSipObject =
-                PropertiesUtils.getResourceAsStream(SIP_CONFORMITY_KO);
+            PropertiesUtils.getResourceAsStream(SIP_CONFORMITY_KO);
         workspaceClient = WorkspaceClientFactory.getInstance().getClient();
         workspaceClient.createContainer(CONTAINER_NAME);
         workspaceClient.uncompressObject(CONTAINER_NAME, SIP_FOLDER, CommonMediaType.ZIP, zipInputStreamSipObject);
 
         final InputStream storageInfoJson =
-                PropertiesUtils.getResourceAsStream(STORAGE_INFO_JSON);
+            PropertiesUtils.getResourceAsStream(STORAGE_INFO_JSON);
         workspaceClient.putObject(CONTAINER_NAME, STORAGE_INFO_PATH, storageInfoJson);
 
         // call processing
@@ -376,7 +375,7 @@ public class WorkerIT extends VitamRuleRunner {
 
         workerClient = WorkerClientFactory.getInstance(workerClientConfiguration).getClient();
         final ItemStatus retStepControl =
-                workerClient.submitStep(getDescriptionStep("integration-worker/step_control_SIP.json"));
+            workerClient.submitStep(getDescriptionStep("integration-worker/step_control_SIP.json"));
         assertNotNull(retStepControl);
         assertEquals(StatusCode.OK, retStepControl.getGlobalStatus());
 
@@ -387,17 +386,16 @@ public class WorkerIT extends VitamRuleRunner {
     public void testRegistration() throws Exception {
         String workerId = String.valueOf(ServerIdentity.getInstance().getGlobalPlatformId());
         final WorkerRemoteConfiguration remoteConfiguration =
-                new WorkerRemoteConfiguration("localhost", runner.PORT_SERVICE_WORKER);
+            new WorkerRemoteConfiguration("localhost", runner.PORT_SERVICE_WORKER);
         final WorkerBean workerBean =
-                new WorkerBean("name", WorkerRegister.DEFAULT_FAMILY, 1, 1L, "active", remoteConfiguration);
+            new WorkerBean("name", WorkerRegister.DEFAULT_FAMILY, 1, 1L, "active", remoteConfiguration);
         processingClient = ProcessingManagementClientFactory.getInstance().getClient();
         try {
             processingClient.registerWorker(WorkerRegister.DEFAULT_FAMILY, workerId, workerBean);
-            fail("Should have raized an exception");
-        } catch (final WorkerAlreadyExistsException e) {
-            processingClient.unregisterWorker(WorkerRegister.DEFAULT_FAMILY, workerId);
+        } catch (final Exception e) {
+            LOGGER.error(e);
+            fail("Should not throw exception");
         }
-        processingClient.registerWorker(WorkerRegister.DEFAULT_FAMILY, workerId, workerBean);
     }
 
 
@@ -413,7 +411,7 @@ public class WorkerIT extends VitamRuleRunner {
 
         try {
             final InputStream inputJSON =
-                    PropertiesUtils.getResourceAsStream(stepFilePath);
+                PropertiesUtils.getResourceAsStream(stepFilePath);
             step = objectMapper.readValue(inputJSON, Step.class);
 
         } catch (final IOException e) {
@@ -439,10 +437,11 @@ public class WorkerIT extends VitamRuleRunner {
         String unitName = "";
         try {
             final InputStream stream = (InputStream) workspaceClient.getObject(CONTAINER_NAME,
-                    "UnitsLevel/ingestLevelStack.json").getEntity();
+                "UnitsLevel/ingestLevelStack.json").getEntity();
             final Map<String, Object> map = JsonHandler.getMapFromString(IOUtils.toString(stream, "UTF-8"));
 
-            @SuppressWarnings("rawtypes") final ArrayList levelUnits = (ArrayList) map.values().iterator().next();
+            @SuppressWarnings("rawtypes")
+            final ArrayList levelUnits = (ArrayList) map.values().iterator().next();
             if (levelUnits.size() > 0) {
                 unitName = (String) levelUnits.get(0);
             }
@@ -456,7 +455,7 @@ public class WorkerIT extends VitamRuleRunner {
         String objectName = "";
         try {
             final InputStream stream = (InputStream) workspaceClient.getObject(CONTAINER_NAME,
-                    "Maps/OBJECT_GROUP_ID_TO_GUID_MAP.json").getEntity();
+                "Maps/OBJECT_GROUP_ID_TO_GUID_MAP.json").getEntity();
             final Map<String, Object> map = JsonHandler.getMapFromString(IOUtils.toString(stream, "UTF-8"));
             objectName = (String) map.values().iterator().next();
         } catch (final Exception e) {

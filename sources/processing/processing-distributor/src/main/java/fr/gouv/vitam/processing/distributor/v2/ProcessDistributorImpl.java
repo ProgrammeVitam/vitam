@@ -298,7 +298,8 @@ public class ProcessDistributorImpl implements ProcessDistributor {
                     final JsonNode ogIdList;
                     try {
                         response =
-                            workspaceClient.getObject(workParams.getContainerName(), step.getDistribution().getElement());
+                            workspaceClient
+                                .getObject(workParams.getContainerName(), step.getDistribution().getElement());
                         ogIdList = JsonHandler.getFromInputStream((InputStream) response.getEntity());
                     } finally {
                         workspaceClient.consumeAnyEntityAndClose(response);
@@ -904,7 +905,7 @@ public class ProcessDistributorImpl implements ProcessDistributor {
         return CompletableFuture
             .supplyAsync(task, wmf)
             .exceptionally((completionException) -> {
-                LOGGER.error("Exception occured when executing task", completionException);
+                LOGGER.error("Exception occurred when executing task", completionException);
                 Throwable cause = completionException.getCause();
                 if (cause instanceof WorkerUnreachableException) {
                     WorkerUnreachableException wue = (WorkerUnreachableException) cause;
@@ -913,7 +914,7 @@ public class ProcessDistributorImpl implements ProcessDistributor {
                             "The worker (" + step.getWorkerGroupId() + ") will be unregistered as it is Unreachable",
                             wue.getWorkerId());
                         workerManager.unregisterWorker(step.getWorkerGroupId(), wue.getWorkerId());
-                    } catch (WorkerFamilyNotFoundException | WorkerNotFoundException | InterruptedException e1) {
+                    } catch (WorkerFamilyNotFoundException | IOException e1) {
                         LOGGER.error("Exception while unregister worker " + wue.getWorkerId(), cause);
                     }
                 }

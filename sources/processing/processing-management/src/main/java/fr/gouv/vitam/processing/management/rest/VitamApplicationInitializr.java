@@ -97,8 +97,7 @@ public class VitamApplicationInitializr {
 
     @VisibleForTesting
     public void initialize(ServerConfiguration serverConfiguration, WorkerClientFactory workerClientFactory,
-        WorkspaceClientFactory workspaceClientFactory,
-        ProcessManagement processManagement) {
+        ProcessManagement processManagement) throws IOException {
 
         commonBusinessApplication = new CommonBusinessApplication();
 

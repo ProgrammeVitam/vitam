@@ -31,7 +31,6 @@ import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.server.application.junit.ResteasyTestApplication;
 import fr.gouv.vitam.common.serverv2.VitamServerTestRunner;
 import fr.gouv.vitam.processing.common.exception.ProcessingBadRequestException;
-import fr.gouv.vitam.processing.common.exception.WorkerAlreadyExistsException;
 import fr.gouv.vitam.processing.common.model.WorkerBean;
 import org.junit.AfterClass;
 import org.junit.Before;
@@ -119,12 +118,6 @@ public class WorkerFamilyProcessingManagementClientTest extends ResteasyTestAppl
     @Test(expected = ProcessingBadRequestException.class)
     public void givenBadWorkerDescriptionThenThrowsBadRequest() throws Exception {
         when(mock.post()).thenReturn(Response.status(Response.Status.BAD_REQUEST).build());
-        client.registerWorker("familyId", "workerId", getDefaultWorkerBean());
-    }
-
-    @Test(expected = WorkerAlreadyExistsException.class)
-    public void givenExistingWorkerThenThrowsConflict() throws Exception {
-        when(mock.post()).thenReturn(Response.status(Response.Status.CONFLICT).build());
         client.registerWorker("familyId", "workerId", getDefaultWorkerBean());
     }
 

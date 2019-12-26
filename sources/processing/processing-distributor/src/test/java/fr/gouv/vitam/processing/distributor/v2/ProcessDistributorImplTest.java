@@ -21,7 +21,6 @@ import com.fasterxml.jackson.databind.JsonNode;
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.client.AbstractMockClient;
-import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.SysErrLogger;
@@ -39,8 +38,6 @@ import fr.gouv.vitam.common.thread.VitamThreadFactory;
 import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.processing.common.config.ServerConfiguration;
-import fr.gouv.vitam.processing.common.exception.ProcessingStorageWorkspaceException;
-import fr.gouv.vitam.processing.common.exception.WorkerAlreadyExistsException;
 import fr.gouv.vitam.processing.common.model.DistributorIndex;
 import fr.gouv.vitam.processing.common.model.PauseRecover;
 import fr.gouv.vitam.processing.common.model.ProcessStep;
@@ -56,8 +53,6 @@ import fr.gouv.vitam.processing.distributor.api.IWorkerManager;
 import fr.gouv.vitam.processing.distributor.api.ProcessDistributor;
 import fr.gouv.vitam.worker.client.WorkerClient;
 import fr.gouv.vitam.worker.client.WorkerClientFactory;
-import fr.gouv.vitam.worker.client.exception.WorkerNotFoundClientException;
-import fr.gouv.vitam.worker.client.exception.WorkerServerClientException;
 import fr.gouv.vitam.worker.common.DescriptionStep;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
@@ -339,12 +334,10 @@ public class ProcessDistributorImplTest {
         }
     }
 
-    /**
-     * @throws WorkerAlreadyExistsException
-     */
+
     @Test
     @RunWithCustomExecutor
-    public void whenDistributeManifestThenOK() throws WorkerAlreadyExistsException {
+    public void whenDistributeManifestThenOK() {
 
         when(processWorkflow.getStatus()).thenReturn(StatusCode.STARTED);
 
@@ -361,12 +354,9 @@ public class ProcessDistributorImplTest {
     }
 
 
-    /**
-     * @throws WorkerAlreadyExistsException
-     */
     @Test
     @RunWithCustomExecutor
-    public void whenDistributeManifestThenFATAL() throws WorkerAlreadyExistsException {
+    public void whenDistributeManifestThenFATAL() {
 
 
         ItemStatus itemStatus = processDistributor
@@ -377,11 +367,9 @@ public class ProcessDistributorImplTest {
     }
 
 
-    //Exemple here
     @Test
     @RunWithCustomExecutor
-    public void whenDistributeDistributionKindListWithLevelOK() throws WorkerAlreadyExistsException,
-        IOException, ContentAddressableStorageNotFoundException, ContentAddressableStorageServerException {
+    public void whenDistributeDistributionKindListWithLevelOK() throws Exception {
 
         when(processWorkflow.getStatus()).thenReturn(StatusCode.STARTED);
 
@@ -408,9 +396,7 @@ public class ProcessDistributorImplTest {
 
     @Test
     @RunWithCustomExecutor
-    public void whenDistributeDistributionKindListWithLevelKO() throws WorkerAlreadyExistsException,
-        IOException, ContentAddressableStorageNotFoundException, ContentAddressableStorageServerException,
-        WorkerNotFoundClientException, WorkerServerClientException {
+    public void whenDistributeDistributionKindListWithLevelKO() throws Exception {
 
         when(processWorkflow.getStatus()).thenReturn(StatusCode.STARTED);
 
@@ -442,9 +428,7 @@ public class ProcessDistributorImplTest {
 
     @Test
     @RunWithCustomExecutor
-    public void whenDistributeDistributionKindListWithLevelWARNING() throws WorkerAlreadyExistsException,
-        IOException, ContentAddressableStorageNotFoundException, ContentAddressableStorageServerException,
-        WorkerNotFoundClientException, WorkerServerClientException {
+    public void whenDistributeDistributionKindListWithLevelWARNING() throws Exception {
         ;
         when(processWorkflow.getStatus()).thenReturn(StatusCode.STARTED);
 
@@ -477,9 +461,7 @@ public class ProcessDistributorImplTest {
 
     @Test
     @RunWithCustomExecutor
-    public void whenDistributeDistributionKindListWithLevelFATAL() throws WorkerAlreadyExistsException,
-        IOException, ContentAddressableStorageNotFoundException, ContentAddressableStorageServerException,
-        WorkerNotFoundClientException, WorkerServerClientException {
+    public void whenDistributeDistributionKindListWithLevelFATAL() throws Exception {
 
 
         when(processWorkflow.getStatus()).thenReturn(StatusCode.STARTED);
@@ -500,8 +482,7 @@ public class ProcessDistributorImplTest {
 
     @Test
     @RunWithCustomExecutor
-    public void whenDistributeKindLargeFileOK() throws WorkerAlreadyExistsException,
-        IOException, ContentAddressableStorageNotFoundException, ContentAddressableStorageServerException {
+    public void whenDistributeKindLargeFileOK() throws Exception {
 
         when(processWorkflow.getStatus()).thenReturn(StatusCode.STARTED);
 
@@ -522,8 +503,7 @@ public class ProcessDistributorImplTest {
 
     @Test
     @RunWithCustomExecutor
-    public void whenDistributeKindFullLargeFileOK() throws
-        IOException, ContentAddressableStorageNotFoundException, ContentAddressableStorageServerException {
+    public void whenDistributeKindFullLargeFileOK() throws Exception {
 
 
         File file = PropertiesUtils.getResourceFile(FILE_FULL_GUIDS);
@@ -636,9 +616,7 @@ public class ProcessDistributorImplTest {
 
     @Test
     @RunWithCustomExecutor
-    public void whenDistributeKindFullLargeFileResumptionAfterPauseOK() throws WorkerAlreadyExistsException,
-        IOException, ContentAddressableStorageNotFoundException, ContentAddressableStorageServerException,
-        InvalidParseOperationException, ProcessingStorageWorkspaceException {
+    public void whenDistributeKindFullLargeFileResumptionAfterPauseOK() throws Exception {
 
         when(processWorkflow.getStatus()).thenReturn(StatusCode.STARTED);
 
@@ -693,8 +671,7 @@ public class ProcessDistributorImplTest {
 
     @Test
     @RunWithCustomExecutor
-    public void whenDistributeKindLargeFileFATAL() throws
-        IOException, ContentAddressableStorageNotFoundException, ContentAddressableStorageServerException {
+    public void whenDistributeKindLargeFileFATAL() throws Exception {
 
         when(processWorkflow.getStatus()).thenReturn(StatusCode.STARTED);
 
@@ -711,8 +688,7 @@ public class ProcessDistributorImplTest {
 
     @Test
     @RunWithCustomExecutor
-    public void whenDistributeKindEmptyLargeFileThenWarning() throws WorkerAlreadyExistsException,
-        IOException, ContentAddressableStorageNotFoundException, ContentAddressableStorageServerException {
+    public void whenDistributeKindEmptyLargeFileThenWarning() throws Exception {
 
         when(processWorkflow.getStatus()).thenReturn(StatusCode.STARTED);
 
@@ -790,8 +766,7 @@ public class ProcessDistributorImplTest {
 
     @Test
     @RunWithCustomExecutor
-    public void whenDistributePauseOK() throws IOException, ContentAddressableStorageNotFoundException,
-        ContentAddressableStorageServerException, WorkerNotFoundClientException, WorkerServerClientException {
+    public void whenDistributePauseOK() throws Exception {
 
         when(processWorkflow.getStatus()).thenReturn(StatusCode.STARTED);
 
@@ -850,9 +825,7 @@ public class ProcessDistributorImplTest {
 
     @Test
     @RunWithCustomExecutor
-    public void whenDistributePauseAndWorkerTaskExceptionThenPauseOK() throws WorkerAlreadyExistsException,
-        IOException, ContentAddressableStorageNotFoundException, ContentAddressableStorageServerException,
-        WorkerNotFoundClientException, WorkerServerClientException {
+    public void whenDistributePauseAndWorkerTaskExceptionThenPauseOK() throws Exception {
 
         when(processWorkflow.getStatus()).thenReturn(StatusCode.STARTED);
 

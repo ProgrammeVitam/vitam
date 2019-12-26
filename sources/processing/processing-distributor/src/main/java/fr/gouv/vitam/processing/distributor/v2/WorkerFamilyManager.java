@@ -27,15 +27,14 @@
 
 package fr.gouv.vitam.processing.distributor.v2;
 
-import java.util.HashMap;
+import fr.gouv.vitam.common.thread.VitamThreadFactory;
+import fr.gouv.vitam.processing.common.model.WorkerBean;
+
 import java.util.Map;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Executor;
-
-import fr.gouv.vitam.common.guid.GUIDFactory;
-import fr.gouv.vitam.common.thread.VitamThreadFactory;
-import fr.gouv.vitam.processing.common.model.WorkerBean;
 
 // manage many worker per worker family
 public class WorkerFamilyManager implements Executor {
@@ -43,7 +42,7 @@ public class WorkerFamilyManager implements Executor {
 
     private BlockingQueue<Runnable> queue;
 
-    private Map<String, WorkerExecutor> workers = new HashMap<>();
+    private Map<String, WorkerExecutor> workers = new ConcurrentHashMap<>();
 
     public WorkerFamilyManager(int queueSize) {
         if (queueSize < 2) {
@@ -53,16 +52,17 @@ public class WorkerFamilyManager implements Executor {
     }
 
     public void registerWorker(WorkerBean workerBean) {
-        if (workers.containsKey(workerBean.getWorkerId())) {
-            throw new IllegalArgumentException("worker already register");
-        }
-        WorkerExecutor executor = new WorkerExecutor(queue, workerBean);
-        workers.put(workerBean.getWorkerId(), executor);
-        for (int i = 0; i < workerBean.getCapacity(); i++) {
-            final Thread thread = VitamThreadFactory.getInstance().newThread(executor);
-            thread.setName("WorkerExecutor_"+GUIDFactory.newGUID().getId());
-            thread.start();
-        }
+        workers.computeIfAbsent(workerBean.getWorkerId(), (key) -> {
+            WorkerExecutor executor = new WorkerExecutor(queue, workerBean);
+            for (int i = 0; i < workerBean.getCapacity(); i++) {
+                final Thread thread = VitamThreadFactory.getInstance().newThread(executor);
+                thread.setName("WorkerExecutor_" + workerBean.getWorkerId());
+                thread.start();
+            }
+            return executor;
+        });
+
+
     }
 
     /**

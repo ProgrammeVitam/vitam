@@ -39,12 +39,22 @@ import fr.gouv.vitam.common.ParametersChecker;
  */
 public class WorkerBean {
 
+    @JsonProperty("name")
     private String name;
+
+    @JsonProperty("workerId")
     private String workerId;
 
+    @JsonProperty("family")
     private String family;
+
+    @JsonProperty("capacity")
     private int capacity = 1;
+
+    @JsonProperty("storage")
     private long storage;
+
+    @JsonProperty("status")
     private String status;
 
     /**
