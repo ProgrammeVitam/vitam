@@ -15,7 +15,7 @@
  * generally, to use and operate it in the same conditions as regards security. <p> The fact that you are presently
  * reading this means that you have had knowledge of the CeCILL 2.1 license and that you accept its terms.
  */
-package fr.gouv.vitam.processing.distributor.v2;
+package fr.gouv.vitam.processing.distributor.core;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -43,7 +43,6 @@ import fr.gouv.vitam.processing.common.config.ServerConfiguration;
 import fr.gouv.vitam.processing.common.exception.HandlerNotFoundException;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.processing.common.exception.WorkerFamilyNotFoundException;
-import fr.gouv.vitam.processing.common.exception.WorkerNotFoundException;
 import fr.gouv.vitam.processing.common.model.DistributorIndex;
 import fr.gouv.vitam.processing.common.model.PauseRecover;
 import fr.gouv.vitam.processing.common.parameter.DefaultWorkerParameters;

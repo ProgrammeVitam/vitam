@@ -25,7 +25,7 @@
  * accept its terms.
  */
 
-package fr.gouv.vitam.processing.distributor.v2;
+package fr.gouv.vitam.processing.distributor.core;
 
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.guid.GUIDFactory;
