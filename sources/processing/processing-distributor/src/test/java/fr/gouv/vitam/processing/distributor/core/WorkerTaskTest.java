@@ -45,6 +45,7 @@ import fr.gouv.vitam.processing.common.parameter.DefaultWorkerParameters;
 import fr.gouv.vitam.processing.common.parameter.WorkerParametersFactory;
 import fr.gouv.vitam.worker.client.WorkerClient;
 import fr.gouv.vitam.worker.client.WorkerClientFactory;
+import fr.gouv.vitam.worker.client.exception.WorkerExecutorException;
 import fr.gouv.vitam.worker.client.exception.WorkerServerClientException;
 import fr.gouv.vitam.worker.client.exception.WorkerUnreachableException;
 import fr.gouv.vitam.worker.common.DescriptionStep;
@@ -52,6 +53,7 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.mockito.Mock;
+import org.mockito.internal.verification.VerificationModeFactory;
 import org.mockito.junit.MockitoJUnit;
 import org.mockito.junit.MockitoRule;
 
@@ -68,7 +70,9 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.reset;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import static org.mockito.internal.verification.VerificationModeFactory.times;
 
 public class WorkerTaskTest {
 
@@ -92,7 +96,7 @@ public class WorkerTaskTest {
     public MockitoRule mockitoRule = MockitoJUnit.rule();
 
     @Rule
-    public TempFolderRule tempFolderRule = new TempFolderRule();
+    public TempFolderRule testFolder = new TempFolderRule();
 
     @Mock
     private WorkerClientFactory workerClientFactory;
@@ -149,14 +153,29 @@ public class WorkerTaskTest {
         when(workerClient.submitStep(eq(descriptionStep)))
             .thenThrow(new WorkerServerClientException("Unreachable server"));
 
-        doThrow(new UnresolvedAddressException()).when(workerClient).checkStatus();
-        doThrow(new UnresolvedAddressException()).when(workerClient).checkStatus();
-        doThrow(new UnresolvedAddressException()).when(workerClient).checkStatus();
-
+        doThrow(new UnresolvedAddressException(), new UnresolvedAddressException(),
+            new UnresolvedAddressException()).when(workerClient).checkStatus();
         task.get();
     }
 
+    @RunWithCustomExecutor
+    @Test(expected = WorkerExecutorException.class)
+    public void test_worker_task_get_then_third_checkStatus_ok_thenWorkerExecutorException() throws Exception {
+        DescriptionStep descriptionStep = getDescriptionStep("familyId");
 
+        WorkerInformation.getWorkerThreadLocal().get().setWorkerBean(WORKER_DESCRIPTION);
+
+        final WorkerTask task =
+            new WorkerTask(descriptionStep, 0, "requestId", "contractId", "contextId", "applicationId",
+                workerClientFactory);
+
+
+        when(workerClient.submitStep(eq(descriptionStep)))
+            .thenThrow(new WorkerServerClientException("Unreachable server"));
+
+        doThrow(new UnresolvedAddressException(), new UnresolvedAddressException()).doNothing().when(workerClient).checkStatus();
+        task.get();
+    }
     @RunWithCustomExecutor
     @Test
     public void with_completable_feature_test_worker_task_get_then_WorkerUnreachableException() throws Exception {
@@ -170,9 +189,8 @@ public class WorkerTaskTest {
         when(workerClient.submitStep(eq(descriptionStep)))
             .thenThrow(new WorkerServerClientException("Unreachable server"));
 
-        doThrow(new UnresolvedAddressException()).when(workerClient).checkStatus();
-        doThrow(new UnresolvedAddressException()).when(workerClient).checkStatus();
-        doThrow(new UnresolvedAddressException()).when(workerClient).checkStatus();
+        doThrow(new UnresolvedAddressException(), new UnresolvedAddressException(),
+            new UnresolvedAddressException()).when(workerClient).checkStatus();
 
         WorkerFamilyManager workerFamilyManager = new WorkerFamilyManager(10);
         workerFamilyManager.registerWorker(WORKER_DESCRIPTION);
@@ -183,7 +201,7 @@ public class WorkerTaskTest {
                 .exceptionally(th -> {
                     assertThat(th.getCause()).isInstanceOf(WorkerUnreachableException.class);
                     workerFamilyManager.unregisterWorker(WORKER_DESCRIPTION.getWorkerId());
-                    throw (CompletionException)th;
+                    throw (CompletionException) th;
                 }).get();
 
             fail("Should throw exception");
@@ -191,6 +209,7 @@ public class WorkerTaskTest {
             assertThat(e.getCause()).isInstanceOf(WorkerUnreachableException.class);
         }
 
+        verify(workerClient, times(3)).checkStatus();
     }
 
     private DescriptionStep getDescriptionStep(String familyId) {

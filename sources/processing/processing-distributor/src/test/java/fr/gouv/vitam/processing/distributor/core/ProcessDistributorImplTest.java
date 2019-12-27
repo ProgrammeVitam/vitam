@@ -37,6 +37,7 @@ import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
 import fr.gouv.vitam.common.thread.VitamThreadFactory;
 import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
+import fr.gouv.vitam.common.tmp.TempFolderRule;
 import fr.gouv.vitam.processing.common.config.ServerConfiguration;
 import fr.gouv.vitam.processing.common.model.DistributorIndex;
 import fr.gouv.vitam.processing.common.model.PauseRecover;
@@ -62,6 +63,7 @@ import org.apache.commons.io.input.BoundedInputStream;
 import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
+import org.junit.ClassRule;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
@@ -108,8 +110,10 @@ public class ProcessDistributorImplTest {
     private static final String FILE_WITH_GUIDS = "file_with_guids.jsonl";
     private static final String FILE_GUIDS_INVALID = "file_guids_invalid.jsonl";
     private static final String FILE_EMPTY_GUIDS = "file_empty_guids.jsonl";
+
     @Rule
-    public TemporaryFolder testFolder = new TemporaryFolder();
+    public TempFolderRule testFolder = new TempFolderRule();
+
     @Rule
     public RunWithCustomExecutorRule runInThread =
         new RunWithCustomExecutorRule(VitamThreadPoolExecutor.getDefaultExecutor());
@@ -775,7 +779,6 @@ public class ProcessDistributorImplTest {
         givenWorkspaceClientReturnsFileContent(fileContracts, any(), any());
         final CountDownLatch countDownLatchSubmit = new CountDownLatch(9);
         when(workerClient.submitStep(any())).thenAnswer(invocation -> {
-            System.out.println("submit step");
             countDownLatchSubmit.countDown();
             return getMockedItemStatus(StatusCode.OK);
         });

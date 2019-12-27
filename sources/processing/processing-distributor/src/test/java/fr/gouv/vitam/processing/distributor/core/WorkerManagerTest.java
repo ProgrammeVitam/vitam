@@ -94,7 +94,7 @@ public class WorkerManagerTest {
     public MockitoRule mockitoRule = MockitoJUnit.rule();
 
     @Rule
-    public TempFolderRule tempFolderRule = new TempFolderRule();
+    public TempFolderRule testFolder = new TempFolderRule();
 
     @Mock
     private WorkerClientFactory workerClientFactory;

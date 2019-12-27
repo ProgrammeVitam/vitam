@@ -116,7 +116,7 @@ public class WorkerRegistrationListenerTest {
 
         workerRegistrationListener.contextInitialized(null);
 
-        TimeUnit.MILLISECONDS.sleep(2100);
+        TimeUnit.MILLISECONDS.sleep(2500);
 
         // because of setRegisterDelay(2) then 2100 milliseconds > 2 seconds so at least 2 invocation
         verify(processingManagementClient, VerificationModeFactory.atLeast(2))
@@ -125,7 +125,7 @@ public class WorkerRegistrationListenerTest {
         workerRegistrationListener.contextDestroyed(null);
 
 
-        TimeUnit.MILLISECONDS.sleep(20);
+        TimeUnit.MILLISECONDS.sleep(500);
 
         verify(processingManagementClient, VerificationModeFactory.atLeastOnce())
             .unregisterWorker(anyString(), anyString());

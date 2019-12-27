@@ -105,7 +105,7 @@ public class ProcessManagementResourceTest extends ResteasyTestApplication {
             VitamApplicationInitializr.get()
                 .initialize(serverConfiguration, workerClientFactory, processManagement);
         } catch (IOException e) {
-            SysErrLogger.FAKE_LOGGER.syserr("", e);
+            throw new RuntimeException(e);
         }
 
     }

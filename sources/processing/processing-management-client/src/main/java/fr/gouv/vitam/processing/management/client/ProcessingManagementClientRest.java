@@ -32,13 +32,10 @@ import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.client.DefaultClient;
 import fr.gouv.vitam.common.exception.BadRequestException;
 import fr.gouv.vitam.common.exception.InternalServerException;
-import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamClientException;
 import fr.gouv.vitam.common.exception.VitamClientInternalException;
 import fr.gouv.vitam.common.exception.WorkflowNotFoundException;
 import fr.gouv.vitam.common.json.JsonHandler;
-import fr.gouv.vitam.common.logging.VitamLogger;
-import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.ProcessAction;
 import fr.gouv.vitam.common.model.ProcessPause;
@@ -67,11 +64,9 @@ import java.util.Optional;
  * Processing Management Client
  */
 class ProcessingManagementClientRest extends DefaultClient implements ProcessingManagementClient {
-    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(ProcessingManagementClientRest.class);
 
     private static final String ERR_CONTAINER_IS_MANDATORY = "Container is mandatory";
     private static final String ERR_WORKFLOW_IS_MANDATORY = "Workflow is mandatory";
-    private static final String PROCESSING_INTERNAL_SERVER_ERROR = "Processing Internal Server Error";
     private static final String ILLEGAL_ARGUMENT = "Illegal Argument";
     private static final String NOT_FOUND = "Not Found";
     private static final String BAD_REQUEST_EXCEPTION = "Bad Request Exception";
@@ -121,7 +116,6 @@ class ProcessingManagementClientRest extends DefaultClient implements Processing
             }
 
         } catch (final WorkflowNotFoundException | IllegalArgumentException | BadRequestException | InternalServerException e) {
-            LOGGER.debug(e);
             throw e;
         } catch (final Exception e) {
             throw new InternalServerException(INTERNAL_SERVER_ERROR);
@@ -152,7 +146,6 @@ class ProcessingManagementClientRest extends DefaultClient implements Processing
         } catch (VitamClientException e) {
             throw e;
         } catch (final Exception e) {
-            LOGGER.debug(e);
             throw new InternalServerException(INTERNAL_SERVER_ERROR, e);
         } finally {
             consumeAnyEntityAndClose(response);
@@ -188,7 +181,6 @@ class ProcessingManagementClientRest extends DefaultClient implements Processing
         } catch (VitamClientException e) {
             throw e;
         } catch (final Exception e) {
-            LOGGER.debug(e);
             throw new InternalServerException(INTERNAL_SERVER_ERROR, e);
         } finally {
             consumeAnyEntityAndClose(response);
@@ -228,7 +220,6 @@ class ProcessingManagementClientRest extends DefaultClient implements Processing
         } catch (VitamClientException e) {
             throw e;
         } catch (final Exception e) {
-            LOGGER.debug(e);
             throw new InternalServerException(INTERNAL_SERVER_ERROR, e);
         } finally {
             consumeAnyEntityAndClose(response);
@@ -261,7 +252,6 @@ class ProcessingManagementClientRest extends DefaultClient implements Processing
         } catch (final VitamClientException | WorkflowNotFoundException | BadRequestException | InternalServerException e) {
             throw e;
         } catch (final Exception e) {
-            LOGGER.debug(PROCESSING_INTERNAL_SERVER_ERROR, e);
             throw new InternalServerException(INTERNAL_SERVER_ERROR, e);
         } finally {
             consumeAnyEntityAndClose(response);
@@ -328,7 +318,6 @@ class ProcessingManagementClientRest extends DefaultClient implements Processing
         } catch (VitamClientException e) {
             throw e;
         } catch (final Exception e) {
-            LOGGER.debug(e);
             throw new InternalServerException(INTERNAL_SERVER_ERROR, e);
         } finally {
             consumeAnyEntityAndClose(response);
@@ -350,7 +339,6 @@ class ProcessingManagementClientRest extends DefaultClient implements Processing
         } catch (VitamClientException e) {
             throw e;
         } catch (final Exception e) {
-            LOGGER.debug(e);
             throw new InternalServerException(INTERNAL_SERVER_ERROR, e);
         } finally {
             consumeAnyEntityAndClose(response);
@@ -367,8 +355,7 @@ class ProcessingManagementClientRest extends DefaultClient implements Processing
         try {
             response =
                 performRequest(HttpMethod.POST, "/worker_family/" + familyId + "/" + "workers" + "/" + workerId, null,
-                    JsonHandler.unprettyPrint(workerDescription), MediaType.APPLICATION_JSON_TYPE,
-                    MediaType.APPLICATION_JSON_TYPE);
+                    workerDescription, MediaType.APPLICATION_JSON_TYPE, MediaType.APPLICATION_JSON_TYPE);
 
             if (response.getStatus() == Status.BAD_REQUEST.getStatusCode()) {
                 throw new ProcessingBadRequestException("Bad Request");
@@ -378,7 +365,6 @@ class ProcessingManagementClientRest extends DefaultClient implements Processing
                         workerId + "");
             }
         } catch (final VitamClientInternalException e) {
-            LOGGER.error(PROCESSING_INTERNAL_SERVER_ERROR, e);
             throw e;
         } finally {
             consumeAnyEntityAndClose(response);
@@ -400,7 +386,6 @@ class ProcessingManagementClientRest extends DefaultClient implements Processing
                 throw new ProcessingBadRequestException("Worker Family, or worker does not exist");
             }
         } catch (final VitamClientInternalException e) {
-            LOGGER.debug(PROCESSING_INTERNAL_SERVER_ERROR, e);
             throw new ProcessingBadRequestException(INTERNAL_SERVER_ERROR, e);
         } finally {
             consumeAnyEntityAndClose(response);
@@ -420,7 +405,6 @@ class ProcessingManagementClientRest extends DefaultClient implements Processing
         } catch (VitamClientException e) {
             throw e;
         } catch (final Exception e) {
-            LOGGER.debug(e);
             throw new VitamClientInternalException(INTERNAL_SERVER_ERROR, e);
         } finally {
             consumeAnyEntityAndClose(response);
@@ -436,10 +420,8 @@ class ProcessingManagementClientRest extends DefaultClient implements Processing
             return RequestResponse.parseFromResponse(response, WorkFlow.class);
 
         } catch (IllegalStateException e) {
-            LOGGER.debug("Could not parse server response ", e);
             throw createExceptionFromResponse(response);
         } catch (VitamClientInternalException e) {
-            LOGGER.debug("VitamClientInternalException: ", e);
             throw new VitamClientException(e);
         } finally {
             consumeAnyEntityAndClose(response);
@@ -477,7 +459,6 @@ class ProcessingManagementClientRest extends DefaultClient implements Processing
             return RequestResponse.parseFromResponse(response, ProcessPause.class);
 
         } catch (VitamClientInternalException e) {
-            LOGGER.error(INTERNAL_SERVER_ERROR, e);
             throw new ProcessingException(INTERNAL_SERVER_ERROR, e);
         } finally {
             consumeAnyEntityAndClose(response);
@@ -495,7 +476,6 @@ class ProcessingManagementClientRest extends DefaultClient implements Processing
             return RequestResponse.parseFromResponse(response, ProcessPause.class);
 
         } catch (VitamClientInternalException e) {
-            LOGGER.error(INTERNAL_SERVER_ERROR, e);
             throw new ProcessingException(INTERNAL_SERVER_ERROR, e);
         } finally {
             consumeAnyEntityAndClose(response);

@@ -240,12 +240,13 @@ public class ProcessDistributorResource {
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
     public Response registerWorker(@Context HttpHeaders headers, @PathParam("id_family") String idFamily,
-        @PathParam("id_worker") String idWorker, String workerInformation) {
+        @PathParam("id_worker") String idWorker, WorkerBean workerInformation) {
         try {
-            SanityChecker.checkJsonAll(JsonHandler.toJsonNode(workerInformation));
-            GlobalDatasParser.sanityRequestCheck(workerInformation);
+            String asString = JsonHandler.unprettyPrint(workerInformation);
+            SanityChecker.checkJsonAll(asString);
+            GlobalDatasParser.sanityRequestCheck(asString);
             workerManager
-                .registerWorker(idFamily, idWorker, JsonHandler.getFromString(workerInformation, WorkerBean.class));
+                .registerWorker(idFamily, idWorker, workerInformation);
 
         } catch (ProcessingBadRequestException | InvalidParseOperationException | IllegalArgumentException exc) {
             LOGGER.error(exc);
