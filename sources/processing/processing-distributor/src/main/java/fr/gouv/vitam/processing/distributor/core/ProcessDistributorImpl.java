@@ -214,9 +214,8 @@ public class ProcessDistributorImpl implements ProcessDistributor {
                 metadataClient.refreshUnits();
                 metadataClient.refreshObjectGroups();
             } catch (MetaDataClientServerException e) {
-                step.getStepResponses().increment(StatusCode.FATAL);
-                LOGGER.error("Illegal Argument Exception", e);
-                return step.setPauseOrCancelAction(PauseOrCancelAction.ACTION_COMPLETE).getStepResponses();
+                LOGGER.error("Error while refresh metadata indexes", e);
+                return step.getStepResponses().increment(StatusCode.FATAL);
             }
         }
         try {
@@ -911,7 +910,8 @@ public class ProcessDistributorImpl implements ProcessDistributor {
 
                 if (cause instanceof WorkerUnreachableException) {
                     WorkerUnreachableException wue = (WorkerUnreachableException) cause;
-                    evDetDetail.put("Error", "Distributor lost connection with worker ("+wue.getWorkerId()+"). The worker will be unregistered.");
+                    evDetDetail.put("Error", "Distributor lost connection with worker (" + wue.getWorkerId() +
+                        "). The worker will be unregistered.");
                     try {
                         LOGGER.warn(
                             "The worker (" + step.getWorkerGroupId() + ") will be unregistered as it is Unreachable",
