@@ -29,25 +29,23 @@ package fr.gouv.vitam.worker.client.exception;
 
 public class WorkerExecutorException extends RuntimeException {
 
-    /**
-     * @param message associated message
-     */
-    public WorkerExecutorException(String message) {
+    private String workerId;
+    public WorkerExecutorException(String workerId, String message) {
         super(message);
+        this.workerId = workerId;
     }
 
-    /**
-     * @param cause associated cause
-     */
-    public WorkerExecutorException(Throwable cause) {
+    public WorkerExecutorException(String workerId, Throwable cause) {
         super(cause);
+        this.workerId = workerId;
     }
 
-    /**
-     * @param messsage associated message
-     * @param cause associated cause
-     */
-    public WorkerExecutorException(String messsage, Throwable cause) {
+    public WorkerExecutorException(String workerId, String messsage, Throwable cause) {
         super(messsage, cause);
+        this.workerId = workerId;
+    }
+
+    public String getWorkerId() {
+        return workerId;
     }
 }

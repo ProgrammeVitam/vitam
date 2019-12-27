@@ -875,7 +875,7 @@ public class ProcessDistributorImplTest {
 
         assertThat(is).isNotNull();
         assertThat(is.getItemsStatus().get(PauseOrCancelAction.ACTION_PAUSE.name())).isNotNull();
-        assertThat(is.getItemsStatus().get(ProcessDistributor.WORKER_CALL_EXCEPTION)).isNotNull();
+        assertThat(is.getItemsStatus().get("FakeStepName")).isNotNull();
         assertThat(is.getStatusMeter().get(StatusCode.UNKNOWN.getStatusLevel())).isGreaterThan(0); // statusCode UNkNWON
         assertThat(is.getStatusMeter().get(StatusCode.OK.getStatusLevel())).isGreaterThan(0); // statusCode OK
         assertThat(is.getStatusMeter().get(StatusCode.FATAL.getStatusLevel())).isEqualTo(1); // statusCode FATAL

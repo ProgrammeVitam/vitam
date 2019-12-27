@@ -19,6 +19,7 @@ package fr.gouv.vitam.processing.distributor.core;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.annotations.VisibleForTesting;
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.VitamConfiguration;
@@ -906,8 +907,11 @@ public class ProcessDistributorImpl implements ProcessDistributor {
             .exceptionally((completionException) -> {
                 LOGGER.error("Exception occurred when executing task", completionException);
                 Throwable cause = completionException.getCause();
+                ObjectNode evDetDetail = JsonHandler.createObjectNode();
+
                 if (cause instanceof WorkerUnreachableException) {
                     WorkerUnreachableException wue = (WorkerUnreachableException) cause;
+                    evDetDetail.put("Error", "Distributor lost connection with worker ("+wue.getWorkerId()+"). The worker will be unregistered.");
                     try {
                         LOGGER.warn(
                             "The worker (" + step.getWorkerGroupId() + ") will be unregistered as it is Unreachable",
@@ -916,10 +920,14 @@ public class ProcessDistributorImpl implements ProcessDistributor {
                     } catch (WorkerFamilyNotFoundException | IOException e1) {
                         LOGGER.error("Exception while unregister worker " + wue.getWorkerId(), cause);
                     }
+                } else {
+                    evDetDetail.put("Error", "Error occurred while handling step by the distributor");
                 }
-                return new ItemStatus(WORKER_CALL_EXCEPTION)
-                    .setItemsStatus(WORKER_CALL_EXCEPTION,
-                        new ItemStatus(WORKER_CALL_EXCEPTION).increment(StatusCode.FATAL));
+
+                return new ItemStatus(step.getStepName())
+                    .setItemsStatus(step.getStepName(),
+                        new ItemStatus(step.getStepName()).setEvDetailData(JsonHandler.unprettyPrint(evDetDetail))
+                            .increment(StatusCode.FATAL));
             })
             .thenApply(is -> {
                 //Do not update processed if pause or cancel occurs or if status is Fatal

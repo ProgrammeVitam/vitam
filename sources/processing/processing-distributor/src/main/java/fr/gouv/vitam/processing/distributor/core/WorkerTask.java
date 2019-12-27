@@ -124,7 +124,7 @@ public class WorkerTask implements Supplier<ItemStatus> {
                                 new ItemStatus(PauseOrCancelAction.ACTION_PAUSE.name())
                                     .increment(StatusCode.UNKNOWN));
                     case ACTION_COMPLETE:
-                        throw new WorkerExecutorException("Step already completed");
+                        throw new WorkerExecutorException(workerBean.getWorkerId(), "Step already completed");
                     case ACTION_CANCEL:
                         workerTaskState = WorkerTaskState.CANCEL;
                         return new ItemStatus(PauseOrCancelAction.ACTION_CANCEL.name())
@@ -132,7 +132,8 @@ public class WorkerTask implements Supplier<ItemStatus> {
                                 new ItemStatus(PauseOrCancelAction.ACTION_CANCEL.name())
                                     .increment(StatusCode.UNKNOWN));
                     default:
-                        throw new WorkerExecutorException("The default case should not be handled");
+                        throw new WorkerExecutorException(workerBean.getWorkerId(),
+                            "The default case should not be handled");
                 }
             } catch (WorkerNotFoundClientException | WorkerServerClientException e) {
                 // check status
@@ -155,7 +156,7 @@ public class WorkerTask implements Supplier<ItemStatus> {
                 if (!checkStatus) {
                     throw new WorkerUnreachableException(workerBean.getWorkerId(), e);
                 }
-                throw new WorkerExecutorException(e);
+                throw new WorkerExecutorException(workerBean.getWorkerId(), e);
 
             } finally {
                 workerClient.close();
@@ -166,7 +167,7 @@ public class WorkerTask implements Supplier<ItemStatus> {
         } catch (WorkerExecutorException e) {
             throw e;
         } catch (Exception e) {
-            throw new WorkerExecutorException(e);
+            throw new WorkerExecutorException(workerBean.getWorkerId(), e);
         } finally {
             if (!WorkerTaskState.PAUSE.equals(workerTaskState) && !WorkerTaskState.CANCEL.equals(workerTaskState)) {
                 workerTaskState = WorkerTaskState.COMPLETED;
