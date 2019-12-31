@@ -223,11 +223,7 @@ public class TransferNotificationActionHandler extends ActionHandler {
             }
 
             itemStatus.increment(StatusCode.OK);
-        } catch (ProcessingException e) {
-            LOGGER.error(e);
-            itemStatus.increment(StatusCode.KO);
-        } catch (InvalidParseOperationException |
-            StorageClientException | IOException e) {
+        } catch (InvalidParseOperationException | StorageClientException | IOException | ProcessingException e) {
             LOGGER.error(e);
             itemStatus.increment(StatusCode.FATAL);
         }
