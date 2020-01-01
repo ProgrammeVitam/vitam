@@ -115,10 +115,8 @@ public class StorageClientRestTest extends ResteasyTestApplication {
 
     protected final static ExpectedResults mock = mock(ExpectedResults.class);
 
-    static StorageClientFactory factory = StorageClientFactory.getInstance();
-    public static VitamServerTestRunner
-        vitamServerTestRunner = new VitamServerTestRunner(StorageClientRestTest.class, factory);
-
+    private static StorageClientFactory factory = StorageClientFactory.getInstance();
+    private static VitamServerTestRunner vitamServerTestRunner = new VitamServerTestRunner(StorageClientRestTest.class, factory);
 
     @BeforeClass
     public static void setUpBeforeClass() throws Throwable {
@@ -146,7 +144,7 @@ public class StorageClientRestTest extends ResteasyTestApplication {
         private static final String STORAGE_BACKUP_PATH = "/storage/backup";
         private final ExpectedResults expectedResponse;
 
-        public MockResource(ExpectedResults expectedResponse) {
+        MockResource(ExpectedResults expectedResponse) {
             this.expectedResponse = expectedResponse;
         }
 
@@ -642,7 +640,7 @@ public class StorageClientRestTest extends ResteasyTestApplication {
         final RequestResponse<OfferLog> result =
             client.getOfferLogs("idStrategy", DataCategory.OBJECT, 2L, 10, Order.ASC);
         assertNotNull(result);
-        assertEquals(false, result.isOk());
+        assertFalse(result.isOk());
         assertEquals(Status.INTERNAL_SERVER_ERROR.getStatusCode(), result.getHttpCode());
     }
 
