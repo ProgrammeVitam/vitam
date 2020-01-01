@@ -111,8 +111,8 @@ public class ProcessDistributorImplTest {
     private static final String FILE_GUIDS_INVALID = "file_guids_invalid.jsonl";
     private static final String FILE_EMPTY_GUIDS = "file_empty_guids.jsonl";
 
-    @Rule
-    public TempFolderRule testFolder = new TempFolderRule();
+    @ClassRule
+    public static TempFolderRule testFolder = new TempFolderRule();
 
     @Rule
     public RunWithCustomExecutorRule runInThread =
