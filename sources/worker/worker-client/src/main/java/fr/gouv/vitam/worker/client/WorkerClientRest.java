@@ -26,12 +26,10 @@
  */
 package fr.gouv.vitam.worker.client;
 
-import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.client.DefaultClient;
-import fr.gouv.vitam.common.exception.InvalidParseOperationException;
-import fr.gouv.vitam.common.exception.VitamClientException;
+import fr.gouv.vitam.common.client.VitamRequestBuilder;
+import fr.gouv.vitam.common.exception.VitamClientInternalException;
 import fr.gouv.vitam.common.exception.VitamThreadAccessException;
-import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.ItemStatus;
@@ -40,15 +38,17 @@ import fr.gouv.vitam.worker.client.exception.WorkerNotFoundClientException;
 import fr.gouv.vitam.worker.client.exception.WorkerServerClientException;
 import fr.gouv.vitam.worker.common.DescriptionStep;
 
-import javax.ws.rs.HttpMethod;
-import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
+
+import static fr.gouv.vitam.common.client.VitamRequestBuilder.post;
+import static javax.ws.rs.core.Response.Status.Family.REDIRECTION;
+import static javax.ws.rs.core.Response.Status.Family.SUCCESSFUL;
+import static javax.ws.rs.core.Response.Status.fromStatusCode;
 
 /**
  * WorkerClient implementation for production environment using REST API.
  */
 class WorkerClientRest extends DefaultClient implements WorkerClient {
-    private static final String WORKER_INTERNAL_SERVER_ERROR = "Worker Internal Server Error";
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(WorkerClientRest.class);
     private static final String DATA_MUST_HAVE_A_VALID_VALUE = "data must have a valid value";
 
@@ -60,42 +60,25 @@ class WorkerClientRest extends DefaultClient implements WorkerClient {
     public ItemStatus submitStep(DescriptionStep step)
         throws WorkerNotFoundClientException, WorkerServerClientException {
         VitamThreadUtils.getVitamSession().checkValidRequestId();
-        ParametersChecker.checkParameter(DATA_MUST_HAVE_A_VALID_VALUE, step);
-        Response response = null;
-        try {
-            response =
-                performRequest(HttpMethod.POST, "/" + "tasks", null, JsonHandler.toJsonNode(step),
-                    MediaType.APPLICATION_JSON_TYPE, MediaType.APPLICATION_JSON_TYPE);
-            return handleCommonResponseStatus(step, response, ItemStatus.class);
-        } catch (final WorkerNotFoundClientException e) {
-            throw e;
-        } catch (final InvalidParseOperationException e) {
-            LOGGER.error(WORKER_INTERNAL_SERVER_ERROR, e);
-            throw new WorkerServerClientException("Step description incorrect", e);
-        } catch (final Exception e) {
-            LOGGER.error(WORKER_INTERNAL_SERVER_ERROR, e);
-            throw new WorkerServerClientException(WORKER_INTERNAL_SERVER_ERROR, e);
-        }  finally {
-            consumeAnyEntityAndClose(response);
+
+        VitamRequestBuilder request = post()
+            .withPath("/tasks")
+            .withBody(step, DATA_MUST_HAVE_A_VALID_VALUE)
+            .withJson();
+
+        try (Response response = make(request)) {
+            return handleCommonResponseStatus(step, response);
+        } catch (VitamClientInternalException e) {
+            throw new WorkerServerClientException(e);
         }
     }
 
-    /**
-     * Common method to handle status responses
-     *
-     * @param <R> response type parameter
-     * @param step the current step
-     * @param response the JAX-RS response from the server
-     * @param responseType the type to map the response into
-     * @return the Response mapped as an POJO
-     * @throws VitamClientException the exception if any from the server
-     */
-    protected <R> R handleCommonResponseStatus(DescriptionStep step, Response response, Class<R> responseType)
+    private ItemStatus handleCommonResponseStatus(DescriptionStep step, Response response)
         throws WorkerNotFoundClientException, WorkerServerClientException {
-        final Response.Status status = Response.Status.fromStatusCode(response.getStatus());
+        final Response.Status status = fromStatusCode(response.getStatus());
         switch (status) {
             case OK:
-                return response.readEntity(responseType);
+                return response.readEntity(ItemStatus.class);
             case NOT_FOUND:
                 throw new WorkerNotFoundClientException(status.getReasonPhrase());
             default:
@@ -111,5 +94,4 @@ class WorkerClientRest extends DefaultClient implements WorkerClient {
                 throw new WorkerServerClientException(INTERNAL_SERVER_ERROR);
         }
     }
-
 }
