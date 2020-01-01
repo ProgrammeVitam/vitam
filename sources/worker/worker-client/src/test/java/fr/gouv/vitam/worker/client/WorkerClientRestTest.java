@@ -62,22 +62,17 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 public class WorkerClientRestTest extends ResteasyTestApplication {
-    protected static final String HOSTNAME = "localhost";
     private static final String DUMMY_REQUEST_ID = "reqId";
     protected static int serverPort;
     protected static WorkerClientRest client;
 
     @Rule
-    public RunWithCustomExecutorRule runInThread =
-        new RunWithCustomExecutorRule(VitamThreadPoolExecutor.getDefaultExecutor());
-
+    public RunWithCustomExecutorRule runInThread = new RunWithCustomExecutorRule(VitamThreadPoolExecutor.getDefaultExecutor());
 
     protected final static ExpectedResults mock = mock(ExpectedResults.class);
 
-    static WorkerClientFactory factory =
-        WorkerClientFactory.getInstance(WorkerClientFactory.changeConfigurationFile("worker-client.conf"));
-    public static VitamServerTestRunner
-        vitamServerTestRunner = new VitamServerTestRunner(WorkerClientRestTest.class, factory);
+    private static WorkerClientFactory factory = WorkerClientFactory.getInstance(WorkerClientFactory.changeConfigurationFile("worker-client.conf"));
+    private static VitamServerTestRunner vitamServerTestRunner = new VitamServerTestRunner(WorkerClientRestTest.class, factory);
 
     @BeforeClass
     public static void setUpBeforeClass() throws Throwable {
