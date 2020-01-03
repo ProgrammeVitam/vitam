@@ -63,7 +63,6 @@ import fr.gouv.vitam.common.model.IngestWorkflowConstants;
 import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.LifeCycleStatusCode;
 import fr.gouv.vitam.common.model.RequestResponse;
-import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.parameter.ParameterHelper;
 import fr.gouv.vitam.common.xml.ValidationXsdUtils;
@@ -136,15 +135,9 @@ public class TransferNotificationActionHandler extends ActionHandler {
     private static final MarshallerObjectCache marshallerObjectCache = new MarshallerObjectCache();
     private static final ObjectFactory objectFactory = new ObjectFactory();
 
-    private HandlerIO handlerIO;
     private static final String EVENT_ID_PROCESS = "evIdProc";
 
-    private List<Class<?>> handlerInitialIOList = new ArrayList<>();
-    private StatusCode workflowStatus = StatusCode.UNKNOWN;
-
-    private boolean isBlankTestWorkflow = false;
     private static final String TEST_STATUS_PREFIX = "Test ";
-    private String statusPrefix = "";
 
     private final LogbookOperationsClientFactory logbookOperationsClientFactory;
     private final StorageClientFactory storageClientFactory;
@@ -162,9 +155,6 @@ public class TransferNotificationActionHandler extends ActionHandler {
         this.logbookOperationsClientFactory = logbookOperationsClientFactory;
         this.storageClientFactory = storageClientFactory;
         this.validationXsdUtils = validationXsdUtils;
-        for (int i = 0; i < HANDLER_IO_PARAMETER_NUMBER; i++) {
-            handlerInitialIOList.add(File.class);
-        }
     }
 
     /**
@@ -175,29 +165,21 @@ public class TransferNotificationActionHandler extends ActionHandler {
     }
 
     @Override
-    public ItemStatus execute(WorkerParameters params, HandlerIO handler) {
+    public ItemStatus execute(WorkerParameters params, HandlerIO handlerIO) {
         checkMandatoryParameters(params);
         String eventDetailData;
 
-
         final ItemStatus itemStatus = new ItemStatus(HANDLER_ID);
-        handlerIO = handler;
         try {
-            workflowStatus =
+            StatusCode workflowStatus =
                 StatusCode.valueOf(params.getMapParameters().get(WorkerParameterName.workflowStatusKo));
-
-            LogbookTypeProcess logbookTypeProcess = params.getLogbookTypeProcess();
-            if (LogbookTypeProcess.INGEST_TEST.equals(logbookTypeProcess)) {
-                isBlankTestWorkflow = true;
-                statusPrefix = TEST_STATUS_PREFIX;
-            }
 
             File atrFile;
 
             final LogbookOperation logbookOperation = getLogbookOperation(params);
 
             //create ATR file in all cases
-            atrFile = createATR(params, handlerIO, logbookOperation);
+            atrFile = createATR(params, handlerIO, logbookOperation, workflowStatus);
 
             // calculate digest by vitam alog
             String vitamDigestString;
@@ -219,11 +201,11 @@ public class TransferNotificationActionHandler extends ActionHandler {
 
             checkAtrFile(atrFile);
 
-            handler.addOutputResult(ATR_RESULT_OUT_RANK, atrFile, true, false);
+            handlerIO.addOutputResult(ATR_RESULT_OUT_RANK, atrFile, true, false);
             // store data object
             final ObjectDescription description = new ObjectDescription();
             description.setWorkspaceContainerGUID(params.getContainerName());
-            description.setWorkspaceObjectURI(handler.getOutput(ATR_RESULT_OUT_RANK).getPath());
+            description.setWorkspaceObjectURI(handlerIO.getOutput(ATR_RESULT_OUT_RANK).getPath());
             try (final StorageClient storageClient = storageClientFactory.getClient()) {
                 storageClient.storeFileFromWorkspace(
                     VitamConfiguration.getDefaultStrategy(),
@@ -241,11 +223,7 @@ public class TransferNotificationActionHandler extends ActionHandler {
             }
 
             itemStatus.increment(StatusCode.OK);
-        } catch (ProcessingException e) {
-            LOGGER.error(e);
-            itemStatus.increment(StatusCode.KO);
-        } catch (InvalidParseOperationException |
-            StorageClientException | IOException e) {
+        } catch (InvalidParseOperationException | StorageClientException | IOException | ProcessingException e) {
             LOGGER.error(e);
             itemStatus.increment(StatusCode.FATAL);
         }
@@ -292,11 +270,13 @@ public class TransferNotificationActionHandler extends ActionHandler {
      * create ATR in all  processing cases (Ok or KO)
      *
      * @param params of type WorkerParameters
-     * @param ioParam of type HandlerIO
+     * @param handlerIO of type HandlerIO
+     * @param workflowStatus
      * @throws ProcessingException ProcessingException
      * @throws InvalidParseOperationException InvalidParseOperationException
      */
-    private File createATR(WorkerParameters params, HandlerIO ioParam, LogbookOperation logbookOperation)
+    private File createATR(WorkerParameters params, HandlerIO handlerIO, LogbookOperation logbookOperation,
+        StatusCode workflowStatus)
         throws ProcessingException, InvalidParseOperationException {
 
         ParameterHelper.checkNullOrEmptyParameters(params);
@@ -308,7 +288,7 @@ public class TransferNotificationActionHandler extends ActionHandler {
 
             ArchiveTransferReplyType archiveTransferReply = objectFactory.createArchiveTransferReplyType();
 
-            addFirstLevelBaseInformations(archiveTransferReply, params, logbookOperation);
+            addFirstLevelBaseInformations(archiveTransferReply, params, logbookOperation, handlerIO, workflowStatus);
 
             List<String> statusToBeChecked = new ArrayList<>();
 
@@ -318,7 +298,7 @@ public class TransferNotificationActionHandler extends ActionHandler {
                 statusToBeChecked.add(StatusCode.KO.toString());
             } else { //ATR OK
                 // CHeck is only done in OK mode since all parameters are optional
-                checkMandatoryIOParameter(ioParam);
+                checkMandatoryIOParameter(handlerIO);
                 statusToBeChecked.add(StatusCode.WARNING.toString());
             }
 
@@ -327,7 +307,8 @@ public class TransferNotificationActionHandler extends ActionHandler {
                 addOperation(archiveTransferReply, logbookOperation, statusToBeChecked);
             }
 
-            addDataObjectPackage(handlerIO, archiveTransferReply, params.getContainerName(), statusToBeChecked);
+            addDataObjectPackage(handlerIO, archiveTransferReply, params.getContainerName(), statusToBeChecked,
+                workflowStatus);
 
             Marshaller archiveTransferReplyMarshaller =
                 marshallerObjectCache.getMarshaller(ArchiveTransferReplyType.class);
@@ -349,7 +330,8 @@ public class TransferNotificationActionHandler extends ActionHandler {
 
 
     private void addFirstLevelBaseInformations(ArchiveTransferReplyType archiveTransferReply, WorkerParameters params,
-        LogbookOperation logbookOperation)
+        LogbookOperation logbookOperation, HandlerIO handlerIO,
+        StatusCode workflowStatus)
         throws InvalidParseOperationException {
 
         JsonNode infoATR = null;
@@ -429,12 +411,15 @@ public class TransferNotificationActionHandler extends ActionHandler {
             codeListVersions.setFileFormatCodeListVersion(buildCodeType(""));
         }
 
-        archiveTransferReply.setReplyCode(statusPrefix + workflowStatus.name());
-        archiveTransferReply.setMessageRequestIdentifier(buildIdentifierType(messageIdentifier));
-
-        if (!isBlankTestWorkflow) {
+        LogbookTypeProcess logbookTypeProcess = params.getLogbookTypeProcess();
+        if (LogbookTypeProcess.INGEST_TEST.equals(logbookTypeProcess)) {
+            archiveTransferReply.setReplyCode(TEST_STATUS_PREFIX + workflowStatus.name());
+        } else {
+            archiveTransferReply.setReplyCode(workflowStatus.name());
             archiveTransferReply.setGrantDate(buildXMLGregorianCalendar());
         }
+
+        archiveTransferReply.setMessageRequestIdentifier(buildIdentifierType(messageIdentifier));
 
         if (infoATR != null && infoATR.get(SedaConstants.TAG_ARCHIVAL_AGENCY) != null) {
             archiveTransferReply.setArchivalAgency(
@@ -463,7 +448,7 @@ public class TransferNotificationActionHandler extends ActionHandler {
     private XMLGregorianCalendar buildXMLGregorianCalendar() {
         try {
             final SimpleDateFormat sdfDate = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSXXX");
-            return newInstance().newXMLGregorianCalendar(sdfDate.format(new Date()).toString());
+            return newInstance().newXMLGregorianCalendar(sdfDate.format(new Date()));
         } catch (DatatypeConfigurationException e) {
             LOGGER.error("The implementation of DatatypeFactory is not available or cannot be instantiated", e);
         }
@@ -521,13 +506,14 @@ public class TransferNotificationActionHandler extends ActionHandler {
      * @param archiveTransferReply the archiveTransferReplyType object to populate
      * @param containerName the operation identifier
      * @param statusToBeChecked depends of ATR status (KO={FATAL,KO} or OK=Warning)
+     * @param workflowStatus
      * @throws ProcessingException thrown if a logbook could not be retrieved
      * @throws FileNotFoundException FileNotFoundException
      * @throws InvalidParseOperationException InvalidParseOperationException
      */
     private void addDataObjectPackage(HandlerIO handlerIO, ArchiveTransferReplyType archiveTransferReply,
         String containerName,
-        List<String> statusToBeChecked)
+        List<String> statusToBeChecked, StatusCode workflowStatus)
         throws ProcessingException, FileNotFoundException, InvalidParseOperationException {
 
         try (LogbookLifeCyclesClient client = handlerIO.getLifecyclesClient()) {
@@ -795,7 +781,7 @@ public class TransferNotificationActionHandler extends ActionHandler {
             dataObjectGroup.setId(dataObjectGroupId);
 
             for (final String dataObjectId : dataObjectGroupEntry.getValue()) {
-                MinimalDataObjectType binaryOrPhysicalDataObject = null;
+                MinimalDataObjectType binaryOrPhysicalDataObject;
 
                 final DataObjectDetail dataObjectDetail = dataObjectToDetailDataObject.get(dataObjectId);
 
@@ -961,6 +947,10 @@ public class TransferNotificationActionHandler extends ActionHandler {
 
     @Override
     public void checkMandatoryIOParameter(HandlerIO handler) throws ProcessingException {
+        List<Class<?>> handlerInitialIOList = new ArrayList<>();
+        for (int i = 0; i < HANDLER_IO_PARAMETER_NUMBER; i++) {
+            handlerInitialIOList.add(File.class);
+        }
         if (!handler.checkHandlerIO(1, handlerInitialIOList)) {
 
             throw new ProcessingException(HandlerIOImpl.NOT_CONFORM_PARAM);
