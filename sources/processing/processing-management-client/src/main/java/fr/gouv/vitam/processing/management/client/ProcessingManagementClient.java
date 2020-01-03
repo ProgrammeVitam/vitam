@@ -33,7 +33,7 @@ import fr.gouv.vitam.common.client.MockOrRestClient;
 import fr.gouv.vitam.common.exception.BadRequestException;
 import fr.gouv.vitam.common.exception.InternalServerException;
 import fr.gouv.vitam.common.exception.VitamClientException;
-import fr.gouv.vitam.common.exception.WorkflowNotFoundException;
+import fr.gouv.vitam.common.exception.VitamClientInternalException;
 import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.ProcessPause;
 import fr.gouv.vitam.common.model.ProcessQuery;
@@ -44,7 +44,6 @@ import fr.gouv.vitam.common.model.processing.WorkFlow;
 import fr.gouv.vitam.processing.common.ProcessingEntry;
 import fr.gouv.vitam.processing.common.exception.ProcessingBadRequestException;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
-import fr.gouv.vitam.processing.common.exception.WorkerAlreadyExistsException;
 import fr.gouv.vitam.processing.common.model.WorkerBean;
 
 import java.util.Optional;
@@ -79,10 +78,10 @@ public interface ProcessingManagementClient extends MockOrRestClient {
      * @param workerId the id of the worker to be registered
      * @param workerDescription the description of the worker as a workerBean
      * @throws ProcessingBadRequestException if a bad request has been sent
-     * @throws WorkerAlreadyExistsException if the worker family does not exist
+     * @throws VitamClientInternalException
      */
     void registerWorker(String familyId, String workerId, WorkerBean workerDescription)
-        throws ProcessingBadRequestException, WorkerAlreadyExistsException;
+        throws VitamClientInternalException, ProcessingBadRequestException;
 
     /**
      * Unregister a worker knowing its family and its workerId. If the familyId or the workerId is unknown, an exception

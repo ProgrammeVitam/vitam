@@ -16,7 +16,7 @@
  * reading this means that you have had knowledge of the CeCILL 2.1 license and that you accept its terms.
  */
 
-package fr.gouv.vitam.processing.distributor.v2;
+package fr.gouv.vitam.processing.distributor.core;
 
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.PropertiesUtils;
@@ -73,17 +73,14 @@ public class WorkerManager implements IWorkerManager {
 
 
     @Override
-    public synchronized void marshallToDB() {
+    public synchronized void marshallToDB() throws IOException {
         if (!getWorkerDbFile().exists()) {
-            try {
-                if (Files.notExists(Paths.get(VitamConfiguration.getVitamDataFolder()))) {
-                    Files.createDirectories(Paths.get(VitamConfiguration.getVitamDataFolder()));
-                }
-                Files.createFile(getWorkerDbFile().toPath());
-            } catch (IOException e) {
-                LOGGER.warn("Cannot create worker list serialization file : " + getWorkerDbFile().getName(), e);
+            if (Files.notExists(Paths.get(VitamConfiguration.getVitamDataFolder()))) {
+                Files.createDirectories(Paths.get(VitamConfiguration.getVitamDataFolder()));
             }
+            Files.createFile(getWorkerDbFile().toPath());
         }
+
         List<WorkerBean> registeredWorkers = new ArrayList<>();
 
         for (Map.Entry<String, WorkerFamilyManager> family : workersFamily.entrySet()) {
@@ -96,46 +93,38 @@ public class WorkerManager implements IWorkerManager {
         try {
             JsonHandler.writeAsFile(registeredWorkers, getWorkerDbFile());
         } catch (InvalidParseOperationException e) {
-            LOGGER.error("Cannot update database worker", e);
+            throw new IOException(e);
         }
     }
 
     @Override
-    public void registerWorker(String familyId, String workerId, String workerInformation)
-        throws ProcessingBadRequestException {
+    public void registerWorker(String familyId, String workerId, WorkerBean workerInformation)
+        throws ProcessingBadRequestException, IOException {
 
-        ParametersChecker.checkParameter("familyId is a mandatory argument", familyId);
-        ParametersChecker.checkParameter("workerId is a mandatory argument", workerId);
-        ParametersChecker.checkParameter("workerInformation is a mandatory argument", workerInformation);
-        WorkerBean worker = null;
-        try {
-            worker = JsonHandler.getFromString(workerInformation, WorkerBean.class);
-            if (!worker.getFamily().equals(familyId)) {
-                throw new ProcessingBadRequestException("Cannot register a worker of another family!");
-            } else {
-                worker.setWorkerId(workerId);
-            }
-            registerWorker(worker);
+        ParametersChecker.checkParameter("All arguments are required", familyId, workerId, workerInformation);
 
-        } catch (final InvalidParseOperationException e) {
-            LOGGER.error("Worker Information incorrect", e);
-            throw new ProcessingBadRequestException("Worker description is incorrect");
+        if (!workerInformation.getFamily().equals(familyId)) {
+            throw new ProcessingBadRequestException("Cannot register a worker of another family!");
+        } else {
+            workerInformation.setWorkerId(workerId);
         }
 
+        registerWorker(workerInformation);
     }
 
     @Override
-    public void registerWorker(WorkerBean workerBean) {
+    public void registerWorker(WorkerBean workerBean) throws IOException {
         workersFamily.putIfAbsent(workerBean.getFamily(), new WorkerFamilyManager(QUEUE_SIZE));
         workersFamily.compute(workerBean.getFamily(), (key, workerManager) -> {
             workerManager.registerWorker(workerBean);
             return workerManager;
         });
+
         marshallToDB();
     }
 
     @Override
-    public void unregisterWorker(String workerFamily, String worker) throws WorkerFamilyNotFoundException {
+    public void unregisterWorker(String workerFamily, String worker) throws WorkerFamilyNotFoundException, IOException {
         final WorkerFamilyManager workerManager = workersFamily.get(workerFamily);
         if (workerManager == null) {
             throw new WorkerFamilyNotFoundException("Worker : " + worker + " not found in the family :" + workerFamily);

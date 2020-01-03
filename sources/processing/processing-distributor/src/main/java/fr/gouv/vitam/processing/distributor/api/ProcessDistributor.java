@@ -50,7 +50,6 @@ public interface ProcessDistributor extends AutoCloseable {
     String ELEMENT_UNITS = "Units";
     String DISTRIBUTOR_INDEX = "distributorIndex";
     String NOLEVEL = "_no_level";
-    String WORKER_CALL_EXCEPTION = "WorkerCallException";
 
     /**
      * Distribute different steps (execute a workflow actions step by step)

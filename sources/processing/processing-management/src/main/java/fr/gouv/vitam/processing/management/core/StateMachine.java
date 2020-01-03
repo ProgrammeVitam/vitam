@@ -334,9 +334,8 @@ public class StateMachine implements IEventsState, IEventsProcessEngine {
      * Change the state of the process to completed Can be called only from running or pause state If running state, the
      * next step will be completed
      *
-     * @throws StateNotAllowedException
      */
-    protected void doCompleted() throws StateNotAllowedException, ProcessingException {
+    protected void doCompleted() {
         if (isRunning()) {
             targetState = ProcessState.COMPLETED;
             if (!isLastStep()) {

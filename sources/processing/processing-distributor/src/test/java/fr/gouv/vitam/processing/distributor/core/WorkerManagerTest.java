@@ -24,11 +24,12 @@
  *  The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  *  accept its terms.
  */
-package fr.gouv.vitam.processing.distributor.v2;
+package fr.gouv.vitam.processing.distributor.core;
 
 import fr.gouv.vitam.common.PropertiesUtils;
-import fr.gouv.vitam.common.VitamConfiguration;
+import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.guid.GUIDFactory;
+import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.model.processing.Action;
 import fr.gouv.vitam.common.model.processing.ActionDefinition;
 import fr.gouv.vitam.common.model.processing.ProcessBehavior;
@@ -36,16 +37,19 @@ import fr.gouv.vitam.common.model.processing.Step;
 import fr.gouv.vitam.common.tmp.TempFolderRule;
 import fr.gouv.vitam.processing.common.exception.ProcessingBadRequestException;
 import fr.gouv.vitam.processing.common.exception.WorkerFamilyNotFoundException;
+import fr.gouv.vitam.processing.common.model.WorkerBean;
 import fr.gouv.vitam.processing.common.parameter.DefaultWorkerParameters;
 import fr.gouv.vitam.processing.common.parameter.WorkerParametersFactory;
 import fr.gouv.vitam.worker.client.WorkerClient;
 import fr.gouv.vitam.worker.client.WorkerClientFactory;
 import fr.gouv.vitam.worker.common.DescriptionStep;
 import org.junit.After;
-import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
+import org.mockito.Mock;
+import org.mockito.junit.MockitoJUnit;
+import org.mockito.junit.MockitoRule;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -56,31 +60,47 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.doNothing;
-import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.when;
 
 public class WorkerManagerTest {
+    private static final WorkerBean WORKER_DESCRIPTION;
+    private static final WorkerBean WORKER_DESCRIPTION_2;
+    private static final WorkerBean BIG_WORKER_DESCRIPTION;
 
-    private static final String WORKER_DESCRIPTION =
-        "{ \"name\" : \"workername\", \"family\" : \"DefaultWorker1\", \"capacity\" : 2, \"storage\" : 100," +
-            "\"status\" : \"Active\", \"configuration\" : {\"serverHost\" : \"localhost\", \"serverPort\" : \"12345\" } }";
+    static {
+        try {
+            WORKER_DESCRIPTION = JsonHandler.getFromString(
+                "{ \"name\" : \"workername\", \"family\" : \"DefaultWorker1\", \"capacity\" : 2, \"storage\" : 100, \"status\" : \"Active\", \"configuration\" : {\"serverHost\" : \"localhost\", \"serverPort\" : \"12345\" } }",
+                WorkerBean.class);
 
-    private static final String WORKER_DESCRIPTION_2 =
-        "{ \"name\" : \"workername\", \"family\" : \"DefaultWorker2\", \"capacity\" : 2, \"storage\" : 100," +
-            "\"status\" : \"Active\", \"configuration\" : {\"serverHost\" : \"localhost\", \"serverPort\" : \"12345\" } }";
-    private static final String BIG_WORKER_DESCRIPTION =
-        "{ \"name\" : \"workername2\", \"family\" : \"BigWorker\", \"capacity\" : 4, \"storage\" : 100," +
-            "\"status\" : \"Active\", \"configuration\" : {\"serverHost\" : \"localhost\", \"serverPort\" : \"12345\" } }";
+            WORKER_DESCRIPTION_2 = JsonHandler.getFromString(
+                "{ \"name\" : \"workername\", \"family\" : \"DefaultWorker2\", \"capacity\" : 2, \"storage\" : 100, \"status\" : \"Active\", \"configuration\" : {\"serverHost\" : \"localhost\", \"serverPort\" : \"12345\" } }",
+                WorkerBean.class);
+
+            BIG_WORKER_DESCRIPTION = JsonHandler.getFromString(
+                "{ \"name\" : \"workername2\", \"family\" : \"BigWorker\", \"capacity\" : 4, \"storage\" : 100, \"status\" : \"Active\", \"configuration\" : {\"serverHost\" : \"localhost\", \"serverPort\" : \"12345\" } }",
+                WorkerBean.class);
+
+        } catch (InvalidParseOperationException e) {
+            throw new RuntimeException(e);
+        }
+    }
 
     private static String registeredWorkerFile = "worker.db";
+    private WorkerManager workerManager;
 
     @Rule
-    public TempFolderRule tempFolderRule = new TempFolderRule();
+    public MockitoRule mockitoRule = MockitoJUnit.rule();
 
-    private WorkerManager workerManager;
-    private static final WorkerClientFactory workerClientFactory = mock(WorkerClientFactory.class);
-    private static final WorkerClient workerClient = mock(WorkerClient.class);
+    @Rule
+    public TempFolderRule testFolder = new TempFolderRule();
+
+    @Mock
+    private WorkerClientFactory workerClientFactory;
+
+    @Mock
+    private WorkerClient workerClient;
 
     @Before
     public void setup() throws Exception {
@@ -95,7 +115,7 @@ public class WorkerManagerTest {
     }
 
     @After
-    public void tearDownAfter() throws Exception {
+    public void tearDownAfter() {
         cleanWorkerDb();
     }
 
@@ -110,18 +130,7 @@ public class WorkerManagerTest {
     public void givenBigWorkerFamilyAndStepOfBigWorkflowRunningOn() throws Exception {
         final String familyId = "BigWorker";
         final String workerId = "NewWorkerId2";
-        DefaultWorkerParameters params = WorkerParametersFactory.newWorkerParameters();
-        params.setWorkerGUID(GUIDFactory.newGUID());
-        final Step step = new Step().setStepName("TEST").setWorkerGroupId(familyId);
-        final List<Action> actions = new ArrayList<>();
-        final Action action = new Action();
-        actions.add(action);
-
-        action.setActionDefinition(
-            new ActionDefinition().setActionKey("DummyHandler").setBehavior(ProcessBehavior.NOBLOCKING));
-        step.setBehavior(ProcessBehavior.NOBLOCKING).setActions(actions);
-        DescriptionStep descriptionStep =
-            new DescriptionStep(step, params);
+        DescriptionStep descriptionStep = getDescriptionStep(familyId);
 
         final WorkerTask task =
             new WorkerTask(descriptionStep, 0, "requestId", "contractId", "contextId", "applicationId",
@@ -132,6 +141,20 @@ public class WorkerManagerTest {
         assertNotNull(workerFamilyManager);
 
         CompletableFuture.supplyAsync(task, workerFamilyManager).get();
+    }
+
+    private DescriptionStep getDescriptionStep(String familyId) {
+        DefaultWorkerParameters params = WorkerParametersFactory.newWorkerParameters();
+        params.setWorkerGUID(GUIDFactory.newGUID());
+        final Step step = new Step().setStepName("TEST").setWorkerGroupId(familyId);
+        final List<Action> actions = new ArrayList<>();
+        final Action action = new Action();
+        actions.add(action);
+
+        action.setActionDefinition(
+            new ActionDefinition().setActionKey("DummyHandler").setBehavior(ProcessBehavior.NOBLOCKING));
+        step.setBehavior(ProcessBehavior.NOBLOCKING).setActions(actions);
+        return new DescriptionStep(step, params);
     }
 
     @Test
@@ -162,15 +185,15 @@ public class WorkerManagerTest {
     }
 
     @Test
-    public void givenProcessDistributorWhenRegisterWorkerThenOK() throws Exception {
+    public void register_worker_ok() throws Exception {
         final String familyId = "DefaultWorker1";
         final String workerId = "NewWorkerId" + GUIDFactory.newGUID().getId();
         workerManager.registerWorker(familyId, workerId, WORKER_DESCRIPTION);
         assertTrue(workerManager.findWorkerBy(familyId) != null);
     }
 
-    @Test(expected = IllegalArgumentException.class)
-    public void givenProcessDistributorWhenRegisterWorkerThenAlreadyExists() throws Exception {
+    @Test
+    public void on_initialize_register_existing_worker_ok() throws Exception {
         final String familyId = "DefaultWorker1";
         final String workerId = "NewWorkerId" + GUIDFactory.newGUID().getId();
         workerManager.registerWorker(familyId, workerId, WORKER_DESCRIPTION);
@@ -178,8 +201,8 @@ public class WorkerManagerTest {
         workerManager.initialize();
     }
 
-    @Test(expected = IllegalArgumentException.class)
-    public void givenProcessDistributorWhenRegisterExistingWorkerThenProcessingException() throws Exception {
+    @Test
+    public void register_existing_worker_ok() throws Exception {
         final String familyId = "DefaultWorker1";
         final String workerId = "NewWorkerId1" + GUIDFactory.newGUID().getId();
 
@@ -189,7 +212,7 @@ public class WorkerManagerTest {
 
 
     @Test
-    public void givenProcessDistributorWhenUnRegisterExistingWorkerThenOK() throws Exception {
+    public void unregister_existing_worker_ok() throws Exception {
         final String familyId = "DefaultWorker2";
         final String workerId = "NewWorkerId2" + GUIDFactory.newGUID().getId();
         workerManager.registerWorker(familyId, workerId, WORKER_DESCRIPTION_2);
@@ -204,14 +227,14 @@ public class WorkerManagerTest {
     }
 
     @Test(expected = WorkerFamilyNotFoundException.class)
-    public void givenProcessDistributorWhenUnRegisterNonExistingFamilyThenProcessingException() throws Exception {
+    public void unregister_non_existing_family_worker_ko() throws Exception {
         final String familyId = "NewFamilyId" + GUIDFactory.newGUID().getId();
         final String workerId = "NewWorkerId1";
         workerManager.unregisterWorker(familyId, workerId);
     }
 
     @Test
-    public void givenProcessDistributorWhenUnRegisterNonExistingWorkerThenProcessingException() throws Exception {
+    public void unregister_non_existing_worker_ok() throws Exception {
         final String familyId = "DefaultWorker1";
         final String workerId = "NewWorkerId3" + GUIDFactory.newGUID().getId();
         final String workerUnknownId = "UnknownWorkerId";
@@ -220,9 +243,12 @@ public class WorkerManagerTest {
     }
 
     @Test(expected = ProcessingBadRequestException.class)
-    public void givenProcessDistributorWhenRegisterIncorrectJsonNodeThenProcessingException() throws Exception {
+    public void register_unmatched_family_then_throw_exception() throws Exception {
         final String familyId = "NewFamilyId";
         final String workerId = "NewWorkerId4" + GUIDFactory.newGUID().getId();
-        workerManager.registerWorker(familyId, workerId, "{\"fakeKey\" : \"fakeValue\"}");
+        workerManager.registerWorker(familyId, workerId,
+            JsonHandler.getFromString(
+                "{\"name\":\"worker_name\",\"status\":\"ok\", \"family\" : \"fakeValue\", \"configuration\" : {\"serverHost\" : \"localhost\", \"serverPort\" : \"12345\" }}",
+                WorkerBean.class));
     }
 }

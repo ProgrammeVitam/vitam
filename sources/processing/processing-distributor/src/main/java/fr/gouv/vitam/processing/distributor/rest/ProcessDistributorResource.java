@@ -27,6 +27,19 @@
 
 package fr.gouv.vitam.processing.distributor.rest;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import fr.gouv.vitam.common.database.parser.request.GlobalDatasParser;
+import fr.gouv.vitam.common.error.VitamError;
+import fr.gouv.vitam.common.exception.InvalidParseOperationException;
+import fr.gouv.vitam.common.json.JsonHandler;
+import fr.gouv.vitam.common.logging.VitamLogger;
+import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.common.security.SanityChecker;
+import fr.gouv.vitam.processing.common.exception.ProcessingBadRequestException;
+import fr.gouv.vitam.processing.common.exception.WorkerFamilyNotFoundException;
+import fr.gouv.vitam.processing.common.model.WorkerBean;
+import fr.gouv.vitam.processing.distributor.api.IWorkerManager;
+
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
@@ -40,21 +53,7 @@ import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
-
-import com.fasterxml.jackson.databind.JsonNode;
-
-import fr.gouv.vitam.common.database.parser.request.GlobalDatasParser;
-import fr.gouv.vitam.common.error.VitamError;
-import fr.gouv.vitam.common.exception.InvalidParseOperationException;
-import fr.gouv.vitam.common.json.JsonHandler;
-import fr.gouv.vitam.common.logging.VitamLogger;
-import fr.gouv.vitam.common.logging.VitamLoggerFactory;
-import fr.gouv.vitam.common.security.SanityChecker;
-import fr.gouv.vitam.processing.common.exception.ProcessingBadRequestException;
-import fr.gouv.vitam.processing.common.exception.WorkerAlreadyExistsException;
-import fr.gouv.vitam.processing.common.exception.WorkerFamilyNotFoundException;
-import fr.gouv.vitam.processing.common.exception.WorkerNotFoundException;
-import fr.gouv.vitam.processing.distributor.api.IWorkerManager;
+import java.io.IOException;
 
 /**
  * Process Distributor Resource implementation
@@ -241,23 +240,21 @@ public class ProcessDistributorResource {
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
     public Response registerWorker(@Context HttpHeaders headers, @PathParam("id_family") String idFamily,
-        @PathParam("id_worker") String idWorker, String workerInformation) {
+        @PathParam("id_worker") String idWorker, WorkerBean workerInformation) {
         try {
-            SanityChecker.checkJsonAll(JsonHandler.toJsonNode(workerInformation));
-            GlobalDatasParser.sanityRequestCheck(workerInformation);
-            workerManager.registerWorker(idFamily, idWorker, workerInformation);
+            String asString = JsonHandler.unprettyPrint(workerInformation);
+            SanityChecker.checkJsonAll(asString);
+            GlobalDatasParser.sanityRequestCheck(asString);
+            workerManager
+                .registerWorker(idFamily, idWorker, workerInformation);
 
-        } catch (ProcessingBadRequestException | InvalidParseOperationException exc) {
+        } catch (ProcessingBadRequestException | InvalidParseOperationException | IllegalArgumentException exc) {
             LOGGER.error(exc);
             return Response.status(Status.BAD_REQUEST).entity("{\"error\":\"" + exc.getMessage() + "\"}")
                 .build();
-        } catch (final WorkerAlreadyExistsException exc) {
-            LOGGER.warn(exc);
-            return Response.status(Status.CONFLICT).entity("{\"error\":\"" + exc.getMessage() + "\"}")
-                .build();
-        } catch (IllegalArgumentException e) {
-            LOGGER.warn(e);
-            return Response.status(Status.CONFLICT).entity("{\"error\":\"" + e.getMessage() + "\"}")
+        } catch (Exception e) {
+            LOGGER.error(e);
+            return Response.status(Status.INTERNAL_SERVER_ERROR).entity("{\"error\":\"" + e.getMessage() + "\"}")
                 .build();
         }
         return Response.status(Status.OK).entity("{\"success\" :\"Worker " + idWorker + " created \"}").build();
@@ -297,9 +294,13 @@ public class ProcessDistributorResource {
         @PathParam("id_worker") String idWorker) {
         try {
             workerManager.unregisterWorker(idFamily, idWorker);
-        } catch (WorkerFamilyNotFoundException | WorkerNotFoundException | InterruptedException exc) {
+        } catch (WorkerFamilyNotFoundException exc) {
             LOGGER.error(exc);
             return Response.status(Status.NOT_FOUND).entity("{\"error\":\"" + exc.getMessage() + "\"}")
+                .build();
+        } catch (IOException e) {
+            LOGGER.error(e);
+            return Response.status(Status.INTERNAL_SERVER_ERROR).entity("{\"error\":\"" + e.getMessage() + "\"}")
                 .build();
         }
         return Response.status(Status.OK).entity("{\"success\" :\"Worker " + idWorker + " deleted \"}").build();

@@ -46,8 +46,6 @@ import fr.gouv.vitam.processing.common.ProcessingEntry;
 import fr.gouv.vitam.processing.common.config.ServerConfiguration;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.processing.common.model.ProcessWorkflow;
-import fr.gouv.vitam.processing.data.core.ProcessDataAccess;
-import fr.gouv.vitam.processing.data.core.management.ProcessDataManagement;
 import fr.gouv.vitam.processing.management.api.ProcessManagement;
 import fr.gouv.vitam.worker.client.WorkerClientFactory;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
@@ -60,6 +58,7 @@ import org.junit.Test;
 import org.mockito.Mockito;
 
 import javax.ws.rs.core.Response.Status;
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
@@ -102,8 +101,12 @@ public class ProcessManagementResourceTest extends ResteasyTestApplication {
     private static final ServerConfiguration serverConfiguration = mock(ServerConfiguration.class);
 
     {
-        VitamApplicationInitializr.get()
-            .initialize(serverConfiguration, workerClientFactory, workspaceClientFactory, processManagement);
+        try {
+            VitamApplicationInitializr.get()
+                .initialize(serverConfiguration, workerClientFactory, processManagement);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
 
     }
 

@@ -16,9 +16,10 @@
  * reading this means that you have had knowledge of the CeCILL 2.1 license and that you accept its terms.
  */
 
-package fr.gouv.vitam.processing.distributor.v2;
+package fr.gouv.vitam.processing.distributor.core;
 
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 import java.util.function.Supplier;
 
 import fr.gouv.vitam.common.GlobalDataRest;
@@ -40,7 +41,6 @@ import fr.gouv.vitam.worker.client.exception.WorkerNotFoundClientException;
 import fr.gouv.vitam.worker.client.exception.WorkerServerClientException;
 import fr.gouv.vitam.worker.client.exception.WorkerUnreachableException;
 import fr.gouv.vitam.worker.common.DescriptionStep;
-import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
 
 // Task simulating a call to a worker
 public class WorkerTask implements Supplier<ItemStatus> {
@@ -124,7 +124,7 @@ public class WorkerTask implements Supplier<ItemStatus> {
                                 new ItemStatus(PauseOrCancelAction.ACTION_PAUSE.name())
                                     .increment(StatusCode.UNKNOWN));
                     case ACTION_COMPLETE:
-                        throw new WorkerExecutorException("Step already completed");
+                        throw new WorkerExecutorException(workerBean.getWorkerId(), "Step already completed");
                     case ACTION_CANCEL:
                         workerTaskState = WorkerTaskState.CANCEL;
                         return new ItemStatus(PauseOrCancelAction.ACTION_CANCEL.name())
@@ -132,7 +132,8 @@ public class WorkerTask implements Supplier<ItemStatus> {
                                 new ItemStatus(PauseOrCancelAction.ACTION_CANCEL.name())
                                     .increment(StatusCode.UNKNOWN));
                     default:
-                        throw new WorkerExecutorException("The default case should not be handled");
+                        throw new WorkerExecutorException(workerBean.getWorkerId(),
+                            "The default case should not be handled");
                 }
             } catch (WorkerNotFoundClientException | WorkerServerClientException e) {
                 // check status
@@ -140,21 +141,23 @@ public class WorkerTask implements Supplier<ItemStatus> {
                 int numberCallCheckStatus = 0;
                 while (!checkStatus && numberCallCheckStatus < GlobalDataRest.STATUS_CHECK_RETRY) {
                     checkStatus =
-                        checkStatusWorker(workerBean.getConfiguration().getServerHost(),
+                        checkStatusWorker(workerClient, workerBean.getConfiguration().getServerHost(),
                             workerBean.getConfiguration().getServerPort());
                     numberCallCheckStatus++;
                     if (!checkStatus) {
                         try {
-                            this.wait(1000);
+                            TimeUnit.MILLISECONDS.sleep(1000);
                         } catch (final InterruptedException e1) {
                             LOGGER.warn(e);
+                            Thread.currentThread().interrupt();
                         }
                     }
                 }
                 if (!checkStatus) {
                     throw new WorkerUnreachableException(workerBean.getWorkerId(), e);
                 }
-                throw new WorkerExecutorException(e);
+                throw new WorkerExecutorException(workerBean.getWorkerId(), e);
+
             } finally {
                 workerClient.close();
             }
@@ -164,7 +167,7 @@ public class WorkerTask implements Supplier<ItemStatus> {
         } catch (WorkerExecutorException e) {
             throw e;
         } catch (Exception e) {
-            throw new WorkerExecutorException(e);
+            throw new WorkerExecutorException(workerBean.getWorkerId(), e);
         } finally {
             if (!WorkerTaskState.PAUSE.equals(workerTaskState) && !WorkerTaskState.CANCEL.equals(workerTaskState)) {
                 workerTaskState = WorkerTaskState.COMPLETED;
@@ -177,11 +180,7 @@ public class WorkerTask implements Supplier<ItemStatus> {
         }
     }
 
-    boolean checkStatusWorker(String serverHost, int serverPort) {
-        WorkerClientConfiguration workerClientConfiguration =
-            new WorkerClientConfiguration(serverHost, serverPort);
-        WorkerClientFactory.changeMode(workerClientConfiguration);
-        WorkerClient workerClient = WorkerClientFactory.getInstance(workerClientConfiguration).getClient();
+    boolean checkStatusWorker(WorkerClient workerClient, String serverHost, int serverPort) {
         try {
             workerClient.checkStatus();
             return true;

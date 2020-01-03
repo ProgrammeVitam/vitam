@@ -31,23 +31,16 @@ package fr.gouv.vitam.worker.client.exception;
  */
 public class WorkerUnreachableException extends WorkerExecutorException {
 
-    private String workerId;
+
     public WorkerUnreachableException(String workerId, String message) {
-        super(message);
-        this.workerId = workerId;
+        super(workerId, message);
     }
 
     public WorkerUnreachableException(String workerId, Throwable cause) {
-        super(cause);
-        this.workerId = workerId;
+        super(workerId, cause);
     }
 
     public WorkerUnreachableException(String workerId, String messsage, Throwable cause) {
-        super(messsage, cause);
-        this.workerId = workerId;
-    }
-
-    public String getWorkerId() {
-        return workerId;
+        super(workerId, messsage, cause);
     }
 }

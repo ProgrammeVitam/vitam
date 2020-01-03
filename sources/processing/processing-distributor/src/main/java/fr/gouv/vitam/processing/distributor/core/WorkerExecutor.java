@@ -25,7 +25,7 @@
  *  accept its terms.
  */
 
-package fr.gouv.vitam.processing.distributor.v2;
+package fr.gouv.vitam.processing.distributor.core;
 
 import java.util.concurrent.BlockingQueue;
 import java.util.stream.IntStream;
@@ -74,7 +74,7 @@ public class WorkerExecutor implements Runnable {
                 }
             }
         } catch (Exception e) {
-            throw new WorkerExecutorException(e);
+            throw new WorkerExecutorException(workerBean.getWorkerId(), e);
         }
     }
 
@@ -95,7 +95,7 @@ public class WorkerExecutor implements Runnable {
             try {
                 queue.put(interruptSignal);
             } catch (InterruptedException e) {
-                LOGGER.error("Error while sotp executor :"+workerBean.getWorkerId(), e);
+                LOGGER.error("Error while stop executor :" + workerBean.getWorkerId(), e);
             }
         });
     }

@@ -23,14 +23,13 @@ import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.processing.common.exception.ProcessingBadRequestException;
-import fr.gouv.vitam.processing.common.exception.WorkerAlreadyExistsException;
 import fr.gouv.vitam.processing.common.exception.WorkerFamilyNotFoundException;
-import fr.gouv.vitam.processing.common.exception.WorkerNotFoundException;
 import fr.gouv.vitam.processing.common.model.WorkerBean;
 import fr.gouv.vitam.processing.common.model.WorkerRemoteConfiguration;
-import fr.gouv.vitam.processing.distributor.v2.WorkerFamilyManager;
+import fr.gouv.vitam.processing.distributor.core.WorkerFamilyManager;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.List;
 
 /**
@@ -50,7 +49,7 @@ public interface IWorkerManager {
     /**
      * Do the initialization Load worker from worker.db
      */
-    default void initialize() {
+    default void initialize() throws IOException {
         if (getWorkerDbFile().exists()) {
             loadWorkerList(getWorkerDbFile());
         } else {
@@ -63,7 +62,7 @@ public interface IWorkerManager {
      *
      * @param registerWorkerFile the register worker file
      */
-    default void loadWorkerList(File registerWorkerFile) {
+    default void loadWorkerList(File registerWorkerFile) throws IOException {
         // Load the list of worker from database
         // for now it is a file content json data
         try {
@@ -76,15 +75,17 @@ public interface IWorkerManager {
                 // Ignore if the familyId or the workerId is null
                 if (familyId == null || workerId == null) {
                     // Mandatory argument missing : Continue with the next worker
+                    LOGGER.error("Mandatory arguments missing: family = " + familyId + ", worker= " + workerId +
+                        ". Continue with next workers");
                     continue;
                 }
                 WorkerRemoteConfiguration config = workerBean.getConfiguration();
                 if (checkStatusWorker(config.getServerHost(), config.getServerPort())) {
                     try {
                         registerWorker(workerBean);
-                    } catch (WorkerAlreadyExistsException e) {
-                        // This case should almost never happened as we are in the initialization
-                        LOGGER.error("Worker already exists during the initialization", e);
+                    } catch (IOException e) {
+                        // IOException ignored at this point because a global marshallDB will be done below.
+                        LOGGER.warn("Error while save worker to file", e);
                     }
                 }
             }
@@ -94,7 +95,7 @@ public interface IWorkerManager {
             return;
         }
 
-        // load to the list of WORKERS_LIST
+        // Backup worker list to file
         marshallToDB();
     }
 
@@ -107,20 +108,19 @@ public interface IWorkerManager {
      * @param familyId : family of this worker
      * @param workerId : ID of the worker
      * @param workerInformation : Worker Json representation
-     * @throws WorkerAlreadyExistsException : when the worker is already registered
      * @throws ProcessingBadRequestException if cannot register worker to family
      * @throws InvalidParseOperationException if worker description is not well-formed
      */
-    void registerWorker(String familyId, String workerId, String workerInformation)
-        throws WorkerAlreadyExistsException, ProcessingBadRequestException, InvalidParseOperationException;
+    void registerWorker(String familyId, String workerId, WorkerBean workerInformation)
+        throws ProcessingBadRequestException, IOException;
 
     /**
      * Register a worker
      *
      * @param workerBean the worker description as a WorkerBean object
-     * @throws WorkerAlreadyExistsException thrown if the worker already exists
+     * @throws IOException thrown when IOException occurs while read/save worker backup file
      */
-    void registerWorker(WorkerBean workerBean) throws WorkerAlreadyExistsException;
+    void registerWorker(WorkerBean workerBean) throws IOException;
 
     /**
      * To unregister a worker in the processing
@@ -128,16 +128,15 @@ public interface IWorkerManager {
      * @param familyId : family of this worker
      * @param workerId : ID of the worker
      * @throws WorkerFamilyNotFoundException : when the family is unknown
-     * @throws WorkerNotFoundException : when the ID of the worker is unknown in the family
-     * @throws InterruptedException if error in stopping thread
+     * @throws IOException if IOException occurs
      */
     void unregisterWorker(String familyId, String workerId)
-        throws WorkerFamilyNotFoundException, WorkerNotFoundException, InterruptedException;
+        throws WorkerFamilyNotFoundException, IOException;
 
     /**
      * Marshall to Database
      */
-    void marshallToDB();
+    void marshallToDB() throws IOException;
 
     /**
      * Find a worker by its family
