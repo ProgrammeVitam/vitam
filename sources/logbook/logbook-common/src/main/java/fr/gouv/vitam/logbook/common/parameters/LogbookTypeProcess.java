@@ -36,6 +36,10 @@ public enum LogbookTypeProcess {
      */
     INGEST,
     /**
+     * Ingest cleanup type process
+     */
+    INGEST_CLEANUP,
+    /**
      * Audit type process
      */
     AUDIT,
@@ -132,7 +136,8 @@ public enum LogbookTypeProcess {
     /**
      * Compute inherited rules process delete
      */
-    COMPUTE_INHERITED_RULES_DELETE;
+    COMPUTE_INHERITED_RULES_DELETE,
+    INTERNAL_OPERATING_OP;
 
     /**
      * Get the LogbookTypeProcess matching the given type

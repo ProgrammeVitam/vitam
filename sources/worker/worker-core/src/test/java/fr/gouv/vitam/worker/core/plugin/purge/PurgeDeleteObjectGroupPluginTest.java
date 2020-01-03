@@ -111,8 +111,8 @@ public class PurgeDeleteObjectGroupPluginTest {
             .setRequestId(VitamThreadUtils.getVitamSession().getRequestId())
             .setObjectNameList(Arrays.asList("id_got_1", "id_got_2"))
             .setObjectMetadataList(Arrays.asList(
-                JsonHandler.createObjectNode().put("strategyId", "default-fake").set("objects", got1ObjectsDetails),
-                JsonHandler.createObjectNode().put("strategyId", "default-fake").set("objects", got2ObjectsDetails)))
+                JsonHandler.createObjectNode().put("id", "id_got_1").put("strategyId", "default-fake").set("objects", got1ObjectsDetails),
+                JsonHandler.createObjectNode().put("id", "id_got_2").put("strategyId", "default-fake").set("objects", got2ObjectsDetails)))
             .setCurrentStep("StepName");
 
         instance = new PurgeDeleteObjectGroupPlugin("PLUGIN_ACTIOB", purgeDeleteService);

@@ -41,6 +41,7 @@ import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
 
 import javax.ws.rs.core.Response;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
@@ -49,6 +50,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Function;
 
 import static org.mockito.Mockito.mock;
 
@@ -56,12 +58,13 @@ public class TestHandlerIO implements HandlerIO {
 
     private List<Object> inputs = new ArrayList<>();
     private String currentObjectId;
-    private File newLocalFile;
+    private Function<String, File> newLocalFileProvider;
     private InputStream inputStreamFromWorkspace;
     private Map<String, InputStream> inputStreamMap = new HashMap<>();
     private Map<String, File> transferedFileToWorkspaceMap = new HashMap<>();
     private Map<String, JsonNode> jsonFromWorkspace = new HashMap<>();
     private ProcessingUri output;
+    private String containerName = "DEFAULT_CONTAINER_NAME";
 
     @Override
     public void addInIOParameters(List<IOParameter> list) {
@@ -110,13 +113,19 @@ public class TestHandlerIO implements HandlerIO {
     }
 
     @Override
-    public HandlerIO addOutputResult(int rank, Object object, boolean deleteLocal, boolean asyncIO) throws ProcessingException {
+    public HandlerIO addOutputResult(int rank, Object object, boolean deleteLocal, boolean asyncIO)
+        throws ProcessingException {
         return addOutputResult(rank, object);
     }
 
     @Override
     public String getContainerName() {
-        return "DEFAULT_CONTAINER_NAME";
+        return containerName;
+    }
+
+    public TestHandlerIO setContainerName(String containerName) {
+        this.containerName = containerName;
+        return this;
     }
 
     @Override
@@ -131,7 +140,7 @@ public class TestHandlerIO implements HandlerIO {
 
     @Override
     public File getNewLocalFile(String name) {
-        return newLocalFile;
+        return newLocalFileProvider.apply(name);
     }
 
     @Override
@@ -165,8 +174,11 @@ public class TestHandlerIO implements HandlerIO {
     @Override
     public InputStream getInputStreamFromWorkspace(String objectName)
         throws IOException, ContentAddressableStorageNotFoundException, ContentAddressableStorageServerException {
-        if (!inputStreamMap.isEmpty() && inputStreamMap.keySet().contains(objectName)) {
+        if (inputStreamMap.containsKey(objectName)) {
             return inputStreamMap.get(objectName);
+        }
+        if (transferedFileToWorkspaceMap.containsKey(objectName)) {
+            return new FileInputStream(transferedFileToWorkspaceMap.get(objectName));
         } else {
             return this.inputStreamFromWorkspace;
         }
@@ -242,7 +254,11 @@ public class TestHandlerIO implements HandlerIO {
     }
 
     public void setNewLocalFile(File newLocalFile) {
-        this.newLocalFile = newLocalFile;
+        this.newLocalFileProvider = (f) -> newLocalFile;
+    }
+
+    public void setNewLocalFileProvider(Function<String, File> newLocalFileProvider) {
+        this.newLocalFileProvider = newLocalFileProvider;
     }
 
     @Override

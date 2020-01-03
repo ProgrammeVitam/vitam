@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ArchiveTransfer xmlns="fr:gouv:culture:archivesdefrance:seda:v2.1"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="fr:gouv:culture:archivesdefrance:seda:v2.1 file:/C:/Users/edouard.vasseur/Desktop/Documentation/SEDA/SEDA_2-1_draft_0.6/seda-2.1-main.xsd">
+   <Comment>Ajout d'un objet à un GOT existant</Comment>
+	<Date>2018-05-22T16:22:58</Date>
+	<MessageIdentifier>MessageIdentifier0</MessageIdentifier>
+	<ArchivalAgreement>ArchivalAgreementAttachment</ArchivalAgreement>
+	<CodeListVersions>
+		<ReplyCodeListVersion>ReplyCodeListVersion0</ReplyCodeListVersion>
+		<MessageDigestAlgorithmCodeListVersion>MessageDigestAlgorithmCodeListVersion0
+		</MessageDigestAlgorithmCodeListVersion>
+		<MimeTypeCodeListVersion>MimeTypeCodeListVersion0</MimeTypeCodeListVersion>
+		<EncodingCodeListVersion>EncodingCodeListVersion0</EncodingCodeListVersion>
+		<FileFormatCodeListVersion>FileFormatCodeListVersion0</FileFormatCodeListVersion>
+		<CompressionAlgorithmCodeListVersion>CompressionAlgorithmCodeListVersion0</CompressionAlgorithmCodeListVersion>
+		<DataObjectVersionCodeListVersion>DataObjectVersionCodeListVersion0</DataObjectVersionCodeListVersion>
+		<StorageRuleCodeListVersion>StorageRuleCodeListVersion0</StorageRuleCodeListVersion>
+		<AppraisalRuleCodeListVersion>AppraisalRuleCodeListVersion0</AppraisalRuleCodeListVersion>
+		<AccessRuleCodeListVersion>AccessRuleCodeListVersion0</AccessRuleCodeListVersion>
+		<DisseminationRuleCodeListVersion>DisseminationRuleCodeListVersion0</DisseminationRuleCodeListVersion>
+		<ReuseRuleCodeListVersion>ReuseRuleCodeListVersion0</ReuseRuleCodeListVersion>
+		<ClassificationRuleCodeListVersion>ClassificationRuleCodeListVersion0</ClassificationRuleCodeListVersion>
+		<AuthorizationReasonCodeListVersion>AuthorizationReasonCodeListVersion0</AuthorizationReasonCodeListVersion>
+		<RelationshipCodeListVersion>RelationshipCodeListVersion0</RelationshipCodeListVersion>
+	</CodeListVersions>
+	<DataObjectPackage xml:id="ID2">
+		<BinaryDataObject id="ID5">
+			<DataObjectGroupId>ID4</DataObjectGroupId>
+			<DataObjectVersion>Thumbnail</DataObjectVersion>
+			<Uri>Content/ID5.jpg</Uri>
+			<MessageDigest algorithm="SHA-512">659e4527aa89e1f5a401c9026ce7ec106aec27142cd7bf9d0f9e387a167893eb1fb35e1a0e244a5697c3c1c7fb6bee1484a2760998b38e5c2c4ddd9ae3d0c1ff</MessageDigest>
+			<Size>9968</Size>
+			<FormatIdentification>
+				<FormatLitteral>JPEG File Interchange Format</FormatLitteral>
+				<MimeType>image/jpeg</MimeType>
+				<FormatId>fmt/43</FormatId>
+			</FormatIdentification>
+			<FileInfo>
+				<Filename>pdf.jpg</Filename>
+				<LastModified>2018-05-22T16:21:50.731+02:00</LastModified>
+			</FileInfo>
+		</BinaryDataObject>
+		<DescriptiveMetadata>
+			<ArchiveUnit id="ID6">
+				<Management>
+					<UpdateOperation>
+						<SystemId>TOBECOMPLETED</SystemId>
+					</UpdateOperation>
+				</Management>
+				<Content>
+					<DescriptionLevel>Item</DescriptionLevel>
+					<Title>Discours prononcé lors de la discussion générale en deuxième lecture de la proposition de loi Warsmann de simplification et d'amélioration de la qualité du droit</Title>
+				</Content>
+				<DataObjectReference>
+					<DataObjectGroupReferenceId>ID4</DataObjectGroupReferenceId>
+				</DataObjectReference>
+			</ArchiveUnit>
+			<ArchiveUnit id="ID3">
+				<Content>
+					<DescriptionLevel>RecordGrp</DescriptionLevel>
+					<Title>New Unit</Title>
+					<Description>Unit with add object sip test</Description>
+					<StartDate>2017-08-24T14:56:31</StartDate>
+					<EndDate>2017-08-24T14:56:31</EndDate>
+				</Content>
+			</ArchiveUnit>
+		</DescriptiveMetadata>
+		<ManagementMetadata>
+			<OriginatingAgencyIdentifier>RATP</OriginatingAgencyIdentifier>
+			<SubmissionAgencyIdentifier>RATP</SubmissionAgencyIdentifier>
+		</ManagementMetadata>
+	</DataObjectPackage>
+	<ArchivalAgency>
+		<Identifier>Identifier4</Identifier>
+	</ArchivalAgency>
+	<TransferringAgency>
+		<Identifier>Identifier5</Identifier>
+	</TransferringAgency>
+</ArchiveTransfer>

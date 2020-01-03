@@ -225,6 +225,17 @@ public interface AdminManagementClient extends MockOrRestClient {
         throws InvalidParseOperationException, ReferentialException, AccessUnauthorizedException;
 
     /**
+     * Get the accession register details matching the given query for the specified contract
+     *
+     * @param query The DSL Query as a JSON Node
+     * @return The AccessionregisterDetails list as a response jsonNode
+     * @throws InvalidParseOperationException
+     * @throws ReferentialException
+     */
+    RequestResponse<AccessionRegisterDetailModel> getAccessionRegisterDetail(String originatingAgency, JsonNode query)
+        throws InvalidParseOperationException, ReferentialException;
+
+    /**
      * Get the accession register details matching the given query
      *
      * @param query The DSL Query as a JSON Node
@@ -232,7 +243,7 @@ public interface AdminManagementClient extends MockOrRestClient {
      * @throws InvalidParseOperationException
      * @throws ReferentialException
      */
-    RequestResponse<AccessionRegisterDetailModel> getAccessionRegisterDetail(String documentId, JsonNode query)
+    RequestResponse<AccessionRegisterDetailModel> getAccessionRegisterDetail(JsonNode query)
         throws InvalidParseOperationException, ReferentialException;
 
     /**

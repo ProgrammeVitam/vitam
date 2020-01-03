@@ -1900,16 +1900,16 @@ public class WebApplicationResource extends ApplicationStatusResource {
      * Get the detail of an accessionregister matching options query
      *
      * @param request HTTP request
-     * @param id of accession response to get
+     * @param originatingAgency of accession response to get
      * @param options query criteria
      * @return accession register details
      */
     @POST
-    @Path("/admin/accession-register/{id}/accession-register-detail")
+    @Path("/admin/accession-register/{originatingAgency}/accession-register-detail")
     @Produces(MediaType.APPLICATION_JSON)
     @RequiresPermissions("admin:accession-register:read")
     public Response getAccessionRegisterDetail(@Context HttpServletRequest request,
-        @PathParam("id") String id,
+        @PathParam("originatingAgency") String originatingAgency,
         @CookieParam("JSESSIONID") String sessionId,
         String options) {
         try {
@@ -1935,7 +1935,7 @@ public class WebApplicationResource extends ApplicationStatusResource {
 
             VitamContext vitamContext = userInterfaceTransactionManager.getVitamContext(request);
             RequestResponse result =
-                userInterfaceTransactionManager.findAccessionRegisterDetail(id, options, vitamContext);
+                userInterfaceTransactionManager.findAccessionRegisterDetail(originatingAgency, options, vitamContext);
 
             if (result.isOk()) {
                 JsonNode jsonResult = result.toJsonNode();

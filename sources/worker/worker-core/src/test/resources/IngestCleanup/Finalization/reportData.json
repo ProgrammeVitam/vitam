@@ -1,0 +1,41 @@
+{
+  "ingestOperationId": "opi",
+  "units": {
+    "aeaqaaaaaaesicexab4qealo7zp5mwyaaaaq": {
+      "id": "aeaqaaaaaaesicexab4qealo7zp5mwyaaaaq",
+      "status": "WARNING",
+      "warnings": [
+        "warning1"
+      ],
+      "type": "Unit"
+    },
+    "aeaqaaaaaaesicexab4qealo7zp5h7yaaaba": {
+      "id": "aeaqaaaaaaesicexab4qealo7zp5h7yaaaba",
+      "status": "OK",
+      "type": "Unit"
+    },
+    "aeaqaaaaaaesicexab4qealo7zp5mvqaaaaq": {
+      "id": "aeaqaaaaaaesicexab4qealo7zp5mvqaaaaq",
+      "status": "OK",
+      "type": "Unit"
+    }
+  },
+  "objectGroups": {
+    "aebaaaaaaaesicexab4qealo7zp5huiaaaaq": {
+      "id": "aebaaaaaaaesicexab4qealo7zp5huiaaaaq",
+      "status": "OK",
+      "objects": [
+        "aeaaaaaaaaesicexab4qealo7zp5hpaaaaaq"
+      ],
+      "type": "ObjectGroup"
+    },
+    "aebaaaaaaaesicexab4qealo7zp5hkiaaaaq": {
+      "id": "aebaaaaaaaesicexab4qealo7zp5hkiaaaaq",
+      "status": "OK",
+      "objects": [
+        "aeaaaaaaaaesicexab4qealo7zp5hbiaaaaq"
+      ],
+      "type": "ObjectGroup"
+    }
+  }
+}

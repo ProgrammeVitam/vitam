@@ -679,7 +679,7 @@ public class AdminManagementResource extends ApplicationStatusResource {
     /**
      * retrieve accession register detail based on a given dsl query
      *
-     * @param documentId
+     * @param originatingAgency
      * @param select as String the query to find the accession register
      * @return Response
      */
@@ -687,44 +687,74 @@ public class AdminManagementResource extends ApplicationStatusResource {
     @POST
     @Consumes(APPLICATION_JSON)
     @Produces(APPLICATION_JSON)
-    public Response findDetailAccessionRegister(@PathParam("id") String documentId, JsonNode select) {
+    public Response findDetailAccessionRegister(@PathParam("id") String originatingAgency, JsonNode select) {
         ParametersChecker.checkParameter(SELECT_IS_A_MANDATORY_PARAMETER, select);
         RequestResponseOK<AccessionRegisterDetail> accessionRegisterDetails;
         try (ReferentialAccessionRegisterImpl accessionRegisterManagement =
             new ReferentialAccessionRegisterImpl(mongoAccess, vitamCounterService)) {
             SanityChecker.checkJsonAll(select);
-            SanityChecker.checkParameter(documentId);
+            SanityChecker.checkParameter(originatingAgency);
 
             SelectParserSingle parser = new SelectParserSingle(DEFAULT_VARNAME_ADAPTER);
             parser.parse(select);
-            if (!VitamConstants.EVERY_ORIGINATING_AGENCY.equals(VitamThreadUtils.getVitamSession().getContractId())) {
-                AccessContractModel contract = getContractDetails(VitamThreadUtils.getVitamSession().getContractId());
-                if (contract == null) {
-                    throw new AccessUnauthorizedException("Contract Not Found");
-                }
-                Boolean isEveryOriginatingAgency = contract.getEveryOriginatingAgency();
-                Set<String> prodServices = contract.getOriginatingAgencies();
+            AccessContractModel contract = getContractDetails(VitamThreadUtils.getVitamSession().getContractId());
+            if (contract == null) {
+                throw new AccessUnauthorizedException("Contract Not Found");
+            }
+            Boolean isEveryOriginatingAgency = contract.getEveryOriginatingAgency();
+            Set<String> prodServices = contract.getOriginatingAgencies();
 
-                if (!isEveryOriginatingAgency && !prodServices.contains(documentId)) {
-                    return Response.status(Status.UNAUTHORIZED)
-                        .entity(getErrorEntity(Status.UNAUTHORIZED, "Unauthorized")).build();
-                }
-                if (!isEveryOriginatingAgency) {
-                    parser.addCondition(QueryHelper.in(ORIGINATING_AGENCY,
-                        prodServices.stream().toArray(String[]::new)).setDepthLimit(0));
-                }
+            if (!isEveryOriginatingAgency && !prodServices.contains(originatingAgency)) {
+                return Response.status(Status.UNAUTHORIZED)
+                    .entity(getErrorEntity(Status.UNAUTHORIZED, "Unauthorized")).build();
+            }
+            if (!isEveryOriginatingAgency) {
+                parser.addCondition(QueryHelper.in(ORIGINATING_AGENCY,
+                    prodServices.toArray(new String[0])).setDepthLimit(0));
             }
             parser.addCondition(
-                eq(ORIGINATING_AGENCY, URLDecoder.decode(documentId, CharsetUtils.UTF_8)));
+                eq(ORIGINATING_AGENCY, URLDecoder.decode(originatingAgency, CharsetUtils.UTF_8)));
 
             accessionRegisterDetails =
                 accessionRegisterManagement.findDetail(parser.getRequest().getFinalSelect()).setQuery(select);
 
-            if (accessionRegisterDetails == null) {
-                LOGGER.warn("Accession register details not found " + documentId);
-                return Response.status(Status.NOT_FOUND)
-                    .entity(getErrorEntity(Status.NOT_FOUND, "Accession register not found")).build();
-            }
+        } catch (final InvalidParseOperationException e) {
+            LOGGER.error(e);
+            return Response.status(Status.BAD_REQUEST)
+                .entity(getErrorEntity(Status.BAD_REQUEST, e.getMessage())).build();
+        } catch (final Exception e) {
+            LOGGER.error(e);
+            return Response.status(Status.INTERNAL_SERVER_ERROR)
+                .entity(getErrorEntity(Status.INTERNAL_SERVER_ERROR, e.getMessage())).build();
+        }
+
+        return Response.status(Status.OK)
+            .entity(accessionRegisterDetails)
+            .build();
+    }
+
+    /**
+     * retrieve accession register detail based on a given dsl query
+     *
+     * @param select as String the query to find the accession register
+     * @return Response
+     */
+    @Path("accession-register/detail")
+    @POST
+    @Consumes(APPLICATION_JSON)
+    @Produces(APPLICATION_JSON)
+    public Response findDetailAccessionRegister(JsonNode select) {
+        ParametersChecker.checkParameter(SELECT_IS_A_MANDATORY_PARAMETER, select);
+        RequestResponseOK<AccessionRegisterDetail> accessionRegisterDetails;
+        try (ReferentialAccessionRegisterImpl accessionRegisterManagement =
+            new ReferentialAccessionRegisterImpl(mongoAccess, vitamCounterService)) {
+            SanityChecker.checkJsonAll(select);
+
+            SelectParserSingle parser = new SelectParserSingle(DEFAULT_VARNAME_ADAPTER);
+            parser.parse(select);
+
+            accessionRegisterDetails =
+                accessionRegisterManagement.findDetail(parser.getRequest().getFinalSelect()).setQuery(select);
 
         } catch (final InvalidParseOperationException e) {
             LOGGER.error(e);

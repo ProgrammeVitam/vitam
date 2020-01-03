@@ -134,7 +134,7 @@ export class LogbookOperationComponent extends PageComponent {
       || item.evType.toUpperCase() === 'IMPORT_ONTOLOGY' || item.evType.toUpperCase() === 'STP_REFERENTIAL_FORMAT_IMPORT'
       || item.evType.toUpperCase() === 'DATA_MIGRATION' || item.evType.toUpperCase() === 'ELIMINATION_ACTION'
       || item.evType.toUpperCase() === 'IMPORT_PRESERVATION_SCENARIO' || item.evType.toUpperCase() === 'IMPORT_GRIFFIN' || item.evType.toUpperCase() === 'STP_IMPORT_GRIFFIN'
-      || item.evType.toUpperCase() === 'PRESERVATION' ) {
+      || item.evType.toUpperCase() === 'PRESERVATION' || item.evType.toUpperCase() === 'INGEST_CLEANUP' ) {
 
       if (LogbookOperationComponent.isOperationInProgress(item)) {
         return ['fa-clock-o'];
@@ -272,6 +272,11 @@ export class LogbookOperationComponent extends PageComponent {
           logbookService.downloadReport(item.evIdProc);
         } else if (item.evType === 'IMPORT_PRESERVATION_SCENARIO') {
           logbookService.downloadReport(item.evIdProc);
+        }
+        break;
+      case 'INTERNAL_OPERATING_OP':
+        if (item.evType.toUpperCase() === 'INGEST_CLEANUP') {
+          logbookService.downloadBatchReport(item.evIdProc);
         }
         break;
       default:

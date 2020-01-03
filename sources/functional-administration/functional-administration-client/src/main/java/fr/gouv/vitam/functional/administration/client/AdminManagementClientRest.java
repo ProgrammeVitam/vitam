@@ -584,14 +584,44 @@ class AdminManagementClientRest extends DefaultClient implements AdminManagement
     }
 
     @Override
-    public RequestResponse<AccessionRegisterDetailModel> getAccessionRegisterDetail(String documentId, JsonNode query)
+    public RequestResponse<AccessionRegisterDetailModel> getAccessionRegisterDetail(String originatingAgency, JsonNode query)
         throws InvalidParseOperationException, ReferentialException {
 
         ParametersChecker.checkParameter("query is a mandatory parameter", query);
-        ParametersChecker.checkParameter("documentId is a mandatory parameter", documentId);
+        ParametersChecker.checkParameter("documentId is a mandatory parameter", originatingAgency);
         Response response = null;
         try {
-            response = performRequest(POST, ACCESSION_REGISTER_GET_DETAIL_URL + "/" + documentId,
+            response = performRequest(POST, ACCESSION_REGISTER_GET_DETAIL_URL + "/" + originatingAgency,
+                null, query, APPLICATION_JSON_TYPE, APPLICATION_JSON_TYPE);
+            final Status status = Status.fromStatusCode(response.getStatus());
+            switch (status) {
+                case OK:
+                    LOGGER.debug(Response.Status.OK.getReasonPhrase());
+                    break;
+                case NOT_FOUND:
+                    LOGGER.error(Response.Status.NOT_FOUND.getReasonPhrase());
+                    throw new ReferentialNotFoundException("AccessionRegister Detail Not found ");
+                default:
+                    throw new AccessionRegisterException("Unknown error: " + status.getStatusCode());
+            }
+            return getFromString(response.readEntity(String.class), RequestResponseOK.class,
+                AccessionRegisterDetailModel.class);
+        } catch (final VitamClientInternalException e) {
+            LOGGER.error("Internal Server Error", e);
+            throw new AdminManagementClientServerException("Internal Server Error", e);
+        } finally {
+            consumeAnyEntityAndClose(response);
+        }
+    }
+
+    @Override
+    public RequestResponse<AccessionRegisterDetailModel> getAccessionRegisterDetail(JsonNode query)
+        throws InvalidParseOperationException, ReferentialException {
+
+        ParametersChecker.checkParameter("query is a mandatory parameter", query);
+        Response response = null;
+        try {
+            response = performRequest(POST, ACCESSION_REGISTER_GET_DETAIL_URL,
                 null, query, APPLICATION_JSON_TYPE, APPLICATION_JSON_TYPE);
             final Status status = Status.fromStatusCode(response.getStatus());
             switch (status) {

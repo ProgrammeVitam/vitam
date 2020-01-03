@@ -30,6 +30,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Iterators;
 import com.google.common.collect.Sets;
 import com.google.common.collect.Streams;
@@ -42,6 +43,7 @@ import fr.gouv.vitam.access.internal.rest.AccessInternalMain;
 import fr.gouv.vitam.batch.report.rest.BatchReportMain;
 import fr.gouv.vitam.common.CommonMediaType;
 import fr.gouv.vitam.common.DataLoader;
+import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.VitamRuleRunner;
@@ -50,21 +52,31 @@ import fr.gouv.vitam.common.accesslog.AccessLogUtils;
 import fr.gouv.vitam.common.client.VitamClientFactory;
 import fr.gouv.vitam.common.database.builder.query.QueryHelper;
 import fr.gouv.vitam.common.database.builder.query.VitamFieldsHelper;
+import fr.gouv.vitam.common.database.builder.query.action.UpdateActionHelper;
 import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
 import fr.gouv.vitam.common.database.builder.request.multiple.SelectMultiQuery;
+import fr.gouv.vitam.common.database.builder.request.multiple.UpdateMultiQuery;
 import fr.gouv.vitam.common.database.collections.VitamCollection;
 import fr.gouv.vitam.common.database.server.mongodb.VitamDocument;
 import fr.gouv.vitam.common.elasticsearch.ElasticsearchRule;
 import fr.gouv.vitam.common.exception.AccessUnauthorizedException;
 import fr.gouv.vitam.common.exception.BadRequestException;
+import fr.gouv.vitam.common.exception.InternalServerException;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
+import fr.gouv.vitam.common.exception.NoWritingPermissionException;
+import fr.gouv.vitam.common.exception.VitamClientException;
 import fr.gouv.vitam.common.exception.VitamException;
 import fr.gouv.vitam.common.format.identification.FormatIdentifierFactory;
 import fr.gouv.vitam.common.guid.GUID;
 import fr.gouv.vitam.common.guid.GUIDFactory;
+import fr.gouv.vitam.common.guid.GUIDReader;
+import fr.gouv.vitam.common.i18n.VitamLogbookMessages;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.SysErrLogger;
+import fr.gouv.vitam.common.logging.VitamLogger;
+import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.ProcessAction;
+import fr.gouv.vitam.common.model.ProcessQuery;
 import fr.gouv.vitam.common.model.ProcessState;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
@@ -77,6 +89,7 @@ import fr.gouv.vitam.common.model.export.ExportType;
 import fr.gouv.vitam.common.model.objectgroup.ObjectGroupResponse;
 import fr.gouv.vitam.common.model.objectgroup.QualifiersModel;
 import fr.gouv.vitam.common.model.objectgroup.VersionsModel;
+import fr.gouv.vitam.common.model.processing.ProcessDetail;
 import fr.gouv.vitam.common.model.processing.WorkFlow;
 import fr.gouv.vitam.common.stream.StreamUtils;
 import fr.gouv.vitam.common.stream.VitamAsyncInputStream;
@@ -89,13 +102,18 @@ import fr.gouv.vitam.ingest.internal.client.IngestInternalClient;
 import fr.gouv.vitam.ingest.internal.client.IngestInternalClientFactory;
 import fr.gouv.vitam.ingest.internal.upload.rest.IngestInternalMain;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientException;
+import fr.gouv.vitam.logbook.common.parameters.Contexts;
 import fr.gouv.vitam.logbook.common.parameters.LogbookOperationParameters;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParametersFactory;
 import fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess;
 import fr.gouv.vitam.logbook.common.server.database.collections.LogbookCollections;
 import fr.gouv.vitam.logbook.lifecycles.client.LogbookLifeCyclesClient;
 import fr.gouv.vitam.logbook.lifecycles.client.LogbookLifeCyclesClientFactory;
+import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClient;
+import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClientFactory;
 import fr.gouv.vitam.logbook.rest.LogbookMain;
+import fr.gouv.vitam.metadata.client.MetaDataClient;
+import fr.gouv.vitam.metadata.client.MetaDataClientFactory;
 import fr.gouv.vitam.metadata.core.database.collections.MetadataCollections;
 import fr.gouv.vitam.metadata.rest.MetadataMain;
 import fr.gouv.vitam.processing.common.model.ProcessWorkflow;
@@ -114,19 +132,23 @@ import fr.gouv.vitam.storage.engine.server.rest.StorageMain;
 import fr.gouv.vitam.storage.offers.rest.DefaultOfferMain;
 import fr.gouv.vitam.worker.core.distribution.JsonLineGenericIterator;
 import fr.gouv.vitam.worker.core.plugin.elimination.model.EliminationActionUnitStatus;
+import fr.gouv.vitam.worker.core.plugin.ingestcleanup.report.IngestCleanupObjectGroupReportEntry;
+import fr.gouv.vitam.worker.core.plugin.ingestcleanup.report.IngestCleanupUnitReportEntry;
 import fr.gouv.vitam.worker.core.plugin.purge.PurgeObjectGroupStatus;
 import fr.gouv.vitam.worker.core.plugin.purge.PurgeUnitStatus;
 import fr.gouv.vitam.worker.server.rest.WorkerMain;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundException;
-import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
 import fr.gouv.vitam.workspace.client.WorkspaceClient;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
 import fr.gouv.vitam.workspace.rest.WorkspaceMain;
 import io.restassured.RestAssured;
 import net.javacrumbs.jsonunit.JsonAssert;
 import net.javacrumbs.jsonunit.core.Option;
+import okhttp3.Credentials;
+import okhttp3.OkHttpClient;
 import org.apache.commons.collections4.ListUtils;
 import org.apache.commons.collections4.SetUtils;
+import org.apache.commons.io.IOUtils;
 import org.assertj.core.util.Lists;
 import org.bson.Document;
 import org.elasticsearch.index.query.QueryBuilders;
@@ -135,13 +157,30 @@ import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.TemporaryFolder;
+import retrofit2.Call;
+import retrofit2.Retrofit;
+import retrofit2.converter.jackson.JacksonConverterFactory;
+import retrofit2.http.Header;
+import retrofit2.http.Headers;
+import retrofit2.http.POST;
+import retrofit2.http.Path;
 
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
+import java.io.FileInputStream;
 import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.FileVisitResult;
+import java.nio.file.Files;
+import java.nio.file.SimpleFileVisitor;
+import java.nio.file.attribute.BasicFileAttributes;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -152,18 +191,28 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipOutputStream;
 
+import static fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.FILTERARGS.OBJECTGROUPS;
 import static fr.gouv.vitam.common.guid.GUIDFactory.newOperationLogbookGUID;
+import static fr.gouv.vitam.common.model.StatusCode.STARTED;
+import static fr.gouv.vitam.logbook.common.parameters.Contexts.PRESERVATION;
 import static fr.gouv.vitam.worker.core.plugin.dip.StoreExports.TRANSFER_CONTAINER;
 import static io.restassured.RestAssured.get;
+import static java.util.Collections.emptyMap;
 import static java.util.stream.Collectors.toMap;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.assertj.core.api.Assertions.fail;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 
 public class EndToEndEliminationAndTransferReplyIT extends VitamRuleRunner {
+    private static final VitamLogger LOGGER =
+        VitamLoggerFactory.getInstance(EndToEndEliminationAndTransferReplyIT.class);
 
     private static final Integer tenantId = 0;
     private static final long SLEEP_TIME = 20L;
@@ -189,6 +238,16 @@ public class EndToEndEliminationAndTransferReplyIT extends VitamRuleRunner {
     private static final String ORIGINATING_AGENCY = "RATP";
     private static final String JSONL = ".jsonl";
     private static final String XML = ".xml";
+    private static String link_to_manifest_and_existing_unit =
+        "ingestCleanup/link_to_manifest_and_existing_unit";
+    private static String link_to_manifest_and_existing_object_group =
+        "ingestCleanup/link_to_manifest_and_existing_object_group";
+    private static String add_object_to_existing_object_group =
+        "ingestCleanup/add_object_to_existing_object_group";
+    private static final String ADMIN_MANAGEMENT_URL =
+        "http://localhost:" + VitamServerRunner.PORT_SERVICE_FUNCTIONAL_ADMIN_ADMIN;
+    private static final String BASIC_AUTHN_USER = "user";
+    private static final String BASIC_AUTHN_PWD = "pwd";
     @ClassRule
     public static VitamServerRunner runner =
         new VitamServerRunner(EndToEndEliminationAndTransferReplyIT.class, mongoRule.getMongoDatabase().getName(),
@@ -209,8 +268,6 @@ public class EndToEndEliminationAndTransferReplyIT extends VitamRuleRunner {
     private static String CONFIG_SIEGFRIED_PATH = "";
     private static String TEST_ELIMINATION_SIP =
         "elimination/TEST_ELIMINATION.zip";
-    private static String TEST_TRANSFER_SIP =
-        "integration-processing/4_UNITS_2_GOTS.zip";
     private static String ELIMINATION_ACCESSION_REGISTER_DETAIL =
         "elimination/accession_regoister_detail.json";
     private static String ELIMINATION_ACCESSION_REGISTER_SUMMARY =
@@ -225,6 +282,10 @@ public class EndToEndEliminationAndTransferReplyIT extends VitamRuleRunner {
     private TypeReference<ObjectGroupReportEntry> OG_REPORT_TYPE_REFERENCE =
         new TypeReference<ObjectGroupReportEntry>() {
         };
+    private static IngestCleanupAdminService ingestCleanupAdminService;
+
+    @Rule
+    public TemporaryFolder tempFolder = new TemporaryFolder();
 
     @BeforeClass
     public static void setUpBeforeClass() throws Exception {
@@ -237,6 +298,13 @@ public class EndToEndEliminationAndTransferReplyIT extends VitamRuleRunner {
 
         new DataLoader("integration-ingest-internal").prepareData();
 
+        final OkHttpClient okHttpClient = new OkHttpClient.Builder().build();
+
+        Retrofit retrofit_metadata =
+            new Retrofit.Builder().client(okHttpClient).baseUrl(ADMIN_MANAGEMENT_URL)
+                .addConverterFactory(JacksonConverterFactory.create()).build();
+
+        ingestCleanupAdminService = retrofit_metadata.create(IngestCleanupAdminService.class);
     }
 
     @After
@@ -362,7 +430,7 @@ public class EndToEndEliminationAndTransferReplyIT extends VitamRuleRunner {
         assertThat(ingestedUnits.getResults()).hasSize(6);
         assertThat(ingestedGots.getResults()).hasSize(3);
 
-        Set<String> ingestedObjectIds = getObjectIds(ingestedGots);
+        Set<String> ingestedObjectIds = getBinaryObjectIds(ingestedGots);
         assertThat(ingestedObjectIds).hasSize(3);
 
         // elimination action
@@ -371,7 +439,7 @@ public class EndToEndEliminationAndTransferReplyIT extends VitamRuleRunner {
 
         SelectMultiQuery analysisDslRequest = new SelectMultiQuery();
         analysisDslRequest
-            .addQueries(QueryHelper.eq(VitamFieldsHelper.initialOperation(), ingestOperationGuid.toString()));
+            .addQueries(QueryHelper.eq(VitamFieldsHelper.initialOperation(), ingestOperationGuid));
 
         EliminationRequestBody eliminationRequestBody = new EliminationRequestBody(
             "2018-01-01", analysisDslRequest.getFinalSelect());
@@ -390,7 +458,7 @@ public class EndToEndEliminationAndTransferReplyIT extends VitamRuleRunner {
         assertThat(remainingUnits.getResults()).hasSize(3);
         assertThat(remainingGots.getResults()).hasSize(2);
 
-        Set<String> remainingObjectIds = getObjectIds(remainingGots);
+        Set<String> remainingObjectIds = getBinaryObjectIds(remainingGots);
         assertThat(remainingObjectIds).hasSize(2);
 
         // Check Accession Register Detail
@@ -443,7 +511,7 @@ public class EndToEndEliminationAndTransferReplyIT extends VitamRuleRunner {
 
         Set<String> expectedRemainingObjectIds = ingestedGots.getResults().stream()
             .filter(got -> expectedRemainingGotIds.contains(getId(got)))
-            .flatMap(got -> getObjectIds(got).stream())
+            .flatMap(got -> getBinaryObjectIds(got).stream())
             .collect(Collectors.toSet());
         Set<String> expectedDeletedObjectIds = SetUtils.difference(ingestedObjectIds, expectedRemainingObjectIds);
 
@@ -499,7 +567,7 @@ public class EndToEndEliminationAndTransferReplyIT extends VitamRuleRunner {
         assertThat(ingestedUnits.getResults()).hasSize(6);
         assertThat(ingestedObjectGroups.getResults()).hasSize(3);
 
-        Set<String> ingestedObjectIds = getObjectIds(ingestedObjectGroups);
+        Set<String> ingestedObjectIds = getBinaryObjectIds(ingestedObjectGroups);
         assertThat(ingestedObjectIds).hasSize(3);
 
         // Export transfer archive
@@ -541,7 +609,8 @@ public class EndToEndEliminationAndTransferReplyIT extends VitamRuleRunner {
         // Check transfer result
         checkTransferResult(ingestOperationGuid, ingestedUnits, ingestedObjectGroups, ingestedUnitIds,
             ingestedObjectGroupIds,
-            transferReplyOperationId, transferReplyOperationId, transferPurgedTransferUnitIds, transferAlreadyDeletedUnitIds,
+            transferReplyOperationId, transferReplyOperationId, transferPurgedTransferUnitIds,
+            transferAlreadyDeletedUnitIds,
             transferNonDeletableUnitIds, transferDeletedObjectGroups, transferDetachedObjectGroups,
             accessInternalClient);
 
@@ -578,7 +647,7 @@ public class EndToEndEliminationAndTransferReplyIT extends VitamRuleRunner {
         assertThat(ingestedUnits.getResults()).hasSize(6);
         assertThat(ingestedObjectGroups.getResults()).hasSize(3);
 
-        Set<String> ingestedObjectIds = getObjectIds(ingestedObjectGroups);
+        Set<String> ingestedObjectIds = getBinaryObjectIds(ingestedObjectGroups);
         assertThat(ingestedObjectIds).hasSize(3);
 
         Map<String, JsonNode> ingestedUnitsByTitle = mapByField(ingestedUnits, "Title");
@@ -633,7 +702,8 @@ public class EndToEndEliminationAndTransferReplyIT extends VitamRuleRunner {
         // Check transfer 1 result
         checkTransferResult(ingestOperationGuid, ingestedUnits, ingestedObjectGroups, ingestedUnitIds,
             ingestedObjectGroupIds,
-            transferReplyOperationId1, transferReplyOperationId1, transfer1PurgedTransferUnitIds, transfer1AlreadyDeletedUnitIds,
+            transferReplyOperationId1, transferReplyOperationId1, transfer1PurgedTransferUnitIds,
+            transfer1AlreadyDeletedUnitIds,
             transfer1NonDeletableUnitIds, transfer1DeletedObjectGroups, transfer1DetachedObjectGroups,
             accessInternalClient);
 
@@ -679,6 +749,1090 @@ public class EndToEndEliminationAndTransferReplyIT extends VitamRuleRunner {
             excludeFields);
     }
 
+    @RunWithCustomExecutor
+    @Test
+    public void testCleanupIngestRunningIngestThenKO() throws Exception {
+
+        // Given
+        String ingestOperationGuid =
+            doIngestStepByStepUntilStepReached(PropertiesUtils.getResourceAsStream(TEST_ELIMINATION_SIP),
+                "STP_ACCESSION_REGISTRATION");
+
+        // When : Run ingest cleanup process
+        retrofit2.Response<Void> actionResult =
+            ingestCleanupAdminService.startIngestCleanupWorkflow(ingestOperationGuid, tenantId,
+                getBasicAuthnToken()).execute();
+
+        // Then
+        assertThat(actionResult.isSuccessful()).isTrue();
+        String ingestCleanupActionOperationGuid = actionResult.headers().get(GlobalDataRest.X_REQUEST_ID);
+
+        awaitForWorkflowTerminationWithStatus(ingestCleanupActionOperationGuid, StatusCode.KO);
+
+        // Ensure no cleanup occurred
+        final AccessInternalClient accessInternalClient = AccessInternalClientFactory.getInstance().getClient();
+        final RequestResponseOK<JsonNode> ingestedUnits = selectUnitsByOpi(ingestOperationGuid, accessInternalClient);
+        final RequestResponseOK<JsonNode> ingestedGots = selectGotsByOpi(ingestOperationGuid, accessInternalClient);
+
+        assertThat(ingestedUnits.getResults()).hasSize(6);
+        assertThat(ingestedGots.getResults()).hasSize(3);
+
+        Set<String> ingestedObjectIds = getBinaryObjectIds(ingestedGots);
+        assertThat(ingestedObjectIds).hasSize(3);
+
+        // Check Accession Register Detail
+        List<String> excludeFields = Lists
+            .newArrayList("_id", "StartDate", "LastUpdate", "EndDate", "Opc", "Opi", "CreationDate", "OperationIds");
+        assertJsonEquals("ingestCleanup/accession_register_detail_no_cleanup.json", JsonHandler.toJsonNode(
+            Lists.newArrayList(FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL.getCollection().find(
+                new Document(AccessionRegisterDetail.OPI, ingestOperationGuid)
+            ))),
+            excludeFields);
+
+        // Check Accession Register Summary
+        assertJsonEquals("ingestCleanup/accession_register_summary_no_cleanup.json",
+            JsonHandler.toJsonNode(
+                Lists.newArrayList(FunctionalAdminCollections.ACCESSION_REGISTER_SUMMARY.getCollection()
+                    .find(new Document("OriginatingAgency", "RATP")))),
+            excludeFields);
+
+        // No report
+        checkNoIngestCleanupReport(ingestCleanupActionOperationGuid);
+
+        // Cleanup
+        killProcess(ingestOperationGuid);
+    }
+
+    @RunWithCustomExecutor
+    @Test
+    public void testCleanupIngestCompletedOKIngestThenKO() throws Exception {
+        // Given
+        String ingestOperationGuid =
+            doIngest(PropertiesUtils.getResourceAsStream(TEST_ELIMINATION_SIP), StatusCode.OK);
+
+        // When : Run ingest cleanup process
+
+        retrofit2.Response<Void> actionResult =
+            ingestCleanupAdminService.startIngestCleanupWorkflow(ingestOperationGuid, tenantId,
+                getBasicAuthnToken()).execute();
+
+        // Then
+        assertThat(actionResult.isSuccessful()).isTrue();
+        String ingestCleanupActionOperationGuid = actionResult.headers().get(GlobalDataRest.X_REQUEST_ID);
+
+        awaitForWorkflowTerminationWithStatus(ingestCleanupActionOperationGuid, StatusCode.KO);
+
+        // Ensure no cleanup occurred
+        final AccessInternalClient accessInternalClient = AccessInternalClientFactory.getInstance().getClient();
+        final RequestResponseOK<JsonNode> ingestedUnits = selectUnitsByOpi(ingestOperationGuid, accessInternalClient);
+        final RequestResponseOK<JsonNode> ingestedGots = selectGotsByOpi(ingestOperationGuid, accessInternalClient);
+
+        assertThat(ingestedUnits.getResults()).hasSize(6);
+        assertThat(ingestedGots.getResults()).hasSize(3);
+
+        Set<String> ingestedObjectIds = getBinaryObjectIds(ingestedGots);
+        assertThat(ingestedObjectIds).hasSize(3);
+
+        // Check Accession Register Detail
+        List<String> excludeFields = Lists
+            .newArrayList("_id", "StartDate", "LastUpdate", "EndDate", "Opc", "Opi", "CreationDate", "OperationIds");
+        assertJsonEquals("ingestCleanup/accession_register_detail_no_cleanup.json", JsonHandler.toJsonNode(
+            Lists.newArrayList(FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL.getCollection().find(
+                new Document(AccessionRegisterDetail.OPI, ingestOperationGuid)
+            ))),
+            excludeFields);
+
+        // Check Accession Register Summary
+        assertJsonEquals("ingestCleanup/accession_register_summary_no_cleanup.json",
+            JsonHandler.toJsonNode(
+                Lists.newArrayList(FunctionalAdminCollections.ACCESSION_REGISTER_SUMMARY.getCollection()
+                    .find(new Document("OriginatingAgency", "RATP")))),
+            excludeFields);
+
+        // No report
+        checkNoIngestCleanupReport(ingestCleanupActionOperationGuid);
+    }
+
+    @RunWithCustomExecutor
+    @Test
+    public void testCleanupIngestKilledIngestAfterAccessionRegistersThenOK() throws Exception {
+
+        // Given
+        String ingestOperationGuid =
+            doIngestStepByStepUntilStepReached(PropertiesUtils.getResourceAsStream(TEST_ELIMINATION_SIP),
+                "STP_ACCESSION_REGISTRATION");
+        killProcess(ingestOperationGuid);
+
+        // Check ingested units / gots / object groups
+        final AccessInternalClient accessInternalClient = AccessInternalClientFactory.getInstance().getClient();
+        final RequestResponseOK<JsonNode> ingestedUnits = selectUnitsByOpi(ingestOperationGuid, accessInternalClient);
+        final RequestResponseOK<JsonNode> ingestedGots = selectGotsByOpi(ingestOperationGuid, accessInternalClient);
+
+        assertThat(ingestedUnits.getResults()).hasSize(6);
+        assertThat(ingestedGots.getResults()).hasSize(3);
+
+        Set<String> ingestedObjectIds = getBinaryObjectIds(ingestedGots);
+        assertThat(ingestedObjectIds).hasSize(3);
+
+        // When : Run ingest cleanup process
+
+        retrofit2.Response<Void> actionResult =
+            ingestCleanupAdminService.startIngestCleanupWorkflow(ingestOperationGuid, tenantId,
+                getBasicAuthnToken()).execute();
+
+        assertThat(actionResult.isSuccessful()).isTrue();
+        String ingestCleanupActionOperationGuid = actionResult.headers().get(GlobalDataRest.X_REQUEST_ID);
+
+        // Then
+        awaitForWorkflowTerminationWithStatus(ingestCleanupActionOperationGuid, StatusCode.OK);
+
+        // Ensure data purged via DSL
+        final RequestResponseOK<JsonNode> remainingUnits = selectUnitsByOpi(ingestOperationGuid, accessInternalClient);
+        final RequestResponseOK<JsonNode> remainingObjectGroups =
+            selectGotsByOpi(ingestOperationGuid, accessInternalClient);
+        assertThat(remainingUnits.getResults()).isEmpty();
+        assertThat(remainingObjectGroups.getResults()).isEmpty();
+
+        // Low level check of units / object groups & objects existence
+        for (String id : getIds(ingestedUnits)) {
+            checkUnitExistence(id, false);
+        }
+
+        for (String id : getIds(ingestedGots)) {
+            checkObjectGroupExistence(id, false);
+            for (String objectId : getBinaryObjectIds(getById(ingestedGots, id))) {
+                checkObjectExistence(objectId, false);
+            }
+        }
+
+        // Check Accession Register Detail
+        List<String> excludeFields = Lists
+            .newArrayList("_id", "StartDate", "LastUpdate", "EndDate", "Opc", "Opi", "CreationDate", "OperationIds");
+        assertJsonEquals("ingestCleanup/accession_register_detail.json", JsonHandler.toJsonNode(
+            Lists.newArrayList(FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL.getCollection().find(
+                new Document(AccessionRegisterDetail.OPI, ingestOperationGuid)
+            ))),
+            excludeFields);
+
+        // Check Accession Register Summary
+        assertJsonEquals("ingestCleanup/accession_register_summary.json",
+            JsonHandler.toJsonNode(
+                Lists.newArrayList(FunctionalAdminCollections.ACCESSION_REGISTER_SUMMARY.getCollection()
+                    .find(new Document("OriginatingAgency", "RATP")))),
+            excludeFields);
+
+        // Check report
+        checkIngestCleanupReport(ingestCleanupActionOperationGuid, ingestOperationGuid,
+            getIds(ingestedUnits).stream().collect(Collectors.toMap(i -> i, i -> StatusCode.OK)),
+            getIds(ingestedGots).stream().collect(Collectors.toMap(i -> i, i -> StatusCode.OK)),
+            ingestedGots.getResults().stream().collect(toMap(this::getId, this::getBinaryObjectIds))
+        );
+    }
+
+    /**
+     * checkChildUnitsFromOtherIngests
+     * My unit has been update by another process (batch update, preservation...)
+     */
+    @RunWithCustomExecutor
+    @Test
+    public void testCleanupIngestUpdatedUnitsThenWarning() throws Exception {
+
+        // Given
+        String ingestOperationGuid =
+            doIngestStepByStepUntilStepReached(PropertiesUtils.getResourceAsStream(TEST_ELIMINATION_SIP),
+                "STP_ACCESSION_REGISTRATION");
+        killProcess(ingestOperationGuid);
+
+        // Check ingested units / gots / object groups
+        final AccessInternalClient accessInternalClient = AccessInternalClientFactory.getInstance().getClient();
+        final RequestResponseOK<JsonNode> ingestedUnits = selectUnitsByOpi(ingestOperationGuid, accessInternalClient);
+        final RequestResponseOK<JsonNode> ingestedGots = selectGotsByOpi(ingestOperationGuid, accessInternalClient);
+
+        assertThat(ingestedUnits.getResults()).hasSize(6);
+        assertThat(ingestedGots.getResults()).hasSize(3);
+
+        Set<String> ingestedObjectIds = getBinaryObjectIds(ingestedGots);
+        assertThat(ingestedObjectIds).hasSize(3);
+
+        // When : Run ingest cleanup process
+
+        updateUnits(ingestOperationGuid);
+
+        retrofit2.Response<Void> actionResult =
+            ingestCleanupAdminService.startIngestCleanupWorkflow(ingestOperationGuid, tenantId,
+                getBasicAuthnToken()).execute();
+
+        assertThat(actionResult.isSuccessful()).isTrue();
+        String ingestCleanupActionOperationGuid = actionResult.headers().get(GlobalDataRest.X_REQUEST_ID);
+
+        // Then
+        awaitForWorkflowTerminationWithStatus(ingestCleanupActionOperationGuid, StatusCode.WARNING);
+
+        // Ensure data purged via DSL
+        final RequestResponseOK<JsonNode> remainingUnits = selectUnitsByOpi(ingestOperationGuid, accessInternalClient);
+        final RequestResponseOK<JsonNode> remainingObjectGroups =
+            selectGotsByOpi(ingestOperationGuid, accessInternalClient);
+        assertThat(remainingUnits.getResults()).isEmpty();
+        assertThat(remainingObjectGroups.getResults()).isEmpty();
+
+        // Low level check of units / object groups & objects existence
+        for (String id : getIds(ingestedUnits)) {
+            checkUnitExistence(id, false);
+        }
+
+        for (String id : getIds(ingestedGots)) {
+            checkObjectGroupExistence(id, false);
+            for (String objectId : getBinaryObjectIds(getById(ingestedGots, id))) {
+                checkObjectExistence(objectId, false);
+            }
+        }
+
+        // Check Accession Register Detail
+        List<String> excludeFields = Lists
+            .newArrayList("_id", "StartDate", "LastUpdate", "EndDate", "Opc", "Opi", "CreationDate", "OperationIds");
+        assertJsonEquals("ingestCleanup/accession_register_detail.json", JsonHandler.toJsonNode(
+            Lists.newArrayList(FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL.getCollection().find(
+                new Document(AccessionRegisterDetail.OPI, ingestOperationGuid)
+            ))),
+            excludeFields);
+
+        // Check Accession Register Summary
+        assertJsonEquals("ingestCleanup/accession_register_summary.json",
+            JsonHandler.toJsonNode(
+                Lists.newArrayList(FunctionalAdminCollections.ACCESSION_REGISTER_SUMMARY.getCollection()
+                    .find(new Document("OriginatingAgency", "RATP")))),
+            excludeFields);
+
+        // Check report
+        checkIngestCleanupReport(ingestCleanupActionOperationGuid, ingestOperationGuid,
+            getIds(ingestedUnits).stream().collect(Collectors.toMap(i -> i, i -> StatusCode.WARNING)),
+            getIds(ingestedGots).stream().collect(Collectors.toMap(i -> i, i -> StatusCode.OK)),
+            ingestedGots.getResults().stream().collect(toMap(this::getId, this::getBinaryObjectIds))
+        );
+    }
+
+    /**
+     * testCleanupIngestUnitsWithChildUnitAttachmentThenKO
+     * Another unit has been attached to my unit (ingest, reclassification...)
+     */
+    @RunWithCustomExecutor
+    @Test
+    public void testCleanupIngestUnitsWithChildUnitAttachmentThenKO() throws Exception {
+
+        // Given
+        String ingestOperationGuid =
+            doIngestStepByStepUntilStepReached(PropertiesUtils.getResourceAsStream(TEST_ELIMINATION_SIP),
+                "STP_ACCESSION_REGISTRATION");
+        killProcess(ingestOperationGuid);
+
+        // Check ingested units / gots / object groups
+        final AccessInternalClient accessInternalClient = AccessInternalClientFactory.getInstance().getClient();
+        final RequestResponseOK<JsonNode> ingestedUnits = selectUnitsByOpi(ingestOperationGuid, accessInternalClient);
+        final RequestResponseOK<JsonNode> ingestedGots = selectGotsByOpi(ingestOperationGuid, accessInternalClient);
+
+        assertThat(ingestedUnits.getResults()).hasSize(6);
+        assertThat(ingestedGots.getResults()).hasSize(3);
+
+        Set<String> ingestedObjectIds = getBinaryObjectIds(ingestedGots);
+        assertThat(ingestedObjectIds).hasSize(3);
+
+        // Create SIP with attachment to unit
+        String montparnasseUnitId = ingestedUnits.getResults().stream()
+            .filter(unit -> getTitle(unit).equals(MONTPARNASSE))
+            .map(this::getId)
+            .findFirst().orElseThrow(() -> new IllegalStateException("Unkown unit " + MONTPARNASSE));
+
+        String zipName = tempFolder.getRoot().getAbsolutePath() + "/" + GUIDFactory.newGUID().getId() + ".zip";
+        replaceStringInFile(link_to_manifest_and_existing_unit + "/manifest.xml", "(?<=<SystemId>).*?(?=</SystemId>)",
+            montparnasseUnitId);
+        zipFolder(PropertiesUtils.getResourcePath(link_to_manifest_and_existing_unit), zipName);
+
+        // Ingest "child" SIP
+        doIngest(new FileInputStream(zipName), StatusCode.WARNING);
+
+        // When : Run ingest cleanup process
+        retrofit2.Response<Void> actionResult =
+            ingestCleanupAdminService.startIngestCleanupWorkflow(ingestOperationGuid, tenantId,
+                getBasicAuthnToken()).execute();
+
+        assertThat(actionResult.isSuccessful()).isTrue();
+        String ingestCleanupActionOperationGuid = actionResult.headers().get(GlobalDataRest.X_REQUEST_ID);
+
+        // Then
+        awaitForWorkflowTerminationWithStatus(ingestCleanupActionOperationGuid, StatusCode.KO);
+
+        // Ensure no cleanup occurred
+        final RequestResponseOK<JsonNode> remainingIngestedUnits =
+            selectUnitsByOpi(ingestOperationGuid, accessInternalClient);
+        final RequestResponseOK<JsonNode> remainingIngestedGots =
+            selectGotsByOpi(ingestOperationGuid, accessInternalClient);
+
+        assertThat(remainingIngestedUnits.getResults()).hasSize(6);
+        assertThat(remainingIngestedGots.getResults()).hasSize(3);
+
+        // Check Accession Register Detail
+        List<String> excludeFields = Lists
+            .newArrayList("_id", "StartDate", "LastUpdate", "EndDate", "Opc", "Opi", "CreationDate", "OperationIds");
+        assertJsonEquals("ingestCleanup/accession_register_detail_no_cleanup.json", JsonHandler.toJsonNode(
+            Lists.newArrayList(FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL.getCollection().find(
+                new Document(AccessionRegisterDetail.OPI, ingestOperationGuid)
+            ))),
+            excludeFields);
+
+        // Check Accession Register Summary
+        assertJsonEquals("ingestCleanup/accession_register_summary_no_cleanup.json",
+            JsonHandler.toJsonNode(
+                Lists.newArrayList(FunctionalAdminCollections.ACCESSION_REGISTER_SUMMARY.getCollection()
+                    .find(new Document("OriginatingAgency", "RATP")))),
+            excludeFields);
+
+        // Check report
+        checkIngestCleanupReport(ingestCleanupActionOperationGuid, ingestOperationGuid,
+            ImmutableMap.of(montparnasseUnitId, StatusCode.KO),
+            emptyMap(), emptyMap()
+        );
+    }
+
+    /**
+     * checkObjectGroupUpdatesFromOtherOperations [INGEST]
+     * An ingest attached a unit to my object group
+     */
+    @RunWithCustomExecutor
+    @Test
+    public void testCleanupIngestObjectGroupWithAttachedUnitFromAnotherIngestThenKO() throws Exception {
+
+        // Given
+        String ingestOperationGuid = doIngestStepByStepUntilStepReached(
+            PropertiesUtils.getResourceAsStream(TEST_ELIMINATION_SIP), "STP_ACCESSION_REGISTRATION");
+        killProcess(ingestOperationGuid);
+
+        final AccessInternalClient accessInternalClient = AccessInternalClientFactory.getInstance().getClient();
+        String objectGroupId = getId(selectGotsByOpi(ingestOperationGuid, accessInternalClient)
+            .getFirstResult());
+
+        // Ingest attached unit to my object group
+        String zipName = tempFolder.getRoot().getAbsolutePath() + "/" + GUIDFactory.newGUID().getId() + ".zip";
+        replaceStringInFile(link_to_manifest_and_existing_object_group + "/manifest.xml",
+            "(?<=<DataObjectGroupExistingReferenceId>).*?(?=</DataObjectGroupExistingReferenceId>)",
+            objectGroupId);
+        zipFolder(PropertiesUtils.getResourcePath(link_to_manifest_and_existing_object_group), zipName);
+
+        doIngest(new FileInputStream(zipName), StatusCode.WARNING);
+
+        // When : Run ingest cleanup process
+        retrofit2.Response<Void> actionResult =
+            ingestCleanupAdminService.startIngestCleanupWorkflow(ingestOperationGuid, tenantId,
+                getBasicAuthnToken()).execute();
+
+        assertThat(actionResult.isSuccessful()).isTrue();
+        String ingestCleanupActionOperationGuid = actionResult.headers().get(GlobalDataRest.X_REQUEST_ID);
+
+        // Then
+        awaitForWorkflowTerminationWithStatus(ingestCleanupActionOperationGuid, StatusCode.KO);
+
+        // Ensure no cleanup occurred
+        final RequestResponseOK<JsonNode> remainingUnits = selectUnitsByOpi(ingestOperationGuid, accessInternalClient);
+        final RequestResponseOK<JsonNode> remainingGots = selectGotsByOpi(ingestOperationGuid, accessInternalClient);
+
+        assertThat(remainingUnits.getResults()).hasSize(6);
+        assertThat(remainingGots.getResults()).hasSize(3);
+
+        Set<String> ingestedObjectIds = getBinaryObjectIds(remainingGots);
+        assertThat(ingestedObjectIds).hasSize(3);
+
+        // Check Accession Register Detail
+        List<String> excludeFields = Lists
+            .newArrayList("_id", "StartDate", "LastUpdate", "EndDate", "Opc", "Opi", "CreationDate", "OperationIds");
+        assertJsonEquals("ingestCleanup/accession_register_detail_5_no_cleanup.json", JsonHandler.toJsonNode(
+            Lists.newArrayList(FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL.getCollection().find(
+                new Document(AccessionRegisterDetail.OPI, ingestOperationGuid)
+            ))),
+            excludeFields);
+
+        // Check Accession Register Summary
+        assertJsonEquals("ingestCleanup/accession_register_summary_5_no_cleanup.json",
+            JsonHandler.toJsonNode(
+                Lists.newArrayList(FunctionalAdminCollections.ACCESSION_REGISTER_SUMMARY.getCollection()
+                    .find(new Document("OriginatingAgency", "RATP")))),
+            excludeFields);
+
+        // Check report
+        checkIngestCleanupReport(ingestCleanupActionOperationGuid, ingestOperationGuid,
+            emptyMap(),
+            ImmutableMap.of(objectGroupId, StatusCode.KO),
+            emptyMap()
+        );
+    }
+
+    /**
+     * checkObjectGroupUpdatesFromOtherOperations [INGEST]
+     * An ingest added a binary to my object group
+     */
+    @RunWithCustomExecutor
+    @Test
+    public void testCleanupIngestObjectGroupWithAttachedObjectFromAnotherIngestToExistingObjectGroupThenKO()
+        throws Exception {
+
+        // Given
+        String ingestOperationGuid =
+            doIngestStepByStepUntilStepReached(PropertiesUtils.getResourceAsStream(TEST_ELIMINATION_SIP),
+                "STP_ACCESSION_REGISTRATION");
+        killProcess(ingestOperationGuid);
+
+        // Attach an object to one of its object groups
+        final AccessInternalClient accessInternalClient = AccessInternalClientFactory.getInstance().getClient();
+        JsonNode objectGroup = selectGotsByOpi(ingestOperationGuid, accessInternalClient)
+            .getFirstResult();
+        String objectGroupId = getId(objectGroup);
+        String unitId = getParentUnitIds(objectGroup).iterator().next();
+
+        String zipName = tempFolder.getRoot().getAbsolutePath() + "/" + GUIDFactory.newGUID().getId() + ".zip";
+        replaceStringInFile(add_object_to_existing_object_group + "/manifest.xml",
+            "(?<=<SystemId>).*?(?=</SystemId>)",
+            unitId);
+        zipFolder(PropertiesUtils.getResourcePath(add_object_to_existing_object_group), zipName);
+
+        doIngest(new FileInputStream(zipName), StatusCode.WARNING);
+
+        // When : Run ingest cleanup process
+        retrofit2.Response<Void> actionResult =
+            ingestCleanupAdminService.startIngestCleanupWorkflow(ingestOperationGuid, tenantId,
+                getBasicAuthnToken()).execute();
+
+        assertThat(actionResult.isSuccessful()).isTrue();
+        String ingestCleanupActionOperationGuid = actionResult.headers().get(GlobalDataRest.X_REQUEST_ID);
+
+        // Then
+        awaitForWorkflowTerminationWithStatus(ingestCleanupActionOperationGuid, StatusCode.KO);
+
+        // Ensure no cleanup occurred
+        final RequestResponseOK<JsonNode> remainingUnits = selectUnitsByOpi(ingestOperationGuid, accessInternalClient);
+        final RequestResponseOK<JsonNode> remainingGots = selectGotsByOpi(ingestOperationGuid, accessInternalClient);
+
+        assertThat(remainingUnits.getResults()).hasSize(6);
+        assertThat(remainingGots.getResults()).hasSize(3);
+
+        Set<String> ingestedObjectIds = getBinaryObjectIds(remainingGots);
+        // 3 initial objects + 1 attached object from 2nd SIP
+        assertThat(ingestedObjectIds).hasSize(4);
+
+        // Check Accession Register Detail
+        List<String> excludeFields = Lists
+            .newArrayList("_id", "StartDate", "LastUpdate", "EndDate", "Opc", "Opi", "CreationDate", "OperationIds");
+        assertJsonEquals("ingestCleanup/accession_register_detail_4_no_cleanup.json", JsonHandler.toJsonNode(
+            Lists.newArrayList(FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL.getCollection().find(
+                new Document(AccessionRegisterDetail.OPI, ingestOperationGuid)
+            ))),
+            excludeFields);
+
+        // Check Accession Register Summary
+        assertJsonEquals("ingestCleanup/accession_register_summary_4_no_cleanup.json",
+            JsonHandler.toJsonNode(
+                Lists.newArrayList(FunctionalAdminCollections.ACCESSION_REGISTER_SUMMARY.getCollection()
+                    .find(new Document("OriginatingAgency", "RATP")))),
+            excludeFields);
+
+        // Check report
+        checkIngestCleanupReport(ingestCleanupActionOperationGuid, ingestOperationGuid,
+            emptyMap(),
+            ImmutableMap.of(objectGroupId, StatusCode.KO),
+            emptyMap()
+        );
+    }
+
+    /**
+     * checkObjectAttachmentsToExistingObjectGroups
+     * My ingest added a binary to another existing object group
+     */
+    @RunWithCustomExecutor
+    @Test
+    public void testCleanupIngestObjectAttachedToExistingObjectGroupThenKO() throws Exception {
+
+        // Given
+        String initialIngestOperationGuid =
+            doIngest(PropertiesUtils.getResourceAsStream(TEST_ELIMINATION_SIP), StatusCode.OK);
+
+        // Ingest another SIP that add an object to an existing object group
+        final AccessInternalClient accessInternalClient = AccessInternalClientFactory.getInstance().getClient();
+        JsonNode initialObjectGroup = selectGotsByOpi(initialIngestOperationGuid, accessInternalClient)
+            .getFirstResult();
+        String initialObjectGroupId = getId(initialObjectGroup);
+        String initialUnitId = getParentUnitIds(initialObjectGroup).iterator().next();
+
+        String zipName = tempFolder.getRoot().getAbsolutePath() + "/" + GUIDFactory.newGUID().getId() + ".zip";
+        replaceStringInFile(add_object_to_existing_object_group + "/manifest.xml",
+            "(?<=<SystemId>).*?(?=</SystemId>)",
+            initialUnitId);
+        zipFolder(PropertiesUtils.getResourcePath(add_object_to_existing_object_group), zipName);
+
+        String ingestOperationGuid =
+            doIngestStepByStepUntilStepReached(new FileInputStream(zipName), "STP_ACCESSION_REGISTRATION");
+        killProcess(ingestOperationGuid);
+
+        final RequestResponseOK<JsonNode> ingestedUnits =
+            selectUnitsByOpi(ingestOperationGuid, accessInternalClient);
+        assertThat(ingestedUnits.getResults()).hasSize(1);
+
+        // When : Run ingest cleanup process
+        retrofit2.Response<Void> actionResult =
+            ingestCleanupAdminService.startIngestCleanupWorkflow(ingestOperationGuid, tenantId,
+                getBasicAuthnToken()).execute();
+
+        assertThat(actionResult.isSuccessful()).isTrue();
+        String ingestCleanupActionOperationGuid = actionResult.headers().get(GlobalDataRest.X_REQUEST_ID);
+
+        // Then
+        awaitForWorkflowTerminationWithStatus(ingestCleanupActionOperationGuid, StatusCode.KO);
+
+        // Ensure no cleanup occurred
+        final RequestResponseOK<JsonNode> remainingIngestedUnits =
+            selectUnitsByOpi(ingestOperationGuid, accessInternalClient);
+        assertThat(remainingIngestedUnits.getResults()).hasSize(1);
+
+
+        // Check Accession Register Detail
+        List<String> excludeFields = Lists
+            .newArrayList("_id", "StartDate", "LastUpdate", "EndDate", "Opc", "Opi", "CreationDate", "OperationIds");
+        assertJsonEquals("ingestCleanup/accession_register_detail_3_no_cleanup.json", JsonHandler.toJsonNode(
+            Lists.newArrayList(FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL.getCollection().find(
+                new Document(AccessionRegisterDetail.OPI, ingestOperationGuid)
+            ))),
+            excludeFields);
+
+        // Check Accession Register Summary
+        assertJsonEquals("ingestCleanup/accession_register_summary_3_no_cleanup.json",
+            JsonHandler.toJsonNode(
+                Lists.newArrayList(FunctionalAdminCollections.ACCESSION_REGISTER_SUMMARY.getCollection()
+                    .find(new Document("OriginatingAgency", "RATP")))),
+            excludeFields);
+
+        // Check report
+        checkIngestCleanupReport(ingestCleanupActionOperationGuid, ingestOperationGuid,
+            emptyMap(),
+            ImmutableMap.of(initialObjectGroupId, StatusCode.KO),
+            emptyMap()
+        );
+    }
+
+    /**
+     * checkObjectAttachmentsToExistingObjectGroups
+     * My ingest attached a unit to another existing object group
+     */
+    @RunWithCustomExecutor
+    @Test
+    public void testCleanupIngestUnitAttachedToExistingObjectGroupThenKO() throws Exception {
+
+        // Given
+        String initialIngestOperationGuid =
+            doIngest(PropertiesUtils.getResourceAsStream(TEST_ELIMINATION_SIP), StatusCode.OK);
+
+        // Initial ingest of an object group
+        final AccessInternalClient accessInternalClient = AccessInternalClientFactory.getInstance().getClient();
+        String initialObjectGroupId = getId(selectGotsByOpi(initialIngestOperationGuid, accessInternalClient)
+            .getFirstResult());
+
+        // Ingest attached unit to existing object group
+        String zipName = tempFolder.getRoot().getAbsolutePath() + "/" + GUIDFactory.newGUID().getId() + ".zip";
+        replaceStringInFile(link_to_manifest_and_existing_object_group + "/manifest.xml",
+            "(?<=<DataObjectGroupExistingReferenceId>).*?(?=</DataObjectGroupExistingReferenceId>)",
+            initialObjectGroupId);
+        zipFolder(PropertiesUtils.getResourcePath(link_to_manifest_and_existing_object_group), zipName);
+
+        String ingestOperationGuid =
+            doIngestStepByStepUntilStepReached(new FileInputStream(zipName), "STP_ACCESSION_REGISTRATION");
+        killProcess(ingestOperationGuid);
+
+        final RequestResponseOK<JsonNode> ingestedUnits =
+            selectUnitsByOpi(ingestOperationGuid, accessInternalClient);
+        assertThat(ingestedUnits.getResults()).hasSize(1);
+
+        // When : Run ingest cleanup process
+        retrofit2.Response<Void> actionResult =
+            ingestCleanupAdminService.startIngestCleanupWorkflow(ingestOperationGuid, tenantId,
+                getBasicAuthnToken()).execute();
+
+        assertThat(actionResult.isSuccessful()).isTrue();
+        String ingestCleanupActionOperationGuid = actionResult.headers().get(GlobalDataRest.X_REQUEST_ID);
+
+        // Then
+        awaitForWorkflowTerminationWithStatus(ingestCleanupActionOperationGuid, StatusCode.KO);
+
+        // Ensure no cleanup occurred
+        final RequestResponseOK<JsonNode> remainingIngestedUnits =
+            selectUnitsByOpi(ingestOperationGuid, accessInternalClient);
+        assertThat(remainingIngestedUnits.getResults()).hasSize(1);
+
+
+        // Check Accession Register Detail
+        List<String> excludeFields = Lists
+            .newArrayList("_id", "StartDate", "LastUpdate", "EndDate", "Opc", "Opi", "CreationDate", "OperationIds");
+        assertJsonEquals("ingestCleanup/accession_register_detail_2_no_cleanup.json", JsonHandler.toJsonNode(
+            Lists.newArrayList(FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL.getCollection().find(
+                new Document(AccessionRegisterDetail.OPI, ingestOperationGuid)
+            ))),
+            excludeFields);
+
+        // Check Accession Register Summary
+        assertJsonEquals("ingestCleanup/accession_register_summary_2_no_cleanup.json",
+            JsonHandler.toJsonNode(
+                Lists.newArrayList(FunctionalAdminCollections.ACCESSION_REGISTER_SUMMARY.getCollection()
+                    .find(new Document("OriginatingAgency", "Service_producteur")))),
+            excludeFields);
+
+        // Check report
+        checkIngestCleanupReport(ingestCleanupActionOperationGuid, ingestOperationGuid,
+            emptyMap(),
+            ImmutableMap.of(initialObjectGroupId, StatusCode.KO),
+            emptyMap()
+        );
+    }
+
+    /**
+     * checkObjectGroupUpdatesFromOtherOperations [NOT AN INGEST]
+     * My object group has been updated by some preservation workflow (metadata extract, binary conversion...)
+     */
+    @RunWithCustomExecutor
+    @Test
+    public void testCleanupIngestObjectGroupUpdatedByAnotherProcessThenWarning() throws Exception {
+        // Given
+        String ingestOperationGuid =
+            doIngestStepByStepUntilStepReached(PropertiesUtils.getResourceAsStream(TEST_ELIMINATION_SIP),
+                "STP_ACCESSION_REGISTRATION");
+        killProcess(ingestOperationGuid);
+
+        // Update object group by another operation (simulate preservation operation)
+        final AccessInternalClient accessInternalClient = AccessInternalClientFactory.getInstance().getClient();
+        JsonNode objectGroup = selectGotsByOpi(ingestOperationGuid, accessInternalClient)
+            .getFirstResult();
+        String objectGroupId = getId(objectGroup);
+
+        final String dummyPreservationOperationGuid = newOperationLogbookGUID(tenantId).toString();
+        VitamThreadUtils.getVitamSession().setRequestId(dummyPreservationOperationGuid);
+
+        try (MetaDataClient metaDataClient = MetaDataClientFactory.getInstance().getClient();
+            LogbookOperationsClient logbookOperationsClient = LogbookOperationsClientFactory.getInstance().getClient()) {
+
+            String message = VitamLogbookMessages.getLabelOp(PRESERVATION.getEventType() + ".STARTED") + " : " +
+                GUIDReader.getGUID(dummyPreservationOperationGuid);
+
+            LogbookOperationParameters initParameters = LogbookParametersFactory.newLogbookOperationParameters(
+                GUIDReader.getGUID(dummyPreservationOperationGuid),
+                PRESERVATION.getEventType(),
+                GUIDReader.getGUID(dummyPreservationOperationGuid),
+                LogbookTypeProcess.PRESERVATION,
+                STARTED,
+                message,
+                GUIDReader.getGUID(dummyPreservationOperationGuid)
+            );
+            logbookOperationsClient.create(initParameters);
+
+            UpdateMultiQuery query = new UpdateMultiQuery();
+            query.addHintFilter(OBJECTGROUPS.exactToken());
+            query.addActions(UpdateActionHelper.set("var", "some value"));
+            query.addActions(UpdateActionHelper.set(VitamFieldsHelper.operations(), dummyPreservationOperationGuid));
+            metaDataClient.updateObjectGroupById(query.getFinalUpdate(), objectGroupId);
+        }
+
+        // Check ingested units / gots / object groups
+        final RequestResponseOK<JsonNode> ingestedUnits = selectUnitsByOpi(ingestOperationGuid, accessInternalClient);
+        final RequestResponseOK<JsonNode> ingestedGots = selectGotsByOpi(ingestOperationGuid, accessInternalClient);
+
+        assertThat(ingestedUnits.getResults()).hasSize(6);
+        assertThat(ingestedGots.getResults()).hasSize(3);
+
+        Set<String> ingestedObjectIds = getBinaryObjectIds(ingestedGots);
+        assertThat(ingestedObjectIds).hasSize(3);
+
+        // When : Run ingest cleanup process
+
+        retrofit2.Response<Void> actionResult =
+            ingestCleanupAdminService.startIngestCleanupWorkflow(ingestOperationGuid, tenantId,
+                getBasicAuthnToken()).execute();
+
+        assertThat(actionResult.isSuccessful()).isTrue();
+        String ingestCleanupActionOperationGuid = actionResult.headers().get(GlobalDataRest.X_REQUEST_ID);
+
+        // Then
+        awaitForWorkflowTerminationWithStatus(ingestCleanupActionOperationGuid, StatusCode.WARNING);
+
+        // Ensure data purged via DSL
+        final RequestResponseOK<JsonNode> remainingUnits = selectUnitsByOpi(ingestOperationGuid, accessInternalClient);
+        final RequestResponseOK<JsonNode> remainingObjectGroups =
+            selectGotsByOpi(ingestOperationGuid, accessInternalClient);
+        assertThat(remainingUnits.getResults()).isEmpty();
+        assertThat(remainingObjectGroups.getResults()).isEmpty();
+
+        // Low level check of units / object groups & objects existence
+        for (String id : getIds(ingestedUnits)) {
+            checkUnitExistence(id, false);
+        }
+
+        for (String id : getIds(ingestedGots)) {
+            checkObjectGroupExistence(id, false);
+            for (String objectId : getBinaryObjectIds(getById(ingestedGots, id))) {
+                checkObjectExistence(objectId, false);
+            }
+        }
+
+        // Check Accession Register Detail
+        List<String> excludeFields = Lists
+            .newArrayList("_id", "StartDate", "LastUpdate", "EndDate", "Opc", "Opi", "CreationDate", "OperationIds");
+        assertJsonEquals("ingestCleanup/accession_register_detail.json", JsonHandler.toJsonNode(
+            Lists.newArrayList(FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL.getCollection().find(
+                new Document(AccessionRegisterDetail.OPI, ingestOperationGuid)
+            ))),
+            excludeFields);
+
+        // Check Accession Register Summary
+        assertJsonEquals("ingestCleanup/accession_register_summary.json",
+            JsonHandler.toJsonNode(
+                Lists.newArrayList(FunctionalAdminCollections.ACCESSION_REGISTER_SUMMARY.getCollection()
+                    .find(new Document("OriginatingAgency", "RATP")))),
+            excludeFields);
+
+        // Check report
+        checkIngestCleanupReport(ingestCleanupActionOperationGuid, ingestOperationGuid,
+            getIds(ingestedUnits).stream().collect(Collectors.toMap(i -> i, i -> StatusCode.OK)),
+            ingestedGots.getResults().stream().collect(Collectors.toMap(
+                this::getId, i-> getId(i).equals(objectGroupId) ? StatusCode.WARNING : StatusCode.OK)),
+            ingestedGots.getResults().stream().collect(toMap(this::getId, this::getBinaryObjectIds))
+        );
+    }
+
+    @RunWithCustomExecutor
+    @Test
+    public void testDoubleIngestCleanupThenWarning() throws Exception {
+
+        // Given
+        String ingestOperationGuid =
+            doIngestStepByStepUntilStepReached(PropertiesUtils.getResourceAsStream(TEST_ELIMINATION_SIP),
+                "STP_ACCESSION_REGISTRATION");
+        killProcess(ingestOperationGuid);
+
+        // Check ingested units / gots / object groups
+        final AccessInternalClient accessInternalClient = AccessInternalClientFactory.getInstance().getClient();
+        final RequestResponseOK<JsonNode> ingestedUnits = selectUnitsByOpi(ingestOperationGuid, accessInternalClient);
+        final RequestResponseOK<JsonNode> ingestedGots = selectGotsByOpi(ingestOperationGuid, accessInternalClient);
+
+        assertThat(ingestedUnits.getResults()).hasSize(6);
+        assertThat(ingestedGots.getResults()).hasSize(3);
+
+        Set<String> ingestedObjectIds = getBinaryObjectIds(ingestedGots);
+        assertThat(ingestedObjectIds).hasSize(3);
+
+        // When : Run 2x ingest cleanup process
+
+        retrofit2.Response<Void> actionResult =
+            ingestCleanupAdminService.startIngestCleanupWorkflow(ingestOperationGuid, tenantId,
+                getBasicAuthnToken()).execute();
+        assertThat(actionResult.isSuccessful()).isTrue();
+        String ingestCleanupActionOperationGuid = actionResult.headers().get(GlobalDataRest.X_REQUEST_ID);
+
+        awaitForWorkflowTerminationWithStatus(ingestCleanupActionOperationGuid, StatusCode.OK);
+
+        retrofit2.Response<Void> actionResult2 =
+            ingestCleanupAdminService.startIngestCleanupWorkflow(ingestOperationGuid, tenantId,
+                getBasicAuthnToken()).execute();
+        assertThat(actionResult.isSuccessful()).isTrue();
+        String ingestCleanupActionOperationGuid2 = actionResult2.headers().get(GlobalDataRest.X_REQUEST_ID);
+
+        // Then
+        awaitForWorkflowTerminationWithStatus(ingestCleanupActionOperationGuid2, StatusCode.WARNING);
+
+        // Ensure data purged via DSL
+        final RequestResponseOK<JsonNode> remainingUnits = selectUnitsByOpi(ingestOperationGuid, accessInternalClient);
+        final RequestResponseOK<JsonNode> remainingObjectGroups =
+            selectGotsByOpi(ingestOperationGuid, accessInternalClient);
+        assertThat(remainingUnits.getResults()).isEmpty();
+        assertThat(remainingObjectGroups.getResults()).isEmpty();
+
+        // Low level check of units / object groups & objects existence
+        for (String id : getIds(ingestedUnits)) {
+            checkUnitExistence(id, false);
+        }
+
+        for (String id : getIds(ingestedGots)) {
+            checkObjectGroupExistence(id, false);
+            for (String objectId : getBinaryObjectIds(getById(ingestedGots, id))) {
+                checkObjectExistence(objectId, false);
+            }
+        }
+
+        // Check Accession Register Detail
+        List<String> excludeFields = Lists
+            .newArrayList("_id", "StartDate", "LastUpdate", "EndDate", "Opc", "Opi", "CreationDate", "OperationIds");
+        assertJsonEquals("ingestCleanup/accession_register_detail.json", JsonHandler.toJsonNode(
+            Lists.newArrayList(FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL.getCollection().find(
+                new Document(AccessionRegisterDetail.OPI, ingestOperationGuid)
+            ))),
+            excludeFields);
+
+        // Check Accession Register Summary
+        assertJsonEquals("ingestCleanup/accession_register_summary.json",
+            JsonHandler.toJsonNode(
+                Lists.newArrayList(FunctionalAdminCollections.ACCESSION_REGISTER_SUMMARY.getCollection()
+                    .find(new Document("OriginatingAgency", "RATP")))),
+            excludeFields);
+
+        checkIngestCleanupReport(ingestCleanupActionOperationGuid2, ingestOperationGuid, emptyMap(), emptyMap(),
+            emptyMap());
+    }
+
+    @RunWithCustomExecutor
+    @Test
+    public void testCleanupIngestKilledIngestBeforeAccessionRegistersThenOK() throws Exception {
+
+        // Given
+        String ingestOperationGuid =
+            doIngestStepByStepUntilStepReached(PropertiesUtils.getResourceAsStream(TEST_ELIMINATION_SIP),
+                "STP_UPDATE_OBJECT_GROUP");
+        killProcess(ingestOperationGuid);
+
+        // Check ingested units / gots / object groups
+        final AccessInternalClient accessInternalClient = AccessInternalClientFactory.getInstance().getClient();
+        final RequestResponseOK<JsonNode> ingestedUnits = selectUnitsByOpi(ingestOperationGuid, accessInternalClient);
+        final RequestResponseOK<JsonNode> ingestedGots = selectGotsByOpi(ingestOperationGuid, accessInternalClient);
+
+        assertThat(ingestedUnits.getResults()).hasSize(6);
+        assertThat(ingestedGots.getResults()).hasSize(3);
+
+        Set<String> ingestedObjectIds = getBinaryObjectIds(ingestedGots);
+        assertThat(ingestedObjectIds).hasSize(3);
+
+        // When : Run ingest cleanup process
+
+        retrofit2.Response<Void> actionResult =
+            ingestCleanupAdminService.startIngestCleanupWorkflow(ingestOperationGuid, tenantId,
+                getBasicAuthnToken()).execute();
+
+        assertThat(actionResult.isSuccessful()).isTrue();
+        String ingestCleanupActionOperationGuid = actionResult.headers().get(GlobalDataRest.X_REQUEST_ID);
+
+        // Then
+        awaitForWorkflowTerminationWithStatus(ingestCleanupActionOperationGuid, StatusCode.OK);
+
+        // Ensure data purged via DSL
+        final RequestResponseOK<JsonNode> remainingUnits = selectUnitsByOpi(ingestOperationGuid, accessInternalClient);
+        final RequestResponseOK<JsonNode> remainingObjectGroups =
+            selectGotsByOpi(ingestOperationGuid, accessInternalClient);
+        assertThat(remainingUnits.getResults()).isEmpty();
+        assertThat(remainingObjectGroups.getResults()).isEmpty();
+
+        // Low level check of units / object groups & objects existence
+        for (String id : getIds(ingestedUnits)) {
+            checkUnitExistence(id, false);
+        }
+
+        for (String id : getIds(ingestedGots)) {
+            checkObjectGroupExistence(id, false);
+            for (String objectId : getBinaryObjectIds(getById(ingestedGots, id))) {
+                checkObjectExistence(objectId, false);
+            }
+        }
+
+        // Check Accession Register Detail
+        assertThat(FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL.getCollection().countDocuments()).isEqualTo(0);
+        assertThat(FunctionalAdminCollections.ACCESSION_REGISTER_SUMMARY.getCollection().countDocuments()).isEqualTo(0);
+    }
+
+    private void checkIngestCleanupReport(String ingestCleanupOperationId, String opi,
+        Map<String, StatusCode> expectedUnitStatusMap, Map<String, StatusCode> expectedObjectGroupStatusMap,
+        Map<String, Set<String>> expectedObjectIdsByObjectGroupIds)
+        throws IOException, StorageNotFoundException, StorageServerClientException, InvalidParseOperationException {
+
+        try (InputStream reportInputStream = readStoredReport(ingestCleanupOperationId + JSONL);
+            JsonLineGenericIterator<JsonNode> reportIterator = new JsonLineGenericIterator<>(reportInputStream,
+                JSON_NODE_TYPE_REFERENCE)) {
+
+            JsonAssert.assertJsonEquals(
+                reportIterator.next(), JsonHandler.createObjectNode().put("ingestOperationId", opi));
+
+            Map<String, StatusCode> actualUnitStatusMap = new HashMap<>();
+            Map<String, StatusCode> actualObjectGroupStatusMap = new HashMap<>();
+            Map<String, Set<String>> actualObjectIdsByObjectGroupIds = new HashMap<>();
+
+            for (int i = 0; i < expectedUnitStatusMap.size(); i++) {
+                IngestCleanupUnitReportEntry entry =
+                    JsonHandler
+                        .getFromJsonNode(reportIterator.next().get("params"), IngestCleanupUnitReportEntry.class);
+                actualUnitStatusMap.put(entry.getId(), entry.getStatus());
+                if (entry.getStatus() == StatusCode.KO) {
+                    assertThat(entry.getErrors()).isNotEmpty();
+                }
+                if (entry.getStatus() == StatusCode.WARNING) {
+                    assertThat(entry.getWarnings()).isNotEmpty();
+                }
+            }
+            assertThat(actualUnitStatusMap).isEqualTo(expectedUnitStatusMap);
+
+            for (int i = 0; i < expectedObjectGroupStatusMap.size(); i++) {
+                IngestCleanupObjectGroupReportEntry entry =
+                    JsonHandler.getFromJsonNode(reportIterator.next().get("params"),
+                        IngestCleanupObjectGroupReportEntry.class);
+                actualObjectGroupStatusMap.put(entry.getId(), entry.getStatus());
+                if (entry.getObjects() != null) {
+                    actualObjectIdsByObjectGroupIds.put(entry.getId(), new HashSet<>(entry.getObjects()));
+                }
+
+                if (entry.getStatus() == StatusCode.KO) {
+                    assertThat(entry.getErrors()).isNotEmpty();
+                }
+                if (entry.getStatus() == StatusCode.WARNING) {
+                    assertThat(entry.getWarnings()).isNotEmpty();
+                }
+            }
+            assertThat(actualObjectGroupStatusMap).isEqualTo(expectedObjectGroupStatusMap);
+            assertThat(actualObjectIdsByObjectGroupIds).isEqualTo(expectedObjectIdsByObjectGroupIds);
+        }
+    }
+
+    private String doIngestStepByStepUntilStepReached(InputStream zipInputStreamSipObject, String targetStepName)
+        throws VitamException, InterruptedException {
+        final GUID ingestOperationGuid = newOperationLogbookGUID(tenantId);
+        prepareVitamSession();
+        VitamThreadUtils.getVitamSession().setRequestId(ingestOperationGuid);
+        // workspace client unzip SIP in workspace
+
+        // init default logbook operation
+        final List<LogbookOperationParameters> params = new ArrayList<>();
+        final LogbookOperationParameters initParameters = LogbookParametersFactory.newLogbookOperationParameters(
+            ingestOperationGuid, "Process_SIP_unitary", ingestOperationGuid,
+            LogbookTypeProcess.INGEST, StatusCode.STARTED,
+            ingestOperationGuid.toString(), ingestOperationGuid);
+        params.add(initParameters);
+
+        // call ingest
+        IngestInternalClientFactory.getInstance().changeServerPort(VitamServerRunner.PORT_SERVICE_INGEST_INTERNAL);
+        final IngestInternalClient client = IngestInternalClientFactory.getInstance().getClient();
+        client.uploadInitialLogbook(params);
+
+        // init workflow before execution
+        client.initWorkflow(workflow);
+
+        client.upload(zipInputStreamSipObject, CommonMediaType.ZIP_TYPE, workflow, ProcessAction.NEXT.name());
+
+        runStepByStepUntilStepReached(ingestOperationGuid.getId(), targetStepName);
+        return ingestOperationGuid.getId();
+    }
+
+    private void replaceStringInFile(String targetFilename, String textToReplace, String replacementText)
+        throws IOException {
+        java.nio.file.Path path = PropertiesUtils.getResourcePath(targetFilename);
+        Charset charset = StandardCharsets.UTF_8;
+
+        String content = new String(Files.readAllBytes(path), charset);
+        content = content.replaceAll(textToReplace, replacementText);
+        Files.write(path, content.getBytes(charset));
+    }
+
+
+    private void zipFolder(final java.nio.file.Path path, final String zipFilePath) throws IOException {
+        try (
+            FileOutputStream fos = new FileOutputStream(zipFilePath);
+            ZipOutputStream zos = new ZipOutputStream(fos)) {
+            Files.walkFileTree(path, new SimpleFileVisitor<java.nio.file.Path>() {
+                public FileVisitResult visitFile(java.nio.file.Path file, BasicFileAttributes attrs)
+                    throws IOException {
+                    zos.putNextEntry(new ZipEntry(path.relativize(file).toString()));
+                    Files.copy(file, zos);
+                    zos.closeEntry();
+                    return FileVisitResult.CONTINUE;
+                }
+
+                public FileVisitResult preVisitDirectory(java.nio.file.Path dir, BasicFileAttributes attrs)
+                    throws IOException {
+                    zos.putNextEntry(new ZipEntry(path.relativize(dir).toString() + "/"));
+                    zos.closeEntry();
+                    return FileVisitResult.CONTINUE;
+                }
+            });
+        }
+    }
+
+    private void runStepByStepUntilStepReached(String operationGuid, String targetStepName)
+        throws VitamClientException, InternalServerException, InterruptedException {
+
+        try (ProcessingManagementClient processingClient =
+            ProcessingManagementClientFactory.getInstance().getClient()) {
+
+            while (true) {
+
+                ProcessQuery processQuery = new ProcessQuery();
+                processQuery.setId(operationGuid);
+                RequestResponse<ProcessDetail> response = processingClient.listOperationsDetails(processQuery);
+
+                assertThat(response.isOk()).isTrue();
+                ProcessDetail processDetail = ((RequestResponseOK<ProcessDetail>) response).getResults().get(0);
+
+                switch (ProcessState.valueOf(processDetail.getGlobalState())) {
+
+                    case PAUSE:
+
+                        if (processDetail.getPreviousStep().equals(targetStepName)) {
+                            LOGGER.info(operationGuid + " finished step " + targetStepName);
+                            return;
+                        }
+
+                        processingClient
+                            .executeOperationProcess(operationGuid, Contexts.DEFAULT_WORKFLOW.name(),
+                                ProcessAction.NEXT.getValue());
+
+                        break;
+                    case RUNNING:
+
+                        // Sleep and retry
+                        TimeUnit.MILLISECONDS.sleep(SLEEP_TIME);
+
+                        break;
+                    case COMPLETED:
+                        tryLogLogbookOperation(operationGuid);
+                        tryLogATR(operationGuid);
+                        fail("Process completion unexpected " + JsonHandler.unprettyPrint(processDetail));
+                        break;
+                }
+            }
+        }
+    }
+
+    private void updateUnits(String ingestOperationGuid)
+        throws InvalidCreateOperationException, InvalidParseOperationException, AccessInternalClientServerException,
+        NoWritingPermissionException, AccessUnauthorizedException {
+        final AccessInternalClient accessInternalClient = AccessInternalClientFactory.getInstance().getClient();
+        UpdateMultiQuery updateMultiQuery = new UpdateMultiQuery();
+        updateMultiQuery.addQueries(QueryHelper.eq(VitamFieldsHelper.initialOperation(), ingestOperationGuid));
+        updateMultiQuery.addActions(UpdateActionHelper.set("var", "value"));
+        String updateRequestId = GUIDFactory.newRequestIdGUID(tenantId).getId();
+        VitamThreadUtils.getVitamSession().setRequestId(updateRequestId);
+        RequestResponse<JsonNode> updateResponse =
+            accessInternalClient.updateUnits(updateMultiQuery.getFinalUpdate());
+        assertThat(updateResponse.isOk()).isTrue();
+        awaitForWorkflowTerminationWithStatus(updateRequestId, StatusCode.OK);
+    }
+
+    private void killProcess(String operationGuid)
+        throws VitamClientException, InternalServerException {
+
+        try (ProcessingManagementClient processingClient =
+            ProcessingManagementClientFactory.getInstance().getClient()) {
+            processingClient.cancelOperationProcessExecution(operationGuid);
+            awaitForWorkflowTerminationWithStatus(operationGuid, StatusCode.FATAL);
+        }
+    }
+
+    private void checkNoIngestCleanupReport(String ingestCleanupActionOperationGuid) {
+        try (StorageClient storageClient = StorageClientFactory.getInstance().getClient()) {
+            assertThatThrownBy(() -> storageClient
+                .getContainerAsync(VitamConfiguration.getDefaultStrategy(), ingestCleanupActionOperationGuid + JSONL,
+                    DataCategory.REPORT, AccessLogUtils
+                        .getNoLogAccessLog()))
+                .isInstanceOf(StorageNotFoundException.class);
+        }
+    }
+
+    private String getBasicAuthnToken() {
+        return Credentials.basic(BASIC_AUTHN_USER, BASIC_AUTHN_PWD);
+    }
+
     private void checkTransferResult(String ingestOperationGuid, RequestResponseOK<JsonNode> ingestedUnits,
         RequestResponseOK<JsonNode> ingestedObjectGroups, Set<String> ingestedUnitIds,
         Set<String> ingestedObjectGroupIds, String transferReplyOperationId1, String transferReplyOperationId,
@@ -688,8 +1842,8 @@ public class EndToEndEliminationAndTransferReplyIT extends VitamRuleRunner {
         AccessInternalClient accessInternalClient)
         throws StorageNotFoundClientException, StorageServerClientException, IOException, StorageNotFoundException,
         BadRequestException, InvalidParseOperationException, AccessUnauthorizedException,
-        AccessInternalClientServerException, AccessInternalClientNotFoundException, InvalidCreateOperationException, LogbookClientException,
-        ContentAddressableStorageServerException {
+        AccessInternalClientServerException, AccessInternalClientNotFoundException, InvalidCreateOperationException,
+        LogbookClientException {
 
         // Check remaining units / object groups
         final RequestResponseOK<JsonNode> remainingUnits = selectUnitsByOpi(ingestOperationGuid, accessInternalClient);
@@ -697,7 +1851,8 @@ public class EndToEndEliminationAndTransferReplyIT extends VitamRuleRunner {
             selectGotsByOpi(ingestOperationGuid, accessInternalClient);
 
         assertThat(getIds(remainingUnits)).containsExactlyInAnyOrderElementsOf(
-            ListUtils.removeAll(getIds(ingestedUnits), ListUtils.union(expectedAlreadyDeletedUnitIds, expectedDeletedUnitIds)));
+            ListUtils.removeAll(getIds(ingestedUnits),
+                ListUtils.union(expectedAlreadyDeletedUnitIds, expectedDeletedUnitIds)));
         assertThat(getIds(remainingObjectGroups)).containsExactlyInAnyOrderElementsOf(
             ListUtils.removeAll(getIds(ingestedObjectGroups), expectedDeletedObjectGroups)
         );
@@ -713,7 +1868,7 @@ public class EndToEndEliminationAndTransferReplyIT extends VitamRuleRunner {
         for (String id : ingestedObjectGroupIds) {
             boolean shouldBePurged = expectedDeletedObjectGroups.contains(id);
             checkObjectGroupExistence(id, !shouldBePurged);
-            for (String objectId : getObjectIds(getById(ingestedObjectGroups, id))) {
+            for (String objectId : getBinaryObjectIds(getById(ingestedObjectGroups, id))) {
                 checkObjectExistence(objectId, !shouldBePurged);
             }
         }
@@ -730,7 +1885,7 @@ public class EndToEndEliminationAndTransferReplyIT extends VitamRuleRunner {
         // Check SIP transfer is deleted after atr reception
         WorkspaceClient workspaceClient = WorkspaceClientFactory.getInstance().getClient();
         assertThatThrownBy(() ->
-        workspaceClient.getObject(TRANSFER_CONTAINER, tenantId + "/" + transferReplyOperationId1))
+            workspaceClient.getObject(TRANSFER_CONTAINER, tenantId + "/" + transferReplyOperationId1))
             .isInstanceOf(ContentAddressableStorageNotFoundException.class);
 
         // Check transfer reply report
@@ -779,7 +1934,7 @@ public class EndToEndEliminationAndTransferReplyIT extends VitamRuleRunner {
                     expectedDeletedUnitIds.contains(entry.getKey()) ? "DELETED" : "NON_DESTROYABLE_HAS_CHILD_UNITS";
                 assertThat(entry.getValue().params.status).isEqualTo(expectedStatus);
 
-                if(!expectedAlreadyDeletedUnitIds.contains(entry.getKey())) {
+                if (!expectedAlreadyDeletedUnitIds.contains(entry.getKey())) {
                     assertThat(entry.getValue().params.opi).isEqualTo(ingestOperationGuid);
                     assertThat(entry.getValue().params.originatingAgency).isEqualTo(ORIGINATING_AGENCY);
                     assertThat(entry.getValue().params.objectGroupId).isEqualTo(
@@ -807,7 +1962,7 @@ public class EndToEndEliminationAndTransferReplyIT extends VitamRuleRunner {
                 if (expectedDeletedObjectGroupIds.contains(entry.getKey())) {
                     assertThat(entry.getValue().params.status).isEqualTo("DELETED");
                     assertThat(entry.getValue().params.objectIds).containsExactlyInAnyOrderElementsOf(
-                        getObjectIds(getById(ingestedObjectGroups, entry.getKey()))
+                        getBinaryObjectIds(getById(ingestedObjectGroups, entry.getKey()))
                     );
                     assertThat(entry.getValue().params.deletedParentUnitIds).isNullOrEmpty();
                 } else {
@@ -828,7 +1983,8 @@ public class EndToEndEliminationAndTransferReplyIT extends VitamRuleRunner {
         }
     }
 
-    private String startTransferReplyWorkflow(InputStream atrInputStream, StatusCode expectedStatusCode) throws AccessInternalClientServerException {
+    private String startTransferReplyWorkflow(InputStream atrInputStream, StatusCode expectedStatusCode)
+        throws AccessInternalClientServerException {
         String transferReplyWorkflowGuid = GUIDFactory.newOperationLogbookGUID(tenantId).getId();
         VitamThreadUtils.getVitamSession().setRequestId(transferReplyWorkflowGuid);
         try (AccessInternalClient client = AccessInternalClientFactory.getInstance().getClient()) {
@@ -1071,7 +2227,8 @@ public class EndToEndEliminationAndTransferReplyIT extends VitamRuleRunner {
         exportRequestParameters.setArchivalAgreement("ArchivalAgreement0");
         exportRequestParameters.setOriginatingAgencyIdentifier("RATP");
         exportRequestParameters.setSubmissionAgencyIdentifier("RATP");
-        exportRequestParameters.setRelatedTransferReference(Arrays.asList("RelatedTransferReference1", "RelatedTransferReference2"));
+        exportRequestParameters
+            .setRelatedTransferReference(Arrays.asList("RelatedTransferReference1", "RelatedTransferReference2"));
 
         dipExportRequest.setExportType(ExportType.ArchiveTransfer);
         dipExportRequest.setExportRequestParameters(exportRequestParameters);
@@ -1160,7 +2317,7 @@ public class EndToEndEliminationAndTransferReplyIT extends VitamRuleRunner {
             assertThat(deletedGotReport.params.opi).isEqualTo(ingestOperationGuid);
             assertThat(deletedGotReport.params.originatingAgency).isEqualTo(ORIGINATING_AGENCY);
             assertThat(deletedGotReport.params.objectIds).containsExactlyInAnyOrderElementsOf(
-                getObjectIds(getById(ingestedGots, deletedGotId)));
+                getBinaryObjectIds(getById(ingestedGots, deletedGotId)));
             assertThat(deletedGotReport.params.deletedParentUnitIds).isNullOrEmpty();
 
             ObjectGroupReportEntry detachedGotReport = objectGroupReports.stream()
@@ -1283,15 +2440,15 @@ public class EndToEndEliminationAndTransferReplyIT extends VitamRuleRunner {
             .iterator()).hasSize(expectedHits);
     }
 
-    private Set<String> getObjectIds(RequestResponseOK<JsonNode> gots) {
+    private Set<String> getBinaryObjectIds(RequestResponseOK<JsonNode> gots) {
         Set<String> objectIds = new HashSet<>();
         for (JsonNode gotJson : gots.getResults()) {
-            objectIds.addAll(getObjectIds(gotJson));
+            objectIds.addAll(getBinaryObjectIds(gotJson));
         }
         return objectIds;
     }
 
-    private Set<String> getObjectIds(JsonNode gotJson) {
+    private Set<String> getBinaryObjectIds(JsonNode gotJson) {
         Set<String> objectIds = new HashSet<>();
 
         try {
@@ -1359,6 +2516,21 @@ public class EndToEndEliminationAndTransferReplyIT extends VitamRuleRunner {
             .selectUnits(checkEliminationDslRequest.getFinalSelect());
     }
 
+    private RequestResponseOK<JsonNode> selectUnitsByTitle(String ingestOperationGuid, String title,
+        AccessInternalClient accessInternalClient)
+        throws InvalidCreateOperationException, InvalidParseOperationException, AccessInternalClientServerException,
+        AccessInternalClientNotFoundException, AccessUnauthorizedException, BadRequestException {
+        SelectMultiQuery checkEliminationDslRequest = new SelectMultiQuery();
+        checkEliminationDslRequest.addQueries(
+            QueryHelper.and().add(
+                QueryHelper.eq(VitamFieldsHelper.initialOperation(), ingestOperationGuid),
+                QueryHelper.match("Title", title)
+            ));
+
+        return (RequestResponseOK<JsonNode>) accessInternalClient
+            .selectUnits(checkEliminationDslRequest.getFinalSelect());
+    }
+
     private void awaitForWorkflowTerminationWithStatus(String operationGuid, StatusCode expectedStatusCode) {
 
         wait(operationGuid);
@@ -1366,9 +2538,33 @@ public class EndToEndEliminationAndTransferReplyIT extends VitamRuleRunner {
         ProcessWorkflow processWorkflow =
             ProcessMonitoringImpl.getInstance().findOneProcessWorkflow(operationGuid, tenantId);
 
-        assertNotNull(processWorkflow);
-        assertEquals(ProcessState.COMPLETED, processWorkflow.getState());
-        assertEquals(expectedStatusCode, processWorkflow.getStatus());
+        try {
+            assertNotNull(processWorkflow);
+            assertEquals(ProcessState.COMPLETED, processWorkflow.getState());
+            assertEquals(expectedStatusCode, processWorkflow.getStatus());
+        } catch (AssertionError e) {
+            tryLogLogbookOperation(operationGuid);
+            tryLogATR(operationGuid);
+            throw e;
+        }
+    }
+
+    private void tryLogLogbookOperation(String operationId) {
+        try (LogbookOperationsClient logbookClient = LogbookOperationsClientFactory.getInstance().getClient()) {
+            JsonNode logbookOperation = logbookClient.selectOperationById(operationId);
+            LOGGER.error("Operation logbook status : \n" + JsonHandler.prettyPrint(logbookOperation) + "\n\n\n");
+        } catch (Exception e) {
+            LOGGER.error("Could not retrieve logbook operation for operation " + operationId, e);
+        }
+    }
+
+    private void tryLogATR(String operationId) {
+        try (InputStream atr = readStoredReport(operationId + XML)) {
+            LOGGER.error("Operation ATR : \n" + IOUtils.toString(atr, StandardCharsets.UTF_8) + "\n\n\n");
+        } catch (StorageNotFoundException ignored) {
+        } catch (Exception e) {
+            LOGGER.error("Could not retrieve ATR for operation " + operationId, e);
+        }
     }
 
     private static class UnitReportEntry {
@@ -1419,4 +2615,17 @@ public class EndToEndEliminationAndTransferReplyIT extends VitamRuleRunner {
         @JsonProperty("type")
         String type;
     }
+
+
+    public interface IngestCleanupAdminService {
+        @POST("/adminmanagement/v1/invalidIngestCleanup/{opi}")
+        @Headers({
+            "Accept: application/json"
+        })
+        Call<Void> startIngestCleanupWorkflow(
+            @Path("opi") String opi,
+            @Header("X-Tenant-Id") Integer tenant,
+            @Header("Authorization") String basicAuthnToken);
+    }
+
 }

@@ -1,0 +1,17 @@
+{
+  "$roots": [],
+  "$query": [
+    {
+      "$eq": {
+        "#opi": "aeeaaaaaacesicexaah6kalo7e62mmqaaaaq"
+      }
+    }
+  ],
+  "$filter": {
+    "$scrollId": "START",
+    "$limit": 1000,
+    "$scrollTimeout": 300000
+  },
+  "$projection": {},
+  "$facets": []
+}

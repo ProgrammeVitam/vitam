@@ -1,0 +1,93 @@
+{
+  "httpCode": 200,
+  "$hits": {
+    "total": 1,
+    "offset": 0,
+    "limit": 10000,
+    "size": 1
+  },
+  "$results": [
+    {
+      "_id": "aeeaaaaaacesicexaah6kalo7e62mmqaaaaq",
+      "evId": "aeeaaaaaacesicexaah6kalo7e62mmqaaaaq",
+      "evParentId": null,
+      "evType": "IMPORT_ONTOLOGY",
+      "evDateTime": "2019-12-13T04:11:42.175",
+      "evDetData": null,
+      "evIdProc": "aeeaaaaaacesicexaah6kalo7e62mmqaaaaq",
+      "evTypeProc": "MASTERDATA",
+      "outcome": "STARTED",
+      "outDetail": "IMPORT_ONTOLOGY.STARTED",
+      "outMessg": "Début du processus d'import de l'ontologie",
+      "agId": "{\"Name\":\"vitam-env-int-metadata-01.vitam-env\",\"Role\":\"functional-administration\",\"ServerId\":1051949206,\"SiteId\":1,\"GlobalPlatformId\":246642838}",
+      "agIdApp": "CT-000001",
+      "agIdPers": null,
+      "evIdAppSession": null,
+      "evIdReq": "aeeaaaaaacesicexaah6kalo7e62mmqaaaaq",
+      "agIdExt": null,
+      "rightsStatementIdentifier": null,
+      "obId": "aeeaaaaaacesicexaah6kalo7e62mmqaaaaq",
+      "obIdReq": null,
+      "obIdIn": null,
+      "events": [
+        {
+          "evId": "aecaaaaaaghlg6ewabke4alo7v2ov4iaaaaq",
+          "evParentId": null,
+          "evType": "STP_BACKUP_ONTOLOGY",
+          "evDateTime": "2019-12-13T04:12:08.306",
+          "evDetData": "{\"FileName\":\"1_Ontology_469.json\",\"Digest\":\"d7bd08e98299046298a1b78d3f04cc640e842272f7762a438a056d1a51214dd9c6eb250b0b72e536ac0091ebce2dce994c5b8d476808a2488fe5d2926e3d70ba\",\"DigestType\":\"SHA-512\"}",
+          "evIdProc": "aeeaaaaaacesicexaah6kalo7e62mmqaaaaq",
+          "evTypeProc": "MASTERDATA",
+          "outcome": "OK",
+          "outDetail": "STP_BACKUP_ONTOLOGY.OK",
+          "outMessg": "Succès du processus de sauvegarde du référentiel des ontologies",
+          "agId": "{\"Name\":\"vitam-env-int-metadata-01.vitam-env\",\"Role\":\"functional-administration\",\"ServerId\":1051949206,\"SiteId\":1,\"GlobalPlatformId\":246642838}",
+          "agIdPers": null,
+          "evIdReq": "aeeaaaaaacesicexaah6kalo7e62mmqaaaaq",
+          "obId": "aeeaaaaaacesicexaah6kalo7e62mmqaaaaq"
+        },
+        {
+          "evId": "aecaaaaaaghlg6ewabke4alo7v2oybiaaaaq",
+          "evParentId": null,
+          "evType": "ONTOLOGY_REPORT",
+          "evDateTime": "2019-12-13T04:12:08.582",
+          "evDetData": "{\"FileName\":\"aeeaaaaaacesicexaah6kalo7e62mmqaaaaq.json\",\"Digest\":\"6c969c530a7021cae433adae3bc29b7a6fd05718b16172480ac994f9dd0218c994fa20f60c79fdab0a30cc43624088f1cca5862a8188e092568604c544373390\",\"DigestType\":\"SHA-512\"}",
+          "evIdProc": "aeeaaaaaacesicexaah6kalo7e62mmqaaaaq",
+          "evTypeProc": "MASTERDATA",
+          "outcome": "OK",
+          "outDetail": "ONTOLOGY_REPORT.KO",
+          "outMessg": "Echec du processus de génération du rapport d'import du référentiel des ontologies",
+          "agId": "{\"Name\":\"vitam-env-int-metadata-01.vitam-env\",\"Role\":\"functional-administration\",\"ServerId\":1051949206,\"SiteId\":1,\"GlobalPlatformId\":246642838}",
+          "agIdPers": null,
+          "evIdReq": "aeeaaaaaacesicexaah6kalo7e62mmqaaaaq",
+          "obId": "aeeaaaaaacesicexaah6kalo7e62mmqaaaaq"
+        },
+        {
+          "evId": "aecaaaaaaghlg6ewabke4alo7v2ozfiaaaaq",
+          "evParentId": null,
+          "evType": "IMPORT_ONTOLOGY",
+          "evDateTime": "2019-12-13T04:12:08.725",
+          "evDetData": null,
+          "evIdProc": "aeeaaaaaacesicexaah6kalo7e62mmqaaaaq",
+          "evTypeProc": "MASTERDATA",
+          "outcome": "OK",
+          "outDetail": "IMPORT_ONTOLOGY.KO",
+          "outMessg": "Echec du processus d'import de l'ontologie",
+          "agId": "{\"Name\":\"vitam-env-int-metadata-01.vitam-env\",\"Role\":\"functional-administration\",\"ServerId\":1051949206,\"SiteId\":1,\"GlobalPlatformId\":246642838}",
+          "agIdPers": null,
+          "evIdReq": "aeeaaaaaacesicexaah6kalo7e62mmqaaaaq",
+          "obId": "aeeaaaaaacesicexaah6kalo7e62mmqaaaaq"
+        }
+      ],
+      "_tenant": 1,
+      "_v": 3,
+      "_lastPersistedDate": "2019-12-13T04:12:07.850"
+    }
+  ],
+  "$facetResults": [],
+  "$context": {
+    "$query": {},
+    "$filter": {},
+    "$projection": {}
+  }
+}

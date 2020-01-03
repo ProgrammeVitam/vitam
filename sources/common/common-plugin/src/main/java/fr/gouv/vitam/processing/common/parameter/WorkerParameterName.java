@@ -156,7 +156,12 @@ public enum WorkerParameterName {
     /**
      * Workflow identifier (used also as eventType)
      */
-    workflowIdentifier;
+    workflowIdentifier,
+
+    /**
+     * Ingest operation id to clean up
+     */
+    ingestOperationIdToCleanup;
 
     public static HashSet<String> getEnums() {
 

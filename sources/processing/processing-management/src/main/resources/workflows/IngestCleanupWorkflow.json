@@ -1,0 +1,124 @@
+{
+  "id": "INGEST_CLEANUP",
+  "name": "Ingest cleanup workflow",
+  "identifier": "INGEST_CLEANUP",
+  "typeProc": "INTERNAL_OPERATING_OP",
+  "comment": "Ingest cleanup workflow",
+  "steps": [
+    {
+      "workerGroupId": "DefaultWorker",
+      "stepName": "STP_INGEST_CLEANUP_PREPARATION",
+      "behavior": "BLOCKING",
+      "distribution": {
+        "kind": "REF"
+      },
+      "actions": [
+        {
+          "action": {
+            "actionKey": "CHECK_CONCURRENT_WORKFLOW_LOCK",
+            "behavior": "BLOCKING",
+            "in": [
+              {
+                "name": "workflowIds",
+                "uri": "VALUE:RECLASSIFICATION,ELIMINATION_ACTION,TRANSFER_REPLY,INGEST_CLEANUP"
+              }
+            ]
+          }
+        },
+        {
+          "action": {
+            "actionKey": "INGEST_CLEANUP_REQUEST_VALIDATION",
+            "behavior": "BLOCKING"
+          }
+        },
+        {
+          "action": {
+            "actionKey": "INGEST_CLEANUP_ELIGIBILITY_VALIDATION",
+            "behavior": "BLOCKING"
+          }
+        },
+        {
+          "action": {
+            "actionKey": "INGEST_CLEANUP_PREPARATION",
+            "behavior": "BLOCKING"
+          }
+        }
+      ]
+    },
+    {
+      "workerGroupId": "DefaultWorker",
+      "stepName": "STP_INGEST_CLEANUP_DELETE_UNIT",
+      "behavior": "BLOCKING",
+      "distribution": {
+        "kind": "LIST_IN_JSONL_FILE",
+        "element": "units.jsonl",
+        "type": "Units",
+        "statusOnEmptyDistribution": "WARNING"
+      },
+      "actions": [
+        {
+          "action": {
+            "behavior": "BLOCKING",
+            "actionKey": "INGEST_CLEANUP_DELETE_UNIT",
+            "lifecycleLog": "DISABLED"
+          }
+        }
+      ]
+    },
+    {
+      "workerGroupId": "DefaultWorker",
+      "stepName": "STP_INGEST_CLEANUP_DELETE_OBJECT_GROUP",
+      "behavior": "BLOCKING",
+      "distribution": {
+        "kind": "LIST_IN_JSONL_FILE",
+        "element": "objectGroups.jsonl",
+        "type": "ObjectGroup",
+        "statusOnEmptyDistribution": "OK"
+      },
+      "actions": [
+        {
+          "action": {
+            "behavior": "BLOCKING",
+            "actionKey": "INGEST_CLEANUP_DELETE_OBJECT_GROUP",
+            "lifecycleLog": "DISABLED"
+          }
+        }
+      ]
+    },
+    {
+      "workerGroupId": "DefaultWorker",
+      "stepName": "STP_INGEST_CLEANUP_ACCESSION_REGISTER_UPDATE",
+      "behavior": "BLOCKING",
+      "distribution": {
+        "kind": "LIST_IN_JSONL_FILE",
+        "element": "accession_register.jsonl",
+        "statusOnEmptyDistribution": "OK"
+      },
+      "actions": [
+        {
+          "action": {
+            "actionKey": "INGEST_CLEANUP_ACCESSION_REGISTER_UPDATE",
+            "behavior": "BLOCKING",
+            "lifecycleLog": "DISABLED"
+          }
+        }
+      ]
+    },
+    {
+      "workerGroupId": "DefaultWorker",
+      "stepName": "STP_INGEST_CLEANUP_FINALIZATION",
+      "behavior": "BLOCKING",
+      "distribution": {
+        "kind": "REF"
+      },
+      "actions": [
+        {
+          "action": {
+            "actionKey": "INGEST_CLEANUP_FINALIZATION",
+            "behavior": "BLOCKING"
+          }
+        }
+      ]
+    }
+  ]
+}

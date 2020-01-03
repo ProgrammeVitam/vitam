@@ -1,0 +1,31 @@
+{
+  "$roots": [],
+  "$query": [
+    {
+      "$and": [
+        {
+          "$in": {
+            "#unitups": [
+              "unit1",
+              "unit3"
+            ]
+          }
+        },
+        {
+          "$ne": {
+            "#opi": "aeeaaaaaacesicexaah6kalo7e62mmqaaaaq"
+          }
+        }
+      ]
+    }
+  ],
+  "$filter": {
+    "$limit": 1000
+  },
+  "$projection": {
+    "$fields": {
+      "#unitups": 1
+    }
+  },
+  "$facets": []
+}

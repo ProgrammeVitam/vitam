@@ -248,12 +248,12 @@ export class ReferentialsService {
     return this.resourceService.post('admin/accession-register/symbolic', headers, searchForm);
   }
 
-  getFundRegisterDetailById(id: string, limit: number, offset: number): Observable<VitamResponse> {
+  getFundRegisterDetailById(originatingAgency: string, limit: number, offset: number): Observable<VitamResponse> {
     const headers = new HttpHeaders()
       .set('X-Limit', `${limit}`)
       .set('X-Offset', `${offset}`);
-    const searchForm = {OriginatingAgency: id, orderby: {field: 'EndDate', sortType: 'DESC'}};
-    return this.resourceService.post(`admin/accession-register/${id}/accession-register-detail`, headers, searchForm);
+    const searchForm = {OriginatingAgency: originatingAgency, orderby: {field: 'EndDate', sortType: 'DESC'}};
+    return this.resourceService.post(`admin/accession-register/${originatingAgency}/accession-register-detail`, headers, searchForm);
   }
 
   getContextById(id: string): Observable<VitamResponse> {

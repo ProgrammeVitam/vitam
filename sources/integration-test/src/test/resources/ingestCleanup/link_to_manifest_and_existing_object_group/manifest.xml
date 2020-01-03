@@ -1,0 +1,48 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<ArchiveTransfer xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:pr="info:lc/xmlns/premis-v2" xmlns="fr:gouv:culture:archivesdefrance:seda:v2.1" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="fr:gouv:culture:archivesdefrance:seda:v2.1 seda-vitam-2.1-main.xsd" xml:id="ID1">
+    <Comment>2eme SIP</Comment>
+    <Date>2017-12-21T14:50:19</Date>
+    <MessageIdentifier>MessageIdentifier0</MessageIdentifier>
+    <ArchivalAgreement>ArchivalAgreementAttachment</ArchivalAgreement>
+    <CodeListVersions>
+        <ReplyCodeListVersion>ReplyCodeListVersion0</ReplyCodeListVersion>
+        <MessageDigestAlgorithmCodeListVersion>MessageDigestAlgorithmCodeListVersion0
+        </MessageDigestAlgorithmCodeListVersion>
+        <MimeTypeCodeListVersion>MimeTypeCodeListVersion0</MimeTypeCodeListVersion>
+        <EncodingCodeListVersion>EncodingCodeListVersion0</EncodingCodeListVersion>
+        <FileFormatCodeListVersion>FileFormatCodeListVersion0</FileFormatCodeListVersion>
+        <CompressionAlgorithmCodeListVersion>CompressionAlgorithmCodeListVersion0</CompressionAlgorithmCodeListVersion>
+        <DataObjectVersionCodeListVersion>DataObjectVersionCodeListVersion0</DataObjectVersionCodeListVersion>
+        <StorageRuleCodeListVersion>StorageRuleCodeListVersion0</StorageRuleCodeListVersion>
+        <AppraisalRuleCodeListVersion>AppraisalRuleCodeListVersion0</AppraisalRuleCodeListVersion>
+        <AccessRuleCodeListVersion>AccessRuleCodeListVersion0</AccessRuleCodeListVersion>
+        <DisseminationRuleCodeListVersion>DisseminationRuleCodeListVersion0</DisseminationRuleCodeListVersion>
+        <ReuseRuleCodeListVersion>ReuseRuleCodeListVersion0</ReuseRuleCodeListVersion>
+        <ClassificationRuleCodeListVersion>ClassificationRuleCodeListVersion0</ClassificationRuleCodeListVersion>
+        <AuthorizationReasonCodeListVersion>AuthorizationReasonCodeListVersion0</AuthorizationReasonCodeListVersion>
+        <RelationshipCodeListVersion>RelationshipCodeListVersion0</RelationshipCodeListVersion>
+    </CodeListVersions>
+    <DataObjectPackage xml:id="ID2">
+        <DescriptiveMetadata>
+            <ArchiveUnit id="ID4">
+                <Content>
+                    <DescriptionLevel>RecordGrp</DescriptionLevel>
+                    <Title>Sénat</Title>
+                </Content>
+                <DataObjectGroup>
+                    <DataObjectGroupExistingReferenceId>toBeChanged</DataObjectGroupExistingReferenceId>
+                </DataObjectGroup>
+            </ArchiveUnit>
+        </DescriptiveMetadata>
+        <ManagementMetadata>
+            <OriginatingAgencyIdentifier>Service_producteur</OriginatingAgencyIdentifier>
+            <SubmissionAgencyIdentifier>Service_versant</SubmissionAgencyIdentifier>
+        </ManagementMetadata>
+    </DataObjectPackage>
+    <ArchivalAgency>
+        <Identifier>Identifier4</Identifier>
+    </ArchivalAgency>
+    <TransferringAgency>
+        <Identifier>Identifier5</Identifier>
+    </TransferringAgency>
+</ArchiveTransfer>

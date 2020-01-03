@@ -86,6 +86,10 @@ public class PluginHelper {
         }
     }
 
+    public static ItemStatus buildItemStatus(String action, StatusCode statusCode) {
+        return buildItemStatus(action, statusCode, null);
+    }
+
     public static <TEventDetails> ItemStatus buildItemStatus(String action, StatusCode statusCode,
         TEventDetails eventDetails) {
         final ItemStatus itemStatus = new ItemStatus(action);

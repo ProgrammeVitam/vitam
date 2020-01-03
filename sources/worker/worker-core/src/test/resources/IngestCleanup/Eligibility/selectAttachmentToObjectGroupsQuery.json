@@ -1,0 +1,30 @@
+{
+  "$roots": [],
+  "$query": [
+    {
+      "$and": [
+        {
+          "$ne": {
+            "#opi": "aeeaaaaaacesicexaah6kalo7e62mmqaaaaq"
+          }
+        },
+        {
+          "$eq": {
+            "#operations": "aeeaaaaaacesicexaah6kalo7e62mmqaaaaq"
+          }
+        }
+      ]
+    }
+  ],
+  "$filter": {
+    "$scrollId": "START",
+    "$limit": 1000,
+    "$scrollTimeout": 300000
+  },
+  "$projection": {
+    "$fields": {
+      "#id": 1
+    }
+  },
+  "$facets": []
+}
