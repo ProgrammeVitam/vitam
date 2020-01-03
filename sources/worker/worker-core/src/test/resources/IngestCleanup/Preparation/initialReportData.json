@@ -1,0 +1,14 @@
+{
+  "ingestOperationId": "opi",
+  "units": {
+    "aeaqaaaaaaesicexab4qealo7zp5mwyaaaaq": {
+      "id": "aeaqaaaaaaesicexab4qealo7zp5mwyaaaaq",
+      "status": "WARNING",
+      "warnings": [
+        "warning1"
+      ],
+      "type": "Unit"
+    }
+  },
+  "objectGroups": {}
+}

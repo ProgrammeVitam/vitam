@@ -1,0 +1,27 @@
+[
+  {
+    "OriginatingAgency": "Service_producteur",
+    "TotalObjects": {
+      "ingested": 0.0,
+      "deleted": 0.0,
+      "remained": 0.0
+    },
+    "TotalObjectGroups": {
+      "ingested": 0.0,
+      "deleted": 0.0,
+      "remained": 0.0
+    },
+    "TotalUnits": {
+      "ingested": 1.0,
+      "deleted": 0.0,
+      "remained": 1.0
+    },
+    "ObjectSize": {
+      "ingested": 0.0,
+      "deleted": 0.0,
+      "remained": 0.0
+    },
+    "_v": 1,
+    "_tenant": 0
+  }
+]

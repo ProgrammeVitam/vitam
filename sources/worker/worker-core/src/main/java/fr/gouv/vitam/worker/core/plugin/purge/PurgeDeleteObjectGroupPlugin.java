@@ -26,10 +26,9 @@
  */
 package fr.gouv.vitam.worker.core.plugin.purge;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.google.common.annotations.VisibleForTesting;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
+import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.ItemStatus;
@@ -45,10 +44,9 @@ import fr.gouv.vitam.worker.common.HandlerIO;
 import fr.gouv.vitam.worker.core.exception.ProcessingStatusException;
 import fr.gouv.vitam.worker.core.handler.ActionHandler;
 
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.IntStream;
+import java.util.stream.Collectors;
 
 import static fr.gouv.vitam.worker.core.utils.PluginHelper.buildBulkItemStatus;
 import static fr.gouv.vitam.worker.core.utils.PluginHelper.buildItemStatus;
@@ -67,6 +65,7 @@ public class PurgeDeleteObjectGroupPlugin extends ActionHandler {
 
     /**
      * Default constructor
+     *
      * @param actionId
      */
     public PurgeDeleteObjectGroupPlugin(String actionId) {
@@ -94,15 +93,25 @@ public class PurgeDeleteObjectGroupPlugin extends ActionHandler {
 
         try {
 
-            
-            Map<String, String> objectGroupIdsWithStrategies = new HashMap<String, String>();
-            IntStream.range(0, param.getObjectNameList().size())
-            .forEach(i -> objectGroupIdsWithStrategies.put(param.getObjectNameList().get(i),
-                    param.getObjectMetadataList().get(i).get("strategyId").asText()));
-            
-            Map<String, String> objectIdsWithStrategies = loadObjectsToDelete(param);
+            List<PurgeObjectGroupParams> objectGroupParams = param.getObjectMetadataList().stream()
+                .map(og -> {
+                    try {
+                        return JsonHandler.getFromJsonNode(og, PurgeObjectGroupParams.class);
+                    } catch (InvalidParseOperationException e) {
+                        throw new RuntimeException(e);
+                    }
+                })
+                .collect(Collectors.toList());
+
+            Map<String, String> objectGroupIdsWithStrategies = objectGroupParams.stream()
+                .collect(Collectors.toMap(PurgeObjectGroupParams::getId, PurgeObjectGroupParams::getStrategyId));
 
             processObjectGroups(objectGroupIdsWithStrategies);
+
+
+            Map<String, String> objectIdsWithStrategies = objectGroupParams.stream()
+                .flatMap(objectGroup -> objectGroup.getObjects().stream())
+                .collect(Collectors.toMap(PurgeObjectParams::getId, PurgeObjectParams::getStrategyId));
 
             processObjects(objectIdsWithStrategies);
 
@@ -147,23 +156,6 @@ public class PurgeDeleteObjectGroupPlugin extends ActionHandler {
                 "Could not delete object groups [" + String.join(", ", objectIdsWithStrategies.keySet()) + "]", e);
         }
 
-    }
-
-    private Map<String, String> loadObjectsToDelete(WorkerParameters param) throws ProcessingStatusException {
-
-        Map<String, String> objectsWithStrategiesToDelete = new HashMap<>();
-        for (JsonNode jsonNode : param.getObjectMetadataList()) {
-            if (jsonNode.has("objects") && !jsonNode.get("objects").isArray()) {
-                throw new ProcessingStatusException(StatusCode.FATAL, "Could not retrieve object ids to delete");
-            }
-            ArrayNode objectDetails = (ArrayNode) jsonNode.get("objects");
-            for (JsonNode objectDetail : objectDetails) {
-                objectsWithStrategiesToDelete.put(objectDetail.get("id").asText(),
-                        objectDetail.get("strategyId").asText());
-            }
-        }
-        return objectsWithStrategiesToDelete;
-        
     }
 
     @Override

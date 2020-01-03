@@ -1,15 +1,9 @@
 package fr.gouv.vitam.worker.core.plugin.transfer.reply.utils;
 
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.JsonNode;
-import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.worker.common.HandlerIO;
-import fr.gouv.vitam.worker.core.distribution.JsonLineGenericIterator;
 import fr.gouv.vitam.worker.core.distribution.JsonLineModel;
 import fr.gouv.vitam.worker.core.distribution.JsonLineWriter;
-import net.javacrumbs.jsonunit.JsonAssert;
-import org.apache.commons.collections4.IteratorUtils;
 import org.apache.commons.io.output.ByteArrayOutputStream;
 import org.junit.After;
 import org.junit.Before;
@@ -28,6 +22,7 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 
+import static fr.gouv.vitam.worker.core.utils.JsonLineTestUtils.assertJsonlReportsEqual;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.anyString;
@@ -37,8 +32,6 @@ import static org.mockito.Mockito.verify;
 
 public class SortedLevelJsonLineWriterTest {
 
-    private static final TypeReference<JsonNode> JSON_NODE_TYPE_REFERENCE = new TypeReference<JsonNode>() {
-    };
     private static final String EXPORT_FILE = "file";
 
     @Rule
@@ -205,25 +198,6 @@ public class SortedLevelJsonLineWriterTest {
             }
             jsonLineWriter.close();
             return expectedOS.toInputStream();
-        }
-    }
-
-
-
-    private void assertJsonlReportsEqual(InputStream actualInputStream, InputStream expectedReportInputStream)
-        throws InvalidParseOperationException {
-        try (
-            JsonLineGenericIterator<JsonNode> resultReportIterator = new JsonLineGenericIterator<>(
-                actualInputStream, JSON_NODE_TYPE_REFERENCE);
-            JsonLineGenericIterator<JsonNode> expectedReportIterator = new JsonLineGenericIterator<>(
-                expectedReportInputStream,
-                JSON_NODE_TYPE_REFERENCE);
-        ) {
-
-            JsonAssert.assertJsonEquals(
-                JsonHandler.toJsonNode(IteratorUtils.toList(resultReportIterator)),
-                JsonHandler.toJsonNode(IteratorUtils.toList(expectedReportIterator))
-            );
         }
     }
 }

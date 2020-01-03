@@ -77,7 +77,6 @@ import fr.gouv.vitam.logbook.common.parameters.LogbookOperationParameters;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
-
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.List;
@@ -245,7 +244,7 @@ public class AdminManagementClientMock extends AbstractMockClient implements Adm
     }
 
     @Override
-    public RequestResponse getAccessionRegisterDetail(String id, JsonNode query)
+    public RequestResponse getAccessionRegisterDetail(String originatingAgency, JsonNode query)
         throws InvalidParseOperationException {
         RegisterValueDetailModel totalObjectsGroups = new RegisterValueDetailModel().setIngested(1).setRemained(1);
         RegisterValueDetailModel totalUnits = new RegisterValueDetailModel().setIngested(1).setRemained(1);
@@ -255,7 +254,7 @@ public class AdminManagementClientMock extends AbstractMockClient implements Adm
         LOGGER.debug("get document Accession Register request:");
 
         AccessionRegisterDetailModel detailBuider = new AccessionRegisterDetailModel();
-        detailBuider.setId(id)
+        detailBuider.setId(originatingAgency)
             .setTenant(0)
             .setOpc("Identifier")
             .setOpi("OP_GROUP")
@@ -273,6 +272,11 @@ public class AdminManagementClientMock extends AbstractMockClient implements Adm
     }
 
     @Override
+    public RequestResponse<AccessionRegisterDetailModel> getAccessionRegisterDetail(JsonNode query) {
+        throw new IllegalStateException("No mocks in production");
+    }
+
+    @Override
     public Status importIngestContracts(List<IngestContractModel> ingestContractModelList) {
         LOGGER.debug("import Ingest contracts request ");
         return Status.OK;
@@ -287,7 +291,7 @@ public class AdminManagementClientMock extends AbstractMockClient implements Adm
 
     @Override
     public Status importManagementContracts(List<ManagementContractModel> accessContractModelList)
-            throws InvalidParseOperationException, AdminManagementClientServerException {
+        throws InvalidParseOperationException, AdminManagementClientServerException {
         throw new IllegalStateException("Cannot be used");
     }
 
@@ -328,13 +332,13 @@ public class AdminManagementClientMock extends AbstractMockClient implements Adm
 
     @Override
     public RequestResponse findManagementContracts(JsonNode queryDsl)
-            throws InvalidParseOperationException, AdminManagementClientServerException {
+        throws InvalidParseOperationException, AdminManagementClientServerException {
         throw new IllegalStateException("Cannot be used");
     }
 
     @Override
     public RequestResponse findManagementContractsByID(String documentId)
-            throws InvalidParseOperationException, AdminManagementClientServerException {
+        throws InvalidParseOperationException, AdminManagementClientServerException {
         throw new IllegalStateException("Cannot be used");
     }
 
@@ -431,7 +435,7 @@ public class AdminManagementClientMock extends AbstractMockClient implements Adm
 
     @Override
     public RequestResponse<ManagementContractModel> updateManagementContract(String id, JsonNode queryDsl)
-            throws InvalidParseOperationException, AdminManagementClientServerException {
+        throws InvalidParseOperationException, AdminManagementClientServerException {
         throw new IllegalStateException("Cannot be used");
     }
 
@@ -472,7 +476,8 @@ public class AdminManagementClientMock extends AbstractMockClient implements Adm
     }
 
     @Override
-    public RequestResponse<JsonNode> launchAuditWorkflow(AuditOptions options) throws AdminManagementClientServerException {
+    public RequestResponse<JsonNode> launchAuditWorkflow(AuditOptions options)
+        throws AdminManagementClientServerException {
         return new RequestResponseOK();
     }
 

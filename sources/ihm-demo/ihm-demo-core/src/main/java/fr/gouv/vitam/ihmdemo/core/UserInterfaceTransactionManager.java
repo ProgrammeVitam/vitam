@@ -491,7 +491,7 @@ public class UserInterfaceTransactionManager {
     }
 
     /**
-     * @param id the id of accession register
+     * @param originatingAgency the id of the originating agency
      * @param options for creating query
      * @param context Vitamcontext
      * @return JsonNode result
@@ -500,7 +500,7 @@ public class UserInterfaceTransactionManager {
      * @throws AccessExternalClientNotFoundException if access external resource not found
      * @throws InvalidCreateOperationException if error when create query
      */
-    public RequestResponse<JsonNode> findAccessionRegisterDetail(String id, String options, VitamContext context)
+    public RequestResponse<JsonNode> findAccessionRegisterDetail(String originatingAgency, String options, VitamContext context)
         throws InvalidParseOperationException, AccessExternalClientServerException,
         AccessExternalClientNotFoundException, InvalidCreateOperationException {
 
@@ -509,7 +509,7 @@ public class UserInterfaceTransactionManager {
             final JsonNode query = dslQueryHelper.createSingleQueryDSL(optionsMap);
             return adminExternalClient
                 .getAccessionRegisterDetail(
-                    context, id,
+                    context, originatingAgency,
                     query);
         }
     }

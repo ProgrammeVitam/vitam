@@ -293,5 +293,26 @@
   },
   "PREPARE_STORAGE_STRATEGIES": {
     "className": "fr.gouv.vitam.worker.core.plugin.PrepareStorageStrategiesPlugin"
+  },
+  "INGEST_CLEANUP_REQUEST_VALIDATION": {
+    "className": "fr.gouv.vitam.worker.core.plugin.ingestcleanup.IngestCleanupRequestValidationPlugin"
+  },
+  "INGEST_CLEANUP_ELIGIBILITY_VALIDATION": {
+    "className": "fr.gouv.vitam.worker.core.plugin.ingestcleanup.IngestCleanupEligibilityValidationPlugin"
+  },
+  "INGEST_CLEANUP_PREPARATION": {
+    "className": "fr.gouv.vitam.worker.core.plugin.ingestcleanup.IngestCleanupPreparationPlugin"
+  },
+  "INGEST_CLEANUP_DELETE_UNIT": {
+    "className": "fr.gouv.vitam.worker.core.plugin.ingestcleanup.IngestCleanupDeleteUnitPlugin"
+  },
+  "INGEST_CLEANUP_DELETE_OBJECT_GROUP": {
+    "className": "fr.gouv.vitam.worker.core.plugin.ingestcleanup.IngestCleanupDeleteObjectGroupPlugin"
+  },
+  "INGEST_CLEANUP_ACCESSION_REGISTER_UPDATE": {
+    "className": "fr.gouv.vitam.worker.core.plugin.ingestcleanup.IngestCleanupAccessionRegisterUpdatePlugin"
+  },
+  "INGEST_CLEANUP_FINALIZATION": {
+    "className": "fr.gouv.vitam.worker.core.plugin.ingestcleanup.IngestCleanupFinalizationPlugin"
   }
 }

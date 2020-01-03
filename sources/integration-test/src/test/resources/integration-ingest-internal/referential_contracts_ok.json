@@ -39,5 +39,16 @@
 		"CreationDate":"10/12/2016",
 		"ActivationDate":"10/12/2016",
 		"DeactivationDate":"10/12/2016"
+	},
+	{
+		"Name":"ArchivalAgreementAttachment",
+		"Identifier":"ArchivalAgreementAttachment",
+		"Description":"aDescription of the contract",
+		"Status" : "ACTIVE",
+		"LastUpdate":"10/12/2016",
+		"CreationDate":"10/12/2016",
+		"ActivationDate":"10/12/2016",
+		"DeactivationDate":"10/12/2016",
+		"EveryDataObjectVersion": true
 	}
 ]

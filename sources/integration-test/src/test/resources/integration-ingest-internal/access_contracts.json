@@ -30,7 +30,7 @@
 		"Identifier":"aName3",
 		"Description":"aDescription of the contract",
 		"Status":"ACTIVE",
-		"OriginatingAgencies":["FRAN_NP_005568", "FR_ORG_AGEN", "RATP"],
+		"OriginatingAgencies":["FRAN_NP_005568", "FR_ORG_AGEN", "RATP", "Service_producteur"],
 		"EveryDataObjectVersion": true,
 		"DataObjectVersion": [],
 		"LastUpdate":"10/12/2016",

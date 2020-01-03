@@ -1,0 +1,23 @@
+{
+  "httpCode": 200,
+  "$hits": {
+    "total": 0,
+    "offset": 0,
+    "limit": 10000,
+    "size": 0
+  },
+  "$results": [],
+  "$facetResults": [],
+  "$context": {
+    "$roots": [],
+    "$query": [
+      {
+        "$eq": {
+          "#opi": "aeeaaaaaacesicexab5i6alo7zpzjgqaaaaq"
+        }
+      }
+    ],
+    "$filter": {},
+    "$projection": {}
+  }
+}

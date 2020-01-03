@@ -1,0 +1,53 @@
+[
+  {
+    "_id": "aehaaaaaaaageu3maatasaln7zdbxmaaaaaq",
+    "ObjectSize": {
+      "ingested": 18,
+      "deleted": 0,
+      "remained": 18
+    },
+    "AcquisitionInformation": "Versement",
+    "LegalStatus": "Public Archive",
+    "OriginatingAgency": "RATP",
+    "SubmissionAgency": "RATP",
+    "ArchivalAgreement": "ArchivalAgreement0",
+    "EndDate": "2019-10-24T14:57:50.512",
+    "StartDate": "2019-10-24T14:57:50.512",
+    "LastUpdate": "2019-10-24T16:57:59.207",
+    "Status": "STORED_AND_COMPLETED",
+    "TotalObjectGroups": {
+      "ingested": 3,
+      "deleted": 0,
+      "remained": 3
+    },
+    "TotalUnits": {
+      "ingested": 6,
+      "deleted": 0,
+      "remained": 6
+    },
+    "TotalObjects": {
+      "ingested": 4,
+      "deleted": 0,
+      "remained": 4
+    },
+    "Opc": "aecaaaaaacageu3maatasaln7zdalgaaaaba",
+    "Opi": "aecaaaaaacageu3maatasaln7zdalgaaaaba",
+    "OpType": "INGEST",
+    "Events": [
+      {
+        "Opc": "aecaaaaaacageu3maatasaln7zdalgaaaaba",
+        "OpType": "INGEST",
+        "Gots": 3,
+        "Units": 6,
+        "Objects": 4,
+        "ObjSize": 18,
+        "CreationDate": "2019-10-24T16:57:50.513"
+      }
+    ],
+    "OperationIds": [
+      "aecaaaaaacageu3maatasaln7zdalgaaaaba"
+    ],
+    "_tenant": 0,
+    "_v": 0
+  }
+]

@@ -27,8 +27,6 @@
 package fr.gouv.vitam.worker.core.plugin.purge;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.node.ArrayNode;
-import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Iterators;
 import fr.gouv.vitam.batch.report.model.entry.PurgeObjectGroupObjectVersion;
@@ -204,24 +202,21 @@ public class PurgeObjectGroupPreparationHandler extends ActionHandler {
 
                 LOGGER.debug("Object group " + objectGroup.getId() + " will be deleted");
 
-                Map<String, String> objectsToDelete = getBinaryObjectIdsWithStrategies(objectGroup);
+                PurgeObjectGroupParams params = PurgeObjectGroupParams.fromObjectGroup(objectGroup);
+
+                objectGroupsToDeleteWriter.addEntry(new JsonLineModel(objectGroup.getId(), null,
+                    JsonHandler.toJsonNode(params)));
+
+                Set<String> objectIds = params.getObjects().stream()
+                    .map(PurgeObjectParams::getId)
+                    .collect(Collectors.toSet());
+
                 List<PurgeObjectGroupObjectVersion> objectVersions = getObjectVersions(objectGroup);
-
-                ObjectNode params = JsonHandler.createObjectNode();
-                ArrayNode objectToDeleteArrayNode = JsonHandler.createArrayNode();
-                objectsToDelete.forEach((id, strategyId) -> {
-                    objectToDeleteArrayNode
-                        .add(JsonHandler.createObjectNode().put("id", id).put("strategyId", strategyId));
-                });
-                params.set("objects", objectToDeleteArrayNode);
-                params.put("strategyId", objectGroup.getStorage().getStrategyId());
-
-                JsonLineModel entry = new JsonLineModel(objectGroup.getId(), null, params);
-                objectGroupsToDeleteWriter.addEntry(entry);
 
                 purgeObjectGroupReportEntries.add(new PurgeObjectGroupReportEntry(objectGroup.getId(),
                     objectGroup.getOriginatingAgency(), objectGroup.getOpi(), null,
-                    new HashSet<>(objectsToDelete.keySet()), PurgeObjectGroupStatus.DELETED.name(), objectVersions));
+                    objectIds, PurgeObjectGroupStatus.DELETED.name(), objectVersions));
+
             } else {
 
                 if (LOGGER.isDebugEnabled()) {
@@ -241,14 +236,6 @@ public class PurgeObjectGroupPreparationHandler extends ActionHandler {
         }
 
         purgeReportService.appendObjectGroupEntries(processId, purgeObjectGroupReportEntries);
-    }
-
-    private Map<String, String> getBinaryObjectIdsWithStrategies(ObjectGroupResponse objectGroup) {
-
-        return ListUtils.emptyIfNull(objectGroup.getQualifiers()).stream()
-            .flatMap(qualifier -> ListUtils.emptyIfNull(qualifier.getVersions()).stream())
-            .filter(version -> version.getPhysicalId() == null)
-            .collect(Collectors.toMap(VersionsModel::getId, version -> version.getStorage().getStrategyId()));
     }
 
     private List<PurgeObjectGroupObjectVersion> getObjectVersions(ObjectGroupResponse objectGroup) {

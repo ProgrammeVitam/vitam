@@ -1,0 +1,73 @@
+{
+  "httpCode": 200,
+  "$hits": {
+    "total": 3,
+    "offset": 0,
+    "limit": 10000,
+    "size": 3
+  },
+  "$results": [
+    {
+      "#id": "aeaqaaaaaaesicexab4qealo7zp5mwyaaaaq",
+      "#operations": [
+        "aeeaaaaaacesicexab5i6alo7zpzjgqaaaaq"
+      ],
+      "#originating_agency": "FRAN_NP_009913",
+      "#storage": {
+        "offerIds": [
+          "offer-fs-1.service.consul"
+        ],
+        "strategyId": "default",
+        "#nbc": 1
+      }
+    },
+    {
+      "#id": "aeaqaaaaaaesicexab4qealo7zp5h7yaaaba",
+      "#operations": [
+        "aeeaaaaaacesicexab5i6alo7zpzjgqaaaaq"
+      ],
+      "#originating_agency": "FRAN_NP_009913",
+      "#storage": {
+        "offerIds": [
+          "offer-fs-1.service.consul"
+        ],
+        "strategyId": "default",
+        "#nbc": 1
+      }
+    },
+    {
+      "#id": "aeaqaaaaaaesicexab4qealo7zp5mvqaaaaq",
+      "#operations": [
+        "aeeaaaaaacesicexab5i6alo7zpzjgqaaaaq"
+      ],
+      "#originating_agency": "FRAN_NP_009913",
+      "#storage": {
+        "offerIds": [
+          "offer-fs-1.service.consul"
+        ],
+        "strategyId": "default",
+        "#nbc": 1
+      }
+    }
+  ],
+  "$facetResults": [],
+  "$context": {
+    "$roots": [],
+    "$query": [
+      {
+        "$eq": {
+          "#opi": "aeeaaaaaacesicexab5i6alo7zpzjgqaaaaq"
+        }
+      }
+    ],
+    "$filter": {},
+    "$projection": {
+      "$fields": {
+        "#originating_agency": 1,
+        "#id": 1,
+        "#storage": 1,
+        "#operations": 1
+      }
+    }
+  }
+}

@@ -2001,7 +2001,7 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
     /**
      * findAccessionRegisterDetail
      *
-     * @param documentId the document id of accession register to get
+     * @param originatingAgency the document id of accession register to get
      * @param select the query to get document
      * @return Response
      */
@@ -2011,14 +2011,14 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
     @Produces(APPLICATION_JSON)
     @Secured(permission = AccessExtAPI.ACCESSION_REGISTERS + ":id:" + AccessExtAPI.ACCESSION_REGISTERS_DETAIL + ":read",
         description = "Lister les détails d'un registre de fonds")
-    public Response findAccessionRegisterDetail(@PathParam("id_document") String documentId,
+    public Response findAccessionRegisterDetail(@PathParam("id_document") String originatingAgency,
         @Dsl(value = SELECT_SINGLE) JsonNode select) {
 
-        checkParameter("accession register id is a mandatory parameter", documentId);
+        checkParameter("accession register id is a mandatory parameter", originatingAgency);
         try (AdminManagementClient client = adminManagementClientFactory.getClient()) {
             SanityChecker.checkJsonAll(select);
             RequestResponse result =
-                client.getAccessionRegisterDetail(documentId, select);
+                client.getAccessionRegisterDetail(originatingAgency, select);
             int st = result.isOk() ? Status.OK.getStatusCode() : result.getHttpCode();
 
             return Response.status(st).entity(result).build();

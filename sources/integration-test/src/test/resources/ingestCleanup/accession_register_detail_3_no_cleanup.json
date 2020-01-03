@@ -1,0 +1,40 @@
+[
+  {
+    "ObjectSize": {
+      "ingested": 9968,
+      "deleted": 0,
+      "remained": 9968
+    },
+    "OriginatingAgency": "RATP",
+    "SubmissionAgency": "RATP",
+    "ArchivalAgreement": "ArchivalAgreementAttachment",
+    "Status": "STORED_AND_COMPLETED",
+    "TotalObjectGroups": {
+      "ingested": 0,
+      "deleted": 0,
+      "remained": 0
+    },
+    "TotalUnits": {
+      "ingested": 1,
+      "deleted": 0,
+      "remained": 1
+    },
+    "TotalObjects": {
+      "ingested": 1,
+      "deleted": 0,
+      "remained": 1
+    },
+    "OpType": "INGEST",
+    "Events": [
+      {
+        "OpType": "INGEST",
+        "Gots": 0,
+        "Units": 1,
+        "Objects": 1,
+        "ObjSize": 9968
+      }
+    ],
+    "_tenant": 0,
+    "_v": 0
+  }
+]

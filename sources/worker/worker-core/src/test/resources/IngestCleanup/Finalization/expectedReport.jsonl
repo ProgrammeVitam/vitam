@@ -1,0 +1,6 @@
+{"ingestOperationId":"opi"}
+{"id":"aeaqaaaaaaesicexab4qealo7zp5mwyaaaaq","params":{"id":"aeaqaaaaaaesicexab4qealo7zp5mwyaaaaq","status":"WARNING","warnings":["warning1"],"type":"Unit"}}
+{"id":"aeaqaaaaaaesicexab4qealo7zp5h7yaaaba","params":{"id":"aeaqaaaaaaesicexab4qealo7zp5h7yaaaba","status":"OK","type":"Unit"}}
+{"id":"aeaqaaaaaaesicexab4qealo7zp5mvqaaaaq","params":{"id":"aeaqaaaaaaesicexab4qealo7zp5mvqaaaaq","status":"OK","type":"Unit"}}
+{"id":"aebaaaaaaaesicexab4qealo7zp5huiaaaaq","params":{"id":"aebaaaaaaaesicexab4qealo7zp5huiaaaaq","status":"OK","objects":["aeaaaaaaaaesicexab4qealo7zp5hpaaaaaq"],"type":"ObjectGroup"}}
+{"id":"aebaaaaaaaesicexab4qealo7zp5hkiaaaaq","params":{"id":"aebaaaaaaaesicexab4qealo7zp5hkiaaaaq","status":"OK","objects":["aeaaaaaaaaesicexab4qealo7zp5hbiaaaaq"],"type":"ObjectGroup"}}
