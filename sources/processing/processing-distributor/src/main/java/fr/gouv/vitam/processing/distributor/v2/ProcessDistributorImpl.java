@@ -803,8 +803,7 @@ public class ProcessDistributorImpl implements ProcessDistributor {
         int subListSize = subList.size();
 
         while (subOffset < subListSize) {
-            int nextSubOffset = subListSize > subOffset + bulkSize ?
-                subOffset + bulkSize : subListSize;
+            int nextSubOffset = Math.min(subListSize, subOffset + bulkSize);
 
             // split the list of items to be processed according to the capacity of the workers
             List<String> newSubList = subList.subList(subOffset, nextSubOffset);
@@ -833,8 +832,7 @@ public class ProcessDistributorImpl implements ProcessDistributor {
         int distributionSize = distributionList.size();
 
         while (distribOffSet < distributionSize) {
-            int nextDistributionOffset = distributionSize > distribOffSet + bulkSize ?
-                distribOffSet + bulkSize : distributionSize;
+            int nextDistributionOffset = Math.min(distributionSize, distribOffSet + bulkSize);
 
             // split the list of items to be processed according to the capacity of the workers
             List<JsonLineModel> newSubList = distributionList.subList(distribOffSet, nextDistributionOffset);
