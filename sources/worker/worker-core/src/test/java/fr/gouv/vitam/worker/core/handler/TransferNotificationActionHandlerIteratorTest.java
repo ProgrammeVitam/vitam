@@ -78,6 +78,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import static com.google.common.collect.Lists.newArrayList;
+import static fr.gouv.vitam.common.model.StatusCode.FATAL;
 import static fr.gouv.vitam.common.model.StatusCode.KO;
 import static fr.gouv.vitam.processing.common.parameter.WorkerParameterName.workflowStatusKo;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -366,7 +367,7 @@ public class TransferNotificationActionHandlerIteratorTest {
 
 
     @Test
-    public void givenExceptionLogbookWhenProcessKOBeforeLifecycleThenResponseKO()
+    public void givenExceptionLogbookWhenProcessKOBeforeLifecycleThenResponseFATAL()
         throws Exception {
         try (TransferNotificationActionHandler handler = new TransferNotificationActionHandler(
             logbookOperationsClientFactory, storageClientFactory, validationXsdUtils)) {
@@ -384,12 +385,12 @@ public class TransferNotificationActionHandlerIteratorTest {
                     .putParameterValue(WorkerParameterName.logBookTypeProcess, LogbookTypeProcess.INGEST.name());
             final ItemStatus response = handler
                 .execute(parameters, handlerIO);
-            assertEquals(KO, response.getGlobalStatus());
+            assertEquals(FATAL, response.getGlobalStatus());
         }
     }
 
     @Test
-    public void givenExceptionLogbookLCUnitWhenProcessOKThenResponseKO()
+    public void givenExceptionLogbookLCUnitWhenProcessOKThenResponseFATAL()
         throws Exception {
         try (TransferNotificationActionHandler handler = new TransferNotificationActionHandler(
             logbookOperationsClientFactory, storageClientFactory, validationXsdUtils)) {
@@ -414,12 +415,12 @@ public class TransferNotificationActionHandlerIteratorTest {
                     .putParameterValue(WorkerParameterName.logBookTypeProcess, LogbookTypeProcess.INGEST.name());
             final ItemStatus response = handler
                 .execute(parameters, handlerIO);
-            assertEquals(KO, response.getGlobalStatus());
+            assertEquals(FATAL, response.getGlobalStatus());
         }
     }
 
     @Test
-    public void givenExceptionLogbookLCObjectWhenProcessOKThenResponseKO() throws Exception {
+    public void givenExceptionLogbookLCObjectWhenProcessOKThenResponseFATAL() throws Exception {
         // Given
         TransferNotificationActionHandler handler = new TransferNotificationActionHandler(
             logbookOperationsClientFactory, storageClientFactory, validationXsdUtils);
@@ -444,7 +445,7 @@ public class TransferNotificationActionHandlerIteratorTest {
         final ItemStatus response = handler.execute(parameters, handlerIO);
 
         // Then
-        assertThat(response.getGlobalStatus()).isEqualTo(KO);
+        assertThat(response.getGlobalStatus()).isEqualTo(FATAL);
     }
 
     private static JsonNode getLogbookOperationKO()
