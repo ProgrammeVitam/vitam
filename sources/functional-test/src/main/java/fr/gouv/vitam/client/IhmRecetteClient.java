@@ -24,42 +24,30 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  */
-
 package fr.gouv.vitam.client;
 
-import fr.gouv.vitam.common.GlobalDataRest;
-import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.client.DefaultClient;
 import fr.gouv.vitam.common.client.VitamClientFactoryInterface;
+import fr.gouv.vitam.common.client.VitamRequestBuilder;
 import fr.gouv.vitam.common.exception.VitamClientInternalException;
 import fr.gouv.vitam.common.exception.VitamException;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 
-import javax.ws.rs.HttpMethod;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.MultivaluedHashMap;
 import javax.ws.rs.core.Response;
 import java.util.Arrays;
 import java.util.List;
 
-/**
- * Ihm recette http client
- */
+import static fr.gouv.vitam.common.GlobalDataRest.X_TENANT_ID;
+import static fr.gouv.vitam.common.client.VitamRequestBuilder.delete;
+import static javax.ws.rs.core.Response.Status.Family.REDIRECTION;
+import static javax.ws.rs.core.Response.Status.Family.SUCCESSFUL;
+import static javax.ws.rs.core.Response.Status.fromStatusCode;
+
 public class IhmRecetteClient extends DefaultClient {
-    /**
-     * Constructor using given scheme (http)
-     *
-     * @param factory The client factory
-     */
-    public IhmRecetteClient(VitamClientFactoryInterface<?> factory) {
-        super(factory);
-    }
-
-
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(IhmRecetteClient.class);
 
-    private static final String[] COLLECTION_TO_EMPTY = {
+    private static final List<String> COLLECTION_TO_EMPTY = Arrays.asList(
         "delete/logbook/operation",
         "delete/masterdata/accessContract",
         "delete/masterdata/ingestContract",
@@ -68,49 +56,35 @@ public class IhmRecetteClient extends DefaultClient {
         "delete/metadata/objectgroup",
         "delete/metadata/unit",
         "delete/accessionregisters"
-    };
+    );
+
+    public IhmRecetteClient(VitamClientFactoryInterface<?> factory) {
+        super(factory);
+    }
 
     IhmRecetteClient(IhmRecetteClientFactory factory) {
         super(factory);
     }
 
-    /**
-     * Use only with Testing
-     * delete data on tenant tenantId
-     *
-     * @param tenantId
-     * @throws VitamException
-     */
     public void deleteTnrCollectionsTenant(String tenantId) throws VitamException {
+        VitamRequestBuilder request = delete()
+            .withHeader(X_TENANT_ID, tenantId)
+            .withJsonAccept();
 
-        ParametersChecker.checkParameter("check tenant Parameter", tenantId);
-        final MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
-        headers.add(GlobalDataRest.X_TENANT_ID, tenantId);
-        List<String> list = Arrays.asList(COLLECTION_TO_EMPTY);
-        list.stream().forEach((l) -> {
-            try {
-                delete(headers, l);
-            } catch (VitamException e) {
-                LOGGER.debug("Error when deleting collections");
+        for (String url : COLLECTION_TO_EMPTY) {
+            try (Response response = make(request.withPath(url))) {
+                check(response);
             }
-        });
-
+        }
     }
 
-    private void delete(MultivaluedHashMap<String, Object> headers, String url) throws VitamException {
-        Response response = null;
-        try {
-            response = performRequest(HttpMethod.DELETE, url, headers, MediaType.APPLICATION_JSON_TYPE);
-            if (response.getStatus() == Response.Status.INTERNAL_SERVER_ERROR
-                .getStatusCode()) {
-                LOGGER.error("Deleting Error  : " + Response.Status.INTERNAL_SERVER_ERROR.getReasonPhrase());
-                throw new VitamClientInternalException("Error when delleting collections");
-            }
-        } catch (Exception e) {
-            LOGGER.debug("Error when deleting collections");
-            throw new VitamException(e.getMessage());
-        } finally {
-            consumeAnyEntityAndClose(response);
+    private void check(Response response) throws VitamClientInternalException {
+        Response.Status status = response.getStatusInfo().toEnum();
+        if (SUCCESSFUL.equals(status.getFamily()) || REDIRECTION.equals(status.getFamily())) {
+            return;
         }
+        String message = String.format("Error with the response, get status: '%d' and reason '%s'.", response.getStatus(), fromStatusCode(response.getStatus()).getReasonPhrase());
+        LOGGER.error(message);
+        throw new VitamClientInternalException(message);
     }
 }
