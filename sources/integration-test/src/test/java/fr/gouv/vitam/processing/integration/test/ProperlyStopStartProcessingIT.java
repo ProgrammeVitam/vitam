@@ -183,7 +183,7 @@ public class ProperlyStopStartProcessingIT extends VitamRuleRunner {
 
         while (processWorkflow.getSteps().get(stepId).getStepStatusCode() != StatusCode.STARTED) {
             try {
-                LOGGER.error("== Wait step :" + stepId);
+                LOGGER.info("== Wait step :" + stepId);
                 Thread.sleep(1);
             } catch (InterruptedException e) {
                 SysErrLogger.FAKE_LOGGER.ignoreLog(e);
