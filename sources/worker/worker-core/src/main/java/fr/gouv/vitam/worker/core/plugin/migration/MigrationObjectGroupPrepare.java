@@ -84,10 +84,6 @@ public class MigrationObjectGroupPrepare extends ActionHandler {
             exportToReportAndDistributionFile(scrollRequest, handler, "ObjectGroups.jsonl",
                 REPORTS + "/" + MIGRATION_OBJECT_LIST_IDS + ".json");
 
-            if (ScrollSpliteratorHelper.checkNumberOfResultQuery(itemStatus, scrollRequest.estimateSize())) {
-                return new ItemStatus(MIGRATION_OBJECT_GROUPS_LIST)
-                    .setItemsStatus(MIGRATION_OBJECT_GROUPS_LIST, itemStatus);
-            }
         } catch (InvalidParseOperationException | InvalidCreateOperationException | ProcessingException e) {
             LOGGER.error(e);
             return itemStatus.increment(StatusCode.FATAL);

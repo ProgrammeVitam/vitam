@@ -26,7 +26,6 @@
  */
 package fr.gouv.vitam.functional.administration.rest;
 
-import com.fasterxml.jackson.databind.JsonNode;
 import com.google.common.annotations.VisibleForTesting;
 import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.ParametersChecker;
@@ -38,6 +37,7 @@ import fr.gouv.vitam.common.exception.InvalidGuidOperationException;
 import fr.gouv.vitam.common.exception.VitamClientException;
 import fr.gouv.vitam.common.exception.VitamRuntimeException;
 import fr.gouv.vitam.common.guid.GUID;
+import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.guid.GUIDReader;
 import fr.gouv.vitam.common.i18n.VitamLogbookMessages;
 import fr.gouv.vitam.common.logging.VitamLogger;
@@ -68,7 +68,6 @@ import fr.gouv.vitam.workspace.client.WorkspaceClient;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
 
 import javax.ws.rs.ApplicationPath;
-import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
@@ -139,7 +138,6 @@ public class AdminDataMigrationResource {
 
     @POST
     @Path("/migrate")
-    @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     @VitamAuthentication(authentLevel = AuthenticationLevel.BASIC_AUTHENT)
     public Response migrateTo(@Context HttpHeaders headers) {
@@ -147,6 +145,10 @@ public class AdminDataMigrationResource {
         ParametersChecker.checkParameter("TenantId is mandatory", xTenantId);
 
         int tenant = Integer.parseInt(xTenantId);
+
+        VitamThreadUtils.getVitamSession().setTenantId(tenant);
+        VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newRequestIdGUID(tenant));
+
         return migrateTo(tenant);
     }
 
@@ -154,8 +156,6 @@ public class AdminDataMigrationResource {
         ParametersChecker.checkParameter("TenantId is mandatory", tenant);
 
         String requestId = VitamThreadUtils.getVitamSession().getRequestId();
-
-        VitamThreadUtils.getVitamSession().setTenantId(tenant);
 
         try (ProcessingManagementClient processingClient = processingManagementClientFactory.getClient();
              WorkspaceClient workspaceClient = workspaceClientFactory.getClient()) {
@@ -175,12 +175,15 @@ public class AdminDataMigrationResource {
 
         } catch (LogbookClientBadRequestException | BadRequestException e) {
             LOGGER.error(e);
-            return status(BAD_REQUEST).build();
+            return status(BAD_REQUEST)
+                .header(GlobalDataRest.X_REQUEST_ID, requestId)
+                .build();
 
         } catch (ContentAddressableStorageServerException | VitamClientException | InternalServerException | InvalidGuidOperationException e) {
             LOGGER.error(e);
             return Response.status(INTERNAL_SERVER_ERROR)
-                    .entity(getErrorEntity(INTERNAL_SERVER_ERROR, e.getMessage())).build();
+                .header(GlobalDataRest.X_REQUEST_ID, requestId)
+                .entity(getErrorEntity(INTERNAL_SERVER_ERROR, e.getMessage())).build();
         }
     }
 

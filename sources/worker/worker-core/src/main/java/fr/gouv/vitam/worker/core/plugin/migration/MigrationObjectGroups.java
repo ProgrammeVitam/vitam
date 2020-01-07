@@ -29,7 +29,6 @@ package fr.gouv.vitam.worker.core.plugin.migration;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.annotations.VisibleForTesting;
-
 import fr.gouv.vitam.common.database.builder.request.multiple.UpdateMultiQuery;
 import fr.gouv.vitam.common.database.utils.MetadataDocumentHelper;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
@@ -65,7 +64,9 @@ import fr.gouv.vitam.storage.engine.common.model.DataCategory;
 import fr.gouv.vitam.storage.engine.common.model.request.ObjectDescription;
 import fr.gouv.vitam.worker.common.HandlerIO;
 import fr.gouv.vitam.worker.core.handler.ActionHandler;
+import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
+import fr.gouv.vitam.workspace.client.WorkspaceClient;
 
 import java.io.File;
 import java.io.InputStream;
@@ -83,7 +84,7 @@ public class MigrationObjectGroups extends ActionHandler {
     private static final String $RESULTS = "$results";
 
     private static final String MIGRATION_OBJECT_GROUPS = "MIGRATION_OBJECT_GROUPS";
-    private static final String LFC_UPDATE_MIGRATION_OBJECT = "LFC.UPDATE_MIGRATION_OBJECT_GROUPS";
+    public static final String LFC_UPDATE_MIGRATION_OBJECT = "LFC.UPDATE_MIGRATION_OBJECT_GROUPS";
     private MetaDataClientFactory metaDataClientFactory;
     private LogbookLifeCyclesClientFactory logbookLifeCyclesClientFactory;
     private StorageClientFactory storageClientFactory;
@@ -118,23 +119,21 @@ public class MigrationObjectGroups extends ActionHandler {
         ) {
 
             //// get lfc
-            JsonNode lfc = getRawObjectGroupLifeCycleById(objectGroupId);
-            boolean doMigration = checkMigrationEvents(lfc, LFC_UPDATE_MIGRATION_OBJECT);
+            JsonNode lastLFC = getRawObjectGroupLifeCycleById(objectGroupId);
+            boolean doMigration = checkMigrationEvents(lastLFC, LFC_UPDATE_MIGRATION_OBJECT);
 
-            if (!doMigration) {
-                itemStatus.increment(StatusCode.OK);
-                return new ItemStatus(MIGRATION_OBJECT_GROUPS).setItemsStatus(MIGRATION_OBJECT_GROUPS, itemStatus);
+            if (doMigration) {
+
+                UpdateMultiQuery updateMultiQuery = new UpdateMultiQuery();
+
+                metaDataClient.updateObjectGroupById(updateMultiQuery.getFinalUpdate(), objectGroupId);
+
+                LogbookLifeCycleObjectGroupParameters logbookLCParam =
+                    createParameters(GUIDReader.getGUID(param.getContainerName()), StatusCode.OK,
+                        GUIDReader.getGUID(objectGroupId), OBJECT_GROUPS_UPDATE_MIGRATION);
+
+                logbookLifeCyclesClient.update(logbookLCParam, LifeCycleStatusCode.LIFE_CYCLE_COMMITTED);
             }
-
-            UpdateMultiQuery updateMultiQuery = new UpdateMultiQuery();
-
-            metaDataClient.updateObjectGroupById(updateMultiQuery.getFinalUpdate(), objectGroupId);
-
-            LogbookLifeCycleObjectGroupParameters logbookLCParam =
-                createParameters(GUIDReader.getGUID(param.getContainerName()), StatusCode.OK,
-                    GUIDReader.getGUID(objectGroupId), OBJECT_GROUPS_UPDATE_MIGRATION);
-
-            logbookLifeCyclesClient.update(logbookLCParam, LifeCycleStatusCode.LIFE_CYCLE_COMMITTED);
 
             final String fileName = objectGroupId + JSON;
 
@@ -147,6 +146,7 @@ public class MigrationObjectGroups extends ActionHandler {
 
 
             //// create file for storage (in workspace or temp or memory)
+            JsonNode lfc = getRawObjectGroupLifeCycleById(objectGroupId);
             JsonNode docWithLfc = MetadataStorageHelper.getGotWithLFC(objectGroupMetadata, lfc);
 
             // transfer json to workspace
@@ -159,7 +159,10 @@ public class MigrationObjectGroups extends ActionHandler {
                 new ObjectDescription(DataCategory.OBJECTGROUP, param.getContainerName(),
                     fileName, IngestWorkflowConstants.OBJECT_GROUP_FOLDER + File.separator + fileName);
             // store binary data object
-            storageClient.storeFileFromWorkspace(strategyId, description.getType(), description.getObjectName(), description);
+            storageClient
+                .storeFileFromWorkspace(strategyId, description.getType(), description.getObjectName(), description);
+
+            cleanupObjectGroupFromWorkspace(param, handler, fileName);
 
         } catch (VitamException e) {
             LOGGER.error(e);
@@ -169,16 +172,23 @@ public class MigrationObjectGroups extends ActionHandler {
         return new ItemStatus(MIGRATION_OBJECT_GROUPS).setItemsStatus(MIGRATION_OBJECT_GROUPS, itemStatus);
     }
 
+    private void cleanupObjectGroupFromWorkspace(WorkerParameters param, HandlerIO handler, String fileName)
+        throws ContentAddressableStorageNotFoundException, ContentAddressableStorageServerException {
+        try (WorkspaceClient client = handler.getWorkspaceClientFactory().getClient()) {
+            client.deleteObject(param.getContainerName(), IngestWorkflowConstants.OBJECT_GROUP_FOLDER + "/" + fileName);
+        }
+    }
+
     /**
      * @param objectGroupId id
      * @return unit metadata as json
      */
-     JsonNode getObjectGroupMetadata(String objectGroupId) throws ProcessingException {
+    JsonNode getObjectGroupMetadata(String objectGroupId) throws ProcessingException {
         MetaDataClient metaDataClient = metaDataClientFactory.getClient();
         final String error = String.format("No such ObjectGroup metadata '%s'", objectGroupId);
         RequestResponse<JsonNode> requestResponse;
 
-        JsonNode jsonResponse= null;
+        JsonNode jsonResponse = null;
         try {
             requestResponse = metaDataClient.getObjectGroupByIdRaw(objectGroupId);
 
@@ -240,5 +250,7 @@ public class MigrationObjectGroups extends ActionHandler {
         return parameters;
     }
 
-    @Override public void checkMandatoryIOParameter(HandlerIO handler) throws ProcessingException {    }
+    @Override
+    public void checkMandatoryIOParameter(HandlerIO handler) throws ProcessingException {
+    }
 }

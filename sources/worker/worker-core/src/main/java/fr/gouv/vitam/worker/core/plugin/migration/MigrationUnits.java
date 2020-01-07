@@ -29,7 +29,6 @@ package fr.gouv.vitam.worker.core.plugin.migration;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.annotations.VisibleForTesting;
-
 import fr.gouv.vitam.common.database.builder.request.multiple.UpdateMultiQuery;
 import fr.gouv.vitam.common.database.utils.MetadataDocumentHelper;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
@@ -65,7 +64,9 @@ import fr.gouv.vitam.storage.engine.common.model.DataCategory;
 import fr.gouv.vitam.storage.engine.common.model.request.ObjectDescription;
 import fr.gouv.vitam.worker.common.HandlerIO;
 import fr.gouv.vitam.worker.core.handler.ActionHandler;
+import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
+import fr.gouv.vitam.workspace.client.WorkspaceClient;
 
 import java.io.File;
 import java.io.InputStream;
@@ -83,7 +84,7 @@ public class MigrationUnits extends ActionHandler {
     private static final String $RESULTS = "$results";
 
     private static final String MIGRATION_UNITS = "MIGRATION_UNITS";
-    private static final String LFC_UPDATE_MIGRATION_UNITS = "LFC.UPDATE_MIGRATION_UNITS";
+    public static final String LFC_UPDATE_MIGRATION_UNITS = "LFC.UPDATE_MIGRATION_UNITS";
     private MetaDataClientFactory metaDataClientFactory;
     private LogbookLifeCyclesClientFactory logbookLifeCyclesClientFactory;
     private StorageClientFactory storageClientFactory;
@@ -115,23 +116,21 @@ public class MigrationUnits extends ActionHandler {
             StorageClient storageClient = storageClientFactory.getClient()
         ) {
             //// get lfc
-            JsonNode lfc = getRawUnitLifeCycleById(unitId);
-            boolean doMigration = checkMigrationEvents(lfc, LFC_UPDATE_MIGRATION_UNITS);
+            JsonNode lastLFC = getRawUnitLifeCycleById(unitId);
+            boolean doMigration = checkMigrationEvents(lastLFC, LFC_UPDATE_MIGRATION_UNITS);
 
-            if (!doMigration) {
-                itemStatus.increment(StatusCode.OK);
-                return new ItemStatus(MIGRATION_UNITS).setItemsStatus(MIGRATION_UNITS, itemStatus);
+            if (doMigration) {
+
+                UpdateMultiQuery updateMultiQuery = new UpdateMultiQuery();
+
+                metaDataClient.updateUnitById(updateMultiQuery.getFinalUpdate(), unitId);
+
+                LogbookLifeCycleUnitParameters logbookLCParam =
+                    createParameters(GUIDReader.getGUID(param.getContainerName()), StatusCode.OK,
+                        GUIDReader.getGUID(unitId), UNIT_UPDATE_MIGRATION);
+
+                logbookLifeCyclesClient.update(logbookLCParam, LifeCycleStatusCode.LIFE_CYCLE_COMMITTED);
             }
-
-            UpdateMultiQuery updateMultiQuery = new UpdateMultiQuery();
-
-            metaDataClient.updateUnitById(updateMultiQuery.getFinalUpdate(), unitId);
-
-            LogbookLifeCycleUnitParameters logbookLCParam =
-                createParameters(GUIDReader.getGUID(param.getContainerName()), StatusCode.OK,
-                    GUIDReader.getGUID(unitId), UNIT_UPDATE_MIGRATION);
-
-            logbookLifeCyclesClient.update(logbookLCParam, LifeCycleStatusCode.LIFE_CYCLE_COMMITTED);
 
             final String fileName = unitId + JSON;
 
@@ -141,6 +140,7 @@ public class MigrationUnits extends ActionHandler {
             MetadataDocumentHelper.removeComputedFieldsFromUnit(unit);
 
             //// create file for storage (in workspace or temp or memory)
+            JsonNode lfc = getRawUnitLifeCycleById(unitId);
             JsonNode docWithLfc = MetadataStorageHelper.getUnitWithLFC(unit, lfc);
 
             // transfer json to workspace
@@ -153,7 +153,10 @@ public class MigrationUnits extends ActionHandler {
                 new ObjectDescription(DataCategory.UNIT, param.getContainerName(),
                     fileName, IngestWorkflowConstants.ARCHIVE_UNIT_FOLDER + File.separator + fileName);
             // store binary data object
-            storageClient.storeFileFromWorkspace(strategyId, description.getType(), description.getObjectName(), description);
+            storageClient
+                .storeFileFromWorkspace(strategyId, description.getType(), description.getObjectName(), description);
+
+            cleanupUnitFromWorkspace(param, handler, fileName);
 
         } catch (VitamException e) {
             LOGGER.error(e);
@@ -161,6 +164,13 @@ public class MigrationUnits extends ActionHandler {
         }
         itemStatus.increment(StatusCode.OK);
         return new ItemStatus(MIGRATION_UNITS).setItemsStatus(MIGRATION_UNITS, itemStatus);
+    }
+
+    private void cleanupUnitFromWorkspace(WorkerParameters param, HandlerIO handler, String fileName)
+        throws ContentAddressableStorageNotFoundException, ContentAddressableStorageServerException {
+        try (WorkspaceClient client = handler.getWorkspaceClientFactory().getClient()) {
+            client.deleteObject(param.getContainerName(), IngestWorkflowConstants.ARCHIVE_UNIT_FOLDER + "/" + fileName);
+        }
     }
 
     /**
@@ -172,7 +182,7 @@ public class MigrationUnits extends ActionHandler {
         final String error = String.format("No such  unit '%s'", unitId);
         RequestResponse<JsonNode> requestResponse;
 
-        JsonNode jsonResponse= null;
+        JsonNode jsonResponse = null;
         try {
             requestResponse = metaDataClient.getUnitByIdRaw(unitId);
 
@@ -200,6 +210,7 @@ public class MigrationUnits extends ActionHandler {
             throw new ProcessingException(e);
         }
     }
+
     /**
      * retrieve the raw LFC for the unit
      *
@@ -233,5 +244,7 @@ public class MigrationUnits extends ActionHandler {
         return parameters;
     }
 
-    @Override public void checkMandatoryIOParameter(HandlerIO handler) throws ProcessingException {    }
+    @Override
+    public void checkMandatoryIOParameter(HandlerIO handler) throws ProcessingException {
+    }
 }
