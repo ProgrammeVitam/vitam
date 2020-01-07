@@ -172,18 +172,21 @@ abstract class AbstractCommonClient implements BasicClient {
         );
     }
 
+    @Deprecated
     protected Response performRequest(String httpMethod, String path, MultivaluedMap<String, Object> headers,
         MediaType accept)
         throws VitamClientInternalException {
         return performRequest(httpMethod, path, headers, null, null, accept, false);
     }
 
+    @Deprecated
     protected Response performRequest(String httpMethod, String path, MultivaluedMap<String, Object> headers,
         Object body, MediaType contentType, MediaType accept)
         throws VitamClientInternalException {
         return performRequest(httpMethod, path, headers, body, contentType, accept, getChunkedMode());
     }
 
+    @Deprecated
     protected Response performRequest(String httpMethod, String path, MultivaluedMap<String, Object> headers,
         Object body, MediaType contentType, MediaType accept, boolean chunkedMode)
         throws VitamClientInternalException {

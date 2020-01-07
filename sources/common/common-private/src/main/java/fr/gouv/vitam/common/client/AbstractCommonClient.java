@@ -179,7 +179,7 @@ abstract class AbstractCommonClient implements BasicClient {
     public Response make(VitamRequestBuilder vitamRequestBuilder) throws VitamClientInternalException {
         vitamRequestBuilder.runBeforeExecRequest();
         return new VitamAutoClosableResponse(
-            performRequest(
+            request(
                 vitamRequestBuilder.getHttpMethod(),
                 vitamRequestBuilder.getPath(),
                 vitamRequestBuilder.getHeaders(),
@@ -192,34 +192,38 @@ abstract class AbstractCommonClient implements BasicClient {
         );
     }
 
+    @Deprecated
     protected Response performRequest(String httpMethod, String path, MultivaluedMap<String, Object> headers,
         MediaType accept)
         throws VitamClientInternalException {
-        return performRequest(httpMethod, path, headers, null, null, null, accept, false);
+        return request(httpMethod, path, headers, null, null, null, accept, false);
     }
 
+    @Deprecated
     protected Response performRequest(String httpMethod, String path, MultivaluedMap<String, Object> headers,
         MultivaluedMap<String, Object> queryParams,
         MediaType accept)
         throws VitamClientInternalException {
-        return performRequest(httpMethod, path, headers, queryParams, null, null, accept, false);
+        return request(httpMethod, path, headers, queryParams, null, null, accept, false);
     }
 
+    @Deprecated
     protected Response performRequest(String httpMethod, String path, MultivaluedMap<String, Object> headers,
         Object body,
         MediaType contentType, MediaType accept)
         throws VitamClientInternalException {
-        return performRequest(httpMethod, path, headers, null, body, contentType, accept, getChunkedMode());
+        return request(httpMethod, path, headers, null, body, contentType, accept, getChunkedMode());
     }
 
+    @Deprecated
     protected Response performRequest(String httpMethod, String path, MultivaluedMap<String, Object> headers,
         Object body,
         MediaType contentType, MediaType accept, boolean chunkedMode)
         throws VitamClientInternalException {
-        return performRequest(httpMethod, path, headers, null, body, contentType, accept, chunkedMode);
+        return request(httpMethod, path, headers, null, body, contentType, accept, chunkedMode);
     }
 
-    protected Response performRequest(String httpMethod, String path, MultivaluedMap<String, Object> headers, MultivaluedMap<String, Object> queryParams,
+    private Response request(String httpMethod, String path, MultivaluedMap<String, Object> headers, MultivaluedMap<String, Object> queryParams,
         Object body,
         MediaType contentType, MediaType accept, boolean chunkedMode)
         throws VitamClientInternalException {
