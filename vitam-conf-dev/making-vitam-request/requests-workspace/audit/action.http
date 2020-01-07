@@ -1,0 +1,22 @@
+# Configuration
+@access-contract = ContratTNR
+@tenant = 0
+
+### Lancement de l'audit de cohérence sur la unit dont l'ID est aeeaaaaaachemhquabfyqaln3wpwptqaaaaq
+POST {{url}}/admin-external/v1/evidenceaudit
+Accept: application/json
+Content-Type: application/json
+X-Tenant-Id: {{tenant}}
+X-Access-Contract-Id: {{access-contract}}
+
+{
+  "$roots": [],
+  "$query": [
+    {
+      "$eq": {
+        "#id": "aeeaaaaaachemhquabfyqaln3wpwptqaaaaq"
+      }
+    }
+  ],
+  "$threshold": 1000
+}
