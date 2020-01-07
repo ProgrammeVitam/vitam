@@ -26,8 +26,6 @@
  */
 package fr.gouv.vitam.common.server.application.session;
 
-import javax.ws.rs.HttpMethod;
-import javax.ws.rs.client.Client;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.MultivaluedHashMap;
 import javax.ws.rs.core.Response;
@@ -35,81 +33,64 @@ import javax.ws.rs.core.Response;
 import fr.gouv.vitam.common.client.DefaultClient;
 import fr.gouv.vitam.common.client.VitamClientFactory;
 import fr.gouv.vitam.common.client.VitamClientFactoryInterface;
+import fr.gouv.vitam.common.client.VitamRequestBuilder;
 import fr.gouv.vitam.common.client.configuration.ClientConfigurationImpl;
 import fr.gouv.vitam.common.exception.VitamClientInternalException;
 
-/**
- * Localhost REST client factory ; for testing with REST client only. Used in {@link VitamRequestIdFiltersIT} tests.
- */
+import static fr.gouv.vitam.common.client.VitamRequestBuilder.get;
+import static javax.ws.rs.core.Response.Status.Family.REDIRECTION;
+import static javax.ws.rs.core.Response.Status.Family.SUCCESSFUL;
+import static javax.ws.rs.core.Response.Status.fromStatusCode;
+
 public class LocalhostClientFactory extends VitamClientFactory<LocalhostClientFactory.LocalhostClient> {
-
-
     public LocalhostClientFactory(final int port, final String rootResourcePath) {
         super(new ClientConfigurationImpl("localhost", port), rootResourcePath);
     }
 
-    /**
-     * Get the default admin management client
-     *
-     * @return the default admin management client
-     */
     @Override
     public LocalhostClient getClient() {
-        final LocalhostClient client;
         switch (getVitamClientType()) {
             case MOCK:
-                throw new UnsupportedOperationException(
-                    "No mock for this class is implemented (this class is for REST testing purpose only)");
+                throw new UnsupportedOperationException("No mock for this class is implemented (this class is for REST testing purpose only).");
             case PRODUCTION:
-                client = new LocalhostClient(this);
-                break;
+                return new LocalhostClient(this);
             default:
-                throw new IllegalArgumentException("Client type unknown");
+                throw new IllegalArgumentException("Client type unknown.");
         }
-        return client;
     }
 
     public static class LocalhostClient extends DefaultClient {
-
-        /**
-         * Constructor using given scheme (http)
-         *
-         * @param factory The client factory
-         */
         public LocalhostClient(VitamClientFactoryInterface<?> factory) {
             super(factory);
         }
 
         public String doRequest(final String subResource) {
-            return doRequest(subResource, new MultivaluedHashMap<>());
+            VitamRequestBuilder request = get().withPath(subResource).withAccept(MediaType.TEXT_PLAIN_TYPE);
+            try (Response response = make(request)) {
+                check(response);
+                return response.readEntity(String.class);
+            } catch (VitamClientInternalException e) {
+                throw new IllegalStateException(e);
+            }
         }
 
         public String doRequest(final String subResource, final MultivaluedHashMap<String, Object> headers) {
-            Response response = null;
-            try {
-                response = performRequest(HttpMethod.GET, subResource, headers,
-                    MediaType.TEXT_PLAIN_TYPE);
+            VitamRequestBuilder request = get().withPath(subResource).withHeaders(headers).withAccept(MediaType.TEXT_PLAIN_TYPE);
+            try (Response response = make(request)) {
+                check(response);
                 return response.readEntity(String.class);
-            } catch (final VitamClientInternalException e) {
-                throw new IllegalStateException(INTERNAL_SERVER_ERROR, e); // access-common
-            } finally {
-                consumeAnyEntityAndClose(response);
+            } catch (VitamClientInternalException e) {
+                throw new IllegalStateException(e);
             }
         }
-        
-        public int doRequestAndGetStatus(final String subResource, final MultivaluedHashMap<String, Object> headers) {
-            Response response = null;
-            try {
-                response = performRequest(HttpMethod.GET, subResource, headers,
-                    MediaType.APPLICATION_JSON_TYPE);
-                return response.getStatus();
-            } catch (final VitamClientInternalException e) {
-                throw new IllegalStateException(INTERNAL_SERVER_ERROR, e); // access-common
-            } finally {
-                consumeAnyEntityAndClose(response);
+
+        private void check(Response response) throws VitamClientInternalException {
+            Response.Status status = response.getStatusInfo().toEnum();
+            if (SUCCESSFUL.equals(status.getFamily()) || REDIRECTION.equals(status.getFamily())) {
+                return;
             }
+            throw new VitamClientInternalException(String.format("Error with the response, get status: '%d' and reason '%s'.", response.getStatus(), fromStatusCode(response.getStatus()).getReasonPhrase()));
         }
     }
-
 }
 
