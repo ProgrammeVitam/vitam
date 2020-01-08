@@ -43,6 +43,8 @@ import fr.gouv.vitam.metadata.client.MetaDataClient;
 import fr.gouv.vitam.metadata.client.MetaDataClientFactory;
 import fr.gouv.vitam.processing.common.parameter.WorkerParametersFactory;
 import fr.gouv.vitam.worker.common.HandlerIO;
+import fr.gouv.vitam.worker.core.plugin.common.CheckDistributionThreshold;
+import fr.gouv.vitam.worker.core.plugin.common.CheckDistributionThresholdBase;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -69,7 +71,7 @@ public class CheckDistributionThresholdTest {
 
     private static final int TENANT_ID = 0;
 
-    private CheckDistributionThreshold checkDistributionThreshold;
+    private CheckDistributionThresholdBase checkDistributionThreshold;
 
     @Before
     public void setUp() throws Exception {

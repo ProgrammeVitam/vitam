@@ -70,6 +70,7 @@ import fr.gouv.vitam.worker.core.handler.TransferNotificationActionHandler;
 import fr.gouv.vitam.worker.core.handler.VerifyMerkleTreeActionHandler;
 import fr.gouv.vitam.worker.core.handler.VerifyTimeStampActionHandler;
 import fr.gouv.vitam.worker.core.plugin.PluginLoader;
+import fr.gouv.vitam.worker.core.plugin.computeinheritedrules.ComputedInheritedRulesCheckDistributionThreshold;
 import fr.gouv.vitam.worker.core.plugin.elimination.EliminationActionAccessionRegisterPreparationHandler;
 import fr.gouv.vitam.worker.core.plugin.elimination.EliminationActionCheckDistributionThresholdHandler;
 import fr.gouv.vitam.worker.core.plugin.elimination.EliminationActionFinalizationHandler;
@@ -231,6 +232,8 @@ public class WorkerImpl implements Worker {
         actions.put(TransferReplyAccessionRegisterPreparationHandler.getId(),
             TransferReplyAccessionRegisterPreparationHandler::new);
         actions.put(TransferReplyReportGenerationHandler.getId(), TransferReplyReportGenerationHandler::new);
+
+        actions.put(ComputedInheritedRulesCheckDistributionThreshold.getId(),ComputedInheritedRulesCheckDistributionThreshold::new);
     }
 
     @Override

@@ -15,7 +15,7 @@
       "actions": [
         {
           "action": {
-            "actionKey": "CHECK_DISTRIBUTION_THRESHOLD",
+            "actionKey": "COMPUTED_INHERITED_RULES_CHECK_DISTRIBUTION_THRESHOLD",
             "behavior": "BLOCKING",
             "in": [
               {
