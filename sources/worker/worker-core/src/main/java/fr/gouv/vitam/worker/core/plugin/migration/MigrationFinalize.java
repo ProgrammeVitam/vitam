@@ -27,8 +27,6 @@
 package fr.gouv.vitam.worker.core.plugin.migration;
 
 import com.google.common.annotations.VisibleForTesting;
-import fr.gouv.vitam.common.logging.VitamLogger;
-import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.functional.administration.common.BackupService;
@@ -40,6 +38,7 @@ import fr.gouv.vitam.worker.common.HandlerIO;
 import fr.gouv.vitam.worker.core.handler.ActionHandler;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
+import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 
 import java.io.File;
@@ -78,6 +77,7 @@ public class MigrationFinalize extends ActionHandler {
 
         ItemStatus itemStatus = new ItemStatus(MIGRATION_FINALIZE);
 
+        File report = null;
         try {
 
             File unitsIdentifierFile =
@@ -85,31 +85,32 @@ public class MigrationFinalize extends ActionHandler {
             File objectIdentifierFile =
                 handlerIO.getFileFromWorkspace(REPORTS + "/" + MIGRATION_OBJECT_LIST_IDS + JSON_FILE_EXTENSION);
 
-            File report = handlerIO.getNewLocalFile("report.json");
+            report = handlerIO.getNewLocalFile("report.json");
 
             try (FileInputStream unitsReportInputStream = new FileInputStream(unitsIdentifierFile);
                 FileInputStream objectsReportInputStream = new FileInputStream(objectIdentifierFile);
                 OutputStream os = new FileOutputStream(report)) {
 
                 // Sorry for that.. jackson JsonGenerator does not support APIs for raw input streams copy
-                os.write("{\"units:\":".getBytes(StandardCharsets.UTF_8));
+                os.write("{\"units\":".getBytes(StandardCharsets.UTF_8));
                 IOUtils.copy(unitsReportInputStream, os);
-                os.write(",\"objectGroups:\":".getBytes(StandardCharsets.UTF_8));
+                os.write(",\"objectGroups\":".getBytes(StandardCharsets.UTF_8));
                 IOUtils.copy(objectsReportInputStream, os);
                 os.write("}".getBytes(StandardCharsets.UTF_8));
-                backupService.backup(new FileInputStream(report), DataCategory.REPORT,
-                    handlerIO.getContainerName() + JSON_FILE_EXTENSION);
             }
 
+            backupService.backup(new FileInputStream(report), DataCategory.REPORT,
+                handlerIO.getContainerName() + JSON_FILE_EXTENSION);
+
+            itemStatus.increment(StatusCode.OK);
+
+            return new ItemStatus(MIGRATION_FINALIZE).setItemsStatus(MIGRATION_FINALIZE, itemStatus);
 
         } catch (IOException | BackupServiceException | ContentAddressableStorageNotFoundException e) {
             throw new ProcessingException(e);
+        } finally {
+            FileUtils.deleteQuietly(report);
         }
-        itemStatus.increment(StatusCode.OK);
-
-        return new ItemStatus(MIGRATION_FINALIZE).setItemsStatus(MIGRATION_FINALIZE, itemStatus);
-
-
     }
 
     @Override
