@@ -84,10 +84,6 @@ public class MigrationUnitPrepare extends ActionHandler {
             exportToReportAndDistributionFile(scrollRequest, handler, "Units.jsonl",
                 REPORTS + "/" + MIGRATION_UNITS_LIST_IDS + ".json");
 
-            if (ScrollSpliteratorHelper.checkNumberOfResultQuery(itemStatus, scrollRequest.estimateSize())) {
-                return new ItemStatus(MIGRATION_UNITS_LIST)
-                    .setItemsStatus(MIGRATION_UNITS_LIST, itemStatus);
-            }
         } catch (InvalidParseOperationException | InvalidCreateOperationException | ProcessingException e) {
             LOGGER.error(e);
             return itemStatus.increment(StatusCode.FATAL);
