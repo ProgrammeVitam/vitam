@@ -36,6 +36,7 @@ import java.util.Objects;
 import static javax.ws.rs.HttpMethod.DELETE;
 import static javax.ws.rs.HttpMethod.GET;
 import static javax.ws.rs.HttpMethod.HEAD;
+import static javax.ws.rs.HttpMethod.OPTIONS;
 import static javax.ws.rs.HttpMethod.POST;
 import static javax.ws.rs.HttpMethod.PUT;
 import static javax.ws.rs.core.MediaType.APPLICATION_JSON_TYPE;
@@ -76,6 +77,10 @@ public class VitamRequestBuilder {
 
     public static VitamRequestBuilder head() {
         return new VitamRequestBuilder(HEAD);
+    }
+
+    public static VitamRequestBuilder options() {
+        return new VitamRequestBuilder(OPTIONS);
     }
 
     public void runBeforeExecRequest() {
