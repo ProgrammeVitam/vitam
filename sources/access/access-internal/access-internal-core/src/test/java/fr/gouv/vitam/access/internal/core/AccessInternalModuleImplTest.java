@@ -54,6 +54,8 @@ import javax.ws.rs.ProcessingException;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
+import fr.gouv.vitam.common.client.DefaultClient;
+import fr.gouv.vitam.common.client.VitamRequestBuilder;
 import org.apache.commons.io.IOUtils;
 import org.assertj.core.api.Assertions;
 import org.junit.AfterClass;
@@ -1352,7 +1354,7 @@ public class AccessInternalModuleImplTest {
         node.put("objectId", "0_s_a_l_20180810160000000_20180810190000000_id.log");
         nodeList.add(node);
 
-        return new VitamRequestIterator<JsonNode>(storageClient, "listContainer", "test", JsonNode.class, null, null) {
+        return new VitamRequestIterator<JsonNode>((DefaultClient) mock(DefaultClient.class), VitamRequestBuilder.get(), JsonNode.class) {
             List<JsonNode> nodes = nodeList;
             Integer actualSize = 0;
 

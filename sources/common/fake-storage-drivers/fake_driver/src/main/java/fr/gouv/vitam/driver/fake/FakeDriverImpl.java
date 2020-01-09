@@ -33,6 +33,7 @@ import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.client.AbstractMockClient;
 import fr.gouv.vitam.common.client.TestVitamClientFactory;
 import fr.gouv.vitam.common.client.VitamClientFactoryInterface;
+import fr.gouv.vitam.common.client.VitamRequestBuilder;
 import fr.gouv.vitam.common.client.VitamRequestIterator;
 import fr.gouv.vitam.common.client.VitamRestEasyConfiguration;
 import fr.gouv.vitam.common.client.configuration.ClientConfiguration;
@@ -298,27 +299,21 @@ public class FakeDriverImpl extends AbstractDriver {
 
         @Override
         public RequestResponse<JsonNode> listObjects(StorageListRequest request) throws StorageDriverException {
-            MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
-            headers.add(GlobalDataRest.X_TENANT_ID, request.getTenantId());
-            try (VitamRequestIterator<ObjectNode> iterator =
-                new VitamRequestIterator<>(this, HttpMethod.GET, "/iterator",
-                    ObjectNode.class, null, null)) {
-                final RequestResponseOK<JsonNode> response = new RequestResponseOK<>(JsonHandler.createObjectNode());
-                final ObjectNode node1 = JsonHandler.createObjectNode().put("val", 1);
-                final ObjectNode node2 = JsonHandler.createObjectNode().put("val", 2);
-                final ObjectNode node3 = JsonHandler.createObjectNode().put("val", 3);
-                response.addResult(node1);
-                final List<JsonNode> list = new ArrayList<>();
-                list.add(node2);
-                list.add(node3);
-                response.addAllResults(list);
-                response.setHttpCode(Status.OK.getStatusCode());
+            final RequestResponseOK<JsonNode> response = new RequestResponseOK<>(JsonHandler.createObjectNode());
+            final ObjectNode node1 = JsonHandler.createObjectNode().put("val", 1);
+            final ObjectNode node2 = JsonHandler.createObjectNode().put("val", 2);
+            final ObjectNode node3 = JsonHandler.createObjectNode().put("val", 3);
+            response.addResult(node1);
+            final List<JsonNode> list = new ArrayList<>();
+            list.add(node2);
+            list.add(node3);
+            response.addAllResults(list);
+            response.setHttpCode(Status.OK.getStatusCode());
 
-                response.addHeader(GlobalDataRest.X_CURSOR, String.valueOf(false));
-                response.addHeader(GlobalDataRest.X_CURSOR_ID, "newcursor");
+            response.addHeader(GlobalDataRest.X_CURSOR, String.valueOf(false));
+            response.addHeader(GlobalDataRest.X_CURSOR_ID, "newcursor");
 
-                return response;
-            }
+            return response;
         }
 
         @Override

@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2019)
  *
  * contact.vitam@culture.gouv.fr
@@ -29,7 +29,7 @@ package fr.gouv.vitam.common.client;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.collect.Sets;
-import fr.gouv.vitam.common.GlobalDataRest;
+import fr.gouv.vitam.common.exception.VitamRuntimeException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.server.application.junit.ResteasyTestApplication;
@@ -39,25 +39,19 @@ import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
+import javax.ws.rs.ApplicationPath;
 import javax.ws.rs.BadRequestException;
 import javax.ws.rs.GET;
-import javax.ws.rs.HttpMethod;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.Context;
-import javax.ws.rs.core.Cookie;
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.MultivaluedHashMap;
-import javax.ws.rs.core.MultivaluedMap;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.ResponseBuilder;
 import javax.ws.rs.core.Response.Status;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
-import java.util.Locale;
-import java.util.Map;
 import java.util.Set;
 
 import static org.junit.Assert.assertEquals;
@@ -99,7 +93,7 @@ public class VitamRequestIteratorTest extends ResteasyTestApplication {
 
     // Define your Resource class if necessary
     @Path(RESOURCE_PATH)
-    @javax.ws.rs.ApplicationPath("webresources")
+    @ApplicationPath("webresources")
     public static class MockResource extends ApplicationStatusResource {
         private final ExpectedResults expectedResponse;
 
@@ -112,21 +106,16 @@ public class VitamRequestIteratorTest extends ResteasyTestApplication {
         @Produces(MediaType.APPLICATION_JSON)
         public Response iterator(@Context HttpHeaders headers) {
             final Response response = expectedResponse.get();
-            final boolean checkStart = VitamRequestIterator.isNewCursor(headers);
-            VitamRequestIterator.isEndOfCursor(headers);
-            assertEquals(startup, checkStart);
             startup = false;
             return response;
         }
-
-
     }
 
     @Test
     public void testIterator() {
         startup = true;
         try (VitamRequestIterator<ObjectNode> iterator =
-            new VitamRequestIterator<>(client, HttpMethod.GET, "/iterator", ObjectNode.class, null, null)) {
+            new VitamRequestIterator<>(client, VitamRequestBuilder.get().withPath("/iterator"), ObjectNode.class)) {
             final RequestResponseOK response = new RequestResponseOK(JsonHandler.createObjectNode());
             final ObjectNode node1 = JsonHandler.createObjectNode().put("val", 1);
             final ObjectNode node2 = JsonHandler.createObjectNode().put("val", 2);
@@ -164,7 +153,7 @@ public class VitamRequestIteratorTest extends ResteasyTestApplication {
     public void testIteratorEmpty() {
         startup = true;
         try (VitamRequestIterator iterator =
-            new VitamRequestIterator(client, HttpMethod.GET, "/iterator", ObjectNode.class, null, null)) {
+            new VitamRequestIterator<>(client, VitamRequestBuilder.get().withPath("/iterator"), ObjectNode.class)) {
             final RequestResponseOK response = new RequestResponseOK();
             final ResponseBuilder builder = Response.status(Status.NOT_FOUND);
             when(mock.get())
@@ -177,7 +166,7 @@ public class VitamRequestIteratorTest extends ResteasyTestApplication {
     public void testIteratorFailed() {
         startup = true;
         try (VitamRequestIterator iterator =
-            new VitamRequestIterator(client, HttpMethod.GET, "/iterator", ObjectNode.class, null, null)) {
+            new VitamRequestIterator<>(client, VitamRequestBuilder.get().withPath("/iterator"), ObjectNode.class)) {
             final RequestResponseOK response = new RequestResponseOK();
             final ResponseBuilder builder = Response.status(Status.BAD_REQUEST);
             when(mock.get())
@@ -185,7 +174,7 @@ public class VitamRequestIteratorTest extends ResteasyTestApplication {
             try {
                 assertFalse(iterator.hasNext());
                 fail("should raized an exception");
-            } catch (final BadRequestException e) {
+            } catch (final VitamRuntimeException e) {
 
             }
         }
@@ -195,7 +184,7 @@ public class VitamRequestIteratorTest extends ResteasyTestApplication {
     public void testIteratorShortList() {
         startup = true;
         try (VitamRequestIterator<ObjectNode> iterator =
-            new VitamRequestIterator<>(client, HttpMethod.GET, "/iterator", ObjectNode.class, null, null)) {
+            new VitamRequestIterator<>(client, VitamRequestBuilder.get().withPath("/iterator"), ObjectNode.class)) {
             final RequestResponseOK response = new RequestResponseOK(JsonHandler.createObjectNode());
             final ObjectNode node1 = JsonHandler.createObjectNode().put("val", 1);
             final ObjectNode node2 = JsonHandler.createObjectNode().put("val", 2);
@@ -222,7 +211,7 @@ public class VitamRequestIteratorTest extends ResteasyTestApplication {
     public void testIteratorThirdShort() {
         startup = true;
         try (VitamRequestIterator<ObjectNode> iterator =
-            new VitamRequestIterator<>(client, HttpMethod.GET, "/iterator", ObjectNode.class, null, null)) {
+            new VitamRequestIterator<>(client, VitamRequestBuilder.get().withPath("/iterator"), ObjectNode.class)) {
             final RequestResponseOK response = new RequestResponseOK(JsonHandler.createObjectNode());
             final ObjectNode node1 = JsonHandler.createObjectNode().put("val", 1);
             final ObjectNode node2 = JsonHandler.createObjectNode().put("val", 2);
@@ -260,7 +249,7 @@ public class VitamRequestIteratorTest extends ResteasyTestApplication {
     public void testIteratorStopBefore() {
         startup = true;
         try (VitamRequestIterator iterator =
-            new VitamRequestIterator(client, HttpMethod.GET, "/iterator", ObjectNode.class, null, null)) {
+            new VitamRequestIterator<>(client, VitamRequestBuilder.get().withPath("/iterator"), ObjectNode.class)) {
             final RequestResponseOK response = new RequestResponseOK(JsonHandler.createObjectNode());
             final ObjectNode node1 = JsonHandler.createObjectNode().put("val", 1);
             final ObjectNode node2 = JsonHandler.createObjectNode().put("val", 2);
@@ -278,7 +267,7 @@ public class VitamRequestIteratorTest extends ResteasyTestApplication {
         }
         startup = true;
         try (VitamRequestIterator<ObjectNode> iterator =
-            new VitamRequestIterator<>(client, HttpMethod.GET, "/iterator", ObjectNode.class, null, null)) {
+            new VitamRequestIterator<>(client, VitamRequestBuilder.get().withPath("/iterator"), ObjectNode.class)) {
             final RequestResponseOK response = new RequestResponseOK(JsonHandler.createObjectNode());
             final ObjectNode node1 = JsonHandler.createObjectNode().put("val", 1);
             final ObjectNode node2 = JsonHandler.createObjectNode().put("val", 2);
@@ -303,115 +292,4 @@ public class VitamRequestIteratorTest extends ResteasyTestApplication {
             assertFalse(iterator.hasNext());
         }
     }
-
-    @Test
-    public void testStaticMethod() {
-        assertTrue(VitamRequestIterator.isEndOfCursor(false, "test"));
-        assertFalse(VitamRequestIterator.isEndOfCursor(true, "test"));
-        assertFalse(VitamRequestIterator.isEndOfCursor(false, ""));
-        assertFalse(VitamRequestIterator.isEndOfCursor(true, ""));
-
-        assertTrue(VitamRequestIterator.isNewCursor(true, ""));
-        assertFalse(VitamRequestIterator.isNewCursor(true, "test"));
-        assertFalse(VitamRequestIterator.isNewCursor(false, ""));
-        assertFalse(VitamRequestIterator.isNewCursor(false, "test"));
-
-        final MultivaluedMap<String, String> map = new MultivaluedHashMap<>();
-
-        final HttpHeaders headers = new HttpHeaders() {
-
-            @Override
-            public MultivaluedMap<String, String> getRequestHeaders() {
-                return map;
-            }
-
-            @Override
-            public List<String> getRequestHeader(String name) {
-                return map.get(name);
-            }
-
-            @Override
-            public MediaType getMediaType() {
-                return null;
-            }
-
-            @Override
-            public int getLength() {
-                return 0;
-            }
-
-            @Override
-            public Locale getLanguage() {
-                return null;
-            }
-
-            @Override
-            public String getHeaderString(String name) {
-                return map.get(name).get(0);
-            }
-
-            @Override
-            public Date getDate() {
-                return null;
-            }
-
-            @Override
-            public Map<String, Cookie> getCookies() {
-                return null;
-            }
-
-            @Override
-            public List<MediaType> getAcceptableMediaTypes() {
-                return null;
-            }
-
-            @Override
-            public List<Locale> getAcceptableLanguages() {
-                return null;
-            }
-        };
-
-        // empty
-        try {
-            VitamRequestIterator.isEndOfCursor(headers);
-            fail("Should raized an exception");
-        } catch (final IllegalStateException e) {}
-        try {
-            VitamRequestIterator.isNewCursor(headers);
-            fail("Should raized an exception");
-        } catch (final IllegalStateException e) {}
-        map.add(GlobalDataRest.X_CURSOR, "");
-        try {
-            VitamRequestIterator.isEndOfCursor(headers);
-            fail("Should raized an exception");
-        } catch (final IllegalStateException e) {}
-        try {
-            VitamRequestIterator.isNewCursor(headers);
-            fail("Should raized an exception");
-        } catch (final IllegalStateException e) {}
-        map.clear();
-        map.add(GlobalDataRest.X_CURSOR, "true");
-        assertTrue(VitamRequestIterator.isNewCursor(headers));
-        assertFalse(VitamRequestIterator.isEndOfCursor(headers));
-        map.clear();
-        map.add(GlobalDataRest.X_CURSOR, "true");
-        map.add(GlobalDataRest.X_CURSOR_ID, "value");
-        assertFalse(VitamRequestIterator.isNewCursor(headers));
-        assertFalse(VitamRequestIterator.isEndOfCursor(headers));
-        map.clear();
-        map.add(GlobalDataRest.X_CURSOR, "false");
-        try {
-            VitamRequestIterator.isNewCursor(headers);
-            fail("Should raized an exception");
-        } catch (final IllegalStateException e) {}
-        try {
-            assertTrue(VitamRequestIterator.isEndOfCursor(headers));
-        } catch (final IllegalStateException e) {}
-        map.clear();
-        map.add(GlobalDataRest.X_CURSOR, "false");
-        map.add(GlobalDataRest.X_CURSOR_ID, "value");
-        assertFalse(VitamRequestIterator.isNewCursor(headers));
-        assertTrue(VitamRequestIterator.isEndOfCursor(headers));
-    }
-
 }
