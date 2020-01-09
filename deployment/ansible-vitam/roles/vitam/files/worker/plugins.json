@@ -151,7 +151,7 @@
     "propertiesFile": "check_update_consistency.properties"
   },
   "CHECK_DISTRIBUTION_THRESHOLD": {
-    "className": "fr.gouv.vitam.worker.core.plugin.massprocessing.CheckDistributionThreshold"
+    "className": "fr.gouv.vitam.worker.core.plugin.common.CheckDistributionThreshold"
   },
   "PREPARE_UPDATE_UNIT_LIST": {
     "className": "fr.gouv.vitam.worker.core.plugin.massprocessing.PrepareUpdateUnits"
