@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2019)
  *
  * contact.vitam@culture.gouv.fr
@@ -42,6 +42,8 @@ import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.AdminStatusMessage;
 
+import static javax.ws.rs.core.Response.Status.INTERNAL_SERVER_ERROR;
+
 /**
  * Abstract Partial client class for all vitam clients
  */
@@ -80,7 +82,7 @@ public class DefaultAdminClient extends AbstractCommonClient implements AdminCli
             if (status == Status.OK || status == Status.SERVICE_UNAVAILABLE) {
                 return message;
             }
-            final String messageText = INTERNAL_SERVER_ERROR + " : " + status.getReasonPhrase();
+            final String messageText = INTERNAL_SERVER_ERROR.getReasonPhrase() + " : " + status.getReasonPhrase();
             LOGGER.error(messageText);
             throw new VitamClientException(messageText);
         } catch (final ProcessingException e) {

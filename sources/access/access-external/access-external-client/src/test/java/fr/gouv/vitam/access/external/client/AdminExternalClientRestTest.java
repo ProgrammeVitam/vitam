@@ -353,8 +353,6 @@ public class AdminExternalClientRestTest extends ResteasyTestApplication {
         }
     }
 
-
-
     @Test
     public void testCheckDocumentAccessExternalClientException()
         throws Exception {
@@ -414,16 +412,6 @@ public class AdminExternalClientRestTest extends ResteasyTestApplication {
             assertEquals(
                 client.findAgencyByID(new VitamContext(TENANT_ID).setAccessContract(CONTRACT), ID).toString(),
                 ClientMockResultHelper.getAgencies().toString());
-        }
-    }
-
-    @Test(expected = AccessExternalClientNotFoundException.class)
-    public void testImportFormatsAccessExternalClientNotFoundException()
-        throws Exception {
-        when(mock.post()).thenReturn(Response.status(Status.NOT_FOUND).build());
-        try (AdminExternalClientRest client = (AdminExternalClientRest) vitamServerTestRunner.getClient();
-            InputStream stream = new ByteArrayInputStream("test".getBytes())) {
-            client.createFormats(new VitamContext(TENANT_ID), stream, "test.xml");
         }
     }
 
@@ -1112,7 +1100,7 @@ public class AdminExternalClientRestTest extends ResteasyTestApplication {
             assertEquals(resp2.getStatus(), Status.INTERNAL_SERVER_ERROR.getStatusCode());
 
             when(mock.get()).thenReturn(Response.status(Status.UNSUPPORTED_MEDIA_TYPE).build());
-            RequestResponse<ProcessDetail> resp3 = client.listOperationsDetails(new VitamContext(0), null);
+            RequestResponse<ProcessDetail> resp3 = client.listOperationsDetails(new VitamContext(0), mock(ProcessQuery.class));
             assertEquals(resp3.getStatus(), Status.UNSUPPORTED_MEDIA_TYPE.getStatusCode());
         }
     }
@@ -1257,8 +1245,6 @@ public class AdminExternalClientRestTest extends ResteasyTestApplication {
             }
         }
     }
-
-
 
     @Test
     public void testCreateArchiveUnitProfilesWithCorrectJsonReturnCreated()
