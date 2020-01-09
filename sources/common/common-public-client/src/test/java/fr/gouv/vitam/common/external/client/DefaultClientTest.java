@@ -27,6 +27,7 @@
 package fr.gouv.vitam.common.external.client;
 
 import com.google.common.collect.Sets;
+import fr.gouv.vitam.common.client.VitamRequestBuilder;
 import fr.gouv.vitam.common.exception.VitamApplicationServerException;
 import fr.gouv.vitam.common.exception.VitamClientException;
 import fr.gouv.vitam.common.exception.VitamClientInternalException;
@@ -164,32 +165,27 @@ public class DefaultClientTest extends ResteasyTestApplication {
         headers.add("X-Test", "testvalue");
         LOGGER.warn("Coinfig: " + client.clientFactory.getDefaultConfigCient());
         Response message =
-            client.performRequest(HttpMethod.GET, BasicClient.STATUS_URL, headers, MediaType.APPLICATION_JSON_TYPE);
+            client.make(VitamRequestBuilder.get().withPath(BasicClient.STATUS_URL).withHeaders(headers).withJsonAccept());
         assertEquals(Response.Status.OK.getStatusCode(), message.getStatus());
         when(mock.get()).thenReturn(
             Response.status(Response.Status.OK).entity("{\"pid\":\"1\",\"name\":\"name1\", \"role\":\"role1\"}")
                 .build());
-        message = client.performRequest(HttpMethod.GET, BasicClient.STATUS_URL, headers, null, null,
-            MediaType.APPLICATION_JSON_TYPE);
+        message = client.make(VitamRequestBuilder.get().withPath("/status").withJsonAccept());
         assertEquals(Response.Status.OK.getStatusCode(), message.getStatus());
         when(mock.get()).thenReturn(
             Response.status(Response.Status.OK).entity("{\"pid\":\"1\",\"name\":\"name1\", \"role\":\"role1\"}")
                 .build());
-        message = client.performRequest(HttpMethod.GET, BasicClient.STATUS_URL, headers, null, null,
-            MediaType.APPLICATION_JSON_TYPE, true);
+        message = client.make(VitamRequestBuilder.get().withPath("/status").withJsonAccept().withChunckedMode(true));
         assertEquals(Response.Status.OK.getStatusCode(), message.getStatus());
         when(mock.get()).thenReturn(
             Response.status(Response.Status.OK).entity("{\"pid\":\"1\",\"name\":\"name1\", \"role\":\"role1\"}")
                 .build());
-        message = client.performRequest(HttpMethod.GET, BasicClient.STATUS_URL, headers, null, null,
-            MediaType.APPLICATION_JSON_TYPE, false);
+        message = client.make(VitamRequestBuilder.get().withPath("/status").withJsonAccept());
         assertEquals(Response.Status.OK.getStatusCode(), message.getStatus());
         when(mock.get()).thenReturn(
             Response.status(Response.Status.OK).entity("{\"pid\":\"1\",\"name\":\"name1\", \"role\":\"role1\"}")
                 .build());
-        message = client.performRequest(HttpMethod.GET, BasicClient.STATUS_URL, headers, "{}",
-            MediaType.APPLICATION_JSON_TYPE,
-            MediaType.APPLICATION_JSON_TYPE, false);
+        message = client.make(VitamRequestBuilder.get().withPath("/status").withJson().withHeaders(headers).withBody("{}"));
         assertEquals(Response.Status.OK.getStatusCode(), message.getStatus());
     }
 
@@ -267,42 +263,42 @@ public class DefaultClientTest extends ResteasyTestApplication {
         Response response;
         try {
             when(mock.get()).thenThrow(new ForbiddenException());
-            response = client.performRequest(HttpMethod.GET, "/status", null, MediaType.APPLICATION_JSON_TYPE);
+            response = client.make(VitamRequestBuilder.get().withPath("/status").withJsonAccept());
             assertEquals(Response.Status.FORBIDDEN.getStatusCode(), response.getStatus());
         } catch (final Exception e) {
             // Ignore
         }
         try {
             when(mock.get()).thenThrow(new NotAcceptableException());
-            response = client.performRequest(HttpMethod.GET, "/status", null, MediaType.APPLICATION_JSON_TYPE);
+            response = client.make(VitamRequestBuilder.get().withPath("/status").withJsonAccept());
             assertEquals(Response.Status.NOT_ACCEPTABLE.getStatusCode(), response.getStatus());
         } catch (final Exception e) {
             // Ignore
         }
         try {
             when(mock.get()).thenThrow(new NotAllowedException("POST"));
-            response = client.performRequest(HttpMethod.GET, "/status", null, MediaType.APPLICATION_JSON_TYPE);
+            response = client.make(VitamRequestBuilder.get().withPath("/status").withJsonAccept());
             assertEquals(Response.Status.METHOD_NOT_ALLOWED.getStatusCode(), response.getStatus());
         } catch (final Exception e) {
             // Ignore
         }
         try {
             when(mock.get()).thenThrow(new NotAuthorizedException(Response.status(Status.UNAUTHORIZED).build()));
-            response = client.performRequest(HttpMethod.GET, "/status", null, MediaType.APPLICATION_JSON_TYPE);
+            response = client.make(VitamRequestBuilder.get().withPath("/status").withJsonAccept());
             assertEquals(Response.Status.UNAUTHORIZED.getStatusCode(), response.getStatus());
         } catch (final Exception e) {
             // Ignore
         }
         try {
             when(mock.get()).thenThrow(new NotSupportedException());
-            response = client.performRequest(HttpMethod.GET, "/status", null, MediaType.APPLICATION_JSON_TYPE);
+            response = client.make(VitamRequestBuilder.get().withPath("/status").withJsonAccept());
             assertEquals(Response.Status.UNSUPPORTED_MEDIA_TYPE.getStatusCode(), response.getStatus());
         } catch (final Exception e) {
             // Ignore
         }
         try {
             when(mock.get()).thenThrow(new ServiceUnavailableException());
-            response = client.performRequest(HttpMethod.GET, "/status", null, MediaType.APPLICATION_JSON_TYPE);
+            response = client.make(VitamRequestBuilder.get().withPath("/status").withJsonAccept());
             assertEquals(Response.Status.SERVICE_UNAVAILABLE.getStatusCode(), response.getStatus());
         } catch (final Exception e) {
             // Ignore
@@ -310,7 +306,7 @@ public class DefaultClientTest extends ResteasyTestApplication {
         try {
             when(mock.get()).thenThrow(new NotFoundException());
             response =
-                client.performRequest(HttpMethod.GET, "/statusNotFound", null, MediaType.APPLICATION_JSON_TYPE);
+                client.make(VitamRequestBuilder.get().withPath("/statusNotFound").withJsonAccept());
             assertEquals(Response.Status.NOT_FOUND.getStatusCode(), response.getStatus());
         } catch (final Exception e) {
             // Ignore
@@ -319,27 +315,21 @@ public class DefaultClientTest extends ResteasyTestApplication {
         vitamServerTestRunner.stop();
         try {
             response =
-                client.performRequest(HttpMethod.GET, "/status", null, MediaType.APPLICATION_JSON_TYPE);
+                client.make(VitamRequestBuilder.get().withPath("/status").withJsonAccept());
             fail("Should generate an exception");
         } catch (final VitamClientInternalException e) {
             // Ignore
             LOGGER.info(e);
         }
         try {
-            response = client.performRequest(HttpMethod.GET, BasicClient.STATUS_URL, null,
-                "{\"pid\":\"1\",\"name\":\"name1\", \"role\":\"role1\"}",
-                MediaType.APPLICATION_JSON_TYPE,
-                MediaType.APPLICATION_JSON_TYPE, false);
+            response = client.make(VitamRequestBuilder.get().withPath("/status").withJson().withBody("{\"pid\":\"1\",\"name\":\"name1\", \"role\":\"role1\"}"));
             fail("Should generate an exception");
         } catch (final VitamClientInternalException e) {
             // Ignore
             LOGGER.info(e);
         }
         try {
-            response = client.performRequest(HttpMethod.GET, BasicClient.STATUS_URL, null,
-                "{\"pid\":\"1\",\"name\":\"name1\", \"role\":\"role1\"}",
-                MediaType.APPLICATION_JSON_TYPE,
-                MediaType.APPLICATION_JSON_TYPE, true);
+            response = client.make(VitamRequestBuilder.get().withPath("/status").withJson().withBody("{\"pid\":\"1\",\"name\":\"name1\", \"role\":\"role1\"}").withChunckedMode(true));
             fail("Should generate an exception");
         } catch (final VitamClientInternalException e) {
             // Ignore

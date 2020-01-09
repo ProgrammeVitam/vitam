@@ -140,7 +140,7 @@ abstract class AbstractCommonClient implements BasicClient {
         throws VitamApplicationServerException {
         Response response = null;
         try {
-            response = performRequest(HttpMethod.GET, STATUS_URL, headers, MediaType.APPLICATION_JSON_TYPE);
+            response = make(VitamRequestBuilder.get().withPath(STATUS_URL).withHeaders(headers).withJsonAccept());
             final Response.Status status = Response.Status.fromStatusCode(response.getStatus());
             if (status == Status.OK || status == Status.NO_CONTENT) {
                 return;
