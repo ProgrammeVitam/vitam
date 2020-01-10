@@ -109,7 +109,7 @@
         name: "vitam-create-accession-register-symbolic.timer"
         daemon_reload: "yes"
         enabled: "yes"
-        state: "stopped"
+        state: "started"
       when: inventory_hostname == groups["hosts-functional-administration"] | last
 
   when: primary_site | lower == "false"
