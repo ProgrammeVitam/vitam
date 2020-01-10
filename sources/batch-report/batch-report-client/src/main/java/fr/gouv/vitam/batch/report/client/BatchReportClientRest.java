@@ -54,7 +54,7 @@ import static javax.ws.rs.core.Response.Status.fromStatusCode;
 public class BatchReportClientRest extends DefaultClient implements BatchReportClient {
 
     private static final String APPEND = "append";
-    private static final String STORE = "store";
+    private static final String STORE_TO_WORKSPACE = "storeToWorkspace";
     private static final String CLEANUP = "cleanup";
     private static final String EXPORT_PURGE_UNIT_DISTINCT_OBJECTGROUPS = "purge_unit/objectgroup_export/";
     private static final String EXPORT_PURGE_ACCESSION_REGISTER = "purge/accession_register_export/";
@@ -99,10 +99,10 @@ public class BatchReportClientRest extends DefaultClient implements BatchReportC
     }
 
     @Override
-    public void storeReport(Report reportEntry) throws VitamClientInternalException {
+    public void storeReportToWorkspace(Report reportInfo) throws VitamClientInternalException {
         VitamRequestBuilder request = post()
-            .withPath(STORE)
-            .withBody(reportEntry)
+            .withPath(STORE_TO_WORKSPACE)
+            .withBody(reportInfo)
             .withHeader(GlobalDataRest.X_TENANT_ID, VitamThreadUtils.getVitamSession().getTenantId())
             .withJson();
         try (Response response = make(request)) {

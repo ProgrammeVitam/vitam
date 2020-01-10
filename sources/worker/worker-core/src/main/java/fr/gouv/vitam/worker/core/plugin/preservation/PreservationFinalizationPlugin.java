@@ -36,6 +36,7 @@ import fr.gouv.vitam.batch.report.model.ReportResults;
 import fr.gouv.vitam.batch.report.model.ReportSummary;
 import fr.gouv.vitam.batch.report.model.ReportType;
 import fr.gouv.vitam.common.LocalDateUtil;
+import fr.gouv.vitam.common.exception.VitamException;
 import fr.gouv.vitam.common.i18n.VitamLogbookMessages;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
@@ -49,26 +50,29 @@ import fr.gouv.vitam.common.model.administration.preservation.PreservationScenar
 import fr.gouv.vitam.common.model.logbook.LogbookEventOperation;
 import fr.gouv.vitam.common.model.logbook.LogbookOperation;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
+import fr.gouv.vitam.logbook.common.exception.LogbookClientException;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClient;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClientFactory;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 import fr.gouv.vitam.worker.common.HandlerIO;
+import fr.gouv.vitam.worker.core.exception.ProcessingStatusException;
 import fr.gouv.vitam.worker.core.handler.ActionHandler;
 import fr.gouv.vitam.worker.core.plugin.preservation.model.ContextPreservationReport;
 import fr.gouv.vitam.worker.core.plugin.preservation.model.ReportOutput;
 import fr.gouv.vitam.worker.core.plugin.preservation.model.StatusOutcome;
 import fr.gouv.vitam.worker.core.plugin.preservation.service.PreservationReportService;
 import fr.gouv.vitam.worker.core.utils.PluginHelper.EventDetails;
+import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
 
 import java.io.File;
+import java.io.IOException;
 import java.io.InputStream;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import static fr.gouv.vitam.common.json.JsonHandler.getFromJsonNode;
 import static fr.gouv.vitam.common.model.StatusCode.FATAL;
 import static fr.gouv.vitam.common.model.StatusCode.OK;
 import static fr.gouv.vitam.worker.core.utils.PluginHelper.buildItemStatus;
@@ -76,7 +80,6 @@ import static fr.gouv.vitam.worker.core.utils.PluginHelper.buildItemStatus;
 public class PreservationFinalizationPlugin extends ActionHandler {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(PreservationFinalizationPlugin.class);
     private static final String PLUGIN_NAME = "PRESERVATION_FINALIZATION";
-    private static final String PRESERVATION_PREPARATION = "PRESERVATION_PREPARATION";
     protected static final String PRESERVATION = "PRESERVATION";
     private static final String PRESERVATION_OK = "PRESERVATION.OK";
     private PreservationReportService preservationReportService;
@@ -94,24 +97,60 @@ public class PreservationFinalizationPlugin extends ActionHandler {
     }
 
     @Override
-    public ItemStatus execute(WorkerParameters param, HandlerIO handler) throws ProcessingException, ContentAddressableStorageServerException {
+    public ItemStatus execute(WorkerParameters param, HandlerIO handler)
+        throws ProcessingException, ContentAddressableStorageServerException {
+
+        try {
+
+            storeReportToWorkspace(param, handler);
+
+            storeReportToOffers(param.getContainerName());
+
+            cleanupReport(param.getRequestId());
+
+        } catch (Exception e) {
+
+            LOGGER.error("Error on finalization", e);
+            ObjectNode eventDetails = JsonHandler.createObjectNode();
+            eventDetails.put("error", e.getMessage());
+            return buildItemStatus(PLUGIN_NAME, FATAL, eventDetails);
+        }
+
+        return buildItemStatus(PLUGIN_NAME, OK, EventDetails.of("Finalization ok."));
+    }
+
+    private void storeReportToWorkspace(WorkerParameters param, HandlerIO handler)
+        throws IOException, fr.gouv.vitam.common.exception.InvalidParseOperationException,
+        ContentAddressableStorageNotFoundException, ContentAddressableStorageServerException, LogbookClientException,
+        ProcessingStatusException {
+
+        if (preservationReportService.isReportWrittenInWorkspace(param.getContainerName())) {
+            // Report already generated to workspace (idempotency)
+            return;
+        }
 
         Integer tenant = VitamThreadUtils.getVitamSession().getTenantId();
         String evId = param.getRequestId();
+
         try (InputStream inputRequest = handler.getInputStreamFromWorkspace("preservationRequest");
             InputStream scenarioModelInputStream = handler.getInputStreamFromWorkspace("preservationScenarioModel")) {
 
 
-            PreservationRequest preservationRequest = JsonHandler.getFromInputStream(inputRequest, PreservationRequest.class);
+            PreservationRequest preservationRequest =
+                JsonHandler.getFromInputStream(inputRequest, PreservationRequest.class);
             File griffinModelFile = handler.getFileFromWorkspace("griffinModel");
             List<GriffinModel> griffinModel =
-                JsonHandler.getFromFileAsTypeReference(griffinModelFile, new TypeReference<List<GriffinModel>>() {});
-            PreservationScenarioModel scenarioModel = JsonHandler.getFromInputStream(scenarioModelInputStream, PreservationScenarioModel.class);
+                JsonHandler.getFromFileAsTypeReference(griffinModelFile, new TypeReference<List<GriffinModel>>() {
+                });
+            PreservationScenarioModel scenarioModel =
+                JsonHandler.getFromInputStream(scenarioModelInputStream, PreservationScenarioModel.class);
 
             JsonNode result = logbookOperationsClient.selectOperationById(param.getContainerName());
-            RequestResponseOK<JsonNode> logbookOperationVersionModelResponseOK = RequestResponseOK.getFromJsonNode(result);
+            RequestResponseOK<JsonNode> logbookOperationVersionModelResponseOK =
+                RequestResponseOK.getFromJsonNode(result);
             LogbookOperation logbookOperationVersionModel =
-                JsonHandler.getFromJsonNode(logbookOperationVersionModelResponseOK.getFirstResult(), LogbookOperation.class);
+                JsonHandler
+                    .getFromJsonNode(logbookOperationVersionModelResponseOK.getFirstResult(), LogbookOperation.class);
             List<LogbookEventOperation> events = logbookOperationVersionModel.getEvents();
 
             List<StatusOutcome> statusOutcomes = events.stream()
@@ -126,7 +165,8 @@ public class PreservationFinalizationPlugin extends ActionHandler {
                 evDetData = JsonHandler.toJsonNode(reportOutput.getEvDetData());
             }
             OperationSummary operationSummary =
-                new OperationSummary(tenant, evId, reportOutput.getEvType(), reportOutput.getOutcome(), reportOutput.getOutDetail(),
+                new OperationSummary(tenant, evId, reportOutput.getEvType(), reportOutput.getOutcome(),
+                    reportOutput.getOutDetail(),
                     reportOutput.getOutMsg(), rSI, evDetData);
 
             String startDate = logbookOperationVersionModel.getEvDateTime();
@@ -139,16 +179,18 @@ public class PreservationFinalizationPlugin extends ActionHandler {
                 new ContextPreservationReport(preservationRequest.getDslQuery(), scenarioModel, griffinModel);
             JsonNode context = JsonHandler.toJsonNode(contextPreservationReport);
             Report reportInfo = new Report(operationSummary, reportSummary, context);
-            preservationReportService.storeReport(reportInfo, param.getRequestId());
-        } catch (Exception e) {
 
-            LOGGER.error("Error on finalization", e);
-            ObjectNode eventDetails = JsonHandler.createObjectNode();
-            eventDetails.put("error", e.getMessage());
-            return buildItemStatus(PLUGIN_NAME, FATAL, eventDetails);
+
+            preservationReportService.storeReportToWorkspace(reportInfo);
         }
+    }
 
-        return buildItemStatus(PLUGIN_NAME, OK, EventDetails.of("Finalization ok."));
+    private void storeReportToOffers(String processId) throws ProcessingStatusException {
+        preservationReportService.storeReportToOffers(processId);
+    }
+
+    private void cleanupReport(String processId) throws ProcessingStatusException {
+        preservationReportService.cleanupReport(processId);
     }
 
     private ReportOutput createLogbookReport(List<StatusOutcome> statusOutcomes) {
@@ -158,8 +200,9 @@ public class PreservationFinalizationPlugin extends ActionHandler {
             return createReportOutput(new StatusOutcome(StatusCode.OK, PRESERVATION_OK, VitamLogbookMessages.getCodeOp(
                 PRESERVATION, StatusCode.OK), null), StatusCode.OK);
         }
-        List<StatusOutcome> statusKo = statusOutcomeNotOk.stream().filter(statusOutcome -> StatusCode.KO.equals(statusOutcome.getStatusCode()))
-            .collect(Collectors.toList());
+        List<StatusOutcome> statusKo =
+            statusOutcomeNotOk.stream().filter(statusOutcome -> StatusCode.KO.equals(statusOutcome.getStatusCode()))
+                .collect(Collectors.toList());
         if (statusOutcomeNotOk.size() == statusOutcomes.size() && statusKo.size() == statusOutcomeNotOk.size()) {
             return statusOutcomeNotOk.stream().map(statusOutcome -> createReportOutput(statusOutcome, StatusCode.KO))
                 .reduce((this::reportCombine))
@@ -178,7 +221,8 @@ public class PreservationFinalizationPlugin extends ActionHandler {
     }
 
     private ReportOutput createReportOutput(StatusOutcome statusOutcome, StatusCode statusCode) {
-        return new ReportOutput(PRESERVATION, statusCode.name(), statusOutcome.getOutDetail(), statusOutcome.getOutMessg(),
+        return new ReportOutput(PRESERVATION, statusCode.name(), statusOutcome.getOutDetail(),
+            statusOutcome.getOutMessg(),
             statusOutcome.getEvDetData());
     }
 

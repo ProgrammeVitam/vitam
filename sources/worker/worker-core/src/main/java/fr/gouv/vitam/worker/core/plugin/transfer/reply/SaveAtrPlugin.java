@@ -84,6 +84,7 @@ public class SaveAtrPlugin extends ActionHandler {
             String messageIdentifier = atr.getMessageIdentifier().getValue();
 
             ObjectDescription description = getDescription(messageIdentifier, handler.getContainerName());
+
             StoredInfoResult storedInfo = storageClient.storeFileFromWorkspace(VitamConfiguration.getDefaultStrategy(), description.getType(), description.getObjectName(), description);
 
             handler.addOutputResult(0, atr);

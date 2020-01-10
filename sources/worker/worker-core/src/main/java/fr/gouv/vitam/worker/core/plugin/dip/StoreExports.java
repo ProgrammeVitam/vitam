@@ -26,6 +26,8 @@
  */
 package fr.gouv.vitam.worker.core.plugin.dip;
 
+import com.google.common.annotations.VisibleForTesting;
+import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.ItemStatus;
@@ -33,6 +35,13 @@ import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
+import fr.gouv.vitam.storage.engine.client.StorageClient;
+import fr.gouv.vitam.storage.engine.client.StorageClientFactory;
+import fr.gouv.vitam.storage.engine.client.exception.StorageAlreadyExistsClientException;
+import fr.gouv.vitam.storage.engine.client.exception.StorageNotFoundClientException;
+import fr.gouv.vitam.storage.engine.client.exception.StorageServerClientException;
+import fr.gouv.vitam.storage.engine.common.model.DataCategory;
+import fr.gouv.vitam.storage.engine.common.model.request.ObjectDescription;
 import fr.gouv.vitam.worker.common.HandlerIO;
 import fr.gouv.vitam.worker.core.handler.ActionHandler;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageException;
@@ -57,6 +66,17 @@ public class StoreExports extends ActionHandler {
     static final String CONTENT = "Content";
     static final String DIP_CONTAINER = "DIP";
     public static final String TRANSFER_CONTAINER = "TRANSFER";
+    private static final String JSONL_EXTENSION = ".jsonl";
+    private final StorageClientFactory storageClientFactory;
+
+    public StoreExports() {
+        this(StorageClientFactory.getInstance());
+    }
+
+    @VisibleForTesting
+    StoreExports(StorageClientFactory storageClientFactory) {
+        this.storageClientFactory = storageClientFactory;
+    }
 
 
     @Override
@@ -65,8 +85,7 @@ public class StoreExports extends ActionHandler {
 
         String container;
         String statusAction;
-        if(params.getWorkflowIdentifier().equals(ARCHIVE_TRANSFER))
-        {
+        if (isTransferWorkflow(params)) {
             container = TRANSFER_CONTAINER;
             statusAction = TRANSFER_DIP;
         } else {
@@ -80,15 +99,36 @@ public class StoreExports extends ActionHandler {
             String tenantFolder = Integer.toString(VitamThreadUtils.getVitamSession().getTenantId());
             String zipFileName = params.getContainerName();
 
+            if (isTransferWorkflow(params)) {
+                storeReportToOffers(params.getContainerName());
+            }
+
             zipWorkspace(handler, tenantFolder, zipFileName, container, SEDA_FILE, CONTENT);
+
             itemStatus.increment(StatusCode.OK);
-        } catch (ContentAddressableStorageException e) {
+        } catch (ContentAddressableStorageException | StorageAlreadyExistsClientException | StorageNotFoundClientException | StorageServerClientException e) {
             throw new ProcessingException(e);
         }
         return new ItemStatus(statusAction).setItemsStatus(statusAction, itemStatus);
     }
 
-    private void zipWorkspace(HandlerIO handler, String outputDir, String outputFile, String container, String... inputFiles)
+    private boolean isTransferWorkflow(WorkerParameters params) {
+        return params.getWorkflowIdentifier().equals(ARCHIVE_TRANSFER);
+    }
+
+    private void storeReportToOffers(String container)
+        throws StorageAlreadyExistsClientException, StorageNotFoundClientException, StorageServerClientException {
+        try (StorageClient storageClient = storageClientFactory.getClient()) {
+            ObjectDescription description = new ObjectDescription();
+            description.setWorkspaceContainerGUID(container);
+            description.setWorkspaceObjectURI(container + JSONL_EXTENSION);
+            storageClient.storeFileFromWorkspace(VitamConfiguration.getDefaultStrategy(),
+                DataCategory.REPORT, container + JSONL_EXTENSION, description);
+        }
+    }
+
+    private void zipWorkspace(HandlerIO handler, String outputDir, String outputFile, String container,
+        String... inputFiles)
         throws ContentAddressableStorageException {
 
         LOGGER.debug("Try to compress into workspace...");

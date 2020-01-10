@@ -77,6 +77,25 @@ public class MigrationFinalize extends ActionHandler {
 
         ItemStatus itemStatus = new ItemStatus(MIGRATION_FINALIZE);
 
+        String reportFileName = handlerIO.getContainerName() + JSON_FILE_EXTENSION;
+
+        saveReportToWorkspace(handlerIO, reportFileName);
+
+        storeInOffers(reportFileName);
+
+        itemStatus.increment(StatusCode.OK);
+
+        return new ItemStatus(MIGRATION_FINALIZE).setItemsStatus(MIGRATION_FINALIZE, itemStatus);
+    }
+
+    private void saveReportToWorkspace(HandlerIO handlerIO, String reportFileName)
+        throws ProcessingException, ContentAddressableStorageServerException {
+
+        if (handlerIO.isExistingFileInWorkspace(reportFileName)) {
+            // Report already exists (idempotency)
+            return;
+        }
+
         File report = null;
         try {
 
@@ -99,17 +118,20 @@ public class MigrationFinalize extends ActionHandler {
                 os.write("}".getBytes(StandardCharsets.UTF_8));
             }
 
-            backupService.backup(new FileInputStream(report), DataCategory.REPORT,
-                handlerIO.getContainerName() + JSON_FILE_EXTENSION);
+            handlerIO.transferAtomicFileToWorkspace(reportFileName, report);
 
-            itemStatus.increment(StatusCode.OK);
-
-            return new ItemStatus(MIGRATION_FINALIZE).setItemsStatus(MIGRATION_FINALIZE, itemStatus);
-
-        } catch (IOException | BackupServiceException | ContentAddressableStorageNotFoundException e) {
+        } catch (IOException | ContentAddressableStorageNotFoundException e) {
             throw new ProcessingException(e);
         } finally {
             FileUtils.deleteQuietly(report);
+        }
+    }
+
+    private void storeInOffers(String reportFileName) throws ProcessingException {
+        try {
+            backupService.backupFromWorkspace(reportFileName, DataCategory.REPORT, reportFileName);
+        } catch (BackupServiceException e) {
+            throw new ProcessingException(e);
         }
     }
 

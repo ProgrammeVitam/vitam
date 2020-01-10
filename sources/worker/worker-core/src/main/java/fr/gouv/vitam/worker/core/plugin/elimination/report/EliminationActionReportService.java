@@ -27,62 +27,24 @@
 package fr.gouv.vitam.worker.core.plugin.elimination.report;
 
 import com.google.common.annotations.VisibleForTesting;
-import fr.gouv.vitam.batch.report.client.BatchReportClient;
 import fr.gouv.vitam.batch.report.client.BatchReportClientFactory;
-import fr.gouv.vitam.batch.report.model.Report;
-import fr.gouv.vitam.batch.report.model.ReportBody;
 import fr.gouv.vitam.batch.report.model.ReportType;
 import fr.gouv.vitam.batch.report.model.entry.EliminationActionUnitReportEntry;
-import fr.gouv.vitam.batch.report.model.entry.ReportEntry;
-import fr.gouv.vitam.common.exception.VitamClientInternalException;
-import fr.gouv.vitam.common.model.StatusCode;
-import fr.gouv.vitam.worker.core.exception.ProcessingStatusException;
+import fr.gouv.vitam.storage.engine.client.StorageClientFactory;
+import fr.gouv.vitam.worker.core.plugin.CommonReportService;
+import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
 
-import java.util.List;
-
-public class EliminationActionReportService {
-
-    private final BatchReportClientFactory batchReportClientFactory;
+public class EliminationActionReportService extends CommonReportService<EliminationActionUnitReportEntry> {
 
     public EliminationActionReportService() {
-        this(
-            BatchReportClientFactory.getInstance());
+        super(ReportType.ELIMINATION_ACTION_UNIT);
     }
 
     @VisibleForTesting
-    EliminationActionReportService(
-        BatchReportClientFactory batchReportClientFactory) {
-        this.batchReportClientFactory = batchReportClientFactory;
-    }
-
-    public void appendUnitEntries(String processId, List<EliminationActionUnitReportEntry> entries)
-        throws ProcessingStatusException {
-
-        try (BatchReportClient batchReportClient = batchReportClientFactory.getClient()) {
-            ReportBody<EliminationActionUnitReportEntry> reportBody = new ReportBody<>();
-            reportBody.setProcessId(processId);
-            reportBody.setReportType(ReportType.ELIMINATION_ACTION_UNIT);
-            reportBody.setEntries(entries);
-            batchReportClient.appendReportEntries(reportBody);
-        } catch (VitamClientInternalException e) {
-            throw new ProcessingStatusException(StatusCode.FATAL, "Could not append entries into report", e);
-        }
-    }
-
-    public void storeReport(Report reportInfo) throws ProcessingStatusException {
-        try (BatchReportClient batchReportClient = batchReportClientFactory.getClient()) {
-            batchReportClient.storeReport(reportInfo);
-        } catch (VitamClientInternalException e) {
-            throw new ProcessingStatusException(StatusCode.FATAL, "Could not append entries into report", e);
-        }
-    }
-
-    public void cleanupReport(String processId) throws ProcessingStatusException {
-        try (BatchReportClient batchReportClient = batchReportClientFactory.getClient()) {
-            batchReportClient.cleanupReport(processId, ReportType.ELIMINATION_ACTION_UNIT);
-        } catch (VitamClientInternalException e) {
-            throw new ProcessingStatusException(StatusCode.FATAL,
-                "Could not cleanup elimination action reports (" + processId + ")", e);
-        }
+    public EliminationActionReportService(BatchReportClientFactory reportFactory,
+        WorkspaceClientFactory workspaceClientFactory,
+        StorageClientFactory storageClientFactory) {
+        super(ReportType.ELIMINATION_ACTION_UNIT, reportFactory, workspaceClientFactory, storageClientFactory);
     }
 }
+

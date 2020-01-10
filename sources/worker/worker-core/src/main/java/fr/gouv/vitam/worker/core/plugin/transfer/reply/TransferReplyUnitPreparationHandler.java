@@ -190,7 +190,7 @@ public class TransferReplyUnitPreparationHandler extends ActionHandler {
     private BufferedConsumer<TransferReplyUnitReportEntry> createReportAppender(String processId) {
         return new BufferedConsumer<>(VitamConfiguration.getBatchSize(), entries -> {
             try {
-                transferReplyReportService.appendUnitEntries(processId, entries);
+                transferReplyReportService.appendEntries(processId, entries);
             } catch (ProcessingStatusException e) {
                 throw new RuntimeException(e);
             }

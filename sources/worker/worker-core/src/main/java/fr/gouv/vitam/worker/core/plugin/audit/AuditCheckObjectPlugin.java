@@ -37,6 +37,7 @@ import java.util.stream.Collectors;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import fr.gouv.vitam.storage.engine.common.referential.model.StorageStrategy;
+import fr.gouv.vitam.worker.core.exception.ProcessingStatusException;
 import org.apache.commons.collections4.IterableUtils;
 
 import com.google.common.annotations.VisibleForTesting;
@@ -91,7 +92,7 @@ public class AuditCheckObjectPlugin extends ActionHandler {
 
         try {
             return executeAudit(param, handler);
-        } catch (AuditException e) {
+        } catch (ProcessingStatusException e) {
             LOGGER.error(String.format("Audit action failed with status [%s]", e.getStatusCode()), e);
             return buildItemStatus(AUDIT_CHECK_OBJECT, e.getStatusCode(), null);
         }
@@ -99,7 +100,7 @@ public class AuditCheckObjectPlugin extends ActionHandler {
     }
 
     private ItemStatus executeAudit(WorkerParameters param, HandlerIO handler)
-            throws AuditException, ProcessingException {
+            throws ProcessingStatusException, ProcessingException {
         final ItemStatus itemStatus = new ItemStatus(AUDIT_CHECK_OBJECT);
         Map<WorkerParameterName, String> mapParameters = param.getMapParameters();
         String action = mapParameters.get(WorkerParameterName.auditActions);
@@ -124,23 +125,23 @@ public class AuditCheckObjectPlugin extends ActionHandler {
         return new ItemStatus(AUDIT_CHECK_OBJECT).setItemsStatus(AUDIT_CHECK_OBJECT, itemStatus);
     }
 
-    private AuditObjectGroup loadAuditLine(WorkerParameters param) throws AuditException {
+    private AuditObjectGroup loadAuditLine(WorkerParameters param) throws ProcessingStatusException {
         AuditObjectGroup auditDistributionLine;
         try {
             auditDistributionLine = JsonHandler.getFromJsonNode(param.getObjectMetadata(), AuditObjectGroup.class);
 
         } catch (InvalidParseOperationException e) {
-            throw new AuditException(StatusCode.FATAL, "Could not load audit object group data", e);
+            throw new ProcessingStatusException(StatusCode.FATAL, "Could not load audit object group data", e);
         }
         return auditDistributionLine;
     }
 
-    private List<StorageStrategy> loadStorageStrategies(HandlerIO handler) throws AuditException {
+    private List<StorageStrategy> loadStorageStrategies(HandlerIO handler) throws ProcessingStatusException {
         try {
             return JsonHandler.getFromFileAsTypeReference((File) handler.getInput(STRATEGIES_IN_RANK), new TypeReference<List<StorageStrategy>>() {
             });
         } catch (InvalidParseOperationException e) {
-            throw new AuditException(StatusCode.FATAL, "Could not load storage strategies datas", e);
+            throw new ProcessingStatusException(StatusCode.FATAL, "Could not load storage strategies datas", e);
         }
     }
 
@@ -174,8 +175,8 @@ public class AuditCheckObjectPlugin extends ActionHandler {
 
     }
 
-    private void addReportEntry(String processId, AuditObjectGroupReportEntry entry) throws AuditException {
-        auditReportService.appendAuditEntries(processId, Arrays.asList(entry));
+    private void addReportEntry(String processId, AuditObjectGroupReportEntry entry) throws ProcessingStatusException {
+        auditReportService.appendEntries(processId, Arrays.asList(entry));
     }
 
 }

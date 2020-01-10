@@ -382,6 +382,7 @@ public class LogbookOperationsImpl implements LogbookOperations {
                 objectDescription.setObjectName(operationGuid);
                 objectDescription.setType(DataCategory.BACKUP_OPERATION);
                 objectDescription.setWorkspaceObjectURI(operationGuid);
+
                 storageClient.storeFileFromWorkspace(VitamConfiguration.getDefaultStrategy(), DataCategory.BACKUP_OPERATION, operationGuid,
                     objectDescription);
             } catch (StorageAlreadyExistsClientException | StorageNotFoundClientException | StorageServerClientException e) {

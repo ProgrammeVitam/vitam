@@ -40,7 +40,6 @@ import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
-import fr.gouv.vitam.functional.administration.common.BackupService;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 import fr.gouv.vitam.worker.common.HandlerIO;
@@ -61,26 +60,20 @@ public class TransferReplyReportGenerationHandler extends ActionHandler {
     private static final String TRANSFER_REPLY_REPORT_GENERATION = "TRANSFER_REPLY_REPORT_GENERATION";
 
     private final TransferReplyReportService transferReplyReportService;
-    private final BackupService backupService;
 
     /**
      * Default constructor
      */
     public TransferReplyReportGenerationHandler() {
-        this(
-            new TransferReplyReportService(),
-            new BackupService());
+        this(new TransferReplyReportService());
     }
 
     /***
      * Test only constructor
      */
     @VisibleForTesting
-    TransferReplyReportGenerationHandler(
-        TransferReplyReportService TransferReplyReportService,
-        BackupService backupService) {
+    TransferReplyReportGenerationHandler(TransferReplyReportService TransferReplyReportService) {
         this.transferReplyReportService = TransferReplyReportService;
-        this.backupService = backupService;
     }
 
     @Override
@@ -88,7 +81,10 @@ public class TransferReplyReportGenerationHandler extends ActionHandler {
         throws ProcessingException, ContentAddressableStorageServerException {
 
         try {
-            generateTransferReplyReport(param);
+
+            generateTransferReplyReportToWorkspace(param);
+
+            storeReportToOffers(param);
 
             LOGGER.info("Transfer reply finalization succeeded");
             return buildItemStatus(TRANSFER_REPLY_REPORT_GENERATION, StatusCode.OK, null);
@@ -99,7 +95,13 @@ public class TransferReplyReportGenerationHandler extends ActionHandler {
         }
     }
 
-    private void generateTransferReplyReport(WorkerParameters param) throws ProcessingStatusException {
+    private void generateTransferReplyReportToWorkspace(WorkerParameters param) throws ProcessingStatusException {
+
+        if (transferReplyReportService.isReportWrittenInWorkspace(param.getContainerName())) {
+            // Report already generated to workspace (idempotency)
+            return;
+        }
+
         Integer tenant = VitamThreadUtils.getVitamSession().getTenantId();
         String evId = param.getContainerName();
         String evType = ""; // FIXME To be Fill in a post commit
@@ -125,7 +127,12 @@ public class TransferReplyReportGenerationHandler extends ActionHandler {
         JsonNode context = JsonHandler.createObjectNode();
 
         Report reportInfo = new Report(operationSummary, reportSummary, context);
-        transferReplyReportService.storeReport(reportInfo);
+
+        transferReplyReportService.storeReportToWorkspace(reportInfo);
+    }
+
+    private void storeReportToOffers(WorkerParameters param) throws ProcessingStatusException {
+        this.transferReplyReportService.storeReportToOffers(param.getContainerName());
     }
 
     @Override

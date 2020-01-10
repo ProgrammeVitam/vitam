@@ -36,7 +36,6 @@ import fr.gouv.vitam.common.guid.GUID;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.json.CanonicalJsonFormatter;
 import fr.gouv.vitam.common.json.JsonHandler;
-import fr.gouv.vitam.common.logging.SysErrLogger;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.StatusCode;
@@ -96,7 +95,6 @@ public class LogbookOperationTraceabilityHelper implements LogbookTraceabilityHe
     private static final String EVENT_ID = eventIdentifier.getDbname();
     private static final String EVENT_DETAIL_DATA = eventDetailData.getDbname();
     private static final String ZIP_NAME = "LogbookOperation";
-    private static final String LOGBOOK = "logbook";
 
     private final LogbookOperations logbookOperations;
     private final GUID operationID;
@@ -284,25 +282,26 @@ public class LogbookOperationTraceabilityHelper implements LogbookTraceabilityHe
     }
 
     @Override
-    public void storeAndDeleteZip(Integer tenant, String strategyId, File zipFile, String fileName, String uri, TraceabilityEvent event)
+    public void storeAndDeleteZip(Integer tenant, String strategyId, File zipFile, String fileName,
+        TraceabilityEvent event)
         throws TraceabilityException {
         try (InputStream inputStream = new BufferedInputStream(new FileInputStream(zipFile));
             final WorkspaceClient workspaceClient = WorkspaceClientFactory.getInstance().getClient()) {
 
-            String containerName = VitamThreadUtils.getVitamSession().getRequestId() + "-Traceability";
+            String containerName = VitamThreadUtils.getVitamSession().getRequestId();
             workspaceClient.createContainer(containerName);
-            workspaceClient.putObject(containerName, uri, inputStream);
+            workspaceClient.putObject(containerName, fileName, inputStream);
 
             final StorageClientFactory storageClientFactory = StorageClientFactory.getInstance();
 
             final ObjectDescription description = new ObjectDescription();
             description.setWorkspaceContainerGUID(containerName);
-            description.setWorkspaceObjectURI(uri);
+            description.setWorkspaceObjectURI(fileName);
 
             try (final StorageClient storageClient = storageClientFactory.getClient()) {
 
                 storageClient.storeFileFromWorkspace(
-                        strategyId, DataCategory.LOGBOOK, fileName, description);
+                    strategyId, DataCategory.LOGBOOK, fileName, description);
                 workspaceClient.deleteContainer(containerName, true);
 
                 createLogbookOperationEvent(tenant, OP_SECURISATION_STORAGE, OK, event);
@@ -313,7 +312,7 @@ public class LogbookOperationTraceabilityHelper implements LogbookTraceabilityHe
                 LOGGER.error("unable to store zip file", e);
                 throw new TraceabilityException(e);
             }
-        } catch ( ContentAddressableStorageServerException | IOException e) {
+        } catch (ContentAddressableStorageServerException | IOException e) {
             LOGGER.error("Unable to store traceability file", e);
             createLogbookOperationEvent(tenant, OP_SECURISATION_STORAGE, StatusCode.FATAL, event);
             throw new TraceabilityException(e);
@@ -336,12 +335,7 @@ public class LogbookOperationTraceabilityHelper implements LogbookTraceabilityHe
 
     @Override
     public String getZipName() {
-        return ZIP_NAME;
-    }
-
-    @Override
-    public String getUriName() {
-        return LOGBOOK;
+        return ZIP_NAME + "_" + operationID.getId();
     }
 
     @Override

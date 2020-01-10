@@ -64,12 +64,17 @@ public class LogbookUnitLifeCycleTraceabilityHelper extends LogbookLifeCycleTrac
      * @param itemStatus used by workflow, event must be updated here
      * @param operationID of the current traceability process
      * @param traceabilityDataIterator
+     * @param traceabilityEventFileName
+     * @param traceabilityZipFileName
      */
     public LogbookUnitLifeCycleTraceabilityHelper(HandlerIO handlerIO,
         LogbookOperationsClient logbookOperationsClient, ItemStatus itemStatus, String operationID,
         WorkspaceClientFactory workspaceClientFactory,
-        CloseableIterator<JsonLineModel> traceabilityDataIterator) {
-        super(handlerIO, logbookOperationsClient, itemStatus, operationID, workspaceClientFactory);
+        CloseableIterator<JsonLineModel> traceabilityDataIterator, String traceabilityEventFileName,
+        String traceabilityZipFileName) {
+        super(handlerIO, logbookOperationsClient, itemStatus, operationID, traceabilityEventFileName,
+            traceabilityZipFileName
+        );
         this.traceabilityDataIterator = traceabilityDataIterator;
     }
 

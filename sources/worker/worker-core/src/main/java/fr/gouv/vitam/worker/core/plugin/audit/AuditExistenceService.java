@@ -34,6 +34,7 @@ import java.util.stream.Collectors;
 import fr.gouv.vitam.storage.engine.common.referential.model.StorageStrategy;
 import fr.gouv.vitam.storage.engine.common.utils.StorageStrategyNotFoundException;
 import fr.gouv.vitam.storage.engine.common.utils.StorageStrategyUtils;
+import fr.gouv.vitam.worker.core.exception.ProcessingStatusException;
 import org.apache.commons.lang3.BooleanUtils;
 
 import com.google.common.annotations.VisibleForTesting;
@@ -82,7 +83,8 @@ public class AuditExistenceService {
      * @return result of existence check
      * @throws AuditException exception
      */
-    public AuditCheckObjectGroupResult check(AuditObjectGroup gotDetail, List<StorageStrategy> storageStrategies) throws AuditException {
+    public AuditCheckObjectGroupResult check(AuditObjectGroup gotDetail, List<StorageStrategy> storageStrategies) throws
+        ProcessingStatusException {
         AuditCheckObjectGroupResult result = new AuditCheckObjectGroupResult();
         result.setIdObjectGroup(gotDetail.getId());
 
@@ -114,7 +116,7 @@ public class AuditExistenceService {
             result.setStatus(result.getObjectsGlobalStatus());
         } catch (StorageClientException | StorageStrategyNotFoundException e) {
             LOGGER.error("Storage server errors : ", e);
-            throw new AuditException(StatusCode.FATAL, String.format("Storage server errors : %s", e));
+            throw new ProcessingStatusException(StatusCode.FATAL, String.format("Storage server errors : %s", e));
         }
 
         if (result.getStatus() == null) {

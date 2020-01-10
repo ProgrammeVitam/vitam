@@ -28,15 +28,19 @@ package fr.gouv.vitam.worker.core.plugin.probativevalue;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import fr.gouv.vitam.common.LocalDateUtil;
+import fr.gouv.vitam.common.VitamConfiguration;
+import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.PreservationRequest;
+import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
 import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
 import fr.gouv.vitam.functional.administration.common.BackupService;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParameterName;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
+import fr.gouv.vitam.worker.common.HandlerIO;
 import fr.gouv.vitam.worker.core.distribution.JsonLineModel;
 import fr.gouv.vitam.worker.core.plugin.preservation.TestHandlerIO;
 import fr.gouv.vitam.worker.core.plugin.probativevalue.ProbativeCreateReport.ReportVersion2;
@@ -60,14 +64,18 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import static fr.gouv.vitam.common.model.StatusCode.KO;
+import static fr.gouv.vitam.common.model.StatusCode.FATAL;
 import static fr.gouv.vitam.common.model.StatusCode.OK;
 import static fr.gouv.vitam.storage.engine.common.model.DataCategory.REPORT;
 import static fr.gouv.vitam.worker.core.plugin.evidence.EvidenceService.JSON;
 import static fr.gouv.vitam.worker.core.plugin.preservation.TestWorkerParameter.TestWorkerParameterBuilder.workerParameterBuilder;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -79,7 +87,8 @@ public class ProbativeCreateReportTest {
     public TemporaryFolder tempFolder = new TemporaryFolder();
 
     @Rule
-    public RunWithCustomExecutorRule runInThread = new RunWithCustomExecutorRule(VitamThreadPoolExecutor.getDefaultExecutor());
+    public RunWithCustomExecutorRule runInThread =
+        new RunWithCustomExecutorRule(VitamThreadPoolExecutor.getDefaultExecutor());
 
     @Mock
     private BackupService backupService;
@@ -96,14 +105,18 @@ public class ProbativeCreateReportTest {
         String probativeEntryIdInDistributionFile = "BATMAN_GOT_ID";
 
         PreservationRequest request = new PreservationRequest();
-        ProbativeReportEntry object = ProbativeReportEntry.koFrom(LocalDateUtil.getFormattedDateForMongo(LocalDateTime.now()), Collections.singletonList("unitId"), "groupId", "objectId", "usageVersion");
+        ProbativeReportEntry object = ProbativeReportEntry
+            .koFrom(LocalDateUtil.getFormattedDateForMongo(LocalDateTime.now()), Collections.singletonList("unitId"),
+                "groupId", "objectId", "usageVersion");
 
         TestHandlerIO handler = new TestHandlerIO();
         handler.transferFileToWorkspace("request", pojoToFile(request), false, false);
-        handler.setInputStreamFromWorkspace(writeDistributionFile(new JsonLineModel(probativeEntryIdInDistributionFile, 0, null)));
+        handler.setInputStreamFromWorkspace(
+            writeDistributionFile(new JsonLineModel(probativeEntryIdInDistributionFile, 0, null)));
         handler.transferFileToWorkspace(probativeEntryIdInDistributionFile, pojoToFile(object), false, false);
+        handler.setNewLocalFile(tempFolder.newFile(GUIDFactory.newGUID().getId()));
 
-        String containerName = "containerSuperName";
+        String containerName = handler.getContainerName();
         WorkerParameters build = workerParameterBuilder()
             .withContainerName(containerName)
             .build();
@@ -112,7 +125,72 @@ public class ProbativeCreateReportTest {
         probativeCreateReport.execute(build, handler);
 
         // Then
-        verify(backupService).backup(any(InputStream.class), eq(REPORT), eq(containerName + JSON));
+        verify(backupService)
+            .storeIntoOffers(eq(containerName), eq(containerName + JSON), eq(REPORT), eq(containerName + JSON),
+                eq(VitamConfiguration.getDefaultStrategy()));
+    }
+
+    @Test
+    @RunWithCustomExecutor
+    public void should_store_report_atomically_when_report_not_exists_in_workspace() throws Exception {
+        // Given
+        String probativeEntryIdInDistributionFile = "BATMAN_GOT_ID";
+        String containerName = "MyContainerName";
+
+        HandlerIO handler = mock(HandlerIO.class);
+        doReturn(false).when(handler).isExistingFileInWorkspace(containerName + JSON);
+        doReturn(containerName).when(handler).getContainerName();
+        doReturn(tempFolder.newFile(GUIDFactory.newGUID().getId())).when(handler).getNewLocalFile(anyString());
+
+        PreservationRequest request = new PreservationRequest();
+        doReturn(pojoToFile(request)).when(handler).getFileFromWorkspace("request");
+
+        doReturn(writeDistributionFile(new JsonLineModel(probativeEntryIdInDistributionFile, 0, null)))
+            .when(handler).getInputStreamFromWorkspace("distributionFile.jsonl");
+
+        ProbativeReportEntry object = ProbativeReportEntry
+            .koFrom(LocalDateUtil.getFormattedDateForMongo(LocalDateTime.now()), Collections.singletonList("unitId"),
+                "groupId", "objectId", "usageVersion");
+        doReturn(pojoToFile(object)).when(handler).getFileFromWorkspace(probativeEntryIdInDistributionFile);
+
+        WorkerParameters build = workerParameterBuilder()
+            .withContainerName(containerName)
+            .build();
+
+        // When
+        ItemStatus execute = probativeCreateReport.execute(build, handler);
+
+        // Then
+        assertThat(execute.getGlobalStatus()).isEqualTo(StatusCode.OK);
+        verify(handler).transferAtomicFileToWorkspace(eq(containerName + JSON), any());
+        verify(backupService)
+            .storeIntoOffers(eq(containerName), eq(containerName + JSON), eq(REPORT), eq(containerName + JSON),
+                eq(VitamConfiguration.getDefaultStrategy()));
+    }
+
+    @Test
+    @RunWithCustomExecutor
+    public void should_backup_existing_report_when_report_already_stored_in_workspace() throws Exception {
+        // Given
+        String containerName = "MyContainerName";
+
+        HandlerIO handler = mock(HandlerIO.class);
+        doReturn(true).when(handler).isExistingFileInWorkspace(containerName + JSON);
+        doReturn(containerName).when(handler).getContainerName();
+
+        WorkerParameters build = workerParameterBuilder()
+            .withContainerName(containerName)
+            .build();
+
+        // When
+        probativeCreateReport.execute(build, handler);
+
+        // Then
+        verify(handler, never()).getFileFromWorkspace(any());
+        verify(handler, never()).transferAtomicFileToWorkspace(anyString(), any());
+        verify(backupService)
+            .storeIntoOffers(eq(containerName), eq(containerName + JSON), eq(REPORT), eq(containerName + JSON),
+                eq(VitamConfiguration.getDefaultStrategy()));
     }
 
     @Test
@@ -122,14 +200,18 @@ public class ProbativeCreateReportTest {
         String probativeEntryIdInDistributionFile = "BATMAN_GOT_ID";
 
         PreservationRequest request = new PreservationRequest();
-        ProbativeReportEntry object = ProbativeReportEntry.koFrom(LocalDateUtil.getFormattedDateForMongo(LocalDateTime.now()), Collections.singletonList("unitId"), "groupId", "objectId", "usageVersion");
+        ProbativeReportEntry object = ProbativeReportEntry
+            .koFrom(LocalDateUtil.getFormattedDateForMongo(LocalDateTime.now()), Collections.singletonList("unitId"),
+                "groupId", "objectId", "usageVersion");
 
         TestHandlerIO handler = new TestHandlerIO();
         handler.transferFileToWorkspace("request", pojoToFile(request), false, false);
-        handler.setInputStreamFromWorkspace(writeDistributionFile(new JsonLineModel(probativeEntryIdInDistributionFile, 0, null)));
+        handler.setInputStreamFromWorkspace(
+            writeDistributionFile(new JsonLineModel(probativeEntryIdInDistributionFile, 0, null)));
         handler.transferFileToWorkspace(probativeEntryIdInDistributionFile, pojoToFile(object), false, false);
+        handler.setNewLocalFile(tempFolder.newFile(GUIDFactory.newGUID().getId()));
 
-        String containerName = "containerSuperName";
+        String containerName = handler.getContainerName();
         WorkerParameters build = workerParameterBuilder()
             .withContainerName(containerName)
             .build();
@@ -139,35 +221,41 @@ public class ProbativeCreateReportTest {
 
         // Then
         assertThat(itemStatus.getGlobalStatus()).isEqualTo(OK);
-        assertThat(itemStatus.getMasterData().get(LogbookParameterName.eventDetailData.name())).isEqualTo(JsonHandler.unprettyPrint(new ReportVersion2()));
+        assertThat(itemStatus.getMasterData().get(LogbookParameterName.eventDetailData.name()))
+            .isEqualTo(JsonHandler.unprettyPrint(new ReportVersion2()));
     }
 
     @Test
     @RunWithCustomExecutor
-    public void should_return_item_status_KO_when_something_wrong() throws Exception {
+    public void should_return_item_status_FATAL_when_something_wrong() throws Exception {
         // Given
         String probativeEntryIdInDistributionFile = "BATMAN_GOT_ID";
 
         PreservationRequest request = new PreservationRequest();
-        ProbativeReportEntry object = ProbativeReportEntry.koFrom(LocalDateUtil.getFormattedDateForMongo(LocalDateTime.now()), Collections.singletonList("unitId"), "groupId", "objectId", "usageVersion");
+        ProbativeReportEntry object = ProbativeReportEntry
+            .koFrom(LocalDateUtil.getFormattedDateForMongo(LocalDateTime.now()), Collections.singletonList("unitId"),
+                "groupId", "objectId", "usageVersion");
 
         TestHandlerIO handler = new TestHandlerIO();
         handler.transferFileToWorkspace("request", pojoToFile(request), false, false);
-        handler.setInputStreamFromWorkspace(writeDistributionFile(new JsonLineModel(probativeEntryIdInDistributionFile, 0, null)));
+        handler.setInputStreamFromWorkspace(
+            writeDistributionFile(new JsonLineModel(probativeEntryIdInDistributionFile, 0, null)));
         handler.transferFileToWorkspace(probativeEntryIdInDistributionFile, pojoToFile(object), false, false);
+        handler.setNewLocalFile(tempFolder.newFile(GUIDFactory.newGUID().getId()));
 
-        String containerName = "containerSuperName";
+        String containerName = handler.getContainerName();
         WorkerParameters build = workerParameterBuilder()
             .withContainerName(containerName)
             .build();
 
-        when(backupService.backup(any(), any(), any())).thenThrow(new IllegalStateException());
+        when(backupService.storeIntoOffers(anyString(), anyString(), any(), any(), anyString()))
+            .thenThrow(new IllegalStateException());
 
         // When
         ItemStatus itemStatus = probativeCreateReport.execute(build, handler);
 
         // Then
-        assertThat(itemStatus.getGlobalStatus()).isEqualTo(KO);
+        assertThat(itemStatus.getGlobalStatus()).isEqualTo(FATAL);
     }
 
     @Test
@@ -179,15 +267,18 @@ public class ProbativeCreateReportTest {
         PreservationRequest request = new PreservationRequest();
 
         Map<String, List<Integer>> notReportEntryObject = new HashMap<>();
-        notReportEntryObject.put("unitId", Arrays.asList(1,2,3));
-        notReportEntryObject.put("objectGroupId", Arrays.asList(1,2,3));
+        notReportEntryObject.put("unitId", Arrays.asList(1, 2, 3));
+        notReportEntryObject.put("objectGroupId", Arrays.asList(1, 2, 3));
 
         TestHandlerIO handler = new TestHandlerIO();
         handler.transferFileToWorkspace("request", pojoToFile(request), false, false);
-        handler.setInputStreamFromWorkspace(writeDistributionFile(new JsonLineModel(probativeEntryIdInDistributionFile, 0, null)));
-        handler.transferFileToWorkspace(probativeEntryIdInDistributionFile, pojoToFile(notReportEntryObject), false, false);
+        handler.setInputStreamFromWorkspace(
+            writeDistributionFile(new JsonLineModel(probativeEntryIdInDistributionFile, 0, null)));
+        handler.transferFileToWorkspace(probativeEntryIdInDistributionFile, pojoToFile(notReportEntryObject), false,
+            false);
+        handler.setNewLocalFile(tempFolder.newFile(GUIDFactory.newGUID().getId()));
 
-        String containerName = "containerSuperName";
+        String containerName = handler.getContainerName();
         WorkerParameters build = workerParameterBuilder()
             .withContainerName(containerName)
             .build();
@@ -196,7 +287,7 @@ public class ProbativeCreateReportTest {
         ItemStatus itemStatus = probativeCreateReport.execute(build, handler);
 
         // Then
-        assertThat(itemStatus.getGlobalStatus()).isEqualTo(KO);
+        assertThat(itemStatus.getGlobalStatus()).isEqualTo(FATAL);
     }
 
     private File pojoToFile(Object object) throws IOException {

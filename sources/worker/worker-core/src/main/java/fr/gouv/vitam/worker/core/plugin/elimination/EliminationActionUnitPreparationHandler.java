@@ -224,7 +224,7 @@ public class EliminationActionUnitPreparationHandler extends ActionHandler {
     private BufferedConsumer<EliminationActionUnitReportEntry> createReportAppender(String processId) {
         return new BufferedConsumer<>(VitamConfiguration.getBatchSize(), entries -> {
             try {
-                eliminationActionReportService.appendUnitEntries(processId, entries);
+                eliminationActionReportService.appendEntries(processId, entries);
             } catch (ProcessingStatusException e) {
                 throw new RuntimeException(e);
             }
