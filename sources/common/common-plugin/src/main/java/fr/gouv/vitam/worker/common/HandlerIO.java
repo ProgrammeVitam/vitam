@@ -141,6 +141,8 @@ public interface HandlerIO extends VitamAutoCloseable {
      */
     boolean checkHandlerIO(int outputNumber, List<Class<?>> clasz);
 
+    boolean isExistingFileInWorkspace(String workspacePath) throws ProcessingException;
+
     /**
      * Helper to write a file to Workspace<br/>
      * <br/>
@@ -153,6 +155,9 @@ public interface HandlerIO extends VitamAutoCloseable {
      * @throws ProcessingException
      */
     void transferFileToWorkspace(String workspacePath, File sourceFile, boolean toDelete, boolean asyncIO)
+        throws ProcessingException;
+
+    void transferAtomicFileToWorkspace(String workspacePath, File sourceFile)
         throws ProcessingException;
 
     /**

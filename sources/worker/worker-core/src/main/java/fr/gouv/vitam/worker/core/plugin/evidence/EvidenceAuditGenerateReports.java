@@ -40,6 +40,7 @@ import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 import fr.gouv.vitam.worker.common.HandlerIO;
+import fr.gouv.vitam.worker.core.exception.ProcessingStatusException;
 import fr.gouv.vitam.worker.core.handler.ActionHandler;
 import fr.gouv.vitam.worker.core.plugin.evidence.exception.EvidenceAuditException;
 import fr.gouv.vitam.worker.core.plugin.evidence.exception.EvidenceStatus;
@@ -142,7 +143,7 @@ public class EvidenceAuditGenerateReports extends ActionHandler {
 
             itemStatus.increment(StatusCode.OK);
 
-        } catch (IOException | ContentAddressableStorageNotFoundException | InvalidParseOperationException | EvidenceAuditException e) {
+        } catch (IOException | ContentAddressableStorageNotFoundException | InvalidParseOperationException | ProcessingStatusException e) {
 
             LOGGER.error(e);
 
@@ -153,8 +154,8 @@ public class EvidenceAuditGenerateReports extends ActionHandler {
     }
 
         private void addReportEntry(String processId, EvidenceAuditReportEntry entry)
-        throws EvidenceAuditException {
-            evidenceAuditReportService.appendEvidenceAuditEntries(processId, Arrays.asList(entry));
+        throws ProcessingStatusException {
+            evidenceAuditReportService.appendEntries(processId, Arrays.asList(entry));
     }
 
     private EvidenceAuditReportEntry createEvidenceReportEntry(EvidenceAuditReportLine evidenceAuditReportLine) {

@@ -127,7 +127,7 @@ public class LogbookUnitLifeCycleTraceabilityHelperTest {
 
         LogbookUnitLifeCycleTraceabilityHelper helper =
             new LogbookUnitLifeCycleTraceabilityHelper(handlerIO, logbookOperationsClient, itemStatus, guid.getId(),
-                workspaceClientFactory, null);
+                workspaceClientFactory, null, "eventFileName", "zipFileName");
 
         // When
         helper.initialize();
@@ -150,7 +150,7 @@ public class LogbookUnitLifeCycleTraceabilityHelperTest {
 
         LogbookUnitLifeCycleTraceabilityHelper helper =
             new LogbookUnitLifeCycleTraceabilityHelper(handlerIO, logbookOperationsClient, itemStatus, guid.getId(),
-                workspaceClientFactory, null);
+                workspaceClientFactory, null, "eventFileName", "zipFileName");
 
         // When
         helper.initialize();
@@ -181,7 +181,7 @@ public class LogbookUnitLifeCycleTraceabilityHelperTest {
 
         LogbookUnitLifeCycleTraceabilityHelper helper =
             new LogbookUnitLifeCycleTraceabilityHelper(handlerIO, logbookOperationsClient, itemStatus, guid.getId(),
-                workspaceClientFactory, entriesIterator);
+                workspaceClientFactory, entriesIterator, "eventFileName", "zipFileName");
 
         final MerkleTreeAlgo algo = new MerkleTreeAlgo(VitamConfiguration.getDefaultDigestType());
 
@@ -209,7 +209,7 @@ public class LogbookUnitLifeCycleTraceabilityHelperTest {
 
         LogbookUnitLifeCycleTraceabilityHelper helper =
             new LogbookUnitLifeCycleTraceabilityHelper(handlerIO, logbookOperationsClient, itemStatus, guid.getId(),
-                workspaceClientFactory, null);
+                workspaceClientFactory, null, "eventFileName", "zipFileName");
 
         helper.initialize();
 
@@ -235,7 +235,7 @@ public class LogbookUnitLifeCycleTraceabilityHelperTest {
 
         LogbookUnitLifeCycleTraceabilityHelper helper =
             new LogbookUnitLifeCycleTraceabilityHelper(handlerIO, logbookOperationsClient, itemStatus, guid.getId(),
-                workspaceClientFactory, null);
+                workspaceClientFactory, null, "eventFileName", "zipFileName");
 
         helper.initialize();
 

@@ -257,7 +257,7 @@ public class ReportManagementIT extends VitamRuleRunner {
 
         // When / Then
         assertThatCode(
-            () -> batchReportClient.storeReport(report)
+            () -> batchReportClient.storeReportToWorkspace(report)
         ).doesNotThrowAnyException();
     }
 
@@ -298,7 +298,7 @@ public class ReportManagementIT extends VitamRuleRunner {
 
         // When / Then
         assertThatCode(
-            () -> batchReportClient.storeReport(report)
+            () -> batchReportClient.storeReportToWorkspace(report)
         ).doesNotThrowAnyException();
     }
 
@@ -330,7 +330,7 @@ public class ReportManagementIT extends VitamRuleRunner {
 
         // When / Then
         assertThatCode(
-            () -> batchReportClient.storeReport(report)
+            () -> batchReportClient.storeReportToWorkspace(report)
         ).doesNotThrowAnyException();
     }
 

@@ -26,6 +26,7 @@
  */
 package fr.gouv.vitam.worker.core.plugin.lfc_traceability;
 
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.google.common.annotations.VisibleForTesting;
@@ -72,7 +73,7 @@ import fr.gouv.vitam.storage.engine.client.exception.StorageServerClientExceptio
 import fr.gouv.vitam.storage.engine.common.model.DataCategory;
 import fr.gouv.vitam.storage.engine.common.model.response.BatchObjectInformationResponse;
 import fr.gouv.vitam.worker.common.HandlerIO;
-import fr.gouv.vitam.worker.core.distribution.JsonLineIterator;
+import fr.gouv.vitam.worker.core.distribution.JsonLineGenericIterator;
 import fr.gouv.vitam.worker.core.distribution.JsonLineModel;
 import fr.gouv.vitam.worker.core.distribution.JsonLineWriter;
 import fr.gouv.vitam.worker.core.handler.ActionHandler;
@@ -111,6 +112,9 @@ public abstract class BuildTraceabilityActionPlugin extends ActionHandler {
     private static final String MESSAGE_DIGEST = "MessageDigest";
     private static final String STRATEGY_ID_FIELD = "strategyId";
     private static final String STORAGE_FIELD = "_storage";
+    public static final TypeReference<JsonLineModel>
+        TYPE_REFERENCE = new TypeReference<JsonLineModel>() {
+        };
 
     private final DigestType digestType = VitamConfiguration.getDefaultDigestType();
     private final StorageClientFactory storageClientFactory;
@@ -148,7 +152,8 @@ public abstract class BuildTraceabilityActionPlugin extends ActionHandler {
         int nbEntries = 0;
 
         try (InputStream is = new FileInputStream(lfcAndMetadataFile);
-            JsonLineIterator jsonLineIterator = new JsonLineIterator(is);
+            JsonLineGenericIterator<JsonLineModel> jsonLineIterator = new JsonLineGenericIterator<>(is,
+                TYPE_REFERENCE);
             OutputStream os = new FileOutputStream(traceabilityDataFile);
             JsonLineWriter jsonLineWriter = new JsonLineWriter(os)) {
 

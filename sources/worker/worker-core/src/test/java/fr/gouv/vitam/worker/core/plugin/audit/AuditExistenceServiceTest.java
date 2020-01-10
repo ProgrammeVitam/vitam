@@ -15,6 +15,7 @@ import java.util.*;
 
 import fr.gouv.vitam.storage.engine.common.referential.model.OfferReference;
 import fr.gouv.vitam.storage.engine.common.referential.model.StorageStrategy;
+import fr.gouv.vitam.worker.core.exception.ProcessingStatusException;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -156,7 +157,7 @@ public class AuditExistenceServiceTest {
 
         assertThatThrownBy(() -> {
             service.check(detail, loadStorageStrategiesMock());
-        }).isInstanceOf(AuditException.class);
+        }).isInstanceOf(ProcessingStatusException.class);
 
     }
 

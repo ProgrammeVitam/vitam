@@ -82,6 +82,7 @@ public class WorkspaceClient extends DefaultClient {
     private static final String FOLDERS = "/folders/";
     private static final String OLD_FILES = "/old_files";
     private static final String CONTAINERS = "/containers/";
+    private static final String ATOMIC_CONTAINERS = "/atomic_containers/";
 
     private static final GenericType<List<URI>> URI_LIST_TYPE = new GenericType<List<URI>>() {};
 
@@ -174,6 +175,25 @@ public class WorkspaceClient extends DefaultClient {
         ParametersChecker.checkParameter(ErrorMessage.CONTAINER_OBJECT_NAMES_ARE_A_MANDATORY_PARAMETER.getMessage(), containerName, objectName);
         VitamRequestBuilder request = post()
             .withPath(CONTAINERS + containerName + OBJECTS + objectName)
+            .withBody(stream)
+            .withContentType(MediaType.APPLICATION_OCTET_STREAM_TYPE)
+            .withJsonAccept();
+        try (Response response = make(request)) {
+            check(response);
+        } catch (VitamClientInternalException | ContentAddressableStorageNotFoundException | ContentAddressableStorageAlreadyExistException | ContentAddressableStorageNotAcceptableException | ContentAddressableStorageBadRequestException e) {
+            throw new ContentAddressableStorageServerException(e);
+        }
+    }
+
+    public void putAtomicObject(String containerName, String objectName, InputStream stream, long size)
+        throws ContentAddressableStorageServerException {
+        ParametersChecker.checkParameter(ErrorMessage.CONTAINER_OBJECT_NAMES_ARE_A_MANDATORY_PARAMETER.getMessage(), containerName, objectName);
+        if (size < 0) {
+            throw new IllegalArgumentException("Invalid size " + size);
+        }
+        VitamRequestBuilder request = post()
+            .withPath(ATOMIC_CONTAINERS + containerName + OBJECTS + objectName)
+            .withHeader(GlobalDataRest.X_CONTENT_LENGTH, size)
             .withBody(stream)
             .withContentType(MediaType.APPLICATION_OCTET_STREAM_TYPE)
             .withJsonAccept();

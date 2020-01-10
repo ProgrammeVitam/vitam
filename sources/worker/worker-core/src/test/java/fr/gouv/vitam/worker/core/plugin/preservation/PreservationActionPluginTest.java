@@ -49,6 +49,8 @@ import java.util.List;
 
 import javax.ws.rs.core.Response;
 
+import fr.gouv.vitam.common.model.StatusCode;
+import fr.gouv.vitam.worker.core.exception.ProcessingStatusException;
 import org.assertj.core.api.ThrowableAssert.ThrowingCallable;
 import org.junit.Before;
 import org.junit.Rule;
@@ -179,7 +181,7 @@ public class PreservationActionPluginTest {
         plugin.executeList(parameter, handler);
 
         // When
-        verify(reportService).appendPreservationEntries(eq("REQUEST_ID_TEST"), captor.capture());
+        verify(reportService).appendEntries(eq("REQUEST_ID_TEST"), captor.capture());
 
         // Then
         assertThat(captor.getValue()).extracting(PreservationReportEntry::getAnalyseResult).contains("NOT_VALID");
@@ -191,7 +193,7 @@ public class PreservationActionPluginTest {
         // Given
         given(storageClient.getContainerAsync(VitamConfiguration.getDefaultStrategy(), objectId, OBJECT, getNoLogAccessLog()))
             .willReturn(createOkResponse("image-files-with-data"));
-        doThrow(new VitamClientInternalException("error")).when(reportService).appendPreservationEntries(any(), any());
+        doThrow(new ProcessingStatusException(StatusCode.FATAL, "error")).when(reportService).appendEntries(any(), any());
 
 
         // When
@@ -241,7 +243,7 @@ public class PreservationActionPluginTest {
         // Given
         given(storageClient.getContainerAsync("other_binary_strategy", objectId, OBJECT, getNoLogAccessLog()))
             .willReturn(createOkResponse("image-files-with-data"));
-        doNothing().when(reportService).appendPreservationEntries(ArgumentMatchers.anyString(), captor.capture());
+        doNothing().when(reportService).appendEntries(ArgumentMatchers.anyString(), captor.capture());
         // When
         List<ItemStatus> status = plugin.executeList(parameter, handler);
         // Then

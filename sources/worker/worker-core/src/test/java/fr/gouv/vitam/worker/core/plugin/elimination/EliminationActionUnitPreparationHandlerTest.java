@@ -136,7 +136,7 @@ public class EliminationActionUnitPreparationHandlerTest {
         reportEntries = new ArrayList<>();
         doAnswer((args) -> reportEntries.addAll(args.getArgument(1)))
             .when(eliminationActionReportService)
-            .appendUnitEntries(any(), any());
+            .appendEntries(any(), any());
     }
 
     private EliminationAnalysisResult createAnalysisResponse(EliminationGlobalStatus destroy) {

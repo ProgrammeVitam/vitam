@@ -26,27 +26,12 @@
  */
 package fr.gouv.vitam.worker.core.plugin.audit;
 
-import static org.assertj.core.api.Assertions.assertThatCode;
-import static org.mockito.BDDMockito.given;
-
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-
-import org.assertj.core.api.ThrowableAssert.ThrowingCallable;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnit;
-import org.mockito.junit.MockitoRule;
-
 import com.fasterxml.jackson.databind.JsonNode;
-
 import fr.gouv.vitam.batch.report.client.BatchReportClient;
 import fr.gouv.vitam.batch.report.client.BatchReportClientFactory;
 import fr.gouv.vitam.batch.report.model.OperationSummary;
 import fr.gouv.vitam.batch.report.model.Report;
+import fr.gouv.vitam.batch.report.model.ReportBody;
 import fr.gouv.vitam.batch.report.model.ReportItemStatus;
 import fr.gouv.vitam.batch.report.model.ReportResults;
 import fr.gouv.vitam.batch.report.model.ReportStatus;
@@ -54,7 +39,35 @@ import fr.gouv.vitam.batch.report.model.ReportSummary;
 import fr.gouv.vitam.batch.report.model.ReportType;
 import fr.gouv.vitam.batch.report.model.entry.AuditObjectGroupReportEntry;
 import fr.gouv.vitam.batch.report.model.entry.AuditObjectVersion;
+import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.json.JsonHandler;
+import fr.gouv.vitam.storage.engine.client.StorageClient;
+import fr.gouv.vitam.storage.engine.client.StorageClientFactory;
+import fr.gouv.vitam.storage.engine.common.model.DataCategory;
+import fr.gouv.vitam.storage.engine.common.model.request.ObjectDescription;
+import fr.gouv.vitam.workspace.client.WorkspaceClient;
+import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
+import org.assertj.core.api.ThrowableAssert.ThrowingCallable;
+import org.junit.Before;
+import org.junit.Rule;
+import org.junit.Test;
+import org.mockito.ArgumentCaptor;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.MockitoJUnit;
+import org.mockito.junit.MockitoRule;
+
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+
+import static fr.gouv.vitam.worker.core.plugin.audit.AuditReportService.JSONL_EXTENSION;
+import static fr.gouv.vitam.worker.core.plugin.audit.AuditReportService.WORKSPACE_REPORT_URI;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatCode;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.BDDMockito.given;
+import static org.mockito.Mockito.verify;
 
 public class AuditReportServiceTest {
 
@@ -66,72 +79,121 @@ public class AuditReportServiceTest {
 
     @Mock
     private BatchReportClient batchReportClient;
+
+    @Mock
+    private WorkspaceClientFactory workspaceClientFactory;
+
+    @Mock
+    private WorkspaceClient workspaceClient;
+
+    @Mock
+    private StorageClientFactory storageClientFactory;
+    @Mock
+    private StorageClient storageClient;
+
+    @InjectMocks
     private AuditReportService auditReportService;
+
     private String processId;
     private int tenantId;
 
     @Before
     public void setUp() throws Exception {
         given(batchReportFactory.getClient()).willReturn(batchReportClient);
+        given(workspaceClientFactory.getClient()).willReturn(workspaceClient);
+        given(storageClientFactory.getClient()).willReturn(storageClient);
         processId = "123456789";
         tenantId = 0;
-
-        auditReportService = new AuditReportService(batchReportFactory);
     }
 
     @Test
-    public void should_append_audit_report_entries() {
+    public void should_append_audit_report_entries() throws Exception {
         // Given
         AuditObjectVersion version = new AuditObjectVersion("objectId1", "objectOpi1", "objectQualifier1",
-                "objectVersion1", "strategyId1", new ArrayList<ReportItemStatus>() {
-                    {
-                        add(new ReportItemStatus("offerId1", ReportStatus.OK));
-                        add(new ReportItemStatus("offerId2", ReportStatus.OK));
-                    }
-                }, ReportStatus.OK);
+            "objectVersion1", "strategyId1", new ArrayList<ReportItemStatus>() {
+            {
+                add(new ReportItemStatus("offerId1", ReportStatus.OK));
+                add(new ReportItemStatus("offerId2", ReportStatus.OK));
+            }
+        }, ReportStatus.OK);
 
         List<AuditObjectVersion> objectVersions = new ArrayList<AuditObjectVersion>();
         objectVersions.add(version);
 
         AuditObjectGroupReportEntry auditReportEntry = new AuditObjectGroupReportEntry("objectGroupId1",
-                Collections.singletonList("unitId"), "originatingAgency1", "opi", objectVersions, ReportStatus.KO,
-                "outcome");
+            Collections.singletonList("unitId"), "originatingAgency1", "opi", objectVersions, ReportStatus.KO,
+            "outcome");
 
         List<AuditObjectGroupReportEntry> reports = new ArrayList<>();
         reports.add(auditReportEntry);
 
         // When
-        ThrowingCallable appendPreservation = () -> auditReportService.appendAuditEntries(processId, reports);
+        ThrowingCallable appendPreservation = () -> auditReportService.appendEntries(processId, reports);
 
         // Then
         assertThatCode(appendPreservation).doesNotThrowAnyException();
+
+        ArgumentCaptor<ReportBody<AuditObjectGroupReportEntry>> reportBodyArgumentCaptor =
+            ArgumentCaptor.forClass(ReportBody.class);
+        verify(batchReportClient).appendReportEntries(reportBodyArgumentCaptor.capture());
+        assertThat(reportBodyArgumentCaptor.getValue().getProcessId()).isEqualTo(processId);
+        assertThat(reportBodyArgumentCaptor.getValue().getEntries()).isEqualTo(reports);
+        assertThat(reportBodyArgumentCaptor.getValue().getReportType()).isEqualTo(ReportType.AUDIT);
     }
 
     @Test
-    public void should_store_does_not_throw_any_exception() {
+    public void should_check_report_existence_in_workspace_does_not_throw_any_exception() throws Exception {
+
+        // Given / When
+        ThrowingCallable checkReportExistence = () -> auditReportService.isReportWrittenInWorkspace(processId);
+
+        // Then
+        assertThatCode(checkReportExistence).doesNotThrowAnyException();
+        verify(workspaceClient).isExistingObject(processId, WORKSPACE_REPORT_URI);
+    }
+
+    @Test
+    public void should_store_to_workspace_does_not_throw_any_exception() throws Exception {
 
         OperationSummary operationSummary = new OperationSummary(tenantId, processId, "", "", "", "",
-                JsonHandler.createObjectNode(), JsonHandler.createObjectNode());
+            JsonHandler.createObjectNode(), JsonHandler.createObjectNode());
         ReportSummary reportSummary = new ReportSummary(null, null, ReportType.AUDIT, new ReportResults(),
-                JsonHandler.createObjectNode());
+            JsonHandler.createObjectNode());
         JsonNode context = JsonHandler.createObjectNode();
 
         Report reportInfo = new Report(operationSummary, reportSummary, context);
 
         // Given / When
-        ThrowingCallable exportReport = () -> auditReportService.storeReport(reportInfo);
+        ThrowingCallable exportReport = () -> auditReportService.storeReportToWorkspace(reportInfo);
 
         // Then
         assertThatCode(exportReport).doesNotThrowAnyException();
+        verify(batchReportClient).storeReportToWorkspace(reportInfo);
     }
 
     @Test
-    public void should_delete_does_not_throw_any_exception() {
+    public void should_store_file_to_offers() throws Exception {
+
+        // Given / When
+        ThrowingCallable exportReport = () -> auditReportService.storeReportToOffers(processId);
+
+        // Then
+        assertThatCode(exportReport).doesNotThrowAnyException();
+        ArgumentCaptor<ObjectDescription> descriptionArgumentCaptor = ArgumentCaptor.forClass(ObjectDescription.class);
+        verify(storageClient).storeFileFromWorkspace(eq(VitamConfiguration.getDefaultStrategy()), eq(DataCategory.REPORT),
+            eq(processId + JSONL_EXTENSION), descriptionArgumentCaptor.capture());
+        assertThat(descriptionArgumentCaptor.getValue().getWorkspaceContainerGUID()).isEqualTo(processId);
+        assertThat(descriptionArgumentCaptor.getValue().getWorkspaceObjectURI()).isEqualTo(WORKSPACE_REPORT_URI);
+    }
+
+    @Test
+    public void should_delete_does_not_throw_any_exception() throws Exception {
 
         // Given / When
         ThrowingCallable exportReport = () -> auditReportService.cleanupReport(processId);
 
         // Then
         assertThatCode(exportReport).doesNotThrowAnyException();
+        verify(batchReportClient).cleanupReport(processId, ReportType.AUDIT);
     }
 }
