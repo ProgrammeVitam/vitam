@@ -31,10 +31,12 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import fr.gouv.vitam.common.CharsetUtils;
 import fr.gouv.vitam.common.CommonMediaType;
+import fr.gouv.vitam.common.FileUtil;
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.client.AbstractMockClient;
 import fr.gouv.vitam.common.digest.Digest;
 import fr.gouv.vitam.common.digest.DigestType;
+import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
@@ -67,6 +69,7 @@ import org.apache.commons.compress.archivers.zip.ZipArchiveEntry;
 import org.apache.commons.compress.archivers.zip.ZipArchiveOutputStream;
 import org.apache.commons.compress.utils.BoundedInputStream;
 import org.apache.commons.compress.utils.IOUtils;
+import org.apache.commons.io.FileUtils;
 
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.MultivaluedHashMap;
@@ -77,6 +80,7 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
 import java.net.URI;
 import java.net.URLEncoder;
 import java.nio.channels.Channels;
@@ -418,6 +422,49 @@ public class WorkspaceFileSystem implements WorkspaceContentAddressableStorage {
                 Files.deleteIfExists(filePath);
             } catch (IOException exc) {
                 LOGGER.error("Cannot rollback because of ", exc);
+            }
+            throw new ContentAddressableStorageException(ex);
+        }
+    }
+
+    @Override
+    public void putAtomicObject(String containerName, String objectName, InputStream stream, long size)
+        throws ContentAddressableStorageException {
+
+        ParametersChecker.checkParameter(ErrorMessage.CONTAINER_OBJECT_NAMES_ARE_A_MANDATORY_PARAMETER.getMessage(),
+            containerName, objectName);
+        if (!isExistingContainer(containerName)) {
+            LOGGER.error(ErrorMessage.CONTAINER_NOT_FOUND.getMessage() + containerName);
+            throw new ContentAddressableStorageNotFoundException(
+                ErrorMessage.CONTAINER_NOT_FOUND.getMessage() + containerName);
+        }
+
+        Path tmpFilePath = null;
+        try {
+            Path filePath = getObjectPath(containerName, objectName, false);
+
+            // create parent folders if needed
+            Path parentPath = filePath.getParent();
+            Files.createDirectories(parentPath);
+
+            String uniqueId = filePath.getFileName() + ".{" + GUIDFactory.newGUID() + "}";
+            tmpFilePath = filePath.resolveSibling(uniqueId);
+
+            try (OutputStream outputStream = Files.newOutputStream(tmpFilePath);
+                ExactSizeInputStream input = new ExactSizeInputStream(stream, size)) {
+                IOUtils.copy(input, outputStream);
+            }
+            FileUtil.fsyncFile(tmpFilePath);
+
+            Files.createLink(filePath, tmpFilePath);
+
+            FileUtil.fsyncFile(filePath);
+
+            Files.delete(tmpFilePath);
+
+        } catch (IOException ex) {
+            if (tmpFilePath != null) {
+                FileUtils.deleteQuietly(tmpFilePath.toFile());
             }
             throw new ContentAddressableStorageException(ex);
         }

@@ -44,9 +44,9 @@ import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 import fr.gouv.vitam.storage.engine.common.referential.model.StorageStrategy;
 import fr.gouv.vitam.worker.common.HandlerIO;
+import fr.gouv.vitam.worker.core.exception.ProcessingStatusException;
 import fr.gouv.vitam.worker.core.handler.ActionHandler;
 import fr.gouv.vitam.worker.core.plugin.audit.exception.AuditException;
-import fr.gouv.vitam.worker.core.plugin.evidence.exception.EvidenceAuditException;
 import fr.gouv.vitam.worker.core.plugin.evidence.exception.EvidenceStatus;
 import fr.gouv.vitam.worker.core.plugin.evidence.report.EvidenceAuditParameters;
 import fr.gouv.vitam.worker.core.plugin.evidence.report.EvidenceAuditReportLine;
@@ -128,20 +128,26 @@ public class EvidenceAuditDatabaseCheck extends ActionHandler {
                     createEvidenceReportEntry(parameters, evidenceAuditReportLine));
             }
 
+            itemStatus.increment(StatusCode.OK);
+            return new ItemStatus(EVIDENCE_AUDIT_CHECK_DATABASE)
+                .setItemsStatus(EVIDENCE_AUDIT_CHECK_DATABASE, itemStatus);
 
         } catch (VitamException | IOException e) {
             LOGGER.error(e);
             itemStatus.increment(StatusCode.FATAL);
-            return new ItemStatus(EVIDENCE_AUDIT_CHECK_DATABASE).setItemsStatus(EVIDENCE_AUDIT_CHECK_DATABASE, itemStatus);
+            return new ItemStatus(EVIDENCE_AUDIT_CHECK_DATABASE)
+                .setItemsStatus(EVIDENCE_AUDIT_CHECK_DATABASE, itemStatus);
+        } catch (ProcessingStatusException e) {
+            LOGGER.error(e);
+            itemStatus.increment(e.getStatusCode());
+            return new ItemStatus(EVIDENCE_AUDIT_CHECK_DATABASE)
+                .setItemsStatus(EVIDENCE_AUDIT_CHECK_DATABASE, itemStatus);
         }
-
-        itemStatus.increment(StatusCode.OK);
-        return new ItemStatus(EVIDENCE_AUDIT_CHECK_DATABASE).setItemsStatus(EVIDENCE_AUDIT_CHECK_DATABASE, itemStatus);
     }
 
     private void addReportEntry(String processId, EvidenceAuditReportEntry entry)
-        throws EvidenceAuditException {
-        evidenceAuditReportService.appendEvidenceAuditEntries(processId, Arrays.asList(entry));
+        throws ProcessingStatusException {
+        evidenceAuditReportService.appendEntries(processId, Arrays.asList(entry));
     }
 
     private EvidenceAuditReportEntry createEvidenceReportEntry(EvidenceAuditParameters parameters,
@@ -177,7 +183,7 @@ public class EvidenceAuditDatabaseCheck extends ActionHandler {
         }
         return list;
     }
-    
+
     private List<StorageStrategy> loadStorageStrategies(HandlerIO handler) throws AuditException {
         try {
             return JsonHandler.getFromFileAsTypeReference((File) handler.getInput(STRATEGIES_IN_RANK), new TypeReference<List<StorageStrategy>>() {

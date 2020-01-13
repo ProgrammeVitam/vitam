@@ -89,6 +89,9 @@ import fr.gouv.vitam.worker.common.utils.DataObjectDetail;
 import fr.gouv.vitam.worker.common.utils.SedaUtils;
 import fr.gouv.vitam.worker.core.MarshallerObjectCache;
 import fr.gouv.vitam.worker.core.impl.HandlerIOImpl;
+import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundException;
+import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
+import fr.gouv.vitam.workspace.client.WorkspaceClient;
 import org.bson.Document;
 import org.xml.sax.SAXException;
 
@@ -178,8 +181,21 @@ public class TransferNotificationActionHandler extends ActionHandler {
 
             final LogbookOperation logbookOperation = getLogbookOperation(params);
 
-            //create ATR file in all cases
-            atrFile = createATR(params, handlerIO, logbookOperation, workflowStatus);
+            String atrObjectName = handlerIO.getOutput(ATR_RESULT_OUT_RANK).getPath();
+
+            // Generate ATR only if not already generated (idempotency)
+            try(WorkspaceClient workspaceClient = handlerIO.getWorkspaceClientFactory().getClient()) {
+                boolean atrAlreadyGenerated = workspaceClient.isExistingObject(params.getContainerName(), atrObjectName);
+
+                if(atrAlreadyGenerated) {
+                    atrFile = handlerIO.getFileFromWorkspace(atrObjectName);
+                } else {
+                    atrFile = createATR(params, handlerIO, logbookOperation, workflowStatus);
+                    try (InputStream is = new FileInputStream(atrFile)) {
+                        workspaceClient.putAtomicObject(handlerIO.getContainerName(), atrObjectName, is, atrFile.length());
+                    }
+                }
+            }
 
             // calculate digest by vitam alog
             String vitamDigestString;
@@ -201,11 +217,10 @@ public class TransferNotificationActionHandler extends ActionHandler {
 
             checkAtrFile(atrFile);
 
-            handlerIO.addOutputResult(ATR_RESULT_OUT_RANK, atrFile, true, false);
             // store data object
             final ObjectDescription description = new ObjectDescription();
             description.setWorkspaceContainerGUID(params.getContainerName());
-            description.setWorkspaceObjectURI(handlerIO.getOutput(ATR_RESULT_OUT_RANK).getPath());
+            description.setWorkspaceObjectURI(atrObjectName);
             try (final StorageClient storageClient = storageClientFactory.getClient()) {
                 storageClient.storeFileFromWorkspace(
                     VitamConfiguration.getDefaultStrategy(),
@@ -213,6 +228,7 @@ public class TransferNotificationActionHandler extends ActionHandler {
                     params.getContainerName() + XML, description);
 
                 if (!workflowStatus.isGreaterOrEqualToKo()) {
+
                     description.setWorkspaceObjectURI(
                         IngestWorkflowConstants.SEDA_FOLDER + "/" + IngestWorkflowConstants.SEDA_FILE);
                     storageClient.storeFileFromWorkspace(
@@ -223,7 +239,8 @@ public class TransferNotificationActionHandler extends ActionHandler {
             }
 
             itemStatus.increment(StatusCode.OK);
-        } catch (InvalidParseOperationException | StorageClientException | IOException | ProcessingException e) {
+        } catch (InvalidParseOperationException | StorageClientException | IOException | ProcessingException |
+            ContentAddressableStorageNotFoundException| ContentAddressableStorageServerException e) {
             LOGGER.error(e);
             itemStatus.increment(StatusCode.FATAL);
         }

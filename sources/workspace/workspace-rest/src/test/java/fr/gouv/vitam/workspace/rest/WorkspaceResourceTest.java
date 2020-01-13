@@ -40,6 +40,7 @@ import fr.gouv.vitam.common.digest.Digest;
 import fr.gouv.vitam.common.digest.DigestType;
 import fr.gouv.vitam.common.exception.VitamApplicationServerException;
 import fr.gouv.vitam.common.junit.JunitHelper;
+import fr.gouv.vitam.common.server.application.VitamHttpHeader;
 import fr.gouv.vitam.common.storage.StorageConfiguration;
 import fr.gouv.vitam.common.stream.MultiplexedStreamReader;
 import fr.gouv.vitam.workspace.api.model.TimeToLive;
@@ -60,6 +61,7 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 
+import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response.Status;
 import java.io.ByteArrayInputStream;
@@ -67,7 +69,6 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
-import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.Arrays;
 import java.util.Collections;
@@ -786,8 +787,10 @@ public class WorkspaceResourceTest {
             .delete("/containers/" + CONTAINER_NAME + "/old_files");
 
         // Then
-        given().then().statusCode(Status.OK.getStatusCode()).when().get("/containers/" + CONTAINER_NAME + "/objects/" + file1);
-        given().then().statusCode(Status.OK.getStatusCode()).when().get("/containers/" + CONTAINER_NAME + "/objects/" + file2);
+        given().then().statusCode(Status.OK.getStatusCode()).when()
+            .get("/containers/" + CONTAINER_NAME + "/objects/" + file1);
+        given().then().statusCode(Status.OK.getStatusCode()).when()
+            .get("/containers/" + CONTAINER_NAME + "/objects/" + file2);
     }
 
     @Test
@@ -821,5 +824,141 @@ public class WorkspaceResourceTest {
         // Then
         given().then().statusCode(Status.NOT_FOUND.getStatusCode()).when().get("/containers/" + CONTAINER_NAME + "/objects/" + file1);
         given().then().statusCode(Status.NOT_FOUND.getStatusCode()).when().get("/containers/" + CONTAINER_NAME + "/objects/" + file2);
+    }
+
+    @Test
+    public void givenPutAtomicObjectThenGetObjectOK() throws Exception {
+
+        // Given
+        createContainerOK();
+
+        // When
+        putAtomicObjectOK("test 1");
+
+        // Then
+        getObjectOk("test 1");
+    }
+
+    @Test
+    public void givenExistingFileWhenPutAtomicObjectThenException() throws Exception {
+
+        // Given
+        createContainerOK();
+
+        // When / Then
+        putAtomicObjectOK("test 1");
+
+        putAtomicObjectError("test 2");
+
+        isExistingObjectYes();
+
+        getObjectOk("test 1");
+    }
+
+    @Test
+    public void givenPutAtomicObjectThenFileExists() throws Exception {
+
+        // Given
+        createContainerOK();
+
+        putAtomicObjectOK("test 1");
+
+        // When / Then
+        isExistingObjectYes();
+    }
+
+    @Test
+    public void givenDeletedAtomicObjectThenGetObjectNotExists() throws Exception {
+
+        // Given
+        createContainerOK();
+
+        putAtomicObjectOK("test 1");
+
+        // When
+        deleteObjectOK();
+
+        // Then
+        isExistingObjectNo();
+    }
+
+    @Test
+    public void givenDeletedAtomicObjectThenGetObjectThrowsException() throws Exception {
+
+        // Given
+        createContainerOK();
+
+        putAtomicObjectOK("test 1");
+
+        // When
+        deleteObjectOK();
+
+        // Then
+        getObjectNotFound();
+    }
+
+    private void createContainerOK() {
+        with().then().statusCode(Status.CREATED.getStatusCode()).when()
+            .post("/containers/" + CONTAINER_NAME);
+    }
+
+    private void putAtomicObjectOK(String content) {
+
+        byte[] data = content.getBytes(StandardCharsets.UTF_8);
+
+        with()
+            .contentType(ContentType.BINARY)
+            .header(GlobalDataRest.X_CONTENT_LENGTH, data.length)
+            .body(data)
+            .when().post("/atomic_containers/" + CONTAINER_NAME + "/objects/myObject")
+            .then().statusCode(Status.CREATED.getStatusCode());
+    }
+
+    private void putAtomicObjectError(String content) {
+
+        byte[] data = content.getBytes(StandardCharsets.UTF_8);
+
+        with()
+            .contentType(ContentType.BINARY)
+            .header(GlobalDataRest.X_CONTENT_LENGTH, data.length)
+            .body(data)
+            .when().post("/atomic_containers/" + CONTAINER_NAME + "/objects/myObject")
+            .then().statusCode(Status.INTERNAL_SERVER_ERROR.getStatusCode());
+    }
+
+    private void deleteObjectOK() {
+        given().then().statusCode(Status.NO_CONTENT.getStatusCode()).when()
+            .delete("/containers/" + CONTAINER_NAME + "/objects/" + OBJECT_NAME);
+    }
+
+    private void getObjectNotFound() {
+        given().contentType(ContentType.JSON).then()
+            .statusCode(Status.NOT_FOUND.getStatusCode()).when()
+            .get("/containers/" + CONTAINER_NAME + "/objects/myObject");
+    }
+
+    private void isExistingObjectYes() {
+        given().then().statusCode(Status.OK.getStatusCode()).when()
+            .head("/containers/" + CONTAINER_NAME + "/objects/myObject");
+    }
+
+    private void isExistingObjectNo() {
+        given().then().statusCode(Status.NOT_FOUND.getStatusCode()).when()
+            .head("/containers/" + CONTAINER_NAME + "/objects/myObject");
+    }
+
+    private void getObjectOk(String content) {
+
+        byte[] data = content.getBytes(StandardCharsets.UTF_8);
+
+        Response response = given().accept(ContentType.BINARY).then()
+            .statusCode(Status.OK.getStatusCode()).when()
+            .get("/containers/" + CONTAINER_NAME + "/objects/myObject")
+            .andReturn();
+        assertThat(response.getHeader(HttpHeaders.CONTENT_TYPE)).isEqualTo(MediaType.APPLICATION_OCTET_STREAM);
+        assertThat(response.getHeader(VitamHttpHeader.X_CONTENT_LENGTH.getName())).isEqualTo(data.length + "");
+        assertThat(response.getHeader(VitamHttpHeader.X_CHUNK_LENGTH.getName())).isEqualTo(data.length + "");
+        assertThat(response.getBody().asInputStream()).hasSameContentAs(
+            new ByteArrayInputStream(data));
     }
 }

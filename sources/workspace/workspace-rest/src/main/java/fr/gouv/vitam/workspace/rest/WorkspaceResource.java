@@ -535,6 +535,43 @@ public class WorkspaceResource extends ApplicationStatusResource {
     }
 
     /**
+     * puts an atomic object into a container
+     *
+     * @param stream data input stream
+     * @param objectName name of data object
+     * @param containerName name of container
+     * @return Response
+     */
+    @Path("/atomic_containers/{containerName}/objects/{objectName:.*}")
+    @POST
+    @Consumes(MediaType.APPLICATION_OCTET_STREAM)
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response putAtomicObject(InputStream stream, @PathParam(CONTAINER_NAME) String containerName,
+        @PathParam(OBJECT_NAME) String objectName,
+        @HeaderParam(GlobalDataRest.X_CONTENT_LENGTH) long size) {
+        try {
+            ParametersChecker.checkParameter(ErrorMessage.CONTAINER_NAME_IS_A_MANDATORY_PARAMETER.getMessage(),
+                containerName, objectName);
+            if(size < 0L) {
+                throw new IllegalArgumentException("Invalid stream size " + size);
+            }
+            workspace.putAtomicObject(containerName, objectName, stream, size);
+            return Response.status(Status.CREATED).entity(containerName + "/" + objectName).build();
+        } catch (final IllegalArgumentException e) {
+            LOGGER.error(e);
+            return Response.status(Status.BAD_REQUEST).entity(e.getMessage()).build();
+        } catch (final ContentAddressableStorageNotFoundException e) {
+            LOGGER.error(ErrorMessage.OBJECT_NOT_FOUND.getMessage() + containerName, e);
+            return Response.status(Status.NOT_FOUND).entity(containerName).build();
+        } catch (final ContentAddressableStorageException e) {
+            LOGGER.error(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage(), e);
+            return Response.status(Status.INTERNAL_SERVER_ERROR).entity(containerName).build();
+        } finally {
+            StreamUtils.closeSilently(stream);
+        }
+    }
+
+    /**
      * Deletes an objects in a container *
      *
      * @param containerName container name
@@ -759,6 +796,7 @@ public class WorkspaceResource extends ApplicationStatusResource {
                 response.getHeaderString(VitamHttpHeader.X_CHUNK_LENGTH.getName()));
             return new VitamAsyncInputStreamResponse(response,
                 Status.OK, headers);
+
         } catch (final IllegalArgumentException e) {
             LOGGER.error(e);
             return Response.status(Status.BAD_REQUEST).entity(e.getMessage()).build();
@@ -770,6 +808,5 @@ public class WorkspaceResource extends ApplicationStatusResource {
             return Response.status(Status.INTERNAL_SERVER_ERROR).entity(e.getMessage()).build();
         }
     }
-
 }
 

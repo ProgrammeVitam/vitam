@@ -126,8 +126,7 @@ public class LogbookObjectGroupLifeCycleTraceabilityHelperTest {
 
         LogbookObjectGroupLifeCycleTraceabilityHelper helper =
             new LogbookObjectGroupLifeCycleTraceabilityHelper(handlerIO, logbookOperationsClient, itemStatus,
-                guid.getId(),
-                workspaceClientFactory, null);
+                guid.getId(), workspaceClientFactory, null, "eventFileName", "zipFileName");
 
         // When
         helper.initialize();
@@ -155,8 +154,7 @@ public class LogbookObjectGroupLifeCycleTraceabilityHelperTest {
 
         LogbookObjectGroupLifeCycleTraceabilityHelper helper =
             new LogbookObjectGroupLifeCycleTraceabilityHelper(handlerIO, logbookOperationsClient, itemStatus,
-                guid.getId(),
-                workspaceClientFactory, entriesIterator);
+                guid.getId(), workspaceClientFactory, entriesIterator, "eventFileName", "zipFileName");
 
         final MerkleTreeAlgo algo = new MerkleTreeAlgo(VitamConfiguration.getDefaultDigestType());
 
@@ -185,7 +183,7 @@ public class LogbookObjectGroupLifeCycleTraceabilityHelperTest {
         LogbookObjectGroupLifeCycleTraceabilityHelper helper =
             new LogbookObjectGroupLifeCycleTraceabilityHelper(handlerIO, logbookOperationsClient, itemStatus,
                 guid.getId(),
-                workspaceClientFactory, null);
+                workspaceClientFactory, null, "eventFileName", "zipFileName");
 
         helper.initialize();
 
@@ -211,8 +209,7 @@ public class LogbookObjectGroupLifeCycleTraceabilityHelperTest {
 
         LogbookObjectGroupLifeCycleTraceabilityHelper helper =
             new LogbookObjectGroupLifeCycleTraceabilityHelper(handlerIO, logbookOperationsClient, itemStatus,
-                guid.getId(),
-                workspaceClientFactory, null);
+                guid.getId(), workspaceClientFactory, null, "eventFileName", "zipFileName");
 
         // When
         helper.initialize();
@@ -240,8 +237,7 @@ public class LogbookObjectGroupLifeCycleTraceabilityHelperTest {
 
         LogbookObjectGroupLifeCycleTraceabilityHelper helper =
             new LogbookObjectGroupLifeCycleTraceabilityHelper(handlerIO, logbookOperationsClient, itemStatus,
-                guid.getId(),
-                workspaceClientFactory, null);
+                guid.getId(), workspaceClientFactory, null, "eventFileName", "zipFileName");
 
         helper.initialize();
 

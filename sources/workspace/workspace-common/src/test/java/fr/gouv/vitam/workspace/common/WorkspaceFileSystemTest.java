@@ -61,6 +61,7 @@ import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.assertj.core.groups.Tuple.tuple;
 
@@ -94,6 +95,10 @@ public class WorkspaceFileSystemTest {
 
     private InputStream getInputStream(String file) throws IOException {
         return PropertiesUtils.getResourceAsStream(file);
+    }
+
+    private long getLength(String file) throws IOException {
+        return PropertiesUtils.getResourceFile(file).length();
     }
 
     @Test(expected = ContentAddressableStorageNotFoundException.class)
@@ -213,14 +218,93 @@ public class WorkspaceFileSystemTest {
     }
 
     @Test
-    public void givenExistingFileWhenGetObjectThenOK() throws Exception {
+    public void givenPutAtomicObjectThenGetObjectOK() throws Exception {
 
+        // Given
         storage.createContainer(CONTAINER_NAME);
-        storage.putObject(CONTAINER_NAME, OBJECT_NAME, getInputStream("file1.pdf"));
 
+        // When
+        storage.putAtomicObject(CONTAINER_NAME, OBJECT_NAME, getInputStream("file1.pdf"), getLength("file1.pdf"));
+
+        // Then
+        assertThat(storage.isExistingObject(CONTAINER_NAME, OBJECT_NAME)).isTrue();
         InputStream is = (InputStream) storage.getObject(CONTAINER_NAME, OBJECT_NAME, null, null).getEntity();
-
         assertThat(is).hasSameContentAs(getInputStream("file1.pdf"));
+    }
+
+    @Test
+    public void givenPutAtomicObjectWithSubDirectoriesThenGetObjectOK() throws Exception {
+
+        // Given
+        storage.createContainer(CONTAINER_NAME);
+
+        // When
+        storage.putAtomicObject(CONTAINER_NAME, FOLDER_NAME + "/" + OBJECT_NAME, getInputStream("file1.pdf"), getLength("file1.pdf"));
+
+        // Then
+        assertThat(storage.isExistingObject(CONTAINER_NAME, FOLDER_NAME + "/" + OBJECT_NAME)).isTrue();
+        InputStream is = (InputStream) storage.getObject(CONTAINER_NAME, FOLDER_NAME + "/" + OBJECT_NAME, null, null).getEntity();
+        assertThat(is).hasSameContentAs(getInputStream("file1.pdf"));
+    }
+
+    @Test
+    public void givenExistingFileWhenPutAtomicObjectThenException() throws Exception {
+
+        // Given
+        storage.createContainer(CONTAINER_NAME);
+
+        // When / Then
+        storage.putAtomicObject(CONTAINER_NAME, OBJECT_NAME, getInputStream("file1.pdf"), getLength("file1.pdf"));
+
+        assertThatThrownBy( () -> storage.putAtomicObject(CONTAINER_NAME, OBJECT_NAME, getInputStream("file2.pdf"), getLength("file2.pdf")))
+        .isInstanceOf(ContentAddressableStorageException.class);
+
+        assertThat(storage.isExistingObject(CONTAINER_NAME, OBJECT_NAME)).isTrue();
+        InputStream is = (InputStream) storage.getObject(CONTAINER_NAME, OBJECT_NAME, null, null).getEntity();
+        assertThat(is).hasSameContentAs(getInputStream("file1.pdf"));
+    }
+
+    @Test
+    public void givenPutAtomicObjectThenFileExists() throws Exception {
+
+        // Given
+        storage.createContainer(CONTAINER_NAME);
+        storage.putAtomicObject(CONTAINER_NAME, OBJECT_NAME, getInputStream("file1.pdf"), getLength("file1.pdf"));
+
+        // When
+        boolean existingAtomicObject = storage.isExistingObject(CONTAINER_NAME, OBJECT_NAME);
+
+        // Then
+        assertThat(existingAtomicObject).isTrue();
+    }
+
+    @Test
+    public void givenDeletedAtomicObjectThenGetObjectNotExists() throws Exception {
+
+        // Given
+        storage.createContainer(CONTAINER_NAME);
+        storage.putAtomicObject(CONTAINER_NAME, OBJECT_NAME, getInputStream("file1.pdf"), getLength("file1.pdf"));
+
+        // When
+        storage.deleteObject(CONTAINER_NAME, OBJECT_NAME);
+
+        // Then
+        assertThat(storage.isExistingObject(CONTAINER_NAME, OBJECT_NAME)).isFalse();
+    }
+
+    @Test
+    public void givenDeletedAtomicObjectThenGetObjectThrowsException() throws Exception {
+
+        // Given
+        storage.createContainer(CONTAINER_NAME);
+        storage.putAtomicObject(CONTAINER_NAME, OBJECT_NAME, getInputStream("file1.pdf"), getLength("file1.pdf"));
+
+        // When
+        storage.deleteObject(CONTAINER_NAME, OBJECT_NAME);
+
+        // Then
+        assertThatThrownBy( () -> storage.getObject(CONTAINER_NAME, OBJECT_NAME, null, null))
+            .isInstanceOf(ContentAddressableStorageNotFoundException.class);
     }
 
     @Test

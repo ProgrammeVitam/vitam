@@ -30,19 +30,28 @@ import com.fasterxml.jackson.databind.JsonNode;
 import fr.gouv.vitam.batch.report.client.BatchReportClient;
 import fr.gouv.vitam.batch.report.client.BatchReportClientFactory;
 import fr.gouv.vitam.batch.report.model.OperationSummary;
+import fr.gouv.vitam.batch.report.model.PreservationStatus;
 import fr.gouv.vitam.batch.report.model.Report;
+import fr.gouv.vitam.batch.report.model.ReportBody;
 import fr.gouv.vitam.batch.report.model.ReportResults;
 import fr.gouv.vitam.batch.report.model.ReportSummary;
 import fr.gouv.vitam.batch.report.model.ReportType;
+import fr.gouv.vitam.batch.report.model.entry.AuditObjectGroupReportEntry;
 import fr.gouv.vitam.batch.report.model.entry.PreservationReportEntry;
-import fr.gouv.vitam.batch.report.model.PreservationStatus;
+import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.json.JsonHandler;
+import fr.gouv.vitam.storage.engine.client.StorageClient;
+import fr.gouv.vitam.storage.engine.client.StorageClientFactory;
+import fr.gouv.vitam.storage.engine.common.model.DataCategory;
+import fr.gouv.vitam.storage.engine.common.model.request.ObjectDescription;
 import fr.gouv.vitam.workspace.client.WorkspaceClient;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
 import org.assertj.core.api.ThrowableAssert.ThrowingCallable;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
+import org.mockito.ArgumentCaptor;
+import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnit;
 import org.mockito.junit.MockitoRule;
@@ -51,13 +60,24 @@ import java.util.ArrayList;
 import java.util.List;
 
 import static fr.gouv.vitam.common.model.administration.ActionTypePreservation.ANALYSE;
+import static fr.gouv.vitam.worker.core.plugin.preservation.service.PreservationReportService.JSONL_EXTENSION;
+import static fr.gouv.vitam.worker.core.plugin.preservation.service.PreservationReportService.WORKSPACE_REPORT_URI;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatCode;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
+import static org.mockito.Mockito.verify;
 
 public class PreservationReportServiceTest {
 
     @Rule
     public MockitoRule mockitoRule = MockitoJUnit.rule();
+
+    @Mock
+    private BatchReportClientFactory batchReportFactory;
+
+    @Mock
+    private BatchReportClient batchReportClient;
 
     @Mock
     private WorkspaceClientFactory workspaceClientFactory;
@@ -66,11 +86,13 @@ public class PreservationReportServiceTest {
     private WorkspaceClient workspaceClient;
 
     @Mock
-    private BatchReportClientFactory batchReportFactory;
-
+    private StorageClientFactory storageClientFactory;
     @Mock
-    private BatchReportClient batchReportClient;
+    private StorageClient storageClient;
+
+    @InjectMocks
     private PreservationReportService preservationReportService;
+
     private String processId;
     private int tenantId;
 
@@ -78,11 +100,11 @@ public class PreservationReportServiceTest {
     public void setUp() throws Exception {
         given(batchReportFactory.getClient()).willReturn(batchReportClient);
         given(workspaceClientFactory.getClient()).willReturn(workspaceClient);
-        preservationReportService = new PreservationReportService(batchReportFactory);
+        given(storageClientFactory.getClient()).willReturn(storageClient);
     }
 
     @Test
-    public void appendPreservationEntries() {
+    public void appendPreservationEntries() throws Exception {
         // Given
         processId = "123456789";
         tenantId = 0;
@@ -95,25 +117,76 @@ public class PreservationReportServiceTest {
         reports.add(preservationReportEntry);
 
         // When
-        ThrowingCallable appendPreservation = () -> preservationReportService.appendPreservationEntries(processId, reports);
+        ThrowingCallable appendPreservation =
+            () -> preservationReportService.appendEntries(processId, reports);
 
         // Then
         assertThatCode(appendPreservation).doesNotThrowAnyException();
+
+        ArgumentCaptor<ReportBody<AuditObjectGroupReportEntry>> reportBodyArgumentCaptor =
+            ArgumentCaptor.forClass(ReportBody.class);
+        verify(batchReportClient).appendReportEntries(reportBodyArgumentCaptor.capture());
+        assertThat(reportBodyArgumentCaptor.getValue().getProcessId()).isEqualTo(processId);
+        assertThat(reportBodyArgumentCaptor.getValue().getEntries()).isEqualTo(reports);
+        assertThat(reportBodyArgumentCaptor.getValue().getReportType()).isEqualTo(ReportType.PRESERVATION);
     }
 
     @Test
-    public void should_export_unit_does_not_throw_any_exception() {
+    public void should_check_report_existence_in_workspace_does_not_throw_any_exception() throws Exception {
 
-        OperationSummary operationSummary = new OperationSummary(tenantId, processId, "", "", "", "", JsonHandler.createObjectNode(), JsonHandler.createObjectNode());
-        ReportSummary reportSummary = new ReportSummary(null, null, ReportType.PRESERVATION, new ReportResults(), JsonHandler.createObjectNode());
+        // Given / When
+        ThrowingCallable checkReportExistence = () -> preservationReportService.isReportWrittenInWorkspace(processId);
+
+        // Then
+        assertThatCode(checkReportExistence).doesNotThrowAnyException();
+        verify(workspaceClient).isExistingObject(processId, WORKSPACE_REPORT_URI);
+    }
+
+    @Test
+    public void should_export_unit_to_workspace_does_not_throw_any_exception() throws Exception {
+
+        OperationSummary operationSummary =
+            new OperationSummary(tenantId, processId, "", "", "", "", JsonHandler.createObjectNode(),
+                JsonHandler.createObjectNode());
+        ReportSummary reportSummary =
+            new ReportSummary(null, null, ReportType.PRESERVATION, new ReportResults(), JsonHandler.createObjectNode());
         JsonNode context = JsonHandler.createObjectNode();
 
         Report reportInfo = new Report(operationSummary, reportSummary, context);
 
         // Given / When
-        ThrowingCallable exportReport = () -> preservationReportService.storeReport(reportInfo, processId);
+        ThrowingCallable exportReport = () -> preservationReportService.storeReportToWorkspace(reportInfo);
 
         // Then
         assertThatCode(exportReport).doesNotThrowAnyException();
+        verify(batchReportClient).storeReportToWorkspace(reportInfo);
+    }
+
+    @Test
+    public void should_store_file_to_offers() throws Exception {
+
+        // Given / When
+        ThrowingCallable exportReport = () -> preservationReportService.storeReportToOffers(processId);
+
+        // Then
+        assertThatCode(exportReport).doesNotThrowAnyException();
+        ArgumentCaptor<ObjectDescription> descriptionArgumentCaptor = ArgumentCaptor.forClass(ObjectDescription.class);
+        verify(storageClient)
+            .storeFileFromWorkspace(eq(VitamConfiguration.getDefaultStrategy()), eq(DataCategory.REPORT),
+                eq(processId + JSONL_EXTENSION), descriptionArgumentCaptor.capture());
+        assertThat(descriptionArgumentCaptor.getValue().getWorkspaceContainerGUID()).isEqualTo(processId);
+        assertThat(descriptionArgumentCaptor.getValue().getWorkspaceObjectURI()).isEqualTo(
+            WORKSPACE_REPORT_URI);
+    }
+
+    @Test
+    public void should_delete_does_not_throw_any_exception() throws Exception {
+
+        // Given / When
+        ThrowingCallable exportReport = () -> preservationReportService.cleanupReport(processId);
+
+        // Then
+        assertThatCode(exportReport).doesNotThrowAnyException();
+        verify(batchReportClient).cleanupReport(processId, ReportType.PRESERVATION);
     }
 }

@@ -35,6 +35,7 @@ import fr.gouv.vitam.batch.report.model.Report;
 import fr.gouv.vitam.batch.report.model.ReportResults;
 import fr.gouv.vitam.batch.report.model.ReportSummary;
 import fr.gouv.vitam.common.LocalDateUtil;
+import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamClientInternalException;
 import fr.gouv.vitam.common.json.JsonHandler;
@@ -52,6 +53,13 @@ import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClient;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClientFactory;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
+import fr.gouv.vitam.storage.engine.client.StorageClient;
+import fr.gouv.vitam.storage.engine.client.StorageClientFactory;
+import fr.gouv.vitam.storage.engine.client.exception.StorageAlreadyExistsClientException;
+import fr.gouv.vitam.storage.engine.client.exception.StorageNotFoundClientException;
+import fr.gouv.vitam.storage.engine.client.exception.StorageServerClientException;
+import fr.gouv.vitam.storage.engine.common.model.DataCategory;
+import fr.gouv.vitam.storage.engine.common.model.request.ObjectDescription;
 import fr.gouv.vitam.worker.common.HandlerIO;
 import fr.gouv.vitam.worker.core.handler.ActionHandler;
 import fr.gouv.vitam.worker.core.utils.PluginHelper.EventDetails;
@@ -76,6 +84,10 @@ import static fr.gouv.vitam.worker.core.plugin.massprocessing.description.MassUp
 import static fr.gouv.vitam.worker.core.utils.PluginHelper.buildItemStatus;
 
 public class MassUpdateFinalize extends ActionHandler {
+
+    static final String JSONL_EXTENSION = ".jsonl";
+    static final String WORKSPACE_REPORT_URI = "report.jsonl";
+
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(MassUpdateFinalize.class);
 
     private static final String MASS_UPDATE_FINALIZE = "MASS_UPDATE_FINALIZE";
@@ -83,48 +95,94 @@ public class MassUpdateFinalize extends ActionHandler {
 
     private final BatchReportClientFactory batchReportClientFactory;
     private final LogbookOperationsClientFactory logbookOperationsClientFactory;
+    private final StorageClientFactory storageClientFactory;
 
     public MassUpdateFinalize() {
-        this(BatchReportClientFactory.getInstance(), LogbookOperationsClientFactory.getInstance());
+        this(
+            BatchReportClientFactory.getInstance(),
+            LogbookOperationsClientFactory.getInstance(),
+            StorageClientFactory.getInstance());
     }
 
     @VisibleForTesting
-    public MassUpdateFinalize(BatchReportClientFactory batchReportClientFactory, LogbookOperationsClientFactory logbookOperationsClientFactory) {
+    public MassUpdateFinalize(BatchReportClientFactory batchReportClientFactory,
+        LogbookOperationsClientFactory logbookOperationsClientFactory,
+        StorageClientFactory storageClientFactory) {
         this.batchReportClientFactory = batchReportClientFactory;
         this.logbookOperationsClientFactory = logbookOperationsClientFactory;
+        this.storageClientFactory = storageClientFactory;
     }
 
     @Override
-    public ItemStatus execute(WorkerParameters param, HandlerIO handler) throws ProcessingException, ContentAddressableStorageServerException {
-        try (BatchReportClient batchReportClient = batchReportClientFactory.getClient();
-             LogbookOperationsClient logbookClient = logbookOperationsClientFactory.getClient()) {
+    public ItemStatus execute(WorkerParameters param, HandlerIO handler)
+        throws ProcessingException, ContentAddressableStorageServerException {
 
-            LogbookOperation logbook = getLogbookInformation(param, logbookClient);
+        try {
+
+            storeReportToWorkspace(param, handler);
+
+            storeReportToOffers(param);
+
+            cleanupReport(param);
+
+            return buildItemStatus(MASS_UPDATE_FINALIZE, OK, EventDetails.of("MassUpdate report generation OK."));
+
+        } catch (LogbookClientException | VitamClientInternalException | StorageNotFoundClientException |
+            StorageServerClientException | StorageAlreadyExistsClientException | InvalidParseOperationException e) {
+            LOGGER.error(e);
+            return buildItemStatus(MASS_UPDATE_FINALIZE, FATAL,
+                EventDetails.of("Client error when generating report."));
+        }
+    }
+
+    private void storeReportToWorkspace(WorkerParameters param, HandlerIO handler)
+        throws ProcessingException, InvalidParseOperationException, LogbookClientException,
+        VitamClientInternalException {
+        try (BatchReportClient batchReportClient = batchReportClientFactory.getClient()) {
+
+            if (handler.isExistingFileInWorkspace(WORKSPACE_REPORT_URI)) {
+                // Report already generated (idempotency)
+                return;
+            }
+
+            LogbookOperation logbook = getLogbookInformation(param);
             OperationSummary operationSummary = getOperationSummary(logbook, param.getContainerName());
             ReportSummary reportSummary = getReport(logbook);
             JsonNode context = handler.getJsonFromWorkspace("query.json");
 
             Report reportInfo = new Report(operationSummary, reportSummary, context);
-            batchReportClient.storeReport(reportInfo);
-            batchReportClient.cleanupReport(param.getContainerName(), UPDATE_UNIT);
-
-            return buildItemStatus(MASS_UPDATE_FINALIZE, OK, EventDetails.of("MassUpdate report generation OK."));
-        } catch (LogbookClientException | VitamClientInternalException e) {
-            LOGGER.error(e);
-            return buildItemStatus(MASS_UPDATE_FINALIZE, FATAL, EventDetails.of("Client error when generating report."));
-        }  catch (InvalidParseOperationException e) {
-            LOGGER.error(e);
-            return buildItemStatus(MASS_UPDATE_FINALIZE, KO, EventDetails.of("Generic error when generating report."));
+            batchReportClient.storeReportToWorkspace(reportInfo);
         }
     }
 
-    private LogbookOperation getLogbookInformation(WorkerParameters params, LogbookOperationsClient logbookClient) throws InvalidParseOperationException, LogbookClientException {
-        JsonNode response = logbookClient.selectOperationById(params.getContainerName());
-        RequestResponseOK<JsonNode> logbookResponse = RequestResponseOK.getFromJsonNode(response);
-        return JsonHandler.getFromJsonNode(logbookResponse.getFirstResult(), LogbookOperation.class);
+    private void storeReportToOffers(WorkerParameters param)
+        throws StorageNotFoundClientException, StorageServerClientException, StorageAlreadyExistsClientException {
+        try (StorageClient storageClient = storageClientFactory.getClient()) {
+            ObjectDescription description = new ObjectDescription();
+            description.setWorkspaceContainerGUID(param.getContainerName());
+            description.setWorkspaceObjectURI(WORKSPACE_REPORT_URI);
+            storageClient.storeFileFromWorkspace(VitamConfiguration.getDefaultStrategy(), DataCategory.REPORT,
+                param.getContainerName() + JSONL_EXTENSION, description);
+        }
     }
 
-    private OperationSummary getOperationSummary(LogbookOperation logbook, String processId) throws InvalidParseOperationException {
+    private void cleanupReport(WorkerParameters param) throws VitamClientInternalException {
+        try (BatchReportClient batchReportClient = batchReportClientFactory.getClient()) {
+            batchReportClient.cleanupReport(param.getContainerName(), UPDATE_UNIT);
+        }
+    }
+
+    private LogbookOperation getLogbookInformation(WorkerParameters params)
+        throws InvalidParseOperationException, LogbookClientException {
+        try (LogbookOperationsClient logbookClient = logbookOperationsClientFactory.getClient()) {
+            JsonNode response = logbookClient.selectOperationById(params.getContainerName());
+            RequestResponseOK<JsonNode> logbookResponse = RequestResponseOK.getFromJsonNode(response);
+            return JsonHandler.getFromJsonNode(logbookResponse.getFirstResult(), LogbookOperation.class);
+        }
+    }
+
+    private OperationSummary getOperationSummary(LogbookOperation logbook, String processId)
+        throws InvalidParseOperationException {
         List<LogbookEventOperation> events = logbook.getEvents();
         LogbookEventOperation lastEvent = events.get(events.size() - 2);
 
@@ -183,7 +241,8 @@ public class MassUpdateFinalize extends ActionHandler {
             .reduce((first, second) -> second)
             .map(last -> Stream.of(last.split("\\s"))
                 .filter(StringUtils::isNotBlank)
-                .collect(Collectors.toMap(s -> StatusCode.valueOf(s.split(":")[0]), s -> Integer.valueOf(s.split(":")[1]))))
+                .collect(
+                    Collectors.toMap(s -> StatusCode.valueOf(s.split(":")[0]), s -> Integer.valueOf(s.split(":")[1]))))
             .orElse(Collections.emptyMap());
     }
 }

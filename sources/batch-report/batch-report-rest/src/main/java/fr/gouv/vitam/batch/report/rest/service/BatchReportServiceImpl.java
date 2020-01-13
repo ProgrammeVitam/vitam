@@ -36,7 +36,6 @@ import fr.gouv.vitam.batch.report.model.EvidenceAuditObjectModel;
 import fr.gouv.vitam.batch.report.model.EvidenceStatus;
 import fr.gouv.vitam.batch.report.model.MergeSortedIterator;
 import fr.gouv.vitam.batch.report.model.OperationSummary;
-import fr.gouv.vitam.batch.report.model.PreservationStatsModel;
 import fr.gouv.vitam.batch.report.model.PurgeAccessionRegisterModel;
 import fr.gouv.vitam.batch.report.model.PurgeObjectGroupModel;
 import fr.gouv.vitam.batch.report.model.PurgeUnitModel;
@@ -73,9 +72,6 @@ import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
-import fr.gouv.vitam.functional.administration.common.BackupService;
-import fr.gouv.vitam.functional.administration.common.exception.BackupServiceException;
-import fr.gouv.vitam.storage.engine.common.model.DataCategory;
 import fr.gouv.vitam.worker.core.distribution.JsonLineModel;
 import fr.gouv.vitam.worker.core.distribution.JsonLineWriter;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
@@ -84,13 +80,12 @@ import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
 import org.apache.commons.lang3.StringUtils;
 import org.bson.Document;
 
-import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.OutputStream;
-import java.io.OutputStreamWriter;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.Comparator;
@@ -98,12 +93,12 @@ import java.util.List;
 import java.util.function.BiFunction;
 import java.util.stream.Collectors;
 
+import static fr.gouv.vitam.batch.report.model.PurgeAccessionRegisterModel.OPI;
 import static fr.gouv.vitam.batch.report.model.PurgeAccessionRegisterModel.ORIGINATING_AGENCY;
 import static fr.gouv.vitam.batch.report.model.PurgeAccessionRegisterModel.TOTAL_OBJECTS;
 import static fr.gouv.vitam.batch.report.model.PurgeAccessionRegisterModel.TOTAL_OBJECT_GROUPS;
 import static fr.gouv.vitam.batch.report.model.PurgeAccessionRegisterModel.TOTAL_SIZE;
 import static fr.gouv.vitam.batch.report.model.PurgeAccessionRegisterModel.TOTAL_UNITS;
-import static fr.gouv.vitam.batch.report.model.PurgeAccessionRegisterModel.OPI;
 import static fr.gouv.vitam.batch.report.model.ReportType.AUDIT;
 import static fr.gouv.vitam.batch.report.model.ReportType.EVIDENCE_AUDIT;
 
@@ -126,7 +121,6 @@ public class BatchReportServiceImpl {
     private final UnitComputedInheritedRulesInvalidationRepository unitComputedInheritedRulesInvalidationRepository;
     private final EvidenceAuditReportRepository evidenceAuditReportRepository;
     private final WorkspaceClientFactory workspaceClientFactory;
-    private final BackupService backupService;
 
     public BatchReportServiceImpl(EliminationActionUnitRepository eliminationActionUnitRepository,
         PurgeUnitRepository purgeUnitRepository, PurgeObjectGroupRepository purgeObjectGroupRepository,
@@ -141,7 +135,6 @@ public class BatchReportServiceImpl {
             eliminationActionUnitRepository,
             purgeUnitRepository, purgeObjectGroupRepository,
             transferReplyUnitRepository, updateUnitReportRepository,
-            new BackupService(),
             workspaceClientFactory,
             preservationReportRepository,
             auditReportRepository,
@@ -157,7 +150,6 @@ public class BatchReportServiceImpl {
         PurgeObjectGroupRepository purgeObjectGroupRepository,
         TransferReplyUnitRepository transferReplyUnitRepository,
         UpdateUnitReportRepository updateUnitReportRepository,
-        BackupService backupService,
         WorkspaceClientFactory workspaceClientFactory,
         PreservationReportRepository preservationReportRepository,
         AuditReportRepository auditReportRepository,
@@ -172,7 +164,6 @@ public class BatchReportServiceImpl {
         this.preservationReportRepository = preservationReportRepository;
         this.auditReportRepository = auditReportRepository;
         this.unitComputedInheritedRulesInvalidationRepository = unitComputedInheritedRulesInvalidationRepository;
-        this.backupService = backupService;
         this.evidenceAuditReportRepository = evidenceAuditReportRepository;
     }
 
@@ -358,8 +349,13 @@ public class BatchReportServiceImpl {
         }
     }
 
-    private void storeReport(String processId, File report) throws IOException, BackupServiceException {
-        backupService.backup(new FileInputStream(report), DataCategory.REPORT, processId + JSONL_EXTENSION);
+    private void storeReportToWorkspace(String processId, File report)
+        throws IOException, ContentAddressableStorageServerException {
+
+        try (WorkspaceClient workspaceClient = workspaceClientFactory.getClient();
+            InputStream inputStream = new FileInputStream(report)) {
+            workspaceClient.putAtomicObject(processId, REPORT_JSONL, inputStream, report.length());
+        }
     }
 
     private JsonNode getExtendedInfo(Report reportInfo) throws InvalidParseOperationException {
@@ -393,8 +389,8 @@ public class BatchReportServiceImpl {
         return reportInfo.getReportSummary().getVitamResults();
     }
 
-    public void storeReport(Report reportInfo)
-        throws IOException, BackupServiceException, InvalidParseOperationException {
+    public void storeReportToWorkspace(Report reportInfo)
+        throws IOException, ContentAddressableStorageServerException, InvalidParseOperationException {
 
         OperationSummary operationSummary = reportInfo.getOperationSummary();
         String processId = operationSummary.getEvId();
@@ -480,81 +476,7 @@ public class BatchReportServiceImpl {
             }
         }
 
-        storeReport(processId, tempReport);
-    }
-
-    void exportPurgeObjectGroupReport(String processId, String fileName, int tenantId)
-        throws InvalidParseOperationException, ContentAddressableStorageServerException, IOException {
-
-        File tempFile =
-            File.createTempFile(fileName, JSONL_EXTENSION, new File(VitamConfiguration.getVitamTmpFolder()));
-
-        try (MongoCursor<Document> iterator = purgeObjectGroupRepository
-            .findCollectionByProcessIdTenant(processId, tenantId)) {
-
-            createFileFromMongoCursorWithDocument(tempFile, iterator);
-
-            transferDocumentToWorkspace(processId, fileName, tempFile);
-
-        } finally {
-            deleteQuietly(tempFile);
-        }
-    }
-
-    public void exportPreservationReport(String processId, String fileName, int tenantId)
-        throws IOException, ContentAddressableStorageServerException {
-        File file = Files.createFile(Paths.get(VitamConfiguration.getVitamTmpFolder(), fileName)).toFile();
-
-        try {
-            createDocument(processId, tenantId, file);
-            transferDocumentToWorkspace(processId, fileName, file);
-        } finally {
-            deleteQuietly(file);
-        }
-    }
-
-    private PreservationReportEntry mapToModel(Document document) {
-        try {
-            return JsonHandler.getFromJsonNode(JsonHandler.toJsonNode(document), PreservationReportEntry.class);
-        } catch (InvalidParseOperationException e) {
-            throw new VitamRuntimeException(e);
-        }
-    }
-
-    private void createDocument(String processId, int tenantId, File file) throws IOException {
-        try (FileOutputStream fileOut = new FileOutputStream(file);
-            OutputStreamWriter streamOut = new OutputStreamWriter(fileOut);
-            BufferedWriter writer = new BufferedWriter(streamOut)) {
-
-            PreservationStatsModel stats = preservationReportRepository.stats(processId, tenantId);
-            addDocumentToFile(stats, writer);
-
-            try (MongoCursor<Document> reports = preservationReportRepository
-                .findCollectionByProcessIdTenant(processId, tenantId)) {
-                reports.forEachRemaining(d -> addDocumentToFile(mapToModel(d), writer));
-            }
-        }
-    }
-
-    private <T> void addDocumentToFile(T d, BufferedWriter writer) {
-        try {
-            writer.append(JsonHandler.unprettyPrint(d));
-            writer.append("\n");
-        } catch (IOException e) {
-            throw new VitamRuntimeException(e);
-        }
-    }
-
-    private void createFileFromMongoCursorWithDocument(File tempFile, MongoCursor<Document> iterator)
-        throws IOException, InvalidParseOperationException {
-        try (JsonLineWriter jsonLineWriter = new JsonLineWriter(new FileOutputStream(tempFile))) {
-            while (iterator.hasNext()) {
-                Document document = iterator.next();
-                JsonLineModel jsonLineModel =
-                    JsonHandler.getFromJsonNode(JsonHandler.toJsonNode(document), JsonLineModel.class);
-                jsonLineWriter.addEntry(jsonLineModel);
-            }
-        }
+        storeReportToWorkspace(processId, tempReport);
     }
 
     /**

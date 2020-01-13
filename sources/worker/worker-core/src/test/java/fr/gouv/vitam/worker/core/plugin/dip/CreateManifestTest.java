@@ -60,6 +60,7 @@ import org.xmlunit.builder.Input;
 
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.InputStream;
 import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.Paths;
@@ -79,11 +80,14 @@ import static fr.gouv.vitam.worker.core.plugin.dip.CreateManifest.MANIFEST_XML_R
 import static fr.gouv.vitam.worker.core.plugin.dip.CreateManifest.REPORT;
 import static junit.framework.TestCase.assertEquals;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.fail;
 import static org.hamcrest.core.IsEqual.equalTo;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
 import static org.xmlunit.matchers.EvaluateXPathMatcher.hasXPath;
 
 public class CreateManifestTest {
@@ -101,9 +105,6 @@ public class CreateManifestTest {
     @Mock
     private MetaDataClientFactory metaDataClientFactory;
 
-    @Mock
-    private BackupService backupService;
-
     private static final int TENANT_ID = 0;
 
     private CreateManifest createManifest;
@@ -116,7 +117,7 @@ public class CreateManifestTest {
 
     @Before
     public void setUp() throws Exception {
-        createManifest = new CreateManifest(metaDataClientFactory, backupService);
+        createManifest = new CreateManifest(metaDataClientFactory);
     }
 
     @Test
@@ -478,8 +479,6 @@ public class CreateManifestTest {
         exportRequest.setExportRequestParameters(exportRequestParameters);
         given(handlerIO.getJsonFromWorkspace(EXPORT_QUERY_FILE_NAME)).willReturn(JsonHandler.toJsonNode(exportRequest));
 
-        given(backupService.backup(any(), any(), anyString())).willReturn(null);
-
         WorkerParameters wp = WorkerParametersFactory.newWorkerParameters();
 
         // When
@@ -495,6 +494,8 @@ public class CreateManifestTest {
         assertEquals("{\"id\":\"aeaqaaaaaadf6mc4aathcak7tmtgdmyaaaba\",\"status\":\"OK\"}", lines.get(3));
         assertEquals("{\"id\":\"aeaqaaaaaadf6mc4aathcak7tmtgdayaaaca\",\"status\":\"OK\"}", lines.get(4));
         assertEquals("{\"id\":\"aeaqaaaaaadf6mc4aathcak7tmtgdniaaaba\",\"status\":\"OK\"}", lines.get(5));
+        verify(handlerIO).transferInputStreamToWorkspace(eq(VitamThreadUtils.getVitamSession().getRequestId() + ".jsonl"),
+            any(InputStream.class), eq(null), eq(false));
     }
 
     @Test
@@ -567,8 +568,6 @@ public class CreateManifestTest {
         exportRequest.setExportRequestParameters(exportRequestParameters);
         given(handlerIO.getJsonFromWorkspace(EXPORT_QUERY_FILE_NAME)).willReturn(JsonHandler.toJsonNode(exportRequest));
 
-        given(backupService.backup(any(), any(), anyString())).willReturn(null);
-
         WorkerParameters wp = WorkerParametersFactory.newWorkerParameters();
 
         // When
@@ -576,5 +575,7 @@ public class CreateManifestTest {
 
         // Then
         assertThat(itemStatus.getGlobalStatus()).isEqualTo(StatusCode.WARNING);
+        verify(handlerIO).transferInputStreamToWorkspace(eq(VitamThreadUtils.getVitamSession().getRequestId() + ".jsonl"),
+            any(InputStream.class), eq(null), eq(false));
     }
 }

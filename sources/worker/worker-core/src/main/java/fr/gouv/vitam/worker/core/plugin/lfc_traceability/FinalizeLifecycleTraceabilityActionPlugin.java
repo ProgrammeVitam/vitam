@@ -26,26 +26,32 @@
  */
 package fr.gouv.vitam.worker.core.plugin.lfc_traceability;
 
-import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.VitamConfiguration;
+import fr.gouv.vitam.common.exception.InvalidParseOperationException;
+import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
-import fr.gouv.vitam.common.parameter.ParameterHelper;
-import fr.gouv.vitam.common.timestamp.TimeStampSignature;
-import fr.gouv.vitam.common.timestamp.TimeStampSignatureWithKeystore;
-import fr.gouv.vitam.common.timestamp.TimestampGenerator;
-import fr.gouv.vitam.logbook.common.exception.TraceabilityException;
-import fr.gouv.vitam.logbook.common.traceability.LogbookTraceabilityHelper;
-import fr.gouv.vitam.logbook.common.traceability.TraceabilityService;
+import fr.gouv.vitam.common.model.ItemStatus;
+import fr.gouv.vitam.common.model.StatusCode;
+import fr.gouv.vitam.logbook.common.model.TraceabilityEvent;
+import fr.gouv.vitam.logbook.common.parameters.LogbookParameterName;
+import fr.gouv.vitam.processing.common.exception.ProcessingException;
+import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
+import fr.gouv.vitam.storage.engine.client.StorageClient;
+import fr.gouv.vitam.storage.engine.client.StorageClientFactory;
+import fr.gouv.vitam.storage.engine.client.exception.StorageAlreadyExistsClientException;
+import fr.gouv.vitam.storage.engine.client.exception.StorageNotFoundClientException;
+import fr.gouv.vitam.storage.engine.client.exception.StorageServerClientException;
+import fr.gouv.vitam.storage.engine.common.model.DataCategory;
+import fr.gouv.vitam.storage.engine.common.model.request.ObjectDescription;
+import fr.gouv.vitam.worker.common.HandlerIO;
 import fr.gouv.vitam.worker.core.handler.ActionHandler;
-import fr.gouv.vitam.worker.core.handler.VerifyTimeStampActionConfiguration;
+import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundException;
+import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
+import fr.gouv.vitam.workspace.client.WorkspaceClient;
 
 import java.io.File;
 import java.io.IOException;
-import java.security.KeyStoreException;
-import java.security.NoSuchAlgorithmException;
-import java.security.UnrecoverableKeyException;
-import java.security.cert.CertificateException;
 
 /**
  * FinalizeLifecycleTraceabilityAction Plugin
@@ -53,55 +59,63 @@ import java.security.cert.CertificateException;
 public abstract class FinalizeLifecycleTraceabilityActionPlugin extends ActionHandler {
     private static final VitamLogger LOGGER =
         VitamLoggerFactory.getInstance(FinalizeLifecycleTraceabilityActionPlugin.class);
+    public static final String TRACEABILITY_ZIP_FILE_NAME = "traceabilityFile.zip";
+    public static final String TRACEABILITY_EVENT_FILE_NAME = "traceabilityEvent.json";
 
-    private final TimestampGenerator timestampGenerator;
-    private static final String VERIFY_TIMESTAMP_CONF_FILE = "verify-timestamp.conf";
+    private final String actionHandlerId;
+    private final StorageClientFactory storageClientFactory;
 
-    /**
-     * Empty constructor FinalizeLifecycleTraceabilityActionPlugin
-     */
-    public FinalizeLifecycleTraceabilityActionPlugin() {
-        TimeStampSignature timeStampSignature;
-        VerifyTimeStampActionConfiguration configuration = null;
-        try {
-            configuration =
-                PropertiesUtils.readYaml(PropertiesUtils.findFile(VERIFY_TIMESTAMP_CONF_FILE),
-                    VerifyTimeStampActionConfiguration.class);
-        } catch (IOException e) {
-            LOGGER.error("Processing exception", e);
-        }
-        if (configuration != null) {
-            try {
-                final File file = PropertiesUtils.findFile(configuration.getP12LogbookFile());
-                timeStampSignature =
-                    new TimeStampSignatureWithKeystore(file, configuration.getP12LogbookPassword().toCharArray());
-            } catch (KeyStoreException | CertificateException | IOException | UnrecoverableKeyException |
-                NoSuchAlgorithmException e) {
-                LOGGER.error("unable to instantiate TimeStampGenerator", e);
-                // FIXME: Make a specific exception ?
-                throw new RuntimeException(e);
+    protected FinalizeLifecycleTraceabilityActionPlugin(StorageClientFactory storageClientFactory,
+        String actionHandlerId) {
+        this.storageClientFactory = storageClientFactory;
+        this.actionHandlerId = actionHandlerId;
+    }
+
+    @Override
+    public ItemStatus execute(WorkerParameters params, HandlerIO handler) {
+
+        final ItemStatus itemStatus = new ItemStatus(actionHandlerId);
+
+        try (StorageClient storageClient = storageClientFactory.getClient();
+            WorkspaceClient workspaceClient = handler.getWorkspaceClientFactory().getClient()) {
+
+            if (!workspaceClient.isExistingObject(handler.getContainerName(), TRACEABILITY_EVENT_FILE_NAME)) {
+                LOGGER.warn("No traceability event file found. Empty traceability zip.");
+                itemStatus.increment(StatusCode.OK);
+                LOGGER.info("Lifecycle traceability finished with status " + itemStatus.getGlobalStatus());
+                return new ItemStatus(actionHandlerId).setItemsStatus(actionHandlerId, itemStatus);
             }
-            timestampGenerator = new TimestampGenerator(timeStampSignature);
-        } else {
-            LOGGER.error("unable to instantiate TimeStampGenerator");
-            throw new RuntimeException("Configuration is null");
+
+            File traceabilityEventFile = handler.getFileFromWorkspace(TRACEABILITY_EVENT_FILE_NAME);
+            TraceabilityEvent traceabilityEvent =
+                JsonHandler.getFromFile(traceabilityEventFile, TraceabilityEvent.class);
+
+            String evDetailData = JsonHandler.unprettyPrint(traceabilityEvent);
+            itemStatus.setEvDetailData(evDetailData);
+            itemStatus.setMasterData(LogbookParameterName.eventDetailData.name(),
+                evDetailData);
+
+            final ObjectDescription description = new ObjectDescription();
+            description.setWorkspaceContainerGUID(handler.getContainerName());
+            description.setWorkspaceObjectURI(TRACEABILITY_ZIP_FILE_NAME);
+
+            storageClient.storeFileFromWorkspace(VitamConfiguration.getDefaultStrategy(), DataCategory.LOGBOOK,
+                traceabilityEvent.getFileName(), description);
+
+            itemStatus.increment(StatusCode.OK);
+            LOGGER.info("Lifecycle traceability finished with status " + itemStatus.getGlobalStatus());
+            return new ItemStatus(actionHandlerId).setItemsStatus(actionHandlerId, itemStatus);
+
+        } catch (InvalidParseOperationException | StorageAlreadyExistsClientException | StorageNotFoundClientException | StorageServerClientException | IOException | ContentAddressableStorageNotFoundException | ContentAddressableStorageServerException e) {
+            LOGGER.error("Exception while finalizing", e);
+            itemStatus.increment(StatusCode.FATAL);
+            LOGGER.info("Lifecycle traceability finished with status " + itemStatus.getGlobalStatus());
+            return new ItemStatus(actionHandlerId).setItemsStatus(actionHandlerId, itemStatus);
         }
     }
 
-    /**
-     * Generation and storage of the secure file for lifecycles
-     *
-     * @param helper@throws TraceabilityException if any error occurs
-     */
-    protected void finalizeLifecycles(LogbookTraceabilityHelper helper)
-        throws TraceabilityException {
-
-        Integer tenantId = ParameterHelper.getTenantParameter();
-        File tmpFolder = PropertiesUtils.fileFromTmpFolder("secure");
-
-        TraceabilityService traceabilityService =
-            new TraceabilityService(timestampGenerator, helper, tenantId, tmpFolder);
-
-        traceabilityService.secureData(VitamConfiguration.getDefaultStrategy());
+    @Override
+    public void checkMandatoryIOParameter(HandlerIO handler) throws ProcessingException {
+        // Nothing to check
     }
 }
