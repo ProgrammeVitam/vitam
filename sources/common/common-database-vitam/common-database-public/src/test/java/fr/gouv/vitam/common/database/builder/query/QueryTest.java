@@ -26,24 +26,23 @@
  */
 package fr.gouv.vitam.common.database.builder.query;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
+import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.QUERY;
+import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.QUERYARGS;
+import fr.gouv.vitam.common.database.builder.request.configuration.GlobalDatas;
+import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Test;
 
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
-
-import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.QUERY;
-import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.QUERYARGS;
-import fr.gouv.vitam.common.database.builder.request.configuration.GlobalDatas;
-import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 @SuppressWarnings("javadoc")
 public class QueryTest {
@@ -819,7 +818,7 @@ public class QueryTest {
             fail(e.getMessage());
         }
     }
-
+    
     protected String getStringWithLength() {
         final char[] array = new char[fakeSize + 1];
         int pos = 0;

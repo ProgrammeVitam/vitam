@@ -26,17 +26,16 @@
  */
 package fr.gouv.vitam.common.database.builder.query;
 
-import java.util.Date;
-
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-
 import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.QUERY;
 import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.QUERYARGS;
 import fr.gouv.vitam.common.database.builder.request.configuration.GlobalDatas;
 import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
+
+import java.util.Date;
 
 /**
  * Query component
