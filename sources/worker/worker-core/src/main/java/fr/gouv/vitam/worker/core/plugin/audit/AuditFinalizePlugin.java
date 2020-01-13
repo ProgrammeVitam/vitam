@@ -26,16 +26,10 @@
  */
 package fr.gouv.vitam.worker.core.plugin.audit;
 
-import static fr.gouv.vitam.worker.core.utils.PluginHelper.buildItemStatus;
-
-import java.time.LocalDateTime;
-import java.util.Map;
-
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.annotations.VisibleForTesting;
-
 import fr.gouv.vitam.batch.report.model.OperationSummary;
 import fr.gouv.vitam.batch.report.model.Report;
 import fr.gouv.vitam.batch.report.model.ReportResults;
@@ -56,9 +50,14 @@ import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameterName;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 import fr.gouv.vitam.worker.common.HandlerIO;
+import fr.gouv.vitam.worker.core.exception.ProcessingStatusException;
 import fr.gouv.vitam.worker.core.handler.ActionHandler;
-import fr.gouv.vitam.worker.core.plugin.audit.exception.AuditException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
+
+import java.time.LocalDateTime;
+import java.util.Map;
+
+import static fr.gouv.vitam.worker.core.utils.PluginHelper.buildItemStatus;
 
 /**
  * AuditFinalizePlugin.
@@ -83,28 +82,39 @@ public class AuditFinalizePlugin extends ActionHandler {
      */
     @VisibleForTesting
     AuditFinalizePlugin(AuditReportService auditReportService,
-            LogbookOperationsClientFactory logbookOperationsClientFactory) {
+        LogbookOperationsClientFactory logbookOperationsClientFactory) {
         this.auditReportService = auditReportService;
         this.logbookOperationsClientFactory = logbookOperationsClientFactory;
     }
 
     @Override
     public ItemStatus execute(WorkerParameters param, HandlerIO handler)
-            throws ProcessingException, ContentAddressableStorageServerException {
+        throws ProcessingException, ContentAddressableStorageServerException {
 
         try {
-            generateAuditReport(param, handler);
-            auditReportService.cleanupReport(param.getContainerName());
+
+            generateAuditReportToWorkspace(param, handler);
+
+            storeReportToOffers(param.getContainerName());
+
+            cleanupReport(param);
+
             LOGGER.info("Audit object finalization succeeded");
             return buildItemStatus(OBJECT_AUDIT_FINALIZE, StatusCode.OK, null);
-        } catch (AuditException e) {
+        } catch (ProcessingStatusException e) {
             LOGGER.error(String.format("Audit object  finalization failed with status [%s]", e.getStatusCode()), e);
             return buildItemStatus(OBJECT_AUDIT_FINALIZE, e.getStatusCode(), null);
         }
     }
 
-    private void generateAuditReport(WorkerParameters param, HandlerIO handler)
-            throws AuditException, ProcessingException {
+    private void generateAuditReportToWorkspace(WorkerParameters param, HandlerIO handler)
+        throws ProcessingStatusException, ProcessingException {
+
+        if (auditReportService.isReportWrittenInWorkspace(param.getContainerName())) {
+            // Already stored in workspace (idempotency)
+            return;
+        }
+
         Map<WorkerParameterName, String> mapParameters = param.getMapParameters();
         JsonNode initialQuery = handler.getJsonFromWorkspace("query.json");
         JsonNode logbookOperation = getLogbookOperation(param.getContainerName());
@@ -121,19 +131,20 @@ public class AuditFinalizePlugin extends ActionHandler {
         context.set("query", initialQuery);
 
         Report reportInfo = new Report(operationSummary, reportSummary, context);
-        auditReportService.storeReport(reportInfo);
+        auditReportService.storeReportToWorkspace(reportInfo);
     }
 
     private OperationSummary computeLogbookInformation(String processId, JsonNode logbookOperation)
-            throws AuditException {
+        throws ProcessingStatusException {
         try {
             if (!(logbookOperation.has("events") && logbookOperation.get("events").isArray())) {
-                throw new AuditException(StatusCode.FATAL, "Could not generate report summary : no events");
+                throw new ProcessingStatusException(StatusCode.FATAL, "Could not generate report summary : no events");
             }
 
             ArrayNode events = (ArrayNode) logbookOperation.get("events");
             if (events.size() <= 2) {
-                throw new AuditException(StatusCode.FATAL, "Could not generate report summary : not enougth events");
+                throw new ProcessingStatusException(StatusCode.FATAL,
+                    "Could not generate report summary : not enougth events");
             }
             JsonNode lastEvent = events.get(events.size() - 2);
             Integer tenantId = VitamThreadUtils.getVitamSession().getTenantId();
@@ -144,15 +155,16 @@ public class AuditFinalizePlugin extends ActionHandler {
             String outMsg = lastEvent.get("outMessg").asText();
             JsonNode evDetData = JsonHandler.getFromString(lastEvent.get("evDetData").asText());
             JsonNode rSI = JsonHandler.getFromString(logbookOperation.get("rightsStatementIdentifier").asText());
-            OperationSummary operationSummary = new OperationSummary(tenantId, evId, evType, outcome, outDetail, outMsg, rSI,
+            OperationSummary operationSummary =
+                new OperationSummary(tenantId, evId, evType, outcome, outDetail, outMsg, rSI,
                     evDetData);
             return operationSummary;
         } catch (InvalidParseOperationException e) {
-            throw new AuditException(StatusCode.FATAL, "Could not generate report", e);
+            throw new ProcessingStatusException(StatusCode.FATAL, "Could not generate report", e);
         }
     }
 
-    private ReportSummary computeReportSummary(JsonNode logbookOperation) throws AuditException {
+    private ReportSummary computeReportSummary(JsonNode logbookOperation) {
         String startDate = logbookOperation.get("evDateTime").asText();
         String endDate = LocalDateUtil.getString(LocalDateTime.now());
         ReportType reportType = ReportType.AUDIT;
@@ -161,7 +173,7 @@ public class AuditFinalizePlugin extends ActionHandler {
         return new ReportSummary(startDate, endDate, reportType, vitamResults, extendedInfo);
     }
 
-    private JsonNode getLogbookOperation(String operationId) throws AuditException {
+    private JsonNode getLogbookOperation(String operationId) throws ProcessingStatusException {
         try (LogbookOperationsClient client = logbookOperationsClientFactory.getClient()) {
             JsonNode logbookResponse = client.selectOperationById(operationId);
             if (logbookResponse.has("$results") && logbookResponse.get("$results").isArray()) {
@@ -170,10 +182,17 @@ public class AuditFinalizePlugin extends ActionHandler {
                     return results.get(0);
                 }
             }
-            throw new AuditException(StatusCode.FATAL, "Could not find operation in logbook");
+            throw new ProcessingStatusException(StatusCode.FATAL, "Could not find operation in logbook");
         } catch (LogbookClientException | InvalidParseOperationException e) {
-            throw new AuditException(StatusCode.FATAL, "Error while retrieving logbook operation", e);
+            throw new ProcessingStatusException(StatusCode.FATAL, "Error while retrieving logbook operation", e);
         }
     }
 
+    private void storeReportToOffers(String containerName) throws ProcessingStatusException {
+        auditReportService.storeReportToOffers(containerName);
+    }
+
+    private void cleanupReport(WorkerParameters param) throws ProcessingStatusException {
+        auditReportService.cleanupReport(param.getContainerName());
+    }
 }

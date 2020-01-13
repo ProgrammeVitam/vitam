@@ -70,7 +70,7 @@
         },
         {
           "action": {
-            "actionKey": "FINALIZE_UNIT_LFC_TRACEABILITY",
+            "actionKey": "GENERATE_UNIT_LFC_TRACEABILITY",
             "behavior": "BLOCKING",
             "in": [
               {
@@ -89,7 +89,33 @@
                 "name": "traceabilityStats.file",
                 "uri": "WORKSPACE:traceabilityStats.json"
               }
+            ],
+            "out": [
+              {
+                "name": "traceabilityEvent.json",
+                "uri": "WORKSPACE:traceabilityEvent.json"
+              },
+              {
+                "name": "traceabilityFile.zip",
+                "uri": "WORKSPACE:traceabilityFile.zip"
+              }
             ]
+          }
+        }
+      ]
+    },
+    {
+      "workerGroupId": "DefaultWorker",
+      "stepName": "STP_UNIT_LFC_TRACEABILITY_FINALIZATION",
+      "behavior": "BLOCKING",
+      "distribution": {
+        "kind": "REF"
+      },
+      "actions": [
+        {
+          "action": {
+            "actionKey": "FINALIZE_UNIT_LFC_TRACEABILITY",
+            "behavior": "BLOCKING"
           }
         }
       ]

@@ -27,49 +27,26 @@
 package fr.gouv.vitam.worker.core.plugin.preservation.service;
 
 import com.google.common.annotations.VisibleForTesting;
-import fr.gouv.vitam.batch.report.client.BatchReportClient;
 import fr.gouv.vitam.batch.report.client.BatchReportClientFactory;
-import fr.gouv.vitam.batch.report.model.Report;
-import fr.gouv.vitam.batch.report.model.ReportBody;
 import fr.gouv.vitam.batch.report.model.ReportType;
 import fr.gouv.vitam.batch.report.model.entry.PreservationReportEntry;
-import fr.gouv.vitam.common.exception.VitamClientInternalException;
-import fr.gouv.vitam.common.exception.VitamException;
-
-import java.util.List;
-
-import static fr.gouv.vitam.batch.report.model.ReportType.PRESERVATION;
+import fr.gouv.vitam.storage.engine.client.StorageClientFactory;
+import fr.gouv.vitam.worker.core.plugin.CommonReportService;
+import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
 
 /**
  * PreservationReportService
  */
-public class PreservationReportService {
-
-    private final BatchReportClientFactory batchReportClientFactory;
+public class PreservationReportService extends CommonReportService<PreservationReportEntry> {
 
     public PreservationReportService() {
-        this(BatchReportClientFactory.getInstance());
+        super(ReportType.PRESERVATION);
     }
 
     @VisibleForTesting
-    public PreservationReportService(BatchReportClientFactory reportFactory) {
-        this.batchReportClientFactory = reportFactory;
-    }
-
-    public void appendPreservationEntries(String processId, List<PreservationReportEntry> preservationEntries)
-        throws VitamClientInternalException {
-
-        try (BatchReportClient batchReportClient = batchReportClientFactory.getClient()) {
-            ReportBody<PreservationReportEntry> reportBody =
-                new ReportBody<>(processId, PRESERVATION, preservationEntries);
-            batchReportClient.appendReportEntries(reportBody);
-        }
-    }
-
-    public void storeReport(Report reportInfo, String processId) throws VitamException {
-        try (BatchReportClient batchReportClient = batchReportClientFactory.getClient()) {
-            batchReportClient.storeReport(reportInfo);
-            batchReportClient.cleanupReport(processId, ReportType.PRESERVATION);
-        }
+    public PreservationReportService(BatchReportClientFactory reportFactory,
+        WorkspaceClientFactory workspaceClientFactory,
+        StorageClientFactory storageClientFactory) {
+        super(ReportType.PRESERVATION, reportFactory, workspaceClientFactory, storageClientFactory);
     }
 }

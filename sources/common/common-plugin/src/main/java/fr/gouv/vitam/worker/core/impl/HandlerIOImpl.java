@@ -59,6 +59,7 @@ import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundEx
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
 import fr.gouv.vitam.workspace.client.WorkspaceClient;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
+import org.apache.commons.io.FileUtils;
 
 import javax.ws.rs.core.Response;
 import java.io.File;
@@ -337,6 +338,15 @@ public class HandlerIOImpl implements HandlerIO, VitamAutoCloseable {
     }
 
     @Override
+    public boolean isExistingFileInWorkspace(String workspacePath) throws ProcessingException {
+        try (WorkspaceClient workspaceClient = workspaceClientFactory.getClient()) {
+            return workspaceClient.isExistingObject(containerName, workspacePath);
+        } catch (final ContentAddressableStorageServerException e) {
+            throw new ProcessingException("Cannot check file existence in workspace: " + containerName + "/" + workspacePath, e);
+        }
+    }
+
+    @Override
     public void transferFileToWorkspace(String workspacePath, File sourceFile, boolean toDelete, boolean asyncIO)
         throws ProcessingException {
         try {
@@ -357,6 +367,16 @@ public class HandlerIOImpl implements HandlerIO, VitamAutoCloseable {
         }
     }
 
+    @Override
+    public void transferAtomicFileToWorkspace(String workspacePath, File sourceFile)
+        throws ProcessingException {
+        try (WorkspaceClient workspaceClient = workspaceClientFactory.getClient();
+            InputStream inputStream = new FileInputStream(sourceFile)) {
+            workspaceClient.putAtomicObject(containerName, workspacePath, inputStream, sourceFile.length());
+        } catch (final ContentAddressableStorageServerException | IOException e) {
+            throw new ProcessingException("Cannot write to workspace: " + containerName + "/" + workspacePath, e);
+        }
+    }
 
     private void transferInputStreamToWorkspace(String workspacePath, InputStream inputStream, boolean toDelete,
         Path filePath,

@@ -29,6 +29,7 @@ package fr.gouv.vitam.worker.core.plugin.audit;
 import fr.gouv.vitam.storage.engine.common.referential.model.StorageStrategy;
 import fr.gouv.vitam.storage.engine.common.utils.StorageStrategyNotFoundException;
 import fr.gouv.vitam.storage.engine.common.utils.StorageStrategyUtils;
+import fr.gouv.vitam.worker.core.exception.ProcessingStatusException;
 import org.apache.commons.lang.StringUtils;
 
 import com.fasterxml.jackson.databind.JsonNode;
@@ -77,9 +78,10 @@ public class AuditIntegrityService {
      * @param gotDetail got details
      * @param storageStrategies deployed storage strategies
      * @return result of integrity check
-     * @throws AuditException exception
+     * @throws ProcessingStatusException exception
      */
-    public AuditCheckObjectGroupResult check(AuditObjectGroup gotDetail, List<StorageStrategy> storageStrategies) throws AuditException {
+    public AuditCheckObjectGroupResult check(AuditObjectGroup gotDetail, List<StorageStrategy> storageStrategies) throws
+        ProcessingStatusException {
         AuditCheckObjectGroupResult result = new AuditCheckObjectGroupResult();
         result.setIdObjectGroup(gotDetail.getId());
 
@@ -113,7 +115,7 @@ public class AuditIntegrityService {
             result.setStatus(result.getObjectsGlobalStatus());
         } catch (StorageClientException | StorageStrategyNotFoundException e) {
             LOGGER.error("Storage server errors : ", e);
-            throw new AuditException(StatusCode.FATAL, String.format("Storage server errors : %s", e));
+            throw new ProcessingStatusException(StatusCode.FATAL, String.format("Storage server errors : %s", e));
         }
 
         if (result.getStatus() == null) {

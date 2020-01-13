@@ -74,6 +74,7 @@ public class WorkspaceClient extends DefaultClient {
     private static final String FOLDERS = "/folders/";
     private static final String OLD_FILES = "/old_files";
     private static final String CONTAINERS = "/containers/";
+    private static final String ATOMIC_CONTAINERS = "/atomic_containers/";
 
     /**
      * Instantiates a workspace client with a factory
@@ -329,6 +330,35 @@ public class WorkspaceClient extends DefaultClient {
             consumeAnyEntityAndClose(response);
         }
 
+    }
+    public void putAtomicObject(String containerName, String objectName, InputStream stream, long size)
+        throws ContentAddressableStorageServerException {
+        ParametersChecker.checkParameter(ErrorMessage.CONTAINER_OBJECT_NAMES_ARE_A_MANDATORY_PARAMETER.getMessage(),
+            containerName, objectName);
+        if (size < 0) {
+            throw new IllegalArgumentException("Invalid size " + size);
+        }
+
+        Response response = null;
+        try {
+            MultivaluedMap<String, Object> headers = new MultivaluedHashMap<>();
+            headers.add(GlobalDataRest.X_CONTENT_LENGTH, size);
+            response = performRequest(HttpMethod.POST, ATOMIC_CONTAINERS + containerName + OBJECTS + objectName, headers, stream,
+                MediaType.APPLICATION_OCTET_STREAM_TYPE,
+                MediaType.APPLICATION_JSON_TYPE);
+
+            if (Status.CREATED.getStatusCode() == response.getStatus()) {
+                LOGGER.debug(containerName + "/" + objectName + ": " + Response.Status.CREATED.getReasonPhrase());
+            } else {
+                LOGGER.error(response.getStatusInfo().getReasonPhrase());
+                throw new ContentAddressableStorageServerException(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage());
+            }
+        } catch (final VitamClientInternalException e) {
+            LOGGER.error(INTERNAL_SERVER_ERROR2, e);
+            throw new ContentAddressableStorageServerException(e);
+        } finally {
+            consumeAnyEntityAndClose(response);
+        }
     }
 
     /**

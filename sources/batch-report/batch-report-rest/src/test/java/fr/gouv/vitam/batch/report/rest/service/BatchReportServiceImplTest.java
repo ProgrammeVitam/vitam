@@ -67,7 +67,6 @@ import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.BsonHelper;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.mongo.FakeMongoCursor;
-import fr.gouv.vitam.functional.administration.common.BackupService;
 import fr.gouv.vitam.storage.engine.client.StorageClient;
 import fr.gouv.vitam.storage.engine.client.StorageClientFactory;
 import fr.gouv.vitam.worker.core.distribution.JsonLineGenericIterator;
@@ -125,6 +124,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.assertj.core.api.Assertions.tuple;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.doReturn;
@@ -167,8 +167,6 @@ public class BatchReportServiceImplTest {
     @Mock
     private StorageClient storageClient;
     @Mock
-    private BackupService backupService;
-    @Mock
     private EmptyMongoCursor emptyMongoCursor;
 
     private BatchReportServiceImpl batchReportServiceImpl;
@@ -180,11 +178,8 @@ public class BatchReportServiceImplTest {
 
     @Before
     public void setUp() throws Exception {
-        backupService = new BackupService(workspaceClientFactory, storageClientFactory);
-
         batchReportServiceImpl = new BatchReportServiceImpl(eliminationActionUnitRepository,
             purgeUnitRepository, purgeObjectGroupRepository, transferReplyUnitRepository, updateUnitMetadataReportEntry,
-            backupService,
             workspaceClientFactory,
             preservationReportRepository, auditReportRepository, unitComputedInheritedRulesInvalidationRepository,
             evidenceAuditReportRepository);
@@ -259,38 +254,6 @@ public class BatchReportServiceImplTest {
     }
 
     @Test
-    public void should_export_preservation_report() throws Exception {
-        // Given
-        String processId = "aeeaaaaaacgw45nxaaopkalhchougsiaaaaq";
-        when(workspaceClientFactory.getClient()).thenReturn(workspaceClient);
-        when(workspaceClient.isExistingContainer(processId)).thenReturn(true);
-        String filename = String.format("preservation-Report-%s.jsonl", processId);
-        Path report = initialisePathWithFileName(filename);
-        initialiseMockWhenPutObjectInWorkspace(report);
-
-        PreservationStatsModel preservationStatus = new PreservationStatsModel(0, 1, 0, 1, 0, 0, 0, new HashMap<>(), 0);
-        PreservationReportEntry preservationReportEntry =
-            new PreservationReportEntry("aeaaaaaaaagw45nxabw2ualhc4jvawqaaaaq",
-                processId,
-                TENANT_ID, "2018-11-15T11:13:20.986",
-                PreservationStatus.OK, "unitId", "objectGroupId", ANALYSE, "VALID_ALL",
-                "aeaaaaaaaagh65wtab27ialg5fopxnaaaaaq", "", "Outcome - TEST", "griffinId", "preservationScenarioId");
-        Document preservationData = getPreservationDocument(processId);
-        FakeMongoCursor<Document> fakeMongoCursor = new FakeMongoCursor<>(Collections.singletonList(preservationData));
-        when(preservationReportRepository.findCollectionByProcessIdTenant(processId, TENANT_ID))
-            .thenReturn(fakeMongoCursor);
-        when(preservationReportRepository.stats(processId, TENANT_ID)).thenReturn(preservationStatus);
-
-        // When
-        batchReportServiceImpl.exportPreservationReport(processId, filename, TENANT_ID);
-
-        // Then
-        String accumulatorExpected = JsonHandler.unprettyPrint(preservationStatus) + "\n" + JsonHandler.unprettyPrint(
-            preservationReportEntry) + "\n";
-        assertThat(new String(Files.readAllBytes(report))).isEqualTo(accumulatorExpected);
-    }
-
-    @Test
     public void should_append_audit_report() throws Exception {
         // Given
         InputStream stream = getClass().getResourceAsStream("/auditObjectGroupReport.json");
@@ -321,35 +284,6 @@ public class BatchReportServiceImplTest {
     }
 
     @Test
-    public void should_export_objectgroup_report() throws Exception {
-        // Given
-        when(workspaceClientFactory.getClient()).thenReturn(workspaceClient);
-        Document document = getObjectGroupDocument();
-        File folder = this.folder.newFolder();
-        Path report = Paths.get(folder.getAbsolutePath(), "objectGroupReport.json");
-        initialiseMockWhenPutObjectInWorkspace(report);
-        when(emptyMongoCursor.next()).thenReturn(document);
-        when(emptyMongoCursor.next()).thenReturn(document);
-        when(emptyMongoCursor.hasNext()).thenReturn(true).thenReturn(false);
-        when(purgeObjectGroupRepository
-            .findCollectionByProcessIdTenant(PROCESS_ID, TENANT_ID))
-            .thenReturn(emptyMongoCursor);
-        when(workspaceClient.isExistingContainer(PROCESS_ID)).thenReturn(true);
-        // When
-        batchReportServiceImpl
-            .exportPurgeObjectGroupReport(PROCESS_ID, "objectGroupReport.json", TENANT_ID);
-        // Then
-        try (BufferedReader reader = new BufferedReader(new InputStreamReader(new FileInputStream(report.toFile())))) {
-            while (reader.ready()) {
-                String line = reader.readLine();
-                assertThat(line).isNotNull();
-                assertThat(line).contains(
-                    "{\"id\":\"aeaaaaaaaafr5hk6abgeualfvd6jsniaaaap\",\"params\":{\"id\":\"aeaaaaaaaafr5hk6abgeualfvd6jsniaaaaq\",\"opi\":\"test\",\"objectGroupId\":\"12345687\",\"status\":\"DELETED\",\"deletedParentUnitIds\":[\"aeaaaaaaaafr5hk6abgeualfvd6jsniaaaaq\",\"aeaaaaaaaafr5hk6abgeualfvd6jsniaaaar\"]}}");
-            }
-        }
-    }
-
-    @Test
     public void should_store_preservation_report() throws Exception {
         // Given
         String processId = "aeeaaaaaacgw45nxaaopkalhchougsiaaaaq";
@@ -365,7 +299,7 @@ public class BatchReportServiceImplTest {
         Document preservationData = getPreservationDocument(processId);
         FakeMongoCursor<Document> fakeMongoCursor = new FakeMongoCursor<>(Collections.singletonList(preservationData));
 
-        initialiseMockWhenPutObjectInWorkspace(report);
+        initialiseMockWhenPutAtomicObjectInWorkspace(report);
         when(preservationReportRepository.findCollectionByProcessIdTenant(processId, TENANT_ID))
             .thenReturn(fakeMongoCursor);
         when(preservationReportRepository.stats(processId, TENANT_ID)).thenReturn(preservationStatus);
@@ -381,7 +315,7 @@ public class BatchReportServiceImplTest {
         Report reportInfo = new Report(operationSummary, reportSummary, context);
 
         // When
-        batchReportServiceImpl.storeReport(reportInfo);
+        batchReportServiceImpl.storeReportToWorkspace(reportInfo);
 
         // Then
         reportSummary.setExtendedInfo(JsonHandler.toJsonNode(preservationStatus));
@@ -415,7 +349,7 @@ public class BatchReportServiceImplTest {
         Document auditData = getAuditDocument(processId);
         FakeMongoCursor<Document> fakeMongoCursor = new FakeMongoCursor<>(Collections.singletonList(auditData));
 
-        initialiseMockWhenPutObjectInWorkspace(report);
+        initialiseMockWhenPutAtomicObjectInWorkspace(report);
         when(auditReportRepository.findCollectionByProcessIdTenantAndStatus(processId, TENANT_ID, "WARNING", "KO"))
             .thenReturn(fakeMongoCursor);
         when(auditReportRepository.stats(processId, TENANT_ID)).thenReturn(auditStatus);
@@ -431,7 +365,7 @@ public class BatchReportServiceImplTest {
         Report reportInfo = new Report(operationSummary, reportSummary, context);
 
         // When
-        batchReportServiceImpl.storeReport(reportInfo);
+        batchReportServiceImpl.storeReportToWorkspace(reportInfo);
 
         // Then
         reportSummary.setExtendedInfo(JsonHandler.toJsonNode(auditStatus));
@@ -453,7 +387,7 @@ public class BatchReportServiceImplTest {
 
         String filename = "report.jsonl";
         Path report = initialisePathWithFileName(filename);
-        initialiseMockWhenPutObjectInWorkspace(report);
+        initialiseMockWhenPutAtomicObjectInWorkspace(report);
 
         List<Document> eliminationActionUnitDocs = getDocuments("eliminationAction_nonEliminableUnits.json");
         List<Document> unitPurgeDocs = getDocuments("eliminationAction_unitPurge.json");
@@ -477,7 +411,7 @@ public class BatchReportServiceImplTest {
         Report reportInfo = new Report(operationSummary, reportSummary, context);
 
         // When
-        batchReportServiceImpl.storeReport(reportInfo);
+        batchReportServiceImpl.storeReportToWorkspace(reportInfo);
 
         // Then
         // FIXME : Fix header in eliminationAction_expectedReport.jsonl
@@ -496,7 +430,7 @@ public class BatchReportServiceImplTest {
 
         String filename = "report.jsonl";
         Path report = initialisePathWithFileName(filename);
-        initialiseMockWhenPutObjectInWorkspace(report);
+        initialiseMockWhenPutAtomicObjectInWorkspace(report);
 
         List<Document> transferReplyUnitDocs = getDocuments("transferReply_alreadyDeletedUnits.json");
         List<Document> unitPurgeDocs = getDocuments("transferReply_unitPurge.json");
@@ -520,7 +454,7 @@ public class BatchReportServiceImplTest {
         Report reportInfo = new Report(operationSummary, reportSummary, context);
 
         // When
-        batchReportServiceImpl.storeReport(reportInfo);
+        batchReportServiceImpl.storeReportToWorkspace(reportInfo);
 
         // Then
         // FIXME : Fix header in transferReply_expectedReport.jsonl
@@ -573,7 +507,7 @@ public class BatchReportServiceImplTest {
         Document evidenceAuditData = getEvidenceAuditDocument(processId);
         FakeMongoCursor<Document> fakeMongoCursor = new FakeMongoCursor<>(Collections.singletonList(evidenceAuditData));
 
-        initialiseMockWhenPutObjectInWorkspace(report);
+        initialiseMockWhenPutAtomicObjectInWorkspace(report);
         when(evidenceAuditReportRepository.findCollectionByProcessIdTenantAndStatus(processId, TENANT_ID,
             EvidenceStatus.WARN.name(), EvidenceStatus.KO.name()))
             .thenReturn(fakeMongoCursor);
@@ -590,7 +524,7 @@ public class BatchReportServiceImplTest {
         Report reportInfo = new Report(operationSummary, reportSummary, context);
 
         // When
-        batchReportServiceImpl.storeReport(reportInfo);
+        batchReportServiceImpl.storeReportToWorkspace(reportInfo);
 
         // Then
         reportSummary.setExtendedInfo(JsonHandler.toJsonNode(auditStatus));
@@ -695,34 +629,6 @@ public class BatchReportServiceImplTest {
         }
     }
 
-    private Document getUnitDocument(String id, String status) {
-        Document document = new Document();
-        document.put("id", id);
-        document.put("distribGroup", null);
-        document.put("params", JsonHandler.createObjectNode()
-            .put("id", "aeaaaaaaaafr5hk6abgeualfvd6jsniaaaaq")
-            .put("opi", "test")
-            .put("objectGroupId", "12345687")
-            .put("unitId", "unitId")
-            .put("status", status));
-        return document;
-    }
-
-    private Document getObjectGroupDocument() throws InvalidParseOperationException {
-        Document document = new Document();
-        document.put("id", "aeaaaaaaaafr5hk6abgeualfvd6jsniaaaap");
-        document.put("distribGroup", null);
-        document.put("params", JsonHandler.createObjectNode()
-            .put("id", "aeaaaaaaaafr5hk6abgeualfvd6jsniaaaaq")
-            .put("opi", "test")
-            .put("objectGroupId", "12345687")
-            .put("status", "DELETED")
-            .putPOJO("deletedParentUnitIds",
-                Arrays.asList("aeaaaaaaaafr5hk6abgeualfvd6jsniaaaaq", "aeaaaaaaaafr5hk6abgeualfvd6jsniaaaar"))
-        );
-        return document;
-    }
-
     private Document getPreservationDocument(String processId) {
         Document document = new Document();
         document.put(OUTCOME, "Outcome - TEST");
@@ -764,5 +670,13 @@ public class BatchReportServiceImplTest {
             Files.copy(argumentAt, report);
             return null;
         }).when(workspaceClient).putObject(anyString(), anyString(), any(InputStream.class));
+    }
+
+    private void initialiseMockWhenPutAtomicObjectInWorkspace(Path report) throws ContentAddressableStorageServerException {
+        doAnswer(invocation -> {
+            InputStream argumentAt = invocation.getArgument(2);
+            Files.copy(argumentAt, report);
+            return null;
+        }).when(workspaceClient).putAtomicObject(anyString(), anyString(), any(InputStream.class), anyLong());
     }
 }

@@ -47,6 +47,7 @@ import fr.gouv.vitam.storage.engine.client.StorageClientFactory;
 import fr.gouv.vitam.storage.engine.client.exception.StorageServerClientException;
 import fr.gouv.vitam.storage.engine.common.exception.StorageNotFoundException;
 import fr.gouv.vitam.worker.common.HandlerIO;
+import fr.gouv.vitam.worker.core.exception.ProcessingStatusException;
 import fr.gouv.vitam.worker.core.handler.ActionHandler;
 import fr.gouv.vitam.worker.core.plugin.preservation.model.InputPreservation;
 import fr.gouv.vitam.worker.core.plugin.preservation.model.ParametersPreservation;
@@ -257,9 +258,9 @@ public class PreservationActionPlugin extends ActionHandler {
     }
 
     private void createReport(List<WorkflowBatchResult> workflowResults, List<PreservationDistributionLine> entries, Integer tenantId,
-        String requestId) throws VitamClientInternalException {
+        String requestId) throws ProcessingStatusException {
         List<PreservationReportEntry> reportModels = toReportModel(workflowResults, entries, tenantId, now(), requestId);
-        reportService.appendPreservationEntries(requestId, reportModels);
+        reportService.appendEntries(requestId, reportModels);
 
     }
 

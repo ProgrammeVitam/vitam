@@ -28,6 +28,7 @@ package fr.gouv.vitam.storage.engine.server.storagetraceability;
 
 import java.io.File;
 
+import com.google.common.annotations.VisibleForTesting;
 import fr.gouv.vitam.common.guid.GUID;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.parameter.ParameterHelper;
@@ -64,9 +65,10 @@ public class StorageTraceabilityAdministration {
         this.tmpFolder = new File(tmpFolder);
         this.tmpFolder.mkdir();
     }
-    
+
+    @VisibleForTesting
     public StorageTraceabilityAdministration(TraceabilityStorageService traceabilityLogbookService,
-        LogbookOperationsClient mockedLogbookOperations, File mockedFile, WorkspaceClient mockedWorkspaceClient,
+        LogbookOperationsClient mockedLogbookOperations, File tmpFolder, WorkspaceClient mockedWorkspaceClient,
         TimestampGenerator timestampGenerator, Integer operationTraceabilityOverlapDelay) {
         this.traceabilityLogbookService = traceabilityLogbookService;
         this.logbookOperations = mockedLogbookOperations;
@@ -74,7 +76,7 @@ public class StorageTraceabilityAdministration {
         this.workspaceClient = mockedWorkspaceClient;
         this.operationTraceabilityOverlapDelayInSeconds =
             validateAndGetTraceabilityOverlapDelay(operationTraceabilityOverlapDelay);
-        this.tmpFolder = mockedFile;
+        this.tmpFolder = tmpFolder;
         
     }
 

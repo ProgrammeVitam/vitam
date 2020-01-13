@@ -1,23 +1,5 @@
 package fr.gouv.vitam.worker.core.plugin.audit;
 
-import static fr.gouv.vitam.common.json.JsonHandler.getFromInputStream;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.Assert.assertEquals;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
-
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.TemporaryFolder;
-import org.mockito.ArgumentCaptor;
-import org.mockito.Captor;
-import org.mockito.Mock;
-import org.mockito.Mockito;
-import org.mockito.junit.MockitoJUnit;
-import org.mockito.junit.MockitoRule;
-
 import fr.gouv.vitam.batch.report.model.Report;
 import fr.gouv.vitam.batch.report.model.ReportType;
 import fr.gouv.vitam.common.guid.GUIDFactory;
@@ -34,7 +16,28 @@ import fr.gouv.vitam.processing.common.parameter.WorkerParameterName;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 import fr.gouv.vitam.processing.common.parameter.WorkerParametersFactory;
 import fr.gouv.vitam.worker.common.HandlerIO;
+import fr.gouv.vitam.worker.core.exception.ProcessingStatusException;
 import fr.gouv.vitam.worker.core.plugin.audit.exception.AuditException;
+import org.junit.Before;
+import org.junit.Rule;
+import org.junit.Test;
+import org.junit.rules.TemporaryFolder;
+import org.mockito.ArgumentCaptor;
+import org.mockito.Captor;
+import org.mockito.Mock;
+import org.mockito.Mockito;
+import org.mockito.junit.MockitoJUnit;
+import org.mockito.junit.MockitoRule;
+
+import static fr.gouv.vitam.common.json.JsonHandler.getFromInputStream;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.Assert.assertEquals;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 public class AuditFinalizePluginTest {
 
@@ -89,15 +92,21 @@ public class AuditFinalizePluginTest {
                 .setCurrentStep("StepName");
         workerParameters.putParameterValue(WorkerParameterName.auditActions, "AUDIT_FILE_EXISTING");
         workerParameters.putParameterValue(WorkerParameterName.auditType, "tenant");
-        Mockito.doNothing().when(auditReportService).storeReport(reportInfosCaptor.capture());
+        Mockito.doNothing().when(auditReportService).storeReportToWorkspace(reportInfosCaptor.capture());
         when(logbookClient.selectOperationById(any()))
                 .thenReturn(getFromInputStream(getClass().getResourceAsStream(JOP_RESULTS_OK)));
-
+        when(auditReportService.isReportWrittenInWorkspace(anyString())).thenReturn(false);
         // When
         ItemStatus response = auditFinalizePlugin.execute(workerParameters, handler);
 
         // Then
         assertEquals(StatusCode.OK, response.getGlobalStatus());
+
+        verify(auditReportService).isReportWrittenInWorkspace(VitamThreadUtils.getVitamSession().getRequestId());
+        verify(auditReportService).storeReportToWorkspace(any());
+        verify(auditReportService).storeReportToOffers(VitamThreadUtils.getVitamSession().getRequestId());
+        verify(auditReportService).cleanupReport(VitamThreadUtils.getVitamSession().getRequestId());
+
         assertThat(reportInfosCaptor.getValue().getContext()).isNotNull();
         assertThat(reportInfosCaptor.getValue().getContext().get("auditType").asText()).isEqualTo("tenant");
         assertThat(reportInfosCaptor.getValue().getContext().get("objectId").asText()).isEqualTo("0");
@@ -119,7 +128,37 @@ public class AuditFinalizePluginTest {
         assertThat(reportInfosCaptor.getValue().getReportSummary().getEvStartDateTime())
                 .isEqualTo("2019-04-02T08:42:33.715");
         assertThat(reportInfosCaptor.getValue().getReportSummary().getReportType()).isEqualTo(ReportType.AUDIT);
+    }
 
+    @RunWithCustomExecutor
+    @Test
+    public void should_ok_report_when_report_already_writted_to_workspace() throws Exception {
+
+        // Given
+        HandlerIO handler = mock(HandlerIO.class);
+        VitamThreadUtils.getVitamSession().setTenantId(0);
+        VitamThreadUtils.getVitamSession().setRequestId(PROCESS_ID_OK);
+        WorkerParameters workerParameters = WorkerParametersFactory.newWorkerParameters()
+            .setWorkerGUID(GUIDFactory.newGUID())
+            .setContainerName(VitamThreadUtils.getVitamSession().getRequestId())
+            .setRequestId(VitamThreadUtils.getVitamSession().getRequestId())
+            .setProcessId(VitamThreadUtils.getVitamSession().getRequestId()).setObjectId("0")
+            .setCurrentStep("StepName");
+        workerParameters.putParameterValue(WorkerParameterName.auditActions, "AUDIT_FILE_EXISTING");
+        workerParameters.putParameterValue(WorkerParameterName.auditType, "tenant");
+        when(logbookClient.selectOperationById(any()))
+            .thenReturn(getFromInputStream(getClass().getResourceAsStream(JOP_RESULTS_OK)));
+        when(auditReportService.isReportWrittenInWorkspace(anyString())).thenReturn(true);
+        // When
+        ItemStatus response = auditFinalizePlugin.execute(workerParameters, handler);
+
+        // Then
+        assertEquals(StatusCode.OK, response.getGlobalStatus());
+
+        verify(auditReportService).isReportWrittenInWorkspace(VitamThreadUtils.getVitamSession().getRequestId());
+        verify(auditReportService, never()).storeReportToWorkspace(any());
+        verify(auditReportService).storeReportToOffers(VitamThreadUtils.getVitamSession().getRequestId());
+        verify(auditReportService).cleanupReport(VitamThreadUtils.getVitamSession().getRequestId());
     }
 
     @RunWithCustomExecutor
@@ -138,9 +177,10 @@ public class AuditFinalizePluginTest {
                 .setCurrentStep("StepName");
         workerParameters.putParameterValue(WorkerParameterName.auditActions, "AUDIT_FILE_EXISTING");
         workerParameters.putParameterValue(WorkerParameterName.auditType, "tenant");
-        Mockito.doNothing().when(auditReportService).storeReport(reportInfosCaptor.capture());
+        Mockito.doNothing().when(auditReportService).storeReportToWorkspace(reportInfosCaptor.capture());
         when(logbookClient.selectOperationById(any()))
                 .thenReturn(getFromInputStream(getClass().getResourceAsStream(JOP_RESULTS_KO)));
+        when(auditReportService.isReportWrittenInWorkspace(anyString())).thenReturn(false);
 
         // When
         ItemStatus response = auditFinalizePlugin.execute(workerParameters, handler);
@@ -187,9 +227,10 @@ public class AuditFinalizePluginTest {
                 .setCurrentStep("StepName");
         workerParameters.putParameterValue(WorkerParameterName.auditActions, "AUDIT_FILE_EXISTING");
         workerParameters.putParameterValue(WorkerParameterName.auditType, "tenant");
-        Mockito.doNothing().when(auditReportService).storeReport(reportInfosCaptor.capture());
+        Mockito.doNothing().when(auditReportService).storeReportToWorkspace(reportInfosCaptor.capture());
         when(logbookClient.selectOperationById(any()))
                 .thenReturn(getFromInputStream(getClass().getResourceAsStream(JOP_RESULTS_WARNING)));
+        when(auditReportService.isReportWrittenInWorkspace(anyString())).thenReturn(false);
 
         // When
         ItemStatus response = auditFinalizePlugin.execute(workerParameters, handler);
@@ -236,8 +277,9 @@ public class AuditFinalizePluginTest {
                 .setCurrentStep("StepName");
         workerParameters.putParameterValue(WorkerParameterName.auditActions, "AUDIT_FILE_EXISTING");
         workerParameters.putParameterValue(WorkerParameterName.auditType, "tenant");
-        Mockito.doNothing().when(auditReportService).storeReport(reportInfosCaptor.capture());
+        Mockito.doNothing().when(auditReportService).storeReportToWorkspace(reportInfosCaptor.capture());
         when(logbookClient.selectOperationById(any())).thenThrow(new LogbookClientException("Logbook exception"));
+        when(auditReportService.isReportWrittenInWorkspace(anyString())).thenReturn(false);
 
         // When
         ItemStatus response = auditFinalizePlugin.execute(workerParameters, handler);
@@ -262,10 +304,11 @@ public class AuditFinalizePluginTest {
                 .setCurrentStep("StepName");
         workerParameters.putParameterValue(WorkerParameterName.auditActions, "AUDIT_FILE_EXISTING");
         workerParameters.putParameterValue(WorkerParameterName.auditType, "tenant");
-        Mockito.doThrow(new AuditException(StatusCode.FATAL, "audit report exception")).when(auditReportService)
-                .storeReport(reportInfosCaptor.capture());
+        Mockito.doThrow(new ProcessingStatusException(StatusCode.FATAL, "audit report exception")).when(auditReportService)
+                .storeReportToWorkspace(reportInfosCaptor.capture());
         when(logbookClient.selectOperationById(any()))
                 .thenReturn(getFromInputStream(getClass().getResourceAsStream(JOP_RESULTS_OK)));
+        when(auditReportService.isReportWrittenInWorkspace(anyString())).thenReturn(false);
 
         // When
         ItemStatus response = auditFinalizePlugin.execute(workerParameters, handler);

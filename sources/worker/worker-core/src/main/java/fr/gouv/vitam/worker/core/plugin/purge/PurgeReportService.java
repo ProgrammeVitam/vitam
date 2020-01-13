@@ -100,14 +100,6 @@ public class PurgeReportService {
         }
     }
 
-    public void storeReport(Report reportInfo) throws ProcessingStatusException {
-        try (BatchReportClient batchReportClient = batchReportClientFactory.getClient()) {
-            batchReportClient.storeReport(reportInfo);
-        } catch (VitamClientInternalException e) {
-            throw new ProcessingStatusException(StatusCode.FATAL, "Could not append entries into report", e);
-        }
-    }
-
     public CloseableIterator<String> exportDistinctObjectGroups(String processId) throws ProcessingStatusException {
 
         try (BatchReportClient batchReportClient = batchReportClientFactory.getClient()) {

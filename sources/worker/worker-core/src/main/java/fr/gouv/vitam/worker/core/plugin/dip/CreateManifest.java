@@ -54,8 +54,6 @@ import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.model.export.ExportRequest;
 import fr.gouv.vitam.common.model.unit.ArchiveUnitModel;
 import fr.gouv.vitam.common.parameter.ParameterHelper;
-import fr.gouv.vitam.functional.administration.common.BackupService;
-import fr.gouv.vitam.functional.administration.common.exception.BackupServiceException;
 import fr.gouv.vitam.metadata.api.exception.MetaDataClientServerException;
 import fr.gouv.vitam.metadata.api.exception.MetaDataDocumentSizeException;
 import fr.gouv.vitam.metadata.api.exception.MetaDataExecutionException;
@@ -64,14 +62,12 @@ import fr.gouv.vitam.metadata.client.MetaDataClient;
 import fr.gouv.vitam.metadata.client.MetaDataClientFactory;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
-import fr.gouv.vitam.storage.engine.common.model.DataCategory;
 import fr.gouv.vitam.worker.common.HandlerIO;
 import fr.gouv.vitam.worker.core.handler.ActionHandler;
 import fr.gouv.vitam.worker.core.plugin.ScrollSpliteratorHelper;
 import fr.gouv.vitam.worker.core.plugin.transfer.TransferReportHeader;
 import fr.gouv.vitam.worker.core.plugin.transfer.TransferReportLine;
 import fr.gouv.vitam.worker.core.plugin.transfer.TransferStatus;
-import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.ListUtils;
 
 import javax.xml.bind.JAXBException;
@@ -99,12 +95,10 @@ import java.util.stream.StreamSupport;
 import static com.google.common.collect.Iterables.partition;
 import static fr.gouv.vitam.common.database.builder.query.VitamFieldsHelper.id;
 import static fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.PROJECTION.FIELDS;
-import static fr.gouv.vitam.common.database.builder.request.configuration.GlobalDatas.LIMIT_LOAD;
 import static fr.gouv.vitam.common.database.parser.query.ParserTokens.PROJECTIONARGS.ID;
 import static fr.gouv.vitam.common.database.parser.query.ParserTokens.PROJECTIONARGS.OBJECT;
 import static fr.gouv.vitam.common.database.parser.query.ParserTokens.PROJECTIONARGS.ORIGINATING_AGENCY;
 import static fr.gouv.vitam.common.database.parser.query.ParserTokens.PROJECTIONARGS.UNITUPS;
-import static fr.gouv.vitam.common.database.parser.request.GlobalDatasParser.DEFAULT_SCROLL_TIMEOUT;
 import static fr.gouv.vitam.common.json.JsonHandler.unprettyPrint;
 import static fr.gouv.vitam.common.model.export.ExportRequest.EXPORT_QUERY_FILE_NAME;
 import static fr.gouv.vitam.common.model.export.ExportType.ArchiveTransfer;
@@ -122,20 +116,20 @@ public class CreateManifest extends ActionHandler {
     private static final String CREATE_MANIFEST = "CREATE_MANIFEST";
     private static final int MAX_ELEMENT_IN_QUERY = 1000;
     private static final String REASON_FIELD = "Reason";
+    private static final String JSONL_EXTENSION = ".jsonl";
 
     private MetaDataClientFactory metaDataClientFactory;
     private ObjectNode projection;
-    private BackupService backupService;
 
     /**
      * constructor use for plugin instantiation
      */
     public CreateManifest() {
-        this(MetaDataClientFactory.getInstance(), new BackupService());
+        this(MetaDataClientFactory.getInstance());
     }
 
     @VisibleForTesting
-    CreateManifest(MetaDataClientFactory metaDataClientFactory, BackupService backupService) {
+    CreateManifest(MetaDataClientFactory metaDataClientFactory) {
         this.metaDataClientFactory = metaDataClientFactory;
 
         ObjectNode fields = JsonHandler.createObjectNode();
@@ -146,7 +140,6 @@ public class CreateManifest extends ActionHandler {
 
         this.projection = JsonHandler.createObjectNode();
         this.projection.set(FIELDS.exactToken(), fields);
-        this.backupService = backupService;
     }
 
     @Override
@@ -171,7 +164,6 @@ public class CreateManifest extends ActionHandler {
                 buffOut.write(System.lineSeparator().getBytes(StandardCharsets.UTF_8));
                 buffOut.write(unprettyPrint(reportHeader).getBytes(StandardCharsets.UTF_8));  // context
                 buffOut.write(System.lineSeparator().getBytes(StandardCharsets.UTF_8));
-                buffOut.flush();
             }
 
             switch (exportRequest.getExportType()) {
@@ -294,7 +286,6 @@ public class CreateManifest extends ActionHandler {
                             TransferReportLine reportLine = new TransferReportLine(unit.getId(), status);
                             buffOut.write(unprettyPrint(reportLine).getBytes(StandardCharsets.UTF_8));
                             buffOut.write(System.lineSeparator().getBytes(StandardCharsets.UTF_8));
-                            buffOut.flush();
                         }
                     } catch (JAXBException | DatatypeConfigurationException | IOException | ProcessingException |
                         InvalidParseOperationException | InvalidCreateOperationException | MetaDataNotFoundException |
@@ -302,6 +293,7 @@ public class CreateManifest extends ActionHandler {
                         throw new IllegalArgumentException(e);
                     }
                 });
+            buffOut.flush();
             manifestBuilder.endDescriptiveMetadata();
 
             switch (exportRequest.getExportType()) {
@@ -346,7 +338,7 @@ public class CreateManifest extends ActionHandler {
             itemStatus.increment(StatusCode.OK);
 
             if (ArchiveTransfer.equals(exportRequest.getExportType())) {
-                backupService.backup(reportFile, DataCategory.REPORT, handlerIO.getContainerName() + ".jsonl");
+                handlerIO.transferInputStreamToWorkspace(handlerIO.getContainerName() + JSONL_EXTENSION, reportFile, null, false);
             }
 
         } catch (ExportException e) {
@@ -356,7 +348,7 @@ public class CreateManifest extends ActionHandler {
             String evDetData = JsonHandler.unprettyPrint(infoNode);
             itemStatus.setEvDetailData(evDetData);
         } catch (IOException | MetaDataExecutionException | InvalidCreateOperationException | MetaDataClientServerException
-            | XMLStreamException | JAXBException | MetaDataDocumentSizeException | InvalidParseOperationException | BackupServiceException e) {
+            | XMLStreamException | JAXBException | MetaDataDocumentSizeException | InvalidParseOperationException e) {
             throw new ProcessingException(e);
         }
 

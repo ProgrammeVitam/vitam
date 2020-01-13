@@ -33,10 +33,14 @@ import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
+import fr.gouv.vitam.storage.engine.client.StorageClient;
+import fr.gouv.vitam.storage.engine.client.StorageClientFactory;
 import fr.gouv.vitam.worker.common.HandlerIO;
 import fr.gouv.vitam.worker.core.plugin.evidence.exception.EvidenceStatus;
 import fr.gouv.vitam.worker.core.plugin.evidence.report.EvidenceAuditReportLine;
 import fr.gouv.vitam.worker.core.plugin.evidence.report.EvidenceAuditReportService;
+import fr.gouv.vitam.workspace.client.WorkspaceClient;
+import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -64,17 +68,28 @@ public class EvidenceAuditGenerateReportsTest {
     @Mock
     private BatchReportClientFactory batchReportFactory;
     @Mock
+    private WorkspaceClientFactory workspaceClientFactory;
+    @Mock
+    private StorageClientFactory storageClientFactory;
+    @Mock
     private EvidenceAuditReportService evidenceAuditReportService;
     @Mock
     private BatchReportClient batchReportClient;
+    @Mock
+    private WorkspaceClient workspaceClient;
+    @Mock
+    private StorageClient storageClient;
 
     private String processId;
 
     @Before
     public void setUp() throws Exception {
         given(batchReportFactory.getClient()).willReturn(batchReportClient);
+        given(workspaceClientFactory.getClient()).willReturn(workspaceClient);
+        given(storageClientFactory.getClient()).willReturn(storageClient);
 
-        evidenceAuditReportService = new EvidenceAuditReportService(batchReportFactory);
+        evidenceAuditReportService =
+            new EvidenceAuditReportService(batchReportFactory, workspaceClientFactory, storageClientFactory);
 
         evidenceAuditGenerateReports = new EvidenceAuditGenerateReports(evidenceAuditReportService);
 
@@ -90,21 +105,25 @@ public class EvidenceAuditGenerateReportsTest {
         when(handlerIO.getFileFromWorkspace("zip/test")).thenReturn(resourceFile);
         File file2 = tempFolder.newFile();
         File report = tempFolder.newFile();
-        JsonHandler.writeAsFile( "aeaqaaaaaaebta56aaoc4alcdk4hlcqaaaaq", file2);
+        JsonHandler.writeAsFile("aeaqaaaaaaebta56aaoc4alcdk4hlcqaaaaq", file2);
         when(handlerIO.getFileFromWorkspace("fileNames/test")).thenReturn(file2);
-        when(handlerIO.getFileFromWorkspace("data/aeaqaaaaaaebta56aaoc4alcdk4hlcqaaaaq" )).thenReturn(PropertiesUtils.getResourceFile("evidenceAudit/test.json"));
+        when(handlerIO.getFileFromWorkspace("data/aeaqaaaaaaebta56aaoc4alcdk4hlcqaaaaq"))
+            .thenReturn(PropertiesUtils.getResourceFile("evidenceAudit/test.json"));
         when(handlerIO.getNewLocalFile("aeaqaaaaaaebta56aaoc4alcdk4hlcqaaaaq")).thenReturn(report);
-        given(handlerIO.getJsonFromWorkspace("evidenceOptions")).willReturn(JsonHandler.createObjectNode().put("correctiveOption",false));
+        given(handlerIO.getJsonFromWorkspace("evidenceOptions"))
+            .willReturn(JsonHandler.createObjectNode().put("correctiveOption", false));
 
         ItemStatus execute = evidenceAuditGenerateReports.execute(defaultWorkerParameters, handlerIO);
 
 
         assertThat(execute.getGlobalStatus()).isEqualTo(StatusCode.OK);
 
-        EvidenceAuditReportLine evidenceAuditReportLine = JsonHandler.getFromFile(report, EvidenceAuditReportLine.class);
+        EvidenceAuditReportLine evidenceAuditReportLine =
+            JsonHandler.getFromFile(report, EvidenceAuditReportLine.class);
         assertThat(evidenceAuditReportLine.getIdentifier()).isEqualTo("aeaqaaaaaaebta56aaoc4alcdk4hlcqaaaaq");
         assertThat(evidenceAuditReportLine.getEvidenceStatus()).isEqualTo(EvidenceStatus.KO);
-        assertThat(evidenceAuditReportLine.getMessage()).isEqualTo("Could not find matching traceability info in the file");
+        assertThat(evidenceAuditReportLine.getMessage())
+            .isEqualTo("Could not find matching traceability info in the file");
 
     }
 
@@ -115,17 +134,20 @@ public class EvidenceAuditGenerateReportsTest {
         when(handlerIO.getFileFromWorkspace("zip/test")).thenReturn(resourceFile);
         File file2 = tempFolder.newFile();
         File report = tempFolder.newFile();
-        JsonHandler.writeAsFile( "aeaqaaaaaaebta56aaoc4alcdk4hlcqaaaaq", file2);
+        JsonHandler.writeAsFile("aeaqaaaaaaebta56aaoc4alcdk4hlcqaaaaq", file2);
         when(handlerIO.getFileFromWorkspace("fileNames/test")).thenReturn(file2);
-        when(handlerIO.getFileFromWorkspace("data/aeaqaaaaaaebta56aaoc4alcdk4hlcqaaaaq" )).thenReturn(PropertiesUtils.getResourceFile("evidenceAudit/test.json"));
+        when(handlerIO.getFileFromWorkspace("data/aeaqaaaaaaebta56aaoc4alcdk4hlcqaaaaq"))
+            .thenReturn(PropertiesUtils.getResourceFile("evidenceAudit/test.json"));
         when(handlerIO.getNewLocalFile("aeaqaaaaaaebta56aaoc4alcdk4hlcqaaaaq")).thenReturn(report);
-        given(handlerIO.getJsonFromWorkspace("evidenceOptions")).willReturn(JsonHandler.createObjectNode().put("correctiveOption",false));
+        given(handlerIO.getJsonFromWorkspace("evidenceOptions"))
+            .willReturn(JsonHandler.createObjectNode().put("correctiveOption", false));
 
         ItemStatus execute = evidenceAuditGenerateReports.execute(defaultWorkerParameters, handlerIO);
 
         assertThat(execute.getGlobalStatus()).isEqualTo(StatusCode.OK);
 
-        EvidenceAuditReportLine evidenceAuditReportLine = JsonHandler.getFromFile(report, EvidenceAuditReportLine.class);
+        EvidenceAuditReportLine evidenceAuditReportLine =
+            JsonHandler.getFromFile(report, EvidenceAuditReportLine.class);
         assertThat(evidenceAuditReportLine.getIdentifier()).isEqualTo("aeaqaaaaaaebta56aaoc4alcdk4hlcqaaaaq");
         assertThat(evidenceAuditReportLine.getEvidenceStatus()).isEqualTo(EvidenceStatus.KO);
         assertThat(evidenceAuditReportLine.getMessage()).contains("Traceability audit KO  Database check failure");

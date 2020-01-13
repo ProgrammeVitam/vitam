@@ -32,56 +32,36 @@ import fr.gouv.vitam.batch.report.client.BatchReportClientFactory;
 import fr.gouv.vitam.batch.report.model.Report;
 import fr.gouv.vitam.batch.report.model.ReportBody;
 import fr.gouv.vitam.batch.report.model.ReportType;
+import fr.gouv.vitam.batch.report.model.entry.AuditObjectGroupReportEntry;
 import fr.gouv.vitam.batch.report.model.entry.TransferReplyUnitReportEntry;
+import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.exception.VitamClientInternalException;
 import fr.gouv.vitam.common.model.StatusCode;
+import fr.gouv.vitam.storage.engine.client.StorageClient;
+import fr.gouv.vitam.storage.engine.client.StorageClientFactory;
+import fr.gouv.vitam.storage.engine.client.exception.StorageAlreadyExistsClientException;
+import fr.gouv.vitam.storage.engine.client.exception.StorageNotFoundClientException;
+import fr.gouv.vitam.storage.engine.client.exception.StorageServerClientException;
+import fr.gouv.vitam.storage.engine.common.model.DataCategory;
+import fr.gouv.vitam.storage.engine.common.model.request.ObjectDescription;
 import fr.gouv.vitam.worker.core.exception.ProcessingStatusException;
+import fr.gouv.vitam.worker.core.plugin.CommonReportService;
+import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
+import fr.gouv.vitam.workspace.client.WorkspaceClient;
+import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
 
 import java.util.List;
 
-public class TransferReplyReportService {
-
-    private final BatchReportClientFactory batchReportClientFactory;
+public class TransferReplyReportService extends CommonReportService<TransferReplyUnitReportEntry> {
 
     public TransferReplyReportService() {
-        this(
-            BatchReportClientFactory.getInstance());
+        super(ReportType.TRANSFER_REPLY_UNIT);
     }
 
     @VisibleForTesting
-    TransferReplyReportService(
-        BatchReportClientFactory batchReportClientFactory) {
-        this.batchReportClientFactory = batchReportClientFactory;
-    }
-
-    public void appendUnitEntries(String processId, List<TransferReplyUnitReportEntry> entries)
-        throws ProcessingStatusException {
-
-        try (BatchReportClient batchReportClient = batchReportClientFactory.getClient()) {
-            ReportBody<TransferReplyUnitReportEntry> reportBody = new ReportBody<>();
-            reportBody.setProcessId(processId);
-            reportBody.setReportType(ReportType.TRANSFER_REPLY_UNIT);
-            reportBody.setEntries(entries);
-            batchReportClient.appendReportEntries(reportBody);
-        } catch (VitamClientInternalException e) {
-            throw new ProcessingStatusException(StatusCode.FATAL, "Could not append entries into report", e);
-        }
-    }
-
-    public void storeReport(Report reportInfo) throws ProcessingStatusException {
-        try (BatchReportClient batchReportClient = batchReportClientFactory.getClient()) {
-            batchReportClient.storeReport(reportInfo);
-        } catch (VitamClientInternalException e) {
-            throw new ProcessingStatusException(StatusCode.FATAL, "Could not append entries into report", e);
-        }
-    }
-
-    public void cleanupReport(String processId) throws ProcessingStatusException {
-        try (BatchReportClient batchReportClient = batchReportClientFactory.getClient()) {
-            batchReportClient.cleanupReport(processId, ReportType.TRANSFER_REPLY_UNIT);
-        } catch (VitamClientInternalException e) {
-            throw new ProcessingStatusException(StatusCode.FATAL,
-                "Could not cleanup transfer reply reports (" + processId + ")", e);
-        }
+    public TransferReplyReportService(BatchReportClientFactory reportFactory,
+        WorkspaceClientFactory workspaceClientFactory,
+        StorageClientFactory storageClientFactory) {
+        super(ReportType.TRANSFER_REPLY_UNIT, reportFactory, workspaceClientFactory, storageClientFactory);
     }
 }

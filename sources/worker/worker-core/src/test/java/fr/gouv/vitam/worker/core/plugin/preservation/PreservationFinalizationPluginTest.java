@@ -40,8 +40,6 @@ import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClient;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClientFactory;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
-import fr.gouv.vitam.storage.engine.client.StorageClient;
-import fr.gouv.vitam.storage.engine.client.StorageClientFactory;
 import fr.gouv.vitam.worker.core.plugin.preservation.model.ContextPreservationReport;
 import fr.gouv.vitam.worker.core.plugin.preservation.service.PreservationReportService;
 import fr.gouv.vitam.workspace.client.WorkspaceClient;
@@ -55,6 +53,11 @@ import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnit;
 import org.mockito.junit.MockitoRule;
 
+import java.io.File;
+import java.io.InputStream;
+import java.net.URISyntaxException;
+import java.net.URL;
+
 import static fr.gouv.vitam.worker.core.plugin.preservation.PreservationFinalizationPlugin.PRESERVATION;
 import static fr.gouv.vitam.worker.core.plugin.preservation.TestWorkerParameter.TestWorkerParameterBuilder.workerParameterBuilder;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -62,19 +65,18 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.doNothing;
-
-import java.io.File;
-import java.io.InputStream;
-import java.net.URISyntaxException;
-import java.net.URL;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 public class PreservationFinalizationPluginTest {
 
-    private final TestWorkerParameter parameter = workerParameterBuilder()
-        .withContainerName("CONTAINER_NAME_TEST")
-        .withRequestId("REQUEST_ID_TEST")
-        .build();
+    private static final String CONTAINER_NAME = "CONTAINER_NAME_TEST";
 
+    private final TestWorkerParameter parameter = workerParameterBuilder()
+        .withContainerName(CONTAINER_NAME)
+        .withRequestId(CONTAINER_NAME)
+        .build();
 
     private PreservationFinalizationPlugin plugin;
 
@@ -134,6 +136,7 @@ public class PreservationFinalizationPluginTest {
             JsonNode logbookOperationJson =
                 JsonHandler.getFromInputStream(getClass().getResourceAsStream("/preservation/logbookOperationOk.json"));
             given(logbookOperationsClient.selectOperationById(anyString())).willReturn(logbookOperationJson);
+            when(preservationReportService.isReportWrittenInWorkspace(anyString())).thenReturn(false);
 
             // When
             ItemStatus itemStatus = plugin.execute(parameter, handlerIO);
@@ -155,15 +158,24 @@ public class PreservationFinalizationPluginTest {
             InputStream scenarioInputStream = getClass().getResourceAsStream("/preservation/preservationDocument")) {
             populateTestHandlerIo(handlerIO, resourceAsStream, scenarioInputStream);
 
-            ContextPreservationReport expectedReport = JsonHandler.getFromInputStream(expectedInputStream, ContextPreservationReport.class);
+            ContextPreservationReport expectedReport =
+                JsonHandler.getFromInputStream(expectedInputStream, ContextPreservationReport.class);
             JsonNode logbookOperationJson =
                 JsonHandler.getFromInputStream(getClass().getResourceAsStream("/preservation/logbookOperationOk.json"));
             given(logbookOperationsClient.selectOperationById(anyString())).willReturn(logbookOperationJson);
             ArgumentCaptor<Report> reportArgumentCaptor = ArgumentCaptor.forClass(Report.class);
-            doNothing().when(preservationReportService).storeReport(reportArgumentCaptor.capture(), any());
+            doNothing().when(preservationReportService).storeReportToWorkspace(reportArgumentCaptor.capture());
+            when(preservationReportService.isReportWrittenInWorkspace(anyString())).thenReturn(false);
             // When
             ItemStatus itemStatus = plugin.execute(parameter, handlerIO);
             // Then
+
+            verify(preservationReportService)
+                .isReportWrittenInWorkspace(CONTAINER_NAME);
+            verify(preservationReportService).storeReportToWorkspace(any());
+            verify(preservationReportService).storeReportToOffers(CONTAINER_NAME);
+            verify(preservationReportService).cleanupReport(CONTAINER_NAME);
+
             Report report = reportArgumentCaptor.getValue();
             assertThat(report.getOperationSummary().getOutDetail()).isEqualTo("PRESERVATION.OK");
             assertThat(report.getOperationSummary().getOutMsg()).isEqualTo(VitamLogbookMessages.getCodeOp(
@@ -184,6 +196,36 @@ public class PreservationFinalizationPluginTest {
 
     @Test
     @RunWithCustomExecutor
+    public void should_not_regenerate_report_when_report_already_stored_in_workspace() throws Exception {
+        // Given
+        File newLocalFile = tempFolder.newFile();
+        TestHandlerIO handlerIO = new TestHandlerIO();
+        handlerIO.setNewLocalFile(newLocalFile);
+        try (InputStream resourceAsStream = getClass().getResourceAsStream("/preservation/preservationRequest");
+            InputStream expectedInputStream = getClass().getResourceAsStream("/preservation/expectedReport.json");
+            InputStream scenarioInputStream = getClass().getResourceAsStream("/preservation/preservationDocument")) {
+            populateTestHandlerIo(handlerIO, resourceAsStream, scenarioInputStream);
+
+            ContextPreservationReport expectedReport =
+                JsonHandler.getFromInputStream(expectedInputStream, ContextPreservationReport.class);
+            JsonNode logbookOperationJson =
+                JsonHandler.getFromInputStream(getClass().getResourceAsStream("/preservation/logbookOperationOk.json"));
+            given(logbookOperationsClient.selectOperationById(anyString())).willReturn(logbookOperationJson);
+            when(preservationReportService.isReportWrittenInWorkspace(anyString())).thenReturn(true);
+            // When
+            ItemStatus itemStatus = plugin.execute(parameter, handlerIO);
+            // Then
+
+            verify(preservationReportService)
+                .isReportWrittenInWorkspace(CONTAINER_NAME);
+            verify(preservationReportService, never()).storeReportToWorkspace(any());
+            verify(preservationReportService).storeReportToOffers(CONTAINER_NAME);
+            verify(preservationReportService).cleanupReport(CONTAINER_NAME);
+        }
+    }
+
+    @Test
+    @RunWithCustomExecutor
     public void should_assert_report_operation_KO() throws Exception {
         // Given
         File newLocalFile = tempFolder.newFile();
@@ -195,23 +237,18 @@ public class PreservationFinalizationPluginTest {
             JsonNode logbookOperationJson =
                 JsonHandler.getFromInputStream(getClass().getResourceAsStream("/preservation/logbookOperationKo.json"));
             given(logbookOperationsClient.selectOperationById(anyString())).willReturn(logbookOperationJson);
-            ArgumentCaptor<Report> reportArgumentCaptor = ArgumentCaptor.forClass(Report.class);
-            doNothing().when(preservationReportService).storeReport(reportArgumentCaptor.capture(), any());
+            doNothing().when(preservationReportService).storeReportToWorkspace(any());
+            when(preservationReportService.isReportWrittenInWorkspace(anyString())).thenReturn(false);
             // When
             ItemStatus itemStatus = plugin.execute(parameter, handlerIO);
             // Then
-            Report report = reportArgumentCaptor.getValue();
-            assertThat(report.getOperationSummary().getOutDetail()).isEqualTo("STP_ACCESSION_REGISTRATION.KO");
-            assertThat(report.getOperationSummary().getOutMsg())
-                .isEqualTo("erreur du processus d'alimentation du registre des fonds");
-            assertThat(report.getOperationSummary().getOutcome()).isEqualTo("WARNING");
-            assertThat(report.getOperationSummary().getEvDetData()).isEqualTo(JsonHandler.toJsonNode("{error:evDetDataTest}"));
             assertThat(itemStatus.getGlobalStatus()).isEqualTo(StatusCode.OK);
             assertThat(itemStatus.getItemId()).isEqualTo("PRESERVATION_FINALIZATION");
         }
     }
 
-    private void populateTestHandlerIo(TestHandlerIO handlerIO, InputStream resourceAsStream, InputStream scenarioInputStream)
+    private void populateTestHandlerIo(TestHandlerIO handlerIO, InputStream resourceAsStream,
+        InputStream scenarioInputStream)
         throws URISyntaxException, ProcessingException {
         URL griffinUrl = getClass().getResource("/preservation/griffinModel");
         File file = new File(griffinUrl.toURI());

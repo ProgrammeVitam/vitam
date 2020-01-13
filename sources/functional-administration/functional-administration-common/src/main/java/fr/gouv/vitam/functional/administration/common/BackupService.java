@@ -28,12 +28,12 @@ package fr.gouv.vitam.functional.administration.common;
 
 
 import com.google.common.annotations.VisibleForTesting;
-
 import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.stream.StreamUtils;
+import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.functional.administration.common.exception.BackupServiceException;
 import fr.gouv.vitam.storage.engine.client.StorageClient;
 import fr.gouv.vitam.storage.engine.client.StorageClientFactory;
@@ -66,7 +66,8 @@ public class BackupService {
         storageClientFactory = StorageClientFactory.getInstance();
     }
 
-    @VisibleForTesting public BackupService(
+    @VisibleForTesting
+    public BackupService(
         WorkspaceClientFactory workspaceClientFactory,
         StorageClientFactory storageClientFactory) {
         this.storageClientFactory = storageClientFactory;
@@ -76,23 +77,31 @@ public class BackupService {
     /**
      * Store file in offers
      */
+    public StoredInfoResult backupFromWorkspace(String workspaceUri, DataCategory storageCollectionType,
+        String objectName)
+        throws BackupServiceException {
+        return storeIntoOffers(VitamThreadUtils.getVitamSession().getRequestId(),
+            workspaceUri, storageCollectionType, objectName, VitamConfiguration.getDefaultStrategy());
+    }
+
+    /**
+     * Store file in offers
+     */
     public StoredInfoResult backup(InputStream stream, DataCategory storageCollectionType, String uri)
         throws BackupServiceException {
         return backup(stream, storageCollectionType, uri, VitamConfiguration.getDefaultStrategy());
     }
-    
 
     /**
      * Store file in offers with defined strategy
      */
-    public StoredInfoResult backup(InputStream stream, DataCategory storageCollectionType, String uri, String strategyId)
+    public StoredInfoResult backup(InputStream stream, DataCategory storageCollectionType, String uri,
+        String strategyId)
         throws BackupServiceException {
-        WorkspaceClient workspaceClient = workspaceClientFactory.getClient();
-        StorageClient storageClient = storageClientFactory.getClient();
 
         String containerName = GUIDFactory.newGUID().toString();
 
-        try {
+        try (WorkspaceClient workspaceClient = workspaceClientFactory.getClient()) {
 
             //store in workSpace
             workspaceClient.createContainer(containerName);
@@ -105,7 +114,8 @@ public class BackupService {
                 description.setWorkspaceContainerGUID(containerName);
                 description.setWorkspaceObjectURI(uri);
 
-                return storageClient.storeFileFromWorkspace(strategyId, storageCollectionType, uri, description);
+                return storeIntoOffers(containerName, uri, storageCollectionType, uri, strategyId);
+
             } finally {
                 try {
                     // try delete container
@@ -119,12 +129,32 @@ public class BackupService {
             //workspace Error
             throw new BackupServiceException("Unable to store file in workSpace " + containerName + "/" + uri, e);
 
-        } catch (StorageAlreadyExistsClientException | StorageNotFoundClientException | StorageServerClientException e) {
-            //Offer storage Error
-            throw new BackupServiceException(
-                "Unable to store file from workSpace to storage " + containerName + "/" + uri, e);
         } finally {
             StreamUtils.closeSilently(stream);
+        }
+    }
+
+    /**
+     * Store file in offers
+     */
+    public StoredInfoResult storeIntoOffers(String workspaceContainer, String workspaceUri,
+        DataCategory storageCollectionType, String objectName,
+        String strategyId)
+        throws BackupServiceException {
+
+        try (StorageClient storageClient = storageClientFactory.getClient()) {
+
+            final ObjectDescription description = new ObjectDescription();
+            description.setWorkspaceContainerGUID(workspaceContainer);
+            description.setWorkspaceObjectURI(workspaceUri);
+
+            return storageClient.storeFileFromWorkspace(strategyId, storageCollectionType, objectName, description);
+
+        } catch (StorageAlreadyExistsClientException | StorageNotFoundClientException | StorageServerClientException e) {
+            // Offer storage Error
+            throw new BackupServiceException(
+                "Unable to store file from workSpace to storage " + workspaceUri + "/" + workspaceUri +
+                    " -> " + storageCollectionType.getFolder() + "/" + objectName, e);
         }
     }
 }

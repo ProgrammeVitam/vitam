@@ -26,62 +26,27 @@
  */
 package fr.gouv.vitam.worker.core.plugin.audit;
 
-import static fr.gouv.vitam.batch.report.model.ReportType.AUDIT;
-
-import java.util.List;
-
 import com.google.common.annotations.VisibleForTesting;
-
-import fr.gouv.vitam.batch.report.client.BatchReportClient;
 import fr.gouv.vitam.batch.report.client.BatchReportClientFactory;
-import fr.gouv.vitam.batch.report.model.Report;
-import fr.gouv.vitam.batch.report.model.ReportBody;
 import fr.gouv.vitam.batch.report.model.ReportType;
 import fr.gouv.vitam.batch.report.model.entry.AuditObjectGroupReportEntry;
-import fr.gouv.vitam.common.exception.VitamClientInternalException;
-import fr.gouv.vitam.common.model.StatusCode;
-import fr.gouv.vitam.worker.core.plugin.audit.exception.AuditException;
+import fr.gouv.vitam.storage.engine.client.StorageClientFactory;
+import fr.gouv.vitam.worker.core.plugin.CommonReportService;
+import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
 
 /**
  * AuditReportService
  */
-public class AuditReportService {
-
-    private final BatchReportClientFactory batchReportClientFactory;
+public class AuditReportService extends CommonReportService<AuditObjectGroupReportEntry> {
 
     public AuditReportService() {
-        this(BatchReportClientFactory.getInstance());
+        super(ReportType.AUDIT);
     }
 
     @VisibleForTesting
-    public AuditReportService(BatchReportClientFactory reportFactory) {
-        this.batchReportClientFactory = reportFactory;
-    }
-
-    public void appendAuditEntries(String processId, List<AuditObjectGroupReportEntry> auditEntries)
-            throws AuditException {
-        try (BatchReportClient batchReportClient = batchReportClientFactory.getClient()) {
-            ReportBody<AuditObjectGroupReportEntry> reportBody = new ReportBody<AuditObjectGroupReportEntry>(processId,
-                    AUDIT, auditEntries);
-            batchReportClient.appendReportEntries(reportBody);
-        } catch (VitamClientInternalException e) {
-            throw new AuditException(StatusCode.FATAL, "Could not append entries into report", e);
-        }
-    }
-
-    public void storeReport(Report reportInfo) throws AuditException {
-        try (BatchReportClient batchReportClient = batchReportClientFactory.getClient()) {
-            batchReportClient.storeReport(reportInfo);
-        } catch (VitamClientInternalException e) {
-            throw new AuditException(StatusCode.FATAL, "Could not store report", e);
-        }
-    }
-
-    public void cleanupReport(String processId) throws AuditException {
-        try (BatchReportClient batchReportClient = batchReportClientFactory.getClient()) {
-            batchReportClient.cleanupReport(processId, ReportType.AUDIT);
-        } catch (VitamClientInternalException e) {
-            throw new AuditException(StatusCode.FATAL, "Could not store report", e);
-        }
+    public AuditReportService(BatchReportClientFactory reportFactory,
+        WorkspaceClientFactory workspaceClientFactory,
+        StorageClientFactory storageClientFactory) {
+        super(ReportType.AUDIT, reportFactory, workspaceClientFactory, storageClientFactory);
     }
 }

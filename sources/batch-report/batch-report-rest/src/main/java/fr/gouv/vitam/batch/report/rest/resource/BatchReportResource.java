@@ -154,11 +154,11 @@ public class BatchReportResource extends ApplicationStatusResource {
         }
     }
 
-    @Path("/store")
+    @Path("/storeToWorkspace")
     @POST
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
-    public Response storeReport(Report reportInfo) {
+    public Response storeReportToWorkspace(Report reportInfo) {
         int tenantId = VitamThreadUtils.getVitamSession().getTenantId();
 
         ParametersChecker.checkParameter(EMPTY_PROCESSID_ERROR_MESSAGE, reportInfo.getOperationSummary().getEvId());
@@ -168,11 +168,11 @@ public class BatchReportResource extends ApplicationStatusResource {
         }
 
         try {
-            batchReportServiceImpl.storeReport(reportInfo);
+            batchReportServiceImpl.storeReportToWorkspace(reportInfo);
             return Response.status(Response.Status.OK).build();
         } catch (InvalidParseOperationException | IllegalArgumentException e) {
             return Response.status(Response.Status.BAD_REQUEST).entity(e.getMessage()).build();
-        } catch (BackupServiceException | IOException e) {
+        } catch (ContentAddressableStorageServerException | IOException e) {
             return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(e.getMessage()).build();
         }
     }
@@ -206,25 +206,6 @@ public class BatchReportResource extends ApplicationStatusResource {
 
         batchReportServiceImpl.exportUnitsToInvalidate(processId, tenantId, reportExportRequest);
         return Response.status(Response.Status.CREATED).build();
-    }
-
-    @Path("/preservation/export/{processId}")
-    @POST
-    @Produces(MediaType.APPLICATION_JSON)
-    @Consumes(MediaType.APPLICATION_JSON)
-    public Response exportPreservation(@PathParam("processId") String processId, JsonNode body) throws IOException, ContentAddressableStorageServerException {
-        try {
-            ParametersChecker.checkParameter(EMPTY_PROCESSID_ERROR_MESSAGE, processId);
-            ReportExportRequest reportExportRequest = JsonHandler.getFromJsonNode(body, ReportExportRequest.class);
-            ParametersChecker.checkParameter(reportExportRequest.getFilename());
-
-            int tenantId = VitamThreadUtils.getVitamSession().getTenantId();
-            batchReportServiceImpl.exportPreservationReport(processId, reportExportRequest.getFilename(), tenantId);
-
-            return Response.status(Response.Status.OK).build();
-        } catch (IllegalArgumentException | InvalidParseOperationException e) {
-            throw new BadRequestException(e);
-        }
     }
 
     @Path("/purge/accession_register_export/{processId}")

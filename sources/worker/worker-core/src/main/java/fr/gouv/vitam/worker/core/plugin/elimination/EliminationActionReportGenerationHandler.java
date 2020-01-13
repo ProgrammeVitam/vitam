@@ -40,7 +40,6 @@ import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
-import fr.gouv.vitam.functional.administration.common.BackupService;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 import fr.gouv.vitam.worker.common.HandlerIO;
@@ -65,15 +64,12 @@ public class EliminationActionReportGenerationHandler extends ActionHandler {
     private static final String ELIMINATION_ACTION_REPORT_GENERATION = "ELIMINATION_ACTION_REPORT_GENERATION";
 
     private final EliminationActionReportService eliminationActionReportService;
-    private final BackupService backupService;
 
     /**
      * Default constructor
      */
     public EliminationActionReportGenerationHandler() {
-        this(
-            new EliminationActionReportService(),
-            new BackupService());
+        this(new EliminationActionReportService());
     }
 
     /***
@@ -81,10 +77,8 @@ public class EliminationActionReportGenerationHandler extends ActionHandler {
      */
     @VisibleForTesting
     EliminationActionReportGenerationHandler(
-        EliminationActionReportService eliminationActionReportService,
-        BackupService backupService) {
+        EliminationActionReportService eliminationActionReportService) {
         this.eliminationActionReportService = eliminationActionReportService;
-        this.backupService = backupService;
     }
 
     @Override
@@ -92,7 +86,10 @@ public class EliminationActionReportGenerationHandler extends ActionHandler {
         throws ProcessingException, ContentAddressableStorageServerException {
 
         try {
-            generateEliminationReport(param);
+
+            generateEliminationReportToWorkspace(param);
+
+            storeReportToOffers(param.getContainerName());
 
             LOGGER.info("Elimination action finalization succeeded");
             return buildItemStatus(ELIMINATION_ACTION_REPORT_GENERATION, StatusCode.OK, null);
@@ -103,7 +100,13 @@ public class EliminationActionReportGenerationHandler extends ActionHandler {
         }
     }
 
-    private void generateEliminationReport(WorkerParameters param) throws ProcessingStatusException {
+    private void generateEliminationReportToWorkspace(WorkerParameters param) throws ProcessingStatusException {
+
+        if (eliminationActionReportService.isReportWrittenInWorkspace(param.getContainerName())) {
+            // Report already generated to workspace (idempotency)
+            return;
+        }
+
         Integer tenant = VitamThreadUtils.getVitamSession().getTenantId();
         String evId = param.getContainerName();
         String evType = ""; // FIXME To be Fill in a post commit
@@ -116,7 +119,8 @@ public class EliminationActionReportGenerationHandler extends ActionHandler {
         // FIXME: What should we put in rightsStatementIdentifier for Elimination ?
         JsonNode rSI = JsonHandler.createObjectNode(); // FIXME To be Fill in a post commit
         JsonNode evDetData = JsonHandler.createObjectNode(); // FIXME To be Fill in a post commit
-        OperationSummary operationSummary = new OperationSummary(tenant, evId, evType, outcome, outDetail, outMsg, rSI, evDetData);
+        OperationSummary operationSummary =
+            new OperationSummary(tenant, evId, evType, outcome, outDetail, outMsg, rSI, evDetData);
 
         String startDate = null; // FIXME To be Fill in a post commit
         String endDate = LocalDateUtil.getString(LocalDateTime.now());
@@ -128,7 +132,12 @@ public class EliminationActionReportGenerationHandler extends ActionHandler {
         JsonNode context = JsonHandler.createObjectNode();
 
         Report reportInfo = new Report(operationSummary, reportSummary, context);
-        eliminationActionReportService.storeReport(reportInfo);
+
+        eliminationActionReportService.storeReportToWorkspace(reportInfo);
+    }
+
+    private void storeReportToOffers(String containerName) throws ProcessingStatusException {
+        eliminationActionReportService.storeReportToOffers(containerName);
     }
 
     @Override
