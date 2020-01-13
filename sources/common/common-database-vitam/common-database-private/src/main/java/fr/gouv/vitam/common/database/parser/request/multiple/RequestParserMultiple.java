@@ -30,7 +30,6 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import fr.gouv.vitam.common.database.builder.query.Query;
-import fr.gouv.vitam.common.database.builder.query.QueryHelper;
 import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.FILTERARGS;
 import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.GLOBAL;
 import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.QUERY;
@@ -38,11 +37,7 @@ import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.
 import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.SELECTFILTER;
 import fr.gouv.vitam.common.database.builder.request.configuration.GlobalDatas;
 import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
-import fr.gouv.vitam.common.database.builder.request.multiple.DeleteMultiQuery;
-import fr.gouv.vitam.common.database.builder.request.multiple.InsertMultiQuery;
 import fr.gouv.vitam.common.database.builder.request.multiple.RequestMultiple;
-import fr.gouv.vitam.common.database.builder.request.multiple.SelectMultiQuery;
-import fr.gouv.vitam.common.database.builder.request.multiple.UpdateMultiQuery;
 import fr.gouv.vitam.common.database.parser.query.ParserTokens;
 import fr.gouv.vitam.common.database.parser.query.helper.QueryDepthHelper;
 import fr.gouv.vitam.common.database.parser.request.AbstractParser;
@@ -53,7 +48,6 @@ import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 
-import java.util.Iterator;
 import java.util.Map.Entry;
 
 import static fr.gouv.vitam.common.database.parser.query.QueryParserHelper.path;
@@ -325,62 +319,6 @@ public abstract class RequestParserMultiple extends AbstractParser<RequestMultip
     @Override
     public RequestMultiple getRequest() {
         return request;
-    }
-
-    /**
-     * Allow to add one condition to the current parsed Request on top Query</br>
-     * </br>
-     * Example:</br>
-     *
-     * <pre>
-     * <code>
-     *   XxxxxxxParserMultiple parser = new XxxxxxParserMultiple(...);
-     *   parser.parse(jsonQuery);
-     *   parser.addCondition(eq(FieldName, value));
-     *   JsonNode newJsonQuery = parser.getRootNode();
-     * </code>
-     * </pre>
-     *
-     * @param condition the condition to add
-     * @throws InvalidCreateOperationException when invalid create query exception occurred
-     * @throws InvalidParseOperationException  when invalid parse data to create query
-     */
-    public void addCondition(Query condition) throws InvalidCreateOperationException, InvalidParseOperationException {
-        final Query srcquery = request.getNthQuery(0);
-        int exactDepth = 0;
-        int depth = 1;
-        if (srcquery != null) {
-            exactDepth = srcquery.getParserExactdepth();
-            depth = srcquery.getParserRelativeDepth();
-        }
-        final RequestParserMultiple newOne = RequestParserHelper.getParser(rootNode.deepCopy(), adapter);
-        final RequestMultiple request = newOne.getRequest();
-        final Query query = request.getNthQuery(0);
-        Query newQuery = null;
-        if (query == null) {
-            newQuery = condition;
-            getRequest().getQueries().add(newQuery.setDepthLimit(0));
-        } else {
-            newQuery = QueryHelper.and().add(query, condition);
-            if (exactDepth != 0) {
-                newQuery.setExactDepthLimit(exactDepth);
-            } else {
-                newQuery.setDepthLimit(depth);
-            }
-            getRequest().getQueries().set(0, newQuery);
-        }
-        if (newOne instanceof SelectParserMultiple) {
-            parse(((SelectMultiQuery) getRequest()).getFinalSelect().deepCopy());
-        } else if (newOne instanceof InsertParserMultiple) {
-            parse(((InsertMultiQuery) getRequest()).getFinalInsert().deepCopy());
-        } else if (newOne instanceof UpdateParserMultiple) {
-            parse(((UpdateMultiQuery) getRequest()).getFinalUpdate().deepCopy());
-        } else {
-            parse(((DeleteMultiQuery) getRequest()).getFinalDelete().deepCopy());
-        }
-        newOne.request = null;
-        newOne.rootNode = null;
-        newOne.sourceRequest = null;
     }
 
     /**

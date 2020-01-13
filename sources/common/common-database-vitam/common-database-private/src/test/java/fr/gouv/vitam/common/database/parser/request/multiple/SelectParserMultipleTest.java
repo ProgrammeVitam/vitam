@@ -26,6 +26,32 @@
  */
 package fr.gouv.vitam.common.database.parser.request.multiple;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
+import fr.gouv.vitam.common.database.builder.facet.FacetHelper;
+import fr.gouv.vitam.common.database.builder.query.Query;
+import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.FILTERARGS;
+import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.SELECTFILTER;
+import fr.gouv.vitam.common.database.builder.request.configuration.GlobalDatas;
+import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
+import fr.gouv.vitam.common.database.builder.request.multiple.SelectMultiQuery;
+import fr.gouv.vitam.common.database.facet.model.FacetOrder;
+import fr.gouv.vitam.common.database.parser.request.GlobalDatasParser;
+import fr.gouv.vitam.common.database.parser.request.adapter.VarNameAdapter;
+import fr.gouv.vitam.common.exception.InvalidParseOperationException;
+import fr.gouv.vitam.common.json.JsonHandler;
+import fr.gouv.vitam.common.logging.VitamLogLevel;
+import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import org.junit.BeforeClass;
+import org.junit.Test;
+
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
+
 import static fr.gouv.vitam.common.database.builder.facet.FacetHelper.filters;
 import static fr.gouv.vitam.common.database.builder.facet.FacetHelper.terms;
 import static fr.gouv.vitam.common.database.builder.query.QueryHelper.and;
@@ -59,32 +85,6 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
-
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
-
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.node.ArrayNode;
-import com.fasterxml.jackson.databind.node.ObjectNode;
-import fr.gouv.vitam.common.database.builder.facet.FacetHelper;
-import fr.gouv.vitam.common.database.builder.query.Query;
-import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.FILTERARGS;
-import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.SELECTFILTER;
-import fr.gouv.vitam.common.database.builder.request.configuration.GlobalDatas;
-import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
-import fr.gouv.vitam.common.database.builder.request.multiple.SelectMultiQuery;
-import fr.gouv.vitam.common.database.facet.model.FacetOrder;
-import fr.gouv.vitam.common.database.parser.request.GlobalDatasParser;
-import fr.gouv.vitam.common.database.parser.request.adapter.VarNameAdapter;
-import fr.gouv.vitam.common.exception.InvalidParseOperationException;
-import fr.gouv.vitam.common.json.JsonHandler;
-import fr.gouv.vitam.common.logging.VitamLogLevel;
-import fr.gouv.vitam.common.logging.VitamLoggerFactory;
-import org.junit.BeforeClass;
-import org.junit.Test;
 
 public class SelectParserMultipleTest {
     private static JsonNode exampleBothEsMd;
@@ -599,18 +599,15 @@ public class SelectParserMultipleTest {
         select.addFacets(FacetHelper.terms("myFacet2", "Name", 1, FacetOrder.DESC));
         request.parse(select.getFinalSelect());
         assertNotNull(request.getRequest());
-        request.addCondition(eq("var5", "value"));
 
         assertEquals(
-            "{\"$roots\":[\"id2\",\"id1\"]," +
-                "\"$query\":[{\"$and\":[{\"$term\":{\"var01\":\"value1\"}},{\"$gte\":{\"var02\":3}}," +
-                "{\"$eq\":{\"var5\":\"value\"}}]}," +
-                "{\"$and\":[{\"$term\":{\"var11\":\"value2\"}},{\"$gte\":{\"var12\":4}}]}," +
+            "{\"$roots\":[\"id2\",\"id1\"],\"$query\":[{\"$and\":[{\"$term\":{\"var01\":\"value1\"}}," +
+                "{\"$gte\":{\"var02\":3}}]},{\"$and\":[{\"$term\":{\"var11\":\"value2\"}},{\"$gte\":{\"var12\":4}}]}," +
                 "{\"$and\":[{\"$term\":{\"var13\":\"value2\"}},{\"$gte\":{\"var14\":4}}]}]," +
-                "\"$filter\":{\"$hint\":[\"units\",\"nocache\"],\"$limit\":10000,\"$orderby\":{\"var1\":1,\"var2\":-1}}," +
-                "\"$projection\":{\"$fields\":{\"var3\":1,\"var4\":0}}," +
-                "\"$facets\":[{\"$name\":\"myFacet\",\"$terms\":{\"$field\":\"#id\",\"$size\":5,\"$order\":\"ASC\"}}," +
-                "{\"$name\":\"myFacet2\",\"$terms\":{\"$field\":\"Name\",\"$size\":1,\"$order\":\"DESC\"}}]}",
+                "\"$filter\":{\"$orderby\":{\"var1\":1,\"var2\":-1},\"$hint\":[\"units\",\"nocache\"]}," +
+                "\"$projection\":{\"$fields\":{\"var3\":1,\"var4\":0}},\"$facets\":[{\"$name\":\"myFacet\"," +
+                "\"$terms\":{\"$field\":\"#id\",\"$size\":5,\"$order\":\"ASC\"}},{\"$name\":\"myFacet2\"," +
+                "\"$terms\":{\"$field\":\"Name\",\"$size\":1,\"$order\":\"DESC\"}}]}",
             request.getRootNode().toString());
     }
 
