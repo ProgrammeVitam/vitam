@@ -75,8 +75,8 @@ import fr.gouv.vitam.storage.engine.client.StorageClient;
 import fr.gouv.vitam.storage.engine.client.StorageClientFactory;
 import fr.gouv.vitam.storage.engine.common.exception.StorageException;
 import fr.gouv.vitam.storage.engine.common.referential.model.StorageStrategy;
-import fr.gouv.vitam.storage.engine.common.utils.DefaultOffersNotFoundException;
 import fr.gouv.vitam.storage.engine.common.utils.StorageStrategyNotFoundException;
+import fr.gouv.vitam.storage.engine.common.utils.StorageStrategyReferentOfferException;
 import fr.gouv.vitam.storage.engine.common.utils.StorageStrategyUtils;
 
 import javax.ws.rs.core.Response;
@@ -631,13 +631,13 @@ public class ManagementContractImpl implements ContractService<ManagementContrac
                     } catch (StorageStrategyNotFoundException storageStrategyNotFoundException) {
                         return Optional.of(GenericContractValidator.GenericRejectionCause.rejectStorageStrategyMissing(
                                 storageStrategyNotFoundException.getStrategyId(), storageStrategyNotFoundException.getVariableName()));
-                    } catch (DefaultOffersNotFoundException referentOfferNotFoundException) {
+                    } catch (StorageStrategyReferentOfferException storageStrategyReferentOfferException) {
                         return Optional.of(GenericContractValidator.GenericRejectionCause
-                                .rejectStorageStrategyDoesNotContainsReferent(
-                                        referentOfferNotFoundException.getStrategyId(),
-                                        referentOfferNotFoundException.getDefaultOffersIds(),
-                                        referentOfferNotFoundException.getVariableName()));
+                                .rejectStorageStrategyDoesNotContainsOneReferent(
+                                        storageStrategyReferentOfferException.getStrategyId(),
+                                        storageStrategyReferentOfferException.getVariableName()));
                     }
+
 
                     return Optional.empty();
                 } catch (Exception e) {

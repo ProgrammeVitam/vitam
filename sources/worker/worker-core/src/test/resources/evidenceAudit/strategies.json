@@ -4,7 +4,7 @@
     "offers": [
       {
         "id": "offer1",
-        "referent": false,
+        "referent": true,
         "status": "ACTIVE"
       }
     ]

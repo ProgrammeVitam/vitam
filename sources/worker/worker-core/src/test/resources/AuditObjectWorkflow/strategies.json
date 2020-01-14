@@ -3,7 +3,8 @@
     "id": "default",
     "offers": [
       {
-        "id": "offer1"
+        "id": "offer1",
+        "referent": true
       },
       {
         "id": "offer2"

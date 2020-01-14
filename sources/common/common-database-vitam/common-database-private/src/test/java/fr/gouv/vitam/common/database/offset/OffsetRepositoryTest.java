@@ -74,34 +74,34 @@ public class OffsetRepositoryTest {
     @Test
     public void should_insert_if_not_exist() {
         // Given / When
-        offsetRepository.createOrUpdateOffset(1, "Unit", 1);
+        offsetRepository.createOrUpdateOffset(1, "default", "Unit", 1);
 
         // Then
         assertThat(mongoCollection.countDocuments()).isEqualTo(1);
         assertThat(mongoCollection.find())
-            .extracting("offset", "collection", "_tenant")
-            .contains(Tuple.tuple(1L, "Unit", 1));
+            .extracting("offset", "collection", "strategy", "_tenant")
+            .contains(Tuple.tuple(1L, "Unit", "default", 1));
     }
 
     @Test
     public void should_update_document_if_already_present() {
         // Given
-        offsetRepository.createOrUpdateOffset(1, "Unit", 1);
+        offsetRepository.createOrUpdateOffset(1, "default", "Unit", 1);
 
         // When
-        offsetRepository.createOrUpdateOffset(1, "Unit", 15);
+        offsetRepository.createOrUpdateOffset(1, "default", "Unit", 15);
 
         // Then
         assertThat(mongoCollection.countDocuments()).isEqualTo(1);
         assertThat(mongoCollection.find())
-            .extracting("offset", "collection", "_tenant")
-            .contains(Tuple.tuple(15L, "Unit", 1));
+            .extracting("offset", "collection", "strategy", "_tenant")
+            .contains(Tuple.tuple(15L, "Unit", "default", 1));
     }
 
     @Test
     public void should_select_offset_if_not_present() {
         // Given / When
-        Long offset = offsetRepository.findOffsetBy(1, "Unit");
+        Long offset = offsetRepository.findOffsetBy(1, "default", "Unit");
 
         // Then
         assertThat(offset).isEqualTo(0);
@@ -110,10 +110,10 @@ public class OffsetRepositoryTest {
     @Test
     public void should_select_offset_if_already_present() {
         // Given
-        offsetRepository.createOrUpdateOffset(1, "Unit", 12);
+        offsetRepository.createOrUpdateOffset(1, "default", "Unit", 12);
 
         // When
-        Long offset = offsetRepository.findOffsetBy(1, "Unit");
+        Long offset = offsetRepository.findOffsetBy(1, "default", "Unit");
 
         // Then
         assertThat(offset).isEqualTo(12);

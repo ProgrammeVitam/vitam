@@ -28,25 +28,22 @@ package fr.gouv.vitam.storage.engine.common.utils;
 
 import fr.gouv.vitam.common.exception.VitamException;
 
-import java.util.Collections;
-import java.util.List;
+public class StorageStrategyReferentOfferException extends VitamException {
 
-public class DefaultOffersNotFoundException extends VitamException {
 
     private final String strategyId;
-    private final List<String> defaultOffersIds;
     private final String variableName;
 
-    public DefaultOffersNotFoundException(String message, String strategyId, List<String> defaultOffersIds,
-                                          String variableName) {
+    public StorageStrategyReferentOfferException(String message, String strategyId, String variableName) {
         super(message);
         this.strategyId = strategyId;
-        this.defaultOffersIds = defaultOffersIds;
         this.variableName = variableName;
     }
 
-    public List<String> getDefaultOffersIds() {
-        return defaultOffersIds;
+    public StorageStrategyReferentOfferException(String message) {
+        super(message);
+        strategyId = null;
+        variableName = null;
     }
 
     public String getStrategyId() {

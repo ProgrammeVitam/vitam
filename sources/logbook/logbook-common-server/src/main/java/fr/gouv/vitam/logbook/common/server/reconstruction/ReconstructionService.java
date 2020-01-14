@@ -153,7 +153,7 @@ public class ReconstructionService {
     private ReconstructionResponseItem reconstructCollection(int tenant, int limit)
         throws DatabaseException {
 
-        final long offset = offsetRepository.findOffsetBy(tenant, LOGBOOK);
+        final long offset = offsetRepository.findOffsetBy(tenant, VitamConfiguration.getDefaultStrategy(), LOGBOOK);
 
         LOGGER.info(String
             .format(
@@ -229,7 +229,7 @@ public class ReconstructionService {
             newOffset = offset;
             response.setStatus(StatusCode.KO);
         } finally {
-            offsetRepository.createOrUpdateOffset(tenant, LOGBOOK, newOffset);
+            offsetRepository.createOrUpdateOffset(tenant, VitamConfiguration.getDefaultStrategy(), LOGBOOK, newOffset);
             VitamThreadUtils.getVitamSession().setTenantId(originalTenant);
         }
         return response;

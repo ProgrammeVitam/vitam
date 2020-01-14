@@ -43,8 +43,8 @@ import fr.gouv.vitam.storage.engine.client.StorageClient;
 import fr.gouv.vitam.storage.engine.client.StorageClientFactory;
 import fr.gouv.vitam.storage.engine.client.exception.StorageServerClientException;
 import fr.gouv.vitam.storage.engine.common.referential.model.StorageStrategy;
-import fr.gouv.vitam.storage.engine.common.utils.DefaultOffersNotFoundException;
 import fr.gouv.vitam.storage.engine.common.utils.StorageStrategyNotFoundException;
+import fr.gouv.vitam.storage.engine.common.utils.StorageStrategyReferentOfferException;
 import fr.gouv.vitam.storage.engine.common.utils.StorageStrategyUtils;
 import fr.gouv.vitam.worker.core.handler.CheckIngestContractActionHandler.CheckIngestContractStatus;
 
@@ -111,7 +111,7 @@ public class ManagmentContractChecker {
                                 StorageStrategyUtils.checkStrategy(managementContract.getStorage().getObjectStrategy(),
                                         strategies, ManagementContract.OBJECT_STRATEGY, false);
                             }
-                        } catch (StorageStrategyNotFoundException | DefaultOffersNotFoundException exc) {
+                        } catch (StorageStrategyNotFoundException | StorageStrategyReferentOfferException exc) {
                             LOGGER.error(exc);
                             return CheckIngestContractStatus.MANAGEMENT_CONTRACT_INVALID;
                         }

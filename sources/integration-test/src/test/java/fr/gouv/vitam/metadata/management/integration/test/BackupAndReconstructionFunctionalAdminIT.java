@@ -33,6 +33,7 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.PropertiesUtils;
+import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.VitamRuleRunner;
 import fr.gouv.vitam.common.VitamServerRunner;
 import fr.gouv.vitam.common.client.VitamClientFactory;
@@ -170,7 +171,7 @@ public class BackupAndReconstructionFunctionalAdminIT extends VitamRuleRunner {
         offsetRepository = new OffsetRepository(mongoDbAccess);
 
         offsetRepository
-            .createOrUpdateOffset(TENANT_1, FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL.getName(), 0L);
+            .createOrUpdateOffset(TENANT_1, VitamConfiguration.getDefaultStrategy(), FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL.getName(), 0L);
 
         // Import 1 document agencies
         try (AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient()) {
@@ -325,7 +326,7 @@ public class BackupAndReconstructionFunctionalAdminIT extends VitamRuleRunner {
         offsetRepository = new OffsetRepository(mongoDbAccess);
 
         offsetRepository
-            .createOrUpdateOffset(TENANT_1, FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL.getName(), 0L);
+            .createOrUpdateOffset(TENANT_1, VitamConfiguration.getDefaultStrategy(), FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL.getName(), 0L);
 
         // Import 1 document securityProfile.
         try (AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient()) {
@@ -488,7 +489,7 @@ public class BackupAndReconstructionFunctionalAdminIT extends VitamRuleRunner {
         offsetRepository = new OffsetRepository(mongoDbAccess);
 
         offsetRepository
-            .createOrUpdateOffset(TENANT_1, FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL.getName(), 0L);
+            .createOrUpdateOffset(TENANT_1, VitamConfiguration.getDefaultStrategy(), FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL.getName(), 0L);
 
         // Insert new register detail
         try (AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient()) {
@@ -691,7 +692,7 @@ public class BackupAndReconstructionFunctionalAdminIT extends VitamRuleRunner {
         offsetRepository = new OffsetRepository(mongoDbAccess);
 
         offsetRepository
-            .createOrUpdateOffset(TENANT_1, FunctionalAdminCollections.ACCESSION_REGISTER_SYMBOLIC.getName(), 0L);
+            .createOrUpdateOffset(TENANT_1, VitamConfiguration.getDefaultStrategy(), FunctionalAdminCollections.ACCESSION_REGISTER_SYMBOLIC.getName(), 0L);
 
         initializeDbWithUnitAndObjectGroupData();
 

@@ -94,7 +94,7 @@ public interface GenericContractValidator<T extends AbstractContractModel> {
         private static final String ERR_INCONSISTENT_CONTRACT_DEFINITION = "Error while validating contract (%s) : %s";
 
         private static final String ERR_STORAGE_STRATEGY_NOT_FOUND = "Storage Strategy (%s) not found for the field %s";
-        private static final String ERR_STORAGE_STRATEGY_DOES_NOT_CONTAINS_REFERENT_OFFER = "Storage Strategy (%s) does not contains default strategy offer(s) (%s) for the field %s";
+        private static final String ERR_STORAGE_STRATEGY_DOES_NOT_CONTAINS_ONE_REFERENT_OFFER = "Storage Strategy (%s) does not contains one and only one 'referent' offer for the field %s";
 
         private String reason;
 
@@ -274,14 +274,12 @@ public interface GenericContractValidator<T extends AbstractContractModel> {
          * Reject if storage strategy does not contains referent
          *
          * @param storageStrategy
-         * @param defaultOffersIds
          * @param fieldName
          * @return GenericRejectionCause
          */
-        public static GenericRejectionCause rejectStorageStrategyDoesNotContainsReferent(String storageStrategy,
-                                                                                         List<String> defaultOffersIds, String fieldName) {
-            return new GenericRejectionCause(String.format(ERR_STORAGE_STRATEGY_DOES_NOT_CONTAINS_REFERENT_OFFER,
-                    storageStrategy, StringUtils.join(defaultOffersIds, ","), fieldName));
+        public static GenericRejectionCause rejectStorageStrategyDoesNotContainsOneReferent(String storageStrategy, String fieldName) {
+            return new GenericRejectionCause(String.format(ERR_STORAGE_STRATEGY_DOES_NOT_CONTAINS_ONE_REFERENT_OFFER,
+                    storageStrategy, fieldName));
         }
 
         /**
