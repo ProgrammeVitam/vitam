@@ -155,6 +155,9 @@ public class ProbativeCreateDistributionFileTest {
 
         // Then
         assertThat(itemStatus.getGlobalStatus()).isEqualTo(StatusCode.OK);
+
+        assertThat(Files.readAllLines(handlerIO.getTransferedFileToWorkspace("distributionFile.jsonl").toPath()))
+            .contains("{\"id\":\"ROBIN_ID\",\"params\":{\"unitIds\":[\"BATMAN_ID\"],\"usageVersion\":\"BinaryMaster_1\"}}");
     }
 
     @Test
@@ -179,6 +182,7 @@ public class ProbativeCreateDistributionFileTest {
 
         // Then
         assertThat(itemStatus.getGlobalStatus()).isEqualTo(StatusCode.OK);
+        assertThat(Files.readAllLines(handlerIO.getTransferedFileToWorkspace("distributionFile.jsonl").toPath()).size()).isEqualTo(0);
     }
 
     @Test

@@ -29,7 +29,10 @@ package fr.gouv.vitam.worker.core.plugin.probativevalue;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.annotations.VisibleForTesting;
+import fr.gouv.vitam.common.database.builder.query.Query;
+import fr.gouv.vitam.common.database.builder.query.QueryHelper;
 import fr.gouv.vitam.common.database.builder.query.VitamFieldsHelper;
+import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
 import fr.gouv.vitam.common.database.builder.request.multiple.SelectMultiQuery;
 import fr.gouv.vitam.common.database.parser.request.multiple.SelectParserMultiple;
 import fr.gouv.vitam.common.database.utils.ScrollSpliterator;
@@ -58,10 +61,10 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.List;
 
+import static fr.gouv.vitam.common.database.builder.query.QueryHelper.and;
 import static fr.gouv.vitam.common.json.JsonHandler.createObjectNode;
 import static fr.gouv.vitam.common.model.StatusCode.KO;
 import static fr.gouv.vitam.common.model.StatusCode.OK;
@@ -149,23 +152,30 @@ public class ProbativeCreateDistributionFile extends ActionHandler {
         return model;
     }
 
-    private SelectMultiQuery constructSelectMultiQuery(ProbativeValueRequest probativeValueRequest) throws InvalidParseOperationException {
+    private SelectMultiQuery constructSelectMultiQuery(ProbativeValueRequest probativeValueRequest)
+        throws InvalidParseOperationException, InvalidCreateOperationException {
         SelectParserMultiple parser = new SelectParserMultiple();
-        parser.parse(probativeValueRequest.getDslQuery());
 
+        JsonNode probativeQuery = probativeValueRequest.getDslQuery();
+        parser.parse(probativeQuery);
         SelectMultiQuery select = parser.getRequest();
 
-        ObjectNode fields = createObjectNode();
-        fields.put(VitamFieldsHelper.id(), 1);
-        fields.put(VitamFieldsHelper.object(), 1);
-        JsonNode projection = createObjectNode().set("$fields", fields);
-        select.setProjection(projection);
+        List<Query> queryList = new ArrayList<>(select.getQueries());
+        if (queryList.isEmpty()) {
+            select.getQueries().add(QueryHelper.exists(VitamFieldsHelper.object()).setDepthLimit(0));
+
+        } else {
+            Query lastQuery = queryList.get(queryList.size() - 1);
+            Query queryExistObject =
+                and().add(lastQuery, QueryHelper.exists(VitamFieldsHelper.object()).setDepthLimit(0));
+            select.getQueries().set(queryList.size() - 1, queryExistObject);
+        }
+        select.addUsedProjection(VitamFieldsHelper.id(), VitamFieldsHelper.object());
 
         ObjectNode objectGroup = createObjectNode();
         objectGroup.put(VitamFieldsHelper.object(), 1);
         ObjectNode filter = createObjectNode();
         filter.set("$orderby", objectGroup);
-        filter.put("$exists", VitamFieldsHelper.object());
         select.setFilter(filter);
 
         return select;
