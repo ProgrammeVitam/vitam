@@ -26,20 +26,19 @@
  */
 package fr.gouv.vitam.logbook.common.parameters;
 
-import static org.hamcrest.core.Is.is;
-import static org.hamcrest.core.IsEqual.equalTo;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertThat;
-
-import java.io.IOException;
-import java.io.StringWriter;
-
-import org.junit.Test;
-
 import com.fasterxml.jackson.core.JsonFactory;
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializerProvider;
+import org.junit.Test;
+
+import java.io.IOException;
+import java.io.StringWriter;
+
+import static org.hamcrest.core.Is.is;
+import static org.hamcrest.core.IsEqual.equalTo;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertThat;
 
 public class LogbookParametersSerializerTest {
 
@@ -51,7 +50,12 @@ public class LogbookParametersSerializerTest {
 
         for (final LogbookParameterName value : LogbookParameterName.values()) {
             if (!value.name().equals(LogbookParameterName.events.name())) {
-                params.putParameterValue(value, value.name());
+                if(value.name().equals(LogbookParameterName.parentEventIdentifier.name())){
+                    params.putParameterValue(value, null);
+                }
+                else {
+                    params.putParameterValue(value, value.name());
+                }
             }
         }
 
@@ -62,7 +66,7 @@ public class LogbookParametersSerializerTest {
         logbookParametersSerializer.serialize(params, generator, serializerProvider);
         generator.flush();
         assertThat(stringJson.toString(),
-            is(equalTo("{\"eventIdentifier\":\"eventIdentifier\",\"parentEventIdentifier\":\"parentEventIdentifier\"," +
+            is(equalTo("{\"eventIdentifier\":\"eventIdentifier\",\"parentEventIdentifier\":null," +
                 "\"eventType\":\"eventType\",\"eventDateTime\":\"eventDateTime\"," +
                 "\"eventIdentifierProcess\":\"eventIdentifierProcess\",\"eventTypeProcess\":\"eventTypeProcess\"," +
                 "\"outcome\":\"outcome\",\"outcomeDetail\":\"outcomeDetail\",\"outcomeDetailMessage\":\"outcomeDetailMessage\"," +
@@ -83,7 +87,12 @@ public class LogbookParametersSerializerTest {
 
         for (final LogbookParameterName value : LogbookParameterName.values()) {
             if (!value.name().equals(LogbookParameterName.events.name())) {
-                params.putParameterValue(value, value.name());
+                if(value.name().equals(LogbookParameterName.parentEventIdentifier.name())){
+                    params.putParameterValue(value, null);
+                }
+                else {
+                    params.putParameterValue(value, value.name());
+                }
             }
         }
 
@@ -94,7 +103,7 @@ public class LogbookParametersSerializerTest {
         logbookParametersSerializer.serialize(params, generator, serializerProvider);
         generator.flush();
         assertThat(stringJson.toString(),
-            is(equalTo("{\"eventIdentifier\":\"eventIdentifier\",\"parentEventIdentifier\":\"parentEventIdentifier\"," +
+            is(equalTo("{\"eventIdentifier\":\"eventIdentifier\",\"parentEventIdentifier\":null," +
                 "\"eventType\":\"eventType\",\"eventDateTime\":\"eventDateTime\"," +
                 "\"eventIdentifierProcess\":\"eventIdentifierProcess\",\"eventTypeProcess\":\"eventTypeProcess\"," +
                 "\"outcome\":\"outcome\",\"outcomeDetail\":\"outcomeDetail\",\"outcomeDetailMessage\":\"outcomeDetailMessage\"," +

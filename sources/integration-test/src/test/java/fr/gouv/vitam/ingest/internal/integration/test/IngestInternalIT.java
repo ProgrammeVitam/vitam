@@ -648,7 +648,7 @@ public class IngestInternalIT extends VitamRuleRunner {
             JsonNode logbookOperation =
                 accessClient.selectOperationById(operationGuid.getId(), new SelectMultiQuery().getFinalSelect())
                     .toJsonNode();
-
+            assertThat(logbookOperation.get("$results").get(0).get("evParentId")).isExactlyInstanceOf(NullNode.class);
             Set<String> eventIds = new HashSet<>();
             eventIds.add(logbookOperation.get("$results").get(0).get("evId").asText());
             logbookOperation.get("$results").get(0).get("events").forEach(event -> {
@@ -822,6 +822,7 @@ public class IngestInternalIT extends VitamRuleRunner {
 
         JsonNode logbookResult = operationsClient.selectOperation(select.getFinalSelect());
         assertThat(logbookResult).isNotNull();
+        assertThat(logbookResult.get("$results").get(0).get("evParentId")).isExactlyInstanceOf(NullNode.class);
         operationId = logbookResult.get("$results").get(0).get("evId").asText();
 
 
@@ -1194,6 +1195,7 @@ public class IngestInternalIT extends VitamRuleRunner {
                 .toJsonNode();
         boolean checkDataObject = true;
         final JsonNode elmt = logbookOperation.get("$results").get(0);
+        assertThat(elmt.get("evParentId")).isExactlyInstanceOf(NullNode.class);
         final List<Document> logbookOperationEvents =
             (List<Document>) new LogbookOperation(elmt).get(LogbookDocument.EVENTS.toString());
         for (final Document event : logbookOperationEvents) {
@@ -1249,6 +1251,7 @@ public class IngestInternalIT extends VitamRuleRunner {
                 .toJsonNode();
         boolean checkUnitSuccess = true;
         final JsonNode elmt = logbookOperation.get("$results").get(0);
+        assertThat(elmt.get("evParentId")).isExactlyInstanceOf(NullNode.class);
         final List<Document> logbookOperationEvents =
             (List<Document>) new LogbookOperation(elmt).get(LogbookDocument.EVENTS.toString());
         for (final Document event : logbookOperationEvents) {
@@ -1302,6 +1305,7 @@ public class IngestInternalIT extends VitamRuleRunner {
                 .toJsonNode();
         boolean checkUnitSuccess = true;
         final JsonNode elmt = logbookOperation.get("$results").get(0);
+        assertThat(elmt.get("evParentId")).isExactlyInstanceOf(NullNode.class);
         final List<Document> logbookOperationEvents =
             (List<Document>) new LogbookOperation(elmt).get(LogbookDocument.EVENTS.toString());
         for (final Document event : logbookOperationEvents) {
@@ -1549,6 +1553,7 @@ public class IngestInternalIT extends VitamRuleRunner {
                 .toJsonNode();
         boolean checkUnitSuccess = false;
         final JsonNode elmt = logbookOperation.get("$results").get(0);
+        assertThat(elmt.get("evParentId")).isExactlyInstanceOf(NullNode.class);
         final List<Document> logbookOperationEvents =
             (List<Document>) new LogbookOperation(elmt).get(LogbookDocument.EVENTS.toString());
         for (final Document event : logbookOperationEvents) {
@@ -1602,6 +1607,7 @@ public class IngestInternalIT extends VitamRuleRunner {
                 .toJsonNode();
         boolean checkServiceLevel = false;
         final JsonNode elmt = logbookOperation.get("$results").get(0);
+        assertThat(elmt.get("evParentId")).isExactlyInstanceOf(NullNode.class);
         final List<Document> logbookOperationEvents =
             (List<Document>) new LogbookOperation(elmt).get(LogbookDocument.EVENTS.toString());
         for (final Document event : logbookOperationEvents) {
@@ -1657,6 +1663,7 @@ public class IngestInternalIT extends VitamRuleRunner {
                 .toJsonNode();
         boolean checkServiceLevel = false;
         final JsonNode elmt = logbookOperation.get("$results").get(0);
+        assertThat(elmt.get("evParentId")).isExactlyInstanceOf(NullNode.class);
         final List<Document> logbookOperationEvents =
             (List<Document>) new LogbookOperation(elmt).get(LogbookDocument.EVENTS.toString());
         for (final Document event : logbookOperationEvents) {
@@ -1818,6 +1825,7 @@ public class IngestInternalIT extends VitamRuleRunner {
 
         JsonNode logbookResult = operationsClient.selectOperation(select.getFinalSelect());
         assertThat(logbookResult).isNotNull();
+        assertThat(logbookResult.get("$results").get(0).get("evParentId")).isExactlyInstanceOf(NullNode.class);
 
 
         stream = new FileInputStream(PropertiesUtils.findFile(FILE_AGENCIES_AU_update));
@@ -2664,6 +2672,8 @@ public class IngestInternalIT extends VitamRuleRunner {
             assertEquals(StatusCode.OK.name(), logbookOperation.get("$results").get(0)
                 .get(LogbookMongoDbName.getLogbookMongoDbName(LogbookParameterName.outcome).getDbname()).asText());
 
+            assertThat(logbookOperation.get("$results").get(0).get("evParentId")).isExactlyInstanceOf(NullNode.class);
+
             // assert certain parameters in the master are not overloaded
             assertEquals(operationGuid.getId(),
                 logbookOperation.get("$results").get(0)
@@ -2741,6 +2751,7 @@ public class IngestInternalIT extends VitamRuleRunner {
         final JsonNode element = logbookOperation.get("$results").get(0);
 
         assertEquals(element.get("obIdIn").asText(), "vitam");
+        assertThat(element.get("evParentId")).isExactlyInstanceOf(NullNode.class);
     }
 
     @RunWithCustomExecutor
@@ -2781,7 +2792,7 @@ public class IngestInternalIT extends VitamRuleRunner {
             accessClient.selectOperationById(operationGuid.getId(), new SelectMultiQuery().getFinalSelect())
                 .toJsonNode();
 
-
+        assertThat(logbookOperation.get("$results").get(0).get("evParentId")).isExactlyInstanceOf(NullNode.class);
         logbookOperation.get("$results").get(0).get("events").forEach(event -> {
             if (event.get("evType").asText().contains("CHECK_DATAOBJECTPACKAGE.CHECK_MANIFEST_DATAOBJECT_VERSION")) {
                 assertThat(event.get("outDetail").textValue()).
@@ -3077,6 +3088,7 @@ public class IngestInternalIT extends VitamRuleRunner {
                 .toJsonNode();
         boolean checkKOLinkingSuccess = true;
         final JsonNode elmt = logbookOperation.get("$results").get(0);
+        assertThat(elmt.get("evParentId")).isExactlyInstanceOf(NullNode.class);
         final List<Document> logbookOperationEvents =
             (List<Document>) new LogbookOperation(elmt).get(LogbookDocument.EVENTS.toString());
         for (final Document event : logbookOperationEvents) {

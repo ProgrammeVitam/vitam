@@ -3,6 +3,7 @@ package fr.gouv.vitam.metadata.management.integration.test;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.NullNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.collect.Sets;
 import com.mongodb.client.FindIterable;
@@ -458,6 +459,7 @@ public class MetadataManagementIT extends VitamRuleRunner {
         assertThat(lifecycleResponse).isNotNull();
         assertThat(lifecycleResponse.get("_id").asText()).isEqualTo(unitId);
         assertThat(lifecycleResponse.get("_v").asInt()).isEqualTo(lfcVersion);
+        assertThat(lifecycleResponse.get("evParentId")).isExactlyInstanceOf(NullNode.class);
     }
 
     private void ensureGotNotExists(MetaDataClient metadataClient, LogbookLifeCyclesClient lifecycleClient,
