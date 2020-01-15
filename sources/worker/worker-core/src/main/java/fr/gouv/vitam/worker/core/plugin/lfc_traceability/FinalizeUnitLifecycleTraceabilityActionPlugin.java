@@ -27,85 +27,28 @@
 package fr.gouv.vitam.worker.core.plugin.lfc_traceability;
 
 import com.google.common.annotations.VisibleForTesting;
-import fr.gouv.vitam.common.logging.VitamLogger;
-import fr.gouv.vitam.common.logging.VitamLoggerFactory;
-import fr.gouv.vitam.common.model.ItemStatus;
-import fr.gouv.vitam.common.model.StatusCode;
-import fr.gouv.vitam.logbook.common.exception.TraceabilityException;
-import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClient;
-import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClientFactory;
-import fr.gouv.vitam.processing.common.exception.ProcessingException;
-import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
-import fr.gouv.vitam.worker.common.HandlerIO;
-import fr.gouv.vitam.worker.core.distribution.JsonLineIterator;
-import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
-
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.io.InputStream;
+import fr.gouv.vitam.storage.engine.client.StorageClientFactory;
 
 /**
  * FinalizeUnitLifecycleTraceabilityActionPlugin Plugin
  */
 public class FinalizeUnitLifecycleTraceabilityActionPlugin extends FinalizeLifecycleTraceabilityActionPlugin {
-    private static final VitamLogger LOGGER =
-        VitamLoggerFactory.getInstance(FinalizeUnitLifecycleTraceabilityActionPlugin.class);
 
     private static final String ACTION_HANDLER_ID = "FINALIZE_UNIT_LFC_TRACEABILITY";
-
-    private static final int TRACEABILITY_DATA_OUT_RANK = 2;
-
-    private final LogbookOperationsClientFactory logbookOperationsClientFactory;
-    private final WorkspaceClientFactory workspaceClientFactory;
 
     /**
      * Empty constructor
      */
     public FinalizeUnitLifecycleTraceabilityActionPlugin() {
-        this(LogbookOperationsClientFactory.getInstance(),
-            WorkspaceClientFactory.getInstance());
+        this(StorageClientFactory.getInstance());
     }
 
     /**
      * Constructor for testing
      */
     @VisibleForTesting
-    FinalizeUnitLifecycleTraceabilityActionPlugin(LogbookOperationsClientFactory logbookOperationsClientFactory,
-        WorkspaceClientFactory workspaceClientFactory) {
-        this.logbookOperationsClientFactory = logbookOperationsClientFactory;
-        this.workspaceClientFactory = workspaceClientFactory;
-    }
-
-    @Override
-    public ItemStatus execute(WorkerParameters params, HandlerIO handler) {
-        final ItemStatus itemStatus = new ItemStatus(ACTION_HANDLER_ID);
-
-        File traceabilityDataFile = (File) handler.getInput(TRACEABILITY_DATA_OUT_RANK);
-
-        try (final LogbookOperationsClient logbookOperationsClient = logbookOperationsClientFactory.getClient();
-            InputStream is = new FileInputStream(traceabilityDataFile);
-            JsonLineIterator traceabilityDataIterator = new JsonLineIterator(is)) {
-
-            LogbookLifeCycleTraceabilityHelper helper =
-                new LogbookUnitLifeCycleTraceabilityHelper(handler, logbookOperationsClient, itemStatus,
-                    params.getContainerName(), workspaceClientFactory, traceabilityDataIterator);
-
-            finalizeLifecycles(helper);
-            itemStatus.increment(StatusCode.OK);
-
-        } catch (TraceabilityException | IOException e) {
-            LOGGER.error("Exception while finalizing", e);
-            itemStatus.increment(StatusCode.FATAL);
-        }
-
-        LOGGER.info("Unit lifecycle traceability finished with status " + itemStatus.getGlobalStatus());
-        return new ItemStatus(ACTION_HANDLER_ID).setItemsStatus(ACTION_HANDLER_ID, itemStatus);
-    }
-
-    @Override
-    public void checkMandatoryIOParameter(HandlerIO handler) throws ProcessingException {
-        // Nothing to check
+    FinalizeUnitLifecycleTraceabilityActionPlugin(StorageClientFactory storageClientFactory) {
+        super(storageClientFactory, ACTION_HANDLER_ID);
     }
 
     /**

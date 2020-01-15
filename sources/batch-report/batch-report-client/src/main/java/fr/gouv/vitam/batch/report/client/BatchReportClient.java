@@ -78,7 +78,7 @@ public interface BatchReportClient extends BasicClient {
      */
     void appendReportEntries(ReportBody reportBody) throws VitamClientInternalException;
 
-    void storeReport(Report reportInfo) throws VitamClientInternalException;
+    void storeReportToWorkspace(Report reportInfo) throws VitamClientInternalException;
 
     /**
      * Generate elimination action accession register for deleted units by status and process Id.

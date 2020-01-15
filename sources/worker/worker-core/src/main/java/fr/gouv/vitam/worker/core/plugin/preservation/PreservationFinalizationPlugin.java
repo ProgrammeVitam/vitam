@@ -35,6 +35,7 @@ import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 import fr.gouv.vitam.worker.common.HandlerIO;
+import fr.gouv.vitam.worker.core.exception.ProcessingStatusException;
 import fr.gouv.vitam.worker.core.handler.ActionHandler;
 import fr.gouv.vitam.worker.core.plugin.preservation.service.PreservationReportService;
 import fr.gouv.vitam.worker.core.utils.PluginHelper.EventDetails;
@@ -61,9 +62,16 @@ public class PreservationFinalizationPlugin extends ActionHandler {
     }
 
     @Override
-    public ItemStatus execute(WorkerParameters param, HandlerIO handler) throws ProcessingException, ContentAddressableStorageServerException {
+    public ItemStatus execute(WorkerParameters param, HandlerIO handler)
+        throws ProcessingException, ContentAddressableStorageServerException {
         try {
-            preservationReportService.exportReport(param.getRequestId(), param.getContainerName());
+
+            generateReportToWorkspace(param, handler);
+
+            storeReportToOffers(param.getContainerName());
+
+            cleanupReport(param.getContainerName());
+
         } catch (Exception e) {
             LOGGER.error("Error on finalization", e);
             ObjectNode eventDetails = JsonHandler.createObjectNode();
@@ -72,5 +80,22 @@ public class PreservationFinalizationPlugin extends ActionHandler {
         }
 
         return buildItemStatus(PLUGIN_NAME, OK, EventDetails.of("Finalization ok."));
+    }
+
+    private void generateReportToWorkspace(WorkerParameters param, HandlerIO handler) throws ProcessingStatusException {
+        if (preservationReportService.isReportWrittenInWorkspace(handler.getContainerName())) {
+            // Report already generated to workspace (idempotency)
+            return;
+        }
+
+        preservationReportService.storeReportToWorkspace(param.getRequestId(), param.getContainerName());
+    }
+
+    private void storeReportToOffers(String processId) throws ProcessingStatusException {
+        preservationReportService.storeReportToOffers(processId);
+    }
+
+    private void cleanupReport(String processId) throws ProcessingStatusException {
+        preservationReportService.cleanupReport(processId);
     }
 }

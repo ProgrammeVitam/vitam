@@ -1,12 +1,6 @@
 package fr.gouv.vitam.logbook.common.traceability;
 
-import java.io.File;
-import java.io.IOException;
-import java.time.LocalDateTime;
-import java.util.List;
-
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
-import fr.gouv.vitam.common.guid.GUID;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.security.merkletree.MerkleTreeAlgo;
 import fr.gouv.vitam.logbook.common.exception.TraceabilityException;
@@ -14,6 +8,10 @@ import fr.gouv.vitam.logbook.common.model.TraceabilityEvent;
 import fr.gouv.vitam.logbook.common.model.TraceabilityFile;
 import fr.gouv.vitam.logbook.common.model.TraceabilityStatistics;
 import fr.gouv.vitam.logbook.common.model.TraceabilityType;
+
+import java.io.File;
+import java.io.IOException;
+import java.time.LocalDateTime;
 
 /**
  * Interface used to handle specific steps of the traceability process
@@ -63,16 +61,15 @@ public interface LogbookTraceabilityHelper {
         throws TraceabilityException;
 
     /**
-     * Store the temporary zip in the final destination (on a specific offer for example) and delete tmp file.
+     * Store the temporary zip.
      * 
      * @param tenant tenant used for the operation
      * @param zipFile file containing multiple information about the traceability operation (data, merkle, computingData, ...)
      * @param fileName name of the file on the destination
-     * @param uri uri of the tmp file
      * @param event traceability event that should be updated by this operation
      * @throws TraceabilityException if any error occurs
      */
-    void storeAndDeleteZip(Integer tenant, File zipFile, String fileName, String uri, TraceabilityEvent event)
+    void storeAndDeleteZip(Integer tenant, File zipFile, String fileName, TraceabilityEvent event)
         throws TraceabilityException;
 
     /**
@@ -94,11 +91,6 @@ public interface LogbookTraceabilityHelper {
      * @return the name of the tmp zip file
      */
     String getZipName();
-
-    /**
-     * @return the uri of the tmp file
-     */
-    String getUriName();
 
     /**
      * @return the start date of the traceability (computed from the end date of the last traceability)

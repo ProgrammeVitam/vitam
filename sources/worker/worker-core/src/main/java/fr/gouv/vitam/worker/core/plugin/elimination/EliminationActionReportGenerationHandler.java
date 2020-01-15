@@ -28,25 +28,23 @@ package fr.gouv.vitam.worker.core.plugin.elimination;
 
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.google.common.annotations.VisibleForTesting;
+import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.collection.CloseableIterator;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.google.common.annotations.VisibleForTesting;
-import fr.gouv.vitam.batch.report.model.OperationSummary;
-import fr.gouv.vitam.batch.report.model.Report;
-import fr.gouv.vitam.batch.report.model.ReportResults;
-import fr.gouv.vitam.batch.report.model.ReportSummary;
-import fr.gouv.vitam.batch.report.model.ReportType;
-import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.functional.administration.common.BackupService;
-import fr.gouv.vitam.functional.administration.common.exception.BackupServiceException;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
+import fr.gouv.vitam.storage.engine.client.StorageClient;
+import fr.gouv.vitam.storage.engine.client.StorageClientFactory;
+import fr.gouv.vitam.storage.engine.client.exception.StorageAlreadyExistsClientException;
+import fr.gouv.vitam.storage.engine.client.exception.StorageNotFoundClientException;
+import fr.gouv.vitam.storage.engine.client.exception.StorageServerClientException;
 import fr.gouv.vitam.storage.engine.common.model.DataCategory;
+import fr.gouv.vitam.storage.engine.common.model.request.ObjectDescription;
 import fr.gouv.vitam.worker.common.HandlerIO;
 import fr.gouv.vitam.worker.core.exception.ProcessingStatusException;
 import fr.gouv.vitam.worker.core.handler.ActionHandler;
@@ -57,11 +55,9 @@ import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerExce
 
 import java.io.BufferedOutputStream;
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
-import java.time.LocalDateTime;
 
 import static fr.gouv.vitam.worker.core.utils.PluginHelper.buildItemStatus;
 
@@ -71,15 +67,18 @@ import static fr.gouv.vitam.worker.core.utils.PluginHelper.buildItemStatus;
  */
 public class EliminationActionReportGenerationHandler extends ActionHandler {
 
+    static final String WORKSPACE_REPORT_URI = "report.json";
+
     private static final VitamLogger LOGGER =
         VitamLoggerFactory.getInstance(EliminationActionReportGenerationHandler.class);
 
     private static final String ELIMINATION_ACTION_REPORT_GENERATION = "ELIMINATION_ACTION_REPORT_GENERATION";
 
     static final String REPORT_JSON = "report.json";
+    private static final String JSON_EXTENSION = ".json";
 
     private final EliminationActionReportService eliminationActionReportService;
-    private final BackupService backupService;
+    private final StorageClientFactory storageClientFactory;
 
     /**
      * Default constructor
@@ -87,7 +86,7 @@ public class EliminationActionReportGenerationHandler extends ActionHandler {
     public EliminationActionReportGenerationHandler() {
         this(
             new EliminationActionReportService(),
-            new BackupService());
+            StorageClientFactory.getInstance(), new BackupService());
     }
 
     /***
@@ -96,9 +95,9 @@ public class EliminationActionReportGenerationHandler extends ActionHandler {
     @VisibleForTesting
     EliminationActionReportGenerationHandler(
         EliminationActionReportService eliminationActionReportService,
-        BackupService backupService) {
+        StorageClientFactory storageClientFactory, BackupService backupService) {
         this.eliminationActionReportService = eliminationActionReportService;
-        this.backupService = backupService;
+        this.storageClientFactory = storageClientFactory;
     }
 
     @Override
@@ -107,9 +106,9 @@ public class EliminationActionReportGenerationHandler extends ActionHandler {
 
         try {
 
-            File report = generateEliminationReport(param, handler);
+            generateReportToWorkspace(param, handler);
 
-            storeEliminationReport(handler, report);
+            storeReportToOffers(handler.getContainerName());
 
             LOGGER.info("Elimination action finalization succeeded");
             return buildItemStatus(ELIMINATION_ACTION_REPORT_GENERATION, StatusCode.OK, null);
@@ -117,6 +116,26 @@ public class EliminationActionReportGenerationHandler extends ActionHandler {
             LOGGER.error(
                 String.format("Elimination action finalization failed with status [%s]", e.getStatusCode()), e);
             return buildItemStatus(ELIMINATION_ACTION_REPORT_GENERATION, e.getStatusCode(), e.getEventDetails());
+        }
+    }
+
+    private void generateReportToWorkspace(WorkerParameters param, HandlerIO handler) throws ProcessingStatusException {
+
+        if (isReportWrittenInWorkspace(handler)) {
+            // Report already generated (idempotency)
+            return;
+        }
+
+        File report = generateEliminationReport(param, handler);
+
+        storeEliminationReportToWorkspace(handler, report);
+    }
+
+    public boolean isReportWrittenInWorkspace(HandlerIO handler) throws ProcessingStatusException {
+        try {
+            return handler.isExistingFileInWorkspace(WORKSPACE_REPORT_URI);
+        } catch (ProcessingException e) {
+            throw new ProcessingStatusException(StatusCode.FATAL, "Could not check report existence in workspace", e);
         }
     }
 
@@ -164,13 +183,24 @@ public class EliminationActionReportGenerationHandler extends ActionHandler {
         return report;
     }
 
-    private void storeEliminationReport(HandlerIO handler, File report) throws ProcessingStatusException {
+    private void storeEliminationReportToWorkspace(HandlerIO handler, File report) throws ProcessingStatusException {
         try {
-            backupService.backup(new FileInputStream(report), DataCategory.REPORT,
-                handler.getContainerName() + ".json");
+            handler.transferAtomicFileToWorkspace(REPORT_JSON, report);
 
-        } catch (IOException | BackupServiceException e) {
-            throw new ProcessingStatusException(StatusCode.FATAL, "Could not store elimination report", e);
+        } catch (ProcessingException e) {
+            throw new ProcessingStatusException(StatusCode.FATAL, "Could not store elimination report to workspace", e);
+        }
+    }
+
+    public void storeReportToOffers(String containerName) throws ProcessingStatusException {
+        try (StorageClient storageClient = storageClientFactory.getClient()) {
+            ObjectDescription description = new ObjectDescription();
+            description.setWorkspaceContainerGUID(containerName);
+            description.setWorkspaceObjectURI(WORKSPACE_REPORT_URI);
+            storageClient.storeFileFromWorkspace(VitamConfiguration.getDefaultStrategy(),
+                DataCategory.REPORT, containerName + JSON_EXTENSION, description);
+        } catch (StorageAlreadyExistsClientException | StorageNotFoundClientException | StorageServerClientException e) {
+            throw new ProcessingStatusException(StatusCode.FATAL, "Could not store report to offers", e);
         }
     }
 

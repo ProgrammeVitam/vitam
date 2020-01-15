@@ -159,11 +159,11 @@ public class BatchReportResource extends ApplicationStatusResource {
         }
     }
 
-    @Path("/store")
+    @Path("/storeToWorkspace")
     @POST
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
-    public Response storeReport(Report reportInfo) {
+    public Response storeReportToWorkspace(Report reportInfo) {
         int tenantId = VitamThreadUtils.getVitamSession().getTenantId();
 
         ParametersChecker.checkParameter("processId should be filed", reportInfo.getOperationSummary().getEvId());
@@ -173,11 +173,11 @@ public class BatchReportResource extends ApplicationStatusResource {
         }
 
         try {
-            batchReportServiceImpl.storeReport(reportInfo);
+            batchReportServiceImpl.storeReportToWorkspace(reportInfo);
             return Response.status(Response.Status.OK).build();
         } catch (InvalidParseOperationException | IllegalArgumentException e) {
             return Response.status(Response.Status.BAD_REQUEST).entity(e.getMessage()).build();
-        } catch (BackupServiceException | IOException e) {
+        } catch (ContentAddressableStorageServerException | IOException e) {
             return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(e.getMessage()).build();
         }
     }

@@ -65,7 +65,6 @@ public class TraceabilityService {
     private static final String SECURISATION_VERSION = "V1";
 
     private File zipFile = null;
-    private String uri = null;
 
     /**
      * @param timestampGenerator Service used to generate timestamp for the traceability
@@ -157,7 +156,7 @@ public class TraceabilityService {
             throw new TraceabilityException(e);
         }
 
-        helper.storeAndDeleteZip(tenantId, zipFile, fileName, uri, event);
+        helper.storeAndDeleteZip(tenantId, zipFile, fileName, event);
         helper.createLogbookOperationEvent(tenantId, helper.getStepName(), StatusCode.OK, event);
     }
 
@@ -165,7 +164,6 @@ public class TraceabilityService {
         final String fileName = String.format("%d_%s_%s.zip", tenantId, helper.getZipName(), date.format(formatter));
 
         zipFile = new File(tmpFolder, fileName);
-        uri = String.format("%s/%s", helper.getUriName(), fileName);
         return fileName;
     }
 

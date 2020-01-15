@@ -35,7 +35,6 @@
           "action": {
             "actionKey": "EVIDENCE_AUDIT_LIST_OBJECT",
             "behavior": "BLOCKING"
-
           }
         }
       ]
@@ -109,6 +108,23 @@
         {
           "action": {
             "actionKey": "EVIDENCE_AUDIT_PREPARE_GENERATE_REPORTS",
+            "behavior": "BLOCKING"
+          }
+        }
+      ]
+    },
+    {
+      "workerGroupId": "DefaultWorker",
+      "stepName": "STP_EVIDENCE_AUDIT_PREPARE_REPORT",
+      "behavior": "BLOCKING",
+      "distribution": {
+        "kind": "REF",
+        "element": "reports"
+      },
+      "actions": [
+        {
+          "action": {
+            "actionKey": "EVIDENCE_AUDIT_PREPARE_REPORT",
             "behavior": "BLOCKING"
           }
         }

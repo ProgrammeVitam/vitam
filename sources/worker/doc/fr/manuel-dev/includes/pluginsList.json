@@ -91,6 +91,10 @@
 		"className":"fr.gouv.vitam.worker.core.plugin.evidence.EvidenceAuditGenerateReports",
 		"propertiesFile":"evidence_audit_generate_reports.properties"
 	},
+	"EVIDENCE_AUDIT_PREPARE_REPORT":{
+		"className":"fr.gouv.vitam.worker.core.plugin.evidence.EvidenceAuditPrepareReport",
+		"propertiesFile":"evidence_audit_prepare_report.properties"
+	},
 	"EVIDENCE_AUDIT_FINALIZE":{
 		"className":"fr.gouv.vitam.worker.core.plugin.evidence.EvidenceAuditFinalize",
 		"propertiesFile":"evidence_audit_finalize.properties"
@@ -178,6 +182,10 @@
 		"className": "fr.gouv.vitam.worker.core.plugin.lfc_traceability.BuildUnitTraceabilityActionPlugin",
 		"propertiesFile": "unit_lfc_traceability_build_plugin.properties"
 	},
+	"GENERATE_UNIT_LFC_TRACEABILITY": {
+		"className": "fr.gouv.vitam.worker.core.plugin.lfc_traceability.GenerateUnitLifecycleTraceabilityActionPlugin",
+		"propertiesFile": "unit_lfc_traceability_generation_plugin.properties"
+	},
 	"FINALIZE_UNIT_LFC_TRACEABILITY": {
 		"className": "fr.gouv.vitam.worker.core.plugin.lfc_traceability.FinalizeUnitLifecycleTraceabilityActionPlugin",
 		"propertiesFile": "unit_lfc_traceability_finalization_plugin.properties"
@@ -189,6 +197,10 @@
 	"BUILD_OG_LFC_TRACEABILITY": {
 		"className": "fr.gouv.vitam.worker.core.plugin.lfc_traceability.BuildObjectGroupTraceabilityActionPlugin",
 		"propertiesFile": "object_group_lfc_traceability_build_plugin.properties"
+	},
+	"GENERATE_OG_LFC_TRACEABILITY": {
+		"className": "fr.gouv.vitam.worker.core.plugin.lfc_traceability.GenerateObjectGroupLifecycleTraceabilityActionPlugin",
+		"propertiesFile": "object_group_lfc_traceability_generation_plugin.properties"
 	},
 	"FINALIZE_OG_LFC_TRACEABILITY": {
 		"className": "fr.gouv.vitam.worker.core.plugin.lfc_traceability.FinalizeObjectGroupLifecycleTraceabilityActionPlugin",

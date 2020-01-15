@@ -30,14 +30,19 @@ import fr.gouv.vitam.batch.report.client.BatchReportClient;
 import fr.gouv.vitam.batch.report.client.BatchReportClientFactory;
 import fr.gouv.vitam.batch.report.model.PreservationReportModel;
 import fr.gouv.vitam.batch.report.model.PreservationStatus;
+import fr.gouv.vitam.batch.report.model.ReportType;
+import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.storage.engine.client.StorageClient;
 import fr.gouv.vitam.storage.engine.client.StorageClientFactory;
+import fr.gouv.vitam.storage.engine.common.model.DataCategory;
+import fr.gouv.vitam.storage.engine.common.model.request.ObjectDescription;
 import fr.gouv.vitam.workspace.client.WorkspaceClient;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
 import org.assertj.core.api.ThrowableAssert.ThrowingCallable;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
+import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnit;
 import org.mockito.junit.MockitoRule;
@@ -46,8 +51,13 @@ import java.util.ArrayList;
 import java.util.List;
 
 import static fr.gouv.vitam.common.model.administration.ActionTypePreservation.ANALYSE;
+import static fr.gouv.vitam.worker.core.plugin.preservation.service.PreservationReportService.JSONL_EXTENSION;
+import static fr.gouv.vitam.worker.core.plugin.preservation.service.PreservationReportService.WORKSPACE_REPORT_URI;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatCode;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
+import static org.mockito.Mockito.verify;
 
 public class PreservationReportServiceTest {
 
@@ -82,7 +92,7 @@ public class PreservationReportServiceTest {
         given(storageClientFactory.getClient()).willReturn(storageClient);
 
         preservationReportService =
-            new PreservationReportService(batchReportFactory, storageClientFactory);
+            new PreservationReportService(batchReportFactory, workspaceClientFactory, storageClientFactory);
     }
 
     @Test
@@ -106,11 +116,51 @@ public class PreservationReportServiceTest {
     }
 
     @Test
-    public void should_export_unit_does_not_throw_any_exception() {
+    public void should_check_report_existence_in_workspace_does_not_throw_any_exception() throws Exception {
+
         // Given / When
-        ThrowingCallable exportReport = () -> preservationReportService.exportReport(processId, "filename");
+        ThrowingCallable checkReportExistence = () -> preservationReportService.isReportWrittenInWorkspace(processId);
+
+        // Then
+        assertThatCode(checkReportExistence).doesNotThrowAnyException();
+        verify(workspaceClient).isExistingObject(processId, WORKSPACE_REPORT_URI);
+    }
+
+    @Test
+    public void should_export_unit_to_workspace_does_not_throw_any_exception() throws Exception {
+
+        // Given / When
+        ThrowingCallable exportReport = () -> preservationReportService.storeReportToWorkspace(processId, processId);
 
         // Then
         assertThatCode(exportReport).doesNotThrowAnyException();
+    }
+
+    @Test
+    public void should_store_file_to_offers() throws Exception {
+
+        // Given / When
+        ThrowingCallable exportReport = () -> preservationReportService.storeReportToOffers(processId);
+
+        // Then
+        assertThatCode(exportReport).doesNotThrowAnyException();
+        ArgumentCaptor<ObjectDescription> descriptionArgumentCaptor = ArgumentCaptor.forClass(ObjectDescription.class);
+        verify(storageClient)
+            .storeFileFromWorkspace(eq(VitamConfiguration.getDefaultStrategy()), eq(DataCategory.REPORT),
+                eq(processId + JSONL_EXTENSION), descriptionArgumentCaptor.capture());
+        assertThat(descriptionArgumentCaptor.getValue().getWorkspaceContainerGUID()).isEqualTo(processId);
+        assertThat(descriptionArgumentCaptor.getValue().getWorkspaceObjectURI()).isEqualTo(
+            WORKSPACE_REPORT_URI);
+    }
+
+    @Test
+    public void should_delete_does_not_throw_any_exception() throws Exception {
+
+        // Given / When
+        ThrowingCallable exportReport = () -> preservationReportService.cleanupReport(processId);
+
+        // Then
+        assertThatCode(exportReport).doesNotThrowAnyException();
+        verify(batchReportClient).cleanupReport(processId, ReportType.PRESERVATION);
     }
 }

@@ -41,8 +41,8 @@ import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 import fr.gouv.vitam.worker.common.HandlerIO;
+import fr.gouv.vitam.worker.core.exception.ProcessingStatusException;
 import fr.gouv.vitam.worker.core.handler.ActionHandler;
-import fr.gouv.vitam.worker.core.plugin.evidence.exception.EvidenceAuditException;
 import fr.gouv.vitam.worker.core.plugin.evidence.exception.EvidenceStatus;
 import fr.gouv.vitam.worker.core.plugin.evidence.report.EvidenceAuditParameters;
 import fr.gouv.vitam.worker.core.plugin.evidence.report.EvidenceAuditReportLine;
@@ -98,15 +98,17 @@ public class EvidenceAuditDatabaseCheck extends ActionHandler {
             handlerIO.transferFileToWorkspace(DATA + "/" + objectToAuditId,
                 newLocalFile, true, false);
 
-            if ( parameters.getEvidenceStatus().equals(EvidenceStatus.FATAL) ) {
+            if (parameters.getEvidenceStatus().equals(EvidenceStatus.FATAL)) {
                 itemStatus.increment(StatusCode.FATAL);
                 ObjectNode infoNode = JsonHandler.createObjectNode();
-                infoNode.put("Message", "Fatal Technical error "+ parameters.getAuditMessage());
+                infoNode.put("Message", "Fatal Technical error " + parameters.getAuditMessage());
                 itemStatus.setEvDetailData(unprettyPrint(infoNode));
                 evidenceAuditReportService.cleanupReport(param.getContainerName());
-                return new ItemStatus(EVIDENCE_AUDIT_CHECK_DATABASE).setItemsStatus(EVIDENCE_AUDIT_CHECK_DATABASE, itemStatus);
+                return new ItemStatus(EVIDENCE_AUDIT_CHECK_DATABASE)
+                    .setItemsStatus(EVIDENCE_AUDIT_CHECK_DATABASE, itemStatus);
             }
-            if (parameters.getEvidenceStatus().equals(EvidenceStatus.KO) || parameters.getEvidenceStatus().equals(EvidenceStatus.WARN)) {
+            if (parameters.getEvidenceStatus().equals(EvidenceStatus.KO) ||
+                parameters.getEvidenceStatus().equals(EvidenceStatus.WARN)) {
 
                 EvidenceAuditReportLine evidenceAuditReportLine = null;
                 evidenceAuditReportLine = new EvidenceAuditReportLine(objectToAuditId);
@@ -116,25 +118,31 @@ public class EvidenceAuditDatabaseCheck extends ActionHandler {
                 JsonHandler.writeAsFile(evidenceAuditReportLine, file);
                 handlerIO.transferFileToWorkspace(REPORTS + "/" + objectToAuditId + ".report.json",
                     file, true, false);
-                if(!param.getWorkflowIdentifier().equals("RECTIFICATION_AUDIT"))
-                addReportEntry(param.getContainerName(),
-                    createEvidenceReportEntry(parameters, evidenceAuditReportLine));
+                if (!param.getWorkflowIdentifier().equals("RECTIFICATION_AUDIT"))
+                    addReportEntry(param.getContainerName(),
+                        createEvidenceReportEntry(parameters, evidenceAuditReportLine));
             }
 
+            itemStatus.increment(StatusCode.OK);
+            return new ItemStatus(EVIDENCE_AUDIT_CHECK_DATABASE)
+                .setItemsStatus(EVIDENCE_AUDIT_CHECK_DATABASE, itemStatus);
 
         } catch (VitamException | IOException e) {
             LOGGER.error(e);
             itemStatus.increment(StatusCode.FATAL);
-            return new ItemStatus(EVIDENCE_AUDIT_CHECK_DATABASE).setItemsStatus(EVIDENCE_AUDIT_CHECK_DATABASE, itemStatus);
+            return new ItemStatus(EVIDENCE_AUDIT_CHECK_DATABASE)
+                .setItemsStatus(EVIDENCE_AUDIT_CHECK_DATABASE, itemStatus);
+        } catch (ProcessingStatusException e) {
+            LOGGER.error(e);
+            itemStatus.increment(e.getStatusCode());
+            return new ItemStatus(EVIDENCE_AUDIT_CHECK_DATABASE)
+                .setItemsStatus(EVIDENCE_AUDIT_CHECK_DATABASE, itemStatus);
         }
-
-        itemStatus.increment(StatusCode.OK);
-        return new ItemStatus(EVIDENCE_AUDIT_CHECK_DATABASE).setItemsStatus(EVIDENCE_AUDIT_CHECK_DATABASE, itemStatus);
     }
 
     private void addReportEntry(String processId, EvidenceAuditReportEntry entry)
-        throws EvidenceAuditException {
-        evidenceAuditReportService.appendEvidenceAuditEntries(processId, Arrays.asList(entry));
+        throws ProcessingStatusException {
+        evidenceAuditReportService.appendEntries(processId, Arrays.asList(entry));
     }
 
     private EvidenceAuditReportEntry createEvidenceReportEntry(EvidenceAuditParameters parameters,
