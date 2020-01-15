@@ -1,3 +1,14 @@
 tenants:  [ "{{ vitam_tenant_ids | join('", "') }}" ]
 nbDay: 1
-timesEachDay: 24
+{% for timer in vitam_timers.logbook %}
+{% if timer.name == 'vitam-traceability-audit' %}
+{% if timer.frequency.split("/")[1] is defined %}
+# computed number
+timesEachDay: {{ ((24 / timer.frequency.split("/")[1].split(":")[0]|int)|int) |default('1') }}
+{% else%}
+# No calculation, default behavior
+timesEachDay: 1
+{% endif %}
+{% endif %}
+{% endfor %}
+
