@@ -26,6 +26,7 @@
  *******************************************************************************/
 package fr.gouv.vitam.worker.core.plugin.lfc_traceability;
 
+import fr.gouv.vitam.common.collection.CloseableIterator;
 import fr.gouv.vitam.common.database.builder.query.Query;
 import fr.gouv.vitam.common.database.builder.query.QueryHelper;
 import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
@@ -41,7 +42,7 @@ import fr.gouv.vitam.logbook.common.server.database.collections.LogbookDocument;
 import fr.gouv.vitam.logbook.common.server.database.collections.LogbookMongoDbName;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClient;
 import fr.gouv.vitam.worker.common.HandlerIO;
-import fr.gouv.vitam.worker.core.distribution.JsonLineIterator;
+import fr.gouv.vitam.worker.core.distribution.JsonLineModel;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
 
 import java.io.IOException;
@@ -55,7 +56,7 @@ public class LogbookObjectGroupLifeCycleTraceabilityHelper extends LogbookLifeCy
 
     private static final String ZIP_NAME = "LogbookObjectGroupLifecycles";
 
-    private final JsonLineIterator traceabilityDataIterator;
+    private final CloseableIterator<JsonLineModel> traceabilityDataIterator;
 
     /**
      * @param handlerIO Workflow Input/Output of the traceability event
@@ -63,12 +64,16 @@ public class LogbookObjectGroupLifeCycleTraceabilityHelper extends LogbookLifeCy
      * @param itemStatus used by workflow, event must be updated here
      * @param operationID of the current traceability process
      * @param traceabilityDataIterator
+     * @param traceabilityEventFileName
+     * @param traceabilityZipFileName
      */
     public LogbookObjectGroupLifeCycleTraceabilityHelper(HandlerIO handlerIO,
         LogbookOperationsClient logbookOperationsClient, ItemStatus itemStatus, String operationID,
         WorkspaceClientFactory workspaceClientFactory,
-        JsonLineIterator traceabilityDataIterator) {
-        super(handlerIO, logbookOperationsClient, itemStatus, operationID, workspaceClientFactory);
+        CloseableIterator<JsonLineModel> traceabilityDataIterator, String traceabilityEventFileName,
+        String traceabilityZipFileName) {
+        super(handlerIO, logbookOperationsClient, itemStatus, operationID, traceabilityEventFileName,
+            traceabilityZipFileName);
 
         this.traceabilityDataIterator = traceabilityDataIterator;
     }

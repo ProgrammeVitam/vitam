@@ -32,8 +32,11 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.nio.channels.FileChannel;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
+import java.nio.file.StandardOpenOption;
 
 import javax.xml.stream.XMLStreamException;
 
@@ -237,4 +240,10 @@ public final class FileUtil {
         return (new File(pathname)).getCanonicalPath();
     }
 
+    public static void fsyncFile(Path path) throws IOException {
+        try (FileChannel fileChannel =
+            FileChannel.open(path, StandardOpenOption.WRITE)) {
+            fileChannel.force(true);
+        }
+    }
 }

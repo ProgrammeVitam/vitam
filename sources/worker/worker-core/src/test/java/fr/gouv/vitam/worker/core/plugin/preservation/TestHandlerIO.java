@@ -116,7 +116,7 @@ public class TestHandlerIO implements HandlerIO {
 
     @Override
     public String getContainerName() {
-        throw new RuntimeException("Not implemented");
+        return "DEFAULT_CONTAINER_NAME";
     }
 
     @Override
@@ -145,8 +145,18 @@ public class TestHandlerIO implements HandlerIO {
     }
 
     @Override
+    public boolean isExistingFileInWorkspace(String objectName) {
+        return inputStreamMap.containsKey(objectName) || this.transferedFileToWorkspaceMap.containsKey(objectName);
+    }
+
+    @Override
     public void transferFileToWorkspace(String workspacePath, File sourceFile, boolean toDelete, boolean asyncIO)
         throws ProcessingException {
+        this.transferedFileToWorkspaceMap.put(workspacePath, sourceFile);
+    }
+
+    @Override
+    public void transferAtomicFileToWorkspace(String workspacePath, File sourceFile) {
         this.transferedFileToWorkspaceMap.put(workspacePath, sourceFile);
     }
 

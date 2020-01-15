@@ -32,9 +32,20 @@ import fr.gouv.vitam.batch.report.client.BatchReportClientFactory;
 import fr.gouv.vitam.batch.report.model.Report;
 import fr.gouv.vitam.batch.report.model.ReportBody;
 import fr.gouv.vitam.batch.report.model.entry.EvidenceAuditReportEntry;
+import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.exception.VitamClientInternalException;
-import fr.gouv.vitam.worker.core.plugin.evidence.exception.EvidenceAuditException;
-import fr.gouv.vitam.worker.core.plugin.evidence.exception.EvidenceStatus;
+import fr.gouv.vitam.common.model.StatusCode;
+import fr.gouv.vitam.storage.engine.client.StorageClient;
+import fr.gouv.vitam.storage.engine.client.StorageClientFactory;
+import fr.gouv.vitam.storage.engine.client.exception.StorageAlreadyExistsClientException;
+import fr.gouv.vitam.storage.engine.client.exception.StorageNotFoundClientException;
+import fr.gouv.vitam.storage.engine.client.exception.StorageServerClientException;
+import fr.gouv.vitam.storage.engine.common.model.DataCategory;
+import fr.gouv.vitam.storage.engine.common.model.request.ObjectDescription;
+import fr.gouv.vitam.worker.core.exception.ProcessingStatusException;
+import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
+import fr.gouv.vitam.workspace.client.WorkspaceClient;
+import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
 
 import java.util.List;
 
@@ -45,40 +56,72 @@ import static fr.gouv.vitam.batch.report.model.ReportType.EVIDENCE_AUDIT;
  */
 public class EvidenceAuditReportService {
 
+    public static final String JSONL_EXTENSION = ".jsonl";
+    public static final String WORKSPACE_REPORT_URI = "report.jsonl";
+
     private final BatchReportClientFactory batchReportClientFactory;
+    private final WorkspaceClientFactory workspaceClientFactory;
+    private final StorageClientFactory storageClientFactory;
 
     public EvidenceAuditReportService() {
-        this(BatchReportClientFactory.getInstance());
+        this(BatchReportClientFactory.getInstance(),
+            WorkspaceClientFactory.getInstance(),
+            StorageClientFactory.getInstance());
     }
 
     @VisibleForTesting
-    public EvidenceAuditReportService(BatchReportClientFactory reportFactory) {
+    public EvidenceAuditReportService(BatchReportClientFactory reportFactory,
+        WorkspaceClientFactory workspaceClientFactory,
+        StorageClientFactory storageClientFactory) {
         this.batchReportClientFactory = reportFactory;
+        this.workspaceClientFactory = workspaceClientFactory;
+        this.storageClientFactory = storageClientFactory;
     }
 
-    public void appendEvidenceAuditEntries(String processId, List<EvidenceAuditReportEntry> auditEntries)
-        throws EvidenceAuditException {
+    public void appendEntries(String processId, List<EvidenceAuditReportEntry> auditEntries)
+        throws ProcessingStatusException {
         try (BatchReportClient batchReportClient = batchReportClientFactory.getClient()) {
-            ReportBody<EvidenceAuditReportEntry> reportBody = new ReportBody<EvidenceAuditReportEntry>(processId,
+            ReportBody<EvidenceAuditReportEntry> reportBody = new ReportBody<>(processId,
                 EVIDENCE_AUDIT, auditEntries);
             batchReportClient.appendReportEntries(reportBody);
         } catch (VitamClientInternalException e) {
-            throw new EvidenceAuditException(EvidenceStatus.FATAL, "Could not append entries into report", e);
-        }
-    }
-    public void storeReport(Report reportInfo) throws EvidenceAuditException {
-        try (BatchReportClient batchReportClient = batchReportClientFactory.getClient()) {
-            batchReportClient.storeReport(reportInfo);
-        } catch (VitamClientInternalException e) {
-            throw new EvidenceAuditException(EvidenceStatus.FATAL, "Could not store report", e);
-        }
-    }
-    public void cleanupReport(String processId) throws EvidenceAuditException {
-        try (BatchReportClient batchReportClient = batchReportClientFactory.getClient()) {
-            batchReportClient.cleanupReport(processId, EVIDENCE_AUDIT);
-        } catch (VitamClientInternalException e) {
-            throw new EvidenceAuditException(EvidenceStatus.FATAL, "Could not store evidence audit report", e);
+            throw new ProcessingStatusException(StatusCode.FATAL, "Could not append entries into report", e);
         }
     }
 
+    public boolean isReportWrittenInWorkspace(String processId) throws ProcessingStatusException {
+        try (WorkspaceClient workspaceClient = workspaceClientFactory.getClient()) {
+            return workspaceClient.isExistingObject(processId, WORKSPACE_REPORT_URI);
+        } catch (ContentAddressableStorageServerException e) {
+            throw new ProcessingStatusException(StatusCode.FATAL, "Could not check report existence in workspace", e);
+        }
+    }
+
+    public void storeReportToWorkspace(Report reportInfo) throws ProcessingStatusException {
+        try (BatchReportClient batchReportClient = batchReportClientFactory.getClient()) {
+            batchReportClient.storeReportToWorkspace(reportInfo);
+        } catch (VitamClientInternalException e) {
+            throw new ProcessingStatusException(StatusCode.FATAL, "Could not store report", e);
+        }
+    }
+
+    public void storeReportToOffers(String containerName) throws ProcessingStatusException {
+        try (StorageClient storageClient = storageClientFactory.getClient()) {
+            ObjectDescription description = new ObjectDescription();
+            description.setWorkspaceContainerGUID(containerName);
+            description.setWorkspaceObjectURI(WORKSPACE_REPORT_URI);
+            storageClient.storeFileFromWorkspace(VitamConfiguration.getDefaultStrategy(),
+                DataCategory.REPORT, containerName + JSONL_EXTENSION, description);
+        } catch (StorageAlreadyExistsClientException | StorageNotFoundClientException | StorageServerClientException e) {
+            throw new ProcessingStatusException(StatusCode.FATAL, "Could not store report to offers", e);
+        }
+    }
+
+    public void cleanupReport(String containerName) throws ProcessingStatusException {
+        try (BatchReportClient batchReportClient = batchReportClientFactory.getClient()) {
+            batchReportClient.cleanupReport(containerName, EVIDENCE_AUDIT);
+        } catch (VitamClientInternalException e) {
+            throw new ProcessingStatusException(StatusCode.FATAL, "Could not cleanup report", e);
+        }
+    }
 }

@@ -27,72 +27,51 @@
 
 package fr.gouv.vitam.worker.core.plugin.lfc_traceability;
 
-import com.fasterxml.jackson.databind.JsonNode;
 import fr.gouv.vitam.common.PropertiesUtils;
-import fr.gouv.vitam.common.SystemPropertyUtil;
-import fr.gouv.vitam.common.exception.InvalidParseOperationException;
+import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.guid.GUID;
 import fr.gouv.vitam.common.guid.GUIDFactory;
-import fr.gouv.vitam.common.json.BsonHelper;
 import fr.gouv.vitam.common.json.JsonHandler;
-import fr.gouv.vitam.common.model.DatabaseCursor;
 import fr.gouv.vitam.common.model.ItemStatus;
-import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.StatusCode;
-import fr.gouv.vitam.common.model.processing.IOParameter;
-import fr.gouv.vitam.common.model.processing.ProcessingUri;
-import fr.gouv.vitam.common.model.processing.UriPrefix;
-import fr.gouv.vitam.common.stream.StreamUtils;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
 import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
-import fr.gouv.vitam.common.thread.VitamThreadUtils;
-import fr.gouv.vitam.logbook.common.exception.LogbookClientException;
-import fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess;
-import fr.gouv.vitam.logbook.common.server.database.collections.LogbookOperation;
-import fr.gouv.vitam.logbook.lifecycles.client.LogbookLifeCyclesClient;
+import fr.gouv.vitam.logbook.common.parameters.LogbookParameterName;
 import fr.gouv.vitam.logbook.lifecycles.client.LogbookLifeCyclesClientFactory;
-import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClient;
-import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClientFactory;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
-import fr.gouv.vitam.processing.common.parameter.WorkerParametersFactory;
+import fr.gouv.vitam.storage.engine.client.StorageClient;
+import fr.gouv.vitam.storage.engine.client.StorageClientFactory;
+import fr.gouv.vitam.storage.engine.common.model.DataCategory;
+import fr.gouv.vitam.storage.engine.common.model.request.ObjectDescription;
 import fr.gouv.vitam.worker.core.impl.HandlerIOImpl;
-import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
 import fr.gouv.vitam.workspace.client.WorkspaceClient;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
 import net.javacrumbs.jsonunit.JsonAssert;
 import org.assertj.core.util.Lists;
-import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
-import org.mockito.ArgumentMatchers;
+import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
-import org.mockito.Mockito;
 import org.mockito.junit.MockitoJUnit;
 import org.mockito.junit.MockitoRule;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.List;
+import javax.ws.rs.core.Response;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.fail;
-import static org.mockito.AdditionalMatchers.and;
+import static fr.gouv.vitam.worker.core.plugin.lfc_traceability.FinalizeLifecycleTraceabilityActionPlugin.TRACEABILITY_EVENT_FILE_NAME;
+import static fr.gouv.vitam.worker.core.plugin.lfc_traceability.FinalizeLifecycleTraceabilityActionPlugin.TRACEABILITY_ZIP_FILE_NAME;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.Mockito.doAnswer;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 public class FinalizeUnitLifecycleTraceabilityActionPluginTest {
-
-    private GUID guid = GUIDFactory.newGUID();
 
     @Rule
     public RunWithCustomExecutorRule runInThread =
@@ -101,19 +80,6 @@ public class FinalizeUnitLifecycleTraceabilityActionPluginTest {
     public TemporaryFolder folder = new TemporaryFolder();
 
     private HandlerIOImpl handlerIO;
-    private static final Integer TENANT_ID = 0;
-
-    private static final String LAST_OPERATION = "FinalizeUnitLifecycleTraceabilityActionPlugin/lastOperation.json";
-    private static final String LAST_OPERATION_EMPTY =
-        "FinalizeUnitLifecycleTraceabilityActionPlugin/lastOperationEmpty.json";
-    private static final String TRACEABILITY_INFO =
-        "FinalizeUnitLifecycleTraceabilityActionPlugin/traceabilityInformation.json";
-    private static final String TRACEABILITY_DATA =
-        "FinalizeUnitLifecycleTraceabilityActionPlugin/traceabilityData.jsonl";
-    private static final String TRACEABILITY_DATA_EMPTY =
-        "FinalizeUnitLifecycleTraceabilityActionPlugin/traceabilityData_Empty.jsonl";
-    private static final String TRACEABILITY_STATS =
-        "FinalizeUnitLifecycleTraceabilityActionPlugin/traceabilityStats.json";
 
     @Rule
     public MockitoRule mockitoRule = MockitoJUnit.rule();
@@ -125,40 +91,22 @@ public class FinalizeUnitLifecycleTraceabilityActionPluginTest {
     private WorkspaceClientFactory workspaceClientFactory;
 
     @Mock
+    private StorageClientFactory storageClientFactory;
+
+    @Mock
+    private StorageClient storageClient;
+
+    @Mock
+    private WorkerParameters params;
+
+    @Mock
     private LogbookLifeCyclesClientFactory logbookLifeCyclesClientFactory;
-
-    @Mock
-    private LogbookLifeCyclesClient logbookLifeCyclesClient;
-
-    @Mock
-    private LogbookOperationsClientFactory logbookOperationsClientFactory;
-    @Mock
-    private LogbookOperationsClient logbookOperationsClient;
-
-
-    private final WorkerParameters params =
-        WorkerParametersFactory.newWorkerParameters().setUrlWorkspace("http://localhost:8083")
-            .setUrlMetadata("http://localhost:8083").setProcessId(guid.getId())
-            .setObjectName("objectName.json").setCurrentStep("currentStep")
-            .setContainerName(guid.getId()).setLogbookTypeProcess(LogbookTypeProcess.TRACEABILITY);
-
-    private List<IOParameter> in;
-
-    public FinalizeUnitLifecycleTraceabilityActionPluginTest() {
-        // do nothing
-    }
 
     @Before
     public void setUp() throws Exception {
 
-        File tempFolder = folder.newFolder();
-        System.setProperty("vitam.tmp.folder", tempFolder.getAbsolutePath());
-        SystemPropertyUtil.refresh();
-
-
         when(workspaceClientFactory.getClient()).thenReturn(workspaceClient);
-        when(logbookOperationsClientFactory.getClient()).thenReturn(logbookOperationsClient);
-        when(logbookLifeCyclesClientFactory.getClient()).thenReturn(logbookLifeCyclesClient);
+        when(storageClientFactory.getClient()).thenReturn(storageClient);
 
         String objectId = "objectId";
         handlerIO =
@@ -166,132 +114,51 @@ public class FinalizeUnitLifecycleTraceabilityActionPluginTest {
                 "FinalizeUnitLifecycleTraceabilityActionPluginTest", "workerId",
                 Lists.newArrayList(objectId));
         handlerIO.setCurrentObjectId(objectId);
-
-        in = new ArrayList<>();
-        in.add(new IOParameter()
-            .setUri(new ProcessingUri(UriPrefix.MEMORY, "lastOperation.json")));
-        in.add(new IOParameter()
-            .setUri(new ProcessingUri(UriPrefix.MEMORY, "traceabilityInformation.json")));
-        in.add(new IOParameter()
-            .setUri(new ProcessingUri(UriPrefix.MEMORY, "traceabilityData.json")));
-        in.add(new IOParameter()
-            .setUri(new ProcessingUri(UriPrefix.MEMORY, "traceabilityStats.json")));
-    }
-
-    @After
-    public void clean() {
-        handlerIO.partialClose();
     }
 
     @Test
     @RunWithCustomExecutor
-    public void givenLogbookNotFoundWhenExecuteThenReturnResponseFATAL() throws Exception {
-        handlerIO.addOutIOParameters(in);
-        handlerIO.addOutputResult(0, PropertiesUtils.getResourceFile(LAST_OPERATION), false);
-        handlerIO.addOutputResult(1, PropertiesUtils.getResourceFile(TRACEABILITY_INFO), false);
-        handlerIO.addOutputResult(2, PropertiesUtils.getResourceFile(TRACEABILITY_DATA), false);
-        handlerIO.addOutputResult(3, PropertiesUtils.getResourceFile(TRACEABILITY_STATS), false);
-        handlerIO.addInIOParameters(in);
-        when(logbookOperationsClient.selectOperation(any()))
-            .thenThrow(new LogbookClientException("LogbookClientException"));
+    public void givenTraceabilityZipInWorkspaceThenCopyFileToOffers() throws Exception {
 
-        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
+        // Given
+        doReturn(false).when(workspaceClient).isExistingObject(anyString(), eq(TRACEABILITY_EVENT_FILE_NAME));
 
-        FinalizeUnitLifecycleTraceabilityActionPlugin plugin = new FinalizeUnitLifecycleTraceabilityActionPlugin(
-            logbookOperationsClientFactory, workspaceClientFactory);
-        final ItemStatus response = plugin.execute(params, handlerIO);
-        assertEquals(StatusCode.FATAL, response.getGlobalStatus());
+        FinalizeUnitLifecycleTraceabilityActionPlugin instance =
+            new FinalizeUnitLifecycleTraceabilityActionPlugin(storageClientFactory);
+
+        // When
+        ItemStatus itemStatus = instance.execute(params, handlerIO);
+
+        // Then
+        assertThat(itemStatus.getGlobalStatus()).isEqualTo(StatusCode.OK);
+        verify(storageClient, never()).storeFileFromWorkspace(anyString(), any(), anyString(), any());
     }
 
     @Test
     @RunWithCustomExecutor
-    public void givenNoLifecycleWhenExecuteThenReturnResponseOKWithNoZipCreated() throws Exception {
-        handlerIO.addOutIOParameters(in);
-        handlerIO.addOutputResult(0, PropertiesUtils.getResourceFile(LAST_OPERATION_EMPTY), false);
-        handlerIO.addOutputResult(1, PropertiesUtils.getResourceFile(TRACEABILITY_INFO), false);
-        handlerIO.addOutputResult(2, PropertiesUtils.getResourceFile(TRACEABILITY_DATA_EMPTY), false);
-        handlerIO.addOutputResult(3, PropertiesUtils.getResourceFile(TRACEABILITY_STATS), false);
-        handlerIO.addInIOParameters(in);
-        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
+    public void givenNoTraceabilityZipInWorkspaceThenNothingToDo() throws Exception {
 
-        Mockito.doNothing().when(workspaceClient).createContainer(any());
+        // Given
+        doReturn(true).when(workspaceClient).isExistingObject(anyString(), eq(TRACEABILITY_EVENT_FILE_NAME));
+        doReturn(Response.status(Response.Status.OK).entity(
+            PropertiesUtils.getResourceAsStream("FinalizeUnitLifecycleTraceabilityActionPlugin/traceabilityEvent.json")
+        ).build()).when(workspaceClient).getObject(any(), eq(TRACEABILITY_EVENT_FILE_NAME));
 
-        Mockito.doReturn(JsonHandler.createObjectNode()).when(logbookOperationsClient).selectOperation(any());
+        FinalizeUnitLifecycleTraceabilityActionPlugin instance =
+            new FinalizeUnitLifecycleTraceabilityActionPlugin(storageClientFactory);
 
-        saveWorkspacePutObject("LogbookUnitLifecycles", ".zip");
+        // When
+        ItemStatus itemStatus = instance.execute(params, handlerIO);
 
-        FinalizeUnitLifecycleTraceabilityActionPlugin plugin = new FinalizeUnitLifecycleTraceabilityActionPlugin(
-            logbookOperationsClientFactory, workspaceClientFactory);
-        final ItemStatus response = plugin.execute(params, handlerIO);
-        assertEquals(StatusCode.OK, response.getGlobalStatus());
-        try {
-            getSavedWorkspaceObject("LogbookUnitLifecycles", ".zip");
-            fail("Should throw an exception");
-        } catch (FileNotFoundException e) {
-            // do nothing
-        }
+        // Then
+        assertThat(itemStatus.getGlobalStatus()).isEqualTo(StatusCode.OK);
+        assertThat(itemStatus.getMasterData()).containsOnlyKeys(LogbookParameterName.eventDetailData.name());
+        JsonAssert.assertJsonEquals(
+             JsonHandler.getFromString((String)itemStatus.getMasterData().get(LogbookParameterName.eventDetailData.name())),
+            JsonHandler.getFromInputStream(PropertiesUtils.getResourceAsStream("FinalizeUnitLifecycleTraceabilityActionPlugin/traceabilityEvent.json"))
+        );
+        ArgumentCaptor<ObjectDescription> objectDescriptionArgumentCaptor = ArgumentCaptor.forClass(ObjectDescription.class);
+        verify(storageClient).storeFileFromWorkspace(eq(VitamConfiguration.getDefaultStrategy()), eq(DataCategory.LOGBOOK), eq("0_LogbookUnitLifecycles_20191218_051956.zip"), objectDescriptionArgumentCaptor.capture());
+        assertThat(objectDescriptionArgumentCaptor.getValue().getWorkspaceObjectURI()).isEqualTo(TRACEABILITY_ZIP_FILE_NAME);
     }
-
-    @Test
-    @RunWithCustomExecutor
-    public void givenNothingSpecialWhenExecuteThenReturnResponseOK() throws Exception {
-        handlerIO.addOutIOParameters(in);
-        handlerIO.addOutputResult(0, PropertiesUtils.getResourceFile(LAST_OPERATION), false);
-        handlerIO.addOutputResult(1, PropertiesUtils.getResourceFile(TRACEABILITY_INFO), false);
-        handlerIO.addOutputResult(2, PropertiesUtils.getResourceFile(TRACEABILITY_DATA), false);
-        handlerIO.addOutputResult(3, PropertiesUtils.getResourceFile(TRACEABILITY_STATS), false);
-        handlerIO.addInIOParameters(in);
-        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
-
-        Mockito.doNothing().when(workspaceClient).createContainer(any());
-
-        Mockito.doReturn(getLogbookOperation()).when(logbookOperationsClient).selectOperation(any());
-
-        saveWorkspacePutObject("LogbookUnitLifecycles", ".zip");
-
-        FinalizeUnitLifecycleTraceabilityActionPlugin plugin = new FinalizeUnitLifecycleTraceabilityActionPlugin(
-            logbookOperationsClientFactory, workspaceClientFactory);
-        final ItemStatus response = plugin.execute(params, handlerIO);
-        assertEquals(StatusCode.OK, response.getGlobalStatus());
-        InputStream stream = getSavedWorkspaceObject("LogbookUnitLifecycles", ".zip");
-        assertNotNull(stream);
-
-        JsonNode evDetData = JsonHandler.getFromString(response.getEvDetailData());
-        JsonAssert.assertJsonEquals(evDetData.get("Statistics"),
-            JsonHandler.getFromFile(PropertiesUtils.getResourceFile(TRACEABILITY_STATS)));
-        assertNotNull(evDetData);
-    }
-
-    private static JsonNode getLogbookOperation()
-        throws IOException, InvalidParseOperationException {
-        final RequestResponseOK response = new RequestResponseOK().setHits(new DatabaseCursor(1, 0, 1));
-        final LogbookOperation lop =
-            new LogbookOperation(StreamUtils.toString(PropertiesUtils.getResourceAsStream(LAST_OPERATION)));
-        response.addResult(JsonHandler.getFromString(BsonHelper.stringify(lop)));
-        return JsonHandler.toJsonNode(response);
-    }
-
-    private void saveWorkspacePutObject(String filenameContains, String extension)
-        throws ContentAddressableStorageServerException {
-        doAnswer(invocation -> {
-            InputStream inputStream = invocation.getArgument(2);
-            java.nio.file.Path file =
-                java.nio.file.Paths
-                    .get(System.getProperty("vitam.tmp.folder") + "/" + handlerIO.getContainerName() + "_" +
-                        handlerIO.getWorkerId() + "/" + filenameContains.replaceAll("/", "_") + extension);
-            java.nio.file.Files.copy(inputStream, file);
-            return null;
-        }).when(workspaceClient).putObject(anyString(),
-            and(ArgumentMatchers.endsWith(extension), ArgumentMatchers.contains(filenameContains)),
-            ArgumentMatchers.any(InputStream.class));
-    }
-
-    private InputStream getSavedWorkspaceObject(String filename, String extension)
-        throws FileNotFoundException {
-        File objectNameFile =
-            new File(System.getProperty("vitam.tmp.folder") + "/" + handlerIO.getContainerName() + "_" +
-                handlerIO.getWorkerId() + "/" + filename.replaceAll("/", "_") + extension);
-        return new FileInputStream(objectNameFile);
-    }
-
 }

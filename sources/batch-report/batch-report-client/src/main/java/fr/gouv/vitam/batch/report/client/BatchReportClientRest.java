@@ -48,7 +48,7 @@ import javax.ws.rs.core.Response;
 public class BatchReportClientRest extends DefaultClient implements BatchReportClient {
 
     private static final String APPEND = "append";
-    private static final String STORE = "store";
+    private static final String STORE_TO_WORKSPACE = "storeToWorkspace";
     private static final String CLEANUP = "cleanup";
     private static final String EXPORT_ELIMINATION_ACTION_UNIT = "elimination_action_unit/unit_export/";
     private static final String EXPORT_PRESERVATION_REPORT = "/preservation/export/";
@@ -119,10 +119,10 @@ public class BatchReportClientRest extends DefaultClient implements BatchReportC
     }
 
     @Override
-    public void storeReport(Report reportEntry) throws VitamClientInternalException {
+    public void storeReportToWorkspace(Report reportEntry) throws VitamClientInternalException {
         ParametersChecker.checkParameter("Body should be filled", reportEntry);
 
-        httpPost(STORE, reportEntry);
+        httpPost(STORE_TO_WORKSPACE, reportEntry);
     }
 
     @Override

@@ -1,4 +1,4 @@
-/*******************************************************************************
+/*
  * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2019)
  *
  * contact.vitam@culture.gouv.fr
@@ -23,10 +23,11 @@
  *
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
- *******************************************************************************/
+ */
 package fr.gouv.vitam.worker.core.plugin.evidence;
 
 import com.google.common.annotations.VisibleForTesting;
+import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.model.ItemStatus;
@@ -40,10 +41,10 @@ import fr.gouv.vitam.worker.common.HandlerIO;
 import fr.gouv.vitam.worker.core.handler.ActionHandler;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
+import org.apache.commons.io.FileUtils;
 
 import java.io.BufferedOutputStream;
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.net.URI;
@@ -62,7 +63,8 @@ public class DataCorrectionFinalize extends ActionHandler {
     BackupService backupService = new BackupService();
 
 
-    @VisibleForTesting DataCorrectionFinalize(BackupService backupService) {
+    @VisibleForTesting
+    DataCorrectionFinalize(BackupService backupService) {
         this.backupService = backupService;
     }
 
@@ -75,8 +77,31 @@ public class DataCorrectionFinalize extends ActionHandler {
 
         try {
 
+            String reportFileName = handlerIO.getContainerName() + ".json";
 
-            File reportFile = handlerIO.getNewLocalFile("report.json");
+            generateReportToWorkspace(param, handlerIO, reportFileName);
+
+            saveToOffers(handlerIO, reportFileName);
+
+        } catch (ContentAddressableStorageNotFoundException | IOException | InvalidParseOperationException | BackupServiceException e) {
+            throw new ProcessingException(e);
+
+        }
+
+        itemStatus.increment(StatusCode.OK);
+        return new ItemStatus(CORRECTION_FINALIZE).setItemsStatus(CORRECTION_FINALIZE, itemStatus);
+    }
+
+    private void generateReportToWorkspace(WorkerParameters param, HandlerIO handlerIO, String reportFileName)
+        throws ProcessingException, IOException, ContentAddressableStorageNotFoundException,
+        ContentAddressableStorageServerException, InvalidParseOperationException {
+
+        if (handlerIO.isExistingFileInWorkspace(reportFileName)) {
+            // Report already generated
+            return;
+        }
+        File reportFile = handlerIO.getNewLocalFile(reportFileName);
+        try {
             List<URI> uriListObjectsWorkspace =
                 handlerIO.getUriList(handlerIO.getContainerName(), param.getObjectName());
 
@@ -92,23 +117,16 @@ public class DataCorrectionFinalize extends ActionHandler {
 
                     buffOut.write(unprettyPrint(reportLine).getBytes());
                     buffOut.write(System.lineSeparator().getBytes());
-                    buffOut.flush();
                 }
-
-                backupService
-                    .backup(new FileInputStream(reportFile), DataCategory.REPORT,
-                        handlerIO.getContainerName() + ".json");
             }
-
-        } catch (ContentAddressableStorageNotFoundException | IOException | InvalidParseOperationException | BackupServiceException e) {
-            throw new ProcessingException(e);
-
+            handlerIO.transferAtomicFileToWorkspace(reportFileName, reportFile);
+        } finally {
+            FileUtils.deleteQuietly(reportFile);
         }
-
-        itemStatus.increment(StatusCode.OK);
-        return new ItemStatus(CORRECTION_FINALIZE).setItemsStatus(CORRECTION_FINALIZE, itemStatus);
     }
 
-
-
+    private void saveToOffers(HandlerIO handlerIO, String reportFileName) throws BackupServiceException {
+        backupService.storeIntoOffers(handlerIO.getContainerName(), reportFileName, DataCategory.REPORT,
+            reportFileName, VitamConfiguration.getDefaultStrategy());
+    }
 }

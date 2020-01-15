@@ -177,6 +177,9 @@ public interface WorkspaceContentAddressableStorage {
     void putObject(String containerName, String objectName, InputStream stream) throws
         ContentAddressableStorageException;
 
+    void putAtomicObject(String containerName, String objectName, InputStream stream, long size)
+    throws ContentAddressableStorageException;
+
     /**
      * Retrieves an object representing the data at location
      * containerName/objectName

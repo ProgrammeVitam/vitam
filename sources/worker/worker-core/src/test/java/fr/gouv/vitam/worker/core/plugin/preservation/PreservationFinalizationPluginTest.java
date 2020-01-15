@@ -26,17 +26,13 @@
  */
 package fr.gouv.vitam.worker.core.plugin.preservation;
 
-import fr.gouv.vitam.batch.report.client.BatchReportClient;
-import fr.gouv.vitam.batch.report.client.BatchReportClientFactory;
 import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
 import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
-import fr.gouv.vitam.storage.engine.client.StorageClient;
-import fr.gouv.vitam.storage.engine.client.StorageClientFactory;
+import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
+import fr.gouv.vitam.worker.common.HandlerIO;
 import fr.gouv.vitam.worker.core.plugin.preservation.service.PreservationReportService;
-import fr.gouv.vitam.workspace.client.WorkspaceClient;
-import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
 import org.assertj.core.api.Assertions;
 import org.junit.Before;
 import org.junit.Rule;
@@ -45,17 +41,14 @@ import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnit;
 import org.mockito.junit.MockitoRule;
 
-import static fr.gouv.vitam.worker.core.plugin.preservation.TestWorkerParameter.TestWorkerParameterBuilder.workerParameterBuilder;
-import static org.mockito.BDDMockito.given;
+import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
 
 public class PreservationFinalizationPluginTest {
 
-    private final TestWorkerParameter parameter = workerParameterBuilder()
-        .withContainerName("CONTAINER_NAME_TEST")
-        .withRequestId("REQUEST_ID_TEST")
-        .build();
-
-
+    public static final String CONTAINER = "CONTAINER";
     private PreservationFinalizationPlugin plugin;
 
     @Rule
@@ -66,42 +59,52 @@ public class PreservationFinalizationPluginTest {
     public MockitoRule mockitoRule = MockitoJUnit.rule();
 
     @Mock
-    private WorkspaceClientFactory workspaceClientFactory;
-
-    @Mock
-    private WorkspaceClient workspaceClient;
-
-    @Mock
-    private StorageClientFactory storageClientFactory;
-
-    @Mock
-    private StorageClient storageClient;
-
-    @Mock
-    private BatchReportClientFactory batchReportFactory;
-
-    @Mock
-    private BatchReportClient batchReportClient;
-
-
+    private PreservationReportService preservationReportService;
 
     @Before
     public void setUp() throws Exception {
-        given(batchReportFactory.getClient()).willReturn(batchReportClient);
-        given(workspaceClientFactory.getClient()).willReturn(workspaceClient);
-        given(storageClientFactory.getClient()).willReturn(storageClient);
-
-        plugin = new PreservationFinalizationPlugin(
-            new PreservationReportService(batchReportFactory, storageClientFactory));
+        plugin = new PreservationFinalizationPlugin(preservationReportService);
     }
 
     @Test
     public void should_finalize_preservation_report() throws Exception {
         // Given
+        WorkerParameters parameter = mock(WorkerParameters.class);
+        HandlerIO handler = mock(HandlerIO.class);
+        doReturn(CONTAINER).when(handler).getContainerName();
+        doReturn(CONTAINER).when(parameter).getContainerName();
+        doReturn(CONTAINER).when(parameter).getRequestId();
+        doReturn(false).when(preservationReportService).isReportWrittenInWorkspace(CONTAINER);
+
         // When
-        ItemStatus itemStatus = plugin.execute(parameter, null);
+        ItemStatus itemStatus = plugin.execute(parameter, handler);
         // Then
         Assertions.assertThat(itemStatus.getGlobalStatus()).isEqualTo(StatusCode.OK);
         Assertions.assertThat(itemStatus.getItemId()).isEqualTo("PRESERVATION_FINALIZATION");
+        verify(preservationReportService).isReportWrittenInWorkspace(CONTAINER);
+        verify(preservationReportService).storeReportToWorkspace(CONTAINER, CONTAINER);
+        verify(preservationReportService).storeReportToOffers(CONTAINER);
+        verify(preservationReportService).cleanupReport(CONTAINER);
+    }
+
+    @Test
+    public void should_finalize_preservation_report_with_existing_report() throws Exception {
+        // Given
+        WorkerParameters parameter = mock(WorkerParameters.class);
+        HandlerIO handler = mock(HandlerIO.class);
+        doReturn(CONTAINER).when(handler).getContainerName();
+        doReturn(CONTAINER).when(parameter).getContainerName();
+        doReturn(CONTAINER).when(parameter).getRequestId();
+        doReturn(true).when(preservationReportService).isReportWrittenInWorkspace(CONTAINER);
+
+        // When
+        ItemStatus itemStatus = plugin.execute(parameter, handler);
+        // Then
+        Assertions.assertThat(itemStatus.getGlobalStatus()).isEqualTo(StatusCode.OK);
+        Assertions.assertThat(itemStatus.getItemId()).isEqualTo("PRESERVATION_FINALIZATION");
+        verify(preservationReportService).isReportWrittenInWorkspace(CONTAINER);
+        verify(preservationReportService, never()).storeReportToWorkspace(CONTAINER, CONTAINER);
+        verify(preservationReportService).storeReportToOffers(CONTAINER);
+        verify(preservationReportService).cleanupReport(CONTAINER);
     }
 }

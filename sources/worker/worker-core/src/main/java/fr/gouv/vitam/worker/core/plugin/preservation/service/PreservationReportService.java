@@ -31,20 +31,32 @@ import com.google.common.annotations.VisibleForTesting;
 import fr.gouv.vitam.batch.report.client.BatchReportClient;
 import fr.gouv.vitam.batch.report.client.BatchReportClientFactory;
 import fr.gouv.vitam.batch.report.model.PreservationReportModel;
+import fr.gouv.vitam.batch.report.model.Report;
 import fr.gouv.vitam.batch.report.model.ReportBody;
 import fr.gouv.vitam.batch.report.model.ReportExportRequest;
+import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamClientInternalException;
 import fr.gouv.vitam.common.exception.VitamException;
 import fr.gouv.vitam.common.exception.VitamRuntimeException;
 import fr.gouv.vitam.common.json.JsonHandler;
+import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.storage.engine.client.StorageClient;
 import fr.gouv.vitam.storage.engine.client.StorageClientFactory;
+import fr.gouv.vitam.storage.engine.client.exception.StorageAlreadyExistsClientException;
+import fr.gouv.vitam.storage.engine.client.exception.StorageNotFoundClientException;
+import fr.gouv.vitam.storage.engine.client.exception.StorageServerClientException;
+import fr.gouv.vitam.storage.engine.common.model.DataCategory;
 import fr.gouv.vitam.storage.engine.common.model.request.ObjectDescription;
+import fr.gouv.vitam.worker.core.exception.ProcessingStatusException;
+import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
+import fr.gouv.vitam.workspace.client.WorkspaceClient;
+import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
 
 import java.util.List;
 import java.util.stream.Collectors;
 
+import static fr.gouv.vitam.batch.report.model.ReportType.EVIDENCE_AUDIT;
 import static fr.gouv.vitam.batch.report.model.ReportType.PRESERVATION;
 import static fr.gouv.vitam.storage.engine.common.model.DataCategory.REPORT;
 
@@ -53,19 +65,26 @@ import static fr.gouv.vitam.storage.engine.common.model.DataCategory.REPORT;
  */
 public class PreservationReportService {
 
+    public static final String JSONL_EXTENSION = ".jsonl";
+    public static final String WORKSPACE_REPORT_URI = "report.jsonl";
     private static final String PRESERVATION_REPORT = "preservationReport";
 
     private final BatchReportClientFactory batchReportClientFactory;
+    private final WorkspaceClientFactory workspaceClientFactory;
     private final StorageClientFactory storageClientFactory;
 
     public PreservationReportService() {
-        this(BatchReportClientFactory.getInstance(), StorageClientFactory.getInstance());
+        this(BatchReportClientFactory.getInstance(),
+            WorkspaceClientFactory.getInstance(),
+            StorageClientFactory.getInstance());
     }
 
     @VisibleForTesting
     public PreservationReportService(BatchReportClientFactory reportFactory,
+        WorkspaceClientFactory workspaceClientFactory,
         StorageClientFactory storageClientFactory) {
         this.batchReportClientFactory = reportFactory;
+        this.workspaceClientFactory = workspaceClientFactory;
         this.storageClientFactory = storageClientFactory;
     }
 
@@ -81,14 +100,40 @@ public class PreservationReportService {
         }
     }
 
-    public void exportReport(String processId, String workspaceContainerGUID) throws VitamException {
-        String filename = String.format("%s-%s.jsonl", PRESERVATION_REPORT, processId);
-        try (BatchReportClient batchReportClient = batchReportClientFactory.getClient()) {
-            batchReportClient.generatePreservationReport(processId, new ReportExportRequest(filename));
+    public boolean isReportWrittenInWorkspace(String processId) throws ProcessingStatusException {
+        try (WorkspaceClient workspaceClient = workspaceClientFactory.getClient()) {
+            return workspaceClient.isExistingObject(processId, WORKSPACE_REPORT_URI);
+        } catch (ContentAddressableStorageServerException e) {
+            throw new ProcessingStatusException(StatusCode.FATAL, "Could not check report existence in workspace", e);
         }
-        try(StorageClient client = storageClientFactory.getClient()) {
-            ObjectDescription description = new ObjectDescription(REPORT, workspaceContainerGUID, filename, filename);
-            client.storeFileFromWorkspace("default", REPORT, filename, description);
+    }
+
+    public void storeReportToWorkspace(String processId, String workspaceContainerGUID) throws ProcessingStatusException {
+        try (BatchReportClient batchReportClient = batchReportClientFactory.getClient()) {
+            batchReportClient.generatePreservationReport(processId, new ReportExportRequest(WORKSPACE_REPORT_URI));
+        } catch (VitamClientInternalException e) {
+            throw new ProcessingStatusException(StatusCode.FATAL, "Could not generate preservation report", e);
+        }
+    }
+
+    public void storeReportToOffers(String containerName) throws ProcessingStatusException {
+        String filename = String.format("%s-%s.jsonl", PRESERVATION_REPORT, containerName);
+        try (StorageClient storageClient = storageClientFactory.getClient()) {
+            ObjectDescription description = new ObjectDescription();
+            description.setWorkspaceContainerGUID(containerName);
+            description.setWorkspaceObjectURI(WORKSPACE_REPORT_URI);
+            storageClient.storeFileFromWorkspace(VitamConfiguration.getDefaultStrategy(),
+                DataCategory.REPORT, containerName + JSONL_EXTENSION, description);
+        } catch (StorageAlreadyExistsClientException | StorageNotFoundClientException | StorageServerClientException e) {
+            throw new ProcessingStatusException(StatusCode.FATAL, "Could not store report to offers", e);
+        }
+    }
+
+    public void cleanupReport(String containerName) throws ProcessingStatusException {
+        try (BatchReportClient batchReportClient = batchReportClientFactory.getClient()) {
+            batchReportClient.cleanupReport(containerName, PRESERVATION);
+        } catch (VitamClientInternalException e) {
+            throw new ProcessingStatusException(StatusCode.FATAL, "Could not cleanup report", e);
         }
     }
 

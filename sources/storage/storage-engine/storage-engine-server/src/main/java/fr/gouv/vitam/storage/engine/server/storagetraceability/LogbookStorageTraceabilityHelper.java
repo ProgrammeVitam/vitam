@@ -108,7 +108,6 @@ public class LogbookStorageTraceabilityHelper implements LogbookTraceabilityHelp
     private static final String STP_STORAGE_SECURISATION = "STP_STORAGE_SECURISATION";
     private static final String TIMESTAMP = "STORAGE_SECURISATION_TIMESTAMP";
     private static final String ZIP_NAME = "StorageTraceability";
-    private static final String CONTAINER = DataCategory.STORAGETRACEABILITY.getFolder();
 
     private final LogbookOperationsClient logbookOperationsClient;
     private final TraceabilityStorageService traceabilityLogbookService;
@@ -319,24 +318,24 @@ public class LogbookStorageTraceabilityHelper implements LogbookTraceabilityHelp
     }
 
     @Override
-    public void storeAndDeleteZip(Integer tenant, File zipFile, String fileName, String uri, TraceabilityEvent event)
+    public void storeAndDeleteZip(Integer tenant, File zipFile, String fileName, TraceabilityEvent event)
         throws TraceabilityException {
         try (InputStream inputStream = new BufferedInputStream(new FileInputStream(zipFile))) {
 
-            String containerName = VitamThreadUtils.getVitamSession().getRequestId() + "-Traceability";
+            String containerName = VitamThreadUtils.getVitamSession().getRequestId();
             try {
                 workspaceClient.createContainer(containerName);
             } catch (ContentAddressableStorageAlreadyExistException e) {
                 // Already exists
                 SysErrLogger.FAKE_LOGGER.ignoreLog(e);
             }
-            workspaceClient.putObject(containerName, uri, inputStream);
+            workspaceClient.putObject(containerName, fileName, inputStream);
 
             final StorageClientFactory storageClientFactory = StorageClientFactory.getInstance();
 
             final ObjectDescription description = new ObjectDescription();
             description.setWorkspaceContainerGUID(containerName);
-            description.setWorkspaceObjectURI(uri);
+            description.setWorkspaceObjectURI(fileName);
 
             try (final StorageClient storageClient = storageClientFactory.getClient()) {
 
@@ -345,6 +344,7 @@ public class LogbookStorageTraceabilityHelper implements LogbookTraceabilityHelp
                 workspaceClient.deleteContainer(containerName, true);
 
                 createLogbookOperationEvent(tenant, STORAGE_SECURISATION_STORAGE, OK, event);
+
 
             } catch (StorageAlreadyExistsClientException | StorageNotFoundClientException |
                 StorageServerClientException | ContentAddressableStorageNotFoundException e) {
@@ -375,12 +375,7 @@ public class LogbookStorageTraceabilityHelper implements LogbookTraceabilityHelp
 
     @Override
     public String getZipName() {
-        return ZIP_NAME;
-    }
-
-    @Override
-    public String getUriName() {
-        return CONTAINER;
+        return ZIP_NAME + "_" + operationID.getId();
     }
 
     @Override

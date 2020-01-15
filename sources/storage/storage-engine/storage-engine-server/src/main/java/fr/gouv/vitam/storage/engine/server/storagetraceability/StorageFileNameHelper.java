@@ -47,8 +47,10 @@ public final class StorageFileNameHelper {
     public static LocalDateTime parseDateFromStorageTraceabilityFileName(String fileName) {
 
         String[] splittedFileName = fileName.split("\\.")[0].split("_");
-        // FileNamePattern: <Tenant>_<FileKind>_<yyyyMMdd-Date>_<HHmmss-Time>.zip
-        String date = splittedFileName[2] + '-' + splittedFileName[3];
+        // FileNamePattern (old): <Tenant>_<FileKind>_<yyyyMMdd-Date>_<HHmmss-Time>.zip
+        // FileNamePattern (new): <Tenant>_<FileKind>_<GUID>_<yyyyMMdd-Date>_<HHmmss-Time>.zip
+        String date =
+            splittedFileName[splittedFileName.length - 2] + '-' + splittedFileName[splittedFileName.length - 1];
         return LocalDateTime.parse(date, DateTimeFormatter.ofPattern("uuuuMMdd-HHmmss"));
     }
 

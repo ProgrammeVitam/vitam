@@ -27,7 +27,6 @@
 package fr.gouv.vitam.storage.engine.server.storagelog.traceability;
 
 import fr.gouv.vitam.common.BaseXx;
-import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.client.AbstractMockClient;
 import fr.gouv.vitam.common.digest.DigestType;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
@@ -158,6 +157,7 @@ public class StorageTraceabilityAdministrationTest {
     @RunWithCustomExecutor
     public void should_generate_secure_file_without_element() throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(tenantId);
+        VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newRequestIdGUID(tenantId));
         // Given
         File file = folder.newFolder();
 
@@ -186,6 +186,7 @@ public class StorageTraceabilityAdministrationTest {
     @RunWithCustomExecutor
     public void should_generate_secure_file_with_one_element() throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(tenantId);
+        VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newRequestIdGUID(tenantId));
         // Given
         File file = folder.newFolder();
 
@@ -288,6 +289,7 @@ public class StorageTraceabilityAdministrationTest {
     @RunWithCustomExecutor
     public void should_fail_when_previous_secure_file_not_found() throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(tenantId);
+        VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newRequestIdGUID(tenantId));
         // Given
         File file = folder.newFolder();
 
@@ -332,6 +334,7 @@ public class StorageTraceabilityAdministrationTest {
     @RunWithCustomExecutor
     public void should_generate_secure_file_with_multiple_backup_files() throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(tenantId);
+        VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newRequestIdGUID(tenantId));
         // Given
         File file = folder.newFolder();
 
@@ -387,6 +390,7 @@ public class StorageTraceabilityAdministrationTest {
     @RunWithCustomExecutor
     public void should_fail_with_backup_file_not_found() throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(tenantId);
+        VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newRequestIdGUID(tenantId));
         // Given
         File file = folder.newFolder();
 

@@ -8,44 +8,27 @@ import fr.gouv.vitam.common.database.builder.request.single.Select;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.CanonicalJsonFormatter;
 import fr.gouv.vitam.common.json.JsonHandler;
-import fr.gouv.vitam.common.logging.SysErrLogger;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.security.merkletree.MerkleTreeAlgo;
-import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientException;
-import fr.gouv.vitam.logbook.common.exception.LogbookClientNotFoundException;
 import fr.gouv.vitam.logbook.common.exception.TraceabilityException;
 import fr.gouv.vitam.logbook.common.model.TraceabilityEvent;
 import fr.gouv.vitam.logbook.common.model.TraceabilityFile;
 import fr.gouv.vitam.logbook.common.model.TraceabilityStatistics;
-import fr.gouv.vitam.logbook.common.parameters.LogbookParameterName;
 import fr.gouv.vitam.logbook.common.server.database.collections.LogbookOperation;
 import fr.gouv.vitam.logbook.common.traceability.LogbookTraceabilityHelper;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClient;
-import fr.gouv.vitam.storage.engine.client.StorageClient;
-import fr.gouv.vitam.storage.engine.client.StorageClientFactory;
-import fr.gouv.vitam.storage.engine.client.exception.StorageAlreadyExistsClientException;
-import fr.gouv.vitam.storage.engine.client.exception.StorageNotFoundClientException;
-import fr.gouv.vitam.storage.engine.client.exception.StorageServerClientException;
-import fr.gouv.vitam.storage.engine.common.model.DataCategory;
-import fr.gouv.vitam.storage.engine.common.model.request.ObjectDescription;
+import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.worker.common.HandlerIO;
 import fr.gouv.vitam.worker.core.distribution.JsonLineModel;
-import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageAlreadyExistException;
-import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundException;
-import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
-import fr.gouv.vitam.workspace.client.WorkspaceClient;
-import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
+import org.apache.commons.io.FileUtils;
 
-import java.io.BufferedInputStream;
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
-import java.io.InputStream;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -57,13 +40,11 @@ public abstract class LogbookLifeCycleTraceabilityHelper implements LogbookTrace
     private static final VitamLogger LOGGER =
         VitamLoggerFactory.getInstance(LogbookLifeCycleTraceabilityHelper.class);
 
-    private static final String DEFAULT_STRATEGY = "default";
-    private static final String LOGBOOK = "logbook";
     private static final String EVENT_ID = eventIdentifier.getDbname();
     private static final String EVENT_DETAIL_DATA = eventDetailData.getDbname();
     private static final String HANDLER_ID = "FINALIZE_LC_TRACEABILITY";
     private static final String HANDLER_SUB_ACTION_TIMESTAMP = "OP_SECURISATION_TIMESTAMP";
-    private static final String HANDLER_SUB_ACTION_SECURISATION_STORAGE = "OP_SECURISATION_STORAGE";
+    private static final String HANDLER_SUB_ACTION_SECURISATION_STORAGE_ON_WORKSPACE = "OP_SECURISATION_STORAGE_ON_WORKSPACE";
     private static final int LAST_OPERATION_LIFECYCLES_RANK = 0;
     private static final int TRACEABILITY_INFORMATION_RANK = 1;
     private static final int TRACEABILITY_STATISTICS_RANK = 3;
@@ -72,8 +53,8 @@ public abstract class LogbookLifeCycleTraceabilityHelper implements LogbookTrace
     private final LogbookOperationsClient logbookOperationsClient;
     private final ItemStatus itemStatus;
     private final String operationID;
-
-    private final WorkspaceClientFactory workspaceClientFactory;
+    private final String traceabilityEventFileName;
+    private final String traceabilityZipFileName;
 
     private LogbookOperation lastTraceabilityOperation = null;
     private List<String> expectedLogbookId = null;
@@ -98,16 +79,18 @@ public abstract class LogbookLifeCycleTraceabilityHelper implements LogbookTrace
      * @param logbookOperationsClient used to search the operation to secure
      * @param itemStatus used by workflow, event must be updated here
      * @param operationID of the current traceability process
-     * @param workspaceClientFactory
+     * @param traceabilityEventFileName
+     * @param traceabilityZipFileName
      */
     public LogbookLifeCycleTraceabilityHelper(HandlerIO handlerIO, LogbookOperationsClient logbookOperationsClient,
         ItemStatus itemStatus, String operationID,
-        WorkspaceClientFactory workspaceClientFactory) {
+        String traceabilityEventFileName, String traceabilityZipFileName) {
         this.handlerIO = handlerIO;
         this.logbookOperationsClient = logbookOperationsClient;
         this.itemStatus = itemStatus;
         this.operationID = operationID;
-        this.workspaceClientFactory = workspaceClientFactory;
+        this.traceabilityEventFileName = traceabilityEventFileName;
+        this.traceabilityZipFileName = traceabilityZipFileName;
     }
 
     @Override
@@ -184,54 +167,22 @@ public abstract class LogbookLifeCycleTraceabilityHelper implements LogbookTrace
     }
 
     @Override
-    public void storeAndDeleteZip(Integer tenant, File zipFile,
-        String fileName, String uri, TraceabilityEvent event)
+    public void storeAndDeleteZip(Integer tenant, File zipFile, String fileName, TraceabilityEvent event)
         throws TraceabilityException {
 
-        String evDetailData = JsonHandler.unprettyPrint(event);
-        itemStatus.setEvDetailData(evDetailData);
-        itemStatus.setMasterData(LogbookParameterName.eventDetailData.name(),
-            evDetailData);
+        final ItemStatus subItemStatusSecurisationStorage =
+            new ItemStatus(HANDLER_SUB_ACTION_SECURISATION_STORAGE_ON_WORKSPACE);
+        try {
+            handlerIO.transferFileToWorkspace(traceabilityZipFileName, zipFile, true, false);
+            handlerIO.transferInputStreamToWorkspace(traceabilityEventFileName,
+                JsonHandler.writeToInpustream(event), null, false);
 
-        final ItemStatus subItemStatusSecurisationStorage = new ItemStatus(HANDLER_SUB_ACTION_SECURISATION_STORAGE);
-        try (InputStream inputStream = new BufferedInputStream(new FileInputStream(zipFile));
-            final WorkspaceClient workspaceClient = workspaceClientFactory.getClient()) {
-
-            String containerName = VitamThreadUtils.getVitamSession().getRequestId() + "-Traceability";
-            try {
-                workspaceClient.createContainer(containerName);
-            } catch (ContentAddressableStorageAlreadyExistException e) {
-                // Already exists
-                SysErrLogger.FAKE_LOGGER.ignoreLog(e);
-            }
-            workspaceClient.putObject(containerName, uri, inputStream);
-
-            final StorageClientFactory storageClientFactory = StorageClientFactory.getInstance();
-
-            final ObjectDescription description = new ObjectDescription();
-            description.setWorkspaceContainerGUID(containerName);
-            description.setWorkspaceObjectURI(uri);
-
-            try (final StorageClient storageClient = storageClientFactory.getClient()) {
-
-                storageClient.storeFileFromWorkspace(
-                    DEFAULT_STRATEGY, DataCategory.LOGBOOK, fileName, description);
-                workspaceClient.deleteContainer(containerName, true);
-                subItemStatusSecurisationStorage.setEvDetailData(JsonHandler.unprettyPrint(event));
-                itemStatus.setItemsStatus(HANDLER_SUB_ACTION_SECURISATION_STORAGE,
-                    subItemStatusSecurisationStorage.increment(StatusCode.OK));
-            } catch (StorageAlreadyExistsClientException | StorageNotFoundClientException |
-                StorageServerClientException | ContentAddressableStorageNotFoundException e) {
-                itemStatus.setItemsStatus(HANDLER_SUB_ACTION_SECURISATION_STORAGE,
-                    subItemStatusSecurisationStorage.increment(StatusCode.FATAL));
-                throw new TraceabilityException("unable to store zip file", e);
-            }
-        } catch (ContentAddressableStorageServerException | IOException e) {
-            itemStatus.setItemsStatus(HANDLER_SUB_ACTION_SECURISATION_STORAGE,
+        } catch (InvalidParseOperationException | ProcessingException e) {
+            itemStatus.setItemsStatus(HANDLER_SUB_ACTION_SECURISATION_STORAGE_ON_WORKSPACE,
                 subItemStatusSecurisationStorage.increment(StatusCode.FATAL));
             throw new TraceabilityException("unable to create container", e);
         } finally {
-            zipFile.delete();
+            FileUtils.deleteQuietly(zipFile);
         }
     }
 
@@ -243,11 +194,6 @@ public abstract class LogbookLifeCycleTraceabilityHelper implements LogbookTrace
     @Override
     public String getTimestampStepName() {
         return HANDLER_SUB_ACTION_TIMESTAMP;
-    }
-
-    @Override
-    public String getUriName() {
-        return LOGBOOK;
     }
 
     @Override
@@ -327,7 +273,8 @@ public abstract class LogbookLifeCycleTraceabilityHelper implements LogbookTrace
      * @return
      * @throws TraceabilityException
      */
-    protected void extractAppendToFinalFile(CloseableIterator<JsonLineModel> jsonLineIterator, TraceabilityFile traceabilityFile,
+    protected void extractAppendToFinalFile(CloseableIterator<JsonLineModel> jsonLineIterator,
+        TraceabilityFile traceabilityFile,
         MerkleTreeAlgo algo)
         throws TraceabilityException {
         try {
