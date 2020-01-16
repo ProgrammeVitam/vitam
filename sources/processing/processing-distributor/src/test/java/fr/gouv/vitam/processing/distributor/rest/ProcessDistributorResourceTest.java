@@ -39,7 +39,7 @@ import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
 import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
 import fr.gouv.vitam.common.tmp.TempFolderRule;
-import fr.gouv.vitam.processing.distributor.v2.WorkerManager;
+import fr.gouv.vitam.processing.distributor.core.WorkerManager;
 import io.restassured.RestAssured;
 import io.restassured.http.ContentType;
 import org.junit.AfterClass;

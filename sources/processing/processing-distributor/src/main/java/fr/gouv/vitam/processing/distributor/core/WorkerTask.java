@@ -16,7 +16,7 @@
  * reading this means that you have had knowledge of the CeCILL 2.1 license and that you accept its terms.
  */
 
-package fr.gouv.vitam.processing.distributor.v2;
+package fr.gouv.vitam.processing.distributor.core;
 
 import java.util.List;
 import java.util.function.Supplier;
@@ -40,7 +40,6 @@ import fr.gouv.vitam.worker.client.exception.WorkerNotFoundClientException;
 import fr.gouv.vitam.worker.client.exception.WorkerServerClientException;
 import fr.gouv.vitam.worker.client.exception.WorkerUnreachableException;
 import fr.gouv.vitam.worker.common.DescriptionStep;
-import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
 
 // Task simulating a call to a worker
 public class WorkerTask implements Supplier<ItemStatus> {

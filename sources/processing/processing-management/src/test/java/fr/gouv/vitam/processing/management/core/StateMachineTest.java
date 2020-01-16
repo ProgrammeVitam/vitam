@@ -40,7 +40,7 @@ import fr.gouv.vitam.processing.common.parameter.WorkerParametersFactory;
 import fr.gouv.vitam.processing.data.core.ProcessDataAccessImpl;
 import fr.gouv.vitam.processing.data.core.management.ProcessDataManagement;
 import fr.gouv.vitam.processing.distributor.api.ProcessDistributor;
-import fr.gouv.vitam.processing.distributor.v2.ProcessDistributorImpl;
+import fr.gouv.vitam.processing.distributor.core.ProcessDistributorImpl;
 import fr.gouv.vitam.processing.engine.api.ProcessEngine;
 import fr.gouv.vitam.processing.engine.core.ProcessEngineFactory;
 import fr.gouv.vitam.processing.engine.core.ProcessEngineImpl;

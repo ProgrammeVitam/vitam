@@ -24,7 +24,7 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  */
-package fr.gouv.vitam.processing.distributor.v2;
+package fr.gouv.vitam.processing.distributor.core;
 
 import fr.gouv.vitam.processing.common.model.WorkerBean;
 
