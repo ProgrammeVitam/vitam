@@ -151,7 +151,8 @@ public class StorageDistributionImpl implements StorageDistribution {
     private static final String STRATEGY_ID_IS_MANDATORY = "Strategy id is mandatory";
     private static final String CATEGORY_IS_MANDATORY = "Category (object type) is mandatory";
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(StorageDistributionImpl.class);
-    private static final StorageStrategyProvider STRATEGY_PROVIDER = StorageStrategyProviderFactory.getDefaultProvider();
+    private static final StorageStrategyProvider STRATEGY_PROVIDER =
+        StorageStrategyProviderFactory.getDefaultProvider();
     private static final StorageOfferProvider OFFER_PROVIDER = StorageOfferProviderFactory.getDefaultProvider();
     private static final String NOT_IMPLEMENTED_MSG = "Not yet implemented";
 
@@ -299,13 +300,19 @@ public class StorageDistributionImpl implements StorageDistribution {
             VitamCodeHelper.getLogMessage(VitamCode.STORAGE_TECHNICAL_INTERNAL_ERROR));
     }
 
-    private StorageLogbookParameters sendDataToOffersWithRetries(DataContext dataContext, OffersToCopyIn offersParams, ObjectDescription description) throws StorageException {
+    private StorageLogbookParameters sendDataToOffersWithRetries(DataContext dataContext, OffersToCopyIn offersParams,
+        ObjectDescription description) throws StorageException {
         AtomicInteger attempt = new AtomicInteger();
         AtomicBoolean needToRetry = new AtomicBoolean(true);
 
         DelegateRetry<StorageLogbookParameters, StorageException> delegate = () -> {
             try (StreamAndInfo streamAndInfo = getInputStreamFromWorkspace(description)) {
-                return sendDataToOffers(streamAndInfo, dataContext, offersParams, attempt.incrementAndGet(), needToRetry);
+                return sendDataToOffers(streamAndInfo, dataContext, offersParams, attempt.incrementAndGet(),
+                    needToRetry);
+            } catch (StorageNotFoundException e) {
+                // File not found in the workspace
+                needToRetry.set(false);
+                throw e;
             }
         };
 
@@ -352,14 +359,14 @@ public class StorageDistributionImpl implements StorageDistribution {
 
         if (offerIds != null) {
             for (String offerId : offerIds) {
-                if(strategyOfferIds.contains(offerId)) {
+                if (strategyOfferIds.contains(offerId)) {
                     offers.add(OFFER_PROVIDER.getStorageOffer(offerId));
                 } else {
                     LOGGER.error("Offer {} ignored : not found in strategy {}", offerId, strategyId);
                 }
             }
         } else {
-            for(String offerId : strategyOfferIds) {
+            for (String offerId : strategyOfferIds) {
                 offers.add(OFFER_PROVIDER.getStorageOffer(offerId));
             }
         }
@@ -385,7 +392,8 @@ public class StorageDistributionImpl implements StorageDistribution {
 
     }
 
-    private StorageStrategy checkStrategy(String strategyId) throws StorageTechnicalException, StorageNotFoundException {
+    private StorageStrategy checkStrategy(String strategyId)
+        throws StorageTechnicalException, StorageNotFoundException {
 
         final StorageStrategy storageStrategy = STRATEGY_PROVIDER.getStorageStrategy(strategyId);
 
@@ -746,6 +754,9 @@ public class StorageDistributionImpl implements StorageDistribution {
             case ARCHIVAL_TRANSFER_REPLY:
                 description.append("ARCHIVAL_TRANSFER_REPLY ");
                 break;
+            case TMP:
+                description.append("TMP ");
+                break;
             default:
                 throw new UnsupportedOperationException(NOT_IMPLEMENTED_MSG);
         }
@@ -921,7 +932,7 @@ public class StorageDistributionImpl implements StorageDistribution {
 
         if (storageStrategy != null && !storageStrategy.getOffers().isEmpty()) {
             List<OfferReference> offerReferences =
-                    storageStrategy.getOffers().stream().filter(OfferReference::isReferent).collect(Collectors.toList());
+                storageStrategy.getOffers().stream().filter(OfferReference::isReferent).collect(Collectors.toList());
             return Iterables.getOnlyElement(offerReferences);
         }
         throw new IllegalArgumentException("Exactly one offer should be declared as 'referent' in hot strategy");
@@ -1345,8 +1356,10 @@ public class StorageDistributionImpl implements StorageDistribution {
             final Driver driver = retrieveDriverInternal(offerReference.getId());
             final StorageOffer offer = OFFER_PROVIDER.getStorageOffer(offerReference.getId());
             try {
-                Retryable<Void, StorageTechnicalException> retryable =  new RetryableOnException<>(PARAMETERS, e -> e instanceof StorageTechnicalException);
-                retryable.execute(() -> deleteObject(context.getObjectId(), context.getTenantId(), driver, offer, context.getCategory()));
+                Retryable<Void, StorageTechnicalException> retryable =
+                    new RetryableOnException<>(PARAMETERS, e -> e instanceof StorageTechnicalException);
+                retryable.execute(() -> deleteObject(context.getObjectId(), context.getTenantId(), driver, offer,
+                    context.getCategory()));
 
                 deleteOutcomeByOfferId.put(driver.getName(), StorageLogbookOutcome.OK);
             } catch (Exception e) {

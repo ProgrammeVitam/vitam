@@ -71,6 +71,9 @@ import fr.gouv.vitam.logbook.common.parameters.LogbookParametersFactory;
 import fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClient;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClientFactory;
+import fr.gouv.vitam.processing.engine.core.operation.OperationContextException;
+import fr.gouv.vitam.processing.engine.core.operation.OperationContextModel;
+import fr.gouv.vitam.processing.engine.core.operation.OperationContextMonitor;
 import fr.gouv.vitam.processing.management.client.ProcessingManagementClient;
 import fr.gouv.vitam.processing.management.client.ProcessingManagementClientFactory;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
@@ -85,6 +88,7 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
+import static fr.gouv.vitam.common.json.JsonHandler.writeToInpustream;
 import static fr.gouv.vitam.common.thread.VitamThreadUtils.getVitamSession;
 import static javax.ws.rs.core.Response.Status.INTERNAL_SERVER_ERROR;
 
@@ -141,7 +145,8 @@ public class ProbativeValueResource {
 
             ObjectNode rightsStatementIdentifier = JsonHandler.createObjectNode()
                 .put("AccessContract", getVitamSession().getContractId());
-            initParameters.putParameterValue(LogbookParameterName.rightsStatementIdentifier, rightsStatementIdentifier.toString());
+            initParameters.putParameterValue(LogbookParameterName.rightsStatementIdentifier,
+                rightsStatementIdentifier.toString());
 
             client.create(initParameters);
         }
@@ -161,33 +166,53 @@ public class ProbativeValueResource {
 
             try (ProcessingManagementClient processingClient = processingManagementClientFactory.getClient();
                 WorkspaceClient workspaceClient = workspaceClientFactory.getClient();
-                 AdminManagementClient adminManagementClient = AdminManagementClientFactory.getInstance().getClient()) {
+                AdminManagementClient adminManagementClient = AdminManagementClientFactory.getInstance().getClient()) {
 
                 Select select = new Select();
-                Query query = QueryHelper.eq(AccessContract.IDENTIFIER, VitamThreadUtils.getVitamSession().getContractId());
+                Query query =
+                    QueryHelper.eq(AccessContract.IDENTIFIER, VitamThreadUtils.getVitamSession().getContractId());
                 select.setQuery(query);
-                AccessContractModel accessContractModel = ((RequestResponseOK<AccessContractModel>) adminManagementClient
+                AccessContractModel accessContractModel =
+                    ((RequestResponseOK<AccessContractModel>) adminManagementClient
                         .findAccessContracts(select.getFinalSelect())).getResults().get(0);
-
-                JsonNode finalQuery = AccessContractRestrictionHelper.
-                        applyAccessContractRestrictionForUnitForSelect(probativeValueRequest.getDslQuery(), accessContractModel);
 
                 workspaceClient.createContainer(operationId);
 
                 createProbativeOperation(operationId);
 
+                // store original query in workspace
+                workspaceClient
+                    .putObject(operationId, OperationContextMonitor.OperationContextFileName, writeToInpustream(
+                        OperationContextModel.get(probativeValueRequest)));
+
+
+                JsonNode finalQuery = AccessContractRestrictionHelper.
+                    applyAccessContractRestrictionForUnitForSelect(probativeValueRequest.getDslQuery(),
+                        accessContractModel);
+
+
                 workspaceClient.putObject(operationId, "request", JsonHandler.writeToInpustream(probativeValueRequest));
 
                 workspaceClient.putObject(operationId, "query.json", JsonHandler.writeToInpustream(finalQuery));
 
+
+                // compress file to backup
+                OperationContextMonitor
+                    .compressInWorkspace(workspaceClientFactory, operationId,
+                        Contexts.EXPORT_PROBATIVE_VALUE.getLogbookTypeProcess(),
+                        OperationContextMonitor.OperationContextFileName);
+
+
                 processingClient.initVitamProcess(operationId, Contexts.EXPORT_PROBATIVE_VALUE.name());
 
                 RequestResponse<ItemStatus> jsonNodeRequestResponse =
-                    processingClient.executeOperationProcess(operationId, Contexts.EXPORT_PROBATIVE_VALUE.name(), ProcessAction.RESUME.getValue());
+                    processingClient.executeOperationProcess(operationId, Contexts.EXPORT_PROBATIVE_VALUE.name(),
+                        ProcessAction.RESUME.getValue());
                 return jsonNodeRequestResponse.toResponse();
 
-            } catch (ContentAddressableStorageServerException |
-                VitamClientException | LogbookClientServerException | InternalServerException | InvalidGuidOperationException e) {
+            } catch (ContentAddressableStorageServerException | OperationContextException |
+                VitamClientException | LogbookClientServerException | InternalServerException |
+                InvalidGuidOperationException e) {
                 LOGGER.error("Error while exporting probative value", e);
 
                 return Response.status(INTERNAL_SERVER_ERROR)

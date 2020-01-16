@@ -167,6 +167,7 @@ public class AdminDataMigrationResource {
             createOperation(guid);
             workspaceClient.createContainer(guid.getId());
 
+            // No need to backup operation context, this workflow can be re-executed using logbook information
             processingClient.initVitamProcess(guid.getId(), Contexts.DATA_MIGRATION.name());
 
             RequestResponse<ItemStatus> jsonNodeRequestResponse =

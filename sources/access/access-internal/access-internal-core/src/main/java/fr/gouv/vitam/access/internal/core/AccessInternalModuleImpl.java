@@ -448,7 +448,8 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
             logInfo =
             AccessLogUtils.getInfoForAccessLog(qualifier, version, VitamThreadUtils.getVitamSession(), size, idUnit);
         try (StorageClient storageClient = storageClientFactory.getClient()) {
-            final Response response = storageClient.getContainerAsync(strategyId, objectId, DataCategory.OBJECT, logInfo);
+            final Response response =
+                storageClient.getContainerAsync(strategyId, objectId, DataCategory.OBJECT, logInfo);
             Map<String, String> headers = new HashMap<>();
             headers.put(HttpHeaders.CONTENT_TYPE, mimetype);
             headers.put(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + filename + "\"");
@@ -548,8 +549,9 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
     private Response getAccessLogFile(String accessLogId)
         throws StorageNotFoundException, AccessInternalExecutionException {
         try (StorageClient storageClient = storageClientFactory.getClient()) {
-            final Response response = storageClient.getContainerAsync(VitamConfiguration.getDefaultStrategy(), accessLogId,
-                DataCategory.STORAGEACCESSLOG, AccessLogUtils.getNoLogAccessLog());
+            final Response response =
+                storageClient.getContainerAsync(VitamConfiguration.getDefaultStrategy(), accessLogId,
+                    DataCategory.STORAGEACCESSLOG, AccessLogUtils.getNoLogAccessLog());
             Map<String, String> headers = new HashMap<>();
             return new VitamAsyncInputStreamResponse(response, Status.OK, headers);
         } catch (final StorageServerClientException e) {
@@ -845,7 +847,8 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
             workspaceClient.putObject(requestId,
                 IngestWorkflowConstants.ARCHIVE_UNIT_FOLDER + File.separator + fileName,
                 inputStream);
-            String strategyId = MetadataDocumentHelper.getStrategyIdFromRawUnitOrGot(MetadataStorageHelper.getUnitFromUnitWithLFC(unitWithLfc));
+            String strategyId = MetadataDocumentHelper
+                .getStrategyIdFromRawUnitOrGot(MetadataStorageHelper.getUnitFromUnitWithLFC(unitWithLfc));
             // updates (replaces) stored object
             storeMetaDataUnit(strategyId, new ObjectDescription(DataCategory.UNIT, requestId, fileName,
                 IngestWorkflowConstants.ARCHIVE_UNIT_FOLDER + File.separator + fileName));
@@ -932,7 +935,8 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
      */
     private void storeMetaDataUnit(String strategyId, ObjectDescription description) throws StorageClientException {
         try (StorageClient storageClient = storageClientFactory.getClient()) {
-            storageClient.storeFileFromWorkspace(strategyId, description.getType(), description.getObjectName(), description);
+            storageClient
+                .storeFileFromWorkspace(strategyId, description.getType(), description.getObjectName(), description);
         }
 
     }
@@ -1779,15 +1783,6 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
         } catch (MetaDataDocumentSizeException |
             ProcessingException | MetaDataClientServerException | MetaDataExecutionException e) {
             throw new AccessInternalExecutionException(e);
-        }
-    }
-
-    @Override
-    public Response startComputeInheritedRules(JsonNode dslQuery) throws AccessInternalException {
-        try (MetaDataClient metaDataClient = metaDataClientFactory.getClient()) {
-            return metaDataClient.startComputeInheritedRules(dslQuery);
-        } catch (MetaDataClientServerException e) {
-            throw new AccessInternalException(e);
         }
     }
 

@@ -119,6 +119,7 @@ import fr.gouv.vitam.metadata.rest.MetadataMain;
 import fr.gouv.vitam.processing.common.model.ProcessWorkflow;
 import fr.gouv.vitam.processing.data.core.ProcessDataAccessImpl;
 import fr.gouv.vitam.processing.engine.core.monitoring.ProcessMonitoringImpl;
+import fr.gouv.vitam.processing.engine.core.operation.OperationContextMonitor;
 import fr.gouv.vitam.processing.management.client.ProcessingManagementClient;
 import fr.gouv.vitam.processing.management.client.ProcessingManagementClientFactory;
 import fr.gouv.vitam.processing.management.rest.ProcessManagementMain;
@@ -447,9 +448,31 @@ public class EndToEndEliminationAndTransferReplyIT extends VitamRuleRunner {
         final RequestResponse<JsonNode> actionResult =
             accessInternalClient.startEliminationAction(eliminationRequestBody);
 
+
+        OperationContextMonitor operationContextMonitor = new OperationContextMonitor();
         assertThat(actionResult.isOk()).isTrue();
 
+
+        JsonNode info = operationContextMonitor
+            .getInformation(VitamConfiguration.getDefaultStrategy(), eliminationActionOperationGuid,
+                LogbookTypeProcess.ELIMINATION);
+
+        assertThat(info).isNotNull();
+        assertThat(JsonHandler.unprettyPrint(info)).contains("ELIMINATION_" + eliminationActionOperationGuid + ".zip");
+
         awaitForWorkflowTerminationWithStatus(eliminationActionOperationGuid, StatusCode.WARNING);
+
+
+        TimeUnit.SECONDS.sleep(1);// wait until cleanup is finished
+
+        info = operationContextMonitor
+            .getInformation(VitamConfiguration.getDefaultStrategy(), eliminationActionOperationGuid,
+                LogbookTypeProcess.ELIMINATION);
+
+        assertThat(info).isNotNull();
+        assertThat(JsonHandler.unprettyPrint(info))
+            .doesNotContain("ELIMINATION_" + eliminationActionOperationGuid + ".zip");
+
 
         // DSL check
         final RequestResponseOK<JsonNode> remainingUnits = selectUnitsByOpi(ingestOperationGuid, accessInternalClient);

@@ -354,6 +354,4 @@ public interface MetaDataClient extends BasicClient {
      * @throws MetaDataClientServerException MetaDataClientServerException
      */
     void deleteObjectGroupBulk(Collection<String> listIds) throws MetaDataExecutionException, InvalidParseOperationException, MetaDataClientServerException;
-
-    Response startComputeInheritedRules(JsonNode dslQuery) throws MetaDataClientServerException;
 }

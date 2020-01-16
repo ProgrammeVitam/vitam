@@ -404,6 +404,7 @@ public class LogbookResource extends ApplicationStatusResource {
             GUID guid = GUIDFactory.newOperationLogbookGUID(tenantId);
 
             VitamThreadUtils.getVitamSession().setTenantId(tenantId);
+            // FIXME: 01/01/2020 request id should be set in the external headers by filter
             VitamThreadUtils.getVitamSession().setRequestId(guid);
 
             logbookAdministration.generateSecureLogbook(guid);

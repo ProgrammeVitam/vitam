@@ -193,6 +193,7 @@ public class EvidenceResource {
 
             workspaceClient.putObject(operationId, "query.json", JsonHandler.writeToInpustream(finalQuery));
 
+            // No need to backup operation context, this workflow can be re-executed multiple times.
             processingClient.initVitamProcess(operationId, Contexts.EVIDENCE_AUDIT.name());
 
             RequestResponse<ItemStatus> jsonNodeRequestResponse =
@@ -246,8 +247,10 @@ public class EvidenceResource {
                 throw new AccessUnauthorizedException("Contract Not Found");
             }
 
+            // FIXME: 01/01/2020 (new operation should be created) operation id concern audit workflow that save rapport in offer. rectification shoud be an other operation that use an operation of audit to get rapport
             createRectificationAuditOperation(operationId, contract);
 
+            // No need to backup operation context, this workflow can be re-executed multiple times.
             processingClient
                 .initVitamProcess(operationId, Contexts.RECTIFICATION_AUDIT.name());
 

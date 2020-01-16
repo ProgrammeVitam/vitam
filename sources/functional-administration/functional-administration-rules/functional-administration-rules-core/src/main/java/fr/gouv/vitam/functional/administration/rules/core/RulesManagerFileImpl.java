@@ -75,10 +75,10 @@ import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.model.UpdateWorkflowConstants;
 import fr.gouv.vitam.common.model.administration.FileRulesModel;
+import fr.gouv.vitam.common.model.administration.RuleType;
 import fr.gouv.vitam.common.parameter.ParameterHelper;
 import fr.gouv.vitam.common.stream.StreamUtils;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
-import fr.gouv.vitam.common.model.administration.RuleType;
 import fr.gouv.vitam.functional.administration.common.CollectionBackupModel;
 import fr.gouv.vitam.functional.administration.common.ErrorReport;
 import fr.gouv.vitam.functional.administration.common.FileRules;
@@ -119,11 +119,13 @@ import fr.gouv.vitam.metadata.api.exception.MetaDataDocumentSizeException;
 import fr.gouv.vitam.metadata.api.exception.MetaDataExecutionException;
 import fr.gouv.vitam.metadata.client.MetaDataClient;
 import fr.gouv.vitam.metadata.client.MetaDataClientFactory;
+import fr.gouv.vitam.processing.engine.core.operation.OperationContextException;
+import fr.gouv.vitam.processing.engine.core.operation.OperationContextModel;
+import fr.gouv.vitam.processing.engine.core.operation.OperationContextMonitor;
 import fr.gouv.vitam.processing.management.client.ProcessingManagementClient;
 import fr.gouv.vitam.processing.management.client.ProcessingManagementClientFactory;
 import fr.gouv.vitam.storage.engine.common.exception.StorageException;
 import fr.gouv.vitam.storage.engine.common.model.DataCategory;
-import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageAlreadyExistException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
 import fr.gouv.vitam.workspace.client.WorkspaceClient;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
@@ -152,6 +154,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import static fr.gouv.vitam.common.database.builder.query.QueryHelper.eq;
+import static fr.gouv.vitam.common.json.JsonHandler.writeToInpustream;
 import static fr.gouv.vitam.functional.administration.common.ReportConstants.ADDITIONAL_INFORMATION;
 import static fr.gouv.vitam.functional.administration.common.server.FunctionalAdminCollections.RULES;
 
@@ -633,6 +636,7 @@ public class RulesManagerFileImpl implements ReferentialFile<FileRules> {
 
             final GUID updateOperationGUID = GUIDFactory.newOperationLogbookGUID(getTenant());
             final GUID reqId = GUIDReader.getGUID(VitamThreadUtils.getVitamSession().getRequestId());
+            // FIXME: 01/01/2020 why operation id  != requestId. We use request id to monitor operations ?!
             final LogbookOperationParameters logbookUpdateParametersStart = LogbookParametersFactory
                 .newLogbookOperationParameters(updateOperationGUID, UPDATE_RULES_ARCHIVE_UNITS,
                     updateOperationGUID,
@@ -641,10 +645,27 @@ public class RulesManagerFileImpl implements ReferentialFile<FileRules> {
                     VitamLogbookMessages.getCodeOp(UPDATE_RULES_ARCHIVE_UNITS, StatusCode.STARTED),
                     reqId);
             createLogBookEntry(logbookUpdateParametersStart);
-            try {
-                copyFilesOnWorkspaceUpdateWorkflow(
-                    JsonHandler.writeToInpustream(arrayNode),
-                    updateOperationGUID.getId());
+            try (WorkspaceClient workspaceClient = workspaceClientFactory.getClient()) {
+
+                workspaceClient.createContainer(updateOperationGUID.getId());
+
+                workspaceClient.putObject(updateOperationGUID.getId(),
+                    UpdateWorkflowConstants.PROCESSING_FOLDER + "/" + UpdateWorkflowConstants.UPDATED_RULES_JSON,
+                    JsonHandler.writeToInpustream(arrayNode));
+
+                // store original query in workspace
+                workspaceClient
+                    .putObject(updateOperationGUID.getId(), OperationContextMonitor.OperationContextFileName,
+                        writeToInpustream(
+                            OperationContextModel.get(usedUpdateRulesForReport)));
+
+
+                // compress file to backup
+                OperationContextMonitor
+                    .compressInWorkspace(workspaceClientFactory, updateOperationGUID.getId(),
+                        Contexts.UPDATE_RULES_ARCHIVE_UNITS.getLogbookTypeProcess(),
+                        OperationContextMonitor.OperationContextFileName);
+
 
                 processManagementClient.initVitamProcess(updateOperationGUID.getId(), UPDATE_RULES_ARCHIVE_UNITS);
                 LOGGER.debug("Started Update in Resource");
@@ -657,9 +678,8 @@ public class RulesManagerFileImpl implements ReferentialFile<FileRules> {
                     throw new VitamClientException("Process couldnt be executed");
                 }
 
-            } catch (ContentAddressableStorageAlreadyExistException |
-                ContentAddressableStorageServerException | InternalServerException |
-                VitamClientException | BadRequestException e) {
+            } catch (ContentAddressableStorageServerException | InternalServerException |
+                VitamClientException | BadRequestException | OperationContextException e) {
                 LOGGER.error(e);
                 final LogbookOperationParameters logbookUpdateParametersEnd =
                     LogbookParametersFactory
@@ -1226,8 +1246,8 @@ public class RulesManagerFileImpl implements ReferentialFile<FileRules> {
 
     /**
      * Delete fileRules by id
-     *  @param fileRulesModel fileRulesModel to delete
      *
+     * @param fileRulesModel fileRulesModel to delete
      */
     private void deleteFileRules(FileRulesModel fileRulesModel) {
         final Delete delete = new Delete();
@@ -1691,19 +1711,6 @@ public class RulesManagerFileImpl implements ReferentialFile<FileRules> {
         reportFinal.setFileRulesToUpdate(fileRulesModelToUpdateFinal);
         reportFinal.setFileRulesToImport(fileRulesModelToInsertFinal);
         return new ByteArrayInputStream(JsonHandler.unprettyPrint(reportFinal).getBytes(StandardCharsets.UTF_8));
-
-    }
-
-    private void copyFilesOnWorkspaceUpdateWorkflow(InputStream stream, String containerName)
-        throws ContentAddressableStorageAlreadyExistException, ContentAddressableStorageServerException {
-        try (
-            WorkspaceClient workspaceClient = workspaceClientFactory.getClient()) {
-            workspaceClient.createContainer(containerName);
-            workspaceClient.putObject(containerName,
-                UpdateWorkflowConstants.PROCESSING_FOLDER + "/" + UpdateWorkflowConstants.UPDATED_RULES_JSON,
-                stream);
-        }
-
     }
 
     /**

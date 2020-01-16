@@ -45,7 +45,6 @@ import fr.gouv.vitam.common.model.GraphComputeResponse;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.massupdate.RuleActions;
-import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.metadata.api.exception.MetaDataClientServerException;
 import fr.gouv.vitam.metadata.api.exception.MetaDataDocumentSizeException;
 import fr.gouv.vitam.metadata.api.exception.MetaDataExecutionException;
@@ -63,7 +62,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import static fr.gouv.vitam.common.GlobalDataRest.X_ACCESS_CONTRAT_ID;
 import static fr.gouv.vitam.common.client.VitamRequestBuilder.delete;
 import static fr.gouv.vitam.common.client.VitamRequestBuilder.get;
 import static fr.gouv.vitam.common.client.VitamRequestBuilder.post;
@@ -94,7 +92,8 @@ public class MetaDataClientRest extends DefaultClient implements MetaDataClient 
     public JsonNode insertUnitBulk(BulkUnitInsertRequest request)
         throws InvalidParseOperationException, MetaDataExecutionException, MetaDataNotFoundException,
         MetaDataDocumentSizeException, MetaDataClientServerException {
-        try (Response response = make(post().withPath("/units/bulk").withBody(request, INSERT_UNITS_QUERY_NULL.getMessage()).withJson())) {
+        try (Response response = make(
+            post().withPath("/units/bulk").withBody(request, INSERT_UNITS_QUERY_NULL.getMessage()).withJson())) {
             check(response);
             return response.readEntity(JsonNode.class);
         } catch (VitamClientInternalException e) {
@@ -106,7 +105,8 @@ public class MetaDataClientRest extends DefaultClient implements MetaDataClient 
     public JsonNode selectUnits(JsonNode selectQuery)
         throws MetaDataExecutionException, MetaDataDocumentSizeException, InvalidParseOperationException,
         MetaDataClientServerException {
-        try (Response response = make(get().withPath("/units").withBody(selectQuery, SELECT_UNITS_QUERY_NULL.getMessage()).withJson())) {
+        try (Response response = make(
+            get().withPath("/units").withBody(selectQuery, SELECT_UNITS_QUERY_NULL.getMessage()).withJson())) {
             check(response);
             return response.readEntity(JsonNode.class);
         } catch (MetaDataNotFoundException | VitamClientInternalException e) {
@@ -118,7 +118,9 @@ public class MetaDataClientRest extends DefaultClient implements MetaDataClient 
     public JsonNode selectObjectGroups(JsonNode selectQuery)
         throws MetaDataExecutionException, MetaDataDocumentSizeException, InvalidParseOperationException,
         MetaDataClientServerException {
-        try (Response response = make(get().withPath("/objectgroups").withBody(selectQuery, SELECT_OBJECT_GROUP_QUERY_NULL.getMessage()).withJson())) {
+        try (Response response = make(
+            get().withPath("/objectgroups").withBody(selectQuery, SELECT_OBJECT_GROUP_QUERY_NULL.getMessage())
+                .withJson())) {
             check(response);
             return response.readEntity(JsonNode.class);
         } catch (MetaDataNotFoundException | VitamClientInternalException e) {
@@ -133,7 +135,8 @@ public class MetaDataClientRest extends DefaultClient implements MetaDataClient 
         if (Strings.isNullOrEmpty(unitId)) {
             throw new InvalidParseOperationException("unitId MUST NOT be empty.");
         }
-        try (Response response = make(get().withPath("/units/" + unitId).withBody(selectQuery, "selectQuery MUST NOT be empty.").withJson())) {
+        try (Response response = make(
+            get().withPath("/units/" + unitId).withBody(selectQuery, "selectQuery MUST NOT be empty.").withJson())) {
             check(response);
             return response.readEntity(JsonNode.class);
         } catch (MetaDataNotFoundException | VitamClientInternalException e) {
@@ -143,11 +146,13 @@ public class MetaDataClientRest extends DefaultClient implements MetaDataClient 
 
     @Override
     public JsonNode selectObjectGrouptbyId(JsonNode selectQuery, String objectGroupId)
-        throws MetaDataExecutionException, MetaDataNotFoundException, MetaDataDocumentSizeException, InvalidParseOperationException, MetaDataClientServerException {
+        throws MetaDataExecutionException, MetaDataNotFoundException, MetaDataDocumentSizeException,
+        InvalidParseOperationException, MetaDataClientServerException {
         if (Strings.isNullOrEmpty(objectGroupId)) {
             throw new InvalidParseOperationException("objectGroupId may not be empty");
         }
-        try (Response response = make(get().withPath("/objectgroups/" + objectGroupId).withBody(selectQuery, SELECT_OBJECT_GROUP_QUERY_NULL.getMessage()).withJson())) {
+        try (Response response = make(get().withPath("/objectgroups/" + objectGroupId)
+            .withBody(selectQuery, SELECT_OBJECT_GROUP_QUERY_NULL.getMessage()).withJson())) {
             check(response);
             return response.readEntity(JsonNode.class);
         } catch (IllegalArgumentException e) {
@@ -166,8 +171,9 @@ public class MetaDataClientRest extends DefaultClient implements MetaDataClient 
             throw new InvalidParseOperationException("unitId MUST NOT be empty.");
         }
         Response response = null;
-        try  {
-            response = make(put().withJson().withPath("/units/" + unitId).withBody(updateQuery, ErrorMessage.UPDATE_UNITS_QUERY_NULL.getMessage()));
+        try {
+            response = make(put().withJson().withPath("/units/" + unitId)
+                .withBody(updateQuery, ErrorMessage.UPDATE_UNITS_QUERY_NULL.getMessage()));
             check(response);
             return response.readEntity(JsonNode.class);
         } catch (InvalidParseOperationException e) {
@@ -189,7 +195,8 @@ public class MetaDataClientRest extends DefaultClient implements MetaDataClient 
     public JsonNode insertObjectGroup(JsonNode insertQuery)
         throws InvalidParseOperationException, MetaDataExecutionException, MetaDataNotFoundException,
         MetaDataDocumentSizeException, MetaDataClientServerException {
-        try (Response response = make(post().withJson().withPath("/objectgroups").withBody(insertQuery, "Insert Request is a mandatory parameter"))) {
+        try (Response response = make(post().withJson().withPath("/objectgroups")
+            .withBody(insertQuery, "Insert Request is a mandatory parameter"))) {
             check(response);
             return response.readEntity(JsonNode.class);
         } catch (VitamClientInternalException e) {
@@ -201,7 +208,8 @@ public class MetaDataClientRest extends DefaultClient implements MetaDataClient 
     public JsonNode insertObjectGroups(List<JsonNode> insertQueries)
         throws InvalidParseOperationException, MetaDataExecutionException, MetaDataNotFoundException,
         MetaDataDocumentSizeException, MetaDataClientServerException {
-        try (Response response = make(post().withJson().withPath("/objectgroups/bulk").withBody(insertQueries, "Insert Request is a mandatory parameter"))) {
+        try (Response response = make(post().withJson().withPath("/objectgroups/bulk")
+            .withBody(insertQueries, "Insert Request is a mandatory parameter"))) {
             check(response);
             return response.readEntity(JsonNode.class);
         } catch (VitamClientInternalException e) {
@@ -211,11 +219,13 @@ public class MetaDataClientRest extends DefaultClient implements MetaDataClient 
 
 
     @Override
-    public void updateObjectGroupById(JsonNode queryUpdate, String objectGroupId) throws InvalidParseOperationException, MetaDataClientServerException, MetaDataExecutionException {
+    public void updateObjectGroupById(JsonNode queryUpdate, String objectGroupId)
+        throws InvalidParseOperationException, MetaDataClientServerException, MetaDataExecutionException {
         if (Strings.isNullOrEmpty(objectGroupId)) {
             throw new InvalidParseOperationException("objectGroupId may not be empty");
         }
-        try (Response response = make(put().withJson().withPath("/objectgroups/" + objectGroupId).withBody(queryUpdate, ErrorMessage.UPDATE_UNITS_QUERY_NULL.getMessage()))) {
+        try (Response response = make(put().withJson().withPath("/objectgroups/" + objectGroupId)
+            .withBody(queryUpdate, ErrorMessage.UPDATE_UNITS_QUERY_NULL.getMessage()))) {
             check(response);
         } catch (MetaDataDocumentSizeException | MetaDataNotFoundException | VitamClientInternalException e) {
             throw new MetaDataClientServerException(e);
@@ -294,8 +304,10 @@ public class MetaDataClientRest extends DefaultClient implements MetaDataClient 
     }
 
     @Override
-    public JsonNode reindex(IndexParameters indexParam) throws InvalidParseOperationException, MetaDataClientServerException, MetaDataNotFoundException {
-        try (Response response = make(post().withJson().withPath(REINDEX_URI).withBody(indexParam, "The options are mandatory"))) {
+    public JsonNode reindex(IndexParameters indexParam)
+        throws InvalidParseOperationException, MetaDataClientServerException, MetaDataNotFoundException {
+        try (Response response = make(
+            post().withJson().withPath(REINDEX_URI).withBody(indexParam, "The options are mandatory"))) {
             check(response);
             return response.readEntity(JsonNode.class);
         } catch (MetaDataExecutionException | MetaDataDocumentSizeException | VitamClientInternalException e) {
@@ -304,8 +316,10 @@ public class MetaDataClientRest extends DefaultClient implements MetaDataClient 
     }
 
     @Override
-    public JsonNode switchIndexes(SwitchIndexParameters switchIndexParam) throws InvalidParseOperationException, MetaDataClientServerException, MetaDataNotFoundException {
-        try (Response response = make(post().withJson().withPath(ALIASES_URI).withBody(switchIndexParam, "The options are mandatory"))) {
+    public JsonNode switchIndexes(SwitchIndexParameters switchIndexParam)
+        throws InvalidParseOperationException, MetaDataClientServerException, MetaDataNotFoundException {
+        try (Response response = make(
+            post().withJson().withPath(ALIASES_URI).withBody(switchIndexParam, "The options are mandatory"))) {
             check(response);
             return response.readEntity(JsonNode.class);
         } catch (MetaDataExecutionException | MetaDataDocumentSizeException | VitamClientInternalException e) {
@@ -333,7 +347,8 @@ public class MetaDataClientRest extends DefaultClient implements MetaDataClient 
 
     @Override
     public RequestResponse<JsonNode> getUnitsByIdsRaw(Collection<String> unitIds) throws VitamClientException {
-        try (Response response = make(get().withJson().withPath("/raw/units").withBody(unitIds, "The unit ids are mandatory"))) {
+        try (Response response = make(
+            get().withJson().withPath("/raw/units").withBody(unitIds, "The unit ids are mandatory"))) {
             check(response);
             return RequestResponse.parseFromResponse(response, JsonNode.class);
         } catch (InvalidParseOperationException | MetaDataExecutionException | MetaDataDocumentSizeException | MetaDataClientServerException | MetaDataNotFoundException e) {
@@ -360,8 +375,10 @@ public class MetaDataClientRest extends DefaultClient implements MetaDataClient 
     }
 
     @Override
-    public RequestResponse<JsonNode> getObjectGroupsByIdsRaw(Collection<String> objectGroupId) throws VitamClientException {
-        try (Response response = make(get().withJson().withPath("/raw/objectgroups").withBody(objectGroupId, "The object group ids are mandatory"))) {
+    public RequestResponse<JsonNode> getObjectGroupsByIdsRaw(Collection<String> objectGroupId)
+        throws VitamClientException {
+        try (Response response = make(get().withJson().withPath("/raw/objectgroups")
+            .withBody(objectGroupId, "The object group ids are mandatory"))) {
             check(response);
             return RequestResponse.parseFromResponse(response, JsonNode.class);
         } catch (InvalidParseOperationException | MetaDataExecutionException | MetaDataDocumentSizeException | MetaDataClientServerException | MetaDataNotFoundException e) {
@@ -371,7 +388,8 @@ public class MetaDataClientRest extends DefaultClient implements MetaDataClient 
 
     @Override
     public GraphComputeResponse computeGraph(JsonNode queryDsl) throws VitamClientException {
-        try (Response response = make(post().withJson().withPath(COMPUTE_GRAPH_URI).withBody( queryDsl, "The queryDsl is mandatory"))) {
+        try (Response response = make(
+            post().withJson().withPath(COMPUTE_GRAPH_URI).withBody(queryDsl, "The queryDsl is mandatory"))) {
             check(response);
             return response.readEntity(GraphComputeResponse.class);
         } catch (InvalidParseOperationException | MetaDataExecutionException | MetaDataDocumentSizeException | MetaDataClientServerException | MetaDataNotFoundException e) {
@@ -382,7 +400,8 @@ public class MetaDataClientRest extends DefaultClient implements MetaDataClient 
     @Override
     public GraphComputeResponse computeGraph(GraphComputeResponse.GraphComputeAction action, Set<String> ids)
         throws VitamClientException {
-        try (Response response = make(post().withJson().withPath(COMPUTE_GRAPH_URI + "/" + action.name()).withBody(ids, "All params are mandatory"))) {
+        try (Response response = make(post().withJson().withPath(COMPUTE_GRAPH_URI + "/" + action.name())
+            .withBody(ids, "All params are mandatory"))) {
             check(response);
             return response.readEntity(GraphComputeResponse.class);
         } catch (InvalidParseOperationException | MetaDataExecutionException | MetaDataDocumentSizeException | MetaDataClientServerException | MetaDataNotFoundException e) {
@@ -392,10 +411,13 @@ public class MetaDataClientRest extends DefaultClient implements MetaDataClient 
 
     @Override
     public void exportReclassificationChildNodes(Set<String> ids, String unitsToUpdateJsonLineFileName,
-                                                 String objectGroupsToUpdateJsonLineFileName)
+        String objectGroupsToUpdateJsonLineFileName)
         throws VitamClientException, MetaDataExecutionException {
-        ReclassificationChildNodeExportRequest reclassificationChildNodeExportRequest = new ReclassificationChildNodeExportRequest(ids, unitsToUpdateJsonLineFileName, objectGroupsToUpdateJsonLineFileName);
-        try (Response response = make(post().withJson().withPath("exportReclassificationChildNodes").withBody(reclassificationChildNodeExportRequest, "All params are mandatory"))) {
+        ReclassificationChildNodeExportRequest reclassificationChildNodeExportRequest =
+            new ReclassificationChildNodeExportRequest(ids, unitsToUpdateJsonLineFileName,
+                objectGroupsToUpdateJsonLineFileName);
+        try (Response response = make(post().withJson().withPath("exportReclassificationChildNodes")
+            .withBody(reclassificationChildNodeExportRequest, "All params are mandatory"))) {
             check(response);
         } catch (InvalidParseOperationException | MetaDataDocumentSizeException | MetaDataClientServerException | MetaDataNotFoundException e) {
             throw new MetaDataExecutionException(e);
@@ -403,8 +425,10 @@ public class MetaDataClientRest extends DefaultClient implements MetaDataClient 
     }
 
     @Override
-    public void deleteUnitsBulk(Collection<String> listIds) throws MetaDataExecutionException, MetaDataClientServerException {
-        try (Response response = make(delete().withJson().withPath("/units/bulkDelete").withBody(listIds, INSERT_UNITS_QUERY_NULL.getMessage()))) {
+    public void deleteUnitsBulk(Collection<String> listIds)
+        throws MetaDataExecutionException, MetaDataClientServerException {
+        try (Response response = make(delete().withJson().withPath("/units/bulkDelete")
+            .withBody(listIds, INSERT_UNITS_QUERY_NULL.getMessage()))) {
             check(response);
         } catch (InvalidParseOperationException | MetaDataDocumentSizeException | MetaDataNotFoundException | VitamClientInternalException e) {
             throw new MetaDataClientServerException(e);
@@ -414,30 +438,19 @@ public class MetaDataClientRest extends DefaultClient implements MetaDataClient 
     @Override
     public void deleteObjectGroupBulk(Collection<String> listIds)
         throws MetaDataExecutionException, MetaDataClientServerException {
-        try (Response response = make(delete().withJson().withPath("/objectGroups/bulkDelete").withBody(listIds, INSERT_UNITS_QUERY_NULL.getMessage()))) {
+        try (Response response = make(delete().withJson().withPath("/objectGroups/bulkDelete")
+            .withBody(listIds, INSERT_UNITS_QUERY_NULL.getMessage()))) {
             check(response);
         } catch (InvalidParseOperationException | MetaDataDocumentSizeException | MetaDataNotFoundException | VitamClientInternalException e) {
             throw new MetaDataClientServerException(e);
         }
     }
 
-    @Override
-    public Response startComputeInheritedRules(JsonNode dslQuery) throws MetaDataClientServerException {
-        try {
-            return make(post()
-                .withJson()
-                .withPath("/units/computedInheritedRules")
-                .withHeader(X_ACCESS_CONTRAT_ID, VitamThreadUtils.getVitamSession().getContractId())
-                .withBody(dslQuery, "DslQuery cannot be null."));
-        } catch (VitamClientInternalException e) {
-            throw new MetaDataClientServerException(INTERNAL_SERVER_ERROR, e);
-        }
-    }
-
     public RequestResponse<JsonNode> updateUnitBulk(JsonNode updateQuery)
         throws InvalidParseOperationException, MetaDataExecutionException, MetaDataNotFoundException,
         MetaDataDocumentSizeException, MetaDataClientServerException {
-        try (Response response = make(post().withJson().withPath("/units/updatebulk").withBody(updateQuery, INSERT_UNITS_QUERY_NULL.getMessage()))) {
+        try (Response response = make(post().withJson().withPath("/units/updatebulk")
+            .withBody(updateQuery, INSERT_UNITS_QUERY_NULL.getMessage()))) {
             check(response);
             return RequestResponse.parseFromResponse(response);
         } catch (VitamClientInternalException e) {
@@ -446,11 +459,13 @@ public class MetaDataClientRest extends DefaultClient implements MetaDataClient 
     }
 
     @Override
-    public RequestResponse<JsonNode> updateUnitsRulesBulk(List<String> unitsIds, RuleActions actions, Map<String, DurationData> rulesToDurationData)
-            throws InvalidParseOperationException, MetaDataExecutionException, MetaDataNotFoundException,
-            MetaDataDocumentSizeException, MetaDataClientServerException {
+    public RequestResponse<JsonNode> updateUnitsRulesBulk(List<String> unitsIds, RuleActions actions,
+        Map<String, DurationData> rulesToDurationData)
+        throws InvalidParseOperationException, MetaDataExecutionException, MetaDataNotFoundException,
+        MetaDataDocumentSizeException, MetaDataClientServerException {
         BatchRulesUpdateInfo requestContext = new BatchRulesUpdateInfo(unitsIds, actions, rulesToDurationData);
-        try (Response response = make(post().withJson().withPath("/units/updaterulesbulk").withBody(JsonHandler.toJsonNode(requestContext), INSERT_UNITS_QUERY_NULL.getMessage()))) {
+        try (Response response = make(post().withJson().withPath("/units/updaterulesbulk")
+            .withBody(JsonHandler.toJsonNode(requestContext), INSERT_UNITS_QUERY_NULL.getMessage()))) {
             check(response);
             return RequestResponse.parseFromResponse(response);
         } catch (VitamClientInternalException e) {
@@ -462,7 +477,8 @@ public class MetaDataClientRest extends DefaultClient implements MetaDataClient 
     public JsonNode selectUnitsWithInheritedRules(JsonNode selectQuery)
         throws MetaDataDocumentSizeException, InvalidParseOperationException,
         MetaDataClientServerException, MetaDataExecutionException {
-        try (Response response = make(get().withJson().withPath("/unitsWithInheritedRules").withBody(selectQuery, SELECT_UNITS_QUERY_NULL.getMessage()))) {
+        try (Response response = make(get().withJson().withPath("/unitsWithInheritedRules")
+            .withBody(selectQuery, SELECT_UNITS_QUERY_NULL.getMessage()))) {
             check(response);
             return response.readEntity(JsonNode.class);
         } catch (MetaDataNotFoundException | VitamClientInternalException e) {
@@ -482,7 +498,8 @@ public class MetaDataClientRest extends DefaultClient implements MetaDataClient 
     }
 
     private void check(Response response)
-        throws MetaDataExecutionException, MetaDataNotFoundException, MetaDataDocumentSizeException, InvalidParseOperationException,
+        throws MetaDataExecutionException, MetaDataNotFoundException, MetaDataDocumentSizeException,
+        InvalidParseOperationException,
         MetaDataClientServerException {
         Status status = response.getStatusInfo().toEnum();
         if (SUCCESSFUL.equals(status.getFamily()) || REDIRECTION.equals(status.getFamily())) {

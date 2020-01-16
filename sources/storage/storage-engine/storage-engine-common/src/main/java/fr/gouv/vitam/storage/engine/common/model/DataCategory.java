@@ -147,7 +147,11 @@ public enum DataCategory {
     /**
      * Accession Register Detail
      */
-    ACCESSION_REGISTER_SYMBOLIC("accessionregisterssymbolic", "accessionregistersymbolic", true, true);
+    ACCESSION_REGISTER_SYMBOLIC("accessionregisterssymbolic", "accessionregistersymbolic", true, true),
+    /**
+     *
+     */
+    TMP("tmp", "tmp", true, true);
 
     /**
      * Collection name

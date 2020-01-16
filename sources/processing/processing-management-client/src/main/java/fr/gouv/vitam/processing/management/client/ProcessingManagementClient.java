@@ -231,6 +231,4 @@ public interface ProcessingManagementClient extends MockOrRestClient {
      */
     RequestResponse<ProcessDetail> listOperationsDetails(ProcessQuery query)
         throws VitamClientException;
-
-    ;
 }

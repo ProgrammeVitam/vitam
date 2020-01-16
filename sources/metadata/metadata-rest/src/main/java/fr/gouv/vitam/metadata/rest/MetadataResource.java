@@ -28,7 +28,6 @@ package fr.gouv.vitam.metadata.rest;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
-import com.fasterxml.jackson.databind.node.ObjectNode;
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.database.index.model.IndexationResult;
 import fr.gouv.vitam.common.database.parameter.IndexParameters;
@@ -38,37 +37,21 @@ import fr.gouv.vitam.common.error.VitamCodeHelper;
 import fr.gouv.vitam.common.error.VitamError;
 import fr.gouv.vitam.common.exception.BadRequestException;
 import fr.gouv.vitam.common.exception.DatabaseException;
-import fr.gouv.vitam.common.exception.InternalServerException;
-import fr.gouv.vitam.common.exception.InvalidGuidOperationException;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
-import fr.gouv.vitam.common.exception.VitamClientException;
 import fr.gouv.vitam.common.exception.VitamDBException;
 import fr.gouv.vitam.common.exception.VitamThreadAccessException;
-import fr.gouv.vitam.common.guid.GUIDReader;
-import fr.gouv.vitam.common.i18n.VitamLogbookMessages;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.BatchRulesUpdateInfo;
 import fr.gouv.vitam.common.model.FacetBucket;
-import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.RequestResponse;
-import fr.gouv.vitam.common.model.RequestResponseError;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.server.application.resources.ApplicationStatusResource;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.functional.administration.common.server.AccessionRegisterSymbolic;
-import fr.gouv.vitam.logbook.common.exception.LogbookClientAlreadyExistsException;
-import fr.gouv.vitam.logbook.common.exception.LogbookClientBadRequestException;
-import fr.gouv.vitam.logbook.common.exception.LogbookClientServerException;
-import fr.gouv.vitam.logbook.common.parameters.LogbookOperationParameters;
-import fr.gouv.vitam.logbook.common.parameters.LogbookParameterName;
-import fr.gouv.vitam.logbook.common.parameters.LogbookParametersFactory;
-import fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess;
-import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClient;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClientFactory;
 import fr.gouv.vitam.metadata.api.config.MetaDataConfiguration;
-import fr.gouv.vitam.metadata.api.exception.MetaDataAlreadyExistException;
 import fr.gouv.vitam.metadata.api.exception.MetaDataDocumentSizeException;
 import fr.gouv.vitam.metadata.api.exception.MetaDataExecutionException;
 import fr.gouv.vitam.metadata.api.exception.MetaDataNotFoundException;
@@ -78,11 +61,7 @@ import fr.gouv.vitam.metadata.core.MetaDataImpl;
 import fr.gouv.vitam.metadata.core.model.UpdateUnit;
 import fr.gouv.vitam.metadata.core.rules.MetadataRuleService;
 import fr.gouv.vitam.metadata.core.validation.MetadataValidationException;
-import fr.gouv.vitam.processing.common.ProcessingEntry;
-import fr.gouv.vitam.processing.management.client.ProcessingManagementClient;
 import fr.gouv.vitam.processing.management.client.ProcessingManagementClientFactory;
-import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
-import fr.gouv.vitam.workspace.client.WorkspaceClient;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
 import org.elasticsearch.ElasticsearchParseException;
 
@@ -99,12 +78,6 @@ import javax.ws.rs.core.Response.Status;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import static fr.gouv.vitam.common.json.JsonHandler.writeToInpustream;
-import static fr.gouv.vitam.common.model.ProcessAction.RESUME;
-import static fr.gouv.vitam.common.model.StatusCode.STARTED;
-import static fr.gouv.vitam.common.thread.VitamThreadUtils.getVitamSession;
-import static fr.gouv.vitam.logbook.common.parameters.Contexts.COMPUTE_INHERITED_RULES;
-import static fr.gouv.vitam.logbook.common.parameters.Contexts.PRESERVATION;
 import static javax.ws.rs.core.MediaType.APPLICATION_JSON;
 import static javax.ws.rs.core.Response.Status.INTERNAL_SERVER_ERROR;
 import static javax.ws.rs.core.Response.Status.OK;
@@ -138,7 +111,8 @@ public class MetadataResource extends ApplicationStatusResource {
      * @param metaData
      * @param metadataRuleService
      */
-    MetadataResource(MetaDataImpl metaData, MetadataRuleService metadataRuleService, MetaDataConfiguration configuration) {
+    MetadataResource(MetaDataImpl metaData, MetadataRuleService metadataRuleService,
+        MetaDataConfiguration configuration) {
         this(metaData,
             metadataRuleService,
             ProcessingManagementClientFactory.getInstance(),
@@ -518,94 +492,6 @@ public class MetadataResource extends ApplicationStatusResource {
                     .setDescription(e.getMessage()))
                 .build();
         }
-    }
-
-    // FIXME: 15/09/2019 workflow should be init/start from internals or functional admin
-    @Path("/units/computedInheritedRules")
-    @POST
-    @Consumes(APPLICATION_JSON)
-    @Produces(APPLICATION_JSON)
-    public Response computedInheritedRulesCalculation(JsonNode dslQuery) {
-        ParametersChecker.checkParameter("Missing request", dslQuery);
-
-        String operationId = getVitamSession().getRequestId();
-
-        try (ProcessingManagementClient processingClient = processingManagementClientFactory.getClient();
-            LogbookOperationsClient logbookOperationsClient = logbookOperationsClientFactory.getClient();
-            WorkspaceClient workspaceClient = workspaceClientFactory.getClient()) {
-            String message = VitamLogbookMessages.getLabelOp(COMPUTE_INHERITED_RULES.getEventType() + ".STARTED") + " : " +
-                GUIDReader.getGUID(operationId);
-            LogbookOperationParameters initParameters = LogbookParametersFactory.newLogbookOperationParameters(
-                GUIDReader.getGUID(operationId),
-                COMPUTE_INHERITED_RULES.getEventType(),
-                GUIDReader.getGUID(operationId),
-                LogbookTypeProcess.COMPUTE_INHERITED_RULES,
-                STARTED,
-                message,
-                GUIDReader.getGUID(operationId)
-            );
-            addRightsStatementIdentifier(initParameters);
-            logbookOperationsClient.create(initParameters);
-
-            workspaceClient.createContainer(operationId);
-
-            workspaceClient.putObject(operationId, "query.json", writeToInpustream(dslQuery));
-
-            processingClient.initVitamProcess(new ProcessingEntry(operationId, COMPUTE_INHERITED_RULES.name()));
-
-            RequestResponse<ItemStatus> response = processingClient.executeOperationProcess(operationId, COMPUTE_INHERITED_RULES.name(), RESUME.getValue());
-            return response.toResponse();
-        } catch (BadRequestException e) {
-            return buildErrorResponse(VitamCode.GLOBAL_EMPTY_QUERY, null);
-        } catch (InvalidGuidOperationException | LogbookClientBadRequestException | LogbookClientAlreadyExistsException |
-            LogbookClientServerException | ContentAddressableStorageServerException |
-            InvalidParseOperationException | InternalServerException | VitamClientException e) {
-            LOGGER.error(e);
-            return Response.status(INTERNAL_SERVER_ERROR)
-                .entity(getErrorEntity(INTERNAL_SERVER_ERROR,
-                    String.format("An error occurred during %s workflow", PRESERVATION.getEventType())))
-                .build();
-        }
-    }
-
-    private void addRightsStatementIdentifier(LogbookOperationParameters initParameters) {
-        ObjectNode rightsStatementIdentifier = JsonHandler.createObjectNode();
-        rightsStatementIdentifier.put(ACCESS_CONTRACT, getVitamSession().getContractId());
-        initParameters.putParameterValue(LogbookParameterName.rightsStatementIdentifier,
-            rightsStatementIdentifier.toString());
-    }
-
-    private VitamError getErrorEntity(Status status, String message) {
-        String msg = getErrorStreamMessage(status, message);
-        return new VitamError(status.name())
-            .setHttpCode(status.getStatusCode())
-            .setContext(CONTEXT_METADATA)
-            .setState(CODE_VITAM)
-            .setMessage(msg);
-    }
-
-    private String getErrorStreamMessage(Status status, String message) {
-        if (message != null && !message.trim().isEmpty()) {
-            return message;
-        }
-
-        if (status.getReasonPhrase() != null) {
-            return status.getReasonPhrase();
-        }
-
-        return status.name();
-    }
-
-    private Response buildErrorResponse(VitamCode vitamCode, String description) {
-        if (description == null) {
-            description = vitamCode.getMessage();
-        }
-
-        return Response.status(vitamCode.getStatus())
-            .entity(new RequestResponseError().setError(new VitamError(VitamCodeHelper.getCode(vitamCode))
-                .setContext(vitamCode.getService().getName()).setState(vitamCode.getDomain().getName())
-                .setMessage(vitamCode.getMessage()).setDescription(description)).toString())
-            .build();
     }
 
     /**

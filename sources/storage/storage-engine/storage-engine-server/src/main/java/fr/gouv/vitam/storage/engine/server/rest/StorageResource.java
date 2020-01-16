@@ -996,6 +996,43 @@ public class StorageResource extends ApplicationStatusResource implements VitamA
         return createObjectByType(headers, id, description, ARCHIVAL_TRANSFER_REPLY, httpServletRequest.getRemoteAddr());
     }
 
+
+    @POST
+    @Path("/tmp/{id}")
+    @Produces(MediaType.APPLICATION_JSON)
+    @Consumes(MediaType.APPLICATION_JSON)
+    public Response storeTemporaryFile(@Context HttpServletRequest httpServletRequest, @Context HttpHeaders headers, @PathParam("id") String id, ObjectDescription description) {
+        return createObjectByType(headers, id, description, DataCategory.TMP, httpServletRequest.getRemoteAddr());
+    }
+
+
+    @Path("/tmp/{file_name}")
+    @GET
+    @Produces({MediaType.APPLICATION_OCTET_STREAM})
+    public Response getTemporaryFile(@Context HttpHeaders headers,
+        @PathParam("file_name") String file_name) {
+        VitamCode vitamCode = checkTenantAndHeaders(headers, VitamHttpHeader.STRATEGY_ID);
+        if (vitamCode != null) {
+            return buildErrorResponse(vitamCode);
+        }
+        String strategyId = HttpHeaderHelper.getHeaderValues(headers, VitamHttpHeader.STRATEGY_ID).get(0);
+
+        try {
+            return new VitamAsyncInputStreamResponse(
+                getByCategory(file_name, DataCategory.TMP, strategyId, vitamCode,
+                    AccessLogUtils.getNoLogAccessLog()),
+                Status.OK, MediaType.APPLICATION_OCTET_STREAM_TYPE);
+        } catch (final StorageNotFoundException exc) {
+            LOGGER.error(exc);
+            vitamCode = VitamCode.STORAGE_NOT_FOUND;
+        } catch (final StorageException exc) {
+            LOGGER.error(exc);
+            vitamCode = VitamCode.STORAGE_TECHNICAL_INTERNAL_ERROR;
+        }
+        return buildErrorResponse(vitamCode);
+    }
+
+
     /**
      * Post a new object
      *
