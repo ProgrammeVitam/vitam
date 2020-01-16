@@ -1,0 +1,13 @@
+
+// Switch to logbook database
+db = db.getSiblingDB('logbook')
+db.Offset.updateMany({ 'strategy': { $exists: false } }, { $set: { 'strategy': 'default' } })
+
+// Switch to metadata database
+db = db.getSiblingDB('metadata')
+db.Offset.updateMany({ 'strategy': { $exists: false } }, { $set: { 'strategy': 'default' } })
+
+// Switch to masterdata database
+db = db.getSiblingDB('masterdata')
+db.Offset.updateMany({ 'strategy': { $exists: false } }, { $set: { 'strategy': 'default' } })
+
