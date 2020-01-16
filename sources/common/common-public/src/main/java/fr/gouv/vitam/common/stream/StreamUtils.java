@@ -229,7 +229,6 @@ public class StreamUtils {
         try (InputStreamReader isr = new InputStreamReader(inputStream, Charsets.UTF_8);) {
             return CharStreams.toString(isr);
         } catch (IOException e) {
-            LOGGER.error(e);
             throw e;
         } finally {
             closeSilently(inputStream);
