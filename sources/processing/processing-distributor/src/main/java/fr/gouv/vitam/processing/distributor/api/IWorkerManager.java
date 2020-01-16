@@ -28,7 +28,7 @@ import fr.gouv.vitam.processing.common.exception.WorkerFamilyNotFoundException;
 import fr.gouv.vitam.processing.common.exception.WorkerNotFoundException;
 import fr.gouv.vitam.processing.common.model.WorkerBean;
 import fr.gouv.vitam.processing.common.model.WorkerRemoteConfiguration;
-import fr.gouv.vitam.processing.distributor.v2.WorkerFamilyManager;
+import fr.gouv.vitam.processing.distributor.core.WorkerFamilyManager;
 
 import java.io.File;
 import java.util.List;

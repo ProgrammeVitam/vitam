@@ -25,7 +25,7 @@
  *  accept its terms.
  */
 
-package fr.gouv.vitam.processing.distributor.v2;
+package fr.gouv.vitam.processing.distributor.core;
 
 import java.util.concurrent.BlockingQueue;
 import java.util.stream.IntStream;
