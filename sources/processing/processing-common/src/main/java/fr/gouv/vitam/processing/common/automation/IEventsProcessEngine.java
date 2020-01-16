@@ -46,9 +46,9 @@ public interface IEventsProcessEngine {
 
     /**
      * @param messageIdentifier
-     * @param prodService
+     * @param originatingAgency
      */
-    void onUpdate(String messageIdentifier, String prodService);
+    void onUpdate(String messageIdentifier, String originatingAgency);
 
     /**
      * The ProcessEngine callback on complete step (for any status code)
@@ -70,7 +70,6 @@ public interface IEventsProcessEngine {
      * The ProcessEngine callback on system error occurred
      *
      * @param throwable
-     * @param workerParameters
      */
-    void onError(Throwable throwable, WorkerParameters workerParameters);
+    void onError(Throwable throwable);
 }

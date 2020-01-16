@@ -19,8 +19,6 @@
 package fr.gouv.vitam.processing.management.core;
 
 import com.google.common.annotations.VisibleForTesting;
-import com.google.common.collect.Maps;
-import fr.gouv.vitam.common.SedaConstants;
 import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.StateNotAllowedException;
@@ -51,6 +49,7 @@ import fr.gouv.vitam.processing.common.model.PauseRecover;
 import fr.gouv.vitam.processing.common.model.ProcessStep;
 import fr.gouv.vitam.processing.common.model.ProcessWorkflow;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
+import fr.gouv.vitam.processing.common.parameter.WorkerParametersFactory;
 import fr.gouv.vitam.processing.data.core.management.ProcessDataManagement;
 import fr.gouv.vitam.processing.data.core.management.WorkspaceProcessDataManagement;
 import fr.gouv.vitam.processing.distributor.api.ProcessDistributor;
@@ -61,12 +60,11 @@ import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
 import java.time.LocalDateTime;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 
 /**
- * State Machine class implementing the Interface. Dealing with evolution of workflows
+ * State Machine class implementing the Interface. Dealing with evolution of workflow
  */
 public class StateMachine implements IEventsState, IEventsProcessEngine {
 
@@ -86,17 +84,13 @@ public class StateMachine implements IEventsState, IEventsProcessEngine {
     private ProcessStep currentStep = null;
     private boolean stepByStep = false;
 
+    private PauseOrCancelAction pauseCancelAction = PauseOrCancelAction.ACTION_RUN;
     private StatusCode status = StatusCode.UNKNOWN;
 
     private ProcessState state;
     private volatile ProcessState targetState = null;
-    private PauseOrCancelAction pauseCancelAction = PauseOrCancelAction.ACTION_RUN;
 
     private CompletableFuture<Boolean> waitMonitor;
-
-    private Map<String, String> engineParams = Maps.newHashMap();
-    private String messageIdentifier;
-    private String prodService;
 
     private WorkspaceClientFactory workspaceClientFactory;
     private LogbookOperationsClientFactory logbookOperationsClientFactory;
@@ -122,8 +116,6 @@ public class StateMachine implements IEventsState, IEventsProcessEngine {
 
         this.processWorkflow = processWorkflow;
         this.state = processWorkflow.getState();
-        this.messageIdentifier = processWorkflow.getMessageIdentifier();
-        this.prodService = processWorkflow.getProdService();
         this.steps = processWorkflow.getSteps();
         this.processEngine = processEngine;
         this.dataManagement = dataManagement;
@@ -199,12 +191,12 @@ public class StateMachine implements IEventsState, IEventsProcessEngine {
     }
 
     @Override
-    public void shutdown() throws StateNotAllowedException {
+    public void shutdown() {
         this.doPause(PauseRecover.RECOVER_FROM_SERVER_PAUSE);
     }
 
     @Override
-    synchronized public void cancel() throws StateNotAllowedException, ProcessingException {
+    synchronized public void cancel() throws StateNotAllowedException {
         this.state.eval(ProcessState.COMPLETED);
         doCompleted();
     }
@@ -245,10 +237,8 @@ public class StateMachine implements IEventsState, IEventsProcessEngine {
      * completed
      *
      * @param pauseRecover if RECOVER_FROM_SERVER_PAUSE then wait until pause is done
-     * @throws StateNotAllowedException
      */
-    protected void doPause(PauseRecover pauseRecover)
-        throws StateNotAllowedException {
+    protected void doPause(PauseRecover pauseRecover) {
         if (PauseRecover.RECOVER_FROM_SERVER_PAUSE.equals(pauseRecover)) {
             this.waitMonitor = new CompletableFuture<>();
         }
@@ -353,7 +343,9 @@ public class StateMachine implements IEventsState, IEventsProcessEngine {
                 this.persistProcessWorkflow();
             } else {
                 state = ProcessState.RUNNING;
-                this.executeFinallyStep(null);
+                final WorkerParameters workerParameters =
+                    WorkerParametersFactory.newWorkerParameters().setMap(processWorkflow.getParameters());
+                this.executeFinallyStep(workerParameters);
             }
         }
 
@@ -494,13 +486,11 @@ public class StateMachine implements IEventsState, IEventsProcessEngine {
         }
 
         if (null != currentStep) {
-            engineParams.put(SedaConstants.TAG_MESSAGE_IDENTIFIER, messageIdentifier);
-            engineParams.put(SedaConstants.TAG_ORIGINATINGAGENCY, prodService);
             try {
                 workerParameters.setPreviousStep(backwards ? currentStep.getStepName() : null);
-                this.processEngine.start(currentStep, workerParameters, engineParams, pauseRecover);
+                this.processEngine.start(currentStep, workerParameters, pauseRecover);
             } catch (ProcessingEngineException e) {
-                onError(e, workerParameters);
+                onError(e);
             }
         }
     }
@@ -521,12 +511,10 @@ public class StateMachine implements IEventsState, IEventsProcessEngine {
         stepIndex = stepTotal - 1;
         currentStep = steps.get(stepTotal - 1);
         if (null != currentStep) {
-            engineParams.put(SedaConstants.TAG_MESSAGE_IDENTIFIER, messageIdentifier);
-            engineParams.put(SedaConstants.TAG_ORIGINATINGAGENCY, prodService);
             try {
-                this.processEngine.start(currentStep, workerParameters, engineParams, PauseRecover.NO_RECOVER);
+                this.processEngine.start(currentStep, workerParameters, PauseRecover.NO_RECOVER);
             } catch (Exception e) {
-                onError(e, workerParameters);
+                onError(e);
             }
         }
     }
@@ -573,15 +561,18 @@ public class StateMachine implements IEventsState, IEventsProcessEngine {
     }
 
     @Override
-    synchronized public void onUpdate(String messageIdentifier, String prodService) {
-        if (null != messageIdentifier)
-            this.messageIdentifier = messageIdentifier;
-        if (null != prodService)
-            this.prodService = prodService;
+    synchronized public void onUpdate(String messageIdentifier, String originatingAgency) {
+        if (null != messageIdentifier) {
+            this.processWorkflow.setMessageIdentifier(messageIdentifier);
+        }
+
+        if (null != originatingAgency) {
+            this.processWorkflow.setProdService(originatingAgency);
+        }
     }
 
     @Override
-    synchronized public void onError(Throwable throwable, WorkerParameters workerParameters) {
+    synchronized public void onError(Throwable throwable) {
         LOGGER.error("Error in Engine", throwable);
         status = StatusCode.FATAL;
 
@@ -681,8 +672,6 @@ public class StateMachine implements IEventsState, IEventsProcessEngine {
             } finally {
                 this.persistProcessWorkflow();
             }
-
-            engineParams.clear();
         }
     }
 
@@ -734,8 +723,6 @@ public class StateMachine implements IEventsState, IEventsProcessEngine {
      * @return true is success, false else
      */
     protected boolean persistProcessWorkflow() {
-        processWorkflow.setMessageIdentifier(messageIdentifier);
-        processWorkflow.setProdService(prodService);
         processWorkflow.setStepByStep(stepByStep);
         processWorkflow.setStatus(status);
         processWorkflow.setState(state);
@@ -799,8 +786,6 @@ public class StateMachine implements IEventsState, IEventsProcessEngine {
                 LOGGER.error("Retry > error while finalize logbook of the process workflow", e);
             }
         } finally {
-            processWorkflow.setMessageIdentifier(messageIdentifier);
-            processWorkflow.setProdService(prodService);
             processWorkflow.setStepByStep(stepByStep);
             processWorkflow.setStatus(status);
             state = ProcessState.COMPLETED;

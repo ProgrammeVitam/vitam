@@ -27,8 +27,6 @@
 package fr.gouv.vitam.processing.engine.api;
 
 
-import java.util.Map;
-
 import fr.gouv.vitam.processing.common.automation.IEventsProcessEngine;
 import fr.gouv.vitam.processing.common.exception.ProcessingEngineException;
 import fr.gouv.vitam.processing.common.model.PauseRecover;
@@ -44,6 +42,7 @@ public interface ProcessEngine {
 
     /**
      * Set the state machine where the ProcessEngine return response on complete or on error
+     *
      * @param callback
      */
     void setCallback(IEventsProcessEngine callback);
@@ -53,16 +52,16 @@ public interface ProcessEngine {
      *
      * @param step the ProcessStep object
      * @param workerParameters the worker parameters
-     * @param params other parameters
      * @param pauseRecover prevent recover from pause action
      * @throws ProcessingEngineException thrown if step could not be started
      */
-    void start(ProcessStep step, WorkerParameters workerParameters, Map<String, String> params, PauseRecover pauseRecover)
+    void start(ProcessStep step, WorkerParameters workerParameters, PauseRecover pauseRecover)
         throws ProcessingEngineException;
 
     /**
      * Pause the execution of the current step
      * Send message to the distributor to cancel the execution of the current step
+     *
      * @param operationId the operation identifier
      * @return true if pause applied, false else
      */
@@ -71,6 +70,7 @@ public interface ProcessEngine {
     /**
      * Cancel the execution of the current step
      * Send message to the distributor to cancel the execution of the current step
+     *
      * @param operationId the operation identifier
      * @return true if pause applied, false else
      */
