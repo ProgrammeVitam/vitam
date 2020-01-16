@@ -44,6 +44,7 @@ import fr.gouv.vitam.common.database.parser.request.single.UpdateParserSingle;
 import fr.gouv.vitam.common.database.server.elasticsearch.ElasticsearchNode;
 import fr.gouv.vitam.common.elasticsearch.ElasticsearchRule;
 import fr.gouv.vitam.common.error.VitamError;
+import fr.gouv.vitam.common.exception.DocumentAlreadyExistsException;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.SchemaValidationException;
 import fr.gouv.vitam.common.exception.VitamException;
@@ -209,7 +210,8 @@ public class AccessContractImplTest {
 
 
     private static void insertDocuments(List<AgenciesModel> agenciesToInsert, int tenant)
-        throws InvalidParseOperationException, ReferentialException, SchemaValidationException {
+        throws InvalidParseOperationException, ReferentialException, SchemaValidationException,
+        DocumentAlreadyExistsException {
 
         ArrayNode agenciesNodeToPersist = JsonHandler.createArrayNode();
 

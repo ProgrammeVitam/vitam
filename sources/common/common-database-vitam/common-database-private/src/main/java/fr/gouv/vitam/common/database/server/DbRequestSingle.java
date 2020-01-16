@@ -29,6 +29,7 @@ package fr.gouv.vitam.common.database.server;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.mongodb.ErrorCategory;
 import com.mongodb.MongoBulkWriteException;
 import com.mongodb.MongoException;
 import com.mongodb.MongoWriteException;
@@ -142,7 +143,8 @@ public class DbRequestSingle {
     public DbRequestResult execute(Select request)
         throws InvalidParseOperationException, DatabaseException, BadRequestException, InvalidCreateOperationException,
         VitamDBException, SchemaValidationException {
-        DynamicParserTokens parserTokens = new DynamicParserTokens(vitamCollection.getVitamDescriptionResolver(), ontologyLoader.loadOntologies());
+        DynamicParserTokens parserTokens =
+            new DynamicParserTokens(vitamCollection.getVitamDescriptionResolver(), ontologyLoader.loadOntologies());
         return findDocuments(request.getFinalSelect(), parserTokens);
     }
 
@@ -157,7 +159,8 @@ public class DbRequestSingle {
     public DbRequestResult execute(Delete request)
         throws InvalidParseOperationException, DatabaseException, BadRequestException, InvalidCreateOperationException,
         VitamDBException, SchemaValidationException {
-        DynamicParserTokens parserTokens = new DynamicParserTokens(vitamCollection.getVitamDescriptionResolver(), ontologyLoader.loadOntologies());
+        DynamicParserTokens parserTokens =
+            new DynamicParserTokens(vitamCollection.getVitamDescriptionResolver(), ontologyLoader.loadOntologies());
         return deleteDocuments(request.getFinalDelete(), parserTokens);
     }
 
@@ -165,38 +168,67 @@ public class DbRequestSingle {
         throws InvalidParseOperationException, DatabaseException, BadRequestException, InvalidCreateOperationException,
         VitamDBException, SchemaValidationException {
 
-        DynamicParserTokens parserTokens = new DynamicParserTokens(vitamCollection.getVitamDescriptionResolver(), ontologyLoader.loadOntologies());
+        DynamicParserTokens parserTokens =
+            new DynamicParserTokens(vitamCollection.getVitamDescriptionResolver(), ontologyLoader.loadOntologies());
         return updateDocuments(request.getFinalUpdate(), documentValidator, parserTokens);
     }
 
     public DbRequestResult execute(Update request, Integer version, DocumentValidator documentValidator)
         throws InvalidParseOperationException, DatabaseException, BadRequestException, InvalidCreateOperationException,
         VitamDBException, SchemaValidationException {
-        DynamicParserTokens parserTokens = new DynamicParserTokens(vitamCollection.getVitamDescriptionResolver(), ontologyLoader.loadOntologies());
+        DynamicParserTokens parserTokens =
+            new DynamicParserTokens(vitamCollection.getVitamDescriptionResolver(), ontologyLoader.loadOntologies());
         // FIXME either use version parameter or delete it
         return updateDocuments(request.getFinalUpdate(), documentValidator, parserTokens);
     }
 
     /**
-     * Helper to detect an insert that should be an Update
+     * Helper to detect if document already exists => update needed instead of insert
      *
      * @param e exception catched
      * @return true if an insert that should be an Update, else False
      */
-    public static boolean checkInsertOrUpdate(Exception e) {
+    public static boolean isDuplicateKeyError(Exception e) {
+        if (e instanceof MongoBulkWriteException || e instanceof MongoWriteException) {
+            return isDuplicateKeyException(e.getCause());
+        }
+
         if (e instanceof DatabaseException &&
             (e.getCause() instanceof MongoBulkWriteException || e.getCause() instanceof MongoWriteException)) {
-            LOGGER.info("Document existed, updating ...");
-            return true;
+            return isDuplicateKeyException(e.getCause());
         }
         Throwable d = e.getCause();
-        if (d instanceof DatabaseException && (d.getCause() instanceof MongoBulkWriteException || d.getCause() instanceof MongoWriteException)) {
-            LOGGER.info("Document existed, updating ...");
-            return true;
+        if (d instanceof DatabaseException &&
+            (d.getCause() instanceof MongoBulkWriteException || d.getCause() instanceof MongoWriteException)) {
+            return isDuplicateKeyException(e.getCause());
         }
         return false;
     }
 
+    private static boolean isDuplicateKeyException(Throwable exception) {
+        boolean isDuplicateKey = false;
+
+        if (exception instanceof MongoWriteException) {
+            MongoWriteException mongoException = (MongoWriteException) exception;
+            ErrorCategory category = mongoException.getError().getCategory();
+            isDuplicateKey = ErrorCategory.DUPLICATE_KEY.equals(category);
+        }
+
+        if (exception instanceof MongoBulkWriteException) {
+            MongoBulkWriteException mongoException = (MongoBulkWriteException) exception;
+            long duplicateKeysErrorsCount = mongoException.getWriteErrors().stream()
+                .filter(o -> ErrorCategory.DUPLICATE_KEY.equals(o.getCategory())).count();
+            // If all errors are duplicate key then return true
+            // If at least one error is not duplicate key then return false
+            isDuplicateKey = Long.valueOf(mongoException.getWriteErrors().size()).equals(duplicateKeysErrorsCount);
+        }
+
+        if (isDuplicateKey) {
+            LOGGER.info("Document already exists");
+
+        }
+        return isDuplicateKey;
+    }
 
     /**
      * Main method for Multiple Insert
@@ -370,11 +402,13 @@ public class DbRequestSingle {
      * @throws DatabaseException
      * @throws BadRequestException
      */
-    private MongoCursor<VitamDocument<?>> selectElasticsearchExecute(SelectParserSingle parser, DynamicParserTokens parserTokens)
+    private MongoCursor<VitamDocument<?>> selectElasticsearchExecute(SelectParserSingle parser,
+        DynamicParserTokens parserTokens)
         throws InvalidParseOperationException, InvalidCreateOperationException, DatabaseException, BadRequestException,
         VitamDBException {
         SelectToElasticsearch requestToEs = new SelectToElasticsearch(parser);
-        QueryBuilder query = QueryToElasticsearch.getCommand(requestToEs.getNthQuery(0), parser.getAdapter(), parserTokens);
+        QueryBuilder query =
+            QueryToElasticsearch.getCommand(requestToEs.getNthQuery(0), parser.getAdapter(), parserTokens);
         List<SortBuilder> sorts = requestToEs.getFinalOrderBy(vitamCollection.isUseScore(), parserTokens);
         offset = requestToEs.getFinalOffset();
         limit = requestToEs.getFinalLimit();
@@ -518,7 +552,8 @@ public class DbRequestSingle {
      * @throws BadRequestException
      * @throws InvalidCreateOperationException
      */
-    private DbRequestResult updateDocuments(JsonNode request, DocumentValidator documentValidator, DynamicParserTokens parserTokens)
+    private DbRequestResult updateDocuments(JsonNode request, DocumentValidator documentValidator,
+        DynamicParserTokens parserTokens)
         throws InvalidParseOperationException, DatabaseException, BadRequestException, InvalidCreateOperationException,
         VitamDBException, SchemaValidationException {
         final UpdateParserSingle parser = new UpdateParserSingle(vaNameAdapter);
@@ -625,7 +660,8 @@ public class DbRequestSingle {
             insertToElasticsearch(listUpdatedDocuments);
         }
 
-        return new DbRequestResult().setCount(listUpdatedDocuments.size()).setTotal(listUpdatedDocuments.size()).setDiffs(diffs);
+        return new DbRequestResult().setCount(listUpdatedDocuments.size()).setTotal(listUpdatedDocuments.size())
+            .setDiffs(diffs);
     }
 
     /**

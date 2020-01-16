@@ -51,6 +51,7 @@ import fr.gouv.vitam.common.error.ServiceName;
 import fr.gouv.vitam.common.error.VitamError;
 import fr.gouv.vitam.common.exception.AccessUnauthorizedException;
 import fr.gouv.vitam.common.exception.BadRequestException;
+import fr.gouv.vitam.common.exception.DocumentAlreadyExistsException;
 import fr.gouv.vitam.common.exception.InvalidGuidOperationException;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.guid.GUID;
@@ -65,7 +66,6 @@ import fr.gouv.vitam.common.model.ProcessPause;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.StatusCode;
-import fr.gouv.vitam.common.model.VitamConstants;
 import fr.gouv.vitam.common.model.VitamSession;
 import fr.gouv.vitam.common.model.administration.AccessContractModel;
 import fr.gouv.vitam.common.model.administration.AccessionRegisterDetailModel;
@@ -593,18 +593,18 @@ public class AdminManagementResource extends ApplicationStatusResource {
             LOGGER.error(e);
             return Response.status(Status.BAD_REQUEST)
                 .entity(getErrorEntity(Status.BAD_REQUEST, e.getMessage())).build();
+        } catch (DocumentAlreadyExistsException e) {
+            LOGGER.error(e);
+            // Accession register detail already exists in database
+            VitamError ve = new VitamError(Status.CONFLICT.name()).setHttpCode(Status.CONFLICT.getStatusCode())
+                .setContext(ServiceName.EXTERNAL_ACCESS.getName())
+                .setState("code_vitam")
+                .setMessage(Status.CONFLICT.getReasonPhrase())
+                .setDescription("Document already exists in database");
+
+            return Response.status(Status.CONFLICT).entity(ve).build();
         } catch (final ReferentialException e) {
             LOGGER.error(e);
-            if (DbRequestSingle.checkInsertOrUpdate(e)) {
-                // Accession register detail already exists in database
-                VitamError ve = new VitamError(Status.CONFLICT.name()).setHttpCode(Status.CONFLICT.getStatusCode())
-                    .setContext(ServiceName.EXTERNAL_ACCESS.getName())
-                    .setState("code_vitam")
-                    .setMessage(Status.CONFLICT.getReasonPhrase())
-                    .setDescription("Document already exists in database");
-
-                return Response.status(Status.CONFLICT).entity(ve).build();
-            }
             return Response.status(Status.INTERNAL_SERVER_ERROR)
                 .entity(getErrorEntity(Status.INTERNAL_SERVER_ERROR, e.getMessage())).build();
         } catch (final Exception e) {

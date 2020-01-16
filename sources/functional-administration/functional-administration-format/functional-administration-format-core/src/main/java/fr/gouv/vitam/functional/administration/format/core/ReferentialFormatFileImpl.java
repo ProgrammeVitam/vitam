@@ -44,6 +44,7 @@ import fr.gouv.vitam.common.database.server.DbRequestResult;
 import fr.gouv.vitam.common.database.server.mongodb.VitamDocument;
 import fr.gouv.vitam.common.exception.BadRequestException;
 import fr.gouv.vitam.common.exception.DatabaseException;
+import fr.gouv.vitam.common.exception.DocumentAlreadyExistsException;
 import fr.gouv.vitam.common.exception.InvalidGuidOperationException;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.SchemaValidationException;
@@ -237,7 +238,7 @@ public class ReferentialFormatFileImpl implements ReferentialFile<FileFormat>, V
 
             mongoAccess.insertDocuments((ArrayNode) JsonHandler.toJsonNode(fileFormatsToAdd), FORMATS).close();
 
-        } catch (ReferentialException | SchemaValidationException | InvalidParseOperationException e) {
+        } catch (ReferentialException | DocumentAlreadyExistsException | SchemaValidationException | InvalidParseOperationException e) {
             throw new ReferentialException("Could not insert added formats", e);
         }
     }
