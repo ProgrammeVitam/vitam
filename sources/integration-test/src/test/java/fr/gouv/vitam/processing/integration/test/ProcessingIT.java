@@ -190,7 +190,7 @@ import static org.junit.Assert.assertTrue;
  */
 public class ProcessingIT extends VitamRuleRunner {
 
-    public static final String BIG_WORKFLOW = "BIG_WORKFLOW";
+    private static final String BIG_WORKFLOW = "BIG_WORKFLOW";
     @ClassRule
     public static VitamServerRunner runner =
         new VitamServerRunner(ProcessingIT.class, mongoRule.getMongoDatabase().getName(),
@@ -313,7 +313,7 @@ public class ProcessingIT extends VitamRuleRunner {
     }
 
     @After
-    public void afterTest() throws Exception {
+    public void afterTest() {
         VitamThreadUtils.getVitamSession().setContractId("aName");
         VitamThreadUtils.getVitamSession().setContextId("Context_IT");
 
@@ -345,7 +345,7 @@ public class ProcessingIT extends VitamRuleRunner {
 
     @RunWithCustomExecutor
     @Test
-    public void testServersStatus() throws Exception {
+    public void testServersStatus() {
         RestAssured.port = runner.PORT_SERVICE_PROCESSING;
         RestAssured.basePath = PROCESSING_PATH;
 
@@ -436,13 +436,6 @@ public class ProcessingIT extends VitamRuleRunner {
                 )));
 
             metaDataClient.refreshUnits();
-            // import contract
-            File fileContracts = PropertiesUtils.getResourceFile(INGEST_CONTRACTS_PLAN);
-            List<IngestContractModel> IngestContractModelList =
-                JsonHandler.getFromFileAsTypeReference(fileContracts, new TypeReference<List<IngestContractModel>>() {
-                });
-
-            functionalClient.importIngestContracts(IngestContractModelList);
 
             processingClient = ProcessingManagementClientFactory.getInstance().getClient();
             processingClient.initVitamProcess(containerName, DEFAULT_WORKFLOW.name());
@@ -2724,13 +2717,6 @@ public class ProcessingIT extends VitamRuleRunner {
                 )));
 
             metaDataClient.refreshUnits();
-            // import contract
-            File fileContracts = PropertiesUtils.getResourceFile(INGEST_CONTRACTS_PLAN);
-            List<IngestContractModel> IngestContractModelList =
-                JsonHandler.getFromFileAsTypeReference(fileContracts, new TypeReference<List<IngestContractModel>>() {
-                });
-
-            functionalClient.importIngestContracts(IngestContractModelList);
 
             processingClient = ProcessingManagementClientFactory.getInstance().getClient();
             // Testing blank workflow

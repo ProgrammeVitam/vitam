@@ -440,7 +440,7 @@ public class AdminManagementClientMock extends AbstractMockClient implements Adm
     }
 
     @Override
-    public Status importContexts(List<ContextModel> ContextModelList)
+    public Status importContexts(List<ContextModel> contextModelList)
         throws ReferentialException {
         LOGGER.debug("import context ");
         return Status.OK;

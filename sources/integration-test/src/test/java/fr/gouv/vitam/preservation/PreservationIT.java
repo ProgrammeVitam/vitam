@@ -61,9 +61,7 @@ import fr.gouv.vitam.common.model.PreservationRequest;
 import fr.gouv.vitam.common.model.ProcessAction;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.StatusCode;
-import fr.gouv.vitam.common.model.administration.AccessContractModel;
 import fr.gouv.vitam.common.model.administration.ActionTypePreservation;
-import fr.gouv.vitam.common.model.administration.ActivationStatus;
 import fr.gouv.vitam.common.model.administration.preservation.GriffinModel;
 import fr.gouv.vitam.common.model.administration.preservation.PreservationScenarioModel;
 import fr.gouv.vitam.common.model.logbook.LogbookOperation;
@@ -151,11 +149,12 @@ import static fr.gouv.vitam.common.model.PreservationVersion.FIRST;
 import static fr.gouv.vitam.common.model.PreservationVersion.LAST;
 import static fr.gouv.vitam.common.model.administration.ActionTypePreservation.GENERATE;
 import static fr.gouv.vitam.common.thread.VitamThreadUtils.getVitamSession;
-import static fr.gouv.vitam.purge.EndToEndEliminationAndTransferReplyIT.prepareVitamSession;
 import static fr.gouv.vitam.metadata.client.MetaDataClientFactory.getInstance;
 import static fr.gouv.vitam.preservation.ProcessManagementWaiter.waitOperation;
+import static fr.gouv.vitam.purge.EndToEndEliminationAndTransferReplyIT.prepareVitamSession;
 import static java.util.Collections.singletonList;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 public class PreservationIT extends VitamRuleRunner {
     private static final HashSet<Class> SERVERS = Sets.newHashSet(
@@ -216,11 +215,6 @@ public class PreservationIT extends VitamRuleRunner {
         boolean griffinIsExecutable = griffinExecutable.toFile().setExecutable(true);
         if (!griffinIsExecutable) {
             throw new IllegalStateException("Wrong path");
-        }
-
-        AccessContractModel contract = getAccessContractModel();
-        try (AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient()) {
-            client.importAccessContracts(singletonList(contract));
         }
 
         doIngest("elimination/TEST_ELIMINATION.zip");
@@ -312,7 +306,8 @@ public class PreservationIT extends VitamRuleRunner {
             getVitamSession().setRequestId(newGUID());
 
             // When
-            removeGriffins(client);
+            assertThatThrownBy(() -> removeGriffins(client))
+            .isInstanceOf(AdminManagementClientServerException.class);
 
             // Then
             assertThat(getLogbookOperation(logbookClient).getEvents().get(0).getOutcome()).isEqualTo(StatusCode.KO.name());
@@ -632,18 +627,6 @@ public class PreservationIT extends VitamRuleRunner {
     private List<GriffinModel> getGriffinModels(String resourcesFile) throws FileNotFoundException, InvalidParseOperationException {
         File resourceFile = PropertiesUtils.getResourceFile(resourcesFile);
         return getFromFileAsTypeReference(resourceFile, GRIFFIN_MODELS_TYPE);
-    }
-
-    private AccessContractModel getAccessContractModel() {
-        AccessContractModel contract = new AccessContractModel();
-        contract.setName(CONTRACT_ID);
-        contract.setIdentifier(CONTRACT_ID);
-        contract.setStatus(ActivationStatus.ACTIVE);
-        contract.setEveryOriginatingAgency(true);
-        contract.setCreationdate("10/12/1800");
-        contract.setActivationdate("10/12/1800");
-        contract.setDeactivationdate("31/12/4200");
-        return contract;
     }
 
     private GriffinReport getGriffinReport(StorageClient storageClient, String requestId) throws StorageServerClientException, StorageNotFoundException, InvalidParseOperationException {

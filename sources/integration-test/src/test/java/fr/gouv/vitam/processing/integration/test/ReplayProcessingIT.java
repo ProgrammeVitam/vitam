@@ -64,7 +64,6 @@ import fr.gouv.vitam.functional.administration.client.AdminManagementClientFacto
 import fr.gouv.vitam.functional.administration.rest.AdminManagementMain;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientAlreadyExistsException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientBadRequestException;
-import fr.gouv.vitam.logbook.common.exception.LogbookClientNotFoundException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientServerException;
 import fr.gouv.vitam.logbook.common.parameters.Contexts;
 import fr.gouv.vitam.logbook.common.parameters.LogbookOperationParameters;
@@ -128,26 +127,23 @@ public class ReplayProcessingIT extends VitamRuleRunner {
 
     private static final Integer TENANT_ID = 0;
 
-    private static final long SLEEP_TIME = 20l;
+    private static final long SLEEP_TIME = 20L;
     private static final long NB_TRY = 18000;
 
     private static final String SIP_FOLDER = "SIP";
-    private static String CONFIG_SIEGFRIED_PATH;
 
-    private static String SIP_OK_REPLAY_1 = "integration-processing/OK_TEST_REPLAY_1.zip";
-    private static String SIP_OK_REPLAY_2 = "integration-processing/OK_TEST_REPLAY_2.zip";
-    private WorkspaceClient workspaceClient;
-    private ProcessingManagementClient processingClient;
+    private static final String SIP_OK_REPLAY_1 = "integration-processing/OK_TEST_REPLAY_1.zip";
+    private static final String SIP_OK_REPLAY_2 = "integration-processing/OK_TEST_REPLAY_2.zip";
     private static DataLoader dataLoader = new DataLoader("integration-processing");
 
 
     @BeforeClass
     public static void setUpBeforeClass() throws Exception {
         handleBeforeClass(0, 1);
-        CONFIG_SIEGFRIED_PATH =
+        String configSiegfriedPath =
             PropertiesUtils.getResourcePath("integration-processing/format-identifiers.conf").toString();
 
-        FormatIdentifierFactory.getInstance().changeConfigurationFile(CONFIG_SIEGFRIED_PATH);
+        FormatIdentifierFactory.getInstance().changeConfigurationFile(configSiegfriedPath);
 
 
         StorageClientFactory storageClientFactory = StorageClientFactory.getInstance();
@@ -174,8 +170,7 @@ public class ReplayProcessingIT extends VitamRuleRunner {
     }
 
     private void createLogbookOperation(GUID operationId, GUID objectId)
-        throws LogbookClientBadRequestException, LogbookClientAlreadyExistsException, LogbookClientServerException,
-        LogbookClientNotFoundException {
+        throws LogbookClientBadRequestException, LogbookClientAlreadyExistsException, LogbookClientServerException {
 
         final LogbookOperationsClient logbookClient = LogbookOperationsClientFactory.getInstance().getClient();
 
@@ -354,7 +349,7 @@ public class ReplayProcessingIT extends VitamRuleRunner {
         createLogbookOperation(operationGuid, objectGuid);
 
         // workspace client dezip SIP in workspace
-        InputStream zipInputStreamSipObject = null;
+        InputStream zipInputStreamSipObject;
         if (replayModeActivated) {
             zipInputStreamSipObject =
                 PropertiesUtils.getResourceAsStream(SIP_OK_REPLAY_2);
@@ -364,12 +359,12 @@ public class ReplayProcessingIT extends VitamRuleRunner {
         }
 
         //
-        workspaceClient = WorkspaceClientFactory.getInstance().getClient();
+        WorkspaceClient workspaceClient = WorkspaceClientFactory.getInstance().getClient();
         workspaceClient.createContainer(containerName);
         workspaceClient.uncompressObject(containerName, SIP_FOLDER, CommonMediaType.ZIP,
             zipInputStreamSipObject);
 
-        processingClient = ProcessingManagementClientFactory.getInstance().getClient();
+        ProcessingManagementClient processingClient = ProcessingManagementClientFactory.getInstance().getClient();
         processingClient.initVitamProcess(containerName, Contexts.DEFAULT_WORKFLOW.name());
         if (replayModeActivated) {
             // wait a little bit

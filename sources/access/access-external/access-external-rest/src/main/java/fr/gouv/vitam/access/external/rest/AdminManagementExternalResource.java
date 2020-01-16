@@ -97,6 +97,7 @@ import fr.gouv.vitam.common.stream.VitamAsyncInputStreamResponse;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.functional.administration.client.AdminManagementClient;
 import fr.gouv.vitam.functional.administration.client.AdminManagementClientFactory;
+import fr.gouv.vitam.functional.administration.common.exception.AdminManagementClientBadRequestException;
 import fr.gouv.vitam.functional.administration.common.exception.AdminManagementClientServerException;
 import fr.gouv.vitam.functional.administration.common.exception.DatabaseConflictException;
 import fr.gouv.vitam.functional.administration.common.exception.FileRulesImportInProgressException;
@@ -148,6 +149,7 @@ import static fr.gouv.vitam.common.error.VitamCode.ACCESS_EXTERNAL_GET_ACCESSION
 import static fr.gouv.vitam.common.error.VitamCodeHelper.getCode;
 import static fr.gouv.vitam.common.json.JsonHandler.getFromStringAsTypeReference;
 import static javax.ws.rs.core.MediaType.APPLICATION_JSON;
+import static javax.ws.rs.core.Response.Status.BAD_REQUEST;
 import static javax.ws.rs.core.Response.Status.INTERNAL_SERVER_ERROR;
 
 /**
@@ -253,7 +255,11 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
     @Secured(permission = "rulesfile:check",
         description = "Vérifier si le référentiel de règles de gestions que l'on souhaite importer est valide")
     public Response checkRules(InputStream document) {
-        return asyncDownloadErrorReportRules(document);
+        try {
+            return asyncDownloadErrorReportRules(document);
+        } catch (InvalidParseOperationException e) {
+            return Response.status(INTERNAL_SERVER_ERROR).build();
+        }
     }
 
 
@@ -285,8 +291,8 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
         } catch (ReferentialException ex) {
             LOGGER.error(ex);
             StreamUtils.closeSilently(document);
-            return Response.status(Status.BAD_REQUEST)
-                .entity(getErrorStream(Status.BAD_REQUEST, ex.getMessage(), null).toString())
+            return Response.status(BAD_REQUEST)
+                .entity(getErrorStream(BAD_REQUEST, ex.getMessage(), null).toString())
                 .build();
         }
     }
@@ -297,13 +303,22 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
      *
      * @param document the referential to check
      */
-    private Response asyncDownloadErrorReportRules(InputStream document) {
+    private Response asyncDownloadErrorReportRules(InputStream document) throws InvalidParseOperationException {
         try (AdminManagementClient client = adminManagementClientFactory.getClient()) {
             final Response response = client.checkRulesFile(document);
             Map<String, String> headers = VitamAsyncInputStreamResponse.getDefaultMapFromResponse(response);
             headers.put(HttpHeaders.CONTENT_DISPOSITION, ATTACHEMENT_FILENAME);
             return new VitamAsyncInputStreamResponse(response,
                 (Status) response.getStatusInfo(), headers);
+        } catch (AdminManagementClientBadRequestException e) {
+            VitamError error = new VitamError(VitamCode.ADMIN_EXTERNAL_BAD_REQUEST.getItem())
+                .setMessage(VitamCode.ADMIN_EXTERNAL_BAD_REQUEST.getMessage())
+                .setState(StatusCode.KO.name())
+                .setCode(VitamCodeHelper.getCode(VitamCode.ADMIN_EXTERNAL_BAD_REQUEST))
+                .setContext(ACCESS_EXTERNAL_MODULE)
+                .setDescription(VitamCode.ADMIN_EXTERNAL_BAD_REQUEST.getMessage());
+            return Response.status(BAD_REQUEST)
+                .entity(JsonHandler.writeToInpustream(error)).build();
         } catch (Exception e) {
             return asyncResponseResume(e, document);
         }
@@ -321,6 +336,15 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
             headers.put(HttpHeaders.CONTENT_DISPOSITION, ATTACHEMENT_FILENAME);
             return new VitamAsyncInputStreamResponse(response,
                 (Status) response.getStatusInfo(), headers);
+        } catch (AdminManagementClientBadRequestException e) {
+            VitamError error = new VitamError(VitamCode.ADMIN_EXTERNAL_BAD_REQUEST.getItem())
+                .setMessage(VitamCode.ADMIN_EXTERNAL_BAD_REQUEST.getMessage())
+                .setState(StatusCode.KO.name())
+                .setCode(VitamCodeHelper.getCode(VitamCode.ADMIN_EXTERNAL_BAD_REQUEST))
+                .setContext(ACCESS_EXTERNAL_MODULE)
+                .setDescription(VitamCode.ADMIN_EXTERNAL_BAD_REQUEST.getMessage());
+            return Response.status(BAD_REQUEST)
+                .entity(error).build();
         } catch (Exception e) {
             return asyncResponseResume(e, document);
         }
@@ -372,12 +396,12 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
                     .entity(getErrorEntity(Status.FORBIDDEN, e.getMessage(), null)).build();
             } catch (final ReferentialException e) {
                 LOGGER.error(e);
-                return Response.status(Status.BAD_REQUEST)
-                    .entity(getErrorEntity(Status.BAD_REQUEST, e.getMessage(), null)).build();
+                return Response.status(BAD_REQUEST)
+                    .entity(getErrorEntity(BAD_REQUEST, e.getMessage(), null)).build();
             }
         } catch (final IllegalArgumentException e) {
             LOGGER.error(e);
-            final Status status = Status.BAD_REQUEST;
+            final Status status = BAD_REQUEST;
             return Response.status(status).entity(getErrorEntity(status, e.getMessage(), null)).build();
         } finally {
             StreamUtils.closeSilently(document);
@@ -427,17 +451,17 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
                     .entity(getErrorEntity(Status.FORBIDDEN, e.getMessage(), null)).build();
             } catch (final ReferentialException e) {
                 LOGGER.error(e);
-                return Response.status(Status.BAD_REQUEST)
-                    .entity(getErrorEntity(Status.BAD_REQUEST, e.getMessage(), null)).build();
+                return Response.status(BAD_REQUEST)
+                    .entity(getErrorEntity(BAD_REQUEST, e.getMessage(), null)).build();
             }
         } catch (final IllegalArgumentException | IOException e) {
             LOGGER.error(e);
-            final Status status = Status.BAD_REQUEST;
+            final Status status = BAD_REQUEST;
             return Response.status(status).entity(getErrorEntity(status, e.getMessage(), null)).build();
         } catch (InvalidParseOperationException e) {
             alertService.createAlert("Rules contain an HTML injection");
             LOGGER.error(e);
-            final Status status = Status.BAD_REQUEST;
+            final Status status = BAD_REQUEST;
             return Response.status(status).entity(getErrorEntity(status, HTML_CONTENT_MSG_ERROR, null)).build();
         } finally {
             try {
@@ -494,9 +518,9 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
                 new TypeReference<List<IngestContractModel>>() {
                 }));
 
-            if (Status.BAD_REQUEST.getStatusCode() == status.getStatusCode()) {
-                return Response.status(Status.BAD_REQUEST)
-                    .entity(getErrorEntity(Status.BAD_REQUEST, Status.BAD_REQUEST.getReasonPhrase(), null)).build();
+            if (BAD_REQUEST.getStatusCode() == status.getStatusCode()) {
+                return Response.status(BAD_REQUEST)
+                    .entity(getErrorEntity(BAD_REQUEST, BAD_REQUEST.getReasonPhrase(), null)).build();
             }
 
             // Send the http response with the entity and the status got from internalService;
@@ -505,8 +529,8 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
             return ResponseBuilder.build();
         } catch (final ReferentialException e) {
             LOGGER.error(e);
-            return Response.status(Status.BAD_REQUEST)
-                .entity(getErrorEntity(Status.BAD_REQUEST, e.getMessage(), null)).build();
+            return Response.status(BAD_REQUEST)
+                .entity(getErrorEntity(BAD_REQUEST, e.getMessage(), null)).build();
         } catch (InvalidParseOperationException | InvalidFormatException e) {
             LOGGER.error(e);
             VitamError error = new VitamError(VitamCode.ACCESS_EXTERNAL_INVALID_JSON.getItem())
@@ -515,7 +539,7 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
                 .setCode(VitamCodeHelper.getCode(VitamCode.ACCESS_EXTERNAL_INVALID_JSON))
                 .setContext(ACCESS_EXTERNAL_MODULE)
                 .setDescription(VitamCode.ACCESS_EXTERNAL_INVALID_JSON.getMessage());
-            return Response.status(Status.BAD_REQUEST)
+            return Response.status(BAD_REQUEST)
                 .entity(error).build();
         }
     }
@@ -540,9 +564,9 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
                 new TypeReference<List<AccessContractModel>>() {
                 }));
 
-            if (Status.BAD_REQUEST.getStatusCode() == status.getStatusCode()) {
-                return Response.status(Status.BAD_REQUEST)
-                    .entity(getErrorEntity(Status.BAD_REQUEST, Status.BAD_REQUEST.getReasonPhrase(), null)).build();
+            if (BAD_REQUEST.getStatusCode() == status.getStatusCode()) {
+                return Response.status(BAD_REQUEST)
+                    .entity(getErrorEntity(BAD_REQUEST, BAD_REQUEST.getReasonPhrase(), null)).build();
             }
 
             // Send the http response with the entity and the status got from internalService;
@@ -551,8 +575,8 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
             return ResponseBuilder.build();
         } catch (final ReferentialException e) {
             LOGGER.error(e);
-            return Response.status(Status.BAD_REQUEST)
-                .entity(getErrorEntity(Status.BAD_REQUEST, e.getMessage(), null)).build();
+            return Response.status(BAD_REQUEST)
+                .entity(getErrorEntity(BAD_REQUEST, e.getMessage(), null)).build();
         } catch (InvalidParseOperationException | InvalidFormatException e) {
             LOGGER.error(e);
             VitamError error = new VitamError(VitamCode.ACCESS_EXTERNAL_INVALID_JSON.getItem())
@@ -561,7 +585,7 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
                 .setCode(VitamCodeHelper.getCode(VitamCode.ACCESS_EXTERNAL_INVALID_JSON))
                 .setContext(ACCESS_EXTERNAL_MODULE)
                 .setDescription(VitamCode.ACCESS_EXTERNAL_INVALID_JSON.getMessage());
-            return Response.status(Status.BAD_REQUEST)
+            return Response.status(BAD_REQUEST)
                 .entity(error).build();
         }
     }
@@ -586,9 +610,9 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
                 new TypeReference<List<ManagementContractModel>>() {
                 }));
 
-            if (Status.BAD_REQUEST.getStatusCode() == status.getStatusCode()) {
-                return Response.status(Status.BAD_REQUEST)
-                    .entity(getErrorEntity(Status.BAD_REQUEST, Status.BAD_REQUEST.getReasonPhrase(), null)).build();
+            if (BAD_REQUEST.getStatusCode() == status.getStatusCode()) {
+                return Response.status(BAD_REQUEST)
+                    .entity(getErrorEntity(BAD_REQUEST, BAD_REQUEST.getReasonPhrase(), null)).build();
             }
 
             // Send the http response with the entity and the status got from internalService;
@@ -597,8 +621,8 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
             return ResponseBuilder.build();
         } catch (final ReferentialException e) {
             LOGGER.error(e);
-            return Response.status(Status.BAD_REQUEST)
-                .entity(getErrorEntity(Status.BAD_REQUEST, e.getMessage(), null)).build();
+            return Response.status(BAD_REQUEST)
+                .entity(getErrorEntity(BAD_REQUEST, e.getMessage(), null)).build();
         } catch (InvalidParseOperationException | InvalidFormatException e) {
             LOGGER.error(e);
             VitamError error = new VitamError(VitamCode.ACCESS_EXTERNAL_INVALID_JSON.getItem())
@@ -607,7 +631,7 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
                 .setCode(VitamCodeHelper.getCode(VitamCode.ACCESS_EXTERNAL_INVALID_JSON))
                 .setContext(ACCESS_EXTERNAL_MODULE)
                 .setDescription(VitamCode.ACCESS_EXTERNAL_INVALID_JSON.getMessage());
-            return Response.status(Status.BAD_REQUEST)
+            return Response.status(BAD_REQUEST)
                 .entity(error).build();
         }
     }
@@ -638,12 +662,12 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
             return ResponseBuilder.build();
         } catch (final ReferentialException e) {
             LOGGER.error(e);
-            return Response.status(Status.BAD_REQUEST)
-                .entity(getErrorEntity(Status.BAD_REQUEST, e.getMessage(), null)).build();
+            return Response.status(BAD_REQUEST)
+                .entity(getErrorEntity(BAD_REQUEST, e.getMessage(), null)).build();
         } catch (InvalidParseOperationException | InvalidFormatException e) {
             LOGGER.error(e);
-            return Response.status(Status.BAD_REQUEST)
-                .entity(getErrorEntity(Status.BAD_REQUEST, e.getMessage(), null)).build();
+            return Response.status(BAD_REQUEST)
+                .entity(getErrorEntity(BAD_REQUEST, e.getMessage(), null)).build();
         }
     }
 
@@ -675,8 +699,8 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
 
             } catch (final ReferentialException e) {
                 LOGGER.error(e);
-                return Response.status(Status.BAD_REQUEST)
-                    .entity(getErrorEntity(Status.BAD_REQUEST, e.getMessage(), null)).build();
+                return Response.status(BAD_REQUEST)
+                    .entity(getErrorEntity(BAD_REQUEST, e.getMessage(), null)).build();
             } catch (InvalidParseOperationException e) {
                 LOGGER.error(e);
                 VitamError error = new VitamError(VitamCode.ADMIN_EXTERNAL_PRECONDITION_FAILED.getItem())
@@ -695,12 +719,12 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
                     .setCode(VitamCodeHelper.getCode(VitamCode.ACCESS_EXTERNAL_INVALID_JSON))
                     .setContext(ACCESS_EXTERNAL_MODULE)
                     .setDescription(VitamCode.ACCESS_EXTERNAL_INVALID_JSON.getMessage());
-                return Response.status(Status.BAD_REQUEST)
+                return Response.status(BAD_REQUEST)
                     .entity(error).build();
             }
         } catch (final IllegalArgumentException e) {
             LOGGER.error(e);
-            final Status status = Status.BAD_REQUEST;
+            final Status status = BAD_REQUEST;
             return Response.status(status).entity(getErrorEntity(status, e.getMessage(), null)).build();
         } finally {
             StreamUtils.closeSilently(document);
@@ -732,12 +756,12 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
 
         } catch (final ReferentialException e) {
             LOGGER.error(e);
-            return Response.status(Status.BAD_REQUEST)
-                .entity(getErrorEntity(Status.BAD_REQUEST, e.getMessage(), null)).build();
+            return Response.status(BAD_REQUEST)
+                .entity(getErrorEntity(BAD_REQUEST, e.getMessage(), null)).build();
         } catch (InvalidParseOperationException | InvalidFormatException e) {
             LOGGER.error(e);
-            return Response.status(Status.BAD_REQUEST)
-                .entity(getErrorEntity(Status.BAD_REQUEST, e.getMessage(), null)).build();
+            return Response.status(BAD_REQUEST)
+                .entity(getErrorEntity(BAD_REQUEST, e.getMessage(), null)).build();
         }
     }
 
@@ -770,8 +794,8 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
 
             } catch (final ReferentialException e) {
                 LOGGER.error(e);
-                return Response.status(Status.BAD_REQUEST)
-                    .entity(getErrorEntity(Status.BAD_REQUEST, e.getMessage(), null)).build();
+                return Response.status(BAD_REQUEST)
+                    .entity(getErrorEntity(BAD_REQUEST, e.getMessage(), null)).build();
             } catch (InvalidParseOperationException e) {
                 LOGGER.error(e);
                 VitamError error = new VitamError(VitamCode.ADMIN_EXTERNAL_PRECONDITION_FAILED.getItem())
@@ -790,12 +814,12 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
                     .setCode(VitamCodeHelper.getCode(VitamCode.ACCESS_EXTERNAL_INVALID_JSON))
                     .setContext(ACCESS_EXTERNAL_MODULE)
                     .setDescription(VitamCode.ACCESS_EXTERNAL_INVALID_JSON.getMessage());
-                return Response.status(Status.BAD_REQUEST)
+                return Response.status(BAD_REQUEST)
                     .entity(error).build();
             }
         } catch (final IllegalArgumentException e) {
             LOGGER.error(e);
-            final Status status = Status.BAD_REQUEST;
+            final Status status = BAD_REQUEST;
             return Response.status(status).entity(getErrorEntity(status, e.getMessage(), null)).build();
         } finally {
             StreamUtils.closeSilently(document);
@@ -828,12 +852,12 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
 
         } catch (final ReferentialException e) {
             LOGGER.error(e);
-            return Response.status(Status.BAD_REQUEST)
-                .entity(getErrorEntity(Status.BAD_REQUEST, e.getMessage(), null)).build();
+            return Response.status(BAD_REQUEST)
+                .entity(getErrorEntity(BAD_REQUEST, e.getMessage(), null)).build();
         } catch (InvalidParseOperationException | InvalidFormatException e) {
             LOGGER.error(e);
-            return Response.status(Status.BAD_REQUEST)
-                .entity(getErrorEntity(Status.BAD_REQUEST, e.getMessage(), null)).build();
+            return Response.status(BAD_REQUEST)
+                .entity(getErrorEntity(BAD_REQUEST, e.getMessage(), null)).build();
         }
     }
 
@@ -866,12 +890,12 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
                 return Response.status(status).entity(getErrorEntity(status, e.getMessage(), null)).build();
             } catch (final ReferentialException e) {
                 LOGGER.error(e);
-                return Response.status(Status.BAD_REQUEST)
-                    .entity(getErrorEntity(Status.BAD_REQUEST, e.getMessage(), null)).build();
+                return Response.status(BAD_REQUEST)
+                    .entity(getErrorEntity(BAD_REQUEST, e.getMessage(), null)).build();
             }
         } catch (final IllegalArgumentException e) {
             LOGGER.error(e);
-            final Status status = Status.BAD_REQUEST;
+            final Status status = BAD_REQUEST;
             return Response.status(status).entity(getErrorEntity(status, e.getMessage(), null)).build();
         } finally {
             StreamUtils.closeSilently(profileFile);
@@ -970,7 +994,7 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
                 return Response.status(status).entity(getErrorEntity(status, e.getMessage(), null)).build();
             } catch (final InvalidParseOperationException e) {
                 LOGGER.error(e);
-                final Status status = Status.BAD_REQUEST;
+                final Status status = BAD_REQUEST;
                 return Response.status(status).entity(getErrorEntity(status, e.getMessage(), null)).build();
             }
         } catch (IllegalArgumentException e) {
@@ -1008,7 +1032,7 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
                 return Response.status(status).entity(getErrorEntity(status, e.getMessage(), null)).build();
             } catch (final InvalidParseOperationException e) {
                 LOGGER.error(e);
-                final Status status = Status.BAD_REQUEST;
+                final Status status = BAD_REQUEST;
                 return Response.status(status).entity(getErrorEntity(status, e.getMessage(), null)).build();
             }
         } catch (IllegalArgumentException e) {
@@ -1044,7 +1068,7 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
                 return Response.status(status).entity(getErrorEntity(status, e.getMessage(), null)).build();
             } catch (final InvalidParseOperationException e) {
                 LOGGER.error(e);
-                final Status status = Status.BAD_REQUEST;
+                final Status status = BAD_REQUEST;
                 return Response.status(status).entity(getErrorEntity(status, e.getMessage(), null)).build();
             }
         } catch (IllegalArgumentException e) {
@@ -1078,7 +1102,7 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
             return Response.status(status).entity(getErrorEntity(status, e.getMessage(), null)).build();
         } catch (final InvalidParseOperationException e) {
             LOGGER.error(e);
-            final Status status = Status.BAD_REQUEST;
+            final Status status = BAD_REQUEST;
             return Response.status(status).entity(getErrorEntity(status, e.getMessage(), null)).build();
 
         } catch (IllegalArgumentException e) {
@@ -1112,7 +1136,7 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
             return Response.status(status).entity(getErrorEntity(status, e.getMessage(), null)).build();
         } catch (final InvalidParseOperationException e) {
             LOGGER.error(e);
-            final Status status = Status.BAD_REQUEST;
+            final Status status = BAD_REQUEST;
             return Response.status(status).entity(getErrorEntity(status, e.getMessage(), null)).build();
 
         } catch (IllegalArgumentException e) {
@@ -1146,7 +1170,7 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
             return Response.status(status).entity(getErrorEntity(status, e.getMessage(), null)).build();
         } catch (final InvalidParseOperationException e) {
             LOGGER.error(e);
-            final Status status = Status.BAD_REQUEST;
+            final Status status = BAD_REQUEST;
             return Response.status(status).entity(getErrorEntity(status, e.getMessage(), null)).build();
 
         } catch (IllegalArgumentException e) {
@@ -1182,7 +1206,7 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
                 return Response.status(status).entity(getErrorEntity(status, e.getMessage(), null)).build();
             } catch (final InvalidParseOperationException e) {
                 LOGGER.error(e);
-                final Status status = Status.BAD_REQUEST;
+                final Status status = BAD_REQUEST;
                 return Response.status(status).entity(getErrorEntity(status, e.getMessage(), null)).build();
             }
         } catch (IllegalArgumentException e) {
@@ -1217,7 +1241,7 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
                 return Response.status(status).entity(getErrorEntity(status, e.getMessage(), null)).build();
             } catch (final InvalidParseOperationException e) {
                 LOGGER.error(e);
-                final Status status = Status.BAD_REQUEST;
+                final Status status = BAD_REQUEST;
                 return Response.status(status).entity(getErrorEntity(status, e.getMessage(), null)).build();
             }
         } catch (IllegalArgumentException e) {
@@ -1262,17 +1286,17 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
                 return ResponseBuilder.build();
             } catch (final ReferentialException e) {
                 LOGGER.error(e);
-                return Response.status(Status.BAD_REQUEST)
-                    .entity(getErrorEntity(Status.BAD_REQUEST, e.getMessage(), null)).build();
+                return Response.status(BAD_REQUEST)
+                    .entity(getErrorEntity(BAD_REQUEST, e.getMessage(), null)).build();
             }
         } catch (final IllegalArgumentException | IOException e) {
             LOGGER.error(e);
-            final Status status = Status.BAD_REQUEST;
+            final Status status = BAD_REQUEST;
             return Response.status(status).entity(getErrorEntity(status, e.getMessage(), null)).build();
         } catch (InvalidParseOperationException e) {
             alertService.createAlert("Agencies contain an HTML injection");
             LOGGER.error(e);
-            final Status status = Status.BAD_REQUEST;
+            final Status status = BAD_REQUEST;
             return Response.status(status).entity(getErrorEntity(status, HTML_CONTENT_MSG_ERROR, null)).build();
         } finally {
             try {
@@ -1347,7 +1371,7 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
                 return Response.status(status).entity(getErrorEntity(status, e.getMessage(), null)).build();
             } catch (final InvalidParseOperationException e) {
                 LOGGER.error(e);
-                final Status status = Status.BAD_REQUEST;
+                final Status status = BAD_REQUEST;
                 return Response.status(status).entity(getErrorEntity(status, e.getMessage(), null)).build();
             }
         } catch (IllegalArgumentException e) {
@@ -1386,7 +1410,7 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
                 return Response.status(status).entity(getErrorEntity(status, e.getMessage(), null)).build();
             } catch (final InvalidParseOperationException e) {
                 LOGGER.error(e);
-                final Status status = Status.BAD_REQUEST;
+                final Status status = BAD_REQUEST;
                 return Response.status(status).entity(getErrorEntity(status, e.getMessage(), null)).build();
             } catch (final AccessUnauthorizedException e) {
                 LOGGER.error("Access contract does not allow ", e);
@@ -1452,7 +1476,7 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
                 return Response.status(status).entity(getErrorEntity(status, e.getMessage(), null)).build();
             } catch (final InvalidParseOperationException e) {
                 LOGGER.error(e);
-                final Status status = Status.BAD_REQUEST;
+                final Status status = BAD_REQUEST;
                 return Response.status(status).entity(getErrorEntity(status, e.getMessage(), null)).build();
             }
         } catch (final IllegalArgumentException | InvalidParseOperationException e) {
@@ -1489,7 +1513,7 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
                 return Response.status(status).entity(getErrorEntity(status, e.getMessage(), null)).build();
             } catch (final InvalidParseOperationException e) {
                 LOGGER.error(e);
-                final Status status = Status.BAD_REQUEST;
+                final Status status = BAD_REQUEST;
                 return Response.status(status).entity(getErrorEntity(status, e.getMessage(), null)).build();
             }
         } catch (final IllegalArgumentException | InvalidParseOperationException e) {
@@ -1528,7 +1552,7 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
                 return Response.status(status).entity(getErrorEntity(status, e.getMessage(), null)).build();
             } catch (final InvalidParseOperationException e) {
                 LOGGER.error(e);
-                final Status status = Status.BAD_REQUEST;
+                final Status status = BAD_REQUEST;
                 return Response.status(status).entity(getErrorEntity(status, e.getMessage(), null)).build();
             }
         } catch (final IllegalArgumentException | InvalidParseOperationException e) {
@@ -1567,7 +1591,7 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
                 return Response.status(status).entity(getErrorEntity(status, e.getMessage(), null)).build();
             } catch (final InvalidParseOperationException e) {
                 LOGGER.error(e);
-                final Status status = Status.BAD_REQUEST;
+                final Status status = BAD_REQUEST;
                 return Response.status(status).entity(getErrorEntity(status, e.getMessage(), null)).build();
             }
         } catch (final IllegalArgumentException | InvalidParseOperationException e) {
@@ -1607,7 +1631,7 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
                 return Response.status(status).entity(getErrorEntity(status, e.getMessage(), null)).build();
             } catch (final InvalidParseOperationException e) {
                 LOGGER.error(e);
-                final Status status = Status.BAD_REQUEST;
+                final Status status = BAD_REQUEST;
                 return Response.status(status).entity(getErrorEntity(status, e.getMessage(), null)).build();
             }
         } catch (final IllegalArgumentException | InvalidParseOperationException e) {
@@ -1646,7 +1670,7 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
                 return Response.status(status).entity(getErrorEntity(status, e.getMessage(), null)).build();
             } catch (final InvalidParseOperationException e) {
                 LOGGER.error(e);
-                final Status status = Status.BAD_REQUEST;
+                final Status status = BAD_REQUEST;
                 return Response.status(status).entity(getErrorEntity(status, e.getMessage(), null)).build();
             }
         } catch (final IllegalArgumentException | InvalidParseOperationException e) {
@@ -1686,7 +1710,7 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
                 return Response.status(status).entity(getErrorEntity(status, e.getMessage(), null)).build();
             } catch (final InvalidParseOperationException e) {
                 LOGGER.error(e);
-                final Status status = Status.BAD_REQUEST;
+                final Status status = BAD_REQUEST;
                 return Response.status(status).entity(getErrorEntity(status, e.getMessage(), null)).build();
             }
         } catch (final IllegalArgumentException | InvalidParseOperationException e) {
@@ -1725,7 +1749,7 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
                 return Response.status(status).entity(getErrorEntity(status, e.getMessage(), null)).build();
             } catch (final InvalidParseOperationException e) {
                 LOGGER.error(e);
-                final Status status = Status.BAD_REQUEST;
+                final Status status = BAD_REQUEST;
                 return Response.status(status).entity(getErrorEntity(status, e.getMessage(), null)).build();
             }
         } catch (final IllegalArgumentException | InvalidParseOperationException e) {
@@ -1766,7 +1790,7 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
             return VitamCodeHelper.toVitamError(VitamCode.ACCESS_EXTERNAL_CONTEXT_NOT_FOUND, e.getMessage())
                 .setHttpCode(Status.NOT_FOUND.getStatusCode())
                 .toResponse();
-        } catch (InvalidCreateOperationException | InvalidParseOperationException e) {
+        } catch (InvalidCreateOperationException | InvalidParseOperationException | AdminManagementClientServerException e) {
             LOGGER.error(e);
             return VitamCodeHelper.toVitamError(VitamCode.ADMIN_EXTERNAL_UPDATE_CONTEXT_ERROR, e.getMessage())
                 .toResponse();
@@ -1802,14 +1826,14 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
             update.setQuery(QueryHelper.eq(IDENTIFIER, identifier));
             RequestResponse response = client.updateProfile(identifier, update.getFinalUpdate());
             return getResponse(response);
+        } catch (AdminManagementClientBadRequestException | InvalidCreateOperationException | InvalidParseOperationException e) {
+            LOGGER.error(e);
+            return VitamCodeHelper.toVitamError(VitamCode.ADMIN_EXTERNAL_UPDATE_PROFILE_ERROR, e.getMessage())
+                .toResponse();
         } catch (ReferentialNotFoundException e) {
             LOGGER.error(e);
             return VitamCodeHelper.toVitamError(VitamCode.ACCESS_EXTERNAL_PROFILE_NOT_FOUND, e.getMessage())
                 .setHttpCode(Status.NOT_FOUND.getStatusCode())
-                .toResponse();
-        } catch (InvalidCreateOperationException | InvalidParseOperationException e) {
-            LOGGER.error(e);
-            return VitamCodeHelper.toVitamError(VitamCode.ADMIN_EXTERNAL_UPDATE_PROFILE_ERROR, e.getMessage())
                 .toResponse();
         } catch (IllegalArgumentException e) {
             LOGGER.error(e);
@@ -1885,14 +1909,14 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
             update.setQuery(QueryHelper.eq(IDENTIFIER, identifier));
             RequestResponse response = client.updateAccessContract(identifier, update.getFinalUpdate());
             return getResponse(response);
+        } catch (AdminManagementClientBadRequestException | InvalidCreateOperationException | InvalidParseOperationException e) {
+            LOGGER.error(e);
+            return VitamCodeHelper.toVitamError(VitamCode.ADMIN_EXTERNAL_UPDATE_ACCESS_CONTRACT_ERROR, e.getMessage())
+                .toResponse();
         } catch (ReferentialNotFoundException e) {
             LOGGER.error(e);
             return VitamCodeHelper.toVitamError(VitamCode.CONTRACT_NOT_FOUND_ERROR, e.getMessage())
                 .setHttpCode(Status.NOT_FOUND.getStatusCode())
-                .toResponse();
-        } catch (InvalidCreateOperationException | InvalidParseOperationException e) {
-            LOGGER.error(e);
-            return VitamCodeHelper.toVitamError(VitamCode.ADMIN_EXTERNAL_UPDATE_ACCESS_CONTRACT_ERROR, e.getMessage())
                 .toResponse();
         } catch (IllegalArgumentException e) {
             LOGGER.error(e);
@@ -1928,14 +1952,14 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
             update.setQuery(QueryHelper.eq(IDENTIFIER, identifier));
             RequestResponse response = client.updateIngestContract(identifier, update.getFinalUpdate());
             return getResponse(response);
+        } catch (AdminManagementClientBadRequestException |InvalidCreateOperationException | InvalidParseOperationException e) {
+            LOGGER.error(e);
+            return VitamCodeHelper.toVitamError(VitamCode.ADMIN_EXTERNAL_UPDATE_INGEST_CONTRACT_ERROR, e.getMessage())
+                .toResponse();
         } catch (ReferentialNotFoundException e) {
             LOGGER.error(e);
             return VitamCodeHelper.toVitamError(VitamCode.CONTRACT_NOT_FOUND_ERROR, e.getMessage())
                 .setHttpCode(Status.NOT_FOUND.getStatusCode())
-                .toResponse();
-        } catch (InvalidCreateOperationException | InvalidParseOperationException e) {
-            LOGGER.error(e);
-            return VitamCodeHelper.toVitamError(VitamCode.ADMIN_EXTERNAL_UPDATE_INGEST_CONTRACT_ERROR, e.getMessage())
                 .toResponse();
         } catch (IllegalArgumentException e) {
             LOGGER.error(e);
@@ -1975,7 +1999,7 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
             return VitamCodeHelper.toVitamError(VitamCode.CONTRACT_NOT_FOUND_ERROR, e.getMessage())
                 .setHttpCode(Status.NOT_FOUND.getStatusCode())
                 .toResponse();
-        } catch (InvalidCreateOperationException | InvalidParseOperationException e) {
+        } catch (InvalidCreateOperationException | InvalidParseOperationException | AdminManagementClientServerException e) {
             LOGGER.error(e);
             return VitamCodeHelper
                 .toVitamError(VitamCode.ADMIN_EXTERNAL_UPDATE_MANAGEMENT_CONTRACT_ERROR, e.getMessage())
@@ -2028,7 +2052,7 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
                 .build();
         } catch (InvalidParseOperationException e) {
             LOGGER.error(e);
-            final Status status = Status.BAD_REQUEST;
+            final Status status = BAD_REQUEST;
             return Response.status(status).entity(getErrorEntity(status, e.getMessage(), null)).build();
         } catch (Exception e) {
             LOGGER.error(e);
@@ -2058,7 +2082,7 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
             return Response.status(st).entity(result).build();
         } catch (final IllegalArgumentException | InvalidParseOperationException e) {
             LOGGER.error(e);
-            final Status status = Status.BAD_REQUEST;
+            final Status status = BAD_REQUEST;
             return Response.status(status).entity(new VitamError(status.name()).setHttpCode(status.getStatusCode())
                 .setContext(ServiceName.EXTERNAL_ACCESS.getName())
                 .setState(CODE_VITAM)
@@ -2103,7 +2127,7 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
             return Response.status(st).entity(result).build();
         } catch (AdminManagementClientServerException | InvalidParseOperationException | ValidationException e) {
             LOGGER.error(e);
-            final Status status = Status.BAD_REQUEST;
+            final Status status = BAD_REQUEST;
             return Response.status(status).entity(new VitamError(status.name()).setHttpCode(status.getStatusCode())
                 .setContext(ServiceName.EXTERNAL_ACCESS.getName())
                 .setState(CODE_VITAM)
@@ -2142,12 +2166,12 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
             return ResponseBuilder.build();
         } catch (final ReferentialException e) {
             LOGGER.error(e);
-            return Response.status(Status.BAD_REQUEST)
-                .entity(getErrorEntity(Status.BAD_REQUEST, e.getMessage(), null)).build();
+            return Response.status(BAD_REQUEST)
+                .entity(getErrorEntity(BAD_REQUEST, e.getMessage(), null)).build();
         } catch (InvalidParseOperationException | InvalidFormatException e) {
             LOGGER.error(e);
-            return Response.status(Status.BAD_REQUEST)
-                .entity(getErrorEntity(Status.BAD_REQUEST, e.getMessage(), null)).build();
+            return Response.status(BAD_REQUEST)
+                .entity(getErrorEntity(BAD_REQUEST, e.getMessage(), null)).build();
         }
     }
 
@@ -2171,7 +2195,7 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
             return Response.status(st).entity(result).build();
         } catch (AdminManagementClientServerException | InvalidParseOperationException e) {
             LOGGER.error(e);
-            final Status status = Status.BAD_REQUEST;
+            final Status status = BAD_REQUEST;
             return Response.status(status).entity(new VitamError(status.name()).setHttpCode(status.getStatusCode())
                 .setContext(ServiceName.EXTERNAL_ACCESS.getName())
                 .setState(CODE_VITAM)
@@ -2205,7 +2229,7 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
             return Response.status(status).entity(getErrorEntity(status, e.getMessage(), null)).build();
         } catch (final InvalidParseOperationException e) {
             LOGGER.error(e);
-            final Status status = Status.BAD_REQUEST;
+            final Status status = BAD_REQUEST;
             return Response.status(status).entity(getErrorEntity(status, e.getMessage(), null)).build();
         } catch (IllegalArgumentException e) {
             LOGGER.error(e);
@@ -2243,7 +2267,7 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
                 return Response.status(status).entity(getErrorEntity(status, e.getMessage(), null)).build();
             } catch (final InvalidParseOperationException e) {
                 LOGGER.error(e);
-                final Status status = Status.BAD_REQUEST;
+                final Status status = BAD_REQUEST;
                 return Response.status(status).entity(getErrorEntity(status, e.getMessage(), null)).build();
             }
         } catch (final IllegalArgumentException e) {
@@ -2279,14 +2303,14 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
             update.setQuery(QueryHelper.eq(IDENTIFIER, identifier));
             RequestResponse response = client.updateSecurityProfile(identifier, update.getFinalUpdateById());
             return getResponse(response);
+        } catch (AdminManagementClientBadRequestException | InvalidCreateOperationException | InvalidParseOperationException e) {
+            LOGGER.error(e);
+            return VitamCodeHelper.toVitamError(VitamCode.ADMIN_EXTERNAL_UPDATE_SECURITY_PROFILE_ERROR, e.getMessage())
+                .toResponse();
         } catch (ReferentialNotFoundException e) {
             LOGGER.error(e);
             return VitamCodeHelper.toVitamError(VitamCode.ACCESS_EXTERNAL_SECURITY_PROFILE_NOT_FOUND, e.getMessage())
                 .setHttpCode(Status.PRECONDITION_FAILED.getStatusCode())
-                .toResponse();
-        } catch (InvalidCreateOperationException | InvalidParseOperationException e) {
-            LOGGER.error(e);
-            return VitamCodeHelper.toVitamError(VitamCode.ADMIN_EXTERNAL_UPDATE_SECURITY_PROFILE_ERROR, e.getMessage())
                 .toResponse();
         } catch (IllegalArgumentException e) {
             LOGGER.error(e);
@@ -2405,7 +2429,7 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
             return Response.status(INTERNAL_SERVER_ERROR).build();
         } catch (BadRequestException e) {
             LOGGER.error(e);
-            return Response.status(Status.BAD_REQUEST).build();
+            return Response.status(BAD_REQUEST).build();
         }
     }
 
@@ -2596,7 +2620,7 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
             return new VitamAsyncInputStreamResponse(response);
         } catch (IllegalArgumentException e) {
             LOGGER.error("IllegalArgumentException was thrown : ", e);
-            return Response.status(Status.BAD_REQUEST)
+            return Response.status(BAD_REQUEST)
                 .entity(getErrorStream(
                     VitamCodeHelper.toVitamError(VitamCode.ADMIN_EXTERNAL_BAD_REQUEST, e.getLocalizedMessage())))
                 .build();
@@ -2710,8 +2734,8 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
 
         } catch (final ReferentialException e) {
             LOGGER.error(e);
-            return Response.status(Status.BAD_REQUEST)
-                .entity(getErrorEntity(Status.BAD_REQUEST, e.getMessage(), null)).build();
+            return Response.status(BAD_REQUEST)
+                .entity(getErrorEntity(BAD_REQUEST, e.getMessage(), null)).build();
         } catch (InvalidParseOperationException | InvalidFormatException e) {
             LOGGER.error(e);
             VitamError error = new VitamError(VitamCode.ACCESS_EXTERNAL_INVALID_JSON.getItem())
@@ -2720,7 +2744,7 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
                 .setCode(VitamCodeHelper.getCode(VitamCode.ACCESS_EXTERNAL_INVALID_JSON))
                 .setContext(ACCESS_EXTERNAL_MODULE)
                 .setDescription(VitamCode.ACCESS_EXTERNAL_INVALID_JSON.getMessage());
-            return Response.status(Status.BAD_REQUEST)
+            return Response.status(BAD_REQUEST)
                 .entity(error).build();
         }
     }
@@ -2747,7 +2771,7 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
                 return Response.status(st).entity(result).build();
             } catch (final InvalidParseOperationException e) {
                 LOGGER.error(e);
-                final Status status = Status.BAD_REQUEST;
+                final Status status = BAD_REQUEST;
                 return Response.status(status).entity(getErrorEntity(status, e.getMessage(), null)).build();
             }
         } catch (IllegalArgumentException e) {
@@ -2786,7 +2810,7 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
                 return Response.status(status).entity(getErrorEntity(status, e.getMessage(), null)).build();
             } catch (final InvalidParseOperationException e) {
                 LOGGER.error(e);
-                final Status status = Status.BAD_REQUEST;
+                final Status status = BAD_REQUEST;
                 return Response.status(status).entity(getErrorEntity(status, e.getMessage(), null)).build();
             }
         } catch (final IllegalArgumentException | InvalidParseOperationException e) {
@@ -2821,8 +2845,8 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
 
         } catch (final AdminManagementClientServerException e) {
             LOGGER.error(e);
-            return Response.status(Status.BAD_REQUEST)
-                .entity(getErrorEntity(Status.BAD_REQUEST, e.getMessage(), null)).build();
+            return Response.status(BAD_REQUEST)
+                .entity(getErrorEntity(BAD_REQUEST, e.getMessage(), null)).build();
         }
     }
 
@@ -2849,8 +2873,8 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
 
         } catch (final AdminManagementClientServerException e) {
             LOGGER.error(e);
-            return Response.status(Status.BAD_REQUEST)
-                .entity(getErrorEntity(Status.BAD_REQUEST, e.getMessage(), null)).build();
+            return Response.status(BAD_REQUEST)
+                .entity(getErrorEntity(BAD_REQUEST, e.getMessage(), null)).build();
         }
     }
 
@@ -2874,10 +2898,10 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
             return Response.status(requestResponse.getStatus())
                 .entity(requestResponse).build();
 
+        } catch (AdminManagementClientBadRequestException | InvalidParseOperationException | InvalidFormatException e) {
+            return buildErrorResponse(VitamCode.PRESERVATION_VALIDATION_ERROR, e.getMessage());
         } catch (ReferentialException e) {
             return buildErrorResponse(VitamCode.PRESERVATION_INTERNAL_ERROR, e.getMessage());
-        } catch (InvalidParseOperationException | InvalidFormatException e) {
-            return buildErrorResponse(VitamCode.PRESERVATION_VALIDATION_ERROR, e.getMessage());
         }
     }
 
@@ -2924,7 +2948,7 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
                 return Response.status(status).entity(getErrorEntity(status, e.getMessage(), null)).build();
             } catch (final InvalidParseOperationException e) {
                 LOGGER.error(e);
-                final Status status = Status.BAD_REQUEST;
+                final Status status = BAD_REQUEST;
                 return Response.status(status).entity(getErrorEntity(status, e.getMessage(), null)).build();
             }
         } catch (IllegalArgumentException e) {
@@ -2954,10 +2978,10 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
             return Response.status(requestResponse.getStatus())
                 .entity(requestResponse).build();
 
+        } catch (AdminManagementClientBadRequestException | InvalidParseOperationException | InvalidFormatException e) {
+            return buildErrorResponse(VitamCode.PRESERVATION_VALIDATION_ERROR, e.getMessage());
         } catch (ReferentialException e) {
             return buildErrorResponse(VitamCode.PRESERVATION_INTERNAL_ERROR, e.getMessage());
-        } catch (InvalidParseOperationException | InvalidFormatException e) {
-            return buildErrorResponse(VitamCode.PRESERVATION_VALIDATION_ERROR, e.getMessage());
         }
     }
 
@@ -3079,7 +3103,7 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
             return VitamCodeHelper
                 .toVitamError(VitamCode.LOGBOOK_EXTERNAL_BAD_REQUEST,
                     e.getLocalizedMessage())
-                .setHttpCode(Status.BAD_REQUEST.getStatusCode()).toResponse();
+                .setHttpCode(BAD_REQUEST.getStatusCode()).toResponse();
         }
     }
 

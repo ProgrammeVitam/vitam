@@ -157,21 +157,13 @@ public class AuditIT extends VitamRuleRunner {
     }
 
     @Before
-    public void setUpBefore() throws Exception {
+    public void setUpBefore() {
         getVitamSession().setRequestId(newOperationLogbookGUID(0));
         getVitamSession().setTenantId(tenantId);
 
         AccessInternalClientFactory factory = AccessInternalClientFactory.getInstance();
         factory.changeServerPort(PORT_SERVICE_ACCESS_INTERNAL);
         factory.setVitamClientType(PRODUCTION);
-
-        AccessContractModel contract = getAccessContractModel();
-        AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient();
-
-        client.importAccessContracts(singletonList(contract));
-
-        FormatIdentifierFactory.getInstance().changeConfigurationFile(
-                PropertiesUtils.getResourcePath("integration-ingest-internal/format-identifiers.conf").toString());
     }
 
     private String doIngest(String zip) throws FileNotFoundException, VitamException {
@@ -202,18 +194,6 @@ public class AuditIT extends VitamRuleRunner {
 
         waitOperation(NB_TRY, SLEEP_TIME, ingestOperationGuid.getId());
         return ingestOperationGuid.toString();
-    }
-
-    private AccessContractModel getAccessContractModel() {
-        AccessContractModel contract = new AccessContractModel();
-        contract.setName(contractId);
-        contract.setIdentifier(contractId);
-        contract.setStatus(ActivationStatus.ACTIVE);
-        contract.setEveryOriginatingAgency(true);
-        contract.setCreationdate("10/12/1800");
-        contract.setActivationdate("10/12/1800");
-        contract.setDeactivationdate("31/12/4200");
-        return contract;
     }
 
     @Test
@@ -251,7 +231,7 @@ public class AuditIT extends VitamRuleRunner {
                     .allMatch(outcome -> outcome.equals(StatusCode.OK.name()));
 
             // Check report
-            List<JsonNode> reportLines = null;
+            List<JsonNode> reportLines;
             try (StorageClient storageClient = StorageClientFactory.getInstance().getClient()) {
                 Response reportResponse = null;
                 try {
@@ -332,7 +312,7 @@ public class AuditIT extends VitamRuleRunner {
                     .allMatch(outcome -> outcome.equals(StatusCode.OK.name()));
 
             // Check report
-            List<JsonNode> reportLines = null;
+            List<JsonNode> reportLines;
             try (StorageClient storageClient = StorageClientFactory.getInstance().getClient()) {
                 Response reportResponse = null;
                 try {
@@ -415,7 +395,7 @@ public class AuditIT extends VitamRuleRunner {
                 .anyMatch(outcome -> outcome.equals(StatusCode.KO.name()));
 
             // Check report
-            List<JsonNode> reportLines = null;
+            List<JsonNode> reportLines;
             try (StorageClient storageClient = StorageClientFactory.getInstance().getClient()) {
                 Response reportResponse = null;
                 try {
@@ -452,7 +432,7 @@ public class AuditIT extends VitamRuleRunner {
     }
 
     private List<JsonNode> getReport(Response reportResponse) throws IOException, InvalidParseOperationException {
-        List<JsonNode> reportLines = new ArrayList<JsonNode>();
+        List<JsonNode> reportLines = new ArrayList<>();
         try (InputStream is = reportResponse.readEntity(InputStream.class)) {
             BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(is, StandardCharsets.UTF_8));
             PeekingIterator<String> linesPeekIterator = new PeekingIterator<>(bufferedReader.lines().iterator());
@@ -464,7 +444,7 @@ public class AuditIT extends VitamRuleRunner {
     }
 
     @After
-    public void afterTest() throws Exception {
+    public void afterTest() {
         VitamThreadUtils.getVitamSession().setContextId(CONTEXT_ID);
 
         ProcessDataAccessImpl.getInstance().clearWorkflow();
