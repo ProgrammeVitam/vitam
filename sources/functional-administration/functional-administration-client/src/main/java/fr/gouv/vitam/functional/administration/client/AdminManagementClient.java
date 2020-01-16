@@ -505,11 +505,11 @@ public interface AdminManagementClient extends MockOrRestClient {
     /**
      * Import a set of context
      *
-     * @param ContextModelList
+     * @param contextModelList
      * @return Status
      * @throws ReferentialException
      */
-    Status importContexts(List<ContextModel> ContextModelList) throws ReferentialException;
+    Status importContexts(List<ContextModel> contextModelList) throws ReferentialException;
 
     /**
      * Update context to mongo

@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2019)
  *
  * contact.vitam@culture.gouv.fr
@@ -56,7 +56,7 @@ import fr.gouv.vitam.common.logging.VitamLoggerFactory;
  */
 public class GenericExceptionMapper implements ExceptionMapper<Throwable> {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(GenericExceptionMapper.class);
-    private static String URI_HOST_PORT_PATTERN = "(https|http)://[a-zA-Z0-9.\\-_]+(:[0-9]+)?/";
+    private static final String URI_HOST_PORT_PATTERN = "(https|http)://[a-zA-Z0-9.\\-_]+(:[0-9]+)?/";
 
     @Override
     public Response toResponse(Throwable exception) {

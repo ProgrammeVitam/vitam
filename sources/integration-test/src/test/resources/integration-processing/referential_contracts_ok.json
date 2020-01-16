@@ -78,6 +78,24 @@
     "ArchiveProfiles": [
       "PR-000001"
     ]
+  },
+  {
+    "_id": "aefqaaaaa4hjigi7abyekaldwznbhbyabbbq",
+    "Name": "Contrat standard",
+    "Identifier": "AC-000001",
+    "Description": "Contrat standard",
+    "Status": "ACTIVE",
+    "CreationDate": "2018-05-31T13:19:06.629",
+    "LastUpdate": "2018-05-31T13:19:31.763Z",
+    "ActivationDate": "2018-05-31T13:19:06.629",
+    "DataObjectVersion": [ "PhysicalMaster", "BinaryMaster", "Dissemination", "Thumbnail", "TextContent" ],
+    "OriginatingAgencies": [ "RATP" ],
+    "WritingPermission": true,
+    "WritingRestrictedDesc": true,
+    "EveryOriginatingAgency": true,
+    "EveryDataObjectVersion": false,
+    "_tenant": 7,
+    "_v": 1
   }
 ]
 

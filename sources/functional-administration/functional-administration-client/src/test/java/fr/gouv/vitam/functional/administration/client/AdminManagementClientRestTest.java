@@ -107,7 +107,7 @@ public class AdminManagementClientRestTest extends ResteasyTestApplication {
     public RunWithCustomExecutorRule runInThread =
         new RunWithCustomExecutorRule(VitamThreadPoolExecutor.getDefaultExecutor());
 
-    static final String QUERY =
+    private static final String QUERY =
         "{\"$query\":{\"$and\":[{\"$eq\":{\"OriginatingAgency\":\"OriginatingAgency\"}}]},\"$filter\":{},\"$projection\":{}}";
 
     private static final Integer TENANT_ID = 0;
@@ -117,7 +117,7 @@ public class AdminManagementClientRestTest extends ResteasyTestApplication {
 
     private final static ExpectedResults mock = mock(ExpectedResults.class);
 
-    public static VitamServerTestRunner vitamServerTestRunner =
+    private static VitamServerTestRunner vitamServerTestRunner =
         new VitamServerTestRunner(AdminManagementClientRestTest.class, AdminManagementClientFactory.getInstance());
 
 
@@ -224,15 +224,13 @@ public class AdminManagementClientRestTest extends ResteasyTestApplication {
     }
 
 
-    @Test()
+    @Test(expected = AdminManagementClientServerException.class)
     public void givenInputstreamKORulesFileWhenCheckThenReturnKO() throws Exception {
         when(mock.post()).thenReturn(Response.status(Status.BAD_REQUEST).build());
         when(mock.get()).thenReturn(ClientMockResultHelper.getObjectStream());
         try (AdminManagementClientRest client = (AdminManagementClientRest) vitamServerTestRunner
             .getClient()) {
-            Response response = client.checkRulesFile(new FakeInputStream(1));
-            assertEquals(400, response.getStatus());
-            assertNotNull(response);
+            client.checkRulesFile(new FakeInputStream(1));
         }
     }
 
@@ -290,7 +288,7 @@ public class AdminManagementClientRestTest extends ResteasyTestApplication {
             VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
             client.importRulesFile(new FakeInputStream(1), "jeu_donnees_OK_regles_CSV.csv");
         } catch (FileRulesException e) {
-            assertEquals("Wrong format", e.getMessage());
+            assertEquals("Wrong format", e.getCause().getMessage());
             throw (e);
         } catch (ReferentialException e) {
             fail("May not happen here");
@@ -335,17 +333,18 @@ public class AdminManagementClientRestTest extends ResteasyTestApplication {
         }
     }
 
-    @Test(expected = AccessionRegisterException.class)
+    @Test
     @RunWithCustomExecutor
     public void createAccessionRegisterError()
         throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         when(mock.post()).thenReturn(Response.status(Status.PRECONDITION_FAILED).build());
         try (AdminManagementClientRest client = (AdminManagementClientRest) vitamServerTestRunner.getClient()) {
-            client.createOrUpdateAccessionRegister(
+            assertThatThrownBy(() -> client.createOrUpdateAccessionRegister(
                 new AccessionRegisterDetailModel().setOpc("IDD").setOriginatingAgency("OG").setStartDate(DATE)
                     .setEndDate(DATE)
-                    .setLastUpdate(DATE));
+                    .setLastUpdate(DATE)))
+            .isInstanceOf(AdminManagementClientServerException.class);
         }
     }
 
@@ -381,7 +380,7 @@ public class AdminManagementClientRestTest extends ResteasyTestApplication {
         }
     }
 
-    @Test(expected = AccessionRegisterException.class)
+    @Test(expected = AdminManagementClientServerException.class)
     public void getAccessionRegisterDetailUnknownError()
         throws Exception {
         when(mock.post()).thenReturn(Response.status(Status.BAD_REQUEST).build());
@@ -408,7 +407,7 @@ public class AdminManagementClientRestTest extends ResteasyTestApplication {
         }
     }
 
-    @Test(expected = InvalidParseOperationException.class)
+    @Test(expected = AdminManagementClientServerException.class)
     public void getAccessionRegisterSummaryUnknownError()
         throws Exception {
         when(mock.post()).thenReturn(Response.status(Status.BAD_REQUEST).entity("{}").build());
@@ -721,7 +720,7 @@ public class AdminManagementClientRestTest extends ResteasyTestApplication {
 
 
     @RunWithCustomExecutor
-    @Test
+    @Test(expected = ReferentialNotFoundException.class)
     public void findAgencyByIdThenReturnEmpty()
         throws InvalidParseOperationException, AdminManagementClientServerException,
         ReferentialNotFoundException {
@@ -730,9 +729,7 @@ public class AdminManagementClientRestTest extends ResteasyTestApplication {
         when(mock.get())
             .thenReturn(Response.status(Status.NOT_FOUND).build());
         try (AdminManagementClientRest client = (AdminManagementClientRest) vitamServerTestRunner.getClient()) {
-            RequestResponse<AgenciesModel> response = client.getAgencyById("fakeId");
-            assertFalse(response.isOk());
-            assertEquals(response.getStatus(), Status.NOT_FOUND.getStatusCode());
+            client.getAgencyById("fakeId");
         }
     }
 
@@ -939,8 +936,7 @@ public class AdminManagementClientRestTest extends ResteasyTestApplication {
             .thenReturn(
                 Response.status(Status.OK).entity(new RequestResponseOK<ArchiveUnitProfileModel>()).build());
         try (AdminManagementClientRest client = (AdminManagementClientRest) vitamServerTestRunner.getClient()) {
-            RequestResponse resp = client.findArchiveUnitProfilesByID("fakeId");
-            VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
+            client.findArchiveUnitProfilesByID("fakeId");
         }
     }
 
@@ -1008,7 +1004,7 @@ public class AdminManagementClientRestTest extends ResteasyTestApplication {
         }
     }
 
-    @Test
+    @Test(expected = AdminManagementClientServerException.class)
     @RunWithCustomExecutor
     public void createExternalOperationInternalServerError()
         throws AdminManagementClientServerException, InvalidParseOperationException,
@@ -1018,7 +1014,6 @@ public class AdminManagementClientRestTest extends ResteasyTestApplication {
             .entity(new RequestResponseOK()).build());
         try (AdminManagementClientRest client = (AdminManagementClientRest) vitamServerTestRunner.getClient()) {
             Status status = client.createExternalOperation(LogbookParametersFactory.newLogbookOperationParameters());
-            assertThat(status).isEqualTo(Status.INTERNAL_SERVER_ERROR);
         }
     }
 

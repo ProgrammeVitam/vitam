@@ -922,7 +922,7 @@ public class AdminExternalClientRest extends DefaultClient implements AdminExter
         InputStream stream)
         throws VitamClientException {
         try {
-            return performRequest(HttpMethod.POST, documentType.getCheckURI(), vitamContext.getHeaders(),
+            return  performRequest(HttpMethod.POST, documentType.getCheckURI(), vitamContext.getHeaders(),
                 stream, MediaType.APPLICATION_OCTET_STREAM_TYPE,
                 MediaType.APPLICATION_OCTET_STREAM_TYPE);
         } catch (final VitamClientInternalException e) {

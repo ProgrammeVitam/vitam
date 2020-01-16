@@ -1,5 +1,6 @@
 [
 	{
+		"Identifier": "ContratWithPlan",
 		"Name":"ArchivalAgreementWithPlan",
 		"Description":"contract with plan",
 		"Status" : "ACTIVE",

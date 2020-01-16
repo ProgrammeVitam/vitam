@@ -157,25 +157,8 @@ public class EvidenceAuditIT extends VitamRuleRunner {
         factory.changeServerPort(PORT_SERVICE_ACCESS_INTERNAL);
         factory.setVitamClientType(PRODUCTION);
 
-        AccessContractModel contract = getAccessContractModel();
-        AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient();
-
-        client.importAccessContracts(singletonList(contract));
-
         FormatIdentifierFactory.getInstance().changeConfigurationFile(
             PropertiesUtils.getResourcePath("integration-ingest-internal/format-identifiers.conf").toString());
-    }
-
-    private AccessContractModel getAccessContractModel() {
-        AccessContractModel contract = new AccessContractModel();
-        contract.setName(contractId);
-        contract.setIdentifier(contractId);
-        contract.setStatus(ActivationStatus.ACTIVE);
-        contract.setEveryOriginatingAgency(true);
-        contract.setCreationdate("10/12/1800");
-        contract.setActivationdate("10/12/1800");
-        contract.setDeactivationdate("31/12/4200");
-        return contract;
     }
 
     @Test

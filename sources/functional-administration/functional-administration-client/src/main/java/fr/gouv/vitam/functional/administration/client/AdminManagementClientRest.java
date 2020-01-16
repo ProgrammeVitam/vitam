@@ -30,6 +30,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.client.DefaultClient;
+import fr.gouv.vitam.common.client.VitamRequestBuilder;
 import fr.gouv.vitam.common.database.builder.query.QueryHelper;
 import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
 import fr.gouv.vitam.common.database.builder.request.single.Select;
@@ -38,6 +39,7 @@ import fr.gouv.vitam.common.database.parser.request.single.SelectParserSingle;
 import fr.gouv.vitam.common.error.VitamError;
 import fr.gouv.vitam.common.exception.AccessUnauthorizedException;
 import fr.gouv.vitam.common.exception.BadRequestException;
+import fr.gouv.vitam.common.exception.ForbiddenClientException;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamClientInternalException;
 import fr.gouv.vitam.common.exception.VitamRuntimeException;
@@ -68,6 +70,7 @@ import fr.gouv.vitam.functional.administration.common.Context;
 import fr.gouv.vitam.functional.administration.common.Ontology;
 import fr.gouv.vitam.functional.administration.common.Profile;
 import fr.gouv.vitam.functional.administration.common.exception.AccessionRegisterException;
+import fr.gouv.vitam.functional.administration.common.exception.AdminManagementClientBadRequestException;
 import fr.gouv.vitam.functional.administration.common.exception.AdminManagementClientServerException;
 import fr.gouv.vitam.functional.administration.common.exception.DatabaseConflictException;
 import fr.gouv.vitam.functional.administration.common.exception.FileRulesException;
@@ -79,20 +82,21 @@ import fr.gouv.vitam.functional.administration.common.exception.ReferentialNotFo
 import fr.gouv.vitam.functional.administration.common.server.AccessionRegisterSymbolic;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientAlreadyExistsException;
 import fr.gouv.vitam.logbook.common.parameters.LogbookOperationParameters;
+import org.apache.commons.lang3.StringUtils;
 
-import javax.ws.rs.HttpMethod;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.MultivaluedHashMap;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
-
 import java.io.InputStream;
 import java.util.List;
 
+import static fr.gouv.vitam.common.client.VitamRequestBuilder.get;
+import static fr.gouv.vitam.common.client.VitamRequestBuilder.post;
+import static fr.gouv.vitam.common.client.VitamRequestBuilder.put;
 import static fr.gouv.vitam.common.json.JsonHandler.getFromString;
-import static javax.ws.rs.HttpMethod.GET;
-import static javax.ws.rs.HttpMethod.POST;
-import static javax.ws.rs.core.MediaType.APPLICATION_JSON_TYPE;
+import static javax.ws.rs.core.Response.Status.CONFLICT;
+import static javax.ws.rs.core.Response.Status.Family.REDIRECTION;
+import static javax.ws.rs.core.Response.Status.Family.SUCCESSFUL;
+import static javax.ws.rs.core.Response.Status.fromStatusCode;
 
 /**
  * AdminManagement client
@@ -142,6 +146,7 @@ class AdminManagementClientRest extends DefaultClient implements AdminManagement
 
     private static final String FORCE_PAUSE_URI = "/forcepause";
     private static final String REMOVE_FORCE_PAUSE_URI = "/removeforcepause";
+    private static final String INTERNAL_SERVER_ERROR_MSG = "Internal Server Error";
 
     AdminManagementClientRest(AdminManagementClientFactory factory) {
         super(factory);
@@ -150,29 +155,21 @@ class AdminManagementClientRest extends DefaultClient implements AdminManagement
     @Override
     public Response checkFormat(InputStream stream) throws ReferentialException {
         ParametersChecker.checkParameter("stream is a mandatory parameter", stream);
-        Response response = null;
-        Status status = null;
+
+        VitamRequestBuilder request = post()
+            .withPath(FORMAT_CHECK_URL)
+            .withBody(stream)
+            .withOctetContentType()
+            .withJsonAccept();
+
+        Response response;
         try {
-            response = performRequest(POST, FORMAT_CHECK_URL, null,
-                stream, MediaType.APPLICATION_OCTET_STREAM_TYPE, APPLICATION_JSON_TYPE);
-            status = Status.fromStatusCode(response.getStatus());
-            switch (status) {
-                case OK:
-                    LOGGER.debug(Response.Status.OK.getReasonPhrase());
-                    break;
-                /* BAD_REQUEST status is more suitable when formats are not well formated */
-                case BAD_REQUEST:
-                    String reason = (response.hasEntity()) ? response.readEntity(String.class)
-                        : Response.Status.BAD_REQUEST.getReasonPhrase();
-                    LOGGER.error(reason);
-                    throw new ReferentialException(reason);
-                default:
-                    break;
-            }
+            response = make(request);
+            checkWithSpecificException(response);
             return response;
-        } catch (final VitamClientInternalException e) {
-            LOGGER.error("Internal Server Error", e);
-            throw new AdminManagementClientServerException("Internal Server Error", e);
+        } catch (final VitamClientInternalException | BadRequestException | AccessUnauthorizedException | ForbiddenClientException | DatabaseConflictException e) {
+            LOGGER.error(INTERNAL_SERVER_ERROR_MSG, e);
+            throw new AdminManagementClientServerException(INTERNAL_SERVER_ERROR_MSG, e);
         }
     }
 
@@ -180,62 +177,36 @@ class AdminManagementClientRest extends DefaultClient implements AdminManagement
     public Status importFormat(InputStream stream, String filename)
         throws ReferentialException, DatabaseConflictException {
         ParametersChecker.checkParameter("stream is a mandatory parameter", stream);
-        Response response = null;
-        final MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
-        headers.add(GlobalDataRest.X_FILENAME, filename);
-        try {
-            response = performRequest(POST, FORMAT_IMPORT_URL, headers,
-                stream, MediaType.APPLICATION_OCTET_STREAM_TYPE, APPLICATION_JSON_TYPE);
-            final Status status = Status.fromStatusCode(response.getStatus());
-            switch (status) {
-                case OK:
-                    LOGGER.debug(Response.Status.OK.getReasonPhrase());
-                    break;
-                case BAD_REQUEST:
-                    String reason = (response.hasEntity()) ? response.readEntity(String.class)
-                        : Response.Status.BAD_REQUEST.getReasonPhrase();
-                    LOGGER.error(reason);
-                    throw new ReferentialException(reason);
-                case CONFLICT:
-                    LOGGER.debug(Response.Status.CONFLICT.getReasonPhrase());
-                    throw new DatabaseConflictException("Collection input conflic");
-                default:
-                    break;
-            }
-            return status;
-        } catch (final VitamClientInternalException e) {
-            LOGGER.error("Internal Server Error", e);
-            throw new AdminManagementClientServerException("Internal Server Error", e);
-        } finally {
-            consumeAnyEntityAndClose(response);
+
+        VitamRequestBuilder request = post()
+            .withPath(FORMAT_IMPORT_URL)
+            .withHeader(GlobalDataRest.X_FILENAME, filename)
+            .withBody(stream)
+            .withOctetContentType()
+            .withJsonAccept();
+
+        try (Response response = make(request)) {
+            checkWithSpecificException(response);
+            return fromStatusCode(response.getStatus());
+        } catch (final VitamClientInternalException | BadRequestException | AccessUnauthorizedException | ForbiddenClientException e) {
+            throw new AdminManagementClientServerException(INTERNAL_SERVER_ERROR_MSG, e);
         }
     }
 
     @Override
     public JsonNode getFormatByID(String id) throws ReferentialException, InvalidParseOperationException {
         ParametersChecker.checkParameter("id is a mandatory parameter", id);
-        Response response = null;
-        try {
-            response = performRequest(GET, FORMAT_URL + "/" + id, null,
-                APPLICATION_JSON_TYPE);
-            final Status status = Status.fromStatusCode(response.getStatus());
-            switch (status) {
-                case OK:
-                    LOGGER.debug(Response.Status.OK.getReasonPhrase());
-                    break;
-                case NOT_FOUND:
-                    LOGGER.error(Response.Status.NOT_FOUND.getReasonPhrase());
-                    throw new ReferentialNotFoundException("Formats Not found ");
-                default:
-                    break;
-            }
 
+        VitamRequestBuilder request = get()
+            .withPath(FORMAT_URL + "/" + id)
+            .withJsonAccept();
+
+        try (Response response = make(request)) {
+            checkWithSpecificException(response);
             return getFromString(response.readEntity(String.class));
-        } catch (final VitamClientInternalException e) {
-            LOGGER.error("Internal Server Error", e);
-            throw new AdminManagementClientServerException("Internal Server Error", e);
-        } finally {
-            consumeAnyEntityAndClose(response);
+        } catch (final VitamClientInternalException | BadRequestException | AccessUnauthorizedException |
+            ForbiddenClientException | DatabaseConflictException e) {
+            throw new AdminManagementClientServerException(INTERNAL_SERVER_ERROR_MSG, e);
         }
 
     }
@@ -244,27 +215,18 @@ class AdminManagementClientRest extends DefaultClient implements AdminManagement
     public RequestResponse<FileFormatModel> getFormats(JsonNode query)
         throws ReferentialException, InvalidParseOperationException {
         ParametersChecker.checkParameter("query is a mandatory parameter", query);
-        Response response = null;
-        try {
-            response = performRequest(POST, FORMAT_GET_DOCUMENT_URL, null,
-                query, APPLICATION_JSON_TYPE, APPLICATION_JSON_TYPE, false);
-            final Status status = Status.fromStatusCode(response.getStatus());
-            switch (status) {
-                case OK:
-                    LOGGER.debug(Response.Status.OK.getReasonPhrase());
-                    break;
-                case NOT_FOUND:
-                    LOGGER.error(Response.Status.NOT_FOUND.getReasonPhrase());
-                    throw new ReferentialNotFoundException("File format not found");
-                default:
-                    throw new ReferentialException("Unknown error");
-            }
+
+        VitamRequestBuilder request = post()
+            .withPath(FORMAT_GET_DOCUMENT_URL)
+            .withBody(query)
+            .withJson();
+
+        try (Response response = make(request)) {
+            checkWithSpecificException(response);
             return getFromString(response.readEntity(String.class), RequestResponseOK.class, FileFormatModel.class);
-        } catch (final VitamClientInternalException e) {
-            LOGGER.error("Internal Server Error", e);
-            throw new AdminManagementClientServerException("Internal Server Error", e);
-        } finally {
-            consumeAnyEntityAndClose(response);
+        } catch (final VitamClientInternalException | BadRequestException | AccessUnauthorizedException |
+            ForbiddenClientException | DatabaseConflictException e) {
+            throw new AdminManagementClientServerException(INTERNAL_SERVER_ERROR_MSG, e);
         }
     }
 
@@ -272,15 +234,26 @@ class AdminManagementClientRest extends DefaultClient implements AdminManagement
     @Override
     public Response checkRulesFile(InputStream stream) throws FileRulesException, AdminManagementClientServerException {
         ParametersChecker.checkParameter("stream is a mandatory parameter", stream);
+        VitamRequestBuilder request = post()
+            .withPath(RULESMANAGER_CHECK_URL)
+            .withBody(stream)
+            .withOctetContentType()
+            .withOctetAccept();
+
         Response response = null;
         try {
-            response = performRequest(POST, RULESMANAGER_CHECK_URL, null,
-                stream, MediaType.APPLICATION_OCTET_STREAM_TYPE,
-                MediaType.APPLICATION_OCTET_STREAM_TYPE);
+            response = make(request);
+            checkWithSpecificException(response);
             return response;
-        } catch (final VitamClientInternalException e) {
-            LOGGER.error("Internal Server Error", e);
-            throw new AdminManagementClientServerException("Internal Server Error", e);
+        } catch (DatabaseConflictException | ReferentialNotFoundException | AccessUnauthorizedException | ForbiddenClientException | VitamClientInternalException e) {
+            String reason = (response != null) ? response.readEntity(String.class):INTERNAL_SERVER_ERROR_MSG;
+            throw new AdminManagementClientServerException(reason, e);
+        } catch (BadRequestException e) {
+            throw new AdminManagementClientBadRequestException(e);
+        } finally {
+            if (response != null && !SUCCESSFUL.equals(response.getStatusInfo().getFamily())) {
+                response.close();
+            }
         }
     }
 
@@ -288,15 +261,21 @@ class AdminManagementClientRest extends DefaultClient implements AdminManagement
     public Response checkAgenciesFile(InputStream stream)
         throws FileRulesException, AdminManagementClientServerException {
         ParametersChecker.checkParameter("stream is a mandatory parameter", stream);
-        Response response = null;
+        VitamRequestBuilder request = post()
+            .withPath(AGENCIESMANAGER_CHECK_URL)
+            .withBody(stream)
+            .withOctetContentType()
+            .withOctetAccept();
+        Response response;
         try {
-            response = performRequest(POST, AGENCIESMANAGER_CHECK_URL, null,
-                stream, MediaType.APPLICATION_OCTET_STREAM_TYPE,
-                MediaType.APPLICATION_OCTET_STREAM_TYPE);
+            response = make(request);
+            checkWithSpecificException(response);
             return response;
-        } catch (final VitamClientInternalException e) {
-            LOGGER.error("Internal Server Error", e);
-            throw new AdminManagementClientServerException("Internal Server Error", e);
+        } catch (ReferentialNotFoundException | DatabaseConflictException | AccessUnauthorizedException |
+            ForbiddenClientException | VitamClientInternalException e) {
+            throw new AdminManagementClientServerException(INTERNAL_SERVER_ERROR_MSG, e);
+        } catch (BadRequestException e) {
+            throw new AdminManagementClientBadRequestException(e);
         }
     }
 
@@ -304,43 +283,25 @@ class AdminManagementClientRest extends DefaultClient implements AdminManagement
     public Status importRulesFile(InputStream stream, String filename)
         throws ReferentialException, DatabaseConflictException {
         ParametersChecker.checkParameter("stream is a mandatory parameter", stream);
-        Response response = null;
-        final MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
-        headers.add(GlobalDataRest.X_FILENAME, filename);
-        try {
-            response = performRequest(POST, RULESMANAGER_IMPORT_URL, headers,
-                stream, MediaType.APPLICATION_OCTET_STREAM_TYPE, APPLICATION_JSON_TYPE);
 
-            final Status status = Status.fromStatusCode(response.getStatus());
-            switch (status) {
-                case OK:
-                    LOGGER.debug(Response.Status.OK.getReasonPhrase());
-                    break;
-                case CREATED:
-                    LOGGER.debug(Response.Status.CREATED.getReasonPhrase());
-                    break;
-                case BAD_REQUEST:
-                    String reason = (response.hasEntity()) ? response.readEntity(String.class)
-                        : Response.Status.BAD_REQUEST.getReasonPhrase();
-                    LOGGER.error(reason);
-                    throw new FileRulesException(reason);
-                case FORBIDDEN:
-                    String forbiddenReason = (response.hasEntity()) ? response.readEntity(String.class)
-                        : Status.FORBIDDEN.getReasonPhrase();
-                    LOGGER.error(forbiddenReason);
-                    throw new FileRulesImportInProgressException(forbiddenReason);
-                case CONFLICT:
-                    LOGGER.debug(Response.Status.CONFLICT.getReasonPhrase());
-                    throw new DatabaseConflictException("Collection input conflic");
-                default:
-                    break;
-            }
-            return status;
-        } catch (final VitamClientInternalException e) {
-            LOGGER.error("Internal Server Error", e);
-            throw new AdminManagementClientServerException("Internal Server Error", e);
-        } finally {
-            consumeAnyEntityAndClose(response);
+        VitamRequestBuilder request = post()
+            .withPath(RULESMANAGER_IMPORT_URL)
+            .withHeader(GlobalDataRest.X_FILENAME, filename)
+            .withBody(stream)
+            .withOctetContentType()
+            .withJsonAccept();
+
+        try (Response response = make(request)) {
+            checkWithSpecificException(response);
+            return fromStatusCode(response.getStatus());
+        } catch (final VitamClientInternalException | AccessUnauthorizedException e) {
+            throw new AdminManagementClientServerException(INTERNAL_SERVER_ERROR_MSG, e);
+        } catch (BadRequestException e) {
+            throw new FileRulesException(e);
+        } catch (ForbiddenClientException e) {
+            throw new FileRulesImportInProgressException(e);
+        } catch (DatabaseConflictException e) {
+            throw new DatabaseConflictException("Collection input conflic");
         }
     }
 
@@ -349,36 +310,19 @@ class AdminManagementClientRest extends DefaultClient implements AdminManagement
         throws ReferentialException {
         ParametersChecker.checkParameter("filename is a mandatory parameter", filename);
         ParametersChecker.checkParameter("stream is a mandatory parameter", stream);
-        Response response = null;
-        final MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
-        headers.add(GlobalDataRest.X_FILENAME, filename);
-        try {
-            response = performRequest(POST, AGENCIESMANAGER_IMPORT_URL, headers,
-                stream, MediaType.APPLICATION_OCTET_STREAM_TYPE, APPLICATION_JSON_TYPE);
 
-            final Status status = Status.fromStatusCode(response.getStatus());
-            switch (status) {
-                case OK:
-                    LOGGER.debug(Response.Status.OK.getReasonPhrase());
-                    break;
-                case CREATED:
-                    LOGGER.debug(Response.Status.CREATED.getReasonPhrase());
-                    break;
-                case BAD_REQUEST:
-                    String reason = (response.hasEntity()) ? response.readEntity(String.class)
-                        : Response.Status.BAD_REQUEST.getReasonPhrase();
-                    LOGGER.error(reason);
-                    throw new ReferentialException(reason);
+        VitamRequestBuilder request = post()
+            .withPath(AGENCIESMANAGER_IMPORT_URL)
+            .withHeader(GlobalDataRest.X_FILENAME, filename)
+            .withBody(stream)
+            .withOctetContentType()
+            .withJsonAccept();
 
-                default:
-                    break;
-            }
-            return status;
-        } catch (final VitamClientInternalException e) {
-            LOGGER.error("Internal Server Error", e);
-            throw new AdminManagementClientServerException("Internal Server Error", e);
-        } finally {
-            consumeAnyEntityAndClose(response);
+        try (Response response = make(request)) {
+            checkWithSpecificException(response);
+            return fromStatusCode(response.getStatus());
+        } catch (final VitamClientInternalException | BadRequestException | AccessUnauthorizedException | ForbiddenClientException | DatabaseConflictException e) {
+            throw new AdminManagementClientServerException(INTERNAL_SERVER_ERROR_MSG, e);
         }
     }
 
@@ -386,27 +330,19 @@ class AdminManagementClientRest extends DefaultClient implements AdminManagement
     public JsonNode getAgencies(JsonNode query)
         throws ReferentialException, InvalidParseOperationException, AdminManagementClientServerException {
         ParametersChecker.checkParameter("query is a mandatory parameter", query);
-        Response response = null;
-        try {
-            response = performRequest(GET, AGENCIES_URL, null,
-                query, APPLICATION_JSON_TYPE, APPLICATION_JSON_TYPE, false);
-            final Status status = Status.fromStatusCode(response.getStatus());
-            switch (status) {
-                case OK:
-                    LOGGER.debug(Response.Status.OK.getReasonPhrase());
-                    break;
-                case NOT_FOUND:
-                    LOGGER.error(Response.Status.NOT_FOUND.getReasonPhrase());
-                    throw new FileRulesNotFoundException("Agency Not found ");
-                default:
-                    break;
-            }
+
+        VitamRequestBuilder request = get()
+            .withPath(AGENCIES_URL)
+            .withBody(query)
+            .withJson();
+
+        try (Response response = make(request)) {
+            checkWithSpecificException(response);
             return getFromString(response.readEntity(String.class));
-        } catch (final VitamClientInternalException e) {
-            LOGGER.error("Internal Server Error", e);
-            throw new AdminManagementClientServerException("Internal Server Error", e);
-        } finally {
-            consumeAnyEntityAndClose(response);
+        } catch (final VitamClientInternalException | AccessUnauthorizedException | ForbiddenClientException | DatabaseConflictException e) {
+            throw new AdminManagementClientServerException(INTERNAL_SERVER_ERROR_MSG, e);
+        } catch (BadRequestException e) {
+            throw new FileRulesNotFoundException("Agency Not found ");
         }
     }
 
@@ -414,39 +350,32 @@ class AdminManagementClientRest extends DefaultClient implements AdminManagement
     public RequestResponse<AgenciesModel> getAgencyById(String id)
         throws InvalidParseOperationException, ReferentialNotFoundException, AdminManagementClientServerException {
 
-
         ParametersChecker.checkParameter("The input documentId json is mandatory", id);
-        Response response = null;
+        JsonNode queryDsl;
         try {
-
-            JsonNode queryDsl = getIdentifierQuery(AgenciesModel.TAG_IDENTIFIER, id);
-            response = performRequest(GET, AGENCIES_URL, null, queryDsl,
-                APPLICATION_JSON_TYPE, APPLICATION_JSON_TYPE, false);
-
-            final Status status = Status.fromStatusCode(response.getStatus());
-            if (status == Status.OK) {
-                LOGGER.debug(Response.Status.OK.getReasonPhrase());
-                RequestResponseOK<AgenciesModel> resp =
-                    getFromString(response.readEntity(String.class), RequestResponseOK.class,
-                        AgenciesModel.class);
-
-
-                if (resp.getResults() == null || resp.getResults().size() == 0)
-                    throw new ReferentialNotFoundException("Agency not found with id: " + id);
-
-                return resp;
-            }
-
-            return RequestResponse.parseFromResponse(response, AgenciesModel.class);
-
+            queryDsl = getIdentifierQuery(AgenciesModel.TAG_IDENTIFIER, id);
         } catch (InvalidCreateOperationException e) {
-            LOGGER.error("unable to create query", e);
-            throw new AdminManagementClientServerException("Internal Server Error", e);
-        } catch (VitamClientInternalException e) {
-            LOGGER.error("Internal Server Error", e);
-            throw new AdminManagementClientServerException("Internal Server Error", e);
-        } finally {
-            consumeAnyEntityAndClose(response);
+            throw new AdminManagementClientServerException(INTERNAL_SERVER_ERROR_MSG, e);
+        }
+
+        VitamRequestBuilder request = get()
+            .withPath(AGENCIES_URL)
+            .withBody(queryDsl)
+            .withJson();
+
+        try (Response response = make(request)) {
+            checkWithSpecificException(response);
+            RequestResponseOK<AgenciesModel> resp =
+                getFromString(response.readEntity(String.class), RequestResponseOK.class,
+                    AgenciesModel.class);
+
+            if (resp.getResults() == null || resp.getResults().isEmpty())
+                throw new ReferentialNotFoundException("Agency not found with id: " + id);
+
+            return resp;
+        } catch (VitamClientInternalException | BadRequestException | AccessUnauthorizedException |
+            ForbiddenClientException | DatabaseConflictException e) {
+            throw new AdminManagementClientServerException(INTERNAL_SERVER_ERROR_MSG, e);
         }
     }
 
@@ -454,57 +383,39 @@ class AdminManagementClientRest extends DefaultClient implements AdminManagement
     public JsonNode getRuleByID(String id)
         throws FileRulesException, InvalidParseOperationException, AdminManagementClientServerException {
         ParametersChecker.checkParameter("id is a mandatory parameter", id);
-        Response response = null;
-        try {
-            response = performRequest(GET, RULESMANAGER_URL + "/" + id, null,
-                APPLICATION_JSON_TYPE);
 
-            final Status status = Status.fromStatusCode(response.getStatus());
-            switch (status) {
-                case OK:
-                    LOGGER.debug(Response.Status.OK.getReasonPhrase());
-                    break;
-                case NOT_FOUND:
-                    LOGGER.error(Response.Status.NOT_FOUND.getReasonPhrase());
-                    throw new FileRulesNotFoundException("File Rules not found");
-                default:
-                    break;
-            }
+        VitamRequestBuilder request = get()
+            .withPath(RULESMANAGER_URL + "/" + id)
+            .withJsonAccept();
+        try (Response response = make(request)) {
+            checkWithSpecificException(response);
             return getFromString(response.readEntity(String.class));
-        } catch (final VitamClientInternalException e) {
-            LOGGER.error("Internal Server Error", e);
-            throw new AdminManagementClientServerException("Internal Server Error", e);
-        } finally {
-            consumeAnyEntityAndClose(response);
+        } catch (final VitamClientInternalException | BadRequestException | AccessUnauthorizedException |
+            ForbiddenClientException | DatabaseConflictException e) {
+            throw new AdminManagementClientServerException(INTERNAL_SERVER_ERROR_MSG, e);
+        } catch (ReferentialNotFoundException e) {
+            throw new FileRulesNotFoundException("Rule Not found ");
         }
-
     }
 
     @Override
     public JsonNode getRules(JsonNode query)
         throws FileRulesException, InvalidParseOperationException, AdminManagementClientServerException {
         ParametersChecker.checkParameter("query is a mandatory parameter", query);
-        Response response = null;
-        try {
-            response = performRequest(POST, RULESMANAGER_GET_DOCUMENT_URL, null,
-                query, APPLICATION_JSON_TYPE, APPLICATION_JSON_TYPE, false);
-            final Status status = Status.fromStatusCode(response.getStatus());
-            switch (status) {
-                case OK:
-                    LOGGER.debug(Response.Status.OK.getReasonPhrase());
-                    break;
-                case NOT_FOUND:
-                    LOGGER.error(Response.Status.NOT_FOUND.getReasonPhrase());
-                    throw new FileRulesNotFoundException("Rule Not found ");
-                default:
-                    break;
-            }
+
+        VitamRequestBuilder request = post()
+            .withPath(RULESMANAGER_GET_DOCUMENT_URL)
+            .withBody(query)
+            .withJson();
+
+        try (Response response = make(request)) {
+            checkWithSpecificException(response);
             return getFromString(response.readEntity(String.class));
-        } catch (final VitamClientInternalException e) {
-            LOGGER.error("Internal Server Error", e);
-            throw new AdminManagementClientServerException("Internal Server Error", e);
-        } finally {
-            consumeAnyEntityAndClose(response);
+        } catch (final VitamClientInternalException | BadRequestException | AccessUnauthorizedException |
+            ForbiddenClientException | DatabaseConflictException e) {
+            throw new AdminManagementClientServerException(INTERNAL_SERVER_ERROR_MSG, e);
+        } catch (ReferentialNotFoundException e) {
+            throw new FileRulesNotFoundException("Rule Not found ");
         }
     }
 
@@ -512,32 +423,28 @@ class AdminManagementClientRest extends DefaultClient implements AdminManagement
     public RequestResponse createOrUpdateAccessionRegister(AccessionRegisterDetailModel register)
         throws AccessionRegisterException, AdminManagementClientServerException {
         ParametersChecker.checkParameter("Accession register is a mandatory parameter", register);
+
+        VitamRequestBuilder request = post()
+            .withPath(ACCESSION_REGISTER_CREATE_URI)
+            .withBody(register)
+            .withJson();
         Response response = null;
         try {
-            response = performRequest(POST, ACCESSION_REGISTER_CREATE_URI, null,
-                register, APPLICATION_JSON_TYPE, APPLICATION_JSON_TYPE, false);
-            final Status status = Status.fromStatusCode(response.getStatus());
-            switch (status) {
-                case CREATED:
-                    LOGGER.debug(Response.Status.CREATED.getReasonPhrase());
-                    break;
-                case CONFLICT:
-                    // When Accession Register detail already exists
-                    LOGGER.debug(Response.Status.CONFLICT.getReasonPhrase());
-                    break;
-
-                case BAD_REQUEST:
-                    LOGGER.error(Response.Status.BAD_REQUEST.getReasonPhrase());
-                    throw new AccessionRegisterException("File format error");
-                default:
-                    throw new AccessionRegisterException("Unknown error: " + status.getStatusCode());
-            }
+            response = make(request);
+            checkWithSpecificException(response);
             return RequestResponse.parseFromResponse(response);
-        } catch (final VitamClientInternalException e) {
-            LOGGER.error("Internal Server Error", e);
-            throw new AdminManagementClientServerException("Internal Server Error", e);
+        } catch (final BadRequestException | ReferentialNotFoundException | AccessUnauthorizedException | ForbiddenClientException e) {
+            throw new AccessionRegisterException(INTERNAL_SERVER_ERROR_MSG, e);
+        } catch (VitamClientInternalException e) {
+            throw new AdminManagementClientServerException(INTERNAL_SERVER_ERROR_MSG, e);
+        } catch (DatabaseConflictException e) {
+            LOGGER.debug(Response.Status.CONFLICT.getReasonPhrase());
+            return RequestResponse.parseFromResponse(response);
         } finally {
-            consumeAnyEntityAndClose(response);
+            if (response != null && !SUCCESSFUL.equals(response.getStatusInfo().getFamily())
+            && !CONFLICT.equals(fromStatusCode(response.getStatus()))) {
+                response.close();
+            }
         }
     }
 
@@ -545,41 +452,19 @@ class AdminManagementClientRest extends DefaultClient implements AdminManagement
     public RequestResponse<AccessionRegisterSummaryModel> getAccessionRegister(JsonNode query)
         throws InvalidParseOperationException, ReferentialException, AccessUnauthorizedException {
         ParametersChecker.checkParameter("query is a mandatory parameter", query);
-        Response response = null;
-        try {
-            response = performRequest(POST, ACCESSION_REGISTER_GET_DOCUMENT_URL, null, query,
-                APPLICATION_JSON_TYPE, APPLICATION_JSON_TYPE);
-            final Status status = Status.fromStatusCode(response.getStatus());
-            switch (status) {
-                case OK:
-                    LOGGER.debug(Response.Status.OK.getReasonPhrase());
-                    break;
-                case BAD_REQUEST:
-                    LOGGER.error(Response.Status.BAD_REQUEST.getReasonPhrase());
-                    String reason = (response.hasEntity()) ? response.readEntity(String.class)
-                        : Response.Status.BAD_REQUEST.getReasonPhrase();
-                    LOGGER.error(reason);
-                    throw new InvalidParseOperationException(reason);
-                case NOT_FOUND:
-                    LOGGER.error(Response.Status.NOT_FOUND.getReasonPhrase());
-                    throw new ReferentialNotFoundException("AccessionRegister Not found ");
-                case UNAUTHORIZED:
-                    LOGGER.error(Status.UNAUTHORIZED.getReasonPhrase());
-                    throw new AccessUnauthorizedException("Contract not found ");
-                default:
-                    break;
-            }
+
+        VitamRequestBuilder request = post()
+            .withPath(ACCESSION_REGISTER_GET_DOCUMENT_URL)
+            .withBody(query)
+            .withJson();
+
+        try (Response response = make(request)) {
+            checkWithSpecificException(response);
+
             String value = response.readEntity(String.class);
-            @SuppressWarnings("unchecked")
-            RequestResponseOK fromString =
-                getFromString(value, RequestResponseOK.class,
-                    AccessionRegisterSummaryModel.class);
-            return fromString;
-        } catch (final VitamClientInternalException e) {
-            LOGGER.error("Internal Server Error", e);
-            throw new AdminManagementClientServerException("Internal Server Error", e);
-        } finally {
-            consumeAnyEntityAndClose(response);
+            return getFromString(value, RequestResponseOK.class, AccessionRegisterSummaryModel.class);
+        } catch (final VitamClientInternalException | BadRequestException | ForbiddenClientException | DatabaseConflictException e) {
+            throw new AdminManagementClientServerException(INTERNAL_SERVER_ERROR_MSG, e);
         }
     }
 
@@ -589,28 +474,19 @@ class AdminManagementClientRest extends DefaultClient implements AdminManagement
 
         ParametersChecker.checkParameter("query is a mandatory parameter", query);
         ParametersChecker.checkParameter("documentId is a mandatory parameter", originatingAgency);
-        Response response = null;
-        try {
-            response = performRequest(POST, ACCESSION_REGISTER_GET_DETAIL_URL + "/" + originatingAgency,
-                null, query, APPLICATION_JSON_TYPE, APPLICATION_JSON_TYPE);
-            final Status status = Status.fromStatusCode(response.getStatus());
-            switch (status) {
-                case OK:
-                    LOGGER.debug(Response.Status.OK.getReasonPhrase());
-                    break;
-                case NOT_FOUND:
-                    LOGGER.error(Response.Status.NOT_FOUND.getReasonPhrase());
-                    throw new ReferentialNotFoundException("AccessionRegister Detail Not found ");
-                default:
-                    throw new AccessionRegisterException("Unknown error: " + status.getStatusCode());
-            }
+
+        VitamRequestBuilder request = post()
+            .withPath(ACCESSION_REGISTER_GET_DETAIL_URL + "/" + originatingAgency)
+            .withBody(query)
+            .withJson();
+
+        try (Response response = make(request)) {
+            checkWithSpecificException(response);
             return getFromString(response.readEntity(String.class), RequestResponseOK.class,
                 AccessionRegisterDetailModel.class);
-        } catch (final VitamClientInternalException e) {
-            LOGGER.error("Internal Server Error", e);
-            throw new AdminManagementClientServerException("Internal Server Error", e);
-        } finally {
-            consumeAnyEntityAndClose(response);
+        } catch (final VitamClientInternalException | BadRequestException | AccessUnauthorizedException |
+            ForbiddenClientException | DatabaseConflictException e) {
+            throw new AdminManagementClientServerException(INTERNAL_SERVER_ERROR_MSG, e);
         }
     }
 
@@ -619,28 +495,17 @@ class AdminManagementClientRest extends DefaultClient implements AdminManagement
         throws InvalidParseOperationException, ReferentialException {
 
         ParametersChecker.checkParameter("query is a mandatory parameter", query);
-        Response response = null;
-        try {
-            response = performRequest(POST, ACCESSION_REGISTER_GET_DETAIL_URL,
-                null, query, APPLICATION_JSON_TYPE, APPLICATION_JSON_TYPE);
-            final Status status = Status.fromStatusCode(response.getStatus());
-            switch (status) {
-                case OK:
-                    LOGGER.debug(Response.Status.OK.getReasonPhrase());
-                    break;
-                case NOT_FOUND:
-                    LOGGER.error(Response.Status.NOT_FOUND.getReasonPhrase());
-                    throw new ReferentialNotFoundException("AccessionRegister Detail Not found ");
-                default:
-                    throw new AccessionRegisterException("Unknown error: " + status.getStatusCode());
-            }
-            return getFromString(response.readEntity(String.class), RequestResponseOK.class,
-                AccessionRegisterDetailModel.class);
-        } catch (final VitamClientInternalException e) {
-            LOGGER.error("Internal Server Error", e);
-            throw new AdminManagementClientServerException("Internal Server Error", e);
-        } finally {
-            consumeAnyEntityAndClose(response);
+        VitamRequestBuilder request = post()
+            .withPath(ACCESSION_REGISTER_GET_DETAIL_URL)
+            .withBody(query)
+            .withJson();
+
+        try (Response response = make(request)) {
+            checkWithSpecificException(response);
+            return getFromString(response.readEntity(String.class), RequestResponseOK.class, AccessionRegisterDetailModel.class);
+        } catch (final VitamClientInternalException | BadRequestException | AccessUnauthorizedException |
+            ForbiddenClientException | DatabaseConflictException e) {
+            throw new AdminManagementClientServerException(INTERNAL_SERVER_ERROR_MSG, e);
         }
     }
 
@@ -666,19 +531,17 @@ class AdminManagementClientRest extends DefaultClient implements AdminManagement
     }
 
     private <T extends AbstractContractModel> Status importContracts(List<T> contractModelList, String uri) throws AdminManagementClientServerException {
-        Response response = null;
-        try {
-            response = performRequest(POST, uri, null,
-                    contractModelList, APPLICATION_JSON_TYPE, APPLICATION_JSON_TYPE,
-                    false);
-            final Status status = Status.fromStatusCode(response.getStatus());
-            return status;
 
+        VitamRequestBuilder request = post()
+            .withPath(uri)
+            .withBody(contractModelList)
+            .withJson();
+
+        try (Response response = make(request)) {
+            check(response);
+            return fromStatusCode(response.getStatus());
         } catch (VitamClientInternalException e) {
-            LOGGER.error("Internal Server Error", e);
-            throw new AdminManagementClientServerException("Internal Server Error", e);
-        } finally {
-            consumeAnyEntityAndClose(response);
+            throw new AdminManagementClientServerException(INTERNAL_SERVER_ERROR_MSG, e);
         }
     }
 
@@ -705,22 +568,17 @@ class AdminManagementClientRest extends DefaultClient implements AdminManagement
 
     private <T extends AbstractContractModel> RequestResponse<T> findContracts(JsonNode queryDsl, String uri, Class<T> clasz)
             throws InvalidParseOperationException, AdminManagementClientServerException {
-        Response response = null;
-        try {
-            response = performRequest(GET, uri, null, queryDsl, APPLICATION_JSON_TYPE, APPLICATION_JSON_TYPE);
-            final Status status = Status.fromStatusCode(response.getStatus());
-            if (status == Status.OK) {
-                LOGGER.debug(Response.Status.OK.getReasonPhrase());
-                return getFromString(response.readEntity(String.class), RequestResponseOK.class, clasz);
-            }
 
-            return RequestResponse.parseFromResponse(response, clasz);
+        VitamRequestBuilder request = get()
+            .withPath(uri)
+            .withBody(queryDsl)
+            .withJson();
 
+        try (Response response = make(request)) {
+            check(response);
+            return getFromString(response.readEntity(String.class), RequestResponseOK.class, clasz);
         } catch (VitamClientInternalException e) {
-            LOGGER.error("Internal Server Error", e);
-            throw new AdminManagementClientServerException("Internal Server Error", e);
-        } finally {
-            consumeAnyEntityAndClose(response);
+            throw new AdminManagementClientServerException(INTERNAL_SERVER_ERROR_MSG, e);
         }
     }
 
@@ -748,34 +606,29 @@ class AdminManagementClientRest extends DefaultClient implements AdminManagement
 
     private <T extends AbstractContractModel> RequestResponse<T> findContractByID(String documentId, String uri, Class<T> clasz)
             throws InvalidParseOperationException, AdminManagementClientServerException, ReferentialNotFoundException {
-        Response response = null;
+
+        JsonNode queryDsl;
         try {
-
-            JsonNode queryDsl = getIdentifierQuery(AbstractContractModel.TAG_IDENTIFIER, documentId);
-            response = performRequest(GET, uri, null, queryDsl,
-                    APPLICATION_JSON_TYPE, APPLICATION_JSON_TYPE);
-            final Status status = Status.fromStatusCode(response.getStatus());
-            if (status == Status.OK) {
-                LOGGER.debug(Response.Status.OK.getReasonPhrase());
-                @SuppressWarnings("unchecked")
-                RequestResponseOK<T> resp = getFromString(response.readEntity(String.class),
-                        RequestResponseOK.class, clasz);
-                if (resp.getResults() == null || resp.getResults().size() == 0)
-                    throw new ReferentialNotFoundException("Contract not found with id: " + documentId);
-
-                return resp;
-            }
-
-            return RequestResponse.parseFromResponse(response, clasz);
-
+            queryDsl = getIdentifierQuery(AbstractContractModel.TAG_IDENTIFIER, documentId);
         } catch (InvalidCreateOperationException e) {
-            LOGGER.error("unable to create query", e);
-            throw new AdminManagementClientServerException("Internal Server Error", e);
-        } catch (VitamClientInternalException e) {
-            LOGGER.error("Internal Server Error", e);
-            throw new AdminManagementClientServerException("Internal Server Error", e);
-        } finally {
-            consumeAnyEntityAndClose(response);
+            throw new AdminManagementClientServerException(INTERNAL_SERVER_ERROR_MSG, e);
+        }
+        VitamRequestBuilder request = get()
+            .withPath(uri)
+            .withBody(queryDsl)
+            .withJson();
+
+        try (Response response = make(request)) {
+            checkWithSpecificException(response);
+
+            RequestResponseOK<T> resp = getFromString(response.readEntity(String.class),
+                RequestResponseOK.class, clasz);
+            if (resp.getResults() == null || resp.getResults().isEmpty())
+                throw new ReferentialNotFoundException("Contract not found with id: " + documentId);
+            return resp;
+        } catch (VitamClientInternalException | BadRequestException | AccessUnauthorizedException |
+            ForbiddenClientException | DatabaseConflictException e) {
+            throw new AdminManagementClientServerException(INTERNAL_SERVER_ERROR_MSG, e);
         }
     }
 
@@ -803,23 +656,20 @@ class AdminManagementClientRest extends DefaultClient implements AdminManagement
 
     private <T extends AbstractContractModel> RequestResponse<T> updateContract(String id, JsonNode queryDsl, String updateUri, Class<T> clasz)
             throws InvalidParseOperationException, AdminManagementClientServerException, ReferentialNotFoundException {
-        Response response = null;
-        try {
-            response = performRequest(HttpMethod.PUT, updateUri + id, null, queryDsl,
-                    APPLICATION_JSON_TYPE, APPLICATION_JSON_TYPE);
-            final Status status = Status.fromStatusCode(response.getStatus());
-            if (status == Status.OK) {
-                LOGGER.debug(Response.Status.OK.getReasonPhrase());
-                return getFromString(response.readEntity(String.class), RequestResponseOK.class);
-            } else if (status == Status.NOT_FOUND) {
-                throw new ReferentialNotFoundException("Contract not found with id: " + id);
-            }
-            return RequestResponse.parseFromResponse(response, clasz);
-        } catch (VitamClientInternalException e) {
-            LOGGER.error("Internal Server Error", e);
-            throw new AdminManagementClientServerException("Internal Server Error", e);
-        } finally {
-            consumeAnyEntityAndClose(response);
+
+        VitamRequestBuilder request = put()
+            .withPath(updateUri + id)
+            .withBody(queryDsl)
+            .withJson();
+
+        try (Response response = make(request)) {
+            checkWithSpecificException(response);
+            return getFromString(response.readEntity(String.class), RequestResponseOK.class);
+        } catch (BadRequestException e) {
+            throw new AdminManagementClientBadRequestException(e);
+        } catch (VitamClientInternalException | AccessUnauthorizedException |
+            ForbiddenClientException | DatabaseConflictException e) {
+            throw new AdminManagementClientServerException(INTERNAL_SERVER_ERROR_MSG, e);
         }
     }
 
@@ -827,19 +677,17 @@ class AdminManagementClientRest extends DefaultClient implements AdminManagement
     public RequestResponse createProfiles(List<ProfileModel> profileModelList)
         throws InvalidParseOperationException, AdminManagementClientServerException {
         ParametersChecker.checkParameter("The input profile json is mandatory", profileModelList);
-        Response response = null;
 
-        try {
-            response = performRequest(POST, PROFILE_URI, null,
-                profileModelList, APPLICATION_JSON_TYPE, APPLICATION_JSON_TYPE,
-                false);
+        VitamRequestBuilder request = post()
+            .withPath(PROFILE_URI)
+            .withBody(profileModelList)
+            .withJson();
+
+        try (Response response = make(request)) {
+            check(response);
             return RequestResponse.parseFromResponse(response);
-
         } catch (VitamClientInternalException e) {
-            LOGGER.error("Internal Server Error", e);
-            throw new AdminManagementClientServerException("Internal Server Error", e);
-        } finally {
-            consumeAnyEntityAndClose(response);
+            throw new AdminManagementClientServerException(INTERNAL_SERVER_ERROR_MSG, e);
         }
     }
 
@@ -849,18 +697,18 @@ class AdminManagementClientRest extends DefaultClient implements AdminManagement
 
         ParametersChecker.checkParameter("The input profile stream is mandatory", stream);
         ParametersChecker.checkParameter(profileMetadataId, "The profile id is mandatory");
-        Response response = null;
-        try {
-            response = performRequest(HttpMethod.PUT, PROFILE_URI + "/" + profileMetadataId, null,
-                stream, MediaType.APPLICATION_OCTET_STREAM_TYPE,
-                APPLICATION_JSON_TYPE);
-            return RequestResponse.parseFromResponse(response);
 
+        VitamRequestBuilder request = put()
+            .withPath(PROFILE_URI + "/" + profileMetadataId)
+            .withBody(stream)
+            .withOctetContentType()
+            .withJsonAccept();
+
+        try (Response response = make(request)) {
+            check(response);
+            return RequestResponse.parseFromResponse(response);
         } catch (final VitamClientInternalException e) {
-            LOGGER.error("Internal Server Error", e);
-            throw new AdminManagementClientServerException("Internal Server Error", e);
-        } finally {
-            consumeAnyEntityAndClose(response);
+            throw new AdminManagementClientServerException(INTERNAL_SERVER_ERROR_MSG, e);
         }
     }
 
@@ -869,12 +717,15 @@ class AdminManagementClientRest extends DefaultClient implements AdminManagement
         throws AdminManagementClientServerException, ProfileNotFoundException {
         ParametersChecker.checkParameter("Profile id is required", profileMetadataId);
 
+        VitamRequestBuilder request = get()
+            .withPath(PROFILE_URI + "/" + profileMetadataId)
+            .withOctetAccept();
+
         Response response = null;
         Status status = null;
         try {
-            response = performRequest(GET, PROFILE_URI + "/" + profileMetadataId, null, null,
-                null, MediaType.APPLICATION_OCTET_STREAM_TYPE);
-            status = Status.fromStatusCode(response.getStatus());
+            response = make(request);
+            status = fromStatusCode(response.getStatus());
             switch (status) {
                 case OK:
                     return response;
@@ -901,24 +752,19 @@ class AdminManagementClientRest extends DefaultClient implements AdminManagement
     public RequestResponse<ProfileModel> findProfiles(JsonNode queryDsl)
         throws InvalidParseOperationException, AdminManagementClientServerException {
         ParametersChecker.checkParameter("The input queryDsl json is mandatory", queryDsl);
-        Response response = null;
-        try {
-            response = performRequest(GET, PROFILE_URI, null, queryDsl,
-                APPLICATION_JSON_TYPE, APPLICATION_JSON_TYPE);
-            final Status status = Status.fromStatusCode(response.getStatus());
-            if (status == Status.OK) {
-                LOGGER.debug(Response.Status.OK.getReasonPhrase());
-                return getFromString(response.readEntity(String.class), RequestResponseOK.class,
-                    ProfileModel.class);
-            }
 
-            return RequestResponse.parseFromResponse(response, ProfileModel.class);
+        VitamRequestBuilder request = get()
+            .withPath(PROFILE_URI)
+            .withBody(queryDsl)
+            .withJson();
 
-        } catch (VitamClientInternalException e) {
-            LOGGER.error("Internal Server Error", e);
-            throw new AdminManagementClientServerException("Internal Server Error", e);
-        } finally {
-            consumeAnyEntityAndClose(response);
+        try (Response response = make(request)) {
+            checkWithSpecificException(response);
+            return getFromString(response.readEntity(String.class), RequestResponseOK.class,
+                ProfileModel.class);
+        } catch (VitamClientInternalException | BadRequestException | ReferentialNotFoundException |
+            AccessUnauthorizedException | ForbiddenClientException | DatabaseConflictException e) {
+            throw new AdminManagementClientServerException(INTERNAL_SERVER_ERROR_MSG, e);
         }
     }
 
@@ -926,39 +772,32 @@ class AdminManagementClientRest extends DefaultClient implements AdminManagement
     public RequestResponse<ProfileModel> findProfilesByID(String documentId)
         throws InvalidParseOperationException, AdminManagementClientServerException, ReferentialNotFoundException {
         ParametersChecker.checkParameter("The input documentId json is mandatory", documentId);
-        Response response = null;
+        JsonNode queryDsl;
         try {
-
-            JsonNode queryDsl = getIdentifierQuery(Profile.IDENTIFIER, documentId);
-
-
-            response = performRequest(GET, PROFILE_URI, null, queryDsl,
-                APPLICATION_JSON_TYPE, APPLICATION_JSON_TYPE);
-            final Status status = Status.fromStatusCode(response.getStatus());
-            if (status == Status.OK) {
-                LOGGER.debug(Response.Status.OK.getReasonPhrase());
-                @SuppressWarnings("unchecked")
-                RequestResponseOK<ProfileModel> resp =
-                    getFromString(response.readEntity(String.class), RequestResponseOK.class,
-                        ProfileModel.class);
-
-
-                if (resp.getResults() == null || resp.getResults().size() == 0)
-                    throw new ReferentialNotFoundException("Profile not found with id: " + documentId);
-
-                return resp;
-            }
-
-            return RequestResponse.parseFromResponse(response, ProfileModel.class);
-
+            queryDsl = getIdentifierQuery(Profile.IDENTIFIER, documentId);
         } catch (InvalidCreateOperationException e) {
             LOGGER.error("unable to create query", e);
-            throw new AdminManagementClientServerException("Internal Server Error", e);
-        } catch (VitamClientInternalException e) {
-            LOGGER.error("Internal Server Error", e);
-            throw new AdminManagementClientServerException("Internal Server Error", e);
-        } finally {
-            consumeAnyEntityAndClose(response);
+            throw new AdminManagementClientServerException(INTERNAL_SERVER_ERROR_MSG, e);
+        }
+
+        VitamRequestBuilder request = get()
+            .withPath(PROFILE_URI)
+            .withBody(queryDsl)
+            .withJson();
+
+        try (Response response = make(request)) {
+            checkWithSpecificException(response);
+
+            RequestResponseOK<ProfileModel> resp =
+                getFromString(response.readEntity(String.class), RequestResponseOK.class,
+                    ProfileModel.class);
+            if (resp.getResults() == null || resp.getResults().isEmpty()) {
+                throw new ReferentialNotFoundException("Profile not found with id: " + documentId);
+            }
+            return resp;
+        } catch (VitamClientInternalException | BadRequestException | AccessUnauthorizedException |
+            ForbiddenClientException | DatabaseConflictException e) {
+            throw new AdminManagementClientServerException(INTERNAL_SERVER_ERROR_MSG, e);
         }
     }
 
@@ -966,25 +805,19 @@ class AdminManagementClientRest extends DefaultClient implements AdminManagement
     public RequestResponse<ProfileModel> updateProfile(String id, JsonNode queryDsl)
         throws InvalidParseOperationException, AdminManagementClientServerException, ReferentialNotFoundException {
         ParametersChecker.checkParameter("The input queryDsl json is mandatory", queryDsl);
-        Response response = null;
-        try {
-            response = performRequest(HttpMethod.PUT, UPDATE_PROFIL_URI + id, null, queryDsl,
-                APPLICATION_JSON_TYPE, APPLICATION_JSON_TYPE);
-            final Status status = Status.fromStatusCode(response.getStatus());
-            if (status == Status.OK) {
-                LOGGER.debug(Response.Status.OK.getReasonPhrase());
-                return getFromString(response.readEntity(String.class), RequestResponseOK.class);
-            } else if (status == Status.NOT_FOUND) {
-                throw new ReferentialNotFoundException("Profile not found with id: " + id);
-            }
+        VitamRequestBuilder request = put()
+            .withPath(UPDATE_PROFIL_URI + id)
+            .withBody(queryDsl)
+            .withJson();
 
-            return RequestResponse.parseFromResponse(response, AccessContractModel.class);
-
-        } catch (VitamClientInternalException e) {
-            LOGGER.error("Internal Server Error", e);
-            throw new AdminManagementClientServerException("Internal Server Error", e);
-        } finally {
-            consumeAnyEntityAndClose(response);
+        try (Response response = make(request)) {
+            checkWithSpecificException(response);
+            return getFromString(response.readEntity(String.class), RequestResponseOK.class);
+        } catch (BadRequestException e) {
+            throw new AdminManagementClientBadRequestException(e);
+        } catch (VitamClientInternalException | AccessUnauthorizedException |
+            ForbiddenClientException | DatabaseConflictException e) {
+            throw new AdminManagementClientServerException(INTERNAL_SERVER_ERROR_MSG, e);
         }
     }
 
@@ -992,19 +825,17 @@ class AdminManagementClientRest extends DefaultClient implements AdminManagement
     public RequestResponse createArchiveUnitProfiles(List<ArchiveUnitProfileModel> profileModelList)
         throws InvalidParseOperationException, AdminManagementClientServerException {
         ParametersChecker.checkParameter("The input archive unit profile json is mandatory", profileModelList);
-        Response response = null;
 
-        try {
-            response = performRequest(POST, ARCHIVE_UNIT_PROFILE_URI, null,
-                profileModelList, APPLICATION_JSON_TYPE, APPLICATION_JSON_TYPE,
-                false);
+        VitamRequestBuilder request = post()
+            .withPath(ARCHIVE_UNIT_PROFILE_URI)
+            .withBody(profileModelList)
+            .withJson();
+
+        try (Response response = make(request)) {
+            check(response);
             return RequestResponse.parseFromResponse(response);
-
         } catch (VitamClientInternalException e) {
-            LOGGER.error("Internal Server Error", e);
-            throw new AdminManagementClientServerException("Internal Server Error", e);
-        } finally {
-            consumeAnyEntityAndClose(response);
+            throw new AdminManagementClientServerException(INTERNAL_SERVER_ERROR_MSG, e);
         }
     }
 
@@ -1012,24 +843,18 @@ class AdminManagementClientRest extends DefaultClient implements AdminManagement
     public RequestResponse<ArchiveUnitProfileModel> findArchiveUnitProfiles(JsonNode queryDsl)
         throws InvalidParseOperationException, AdminManagementClientServerException {
         ParametersChecker.checkParameter("The input queryDsl json is mandatory", queryDsl);
-        Response response = null;
-        try {
-            response = performRequest(GET, ARCHIVE_UNIT_PROFILE_URI, null, queryDsl,
-                APPLICATION_JSON_TYPE, APPLICATION_JSON_TYPE);
-            final Status status = Status.fromStatusCode(response.getStatus());
-            if (status == Status.OK) {
-                LOGGER.debug(Response.Status.OK.getReasonPhrase());
-                return getFromString(response.readEntity(String.class), RequestResponseOK.class,
+
+        VitamRequestBuilder request = get()
+            .withPath(ARCHIVE_UNIT_PROFILE_URI)
+            .withBody(queryDsl)
+            .withJson();
+
+        try (Response response = make(request)) {
+            check(response);
+            return getFromString(response.readEntity(String.class), RequestResponseOK.class,
                     ArchiveUnitProfileModel.class);
-            }
-
-            return RequestResponse.parseFromResponse(response, ArchiveUnitProfileModel.class);
-
         } catch (VitamClientInternalException e) {
-            LOGGER.error("Internal Server Error", e);
-            throw new AdminManagementClientServerException("Internal Server Error", e);
-        } finally {
-            consumeAnyEntityAndClose(response);
+            throw new AdminManagementClientServerException(INTERNAL_SERVER_ERROR_MSG, e);
         }
     }
 
@@ -1037,39 +862,33 @@ class AdminManagementClientRest extends DefaultClient implements AdminManagement
     public RequestResponse<ArchiveUnitProfileModel> findArchiveUnitProfilesByID(String documentId)
         throws InvalidParseOperationException, AdminManagementClientServerException, ReferentialNotFoundException {
         ParametersChecker.checkParameter("The input documentId json is mandatory", documentId);
-        Response response = null;
+
+        JsonNode queryDsl;
         try {
-
-            JsonNode queryDsl = getIdentifierQuery(Profile.IDENTIFIER, documentId);
-
-
-            response = performRequest(GET, ARCHIVE_UNIT_PROFILE_URI, null, queryDsl,
-                APPLICATION_JSON_TYPE, APPLICATION_JSON_TYPE);
-            final Status status = Status.fromStatusCode(response.getStatus());
-            if (status == Status.OK) {
-                LOGGER.debug(Response.Status.OK.getReasonPhrase());
-                @SuppressWarnings("unchecked")
-                RequestResponseOK<ArchiveUnitProfileModel> resp =
-                    getFromString(response.readEntity(String.class), RequestResponseOK.class,
-                        ArchiveUnitProfileModel.class);
-
-                if (resp.getResults() == null || resp.getResults().size() == 0) {
-                    throw new ReferentialNotFoundException("ArchiveUnitProfile not found with id: " + documentId);
-                }
-
-                return resp;
-            }
-
-            return RequestResponse.parseFromResponse(response, ArchiveUnitProfileModel.class);
-
+            queryDsl = getIdentifierQuery(Profile.IDENTIFIER, documentId);
         } catch (InvalidCreateOperationException e) {
-            LOGGER.error("unable to create query", e);
-            throw new AdminManagementClientServerException("Internal Server Error", e);
-        } catch (VitamClientInternalException e) {
-            LOGGER.error("Internal Server Error", e);
-            throw new AdminManagementClientServerException("Internal Server Error", e);
-        } finally {
-            consumeAnyEntityAndClose(response);
+            throw new AdminManagementClientServerException(INTERNAL_SERVER_ERROR_MSG, e);
+        }
+
+        VitamRequestBuilder request = get()
+            .withPath(ARCHIVE_UNIT_PROFILE_URI)
+            .withBody(queryDsl)
+            .withJson();
+
+        try (Response response = make(request)) {
+            checkWithSpecificException(response);
+            RequestResponseOK<ArchiveUnitProfileModel> resp =
+                getFromString(response.readEntity(String.class), RequestResponseOK.class,
+                    ArchiveUnitProfileModel.class);
+            if (resp.getResults() == null || resp.getResults().isEmpty()) {
+                throw new ReferentialNotFoundException("ArchiveUnitProfile not found with id: " + documentId);
+            }
+            return resp;
+
+        } catch (VitamClientInternalException | BadRequestException | AccessUnauthorizedException |
+            ForbiddenClientException | DatabaseConflictException e) {
+            LOGGER.error(INTERNAL_SERVER_ERROR_MSG, e);
+            throw new AdminManagementClientServerException(INTERNAL_SERVER_ERROR_MSG, e);
         }
     }
 
@@ -1077,52 +896,37 @@ class AdminManagementClientRest extends DefaultClient implements AdminManagement
     public RequestResponse<ArchiveUnitProfileModel> updateArchiveUnitProfile(String id, JsonNode queryDsl)
         throws InvalidParseOperationException, AdminManagementClientServerException, ReferentialNotFoundException {
         ParametersChecker.checkParameter("The input queryDsl json is mandatory", queryDsl);
-        Response response = null;
-        try {
-            response = performRequest(HttpMethod.PUT, UPDATE_ARCHIVE_UNIT_PROFILE_URI + id, null, queryDsl,
-                APPLICATION_JSON_TYPE, APPLICATION_JSON_TYPE);
-            final Status status = Status.fromStatusCode(response.getStatus());
-            if (status == Status.OK) {
-                LOGGER.debug(Response.Status.OK.getReasonPhrase());
-                return new RequestResponseOK<ArchiveUnitProfileModel>().setHttpCode(Status.OK.getStatusCode());
-            } else if (status == Status.NOT_FOUND) {
-                throw new ReferentialNotFoundException("Profile not found with id: " + id);
-            }
 
-            return RequestResponse.parseFromResponse(response, ArchiveUnitProfileModel.class);
+        VitamRequestBuilder request = put()
+            .withPath(UPDATE_ARCHIVE_UNIT_PROFILE_URI + id)
+            .withBody(queryDsl)
+            .withJson();
 
-        } catch (VitamClientInternalException e) {
-            LOGGER.error("Internal Server Error", e);
-            throw new AdminManagementClientServerException("Internal Server Error", e);
-        } finally {
-            consumeAnyEntityAndClose(response);
+        try (Response response = make(request)) {
+            checkWithSpecificException(response);
+            return new RequestResponseOK<ArchiveUnitProfileModel>().setHttpCode(Status.OK.getStatusCode());
+        } catch (VitamClientInternalException | BadRequestException | AccessUnauthorizedException |
+            ForbiddenClientException | DatabaseConflictException e) {
+            throw new AdminManagementClientServerException(INTERNAL_SERVER_ERROR_MSG, e);
         }
     }
 
     @Override
-    public Status importContexts(List<ContextModel> ContextModelList)
+    public Status importContexts(List<ContextModel> contextModelList)
         throws ReferentialException {
-        ParametersChecker.checkParameter("The input ingest contracts json is mandatory", ContextModelList);
-        Response response = null;
+        ParametersChecker.checkParameter("The input ingest contracts json is mandatory", contextModelList);
 
-        try {
-            response = performRequest(POST, CONTEXT_URI, null,
-                ContextModelList, APPLICATION_JSON_TYPE, APPLICATION_JSON_TYPE,
-                false);
-            final Status status = Status.fromStatusCode(response.getStatus());
+        VitamRequestBuilder request = post()
+            .withPath(CONTEXT_URI)
+            .withBody(contextModelList)
+            .withJson();
 
-            if (Response.Status.BAD_REQUEST.equals(status)) {
-                String reason = (response.hasEntity()) ? response.readEntity(String.class)
-                    : Response.Status.BAD_REQUEST.getReasonPhrase();
-                LOGGER.error(reason);
-                throw new ReferentialException("Referential Error: " + reason);
-            }
-            return status;
-        } catch (VitamClientInternalException e) {
-            LOGGER.error("Internal Server Error", e);
-            throw new AdminManagementClientServerException("Internal Server Error", e);
-        } finally {
-            consumeAnyEntityAndClose(response);
+        try (Response response = make(request)) {
+            checkWithSpecificException(response);
+            return fromStatusCode(response.getStatus());
+        } catch (VitamClientInternalException | BadRequestException | AccessUnauthorizedException |
+            ForbiddenClientException | DatabaseConflictException e) {
+            throw new AdminManagementClientServerException(INTERNAL_SERVER_ERROR_MSG, e);
         }
     }
 
@@ -1130,24 +934,18 @@ class AdminManagementClientRest extends DefaultClient implements AdminManagement
     public RequestResponse<ContextModel> updateContext(String id, JsonNode queryDsl)
         throws AdminManagementClientServerException, ReferentialNotFoundException {
         ParametersChecker.checkParameter("The input queryDsl json is mandatory", queryDsl);
-        Response response = null;
-        try {
-            response = performRequest(HttpMethod.PUT, UPDATE_CONTEXT_URI + id, null, queryDsl,
-                APPLICATION_JSON_TYPE, APPLICATION_JSON_TYPE);
-            final Status status = Status.fromStatusCode(response.getStatus());
 
-            if (status == Status.OK) {
-                LOGGER.debug(Response.Status.OK.getReasonPhrase());
-                return getFromString(response.readEntity(String.class), RequestResponseOK.class);
-            } else if (status == Status.NOT_FOUND) {
-                throw new ReferentialNotFoundException("Context not found with id: " + id);
-            }
-            return RequestResponse.parseFromResponse(response, ContextModel.class);
-        } catch (VitamClientInternalException | InvalidParseOperationException e) {
-            LOGGER.error("Internal Server Error", e);
-            throw new AdminManagementClientServerException("Internal Server Error", e);
-        } finally {
-            consumeAnyEntityAndClose(response);
+        VitamRequestBuilder request = put()
+            .withPath(UPDATE_CONTEXT_URI + id)
+            .withBody(queryDsl)
+            .withJson();
+
+        try (Response response = make(request)) {
+            checkWithSpecificException(response);
+            return getFromString(response.readEntity(String.class), RequestResponseOK.class);
+        } catch (VitamClientInternalException | InvalidParseOperationException |
+            BadRequestException | AccessUnauthorizedException | ForbiddenClientException | DatabaseConflictException e) {
+            throw new AdminManagementClientServerException(INTERNAL_SERVER_ERROR_MSG, e);
         }
     }
 
@@ -1155,24 +953,17 @@ class AdminManagementClientRest extends DefaultClient implements AdminManagement
     public RequestResponse<ContextModel> findContexts(JsonNode queryDsl)
         throws InvalidParseOperationException, AdminManagementClientServerException {
         ParametersChecker.checkParameter("The input queryDsl json is mandatory", queryDsl);
-        Response response = null;
-        try {
-            response = performRequest(GET, CONTEXT_URI, null, queryDsl,
-                APPLICATION_JSON_TYPE, APPLICATION_JSON_TYPE);
-            final Status status = Status.fromStatusCode(response.getStatus());
-            if (status == Status.OK) {
-                LOGGER.debug(Response.Status.OK.getReasonPhrase());
-                return getFromString(response.readEntity(String.class), RequestResponseOK.class,
-                    ContextModel.class);
-            }
 
-            return RequestResponse.parseFromResponse(response, ContextModel.class);
+        VitamRequestBuilder request = get()
+            .withPath(CONTEXT_URI)
+            .withBody(queryDsl)
+            .withJson();
 
+        try (Response response = make(request)) {
+            check(response);
+            return getFromString(response.readEntity(String.class), RequestResponseOK.class, ContextModel.class);
         } catch (VitamClientInternalException e) {
-            LOGGER.error("Internal Server Error", e);
-            throw new AdminManagementClientServerException("Internal Server Error", e);
-        } finally {
-            consumeAnyEntityAndClose(response);
+            throw new AdminManagementClientServerException(INTERNAL_SERVER_ERROR_MSG, e);
         }
     }
 
@@ -1180,39 +971,33 @@ class AdminManagementClientRest extends DefaultClient implements AdminManagement
     public RequestResponse<ContextModel> findContextById(String id)
         throws InvalidParseOperationException, ReferentialNotFoundException, AdminManagementClientServerException {
         ParametersChecker.checkParameter("The input documentId json is mandatory", id);
-        Response response = null;
+
+        JsonNode queryDsl;
         try {
+            queryDsl = getIdentifierQuery(Context.IDENTIFIER, id);
+        }catch (InvalidCreateOperationException e) {
+            throw new AdminManagementClientServerException(INTERNAL_SERVER_ERROR_MSG, e);
+        }
 
-            JsonNode queryDsl = getIdentifierQuery(Context.IDENTIFIER, id);
+        VitamRequestBuilder request = get()
+            .withPath(CONTEXT_URI)
+            .withBody(queryDsl)
+            .withJson();
 
+        try (Response response =make(request)) {
+            checkWithSpecificException(response);
 
-            response = performRequest(GET, CONTEXT_URI, null, queryDsl,
-                APPLICATION_JSON_TYPE, APPLICATION_JSON_TYPE);
-            final Status status = Status.fromStatusCode(response.getStatus());
-            if (status == Status.OK) {
-                LOGGER.debug(Response.Status.OK.getReasonPhrase());
-                @SuppressWarnings("unchecked")
-                RequestResponseOK<ContextModel> resp =
-                    getFromString(response.readEntity(String.class), RequestResponseOK.class,
-                        ContextModel.class);
+            RequestResponseOK<ContextModel> resp =
+                getFromString(response.readEntity(String.class), RequestResponseOK.class,
+                    ContextModel.class);
 
+            if (resp.getResults() == null || resp.getResults().isEmpty())
+                throw new ReferentialNotFoundException("Context not found with id: " + id);
 
-                if (resp.getResults() == null || resp.getResults().size() == 0)
-                    throw new ReferentialNotFoundException("Context not found with id: " + id);
-
-                return resp;
-            }
-
-            return RequestResponse.parseFromResponse(response, ContextModel.class);
-
-        } catch (InvalidCreateOperationException e) {
-            LOGGER.error("unable to create query", e);
-            throw new AdminManagementClientServerException("Internal Server Error", e);
-        } catch (VitamClientInternalException e) {
-            LOGGER.error("Internal Server Error", e);
-            throw new AdminManagementClientServerException("Internal Server Error", e);
-        } finally {
-            consumeAnyEntityAndClose(response);
+            return resp;
+        } catch (VitamClientInternalException | BadRequestException | AccessUnauthorizedException |
+            ForbiddenClientException | DatabaseConflictException e) {
+            throw new AdminManagementClientServerException(INTERNAL_SERVER_ERROR_MSG, e);
         }
     }
 
@@ -1237,59 +1022,56 @@ class AdminManagementClientRest extends DefaultClient implements AdminManagement
             return result;
         } catch (InvalidCreateOperationException e) {
             LOGGER.error("unable to create query", e);
-            throw new AdminManagementClientServerException("Internal Server Error", e);
+            throw new AdminManagementClientServerException(INTERNAL_SERVER_ERROR_MSG, e);
         }
     }
 
     @Override
     public RequestResponse<JsonNode> launchAuditWorkflow(AuditOptions options) throws AdminManagementClientServerException {
         ParametersChecker.checkParameter("The options are mandatory", options);
-        Response response = null;
-        try {
-            response = performRequest(POST, AUDIT_URI, null, options,
-                APPLICATION_JSON_TYPE, APPLICATION_JSON_TYPE);
+        VitamRequestBuilder request = post()
+            .withPath(AUDIT_URI)
+            .withBody(options)
+            .withJson();
 
+        try (Response response = make(request)) {
+            check(response);
             return RequestResponse.parseFromResponse(response);
-
         } catch (VitamClientInternalException e) {
-            LOGGER.error("Internal Server Error", e);
-            throw new AdminManagementClientServerException("Internal Server Error", e);
-        } finally {
-            consumeAnyEntityAndClose(response);
+            throw new AdminManagementClientServerException(INTERNAL_SERVER_ERROR_MSG, e);
         }
-
     }
 
     private RequestResponse<JsonNode> getJsonNodeRequestResponse(JsonNode options, String auditUri)
         throws AdminManagementClientServerException {
-        Response response = null;
-        try {
-            response = performRequest(POST, auditUri, null, options,
-                APPLICATION_JSON_TYPE, APPLICATION_JSON_TYPE);
 
+        VitamRequestBuilder request = post()
+            .withPath(auditUri)
+            .withBody(options)
+            .withJson();
+
+        try (Response response = make(request)) {
+            check(response);
             return RequestResponse.parseFromResponse(response);
-
         } catch (VitamClientInternalException e) {
-            LOGGER.error("Internal Server Error", e);
-            throw new AdminManagementClientServerException("Internal Server Error", e);
-        } finally {
-            consumeAnyEntityAndClose(response);
+            LOGGER.error(INTERNAL_SERVER_ERROR_MSG, e);
+            throw new AdminManagementClientServerException(INTERNAL_SERVER_ERROR_MSG, e);
         }
     }
 
     @Override
     public RequestResponse<JsonNode> launchRuleAudit() throws AdminManagementClientServerException {
-        Response response = null;
-        try {
-            response = performRequest(POST, AUDIT_RULE_URI, null, null,
-                APPLICATION_JSON_TYPE, APPLICATION_JSON_TYPE);
 
+        VitamRequestBuilder request = post()
+            .withPath(AUDIT_RULE_URI)
+            .withJson();
+
+        try (Response response = make(request)) {
+            check(response);
             return RequestResponse.parseFromResponse(response);
         } catch (VitamClientInternalException e) {
-            LOGGER.error("Internal Server Error", e);
-            throw new AdminManagementClientServerException("Internal Server Error", e);
-        } finally {
-            consumeAnyEntityAndClose(response);
+            LOGGER.error(INTERNAL_SERVER_ERROR_MSG, e);
+            throw new AdminManagementClientServerException(INTERNAL_SERVER_ERROR_MSG, e);
         }
     }
 
@@ -1298,19 +1080,18 @@ class AdminManagementClientRest extends DefaultClient implements AdminManagement
     public Status importSecurityProfiles(List<SecurityProfileModel> securityProfileModelList)
         throws InvalidParseOperationException, AdminManagementClientServerException {
         ParametersChecker.checkParameter("The input security profiles json is mandatory", securityProfileModelList);
-        Response response = null;
 
-        try {
-            response = performRequest(POST, SECURITY_PROFILES_URI, null,
-                securityProfileModelList, APPLICATION_JSON_TYPE, APPLICATION_JSON_TYPE,
-                false);
-            return Status.fromStatusCode(response.getStatus());
+        VitamRequestBuilder request = post()
+            .withPath(SECURITY_PROFILES_URI)
+            .withBody(securityProfileModelList)
+            .withJson();
 
+        try (Response response = make(request)) {
+            check(response);
+            return fromStatusCode(response.getStatus());
         } catch (VitamClientInternalException e) {
-            LOGGER.error("Internal Server Error", e);
-            throw new AdminManagementClientServerException("Internal Server Error", e);
-        } finally {
-            consumeAnyEntityAndClose(response);
+            LOGGER.error(INTERNAL_SERVER_ERROR_MSG, e);
+            throw new AdminManagementClientServerException(INTERNAL_SERVER_ERROR_MSG, e);
         }
     }
 
@@ -1318,24 +1099,19 @@ class AdminManagementClientRest extends DefaultClient implements AdminManagement
     public RequestResponse<SecurityProfileModel> findSecurityProfiles(JsonNode queryDsl)
         throws InvalidParseOperationException, AdminManagementClientServerException {
         ParametersChecker.checkParameter("The input queryDsl json is mandatory", queryDsl);
-        Response response = null;
-        try {
-            response = performRequest(GET, SECURITY_PROFILES_URI, null, queryDsl,
-                APPLICATION_JSON_TYPE, APPLICATION_JSON_TYPE);
-            final Status status = Status.fromStatusCode(response.getStatus());
-            if (status == Status.OK) {
-                LOGGER.debug(Response.Status.OK.getReasonPhrase());
-                return getFromString(response.readEntity(String.class), RequestResponseOK.class,
-                    SecurityProfileModel.class);
-            }
 
-            return RequestResponse.parseFromResponse(response, SecurityProfileModel.class);
+        VitamRequestBuilder request = get()
+            .withPath(SECURITY_PROFILES_URI)
+            .withBody(queryDsl)
+            .withJson();
 
+        try (Response response = make(request)) {
+            check(response);
+
+            return getFromString(response.readEntity(String.class), RequestResponseOK.class, SecurityProfileModel.class);
         } catch (VitamClientInternalException e) {
-            LOGGER.error("Internal Server Error", e);
-            throw new AdminManagementClientServerException("Internal Server Error", e);
-        } finally {
-            consumeAnyEntityAndClose(response);
+            LOGGER.error(INTERNAL_SERVER_ERROR_MSG, e);
+            throw new AdminManagementClientServerException(INTERNAL_SERVER_ERROR_MSG, e);
         }
     }
 
@@ -1343,32 +1119,19 @@ class AdminManagementClientRest extends DefaultClient implements AdminManagement
     public RequestResponse<SecurityProfileModel> findSecurityProfileByIdentifier(String identifier)
         throws InvalidParseOperationException, AdminManagementClientServerException, ReferentialNotFoundException {
         ParametersChecker.checkParameter("The input identifier is mandatory", identifier);
-        Response response = null;
-        try {
 
-            response = performRequest(GET, SECURITY_PROFILES_URI + "/" + identifier, null, null,
-                APPLICATION_JSON_TYPE, APPLICATION_JSON_TYPE);
-            final Status status = Status.fromStatusCode(response.getStatus());
-            if (status == Status.OK) {
-                LOGGER.debug(Response.Status.OK.getReasonPhrase());
-                @SuppressWarnings("unchecked")
-                RequestResponseOK<SecurityProfileModel> resp =
-                    getFromString(response.readEntity(String.class), RequestResponseOK.class,
-                        SecurityProfileModel.class);
+        VitamRequestBuilder request = get()
+            .withPath(SECURITY_PROFILES_URI + "/" + identifier)
+            .withJson();
 
-                if (resp.getResults() == null || resp.getResults().size() == 0)
-                    throw new ReferentialNotFoundException("Security profile not found with id: " + identifier);
+        try (Response response = make(request)) {
+            checkWithSpecificException(response);
 
-                return resp;
-            }
-
-            return RequestResponse.parseFromResponse(response, SecurityProfileModel.class);
-
-        } catch (VitamClientInternalException e) {
-            LOGGER.error("Internal Server Error", e);
-            throw new AdminManagementClientServerException("Internal Server Error", e);
-        } finally {
-            consumeAnyEntityAndClose(response);
+            return getFromString(response.readEntity(String.class), RequestResponseOK.class,
+                    SecurityProfileModel.class);
+        } catch (VitamClientInternalException | BadRequestException | AccessUnauthorizedException |
+            ForbiddenClientException | DatabaseConflictException e) {
+            throw new AdminManagementClientServerException(INTERNAL_SERVER_ERROR_MSG, e);
         }
     }
 
@@ -1376,23 +1139,22 @@ class AdminManagementClientRest extends DefaultClient implements AdminManagement
     public RequestResponse updateSecurityProfile(String identifier, JsonNode queryDsl)
         throws InvalidParseOperationException, AdminManagementClientServerException, ReferentialNotFoundException {
         ParametersChecker.checkParameter("The input queryDsl json is mandatory", queryDsl);
-        Response response = null;
-        try {
-            response = performRequest(HttpMethod.PUT, SECURITY_PROFILES_URI + "/" + identifier, null, queryDsl,
-                APPLICATION_JSON_TYPE, APPLICATION_JSON_TYPE);
-            final Status status = Status.fromStatusCode(response.getStatus());
-            if (status == Status.OK) {
-                LOGGER.debug(Response.Status.OK.getReasonPhrase());
-                return new RequestResponseOK<SecurityProfileModel>().setHttpCode(Status.OK.getStatusCode());
-            } else if (status == Status.NOT_FOUND) {
-                throw new ReferentialNotFoundException("Security Profile not found with id: " + identifier);
-            }
-            return RequestResponse.parseFromResponse(response);
-        } catch (VitamClientInternalException e) {
-            LOGGER.error("Internal Server Error", e);
-            throw new AdminManagementClientServerException("Internal Server Error", e);
-        } finally {
-            consumeAnyEntityAndClose(response);
+        ParametersChecker.checkParameter("Tidentifier is mandatory", identifier);
+
+        VitamRequestBuilder request = put()
+            .withPath(SECURITY_PROFILES_URI + "/" + identifier)
+            .withBody(queryDsl)
+            .withJson();
+
+        try (Response response = make(request)) {
+            checkWithSpecificException(response);
+            return new RequestResponseOK<SecurityProfileModel>().setHttpCode(Status.OK.getStatusCode());
+        } catch (BadRequestException e) {
+            throw new AdminManagementClientBadRequestException(e);
+        } catch (VitamClientInternalException | AccessUnauthorizedException |
+            ForbiddenClientException | DatabaseConflictException e) {
+            LOGGER.error(INTERNAL_SERVER_ERROR_MSG, e);
+            throw new AdminManagementClientServerException(INTERNAL_SERVER_ERROR_MSG, e);
         }
     }
 
@@ -1400,19 +1162,18 @@ class AdminManagementClientRest extends DefaultClient implements AdminManagement
     public RequestResponse<IndexationResult> launchReindexation(JsonNode options)
         throws AdminManagementClientServerException {
         ParametersChecker.checkParameter("The options are mandatory", options);
-        Response response = null;
-        RequestResponse result = null;
-        try {
-            response = performRequest(POST, REINDEX_URI, null, options,
-                APPLICATION_JSON_TYPE, APPLICATION_JSON_TYPE);
 
+        VitamRequestBuilder request = post()
+            .withPath(REINDEX_URI)
+            .withBody(options)
+            .withJson();
+
+        try (Response response = make(request)) {
+            check(response);
             return RequestResponse.parseFromResponse(response, IndexationResult.class);
-
         } catch (VitamClientInternalException e) {
-            LOGGER.error("Internal Server Error", e);
-            throw new AdminManagementClientServerException("Internal Server Error", e);
-        } finally {
-            consumeAnyEntityAndClose(response);
+            LOGGER.error(INTERNAL_SERVER_ERROR_MSG, e);
+            throw new AdminManagementClientServerException(INTERNAL_SERVER_ERROR_MSG, e);
         }
     }
 
@@ -1420,19 +1181,17 @@ class AdminManagementClientRest extends DefaultClient implements AdminManagement
     public RequestResponse<IndexationResult> switchIndexes(JsonNode options)
         throws AdminManagementClientServerException {
         ParametersChecker.checkParameter("The options are mandatory", options);
-        Response response = null;
-        RequestResponse result = null;
-        try {
-            response = performRequest(POST, ALIASES_URI, null, options,
-                APPLICATION_JSON_TYPE, APPLICATION_JSON_TYPE);
+        VitamRequestBuilder request = post()
+            .withPath(ALIASES_URI)
+            .withBody(options)
+            .withJson();
 
+        try (Response response = make(request)) {
+            check(response);
             return RequestResponse.parseFromResponse(response, IndexationResult.class);
-
         } catch (VitamClientInternalException e) {
-            LOGGER.error("Internal Server Error", e);
-            throw new AdminManagementClientServerException("Internal Server Error", e);
-        } finally {
-            consumeAnyEntityAndClose(response);
+            LOGGER.error(INTERNAL_SERVER_ERROR_MSG, e);
+            throw new AdminManagementClientServerException(INTERNAL_SERVER_ERROR_MSG, e);
         }
     }
 
@@ -1446,18 +1205,15 @@ class AdminManagementClientRest extends DefaultClient implements AdminManagement
     @Override
     public RequestResponse<JsonNode> rectificationAudit(String operationId)
         throws AdminManagementClientServerException {
-        Response response = null;
-        try {
-            response = performRequest(POST, RECTIFICATION_AUDIT, null, operationId,
-                APPLICATION_JSON_TYPE, APPLICATION_JSON_TYPE);
-
+        VitamRequestBuilder request = post()
+            .withPath(RECTIFICATION_AUDIT)
+            .withBody(operationId)
+            .withJson();
+        try (Response response = make(request)) {
+            check(response);
             return RequestResponse.parseFromResponse(response);
-
         } catch (VitamClientInternalException e) {
-            LOGGER.error("Internal Server Error", e);
-            throw new AdminManagementClientServerException("Internal Server Error", e);
-        } finally {
-            consumeAnyEntityAndClose(response);
+            throw new AdminManagementClientServerException(INTERNAL_SERVER_ERROR_MSG, e);
         }
     }
 
@@ -1465,18 +1221,17 @@ class AdminManagementClientRest extends DefaultClient implements AdminManagement
     public RequestResponse<JsonNode> exportProbativeValue(ProbativeValueRequest probativeValueRequest)
         throws AdminManagementClientServerException {
         ParametersChecker.checkParameter("The query is mandatory", probativeValueRequest);
-        Response response = null;
-        try {
-            response = performRequest(POST, PROBATIVE_VALUE_URI, null, probativeValueRequest,
-                APPLICATION_JSON_TYPE, APPLICATION_JSON_TYPE);
 
+        VitamRequestBuilder request = post()
+            .withPath(PROBATIVE_VALUE_URI)
+            .withBody(probativeValueRequest)
+            .withJson();
+        try (Response response = make(request)) {
+            check(response);
             return RequestResponse.parseFromResponse(response);
-
         } catch (VitamClientInternalException e) {
             LOGGER.error("Internal Server Error ", e);
-            throw new AdminManagementClientServerException("Internal Server Error", e);
-        } finally {
-            consumeAnyEntityAndClose(response);
+            throw new AdminManagementClientServerException(INTERNAL_SERVER_ERROR_MSG, e);
         }
     }
 
@@ -1484,21 +1239,18 @@ class AdminManagementClientRest extends DefaultClient implements AdminManagement
     public RequestResponse importOntologies(boolean forceUpdate, List<OntologyModel> ontologyModelList)
         throws InvalidParseOperationException, AdminManagementClientServerException {
         ParametersChecker.checkParameter("The ontology json is mandatory", ontologyModelList);
-        final MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
-        headers.add(GlobalDataRest.FORCE_UPDATE, forceUpdate);
 
-        Response response = null;
-        try {
-            response = performRequest(POST, ONTOLOGY_URI, headers,
-                ontologyModelList, APPLICATION_JSON_TYPE, APPLICATION_JSON_TYPE,
-                false);
+        VitamRequestBuilder request = post()
+            .withPath(ONTOLOGY_URI)
+            .withHeader(GlobalDataRest.FORCE_UPDATE, forceUpdate)
+            .withBody(ontologyModelList)
+            .withJson();
+
+        try (Response response = make(request)) {
+            check(response);
             return RequestResponse.parseFromResponse(response);
-
         } catch (VitamClientInternalException e) {
-            LOGGER.error("Internal Server Error", e);
-            throw new AdminManagementClientServerException("Internal Server Error", e);
-        } finally {
-            consumeAnyEntityAndClose(response);
+            throw new AdminManagementClientServerException(INTERNAL_SERVER_ERROR_MSG, e);
         }
     }
 
@@ -1506,24 +1258,19 @@ class AdminManagementClientRest extends DefaultClient implements AdminManagement
     public RequestResponse<OntologyModel> findOntologies(JsonNode query)
         throws InvalidParseOperationException {
         ParametersChecker.checkParameter("The input queryDsl json is mandatory", query);
-        Response response = null;
-        try {
-            response = performRequest(GET, ONTOLOGY_URI, null, query,
-                APPLICATION_JSON_TYPE, APPLICATION_JSON_TYPE);
-            final Status status = Status.fromStatusCode(response.getStatus());
-            if (status == Status.OK) {
-                LOGGER.debug(Response.Status.OK.getReasonPhrase());
-                return getFromString(response.readEntity(String.class), RequestResponseOK.class,
-                    OntologyModel.class);
-            }
 
-            return RequestResponse.parseFromResponse(response, OntologyModel.class);
+        VitamRequestBuilder request = get()
+            .withPath(ONTOLOGY_URI)
+            .withBody(query)
+            .withJson();
+        try (Response response = make(request)) {
+            check(response);
 
+            LOGGER.debug(Response.Status.OK.getReasonPhrase());
+            return getFromString(response.readEntity(String.class), RequestResponseOK.class, OntologyModel.class);
         } catch (VitamClientInternalException e) {
-            LOGGER.error("Internal Server Error", e);
-            throw new VitamRuntimeException("Internal Server Error", e);
-        } finally {
-            consumeAnyEntityAndClose(response);
+            LOGGER.error(INTERNAL_SERVER_ERROR_MSG, e);
+            throw new VitamRuntimeException(INTERNAL_SERVER_ERROR_MSG, e);
         }
     }
 
@@ -1531,38 +1278,32 @@ class AdminManagementClientRest extends DefaultClient implements AdminManagement
     public RequestResponse<OntologyModel> findOntologyByID(String documentId)
         throws InvalidParseOperationException, AdminManagementClientServerException, ReferentialNotFoundException {
         ParametersChecker.checkParameter("The input documentId json is mandatory", documentId);
-        Response response = null;
+        JsonNode queryDsl;
+
         try {
-
-            JsonNode queryDsl = getIdentifierQuery(Ontology.IDENTIFIER, documentId);
-
-            response = performRequest(GET, ONTOLOGY_URI, null, queryDsl,
-                APPLICATION_JSON_TYPE, APPLICATION_JSON_TYPE);
-            final Status status = Status.fromStatusCode(response.getStatus());
-            if (status == Status.OK) {
-                LOGGER.debug(Response.Status.OK.getReasonPhrase());
-                @SuppressWarnings("unchecked")
-                RequestResponseOK<OntologyModel> resp =
-                    getFromString(response.readEntity(String.class), RequestResponseOK.class,
-                        OntologyModel.class);
-
-                if (resp.getResults() == null || resp.getResults().isEmpty()) {
-                    throw new ReferentialNotFoundException("Ontology not found with id: " + documentId);
-                }
-
-                return resp;
-            }
-
-            return RequestResponse.parseFromResponse(response, OntologyModel.class);
-
+            queryDsl = getIdentifierQuery(Ontology.IDENTIFIER, documentId);
         } catch (InvalidCreateOperationException e) {
-            LOGGER.error("unable to create query", e);
-            throw new AdminManagementClientServerException("Internal Server Error", e);
-        } catch (VitamClientInternalException e) {
-            LOGGER.error("Internal Server Error", e);
-            throw new AdminManagementClientServerException("Internal Server Error", e);
-        } finally {
-            consumeAnyEntityAndClose(response);
+            throw new AdminManagementClientServerException(INTERNAL_SERVER_ERROR_MSG, e);
+        }
+
+
+        VitamRequestBuilder request = get()
+            .withPath(ONTOLOGY_URI)
+            .withBody(queryDsl)
+            .withJson();
+
+        try (Response response = make(request)) {
+            checkWithSpecificException(response);
+
+            @SuppressWarnings("unchecked")
+            RequestResponseOK<OntologyModel> resp =
+                getFromString(response.readEntity(String.class), RequestResponseOK.class,
+                    OntologyModel.class);
+
+            return resp;
+        } catch (VitamClientInternalException | BadRequestException | AccessUnauthorizedException |
+            ForbiddenClientException | DatabaseConflictException e) {
+            throw new AdminManagementClientServerException(INTERNAL_SERVER_ERROR_MSG, e);
         }
     }
 
@@ -1578,18 +1319,16 @@ class AdminManagementClientRest extends DefaultClient implements AdminManagement
     @Override
     public RequestResponse<ProcessPause> forcePause(ProcessPause info) throws AdminManagementClientServerException {
         ParametersChecker.checkParameter("The input ProcessPause json is mandatory", info);
-        Response response = null;
-        try {
-            response = performRequest(HttpMethod.POST, FORCE_PAUSE_URI, null, info,
-                MediaType.APPLICATION_JSON_TYPE, MediaType.APPLICATION_JSON_TYPE);
-
+        VitamRequestBuilder request = post()
+            .withPath(FORCE_PAUSE_URI)
+            .withBody(info)
+            .withJson();
+        try (Response response = make(request)) {
+            check(response);
             return RequestResponse.parseFromResponse(response, ProcessPause.class);
-
         } catch (VitamClientInternalException e) {
-            LOGGER.error("Internal Server Error", e);
-            throw new AdminManagementClientServerException("Internal Server Error", e);
-        } finally {
-            consumeAnyEntityAndClose(response);
+            LOGGER.error(INTERNAL_SERVER_ERROR_MSG, e);
+            throw new AdminManagementClientServerException(INTERNAL_SERVER_ERROR_MSG, e);
         }
     }
 
@@ -1597,18 +1336,17 @@ class AdminManagementClientRest extends DefaultClient implements AdminManagement
     public RequestResponse<ProcessPause> removeForcePause(ProcessPause info)
         throws AdminManagementClientServerException {
         ParametersChecker.checkParameter("The input ProcessPause json is mandatory", info);
-        Response response = null;
-        try {
-            response = performRequest(HttpMethod.POST, REMOVE_FORCE_PAUSE_URI, null, info,
-                MediaType.APPLICATION_JSON_TYPE, MediaType.APPLICATION_JSON_TYPE);
 
+        VitamRequestBuilder request = post()
+            .withPath(REMOVE_FORCE_PAUSE_URI)
+            .withBody(info)
+            .withJson();
+
+        try (Response response = make(request)) {
+            check(response);
             return RequestResponse.parseFromResponse(response, ProcessPause.class);
-
         } catch (VitamClientInternalException e) {
-            LOGGER.error("Internal Server Error", e);
-            throw new AdminManagementClientServerException("Internal Server Error", e);
-        } finally {
-            consumeAnyEntityAndClose(response);
+            throw new AdminManagementClientServerException(INTERNAL_SERVER_ERROR_MSG, e);
         }
     }
 
@@ -1616,15 +1354,16 @@ class AdminManagementClientRest extends DefaultClient implements AdminManagement
     public RequestResponse<AccessionRegisterSymbolic> createAccessionRegisterSymbolic(Integer tenant)
         throws AdminManagementClientServerException {
         ParametersChecker.checkParameter("Tenant is mandatory.", tenant);
-        Response response = null;
-        try {
-            response = performRequest(POST, "accession-register/symbolic", null, null, null, APPLICATION_JSON_TYPE);
+
+        VitamRequestBuilder request = post()
+            .withPath("accession-register/symbolic")
+            .withJsonAccept();
+
+        try (Response response = make(request)) {
+            check(response);
             return RequestResponse.parseFromResponse(response, AccessionRegisterSymbolic.class);
         } catch (final VitamClientInternalException e) {
-            LOGGER.error("Internal Server Error", e);
-            throw new AdminManagementClientServerException("Internal Server Error", e);
-        } finally {
-            consumeAnyEntityAndClose(response);
+            throw new AdminManagementClientServerException(INTERNAL_SERVER_ERROR_MSG, e);
         }
     }
 
@@ -1634,16 +1373,17 @@ class AdminManagementClientRest extends DefaultClient implements AdminManagement
         throws AdminManagementClientServerException {
         ParametersChecker.checkParameter("Tenant is mandatory.", tenant);
         ParametersChecker.checkParameter("QueryDsl is mandatory.", tenant);
-        Response response = null;
-        try {
-            response = performRequest(GET, "accession-register/symbolic", null, queryDsl, APPLICATION_JSON_TYPE,
-                APPLICATION_JSON_TYPE);
+
+        VitamRequestBuilder request = get()
+            .withPath("accession-register/symbolic")
+            .withBody(queryDsl)
+            .withJson();
+
+        try (Response response = make(request)) {
+            check(response);
             return RequestResponse.parseFromResponse(response, AccessionRegisterSymbolicModel.class);
         } catch (final VitamClientInternalException e) {
-            LOGGER.error("Internal Server Error", e);
-            throw new AdminManagementClientServerException("Internal Server Error", e);
-        } finally {
-            consumeAnyEntityAndClose(response);
+            throw new AdminManagementClientServerException(INTERNAL_SERVER_ERROR_MSG, e);
         }
     }
 
@@ -1652,18 +1392,20 @@ class AdminManagementClientRest extends DefaultClient implements AdminManagement
         throws AdminManagementClientServerException {
 
         ParametersChecker.checkParameter("griffin file  is mandatory", griffinModelList);
-        Response response = null;
-        try {
-            response = performRequest(POST, "/importGriffins", null,
-                griffinModelList, APPLICATION_JSON_TYPE, APPLICATION_JSON_TYPE,
-                false);
-            return RequestResponse.parseFromResponse(response);
 
-        } catch (VitamClientInternalException e) {
-            LOGGER.error("Internal Server Error", e);
-            throw new AdminManagementClientServerException("Internal Server Error", e);
-        } finally {
-            consumeAnyEntityAndClose(response);
+        VitamRequestBuilder request = post()
+            .withPath("/importGriffins")
+            .withBody(griffinModelList)
+            .withJson();
+        try (Response response = make(request)) {
+            checkWithSpecificException(response);
+            return RequestResponse.parseFromResponse(response);
+        } catch (VitamClientInternalException | AccessUnauthorizedException | ReferentialNotFoundException |
+            DatabaseConflictException | ForbiddenClientException e) {
+            LOGGER.error(INTERNAL_SERVER_ERROR_MSG, e);
+            throw new AdminManagementClientServerException(INTERNAL_SERVER_ERROR_MSG, e);
+        } catch (BadRequestException e) {
+            throw new AdminManagementClientBadRequestException(e);
         }
     }
 
@@ -1672,46 +1414,43 @@ class AdminManagementClientRest extends DefaultClient implements AdminManagement
         throws AdminManagementClientServerException {
 
         ParametersChecker.checkParameter("PreservationScenario file  is mandatory", preservationScenarioModels);
-        Response response = null;
-        try {
-            response = performRequest(POST, "/importPreservationScenarios", null,
-                preservationScenarioModels, APPLICATION_JSON_TYPE, APPLICATION_JSON_TYPE,
-                false);
+
+        VitamRequestBuilder request = post()
+            .withPath("/importPreservationScenarios")
+            .withBody(preservationScenarioModels)
+            .withJson();
+
+        try (Response response = make(request)) {
+            checkWithSpecificException(response);
             return RequestResponse.parseFromResponse(response);
 
-        } catch (VitamClientInternalException e) {
-            LOGGER.error("Internal Server Error", e);
-            throw new AdminManagementClientServerException("Internal Server Error", e);
-        } finally {
-            consumeAnyEntityAndClose(response);
+        } catch (VitamClientInternalException | DatabaseConflictException | ReferentialNotFoundException |
+            AccessUnauthorizedException | ForbiddenClientException e) {
+            throw new AdminManagementClientServerException(INTERNAL_SERVER_ERROR_MSG, e);
+        } catch (BadRequestException e) {
+            throw new AdminManagementClientBadRequestException(e);
         }
     }
 
     @Override
     public RequestResponse<GriffinModel> findGriffin(JsonNode queryDsl)
         throws AdminManagementClientServerException, InvalidParseOperationException, ReferentialNotFoundException {
-        Response response = null;
-        try {
 
-            response = performRequest(GET, "/griffin", null, queryDsl, APPLICATION_JSON_TYPE, APPLICATION_JSON_TYPE);
-            final Status status = Status.fromStatusCode(response.getStatus());
-            if (status == Status.OK) {
+        VitamRequestBuilder request = get()
+            .withPath("/griffin")
+            .withBody(queryDsl)
+            .withJson();
 
-                String entity = response.readEntity(String.class);
-                @SuppressWarnings("unchecked")
-                RequestResponseOK<GriffinModel> requestResponseOK =
-                    getFromString(entity, RequestResponseOK.class, GriffinModel.class);
+        try (Response response = make(request)) {
+            check(response);
 
+            String entity = response.readEntity(String.class);
+            @SuppressWarnings("unchecked")
+            RequestResponseOK<GriffinModel> requestResponseOK = getFromString(entity, RequestResponseOK.class, GriffinModel.class);
 
-                return requestResponseOK;
-            }
-            return RequestResponse.parseFromResponse(response, GriffinModel.class);
-
+            return requestResponseOK;
         } catch (VitamClientInternalException e) {
-            LOGGER.error("Internal Server Error", e);
-            throw new AdminManagementClientServerException("Internal Server Error", e);
-        } finally {
-            consumeAnyEntityAndClose(response);
+            throw new AdminManagementClientServerException(INTERNAL_SERVER_ERROR_MSG, e);
         }
     }
 
@@ -1755,65 +1494,85 @@ class AdminManagementClientRest extends DefaultClient implements AdminManagement
     @Override
     public RequestResponse<PreservationScenarioModel> findPreservation(JsonNode queryDsl)
         throws InvalidParseOperationException, AdminManagementClientServerException, ReferentialNotFoundException {
-        Response response = null;
+        
+        VitamRequestBuilder request = get()
+            .withPath("/preservationScenario")
+            .withBody(queryDsl)
+            .withJson();
 
-        try {
-            response = performRequest(GET, "/preservationScenario", null, queryDsl, APPLICATION_JSON_TYPE,
-                APPLICATION_JSON_TYPE);
-            final Status status = Status.fromStatusCode(response.getStatus());
-            if (status == Status.OK) {
+        try (Response response = make(request)) {
+            check(response);
 
-                String entity = response.readEntity(String.class);
-                @SuppressWarnings("unchecked")
-                RequestResponseOK<PreservationScenarioModel> requestResponseOK =
-                    getFromString(entity, RequestResponseOK.class, PreservationScenarioModel.class);
+            String entity = response.readEntity(String.class);
 
-                return requestResponseOK;
-            }
-            return RequestResponse.parseFromResponse(response, PreservationScenarioModel.class);
-
+            return getFromString(entity, RequestResponseOK.class, PreservationScenarioModel.class);
         } catch (VitamClientInternalException e) {
-            LOGGER.error("Internal Server Error", e);
-            throw new AdminManagementClientServerException("Internal Server Error", e);
-        } finally {
-            consumeAnyEntityAndClose(response);
+            throw new AdminManagementClientServerException(INTERNAL_SERVER_ERROR_MSG, e);
         }
     }
 
     @Override
     public Status createExternalOperation(LogbookOperationParameters logbookOperationparams)
         throws AdminManagementClientServerException, BadRequestException, LogbookClientAlreadyExistsException {
-        Response response = null;
 
-        try {
-            response = performRequest(HttpMethod.POST, CREATE_EXTERNAL_OPERATION_URI, null, logbookOperationparams,
-                MediaType.APPLICATION_JSON_TYPE, MediaType.APPLICATION_JSON_TYPE);
-            final Status status = Status.fromStatusCode(response.getStatus());
+        VitamRequestBuilder request = post()
+            .withPath(CREATE_EXTERNAL_OPERATION_URI)
+            .withBody(logbookOperationparams)
+            .withJson();
 
-            switch (status) {
-                case OK:
-                    break;
-                case BAD_REQUEST:
-                    String reason = (response.hasEntity()) ? response.readEntity(String.class)
-                        : Response.Status.BAD_REQUEST.getReasonPhrase();
-                    LOGGER.error(reason);
-                    throw new BadRequestException(reason);
-                case CONFLICT:
-                    reason = (response.hasEntity()) ? response.readEntity(String.class)
-                        : Response.Status.CONFLICT.getReasonPhrase();
-                    LOGGER.error(reason);
-                    throw new LogbookClientAlreadyExistsException(reason);
-                default:
-                    break;
-            }
+        try (Response response = make(request)) {
+            checkWithSpecificException(response);
+            return fromStatusCode(response.getStatus());
+        } catch (VitamClientInternalException | ReferentialNotFoundException | AccessUnauthorizedException |
+            ForbiddenClientException e) {
+            throw new AdminManagementClientServerException(INTERNAL_SERVER_ERROR_MSG, e);
+        } catch (DatabaseConflictException e) {
+           throw new LogbookClientAlreadyExistsException(e);
+        }
+    }
 
-            return status;
+    private void check(Response response) throws VitamClientInternalException {
+        final Status status = fromStatusCode(response.getStatus());
+        if (SUCCESSFUL.equals(status.getFamily()) || REDIRECTION.equals(status.getFamily())) {
+            return;
+        }
 
-        } catch (VitamClientInternalException e) {
-            LOGGER.error("Internal Server Error", e);
-            throw new AdminManagementClientServerException("Internal Server Error", e);
-        } finally {
-            consumeAnyEntityAndClose(response);
+        throw new VitamClientInternalException(
+            String.format("Error with the response, get status: '%d' and reason '%s'.", response.getStatus(),
+                fromStatusCode(response.getStatus()).getReasonPhrase()));
+    }
+
+        private void checkWithSpecificException(Response response)
+            throws BadRequestException, VitamClientInternalException, ReferentialNotFoundException, AccessUnauthorizedException,
+            ForbiddenClientException, DatabaseConflictException {
+        final Status status = fromStatusCode(response.getStatus());
+
+        if (SUCCESSFUL.equals(status.getFamily()) || REDIRECTION.equals(status.getFamily())) {
+            return;
+        }
+
+        switch (status) {
+            case OK:
+            case CREATED:
+                return;
+            case NOT_FOUND:
+                throw new ReferentialNotFoundException(status.getReasonPhrase());
+            case BAD_REQUEST:
+                String reason = (response.hasEntity()) ? response.readEntity(String.class)
+                    : Response.Status.BAD_REQUEST.getReasonPhrase();
+                throw new BadRequestException(reason);
+            case UNAUTHORIZED:
+                throw new AccessUnauthorizedException("Contract not found ");
+            case FORBIDDEN:
+                reason = (response.hasEntity()) ? response.readEntity(String.class)
+                : Response.Status.BAD_REQUEST.getReasonPhrase();
+                throw new ForbiddenClientException(reason);
+            case CONFLICT:
+                throw new DatabaseConflictException(Response.Status.CONFLICT.getReasonPhrase());
+            default:
+                throw new VitamClientInternalException(
+                    String.format("Error with the response, get status: '%d' and reason '%s'.", response.getStatus(),
+                        fromStatusCode(response.getStatus()).getReasonPhrase()));
         }
     }
 }

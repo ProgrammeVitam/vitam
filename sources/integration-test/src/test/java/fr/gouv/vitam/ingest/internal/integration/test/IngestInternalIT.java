@@ -105,6 +105,7 @@ import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.functional.administration.client.AdminManagementClient;
 import fr.gouv.vitam.functional.administration.client.AdminManagementClientFactory;
+import fr.gouv.vitam.functional.administration.common.exception.AdminManagementClientServerException;
 import fr.gouv.vitam.functional.administration.rest.AdminManagementMain;
 import fr.gouv.vitam.ingest.internal.client.IngestInternalClient;
 import fr.gouv.vitam.ingest.internal.client.IngestInternalClientFactory;
@@ -190,6 +191,7 @@ import static fr.gouv.vitam.common.guid.GUIDFactory.newOperationLogbookGUID;
 import static fr.gouv.vitam.preservation.ProcessManagementWaiter.waitOperation;
 import static io.restassured.RestAssured.get;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
@@ -1821,13 +1823,6 @@ public class IngestInternalIT extends VitamRuleRunner {
 
 
         stream = new FileInputStream(PropertiesUtils.findFile(FILE_AGENCIES_AU_update));
-
-        // import contrat
-        File fileAccessContracts = PropertiesUtils.getResourceFile("access_contrats.json");
-        List<AccessContractModel> accessContractModelList = JsonHandler
-            .getFromFileAsTypeReference(fileAccessContracts, new TypeReference<List<AccessContractModel>>() {
-            });
-        client.importAccessContracts(accessContractModelList);
         VitamThreadUtils.getVitamSession().setRequestId(newOperationLogbookGUID(tenantId));
 
         status = client.importAgenciesFile(stream, FILE_AGENCIES_AU_update);
@@ -1929,14 +1924,11 @@ public class IngestInternalIT extends VitamRuleRunner {
         final FileInputStream expectedStreamErrorReport, String lineNumber)
         throws Exception {
         try (AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient()) {
-            final Response response = client.checkRulesFile(fileInputStreamToImport);
-            final String readEntity = response.readEntity(String.class);
-            final JsonNode responseEntityNode = JsonHandler.getFromString(readEntity);
-            final JsonNode responseError = responseEntityNode.get("error").get(lineNumber).get(0).get("Code");
             final JsonNode expectedNode = JsonHandler.getFromInputStream(expectedStreamErrorReport);
             final JsonNode expectedError = expectedNode.get("error").get(lineNumber).get(0).get("Code");
-            assertEquals(expectedError, responseError);
-            assertEquals(Status.BAD_REQUEST.getStatusCode(), response.getStatus());
+            assertThatThrownBy(() -> client.checkRulesFile(fileInputStreamToImport))
+                .isInstanceOf(AdminManagementClientServerException.class)
+                .hasMessageContaining(expectedError.asText());
         }
     }
 
