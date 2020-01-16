@@ -1,6 +1,6 @@
 
 
-/*******************************************************************************
+/*
  * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2019)
  *
  * contact.vitam@culture.gouv.fr
@@ -25,7 +25,7 @@
  *
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
- *******************************************************************************/
+ */
 package fr.gouv.vitam.processing.distributor.rest;
 
 import com.fasterxml.jackson.databind.JsonNode;
@@ -39,7 +39,7 @@ import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
 import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
 import fr.gouv.vitam.common.tmp.TempFolderRule;
-import fr.gouv.vitam.processing.distributor.v2.WorkerManager;
+import fr.gouv.vitam.processing.distributor.core.WorkerManager;
 import io.restassured.RestAssured;
 import io.restassured.http.ContentType;
 import org.junit.AfterClass;
@@ -180,13 +180,6 @@ public class ProcessDistributorResourceTest extends ResteasyTestApplication {
             .post(WORKER_FAMILY_URI + ID_FAMILY_URI + WORKERS_URI + ID_WORKER_URI).then()
             .statusCode(Status.BAD_REQUEST.getStatusCode());
     }
-
-    /*@Test
-    public final void testRegisterWorkerNotFound() {
-        given().contentType(ContentType.JSON).body(JSON_REGISTER).when()
-            .post(WORKER_FAMILY_URI + ID_FAMILY_URI + WORKERS_URI + WORKER_ID_E).then()
-            .statusCode(Status.CONFLICT.getStatusCode());
-    }*/
 
     @Test
     public final void testRegisterWorkerOK() {

@@ -15,10 +15,11 @@
  * generally, to use and operate it in the same conditions as regards security. <p> The fact that you are presently
  * reading this means that you have had knowledge of the CeCILL 2.1 license and that you accept its terms.
  */
-package fr.gouv.vitam.processing.distributor.v2;
+package fr.gouv.vitam.processing.distributor.core;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.annotations.VisibleForTesting;
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.VitamConfiguration;
@@ -60,9 +61,9 @@ import fr.gouv.vitam.worker.client.exception.PauseCancelException;
 import fr.gouv.vitam.worker.client.exception.WorkerUnreachableException;
 import fr.gouv.vitam.worker.common.DescriptionStep;
 import fr.gouv.vitam.worker.core.distribution.JsonLineModel;
+import fr.gouv.vitam.workspace.client.WorkspaceBufferingInputStream;
 import fr.gouv.vitam.workspace.client.WorkspaceClient;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
-import fr.gouv.vitam.workspace.client.WorkspaceBufferingInputStream;
 import org.apache.commons.collections4.iterators.PeekingIterator;
 
 import javax.ws.rs.core.Response;
@@ -74,7 +75,6 @@ import java.io.InputStreamReader;
 import java.net.URI;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -214,9 +214,8 @@ public class ProcessDistributorImpl implements ProcessDistributor {
                 metadataClient.refreshUnits();
                 metadataClient.refreshObjectGroups();
             } catch (MetaDataClientServerException e) {
-                step.getStepResponses().increment(StatusCode.FATAL);
-                LOGGER.error("Illegal Argument Exception", e);
-                return step.setPauseOrCancelAction(PauseOrCancelAction.ACTION_COMPLETE).getStepResponses();
+                LOGGER.error("Error while refresh metadata indexes", e);
+                return step.getStepResponses().increment(StatusCode.FATAL);
             }
         }
         try {
@@ -297,7 +296,8 @@ public class ProcessDistributorImpl implements ProcessDistributor {
                     final JsonNode ogIdList;
                     try {
                         response =
-                            workspaceClient.getObject(workParams.getContainerName(), step.getDistribution().getElement());
+                            workspaceClient
+                                .getObject(workParams.getContainerName(), step.getDistribution().getElement());
                         ogIdList = JsonHandler.getFromInputStream((InputStream) response.getEntity());
                     } finally {
                         workspaceClient.consumeAnyEntityAndClose(response);
@@ -901,10 +901,14 @@ public class ProcessDistributorImpl implements ProcessDistributor {
         return CompletableFuture
             .supplyAsync(task, wmf)
             .exceptionally((completionException) -> {
-                LOGGER.error("Exception occured when executing task", completionException);
+                LOGGER.error("Exception occurred when executing task", completionException);
                 Throwable cause = completionException.getCause();
+                ObjectNode evDetDetail = JsonHandler.createObjectNode();
+
                 if (cause instanceof WorkerUnreachableException) {
                     WorkerUnreachableException wue = (WorkerUnreachableException) cause;
+                    evDetDetail.put("Error", "Distributor lost connection with worker (" + wue.getWorkerId() +
+                        "). The worker will be unregistered.");
                     try {
                         LOGGER.warn(
                             "The worker (" + step.getWorkerGroupId() + ") will be unregistered as it is Unreachable",
@@ -913,10 +917,14 @@ public class ProcessDistributorImpl implements ProcessDistributor {
                     } catch (WorkerFamilyNotFoundException | WorkerNotFoundException | InterruptedException e1) {
                         LOGGER.error("Exception while unregister worker " + wue.getWorkerId(), cause);
                     }
+                } else {
+                    evDetDetail.put("Error", "Error occurred while handling step by the distributor");
                 }
-                return new ItemStatus(WORKER_CALL_EXCEPTION)
-                    .setItemsStatus(WORKER_CALL_EXCEPTION,
-                        new ItemStatus(WORKER_CALL_EXCEPTION).increment(StatusCode.FATAL));
+
+                return new ItemStatus(step.getStepName())
+                    .setItemsStatus(step.getStepName(),
+                        new ItemStatus(step.getStepName()).setEvDetailData(JsonHandler.unprettyPrint(evDetDetail))
+                            .increment(StatusCode.FATAL));
             })
             .thenApply(is -> {
                 //Do not update processed if pause or cancel occurs or if status is Fatal
