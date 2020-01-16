@@ -59,6 +59,8 @@ import fr.gouv.vitam.processing.distributor.api.IWorkerManager;
 import fr.gouv.vitam.processing.distributor.api.ProcessDistributor;
 import fr.gouv.vitam.processing.distributor.core.ProcessDistributorImpl;
 import fr.gouv.vitam.processing.distributor.core.WorkerManager;
+import fr.gouv.vitam.processing.engine.core.operation.OperationContextException;
+import fr.gouv.vitam.processing.engine.core.operation.OperationContextMonitor;
 import fr.gouv.vitam.worker.client.WorkerClient;
 import fr.gouv.vitam.worker.client.WorkerClientFactory;
 import fr.gouv.vitam.workspace.client.WorkspaceClient;
@@ -80,9 +82,12 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import static fr.gouv.vitam.logbook.common.parameters.Contexts.DEFAULT_WORKFLOW;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
@@ -106,6 +111,9 @@ public class ProcessManagementImplTest {
     private WorkspaceProcessDataManagement processDataManagement;
 
 
+    @Mock
+    private OperationContextMonitor operationContextMonitor;
+
     private IWorkerManager workerManager = null;
     private ProcessDistributor processDistributor = null;
 
@@ -127,7 +135,8 @@ public class ProcessManagementImplTest {
         workerManager = new WorkerManager(workerClientFactory);
         ServerConfiguration configuration = new ServerConfiguration();
         processDistributor =
-            new ProcessDistributorImpl(workerManager, configuration, processDataAccess, processDataManagement, workspaceClientFactory, workerClientFactory);
+            new ProcessDistributorImpl(workerManager, configuration, processDataAccess, processDataManagement,
+                workspaceClientFactory, workerClientFactory);
     }
 
     @Test(expected = ProcessingException.class)
@@ -139,7 +148,7 @@ public class ProcessManagementImplTest {
             .thenReturn(new HashMap<>());
         processManagementImpl =
             new ProcessManagementImpl(new ServerConfiguration(), processDistributor, processDataAccess,
-                processDataManagement);
+                processDataManagement, operationContextMonitor);
         processManagementImpl.resume(
             WorkerParametersFactory.newWorkerParameters(ID, ID, CONTAINER_NAME, ID, Lists.newArrayList(ID),
                 "http://localhost:8083",
@@ -157,11 +166,32 @@ public class ProcessManagementImplTest {
             .thenReturn(new HashMap<>());
         processManagementImpl =
             new ProcessManagementImpl(new ServerConfiguration(), processDistributor, processDataAccess,
-                processDataManagement);
+                processDataManagement, operationContextMonitor);
         Assert.assertNotNull(processManagementImpl);
         List<ProcessWorkflow> processWorkflowList = processManagementImpl.findAllProcessWorkflow(2);
         Assert.assertNotNull(processWorkflowList);
         Assert.assertTrue(processWorkflowList.isEmpty());
+    }
+
+    @RunWithCustomExecutor
+    @Test
+    public void whenOperationContextExceptionThenSilentlyContinue() throws Exception {
+        VitamThreadUtils.getVitamSession().setTenantId(2);
+        // No persisted Workflow
+        verifyNoMoreInteractions(processDataManagement);
+
+        doThrow(OperationContextException.class).when(operationContextMonitor).backup(anyString(), anyString(), any());
+        when(processDataAccess.initProcessWorkflow(any(), anyString()))
+            .thenReturn(getPausedWorkflowList(1).iterator().next());
+        processManagementImpl =
+            new ProcessManagementImpl(new ServerConfiguration(), processDistributor, processDataAccess,
+                processDataManagement, operationContextMonitor);
+        Assert.assertNotNull(processManagementImpl);
+        ProcessWorkflow wf = processManagementImpl
+            .init(WorkerParametersFactory.newWorkerParameters(ID, ID, CONTAINER_NAME, ID, Lists.newArrayList(ID),
+                "http://localhost:8083",
+                "http://localhost:8083"), DEFAULT_WORKFLOW.name());
+        assertThat(wf).isNotNull();
     }
 
     @RunWithCustomExecutor
@@ -175,7 +205,7 @@ public class ProcessManagementImplTest {
         serverConfiguration.setUrlMetadata("fakeurl:1111");
         serverConfiguration.setUrlWorkspace("fakeurl:1112");
         processManagementImpl = new ProcessManagementImpl(serverConfiguration, processDistributor, processDataAccess,
-            processDataManagement);
+            processDataManagement, operationContextMonitor);
         Assert.assertNotNull(processManagementImpl);
         List<ProcessWorkflow> processWorkflowList = processManagementImpl.findAllProcessWorkflow(3);
         Assert.assertNotNull(processWorkflowList);
@@ -204,7 +234,7 @@ public class ProcessManagementImplTest {
         when(processDataAccess.findAllProcessWorkflow(eq(0))).thenReturn(getPausedWorkflowList(5));
 
         processManagementImpl = new ProcessManagementImpl(serverConfiguration, processDistributor, processDataAccess,
-            processDataManagement);
+            processDataManagement, operationContextMonitor);
         Assert.assertNotNull(processManagementImpl);
 
         ProcessQuery pq = new ProcessQuery();
@@ -279,24 +309,6 @@ public class ProcessManagementImplTest {
         pq.setStates(list);
         results = processManagementImpl.getFilteredProcess(pq, 0);
         Assert.assertEquals(5, results.size());
-    }
-
-    private Map<String, ProcessWorkflow> getPausedWorkflowMap() {
-        Map<String, ProcessWorkflow> result = new HashMap<>();
-        ProcessWorkflow processWorkflow = new ProcessWorkflow();
-        processWorkflow.setTenantId(3);
-        processWorkflow.setState(ProcessState.PAUSE);
-        processWorkflow.setStatus(StatusCode.OK);
-        processWorkflow.setLogbookTypeProcess(LogbookTypeProcess.INGEST);
-        processWorkflow.setMessageIdentifier("MessageIdentifier");
-        processWorkflow.setOperationId("operationId");
-        for (int i = 0; i < 20; i++) {
-            processWorkflow.getSteps().add(getProcessStep("key-map-" + i, "name-" + i, "element-" + i, "groupID-" + i));
-        }
-        processWorkflow.setProcessDate(new Date());
-
-        result.put(processWorkflow.getOperationId(), processWorkflow);
-        return result;
     }
 
     private List<ProcessWorkflow> getPausedWorkflowList(int nbProcess) {

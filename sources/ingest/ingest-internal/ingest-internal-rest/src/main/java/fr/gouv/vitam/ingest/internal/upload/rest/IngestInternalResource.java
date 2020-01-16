@@ -539,6 +539,7 @@ public class IngestInternalResource extends ApplicationStatusResource {
                 workspaceClient.checkStatus();
                 try (ProcessingManagementClient processManagementClient = processingManagementClientFactory
                     .getClient()) {
+                    // No need to backup operation context. In case of workspace crash, current ingests should be cleaned and ingests should be re-executed
                     // Initialize a new process
                     processManagementClient.initVitamProcess(containerGUID.getId(), contextId);
                     // Successful initialization

@@ -562,6 +562,7 @@ public class MetadataManagementResource {
 
             workspaceClient.putObject(operationGuid.getId(), "query.json", writeToInpustream(dslQuery));
 
+            // No need to backup operation context
             processingClient
                 .initVitamProcess(new ProcessingEntry(operationGuid.getId(), COMPUTE_INHERITED_RULES.name()));
 

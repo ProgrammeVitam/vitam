@@ -34,14 +34,17 @@ import fr.gouv.vitam.common.exception.BadRequestException;
 import fr.gouv.vitam.common.exception.InternalServerException;
 import fr.gouv.vitam.common.exception.VitamApplicationServerException;
 import fr.gouv.vitam.common.exception.WorkflowNotFoundException;
+import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.junit.JunitHelper;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.server.application.junit.ResteasyTestApplication;
+import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
 import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
+import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.functional.administration.client.AdminManagementClient;
 import fr.gouv.vitam.functional.administration.client.AdminManagementClientFactory;
 import fr.gouv.vitam.logbook.lifecycles.client.LogbookLifeCyclesClient;
@@ -185,6 +188,8 @@ public class LogbookInternalResourceImplTest extends ResteasyTestApplication {
         when(storageClientFactory.getClient()).thenReturn(storageClient);
         when(adminManagementClientFactory.getClient()).thenReturn(adminManagementClient);
         when(logbookLifeCyclesClientFactory.getClient()).thenReturn(logbookLifeCyclesClient);
+
+        VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newGUID().getId());
     }
 
     @AfterClass
@@ -199,12 +204,12 @@ public class LogbookInternalResourceImplTest extends ResteasyTestApplication {
         VitamClientFactory.resetConnections();
     }
 
-
     /**
      * Test the check traceability method
      *
      * @throws Exception
      */
+    @RunWithCustomExecutor
     @Test
     public void givenStartedServerWhenCheckTraceabilityThenOK() throws Exception {
         doNothing().when(logbookOperationsClient).bulkCreate(any(), any());
@@ -219,12 +224,15 @@ public class LogbookInternalResourceImplTest extends ResteasyTestApplication {
         doNothing().when(workspaceClient).deleteContainer(any(), anyBoolean());
         LOGGER.warn("Start Check");
         given().contentType(ContentType.JSON).body(JsonHandler.getFromString(queryDsql))
-            .header(GlobalDataRest.X_ACCESS_CONTRAT_ID, "all").header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
+            .header(GlobalDataRest.X_ACCESS_CONTRAT_ID, "all")
+            .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
+            .header(GlobalDataRest.X_REQUEST_ID, VitamThreadUtils.getVitamSession().getRequestId())
             .when().post("/traceability/check").then().statusCode(Status.OK.getStatusCode());
         LOGGER.warn("End Check");
 
     }
 
+    @RunWithCustomExecutor
     @Test
     public void givenStartedServerWhenSearchLogbookThenOK() throws Exception {
         reset(logbookOperationsClient);
@@ -235,6 +243,7 @@ public class LogbookInternalResourceImplTest extends ResteasyTestApplication {
 
         given().contentType(ContentType.JSON).body(new Select().getFinalSelect())
             .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
+            .header(GlobalDataRest.X_REQUEST_ID, VitamThreadUtils.getVitamSession().getRequestId())
             .when().get("/operations").then().statusCode(Status.OK.getStatusCode());
 
     }
@@ -244,6 +253,7 @@ public class LogbookInternalResourceImplTest extends ResteasyTestApplication {
      *
      * @throws Exception
      */
+    @RunWithCustomExecutor
     @Test
     public void givenStartedServerWhenCheckTraceabilityWithInvalidQueryThenBadRequest() throws Exception {
         reset(logbookOperationsClient);
@@ -255,6 +265,7 @@ public class LogbookInternalResourceImplTest extends ResteasyTestApplication {
             .initVitamProcess(any(), any());
         given().contentType(ContentType.JSON).body(JsonHandler.getFromString(queryDsql))
             .header(GlobalDataRest.X_ACCESS_CONTRAT_ID, "all").header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
+            .header(GlobalDataRest.X_REQUEST_ID, VitamThreadUtils.getVitamSession().getRequestId())
             .when().post("/traceability/check").then().statusCode(Status.BAD_REQUEST.getStatusCode());
     }
 
@@ -264,20 +275,21 @@ public class LogbookInternalResourceImplTest extends ResteasyTestApplication {
      *
      * @throws Exception
      */
+    @RunWithCustomExecutor
     @Test
     public void givenStartedServerWhenCheckTraceabilityWithInternalServerErrorThenInternalServerError()
         throws Exception {
         reset(logbookOperationsClient);
         reset(processingManagementClient);
         reset(workspaceClient);
-        doNothing().when(logbookOperationsClient).bulkCreate(any(), any());
-        doNothing().when(logbookOperationsClient).bulkUpdate(any(), any());
+        doNothing().when(logbookOperationsClient).create(any());
         doNothing().when(processingManagementClient).initVitamProcess(any(), any());
         when(logbookOperationsClient.selectOperationById(any()))
             .thenReturn(ClientMockResultHelper.getLogbookOperation());
         when(processingManagementClient.executeCheckTraceabilityWorkFlow(any(), any(),
             any(), any())).thenThrow(new InternalServerException("InternalServerException"));
         given().contentType(ContentType.JSON).body(JsonHandler.getFromString(queryDsql))
+            .header(GlobalDataRest.X_REQUEST_ID, VitamThreadUtils.getVitamSession().getRequestId())
             .header(GlobalDataRest.X_ACCESS_CONTRAT_ID, "all").header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
             .when().post("/traceability/check").then().statusCode(Status.INTERNAL_SERVER_ERROR.getStatusCode());
 
@@ -288,6 +300,7 @@ public class LogbookInternalResourceImplTest extends ResteasyTestApplication {
      *
      * @throws Exception
      */
+    @RunWithCustomExecutor
     @Test
     public void givenStartedServerWhenCheckTraceabilityWithContainerNotFoundThenNotFound() throws Exception {
         reset(logbookOperationsClient);
@@ -302,6 +315,7 @@ public class LogbookInternalResourceImplTest extends ResteasyTestApplication {
             any(), any())).thenThrow(new WorkflowNotFoundException("Workflow not found"));
 
         given().contentType(ContentType.JSON).body(JsonHandler.getFromString(queryDsql))
+            .header(GlobalDataRest.X_REQUEST_ID, VitamThreadUtils.getVitamSession().getRequestId())
             .header(GlobalDataRest.X_ACCESS_CONTRAT_ID, "all").header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
             .when().post("/traceability/check").then().statusCode(Status.NOT_FOUND.getStatusCode());
     }

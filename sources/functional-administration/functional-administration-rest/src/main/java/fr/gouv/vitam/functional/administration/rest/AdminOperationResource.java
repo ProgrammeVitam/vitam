@@ -28,6 +28,7 @@
 package fr.gouv.vitam.functional.administration.rest;
 
 
+import com.google.common.annotations.VisibleForTesting;
 import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.error.VitamError;
@@ -56,6 +57,8 @@ import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClient;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClientFactory;
 import fr.gouv.vitam.processing.common.ProcessingEntry;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameterName;
+import fr.gouv.vitam.processing.engine.core.operation.OperationContextModel;
+import fr.gouv.vitam.processing.engine.core.operation.OperationContextMonitor;
 import fr.gouv.vitam.processing.management.client.ProcessingManagementClient;
 import fr.gouv.vitam.processing.management.client.ProcessingManagementClientFactory;
 import fr.gouv.vitam.workspace.client.WorkspaceClient;
@@ -70,6 +73,7 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
+import static fr.gouv.vitam.common.json.JsonHandler.writeToInpustream;
 import static javax.ws.rs.core.Response.Status.INTERNAL_SERVER_ERROR;
 
 @Path("/adminmanagement/v1")
@@ -77,8 +81,18 @@ public class AdminOperationResource {
 
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(AdminOperationResource.class);
     private static final String FUNCTIONAL_ADMINISTRATION_MODULE = "FUNCTIONAL_ADMINISTRATION_MODULE";
+    private final ProcessingManagementClientFactory processingManagementClientFactory;
+    private final WorkspaceClientFactory workspaceClientFactory;
 
     public AdminOperationResource() {
+        this(WorkspaceClientFactory.getInstance(), ProcessingManagementClientFactory.getInstance());
+    }
+
+    @VisibleForTesting
+    public AdminOperationResource(WorkspaceClientFactory workspaceClientFactory,
+        ProcessingManagementClientFactory processingManagementClientFactory) {
+        this.workspaceClientFactory = workspaceClientFactory;
+        this.processingManagementClientFactory = processingManagementClientFactory;
     }
 
     /**
@@ -96,8 +110,8 @@ public class AdminOperationResource {
         VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newRequestIdGUID(tenantId));
         String operationId = VitamThreadUtils.getVitamSession().getRequestId();
 
-        try (ProcessingManagementClient processingClient = ProcessingManagementClientFactory.getInstance().getClient();
-            WorkspaceClient workspaceClient = WorkspaceClientFactory.getInstance().getClient()) {
+        try (ProcessingManagementClient processingClient = processingManagementClientFactory.getClient();
+            WorkspaceClient workspaceClient = workspaceClientFactory.getClient()) {
 
             workspaceClient.createContainer(operationId);
 
@@ -105,6 +119,19 @@ public class AdminOperationResource {
 
             final ProcessingEntry entry = new ProcessingEntry(operationId, Contexts.INGEST_CLEANUP.name());
             entry.getExtraParams().put(WorkerParameterName.ingestOperationIdToCleanup.name(), ingestOperationId);
+
+            // store original query
+            workspaceClient
+                .putObject(operationId, OperationContextMonitor.OperationContextFileName, writeToInpustream(
+                    OperationContextModel.get(entry)));
+
+
+            // compress file to backup
+            OperationContextMonitor
+                .compressInWorkspace(workspaceClientFactory, operationId,
+                    Contexts.INGEST_CLEANUP.getLogbookTypeProcess(),
+                    OperationContextMonitor.OperationContextFileName);
+
 
             processingClient.initVitamProcess(entry);
             processingClient.updateOperationActionProcess(ProcessAction.RESUME.getValue(), operationId);

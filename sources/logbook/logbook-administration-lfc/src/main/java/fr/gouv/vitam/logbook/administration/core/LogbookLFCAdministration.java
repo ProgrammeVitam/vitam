@@ -58,7 +58,6 @@ import fr.gouv.vitam.logbook.common.server.database.collections.LogbookMongoDbNa
 import fr.gouv.vitam.logbook.common.server.database.collections.LogbookOperation;
 import fr.gouv.vitam.logbook.common.server.exception.LogbookAlreadyExistsException;
 import fr.gouv.vitam.logbook.common.server.exception.LogbookDatabaseException;
-import fr.gouv.vitam.logbook.common.server.exception.LogbookException;
 import fr.gouv.vitam.logbook.common.server.exception.LogbookNotFoundException;
 import fr.gouv.vitam.logbook.operations.api.LogbookOperations;
 import fr.gouv.vitam.processing.common.ProcessingEntry;
@@ -146,6 +145,7 @@ public class LogbookLFCAdministration {
             VitamThreadUtils.getVitamSession().getTenantId());
         try (ProcessingManagementClient processManagementClient =
             processingManagementClientFactory.getClient()) {
+            // FIXME: 01/01/2020 request id should be set in the externals
             VitamThreadUtils.getVitamSession().setRequestId(traceabilityOperationGUID);
             final LogbookOperationParameters logbookUpdateParametersStart = LogbookParametersFactory
                 .newLogbookOperationParameters(traceabilityOperationGUID, workflowContext.getEventType(),
@@ -159,13 +159,16 @@ public class LogbookLFCAdministration {
             try {
                 createContainer(traceabilityOperationGUID.getId());
 
-                ProcessingEntry processingEntry = new ProcessingEntry(traceabilityOperationGUID.getId(), workflowContext.name());
+                ProcessingEntry processingEntry =
+                    new ProcessingEntry(traceabilityOperationGUID.getId(), workflowContext.name());
                 processingEntry.getExtraParams().put(
                     WorkerParameterName.lifecycleTraceabilityTemporizationDelayInSeconds.name(),
                     Integer.toString(lifecycleTraceabilityTemporizationDelayInSeconds));
                 processingEntry.getExtraParams().put(
                     WorkerParameterName.lifecycleTraceabilityMaxEntries.name(),
                     Integer.toString(lifecycleTraceabilityMaxEntries));
+
+                // No need to backup operation context.
                 processManagementClient.initVitamProcess(processingEntry);
 
                 LOGGER.debug("Started Traceability in Resource");
@@ -268,7 +271,8 @@ public class LogbookLFCAdministration {
 
             LifecycleTraceabilityStatus lifecycleTraceabilityStatus = new LifecycleTraceabilityStatus();
             lifecycleTraceabilityStatus.setCompleted(isCompleted);
-            lifecycleTraceabilityStatus.setOutcome(processStatus.getGlobalState().name() + "." + processStatus.getGlobalStatus().name());
+            lifecycleTraceabilityStatus
+                .setOutcome(processStatus.getGlobalState().name() + "." + processStatus.getGlobalStatus().name());
 
             if (isCompleted && isOK) {
 

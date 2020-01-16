@@ -1,11 +1,7 @@
 package fr.gouv.vitam.metadata.client;
 
-import java.io.FileNotFoundException;
-import java.util.*;
-
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
-import com.fasterxml.jackson.databind.node.ObjectNode;
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.client.AbstractMockClient;
 import fr.gouv.vitam.common.client.ClientMockResultHelper;
@@ -20,7 +16,6 @@ import fr.gouv.vitam.common.model.DurationData;
 import fr.gouv.vitam.common.model.GraphComputeResponse;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.massupdate.RuleActions;
-import fr.gouv.vitam.metadata.api.exception.MetaDataAlreadyExistException;
 import fr.gouv.vitam.metadata.api.exception.MetaDataClientServerException;
 import fr.gouv.vitam.metadata.api.exception.MetaDataDocumentSizeException;
 import fr.gouv.vitam.metadata.api.exception.MetaDataExecutionException;
@@ -30,7 +25,12 @@ import fr.gouv.vitam.metadata.api.model.BulkUnitInsertRequest;
 import fr.gouv.vitam.metadata.api.model.ObjectGroupPerOriginatingAgency;
 import fr.gouv.vitam.metadata.api.model.UnitPerOriginatingAgency;
 
-import javax.ws.rs.core.Response;
+import java.io.FileNotFoundException;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 /**
  * Mock client implementation for metadata
@@ -39,7 +39,9 @@ public class MetaDataClientMock extends AbstractMockClient implements MetaDataCl
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(MetaDataClientMock.class);
 
     @Override
-    public JsonNode insertUnitBulk(BulkUnitInsertRequest request) throws InvalidParseOperationException, MetaDataExecutionException, MetaDataNotFoundException, MetaDataDocumentSizeException, MetaDataClientServerException {
+    public JsonNode insertUnitBulk(BulkUnitInsertRequest request)
+        throws InvalidParseOperationException, MetaDataExecutionException, MetaDataNotFoundException,
+        MetaDataDocumentSizeException, MetaDataClientServerException {
         ArrayNode arrayNode = JsonHandler.createArrayNode();
         JsonNode jsonNode = ClientMockResultHelper.getMetaDataResult().toJsonNode();
         arrayNode.add(jsonNode);
@@ -184,7 +186,7 @@ public class MetaDataClientMock extends AbstractMockClient implements MetaDataCl
         return new GraphComputeResponse(3, 3);
     }
 
-    @Override 
+    @Override
     public RequestResponse<JsonNode> updateUnitBulk(JsonNode updateQuery)
         throws InvalidParseOperationException, MetaDataExecutionException, MetaDataNotFoundException,
         MetaDataDocumentSizeException, MetaDataClientServerException {
@@ -192,7 +194,10 @@ public class MetaDataClientMock extends AbstractMockClient implements MetaDataCl
     }
 
     @Override
-    public RequestResponse<JsonNode> updateUnitsRulesBulk(List<String> unitsIds, RuleActions actions, Map<String, DurationData> rulesToDurationData) throws InvalidParseOperationException, MetaDataExecutionException, MetaDataNotFoundException, MetaDataDocumentSizeException, MetaDataClientServerException {
+    public RequestResponse<JsonNode> updateUnitsRulesBulk(List<String> unitsIds, RuleActions actions,
+        Map<String, DurationData> rulesToDurationData)
+        throws InvalidParseOperationException, MetaDataExecutionException, MetaDataNotFoundException,
+        MetaDataDocumentSizeException, MetaDataClientServerException {
         return ClientMockResultHelper.getMetaDataResult();
     }
 
@@ -219,11 +224,6 @@ public class MetaDataClientMock extends AbstractMockClient implements MetaDataCl
 
     @Override
     public void deleteObjectGroupBulk(Collection<String> listIds) {
-        throw new IllegalStateException("Stop using mocks in production");
-    }
-
-    @Override
-    public Response startComputeInheritedRules(JsonNode dslQuery) throws MetaDataClientServerException {
         throw new IllegalStateException("Stop using mocks in production");
     }
 }

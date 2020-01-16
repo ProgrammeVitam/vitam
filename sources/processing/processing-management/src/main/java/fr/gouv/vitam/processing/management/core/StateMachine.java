@@ -54,6 +54,7 @@ import fr.gouv.vitam.processing.data.core.management.ProcessDataManagement;
 import fr.gouv.vitam.processing.data.core.management.WorkspaceProcessDataManagement;
 import fr.gouv.vitam.processing.distributor.api.ProcessDistributor;
 import fr.gouv.vitam.processing.engine.api.ProcessEngine;
+import fr.gouv.vitam.processing.engine.core.operation.OperationContextMonitor;
 import fr.gouv.vitam.workspace.client.WorkspaceClient;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
 
@@ -323,7 +324,6 @@ public class StateMachine implements IEventsState, IEventsProcessEngine {
     /**
      * Change the state of the process to completed Can be called only from running or pause state If running state, the
      * next step will be completed
-     *
      */
     protected void doCompleted() {
         if (isRunning()) {
@@ -796,12 +796,12 @@ public class StateMachine implements IEventsState, IEventsProcessEngine {
                 logbookClient.close();
             }
 
-            cleanWorkspace();
+            cleanup();
         }
     }
 
 
-    private void cleanWorkspace() {
+    private void cleanup() {
         try (WorkspaceClient workspaceClient = workspaceClientFactory.getClient()) {
             if (workspaceClient.isExistingContainer(operationId)) {
                 workspaceClient.deleteContainer(operationId, true);
@@ -815,6 +815,26 @@ public class StateMachine implements IEventsState, IEventsProcessEngine {
             }
         } catch (Exception e) {
             LOGGER.error("Error while clear the container " + operationId + " from the workspace", e);
+        }
+
+        try {
+            OperationContextMonitor operationContextMonitor = new OperationContextMonitor();
+            operationContextMonitor
+                .deleteBackup(VitamConfiguration.getDefaultStrategy(), operationId, getLogbookTypeProcess());
+        } catch (Exception e) {
+            switch (processWorkflow.getLogbookTypeProcess()) {
+                case INGEST:
+                case MASTERDATA:
+                case TRACEABILITY:
+                case INGEST_TEST:
+                case AUDIT:
+                case DATA_MIGRATION:
+                    LOGGER.debug("Cleanup operation context. No operation context for the process type " +
+                        getLogbookTypeProcess(), e);
+                    break;
+                default:
+                    LOGGER.warn("Cleanup operation context failed", e);
+            }
         }
     }
 

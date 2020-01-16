@@ -93,6 +93,7 @@ import fr.gouv.vitam.common.security.SanityChecker;
 import fr.gouv.vitam.common.server.application.HttpHeaderHelper;
 import fr.gouv.vitam.common.server.application.VitamHttpHeader;
 import fr.gouv.vitam.common.server.application.resources.ApplicationStatusResource;
+import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.functional.administration.client.AdminManagementClientFactory;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientAlreadyExistsException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientBadRequestException;
@@ -109,6 +110,9 @@ import fr.gouv.vitam.metadata.api.exception.MetaDataNotFoundException;
 import fr.gouv.vitam.metadata.client.MetaDataClientFactory;
 import fr.gouv.vitam.processing.common.ProcessingEntry;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameterName;
+import fr.gouv.vitam.processing.engine.core.operation.OperationContextException;
+import fr.gouv.vitam.processing.engine.core.operation.OperationContextModel;
+import fr.gouv.vitam.processing.engine.core.operation.OperationContextMonitor;
 import fr.gouv.vitam.processing.management.client.ProcessingManagementClient;
 import fr.gouv.vitam.processing.management.client.ProcessingManagementClientFactory;
 import fr.gouv.vitam.storage.engine.client.StorageClientFactory;
@@ -143,6 +147,7 @@ import static fr.gouv.vitam.common.model.ProcessAction.RESUME;
 import static fr.gouv.vitam.common.model.StatusCode.STARTED;
 import static fr.gouv.vitam.common.model.export.ExportRequest.EXPORT_QUERY_FILE_NAME;
 import static fr.gouv.vitam.common.thread.VitamThreadUtils.getVitamSession;
+import static fr.gouv.vitam.logbook.common.parameters.Contexts.COMPUTE_INHERITED_RULES;
 import static fr.gouv.vitam.logbook.common.parameters.Contexts.COMPUTE_INHERITED_RULES_DELETE;
 import static fr.gouv.vitam.logbook.common.parameters.Contexts.PRESERVATION;
 import static fr.gouv.vitam.logbook.common.parameters.Contexts.TRANSFER_REPLY;
@@ -199,7 +204,8 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
         this(new AccessInternalModuleImpl(), LogbookOperationsClientFactory.getInstance(),
             WorkspaceClientFactory.getInstance(), ProcessingManagementClientFactory.getInstance());
         WorkspaceClientFactory.changeMode(configuration.getUrlWorkspace());
-        ProcessingManagementClientFactory.changeConfigurationUrl(configuration.getUrlProcessing());
+        ProcessingManagementClientFactory
+            .changeConfigurationUrl(configuration.getUrlProcessing());
     }
 
     @VisibleForTesting
@@ -413,6 +419,12 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
             logbookOperationsClient.create(initParameters);
 
             workspaceClient.createContainer(operationId);
+
+            // store original query
+            workspaceClient
+                .putObject(operationId, OperationContextMonitor.OperationContextFileName, writeToInpustream(
+                    OperationContextModel.get(exportRequest)));
+
             JsonNode filteredQueryQsl = applyAccessContractRestrictionForUnitForSelect(exportRequest.getDslRequest(),
                 getVitamSession().getContract());
             exportRequest.setDslRequest(filteredQueryQsl);
@@ -420,6 +432,11 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
             // EXPORT_QUERY_FILE_NAME is required for step
             workspaceClient.putObject(operationId, QUERY_FILE, writeToInpustream(filteredQueryQsl));
             workspaceClient.putObject(operationId, EXPORT_QUERY_FILE_NAME, writeToInpustream(exportRequest));
+
+            // compress file to backup
+            OperationContextMonitor
+                .compressInWorkspace(workspaceClientFactory, operationId, Contexts.EXPORT_DIP.getLogbookTypeProcess(),
+                    OperationContextMonitor.OperationContextFileName);
 
             ProcessingEntry processingEntry = new ProcessingEntry(operationId, contexts.name());
             boolean mustLog = ActivationStatus.ACTIVE.equals(getVitamSession().getContract().getAccessLog());
@@ -430,7 +447,7 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
             RequestResponse<ItemStatus> jsonNodeRequestResponse = processingClient.executeOperationProcess(
                 operationId, Contexts.EXPORT_DIP.name(), RESUME.getValue());
             return jsonNodeRequestResponse.toResponse();
-        } catch (ContentAddressableStorageServerException |
+        } catch (ContentAddressableStorageServerException | OperationContextException |
             InvalidGuidOperationException | LogbookClientServerException | LogbookClientBadRequestException |
             LogbookClientAlreadyExistsException |
             VitamClientException | InternalServerException | InvalidCreateOperationException e) {
@@ -482,7 +499,16 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
             logbookOperationsClient.create(masterTransferReplyLfcEvent);
 
             workspaceClient.createContainer(operationId);
-            workspaceClient.putObject(operationId, "ATR-for-transfer-reply-in-workspace.xml", transferReply);
+            String objectName = "ATR-for-transfer-reply-in-workspace.xml";
+            workspaceClient.putObject(operationId, objectName, transferReply);
+
+            workspaceClient.putObject(operationId, OperationContextMonitor.OperationContextFileName,
+                writeToInpustream(OperationContextModel.get(objectName)));
+
+            // compress file to backup
+            OperationContextMonitor
+                .compressInWorkspace(workspaceClientFactory, operationId, LogbookTypeProcess.TRANSFER_REPLY,
+                    OperationContextMonitor.OperationContextFileName, objectName);
 
             processingClient.initVitamProcess(operationId, TRANSFER_REPLY.name());
             return processingClient.executeOperationProcess(operationId, TRANSFER_REPLY.name(), RESUME.getValue())
@@ -574,8 +600,19 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
 
                 workspaceClient.createContainer(operationId);
 
-                workspaceClient.putObject(operationId, "request.json",
+                String objectName = "request.json";
+                workspaceClient.putObject(operationId, objectName,
                     writeToInpustream(reclassificationRequestJson));
+
+                // store original query in workspace
+                workspaceClient
+                    .putObject(operationId, OperationContextMonitor.OperationContextFileName, writeToInpustream(
+                        OperationContextModel.get(reclassificationRequestJson)));
+
+                // compress file to backup
+                OperationContextMonitor
+                    .compressInWorkspace(workspaceClientFactory, operationId, LogbookTypeProcess.RECLASSIFICATION,
+                        OperationContextMonitor.OperationContextFileName);
 
                 processingClient.initVitamProcess(operationId, Contexts.RECLASSIFICATION.name());
 
@@ -588,7 +625,7 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
         } catch (ContentAddressableStorageServerException |
             InvalidGuidOperationException | LogbookClientServerException | LogbookClientBadRequestException |
             LogbookClientAlreadyExistsException |
-            VitamClientException | InternalServerException e) {
+            VitamClientException | InternalServerException | OperationContextException e) {
             LOGGER.error("Error while starting unit reclassification workflow", e);
             return Response.status(INTERNAL_SERVER_ERROR)
                 .entity(getErrorEntity(INTERNAL_SERVER_ERROR, e.getMessage())).build();
@@ -641,7 +678,7 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
                 new EliminationRequestBody(
                     eliminationRequestBody.getDate(),
                     applyAccessContractRestrictionForUnitForSelect(
-                        eliminationRequestBody.getDslRequest(),
+                        eliminationRequestBody.getDslRequest().deepCopy(),
                         getVitamSession().getContract()));
 
             // Start workflow
@@ -673,6 +710,17 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
                 workspaceClient.putObject(operationId, "request.json",
                     writeToInpustream(eliminationRequestBodyWithAccessContractRestriction));
 
+                // store original query in workspace
+                workspaceClient
+                    .putObject(operationId, OperationContextMonitor.OperationContextFileName, writeToInpustream(
+                        OperationContextModel.get(eliminationRequestBody)));
+
+                // compress file to backup
+                OperationContextMonitor
+                    .compressInWorkspace(workspaceClientFactory, operationId,
+                        eliminationWorkflowContext.getLogbookTypeProcess(),
+                        OperationContextMonitor.OperationContextFileName);
+
                 processingClient.initVitamProcess(new ProcessingEntry(operationId, eliminationWorkflowContext.name()));
 
                 RequestResponse<ItemStatus> jsonNodeRequestResponse =
@@ -681,9 +729,9 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
                 return jsonNodeRequestResponse.toResponse();
             }
 
-        } catch (ContentAddressableStorageServerException |
-            InvalidGuidOperationException | LogbookClientServerException | LogbookClientBadRequestException | LogbookClientAlreadyExistsException |
-            VitamClientException | InternalServerException e) {
+        } catch (ContentAddressableStorageServerException | OperationContextException |
+            InvalidGuidOperationException | LogbookClientServerException | LogbookClientBadRequestException |
+            LogbookClientAlreadyExistsException | VitamClientException | InternalServerException e) {
             LOGGER.error("An error occurred during " + eliminationWorkflowContext.getEventType() + " workflow", e);
             return Response.status(INTERNAL_SERVER_ERROR)
                 .entity(getErrorEntity(INTERNAL_SERVER_ERROR, e.getMessage())).build();
@@ -1099,8 +1147,7 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
                     GUIDReader.getGUID(operationId),
                     LogbookTypeProcess.MASS_UPDATE,
                     STARTED,
-                    VitamLogbookMessages
-                        .getCodeOp(Contexts.MASS_UPDATE_UNIT_DESC.getEventType(), STARTED),
+                    VitamLogbookMessages.getCodeOp(Contexts.MASS_UPDATE_UNIT_DESC.getEventType(), STARTED),
                     GUIDReader.getGUID(operationId));
 
             // Add access contract rights
@@ -1108,11 +1155,25 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
             logbookOperationsClient.create(initParameters);
 
             workspaceClient.createContainer(operationId);
+
+            // store original query in workspace
+            workspaceClient
+                .putObject(operationId, OperationContextMonitor.OperationContextFileName, writeToInpustream(
+                    OperationContextModel.get(queryDsl)));
+
+
             workspaceClient
                 .putObject(operationId, QUERY_FILE, writeToInpustream(
                     AccessContractRestrictionHelper.
                         applyAccessContractRestrictionForUnitForUpdate(queryDsl,
                             getVitamSession().getContract())));
+
+            // compress file to backup
+            OperationContextMonitor
+                .compressInWorkspace(workspaceClientFactory, operationId,
+                    Contexts.MASS_UPDATE_UNIT_DESC.getLogbookTypeProcess(),
+                    OperationContextMonitor.OperationContextFileName);
+
             processingClient.initVitamProcess(operationId, Contexts.MASS_UPDATE_UNIT_DESC.name());
 
             RequestResponse<ItemStatus> requestResponse =
@@ -1120,7 +1181,9 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
                     .executeOperationProcess(operationId, Contexts.MASS_UPDATE_UNIT_DESC.name(), RESUME.getValue());
             return requestResponse.toResponse();
         } catch (ContentAddressableStorageServerException | LogbookClientBadRequestException |
-            LogbookClientAlreadyExistsException | InvalidGuidOperationException | LogbookClientServerException | VitamClientException | InternalServerException e) {
+            LogbookClientAlreadyExistsException | InvalidGuidOperationException |
+            LogbookClientServerException | VitamClientException | InternalServerException |
+            OperationContextException e) {
             LOGGER.error("An error occured while mass updating archive units", e);
             return Response.status(INTERNAL_SERVER_ERROR)
                 .entity(getErrorEntity(INTERNAL_SERVER_ERROR, e.getMessage())).build();
@@ -1138,7 +1201,7 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     public Response massUpdateUnitsRules(MassUpdateUnitRuleRequest massUpdateUnitRuleRequest) {
-        JsonNode queryDsl = massUpdateUnitRuleRequest.getDslRequest();
+        JsonNode queryDsl = massUpdateUnitRuleRequest.getDslRequest().deepCopy();
         RuleActions ruleActions = massUpdateUnitRuleRequest.getRuleActions();
 
         // TODO : refactor with unitMassUpdate
@@ -1175,12 +1238,27 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
             logbookOperationsClient.create(initParameters);
 
             workspaceClient.createContainer(operationId);
+
+            // store original query in workspace
+            workspaceClient
+                .putObject(operationId, OperationContextMonitor.OperationContextFileName, writeToInpustream(
+                    OperationContextModel.get(massUpdateUnitRuleRequest)));
+
+
             workspaceClient
                 .putObject(operationId, QUERY_FILE, writeToInpustream(
                     AccessContractRestrictionHelper.applyAccessContractRestrictionForUnitForUpdate(queryDsl,
                         getVitamSession().getContract())));
             workspaceClient
                 .putObject(operationId, "actions.json", writeToInpustream(ruleActions));
+
+            // compress file to backup
+            OperationContextMonitor
+                .compressInWorkspace(workspaceClientFactory, operationId,
+                    Contexts.MASS_UPDATE_UNIT_RULE.getLogbookTypeProcess(),
+                    OperationContextMonitor.OperationContextFileName);
+
+
             processingClient.initVitamProcess(operationId, Contexts.MASS_UPDATE_UNIT_RULE.name());
 
             RequestResponse<ItemStatus> requestResponse =
@@ -1189,7 +1267,9 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
             return requestResponse.toResponse();
 
         } catch (ContentAddressableStorageServerException | LogbookClientBadRequestException |
-            LogbookClientAlreadyExistsException | InvalidGuidOperationException | LogbookClientServerException | VitamClientException | InternalServerException e) {
+            LogbookClientAlreadyExistsException | InvalidGuidOperationException |
+            LogbookClientServerException | VitamClientException | InternalServerException |
+            OperationContextException e) {
             LOGGER.error("An error occured while mass updating archive units", e);
             return Response.status(INTERNAL_SERVER_ERROR)
                 .entity(getErrorEntity(INTERNAL_SERVER_ERROR, e.getMessage())).build();
@@ -1215,12 +1295,14 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     public Response startComputeInheritedRules(JsonNode dslQuery) {
+        try (ProcessingManagementClient processingClient = processingManagementClientFactory.getClient();
+            LogbookOperationsClient logbookOperationsClient = logbookOperationsClientFactory.getClient();
+            WorkspaceClient workspaceClient = workspaceClientFactory.getClient()) {
 
-        try {
             ParametersChecker.checkParameter("Missing request", dslQuery);
 
             AccessContractModel contract = getVitamSession().getContract();
-            JsonNode restrictedQuery = applyAccessContractRestrictionForUnitForSelect(dslQuery, contract);
+            JsonNode restrictedQuery = applyAccessContractRestrictionForUnitForSelect(dslQuery.deepCopy(), contract);
 
             if (!isAuthorized()) {
                 return Response.status(Status.UNAUTHORIZED)
@@ -1228,14 +1310,59 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
                     .build();
             }
 
-            return accessModule.startComputeInheritedRules(restrictedQuery);
-        } catch (Exception e) {
-            LOGGER.error("Error on preservation request", e);
+            String operationId = VitamThreadUtils.getVitamSession().getRequestId();
+            String message =
+                VitamLogbookMessages.getLabelOp(COMPUTE_INHERITED_RULES.getEventType() + ".STARTED") + " : " +
+                    GUIDReader.getGUID(operationId);
+            LogbookOperationParameters initParameters = LogbookParametersFactory.newLogbookOperationParameters(
+                GUIDReader.getGUID(operationId),
+                COMPUTE_INHERITED_RULES.getEventType(),
+                GUIDReader.getGUID(operationId),
+                LogbookTypeProcess.COMPUTE_INHERITED_RULES,
+                STARTED,
+                message,
+                GUIDReader.getGUID(operationId)
+            );
+
+            addRightsStatementIdentifier(initParameters);
+            logbookOperationsClient.create(initParameters);
+
+            workspaceClient.createContainer(operationId);
+
+            workspaceClient.putObject(operationId, "query.json", writeToInpustream(restrictedQuery));
+
+            // store original query in workspace
+            workspaceClient
+                .putObject(operationId, OperationContextMonitor.OperationContextFileName, writeToInpustream(
+                    OperationContextModel.get(dslQuery)));
+
+            // compress file to backup
+            OperationContextMonitor
+                .compressInWorkspace(workspaceClientFactory, operationId,
+                    Contexts.COMPUTE_INHERITED_RULES.getLogbookTypeProcess(),
+                    OperationContextMonitor.OperationContextFileName);
+
+            processingClient.initVitamProcess(new ProcessingEntry(operationId, COMPUTE_INHERITED_RULES.name()));
+
+            RequestResponse<ItemStatus> response = processingClient
+                .executeOperationProcess(operationId, COMPUTE_INHERITED_RULES.name(), RESUME.getValue());
+            return response.toResponse();
+        } catch (final InvalidParseOperationException | InvalidCreateOperationException e) {
+            LOGGER.error(BAD_REQUEST_EXCEPTION, e);
+            return Response.status(Status.BAD_REQUEST).entity(getErrorEntity(Status.BAD_REQUEST, e.getMessage()))
+                .build();
+        } catch (BadRequestException e) {
+            return buildErrorResponse(VitamCode.GLOBAL_EMPTY_QUERY, null);
+        } catch (InvalidGuidOperationException | LogbookClientBadRequestException | LogbookClientAlreadyExistsException |
+            LogbookClientServerException | ContentAddressableStorageServerException | OperationContextException |
+            InternalServerException | VitamClientException e) {
+            LOGGER.error(e);
             return Response.status(INTERNAL_SERVER_ERROR)
                 .entity(getErrorEntity(INTERNAL_SERVER_ERROR,
                     String.format("An error occurred during %s workflow", PRESERVATION.getEventType())))
                 .build();
         }
+
     }
 
 
@@ -1245,46 +1372,55 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     public Response deleteComputeInheritedRules(JsonNode dslQuery) {
-        try {
+
+        try (ProcessingManagementClient processingClient = processingManagementClientFactory.getClient();
+            LogbookOperationsClient logbookOperationsClient = logbookOperationsClientFactory.getClient();
+            WorkspaceClient workspaceClient = workspaceClientFactory.getClient()) {
             ParametersChecker.checkParameter("Missing request", dslQuery);
             String operationId = getVitamSession().getRequestId();
 
+            String message =
+                VitamLogbookMessages.getLabelOp(COMPUTE_INHERITED_RULES_DELETE.getEventType() + ".STARTED") +
+                    " : " +
+                    GUIDReader.getGUID(operationId);
+
+            LogbookOperationParameters initParameters = LogbookParametersFactory.newLogbookOperationParameters(
+                GUIDReader.getGUID(operationId),
+                COMPUTE_INHERITED_RULES_DELETE.getEventType(),
+                GUIDReader.getGUID(operationId),
+                LogbookTypeProcess.COMPUTE_INHERITED_RULES_DELETE,
+                STARTED,
+                message,
+                GUIDReader.getGUID(operationId)
+            );
+            addRightsStatementIdentifier(initParameters);
+            logbookOperationsClient.create(initParameters);
+
+            workspaceClient.createContainer(operationId);
+
+            // store original query in workspace
+            workspaceClient
+                .putObject(operationId, OperationContextMonitor.OperationContextFileName, writeToInpustream(
+                    OperationContextModel.get(dslQuery)));
+
+
             AccessContractModel contract = getVitamSession().getContract();
             JsonNode restrictedQuery = applyAccessContractRestrictionForUnitForSelect(dslQuery, contract);
+            //for CheckThresholdHandler
+            workspaceClient.putObject(operationId, QUERY_FILE, writeToInpustream(restrictedQuery));
 
-            try (ProcessingManagementClient processingClient = processingManagementClientFactory.getClient();
-                LogbookOperationsClient logbookOperationsClient = logbookOperationsClientFactory.getClient();
-                WorkspaceClient workspaceClient = workspaceClientFactory.getClient()) {
+            // compress file to backup
+            OperationContextMonitor
+                .compressInWorkspace(workspaceClientFactory, operationId,
+                    COMPUTE_INHERITED_RULES_DELETE.getLogbookTypeProcess(),
+                    OperationContextMonitor.OperationContextFileName);
 
-                String message =
-                    VitamLogbookMessages.getLabelOp(COMPUTE_INHERITED_RULES_DELETE.getEventType() + ".STARTED") +
-                        " : " +
-                        GUIDReader.getGUID(operationId);
+            processingClient
+                .initVitamProcess(new ProcessingEntry(operationId, COMPUTE_INHERITED_RULES_DELETE.name()));
 
-                LogbookOperationParameters initParameters = LogbookParametersFactory.newLogbookOperationParameters(
-                    GUIDReader.getGUID(operationId),
-                    COMPUTE_INHERITED_RULES_DELETE.getEventType(),
-                    GUIDReader.getGUID(operationId),
-                    LogbookTypeProcess.COMPUTE_INHERITED_RULES_DELETE,
-                    STARTED,
-                    message,
-                    GUIDReader.getGUID(operationId)
-                );
-                addRightsStatementIdentifier(initParameters);
-                logbookOperationsClient.create(initParameters);
-
-                workspaceClient.createContainer(operationId);
-
-                //for CheckThresholdHandler
-                workspaceClient.putObject(operationId, QUERY_FILE, writeToInpustream(restrictedQuery));
-
-                processingClient
-                    .initVitamProcess(new ProcessingEntry(operationId, COMPUTE_INHERITED_RULES_DELETE.name()));
-
-                return processingClient
-                    .executeOperationProcess(operationId, COMPUTE_INHERITED_RULES_DELETE.name(), RESUME.getValue())
-                    .toResponse();
-            }
+            return processingClient
+                .executeOperationProcess(operationId, COMPUTE_INHERITED_RULES_DELETE.name(), RESUME.getValue())
+                .toResponse();
         } catch (BadRequestException e) {
             LOGGER.error("Error on computedInheritedRules delete request", e);
             return buildErrorResponse(VitamCode.GLOBAL_EMPTY_QUERY, null);
@@ -1428,7 +1564,7 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
             String operationId = getVitamSession().getRequestId();
 
             AccessContractModel contract = getVitamSession().getContract();
-            JsonNode dslQuery = preservationRequest.getDslQuery();
+            JsonNode dslQuery = preservationRequest.getDslQuery().deepCopy();
             JsonNode restrictedQuery = applyAccessContractRestrictionForUnitForSelect(dslQuery, contract);
 
             PreservationRequest restrictedRequest =
@@ -1461,6 +1597,17 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
                 //for CheckThresholdHandler
                 workspaceClient
                     .putObject(operationId, QUERY_FILE, writeToInpustream(restrictedRequest.getDslQuery()));
+
+                // store original query in workspace
+                workspaceClient
+                    .putObject(operationId, OperationContextMonitor.OperationContextFileName, writeToInpustream(
+                        OperationContextModel.get(preservationRequest)));
+
+
+                // compress file to backup
+                OperationContextMonitor
+                    .compressInWorkspace(workspaceClientFactory, operationId, PRESERVATION.getLogbookTypeProcess(),
+                        OperationContextMonitor.OperationContextFileName);
 
                 processingClient.initVitamProcess(new ProcessingEntry(operationId, PRESERVATION.name()));
 

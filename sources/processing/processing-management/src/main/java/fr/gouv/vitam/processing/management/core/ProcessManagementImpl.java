@@ -59,8 +59,9 @@ import fr.gouv.vitam.processing.data.core.management.ProcessDataManagement;
 import fr.gouv.vitam.processing.distributor.api.ProcessDistributor;
 import fr.gouv.vitam.processing.engine.api.ProcessEngine;
 import fr.gouv.vitam.processing.engine.core.ProcessEngineFactory;
+import fr.gouv.vitam.processing.engine.core.operation.OperationContextException;
+import fr.gouv.vitam.processing.engine.core.operation.OperationContextMonitor;
 import fr.gouv.vitam.processing.management.api.ProcessManagement;
-import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
 import org.apache.commons.lang3.StringUtils;
 
 import java.time.Instant;
@@ -87,6 +88,7 @@ public class ProcessManagementImpl implements ProcessManagement {
 
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(ProcessManagementImpl.class);
     private static final Map<String, IEventsState> PROCESS_MONITORS = new ConcurrentHashMap<>();
+    private final OperationContextMonitor operationContextMonitor;
 
     private ServerConfiguration config;
     private final ProcessDataAccess processData;
@@ -101,14 +103,15 @@ public class ProcessManagementImpl implements ProcessManagement {
     public ProcessManagementImpl(ServerConfiguration config, ProcessDistributor processDistributor)
         throws ProcessingStorageWorkspaceException {
         this(config, processDistributor, processDistributor.getProcessDataAccess(),
-            processDistributor.getProcessDataManagement());
+            processDistributor.getProcessDataManagement(), new OperationContextMonitor());
     }
 
     @VisibleForTesting
     public ProcessManagementImpl(ServerConfiguration config,
         ProcessDistributor processDistributor, ProcessDataAccess processData,
-        ProcessDataManagement processDataManagement)
+        ProcessDataManagement processDataManagement, OperationContextMonitor operationContextMonitor)
         throws ProcessingStorageWorkspaceException {
+        this.operationContextMonitor = operationContextMonitor;
 
         ParametersChecker.checkParameter("Server config cannot be null", config);
         this.config = config;
@@ -227,14 +230,32 @@ public class ProcessManagementImpl implements ProcessManagement {
         workerParameters.setLogbookTypeProcess(processWorkflow.getLogbookTypeProcess());
         workerParameters.setWorkflowIdentifier(workFlow.get().getIdentifier());
 
-        WorkspaceClientFactory.changeMode(config.getUrlWorkspace());
-
         final ProcessEngine processEngine = ProcessEngineFactory.get().create(workerParameters, processDistributor);
         final StateMachine stateMachine = StateMachineFactory.get().create(processWorkflow, processEngine);
         processEngine.setCallback(stateMachine);
 
         PROCESS_MONITORS.put(workerParameters.getContainerName(), stateMachine);
 
+
+        // Try to backup operation context in the offer.
+        try {
+            operationContextMonitor.backup(VitamConfiguration.getDefaultStrategy(), workerParameters.getContainerName(),
+                processWorkflow.getLogbookTypeProcess());
+        } catch (OperationContextException e) {
+            switch (processWorkflow.getLogbookTypeProcess()) {
+                case INGEST:
+                case MASTERDATA:
+                case TRACEABILITY:
+                case INGEST_TEST:
+                case AUDIT:
+                case DATA_MIGRATION:
+                    LOGGER.debug("Workflow do not have a backup of operation context for process type :" +
+                        processWorkflow.getLogbookTypeProcess(), e);
+                    break;
+                default:
+                    LOGGER.warn("Unable to backup operation context from the workspace", e);
+            }
+        }
         return processWorkflow;
     }
 
