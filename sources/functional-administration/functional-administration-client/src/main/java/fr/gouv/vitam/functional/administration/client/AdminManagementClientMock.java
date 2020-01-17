@@ -73,6 +73,7 @@ import fr.gouv.vitam.functional.administration.common.exception.ReferentialNotFo
 import fr.gouv.vitam.functional.administration.common.server.AccessionRegisterSymbolic;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientAlreadyExistsException;
 import fr.gouv.vitam.logbook.common.parameters.LogbookOperationParameters;
+import org.apache.commons.io.input.NullInputStream;
 
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
@@ -94,7 +95,7 @@ public class AdminManagementClientMock extends AbstractMockClient implements Adm
         ParametersChecker.checkParameter(STREAM_IS_A_MANDATORY_PARAMETER, stream);
         LOGGER.debug("Check file format request:");
         StreamUtils.closeSilently(stream);
-        return Response.ok().build();
+        return Response.ok(new NullInputStream(0)).build();
     }
 
     @Override
