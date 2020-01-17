@@ -26,9 +26,8 @@
  */
 package fr.gouv.vitam.common.client;
 
-import fr.gouv.vitam.common.logging.VitamLogger;
-import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.stream.StreamUtils;
+import org.apache.commons.io.input.ProxyInputStream;
 
 import javax.ws.rs.core.EntityTag;
 import javax.ws.rs.core.GenericType;
@@ -37,6 +36,7 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.MultivaluedMap;
 import javax.ws.rs.core.NewCookie;
 import javax.ws.rs.core.Response;
+import java.io.IOException;
 import java.io.InputStream;
 import java.lang.annotation.Annotation;
 import java.net.URI;
@@ -47,7 +47,6 @@ import java.util.Objects;
 import java.util.Set;
 
 public class VitamAutoClosableResponse extends Response {
-    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(VitamAutoClosableResponse.class);
 
     private final Response response;
 
@@ -57,22 +56,7 @@ public class VitamAutoClosableResponse extends Response {
 
     @Override
     public void close() {
-        try {
-            if (response.hasEntity()) {
-                Object object = response.getEntity();
-                if (object instanceof InputStream) {
-                    StreamUtils.closeSilently((InputStream) object);
-                }
-            }
-        } catch (Exception e) {
-            LOGGER.info(e);
-        } finally {
-            try {
-                response.close();
-            } catch (Exception e) {
-                LOGGER.info(e);
-            }
-        }
+        StreamUtils.consumeAnyEntityAndClose(response);
     }
 
     @Override
@@ -87,27 +71,39 @@ public class VitamAutoClosableResponse extends Response {
 
     @Override
     public Object getEntity() {
-        return response.getEntity();
+        Object entity = response.getEntity();
+        return wrapInputStreamEntity(entity);
     }
 
     @Override
     public <T> T readEntity(Class<T> entityType) {
-        return response.readEntity(entityType);
+        T entity = response.readEntity(entityType);
+        return wrapInputStreamEntity(entity);
     }
 
     @Override
     public <T> T readEntity(GenericType<T> entityType) {
-        return response.readEntity(entityType);
+        T entity = response.readEntity(entityType);
+        return wrapInputStreamEntity(entity);
     }
 
     @Override
     public <T> T readEntity(Class<T> entityType, Annotation[] annotations) {
-        return response.readEntity(entityType, annotations);
+        T entity = response.readEntity(entityType, annotations);
+        return wrapInputStreamEntity(entity);
     }
 
     @Override
     public <T> T readEntity(GenericType<T> entityType, Annotation[] annotations) {
-        return response.readEntity(entityType, annotations);
+        T entity = response.readEntity(entityType, annotations);
+        return wrapInputStreamEntity(entity);
+    }
+
+    private <T> T wrapInputStreamEntity(T entity) {
+        if (entity instanceof InputStream) {
+            return (T) new VitamAutoClosableResponseInputStream((InputStream) entity);
+        }
+        return entity;
     }
 
     @Override
@@ -198,5 +194,24 @@ public class VitamAutoClosableResponse extends Response {
     @Override
     public String getHeaderString(String name) {
         return response.getHeaderString(name);
+    }
+
+    private class VitamAutoClosableResponseInputStream extends ProxyInputStream {
+
+        boolean isClosed = false;
+
+        public VitamAutoClosableResponseInputStream(InputStream inputStream) {
+            super(inputStream);
+        }
+
+        @Override
+        public void close() throws IOException {
+            if (isClosed) {
+                return;
+            }
+            // When closed, closes parent response & inner input stream
+            StreamUtils.consumeAnyEntityAndClose(response);
+            isClosed = true;
+        }
     }
 }

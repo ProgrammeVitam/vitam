@@ -26,98 +26,37 @@
  */
 package fr.gouv.vitam.common.stream;
 
-import fr.gouv.vitam.common.client.DefaultClient;
-import fr.gouv.vitam.common.exception.InvalidParseOperationException;
-import fr.gouv.vitam.common.json.JsonHandler;
-import fr.gouv.vitam.common.logging.VitamLogger;
-import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import org.apache.commons.io.input.ProxyInputStream;
 
 import javax.ws.rs.core.Response;
-import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 
-public class VitamAsyncInputStream extends InputStream {
-
-    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(VitamAsyncInputStreamResponse.class);
+public class VitamAsyncInputStream extends ProxyInputStream {
 
     private final Response response;
-    private InputStream inputStream;
+    boolean isClosed = false;
 
-    /**
-     * Constructor using one response containing itself a stream
-     *
-     * @param response the original received response to forward
-     */
     public VitamAsyncInputStream(Response response) {
+        super(readInputStream(response));
         this.response = response;
-        try {
+    }
 
-            Object entity = response.getEntity();
-            if (entity instanceof InputStream) {
-                this.inputStream = (InputStream) entity;
-            } else {
-                this.inputStream = response.readEntity(InputStream.class);
-            }
-        } catch (IllegalStateException e) {
-            // Not an InputStream
-            Object object = response.getEntity();
-            if (object == null) {
-                this.inputStream = new ByteArrayInputStream(new byte[0]);
-            } else {
-                try {
-                    this.inputStream = JsonHandler.writeToInpustream(response.getEntity());
-                } catch (InvalidParseOperationException e1) {
-                    LOGGER.error(e.getMessage(), e1);
-                    throw e;
-                }
-            }
+    private static InputStream readInputStream(Response response) {
+        Object entity = response.getEntity();
+        if (entity instanceof InputStream) {
+            return (InputStream) entity;
+        } else {
+            return response.readEntity(InputStream.class);
         }
     }
 
     @Override
-    public int available() throws IOException {
-        return inputStream.available();
-    }
-
-    @Override
-    public void close() {
-        DefaultClient.staticConsumeAnyEntityAndClose(response);
-        StreamUtils.closeSilently(inputStream);
-    }
-
-    @Override
-    public synchronized void mark(int readlimit) {
-        inputStream.mark(readlimit);
-    }
-
-    @Override
-    public boolean markSupported() {
-        return inputStream.markSupported();
-    }
-
-    @Override
-    public int read(byte[] b, int off, int len) throws IOException {
-        return inputStream.read(b, off, len);
-    }
-
-    @Override
-    public int read(byte[] b) throws IOException {
-        return inputStream.read(b);
-    }
-
-    @Override
-    public synchronized void reset() throws IOException {
-        inputStream.reset();
-    }
-
-    @Override
-    public long skip(long n) throws IOException {
-        return inputStream.skip(n);
-    }
-
-    @Override
-    public int read() throws IOException {
-        return inputStream.read();
+    public void close() throws IOException {
+        if (isClosed) {
+            return;
+        }
+        response.close();
+        super.close();
     }
 }
