@@ -56,7 +56,9 @@ public class VitamAsyncInputStream extends ProxyInputStream {
         if (isClosed) {
             return;
         }
-        response.close();
-        super.close();
+        // When closed, closes parent response & inner input stream
+        StreamUtils.consumeAnyEntityAndClose(response);
+        StreamUtils.closeSilently(in);
+        isClosed = true;
     }
 }
