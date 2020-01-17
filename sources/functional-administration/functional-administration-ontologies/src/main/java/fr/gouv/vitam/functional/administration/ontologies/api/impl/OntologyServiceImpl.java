@@ -51,6 +51,7 @@ import fr.gouv.vitam.common.error.VitamCode;
 import fr.gouv.vitam.common.error.VitamError;
 import fr.gouv.vitam.common.exception.BadRequestException;
 import fr.gouv.vitam.common.exception.DatabaseException;
+import fr.gouv.vitam.common.exception.DocumentAlreadyExistsException;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.SchemaValidationException;
 import fr.gouv.vitam.common.exception.VitamDBException;
@@ -537,7 +538,7 @@ public class OntologyServiceImpl implements OntologyService {
     private void commitToDisk(Map<String, OntologyModel> currentOntologiesMap, List<OntologyModel> toDelete,
         List<OntologyModel> toCreate, List<OntologyModel> toUpdate)
         throws ReferentialException, SchemaValidationException, InvalidParseOperationException,
-        InvalidCreateOperationException, BadRequestException {
+        InvalidCreateOperationException, BadRequestException, DocumentAlreadyExistsException {
 
         deleteOntologies(toDelete);
 
@@ -584,7 +585,8 @@ public class OntologyServiceImpl implements OntologyService {
     }
 
     private void createOntologies(List<OntologyModel> toCreate)
-        throws ReferentialException, SchemaValidationException, InvalidParseOperationException {
+        throws ReferentialException, SchemaValidationException, InvalidParseOperationException,
+        DocumentAlreadyExistsException {
 
         if (toCreate.isEmpty()) {
             return;

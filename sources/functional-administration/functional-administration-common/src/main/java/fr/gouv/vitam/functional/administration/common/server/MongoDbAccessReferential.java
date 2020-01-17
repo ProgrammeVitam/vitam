@@ -34,6 +34,7 @@ import fr.gouv.vitam.common.database.server.DbRequestResult;
 import fr.gouv.vitam.common.database.server.mongodb.VitamDocument;
 import fr.gouv.vitam.common.exception.BadRequestException;
 import fr.gouv.vitam.common.exception.DatabaseException;
+import fr.gouv.vitam.common.exception.DocumentAlreadyExistsException;
 import fr.gouv.vitam.common.exception.SchemaValidationException;
 import fr.gouv.vitam.functional.administration.common.exception.ReferentialException;
 
@@ -51,7 +52,7 @@ public interface MongoDbAccessReferential {
      * @throws ReferentialException when error occurs
      */
     DbRequestResult insertDocuments(ArrayNode arrayNode, FunctionalAdminCollections collection)
-        throws ReferentialException, SchemaValidationException;
+        throws ReferentialException, SchemaValidationException, DocumentAlreadyExistsException;
 
     /**
      * insert documents
@@ -63,7 +64,7 @@ public interface MongoDbAccessReferential {
      * 
      */
     DbRequestResult insertDocuments(ArrayNode arrayNode, FunctionalAdminCollections collection, Integer version)
-        throws ReferentialException, SchemaValidationException;
+        throws DocumentAlreadyExistsException, ReferentialException, SchemaValidationException;
 
     /**
      * insert documents
@@ -74,7 +75,7 @@ public interface MongoDbAccessReferential {
      * @throws ReferentialException when error occurs
      */
     DbRequestResult insertDocument(JsonNode jsonNode, FunctionalAdminCollections collection)
-        throws ReferentialException, SchemaValidationException;
+        throws ReferentialException, SchemaValidationException, DocumentAlreadyExistsException;
 
     // Not check, test feature !
     DbRequestResult deleteCollection(FunctionalAdminCollections collection, Delete delete)

@@ -44,6 +44,7 @@ import fr.gouv.vitam.common.database.server.DbRequestResult;
 import fr.gouv.vitam.common.database.server.elasticsearch.ElasticsearchNode;
 import fr.gouv.vitam.common.database.server.mongodb.VitamDocument;
 import fr.gouv.vitam.common.elasticsearch.ElasticsearchRule;
+import fr.gouv.vitam.common.exception.DocumentAlreadyExistsException;
 import fr.gouv.vitam.common.exception.InvalidGuidOperationException;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.SchemaValidationException;
@@ -85,6 +86,7 @@ import io.restassured.RestAssured;
 import io.restassured.http.ContentType;
 import io.restassured.http.Cookie;
 import org.junit.AfterClass;
+import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
 import org.junit.Rule;
@@ -92,7 +94,6 @@ import org.junit.Test;
 
 import javax.ws.rs.core.Response.Status;
 import java.io.File;
-import org.junit.Before;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -458,7 +459,7 @@ public class WebApplicationResourceDeleteTest {
 
     @Test
     @RunWithCustomExecutor
-    public void testDeleteTnrOk() throws SchemaValidationException {
+    public void testDeleteTnrOk() throws Exception {
         try {
             VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
             // insert and check data
@@ -634,14 +635,14 @@ public class WebApplicationResourceDeleteTest {
             assertFalse(existsData(FunctionalAdminCollections.CONTEXT, idContext2.getId()));
             //Admin context must still exist
             assertTrue(existsData(FunctionalAdminCollections.CONTEXT, adminContext.getId()));
-        } catch (final ReferentialException | InvalidParseOperationException e) {
+        } catch (final ReferentialException | InvalidParseOperationException | DocumentAlreadyExistsException e) {
             LOGGER.error(e);
             fail("Exception using mongoDbAccess");
         }
     }
 
     private GUID addData(FunctionalAdminCollections collection)
-        throws ReferentialException, SchemaValidationException {
+        throws ReferentialException, SchemaValidationException, DocumentAlreadyExistsException {
 
         final GUID guid = GUIDFactory.newGUID();
         ObjectNode data1 = JsonHandler.createObjectNode().put("_id", guid.getId());
@@ -801,7 +802,7 @@ public class WebApplicationResourceDeleteTest {
 
     public GUID addAdminContextData(FunctionalAdminCollections collection)
         throws ReferentialException, InvalidCreateOperationException, InvalidGuidOperationException,
-        InvalidParseOperationException, SchemaValidationException {
+        InvalidParseOperationException, SchemaValidationException, DocumentAlreadyExistsException {
         final Query query = QueryHelper.or().add(QueryHelper.eq(CONTEXT_NAME, ADMIN_CONTEXT));
         JsonNode select = query.getCurrentObject();
         DbRequestResult result = mongoDbAccessAdmin.findDocuments(select, FunctionalAdminCollections.CONTEXT);
@@ -829,7 +830,7 @@ public class WebApplicationResourceDeleteTest {
 
     public GUID addAdminSecurityData(FunctionalAdminCollections collection)
         throws ReferentialException, InvalidCreateOperationException, InvalidGuidOperationException,
-        InvalidParseOperationException, SchemaValidationException {
+        InvalidParseOperationException, SchemaValidationException, DocumentAlreadyExistsException {
         final Query query = QueryHelper.or().add(QueryHelper.eq(SECURITY_PROFIL_NAME, SECURITY_PROFIL_NAME_TO_SAVE));
         JsonNode select = query.getCurrentObject();
         DbRequestResult result = mongoDbAccessAdmin.findDocuments(select, FunctionalAdminCollections.SECURITY_PROFILE);

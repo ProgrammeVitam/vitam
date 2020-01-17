@@ -31,6 +31,7 @@ import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.google.common.annotations.VisibleForTesting;
 import com.mongodb.MongoBulkWriteException;
 import com.mongodb.MongoClient;
+import com.mongodb.MongoWriteException;
 import fr.gouv.vitam.common.client.OntologyLoader;
 import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
 import fr.gouv.vitam.common.database.builder.request.single.Delete;
@@ -45,6 +46,7 @@ import fr.gouv.vitam.common.database.server.mongodb.MongoDbAccess;
 import fr.gouv.vitam.common.database.server.mongodb.VitamDocument;
 import fr.gouv.vitam.common.exception.BadRequestException;
 import fr.gouv.vitam.common.exception.DatabaseException;
+import fr.gouv.vitam.common.exception.DocumentAlreadyExistsException;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.SchemaValidationException;
 import fr.gouv.vitam.common.exception.VitamDBException;
@@ -68,11 +70,12 @@ public class MongoDbAccessAdminImpl extends MongoDbAccess implements MongoDbAcce
 
     /**
      * @param mongoClient client of mongo
-     * @param dbname      name of database
-     * @param recreate    true if recreate type
+     * @param dbname name of database
+     * @param recreate true if recreate type
      * @param ontologyLoader
      */
-    protected MongoDbAccessAdminImpl(MongoClient mongoClient, String dbname, boolean recreate, OntologyLoader ontologyLoader) {
+    protected MongoDbAccessAdminImpl(MongoClient mongoClient, String dbname, boolean recreate,
+        OntologyLoader ontologyLoader) {
         super(mongoClient, dbname, recreate);
         for (final FunctionalAdminCollections collection : FunctionalAdminCollections.values()) {
             collection.initialize(super.getMongoDatabase(), recreate);
@@ -82,13 +85,13 @@ public class MongoDbAccessAdminImpl extends MongoDbAccess implements MongoDbAcce
 
     @Override
     public DbRequestResult insertDocuments(ArrayNode arrayNode, FunctionalAdminCollections collection)
-        throws ReferentialException, SchemaValidationException {
+        throws ReferentialException, SchemaValidationException, DocumentAlreadyExistsException {
         return insertDocuments(arrayNode, collection, 0);
     }
 
     @Override
     public DbRequestResult insertDocuments(ArrayNode arrayNode, FunctionalAdminCollections collection, Integer version)
-        throws ReferentialException, SchemaValidationException {
+        throws DocumentAlreadyExistsException, ReferentialException, SchemaValidationException {
         try {
             final DbRequestSingle dbrequest = new DbRequestSingle(collection.getVitamCollection(), this.ontologyLoader);
             final Insert insertquery = new Insert();
@@ -96,8 +99,11 @@ public class MongoDbAccessAdminImpl extends MongoDbAccess implements MongoDbAcce
 
             DocumentValidator documentValidator = ReferentialDocumentValidators.getValidator(collection);
             return dbrequest.execute(insertquery, version, documentValidator);
-        } catch (MongoBulkWriteException | InvalidParseOperationException | BadRequestException | DatabaseException |
+        } catch (MongoBulkWriteException | MongoWriteException | InvalidParseOperationException | BadRequestException | DatabaseException |
             InvalidCreateOperationException | VitamDBException e) {
+            if (DbRequestSingle.isDuplicateKeyError(e)) {
+                throw new DocumentAlreadyExistsException("Documents already exists: Duplicate Key", e);
+            }
             throw new ReferentialException("Insert Documents Exception", e);
         }
     }
@@ -136,7 +142,7 @@ public class MongoDbAccessAdminImpl extends MongoDbAccess implements MongoDbAcce
 
     @Override
     public DbRequestResult deleteCollection(FunctionalAdminCollections collection)
-        throws DatabaseException, ReferentialException, SchemaValidationException {
+        throws DatabaseException, SchemaValidationException {
 
         long count = 0;
         if (collection.isMultitenant()) {
@@ -238,7 +244,8 @@ public class MongoDbAccessAdminImpl extends MongoDbAccess implements MongoDbAcce
     @Override
     public void replaceDocument(JsonNode document, String identifierValue, String identifierKey,
         FunctionalAdminCollections vitamCollection) throws DatabaseException {
-        final DbRequestSingle dbRequest = new DbRequestSingle(vitamCollection.getVitamCollection(), this.ontologyLoader);
+        final DbRequestSingle dbRequest =
+            new DbRequestSingle(vitamCollection.getVitamCollection(), this.ontologyLoader);
 
         dbRequest.replaceDocument(document, identifierValue, identifierKey, vitamCollection.getVitamCollection());
     }
@@ -251,7 +258,7 @@ public class MongoDbAccessAdminImpl extends MongoDbAccess implements MongoDbAcce
 
     @Override
     public DbRequestResult insertDocument(JsonNode json, FunctionalAdminCollections collection)
-        throws ReferentialException, SchemaValidationException {
+        throws ReferentialException, SchemaValidationException, DocumentAlreadyExistsException {
         return insertDocuments(JsonHandler.createArrayNode().add(json), collection);
     }
 
