@@ -45,13 +45,10 @@ import fr.gouv.vitam.common.stream.StreamUtils;
 import org.apache.http.NoHttpResponseException;
 import org.apache.http.conn.ConnectTimeoutException;
 
-import javax.ws.rs.HttpMethod;
 import javax.ws.rs.ProcessingException;
-import javax.ws.rs.client.AsyncInvoker;
 import javax.ws.rs.client.Client;
 import javax.ws.rs.client.Entity;
 import javax.ws.rs.client.Invocation.Builder;
-import javax.ws.rs.client.InvocationCallback;
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.MultivaluedHashMap;
@@ -63,7 +60,6 @@ import java.net.SocketException;
 import java.net.UnknownHostException;
 import java.util.List;
 import java.util.Map.Entry;
-import java.util.concurrent.Future;
 import java.util.function.Predicate;
 
 import static java.util.concurrent.TimeUnit.SECONDS;
@@ -213,78 +209,6 @@ abstract class AbstractCommonClient implements BasicClient {
 
         RetryableOnException<Response, ProcessingException> retryable = retryable();
         return retryable.exec(delegate);
-    }
-
-    private <T> Future<T> retryIfNecessary(String httpMethod, Object body, MediaType contentType, AsyncInvoker builder, InvocationCallback<T> callback) {
-        if (body instanceof InputStream) {
-            Entity<Object> entity = Entity.entity(body, contentType);
-            return builder.method(httpMethod, entity, callback);
-        }
-
-        DelegateRetry<Future<T>, ProcessingException> delegate = () -> {
-            if (body == null) {
-                return builder.method(httpMethod, callback);
-            }
-            Entity<Object> entity = Entity.entity(body, contentType);
-            return builder.method(httpMethod, entity, callback);
-        };
-
-        RetryableOnException<Future<T>, ProcessingException> retryable = retryable();
-        return retryable.exec(delegate);
-    }
-
-    private Future<Response> retryIfNecessary(String httpMethod, Object body, MediaType contentType, AsyncInvoker builder) {
-        if (body instanceof InputStream) {
-            Entity<Object> entity = Entity.entity(body, contentType);
-            return builder.method(httpMethod, entity);
-        }
-
-        DelegateRetry<Future<Response>, ProcessingException> delegate = () -> {
-            if (body == null) {
-                return builder.method(httpMethod);
-            }
-            Entity<Object> entity = Entity.entity(body, contentType);
-            return builder.method(httpMethod, entity);
-        };
-
-        RetryableOnException<Future<Response>, ProcessingException> retryable = retryable();
-        return retryable.exec(delegate);
-    }
-
-    protected <T> Future<T> performAsyncRequest(String httpMethod, String path,
-        MultivaluedHashMap<String, Object> headers, Object body, MediaType contentType, MediaType accept,
-        InvocationCallback<T> callback)
-        throws VitamClientInternalException {
-        try {
-            ParametersChecker.checkParameter(ARGUMENT_CANNOT_BE_NULL_EXCEPT_HEADERS, callback);
-            if (body != null) {
-                ParametersChecker.checkParameter(BODY_AND_CONTENT_TYPE_CANNOT_BE_NULL, body, contentType);
-                final Builder builder = buildRequest(httpMethod, path, headers, accept, getChunkedMode());
-                return retryIfNecessary(httpMethod, body, contentType, builder.async(), callback);
-            } else {
-                final Builder builder = buildRequest(httpMethod, path, headers, accept, false);
-                return retryIfNecessary(httpMethod, null, null, builder.async(), callback);
-            }
-        } catch (final ProcessingException e) {
-            throw new VitamClientInternalException(e);
-        }
-    }
-
-    protected Future<Response> performAsyncRequest(String httpMethod, String path,
-        MultivaluedHashMap<String, Object> headers, Object body, MediaType contentType, MediaType accept)
-        throws VitamClientInternalException {
-        try {
-            if (body != null) {
-                ParametersChecker.checkParameter(BODY_AND_CONTENT_TYPE_CANNOT_BE_NULL, body, contentType);
-                final Builder builder = buildRequest(httpMethod, path, headers, accept, getChunkedMode());
-                return retryIfNecessary(httpMethod, body, contentType, builder.async());
-            } else {
-                final Builder builder = buildRequest(httpMethod, path, headers, accept, false);
-                return retryIfNecessary(httpMethod, null, null, builder.async());
-            }
-        } catch (final ProcessingException e) {
-            throw new VitamClientInternalException(e);
-        }
     }
 
     protected VitamClientException createExceptionFromResponse(Response response) {

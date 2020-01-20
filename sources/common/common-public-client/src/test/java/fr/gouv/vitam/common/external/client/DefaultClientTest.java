@@ -189,69 +189,6 @@ public class DefaultClientTest extends ResteasyTestApplication {
         assertEquals(Response.Status.OK.getStatusCode(), message.getStatus());
     }
 
-    @Test
-    public void statusExecutionThroughPerformAsyncRequest() throws Exception {
-        when(mock.get()).thenReturn(
-            Response.status(Response.Status.OK).entity("{\"pid\":\"1\",\"name\":\"name1\", \"role\":\"role1\"}")
-                .build());
-        final MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
-        headers.add("X-Test", "testvalue");
-        Future<Response> future = client.performAsyncRequest(HttpMethod.GET, BasicClient.STATUS_URL, headers, null,
-            null, MediaType.APPLICATION_JSON_TYPE);
-        Response message = future.get();
-        assertEquals(Response.Status.OK.getStatusCode(), message.getStatus());
-        when(mock.get()).thenReturn(
-            Response.status(Response.Status.OK).entity("{\"pid\":\"1\",\"name\":\"name1\", \"role\":\"role1\"}")
-                .build());
-        future = client.performAsyncRequest(HttpMethod.GET, BasicClient.STATUS_URL, headers, null, null,
-            MediaType.APPLICATION_JSON_TYPE,
-            new InvocationCallback<Response>() {
-
-                @Override
-                public void completed(Response response) {
-                    // Completed
-                }
-
-                @Override
-                public void failed(Throwable throwable) {
-                    // Failed
-                    LOGGER.error("Failed Status in Async Callback", throwable);
-                }
-            });
-        message = future.get();
-        assertEquals(Response.Status.OK.getStatusCode(), message.getStatus());
-        when(mock.get()).thenReturn(
-            Response.status(Response.Status.OK).entity("{\"pid\":\"1\",\"name\":\"name1\", \"role\":\"role1\"}")
-                .build());
-        headers.clear();
-        headers.add("X-Test", "testvalue");
-        future = client.performAsyncRequest(HttpMethod.GET, BasicClient.STATUS_URL, headers, "{}",
-            MediaType.APPLICATION_JSON_TYPE, MediaType.APPLICATION_JSON_TYPE);
-        message = future.get();
-        assertEquals(Response.Status.OK.getStatusCode(), message.getStatus());
-        when(mock.get()).thenReturn(
-            Response.status(Response.Status.OK).entity("{\"pid\":\"1\",\"name\":\"name1\", \"role\":\"role1\"}")
-                .build());
-        future = client.performAsyncRequest(HttpMethod.GET, BasicClient.STATUS_URL, headers, "{}",
-            MediaType.APPLICATION_JSON_TYPE,
-            MediaType.APPLICATION_JSON_TYPE,
-            new InvocationCallback<Response>() {
-
-                @Override
-                public void completed(Response response) {
-                    // Completed
-                }
-
-                @Override
-                public void failed(Throwable throwable) {
-                    // Failed
-                    LOGGER.error("Failed Status in Async Callback", throwable);
-                }
-            });
-        message = future.get();
-        assertEquals(Response.Status.OK.getStatusCode(), message.getStatus());
-    }
-
     @Test(expected = VitamApplicationServerException.class)
     public void failsStatusExecution() throws Exception {
         when(mock.get()).thenReturn(Response.status(Response.Status.SERVICE_UNAVAILABLE).build());
