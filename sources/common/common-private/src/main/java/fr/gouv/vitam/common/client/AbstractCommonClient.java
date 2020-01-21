@@ -326,23 +326,6 @@ abstract class AbstractCommonClient implements BasicClient {
         }
     }
 
-    /**
-     * Handle all errors and throw a VitamClientException in case the response does not contains a vitamError type
-     * result.
-     *
-     * @param response response
-     * @return VitamClientException exception thrown for the response
-     */
-    protected VitamClientException createExceptionFromResponse(Response response) {
-        VitamClientException exception = new VitamClientException(INTERNAL_SERVER_ERROR);
-        if (response != null && response.getStatusInfo() != null) {
-            exception = new VitamClientException(response.getStatusInfo().getReasonPhrase());
-        } else if (response != null && Status.fromStatusCode(response.getStatus()) != null) {
-            exception = new VitamClientException(Status.fromStatusCode(response.getStatus()).getReasonPhrase());
-        }
-        return exception;
-    }
-
     @Override
     public String getResourcePath() {
         return clientFactory.getResourcePath();
