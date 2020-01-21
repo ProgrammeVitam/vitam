@@ -30,6 +30,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.client.VitamClientFactoryInterface;
+import fr.gouv.vitam.common.client.VitamRequestBuilder;
 import fr.gouv.vitam.common.error.VitamCode;
 import fr.gouv.vitam.common.error.VitamCodeHelper;
 import fr.gouv.vitam.common.exception.VitamClientInternalException;
@@ -60,14 +61,18 @@ import fr.gouv.vitam.storage.engine.common.model.OfferLog;
 import fr.gouv.vitam.storage.engine.common.model.TapeReadRequestReferentialEntity;
 import fr.gouv.vitam.storage.engine.common.model.request.OfferLogRequest;
 
-import javax.ws.rs.HttpMethod;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.MultivaluedHashMap;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
-import java.io.InputStream;
-import java.util.Arrays;
-import java.util.Properties;
+import java.util.Collections;
+
+import static fr.gouv.vitam.common.client.VitamRequestBuilder.delete;
+import static fr.gouv.vitam.common.client.VitamRequestBuilder.get;
+import static fr.gouv.vitam.common.client.VitamRequestBuilder.head;
+import static fr.gouv.vitam.common.client.VitamRequestBuilder.post;
+import static fr.gouv.vitam.common.client.VitamRequestBuilder.put;
+import static javax.ws.rs.core.Response.Status.Family.REDIRECTION;
+import static javax.ws.rs.core.Response.Status.Family.SUCCESSFUL;
+import static javax.ws.rs.core.Response.Status.fromStatusCode;
 
 /**
  * Workspace Connection Implementation
@@ -95,66 +100,79 @@ public class ConnectionImpl extends AbstractConnection {
     private static final String FOLDER_IS_A_MANDATORY_PARAMETER = "Folder is a mandatory parameter";
     private static final String FOLDER_IS_NOT_VALID = "Folder is not valid";
     private static final String EXPORT_ID_IS_A_MANDATORY_PARAMETER = "Export id is a mandatory parameter";
-
-    @SuppressWarnings("unused")
-    private final Properties parameters;
+    private static final String BAD_REQUEST_ERROR_MESSAGE = "Bad request";
 
     /**
      * Constructor
      *
      * @param driverName
      * @param factory
-     * @param parameters
      */
-    public ConnectionImpl(String driverName, VitamClientFactoryInterface<? extends AbstractConnection> factory,
-        Properties parameters) {
+    ConnectionImpl(String driverName, VitamClientFactoryInterface<? extends AbstractConnection> factory) {
         super(driverName, factory);
-        this.parameters = parameters;
+    }
+
+    private void checkStorageException(Response response) throws StorageDriverException {
+        final Status status = fromStatusCode(response.getStatus());
+
+
+        switch (status) {
+            case CREATED:
+            case OK:
+                return;
+            case INTERNAL_SERVER_ERROR:
+                LOGGER.error(VitamCodeHelper.getLogMessage(VitamCode.STORAGE_TECHNICAL_INTERNAL_ERROR));
+                throw new StorageDriverException(getDriverName(), status.getReasonPhrase(), true);
+            case NOT_FOUND:
+                LOGGER.error(status.getReasonPhrase());
+                throw new StorageDriverNotFoundException(getDriverName(), status.getReasonPhrase());
+            case PRECONDITION_FAILED:
+                LOGGER.error("Precondition failed");
+                throw new StorageDriverPreconditionFailedException(getDriverName(), "Precondition failed");
+            case BAD_REQUEST:
+                LOGGER.error(BAD_REQUEST_ERROR_MESSAGE);
+                throw new StorageDriverPreconditionFailedException(getDriverName(), BAD_REQUEST_ERROR_MESSAGE);
+            case SERVICE_UNAVAILABLE:
+                LOGGER.error(status.getReasonPhrase());
+                throw new StorageDriverServiceUnavailableException(getDriverName(), status.getReasonPhrase());
+            case CONFLICT:
+                LOGGER.error(status.getReasonPhrase());
+                throw new StorageDriverConflictException(getDriverName(), status.getReasonPhrase());
+            default:
+                LOGGER.error(INTERNAL_SERVER_ERROR + " : " + status.getReasonPhrase());
+                throw new StorageDriverException(getDriverName(), INTERNAL_SERVER_ERROR, true);
+        }
     }
 
     @Override
     public StorageCapacityResult getStorageCapacity(Integer tenantId)
         throws StorageDriverPreconditionFailedException, StorageDriverNotFoundException, StorageDriverException {
         ParametersChecker.checkParameter(TENANT_IS_A_MANDATORY_PARAMETER, tenantId);
-        Response response = null;
-        try {
-            response = performRequest(HttpMethod.HEAD, OBJECTS_PATH + "/" + DataCategory.OBJECT,
-                getDefaultHeaders(tenantId, null, null, null, null),
-                MediaType.APPLICATION_JSON_TYPE);
-            final Response.Status status = Response.Status.fromStatusCode(response.getStatus());
 
-            switch (status) {
-                case OK:
-                    long available = DEFAULT_MAX_AVAILABILITY;
-                    if (response.getHeaderString(X_USABLE_SPACE) != null) {
-                        try {
-                            available = Long.parseLong(response.getHeaderString(X_USABLE_SPACE));
-                        } catch (NumberFormatException e) {
-                            LOGGER.info("Not a number", e);
-                        }
-                    }
-                    return new StorageCapacityResult(tenantId, available);
-                case NOT_FOUND:
-                    LOGGER.error(VitamCodeHelper.getLogMessage(VitamCode.STORAGE_CONTAINER_NOT_FOUND,
-                        tenantId + "_" + DataCategory.OBJECT));
-                    throw new StorageDriverNotFoundException(getDriverName(),
-                        VitamCodeHelper.getLogMessage(VitamCode.STORAGE_CONTAINER_NOT_FOUND,
-                            tenantId + "_" + DataCategory.OBJECT));
-                case BAD_REQUEST:
-                    LOGGER.error("Bad request");
-                    throw new StorageDriverPreconditionFailedException(getDriverName(), "Bad request");
-                default:
-                    LOGGER.error(VitamCodeHelper.getLogMessage(VitamCode.STORAGE_TECHNICAL_INTERNAL_ERROR));
-                    throw new StorageDriverException(getDriverName(), response.getStatusInfo().getReasonPhrase(), true);
-            }
+        VitamRequestBuilder request = head()
+            .withPath(OBJECTS_PATH + "/" + DataCategory.OBJECT)
+            .withHeader(GlobalDataRest.X_TENANT_ID, tenantId)
+            .withJsonAccept();
+
+        try (Response response = make(request)) {
+            checkStorageException(response);
+            return new StorageCapacityResult(tenantId, getAvailableSpace(response));
         } catch (final VitamClientInternalException e) {
-            LOGGER.error(VitamCodeHelper.getLogMessage(VitamCode.STORAGE_TECHNICAL_INTERNAL_ERROR), e);
             throw new StorageDriverException(getDriverName(), VitamCode.STORAGE_TECHNICAL_INTERNAL_ERROR.getMessage(),
                 true,
                 e);
-        } finally {
-            consumeAnyEntityAndClose(response);
         }
+    }
+
+    private long getAvailableSpace(Response response) {
+        if (response.getHeaderString(X_USABLE_SPACE) != null) {
+            try {
+                return Long.parseLong(response.getHeaderString(X_USABLE_SPACE));
+            } catch (NumberFormatException e) {
+                LOGGER.info("Not a number", e);
+            }
+        }
+        return DEFAULT_MAX_AVAILABILITY;
     }
 
     @Override
@@ -164,31 +182,19 @@ public class ConnectionImpl extends AbstractConnection {
         ParametersChecker.checkParameter(TENANT_IS_A_MANDATORY_PARAMETER, request.getTenantId());
         ParametersChecker.checkParameter(FOLDER_IS_A_MANDATORY_PARAMETER, request.getType());
         ParametersChecker.checkParameter(FOLDER_IS_NOT_VALID, DataCategory.getByFolder(request.getType()));
+
+        VitamRequestBuilder requestbuilder = get()
+            .withPath(OBJECTS_PATH + "/" + DataCategory.getByFolder(request.getType()) + "/" + request.getGuid())
+            .withHeader(GlobalDataRest.X_TENANT_ID, request.getTenantId())
+            .withOctetAccept();
+
         Response response = null;
         try {
-            response = performRequest(HttpMethod.GET,
-                OBJECTS_PATH + "/" + DataCategory.getByFolder(request.getType()) + "/" + request.getGuid(),
-                getDefaultHeaders(request.getTenantId(), null, null, null, null),
-                MediaType.APPLICATION_OCTET_STREAM_TYPE);
-
-            final Response.Status status = Response.Status.fromStatusCode(response.getStatus());
-            switch (status) {
-                case OK:
-                    return new StorageGetResult(request.getTenantId(), request.getType(),
-                        request.getGuid(), response);
-                case NOT_FOUND:
-                    throw new StorageDriverNotFoundException(getDriverName(),
-                        "Object " + request.getGuid() + " not found");
-                case PRECONDITION_FAILED:
-                    LOGGER.error("Precondition failed");
-                    throw new StorageDriverPreconditionFailedException(getDriverName(), "Precondition failed");
-                default:
-                    LOGGER.error(INTERNAL_SERVER_ERROR + " : " + status.getReasonPhrase());
-                    throw new StorageDriverException(getDriverName(), INTERNAL_SERVER_ERROR, true);
-            }
-        } catch (final VitamClientInternalException e1) {
-            LOGGER.error(VitamCodeHelper.getLogMessage(VitamCode.STORAGE_TECHNICAL_INTERNAL_ERROR), e1);
-            throw new StorageDriverException(getDriverName(), true, e1);
+            response = make(requestbuilder);
+            checkStorageException(response);
+            return new StorageGetResult(request.getTenantId(), request.getType(), request.getGuid(), response);
+        } catch (final VitamClientInternalException e) {
+            throw new StorageDriverException(getDriverName(), true, e);
         } finally {
             if (response != null && response.getStatus() != Status.OK.getStatusCode()) {
                 consumeAnyEntityAndClose(response);
@@ -204,29 +210,18 @@ public class ConnectionImpl extends AbstractConnection {
         ParametersChecker.checkParameter(TENANT_IS_A_MANDATORY_PARAMETER, request.getTenantId());
         ParametersChecker.checkParameter(FOLDER_IS_A_MANDATORY_PARAMETER, request.getType());
         ParametersChecker.checkParameter(FOLDER_IS_NOT_VALID, DataCategory.getByFolder(request.getType()));
-        Response response = null;
-        try {
-            response = performRequest(HttpMethod.POST,
-                READ_ORDER_PATH + "/" + DataCategory.getByFolder(request.getType()),
-                getDefaultHeaders(request.getTenantId(), null, null, null, null),
-                Arrays.asList(request.getGuid()),
-                MediaType.APPLICATION_JSON_TYPE,
-                MediaType.APPLICATION_JSON_TYPE);
 
-            final Response.Status status = Response.Status.fromStatusCode(response.getStatus());
-            switch (status) {
-                case PRECONDITION_FAILED:
-                    throw new StorageDriverPreconditionFailedException(getDriverName(), "Precondition failed");
-                default:
-                    return RequestResponse.parseFromResponse(response, TapeReadRequestReferentialEntity.class);
-            }
-        } catch (final VitamClientInternalException e1) {
-            LOGGER.error(VitamCodeHelper.getLogMessage(VitamCode.STORAGE_TECHNICAL_INTERNAL_ERROR), e1);
-            throw new StorageDriverException(getDriverName(), true, e1);
-        } finally {
-            if (response != null && response.getStatus() != Status.OK.getStatusCode()) {
-                consumeAnyEntityAndClose(response);
-            }
+        VitamRequestBuilder requestBuilder = post()
+            .withPath(READ_ORDER_PATH + "/" + DataCategory.getByFolder(request.getType()))
+            .withHeader(GlobalDataRest.X_TENANT_ID, request.getTenantId())
+            .withBody(Collections.singletonList(request.getGuid()))
+            .withJson();
+
+        try (Response response = make(requestBuilder)) {
+            checkStorageException(response);
+            return RequestResponse.parseFromResponse(response, TapeReadRequestReferentialEntity.class);
+        } catch (final VitamClientInternalException e) {
+            throw new StorageDriverException(getDriverName(), true, e);
         }
     }
 
@@ -236,25 +231,16 @@ public class ConnectionImpl extends AbstractConnection {
         throws StorageDriverException {
         ParametersChecker.checkParameter(EXPORT_ID_IS_A_MANDATORY_PARAMETER, readOrderRequestId);
         ParametersChecker.checkParameter(TENANT_IS_A_MANDATORY_PARAMETER, tenant);
-        Response response = null;
-        try {
-            response = performRequest(HttpMethod.GET,
-                READ_ORDER_PATH + "/" + readOrderRequestId,
-                getDefaultHeaders(tenant, null, null, null, null),
-                MediaType.APPLICATION_JSON_TYPE);
 
-            final Response.Status status = Response.Status.fromStatusCode(response.getStatus());
-            switch (status) {
-                case PRECONDITION_FAILED:
-                    throw new StorageDriverPreconditionFailedException(getDriverName(), "Precondition failed");
-                default:
-                    return RequestResponse.parseFromResponse(response, TapeReadRequestReferentialEntity.class);
-            }
-        } catch (final VitamClientInternalException e1) {
-            LOGGER.error(VitamCodeHelper.getLogMessage(VitamCode.STORAGE_TECHNICAL_INTERNAL_ERROR), e1);
-            throw new StorageDriverException(getDriverName(), true, e1);
-        } finally {
-            consumeAnyEntityAndClose(response);
+        VitamRequestBuilder request = get()
+            .withPath(READ_ORDER_PATH + "/" + readOrderRequestId)
+            .withHeader(GlobalDataRest.X_TENANT_ID, tenant)
+            .withJsonAccept();
+        try (Response response = make(request)) {
+            checkStorageException(response);
+            return RequestResponse.parseFromResponse(response, TapeReadRequestReferentialEntity.class);
+        } catch (final VitamClientInternalException e) {
+            throw new StorageDriverException(getDriverName(), true, e);
         }
     }
 
@@ -262,38 +248,21 @@ public class ConnectionImpl extends AbstractConnection {
     public void removeReadOrderRequest(String readOrderRequestId, int tenant) throws StorageDriverException {
         ParametersChecker.checkParameter(EXPORT_ID_IS_A_MANDATORY_PARAMETER, readOrderRequestId);
         ParametersChecker.checkParameter(TENANT_IS_A_MANDATORY_PARAMETER, tenant);
-        Response response = null;
-        try {
-            response = performRequest(HttpMethod.DELETE,
-                READ_ORDER_PATH + "/" + readOrderRequestId,
-                getDefaultHeaders(tenant, null, null, null, null),
-                MediaType.APPLICATION_JSON_TYPE);
 
-            final Response.Status status = Response.Status.fromStatusCode(response.getStatus());
-            switch (status) {
-                case ACCEPTED:
-                    break;
-                case NOT_FOUND:
-                    throw new StorageDriverNotFoundException(getDriverName(),
-                        "ReadOrderRequest  " + readOrderRequestId + " not found");
-                case PRECONDITION_FAILED:
-                    LOGGER.error("Precondition failed");
-                    throw new StorageDriverPreconditionFailedException(getDriverName(), "Precondition failed");
-                default:
-                    LOGGER.error(INTERNAL_SERVER_ERROR + " : " + status.getReasonPhrase());
-                    throw new StorageDriverException(getDriverName(), INTERNAL_SERVER_ERROR, true);
-            }
-        } catch (final VitamClientInternalException e1) {
-            LOGGER.error(VitamCodeHelper.getLogMessage(VitamCode.STORAGE_TECHNICAL_INTERNAL_ERROR), e1);
-            throw new StorageDriverException(getDriverName(), true, e1);
-        } finally {
-            consumeAnyEntityAndClose(response);
+        VitamRequestBuilder request = delete()
+            .withPath(READ_ORDER_PATH + "/" + readOrderRequestId)
+            .withHeader(GlobalDataRest.X_TENANT_ID, tenant)
+            .withJsonAccept();
+
+        try (Response response = make(request)) {
+            checkStorageException(response);
+        } catch (final VitamClientInternalException e) {
+            throw new StorageDriverException(getDriverName(), true, e);
         }
     }
 
     @Override
     public StoragePutResult putObject(StoragePutRequest request) throws StorageDriverException {
-        Response response = null;
         try {
             ParametersChecker.checkParameter(REQUEST_IS_A_MANDATORY_PARAMETER, request);
             ParametersChecker.checkParameter(GUID_IS_A_MANDATORY_PARAMETER, request.getGuid());
@@ -302,45 +271,38 @@ public class ConnectionImpl extends AbstractConnection {
             ParametersChecker.checkParameter(TYPE_IS_A_MANDATORY_PARAMETER, request.getType());
             ParametersChecker.checkParameter(TYPE_IS_NOT_VALID, DataCategory.getByFolder(request.getType()));
             ParametersChecker.checkParameter(STREAM_IS_A_MANDATORY_PARAMETER, request.getDataStream());
+        } catch (final IllegalArgumentException exc) {
+            throw new StorageDriverPreconditionFailedException(getDriverName(), exc);
+        }
 
-            final InputStream stream = request.getDataStream();
-            // init
-            response = performRequest(HttpMethod.PUT,
-                OBJECTS_PATH + "/" + DataCategory.getByFolder(request.getType()) + "/" + request.getGuid(),
-                getDefaultHeaders(request.getTenantId(), null,
-                    request.getDigestAlgorithm(), request.getSize(), null),
-                stream, MediaType.APPLICATION_OCTET_STREAM_TYPE, MediaType.APPLICATION_JSON_TYPE);
+        VitamRequestBuilder requestBuilder = put()
+            .withPath(OBJECTS_PATH + "/" + DataCategory.getByFolder(request.getType()) + "/" + request.getGuid())
+            .withHeader(GlobalDataRest.X_TENANT_ID, request.getTenantId())
+            .withHeader(GlobalDataRest.X_DIGEST_ALGORITHM, request.getDigestAlgorithm())
+            .withHeader(GlobalDataRest.VITAM_CONTENT_LENGTH, request.getSize())
+            .withBody(request.getDataStream())
+            .withOctetContentType()
+            .withJsonAccept();
 
-            final JsonNode json = handleResponseStatus(response, JsonNode.class);
+        try (Response response = make(requestBuilder)) {
+            checkStorageException(response);
+            final JsonNode json = response.readEntity(JsonNode.class);
 
-            if (Response.Status.CREATED.getStatusCode() != response.getStatus()) {
+            if (Status.CREATED.getStatusCode() != response.getStatus()) {
                 throw new StorageDriverException(getDriverName(),
                     "Error while performing put object operation for object " + request.getGuid() + " (" +
                         request.getType() + ")", true);
             }
 
-            StoragePutResult result =
-                new StoragePutResult(request.getTenantId(), request.getType(), request.getGuid(), request.getGuid(),
-                    json.get("digest").textValue(), json.get("size").longValue());
-
-            if (Response.Status.CREATED.getStatusCode() != response.getStatus()) {
-                LOGGER.error("Error while performing put object operation");
-                throw new StorageDriverException(getDriverName(), "Error while performing put object operation", true);
-            }
-
-            return result;
-        } catch (final IllegalArgumentException exc) {
-            throw new StorageDriverPreconditionFailedException(getDriverName(), exc);
+            return new StoragePutResult(request.getTenantId(), request.getType(), request.getGuid(), request.getGuid(),
+                json.get("digest").textValue(), json.get("size").longValue());
         } catch (final VitamClientInternalException e) {
             throw new StorageDriverException(getDriverName(), true, e);
-        } finally {
-            consumeAnyEntityAndClose(response);
         }
     }
 
     @Override
     public StorageBulkPutResult bulkPutObjects(StorageBulkPutRequest request) throws StorageDriverException {
-        Response response = null;
         try {
             ParametersChecker.checkParameter(REQUEST_IS_A_MANDATORY_PARAMETER, request);
             ParametersChecker.checkParameter(GUID_IS_A_MANDATORY_PARAMETER, request.getObjectIds());
@@ -350,31 +312,32 @@ public class ConnectionImpl extends AbstractConnection {
             ParametersChecker.checkParameter(TYPE_IS_A_MANDATORY_PARAMETER, request.getType());
             ParametersChecker.checkParameter(TYPE_IS_NOT_VALID, DataCategory.getByFolder(request.getType()));
             ParametersChecker.checkParameter(STREAM_IS_A_MANDATORY_PARAMETER, request.getDataStream());
+        } catch (final IllegalArgumentException e) {
+            // bad idea but i'm not here to change that now...
+            throw new StorageDriverPreconditionFailedException(getDriverName(), e);
+        }
 
-            final InputStream stream = request.getDataStream();
-            // init
-            response = performRequest(HttpMethod.PUT,
-                "/bulk/objects/" + DataCategory.getByFolder(request.getType()),
-                getDefaultHeaders(request.getTenantId(), null,
-                    request.getDigestType().getName(), request.getSize(), null),
-                stream, MediaType.APPLICATION_OCTET_STREAM_TYPE, MediaType.APPLICATION_JSON_TYPE);
+        VitamRequestBuilder requestBuilder = put()
+            .withPath("/bulk/objects/" + DataCategory.getByFolder(request.getType()))
+            .withHeader(GlobalDataRest.X_TENANT_ID, request.getTenantId())
+            .withHeader(GlobalDataRest.X_DIGEST_ALGORITHM, request.getDigestType().getName())
+            .withHeader(GlobalDataRest.VITAM_CONTENT_LENGTH, request.getSize())
+            .withBody(request.getDataStream())
+            .withOctetContentType()
+            .withJsonAccept();
 
-            StorageBulkPutResult result = handleResponseStatus(response, StorageBulkPutResult.class);
+        try (Response response = make(requestBuilder)) {
+            checkStorageException(response);
 
-            if (Response.Status.CREATED.getStatusCode() != response.getStatus()) {
+            if (Status.CREATED.getStatusCode() != response.getStatus()) {
                 throw new StorageDriverException(getDriverName(),
                     "Error while performing bulk put object operation for objects " + request.getObjectIds() + " (" +
                         request.getType() + ")", true);
             }
 
-            return result;
-
-        } catch (final IllegalArgumentException exc) {
-            throw new StorageDriverPreconditionFailedException(getDriverName(), exc);
+            return response.readEntity(StorageBulkPutResult.class);
         } catch (final VitamClientInternalException e) {
             throw new StorageDriverException(getDriverName(), true, e);
-        } finally {
-            consumeAnyEntityAndClose(response);
         }
     }
 
@@ -382,40 +345,23 @@ public class ConnectionImpl extends AbstractConnection {
     public StorageRemoveResult removeObject(StorageRemoveRequest request) throws StorageDriverException {
         ParametersChecker.checkParameter(REQUEST_IS_A_MANDATORY_PARAMETER, request);
         ParametersChecker.checkParameter(GUID_IS_A_MANDATORY_PARAMETER, request.getGuid());
-
         ParametersChecker.checkParameter(TENANT_IS_A_MANDATORY_PARAMETER, request.getTenantId());
         ParametersChecker.checkParameter(FOLDER_IS_A_MANDATORY_PARAMETER, request.getType());
         ParametersChecker.checkParameter(FOLDER_IS_NOT_VALID, DataCategory.getByFolder(request.getType()));
-        Response response = null;
-        try {
-            response = performRequest(HttpMethod.DELETE,
-                OBJECTS_PATH + "/" + DataCategory.getByFolder(request.getType()) + "/" + request.getGuid(),
-                getDefaultHeaders(request.getTenantId(), null,
-                    null, null, null),
-                MediaType.APPLICATION_JSON_TYPE);
 
-            final Response.Status status = Response.Status.fromStatusCode(response.getStatus());
-            switch (status) {
-                case OK:
-                    final JsonNode json = handleResponseStatus(response, JsonNode.class);
-                    final StorageRemoveResult result = new StorageRemoveResult(request.getTenantId(), request.getType(),
-                        request.getGuid(),
-                        Response.Status.OK.toString().equals(json.get("status").asText()));
-                    return result;
-                case NOT_FOUND:
-                    throw new StorageDriverNotFoundException(getDriverName(), "Object " + request.getGuid() +
-                        "not found");
-                case BAD_REQUEST:
-                    throw new StorageDriverPreconditionFailedException(getDriverName(), "Bad request");
-                default:
-                    LOGGER.error(INTERNAL_SERVER_ERROR + " : " + status.getReasonPhrase());
-                    throw new StorageDriverException(getDriverName(), INTERNAL_SERVER_ERROR, true);
-            }
+        VitamRequestBuilder requestBuilder = delete()
+            .withPath(OBJECTS_PATH + "/" + DataCategory.getByFolder(request.getType()) + "/" + request.getGuid())
+            .withHeader(GlobalDataRest.X_TENANT_ID, request.getTenantId())
+            .withJsonAccept();
+        try (Response response = make(requestBuilder)) {
+            checkStorageException(response);
+
+            final JsonNode json = response.readEntity(JsonNode.class);
+            return new StorageRemoveResult(request.getTenantId(), request.getType(),
+                request.getGuid(), Status.OK.toString().equals(json.get("status").asText()));
         } catch (final VitamClientInternalException e) {
             LOGGER.error(VitamCodeHelper.getLogMessage(VitamCode.STORAGE_TECHNICAL_INTERNAL_ERROR), e);
             throw new StorageDriverException(getDriverName(), true, e);
-        } finally {
-            consumeAnyEntityAndClose(response);
         }
     }
 
@@ -424,14 +370,14 @@ public class ConnectionImpl extends AbstractConnection {
         ParametersChecker.checkParameter(REQUEST_IS_A_MANDATORY_PARAMETER, request);
         ParametersChecker.checkParameter(GUID_IS_A_MANDATORY_PARAMETER, request.getGuid());
         ParametersChecker.checkParameter(TENANT_IS_A_MANDATORY_PARAMETER, request.getTenantId());
-        Response response = null;
-        try {
-            response = performRequest(HttpMethod.HEAD,
-                OBJECTS_PATH + "/" + DataCategory.getByFolder(request.getType()) + "/" + request.getGuid(),
-                getDefaultHeaders(request.getTenantId(), null, null, null, null),
-                MediaType.APPLICATION_OCTET_STREAM_TYPE);
 
-            final Response.Status status = Response.Status.fromStatusCode(response.getStatus());
+        VitamRequestBuilder requestBuilder = head()
+            .withPath(OBJECTS_PATH + "/" + DataCategory.getByFolder(request.getType()) + "/" + request.getGuid())
+            .withHeader(GlobalDataRest.X_TENANT_ID, request.getTenantId())
+            .withJsonAccept();
+
+        try (Response response = make(requestBuilder)) {
+            final Status status = fromStatusCode(response.getStatus());
             switch (status) {
                 case OK:
                 case NO_CONTENT:
@@ -439,8 +385,8 @@ public class ConnectionImpl extends AbstractConnection {
                 case NOT_FOUND:
                     return false;
                 case BAD_REQUEST:
-                    LOGGER.error("Bad request");
-                    throw new StorageDriverPreconditionFailedException(getDriverName(), "Bad request");
+                    LOGGER.error(BAD_REQUEST_ERROR_MESSAGE);
+                    throw new StorageDriverPreconditionFailedException(getDriverName(), BAD_REQUEST_ERROR_MESSAGE);
                 default:
                     LOGGER.error(INTERNAL_SERVER_ERROR + " : " + status.getReasonPhrase());
                     throw new StorageDriverException(getDriverName(), INTERNAL_SERVER_ERROR, true);
@@ -448,73 +394,7 @@ public class ConnectionImpl extends AbstractConnection {
         } catch (final VitamClientInternalException e) {
             LOGGER.error(VitamCodeHelper.getLogMessage(VitamCode.STORAGE_TECHNICAL_INTERNAL_ERROR), e);
             throw new StorageDriverException(getDriverName(), true, e);
-        } finally {
-            consumeAnyEntityAndClose(response);
         }
-    }
-
-    /**
-     * Common method to handle response status
-     *
-     * @param response the response to be handled
-     * @param responseType the type to map the response into
-     * @param <R> the class type to be returned
-     * @return the response mapped as a POJO
-     * @throws StorageDriverException if any from the server
-     */
-    protected <R> R handleResponseStatus(Response response, Class<R> responseType) throws StorageDriverException {
-        final Response.Status status = Response.Status.fromStatusCode(response.getStatus());
-        switch (status) {
-            case CREATED:
-            case OK:
-                return response.readEntity(responseType);
-            case INTERNAL_SERVER_ERROR:
-                LOGGER.error(VitamCodeHelper.getLogMessage(VitamCode.STORAGE_TECHNICAL_INTERNAL_ERROR));
-                throw new StorageDriverException(getDriverName(), status.getReasonPhrase(), true);
-            case NOT_FOUND:
-                // FIXME P1 : clean useless case
-                LOGGER.error(status.getReasonPhrase());
-                throw new StorageDriverNotFoundException(getDriverName(), status.getReasonPhrase());
-            case SERVICE_UNAVAILABLE:
-                LOGGER.error(status.getReasonPhrase());
-                throw new StorageDriverServiceUnavailableException(getDriverName(), status.getReasonPhrase());
-            case CONFLICT:
-                LOGGER.error(status.getReasonPhrase());
-                throw new StorageDriverConflictException(getDriverName(), status.getReasonPhrase());
-            default:
-                LOGGER.error(INTERNAL_SERVER_ERROR + " : " + status.getReasonPhrase());
-                throw new StorageDriverException(getDriverName(), INTERNAL_SERVER_ERROR, true);
-        }
-    }
-
-    /**
-     * Generate the default header map
-     *
-     * @param tenantId the tenantId
-     * @param digest the digest of the object to be added
-     * @param digestType the type of the digest to be added
-     * @param size
-     * @return header map
-     */
-    private MultivaluedHashMap<String, Object> getDefaultHeaders(Integer tenantId, String digest,
-        String digestType, Long size, Boolean noCache) {
-        final MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
-        if (tenantId != null) {
-            headers.add(GlobalDataRest.X_TENANT_ID, tenantId);
-        }
-        if (digest != null) {
-            headers.add(GlobalDataRest.X_DIGEST, digest);
-        }
-        if (digestType != null) {
-            headers.add(GlobalDataRest.X_DIGEST_ALGORITHM, digestType);
-        }
-        if (size != null) {
-            headers.add(GlobalDataRest.VITAM_CONTENT_LENGTH, size);
-        }
-        if (noCache != null) {
-            headers.add(GlobalDataRest.X_OFFER_NO_CACHE, noCache);
-        }
-        return headers;
     }
 
     @Override
@@ -523,30 +403,20 @@ public class ConnectionImpl extends AbstractConnection {
         ParametersChecker.checkParameter(TENANT_IS_A_MANDATORY_PARAMETER, request.getTenantId());
         ParametersChecker.checkParameter(FOLDER_IS_A_MANDATORY_PARAMETER, request.getType());
         ParametersChecker.checkParameter(GUID_IS_A_MANDATORY_PARAMETER, request.getGuid());
-        Response response = null;
-        try {
-            response = performRequest(HttpMethod.GET,
-                OBJECTS_PATH + "/" + DataCategory.getByFolder(request.getType()) + "/" + request.getGuid() + METADATAS,
-                getDefaultHeaders(request.getTenantId(), null, null, null, request.isNoCache()),
-                MediaType.APPLICATION_JSON_TYPE);
-            final Response.Status status = Response.Status.fromStatusCode(response.getStatus());
-            switch (status) {
-                case OK:
-                    return handleResponseStatus(response, StorageMetadataResult.class);
-                case NOT_FOUND:
-                    throw new StorageDriverNotFoundException(getDriverName(),
-                        "Object " + request.getGuid() + " not found");
-                default:
-                    LOGGER.error(INTERNAL_SERVER_ERROR + " : " + status.getReasonPhrase());
-                    throw new StorageDriverException(getDriverName(),
-                        INTERNAL_SERVER_ERROR, true);
-            }
+
+        VitamRequestBuilder requestBuilder = get()
+            .withPath(OBJECTS_PATH + "/" + DataCategory.getByFolder(request.getType()) + "/" + request.getGuid() + METADATAS)
+            .withHeader(GlobalDataRest.X_TENANT_ID, request.getTenantId())
+            .withHeader(GlobalDataRest.X_OFFER_NO_CACHE, request.isNoCache())
+            .withJsonAccept();
+
+        try (Response response = make(requestBuilder)) {
+            checkStorageException(response);
+            return response.readEntity(StorageMetadataResult.class);
         } catch (VitamClientInternalException e) {
             LOGGER.error(VitamCodeHelper.getLogMessage(VitamCode.STORAGE_TECHNICAL_INTERNAL_ERROR), e);
             throw new StorageDriverException(getDriverName(),
                 VitamCodeHelper.getLogMessage(VitamCode.STORAGE_TECHNICAL_INTERNAL_ERROR), true, e);
-        } finally {
-            consumeAnyEntityAndClose(response);
         }
     }
 
@@ -556,23 +426,22 @@ public class ConnectionImpl extends AbstractConnection {
         ParametersChecker.checkParameter(TENANT_IS_A_MANDATORY_PARAMETER, request.getTenantId());
         ParametersChecker.checkParameter(TYPE_IS_A_MANDATORY_PARAMETER, request.getType());
         ParametersChecker.checkParameter("X-Cursor is mandatory", request.isxCursor());
-        Response response = null;
-        try {
-            MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
-            headers.add(GlobalDataRest.X_TENANT_ID, request.getTenantId());
-            headers.add(GlobalDataRest.X_CURSOR, request.isxCursor());
-            if (request.getCursorId() != null) {
-                headers.add(GlobalDataRest.X_CURSOR_ID, request.getCursorId());
-            }
-            response =
-                performRequest(HttpMethod.GET, OBJECTS_PATH + "/" + DataCategory.getByFolder(request.getType()),
-                    headers, MediaType.APPLICATION_JSON_TYPE);
-            return RequestResponse.<JsonNode>parseFromResponse(response);
+
+        VitamRequestBuilder requestBuilder = get()
+            .withPath(OBJECTS_PATH + "/" + DataCategory.getByFolder(request.getType()))
+            .withHeader(GlobalDataRest.X_TENANT_ID, request.getTenantId())
+            .withHeader(GlobalDataRest.X_CURSOR, request.isxCursor())
+            .withJsonAccept();
+
+        if (request.getCursorId() != null) {
+            requestBuilder.withHeader(GlobalDataRest.X_CURSOR_ID, request.getCursorId());
+        }
+
+        try (Response response = make(requestBuilder)) {
+            return RequestResponse.parseFromResponse(response);
         } catch (Exception exc) {
             LOGGER.error(VitamCodeHelper.getLogMessage(VitamCode.STORAGE_TECHNICAL_INTERNAL_ERROR), exc);
             throw new StorageDriverException(getDriverName(), true, exc);
-        } finally {
-            consumeAnyEntityAndClose(response);
         }
     }
 
@@ -583,24 +452,22 @@ public class ConnectionImpl extends AbstractConnection {
         ParametersChecker.checkParameter(TENANT_IS_A_MANDATORY_PARAMETER, storageGetOfferLogRequest.getTenantId());
         ParametersChecker.checkParameter(TYPE_IS_A_MANDATORY_PARAMETER, storageGetOfferLogRequest.getType());
         ParametersChecker.checkParameter(ORDER_IS_A_MANDATORY_PARAMETER, storageGetOfferLogRequest.getOrder());
-        Response response = null;
-        try {
-            MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
-            headers.add(GlobalDataRest.X_TENANT_ID, storageGetOfferLogRequest.getTenantId());
-            OfferLogRequest offerLogRequest = new OfferLogRequest();
-            offerLogRequest.setOffset(storageGetOfferLogRequest.getOffset());
-            offerLogRequest.setLimit(storageGetOfferLogRequest.getLimit());
-            offerLogRequest.setOrder(storageGetOfferLogRequest.getOrder());
-            response =
-                performRequest(HttpMethod.GET,
-                    OBJECTS_PATH + "/" + DataCategory.getByFolder(storageGetOfferLogRequest.getType()) + LOGS_PATH,
-                    headers, offerLogRequest, MediaType.APPLICATION_JSON_TYPE, MediaType.APPLICATION_JSON_TYPE);
+
+        OfferLogRequest offerLogRequest = new OfferLogRequest();
+        offerLogRequest.setOffset(storageGetOfferLogRequest.getOffset());
+        offerLogRequest.setLimit(storageGetOfferLogRequest.getLimit());
+        offerLogRequest.setOrder(storageGetOfferLogRequest.getOrder());
+
+        VitamRequestBuilder requestBuilder = get()
+            .withPath(OBJECTS_PATH + "/" + DataCategory.getByFolder(storageGetOfferLogRequest.getType()) + LOGS_PATH)
+            .withHeader(GlobalDataRest.X_TENANT_ID, storageGetOfferLogRequest.getTenantId())
+            .withBody(offerLogRequest)
+            .withJson();
+
+        try (Response response = make(requestBuilder)) {
             return RequestResponse.parseFromResponse(response, OfferLog.class);
         } catch (Exception exc) {
-            LOGGER.error(VitamCodeHelper.getLogMessage(VitamCode.STORAGE_TECHNICAL_INTERNAL_ERROR), exc);
             throw new StorageDriverException(getDriverName(), true, exc);
-        } finally {
-            consumeAnyEntityAndClose(response);
         }
     }
 }

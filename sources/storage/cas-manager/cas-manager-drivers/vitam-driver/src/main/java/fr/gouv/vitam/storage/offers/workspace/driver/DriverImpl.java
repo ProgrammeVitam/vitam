@@ -64,7 +64,7 @@ public class DriverImpl extends AbstractDriver {
     static class DriverClientFactory extends VitamClientFactory<ConnectionImpl> {
         final Properties parameters;
 
-        protected DriverClientFactory(ClientConfiguration configuration, String resourcePath, Properties parameters) {
+        DriverClientFactory(ClientConfiguration configuration, String resourcePath, Properties parameters) {
             super(configuration, resourcePath);
             enableUseAuthorizationFilter();
             this.parameters = parameters;
@@ -72,7 +72,7 @@ public class DriverImpl extends AbstractDriver {
 
         @Override
         public ConnectionImpl getClient() {
-            return new ConnectionImpl(DRIVER_NAME, this, parameters);
+            return new ConnectionImpl(DRIVER_NAME, this);
         }
 
     }
@@ -89,7 +89,7 @@ public class DriverImpl extends AbstractDriver {
      *
      * @return the instance
      */
-    public static final DriverImpl getInstance() {
+    public static DriverImpl getInstance() {
         return DRIVER_IMPL;
     }
 
@@ -117,14 +117,7 @@ public class DriverImpl extends AbstractDriver {
         return factory.getClient();
     }
 
-
-    /**
-     * Change client configuration from a Yaml files
-     *
-     * @param offer the path to the configuration file
-     * @return ClientConfiguration
-     */
-    static final ClientConfiguration changeConfigurationFile(StorageOffer offer) {
+    private static ClientConfiguration changeConfigurationFile(StorageOffer offer) {
         ClientConfiguration configuration = null;
         ParametersChecker.checkParameter("StorageOffer cannot be null", offer);
         try {
