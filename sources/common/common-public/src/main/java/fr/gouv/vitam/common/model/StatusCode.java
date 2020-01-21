@@ -107,6 +107,10 @@ public enum StatusCode {
         return compareTo(FATAL) >= 0;
     }
 
+    public boolean isGreaterOrEqualToStarted() {
+        return compareTo(STARTED) >= 0;
+    }
+
     /**
      * @return the HTTP Status equivalent to this StatusCode for OK, KO and WARNING status
      */
@@ -121,30 +125,8 @@ public enum StatusCode {
             case KO:
                 return Status.BAD_REQUEST;
             case FATAL:
-                return Status.INTERNAL_SERVER_ERROR;
             default:
                 return Status.INTERNAL_SERVER_ERROR;
         }
-    }
-
-    /**
-     * @param status
-     * @return returns the StatusCode equivalent to the given HTTP status
-     */
-    public static StatusCode parseFromHttpStatus(int status) {
-        StatusCode statusCode = StatusCode.OK;
-        if (Status.OK.getStatusCode() != status) {
-            if (Status.PARTIAL_CONTENT.getStatusCode() == status) {
-                statusCode = StatusCode.WARNING;
-            } else if (Status.PARTIAL_CONTENT.getStatusCode() == status) {
-                statusCode = StatusCode.ALREADY_EXECUTED;
-            } else if (Status.INTERNAL_SERVER_ERROR.getStatusCode() == status) {
-                statusCode = StatusCode.FATAL;
-            } else {
-                statusCode = StatusCode.KO;
-            }
-        }
-
-        return statusCode;
     }
 }

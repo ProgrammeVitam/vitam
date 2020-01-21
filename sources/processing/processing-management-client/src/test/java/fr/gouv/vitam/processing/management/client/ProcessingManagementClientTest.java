@@ -32,6 +32,7 @@ import fr.gouv.vitam.common.error.VitamError;
 import fr.gouv.vitam.common.exception.BadRequestException;
 import fr.gouv.vitam.common.exception.InternalServerException;
 import fr.gouv.vitam.common.exception.VitamClientException;
+import fr.gouv.vitam.common.exception.VitamClientInternalException;
 import fr.gouv.vitam.common.exception.WorkflowNotFoundException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.model.ItemStatus;
@@ -47,6 +48,7 @@ import fr.gouv.vitam.common.server.application.junit.ResteasyTestApplication;
 import fr.gouv.vitam.common.serverv2.VitamServerTestRunner;
 import fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess;
 import fr.gouv.vitam.processing.common.ProcessingEntry;
+import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import org.assertj.core.api.Assertions;
 import org.junit.AfterClass;
 import org.junit.Before;
@@ -70,24 +72,18 @@ import javax.ws.rs.core.Response.Status;
 import java.util.Optional;
 import java.util.Set;
 
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.junit.Assert.fail;
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.when;
 
 
 public class ProcessingManagementClientTest extends ResteasyTestApplication {
-    private static final String WORKFLOWID = "json1";
-    private static final String CONTAINER = "c1";
-    private static final String ACTION_ID = "action1";
-    private static final String ID = "id1";
-
     protected final static ExpectedResults mock = mock(ExpectedResults.class);
 
-    static ProcessingManagementClientFactory factory = ProcessingManagementClientFactory.getInstance();
-    public static VitamServerTestRunner
-        vitamServerTestRunner =
+    private static ProcessingManagementClientFactory factory = ProcessingManagementClientFactory.getInstance();
+    private static VitamServerTestRunner vitamServerTestRunner =
         new VitamServerTestRunner(ProcessingManagementClientTest.class, factory);
 
 
@@ -115,7 +111,7 @@ public class ProcessingManagementClientTest extends ResteasyTestApplication {
     public static class ProcessingResource {
         private final ExpectedResults mock;
 
-        public ProcessingResource(ExpectedResults mock) {
+        ProcessingResource(ExpectedResults mock) {
             this.mock = mock;
         }
 
@@ -278,28 +274,28 @@ public class ProcessingManagementClientTest extends ResteasyTestApplication {
                 .build());
         try (ProcessingManagementClientRest client = (ProcessingManagementClientRest) vitamServerTestRunner
             .getClient()) {
-            RequestResponse<ItemStatus>
-                resp = client.executeCheckTraceabilityWorkFlow("FakeOp", JsonHandler.createObjectNode(), "FakeWorkflow",
-                "FakeAction");
-            Assertions.assertThat(resp.isOk()).isFalse();
-            resp = client.executeOperationProcess("FakeOp", "FakeWorkflow", "FakeAction");
-            Assertions.assertThat(resp.isOk()).isFalse();
-            Assertions.assertThat(resp.getHttpCode()).isEqualTo(Status.CONFLICT.getStatusCode());
+            assertThatThrownBy(() -> client.executeCheckTraceabilityWorkFlow("FakeOp", JsonHandler.createObjectNode(),
+                "FakeWorkflow", "FakeAction"))
+                .isInstanceOf(VitamClientException.class)
+                .hasMessageContaining("Conflict");
+
+            assertThatThrownBy(() -> client.executeOperationProcess("FakeOp", "FakeWorkflow", "FakeAction"))
+            .isInstanceOf(VitamClientException.class)
+            .hasMessageContaining("Conflict");
         }
 
         when(mock.post()).thenReturn(
             Response.status(Status.PRECONDITION_FAILED)
                 .entity(vitamError)
                 .build());
-        try (ProcessingManagementClientRest client = (ProcessingManagementClientRest) vitamServerTestRunner
-            .getClient()) {
-            RequestResponse<ItemStatus>
-                resp = client.executeCheckTraceabilityWorkFlow("FakeOp", JsonHandler.createObjectNode(), "FakeWorkflow",
-                "FakeAction");
-            Assertions.assertThat(resp.isOk()).isFalse();
-            resp = client.executeOperationProcess("FakeOp", "FakeWorkflow", "FakeAction");
-            Assertions.assertThat(resp.isOk()).isFalse();
-            Assertions.assertThat(resp.getHttpCode()).isEqualTo(Status.PRECONDITION_FAILED.getStatusCode());
+        try (ProcessingManagementClientRest client = (ProcessingManagementClientRest) vitamServerTestRunner.getClient()) {
+            assertThatThrownBy(() -> client.executeCheckTraceabilityWorkFlow("FakeOp", JsonHandler.createObjectNode(),
+                "FakeWorkflow", "FakeAction"))
+                .isInstanceOf(VitamClientException.class)
+                .hasMessageContaining("Precondition Failed");
+            assertThatThrownBy(() -> client.executeOperationProcess("FakeOp", "FakeWorkflow", "FakeAction"))
+                .isInstanceOf(VitamClientException.class)
+                .hasMessageContaining("Precondition Failed");
         }
 
         when(mock.post()).thenReturn(
@@ -308,17 +304,18 @@ public class ProcessingManagementClientTest extends ResteasyTestApplication {
                 .build());
         try (ProcessingManagementClientRest client = (ProcessingManagementClientRest) vitamServerTestRunner
             .getClient()) {
-            RequestResponse<ItemStatus>
-                resp = client.executeCheckTraceabilityWorkFlow("FakeOp", JsonHandler.createObjectNode(), "FakeWorkflow",
-                "FakeAction");
-            Assertions.assertThat(resp.isOk()).isFalse();
-            resp = client.executeOperationProcess("FakeOp", "FakeWorkflow", "FakeAction");
-            Assertions.assertThat(resp.isOk()).isFalse();
-            Assertions.assertThat(resp.getHttpCode()).isEqualTo(Status.INTERNAL_SERVER_ERROR.getStatusCode());
+            assertThatThrownBy(() -> client.executeCheckTraceabilityWorkFlow("FakeOp", JsonHandler.createObjectNode(),
+                "FakeWorkflow","FakeAction"))
+            .isInstanceOf(InternalServerException.class)
+            .hasMessageContaining("Internal Server Error");
+            assertThatThrownBy(() -> client.executeOperationProcess("FakeOp", "FakeWorkflow",
+                "FakeAction"))
+                .isInstanceOf(InternalServerException.class)
+                .hasMessageContaining("Internal Server Error");
         }
     }
 
-    @Test(expected = InternalServerException.class)
+    @Test
     public void test_execute_and_check_traceability_workFlow_parse_error() throws Exception {
         when(mock.post()).thenReturn(
             Response.status(Status.INTERNAL_SERVER_ERROR)
@@ -326,13 +323,12 @@ public class ProcessingManagementClientTest extends ResteasyTestApplication {
                 .build());
         try (ProcessingManagementClientRest client = (ProcessingManagementClientRest) vitamServerTestRunner
             .getClient()) {
-            RequestResponse<ItemStatus>
-                resp = client.executeCheckTraceabilityWorkFlow("FakeOp", JsonHandler.createObjectNode(), "FakeWorkflow",
-                "FakeAction");
-            Assertions.assertThat(resp.isOk()).isFalse();
-            resp = client.executeOperationProcess("FakeOp", "FakeWorkflow", "FakeAction");
-            Assertions.assertThat(resp.isOk()).isFalse();
-            Assertions.assertThat(resp.getHttpCode()).isEqualTo(Status.INTERNAL_SERVER_ERROR.getStatusCode());
+            assertThatThrownBy(() -> client.executeCheckTraceabilityWorkFlow("FakeOp", JsonHandler.createObjectNode(),
+                "FakeWorkflow","FakeAction"));
+
+            assertThatThrownBy(() -> client.executeOperationProcess("FakeOp", "FakeWorkflow", "FakeAction"))
+            .isInstanceOf(InternalServerException.class)
+            .hasMessageContaining("Internal Server Error");
         }
     }
 
@@ -363,37 +359,30 @@ public class ProcessingManagementClientTest extends ResteasyTestApplication {
             Response.status(Status.CONFLICT)
                 .entity(vitamError)
                 .build());
-        try (ProcessingManagementClientRest client = (ProcessingManagementClientRest) vitamServerTestRunner
-            .getClient()) {
-            RequestResponse<ItemStatus>
-                resp = client.updateOperationActionProcess("FakeAction", "FakeOp");
-            Assertions.assertThat(resp.isOk()).isFalse();
-            Assertions.assertThat(resp.getHttpCode()).isEqualTo(Status.CONFLICT.getStatusCode());
-
+        try (ProcessingManagementClientRest client = (ProcessingManagementClientRest) vitamServerTestRunner.getClient()) {
+            assertThatThrownBy(() -> client.updateOperationActionProcess("FakeAction", "FakeOp"))
+            .isInstanceOf(VitamClientException.class)
+            .hasMessageContaining("Conflict");
         }
 
         when(mock.put()).thenReturn(
             Response.status(Status.PRECONDITION_FAILED)
                 .entity(vitamError)
                 .build());
-        try (ProcessingManagementClientRest client = (ProcessingManagementClientRest) vitamServerTestRunner
-            .getClient()) {
-            RequestResponse<ItemStatus>
-                resp = client.updateOperationActionProcess("FakeAction", "FakeOp");
-            Assertions.assertThat(resp.isOk()).isFalse();
-            Assertions.assertThat(resp.getHttpCode()).isEqualTo(Status.PRECONDITION_FAILED.getStatusCode());
+        try (ProcessingManagementClientRest client = (ProcessingManagementClientRest) vitamServerTestRunner.getClient()) {
+            assertThatThrownBy(() -> client.updateOperationActionProcess("FakeAction", "FakeOp"))
+            .isInstanceOf(VitamClientException.class)
+            .hasMessageContaining("Precondition Failed");
         }
 
         when(mock.put()).thenReturn(
             Response.status(Status.INTERNAL_SERVER_ERROR)
                 .entity(vitamError)
                 .build());
-        try (ProcessingManagementClientRest client = (ProcessingManagementClientRest) vitamServerTestRunner
-            .getClient()) {
-            RequestResponse<ItemStatus>
-                resp = client.updateOperationActionProcess("FakeAction", "FakeOp");
-            Assertions.assertThat(resp.isOk()).isFalse();
-            Assertions.assertThat(resp.getHttpCode()).isEqualTo(Status.INTERNAL_SERVER_ERROR.getStatusCode());
+        try (ProcessingManagementClientRest client = (ProcessingManagementClientRest) vitamServerTestRunner.getClient()) {
+            assertThatThrownBy(() -> client.updateOperationActionProcess("FakeAction", "FakeOp"))
+            .isInstanceOf(InternalServerException.class)
+            .hasMessageContaining("Internal Server Error");
         }
     }
 
@@ -476,13 +465,10 @@ public class ProcessingManagementClientTest extends ResteasyTestApplication {
             Response.status(Status.PRECONDITION_FAILED)
                 .entity(vitamError)
                 .build());
-        try (ProcessingManagementClientRest client = (ProcessingManagementClientRest) vitamServerTestRunner
-            .getClient()) {
-            RequestResponse<ItemStatus>
-                resp = client.getOperationProcessExecutionDetails("FakeOp");
-            Assertions.assertThat(resp.isOk()).isFalse();
-            Assertions.assertThat(resp.getHttpCode()).isEqualTo(Status.PRECONDITION_FAILED.getStatusCode());
-
+        try (ProcessingManagementClientRest client = (ProcessingManagementClientRest) vitamServerTestRunner.getClient()) {
+            assertThatThrownBy(() -> client.getOperationProcessExecutionDetails("FakeOp"))
+            .isInstanceOf(VitamClientException.class)
+            .hasMessageContaining("Precondition Failed");
         }
 
         when(mock.get()).thenReturn(
@@ -491,22 +477,19 @@ public class ProcessingManagementClientTest extends ResteasyTestApplication {
                 .build());
         try (ProcessingManagementClientRest client = (ProcessingManagementClientRest) vitamServerTestRunner
             .getClient()) {
-            RequestResponse<ItemStatus>
-                resp = client.getOperationProcessExecutionDetails("FakeOp");
-            Assertions.assertThat(resp.isOk()).isFalse();
-            Assertions.assertThat(resp.getHttpCode()).isEqualTo(Status.NOT_FOUND.getStatusCode());
+            assertThatThrownBy(() -> client.getOperationProcessExecutionDetails("FakeOp"))
+            .isInstanceOf(VitamClientException.class)
+            .hasMessageContaining("Not Found");
         }
 
         when(mock.get()).thenReturn(
             Response.status(Status.INTERNAL_SERVER_ERROR)
                 .entity(vitamError)
                 .build());
-        try (ProcessingManagementClientRest client = (ProcessingManagementClientRest) vitamServerTestRunner
-            .getClient()) {
-            RequestResponse<ItemStatus>
-                resp = client.getOperationProcessExecutionDetails("FakeOp");
-            Assertions.assertThat(resp.isOk()).isFalse();
-            Assertions.assertThat(resp.getHttpCode()).isEqualTo(Status.INTERNAL_SERVER_ERROR.getStatusCode());
+        try (ProcessingManagementClientRest client = (ProcessingManagementClientRest) vitamServerTestRunner.getClient()) {
+            assertThatThrownBy(() -> client.getOperationProcessExecutionDetails("FakeOp"))
+            .isInstanceOf(InternalServerException.class)
+            .hasMessageContaining("Internal Server Error");
         }
     }
 
@@ -539,35 +522,28 @@ public class ProcessingManagementClientTest extends ResteasyTestApplication {
                 .build());
         try (ProcessingManagementClientRest client = (ProcessingManagementClientRest) vitamServerTestRunner
             .getClient()) {
-            RequestResponse<ItemStatus>
-                resp = client.cancelOperationProcessExecution("FakeOp");
-            Assertions.assertThat(resp.isOk()).isFalse();
-            Assertions.assertThat(resp.getHttpCode()).isEqualTo(Status.CONFLICT.getStatusCode());
-
+            assertThatThrownBy(() -> client.cancelOperationProcessExecution("FakeOp"))
+            .isInstanceOf(VitamClientException.class)
+            .hasMessageContaining("Conflict");
         }
 
         when(mock.delete()).thenReturn(
             Response.status(Status.PRECONDITION_FAILED)
                 .entity(vitamError)
                 .build());
-        try (ProcessingManagementClientRest client = (ProcessingManagementClientRest) vitamServerTestRunner
-            .getClient()) {
-            RequestResponse<ItemStatus>
-                resp = client.cancelOperationProcessExecution("FakeOp");
-            Assertions.assertThat(resp.isOk()).isFalse();
-            Assertions.assertThat(resp.getHttpCode()).isEqualTo(Status.PRECONDITION_FAILED.getStatusCode());
+        try (ProcessingManagementClientRest client = (ProcessingManagementClientRest) vitamServerTestRunner.getClient()) {
+            assertThatThrownBy(() -> client.cancelOperationProcessExecution("FakeOp"))
+            .isInstanceOf(VitamClientException.class);
         }
 
         when(mock.delete()).thenReturn(
             Response.status(Status.INTERNAL_SERVER_ERROR)
                 .entity(vitamError)
                 .build());
-        try (ProcessingManagementClientRest client = (ProcessingManagementClientRest) vitamServerTestRunner
-            .getClient()) {
-            RequestResponse<ItemStatus>
-                resp = client.cancelOperationProcessExecution("FakeOp");
-            Assertions.assertThat(resp.isOk()).isFalse();
-            Assertions.assertThat(resp.getHttpCode()).isEqualTo(Status.INTERNAL_SERVER_ERROR.getStatusCode());
+        try (ProcessingManagementClientRest client = (ProcessingManagementClientRest) vitamServerTestRunner.getClient()) {
+            assertThatThrownBy(() -> client.cancelOperationProcessExecution("FakeOp"))
+            .isInstanceOf(InternalServerException.class)
+            .hasMessageContaining("Internal Server Error");
         }
     }
 
@@ -694,12 +670,10 @@ public class ProcessingManagementClientTest extends ResteasyTestApplication {
             Response.status(Status.INTERNAL_SERVER_ERROR)
                 .entity(vitamError)
                 .build());
-        try (ProcessingManagementClientRest client = (ProcessingManagementClientRest) vitamServerTestRunner
-            .getClient()) {
-            RequestResponse<ProcessDetail>
-                resp = client.listOperationsDetails(new ProcessQuery());
-            Assertions.assertThat(resp.isOk()).isFalse();
-            Assertions.assertThat(resp.getHttpCode()).isEqualTo(Status.INTERNAL_SERVER_ERROR.getStatusCode());
+        try (ProcessingManagementClientRest client = (ProcessingManagementClientRest) vitamServerTestRunner.getClient()) {
+            assertThatThrownBy(() -> client.listOperationsDetails(new ProcessQuery()))
+            .isInstanceOf(VitamClientException.class)
+            .hasMessageContaining("Internal Server Error");
         }
     }
 
@@ -729,10 +703,9 @@ public class ProcessingManagementClientTest extends ResteasyTestApplication {
                 .build());
         try (ProcessingManagementClientRest client = (ProcessingManagementClientRest) vitamServerTestRunner
             .getClient()) {
-            RequestResponse<WorkFlow>
-                resp = client.getWorkflowDefinitions();
-            Assertions.assertThat(resp.isOk()).isFalse();
-            Assertions.assertThat(resp.getHttpCode()).isEqualTo(Status.INTERNAL_SERVER_ERROR.getStatusCode());
+            assertThatThrownBy(client::getWorkflowDefinitions)
+            .isInstanceOf(VitamClientException.class)
+            .hasMessageContaining("Internal Server Error");
         }
     }
 
@@ -796,11 +769,10 @@ public class ProcessingManagementClientTest extends ResteasyTestApplication {
             Response.status(Status.BAD_REQUEST)
                 .entity(vitamError)
                 .build());
-        try (ProcessingManagementClientRest client = (ProcessingManagementClientRest) vitamServerTestRunner
-            .getClient()) {
-            RequestResponse<ProcessPause> resp = client.forcePause(new ProcessPause());
-            Assertions.assertThat(resp.isOk()).isFalse();
-            Assertions.assertThat(resp.getHttpCode()).isEqualTo(Status.BAD_REQUEST.getStatusCode());
+        try (ProcessingManagementClientRest client = (ProcessingManagementClientRest) vitamServerTestRunner.getClient()) {
+            assertThatThrownBy(() -> client.forcePause(new ProcessPause()))
+            .isInstanceOf(ProcessingException.class)
+            .hasCauseInstanceOf(BadRequestException.class);
         }
     }
 
@@ -828,11 +800,10 @@ public class ProcessingManagementClientTest extends ResteasyTestApplication {
             Response.status(Status.BAD_REQUEST)
                 .entity(vitamError)
                 .build());
-        try (ProcessingManagementClientRest client = (ProcessingManagementClientRest) vitamServerTestRunner
-            .getClient()) {
-            RequestResponse<ProcessPause> resp = client.removeForcePause(new ProcessPause());
-            Assertions.assertThat(resp.isOk()).isFalse();
-            Assertions.assertThat(resp.getHttpCode()).isEqualTo(Status.BAD_REQUEST.getStatusCode());
+        try (ProcessingManagementClientRest client = (ProcessingManagementClientRest) vitamServerTestRunner.getClient()) {
+            assertThatThrownBy(() -> client.removeForcePause(new ProcessPause()))
+            .isInstanceOf(ProcessingException.class)
+            .hasCauseInstanceOf(BadRequestException.class);
         }
     }
 }
