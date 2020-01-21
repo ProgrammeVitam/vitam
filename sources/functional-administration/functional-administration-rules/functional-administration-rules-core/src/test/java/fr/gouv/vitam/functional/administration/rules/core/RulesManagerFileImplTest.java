@@ -182,6 +182,7 @@ public class RulesManagerFileImplTest {
 
     private final static String HOST_NAME = "127.0.0.1";
     private static VitamCounterService vitamCounterService;
+    private static VitamRuleService vitamRuleService;
     static RulesManagerFileImpl rulesFileManager;
     private static MongoDbAccessAdminImpl dbImpl;
 
@@ -238,10 +239,9 @@ public class RulesManagerFileImplTest {
 
         LogbookOperationsClientFactory.changeMode(null);
         dbImpl = create(new DbConfigurationImpl(nodes, mongoRule.getMongoDatabase().getName()), Collections::emptyList);
-        List<Integer> tenants = new ArrayList<>();
-        Integer tenantsList[] = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12};
-        tenants.addAll(Arrays.asList(tenantsList));
-        createRuleDurationConfigration(tenants);
+        Integer[] tenantsList = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12};
+        List<Integer> tenants = new ArrayList<>(Arrays.asList(tenantsList));
+        vitamRuleService = getRuleDurationConfigration(tenants);
         vitamCounterService = new VitamCounterService(dbImpl, tenants, null);
 
     }
@@ -265,7 +265,8 @@ public class RulesManagerFileImplTest {
                 metaDataClientFactory,
                 processingManagementClientFactory,
                 workspaceClientFactory,
-                Collections::emptyList
+                Collections::emptyList,
+                vitamRuleService
             );
         FunctionalAdminCollections.afterTestClass(false);
         FunctionalAdminCollections.resetVitamSequenceCounter();
@@ -1110,7 +1111,7 @@ public class RulesManagerFileImplTest {
             eq(DataCategory.REPORT), anyString());
     }
 
-    private static void createRuleDurationConfigration(List<Integer> tenants) {
+    private static VitamRuleService getRuleDurationConfigration(List<Integer> tenants) {
         Map<Integer, Map<String, String>> durationList = new HashMap<>();
         Map<String, String> duration = new HashMap<>();
         duration.put(APPRAISAL_RULE, "6 day");
@@ -1119,7 +1120,7 @@ public class RulesManagerFileImplTest {
 
             durationList.put(tenant, duration);
         }
-        new VitamRuleService(durationList);
+        return new VitamRuleService(durationList);
     }
 
     @Test

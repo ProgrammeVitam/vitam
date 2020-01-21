@@ -32,6 +32,7 @@ import fr.gouv.vitam.common.database.api.VitamRepositoryFactory;
 import fr.gouv.vitam.common.database.api.VitamRepositoryProvider;
 import fr.gouv.vitam.common.database.collections.CachedOntologyLoader;
 import fr.gouv.vitam.common.exception.VitamException;
+import fr.gouv.vitam.common.exception.VitamRuntimeException;
 import fr.gouv.vitam.common.serverv2.application.CommonBusinessApplication;
 import fr.gouv.vitam.functional.administration.client.AdminManagementClient;
 import fr.gouv.vitam.functional.administration.client.AdminManagementClientFactory;
@@ -135,7 +136,7 @@ public class BusinessApplication extends Application {
             singletons.add(griffinResource);
 
         } catch (IOException | VitamException e) {
-            throw new RuntimeException(e);
+            throw new VitamRuntimeException(e);
         }
     }
 

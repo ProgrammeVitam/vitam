@@ -225,10 +225,10 @@ public class RulesManagerFileImpl implements ReferentialFile<FileRules> {
     // event in logbook
     private final String UPDATE_RULES_ARCHIVE_UNITS = Contexts.UPDATE_RULES_ARCHIVE_UNITS.name();
     private final OntologyLoader ontologyLoader;
+    private VitamRuleService vitamRuleService;
 
-
-    public RulesManagerFileImpl(MongoDbAccessAdminImpl dbConfiguration,
-        VitamCounterService vitamCounterService, OntologyLoader ontologyLoader) {
+    public RulesManagerFileImpl(MongoDbAccessAdminImpl dbConfiguration, VitamCounterService vitamCounterService,
+        OntologyLoader ontologyLoader, VitamRuleService vitamRuleService) {
         backupService = new FunctionalBackupService(vitamCounterService);
         this.mongoAccess = dbConfiguration;
         this.vitamCounterService = vitamCounterService;
@@ -237,6 +237,7 @@ public class RulesManagerFileImpl implements ReferentialFile<FileRules> {
         workspaceClientFactory = WorkspaceClientFactory.getInstance();
         processingManagementClientFactory = ProcessingManagementClientFactory.getInstance();
         this.ontologyLoader = ontologyLoader;
+        this.vitamRuleService = vitamRuleService;
     }
 
     @VisibleForTesting
@@ -246,7 +247,8 @@ public class RulesManagerFileImpl implements ReferentialFile<FileRules> {
         MetaDataClientFactory metaDataClientFactory,
         ProcessingManagementClientFactory processingManagementClientFactory,
         WorkspaceClientFactory workspaceClientFactory,
-        OntologyLoader ontologyLoader) {
+        OntologyLoader ontologyLoader,
+        VitamRuleService vitamRuleService) {
         this.mongoAccess = dbConfiguration;
         this.vitamCounterService = vitamCounterService;
         this.logbookOperationsClientFactory = logbookOperationsClientFactory;
@@ -255,6 +257,7 @@ public class RulesManagerFileImpl implements ReferentialFile<FileRules> {
         this.workspaceClientFactory = workspaceClientFactory;
         this.backupService = backupService;
         this.ontologyLoader = ontologyLoader;
+        this.vitamRuleService = vitamRuleService;
     }
 
     /**
@@ -1427,7 +1430,7 @@ public class RulesManagerFileImpl implements ReferentialFile<FileRules> {
         FileRulesModel fileRuleModel) {
         String ruleType = record.get(FileRulesModel.TAG_RULE_TYPE);
 
-        String[] min = VitamRuleService.getMinimumRuleDuration(getTenant(), ruleType).split(" ");
+        String[] min = vitamRuleService.getMinimumRuleDuration(getTenant(), ruleType).split(" ");
         int durationConf = 0;
         if (min.length == 2) {
             durationConf = calculDuration(min[0], min[1]);
@@ -1444,7 +1447,7 @@ public class RulesManagerFileImpl implements ReferentialFile<FileRules> {
     private int calculDuration(String ruleDuration, String ruleMeasurement) {
         int duration = 0;
 
-        if (ruleDuration.compareToIgnoreCase("unlimited") == 0) {
+        if (ruleDuration.equalsIgnoreCase(UNLIMITED)) {
             return MAX_DURATION;
         }
 
@@ -1619,7 +1622,7 @@ public class RulesManagerFileImpl implements ReferentialFile<FileRules> {
                     case STP_IMPORT_RULES_RULEDURATION_EXCEED:
                         ObjectNode info = JsonHandler.createObjectNode();
                         info.put("RuleType", error.getFileRulesModel().getRuleType());
-                        info.put("RuleDurationMin", VitamRuleService.getMinimumRuleDuration(getTenant(),
+                        info.put("RuleDurationMin", vitamRuleService.getMinimumRuleDuration(getTenant(),
                             error.getFileRulesModel().getRuleType()));
                         errorNode.set(ReportConstants.ADDITIONAL_INFORMATION, info);
                         break;
