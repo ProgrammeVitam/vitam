@@ -97,7 +97,9 @@ import java.util.Set;
 import java.util.stream.IntStream;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
@@ -108,8 +110,8 @@ import static org.mockito.Mockito.when;
 public class ConnectionImplTest extends ResteasyTestApplication {
 
     private static final Integer TENANT_ID = 1;
-    protected static final String HOSTNAME = "localhost";
-    protected static final String DEFAULT_GUID = "GUID";
+    private static final String HOSTNAME = "localhost";
+    private static final String DEFAULT_GUID = "GUID";
     private static int tenant;
     private static StorageOffer offer = new StorageOffer();
 
@@ -119,7 +121,7 @@ public class ConnectionImplTest extends ResteasyTestApplication {
 
     protected final static ExpectedResults mock = mock(ExpectedResults.class);
 
-    public static VitamServerTestRunner
+    private static VitamServerTestRunner
         vitamServerTestRunner = new VitamServerTestRunner(ConnectionImplTest.class);
 
 
@@ -146,7 +148,7 @@ public class ConnectionImplTest extends ResteasyTestApplication {
         return Sets.newHashSet(new MockResource(mock));
     }
 
-    public static void beforeTest() {
+    private static void beforeTest() {
         String offerId = "default" + new Random().nextDouble();
         offer.setId(offerId);
         offer.setBaseUrl("http://" + HOSTNAME + ":" + vitamServerTestRunner.getBusinessPort());
@@ -157,7 +159,7 @@ public class ConnectionImplTest extends ResteasyTestApplication {
     public static class MockResource {
         private final ExpectedResults mock;
 
-        public MockResource(ExpectedResults mock) {
+        MockResource(ExpectedResults mock) {
             this.mock = mock;
         }
 
@@ -240,7 +242,7 @@ public class ConnectionImplTest extends ResteasyTestApplication {
             return mock.put();
         }
 
-        protected void consumeAndCloseStream(InputStream stream) {
+        void consumeAndCloseStream(InputStream stream) {
             try {
                 if (null != stream) {
                     while (stream.read() > 0) {
@@ -445,7 +447,7 @@ public class ConnectionImplTest extends ResteasyTestApplication {
             final StorageCapacityResult result = connection.getStorageCapacity(tenant);
             assertNotNull(result);
             assertEquals(Integer.valueOf(tenant), result.getTenantId());
-            assertNotNull(result.getUsableSpace());
+            assertEquals(1000, result.getUsableSpace());
         }
     }
 
@@ -562,7 +564,7 @@ public class ConnectionImplTest extends ResteasyTestApplication {
         final StorageObjectRequest request = new StorageObjectRequest(tenant, DataCategory.OBJECT.getFolder(), "guid");
         try (Connection connection = driver.connect(offer.getId())) {
             final boolean found = connection.objectExistsInOffer(request);
-            assertEquals(false, found);
+            assertFalse(found);
         } catch (final StorageDriverException exc) {
             fail("Ne exception expected");
         }
@@ -574,7 +576,7 @@ public class ConnectionImplTest extends ResteasyTestApplication {
         final StorageObjectRequest request = new StorageObjectRequest(tenant, DataCategory.OBJECT.getFolder(), "guid");
         try (Connection connection = driver.connect(offer.getId())) {
             final boolean found = connection.objectExistsInOffer(request);
-            assertEquals(true, found);
+            assertTrue(found);
         } catch (final StorageDriverException exc) {
             fail("Ne exception expected");
         }
@@ -628,28 +630,14 @@ public class ConnectionImplTest extends ResteasyTestApplication {
     @Test
     public void deleteObjectTestIllegalArgument() throws Exception {
         try (Connection connection = driver.connect(offer.getId())) {
-            connection.removeObject(null);
-            fail("Should raized an exception");
-        } catch (IllegalArgumentException e) {
-
-        }
-        try (Connection connection = driver.connect(offer.getId())) {
-            connection.removeObject(getStorageRemoveRequest(false, true, true));
-            fail("Should raized an exception");
-        } catch (IllegalArgumentException e) {
-
-        }
-        try (Connection connection = driver.connect(offer.getId())) {
-            connection.removeObject(getStorageRemoveRequest(true, false, true));
-            fail("Should raized an exception");
-        } catch (IllegalArgumentException e) {
-
-        }
-        try (Connection connection = driver.connect(offer.getId())) {
-            connection.removeObject(getStorageRemoveRequest(true, true, false));
-            fail("Should raized an exception");
-        } catch (IllegalArgumentException e) {
-
+            assertThatThrownBy(() -> connection.removeObject(null))
+                .isInstanceOf(IllegalArgumentException.class);
+            assertThatThrownBy(() -> connection.removeObject(getStorageRemoveRequest(false, true, true)))
+                .isInstanceOf(IllegalArgumentException.class);
+            assertThatThrownBy(() -> connection.removeObject(getStorageRemoveRequest(true, false, true)))
+                .isInstanceOf(IllegalArgumentException.class);
+            assertThatThrownBy(() -> connection.removeObject(getStorageRemoveRequest(true, true, false)))
+                .isInstanceOf(IllegalArgumentException.class);
         }
     }
 
@@ -668,7 +656,7 @@ public class ConnectionImplTest extends ResteasyTestApplication {
             StorageRemoveResult storageRemoveResult2 =
                 connection.removeObject(getStorageRemoveRequest(true, true, true));
             assertNotNull(storageRemoveResult2);
-            assertTrue(!storageRemoveResult2.isObjectDeleted());
+            assertFalse(storageRemoveResult2.isObjectDeleted());
         }
     }
 
@@ -715,9 +703,7 @@ public class ConnectionImplTest extends ResteasyTestApplication {
         }
     }
 
-    private StorageRemoveRequest getStorageRemoveRequest(boolean putGuid,
-        boolean putTenantId, boolean putType)
-        throws Exception {
+    private StorageRemoveRequest getStorageRemoveRequest(boolean putGuid, boolean putTenantId, boolean putType) {
         String guid = null;
         Integer tenantId = null;
         String type = null;
@@ -733,14 +719,14 @@ public class ConnectionImplTest extends ResteasyTestApplication {
         return new StorageRemoveRequest(tenantId, type, guid);
     }
 
-    private JsonNode getRemoveObjectResult() throws IOException {
+    private JsonNode getRemoveObjectResult() {
         final ObjectNode result = JsonHandler.createObjectNode();
         result.put("id", DEFAULT_GUID);
         result.put("status", Response.Status.OK.toString());
         return result;
     }
 
-    private JsonNode getRemoveObjectResultNotFound() throws IOException {
+    private JsonNode getRemoveObjectResultNotFound() {
         final ObjectNode result = JsonHandler.createObjectNode();
         result.put("id", DEFAULT_GUID);
         result.put("status", Response.Status.NOT_FOUND.toString());
@@ -822,7 +808,7 @@ public class ConnectionImplTest extends ResteasyTestApplication {
         try (Connection connection = driver.connect(offer.getId())) {
             final RequestResponse<OfferLog> result = connection.getOfferLogs(offerLogRequest);
             assertNotNull(result);
-            assertEquals(false, result.isOk());
+            assertFalse(result.isOk());
             assertEquals(Status.INTERNAL_SERVER_ERROR.getStatusCode(), result.getHttpCode());
         }
     }
