@@ -102,6 +102,7 @@ import fr.gouv.vitam.functional.administration.contract.api.ContractService;
 import fr.gouv.vitam.functional.administration.contract.core.AccessContractImpl;
 import fr.gouv.vitam.functional.administration.format.core.ReferentialFormatFileImpl;
 import fr.gouv.vitam.functional.administration.rules.core.RulesManagerFileImpl;
+import fr.gouv.vitam.functional.administration.rules.core.VitamRuleService;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientAlreadyExistsException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientBadRequestException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientNotFoundException;
@@ -189,6 +190,7 @@ public class AdminManagementResource extends ApplicationStatusResource {
     private final ProcessingManagementClientFactory processingManagementClientFactory;
     private final MetaDataClientFactory metaDataClientFactory;
     private final LogbookOperationsClientFactory logbookOperationsClientFactory;
+    private final VitamRuleService vitamRuleService;
 
     public AdminManagementResource(AdminManagementConfiguration configuration, OntologyLoader ontologyLoader,
         OntologyLoader rulesOntologyLoader) {
@@ -210,6 +212,7 @@ public class AdminManagementResource extends ApplicationStatusResource {
         metaDataClientFactory = MetaDataClientFactory.getInstance();
         elasticsearchAccess = ElasticsearchAccessAdminFactory.create(configuration);
         mongoAccess = MongoDbAccessAdminFactory.create(adminConfiguration, ontologyLoader);
+        vitamRuleService = new VitamRuleService(configuration.getListMinimumRuleDuration());
         WorkspaceClientFactory.changeMode(configuration.getWorkspaceUrl());
         ProcessingManagementClientFactory.changeConfigurationUrl(configuration.getProcessingUrl());
         LOGGER.debug("init Admin Management Resource server");
@@ -395,7 +398,7 @@ public class AdminManagementResource extends ApplicationStatusResource {
         Set<String> notUsedUpdatedRules = new HashSet<>();
         try {
             RulesManagerFileImpl rulesManagerFileImpl =
-                new RulesManagerFileImpl(mongoAccess, vitamCounterService, this.rulesOntologyLoader);
+                new RulesManagerFileImpl(mongoAccess, vitamCounterService, this.rulesOntologyLoader, this.vitamRuleService);
 
             try {
                 rulesManagerFileImpl
@@ -434,7 +437,7 @@ public class AdminManagementResource extends ApplicationStatusResource {
         List<FileRulesModel> usedDeletedRules, List<FileRulesModel> usedUpdatedRules, OntologyLoader ontologyLoader) {
         InputStream errorReportInputStream;
         RulesManagerFileImpl rulesManagerFileImpl =
-            new RulesManagerFileImpl(mongoAccess, vitamCounterService, ontologyLoader);
+            new RulesManagerFileImpl(mongoAccess, vitamCounterService, ontologyLoader, this.vitamRuleService);
         errorReportInputStream =
             rulesManagerFileImpl.generateErrorReport(errors, usedDeletedRules, usedUpdatedRules, StatusCode.KO,
                 null);
@@ -461,7 +464,7 @@ public class AdminManagementResource extends ApplicationStatusResource {
         String filename = headers.getHeaderString(GlobalDataRest.X_FILENAME);
         try {
             RulesManagerFileImpl rulesFileManagement =
-                new RulesManagerFileImpl(mongoAccess, vitamCounterService, this.rulesOntologyLoader);
+                new RulesManagerFileImpl(mongoAccess, vitamCounterService, this.rulesOntologyLoader, this.vitamRuleService);
 
             rulesFileManagement.importFile(rulesStream, filename);
             return Response.status(Status.CREATED).entity(Status.CREATED.getReasonPhrase()).build();
@@ -501,7 +504,7 @@ public class AdminManagementResource extends ApplicationStatusResource {
         FileRules fileRules;
         try {
             RulesManagerFileImpl rulesFileManagement =
-                new RulesManagerFileImpl(mongoAccess, vitamCounterService, this.rulesOntologyLoader);
+                new RulesManagerFileImpl(mongoAccess, vitamCounterService, this.rulesOntologyLoader, this.vitamRuleService);
 
             SanityChecker.checkJsonAll(JsonHandler.toJsonNode(ruleId));
             fileRules = rulesFileManagement.findDocumentById(ruleId);
@@ -551,7 +554,7 @@ public class AdminManagementResource extends ApplicationStatusResource {
         RequestResponseOK<FileRules> filerulesList;
         try {
             RulesManagerFileImpl rulesFileManagement =
-                new RulesManagerFileImpl(mongoAccess, vitamCounterService, this.rulesOntologyLoader);
+                new RulesManagerFileImpl(mongoAccess, vitamCounterService, this.rulesOntologyLoader, this.vitamRuleService);
             SanityChecker.checkJsonAll(select);
             filerulesList = rulesFileManagement.findDocuments(select).setQuery(select);
             return Response.status(Status.OK)
@@ -782,7 +785,7 @@ public class AdminManagementResource extends ApplicationStatusResource {
     @Produces(APPLICATION_JSON)
     public Response launchRuleAudit() {
         RulesManagerFileImpl rulesManagerFileImpl =
-            new RulesManagerFileImpl(mongoAccess, vitamCounterService, rulesOntologyLoader);
+            new RulesManagerFileImpl(mongoAccess, vitamCounterService, rulesOntologyLoader, this.vitamRuleService);
         int tenant = VitamThreadUtils.getVitamSession().getTenantId();
         try {
             rulesManagerFileImpl.checkRuleConformity(rulesManagerFileImpl.getRuleFromCollection(tenant),

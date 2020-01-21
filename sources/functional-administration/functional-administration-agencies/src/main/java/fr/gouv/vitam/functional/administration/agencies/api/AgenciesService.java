@@ -447,7 +447,7 @@ public class AgenciesService implements VitamAutoCloseable {
 
                         idsset.add(identifier);
 
-                        if (errors.size() > 0) {
+                        if (!errors.isEmpty()) {
                             errorsMap.put(lineNumber, errors);
                         }
                     }
@@ -482,10 +482,8 @@ public class AgenciesService implements VitamAutoCloseable {
             }
         } finally {
             IOUtils.closeQuietly(csvFileInputStream);
-            if (csvFileReader != null) {
-                if (!csvFileReader.delete()) {
-                    LOGGER.warn("Failed to delete file");
-                }
+            if (csvFileReader != null && !csvFileReader.delete()) {
+                LOGGER.warn("Failed to delete file");
             }
         }
     }
@@ -542,7 +540,7 @@ public class AgenciesService implements VitamAutoCloseable {
         if (StringUtils.isEmpty(name)) {
             missingParam.add(AgenciesModel.TAG_NAME);
         }
-        if (missingParam.size() > 0) {
+        if (!missingParam.isEmpty()) {
             errors.add(new ErrorReportAgencies(FileAgenciesErrorCode.STP_IMPORT_AGENCIES_MISSING_INFORMATIONS, line,
                 missingParam.stream().collect(Collectors.joining())));
         }

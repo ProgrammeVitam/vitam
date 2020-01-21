@@ -26,6 +26,7 @@
  */
 package fr.gouv.vitam.functional.administration.rules.core;
 
+import java.util.Collections;
 import java.util.Map;
 
 /**
@@ -33,15 +34,19 @@ import java.util.Map;
  */
 public class VitamRuleService {
 
-    private static Map<Integer, Map<String, String>> listMinimumRuleDuration;
+    private Map<Integer, Map<String, String>> listMinimumRuleDuration;
 
+
+    VitamRuleService() {
+        this.listMinimumRuleDuration = Collections.emptyMap();
+    }
     /**
      * Constructor
      * 
      * @param listMinimumRuleDuration the list of minimum rules duration
      */
     public VitamRuleService(Map<Integer, Map<String, String>> listMinimumRuleDuration) {
-        VitamRuleService.listMinimumRuleDuration = listMinimumRuleDuration;
+        this.listMinimumRuleDuration = listMinimumRuleDuration;
     }
 
     /**
@@ -51,8 +56,8 @@ public class VitamRuleService {
      * @param ruleType the rule type
      * @return the minimum duration
      */
-    public static String getMinimumRuleDuration(Integer tenant, String ruleType) {
-        if (listMinimumRuleDuration != null) {
+    String getMinimumRuleDuration(Integer tenant, String ruleType) {
+        if (this.listMinimumRuleDuration != null) {
             Map<String, String> ruleDurationMap = listMinimumRuleDuration.get(tenant);
             if (ruleDurationMap != null) {
                 String minRule = ruleDurationMap.get(ruleType);

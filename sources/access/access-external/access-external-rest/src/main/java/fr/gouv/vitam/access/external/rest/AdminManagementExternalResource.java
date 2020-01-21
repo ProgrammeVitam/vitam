@@ -344,7 +344,7 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
                 .setContext(ACCESS_EXTERNAL_MODULE)
                 .setDescription(VitamCode.ADMIN_EXTERNAL_BAD_REQUEST.getMessage());
             return Response.status(BAD_REQUEST)
-                .entity(error).build();
+                .entity(getErrorStream(error)).build();
         } catch (Exception e) {
             return asyncResponseResume(e, document);
         }
@@ -1194,21 +1194,19 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
         description = "Lister le contenu du référentiel des document types")
     public Response findArchiveUnitProfiles(@Dsl(value = SELECT_SINGLE) JsonNode select) {
 
-        try {
-            try (AdminManagementClient client = adminManagementClientFactory.getClient()) {
+        try (AdminManagementClient client = adminManagementClientFactory.getClient()) {
                 SanityChecker.checkJsonAll(select);
                 RequestResponse result = client.findArchiveUnitProfiles(select);
                 int st = result.isOk() ? Status.OK.getStatusCode() : result.getHttpCode();
                 return Response.status(st).entity(result).build();
-            } catch (ReferentialException e) {
-                LOGGER.error(e);
-                final Status status = INTERNAL_SERVER_ERROR;
-                return Response.status(status).entity(getErrorEntity(status, e.getMessage(), null)).build();
-            } catch (final InvalidParseOperationException e) {
-                LOGGER.error(e);
-                final Status status = BAD_REQUEST;
-                return Response.status(status).entity(getErrorEntity(status, e.getMessage(), null)).build();
-            }
+        } catch (ReferentialException e) {
+            LOGGER.error(e);
+            final Status status = INTERNAL_SERVER_ERROR;
+            return Response.status(status).entity(getErrorEntity(status, e.getMessage(), null)).build();
+        } catch (final InvalidParseOperationException e) {
+            LOGGER.error(e);
+            final Status status = BAD_REQUEST;
+            return Response.status(status).entity(getErrorEntity(status, e.getMessage(), null)).build();
         } catch (IllegalArgumentException e) {
             LOGGER.error(e);
             final Status status = Status.PRECONDITION_FAILED;
