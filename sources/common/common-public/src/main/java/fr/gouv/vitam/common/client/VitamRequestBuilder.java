@@ -93,6 +93,12 @@ public class VitamRequestBuilder {
         return this;
     }
 
+    public VitamRequestBuilder withOctet() {
+        this.contentType = APPLICATION_OCTET_STREAM_TYPE;
+        this.accept = APPLICATION_OCTET_STREAM_TYPE;
+        return this;
+    }
+
     public VitamRequestBuilder withJsonOctet() {
         this.contentType = APPLICATION_JSON_TYPE;
         this.accept = APPLICATION_OCTET_STREAM_TYPE;

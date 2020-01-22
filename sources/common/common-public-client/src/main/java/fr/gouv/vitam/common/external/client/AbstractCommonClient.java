@@ -67,11 +67,10 @@ import java.util.concurrent.Future;
 import java.util.function.Predicate;
 
 import static java.util.concurrent.TimeUnit.SECONDS;
+import static javax.ws.rs.core.Response.Status.INTERNAL_SERVER_ERROR;
 
 abstract class AbstractCommonClient implements BasicClient {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(AbstractCommonClient.class);
-
-    protected static final String INTERNAL_SERVER_ERROR = "Internal Server Error";
 
     private static final String BODY_AND_CONTENT_TYPE_CANNOT_BE_NULL = "Body and ContentType cannot be null";
     private static final String ARGUMENT_CANNOT_BE_NULL_EXCEPT_HEADERS = "Argument cannot be null except headers";
@@ -145,11 +144,11 @@ abstract class AbstractCommonClient implements BasicClient {
             if (status == Status.OK || status == Status.NO_CONTENT) {
                 return;
             }
-            final String messageText = INTERNAL_SERVER_ERROR + " : " + status.getReasonPhrase();
+            final String messageText = INTERNAL_SERVER_ERROR.getReasonPhrase() + " : " + status.getReasonPhrase();
             LOGGER.error(messageText);
             throw new VitamApplicationServerException(messageText);
         } catch (ProcessingException | VitamClientInternalException e) {
-            final String messageText = INTERNAL_SERVER_ERROR + " : " + e.getMessage();
+            final String messageText = INTERNAL_SERVER_ERROR.getReasonPhrase() + " : " + e.getMessage();
             LOGGER.error(messageText);
             throw new VitamApplicationServerDisconnectException(messageText, e);
         } finally {
@@ -289,7 +288,7 @@ abstract class AbstractCommonClient implements BasicClient {
     }
 
     protected VitamClientException createExceptionFromResponse(Response response) {
-        VitamClientException exception = new VitamClientException(INTERNAL_SERVER_ERROR);
+        VitamClientException exception = new VitamClientException(INTERNAL_SERVER_ERROR.getReasonPhrase());
         if (response != null && response.getStatusInfo() != null) {
             exception = new VitamClientException(response.getStatusInfo().getReasonPhrase());
         } else if (response != null && Status.fromStatusCode(response.getStatus()) != null) {

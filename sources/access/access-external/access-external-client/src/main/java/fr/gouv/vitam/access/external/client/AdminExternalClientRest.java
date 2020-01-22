@@ -1,8 +1,35 @@
+/*
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2019)
+ *
+ * contact.vitam@culture.gouv.fr
+ *
+ * This software is a computer program whose purpose is to implement a digital archiving back-office system managing
+ * high volumetry securely and efficiently.
+ *
+ * This software is governed by the CeCILL 2.1 license under French law and abiding by the rules of distribution of free
+ * software. You can use, modify and/ or redistribute the software under the terms of the CeCILL 2.1 license as
+ * circulated by CEA, CNRS and INRIA at the following URL "http://www.cecill.info".
+ *
+ * As a counterpart to the access to the source code and rights to copy, modify and redistribute granted by the license,
+ * users are provided only with a limited warranty and the software's author, the holder of the economic rights, and the
+ * successive licensors have only limited liability.
+ *
+ * In this respect, the user's attention is drawn to the risks associated with loading, using, modifying and/or
+ * developing or reproducing the software by the user in light of its specific status of free software, that may mean
+ * that it is complicated to manipulate, and that also therefore means that it is reserved for developers and
+ * experienced professionals having in-depth computer knowledge. Users are therefore encouraged to load and test the
+ * software's suitability as regards their requirements in conditions enabling the security of their systems and/or data
+ * to be ensured and, more generally, to use and operate it in the same conditions as regards security.
+ *
+ * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
+ * accept its terms.
+ */
 package fr.gouv.vitam.access.external.client;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import fr.gouv.vitam.access.external.api.AccessExtAPI;
 import fr.gouv.vitam.access.external.api.AdminCollections;
+import fr.gouv.vitam.access.external.client.exception.AdminExternalClientException;
 import fr.gouv.vitam.access.external.common.exception.AccessExternalClientException;
 import fr.gouv.vitam.access.external.common.exception.AccessExternalClientNotFoundException;
 import fr.gouv.vitam.access.external.common.exception.AccessExternalClientServerException;
@@ -11,15 +38,13 @@ import fr.gouv.vitam.access.external.common.exception.LogbookExternalClientExcep
 import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.client.VitamContext;
-import fr.gouv.vitam.common.error.VitamCode;
-import fr.gouv.vitam.common.error.VitamCodeHelper;
+import fr.gouv.vitam.common.client.VitamRequestBuilder;
 import fr.gouv.vitam.common.error.VitamError;
 import fr.gouv.vitam.common.exception.AccessUnauthorizedException;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamClientException;
 import fr.gouv.vitam.common.exception.VitamClientInternalException;
 import fr.gouv.vitam.common.external.client.DefaultClient;
-import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.ItemStatus;
@@ -46,30 +71,40 @@ import fr.gouv.vitam.common.model.administration.preservation.GriffinModel;
 import fr.gouv.vitam.common.model.administration.preservation.PreservationScenarioModel;
 import fr.gouv.vitam.common.model.processing.ProcessDetail;
 import fr.gouv.vitam.common.model.processing.WorkFlow;
-import fr.gouv.vitam.logbook.common.client.ErrorMessage;
 import fr.gouv.vitam.logbook.common.parameters.LogbookOperationParameters;
 
 import javax.ws.rs.HttpMethod;
 import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.MultivaluedHashMap;
-import javax.ws.rs.core.MultivaluedMap;
 import javax.ws.rs.core.Response;
-import javax.ws.rs.core.Response.Status;
-
 import java.io.InputStream;
 
+import static fr.gouv.vitam.access.external.api.AccessExtAPI.OPERATIONS_API;
 import static fr.gouv.vitam.access.external.api.AdminCollections.ACCESSION_REGISTERS_SYMBOLIC;
+import static fr.gouv.vitam.access.external.api.AdminCollections.TRACEABILITY;
+import static fr.gouv.vitam.common.GlobalDataRest.X_ACTION;
+import static fr.gouv.vitam.common.GlobalDataRest.X_CONTEXT_ID;
+import static fr.gouv.vitam.common.GlobalDataRest.X_FILENAME;
+import static fr.gouv.vitam.common.GlobalDataRest.X_GLOBAL_EXECUTION_STATE;
+import static fr.gouv.vitam.common.GlobalDataRest.X_GLOBAL_EXECUTION_STATUS;
+import static fr.gouv.vitam.common.GlobalDataRest.X_REQUEST_ID;
+import static fr.gouv.vitam.common.client.VitamRequestBuilder.delete;
+import static fr.gouv.vitam.common.client.VitamRequestBuilder.get;
+import static fr.gouv.vitam.common.client.VitamRequestBuilder.post;
+import static fr.gouv.vitam.common.client.VitamRequestBuilder.put;
+import static fr.gouv.vitam.common.error.VitamCode.ACCESS_EXTERNAL_CHECK_TRACEABILITY_OPERATION_ERROR;
+import static fr.gouv.vitam.common.error.VitamCode.ACCESS_EXTERNAL_GET_ACCESSION_REGISTER_DETAIL_ERROR;
+import static fr.gouv.vitam.common.model.StatusCode.KO;
+import static javax.ws.rs.core.Response.Status.CREATED;
+import static javax.ws.rs.core.Response.Status.Family.REDIRECTION;
+import static javax.ws.rs.core.Response.Status.Family.SUCCESSFUL;
+import static javax.ws.rs.core.Response.Status.OK;
+import static javax.ws.rs.core.Response.Status.UNAUTHORIZED;
+import static javax.ws.rs.core.Response.Status.fromStatusCode;
 
-/**
- * Rest client implementation for Access External
- */
 public class AdminExternalClientRest extends DefaultClient implements AdminExternalClient {
-
-    private static final String ACCESS_EXTERNAL_MODULE = "AccessExternalModule";
-
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(AdminExternalClientRest.class);
 
-    private static final String URI_NOT_FOUND = "URI not found";
+    private static final String ACCESS_EXTERNAL_MODULE = "AccessExternalModule";
     private static final String UPDATE_ACCESS_CONTRACT = AccessExtAPI.ACCESS_CONTRACT_API_UPDATE + "/";
     private static final String UPDATE_INGEST_CONTRACT = AccessExtAPI.INGEST_CONTRACT_API_UPDATE + "/";
     private static final String UPDATE_MANAGEMENT_CONTRACT = AccessExtAPI.MANAGEMENT_CONTRACT_API_UPDATE + "/";
@@ -77,22 +112,10 @@ public class AdminExternalClientRest extends DefaultClient implements AdminExter
     private static final String UPDATE_PROFILE = AccessExtAPI.PROFILES_API_UPDATE + "/";
     private static final String UPDATE_AU_PROFILE = AccessExtAPI.ARCHIVE_UNIT_PROFILE + "/";
     private static final String UPDATE_SECURITY_PROFILE = AccessExtAPI.SECURITY_PROFILES + "/";
-
     private static final String BLANK_OPERATION_ID = "Operation identifier should be filled";
     private static final String BLANK_TENANT_ID = "Tenant identifier should be filled";
     private static final String BLANK_ACTION_ID = "Action should be filled";
-
-    private static final String REQUEST_PRECONDITION_FAILED = "Request precondition failed";
-    private static final String NOT_FOUND_EXCEPTION = "Not Found Exception";
-    private static final String UNAUTHORIZED = "Unauthorized";
-
     private static final String BLANK_OBJECT_ID = "object identifier should be filled";
-
-    private static final String COULD_NOT_PARSE_SERVER_RESPONSE = "Could not parse server response";
-    private static final String CAUSE = " Cause : ";
-    private static final String VITAM_CLIENT_INTERNAL_EXCEPTION = "VitamClientInternalException: ";
-    private static final String SIP_WARNING = "SIP Warning : ";
-
 
     AdminExternalClientRest(AdminExternalClientFactory factory) {
         super(factory);
@@ -174,25 +197,20 @@ public class AdminExternalClientRest extends DefaultClient implements AdminExter
             SecurityProfileModel.class);
     }
 
-
     private <T> RequestResponse<T> internalFindDocuments(VitamContext vitamContext, AdminCollections documentType,
         JsonNode select, Class<T> clazz)
         throws VitamClientException {
-        Response response = null;
-
-        try {
-            response = performRequest(HttpMethod.GET, documentType.getName(), vitamContext.getHeaders(),
-                select, MediaType.APPLICATION_JSON_TYPE,
-                MediaType.APPLICATION_JSON_TYPE, false);
+        VitamRequestBuilder request = get()
+            .withPath(documentType.getName())
+            .withHeaders(vitamContext.getHeaders())
+            .withBody(select)
+            .withJson();
+        try (Response response = make(request)) {
+            check(response);
             return RequestResponse.parseFromResponse(response, clazz);
-        } catch (IllegalStateException e) {
-            LOGGER.error(COULD_NOT_PARSE_SERVER_RESPONSE, e);
-            throw createExceptionFromResponse(response);
-        } catch (final VitamClientException e) {
-            LOGGER.error(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage(), e);
-            throw new VitamClientException(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage(), e);
-        } finally {
-            consumeAnyEntityAndClose(response);
+        } catch (AdminExternalClientException e) {
+            LOGGER.error(e);
+            return e.getVitamError();
         }
     }
 
@@ -201,52 +219,22 @@ public class AdminExternalClientRest extends DefaultClient implements AdminExter
         JsonNode query)
         throws InvalidParseOperationException, AccessExternalClientServerException,
         AccessExternalClientNotFoundException {
-        Response response = null;
-        final MultivaluedMap<String, Object> headers = vitamContext.getHeaders();
-        headers.add(GlobalDataRest.X_HTTP_METHOD_OVERRIDE, HttpMethod.GET);
+        VitamRequestBuilder request = post()
+            .withPath(AccessExtAPI.ACCESSION_REGISTERS_API + "/" + id + "/" + AccessExtAPI.ACCESSION_REGISTERS_DETAIL)
+            .withHeader(GlobalDataRest.X_HTTP_METHOD_OVERRIDE, HttpMethod.GET)
+            .withBody(query)
+            .withJson();
+        try (Response response = make(request)) {
+            check(response);
+            return RequestResponse.parseFromResponse(response);
+        } catch (VitamClientInternalException e) {
+            throw new AccessExternalClientServerException(e);
+        } catch (AdminExternalClientException e) {
+            LOGGER.error(e);
+            return e.getVitamError()
+                .setMessage(ACCESS_EXTERNAL_GET_ACCESSION_REGISTER_DETAIL_ERROR.getMessage())
+                .setDescription(ACCESS_EXTERNAL_GET_ACCESSION_REGISTER_DETAIL_ERROR.getMessage());
 
-        try {
-            response = performRequest(HttpMethod.POST,
-                AccessExtAPI.ACCESSION_REGISTERS_API + "/" + id + "/" +
-                    AccessExtAPI.ACCESSION_REGISTERS_DETAIL,
-                headers,
-                query, MediaType.APPLICATION_JSON_TYPE, MediaType.APPLICATION_JSON_TYPE, false);
-
-            RequestResponse requestResponse = RequestResponse.parseFromResponse(response);
-            if (requestResponse.isOk()) {
-                return requestResponse;
-            } else {
-                final VitamError vitamError =
-                    new VitamError(VitamCode.ACCESS_EXTERNAL_GET_ACCESSION_REGISTER_DETAIL_ERROR.getItem())
-                        .setMessage(VitamCode.ACCESS_EXTERNAL_GET_ACCESSION_REGISTER_DETAIL_ERROR.getMessage())
-                        .setState(StatusCode.KO.name())
-                        .setContext(ACCESS_EXTERNAL_MODULE)
-                        .setDescription(VitamCode.ACCESS_EXTERNAL_GET_ACCESSION_REGISTER_DETAIL_ERROR.getMessage());
-
-                if (response.getStatus() == Status.UNAUTHORIZED.getStatusCode()) {
-                    return vitamError.setHttpCode(Status.UNAUTHORIZED.getStatusCode())
-                        .setDescription(
-                            VitamCode.ACCESS_EXTERNAL_GET_ACCESSION_REGISTER_DETAIL_ERROR.getMessage() + CAUSE +
-                                Status.UNAUTHORIZED.getReasonPhrase());
-                } else if (response.getStatus() == Status.NOT_FOUND.getStatusCode()) {
-                    return vitamError.setHttpCode(Status.NOT_FOUND.getStatusCode())
-                        .setDescription(
-                            VitamCode.ACCESS_EXTERNAL_GET_ACCESSION_REGISTER_DETAIL_ERROR.getMessage() + CAUSE +
-                                Status.NOT_FOUND.getReasonPhrase());
-                } else if (response.getStatus() == Status.PRECONDITION_FAILED.getStatusCode()) {
-                    return vitamError.setHttpCode(Status.PRECONDITION_FAILED.getStatusCode())
-                        .setDescription(
-                            VitamCode.ACCESS_EXTERNAL_GET_ACCESSION_REGISTER_DETAIL_ERROR.getMessage() + CAUSE +
-                                Status.PRECONDITION_FAILED.getReasonPhrase());
-                } else {
-                    return requestResponse;
-                }
-            }
-        } catch (final VitamClientInternalException e) {
-            LOGGER.error(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage(), e);
-            throw new AccessExternalClientServerException(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage(), e);
-        } finally {
-            consumeAnyEntityAndClose(response);
         }
     }
 
@@ -254,17 +242,19 @@ public class AdminExternalClientRest extends DefaultClient implements AdminExter
     public RequestResponse updateAccessContract(VitamContext vitamContext, String id,
         JsonNode queryDsl)
         throws AccessExternalClientException {
-        Response response = null;
-        try {
-            response = performRequest(HttpMethod.PUT, UPDATE_ACCESS_CONTRACT + id, vitamContext.getHeaders(),
-                queryDsl, MediaType.APPLICATION_JSON_TYPE,
-                MediaType.APPLICATION_JSON_TYPE);
+        VitamRequestBuilder request = put()
+            .withPath(UPDATE_ACCESS_CONTRACT + id)
+            .withHeaders(vitamContext.getHeaders())
+            .withBody(queryDsl)
+            .withJson();
+        try (Response response = make(request)) {
+            check(response);
             return RequestResponse.parseFromResponse(response);
-        } catch (final VitamClientInternalException e) {
-            LOGGER.error(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage(), e);
-            throw new AccessExternalClientException(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage(), e);
-        } finally {
-            consumeAnyEntityAndClose(response);
+        } catch (VitamClientInternalException e) {
+            throw new AccessExternalClientException(e);
+        } catch (AdminExternalClientException e) {
+            LOGGER.error(e);
+            return e.getVitamError();
         }
     }
 
@@ -272,17 +262,19 @@ public class AdminExternalClientRest extends DefaultClient implements AdminExter
     public RequestResponse updateIngestContract(VitamContext vitamContext, String id,
         JsonNode queryDsl)
         throws InvalidParseOperationException, AccessExternalClientException {
-        Response response = null;
-        try {
-            response = performRequest(HttpMethod.PUT, UPDATE_INGEST_CONTRACT + id, vitamContext.getHeaders(),
-                queryDsl, MediaType.APPLICATION_JSON_TYPE,
-                MediaType.APPLICATION_JSON_TYPE);
+        VitamRequestBuilder request = put()
+            .withPath(UPDATE_INGEST_CONTRACT + id)
+            .withHeaders(vitamContext.getHeaders())
+            .withBody(queryDsl)
+            .withJson();
+        try (Response response = make(request)) {
+            check(response);
             return RequestResponse.parseFromResponse(response);
-        } catch (final VitamClientInternalException e) {
-            LOGGER.error(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage(), e);
-            throw new AccessExternalClientException(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage(), e);
-        } finally {
-            consumeAnyEntityAndClose(response);
+        } catch (VitamClientInternalException e) {
+            throw new AccessExternalClientException(e);
+        } catch (AdminExternalClientException e) {
+            LOGGER.error(e);
+            return e.getVitamError();
         }
     }
 
@@ -290,17 +282,19 @@ public class AdminExternalClientRest extends DefaultClient implements AdminExter
     public RequestResponse updateManagementContract(VitamContext vitamContext, String id,
         JsonNode queryDsl)
         throws AccessExternalClientException {
-        Response response = null;
-        try {
-            response = performRequest(HttpMethod.PUT, UPDATE_MANAGEMENT_CONTRACT + id, vitamContext.getHeaders(),
-                queryDsl, MediaType.APPLICATION_JSON_TYPE,
-                MediaType.APPLICATION_JSON_TYPE);
+        VitamRequestBuilder request = put()
+            .withPath(UPDATE_MANAGEMENT_CONTRACT + id)
+            .withHeaders(vitamContext.getHeaders())
+            .withBody(queryDsl)
+            .withJson();
+        try (Response response = make(request)) {
+            check(response);
             return RequestResponse.parseFromResponse(response);
-        } catch (final VitamClientInternalException e) {
-            LOGGER.error(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage(), e);
-            throw new AccessExternalClientException(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage(), e);
-        } finally {
-            consumeAnyEntityAndClose(response);
+        } catch (VitamClientInternalException e) {
+            throw new AccessExternalClientException(e);
+        } catch (AdminExternalClientException e) {
+            LOGGER.error(e);
+            return e.getVitamError();
         }
     }
 
@@ -308,17 +302,20 @@ public class AdminExternalClientRest extends DefaultClient implements AdminExter
     public RequestResponse createProfiles(VitamContext vitamContext, InputStream profiles)
         throws InvalidParseOperationException, AccessExternalClientException {
         ParametersChecker.checkParameter("The input profile json is mandatory", profiles, AdminCollections.PROFILE);
-        Response response = null;
-        try {
-            response = performRequest(HttpMethod.POST, AdminCollections.PROFILE.getName(), vitamContext.getHeaders(),
-                profiles, MediaType.APPLICATION_OCTET_STREAM_TYPE,
-                MediaType.APPLICATION_JSON_TYPE);
+        VitamRequestBuilder request = post()
+            .withPath(AdminCollections.PROFILE.getName())
+            .withHeaders(vitamContext.getHeaders())
+            .withBody(profiles)
+            .withOctetContentType()
+            .withJsonAccept();
+        try (Response response = make(request)) {
+            check(response);
             return RequestResponse.parseFromResponse(response);
-        } catch (final VitamClientInternalException e) {
-            LOGGER.error(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage(), e);
-            throw new AccessExternalClientException(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage(), e);
-        } finally {
-            consumeAnyEntityAndClose(response);
+        } catch (VitamClientInternalException e) {
+            throw new AccessExternalClientException(e);
+        } catch (AdminExternalClientException e) {
+            LOGGER.error(e);
+            return e.getVitamError();
         }
     }
 
@@ -326,21 +323,21 @@ public class AdminExternalClientRest extends DefaultClient implements AdminExter
     public RequestResponse createProfileFile(VitamContext vitamContext,
         String profileMetadataId, InputStream profile)
         throws InvalidParseOperationException, AccessExternalClientException {
-        ParametersChecker.checkParameter("The input profile stream is mandatory", profile, AdminCollections.PROFILE);
         ParametersChecker.checkParameter(profileMetadataId, "The profile id is mandatory");
-        Response response = null;
-        try {
-            response =
-                performRequest(HttpMethod.PUT, AdminCollections.PROFILE.getName() + "/" + profileMetadataId,
-                    vitamContext.getHeaders(),
-                    profile, MediaType.APPLICATION_OCTET_STREAM_TYPE,
-                    MediaType.APPLICATION_JSON_TYPE);
+        VitamRequestBuilder request = put()
+            .withPath(AdminCollections.PROFILE.getName() + "/" + profileMetadataId)
+            .withHeaders(vitamContext.getHeaders())
+            .withBody(profile, "The input profile stream is mandatory")
+            .withOctetContentType()
+            .withJsonAccept();
+        try (Response response = make(request)) {
+            check(response);
             return RequestResponse.parseFromResponse(response);
-        } catch (final VitamClientInternalException e) {
-            LOGGER.error(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage(), e);
-            throw new AccessExternalClientException(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage(), e);
-        } finally {
-            consumeAnyEntityAndClose(response);
+        } catch (VitamClientInternalException e) {
+            throw new AccessExternalClientException(e);
+        } catch (AdminExternalClientException e) {
+            LOGGER.error(e);
+            return e.getVitamError();
         }
     }
 
@@ -349,37 +346,22 @@ public class AdminExternalClientRest extends DefaultClient implements AdminExter
         throws AccessExternalClientException,
         AccessExternalNotFoundException {
         ParametersChecker.checkParameter("Profile is is required", profileMetadataId);
-
-
-        final MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
-        headers.putAll(vitamContext.getHeaders());
+        VitamRequestBuilder request = get()
+            .withPath(AdminCollections.PROFILE.getName() + "/" + profileMetadataId)
+            .withHeaders(vitamContext.getHeaders())
+            .withOctetAccept();
         Response response = null;
-
-        Status status = Status.BAD_REQUEST;
         try {
-            response =
-                performRequest(HttpMethod.GET, AdminCollections.PROFILE.getName() + "/" + profileMetadataId, headers,
-                    MediaType.APPLICATION_OCTET_STREAM_TYPE);
-            status = Status.fromStatusCode(response.getStatus());
-            switch (status) {
-                case OK:
-                    return response;
-                default: {
-                    String msgErr = "Error while download profile file : " + profileMetadataId;
-                    final RequestResponse requestResponse = RequestResponse.parseFromResponse(response);
-                    if (!requestResponse.isOk()) {
-                        VitamError error = (VitamError) requestResponse;
-                        msgErr = error.getDescription();
-                    }
-                    throw new AccessExternalNotFoundException(msgErr);
-                }
-            }
-
-        } catch (final VitamClientInternalException e) {
-            throw new AccessExternalClientException(INTERNAL_SERVER_ERROR, e); // access-common
+            response = make(request);
+            check(response);
+            return response;
+        } catch (VitamClientInternalException e) {
+            throw new AccessExternalClientException(e);
+        } catch (AdminExternalClientException e) {
+            throw new AccessExternalNotFoundException("Error while download profile file : " + profileMetadataId, e);
         } finally {
-            if (status != Status.OK) {
-                consumeAnyEntityAndClose(response);
+            if (response != null && !SUCCESSFUL.equals(response.getStatusInfo().toEnum().getFamily())) {
+                response.close();
             }
         }
     }
@@ -387,25 +369,21 @@ public class AdminExternalClientRest extends DefaultClient implements AdminExter
     @Override
     public RequestResponse createContexts(VitamContext vitamContext, InputStream contexts)
         throws InvalidParseOperationException, AccessExternalClientServerException {
-        Response response = null;
-        try {
-            response = performRequest(HttpMethod.POST, AdminCollections.CONTEXTS.getName(), vitamContext.getHeaders(),
-                contexts, MediaType.APPLICATION_JSON_TYPE,
-                MediaType.APPLICATION_JSON_TYPE);
-
-            if (response.getStatus() == Response.Status.OK.getStatusCode() ||
-                response.getStatus() == Response.Status.CREATED.getStatusCode()) {
-                return new RequestResponseOK().setHttpCode(Status.OK.getStatusCode())
-                    .addHeader(GlobalDataRest.X_REQUEST_ID, response.getHeaderString(GlobalDataRest.X_REQUEST_ID));
-            } else {
-                return RequestResponse.parseFromResponse(response);
-            }
-
-        } catch (final VitamClientInternalException e) {
-            LOGGER.error(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage(), e);
-            throw new AccessExternalClientServerException(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage(), e);
-        } finally {
-            consumeAnyEntityAndClose(response);
+        VitamRequestBuilder request = post()
+            .withPath(AdminCollections.CONTEXTS.getName())
+            .withHeaders(vitamContext.getHeaders())
+            .withBody(contexts)
+            .withJson();
+        try (Response response = make(request)) {
+            check(response);
+            return new RequestResponseOK()
+                .setHttpCode(OK.getStatusCode())
+                .addHeader(X_REQUEST_ID, response.getHeaderString(X_REQUEST_ID));
+        } catch (VitamClientInternalException e) {
+            throw new AccessExternalClientServerException(e);
+        } catch (AdminExternalClientException e) {
+            LOGGER.error(e);
+            return e.getVitamError();
         }
     }
 
@@ -413,34 +391,38 @@ public class AdminExternalClientRest extends DefaultClient implements AdminExter
     public RequestResponse updateContext(VitamContext vitamContext, String id,
         JsonNode queryDsl)
         throws AccessExternalClientException {
-        Response response = null;
-        try {
-            response = performRequest(HttpMethod.PUT, UPDATE_CONTEXT + id, vitamContext.getHeaders(),
-                queryDsl, MediaType.APPLICATION_JSON_TYPE,
-                MediaType.APPLICATION_JSON_TYPE);
+        VitamRequestBuilder request = put()
+            .withPath(UPDATE_CONTEXT + id)
+            .withHeaders(vitamContext.getHeaders())
+            .withBody(queryDsl)
+            .withJson();
+        try (Response response = make(request)) {
+            check(response);
             return RequestResponse.parseFromResponse(response);
-        } catch (final VitamClientInternalException e) {
-            LOGGER.error(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage(), e);
-            throw new AccessExternalClientException(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage(), e);
-        } finally {
-            consumeAnyEntityAndClose(response);
+        } catch (VitamClientInternalException e) {
+            throw new AccessExternalClientServerException(e);
+        } catch (AdminExternalClientException e) {
+            LOGGER.error(e);
+            return e.getVitamError();
         }
     }
 
     @Override
     public RequestResponse updateProfile(VitamContext vitamContext, String profileMetadataId, JsonNode queryDsl)
         throws AccessExternalClientException {
-        Response response = null;
-        try {
-            response = performRequest(HttpMethod.PUT, UPDATE_PROFILE + profileMetadataId, vitamContext.getHeaders(),
-                queryDsl, MediaType.APPLICATION_JSON_TYPE,
-                MediaType.APPLICATION_JSON_TYPE);
+        VitamRequestBuilder request = put()
+            .withPath(UPDATE_PROFILE + profileMetadataId)
+            .withHeaders(vitamContext.getHeaders())
+            .withBody(queryDsl)
+            .withJson();
+        try (Response response = make(request)) {
+            check(response);
             return RequestResponse.parseFromResponse(response);
-        } catch (final VitamClientInternalException e) {
-            LOGGER.error(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage(), e);
-            throw new AccessExternalClientException(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage(), e);
-        } finally {
-            consumeAnyEntityAndClose(response);
+        } catch (VitamClientInternalException e) {
+            throw new AccessExternalClientServerException(e);
+        } catch (AdminExternalClientException e) {
+            LOGGER.error(e);
+            return e.getVitamError();
         }
     }
 
@@ -448,48 +430,20 @@ public class AdminExternalClientRest extends DefaultClient implements AdminExter
     public RequestResponse checkTraceabilityOperation(VitamContext vitamContext,
         JsonNode query)
         throws AccessExternalClientServerException, AccessUnauthorizedException {
-        Response response = null;
-        try {
-            response =
-                performRequest(HttpMethod.POST, AdminCollections.TRACEABILITY.getCheckURI(), vitamContext.getHeaders(),
-                    query,
-                    MediaType.APPLICATION_JSON_TYPE,
-                    MediaType.APPLICATION_JSON_TYPE);
-            final Status status = Status.fromStatusCode(response.getStatus());
-
-            RequestResponse requestResponse = RequestResponse.parseFromResponse(response);
-            if (requestResponse.isOk()) {
-                return requestResponse;
-            } else {
-                final VitamError vitamError =
-                    new VitamError(VitamCode.ACCESS_EXTERNAL_CHECK_TRACEABILITY_OPERATION_ERROR.getItem())
-                        .setMessage(VitamCode.ACCESS_EXTERNAL_CHECK_TRACEABILITY_OPERATION_ERROR.getMessage())
-                        .setContext(ACCESS_EXTERNAL_MODULE)
-                        .setDescription(
-                            VitamCode.ACCESS_EXTERNAL_CHECK_TRACEABILITY_OPERATION_ERROR.getMessage() + CAUSE +
-                                ((VitamError) requestResponse).getDescription());
-
-                switch (status) {
-                    case OK:
-                        return requestResponse;
-                    case UNAUTHORIZED:
-                        return vitamError.setHttpCode(Status.UNAUTHORIZED.getStatusCode())
-                            .setDescription(VitamCode.ACCESS_EXTERNAL_CHECK_TRACEABILITY_OPERATION_ERROR.getMessage() +
-                                CAUSE +
-                                Status.UNAUTHORIZED.getReasonPhrase());
-                    default:
-                        LOGGER
-                            .error(
-                                "checks operation tracebility is " + status.name() + ":" + vitamError.getDescription());
-                        return vitamError.setHttpCode(status.getStatusCode());
-                }
-            }
-
+        VitamRequestBuilder request = post()
+            .withPath(TRACEABILITY.getCheckURI())
+            .withHeaders(vitamContext.getHeaders())
+            .withBody(query)
+            .withJson();
+        try (Response response = make(request)) {
+            check(response);
+            return RequestResponse.parseFromResponse(response);
         } catch (VitamClientInternalException e) {
-            LOGGER.error(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage(), e);
-            throw new AccessExternalClientServerException(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage(), e);
-        } finally {
-            consumeAnyEntityAndClose(response);
+            throw new AccessExternalClientServerException(e);
+        } catch (AdminExternalClientException e) {
+            LOGGER.error(e);
+            return e.getVitamError()
+                .setMessage(ACCESS_EXTERNAL_CHECK_TRACEABILITY_OPERATION_ERROR.getMessage());
         }
     }
 
@@ -499,27 +453,23 @@ public class AdminExternalClientRest extends DefaultClient implements AdminExter
         throws AccessExternalClientServerException, AccessUnauthorizedException {
         Response response = null;
         try {
-            response = performRequest(HttpMethod.GET, AccessExtAPI.TRACEABILITY_API + "/" + operationId +
-                "/datafiles", vitamContext.getHeaders(),
-                null,
-                null, MediaType.APPLICATION_OCTET_STREAM_TYPE);
-
-            final Status status = Status.fromStatusCode(response.getStatus());
-            switch (status) {
-                case OK:
-                    return response;
-                case UNAUTHORIZED:
-                    throw new AccessUnauthorizedException(status.getReasonPhrase());
-                default:
-                    LOGGER.error("checks operation tracebility is " + status.name() + ":" + status.getReasonPhrase());
-                    throw new AccessExternalClientServerException(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage());
-            }
+            VitamRequestBuilder request = get()
+                .withPath(AccessExtAPI.TRACEABILITY_API + "/" + operationId + "/datafiles")
+                .withHeaders(vitamContext.getHeaders())
+                .withOctetAccept();
+            response = make(request);
+            check(response);
+            return response;
         } catch (VitamClientInternalException e) {
-            LOGGER.error(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage(), e);
-            throw new AccessExternalClientServerException(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage(), e);
+            throw new AccessExternalClientServerException(e);
+        } catch (AdminExternalClientException e) {
+            if (e.getStatus().equals(UNAUTHORIZED)) {
+                throw new AccessUnauthorizedException(e);
+            }
+            throw new AccessExternalClientServerException(e);
         } finally {
-            if (response != null && response.getStatus() != Status.OK.getStatusCode()) {
-                consumeAnyEntityAndClose(response);
+            if (response != null && !SUCCESSFUL.equals(response.getStatusInfo().toEnum().getFamily())) {
+                response.close();
             }
         }
     }
@@ -527,22 +477,19 @@ public class AdminExternalClientRest extends DefaultClient implements AdminExter
     @Override
     public RequestResponse launchAudit(VitamContext vitamContext, JsonNode auditOption)
         throws AccessExternalClientServerException {
-        Response response = null;
-
-        try {
-            final MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
-            headers.putAll(vitamContext.getHeaders());
-
-            response = performRequest(HttpMethod.POST, AccessExtAPI.AUDITS_API, headers, auditOption,
-                MediaType.APPLICATION_JSON_TYPE, MediaType.APPLICATION_JSON_TYPE);
+        VitamRequestBuilder post = post()
+            .withPath(AccessExtAPI.AUDITS_API)
+            .withHeaders(vitamContext.getHeaders())
+            .withBody(auditOption)
+            .withJson();
+        try (Response response = make(post)) {
+            check(response);
             return RequestResponse.parseFromResponse(response);
+        } catch (AdminExternalClientException e) {
+            LOGGER.error(e);
+            return e.getVitamError();
         } catch (VitamClientInternalException e) {
-            LOGGER.error(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage(), e);
-            throw new AccessExternalClientServerException(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage(), e);
-        } finally {
-            if (response != null && response.getStatus() != Status.OK.getStatusCode()) {
-                consumeAnyEntityAndClose(response);
-            }
+            throw new AccessExternalClientServerException(e);
         }
     }
 
@@ -550,23 +497,18 @@ public class AdminExternalClientRest extends DefaultClient implements AdminExter
         String documentId,
         Class<T> clazz)
         throws VitamClientException {
-        Response response = null;
-        final MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
-        headers.putAll(vitamContext.getHeaders());
-
-        try {
-            response = performRequest(HttpMethod.GET, documentType.getName() + "/" + documentId, headers,
-                null, null, MediaType.APPLICATION_JSON_TYPE, false);
+        VitamRequestBuilder request = get()
+            .withPath(documentType.getName() + "/" + documentId)
+            .withHeaders(vitamContext.getHeaders())
+            .withJsonAccept();
+        try (Response response = make(request)) {
+            check(response);
             return RequestResponse.parseFromResponse(response, clazz);
-
-        } catch (IllegalStateException e) {
-            LOGGER.error(COULD_NOT_PARSE_SERVER_RESPONSE, e);
-            throw createExceptionFromResponse(response);
-        } catch (final VitamClientException e) {
-            LOGGER.error(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage(), e);
-            throw new VitamClientException(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage(), e);
-        } finally {
-            consumeAnyEntityAndClose(response);
+        } catch (AdminExternalClientException e) {
+            LOGGER.error(e);
+            return e.getVitamError();
+        } catch (VitamClientInternalException e) {
+            throw new VitamClientException(e);
         }
     }
 
@@ -657,20 +599,17 @@ public class AdminExternalClientRest extends DefaultClient implements AdminExter
     @Override
     public RequestResponse updateSecurityProfile(VitamContext vitamContext, String identifier, JsonNode queryDsl)
         throws VitamClientException {
-
-        MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
-        headers.putAll(vitamContext.getHeaders());
-        Response response = null;
-        try {
-            response = performRequest(HttpMethod.PUT, UPDATE_SECURITY_PROFILE + identifier, headers,
-                queryDsl, MediaType.APPLICATION_JSON_TYPE,
-                MediaType.APPLICATION_JSON_TYPE);
+        VitamRequestBuilder request = put()
+            .withPath(UPDATE_SECURITY_PROFILE + identifier)
+            .withHeaders(vitamContext.getHeaders())
+            .withBody(queryDsl)
+            .withJson();
+        try (Response response = make(request)) {
+            check(response);
             return RequestResponse.parseFromResponse(response);
-        } catch (final VitamClientInternalException e) {
-            LOGGER.error(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage(), e);
-            throw new VitamClientException(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage(), e);
-        } finally {
-            consumeAnyEntityAndClose(response);
+        } catch (AdminExternalClientException e) {
+            LOGGER.error(e);
+            return e.getVitamError();
         }
     }
 
@@ -678,21 +617,19 @@ public class AdminExternalClientRest extends DefaultClient implements AdminExter
     public RequestResponse<ProcessDetail> listOperationsDetails(VitamContext vitamContext,
         ProcessQuery query)
         throws VitamClientException {
-        Response response = null;
-        try {
-            final MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
-            headers.putAll(vitamContext.getHeaders());
-
-            response = performRequest(HttpMethod.GET, AccessExtAPI.OPERATIONS_API, headers, query,
-                MediaType.APPLICATION_JSON_TYPE, MediaType.APPLICATION_JSON_TYPE);
+        VitamRequestBuilder request = get()
+            .withPath(OPERATIONS_API)
+            .withHeaders(vitamContext.getHeaders())
+            .withBody(query)
+            .withJson();
+        try (Response response = make(request)) {
+            check(response);
             return RequestResponse.parseFromResponse(response, ProcessDetail.class);
-
-        } catch (VitamClientException e) {
-            throw e;
-        } catch (Exception e) {
-            throw createExceptionFromResponse(response);
-        } finally {
-            consumeAnyEntityAndClose(response);
+        } catch (AdminExternalClientException e) {
+            LOGGER.error(e);
+            return e.getVitamError();
+        } catch (VitamClientInternalException e) {
+            throw new VitamClientException(e);
         }
     }
 
@@ -701,27 +638,22 @@ public class AdminExternalClientRest extends DefaultClient implements AdminExter
         VitamContext vitamContext, String actionId,
         String operationId)
         throws VitamClientException {
-
         ParametersChecker.checkParameter(BLANK_OPERATION_ID, operationId);
         ParametersChecker.checkParameter(BLANK_TENANT_ID, vitamContext.getTenantId());
         ParametersChecker.checkParameter(BLANK_ACTION_ID, actionId);
-        Response response = null;
-        try {
-
-            final MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
-            headers.putAll(vitamContext.getHeaders());
-            headers.add(GlobalDataRest.X_ACTION, actionId);
-            response =
-                performRequest(HttpMethod.PUT, AccessExtAPI.OPERATIONS_API + "/" + operationId, headers,
-                    MediaType.APPLICATION_JSON_TYPE);
+        VitamRequestBuilder request = put()
+            .withPath(OPERATIONS_API + "/" + operationId)
+            .withHeaders(vitamContext.getHeaders())
+            .withHeader(X_ACTION, actionId)
+            .withJsonAccept();
+        try (Response response = make(request)) {
+            check(response);
             return RequestResponse.parseFromResponse(response, ItemStatus.class);
-
-        } catch (VitamClientException e) {
-            throw e;
-        } catch (Exception e) {
-            throw createExceptionFromResponse(response);
-        } finally {
-            consumeAnyEntityAndClose(response);
+        } catch (AdminExternalClientException e) {
+            LOGGER.error(e);
+            return e.getVitamError();
+        } catch (VitamClientInternalException e) {
+            throw new VitamClientException(e);
         }
     }
 
@@ -731,45 +663,24 @@ public class AdminExternalClientRest extends DefaultClient implements AdminExter
         String id)
         throws VitamClientException {
         ParametersChecker.checkParameter(BLANK_OPERATION_ID, id);
-        final MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
-        headers.putAll(vitamContext.getHeaders());
-        Response response = null;
-        try {
-            response =
-                performRequest(HttpMethod.HEAD, AccessExtAPI.OPERATIONS_API + "/" + id, headers,
-                    MediaType.APPLICATION_JSON_TYPE);
-
-            if (response.getStatus() == Status.NOT_FOUND.getStatusCode()) {
-                LOGGER.warn(SIP_WARNING + Response.Status.NOT_FOUND.getReasonPhrase());
-                return VitamCodeHelper.toVitamError(VitamCode.INGEST_EXTERNAL_NOT_FOUND, NOT_FOUND_EXCEPTION);
-            } else if (response.getStatus() == Status.PRECONDITION_FAILED.getStatusCode()) {
-                LOGGER.warn(SIP_WARNING + Response.Status.PRECONDITION_FAILED.getReasonPhrase());
-                return VitamCodeHelper.toVitamError(VitamCode.INGEST_EXTERNAL_PRECONDITION_FAILED,
-                    REQUEST_PRECONDITION_FAILED);
-            } else if (response.getStatus() == Status.UNAUTHORIZED.getStatusCode()) {
-                LOGGER.warn(SIP_WARNING + Response.Status.UNAUTHORIZED.getReasonPhrase());
-                return VitamCodeHelper.toVitamError(VitamCode.INGEST_EXTERNAL_UNAUTHORIZED, UNAUTHORIZED);
-            } else if (response.getStatus() != Status.OK.getStatusCode() &&
-                response.getStatus() != Status.ACCEPTED.getStatusCode()) {
-                LOGGER.warn(SIP_WARNING + Response.Status.INTERNAL_SERVER_ERROR.getReasonPhrase());
-                return VitamCodeHelper.toVitamError(VitamCode.INGEST_EXTERNAL_INTERNAL_SERVER_ERROR,
-                    INTERNAL_SERVER_ERROR);
-            }
-
-            ItemStatus itemStatus =
-                new ItemStatus()
-                    .setGlobalState(
-                        ProcessState.valueOf(response.getHeaderString(GlobalDataRest.X_GLOBAL_EXECUTION_STATE)))
-                    .setLogbookTypeProcess(response.getHeaderString(GlobalDataRest.X_CONTEXT_ID))
-                    .increment(StatusCode.valueOf(response.getHeaderString(GlobalDataRest.X_GLOBAL_EXECUTION_STATUS)));
-            return new RequestResponseOK<ItemStatus>().addResult(itemStatus).setHttpCode(response.getStatus());
-
-
+        VitamRequestBuilder request = VitamRequestBuilder.head()
+            .withPath(OPERATIONS_API + "/" + id)
+            .withHeaders(vitamContext.getHeaders())
+            .withJsonAccept();
+        try (Response response = make(request)) {
+            check(response);
+            ItemStatus itemStatus = new ItemStatus()
+                    .setGlobalState(ProcessState.valueOf(response.getHeaderString(X_GLOBAL_EXECUTION_STATE)))
+                    .setLogbookTypeProcess(response.getHeaderString(X_CONTEXT_ID))
+                    .increment(StatusCode.valueOf(response.getHeaderString(X_GLOBAL_EXECUTION_STATUS)));
+            return new RequestResponseOK<ItemStatus>()
+                .addResult(itemStatus)
+                .setHttpCode(response.getStatus());
         } catch (VitamClientInternalException e) {
-            LOGGER.error(VITAM_CLIENT_INTERNAL_EXCEPTION, e);
             throw new VitamClientException(e);
-        } finally {
-            consumeAnyEntityAndClose(response);
+        } catch (AdminExternalClientException e) {
+            LOGGER.error(e);
+            return e.getVitamError();
         }
     }
 
@@ -779,21 +690,18 @@ public class AdminExternalClientRest extends DefaultClient implements AdminExter
         throws VitamClientException, IllegalArgumentException {
         ParametersChecker.checkParameter(BLANK_OPERATION_ID, id);
         ParametersChecker.checkParameter(BLANK_TENANT_ID, vitamContext.getTenantId());
-        Response response = null;
-        try {
-            final MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
-            headers.putAll(vitamContext.getHeaders());
-            response =
-                performRequest(HttpMethod.DELETE, AccessExtAPI.OPERATIONS_API + "/" + id, headers,
-                    MediaType.APPLICATION_JSON_TYPE);
+        VitamRequestBuilder request = delete()
+            .withPath(OPERATIONS_API + "/" + id)
+            .withHeaders(vitamContext.getHeaders())
+            .withJsonAccept();
+        try (Response response = make(request)) {
+            check(response);
             return RequestResponse.parseFromResponse(response, ItemStatus.class);
-
-        } catch (VitamClientException e) {
-            throw e;
-        } catch (Exception e) {
-            throw createExceptionFromResponse(response);
-        } finally {
-            consumeAnyEntityAndClose(response);
+        } catch (AdminExternalClientException e) {
+            LOGGER.error(e);
+            return e.getVitamError();
+        } catch (VitamClientInternalException e) {
+            throw new VitamClientException(e);
         }
     }
 
@@ -803,43 +711,36 @@ public class AdminExternalClientRest extends DefaultClient implements AdminExter
         throws VitamClientException {
         ParametersChecker.checkParameter(BLANK_OPERATION_ID, id);
         ParametersChecker.checkParameter(BLANK_TENANT_ID, vitamContext.getTenantId());
-
-        Response response = null;
-        try {
-            final MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
-            headers.putAll(vitamContext.getHeaders());
-            headers.add(GlobalDataRest.X_ACTION, id);
-            response =
-                performRequest(HttpMethod.GET, AccessExtAPI.OPERATIONS_API + "/" + id, headers,
-                    MediaType.APPLICATION_JSON_TYPE);
+        VitamRequestBuilder request = get()
+            .withPath(OPERATIONS_API + "/" + id)
+            .withHeaders(vitamContext.getHeaders())
+            .withHeader(X_ACTION, id)
+            .withJsonAccept();
+        try (Response response = make(request)) {
+            check(response);
             return RequestResponse.parseFromResponse(response, ItemStatus.class);
-
-        } catch (VitamClientException e) {
-            throw e;
-        } catch (Exception e) {
-            throw createExceptionFromResponse(response);
-        } finally {
-            consumeAnyEntityAndClose(response);
+        } catch (AdminExternalClientException e) {
+            LOGGER.error(e);
+            return e.getVitamError();
+        } catch (VitamClientInternalException e) {
+            throw new VitamClientException(e);
         }
     }
 
     @Override
     public RequestResponse<WorkFlow> getWorkflowDefinitions(VitamContext vitamContext) throws VitamClientException {
-        Response response = null;
-        try {
-            final MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
-            headers.putAll(vitamContext.getHeaders());
-
-            response =
-                performRequest(HttpMethod.GET, AccessExtAPI.WORKFLOWS_API, headers, MediaType.APPLICATION_JSON_TYPE);
+        VitamRequestBuilder request = get()
+            .withPath(AccessExtAPI.WORKFLOWS_API)
+            .withHeaders(vitamContext.getHeaders())
+            .withJsonAccept();
+        try (Response response = make(request)) {
+            check(response);
             return RequestResponse.parseFromResponse(response, WorkFlow.class);
-
-        } catch (VitamClientException e) {
-            throw e;
-        } catch (Exception e) {
-            throw createExceptionFromResponse(response);
-        } finally {
-            consumeAnyEntityAndClose(response);
+        } catch (AdminExternalClientException e) {
+            LOGGER.error(e);
+            return e.getVitamError();
+        } catch (VitamClientInternalException e) {
+            throw new VitamClientException(e);
         }
     }
 
@@ -847,30 +748,24 @@ public class AdminExternalClientRest extends DefaultClient implements AdminExter
     private RequestResponse internalCreateDocument(VitamContext vitamContext, AdminCollections documentType,
         InputStream stream, String filename, MediaType type)
         throws AccessExternalClientException {
-        ParametersChecker.checkParameter("The input is mandatory", stream, documentType);
-        Response response = null;
-        final MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
-        headers.putAll(vitamContext.getHeaders());
-        headers.add(GlobalDataRest.X_FILENAME, filename);
-        try {
-            response = performRequest(HttpMethod.POST, documentType.getName(), headers,
-                stream, type, MediaType.APPLICATION_JSON_TYPE);
-            if (response.getStatus() == Response.Status.OK.getStatusCode() ||
-                response.getStatus() == Response.Status.CREATED.getStatusCode()) {
-                return new RequestResponseOK().setHttpCode(Status.CREATED.getStatusCode())
-                    .addHeader(GlobalDataRest.X_REQUEST_ID, response.getHeaderString(GlobalDataRest.X_REQUEST_ID));
-            } else if (response.getStatus() == Response.Status.NOT_FOUND.getStatusCode()) {
-                throw new AccessExternalClientNotFoundException(URI_NOT_FOUND);
-            } else if (response.getStatus() == Response.Status.FORBIDDEN.getStatusCode()) {
-                throw new AccessExternalClientException(JsonHandler.unprettyPrint(response.readEntity(String.class)));
-            } else {
-                return RequestResponse.parseFromResponse(response);
-            }
-        } catch (final VitamClientInternalException e) {
-            LOGGER.error(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage(), e);
-            throw new AccessExternalClientServerException(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage(), e);
-        } finally {
-            consumeAnyEntityAndClose(response);
+        ParametersChecker.checkParameter("The document type is mandatory", documentType);
+        VitamRequestBuilder request = post()
+            .withPath(documentType.getName())
+            .withHeaders(vitamContext.getHeaders())
+            .withHeader(X_FILENAME, filename)
+            .withBody(stream)
+            .withContentType(type)
+            .withJsonAccept();
+        try (Response response = make(request)) {
+            check(response);
+            return new RequestResponseOK()
+                .setHttpCode(CREATED.getStatusCode())
+                .addHeader(X_REQUEST_ID, response.getHeaderString(X_REQUEST_ID));
+        } catch (AdminExternalClientException e) {
+            LOGGER.error(e);
+            return e.getVitamError();
+        } catch (VitamClientInternalException e) {
+            throw new AccessExternalClientException(e);
         }
     }
 
@@ -921,38 +816,48 @@ public class AdminExternalClientRest extends DefaultClient implements AdminExter
     private Response internalCheckDocuments(VitamContext vitamContext, AdminCollections documentType,
         InputStream stream)
         throws VitamClientException {
+        VitamRequestBuilder request = post()
+            .withPath(documentType.getCheckURI())
+            .withHeaders(vitamContext.getHeaders())
+            .withBody(stream)
+            .withOctet();
+        Response response = null;
         try {
-            return  performRequest(HttpMethod.POST, documentType.getCheckURI(), vitamContext.getHeaders(),
-                stream, MediaType.APPLICATION_OCTET_STREAM_TYPE,
-                MediaType.APPLICATION_OCTET_STREAM_TYPE);
-        } catch (final VitamClientInternalException e) {
-            LOGGER.error(VITAM_CLIENT_INTERNAL_EXCEPTION, e);
+            response = make(request);
+            check(response);
+            return response;
+
+        } catch (AdminExternalClientException e) {
+            LOGGER.error(e);
+            return response;
+        } catch (VitamClientInternalException e) {
             throw new VitamClientException(e);
+        } finally {
+            if (response != null && !SUCCESSFUL.equals(response.getStatusInfo().toEnum().getFamily())) {
+                response.close();
+            }
         }
     }
 
     private RequestResponse internalCreateContracts(VitamContext vitamContext, InputStream contracts,
         AdminCollections collection)
         throws AccessExternalClientException {
-        ParametersChecker.checkParameter("The input contracts json is mandatory", contracts, collection);
-        Response response = null;
-        try {
-            response = performRequest(HttpMethod.POST, collection.getName(), vitamContext.getHeaders(),
-                contracts, MediaType.APPLICATION_JSON_TYPE,
-                MediaType.APPLICATION_JSON_TYPE);
-            // FIXME quick fix for response OK, adapt response for all response types
-            if (response.getStatus() == Response.Status.OK.getStatusCode() ||
-                response.getStatus() == Response.Status.CREATED.getStatusCode()) {
-                return new RequestResponseOK().setHttpCode(Status.OK.getStatusCode())
-                    .addHeader(GlobalDataRest.X_REQUEST_ID, response.getHeaderString(GlobalDataRest.X_REQUEST_ID));
-            } else {
-                return RequestResponse.parseFromResponse(response);
-            }
-        } catch (final VitamClientInternalException e) {
-            LOGGER.error(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage(), e);
-            throw new AccessExternalClientException(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage(), e);
-        } finally {
-            consumeAnyEntityAndClose(response);
+        ParametersChecker.checkParameter("The collection parameter is mandatory", collection);
+        VitamRequestBuilder request = post()
+            .withPath(collection.getName())
+            .withHeaders(vitamContext.getHeaders())
+            .withBody(contracts, "The input contracts json is mandatory")
+            .withJson();
+        try (Response response = make(request)) {
+            check(response);
+            return new RequestResponseOK()
+                .setHttpCode(OK.getStatusCode())
+                .addHeader(X_REQUEST_ID, response.getHeaderString(X_REQUEST_ID));
+        } catch (VitamClientInternalException e) {
+            throw new AccessExternalClientException(e);
+        } catch (AdminExternalClientException e) {
+            LOGGER.error(e);
+            return e.getVitamError();
         }
     }
 
@@ -978,164 +883,183 @@ public class AdminExternalClientRest extends DefaultClient implements AdminExter
     public Response downloadDistributionReport(VitamContext vitamContext, String opId)
         throws VitamClientException {
         ParametersChecker.checkParameter(BLANK_OBJECT_ID, opId);
-
-        Response response;
+        VitamRequestBuilder request = get()
+            .withPath(AccessExtAPI.DISTRIBUTION_REPORT_API + "/" + opId)
+            .withHeaders(vitamContext.getHeaders())
+            .withOctetAccept();
+        Response response = null;
         try {
-            response = performRequest(HttpMethod.GET, AccessExtAPI.DISTRIBUTION_REPORT_API + "/" + opId,
-                vitamContext.getHeaders(), MediaType.APPLICATION_OCTET_STREAM_TYPE);
-
-        } catch (final VitamClientInternalException e) {
-            LOGGER.error(VITAM_CLIENT_INTERNAL_EXCEPTION, e);
+            response = make(request);
+            check(response);
+            return response;
+        } catch (VitamClientInternalException e) {
             throw new VitamClientException(e);
+        } finally {
+            if (response != null && !SUCCESSFUL.equals(response.getStatusInfo().toEnum().getFamily())) {
+                response.close();
+            }
         }
-        return response;
     }
 
     @Override
     public Response downloadBatchReport(VitamContext vitamContext, String opId) throws VitamClientException {
-        Response response;
+        ParametersChecker.checkParameter(BLANK_OBJECT_ID, opId);
+        VitamRequestBuilder request = get()
+            .withPath(AccessExtAPI.BATCH_REPORT_API + opId)
+            .withHeaders(vitamContext.getHeaders())
+            .withOctetAccept();
+        Response response = null;
         try {
-            response = performRequest(HttpMethod.GET, AccessExtAPI.BATCH_REPORT_API + opId,
-                vitamContext.getHeaders(), MediaType.APPLICATION_OCTET_STREAM_TYPE);
-
-        } catch (final VitamClientInternalException e) {
-            LOGGER.error(VITAM_CLIENT_INTERNAL_EXCEPTION, e);
+            response = make(request);
+            check(response);
+            return response;
+        } catch (VitamClientInternalException e) {
             throw new VitamClientException(e);
+        } finally {
+            if (response != null && !SUCCESSFUL.equals(response.getStatusInfo().toEnum().getFamily())) {
+                response.close();
+            }
         }
-        return response;
     }
 
     @Override
     public Response downloadRulesReport(VitamContext vitamContext, String opId)
         throws VitamClientException {
         ParametersChecker.checkParameter(BLANK_OBJECT_ID, opId);
-
-        Response response;
+        VitamRequestBuilder request = get()
+            .withPath(AccessExtAPI.RULES_REPORT_API + "/" + opId)
+            .withHeaders(vitamContext.getHeaders())
+            .withOctetAccept();
+        Response response = null;
         try {
-            response = performRequest(HttpMethod.GET, AccessExtAPI.RULES_REPORT_API + "/" + opId,
-                vitamContext.getHeaders(), MediaType.APPLICATION_OCTET_STREAM_TYPE);
-
-        } catch (final VitamClientInternalException e) {
-            LOGGER.error(VITAM_CLIENT_INTERNAL_EXCEPTION, e);
+            response = make(request);
+            check(response);
+            return response;
+        } catch (AdminExternalClientException e) {
+            LOGGER.error(e);
+            return response;
+        } catch (VitamClientInternalException e) {
             throw new VitamClientException(e);
         }
-        return response;
     }
 
     @Override
     public Response downloadAgenciesCsvAsStream(VitamContext vitamContext, String opId)
         throws VitamClientException {
         ParametersChecker.checkParameter(BLANK_OBJECT_ID, opId);
-
-        Response response;
+        VitamRequestBuilder request = get()
+            .withPath(AccessExtAPI.AGENCIES_REFERENTIAL_CSV_DOWNLOAD + "/" + opId)
+            .withHeaders(vitamContext.getHeaders())
+            .withOctetAccept();
+        Response response = null;
         try {
-            response = performRequest(HttpMethod.GET,
-                AccessExtAPI.AGENCIES_REFERENTIAL_CSV_DOWNLOAD + "/" + opId,
-                vitamContext.getHeaders(), MediaType.APPLICATION_OCTET_STREAM_TYPE);
-
-        } catch (final VitamClientInternalException e) {
-            LOGGER.error(VITAM_CLIENT_INTERNAL_EXCEPTION, e);
+            response = make(request);
+            check(response);
+            return response;
+        } catch (VitamClientInternalException e) {
             throw new VitamClientException(e);
+        } finally {
+            if (response != null && !SUCCESSFUL.equals(response.getStatusInfo().toEnum().getFamily())) {
+                response.close();
+            }
         }
-        return response;
     }
 
     @Override
     public Response downloadRulesCsvAsStream(VitamContext vitamContext, String opId)
         throws VitamClientException {
         ParametersChecker.checkParameter(BLANK_OBJECT_ID, opId);
-        Response response;
+        VitamRequestBuilder request = get()
+            .withPath(AccessExtAPI.RULES_REFERENTIAL_CSV_DOWNLOAD + "/" + opId)
+            .withHeaders(vitamContext.getHeaders())
+            .withOctetAccept();
+        Response response = null;
         try {
-            response = performRequest(HttpMethod.GET,
-                AccessExtAPI.RULES_REFERENTIAL_CSV_DOWNLOAD + "/" + opId,
-                vitamContext.getHeaders(), MediaType.APPLICATION_OCTET_STREAM_TYPE);
-
-        } catch (final VitamClientInternalException e) {
-            LOGGER.error(VITAM_CLIENT_INTERNAL_EXCEPTION, e);
+            response = make(request);
+            check(response);
+            return response;
+        } catch (VitamClientInternalException e) {
             throw new VitamClientException(e);
+        } finally {
+            if (response != null && !SUCCESSFUL.equals(response.getStatusInfo().toEnum().getFamily())) {
+                response.close();
+            }
         }
-        return response;
     }
 
     @Override
     public RequestResponse evidenceAudit(VitamContext vitamContext, JsonNode dslQuery)
         throws VitamClientException {
-        Response response = null;
-        try {
-            response = performRequest(HttpMethod.POST,
-                AccessExtAPI.UNIT_EVIDENCE_AUDIT_API,
-                vitamContext.getHeaders(),
-                dslQuery, MediaType.APPLICATION_JSON_TYPE, MediaType.APPLICATION_JSON_TYPE, false);
-
+        VitamRequestBuilder request = post()
+            .withPath(AccessExtAPI.UNIT_EVIDENCE_AUDIT_API)
+            .withHeaders(vitamContext.getHeaders())
+            .withBody(dslQuery)
+            .withJson();
+        try (Response response = make(request)) {
+            check(response);
             return RequestResponse.parseFromResponse(response);
-        } catch (final VitamClientInternalException e) {
-            LOGGER.error(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage(), e);
-            throw new VitamClientException(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage(), e);
-        } finally {
-            consumeAnyEntityAndClose(response);
+        } catch (AdminExternalClientException e) {
+            LOGGER.error(e);
+            return e.getVitamError();
+        } catch (VitamClientInternalException e) {
+            throw new VitamClientException(e);
         }
     }
 
     @Override
     public RequestResponse rectificationAudit(VitamContext vitamContext, String operationId)
         throws VitamClientException {
-        Response response = null;
-        try {
-            response = performRequest(HttpMethod.POST,
-                AccessExtAPI.RECTIFICATION_AUDIT,
-                vitamContext.getHeaders(),
-                operationId, MediaType.APPLICATION_JSON_TYPE, MediaType.APPLICATION_JSON_TYPE, false);
-
+        VitamRequestBuilder request = post()
+            .withPath(AccessExtAPI.RECTIFICATION_AUDIT)
+            .withHeaders(vitamContext.getHeaders())
+            .withBody(operationId)
+            .withJson();
+        try (Response response = make(request)) {
+            check(response);
             return RequestResponse.parseFromResponse(response);
-        } catch (final VitamClientInternalException e) {
-            LOGGER.error(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage(), e);
-            throw new VitamClientException(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage(), e);
-        } finally {
-            consumeAnyEntityAndClose(response);
+        } catch (AdminExternalClientException e) {
+            LOGGER.error(e);
+            return e.getVitamError();
+        } catch (VitamClientInternalException e) {
+            throw new VitamClientException(e);
         }
     }
 
     @Override
     public RequestResponse exportProbativeValue(VitamContext vitamContext, ProbativeValueRequest probativeValueRequest)
         throws VitamClientException {
-        Response response = null;
-        final MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
-        headers.putAll(vitamContext.getHeaders());
-
-        try {
-            response = performRequest(HttpMethod.POST,
-                AccessExtAPI.EXPORT_PROBATIVE_VALUE,
-                headers,
-                probativeValueRequest, MediaType.APPLICATION_JSON_TYPE, MediaType.APPLICATION_JSON_TYPE, false);
-
+        VitamRequestBuilder request = post()
+            .withPath(AccessExtAPI.EXPORT_PROBATIVE_VALUE)
+            .withHeaders(vitamContext.getHeaders())
+            .withBody(probativeValueRequest)
+            .withJson();
+        try (Response response = make(request)) {
+            check(response);
             return RequestResponse.parseFromResponse(response);
-        } catch (final VitamClientInternalException e) {
-            LOGGER.error(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage(), e);
-            throw new VitamClientException(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage(), e);
-        } finally {
-            consumeAnyEntityAndClose(response);
+        } catch (AdminExternalClientException e) {
+            LOGGER.error(e);
+            return e.getVitamError();
+        } catch (VitamClientInternalException e) {
+            throw new VitamClientException(e);
         }
     }
-
-
 
     @Override
     public RequestResponse createArchiveUnitProfile(VitamContext vitamContext, InputStream archiveUnitProfiles)
         throws InvalidParseOperationException, AccessExternalClientException {
-        ParametersChecker.checkParameter("The input profile json is mandatory", archiveUnitProfiles,
-            AdminCollections.ARCHIVE_UNIT_PROFILE);
-        Response response = null;
-        try {
-            response = performRequest(HttpMethod.POST, AdminCollections.ARCHIVE_UNIT_PROFILE.getName(),
-                vitamContext.getHeaders(),
-                archiveUnitProfiles, MediaType.APPLICATION_OCTET_STREAM_TYPE,
-                MediaType.APPLICATION_JSON_TYPE);
+        VitamRequestBuilder request = post()
+            .withPath(AdminCollections.ARCHIVE_UNIT_PROFILE.getName())
+            .withHeaders(vitamContext.getHeaders())
+            .withBody(archiveUnitProfiles, "The input profile json is mandatory")
+            .withJson();
+        try (Response response = make(request)) {
+            check(response);
             return RequestResponse.parseFromResponse(response);
-        } catch (final VitamClientInternalException e) {
-            LOGGER.error(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage(), e);
-            throw new AccessExternalClientException(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage(), e);
-        } finally {
-            consumeAnyEntityAndClose(response);
+        } catch (VitamClientInternalException e) {
+            throw new AccessExternalClientException(e);
+        } catch (AdminExternalClientException e) {
+            LOGGER.error(e);
+            return e.getVitamError();
         }
     }
 
@@ -1157,53 +1081,41 @@ public class AdminExternalClientRest extends DefaultClient implements AdminExter
     public RequestResponse updateArchiveUnitProfile(VitamContext vitamContext, String archiveUnitprofileId,
         JsonNode queryDSL)
         throws InvalidParseOperationException, AccessExternalClientException {
-        Response response = null;
-        try {
-            response =
-                performRequest(HttpMethod.PUT, UPDATE_AU_PROFILE + archiveUnitprofileId, vitamContext.getHeaders(),
-                    queryDSL, MediaType.APPLICATION_JSON_TYPE,
-                    MediaType.APPLICATION_JSON_TYPE);
+        VitamRequestBuilder request = put()
+            .withPath(UPDATE_AU_PROFILE + archiveUnitprofileId)
+            .withHeaders(vitamContext.getHeaders())
+            .withBody(queryDSL)
+            .withJson();
+        try (Response response = make(request)) {
+            check(response);
             return RequestResponse.parseFromResponse(response);
-        } catch (final VitamClientInternalException e) {
-            LOGGER.error(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage(), e);
-            throw new AccessExternalClientException(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage(), e);
-        } finally {
-            consumeAnyEntityAndClose(response);
+        } catch (VitamClientInternalException e) {
+            throw new AccessExternalClientException(e);
+        } catch (AdminExternalClientException e) {
+            LOGGER.error(e);
+            return e.getVitamError();
         }
     }
 
     @Override
     public RequestResponse importOntologies(boolean forceUpdate, VitamContext vitamContext, InputStream ontologies)
         throws InvalidParseOperationException, AccessExternalClientException {
-        ParametersChecker.checkParameter("The input ontologies json is mandatory", ontologies,
-            AdminCollections.ONTOLOGY);
-        Response response = null;
-        final MultivaluedMap<String, Object> headers = vitamContext.getHeaders();
-        headers.add(GlobalDataRest.FORCE_UPDATE, forceUpdate);
-        try {
-            response = performRequest(HttpMethod.POST, AdminCollections.ONTOLOGY.getName(), headers,
-                ontologies, MediaType.APPLICATION_JSON_TYPE,
-                MediaType.APPLICATION_JSON_TYPE);
-
-            if (response.getStatus() == Response.Status.OK.getStatusCode() ||
-                response.getStatus() == Response.Status.CREATED.getStatusCode()) {
-                RequestResponseOK requestResponseOK = new RequestResponseOK();
-                requestResponseOK
-                    .setHttpCode(Status.OK.getStatusCode());
-
-                requestResponseOK
-                    .addHeader(GlobalDataRest.X_REQUEST_ID, response.getHeaderString(GlobalDataRest.X_REQUEST_ID));
-                return requestResponseOK;
-
-            } else {
-                return RequestResponse.parseFromResponse(response);
-            }
-
-        } catch (final VitamClientInternalException e) {
-            LOGGER.error(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage(), e);
-            throw new AccessExternalClientServerException(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage(), e);
-        } finally {
-            consumeAnyEntityAndClose(response);
+        VitamRequestBuilder request = post()
+            .withPath(AdminCollections.ONTOLOGY.getName())
+            .withHeaders(vitamContext.getHeaders())
+            .withHeader(GlobalDataRest.FORCE_UPDATE, forceUpdate)
+            .withBody(ontologies, "The input ontologies json is mandatory")
+            .withJson();
+        try (Response response = make(request)) {
+            check(response);
+            return new RequestResponseOK()
+                .setHttpCode(OK.getStatusCode())
+                .addHeader(X_REQUEST_ID, response.getHeaderString(X_REQUEST_ID));
+        } catch (AdminExternalClientException e) {
+            LOGGER.error(e);
+            return e.getVitamError();
+        } catch (VitamClientInternalException e) {
+            throw new AccessExternalClientException(e);
         }
     }
 
@@ -1213,7 +1125,6 @@ public class AdminExternalClientRest extends DefaultClient implements AdminExter
         return internalFindDocumentById(vitamContext, AdminCollections.ONTOLOGY, id,
             OntologyModel.class);
     }
-
 
     @Override
     public RequestResponse<OntologyModel> findOntologies(VitamContext vitamContext, JsonNode query)
@@ -1254,7 +1165,6 @@ public class AdminExternalClientRest extends DefaultClient implements AdminExter
     public RequestResponse<PreservationScenarioModel> findPreservationScenario(VitamContext vitamContext,
         JsonNode select)
         throws VitamClientException {
-
         return internalFindDocuments(vitamContext, AdminCollections.PRESERVATION_SCENARIO, select,
             PreservationScenarioModel.class);
     }
@@ -1268,19 +1178,37 @@ public class AdminExternalClientRest extends DefaultClient implements AdminExter
     @Override
     public RequestResponse createExternalOperation(VitamContext vitamContext, LogbookOperationParameters logbookOperationparams)
         throws LogbookExternalClientException {
-
-        Response response = null;
-        try {
-            response = performRequest(HttpMethod.POST, AccessExtAPI.LOGBOOK_OPERATIONS, vitamContext.getHeaders(),
-                logbookOperationparams, MediaType.APPLICATION_JSON_TYPE,
-                MediaType.APPLICATION_JSON_TYPE);
+        VitamRequestBuilder request = post()
+            .withPath(AccessExtAPI.LOGBOOK_OPERATIONS)
+            .withHeaders(vitamContext.getHeaders())
+            .withBody(logbookOperationparams)
+            .withJson();
+        try (Response response = make(request)) {
+            check(response);
             return RequestResponse.parseFromResponse(response);
-        } catch (final VitamClientInternalException e) {
-            LOGGER.error(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage(), e);
-            throw new LogbookExternalClientException(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage(), e);
-        } finally {
-            consumeAnyEntityAndClose(response);
+        } catch (VitamClientInternalException e) {
+            throw new LogbookExternalClientException(e);
+        } catch (AdminExternalClientException e) {
+            LOGGER.error(e);
+            return e.getVitamError();
         }
+    }
+
+    private void check(Response response) throws AdminExternalClientException {
+        Response.Status status = response.getStatusInfo().toEnum();
+        if (SUCCESSFUL.equals(status.getFamily()) || REDIRECTION.equals(status.getFamily())) {
+            return;
+        }
+
+        String message = String.format("Error with the response, get status: '%d' and reason '%s'.", response.getStatus(), fromStatusCode(response.getStatus()).getReasonPhrase());
+        VitamError vitamError = new VitamError(message)
+            .setDescription(message)
+            .setHttpCode(status.getStatusCode())
+            .setMessage(message)
+            .setState(KO.name())
+            .setContext(ACCESS_EXTERNAL_MODULE);
+
+        throw new AdminExternalClientException(message, status, vitamError);
     }
 }
 
