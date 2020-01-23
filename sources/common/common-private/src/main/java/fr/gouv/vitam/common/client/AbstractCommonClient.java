@@ -45,11 +45,9 @@ import org.apache.http.conn.HttpHostConnectException;
 
 import javax.ws.rs.HttpMethod;
 import javax.ws.rs.ProcessingException;
-import javax.ws.rs.client.AsyncInvoker;
 import javax.ws.rs.client.Client;
 import javax.ws.rs.client.Entity;
 import javax.ws.rs.client.Invocation.Builder;
-import javax.ws.rs.client.InvocationCallback;
 import javax.ws.rs.client.WebTarget;
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
@@ -65,7 +63,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Random;
-import java.util.concurrent.Future;
 
 /**
  * Abstract Partial client class for all vitam clients
@@ -230,7 +227,7 @@ abstract class AbstractCommonClient implements BasicClient {
             for (int i = 0; i < VitamConfiguration.getRetryNumber(); i++) {
                 try {
                     Entity<Object> entity = Entity.entity(body, contentType);
-                    return builder.method(httpMethod, entity);
+                    return new VitamAutoClosableResponse(builder.method(httpMethod, entity));
                 } catch (ProcessingException e) {
                     lastException = checkSpecificExceptionForRetryUsingStream(i, e);
                     continue;
@@ -240,10 +237,10 @@ abstract class AbstractCommonClient implements BasicClient {
             for (int i = 0; i < VitamConfiguration.getRetryNumber(); i++) {
                 try {
                     if (body == null) {
-                        return builder.method(httpMethod);
+                        return new VitamAutoClosableResponse(builder.method(httpMethod));
                     } else {
                         Entity<Object> entity = Entity.entity(body, contentType);
-                        return builder.method(httpMethod, entity);
+                        return new VitamAutoClosableResponse(builder.method(httpMethod, entity));
                     }
                 } catch (ProcessingException e) {
                     lastException = checkSpecificExceptionForRetry(i, e);
@@ -350,161 +347,6 @@ abstract class AbstractCommonClient implements BasicClient {
             ParametersChecker.checkParameter(BODY_AND_CONTENT_TYPE_CANNOT_BE_NULL, body, contentType);
             final Builder builder = buildRequest(httpMethod, path, headers, accept, chunkedMode);
             return retryIfNecessary(httpMethod, body, contentType, builder);
-        } catch (final ProcessingException e) {
-            throw new VitamClientInternalException(e);
-        }
-    }
-
-    /**
-     * @param httpMethod
-     * @param body may be null
-     * @param contentType may be null
-     * @param builder
-     * @param callback
-     * @param <T> the type of the Future result (generally Response)
-     * @return the response from the server as Future
-     * @throws VitamClientInternalException if retry is not possible and http call is failed
-     */
-    private final <T> Future<T> retryIfNecessary(String httpMethod, Object body, MediaType contentType,
-        AsyncInvoker builder, InvocationCallback<T> callback)
-        throws VitamClientInternalException {
-        ProcessingException lastException = null;
-        if (body instanceof InputStream) {
-            for (int i = 0; i < VitamConfiguration.getRetryNumber(); i++) {
-                try {
-                    Entity<Object> entity = Entity.entity(body, contentType);
-                    return builder.method(httpMethod, entity, callback);
-                } catch (ProcessingException e) {
-                    lastException = checkSpecificExceptionForRetryUsingStream(i, e);
-                    continue;
-                }
-            }
-        } else {
-            for (int i = 0; i < VitamConfiguration.getRetryNumber(); i++) {
-                try {
-                    if (body == null) {
-                        return builder.method(httpMethod, callback);
-                    } else {
-                        Entity<Object> entity = Entity.entity(body, contentType);
-                        return builder.method(httpMethod, entity, callback);
-                    }
-                } catch (ProcessingException e) {
-                    lastException = checkSpecificExceptionForRetry(i, e);
-                    continue;
-                }
-            }
-        }
-        if (lastException != null) {
-            LOGGER.error(lastException);
-            throw lastException;
-        } else {
-            throw new VitamClientInternalException(UNKNOWN_ERROR_IN_CLIENT);
-        }
-    }
-
-    /**
-     * Perform an Async HTTP request to the server with callback
-     *
-     * @param httpMethod HTTP method to use for request
-     * @param path URL to request
-     * @param headers headers HTTP to add to request, may be null
-     * @param body body content of type contentType, may be null
-     * @param contentType the media type of the body to send, null if body is null
-     * @param accept asked type of response
-     * @param callback
-     * @param <T> the type of the Future result (generally Response)
-     * @return the response from the server as Future
-     * @throws VitamClientInternalException
-     */
-    protected <T> Future<T> performAsyncRequest(String httpMethod, String path,
-        MultivaluedHashMap<String, Object> headers,
-        Object body, MediaType contentType, MediaType accept, InvocationCallback<T> callback)
-        throws VitamClientInternalException {
-        try {
-            ParametersChecker.checkParameter(ARGUMENT_CANNOT_BE_NULL_EXCEPT_HEADERS, callback);
-            if (body != null) {
-                ParametersChecker.checkParameter(BODY_AND_CONTENT_TYPE_CANNOT_BE_NULL, body, contentType);
-                final Builder builder = buildRequest(httpMethod, path, headers, accept, getChunkedMode());
-                return retryIfNecessary(httpMethod, body, contentType, builder.async(), callback);
-            } else {
-                final Builder builder = buildRequest(httpMethod, path, headers, accept, false);
-                return retryIfNecessary(httpMethod, null, null, builder.async(), callback);
-            }
-        } catch (final ProcessingException e) {
-            throw new VitamClientInternalException(e);
-        }
-    }
-
-    /**
-     * @param httpMethod
-     * @param body may be null
-     * @param contentType may be null
-     * @param builder
-     * @return the response from the server as Future
-     * @throws VitamClientInternalException if retry is not possible and http call is failed
-     */
-    private final Future<Response> retryIfNecessary(String httpMethod, Object body, MediaType contentType,
-        AsyncInvoker builder)
-        throws VitamClientInternalException {
-        ProcessingException lastException = null;
-        if (body instanceof InputStream) {
-            for (int i = 0; i < VitamConfiguration.getRetryNumber(); i++) {
-                try {
-                    Entity<Object> entity = Entity.entity(body, contentType);
-                    return builder.method(httpMethod, entity);
-                } catch (ProcessingException e) {
-                    lastException = checkSpecificExceptionForRetryUsingStream(i, e);
-                    continue;
-                }
-            }
-        } else {
-            for (int i = 0; i < VitamConfiguration.getRetryNumber(); i++) {
-                try {
-                    if (body == null) {
-                        return builder.method(httpMethod);
-                    } else {
-                        Entity<Object> entity = Entity.entity(body, contentType);
-                        return builder.method(httpMethod, entity);
-                    }
-                } catch (ProcessingException e) {
-                    lastException = checkSpecificExceptionForRetry(i, e);
-                    continue;
-                }
-            }
-        }
-        if (lastException != null) {
-            LOGGER.error(lastException);
-            throw lastException;
-        } else {
-            throw new VitamClientInternalException(UNKNOWN_ERROR_IN_CLIENT);
-        }
-    }
-
-    /**
-     * Perform an Async HTTP request to the server with full control of action on caller
-     *
-     * @param httpMethod HTTP method to use for request
-     * @param path URL to request
-     * @param headers headers HTTP to add to request, may be null
-     * @param body body content of type contentType, may be null
-     * @param contentType the media type of the body to send, null if body is null
-     * @param accept asked type of response
-     * @return the response from the server as a Future
-     * @throws VitamClientInternalException
-     */
-    protected Future<Response> performAsyncRequest(String httpMethod, String path,
-        MultivaluedHashMap<String, Object> headers,
-        Object body, MediaType contentType, MediaType accept)
-        throws VitamClientInternalException {
-        try {
-            if (body != null) {
-                ParametersChecker.checkParameter(BODY_AND_CONTENT_TYPE_CANNOT_BE_NULL, body, contentType);
-                final Builder builder = buildRequest(httpMethod, path, headers, accept, getChunkedMode());
-                return retryIfNecessary(httpMethod, body, contentType, builder.async());
-            } else {
-                final Builder builder = buildRequest(httpMethod, path, headers, accept, false);
-                return retryIfNecessary(httpMethod, null, null, builder.async());
-            }
         } catch (final ProcessingException e) {
             throw new VitamClientInternalException(e);
         }
