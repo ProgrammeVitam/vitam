@@ -54,7 +54,6 @@ import javax.xml.bind.UnmarshalException;
 import javax.xml.bind.Unmarshaller;
 import javax.xml.namespace.QName;
 import javax.xml.stream.XMLStreamReader;
-import javax.xml.validation.Schema;
 import java.io.ByteArrayInputStream;
 import java.util.Collections;
 
@@ -79,9 +78,6 @@ public class VerifyAtrPluginTest {
     @Mock
     private Unmarshaller unmarshaller;
 
-    @Mock
-    private Schema schema;
-
     @InjectMocks
     private VerifyAtrPlugin verifyAtrPlugin;
 
@@ -94,7 +90,8 @@ public class VerifyAtrPluginTest {
     public void should_verify_plugin_return_OK() throws Exception {
         // Given
         String messageRequestIdentifier = "AWESOME-ID";
-        given(unmarshaller.unmarshal(any(XMLStreamReader.class), eq((ArchiveTransferReplyType.class)))).willReturn(getJaxbAtr(messageRequestIdentifier));
+        String replyCode = "OK";
+        given(unmarshaller.unmarshal(any(XMLStreamReader.class), eq((ArchiveTransferReplyType.class)))).willReturn(getJaxbAtr(messageRequestIdentifier,replyCode));
         given(logbookOperationsClient.selectOperationById(messageRequestIdentifier)).willReturn(getLogbookOperation(OK));
         TestHandlerIO handler = new TestHandlerIO();
         handler.setInputStreamFromWorkspace(new ByteArrayInputStream("<ArchiveTransferReply></ArchiveTransferReply>".getBytes()));
@@ -110,7 +107,8 @@ public class VerifyAtrPluginTest {
     public void should_verify_plugin_with_transfer_operation_warning_return_OK() throws Exception {
         // Given
         String messageRequestIdentifier = "AWESOME-ID";
-        given(unmarshaller.unmarshal(any(XMLStreamReader.class), eq((ArchiveTransferReplyType.class)))).willReturn(getJaxbAtr(messageRequestIdentifier));
+        String replyCode = "WARNING";
+        given(unmarshaller.unmarshal(any(XMLStreamReader.class), eq((ArchiveTransferReplyType.class)))).willReturn(getJaxbAtr(messageRequestIdentifier,replyCode));
         given(logbookOperationsClient.selectOperationById(messageRequestIdentifier)).willReturn(getLogbookOperation(StatusCode.WARNING));
         TestHandlerIO handler = new TestHandlerIO();
         handler.setInputStreamFromWorkspace(new ByteArrayInputStream("<ArchiveTransferReply></ArchiveTransferReply>".getBytes()));
@@ -120,6 +118,23 @@ public class VerifyAtrPluginTest {
 
         // Then
         assertThat(result.getGlobalStatus()).isEqualTo(OK);
+    }
+
+    @Test
+    public void should_return_KO_when_ATR_has_ReplyCode_other_than_ko_or_warning() throws Exception {
+        // Given
+        String messageRequestIdentifier = "AWESOME-ID";
+        String replyCode = "KO";
+        given(unmarshaller.unmarshal(any(XMLStreamReader.class), eq((ArchiveTransferReplyType.class)))).willReturn(getJaxbAtr(messageRequestIdentifier,replyCode));
+        given(logbookOperationsClient.selectOperationById(messageRequestIdentifier)).willReturn(getLogbookOperation(StatusCode.KO));
+        TestHandlerIO handler = new TestHandlerIO();
+        handler.setInputStreamFromWorkspace(new ByteArrayInputStream("<ArchiveTransferReply></ArchiveTransferReply>".getBytes()));
+
+        // When
+        ItemStatus result = verifyAtrPlugin.execute(null, handler);
+
+        // Then
+        assertThat(result.getGlobalStatus()).isEqualTo(KO);
     }
 
     @Test
@@ -172,7 +187,8 @@ public class VerifyAtrPluginTest {
     public void should_return_KO_unknown_transfer_operation() throws Exception {
         // Given
         String messageRequestIdentifier = "AWESOME-ID";
-        given(unmarshaller.unmarshal(any(XMLStreamReader.class), eq((ArchiveTransferReplyType.class)))).willReturn(getJaxbAtr(messageRequestIdentifier));
+        String replyCode = "OK";
+        given(unmarshaller.unmarshal(any(XMLStreamReader.class), eq((ArchiveTransferReplyType.class)))).willReturn(getJaxbAtr(messageRequestIdentifier,replyCode));
         given(logbookOperationsClient.selectOperationById(messageRequestIdentifier)).willThrow(new LogbookClientNotFoundException(""));
         TestHandlerIO handler = new TestHandlerIO();
         handler.setInputStreamFromWorkspace(new ByteArrayInputStream("<ArchiveTransferReply></ArchiveTransferReply>".getBytes()));
@@ -186,11 +202,12 @@ public class VerifyAtrPluginTest {
             .isEqualTo("{\"Event\":\"Field MessageRequestIdentifier in ATR does not correspond to an existing transfer operation.\"}");
     }
 
-    private JAXBElement<ArchiveTransferReplyType> getJaxbAtr(String messageRequestIdentifier) {
+    private JAXBElement<ArchiveTransferReplyType> getJaxbAtr(String messageRequestIdentifier, String replyCode) {
         ArchiveTransferReplyType archiveTransferReplyType = new ArchiveTransferReplyType();
         IdentifierType identifier = new IdentifierType();
         identifier.setValue(messageRequestIdentifier);
         archiveTransferReplyType.setMessageRequestIdentifier(identifier);
+        archiveTransferReplyType.setReplyCode(replyCode);
         return new JAXBElement<>(
             new QName(ArchiveTransferReplyType.class.getSimpleName()),
             ArchiveTransferReplyType.class,
