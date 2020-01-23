@@ -27,10 +27,10 @@
 package fr.gouv.vitam.functional.administration.accession.register.core;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import com.mongodb.MongoBulkWriteException;
-import com.mongodb.MongoWriteException;
 import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.ParametersChecker;
+import fr.gouv.vitam.common.alert.AlertService;
+import fr.gouv.vitam.common.alert.AlertServiceImpl;
 import fr.gouv.vitam.common.database.builder.query.QueryHelper;
 import fr.gouv.vitam.common.database.builder.query.VitamFieldsHelper;
 import fr.gouv.vitam.common.database.builder.query.action.Action;
@@ -40,15 +40,14 @@ import fr.gouv.vitam.common.database.builder.query.action.SetAction;
 import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
 import fr.gouv.vitam.common.database.builder.request.single.Update;
 import fr.gouv.vitam.common.database.server.DbRequestResult;
-import fr.gouv.vitam.common.database.server.DbRequestSingle;
 import fr.gouv.vitam.common.database.server.mongodb.VitamDocument;
 import fr.gouv.vitam.common.exception.BadRequestException;
-import fr.gouv.vitam.common.exception.DatabaseException;
 import fr.gouv.vitam.common.exception.DocumentAlreadyExistsException;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.SchemaValidationException;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.json.JsonHandler;
+import fr.gouv.vitam.common.logging.VitamLogLevel;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.RequestResponseOK;
@@ -88,6 +87,8 @@ public class ReferentialAccessionRegisterImpl implements VitamAutoCloseable {
     private final MongoDbAccessAdminImpl mongoAccess;
     private final FunctionalBackupService functionalBackupService;
     private final ReferentialAccessionRegisterSummaryUtil referentialAccessionRegisterSummaryUtil;
+
+    private final AlertService alertService = new AlertServiceImpl(LOGGER);
 
     /**
      * Constructor
@@ -164,7 +165,7 @@ public class ReferentialAccessionRegisterImpl implements VitamAutoCloseable {
      * @throws ReferentialException throws when insert mongodb error
      */
     public void createOrUpdateAccessionRegister(AccessionRegisterDetailModel registerDetail)
-        throws Exception {
+        throws BadRequestException, ReferentialException {
 
         LOGGER.debug("register ID / Originating Agency: {} / {}", registerDetail.getId(),
             registerDetail.getOriginatingAgency());
@@ -172,57 +173,47 @@ public class ReferentialAccessionRegisterImpl implements VitamAutoCloseable {
         // In case of ingest operation, opc is equal to opi
         // So, we create the accession detail
         // Else if opc != opi, must be an operation other than INGEST. Elimination, Transfer. In this case just update
-        Document docToStorage;
-
-        Exception occurredException = null;
         try {
-            if (!registerDetail.getOpc().equals(registerDetail.getOpi())) {
-                addEventToAccessionRegisterDetail(registerDetail);
-            } else {
-                JsonNode doc = VitamFieldsHelper.removeHash(JsonHandler.toJsonNode(registerDetail));
-                mongoAccess.insertDocument(doc,
-                    FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL).close();
-            }
-
-            // Warn, this is not idempotent, if error occurs while updating accession register summary then retry will fail early
-            updateAccessionRegisterSummary(registerDetail);
-
-        } catch (final InvalidParseOperationException | SchemaValidationException e) {
-            occurredException = new BadRequestException("Create register detail error", e);
-        } catch (Exception e) {
-            occurredException = e;
-        } finally {
-
-            // In case of bad request accession register will not be created
-            if (occurredException instanceof BadRequestException) {
-                throw occurredException;
-            }
-
             try {
-                // Even exception occurs, try to get document to be saved in offer
-                docToStorage =
-                    findAccessionRegisterDetail(registerDetail.getOriginatingAgency(), registerDetail.getOpi());
-
-                // Store Backup copy in storage
-                functionalBackupService
-                    .saveDocument(FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL, docToStorage);
-
-            } catch (Exception e) {
-                if (occurredException == null ||
-                    (occurredException instanceof DocumentAlreadyExistsException &&
-                        e instanceof FunctionalBackupServiceException)) {
-                    occurredException = new ReferentialException("Store backup register detail Error", e);
+                if (!registerDetail.getOpc().equals(registerDetail.getOpi())) {
+                    addEventToAccessionRegisterDetail(registerDetail);
                 } else {
-                    // Log current exception and rethrow original one
-                    LOGGER.error(e);
+                    JsonNode doc = VitamFieldsHelper.removeHash(JsonHandler.toJsonNode(registerDetail));
+                    mongoAccess.insertDocument(doc,
+                        FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL).close();
                 }
-            } finally {
-                if (occurredException != null) {
-                    throw occurredException;
-                }
-            }
-        }
 
+                // Warn, this is not idempotent, if error occurs while updating accession register summary then retry will fail early
+                updateAccessionRegisterSummary(registerDetail);
+
+            } catch (DocumentAlreadyExistsException e) {
+                LOGGER.warn(e);
+                alertService.createAlert(VitamLogLevel.WARN,
+                    "AccessionRegisterSummary maybe not up to date for the originating agency (" +
+                        registerDetail.getOriginatingAgency() + ") ");
+            }
+
+            storeAccessionRegisterDetail(registerDetail);
+
+        } catch (final InvalidParseOperationException | InvalidCreateOperationException | SchemaValidationException e) {
+            throw new BadRequestException("Create register detail error", e);
+        }
+    }
+
+    private void storeAccessionRegisterDetail(AccessionRegisterDetailModel registerDetail)
+        throws ReferentialException {
+
+        try {
+            Document docToStorage =
+                findAccessionRegisterDetail(registerDetail.getOriginatingAgency(), registerDetail.getOpi());
+
+            // Store Backup copy in storage
+            functionalBackupService
+                .saveDocument(FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL, docToStorage);
+
+        } catch (FunctionalBackupServiceException e) {
+            throw new ReferentialException("Store backup register detail Error", e);
+        }
     }
 
     /**

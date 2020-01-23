@@ -348,7 +348,7 @@ public class AdminManagementClientRestTest extends ResteasyTestApplication {
         }
     }
 
-    @Test(expected = AccessionRegisterException.class)
+    @Test(expected = AdminManagementClientServerException.class)
     @RunWithCustomExecutor
     public void createAccessionRegisterUnknownError()
         throws Exception {

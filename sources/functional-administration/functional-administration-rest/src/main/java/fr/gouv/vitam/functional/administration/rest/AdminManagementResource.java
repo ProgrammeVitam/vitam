@@ -45,13 +45,10 @@ import fr.gouv.vitam.common.database.builder.request.single.Select;
 import fr.gouv.vitam.common.database.parser.request.adapter.SingleVarNameAdapter;
 import fr.gouv.vitam.common.database.parser.request.multiple.SelectParserMultiple;
 import fr.gouv.vitam.common.database.parser.request.single.SelectParserSingle;
-import fr.gouv.vitam.common.database.server.DbRequestSingle;
 import fr.gouv.vitam.common.database.utils.AccessContractRestrictionHelper;
-import fr.gouv.vitam.common.error.ServiceName;
 import fr.gouv.vitam.common.error.VitamError;
 import fr.gouv.vitam.common.exception.AccessUnauthorizedException;
 import fr.gouv.vitam.common.exception.BadRequestException;
-import fr.gouv.vitam.common.exception.DocumentAlreadyExistsException;
 import fr.gouv.vitam.common.exception.InvalidGuidOperationException;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.guid.GUID;
@@ -596,16 +593,6 @@ public class AdminManagementResource extends ApplicationStatusResource {
             LOGGER.error(e);
             return Response.status(Status.BAD_REQUEST)
                 .entity(getErrorEntity(Status.BAD_REQUEST, e.getMessage())).build();
-        } catch (DocumentAlreadyExistsException e) {
-            LOGGER.error(e);
-            // Accession register detail already exists in database
-            VitamError ve = new VitamError(Status.CONFLICT.name()).setHttpCode(Status.CONFLICT.getStatusCode())
-                .setContext(ServiceName.EXTERNAL_ACCESS.getName())
-                .setState("code_vitam")
-                .setMessage(Status.CONFLICT.getReasonPhrase())
-                .setDescription("Document already exists in database");
-
-            return Response.status(Status.CONFLICT).entity(ve).build();
         } catch (final ReferentialException e) {
             LOGGER.error(e);
             return Response.status(Status.INTERNAL_SERVER_ERROR)

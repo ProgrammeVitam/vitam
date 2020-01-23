@@ -39,6 +39,7 @@ import fr.gouv.vitam.common.database.builder.request.single.Insert;
 import fr.gouv.vitam.common.database.parser.request.single.DeleteParserSingle;
 import fr.gouv.vitam.common.database.parser.request.single.SelectParserSingle;
 import fr.gouv.vitam.common.database.parser.request.single.UpdateParserSingle;
+import fr.gouv.vitam.common.database.server.DbRequestHelper;
 import fr.gouv.vitam.common.database.server.DbRequestResult;
 import fr.gouv.vitam.common.database.server.DbRequestSingle;
 import fr.gouv.vitam.common.database.server.DocumentValidator;
@@ -101,7 +102,7 @@ public class MongoDbAccessAdminImpl extends MongoDbAccess implements MongoDbAcce
             return dbrequest.execute(insertquery, version, documentValidator);
         } catch (MongoBulkWriteException | MongoWriteException | InvalidParseOperationException | BadRequestException | DatabaseException |
             InvalidCreateOperationException | VitamDBException e) {
-            if (DbRequestSingle.isDuplicateKeyError(e)) {
+            if (DbRequestHelper.isDuplicateKeyError(e)) {
                 throw new DocumentAlreadyExistsException("Documents already exists: Duplicate Key", e);
             }
             throw new ReferentialException("Insert Documents Exception", e);

@@ -324,11 +324,11 @@ public class AdminManagementResourceTest {
             .when().post(CREATE_FUND_REGISTER_URI)
             .then().statusCode(Status.CREATED.getStatusCode());
 
-        // Already exists --> conflict
+        // Already exists --> created
         given().contentType(ContentType.JSON).body(register)
             .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
             .when().post(CREATE_FUND_REGISTER_URI)
-            .then().statusCode(Status.CONFLICT.getStatusCode());
+            .then().statusCode(Status.CREATED.getStatusCode());
 
         // Invalid request (bad format) --> bad request
         register.setTotalObjects(null);
