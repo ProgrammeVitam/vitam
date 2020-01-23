@@ -41,14 +41,14 @@ public interface InterfaceLruCacheEntry<V> {
      *
      * @return Value
      */
-    public V getValue();
+    V getValue();
 
     /**
      *
      * @param timeRef
      * @return True if this entry is still valid
      */
-    public boolean isStillValid(long timeRef);
+    boolean isStillValid(long timeRef);
 
     /**
      * Reset the time of overtime
@@ -56,5 +56,5 @@ public interface InterfaceLruCacheEntry<V> {
      * @param ttl
      * @return True if this entry has its time reset
      */
-    public boolean resetTime(long ttl);
+    boolean resetTime(long ttl);
 }

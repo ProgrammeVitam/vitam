@@ -26,9 +26,9 @@
  */
 package fr.gouv.vitam.processing.common.model;
 
-import java.util.Map;
-
 import fr.gouv.vitam.common.model.StatusCode;
+
+import java.util.Map;
 
 /**
  * Model of Response from worker
@@ -42,26 +42,26 @@ public interface EngineResponse {
      *
      * @return Enum StatusCode {OK,KO,FATAL}
      */
-    public StatusCode getStatus();
+    StatusCode getStatus();
 
     /**
      *
      * @return StatusCode value {OK,KO,FATAL}
      */
-    public String getValue();
+    String getValue();
 
     /**
      *
      * @param status ENUM statusCode
      * @return EngineResponse
      */
-    public EngineResponse setStatus(StatusCode status);
+    EngineResponse setStatus(StatusCode status);
 
     /**
      *
      * @return list of functional error message
      */
-    public Map<String, OutcomeMessage> getOutcomeMessages();
+    Map<String, OutcomeMessage> getOutcomeMessages();
 
     /**
      * @param messages Outcome Messages of response
@@ -74,7 +74,7 @@ public interface EngineResponse {
      *
      * @return list of functional error message
      */
-    public int getErrorNumber();
+    int getErrorNumber();
 
     /**
      * @param number the number of errors during the workflow
@@ -86,12 +86,12 @@ public interface EngineResponse {
      *
      * @return message identifier of seda
      */
-    public String getMessageIdentifier();
+    String getMessageIdentifier();
 
     /**
      *
      * @param message identifier of seda
      * @return EngineResponse
      */
-    public EngineResponse setMessageIdentifier(String message);
+    EngineResponse setMessageIdentifier(String message);
 }

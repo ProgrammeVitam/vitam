@@ -50,9 +50,7 @@ public class AccessExternalClientMockTest {
             " \"$projection\" : { } " +
             " }";
     final String ID = "identifier1";
-    final String USAGE = "usage";
     final String CONTRACT = "contract";
-    final int VERSION = 1;
     final int TENANT_ID = 0;
     AccessExternalClient client;
 

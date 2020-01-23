@@ -26,11 +26,9 @@
  */
 package fr.gouv.vitam.functional.administration.contract.core;
 
-import java.util.List;
-import java.util.Optional;
-
 import fr.gouv.vitam.common.model.administration.AbstractContractModel;
-import org.apache.commons.lang3.StringUtils;
+
+import java.util.Optional;
 
 /**
  * Used to validate contracts (any class that extends AbstractContractModel) and
@@ -78,13 +76,11 @@ public interface GenericContractValidator<T extends AbstractContractModel> {
      */
     class GenericRejectionCause {
 
-        private static final String ERR_DUPLICATE_CONTRACT_ENTRY = "One or many contracts in the imported list have the same name : %s";
         private static final String ERR_ID_NOT_ALLOWED_IN_CREATE = "Id must be null when creating contracts (%s)";
         private static final String ERR_DUPLICATE_CONTRACT = "The contract %s already exists in database";
         private static final String ERR_ARCHIVEPROFILE_NOT_FOUND_CONTRACT = "One or multiple archive profiles or the contract %s not found in db";
         private static final String ERR_CONTRACT_EXCEPTION_OCCURRED = "Exception while validating contract (%s), %s : %s";
         private static final String ERR_CONTRACT_ROOT_UNITS_NOT_FOUND = "Error while validating contract (%s), RootUnits (%s) not found in database";
-        private static final String ERR_CONTRACT_ROOT_GUID_INCLUDED_AND_EXCLUDED = "Error while validating contract (%s), root GUID (%s) can not be included and excluded at the same time";
         private static final String ERR_CONTRACT_EXCLUDED_ROOT_UNITS_NOT_FOUND = "Error while validating contract (%s), ExcludedRootUnits (%s) not found in database";
         private static final String ERR_CONTRACT_EXCLUDED_AND_ROOT_UNITS_NOT_FOUND = "Error while validating contract (%s), ExcludedRootUnits and RootUnits (%s) not found in database";
         private static final String ERR_MANDATORY_FIELD = "The field %s is mandatory";
@@ -116,17 +112,6 @@ public interface GenericContractValidator<T extends AbstractContractModel> {
          */
         public static GenericRejectionCause rejectIdNotAllowedInCreate(String contractName) {
             return new GenericRejectionCause(String.format(ERR_ID_NOT_ALLOWED_IN_CREATE, contractName));
-        }
-
-        /**
-         * Reject if multiple contract have the same name in the same request before
-         * persist into database. The contract name must be unique
-         *
-         * @param contractName
-         * @return GenericRejectionCause
-         */
-        public static GenericRejectionCause rejectDuplicatedEntry(String contractName) {
-            return new GenericRejectionCause(String.format(ERR_DUPLICATE_CONTRACT_ENTRY, contractName));
         }
 
         /**
@@ -194,18 +179,6 @@ public interface GenericContractValidator<T extends AbstractContractModel> {
         public static GenericRejectionCause rejectRootUnitsNotFound(String contractName, String guidArrayAsString) {
             return new GenericRejectionCause(
                     String.format(ERR_CONTRACT_ROOT_UNITS_NOT_FOUND, contractName, guidArrayAsString));
-        }
-
-        /**
-         * Generate RejectionCause for root GUID used in both RootUnits and
-         * ExcludedRootUnits
-         *
-         * @param guid the contract name or identifier
-         * @return GenericRejectionCause
-         */
-        public static GenericRejectionCause rejectRootGuidIncludedAndExcluded(String contractName, String guid) {
-            return new GenericRejectionCause(
-                    String.format(ERR_CONTRACT_ROOT_GUID_INCLUDED_AND_EXCLUDED, contractName, guid));
         }
 
         /**

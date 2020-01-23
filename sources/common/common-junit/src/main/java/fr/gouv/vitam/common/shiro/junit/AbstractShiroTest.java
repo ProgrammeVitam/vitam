@@ -59,11 +59,7 @@ public abstract class AbstractShiroTest {
         subjectThreadState.bind();
     }
 
-    protected Subject getSubject() {
-        return SecurityUtils.getSubject();
-    }
-
-    protected ThreadState createThreadState(Subject subject) {
+    private ThreadState createThreadState(Subject subject) {
         return new SubjectThreadState(subject);
     }
 

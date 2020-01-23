@@ -26,23 +26,17 @@
  */
 package fr.gouv.vitam.functional.administration.client;
 
+import fr.gouv.vitam.common.client.VitamClientFactoryInterface.VitamClientType;
+import fr.gouv.vitam.common.client.configuration.ClientConfigurationImpl;
+import org.junit.Test;
+
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNotSame;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
-import org.junit.Test;
-
-import fr.gouv.vitam.common.client.VitamClientFactoryInterface.VitamClientType;
-import fr.gouv.vitam.common.client.configuration.ClientConfigurationImpl;
-
 public class AdminManagementClientFactoryTest {
-
-    public void initFileConfiguration() {
-        AdminManagementClientFactory
-            .changeMode(AdminManagementClientFactory.changeConfigurationFile("functional-administration-client.conf"));
-    }
 
     @Test
     public void getClientInstanceTest() {
@@ -108,7 +102,6 @@ public class AdminManagementClientFactoryTest {
     public void changeClientTypeAndGetExceptionTest() {
         AdminManagementClientFactory.changeMode(new ClientConfigurationImpl("localhost", 100));
         AdminManagementClientFactory.getInstance().setVitamClientType(VitamClientType.valueOf("BAD"));
-        final AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient();
     }
 
     @Test

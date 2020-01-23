@@ -24,12 +24,11 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  */
-
 package fr.gouv.vitam.storage.engine.server.distribution.impl;
 
-import javax.ws.rs.core.Response;
-
 import fr.gouv.vitam.storage.driver.model.StorageObjectResult;
+
+import javax.ws.rs.core.Response;
 
 /**
  * Response of thread storage

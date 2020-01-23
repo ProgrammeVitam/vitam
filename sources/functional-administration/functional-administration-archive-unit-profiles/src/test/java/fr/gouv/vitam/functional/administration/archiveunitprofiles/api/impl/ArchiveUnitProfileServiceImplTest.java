@@ -70,7 +70,6 @@ import static fr.gouv.vitam.common.database.collections.VitamCollection.getMongo
 import static fr.gouv.vitam.common.guid.GUIDFactory.newOperationLogbookGUID;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.verifyZeroInteractions;
 
@@ -269,7 +268,6 @@ public class ArchiveUnitProfileServiceImplTest {
 
         assertThat(response.isOk());
 
-        final File fileMetadataProfile2 = PropertiesUtils.getResourceFile("AUP_ok_same_name.json");
         final List<ArchiveUnitProfileModel> profileModelList2 =
             JsonHandler
                 .getFromFileAsTypeReference(fileMetadataProfile, new TypeReference<List<ArchiveUnitProfileModel>>() {

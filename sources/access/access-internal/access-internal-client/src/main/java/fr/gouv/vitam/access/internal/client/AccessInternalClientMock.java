@@ -36,11 +36,8 @@ import fr.gouv.vitam.common.client.AbstractMockClient;
 import fr.gouv.vitam.common.client.ClientMockResultHelper;
 import fr.gouv.vitam.common.exception.AccessUnauthorizedException;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
-import fr.gouv.vitam.common.exception.NoWritingPermissionException;
 import fr.gouv.vitam.common.exception.VitamRuntimeException;
 import fr.gouv.vitam.common.json.JsonHandler;
-import fr.gouv.vitam.common.logging.VitamLogger;
-import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.PreservationRequest;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
@@ -48,7 +45,6 @@ import fr.gouv.vitam.common.model.elimination.EliminationRequestBody;
 import fr.gouv.vitam.common.model.export.ExportRequest;
 import fr.gouv.vitam.common.model.massupdate.MassUpdateUnitRuleRequest;
 import fr.gouv.vitam.common.stream.StreamUtils;
-import fr.gouv.vitam.logbook.common.exception.LogbookClientException;
 import org.apache.commons.io.IOUtils;
 
 import javax.ws.rs.core.MediaType;
@@ -64,38 +60,33 @@ import java.io.InputStream;
  * Mock client implementation for access
  */
 class AccessInternalClientMock extends AbstractMockClient implements AccessInternalClient {
-    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(AccessInternalClientMock.class);
 
     static final String MOCK_GET_FILE_CONTENT = "Vitam test";
 
     @Override
     public RequestResponse<JsonNode> selectUnits(JsonNode selectQuery)
-        throws InvalidParseOperationException, AccessInternalClientServerException,
-        AccessInternalClientNotFoundException {
+        throws InvalidParseOperationException {
         return new RequestResponseOK().addResult(JsonHandler.getFromString(
             "{$hint: {'total':'1'},$context:{$query: {$eq: {\"Title\" : \"Archive1\" }}, $projection: {}, $filter: {}}, $result:[{'#id': '1', 'Title': 'Archive 1', 'DescriptionLevel': 'Archive Mock'}]}"));
     }
 
     @Override
     public RequestResponse<JsonNode> selectUnitbyId(JsonNode sqlQuery, String id)
-        throws InvalidParseOperationException, AccessInternalClientServerException,
-        AccessInternalClientNotFoundException {
+        throws InvalidParseOperationException {
         return new RequestResponseOK().addResult(JsonHandler.getFromString(
             "{$hint: {'total':'1'},$context:{$query: {$eq: {\"id\" : \"1\" }}, $projection: {}, $filter: {}},$result:[{'#id': '1', 'Title': 'Archive 1', 'DescriptionLevel': 'Archive Mock'}]}"));
     }
 
     @Override
     public RequestResponse<JsonNode> updateUnitbyId(JsonNode updateQuery, String unitId)
-        throws InvalidParseOperationException, AccessInternalClientServerException,
-        AccessInternalClientNotFoundException, NoWritingPermissionException {
+        throws InvalidParseOperationException {
         return new RequestResponseOK().addResult(JsonHandler.getFromString(
             "{$hint: {'total':'1'},$context:{$query: {$eq: {\"id\" : \"ArchiveUnit1\" }}, $projection: {}, $filter: {}},$result:[{'#id': '1', 'Title': 'Archive 1', 'DescriptionLevel': 'Archive Mock'}]}"));
     }
 
     @Override
     public RequestResponse<JsonNode> updateUnits(JsonNode updateQuery)
-        throws InvalidParseOperationException, AccessInternalClientServerException,
-        NoWritingPermissionException, AccessUnauthorizedException {
+        throws InvalidParseOperationException {
         return new RequestResponseOK().addResult(JsonHandler.getFromString(
             "{$hint: {'total':'1'},$context:{$query: {$eq: {\"id\" : \"ArchiveUnit1\" }}, $projection: {}, $filter: {}},$result:[{'#id': '1', 'Title': 'Archive 1', 'DescriptionLevel': 'Archive Mock'}]}"));
 
@@ -113,32 +104,27 @@ class AccessInternalClientMock extends AbstractMockClient implements AccessInter
      * @throws AccessInternalRuleExecutionException
      */
     @Override
-    public RequestResponse<JsonNode> updateUnitsRules(MassUpdateUnitRuleRequest massUpdateUnitRuleRequest)
-        throws InvalidParseOperationException, AccessInternalClientServerException, NoWritingPermissionException,
-        AccessUnauthorizedException {
+    public RequestResponse<JsonNode> updateUnitsRules(MassUpdateUnitRuleRequest massUpdateUnitRuleRequest) {
         return null;
     }
 
     @Override
     public RequestResponse<JsonNode> selectObjectbyId(JsonNode selectObjectQuery, String objectId)
-        throws InvalidParseOperationException, AccessInternalClientServerException,
-        AccessInternalClientNotFoundException {
+        throws InvalidParseOperationException {
         return new RequestResponseOK().addResult(JsonHandler.getFromString(
             "{$hint: {'total':'1'},$context:{$query: {$eq: {\"id\" : \"1\" }}, $projection: {}, $filter: {}},$result:" +
                 "[{'#id': '1', 'name': 'abcdef', 'creation_date': '2015-07-14T17:07:14Z', 'fmt': 'ftm/123', 'numerical_information': '55.3'}]}"));
     }
 
     @Override
-    public Response getObject(String objectGroupId, String usage, int version, String unitId)
-        throws InvalidParseOperationException, AccessInternalClientServerException,
-        AccessInternalClientNotFoundException {
+    public Response getObject(String objectGroupId, String usage, int version, String unitId) {
         return new AbstractMockClient.FakeInboundResponse(Status.OK, StreamUtils.toInputStream(MOCK_GET_FILE_CONTENT),
             MediaType.APPLICATION_OCTET_STREAM_TYPE, null);
     }
 
     @Override
     public RequestResponse<JsonNode> selectOperation(JsonNode select)
-        throws LogbookClientException, InvalidParseOperationException {
+        throws InvalidParseOperationException {
         return new RequestResponseOK().addResult(ClientMockResultHelper.getLogbookResults());
     }
 
@@ -150,13 +136,13 @@ class AccessInternalClientMock extends AbstractMockClient implements AccessInter
 
     @Override
     public RequestResponse<JsonNode> selectUnitLifeCycleById(String idUnit, JsonNode queryDsl)
-        throws LogbookClientException, InvalidParseOperationException {
+        throws InvalidParseOperationException {
         return new RequestResponseOK().addResult(ClientMockResultHelper.getLogbookOperation());
     }
 
     @Override
     public RequestResponse<JsonNode> selectObjectGroupLifeCycleById(String idObject, JsonNode queryDsl)
-        throws LogbookClientException, InvalidParseOperationException {
+        throws InvalidParseOperationException {
         return new RequestResponseOK().addResult(ClientMockResultHelper.getLogbookOperation());
     }
 
@@ -167,9 +153,7 @@ class AccessInternalClientMock extends AbstractMockClient implements AccessInter
     }
 
     @Override
-    public Response downloadTraceabilityFile(String operationId)
-        throws AccessInternalClientServerException, AccessInternalClientNotFoundException,
-        InvalidParseOperationException {
+    public Response downloadTraceabilityFile(String operationId) {
         return new AbstractMockClient.FakeInboundResponse(Status.OK, StreamUtils.toInputStream(MOCK_GET_FILE_CONTENT),
             MediaType.APPLICATION_OCTET_STREAM_TYPE, null);
     }
@@ -202,7 +186,7 @@ class AccessInternalClientMock extends AbstractMockClient implements AccessInter
     }
 
     @Override
-    public Response findTransferSIPByID(String id) throws AccessInternalClientServerException {
+    public Response findTransferSIPByID(String id) {
         return Response.ok().build();
     }
 
@@ -215,7 +199,7 @@ class AccessInternalClientMock extends AbstractMockClient implements AccessInter
     public RequestResponse<JsonNode> selectObjects(JsonNode selectQuery)
         throws InvalidParseOperationException {
 
-        JsonNode res = null;
+        JsonNode res;
         try {
             res = JsonHandler.getFromFile(PropertiesUtils.getResourceFile("resultGot.json"));
         } catch (FileNotFoundException e) {
@@ -230,32 +214,27 @@ class AccessInternalClientMock extends AbstractMockClient implements AccessInter
     }
 
     @Override
-    public RequestResponse<JsonNode> startEliminationAnalysis(EliminationRequestBody eliminationRequestBody)
-        throws AccessInternalClientServerException {
+    public RequestResponse<JsonNode> startEliminationAnalysis(EliminationRequestBody eliminationRequestBody) {
         throw new IllegalStateException("Stop using mocks in production");
     }
 
     @Override
-    public RequestResponse<JsonNode> startEliminationAction(EliminationRequestBody eliminationRequestBody)
-        throws AccessInternalClientServerException {
+    public RequestResponse<JsonNode> startEliminationAction(EliminationRequestBody eliminationRequestBody) {
         throw new IllegalStateException("Stop using mocks in production");
     }
 
     @Override
-    public RequestResponse<JsonNode> startPreservation(PreservationRequest preservationRequest)
-        throws AccessInternalClientServerException {
+    public RequestResponse<JsonNode> startPreservation(PreservationRequest preservationRequest) {
         throw new IllegalStateException("Stop using mocks in production");
     }
 
     @Override
-    public RequestResponse<JsonNode> startComputeInheritedRules(JsonNode dslQuery)
-        throws AccessInternalClientServerException {
+    public RequestResponse<JsonNode> startComputeInheritedRules(JsonNode dslQuery) {
         throw new IllegalStateException("Stop using mocks in production");
     }
 
     @Override
-    public RequestResponse<JsonNode> deleteComputeInheritedRules(JsonNode dslQuery)
-        throws AccessInternalClientServerException {
+    public RequestResponse<JsonNode> deleteComputeInheritedRules(JsonNode dslQuery) {
         throw new IllegalStateException("Stop using mocks in production");
     }
 

@@ -50,7 +50,7 @@ public interface ContextValidator {
     /**
      * Context Rejection Cause inner class
      */
-    public class ContextRejectionCause {
+    class ContextRejectionCause {
         private static final String ERR_ID_NOT_ALLOWED_IN_CREATE = "Id must be null when creating context (%s)";
         private static final String ERR_DUPLICATE_CONTEXT_ENTRY =
             "One or many contexts in the imported list have the same name : %s";

@@ -57,10 +57,7 @@ import java.util.Optional;
 public class IngestInternalClientMock extends AbstractMockClient implements IngestInternalClient {
 
     private static final String PARAMS_CANNOT_BE_NULL = "Params cannot be null";
-    /**
-     * mock ingest response
-     */
-    public static final String MOCK_INGEST_INTERNAL_RESPONSE_STREAM = "VITAM-Ingest Internal Client Mock Response";
+
     /**
      * identifier of execution
      */

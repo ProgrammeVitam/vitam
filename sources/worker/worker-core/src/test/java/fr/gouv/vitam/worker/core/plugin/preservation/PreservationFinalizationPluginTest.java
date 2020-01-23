@@ -202,12 +202,9 @@ public class PreservationFinalizationPluginTest {
         TestHandlerIO handlerIO = new TestHandlerIO();
         handlerIO.setNewLocalFile(newLocalFile);
         try (InputStream resourceAsStream = getClass().getResourceAsStream("/preservation/preservationRequest");
-            InputStream expectedInputStream = getClass().getResourceAsStream("/preservation/expectedReport.json");
             InputStream scenarioInputStream = getClass().getResourceAsStream("/preservation/preservationDocument")) {
             populateTestHandlerIo(handlerIO, resourceAsStream, scenarioInputStream);
 
-            ContextPreservationReport expectedReport =
-                JsonHandler.getFromInputStream(expectedInputStream, ContextPreservationReport.class);
             JsonNode logbookOperationJson =
                 JsonHandler.getFromInputStream(getClass().getResourceAsStream("/preservation/logbookOperationOk.json"));
             given(logbookOperationsClient.selectOperationById(anyString())).willReturn(logbookOperationJson);

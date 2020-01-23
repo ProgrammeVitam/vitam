@@ -27,7 +27,7 @@
 package fr.gouv.vitam.workspace.api.exception;
 
 /**
- * Thrown when a resource (Container, CasBlob, Folder) cannot be located.
+ * Thrown when a resource (Container, Folder) cannot be located.
  */
 public class ContentAddressableStorageNotFoundException extends ContentAddressableStorageException {
 

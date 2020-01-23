@@ -36,8 +36,6 @@ import fr.gouv.vitam.common.exception.VitamClientException;
 import fr.gouv.vitam.common.exception.VitamClientInternalException;
 import fr.gouv.vitam.common.external.client.DefaultClient;
 import fr.gouv.vitam.common.external.client.IngestCollection;
-import fr.gouv.vitam.common.logging.VitamLogger;
-import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.LocalFile;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
@@ -63,7 +61,6 @@ import static org.apache.http.protocol.HTTP.EXPECT_CONTINUE;
  */
 class IngestExternalClientRest extends DefaultClient implements IngestExternalClient {
     private static final String INGEST_EXTERNAL_MODULE = "IngestExternalModule";
-    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(IngestExternalClientRest.class);
     private static final String INGEST_URL = "/ingests";
     private static final String BLANK_OBJECT_ID = "object identifier should be filled";
     private static final String BLANK_TYPE = "Type should be filled";

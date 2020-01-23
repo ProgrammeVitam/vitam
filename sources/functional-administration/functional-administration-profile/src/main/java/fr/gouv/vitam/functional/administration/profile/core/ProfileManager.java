@@ -88,8 +88,6 @@ public class ProfileManager {
     private static final String PROFILE_SERVICE_ERROR = "Profile service Error";
     private static final String FUNCTIONAL_MODULE_PROFILE = "FunctionalModule-Profile";
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(ProfileManager.class);
-    public static final String RNG_GRAMMAR = "rng:grammar";
-    public static final String XSD_SCHEMA = "xsd:schema";
 
     public static final String EMPTY_REQUIRED_FIELD = "STP_IMPORT_PROFILE_JSON.EMPTY_REQUIRED_FIELD.KO";
     public static final String WRONG_FIELD_FORMAT = "STP_IMPORT_PROFILE_JSON.TO_BE_DEFINED.KO";

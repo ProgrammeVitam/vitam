@@ -26,18 +26,6 @@
  */
 package fr.gouv.vitam.logbook.rest;
 
-import static io.restassured.RestAssured.given;
-
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
-
-import javax.ws.rs.core.Response.Status;
-
 import com.fasterxml.jackson.databind.JsonNode;
 import com.google.common.collect.Lists;
 import fr.gouv.vitam.common.GlobalDataRest;
@@ -81,6 +69,17 @@ import org.junit.ClassRule;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
+
+import javax.ws.rs.core.Response.Status;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
+
+import static io.restassured.RestAssured.given;
 
 /**
  *
@@ -180,8 +179,6 @@ public class LogBookLifeCycleObjectGroupTest {
         final GUID eip = GUIDFactory.newWriteLogbookGUID(0);
         final GUID iop = GUIDFactory.newWriteLogbookGUID(0);
         final GUID ioL = GUIDFactory.newUnitGUID(0);
-        final GUID iog = GUIDFactory.newObjectGroupGUID(0);
-
 
         logbookLifeCyclesObjectGroupParametersStart =
             LogbookParametersFactory.newLogbookLifeCycleObjectGroupParameters();

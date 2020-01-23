@@ -35,11 +35,11 @@ public class ObjectGroupPerOriginatingAgency {
 
     private String agency;
 
-    private long numberOfObject = 0l;
+    private long numberOfObject = 0L;
 
-    private long numberOfGOT = 0l;
+    private long numberOfGOT = 0L;
 
-    private long size = 0l;
+    private long size = 0L;
 
 
     /**

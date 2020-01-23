@@ -39,8 +39,6 @@ import fr.gouv.vitam.common.exception.VitamException;
 import fr.gouv.vitam.common.exception.WorkflowNotFoundException;
 import fr.gouv.vitam.common.guid.GUID;
 import fr.gouv.vitam.common.json.JsonHandler;
-import fr.gouv.vitam.common.logging.VitamLogger;
-import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.ProcessAction;
 import fr.gouv.vitam.common.model.ProcessQuery;
@@ -75,9 +73,6 @@ import static javax.ws.rs.core.Response.Status.Family.SUCCESSFUL;
  * Rest client implementation for Ingest Internal
  */
 class IngestInternalClientRest extends DefaultClient implements IngestInternalClient {
-
-
-    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(IngestInternalClientRest.class);
 
     private static final String PROCESS_WORKFLOW_NOT_FOUND_FOR_OPERATION = "Process Workflow not found for operation :";
     private static final String REQUEST_PRECONDITION_FAILED = "Request precondition failed";

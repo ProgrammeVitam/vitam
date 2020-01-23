@@ -6,7 +6,6 @@ import io.reactivex.schedulers.TestScheduler;
 import org.junit.Before;
 import org.junit.Test;
 
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
@@ -89,7 +88,7 @@ public class PopulateServiceTest {
         verify(masterdataRepository).importRule(ruleName, populateModel.getTenant());
         verify(metadataRepository).store(populateModel.getTenant(), Collections.singletonList(gotModel), populateModel.isStoreInDb(), populateModel.isIndexInEs());
         verify(logbookRepository).storeLogbookLifecycleUnit(populateModel.getTenant(), Collections.singletonList(gotModel));
-        verify(logbookRepository).storeLogbookLifeCycleObjectGroup(populateModel.getTenant(), Collections.singletonList(gotModel));
+        verify(logbookRepository).storeLogbookLifeCycleObjectGroup(Collections.singletonList(gotModel));
         verify(metadataStorageService).storeToOffers(populateModel, Collections.singletonList(gotModel));
         verify(masterdataRepository).createAccessionRegisterSummary(populateModel.getTenant(), populateModel.getSp(), populateModel.getNumberOfUnit(), populateModel.getNumberOfUnit() * populateModel.getObjectSize());
     }
@@ -143,7 +142,7 @@ public class PopulateServiceTest {
         verify(masterdataRepository, atLeast(ruleMap.size())).importRule(anyString(), anyInt());
         verify(metadataRepository, times(numberOfUnit)).store(anyInt(), any(), anyBoolean(), anyBoolean());
         verify(logbookRepository, times(numberOfUnit)).storeLogbookLifecycleUnit(anyInt(), any());
-        verify(logbookRepository, times(numberOfUnit)).storeLogbookLifeCycleObjectGroup(anyInt(), any());
+        verify(logbookRepository, times(numberOfUnit)).storeLogbookLifeCycleObjectGroup(any());
         verify(metadataStorageService, times(numberOfUnit)).storeToOffers(any(), any());
         verify(masterdataRepository, times(1)).createAccessionRegisterSummary(anyInt(), anyString(), anyInt(), anyInt());
     }

@@ -950,7 +950,7 @@ public class DslQueryHelper {
         return fullQuery;
     }
 
-    public UpdateMultiQuery getFullMetadataActionQuery(JsonNode metadataModifications, ObjectNode fullQuery)
+    public UpdateMultiQuery getFullMetadataActionQuery(JsonNode metadataModifications)
         throws InvalidParseOperationException, InvalidCreateOperationException {
         final UpdateMultiQuery update = new UpdateMultiQuery();
 

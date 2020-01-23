@@ -94,8 +94,6 @@ import static org.mockito.Mockito.when;
 
 @RunWithCustomExecutor
 public class LogbookOperationsClientRestTest extends ResteasyTestApplication {
-    protected static final String HOSTNAME = "localhost";
-    protected static final String PATH = "/logbook/v1";
     protected static LogbookOperationsClientRest client;
 
     @ClassRule

@@ -561,7 +561,6 @@ public class WorkspaceResourceTest {
     public void givenContainerNotFoundWhenUnzippingObjectThenReturnNotFound() throws IOException {
         try (InputStream stream = PropertiesUtils.getResourceAsStream("sip.zip")) {
 
-            final byte[] bytes = IOUtils.toByteArray(stream); // need for the test !
             given()
                 .contentType(CommonMediaType.ZIP)
                 .config(RestAssured.config().encoderConfig(
@@ -583,7 +582,6 @@ public class WorkspaceResourceTest {
                 .statusCode(Status.CREATED.getStatusCode()).when()
                 .post("/containers/" + CONTAINER_NAME + "/folders/" + FOLDER_SIP);
 
-            final byte[] bytes = IOUtils.toByteArray(stream); // need for the test !
             given()
                 .contentType(CommonMediaType.ZIP)
                 .config(RestAssured.config().encoderConfig(

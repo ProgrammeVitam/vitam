@@ -367,18 +367,6 @@ public class LogbookLifeCyclesImplWithMongoTest {
             logbookLifeCyclesObjectGroupParametersStart.getParameterValue(LogbookParameterName.objectIdentifier));
     }
 
-    public void given_existLifeCyclesObjectGroup_when_rollBack_return_OK()
-        throws Exception {
-        logbookLifeCyclesImpl = new LogbookLifeCyclesImpl(mongoDbAccess);
-        logbookLifeCyclesImpl.createObjectGroup(
-            logbookLifeCyclesObjectGroupParametersStart.getParameterValue(LogbookParameterName.eventIdentifierProcess),
-            logbookLifeCyclesObjectGroupParametersStart.getParameterValue(LogbookParameterName.objectIdentifier),
-            logbookLifeCyclesObjectGroupParametersStart);
-        logbookLifeCyclesImpl.rollbackUnit(
-            logbookLifeCyclesObjectGroupParametersStart.getParameterValue(LogbookParameterName.eventIdentifierProcess),
-            logbookLifeCyclesObjectGroupParametersStart.getParameterValue(LogbookParameterName.objectIdentifier));
-    }
-
     @Test(expected = LogbookNotFoundException.class)
     public void given_ObjectGroupIdNotexists_when_rollback_thenThrow_LogbookNotFoundException() throws Exception {
         logbookLifeCyclesImpl = new LogbookLifeCyclesImpl(mongoDbAccess);

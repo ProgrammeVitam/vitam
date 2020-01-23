@@ -48,7 +48,6 @@ import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.processing.common.model.ProcessWorkflow;
 import fr.gouv.vitam.processing.management.api.ProcessManagement;
 import fr.gouv.vitam.worker.client.WorkerClientFactory;
-import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
 import io.restassured.RestAssured;
 import io.restassured.http.ContentType;
 import org.junit.AfterClass;
@@ -96,7 +95,6 @@ public class ProcessManagementResourceTest extends ResteasyTestApplication {
 
     private static final String CONTEXT_ID = "DEFAULT_WORKFLOW";
     private static final WorkerClientFactory workerClientFactory = mock(WorkerClientFactory.class);
-    private static final WorkspaceClientFactory workspaceClientFactory = mock(WorkspaceClientFactory.class);
     private static final ProcessManagement processManagement = mock(ProcessManagement.class);
     private static final ServerConfiguration serverConfiguration = mock(ServerConfiguration.class);
 

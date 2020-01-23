@@ -438,7 +438,6 @@ public class ArchiveUnitListenerTest {
     public void testAfterUnmarshalCustodialHistoryShouldNotThrowException() throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
 
-        ArchiveUnitType target = mock(ArchiveUnitType.class);
         JAXBElement parent = mock(JAXBElement.class);
 
         List<String> agenciesList = new ArrayList<>();
@@ -485,7 +484,6 @@ public class ArchiveUnitListenerTest {
     public void testAfterUnmarshalCustodialHistoryShouldThrowException() throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
 
-        ArchiveUnitType target = mock(ArchiveUnitType.class);
         JAXBElement parent = mock(JAXBElement.class);
 
         List<String> agenciesList = new ArrayList<>();
@@ -554,7 +552,6 @@ public class ArchiveUnitListenerTest {
         ArchiveUnitType archiveUnitType = new ArchiveUnitType();
         archiveUnitType.setId("ID05");
         DescriptiveMetadataContentType content = new DescriptiveMetadataContentType();
-        CustodialHistoryType custodialHistoryType = new CustodialHistoryType();
 
         RelatedObjectReferenceType relatedObjectReferenceType = new RelatedObjectReferenceType();
 

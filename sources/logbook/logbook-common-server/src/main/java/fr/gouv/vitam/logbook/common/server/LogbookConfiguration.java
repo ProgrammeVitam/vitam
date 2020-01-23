@@ -39,7 +39,6 @@ import java.util.List;
  * Logbook configuration class mapping
  */
 public final class LogbookConfiguration extends DbConfigurationImpl {
-    // Empty
 
     private String p12LogbookPassword;
 

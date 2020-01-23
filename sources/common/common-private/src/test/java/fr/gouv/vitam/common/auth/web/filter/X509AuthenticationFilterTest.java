@@ -54,8 +54,6 @@ import org.mockito.Mockito;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.ByteArrayInputStream;
-import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.StringWriter;
@@ -85,18 +83,6 @@ public class X509AuthenticationFilterTest extends AbstractShiroTest {
     HttpServletRequest request = mock(HttpServletRequest.class);
     HttpServletResponse response = mock(HttpServletResponse.class);
     HttpServletRequest requestNull = mock(HttpServletRequest.class);
-
-    private X509Certificate loadCertificate(CertificateFactory cf, File f) throws CertificateException, IOException {
-        FileInputStream in = new FileInputStream(f);
-        try {
-            cert = (X509Certificate) cf.generateCertificate(in);
-            cert.checkValidity();
-            return cert;
-        } finally {
-            in.close();
-        }
-    }
-
 
     @Before
     public void setUp() throws Exception {

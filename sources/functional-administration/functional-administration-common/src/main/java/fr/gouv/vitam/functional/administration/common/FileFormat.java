@@ -100,10 +100,6 @@ public class FileFormat extends VitamDocument<FileFormat> {
      * Serial
      */
     private static final long serialVersionUID = 7794456688851515535L;
-    /**
-     * Empty value
-     */
-    private static final String EMPTY_STRING = "";
 
     /**
      * empty constructor

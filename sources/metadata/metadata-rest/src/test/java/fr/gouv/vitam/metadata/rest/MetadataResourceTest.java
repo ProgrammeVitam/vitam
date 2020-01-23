@@ -70,7 +70,6 @@ import io.restassured.RestAssured;
 import io.restassured.http.ContentType;
 import net.javacrumbs.jsonunit.JsonAssert;
 import net.javacrumbs.jsonunit.core.Option;
-import org.apache.commons.collections4.SetUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.bson.Document;
 import org.junit.After;
@@ -400,7 +399,6 @@ public class MetadataResourceTest {
 
     @Test
     public void shouldReturnResponseOKIfDocumentCreated() throws Exception {
-        String responseOK = JsonHandler.getFromFile(PropertiesUtils.findFile("reponseCreated.json")).toString();
         given()
             .contentType(ContentType.JSON)
             .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)

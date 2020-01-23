@@ -26,13 +26,6 @@
  */
 package fr.gouv.vitam.ingest.external.client;
 
-import static fr.gouv.vitam.common.GlobalDataRest.X_REQUEST_ID;
-
-import java.io.InputStream;
-
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.Response.Status;
-
 import fr.gouv.vitam.common.client.VitamContext;
 import fr.gouv.vitam.common.exception.VitamClientException;
 import fr.gouv.vitam.common.external.client.AbstractMockClient;
@@ -41,9 +34,14 @@ import fr.gouv.vitam.common.external.client.IngestCollection;
 import fr.gouv.vitam.common.model.LocalFile;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
-import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.stream.StreamUtils;
 import fr.gouv.vitam.ingest.external.api.exception.IngestExternalException;
+
+import javax.ws.rs.core.Response;
+import javax.ws.rs.core.Response.Status;
+import java.io.InputStream;
+
+import static fr.gouv.vitam.common.GlobalDataRest.X_REQUEST_ID;
 
 /**
  * Mock client implementation for IngestExternal
@@ -51,7 +49,6 @@ import fr.gouv.vitam.ingest.external.api.exception.IngestExternalException;
 class IngestExternalClientMock extends AbstractMockClient implements IngestExternalClient {
     private static final String FAKE_X_REQUEST_ID = "aeaqaaaaaefex4j4aao2qalmjv7h24yaaaaq";
     public static final String ID = "identifier1";
-    protected StatusCode globalStatus;
 
     @Override
     public RequestResponse<Void> ingest(VitamContext vitamContext, InputStream stream,

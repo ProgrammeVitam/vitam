@@ -194,10 +194,10 @@ public class AccessContractImplTest {
             try {
                 VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
 
-                insertDocuments(AgenciesParser.readFromCsv(new FileInputStream(fileAgencies)), TENANT_ID);
+                insertDocuments(AgenciesParser.readFromCsv(new FileInputStream(fileAgencies)));
 
                 VitamThreadUtils.getVitamSession().setTenantId(EXTERNAL_TENANT);
-                insertDocuments(AgenciesParser.readFromCsv(new FileInputStream(fileAgencies)), EXTERNAL_TENANT);
+                insertDocuments(AgenciesParser.readFromCsv(new FileInputStream(fileAgencies)));
             } catch (VitamException | IOException e) {
                 throw new RuntimeException(e);
             }
@@ -209,7 +209,7 @@ public class AccessContractImplTest {
     }
 
 
-    private static void insertDocuments(List<AgenciesModel> agenciesToInsert, int tenant)
+    private static void insertDocuments(List<AgenciesModel> agenciesToInsert)
         throws InvalidParseOperationException, ReferentialException, SchemaValidationException,
         DocumentAlreadyExistsException {
 

@@ -27,11 +27,11 @@
 
 package fr.gouv.vitam.common.auth.core.authc;
 
-import javax.security.auth.x500.X500Principal;
-
 import org.apache.shiro.authc.AuthenticationInfo;
 import org.apache.shiro.authc.AuthenticationToken;
 import org.apache.shiro.authc.credential.CredentialsMatcher;
+
+import javax.security.auth.x500.X500Principal;
 
 /**
  * Based on work: Copyright Paul Merlin 2011 (Apache Licence v2.0)
@@ -54,9 +54,4 @@ public abstract class AbstractX509CredentialsMatcher
     protected final String toString(X500Principal dn) {
         return dn.getName(X500Principal.CANONICAL);
     }
-
-    protected final boolean doEquals(X500Principal one, X500Principal other) {
-        return toString(one).equals(toString(other));
-    }
-
 }

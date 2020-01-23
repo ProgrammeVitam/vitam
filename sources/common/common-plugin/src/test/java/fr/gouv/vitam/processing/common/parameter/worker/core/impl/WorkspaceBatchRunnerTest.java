@@ -57,8 +57,6 @@ public class WorkspaceBatchRunnerTest {
 
     @Test(expected = IllegalArgumentException.class)
     public void whenConstructorParamRequriedThenKO() {
-        HandlerIO handlerIO = mock(HandlerIOImpl.class);
-        Executor executor = mock(Executor.class);
         new WorkspaceBatchRunner(null, null, 10);
     }
 

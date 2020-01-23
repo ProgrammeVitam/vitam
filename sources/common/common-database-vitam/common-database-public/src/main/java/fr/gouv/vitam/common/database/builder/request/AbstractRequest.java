@@ -26,14 +26,9 @@
  */
 package fr.gouv.vitam.common.database.builder.request;
 
-import java.util.List;
-import java.util.Set;
-import java.util.concurrent.TimeUnit;
-
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.database.builder.query.Query;
 import fr.gouv.vitam.common.database.builder.query.VitamFieldsHelper;
@@ -45,6 +40,9 @@ import fr.gouv.vitam.common.database.builder.request.configuration.GlobalDatas;
 import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
+
+import java.util.List;
+import java.util.Set;
 
 /**
  * Common Abstract Request
@@ -130,19 +128,6 @@ public abstract class AbstractRequest {
             }
         }
         return this;
-    }
-
-    /**
-     *
-     * @param filter a string filter
-     * @return this Request
-     * @throws InvalidParseOperationException when query is invalid
-     */
-    public final AbstractRequest parseHintFilter(final String filter)
-        throws InvalidParseOperationException {
-        GlobalDatas.sanityParametersCheck(filter, GlobalDatas.NB_FILTERS);
-        final JsonNode rootNode = JsonHandler.getFromString(filter);
-        return addHintFilter(rootNode);
     }
 
     /**

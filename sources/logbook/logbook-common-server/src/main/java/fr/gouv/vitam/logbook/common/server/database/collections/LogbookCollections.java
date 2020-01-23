@@ -143,11 +143,6 @@ public enum LogbookCollections {
         afterTestClass(logbookCollections, false, tenants);
     }
 
-    /**
-     * id field
-     */
-    public final static String ID = "_id";
-
     LogbookCollections(final Class<?> clasz) {
         VitamDescriptionLoader vitamDescriptionLoader = new VitamDescriptionLoader(clasz.getSimpleName());
         vitamDescriptionResolver = vitamDescriptionLoader.getVitamDescriptionResolver();

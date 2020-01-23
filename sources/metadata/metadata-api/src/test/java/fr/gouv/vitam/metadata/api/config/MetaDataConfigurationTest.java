@@ -26,15 +26,14 @@
  */
 package fr.gouv.vitam.metadata.api.config;
 
-import static org.junit.Assert.assertEquals;
+import fr.gouv.vitam.common.database.server.elasticsearch.ElasticsearchNode;
+import fr.gouv.vitam.common.server.application.configuration.MongoDbNode;
+import org.junit.Test;
 
 import java.util.ArrayList;
 import java.util.List;
 
-import org.junit.Test;
-
-import fr.gouv.vitam.common.database.server.elasticsearch.ElasticsearchNode;
-import fr.gouv.vitam.common.server.application.configuration.MongoDbNode;
+import static org.junit.Assert.assertEquals;
 
 public class MetaDataConfigurationTest {
 
@@ -42,8 +41,6 @@ public class MetaDataConfigurationTest {
     private static final int PORT = 1234;
     private static final String DB_NAME = "dbNameTest";
     private static final String JETTY_CONF = "jettyConfig";
-    private static final String JETTY_CONF_FILE = "jetty-config-test.xml";
-
     private final static String CLUSTER_NAME = "cluster-vitam";
     private final static String HOST_NAME = "localhost";
     private static int TCP_PORT = 9300;
@@ -72,6 +69,5 @@ public class MetaDataConfigurationTest {
         assertEquals(config2.getDbName(), DB_NAME);
         assertEquals(config2.getClusterName(), CLUSTER_NAME);
         assertEquals(config2.getElasticsearchNodes().size(), 1);
-        // assertEquals(config2.getJettyConfig(), JETTY_CONF_FILE);
     }
 }

@@ -24,10 +24,8 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  */
-
 /**
- * Provides the SPI mapper implementation and configuration for the Storage
- * Engine Server module, allowing the persistence of association between drivers
- * and offers
+ * Provides the SPI mapper implementation and configuration for the Storage Engine Server module,
+ * allowing the persistence of association between drivers and offers
  */
 package fr.gouv.vitam.storage.engine.server.spi.mapper;

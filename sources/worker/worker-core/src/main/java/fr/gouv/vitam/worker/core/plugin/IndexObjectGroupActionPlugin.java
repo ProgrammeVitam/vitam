@@ -52,7 +52,6 @@ import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.parameter.ParameterHelper;
-import fr.gouv.vitam.metadata.api.exception.MetaDataAlreadyExistException;
 import fr.gouv.vitam.metadata.api.exception.MetaDataClientServerException;
 import fr.gouv.vitam.metadata.api.exception.MetaDataException;
 import fr.gouv.vitam.metadata.api.exception.MetaDataExecutionException;
@@ -80,8 +79,6 @@ import static fr.gouv.vitam.metadata.core.database.collections.MetadataDocument.
 public class IndexObjectGroupActionPlugin extends ActionHandler {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(IndexObjectGroupActionPlugin.class);
     private static final String OG_INDEXATION = "OG_INDEXATION";
-    private static final String AGENCY_CHECK = "AGENCY_CHECK";
-
     private static final int OG_INPUT_RANK = 0;
     private final MetaDataClientFactory metaDataClientFactory;
 

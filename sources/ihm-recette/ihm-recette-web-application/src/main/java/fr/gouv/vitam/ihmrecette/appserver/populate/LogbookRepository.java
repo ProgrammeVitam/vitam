@@ -79,7 +79,7 @@ public class LogbookRepository {
                 getDocument(unitGot.getLogbookLifecycleUnit())).collect(Collectors.toList());
 
         if (!docs.isEmpty()) {
-            this.store(tenant, docs, VitamDataType.LFC_UNIT);
+            this.store(docs, VitamDataType.LFC_UNIT);
         }
     }
 
@@ -87,16 +87,15 @@ public class LogbookRepository {
     /**
      * Store a LifeCycleObjectGroup in database
      *
-     * @param tenant tenant identifier
      * @param unitGotList data list of (unit,got) to store
      */
-    public void storeLogbookLifeCycleObjectGroup(int tenant, List<UnitGotModel> unitGotList) {
+    public void storeLogbookLifeCycleObjectGroup(List<UnitGotModel> unitGotList) {
         List<Document> docs =
             unitGotList.stream().filter(unitGot -> unitGot.getLogbookLifeCycleObjectGroup() != null).map(unitGot ->
                 getDocument(unitGot.getLogbookLifeCycleObjectGroup())).collect(Collectors.toList());
 
         if (!docs.isEmpty()) {
-            this.store(tenant, docs, VitamDataType.LFC_GOT);
+            this.store(docs, VitamDataType.LFC_GOT);
         }
     }
 
@@ -105,11 +104,10 @@ public class LogbookRepository {
     /**
      * Store a document list
      *
-     * @param tenant tenant identifier
      * @param documents documents to store and index
      * @param vitamDataType dataType of documents
      */
-    private void store(int tenant, List<Document> documents, VitamDataType vitamDataType) {
+    private void store(List<Document> documents, VitamDataType vitamDataType) {
         storeDocuments(documents, vitamDataType);
     }
 

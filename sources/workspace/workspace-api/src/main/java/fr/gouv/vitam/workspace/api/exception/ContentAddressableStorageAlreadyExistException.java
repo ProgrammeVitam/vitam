@@ -27,7 +27,7 @@
 package fr.gouv.vitam.workspace.api.exception;
 
 /**
- * Thrown when creating a resource (Container, CasBlob, Folder) that already exists.
+ * Thrown when creating a resource (Container, Folder) that already exists.
  */
 public class ContentAddressableStorageAlreadyExistException extends ContentAddressableStorageException {
 

@@ -27,14 +27,10 @@
 package fr.gouv.vitam.functional.administration.common;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.mongodb.BasicDBObject;
-import com.mongodb.client.model.IndexOptions;
 import fr.gouv.vitam.common.database.server.mongodb.VitamDocument;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.model.administration.RegisterValueDetailModel;
-import fr.gouv.vitam.functional.administration.common.server.FunctionalAdminCollections;
 import org.bson.Document;
 
 /**
@@ -80,7 +76,6 @@ public class AccessionRegisterSummary extends VitamDocument<AccessionRegisterSum
      * the creationDate field of accession register
      */
     public static final String CREATION_DATE = "CreationDate";
-    private static final String TENANT = "_tenant";
 
     /**
      * Empty Constructor

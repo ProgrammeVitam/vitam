@@ -84,12 +84,6 @@ public class ElasticsearchAccessMetadataTest {
     private static final String unit_with_max_4 = "{  \"Title\":\"title1\", \"_max\": \"4\", \"_min\": \"2\"}";
     private static final String S1_OG =
         "{ \"Filename\":\"Vitam-Sensibilisation-API-V1.0.odp\", \"_max\": \"5\", \"_min\": \"2\"}";
-    private static final String S3 =
-        "{\"$roots\":[\"id2\"],\"$query\":[],\"$filter\":{},\"$action\":[{\"$set\":{\"title\":\"Archive2\"}}]}";
-    private final int IntTest = 12345;
-    private final String groupGUID = GUIDFactory.newObjectGUID(IntTest).toString();
-    private final String go = "{\"_id\":\"" + groupGUID +
-        "\", \"_qualifiers\" :{\"Physique Master\" : {\"PhysiqueOId\" : \"abceff\"}}, \"title\":\"title1\"}";
 
     private final static String prefix = GUIDFactory.newGUID().getId();
 
