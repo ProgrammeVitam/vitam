@@ -153,6 +153,7 @@ class AccessExternalClientRest extends DefaultClient implements AccessExternalCl
         ParametersChecker.checkParameter(BLANK_OBJECT_ID, unitId);
         VitamRequestBuilder request = get()
             .withPath(UNITS + unitId + AccessExtAPI.OBJECTS)
+            .withHeaders(vitamContext.getHeaders())
             .withHeader(GlobalDataRest.X_QUALIFIER, usage)
             .withHeader(GlobalDataRest.X_VERSION, version)
             .withJsonContentType()
