@@ -52,7 +52,6 @@ import fr.gouv.vitam.common.model.administration.ProfileModel;
 import fr.gouv.vitam.common.model.administration.SecurityProfileModel;
 import fr.gouv.vitam.common.model.administration.preservation.GriffinModel;
 import fr.gouv.vitam.common.model.administration.preservation.PreservationScenarioModel;
-import fr.gouv.vitam.functional.administration.common.exception.AccessionRegisterException;
 import fr.gouv.vitam.functional.administration.common.exception.AdminManagementClientServerException;
 import fr.gouv.vitam.functional.administration.common.exception.DatabaseConflictException;
 import fr.gouv.vitam.functional.administration.common.exception.FileRulesException;
@@ -65,7 +64,6 @@ import fr.gouv.vitam.logbook.common.parameters.LogbookOperationParameters;
 
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
-
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.List;
@@ -207,11 +205,10 @@ public interface AdminManagementClient extends MockOrRestClient {
 
     /**
      * @param register AccessionRegisterDetail
-     * @throws AccessionRegisterException when AccessionRegisterDetailexception occurs
      * @throws AdminManagementClientServerException when
      */
     RequestResponse<AccessionRegisterDetailModel> createOrUpdateAccessionRegister(AccessionRegisterDetailModel register)
-        throws AccessionRegisterException, AdminManagementClientServerException;
+        throws AdminManagementClientServerException;
 
     /**
      * Get the accession register summary matching the given query
@@ -307,7 +304,7 @@ public interface AdminManagementClient extends MockOrRestClient {
      */
 
     Status importManagementContracts(List<ManagementContractModel> managementContractModelList)
-            throws InvalidParseOperationException, AdminManagementClientServerException;
+        throws InvalidParseOperationException, AdminManagementClientServerException;
 
 
     /**
@@ -348,7 +345,7 @@ public interface AdminManagementClient extends MockOrRestClient {
      * @throws ReferentialNotFoundException
      */
     RequestResponse<ManagementContractModel> updateManagementContract(String id, JsonNode queryDsl)
-            throws InvalidParseOperationException, AdminManagementClientServerException, ReferentialNotFoundException;
+        throws InvalidParseOperationException, AdminManagementClientServerException, ReferentialNotFoundException;
 
     /**
      * Find access contracts
@@ -410,7 +407,7 @@ public interface AdminManagementClient extends MockOrRestClient {
      * @throws InvalidParseOperationException
      */
     RequestResponse<ManagementContractModel> findManagementContracts(JsonNode queryDsl)
-            throws InvalidParseOperationException, AdminManagementClientServerException;
+        throws InvalidParseOperationException, AdminManagementClientServerException;
 
 
     /**
@@ -421,7 +418,7 @@ public interface AdminManagementClient extends MockOrRestClient {
      * @throws ReferentialNotFoundException
      */
     RequestResponse<ManagementContractModel> findManagementContractsByID(String documentId)
-            throws InvalidParseOperationException, AdminManagementClientServerException, ReferentialNotFoundException;
+        throws InvalidParseOperationException, AdminManagementClientServerException, ReferentialNotFoundException;
 
 
     /**

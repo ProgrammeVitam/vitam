@@ -182,53 +182,6 @@ public class DbRequestSingle {
         return updateDocuments(request.getFinalUpdate(), documentValidator, parserTokens);
     }
 
-    /**
-     * Helper to detect if document already exists => update needed instead of insert
-     *
-     * @param e exception catched
-     * @return true if an insert that should be an Update, else False
-     */
-    public static boolean isDuplicateKeyError(Exception e) {
-        if (e instanceof MongoBulkWriteException || e instanceof MongoWriteException) {
-            return isDuplicateKeyException(e.getCause());
-        }
-
-        if (e instanceof DatabaseException &&
-            (e.getCause() instanceof MongoBulkWriteException || e.getCause() instanceof MongoWriteException)) {
-            return isDuplicateKeyException(e.getCause());
-        }
-        Throwable d = e.getCause();
-        if (d instanceof DatabaseException &&
-            (d.getCause() instanceof MongoBulkWriteException || d.getCause() instanceof MongoWriteException)) {
-            return isDuplicateKeyException(e.getCause());
-        }
-        return false;
-    }
-
-    private static boolean isDuplicateKeyException(Throwable exception) {
-        boolean isDuplicateKey = false;
-
-        if (exception instanceof MongoWriteException) {
-            MongoWriteException mongoException = (MongoWriteException) exception;
-            ErrorCategory category = mongoException.getError().getCategory();
-            isDuplicateKey = ErrorCategory.DUPLICATE_KEY.equals(category);
-        }
-
-        if (exception instanceof MongoBulkWriteException) {
-            MongoBulkWriteException mongoException = (MongoBulkWriteException) exception;
-            long duplicateKeysErrorsCount = mongoException.getWriteErrors().stream()
-                .filter(o -> ErrorCategory.DUPLICATE_KEY.equals(o.getCategory())).count();
-            // If all errors are duplicate key then return true
-            // If at least one error is not duplicate key then return false
-            isDuplicateKey = Long.valueOf(mongoException.getWriteErrors().size()).equals(duplicateKeysErrorsCount);
-        }
-
-        if (isDuplicateKey) {
-            LOGGER.info("Document already exists");
-
-        }
-        return isDuplicateKey;
-    }
 
     /**
      * Main method for Multiple Insert
@@ -240,7 +193,6 @@ public class DbRequestSingle {
      * @throws InvalidParseOperationException
      * @throws DatabaseException
      */
-    @SuppressWarnings("unchecked")
     private DbRequestResult insertDocuments(ArrayNode arrayNode, Integer version,
         DocumentValidator documentValidator)
         throws InvalidParseOperationException, SchemaValidationException, DatabaseException {

@@ -36,7 +36,6 @@ import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.ItemStatus;
-import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.model.administration.AccessionRegisterDetailModel;
 import fr.gouv.vitam.common.model.administration.RegisterValueDetailModel;
@@ -44,7 +43,6 @@ import fr.gouv.vitam.common.model.administration.RegisterValueEventModel;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.functional.administration.client.AdminManagementClient;
 import fr.gouv.vitam.functional.administration.client.AdminManagementClientFactory;
-import fr.gouv.vitam.functional.administration.common.exception.AccessionRegisterException;
 import fr.gouv.vitam.functional.administration.common.exception.AdminManagementClientServerException;
 import fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
@@ -72,6 +70,7 @@ public class PurgeAccessionRegisterUpdatePlugin extends ActionHandler {
 
     /**
      * Default constructor
+     *
      * @param actionId
      * @param logbookTypeProcess
      */
@@ -161,16 +160,12 @@ public class PurgeAccessionRegisterUpdatePlugin extends ActionHandler {
                 .setTenant(tenantId)
                 .setLastUpdate(updateDate);
 
-            RequestResponse<AccessionRegisterDetailModel> resp =
-                adminManagementClient.createOrUpdateAccessionRegister(accessionRegisterDetailModel);
+            adminManagementClient.createOrUpdateAccessionRegister(accessionRegisterDetailModel);
 
-            if (resp.getStatus() == javax.ws.rs.core.Response.Status.CONFLICT.getStatusCode()) {
-                throw new ProcessingStatusException(
-                    StatusCode.ALREADY_EXECUTED, "Plugin already executed");
-            }
 
-        } catch (AdminManagementClientServerException | AccessionRegisterException e) {
-            throw new ProcessingStatusException(StatusCode.FATAL, "[Consistency ERROR] An error occurred during accession register update", e);
+        } catch (AdminManagementClientServerException e) {
+            throw new ProcessingStatusException(StatusCode.FATAL,
+                "[Consistency ERROR] An error occurred during accession register update", e);
         }
     }
 

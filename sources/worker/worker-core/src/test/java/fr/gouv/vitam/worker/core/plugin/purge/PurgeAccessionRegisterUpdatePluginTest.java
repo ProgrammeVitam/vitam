@@ -41,7 +41,7 @@ import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.functional.administration.client.AdminManagementClient;
 import fr.gouv.vitam.functional.administration.client.AdminManagementClientFactory;
-import fr.gouv.vitam.functional.administration.common.exception.AccessionRegisterException;
+import fr.gouv.vitam.functional.administration.common.exception.AdminManagementClientServerException;
 import fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 import fr.gouv.vitam.processing.common.parameter.WorkerParametersFactory;
@@ -113,7 +113,7 @@ public class PurgeAccessionRegisterUpdatePluginTest {
     public void test_when_update_accession_register_then_FATAL() throws Exception {
 
         when(adminManagementClient.createOrUpdateAccessionRegister(any()))
-            .thenThrow(new AccessionRegisterException("Simulate FATAL"));
+            .thenThrow(new AdminManagementClientServerException("Simulate FATAL"));
 
         // Given / When
         ItemStatus itemStatus = instance.execute(params, handler);
@@ -122,10 +122,9 @@ public class PurgeAccessionRegisterUpdatePluginTest {
         Assertions.assertThat(itemStatus.getGlobalStatus()).isEqualTo(StatusCode.FATAL);
     }
 
-
     @Test
     @RunWithCustomExecutor
-    public void test_when_update_accession_register_then_Conflict() throws Exception {
+    public void test_when_update_already_exists_accession_register_then_OK() throws Exception {
 
         VitamError ve =
             new VitamError(Response.Status.CONFLICT.name()).setHttpCode(Response.Status.CONFLICT.getStatusCode())
@@ -140,7 +139,7 @@ public class PurgeAccessionRegisterUpdatePluginTest {
         ItemStatus itemStatus = instance.execute(params, handler);
 
         Assertions.assertThat(itemStatus).isNotNull();
-        Assertions.assertThat(itemStatus.getGlobalStatus()).isEqualTo(StatusCode.ALREADY_EXECUTED);
+        Assertions.assertThat(itemStatus.getGlobalStatus()).isEqualTo(StatusCode.OK);
     }
 
 

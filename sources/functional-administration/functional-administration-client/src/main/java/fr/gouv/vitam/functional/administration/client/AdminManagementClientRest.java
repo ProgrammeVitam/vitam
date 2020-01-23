@@ -82,7 +82,6 @@ import fr.gouv.vitam.functional.administration.common.exception.ReferentialNotFo
 import fr.gouv.vitam.functional.administration.common.server.AccessionRegisterSymbolic;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientAlreadyExistsException;
 import fr.gouv.vitam.logbook.common.parameters.LogbookOperationParameters;
-import org.apache.commons.lang3.StringUtils;
 
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
@@ -93,7 +92,6 @@ import static fr.gouv.vitam.common.client.VitamRequestBuilder.get;
 import static fr.gouv.vitam.common.client.VitamRequestBuilder.post;
 import static fr.gouv.vitam.common.client.VitamRequestBuilder.put;
 import static fr.gouv.vitam.common.json.JsonHandler.getFromString;
-import static javax.ws.rs.core.Response.Status.CONFLICT;
 import static javax.ws.rs.core.Response.Status.Family.REDIRECTION;
 import static javax.ws.rs.core.Response.Status.Family.SUCCESSFUL;
 import static javax.ws.rs.core.Response.Status.fromStatusCode;
@@ -246,7 +244,7 @@ class AdminManagementClientRest extends DefaultClient implements AdminManagement
             checkWithSpecificException(response);
             return response;
         } catch (DatabaseConflictException | ReferentialNotFoundException | AccessUnauthorizedException | ForbiddenClientException | VitamClientInternalException e) {
-            String reason = (response != null) ? response.readEntity(String.class):INTERNAL_SERVER_ERROR_MSG;
+            String reason = (response != null) ? response.readEntity(String.class) : INTERNAL_SERVER_ERROR_MSG;
             throw new AdminManagementClientServerException(reason, e);
         } catch (BadRequestException e) {
             throw new AdminManagementClientBadRequestException(e);
@@ -421,30 +419,18 @@ class AdminManagementClientRest extends DefaultClient implements AdminManagement
 
     @Override
     public RequestResponse createOrUpdateAccessionRegister(AccessionRegisterDetailModel register)
-        throws AccessionRegisterException, AdminManagementClientServerException {
+        throws AdminManagementClientServerException {
         ParametersChecker.checkParameter("Accession register is a mandatory parameter", register);
 
         VitamRequestBuilder request = post()
             .withPath(ACCESSION_REGISTER_CREATE_URI)
             .withBody(register)
             .withJson();
-        Response response = null;
-        try {
-            response = make(request);
+        try (Response response = make(request)) {
             checkWithSpecificException(response);
             return RequestResponse.parseFromResponse(response);
-        } catch (final BadRequestException | ReferentialNotFoundException | AccessUnauthorizedException | ForbiddenClientException e) {
-            throw new AccessionRegisterException(INTERNAL_SERVER_ERROR_MSG, e);
-        } catch (VitamClientInternalException e) {
+        } catch (Exception e) {
             throw new AdminManagementClientServerException(INTERNAL_SERVER_ERROR_MSG, e);
-        } catch (DatabaseConflictException e) {
-            LOGGER.debug(Response.Status.CONFLICT.getReasonPhrase());
-            return RequestResponse.parseFromResponse(response);
-        } finally {
-            if (response != null && !SUCCESSFUL.equals(response.getStatusInfo().getFamily())
-            && !CONFLICT.equals(fromStatusCode(response.getStatus()))) {
-                response.close();
-            }
         }
     }
 
@@ -469,7 +455,8 @@ class AdminManagementClientRest extends DefaultClient implements AdminManagement
     }
 
     @Override
-    public RequestResponse<AccessionRegisterDetailModel> getAccessionRegisterDetail(String originatingAgency, JsonNode query)
+    public RequestResponse<AccessionRegisterDetailModel> getAccessionRegisterDetail(String originatingAgency,
+        JsonNode query)
         throws InvalidParseOperationException, ReferentialException {
 
         ParametersChecker.checkParameter("query is a mandatory parameter", query);
@@ -502,7 +489,8 @@ class AdminManagementClientRest extends DefaultClient implements AdminManagement
 
         try (Response response = make(request)) {
             checkWithSpecificException(response);
-            return getFromString(response.readEntity(String.class), RequestResponseOK.class, AccessionRegisterDetailModel.class);
+            return getFromString(response.readEntity(String.class), RequestResponseOK.class,
+                AccessionRegisterDetailModel.class);
         } catch (final VitamClientInternalException | BadRequestException | AccessUnauthorizedException |
             ForbiddenClientException | DatabaseConflictException e) {
             throw new AdminManagementClientServerException(INTERNAL_SERVER_ERROR_MSG, e);
@@ -525,12 +513,14 @@ class AdminManagementClientRest extends DefaultClient implements AdminManagement
 
     @Override
     public Status importManagementContracts(List<ManagementContractModel> managementContractModelList)
-            throws InvalidParseOperationException, AdminManagementClientServerException {
-        ParametersChecker.checkParameter("The input management contracts json is mandatory", managementContractModelList);
+        throws InvalidParseOperationException, AdminManagementClientServerException {
+        ParametersChecker
+            .checkParameter("The input management contracts json is mandatory", managementContractModelList);
         return importContracts(managementContractModelList, MANAGEMENT_CONTRACTS_URI);
     }
 
-    private <T extends AbstractContractModel> Status importContracts(List<T> contractModelList, String uri) throws AdminManagementClientServerException {
+    private <T extends AbstractContractModel> Status importContracts(List<T> contractModelList, String uri)
+        throws AdminManagementClientServerException {
 
         VitamRequestBuilder request = post()
             .withPath(uri)
@@ -554,20 +544,21 @@ class AdminManagementClientRest extends DefaultClient implements AdminManagement
 
     @Override
     public RequestResponse<IngestContractModel> findIngestContracts(JsonNode queryDsl)
-            throws InvalidParseOperationException, AdminManagementClientServerException {
+        throws InvalidParseOperationException, AdminManagementClientServerException {
         ParametersChecker.checkParameter("The input queryDsl json is mandatory", queryDsl);
         return findContracts(queryDsl, INGEST_CONTRACTS_URI, IngestContractModel.class);
     }
 
     @Override
     public RequestResponse<ManagementContractModel> findManagementContracts(JsonNode queryDsl)
-            throws InvalidParseOperationException, AdminManagementClientServerException {
+        throws InvalidParseOperationException, AdminManagementClientServerException {
         ParametersChecker.checkParameter("The input queryDsl json is mandatory", queryDsl);
         return findContracts(queryDsl, MANAGEMENT_CONTRACTS_URI, ManagementContractModel.class);
     }
 
-    private <T extends AbstractContractModel> RequestResponse<T> findContracts(JsonNode queryDsl, String uri, Class<T> clasz)
-            throws InvalidParseOperationException, AdminManagementClientServerException {
+    private <T extends AbstractContractModel> RequestResponse<T> findContracts(JsonNode queryDsl, String uri,
+        Class<T> clasz)
+        throws InvalidParseOperationException, AdminManagementClientServerException {
 
         VitamRequestBuilder request = get()
             .withPath(uri)
@@ -591,7 +582,7 @@ class AdminManagementClientRest extends DefaultClient implements AdminManagement
 
     @Override
     public RequestResponse<IngestContractModel> findIngestContractsByID(String documentId)
-            throws InvalidParseOperationException, AdminManagementClientServerException, ReferentialNotFoundException {
+        throws InvalidParseOperationException, AdminManagementClientServerException, ReferentialNotFoundException {
         ParametersChecker.checkParameter("The input documentId json is mandatory", documentId);
         return findContractByID(documentId, INGEST_CONTRACTS_URI, IngestContractModel.class);
     }
@@ -599,13 +590,14 @@ class AdminManagementClientRest extends DefaultClient implements AdminManagement
 
     @Override
     public RequestResponse<ManagementContractModel> findManagementContractsByID(String documentId)
-            throws InvalidParseOperationException, AdminManagementClientServerException, ReferentialNotFoundException {
+        throws InvalidParseOperationException, AdminManagementClientServerException, ReferentialNotFoundException {
         ParametersChecker.checkParameter("The input documentId json is mandatory", documentId);
         return findContractByID(documentId, MANAGEMENT_CONTRACTS_URI, ManagementContractModel.class);
     }
 
-    private <T extends AbstractContractModel> RequestResponse<T> findContractByID(String documentId, String uri, Class<T> clasz)
-            throws InvalidParseOperationException, AdminManagementClientServerException, ReferentialNotFoundException {
+    private <T extends AbstractContractModel> RequestResponse<T> findContractByID(String documentId, String uri,
+        Class<T> clasz)
+        throws InvalidParseOperationException, AdminManagementClientServerException, ReferentialNotFoundException {
 
         JsonNode queryDsl;
         try {
@@ -635,27 +627,28 @@ class AdminManagementClientRest extends DefaultClient implements AdminManagement
 
     @Override
     public RequestResponse<AccessContractModel> updateAccessContract(String id, JsonNode queryDsl)
-            throws InvalidParseOperationException, AdminManagementClientServerException, ReferentialNotFoundException {
+        throws InvalidParseOperationException, AdminManagementClientServerException, ReferentialNotFoundException {
         ParametersChecker.checkParameter("The input queryDsl json is mandatory", queryDsl);
         return updateContract(id, queryDsl, UPDATE_ACCESS_CONTRACT_URI, AccessContractModel.class);
     }
 
     @Override
     public RequestResponse<IngestContractModel> updateIngestContract(String id, JsonNode queryDsl)
-            throws InvalidParseOperationException, AdminManagementClientServerException, ReferentialNotFoundException {
+        throws InvalidParseOperationException, AdminManagementClientServerException, ReferentialNotFoundException {
         ParametersChecker.checkParameter("The input queryDsl json is mandatory", queryDsl);
         return updateContract(id, queryDsl, UPDATE_INGEST_CONTRACT_URI, IngestContractModel.class);
     }
 
     @Override
     public RequestResponse<ManagementContractModel> updateManagementContract(String id, JsonNode queryDsl)
-            throws InvalidParseOperationException, AdminManagementClientServerException, ReferentialNotFoundException {
+        throws InvalidParseOperationException, AdminManagementClientServerException, ReferentialNotFoundException {
         ParametersChecker.checkParameter("The input queryDsl json is mandatory", queryDsl);
         return updateContract(id, queryDsl, UPDATE_MANAGEMENT_CONTRACT_URI, ManagementContractModel.class);
     }
 
-    private <T extends AbstractContractModel> RequestResponse<T> updateContract(String id, JsonNode queryDsl, String updateUri, Class<T> clasz)
-            throws InvalidParseOperationException, AdminManagementClientServerException, ReferentialNotFoundException {
+    private <T extends AbstractContractModel> RequestResponse<T> updateContract(String id, JsonNode queryDsl,
+        String updateUri, Class<T> clasz)
+        throws InvalidParseOperationException, AdminManagementClientServerException, ReferentialNotFoundException {
 
         VitamRequestBuilder request = put()
             .withPath(updateUri + id)
@@ -852,7 +845,7 @@ class AdminManagementClientRest extends DefaultClient implements AdminManagement
         try (Response response = make(request)) {
             check(response);
             return getFromString(response.readEntity(String.class), RequestResponseOK.class,
-                    ArchiveUnitProfileModel.class);
+                ArchiveUnitProfileModel.class);
         } catch (VitamClientInternalException e) {
             throw new AdminManagementClientServerException(INTERNAL_SERVER_ERROR_MSG, e);
         }
@@ -975,7 +968,7 @@ class AdminManagementClientRest extends DefaultClient implements AdminManagement
         JsonNode queryDsl;
         try {
             queryDsl = getIdentifierQuery(Context.IDENTIFIER, id);
-        }catch (InvalidCreateOperationException e) {
+        } catch (InvalidCreateOperationException e) {
             throw new AdminManagementClientServerException(INTERNAL_SERVER_ERROR_MSG, e);
         }
 
@@ -984,7 +977,7 @@ class AdminManagementClientRest extends DefaultClient implements AdminManagement
             .withBody(queryDsl)
             .withJson();
 
-        try (Response response =make(request)) {
+        try (Response response = make(request)) {
             checkWithSpecificException(response);
 
             RequestResponseOK<ContextModel> resp =
@@ -1027,7 +1020,8 @@ class AdminManagementClientRest extends DefaultClient implements AdminManagement
     }
 
     @Override
-    public RequestResponse<JsonNode> launchAuditWorkflow(AuditOptions options) throws AdminManagementClientServerException {
+    public RequestResponse<JsonNode> launchAuditWorkflow(AuditOptions options)
+        throws AdminManagementClientServerException {
         ParametersChecker.checkParameter("The options are mandatory", options);
         VitamRequestBuilder request = post()
             .withPath(AUDIT_URI)
@@ -1108,7 +1102,8 @@ class AdminManagementClientRest extends DefaultClient implements AdminManagement
         try (Response response = make(request)) {
             check(response);
 
-            return getFromString(response.readEntity(String.class), RequestResponseOK.class, SecurityProfileModel.class);
+            return getFromString(response.readEntity(String.class), RequestResponseOK.class,
+                SecurityProfileModel.class);
         } catch (VitamClientInternalException e) {
             LOGGER.error(INTERNAL_SERVER_ERROR_MSG, e);
             throw new AdminManagementClientServerException(INTERNAL_SERVER_ERROR_MSG, e);
@@ -1128,7 +1123,7 @@ class AdminManagementClientRest extends DefaultClient implements AdminManagement
             checkWithSpecificException(response);
 
             return getFromString(response.readEntity(String.class), RequestResponseOK.class,
-                    SecurityProfileModel.class);
+                SecurityProfileModel.class);
         } catch (VitamClientInternalException | BadRequestException | AccessUnauthorizedException |
             ForbiddenClientException | DatabaseConflictException e) {
             throw new AdminManagementClientServerException(INTERNAL_SERVER_ERROR_MSG, e);
@@ -1446,7 +1441,8 @@ class AdminManagementClientRest extends DefaultClient implements AdminManagement
 
             String entity = response.readEntity(String.class);
             @SuppressWarnings("unchecked")
-            RequestResponseOK<GriffinModel> requestResponseOK = getFromString(entity, RequestResponseOK.class, GriffinModel.class);
+            RequestResponseOK<GriffinModel> requestResponseOK =
+                getFromString(entity, RequestResponseOK.class, GriffinModel.class);
 
             return requestResponseOK;
         } catch (VitamClientInternalException e) {
@@ -1494,7 +1490,7 @@ class AdminManagementClientRest extends DefaultClient implements AdminManagement
     @Override
     public RequestResponse<PreservationScenarioModel> findPreservation(JsonNode queryDsl)
         throws InvalidParseOperationException, AdminManagementClientServerException, ReferentialNotFoundException {
-        
+
         VitamRequestBuilder request = get()
             .withPath("/preservationScenario")
             .withBody(queryDsl)
@@ -1527,7 +1523,7 @@ class AdminManagementClientRest extends DefaultClient implements AdminManagement
             ForbiddenClientException e) {
             throw new AdminManagementClientServerException(INTERNAL_SERVER_ERROR_MSG, e);
         } catch (DatabaseConflictException e) {
-           throw new LogbookClientAlreadyExistsException(e);
+            throw new LogbookClientAlreadyExistsException(e);
         }
     }
 
@@ -1542,9 +1538,10 @@ class AdminManagementClientRest extends DefaultClient implements AdminManagement
                 fromStatusCode(response.getStatus()).getReasonPhrase()));
     }
 
-        private void checkWithSpecificException(Response response)
-            throws BadRequestException, VitamClientInternalException, ReferentialNotFoundException, AccessUnauthorizedException,
-            ForbiddenClientException, DatabaseConflictException {
+    private void checkWithSpecificException(Response response)
+        throws BadRequestException, VitamClientInternalException, ReferentialNotFoundException,
+        AccessUnauthorizedException,
+        ForbiddenClientException, DatabaseConflictException {
         final Status status = fromStatusCode(response.getStatus());
 
         if (SUCCESSFUL.equals(status.getFamily()) || REDIRECTION.equals(status.getFamily())) {
@@ -1565,7 +1562,7 @@ class AdminManagementClientRest extends DefaultClient implements AdminManagement
                 throw new AccessUnauthorizedException("Contract not found ");
             case FORBIDDEN:
                 reason = (response.hasEntity()) ? response.readEntity(String.class)
-                : Response.Status.BAD_REQUEST.getReasonPhrase();
+                    : Response.Status.BAD_REQUEST.getReasonPhrase();
                 throw new ForbiddenClientException(reason);
             case CONFLICT:
                 throw new DatabaseConflictException(Response.Status.CONFLICT.getReasonPhrase());
