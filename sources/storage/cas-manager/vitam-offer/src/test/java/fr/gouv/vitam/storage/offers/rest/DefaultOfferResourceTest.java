@@ -102,7 +102,6 @@ public class DefaultOfferResourceTest {
     private static final String WORKSPACE_OFFER_CONF = "storage-default-offer.conf";
 
     private static final String REST_URI = "/offer/v1";
-    private static final String READ_ORDER_URI = "/readorder";
     private static int serverPort;
     private static JunitHelper junitHelper;
     private static final String OBJECTS_URI = "/objects";

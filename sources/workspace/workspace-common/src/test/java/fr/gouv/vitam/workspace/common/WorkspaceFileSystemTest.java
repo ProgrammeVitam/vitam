@@ -61,7 +61,6 @@ import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.assertj.core.groups.Tuple.tuple;
 
@@ -589,7 +588,6 @@ public class WorkspaceFileSystemTest {
     public void purgeOldFilesInContainerShouldNotDeleteNewFiles() throws Exception {
 
         // Given
-        String fileName = "targetDir/result.zip";
         storage.createContainer(CONTAINER_NAME);
         String folder1 = "folder1";
         storage.createFolder(CONTAINER_NAME, folder1);
@@ -609,7 +607,6 @@ public class WorkspaceFileSystemTest {
     public void purgeOldFilesInContainerShouldDeleteOldFiles() throws Exception {
 
         // Given
-        String fileName = "targetDir/result.zip";
         storage.createContainer(CONTAINER_NAME);
         String folder1 = "folder1";
         storage.createFolder(CONTAINER_NAME, folder1);

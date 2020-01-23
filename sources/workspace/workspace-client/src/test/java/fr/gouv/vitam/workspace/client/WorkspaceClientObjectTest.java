@@ -55,7 +55,6 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 import java.io.FileNotFoundException;
-import java.io.IOException;
 import java.io.InputStream;
 import java.util.Arrays;
 import java.util.List;
@@ -309,13 +308,13 @@ public class WorkspaceClientObjectTest extends ResteasyTestApplication {
 
     @Test(expected = IllegalArgumentException.class)
     public void givenNullParamWhenComputeDigestThenRaiseAnException()
-        throws ContentAddressableStorageNotFoundException, ContentAddressableStorageException {
+        throws ContentAddressableStorageException {
         client.computeObjectDigest(CONTAINER_NAME, OBJECT_NAME, null);
     }
 
     @Test
     public void givenObjectAlreadyExistsWhenComputeDigestThenReturnTrue()
-        throws ContentAddressableStorageNotFoundException, ContentAddressableStorageException {
+        throws ContentAddressableStorageException {
         when(mock.head()).thenReturn(Response.status(Status.OK).header(X_DIGEST, MESSAGE_DIGEST).build());
         assertTrue(client.computeObjectDigest(CONTAINER_NAME, OBJECT_NAME, ALGO)
             .toJsonNode().get("$results").get(0).asText().equals(MESSAGE_DIGEST));
@@ -323,7 +322,7 @@ public class WorkspaceClientObjectTest extends ResteasyTestApplication {
 
     @Test(expected = ContentAddressableStorageNotFoundException.class)
     public void givenObjectNotFoundWhenComputeDigestThenRaiseAnException()
-        throws ContentAddressableStorageNotFoundException, ContentAddressableStorageException {
+        throws ContentAddressableStorageException {
         when(mock.head()).thenReturn(Response.status(Status.NOT_FOUND).build());
         client.computeObjectDigest(CONTAINER_NAME, OBJECT_NAME, ALGO);
     }
@@ -417,28 +416,28 @@ public class WorkspaceClientObjectTest extends ResteasyTestApplication {
 
     @Test
     public void givenObjectAlreadyExistsWhenCheckObjectThenOK()
-        throws ContentAddressableStorageException, IOException {
+        throws ContentAddressableStorageException {
         when(mock.head()).thenReturn(Response.status(Status.OK).header(X_DIGEST, MESSAGE_DIGEST).build());
         assertTrue(client.checkObject(CONTAINER_NAME, OBJECT_NAME, MESSAGE_DIGEST, DigestType.MD5));
     }
 
     @Test(expected = ContentAddressableStorageNotFoundException.class)
     public void givenContainerNotExistingWhenCheckObjectThenNotFound()
-        throws ContentAddressableStorageException, IOException {
+        throws ContentAddressableStorageException {
         when(mock.head()).thenReturn(Response.status(Status.NOT_FOUND).build());
         client.checkObject(CONTAINER_NAME, OBJECT_NAME, MESSAGE_DIGEST, DigestType.MD5);
     }
 
     @Test(expected = ContentAddressableStorageServerException.class)
     public void givenObjectNotExistingWhenCheckObjectThenOK()
-        throws ContentAddressableStorageException, IOException {
+        throws ContentAddressableStorageException {
         when(mock.head()).thenReturn(Response.status(Status.INTERNAL_SERVER_ERROR).build());
         client.checkObject(CONTAINER_NAME, OBJECT_NAME, MESSAGE_DIGEST, DigestType.MD5);
     }
 
     @Test(expected = IllegalArgumentException.class)
     public void givenNullParamWhenCheckObjectThenRaiseAnException()
-        throws ContentAddressableStorageNotFoundException, ContentAddressableStorageException {
+        throws ContentAddressableStorageException {
         client.checkObject(CONTAINER_NAME, OBJECT_NAME, "fakeDigest", null);
     }
 

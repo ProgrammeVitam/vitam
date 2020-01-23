@@ -28,10 +28,7 @@
 package fr.gouv.vitam.functional.administration.contract.api;
 
 
-import java.util.List;
-
 import com.fasterxml.jackson.databind.JsonNode;
-
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamException;
 import fr.gouv.vitam.common.model.RequestResponse;
@@ -39,6 +36,8 @@ import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.VitamAutoCloseable;
 import fr.gouv.vitam.common.model.administration.AbstractContractModel;
 import fr.gouv.vitam.functional.administration.common.exception.ReferentialException;
+
+import java.util.List;
 
 /**
  * ContractService Interface declaring common methods for Contracts
@@ -63,7 +62,7 @@ public interface ContractService<T extends AbstractContractModel> extends VitamA
      * @return RequestResponseOK if success or VitamError
      * @throws VitamException if in error occurs while validating contracts
      */
-    public RequestResponse<T> createContracts(List<T> contractModelList) throws VitamException;
+    RequestResponse<T> createContracts(List<T> contractModelList) throws VitamException;
 
     /**
      * Update contracts status after passing validation steps : </BR>
@@ -80,7 +79,7 @@ public interface ContractService<T extends AbstractContractModel> extends VitamA
      * @return RequestResponseOK if success or VitamError
      * @throws VitamException if in error occurs while validating contracts
      */
-    public RequestResponse<T> updateContract(String id, JsonNode queryDsl) throws VitamException;
+    RequestResponse<T> updateContract(String id, JsonNode queryDsl) throws VitamException;
 
 
     /**
@@ -91,7 +90,7 @@ public interface ContractService<T extends AbstractContractModel> extends VitamA
      * @throws ReferentialException thrown if the query could not be executed
      * @throws InvalidParseOperationException thrown if the query could not be created
      */
-    public T findByIdentifier(String identifier) throws ReferentialException, InvalidParseOperationException;
+    T findByIdentifier(String identifier) throws ReferentialException, InvalidParseOperationException;
 
 
     /**
@@ -102,7 +101,7 @@ public interface ContractService<T extends AbstractContractModel> extends VitamA
      * @throws ReferentialException thrown if the query could not be executed 
      * @throws InvalidParseOperationException thrown is the query is incorrect
      */
-    public RequestResponseOK<T> findContracts(JsonNode queryDsl)
+    RequestResponseOK<T> findContracts(JsonNode queryDsl)
         throws ReferentialException, InvalidParseOperationException;
 
 

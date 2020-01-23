@@ -19,7 +19,6 @@ package fr.gouv.vitam.functional.administration.agencies.api;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import fr.gouv.vitam.common.elasticsearch.ElasticsearchRule;
-import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.guid.GUID;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.json.JsonHandler;
@@ -359,16 +358,6 @@ public class AgenciesServiceTest {
             "          }\n" +
             "     }\n" +
             "}", outcome, tenantId));
-    }
-
-
-    private JsonNode getReportJsonAdnCleanFile() throws InvalidParseOperationException {
-        File[] reports = tempFolder.getRoot().listFiles((dir, name) -> "report_agencies.json".equals(name));
-        JsonNode reportNode = getFromFile(reports[0]);
-        for (File report : reports) {
-            report.delete();
-        }
-        return reportNode;
     }
 
     private void instantiateAgencyService() {

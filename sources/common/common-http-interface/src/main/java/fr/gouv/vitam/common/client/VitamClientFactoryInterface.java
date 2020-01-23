@@ -26,11 +26,10 @@
  */
 package fr.gouv.vitam.common.client;
 
-import java.util.Map;
+import fr.gouv.vitam.common.client.configuration.ClientConfiguration;
 
 import javax.ws.rs.client.Client;
-
-import fr.gouv.vitam.common.client.configuration.ClientConfiguration;
+import java.util.Map;
 
 /**
  * Vitam Http Client Factory Interface
@@ -137,7 +136,7 @@ public interface VitamClientFactoryInterface<T extends MockOrRestClient> {
     /**
      * enum to define client type
      */
-    public static enum VitamClientType {
+    static enum VitamClientType {
         /**
          * To use only in MOCK ACCESS
          */

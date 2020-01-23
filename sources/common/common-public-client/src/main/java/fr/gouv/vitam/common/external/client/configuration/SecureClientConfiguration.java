@@ -37,12 +37,12 @@ public interface SecureClientConfiguration extends ClientConfiguration {
      *
      * @return HostnameVerification
      */
-    public boolean isHostnameVerification();
+    boolean isHostnameVerification();
 
     /**
      * Must return the value of a 'sslConfiguration' attribute
      *
      * @return SSLConfiguration
      */
-    public SSLConfiguration getSslConfiguration();
+    SSLConfiguration getSslConfiguration();
 }

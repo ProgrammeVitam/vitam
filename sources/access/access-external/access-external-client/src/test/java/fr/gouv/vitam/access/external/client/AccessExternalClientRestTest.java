@@ -86,8 +86,6 @@ public class AccessExternalClientRestTest extends ResteasyTestApplication {
         "Error with the response, get status: '412' and reason 'Precondition Failed'.";
     private static final String BAD_REQUEST = "Error with the response, get status: '400' and reason 'Bad Request'.";
     private static final String UNAUTHORIZED = "Error with the response, get status: '401' and reason 'Unauthorized'.";
-    private static final String UNSUPPORTED_MEDIA_TYPE =
-        "Error with the response, get status: '415' and reason 'Unsupported Media Type'.";
     protected static AccessExternalClientRest client;
     static AccessExternalClientFactory factory = AccessExternalClientFactory.getInstance();
     public static VitamServerTestRunner

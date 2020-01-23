@@ -30,10 +30,6 @@ package fr.gouv.vitam.common.model;
  * Constants for the Ingest Workflow.
  */
 public class AuditWorkflowConstants {
-    /**
-     * Audit File contains all objectgroups Id
-     */
-    public static final String AUDIT_FILE = "AUDIT_OG";
 
     private AuditWorkflowConstants() {}
 

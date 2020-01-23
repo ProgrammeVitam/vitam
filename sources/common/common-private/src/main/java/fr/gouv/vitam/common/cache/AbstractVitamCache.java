@@ -26,13 +26,13 @@
  */
 package fr.gouv.vitam.common.cache;
 
-import java.util.Map;
-import java.util.concurrent.TimeUnit;
-
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
 import fr.gouv.vitam.common.VitamConfiguration;
+
+import java.util.Map;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Abstract vitam cache
@@ -45,14 +45,6 @@ public abstract class AbstractVitamCache<T, V> implements VitamCache<T, V> {
 
     public AbstractVitamCache() {
         this(true, Math.max(Runtime.getRuntime().availableProcessors(), 32));
-    }
-
-    public AbstractVitamCache(boolean enableStats) {
-        this(enableStats, Math.max(Runtime.getRuntime().availableProcessors(), 32));
-    }
-
-    public AbstractVitamCache(int concurrencyLevel) {
-        this(false, concurrencyLevel);
     }
 
     public AbstractVitamCache(boolean enableStats, int concurrencyLevel) {

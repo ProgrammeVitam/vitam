@@ -26,17 +26,6 @@
  */
 package fr.gouv.vitam.ihmdemo.core;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
-
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.TextNode;
@@ -54,6 +43,17 @@ import fr.gouv.vitam.common.model.FacetFiltersItem;
 import fr.gouv.vitam.common.model.FacetType;
 import org.junit.BeforeClass;
 import org.junit.Test;
+
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 
 /**
  * DslQueryHelper junit test
@@ -77,13 +77,6 @@ public class DslQueryHelperTest {
             "QUERY: Requests: " + "{\"$and\":[{\"$exists\":\"evTypeProc\"},{\"$exists\":\"evIdProc\"}]}\n" +
                     "\tFilter: {\"$limit\":10000}\n" +
                     "\tProjection: {}";
-
-    private static final String updateAction =
-            "[ " + "{ $set : { mavar1 : 1, mavar2 : 1.2, mavar3 : true, mavar4 : 'ma chaine' } }," +
-                    "{ $unset : [ 'mavar5', 'mavar6' ] }," + "{ $inc : { mavar7 : 2 } }," + "{ $min : { mavar8 : 3 } }," +
-                    "{ $min : { mavar16 : 12 } }," + "{ $max : { mavar9 : 3 } }," + "{ $rename : { mavar10 : 'mavar11' } }," +
-                    "{ $push : { mavar12 : { [ 1, 2 ] } }," + "{ $add : { mavar13 : [ 1, 2 ] } }," +
-                    "{ $pop : { mavar14 : -1 } }," + "{ $pull : { mavar15 : [ 1, 2 ] } } ]";
 
     private DslQueryHelper dslQueryHelper = DslQueryHelper.getInstance();
     @BeforeClass

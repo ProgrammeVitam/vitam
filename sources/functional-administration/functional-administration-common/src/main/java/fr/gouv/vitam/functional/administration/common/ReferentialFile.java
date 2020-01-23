@@ -27,28 +27,18 @@
 
 package fr.gouv.vitam.functional.administration.common;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.node.ArrayNode;
-
 import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
 import fr.gouv.vitam.common.database.server.mongodb.VitamDocument;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamException;
 import fr.gouv.vitam.common.model.RequestResponseOK;
-import fr.gouv.vitam.common.model.administration.FileRulesModel;
 import fr.gouv.vitam.functional.administration.common.exception.DatabaseConflictException;
 import fr.gouv.vitam.functional.administration.common.exception.FileFormatNotFoundException;
 import fr.gouv.vitam.functional.administration.common.exception.ReferentialException;
-import fr.gouv.vitam.logbook.common.exception.LogbookClientAlreadyExistsException;
-import fr.gouv.vitam.logbook.common.exception.LogbookClientBadRequestException;
-import fr.gouv.vitam.logbook.common.exception.LogbookClientServerException;
-import fr.gouv.vitam.storage.engine.common.exception.StorageException;
+
+import java.io.IOException;
+import java.io.InputStream;
 
 /**
  * ReferentialFile<E>
@@ -81,7 +71,7 @@ public interface ReferentialFile<E> {
      * @return vitam document
      * @throws ReferentialException when error occurs
      */
-    public VitamDocument<E> findDocumentById(String id) throws ReferentialException;
+    VitamDocument<E> findDocumentById(String id) throws ReferentialException;
 
     /**
      * find document based on DSL query
@@ -91,6 +81,6 @@ public interface ReferentialFile<E> {
      * @throws FileFormatNotFoundException when no results found
      * @throws ReferentialException when error occurs
      */
-    public RequestResponseOK<E> findDocuments(JsonNode select) throws FileFormatNotFoundException, ReferentialException;
+    RequestResponseOK<E> findDocuments(JsonNode select) throws FileFormatNotFoundException, ReferentialException;
 
 }

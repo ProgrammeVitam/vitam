@@ -17,10 +17,10 @@
  */
 package fr.gouv.vitam.functional.administration.profile.core;
 
+import fr.gouv.vitam.common.model.administration.ProfileModel;
+
 import java.util.List;
 import java.util.Optional;
-
-import fr.gouv.vitam.common.model.administration.ProfileModel;
 
 /**
  * Used to validate profiles and to apply acceptance rules.
@@ -66,7 +66,7 @@ public interface ProfileValidator {
     /**
      * Rejection Cause
      */
-    public class RejectionCause {
+    class RejectionCause {
 
         private static final String ERR_ID_NOT_ALLOWED_IN_CREATE = "Id must be null when creating profile (%s)";
         private static final String ERR_DUPLICATE_PROFILE = "The profile %s already exists in database";

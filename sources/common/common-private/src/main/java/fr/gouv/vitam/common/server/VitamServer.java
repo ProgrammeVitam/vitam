@@ -41,23 +41,23 @@ public interface VitamServer extends VitamServerInterface {
     /**
      * Default message
      */
-    public static final String SERVER_CAN_NOT_START = "%s application server can not start. ";
+    String SERVER_CAN_NOT_START = "%s application server can not start. ";
     /**
      * Default message
      */
-    public static final String CONFIG_FILE_IS_A_MANDATORY_ARGUMENT = "Config file %s is a mandatory argument. ";
+    String CONFIG_FILE_IS_A_MANDATORY_ARGUMENT = "Config file %s is a mandatory argument. ";
     /**
      * Default message
      */
-    public static final String CONFIGURATION_IS_A_MANDATORY_ARGUMENT = "Configuration %s is a mandatory argument. ";
+    String CONFIGURATION_IS_A_MANDATORY_ARGUMENT = "Configuration %s is a mandatory argument. ";
     /**
      * Default message
      */
-    public static final String CAN_CONFIGURE_SERVER = "Can not config %s server. ";
+    String CAN_CONFIGURE_SERVER = "Can not config %s server. ";
     /**
      * Default message
      */
-    public static final String SERVER_START_WITH_JETTY_CONFIG = "%s application server start with jetty config. ";
+    String SERVER_START_WITH_JETTY_CONFIG = "%s application server start with jetty config. ";
 
     /**
      * Configure the server with one handler
@@ -82,28 +82,28 @@ public interface VitamServer extends VitamServerInterface {
     /**
      * @return the associated handler
      */
-    public Handler getHandler();
+    Handler getHandler();
 
     /**
      * retrieve the jettyServer
      *
      * @return the jetty server
      */
-    public Server getServer();
+    Server getServer();
 
     /**
      * get the configuration of jetty
      *
      * @return the config
      */
-    public XmlConfiguration getServerConfiguration();
+    XmlConfiguration getServerConfiguration();
 
     /**
      * check if vitam server is started
      *
      * @return true if jetty server is started
      */
-    public boolean isStarted();
+    boolean isStarted();
 
 
     /**
@@ -111,14 +111,14 @@ public interface VitamServer extends VitamServerInterface {
      *
      * @return true if jetty server is stopped
      */
-    public boolean isStopped();
+    boolean isStopped();
 
     /**
      * stop the jetty server
      *
      * @throws VitamApplicationServerException
      */
-    public void stop() throws VitamApplicationServerException;
+    void stop() throws VitamApplicationServerException;
 
 
 
@@ -127,12 +127,12 @@ public interface VitamServer extends VitamServerInterface {
      *
      * @throws VitamApplicationServerException
      */
-    public void start() throws VitamApplicationServerException;
+    void start() throws VitamApplicationServerException;
 
     /**
      * set jetty handler
      *
      * @param handler the handler to set
      */
-    public void setHandler(Handler handler);
+    void setHandler(Handler handler);
 }

@@ -26,10 +26,7 @@
  */
 package fr.gouv.vitam.worker.common.utils;
 
-import org.apache.commons.io.FilenameUtils;
-
 import fr.gouv.vitam.common.guid.GUIDFactory;
-import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientNotFoundException;
 import fr.gouv.vitam.logbook.common.parameters.LogbookLifeCycleParameters;
@@ -38,6 +35,7 @@ import fr.gouv.vitam.logbook.common.parameters.LogbookParameterName;
 import fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
+import org.apache.commons.io.FilenameUtils;
 
 /**
  * Helper for Worker handlers to handle Logbook Lifecycle at startup/at end
@@ -126,28 +124,6 @@ public class LogbookLifecycleWorkerHelper {
             // TODO P2 to be passed within the parameters since multiple workflow types could exist
             logbookLifecycleParameters.putParameterValue(LogbookParameterName.eventTypeProcess,
                 logbookTypeProcess.name());
-            helper.updateDelegate(logbookLifecycleParameters);
-        } catch (final LogbookClientNotFoundException e) {
-            SedaUtils.LOGGER.error(LOGBOOK_LF_RESOURCE_NOT_FOUND_EXCEPTION_MSG, e);
-            throw new ProcessingException(e);
-        }
-    }
-
-    /**
-     *
-     *
-     * @param helper the LogbookLifeCyclesClientHelper
-     * @param logbookLifecycleParameters logbook LC parameters
-     * @param itemStatus the Item Status
-     * @throws ProcessingException if logbook lfc ressouce not found
-     */
-    public static void setLifeCycleFinalEventStatusByStep(LogbookLifeCyclesClientHelper helper,
-        LogbookLifeCycleParameters logbookLifecycleParameters,
-        ItemStatus itemStatus)
-        throws ProcessingException {
-
-        try {
-            logbookLifecycleParameters.setFinalStatus(itemStatus.getItemId(), null, itemStatus.getGlobalStatus(), null);
             helper.updateDelegate(logbookLifecycleParameters);
         } catch (final LogbookClientNotFoundException e) {
             SedaUtils.LOGGER.error(LOGBOOK_LF_RESOURCE_NOT_FOUND_EXCEPTION_MSG, e);

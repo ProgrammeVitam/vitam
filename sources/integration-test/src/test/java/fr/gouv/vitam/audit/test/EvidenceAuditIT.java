@@ -58,8 +58,6 @@ import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.StatusCode;
-import fr.gouv.vitam.common.model.administration.AccessContractModel;
-import fr.gouv.vitam.common.model.administration.ActivationStatus;
 import fr.gouv.vitam.common.model.objectgroup.ObjectGroupResponse;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
@@ -111,7 +109,6 @@ import static fr.gouv.vitam.common.guid.GUIDFactory.newOperationLogbookGUID;
 import static fr.gouv.vitam.common.stream.StreamUtils.consumeAnyEntityAndClose;
 import static fr.gouv.vitam.common.thread.VitamThreadUtils.getVitamSession;
 import static fr.gouv.vitam.preservation.ProcessManagementWaiter.waitOperation;
-import static java.util.Collections.singletonList;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertEquals;
 
@@ -434,7 +431,7 @@ public class EvidenceAuditIT extends VitamRuleRunner {
 
     private String doTraceabilityGots() throws VitamException {
         try (LogbookOperationsClient logbookOperationsClient = LogbookOperationsClientFactory.getInstance().getClient();
-            AccessInternalClient accessClient = AccessInternalClientFactory.getInstance().getClient();) {
+            AccessInternalClient accessClient = AccessInternalClientFactory.getInstance().getClient()) {
             dataLoader.prepareVitamSession();
             RequestResponseOK traceabilityObjectGroupResponse = logbookOperationsClient.traceabilityLfcObjectGroup();
             String traceabilityGotOperationId =

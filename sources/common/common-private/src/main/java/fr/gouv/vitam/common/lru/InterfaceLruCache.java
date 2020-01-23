@@ -26,9 +26,9 @@
  */
 package fr.gouv.vitam.common.lru;
 
-import java.util.concurrent.Callable;
-
 import fr.gouv.vitam.common.exception.VitamException;
+
+import java.util.concurrent.Callable;
 
 /**
  * LRU cache interface.
@@ -44,14 +44,14 @@ public interface InterfaceLruCache<K, V> {
     /**
      * Removes all entries from cache
      */
-    public void clear();
+    void clear();
 
     /**
      * Removes all oldest entries from cache (ttl based)
      *
      * @return the number of removed entries
      */
-    public int forceClearOldest();
+    int forceClearOldest();
 
     /**
      * Checks whether cache contains valid entry for key
@@ -59,7 +59,7 @@ public interface InterfaceLruCache<K, V> {
      * @param key
      * @return true if cache contains key and entry is valid
      */
-    public boolean contains(K key);
+    boolean contains(K key);
 
     /**
      * Returns value cached with key.
@@ -67,7 +67,7 @@ public interface InterfaceLruCache<K, V> {
      * @param key
      * @return value or null if key doesn't exist or entry is not valid
      */
-    public V get(K key);
+    V get(K key);
 
     /**
      * Tries to get element from cache. If get fails callback is used to create element and returned value is stored in
@@ -81,7 +81,7 @@ public interface InterfaceLruCache<K, V> {
      * @throws VitamException
      * @throws Exception if callback throws exception
      */
-    public V get(K key, Callable<V> callback) throws VitamException;
+    V get(K key, Callable<V> callback) throws VitamException;
 
     /**
      * Tries to get element from cache. If get fails callback is used to create element and returned value is stored in
@@ -94,35 +94,35 @@ public interface InterfaceLruCache<K, V> {
      * @throws VitamException
      * @throws Exception if callback throws exception
      */
-    public V get(K key, Callable<V> callback, long ttl) throws VitamException;
+    V get(K key, Callable<V> callback, long ttl) throws VitamException;
 
     /**
      * Returns cache capacity
      *
      * @return capacity of cache
      */
-    public int getCapacity();
+    int getCapacity();
 
     /**
      * Returns number of entries stored in cache (including invalid ones)
      *
      * @return number of entries
      */
-    public int size();
+    int size();
 
     /**
      * Returns cache TTL
      *
      * @return ttl in milliseconds
      */
-    public long getTtl();
+    long getTtl();
 
     /**
      * Set a new TTL (for newly set objects only, not changing old values).
      *
      * @param ttl
      */
-    public void setNewTtl(long ttl);
+    void setNewTtl(long ttl);
 
     /**
      * Checks whether cache is empty.
@@ -131,7 +131,7 @@ public interface InterfaceLruCache<K, V> {
      *
      * @return true if no entries are stored in cache
      */
-    public boolean isEmpty();
+    boolean isEmpty();
 
     /**
      * Puts value under key into cache. Default TTL is used
@@ -139,7 +139,7 @@ public interface InterfaceLruCache<K, V> {
      * @param key
      * @param value
      */
-    public void put(K key, V value);
+    void put(K key, V value);
 
     /**
      * Puts value under key into cache with desired TTL
@@ -148,7 +148,7 @@ public interface InterfaceLruCache<K, V> {
      * @param value
      * @param ttl time to live in milliseconds
      */
-    public void put(K key, V value, long ttl);
+    void put(K key, V value, long ttl);
 
     /**
      * Removes entry from cache (if exists)
@@ -156,12 +156,12 @@ public interface InterfaceLruCache<K, V> {
      * @param key
      * @return the value if it still exists
      */
-    public V remove(K key);
+    V remove(K key);
 
     /**
      * Update the TTL of the associated object if it still exists
      *
      * @param key
      */
-    public void updateTtl(K key);
+    void updateTtl(K key);
 }

@@ -85,7 +85,6 @@ public class FormatIdentifierSiegfried implements FormatIdentifier {
         ParametersChecker.checkParameter("Version pathcannot be null", configurationProperties.get("versionPath"));
 
         final String clientType = (String) configurationProperties.get("client");
-        final String root = (String) configurationProperties.get("rootPath");
         final String version = (String) configurationProperties.get("versionPath");
 
         this.siegfriedClientFactory = SiegfriedClientFactory.getInstance();

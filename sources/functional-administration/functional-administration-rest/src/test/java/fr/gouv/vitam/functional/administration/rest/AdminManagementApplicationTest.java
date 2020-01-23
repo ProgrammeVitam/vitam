@@ -26,20 +26,10 @@
  */
 package fr.gouv.vitam.functional.administration.rest;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.Assert.fail;
-
-import java.io.File;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.database.collections.VitamCollection;
 import fr.gouv.vitam.common.database.server.elasticsearch.ElasticsearchNode;
 import fr.gouv.vitam.common.elasticsearch.ElasticsearchRule;
-import fr.gouv.vitam.common.exception.VitamException;
-import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.mongo.MongoRule;
 import fr.gouv.vitam.common.server.application.configuration.MongoDbNode;
 import fr.gouv.vitam.functional.administration.common.server.AdminManagementConfiguration;
@@ -47,9 +37,15 @@ import org.junit.BeforeClass;
 import org.junit.ClassRule;
 import org.junit.Test;
 
-public class AdminManagementApplicationTest {
+import java.io.File;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
 
-    private static final String PREFIX = GUIDFactory.newGUID().getId();
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.Assert.fail;
+
+public class AdminManagementApplicationTest {
 
     @ClassRule
     public static MongoRule mongoRule = new MongoRule(VitamCollection.getMongoClientOptions());

@@ -1,7 +1,5 @@
 package fr.gouv.vitam.logbook.administration.core.impl;
 
-import fr.gouv.vitam.common.logging.VitamLogger;
-import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.logbook.administration.core.api.LogbookDetailsCheckService;
 import fr.gouv.vitam.logbook.common.model.coherence.EventModel;
 import fr.gouv.vitam.logbook.common.model.coherence.LogbookCheckError;
@@ -18,12 +16,6 @@ import java.util.Map;
  * Test the LogbookDetailsCheck services.
  */
 public class LogbookDetailsCheckServiceImplTest {
-
-    /**
-     * Vitam logger.
-     */
-    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(LogbookDetailsCheckServiceImplTest.class);
-
     /**
      * Logbook's properties check service.
      */

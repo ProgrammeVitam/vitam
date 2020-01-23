@@ -1005,7 +1005,7 @@ public class WebApplicationResource extends ApplicationStatusResource {
             RequestResponse<JsonNode> rulesUpdateResponse = null;
 
             UpdateMultiQuery metadataUpdate =
-                dslQueryHelper.getFullMetadataActionQuery(modifiedFields.get("metadataUpdates"), baseQuery);
+                dslQueryHelper.getFullMetadataActionQuery(modifiedFields.get("metadataUpdates"));
             ObjectNode metadataQuery = baseQuery.deepCopy();
 
             if (metadataUpdate != null) {

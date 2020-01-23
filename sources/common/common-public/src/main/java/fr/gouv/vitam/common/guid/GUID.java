@@ -41,42 +41,42 @@ public interface GUID extends Comparable<GUID> {
      * @return True if is Worm
      */
     @JsonIgnore
-    public boolean isWorm();
+    boolean isWorm();
 
     /**
      * @return the Base32 representation (default of toString)
      */
     @JsonIgnore
-    public abstract String toBase32();
+    String toBase32();
 
     /**
      * @return the Base64 representation (default of toString)
      */
     @JsonIgnore
-    public abstract String toBase64();
+    String toBase64();
 
     /**
      * @return the Hexadecimal representation
      */
     @JsonIgnore
-    public abstract String toHex();
+    String toHex();
 
     /**
      * @return the Ark representation of this GUID
      */
     @JsonIgnore
-    public abstract String toArk();
+    String toArk();
 
     /**
      * @return the Ark Name part of Ark representation
      */
     @JsonIgnore
-    public default String toArkName() {
+    default String toArkName() {
         return toString();
     }
 
     @Override
-    public abstract String toString();
+    String toString();
 
     /**
      * copy the uuid of this GUID, so that it can't be changed, and return it
@@ -84,7 +84,7 @@ public interface GUID extends Comparable<GUID> {
      * @return raw byte array of GUID
      */
     @JsonIgnore
-    public byte[] getBytes();
+    byte[] getBytes();
 
     /**
      * extract version field as a hex char from raw GUID bytes
@@ -92,13 +92,13 @@ public interface GUID extends Comparable<GUID> {
      * @return version char
      */
     @JsonIgnore
-    public int getVersion();
+    int getVersion();
 
     /**
      * @return the id of the Object Type (default being 0)
      */
     @JsonIgnore
-    public default int getObjectId() {
+    default int getObjectId() {
         return 0;
     }
 
@@ -106,7 +106,7 @@ public interface GUID extends Comparable<GUID> {
      * @return the Tenant Id of GUID from which it belongs to (default being 0)
      */
     @JsonIgnore
-    public default int getTenantId() {
+    default int getTenantId() {
         return 0;
     }
 
@@ -116,13 +116,13 @@ public interface GUID extends Comparable<GUID> {
      * @return id of process that generated the GUID, or -1 for unrecognized format
      */
     @JsonIgnore
-    public int getProcessId();
+    int getProcessId();
 
     /**
      * @return the associated counter against collision value
      */
     @JsonIgnore
-    public int getCounter();
+    int getCounter();
 
     /**
      * Extract timestamp and return as long
@@ -130,7 +130,7 @@ public interface GUID extends Comparable<GUID> {
      * @return millisecond UTC timestamp from generation of the GUID, or -1 for unrecognized format
      */
     @JsonIgnore
-    public long getTimestamp();
+    long getTimestamp();
 
     /**
      * Extract Platform id as bytes. Could be using partial MAC address.
@@ -138,7 +138,7 @@ public interface GUID extends Comparable<GUID> {
      * @return byte array of GUID fragment, or null for unrecognized format
      */
     @JsonIgnore
-    public byte[] getMacFragment();
+    byte[] getMacFragment();
 
     /**
      * Extract Platform id as int. Could be using partial MAC address.
@@ -146,22 +146,22 @@ public interface GUID extends Comparable<GUID> {
      * @return the Platform id as int, or -1 for unrecognized format
      */
     @JsonIgnore
-    public int getPlatformId();
+    int getPlatformId();
 
     /**
      *
      * @return the String representation of this GUID
      */
     @JsonGetter("id")
-    public String getId();
+    String getId();
 
     @Override
-    public boolean equals(Object o);
+    boolean equals(Object o);
 
     @Override
-    public int hashCode();
+    int hashCode();
 
     @Override
-    public int compareTo(GUID arg0);
+    int compareTo(GUID arg0);
 
 }

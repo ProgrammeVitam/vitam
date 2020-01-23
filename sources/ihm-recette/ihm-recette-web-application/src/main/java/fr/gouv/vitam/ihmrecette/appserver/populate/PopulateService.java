@@ -221,7 +221,7 @@ public class PopulateService {
 
         logbookRepository.storeLogbookLifecycleUnit(populateModel.getTenant(), unitGotList);
 
-        logbookRepository.storeLogbookLifeCycleObjectGroup(populateModel.getTenant(), unitGotList);
+        logbookRepository.storeLogbookLifeCycleObjectGroup(unitGotList);
 
         metadataStorageService.storeToOffers(populateModel, unitGotList);
 

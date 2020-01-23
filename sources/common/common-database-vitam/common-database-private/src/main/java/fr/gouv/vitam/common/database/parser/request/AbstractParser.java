@@ -27,13 +27,11 @@
 package fr.gouv.vitam.common.database.parser.request;
 
 import com.fasterxml.jackson.databind.JsonNode;
-
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import fr.gouv.vitam.common.database.builder.query.Query;
 import fr.gouv.vitam.common.database.builder.request.AbstractRequest;
 import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken;
 import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.FILTERARGS;
-import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.QUERY;
 import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
 import fr.gouv.vitam.common.database.parser.query.QueryParserHelper;
 import fr.gouv.vitam.common.database.parser.request.adapter.VarNameAdapter;
@@ -124,25 +122,6 @@ public abstract class AbstractParser<E extends AbstractRequest> {
         return adapter;
     }
 
-    /**
-     * Check if the command is allowed using the "standard" database
-     *
-     * @param query QUERY
-     * @return true if only valid in "index" database support
-     */
-    protected static boolean isCommandAsFullText(QUERY query) {
-        switch (query) {
-            case FLT:
-            case MLT:
-            case MATCH:
-            case MATCH_ALL:
-            case MATCH_PHRASE:
-            case MATCH_PHRASE_PREFIX:
-                return true;
-            default:
-                return false;
-        }
-    }
 
     protected Query analyzeOneCommand(final String refCommand, final JsonNode command)
         throws InvalidParseOperationException,

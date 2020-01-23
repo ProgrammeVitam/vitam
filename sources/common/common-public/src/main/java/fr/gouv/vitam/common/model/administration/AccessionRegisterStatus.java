@@ -50,7 +50,7 @@ public enum AccessionRegisterStatus {
 
     private final String value;
 
-    private AccessionRegisterStatus(String val) {
+    AccessionRegisterStatus(String val) {
         value = val;
     }
 

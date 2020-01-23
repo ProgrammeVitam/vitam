@@ -35,7 +35,6 @@ import fr.gouv.vitam.metadata.client.MetaDataClient;
 import fr.gouv.vitam.metadata.client.MetaDataClientFactory;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
-import fr.gouv.vitam.storage.engine.client.StorageClient;
 import fr.gouv.vitam.worker.common.HandlerIO;
 import fr.gouv.vitam.worker.core.distribution.JsonLineModel;
 import fr.gouv.vitam.worker.core.plugin.audit.model.AuditObjectGroup;
@@ -77,9 +76,6 @@ public class AuditPreparePluginTest {
 
     @Mock
     private MetaDataClient metaDataClient;
-
-    @Mock
-    private StorageClient storageClient;
 
     private AuditPreparePlugin auditPreparePlugin;
 

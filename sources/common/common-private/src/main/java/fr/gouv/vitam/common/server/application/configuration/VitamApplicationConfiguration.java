@@ -38,5 +38,4 @@ public interface VitamApplicationConfiguration extends VitamApplicationConfigura
     boolean isEnableSession();
 
     void setEnableSession(boolean enableSession);
-    // Empty
 }

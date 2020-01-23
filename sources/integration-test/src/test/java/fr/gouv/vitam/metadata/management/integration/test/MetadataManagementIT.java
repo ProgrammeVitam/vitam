@@ -731,7 +731,6 @@ public class MetadataManagementIT extends VitamRuleRunner {
     public void testReconstruction_unitgraph_then_gotgraph_then_unit_then_got_in_two_phase_query_OK() throws Exception {
         // Clean offerLog
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_0);
-        MetaDataClient metadataClient = MetaDataClientFactory.getInstance().getClient();
         // 0. prepare data
         String container = GUIDFactory.newGUID().getId();
         workspaceClient.createContainer(container);

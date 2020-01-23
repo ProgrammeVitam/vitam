@@ -96,8 +96,6 @@ public class MetadataResource extends ApplicationStatusResource {
     private static final String ACCESS = "ACCESS";
     private static final String CODE_VITAM = "code_vitam";
 
-    private static final String ACCESS_CONTRACT = "AccessContract";
-
     private final MetaDataImpl metaData;
     private final MetadataRuleService metadataRuleService;
 

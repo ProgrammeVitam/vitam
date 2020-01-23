@@ -118,7 +118,6 @@ public class FormatIdentificationActionPluginTest {
 
     public FormatIdentificationActionPluginTest() throws FileNotFoundException, InvalidParseOperationException {
         objectGroup = PropertiesUtils.getResourceAsStream(OBJECT_GROUP);
-        InputStream objectGroup2 = PropertiesUtils.getResourceAsStream(OBJECT_GROUP_2);
         objectGroup3 = PropertiesUtils.getResourceAsStream(OBJECT_GROUP_3);
 
         og = JsonHandler.getFromInputStream(objectGroup);

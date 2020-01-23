@@ -66,6 +66,6 @@ public interface ClientConfiguration {
      *
      * @return secure = false : HTTP, secure = true : HTTPS
      */
-    public boolean isSecure();
+    boolean isSecure();
 
 }

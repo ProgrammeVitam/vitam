@@ -29,15 +29,6 @@ package fr.gouv.vitam.common.external.client;
 import fr.gouv.vitam.common.client.MockOrRestClient;
 import fr.gouv.vitam.common.exception.VitamApplicationServerException;
 
-import java.lang.annotation.Annotation;
-import java.net.URI;
-import java.util.Date;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
-import java.util.Map.Entry;
-import java.util.Set;
-
 import javax.ws.rs.core.EntityTag;
 import javax.ws.rs.core.GenericType;
 import javax.ws.rs.core.Link;
@@ -47,12 +38,19 @@ import javax.ws.rs.core.MultivaluedHashMap;
 import javax.ws.rs.core.MultivaluedMap;
 import javax.ws.rs.core.NewCookie;
 import javax.ws.rs.core.Response;
+import java.lang.annotation.Annotation;
+import java.net.URI;
+import java.util.Date;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Set;
 
 /**
  * Abstract Mock common client
  */
 public class AbstractMockClient implements MockOrRestClient {
-    protected static final String INTERNAL_SERVER_ERROR = "Internal Server Error";
 
     @Override
     public void checkStatus() {

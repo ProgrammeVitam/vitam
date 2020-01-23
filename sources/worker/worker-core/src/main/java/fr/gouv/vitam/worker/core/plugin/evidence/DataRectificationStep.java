@@ -55,7 +55,6 @@ import java.util.Optional;
  * DataRectificationStep class
  */
 public class DataRectificationStep extends ActionHandler {
-    public static final String ZIP = "zip";
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(DataRectificationStep.class);
     private static final String CORRECTIVE_AUDIT = "CORRECTIVE_AUDIT";
     private static final String CORRECT = "correct" + File.separator;

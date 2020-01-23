@@ -27,9 +27,12 @@
 
 package fr.gouv.vitam.storage.engine.server.spi;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.fail;
+import fr.gouv.vitam.storage.driver.Driver;
+import fr.gouv.vitam.storage.engine.common.exception.StorageDriverMapperException;
+import fr.gouv.vitam.storage.engine.common.exception.StorageDriverNotFoundException;
+import fr.gouv.vitam.storage.engine.server.spi.mapper.DriverMapper;
+import org.junit.After;
+import org.junit.Test;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -38,13 +41,9 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-import org.junit.After;
-import org.junit.Test;
-
-import fr.gouv.vitam.storage.driver.Driver;
-import fr.gouv.vitam.storage.engine.common.exception.StorageDriverMapperException;
-import fr.gouv.vitam.storage.engine.common.exception.StorageDriverNotFoundException;
-import fr.gouv.vitam.storage.engine.server.spi.mapper.DriverMapper;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.fail;
 
 /**
  * WARNING:
@@ -66,9 +65,7 @@ public class DriverManagerTest {
     private static final String MON_MODULE_DRIVER_MON_DRIVER = "fr.gouv.vitam.driver.fake.FakeDriverImpl";
     private static final String THE_DRIVER_THE_DRIVER = "the.driver.TheDriver";
     private static final String OFFER_1 = "DriverManagerTestoffer1";
-    private static final String OFFER_2 = "DriverManagerTestoffer2";
     private static final String OFFER_3 = "DriverManagerTestoffer3";
-    private static final String OFFER_4 = "DriverManagerTestoffer4";
 
     @After
     public void removePersistFiles() throws IOException {

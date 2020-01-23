@@ -27,11 +27,7 @@
 package fr.gouv.vitam.functional.administration.common.server;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.mongodb.BasicDBObject;
-import com.mongodb.client.model.IndexOptions;
 import fr.gouv.vitam.common.database.server.mongodb.VitamDocument;
-import fr.gouv.vitam.common.model.administration.RegisterValueDetailModel;
 import org.bson.Document;
 
 import java.io.Serializable;
@@ -69,10 +65,6 @@ public class AccessionRegisterSymbolic extends VitamDocument<AccessionRegisterSy
      * the creationDate field of accession register
      */
     public static final String CREATION_DATE = "CreationDate";
-
-    private static final BasicDBObject[] indexes = {
-        new BasicDBObject(ORIGINATING_AGENCY, 1)
-    };
 
     /**
      * Empty Constructor

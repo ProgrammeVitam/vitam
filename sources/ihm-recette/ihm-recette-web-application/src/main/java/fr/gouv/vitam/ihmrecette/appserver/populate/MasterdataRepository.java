@@ -225,7 +225,7 @@ public class MasterdataRepository {
         }
         List<Document> agencies = new ArrayList<>();
         agencies.add(agency);
-        indexDocuments(agencies, VitamDataType.AGENCIES, tenantId);
+        indexDocuments(agencies, VitamDataType.AGENCIES);
 
     }
 
@@ -245,7 +245,7 @@ public class MasterdataRepository {
         }
         List<Document> accessionRegisterSummaries = new ArrayList<>();
         accessionRegisterSummaries.add(accessionRegisterSummary);
-        indexDocuments(accessionRegisterSummaries, VitamDataType.ACCESSION_REGISTER_SUMMARY, tenantId);
+        indexDocuments(accessionRegisterSummaries, VitamDataType.ACCESSION_REGISTER_SUMMARY);
     }
 
     /**
@@ -269,7 +269,7 @@ public class MasterdataRepository {
         }
         List<Document> rules = new ArrayList<>();
         rules.add(rule);
-        indexDocuments(rules, VitamDataType.RULES, tenantId);
+        indexDocuments(rules, VitamDataType.RULES);
     }
 
     /**
@@ -288,7 +288,7 @@ public class MasterdataRepository {
         this.getCollection(VitamDataType.ACCESS_CONTRACT).insertOne(rule);
         List<Document> rules = new ArrayList<>();
         rules.add(rule);
-        indexDocuments(rules, VitamDataType.ACCESS_CONTRACT, tenantId);
+        indexDocuments(rules, VitamDataType.ACCESS_CONTRACT);
     }
 
     /**
@@ -296,9 +296,8 @@ public class MasterdataRepository {
      *
      * @param documents     to index
      * @param vitamDataType of the documents
-     * @param tenant        related tenant
      */
-    private void indexDocuments(List<Document> documents, VitamDataType vitamDataType, int tenant) {
+    private void indexDocuments(List<Document> documents, VitamDataType vitamDataType) {
         BulkRequestBuilder bulkRequestBuilder = transportClient.prepareBulk();
 
         documents.forEach(document -> {

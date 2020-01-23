@@ -74,10 +74,8 @@ import fr.gouv.vitam.common.exception.DatabaseException;
 import fr.gouv.vitam.common.exception.InternalServerException;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamClientException;
-import fr.gouv.vitam.common.exception.VitamRuntimeException;
 import fr.gouv.vitam.common.guid.GUID;
 import fr.gouv.vitam.common.guid.GUIDFactory;
-import fr.gouv.vitam.common.i18n.VitamLogbookMessages;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.SysErrLogger;
 import fr.gouv.vitam.common.logging.VitamLogger;
@@ -111,9 +109,6 @@ import fr.gouv.vitam.ingest.internal.client.IngestInternalClient;
 import fr.gouv.vitam.ingest.internal.client.IngestInternalClientFactory;
 import fr.gouv.vitam.ingest.internal.common.exception.IngestInternalClientServerException;
 import fr.gouv.vitam.ingest.internal.upload.rest.IngestInternalMain;
-import fr.gouv.vitam.logbook.common.exception.LogbookClientAlreadyExistsException;
-import fr.gouv.vitam.logbook.common.exception.LogbookClientBadRequestException;
-import fr.gouv.vitam.logbook.common.exception.LogbookClientServerException;
 import fr.gouv.vitam.logbook.common.parameters.LogbookOperationParameters;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParameterName;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParameters;
@@ -1138,26 +1133,6 @@ public class IngestInternalIT extends VitamRuleRunner {
         }
     }
 
-    private void createOperation(GUID guid, LogbookOperationsClientFactory logbookOperationsClientFactory)
-        throws LogbookClientBadRequestException {
-
-        try (LogbookOperationsClient client = logbookOperationsClientFactory.getClient()) {
-
-            final LogbookOperationParameters initParameter =
-                LogbookParametersFactory.newLogbookOperationParameters(
-                    guid,
-                    "DATA_MIGRATION",
-                    guid,
-                    LogbookTypeProcess.DATA_MIGRATION,
-                    StatusCode.STARTED,
-                    VitamLogbookMessages.getLabelOp("DATA_MIGRATION.STARTED") + " : " + guid,
-                    guid);
-            client.create(initParameter);
-        } catch (LogbookClientAlreadyExistsException | LogbookClientServerException e) {
-            throw new VitamRuntimeException("Internal server error ", e);
-        }
-    }
-
     @RunWithCustomExecutor
     @Test
     public void testIngestInternal2182CA1() throws Exception {
@@ -1326,7 +1301,6 @@ public class IngestInternalIT extends VitamRuleRunner {
         final GUID operationGuid = GUIDFactory.newOperationLogbookGUID(tenantId);
         VitamThreadUtils.getVitamSession().setRequestId(operationGuid);
         // TODO: 6/6/17 why objectGuid ? The test fail on the logbook
-        final GUID objectGuid = GUIDFactory.newManifestGUID(0);
         // workspace client unzip SIP in workspace
         final InputStream zipInputStreamSipObject =
             PropertiesUtils.getResourceAsStream(SIP_NB_OBJ_INCORRECT_IN_MANIFEST);
@@ -2729,7 +2703,6 @@ public class IngestInternalIT extends VitamRuleRunner {
         JsonNode logbookOperation =
             accessClient.selectOperationById(operationGuid.getId(), new SelectMultiQuery().getFinalSelect())
                 .toJsonNode();
-        boolean checkServiceLevel = false;
         final JsonNode element = logbookOperation.get("$results").get(0);
 
         assertEquals(element.get("obIdIn").asText(), "vitam");
@@ -2742,7 +2715,6 @@ public class IngestInternalIT extends VitamRuleRunner {
         final GUID operationGuid = GUIDFactory.newOperationLogbookGUID(tenantId);
         VitamThreadUtils.getVitamSession().setRequestId(operationGuid);
 
-        final GUID objectGuid = GUIDFactory.newManifestGUID(0);
         // workspace client unzip SIP in workspace
         final InputStream zipInputStreamSipObject =
             PropertiesUtils.getResourceAsStream(SIP_ALGO_INCORRECT_IN_MANIFEST);

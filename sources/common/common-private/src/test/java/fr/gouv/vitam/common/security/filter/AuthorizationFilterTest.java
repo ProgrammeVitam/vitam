@@ -65,7 +65,6 @@ public class AuthorizationFilterTest {
         httpServletResponse = mock(HttpServletResponse.class);
         filterChain = mock(FilterChain.class);
 
-        final VitamConfiguration vitamConfiguration = VitamConfiguration.getConfiguration();
         VitamConfiguration.setSecret("vitamsecret");
 
         headersMap = AuthorizationFilterHelper.getAuthorizationHeaders(HttpMethod.GET, "/containers/continerid");

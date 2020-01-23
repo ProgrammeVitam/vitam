@@ -26,17 +26,6 @@
  */
 package fr.gouv.vitam.metadata.management.integration.test;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatCode;
-
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.concurrent.TimeUnit;
-
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.google.common.collect.Sets;
@@ -45,9 +34,6 @@ import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.VitamRuleRunner;
 import fr.gouv.vitam.common.VitamServerRunner;
 import fr.gouv.vitam.common.client.VitamClientFactory;
-import fr.gouv.vitam.common.database.builder.query.QueryHelper;
-import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
-import fr.gouv.vitam.common.database.builder.request.single.Select;
 import fr.gouv.vitam.common.database.offset.OffsetRepository;
 import fr.gouv.vitam.common.database.server.mongodb.MongoDbAccess;
 import fr.gouv.vitam.common.database.server.mongodb.SimpleMongoDBAccess;
@@ -101,6 +87,17 @@ import retrofit2.http.Body;
 import retrofit2.http.Header;
 import retrofit2.http.Headers;
 import retrofit2.http.POST;
+
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.TimeUnit;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatCode;
 
 /**
  * Integration tests for the reconstruction services. <br/>
@@ -370,25 +367,6 @@ public class BackupAndReconstructionLogbookIT extends VitamRuleRunner {
 
         VitamConfiguration.setEnvironmentName("");
     }
-
-    private JsonNode getQueryDslOperationId(String operationId) throws InvalidCreateOperationException {
-        Select select = new Select();
-        select.setQuery(QueryHelper.eq("OperationIds", operationId));
-        return select.getFinalSelect();
-    }
-
-    private JsonNode getQueryDsOriginatinAgencylId(String originatingAgency) throws InvalidCreateOperationException {
-        Select selectQuery = new Select();
-        selectQuery.setQuery(QueryHelper.eq("OriginatingAgency", originatingAgency));
-        return selectQuery.getFinalSelect();
-    }
-
-    private JsonNode getQueryDslId(String operationId) throws InvalidCreateOperationException {
-        Select select = new Select();
-        select.setQuery(QueryHelper.eq("evIdProc", operationId));
-        return select.getFinalSelect();
-    }
-
 
     private LogbookOperationParameters getParamatersStart(String eip) throws InvalidGuidOperationException {
         return LogbookParametersFactory
