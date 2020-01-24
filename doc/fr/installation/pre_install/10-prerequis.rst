@@ -51,9 +51,9 @@ Seules deux distributions Linux suivantes sont supportées à ce jour :
 * CentOS 7
 * Debian 9 (stretch)
 
-SELinux doit être configuré en mode ``permissive`` ou ``disabled``.
+SELinux doit être configuré en mode ``permissive`` ou ``disabled``. Toutefois depuis la release R13, la solution logicielle :term:`VITAM` prend désormais en charge l'activation de SELinux sur le périmètre du composant worker et des processus associés aux *griffins* (greffons de préservation). 
 
-.. note:: En cas de changement de mode SELinux, redémarrer les machines pour la bonne prise en compte de la modification avant de lancer le déploiement.
+.. note:: En cas de changement de mode SELinux, redémarrer les machines pour la bonne prise en compte de la modification avant de lancer le déploiement. 
 
 .. Sujets à adresser : préciser la version minimale ; donner une matrice de compatibilité -> post-V1
 

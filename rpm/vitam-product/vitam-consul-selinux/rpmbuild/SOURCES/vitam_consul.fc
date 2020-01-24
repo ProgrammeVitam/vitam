@@ -1,0 +1,6 @@
+/vitam/bin/consul(/.*)? gen_context(system_u:object_r:vitam_consul_conf_t,s0)
+/vitam/bin/consul/consul -- gen_context(system_u:object_r:vitam_consul_exec_t,s0)
+/vitam/conf/consul(/.*)? gen_context(system_u:object_r:vitam_consul_conf_t,s0)
+/vitam/data/consul(/.*)? gen_context(system_u:object_r:vitam_consul_data_t,s0)
+/vitam/tmp/consul(/.*)? gen_context(system_u:object_r:vitam_consul_data_t,s0)
+/usr/lib/systemd/system/vitam-consul.service -- gen_context(system_u:object_r:vitam_consul_unit_file_t,s0)

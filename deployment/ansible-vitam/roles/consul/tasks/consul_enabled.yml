@@ -16,6 +16,20 @@
   notify:
     - restart consul
 
+- name: Install Consul-selinux package
+  package:
+    name: "{{ consul_service }}-selinux"
+    state: latest
+  register: result
+  retries: "{{ packages_install_retries_number }}"
+  until: result is succeeded
+  delay: "{{ packages_install_retries_delay }}"
+  notify:
+    - restart consul
+  when:
+    - selinux_state | lower in ["enforcing", "permissive"]
+    - selinux_policy | lower == "targeted" # We don"t handle mls mode for now
+
 - name: Enable consul service
   service:
     name: "{{ consul_service }}"
@@ -53,7 +67,7 @@
   with_items:
     - "consul.json"
   notify:
-      - reload consul
+      - restart consul
 
 # Ensure that the installation is complete and consul up before setting up the system-wide dns resolver...
 - meta: flush_handlers
@@ -131,5 +145,5 @@
 - name: Wait for consul port to be open
   wait_for:
     host: "127.0.0.1"
-    port: "{{ consul.dns_port }}"
+    port: "53"
     state: "started"

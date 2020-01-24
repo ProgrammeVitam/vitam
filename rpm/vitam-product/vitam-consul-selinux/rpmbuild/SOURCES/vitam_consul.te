@@ -1,0 +1,87 @@
+policy_module(vitam_consul, 1.0.0)
+
+require {
+	type net_conf_t;
+	type kernel_t;
+	type unreserved_port_t;
+	type vitam_worker_port_t;
+	type vitam_consul_port_t;
+	type node_t;
+	type dns_port_t;
+	type bin_t;
+	type passwd_file_t;
+	type devlog_t;
+	type proc_t;
+	type tmp_t;
+	type sysctl_net_t;
+	type vitam_consul_conf_t;
+	type vitam_consul_data_t;
+	class process setpgid;
+	class capability net_bind_service;
+	class tcp_socket { accept read sendto bind connect create getattr getopt listen name_bind name_connect node_bind setopt };
+	class file { append create execute execute_no_trans getattr lock open read unlink write };
+	class sock_file write;
+	class netlink_route_socket { bind create getattr nlmsg_read };
+	class unix_dgram_socket { connect create getattr sendto setopt };
+	class udp_socket { bind read sendto connect create getattr name_bind node_bind setopt };
+	class dir { add_name getattr open read create remove_name search write };
+}
+
+########################################
+#
+# Declarations
+#
+
+type vitam_consul_t;
+type vitam_consul_exec_t;
+init_daemon_domain(vitam_consul_t, vitam_consul_exec_t)
+
+type vitam_consul_conf_t;
+files_config_file(vitam_consul_conf_t)
+
+type vitam_consul_data_t;
+files_type(vitam_consul_data_t)
+
+type vitam_consul_unit_file_t;
+systemd_unit_file(vitam_consul_unit_file_t)
+
+########################################
+#
+# consul domain local policy
+#
+
+# Consul use getconf, getent, and possibly other binaries (to check services state with shell commands)
+allow vitam_consul_t bin_t:file { execute execute_no_trans };
+# Allow writes to syslog
+allow vitam_consul_t devlog_t:sock_file write;
+
+
+# Network
+allow vitam_consul_t dns_port_t:tcp_socket { name_bind name_connect };
+allow vitam_consul_t dns_port_t:udp_socket { name_bind connect };
+allow vitam_consul_t node_t:tcp_socket node_bind; # quesako ???
+allow vitam_consul_t node_t:udp_socket node_bind; # quesako ???
+allow vitam_consul_t self:capability net_bind_service; # Allow low ports binding (< 1024)
+allow vitam_consul_t self:netlink_route_socket { bind create getattr read write nlmsg_read nlmsg_write };
+allow vitam_consul_t self:tcp_socket { accept bind connect create getattr getopt listen setopt write read };
+allow vitam_consul_t self:udp_socket { bind connect create getattr setopt write read };
+allow vitam_consul_t self:unix_dgram_socket { connect create getattr setopt write };
+allow vitam_consul_t kernel_t:unix_dgram_socket { sendto };
+allow vitam_consul_t vitam_consul_port_t:tcp_socket { name_bind name_connect read connect sendto };
+allow vitam_consul_t vitam_consul_port_t:udp_socket { name_bind read connect sendto };
+allow vitam_consul_t vitam_worker_port_t:tcp_socket { name_connect };
+# A terme ne devrait plus être utile (autoriser les ports worker, workspace, etc...)
+allow vitam_consul_t unreserved_port_t:tcp_socket name_connect; 
+
+# Files
+allow vitam_consul_t tmp_t:dir { write create add_name };
+allow vitam_consul_t net_conf_t:file { getattr open read };
+allow vitam_consul_t passwd_file_t:file { open read };
+allow vitam_consul_t proc_t:file { open read };
+allow vitam_consul_t self:process setpgid;
+allow vitam_consul_t sysctl_net_t:dir search;
+allow vitam_consul_t sysctl_net_t:file { open read };
+allow vitam_consul_t vitam_consul_conf_t:dir { getattr open read search };
+allow vitam_consul_t vitam_consul_conf_t:file { getattr open read };
+allow vitam_consul_t vitam_consul_data_t:dir { add_name getattr open read search remove_name write create };
+allow vitam_consul_t vitam_consul_data_t:file { append create getattr lock open read unlink write }; 

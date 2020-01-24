@@ -1,0 +1,12 @@
+
+{{ vitam_defaults.folder.root_path }}/script/{{ vitam_struct.vitam_component }}/{{ vitam_struct.vitam_component }}.sh -- gen_context(vitam_u:object_r:vitam_{{ vitam_struct.vitam_component }}_exec_t,s0)
+{{ vitam_defaults.folder.root_path }}/app/{{ vitam_struct.vitam_component }}(/.*)? -- gen_context(vitam_u:object_r:vitam_{{ vitam_struct.vitam_component }}_app_t,s0)
+{{ vitam_defaults.folder.root_path }}/bin/{{ vitam_struct.vitam_component }}(/.*)? -- gen_context(vitam_u:object_r:vitam_{{ vitam_struct.vitam_component }}_bin_t,s0)
+{{ vitam_defaults.folder.root_path }}/conf/{{ vitam_struct.vitam_component }}(/.*)? -- gen_context(vitam_u:object_r:vitam_{{ vitam_struct.vitam_component }}_conf_t,s0)
+{{ vitam_defaults.folder.root_path }}/data/{{ vitam_struct.vitam_component }}(/.*)? -- gen_context(vitam_u:object_r:vitam_{{ vitam_struct.vitam_component }}_data_t,s0)
+{{ vitam_defaults.folder.root_path }}/lib/{{ vitam_struct.vitam_component }}(/.*)? -- gen_context(vitam_u:object_r:vitam_{{ vitam_struct.vitam_component }}_lib_t,s0)
+{{ vitam_defaults.folder.root_path }}/log/{{ vitam_struct.vitam_component }}(/.*)? -- gen_context(vitam_u:object_r:vitam_{{ vitam_struct.vitam_component }}_log_t,s0)
+{{ vitam_defaults.folder.root_path }}/script/{{ vitam_struct.vitam_component }}(/.*)? -- gen_context(vitam_u:object_r:vitam_{{ vitam_struct.vitam_component }}_script_t,s0)
+{{ vitam_defaults.folder.root_path }}/tmp/{{ vitam_struct.vitam_component }}(/.*)? -- gen_context(vitam_u:object_r:vitam_{{ vitam_struct.vitam_component }}_tmp_t,s0)
+{{ vitam_defaults.folder.root_path }}/run/{{ vitam_struct.vitam_component }}(/.*)? -- gen_context(vitam_u:object_r:vitam_{{ vitam_struct.vitam_component }}_run_t,s0)
+/usr/lib/systemd/system/vitam-{{ vitam_struct.vitam_component }}.service -- gen_context(vitam_u:object_r:vitam_{{ vitam_struct.vitam_component }}_unit_file_t,s0)

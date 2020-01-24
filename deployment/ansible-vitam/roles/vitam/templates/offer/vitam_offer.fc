@@ -1,0 +1,11 @@
+
+/vitam/script/offer/offer.sh -- gen_context(vitam_u:object_r:vitam_offer_exec_t,s0)
+/vitam/app/offer(/.*)? -- gen_context(vitam_u:object_r:vitam_offer_app_t,s0)
+/vitam/bin/offer(/.*)? -- gen_context(vitam_u:object_r:vitam_offer_bin_t,s0)
+/vitam/conf/offer(/.*)? -- gen_context(vitam_u:object_r:vitam_offer_conf_t,s0)
+/vitam/data/offer(/.*)? -- gen_context(vitam_u:object_r:vitam_offer_data_t,s0)
+/vitam/lib/offer(/.*)? -- gen_context(vitam_u:object_r:vitam_offer_lib_t,s0)
+/vitam/log/offer(/.*)? -- gen_context(vitam_u:object_r:vitam_offer_log_t,s0)
+/vitam/script/offer(/.*)? -- gen_context(vitam_u:object_r:vitam_offer_script_t,s0)
+/vitam/tmp/offer(/.*)? -- gen_context(vitam_u:object_r:vitam_offer_tmp_t,s0)
+/vitam/run/offer(/.*)? -- gen_context(vitam_u:object_r:vitam_offer_run_t,s0)

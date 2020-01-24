@@ -1,0 +1,29 @@
+policy_module(vitam_siegfried, 1.0.0)
+
+require {
+    type vitam_siegfried_port_t;
+}
+
+########################################
+#
+# Declarations
+#
+
+type vitam_siegfried_t;
+type vitam_siegfried_exec_t;
+init_daemon_domain(vitam_siegfried_t, vitam_siegfried_exec_t)
+
+type vitam_siegfried_conf_t;
+files_config_file(vitam_siegfried_conf_t)
+
+type vitam_siegfried_data_t;
+files_type(vitam_siegfried_data_t)
+
+type vitam_siegfried_unit_file_t;
+systemd_unit_file(vitam_siegfried_unit_file_t)
+
+########################################
+#
+# consul domain local policy
+#
+

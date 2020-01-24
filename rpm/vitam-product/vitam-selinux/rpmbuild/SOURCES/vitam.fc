@@ -1,0 +1,8 @@
+/vitam/script/worker(/.*)? gen_context(system_u:object_r:vitam_worker_conf_t,s0)
+/vitam/script/worker/worker.sh -- gen_context(system_u:object_r:vitam_worker_exec_t,s0)
+/vitam/conf/worker(/.*)? gen_context(system_u:object_r:vitam_worker_conf_t,s0)
+/vitam/lib/worker(/.*)? gen_context(system_u:object_r:vitam_worker_conf_t,s0)
+/vitam/log/worker(/.*)? gen_context(system_u:object_r:vitam_worker_data_t,s0)
+/vitam/tmp/worker(/.*)? gen_context(system_u:object_r:vitam_worker_data_t,s0)
+/vitam/run/worker(/.*)? gen_context(system_u:object_r:vitam_worker_data_t,s0)
+/usr/lib/systemd/system/vitam-worker.service -- gen_context(system_u:object_r:vitam_worker_unit_file_t,s0)

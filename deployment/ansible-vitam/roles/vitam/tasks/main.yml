@@ -286,6 +286,8 @@
 
 - import_tasks: ihm_demo.yml
 
+- import_tasks: selinux_contexts.yml
+
 - name: flush_handlers
   meta: flush_handlers
 

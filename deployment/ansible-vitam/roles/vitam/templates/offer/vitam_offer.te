@@ -1,0 +1,109 @@
+policy_module(vitam_offer, 1.0.0)
+
+########################################
+#
+# Declarations
+#
+
+type vitam_offer_t;
+type vitam_offer_exec_t;
+init_daemon_domain(vitam_offer_t, vitam_offer_exec_t)
+
+attribute vitam_offer_domain;
+
+type vitam_offer_etc_t;
+files_config_file(vitam_offer_etc_t)
+
+type vitam_offer_cache_t;
+files_type(vitam_offer_cache_t)
+
+type vitam_offer_var_lib_t;
+files_type(vitam_offer_var_lib_t)
+
+type vitam_offer_var_run_t;
+files_pid_file(vitam_offer_var_run_t)
+
+type vitam_offer_tmp_t;
+files_tmp_file(vitam_offer_tmp_t)
+
+type vitam_offer_unit_file_t;
+systemd_unit_file(vitam_offer_unit_file_t)
+
+type vitam_offer_log_t;
+systemd_unit_file(vitam_offer_log_t)
+
+#######################################
+#
+# consul local policy
+#
+
+optional_policy('
+	unconfined_domain(vitam_offer_t)
+')
+
+########################################
+#
+# consul domain local policy
+#
+
+
+allow vitam_offer_t self:fifo_file rw_fifo_file_perms;
+allow vitam_offer_t self:unix_stream_socket create_stream_socket_perms;
+allow vitam_offer_t self:process signal_perms;
+allow vitam_offer_t self:tcp_socket create_socket_perms;
+allow vitam_offer_t self:udp_socket create_socket_perms;
+
+manage_dirs_pattern(vitam_offer_domain, vitam_offer_cache_t, vitam_offer_cache_t)
+manage_files_pattern(vitam_offer_domain, vitam_offer_cache_t, vitam_offer_cache_t)
+manage_lnk_files_pattern(vitam_offer_t, vitam_offer_cache_t, vitam_offer_cache_t)
+files_var_filetrans(vitam_offer_domain, vitam_offer_cache_t, { dir file })
+
+manage_dirs_pattern(vitam_offer_domain, vitam_offer_log_t, vitam_offer_log_t)
+manage_files_pattern(vitam_offer_domain, vitam_offer_log_t, vitam_offer_log_t)
+manage_lnk_files_pattern(vitam_offer_t, vitam_offer_log_t, vitam_offer_log_t)
+logging_log_filetrans(vitam_offer_domain, vitam_offer_log_t, { dir file })
+
+manage_dirs_pattern(vitam_offer_domain, vitam_offer_var_lib_t, vitam_offer_var_lib_t)
+manage_files_pattern(vitam_offer_domain, vitam_offer_var_lib_t, vitam_offer_var_lib_t)
+manage_lnk_files_pattern(vitam_offer_t, vitam_offer_var_lib_t, vitam_offer_var_lib_t)
+files_var_lib_filetrans(vitam_offer_domain, vitam_offer_var_lib_t, { dir file })
+
+manage_dirs_pattern(vitam_offer_domain, vitam_offer_var_run_t, vitam_offer_var_run_t)
+manage_files_pattern(vitam_offer_domain, vitam_offer_var_run_t, vitam_offer_var_run_t)
+manage_lnk_files_pattern(vitam_offer_t, vitam_offer_var_run_t, vitam_offer_var_run_t)
+files_pid_filetrans(vitam_offer_domain, vitam_offer_var_run_t, { dir file })
+
+manage_dirs_pattern(vitam_offer_t, vitam_offer_tmp_t, vitam_offer_tmp_t)
+manage_files_pattern(vitam_offer_t, vitam_offer_tmp_t, vitam_offer_tmp_t)
+manage_lnk_files_pattern(vitam_offer_t, vitam_offer_tmp_t,vitam_offer_tmp_t)
+files_tmp_filetrans(vitam_offer_t, vitam_offer_tmp_t, { file fifo_file dir })
+
+# Stay in consul domain if consul is called by a script
+can_exec(vitam_offer_domain, vitam_offer_exec_t)
+
+kernel_read_system_state(vitam_offer_t)
+kernel_read_network_state(vitam_offer_t)
+
+corecmd_exec_bin(vitam_offer_domain)
+corecmd_exec_shell(vitam_offer_domain)
+
+## Consul needs to bind to ports 8301 8302 8300 8400 8500 8600, all labeled unreserved_port_t
+corenet_tcp_bind_all_unreserved_ports(vitam_offer_domain)
+corenet_udp_bind_all_unreserved_ports(vitam_offer_domain)
+
+## Including read random and read urandom since Consul features TLS encryption.  Maybe we'll need those devices.
+dev_read_rand(vitam_offer_domain)
+dev_read_urand(vitam_offer_domain)
+dev_read_sysfs(vitam_offer_domain)
+
+domain_use_interactive_fds(vitam_offer_domain)
+
+fs_getattr_all_fs(vitam_offer_domain)
+fs_read_hugetlbfs_files(vitam_offer_domain)
+
+files_read_etc_files(vitam_offer_domain)
+files_read_usr_files(vitam_offer_domain)
+
+miscfiles_read_localization(vitam_offer_domain)
+
+sysnet_dns_name_resolve(vitam_offer_domain)
