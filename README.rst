@@ -241,7 +241,7 @@ Procédure
 * Une fois le shell ouvert dans le conteneur, les commandes suivantes sont à passer :
 
    mvn clean package rpm:attached-rpm jdeb:jdeb  -f sources/pom.xml -P-vitam -DskipTests  ('adapter au besoin ; rpm pour Redhat ; deb pour Debian)
-* Pour redhat,ensuite :
+* Pour redhat, ensuite :
 
    cd /code;cd rpm/vitam-external;./build_repo.sh
 
