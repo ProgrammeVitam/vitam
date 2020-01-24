@@ -224,13 +224,13 @@ Cette méthode permet de construire et déployer un système VITAM de manière p
 
 Pré-requis
 **********
-
-* Docker 1.12 minimum avec driver "devicemapper" (en overlay, des comportements non-attendus ont été observés)
-* OS récent (des problèmes ont été rencontrés avec Ubuntu 12.04)
-* Répertoire contenant un clone du dépôt git vitam/vitam
-* Utilisateur autre que root, soit appartenant au group  docker, soit ayant des capacités de sudo
-* Le répertoire ${HOME}/.m2 existe et accessible en écriture
-* Les ports "classiques" MongoDB (27017), Elasticsearch (9200, 9201), apache (80), SSL (8443) ne sont pas déjà attribués sur l'hôte
+* Pour *builder* la solution logicielle VITAM, il est nécessaire, au préalable, de *builder* elasticsearch-metrics-reporter-java (version 2.3.0-VITAM https://github.com/ProgrammeVitam/elasticsearch-metrics-reporter-java/tree/2.3.0-VITAM);
+* Docker 1.12 minimum avec driver "devicemapper" (en overlay, des comportements non-attendus ont été observés);
+* OS récent (des problèmes ont été rencontrés avec Ubuntu 12.04);
+* Répertoire contenant un clone du dépôt git vitam/vitam;
+* Utilisateur autre que root, soit appartenant au group  docker, soit ayant des capacités de sudo;
+* Le répertoire ${HOME}/.m2 sur la machine hôte existe et accessible en écriture ; il sera mappé dans le docker;
+* Les ports "classiques" MongoDB (27017), Elasticsearch (9200, 9201), apache (80), SSL (8443) ne sont pas déjà attribués sur l'hôte.
 
 Procédure
 *********
@@ -238,7 +238,13 @@ Procédure
 * Lancer le script : ``/vitam/dev-deployment/run.sh <environnement>`` , où <environnement> peut être rpm ou deb ;
 * Le script demande "Please enter the location of your vitam git repository" (par exemple : ``/$HOME/git/vitam``) ;
 * Le script construit (si besoin) le conteneur docker ``vitam/dev-rpm-base`` et le lance (détaché), puis ouvre un terminal à l'intérieur ;
-* Une fois le shell ouvert dans le conteneur, executer ``vitam-build-repo`` pour construire l'intégralité des packages (dans le dossier ``/code``) ;
+* Une fois le shell ouvert dans le conteneur, les commandes suivantes sont à passer :
+mvn clean package rpm:attached-rpm jdeb:jdeb  -f sources/pom.xml -P-vitam -DskipTests  ('adapter au besoin ; rpm pour Redhat ; deb pour Debian)
+* Pour redhat, ensuite :
+cd /code;cd rpm/vitam-external;./build_repo.sh
+cd /code;cd rpm/vitam-product;./build-all.sh
+* pour construire l'intégralité des packages (dans le dossier /code) ;
+* A l'issue, mettre à jour le "repository" associé en lançant la commande vitam-recreate-repo.
 * A l'issue de l'étape suivante, se positionner dans ``/code/deployment`` ;
 * Suivre les indications du ``README.rst`` présent dans ce répertoire, en utilisant l'inventaire ``hosts.local``. Les composants sont déployés dans le conteneur ; les ports d'écoute des composants sont mappés à l'extérieur du conteneur, sur les mêmes ports.
 
