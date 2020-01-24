@@ -1,0 +1,172 @@
+policy_module(vitam, 1.0.0)
+
+require {
+	type tmp_t;
+	type reserved_port_t;
+	type unreserved_port_t;
+	type net_conf_t;
+	type node_t;
+	type hostname_exec_t;
+	type sysfs_t;
+	type proc_t;
+	type default_t;
+	type initrc_tmp_t;
+	type cgroup_t;
+	type shell_exec_t;
+	type passwd_file_t;
+	type trivnet1_port_t;
+	type random_device_t;
+	type proc_net_t;
+	type cert_t;
+	type user_home_dir_t;
+	type init_t;	
+	type dns_port_t;
+#	type vitam_functional_administration_port_t;
+	type syslogd_port_t; 
+	class process { execmem fork };
+	class chr_file { getattr open read };
+	class tcp_socket { append relabelfrom create read sendto connect recvfrom send_msg bind lock ioctl getattr write setopt getopt listen setattr shutdown relabelto recv_msg accept name_bind };
+	class file { append create execute execute_no_trans getattr open read write unlink };
+	class netlink_route_socket { bind create getattr nlmsg_read setopt };
+	class lnk_file read;
+	class dir { read add_name getattr open read search write remove_name create };
+	class unix_stream_socket { create }; 
+	class fd { use };
+}
+
+########################################
+#
+# Declarations
+#
+
+# Worker
+
+type vitam_worker_t;
+type vitam_worker_exec_t;
+init_daemon_domain(vitam_worker_t, vitam_worker_exec_t)
+
+auth_use_nsswitch(vitam_worker_t)
+
+type vitam_worker_conf_t;
+files_config_file(vitam_worker_conf_t)
+
+type vitam_worker_data_t;
+files_type(vitam_worker_data_t)
+
+type vitam_worker_unit_file_t;
+systemd_unit_file(vitam_worker_unit_file_t)
+
+type vitam_worker_port_t;
+corenet_port(vitam_worker_port_t)
+
+# Ports from others vitam components
+
+type vitam_access_external_port_t;
+corenet_port(vitam_access_external_port_t)
+
+type vitam_access_internal_port_t;
+corenet_port(vitam_access_internal_port_t)
+
+type vitam_functional_administration_port_t;
+corenet_port(vitam_functional_administration_port_t)
+
+type vitam_elastic_kibana_interceptor_port_t;
+corenet_port(vitam_elastic_kibana_interceptor_port_t)
+
+type vitam_batch_report_port_t;
+corenet_port(vitam_batch_report_port_t)
+
+type vitam_ingest_external_port_t;
+corenet_port(vitam_ingest_external_port_t)
+
+type vitam_ingest_internal_port_t;
+corenet_port(vitam_ingest_internal_port_t)
+
+type vitam_ihm_demo_port_t;
+corenet_port(vitam_ihm_demo_port_t)
+
+type vitam_logbook_port_t;
+corenet_port(vitam_logbook_port_t)
+
+type vitam_metadata_port_t;
+corenet_port(vitam_metadata_port_t)
+
+type vitam_processing_port_t;
+corenet_port(vitam_processing_port_t)
+
+type vitam_security_internal_port_t;
+corenet_port(vitam_security_internal_port_t)
+
+type vitam_storage_port_t;
+corenet_port(vitam_storage_port_t)
+
+type vitam_offer_port_t;
+corenet_port(vitam_offer_port_t)
+
+type vitam_workspace_port_t;
+corenet_port(vitam_workspace_port_t)
+
+type vitam_siegfried_port_t;
+corenet_port(vitam_siegfried_port_t)
+
+type vitam_consul_port_t;
+corenet_port(vitam_consul_port_t)
+
+########################################
+#
+# consul domain local policy
+#
+
+#============= vitam_worker_t ==============
+
+# Autoriser execution java
+java_exec(vitam_worker_t)
+# Autoriser dns sur tcp
+corenet_tcp_sendrecv_dns_port(vitam_worker_t)
+# Autoriser dns sur udp
+corenet_udp_sendrecv_dns_port(vitam_worker_t)
+
+allow vitam_worker_t user_home_dir_t:dir search;
+allow vitam_worker_t cert_t:file { getattr open read };
+allow vitam_worker_t cert_t:dir search;
+allow vitam_worker_t cert_t:lnk_file read;
+allow vitam_worker_t cgroup_t:dir search;
+allow vitam_worker_t cgroup_t:file { getattr open read };
+allow vitam_worker_t hostname_exec_t:file { execute execute_no_trans open read };
+allow vitam_worker_t initrc_tmp_t:dir { getattr search open create read write add_name remove_name rmdir };
+allow vitam_worker_t initrc_tmp_t:file { create unlink };
+allow vitam_worker_t net_conf_t:file { getattr open read };
+allow vitam_worker_t node_t:tcp_socket { node_bind name_bind };
+allow vitam_worker_t node_t:udp_socket { node_bind name_bind };
+allow vitam_worker_t passwd_file_t:file { getattr open read };
+allow vitam_worker_t proc_net_t:file { getattr open read };
+allow vitam_worker_t proc_t:file { getattr open read };
+allow vitam_worker_t random_device_t:chr_file { getattr open read };
+allow vitam_worker_t default_t:dir { getattr search open create read write add_name remove_name rmdir };
+allow vitam_worker_t tmp_t:dir { getattr search open create read write add_name remove_name rmdir };
+allow vitam_worker_t tmp_t:file { create read write unlink };
+allow vitam_worker_t self:netlink_route_socket { bind create getattr read nlmsg_read setopt };
+allow vitam_worker_t self:process { execmem fork };
+allow vitam_worker_t self:tcp_socket { accept bind name_bind name_connect connect create getattr getopt listen setopt shutdown };
+allow vitam_worker_t self:unix_stream_socket { create };
+allow vitam_worker_t init_t:fd use;
+allow vitam_worker_t shell_exec_t:file { execute execute_no_trans };
+allow vitam_worker_t sysfs_t:dir { getattr search open create read write add_name remove_name };
+allow vitam_worker_t trivnet1_port_t:tcp_socket name_connect;
+allow vitam_worker_t vitam_worker_conf_t:dir { getattr search open create read write add_name remove_name rmdir };
+allow vitam_worker_t vitam_worker_conf_t:file { getattr open read };
+allow vitam_worker_t vitam_worker_data_t:dir { getattr search open create read write add_name remove_name rmdir };
+allow vitam_worker_t vitam_worker_data_t:file { append create getattr open write read unlink };
+allow vitam_worker_t vitam_worker_port_t:tcp_socket { name_bind create name_connect read write sendto };
+allow vitam_worker_t vitam_logbook_port_t:tcp_socket { name_connect create read write };
+allow vitam_worker_t vitam_workspace_port_t:tcp_socket { name_connect create read write };
+allow vitam_worker_t vitam_siegfried_port_t:tcp_socket { name_connect create read write };
+allow vitam_worker_t vitam_consul_port_t:tcp_socket { name_connect create read write };
+allow vitam_worker_t vitam_metadata_port_t:tcp_socket { name_connect create read write };
+allow vitam_worker_t vitam_processing_port_t:tcp_socket { name_connect create read write };
+allow vitam_worker_t vitam_storage_port_t:tcp_socket { name_connect create read write };
+allow vitam_worker_t vitam_batch_report_port_t:tcp_socket { name_connect create read write };
+allow vitam_worker_t vitam_functional_administration_port_t:tcp_socket { name_connect create read write };
+allow vitam_worker_t unreserved_port_t:tcp_socket { name_connect create read write };
+allow vitam_worker_t reserved_port_t:tcp_socket { name_connect create read write };
+allow vitam_worker_t dns_port_t:tcp_socket { name_connect create read write };

@@ -21,6 +21,12 @@
       notify:
        - reload consul configuration
 
+    - name: "Set correct SELinux file context for {{ consul_folder_conf }}/service-{{ vitam_struct.vitam_component }}.json"
+      shell: "restorecon {{ consul_folder_conf }}/service-{{ vitam_struct.vitam_component }}.json"
+      when:
+        - selinux_state | lower in ["enforcing", "permissive"]
+        - selinux_policy | lower == "targeted" # We don"t handle mls mode for now
+
     - name: Ensure consul service is started
       service:
         name: "vitam-consul"
@@ -29,7 +35,7 @@
     - name: Check if consul is listening
       wait_for:
         host: "127.0.0.1"
-        port: "{{ consul.dns_port }}"
+        port: "53"
         state: started
 
   when:  consul_disabled is not defined or consul_disabled |lower != "true"

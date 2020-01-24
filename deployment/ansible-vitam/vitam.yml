@@ -37,12 +37,7 @@
   any_errors_fatal: true
   roles:
     - normalize-host
-
-### syslog daemon install
-- hosts: vitam
-  gather_facts: no
-  any_errors_fatal: true
-  roles:
+    - selinux_conf
     - syslogd
 
 ### CONSUL INSTALLATION ###

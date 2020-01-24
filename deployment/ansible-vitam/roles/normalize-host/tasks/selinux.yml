@@ -1,0 +1,11 @@
+---
+
+- name: Check selinux var
+  fail:
+    msg: "The selinux var is incorrect, allowed values are: ['enforcing', 'permissive', 'disabled']"
+  when: selinux_state | lower not in ["enforcing", "permissive", "disabled"]
+
+- name: Check selinux_policy var
+  fail:
+    msg: "The selinux_policy var is incorrect, allowed values are: ['targeted', 'minimum', 'mls']"
+  when: selinux_policy | lower not in ["targeted", "minimum", "mls"]

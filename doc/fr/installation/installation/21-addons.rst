@@ -419,5 +419,36 @@ Exemple::
                 tarPath: "/bin/tar"
                 timeoutInMilliseconds: 3600000
 
-.
 
+Sécurisation SELinux 
+====================
+
+Depuis la release R13, la solution logicielle :term:`VITAM` prend désormais en charge l'activation de SELinux sur le périmètre du composant worker et des processus associés aux *griffins* (greffons de préservation). 
+
+SELinux (Security-Enhanced Linux) permet de définir des politiques de contrôle d'accès à différents éléments du système d'exploitation en répondant essentiellement à la question "May <subject> do <action> to <object>", par exemple "May a web server access files in users' home directories". 
+
+Chaque processus est ainsi confiné à un (voire plusieurs) domaine(s), et les fichiers sont étiquetés en conséquence. Un processus ne peut ainsi accéder qu'aux fichiers étiquetés pour le domaine auquel il est confiné. 
+
+.. note:: La solution logicielle :term:`VITAM` ne gère actuellement que le mode *targeted* (« only *targeted* processes are protected ») 
+
+Les enjeux de la sécurisation SELinux dans le cadre de la solution logicielle :term:`VITAM` sont de garantir que les processus associés aux *griffins* (greffons de préservation) n'auront accès qu'au ressources système strictement requises pour leur fonctionnement et leurs échanges avec les composants *worker*. 
+
+.. note:: La solution logicielle :term:`VITAM` ne gère actuellement SELinux que pour le système d'exploitation Centos 
+
+.. warning:: SELinux n'a pas vocation à remplacer quelque système de sécurité existant, mais vise plutôt à les compléter. Aussi, la mise en place de politiques de sécurité reste de mise et à la charge de l'exploitant. Par ailleurs, l'implémentation SELinux proposée avec la solution logicielle :term:`VITAM` est minimale et limitée au greffon de préservation Siegfried. Cette implémentation pourra si nécessaire être complétée ou améliorée par le projet d'implémentation. 
+
+SELinux propose trois modes différents : 
+
+* *Enforcing* : dans ce mode, les accès sont restreints en fonction des règles SELinux en vigueur sur la machine ;
+* *Permissive* : ce mode est généralement à considérer comme un mode de déboguage. En mode permissif, les règles SELinux seront interrogées, les erreurs d'accès logguées, mais l'accès ne sera pas bloqué. 
+* *Disabled* : SELinux est désactivé. Rien ne sera restreint, rien ne sera loggué. 
+
+La mise en oeuvre de SELinux est prise en charge par le processus de déploiement et s'effectue de la sorte : 
+
+* Isoler dans l'inventaire de déploiement les composants worker sur des hosts dédiés (ne contenant aucun autre composant :term:`VITAM`) 
+* Positionner pour ces hosts un fichier *hostvars* sous ``environments/host_vars/`` contenant la déclaration suivante : 
+.. code-block:: yaml
+
+    selinux_state: "enforcing" 
+
+* Procéder à l'installation de la solution logicielle :term:`VITAM` grâce aux playbooks ansible fournis, et selon la procédure d’installation classique décrite dans le DIN 

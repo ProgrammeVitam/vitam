@@ -1,0 +1,35 @@
+---
+
+- block:
+
+  - name: "Set correct SELinux file context for {{ vitam_folder_app }}"
+    shell: "restorecon -R {{ vitam_folder_app }}"
+
+  - name: "Set correct SELinux file context for {{ vitam_folder_bin }}"
+    shell: "restorecon -R {{ vitam_folder_bin }}"
+
+  - name: "Set correct SELinux file context for {{ vitam_folder_conf }}"
+    shell: "restorecon -R {{ vitam_folder_conf }}"
+
+  # TODO: WARNING, try to do not play this command on offer, as it may contains a lot of files
+  - name: "Set correct SELinux file context for {{ vitam_folder_data }}"
+    shell: "restorecon -R {{ vitam_folder_data }}"
+
+  - name: "Set correct SELinux file context for {{ vitam_folder_lib }}"
+    shell: "restorecon -R {{ vitam_folder_lib }}"
+
+  - name: "Set correct SELinux file context for {{ vitam_folder_log }}"
+    shell: "restorecon -R {{ vitam_folder_log }}"
+
+  - name: "Set correct SELinux file context for {{ vitam_folder_scripts }}"
+    shell: "restorecon -R {{ vitam_folder_scripts }}"
+
+  - name: "Set correct SELinux file context for {{ vitam_folder_tmp }}"
+    shell: "restorecon -R {{ vitam_folder_tmp }}"
+
+  - name: "Set correct SELinux file context for {{ vitam_folder_run }}"
+    shell: "restorecon -R {{ vitam_folder_run }}"
+
+  when:
+    - selinux_state | lower in ["enforcing", "permissive"]
+    - selinux_policy | lower == "targeted" # We don"t handle mls mode for now

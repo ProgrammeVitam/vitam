@@ -29,3 +29,17 @@
   until: result is succeeded
   delay: "{{ packages_install_retries_delay }}"
   tags: griffins
+
+- name: Install selinux packages 
+  package:
+    name: "{{ item }}-selinux"
+    state: latest
+  register: result
+  retries: "{{ packages_install_retries_number }}"
+  until: result is succeeded
+  delay: "{{ packages_install_retries_delay }}"
+  tags: griffins
+  when:
+    - selinux_state | lower in ["enforcing", "permissive"]
+    - selinux_policy | lower == "targeted" # We don"t handle mls mode for now
+  loop: "{{ vitam_griffins }}"

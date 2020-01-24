@@ -1,0 +1,175 @@
+---
+
+- block:
+
+  - name: Install libselinux-python
+    package:
+      name: libselinux-python
+      state: present
+    register: result
+    retries: "{{ packages_install_retries_number }}"
+    until: result is succeeded
+    delay: "{{ packages_install_retries_delay }}"
+
+  - name: Enable SELinux
+    selinux:
+      policy: "{{ selinux_policy }}"
+      state: "{{ selinux_state }}"
+    register: result
+
+  - name: Relabel the filesystem if needed
+    file:
+      path: /.autorelabel
+      state: touch
+    when:
+      - selinux_relabel |bool
+      - result.reboot_required
+
+  - name: Reboot the server if needed
+    reboot:
+    when:
+      - result.reboot_required
+      - selinux_reboot
+
+  - name: Install vitam-selinux package
+    package:
+      name: vitam-selinux
+      state: latest
+    register: result
+    retries: "{{ packages_install_retries_number }}"
+    until: result is succeeded
+    delay: "{{ packages_install_retries_delay }}"
+
+  # For each vitam component, set the ports mapped to it's setype
+
+  - name: Set accessexternal ports
+    seport:
+      proto: tcp
+      setype: "vitam_{{ vitam.accessexternal.vitam_component | regex_replace('-','_') }}_port_t"
+      ports:
+        - "{{ vitam.accessexternal.port_service }}"
+        - "{{ vitam.accessexternal.port_admin }}"
+
+  - name: Set accessinternal ports
+    seport:
+      proto: tcp
+      setype: "vitam_{{ vitam.accessinternal.vitam_component | regex_replace('-','_') }}_port_t"
+      ports:
+        - "{{ vitam.accessinternal.port_service }}"
+        - "{{ vitam.accessinternal.port_admin }}"
+
+  - name: Set functional_administration ports
+    seport:
+      proto: tcp
+      setype: "vitam_{{ vitam.functional_administration.vitam_component | regex_replace('-','_') }}_port_t"
+      ports:
+        - "{{ vitam.functional_administration.port_service }}"
+        - "{{ vitam.functional_administration.port_admin }}"
+
+  - name: Set elastickibanainterceptor ports
+    seport:
+      proto: tcp
+      setype: "vitam_{{ vitam.elastickibanainterceptor.vitam_component | regex_replace('-','_') }}_port_t"
+      ports:
+        - "{{ vitam.elastickibanainterceptor.port_service }}"
+        - "{{ vitam.elastickibanainterceptor.port_admin }}"
+
+  - name: Set batchreport ports
+    seport:
+      proto: tcp
+      setype: "vitam_{{ vitam.batchreport.vitam_component | regex_replace('-','_') }}_port_t"
+      ports:
+        - "{{ vitam.batchreport.port_service }}"
+        - "{{ vitam.batchreport.port_admin }}"
+
+  - name: Set ingestexternal ports
+    seport:
+      proto: tcp
+      setype: "vitam_{{ vitam.ingestexternal.vitam_component | regex_replace('-','_') }}_port_t"
+      ports:
+        - "{{ vitam.ingestexternal.port_service }}"
+        - "{{ vitam.ingestexternal.port_admin }}"
+
+  - name: Set ingestinternal ports
+    seport:
+      proto: tcp
+      setype: "vitam_{{ vitam.ingestinternal.vitam_component | regex_replace('-','_') }}_port_t"
+      ports:
+        - "{{ vitam.ingestinternal.port_service }}"
+        - "{{ vitam.ingestinternal.port_admin }}"
+
+  - name: Set ihm_demo ports
+    seport:
+      proto: tcp
+      setype: "vitam_{{ vitam.ihm_demo.vitam_component | regex_replace('-','_') }}_port_t"
+      ports:
+        - "{{ vitam.ihm_demo.port_service }}"
+        - "{{ vitam.ihm_demo.port_admin }}"
+
+  - name: Set logbook ports
+    seport:
+      proto: tcp
+      setype: "vitam_{{ vitam.logbook.vitam_component | regex_replace('-','_') }}_port_t"
+      ports:
+        - "{{ vitam.logbook.port_service }}"
+        - "{{ vitam.logbook.port_admin }}"
+
+  - name: Set metadata ports
+    seport:
+      proto: tcp
+      setype: "vitam_{{ vitam.metadata.vitam_component | regex_replace('-','_') }}_port_t"
+      ports:
+        - "{{ vitam.metadata.port_service }}"
+        - "{{ vitam.metadata.port_admin }}"
+
+  - name: Set processing ports
+    seport:
+      proto: tcp
+      setype: "vitam_{{ vitam.processing.vitam_component | regex_replace('-','_') }}_port_t"
+      ports:
+        - "{{ vitam.processing.port_service }}"
+        - "{{ vitam.processing.port_admin }}"
+
+  - name: Set security_internal ports
+    seport:
+      proto: tcp
+      setype: "vitam_{{ vitam.security_internal.vitam_component | regex_replace('-','_') }}_port_t"
+      ports:
+        - "{{ vitam.security_internal.port_service }}"
+        - "{{ vitam.security_internal.port_admin }}"
+
+  - name: Set storageengine ports
+    seport:
+      proto: tcp
+      setype: "vitam_{{ vitam.storageengine.vitam_component | regex_replace('-','_') }}_port_t"
+      ports:
+        - "{{ vitam.storageengine.port_service }}"
+        - "{{ vitam.storageengine.port_admin }}"
+
+  - name: Set storageofferdefault ports
+    seport:
+      proto: tcp
+      setype: "vitam_{{ vitam.storageofferdefault.vitam_component | regex_replace('-','_') }}_port_t"
+      ports:
+        - "{{ vitam.storageofferdefault.port_service }}"
+        - "{{ vitam.storageofferdefault.port_admin }}"
+
+  - name: Set worker ports
+    seport:
+      proto: tcp
+      setype: "vitam_{{ vitam.worker.vitam_component | regex_replace('-','_') }}_port_t"
+      ports:
+        - "{{ vitam.worker.port_service }}"
+        - "{{ vitam.worker.port_admin }}"
+
+  - name: Set workspace ports
+    seport:
+      proto: tcp
+      setype: "vitam_{{ vitam.workspace.vitam_component | regex_replace('-','_') }}_port_t"
+      ports:
+        - "{{ vitam.workspace.port_service }}"
+        - "{{ vitam.workspace.port_admin }}"
+
+  when:
+    - selinux_state | lower in ["enforcing", "permissive"]
+    - selinux_policy | lower == "targeted" # We don"t handle mls mode for now

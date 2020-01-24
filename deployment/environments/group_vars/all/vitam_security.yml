@@ -16,3 +16,12 @@ admin_personal_certs: [ "userOK.crt" ]
 admin_security_profile: "admin-security-profile"
 
 admin_basic_auth_user: "adminUser"
+
+# SElinux state, can be: enforcing, permissive, disabled
+selinux_state: "disabled"
+# SELinux Policy, can be: targeted, minimum, mls
+selinux_policy: "targeted"
+# If needed, reboot the VM to enable SELinux
+selinux_reboot: True
+# Relabel the entire filesystem ?
+selinux_relabel: False

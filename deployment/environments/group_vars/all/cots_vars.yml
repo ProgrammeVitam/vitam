@@ -1,7 +1,6 @@
 ---
 
 consul:
-    dns_port: 53
     retry_interval: 10 # in seconds
     check_internal: 10 # in seconds
     check_timeout: 5 # in seconds

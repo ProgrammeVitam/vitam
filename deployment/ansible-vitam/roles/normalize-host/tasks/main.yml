@@ -1,13 +1,6 @@
 ---
 
-# Check SELinux with command line instead of using ansible facts since we may not have libselinux-python
-- name: Get selinux mode
-  shell: which getenforce > /dev/null 2>&1;if [ $? != 0 ]; then echo "Not installed"; else getenforce; fi
-  register: selinux
-
-- name: Check that selinux is not set to enforcing
-  fail: msg="selinux detected and looks like to be set to enforcing mode, please set selinux to permissive or disabled."
-  when: (selinux.stdout == "Enforcing" )
+- import_tasks: selinux.yml
 
 - name: check whether VITAM parent dir already exists
   stat:

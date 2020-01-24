@@ -1,0 +1,5 @@
+/vitam/bin/siegfried(/.*)? gen_context(system_u:object_r:vitam_siegfried_conf_t,s0)
+/vitam/bin/siegfried/siegfried -- gen_context(system_u:object_r:vitam_siegfried_exec_t,s0)
+/vitam/conf/siegfried(/.*)? gen_context(system_u:object_r:vitam_siegfried_conf_t,s0)
+/vitam/app/siegfried(/.*)? gen_context(system_u:object_r:vitam_siegfried_data_t,s0)
+/usr/lib/systemd/system/vitam-siegfried.service -- gen_context(system_u:object_r:vitam_siegfried_unit_file_t,s0)
