@@ -239,10 +239,10 @@ Procédure
 * Le script demande "Please enter the location of your vitam git repository" (par exemple : ``/$HOME/git/vitam``) ;
 * Le script construit (si besoin) le conteneur docker ``vitam/dev-rpm-base`` et le lance (détaché), puis ouvre un terminal à l'intérieur ;
 * Une fois le shell ouvert dans le conteneur, les commandes suivantes sont à passer :
-mvn clean package rpm:attached-rpm jdeb:jdeb  -f sources/pom.xml -P-vitam -DskipTests  ('adapter au besoin ; rpm pour Redhat ; deb pour Debian);
+mvn clean package rpm:attached-rpm jdeb:jdeb  -f sources/pom.xml -P-vitam -DskipTests  ('adapter au besoin ; rpm pour Redhat ; deb pour Debian) ;
 * Pour redhat, ensuite :
-cd /code;cd rpm/vitam-external;./build_repo.sh
-cd /code;cd rpm/vitam-product;./build-all.sh
+.. cd /code;cd rpm/vitam-external;./build_repo.sh
+.. cd /code;cd rpm/vitam-product;./build-all.sh
 
 * pour construire l'intégralité des packages (dans le dossier /code) ;
 * A l'issue, mettre à jour le "repository" associé en lançant la commande vitam-recreate-repo.
