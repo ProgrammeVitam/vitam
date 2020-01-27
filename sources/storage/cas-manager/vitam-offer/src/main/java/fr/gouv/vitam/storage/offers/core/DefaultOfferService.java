@@ -224,5 +224,5 @@ public interface DefaultOfferService {
     List<OfferLog> getOfferLogs(String containerName, Long offset, int limit, Order order)
         throws ContentAddressableStorageDatabaseException, ContentAddressableStorageServerException;
 
-
+    void checkOfferPath(String... paths) throws IOException;
 }

@@ -31,8 +31,8 @@ import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 
 /**
- * Securiry alert service implementation.
- * This service log the messages in a spécific file using VitamLogger.
+ * Security alert service implementation.
+ * This service log the messages in a specific file using VitamLogger.
  *
  */
 public class AlertServiceImpl implements AlertService {

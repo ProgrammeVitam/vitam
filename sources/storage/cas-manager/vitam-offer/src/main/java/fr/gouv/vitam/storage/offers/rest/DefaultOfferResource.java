@@ -42,6 +42,7 @@ import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.RequestResponseError;
 import fr.gouv.vitam.common.model.RequestResponseOK;
+import fr.gouv.vitam.common.security.SafeFileChecker;
 import fr.gouv.vitam.common.security.SanityChecker;
 import fr.gouv.vitam.common.server.application.VitamHttpHeader;
 import fr.gouv.vitam.common.server.application.resources.ApplicationStatusResource;
@@ -500,6 +501,7 @@ public class DefaultOfferResource extends ApplicationStatusResource {
             LOGGER.info("Writing object '" + objectId + "' of container " + containerName + " (size: " + size + ")");
 
             SanityChecker.checkParameter(objectId);
+            defaultOfferService.checkOfferPath(containerName, objectId);
 
             final String digest =
                 defaultOfferService.createObject(containerName, objectId, sis,

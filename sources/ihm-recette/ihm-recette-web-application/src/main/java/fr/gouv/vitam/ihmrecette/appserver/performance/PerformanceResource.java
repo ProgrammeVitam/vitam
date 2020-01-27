@@ -30,6 +30,7 @@ import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.common.security.SafeFileChecker;
 import fr.gouv.vitam.common.thread.VitamThreadFactory;
 
 import javax.ws.rs.Consumes;
@@ -179,6 +180,7 @@ public class PerformanceResource {
     public Response report(@PathParam("fileName") String fileName) {
         InputStream inputStream;
         try {
+            SafeFileChecker.checkSafePluginsFilesPath(fileName);
             inputStream = performanceService.readReport(fileName);
             return Response.ok(inputStream).build();
         } catch (IOException e) {

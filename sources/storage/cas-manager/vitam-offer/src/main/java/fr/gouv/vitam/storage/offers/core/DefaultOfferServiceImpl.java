@@ -45,6 +45,7 @@ import fr.gouv.vitam.common.logging.VitamLogLevel;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.performance.PerformanceLogger;
+import fr.gouv.vitam.common.security.SafeFileChecker;
 import fr.gouv.vitam.common.storage.ContainerInformation;
 import fr.gouv.vitam.common.storage.StorageConfiguration;
 import fr.gouv.vitam.common.storage.cas.container.api.ContentAddressableStorage;
@@ -532,6 +533,10 @@ public class DefaultOfferServiceImpl implements DefaultOfferService {
 
     private String getKeyMap(String containerName, String cursorId) {
         return cursorId + containerName;
+    }
+
+    public void checkOfferPath(String... paths) throws IOException {
+        SafeFileChecker.checkSafeFilePath(configuration.getStoragePath(), paths);
     }
 
 }
