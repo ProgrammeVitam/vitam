@@ -76,6 +76,7 @@ import fr.gouv.vitam.common.model.administration.AccessionRegisterDetailModel;
 import fr.gouv.vitam.common.model.administration.ActivationStatus;
 import fr.gouv.vitam.common.model.administration.IngestContractModel;
 import fr.gouv.vitam.common.model.administration.RegisterValueDetailModel;
+import fr.gouv.vitam.common.model.administration.RegisterValueEventModel;
 import fr.gouv.vitam.common.stream.StreamUtils;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
@@ -420,8 +421,10 @@ public class ProcessingIT extends VitamRuleRunner {
             // call processing
             metaDataClient.insertUnitBulk(
                 new BulkUnitInsertRequest(Arrays.asList(
-                    new BulkUnitInsertEntry(Collections.emptySet(), JsonHandler.getFromFile(PropertiesUtils.getResourceFile("integration-processing/unit_metadata.json"))),
-                    new BulkUnitInsertEntry(Collections.emptySet(), JsonHandler.getFromFile(PropertiesUtils.getResourceFile(PROCESSING_UNIT_PLAN)))
+                    new BulkUnitInsertEntry(Collections.emptySet(), JsonHandler
+                        .getFromFile(PropertiesUtils.getResourceFile("integration-processing/unit_metadata.json"))),
+                    new BulkUnitInsertEntry(Collections.emptySet(),
+                        JsonHandler.getFromFile(PropertiesUtils.getResourceFile(PROCESSING_UNIT_PLAN)))
                 )));
 
             metaDataClient.refreshUnits();
@@ -530,8 +533,10 @@ public class ProcessingIT extends VitamRuleRunner {
             // call processing
             metaDataClient.insertUnitBulk(
                 new BulkUnitInsertRequest(Arrays.asList(
-                    new BulkUnitInsertEntry(Collections.emptySet(), JsonHandler.getFromFile(PropertiesUtils.getResourceFile("integration-processing/unit_metadata.json"))),
-                    new BulkUnitInsertEntry(Collections.emptySet(), JsonHandler.getFromFile(PropertiesUtils.getResourceFile(PROCESSING_UNIT_PLAN)))
+                    new BulkUnitInsertEntry(Collections.emptySet(), JsonHandler
+                        .getFromFile(PropertiesUtils.getResourceFile("integration-processing/unit_metadata.json"))),
+                    new BulkUnitInsertEntry(Collections.emptySet(),
+                        JsonHandler.getFromFile(PropertiesUtils.getResourceFile(PROCESSING_UNIT_PLAN)))
                 )));
 
             metaDataClient.refreshUnits();
@@ -678,6 +683,9 @@ public class ProcessingIT extends VitamRuleRunner {
             register.setEndDate(LocalDateUtil.getFormattedDateForMongo("01/01/2017"));
             register.setStartDate(LocalDateUtil.getFormattedDateForMongo("01/01/2017"));
             register.setLastUpdate(LocalDateUtil.getFormattedDateForMongo("01/01/2017"));
+            register.setEvents(Lists.newArrayList(
+                new RegisterValueEventModel().setCreationdate("2017-01-01").setObjectSize(0).setOperation("guid")
+                    .setTotalGots(0).setTotalUnits(0).setTotalObjects(0)));
             functionalClient.createOrUpdateAccessionRegister(register);
 
             // Test Audit
@@ -2910,8 +2918,10 @@ public class ProcessingIT extends VitamRuleRunner {
             // call processing
             metaDataClient.insertUnitBulk(
                 new BulkUnitInsertRequest(Arrays.asList(
-                    new BulkUnitInsertEntry(Collections.emptySet(), JsonHandler.getFromFile(PropertiesUtils.getResourceFile("integration-processing/unit_metadata.json"))),
-                    new BulkUnitInsertEntry(Collections.emptySet(), JsonHandler.getFromFile(PropertiesUtils.getResourceFile(PROCESSING_UNIT_PLAN)))
+                    new BulkUnitInsertEntry(Collections.emptySet(), JsonHandler
+                        .getFromFile(PropertiesUtils.getResourceFile("integration-processing/unit_metadata.json"))),
+                    new BulkUnitInsertEntry(Collections.emptySet(),
+                        JsonHandler.getFromFile(PropertiesUtils.getResourceFile(PROCESSING_UNIT_PLAN)))
                 )));
 
             metaDataClient.refreshUnits();

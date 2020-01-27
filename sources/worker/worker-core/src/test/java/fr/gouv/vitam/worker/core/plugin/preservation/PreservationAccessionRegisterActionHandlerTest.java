@@ -1,4 +1,4 @@
-/*******************************************************************************
+/*
  * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2019)
  *
  * contact.vitam@culture.gouv.fr
@@ -23,12 +23,11 @@
  *
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
- *******************************************************************************/
+ */
 
 
 package fr.gouv.vitam.worker.core.plugin.preservation;
 
-import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.error.ServiceName;
 import fr.gouv.vitam.common.error.VitamError;
 import fr.gouv.vitam.common.guid.GUID;
@@ -38,9 +37,6 @@ import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.model.administration.AccessionRegisterDetailModel;
-import fr.gouv.vitam.common.model.processing.IOParameter;
-import fr.gouv.vitam.common.model.processing.ProcessingUri;
-import fr.gouv.vitam.common.model.processing.UriPrefix;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
 import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
@@ -73,7 +69,6 @@ import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.when;
 
 public class PreservationAccessionRegisterActionHandlerTest {
-    private static final String ATR_GLOBAL_SEDA_PARAMETERS = "globalSEDAParameters.json";
     private static final String FAKE_URL = "http://localhost:8080";
     PreservationAccessionRegisterActionHandler accessionRegisterHandler;
     private static final String HANDLER_ID = "PRESERVATION_ACCESSION_REGISTRATION";
@@ -84,7 +79,7 @@ public class PreservationAccessionRegisterActionHandlerTest {
 
     @Rule
     public RunWithCustomExecutorRule runInThread =
-            new RunWithCustomExecutorRule(VitamThreadPoolExecutor.getDefaultExecutor());
+        new RunWithCustomExecutorRule(VitamThreadPoolExecutor.getDefaultExecutor());
 
 
     MetaDataClient metaDataClient = mock(MetaDataClient.class);
@@ -98,9 +93,9 @@ public class PreservationAccessionRegisterActionHandlerTest {
         AdminManagementClientFactory.changeMode(null);
         guid = GUIDFactory.newGUID();
         params =
-                WorkerParametersFactory.newWorkerParameters().setUrlWorkspace(FAKE_URL).setUrlMetadata(FAKE_URL)
-                        .setObjectNameList(Lists.newArrayList("objectName.json")).setObjectName("objectName.json")
-                        .setCurrentStep("currentStep").setContainerName(guid.getId());
+            WorkerParametersFactory.newWorkerParameters().setUrlWorkspace(FAKE_URL).setUrlMetadata(FAKE_URL)
+                .setObjectNameList(Lists.newArrayList("objectName.json")).setObjectName("objectName.json")
+                .setCurrentStep("currentStep").setContainerName(guid.getId());
         String objectId = "manifest";
         handlerIO = new HandlerIOImpl(guid.getId(), "workerId", newArrayList(objectId));
         handlerIO.setCurrentObjectId(objectId);
@@ -131,19 +126,19 @@ public class PreservationAccessionRegisterActionHandlerTest {
         reset(metaDataClient);
         reset(adminManagementClient);
         when(metaDataClient.selectAccessionRegisterOnObjectByOperationId(operationId.toString()))
-                .thenReturn(originatingAgencies);
+            .thenReturn(originatingAgencies);
 
 
         AdminManagementClientFactory.changeMode(null);
         handlerIO.reset();
         accessionRegisterHandler =
-                new PreservationAccessionRegisterActionHandler(metaDataClientFactory, adminManagementClientFactory);
+            new PreservationAccessionRegisterActionHandler(metaDataClientFactory, adminManagementClientFactory);
         assertEquals(PreservationAccessionRegisterActionHandler.getId(), HANDLER_ID);
 
         RequestResponse<AccessionRegisterDetailModel> res =
-                new RequestResponseOK<AccessionRegisterDetailModel>().setHttpCode(201);
+            new RequestResponseOK<AccessionRegisterDetailModel>().setHttpCode(201);
         when(adminManagementClient.createOrUpdateAccessionRegister(any()))
-                .thenReturn(res);
+            .thenReturn(res);
 
         // When
         final ItemStatus response = accessionRegisterHandler.execute(params, handlerIO);
@@ -168,16 +163,16 @@ public class PreservationAccessionRegisterActionHandlerTest {
         reset(metaDataClient);
         reset(adminManagementClient);
         when(metaDataClient.selectAccessionRegisterOnObjectByOperationId(operationId.toString()))
-                .thenReturn(originatingAgencies);
+            .thenReturn(originatingAgencies);
 
 
         when(adminManagementClient.createOrUpdateAccessionRegister(any()))
-                .thenThrow(new AdminManagementClientServerException("AdminManagementClientServerException"));
+            .thenThrow(new AdminManagementClientServerException("AdminManagementClientServerException"));
 
         AdminManagementClientFactory.changeMode(null);
         handlerIO.reset();
         accessionRegisterHandler =
-                new PreservationAccessionRegisterActionHandler(metaDataClientFactory, adminManagementClientFactory);
+            new PreservationAccessionRegisterActionHandler(metaDataClientFactory, adminManagementClientFactory);
         assertEquals(PreservationAccessionRegisterActionHandler.getId(), HANDLER_ID);
 
         // When
@@ -190,7 +185,7 @@ public class PreservationAccessionRegisterActionHandlerTest {
 
     @Test
     @RunWithCustomExecutor
-    public void testResponseConflictAlreadyExecutedAccesionRegister() throws Exception {
+    public void testResponseOKAlreadyExistsAccessionRegister() throws Exception {
         // Given
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         GUID operationId = GUIDFactory.newGUID();
@@ -204,29 +199,25 @@ public class PreservationAccessionRegisterActionHandlerTest {
         reset(metaDataClient);
         reset(adminManagementClient);
         when(metaDataClient.selectAccessionRegisterOnObjectByOperationId(operationId.toString()))
-                .thenReturn(originatingAgencies);
+            .thenReturn(originatingAgencies);
 
-        VitamError ve =
-                new VitamError(Response.Status.CONFLICT.name()).setHttpCode(Response.Status.CONFLICT.getStatusCode())
-                        .setContext(ServiceName.EXTERNAL_ACCESS.getName())
-                        .setState("code_vitam")
-                        .setMessage(Response.Status.CONFLICT.getReasonPhrase())
-                        .setDescription("Document already exists in database");
+        RequestResponse<AccessionRegisterDetailModel> res =
+            new RequestResponseOK<AccessionRegisterDetailModel>().setHttpCode(201);
 
         when(adminManagementClient.createOrUpdateAccessionRegister(any()))
-                .thenReturn(ve);
+            .thenReturn(res);
 
         AdminManagementClientFactory.changeMode(null);
         handlerIO.reset();
         accessionRegisterHandler =
-                new PreservationAccessionRegisterActionHandler(metaDataClientFactory, adminManagementClientFactory);
+            new PreservationAccessionRegisterActionHandler(metaDataClientFactory, adminManagementClientFactory);
         assertEquals(PreservationAccessionRegisterActionHandler.getId(), HANDLER_ID);
 
         // When
         final ItemStatus response = accessionRegisterHandler.execute(params, handlerIO);
 
         // Then
-        assertEquals(StatusCode.ALREADY_EXECUTED, response.getGlobalStatus());
+        assertEquals(StatusCode.OK, response.getGlobalStatus());
 
     }
 
@@ -248,12 +239,12 @@ public class PreservationAccessionRegisterActionHandlerTest {
         reset(metaDataClient);
         reset(adminManagementClient);
         when(metaDataClient.selectAccessionRegisterOnObjectByOperationId(operationId.toString()))
-                .thenThrow(new MetaDataClientServerException("MetaDataClientServerException"));
+            .thenThrow(new MetaDataClientServerException("MetaDataClientServerException"));
 
         AdminManagementClientFactory.changeMode(null);
         handlerIO.reset();
         accessionRegisterHandler =
-                new PreservationAccessionRegisterActionHandler(metaDataClientFactory, adminManagementClientFactory);
+            new PreservationAccessionRegisterActionHandler(metaDataClientFactory, adminManagementClientFactory);
         assertEquals(PreservationAccessionRegisterActionHandler.getId(), HANDLER_ID);
         // When
         final ItemStatus response = accessionRegisterHandler.execute(params, handlerIO);
@@ -274,7 +265,7 @@ public class PreservationAccessionRegisterActionHandlerTest {
         AdminManagementClientFactory.changeMode(null);
         handlerIO.reset();
         accessionRegisterHandler =
-                new PreservationAccessionRegisterActionHandler(metaDataClientFactory, adminManagementClientFactory);
+            new PreservationAccessionRegisterActionHandler(metaDataClientFactory, adminManagementClientFactory);
         assertEquals(PreservationAccessionRegisterActionHandler.getId(), HANDLER_ID);
 
         // When

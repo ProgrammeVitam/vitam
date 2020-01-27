@@ -41,7 +41,6 @@ import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOper
 import fr.gouv.vitam.common.database.builder.request.single.Select;
 import fr.gouv.vitam.common.database.parser.request.adapter.SingleVarNameAdapter;
 import fr.gouv.vitam.common.database.parser.request.single.SelectParserSingle;
-import fr.gouv.vitam.common.database.server.DbRequestSingle;
 import fr.gouv.vitam.common.error.ServiceName;
 import fr.gouv.vitam.common.error.VitamError;
 import fr.gouv.vitam.common.exception.AccessUnauthorizedException;
@@ -59,7 +58,6 @@ import fr.gouv.vitam.common.model.ProcessPause;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.StatusCode;
-import fr.gouv.vitam.common.model.VitamConstants;
 import fr.gouv.vitam.common.model.administration.AccessContractModel;
 import fr.gouv.vitam.common.model.administration.AccessionRegisterDetailModel;
 import fr.gouv.vitam.common.model.administration.ActivationStatus;
@@ -155,6 +153,8 @@ public class AdminManagementResource extends ApplicationStatusResource {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(AdminManagementResource.class);
 
     private static final SingleVarNameAdapter DEFAULT_VARNAME_ADAPTER = new SingleVarNameAdapter();
+    private static final String FUNCTIONAL_ADMINISTRATION_MODULE = "FUNCTIONAL_ADMINISTRATION_MODULE";
+
     private static final String ATTACHMENT_FILENAME = "attachment; filename=ErrorReport.json";
     private static final String SELECT_IS_A_MANDATORY_PARAMETER = "select is a mandatory parameter";
     private static final String AUDIT_URI = "/audit";
@@ -171,9 +171,14 @@ public class AdminManagementResource extends ApplicationStatusResource {
     private final ElasticsearchAccessFunctionalAdmin elasticsearchAccess;
     private final OntologyLoader rulesOntologyLoader;
     private VitamCounterService vitamCounterService;
-    private VitamRuleService vitamRuleService;
+    private final WorkspaceClientFactory workspaceClientFactory;
+    private final ProcessingManagementClientFactory processingManagementClientFactory;
+    private final MetaDataClientFactory metaDataClientFactory;
+    private final LogbookOperationsClientFactory logbookOperationsClientFactory;
+    private final VitamRuleService vitamRuleService;
 
-    public AdminManagementResource(AdminManagementConfiguration configuration, OntologyLoader ontologyLoader, OntologyLoader rulesOntologyLoader) {
+    public AdminManagementResource(AdminManagementConfiguration configuration, OntologyLoader ontologyLoader,
+        OntologyLoader rulesOntologyLoader) {
         super(new BasicVitamStatusServiceImpl());
         this.rulesOntologyLoader = rulesOntologyLoader;
         DbConfigurationImpl adminConfiguration;
@@ -186,25 +191,20 @@ public class AdminManagementResource extends ApplicationStatusResource {
                 new DbConfigurationImpl(configuration.getMongoDbNodes(),
                     configuration.getDbName());
         }
-        // / FIXME: 3/31/17 Factories mustn't be created here !!!
+        workspaceClientFactory = WorkspaceClientFactory.getInstance();
+        processingManagementClientFactory = ProcessingManagementClientFactory.getInstance();
+        logbookOperationsClientFactory = LogbookOperationsClientFactory.getInstance();
+        metaDataClientFactory = MetaDataClientFactory.getInstance();
         elasticsearchAccess = ElasticsearchAccessAdminFactory.create(configuration);
         mongoAccess = MongoDbAccessAdminFactory.create(adminConfiguration, ontologyLoader);
+        vitamRuleService = new VitamRuleService(configuration.getListMinimumRuleDuration());
         WorkspaceClientFactory.changeMode(configuration.getWorkspaceUrl());
         ProcessingManagementClientFactory.changeConfigurationUrl(configuration.getProcessingUrl());
-        vitamRuleService = new VitamRuleService(configuration.getListMinimumRuleDuration());
         LOGGER.debug("init Admin Management Resource server");
     }
 
-
     MongoDbAccessAdminImpl getLogbookDbAccess() {
         return mongoAccess;
-    }
-
-    /**
-     * @return the elasticsearchAccess
-     */
-    ElasticsearchAccessFunctionalAdmin getElasticsearchAccess() {
-        return elasticsearchAccess;
     }
 
     /**
@@ -382,7 +382,8 @@ public class AdminManagementResource extends ApplicationStatusResource {
         Set<String> notUsedDeletedRules = new HashSet<>();
         Set<String> notUsedUpdatedRules = new HashSet<>();
         try {
-            RulesManagerFileImpl rulesManagerFileImpl = new RulesManagerFileImpl(mongoAccess, vitamCounterService, this.rulesOntologyLoader);
+            RulesManagerFileImpl rulesManagerFileImpl =
+                new RulesManagerFileImpl(mongoAccess, vitamCounterService, this.rulesOntologyLoader);
 
             try {
                 rulesManagerFileImpl
@@ -420,7 +421,8 @@ public class AdminManagementResource extends ApplicationStatusResource {
     private Response handleGenerateReport(Map<Integer, List<ErrorReport>> errors,
         List<FileRulesModel> usedDeletedRules, List<FileRulesModel> usedUpdatedRules, OntologyLoader ontologyLoader) {
         InputStream errorReportInputStream;
-        RulesManagerFileImpl rulesManagerFileImpl = new RulesManagerFileImpl(mongoAccess, vitamCounterService, ontologyLoader);
+        RulesManagerFileImpl rulesManagerFileImpl =
+            new RulesManagerFileImpl(mongoAccess, vitamCounterService, ontologyLoader);
         errorReportInputStream =
             rulesManagerFileImpl.generateErrorReport(errors, usedDeletedRules, usedUpdatedRules, StatusCode.KO,
                 null);
@@ -446,7 +448,8 @@ public class AdminManagementResource extends ApplicationStatusResource {
         ParametersChecker.checkParameter("rulesStream is a mandatory parameter", rulesStream);
         String filename = headers.getHeaderString(GlobalDataRest.X_FILENAME);
         try {
-            RulesManagerFileImpl rulesFileManagement = new RulesManagerFileImpl(mongoAccess, vitamCounterService, this.rulesOntologyLoader);
+            RulesManagerFileImpl rulesFileManagement =
+                new RulesManagerFileImpl(mongoAccess, vitamCounterService, this.rulesOntologyLoader);
 
             rulesFileManagement.importFile(rulesStream, filename);
             return Response.status(Status.CREATED).entity(Status.CREATED.getReasonPhrase()).build();
@@ -485,7 +488,8 @@ public class AdminManagementResource extends ApplicationStatusResource {
         ParametersChecker.checkParameter("ruleId is a mandatory parameter", ruleId);
         FileRules fileRules;
         try {
-            RulesManagerFileImpl rulesFileManagement = new RulesManagerFileImpl(mongoAccess, vitamCounterService, this.rulesOntologyLoader);
+            RulesManagerFileImpl rulesFileManagement =
+                new RulesManagerFileImpl(mongoAccess, vitamCounterService, this.rulesOntologyLoader);
 
             SanityChecker.checkJsonAll(JsonHandler.toJsonNode(ruleId));
             fileRules = rulesFileManagement.findDocumentById(ruleId);
@@ -534,7 +538,8 @@ public class AdminManagementResource extends ApplicationStatusResource {
         ParametersChecker.checkParameter(SELECT_IS_A_MANDATORY_PARAMETER, select);
         RequestResponseOK<FileRules> filerulesList;
         try {
-            RulesManagerFileImpl rulesFileManagement = new RulesManagerFileImpl(mongoAccess, vitamCounterService, this.rulesOntologyLoader);
+            RulesManagerFileImpl rulesFileManagement =
+                new RulesManagerFileImpl(mongoAccess, vitamCounterService, this.rulesOntologyLoader);
             SanityChecker.checkJsonAll(select);
             filerulesList = rulesFileManagement.findDocuments(select).setQuery(select);
             return Response.status(Status.OK)
@@ -578,16 +583,6 @@ public class AdminManagementResource extends ApplicationStatusResource {
                 .entity(getErrorEntity(Status.BAD_REQUEST, e.getMessage())).build();
         } catch (final ReferentialException e) {
             LOGGER.error(e);
-            if (DbRequestSingle.checkInsertOrUpdate(e)) {
-                // Accession register detail already exists in database
-                VitamError ve = new VitamError(Status.CONFLICT.name()).setHttpCode(Status.CONFLICT.getStatusCode())
-                    .setContext(ServiceName.EXTERNAL_ACCESS.getName())
-                    .setState("code_vitam")
-                    .setMessage(Status.CONFLICT.getReasonPhrase())
-                    .setDescription("Document already exists in database");
-
-                return Response.status(Status.CONFLICT).entity(ve).build();
-            }
             return Response.status(Status.INTERNAL_SERVER_ERROR)
                 .entity(getErrorEntity(Status.INTERNAL_SERVER_ERROR, e.getMessage())).build();
         } catch (final Exception e) {
@@ -667,7 +662,7 @@ public class AdminManagementResource extends ApplicationStatusResource {
     /**
      * retrieve accession register detail based on a given dsl query
      *
-     * @param documentId
+     * @param originatingAgency
      * @param select as String the query to find the accession register
      * @return Response
      */
@@ -675,44 +670,74 @@ public class AdminManagementResource extends ApplicationStatusResource {
     @POST
     @Consumes(APPLICATION_JSON)
     @Produces(APPLICATION_JSON)
-    public Response findDetailAccessionRegister(@PathParam("id") String documentId, JsonNode select) {
+    public Response findDetailAccessionRegister(@PathParam("id") String originatingAgency, JsonNode select) {
         ParametersChecker.checkParameter(SELECT_IS_A_MANDATORY_PARAMETER, select);
         RequestResponseOK<AccessionRegisterDetail> accessionRegisterDetails;
         try (ReferentialAccessionRegisterImpl accessionRegisterManagement =
             new ReferentialAccessionRegisterImpl(mongoAccess, vitamCounterService)) {
             SanityChecker.checkJsonAll(select);
-            SanityChecker.checkParameter(documentId);
+            SanityChecker.checkParameter(originatingAgency);
 
             SelectParserSingle parser = new SelectParserSingle(DEFAULT_VARNAME_ADAPTER);
             parser.parse(select);
-            if (!VitamConstants.EVERY_ORIGINATING_AGENCY.equals(VitamThreadUtils.getVitamSession().getContractId())) {
-                AccessContractModel contract = getContractDetails(VitamThreadUtils.getVitamSession().getContractId());
-                if (contract == null) {
-                    throw new AccessUnauthorizedException("Contract Not Found");
-                }
-                Boolean isEveryOriginatingAgency = contract.getEveryOriginatingAgency();
-                Set<String> prodServices = contract.getOriginatingAgencies();
+            AccessContractModel contract = getContractDetails(VitamThreadUtils.getVitamSession().getContractId());
+            if (contract == null) {
+                throw new AccessUnauthorizedException("Contract Not Found");
+            }
+            Boolean isEveryOriginatingAgency = contract.getEveryOriginatingAgency();
+            Set<String> prodServices = contract.getOriginatingAgencies();
 
-                if (!isEveryOriginatingAgency && !prodServices.contains(documentId)) {
-                    return Response.status(Status.UNAUTHORIZED)
-                        .entity(getErrorEntity(Status.UNAUTHORIZED, "Unauthorized")).build();
-                }
-                if (!isEveryOriginatingAgency) {
-                    parser.addCondition(QueryHelper.in(ORIGINATING_AGENCY,
-                        prodServices.stream().toArray(String[]::new)).setDepthLimit(0));
-                }
+            if (!isEveryOriginatingAgency && !prodServices.contains(originatingAgency)) {
+                return Response.status(Status.UNAUTHORIZED)
+                    .entity(getErrorEntity(Status.UNAUTHORIZED, "Unauthorized")).build();
+            }
+            if (!isEveryOriginatingAgency) {
+                parser.addCondition(QueryHelper.in(ORIGINATING_AGENCY,
+                    prodServices.toArray(new String[0])).setDepthLimit(0));
             }
             parser.addCondition(
-                eq(ORIGINATING_AGENCY, URLDecoder.decode(documentId, CharsetUtils.UTF_8)));
+                eq(ORIGINATING_AGENCY, URLDecoder.decode(originatingAgency, CharsetUtils.UTF_8)));
 
             accessionRegisterDetails =
                 accessionRegisterManagement.findDetail(parser.getRequest().getFinalSelect()).setQuery(select);
 
-            if (accessionRegisterDetails == null) {
-                LOGGER.warn("Accession register details not found " + documentId);
-                return Response.status(Status.NOT_FOUND)
-                    .entity(getErrorEntity(Status.NOT_FOUND, "Accession register not found")).build();
-            }
+        } catch (final InvalidParseOperationException e) {
+            LOGGER.error(e);
+            return Response.status(Status.BAD_REQUEST)
+                .entity(getErrorEntity(Status.BAD_REQUEST, e.getMessage())).build();
+        } catch (final Exception e) {
+            LOGGER.error(e);
+            return Response.status(Status.INTERNAL_SERVER_ERROR)
+                .entity(getErrorEntity(Status.INTERNAL_SERVER_ERROR, e.getMessage())).build();
+        }
+
+        return Response.status(Status.OK)
+            .entity(accessionRegisterDetails)
+            .build();
+    }
+
+    /**
+     * retrieve accession register detail based on a given dsl query
+     *
+     * @param select as String the query to find the accession register
+     * @return Response
+     */
+    @Path("accession-register/detail")
+    @POST
+    @Consumes(APPLICATION_JSON)
+    @Produces(APPLICATION_JSON)
+    public Response findDetailAccessionRegister(JsonNode select) {
+        ParametersChecker.checkParameter(SELECT_IS_A_MANDATORY_PARAMETER, select);
+        RequestResponseOK<AccessionRegisterDetail> accessionRegisterDetails;
+        try (ReferentialAccessionRegisterImpl accessionRegisterManagement =
+            new ReferentialAccessionRegisterImpl(mongoAccess, vitamCounterService)) {
+            SanityChecker.checkJsonAll(select);
+
+            SelectParserSingle parser = new SelectParserSingle(DEFAULT_VARNAME_ADAPTER);
+            parser.parse(select);
+
+            accessionRegisterDetails =
+                accessionRegisterManagement.findDetail(parser.getRequest().getFinalSelect()).setQuery(select);
 
         } catch (final InvalidParseOperationException e) {
             LOGGER.error(e);
@@ -734,7 +759,8 @@ public class AdminManagementResource extends ApplicationStatusResource {
     @Consumes(APPLICATION_JSON)
     @Produces(APPLICATION_JSON)
     public Response launchRuleAudit() {
-        RulesManagerFileImpl rulesManagerFileImpl = new RulesManagerFileImpl(mongoAccess, vitamCounterService, rulesOntologyLoader);
+        RulesManagerFileImpl rulesManagerFileImpl =
+            new RulesManagerFileImpl(mongoAccess, vitamCounterService, rulesOntologyLoader);
         int tenant = VitamThreadUtils.getVitamSession().getTenantId();
         try {
             rulesManagerFileImpl.checkRuleConformity(rulesManagerFileImpl.getRuleFromCollection(tenant),
@@ -907,8 +933,7 @@ public class AdminManagementResource extends ApplicationStatusResource {
     public Response forcePause(ProcessPause info) {
 
         ParametersChecker.checkParameter("Json ProcessPause is a mandatory parameter", info);
-        try (ProcessingManagementClient processingClient = ProcessingManagementClientFactory.getInstance()
-            .getClient()) {
+        try (ProcessingManagementClient processingClient = processingManagementClientFactory.getClient()) {
             RequestResponse requestResponse = processingClient.forcePause(info);
             return Response.status(requestResponse.getStatus())
                 .entity(requestResponse).build();
@@ -933,8 +958,7 @@ public class AdminManagementResource extends ApplicationStatusResource {
     public Response removeForcePause(ProcessPause info) {
 
         ParametersChecker.checkParameter("Json ProcessPause is a mandatory parameter", info);
-        try (ProcessingManagementClient processingClient = ProcessingManagementClientFactory.getInstance()
-            .getClient()) {
+        try (ProcessingManagementClient processingClient = processingManagementClientFactory.getClient()) {
             RequestResponse requestResponse = processingClient.removeForcePause(info);
             return Response.status(requestResponse.getStatus())
                 .entity(requestResponse).build();
@@ -979,7 +1003,6 @@ public class AdminManagementResource extends ApplicationStatusResource {
         throws LogbookClientBadRequestException, LogbookClientAlreadyExistsException, LogbookClientServerException,
         InvalidGuidOperationException, InvalidCreateOperationException, ReferentialException,
         InvalidParseOperationException {
-        final int tenantId = VitamThreadUtils.getVitamSession().getTenantId();
         final GUID objectId = GUIDReader.getGUID(VitamThreadUtils.getVitamSession().getRequestId());
 
         try (final LogbookOperationsClient logbookClient = LogbookOperationsClientFactory.getInstance().getClient()) {
@@ -1006,6 +1029,8 @@ public class AdminManagementResource extends ApplicationStatusResource {
             (message != null && !message.trim().isEmpty()) ? message
                 : (status.getReasonPhrase() != null ? status.getReasonPhrase() : status.name());
         return new VitamError(status.name()).setHttpCode(status.getStatusCode())
+            .setContext(FUNCTIONAL_ADMINISTRATION_MODULE)
+            .setState(status.name())
             .setMessage(status.getReasonPhrase()).setDescription(aMessage);
     }
 }

@@ -1,4 +1,4 @@
-/*******************************************************************************
+/*
  * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2019)
  *
  * contact.vitam@culture.gouv.fr
@@ -23,7 +23,7 @@
  *
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
- *******************************************************************************/
+ */
 package fr.gouv.vitam.functional.administration.rest;
 
 import com.fasterxml.jackson.databind.JsonNode;
@@ -295,7 +295,6 @@ public class AdminManagementResourceTest {
         given().contentType(ContentType.BINARY).body(stream).header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
             .header(GlobalDataRest.X_FILENAME, "FF-vitam-format-KO.xml")
             .header(GlobalDataRest.X_REQUEST_ID, VitamThreadUtils.getVitamSession().getRequestId())
-
             .when().post(IMPORT_FORMAT_URI)
             .then().statusCode(Status.BAD_REQUEST.getStatusCode());
     }
@@ -316,12 +315,19 @@ public class AdminManagementResourceTest {
             .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
             .when().post(CREATE_FUND_REGISTER_URI)
             .then().statusCode(Status.CREATED.getStatusCode());
-        register.setTotalObjects(null);
 
+        // Already exists --> created
         given().contentType(ContentType.JSON).body(register)
             .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
             .when().post(CREATE_FUND_REGISTER_URI)
-            .then().statusCode(Status.CONFLICT.getStatusCode());
+            .then().statusCode(Status.CREATED.getStatusCode());
+
+        // Invalid request (bad format) --> bad request
+        register.setTotalObjects(null);
+        given().contentType(ContentType.JSON).body(register)
+            .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
+            .when().post(CREATE_FUND_REGISTER_URI)
+            .then().statusCode(Status.BAD_REQUEST.getStatusCode());
     }
 
     @Test

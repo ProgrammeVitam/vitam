@@ -36,6 +36,7 @@ import fr.gouv.vitam.common.database.server.DbRequestResult;
 import fr.gouv.vitam.common.database.server.mongodb.VitamDocument;
 import fr.gouv.vitam.common.exception.BadRequestException;
 import fr.gouv.vitam.common.exception.DatabaseException;
+import fr.gouv.vitam.common.exception.DocumentAlreadyExistsException;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.SchemaValidationException;
 import fr.gouv.vitam.common.exception.VitamException;
@@ -414,7 +415,8 @@ public class PreservationScenarioService {
     }
 
     private void insertScenarios(@NotNull List<PreservationScenarioModel> listToImport, Set<String> newIdentifiers)
-        throws InvalidParseOperationException, ReferentialException, SchemaValidationException {
+        throws InvalidParseOperationException, ReferentialException, SchemaValidationException,
+        DocumentAlreadyExistsException {
 
         if (listToImport.isEmpty()) {
             return;

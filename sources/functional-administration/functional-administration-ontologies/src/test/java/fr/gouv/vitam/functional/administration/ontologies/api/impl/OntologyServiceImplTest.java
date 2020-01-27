@@ -49,11 +49,9 @@ import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.functional.administration.common.FunctionalBackupService;
 import fr.gouv.vitam.functional.administration.common.Ontology;
-import fr.gouv.vitam.functional.administration.common.counter.VitamCounterService;
 import fr.gouv.vitam.functional.administration.common.server.ElasticsearchAccessFunctionalAdmin;
 import fr.gouv.vitam.functional.administration.common.server.FunctionalAdminCollections;
 import fr.gouv.vitam.functional.administration.common.server.MongoDbAccessAdminFactory;
-import fr.gouv.vitam.functional.administration.common.server.MongoDbAccessAdminImpl;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClientFactory;
 import org.junit.After;
 import org.junit.AfterClass;
@@ -83,7 +81,8 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
 public class OntologyServiceImplTest {
-    private final TypeReference<List<OntologyModel>> listOfOntologyType = new TypeReference<List<OntologyModel>>() {};
+    private final TypeReference<List<OntologyModel>> listOfOntologyType = new TypeReference<List<OntologyModel>>() {
+    };
 
     @Rule
     public RunWithCustomExecutorRule runInThread = new RunWithCustomExecutorRule(
@@ -100,8 +99,6 @@ public class OntologyServiceImplTest {
     public static MongoRule mongoRule =
         new MongoRule(getMongoClientOptions(Lists.newArrayList(Ontology.class)));
 
-    private static VitamCounterService vitamCounterService;
-    private static MongoDbAccessAdminImpl dbImpl;
     static OntologyServiceImpl ontologyService;
     static FunctionalBackupService functionalBackupService = Mockito.mock(FunctionalBackupService.class);
 
@@ -125,8 +122,6 @@ public class OntologyServiceImplTest {
         final List<MongoDbNode> nodes = new ArrayList<>();
         nodes.add(new MongoDbNode(DATABASE_HOST, mongoRule.getDataBasePort()));
 
-        dbImpl =
-            MongoDbAccessAdminFactory.create(new DbConfigurationImpl(nodes, mongoRule.getMongoDatabase().getName()), Collections::emptyList);
         final List tenants = new ArrayList<>();
         tenants.add(new Integer(TENANT_ID));
         tenants.add(new Integer(EXTERNAL_TENANT));
@@ -136,14 +131,13 @@ public class OntologyServiceImplTest {
         list_tenant.add("PROFILE");
         listEnableExternalIdentifiers.put(EXTERNAL_TENANT, list_tenant);
 
-        vitamCounterService = new VitamCounterService(dbImpl, tenants, listEnableExternalIdentifiers);
 
         LogbookOperationsClientFactory.changeMode(null);
 
         ontologyService =
             new OntologyServiceImpl(MongoDbAccessAdminFactory
                 .create(new DbConfigurationImpl(nodes, mongoRule.getMongoDatabase().getName()), Collections::emptyList),
-                vitamCounterService, functionalBackupService);
+                functionalBackupService);
 
     }
 
@@ -189,8 +183,9 @@ public class OntologyServiceImplTest {
         assertThat(response.isOk()).isTrue();
         final RequestResponseOK<ProfileModel> responseCast = (RequestResponseOK<ProfileModel>) response;
         assertThat(responseCast.getResults()).hasSize(2);
-        verify(functionalBackupService, times(1)).saveCollectionAndSequence(any(), eq(OntologyServiceImpl.BACKUP_ONTOLOGY_EVENT), eq(
-            FunctionalAdminCollections.ONTOLOGY), any());
+        verify(functionalBackupService, times(1))
+            .saveCollectionAndSequence(any(), eq(OntologyServiceImpl.BACKUP_ONTOLOGY_EVENT), eq(
+                FunctionalAdminCollections.ONTOLOGY), any());
     }
 
     @Test
@@ -481,8 +476,9 @@ public class OntologyServiceImplTest {
 
         final RequestResponse response3 = ontologyService.importOntologies(true, ontologyModelList3);
         assertThat(response3.isOk()).isTrue();
-        verify(functionalBackupService, times(2)).saveCollectionAndSequence(any(), eq(OntologyServiceImpl.BACKUP_ONTOLOGY_EVENT), eq(
-            FunctionalAdminCollections.ONTOLOGY), any());
+        verify(functionalBackupService, times(2))
+            .saveCollectionAndSequence(any(), eq(OntologyServiceImpl.BACKUP_ONTOLOGY_EVENT), eq(
+                FunctionalAdminCollections.ONTOLOGY), any());
     }
 
 
@@ -503,8 +499,9 @@ public class OntologyServiceImplTest {
 
         final RequestResponse response2 = ontologyService.importOntologies(true, ontologyModelList2);
         assertThat(response2.isOk()).isTrue();
-        verify(functionalBackupService, times(2)).saveCollectionAndSequence(any(), eq(OntologyServiceImpl.BACKUP_ONTOLOGY_EVENT), eq(
-            FunctionalAdminCollections.ONTOLOGY), any());
+        verify(functionalBackupService, times(2))
+            .saveCollectionAndSequence(any(), eq(OntologyServiceImpl.BACKUP_ONTOLOGY_EVENT), eq(
+                FunctionalAdminCollections.ONTOLOGY), any());
     }
 
     @Test
@@ -513,15 +510,17 @@ public class OntologyServiceImplTest {
         // Given
         VitamThreadUtils.getVitamSession().setTenantId(ADMIN_TENANT);
         File fileOntology = PropertiesUtils.getResourceFile("ok_ontology.json");
-        List<OntologyModel> ontologyModelListOk = JsonHandler.getFromFileAsTypeRefence(fileOntology, listOfOntologyType);
+        List<OntologyModel> ontologyModelListOk =
+            JsonHandler.getFromFileAsTypeRefence(fileOntology, listOfOntologyType);
 
         // When
         RequestResponse response = ontologyService.importOntologies(true, ontologyModelListOk);
 
         // Then
         assertThat(response).isInstanceOf(RequestResponseOK.class);
-        verify(functionalBackupService, times(1)).saveCollectionAndSequence(any(), eq(OntologyServiceImpl.BACKUP_ONTOLOGY_EVENT), eq(
-            FunctionalAdminCollections.ONTOLOGY), any());
+        verify(functionalBackupService, times(1))
+            .saveCollectionAndSequence(any(), eq(OntologyServiceImpl.BACKUP_ONTOLOGY_EVENT), eq(
+                FunctionalAdminCollections.ONTOLOGY), any());
     }
 
     @Test
@@ -531,7 +530,8 @@ public class OntologyServiceImplTest {
         VitamThreadUtils.getVitamSession().setTenantId(ADMIN_TENANT);
 
         File fileOntologyKo = PropertiesUtils.getResourceFile("KO_ontology_unknown_collection.json");
-        List<OntologyModel> ontologyModelListKo = JsonHandler.getFromFileAsTypeRefence(fileOntologyKo, listOfOntologyType);
+        List<OntologyModel> ontologyModelListKo =
+            JsonHandler.getFromFileAsTypeRefence(fileOntologyKo, listOfOntologyType);
 
         // When
         RequestResponse response = ontologyService.importOntologies(true, ontologyModelListKo);
@@ -541,8 +541,9 @@ public class OntologyServiceImplTest {
         assertThat(response.toString()).contains("instance value (\\\\\\\"BlablaCollection\\\\\\\") not found in enum");
 
         assertThat(response).isNotInstanceOf(RequestResponseOK.class);
-        verify(functionalBackupService, times(0)).saveCollectionAndSequence(any(), eq(OntologyServiceImpl.BACKUP_ONTOLOGY_EVENT), eq(
-            FunctionalAdminCollections.ONTOLOGY), any());
+        verify(functionalBackupService, times(0))
+            .saveCollectionAndSequence(any(), eq(OntologyServiceImpl.BACKUP_ONTOLOGY_EVENT), eq(
+                FunctionalAdminCollections.ONTOLOGY), any());
     }
 
 }

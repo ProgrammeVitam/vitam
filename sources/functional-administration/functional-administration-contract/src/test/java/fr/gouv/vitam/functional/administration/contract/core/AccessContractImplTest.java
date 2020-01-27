@@ -44,6 +44,7 @@ import fr.gouv.vitam.common.database.parser.request.single.UpdateParserSingle;
 import fr.gouv.vitam.common.database.server.elasticsearch.ElasticsearchNode;
 import fr.gouv.vitam.common.elasticsearch.ElasticsearchRule;
 import fr.gouv.vitam.common.error.VitamError;
+import fr.gouv.vitam.common.exception.DocumentAlreadyExistsException;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.SchemaValidationException;
 import fr.gouv.vitam.common.exception.VitamException;
@@ -51,6 +52,7 @@ import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
+import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.model.administration.AccessContractModel;
 import fr.gouv.vitam.common.model.administration.ActivationStatus;
 import fr.gouv.vitam.common.model.administration.AgenciesModel;
@@ -158,7 +160,7 @@ public class AccessContractImplTest {
 
         dbImpl =
             MongoDbAccessAdminFactory.create(new DbConfigurationImpl(nodes, mongoRule.getMongoDatabase().getName()), Collections::emptyList);
-        final List tenants = new ArrayList<>();
+        final List<Integer> tenants = new ArrayList<>();
         tenants.add(new Integer(TENANT_ID));
         tenants.add(new Integer(EXTERNAL_TENANT));
         Map<Integer, List<String>> listEnableExternalIdentifiers = new HashMap<>();
@@ -199,7 +201,8 @@ public class AccessContractImplTest {
 
 
     private static void insertDocuments(List<AgenciesModel> agenciesToInsert, int tenant)
-        throws InvalidParseOperationException, ReferentialException, SchemaValidationException {
+        throws InvalidParseOperationException, ReferentialException, SchemaValidationException,
+        DocumentAlreadyExistsException {
 
         ArrayNode agenciesNodeToPersist = JsonHandler.createArrayNode();
 
