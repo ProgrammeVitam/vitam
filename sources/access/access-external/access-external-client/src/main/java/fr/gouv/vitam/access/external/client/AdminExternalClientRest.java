@@ -1208,6 +1208,8 @@ public class AdminExternalClientRest extends DefaultClient implements AdminExter
             .setState(KO.name())
             .setContext(ACCESS_EXTERNAL_MODULE);
 
+        vitamError.parseHeadersFromResponse(response);
+
         throw new AdminExternalClientException(message, status, vitamError);
     }
 }
