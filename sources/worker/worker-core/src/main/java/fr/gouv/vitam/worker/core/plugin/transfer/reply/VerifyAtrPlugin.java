@@ -113,7 +113,8 @@ public class VerifyAtrPlugin extends ActionHandler {
 
             handler.addOutputResult(0, transferReply);
 
-            if (hasExistingTransferOperation(transferReply.getMessageRequestIdentifier())) {
+            if (hasExistingTransferOperation(transferReply.getMessageRequestIdentifier()) &&
+                hasReplyCode(transferReply.getReplyCode())) {
                 return buildItemStatus(PLUGIN_NAME, OK, EventDetails.of("ATR file is valid and serialized."));
             }
 
@@ -127,6 +128,10 @@ public class VerifyAtrPlugin extends ActionHandler {
         } finally {
             closeXmlReader(xmlStreamReader);
         }
+    }
+
+    private boolean hasReplyCode(String replyCode) {
+        return replyCode.equals("OK") || replyCode.equals("WARNING");
     }
 
     private boolean hasExistingTransferOperation(IdentifierType messageRequestIdentifier) throws InvalidParseOperationException, LogbookClientException {
