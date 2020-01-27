@@ -1,4 +1,4 @@
-/*******************************************************************************
+/*
  * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2019)
  *
  * contact.vitam@culture.gouv.fr
@@ -23,18 +23,8 @@
  *
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
- *******************************************************************************/
+ */
 package fr.gouv.vitam.worker.core.handler;
-
-import java.io.File;
-import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
@@ -48,7 +38,6 @@ import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.ItemStatus;
-import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.model.VitamAutoCloseable;
 import fr.gouv.vitam.common.model.administration.AccessionRegisterDetailModel;
@@ -67,6 +56,16 @@ import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 import fr.gouv.vitam.worker.common.HandlerIO;
 import fr.gouv.vitam.worker.core.impl.HandlerIOImpl;
+
+import java.io.File;
+import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * Accession Register Handler
@@ -155,7 +154,7 @@ public abstract class AbstractAccessionRegisterAction extends ActionHandler impl
         final ItemStatus itemStatus = new ItemStatus(getHandlerId());
 
         int tenantId = HeaderIdHelper.getTenantId();
-        try (AdminManagementClient adminClient = adminManagementClientFactory.getClient();
+        try (AdminManagementClient adminManagementClient = adminManagementClientFactory.getClient();
             MetaDataClient metaDataClient = metaDataClientFactory.getClient()) {
             AccessionRegisterInfo accessionRegisterInfo = new AccessionRegisterInfo();
             if (LogbookTypeProcess.INGEST.equals(getOperationType())) {
@@ -222,11 +221,6 @@ public abstract class AbstractAccessionRegisterAction extends ActionHandler impl
             }
 
 
-            ObjectNode evDetDataInformation = JsonHandler.createObjectNode();
-            ArrayNode arrayInformation = JsonHandler.createArrayNode();
-            boolean alreadyExecuted = false;
-            boolean mayBeRestartAfterFatal = false;
-
             Map<String, UnitPerOriginatingAgency> unitPerOriginatingAgenciesMap = new HashMap<>();
 
             for (UnitPerOriginatingAgency o : unitPerOriginatingAgencies) {
@@ -274,45 +268,25 @@ public abstract class AbstractAccessionRegisterAction extends ActionHandler impl
                 }
 
                 // ugly hack > using raw and non raw method
+                ObjectNode evDetDataInformation = JsonHandler.createObjectNode();
+                ArrayNode arrayInformation = JsonHandler.createArrayNode();
                 ObjectNode jsonNodeRegister = (ObjectNode) JsonHandler.toJsonNode(register);
                 jsonNodeRegister.put("_id", register.getId());
                 jsonNodeRegister.put("_tenant", tenantId);
                 jsonNodeRegister.put("_v", 0);
                 jsonNodeRegister.remove("#id");
-                RequestResponse<AccessionRegisterDetailModel> resp =
-                    adminClient.createOrUpdateAccessionRegister(register);
+                arrayInformation.addPOJO(jsonNodeRegister);
 
-                // If already exists in database
-                if (resp.getStatus() == javax.ws.rs.core.Response.Status.CONFLICT.getStatusCode()) {
-                    // If the current ingest operation and the accession register detail already exists, then already executed
-                    LOGGER.warn(String
-                        .format("Step already executed, this is a replayed step for this operation : %s .",
-                            operationId));
-                    alreadyExecuted = true;
-
-                } else {
-                    // In case where 2 agency (we created detail for one, then fatal occurs
-                    // for the second because of database issue.
-                    // after restart step, the first one will be conflict, the second will be created.
-                    // We should not consider the step as already executed
-                    mayBeRestartAfterFatal = true;
-
-                    // Add only created one, ignore conflict one
-                    arrayInformation.addPOJO(jsonNodeRegister);
-                }
-            }
-
-            if (alreadyExecuted && !mayBeRestartAfterFatal) {
-                // Only if all originating agency
-                itemStatus.increment(StatusCode.ALREADY_EXECUTED);
-            } else {
+                adminManagementClient.createOrUpdateAccessionRegister(register);
 
                 if (arrayInformation.size() > 0) {
                     evDetDataInformation.set(VOLUMETRY, arrayInformation);
                     itemStatus.setEvDetailData(JsonHandler.unprettyPrint(evDetDataInformation));
                 }
-                itemStatus.increment(StatusCode.OK);
+
             }
+
+            itemStatus.increment(StatusCode.OK);
         } catch (Exception e) {
             LOGGER.error("unable to call metadata Client", e);
             itemStatus.increment(StatusCode.FATAL);
@@ -413,5 +387,4 @@ public abstract class AbstractAccessionRegisterAction extends ActionHandler impl
     public void close() {
         // Empty
     }
-
 }

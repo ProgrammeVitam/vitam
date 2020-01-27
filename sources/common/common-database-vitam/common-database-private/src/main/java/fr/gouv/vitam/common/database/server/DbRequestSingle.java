@@ -178,30 +178,6 @@ public class DbRequestSingle {
     }
 
     /**
-     * Helper to detect an insert that should be an Update
-     *
-     * @param e exception catched
-     * @return true if an insert that should be an Update, else False
-     */
-    public static boolean checkInsertOrUpdate(Exception e) {
-        if (e instanceof DatabaseException &&
-            (e.getCause() instanceof MongoBulkWriteException |
-                e.getCause() instanceof MongoWriteException)) {
-            LOGGER.info("Document existed, updating ...");
-            return true;
-        }
-        Throwable d = e.getCause();
-        if (d instanceof DatabaseException &&
-            (d.getCause() instanceof MongoBulkWriteException |
-                d.getCause() instanceof MongoWriteException)) {
-            LOGGER.info("Document existed, updating ...");
-            return true;
-        }
-        return false;
-    }
-
-
-    /**
      * Main method for Multiple Insert
      *
      * @param arrayNode

@@ -44,6 +44,7 @@ import fr.gouv.vitam.common.database.server.DbRequestResult;
 import fr.gouv.vitam.common.database.server.elasticsearch.ElasticsearchNode;
 import fr.gouv.vitam.common.database.server.mongodb.VitamDocument;
 import fr.gouv.vitam.common.elasticsearch.ElasticsearchRule;
+import fr.gouv.vitam.common.exception.DocumentAlreadyExistsException;
 import fr.gouv.vitam.common.exception.InvalidGuidOperationException;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.SchemaValidationException;
@@ -85,6 +86,7 @@ import io.restassured.RestAssured;
 import io.restassured.http.ContentType;
 import io.restassured.http.Cookie;
 import org.junit.AfterClass;
+import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
 import org.junit.Rule;
@@ -218,7 +220,13 @@ public class WebApplicationResourceDeleteTest {
         junitHelper.releasePort(serverPort);
     }
 
+    @Before
+    public void before() {
+        VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newGUID());
+    }
+
     @Test
+    @RunWithCustomExecutor
     public void givenNoSecureServerLoginUnauthorized() {
         given().contentType(ContentType.JSON).body(CREDENTIALS).expect().statusCode(Status.UNAUTHORIZED.getStatusCode())
             .when()
@@ -229,8 +237,10 @@ public class WebApplicationResourceDeleteTest {
     }
 
     @Test
+    @RunWithCustomExecutor
     public void testSuccessStatus() {
         given().header(GlobalDataRest.X_CSRF_TOKEN, tokenCSRF)
+            .header(GlobalDataRest.X_REQUEST_ID, VitamThreadUtils.getVitamSession().getRequestId())
             .cookie(COOKIE).expect().statusCode(Status.NO_CONTENT.getStatusCode()).when().get("status");
     }
 
@@ -241,6 +251,7 @@ public class WebApplicationResourceDeleteTest {
             final GUID idFormat = addData(FunctionalAdminCollections.FORMATS);
             assertTrue(existsData(FunctionalAdminCollections.FORMATS, idFormat.getId()));
             given().header(GlobalDataRest.X_TENANT_ID, TENANT_ID).header(GlobalDataRest.X_CSRF_TOKEN, tokenCSRF)
+                .header(GlobalDataRest.X_REQUEST_ID, VitamThreadUtils.getVitamSession().getRequestId())
                 .cookie(COOKIE).expect().statusCode(Status.OK.getStatusCode()).when()
                 .delete("delete/formats");
             assertFalse(existsData(FunctionalAdminCollections.FORMATS, idFormat.getId()));
@@ -257,6 +268,7 @@ public class WebApplicationResourceDeleteTest {
             final GUID idOntology = addData(FunctionalAdminCollections.ONTOLOGY);
             assertTrue(existsData(FunctionalAdminCollections.ONTOLOGY, idOntology.getId()));
             given().header(GlobalDataRest.X_TENANT_ID, ADMIN_TENANT_ID).header(GlobalDataRest.X_CSRF_TOKEN, tokenCSRF)
+                .header(GlobalDataRest.X_REQUEST_ID, VitamThreadUtils.getVitamSession().getRequestId())
                 .cookie(COOKIE).expect().statusCode(Status.OK.getStatusCode()).when()
                 .delete("delete/masterdata/ontologies");
             assertFalse(existsData(FunctionalAdminCollections.ONTOLOGY, idOntology.getId()));
@@ -274,6 +286,7 @@ public class WebApplicationResourceDeleteTest {
             final GUID idRule = addData(FunctionalAdminCollections.RULES);
             assertTrue(existsData(FunctionalAdminCollections.RULES, idRule.getId()));
             given().header(GlobalDataRest.X_TENANT_ID, TENANT_ID).header(GlobalDataRest.X_CSRF_TOKEN, tokenCSRF)
+                .header(GlobalDataRest.X_REQUEST_ID, VitamThreadUtils.getVitamSession().getRequestId())
                 .cookie(COOKIE).expect().statusCode(Status.OK.getStatusCode()).when()
                 .delete("delete/rules");
             assertFalse(existsData(FunctionalAdminCollections.RULES, idRule.getId()));
@@ -292,6 +305,7 @@ public class WebApplicationResourceDeleteTest {
             assertTrue(existsData(FunctionalAdminCollections.ACCESSION_REGISTER_SUMMARY, idRegisterSummary.getId()));
             assertTrue(existsData(FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL, idRegisterDetail.getId()));
             given().header(GlobalDataRest.X_TENANT_ID, TENANT_ID).header(GlobalDataRest.X_CSRF_TOKEN, tokenCSRF)
+                .header(GlobalDataRest.X_REQUEST_ID, VitamThreadUtils.getVitamSession().getRequestId())
                 .cookie(COOKIE).expect().statusCode(Status.OK.getStatusCode()).when()
                 .delete("delete/accessionregisters");
             assertFalse(existsData(FunctionalAdminCollections.ACCESSION_REGISTER_SUMMARY, idRegisterSummary.getId()));
@@ -302,11 +316,13 @@ public class WebApplicationResourceDeleteTest {
     }
 
     @Test
+    @RunWithCustomExecutor
     public void testDeleteLogbookOperationOK() {
         try {
             final GUID idOperation = addData(LogbookCollections.OPERATION);
             assertTrue(existsData(LogbookCollections.OPERATION, idOperation.getId()));
             given().header(GlobalDataRest.X_TENANT_ID, TENANT_ID).header(GlobalDataRest.X_CSRF_TOKEN, tokenCSRF)
+                .header(GlobalDataRest.X_REQUEST_ID, VitamThreadUtils.getVitamSession().getRequestId())
                 .cookie(COOKIE).expect().statusCode(Status.OK.getStatusCode()).when()
                 .delete("delete/logbook/operation");
             assertFalse(existsData(LogbookCollections.OPERATION, idOperation.getId()));
@@ -317,11 +333,13 @@ public class WebApplicationResourceDeleteTest {
     }
 
     @Test
+    @RunWithCustomExecutor
     public void testDeleteLogbookLifecycleOGOK() {
         try {
             final GUID idLfcOg = addData(LogbookCollections.LIFECYCLE_OBJECTGROUP);
             assertTrue(existsData(LogbookCollections.LIFECYCLE_OBJECTGROUP, idLfcOg.getId()));
             given().header(GlobalDataRest.X_TENANT_ID, TENANT_ID).header(GlobalDataRest.X_CSRF_TOKEN, tokenCSRF)
+                .header(GlobalDataRest.X_REQUEST_ID, VitamThreadUtils.getVitamSession().getRequestId())
                 .cookie(COOKIE).expect().statusCode(Status.OK.getStatusCode()).when()
                 .delete("delete/logbook/lifecycle/objectgroup");
             assertFalse(existsData(LogbookCollections.LIFECYCLE_OBJECTGROUP, idLfcOg.getId()));
@@ -332,11 +350,13 @@ public class WebApplicationResourceDeleteTest {
     }
 
     @Test
+    @RunWithCustomExecutor
     public void testDeleteLogbookLifecycleUnitOK() {
         try {
             final GUID idLfcUnit = addData(LogbookCollections.LIFECYCLE_UNIT);
             assertTrue(existsData(LogbookCollections.LIFECYCLE_UNIT, idLfcUnit.getId()));
             given().header(GlobalDataRest.X_TENANT_ID, TENANT_ID).header(GlobalDataRest.X_CSRF_TOKEN, tokenCSRF)
+                .header(GlobalDataRest.X_REQUEST_ID, VitamThreadUtils.getVitamSession().getRequestId())
                 .cookie(COOKIE).expect().statusCode(Status.OK.getStatusCode()).when()
                 .delete("delete/logbook/lifecycle/unit");
             assertFalse(existsData(LogbookCollections.LIFECYCLE_UNIT, idLfcUnit.getId()));
@@ -347,11 +367,13 @@ public class WebApplicationResourceDeleteTest {
     }
 
     @Test
+    @RunWithCustomExecutor
     public void testDeleteMetadataOGOK() {
         try {
             final GUID idOg = addData(MetadataCollections.OBJECTGROUP);
             assertTrue(existsData(MetadataCollections.OBJECTGROUP, idOg.getId()));
             given().header(GlobalDataRest.X_TENANT_ID, TENANT_ID).header(GlobalDataRest.X_CSRF_TOKEN, tokenCSRF)
+                .header(GlobalDataRest.X_REQUEST_ID, VitamThreadUtils.getVitamSession().getRequestId())
                 .cookie(COOKIE).expect().statusCode(Status.OK.getStatusCode()).when()
                 .delete("delete/metadata/objectgroup");
             assertFalse(existsData(MetadataCollections.OBJECTGROUP, idOg.getId()));
@@ -362,11 +384,13 @@ public class WebApplicationResourceDeleteTest {
     }
 
     @Test
+    @RunWithCustomExecutor
     public void testDeleteMetadataUnitOK() {
         try {
             final GUID idUnit = addData(MetadataCollections.UNIT);
             assertTrue(existsData(MetadataCollections.UNIT, idUnit.getId()));
             given().header(GlobalDataRest.X_TENANT_ID, TENANT_ID).header(GlobalDataRest.X_CSRF_TOKEN, tokenCSRF)
+                .header(GlobalDataRest.X_REQUEST_ID, VitamThreadUtils.getVitamSession().getRequestId())
                 .cookie(COOKIE).expect().statusCode(Status.OK.getStatusCode()).when()
                 .delete("delete/metadata/unit");
             assertFalse(existsData(MetadataCollections.UNIT, idUnit.getId()));
@@ -385,6 +409,7 @@ public class WebApplicationResourceDeleteTest {
             final GUID idUnit = addData(FunctionalAdminCollections.ACCESS_CONTRACT);
             assertTrue(existsData(FunctionalAdminCollections.ACCESS_CONTRACT, idUnit.getId()));
             given().header(GlobalDataRest.X_TENANT_ID, TENANT_ID).header(GlobalDataRest.X_CSRF_TOKEN, tokenCSRF)
+                .header(GlobalDataRest.X_REQUEST_ID, VitamThreadUtils.getVitamSession().getRequestId())
                 .cookie(COOKIE).expect().statusCode(Status.OK.getStatusCode()).when()
                 .delete("delete/masterdata/accessContract");
             assertFalse(existsData(FunctionalAdminCollections.ACCESS_CONTRACT, idUnit.getId()));
@@ -403,6 +428,7 @@ public class WebApplicationResourceDeleteTest {
             final GUID idUnit = addData(FunctionalAdminCollections.INGEST_CONTRACT);
             assertTrue(existsData(FunctionalAdminCollections.INGEST_CONTRACT, idUnit.getId()));
             given().header(GlobalDataRest.X_TENANT_ID, TENANT_ID).header(GlobalDataRest.X_CSRF_TOKEN, tokenCSRF)
+                .header(GlobalDataRest.X_REQUEST_ID, VitamThreadUtils.getVitamSession().getRequestId())
                 .cookie(COOKIE).expect().statusCode(Status.OK.getStatusCode()).when()
                 .delete("delete/masterdata/ingestContract");
             assertFalse(existsData(FunctionalAdminCollections.INGEST_CONTRACT, idUnit.getId()));
@@ -412,11 +438,9 @@ public class WebApplicationResourceDeleteTest {
         }
     }
 
-
-
     @Test
     @RunWithCustomExecutor
-    public void testDeleteTnrOk() throws SchemaValidationException {
+    public void testDeleteTnrOk() throws Exception {
         try {
             VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
             // insert and check data
@@ -438,6 +462,7 @@ public class WebApplicationResourceDeleteTest {
             assertTrue(existsData(FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL, idRegisterDetail.getId()));
             // delete all
             given().header(GlobalDataRest.X_TENANT_ID, TENANT_ID).header(GlobalDataRest.X_CSRF_TOKEN, tokenCSRF)
+                .header(GlobalDataRest.X_REQUEST_ID, VitamThreadUtils.getVitamSession().getRequestId())
                 .cookie(COOKIE).expect().statusCode(Status.OK.getStatusCode()).when()
                 .delete("delete/deleteTnr");
             // check deleted
@@ -464,6 +489,7 @@ public class WebApplicationResourceDeleteTest {
             final GUID idProfile = addData(FunctionalAdminCollections.PROFILE);
             assertTrue(existsData(FunctionalAdminCollections.PROFILE, idProfile.getId()));
             given().header(GlobalDataRest.X_TENANT_ID, TENANT_ID).header(GlobalDataRest.X_CSRF_TOKEN, tokenCSRF)
+                .header(GlobalDataRest.X_REQUEST_ID, VitamThreadUtils.getVitamSession().getRequestId())
                 .cookie(COOKIE).expect().statusCode(Status.OK.getStatusCode()).when()
                 .delete("delete/masterdata/profile");
             assertFalse(existsData(FunctionalAdminCollections.PROFILE, idProfile.getId()));
@@ -482,6 +508,7 @@ public class WebApplicationResourceDeleteTest {
             final GUID idAgency = addData(FunctionalAdminCollections.AGENCIES);
             assertTrue(existsData(FunctionalAdminCollections.AGENCIES, idAgency.getId()));
             given().header(GlobalDataRest.X_TENANT_ID, TENANT_ID).header(GlobalDataRest.X_CSRF_TOKEN, tokenCSRF)
+                .header(GlobalDataRest.X_REQUEST_ID, VitamThreadUtils.getVitamSession().getRequestId())
                 .cookie(COOKIE).expect().statusCode(Status.OK.getStatusCode()).when()
                 .delete("delete/masterdata/agencies");
             assertFalse(existsData(FunctionalAdminCollections.AGENCIES, idAgency.getId()));
@@ -503,6 +530,7 @@ public class WebApplicationResourceDeleteTest {
             assertTrue(existsData(FunctionalAdminCollections.CONTEXT, adminContext.getId()));
             assertTrue(existsData(FunctionalAdminCollections.CONTEXT, idContext2.getId()));
             given().header(GlobalDataRest.X_TENANT_ID, TENANT_ID).header(GlobalDataRest.X_CSRF_TOKEN, tokenCSRF)
+                .header(GlobalDataRest.X_REQUEST_ID, VitamThreadUtils.getVitamSession().getRequestId())
                 .cookie(COOKIE).expect().statusCode(Status.OK.getStatusCode()).when()
                 .delete("delete/masterdata/context");
             assertTrue(existsData(FunctionalAdminCollections.CONTEXT, adminContext.getId()));
@@ -525,6 +553,7 @@ public class WebApplicationResourceDeleteTest {
             assertTrue(existsData(FunctionalAdminCollections.SECURITY_PROFILE, adminSecurity.getId()));
             assertTrue(existsData(FunctionalAdminCollections.SECURITY_PROFILE, idSecurity.getId()));
             given().header(GlobalDataRest.X_TENANT_ID, TENANT_ID).header(GlobalDataRest.X_CSRF_TOKEN, tokenCSRF)
+                .header(GlobalDataRest.X_REQUEST_ID, VitamThreadUtils.getVitamSession().getRequestId())
                 .cookie(COOKIE).expect().statusCode(Status.OK.getStatusCode()).when()
                 .delete("delete/masterdata/securityProfil");
             assertTrue(existsData(FunctionalAdminCollections.SECURITY_PROFILE, adminSecurity.getId()));
@@ -567,7 +596,10 @@ public class WebApplicationResourceDeleteTest {
             final GUID idOntology = addData(FunctionalAdminCollections.ONTOLOGY);
             assertTrue(existsData(FunctionalAdminCollections.ONTOLOGY, idOntology.getId()));
             // delete all
-            given().header(GlobalDataRest.X_TENANT_ID, TENANT_ID).header(GlobalDataRest.X_CSRF_TOKEN, tokenCSRF)
+            given()
+                .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
+                .header(GlobalDataRest.X_CSRF_TOKEN, tokenCSRF)
+                .header(GlobalDataRest.X_REQUEST_ID, VitamThreadUtils.getVitamSession().getRequestId())
                 .cookie(COOKIE).expect().statusCode(Status.OK.getStatusCode()).when()
                 .delete("delete");
             // check not deleted
@@ -584,37 +616,39 @@ public class WebApplicationResourceDeleteTest {
             assertFalse(existsData(FunctionalAdminCollections.CONTEXT, idContext2.getId()));
             //Admin context must still exist
             assertTrue(existsData(FunctionalAdminCollections.CONTEXT, adminContext.getId()));
-        } catch (final ReferentialException | InvalidParseOperationException e) {
+        } catch (final ReferentialException | InvalidParseOperationException | DocumentAlreadyExistsException e) {
             LOGGER.error(e);
             fail("Exception using mongoDbAccess");
         }
     }
 
     private GUID addData(FunctionalAdminCollections collection)
-        throws ReferentialException, SchemaValidationException {
+        throws ReferentialException, SchemaValidationException, DocumentAlreadyExistsException {
+
         final GUID guid = GUIDFactory.newGUID();
         ObjectNode data1 = JsonHandler.createObjectNode().put("_id", guid.getId());
 
         if (!collection.equals(FunctionalAdminCollections.CONTEXT) &&
-            !collection.equals(FunctionalAdminCollections.SECURITY_PROFILE)) {
+            !collection.equals(FunctionalAdminCollections.SECURITY_PROFILE) &&
+            !collection.equals(FunctionalAdminCollections.FORMATS)) {
             data1.put("_tenant", 1);
         }
         data1.put("_v", "0");
         switch (collection) {
             case ONTOLOGY:
                 data1.put("CreationDate", "2008-10-10");
-                data1.put("Identifier", "Identifier");
+                data1.put("Identifier", "Identifier_" + GUIDFactory.newGUID().getId());
                 data1.put("LastUpdate", "2008-10-10");
                 data1.put("Origin", "EXTERNAL");
                 data1.put("Type", "TEXT");
                 break;
             case AGENCIES:
                 data1.put("Name", "aName");
-                data1.put("Identifier", "Identifier");
+                data1.put("Identifier", "Identifier_" + GUIDFactory.newGUID().getId());
                 break;
             case PROFILE:
                 data1.put("Name", "aName");
-                data1.put("Identifier", "Identifier");
+                data1.put("Identifier", "Identifier_" + GUIDFactory.newGUID().getId());
                 data1.put("Status", "ACTIVE");
                 data1.put("Format", "RNG");
                 data1.put("CreationDate", "2019-02-13");
@@ -622,7 +656,7 @@ public class WebApplicationResourceDeleteTest {
                 break;
             case ACCESS_CONTRACT:
                 data1.put("Name", "aName");
-                data1.put("Identifier", "Identifier");
+                data1.put("Identifier", "Identifier_" + GUIDFactory.newGUID().getId());
                 data1.put("Status", "ACTIVE");
                 data1.put("CreationDate", "2019-02-13");
                 data1.put("LastUpdate", "2019-02-13");
@@ -633,7 +667,7 @@ public class WebApplicationResourceDeleteTest {
                 break;
             case INGEST_CONTRACT:
                 data1.put("Name", "aName");
-                data1.put("Identifier", "Identifier");
+                data1.put("Identifier", "Identifier_" + GUIDFactory.newGUID().getId());
                 data1.put("Status", "ACTIVE");
                 data1.put("CreationDate", "2019-02-13");
                 data1.put("LastUpdate", "2019-02-13");
@@ -653,7 +687,7 @@ public class WebApplicationResourceDeleteTest {
                 break;
             case CONTEXT:
                 data1.put(CONTEXT_NAME, "aName");
-                data1.put("Identifier", "Identifier");
+                data1.put("Identifier", "Identifier_" + GUIDFactory.newGUID().getId());
                 data1.put("CreationDate", "2019-02-13");
                 data1.put("LastUpdate", "2019-02-13");
                 data1.put("EnableControl", true);
@@ -665,14 +699,14 @@ public class WebApplicationResourceDeleteTest {
                 break;
             case SECURITY_PROFILE:
                 data1.put("Name", "aName");
-                data1.put("Identifier", "admin-security-profile");
+                data1.put("Identifier", "admin-security-profile_" + GUIDFactory.newGUID().getId());
                 data1.set("Permissions", new ArrayNode(null));
                 data1.put("FullAccess", true);
                 break;
             case FORMATS:
                 data1.put("Name", "Plain Text File");
                 data1.put("PUID", "x-fmt/111");
-                data1.put("CreationDate", "2019-02-15");
+                data1.put("CreatedDate", "2019-02-15");
                 data1.put("VersionPronom", "94");
                 break;
             case ACCESSION_REGISTER_SUMMARY:
@@ -739,7 +773,7 @@ public class WebApplicationResourceDeleteTest {
 
     public GUID addAdminContextData(FunctionalAdminCollections collection)
         throws ReferentialException, InvalidCreateOperationException, InvalidGuidOperationException,
-        InvalidParseOperationException, SchemaValidationException {
+        InvalidParseOperationException, SchemaValidationException, DocumentAlreadyExistsException {
         final Query query = QueryHelper.or().add(QueryHelper.eq(CONTEXT_NAME, ADMIN_CONTEXT));
         JsonNode select = query.getCurrentObject();
         DbRequestResult result = mongoDbAccessAdmin.findDocuments(select, FunctionalAdminCollections.CONTEXT);
@@ -767,7 +801,7 @@ public class WebApplicationResourceDeleteTest {
 
     public GUID addAdminSecurityData(FunctionalAdminCollections collection)
         throws ReferentialException, InvalidCreateOperationException, InvalidGuidOperationException,
-        InvalidParseOperationException, SchemaValidationException {
+        InvalidParseOperationException, SchemaValidationException, DocumentAlreadyExistsException {
         final Query query = QueryHelper.or().add(QueryHelper.eq(SECURITY_PROFIL_NAME, SECURITY_PROFIL_NAME_TO_SAVE));
         JsonNode select = query.getCurrentObject();
         DbRequestResult result = mongoDbAccessAdmin.findDocuments(select, FunctionalAdminCollections.SECURITY_PROFILE);
@@ -779,7 +813,7 @@ public class WebApplicationResourceDeleteTest {
             final ObjectNode data1 = JsonHandler.createObjectNode().put("_id", adminContext.getId());
             data1.put(SECURITY_PROFIL_NAME, SECURITY_PROFIL_NAME_TO_SAVE);
             data1.put("Identifier", "admin-security-profile");
-            data1.put("Permissions", new ArrayNode(null));
+            data1.set("Permissions", new ArrayNode(null));
             data1.put("FullAccess", true);
             mongoDbAccessAdmin.insertDocument(data1, collection).close();
         }

@@ -50,6 +50,7 @@ import fr.gouv.vitam.common.error.VitamCode;
 import fr.gouv.vitam.common.error.VitamError;
 import fr.gouv.vitam.common.exception.BadRequestException;
 import fr.gouv.vitam.common.exception.DatabaseException;
+import fr.gouv.vitam.common.exception.DocumentAlreadyExistsException;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.SchemaValidationException;
 import fr.gouv.vitam.common.exception.VitamDBException;
@@ -138,12 +139,9 @@ public class OntologyServiceImpl implements OntologyService {
 
     private final MongoDbAccessAdminImpl mongoAccess;
     private final LogbookOperationsClient logbookClient;
-    private final VitamCounterService vitamCounterService;
     private final FunctionalBackupService functionalBackupService;
     private static final String UND_TENANT = "_tenant";
     private static final String UND_ID = "_id";
-
-    private Map<Integer, List<VitamError>> errorsMap;
 
     private Map<OntologyType, List<OntologyType>> typeMap;
 
@@ -151,15 +149,11 @@ public class OntologyServiceImpl implements OntologyService {
      * Constructor
      *
      * @param mongoAccess MongoDB client
-     * @param vitamCounterService the vitam counter service
      * @param functionalBackupService the functional backup service
      */
-    public OntologyServiceImpl(MongoDbAccessAdminImpl mongoAccess,
-        VitamCounterService vitamCounterService, FunctionalBackupService functionalBackupService) {
+    public OntologyServiceImpl(MongoDbAccessAdminImpl mongoAccess, FunctionalBackupService functionalBackupService) {
         this.mongoAccess = mongoAccess;
-        this.vitamCounterService = vitamCounterService;
         logbookClient = LogbookOperationsClientFactory.getInstance().getClient();
-        errorsMap = new HashMap<>();
         initTypeMap();
         this.functionalBackupService = functionalBackupService;
     }
@@ -169,12 +163,12 @@ public class OntologyServiceImpl implements OntologyService {
      */
     private void initTypeMap() {
         typeMap = new HashMap<>();
-        typeMap.put(OntologyType.TEXT, Arrays.asList(OntologyType.KEYWORD));
-        typeMap.put(OntologyType.KEYWORD, Arrays.asList(OntologyType.TEXT));
+        typeMap.put(OntologyType.TEXT, Collections.singletonList(OntologyType.KEYWORD));
+        typeMap.put(OntologyType.KEYWORD, Collections.singletonList(OntologyType.TEXT));
         typeMap.put(OntologyType.DATE, Arrays.asList(OntologyType.KEYWORD, OntologyType.TEXT));
-        typeMap.put(OntologyType.LONG, new ArrayList<>());
-        typeMap.put(OntologyType.DOUBLE, new ArrayList<>());
-        typeMap.put(OntologyType.BOOLEAN, new ArrayList<>());
+        typeMap.put(OntologyType.LONG, Collections.emptyList());
+        typeMap.put(OntologyType.DOUBLE, Collections.emptyList());
+        typeMap.put(OntologyType.BOOLEAN, Collections.emptyList());
         typeMap.put(OntologyType.GEO_POINT, Arrays.asList(OntologyType.KEYWORD, OntologyType.TEXT));
         typeMap.put(OntologyType.ENUM, Arrays.asList(OntologyType.KEYWORD, OntologyType.TEXT));
     }
@@ -490,7 +484,7 @@ public class OntologyServiceImpl implements OntologyService {
      * @throws SchemaValidationException
      */
     private void createOntologies(ArrayNode ontologiesToCreate)
-        throws ReferentialException, SchemaValidationException {
+        throws ReferentialException, SchemaValidationException, DocumentAlreadyExistsException {
         if (ontologiesToCreate.size() > 0) {
             mongoAccess.insertDocuments(ontologiesToCreate, FunctionalAdminCollections.ONTOLOGY).close();
         }

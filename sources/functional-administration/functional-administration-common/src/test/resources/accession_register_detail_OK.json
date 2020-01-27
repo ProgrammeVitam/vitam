@@ -46,6 +46,7 @@
 
 		}
 	],
-	"#version": 0,
-	"#tenant": 0
+	"_id": "guid",
+	"_v": 0,
+	"_tenant": 0
 }

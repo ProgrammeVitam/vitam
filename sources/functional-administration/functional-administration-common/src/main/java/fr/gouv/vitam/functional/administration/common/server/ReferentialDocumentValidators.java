@@ -116,11 +116,7 @@ public final class ReferentialDocumentValidators {
                 return NULL_SCHEMA_VALIDATOR;
 
             case ACCESSION_REGISTER_DETAIL:
-                // FIXME : Accession register detail schema needs to be fixed
-
-                // return ACCESSION_REGISTER_DETAIL_SCHEMA_VALIDATOR;
-                return NULL_SCHEMA_VALIDATOR;
-
+                return ACCESSION_REGISTER_DETAIL_SCHEMA_VALIDATOR;
             case ACCESSION_REGISTER_SYMBOLIC:
                 // FIXME : Don't know why there is no schema validator for this one
                 return NULL_SCHEMA_VALIDATOR;

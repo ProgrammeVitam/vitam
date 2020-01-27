@@ -52,6 +52,7 @@ import fr.gouv.vitam.common.error.VitamCode;
 import fr.gouv.vitam.common.error.VitamError;
 import fr.gouv.vitam.common.exception.BadRequestException;
 import fr.gouv.vitam.common.exception.DatabaseException;
+import fr.gouv.vitam.common.exception.DocumentAlreadyExistsException;
 import fr.gouv.vitam.common.exception.InvalidGuidOperationException;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.SchemaValidationException;
@@ -719,7 +720,8 @@ public class AgenciesService implements VitamAutoCloseable {
     }
 
     private void insertDocuments(List<AgenciesModel> agenciesToInsert, Integer sequence)
-        throws InvalidParseOperationException, ReferentialException, SchemaValidationException {
+        throws InvalidParseOperationException, ReferentialException, SchemaValidationException,
+        DocumentAlreadyExistsException {
 
         ArrayNode agenciesNodeToPersist = JsonHandler.createArrayNode();
 
@@ -746,7 +748,7 @@ public class AgenciesService implements VitamAutoCloseable {
 
     private void commitAgencies()
         throws InvalidParseOperationException, ReferentialException, InvalidCreateOperationException,
-        SchemaValidationException, BadRequestException {
+        SchemaValidationException, BadRequestException, DocumentAlreadyExistsException {
 
         Integer sequence = vitamCounterService
             .getNextSequence(ParameterHelper.getTenantParameter(), SequenceType.AGENCIES_SEQUENCE);

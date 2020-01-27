@@ -23,18 +23,18 @@
  *
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
- *******************************************************************************/
+ */
 package fr.gouv.vitam.functional.administration.common.server;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 
 import fr.gouv.vitam.common.database.builder.request.single.Delete;
-import fr.gouv.vitam.common.database.collections.VitamCollection;
 import fr.gouv.vitam.common.database.server.DbRequestResult;
 import fr.gouv.vitam.common.database.server.mongodb.VitamDocument;
 import fr.gouv.vitam.common.exception.BadRequestException;
 import fr.gouv.vitam.common.exception.DatabaseException;
+import fr.gouv.vitam.common.exception.DocumentAlreadyExistsException;
 import fr.gouv.vitam.common.exception.SchemaValidationException;
 import fr.gouv.vitam.functional.administration.common.exception.ReferentialException;
 
@@ -52,7 +52,7 @@ public interface MongoDbAccessReferential {
      * @throws ReferentialException when error occurs
      */
     DbRequestResult insertDocuments(ArrayNode arrayNode, FunctionalAdminCollections collection)
-        throws ReferentialException, SchemaValidationException;
+        throws ReferentialException, SchemaValidationException, DocumentAlreadyExistsException;
 
     /**
      * insert documents
@@ -64,7 +64,7 @@ public interface MongoDbAccessReferential {
      * 
      */
     DbRequestResult insertDocuments(ArrayNode arrayNode, FunctionalAdminCollections collection, Integer version)
-        throws ReferentialException, SchemaValidationException;
+        throws DocumentAlreadyExistsException, ReferentialException, SchemaValidationException;
 
     /**
      * insert documents
@@ -75,7 +75,7 @@ public interface MongoDbAccessReferential {
      * @throws ReferentialException when error occurs
      */
     DbRequestResult insertDocument(JsonNode jsonNode, FunctionalAdminCollections collection)
-        throws ReferentialException, SchemaValidationException;
+        throws ReferentialException, SchemaValidationException, DocumentAlreadyExistsException;
 
     // Not check, test feature !
     DbRequestResult deleteCollection(FunctionalAdminCollections collection, Delete delete)
@@ -150,7 +150,7 @@ public interface MongoDbAccessReferential {
      * @throws BadRequestException when query is incorrect
      */
     DbRequestResult findDocuments(JsonNode select, FunctionalAdminCollections collection)
-        throws ReferentialException, BadRequestException;
+        throws ReferentialException;
 
     /**
      * @param delete filter

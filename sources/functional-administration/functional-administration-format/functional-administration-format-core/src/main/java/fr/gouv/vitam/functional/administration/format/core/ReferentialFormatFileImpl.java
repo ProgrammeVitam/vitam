@@ -1,4 +1,4 @@
-/*******************************************************************************
+/*
  * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2019)
  *
  * contact.vitam@culture.gouv.fr
@@ -23,7 +23,7 @@
  *
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
- *******************************************************************************/
+ */
 package fr.gouv.vitam.functional.administration.format.core;
 
 import com.fasterxml.jackson.databind.JsonNode;
@@ -44,6 +44,7 @@ import fr.gouv.vitam.common.database.server.DbRequestResult;
 import fr.gouv.vitam.common.database.server.mongodb.VitamDocument;
 import fr.gouv.vitam.common.exception.BadRequestException;
 import fr.gouv.vitam.common.exception.DatabaseException;
+import fr.gouv.vitam.common.exception.DocumentAlreadyExistsException;
 import fr.gouv.vitam.common.exception.InvalidGuidOperationException;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.SchemaValidationException;
@@ -237,7 +238,7 @@ public class ReferentialFormatFileImpl implements ReferentialFile<FileFormat>, V
 
             mongoAccess.insertDocuments((ArrayNode) JsonHandler.toJsonNode(fileFormatsToAdd), FORMATS).close();
 
-        } catch (ReferentialException | SchemaValidationException | InvalidParseOperationException e) {
+        } catch (ReferentialException | DocumentAlreadyExistsException | SchemaValidationException | InvalidParseOperationException e) {
             throw new ReferentialException("Could not insert added formats", e);
         }
     }

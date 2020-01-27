@@ -69,7 +69,6 @@ import static fr.gouv.vitam.common.database.builder.query.QueryHelper.eq;
 import static fr.gouv.vitam.common.database.collections.VitamCollection.getMongoClientOptions;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.fail;
 import static org.mockito.Mockito.mock;
 
 public class ReferentialAccessionRegisterImplTest {
@@ -147,14 +146,8 @@ public class ReferentialAccessionRegisterImplTest {
         accessionRegisterImpl.createOrUpdateAccessionRegister(ardm);
 
         // Test idempotence of ingest
-        try {
-            ardm.setId(GUIDFactory.newGUID().getId());
-            accessionRegisterImpl.createOrUpdateAccessionRegister(ardm);
-            fail("Should throw an exception");
-        } catch (Exception e) {
-            //Ignore
-        }
-
+        ardm.setId(GUIDFactory.newGUID().getId());
+        accessionRegisterImpl.createOrUpdateAccessionRegister(ardm);
 
         Select select = new Select();
         select.setQuery(QueryHelper.eq("OriginatingAgency", "OG_1"));
@@ -178,7 +171,6 @@ public class ReferentialAccessionRegisterImplTest {
         assertThat(summary.getTotalObjectSize().getIngested()).isEqualTo(9999);
         assertThat(summary.getTotalObjectSize().getDeleted()).isEqualTo(0);
         assertThat(summary.getTotalObjectSize().getRemained()).isEqualTo(9999);
-
 
         select = new Select();
         select.setQuery(
@@ -208,7 +200,6 @@ public class ReferentialAccessionRegisterImplTest {
 
         assertThat(detail.get(AccessionRegisterDetail.EVENTS, List.class)).hasSize(1);
 
-
         // Add elimination event 1
         ardm =
             JsonHandler.getFromInputStream(PropertiesUtils.getResourceAsStream(ACCESSION_REGISTER_DETAIL_ELIMINATION),
@@ -217,14 +208,8 @@ public class ReferentialAccessionRegisterImplTest {
         accessionRegisterImpl.createOrUpdateAccessionRegister(ardm);
 
         // Test idempotence of ingest
-        try {
-            ardm.setId(GUIDFactory.newGUID().getId());
-            accessionRegisterImpl.createOrUpdateAccessionRegister(ardm);
-            fail("Should throw an exception");
-        } catch (Exception e) {
-            //Ignore
-        }
-
+        ardm.setId(GUIDFactory.newGUID().getId());
+        accessionRegisterImpl.createOrUpdateAccessionRegister(ardm);
 
         select = new Select();
         select.setQuery(QueryHelper.eq("OriginatingAgency", "OG_1"));
@@ -248,7 +233,6 @@ public class ReferentialAccessionRegisterImplTest {
         assertThat(summary.getTotalObjectSize().getIngested()).isEqualTo(9999);
         assertThat(summary.getTotalObjectSize().getDeleted()).isEqualTo(999);
         assertThat(summary.getTotalObjectSize().getRemained()).isEqualTo(9000);
-
 
         select = new Select();
         select.setQuery(
@@ -287,14 +271,8 @@ public class ReferentialAccessionRegisterImplTest {
         accessionRegisterImpl.createOrUpdateAccessionRegister(ardm);
 
         // Test idempotence of ingest
-        try {
-            ardm.setId(GUIDFactory.newGUID().getId());
-            accessionRegisterImpl.createOrUpdateAccessionRegister(ardm);
-            fail("Should throw an exception");
-        } catch (Exception e) {
-            //Ignore
-        }
-
+        ardm.setId(GUIDFactory.newGUID().getId());
+        accessionRegisterImpl.createOrUpdateAccessionRegister(ardm);
 
         select = new Select();
         select.setQuery(QueryHelper.eq("OriginatingAgency", "OG_1"));
@@ -318,7 +296,6 @@ public class ReferentialAccessionRegisterImplTest {
         assertThat(summary.getTotalObjectSize().getIngested()).isEqualTo(9999);
         assertThat(summary.getTotalObjectSize().getDeleted()).isEqualTo(9999);
         assertThat(summary.getTotalObjectSize().getRemained()).isEqualTo(0);
-
 
         select = new Select();
         select.setQuery(
@@ -347,7 +324,6 @@ public class ReferentialAccessionRegisterImplTest {
         assertThat(detail.getTotalObjectSize().getRemained()).isEqualTo(0);
 
         assertThat(detail.get(AccessionRegisterDetail.EVENTS, List.class)).hasSize(3);
-
     }
 
     @Test

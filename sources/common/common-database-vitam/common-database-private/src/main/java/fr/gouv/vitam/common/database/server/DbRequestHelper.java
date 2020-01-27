@@ -26,23 +26,14 @@
  */
 package fr.gouv.vitam.common.database.server;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.NoSuchElementException;
-
-import fr.gouv.vitam.common.exception.VitamDBException;
-import fr.gouv.vitam.common.logging.VitamLogger;
-import fr.gouv.vitam.common.logging.VitamLoggerFactory;
-import fr.gouv.vitam.common.parameter.ParameterHelper;
-import fr.gouv.vitam.common.thread.VitamThreadUtils;
-import org.bson.conversions.Bson;
-
+import com.mongodb.ErrorCategory;
+import com.mongodb.MongoBulkWriteException;
+import com.mongodb.MongoWriteException;
 import com.mongodb.ServerAddress;
 import com.mongodb.ServerCursor;
 import com.mongodb.client.FindIterable;
 import com.mongodb.client.MongoCursor;
 import com.mongodb.client.model.Filters;
-
 import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.database.builder.query.NopQuery;
 import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
@@ -50,8 +41,19 @@ import fr.gouv.vitam.common.database.collections.VitamCollection;
 import fr.gouv.vitam.common.database.parser.request.single.RequestParserSingle;
 import fr.gouv.vitam.common.database.server.mongodb.VitamDocument;
 import fr.gouv.vitam.common.database.translators.mongodb.SelectToMongodb;
+import fr.gouv.vitam.common.exception.DatabaseException;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
+import fr.gouv.vitam.common.exception.VitamDBException;
 import fr.gouv.vitam.common.logging.SysErrLogger;
+import fr.gouv.vitam.common.logging.VitamLogger;
+import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.common.parameter.ParameterHelper;
+import fr.gouv.vitam.common.thread.VitamThreadUtils;
+import org.bson.conversions.Bson;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.NoSuchElementException;
 
 /**
  * DbRequest Helper common for Single and Multiple
@@ -75,14 +77,52 @@ public class DbRequestHelper {
 
 
     /**
+     * Helper to detect if document already exists so update needed instead of insert
+     *
+     * @return true if an insert that should be an Update, else False
+     */
+    public static boolean isDuplicateKeyError(Exception e) {
+        if (e instanceof MongoBulkWriteException || e instanceof MongoWriteException) {
+            return isDuplicateKeyException(e);
+        }
+
+        if (e instanceof DatabaseException &&
+            (e.getCause() instanceof MongoBulkWriteException || e.getCause() instanceof MongoWriteException)) {
+            return isDuplicateKeyException(e.getCause());
+        }
+        Throwable d = e.getCause();
+        if (d instanceof DatabaseException &&
+            (d.getCause() instanceof MongoBulkWriteException || d.getCause() instanceof MongoWriteException)) {
+            return isDuplicateKeyException(e.getCause());
+        }
+        return false;
+    }
+
+    private static boolean isDuplicateKeyException(Throwable exception) {
+        if (exception instanceof MongoWriteException) {
+            MongoWriteException mongoException = (MongoWriteException) exception;
+            ErrorCategory category = mongoException.getError().getCategory();
+            return ErrorCategory.DUPLICATE_KEY.equals(category);
+        }
+
+        if (exception instanceof MongoBulkWriteException) {
+            MongoBulkWriteException mongoException = (MongoBulkWriteException) exception;
+            return mongoException.getWriteErrors().stream()
+                .allMatch(o -> ErrorCategory.DUPLICATE_KEY.equals(o.getCategory()));
+        }
+
+        return false;
+    }
+
+    /**
      * Private method for select using MongoDb from Elasticsearch result
      *
      * @param collection
      * @param parser
-     * @param list       list of Ids
-     * @param scores     can be null, containing scores
+     * @param list list of Ids
+     * @param scores can be null, containing scores
      * @return MongoCursor<VitamDocument < ?>>
-     * @throws InvalidParseOperationException  when query is not correct
+     * @throws InvalidParseOperationException when query is not correct
      * @throws InvalidCreateOperationException
      */
     @SuppressWarnings("unchecked")

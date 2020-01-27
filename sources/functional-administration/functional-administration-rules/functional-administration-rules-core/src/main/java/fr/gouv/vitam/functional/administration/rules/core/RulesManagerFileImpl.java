@@ -1,4 +1,4 @@
-/*******************************************************************************
+/*
  * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2019)
  *
  * contact.vitam@culture.gouv.fr
@@ -23,7 +23,7 @@
  *
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
- *******************************************************************************/
+ */
 package fr.gouv.vitam.functional.administration.rules.core;
 
 import com.fasterxml.jackson.databind.JsonNode;
@@ -53,6 +53,7 @@ import fr.gouv.vitam.common.digest.Digest;
 import fr.gouv.vitam.common.digest.DigestType;
 import fr.gouv.vitam.common.exception.BadRequestException;
 import fr.gouv.vitam.common.exception.DatabaseException;
+import fr.gouv.vitam.common.exception.DocumentAlreadyExistsException;
 import fr.gouv.vitam.common.exception.InternalServerException;
 import fr.gouv.vitam.common.exception.InvalidGuidOperationException;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
@@ -359,7 +360,7 @@ public class RulesManagerFileImpl implements ReferentialFile<FileRules> {
         } catch (LogbookClientException e) {
             throw new FileRulesException(e);
         } finally {
-            file.delete();
+            Files.delete(file.toPath());
         }
 
     }
@@ -721,7 +722,7 @@ public class RulesManagerFileImpl implements ReferentialFile<FileRules> {
                 fileRulesModelToUpdate, fileRulesModelToDelete, fileRulesModelToInsert);
 
             return secureRules;
-        } catch (ReferentialException | InvalidCreateOperationException | InvalidParseOperationException |
+        } catch (ReferentialException | DocumentAlreadyExistsException | InvalidCreateOperationException | InvalidParseOperationException |
             SchemaValidationException | BadRequestException e) {
             LOGGER.error(e);
             updateCommitFileRulesLogbookOperationOkOrKo(COMMIT_RULES, StatusCode.KO, eipMaster,
@@ -731,7 +732,7 @@ public class RulesManagerFileImpl implements ReferentialFile<FileRules> {
     }
 
     private void commit(ArrayNode validatedRules)
-        throws ReferentialException, SchemaValidationException {
+        throws ReferentialException, SchemaValidationException, DocumentAlreadyExistsException {
         if (validatedRules.size() > 0) {
             Integer sequence = vitamCounterService
                 .getNextSequence(ParameterHelper.getTenantParameter(), SequenceType.RULES_SEQUENCE);

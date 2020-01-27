@@ -1,4 +1,4 @@
-/*******************************************************************************
+/*
  * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2019)
  *
  * contact.vitam@culture.gouv.fr
@@ -23,8 +23,25 @@
  *
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
- *******************************************************************************/
+ */
 package fr.gouv.vitam.functional.administration.rest;
+
+import com.fasterxml.jackson.databind.JsonNode;
+import fr.gouv.vitam.common.GlobalDataRest;
+import fr.gouv.vitam.common.ParametersChecker;
+import fr.gouv.vitam.common.error.VitamError;
+import fr.gouv.vitam.common.exception.InvalidParseOperationException;
+import fr.gouv.vitam.common.exception.VitamException;
+import fr.gouv.vitam.common.logging.VitamLogger;
+import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.common.model.RequestResponse;
+import fr.gouv.vitam.common.model.RequestResponseOK;
+import fr.gouv.vitam.common.model.administration.OntologyModel;
+import fr.gouv.vitam.functional.administration.common.FunctionalBackupService;
+import fr.gouv.vitam.functional.administration.common.exception.ReferentialException;
+import fr.gouv.vitam.functional.administration.common.server.MongoDbAccessAdminImpl;
+import fr.gouv.vitam.functional.administration.ontologies.api.OntologyService;
+import fr.gouv.vitam.functional.administration.ontologies.api.impl.OntologyServiceImpl;
 
 import javax.ws.rs.ApplicationPath;
 import javax.ws.rs.Consumes;
@@ -39,24 +56,6 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 import javax.ws.rs.core.UriInfo;
 import java.util.List;
-
-import com.fasterxml.jackson.databind.JsonNode;
-import fr.gouv.vitam.common.GlobalDataRest;
-import fr.gouv.vitam.common.ParametersChecker;
-import fr.gouv.vitam.common.error.VitamError;
-import fr.gouv.vitam.common.exception.InvalidParseOperationException;
-import fr.gouv.vitam.common.exception.VitamException;
-import fr.gouv.vitam.common.logging.VitamLogger;
-import fr.gouv.vitam.common.logging.VitamLoggerFactory;
-import fr.gouv.vitam.common.model.RequestResponse;
-import fr.gouv.vitam.common.model.RequestResponseOK;
-import fr.gouv.vitam.common.model.administration.OntologyModel;
-import fr.gouv.vitam.functional.administration.common.FunctionalBackupService;
-import fr.gouv.vitam.functional.administration.common.counter.VitamCounterService;
-import fr.gouv.vitam.functional.administration.common.exception.ReferentialException;
-import fr.gouv.vitam.functional.administration.common.server.MongoDbAccessAdminImpl;
-import fr.gouv.vitam.functional.administration.ontologies.api.OntologyService;
-import fr.gouv.vitam.functional.administration.ontologies.api.impl.OntologyServiceImpl;
 
 /**
  * This resource manage Ontologies CRUD operations
@@ -76,18 +75,14 @@ public class OntologyResource {
         "The dsl query is mandatory";
 
     private final MongoDbAccessAdminImpl mongoAccess;
-    private final VitamCounterService vitamCounterService;
     private final FunctionalBackupService functionalBackupService;
 
     /**
      * @param mongoAccess
-     * @param vitamCounterService
      * @param functionalBackupService
      */
-    public OntologyResource(MongoDbAccessAdminImpl mongoAccess,
-        VitamCounterService vitamCounterService, FunctionalBackupService functionalBackupService) {
+    public OntologyResource(MongoDbAccessAdminImpl mongoAccess, FunctionalBackupService functionalBackupService) {
         this.mongoAccess = mongoAccess;
-        this.vitamCounterService = vitamCounterService;
         this.functionalBackupService = functionalBackupService;
         LOGGER.debug("init Ontology Resource server");
     }
@@ -112,11 +107,12 @@ public class OntologyResource {
     @POST
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    public Response importOntologies(@HeaderParam(GlobalDataRest.FORCE_UPDATE) boolean forceUpdate, List<OntologyModel> ontologyModelList, @Context UriInfo uri) {
+    public Response importOntologies(@HeaderParam(GlobalDataRest.FORCE_UPDATE) boolean forceUpdate,
+        List<OntologyModel> ontologyModelList, @Context UriInfo uri) {
         ParametersChecker.checkParameter(ONTOLOGY_JSON_IS_MANDATORY_PATAMETER, ontologyModelList);
 
         try (OntologyService ontologyService =
-            new OntologyServiceImpl(mongoAccess, vitamCounterService, functionalBackupService)) {
+            new OntologyServiceImpl(mongoAccess, functionalBackupService)) {
             RequestResponse requestResponse = ontologyService.importOntologies(forceUpdate, ontologyModelList);
 
             if (!requestResponse.isOk()) {
@@ -149,7 +145,7 @@ public class OntologyResource {
     public Response findOntologies(JsonNode queryDsl) {
 
         try (OntologyService ontologyService =
-            new OntologyServiceImpl(mongoAccess, vitamCounterService, functionalBackupService)) {
+            new OntologyServiceImpl(mongoAccess, functionalBackupService)) {
 
             final RequestResponseOK<OntologyModel> ontologyModelList =
                 ontologyService.findOntologies(queryDsl).setQuery(queryDsl);
@@ -178,23 +174,23 @@ public class OntologyResource {
     public Response findOntologiesForCache(JsonNode queryDsl) {
 
         try (OntologyService ontologyService =
-                     new OntologyServiceImpl(mongoAccess, vitamCounterService, functionalBackupService)) {
+            new OntologyServiceImpl(mongoAccess, functionalBackupService)) {
 
             final RequestResponseOK<OntologyModel> ontologyModelList =
-                    ontologyService.findOntologiesForCache(queryDsl).setQuery(queryDsl);
+                ontologyService.findOntologiesForCache(queryDsl).setQuery(queryDsl);
 
             return Response.status(Status.OK)
-                    .entity(ontologyModelList)
-                    .build();
+                .entity(ontologyModelList)
+                .build();
 
         } catch (ReferentialException e) {
             LOGGER.error(e);
             return Response.status(Status.BAD_REQUEST)
-                    .entity(getErrorEntity(Status.BAD_REQUEST, e.getMessage(), null)).build();
+                .entity(getErrorEntity(Status.BAD_REQUEST, e.getMessage(), null)).build();
         } catch (final InvalidParseOperationException e) {
             LOGGER.error(e);
             return Response.status(Status.INTERNAL_SERVER_ERROR)
-                    .entity(getErrorEntity(Status.INTERNAL_SERVER_ERROR, e.getMessage(), null)).build();
+                .entity(getErrorEntity(Status.INTERNAL_SERVER_ERROR, e.getMessage(), null)).build();
         }
     }
 

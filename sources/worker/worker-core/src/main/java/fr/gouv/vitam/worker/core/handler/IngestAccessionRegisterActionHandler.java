@@ -1,4 +1,4 @@
-/*******************************************************************************
+/*
  * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2019)
  *
  * contact.vitam@culture.gouv.fr
@@ -23,61 +23,32 @@
  *
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
- *******************************************************************************/
+ */
 package fr.gouv.vitam.worker.core.handler;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.node.ArrayNode;
-import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.base.Strings;
-import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.SedaConstants;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
-import fr.gouv.vitam.common.guid.GUID;
-import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.ItemStatus;
-import fr.gouv.vitam.common.model.RequestResponse;
-import fr.gouv.vitam.common.model.StatusCode;
-import fr.gouv.vitam.common.model.VitamAutoCloseable;
-import fr.gouv.vitam.common.model.administration.AccessionRegisterDetailModel;
-import fr.gouv.vitam.common.model.administration.AccessionRegisterStatus;
-import fr.gouv.vitam.common.model.administration.RegisterValueDetailModel;
-import fr.gouv.vitam.common.model.administration.RegisterValueEventModel;
-import fr.gouv.vitam.common.server.HeaderIdHelper;
-import fr.gouv.vitam.functional.administration.client.AdminManagementClient;
 import fr.gouv.vitam.functional.administration.client.AdminManagementClientFactory;
-import fr.gouv.vitam.functional.administration.common.exception.AccessionRegisterException;
-import fr.gouv.vitam.functional.administration.common.exception.AdminManagementClientServerException;
 import fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess;
-import fr.gouv.vitam.metadata.api.exception.MetaDataClientServerException;
-import fr.gouv.vitam.metadata.api.model.ObjectGroupPerOriginatingAgency;
-import fr.gouv.vitam.metadata.api.model.UnitPerOriginatingAgency;
-import fr.gouv.vitam.metadata.client.MetaDataClient;
 import fr.gouv.vitam.metadata.client.MetaDataClientFactory;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 import fr.gouv.vitam.worker.common.HandlerIO;
-import fr.gouv.vitam.worker.core.impl.HandlerIOImpl;
 
 import java.io.File;
-import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 /**
  * Accession Register Handler
  */
 public class IngestAccessionRegisterActionHandler extends AbstractAccessionRegisterAction {
-    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(IngestAccessionRegisterActionHandler.class);
+    private static final VitamLogger LOGGER =
+        VitamLoggerFactory.getInstance(IngestAccessionRegisterActionHandler.class);
     private static final String HANDLER_ID = "ACCESSION_REGISTRATION";
     private static final int SEDA_PARAMETERS_RANK = 0;
 
@@ -89,7 +60,7 @@ public class IngestAccessionRegisterActionHandler extends AbstractAccessionRegis
     }
 
     IngestAccessionRegisterActionHandler(MetaDataClientFactory metaDataClientFactory,
-                                         AdminManagementClientFactory adminManagementClientFactory) {
+        AdminManagementClientFactory adminManagementClientFactory) {
         super(metaDataClientFactory, adminManagementClientFactory);
     }
 
@@ -100,7 +71,8 @@ public class IngestAccessionRegisterActionHandler extends AbstractAccessionRegis
     }
 
     @Override
-    protected void prepareAccessionRegisterInformation(WorkerParameters params, HandlerIO handler, AccessionRegisterInfo accessionRegisterInfo) throws ProcessingException, InvalidParseOperationException {
+    protected void prepareAccessionRegisterInformation(WorkerParameters params, HandlerIO handler,
+        AccessionRegisterInfo accessionRegisterInfo) throws ProcessingException, InvalidParseOperationException {
         checkMandatoryIOParameter(handler);
         if (LOGGER.isDebugEnabled()) {
             LOGGER.debug("Params: " + params);
@@ -108,8 +80,8 @@ public class IngestAccessionRegisterActionHandler extends AbstractAccessionRegis
 
 
         final JsonNode sedaParameters =
-                JsonHandler.getFromFile((File) handler.getInput(SEDA_PARAMETERS_RANK))
-                        .get(SedaConstants.TAG_ARCHIVE_TRANSFER);
+            JsonHandler.getFromFile((File) handler.getInput(SEDA_PARAMETERS_RANK))
+                .get(SedaConstants.TAG_ARCHIVE_TRANSFER);
 
         if (sedaParameters != null) {
             final JsonNode dataObjectNode = sedaParameters.get(SedaConstants.TAG_DATA_OBJECT_PACKAGE);
@@ -128,9 +100,9 @@ public class IngestAccessionRegisterActionHandler extends AbstractAccessionRegis
                 }
 
                 final JsonNode nodeAcquisitionInformation =
-                        dataObjectNode.get(SedaConstants.TAG_ACQUISITIONINFORMATION);
+                    dataObjectNode.get(SedaConstants.TAG_ACQUISITIONINFORMATION);
                 if (nodeAcquisitionInformation != null &&
-                        !Strings.isNullOrEmpty(nodeAcquisitionInformation.asText())) {
+                    !Strings.isNullOrEmpty(nodeAcquisitionInformation.asText())) {
                     accessionRegisterInfo.setAcquisitionInformation(nodeAcquisitionInformation.asText());
                 }
 
