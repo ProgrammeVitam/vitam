@@ -73,17 +73,12 @@ public class WorkspaceBufferingInputStream extends InputStream {
         // Cleanup previously open input stream
         cleanup();
 
-        Response response = null;
-        InputStream objInputStream = null;
-
         // Load next chunk and store it :
         // - In memory if chunk size <= maxInMemoryBufferSize
         // - In a tmp file otherwise (<= maxOnDiskBufferSize)
-        try (WorkspaceClient workspaceClient = this.workspaceClientFactory.getClient()) {
-
-            response = workspaceClient
-                .getObject(this.containerName, this.objectName, this.totalReadBytes, (long) this.maxOnDiskBufferSize);
-            objInputStream = response.readEntity(InputStream.class);
+        try (WorkspaceClient workspaceClient = this.workspaceClientFactory.getClient();
+            Response response = workspaceClient.getObject(this.containerName, this.objectName, this.totalReadBytes, (long) this.maxOnDiskBufferSize);
+            InputStream objInputStream = response.readEntity(InputStream.class)) {
 
             int chunkSize = Integer.parseInt(response.getHeaderString(GlobalDataRest.X_CHUNK_LENGTH));
 
@@ -94,9 +89,6 @@ public class WorkspaceBufferingInputStream extends InputStream {
 
         } catch (ContentAddressableStorageServerException e) {
             throw new IOException(e);
-        } finally {
-            IOUtils.closeQuietly(objInputStream);
-            StreamUtils.consumeAnyEntityAndClose(response);
         }
     }
 
