@@ -67,6 +67,7 @@ import static fr.gouv.vitam.common.thread.VitamThreadUtils.getVitamSession;
 import static fr.gouv.vitam.storage.engine.common.model.DataCategory.STORAGEACCESSLOG;
 import static javax.ws.rs.core.Response.Status.Family.SUCCESSFUL;
 import static javax.ws.rs.core.Response.Status.Family.REDIRECTION;
+import static javax.ws.rs.core.Response.Status.INTERNAL_SERVER_ERROR;
 import static javax.ws.rs.core.Response.Status.PRECONDITION_FAILED;
 
 class AccessInternalClientRest extends DefaultClient implements AccessInternalClient {
@@ -357,7 +358,7 @@ class AccessInternalClientRest extends DefaultClient implements AccessInternalCl
         try {
             return make(get().withBefore(CHECK_REQUEST_ID).withPath(DIPEXPORT + id + "/dip").withOctetAccept());
         } catch (final VitamClientInternalException e) {
-            throw new AccessInternalClientServerException(INTERNAL_SERVER_ERROR, e); // access-common
+            throw new AccessInternalClientServerException(INTERNAL_SERVER_ERROR.getReasonPhrase(), e); // access-common
         }
     }
 
@@ -367,7 +368,7 @@ class AccessInternalClientRest extends DefaultClient implements AccessInternalCl
         try {
             return make(get().withBefore(CHECK_REQUEST_ID).withPath(TRANSFER_EXPORT + id + "/sip").withOctetAccept());
         } catch (final VitamClientInternalException e) {
-            throw new AccessInternalClientServerException(INTERNAL_SERVER_ERROR, e); // access-common
+            throw new AccessInternalClientServerException(INTERNAL_SERVER_ERROR.getReasonPhrase(), e); // access-common
         }
     }
 
@@ -531,7 +532,7 @@ class AccessInternalClientRest extends DefaultClient implements AccessInternalCl
 
         switch (status) {
             case INTERNAL_SERVER_ERROR:
-                throw new AccessInternalClientServerException(INTERNAL_SERVER_ERROR);
+                throw new AccessInternalClientServerException(INTERNAL_SERVER_ERROR.getReasonPhrase());
             case NOT_FOUND:
                 throw new AccessInternalClientNotFoundException(NOT_FOUND_EXCEPTION);
             case UNAUTHORIZED:

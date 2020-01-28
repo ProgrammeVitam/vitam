@@ -27,17 +27,15 @@
 package fr.gouv.vitam.common.client;
 
 
-import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.List;
+import fr.gouv.vitam.common.exception.VitamClientInternalException;
 
-import javax.ws.rs.HttpMethod;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.MultivaluedHashMap;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
-
-import fr.gouv.vitam.common.exception.VitamClientInternalException;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Objects;
 
 /**
  * Vitam Restassured like client for Junit test</br>
@@ -222,25 +220,19 @@ public class VitamRestTestClient extends DefaultClient {
             return finalPath.toString();
         }
 
-        /**
-         * The response content is ignored, only the status code is returned.
-         *
-         * @param httpMethod
-         * @param path
-         * @return the status code
-         * @throws VitamClientInternalException if the status code is not the one expected (if specified)
-         */
-        public int execute(String httpMethod, String path) throws VitamClientInternalException {
-            Response response = null;
-            try {
-                final String finalPath = getFinalPath(path);
-                response = client.performRequest(httpMethod, finalPath, headers, body, contentType, acceptMediaType);
+        public int execute(VitamRequestBuilder request) throws VitamClientInternalException {
+            request.withHeaders(headers).withAccept(acceptMediaType);
+            if (!Objects.isNull(contentType)) {
+                request.withContentType(contentType);
+            }
+            if (!Objects.isNull(body)) {
+                request.withBody(body);
+            }
+            try (Response response = client.make(request)) {
                 final int status = response.getStatus();
                 checkStatus(status);
                 reset();
                 return status;
-            } finally {
-                client.consumeAnyEntityAndClose(response);
             }
         }
 
@@ -251,7 +243,7 @@ public class VitamRestTestClient extends DefaultClient {
          * @throws VitamClientInternalException
          */
         public int get(String path) throws VitamClientInternalException {
-            return execute(HttpMethod.GET, path);
+            return execute(VitamRequestBuilder.get().withPath(getFinalPath(path)));
         }
 
         /**
@@ -261,7 +253,7 @@ public class VitamRestTestClient extends DefaultClient {
          * @throws VitamClientInternalException
          */
         public int delete(String path) throws VitamClientInternalException {
-            return execute(HttpMethod.DELETE, path);
+            return execute(VitamRequestBuilder.delete().withPath(getFinalPath(path)));
         }
 
         /**
@@ -271,7 +263,7 @@ public class VitamRestTestClient extends DefaultClient {
          * @throws VitamClientInternalException
          */
         public int head(String path) throws VitamClientInternalException {
-            return execute(HttpMethod.HEAD, path);
+            return execute(VitamRequestBuilder.head().withPath(getFinalPath(path)));
         }
 
         /**
@@ -281,7 +273,7 @@ public class VitamRestTestClient extends DefaultClient {
          * @throws VitamClientInternalException
          */
         public int options(String path) throws VitamClientInternalException {
-            return execute(HttpMethod.OPTIONS, path);
+            return execute(VitamRequestBuilder.options().withPath(getFinalPath(path)));
         }
 
         /**
@@ -291,7 +283,7 @@ public class VitamRestTestClient extends DefaultClient {
          * @throws VitamClientInternalException
          */
         public int post(String path) throws VitamClientInternalException {
-            return execute(HttpMethod.POST, path);
+            return execute(VitamRequestBuilder.post().withPath(getFinalPath(path)));
         }
 
         /**
@@ -301,34 +293,24 @@ public class VitamRestTestClient extends DefaultClient {
          * @throws VitamClientInternalException
          */
         public int put(String path) throws VitamClientInternalException {
-            return execute(HttpMethod.PUT, path);
+            return execute(VitamRequestBuilder.put().withPath(getFinalPath(path)));
         }
 
-        /**
-         * The response content is returned according to type, except if status code is different than the one expected.
-         * </br>
-         * <b>Important:</b> if the entityType is an InputStream, it will be already consumed and closed.
-         *
-         * @param <T> the type of the entityType
-         *
-         * @param httpMethod
-         * @param path
-         * @param entityTpe
-         * @return the entity of type <T>
-         * @throws VitamClientInternalException if the status code is not the one expected (if specified)
-         */
-        public <T> T execute(String httpMethod, String path, Class<T> entityTpe)
+        public <T> T execute(VitamRequestBuilder request, Class<T> entityTpe)
             throws VitamClientInternalException {
-            Response response = null;
-            try {
-                final String finalPath = getFinalPath(path);
-                response = client.performRequest(httpMethod, finalPath, headers, body, contentType, acceptMediaType);
+            request.withHeaders(headers)
+                .withAccept(acceptMediaType);
+            if (!Objects.isNull(contentType)) {
+                request.withContentType(contentType);
+            }
+            if (!Objects.isNull(body)) {
+                request.withBody(body);
+            }
+            try (Response response = client.make(request)) {
                 final int status = response.getStatus();
                 checkStatus(status);
                 reset();
                 return response.readEntity(entityTpe);
-            } finally {
-                client.consumeAnyEntityAndClose(response);
             }
         }
 
@@ -340,7 +322,7 @@ public class VitamRestTestClient extends DefaultClient {
          * @throws VitamClientInternalException
          */
         public <T> T get(String path, Class<T> entityTpe) throws VitamClientInternalException {
-            return execute(HttpMethod.GET, path, entityTpe);
+            return execute(VitamRequestBuilder.get().withPath(getFinalPath(path)), entityTpe);
         }
 
         /**
@@ -351,7 +333,7 @@ public class VitamRestTestClient extends DefaultClient {
          * @throws VitamClientInternalException
          */
         public <T> T delete(String path, Class<T> entityTpe) throws VitamClientInternalException {
-            return execute(HttpMethod.DELETE, path, entityTpe);
+            return execute(VitamRequestBuilder.delete().withPath(getFinalPath(path)), entityTpe);
         }
 
         /**
@@ -362,7 +344,7 @@ public class VitamRestTestClient extends DefaultClient {
          * @throws VitamClientInternalException
          */
         public <T> T options(String path, Class<T> entityTpe) throws VitamClientInternalException {
-            return execute(HttpMethod.OPTIONS, path, entityTpe);
+            return execute(VitamRequestBuilder.options().withPath(getFinalPath(path)), entityTpe);
         }
 
         /**
@@ -373,7 +355,7 @@ public class VitamRestTestClient extends DefaultClient {
          * @throws VitamClientInternalException
          */
         public <T> T post(String path, Class<T> entityTpe) throws VitamClientInternalException {
-            return execute(HttpMethod.POST, path, entityTpe);
+            return execute(VitamRequestBuilder.post().withPath(getFinalPath(path)), entityTpe);
         }
 
         /**
@@ -384,7 +366,7 @@ public class VitamRestTestClient extends DefaultClient {
          * @throws VitamClientInternalException
          */
         public <T> T put(String path, Class<T> entityTpe) throws VitamClientInternalException {
-            return execute(HttpMethod.PUT, path, entityTpe);
+            return execute(VitamRequestBuilder.put().withPath(getFinalPath(path)), entityTpe);
         }
     }
 }

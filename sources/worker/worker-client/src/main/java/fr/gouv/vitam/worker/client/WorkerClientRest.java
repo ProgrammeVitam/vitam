@@ -43,6 +43,7 @@ import javax.ws.rs.core.Response;
 import static fr.gouv.vitam.common.client.VitamRequestBuilder.post;
 import static javax.ws.rs.core.Response.Status.Family.REDIRECTION;
 import static javax.ws.rs.core.Response.Status.Family.SUCCESSFUL;
+import static javax.ws.rs.core.Response.Status.INTERNAL_SERVER_ERROR;
 import static javax.ws.rs.core.Response.Status.fromStatusCode;
 
 /**
@@ -83,15 +84,15 @@ class WorkerClientRest extends DefaultClient implements WorkerClient {
                 throw new WorkerNotFoundClientException(status.getReasonPhrase());
             default:
                 try {
-                    LOGGER.error(INTERNAL_SERVER_ERROR + " during execution of " +
+                    LOGGER.error(INTERNAL_SERVER_ERROR.getReasonPhrase() + " during execution of " +
                         VitamThreadUtils.getVitamSession().getRequestId() + " Request, stepname:  " +
                         step.getStep().getStepName() + " : " + status.getReasonPhrase());
                 } catch (final VitamThreadAccessException e) {
                     LOGGER.error(
-                        INTERNAL_SERVER_ERROR + " during execution of <unknown request id> Request, stepname:  " +
+                        INTERNAL_SERVER_ERROR.getReasonPhrase() + " during execution of <unknown request id> Request, stepname:  " +
                             step.getStep().getStepName() + " : " + status.getReasonPhrase());
                 }
-                throw new WorkerServerClientException(INTERNAL_SERVER_ERROR);
+                throw new WorkerServerClientException(INTERNAL_SERVER_ERROR.getReasonPhrase());
         }
     }
 }

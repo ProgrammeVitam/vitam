@@ -139,8 +139,8 @@ public class ConnectionImpl extends AbstractConnection {
                 LOGGER.error(status.getReasonPhrase());
                 throw new StorageDriverConflictException(getDriverName(), status.getReasonPhrase());
             default:
-                LOGGER.error(INTERNAL_SERVER_ERROR + " : " + status.getReasonPhrase());
-                throw new StorageDriverException(getDriverName(), INTERNAL_SERVER_ERROR, true);
+                LOGGER.error(status.getReasonPhrase());
+                throw new StorageDriverException(getDriverName(), status.getReasonPhrase(), true);
         }
     }
 
@@ -388,8 +388,8 @@ public class ConnectionImpl extends AbstractConnection {
                     LOGGER.error(BAD_REQUEST_ERROR_MESSAGE);
                     throw new StorageDriverPreconditionFailedException(getDriverName(), BAD_REQUEST_ERROR_MESSAGE);
                 default:
-                    LOGGER.error(INTERNAL_SERVER_ERROR + " : " + status.getReasonPhrase());
-                    throw new StorageDriverException(getDriverName(), INTERNAL_SERVER_ERROR, true);
+                    LOGGER.error(status.getReasonPhrase());
+                    throw new StorageDriverException(getDriverName(), status.getReasonPhrase(), true);
             }
         } catch (final VitamClientInternalException e) {
             LOGGER.error(VitamCodeHelper.getLogMessage(VitamCode.STORAGE_TECHNICAL_INTERNAL_ERROR), e);

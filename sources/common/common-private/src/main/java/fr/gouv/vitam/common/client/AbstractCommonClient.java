@@ -33,6 +33,7 @@ import fr.gouv.vitam.common.client.configuration.ClientConfiguration;
 import fr.gouv.vitam.common.exception.VitamApplicationServerDisconnectException;
 import fr.gouv.vitam.common.exception.VitamApplicationServerException;
 import fr.gouv.vitam.common.exception.VitamClientInternalException;
+import fr.gouv.vitam.common.exception.VitamRuntimeException;
 import fr.gouv.vitam.common.logging.SysErrLogger;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
@@ -41,10 +42,10 @@ import fr.gouv.vitam.common.retryable.RetryableOnException;
 import fr.gouv.vitam.common.retryable.RetryableParameters;
 import fr.gouv.vitam.common.security.filter.AuthorizationFilterHelper;
 import fr.gouv.vitam.common.stream.StreamUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.http.NoHttpResponseException;
 import org.apache.http.conn.ConnectTimeoutException;
 
-import javax.ws.rs.HttpMethod;
 import javax.ws.rs.ProcessingException;
 import javax.ws.rs.client.Client;
 import javax.ws.rs.client.Entity;
@@ -55,7 +56,6 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.MultivaluedHashMap;
 import javax.ws.rs.core.MultivaluedMap;
 import javax.ws.rs.core.Response;
-import javax.ws.rs.core.Response.Status;
 import java.io.InputStream;
 import java.net.SocketException;
 import java.net.UnknownHostException;
@@ -65,13 +65,12 @@ import java.util.Map.Entry;
 import java.util.function.Predicate;
 
 import static java.util.concurrent.TimeUnit.SECONDS;
+import static javax.ws.rs.core.Response.Status.Family.REDIRECTION;
+import static javax.ws.rs.core.Response.Status.Family.SUCCESSFUL;
 
 abstract class AbstractCommonClient implements BasicClient {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(AbstractCommonClient.class);
 
-    protected static final String INTERNAL_SERVER_ERROR = "Internal Server Error";
-
-    private static final String BODY_AND_CONTENT_TYPE_CANNOT_BE_NULL = "Body and ContentType cannot be null";
     private static final String ARGUMENT_CANNOT_BE_NULL_EXCEPT_HEADERS = "Argument cannot be null except headers";
 
     private final RetryableParameters retryableParameters;
@@ -153,79 +152,55 @@ abstract class AbstractCommonClient implements BasicClient {
     @Override
     public void checkStatus(MultivaluedHashMap<String, Object> headers)
         throws VitamApplicationServerException {
-        Response response = null;
-        try {
-            response = performRequest(HttpMethod.GET, STATUS_URL, headers, MediaType.APPLICATION_JSON_TYPE);
-            final Response.Status status = Response.Status.fromStatusCode(response.getStatus());
-            if (status == Status.OK || status == Status.NO_CONTENT) {
+        VitamRequestBuilder request = VitamRequestBuilder.get().withPath(STATUS_URL).withHeaders(headers).withJsonAccept();
+        try (Response response = make(request)) {
+            Response.Status status = response.getStatusInfo().toEnum();
+            if (SUCCESSFUL.equals(status.getFamily()) || REDIRECTION.equals(status.getFamily())) {
                 return;
             }
-            final String messageText = INTERNAL_SERVER_ERROR + " : " + status.getReasonPhrase();
-            LOGGER.error(messageText);
-            throw new VitamApplicationServerException(messageText);
-        } catch (ProcessingException | VitamClientInternalException e) {
-            final String messageText = INTERNAL_SERVER_ERROR + " : " + e.getMessage();
-            LOGGER.error(messageText);
-            throw new VitamApplicationServerDisconnectException(messageText, e);
-        } finally {
-            consumeAnyEntityAndClose(response);
+            LOGGER.error(status.getReasonPhrase());
+            throw new VitamApplicationServerException(status.getReasonPhrase());
+        } catch (VitamClientInternalException e) {
+            throw new VitamApplicationServerDisconnectException(e);
         }
     }
 
-    public Response make(VitamRequestBuilder vitamRequestBuilder) throws VitamClientInternalException {
-        vitamRequestBuilder.runBeforeExecRequest();
-        return new VitamAutoClosableResponse(
-            request(
-                vitamRequestBuilder.getHttpMethod(),
-                vitamRequestBuilder.getPath(),
-                vitamRequestBuilder.getHeaders(),
-                vitamRequestBuilder.getQueryParams(),
-                vitamRequestBuilder.getBody(),
-                vitamRequestBuilder.getContentType(),
-                vitamRequestBuilder.getAccept(),
-                vitamRequestBuilder.isChunckedMode()
-            )
-        );
+    public Response makeSpecifyingUrl(VitamRequestBuilder request) throws VitamClientInternalException {
+        if (StringUtils.isBlank(request.getBaseUrl())) {
+            throw new VitamRuntimeException("Base URL must not be 'null nor empty' with method 'makeSpecifyingUrl'.");
+        }
+        return doRequest(request);
     }
 
-    @Deprecated
-    protected Response performRequest(String httpMethod, String path, MultivaluedMap<String, Object> headers,
-        MediaType accept)
-        throws VitamClientInternalException {
-        return request(httpMethod, path, headers, null, null, null, accept, false);
+    public Response make(VitamRequestBuilder request) throws VitamClientInternalException {
+        if (StringUtils.isNotBlank(request.getBaseUrl())) {
+            throw new VitamRuntimeException(String.format("Base URL must not be 'set' with method 'make' it will be override, here it equals '%s'.", request.getBaseUrl()));
+        }
+        request.withBaseUrl(getServiceUrl());
+        return doRequest(request);
     }
 
-    @Deprecated
-    protected Response performRequest(String httpMethod, String path, MultivaluedMap<String, Object> headers,
-        MultivaluedMap<String, Object> queryParams,
-        MediaType accept)
-        throws VitamClientInternalException {
-        return request(httpMethod, path, headers, queryParams, null, null, accept, false);
-    }
+    private Response doRequest(VitamRequestBuilder request) throws VitamClientInternalException {
+        request.runBeforeExecRequest();
 
-    @Deprecated
-    protected Response performRequest(String httpMethod, String path, MultivaluedMap<String, Object> headers,
-        Object body,
-        MediaType contentType, MediaType accept)
-        throws VitamClientInternalException {
-        return request(httpMethod, path, headers, null, body, contentType, accept, getChunkedMode());
-    }
-
-    @Deprecated
-    protected Response performRequest(String httpMethod, String path, MultivaluedMap<String, Object> headers,
-        Object body,
-        MediaType contentType, MediaType accept, boolean chunkedMode)
-        throws VitamClientInternalException {
-        return request(httpMethod, path, headers, null, body, contentType, accept, chunkedMode);
-    }
-
-    private Response request(String httpMethod, String path, MultivaluedMap<String, Object> headers, MultivaluedMap<String, Object> queryParams,
-        Object body,
-        MediaType contentType, MediaType accept, boolean chunkedMode)
-        throws VitamClientInternalException {
         try {
-            Builder builder = buildRequest(httpMethod, path, headers, queryParams, accept, chunkedMode);
-            return retryIfNecessary(httpMethod, body, contentType, builder);
+            Builder builder = buildRequest(
+                request.getHttpMethod(),
+                request.getBaseUrl(),
+                request.getPath(),
+                request.getHeaders(),
+                request.getAccept(),
+                request.isChunckedMode()
+            );
+
+            Response response = retryIfNecessary(
+                request.getHttpMethod(),
+                request.getBody(),
+                request.getContentType(),
+                builder
+            );
+
+            return new VitamAutoClosableResponse(response);
         } catch (final ProcessingException e) {
             throw new VitamClientInternalException(e);
         }
@@ -269,34 +244,12 @@ abstract class AbstractCommonClient implements BasicClient {
         }
     }
 
-    Builder buildRequest(String httpMethod, String url, String path, MultivaluedMap<String, Object> headers,
-        MediaType accept, boolean chunkedMode) {
-        return buildRequest(httpMethod, url, path, headers, null, accept, chunkedMode);
-    }
-
-    private Builder buildRequest(String httpMethod, String path, MultivaluedMap<String, Object> headers,
-        MultivaluedMap<String, Object> queryParams,
-        MediaType accept,
-        boolean chunkedMode) {
-        return buildRequest(httpMethod, getServiceUrl(), path, headers, queryParams, accept, chunkedMode);
-    }
-
     private Builder buildRequest(String httpMethod, String url, String path, MultivaluedMap<String, Object> headers,
-        MultivaluedMap<String, Object> queryParams,
         MediaType accept, boolean chunkedMode) {
 
         ParametersChecker.checkParameter(ARGUMENT_CANNOT_BE_NULL_EXCEPT_HEADERS, httpMethod, path, accept);
 
         WebTarget webTarget = getHttpClient(chunkedMode).target(url).path(path);
-
-        //add query parameters
-        if (HttpMethod.GET.equals(httpMethod) && queryParams != null) {
-            for (final Entry<String, List<Object>> entry : queryParams.entrySet()) {
-                for (final Object value : entry.getValue()) {
-                    webTarget = webTarget.queryParam(entry.getKey(), value);
-                }
-            }
-        }
 
         final Builder builder = webTarget.request().accept(accept);
 

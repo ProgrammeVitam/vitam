@@ -54,9 +54,6 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
-/**
- * StatusResourceImplTest Class Test Admin Status and Internal STatus Implementation
- */
 public class AdminAutotestStatusResourceImplTest extends ResteasyTestApplication {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(AdminAutotestStatusResourceImplTest.class);
 
