@@ -94,6 +94,7 @@ import static fr.gouv.vitam.common.client.VitamRequestBuilder.put;
 import static fr.gouv.vitam.common.json.JsonHandler.getFromString;
 import static javax.ws.rs.core.Response.Status.Family.REDIRECTION;
 import static javax.ws.rs.core.Response.Status.Family.SUCCESSFUL;
+import static javax.ws.rs.core.Response.Status.INTERNAL_SERVER_ERROR;
 import static javax.ws.rs.core.Response.Status.fromStatusCode;
 
 /**
@@ -733,7 +734,7 @@ class AdminManagementClientRest extends DefaultClient implements AdminManagement
                 }
             }
         } catch (final VitamClientInternalException e) {
-            throw new AdminManagementClientServerException(INTERNAL_SERVER_ERROR, e); // access-common
+            throw new AdminManagementClientServerException(INTERNAL_SERVER_ERROR.getReasonPhrase(), e); // access-common
         } finally {
             if (status != Status.OK) {
                 consumeAnyEntityAndClose(response);

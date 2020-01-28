@@ -26,54 +26,41 @@
  */
 package fr.gouv.vitam.common.external.client;
 
-import javax.ws.rs.HttpMethod;
 import javax.ws.rs.ProcessingException;
-import javax.ws.rs.client.Invocation.Builder;
-import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
 import fr.gouv.vitam.common.StringUtils;
 import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.client.VitamClientFactoryInterface;
+import fr.gouv.vitam.common.client.VitamRequestBuilder;
 import fr.gouv.vitam.common.error.VitamError;
 import fr.gouv.vitam.common.exception.VitamClientException;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.AdminStatusMessage;
 
-import static javax.ws.rs.core.Response.Status.INTERNAL_SERVER_ERROR;
+import static fr.gouv.vitam.common.VitamConfiguration.ADMIN_PATH;
 
-/**
- * Abstract Partial client class for all vitam clients
- */
 public class DefaultAdminClient extends AbstractCommonClient implements AdminClient {
-    private static final String THE_REQUESTED_SERVICE_IS_UNAVAILABLE = "The requested service is unavailable";
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(DefaultAdminClient.class);
     private final String adminUrl;
 
-    /**
-     * Constructor with standard configuration
-     *
-     * @param factory The client factory
-     */
     public DefaultAdminClient(VitamClientFactoryInterface<DefaultAdminClient> factory) {
         super(factory);
-        adminUrl = (factory.getClientConfiguration().isSecure() ? "https://"
-            : "http://") + factory.getClientConfiguration().getServerHost() + ":" +
-            factory.getClientConfiguration().getServerPort() +
-            VitamConfiguration.ADMIN_PATH;
+        adminUrl = getUrl(factory);
     }
 
     @Override
     public AdminStatusMessage adminStatus() throws VitamClientException {
-        Response response = null;
-        try {
-            AdminStatusMessage message = null;
-            final Builder builder =
-                buildRequest(HttpMethod.GET, adminUrl, STATUS_URL, null, MediaType.APPLICATION_JSON_TYPE, true);
-            response = builder.method(HttpMethod.GET);
-            final Response.Status status = Response.Status.fromStatusCode(response.getStatus());
+        VitamRequestBuilder request = VitamRequestBuilder.get()
+            .withBaseUrl(adminUrl)
+            .withPath(STATUS_URL)
+            .withJsonAccept()
+            .withChunckedMode(true);
+        try (Response response = makeSpecifyingUrl(request)) {
+            Response.Status status = response.getStatusInfo().toEnum();
+            AdminStatusMessage message;
             if (response.hasEntity()) {
                 message = response.readEntity(AdminStatusMessage.class);
             } else {
@@ -82,50 +69,59 @@ public class DefaultAdminClient extends AbstractCommonClient implements AdminCli
             if (status == Status.OK || status == Status.SERVICE_UNAVAILABLE) {
                 return message;
             }
-            final String messageText = INTERNAL_SERVER_ERROR.getReasonPhrase() + " : " + status.getReasonPhrase();
+            String messageText = status.getReasonPhrase() + " : " + status.getStatusCode();
             LOGGER.error(messageText);
             throw new VitamClientException(messageText);
-        } catch (final ProcessingException e) {
-            LOGGER.debug(e);
+        } catch (Exception e) {
+            LOGGER.error(e);
             return new AdminStatusMessage().setStatus(false);
-        } finally {
-            consumeAnyEntityAndClose(response);
         }
     }
 
     @Override
     public VitamError adminAutotest() throws VitamClientException {
-        Response response = null;
-        final String name = StringUtils.getClassName(clientFactory);
         VitamError message = new VitamError("000000")
-            .setContext(name).setDescription(THE_REQUESTED_SERVICE_IS_UNAVAILABLE)
-            .setHttpCode(Status.SERVICE_UNAVAILABLE.getStatusCode()).setMessage(THE_REQUESTED_SERVICE_IS_UNAVAILABLE)
+            .setContext(StringUtils.getClassName(clientFactory))
+            .setDescription(Status.SERVICE_UNAVAILABLE.getReasonPhrase())
+            .setHttpCode(Status.SERVICE_UNAVAILABLE.getStatusCode())
+            .setMessage(Status.SERVICE_UNAVAILABLE.getReasonPhrase())
             .setState(Status.SERVICE_UNAVAILABLE.getReasonPhrase());
-        try {
-            final Builder builder =
-                buildRequest(HttpMethod.GET, adminUrl, VitamConfiguration.AUTOTEST_URL, null,
-                    MediaType.APPLICATION_JSON_TYPE, true);
-            response = builder.method(HttpMethod.GET);
-            final Response.Status status = Response.Status.fromStatusCode(response.getStatus());
+
+        VitamRequestBuilder request = VitamRequestBuilder.get()
+            .withBaseUrl(adminUrl)
+            .withPath(VitamConfiguration.AUTOTEST_URL)
+            .withJsonAccept()
+            .withChunckedMode(true);
+
+        try (Response response = makeSpecifyingUrl(request)) {
+            Response.Status status = response.getStatusInfo().toEnum();
             if (response.hasEntity()) {
                 message = response.readEntity(VitamError.class);
             }
             if (status == Status.OK || status == Status.SERVICE_UNAVAILABLE) {
                 return message;
             }
-            final String messageText = INTERNAL_SERVER_ERROR + " : " + status.getReasonPhrase();
+            String messageText = status.getReasonPhrase() + " : " + status.getStatusCode();
             LOGGER.error(messageText);
             throw new VitamClientException(messageText);
-        } catch (final ProcessingException e) {
+        } catch (Exception e) {
             LOGGER.error(e);
             return message;
-        } finally {
-            consumeAnyEntityAndClose(response);
         }
     }
 
     @Override
     public String getAdminUrl() {
         return adminUrl;
+    }
+
+    private String getUrl(VitamClientFactoryInterface<DefaultAdminClient> factory) {
+        String protocol = factory.getClientConfiguration().isSecure()
+            ? "https"
+            : "http";
+        String host = factory.getClientConfiguration().getServerHost();
+        int port = factory.getClientConfiguration().getServerPort();
+
+        return protocol + "://" + host + ":" + port + ADMIN_PATH;
     }
 }

@@ -72,6 +72,7 @@ import static fr.gouv.vitam.common.client.VitamRequestBuilder.post;
 import static fr.gouv.vitam.common.client.VitamRequestBuilder.put;
 import static javax.ws.rs.core.Response.Status.Family.REDIRECTION;
 import static javax.ws.rs.core.Response.Status.Family.SUCCESSFUL;
+import static javax.ws.rs.core.Response.Status.INTERNAL_SERVER_ERROR;
 import static javax.ws.rs.core.Response.Status.fromStatusCode;
 
 /**
@@ -117,7 +118,7 @@ class ProcessingManagementClientRest extends DefaultClient implements Processing
         try (Response response = make(request)) {
             checkWithSpecificException(response);
         } catch (VitamClientInternalException | ForbiddenClientException | DatabaseConflictException | AccessUnauthorizedException e) {
-            throw new InternalServerException(INTERNAL_SERVER_ERROR, e);
+            throw new InternalServerException(INTERNAL_SERVER_ERROR.getReasonPhrase(), e);
         } catch (PreconditionFailedClientException e) {
             throw new IllegalArgumentException(ILLEGAL_ARGUMENT, e);
         } catch (ReferentialNotFoundException e) {
@@ -308,7 +309,7 @@ class ProcessingManagementClientRest extends DefaultClient implements Processing
             checkWithSpecificException(response);
         } catch (final VitamClientInternalException | AccessUnauthorizedException | DatabaseConflictException |
             ReferentialNotFoundException | PreconditionFailedClientException | ForbiddenClientException e) {
-            throw new ProcessingBadRequestException(INTERNAL_SERVER_ERROR, e);
+            throw new ProcessingBadRequestException(INTERNAL_SERVER_ERROR.getReasonPhrase(), e);
         } catch (BadRequestException e) {
             throw new ProcessingBadRequestException(BAD_REQUEST_EXCEPTION, e);
         } catch (InternalServerException e) {
@@ -331,7 +332,7 @@ class ProcessingManagementClientRest extends DefaultClient implements Processing
             PreconditionFailedClientException | AccessUnauthorizedException | InternalServerException e) {
             throw new ProcessingBadRequestException(e);
         } catch (final VitamClientInternalException e) {
-            throw new ProcessingBadRequestException(INTERNAL_SERVER_ERROR, e);
+            throw new ProcessingBadRequestException(INTERNAL_SERVER_ERROR.getReasonPhrase(), e);
         }
     }
 
@@ -439,7 +440,7 @@ class ProcessingManagementClientRest extends DefaultClient implements Processing
             case CONFLICT:
                 throw new DatabaseConflictException(Response.Status.CONFLICT.getReasonPhrase());
             case INTERNAL_SERVER_ERROR:
-                throw new InternalServerException(INTERNAL_SERVER_ERROR);
+                throw new InternalServerException(INTERNAL_SERVER_ERROR.getReasonPhrase());
             default:
                 throw new VitamClientInternalException(
                     String.format("Error with the response, get status: '%d' and reason '%s'.", response.getStatus(),

@@ -36,12 +36,14 @@ import fr.gouv.vitam.common.exception.VitamApplicationServerDisconnectException;
 import fr.gouv.vitam.common.exception.VitamApplicationServerException;
 import fr.gouv.vitam.common.exception.VitamClientException;
 import fr.gouv.vitam.common.exception.VitamClientInternalException;
+import fr.gouv.vitam.common.exception.VitamRuntimeException;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.retryable.DelegateRetry;
 import fr.gouv.vitam.common.retryable.RetryableOnException;
 import fr.gouv.vitam.common.retryable.RetryableParameters;
 import fr.gouv.vitam.common.stream.StreamUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.http.NoHttpResponseException;
 import org.apache.http.conn.ConnectTimeoutException;
 
@@ -68,7 +70,6 @@ import static javax.ws.rs.core.Response.Status.INTERNAL_SERVER_ERROR;
 abstract class AbstractCommonClient implements BasicClient {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(AbstractCommonClient.class);
 
-    private static final String BODY_AND_CONTENT_TYPE_CANNOT_BE_NULL = "Body and ContentType cannot be null";
     private static final String ARGUMENT_CANNOT_BE_NULL_EXCEPT_HEADERS = "Argument cannot be null except headers";
 
     private final RetryableParameters retryableParameters;
@@ -152,42 +153,42 @@ abstract class AbstractCommonClient implements BasicClient {
         }
     }
 
-    public Response make(VitamRequestBuilder vitamRequestBuilder) throws VitamClientInternalException {
-        vitamRequestBuilder.runBeforeExecRequest();
-        return new VitamAutoClosableResponse(
-            performRequest(
-                vitamRequestBuilder.getHttpMethod(),
-                vitamRequestBuilder.getPath(),
-                vitamRequestBuilder.getHeaders(),
-                vitamRequestBuilder.getBody(),
-                vitamRequestBuilder.getContentType(),
-                vitamRequestBuilder.getAccept(),
-                vitamRequestBuilder.isChunckedMode()
-            )
-        );
+    public Response makeSpecifyingUrl(VitamRequestBuilder request) throws VitamClientInternalException {
+        if (StringUtils.isBlank(request.getBaseUrl())) {
+            throw new VitamRuntimeException("Base URL must not be 'null nor empty' with method 'makeSpecifyingUrl'.");
+        }
+        return doRequest(request);
     }
 
-    @Deprecated
-    protected Response performRequest(String httpMethod, String path, MultivaluedMap<String, Object> headers,
-        MediaType accept)
-        throws VitamClientInternalException {
-        return performRequest(httpMethod, path, headers, null, null, accept, false);
+    public Response make(VitamRequestBuilder request) throws VitamClientInternalException {
+        if (StringUtils.isNotBlank(request.getBaseUrl())) {
+            throw new VitamRuntimeException("Base URL must not be 'set' with method 'make' it will be override.");
+        }
+        request.withBaseUrl(getServiceUrl());
+        return doRequest(request);
     }
 
-    @Deprecated
-    protected Response performRequest(String httpMethod, String path, MultivaluedMap<String, Object> headers,
-        Object body, MediaType contentType, MediaType accept)
-        throws VitamClientInternalException {
-        return performRequest(httpMethod, path, headers, body, contentType, accept, getChunkedMode());
-    }
+    private Response doRequest(VitamRequestBuilder request) throws VitamClientInternalException {
+        request.runBeforeExecRequest();
 
-    @Deprecated
-    protected Response performRequest(String httpMethod, String path, MultivaluedMap<String, Object> headers,
-        Object body, MediaType contentType, MediaType accept, boolean chunkedMode)
-        throws VitamClientInternalException {
         try {
-            final Builder builder = buildRequest(httpMethod, path, headers, accept, chunkedMode);
-            return retryIfNecessary(httpMethod, body, contentType, builder);
+            Builder builder = buildRequest(
+                request.getHttpMethod(),
+                request.getBaseUrl(),
+                request.getPath(),
+                request.getHeaders(),
+                request.getAccept(),
+                request.isChunckedMode()
+            );
+
+            Response response = retryIfNecessary(
+                request.getHttpMethod(),
+                request.getBody(),
+                request.getContentType(),
+                builder
+            );
+
+            return new VitamAutoClosableResponse(response);
         } catch (final ProcessingException e) {
             throw new VitamClientInternalException(e);
         }
@@ -211,16 +212,6 @@ abstract class AbstractCommonClient implements BasicClient {
         return retryable.exec(delegate);
     }
 
-    protected VitamClientException createExceptionFromResponse(Response response) {
-        VitamClientException exception = new VitamClientException(INTERNAL_SERVER_ERROR.getReasonPhrase());
-        if (response != null && response.getStatusInfo() != null) {
-            exception = new VitamClientException(response.getStatusInfo().getReasonPhrase());
-        } else if (response != null && Status.fromStatusCode(response.getStatus()) != null) {
-            exception = new VitamClientException(Status.fromStatusCode(response.getStatus()).getReasonPhrase());
-        }
-        return exception;
-    }
-
     @Override
     public String getResourcePath() {
         return clientFactory.getResourcePath();
@@ -241,13 +232,7 @@ abstract class AbstractCommonClient implements BasicClient {
         }
     }
 
-    private Builder buildRequest(String httpMethod, String path, MultivaluedMap<String, Object> headers,
-        MediaType accept,
-        boolean chunkedMode) {
-        return buildRequest(httpMethod, getServiceUrl(), path, headers, accept, chunkedMode);
-    }
-
-    public Builder buildRequest(String httpMethod, String url, String path, MultivaluedMap<String, Object> headers,
+    private Builder buildRequest(String httpMethod, String url, String path, MultivaluedMap<String, Object> headers,
         MediaType accept, boolean chunkedMode) {
         ParametersChecker.checkParameter(ARGUMENT_CANNOT_BE_NULL_EXCEPT_HEADERS, httpMethod, path, accept);
         final Builder builder = getHttpClient(chunkedMode).target(url).path(path).request().accept(accept);

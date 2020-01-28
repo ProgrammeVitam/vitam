@@ -76,6 +76,7 @@ public class VitamRequestIterator<T> implements VitamAutoCloseable, Iterator<T> 
         // Callback to close the cursor
         closed = true;
         requestBuilder.withNoContentType()
+            .withNoBaseUrl()
             .withJsonAccept()
             .withHeaderReplaceExisting(X_CURSOR, false);
         try (Response response = client.make(requestBuilder)) {
@@ -144,7 +145,7 @@ public class VitamRequestIterator<T> implements VitamAutoCloseable, Iterator<T> 
             }
         }
 
-        try (Response response = client.make(requestBuilder.withBody(JsonHandler.createObjectNode()).withJson())) {
+        try (Response response = client.make(requestBuilder.withNoBaseUrl().withBody(JsonHandler.createObjectNode()).withJson())) {
             check(response);
             if (PARTIAL_CONTENT.equals(response.getStatusInfo().toEnum())) {
                 return handleNext(response);

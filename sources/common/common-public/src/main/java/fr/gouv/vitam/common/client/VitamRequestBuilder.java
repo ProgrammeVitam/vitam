@@ -47,6 +47,7 @@ public class VitamRequestBuilder {
     private boolean chunckedMode = false;
     private String httpMethod;
     private String path;
+    private String baseUrl;
     private MediaType contentType;
     private MediaType accept;
     private Object body;
@@ -85,6 +86,16 @@ public class VitamRequestBuilder {
 
     public void runBeforeExecRequest() {
         beforeExecRequest.run();
+    }
+
+    public VitamRequestBuilder withBaseUrl(String url) {
+        this.baseUrl = Objects.requireNonNull(url);
+        return this;
+    }
+
+    public VitamRequestBuilder withNoBaseUrl() {
+        this.baseUrl = null;
+        return this;
     }
 
     public VitamRequestBuilder withJson() {
@@ -246,5 +257,9 @@ public class VitamRequestBuilder {
 
     public boolean isChunckedMode() {
         return chunckedMode;
+    }
+
+    public String getBaseUrl() {
+        return baseUrl;
     }
 }

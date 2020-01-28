@@ -75,6 +75,7 @@ import static fr.gouv.vitam.metadata.client.ErrorMessage.SELECT_UNITS_QUERY_NULL
 import static fr.gouv.vitam.metadata.client.ErrorMessage.SIZE_TOO_LARGE;
 import static javax.ws.rs.core.Response.Status.Family.REDIRECTION;
 import static javax.ws.rs.core.Response.Status.Family.SUCCESSFUL;
+import static javax.ws.rs.core.Response.Status.INTERNAL_SERVER_ERROR;
 import static javax.ws.rs.core.Response.Status.OK;
 
 public class MetaDataClientRest extends DefaultClient implements MetaDataClient {
@@ -508,7 +509,7 @@ public class MetaDataClientRest extends DefaultClient implements MetaDataClient 
 
         switch (status) {
             case INTERNAL_SERVER_ERROR:
-                throw new MetaDataExecutionException(INTERNAL_SERVER_ERROR);
+                throw new MetaDataExecutionException(INTERNAL_SERVER_ERROR.getReasonPhrase());
             case NOT_FOUND:
                 throw new MetaDataNotFoundException(NOT_FOUND.getMessage());
             case REQUEST_ENTITY_TOO_LARGE:

@@ -26,6 +26,7 @@
  */
 package fr.gouv.vitam.common.client;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
@@ -70,6 +71,7 @@ import fr.gouv.vitam.common.server.application.junit.ResteasyTestApplication;
 import fr.gouv.vitam.common.server.application.resources.ApplicationStatusResource;
 import fr.gouv.vitam.common.serverv2.SslConfig;
 import fr.gouv.vitam.common.serverv2.VitamServerTestRunner;
+import org.assertj.core.api.Assertions;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -259,7 +261,7 @@ public class VitamRequestIteratorSslTest extends ResteasyTestApplication {
             fail("THIS SHOULD RAIZED AN EXCEPTION");
         } catch (final VitamException e) {
             assertTrue(e instanceof VitamApplicationServerDisconnectException);
-            assertTrue(e.getMessage().contains("SSLHandshakeException"));
+            assertTrue(e.getMessage().contains("Client is disconnected"));
         }
     }
 
@@ -272,7 +274,7 @@ public class VitamRequestIteratorSslTest extends ResteasyTestApplication {
             fail("THIS SHOULD RAIZED AN EXCEPTION");
         } catch (final VitamException e) {
             assertTrue(e instanceof VitamApplicationServerDisconnectException);
-            assertTrue(e.getMessage().contains("SSLHandshakeException"));
+            assertThat(e.getMessage()).isEqualTo("Client is disconnected");
         }
     }
 
