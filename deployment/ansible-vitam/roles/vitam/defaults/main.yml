@@ -4,6 +4,7 @@ vitam_user: vitam
 vitam_group: vitam
 memory_opts: -Xms512m -Xmx512m
 gc_opts: "-Xloggc:{{ vitam_folder_log }}/gc.log -XX:+UseGCLogFileRotation -XX:NumberOfGCLogFiles=10 -XX:GCLogFileSize=10M -XX:+PrintGCDetails -XX:+PrintGCApplicationStoppedTime"
+jmx_exporter_opts: ""
 java_opts: ""
 java_args: ""
 package_name: "vitam-{{ vitam_struct.vitam_component }}"
