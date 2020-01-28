@@ -217,7 +217,7 @@
   any_errors_fatal: true
   roles:
     - vitam
-    - { role: init_contexts_and_security_profiles, when: primary_site | lower == "true" }
+    - { role: init_contexts_and_security_profiles, tags: update_vitam_certificates, when: primary_site | lower == "true" }
   vars:
     vitam_struct: "{{ vitam.security_internal }}"
 
