@@ -78,6 +78,8 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import java.io.InputStream;
 
+import static fr.gouv.vitam.access.external.api.AccessExtAPI.ACCESSION_REGISTERS_API;
+import static fr.gouv.vitam.access.external.api.AccessExtAPI.ACCESSION_REGISTERS_DETAIL;
 import static fr.gouv.vitam.access.external.api.AccessExtAPI.OPERATIONS_API;
 import static fr.gouv.vitam.access.external.api.AdminCollections.ACCESSION_REGISTERS_SYMBOLIC;
 import static fr.gouv.vitam.access.external.api.AdminCollections.TRACEABILITY;
@@ -86,6 +88,7 @@ import static fr.gouv.vitam.common.GlobalDataRest.X_CONTEXT_ID;
 import static fr.gouv.vitam.common.GlobalDataRest.X_FILENAME;
 import static fr.gouv.vitam.common.GlobalDataRest.X_GLOBAL_EXECUTION_STATE;
 import static fr.gouv.vitam.common.GlobalDataRest.X_GLOBAL_EXECUTION_STATUS;
+import static fr.gouv.vitam.common.GlobalDataRest.X_HTTP_METHOD_OVERRIDE;
 import static fr.gouv.vitam.common.GlobalDataRest.X_REQUEST_ID;
 import static fr.gouv.vitam.common.client.VitamRequestBuilder.delete;
 import static fr.gouv.vitam.common.client.VitamRequestBuilder.get;
@@ -220,8 +223,9 @@ public class AdminExternalClientRest extends DefaultClient implements AdminExter
         throws InvalidParseOperationException, AccessExternalClientServerException,
         AccessExternalClientNotFoundException {
         VitamRequestBuilder request = post()
-            .withPath(AccessExtAPI.ACCESSION_REGISTERS_API + "/" + id + "/" + AccessExtAPI.ACCESSION_REGISTERS_DETAIL)
-            .withHeader(GlobalDataRest.X_HTTP_METHOD_OVERRIDE, HttpMethod.GET)
+            .withPath(ACCESSION_REGISTERS_API + "/" + id + "/" + ACCESSION_REGISTERS_DETAIL)
+            .withHeaders(vitamContext.getHeaders())
+            .withHeader(X_HTTP_METHOD_OVERRIDE, HttpMethod.GET)
             .withBody(query)
             .withJson();
         try (Response response = make(request)) {
