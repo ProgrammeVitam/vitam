@@ -59,3 +59,5 @@ metricbeat:
 docker_opts:
     registry_httponly: yes
     vitam_docker_tag: latest
+
+gatling_install: false

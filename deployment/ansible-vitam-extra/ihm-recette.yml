@@ -27,4 +27,4 @@
   roles:
     - ihm-recette-front
     - {role: ihm-recette-clone-tests, when: (vitam_tests_gitrepo_url is defined) and (vitam_tests_gitrepo_url != '') and (vitam_tests_branch is not defined or vitam_tests_branch != "")}
-    - gatling
+    - {role: gatling, when: gatling_install|lower == 'true'}
