@@ -96,6 +96,18 @@ elasticsearch:
                 max_log_file_size: "100MB"
                 max_total_log_size: "1GB"
                 log_level: "warn"
+        # By default, is commented. Should be uncommented if ansible computes badly vCPUs number ;  values are associated vCPUs numbers ; please adapt to your configuration
+        # thread_pool:
+        #     index:
+        #         size: 2
+        #     get:
+        #         size: 2
+        #     search:
+        #         size: 2
+        #     write:
+        #         size: 2
+        #     warmer:
+        #         max: 2
 
 mongodb:
     mongos_port: 27017
