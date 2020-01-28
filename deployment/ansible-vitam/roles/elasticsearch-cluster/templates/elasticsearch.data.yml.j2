@@ -130,21 +130,21 @@ indices.memory.index_buffer_size: {{ ((elasticsearch_memory_value|int)*(composan
 # thread_pool configuration
 thread_pool:
     index:
-        size: {{ (ansible_processor_cores * ansible_processor_threads_per_core) | round (0, 'floor') | int }}
+        size: {{ elasticsearch.data.thread_pool.index.size |default((ansible_processor_cores * ansible_processor_threads_per_core) | round (0, 'floor') | int) }}
         queue_size: 5000
     get:
-        size: {{ (ansible_processor_cores * ansible_processor_threads_per_core)| round (0, 'floor') | int }}
+        size: {{ elasticsearch.data.thread_pool.get.size |default((ansible_processor_cores * ansible_processor_threads_per_core)| round (0, 'floor') | int) }}
         queue_size: 5000
     search:
-        size: {{ ((ansible_processor_cores * ansible_processor_threads_per_core * 3 / 2) + 1) | round (0, 'floor') | int }}
+        size: {{ elasticsearch.data.thread_pool.search.size |default(((ansible_processor_cores * ansible_processor_threads_per_core * 3 / 2) + 1) | round (0, 'floor') | int) }}
         min_queue_size: 1000
         queue_size: 5000
     write:
-        size: {{ (ansible_processor_cores * ansible_processor_threads_per_core + 1)| round (0, 'floor') | int }}
+        size: {{ elasticsearch.data.thread_pool.write.size |default((ansible_processor_cores * ansible_processor_threads_per_core + 1)| round (0, 'floor') | int) }}
         queue_size: 5000
     warmer:
         core: 1
-        max: {{ ((ansible_processor_cores * ansible_processor_threads_per_core / 2) + 0.5) | round (0, 'floor') | int }}
+        max: {{ elasticsearch.data.thread_pool.warmer.max |default(((ansible_processor_cores * ansible_processor_threads_per_core / 2) + 0.5) | round (0, 'floor') | int) }}
         keep_alive: 2m
 
 # Note : the 0.5 in the previous expression is for there is only 1 CPU (else the thread pool size would be zero) ! ; Note bis : max 10 threads #

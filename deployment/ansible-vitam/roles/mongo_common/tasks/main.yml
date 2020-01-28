@@ -93,6 +93,6 @@
         enabled: yes
         state: started
 
-  when: ( ansible_virtualization_type != "docker") and ( transparent_hugepage_dir.stat.isdir is defined and transparent_hugepage_dir.stat.isdir )
+  when: ( ansible_virtualization_type not in ["docker","lxc"] ) and ( transparent_hugepage_dir.stat.isdir is defined and transparent_hugepage_dir.stat.isdir )
 
   
