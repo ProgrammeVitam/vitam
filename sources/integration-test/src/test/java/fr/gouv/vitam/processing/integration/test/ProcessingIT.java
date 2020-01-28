@@ -28,6 +28,7 @@ package fr.gouv.vitam.processing.integration.test;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.NullNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
@@ -467,7 +468,7 @@ public class ProcessingIT extends VitamRuleRunner {
 
             assertEquals(logbookResult.get("$results").get(0).get("obIdIn").asText(),
                 "bug2721_2racines_meme_rattachement");
-
+            assertThat(logbookResult.get("$results").get(0).get("evParentId")).isExactlyInstanceOf(NullNode.class);
             JsonNode agIdExt = JsonHandler.getFromString(logbookResult.get("$results").get(0).get("agIdExt").asText());
             assertEquals(agIdExt.get("originatingAgency").asText(), "producteur1");
 
@@ -577,7 +578,7 @@ public class ProcessingIT extends VitamRuleRunner {
 
             assertEquals(logbookResult.get("$results").get(0).get("obIdIn").asText(),
                 "bug2721_2racines_meme_rattachement");
-
+            assertThat(logbookResult.get("$results").get(0).get("evParentId")).isExactlyInstanceOf(NullNode.class);
             JsonNode agIdExt = JsonHandler.getFromString(logbookResult.get("$results").get(0).get("agIdExt").asText());
             assertEquals(agIdExt.get("originatingAgency").asText(), "producteur1");
 
@@ -660,6 +661,7 @@ public class ProcessingIT extends VitamRuleRunner {
         JsonNode logbookNode = logbookResult.get("$results").get(0);
         assertEquals("CHECK_HEADER.CHECK_CONTRACT_INGEST.CONTRACT_UNKNOWN.KO",
                 logbookNode.get("events").get(5).get("outDetail").asText());
+        assertThat(logbookResult.get("$results").get(0).get("evParentId")).isExactlyInstanceOf(NullNode.class);
     }
 
 
@@ -705,6 +707,7 @@ public class ProcessingIT extends VitamRuleRunner {
         JsonNode logbookNode = logbookResult.get("$results").get(0);
         assertThat(logbookNode.get("events").get(5).get("outDetail").asText())
             .isEqualTo("CHECK_HEADER.CHECK_CONTRACT_INGEST.CONTRACT_NOT_IN_CONTEXT.KO");
+        assertThat(logbookResult.get("$results").get(0).get("evParentId")).isExactlyInstanceOf(NullNode.class);
     }
 
     @RunWithCustomExecutor
@@ -731,6 +734,7 @@ public class ProcessingIT extends VitamRuleRunner {
         assertTrue(logbookNode.get("evDetData").asText().contains("EvDetailReq"));
         assertTrue(logbookNode.get("evDetData").asText().contains("EvDateTimeReq"));
         assertTrue(logbookNode.get("evDetData").asText().contains("ArchivalAgreement"));
+        assertThat(logbookNode.get("evParentId")).isExactlyInstanceOf(NullNode.class);
     }
 
     @RunWithCustomExecutor

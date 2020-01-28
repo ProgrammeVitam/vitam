@@ -46,6 +46,7 @@ import fr.gouv.vitam.logbook.common.parameters.LogbookParameterName;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParametersFactory;
 import fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess;
 import fr.gouv.vitam.logbook.common.server.exception.LogbookException;
+import net.javacrumbs.jsonunit.JsonAssert;
 import org.bson.Document;
 import org.elasticsearch.action.bulk.BulkResponse;
 import org.elasticsearch.action.search.SearchResponse;
@@ -66,6 +67,7 @@ import java.util.Map;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
 public class LogbookElasticsearchAccessTest {
@@ -132,6 +134,8 @@ public class LogbookElasticsearchAccessTest {
         for (final LogbookParameterName name : LogbookParameterName.values()) {
             if (LogbookParameterName.eventDateTime.equals(name)) {
                 parametersForCreation.putParameterValue(name, LocalDateUtil.now().toString());
+            } else if (LogbookParameterName.parentEventIdentifier.equals(name)) {
+                parametersForCreation.putParameterValue(name, null);
             } else {
                 parametersForCreation.putParameterValue(name,
                     GUIDFactory.newEventGUID(tenantId).getId());
@@ -144,6 +148,8 @@ public class LogbookElasticsearchAccessTest {
         String id = operationForCreation.getId();
         operationForCreation.remove(VitamDocument.ID);
         final String esJson = BsonHelper.stringify(operationForCreation);
+        assertTrue(esJson.contains(LogbookMongoDbName.parentEventIdentifier.getDbname()));
+        JsonAssert.assertJsonEquals(operationForCreation, esJson);
         operationForCreation.clear();
         mapIdJson.put(id, esJson);
         BulkResponse response = esClient.addEntryIndexes(LogbookCollections.OPERATION, tenantId, mapIdJson);

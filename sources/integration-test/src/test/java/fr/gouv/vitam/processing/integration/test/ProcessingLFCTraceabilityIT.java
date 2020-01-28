@@ -28,6 +28,7 @@ package fr.gouv.vitam.processing.integration.test;
 
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.NullNode;
 import com.google.common.collect.Sets;
 import fr.gouv.vitam.common.CommonMediaType;
 import fr.gouv.vitam.common.DataLoader;
@@ -856,7 +857,7 @@ public class ProcessingLFCTraceabilityIT extends VitamRuleRunner {
                 logbookLifeCyclesClient.selectObjectGroupLifeCycle(select.getFinalSelect()));
             List<JsonNode> foundObjectGroupLifecycles = requestResponseOK.getResults();
             assertTrue(foundObjectGroupLifecycles != null && foundObjectGroupLifecycles.size() > 0);
-
+            assertThat(foundObjectGroupLifecycles.get(0).get("evParentId")).isExactlyInstanceOf(NullNode.class);
             // get one got lfc
             String oneGotLfc = foundObjectGroupLifecycles.get(0).get(LogbookDocument.ID).asText();
 
@@ -888,7 +889,7 @@ public class ProcessingLFCTraceabilityIT extends VitamRuleRunner {
                 logbookLifeCyclesClient.selectUnitLifeCycle(select.getFinalSelect()));
             List<JsonNode> foundUnitLifecycles = requestResponseOK.getResults();
             assertTrue(foundUnitLifecycles != null && foundUnitLifecycles.size() > 0);
-
+            assertThat(foundUnitLifecycles.get(0).get("evParentId")).isExactlyInstanceOf(NullNode.class);
             // get one got lfc
             String oneUnitLfc = foundUnitLifecycles.get(0).get(LogbookDocument.ID).asText();
 
