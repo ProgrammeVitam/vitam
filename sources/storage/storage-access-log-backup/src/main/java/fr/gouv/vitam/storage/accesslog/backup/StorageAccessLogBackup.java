@@ -1,4 +1,4 @@
-package fr.gouv.vitam.storage.accesslog.backup; /**
+package fr.gouv.vitam.storage.accesslog.backup; /*
  * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2019)
  * <p>
  * contact.vitam@culture.gouv.fr

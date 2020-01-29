@@ -1,5 +1,5 @@
 package fr.gouv.vitam.ihmrecette.appserver;
-/**
+/*
  * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2019)
  * <p>
  * contact.vitam@culture.gouv.fr
