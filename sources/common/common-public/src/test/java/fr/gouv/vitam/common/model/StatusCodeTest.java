@@ -6,7 +6,7 @@ import javax.ws.rs.core.Response;
 
 import org.junit.Test;
 
-/**
+/*
  * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2019)
  *
  * contact.vitam@culture.gouv.fr

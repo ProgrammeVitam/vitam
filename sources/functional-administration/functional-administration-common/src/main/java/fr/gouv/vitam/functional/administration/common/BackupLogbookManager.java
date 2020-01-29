@@ -1,6 +1,6 @@
 package fr.gouv.vitam.functional.administration.common;
 
-/**
+/*
  * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2019)
  *
  * contact.vitam@culture.gouv.fr
