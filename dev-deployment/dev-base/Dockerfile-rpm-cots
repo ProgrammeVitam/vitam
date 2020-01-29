@@ -117,3 +117,5 @@ RUN chmod a+x /usr/bin/vitam-*
 RUN chmod 644 /etc/sudoers.d/wheel-nopwd
 
 COPY rpm/vitam-build-griffins /usr/bin
+
+RUN yum install -y selinux-policy selinux-policy-devel
