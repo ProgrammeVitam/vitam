@@ -120,4 +120,4 @@ RUN echo "vm.max_map_count = 262144" >> /etc/sysctl.conf
 
 COPY rpm/vitam-build-griffins /usr/bin
 
-RUN yum install -y selinux-policy selinux-policy-devel
+RUN yum install -y --disablerepo=local selinux-policy selinux-policy-devel
