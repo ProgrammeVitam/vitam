@@ -1151,6 +1151,7 @@ public class ArchiveUnitListener extends Unmarshaller.Listener {
             if (referenceContracts.isOk()) {
                 List<IngestContractModel> results = ((RequestResponseOK) referenceContracts).getResults();
                 if (!results.isEmpty()) {
+                    results.get(0).setDefaultParams();
                     this.ingestContract = results.get(0);
                     return results.get(0);
                 }

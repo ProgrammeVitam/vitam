@@ -1,26 +1,26 @@
 /*
  * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2019)
- * <p>
+ *
  * contact.vitam@culture.gouv.fr
- * <p>
+ *
  * This software is a computer program whose purpose is to implement a digital archiving back-office system managing
  * high volumetry securely and efficiently.
- * <p>
+ *
  * This software is governed by the CeCILL 2.1 license under French law and abiding by the rules of distribution of free
  * software. You can use, modify and/ or redistribute the software under the terms of the CeCILL 2.1 license as
  * circulated by CEA, CNRS and INRIA at the following URL "http://www.cecill.info".
- * <p>
+ *
  * As a counterpart to the access to the source code and rights to copy, modify and redistribute granted by the license,
  * users are provided only with a limited warranty and the software's author, the holder of the economic rights, and the
  * successive licensors have only limited liability.
- * <p>
+ *
  * In this respect, the user's attention is drawn to the risks associated with loading, using, modifying and/or
  * developing or reproducing the software by the user in light of its specific status of free software, that may mean
  * that it is complicated to manipulate, and that also therefore means that it is reserved for developers and
  * experienced professionals having in-depth computer knowledge. Users are therefore encouraged to load and test the
  * software's suitability as regards their requirements in conditions enabling the security of their systems and/or data
  * to be ensured and, more generally, to use and operate it in the same conditions as regards security.
- * <p>
+ *
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  */
@@ -82,12 +82,12 @@ public class IngestContractModel extends AbstractContractModel {
      * masterMandatory is true by default if no value is specified
      */
     @JsonProperty(MASTER_MANDATORY)
-    private boolean masterMandatory = true;
+    private Boolean masterMandatory;
     /**
      * everyDataObjectVersion is false by default if no value is specified
      */
     @JsonProperty(EVERY_DATA_OBJECT_VERSION)
-    private boolean everyDataObjectVersion = false;
+    private Boolean everyDataObjectVersion;
 
     @JsonProperty(DATA_OBJECT_VERSION)
     private Set<String> dataObjectVersion;
@@ -95,17 +95,17 @@ public class IngestContractModel extends AbstractContractModel {
      * formatUnidentifiedAuthorized is false  by default if no value is specified
      */
     @JsonProperty(FORMAT_UNIDENTIFIED_AUTHORIZED)
-    private boolean formatUnidentifiedAuthorized = false;
+    private Boolean formatUnidentifiedAuthorized;
     /**
      * computedInheritedRules is false  by default if no value is specified
      */
     @JsonProperty(COMPUTE_INHERITED_RULES_AT_INGEST)
-    private boolean computeInheritedRulesAtIngest = false;
+    private Boolean computeInheritedRulesAtIngest;
     /**
      * everyFormatType is True by default if no value is specified.
      */
     @JsonProperty(EVERY_FORMAT_TYPE)
-    private boolean everyFormatType = true;
+    private Boolean everyFormatType;
 
     @JsonProperty(FORMAT_TYPE)
     private Set<String> formatType;
@@ -170,20 +170,20 @@ public class IngestContractModel extends AbstractContractModel {
         return this;
     }
 
-    public boolean isMasterMandatory() {
+    public Boolean isMasterMandatory() {
         return masterMandatory;
     }
 
-    public IngestContractModel setMasterMandatory(boolean masterMandatory) {
+    public IngestContractModel setMasterMandatory(Boolean masterMandatory) {
         this.masterMandatory = masterMandatory;
         return this;
     }
 
-    public boolean isEveryDataObjectVersion() {
+    public Boolean isEveryDataObjectVersion() {
         return everyDataObjectVersion;
     }
 
-    public IngestContractModel setEveryDataObjectVersion(boolean everyDataObjectVersion) {
+    public IngestContractModel setEveryDataObjectVersion(Boolean everyDataObjectVersion) {
         this.everyDataObjectVersion = everyDataObjectVersion;
         return this;
     }
@@ -198,28 +198,28 @@ public class IngestContractModel extends AbstractContractModel {
     }
 
 
-    public boolean isFormatUnidentifiedAuthorized() {
+    public Boolean isFormatUnidentifiedAuthorized() {
         return formatUnidentifiedAuthorized;
     }
 
-    public IngestContractModel setFormatUnidentifiedAuthorized(boolean formatUnidentifiedAuthorized) {
+    public IngestContractModel setFormatUnidentifiedAuthorized(Boolean formatUnidentifiedAuthorized) {
         this.formatUnidentifiedAuthorized = formatUnidentifiedAuthorized;
         return this;
     }
 
-    public boolean isComputeInheritedRulesAtIngest() {
+    public Boolean isComputeInheritedRulesAtIngest() {
         return computeInheritedRulesAtIngest;
     }
 
-    public void setComputeInheritedRulesAtIngest(boolean computeInheritedRulesAtIngest) {
+    public void setComputeInheritedRulesAtIngest(Boolean computeInheritedRulesAtIngest) {
         this.computeInheritedRulesAtIngest = computeInheritedRulesAtIngest;
     }
 
-    public boolean isEveryFormatType() {
+    public Boolean isEveryFormatType() {
         return everyFormatType;
     }
 
-    public IngestContractModel setEveryFormatType(boolean everyFormatType) {
+    public IngestContractModel setEveryFormatType(Boolean everyFormatType) {
         this.everyFormatType = everyFormatType;
         return this;
     }
@@ -247,5 +247,24 @@ public class IngestContractModel extends AbstractContractModel {
     
     public void setManagementContractId(String managementContractId) {
         this.managementContractId = managementContractId;
+    }
+
+    public void setDefaultParams() {
+        if (this.everyDataObjectVersion == null) {
+            this.everyDataObjectVersion = Boolean.FALSE;
+        }
+        if (this.formatUnidentifiedAuthorized == null) {
+            this.formatUnidentifiedAuthorized = Boolean.FALSE;
+        }
+        if (this.computeInheritedRulesAtIngest == null) {
+            this.computeInheritedRulesAtIngest = Boolean.FALSE;
+        }
+
+        if (this.masterMandatory == null) {
+            this.masterMandatory = Boolean.TRUE;
+        }
+        if (this.everyFormatType == null) {
+            this.everyFormatType = Boolean.TRUE;
+        }
     }
 }
