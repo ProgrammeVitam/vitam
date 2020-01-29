@@ -119,3 +119,5 @@ RUN chmod 644 /etc/sudoers.d/wheel-nopwd
 RUN echo "vm.max_map_count = 262144" >> /etc/sysctl.conf
 
 COPY rpm/vitam-build-griffins /usr/bin
+
+RUN yum install -y selinux-policy selinux-policy-devel
