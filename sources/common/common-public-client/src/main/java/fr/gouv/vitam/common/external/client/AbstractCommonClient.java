@@ -26,6 +26,7 @@
  */
 package fr.gouv.vitam.common.external.client;
 
+import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.client.VitamAutoClosableResponse;
@@ -47,10 +48,12 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.http.NoHttpResponseException;
 import org.apache.http.conn.ConnectTimeoutException;
 
+import javax.ws.rs.HttpMethod;
 import javax.ws.rs.ProcessingException;
 import javax.ws.rs.client.Client;
 import javax.ws.rs.client.Entity;
 import javax.ws.rs.client.Invocation.Builder;
+import javax.ws.rs.client.WebTarget;
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.MultivaluedHashMap;
@@ -61,6 +64,7 @@ import java.io.InputStream;
 import java.net.SocketException;
 import java.net.UnknownHostException;
 import java.util.List;
+import java.util.Map;
 import java.util.Map.Entry;
 import java.util.function.Predicate;
 
@@ -178,7 +182,8 @@ abstract class AbstractCommonClient implements BasicClient {
                 request.getPath(),
                 request.getHeaders(),
                 request.getAccept(),
-                request.isChunckedMode()
+                request.isChunckedMode(),
+                request.getQueryParams()
             );
 
             Response response = retryIfNecessary(
@@ -232,10 +237,21 @@ abstract class AbstractCommonClient implements BasicClient {
         }
     }
 
-    private Builder buildRequest(String httpMethod, String url, String path, MultivaluedMap<String, Object> headers,
-        MediaType accept, boolean chunkedMode) {
+    private Builder buildRequest(String httpMethod, String url, String path, MultivaluedMap<String, Object> headers, MediaType accept, boolean chunkedMode, MultivaluedMap<String, Object> queryParams) {
         ParametersChecker.checkParameter(ARGUMENT_CANNOT_BE_NULL_EXCEPT_HEADERS, httpMethod, path, accept);
-        final Builder builder = getHttpClient(chunkedMode).target(url).path(path).request().accept(accept);
+
+        WebTarget webTarget = getHttpClient(chunkedMode).target(url).path(path);
+
+        //add query parameters
+        if (HttpMethod.GET.equals(httpMethod) && queryParams != null) {
+            for (final Entry<String, List<Object>> entry : queryParams.entrySet()) {
+                for (final Object value : entry.getValue()) {
+                    webTarget = webTarget.queryParam(entry.getKey(), value);
+                }
+            }
+        }
+
+        final Builder builder = webTarget.request().accept(accept);
         if (headers != null) {
             for (final Entry<String, List<Object>> entry : headers.entrySet()) {
                 for (final Object value : entry.getValue()) {
@@ -243,6 +259,7 @@ abstract class AbstractCommonClient implements BasicClient {
                 }
             }
         }
+
         if (this.clientFactory.isAllowGzipEncoded()) {
             builder.header(HttpHeaders.CONTENT_ENCODING, "gzip");
         }

@@ -46,6 +46,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.http.NoHttpResponseException;
 import org.apache.http.conn.ConnectTimeoutException;
 
+import javax.ws.rs.HttpMethod;
 import javax.ws.rs.ProcessingException;
 import javax.ws.rs.client.Client;
 import javax.ws.rs.client.Entity;
@@ -190,7 +191,8 @@ abstract class AbstractCommonClient implements BasicClient {
                 request.getPath(),
                 request.getHeaders(),
                 request.getAccept(),
-                request.isChunckedMode()
+                request.isChunckedMode(),
+                request.getQueryParams()
             );
 
             Response response = retryIfNecessary(
@@ -244,15 +246,21 @@ abstract class AbstractCommonClient implements BasicClient {
         }
     }
 
-    private Builder buildRequest(String httpMethod, String url, String path, MultivaluedMap<String, Object> headers,
-        MediaType accept, boolean chunkedMode) {
-
+    private Builder buildRequest(String httpMethod, String url, String path, MultivaluedMap<String, Object> headers, MediaType accept, boolean chunkedMode, MultivaluedMap<String, Object> queryParams) {
         ParametersChecker.checkParameter(ARGUMENT_CANNOT_BE_NULL_EXCEPT_HEADERS, httpMethod, path, accept);
 
         WebTarget webTarget = getHttpClient(chunkedMode).target(url).path(path);
 
-        final Builder builder = webTarget.request().accept(accept);
+        //add query parameters
+        if (HttpMethod.GET.equals(httpMethod) && queryParams != null) {
+            for (final Entry<String, List<Object>> entry : queryParams.entrySet()) {
+                for (final Object value : entry.getValue()) {
+                    webTarget = webTarget.queryParam(entry.getKey(), value);
+                }
+            }
+        }
 
+        final Builder builder = webTarget.request().accept(accept);
         if (headers != null) {
             for (final Entry<String, List<Object>> entry : headers.entrySet()) {
                 for (final Object value : entry.getValue()) {
