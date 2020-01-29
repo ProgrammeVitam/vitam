@@ -54,7 +54,7 @@
       X-Tenant-Id: "{{ vitam_tenant_admin }}"
       Content-Type: "application/octet-stream"
       Host: "{{ vitam_struct.host }}"
-      X-Filename: "{{ inventory_dir }}/{{ droid_filename }}"
+      X-Filename: "{{ droid_filename }}"
     body: "{{ lookup('file', '{{ inventory_dir }}/{{ droid_filename }}') }}"
     body_format: "raw"
     validate_certs: false
