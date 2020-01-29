@@ -118,4 +118,4 @@ RUN chmod 644 /etc/sudoers.d/wheel-nopwd
 
 COPY rpm/vitam-build-griffins /usr/bin
 
-RUN yum install -y selinux-policy selinux-policy-devel
+RUN yum install -y --disablerepo=local selinux-policy selinux-policy-devel
