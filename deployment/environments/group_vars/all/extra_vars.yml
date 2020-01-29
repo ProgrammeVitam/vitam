@@ -84,3 +84,4 @@ docker_opts:
     vitam_docker_tag: latest
 
 gatling_install: false
+docker_install: true # whether or not install docker & docker images
