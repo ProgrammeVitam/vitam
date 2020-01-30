@@ -27,6 +27,8 @@
 package fr.gouv.vitam.common.security;
 
 import com.google.common.base.Joiner;
+import fr.gouv.vitam.common.alert.AlertService;
+import fr.gouv.vitam.common.alert.AlertServiceImpl;
 import fr.gouv.vitam.common.exception.VitamRuntimeException;
 import org.owasp.esapi.SafeFile;
 import org.owasp.esapi.errors.ValidationException;
@@ -44,6 +46,9 @@ public class SafeFileChecker {
 
     private static final Pattern filenamePattern = Pattern.compile("^[a-z,A-Z,0-9,\\-,_]+(\\.[a-z,A-Z,0-9]+)*$");
     private static final Pattern pathComponentPattern = Pattern.compile("^[a-z,A-Z,0-9,\\-,_\\.@]+$");
+
+    private static final AlertService alertService = new AlertServiceImpl();
+    private static final String CHECK_PATH_TRAVERSAL_ERROR_MSG = "Check path traversal error";
 
     private SafeFileChecker() {
         // Empty constructor
@@ -105,12 +110,17 @@ public class SafeFileChecker {
      * @throws IOException thrown when any check fails with UnChecked or Runtime exception
      */
     public static void checkSafeFilePath(String rootPath, String... subPaths) throws IOException {
-        checkNullParameter(rootPath);
-        String finalPath = rootPath;
-        if (subPaths != null && subPaths.length > 0) {
-            finalPath = finalPath + File.separator + Joiner.on(File.separator).join(subPaths);
+        try {
+            checkNullParameter(rootPath);
+            String finalPath = rootPath;
+            if (subPaths != null && subPaths.length > 0) {
+                finalPath = finalPath + File.separator + Joiner.on(File.separator).join(subPaths);
+            }
+            checkSafeFilePath(finalPath);
+        } catch (IOException e) {
+            alertService.createAlert(CHECK_PATH_TRAVERSAL_ERROR_MSG);
+            throw e;
         }
-        checkSafeFilePath(finalPath);
     }
 
     private static void checkNullParameter(String path) {
