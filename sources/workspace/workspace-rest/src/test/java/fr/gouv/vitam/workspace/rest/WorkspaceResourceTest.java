@@ -97,14 +97,14 @@ public class WorkspaceResourceTest {
     private static final String FOLDER_SIP = "SIP";
     private static final String OBJECT_NAME = "myObject";
     private static final String FAKE_FOLDER_NAME = "fakeFolderName";
-    public static final String X_DIGEST_ALGORITHM = "X-digest-algorithm";
-    public static final String ALGO = "MD5";
-    public static final String X_DIGEST = "X-digest";
+    private static final String X_DIGEST_ALGORITHM = "X-digest-algorithm";
+    private static final String ALGO = "MD5";
+    private static final String X_DIGEST = "X-digest";
     private static JunitHelper junitHelper;
     private static int port;
     private static final ObjectMapper OBJECT_MAPPER;
-    static final int tenantId = 0;
-    static final List tenantList = Lists.newArrayList(tenantId);
+    private static final int tenantId = 0;
+    private static final List tenantList = Lists.newArrayList(tenantId);
 
     static {
         OBJECT_MAPPER = new ObjectMapper(new JsonFactory());
@@ -604,7 +604,7 @@ public class WorkspaceResourceTest {
             given().contentType(CommonMediaType.ZIP).body(stream)
                 .when()
                 .put("/containers/" + CONTAINER_NAME + "/folders/" + FOLDER_SIP)
-                .then().body(Matchers.equalTo("myContainer"))
+                .then()
                 .statusCode(Status.INTERNAL_SERVER_ERROR.getStatusCode());
 
         }

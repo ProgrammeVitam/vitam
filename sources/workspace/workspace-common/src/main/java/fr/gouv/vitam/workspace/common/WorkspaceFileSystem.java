@@ -33,8 +33,6 @@ import fr.gouv.vitam.common.CharsetUtils;
 import fr.gouv.vitam.common.CommonMediaType;
 import fr.gouv.vitam.common.FileUtil;
 import fr.gouv.vitam.common.ParametersChecker;
-import fr.gouv.vitam.common.alert.AlertService;
-import fr.gouv.vitam.common.alert.AlertServiceImpl;
 import fr.gouv.vitam.common.client.AbstractMockClient;
 import fr.gouv.vitam.common.digest.Digest;
 import fr.gouv.vitam.common.digest.DigestType;
@@ -114,9 +112,6 @@ public class WorkspaceFileSystem implements WorkspaceContentAddressableStorage {
 
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(WorkspaceFileSystem.class);
 
-    private static final String CHECK_PATH_TRAVERSAL_ERROR_MSG = "Check path traversal error";
-    private static final AlertService alertService = new AlertServiceImpl();
-
     private Path root;
 
     /**
@@ -136,12 +131,7 @@ public class WorkspaceFileSystem implements WorkspaceContentAddressableStorage {
     }
 
     public void checkWorkspaceFile(String... paths) throws IOException {
-        try {
-            SafeFileChecker.checkSafeFilePath(root.toString(), paths);
-        } catch (IOException e) {
-            alertService.createAlert(CHECK_PATH_TRAVERSAL_ERROR_MSG);
-            throw e;
-        }
+        SafeFileChecker.checkSafeFilePath(root.toString(), paths);
     }
 
     @Override
