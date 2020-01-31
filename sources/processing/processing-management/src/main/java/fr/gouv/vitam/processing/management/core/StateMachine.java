@@ -659,7 +659,16 @@ public class StateMachine implements IEventsState, IEventsProcessEngine {
             }
         } else {
             try {
-                this.finalizeLogbook(workerParameters);
+                if (itemStatus.getGlobalStatus().isGreaterOrEqualToFatal()) {
+                    status = StatusCode.FATAL;
+
+                    state = ProcessState.PAUSE;
+                    targetState = ProcessState.PAUSE;
+
+                    processWorkflow.setPauseRecover(PauseRecover.RECOVER_FROM_API_PAUSE);
+                } else {
+                    this.finalizeLogbook(workerParameters);
+                }
             } finally {
                 this.persistProcessWorkflow();
             }
