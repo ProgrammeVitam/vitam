@@ -130,6 +130,7 @@ public class IngestInternalResource extends ApplicationStatusResource {
     private static final String DISTRIBUTIONREPORT_SUFFIX = "_report_error.json";
     private static final String FOLDERNAME = "ATR/";
     private static final String CSV = ".csv";
+    private static final String INGEST_INTERNAL_MODULE = "INGEST_INTERNAL_MODULE";
 
     private final WorkspaceClientFactory workspaceClientFactory;
     private final ProcessingManagementClientFactory processingManagementClientFactory;
@@ -139,7 +140,7 @@ public class IngestInternalResource extends ApplicationStatusResource {
      *
      * @param configuration ingest configuration
      */
-    public IngestInternalResource(IngestInternalConfiguration configuration) {
+    IngestInternalResource(IngestInternalConfiguration configuration) {
         WorkspaceClientFactory.changeMode(configuration.getWorkspaceUrl());
         ProcessingManagementClientFactory.changeConfigurationUrl(configuration.getProcessingUrl());
         this.workspaceClientFactory = WorkspaceClientFactory.getInstance();
@@ -251,22 +252,48 @@ public class IngestInternalResource extends ApplicationStatusResource {
     @PUT
     @Produces(MediaType.APPLICATION_JSON)
     public Response updateWorkFlowStatus(@Context HttpHeaders headers, @PathParam("id") String id) {
-        Status status;
-        // FIXME : can we really have a response AND an asyncResponse
-        // FIXME : can we have a produces APPLICATION_JSON and add an ATR file when COMPLETE in the asyncResponse
-        ParametersChecker.checkParameter("Action Id Request must not be null",
-            headers.getRequestHeader(GlobalDataRest.X_ACTION));
-        final String xAction = headers.getRequestHeader(GlobalDataRest.X_ACTION).get(0);
-
-        try {
+        try (ProcessingManagementClient processingClient = processingManagementClientFactory.getClient()) {
+            ParametersChecker.checkParameter("Action Id Request must not be null",
+                headers.getRequestHeader(GlobalDataRest.X_ACTION));
+            final String xAction = headers.getRequestHeader(GlobalDataRest.X_ACTION).get(0);
             GUID containerGUID = GUIDReader.getGUID(VitamThreadUtils.getVitamSession().getRequestId());
-            return executeAction(xAction, containerGUID);
 
-        } catch (InvalidGuidOperationException e) {
-            LOGGER.error("Unexpected error was thrown : " + e.getMessage(), e);
-            status = Status.INTERNAL_SERVER_ERROR;
-            return Response.status(status)
-                .entity(getErrorEntity(status, e.getMessage()))
+            // Execute the given action
+            RequestResponse<ItemStatus> updateResponse =
+                processingClient.updateOperationActionProcess(xAction, containerGUID.getId());
+
+            if (!updateResponse.isOk()) {
+                return updateResponse.toResponse();
+            }
+
+            // Check mandatory headers
+            // Check global execution status
+            String globalExecutionState = updateResponse.getHeaderString(GlobalDataRest.X_GLOBAL_EXECUTION_STATE);
+            if (globalExecutionState == null) {
+                throw new IngestInternalException("Global Execution Status not found.");
+            }
+
+            // Check logbookTypeProcess
+            String logbookTypeProcessHeader = updateResponse.getHeaderString(GlobalDataRest.X_CONTEXT_ID);
+            if (logbookTypeProcessHeader == null) {
+                throw new IngestInternalException("Logbook Type Process not found.");
+            }
+
+            LogbookTypeProcess logbookTypeProcess = LogbookTypeProcess.valueOf(logbookTypeProcessHeader);
+
+            // Process the returned response
+            ProcessState processState = ProcessState.valueOf(globalExecutionState);
+            int stepExecutionStatus = updateResponse.getHttpCode();
+
+            if (isCompletedProcess(processState)) {
+                // Add last log
+                addFinalLogbookOperationEvent(containerGUID, logbookTypeProcess,
+                    fromStatusToStatusCode(stepExecutionStatus));
+            }
+            return updateResponse.toResponse();
+        } catch (Exception e) {
+            return Response.serverError().entity(getErrorEntity(Status.INTERNAL_SERVER_ERROR, e.getMessage(),
+                INGEST_INTERNAL_MODULE))
                 .build();
         }
     }

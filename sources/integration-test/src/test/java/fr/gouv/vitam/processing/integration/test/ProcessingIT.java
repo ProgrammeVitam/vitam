@@ -34,6 +34,7 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import com.mongodb.client.MongoCursor;
 import com.mongodb.client.MongoIterable;
+import fr.gouv.vitam.batch.report.rest.BatchReportMain;
 import fr.gouv.vitam.common.CommonMediaType;
 import fr.gouv.vitam.common.DataLoader;
 import fr.gouv.vitam.common.LocalDateUtil;
@@ -57,6 +58,9 @@ import fr.gouv.vitam.common.database.builder.request.single.Select;
 import fr.gouv.vitam.common.database.builder.request.single.Update;
 import fr.gouv.vitam.common.database.parser.request.adapter.SingleVarNameAdapter;
 import fr.gouv.vitam.common.database.parser.request.single.UpdateParserSingle;
+import fr.gouv.vitam.common.exception.BadRequestException;
+import fr.gouv.vitam.common.exception.InternalServerException;
+import fr.gouv.vitam.common.exception.VitamClientException;
 import fr.gouv.vitam.common.format.identification.FormatIdentifierFactory;
 import fr.gouv.vitam.common.guid.GUID;
 import fr.gouv.vitam.common.guid.GUIDFactory;
@@ -124,6 +128,7 @@ import fr.gouv.vitam.storage.engine.client.StorageClientFactory;
 import fr.gouv.vitam.worker.core.plugin.CheckExistenceObjectPlugin;
 import fr.gouv.vitam.worker.core.plugin.CheckIntegrityObjectPlugin;
 import fr.gouv.vitam.worker.server.rest.WorkerMain;
+import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageException;
 import fr.gouv.vitam.workspace.client.WorkspaceClient;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
 import fr.gouv.vitam.workspace.rest.WorkspaceMain;
@@ -142,6 +147,7 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -165,6 +171,7 @@ import java.util.zip.ZipOutputStream;
 import static com.mongodb.client.model.Filters.eq;
 import static fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.PROJECTION.FIELDS;
 import static fr.gouv.vitam.common.guid.GUIDFactory.newOperationLogbookGUID;
+import static fr.gouv.vitam.common.model.ProcessAction.RESUME;
 import static fr.gouv.vitam.logbook.common.server.database.collections.LogbookDocument.EVENT_DETAILS;
 import static io.restassured.RestAssured.get;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -191,7 +198,8 @@ public class ProcessingIT extends VitamRuleRunner {
                 AdminManagementMain.class,
                 LogbookMain.class,
                 WorkspaceMain.class,
-                ProcessManagementMain.class
+                ProcessManagementMain.class,
+                BatchReportMain.class
             ));
     private static final String PROCESSING_UNIT_PLAN = "integration-processing/unit_plan_metadata.json";
     private static final String INGEST_CONTRACTS_PLAN = "integration-processing/ingest_contracts_plan.json";
@@ -1296,6 +1304,7 @@ public class ProcessingIT extends VitamRuleRunner {
         // Given
         prepareVitamSession();
 
+        String opi = ingestSIP(OK_SIP_SIGNATURE, Contexts.DEFAULT_WORKFLOW.name(), StatusCode.OK);
 
         String containerName = createOperationContainer();
 
@@ -1307,8 +1316,11 @@ public class ProcessingIT extends VitamRuleRunner {
             JsonHandler.createObjectNode().put("correctiveOption", false);
         workspaceClient.putObject(containerName, "evidenceOptions", JsonHandler.writeToInpustream(options));
 
+        Select select = new Select();
+        select.setQuery(QueryHelper.eq("#opi", opi));
+
         workspaceClient
-            .putObject(containerName, "query.json", JsonHandler.writeToInpustream(new Select().getFinalSelect()));
+            .putObject(containerName, "query.json", JsonHandler.writeToInpustream(select.getFinalSelect()));
 
         processingClient.initVitamProcess(containerName, Contexts.EVIDENCE_AUDIT.name());
         // When
@@ -1327,6 +1339,7 @@ public class ProcessingIT extends VitamRuleRunner {
         assertNotNull(processWorkflow);
 
         assertEquals(ProcessState.COMPLETED, processWorkflow.getState());
+        assertEquals(StatusCode.WARNING, processWorkflow.getStatus());
     }
 
     @Test
@@ -2172,6 +2185,9 @@ public class ProcessingIT extends VitamRuleRunner {
             initParameters.putParameterValue(LogbookParameterName.outcomeDetailMessage,
                 VitamLogbookMessages.getLabelOp("EXPORT_DIP.STARTED") + " : " + operationId);
         }
+        ObjectNode rightsStatementIdentifier = JsonHandler.createObjectNode();
+        rightsStatementIdentifier.put("AccessContract", VitamThreadUtils.getVitamSession().getContractId());
+        initParameters.putParameterValue(LogbookParameterName.rightsStatementIdentifier, rightsStatementIdentifier.toString());
         logbookClient.create(initParameters);
     }
 
@@ -3400,4 +3416,29 @@ public class ProcessingIT extends VitamRuleRunner {
         assertThat(stream).hasSize(4).allMatch(o -> gotId.equals(o));
     }
 
+    private String ingestSIP(String sipFileName, String workflowName, StatusCode expectedStatus)
+        throws LogbookClientBadRequestException, LogbookClientAlreadyExistsException, LogbookClientServerException,
+        FileNotFoundException, ContentAddressableStorageException, BadRequestException, InternalServerException,
+        VitamClientException {
+        final String ingestContainerName = createOperationContainer();
+        final InputStream zipInputStreamSipObject = PropertiesUtils.getResourceAsStream(sipFileName);
+        workspaceClient = WorkspaceClientFactory.getInstance().getClient();
+        workspaceClient.createContainer(ingestContainerName);
+        workspaceClient.uncompressObject(ingestContainerName, SIP_FOLDER, CommonMediaType.ZIP, zipInputStreamSipObject);
+
+        // call processing
+        processingClient = ProcessingManagementClientFactory.getInstance().getClient();
+        processingClient.initVitamProcess(ingestContainerName, workflowName);
+        RequestResponse<JsonNode> ret2 =
+            processingClient.executeOperationProcess(ingestContainerName, workflowName, RESUME.getValue());
+        assertNotNull(ret2);
+        assertNotNull(ret2.isOk());
+        assertEquals(Status.ACCEPTED.getStatusCode(), ret2.getStatus());
+        wait(ingestContainerName);
+        ProcessWorkflow processWorkflow2 = processMonitoring.findOneProcessWorkflow(ingestContainerName, tenantId);
+        assertNotNull(processWorkflow2);
+        assertEquals(ProcessState.COMPLETED, processWorkflow2.getState());
+        assertEquals(expectedStatus, processWorkflow2.getStatus());
+        return ingestContainerName;
+    }
 }
