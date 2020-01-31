@@ -32,7 +32,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
@@ -89,7 +88,7 @@ public class WorkFlow {
         if (steps == null) {
             this.steps = new ArrayList<>();
         }
-        steps.forEach(step -> step.defaultLifecycleLog(this.lifecycleLog));
+        this.steps.forEach(step -> step.defaultLifecycleLog(this.lifecycleLog));
     }
 
     public static WorkFlow of(String id,String identifier, String evTypeProc) {

@@ -620,20 +620,9 @@ public class IngestExternalImpl implements IngestExternal {
         StatusCode atrStatusCode = StatusCode.OK;
         String atrKo = null;
         try {
-            if (isFileInfected) {
-                atrKo = AtrKoBuilder.buildAtrKo(operationId.getId(), "ArchivalAgencyToBeDefined",
-                    "TransferringAgencyToBeDefined",
-                    atrEventType, additionalMessage, statusCode, stpIngestFinalisationParameters.getEventDateTime());
-
-            } else if (statusCode.equals(StatusCode.FATAL)) {
-                atrKo = AtrKoBuilder.buildAtrKo(operationId.getId(), "ArchivalAgencyToBeDefined",
-                    "TransferringAgencyToBeDefined",
-                    atrEventType, additionalMessage, statusCode, stpIngestFinalisationParameters.getEventDateTime());
-            } else {
-                atrKo = AtrKoBuilder.buildAtrKo(operationId.getId(), "ArchivalAgencyToBeDefined",
-                    "TransferringAgencyToBeDefined",
-                    atrEventType, additionalMessage, statusCode, stpIngestFinalisationParameters.getEventDateTime());
-            }
+            atrKo = AtrKoBuilder.buildAtrKo(operationId.getId(), "ArchivalAgencyToBeDefined",
+                    "TransferringAgencyToBeDefined", atrEventType, additionalMessage, statusCode,
+                    stpIngestFinalisationParameters.getEventDateTime());
             if (isFileInfected || !statusCode.equals(StatusCode.FATAL)) {
                 storeATR(operationId, atrKo);
             }

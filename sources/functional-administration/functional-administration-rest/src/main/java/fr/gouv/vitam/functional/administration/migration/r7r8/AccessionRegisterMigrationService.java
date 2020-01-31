@@ -112,7 +112,7 @@ public class AccessionRegisterMigrationService {
                         purge();
                         break;
                     default:
-                        new IllegalArgumentException("Not implemented migration action");
+                        throw new IllegalArgumentException("Not implemented migration action");
                 }
             } catch (Exception e) {
                 LOGGER.error("A fatal error occurred during data migration", e);

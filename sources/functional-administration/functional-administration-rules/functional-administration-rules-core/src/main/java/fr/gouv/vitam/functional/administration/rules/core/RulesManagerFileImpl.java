@@ -417,7 +417,7 @@ public class RulesManagerFileImpl implements ReferentialFile<FileRules> {
                 DataCategory.RULES, (eip != null ? eip.getId() : "default") + CSV);
 
             backupService.saveCollectionAndSequence(eip, STP_IMPORT_RULES_BACKUP, RULES,
-                eip.toString());
+                    eip != null ? eip.getId() : null);
 
             updateStpImportRulesLogbookOperation(eip, eip1, StatusCode.OK, filename);
         } catch (final FileRulesException e) {
@@ -482,7 +482,7 @@ public class RulesManagerFileImpl implements ReferentialFile<FileRules> {
                 DataCategory.RULES, (eip != null ? eip.getId() : "default") + CSV);
 
             backupService.saveCollectionAndSequence(eip, STP_IMPORT_RULES_BACKUP, RULES,
-                eip.toString());
+                    eip != null ? eip.getId() : null);
 
             if (!usedUpdateRulesForUpdateUnit.isEmpty()) {
                 // #2201 - we now launch the process that will update units

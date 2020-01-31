@@ -183,12 +183,12 @@ public class RuleCategoryActionDeletion {
 
     @JsonIgnore
     public boolean isEmpty() {
-        return rules == null
-            && finalAction == null
-            && classificationAudience == null
-            && classificationReassessingDate == null
-            && needReassessingAuthorization == null
-            && preventInheritance == null
-            && preventRulesId == null;
+        return Objects.isNull(rules)
+            && Objects.isNull(finalAction)
+            && Objects.isNull(classificationAudience)
+            && Objects.isNull(classificationReassessingDate)
+            && Objects.isNull(needReassessingAuthorization)
+            && Objects.isNull(preventInheritance)
+            && Objects.isNull(preventRulesId);
     }
 }

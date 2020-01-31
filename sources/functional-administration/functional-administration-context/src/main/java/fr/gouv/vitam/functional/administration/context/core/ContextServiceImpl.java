@@ -95,11 +95,13 @@ import org.assertj.core.util.VisibleForTesting;
 import org.bson.conversions.Bson;
 
 import javax.ws.rs.core.Response;
+
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.NoSuchElementException;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -490,7 +492,7 @@ public class ContextServiceImpl implements ContextService {
             // if at least one change was applied
             if (result.getCount() > 0) {
                 // get first list of changes as we updated only one context
-                updates = result.getDiffs().values().stream().findFirst().get();
+                updates = result.getDiffs().values().stream().findFirst().orElseThrow(NoSuchElementException::new);
             }
 
             // close result
