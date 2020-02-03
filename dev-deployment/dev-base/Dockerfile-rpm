@@ -43,7 +43,7 @@ RUN yum install -y \
 ENV JAVA_HOME /usr/lib/jvm/java
 
 # Install & configure maven
-RUN curl -k http://repo.maven.apache.org/maven2/org/apache/maven/apache-maven/3.3.9/apache-maven-3.3.9-bin.tar.gz --output /tmp/maven.tgz \
+RUN curl -k https://repo.maven.apache.org/maven2/org/apache/maven/apache-maven/3.3.9/apache-maven-3.3.9-bin.tar.gz --output /tmp/maven.tgz \
     && tar xvzf /tmp/maven.tgz --directory /opt \
     && rm -f /tmp/maven.tgz \
     && ln -s /opt/apache-maven-3.3.9 /opt/maven \
