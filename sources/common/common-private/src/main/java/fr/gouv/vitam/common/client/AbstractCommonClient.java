@@ -220,11 +220,12 @@ abstract class AbstractCommonClient implements BasicClient {
      * @return the final response
      * @throws VitamClientInternalException if retry is not possible and http call is failed
      */
-    private final Response retryIfNecessary(String httpMethod, Object body, MediaType contentType, Builder builder)
+    private final Response retryIfNecessary(String httpMethod, Object body, MediaType contentType, Builder builder, String path)
         throws VitamClientInternalException {
         ProcessingException lastException = null;
         if (body instanceof InputStream) {
             for (int i = 0; i < VitamConfiguration.getRetryNumber(); i++) {
+                setAuthorizationHeaders(httpMethod, getServiceUrl(), path, builder);
                 try {
                     Entity<Object> entity = Entity.entity(body, contentType);
                     return new VitamAutoClosableResponse(builder.method(httpMethod, entity));
@@ -235,6 +236,7 @@ abstract class AbstractCommonClient implements BasicClient {
             }
         } else {
             for (int i = 0; i < VitamConfiguration.getRetryNumber(); i++) {
+                setAuthorizationHeaders(httpMethod, getServiceUrl(), path, builder);
                 try {
                     if (body == null) {
                         return new VitamAutoClosableResponse(builder.method(httpMethod));
@@ -289,7 +291,7 @@ abstract class AbstractCommonClient implements BasicClient {
         throws VitamClientInternalException {
         try {
             final Builder builder = buildRequest(httpMethod, path, headers, queryParams, accept, false);
-            return retryIfNecessary(httpMethod, null, null, builder);
+            return retryIfNecessary(httpMethod, null, null, builder, path);
         } catch (final ProcessingException e) {
             throw new VitamClientInternalException(e);
         }
@@ -317,7 +319,7 @@ abstract class AbstractCommonClient implements BasicClient {
         try {
             ParametersChecker.checkParameter(BODY_AND_CONTENT_TYPE_CANNOT_BE_NULL, body, contentType);
             final Builder builder = buildRequest(httpMethod, path, headers, accept, getChunkedMode());
-            return retryIfNecessary(httpMethod, body, contentType, builder);
+            return retryIfNecessary(httpMethod, body, contentType, builder, path);
         } catch (final ProcessingException e) {
             throw new VitamClientInternalException(e);
         }
@@ -346,7 +348,7 @@ abstract class AbstractCommonClient implements BasicClient {
         try {
             ParametersChecker.checkParameter(BODY_AND_CONTENT_TYPE_CANNOT_BE_NULL, body, contentType);
             final Builder builder = buildRequest(httpMethod, path, headers, accept, chunkedMode);
-            return retryIfNecessary(httpMethod, body, contentType, builder);
+            return retryIfNecessary(httpMethod, body, contentType, builder, path);
         } catch (final ProcessingException e) {
             throw new VitamClientInternalException(e);
         }
@@ -474,6 +476,10 @@ abstract class AbstractCommonClient implements BasicClient {
             builder.header(HttpHeaders.ACCEPT_ENCODING, "gzip");
         }
 
+        return builder;
+    }
+
+    private void setAuthorizationHeaders(String httpMethod, String url, String path, Builder builder) {
         String newPath = path;
         if (newPath.codePointAt(0) != '/') {
             newPath = "/" + newPath;
@@ -494,7 +500,6 @@ abstract class AbstractCommonClient implements BasicClient {
                 builder.header(GlobalDataRest.X_PLATFORM_ID, authorizationHeaders.get(GlobalDataRest.X_PLATFORM_ID));
             }
         }
-        return builder;
     }
 
     /**
