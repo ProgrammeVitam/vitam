@@ -38,6 +38,7 @@ import fr.gouv.vitam.common.logging.SysErrLogger;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.http.client.config.RequestConfig;
 import org.apache.http.config.Registry;
 import org.apache.http.config.SocketConfig;
@@ -221,6 +222,10 @@ public abstract class VitamClientFactory<T extends MockOrRestClient> implements 
 
     boolean useAuthorizationFilter() {
         return useAuthorizationFilter;
+    }
+
+    boolean useAuthorizationFilterAndHaveSecret() {
+        return useAuthorizationFilter && StringUtils.isNotBlank(VitamConfiguration.getSecret());
     }
 
     /**

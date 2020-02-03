@@ -26,58 +26,53 @@
  */
 package fr.gouv.vitam.common.client;
 
-import fr.gouv.vitam.common.GlobalDataRest;
-import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.VitamConfiguration;
-import fr.gouv.vitam.common.client.configuration.ClientConfiguration;
 import fr.gouv.vitam.common.exception.VitamApplicationServerDisconnectException;
 import fr.gouv.vitam.common.exception.VitamApplicationServerException;
 import fr.gouv.vitam.common.exception.VitamClientInternalException;
 import fr.gouv.vitam.common.exception.VitamRuntimeException;
-import fr.gouv.vitam.common.logging.SysErrLogger;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.retryable.DelegateRetry;
 import fr.gouv.vitam.common.retryable.RetryableOnException;
 import fr.gouv.vitam.common.retryable.RetryableParameters;
-import fr.gouv.vitam.common.security.filter.AuthorizationFilterHelper;
+import fr.gouv.vitam.common.security.codec.URLCodec;
 import fr.gouv.vitam.common.stream.StreamUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.http.NoHttpResponseException;
 import org.apache.http.conn.ConnectTimeoutException;
 
-import javax.ws.rs.HttpMethod;
 import javax.ws.rs.ProcessingException;
 import javax.ws.rs.client.Client;
 import javax.ws.rs.client.Entity;
 import javax.ws.rs.client.Invocation.Builder;
 import javax.ws.rs.client.WebTarget;
-import javax.ws.rs.core.HttpHeaders;
-import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.MultivaluedHashMap;
-import javax.ws.rs.core.MultivaluedMap;
 import javax.ws.rs.core.Response;
 import java.io.InputStream;
 import java.net.SocketException;
 import java.net.UnknownHostException;
-import java.util.List;
-import java.util.Map;
+import java.time.Instant;
 import java.util.Map.Entry;
 import java.util.function.Predicate;
 
+import static fr.gouv.vitam.common.CommonMediaType.GZIP_TYPE;
+import static fr.gouv.vitam.common.GlobalDataRest.X_PLATFORM_ID;
+import static fr.gouv.vitam.common.GlobalDataRest.X_TIMESTAMP;
+import static fr.gouv.vitam.common.VitamConfiguration.ADMIN_PATH;
 import static java.util.concurrent.TimeUnit.SECONDS;
+import static javax.ws.rs.core.HttpHeaders.ACCEPT_ENCODING;
+import static javax.ws.rs.core.HttpHeaders.CONTENT_ENCODING;
 import static javax.ws.rs.core.Response.Status.Family.REDIRECTION;
 import static javax.ws.rs.core.Response.Status.Family.SUCCESSFUL;
 
 abstract class AbstractCommonClient implements BasicClient {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(AbstractCommonClient.class);
 
-    private static final String ARGUMENT_CANNOT_BE_NULL_EXCEPT_HEADERS = "Argument cannot be null except headers";
-
     private final RetryableParameters retryableParameters;
-    final VitamClientFactory<?> clientFactory;
-    private Client client;
-    private Client clientNotChunked;
+    private final VitamClientFactory<?> clientFactory;
+    private final Client client;
+    private final Client chunkedClient;
 
     private final Predicate<Exception> retryOnException = e -> {
         Throwable source = e.getCause();
@@ -91,9 +86,9 @@ abstract class AbstractCommonClient implements BasicClient {
     };
 
     AbstractCommonClient(VitamClientFactoryInterface<?> factory) {
-        clientFactory = (VitamClientFactory<?>) factory;
-        client = getClient(true);
-        clientNotChunked = getClient(false);
+        this.clientFactory = (VitamClientFactory<?>) factory;
+        this.chunkedClient = factory.getHttpClient(true);
+        this.client = factory.getHttpClient(false);
         this.retryableParameters = new RetryableParameters(
             VitamConfiguration.getHttpClientRetry(),
             VitamConfiguration.getHttpClientFirstAttemptWaitingTime(),
@@ -101,11 +96,10 @@ abstract class AbstractCommonClient implements BasicClient {
             VitamConfiguration.getHttpClientRandomWaitingSleep(),
             SECONDS
         );
-        // External client or with no Session context are excluded
     }
 
     /**
-     * This method consume everything (in particular InpuStream) and close the response.
+     * This method consume everything (in particular InputStream) and close the response.
      *
      * @param response
      */
@@ -118,26 +112,16 @@ abstract class AbstractCommonClient implements BasicClient {
                 }
             }
         } catch (final Exception e) {
-            SysErrLogger.FAKE_LOGGER.ignoreLog(e);
+            LOGGER.info(e);
         } finally {
             if (response != null) {
                 try {
                     response.close();
                 } catch (final Exception e) {
-                    SysErrLogger.FAKE_LOGGER.ignoreLog(e);
+                    LOGGER.debug(e);
                 }
             }
         }
-    }
-
-    protected Client getClient(boolean chunked) throws IllegalStateException {
-        Client clientToCreate;
-        if (chunked) {
-            clientToCreate = clientFactory.getHttpClient();
-        } else {
-            clientToCreate = clientFactory.getHttpClient(false);
-        }
-        return clientToCreate;
     }
 
     @Override
@@ -153,7 +137,12 @@ abstract class AbstractCommonClient implements BasicClient {
     @Override
     public void checkStatus(MultivaluedHashMap<String, Object> headers)
         throws VitamApplicationServerException {
-        VitamRequestBuilder request = VitamRequestBuilder.get().withPath(STATUS_URL).withHeaders(headers).withJsonAccept();
+        VitamRequestBuilder request = VitamRequestBuilder.get()
+            .withPath(STATUS_URL)
+            .withJsonAccept();
+        if (headers != null) {
+            request.withHeaders(headers);
+        }
         try (Response response = make(request)) {
             Response.Status status = response.getStatusInfo().toEnum();
             if (SUCCESSFUL.equals(status.getFamily()) || REDIRECTION.equals(status.getFamily())) {
@@ -164,6 +153,31 @@ abstract class AbstractCommonClient implements BasicClient {
         } catch (VitamClientInternalException e) {
             throw new VitamApplicationServerDisconnectException(e);
         }
+    }
+
+    @Override
+    public String getResourcePath() {
+        return this.clientFactory.getResourcePath();
+    }
+
+    @Override
+    public String getServiceUrl() {
+        return this.clientFactory.getServiceUrl();
+    }
+
+    @Override
+    public void close() {
+        if (this.client != null) {
+            this.clientFactory.resume(this.client, false);
+        }
+        if (chunkedClient != null) {
+            this.clientFactory.resume(this.chunkedClient, true);
+        }
+    }
+
+    @Override
+    public String toString() {
+        return "VitamClient: { " + clientFactory.toString() + " }";
     }
 
     public Response makeSpecifyingUrl(VitamRequestBuilder request) throws VitamClientInternalException {
@@ -184,147 +198,101 @@ abstract class AbstractCommonClient implements BasicClient {
     private Response doRequest(VitamRequestBuilder request) throws VitamClientInternalException {
         request.runBeforeExecRequest();
 
+        if (this.clientFactory.isAllowGzipEncoded()) {
+            request.withHeader(CONTENT_ENCODING, GZIP_TYPE.getSubtype());
+        }
+        if (this.clientFactory.isAllowGzipDecoded()) {
+            request.withHeader(ACCEPT_ENCODING, GZIP_TYPE.getSubtype());
+        }
+
         try {
-            Builder builder = buildRequest(
-                request.getHttpMethod(),
-                request.getBaseUrl(),
-                request.getPath(),
-                request.getHeaders(),
-                request.getAccept(),
-                request.isChunckedMode(),
-                request.getQueryParams()
-            );
+            Object body = request.getBody();
+            if (body instanceof InputStream) {
+                if (this.clientFactory.useAuthorizationFilterAndHaveSecret()) {
+                    String xTimestamp = getXTimestamp();
+                    request.withHeader(X_TIMESTAMP, xTimestamp);
+                    request.withHeader(X_PLATFORM_ID, getXPlatformId(request, xTimestamp));
+                }
+                Response response = builder(request)
+                    .method(request.getHttpMethod(), Entity.entity(body, request.getContentType()));
+                return new VitamAutoClosableResponse(response);
+            }
 
-            Response response = retryIfNecessary(
-                request.getHttpMethod(),
-                request.getBody(),
-                request.getContentType(),
-                builder
-            );
+            DelegateRetry<Response, ProcessingException> delegate = () -> {
+                if (this.clientFactory.useAuthorizationFilterAndHaveSecret()) {
+                    String xTimestamp = getXTimestamp();
+                    request.withHeaderReplaceExisting(X_TIMESTAMP, xTimestamp);
+                    request.withHeaderReplaceExisting(X_PLATFORM_ID, getXPlatformId(request, xTimestamp));
+                }
+                if (body == null) {
+                    return builder(request)
+                        .method(request.getHttpMethod());
+                }
+                return builder(request)
+                    .method(request.getHttpMethod(), Entity.entity(body, request.getContentType()));
+            };
 
-            return new VitamAutoClosableResponse(response);
+            return new VitamAutoClosableResponse(retryable().exec(delegate));
         } catch (final ProcessingException e) {
             throw new VitamClientInternalException(e);
         }
     }
 
-    private Response retryIfNecessary(String httpMethod, Object body, MediaType contentType, Builder builder) {
-        if (body instanceof InputStream) {
-            Entity<Object> entity = Entity.entity(body, contentType);
-            return builder.method(httpMethod, entity);
-        }
-
-        DelegateRetry<Response, ProcessingException> delegate = () -> {
-            if (body == null) {
-                return builder.method(httpMethod);
-            }
-            Entity<Object> entity = Entity.entity(body, contentType);
-            return builder.method(httpMethod, entity);
-        };
-
-        RetryableOnException<Response, ProcessingException> retryable = retryable();
-        return retryable.exec(delegate);
+    private RetryableOnException<Response, ProcessingException> retryable() {
+        return new RetryableOnException<>(this.retryableParameters, this.retryOnException);
     }
 
-    @Override
-    public String getResourcePath() {
-        return clientFactory.getResourcePath();
+    private Builder builder(VitamRequestBuilder request) {
+        Client client = request.isChunckedMode()
+            ? this.chunkedClient
+            : this.client;
+
+        WebTarget webTarget = client.target(request.getBaseUrl())
+            .path(request.getPath());
+
+        for (Entry<String, String> entry : request.getQueryParams().entrySet()) {
+            webTarget = webTarget.queryParam(entry.getKey(), entry.getValue());
+        }
+
+        return webTarget.request()
+            .headers(request.getHeaders())
+            .accept(request.getAccept());
     }
 
-    @Override
-    public String getServiceUrl() {
-        return clientFactory.getServiceUrl();
+    private String getXTimestamp() {
+        return Long.toString(Instant.now().getEpochSecond());
     }
 
-    @Override
-    public void close() {
-        if (client != null) {
-            clientFactory.resume(client, true);
-        }
-        if (clientNotChunked != null) {
-            clientFactory.resume(clientNotChunked, false);
-        }
+    private String getXPlatformId(VitamRequestBuilder request, String xTimestamp) {
+        return URLCodec.encodeURL(
+            request.getHttpMethod(),
+            getAuthorizationUrl(request.getPath(), request.getBaseUrl()),
+            xTimestamp,
+            VitamConfiguration.getSecret(),
+            VitamConfiguration.getSecurityDigestType()
+        );
     }
 
-    private Builder buildRequest(String httpMethod, String url, String path, MultivaluedMap<String, Object> headers, MediaType accept, boolean chunkedMode, MultivaluedMap<String, Object> queryParams) {
-        ParametersChecker.checkParameter(ARGUMENT_CANNOT_BE_NULL_EXCEPT_HEADERS, httpMethod, path, accept);
+    private String getAuthorizationUrl(String originalPath, String baseUrl) {
+        String path = originalPath.startsWith("/")
+            ? originalPath
+            : "/" + originalPath;
 
-        WebTarget webTarget = getHttpClient(chunkedMode).target(url).path(path);
-
-        //add query parameters
-        if (HttpMethod.GET.equals(httpMethod) && queryParams != null) {
-            for (final Entry<String, List<Object>> entry : queryParams.entrySet()) {
-                for (final Object value : entry.getValue()) {
-                    webTarget = webTarget.queryParam(entry.getKey(), value);
-                }
-            }
+        if (baseUrl.endsWith(ADMIN_PATH)) {
+            return ADMIN_PATH + getResourcePath() + path;
         }
-
-        final Builder builder = webTarget.request().accept(accept);
-        if (headers != null) {
-            for (final Entry<String, List<Object>> entry : headers.entrySet()) {
-                for (final Object value : entry.getValue()) {
-                    builder.header(entry.getKey(), value);
-                }
-            }
-        }
-
-        if (this.clientFactory.isAllowGzipEncoded()) {
-            builder.header(HttpHeaders.CONTENT_ENCODING, "gzip");
-        }
-        if (this.clientFactory.isAllowGzipDecoded()) {
-            builder.header(HttpHeaders.ACCEPT_ENCODING, "gzip");
-        }
-
-        String newPath = path;
-        if (newPath.codePointAt(0) != '/') {
-            newPath = "/" + newPath;
-        }
-
-        String baseUri = getResourcePath() + newPath;
-        if (url.endsWith(VitamConfiguration.ADMIN_PATH)) {
-            baseUri = VitamConfiguration.ADMIN_PATH + newPath;
-        }
-
-        // add Authorization Headers (X_TIMESTAMP, X_PLATFORM_ID)
-        if (clientFactory.useAuthorizationFilter()) {
-            final Map<String, String> authorizationHeaders =
-                AuthorizationFilterHelper.getAuthorizationHeaders(httpMethod,
-                    baseUri);
-            if (authorizationHeaders.size() == 2) {
-                builder.header(GlobalDataRest.X_TIMESTAMP, authorizationHeaders.get(GlobalDataRest.X_TIMESTAMP));
-                builder.header(GlobalDataRest.X_PLATFORM_ID, authorizationHeaders.get(GlobalDataRest.X_PLATFORM_ID));
-            }
-        }
-        return builder;
+        return getResourcePath() + path;
     }
 
-    Client getHttpClient() {
-        return getHttpClient(getChunkedMode());
+    public VitamClientFactory<?> getClientFactory() {
+        return clientFactory;
     }
 
-    Client getHttpClient(boolean useChunkedMode) {
-        if (useChunkedMode) {
-            return client;
-        } else {
-            return clientNotChunked;
-        }
+    public Client getClient() {
+        return client;
     }
 
-    final ClientConfiguration getClientConfiguration() {
-        return clientFactory.getClientConfiguration();
-    }
-
-    boolean getChunkedMode() {
-        return clientFactory.getChunkedMode();
-    }
-
-    private <T, E extends Exception> RetryableOnException<T, E> retryable() {
-        return new RetryableOnException<>(retryableParameters, retryOnException);
-    }
-
-    @Override
-    public String toString() {
-        return "VitamClient: { " + clientFactory.toString() + " }";
+    public Client getChunkedClient() {
+        return chunkedClient;
     }
 }

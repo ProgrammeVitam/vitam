@@ -133,7 +133,7 @@ public class DefaultClientTest extends ResteasyTestApplication {
         final TestVitamClientFactory<DefaultClient> testMockFactory =
             new TestVitamClientFactory<>(vitamServerTestRunner.getBusinessPort(), RESOURCE_PATH, mock);
         try (DefaultClient testClient = testMockFactory.getClient()) {
-            assertEquals(mock, testClient.getHttpClient());
+            assertEquals(mock, testClient.getClient());
             assertEquals("http://localhost:" + vitamServerTestRunner.getBusinessPort() + client.getResourcePath(),
                 testClient.getServiceUrl());
         }
@@ -145,8 +145,7 @@ public class DefaultClientTest extends ResteasyTestApplication {
             Response.status(Response.Status.NO_CONTENT).build());
         client.checkStatus();
         assertTrue("no exception".length() > 0);
-        assertTrue(client.getChunkedMode());
-        assertTrue(client.getHttpClient() == client.getHttpClient(true));
+        assertTrue(client.getClientFactory().getChunkedMode());
         String map1 = factory.getDefaultConfigCient().toString();
         String map2 = factory.getDefaultConfigCient(true).toString();
         LOGGER.warn(map1);
@@ -160,7 +159,7 @@ public class DefaultClientTest extends ResteasyTestApplication {
                 .build());
         final MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
         headers.add("X-Test", "testvalue");
-        LOGGER.warn("Coinfig: " + client.clientFactory.getDefaultConfigCient());
+        LOGGER.warn("Coinfig: " + client.getClientFactory().getDefaultConfigCient());
         Response message =
             client.make(VitamRequestBuilder.get().withPath(BasicClient.STATUS_URL).withHeaders(headers).withJsonAccept());
         assertEquals(Response.Status.OK.getStatusCode(), message.getStatus());
