@@ -73,7 +73,7 @@ public class VitamClientFactoryTest {
         assertTrue(cft.toString().contains(RESOURCE_PATH));
         assertEquals(VitamClientType.PRODUCTION, cft.getVitamClientType());
         try (BasicClient vitamClient = cft.getClient()) {
-            assertEquals(((DefaultClient) vitamClient).getClientConfiguration(), cft.getClientConfiguration());
+            assertEquals(((DefaultClient) vitamClient).getClientFactory().getClientConfiguration(), cft.getClientConfiguration());
             assertTrue(vitamClient.toString().contains(cft.toString()));
         }
     }
@@ -88,7 +88,7 @@ public class VitamClientFactoryTest {
         assertTrue(cft.toString().contains(RESOURCE_PATH));
         assertEquals(VitamClientType.MOCK, cft.getVitamClientType());
         try (BasicClient vitamClient = cft.getClient()) {
-            assertEquals(((DefaultClient) vitamClient).getClientConfiguration(), cft.getClientConfiguration());
+            assertEquals(((DefaultClient) vitamClient).getClientFactory().getClientConfiguration(), cft.getClientConfiguration());
             assertTrue(vitamClient.toString().contains(cft.toString()));
         }
 

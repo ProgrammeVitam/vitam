@@ -27,6 +27,8 @@
 package fr.gouv.vitam.common.format.identification.siegfried;
 
 import java.nio.file.Path;
+import java.util.HashMap;
+import java.util.Map;
 
 import javax.ws.rs.core.MultivaluedHashMap;
 import javax.ws.rs.core.MultivaluedMap;
@@ -53,12 +55,6 @@ import static javax.ws.rs.core.Response.Status.NOT_FOUND;
 import static javax.ws.rs.core.Response.Status.fromStatusCode;
 
 public class SiegfriedClientRest extends DefaultClient implements SiegfriedClient {
-    public static final MultivaluedMap<String, Object> SIEGFRIED_QUERY_PARAMS = new MultivaluedHashMap<>();
-    static {
-        SIEGFRIED_QUERY_PARAMS.putSingle(FORMAT.getParameter(), FORMAT.getValue());
-        SIEGFRIED_QUERY_PARAMS.putSingle(BASE64.getParameter(), BASE64.getValue());
-        SIEGFRIED_QUERY_PARAMS.putSingle(SCAN_ENTRIES_WITHIN_ZIP.getParameter(), SCAN_ENTRIES_WITHIN_ZIP.getValue());
-    }
 
     SiegfriedClientRest(SiegfriedClientFactory factory) {
         super(factory);
@@ -68,7 +64,12 @@ public class SiegfriedClientRest extends DefaultClient implements SiegfriedClien
     public RequestResponse<JsonNode> analysePath(Path filePath)
         throws FormatIdentifierTechnicalException, FormatIdentifierNotFoundException {
         String encodedFilePath = BaseXx.getBase64UrlWithPadding(filePath.toString().getBytes());
-        VitamRequestBuilder request = get().withPath("/" + encodedFilePath).withQueryParams(SIEGFRIED_QUERY_PARAMS).withJsonAccept();
+        VitamRequestBuilder request = get()
+            .withPath("/" + encodedFilePath)
+            .withQueryParam(FORMAT.getParameter(), FORMAT.getValue())
+            .withQueryParam(BASE64.getParameter(), BASE64.getValue())
+            .withQueryParam(SCAN_ENTRIES_WITHIN_ZIP.getParameter(), SCAN_ENTRIES_WITHIN_ZIP.getValue())
+            .withJsonAccept();
         try (Response response = make(request)) {
             check(response);
             return new RequestResponseOK().addResult(response.readEntity(JsonNode.class));

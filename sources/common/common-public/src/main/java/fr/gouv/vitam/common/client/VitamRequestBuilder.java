@@ -26,11 +26,12 @@
  */
 package fr.gouv.vitam.common.client;
 
-import fr.gouv.vitam.common.ParametersChecker;
-
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.MultivaluedHashMap;
 import javax.ws.rs.core.MultivaluedMap;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Objects;
 
 import static javax.ws.rs.HttpMethod.DELETE;
@@ -44,17 +45,20 @@ import static javax.ws.rs.core.MediaType.APPLICATION_OCTET_STREAM_TYPE;
 import static javax.ws.rs.core.MediaType.APPLICATION_XML_TYPE;
 
 public class VitamRequestBuilder {
-    private boolean chunckedMode = false;
-    private String httpMethod;
+    private static final Runnable NOOP = () -> {};
+
+    private final String httpMethod;
+
     private String path;
     private String baseUrl;
     private MediaType contentType;
     private MediaType accept;
     private Object body;
-    private Runnable beforeExecRequest = () -> {
-    };
     private MultivaluedMap<String, Object> headers;
-    private MultivaluedMap<String, Object> queryParams;
+    private Map<String, String> queryParams;
+
+    private Runnable beforeExecRequest = NOOP;
+    private boolean chunckedMode = false;
 
     private VitamRequestBuilder(String httpMethod) {
         this.httpMethod = httpMethod;
@@ -157,12 +161,14 @@ public class VitamRequestBuilder {
     }
 
     public VitamRequestBuilder withAccept(MediaType accept) {
-        this.accept = accept;
+        this.accept = Objects.requireNonNull(accept);
         return this;
     }
 
     public VitamRequestBuilder withBody(Object body, String failCheckBodyMessage) {
-        ParametersChecker.checkParameter(failCheckBodyMessage, body);
+        if (Objects.isNull(body)) {
+            throw new IllegalArgumentException(failCheckBodyMessage);
+        }
         this.body = body;
         return this;
     }
@@ -173,12 +179,12 @@ public class VitamRequestBuilder {
     }
 
     public VitamRequestBuilder withBefore(Runnable beforeExecRequest) {
-        this.beforeExecRequest = beforeExecRequest;
+        this.beforeExecRequest = Objects.requireNonNull(beforeExecRequest);
         return this;
     }
 
     public VitamRequestBuilder withHeaders(MultivaluedMap<String, Object> headers) {
-        this.headers = headers;
+        this.headers = Objects.requireNonNull(headers);
         return this;
     }
 
@@ -208,17 +214,31 @@ public class VitamRequestBuilder {
         if (this.headers == null) {
             this.headers = new MultivaluedHashMap<>();
         }
-        this.headers.add(Objects.requireNonNull(key), value.toString());
+        this.headers.add(Objects.requireNonNull(key), value);
         return this;
     }
 
     public VitamRequestBuilder withPath(String path) {
-        this.path = path;
+        this.path = Objects.requireNonNull(path);
         return this;
     }
 
-    public VitamRequestBuilder withQueryParams(MultivaluedMap<String, Object> queryParams) {
-        this.queryParams = queryParams;
+    public VitamRequestBuilder withQueryParams(Map<String, String> queryParams) {
+        if (!GET.equals(httpMethod)) {
+            throw new IllegalArgumentException(String.format("Cannot use query params with something different that 'GET', here '%s'.", httpMethod));
+        }
+        this.queryParams = Objects.requireNonNull(queryParams);
+        return this;
+    }
+
+    public VitamRequestBuilder withQueryParam(String key, String value) {
+        if (!GET.equals(httpMethod)) {
+            throw new IllegalArgumentException(String.format("Cannot use query params with something different that 'GET', here '%s'.", httpMethod));
+        }
+        if (this.queryParams == null) {
+            this.queryParams = new HashMap<>();
+        }
+        this.queryParams.put(Objects.requireNonNull(key), Objects.requireNonNull(value));
         return this;
     }
 
@@ -227,7 +247,10 @@ public class VitamRequestBuilder {
         return this;
     }
 
-    public MultivaluedMap<String, Object> getQueryParams() {
+    public Map<String, String> getQueryParams() {
+        if (Objects.isNull(queryParams)) {
+            return Collections.emptyMap();
+        }
         return queryParams;
     }
 
@@ -248,6 +271,9 @@ public class VitamRequestBuilder {
     }
 
     public MultivaluedMap<String, Object> getHeaders() {
+        if (Objects.isNull(headers)) {
+            return new MultivaluedHashMap<>(Collections.emptyMap());
+        }
         return headers;
     }
 

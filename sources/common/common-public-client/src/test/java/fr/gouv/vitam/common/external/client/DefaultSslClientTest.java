@@ -119,7 +119,7 @@ public class DefaultSslClientTest extends ResteasyTestApplication {
             };
         try (DefaultClient client = factory.getClient()) {
             // Only Apache Pool has this
-            assertNull(client.getHttpClient().getHostnameVerifier());
+            assertNull(client.getClient().getHostnameVerifier());
         } finally {
             try {
                 factory.shutdown();
