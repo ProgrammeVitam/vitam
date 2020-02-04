@@ -27,10 +27,11 @@
 package fr.gouv.vitam.common.retryable;
 
 import fr.gouv.vitam.common.exception.VitamRuntimeException;
-import fr.gouv.vitam.common.logging.VitamLogger;
+import org.apache.commons.lang3.exception.ExceptionUtils;
 
 import java.util.Random;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Consumer;
 
 public interface Retryable<T, E extends Exception> {
 
@@ -38,24 +39,34 @@ public interface Retryable<T, E extends Exception> {
 
     void execute(DelegateRetryVoid<E> delegate) throws E;
 
-    default void sleep(int attempt, String name, VitamLogger LOGGER, RetryableParameters param, Random randomSleep) {
+    default void sleep(int attempt, String name, RetryableParameters param, Random randomSleep, Consumer<T> onResult, T type) {
+        onResult.accept(type);
+        String resultString = type.toString();
+        doSleep(attempt, name, param, randomSleep, resultString);
+    }
+
+    default void sleep(int attempt, String name, RetryableParameters param, Random randomSleep, Consumer<Exception> onException, Exception exception) {
+        onException.accept(exception);
+        String stackTrace = ExceptionUtils.getStackTrace(exception);
+        doSleep(attempt, name, param, randomSleep, stackTrace);
+    }
+
+    default void doSleep(int attempt, String name, RetryableParameters param, Random randomSleep, String toPrint) {
         try {
-            long sleepTime = getSleepTime(attempt, param, randomSleep);
+            int randomRangeSleep = param.getRandomRangeSleep() == 0
+                ? 0
+                : randomSleep.nextInt(param.getRandomRangeSleep());
+
+            long sleepTime = attempt == 1
+                ? randomRangeSleep + param.getFirstAttemptWaitingTime()
+                : randomRangeSleep + param.getWaitingTime();
+
             TimeUnit timeUnit = param.getTimeUnit();
-            LOGGER.warn("Retryable='{}' - Will retry '{}' in '{}' {}.", name, sleepTime, timeUnit.name());
+            param.getLog().accept(String.format("Retryable='%s' - Will retry, attempt '%d' in '%d' %s. %s", name, attempt, sleepTime, timeUnit.name(), toPrint));
             timeUnit.sleep(sleepTime);
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
             throw new VitamRuntimeException(String.format("Error while trying to wait in retryable: '%s'.", name), e);
         }
-    }
-
-    default long getSleepTime(int attempt, RetryableParameters param, Random randomSleep) {
-        boolean isFirstAttempt = attempt == 1;
-        int randomRangeSleep = param.getRandomRangeSleep();
-        if (isFirstAttempt) {
-            return randomSleep.nextInt(randomRangeSleep) + param.getFirstAttemptWaitingTime();
-        }
-        return randomSleep.nextInt(randomRangeSleep) + param.getWaitingTime();
     }
 }

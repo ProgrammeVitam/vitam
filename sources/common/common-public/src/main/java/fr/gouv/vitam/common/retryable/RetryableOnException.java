@@ -26,9 +26,6 @@
  */
 package fr.gouv.vitam.common.retryable;
 
-import fr.gouv.vitam.common.logging.VitamLogger;
-import fr.gouv.vitam.common.logging.VitamLoggerFactory;
-
 import java.util.Objects;
 import java.util.Random;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -36,7 +33,6 @@ import java.util.function.Consumer;
 import java.util.function.Predicate;
 
 public class RetryableOnException<T, E extends Exception> implements Retryable<T, E> {
-    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(RetryableOnException.class);
     private static final Consumer<Exception> NOOP = e -> {};
     private static final Predicate<Exception> ALL = e -> true;
 
@@ -66,14 +62,14 @@ public class RetryableOnException<T, E extends Exception> implements Retryable<T
     public T exec(DelegateRetry<T, E> delegate) throws E {
         while (counter.getAndIncrement() < param.getNbRetry()) {
             try {
-                logAttemptDelegate(delegate.toString());
                 return delegate.call();
             } catch (Exception e) {
-                if (counter.get() >= param.getNbRetry() || retryOn.negate().test(e)) {
-                    LOGGER.warn("Retryable='{}' - Stop retry at attempt '{}' and throw exception of type '{}'.", counter.get(), e.getClass().getSimpleName());
+                boolean attemptExceedNbRetry = counter.get() >= param.getNbRetry();
+                boolean shouldStopRetry = retryOn.negate().test(e);
+                if (attemptExceedNbRetry || shouldStopRetry) {
                     throw e;
                 }
-                manageCatch(e, delegate.toString());
+                sleep(counter.get(), delegate.toString(), param, randomSleep, onException, e);
             }
         }
 
@@ -84,32 +80,18 @@ public class RetryableOnException<T, E extends Exception> implements Retryable<T
     public void execute(DelegateRetryVoid<E> delegate) throws E {
         while (counter.getAndIncrement() < param.getNbRetry()) {
             try {
-                logAttemptDelegate(delegate.toString());
                 delegate.call();
                 return;
             } catch (Exception e) {
-                if (counter.get() >= param.getNbRetry() || retryOn.negate().test(e)) {
-                    LOGGER.warn("Retryable='{}' - Stop retry at attempt '{}' and throw exception of type '{}'.", counter.get(), e.getClass().getSimpleName());
+                boolean attemptExceedNbRetry = counter.get() >= param.getNbRetry();
+                boolean shouldStopRetry = retryOn.negate().test(e);
+                if (attemptExceedNbRetry || shouldStopRetry) {
                     throw e;
                 }
-                manageCatch(e, delegate.toString());
+                sleep(counter.get(), delegate.toString(), param, randomSleep, onException, e);
             }
         }
 
         throw new IllegalStateException("Unreachable statement.");
-    }
-
-    private void manageCatch(Exception e, String name) {
-        onException.accept(e);
-        LOGGER.warn(String.format("Retryable='%s' - Got an exception of type '%s'.", name, e.getClass().getSimpleName()), e);
-        sleep(counter.get(), name, LOGGER, param, randomSleep);
-    }
-
-    private void logAttemptDelegate(String name) {
-        if (counter.get() == 1) {
-            LOGGER.debug("Retryable='{}' - Attempt '{}' of '{}'.", name, counter.get(), param.getNbRetry());
-        } else {
-            LOGGER.warn("Retryable='{}' - Attempt '{}' of '{}'.", name, counter.get(), param.getNbRetry());
-        }
     }
 }
