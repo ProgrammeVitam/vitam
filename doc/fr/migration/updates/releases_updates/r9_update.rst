@@ -6,6 +6,13 @@ Notes et procédures spécifiques R9
 Prérequis à la montée de version
 ================================
 
+Gestion du référentiel des formats 
+-----------------------------------
+
+.. caution:: Si un référentiel des formats personnalisé est utilisé avec la solution logicielle :term:`VITAM`, il faut impérativement, lors d'une montée de version, modifier manuellement le fichier des formats livré par défaut avant toute réinstallation afin d'y réintégrer les modifications. A défaut, le référentiel des formats sera réinitialisé. 
+
+Il faut pour cela éditer le fichier situé à l'emplacement ``environments/DROID_SignatureFile_<version>.xml`` afin d'y réintégrer les éléments du référentiel des formats personnalisés.  
+
 Gestion de la rétro-compatibilité des données des offres
 ---------------------------------------------------------
 
