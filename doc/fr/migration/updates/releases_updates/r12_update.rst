@@ -6,6 +6,22 @@ Notes et procédures spécifiques R12
 Prérequis à la montée de version
 ================================
 
+Gestion du référentiel ontologique 
+-----------------------------------
+
+.. caution:: En lien avec la *User Story* #5928 (livrée avec la *release* R11) et les changements de comportement de l'API d'import des ontologies associés, si un référentiel ontologique personnalisé est utilisé avec la solution logicielle :term:`VITAM`, il faut impérativement, lors d'une montée de version vers la *release* R11 ou supérieure, modifier manuellement le fichier d'ontologie livré par défaut avant toute réinstallation afin d'y réintégrer les modifications. A défaut, l'ontologie sera remplacée en mode forcé (sans contrôle de cohérence). 
+
+Il faut pour cela éditer le fichier situé à l'emplacement ``deployment/ansible-vitam/roles/init_contexts_and_security_profiles/files/VitamOntology.json`` afin d'y réintégrer les éléments du référentiel ontologique personnalisés.  
+
+.. note:: Lors de la montée de version, une sauvegarde du référentiel ontologique courant est réalisée à l'emplacement ``environments/backups/ontology_backup_<date>.json`` 
+
+Gestion du référentiel des formats 
+-----------------------------------
+
+.. caution:: Si un référentiel des formats personnalisé est utilisé avec la solution logicielle :term:`VITAM`, il faut impérativement, lors d'une montée de version, modifier manuellement le fichier des formats livré par défaut avant toute réinstallation afin d'y réintégrer les modifications. A défaut, le référentiel des formats sera réinitialisé. 
+
+Il faut pour cela éditer le fichier situé à l'emplacement ``environments/DROID_SignatureFile_<version>.xml`` afin d'y réintégrer les éléments du référentiel des formats personnalisés.  
+
 Mise à jour de l'inventaire
 ----------------------------
 
