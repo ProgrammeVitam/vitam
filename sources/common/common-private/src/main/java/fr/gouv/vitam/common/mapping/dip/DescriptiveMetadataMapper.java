@@ -255,7 +255,10 @@ public class DescriptiveMetadataMapper {
             historyType.setData(new ManagementHistoryDataType());
             historyType.getData().setVersion(historyModel.getData().getVersion());
             historyType.getData().setManagement(managementMapper.map(historyModel.getData().getManagement()));
-            historyType.setUpdateDate(stringToXMLGregorianCalendar(historyModel.getUpdateDate()).get());
+            Optional<XMLGregorianCalendar> updateDate = stringToXMLGregorianCalendar(historyModel.getUpdateDate());
+            if (updateDate.isPresent()) {
+                historyType.setUpdateDate(updateDate.get());
+            }
 
             managementHistoryType.add(historyType);
         }

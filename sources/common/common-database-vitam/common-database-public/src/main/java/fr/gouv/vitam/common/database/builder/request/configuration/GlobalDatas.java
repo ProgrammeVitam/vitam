@@ -260,8 +260,6 @@ public class GlobalDatas {
                 array.add((Float) object);
             } else if (object instanceof Double) {
                 array.add((Double) object);
-            } else if (object instanceof Long) {
-                array.add((Long) object);
             } else if (object instanceof Boolean) {
                 array.add((Boolean) object);
             } else if (object instanceof Integer) {

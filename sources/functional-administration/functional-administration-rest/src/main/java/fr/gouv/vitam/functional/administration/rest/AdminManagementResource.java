@@ -393,6 +393,7 @@ public class AdminManagementResource extends ApplicationStatusResource {
         List<FileRulesModel> insertRules = new ArrayList<>();
         Set<String> notUsedDeletedRules = new HashSet<>();
         Set<String> notUsedUpdatedRules = new HashSet<>();
+        
         try {
             RulesManagerFileImpl rulesManagerFileImpl =
                 new RulesManagerFileImpl(mongoAccess, vitamCounterService, this.rulesOntologyLoader, this.vitamRuleService);
@@ -403,8 +404,7 @@ public class AdminManagementResource extends ApplicationStatusResource {
                         insertRules,
                         notUsedDeletedRules, notUsedUpdatedRules);
             } catch (FileRulesUpdateException exc) {
-                LOGGER.warn("used Rules ({}) want to be updated",
-                    usedUpdatedRules != null ? usedUpdatedRules.toString() : "");
+                LOGGER.warn("used Rules ({}) want to be updated", usedUpdatedRules);
             }
             InputStream errorReportInputStream =
                 rulesManagerFileImpl.generateErrorReport(errors, usedDeletedRules, usedUpdatedRules, StatusCode.OK,
