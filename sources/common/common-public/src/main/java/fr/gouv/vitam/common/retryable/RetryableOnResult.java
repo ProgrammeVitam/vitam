@@ -36,7 +36,6 @@ import java.util.function.Consumer;
 import java.util.function.Predicate;
 
 public class RetryableOnResult<T, E extends Exception> implements Retryable<T, E> {
-    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(RetryableOnResult.class);
     private static final Consumer NOOP = r -> {};
 
     private final AtomicInteger counter = new AtomicInteger();
@@ -60,14 +59,13 @@ public class RetryableOnResult<T, E extends Exception> implements Retryable<T, E
     @Override
     public T exec(DelegateRetry<T, E> delegate) throws E {
         while (counter.getAndIncrement() < param.getNbRetry()) {
-            logAttemptDelegate(delegate.toString());
             T result = delegate.call();
-            if (counter.get() >= param.getNbRetry() || retryOn.negate().test(result)) {
-                LOGGER.warn("Retryable='{}' - Stop retry at attempt '{}' and return result of type '{}'.", counter.get(), result.getClass().getSimpleName());
+            boolean attemptExceedNbRetry = counter.get() >= param.getNbRetry();
+            boolean shouldStopRetry = retryOn.negate().test(result);
+            if (attemptExceedNbRetry || shouldStopRetry) {
                 return result;
             }
-            onResult.accept(result);
-            sleep(counter.get(), delegate.toString(), LOGGER, param, randomSleep);
+            sleep(counter.get(), delegate.toString(), param, randomSleep, onResult, result);
         }
 
         throw new IllegalStateException("Unreachable statement.");
@@ -76,13 +74,5 @@ public class RetryableOnResult<T, E extends Exception> implements Retryable<T, E
     @Override
     public void execute(DelegateRetryVoid<E> delegate) throws E {
         throw new IllegalStateException("Cannot use this function");
-    }
-
-    private void logAttemptDelegate(String name) {
-        if (counter.get() == 1) {
-            LOGGER.debug("Retryable='{}' - Attempt '{}' of '{}'.", name, counter.get(), param.getNbRetry());
-        } else {
-            LOGGER.warn("Retryable='{}' - Attempt '{}' of '{}'.", name, counter.get(), param.getNbRetry());
-        }
     }
 }
