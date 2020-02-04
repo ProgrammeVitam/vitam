@@ -178,6 +178,30 @@ Si vous souhaitez gérer vous-même les identifiants sur un service référentie
 
 Par défaut tous les services référentiels de Vitam fonctionnent en mode maître. Pour désactiver le mode maître de :term:`VITAM`, il faut modifier le fichier ansible ``deployment/environments/group_vars/all/vitam_vars.yml`` dans les sections ``vitam_tenants_usage_external`` (pour gérer, par tenant, les collections en mode esclave).
 
+Paramétrage du batch de calcul pour l'indexation des règles héritées
+====================================================================
+
+La paramétrage du batch de calcul pour l'indexation des règles héritées peut être réalisé dans le fichier ``/group_vars/all/vitam_vars.yml``. 
+
+La section suivante du fichier ``vitam_vars.yml`` permet de paramétrer la fréquence de passage du batch : 
+
+.. code:: json
+
+    vitam_timers: 
+        metadata:
+            - name: vitam-metadata-computed-inherited-rules
+              frequency: "*-*-* 02:30:00"
+
+La section suivante du fichier ``vitam_vars.yml`` permet de paramétrer la liste des tenants sur lequels s'exécute le batch :  
+
+.. code:: json
+
+    vitam:
+      worker:
+            # api_output_index_tenants : permet d'indexer les règles de gestion, les chemins des règles et les services producteurs
+            api_output_index_tenants: [0,1,2,3,4,5,6,7,8,9] 
+            # rules_index_tenants : permet d'indexer les règles de gestion 
+            rules_index_tenants: [0,1,2,3,4,5,6,7,8,9]
 
 Durées minimales permettant de contrôler les valeurs saisies
 ==============================================================
