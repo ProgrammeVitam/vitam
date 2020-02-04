@@ -235,10 +235,22 @@ export class ComputeRulesUtilsService {
 
         if ((mgtHasInheritance && !ObjectsService.isSameArray(preventRulesId, mgtCategory.Inheritance.PreventRulesId))
           || (!mgtHasInheritance && preventRulesId && preventRulesId.length > 0)) {
+          if (preventRulesId) {
+            preventRulesId.sort();
+          }
+          if (mgtCategory && mgtCategory.Inheritance && mgtCategory.Inheritance.preventRulesId) {
+            mgtCategory.Inheritance.PreventRulesId.sort();
+          }
           newCategory.Inheritance.PreventRulesId = preventRulesId;
           isCategoryUpdated = true;
           updateInfo.updated++;
         } else {
+          if (preventRulesId) {
+            preventRulesId.sort();
+          }
+          if (mgtCategory && mgtCategory.Inheritance && mgtCategory.Inheritance.preventRulesId) {
+            mgtCategory.Inheritance.PreventRulesId.sort();
+          }
           newCategory.Inheritance.PreventRulesId = preventRulesId;
         }
 

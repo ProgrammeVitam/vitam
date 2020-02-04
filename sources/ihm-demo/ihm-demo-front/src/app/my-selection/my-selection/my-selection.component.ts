@@ -103,9 +103,8 @@ export class MySelectionComponent extends PageComponent {
 
   checkAll(): void {
     const newValue = !this.isAllChecked();
-    this.selectedArchiveUnits.map((x) => {
+    this.selectedArchiveUnits.forEach((x) => {
       x.selected = newValue;
-      return x
     });
   }
 

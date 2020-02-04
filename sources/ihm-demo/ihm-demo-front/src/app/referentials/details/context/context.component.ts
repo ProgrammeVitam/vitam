@@ -171,7 +171,7 @@ export class ContextComponent extends PageComponent {
       }
     });
     this.tenants.push(tenantId);
-    this.tenants.sort();
+    this.tenants.sort((tenant1, tenant2) => tenant1 - tenant2);
   }
 
   addTenant() {
