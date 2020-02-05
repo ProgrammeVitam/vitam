@@ -132,13 +132,4 @@ public enum AdminCollections {
         return checkURI;
     }
 
-    /**
-     * Compare method
-     *
-     * @param value as String to compare
-     * @return True if the name of the collection equals
-     */
-    public boolean compareTo(String value) {
-        return name.equals(value);
-    }
 }

@@ -83,6 +83,7 @@ public class GriffinByFormat {
         this.formatList = formatList;
         this.griffinIdentifier = griffinIdentifier;
         this.actionDetail = actionDetail;
+        this.debug = Boolean.FALSE;
     }
 
     public Set<String> getFormatList() {

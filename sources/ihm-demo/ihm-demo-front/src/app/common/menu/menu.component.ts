@@ -204,14 +204,7 @@ export class MenuComponent implements OnInit {
           }
           this.updateContract();
         }, (error: HttpErrorResponse) => {
-
-          if (error.error instanceof Error) {
-            // A client-side or network error occurred. Handle it accordingly.
-          } else {
-            // The backend returned an unsuccessful response code.
-            // The response body may contain clues as to what went wrong,
-          }
-
+            
           // Logout when cookie expired
           if (error.status === 0) {
             this.isAuthenticated = false;

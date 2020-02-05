@@ -124,7 +124,7 @@ export class TreeSearchComponent implements OnInit, OnChanges {
       projection_originatingagency: '#originating_agency'
     };
 
-    if (request.startDate && request.startDate) {
+    if (request.startDate && request.endDate) {
       this.criteriaSearch.StartDate = request.startDate;
       this.criteriaSearch.EndDate = request.endDate;
     }

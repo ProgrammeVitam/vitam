@@ -44,18 +44,15 @@ describe('ArchiveUnitProfileComponent', () => {
 
   it('should change status', () => {
     component.updatedFields = {};
-    component.isActif = false;
-
+    
     // Click on status selector update isActif and trigger changeStatus
     component.isActif = true;
     component.changeStatus();
-
     expect(component.updatedFields.Status).toBe('ACTIVE');
 
     // Click on status selector update isActif and trigger changeStatus
     component.isActif = false;
     component.changeStatus();
-
     expect(component.updatedFields.Status).toBe('INACTIVE');
   });
 });

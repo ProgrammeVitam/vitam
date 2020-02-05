@@ -9,7 +9,7 @@ import { VitamResponse } from "../../common/utils/response";
 import { ArchiveUnitService } from "../archive-unit.service";
 import { DialogService } from "../../common/dialog/dialog.service";
 import { NavigationEnd } from "@angular/router";
-import {ErrorService} from "../../common/error.service";
+import { ErrorService } from "../../common/error.service";
 
 let DefaultResponse = {
   $context: {},
@@ -22,7 +22,8 @@ let ArchiveUnitServiceStub = {
   getDetails: (id) => Observable.of(DefaultResponse),
   getObjects: (id) => Observable.of(new VitamResponse()),
   getResults: (body, offset, limit) => Observable.of(new VitamResponse()),
-  updateMetadata: (id, updateRequest) => Observable.of(new VitamResponse())
+  updateMetadata: (id, updateRequest) => Observable.of(new VitamResponse()),
+  getDetailsWithInheritedRules: (id: string) => Observable.of(DefaultResponse)
 };
 
 describe('ArchiveUnitDetailsComponent', () => {

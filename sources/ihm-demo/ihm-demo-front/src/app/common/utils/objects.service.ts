@@ -65,9 +65,9 @@ export class ObjectsService {
     if (!array1 || !array2) { return false }
     if (array1.length !== array2.length) { return false }
 
-    const sortedArray2 = array2.sort();
-
-    return array1.sort().every((value, index) => value === sortedArray2[index] );
+    const sortedArray1 = [...array1].sort();
+    const sortedArray2 = [...array2].sort();
+    return sortedArray1.sort().every((value, index) => value === sortedArray2[index] );
   }
 
   constructor() {
