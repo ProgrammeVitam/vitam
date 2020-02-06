@@ -163,7 +163,7 @@ other_strategies
 
 Fichier: ``deployment/environments/group_vars/all/offer_opts.yml``
 
-Cette variable référence les stratégies de stockage additionnelles sur le site courant. **Elles ne sont déclarées et utilisées que dans unle cas du multi-stratégies.**
+Cette variable référence les stratégies de stockage additionnelles sur le site courant. **Elles ne sont déclarées et utilisées que dans le cas du multi-stratégies.**
 Si l'offre se situe sur un site distant, il est nécessaire de préciser le nom du site sur lequel elle se trouve comme dans l'exemple ci-dessous.
 Les sites secondaires doivent uniquement écrire sur leur(s) offre(s) locale(s).
 
@@ -190,16 +190,16 @@ Exemple pour le site 1 (site primaire):
 
 .. code-block:: yaml
 
-    other_strategoies:
+    other_strategies:
         metadata:
             - name: offer-fs-1
-            referent: false
+            referent: true
             # status: INACTIVE (valeur par défaut: ACTIVE)
             # id: idoffre # OPTIONAL, if used, MUST BE UNIQUE & same on each site
             # asyncRead: true # ONLY ENABLE WHEN tape-library
-            # vitam_site_name: site1 # OPtional, needed only when call to distant site (indicate distant vitam_site_name)
-            referent: false
+            # vitam_site_name: site1 # Optional, needed only when call to distant site (indicate distant vitam_site_name)
             - name: offer-fs-2
+            referent: false
             vitam_site_name: site2
             # status: INACTIVE (valeur par défaut: ACTIVE)
             # id: idoffre # OPTIONAL, if used, MUST BE UNIQUE & same on each site
@@ -256,7 +256,7 @@ Exemple pour le site 2 (site secondaire):
     other_strategies:
         metadata:
             - name: offer-fs-2
-            referent: false
+            referent: true
             # id: idoffre # OPTIONAL, if used, MUST BE UNIQUE & same on each site
             # status: INACTIVE (valeur par défaut: ACTIVE)
             # asyncRead: true # ONLY ENABLE WHEN tape-library
@@ -282,7 +282,7 @@ Exemple pour le site 3 (site secondaire):
     other_strategies:
         metadata:
             - name: offer-fs-3
-            referent: false
+            referent: true
             # id: idoffre # OPTIONAL, if used, MUST BE UNIQUE & same on each site
             # status: INACTIVE (valeur par défaut: ACTIVE)
             # asyncRead: true # ONLY ENABLE WHEN tape-library
