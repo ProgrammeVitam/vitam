@@ -76,6 +76,6 @@ public class ExtractObjectNumSedaTest {
         utils = SedaUtilsFactory.create(handlerIO);
         final ExtractUriResponse extractUriResponse = utils.getAllDigitalObjectUriFromManifest();
 
-        assertThat(extractUriResponse.getUriListManifest()).isNotNull().isNotEmpty();
+        assertThat(extractUriResponse.getUriSetManifest()).isNotNull().isNotEmpty();
     }
 }

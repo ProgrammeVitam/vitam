@@ -28,6 +28,7 @@ package fr.gouv.vitam.worker.common.utils;
 
 import java.net.URI;
 import java.util.List;
+import java.util.Set;
 
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.processing.common.model.ProcessResponse;
@@ -38,8 +39,8 @@ import fr.gouv.vitam.processing.common.model.ProcessResponse;
 public class ExtractUriResponse extends ProcessResponse {
     // FIXME P1 REVIEW Since build through Factory: use package protected class and constructors for ALL
     private boolean errorDuplicateUri;
-    // list contains Uri for Binary Object
-    private List<URI> uriListManifest;
+    // Set contains Uri for Binary Object
+    private Set<URI> uriSetManifest;
 
     /**
      * @return the errorDuplicateUri
@@ -61,17 +62,17 @@ public class ExtractUriResponse extends ProcessResponse {
     /**
      * @return the uriListManifest
      */
-    public List<URI> getUriListManifest() {
-        return uriListManifest;
+    public Set<URI> getUriSetManifest() {
+        return uriSetManifest;
     }
 
     /**
-     * @param uriListManifest the uriListManifest to set
+     * @param uriSetManifest the uriSetManifest to set
      * @return this
      */
-    public ExtractUriResponse setUriListManifest(List<URI> uriListManifest) {
-        ParametersChecker.checkParameter("uriListManifest is a mandatory parameter", uriListManifest);
-        this.uriListManifest = uriListManifest;
+    public ExtractUriResponse setUriSetManifest(Set<URI> uriSetManifest) {
+        ParametersChecker.checkParameter("uriSetManifest is a mandatory parameter", uriSetManifest);
+        this.uriSetManifest = uriSetManifest;
         return this;
     }
 }

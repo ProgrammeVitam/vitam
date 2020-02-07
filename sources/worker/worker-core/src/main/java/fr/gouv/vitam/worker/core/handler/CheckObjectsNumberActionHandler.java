@@ -30,7 +30,6 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.exc.InvalidFormatException;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import fr.gouv.vitam.common.CharsetUtils;
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.SedaConstants;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
@@ -49,12 +48,15 @@ import fr.gouv.vitam.worker.common.utils.SedaUtils;
 import fr.gouv.vitam.worker.common.utils.SedaUtilsFactory;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
 import fr.gouv.vitam.workspace.client.WorkspaceClient;
+import org.apache.commons.collections4.SetUtils;
 
-import java.io.UnsupportedEncodingException;
 import java.net.URI;
-import java.net.URLEncoder;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
+
+import static fr.gouv.vitam.common.model.VitamConstants.URL_ENCODED_SEPARATOR;
 
 /**
  * Handler checking that digital objects number in workspace matches with manifest.xml.
@@ -103,9 +105,9 @@ public class CheckObjectsNumberActionHandler extends ActionHandler {
 
             if (extractUriResponse != null && !extractUriResponse.isErrorDuplicateUri()) {
 
-                final List<URI> uriListFromManifest = extractUriResponse.getUriListManifest();
+                final Set<URI> uriSetFromManifest = extractUriResponse.getUriSetManifest();
                 final List<URI> uriListFromWorkspace = getUriListFromWorkspace(handlerIO, params);
-                checkCountDigitalObjectConformity(uriListFromManifest, uriListFromWorkspace, itemStatus);
+                checkCountDigitalObjectConformity(uriSetFromManifest, uriListFromWorkspace, itemStatus);
 
             } else if (extractUriResponse != null) {
                 itemStatus.increment(StatusCode.KO, extractUriResponse.getErrorNumber());
@@ -157,104 +159,62 @@ public class CheckObjectsNumberActionHandler extends ActionHandler {
     /**
      * Count the number of digital objects consistent between the manifest.xm file and the sip
      *
-     * @param uriListManifest list of uri from manifest
+     * @param uriManifestSet set of uri from manifest
      * @param uriListWorkspace list of uri from workspace
      * @param itemStatus itemStatus of handler
      * @throws ProcessingException will be throwed when one or all arguments is null
      */
-    private void checkCountDigitalObjectConformity(List<URI> uriListManifest, List<URI> uriListWorkspace,
+    private void checkCountDigitalObjectConformity(Set<URI> uriManifestSet, List<URI> uriListWorkspace,
         ItemStatus itemStatus) throws ProcessingException {
-        ParametersChecker.checkParameter("Manifest uri list is a mandatory parameter", uriListManifest);
+        ParametersChecker.checkParameter("Manifest uri set is a mandatory parameter", uriManifestSet);
         ParametersChecker.checkParameter("Workspace uri list is a mandatory parameter", uriListWorkspace);
         ParametersChecker.checkParameter("ItemStatus is a mandatory parameter", itemStatus);
-        // TODO P1
-        // Use Java 8, Methods Reference, lambda expressions and streams
-        /**
-         * compare the size between list uri from manifest and list uri from workspace.
-         */
-        int countCompare = Math.abs(uriListManifest.size() - uriListWorkspace.size());
 
-        if (countCompare > 0) {
-            // The number of object in manifest is the reference for number of OK
-            if (uriListManifest.size() > uriListWorkspace.size()) {
-                itemStatus.increment(StatusCode.OK, uriListManifest.size() - countCompare);
-            } else {
-                itemStatus.increment(StatusCode.OK, uriListManifest.size());
-            }
-            itemStatus.increment(StatusCode.KO, countCompare);
-            updateDetailItemStatus(itemStatus,
-                getMessageItemStatusInvalidURIandIncorrectTotals(uriListManifest, uriListWorkspace),
-                uriListManifest.size() > uriListWorkspace.size() ? SUBTASK_MANIFEST_SUPERIOR_BDO
-                    : SUBTASK_MANIFEST_INFERIOR_BDO);
+        HashSet<URI> uriWorkspaceSet = new HashSet<>(uriListWorkspace);
+
+        Set<URI> notInWorkspace = SetUtils.difference(uriManifestSet, uriWorkspaceSet).toSet();
+        Set<URI> notInManifest = SetUtils.difference(uriWorkspaceSet, uriManifestSet).toSet();
+
+        // The number of object in manifest is the reference for number of OK
+        int errorCount = notInWorkspace.size() + notInManifest.size();
+        int okCount = uriWorkspaceSet.size() - notInManifest.size();
+
+        if (errorCount == 0) {
+            itemStatus.increment(StatusCode.OK, okCount);
         } else {
+            itemStatus.increment(StatusCode.OK, okCount);
+            itemStatus.increment(StatusCode.KO, errorCount);
 
-            /**
-             * count the number of object in the manifest found in the sip
-             */
-            int countConsistentDigitalObjectFromManifest = 0;
-            /**
-             * count the number of digital object in the sip found in the manifest
-             */
-            int countConsistentDigitalObjectFromWorkspace = 0;
-            // TODO P0 REVIEW since you have List, Set, you should use direct method (removeAll, containAll, isEmpty,
-            // ...)
-            // faster and better
-            for (final URI uriManifest : uriListManifest) {
-                if (uriListWorkspace.contains(uriManifest)) {
-                    countConsistentDigitalObjectFromManifest++;
-                } else {
-                    countCompare++;
-                }
-            }
-
-            for (final URI uriWorkspace : uriListWorkspace) {
-                if (uriListManifest.contains(uriWorkspace)) {
-                    countConsistentDigitalObjectFromWorkspace++;
-                } else {
-                    countCompare++;
-                }
-
-            }
-
-            final boolean countOK =
-                countConsistentDigitalObjectFromManifest == countConsistentDigitalObjectFromWorkspace;
-            final boolean countConsistent = countConsistentDigitalObjectFromManifest == uriListManifest.size();
-
-            if (countOK && countConsistent) {
-                itemStatus.increment(StatusCode.OK, uriListManifest.size());
-
+            String status;
+            if(uriManifestSet.size() > uriListWorkspace.size()) {
+                status = SUBTASK_MANIFEST_SUPERIOR_BDO;
+            } else if(uriManifestSet.size() < uriListWorkspace.size()) {
+                status = SUBTASK_MANIFEST_INFERIOR_BDO;
             } else {
-                // The number of object in manifest is the reference for number of OK
-                itemStatus.increment(StatusCode.OK, countConsistentDigitalObjectFromManifest);
-                itemStatus.increment(StatusCode.KO, countCompare);
-                updateDetailItemStatus(itemStatus,
-                    getMessageItemStatusInvalidURIandIncorrectTotals(uriListManifest, uriListWorkspace),
-                    SUBTASK_INVALID_URI);
+                status = SUBTASK_INVALID_URI;
             }
+
+            updateDetailItemStatus(itemStatus,
+                getMessageItemStatusInvalidURIandIncorrectTotals(notInWorkspace, notInManifest), status);
         }
-        itemStatus.setData("errorNumber", countCompare);
+
+        itemStatus.setData("errorNumber", errorCount);
     }
 
 
-    private String getMessageItemStatusInvalidURIandIncorrectTotals(final List<URI> uriListManifest,
-        final List<URI> uriListWorkspace) {
+    private String getMessageItemStatusInvalidURIandIncorrectTotals(Set<URI> notInWorkspace, Set<URI> notInManifest) {
         ObjectNode error = JsonHandler.createObjectNode();
 
-        List<URI> uriNotInWorkspace =
-            uriListManifest.stream().filter(uri -> !uriListWorkspace.contains(uri)).collect(Collectors.toList());
-        List<URI> uriNotInManifest =
-            uriListWorkspace.stream().filter(uri -> !uriListManifest.contains(uri)).collect(Collectors.toList());
-
-        if (!uriNotInWorkspace.isEmpty()) {
+        if (!notInWorkspace.isEmpty()) {
             ArrayNode errorDetailsManifest = JsonHandler.createArrayNode();
-            uriNotInWorkspace.forEach(uri -> {
+            notInWorkspace.forEach(uri -> {
                 errorDetailsManifest.add(uri.getPath());
             });
             error.set(ERROR_IN_MANIFEST, errorDetailsManifest);
         }
-        if (!uriNotInManifest.isEmpty()) {
+        if (!notInManifest.isEmpty()) {
             ArrayNode errorDetailsContent = JsonHandler.createArrayNode();
-            uriNotInManifest.forEach(uri -> {
+            notInManifest.forEach(uri -> {
                 errorDetailsContent.add(uri.getPath());
             });
             error.set(ERROR_IN_CONTENT, errorDetailsContent);
@@ -283,18 +243,15 @@ public class CheckObjectsNumberActionHandler extends ActionHandler {
             // To fix this, uncomment the next line and remove what is comming next.
             // return workspaceClient.getListUriDigitalObjectFromFolder(workParams.getContainerName(), VitamConstants
             // .CONTENT_SIP_FOLDER);
-
-            String encodedSeparator = URLEncoder.encode("/", CharsetUtils.UTF_8);
-
             final List<URI> uriListWorkspace =
                 JsonHandler.getFromStringAsTypeReference(workspaceClient
                     .getListUriDigitalObjectFromFolder(workParams.getContainerName(), VitamConstants.SIP_FOLDER)
                     .toJsonNode().get("$results").get(0).toString(), new TypeReference<List<URI>>() {
                 });
             // FIXME P1: Ugly hack to remove (see above), just keep URI with "/" to avoid manifest.xml
-            return uriListWorkspace.stream().filter(uri -> uri.toString().contains(encodedSeparator)).collect(Collectors
+            return uriListWorkspace.stream().filter(uri -> uri.toString().contains(URL_ENCODED_SEPARATOR)).collect(Collectors
                 .toList());
-        } catch (InvalidParseOperationException | InvalidFormatException | UnsupportedEncodingException e) {
+        } catch (InvalidParseOperationException | InvalidFormatException e) {
             throw new ProcessingException(e);
         }
     }

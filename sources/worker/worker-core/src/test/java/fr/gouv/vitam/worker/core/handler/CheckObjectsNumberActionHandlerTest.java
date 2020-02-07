@@ -55,7 +55,9 @@ import org.mockito.Mockito;
 import java.net.URI;
 import java.net.URLEncoder;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertEquals;
@@ -83,9 +85,9 @@ public class CheckObjectsNumberActionHandlerTest {
     private LogbookLifeCyclesClient logbookLifeCyclesClient;
     private LogbookLifeCyclesClientFactory logbookLifeCyclesClientFactory;
     private SedaUtilsFactory sedaUtilsFactory;
-    private final List<URI> uriDuplicatedListManifestKO = new ArrayList<>();
-    private final List<URI> uriListManifestOK = new ArrayList<>();
-    private final List<URI> uriOutNumberListManifestKO = new ArrayList<>();
+    private final Set<URI> uriDuplicatedSetManifestKO = new HashSet<>();
+    private final Set<URI> uriSetManifestOK = new HashSet<>();
+    private final Set<URI> uriOutNumberSetManifestKO = new HashSet<>();
 
     private final List<URI> uriListWorkspaceOK = new ArrayList<>();
     private final List<URI> uriOutNumberListWorkspaceKO = new ArrayList<>();
@@ -123,16 +125,16 @@ public class CheckObjectsNumberActionHandlerTest {
             "CheckObjectsNumberActionHandlerTest", "workerId", com.google.common.collect.Lists.newArrayList());
 
         // URI LIST MANIFEST
-        uriDuplicatedListManifestKO.add(new URI(URLEncoder.encode("content/file1.pdf", CharsetUtils.UTF_8)));
-        uriDuplicatedListManifestKO.add(new URI(URLEncoder.encode("content/file1.pdf", CharsetUtils.UTF_8)));
+        uriDuplicatedSetManifestKO.add(new URI(URLEncoder.encode("content/file1.pdf", CharsetUtils.UTF_8)));
+        uriDuplicatedSetManifestKO.add(new URI(URLEncoder.encode("content/file1.pdf", CharsetUtils.UTF_8)));
 
-        uriListManifestOK.add(new URI(URLEncoder.encode("content/file1.pdf", CharsetUtils.UTF_8)));
-        uriListManifestOK.add(new URI(URLEncoder.encode("content/file2.pdf", CharsetUtils.UTF_8)));
+        uriSetManifestOK.add(new URI(URLEncoder.encode("content/file1.pdf", CharsetUtils.UTF_8)));
+        uriSetManifestOK.add(new URI(URLEncoder.encode("content/file2.pdf", CharsetUtils.UTF_8)));
 
 
-        uriOutNumberListManifestKO.add(new URI(URLEncoder.encode("content/file1.pdf", CharsetUtils.UTF_8)));
-        uriOutNumberListManifestKO.add(new URI(URLEncoder.encode("content/file2.pdf", CharsetUtils.UTF_8)));
-        uriOutNumberListManifestKO.add(new URI(URLEncoder.encode("content/file3.pdf", CharsetUtils.UTF_8)));
+        uriOutNumberSetManifestKO.add(new URI(URLEncoder.encode("content/file1.pdf", CharsetUtils.UTF_8)));
+        uriOutNumberSetManifestKO.add(new URI(URLEncoder.encode("content/file2.pdf", CharsetUtils.UTF_8)));
+        uriOutNumberSetManifestKO.add(new URI(URLEncoder.encode("content/file3.pdf", CharsetUtils.UTF_8)));
 
         // URI LIST WORKSPACE
 
@@ -148,15 +150,15 @@ public class CheckObjectsNumberActionHandlerTest {
         uriOutNumberListWorkspaceKO.add(new URI(URLEncoder.encode("manifest.xml", CharsetUtils.UTF_8)));
 
         extractUriResponseOK = new ExtractUriResponse();
-        extractUriResponseOK.setUriListManifest(uriListManifestOK);
+        extractUriResponseOK.setUriSetManifest(uriSetManifestOK);
 
         messages.add("Duplicated digital objects " + "content/file1.pdf");
         extractDuplicatedUriResponseKO = new ExtractUriResponse();
-        extractDuplicatedUriResponseKO.setUriListManifest(uriDuplicatedListManifestKO)
+        extractDuplicatedUriResponseKO.setUriSetManifest(uriDuplicatedSetManifestKO)
             .setErrorDuplicateUri(Boolean.TRUE).setErrorNumber(messages.size());
 
         extractOutNumberUriResponseKO = new ExtractUriResponse();
-        extractOutNumberUriResponseKO.setUriListManifest(uriOutNumberListManifestKO);
+        extractOutNumberUriResponseKO.setUriSetManifest(uriOutNumberSetManifestKO);
     }
 
     @After

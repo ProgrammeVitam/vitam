@@ -27,6 +27,10 @@
 
 package fr.gouv.vitam.common.model;
 
+import fr.gouv.vitam.common.CharsetUtils;
+
+import java.io.UnsupportedEncodingException;
+import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -74,12 +78,21 @@ public class VitamConstants {
 
     private static List<String> ruleTypes = null;
 
+    public final static String URL_ENCODED_SEPARATOR;
+
+    static {
+        try {
+            URL_ENCODED_SEPARATOR = URLEncoder.encode("/", CharsetUtils.UTF_8);
+        } catch (UnsupportedEncodingException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
     private VitamConstants() {
         // Nothing
     }
 
     /**
-     *
      * @return supported Rules type
      */
     public static List<String> getSupportedRules() {
@@ -118,6 +131,7 @@ public class VitamConstants {
             throw new IllegalArgumentException(v);
         }
     }
+
 
     public enum StorageRuleFinalAction {
         RESTRICT_ACCESS("RestrictAccess"),
