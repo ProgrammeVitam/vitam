@@ -45,7 +45,7 @@ La répartition posible des données selon les types de stratégies est alors la
    :widths: 1, 4, 2, 2
    :header-rows: 1
 
-Les stratégies additionelles utilisées doivent déclarer au moins les offres de la stratégie de plateform *default* pour le stockage des ArchiveUnit (AU), ObjectGroup (GOT) et de leur JCV. Pour le stockage des BinaryObject (BDO) il n'y a aucune règle particulière.
+Les stratégies additionelles utilisées doivent déclarer au moins une offre dite *référente* pour le stockage des ArchiveUnit (AU), ObjectGroup (GOT) et de leur JCV. Pour le stockage des BinaryObject (BDO) il n'y a aucune règle particulière.
 
 .. caution:: L'utilisation en mode standard de :term:`VITAM` est le déploiement mono-stratégie (ie. avec uniquement la stratégie de plateforme *default*). Le déploiement multi-stratégies (ie. avec les stratégies additionnelles) est considéré comme un mode avancé qui ne doit être utilisé que si le besoin a été identifié. 
 
@@ -87,7 +87,15 @@ Le fonctionnement multisite multi-stratégie suit le même principe que le mode 
 
 Pour respecter les normes de l'architecture multisite ainsi que ces processus associés, des règles supplémentaires spécifiques au mode avancé multi-stratégies doivent être respectées:
 
-* La procédure de reconstruction utilise la notion d’offre dite « référente ». Il s’agit d’une offre qui doit contenir TOUTES les données nécessaires à la reconstruction d’un site Vitam à partir des données de l’offre de stockage. Il faut donc que toutes les stratégies utilisées pour le stockage des ArchiveUnit (AU), ObjectGroup (GOT) et de leur JCV déclarent au moins les offres de la stratégie de plateform *default*.
+* La procédure de reconstruction utilise la notion d’offre dite « référente ». Il s’agit d’un groupe d’offres qui doivent contenir TOUTES les données nécessaires à la reconstruction d’un site Vitam à partir des données des offres de stockage. Il est donc obligatoire d’avoir un groupe d’offres de stockage dites « référente » par site, servant de source pour ces données, en vue de garantir la reconstruction. De plus pour des raisons de performance de la reconstruction les données contenues dans ces offres doivent être disjointes entre les offres. 
+
+.. note:: 
+    Les données nécessaires à la reconstruction des bases de données sont :
+        * les métadonnées des unités archivistiques et groupes d’objets techniques ainsi que leur journal de cycle de vie,
+        * les données relatives aux référentiels,
+        * les journaux d’opérations.
+
+
 * La procédure de resynchronisation d’une offre permet de remettre en cohérence le contenu d’une offre à partir d’un autre offre. Pour que ce mécanisme marche il est nécessaire que les offres source et cible de la resynchronisation soient configurées pour être des copies. Les stratégies utilisées doivent être configurées pour contenir qu'une offre aie au moins toujours une autre offre mirroir contenant les même données.
 
 
@@ -116,7 +124,7 @@ Flux de stockage :
 Mode avancé: exemple d'architecture multi-stratégie orienté Qualité de service
 ------------------------------------------------------------------------------
 
-Le but d’un déploiement orienté **Qualité de service** de la solution logicielle Vitam est de fournir la possibilité de proposer un nombre de copies stockées différemment en fonction des applications utilisatrices de la plateforme :term:VITAM.
+Le but d’un déploiement orienté **Qualité de service** de la solution logicielle Vitam est de fournir la possibilité de proposer un nombre de copies stockées différemment en fonction des applications utilisatrices de la plateforme :term:`VITAM`.
 
 Stratégies du site principal :
 
@@ -136,10 +144,13 @@ Flux de stockage :
 
 
 
-Mode avancé: exemple d'architecture mono-stratégie orienté Offres objets
-------------------------------------------------------------------------
+Mode avancé: exemple d'architecture multi-stratégie orienté Offres objets
+-------------------------------------------------------------------------
 
-Le but d’un déploiement orienté **Offres objets** de la solution logicielle Vitam est de fournir la possibilité de stocker les objets numériques uniquement sur des offres séparée dites *objets* pour certaines ou toutes les applications utilisatrices de la plateforme :term:VITAM. Ce type de déploiement offre donc la possibilité de stocker les objets techniques uniquement sur des offres dites *froides*.
+Le but d’un déploiement orienté **Offres objets** de la solution logicielle Vitam est de fournir la possibilité de stocker les objets numériques uniquement sur des offres séparée dites *objets* pour certaines ou toutes les applications utilisatrices de la plateforme :term:`VITAM`. Ce type de déploiement offre donc la possibilité de stocker les objets techniques uniquement sur des offres dites *froides*.
+
+Le but d’un déploiement orienté **Offres objets** de la solution logicielle Vitam est de fournir la possibilité de stocker les objets numériques uniquement sur des offres séparées dites *objets* pour certaines ou toutes les applications utilisatrices de la plateforme :term:`VITAM`.  Ce type de déploiement offre également la possibilité de stocker les objets binaires uniquement sur des offres dites *froides*(sur bande par exemple), mais il est fortement conseillé d’y stocker également les métadonnées associées aux objets.
+Une offre dite *référente* doit être une offre de type synchrone (offre dite *chaude*). Elle ne peut pas être un offre de type asynchrone (offre dite *froide*).
 
 Stratégies du site principal :
 
