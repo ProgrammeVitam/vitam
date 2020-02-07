@@ -4,7 +4,7 @@
 	<parent>
 		<groupId>fr.gouv.vitam</groupId>
 		<artifactId>storage</artifactId>
-		<version>2.1.17-SNAPSHOT</version>
+		<version>2.1.18</version>
 	</parent>
 	<artifactId>storage-driver-api</artifactId>
 	<name>Storage Driver API</name>
