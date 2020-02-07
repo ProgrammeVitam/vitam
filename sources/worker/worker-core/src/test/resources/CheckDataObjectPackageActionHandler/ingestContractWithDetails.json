@@ -4,5 +4,7 @@
       "ObjectGroupStrategy": "gotStrategy",
       "ObjectStrategy": "objectStrategy"
     }
+  },
+  "ingestContract": {
   }
 }

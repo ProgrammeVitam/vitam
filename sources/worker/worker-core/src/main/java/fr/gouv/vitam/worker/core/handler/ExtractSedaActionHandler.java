@@ -821,6 +821,9 @@ public class ExtractSedaActionHandler extends ActionHandler {
             contracts = JsonHandler.getFromFile(
                     (File) handlerIO.getInput(CONTRACTS_INPUT_RANK),
                     ContractsDetailsModel.class);
+            IngestContractModel ic = contracts.getIngestContractModel();
+            ic.setDefaultParams();
+            contracts.setIngestContractModel(ic);
 
             JsonNode storageUnitInfo = storageInfo.get(VitamConfiguration.getDefaultStrategy());
             JsonNode storageObjectGroupInfo = storageInfo.get(VitamConfiguration.getDefaultStrategy());
