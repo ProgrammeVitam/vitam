@@ -248,7 +248,7 @@ public class WorkspaceProcessDataManagement implements ProcessDataManagement {
             for (URI uri : uris) {
                 try {
                     String processId = uri.getPath().substring(0,
-                        uri.getPath().lastIndexOf(URLEncoder.encode(".", CharsetUtils.UTF_8)));
+                        uri.getPath().lastIndexOf("."));
                     ProcessWorkflow processWorkflow = getProcessWorkflow(folderName, processId);
                     if (ProcessState.RUNNING.equals(processWorkflow.getState())) {
                         processWorkflow.setState(ProcessState.PAUSE);
@@ -259,7 +259,7 @@ public class WorkspaceProcessDataManagement implements ProcessDataManagement {
                     if (tenantId == null || processWorkflow.getTenantId().equals(tenantId)) {
                         result.put(processWorkflow.getOperationId(), processWorkflow);
                     }
-                } catch (InvalidParseOperationException | UnsupportedEncodingException e) {
+                } catch (InvalidParseOperationException e) {
                     // TODO: is blocking ?
                     LOGGER.error("Error on loading old workflow {} -> cannot be resume", uri.getPath(), e);
                 }

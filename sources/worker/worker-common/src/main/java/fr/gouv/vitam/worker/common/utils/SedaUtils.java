@@ -34,8 +34,10 @@ import java.net.URISyntaxException;
 import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import javax.xml.namespace.QName;
 import javax.xml.stream.XMLEventReader;
@@ -70,11 +72,11 @@ import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 import fr.gouv.vitam.worker.common.HandlerIO;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
-import fr.gouv.vitam.workspace.client.WorkspaceClient;
-import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.xml.sax.SAXException;
+
+import static fr.gouv.vitam.common.model.VitamConstants.URL_ENCODED_SEPARATOR;
 
 /**
  * SedaUtils to read or split element from SEDA
@@ -365,8 +367,8 @@ public class SedaUtils {
         String contentName = null;
         for (int i = 0; i < list.size(); i++) {
             String s = list.get(i).toString();
-            if (s.contains(URLEncoder.encode("/", CharsetUtils.UTF_8))) {
-                String directory = s.split(URLEncoder.encode("/", CharsetUtils.UTF_8))[0];
+            if (s.contains(URL_ENCODED_SEPARATOR)) {
+                String directory = s.split(URL_ENCODED_SEPARATOR)[0];
                 if (directory.equalsIgnoreCase("content")) {
                     if (contentName == null) {
                         contentName = directory;
@@ -396,7 +398,7 @@ public class SedaUtils {
 
         int countManifest = 0;
         for (int i = 0; i < listURI.size(); i++) {
-            if (!listURI.get(i).toString().contains(URLEncoder.encode("/", CharsetUtils.UTF_8))) {
+            if (!listURI.get(i).toString().contains(URL_ENCODED_SEPARATOR)) {
                 countManifest++;
                 if (countManifest > 1) {
                     return true;
@@ -429,11 +431,11 @@ public class SedaUtils {
         final ExtractUriResponse extractUriResponse = new ExtractUriResponse();
 
         // create URI list String for add elements uri from inputstream Seda
-        final List<URI> listUri = new ArrayList<>();
+        final Set<URI> uriSet = new HashSet<>();
         // create String Messages list
         final List<String> listMessages = new ArrayList<>();
 
-        extractUriResponse.setUriListManifest(listUri);
+        extractUriResponse.setUriSetManifest(uriSet);
         extractUriResponse.setErrorNumber(listMessages.size());
 
         // Create the XML input factory
@@ -510,7 +512,7 @@ public class SedaUtils {
                     final String uri = event.asCharacters().getData();
                     // Check element is duplicate
                     checkDuplicatedUri(extractUriResponse, uri);
-                    extractUriResponse.getUriListManifest().add(new URI(URLEncoder.encode(uri, CharsetUtils.UTF_8)));
+                    extractUriResponse.getUriSetManifest().add(new URI(URLEncoder.encode(uri, CharsetUtils.UTF_8)));
                     break;
                 }
             }
@@ -519,7 +521,7 @@ public class SedaUtils {
 
     private void checkDuplicatedUri(ExtractUriResponse extractUriResponse, String uriString) throws URISyntaxException {
 
-        if (extractUriResponse.getUriListManifest().contains(new URI(uriString))) {
+        if (extractUriResponse.getUriSetManifest().contains(new URI(uriString))) {
             extractUriResponse.setErrorNumber(extractUriResponse.getErrorNumber() + 1);
         }
     }

@@ -71,8 +71,10 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import static com.google.common.collect.Lists.newArrayList;
 import static org.junit.Assert.assertEquals;
@@ -104,7 +106,7 @@ public class CheckDataObjectPackageActionHandlerTest {
     private List<IOParameter> out;
     private List<IOParameter> in;
     private static final Integer TENANT_ID = 0;
-    private final List<URI> uriListWorkspaceOK = new ArrayList<>();
+    private final Set<URI> uriSetWorkspaceOK = new HashSet<>();
     private final WorkerParameters params =
         WorkerParametersFactory.newWorkerParameters().setUrlWorkspace("http://localhost:8083")
             .setUrlMetadata("http://localhost:8083")
@@ -190,11 +192,11 @@ public class CheckDataObjectPackageActionHandlerTest {
         out.add(new IOParameter()
             .setUri(new ProcessingUri(UriPrefix.WORKSPACE, "UpdateObjectGroup/existing_object_group.json")));
 
-        uriListWorkspaceOK.add(new URI("content/file1.pdf"));
-        uriListWorkspaceOK.add(new URI("content/file2.pdf"));
-        uriListWorkspaceOK.add(new URI("manifest.xml"));
+        uriSetWorkspaceOK.add(new URI("content/file1.pdf"));
+        uriSetWorkspaceOK.add(new URI("content/file2.pdf"));
+        uriSetWorkspaceOK.add(new URI("manifest.xml"));
         extractUriResponseOK = new ExtractUriResponse();
-        extractUriResponseOK.setUriListManifest(uriListWorkspaceOK);
+        extractUriResponseOK.setUriSetManifest(uriSetWorkspaceOK);
     }
 
     @After
@@ -219,7 +221,7 @@ public class CheckDataObjectPackageActionHandlerTest {
         when(workspaceClient.getObject(any(), eq("SIP/manifest.xml")))
             .thenReturn(Response.status(Status.OK).entity(seda_arborescence).build());
         when(workspaceClient.getListUriDigitalObjectFromFolder(any(), any()))
-            .thenReturn(new RequestResponseOK().addResult(uriListWorkspaceOK));
+            .thenReturn(new RequestResponseOK().addResult(uriSetWorkspaceOK));
         when(workspaceClient.getObject(any(), eq("StorageInfo/storageInfo.json")))
             .thenReturn(Response.status(Status.OK).entity(storageInfo).build());
         when(workspaceClient.getObject(any(), eq("referential/contracts.json")))

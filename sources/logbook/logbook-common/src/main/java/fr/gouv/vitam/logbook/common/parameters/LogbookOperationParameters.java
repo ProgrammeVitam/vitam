@@ -79,7 +79,7 @@ public class LogbookOperationParameters extends AbstractParameters {
     @Override
     public String toString() {
         try {
-            HashMap finalMap = new HashMap<String, Object>();
+            HashMap<String, Object> finalMap = new HashMap<>();
             for (final Entry<LogbookParameterName, String> item : getMapParameters().entrySet()) {
                 finalMap.put(item.getKey().name(), item.getValue());
             }
