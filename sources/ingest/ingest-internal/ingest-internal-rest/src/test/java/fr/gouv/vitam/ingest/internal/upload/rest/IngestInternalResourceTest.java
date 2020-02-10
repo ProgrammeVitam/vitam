@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2019)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -8,7 +8,7 @@
  *
  * This software is governed by the CeCILL 2.1 license under French law and abiding by the rules of distribution of free
  * software. You can use, modify and/ or redistribute the software under the terms of the CeCILL 2.1 license as
- * circulated by CEA, CNRS and INRIA at the following URL "http://www.cecill.info".
+ * circulated by CEA, CNRS and INRIA at the following URL "https://cecill.info".
  *
  * As a counterpart to the access to the source code and rights to copy, modify and redistribute granted by the license,
  * users are provided only with a limited warranty and the software's author, the holder of the economic rights, and the
@@ -51,7 +51,7 @@ import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
 import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
 import fr.gouv.vitam.logbook.common.parameters.LogbookOperationParameters;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParameters;
-import fr.gouv.vitam.logbook.common.parameters.LogbookParametersFactory;
+import fr.gouv.vitam.logbook.common.parameters.LogbookParameterHelper;
 import fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClient;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClientFactory;
@@ -59,7 +59,6 @@ import fr.gouv.vitam.processing.management.client.ProcessingManagementClient;
 import fr.gouv.vitam.processing.management.client.ProcessingManagementClientFactory;
 import fr.gouv.vitam.storage.engine.common.model.DataCategory;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageException;
-import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
 import fr.gouv.vitam.workspace.client.WorkspaceClient;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
 import io.restassured.RestAssured;
@@ -156,7 +155,7 @@ public class IngestInternalResourceTest extends ResteasyTestApplication {
 
         ingestGuid = GUIDFactory.newManifestGUID(0);
         final LogbookOperationParameters externalOperationParameters1 =
-            LogbookParametersFactory.newLogbookOperationParameters(
+            LogbookParameterHelper.newLogbookOperationParameters(
                 GUIDFactory.newEventGUID(0),
                 "Ingest external",
                 ingestGuid,
@@ -166,7 +165,7 @@ public class IngestInternalResourceTest extends ResteasyTestApplication {
                 ingestGuid);
 
         final LogbookOperationParameters externalOperationParameters2 =
-            LogbookParametersFactory.newLogbookOperationParameters(
+            LogbookParameterHelper.newLogbookOperationParameters(
                 GUIDFactory.newEventGUID(0),
                 "Ingest external",
                 ingestGuid,
@@ -176,7 +175,7 @@ public class IngestInternalResourceTest extends ResteasyTestApplication {
                 ingestGuid);
 
         final LogbookOperationParameters externalOperationParameters3 =
-            LogbookParametersFactory.newLogbookOperationParameters(
+            LogbookParameterHelper.newLogbookOperationParameters(
                 GUIDFactory.newEventGUID(0),
                 "Ingest Launch internal",
                 ingestGuid,
@@ -190,7 +189,7 @@ public class IngestInternalResourceTest extends ResteasyTestApplication {
         operationList.add(externalOperationParameters3);
 
         final LogbookOperationParameters externalOperationParameters4 =
-            LogbookParametersFactory.newLogbookOperationParameters(
+            LogbookParameterHelper.newLogbookOperationParameters(
                 GUIDFactory.newEventGUID(0),
                 "Ingest external ATR",
                 ingestGuid,
@@ -199,7 +198,7 @@ public class IngestInternalResourceTest extends ResteasyTestApplication {
                 "End Ingest ATR",
                 ingestGuid);
         final LogbookOperationParameters externalOperationParameters5 =
-            LogbookParametersFactory.newLogbookOperationParameters(
+            LogbookParameterHelper.newLogbookOperationParameters(
                 GUIDFactory.newEventGUID(0),
                 "Ingest external ATR",
                 ingestGuid,
@@ -208,7 +207,7 @@ public class IngestInternalResourceTest extends ResteasyTestApplication {
                 "End Ingest ATR",
                 ingestGuid);
         final LogbookOperationParameters externalOperationParameters6 =
-            LogbookParametersFactory.newLogbookOperationParameters(
+            LogbookParameterHelper.newLogbookOperationParameters(
                 GUIDFactory.newEventGUID(0),
                 "Ingest Launch internal",
                 ingestGuid,

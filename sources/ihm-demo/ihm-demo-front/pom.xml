@@ -249,6 +249,40 @@
                     </dataSet>
                 </configuration>
             </plugin>
+
+            <plugin>
+                <groupId>com.mycila</groupId>
+                <artifactId>license-maven-plugin</artifactId>
+                <version>3.0</version>
+                <configuration>
+                    <header>../../licenses/cecill21.txt</header>
+                    <excludes>
+                        <exclude>node_modules/**</exclude>
+                        <exclude>dist/**</exclude>
+                        <exclude>themes/**</exclude>
+                        <exclude>e2e/**</exclude>
+                        <exclude>src/deb/**</exclude>
+                        <exclude>src/asserts/**</exclude>
+                        <exclude>pom.xml</exclude>
+                        <exclude>**/*.rst</exclude>
+                        <exclude>**/*.html</exclude>
+                        <exclude>**/*.ts</exclude>
+                        <exclude>**/*.js</exclude>
+                        <exclude>**/*.py</exclude>
+                        <exclude>**/*.css</exclude>
+                        <exclude>**/*.sh</exclude>
+                        <exclude>**/*.xml</exclude>
+                        <exclude>**/README</exclude>
+                    </excludes>
+                </configuration>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>check</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
         </plugins>
     </build>
 

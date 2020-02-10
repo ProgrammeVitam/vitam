@@ -1,27 +1,27 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2019)
- * <p>
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ *
  * contact.vitam@culture.gouv.fr
- * <p>
+ *
  * This software is a computer program whose purpose is to implement a digital archiving back-office system managing
  * high volumetry securely and efficiently.
- * <p>
- * This software is governed by the CeCILL 2.1 license under French law and abiding by the rules of distribution of free
- * software. You can use, modify and/ or redistribute the software under the terms of the CeCILL 2.1 license as
- * circulated by CEA, CNRS and INRIA at the following URL "http://www.cecill.info".
- * <p>
+ *
+ * This software is governed by the CeCILL-C license under French law and abiding by the rules of distribution of free
+ * software. You can use, modify and/ or redistribute the software under the terms of the CeCILL-C license as
+ * circulated by CEA, CNRS and INRIA at the following URL "https://cecill.info".
+ *
  * As a counterpart to the access to the source code and rights to copy, modify and redistribute granted by the license,
  * users are provided only with a limited warranty and the software's author, the holder of the economic rights, and the
  * successive licensors have only limited liability.
- * <p>
+ *
  * In this respect, the user's attention is drawn to the risks associated with loading, using, modifying and/or
  * developing or reproducing the software by the user in light of its specific status of free software, that may mean
  * that it is complicated to manipulate, and that also therefore means that it is reserved for developers and
  * experienced professionals having in-depth computer knowledge. Users are therefore encouraged to load and test the
  * software's suitability as regards their requirements in conditions enabling the security of their systems and/or data
  * to be ensured and, more generally, to use and operate it in the same conditions as regards security.
- * <p>
- * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
+ *
+ * The fact that you are presently reading this means that you have had knowledge of the CeCILL-C license and that you
  * accept its terms.
  */
 package fr.gouv.vitam.common.external.client;
@@ -132,7 +132,6 @@ public abstract class VitamClientFactory<T extends MockOrRestClient> implements 
     private String serviceUrl;
 
     private String resourcePath;
-    private boolean cacheable;
     protected ClientConfiguration clientConfiguration;
     private boolean chunkedMode;
     private Client givenClient;
@@ -159,18 +158,7 @@ public abstract class VitamClientFactory<T extends MockOrRestClient> implements 
      * @throws UnsupportedOperationException HTTPS not implemented yet
      */
     protected VitamClientFactory(ClientConfiguration configuration, String resourcePath) {
-        this(configuration, resourcePath, true, false);
-    }
-
-    /**
-     * Constructor with standard configuration
-     *
-     * @param configuration The client configuration
-     * @param resourcePath the resource path of the server for the client calls
-     * @throws UnsupportedOperationException HTTPS not implemented yet
-     */
-    protected VitamClientFactory(ClientConfiguration configuration, String resourcePath, boolean cacheable) {
-        this(configuration, resourcePath, true, cacheable);
+        this(configuration, resourcePath, true);
     }
 
     /**
@@ -178,14 +166,12 @@ public abstract class VitamClientFactory<T extends MockOrRestClient> implements 
      *
      * @param configuration The client configuration
      * @param resourcePath the resource path of the server for the client calls
-     * @param chunkedMode one can managed here if the client is in default chunkedMode or not
      * @throws UnsupportedOperationException HTTPS not implemented yet
      */
     protected VitamClientFactory(ClientConfiguration configuration, String resourcePath,
-                                 boolean chunkedMode, boolean cacheable) {
+                                 boolean chunkedMode) {
         initialisation(configuration, resourcePath);
         this.chunkedMode = chunkedMode;
-        this.cacheable = cacheable;
         givenClient = null;
         givenClientNotChunked = null;
         if (STATIC_IDLE_MONITOR.compareAndSet(false, true)) {
@@ -519,14 +505,12 @@ public abstract class VitamClientFactory<T extends MockOrRestClient> implements 
      */
     void configure(Map<VitamRestEasyConfiguration, Object> config, boolean chunkedMode) {
         // Prevent Warning on misusage of non standard Calls
-        config.put(VitamRestEasyConfiguration.SUPPRESS_HTTP_COMPLIANCE_VALIDATION, true);
         config.put(VitamRestEasyConfiguration.CONNECT_TIMEOUT, VitamConfiguration.getConnectTimeout());
         config.put(VitamRestEasyConfiguration.CONNECTTIMEOUT, VitamConfiguration.getConnectTimeout());
         config.put(VitamRestEasyConfiguration.CONNECTIONREQUESTTIMEOUT, VitamConfiguration.getDelayGetClient());
         config.put(VitamRestEasyConfiguration.READ_TIMEOUT, VitamConfiguration.getReadTimeout());
         config.put(VitamRestEasyConfiguration.SOCKETTIMEOUT, VitamConfiguration.getReadTimeout());
         config.put(VitamRestEasyConfiguration.CONTENTCOMPRESSIONENABLED, allowGzipEncoded);
-        config.put(VitamRestEasyConfiguration.SUPPRESS_HTTP_COMPLIANCE_VALIDATION, true);
         if (chunkedMode) {
             config.put(VitamRestEasyConfiguration.CHUNKED_ENCODING_SIZE, VitamConfiguration.getChunkSize());
             config.put(VitamRestEasyConfiguration.REQUEST_ENTITY_PROCESSING, VitamRestEasyConfiguration.CHUNKED);
@@ -534,7 +518,6 @@ public abstract class VitamClientFactory<T extends MockOrRestClient> implements 
             config.put(VitamRestEasyConfiguration.CHUNKED_ENCODING_SIZE, 0);
             config.put(VitamRestEasyConfiguration.REQUEST_ENTITY_PROCESSING, VitamRestEasyConfiguration.BUFFERED);
         }
-        config.put(VitamRestEasyConfiguration.CACHE_ENABLED, cacheable);
         config.put(VitamRestEasyConfiguration.RECV_BUFFER_SIZE, VitamConfiguration.getRecvBufferSize());
         config.put(VitamRestEasyConfiguration.CONNECTION_MANAGER_SHARED, true);
         config.put(VitamRestEasyConfiguration.DISABLE_AUTOMATIC_RETRIES, true);

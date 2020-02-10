@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2019)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -8,7 +8,7 @@
  *
  * This software is governed by the CeCILL 2.1 license under French law and abiding by the rules of distribution of free
  * software. You can use, modify and/ or redistribute the software under the terms of the CeCILL 2.1 license as
- * circulated by CEA, CNRS and INRIA at the following URL "http://www.cecill.info".
+ * circulated by CEA, CNRS and INRIA at the following URL "https://cecill.info".
  *
  * As a counterpart to the access to the source code and rights to copy, modify and redistribute granted by the license,
  * users are provided only with a limited warranty and the software's author, the holder of the economic rights, and the
@@ -28,6 +28,7 @@ package fr.gouv.vitam.logbook.lifecycles.client;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import fr.gouv.vitam.common.LocalDateUtil;
+import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.ServerIdentity;
 import fr.gouv.vitam.common.client.DefaultClient;
 import fr.gouv.vitam.common.client.VitamRequestBuilder;
@@ -41,7 +42,6 @@ import fr.gouv.vitam.common.model.LifeCycleStatusCode;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.processing.DistributionType;
-import fr.gouv.vitam.common.parameter.ParameterHelper;
 import fr.gouv.vitam.logbook.common.client.ErrorMessage;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientAlreadyExistsException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientBadRequestException;
@@ -103,7 +103,7 @@ class LogbookLifeCyclesClientRest extends DefaultClient implements LogbookLifeCy
         parameters.putParameterValue(LogbookParameterName.agentIdentifier, SERVER_IDENTITY.getJsonIdentity());
         parameters.putParameterValue(LogbookParameterName.eventDateTime, LocalDateUtil.now().toString());
 
-        ParameterHelper.checkNullOrEmptyParameters(parameters.getMapParameters(), parameters.getMandatoriesParameters());
+        ParametersChecker.checkNullOrEmptyParameters(parameters.getMapParameters(), parameters.getMandatoriesParameters());
         try (Response response = make(post().withPath(getServiceUrl(parameters, eip, oid)).withJson().withBody(parameters))) {
             check(response);
         } catch (VitamClientInternalException | LogbookClientNotFoundException | PreconditionFailedClientException e) {
@@ -123,7 +123,7 @@ class LogbookLifeCyclesClientRest extends DefaultClient implements LogbookLifeCy
         if (parameters.getParameterValue(LogbookParameterName.eventDateTime) == null) {
             parameters.putParameterValue(LogbookParameterName.eventDateTime, LocalDateUtil.now().toString());
         }
-        ParameterHelper.checkNullOrEmptyParameters(parameters.getMapParameters(), parameters.getMandatoriesParameters());
+        ParametersChecker.checkNullOrEmptyParameters(parameters.getMapParameters(), parameters.getMandatoriesParameters());
         String eip = parameters.getParameterValue(LogbookParameterName.eventIdentifierProcess);
         String oid = parameters.getParameterValue(LogbookParameterName.objectIdentifier);
         String lid = parameters.getParameterValue(LogbookParameterName.lifeCycleIdentifier);
@@ -148,7 +148,7 @@ class LogbookLifeCyclesClientRest extends DefaultClient implements LogbookLifeCy
         parameters.putParameterValue(LogbookParameterName.agentIdentifier, SERVER_IDENTITY.getJsonIdentity());
         parameters.putParameterValue(LogbookParameterName.eventDateTime, LocalDateUtil.now().toString());
 
-        ParameterHelper.checkNullOrEmptyParameters(parameters.getMapParameters(), parameters.getMandatoriesParameters());
+        ParametersChecker.checkNullOrEmptyParameters(parameters.getMapParameters(), parameters.getMandatoriesParameters());
         String eip = parameters.getParameterValue(LogbookParameterName.eventIdentifierProcess);
         String oid = parameters.getParameterValue(LogbookParameterName.objectIdentifier);
         try (Response response = make(put().withPath(getServiceUrl(parameters, eip, oid) + "/commit").withJsonAccept())) {
@@ -164,7 +164,7 @@ class LogbookLifeCyclesClientRest extends DefaultClient implements LogbookLifeCy
         parameters.putParameterValue(LogbookParameterName.agentIdentifier, SERVER_IDENTITY.getJsonIdentity());
         parameters.putParameterValue(LogbookParameterName.eventDateTime, LocalDateUtil.now().toString());
 
-        ParameterHelper.checkNullOrEmptyParameters(parameters.getMapParameters(), parameters.getMandatoriesParameters());
+        ParametersChecker.checkNullOrEmptyParameters(parameters.getMapParameters(), parameters.getMandatoriesParameters());
         String eip = parameters.getParameterValue(LogbookParameterName.eventIdentifierProcess);
         String oid = parameters.getParameterValue(LogbookParameterName.objectIdentifier);
 

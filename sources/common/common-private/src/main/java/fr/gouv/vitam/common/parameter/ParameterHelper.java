@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2019)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -8,7 +8,7 @@
  *
  * This software is governed by the CeCILL 2.1 license under French law and abiding by the rules of distribution of free
  * software. You can use, modify and/ or redistribute the software under the terms of the CeCILL 2.1 license as
- * circulated by CEA, CNRS and INRIA at the following URL "http://www.cecill.info".
+ * circulated by CEA, CNRS and INRIA at the following URL "https://cecill.info".
  *
  * As a counterpart to the access to the source code and rights to copy, modify and redistribute granted by the license,
  * users are provided only with a limited warranty and the software's author, the holder of the economic rights, and the
@@ -26,11 +26,6 @@
  */
 package fr.gouv.vitam.common.parameter;
 
-import java.util.Map;
-import java.util.Set;
-
-import com.google.common.base.Strings;
-
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
 
@@ -43,51 +38,6 @@ public class ParameterHelper {
 
     private ParameterHelper() {
         // Do nothing
-    }
-
-    /**
-     * Check parameter emptiness or nullity
-     *
-     * @param key the attribute name
-     * @param value the attribute value to check
-     * @param mandatories the set of mandatories field
-     * @throws IllegalArgumentException if an argument is null or empty against mandatory
-     */
-    public static <T extends Enum<T>> void checkNullOrEmptyParameter(T key, String value,
-        Set<T> mandatories) {
-        ParametersChecker.checkParameter("Key parameter", key);
-        if (mandatories.contains(key)) {
-            ParametersChecker.checkParameter(key.name(), value);
-        }
-    }
-
-    /**
-     * Check parameters emptiness or nullity
-     *
-     * @param parameters the map parameters (key = attribute name, value = attribute value)
-     * @param mandatories the set of mandatories field
-     * @throws IllegalArgumentException if an argument is null or empty against mandatory
-     */
-    public static <T extends Enum<T>> void checkNullOrEmptyParameters(Map<T, String> parameters,
-        Set<T> mandatories) {
-        ParametersChecker.checkParameter("Check Or null parameter", parameters, mandatories);
-        for (final T key : mandatories) {
-            if (Strings.isNullOrEmpty(parameters.get(key))) {
-                throw new IllegalArgumentException(key + " parameter cannot be null or empty");
-            }
-        }
-    }
-
-    /**
-     * Check parameters emptiness or nullity
-     *
-     * @param parameters the template of vitam parameter
-     * @throws IllegalArgumentException if an argument is null or empty against mandatory
-     */
-    @SuppressWarnings({"rawtypes", "unchecked"})
-    public static <T extends VitamParameter> void checkNullOrEmptyParameters(T parameters) {
-        ParametersChecker.checkParameter("Check Or null parameter", parameters);
-        checkNullOrEmptyParameters(parameters.getMapParameters(), parameters.getMandatoriesParameters());
     }
 
     /**

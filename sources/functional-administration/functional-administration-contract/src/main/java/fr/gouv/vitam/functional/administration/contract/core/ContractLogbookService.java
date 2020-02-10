@@ -1,26 +1,26 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2019)
- * <p>
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ *
  * contact.vitam@culture.gouv.fr
- * <p>
+ *
  * This software is a computer program whose purpose is to implement a digital archiving back-office system managing
  * high volumetry securely and efficiently.
- * <p>
+ *
  * This software is governed by the CeCILL 2.1 license under French law and abiding by the rules of distribution of free
  * software. You can use, modify and/ or redistribute the software under the terms of the CeCILL 2.1 license as
- * circulated by CEA, CNRS and INRIA at the following URL "http://www.cecill.info".
- * <p>
+ * circulated by CEA, CNRS and INRIA at the following URL "https://cecill.info".
+ *
  * As a counterpart to the access to the source code and rights to copy, modify and redistribute granted by the license,
  * users are provided only with a limited warranty and the software's author, the holder of the economic rights, and the
  * successive licensors have only limited liability.
- * <p>
+ *
  * In this respect, the user's attention is drawn to the risks associated with loading, using, modifying and/or
  * developing or reproducing the software by the user in light of its specific status of free software, that may mean
  * that it is complicated to manipulate, and that also therefore means that it is reserved for developers and
  * experienced professionals having in-depth computer knowledge. Users are therefore encouraged to load and test the
  * software's suitability as regards their requirements in conditions enabling the security of their systems and/or data
  * to be ensured and, more generally, to use and operate it in the same conditions as regards security.
- * <p>
+ *
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  */
@@ -40,7 +40,7 @@ import fr.gouv.vitam.common.parameter.ParameterHelper;
 import fr.gouv.vitam.common.security.SanityChecker;
 import fr.gouv.vitam.logbook.common.parameters.LogbookOperationParameters;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParameterName;
-import fr.gouv.vitam.logbook.common.parameters.LogbookParametersFactory;
+import fr.gouv.vitam.logbook.common.parameters.LogbookParameterHelper;
 import fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClient;
 
@@ -100,7 +100,7 @@ public class ContractLogbookService {
             throws VitamException {
         LOGGER.error("There validation errors on the input file {}", errorsDetails);
         final GUID eipUsage = GUIDFactory.newOperationLogbookGUID(ParameterHelper.getTenantParameter());
-        final LogbookOperationParameters logbookParameters = LogbookParametersFactory.newLogbookOperationParameters(
+        final LogbookOperationParameters logbookParameters = LogbookParameterHelper.newLogbookOperationParameters(
                 eipUsage, eventType, eip, LogbookTypeProcess.MASTERDATA, StatusCode.KO,
                 VitamLogbookMessages.getFromFullCodeKey(KOEventType), eip);
         logbookParameters.putParameterValue(LogbookParameterName.outcomeDetail, KOEventType);
@@ -117,7 +117,7 @@ public class ContractLogbookService {
     public void logFatalError(final String errorsDetails, final String eventType) throws VitamException {
         LOGGER.error("There validation errors on the input file {}", errorsDetails);
         final GUID eipUsage = GUIDFactory.newOperationLogbookGUID(ParameterHelper.getTenantParameter());
-        final LogbookOperationParameters logbookParameters = LogbookParametersFactory.newLogbookOperationParameters(
+        final LogbookOperationParameters logbookParameters = LogbookParameterHelper.newLogbookOperationParameters(
                 eipUsage, eventType, eip, LogbookTypeProcess.MASTERDATA, StatusCode.FATAL,
                 VitamLogbookMessages.getCodeOp(eventType, StatusCode.FATAL), eip);
         logbookParameters.putParameterValue(LogbookParameterName.outcomeDetail, eventType + "." + StatusCode.FATAL);
@@ -204,7 +204,7 @@ public class ContractLogbookService {
      * @throws VitamException
      */
     public void logStarted() throws VitamException {
-        final LogbookOperationParameters logbookParameters = LogbookParametersFactory.newLogbookOperationParameters(eip,
+        final LogbookOperationParameters logbookParameters = LogbookParameterHelper.newLogbookOperationParameters(eip,
                 contractsImportEventCode, eip, LogbookTypeProcess.MASTERDATA, StatusCode.STARTED,
                 VitamLogbookMessages.getCodeOp(contractsImportEventCode, StatusCode.STARTED), eip);
         logbookParameters.putParameterValue(LogbookParameterName.outcomeDetail,
@@ -218,7 +218,7 @@ public class ContractLogbookService {
      * @throws VitamException
      */
     public void logUpdateStarted(String id) throws VitamException {
-        final LogbookOperationParameters logbookParameters = LogbookParametersFactory.newLogbookOperationParameters(eip,
+        final LogbookOperationParameters logbookParameters = LogbookParameterHelper.newLogbookOperationParameters(eip,
                 contractUpdateEventCode, eip, LogbookTypeProcess.MASTERDATA, StatusCode.STARTED,
                 VitamLogbookMessages.getCodeOp(contractUpdateEventCode, StatusCode.STARTED), eip);
         logbookParameters.putParameterValue(LogbookParameterName.outcomeDetail,
@@ -237,7 +237,7 @@ public class ContractLogbookService {
      */
     public void logSuccess() throws VitamException {
         final GUID eipUsage = GUIDFactory.newOperationLogbookGUID(ParameterHelper.getTenantParameter());
-        final LogbookOperationParameters logbookParameters = LogbookParametersFactory.newLogbookOperationParameters(
+        final LogbookOperationParameters logbookParameters = LogbookParameterHelper.newLogbookOperationParameters(
                 eipUsage, contractsImportEventCode, eip, LogbookTypeProcess.MASTERDATA, StatusCode.OK,
                 VitamLogbookMessages.getCodeOp(contractsImportEventCode, StatusCode.OK), eip);
         logbookParameters.putParameterValue(LogbookParameterName.outcomeDetail,
@@ -258,7 +258,7 @@ public class ContractLogbookService {
 
         final String wellFormedJson = SanityChecker.sanitizeJson(evDetData);
         final GUID eipUsage = GUIDFactory.newOperationLogbookGUID(ParameterHelper.getTenantParameter());
-        final LogbookOperationParameters logbookParameters = LogbookParametersFactory.newLogbookOperationParameters(
+        final LogbookOperationParameters logbookParameters = LogbookParameterHelper.newLogbookOperationParameters(
                 eipUsage, contractUpdateEventCode, eip, LogbookTypeProcess.MASTERDATA, StatusCode.OK,
                 VitamLogbookMessages.getCodeOp(contractUpdateEventCode, StatusCode.OK), eip);
         if (null != id && !id.isEmpty()) {

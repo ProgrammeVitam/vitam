@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2019)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -8,7 +8,7 @@
  *
  * This software is governed by the CeCILL 2.1 license under French law and abiding by the rules of distribution of free
  * software. You can use, modify and/ or redistribute the software under the terms of the CeCILL 2.1 license as
- * circulated by CEA, CNRS and INRIA at the following URL "http://www.cecill.info".
+ * circulated by CEA, CNRS and INRIA at the following URL "https://cecill.info".
  *
  * As a counterpart to the access to the source code and rights to copy, modify and redistribute granted by the license,
  * users are provided only with a limited warranty and the software's author, the holder of the economic rights, and the
@@ -104,7 +104,7 @@ public class VerifyAtrPlugin extends ActionHandler {
     }
 
     @Override
-    public ItemStatus execute(WorkerParameters param, HandlerIO handler) throws ProcessingException, ContentAddressableStorageServerException {
+    public ItemStatus execute(WorkerParameters param, HandlerIO handler) throws ProcessingException {
         XMLStreamReader xmlStreamReader = null;
         try (InputStream atr = handler.getInputStreamFromWorkspace("ATR-for-transfer-reply-in-workspace.xml")) {
             xmlStreamReader = XMLInputFactoryUtils.newInstance().createXMLStreamReader(atr, "UTF-8");
@@ -122,7 +122,7 @@ public class VerifyAtrPlugin extends ActionHandler {
         } catch (UnmarshalException e) {
             LOGGER.error(e);
             return buildItemStatus(PLUGIN_NAME, KO, EventDetails.of(e.getMessage()));
-        } catch (JAXBException | ContentAddressableStorageNotFoundException | IOException | XMLStreamException | LogbookClientException | InvalidParseOperationException e) {
+        } catch (JAXBException | ContentAddressableStorageNotFoundException | IOException | XMLStreamException | LogbookClientException | InvalidParseOperationException | ContentAddressableStorageServerException e) {
             LOGGER.error(e);
             return buildItemStatus(PLUGIN_NAME, FATAL, EventDetails.of(e.getMessage()));
         } finally {

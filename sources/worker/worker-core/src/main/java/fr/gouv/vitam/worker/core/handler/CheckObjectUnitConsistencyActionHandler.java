@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2019)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -8,7 +8,7 @@
  *
  * This software is governed by the CeCILL 2.1 license under French law and abiding by the rules of distribution of free
  * software. You can use, modify and/ or redistribute the software under the terms of the CeCILL 2.1 license as
- * circulated by CEA, CNRS and INRIA at the following URL "http://www.cecill.info".
+ * circulated by CEA, CNRS and INRIA at the following URL "https://cecill.info".
  *
  * As a counterpart to the access to the source code and rights to copy, modify and redistribute granted by the license,
  * users are provided only with a limited warranty and the software's author, the holder of the economic rights, and the
@@ -35,7 +35,7 @@ import fr.gouv.vitam.logbook.common.exception.LogbookClientNotFoundException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientServerException;
 import fr.gouv.vitam.logbook.common.parameters.LogbookLifeCycleObjectGroupParameters;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParameterName;
-import fr.gouv.vitam.logbook.common.parameters.LogbookParametersFactory;
+import fr.gouv.vitam.logbook.common.parameters.LogbookParameterHelper;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 import fr.gouv.vitam.worker.common.HandlerIO;
@@ -125,7 +125,7 @@ public class CheckObjectUnitConsistencyActionHandler extends ActionHandler {
                     try {
                         // Update logbook OG lifecycle
                         final LogbookLifeCycleObjectGroupParameters logbookLifecycleObjectGroupParameters =
-                            LogbookParametersFactory.newLogbookLifeCycleObjectGroupParameters();
+                            LogbookParameterHelper.newLogbookLifeCycleObjectGroupParameters();
                         logbookLifecycleObjectGroupParameters.setFinalStatus(SUBTASK_ORPHAN, null, StatusCode.KO,
                             null);
                         LogbookLifecycleWorkerHelper.updateLifeCycleStep(handlerIO.getHelper(),
@@ -146,7 +146,7 @@ public class CheckObjectUnitConsistencyActionHandler extends ActionHandler {
                     try {
                         // Update logbook OG lifecycle
                         final LogbookLifeCycleObjectGroupParameters logbookLifecycleObjectGroupParameters =
-                            LogbookParametersFactory.newLogbookLifeCycleObjectGroupParameters();
+                            LogbookParameterHelper.newLogbookLifeCycleObjectGroupParameters();
                         logbookLifecycleObjectGroupParameters.setFinalStatus(HANDLER_ID, null, StatusCode.OK,
                             null);
                         LogbookLifecycleWorkerHelper.updateLifeCycleStep(handlerIO.getHelper(),

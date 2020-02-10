@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2019)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -8,7 +8,7 @@
  *
  * This software is governed by the CeCILL 2.1 license under French law and abiding by the rules of distribution of free
  * software. You can use, modify and/ or redistribute the software under the terms of the CeCILL 2.1 license as
- * circulated by CEA, CNRS and INRIA at the following URL "http://www.cecill.info".
+ * circulated by CEA, CNRS and INRIA at the following URL "https://cecill.info".
  *
  * As a counterpart to the access to the source code and rights to copy, modify and redistribute granted by the license,
  * users are provided only with a limited warranty and the software's author, the holder of the economic rights, and the
@@ -50,7 +50,7 @@ import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.logbook.common.parameters.LogbookOperationParameters;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParameterName;
-import fr.gouv.vitam.logbook.common.parameters.LogbookParametersFactory;
+import fr.gouv.vitam.logbook.common.parameters.LogbookParameterHelper;
 import fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess;
 import fr.gouv.vitam.logbook.common.server.LogbookConfiguration;
 import fr.gouv.vitam.logbook.common.server.LogbookDbAccess;
@@ -171,59 +171,59 @@ public class LogbookOperationsImplWithDatabasesTest {
 
         final String dateStringSecurity = "2017-10-04";
 
-        logbookParametersStart = LogbookParametersFactory.newLogbookOperationParameters(
+        logbookParametersStart = LogbookParameterHelper.newLogbookOperationParameters(
             eip, "eventType", eip, LogbookTypeProcess.INGEST,
             StatusCode.STARTED, "start ingest", eip);
-        logbookParametersAppend = LogbookParametersFactory.newLogbookOperationParameters(
+        logbookParametersAppend = LogbookParameterHelper.newLogbookOperationParameters(
             GUIDFactory.newEventGUID(0),
             "eventType", eip, LogbookTypeProcess.INGEST,
             StatusCode.OK, "end ingest", eip);
-        logbookParametersWrongStart = LogbookParametersFactory.newLogbookOperationParameters(
+        logbookParametersWrongStart = LogbookParameterHelper.newLogbookOperationParameters(
             eip, "eventType", eip, LogbookTypeProcess.INGEST,
             StatusCode.STARTED, "start ingest", eip);
-        logbookParametersWrongAppend = LogbookParametersFactory.newLogbookOperationParameters(
+        logbookParametersWrongAppend = LogbookParameterHelper.newLogbookOperationParameters(
 
             GUIDFactory.newEventGUID(0),
             "eventType", GUIDFactory.newEventGUID(0), LogbookTypeProcess.INGEST,
             StatusCode.OK, "end ingest", eip);
 
-        logbookParameters1 = LogbookParametersFactory.newLogbookOperationParameters(
+        logbookParameters1 = LogbookParameterHelper.newLogbookOperationParameters(
             eip1, "eventType", eip1, LogbookTypeProcess.INGEST,
             StatusCode.STARTED, "start ingest", eip);
         logbookParameters1.putParameterValue(LogbookParameterName.eventDateTime, datestring1);
-        logbookParameters2 = LogbookParametersFactory.newLogbookOperationParameters(
+        logbookParameters2 = LogbookParameterHelper.newLogbookOperationParameters(
             eip2, "eventType", eip2, LogbookTypeProcess.INGEST,
             StatusCode.STARTED, "start ingest", eip);
         logbookParameters2.putParameterValue(LogbookParameterName.eventDateTime, datestring2);
-        logbookParameters3 = LogbookParametersFactory.newLogbookOperationParameters(
+        logbookParameters3 = LogbookParameterHelper.newLogbookOperationParameters(
             eip3, "eventType", eip3, LogbookTypeProcess.INGEST,
             StatusCode.STARTED, "start ingest", eip);
         logbookParameters3.putParameterValue(LogbookParameterName.eventDateTime, datestring3);
 
-        logbookParameters4 = LogbookParametersFactory.newLogbookOperationParameters(
+        logbookParameters4 = LogbookParameterHelper.newLogbookOperationParameters(
             eip4,
             "STP_OP_SECURISATION", eip4, LogbookTypeProcess.TRACEABILITY,
             StatusCode.STARTED, null, null, eip4);
 
         logbookParameters4.putParameterValue(LogbookParameterName.eventDateTime, datestring4);
 
-        logbookParameters5 = LogbookParametersFactory.newLogbookOperationParameters(
+        logbookParameters5 = LogbookParameterHelper.newLogbookOperationParameters(
             eip6,
             "STP_OP_SECURISATION", eip6, LogbookTypeProcess.TRACEABILITY,
             StatusCode.STARTED, null, null, eip6);
 
         logbookParameters5.putParameterValue(LogbookParameterName.eventDateTime, datestring6);
         event =
-            LogbookParametersFactory.newLogbookOperationParameters(eip4, "eventType", eip4, LogbookTypeProcess.INGEST,
+            LogbookParameterHelper.newLogbookOperationParameters(eip4, "eventType", eip4, LogbookTypeProcess.INGEST,
                 StatusCode.STARTED, "start ingest", eip4);
         event2 =
-            LogbookParametersFactory.newLogbookOperationParameters(eip6, "eventType", eip6, LogbookTypeProcess.INGEST,
+            LogbookParameterHelper.newLogbookOperationParameters(eip6, "eventType", eip6, LogbookTypeProcess.INGEST,
                 StatusCode.STARTED, "start ingest", eip6);
         event.putParameterValue(LogbookParameterName.eventDateTime, datestring5);
         event2.putParameterValue(LogbookParameterName.eventDateTime, datestring6);
 
 
-        securityEvent = LogbookParametersFactory.newLogbookOperationParameters(
+        securityEvent = LogbookParameterHelper.newLogbookOperationParameters(
             eip5, "STP_OP_SECURISATION", eip4, LogbookTypeProcess.TRACEABILITY,
             StatusCode.OK, null, null, eip4);
         securityEvent.putParameterValue(LogbookParameterName.eventDateTime, dateStringSecurity);
@@ -265,7 +265,7 @@ public class LogbookOperationsImplWithDatabasesTest {
         } catch (final LogbookNotFoundException ignored) {
         }
         try {
-            logbookOperationsImpl.create(LogbookParametersFactory.newLogbookOperationParameters());
+            logbookOperationsImpl.create(LogbookParameterHelper.newLogbookOperationParameters());
             fail("Should failed");
         } catch (final IllegalArgumentException ignored) {
         }

@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2019)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -8,7 +8,7 @@
  *
  * This software is governed by the CeCILL 2.1 license under French law and abiding by the rules of distribution of free
  * software. You can use, modify and/ or redistribute the software under the terms of the CeCILL 2.1 license as
- * circulated by CEA, CNRS and INRIA at the following URL "http://www.cecill.info".
+ * circulated by CEA, CNRS and INRIA at the following URL "https://cecill.info".
  *
  * As a counterpart to the access to the source code and rights to copy, modify and redistribute granted by the license,
  * users are provided only with a limited warranty and the software's author, the holder of the economic rights, and the
@@ -35,7 +35,7 @@ import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.logbook.common.parameters.LogbookLifeCycleObjectGroupParameters;
 import fr.gouv.vitam.logbook.common.parameters.LogbookLifeCycleUnitParameters;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParameterName;
-import fr.gouv.vitam.logbook.common.parameters.LogbookParametersFactory;
+import fr.gouv.vitam.logbook.common.parameters.LogbookParameterHelper;
 import fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess;
 import fr.gouv.vitam.logbook.common.server.LogbookDbAccess;
 import fr.gouv.vitam.logbook.common.server.database.collections.LogbookCollections;
@@ -64,7 +64,7 @@ public class LogbookLifeCyclesImplTest {
     private static final LogbookLifeCycleUnitParameters getCompleteLifeCycleUnitParameters() {
         LogbookLifeCycleUnitParameters logbookLifeCyclesUnitParameters;
 
-        logbookLifeCyclesUnitParameters = LogbookParametersFactory.newLogbookLifeCycleUnitParameters();
+        logbookLifeCyclesUnitParameters = LogbookParameterHelper.newLogbookLifeCycleUnitParameters();
         logbookLifeCyclesUnitParameters.setStatus(StatusCode.OK);
         logbookLifeCyclesUnitParameters.putParameterValue(LogbookParameterName.eventIdentifier,
             eip.toString());
@@ -92,7 +92,7 @@ public class LogbookLifeCyclesImplTest {
 
 
         logbookLifeCycleObjectGroupParameters =
-            LogbookParametersFactory.newLogbookLifeCycleObjectGroupParameters();
+            LogbookParameterHelper.newLogbookLifeCycleObjectGroupParameters();
         logbookLifeCycleObjectGroupParameters.setStatus(StatusCode.OK);
         logbookLifeCycleObjectGroupParameters.putParameterValue(LogbookParameterName.eventIdentifier,
             eip.toString());

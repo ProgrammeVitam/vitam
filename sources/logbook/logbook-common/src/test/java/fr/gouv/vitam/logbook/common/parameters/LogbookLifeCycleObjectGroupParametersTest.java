@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2019)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -8,7 +8,7 @@
  *
  * This software is governed by the CeCILL 2.1 license under French law and abiding by the rules of distribution of free
  * software. You can use, modify and/ or redistribute the software under the terms of the CeCILL 2.1 license as
- * circulated by CEA, CNRS and INRIA at the following URL "http://www.cecill.info".
+ * circulated by CEA, CNRS and INRIA at the following URL "https://cecill.info".
  *
  * As a counterpart to the access to the source code and rights to copy, modify and redistribute granted by the license,
  * users are provided only with a limited warranty and the software's author, the holder of the economic rights, and the
@@ -24,7 +24,6 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  */
-
 package fr.gouv.vitam.logbook.common.parameters;
 
 import static org.junit.Assert.assertEquals;
@@ -52,7 +51,7 @@ public class LogbookLifeCycleObjectGroupParametersTest {
     @Test
     public void getMapParameters() {
         final LogbookLifeCycleObjectGroupParameters params =
-            LogbookParametersFactory.newLogbookLifeCycleObjectGroupParameters();
+            LogbookParameterHelper.newLogbookLifeCycleObjectGroupParameters();
         assertNotNull(params);
         for (final LogbookParameterName value : LogbookParameterName.values()) {
             params.putParameterValue(value, value.name());
@@ -62,7 +61,7 @@ public class LogbookLifeCycleObjectGroupParametersTest {
         assertEquals(params.getMapParameters().get(LogbookParameterName.eventType),
             LogbookParameterName.eventType.name());
         final LogbookLifeCycleObjectGroupParameters params2 =
-            LogbookParametersFactory.newLogbookLifeCycleObjectGroupParameters();
+            LogbookParameterHelper.newLogbookLifeCycleObjectGroupParameters();
         params2.setFromParameters(params);
         for (final LogbookParameterName value : LogbookParameterName.values()) {
             assertEquals(params.getParameterValue(value), params2.getParameterValue(value));
@@ -72,7 +71,7 @@ public class LogbookLifeCycleObjectGroupParametersTest {
             map.put(value.name(), params.getParameterValue(value));
         }
         final LogbookLifeCycleObjectGroupParameters params3 =
-            LogbookParametersFactory.newLogbookLifeCycleObjectGroupParameters();
+            LogbookParameterHelper.newLogbookLifeCycleObjectGroupParameters();
         params3.setMap(map);
         for (final LogbookParameterName value : LogbookParameterName.values()) {
             assertEquals(params.getParameterValue(value), params3.getParameterValue(value));
@@ -82,7 +81,7 @@ public class LogbookLifeCycleObjectGroupParametersTest {
     @Test
     public void getMandatoriesParameters() {
         final LogbookLifeCycleObjectGroupParameters params =
-            LogbookParametersFactory.newLogbookLifeCycleObjectGroupParameters();
+            LogbookParameterHelper.newLogbookLifeCycleObjectGroupParameters();
         assertNotNull(params);
 
         final Set<LogbookParameterName> mandatories = params.getMandatoriesParameters();
@@ -126,31 +125,31 @@ public class LogbookLifeCycleObjectGroupParametersTest {
         assertEquals(null, params.getParameterValue(LogbookParameterName.eventDateTime));
         final GUID aa = GUIDFactory.newEventGUID(0);
         final GUID cc = GUIDFactory.newEventGUID(0);
-        LogbookParametersFactory.newLogbookLifeCycleObjectGroupParameters(aa, "aa", aa,
+        LogbookParameterHelper.newLogbookLifeCycleObjectGroupParameters(aa, "aa", aa,
             LogbookTypeProcess.AUDIT, StatusCode.OK, "CheckDigest", "Informative Message", cc);
         try {
-            LogbookParametersFactory.newLogbookLifeCycleObjectGroupParameters(aa, "", aa,
+            LogbookParameterHelper.newLogbookLifeCycleObjectGroupParameters(aa, "", aa,
                 LogbookTypeProcess.AUDIT, StatusCode.OK, "CheckDigest", "Informative Message", cc);
             fail("Should raized an exception");
         } catch (final IllegalArgumentException e) {
             // ignore
         }
         try {
-            LogbookParametersFactory.newLogbookLifeCycleObjectGroupParameters(aa, "aa", null,
+            LogbookParameterHelper.newLogbookLifeCycleObjectGroupParameters(aa, "aa", null,
                 LogbookTypeProcess.AUDIT, StatusCode.OK, "CheckDigest", "Informative Message", cc);
             fail("Should raized an exception");
         } catch (final IllegalArgumentException e) {
             // ignore
         }
         try {
-            LogbookParametersFactory.newLogbookLifeCycleObjectGroupParameters(aa, "aa", aa,
+            LogbookParameterHelper.newLogbookLifeCycleObjectGroupParameters(aa, "aa", aa,
                 LogbookTypeProcess.AUDIT, null, "CheckDigest", "Informative Message", cc);
             fail("Should raized an exception");
         } catch (final IllegalArgumentException e) {
             // ignore
         }
         try {
-            LogbookParametersFactory.newLogbookLifeCycleObjectGroupParameters(aa, "aa", aa,
+            LogbookParameterHelper.newLogbookLifeCycleObjectGroupParameters(aa, "aa", aa,
                 null, StatusCode.OK, "CheckDigest", "Informative Message", cc);
             fail("Should raized an exception");
         } catch (final IllegalArgumentException e) {
@@ -162,7 +161,7 @@ public class LogbookLifeCycleObjectGroupParametersTest {
     @Test
     public void getEventDateTime() {
         final LogbookLifeCycleObjectGroupParameters params =
-            LogbookParametersFactory.newLogbookLifeCycleObjectGroupParameters();
+            LogbookParameterHelper.newLogbookLifeCycleObjectGroupParameters();
         assertNotNull(params);
         final LocalDateTime dateTime = LocalDateUtil.now();
         params.getMapParameters().put(LogbookParameterName.eventDateTime, dateTime.toString());

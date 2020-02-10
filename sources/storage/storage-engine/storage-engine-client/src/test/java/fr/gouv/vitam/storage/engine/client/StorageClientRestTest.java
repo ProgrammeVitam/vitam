@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2019)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -8,7 +8,7 @@
  *
  * This software is governed by the CeCILL 2.1 license under French law and abiding by the rules of distribution of free
  * software. You can use, modify and/ or redistribute the software under the terms of the CeCILL 2.1 license as
- * circulated by CEA, CNRS and INRIA at the following URL "http://www.cecill.info".
+ * circulated by CEA, CNRS and INRIA at the following URL "https://cecill.info".
  *
  * As a counterpart to the access to the source code and rights to copy, modify and redistribute granted by the license,
  * users are provided only with a limited warranty and the software's author, the holder of the economic rights, and the
@@ -39,6 +39,7 @@ import static org.mockito.Mockito.when;
 import java.io.InputStream;
 import java.time.LocalDateTime;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.Set;
 import java.util.stream.IntStream;
 
@@ -71,7 +72,6 @@ import com.google.common.collect.Sets;
 import fr.gouv.vitam.common.CommonMediaType;
 import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.LocalDateUtil;
-import fr.gouv.vitam.common.SingletonUtils;
 import fr.gouv.vitam.common.accesslog.AccessLogUtils;
 import fr.gouv.vitam.common.digest.DigestType;
 import fr.gouv.vitam.common.exception.VitamApplicationServerException;
@@ -401,7 +401,7 @@ public class StorageClientRestTest extends ResteasyTestApplication {
         when(mock.head()).thenReturn(Response.status(Response.Status.NO_CONTENT).build());
         assertTrue(client.existsContainer("idStrategy"));
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
-        assertNotNull(client.exists("idStrategy", DataCategory.OBJECT, "idObject", SingletonUtils.singletonList()));
+        assertNotNull(client.exists("idStrategy", DataCategory.OBJECT, "idObject", Collections.emptyList()));
 
     }
 
@@ -412,7 +412,7 @@ public class StorageClientRestTest extends ResteasyTestApplication {
         when(mock.head()).thenReturn(Response.status(Response.Status.NOT_FOUND).build());
         assertFalse(client.existsContainer("idStrategy"));
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
-        assertNotNull(client.exists("idStrategy", DataCategory.OBJECT, "idObject", SingletonUtils.singletonList()));
+        assertNotNull(client.exists("idStrategy", DataCategory.OBJECT, "idObject", Collections.emptyList()));
     }
 
     @RunWithCustomExecutor
@@ -421,7 +421,7 @@ public class StorageClientRestTest extends ResteasyTestApplication {
         VitamThreadUtils.getVitamSession().setTenantId(null);
         when(mock.head()).thenReturn(Response.status(Response.Status.NO_CONTENT).build());
         assertThatThrownBy(() -> {
-            client.exists("idStrategy", DataCategory.OBJECT, "idObject", SingletonUtils.singletonList());
+            client.exists("idStrategy", DataCategory.OBJECT, "idObject", Collections.emptyList());
         }).isInstanceOf(IllegalArgumentException.class);
     }
 
@@ -431,7 +431,7 @@ public class StorageClientRestTest extends ResteasyTestApplication {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         when(mock.head()).thenReturn(Response.status(Response.Status.NO_CONTENT).build());
         assertThatThrownBy(() -> {
-            client.exists("", DataCategory.OBJECT, "idObject", SingletonUtils.singletonList());
+            client.exists("", DataCategory.OBJECT, "idObject", Collections.emptyList());
         }).isInstanceOf(IllegalArgumentException.class);
     }
 
@@ -441,7 +441,7 @@ public class StorageClientRestTest extends ResteasyTestApplication {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         when(mock.head()).thenReturn(Response.status(Response.Status.NO_CONTENT).build());
         assertThatThrownBy(() -> {
-            client.exists("idStrategy", DataCategory.OBJECT, "", SingletonUtils.singletonList());
+            client.exists("idStrategy", DataCategory.OBJECT, "", Collections.emptyList());
         }).isInstanceOf(IllegalArgumentException.class);
     }
 
@@ -501,7 +501,7 @@ public class StorageClientRestTest extends ResteasyTestApplication {
     public void deleteWithTenantIllegalArgumentException() throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(null);
         when(mock.delete()).thenReturn(Response.status(Response.Status.NO_CONTENT).build());
-        client.exists("idStrategy", DataCategory.OBJECT, "idObject", SingletonUtils.singletonList());
+        client.exists("idStrategy", DataCategory.OBJECT, "idObject", Collections.emptyList());
     }
 
     @RunWithCustomExecutor
@@ -509,7 +509,7 @@ public class StorageClientRestTest extends ResteasyTestApplication {
     public void deleteWithStrategyIllegalArgumentException() throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         when(mock.delete()).thenReturn(Response.status(Response.Status.NO_CONTENT).build());
-        client.exists("", DataCategory.OBJECT, "idObject", SingletonUtils.singletonList());
+        client.exists("", DataCategory.OBJECT, "idObject", Collections.emptyList());
     }
 
     @RunWithCustomExecutor
@@ -517,7 +517,7 @@ public class StorageClientRestTest extends ResteasyTestApplication {
     public void deleteWithObjectIdIllegalArgumentException() throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         when(mock.delete()).thenReturn(Response.status(Response.Status.NO_CONTENT).build());
-        client.exists("idStrategy", DataCategory.OBJECT, "", SingletonUtils.singletonList());
+        client.exists("idStrategy", DataCategory.OBJECT, "", Collections.emptyList());
     }
 
     @RunWithCustomExecutor

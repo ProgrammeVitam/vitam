@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2019)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -8,7 +8,7 @@
  *
  * This software is governed by the CeCILL 2.1 license under French law and abiding by the rules of distribution of free
  * software. You can use, modify and/ or redistribute the software under the terms of the CeCILL 2.1 license as
- * circulated by CEA, CNRS and INRIA at the following URL "http://www.cecill.info".
+ * circulated by CEA, CNRS and INRIA at the following URL "https://cecill.info".
  *
  * As a counterpart to the access to the source code and rights to copy, modify and redistribute granted by the license,
  * users are provided only with a limited warranty and the software's author, the holder of the economic rights, and the
@@ -24,7 +24,6 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  */
-
 package fr.gouv.vitam.logbook.common.parameters;
 
 import static org.junit.Assert.assertFalse;
@@ -44,10 +43,10 @@ public class LobookParametersFactoryTest {
     public void mandatoryOperationSetTest() {
         final Set mandatoryToAdd = new TreeSet<>();
         mandatoryToAdd.add(LogbookParameterName.objectIdentifier);
-        LogbookParameters logbookParameters = LogbookParametersFactory.newLogbookOperationParameters();
+        LogbookParameters logbookParameters = LogbookParameterHelper.newLogbookOperationParameters();
         assertFalse(logbookParameters.getMandatoriesParameters().contains(LogbookParameterName.objectIdentifier));
 
-        logbookParameters = LogbookParametersFactory.newLogbookOperationParameters(mandatoryToAdd);
+        logbookParameters = LogbookParameterHelper.newLogbookOperationParameters(mandatoryToAdd);
         assertTrue(logbookParameters.getMandatoriesParameters().contains(LogbookParameterName.objectIdentifier));
     }
 
@@ -55,10 +54,10 @@ public class LobookParametersFactoryTest {
     public void mandatoryLifeCycleObjectGroupSetTest() {
         final Set mandatoryToAdd = new TreeSet<>();
         mandatoryToAdd.add(LogbookParameterName.objectIdentifierIncome);
-        LogbookParameters logbookParameters = LogbookParametersFactory.newLogbookLifeCycleObjectGroupParameters();
+        LogbookParameters logbookParameters = LogbookParameterHelper.newLogbookLifeCycleObjectGroupParameters();
         assertFalse(logbookParameters.getMandatoriesParameters().contains(LogbookParameterName.objectIdentifierIncome));
 
-        logbookParameters = LogbookParametersFactory.newLogbookLifeCycleObjectGroupParameters(mandatoryToAdd);
+        logbookParameters = LogbookParameterHelper.newLogbookLifeCycleObjectGroupParameters(mandatoryToAdd);
         assertTrue(logbookParameters.getMandatoriesParameters().contains(LogbookParameterName.objectIdentifierIncome));
     }
 
@@ -66,10 +65,10 @@ public class LobookParametersFactoryTest {
     public void mandatoryLifeCycleUnitSetTest() {
         final Set mandatoryToAdd = new TreeSet<>();
         mandatoryToAdd.add(LogbookParameterName.objectIdentifierIncome);
-        LogbookParameters logbookParameters = LogbookParametersFactory.newLogbookLifeCycleUnitParameters();
+        LogbookParameters logbookParameters = LogbookParameterHelper.newLogbookLifeCycleUnitParameters();
         assertFalse(logbookParameters.getMandatoriesParameters().contains(LogbookParameterName.objectIdentifierIncome));
 
-        logbookParameters = LogbookParametersFactory.newLogbookLifeCycleUnitParameters(mandatoryToAdd);
+        logbookParameters = LogbookParameterHelper.newLogbookLifeCycleUnitParameters(mandatoryToAdd);
         assertTrue(logbookParameters.getMandatoriesParameters().contains(LogbookParameterName.objectIdentifierIncome));
     }
 }
