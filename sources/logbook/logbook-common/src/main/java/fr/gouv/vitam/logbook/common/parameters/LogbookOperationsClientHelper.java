@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2019)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -8,7 +8,7 @@
  *
  * This software is governed by the CeCILL 2.1 license under French law and abiding by the rules of distribution of free
  * software. You can use, modify and/ or redistribute the software under the terms of the CeCILL 2.1 license as
- * circulated by CEA, CNRS and INRIA at the following URL "http://www.cecill.info".
+ * circulated by CEA, CNRS and INRIA at the following URL "https://cecill.info".
  *
  * As a counterpart to the access to the source code and rights to copy, modify and redistribute granted by the license,
  * users are provided only with a limited warranty and the software's author, the holder of the economic rights, and the
@@ -27,18 +27,16 @@
 package fr.gouv.vitam.logbook.common.parameters;
 
 import java.text.ParseException;
-import java.time.LocalDate;
-import java.time.format.DateTimeParseException;
 import java.util.Map;
 import java.util.Queue;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
 import fr.gouv.vitam.common.LocalDateUtil;
+import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.ServerIdentity;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
-import fr.gouv.vitam.common.parameter.ParameterHelper;
 import fr.gouv.vitam.logbook.common.client.ErrorMessage;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientAlreadyExistsException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientNotFoundException;
@@ -82,7 +80,7 @@ public class LogbookOperationsClientHelper {
                 throw new IllegalArgumentException("Wrong date format : "+ parameters.getParameterValue(LogbookParameterName.eventDateTime));
             }
         }
-        ParameterHelper
+        ParametersChecker
             .checkNullOrEmptyParameters(parameters.getMapParameters(), parameters.getMandatoriesParameters());
         return parameters.getParameterValue(LogbookParameterName.eventIdentifierProcess);
     }
@@ -94,7 +92,7 @@ public class LogbookOperationsClientHelper {
      * @return the copy of the source
      */
     public static final LogbookOperationParameters copy(LogbookOperationParameters source) {
-        final LogbookOperationParameters copy = LogbookParametersFactory.newLogbookOperationParameters();
+        final LogbookOperationParameters copy = LogbookParameterHelper.newLogbookOperationParameters();
         copy.getMapParameters().putAll(source.getMapParameters());
         return copy;
     }

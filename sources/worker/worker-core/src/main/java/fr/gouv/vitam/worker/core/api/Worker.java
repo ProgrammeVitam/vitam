@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2019)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -8,7 +8,7 @@
  *
  * This software is governed by the CeCILL 2.1 license under French law and abiding by the rules of distribution of free
  * software. You can use, modify and/ or redistribute the software under the terms of the CeCILL 2.1 license as
- * circulated by CEA, CNRS and INRIA at the following URL "http://www.cecill.info".
+ * circulated by CEA, CNRS and INRIA at the following URL "https://cecill.info".
  *
  * As a counterpart to the access to the source code and rights to copy, modify and redistribute granted by the license,
  * users are provided only with a limited warranty and the software's author, the holder of the economic rights, and the
@@ -30,12 +30,10 @@ import com.google.common.annotations.VisibleForTesting;
 import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.VitamAutoCloseable;
 import fr.gouv.vitam.common.model.processing.Step;
-import fr.gouv.vitam.processing.common.exception.HandlerNotFoundException;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.processing.common.model.EngineResponse;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 import fr.gouv.vitam.worker.core.handler.ActionHandler;
-import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
 
 /**
  * Worker Interface.
@@ -50,13 +48,10 @@ public interface Worker extends VitamAutoCloseable {
      * @return List EngineResponse {@link EngineResponse} : list of action response {OK,KO,FATAL...}
      *
      * @throws IllegalArgumentException throws when arguments are null
-     * @throws HandlerNotFoundException throws when handler not found
      * @throws ProcessingException throws when error in execution
-     * @throws ContentAddressableStorageServerException thrown when workspace could not be used
      */
     ItemStatus run(WorkerParameters workParams, Step step)
-        throws IllegalArgumentException, HandlerNotFoundException, ProcessingException,
-        ContentAddressableStorageServerException;
+        throws IllegalArgumentException, ProcessingException;
 
 
     /**

@@ -1,26 +1,26 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2019)
- * <p>
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
+ *
  * contact.vitam@culture.gouv.fr
- * <p>
+ *
  * This software is a computer program whose purpose is to implement a digital archiving back-office system managing
  * high volumetry securely and efficiently.
- * <p>
+ *
  * This software is governed by the CeCILL 2.1 license under French law and abiding by the rules of distribution of free
  * software. You can use, modify and/ or redistribute the software under the terms of the CeCILL 2.1 license as
- * circulated by CEA, CNRS and INRIA at the following URL "http://www.cecill.info".
- * <p>
+ * circulated by CEA, CNRS and INRIA at the following URL "https://cecill.info".
+ *
  * As a counterpart to the access to the source code and rights to copy, modify and redistribute granted by the license,
  * users are provided only with a limited warranty and the software's author, the holder of the economic rights, and the
  * successive licensors have only limited liability.
- * <p>
+ *
  * In this respect, the user's attention is drawn to the risks associated with loading, using, modifying and/or
  * developing or reproducing the software by the user in light of its specific status of free software, that may mean
  * that it is complicated to manipulate, and that also therefore means that it is reserved for developers and
  * experienced professionals having in-depth computer knowledge. Users are therefore encouraged to load and test the
  * software's suitability as regards their requirements in conditions enabling the security of their systems and/or data
  * to be ensured and, more generally, to use and operate it in the same conditions as regards security.
- * <p>
+ *
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  */
@@ -58,7 +58,7 @@ import fr.gouv.vitam.logbook.common.exception.LogbookClientNotFoundException;
 import fr.gouv.vitam.logbook.common.parameters.LogbookOperationParameters;
 import fr.gouv.vitam.logbook.common.parameters.LogbookOperationsClientHelper;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParameterName;
-import fr.gouv.vitam.logbook.common.parameters.LogbookParametersFactory;
+import fr.gouv.vitam.logbook.common.parameters.LogbookParameterHelper;
 import fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess;
 import fr.gouv.vitam.logbook.common.server.LogbookConfiguration;
 import fr.gouv.vitam.logbook.common.server.database.collections.LogbookCollections;
@@ -200,7 +200,7 @@ public class WebApplicationResourceDelete {
             tenantId = 0;
         }
         final GUID eip = GUIDFactory.newEventGUID(tenantId);
-        final LogbookOperationParameters parameters = LogbookParametersFactory.newLogbookOperationParameters(
+        final LogbookOperationParameters parameters = LogbookParameterHelper.newLogbookOperationParameters(
             eip, STP_DELETE_FORMAT, eip,
             LogbookTypeProcess.MASTERDATA, StatusCode.STARTED,
             VitamLogbookMessages.getCodeOp(STP_DELETE_FORMAT, StatusCode.STARTED), eip);
@@ -247,7 +247,7 @@ public class WebApplicationResourceDelete {
     private Response deleteRules() {
         Integer tenantId = ParameterHelper.getTenantParameter();
         final GUID eip = GUIDFactory.newEventGUID(tenantId);
-        final LogbookOperationParameters parameters = LogbookParametersFactory.newLogbookOperationParameters(
+        final LogbookOperationParameters parameters = LogbookParameterHelper.newLogbookOperationParameters(
             eip, STP_DELETE_RULES, eip,
             LogbookTypeProcess.MASTERDATA, StatusCode.STARTED,
             VitamLogbookMessages.getCodeOp(STP_DELETE_RULES, StatusCode.STARTED), eip);
@@ -294,7 +294,7 @@ public class WebApplicationResourceDelete {
     private Response deleteRegister() {
         Integer tenantId = ParameterHelper.getTenantParameter();
         final GUID eip = GUIDFactory.newOperationLogbookGUID(tenantId);
-        LogbookOperationParameters parameters = LogbookParametersFactory.newLogbookOperationParameters(
+        LogbookOperationParameters parameters = LogbookParameterHelper.newLogbookOperationParameters(
             eip, STP_DELETE_ACCESSION_REGISTER_SUMMARY, eip,
             LogbookTypeProcess.MASTERDATA, StatusCode.STARTED,
             VitamLogbookMessages.getCodeOp(STP_DELETE_ACCESSION_REGISTER_SUMMARY, StatusCode.STARTED), eip);
@@ -337,7 +337,7 @@ public class WebApplicationResourceDelete {
         }
         // Details
         final GUID eipDetail = GUIDFactory.newGUID();
-        parameters = LogbookParametersFactory.newLogbookOperationParameters(
+        parameters = LogbookParameterHelper.newLogbookOperationParameters(
             eipDetail, STP_DELETE_ACCESSION_REGISTER_DETAIL, eipDetail,
             LogbookTypeProcess.MASTERDATA, StatusCode.STARTED,
             VitamLogbookMessages.getCodeOp(STP_DELETE_ACCESSION_REGISTER_DETAIL, StatusCode.STARTED), eipDetail);
@@ -385,7 +385,7 @@ public class WebApplicationResourceDelete {
     private Response deleteLogBook() {
         Integer tenantId = ParameterHelper.getTenantParameter();
         final GUID eip = GUIDFactory.newOperationLogbookGUID(tenantId);
-        final LogbookOperationParameters parameters = LogbookParametersFactory.newLogbookOperationParameters(
+        final LogbookOperationParameters parameters = LogbookParameterHelper.newLogbookOperationParameters(
             eip, STP_DELETE_LOGBOOK_OPERATION, eip,
             LogbookTypeProcess.MASTERDATA, StatusCode.STARTED,
             VitamLogbookMessages.getCodeOp(STP_DELETE_LOGBOOK_OPERATION, StatusCode.STARTED), eip);
@@ -443,7 +443,7 @@ public class WebApplicationResourceDelete {
     private Response deleteLifecycleOg() {
         Integer tenantId = ParameterHelper.getTenantParameter();
         final GUID eip = GUIDFactory.newOperationLogbookGUID(tenantId);
-        final LogbookOperationParameters parameters = LogbookParametersFactory.newLogbookOperationParameters(
+        final LogbookOperationParameters parameters = LogbookParameterHelper.newLogbookOperationParameters(
             eip, STP_DELETE_LOGBOOK_LIFECYCLE_OG, eip,
             LogbookTypeProcess.MASTERDATA, StatusCode.STARTED,
             VitamLogbookMessages.getCodeOp(STP_DELETE_LOGBOOK_LIFECYCLE_OG, StatusCode.STARTED), eip);
@@ -490,7 +490,7 @@ public class WebApplicationResourceDelete {
     private Response deleteLifecycleUnits() {
         Integer tenantId = ParameterHelper.getTenantParameter();
         final GUID eip = GUIDFactory.newOperationLogbookGUID(tenantId);
-        final LogbookOperationParameters parameters = LogbookParametersFactory.newLogbookOperationParameters(
+        final LogbookOperationParameters parameters = LogbookParameterHelper.newLogbookOperationParameters(
             eip, STP_DELETE_LOGBOOK_LIFECYCLE_UNIT, eip,
             LogbookTypeProcess.MASTERDATA, StatusCode.STARTED,
             VitamLogbookMessages.getCodeOp(STP_DELETE_LOGBOOK_LIFECYCLE_UNIT, StatusCode.STARTED), eip);
@@ -537,7 +537,7 @@ public class WebApplicationResourceDelete {
     private Response deleteMetadataOg() {
         Integer tenantId = ParameterHelper.getTenantParameter();
         final GUID eip = GUIDFactory.newOperationLogbookGUID(tenantId);
-        final LogbookOperationParameters parameters = LogbookParametersFactory.newLogbookOperationParameters(
+        final LogbookOperationParameters parameters = LogbookParameterHelper.newLogbookOperationParameters(
             eip, STP_DELETE_METADATA_OG, eip,
             LogbookTypeProcess.MASTERDATA, StatusCode.STARTED,
             VitamLogbookMessages.getCodeOp(STP_DELETE_METADATA_OG, StatusCode.STARTED), eip);
@@ -584,7 +584,7 @@ public class WebApplicationResourceDelete {
     private Response deleteMetadataUnits() {
         Integer tenantId = ParameterHelper.getTenantParameter();
         final GUID eip = GUIDFactory.newOperationLogbookGUID(tenantId);
-        final LogbookOperationParameters parameters = LogbookParametersFactory.newLogbookOperationParameters(
+        final LogbookOperationParameters parameters = LogbookParameterHelper.newLogbookOperationParameters(
             eip, STP_DELETE_METADATA_UNIT, eip,
             LogbookTypeProcess.MASTERDATA, StatusCode.STARTED,
             VitamLogbookMessages.getCodeOp(STP_DELETE_METADATA_UNIT, StatusCode.STARTED), eip);
@@ -807,7 +807,7 @@ public class WebApplicationResourceDelete {
         }
 
         final GUID eip = GUIDFactory.newOperationLogbookGUID(ParameterHelper.getTenantParameter());
-        final LogbookOperationParameters parameters = LogbookParametersFactory.newLogbookOperationParameters(
+        final LogbookOperationParameters parameters = LogbookParameterHelper.newLogbookOperationParameters(
             eip, STP_DELETE_MASTERDATA + "_" + collection.name(), eip,
             LogbookTypeProcess.MASTERDATA, StatusCode.STARTED,
             VitamLogbookMessages.getCodeOp(STP_DELETE_MASTERDATA + "_" + collection.name(), StatusCode.STARTED), eip);
@@ -911,7 +911,7 @@ public class WebApplicationResourceDelete {
         Integer tenantId = ParameterHelper.getTenantParameter();
         final GUID eip = GUIDFactory.newOperationLogbookGUID(tenantId);
         final List<String> collectionKO = new ArrayList<>();
-        final LogbookOperationParameters parameters = LogbookParametersFactory.newLogbookOperationParameters(
+        final LogbookOperationParameters parameters = LogbookParameterHelper.newLogbookOperationParameters(
             eip, STP_DELETE_ALL, eip, LogbookTypeProcess.MASTERDATA, StatusCode.STARTED,
             VitamLogbookMessages.getCodeOp(STP_DELETE_ALL, StatusCode.STARTED), eip);
         final LogbookOperationsClientHelper helper = new LogbookOperationsClientHelper();

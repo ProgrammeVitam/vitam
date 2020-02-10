@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2019)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -8,7 +8,7 @@
  *
  * This software is governed by the CeCILL 2.1 license under French law and abiding by the rules of distribution of free
  * software. You can use, modify and/ or redistribute the software under the terms of the CeCILL 2.1 license as
- * circulated by CEA, CNRS and INRIA at the following URL "http://www.cecill.info".
+ * circulated by CEA, CNRS and INRIA at the following URL "https://cecill.info".
  *
  * As a counterpart to the access to the source code and rights to copy, modify and redistribute granted by the license,
  * users are provided only with a limited warranty and the software's author, the holder of the economic rights, and the
@@ -67,7 +67,7 @@ import fr.gouv.vitam.functional.administration.common.server.MongoDbAccessAdminF
 import fr.gouv.vitam.functional.administration.common.server.MongoDbAccessReferential;
 import fr.gouv.vitam.logbook.common.parameters.LogbookOperationParameters;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParameterName;
-import fr.gouv.vitam.logbook.common.parameters.LogbookParametersFactory;
+import fr.gouv.vitam.logbook.common.parameters.LogbookParameterHelper;
 import fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClientFactory;
 import io.restassured.RestAssured;
@@ -925,7 +925,7 @@ public class AdminManagementResourceTest {
             .then().statusCode(Status.CREATED.getStatusCode());
 
         given().contentType(ContentType.JSON)
-            .body(JsonHandler.toJsonNode(LogbookParametersFactory.newLogbookOperationParameters()))
+            .body(JsonHandler.toJsonNode(LogbookParameterHelper.newLogbookOperationParameters()))
             .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
             .header(GlobalDataRest.X_REQUEST_ID, request.getId())
             .when().post(CREATE_EXTERNAL_LOGBOOK_URI)
@@ -944,7 +944,7 @@ public class AdminManagementResourceTest {
 
 
     private LogbookOperationParameters fillLogbookParameters(String guid, String evIdProc) {
-        LogbookOperationParameters logbookParamaters = LogbookParametersFactory.newLogbookOperationParameters();
+        LogbookOperationParameters logbookParamaters = LogbookParameterHelper.newLogbookOperationParameters();
         logbookParamaters.putParameterValue(LogbookParameterName.eventIdentifier,
             guid);
         logbookParamaters

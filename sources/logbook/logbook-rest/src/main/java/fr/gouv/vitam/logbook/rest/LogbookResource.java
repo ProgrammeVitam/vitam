@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2019)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -8,7 +8,7 @@
  *
  * This software is governed by the CeCILL 2.1 license under French law and abiding by the rules of distribution of free
  * software. You can use, modify and/ or redistribute the software under the terms of the CeCILL 2.1 license as
- * circulated by CEA, CNRS and INRIA at the following URL "http://www.cecill.info".
+ * circulated by CEA, CNRS and INRIA at the following URL "https://cecill.info".
  *
  * As a counterpart to the access to the source code and rights to copy, modify and redistribute granted by the license,
  * users are provided only with a limited warranty and the software's author, the holder of the economic rights, and the
@@ -58,7 +58,6 @@ import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.LifeCycleStatusCode;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
-import fr.gouv.vitam.common.parameter.ParameterHelper;
 import fr.gouv.vitam.common.server.application.resources.ApplicationStatusResource;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.common.timestamp.TimeStampSignature;
@@ -322,7 +321,7 @@ public class LogbookResource extends ApplicationStatusResource {
                 operation.getParameterValue(LogbookOperation.getIdParameterName()).equals(operationId) + " " +
                     operation.getParameterValue(LogbookOperation.getIdParameterName()) + " =? " + operationId);
             try {
-                ParameterHelper.checkNullOrEmptyParameters(operation);
+                ParametersChecker.checkNullOrEmptyParameters(operation);
             } catch (final IllegalArgumentException e) {
                 LOGGER.error("Operations is incorrect", e);
                 return Response.status(Response.Status.BAD_REQUEST).build();
@@ -361,7 +360,7 @@ public class LogbookResource extends ApplicationStatusResource {
     public Response updateOperation(@PathParam("id_op") String operationId, LogbookOperationParameters operation) {
         Response finalResponse = Response.status(Response.Status.OK).build();
         try {
-            ParameterHelper.checkNullOrEmptyParameters(operation);
+            ParametersChecker.checkNullOrEmptyParameters(operation);
         } catch (final IllegalArgumentException e) {
             LOGGER.error("Operations is incorrect", e);
             return Response.status(Response.Status.BAD_REQUEST).build();
@@ -638,7 +637,7 @@ public class LogbookResource extends ApplicationStatusResource {
         try {
             try {
                 // check null or empty parameters
-                ParameterHelper.checkNullOrEmptyParameters(parameters);
+                ParametersChecker.checkNullOrEmptyParameters(parameters);
             } catch (final IllegalArgumentException e) {
                 LOGGER.error("unit lifecycles is incorrect", e);
                 status = Status.BAD_REQUEST;
@@ -755,7 +754,7 @@ public class LogbookResource extends ApplicationStatusResource {
             if (LifeCycleStatusCode.LIFE_CYCLE_IN_PROCESS.equals(lifeCycleStatus)) {
                 try {
                     // check null or empty parameters
-                    ParameterHelper.checkNullOrEmptyParameters(parameters);
+                    ParametersChecker.checkNullOrEmptyParameters(parameters);
                 } catch (final IllegalArgumentException e) {
                     LOGGER.error("unit lifecycles is incorrect", e);
                     status = Status.BAD_REQUEST;
@@ -1402,7 +1401,7 @@ public class LogbookResource extends ApplicationStatusResource {
         try {
             try {
                 // check null or empty parameters
-                ParameterHelper.checkNullOrEmptyParameters(parameters);
+                ParametersChecker.checkNullOrEmptyParameters(parameters);
             } catch (final IllegalArgumentException e) {
                 LOGGER.error("objectgrouplifecycles is incorrect", e);
                 status = Status.BAD_REQUEST;
@@ -1474,7 +1473,7 @@ public class LogbookResource extends ApplicationStatusResource {
             if (LifeCycleStatusCode.LIFE_CYCLE_IN_PROCESS.equals(lifeCycleStatus)) {
                 try {
                     // check null or empty parameters
-                    ParameterHelper.checkNullOrEmptyParameters(parameters);
+                    ParametersChecker.checkNullOrEmptyParameters(parameters);
                 } catch (final IllegalArgumentException e) {
                     LOGGER.error("objectgrouplifecycles is incorrect", e);
                     status = Status.BAD_REQUEST;

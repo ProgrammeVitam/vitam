@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2019)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -8,7 +8,7 @@
  *
  * This software is governed by the CeCILL 2.1 license under French law and abiding by the rules of distribution of free
  * software. You can use, modify and/ or redistribute the software under the terms of the CeCILL 2.1 license as
- * circulated by CEA, CNRS and INRIA at the following URL "http://www.cecill.info".
+ * circulated by CEA, CNRS and INRIA at the following URL "https://cecill.info".
  *
  * As a counterpart to the access to the source code and rights to copy, modify and redistribute granted by the license,
  * users are provided only with a limited warranty and the software's author, the holder of the economic rights, and the
@@ -101,7 +101,7 @@ import fr.gouv.vitam.logbook.common.exception.LogbookClientServerException;
 import fr.gouv.vitam.logbook.common.parameters.Contexts;
 import fr.gouv.vitam.logbook.common.parameters.LogbookOperationParameters;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParameterName;
-import fr.gouv.vitam.logbook.common.parameters.LogbookParametersFactory;
+import fr.gouv.vitam.logbook.common.parameters.LogbookParameterHelper;
 import fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess;
 import fr.gouv.vitam.logbook.lifecycles.client.LogbookLifeCyclesClientFactory;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClient;
@@ -402,7 +402,7 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
             String operationId = getVitamSession().getRequestId();
 
             final LogbookOperationParameters initParameters =
-                LogbookParametersFactory.newLogbookOperationParameters(
+                LogbookParameterHelper.newLogbookOperationParameters(
                     GUIDReader.getGUID(operationId),
                     contexts.getEventType(),
                     GUIDReader.getGUID(operationId),
@@ -484,7 +484,7 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
             String operationId = getVitamSession().getRequestId();
 
             LogbookOperationParameters masterTransferReplyLfcEvent =
-                LogbookParametersFactory.newLogbookOperationParameters(
+                LogbookParameterHelper.newLogbookOperationParameters(
                     GUIDReader.getGUID(operationId),
                     TRANSFER_REPLY.getEventType(),
                     GUIDReader.getGUID(operationId),
@@ -583,7 +583,7 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
                 WorkspaceClient workspaceClient = workspaceClientFactory.getClient()) {
 
                 final LogbookOperationParameters initParameters =
-                    LogbookParametersFactory.newLogbookOperationParameters(
+                    LogbookParameterHelper.newLogbookOperationParameters(
                         GUIDReader.getGUID(operationId),
                         Contexts.RECLASSIFICATION.getEventType(),
                         GUIDReader.getGUID(operationId),
@@ -689,7 +689,7 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
                 WorkspaceClient workspaceClient = workspaceClientFactory.getClient()) {
 
                 final LogbookOperationParameters initParameters =
-                    LogbookParametersFactory.newLogbookOperationParameters(
+                    LogbookParameterHelper.newLogbookOperationParameters(
                         GUIDReader.getGUID(operationId),
                         eliminationWorkflowContext.getEventType(),
                         GUIDReader.getGUID(operationId),
@@ -1141,7 +1141,7 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
 
             // Init logbook operation
             final LogbookOperationParameters initParameters =
-                LogbookParametersFactory.newLogbookOperationParameters(
+                LogbookParameterHelper.newLogbookOperationParameters(
                     GUIDReader.getGUID(operationId),
                     Contexts.MASS_UPDATE_UNIT_DESC.getEventType(),
                     GUIDReader.getGUID(operationId),
@@ -1223,7 +1223,7 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
 
             // Init logbook operation
             final LogbookOperationParameters initParameters =
-                LogbookParametersFactory.newLogbookOperationParameters(
+                LogbookParameterHelper.newLogbookOperationParameters(
                     GUIDReader.getGUID(operationId),
                     Contexts.MASS_UPDATE_UNIT_RULE.getEventType(),
                     GUIDReader.getGUID(operationId),
@@ -1314,7 +1314,7 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
             String message =
                 VitamLogbookMessages.getLabelOp(COMPUTE_INHERITED_RULES.getEventType() + ".STARTED") + " : " +
                     GUIDReader.getGUID(operationId);
-            LogbookOperationParameters initParameters = LogbookParametersFactory.newLogbookOperationParameters(
+            LogbookOperationParameters initParameters = LogbookParameterHelper.newLogbookOperationParameters(
                 GUIDReader.getGUID(operationId),
                 COMPUTE_INHERITED_RULES.getEventType(),
                 GUIDReader.getGUID(operationId),
@@ -1384,7 +1384,7 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
                     " : " +
                     GUIDReader.getGUID(operationId);
 
-            LogbookOperationParameters initParameters = LogbookParametersFactory.newLogbookOperationParameters(
+            LogbookOperationParameters initParameters = LogbookParameterHelper.newLogbookOperationParameters(
                 GUIDReader.getGUID(operationId),
                 COMPUTE_INHERITED_RULES_DELETE.getEventType(),
                 GUIDReader.getGUID(operationId),
@@ -1579,7 +1579,7 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
                 String message = VitamLogbookMessages.getLabelOp(PRESERVATION.getEventType() + ".STARTED") + " : " +
                     GUIDReader.getGUID(operationId);
 
-                LogbookOperationParameters initParameters = LogbookParametersFactory.newLogbookOperationParameters(
+                LogbookOperationParameters initParameters = LogbookParameterHelper.newLogbookOperationParameters(
                     GUIDReader.getGUID(operationId),
                     PRESERVATION.getEventType(),
                     GUIDReader.getGUID(operationId),

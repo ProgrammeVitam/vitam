@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2019)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -8,7 +8,7 @@
  *
  * This software is governed by the CeCILL 2.1 license under French law and abiding by the rules of distribution of free
  * software. You can use, modify and/ or redistribute the software under the terms of the CeCILL 2.1 license as
- * circulated by CEA, CNRS and INRIA at the following URL "http://www.cecill.info".
+ * circulated by CEA, CNRS and INRIA at the following URL "https://cecill.info".
  *
  * As a counterpart to the access to the source code and rights to copy, modify and redistribute granted by the license,
  * users are provided only with a limited warranty and the software's author, the holder of the economic rights, and the
@@ -93,8 +93,7 @@ public class CheckObjectsNumberActionHandler extends ActionHandler {
     }
 
     @Override
-    public ItemStatus execute(WorkerParameters params, HandlerIO handlerIO)
-        throws ContentAddressableStorageServerException {
+    public ItemStatus execute(WorkerParameters params, HandlerIO handlerIO) {
         checkMandatoryParameters(params);
 
         final ItemStatus itemStatus = new ItemStatus(HANDLER_ID);
@@ -119,7 +118,7 @@ public class CheckObjectsNumberActionHandler extends ActionHandler {
             evdev.put(SedaConstants.EV_DET_TECH_DATA, e.getMessage());
             itemStatus.setEvDetailData(JsonHandler.unprettyPrint(evdev));
             itemStatus.increment(StatusCode.KO);
-        } catch (final ProcessingException e) {
+        } catch (final ProcessingException | ContentAddressableStorageServerException e) {
             LOGGER.error(e);
             itemStatus.increment(StatusCode.FATAL);
         }

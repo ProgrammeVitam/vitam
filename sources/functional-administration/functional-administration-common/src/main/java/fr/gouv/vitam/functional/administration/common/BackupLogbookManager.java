@@ -1,7 +1,5 @@
-package fr.gouv.vitam.functional.administration.common;
-
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2019)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -10,7 +8,7 @@ package fr.gouv.vitam.functional.administration.common;
  *
  * This software is governed by the CeCILL 2.1 license under French law and abiding by the rules of distribution of free
  * software. You can use, modify and/ or redistribute the software under the terms of the CeCILL 2.1 license as
- * circulated by CEA, CNRS and INRIA at the following URL "http://www.cecill.info".
+ * circulated by CEA, CNRS and INRIA at the following URL "https://cecill.info".
  *
  * As a counterpart to the access to the source code and rights to copy, modify and redistribute granted by the license,
  * users are provided only with a limited warranty and the software's author, the holder of the economic rights, and the
@@ -26,6 +24,7 @@ package fr.gouv.vitam.functional.administration.common;
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  */
+package fr.gouv.vitam.functional.administration.common;
 
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.annotations.VisibleForTesting;
@@ -43,7 +42,7 @@ import fr.gouv.vitam.common.parameter.ParameterHelper;
 import fr.gouv.vitam.common.security.SanityChecker;
 import fr.gouv.vitam.logbook.common.parameters.LogbookOperationParameters;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParameterName;
-import fr.gouv.vitam.logbook.common.parameters.LogbookParametersFactory;
+import fr.gouv.vitam.logbook.common.parameters.LogbookParameterHelper;
 import fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClient;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClientFactory;
@@ -80,7 +79,7 @@ public class BackupLogbookManager {
         throws VitamException {
         final GUID eipId = GUIDFactory.newOperationLogbookGUID(ParameterHelper.getTenantParameter());
 
-        final LogbookOperationParameters logbookParameters = LogbookParametersFactory
+        final LogbookOperationParameters logbookParameters = LogbookParameterHelper
             .newLogbookOperationParameters(eipId, eventType, logbookOperationMasterId, LogbookTypeProcess.MASTERDATA,
                 StatusCode.OK,
                 getCodeOp(eventType, StatusCode.OK), logbookOperationMasterId);
@@ -112,7 +111,7 @@ public class BackupLogbookManager {
         LOGGER.error("There validation errors on the input file {}", errorsDetails);
         
         final GUID eipId = GUIDFactory.newOperationLogbookGUID(ParameterHelper.getTenantParameter());
-        final LogbookOperationParameters logbookParameters = LogbookParametersFactory
+        final LogbookOperationParameters logbookParameters = LogbookParameterHelper
             .newLogbookOperationParameters(eipId, eventType, logbookOperationMasterId,
                 LogbookTypeProcess.MASTERDATA, StatusCode.KO, getCodeOp(eventType, StatusCode.KO),
                 logbookOperationMasterId);

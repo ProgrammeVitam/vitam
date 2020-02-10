@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2019)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -8,7 +8,7 @@
  *
  * This software is governed by the CeCILL 2.1 license under French law and abiding by the rules of distribution of free
  * software. You can use, modify and/ or redistribute the software under the terms of the CeCILL 2.1 license as
- * circulated by CEA, CNRS and INRIA at the following URL "http://www.cecill.info".
+ * circulated by CEA, CNRS and INRIA at the following URL "https://cecill.info".
  *
  * As a counterpart to the access to the source code and rights to copy, modify and redistribute granted by the license,
  * users are provided only with a limited warranty and the software's author, the holder of the economic rights, and the
@@ -30,13 +30,10 @@ import com.fasterxml.jackson.databind.JsonNode;
 import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.VitamConfiguration;
-import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
-import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.junit.JunitHelper;
 import fr.gouv.vitam.common.logging.SysErrLogger;
 import fr.gouv.vitam.ihmdemo.common.api.IhmDataRest;
-import fr.gouv.vitam.logbook.common.exception.LogbookClientException;
 import io.restassured.RestAssured;
 import io.restassured.http.ContentType;
 import io.restassured.response.Response;
@@ -58,20 +55,12 @@ import static org.junit.Assert.assertTrue;
  */
 public class WebApplicationResourceAuthTest {
     private static final String DEFAULT_WEB_APP_CONTEXT = "/ihm-demo";
-    private static final String DEFAULT_STATIC_CONTENT = "webapp";
     private static final String DEFAULT_WEB_APP_CONTEXT_V2 = "/ihm-demo-v2";
     private static final String DEFAULT_STATIC_CONTENT_V2 = "webapp/v2";
     private static final String OPTIONS = "{\"name\": \"myName\"}";
     private static final String CREDENTIALS = "{\"token\": {\"principal\": \"admin\", \"credentials\": \"admin\"}}";
-    private static final String CREDENTIALS_NO_VALID =
-        "{\"token\": {\"principal\": \"myName\", \"credentials\": \"myName\"}}";
-    private static final String OPTIONS_DOWNLOAD = "{\"usage\": \"Dissemination\", \"version\": 1}";
-    private static final String UPDATE = "{\"title\": \"myarchive\"}";
     private static final String DEFAULT_HOST = "localhost";
     private static final String JETTY_CONFIG = "jetty-config-test.xml";
-    private static final String ALL_PARENTS = "[\"P1\", \"P2\", \"P3\"]";
-    private static final String FAKE_STRING_RETURN = "Fake String";
-    private static final JsonNode FAKE_JSONNODE_RETURN = JsonHandler.createObjectNode();
     private static final String IHM_DEMO_CONF = "ihm-demo.conf";
 
     private static JunitHelper junitHelper;
@@ -117,7 +106,7 @@ public class WebApplicationResourceAuthTest {
     }
 
     @AfterClass
-    public static void tearDownAfterClass() throws Exception {
+    public static void tearDownAfterClass() {
         try {
             application.stop();
         } catch (Exception e) {
@@ -127,7 +116,7 @@ public class WebApplicationResourceAuthTest {
     }
 
     @Test
-    public void testSecureModeAPI() throws InvalidParseOperationException {
+    public void testSecureModeAPI() {
         String authMode = given()
             .get("/securemode").body().asString();
         assertTrue(authMode.contains("LDAP"));
@@ -142,8 +131,7 @@ public class WebApplicationResourceAuthTest {
     }
 
     @Test
-    public void testSuccessGetLogbookResult()
-        throws InvalidParseOperationException, LogbookClientException, InvalidCreateOperationException {
+    public void testSuccessGetLogbookResult() {
 
         given().cookie("JSESSIONID", sessionId).header(GlobalDataRest.X_CSRF_TOKEN, tokenCSRF)
             .contentType(ContentType.JSON).body(OPTIONS).expect()
@@ -153,8 +141,7 @@ public class WebApplicationResourceAuthTest {
 
 
     @Test
-    public void testSuccessGetLogbookResultFromSession()
-        throws InvalidParseOperationException, LogbookClientException, InvalidCreateOperationException {
+    public void testSuccessGetLogbookResultFromSession() {
 
         final String requestId = given().cookie("JSESSIONID", sessionId)
             .header(GlobalDataRest.X_CSRF_TOKEN, tokenCSRF).contentType(ContentType.JSON).body(OPTIONS)
@@ -170,8 +157,7 @@ public class WebApplicationResourceAuthTest {
     }
 
     @Test
-    public void testErrorGetLogbookResultUsingPagination()
-        throws InvalidParseOperationException, LogbookClientException, InvalidCreateOperationException {
+    public void testErrorGetLogbookResultUsingPagination() {
 
         given().cookie("JSESSIONID", sessionId).header(GlobalDataRest.X_CSRF_TOKEN, tokenCSRF)
             .header(IhmDataRest.X_LIMIT, "1A")

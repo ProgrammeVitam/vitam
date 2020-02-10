@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2019)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -8,7 +8,7 @@
  *
  * This software is governed by the CeCILL 2.1 license under French law and abiding by the rules of distribution of free
  * software. You can use, modify and/ or redistribute the software under the terms of the CeCILL 2.1 license as
- * circulated by CEA, CNRS and INRIA at the following URL "http://www.cecill.info".
+ * circulated by CEA, CNRS and INRIA at the following URL "https://cecill.info".
  *
  * As a counterpart to the access to the source code and rights to copy, modify and redistribute granted by the license,
  * users are provided only with a limited warranty and the software's author, the holder of the economic rights, and the
@@ -99,7 +99,7 @@ import fr.gouv.vitam.logbook.common.parameters.LogbookLifeCycleUnitParameters;
 import fr.gouv.vitam.logbook.common.parameters.LogbookLifeCyclesClientHelper;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParameterName;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParameters;
-import fr.gouv.vitam.logbook.common.parameters.LogbookParametersFactory;
+import fr.gouv.vitam.logbook.common.parameters.LogbookParameterHelper;
 import fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess;
 import fr.gouv.vitam.logbook.common.server.database.collections.LogbookMongoDbName;
 import fr.gouv.vitam.logbook.lifecycles.client.LogbookLifeCyclesClient;
@@ -774,7 +774,7 @@ public class ExtractSedaActionHandler extends ActionHandler {
     public ObjectNode extractSEDA(LogbookLifeCyclesClient logbookLifeCycleClient, WorkerParameters params,
         ItemStatus globalCompositeItemStatus, UnitType workflowUnitType)
         throws ProcessingException, CycleFoundException {
-        ParameterHelper.checkNullOrEmptyParameters(params);
+        ParametersChecker.checkNullOrEmptyParameters(params);
         final String containerId = params.getContainerName();
         return extractSEDAWithWorkspaceClient(containerId, globalCompositeItemStatus,
             logbookLifeCycleClient, params.getLogbookTypeProcess(), workflowUnitType);
@@ -1520,7 +1520,7 @@ public class ExtractSedaActionHandler extends ActionHandler {
     }
 
     private LogbookLifeCycleParameters createExternalParentLogbookLifeCycle(String processId, String guid) {
-        LogbookLifeCycleParameters parent = new LogbookLifeCycleParameters(LogbookParametersFactory.getDefaultLifeCycleMandatory());
+        LogbookLifeCycleParameters parent = new LogbookLifeCycleParameters(LogbookParameterHelper.getDefaultLifeCycleMandatory());
         Map<String, String> parameters = new HashMap<>();
         parameters.put(eventIdentifier.name(), GUIDFactory.newGUID().getId());
         parameters.put(eventType.name(), "LFC.EXTERNAL_LOGBOOK");
@@ -2514,9 +2514,9 @@ public class ExtractSedaActionHandler extends ActionHandler {
     private LogbookParameters initLogbookLifeCycleParameters(String guid, boolean isArchive, boolean isObjectGroup) {
         LogbookParameters logbookLifeCycleParameters = guidToLifeCycleParameters.get(guid);
         if (logbookLifeCycleParameters == null) {
-            logbookLifeCycleParameters = isArchive ? LogbookParametersFactory.newLogbookLifeCycleUnitParameters()
-                : isObjectGroup ? LogbookParametersFactory.newLogbookLifeCycleObjectGroupParameters()
-                : LogbookParametersFactory.newLogbookOperationParameters();
+            logbookLifeCycleParameters = isArchive ? LogbookParameterHelper.newLogbookLifeCycleUnitParameters()
+                : isObjectGroup ? LogbookParameterHelper.newLogbookLifeCycleObjectGroupParameters()
+                : LogbookParameterHelper.newLogbookOperationParameters();
 
 
             logbookLifeCycleParameters.putParameterValue(LogbookParameterName.objectIdentifier, guid);

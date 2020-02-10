@@ -17,6 +17,13 @@
         <maven>3.3.9</maven>
     </prerequisites>
 
+    <licenses>
+        <license>
+            <name>CeCILL 2.1</name>
+            <url>https://cecill.info/</url>
+        </license>
+    </licenses>
+
 
     <!-- ++++++++++++++++++++++++++++++++++++++++++++++++++++++++ -->
     <!-- Modules -->
@@ -111,7 +118,7 @@
         <maven.dependencycheck.version>5.3.0</maven.dependencycheck.version>
         <git-commit-id-plugin.version>4.0.0</git-commit-id-plugin.version>
         <maven-antrun-plugin.version>1.8</maven-antrun-plugin.version>
-        <license-maven-plugin.version>2.0.0</license-maven-plugin.version>
+        <license-maven-plugin.version>3.0</license-maven-plugin.version>
         <maven-install-plugin.version>2.5.2</maven-install-plugin.version>
         <maven-verifier-plugin.version>1.1</maven-verifier-plugin.version>
         <maven-enforcer-plugin.version>1.4.1</maven-enforcer-plugin.version>
@@ -347,11 +354,27 @@
                     <version>${build-helper-maven-plugin.version}</version>
                 </plugin>
                 <plugin>
-                    <groupId>org.codehaus.mojo</groupId>
+                    <groupId>com.mycila</groupId>
                     <artifactId>license-maven-plugin</artifactId>
                     <version>${license-maven-plugin.version}</version>
                     <configuration>
-                        <offline>true</offline>
+                        <excludes>
+                            <exclude>pom.xml</exclude>
+                            <exclude>**/*.rst</exclude>
+                            <exclude>**/*.html</exclude>
+                            <exclude>**/*.ts</exclude>
+                            <exclude>**/*.js</exclude>
+                            <exclude>**/*.py</exclude>
+                            <exclude>**/*.css</exclude>
+                            <exclude>**/*.sh</exclude>
+                            <exclude>**/*.xml</exclude>
+                            <exclude>**/README</exclude>
+                            <exclude>src/test/resources/**</exclude>
+                            <exclude>src/main/resources/**</exclude>
+                        </excludes>
+                        <mapping>
+                            <java>SLASHSTAR_STYLE</java>
+                        </mapping>
                     </configuration>
                 </plugin>
                 <plugin>

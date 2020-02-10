@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2019)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -8,7 +8,7 @@
  *
  * This software is governed by the CeCILL 2.1 license under French law and abiding by the rules of distribution of free
  * software. You can use, modify and/ or redistribute the software under the terms of the CeCILL 2.1 license as
- * circulated by CEA, CNRS and INRIA at the following URL "http://www.cecill.info".
+ * circulated by CEA, CNRS and INRIA at the following URL "https://cecill.info".
  *
  * As a counterpart to the access to the source code and rights to copy, modify and redistribute granted by the license,
  * users are provided only with a limited warranty and the software's author, the holder of the economic rights, and the
@@ -26,11 +26,10 @@
  */
 package fr.gouv.vitam.common.server.application.junit;
 
-import fr.gouv.vitam.common.SingletonUtils;
-
 import javax.ws.rs.container.AsyncResponse;
 import javax.ws.rs.container.TimeoutHandler;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Date;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
@@ -105,22 +104,22 @@ public class AsyncResponseJunitTest implements AsyncResponse {
 
     @Override
     public Collection<Class<?>> register(Class<?> callback) {
-        return SingletonUtils.singletonSet();
+        return Collections.emptySet();
     }
 
     @Override
     public Map<Class<?>, Collection<Class<?>>> register(Class<?> callback, Class<?>... callbacks) {
-        return SingletonUtils.singletonMap();
+        return Collections.emptyMap();
     }
 
     @Override
     public Collection<Class<?>> register(Object callback) {
-        return SingletonUtils.singletonSet();
+        return Collections.emptySet();
     }
 
     @Override
     public Map<Class<?>, Collection<Class<?>>> register(Object callback, Object... callbacks) {
-        return SingletonUtils.singletonMap();
+        return Collections.emptyMap();
     }
 
 }
