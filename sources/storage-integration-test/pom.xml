@@ -103,19 +103,5 @@
 			<artifactId>commons-io</artifactId>
 			<scope>test</scope>
 		</dependency>
-        <dependency>
-            <groupId>fr.gouv.vitam</groupId>
-            <artifactId>functional-administration-rules-core</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-		<dependency>
-			<groupId>org.assertj</groupId>
-			<artifactId>assertj-core</artifactId>
-		</dependency>
-		<dependency>
-			<groupId>fr.gouv.vitam</groupId>
-			<artifactId>logbook-administration</artifactId>
-			<version>${project.version}</version>
-		</dependency>
 	</dependencies>
 </project>

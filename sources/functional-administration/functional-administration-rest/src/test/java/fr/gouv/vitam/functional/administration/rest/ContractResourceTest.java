@@ -80,7 +80,7 @@ import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClientFactory;
 import fr.gouv.vitam.metadata.client.MetaDataClientFactory;
 import io.restassured.RestAssured;
 import io.restassured.http.ContentType;
-import io.restassured.mapper.TypeRef;
+import io.restassured.common.mapper.TypeRef;
 import io.restassured.path.json.JsonPath;
 import org.junit.After;
 import org.junit.AfterClass;
