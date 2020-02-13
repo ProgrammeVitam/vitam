@@ -239,9 +239,6 @@ public class ProcessManagementImpl implements ProcessManagement {
 
         // Try to backup operation context in the offer.
         try {
-            operationContextMonitor.backup(VitamConfiguration.getDefaultStrategy(), workerParameters.getContainerName(),
-                processWorkflow.getLogbookTypeProcess());
-        } catch (OperationContextException e) {
             switch (processWorkflow.getLogbookTypeProcess()) {
                 case INGEST:
                 case MASTERDATA:
@@ -249,13 +246,16 @@ public class ProcessManagementImpl implements ProcessManagement {
                 case INGEST_TEST:
                 case AUDIT:
                 case DATA_MIGRATION:
-                    LOGGER.debug("Workflow do not have a backup of operation context for process type :" +
-                        processWorkflow.getLogbookTypeProcess(), e);
                     break;
                 default:
-                    LOGGER.warn("Unable to backup operation context from the workspace", e);
+                    operationContextMonitor
+                        .backup(VitamConfiguration.getDefaultStrategy(), workerParameters.getContainerName(),
+                            processWorkflow.getLogbookTypeProcess());
             }
+        } catch (OperationContextException e) {
+            LOGGER.error("Unable to backup operation context from the workspace", e);
         }
+
         return processWorkflow;
     }
 

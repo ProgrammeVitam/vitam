@@ -818,10 +818,6 @@ public class StateMachine implements IEventsState, IEventsProcessEngine {
         }
 
         try {
-            OperationContextMonitor operationContextMonitor = new OperationContextMonitor();
-            operationContextMonitor
-                .deleteBackup(VitamConfiguration.getDefaultStrategy(), operationId, getLogbookTypeProcess());
-        } catch (Exception e) {
             switch (processWorkflow.getLogbookTypeProcess()) {
                 case INGEST:
                 case MASTERDATA:
@@ -830,11 +826,17 @@ public class StateMachine implements IEventsState, IEventsProcessEngine {
                 case AUDIT:
                 case DATA_MIGRATION:
                     LOGGER.debug("Cleanup operation context. No operation context for the process type " +
-                        getLogbookTypeProcess(), e);
+                        getLogbookTypeProcess());
                     break;
                 default:
-                    LOGGER.warn("Cleanup operation context failed", e);
+                    OperationContextMonitor operationContextMonitor = new OperationContextMonitor();
+                    operationContextMonitor
+                        .deleteBackup(VitamConfiguration.getDefaultStrategy(), operationId, getLogbookTypeProcess());
             }
+
+
+        } catch (Exception e) {
+            LOGGER.error("Cleanup operation context failed", e);
         }
     }
 
