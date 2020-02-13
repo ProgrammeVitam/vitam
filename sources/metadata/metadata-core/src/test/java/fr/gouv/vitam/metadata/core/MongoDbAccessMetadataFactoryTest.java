@@ -27,210 +27,52 @@
 
 package fr.gouv.vitam.metadata.core;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Iterator;
-import java.util.List;
-
-import com.mongodb.MongoClient;
-import com.mongodb.MongoCredential;
-import com.mongodb.ServerAddress;
-import com.mongodb.client.MongoCollection;
-import com.mongodb.client.MongoDatabase;
-import com.mongodb.client.MongoIterable;
-import com.mongodb.client.model.Filters;
 import fr.gouv.vitam.common.VitamConfiguration;
-import fr.gouv.vitam.common.client.VitamClientFactory;
-import fr.gouv.vitam.common.database.collections.VitamCollection;
 import fr.gouv.vitam.common.database.server.elasticsearch.ElasticsearchNode;
 import fr.gouv.vitam.common.elasticsearch.ElasticsearchRule;
-import fr.gouv.vitam.common.junit.JunitHelper;
+import fr.gouv.vitam.common.mongo.MongoRule;
 import fr.gouv.vitam.common.server.application.configuration.MongoDbNode;
 import fr.gouv.vitam.metadata.api.config.MetaDataConfiguration;
-import fr.gouv.vitam.metadata.core.database.collections.MetadataCollections;
 import fr.gouv.vitam.metadata.core.database.collections.MongoDbAccessMetadataImpl;
-import org.bson.Document;
-import org.junit.AfterClass;
-import org.junit.BeforeClass;
 import org.junit.ClassRule;
-import org.junit.Ignore;
 import org.junit.Test;
-import org.junit.rules.TemporaryFolder;
-import ru.yandex.qatools.embed.service.MongoEmbeddedService;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.Assert.assertNotNull;
 
 public class MongoDbAccessMetadataFactoryTest {
 
-    @ClassRule
-    public static TemporaryFolder tempFolder = new TemporaryFolder();
-
-    private final static String CLUSTER_NAME = "vitam-cluster";
-    private final static String HOST_NAME = "127.0.0.1";
-
-    private static List<ElasticsearchNode> nodes;
-    private static List<MongoDbNode> mongoDbNodes;
-
-    private static final String DATABASE_HOST = "localhost";
-    static MongoDbAccessMetadataImpl mongoDbAccess;
-    private static JunitHelper junitHelper;
-    private static int port;
-    private static MongoEmbeddedService mongo;
-    private static MongoEmbeddedService mongo_bis;
-    private static final String databaseName = "db-metadata";
-    private static final String user = "user-metadata";
-    private static final String pwd = "user-metadata";
-
-    static final int tenantId = 0;
-    static final List tenantList = new ArrayList() {
-        /**
-         *
-         */
-        private static final long serialVersionUID = -315017116521336143L;
-
+    private static final String ES_HOST = "127.0.0.1";
+    private static final List tenantList = new ArrayList() {
         {
-            add(tenantId);
+            add(0);
+            add(1);
         }
     };
 
-    @BeforeClass
-    public static void setup() throws IOException {
-        junitHelper = JunitHelper.getInstance();
+    @ClassRule
+    public static MongoRule mongoRule = new MongoRule(MongoDbAccessMetadataImpl.getMongoClientOptions());
 
-        nodes = new ArrayList<>();
-        nodes.add(new ElasticsearchNode(HOST_NAME, ElasticsearchRule.TCP_PORT));
-
-        // MongoDB Node1
-        mongoDbNodes = new ArrayList<>();
-        port = junitHelper.findAvailablePort();
-        mongoDbNodes.add(new MongoDbNode(DATABASE_HOST, port));
-
-        // Starting the embedded services within temporary dir
-        mongo = new MongoEmbeddedService(
-            DATABASE_HOST + ":" + port, databaseName, user, pwd, "localreplica");
-        mongo.start();
-
-        // MongoDB Node2
-        mongoDbNodes = new ArrayList<>();
-        port = junitHelper.findAvailablePort();
-        mongoDbNodes.add(new MongoDbNode(DATABASE_HOST, port));
-
-        // Starting the embedded services within temporary dir
-        mongo_bis = new MongoEmbeddedService(
-            DATABASE_HOST + ":" + port, databaseName, user, pwd, "localreplica");
-        mongo_bis.start();
-    }
-
-    /**
-     * @throws java.lang.Exception
-     */
-    @AfterClass
-    public static void tearDownAfterClass() throws Exception {
-        try {
-            mongo.stop();
-        } finally {
-            junitHelper.releasePort(port);
-            VitamClientFactory.resetConnections();
-        }
-
-    }
+    @ClassRule
+    public static ElasticsearchRule elasticsearchRule = new ElasticsearchRule();
 
     @Test
-    // FIXME : MongoEmbeddedService lib not compatible with readConcern MAJORITY mongo configuration
-    @Ignore
-    public void testCreateMetadataMongoAccessWithAuthentication() {
-        final MetaDataConfiguration config =
-            new MetaDataConfiguration(mongoDbNodes, databaseName, CLUSTER_NAME, nodes, true, user, pwd);
+    public void testCreateMetadata() {
+        final List<MongoDbNode> mongoNodes = new ArrayList<>();
+        mongoNodes.add(new MongoDbNode(MongoRule.MONGO_HOST, MongoRule.getDataBasePort()));
+
+        List<ElasticsearchNode> esNodes = new ArrayList<>();
+        esNodes.add(new ElasticsearchNode(ES_HOST, ElasticsearchRule.TCP_PORT));
+
+        MetaDataConfiguration config = new MetaDataConfiguration(mongoNodes, MongoRule.VITAM_DB, ElasticsearchRule.VITAM_CLUSTER, esNodes);
         VitamConfiguration.setTenants(tenantList);
-        new MongoDbAccessMetadataFactory();
-        mongoDbAccess = MongoDbAccessMetadataFactory.create(config);
+        MongoDbAccessMetadataImpl mongoDbAccess = MongoDbAccessMetadataFactory.create(config);
+
         assertNotNull(mongoDbAccess);
-        assertEquals("db-metadata", mongoDbAccess.getMongoDatabase().getName());
+        assertThat(mongoDbAccess.getMongoDatabase().getName()).isEqualTo(MongoRule.VITAM_DB);
         mongoDbAccess.close();
-    }
-
-    @Test(expected = IllegalArgumentException.class)
-    public void testCreateFnWithError() throws Exception {
-        final List<ElasticsearchNode> nodesEmpty = new ArrayList<>();
-        new MongoDbAccessMetadataFactory();
-        final MongoDbAccessMetadataImpl mongoDbAccessError = MongoDbAccessMetadataFactory
-            .create(
-                new MetaDataConfiguration(mongoDbNodes, "vitam-test", CLUSTER_NAME, nodesEmpty));
-        mongoDbAccessError.close();
-    }
-
-    @Test(expected = com.mongodb.MongoCommandException.class)
-    public void shouldThrowExceptionWhenGetDatabaseNames() {
-        final MetaDataConfiguration config =
-            new MetaDataConfiguration(mongoDbNodes, databaseName, CLUSTER_NAME, nodes);
-        config.setDbUserName(user);
-        config.setDbPassword(pwd);
-        config.setDbAuthentication(true);
-
-        final List<Class<?>> classList = new ArrayList<>();
-        for (final MetadataCollections e : MetadataCollections.class.getEnumConstants()) {
-            classList.add(e.getClasz());
-        }
-        MetadataCollections.class.getEnumConstants();
-
-        final MongoCredential credential = MongoCredential.createCredential(
-            config.getDbUserName(), config.getDbName(), config.getDbPassword().toCharArray());
-
-        final List<ServerAddress> serverAddress = new ArrayList<>();
-        for (final MongoDbNode node : mongoDbNodes) {
-            serverAddress.add(new ServerAddress(node.getDbHost(), node.getDbPort()));
-        }
-
-        final MongoClient mongoClient = new MongoClient(serverAddress,
-            Arrays.asList(credential),
-            VitamCollection.getMongoClientOptions(classList));
-
-        final MongoDatabase metadatabase = mongoClient.getDatabase(databaseName);
-
-        // access only to metadata base, so DatabaseNames() should raise an exception
-        final MongoIterable<String> iterable = mongoClient.listDatabaseNames();
-        Iterator<String> iterator = iterable.iterator();
-        while (iterator.hasNext()) {
-            iterator.next();
-        }
-    }
-
-
-    @Test
-    public void shouldHavePermissions() {
-        final MetaDataConfiguration config =
-            new MetaDataConfiguration(mongoDbNodes, databaseName, CLUSTER_NAME, nodes);
-        config.setDbUserName(user);
-        config.setDbPassword(pwd);
-        config.setDbAuthentication(true);
-
-        final List<Class<?>> classList = new ArrayList<>();
-        for (final MetadataCollections e : MetadataCollections.class.getEnumConstants()) {
-            classList.add(e.getClasz());
-        }
-        MetadataCollections.class.getEnumConstants();
-
-        final MongoCredential credential = MongoCredential.createCredential(
-            config.getDbUserName(), config.getDbName(), config.getDbPassword().toCharArray());
-
-        final List<ServerAddress> serverAddress = new ArrayList<>();
-        for (final MongoDbNode node : mongoDbNodes) {
-            serverAddress.add(new ServerAddress(node.getDbHost(), node.getDbPort()));
-        }
-
-        final MongoClient mongoClient = new MongoClient(serverAddress,
-            Arrays.asList(credential),
-            VitamCollection.getMongoClientOptions(classList));
-
-        final MongoDatabase metadatabase = mongoClient.getDatabase(databaseName);
-
-        // User "integration" have authentication in Database "Metadata"
-        metadatabase.createCollection("Unit2");
-        final MongoCollection<Document> col = metadatabase.getCollection("Unit2");
-        col.insertOne(new Document("_id", "1234"));
-        col.find(Filters.eq("_id", "1234"));
-        col.deleteOne(Filters.eq("_id", "1234"));
     }
 }
