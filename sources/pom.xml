@@ -137,7 +137,7 @@
         <mongo.version>3.12.1</mongo.version>
 
         <!-- object storing-->
-        <jclouds.version>2.1.2</jclouds.version>
+        <jclouds.version>2.1.3</jclouds.version>
         <openstack4j.version>3.2.0</openstack4j.version>
         <awssdk.v1.version>1.11.488</awssdk.v1.version>
         <!-- <awssdk.v1.version>1.11.618</awssdk.v1.version> -->
@@ -176,7 +176,7 @@
         <commons-lang3>3.8.1</commons-lang3>
         <easymock.version>4.0.2</easymock.version>
         <jackson.version>2.10.2</jackson.version>
-        <apache-shiro.version>1.4.0</apache-shiro.version>
+        <apache-shiro.version>1.5.0</apache-shiro.version>
         <assertj.version>3.11.1</assertj.version>
         <rest-assured.version>3.3.0</rest-assured.version>
         <yandex.version>1.21</yandex.version>
@@ -1355,6 +1355,12 @@
                 <groupId>org.apache.shiro</groupId>
                 <artifactId>shiro-web</artifactId>
                 <version>${apache-shiro.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.shiro</groupId>
+                <artifactId>shiro-all</artifactId>
+                <version>${apache-shiro.version}</version>
+                <type>pom</type>
             </dependency>
             <dependency>
                 <groupId>org.opengis.cite.xerces</groupId>
