@@ -1,5 +1,5 @@
 @rem ***************************************************************************
-@rem Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2019)
+@rem Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
 @rem
 @rem contact.vitam@culture.gouv.fr
 @rem
@@ -8,7 +8,7 @@
 @rem
 @rem This software is governed by the CeCILL 2.1 license under French law and abiding by the rules of distribution of free
 @rem software. You can use, modify and/ or redistribute the software under the terms of the CeCILL 2.1 license as
-@rem circulated by CEA, CNRS and INRIA at the following URL "http://www.cecill.info".
+@rem circulated by CEA, CNRS and INRIA at the following URL "https://cecill.info".
 @rem
 @rem As a counterpart to the access to the source code and rights to copy, modify and redistribute granted by the license,
 @rem users are provided only with a limited warranty and the software's author, the holder of the economic rights, and the

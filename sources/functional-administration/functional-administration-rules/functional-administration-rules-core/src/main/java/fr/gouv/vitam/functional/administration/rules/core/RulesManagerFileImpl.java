@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2019)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -8,7 +8,7 @@
  *
  * This software is governed by the CeCILL 2.1 license under French law and abiding by the rules of distribution of free
  * software. You can use, modify and/ or redistribute the software under the terms of the CeCILL 2.1 license as
- * circulated by CEA, CNRS and INRIA at the following URL "http://www.cecill.info".
+ * circulated by CEA, CNRS and INRIA at the following URL "https://cecill.info".
  *
  * As a counterpart to the access to the source code and rights to copy, modify and redistribute granted by the license,
  * users are provided only with a limited warranty and the software's author, the holder of the economic rights, and the
@@ -109,7 +109,7 @@ import fr.gouv.vitam.logbook.common.exception.LogbookClientServerException;
 import fr.gouv.vitam.logbook.common.parameters.Contexts;
 import fr.gouv.vitam.logbook.common.parameters.LogbookOperationParameters;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParameterName;
-import fr.gouv.vitam.logbook.common.parameters.LogbookParametersFactory;
+import fr.gouv.vitam.logbook.common.parameters.LogbookParameterHelper;
 import fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess;
 import fr.gouv.vitam.logbook.common.server.database.collections.LogbookDocument;
 import fr.gouv.vitam.logbook.common.server.database.collections.LogbookMongoDbName;
@@ -603,7 +603,7 @@ public class RulesManagerFileImpl implements ReferentialFile<FileRules> {
     private void updateStpImportRulesLogbookOperation(final GUID eip, final GUID eip1, StatusCode status,
         String filename)
         throws InvalidParseOperationException {
-        final LogbookOperationParameters logbookParametersEnd = LogbookParametersFactory
+        final LogbookOperationParameters logbookParametersEnd = LogbookParameterHelper
             .newLogbookOperationParameters(eip1, STP_IMPORT_RULES, eip, LogbookTypeProcess.MASTERDATA,
                 status, VitamLogbookMessages.getCodeOp(STP_IMPORT_RULES, status),
                 eip);
@@ -617,7 +617,7 @@ public class RulesManagerFileImpl implements ReferentialFile<FileRules> {
      * @param eip GUID master
      */
     private void initStpImportRulesLogbookOperation(final GUID eip) {
-        final LogbookOperationParameters logbookParametersStart = LogbookParametersFactory
+        final LogbookOperationParameters logbookParametersStart = LogbookParameterHelper
             .newLogbookOperationParameters(eip, STP_IMPORT_RULES, eip, LogbookTypeProcess.MASTERDATA,
                 StatusCode.STARTED,
                 VitamLogbookMessages.getCodeOp(STP_IMPORT_RULES, StatusCode.STARTED), eip);
@@ -641,7 +641,7 @@ public class RulesManagerFileImpl implements ReferentialFile<FileRules> {
             final GUID updateOperationGUID = GUIDFactory.newOperationLogbookGUID(getTenant());
             final GUID reqId = GUIDReader.getGUID(VitamThreadUtils.getVitamSession().getRequestId());
             // FIXME: 01/01/2020 why operation id  != requestId. We use request id to monitor operations ?!
-            final LogbookOperationParameters logbookUpdateParametersStart = LogbookParametersFactory
+            final LogbookOperationParameters logbookUpdateParametersStart = LogbookParameterHelper
                 .newLogbookOperationParameters(updateOperationGUID, UPDATE_RULES_ARCHIVE_UNITS,
                     updateOperationGUID,
                     LogbookTypeProcess.UPDATE,
@@ -686,7 +686,7 @@ public class RulesManagerFileImpl implements ReferentialFile<FileRules> {
                 VitamClientException | BadRequestException | OperationContextException e) {
                 LOGGER.error(e);
                 final LogbookOperationParameters logbookUpdateParametersEnd =
-                    LogbookParametersFactory
+                    LogbookParameterHelper
                         .newLogbookOperationParameters(updateOperationGUID,
                             UPDATE_RULES_ARCHIVE_UNITS,
                             updateOperationGUID,
@@ -780,7 +780,7 @@ public class RulesManagerFileImpl implements ReferentialFile<FileRules> {
         evDetData.put(NB_INSERTED, fileRulesModelToInsert.size());
         final GUID evid = GUIDFactory.newOperationLogbookGUID(getTenant());
         final LogbookOperationParameters logbookOperationParameters =
-            LogbookParametersFactory
+            LogbookParameterHelper
                 .newLogbookOperationParameters(evid, operationFileRules, evIdentifierProcess,
                     LogbookTypeProcess.MASTERDATA,
                     statusCode,
@@ -797,7 +797,7 @@ public class RulesManagerFileImpl implements ReferentialFile<FileRules> {
         GUID evIdentifierProcess) {
         final GUID evid = GUIDFactory.newOperationLogbookGUID(getTenant());
         final LogbookOperationParameters logbookOperationParameters =
-            LogbookParametersFactory.newLogbookOperationParameters(
+            LogbookParameterHelper.newLogbookOperationParameters(
                 evid, CHECK_RULES, evIdentifierProcess,
                 LogbookTypeProcess.MASTERDATA,
                 StatusCode.KO,
@@ -820,7 +820,7 @@ public class RulesManagerFileImpl implements ReferentialFile<FileRules> {
         Set<String> fileRulesIdsLinkedToUnit, GUID evIdentifierProcess) {
         final GUID evid = GUIDFactory.newOperationLogbookGUID(getTenant());
         final LogbookOperationParameters logbookOperationParameters =
-            LogbookParametersFactory
+            LogbookParameterHelper
                 .newLogbookOperationParameters(evid, operationFileRules,
                     evIdentifierProcess,
                     LogbookTypeProcess.MASTERDATA,
@@ -861,7 +861,7 @@ public class RulesManagerFileImpl implements ReferentialFile<FileRules> {
         usedDeleteRuleIds.set(USED_DELETED_RULE_IDS, arrayNode);
         final GUID evid = GUIDFactory.newOperationLogbookGUID(getTenant());
         final LogbookOperationParameters logbookOperationParameters =
-            LogbookParametersFactory
+            LogbookParameterHelper
                 .newLogbookOperationParameters(evid, operationFileRules, evIdentifierProcess,
                     LogbookTypeProcess.MASTERDATA,
                     statusCode,
@@ -898,7 +898,7 @@ public class RulesManagerFileImpl implements ReferentialFile<FileRules> {
         evDetData.set(USED_UPDATED_RULE_IDS, updatedArrayNode);
         final GUID evid = GUIDFactory.newOperationLogbookGUID(getTenant());
         final LogbookOperationParameters logbookOperationParameters =
-            LogbookParametersFactory
+            LogbookParameterHelper
                 .newLogbookOperationParameters(evid, CHECK_RULES, evIdentifierProcess,
                     LogbookTypeProcess.MASTERDATA,
                     StatusCode.WARNING,

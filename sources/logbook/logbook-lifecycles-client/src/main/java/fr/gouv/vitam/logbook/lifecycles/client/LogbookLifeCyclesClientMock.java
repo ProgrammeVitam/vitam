@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2019)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -8,7 +8,7 @@
  *
  * This software is governed by the CeCILL 2.1 license under French law and abiding by the rules of distribution of free
  * software. You can use, modify and/ or redistribute the software under the terms of the CeCILL 2.1 license as
- * circulated by CEA, CNRS and INRIA at the following URL "http://www.cecill.info".
+ * circulated by CEA, CNRS and INRIA at the following URL "https://cecill.info".
  *
  * As a counterpart to the access to the source code and rights to copy, modify and redistribute granted by the license,
  * users are provided only with a limited warranty and the software's author, the holder of the economic rights, and the
@@ -29,6 +29,7 @@ package fr.gouv.vitam.logbook.lifecycles.client;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import fr.gouv.vitam.common.LocalDateUtil;
+import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.ServerIdentity;
 import fr.gouv.vitam.common.client.AbstractMockClient;
 import fr.gouv.vitam.common.client.ClientMockResultHelper;
@@ -41,7 +42,6 @@ import fr.gouv.vitam.common.model.LifeCycleStatusCode;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.processing.DistributionType;
-import fr.gouv.vitam.common.parameter.ParameterHelper;
 import fr.gouv.vitam.logbook.common.client.ErrorMessage;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientAlreadyExistsException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientBadRequestException;
@@ -85,7 +85,7 @@ class LogbookLifeCyclesClientMock extends AbstractMockClient implements LogbookL
             SERVER_IDENTITY.getJsonIdentity());
         parameters.putParameterValue(LogbookParameterName.eventDateTime,
             LocalDateUtil.now().toString());
-        ParameterHelper
+        ParametersChecker
             .checkNullOrEmptyParameters(parameters.getMapParameters(), parameters.getMandatoriesParameters());
         logInformation(CREATE, parameters);
     }
@@ -97,7 +97,7 @@ class LogbookLifeCyclesClientMock extends AbstractMockClient implements LogbookL
             SERVER_IDENTITY.getJsonIdentity());
         parameters.putParameterValue(LogbookParameterName.eventDateTime,
             LocalDateUtil.now().toString());
-        ParameterHelper
+        ParametersChecker
             .checkNullOrEmptyParameters(parameters.getMapParameters(), parameters.getMandatoriesParameters());
 
         logInformation(UPDATE, parameters);
@@ -110,7 +110,7 @@ class LogbookLifeCyclesClientMock extends AbstractMockClient implements LogbookL
             SERVER_IDENTITY.getJsonIdentity());
         parameters.putParameterValue(LogbookParameterName.eventDateTime,
             LocalDateUtil.now().toString());
-        ParameterHelper
+        ParametersChecker
             .checkNullOrEmptyParameters(parameters.getMapParameters(), parameters.getMandatoriesParameters());
 
         logInformation(UPDATE, parameters);
@@ -124,7 +124,7 @@ class LogbookLifeCyclesClientMock extends AbstractMockClient implements LogbookL
             SERVER_IDENTITY.getJsonIdentity());
         parameters.putParameterValue(LogbookParameterName.eventDateTime,
             LocalDateUtil.now().toString());
-        ParameterHelper
+        ParametersChecker
             .checkNullOrEmptyParameters(parameters.getMapParameters(), parameters.getMandatoriesParameters());
         logInformation(COMMIT, parameters);
     }
@@ -136,7 +136,7 @@ class LogbookLifeCyclesClientMock extends AbstractMockClient implements LogbookL
             SERVER_IDENTITY.getJsonIdentity());
         parameters.putParameterValue(LogbookParameterName.eventDateTime,
             LocalDateUtil.now().toString());
-        ParameterHelper
+        ParametersChecker
             .checkNullOrEmptyParameters(parameters.getMapParameters(), parameters.getMandatoriesParameters());
         logInformation(ROLLBACK, parameters);
     }

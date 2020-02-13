@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2019)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -8,7 +8,7 @@
  *
  * This software is governed by the CeCILL 2.1 license under French law and abiding by the rules of distribution of free
  * software. You can use, modify and/ or redistribute the software under the terms of the CeCILL 2.1 license as
- * circulated by CEA, CNRS and INRIA at the following URL "http://www.cecill.info".
+ * circulated by CEA, CNRS and INRIA at the following URL "https://cecill.info".
  *
  * As a counterpart to the access to the source code and rights to copy, modify and redistribute granted by the license,
  * users are provided only with a limited warranty and the software's author, the holder of the economic rights, and the
@@ -51,6 +51,7 @@ import javax.xml.stream.events.XMLEvent;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.google.common.base.Strings;
 import fr.gouv.vitam.common.CharsetUtils;
+import fr.gouv.vitam.common.digest.DigestTypeException;
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.SedaConfiguration;
 import fr.gouv.vitam.common.SedaConstants;
@@ -63,7 +64,6 @@ import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.IngestWorkflowConstants;
 import fr.gouv.vitam.common.model.ItemStatus;
-import fr.gouv.vitam.common.parameter.ParameterHelper;
 import fr.gouv.vitam.common.stream.StreamUtils;
 import fr.gouv.vitam.common.xml.ValidationXsdUtils;
 import fr.gouv.vitam.common.xml.XMLInputFactoryUtils;
@@ -182,7 +182,7 @@ public class SedaUtils {
      * @throws ProcessingException throw when can't read or extract message id from SEDA
      */
     public Map<String, Object> getMandatoryValues(WorkerParameters params) throws ProcessingException {
-        ParameterHelper.checkNullOrEmptyParameters(params);
+        ParametersChecker.checkNullOrEmptyParameters(params);
         Map<String, Object> madatoryValueMap = new HashMap<>();
         XMLEventReader reader = null;
         InputStream xmlFile = null;
@@ -281,7 +281,7 @@ public class SedaUtils {
      * @return a status representing the validation of the file
      */
     public CheckSedaValidationStatus checkSedaValidation(WorkerParameters params, ItemStatus itemStatus) {
-        ParameterHelper.checkNullOrEmptyParameters(params);
+        ParametersChecker.checkNullOrEmptyParameters(params);
         InputStream input = null;
         try {
             input = checkExistenceManifest();
@@ -535,7 +535,7 @@ public class SedaUtils {
      */
     public Map<String, Map<String, String>> checkSupportedDataObjectVersion(WorkerParameters params)
         throws ProcessingException {
-        ParameterHelper.checkNullOrEmptyParameters(params);
+        ParametersChecker.checkNullOrEmptyParameters(params);
         return isSedaVersionValid();
     }
 
@@ -838,7 +838,7 @@ public class SedaUtils {
      */
     public long computeTotalSizeOfObjectsInManifest(WorkerParameters params)
         throws ProcessingException {
-        ParameterHelper.checkNullOrEmptyParameters(params);
+        ParametersChecker.checkNullOrEmptyParameters(params);
         final String containerId = params.getContainerName();
         ParametersChecker.checkParameter("Container id is a mandatory parameter", containerId);
         return computeBinaryObjectsSizeFromManifest();

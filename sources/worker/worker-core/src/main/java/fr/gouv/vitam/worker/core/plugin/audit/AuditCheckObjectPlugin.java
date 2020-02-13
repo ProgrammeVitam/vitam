@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2019)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -8,7 +8,7 @@
  *
  * This software is governed by the CeCILL 2.1 license under French law and abiding by the rules of distribution of free
  * software. You can use, modify and/ or redistribute the software under the terms of the CeCILL 2.1 license as
- * circulated by CEA, CNRS and INRIA at the following URL "http://www.cecill.info".
+ * circulated by CEA, CNRS and INRIA at the following URL "https://cecill.info".
  *
  * As a counterpart to the access to the source code and rights to copy, modify and redistribute granted by the license,
  * users are provided only with a limited warranty and the software's author, the holder of the economic rights, and the
@@ -57,12 +57,10 @@ import fr.gouv.vitam.processing.common.parameter.WorkerParameterName;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 import fr.gouv.vitam.worker.common.HandlerIO;
 import fr.gouv.vitam.worker.core.handler.ActionHandler;
-import fr.gouv.vitam.worker.core.plugin.audit.exception.AuditException;
 import fr.gouv.vitam.worker.core.plugin.audit.model.AuditCheckObjectGroupResult;
 import fr.gouv.vitam.worker.core.plugin.audit.model.AuditCheckObjectResult;
 import fr.gouv.vitam.worker.core.plugin.audit.model.AuditObject;
 import fr.gouv.vitam.worker.core.plugin.audit.model.AuditObjectGroup;
-import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
 
 public class AuditCheckObjectPlugin extends ActionHandler {
 
@@ -87,7 +85,7 @@ public class AuditCheckObjectPlugin extends ActionHandler {
 
     @Override
     public ItemStatus execute(WorkerParameters param, HandlerIO handler)
-            throws ContentAddressableStorageServerException, ProcessingException {
+            throws ProcessingException {
         LOGGER.debug("Starting audit");
 
         try {
@@ -100,7 +98,7 @@ public class AuditCheckObjectPlugin extends ActionHandler {
     }
 
     private ItemStatus executeAudit(WorkerParameters param, HandlerIO handler)
-            throws ProcessingStatusException, ProcessingException {
+            throws ProcessingStatusException {
         final ItemStatus itemStatus = new ItemStatus(AUDIT_CHECK_OBJECT);
         Map<WorkerParameterName, String> mapParameters = param.getMapParameters();
         String action = mapParameters.get(WorkerParameterName.auditActions);

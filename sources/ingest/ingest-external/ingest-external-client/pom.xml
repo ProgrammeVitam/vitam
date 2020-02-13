@@ -10,6 +10,33 @@
 	<name>ingest-external-client</name>
 	<description>ingest external client module</description>
 
+	<licenses>
+		<license>
+			<name>CeCILL-C</name>
+			<url>https://cecill.info/</url>
+		</license>
+	</licenses>
+
+	<build>
+		<plugins>
+			<plugin>
+				<groupId>com.mycila</groupId>
+				<artifactId>license-maven-plugin</artifactId>
+				<version>3.0</version>
+				<configuration>
+					<header>../../../licenses/cecillc.txt</header>
+				</configuration>
+				<executions>
+					<execution>
+						<goals>
+							<goal>check</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
+		</plugins>
+	</build>
+
 	<dependencies>
 		<dependency>
 			<groupId>fr.gouv.vitam</groupId>

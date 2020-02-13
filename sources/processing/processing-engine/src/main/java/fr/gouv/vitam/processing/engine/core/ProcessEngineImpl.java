@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2019)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -8,7 +8,7 @@
  *
  * This software is governed by the CeCILL 2.1 license under French law and abiding by the rules of distribution of free
  * software. You can use, modify and/ or redistribute the software under the terms of the CeCILL 2.1 license as
- * circulated by CEA, CNRS and INRIA at the following URL "http://www.cecill.info".
+ * circulated by CEA, CNRS and INRIA at the following URL "https://cecill.info".
  *
  * As a counterpart to the access to the source code and rights to copy, modify and redistribute granted by the license,
  * users are provided only with a limited warranty and the software's author, the holder of the economic rights, and the
@@ -54,7 +54,7 @@ import fr.gouv.vitam.logbook.common.exception.LogbookClientServerException;
 import fr.gouv.vitam.logbook.common.parameters.LogbookOperationParameters;
 import fr.gouv.vitam.logbook.common.parameters.LogbookOperationsClientHelper;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParameterName;
-import fr.gouv.vitam.logbook.common.parameters.LogbookParametersFactory;
+import fr.gouv.vitam.logbook.common.parameters.LogbookParameterHelper;
 import fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess;
 import fr.gouv.vitam.logbook.common.server.database.collections.LogbookMongoDbName;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClient;
@@ -69,8 +69,6 @@ import fr.gouv.vitam.processing.distributor.api.ProcessDistributor;
 import fr.gouv.vitam.processing.engine.api.ProcessEngine;
 import org.elasticsearch.common.Strings;
 
-import java.util.HashMap;
-import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 
@@ -258,7 +256,7 @@ public class ProcessEngineImpl implements ProcessEngine {
         MessageLogbookEngineHelper messageLogbookEngineHelper = new MessageLogbookEngineHelper(logbookTypeProcess);
         LogbookOperationParameters parameters;
 
-        parameters = LogbookParametersFactory.newLogbookOperationParameters(
+        parameters = LogbookParameterHelper.newLogbookOperationParameters(
             GUIDFactory.newEventGUID(tenantId),
             step.getStepName(),
             GUIDReader.getGUID(workParams.getContainerName()),
@@ -279,7 +277,7 @@ public class ProcessEngineImpl implements ProcessEngine {
         try (final LogbookOperationsClient logbookClient = LogbookOperationsClientFactory.getInstance().getClient()) {
             // started event 
             String eventType = VitamLogbookMessages.getEventTypeStarted(step.getStepName());
-            LogbookOperationParameters startedParameters = LogbookParametersFactory.newLogbookOperationParameters(
+            LogbookOperationParameters startedParameters = LogbookParameterHelper.newLogbookOperationParameters(
                 GUIDFactory.newEventGUID(tenantId),
                 eventType,
                 GUIDReader.getGUID(workParams.getContainerName()),
@@ -415,7 +413,7 @@ public class ProcessEngineImpl implements ProcessEngine {
 
                 final GUID actionEventIdentifier = GUIDFactory.newEventGUID(tenantId);
                 final LogbookOperationParameters actionLogBookParameters =
-                    LogbookParametersFactory.newLogbookOperationParameters(
+                    LogbookParameterHelper.newLogbookOperationParameters(
                         actionEventIdentifier,
                         handlerId,
                         GUIDReader.getGUID(workParams.getContainerName()),
@@ -452,7 +450,7 @@ public class ProcessEngineImpl implements ProcessEngine {
                 // logbook for composite tasks
                 for (final ItemStatus sub : itemStatus.getItemsStatus().values()) {
                     final LogbookOperationParameters subLogBookParameters =
-                        LogbookParametersFactory.newLogbookOperationParameters(
+                        LogbookParameterHelper.newLogbookOperationParameters(
                             GUIDFactory.newEventGUID(tenantId),
                             handlerId + "." + sub.getItemId(),
                             GUIDReader.getGUID(workParams.getContainerName()),
@@ -490,7 +488,7 @@ public class ProcessEngineImpl implements ProcessEngine {
         final ItemStatus itemStatusObjectListEmpty = stepResponse.getItemsStatus().get(OBJECTS_LIST_EMPTY);
         if (itemStatusObjectListEmpty != null) {
             final LogbookOperationParameters actionParameters =
-                LogbookParametersFactory.newLogbookOperationParameters(
+                LogbookParameterHelper.newLogbookOperationParameters(
                     GUIDFactory.newEventGUID(tenantId),
                     OBJECTS_LIST_EMPTY,
                     GUIDReader.getGUID(workParams.getContainerName()),

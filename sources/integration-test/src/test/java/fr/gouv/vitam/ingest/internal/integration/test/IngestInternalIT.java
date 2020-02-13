@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2019)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -8,7 +8,7 @@
  *
  * This software is governed by the CeCILL 2.1 license under French law and abiding by the rules of distribution of free
  * software. You can use, modify and/ or redistribute the software under the terms of the CeCILL 2.1 license as
- * circulated by CEA, CNRS and INRIA at the following URL "http://www.cecill.info".
+ * circulated by CEA, CNRS and INRIA at the following URL "https://cecill.info".
  *
  * As a counterpart to the access to the source code and rights to copy, modify and redistribute granted by the license,
  * users are provided only with a limited warranty and the software's author, the holder of the economic rights, and the
@@ -112,7 +112,7 @@ import fr.gouv.vitam.ingest.internal.upload.rest.IngestInternalMain;
 import fr.gouv.vitam.logbook.common.parameters.LogbookOperationParameters;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParameterName;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParameters;
-import fr.gouv.vitam.logbook.common.parameters.LogbookParametersFactory;
+import fr.gouv.vitam.logbook.common.parameters.LogbookParameterHelper;
 import fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess;
 import fr.gouv.vitam.logbook.common.server.database.collections.LogbookCollections;
 import fr.gouv.vitam.logbook.common.server.database.collections.LogbookDocument;
@@ -393,7 +393,7 @@ public class IngestInternalIT extends VitamRuleRunner {
         InputStream zipInputStreamSipObject = PropertiesUtils.getResourceAsStream(SIP_FILE_OK_NAME);
 
         List<LogbookOperationParameters> params = Collections.singletonList(
-            LogbookParametersFactory.newLogbookOperationParameters(
+            LogbookParameterHelper.newLogbookOperationParameters(
                 operationGuid,
                 "Process_SIP_unitary",
                 operationGuid,
@@ -436,7 +436,7 @@ public class IngestInternalIT extends VitamRuleRunner {
 
             // init default logbook operation
             final List<LogbookOperationParameters> params = new ArrayList<>();
-            final LogbookOperationParameters initParameters = LogbookParametersFactory.newLogbookOperationParameters(
+            final LogbookOperationParameters initParameters = LogbookParameterHelper.newLogbookOperationParameters(
                 operationGuid, "Process_SIP_unitary", operationGuid,
                 LogbookTypeProcess.INGEST, StatusCode.STARTED,
                 operationGuid != null ? operationGuid.toString() : "outcomeDetailMessage",
@@ -470,7 +470,7 @@ public class IngestInternalIT extends VitamRuleRunner {
 
             // init default logbook operation
             final List<LogbookOperationParameters> params = new ArrayList<>();
-            final LogbookOperationParameters initParameters = LogbookParametersFactory.newLogbookOperationParameters(
+            final LogbookOperationParameters initParameters = LogbookParameterHelper.newLogbookOperationParameters(
                 operationGuid, "Process_SIP_unitary", operationGuid,
                 LogbookTypeProcess.INGEST, StatusCode.STARTED,
                 operationGuid != null ? operationGuid.toString() : "outcomeDetailMessage",
@@ -504,7 +504,7 @@ public class IngestInternalIT extends VitamRuleRunner {
 
             // init default logbook operation
             final List<LogbookOperationParameters> params = new ArrayList<>();
-            final LogbookOperationParameters initParameters = LogbookParametersFactory.newLogbookOperationParameters(
+            final LogbookOperationParameters initParameters = LogbookParameterHelper.newLogbookOperationParameters(
                 operationGuid, "Process_SIP_unitary", operationGuid,
                 LogbookTypeProcess.INGEST, StatusCode.STARTED,
                 operationGuid != null ? operationGuid.toString() : "outcomeDetailMessage",
@@ -741,7 +741,7 @@ public class IngestInternalIT extends VitamRuleRunner {
 
             // init default logbook operation
             final List<LogbookOperationParameters> params = new ArrayList<>();
-            final LogbookOperationParameters initParameters = LogbookParametersFactory.newLogbookOperationParameters(
+            final LogbookOperationParameters initParameters = LogbookParameterHelper.newLogbookOperationParameters(
                 operationGuid, "Process_SIP_unitary", operationGuid,
                 LogbookTypeProcess.INGEST, StatusCode.STARTED,
                 operationGuid != null ? operationGuid.toString() : "outcomeDetailMessage",
@@ -877,7 +877,7 @@ public class IngestInternalIT extends VitamRuleRunner {
 
             // init default logbook operation
             final List<LogbookOperationParameters> params = new ArrayList<>();
-            final LogbookOperationParameters initParameters = LogbookParametersFactory.newLogbookOperationParameters(
+            final LogbookOperationParameters initParameters = LogbookParameterHelper.newLogbookOperationParameters(
                 operationGuid, "Process_SIP_unitary", operationGuid,
                 LogbookTypeProcess.INGEST, StatusCode.STARTED,
                 operationGuid != null ? operationGuid.toString() : "outcomeDetailMessage",
@@ -945,7 +945,7 @@ public class IngestInternalIT extends VitamRuleRunner {
 
             // init default logbook operation
             final List<LogbookOperationParameters> params = new ArrayList<>();
-            final LogbookOperationParameters initParameters = LogbookParametersFactory.newLogbookOperationParameters(
+            final LogbookOperationParameters initParameters = LogbookParameterHelper.newLogbookOperationParameters(
                 operationGuid, "Process_SIP_unitary", operationGuid,
                 LogbookTypeProcess.MASTERDATA, StatusCode.STARTED,
                 operationGuid != null ? operationGuid.toString() : "outcomeDetailMessage",
@@ -1009,7 +1009,7 @@ public class IngestInternalIT extends VitamRuleRunner {
 
             // init default logbook operation
             final List<LogbookOperationParameters> params = new ArrayList<>();
-            final LogbookOperationParameters initParameters = LogbookParametersFactory.newLogbookOperationParameters(
+            final LogbookOperationParameters initParameters = LogbookParameterHelper.newLogbookOperationParameters(
                 operationGuid, "Process_SIP_unitary", operationGuid,
                 LogbookTypeProcess.INGEST, StatusCode.STARTED,
                 operationGuid != null ? operationGuid.toString() : "outcomeDetailMessage",
@@ -1055,7 +1055,7 @@ public class IngestInternalIT extends VitamRuleRunner {
             // init default logbook operation
             final List<LogbookOperationParameters> params = new ArrayList<>();
             VitamThreadUtils.getVitamSession().setRequestId(operationGuid);
-            final LogbookOperationParameters initParameters = LogbookParametersFactory.newLogbookOperationParameters(
+            final LogbookOperationParameters initParameters = LogbookParameterHelper.newLogbookOperationParameters(
                 operationGuid, "Process_SIP_unitary", operationGuid,
                 LogbookTypeProcess.INGEST, StatusCode.STARTED,
                 operationGuid != null ? operationGuid.toString() : "outcomeDetailMessage",
@@ -1101,7 +1101,7 @@ public class IngestInternalIT extends VitamRuleRunner {
 
             // init default logbook operation
             final List<LogbookOperationParameters> params = new ArrayList<>();
-            final LogbookOperationParameters initParameters = LogbookParametersFactory.newLogbookOperationParameters(
+            final LogbookOperationParameters initParameters = LogbookParameterHelper.newLogbookOperationParameters(
                 operationGuid, "Process_SIP_unitary", operationGuid,
                 LogbookTypeProcess.INGEST, StatusCode.STARTED,
                 operationGuid != null ? operationGuid.toString() : "outcomeDetailMessage",
@@ -1146,7 +1146,7 @@ public class IngestInternalIT extends VitamRuleRunner {
 
         // init default logbook operation
         final List<LogbookOperationParameters> params = new ArrayList<>();
-        final LogbookOperationParameters initParameters = LogbookParametersFactory.newLogbookOperationParameters(
+        final LogbookOperationParameters initParameters = LogbookParameterHelper.newLogbookOperationParameters(
             operationGuid, "Process_SIP_unitary", operationGuid,
             LogbookTypeProcess.INGEST, StatusCode.STARTED,
             operationGuid != null ? operationGuid.toString() : "outcomeDetailMessage",
@@ -1201,7 +1201,7 @@ public class IngestInternalIT extends VitamRuleRunner {
 
         // init default logbook operation
         final List<LogbookOperationParameters> params = new ArrayList<>();
-        final LogbookOperationParameters initParameters = LogbookParametersFactory.newLogbookOperationParameters(
+        final LogbookOperationParameters initParameters = LogbookParameterHelper.newLogbookOperationParameters(
             operationGuid, "Process_SIP_unitary", operationGuid,
             LogbookTypeProcess.INGEST, StatusCode.STARTED,
             operationGuid != null ? operationGuid.toString() : "outcomeDetailMessage",
@@ -1255,7 +1255,7 @@ public class IngestInternalIT extends VitamRuleRunner {
 
         // init default logbook operation
         final List<LogbookOperationParameters> params = new ArrayList<>();
-        final LogbookOperationParameters initParameters = LogbookParametersFactory.newLogbookOperationParameters(
+        final LogbookOperationParameters initParameters = LogbookParameterHelper.newLogbookOperationParameters(
             operationGuid, "Process_SIP_unitary", operationGuid,
             LogbookTypeProcess.INGEST, StatusCode.STARTED,
             operationGuid != null ? operationGuid.toString() : "outcomeDetailMessage",
@@ -1310,7 +1310,7 @@ public class IngestInternalIT extends VitamRuleRunner {
             PropertiesUtils.getResourceAsStream(SIP_NB_OBJ_INCORRECT_IN_MANIFEST);
 
         final List<LogbookOperationParameters> params = new ArrayList<>();
-        final LogbookOperationParameters initParameters = LogbookParametersFactory.newLogbookOperationParameters(
+        final LogbookOperationParameters initParameters = LogbookParameterHelper.newLogbookOperationParameters(
             operationGuid, "Process_SIP_unitary", operationGuid,
             LogbookTypeProcess.INGEST, StatusCode.STARTED,
             operationGuid != null ? operationGuid.toString() : "outcomeDetailMessage",
@@ -1347,7 +1347,7 @@ public class IngestInternalIT extends VitamRuleRunner {
 
         // init default logbook operation
         final List<LogbookOperationParameters> params = new ArrayList<>();
-        final LogbookOperationParameters initParameters = LogbookParametersFactory.newLogbookOperationParameters(
+        final LogbookOperationParameters initParameters = LogbookParameterHelper.newLogbookOperationParameters(
             operationGuid, "Process_SIP_unitary", operationGuid,
             LogbookTypeProcess.INGEST, StatusCode.STARTED,
             operationGuid != null ? operationGuid.toString() : "outcomeDetailMessage",
@@ -1396,7 +1396,7 @@ public class IngestInternalIT extends VitamRuleRunner {
 
         // init default logbook operation
         final List<LogbookOperationParameters> params = new ArrayList<>();
-        final LogbookOperationParameters initParameters = LogbookParametersFactory.newLogbookOperationParameters(
+        final LogbookOperationParameters initParameters = LogbookParameterHelper.newLogbookOperationParameters(
             operationGuid, "Process_SIP_unitary", operationGuid,
             LogbookTypeProcess.INGEST, StatusCode.STARTED,
             operationGuid != null ? operationGuid.toString() : "outcomeDetailMessage",
@@ -1454,7 +1454,7 @@ public class IngestInternalIT extends VitamRuleRunner {
 
         // init default logbook operation
         final List<LogbookOperationParameters> params = new ArrayList<>();
-        final LogbookOperationParameters initParameters = LogbookParametersFactory.newLogbookOperationParameters(
+        final LogbookOperationParameters initParameters = LogbookParameterHelper.newLogbookOperationParameters(
             operationGuid, "Process_SIP_unitary", operationGuid,
             LogbookTypeProcess.INGEST, StatusCode.STARTED,
             operationGuid != null ? operationGuid.toString() : "outcomeDetailMessage",
@@ -1504,7 +1504,7 @@ public class IngestInternalIT extends VitamRuleRunner {
 
         // init default logbook operation
         final List<LogbookOperationParameters> params = new ArrayList<>();
-        final LogbookOperationParameters initParameters = LogbookParametersFactory.newLogbookOperationParameters(
+        final LogbookOperationParameters initParameters = LogbookParameterHelper.newLogbookOperationParameters(
             operationGuid, "Process_SIP_unitary", operationGuid,
             LogbookTypeProcess.INGEST, StatusCode.STARTED,
             operationGuid != null ? operationGuid.toString() : "outcomeDetailMessage",
@@ -1558,7 +1558,7 @@ public class IngestInternalIT extends VitamRuleRunner {
 
         // init default logbook operation
         final List<LogbookOperationParameters> params = new ArrayList<>();
-        final LogbookOperationParameters initParameters = LogbookParametersFactory.newLogbookOperationParameters(
+        final LogbookOperationParameters initParameters = LogbookParameterHelper.newLogbookOperationParameters(
             operationGuid, "Process_SIP_unitary", operationGuid,
             LogbookTypeProcess.INGEST, StatusCode.STARTED,
             operationGuid != null ? operationGuid.toString() : "outcomeDetailMessage",
@@ -1614,7 +1614,7 @@ public class IngestInternalIT extends VitamRuleRunner {
 
         // init default logbook operation
         final List<LogbookOperationParameters> params = new ArrayList<>();
-        final LogbookOperationParameters initParameters = LogbookParametersFactory.newLogbookOperationParameters(
+        final LogbookOperationParameters initParameters = LogbookParameterHelper.newLogbookOperationParameters(
             operationGuid, "Process_SIP_unitary", operationGuid,
             LogbookTypeProcess.INGEST, StatusCode.STARTED,
             operationGuid != null ? operationGuid.toString() : "outcomeDetailMessage",
@@ -1670,7 +1670,7 @@ public class IngestInternalIT extends VitamRuleRunner {
 
             // init default logbook operation
             final List<LogbookOperationParameters> params = new ArrayList<>();
-            final LogbookOperationParameters initParameters = LogbookParametersFactory.newLogbookOperationParameters(
+            final LogbookOperationParameters initParameters = LogbookParameterHelper.newLogbookOperationParameters(
                 operationGuid, "Process_SIP_unitary", operationGuid,
                 LogbookTypeProcess.INGEST, StatusCode.STARTED,
                 operationGuid != null ? operationGuid.toString() : "outcomeDetailMessage",
@@ -1721,7 +1721,7 @@ public class IngestInternalIT extends VitamRuleRunner {
 
             // init default logbook operation
             final List<LogbookOperationParameters> params2 = new ArrayList<>();
-            final LogbookOperationParameters initParameters2 = LogbookParametersFactory.newLogbookOperationParameters(
+            final LogbookOperationParameters initParameters2 = LogbookParameterHelper.newLogbookOperationParameters(
                 operationGuid2, "Process_SIP_unitary", operationGuid2,
                 LogbookTypeProcess.MASTERDATA, StatusCode.STARTED,
                 operationGuid2 != null ? operationGuid2.toString() : "outcomeDetailMessage",
@@ -1929,7 +1929,7 @@ public class IngestInternalIT extends VitamRuleRunner {
 
             // init default logbook operation
             final List<LogbookOperationParameters> params = new ArrayList<>();
-            final LogbookOperationParameters initParameters = LogbookParametersFactory.newLogbookOperationParameters(
+            final LogbookOperationParameters initParameters = LogbookParameterHelper.newLogbookOperationParameters(
                 operationGuid, "Process_SIP_unitary", operationGuid,
                 LogbookTypeProcess.INGEST, StatusCode.STARTED,
                 operationGuid != null ? operationGuid.toString() : "outcomeDetailMessage",
@@ -2027,7 +2027,7 @@ public class IngestInternalIT extends VitamRuleRunner {
 
         // init default logbook operation
         final List<LogbookOperationParameters> params = new ArrayList<>();
-        final LogbookOperationParameters initParameters = LogbookParametersFactory.newLogbookOperationParameters(
+        final LogbookOperationParameters initParameters = LogbookParameterHelper.newLogbookOperationParameters(
             operationGuid, "Process_SIP_unitary", operationGuid,
             LogbookTypeProcess.INGEST, StatusCode.STARTED,
             operationGuid != null ? operationGuid.toString() : "outcomeDetailMessage",
@@ -2268,7 +2268,7 @@ public class IngestInternalIT extends VitamRuleRunner {
 
         // init default logbook operation
         final List<LogbookOperationParameters> params = new ArrayList<>();
-        final LogbookOperationParameters initParameters = LogbookParametersFactory.newLogbookOperationParameters(
+        final LogbookOperationParameters initParameters = LogbookParameterHelper.newLogbookOperationParameters(
             operationGuid, "Process_SIP_unitary", operationGuid,
             LogbookTypeProcess.INGEST, StatusCode.STARTED,
             operationGuid != null ? operationGuid.toString() : "outcomeDetailMessage",
@@ -2394,7 +2394,7 @@ public class IngestInternalIT extends VitamRuleRunner {
 
         // init default logbook operation
         final List<LogbookOperationParameters> params = new ArrayList<>();
-        final LogbookOperationParameters initParameters = LogbookParametersFactory.newLogbookOperationParameters(
+        final LogbookOperationParameters initParameters = LogbookParameterHelper.newLogbookOperationParameters(
             ingestOperationGuid, "Process_SIP_unitary", ingestOperationGuid,
             LogbookTypeProcess.INGEST, StatusCode.STARTED,
             ingestOperationGuid != null ? ingestOperationGuid.toString() : "outcomeDetailMessage",
@@ -2482,7 +2482,7 @@ public class IngestInternalIT extends VitamRuleRunner {
 
             // init default logbook operation
             final List<LogbookOperationParameters> params = new ArrayList<>();
-            final LogbookOperationParameters initParameters = LogbookParametersFactory.newLogbookOperationParameters(
+            final LogbookOperationParameters initParameters = LogbookParameterHelper.newLogbookOperationParameters(
                 operationGuid, "Process_SIP_unitary", operationGuid,
                 LogbookTypeProcess.INGEST, StatusCode.STARTED,
                 operationGuid != null ? operationGuid.toString() : "outcomeDetailMessage",
@@ -2587,7 +2587,7 @@ public class IngestInternalIT extends VitamRuleRunner {
 
         // root logbook
         final LogbookOperationParameters logbookOperationparams =
-            LogbookParametersFactory.newLogbookOperationParameters(
+            LogbookParameterHelper.newLogbookOperationParameters(
                 operationGuid, "EXT_External_Operation", operationGuid,
                 LogbookTypeProcess.EXTERNAL_LOGBOOK, StatusCode.STARTED,
                 operationGuid != null ? operationGuid.toString() : "outcomeDetailMessage",
@@ -2599,7 +2599,7 @@ public class IngestInternalIT extends VitamRuleRunner {
         logbookOperationparams.putParameterValue(LogbookParameterName.objectIdentifierIncome, operationGuid.getId());
 
         final GUID eventGuid = GUIDFactory.newEventGUID(operationGuid);
-        final LogbookOperationParameters eventParameters = LogbookParametersFactory
+        final LogbookOperationParameters eventParameters = LogbookParameterHelper
             .newLogbookOperationParameters(
                 eventGuid,
                 "EXT_External_Operation",
@@ -2613,13 +2613,13 @@ public class IngestInternalIT extends VitamRuleRunner {
         logbookOperationparams.setEvents(events);
 
         final LogbookOperationParameters logbookOperationparamsWrongType =
-            LogbookParametersFactory.newLogbookOperationParameters(
+            LogbookParameterHelper.newLogbookOperationParameters(
                 operationGuid, "External_Operation", operationGuid,
                 LogbookTypeProcess.EXTERNAL_LOGBOOK, StatusCode.STARTED,
                 operationGuid != null ? operationGuid.toString() : "outcomeDetailMessage",
                 operationGuid);
         final LogbookOperationParameters logbookOperationparamsWrongTypeProc =
-            LogbookParametersFactory.newLogbookOperationParameters(
+            LogbookParameterHelper.newLogbookOperationParameters(
                 operationGuid, "EXT_External_Operation", operationGuid,
                 LogbookTypeProcess.AUDIT, StatusCode.STARTED,
                 operationGuid != null ? operationGuid.toString() : "outcomeDetailMessage",
@@ -2693,7 +2693,7 @@ public class IngestInternalIT extends VitamRuleRunner {
 
         // init default logbook operation
         final List<LogbookOperationParameters> params = new ArrayList<>();
-        final LogbookOperationParameters initParameters = LogbookParametersFactory.newLogbookOperationParameters(
+        final LogbookOperationParameters initParameters = LogbookParameterHelper.newLogbookOperationParameters(
             operationGuid, "Process_SIP_unitary", operationGuid,
             LogbookTypeProcess.INGEST, StatusCode.STARTED,
             operationGuid != null ? operationGuid.toString() : "outcomeDetailMessage",
@@ -2731,7 +2731,7 @@ public class IngestInternalIT extends VitamRuleRunner {
             PropertiesUtils.getResourceAsStream(SIP_ALGO_INCORRECT_IN_MANIFEST);
 
         final List<LogbookOperationParameters> params = new ArrayList<>();
-        final LogbookOperationParameters initParameters = LogbookParametersFactory.newLogbookOperationParameters(
+        final LogbookOperationParameters initParameters = LogbookParameterHelper.newLogbookOperationParameters(
             operationGuid, "STP_INGEST_CONTROL_SIP", operationGuid,
             LogbookTypeProcess.INGEST, StatusCode.STARTED,
             operationGuid != null ? operationGuid.toString() : "outcomeDetailMessage",
@@ -2781,7 +2781,7 @@ public class IngestInternalIT extends VitamRuleRunner {
 
         // init default logbook operation
         final List<LogbookOperationParameters> params = new ArrayList<>();
-        final LogbookOperationParameters initParameters = LogbookParametersFactory.newLogbookOperationParameters(
+        final LogbookOperationParameters initParameters = LogbookParameterHelper.newLogbookOperationParameters(
             operationGuid, "Process_SIP_unitary", operationGuid,
             LogbookTypeProcess.INGEST, StatusCode.STARTED,
             operationGuid != null ? operationGuid.toString() : "outcomeDetailMessage",
@@ -2846,7 +2846,7 @@ public class IngestInternalIT extends VitamRuleRunner {
 
         InputStream zipInputStreamSipObject = PropertiesUtils.getResourceAsStream(SIP_WITH_LOGBOOK);
 
-        LogbookOperationParameters initParameters = LogbookParametersFactory.newLogbookOperationParameters(
+        LogbookOperationParameters initParameters = LogbookParameterHelper.newLogbookOperationParameters(
             operationGuid, "Process_SIP_unitary", operationGuid,
             LogbookTypeProcess.INGEST, StatusCode.STARTED,
             operationGuid.toString(),
@@ -2896,7 +2896,7 @@ public class IngestInternalIT extends VitamRuleRunner {
 
         InputStream zipInputStreamSipObject = PropertiesUtils.getResourceAsStream(SIP_WITH_MALFORMED_LOGBOOK);
 
-        LogbookOperationParameters initParameters = LogbookParametersFactory.newLogbookOperationParameters(
+        LogbookOperationParameters initParameters = LogbookParameterHelper.newLogbookOperationParameters(
             operationGuid, "Process_SIP_unitary", operationGuid,
             LogbookTypeProcess.INGEST, StatusCode.STARTED,
             operationGuid.toString(),
@@ -2926,7 +2926,7 @@ public class IngestInternalIT extends VitamRuleRunner {
 
         // init default logbook operation
         final List<LogbookOperationParameters> params = new ArrayList<>();
-        final LogbookOperationParameters initParameters = LogbookParametersFactory.newLogbookOperationParameters(
+        final LogbookOperationParameters initParameters = LogbookParameterHelper.newLogbookOperationParameters(
             operationGuid, "Process_SIP_unitary", operationGuid,
             LogbookTypeProcess.INGEST, StatusCode.STARTED,
             operationGuid != null ? operationGuid.toString() : "outcomeDetailMessage",
@@ -2972,7 +2972,7 @@ public class IngestInternalIT extends VitamRuleRunner {
 
         // init default logbook operation
         List<LogbookOperationParameters> params = new ArrayList<>();
-        LogbookOperationParameters initParameters = LogbookParametersFactory.newLogbookOperationParameters(
+        LogbookOperationParameters initParameters = LogbookParameterHelper.newLogbookOperationParameters(
             operationGuid, "Process_SIP_unitary", operationGuid,
             LogbookTypeProcess.INGEST, StatusCode.STARTED,
             operationGuid != null ? operationGuid.toString() : "outcomeDetailMessage",
@@ -3027,7 +3027,7 @@ public class IngestInternalIT extends VitamRuleRunner {
 
         // init default logbook operation
         List<LogbookOperationParameters> _params = new ArrayList<>();
-        LogbookOperationParameters _initParameters = LogbookParametersFactory.newLogbookOperationParameters(
+        LogbookOperationParameters _initParameters = LogbookParameterHelper.newLogbookOperationParameters(
             operationGuidAttachement, "Process_SIP_unitary", operationGuidAttachement,
             LogbookTypeProcess.INGEST, StatusCode.STARTED,
             operationGuidAttachement != null ? operationGuidAttachement.toString() : "outcomeDetailMessage",

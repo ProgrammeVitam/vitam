@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2019)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -8,7 +8,7 @@
  *
  * This software is governed by the CeCILL 2.1 license under French law and abiding by the rules of distribution of free
  * software. You can use, modify and/ or redistribute the software under the terms of the CeCILL 2.1 license as
- * circulated by CEA, CNRS and INRIA at the following URL "http://www.cecill.info".
+ * circulated by CEA, CNRS and INRIA at the following URL "https://cecill.info".
  *
  * As a counterpart to the access to the source code and rights to copy, modify and redistribute granted by the license,
  * users are provided only with a limited warranty and the software's author, the holder of the economic rights, and the
@@ -27,7 +27,6 @@
 package fr.gouv.vitam.ingest.external.core;
 
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import com.mongodb.util.JSON;
 import fr.gouv.vitam.common.CharsetUtils;
 import fr.gouv.vitam.common.CommonMediaType;
 import fr.gouv.vitam.common.GlobalDataRest;
@@ -63,7 +62,6 @@ import fr.gouv.vitam.common.storage.StorageConfiguration;
 import fr.gouv.vitam.common.storage.compress.VitamArchiveStreamFactory;
 import fr.gouv.vitam.common.stream.StreamUtils;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
-import fr.gouv.vitam.ingest.external.api.IngestExternalOutcomeMessage;
 import fr.gouv.vitam.ingest.external.api.exception.IngestExternalException;
 import fr.gouv.vitam.ingest.external.common.config.IngestExternalConfiguration;
 import fr.gouv.vitam.ingest.external.common.util.ExecutionOutput;
@@ -76,7 +74,7 @@ import fr.gouv.vitam.logbook.common.exception.LogbookClientNotFoundException;
 import fr.gouv.vitam.logbook.common.parameters.LogbookOperationParameters;
 import fr.gouv.vitam.logbook.common.parameters.LogbookOperationsClientHelper;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParameterName;
-import fr.gouv.vitam.logbook.common.parameters.LogbookParametersFactory;
+import fr.gouv.vitam.logbook.common.parameters.LogbookParameterHelper;
 import fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageException;
 import fr.gouv.vitam.workspace.api.exception.WorkspaceClientServerException;
@@ -182,7 +180,7 @@ public class IngestExternalImpl implements IngestExternal {
             LogbookTypeProcess logbookTypeProcess = LogbookTypeProcess.valueOf(workflow.getTypeProc());
             MessageLogbookEngineHelper messageLogbookEngineHelper = new MessageLogbookEngineHelper(logbookTypeProcess);
 
-            startedParameters = LogbookParametersFactory.newLogbookOperationParameters(
+            startedParameters = LogbookParameterHelper.newLogbookOperationParameters(
                 guid, workflow.getIdentifier(), guid,
                 logbookTypeProcess, StatusCode.STARTED,
                 messageLogbookEngineHelper.getLabelOp(workflow.getIdentifier(), StatusCode.STARTED) + " : " +
@@ -195,7 +193,7 @@ public class IngestExternalImpl implements IngestExternal {
 
             String eventTypeStarted = VitamLogbookMessages.getEventTypeStarted(INGEST_EXT);
             LogbookOperationParameters sipSanityParameters =
-                LogbookParametersFactory.newLogbookOperationParameters(
+                LogbookParameterHelper.newLogbookOperationParameters(
                     GUIDFactory.newEventGUID(guid),
                     eventTypeStarted,
                     guid,
@@ -269,7 +267,7 @@ public class IngestExternalImpl implements IngestExternal {
             }
             ExecutionOutput executionOutput;
             final LogbookOperationParameters antivirusParameters =
-                LogbookParametersFactory.newLogbookOperationParameters(
+                LogbookParameterHelper.newLogbookOperationParameters(
                     GUIDFactory.newEventGUID(guid),
                     SANITY_CHECK_SIP,
                     guid,
@@ -325,7 +323,7 @@ public class IngestExternalImpl implements IngestExternal {
                     break;
             }
 
-            final LogbookOperationParameters endParameters = LogbookParametersFactory.newLogbookOperationParameters(
+            final LogbookOperationParameters endParameters = LogbookParameterHelper.newLogbookOperationParameters(
                 ingestExtGuid,
                 INGEST_EXT,
                 guid,
@@ -343,7 +341,7 @@ public class IngestExternalImpl implements IngestExternal {
             if (!isFileInfected) {
 
                 final LogbookOperationParameters formatParameters =
-                    LogbookParametersFactory.newLogbookOperationParameters(
+                    LogbookParameterHelper.newLogbookOperationParameters(
                         GUIDFactory.newEventGUID(guid),
                         CHECK_CONTAINER,
                         guid,
@@ -409,7 +407,7 @@ public class IngestExternalImpl implements IngestExternal {
 
                 InputStream inputStreamTmp = null;
                 if (isSupportedMedia) {
-                    manifestFileNameCheck = LogbookParametersFactory.newLogbookOperationParameters(
+                    manifestFileNameCheck = LogbookParameterHelper.newLogbookOperationParameters(
                         GUIDFactory.newEventGUID(guid),
                         MANIFEST_FILE_NAME_CHECK,
                         guid,
@@ -606,7 +604,7 @@ public class IngestExternalImpl implements IngestExternal {
         StatusCode finalisationStatusCode = StatusCode.OK;
         //
         LogbookOperationParameters stpIngestFinalisationParameters =
-            LogbookParametersFactory.newLogbookOperationParameters(
+            LogbookParameterHelper.newLogbookOperationParameters(
                 eventId,
                 eventType,
                 operationId,
@@ -644,7 +642,7 @@ public class IngestExternalImpl implements IngestExternal {
             outComeDetailMessage = WORKSPACE_ERROR_MESSAGE;
         }
         stpIngestFinalisationParameters =
-            LogbookParametersFactory.newLogbookOperationParameters(
+            LogbookParameterHelper.newLogbookOperationParameters(
                 finalisationEventId,
                 eventType,
                 operationId,
@@ -729,7 +727,7 @@ public class IngestExternalImpl implements IngestExternal {
         LogbookTypeProcess logbookTypeProcess = LogbookTypeProcess.valueOf(typeProcess);
         MessageLogbookEngineHelper messageLogbookEngineHelper = new MessageLogbookEngineHelper(logbookTypeProcess);
 
-        LogbookOperationParameters startedParameters = LogbookParametersFactory.newLogbookOperationParameters(
+        LogbookOperationParameters startedParameters = LogbookParameterHelper.newLogbookOperationParameters(
             operationId,
             workflowIdentifier,
             operationId,
@@ -746,7 +744,7 @@ public class IngestExternalImpl implements IngestExternal {
         GUID eventId = GUIDReader.getGUID(operationId.getId());
         //
         LogbookOperationParameters stpIngestFinalisationParameters =
-            LogbookParametersFactory.newLogbookOperationParameters(
+            LogbookParameterHelper.newLogbookOperationParameters(
                 eventId,
                 eventType,
                 operationId,
@@ -761,7 +759,7 @@ public class IngestExternalImpl implements IngestExternal {
         eventType = STP_INGEST_FINALISATION;
         GUID finalisationEventId = GUIDReader.getGUID(operationId.getId());
         stpIngestFinalisationParameters =
-            LogbookParametersFactory.newLogbookOperationParameters(
+            LogbookParameterHelper.newLogbookOperationParameters(
                 finalisationEventId,
                 eventType,
                 operationId,
@@ -816,7 +814,7 @@ public class IngestExternalImpl implements IngestExternal {
         StatusCode statusCode, GUID finalisationEventId) {
         GUID atrEventId = GUIDFactory.newEventGUID(operationId);
         final LogbookOperationParameters event =
-            LogbookParametersFactory.newLogbookOperationParameters(
+            LogbookParameterHelper.newLogbookOperationParameters(
                 atrEventId,
                 ATR_NOTIFICATION,
                 operationId,

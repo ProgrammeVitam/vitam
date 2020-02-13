@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2019)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -8,7 +8,7 @@
  *
  * This software is governed by the CeCILL 2.1 license under French law and abiding by the rules of distribution of free
  * software. You can use, modify and/ or redistribute the software under the terms of the CeCILL 2.1 license as
- * circulated by CEA, CNRS and INRIA at the following URL "http://www.cecill.info".
+ * circulated by CEA, CNRS and INRIA at the following URL "https://cecill.info".
  *
  * As a counterpart to the access to the source code and rights to copy, modify and redistribute granted by the license,
  * users are provided only with a limited warranty and the software's author, the holder of the economic rights, and the
@@ -55,7 +55,7 @@ import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
 import fr.gouv.vitam.ingest.internal.common.exception.IngestInternalClientNotFoundException;
 import fr.gouv.vitam.ingest.internal.common.exception.IngestInternalClientServerException;
 import fr.gouv.vitam.logbook.common.parameters.LogbookOperationParameters;
-import fr.gouv.vitam.logbook.common.parameters.LogbookParametersFactory;
+import fr.gouv.vitam.logbook.common.parameters.LogbookParameterHelper;
 import fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess;
 import fr.gouv.vitam.workspace.api.exception.ZipFilesNameNotAllowedException;
 import org.apache.commons.io.IOUtils;
@@ -150,7 +150,7 @@ public class IngestInternalClientRestTest extends ResteasyTestApplication {
         final GUID ingestGuid = GUIDFactory.newGUID();
         final GUID containerGuid = GUIDFactory.newGUID();
         final LogbookOperationParameters externalOperationParameters1 =
-            LogbookParametersFactory.newLogbookOperationParameters(
+            LogbookParameterHelper.newLogbookOperationParameters(
                 ingestGuid,
                 "Ingest external",
                 containerGuid,
@@ -160,7 +160,7 @@ public class IngestInternalClientRestTest extends ResteasyTestApplication {
                 containerGuid);
 
         final LogbookOperationParameters externalOperationParameters2 =
-            LogbookParametersFactory.newLogbookOperationParameters(
+            LogbookParameterHelper.newLogbookOperationParameters(
                 ingestGuid,
                 "Ingest external",
                 containerGuid,
@@ -191,7 +191,7 @@ public class IngestInternalClientRestTest extends ResteasyTestApplication {
         final GUID ingestGuid = GUIDFactory.newGUID();
         final GUID conatinerGuid = GUIDFactory.newGUID();
         final LogbookOperationParameters externalOperationParameters1 =
-            LogbookParametersFactory.newLogbookOperationParameters(
+            LogbookParameterHelper.newLogbookOperationParameters(
                 ingestGuid,
                 "Ingest external",
                 conatinerGuid,
@@ -201,7 +201,7 @@ public class IngestInternalClientRestTest extends ResteasyTestApplication {
                 conatinerGuid);
 
         final LogbookOperationParameters externalOperationParameters2 =
-            LogbookParametersFactory.newLogbookOperationParameters(
+            LogbookParameterHelper.newLogbookOperationParameters(
                 ingestGuid,
                 "Ingest external",
                 conatinerGuid,
@@ -236,7 +236,7 @@ public class IngestInternalClientRestTest extends ResteasyTestApplication {
         final GUID ingestGuid = GUIDFactory.newGUID();
         final GUID conatinerGuid = GUIDFactory.newGUID();
         final LogbookOperationParameters externalOperationParameters1 =
-            LogbookParametersFactory.newLogbookOperationParameters(
+            LogbookParameterHelper.newLogbookOperationParameters(
                 ingestGuid,
                 "Ingest external",
                 conatinerGuid,
@@ -246,7 +246,7 @@ public class IngestInternalClientRestTest extends ResteasyTestApplication {
                 conatinerGuid);
 
         final LogbookOperationParameters externalOperationParameters2 =
-            LogbookParametersFactory.newLogbookOperationParameters(
+            LogbookParameterHelper.newLogbookOperationParameters(
                 ingestGuid,
                 "Ingest external",
                 conatinerGuid,
@@ -279,7 +279,7 @@ public class IngestInternalClientRestTest extends ResteasyTestApplication {
         final GUID ingestGuid = GUIDFactory.newGUID();
         final GUID conatinerGuid = GUIDFactory.newGUID();
         final LogbookOperationParameters externalOperationParameters1 =
-            LogbookParametersFactory.newLogbookOperationParameters(
+            LogbookParameterHelper.newLogbookOperationParameters(
                 ingestGuid,
                 "Ingest external",
                 conatinerGuid,
@@ -289,7 +289,7 @@ public class IngestInternalClientRestTest extends ResteasyTestApplication {
                 conatinerGuid);
 
         final LogbookOperationParameters externalOperationParameters2 =
-            LogbookParametersFactory.newLogbookOperationParameters(
+            LogbookParameterHelper.newLogbookOperationParameters(
                 ingestGuid,
                 "Ingest external",
                 conatinerGuid,

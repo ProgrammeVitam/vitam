@@ -1,5 +1,5 @@
 /*
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2019)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2020)
  *
  * contact.vitam@culture.gouv.fr
  *
@@ -8,7 +8,7 @@
  *
  * This software is governed by the CeCILL 2.1 license under French law and abiding by the rules of distribution of free
  * software. You can use, modify and/ or redistribute the software under the terms of the CeCILL 2.1 license as
- * circulated by CEA, CNRS and INRIA at the following URL "http://www.cecill.info".
+ * circulated by CEA, CNRS and INRIA at the following URL "https://cecill.info".
  *
  * As a counterpart to the access to the source code and rights to copy, modify and redistribute granted by the license,
  * users are provided only with a limited warranty and the software's author, the holder of the economic rights, and the
@@ -82,7 +82,7 @@ import fr.gouv.vitam.logbook.common.model.LogbookLifeCycleObjectGroupModel;
 import fr.gouv.vitam.logbook.common.parameters.LogbookLifeCycleObjectGroupParameters;
 import fr.gouv.vitam.logbook.common.parameters.LogbookOperationParameters;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParameterName;
-import fr.gouv.vitam.logbook.common.parameters.LogbookParametersFactory;
+import fr.gouv.vitam.logbook.common.parameters.LogbookParameterHelper;
 import fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess;
 import fr.gouv.vitam.logbook.common.server.LogbookConfiguration;
 import fr.gouv.vitam.logbook.common.server.database.collections.LogbookCollections;
@@ -261,37 +261,37 @@ public class LogbookResourceIT {
                 "HNuIckMGV5KQcKAbJYPgqjBNHFgVD9hf9AX0R763soZy8BMW6UOZGNlY08QXsm2eNc70D0+6kRMCAu/iARyq04Cz+L5tKwtIBzbOOqD+6h9ok8ahXQCQZKBc3SRHbc3rm9SnnUdQUsb53OOkRE=\"," +
                 "\"MinusOneMonthLogbookTraceabilityDate\":\"2017-01-16T23:01:03.49\",\"MinusOneYearLogbookTraceabilityDate\":\"2016-02-16T23:01:03.49\"," +
                 "\"NumberOfElements\":112,\"FileName\":\"0_LogbookOperation_20170220_094625.zip\",\"Size\":3089204}";
-        LogbookOperationParameters traceabilityParametersStart = LogbookParametersFactory.newLogbookOperationParameters(
+        LogbookOperationParameters traceabilityParametersStart = LogbookParameterHelper.newLogbookOperationParameters(
             eip1, "STP_OP_SECURISATION", eip1, LogbookTypeProcess.TRACEABILITY,
             StatusCode.STARTED, "Début de la sécurisation des journaux", eip1);
         LogbookOperationParameters traceabilityParametersStpStart =
-            LogbookParametersFactory.newLogbookOperationParameters(
+            LogbookParameterHelper.newLogbookOperationParameters(
                 GUIDFactory.newEventGUID(0), "STP_OP_SECURISATION", eip1, LogbookTypeProcess.TRACEABILITY,
                 StatusCode.STARTED, "Début du processus de sécurisation des journaux", eip1);
         LogbookOperationParameters traceabilityParametersStpAct1End =
-            LogbookParametersFactory.newLogbookOperationParameters(
+            LogbookParameterHelper.newLogbookOperationParameters(
                 GUIDFactory.newEventGUID(0), "OP_SECURISATION_TIMESTAMP", eip1, LogbookTypeProcess.TRACEABILITY,
                 StatusCode.OK, "Succès de création du tampon d'horodatage de l'ensemble des journaux", eip1);
        LogbookOperationParameters traceabilityParametersStpAct2End =
-            LogbookParametersFactory.newLogbookOperationParameters(
+            LogbookParameterHelper.newLogbookOperationParameters(
                 GUIDFactory.newEventGUID(0), "OP_SECURISATION_STORAGE", eip1, LogbookTypeProcess.TRACEABILITY,
                 StatusCode.OK, "Succès du stockage des journaux", eip1);
         LogbookOperationParameters traceabilityParametersStpEnd =
-            LogbookParametersFactory.newLogbookOperationParameters(
+            LogbookParameterHelper.newLogbookOperationParameters(
                 GUIDFactory.newEventGUID(0), "STP_OP_SECURISATION", eip1, LogbookTypeProcess.TRACEABILITY,
                 StatusCode.OK, "Succès du processus de sécurisation des journaux", eip1);
         traceabilityParametersStpEnd.putParameterValue(LogbookParameterName.eventDetailData, evDetData);
 
         LogbookOperationParameters traceabilityParameters2Start =
-            LogbookParametersFactory.newLogbookOperationParameters(
+            LogbookParameterHelper.newLogbookOperationParameters(
                 eip2, "STP_OP_SECURISATION", eip2, LogbookTypeProcess.TRACEABILITY,
                 StatusCode.STARTED, "Début de la sécurisation des journaux", eip2);
         LogbookOperationParameters traceabilityParameters2StpStart =
-            LogbookParametersFactory.newLogbookOperationParameters(
+            LogbookParameterHelper.newLogbookOperationParameters(
                 GUIDFactory.newEventGUID(0), "STP_OP_SECURISATION", eip2, LogbookTypeProcess.TRACEABILITY,
                 StatusCode.STARTED, "Début du processus de sécurisation des journaux", eip2);
         LogbookOperationParameters traceabilityParameters2StpEndFatal =
-            LogbookParametersFactory.newLogbookOperationParameters(
+            LogbookParameterHelper.newLogbookOperationParameters(
                 GUIDFactory.newEventGUID(0), "STP_OP_SECURISATION", eip2, LogbookTypeProcess.TRACEABILITY,
                 StatusCode.FATAL, "Succès du processus de sécurisation des journaux", eip2);
 
@@ -358,18 +358,18 @@ public class LogbookResourceIT {
         VitamThreadUtils.getVitamSession().setTenantId(tenantId);
         // Creation OK
         final GUID eip = GUIDFactory.newEventGUID(0);
-        logbookParametersStart = LogbookParametersFactory.newLogbookOperationParameters(
+        logbookParametersStart = LogbookParameterHelper.newLogbookOperationParameters(
             eip, "eventTypeValue1", eip, LogbookTypeProcess.INGEST,
             StatusCode.STARTED, "start ingest", eip);
-        logbookParametersAppend = LogbookParametersFactory.newLogbookOperationParameters(
+        logbookParametersAppend = LogbookParameterHelper.newLogbookOperationParameters(
             GUIDFactory.newEventGUID(0),
             "eventTypeValue1", eip, LogbookTypeProcess.INGEST,
             StatusCode.OK, "end ingest", eip);
-        logbookParametersWrongStart = LogbookParametersFactory.newLogbookOperationParameters(
+        logbookParametersWrongStart = LogbookParameterHelper.newLogbookOperationParameters(
             eip,
             "eventTypeValue2", eip, LogbookTypeProcess.INGEST,
             StatusCode.STARTED, "start ingest", eip);
-        logbookParametersWrongAppend = LogbookParametersFactory.newLogbookOperationParameters(
+        logbookParametersWrongAppend = LogbookParameterHelper.newLogbookOperationParameters(
             GUIDFactory.newEventGUID(0),
             "eventTypeValue2", GUIDFactory.newEventGUID(0), LogbookTypeProcess.INGEST,
             StatusCode.OK, "end ingest", eip);
@@ -399,7 +399,7 @@ public class LogbookResourceIT {
                 // ignore
             }
             // Create KO since Bad Request
-            final LogbookOperationParameters empty = LogbookParametersFactory.newLogbookOperationParameters();
+            final LogbookOperationParameters empty = LogbookParameterHelper.newLogbookOperationParameters();
             empty.putParameterValue(LogbookParameterName.eventIdentifierProcess,
                 logbookParametersWrongAppend.getParameterValue(
                     LogbookParameterName.eventIdentifierProcess));
@@ -425,18 +425,18 @@ public class LogbookResourceIT {
         VitamThreadUtils.getVitamSession().setTenantId(tenantId);
         // Creation OK
         final GUID eip = GUIDFactory.newEventGUID(0);
-        logbookParametersStart = LogbookParametersFactory.newLogbookOperationParameters(
+        logbookParametersStart = LogbookParameterHelper.newLogbookOperationParameters(
             eip, "eventTypeValue1", eip, LogbookTypeProcess.INGEST,
             StatusCode.STARTED, "start ingest", eip);
-        logbookParametersAppend = LogbookParametersFactory.newLogbookOperationParameters(
+        logbookParametersAppend = LogbookParameterHelper.newLogbookOperationParameters(
             GUIDFactory.newEventGUID(0),
             "eventTypeValue1", eip, LogbookTypeProcess.INGEST,
             StatusCode.OK, "end ingest", eip);
-        logbookParametersWrongStart = LogbookParametersFactory.newLogbookOperationParameters(
+        logbookParametersWrongStart = LogbookParameterHelper.newLogbookOperationParameters(
             eip,
             "eventTypeValue2", eip, LogbookTypeProcess.INGEST,
             StatusCode.STARTED, "start ingest", eip);
-        logbookParametersWrongAppend = LogbookParametersFactory.newLogbookOperationParameters(
+        logbookParametersWrongAppend = LogbookParameterHelper.newLogbookOperationParameters(
             GUIDFactory.newEventGUID(0),
             "eventTypeValue2", GUIDFactory.newEventGUID(0), LogbookTypeProcess.INGEST,
             StatusCode.OK, "end ingest", eip);
@@ -483,18 +483,18 @@ public class LogbookResourceIT {
         VitamThreadUtils.getVitamSession().setTenantId(tenantId);
         // Creation OK
         final GUID eip = GUIDFactory.newEventGUID(0);
-        logbookLcParametersStart = LogbookParametersFactory.newLogbookLifeCycleObjectGroupParameters(
+        logbookLcParametersStart = LogbookParameterHelper.newLogbookLifeCycleObjectGroupParameters(
             eip, "eventTypeValue1", eip, LogbookTypeProcess.INGEST,
             StatusCode.STARTED, "start ingest", "detail", eip);
-        logbookLcParametersAppend = LogbookParametersFactory.newLogbookLifeCycleObjectGroupParameters(
+        logbookLcParametersAppend = LogbookParameterHelper.newLogbookLifeCycleObjectGroupParameters(
             GUIDFactory.newEventGUID(0),
             "eventTypeValue1", eip, LogbookTypeProcess.INGEST,
             StatusCode.OK, "end ingest", "detail", eip);
-        logbookLcParametersWrongStart = LogbookParametersFactory.newLogbookLifeCycleObjectGroupParameters(
+        logbookLcParametersWrongStart = LogbookParameterHelper.newLogbookLifeCycleObjectGroupParameters(
             eip,
             "eventTypeValue2", eip, LogbookTypeProcess.INGEST,
             StatusCode.STARTED, "start ingest", "detail", eip);
-        logbookLcParametersWrongAppend = LogbookParametersFactory.newLogbookLifeCycleObjectGroupParameters(
+        logbookLcParametersWrongAppend = LogbookParameterHelper.newLogbookLifeCycleObjectGroupParameters(
             GUIDFactory.newEventGUID(0),
             "eventTypeValue2", eip, LogbookTypeProcess.INGEST,
             StatusCode.OK, "end ingest", "detail", GUIDFactory.newEventGUID(0));
@@ -525,7 +525,7 @@ public class LogbookResourceIT {
             }
             // Create KO since Bad Request
             final LogbookLifeCycleObjectGroupParameters empty =
-                LogbookParametersFactory.newLogbookLifeCycleObjectGroupParameters();
+                LogbookParameterHelper.newLogbookLifeCycleObjectGroupParameters();
             empty.putParameterValue(LogbookParameterName.eventIdentifierProcess,
                 logbookLcParametersWrongAppend.getParameterValue(
                     LogbookParameterName.eventIdentifierProcess));
@@ -550,18 +550,18 @@ public class LogbookResourceIT {
         VitamThreadUtils.getVitamSession().setTenantId(tenantId);
         // Creation OK
         final GUID eip = GUIDFactory.newEventGUID(0);
-        logbookLcParametersStart = LogbookParametersFactory.newLogbookLifeCycleObjectGroupParameters(
+        logbookLcParametersStart = LogbookParameterHelper.newLogbookLifeCycleObjectGroupParameters(
             eip, "eventTypeValue1", eip, LogbookTypeProcess.INGEST,
             StatusCode.STARTED, "start ingest", "detail", eip);
-        logbookLcParametersAppend = LogbookParametersFactory.newLogbookLifeCycleObjectGroupParameters(
+        logbookLcParametersAppend = LogbookParameterHelper.newLogbookLifeCycleObjectGroupParameters(
             GUIDFactory.newEventGUID(0),
             "eventTypeValue1", eip, LogbookTypeProcess.INGEST,
             StatusCode.OK, "end ingest", "detail", eip);
-        logbookLcParametersWrongStart = LogbookParametersFactory.newLogbookLifeCycleObjectGroupParameters(
+        logbookLcParametersWrongStart = LogbookParameterHelper.newLogbookLifeCycleObjectGroupParameters(
             eip,
             "eventTypeValue2", eip, LogbookTypeProcess.INGEST,
             StatusCode.STARTED, "start ingest", "detail", eip);
-        logbookLcParametersWrongAppend = LogbookParametersFactory.newLogbookLifeCycleObjectGroupParameters(
+        logbookLcParametersWrongAppend = LogbookParameterHelper.newLogbookLifeCycleObjectGroupParameters(
             GUIDFactory.newEventGUID(0),
             "eventTypeValue2", GUIDFactory.newEventGUID(0), LogbookTypeProcess.INGEST,
             StatusCode.OK, "end ingest", "detail", eip);
@@ -593,18 +593,18 @@ public class LogbookResourceIT {
         // Creation OK
         final GUID eip = GUIDFactory.newEventGUID(0);
         final GUID eip2 = GUIDFactory.newEventGUID(0);
-        logbookLcParametersStart = LogbookParametersFactory.newLogbookLifeCycleObjectGroupParameters(
+        logbookLcParametersStart = LogbookParameterHelper.newLogbookLifeCycleObjectGroupParameters(
             eip, "eventTypeValue1", eip, LogbookTypeProcess.INGEST,
             StatusCode.STARTED, "start ingest", "detail", eip);
-        logbookLcParametersAppend = LogbookParametersFactory.newLogbookLifeCycleObjectGroupParameters(
+        logbookLcParametersAppend = LogbookParameterHelper.newLogbookLifeCycleObjectGroupParameters(
             GUIDFactory.newEventGUID(0),
             "eventTypeValue1", eip, LogbookTypeProcess.INGEST,
             StatusCode.OK, "end ingest", "detail", eip);
-        logbookLcParametersWrongStart = LogbookParametersFactory.newLogbookLifeCycleObjectGroupParameters(
+        logbookLcParametersWrongStart = LogbookParameterHelper.newLogbookLifeCycleObjectGroupParameters(
             eip2,
             "eventTypeValue2", eip2, LogbookTypeProcess.INGEST,
             StatusCode.STARTED, "start ingest", "detail", eip2);
-        logbookLcParametersWrongAppend = LogbookParametersFactory.newLogbookLifeCycleObjectGroupParameters(
+        logbookLcParametersWrongAppend = LogbookParameterHelper.newLogbookLifeCycleObjectGroupParameters(
             GUIDFactory.newEventGUID(0),
             "eventTypeValue2", GUIDFactory.newEventGUID(0), LogbookTypeProcess.INGEST,
             StatusCode.OK, "end ingest", "detail", eip2);
