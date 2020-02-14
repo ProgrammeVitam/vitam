@@ -193,9 +193,9 @@ public enum FunctionalAdminCollections {
 
                 if (collection.getEsClient() != null) {
                     if (deleteEsIndex) {
-                        collection.getEsClient().deleteIndex(collection);
+                        collection.getEsClient().deleteIndex(collection.getName().toLowerCase(), null);
                     } else {
-                        collection.getEsClient().purgeIndex(collection.getName());
+                        collection.getEsClient().purgeIndex(collection.getName().toLowerCase());
                     }
                 }
             }
@@ -223,7 +223,8 @@ public enum FunctionalAdminCollections {
         this.usingScore = usingScore;
         VitamDescriptionLoader vitamDescriptionLoader = new VitamDescriptionLoader(clasz.getSimpleName());
         vitamDescriptionResolver = vitamDescriptionLoader.getVitamDescriptionResolver();
-        vitamCollection = VitamCollectionHelper.getCollection(clasz, multiTenant, usingScore, "", vitamDescriptionResolver);
+        vitamCollection =
+            VitamCollectionHelper.getCollection(clasz, multiTenant, usingScore, "", vitamDescriptionResolver);
 
     }
 
@@ -279,13 +280,6 @@ public enum FunctionalAdminCollections {
      */
     public String getName() {
         return vitamCollection.getName();
-    }
-
-    /**
-     * @return the type
-     */
-    public String getType() {
-        return "typeunique";
     }
 
     /**

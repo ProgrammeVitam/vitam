@@ -276,7 +276,7 @@ public class QueryToElasticsearchTest {
                 final QueryBuilder queryBuilderCommand = QueryToElasticsearch.getCommand(list.get(i), new FakeMetadataVarNameAdapter(), parserTokens);
                 final QueryBuilder queryBuilderseudoRequest =
                     QueryToElasticsearch.getFullCommand(queryBuilderCommand, queryBuilderRoot);
-                assertEquals(true, ElasticsearchHelper.queryBuilderToString(queryBuilderseudoRequest).contains("_uid"));
+                assertEquals(true, ElasticsearchHelper.queryBuilderToString(queryBuilderseudoRequest).contains("_id"));
                 assertEquals(true, ElasticsearchHelper.queryBuilderToString(queryBuilderseudoRequest).contains("typeunique#8"));
             }
             // eq #id

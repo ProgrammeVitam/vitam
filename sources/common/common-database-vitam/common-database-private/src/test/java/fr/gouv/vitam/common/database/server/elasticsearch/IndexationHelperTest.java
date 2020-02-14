@@ -45,7 +45,8 @@ import org.assertj.core.api.Assertions;
 import org.assertj.core.util.Lists;
 import org.bson.Document;
 import org.elasticsearch.action.admin.indices.alias.get.GetAliasesRequest;
-import org.elasticsearch.action.admin.indices.alias.get.GetAliasesResponse;
+import org.elasticsearch.client.GetAliasesResponse;
+import org.elasticsearch.client.RequestOptions;
 import org.elasticsearch.cluster.metadata.AliasMetaData;
 import org.elasticsearch.common.Strings;
 import org.elasticsearch.common.xcontent.XContentBuilder;
@@ -67,6 +68,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.elasticsearch.common.xcontent.XContentFactory.jsonBuilder;
@@ -74,7 +76,6 @@ import static org.elasticsearch.common.xcontent.XContentFactory.jsonBuilder;
 public class IndexationHelperTest {
     private static final String AGENCIES = "indexationagenciestest" + GUIDFactory.newGUID().getId();
     private static final String AGENCIES_TEST_ES_MAPPING_JSON = "agenciesTest-es-mapping.json";
-    private static final String TYPEUNIQUE = VitamCollection.getTypeunique();
     private static final String INDEXATION_RESULT_WITHOUT_TENANT_JSON = "indexation_result_without_tenant.json";
     private static final String INDEXATION_RESULT_WITH_TENANT_JSON = "indexation_result_with_tenant.json";
     private static final String messageCause = "failed";
@@ -100,7 +101,7 @@ public class IndexationHelperTest {
     }
 
     @AfterClass
-    public static void afterClass() {
+    public static void afterClass() throws DatabaseException {
         mongoRule.handleAfterClass();
         elasticsearchRule.deleteIndexes();
         elasticsearchAccess.close();
@@ -236,7 +237,7 @@ public class IndexationHelperTest {
         Map<String, String> aliasesWithIndexesMap = new HashMap<>();
         tenants.forEach(o -> {
             Map<String, String> res = elasticsearchAccess
-                .createIndexAndAliasIfAliasNotExists(AGENCIES, mapping, TYPEUNIQUE, o);
+                .createIndexAndAliasIfAliasNotExists(AGENCIES, mapping, o);
             aliasesWithIndexesMap.putAll(res);
             Assertions.assertThat(res).hasSize(1);
             elasticsearchRule.addIndexToBePurged(res.keySet().iterator().next());
@@ -259,14 +260,13 @@ public class IndexationHelperTest {
             String aliasName = AGENCIES + "_" + indexOK.getTenant();
 
             indexationHelper.switchIndex(aliasName, indexName, elasticsearchAccess);
-            GetAliasesResponse actualAliases =
-                elasticsearchRule.getClient().admin().indices().getAliases(new GetAliasesRequest().indices(indexName))
-                    .actionGet();
-            for (Iterator<List<AliasMetaData>> it = actualAliases.getAliases().valuesIt(); it.hasNext(); ) {
+            GetAliasesResponse actualAliases = elasticsearchRule.getClient().indices()
+                .getAlias(new GetAliasesRequest().indices(indexName), RequestOptions.DEFAULT);
+            for (Iterator<Set<AliasMetaData>> it = actualAliases.getAliases().values().iterator(); it.hasNext(); ) {
                 if (it.hasNext()) {
-                    final List<AliasMetaData> next = it.next();
+                    final Set<AliasMetaData> next = it.next();
                     assertThat(next.size()).isEqualTo(1);
-                    final String alias = next.get(0).alias();
+                    final String alias = next.iterator().next().alias();
                     assertThat(alias).isEqualTo(aliasName);
                 }
             }

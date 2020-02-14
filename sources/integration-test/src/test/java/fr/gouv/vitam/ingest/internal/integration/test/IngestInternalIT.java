@@ -669,7 +669,7 @@ public class IngestInternalIT extends VitamRuleRunner {
             QueryBuilder query = QueryBuilders.matchQuery("_id", operationGuid.getId());
             SearchResponse elasticSearchResponse =
                 esClient.search(LogbookCollections.OPERATION, tenantId, query, null, null, 0, 25);
-            assertEquals(1, elasticSearchResponse.getHits().getTotalHits());
+            assertEquals(1, elasticSearchResponse.getHits().getTotalHits().value);
             assertNotNull(elasticSearchResponse.getHits().getAt(0));
             SearchHit hit = elasticSearchResponse.getHits().iterator().next();
             assertNotNull(hit);

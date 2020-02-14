@@ -8,8 +8,13 @@
 			<pattern>%d{ISO8601} [[%thread]] [%X{X-Request-Id}] %-5level %logger - %replace(%caller{1..2}){'Caller\+1	at |\n',''} : %msg %rootException%n</pattern>
 		</encoder>
 	</appender>
-
 	<!-- By default, the level of the root level is set to TRACE -->
+
+	<logger name="fr.gouv.vitam.common.server.HeaderIdHelper" level="ERROR"/>
+
+	<logger name="fr.gouv.vitam.common.performance.PerformanceLogger" level="WARN" />
+	<logger name="fr.gouv.vitam.common.VitamServerRunner" level="WARN" />
+
 	<root level="ERROR">
 		<appender-ref ref="STDOUT" />
 	</root>

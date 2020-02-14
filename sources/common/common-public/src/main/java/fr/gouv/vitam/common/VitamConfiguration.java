@@ -178,6 +178,8 @@ public class VitamConfiguration {
 
     private static Integer elasticSearchScrollTimeoutInMilliseconds = 60_000 * 5;
 
+    private static Integer elasticSearchTimeoutWaitAvailableShardsForBulkRequestInMilliseconds = 60_000;
+
     private static Integer elasticSearchScrollLimit = 10_000;
 
     /**
@@ -1075,6 +1077,10 @@ public class VitamConfiguration {
             setElasticSearchScrollTimeoutInMilliseconds(parameters.getElasticSearchScrollTimeoutInMilliseconds());
         }
 
+        if (null != parameters.getElasticSearchTimeoutWaitAvailableShardsForBulkRequestInMilliseconds()) {
+            setElasticSearchTimeoutWaitAvailableShardsForBulkRequestInMilliseconds(
+                parameters.getElasticSearchTimeoutWaitAvailableShardsForBulkRequestInMilliseconds());
+        }
         if (null != parameters.getElasticSearchScrollLimit()) {
             setElasticSearchScrollLimit(parameters.getElasticSearchScrollLimit());
         }
@@ -2464,6 +2470,16 @@ public class VitamConfiguration {
 
     public static void setElasticSearchScrollTimeoutInMilliseconds(Integer elasticSearchScrollTimeoutInMilliseconds) {
         VitamConfiguration.elasticSearchScrollTimeoutInMilliseconds = elasticSearchScrollTimeoutInMilliseconds;
+    }
+
+    public static Integer getElasticSearchTimeoutWaitAvailableShardsForBulkRequestInMilliseconds() {
+        return elasticSearchTimeoutWaitAvailableShardsForBulkRequestInMilliseconds;
+    }
+
+    public static void setElasticSearchTimeoutWaitAvailableShardsForBulkRequestInMilliseconds(
+        Integer elasticSearchTimeoutWaitAvailableShardsForBulkRequestInMilliseconds) {
+        VitamConfiguration.elasticSearchTimeoutWaitAvailableShardsForBulkRequestInMilliseconds =
+            elasticSearchTimeoutWaitAvailableShardsForBulkRequestInMilliseconds;
     }
 
     public static Integer getElasticSearchScrollLimit() {

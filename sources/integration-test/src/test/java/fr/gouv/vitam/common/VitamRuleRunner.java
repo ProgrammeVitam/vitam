@@ -126,7 +126,7 @@ public class VitamRuleRunner {
             new LogbookElasticsearchAccess(elasticsearchRule.getClusterName(), esNodes), tenants);
     }
 
-    public static void handleAfterClass(Integer... tenants) throws Exception {
+    public static void handleAfterClass(Integer... tenants) {
         MetadataCollections
             .afterTestClass(false, tenants);
         LogbookCollections
@@ -134,7 +134,7 @@ public class VitamRuleRunner {
         FunctionalAdminCollections.afterTestClass(false);
     }
 
-    public static void handleAfter(Integer... tenants) throws Exception {
+    public static void handleAfter(Integer... tenants) {
         MetadataCollections.afterTest(tenants);
         LogbookCollections.afterTest(tenants);
     }

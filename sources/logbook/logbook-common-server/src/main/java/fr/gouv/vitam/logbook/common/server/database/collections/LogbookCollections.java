@@ -122,9 +122,9 @@ public enum LogbookCollections {
             if (collection == LogbookCollections.OPERATION && null != collection.getEsClient()) {
                 for (Integer tenant : tenants) {
                     if (deleteEsIndex) {
-                        collection.getEsClient().deleteIndex(collection, tenant);
+                        collection.getEsClient().deleteIndex(collection.getName().toLowerCase(), tenant);
                     } else {
-                        collection.getEsClient().purgeIndex(collection.getName(), tenant);
+                        collection.getEsClient().purgeIndex(collection.getName().toLowerCase(), tenant);
                     }
                 }
             }

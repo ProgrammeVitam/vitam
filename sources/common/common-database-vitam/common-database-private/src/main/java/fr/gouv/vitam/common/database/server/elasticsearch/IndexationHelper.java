@@ -55,7 +55,6 @@ import java.util.List;
 public class IndexationHelper {
 
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(IndexationHelper.class);
-    public static final String TYPEUNIQUE = VitamCollection.getTypeunique();
 
     private static final IndexationHelper instance = new IndexationHelper();
 
@@ -92,7 +91,7 @@ public class IndexationHelper {
                     currentTenant = tenant;
                     // Create ElasticSearch new index for a given collection
                     currentIndexWithoutAlias = esClient
-                        .createIndexWithoutAlias(collectionName.toLowerCase(), collectionMapping, TYPEUNIQUE, tenant);
+                        .createIndexWithoutAlias(collectionName.toLowerCase(), collectionMapping, tenant);
 
                     MongoCursor<Document> cursor =
                         vitamMongoRepository.findDocuments(VitamConfiguration.getMaxElasticsearchBulk(), tenant)
@@ -106,10 +105,7 @@ public class IndexationHelper {
                     while (!documents.isEmpty()) {
                         // Reindex document with bulk
                         if (collectionName.toLowerCase().equals(ElasticsearchCollections.OPERATION.getIndexName())) {
-                            vitamElasticsearchRepository.saveLogbook(documents);
-                        } else if (collectionName.toLowerCase()
-                            .equals(ElasticsearchCollections.UNIT.getIndexName())) {
-                            vitamElasticsearchRepository.saveUnit(documents);
+                            vitamElasticsearchRepository.save(ElasticsearchCollections.OPERATION, documents);
                         } else {
                             vitamElasticsearchRepository.save(documents);
                         }
@@ -121,7 +117,7 @@ public class IndexationHelper {
                 }
             } else {
                 currentIndexWithoutAlias = esClient
-                    .createIndexWithoutAlias(collectionName, collectionMapping, TYPEUNIQUE, null);
+                    .createIndexWithoutAlias(collectionName, collectionMapping, null);
 
                 FindIterable<Document> iterable =
                     vitamMongoRepository.findDocuments(VitamConfiguration.getMaxElasticsearchBulk());
@@ -166,7 +162,11 @@ public class IndexationHelper {
      */
     public void switchIndex(String aliasName, String newIndex, ElasticsearchAccess esClient)
         throws DatabaseException {
-        esClient.switchIndex(aliasName, newIndex);
+        try {
+            esClient.switchIndex(aliasName, newIndex);
+        } catch (IOException e) {
+            throw new DatabaseException(e);
+        }
     }
 
     private void createIndexationResult(String collectionName, IndexationResult indexationResult,

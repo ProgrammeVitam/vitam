@@ -42,7 +42,6 @@ import fr.gouv.vitam.common.database.builder.query.NopQuery;
 import fr.gouv.vitam.common.database.builder.query.PathQuery;
 import fr.gouv.vitam.common.database.builder.query.QueryHelper;
 import fr.gouv.vitam.common.database.builder.query.VitamFieldsHelper;
-import fr.gouv.vitam.common.database.builder.request.configuration.GlobalDatas;
 import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
 import fr.gouv.vitam.common.database.builder.request.single.Delete;
 import fr.gouv.vitam.common.database.builder.request.single.Insert;
@@ -68,7 +67,6 @@ import fr.gouv.vitam.common.exception.VitamDBException;
 import fr.gouv.vitam.common.exception.VitamFatalRuntimeException;
 import fr.gouv.vitam.common.guid.GUID;
 import fr.gouv.vitam.common.guid.GUIDFactory;
-import fr.gouv.vitam.common.json.BsonHelper;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.SysErrLogger;
 import fr.gouv.vitam.common.logging.VitamLogger;
@@ -76,18 +74,8 @@ import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.parameter.ParameterHelper;
 import fr.gouv.vitam.common.server.HeaderIdHelper;
 import org.bson.conversions.Bson;
-import org.elasticsearch.action.bulk.BulkItemResponse;
-import org.elasticsearch.action.bulk.BulkRequestBuilder;
-import org.elasticsearch.action.bulk.BulkResponse;
-import org.elasticsearch.action.search.SearchPhaseExecutionException;
-import org.elasticsearch.action.search.SearchRequestBuilder;
 import org.elasticsearch.action.search.SearchResponse;
-import org.elasticsearch.action.search.SearchType;
-import org.elasticsearch.action.support.WriteRequest.RefreshPolicy;
-import org.elasticsearch.client.Client;
-import org.elasticsearch.common.xcontent.XContentType;
 import org.elasticsearch.index.query.QueryBuilder;
-import org.elasticsearch.index.query.QueryBuilders;
 import org.elasticsearch.rest.RestStatus;
 import org.elasticsearch.search.SearchHit;
 import org.elasticsearch.search.SearchHits;
@@ -99,7 +87,6 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
 import java.util.concurrent.ThreadLocalRandom;
 
 import static com.mongodb.client.model.Filters.and;
@@ -238,62 +225,8 @@ public class DbRequestSingle {
         if (vitamCollection.getEsClient() == null) {
             return;
         }
-        Map<String, String> mapIdJson = new HashMap<>();
-        int max = VitamConfiguration.getMaxElasticsearchBulk();
-        for (VitamDocument<?> document : vitamDocumentList) {
-            max--;
-            String id = document.getString(VitamDocument.ID);
-            document.remove(VitamDocument.ID);
-            document.remove(VitamDocument.SCORE);
-            final String esJson = BsonHelper.stringify(document);
-            document.clear();
-            mapIdJson.put(id, esJson);
-            if (max == 0) {
-                max = VitamConfiguration.getMaxElasticsearchBulk();
-                final BulkResponse bulkResponse = addEntryIndexes(mapIdJson);
-                if (bulkResponse.hasFailures()) {
-                    throw new DatabaseException("Insert Document Exception" + bulkResponse.buildFailureMessage());
-                }
-                mapIdJson.clear();
-            }
-        }
-
-        if (!mapIdJson.isEmpty()) {
-            final BulkResponse bulkResponse = addEntryIndexes(mapIdJson);
-            if (bulkResponse.hasFailures()) {
-                // Add usefull information
-                StringBuilder sb = new StringBuilder();
-                for (BulkItemResponse bulkItemResponse : bulkResponse) {
-                    if (bulkItemResponse.getFailure() != null) {
-                        sb.append(bulkItemResponse.getFailure().getCause());
-                    }
-                }
-                LOGGER.error(String.format("Insert Documents Exception caused by : %s", sb.toString()));
-                throw new DatabaseException("Insert Document Exception");
-            }
-        }
-    }
-
-
-    /**
-     * Add a set of entries in the ElasticSearch index. <br>
-     * Used in reload from scratch.
-     *
-     * @param mapIdJson
-     * @return the listener on bulk insert
-     */
-    private BulkResponse addEntryIndexes(final Map<String, String> mapIdJson) {
-
-        Client client = vitamCollection.getEsClient().getClient();
-        final BulkRequestBuilder bulkRequest = client.prepareBulk();
-
-        // either use client#prepare, or use Requests# to directly build index/delete requests
-        for (final Entry<String, String> val : mapIdJson.entrySet()) {
-            bulkRequest.setRefreshPolicy(RefreshPolicy.IMMEDIATE)
-                .add(client.prepareIndex(vitamCollection.getName().toLowerCase(), VitamCollection.getTypeunique(),
-                    val.getKey()).setSource(val.getValue(), XContentType.JSON));
-        }
-        return bulkRequest.execute().actionGet();
+        this.vitamCollection.getEsClient()
+            .indexEntries(vitamCollection.getName().toLowerCase(), null, vitamDocumentList);
     }
 
     /**
@@ -465,30 +398,9 @@ public class DbRequestSingle {
     private SearchResponse search(final QueryBuilder query,
         final QueryBuilder filter, List<SortBuilder> sorts, final int offset, final int limit)
         throws DatabaseException, BadRequestException {
-        final SearchRequestBuilder request =
-            vitamCollection.getEsClient().getClient()
-                .prepareSearch(vitamCollection.getName().toLowerCase()).setSearchType(SearchType.DFS_QUERY_THEN_FETCH)
-                .setTypes(VitamCollection.getTypeunique()).setExplain(false).setFrom(offset)
-                .setSize(GlobalDatas.LIMIT_LOAD < limit ? GlobalDatas.LIMIT_LOAD : limit)
-                .setFetchSource(VitamDocument.ES_FILTER_OUT, null);
-        if (sorts != null) {
-            sorts.forEach(request::addSort);
-        }
-        if (filter != null) {
-            request.setQuery(QueryBuilders.boolQuery().must(query).must(filter));
-        } else {
-            request.setQuery(query);
-        }
-        try {
-
-            return request.get();
-        } catch (final Exception e) {
-            if (e instanceof SearchPhaseExecutionException &&
-                (offset + limit > VitamConfiguration.getMaxResultWindow())) {
-                throw new BadRequestException(OFFSET_LIMIT_INCORRECT);
-            }
-            throw new DatabaseException(e);
-        }
+        return vitamCollection.getEsClient()
+            .search(vitamCollection.getName().toLowerCase(), null, query, filter, VitamDocument.ES_FILTER_OUT, sorts,
+                offset, limit);
     }
 
     /**
@@ -650,7 +562,7 @@ public class DbRequestSingle {
             LOGGER.warn(e);
             throw new DatabaseException(e);
         }
-        deleteToElasticsearch(ids);
+        deleteFromElasticSearch(ids);
         return new DbRequestResult().setCount(result.getDeletedCount()).setTotal(result.getDeletedCount());
     }
 
@@ -662,43 +574,12 @@ public class DbRequestSingle {
      * @return the number of deleted items
      * @throws DatabaseException if error occurs
      */
-    private int deleteToElasticsearch(List<String> list) throws DatabaseException {
+    private void deleteFromElasticSearch(List<String> list) throws DatabaseException {
         if (vitamCollection.getEsClient() == null || list.isEmpty()) {
-            return 0;
+            return;
         }
-        final Client client = vitamCollection.getEsClient().getClient();
-        BulkRequestBuilder bulkRequest = client.prepareBulk();
-        int max = VitamConfiguration.getMaxElasticsearchBulk();
-        int countDeleted = 0;
-        for (final String id : list) {
-            max--;
-            bulkRequest
-                .add(
-                    client.prepareDelete(vitamCollection.getName().toLowerCase(), VitamCollection.getTypeunique(), id));
-            if (max == 0) {
-                max = VitamConfiguration.getMaxElasticsearchBulk();
-                final BulkResponse bulkResponse =
-                    bulkRequest.setRefreshPolicy(RefreshPolicy.IMMEDIATE).execute().actionGet(); // new
-                // thread
-                if (bulkResponse.hasFailures()) {
-                    LOGGER.error("ES delete in error: " + bulkResponse.buildFailureMessage());
-                    throw new DatabaseException(bulkResponse.buildFailureMessage());
-                }
-                countDeleted += bulkResponse.getItems().length;
-                bulkRequest = client.prepareBulk();
-            }
-        }
-        if (bulkRequest.numberOfActions() > 0) {
-            final BulkResponse bulkResponse =
-                bulkRequest.setRefreshPolicy(RefreshPolicy.IMMEDIATE).execute().actionGet();
-            // thread
-            if (bulkResponse.hasFailures()) {
-                LOGGER.error("ES delete in error: " + bulkResponse.buildFailureMessage());
-                throw new DatabaseException(bulkResponse.buildFailureMessage());
-            }
-            return countDeleted + bulkResponse.getItems().length;
-        }
-        return countDeleted;
+
+        vitamCollection.getEsClient().delete(vitamCollection.getName().toLowerCase(), list, null);
     }
 
     public void replaceDocument(JsonNode document, String identifierValue, String identifierKey,

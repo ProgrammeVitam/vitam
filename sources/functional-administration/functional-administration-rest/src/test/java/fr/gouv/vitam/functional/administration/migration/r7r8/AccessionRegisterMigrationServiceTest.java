@@ -49,7 +49,6 @@ import com.google.common.collect.Lists;
 import com.mongodb.client.FindIterable;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.model.Sorts;
-import com.mongodb.util.JSON;
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.database.api.VitamRepositoryFactory;
 import fr.gouv.vitam.common.database.collections.VitamCollection;
@@ -265,20 +264,20 @@ public class AccessionRegisterMigrationServiceTest {
             expectedAccessionRegisterDetailDataSetFile);
 
         // Check persisted in ES
-        SearchResponse search = elasticsearchRule.getClient()
-            .prepareSearch(FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL.getName().toLowerCase())
-            .setQuery(QueryBuilders.matchAllQuery()).get();
-        assertThat(search.getHits().getTotalHits()).isEqualTo(2);
+        SearchResponse search = FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL.getEsClient()
+            .search(FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL.getName().toLowerCase(), null,
+                QueryBuilders.matchAllQuery());
+        assertThat(search.getHits().getTotalHits().value).isEqualTo(2);
 
         String expectedAccessionRegisterSummaryDataSetFile = "migration_r7_r8/accession_register_summary_EXPECTED.json";
         assertDataSetEqualsExpectedFile(FunctionalAdminCollections.ACCESSION_REGISTER_SUMMARY.getCollection(),
             expectedAccessionRegisterSummaryDataSetFile);
 
         // Check persisted in ES
-        search = elasticsearchRule.getClient()
-            .prepareSearch(FunctionalAdminCollections.ACCESSION_REGISTER_SUMMARY.getName().toLowerCase())
-            .setQuery(QueryBuilders.matchAllQuery()).get();
-        assertThat(search.getHits().getTotalHits()).isEqualTo(2);
+        search = FunctionalAdminCollections.ACCESSION_REGISTER_SUMMARY.getEsClient()
+            .search(FunctionalAdminCollections.ACCESSION_REGISTER_SUMMARY.getName().toLowerCase(), null,
+                QueryBuilders.matchAllQuery());
+        assertThat(search.getHits().getTotalHits().value).isEqualTo(2);
 
 
         // When purge
@@ -290,15 +289,15 @@ public class AccessionRegisterMigrationServiceTest {
         assertThat(FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL.getCollection().countDocuments()).isEqualTo(0);
         assertThat(FunctionalAdminCollections.ACCESSION_REGISTER_SUMMARY.getCollection().countDocuments()).isEqualTo(0);
 
-        search = elasticsearchRule.getClient()
-            .prepareSearch(FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL.getName().toLowerCase())
-            .setQuery(QueryBuilders.matchAllQuery()).get();
-        assertThat(search.getHits().getTotalHits()).isEqualTo(0);
+        search = FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL.getEsClient()
+            .search(FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL.getName().toLowerCase(), null,
+                QueryBuilders.matchAllQuery());
+        assertThat(search.getHits().getTotalHits().value).isEqualTo(0);
 
-        search = elasticsearchRule.getClient()
-            .prepareSearch(FunctionalAdminCollections.ACCESSION_REGISTER_SUMMARY.getName().toLowerCase())
-            .setQuery(QueryBuilders.matchAllQuery()).get();
-        assertThat(search.getHits().getTotalHits()).isEqualTo(0);
+        search = FunctionalAdminCollections.ACCESSION_REGISTER_SUMMARY.getEsClient()
+            .search(FunctionalAdminCollections.ACCESSION_REGISTER_SUMMARY.getName().toLowerCase(), null,
+                QueryBuilders.matchAllQuery());
+        assertThat(search.getHits().getTotalHits().value).isEqualTo(0);
     }
 
     private void importDataSetFile(MongoCollection<Document> mongoCollection, String dataSetFile)

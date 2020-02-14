@@ -151,7 +151,7 @@ public class ReconstructionServiceImpl implements ReconstructionService {
 
         ParametersChecker.checkParameter("All parameters [%s, %s] are required.", collection, tenants);
         LOGGER.debug(String
-            .format("Start reconstruction of the %s collection on the Vitam tenant %s.", collection.getType(),
+            .format("Start reconstruction of the %s collection on the Vitam tenant %s.", collection.getName(),
                 tenants));
 
         Integer originalTenant = VitamThreadUtils.getVitamSession().getTenantId();
@@ -418,7 +418,7 @@ public class ReconstructionServiceImpl implements ReconstructionService {
         ParametersChecker.checkParameter("The collection parameter is required.", collection);
         LOGGER.debug(String
             .format("Start reconstruction of the %s collection on all of the Vitam tenants.",
-                collection.getType()));
+                collection.getName()));
 
         // get the list of vitam tenants from the configuration.
         List<Integer> tenants = VitamConfiguration.getTenants();

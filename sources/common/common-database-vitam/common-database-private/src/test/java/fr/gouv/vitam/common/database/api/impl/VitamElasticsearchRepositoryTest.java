@@ -26,14 +26,6 @@
  */
 package fr.gouv.vitam.common.database.api.impl;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.elasticsearch.common.xcontent.XContentFactory.jsonBuilder;
-
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
-
 import fr.gouv.vitam.common.database.api.VitamRepositoryStatus;
 import fr.gouv.vitam.common.database.server.mongodb.VitamDocument;
 import fr.gouv.vitam.common.elasticsearch.ElasticsearchRule;
@@ -41,25 +33,29 @@ import fr.gouv.vitam.common.exception.DatabaseException;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import org.apache.commons.lang3.RandomUtils;
 import org.bson.Document;
-import org.elasticsearch.action.admin.indices.create.CreateIndexResponse;
-import org.elasticsearch.client.Client;
 import org.elasticsearch.common.Strings;
-import org.elasticsearch.common.settings.Settings;
 import org.elasticsearch.common.xcontent.XContentBuilder;
-import org.elasticsearch.common.xcontent.XContentType;
 import org.junit.After;
 import org.junit.AfterClass;
-import org.junit.Before;
+import org.junit.BeforeClass;
 import org.junit.ClassRule;
-import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
+
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.elasticsearch.common.xcontent.XContentFactory.jsonBuilder;
 
 /**
  *
  */
 public class VitamElasticsearchRepositoryTest {
-    public static final String TESTINDEX = "vitamelasticsearchrepository" + GUIDFactory.newGUID().getId();
+    public static final String TEST_INDEX = "vitamelasticsearchrepository" + GUIDFactory.newGUID().getId();
+    public static final String TEST_ALIAS = "vitamelasticsearchrepository" + GUIDFactory.newGUID().getId();
     private static VitamElasticsearchRepository repository;
 
 
@@ -91,24 +87,22 @@ public class VitamElasticsearchRepositoryTest {
     public static TemporaryFolder tempFolder = new TemporaryFolder();
 
     @ClassRule
-    public static ElasticsearchRule elasticsearchRule = new ElasticsearchRule(TESTINDEX);
+    public static ElasticsearchRule elasticsearchRule = new ElasticsearchRule(TEST_ALIAS);
 
-    public VitamElasticsearchRepositoryTest() {
-    }
 
     @AfterClass
-    public static void afterClass() {
+    public static void afterClass() throws DatabaseException {
         elasticsearchRule.deleteIndexes();
     }
 
-    @Before
-    public void before() throws Exception {
-        repository = new VitamElasticsearchRepository(elasticsearchRule.getClient(), TESTINDEX, false);
+    @BeforeClass
+    public static void beforeClass() throws Exception {
+        repository = new VitamElasticsearchRepository(elasticsearchRule.getClient(), TEST_ALIAS, false);
         /*
          * findByIdentifierAndTenant works only if identifier is term (not text) As es by default detect Identifier as
          * text we should pre-create index with correct mapping
          */
-        createIndexWithMapping(elasticsearchRule.getClient());
+        createIndexWithMapping();
     }
 
     @After
@@ -287,8 +281,8 @@ public class VitamElasticsearchRepositoryTest {
     }
 
 
-    @Test(expected = DatabaseException.class)
-    public void testRemoveNotExists() throws IOException, DatabaseException {
+    @Test
+    public void testRemoveNotExistsThenOK() throws DatabaseException {
         String id = GUIDFactory.newGUID().toString();
         Integer tenant = 0;
         repository.remove(id, tenant);
@@ -298,10 +292,8 @@ public class VitamElasticsearchRepositoryTest {
     public void testGetByIDNotExistsOK() throws IOException, DatabaseException {
         String id = GUIDFactory.newGUID().toString();
         Integer tenant = 0;
-
-        Client client = elasticsearchRule.getClient();
         // Just to create index as not yet developed in ElasticsearchRule
-        if (!client.admin().indices().prepareExists(TESTINDEX).get().isExists()) {
+        if (!elasticsearchRule.existsIndex(TEST_INDEX)) {
             XContentBuilder builder = jsonBuilder()
                 .startObject()
                 .field(VitamDocument.ID, id)
@@ -363,13 +355,11 @@ public class VitamElasticsearchRepositoryTest {
         assertThat(response.get()).extracting("Title").contains("Test save");
     }
 
-    private void createIndexWithMapping(Client client) throws IOException {
-        if (!client.admin().indices().prepareExists(TESTINDEX).get().isExists()) {
-            final CreateIndexResponse createIndexResponse =
-                client.admin().indices().prepareCreate(TESTINDEX)
-                    .addMapping("typeunique", mapping, XContentType.JSON)
-                    .get();
-            assertThat(createIndexResponse.isAcknowledged()).isTrue();
+    private static void createIndexWithMapping() throws IOException {
+        if (!elasticsearchRule.existsIndex(TEST_INDEX)) {
+
+            boolean created = elasticsearchRule.createIndex(TEST_ALIAS, TEST_INDEX, mapping);
+            assertThat(created).isTrue();
         }
     }
 
