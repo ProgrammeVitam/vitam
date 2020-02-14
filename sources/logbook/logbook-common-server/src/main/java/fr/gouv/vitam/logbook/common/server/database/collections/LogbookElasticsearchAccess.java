@@ -27,24 +27,18 @@
 package fr.gouv.vitam.logbook.common.server.database.collections;
 
 import fr.gouv.vitam.common.database.builder.request.configuration.GlobalDatas;
-import fr.gouv.vitam.common.database.collections.VitamCollection;
 import fr.gouv.vitam.common.database.server.elasticsearch.ElasticsearchAccess;
 import fr.gouv.vitam.common.database.server.elasticsearch.ElasticsearchNode;
 import fr.gouv.vitam.common.database.server.elasticsearch.ElasticsearchUtil;
 import fr.gouv.vitam.common.database.server.mongodb.VitamDocument;
+import fr.gouv.vitam.common.exception.BadRequestException;
+import fr.gouv.vitam.common.exception.DatabaseException;
 import fr.gouv.vitam.common.exception.VitamException;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
-import fr.gouv.vitam.logbook.common.server.exception.LogbookDatabaseException;
 import fr.gouv.vitam.logbook.common.server.exception.LogbookException;
-import org.elasticsearch.action.admin.indices.delete.DeleteIndexRequest;
-import org.elasticsearch.action.bulk.BulkRequestBuilder;
-import org.elasticsearch.action.bulk.BulkResponse;
-import org.elasticsearch.action.search.SearchRequestBuilder;
+import fr.gouv.vitam.logbook.common.server.exception.LogbookExecutionException;
 import org.elasticsearch.action.search.SearchResponse;
-import org.elasticsearch.action.search.SearchType;
-import org.elasticsearch.action.support.WriteRequest.RefreshPolicy;
-import org.elasticsearch.common.xcontent.XContentType;
 import org.elasticsearch.index.query.QueryBuilder;
 import org.elasticsearch.search.sort.SortBuilder;
 
@@ -52,7 +46,6 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
 
 /**
  * ElasticSearch model with MongoDB as main database with management of index and index entries
@@ -73,35 +66,6 @@ public class LogbookElasticsearchAccess extends ElasticsearchAccess {
     }
 
     /**
-     * Delete an index
-     *
-     * @param collection collection of index
-     * @param tenantId tenant Id
-     * @return True if deleted
-     */
-    public final boolean deleteIndex(final LogbookCollections collection, final Integer tenantId) {
-        LOGGER.debug("deleteIndex: " + getAliasName(collection, tenantId));
-        try {
-            if (getClient().admin().indices().prepareExists(getAliasName(collection, tenantId)).get().isExists()) {
-                String indexName =
-                    getClient().admin().indices().prepareGetAliases(getAliasName(collection, tenantId)).get()
-                        .getAliases()
-                        .iterator().next().key;
-                DeleteIndexRequest deleteIndexRequest = new DeleteIndexRequest(indexName);
-
-                if (!getClient().admin().indices().delete(deleteIndexRequest).get().isAcknowledged()) {
-                    LOGGER.error("Error on index delete");
-                    return false;
-                }
-            }
-            return true;
-        } catch (final Exception e) {
-            LOGGER.error("Error while deleting index", e);
-            return false;
-        }
-    }
-
-    /**
      * Add a type to an index
      *
      * @param collection collection of index
@@ -110,49 +74,12 @@ public class LogbookElasticsearchAccess extends ElasticsearchAccess {
      */
     public final Map<String, String> addIndex(final LogbookCollections collection, final Integer tenantId) {
         try {
-            return super.createIndexAndAliasIfAliasNotExists(collection.getName().toLowerCase(), getMapping(),
-                VitamCollection.getTypeunique(), tenantId);
+            return super
+                .createIndexAndAliasIfAliasNotExists(collection.getName().toLowerCase(), getMapping(), tenantId);
         } catch (final Exception e) {
             LOGGER.error("Error while set Mapping", e);
             return new HashMap<>();
         }
-    }
-
-
-    /**
-     * Refresh an index
-     *
-     * @param collection collection of index
-     * @param tenantId tenant Id
-     */
-    public final void refreshIndex(final LogbookCollections collection, final Integer tenantId) {
-        LOGGER.debug("refreshIndex: " + getAliasName(collection, tenantId));
-        getClient().admin().indices().prepareRefresh(getAliasName(collection, tenantId))
-            .execute().actionGet();
-
-    }
-
-    /**
-     * Add a set of entries in the ElasticSearch index. <br>
-     * Used in reload from scratch.
-     *
-     * @param collection collection of index
-     * @param tenantId tenant Id
-     * @param mapIdJson map of documents as json by id
-     * @return the listener on bulk insert
-     */
-    final BulkResponse addEntryIndexes(final LogbookCollections collection, final Integer tenantId,
-        final Map<String, String> mapIdJson) {
-        final BulkRequestBuilder bulkRequest = getClient().prepareBulk();
-
-        // either use client#prepare, or use Requests# to directly build index/delete requests
-        final String type = getTypeUnique(collection);
-        for (final Entry<String, String> val : mapIdJson.entrySet()) {
-            bulkRequest.setRefreshPolicy(RefreshPolicy.IMMEDIATE)
-                .add(getClient().prepareIndex(getAliasName(collection, tenantId), type,
-                    val.getKey()).setSource(val.getValue(), XContentType.JSON));// .setSource(val.getValue()));
-        }
-        return bulkRequest.execute().actionGet();
     }
 
     /**
@@ -161,15 +88,15 @@ public class LogbookElasticsearchAccess extends ElasticsearchAccess {
      * @param collection collection of index
      * @param tenantId tenant Id
      * @param id the id of the entry
-     * @param json the entry document as a json
-     * @return True if updated
+     * @param logbookDocument the entry document
      */
-    final boolean updateEntryIndex(final LogbookCollections collection, final Integer tenantId,
-        final String id, final String json) {
-        final String type = LogbookOperation.TYPEUNIQUE;
-        return getClient().prepareUpdate(getAliasName(collection, tenantId), type, id)
-            .setDoc(json, XContentType.JSON).setRefreshPolicy(RefreshPolicy.IMMEDIATE).execute()
-            .actionGet().getVersion() > 1;
+    final void updateFullDocument(final LogbookCollections collection, final Integer tenantId,
+        final String id, final VitamDocument<?> logbookDocument) throws LogbookExecutionException {
+        try {
+            super.updateEntry(collection.getName().toLowerCase(), tenantId, id, logbookDocument);
+        } catch (DatabaseException e) {
+            throw new LogbookExecutionException(e);
+        }
     }
 
     /**
@@ -190,47 +117,16 @@ public class LogbookElasticsearchAccess extends ElasticsearchAccess {
         final QueryBuilder query,
         final QueryBuilder filter, final List<SortBuilder> sorts, final int offset, final int limit)
         throws LogbookException {
-        final String type = getTypeUnique(collection);
-
-        final SearchRequestBuilder request =
-            getClient().prepareSearch(getAliasName(collection, tenantId)).setSearchType(SearchType.DEFAULT)
-                .setTypes(type).setExplain(false).setFrom(offset)
-                .setFetchSource(VitamDocument.ES_FILTER_OUT, null)
-                .setSize(GlobalDatas.LIMIT_LOAD < limit ? GlobalDatas.LIMIT_LOAD : limit);
-
-        if (sorts != null) {
-            sorts.stream().forEach(sort -> request.addSort(sort));
-        }
-        if (filter != null) {
-            request.setQuery(query).setPostFilter(filter);
-        } else {
-            request.setQuery(query);
-        }
         try {
-            LOGGER.debug(request.toString());
-            return request.get();
-        } catch (final Exception e) {
-            LOGGER.error(e.getMessage(), e);
-            throw new LogbookDatabaseException(e);
+            int size = GlobalDatas.LIMIT_LOAD < limit ? GlobalDatas.LIMIT_LOAD : limit;
+            return super
+                .search(collection.getName().toLowerCase(), tenantId, query, filter, VitamDocument.ES_FILTER_OUT,
+                    sorts,
+                    offset,
+                    size, null, null, null);
+        } catch (DatabaseException | BadRequestException e) {
+            throw new LogbookExecutionException(e);
         }
-    }
-
-
-    private String getTypeUnique(LogbookCollections collection) {
-        switch (collection) {
-            case OPERATION:
-                return LogbookOperation.TYPEUNIQUE;
-            case LIFECYCLE_UNIT:
-            case LIFECYCLE_UNIT_IN_PROCESS:
-            case LIFECYCLE_OBJECTGROUP:
-            case LIFECYCLE_OBJECTGROUP_IN_PROCESS:
-            default:
-                return "";
-        }
-    }
-
-    private String getAliasName(final LogbookCollections collection, Integer tenantId) {
-        return collection.getName().toLowerCase() + "_" + tenantId.toString();
     }
 
     private String getMapping() throws IOException {

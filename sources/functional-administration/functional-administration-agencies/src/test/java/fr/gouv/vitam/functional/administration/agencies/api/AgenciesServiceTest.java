@@ -29,12 +29,14 @@ package fr.gouv.vitam.functional.administration.agencies.api;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import fr.gouv.vitam.common.PropertiesUtils;
+import fr.gouv.vitam.common.client.VitamClientFactory;
 import fr.gouv.vitam.common.database.builder.query.QueryHelper;
 import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
 import fr.gouv.vitam.common.database.builder.request.single.Select;
 import fr.gouv.vitam.common.database.parser.request.adapter.SingleVarNameAdapter;
 import fr.gouv.vitam.common.database.parser.request.single.SelectParserSingle;
 import fr.gouv.vitam.common.database.server.DbRequestResult;
+import fr.gouv.vitam.common.database.server.elasticsearch.ElasticsearchNode;
 import fr.gouv.vitam.common.database.server.mongodb.VitamDocument;
 import fr.gouv.vitam.common.elasticsearch.ElasticsearchRule;
 import fr.gouv.vitam.common.exception.BadRequestException;
@@ -59,6 +61,8 @@ import fr.gouv.vitam.functional.administration.common.Agencies;
 import fr.gouv.vitam.functional.administration.common.FunctionalBackupService;
 import fr.gouv.vitam.functional.administration.common.counter.VitamCounterService;
 import fr.gouv.vitam.functional.administration.common.exception.ReferentialException;
+import fr.gouv.vitam.functional.administration.common.server.ElasticsearchAccessFunctionalAdmin;
+import fr.gouv.vitam.functional.administration.common.server.FunctionalAdminCollections;
 import fr.gouv.vitam.functional.administration.common.server.MongoDbAccessAdminFactory;
 import fr.gouv.vitam.functional.administration.common.server.MongoDbAccessAdminImpl;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClient;
@@ -104,6 +108,7 @@ import static org.mockito.ArgumentMatchers.endsWith;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -169,10 +174,17 @@ public class AgenciesServiceTest {
     @BeforeClass
     public static void setUpBeforeClass() throws Exception {
         final List<MongoDbNode> nodes = new ArrayList<>();
-        nodes.add(new MongoDbNode("localhost", MongoRule.getDataBasePort()));
+        nodes.add(new MongoDbNode(MongoRule.MONGO_HOST, mongoRule.getDataBasePort()));
 
-        dbImpl = MongoDbAccessAdminFactory
-            .create(new DbConfigurationImpl(nodes, mongoRule.getMongoDatabase().getName()), Collections::emptyList);
+        dbImpl =
+            MongoDbAccessAdminFactory
+                .create(new DbConfigurationImpl(nodes, mongoRule.getMongoDatabase().getName()), Collections::emptyList);
+
+        final List<ElasticsearchNode> esNodes = new ArrayList<>();
+        esNodes.add(new ElasticsearchNode(ElasticsearchRule.HOST, ElasticsearchRule.TCP_PORT));
+        FunctionalAdminCollections.beforeTestClass(mongoRule.getMongoDatabase(), PREFIX,
+            new ElasticsearchAccessFunctionalAdmin(ElasticsearchRule.VITAM_CLUSTER, esNodes),
+            Lists.newArrayList(FunctionalAdminCollections.AGENCIES, FunctionalAdminCollections.ACCESS_CONTRACT));
 
         final List<Integer> tenants = new ArrayList<>();
         tenants.add(TENANT_ID);
@@ -182,8 +194,8 @@ public class AgenciesServiceTest {
 
     @AfterClass
     public static void tearDownAfterClass() {
-        elasticsearchRule.deleteIndexes();
-        mongoRule.handleAfterClass();
+        FunctionalAdminCollections.afterTestClass(true);
+        VitamClientFactory.resetConnections();
     }
 
     @Before
@@ -201,8 +213,9 @@ public class AgenciesServiceTest {
 
     @After
     public void afterTest() {
-        mongoRule.handleAfter();
-        elasticsearchRule.handleAfter();
+        FunctionalAdminCollections.afterTest(
+            com.google.common.collect.Lists.newArrayList(FunctionalAdminCollections.AGENCIES, FunctionalAdminCollections.ACCESS_CONTRACT));
+        reset(functionalBackupService);
     }
 
     @Test
@@ -366,7 +379,7 @@ public class AgenciesServiceTest {
     @RunWithCustomExecutor
     public void should_not_throw_exception_check_file() throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
-        Mockito.reset(functionalBackupService);
+        reset(functionalBackupService);
         LogbookOperationsClient logbookOperationsclient = mock(LogbookOperationsClient.class);
         when(logbookOperationsClientFactory.getClient()).thenReturn(logbookOperationsclient);
         when(logbookOperationsclient.selectOperation(any()))

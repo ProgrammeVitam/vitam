@@ -37,7 +37,6 @@ import java.util.List;
 import javax.ws.rs.core.Response.Status;
 
 import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.JsonNode;
 import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.VitamConfiguration;
@@ -212,7 +211,7 @@ public class UpdateUnitResourceTest {
             .post("/units/bulk").then()
             .statusCode(Status.CREATED.getStatusCode());
 
-        esClient.refreshIndex(MetadataCollections.UNIT, TENANT_ID_0);
+        esClient.refreshIndex(MetadataCollections.UNIT.getName().toLowerCase(), TENANT_ID_0);
 
         given()
             .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
@@ -221,7 +220,7 @@ public class UpdateUnitResourceTest {
             .body(JsonHandler.getFromString(BODY_TEST)).when()
             .put("/units/" + ID_UNIT).then()
             .statusCode(Status.OK.getStatusCode());
-        esClient.refreshIndex(MetadataCollections.UNIT, TENANT_ID_0);
+        esClient.refreshIndex(MetadataCollections.UNIT.getName().toLowerCase(), TENANT_ID_0);
 
         given()
             .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)

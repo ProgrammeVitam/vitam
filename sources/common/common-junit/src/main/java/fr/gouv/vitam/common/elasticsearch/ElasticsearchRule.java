@@ -28,26 +28,33 @@ package fr.gouv.vitam.common.elasticsearch;
 
 import com.google.common.collect.Sets;
 import fr.gouv.vitam.common.VitamConfiguration;
-import fr.gouv.vitam.common.exception.VitamRuntimeException;
-import org.elasticsearch.action.bulk.BulkRequestBuilder;
-import org.elasticsearch.action.bulk.BulkResponse;
-import org.elasticsearch.action.search.SearchResponse;
-import org.elasticsearch.action.support.WriteRequest;
-import org.elasticsearch.client.Client;
-import org.elasticsearch.common.settings.Settings;
-import org.elasticsearch.common.transport.TransportAddress;
+import fr.gouv.vitam.common.exception.DatabaseException;
+import fr.gouv.vitam.common.logging.VitamLogger;
+import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import org.apache.commons.collections.CollectionUtils;
+import org.apache.http.HttpHost;
+import org.elasticsearch.action.admin.indices.alias.Alias;
+import org.elasticsearch.action.bulk.BulkItemResponse;
+import org.elasticsearch.action.support.ActiveShardCount;
+import org.elasticsearch.action.support.IndicesOptions;
+import org.elasticsearch.client.RequestOptions;
+import org.elasticsearch.client.RestClient;
+import org.elasticsearch.client.RestHighLevelClient;
+import org.elasticsearch.client.indices.CreateIndexRequest;
+import org.elasticsearch.client.indices.CreateIndexResponse;
+import org.elasticsearch.client.indices.GetIndexRequest;
 import org.elasticsearch.common.unit.TimeValue;
+import org.elasticsearch.common.xcontent.XContentType;
 import org.elasticsearch.index.query.QueryBuilder;
-import org.elasticsearch.search.SearchHit;
-import org.elasticsearch.search.sort.FieldSortBuilder;
-import org.elasticsearch.search.sort.SortOrder;
-import org.elasticsearch.transport.client.PreBuiltTransportClient;
+import org.elasticsearch.index.reindex.BulkByScrollResponse;
+import org.elasticsearch.index.reindex.DeleteByQueryRequest;
+import org.elasticsearch.index.reindex.ScrollableHitSource;
 import org.junit.rules.ExternalResource;
 
-import java.net.InetAddress;
-import java.net.UnknownHostException;
+import java.io.IOException;
 import java.util.Collection;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 import static org.elasticsearch.index.query.QueryBuilders.matchAllQuery;
@@ -56,23 +63,19 @@ import static org.elasticsearch.index.query.QueryBuilders.matchAllQuery;
  *
  */
 public class ElasticsearchRule extends ExternalResource {
+    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(ElasticsearchRule.class);
 
-    public static final int TCP_PORT = 9300;
+    public static final int TCP_PORT = 9200;
+    public static String HOST = "localhost";
     public static final String VITAM_CLUSTER = "elasticsearch-data";
     private boolean clientClosed = false;
-    private TransportClient client;
+    private RestHighLevelClient client;
     private Set<String> indexesToBePurged = new HashSet<>();
 
     public ElasticsearchRule(String... indexesToBePurged) {
-        try {
-            // client = new PreBuiltTransportClient(getClientSettings()).addTransportAddress(
-            //     new TransportAddress(InetAddress.getByName("localhost"), TCP_PORT));
-            Settings settings = Settings.builder()
-                .put("cluster.name", "myClusterName").build();
-            TransportClient client = new PreBuiltTransportClient(settings);
-        } catch (final UnknownHostException e) {
-            throw new VitamRuntimeException(e);
-        }
+
+        client = new RestHighLevelClient(
+            RestClient.builder(new HttpHost(HOST, TCP_PORT)));
 
         if (null != indexesToBePurged) {
             this.indexesToBePurged = Sets.newHashSet(indexesToBePurged);
@@ -80,84 +83,131 @@ public class ElasticsearchRule extends ExternalResource {
         }
     }
 
-    private Settings getClientSettings() {
-        return Settings.builder().put("cluster.name", VITAM_CLUSTER)
-            .put("client.transport.sniff", true)
-            .put("client.transport.ping_timeout", "2s")
-            .put("transport.tcp.connect_timeout", "1s")
-            .put("thread_pool.refresh.max", VitamConfiguration.getNumberDbClientThread())
-            .put("thread_pool.search.size", VitamConfiguration.getNumberDbClientThread())
-            .put("thread_pool.search.queue_size", VitamConfiguration.getNumberEsQueue())
-            .put("thread_pool.get.queue_size", VitamConfiguration.getNumberEsQueue())
-            .build();
-    }
-
-
     @Override
     protected void after() {
         if (!clientClosed) {
-            purge(client, indexesToBePurged);
+            try {
+                purge(client, indexesToBePurged);
+            } catch (DatabaseException e) {
+                throw new RuntimeException(e);
+            }
         }
     }
 
-    private void purge(Client client, Collection<String> indexesToBePurged) {
+    private void purge(RestHighLevelClient client, Collection<String> indexesToBePurged) throws DatabaseException {
         for (String indexName : indexesToBePurged) {
-
             purge(client, indexName);
         }
     }
 
 
-    public static void purge(Client client, String indexName) {
-        if (client.admin().indices().prepareExists(indexName.toLowerCase()).get().isExists()) {
-            QueryBuilder qb = matchAllQuery();
+    public void purge(RestHighLevelClient client, String indexName) throws DatabaseException {
+        handlePurge(client, indexName.toLowerCase(), matchAllQuery());
+    }
 
-            SearchResponse scrollResp = client.prepareSearch(indexName.toLowerCase())
-                .addSort(FieldSortBuilder.DOC_FIELD_NAME, SortOrder.ASC)
-                .setScroll(new TimeValue(60000))
-                .setQuery(qb)
-                .setFetchSource(false)
-                .setSize(100).get();
+    public long handlePurge(RestHighLevelClient client, String index, QueryBuilder qb)
+        throws DatabaseException {
+        try {
+            DeleteByQueryRequest request = new DeleteByQueryRequest(index);
+            request.setConflicts("proceed");
+            request.setQuery(qb);
+            request.setBatchSize(VitamConfiguration.getMaxElasticsearchBulk());
+            request
+                .setScroll(TimeValue.timeValueMillis(VitamConfiguration.getElasticSearchScrollTimeoutInMilliseconds()));
+            request.setTimeout(TimeValue.timeValueSeconds(
+                VitamConfiguration.getElasticSearchTimeoutWaitAvailableShardsForBulkRequestInMilliseconds()));
+            request.setRefresh(true);
 
-            BulkRequestBuilder bulkRequest = client.prepareBulk();
+            BulkByScrollResponse bulkResponse = client.deleteByQuery(request, RequestOptions.DEFAULT);
 
-            do {
-                for (SearchHit hit : scrollResp.getHits().getHits()) {
-                    bulkRequest.add(client.prepareDelete(indexName.toLowerCase(), "typeunique", hit.getId()));
-                }
+            TimeValue timeTaken = bulkResponse.getTook();
+            boolean timedOut = bulkResponse.isTimedOut();
+            long totalDocs = bulkResponse.getTotal();
+            long deletedDocs = bulkResponse.getDeleted();
+            long batches = bulkResponse.getBatches();
+            long noops = bulkResponse.getNoops();
+            long versionConflicts = bulkResponse.getVersionConflicts();
+            long bulkRetries = bulkResponse.getBulkRetries();
+            long searchRetries = bulkResponse.getSearchRetries();
+            TimeValue throttledMillis = bulkResponse.getStatus().getThrottled();
+            TimeValue throttledUntilMillis = bulkResponse.getStatus().getThrottledUntil();
 
-                scrollResp =
-                    client.prepareSearchScroll(scrollResp.getScrollId()).setScroll(new TimeValue(60000)).execute()
-                        .actionGet();
-            } while (scrollResp.getHits().getHits().length != 0);
+            LOGGER.debug(
+                "Purge : timeTaken (" + timeTaken + "), timedOut (" + timedOut + "), totalDocs (" + totalDocs + ")," +
+                    " deletedDocs (" + deletedDocs + "), batches (" + batches + "), noops (" + noops +
+                    "), versionConflicts (" + versionConflicts + ")" +
+                    "bulkRetries (" + bulkRetries + "), searchRetries (" + searchRetries + "),  throttledMillis(" +
+                    throttledMillis + "), throttledUntilMillis(" + throttledUntilMillis + ")");
 
-            bulkRequest.request().setRefreshPolicy(WriteRequest.RefreshPolicy.IMMEDIATE);
-
-            if (bulkRequest.request().numberOfActions() != 0) {
-                BulkResponse bulkResponse = bulkRequest.get();
-
-                if (bulkResponse.hasFailures()) {
-                    throw new VitamRuntimeException(
-                        String.format("DatabaseException when calling purge by bulk Request %s",
-                            bulkResponse.buildFailureMessage()));
-                }
+            List<ScrollableHitSource.SearchFailure> searchFailures = bulkResponse.getSearchFailures();
+            if (CollectionUtils.isNotEmpty(searchFailures)) {
+                throw new DatabaseException("ES purge errors : in search phase");
             }
+
+            List<BulkItemResponse.Failure> bulkFailures = bulkResponse.getBulkFailures();
+            if (CollectionUtils.isNotEmpty(bulkFailures)) {
+                throw new DatabaseException("ES purge errors : in bulk phase");
+            }
+
+            LOGGER.info("Deleted : " + bulkResponse.getDeleted());
+            return bulkResponse.getDeleted();
+        } catch (IOException e) {
+            throw new DatabaseException("Purge Exception", e);
         }
     }
 
+    public boolean existsIndex(String indexName) throws IOException {
+        GetIndexRequest request = new GetIndexRequest(indexName.toLowerCase());
+        request.humanReadable(true);
+        request.includeDefaults(false);
+        request.indicesOptions(IndicesOptions.STRICT_EXPAND_OPEN);
+        return getClient().indices().exists(request, RequestOptions.DEFAULT);
+    }
 
-    public final void deleteIndex(Client client, String indexName) {
+
+    public boolean createIndex(String aliasName, String indexName, String mapping) throws IOException {
+
+        boolean existsIndex = existsIndex(indexName);
+
+        if (Boolean.TRUE.equals(existsIndex)) {
+            LOGGER.debug("Index (" + existsIndex + ") already exists");
+            return true;
+        }
+
+        CreateIndexRequest request = new CreateIndexRequest(indexName)
+            .mapping(mapping, XContentType.JSON)
+            .alias(new Alias(aliasName));
+
+        request.setTimeout(TimeValue.timeValueMillis(
+            VitamConfiguration.getElasticSearchTimeoutWaitAvailableShardsForBulkRequestInMilliseconds()));
+        request.setMasterTimeout(TimeValue.timeValueMinutes(1));
+        request.waitForActiveShards(ActiveShardCount.DEFAULT);
+
+        CreateIndexResponse response =
+            getClient().indices().create(request, RequestOptions.DEFAULT);
+
+        boolean acknowledged = response.isAcknowledged();
+        boolean shardsAcknowledged = response.isShardsAcknowledged();
+
+        LOGGER.debug(
+            "Alias (" + aliasName + ") and index (" + indexName + ") create response acknowledged (" + acknowledged +
+                ") and shardsAcknowledged (" + shardsAcknowledged + ") ");
+
+        return acknowledged && shardsAcknowledged;
+    }
+
+    public final void deleteIndex(RestHighLevelClient client, String indexName) throws DatabaseException {
         purge(client, indexName);
     }
 
-    public void deleteIndexesWithoutClose() {
+    public void deleteIndexesWithoutClose() throws DatabaseException {
         for (String indexName : indexesToBePurged) {
             deleteIndex(client, indexName);
         }
         indexesToBePurged = new HashSet<>();
     }
 
-    public void deleteIndexes() {
+    public void deleteIndexes() throws DatabaseException {
         for (String indexName : indexesToBePurged) {
             deleteIndex(client, indexName);
         }
@@ -183,7 +233,12 @@ public class ElasticsearchRule extends ExternalResource {
     }
 
     private void after(Set<String> indexesToBePurged) {
-        purge(client, indexesToBePurged);
+        try {
+            purge(client, indexesToBePurged);
+        } catch (DatabaseException e) {
+            LOGGER.error(e);
+            throw new RuntimeException(e);
+        }
     }
 
     /**
@@ -209,12 +264,16 @@ public class ElasticsearchRule extends ExternalResource {
      *
      * @return the client
      */
-    public Client getClient() {
+    public RestHighLevelClient getClient() {
         return client;
     }
 
     public void close() {
-        client.close();
+        try {
+            client.close();
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
         clientClosed = true;
     }
 }

@@ -65,10 +65,6 @@ public class GlobalDatasDb extends GlobalDatasParser {
      */
     public static final int LIMIT_MDB_NEW_INDEX = 10000;
     /**
-     * In Debug mode : shall we print the request
-     */
-    public static final boolean PRINT_REQUEST = false;
-    /**
      * Shall new entries insertion in the ElasticSearch index be in blocking mode
      */
     public static final boolean BLOCKING = false;

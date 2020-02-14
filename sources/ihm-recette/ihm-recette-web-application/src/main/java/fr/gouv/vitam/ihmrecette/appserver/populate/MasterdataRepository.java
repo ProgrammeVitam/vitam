@@ -31,17 +31,12 @@ import com.mongodb.client.FindIterable;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
 import fr.gouv.vitam.common.StringUtils;
-import fr.gouv.vitam.common.database.collections.VitamCollection;
+import fr.gouv.vitam.common.exception.DatabaseException;
 import fr.gouv.vitam.common.guid.GUIDFactory;
-import fr.gouv.vitam.common.json.BsonHelper;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import org.bson.Document;
 import org.bson.conversions.Bson;
-import org.elasticsearch.action.bulk.BulkRequestBuilder;
-import org.elasticsearch.action.bulk.BulkResponse;
-import org.elasticsearch.client.Client;
-import org.elasticsearch.common.xcontent.XContentType;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -69,7 +64,6 @@ public class MasterdataRepository {
     private static final String RULE_CATEGORY = "RULE_CATEGORY";
 
     private MongoDatabase metadataDb;
-    private Client transportClient;
 
     private Map<VitamDataType, MongoCollection<Document>> mongoCollections = new HashMap<>();
 
@@ -77,21 +71,20 @@ public class MasterdataRepository {
 
     private static String AGENCY_TEMPLATE;
     private static String ACCESSION_REGISTER_SUMMARY_TEMPLATE;
-    
+
     private static String ACCESS_CONTRACTS_TEMPLATE;
 
-    public MasterdataRepository(MongoDatabase metadataDb, Client transportClient) {
+    public MasterdataRepository(MongoDatabase metadataDb) {
         this.metadataDb = metadataDb;
-        this.transportClient = transportClient;
         try {
             AGENCY_TEMPLATE = StringUtils.getStringFromInputStream(
-                    MasterdataRepository.class.getResourceAsStream("/agency-template.json"));
+                MasterdataRepository.class.getResourceAsStream("/agency-template.json"));
             ACCESSION_REGISTER_SUMMARY_TEMPLATE = StringUtils.getStringFromInputStream(
-                    MasterdataRepository.class.getResourceAsStream("/accession-register-summary.json"));
+                MasterdataRepository.class.getResourceAsStream("/accession-register-summary.json"));
             RULE_TEMPLATE = StringUtils.getStringFromInputStream(
-                    MasterdataRepository.class.getResourceAsStream("/rule-template.json"));
+                MasterdataRepository.class.getResourceAsStream("/rule-template.json"));
             ACCESS_CONTRACTS_TEMPLATE = StringUtils.getStringFromInputStream(
-                    MasterdataRepository.class.getResourceAsStream("/access-contract-template.json"));
+                MasterdataRepository.class.getResourceAsStream("/access-contract-template.json"));
         } catch (IOException e) {
             LOGGER.error("Fail to init referential template");
         }
@@ -101,7 +94,7 @@ public class MasterdataRepository {
 
     /**
      * Find a document by key-value
-     * 
+     *
      * @param tenant
      * @param identifier
      * @return Document if found
@@ -139,7 +132,8 @@ public class MasterdataRepository {
         conditions.add(eq(PopulateService.TENANT, tenant));
         conditions.add(eq("OriginatingAgency", identifier));
 
-        FindIterable<Document> models = this.getCollection(VitamDataType.ACCESSION_REGISTER_SUMMARY).find(and(conditions));
+        FindIterable<Document> models =
+            this.getCollection(VitamDataType.ACCESSION_REGISTER_SUMMARY).find(and(conditions));
 
         Document first = models.first();
         if (first == null) {
@@ -152,10 +146,10 @@ public class MasterdataRepository {
             throw new RuntimeException(e);
         }
     }
-    
+
     /**
      * Find a document by key-value
-     * 
+     *
      * @param tenant
      * @param ruleId
      * @return Document if found
@@ -207,15 +201,15 @@ public class MasterdataRepository {
 
     /**
      * import agency by name
-     * 
+     *
      * @param agencyName
      * @param tenantId
      */
     public void importAgency(String agencyName, int tenantId) {
         String agencyToImport = AGENCY_TEMPLATE
-                .replace(GUID, GUIDFactory.newEventGUID(tenantId).toString())
-                .replace(TENANT_ID, tenantId + "")
-                .replace(AGENCY_NAME, agencyName);
+            .replace(GUID, GUIDFactory.newEventGUID(tenantId).toString())
+            .replace(TENANT_ID, tenantId + "")
+            .replace(AGENCY_NAME, agencyName);
 
         Document agency = Document.parse(agencyToImport);
         try {
@@ -231,11 +225,11 @@ public class MasterdataRepository {
 
     public void createAccessionRegisterSummary(int tenantId, String agencyName, int objectCount, int totalObjectSize) {
         String accessionRegisterSummaryToInsert = ACCESSION_REGISTER_SUMMARY_TEMPLATE
-                .replace(GUID, GUIDFactory.newEventGUID(tenantId).toString())
-                .replace(TENANT_ID, Integer.toString(tenantId))
-                .replace(AGENCY_NAME, agencyName)
-                .replace(TOTAL_DOCUMENTS, Integer.toString(objectCount))
-                .replace(TOTAL_OBJECTS_SIZE, Integer.toString(totalObjectSize));
+            .replace(GUID, GUIDFactory.newEventGUID(tenantId).toString())
+            .replace(TENANT_ID, Integer.toString(tenantId))
+            .replace(AGENCY_NAME, agencyName)
+            .replace(TOTAL_DOCUMENTS, Integer.toString(objectCount))
+            .replace(TOTAL_OBJECTS_SIZE, Integer.toString(totalObjectSize));
 
         Document accessionRegisterSummary = Document.parse(accessionRegisterSummaryToInsert);
         try {
@@ -250,16 +244,16 @@ public class MasterdataRepository {
 
     /**
      * import rule by id
-     * 
+     *
      * @param ruleId
      * @param tenantId
      */
     public void importRule(String ruleId, int tenantId) {
         String ruleToImport = RULE_TEMPLATE
-                .replace(GUID, GUIDFactory.newEventGUID(tenantId).toString())
-                .replace(TENANT_ID, tenantId + "")
-                .replace(RULE_ID, ruleId)
-                .replace(RULE_CATEGORY, getRuleCategoryByRuleId(ruleId));
+            .replace(GUID, GUIDFactory.newEventGUID(tenantId).toString())
+            .replace(TENANT_ID, tenantId + "")
+            .replace(RULE_ID, ruleId)
+            .replace(RULE_CATEGORY, getRuleCategoryByRuleId(ruleId));
 
         Document rule = Document.parse(ruleToImport);
         try {
@@ -274,15 +268,15 @@ public class MasterdataRepository {
 
     /**
      * import access contract by id
-     * 
+     *
      * @param contractId
      * @param tenantId
      */
     public void importAccessContract(String contractId, int tenantId) {
         String ruleToImport = ACCESS_CONTRACTS_TEMPLATE
-                .replace(GUID, GUIDFactory.newEventGUID(tenantId).toString())
-                .replace(TENANT_ID, tenantId + "")
-                .replace(CONTRACT_NAME, contractId);
+            .replace(GUID, GUIDFactory.newEventGUID(tenantId).toString())
+            .replace(TENANT_ID, tenantId + "")
+            .replace(CONTRACT_NAME, contractId);
 
         Document rule = Document.parse(ruleToImport);
         this.getCollection(VitamDataType.ACCESS_CONTRACT).insertOne(rule);
@@ -294,25 +288,24 @@ public class MasterdataRepository {
     /**
      * index a list of documents
      *
-     * @param documents     to index
+     * @param documents to index
      * @param vitamDataType of the documents
      */
     private void indexDocuments(List<Document> documents, VitamDataType vitamDataType) {
-        BulkRequestBuilder bulkRequestBuilder = transportClient.prepareBulk();
-
-        documents.forEach(document -> {
-            String id = (String) document.remove("_id");
-            String source = BsonHelper.stringify(document);
-            bulkRequestBuilder
-                    .add(transportClient.prepareIndex(vitamDataType.getIndexName(), VitamCollection.TYPEUNIQUE, id)
-                            .setSource(source, XContentType.JSON));
-        });
-
-        BulkResponse bulkRes = bulkRequestBuilder.execute().actionGet();
-
-        LOGGER.info("{}", bulkRes.getItems().length);
-        if (bulkRes.hasFailures()) {
-            LOGGER.error("##### Bulk Request failure with error: " + bulkRes.buildFailureMessage());
+        try {
+            switch (vitamDataType) {
+                case ACCESS_CONTRACT:
+                case RULES:
+                case AGENCIES:
+                case ACCESSION_REGISTER_SUMMARY:
+                    vitamDataType.getElasticsearchAccess()
+                        .indexEntries(vitamDataType.getIndexName(), null, documents);
+                    break;
+                default:
+                    // Do nothing
+            }
+        } catch (DatabaseException e) {
+            throw new RuntimeException(e);
         }
     }
 
@@ -322,12 +315,14 @@ public class MasterdataRepository {
     private void initCollections() {
         MongoCollection<Document> ruleCollection = metadataDb.getCollection(VitamDataType.RULES.getCollectionName());
         mongoCollections.put(VitamDataType.RULES, ruleCollection);
-        MongoCollection<Document> agencyCollection = metadataDb.getCollection(VitamDataType.AGENCIES.getCollectionName());
+        MongoCollection<Document> agencyCollection =
+            metadataDb.getCollection(VitamDataType.AGENCIES.getCollectionName());
         mongoCollections.put(VitamDataType.AGENCIES, agencyCollection);
         MongoCollection<Document> AccessionRegisterSummary = metadataDb.getCollection(
-                VitamDataType.ACCESSION_REGISTER_SUMMARY.getCollectionName());
+            VitamDataType.ACCESSION_REGISTER_SUMMARY.getCollectionName());
         mongoCollections.put(VitamDataType.ACCESSION_REGISTER_SUMMARY, AccessionRegisterSummary);
-        MongoCollection<Document> contractCollection = metadataDb.getCollection(VitamDataType.ACCESS_CONTRACT.getCollectionName());
+        MongoCollection<Document> contractCollection =
+            metadataDb.getCollection(VitamDataType.ACCESS_CONTRACT.getCollectionName());
         mongoCollections.put(VitamDataType.ACCESS_CONTRACT, contractCollection);
     }
 
@@ -339,7 +334,7 @@ public class MasterdataRepository {
      */
     private MongoCollection<Document> getCollection(VitamDataType vitamDataType) {
         return mongoCollections.getOrDefault(vitamDataType,
-                metadataDb.getCollection(VitamDataType.RULES.getCollectionName()));
+            metadataDb.getCollection(VitamDataType.RULES.getCollectionName()));
     }
 
 

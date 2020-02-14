@@ -43,7 +43,6 @@ public class GlobalDatasDbTest {
         assertEquals(10001, GlobalDatasDb.limitES);
         assertEquals(10000, GlobalDatasDb.LIMIT_ES_NEW_INDEX);
         assertEquals(10000, GlobalDatasDb.LIMIT_MDB_NEW_INDEX);
-        assertEquals(false, GlobalDatasDb.PRINT_REQUEST);
         assertEquals(false, GlobalDatasDb.BLOCKING);
         assertEquals(true, GlobalDatasDb.SAVERESULT);
         assertEquals(false, GlobalDatasDb.USELRUCACHE);

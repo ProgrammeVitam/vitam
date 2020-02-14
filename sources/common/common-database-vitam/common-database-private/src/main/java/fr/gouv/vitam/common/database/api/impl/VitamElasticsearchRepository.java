@@ -34,7 +34,8 @@ import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.database.api.VitamRepository;
 import fr.gouv.vitam.common.database.api.VitamRepositoryStatus;
-import fr.gouv.vitam.common.database.collections.VitamCollection;
+import fr.gouv.vitam.common.database.builder.request.configuration.GlobalDatas;
+import fr.gouv.vitam.common.database.server.elasticsearch.model.ElasticsearchCollections;
 import fr.gouv.vitam.common.database.server.mongodb.VitamDocument;
 import fr.gouv.vitam.common.exception.DatabaseException;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
@@ -42,25 +43,42 @@ import fr.gouv.vitam.common.json.BsonHelper;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
-import fr.gouv.vitam.common.server.HeaderIdHelper;
+import org.apache.commons.collections.CollectionUtils;
 import org.bson.Document;
 import org.bson.conversions.Bson;
-import org.elasticsearch.action.bulk.BulkRequestBuilder;
+import org.elasticsearch.ElasticsearchException;
+import org.elasticsearch.action.DocWriteRequest;
+import org.elasticsearch.action.DocWriteResponse;
+import org.elasticsearch.action.bulk.BulkItemResponse;
+import org.elasticsearch.action.bulk.BulkRequest;
 import org.elasticsearch.action.bulk.BulkResponse;
+import org.elasticsearch.action.delete.DeleteRequest;
 import org.elasticsearch.action.delete.DeleteResponse;
+import org.elasticsearch.action.get.GetRequest;
 import org.elasticsearch.action.get.GetResponse;
+import org.elasticsearch.action.index.IndexRequest;
 import org.elasticsearch.action.index.IndexResponse;
+import org.elasticsearch.action.search.SearchRequest;
 import org.elasticsearch.action.search.SearchResponse;
+import org.elasticsearch.action.search.SearchType;
 import org.elasticsearch.action.support.WriteRequest;
-import org.elasticsearch.client.Client;
+import org.elasticsearch.action.support.replication.ReplicationResponse;
+import org.elasticsearch.client.RequestOptions;
+import org.elasticsearch.client.RestHighLevelClient;
 import org.elasticsearch.common.unit.TimeValue;
 import org.elasticsearch.common.xcontent.XContentType;
 import org.elasticsearch.index.query.QueryBuilder;
+import org.elasticsearch.index.reindex.BulkByScrollResponse;
+import org.elasticsearch.index.reindex.DeleteByQueryRequest;
+import org.elasticsearch.index.reindex.ScrollableHitSource;
 import org.elasticsearch.rest.RestStatus;
 import org.elasticsearch.search.SearchHit;
+import org.elasticsearch.search.builder.SearchSourceBuilder;
+import org.elasticsearch.search.fetch.subphase.FetchSourceContext;
 import org.elasticsearch.search.sort.FieldSortBuilder;
 import org.elasticsearch.search.sort.SortOrder;
 
+import java.io.IOException;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
@@ -90,7 +108,7 @@ public class VitamElasticsearchRepository implements VitamRepository {
     private static final String NOT_IMPLEMENTED_YET = "Not implemented yet";
 
 
-    private Client client;
+    private RestHighLevelClient client;
     private String indexName;
     private boolean indexByTenant;
 
@@ -101,7 +119,7 @@ public class VitamElasticsearchRepository implements VitamRepository {
      * @param indexName the name of the index
      * @param indexByTenant specifies if the index is for a specific tenant or not
      */
-    public VitamElasticsearchRepository(Client client, String indexName, boolean indexByTenant) {
+    public VitamElasticsearchRepository(RestHighLevelClient client, String indexName, boolean indexByTenant) {
         this.client = client;
         this.indexName = indexName;
         this.indexByTenant = indexByTenant;
@@ -126,23 +144,28 @@ public class VitamElasticsearchRepository implements VitamRepository {
             if (indexByTenant) {
                 index = index + "_" + tenant;
             }
-
-            IndexResponse response = client.prepareIndex(index, VitamCollection.getTypeunique(), id)
+            IndexRequest request = new IndexRequest(index)
+                .id(id)
+                .source(source, XContentType.JSON)
                 .setRefreshPolicy(WriteRequest.RefreshPolicy.IMMEDIATE)
-                .setSource(source, XContentType.JSON).get();
+                .timeout(TimeValue.timeValueSeconds(1)) // TODO: 03/02/2020 config
+                .opType(DocWriteRequest.OpType.INDEX);
 
-            RestStatus status = response.status();
-
-            switch (status) {
-                case OK:
-                    return VitamRepositoryStatus.UPDATED;
-                case CREATED:
-                    return VitamRepositoryStatus.CREATED;
-                default:
-                    String result = response.getResult().getLowercase();
-                    LOGGER.error(String.format("Insert Documents Exception caused by : %s", result));
-                    throw new DatabaseException("Insert Document Exception: " + result);
+            IndexResponse indexResponse;
+            try {
+                indexResponse = client.index(request, RequestOptions.DEFAULT);
+            } catch (IOException e) {
+                throw new DatabaseException(e);
             }
+
+            if (indexResponse.getResult() == DocWriteResponse.Result.CREATED) {
+                return VitamRepositoryStatus.CREATED;
+            } else if (indexResponse.getResult() == DocWriteResponse.Result.UPDATED) {
+                return VitamRepositoryStatus.UPDATED;
+            }
+
+            return handleFailures(indexResponse);
+
         } finally {
             internalDocument.put(VitamDocument.ID, id);
             if (Objects.nonNull(score)) {
@@ -151,16 +174,49 @@ public class VitamElasticsearchRepository implements VitamRepository {
         }
     }
 
+    private VitamRepositoryStatus handleFailures(DocWriteResponse indexResponse) throws DatabaseException {
+        String error = null;
+        ReplicationResponse.ShardInfo shardInfo = indexResponse.getShardInfo();
+        if (shardInfo.getTotal() != shardInfo.getSuccessful()) {
+            error = String
+                .format("Exception occurred : total shards %s, successful shard.", shardInfo.getTotal(),
+                    shardInfo.getSuccessful());
+        }
+        if (shardInfo.getFailed() > 0) {
+            StringBuilder failures = new StringBuilder();
+            for (ReplicationResponse.ShardInfo.Failure failure : shardInfo.getFailures()) {
+                String reason = failure.reason();
+                failures.append(reason).append(" ; ");
+            }
+            error = String.format("Exception occurred caused by : %s", failures.toString());
+        }
+
+
+        if (null == error) {
+            error =
+                String.format("Insert Documents Exception caused by : %s", indexResponse.getResult().toString());
+        }
+
+        LOGGER.error(error);
+        throw new DatabaseException(error);
+    }
+
     @Override
     public void save(List<Document> documents) throws DatabaseException {
         ParametersChecker.checkParameter(ALL_PARAMS_REQUIRED, documents);
-        BulkRequestBuilder bulkRequest = client.prepareBulk();
+
+        if (documents.isEmpty()) {
+            return;
+        }
+
+        BulkRequest bulkRequest = new BulkRequest();
 
         documents.forEach(document -> {
             Document internalDocument = new Document(document);
             Integer tenant = internalDocument.getInteger(VitamDocument.TENANT_ID);
             String id = (String) internalDocument.remove(VitamDocument.ID);
             internalDocument.remove(VitamDocument.SCORE);
+            internalDocument.remove("_unused");
 
             final String source = BsonHelper.stringify(internalDocument);
 
@@ -169,102 +225,69 @@ public class VitamElasticsearchRepository implements VitamRepository {
                 index = index + "_" + tenant;
             }
 
-            bulkRequest.add(client.prepareIndex(index, VitamCollection.getTypeunique(), id)
-                .setSource(source, XContentType.JSON));
+            bulkRequest.add(new IndexRequest(index)
+                .id(id)
+                .source(source, XContentType.JSON));
         });
 
         if (bulkRequest.numberOfActions() != 0) {
-            bulkRequest.request().setRefreshPolicy(WriteRequest.RefreshPolicy.IMMEDIATE);
-
-            BulkResponse bulkResponse = bulkRequest.get();
+            final BulkResponse bulkResponse;
+            try {
+                bulkRequest.setRefreshPolicy(WriteRequest.RefreshPolicy.IMMEDIATE);
+                bulkResponse = client.bulk(bulkRequest, RequestOptions.DEFAULT);
+            } catch (IOException e) {
+                throw new DatabaseException(e);
+            }
 
             if (bulkResponse.hasFailures()) {
                 LOGGER.error(BULK_REQ_FAIL_WITH_ERROR + bulkResponse.buildFailureMessage());
                 throw new DatabaseException(bulkResponse.buildFailureMessage());
             }
         }
-
     }
 
-    // TODO : This should be generic, but for now, we have a specific code to handle unit
-
-    /**
-     * Reindex Unit documents
-     *
-     * @param documents documents to be reindexed
-     * @throws DatabaseException if the ES insert was in error
-     */
-    public void saveUnit(List<Document> documents) throws DatabaseException {
+    public void save(ElasticsearchCollections elasticsearchCollections, List<Document> documents)
+        throws DatabaseException {
         ParametersChecker.checkParameter(ALL_PARAMS_REQUIRED, documents);
-        BulkRequestBuilder bulkRequest = client.prepareBulk();
-        documents.forEach(vitamDocument -> {
-            Integer tenantId = HeaderIdHelper.getTenantId();
-            LOGGER.debug("insertToElasticsearch");
-            String id = (String) vitamDocument.remove(VitamDocument.ID);
-            vitamDocument.remove(VitamDocument.SCORE);
-            vitamDocument.remove("_unused");
+        BulkRequest bulkRequest = new BulkRequest();
+
+        documents.forEach(document -> {
+            Document internalDocument = new Document(document);
+            Integer tenant = internalDocument.getInteger(VitamDocument.TENANT_ID);
+            String id = (String) internalDocument.remove(VitamDocument.ID);
+            internalDocument.remove(VitamDocument.SCORE);
+            internalDocument.remove("_unused");
 
             String index = indexName;
             if (indexByTenant) {
-                index = index + "_" + tenantId;
+                index = index + "_" + tenant;
             }
 
-            final String esJson = BsonHelper.stringify(vitamDocument);
-            vitamDocument.clear();
+            switch (elasticsearchCollections) {
+                case OPERATION:
+                    transformDataForElastic(internalDocument);
+                    break;
+            }
 
-            bulkRequest.add(client.prepareIndex(index, VitamCollection.getTypeunique(), id)
-                .setSource(esJson, XContentType.JSON));
+            final String source = BsonHelper.stringify(internalDocument);
+
+            bulkRequest.add(new IndexRequest(index)
+                .id(id)
+                .source(source, XContentType.JSON));
         });
 
         if (bulkRequest.numberOfActions() != 0) {
-            bulkRequest.request().setRefreshPolicy(WriteRequest.RefreshPolicy.IMMEDIATE);
-
-            BulkResponse bulkResponse = bulkRequest.get();
+            final BulkResponse bulkResponse;
+            try {
+                bulkRequest.setRefreshPolicy(WriteRequest.RefreshPolicy.IMMEDIATE);
+                bulkResponse = client.bulk(bulkRequest, RequestOptions.DEFAULT);
+            } catch (IOException e) {
+                throw new DatabaseException(e);
+            }
 
             if (bulkResponse.hasFailures()) {
                 LOGGER.error(BULK_REQ_FAIL_WITH_ERROR + bulkResponse.buildFailureMessage());
-                throw new DatabaseException("Index Elasticsearch has errors");
-            }
-        }
-    }
-
-    // TODO : This should be generic, but for now, we have a specific code to handle logbook
-
-    /**
-     * Reindex Logbook documents
-     *
-     * @param documents documents to be reindexed
-     * @throws DatabaseException if the ES insert was in error
-     */
-    public void saveLogbook(List<Document> documents) throws DatabaseException {
-        ParametersChecker.checkParameter(ALL_PARAMS_REQUIRED, documents);
-        BulkRequestBuilder bulkRequest = client.prepareBulk();
-        documents.forEach(vitamDocument -> {
-            Integer tenantId = HeaderIdHelper.getTenantId();
-            LOGGER.debug("insertToElasticsearch");
-            String id = (String) vitamDocument.remove(VitamDocument.ID);
-            String index = indexName;
-            if (indexByTenant) {
-                index = index + "_" + tenantId;
-            }
-
-            transformDataForElastic(vitamDocument);
-
-            final String esJson = BsonHelper.stringify(vitamDocument);
-            vitamDocument.clear();
-
-            bulkRequest.add(client.prepareIndex(index, VitamCollection.getTypeunique(), id)
-                .setSource(esJson, XContentType.JSON));
-        });
-
-        if (bulkRequest.numberOfActions() != 0) {
-            bulkRequest.request().setRefreshPolicy(WriteRequest.RefreshPolicy.IMMEDIATE);
-
-            BulkResponse bulkResponse = bulkRequest.get();
-
-            if (bulkResponse.hasFailures()) {
-                LOGGER.error(BULK_REQ_FAIL_WITH_ERROR + bulkResponse.buildFailureMessage());
-                throw new DatabaseException("Index Elasticsearch has errors");
+                throw new DatabaseException(bulkResponse.buildFailureMessage());
             }
         }
     }
@@ -280,6 +303,7 @@ public class VitamElasticsearchRepository implements VitamRepository {
                 vitamDocument.put(EV_DET_DATA, evDetData);
             } catch (InvalidParseOperationException e) {
                 LOGGER.warn("EvDetData is not a json compatible field", e);
+                throw new RuntimeException(e);
             }
         }
         if (vitamDocument.get(AG_ID_EXT) != null) {
@@ -334,7 +358,6 @@ public class VitamElasticsearchRepository implements VitamRepository {
         }
         vitamDocument.remove(EVENTS);
         vitamDocument.put(EVENTS, eventDocuments);
-
     }
 
     @Override
@@ -363,14 +386,31 @@ public class VitamElasticsearchRepository implements VitamRepository {
             index = index + "_" + tenant;
         }
 
-        DeleteResponse response = client.prepareDelete(index, VitamCollection.getTypeunique(), id).get();
-        switch (response.status()) {
-            case OK:
+        DeleteRequest request = new DeleteRequest(index)
+            .id(id)
+            .timeout(TimeValue.timeValueMinutes(2))
+            .setRefreshPolicy(WriteRequest.RefreshPolicy.IMMEDIATE);
+        DeleteResponse deleteResponse;
+        try {
+            deleteResponse = client.delete(request, RequestOptions.DEFAULT);
+        } catch (IOException | ElasticsearchException e) {
+            if (e instanceof ElasticsearchException &&
+                ((ElasticsearchException) e).status() == RestStatus.NOT_FOUND) {
+                //Nothing to do
+                return;
+            }
+
+            throw new DatabaseException(e);
+        }
+
+
+        DocWriteResponse.Result result = deleteResponse.getResult();
+        switch (result) {
+            case DELETED:
+            case NOT_FOUND:
                 break;
             default:
-                String result = response.getResult().getLowercase();
-                LOGGER.error(String.format("Delete Documents Exception caused by : %s", result));
-                throw new DatabaseException("Delete Document Exception: " + result);
+                handleFailures(deleteResponse);
         }
 
     }
@@ -396,81 +436,67 @@ public class VitamElasticsearchRepository implements VitamRepository {
 
         QueryBuilder qb = termQuery(VitamDocument.TENANT_ID, tenant);
 
-        SearchResponse scrollResp = client.prepareSearch(index)
-            .setFetchSource(false)
-            .addSort(FieldSortBuilder.DOC_FIELD_NAME, SortOrder.ASC)
-            .setScroll(new TimeValue(60000))
-            .setQuery(qb)
-            .setSize(100).get();
+        return handlePurge(client, index, qb);
+    }
 
-        BulkRequestBuilder bulkRequest = client.prepareBulk();
+    public static long handlePurge(RestHighLevelClient client, String index, QueryBuilder qb)
+        throws DatabaseException {
+        try {
+            DeleteByQueryRequest request = new DeleteByQueryRequest(index);
+            request.setConflicts("proceed");
+            request.setQuery(qb);
+            request.setBatchSize(VitamConfiguration.getMaxElasticsearchBulk());
+            request
+                .setScroll(TimeValue.timeValueMillis(VitamConfiguration.getElasticSearchScrollTimeoutInMilliseconds()));
+            request.setTimeout(TimeValue.timeValueMillis(
+                VitamConfiguration.getElasticSearchTimeoutWaitAvailableShardsForBulkRequestInMilliseconds()));
+            request.setRefresh(true);
 
-        do {
-            for (SearchHit hit : scrollResp.getHits().getHits()) {
-                bulkRequest.add(client.prepareDelete(index, VitamCollection.getTypeunique(), hit.getId()));
+            BulkByScrollResponse bulkResponse =
+                client.deleteByQuery(request, RequestOptions.DEFAULT);
+
+            TimeValue timeTaken = bulkResponse.getTook();
+            boolean timedOut = bulkResponse.isTimedOut();
+            long totalDocs = bulkResponse.getTotal();
+            long deletedDocs = bulkResponse.getDeleted();
+            long batches = bulkResponse.getBatches();
+            long noops = bulkResponse.getNoops();
+            long versionConflicts = bulkResponse.getVersionConflicts();
+            long bulkRetries = bulkResponse.getBulkRetries();
+            long searchRetries = bulkResponse.getSearchRetries();
+            TimeValue throttledMillis = bulkResponse.getStatus().getThrottled();
+            TimeValue throttledUntilMillis =
+                bulkResponse.getStatus().getThrottledUntil();
+
+            LOGGER.debug(
+                "Purge : timeTaken (" + timeTaken + "), timedOut (" + timedOut + "), totalDocs (" + totalDocs + ")," +
+                    " deletedDocs (" + deletedDocs + "), batches (" + batches + "), noops (" + noops +
+                    "), versionConflicts (" + versionConflicts + ")" +
+                    "bulkRetries (" + bulkRetries + "), searchRetries (" + searchRetries + "),  throttledMillis(" +
+                    throttledMillis + "), throttledUntilMillis(" + throttledUntilMillis + ")");
+
+            List<ScrollableHitSource.SearchFailure> searchFailures = bulkResponse.getSearchFailures();
+            if (CollectionUtils.isNotEmpty(searchFailures)) {
+                throw new DatabaseException("ES purge errors : in search phase");
             }
 
-            scrollResp = client.prepareSearchScroll(scrollResp.getScrollId()).setScroll(new TimeValue(60000)).execute()
-                .actionGet();
-        } while (scrollResp.getHits().getHits().length != 0);
-
-        bulkRequest.request().setRefreshPolicy(WriteRequest.RefreshPolicy.IMMEDIATE);
-
-        if (bulkRequest.numberOfActions() != 0) {
-            BulkResponse bulkResponse = bulkRequest.get();
-
-            if (bulkResponse.hasFailures()) {
-                LOGGER.error(BULK_REQ_FAIL_WITH_ERROR + bulkResponse.buildFailureMessage());
-                throw new DatabaseException(String.format("DatabaseException when calling purge by bulk Request %s",
-                    bulkResponse.buildFailureMessage()));
+            List<BulkItemResponse.Failure> bulkFailures = bulkResponse.getBulkFailures();
+            if (CollectionUtils.isNotEmpty(bulkFailures)) {
+                throw new DatabaseException("ES purge errors : in bulk phase");
             }
 
-            return bulkResponse.getItems().length;
+            return bulkResponse.getDeleted();
+        } catch (IOException e) {
+            throw new DatabaseException("Purge Exception", e);
         }
-
-        return 0;
     }
 
 
     @Override
     public long purge() throws DatabaseException {
         String index = indexName;
-
         QueryBuilder qb = matchAllQuery();
-
-        SearchResponse scrollResp = client.prepareSearch(index)
-            .setFetchSource(false)
-            .addSort(FieldSortBuilder.DOC_FIELD_NAME, SortOrder.ASC)
-            .setScroll(new TimeValue(60000))
-            .setQuery(qb)
-            .setSize(100).get();
-
-        BulkRequestBuilder bulkRequest = client.prepareBulk();
-
-        do {
-            for (SearchHit hit : scrollResp.getHits().getHits()) {
-                bulkRequest.add(client.prepareDelete(index, VitamCollection.getTypeunique(), hit.getId()));
-            }
-
-            scrollResp = client.prepareSearchScroll(scrollResp.getScrollId()).setScroll(new TimeValue(60000)).execute()
-                .actionGet();
-        } while (scrollResp.getHits().getHits().length != 0);
-
-        bulkRequest.request().setRefreshPolicy(WriteRequest.RefreshPolicy.IMMEDIATE);
-
-        if (bulkRequest.numberOfActions() != 0) {
-            BulkResponse bulkResponse = bulkRequest.get();
-
-            if (bulkResponse.hasFailures()) {
-                LOGGER.error(BULK_REQ_FAIL_WITH_ERROR + bulkResponse.buildFailureMessage());
-                throw new DatabaseException(String.format("DatabaseException when calling purge by bulk Request %s",
-                    bulkResponse.buildFailureMessage()));
-            }
-
-            return bulkResponse.getItems().length;
-        }
-
-        return 0;
+        return handlePurge(client, index, qb);
     }
 
     @Override
@@ -482,9 +508,15 @@ public class VitamElasticsearchRepository implements VitamRepository {
             index = index + "_" + tenant;
         }
 
-
-        GetResponse response = client.prepareGet(index, VitamCollection.getTypeunique(), id).get();
-
+        GetRequest request = new GetRequest(index)
+            .id(id)
+            .fetchSourceContext(FetchSourceContext.FETCH_SOURCE);
+        GetResponse response;
+        try {
+            response = client.get(request, RequestOptions.DEFAULT);
+        } catch (IOException e) {
+            throw new DatabaseException(e);
+        }
         if (response.isExists()) {
             try {
                 return Optional.of(JsonHandler.getFromString(response.getSourceAsString(), Document.class));
@@ -501,15 +533,34 @@ public class VitamElasticsearchRepository implements VitamRepository {
         throws DatabaseException {
         ParametersChecker.checkParameter(ALL_PARAMS_REQUIRED, tenant);
 
-        String index = indexName;
-        if (indexByTenant) {
-            index = index + "_" + tenant;
-        }
-        QueryBuilder qb = boolQuery().must(termQuery(IDENTIFIER, identifier))
-            .must(termQuery(VitamDocument.TENANT_ID, tenant));
+        try {
+            String index = indexName;
+            if (indexByTenant) {
+                index = index + "_" + tenant;
+            }
+            QueryBuilder qb = boolQuery().must(termQuery(IDENTIFIER, identifier))
+                .must(termQuery(VitamDocument.TENANT_ID, tenant));
 
-        SearchResponse search = client.prepareSearch(index)
-            .setQuery(qb).get();
+            return handleSearch(index, qb);
+        } catch (IOException e) {
+            throw new DatabaseException("Search by identifier and tenant exception", e);
+        }
+
+    }
+
+    private Optional<Document> handleSearch(String index, QueryBuilder qb) throws IOException, DatabaseException {
+        SearchSourceBuilder searchSourceBuilder =
+            SearchSourceBuilder.searchSource().query(qb).size(GlobalDatas.LIMIT_LOAD)
+                .sort(FieldSortBuilder.DOC_FIELD_NAME, SortOrder.ASC);
+
+        SearchRequest searchRequest = new SearchRequest()
+            .indices(index)
+            .scroll(new TimeValue(60000))
+            .searchType(SearchType.DFS_QUERY_THEN_FETCH)
+            .source(searchSourceBuilder);
+
+        SearchResponse search = client.search(searchRequest, RequestOptions.DEFAULT);
+
         for (SearchHit hit : search.getHits().getHits()) {
             try {
                 return Optional.of(JsonHandler.getFromString(hit.getSourceAsString(), Document.class));
@@ -519,7 +570,6 @@ public class VitamElasticsearchRepository implements VitamRepository {
         }
 
         return Optional.empty();
-
     }
 
     @Override
@@ -530,17 +580,12 @@ public class VitamElasticsearchRepository implements VitamRepository {
         String index = indexName;
 
 
-        SearchResponse search = client.prepareSearch(index)
-            .setQuery(termQuery(IDENTIFIER, identifier)).get();
-        for (SearchHit hit : search.getHits().getHits()) {
-            try {
-                return Optional.of(JsonHandler.getFromString(hit.getSourceAsString(), Document.class));
-            } catch (InvalidParseOperationException e) {
-                throw new DatabaseException(e);
-            }
+        try {
+            return handleSearch(index, termQuery(IDENTIFIER, identifier));
+        } catch (IOException e) {
+            throw new DatabaseException("Search by identifier exception", e);
         }
 
-        return Optional.empty();
     }
 
     @Override
@@ -581,22 +626,28 @@ public class VitamElasticsearchRepository implements VitamRepository {
 
         while (idIterator.hasNext()) {
 
-            BulkRequestBuilder bulkRequest = client.prepareBulk();
+            BulkRequest bulkRequest = new BulkRequest();
             for (String id : idIterator.next()) {
-                bulkRequest.add(client.prepareDelete(index,
-                    VitamCollection.getTypeunique(), id));
+                bulkRequest.add(new DeleteRequest(index.toLowerCase(), id));
             }
 
             WriteRequest.RefreshPolicy refreshPolicy = idIterator.hasNext() ?
                 WriteRequest.RefreshPolicy.NONE :
                 WriteRequest.RefreshPolicy.IMMEDIATE;
 
+            bulkRequest.setRefreshPolicy(refreshPolicy);
+
             if (bulkRequest.numberOfActions() != 0) {
-                final BulkResponse bulkResponse =
-                    bulkRequest.setRefreshPolicy(refreshPolicy).execute().actionGet();
+                BulkResponse bulkResponse;
+                try {
+                    bulkResponse = client.bulk(bulkRequest, RequestOptions.DEFAULT);
+                } catch (IOException e) {
+                    throw new DatabaseException("Bulk delete exception", e);
+                }
 
                 if (bulkResponse.hasFailures()) {
                     throw new DatabaseException("ES delete in error: " + bulkResponse.buildFailureMessage());
+
                 }
             }
         }

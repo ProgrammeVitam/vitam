@@ -61,6 +61,7 @@ import fr.gouv.vitam.common.database.server.mongodb.VitamDocument;
 import fr.gouv.vitam.common.elasticsearch.ElasticsearchRule;
 import fr.gouv.vitam.common.exception.AccessUnauthorizedException;
 import fr.gouv.vitam.common.exception.BadRequestException;
+import fr.gouv.vitam.common.exception.DatabaseException;
 import fr.gouv.vitam.common.exception.InternalServerException;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.NoWritingPermissionException;
@@ -150,6 +151,7 @@ import okhttp3.OkHttpClient;
 import org.apache.commons.collections4.ListUtils;
 import org.apache.commons.collections4.SetUtils;
 import org.apache.commons.io.IOUtils;
+import org.apache.lucene.search.TotalHits;
 import org.assertj.core.util.Lists;
 import org.bson.Document;
 import org.elasticsearch.index.query.QueryBuilders;
@@ -1433,7 +1435,8 @@ public class EndToEndEliminationAndTransferReplyIT extends VitamRuleRunner {
         VitamThreadUtils.getVitamSession().setRequestId(dummyPreservationOperationGuid);
 
         try (MetaDataClient metaDataClient = MetaDataClientFactory.getInstance().getClient();
-            LogbookOperationsClient logbookOperationsClient = LogbookOperationsClientFactory.getInstance().getClient()) {
+            LogbookOperationsClient logbookOperationsClient = LogbookOperationsClientFactory.getInstance()
+                .getClient()) {
 
             String message = VitamLogbookMessages.getLabelOp(PRESERVATION.getEventType() + ".STARTED") + " : " +
                 GUIDReader.getGUID(dummyPreservationOperationGuid);
@@ -1517,7 +1520,7 @@ public class EndToEndEliminationAndTransferReplyIT extends VitamRuleRunner {
         checkIngestCleanupReport(ingestCleanupActionOperationGuid, ingestOperationGuid,
             getIds(ingestedUnits).stream().collect(Collectors.toMap(i -> i, i -> StatusCode.OK)),
             ingestedGots.getResults().stream().collect(Collectors.toMap(
-                this::getId, i-> getId(i).equals(objectGroupId) ? StatusCode.WARNING : StatusCode.OK)),
+                this::getId, i -> getId(i).equals(objectGroupId) ? StatusCode.WARNING : StatusCode.OK)),
             ingestedGots.getResults().stream().collect(toMap(this::getId, this::getBinaryObjectIds))
         );
     }
@@ -1863,10 +1866,7 @@ public class EndToEndEliminationAndTransferReplyIT extends VitamRuleRunner {
         List<String> expectedNonDeletableUnitIds, List<String> expectedDeletedObjectGroups,
         List<String> expectedDetachedObjectGroups,
         AccessInternalClient accessInternalClient)
-        throws StorageNotFoundClientException, StorageServerClientException, IOException, StorageNotFoundException,
-        BadRequestException, InvalidParseOperationException, AccessUnauthorizedException,
-        AccessInternalClientServerException, AccessInternalClientNotFoundException, InvalidCreateOperationException,
-        LogbookClientException {
+        throws Exception {
 
         // Check remaining units / object groups
         final RequestResponseOK<JsonNode> remainingUnits = selectUnitsByOpi(ingestOperationGuid, accessInternalClient);
@@ -2411,14 +2411,14 @@ public class EndToEndEliminationAndTransferReplyIT extends VitamRuleRunner {
     }
 
     private void checkUnitExistence(String unitId, boolean shouldExist)
-        throws StorageNotFoundClientException, StorageServerClientException {
+        throws Exception {
         checkDocumentExistence(MetadataCollections.UNIT.getVitamCollection(), unitId, shouldExist);
         checkDocumentExistence(LogbookCollections.LIFECYCLE_UNIT.getVitamCollection(), unitId, shouldExist);
         checkFileInStorage(DataCategory.UNIT, unitId + ".json", shouldExist);
     }
 
     private void checkObjectGroupExistence(String gotId, boolean shouldExist)
-        throws StorageNotFoundClientException, StorageServerClientException {
+        throws Exception {
         checkDocumentExistence(MetadataCollections.OBJECTGROUP.getVitamCollection(), gotId, shouldExist);
         checkDocumentExistence(LogbookCollections.LIFECYCLE_OBJECTGROUP.getVitamCollection(), gotId, shouldExist);
         checkFileInStorage(DataCategory.OBJECTGROUP, gotId + ".json", shouldExist);
@@ -2443,20 +2443,18 @@ public class EndToEndEliminationAndTransferReplyIT extends VitamRuleRunner {
     }
 
     private void checkDocumentExistence(VitamCollection collection, String documentId,
-        boolean shouldExist) {
+        boolean shouldExist) throws DatabaseException, BadRequestException {
 
         int expectedHits = shouldExist ? 1 : 0;
 
         // Logbook LFCs are not persisted in ES
         if (collection.getEsClient() != null) {
-            long totalHits = collection.getEsClient().getClient()
-                .prepareSearch(getAliasName(collection, VitamThreadUtils.getVitamSession().getTenantId()))
-                .setTypes(VitamCollection.getTypeunique())
-                .setQuery(QueryBuilders.termQuery(VitamDocument.ID, documentId))
-                .get()
+            TotalHits totalHits = collection.getEsClient()
+                .search(collection.getName().toLowerCase(), VitamThreadUtils.getVitamSession().getTenantId(),
+                    QueryBuilders.termQuery(VitamDocument.ID, documentId))
                 .getHits()
                 .getTotalHits();
-            assertThat(totalHits).isEqualTo(expectedHits);
+            assertThat(totalHits.value).isEqualTo(expectedHits);
         }
 
         assertThat(collection.getCollection().find(Filters.eq(VitamDocument.ID, documentId))

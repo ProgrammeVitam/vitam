@@ -52,11 +52,6 @@ public class LogbookOperation extends VitamDocument<LogbookOperation> {
     private static final long serialVersionUID = -8343195329673741173L;
 
     /**
-     * ES Mapping
-     */
-    public static final String TYPEUNIQUE = "typeunique";
-
-    /**
      * Events
      */
     public static final String EVENTS = "events";

@@ -46,6 +46,7 @@ import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.functional.administration.common.server.AccessionRegisterSymbolic;
 import fr.gouv.vitam.functional.administration.common.server.ElasticsearchAccessFunctionalAdmin;
 import fr.gouv.vitam.functional.administration.common.server.FunctionalAdminCollections;
+import fr.gouv.vitam.metadata.api.exception.MetaDataExecutionException;
 import fr.gouv.vitam.metadata.api.model.ObjectGroupPerOriginatingAgency;
 import fr.gouv.vitam.metadata.core.MetaDataImpl;
 import org.assertj.core.util.Lists;
@@ -394,7 +395,8 @@ public class MongoDbAccessMetadataImplTest {
     }
 
     @Test
-    public void should_fill_all_accession_register_symbolic_information() throws IOException {
+    public void should_fill_all_accession_register_symbolic_information() throws IOException,
+        MetaDataExecutionException {
         // Given
         ElasticsearchAccessMetadata client = mock(ElasticsearchAccessMetadata.class);
         when(client.getClient()).thenReturn(esClient.getClient());
@@ -437,7 +439,7 @@ public class MongoDbAccessMetadataImplTest {
 
     @Test
     public void should_subtracts_sp_count_to_sis_in_order_to_have_number_of_symbolic_link()
-        throws IOException, InvalidParseOperationException {
+        throws IOException, InvalidParseOperationException, MetaDataExecutionException {
         // Given
         ElasticsearchAccessMetadata client = mock(ElasticsearchAccessMetadata.class);
         when(client.getClient()).thenReturn(esClient.getClient());
@@ -480,7 +482,7 @@ public class MongoDbAccessMetadataImplTest {
 
     @Test
     public void should_add_number_of_binaries_and_binaries_total_size_to_related_accession_register_when_object_group_counted()
-        throws IOException {
+        throws IOException, MetaDataExecutionException {
         // Given
         ElasticsearchAccessMetadata client = mock(ElasticsearchAccessMetadata.class);
         when(client.getClient()).thenReturn(esClient.getClient());
@@ -528,7 +530,7 @@ public class MongoDbAccessMetadataImplTest {
 
     @Test
     public void should_add_zero_binaries_and_zero_binaries_total_size_to_related_accession_register_when_object_group_NOT_counted()
-        throws IOException {
+        throws IOException, MetaDataExecutionException {
         // Given
         ElasticsearchAccessMetadata client = mock(ElasticsearchAccessMetadata.class);
         when(client.getClient()).thenReturn(esClient.getClient());
@@ -576,7 +578,7 @@ public class MongoDbAccessMetadataImplTest {
 
     @Test
     public void should_NOT_created_new_accession_register_with_object_group_information_when_no_related_accession_register()
-        throws IOException {
+        throws IOException, MetaDataExecutionException {
         // Given
         ElasticsearchAccessMetadata client = mock(ElasticsearchAccessMetadata.class);
         when(client.getClient()).thenReturn(esClient.getClient());

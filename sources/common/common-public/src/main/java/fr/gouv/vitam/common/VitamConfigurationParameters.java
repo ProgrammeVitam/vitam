@@ -355,6 +355,8 @@ public class VitamConfigurationParameters {
     private Integer httpClientRandomWaitingSleep;
 
     private Integer elasticSearchScrollTimeoutInMilliseconds;
+    private Integer elasticSearchTimeoutWaitAvailableShardsForBulkRequestInMilliseconds;
+
     private Integer elasticSearchScrollLimit;
 
     /**
@@ -1431,6 +1433,16 @@ public class VitamConfigurationParameters {
 
     public void setElasticSearchScrollTimeoutInMilliseconds(Integer elasticSearchScrollTimeoutInMilliseconds) {
         this.elasticSearchScrollTimeoutInMilliseconds = elasticSearchScrollTimeoutInMilliseconds;
+    }
+
+    public Integer getElasticSearchTimeoutWaitAvailableShardsForBulkRequestInMilliseconds() {
+        return elasticSearchTimeoutWaitAvailableShardsForBulkRequestInMilliseconds;
+    }
+
+    public void setElasticSearchTimeoutWaitAvailableShardsForBulkRequestInMilliseconds(
+        Integer elasticSearchTimeoutWaitAvailableShardsForBulkRequestInMilliseconds) {
+        this.elasticSearchTimeoutWaitAvailableShardsForBulkRequestInMilliseconds =
+            elasticSearchTimeoutWaitAvailableShardsForBulkRequestInMilliseconds;
     }
 
     public Integer getElasticSearchScrollLimit() {

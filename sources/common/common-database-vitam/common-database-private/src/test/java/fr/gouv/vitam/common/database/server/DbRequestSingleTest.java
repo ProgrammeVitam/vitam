@@ -120,7 +120,7 @@ public class DbRequestSingleTest {
     }
 
     @AfterClass
-    public static void afterClass() {
+    public static void afterClass() throws DatabaseException {
         mongoRule.handleAfterClass();
         elasticsearchRule.deleteIndexes();
         esClient.close();

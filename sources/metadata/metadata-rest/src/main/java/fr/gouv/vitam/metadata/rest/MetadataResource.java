@@ -335,6 +335,16 @@ public class MetadataResource extends ApplicationStatusResource {
                     .setMessage(status.getReasonPhrase())
                     .setDescription(e.getMessage()))
                 .build();
+        } catch (Exception e) {
+            Status status = INTERNAL_SERVER_ERROR;
+            LOGGER.error(e);
+            return Response.status(status)
+                .entity(new VitamError(status.name()).setHttpCode(status.getStatusCode())
+                    .setContext(ACCESS)
+                    .setState(CODE_VITAM)
+                    .setMessage(status.getReasonPhrase())
+                    .setDescription(e.getMessage()))
+                .build();
         }
     }
 
@@ -424,6 +434,16 @@ public class MetadataResource extends ApplicationStatusResource {
             return Response.status(OK).entity(response).build();
         } catch (IllegalArgumentException | VitamThreadAccessException e) {
             Status status = Status.PRECONDITION_FAILED;
+            LOGGER.error(e);
+            return Response.status(status)
+                .entity(new VitamError(status.name()).setHttpCode(status.getStatusCode())
+                    .setContext(ACCESS)
+                    .setState(CODE_VITAM)
+                    .setMessage(status.getReasonPhrase())
+                    .setDescription(e.getMessage()))
+                .build();
+        } catch (Exception e) {
+            Status status = INTERNAL_SERVER_ERROR;
             LOGGER.error(e);
             return Response.status(status)
                 .entity(new VitamError(status.name()).setHttpCode(status.getStatusCode())
@@ -853,14 +873,20 @@ public class MetadataResource extends ApplicationStatusResource {
     @GET
     public Response selectAccessionRegisterOnObjectGroupByOperationId(@PathParam("operationId") String operationId) {
         Integer tenantId = VitamThreadUtils.getVitamSession().getTenantId();
-        List<ObjectGroupPerOriginatingAgency> documents =
-            metaData.selectOwnAccessionRegisterOnObjectGroupByOperationId(tenantId, operationId);
+        try {
+            List<ObjectGroupPerOriginatingAgency> documents =
+                metaData.selectOwnAccessionRegisterOnObjectGroupByOperationId(tenantId, operationId);
 
-        RequestResponseOK<ObjectGroupPerOriginatingAgency> responseOK = new RequestResponseOK<>();
-        responseOK.setHttpCode(Status.OK.getStatusCode());
-        responseOK.addAllResults(documents);
+            RequestResponseOK<ObjectGroupPerOriginatingAgency> responseOK = new RequestResponseOK<>();
+            responseOK.setHttpCode(Status.OK.getStatusCode());
+            responseOK.addAllResults(documents);
 
-        return responseOK.toResponse();
+            return responseOK.toResponse();
+        } catch (MetaDataExecutionException e) {
+            VitamError error = VitamCodeHelper.toVitamError(VitamCode.METADATA_INDEXATION_ERROR,
+                e.getMessage());
+            return Response.status(INTERNAL_SERVER_ERROR).entity(error).build();
+        }
     }
 
     /**

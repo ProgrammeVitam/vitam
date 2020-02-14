@@ -99,7 +99,6 @@ public class ReindexationResourceTest {
 
     private static final String ADMIN_MANAGEMENT_CONF = "functional-administration-test.conf";
     private static final String TEST_ES_MAPPING_JSON = "test-es-mapping.json";
-    private static final String TYPEUNIQUE = VitamCollection.getTypeunique();
 
     private static JunitHelper junitHelper = JunitHelper.getInstance();
     private static int serverPort;
@@ -267,16 +266,12 @@ public class ReindexationResourceTest {
         String mapping = ElasticsearchUtil
             .transferJsonToMapping(new FileInputStream(PropertiesUtils.findFile(TEST_ES_MAPPING_JSON)));
         FunctionalAdminCollections.ACCESS_CONTRACT.getEsClient().createIndexAndAliasIfAliasNotExists(
-            FunctionalAdminCollections.CONTEXT.getVitamCollection().getName().toLowerCase(), mapping, TYPEUNIQUE, null);
+            FunctionalAdminCollections.CONTEXT.getVitamCollection().getName().toLowerCase(), mapping, null);
         String newIndex = FunctionalAdminCollections.ACCESS_CONTRACT.getEsClient().createIndexWithoutAlias(
-            FunctionalAdminCollections.CONTEXT.getVitamCollection().getName().toLowerCase(), mapping, TYPEUNIQUE, null);
+            FunctionalAdminCollections.CONTEXT.getVitamCollection().getName().toLowerCase(), mapping, null);
 
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
-        /*
-         * stream = PropertiesUtils.getResourceAsStream("switch_indexes.json"); JsonNode switchOrder =
-         * JsonHandler.getFromInputStream(stream);
-         */
-
+        
         List<SwitchIndexParameters> listSwitches = new ArrayList<>();
         SwitchIndexParameters switchParams = new SwitchIndexParameters();
         switchParams.setAlias(FunctionalAdminCollections.CONTEXT.getVitamCollection().getName().toLowerCase());

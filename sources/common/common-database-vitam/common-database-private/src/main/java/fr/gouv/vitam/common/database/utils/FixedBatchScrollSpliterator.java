@@ -48,7 +48,6 @@ public class FixedBatchScrollSpliterator<T> extends AbstractSpliterator<List<T>>
     private Function<SelectMultiQuery, RequestResponse<List<T>>> repository;
     private int scrollTimeout;
     private int limit;
-    private int batchSize;
     private long size;
     private DatabaseCursor hits;
     private RequestResponseOK<List<T>> requestResponse;
@@ -73,7 +72,6 @@ public class FixedBatchScrollSpliterator<T> extends AbstractSpliterator<List<T>>
         this.limit = limit;
         this.size = 0;
         this.scrollId = "START";
-        this.batchSize = batchSize;
     }
 
     @Override

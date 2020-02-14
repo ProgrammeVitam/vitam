@@ -89,7 +89,6 @@ import fr.gouv.vitam.metadata.api.exception.MetaDataExecutionException;
 import fr.gouv.vitam.metadata.api.exception.MetaDataNotFoundException;
 import fr.gouv.vitam.metadata.api.model.BulkUnitInsertEntry;
 import fr.gouv.vitam.metadata.api.model.BulkUnitInsertRequest;
-import fr.gouv.vitam.metadata.core.database.configuration.GlobalDatasDb;
 import fr.gouv.vitam.metadata.core.graph.GraphLoader;
 import fr.gouv.vitam.metadata.core.model.UpdatedDocument;
 import fr.gouv.vitam.metadata.core.trigger.FieldHistoryManager;
@@ -176,7 +175,8 @@ public class DbRequest {
      * @param ruleActions the list of ruleAction (by category)
      */
     public UpdatedDocument execRuleRequest(final String documentId, final RuleActions ruleActions,
-        Map<String, DurationData> bindRuleToDuration, OntologyValidator ontologyValidator, UnitValidator unitValidator, List<OntologyModel> ontologyModels)
+        Map<String, DurationData> bindRuleToDuration, OntologyValidator ontologyValidator, UnitValidator unitValidator,
+        List<OntologyModel> ontologyModels)
         throws InvalidParseOperationException, MetaDataExecutionException, InvalidCreateOperationException,
         MetaDataNotFoundException, MetadataValidationException {
 
@@ -201,7 +201,8 @@ public class DbRequest {
                 LOGGER.debug("DEBUG update {} to update to {}", jsonDocument,
                     JsonHandler.prettyPrint(ruleActions));
             }
-            DynamicParserTokens parserTokens = new DynamicParserTokens(metadataCollections.getVitamDescriptionResolver(), ontologyModels);
+            DynamicParserTokens parserTokens =
+                new DynamicParserTokens(metadataCollections.getVitamDescriptionResolver(), ontologyModels);
             final MongoDbInMemory mongoInMemory = new MongoDbInMemory(jsonDocument,
                 parserTokens);
 
@@ -294,13 +295,15 @@ public class DbRequest {
             roots = checkObjectGroupStartupRoots(requestParser);
         }
 
-        DynamicParserTokens parserTokens = new DynamicParserTokens(metadataCollections.getVitamDescriptionResolver(), ontologies);
+        DynamicParserTokens parserTokens =
+            new DynamicParserTokens(metadataCollections.getVitamDescriptionResolver(), ontologies);
 
         Result<MetadataDocument<?>> result = roots;
         int rank = 0;
         // if roots is empty, check if first query gives a non empty roots (empty query allowed for insert)
         if (result.getCurrentIds().isEmpty() && maxQuery > 0) {
-            final Result<MetadataDocument<?>> newResult = executeQuery(requestParser, requestToMongodb, rank, result, parserTokens);
+            final Result<MetadataDocument<?>> newResult =
+                executeQuery(requestParser, requestToMongodb, rank, result, parserTokens);
 
             if (newResult != null && !newResult.getCurrentIds().isEmpty() && !newResult.isError()) {
                 result = newResult;
@@ -320,7 +323,8 @@ public class DbRequest {
         }
         // Stops if no result (empty)
         for (; !result.getCurrentIds().isEmpty() && rank < maxQuery; rank++) {
-            final Result<MetadataDocument<?>> newResult = executeQuery(requestParser, requestToMongodb, rank, result, parserTokens);
+            final Result<MetadataDocument<?>> newResult =
+                executeQuery(requestParser, requestToMongodb, rank, result, parserTokens);
             if (newResult == null) {
                 LOGGER.debug(
                     NO_RESULT_AT_RANK + rank + FROM + requestParser + WHERE_PREVIOUS_IS + result);
@@ -372,23 +376,20 @@ public class DbRequest {
                 result = newResult;
             }
         }
-        if (GlobalDatasDb.PRINT_REQUEST) {
-            LOGGER.debug("Results: {}", result);
-        }
+        LOGGER.debug("Results: {}", result);
         return result;
     }
 
     public UpdatedDocument execUpdateRequest(final RequestParserMultiple requestParser, String documentId,
-        MetadataCollections metadataCollection, OntologyValidator ontologyValidator, UnitValidator unitValidator, List<OntologyModel> ontologyModels)
+        MetadataCollections metadataCollection, OntologyValidator ontologyValidator, UnitValidator unitValidator,
+        List<OntologyModel> ontologyModels)
         throws MetaDataExecutionException, InvalidParseOperationException, MetaDataNotFoundException,
         MetadataValidationException {
 
         final UpdatedDocument result =
             updateDocumentWithRetries(documentId, requestParser, metadataCollection,
                 ontologyValidator, unitValidator, ontologyModels);
-        if (GlobalDatasDb.PRINT_REQUEST) {
-            LOGGER.debug("Results: {}", result);
-        }
+        LOGGER.debug("Results: {}", result);
         return result;
     }
 
@@ -487,9 +488,8 @@ public class DbRequest {
             offset = requestToMongodb.getFinalOffset();
         }
 
-        if (GlobalDatasDb.PRINT_REQUEST && LOGGER.isDebugEnabled()) {
-            LOGGER.debug("Rank: " + rank + "\n\tPrevious: " + previous + "\n\tRequest: " + realQuery.getCurrentQuery());
-        }
+        LOGGER.debug("Rank: " + rank + "\n\tPrevious: " + previous + "\n\tRequest: " + realQuery.getCurrentQuery());
+
         final QUERY type = realQuery.getQUERY();
         if (type == QUERY.PATH) {
             // Check if path is compatible with previous
@@ -567,7 +567,8 @@ public class DbRequest {
      */
     protected Result<MetadataDocument<?>> exactDepthUnitQuery(Query realQuery, Result<MetadataDocument<?>> previous,
         int exactDepth, Integer tenantId, final List<SortBuilder> sorts, final int offset, final int limit,
-        final List<AggregationBuilder> facets, final String scrollId, final Integer scrollTimeout, DynamicParserTokens parserTokens)
+        final List<AggregationBuilder> facets, final String scrollId, final Integer scrollTimeout,
+        DynamicParserTokens parserTokens)
         throws InvalidParseOperationException, MetaDataExecutionException, BadRequestException {
         // ES only
         final BoolQueryBuilder roots =
@@ -584,17 +585,14 @@ public class DbRequest {
             .filter(QueryBuilders.termQuery(MetadataDocument.TENANT_ID, tenantId))
             .filter(QueryBuilders.termQuery(Unit.UNITUPS + "." + exactDepth, previous.getCurrentIds()));
 
-        if (GlobalDatasDb.PRINT_REQUEST) {
-            LOGGER.debug("Req1LevelMD: {}", query);
-        }
+        LOGGER.debug("Req1LevelMD: {}", query);
 
         final Result<MetadataDocument<?>> result =
-            metadataCollections.getEsClient().search(metadataCollections, tenantId,
-                VitamCollection.getTypeunique(), query, sorts, offset, limit, facets, scrollId, scrollTimeout);
+            metadataCollections.getEsClient()
+                .search(metadataCollections, tenantId, query, sorts, offset, limit, facets, scrollId, scrollTimeout);
 
-        if (GlobalDatasDb.PRINT_REQUEST) {
-            LOGGER.warn("UnitExact: {}", result);
-        }
+        LOGGER.warn("UnitExact: {}", result);
+
         return result;
     }
 
@@ -616,7 +614,8 @@ public class DbRequest {
      */
     protected Result<MetadataDocument<?>> relativeDepthUnitQuery(Query realQuery, Result<MetadataDocument<?>> previous,
         int relativeDepth, Integer tenantId, final List<SortBuilder> sorts, final int offset,
-        final int limit, final List<AggregationBuilder> facets, final String scrollId, final Integer scrollTimeout, DynamicParserTokens parserTokens)
+        final int limit, final List<AggregationBuilder> facets, final String scrollId, final Integer scrollTimeout,
+        DynamicParserTokens parserTokens)
         throws InvalidParseOperationException, MetaDataExecutionException, BadRequestException {
         // ES only
         QueryBuilder roots;
@@ -649,17 +648,15 @@ public class DbRequest {
 
         query.filter(QueryBuilders.termQuery(MetadataDocument.TENANT_ID, tenantId));
 
-        if (GlobalDatasDb.PRINT_REQUEST) {
-            LOGGER.debug("Req1LevelMD: {}", query);
-        }
+        LOGGER.debug("Req1LevelMD: {}", query);
+
 
         final Result<MetadataDocument<?>> result =
-            MetadataCollections.UNIT.getEsClient().search(MetadataCollections.UNIT, tenantId,
-                VitamCollection.getTypeunique(), query, sorts, offset, limit, facets, scrollId, scrollTimeout);
+            MetadataCollections.UNIT.getEsClient()
+                .search(MetadataCollections.UNIT, tenantId, query, sorts, offset, limit, facets, scrollId,
+                    scrollTimeout);
 
-        if (GlobalDatasDb.PRINT_REQUEST) {
-            LOGGER.debug("UnitRelative: {}", result);
-        }
+        LOGGER.debug("UnitRelative: {}", result);
 
         return result;
     }
@@ -724,10 +721,12 @@ public class DbRequest {
      */
     protected Result<MetadataDocument<?>> sameDepthUnitQuery(Query realQuery, Result<MetadataDocument<?>> previous,
         Integer tenantId, final List<SortBuilder> sorts, final int offset, final int limit,
-        final List<AggregationBuilder> facets, final String scrollId, final Integer scrollTimeout, DynamicParserTokens parserTokens)
+        final List<AggregationBuilder> facets, final String scrollId, final Integer scrollTimeout,
+        DynamicParserTokens parserTokens)
         throws InvalidParseOperationException, MetaDataExecutionException, BadRequestException {
         // ES
-        final QueryBuilder query = QueryToElasticsearch.getCommand(realQuery, new MongoDbVarNameAdapter(), parserTokens);
+        final QueryBuilder query =
+            QueryToElasticsearch.getCommand(realQuery, new MongoDbVarNameAdapter(), parserTokens);
         QueryBuilder finalQuery;
         LOGGER.debug("DEBUG prev {} RealQuery {}", previous.getCurrentIds(), realQuery);
         if (previous.getCurrentIds().isEmpty()) {
@@ -743,8 +742,9 @@ public class DbRequest {
         }
 
         LOGGER.debug(QUERY2 + "{}", finalQuery);
-        return MetadataCollections.UNIT.getEsClient().search(MetadataCollections.UNIT, tenantId,
-            VitamCollection.getTypeunique(), finalQuery, sorts, offset, limit, facets, scrollId, scrollTimeout);
+        return MetadataCollections.UNIT.getEsClient()
+            .search(MetadataCollections.UNIT, tenantId, finalQuery, sorts, offset, limit, facets, scrollId,
+                scrollTimeout);
     }
 
     /**
@@ -763,10 +763,12 @@ public class DbRequest {
      */
     protected Result<MetadataDocument<?>> objectGroupQuery(Query realQuery, Result<MetadataDocument<?>> previous,
         Integer tenantId, final List<SortBuilder> sorts, final int offset, final int limit,
-        final String scrollId, final Integer scrollTimeout, final List<AggregationBuilder> facets, DynamicParserTokens parserTokens)
+        final String scrollId, final Integer scrollTimeout, final List<AggregationBuilder> facets,
+        DynamicParserTokens parserTokens)
         throws InvalidParseOperationException, MetaDataExecutionException, BadRequestException {
         // ES
-        final QueryBuilder query = QueryToElasticsearch.getCommand(realQuery, new MongoDbVarNameAdapter(), parserTokens);
+        final QueryBuilder query =
+            QueryToElasticsearch.getCommand(realQuery, new MongoDbVarNameAdapter(), parserTokens);
         QueryBuilder finalQuery;
         if (previous.getCurrentIds().isEmpty()) {
             finalQuery = query;
@@ -786,8 +788,9 @@ public class DbRequest {
         }
 
         LOGGER.debug(QUERY2 + "{}", finalQuery);
-        return MetadataCollections.OBJECTGROUP.getEsClient().search(MetadataCollections.OBJECTGROUP, tenantId,
-            VitamCollection.getTypeunique(), finalQuery, sorts, offset, limit, facets, scrollId, scrollTimeout);
+        return MetadataCollections.OBJECTGROUP.getEsClient()
+            .search(MetadataCollections.OBJECTGROUP, tenantId, finalQuery, sorts, offset, limit, facets, scrollId,
+                scrollTimeout);
     }
 
     /**
@@ -917,7 +920,8 @@ public class DbRequest {
 
     private UpdatedDocument updateDocumentWithRetries(String documentId,
         RequestParserMultiple requestParser, MetadataCollections metadataCollection,
-        OntologyValidator ontologyValidator, UnitValidator unitValidator, List<OntologyModel> ontologyModels) throws InvalidParseOperationException, MetaDataExecutionException,
+        OntologyValidator ontologyValidator, UnitValidator unitValidator, List<OntologyModel> ontologyModels)
+        throws InvalidParseOperationException, MetaDataExecutionException,
         MetaDataNotFoundException, MetadataValidationException {
         final Integer tenantId = ParameterHelper.getTenantParameter();
 
@@ -943,7 +947,8 @@ public class DbRequest {
                 return new UpdatedDocument(documentId, jsonDocument, jsonDocument);
             }
 
-            DynamicParserTokens parserTokens = new DynamicParserTokens(metadataCollection.getVitamDescriptionResolver(), ontologyModels);
+            DynamicParserTokens parserTokens =
+                new DynamicParserTokens(metadataCollection.getVitamDescriptionResolver(), ontologyModels);
             final MongoDbInMemory mongoInMemory = new MongoDbInMemory(jsonDocument, parserTokens);
             final ObjectNode updatedJsonDocument = (ObjectNode) mongoInMemory.getUpdateJson(requestParser);
 
@@ -998,8 +1003,10 @@ public class DbRequest {
         throw new MetaDataExecutionException("Can not modify document " + documentId);
     }
 
-    private boolean noChangesAndOpsAlreadyContainingOperation(RequestParserMultiple requestParser, MetadataDocument<?> document) {
-        Optional<Action> actionWithOp = requestParser.getRequest().getActions().stream().filter(a -> !a.getCurrentAction().at(JSON_POINTER_TO_OPS).isMissingNode()).findFirst();
+    private boolean noChangesAndOpsAlreadyContainingOperation(RequestParserMultiple requestParser,
+        MetadataDocument<?> document) {
+        Optional<Action> actionWithOp = requestParser.getRequest().getActions().stream()
+            .filter(a -> !a.getCurrentAction().at(JSON_POINTER_TO_OPS).isMissingNode()).findFirst();
         if (!actionWithOp.isPresent()) {
             return false;
         }
@@ -1204,7 +1211,7 @@ public class DbRequest {
      * @throws MetaDataNotFoundException when metadata not found exception
      */
     public void execInsertUnitRequests(BulkUnitInsertRequest request)
-        throws MetaDataExecutionException, MetaDataNotFoundException{
+        throws MetaDataExecutionException, MetaDataNotFoundException {
 
         LOGGER.debug("Exec db insert unit request: %s", request);
 
