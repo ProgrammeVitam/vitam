@@ -28,11 +28,11 @@ package fr.gouv.vitam.common.elasticsearch;
 
 import com.google.common.collect.Sets;
 import fr.gouv.vitam.common.VitamConfiguration;
-import fr.gouv.vitam.common.exception.DatabaseException;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.http.HttpHost;
+import org.elasticsearch.ElasticsearchException;
 import org.elasticsearch.action.admin.indices.alias.Alias;
 import org.elasticsearch.action.bulk.BulkItemResponse;
 import org.elasticsearch.action.support.ActiveShardCount;
@@ -65,7 +65,7 @@ import static org.elasticsearch.index.query.QueryBuilders.matchAllQuery;
 public class ElasticsearchRule extends ExternalResource {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(ElasticsearchRule.class);
 
-    public static final int TCP_PORT = 9200;
+    public static final int PORT = 9200;
     public static String HOST = "localhost";
     public static final String VITAM_CLUSTER = "elasticsearch-data";
     private boolean clientClosed = false;
@@ -75,7 +75,7 @@ public class ElasticsearchRule extends ExternalResource {
     public ElasticsearchRule(String... indexesToBePurged) {
 
         client = new RestHighLevelClient(
-            RestClient.builder(new HttpHost(HOST, TCP_PORT)));
+            RestClient.builder(new HttpHost(HOST, PORT)));
 
         if (null != indexesToBePurged) {
             this.indexesToBePurged = Sets.newHashSet(indexesToBePurged);
@@ -86,27 +86,22 @@ public class ElasticsearchRule extends ExternalResource {
     @Override
     protected void after() {
         if (!clientClosed) {
-            try {
-                purge(client, indexesToBePurged);
-            } catch (DatabaseException e) {
-                throw new RuntimeException(e);
-            }
+            purge(client, indexesToBePurged);
         }
     }
 
-    private void purge(RestHighLevelClient client, Collection<String> indexesToBePurged) throws DatabaseException {
+    private void purge(RestHighLevelClient client, Collection<String> indexesToBePurged) {
         for (String indexName : indexesToBePurged) {
             purge(client, indexName);
         }
     }
 
 
-    public void purge(RestHighLevelClient client, String indexName) throws DatabaseException {
+    public void purge(RestHighLevelClient client, String indexName) {
         handlePurge(client, indexName.toLowerCase(), matchAllQuery());
     }
 
-    public long handlePurge(RestHighLevelClient client, String index, QueryBuilder qb)
-        throws DatabaseException {
+    public long handlePurge(RestHighLevelClient client, String index, QueryBuilder qb) {
         try {
             DeleteByQueryRequest request = new DeleteByQueryRequest(index);
             request.setConflicts("proceed");
@@ -114,8 +109,8 @@ public class ElasticsearchRule extends ExternalResource {
             request.setBatchSize(VitamConfiguration.getMaxElasticsearchBulk());
             request
                 .setScroll(TimeValue.timeValueMillis(VitamConfiguration.getElasticSearchScrollTimeoutInMilliseconds()));
-            request.setTimeout(TimeValue.timeValueSeconds(
-                VitamConfiguration.getElasticSearchTimeoutWaitAvailableShardsForBulkRequestInMilliseconds()));
+            request.setTimeout(TimeValue.timeValueMillis(
+                VitamConfiguration.getElasticSearchTimeoutWaitRequestInMilliseconds()));
             request.setRefresh(true);
 
             BulkByScrollResponse bulkResponse = client.deleteByQuery(request, RequestOptions.DEFAULT);
@@ -141,18 +136,18 @@ public class ElasticsearchRule extends ExternalResource {
 
             List<ScrollableHitSource.SearchFailure> searchFailures = bulkResponse.getSearchFailures();
             if (CollectionUtils.isNotEmpty(searchFailures)) {
-                throw new DatabaseException("ES purge errors : in search phase");
+                throw new RuntimeException("ES purge errors : in search phase");
             }
 
             List<BulkItemResponse.Failure> bulkFailures = bulkResponse.getBulkFailures();
             if (CollectionUtils.isNotEmpty(bulkFailures)) {
-                throw new DatabaseException("ES purge errors : in bulk phase");
+                throw new RuntimeException("ES purge errors : in bulk phase");
             }
 
             LOGGER.info("Deleted : " + bulkResponse.getDeleted());
             return bulkResponse.getDeleted();
-        } catch (IOException e) {
-            throw new DatabaseException("Purge Exception", e);
+        } catch (IOException | ElasticsearchException e) {
+            throw new RuntimeException("Purge Exception", e);
         }
     }
 
@@ -179,7 +174,7 @@ public class ElasticsearchRule extends ExternalResource {
             .alias(new Alias(aliasName));
 
         request.setTimeout(TimeValue.timeValueMillis(
-            VitamConfiguration.getElasticSearchTimeoutWaitAvailableShardsForBulkRequestInMilliseconds()));
+            VitamConfiguration.getElasticSearchTimeoutWaitRequestInMilliseconds()));
         request.setMasterTimeout(TimeValue.timeValueMinutes(1));
         request.waitForActiveShards(ActiveShardCount.DEFAULT);
 
@@ -196,18 +191,18 @@ public class ElasticsearchRule extends ExternalResource {
         return acknowledged && shardsAcknowledged;
     }
 
-    public final void deleteIndex(RestHighLevelClient client, String indexName) throws DatabaseException {
+    public final void deleteIndex(RestHighLevelClient client, String indexName) {
         purge(client, indexName);
     }
 
-    public void deleteIndexesWithoutClose() throws DatabaseException {
+    public void deleteIndexesWithoutClose() {
         for (String indexName : indexesToBePurged) {
             deleteIndex(client, indexName);
         }
         indexesToBePurged = new HashSet<>();
     }
 
-    public void deleteIndexes() throws DatabaseException {
+    public void deleteIndexes() {
         for (String indexName : indexesToBePurged) {
             deleteIndex(client, indexName);
         }
@@ -233,12 +228,7 @@ public class ElasticsearchRule extends ExternalResource {
     }
 
     private void after(Set<String> indexesToBePurged) {
-        try {
-            purge(client, indexesToBePurged);
-        } catch (DatabaseException e) {
-            LOGGER.error(e);
-            throw new RuntimeException(e);
-        }
+        purge(client, indexesToBePurged);
     }
 
     /**
@@ -255,8 +245,12 @@ public class ElasticsearchRule extends ExternalResource {
      *
      * @return TCP_PORT
      */
-    public static int getTcpPort() {
-        return TCP_PORT;
+    public static int getPort() {
+        return PORT;
+    }
+
+    public static String getHost() {
+        return HOST;
     }
 
     /**

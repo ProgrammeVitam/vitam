@@ -178,7 +178,7 @@ public class VitamConfiguration {
 
     private static Integer elasticSearchScrollTimeoutInMilliseconds = 60_000 * 5;
 
-    private static Integer elasticSearchTimeoutWaitAvailableShardsForBulkRequestInMilliseconds = 60_000;
+    private static Integer elasticSearchTimeoutWaitRequestInMilliseconds = 60_000 * 2;
 
     private static Integer elasticSearchScrollLimit = 10_000;
 
@@ -1077,9 +1077,9 @@ public class VitamConfiguration {
             setElasticSearchScrollTimeoutInMilliseconds(parameters.getElasticSearchScrollTimeoutInMilliseconds());
         }
 
-        if (null != parameters.getElasticSearchTimeoutWaitAvailableShardsForBulkRequestInMilliseconds()) {
-            setElasticSearchTimeoutWaitAvailableShardsForBulkRequestInMilliseconds(
-                parameters.getElasticSearchTimeoutWaitAvailableShardsForBulkRequestInMilliseconds());
+        if (null != parameters.getElasticSearchTimeoutWaitRequestInMilliseconds()) {
+            setElasticSearchTimeoutWaitRequestInMilliseconds(
+                parameters.getElasticSearchTimeoutWaitRequestInMilliseconds());
         }
         if (null != parameters.getElasticSearchScrollLimit()) {
             setElasticSearchScrollLimit(parameters.getElasticSearchScrollLimit());
@@ -2472,14 +2472,14 @@ public class VitamConfiguration {
         VitamConfiguration.elasticSearchScrollTimeoutInMilliseconds = elasticSearchScrollTimeoutInMilliseconds;
     }
 
-    public static Integer getElasticSearchTimeoutWaitAvailableShardsForBulkRequestInMilliseconds() {
-        return elasticSearchTimeoutWaitAvailableShardsForBulkRequestInMilliseconds;
+    public static Integer getElasticSearchTimeoutWaitRequestInMilliseconds() {
+        return elasticSearchTimeoutWaitRequestInMilliseconds;
     }
 
-    public static void setElasticSearchTimeoutWaitAvailableShardsForBulkRequestInMilliseconds(
-        Integer elasticSearchTimeoutWaitAvailableShardsForBulkRequestInMilliseconds) {
-        VitamConfiguration.elasticSearchTimeoutWaitAvailableShardsForBulkRequestInMilliseconds =
-            elasticSearchTimeoutWaitAvailableShardsForBulkRequestInMilliseconds;
+    public static void setElasticSearchTimeoutWaitRequestInMilliseconds(
+        Integer elasticSearchTimeoutWaitRequestInMilliseconds) {
+        VitamConfiguration.elasticSearchTimeoutWaitRequestInMilliseconds =
+            elasticSearchTimeoutWaitRequestInMilliseconds;
     }
 
     public static Integer getElasticSearchScrollLimit() {

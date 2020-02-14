@@ -26,6 +26,7 @@
  */
 package fr.gouv.vitam.functional.administration.rest;
 
+import com.google.common.collect.Lists;
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.database.collections.VitamCollection;
 import fr.gouv.vitam.common.database.server.elasticsearch.ElasticsearchNode;
@@ -61,8 +62,8 @@ public class AdminManagementApplicationTest {
     @BeforeClass
     public static void setUpBeforeClass() throws Exception {
 
-        final List<ElasticsearchNode> nodesEs = new ArrayList<>();
-        nodesEs.add(new ElasticsearchNode("localhost", ElasticsearchRule.TCP_PORT));
+        List<ElasticsearchNode> esNodes =
+            Lists.newArrayList(new ElasticsearchNode(ElasticsearchRule.getHost(), ElasticsearchRule.getPort()));
 
         final List<MongoDbNode> nodes = new ArrayList<>();
         nodes.add(new MongoDbNode(DATABASE_HOST, MongoRule.getDataBasePort()));
@@ -73,7 +74,7 @@ public class AdminManagementApplicationTest {
             PropertiesUtils.readYaml(adminConfig, AdminManagementConfiguration.class);
         realAdminConfig.setMongoDbNodes(nodes);
         realAdminConfig.setDbName(MongoRule.VITAM_DB);
-        realAdminConfig.setElasticsearchNodes(nodesEs);
+        realAdminConfig.setElasticsearchNodes(esNodes);
         realAdminConfig.setClusterName(ElasticsearchRule.VITAM_CLUSTER);
         adminConfigFile = File.createTempFile("test", ADMIN_MANAGEMENT_CONF, adminConfig.getParentFile());
         PropertiesUtils.writeYaml(adminConfigFile, realAdminConfig);

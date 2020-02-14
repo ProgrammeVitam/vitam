@@ -81,7 +81,7 @@ public class VitamCollectionTest {
     @BeforeClass
     public static void setUpBeforeClass() throws Exception {
         final List<ElasticsearchNode> nodes = new ArrayList<>();
-        nodes.add(new ElasticsearchNode("localhost", elasticsearchRule.getTcpPort()));
+        nodes.add(new ElasticsearchNode(ElasticsearchRule.getHost(), elasticsearchRule.getPort()));
 
         esClient = new ElasticsearchAccess(elasticsearchRule.getClusterName(), nodes);
         esClient.createIndexAndAliasIfAliasNotExists(PREFIX + CollectionSample.class.getSimpleName(), "{}", null);

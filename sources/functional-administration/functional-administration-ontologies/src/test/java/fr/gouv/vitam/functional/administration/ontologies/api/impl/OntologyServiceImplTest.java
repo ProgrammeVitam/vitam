@@ -108,7 +108,7 @@ public class OntologyServiceImplTest {
 
         FunctionalAdminCollections.beforeTestClass(mongoRule.getMongoDatabase(), PREFIX,
             new ElasticsearchAccessFunctionalAdmin(ElasticsearchRule.VITAM_CLUSTER,
-                Lists.newArrayList(new ElasticsearchNode("localhost", ElasticsearchRule.TCP_PORT))),
+                Lists.newArrayList(new ElasticsearchNode(ElasticsearchRule.getHost(), ElasticsearchRule.getPort()))),
             Collections.singletonList(FunctionalAdminCollections.ONTOLOGY));
 
         VitamConfiguration.setAdminTenant(ADMIN_TENANT);

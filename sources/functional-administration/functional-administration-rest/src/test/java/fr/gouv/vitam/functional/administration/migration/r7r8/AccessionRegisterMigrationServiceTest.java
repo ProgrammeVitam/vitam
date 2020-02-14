@@ -103,8 +103,8 @@ public class AccessionRegisterMigrationServiceTest {
 
     @BeforeClass
     public static void setUpBeforeClass() throws Exception {
-        final List<ElasticsearchNode> esNodes =
-            Lists.newArrayList(new ElasticsearchNode("localhost", ElasticsearchRule.TCP_PORT));
+        List<ElasticsearchNode> esNodes =
+            Lists.newArrayList(new ElasticsearchNode(ElasticsearchRule.getHost(), ElasticsearchRule.getPort()));
 
         FunctionalAdminCollections.beforeTestClass(mongoRule.getMongoDatabase(), PREFIX,
             new ElasticsearchAccessFunctionalAdmin(ElasticsearchRule.VITAM_CLUSTER, esNodes),

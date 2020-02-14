@@ -160,7 +160,7 @@ public class AccessContractImplTest {
     public static void setUpBeforeClass() throws Exception {
         FunctionalAdminCollections.beforeTestClass(mongoRule.getMongoDatabase(), PREFIX,
             new ElasticsearchAccessFunctionalAdmin(ElasticsearchRule.VITAM_CLUSTER,
-                Arrays.asList(new ElasticsearchNode("localhost", ElasticsearchRule.TCP_PORT))),
+                Arrays.asList(new ElasticsearchNode(ElasticsearchRule.getHost(), ElasticsearchRule.getPort()))),
             Arrays.asList(FunctionalAdminCollections.ACCESS_CONTRACT, FunctionalAdminCollections.AGENCIES));
 
         final List<MongoDbNode> nodes = new ArrayList<>();

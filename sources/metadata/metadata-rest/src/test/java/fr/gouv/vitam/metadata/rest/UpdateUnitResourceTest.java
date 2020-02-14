@@ -26,17 +26,8 @@
  */
 package fr.gouv.vitam.metadata.rest;
 
-import static io.restassured.RestAssured.given;
-import static io.restassured.RestAssured.with;
-
-import java.io.File;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-
-import javax.ws.rs.core.Response.Status;
-
 import com.fasterxml.jackson.core.type.TypeReference;
+import com.google.common.collect.Lists;
 import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.VitamConfiguration;
@@ -72,6 +63,15 @@ import org.junit.ClassRule;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
+
+import javax.ws.rs.core.Response.Status;
+import java.io.File;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+
+import static io.restassured.RestAssured.given;
+import static io.restassured.RestAssured.with;
 
 public class UpdateUnitResourceTest {
 
@@ -118,16 +118,16 @@ public class UpdateUnitResourceTest {
     public static void setUpBeforeClass() throws Exception {
         junitHelper = JunitHelper.getInstance();
 
-        final List<ElasticsearchNode> nodes = new ArrayList<>();
-        nodes.add(new ElasticsearchNode(HOST_NAME, ElasticsearchRule.TCP_PORT));
-        esClient = new ElasticsearchAccessMetadata(ElasticsearchRule.VITAM_CLUSTER, nodes);
+        List<ElasticsearchNode> esNodes =
+            Lists.newArrayList(new ElasticsearchNode(ElasticsearchRule.getHost(), ElasticsearchRule.getPort()));
+        esClient = new ElasticsearchAccessMetadata(ElasticsearchRule.VITAM_CLUSTER, esNodes);
 
         MetadataCollections.beforeTestClass(mongoRule.getMongoDatabase(), GUIDFactory.newGUID().getId(),
             esClient, 0);
         final List<MongoDbNode> mongo_nodes = new ArrayList<>();
         mongo_nodes.add(new MongoDbNode(HOST_NAME, mongoRule.getDataBasePort()));
         final MetaDataConfiguration configuration =
-            new MetaDataConfiguration(mongo_nodes, MongoRule.VITAM_DB, ElasticsearchRule.VITAM_CLUSTER, nodes);
+            new MetaDataConfiguration(mongo_nodes, MongoRule.VITAM_DB, ElasticsearchRule.VITAM_CLUSTER, esNodes);
         configuration.setJettyConfig(JETTY_CONFIG);
         configuration.setUrlProcessing("http://processing.service.consul:8203/");
         VitamConfiguration.setTenants(tenantList);
@@ -175,7 +175,8 @@ public class UpdateUnitResourceTest {
         ));
     }
 
-    private static final BulkUnitInsertRequest bulkInsertRequest(String data, String root) throws InvalidParseOperationException {
+    private static final BulkUnitInsertRequest bulkInsertRequest(String data, String root)
+        throws InvalidParseOperationException {
         return new BulkUnitInsertRequest(Collections.singletonList(
             new BulkUnitInsertEntry(Collections.singleton(root), JsonHandler.getFromString(data))
         ));

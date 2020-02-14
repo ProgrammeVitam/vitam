@@ -44,7 +44,6 @@ import static org.junit.Assert.assertNotNull;
 
 public class MongoDbAccessMetadataFactoryTest {
 
-    private static final String ES_HOST = "127.0.0.1";
     private static final List tenantList = new ArrayList() {
         {
             add(0);
@@ -64,9 +63,10 @@ public class MongoDbAccessMetadataFactoryTest {
         mongoNodes.add(new MongoDbNode(MongoRule.MONGO_HOST, MongoRule.getDataBasePort()));
 
         List<ElasticsearchNode> esNodes = new ArrayList<>();
-        esNodes.add(new ElasticsearchNode(ES_HOST, ElasticsearchRule.TCP_PORT));
+        esNodes.add(new ElasticsearchNode(ElasticsearchRule.getHost(), ElasticsearchRule.getPort()));
 
-        MetaDataConfiguration config = new MetaDataConfiguration(mongoNodes, MongoRule.VITAM_DB, ElasticsearchRule.VITAM_CLUSTER, esNodes);
+        MetaDataConfiguration config =
+            new MetaDataConfiguration(mongoNodes, MongoRule.VITAM_DB, ElasticsearchRule.VITAM_CLUSTER, esNodes);
         VitamConfiguration.setTenants(tenantList);
         MongoDbAccessMetadataImpl mongoDbAccess = MongoDbAccessMetadataFactory.create(config);
 

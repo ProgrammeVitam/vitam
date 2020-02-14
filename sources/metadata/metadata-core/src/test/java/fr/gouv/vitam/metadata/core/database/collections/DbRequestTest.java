@@ -272,8 +272,10 @@ public class DbRequestTest {
 
     @BeforeClass
     public static void beforeClass() throws Exception {
-        elasticsearchAccessMetadata = new ElasticsearchAccessMetadata(ElasticsearchRule.VITAM_CLUSTER,
-            Lists.newArrayList(new ElasticsearchNode("localhost", ElasticsearchRule.TCP_PORT)));
+        List<ElasticsearchNode> esNodes =
+            Lists.newArrayList(new ElasticsearchNode(ElasticsearchRule.getHost(), ElasticsearchRule.getPort()));
+
+        elasticsearchAccessMetadata = new ElasticsearchAccessMetadata(ElasticsearchRule.VITAM_CLUSTER, esNodes);
         MetadataCollections.beforeTestClass(mongoRule.getMongoDatabase(), GUIDFactory.newGUID().getId(),
             elasticsearchAccessMetadata, TENANT_ID_0,
             TENANT_ID_1, TENANT_ID_2);
@@ -302,10 +304,10 @@ public class DbRequestTest {
     @Before
     public void setUp() throws Exception {
         fieldHistoryManager = mock(FieldHistoryManager.class);
-        final List<ElasticsearchNode> nodes = new ArrayList<>();
-        nodes.add(new ElasticsearchNode(HOST_NAME, ElasticsearchRule.TCP_PORT));
+        List<ElasticsearchNode> esNodes =
+            Lists.newArrayList(new ElasticsearchNode(ElasticsearchRule.getHost(), ElasticsearchRule.getPort()));
 
-        esClientWithoutVitamBehavior = new ElasticsearchAccess(ElasticsearchRule.VITAM_CLUSTER, nodes);
+        esClientWithoutVitamBehavior = new ElasticsearchAccess(ElasticsearchRule.VITAM_CLUSTER, esNodes);
         mongoDbVarNameAdapter = new MongoDbVarNameAdapter();
 
     }

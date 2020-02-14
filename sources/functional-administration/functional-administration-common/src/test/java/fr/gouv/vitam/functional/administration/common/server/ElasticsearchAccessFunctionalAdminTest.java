@@ -57,8 +57,7 @@ public class ElasticsearchAccessFunctionalAdminTest {
     private static ElasticsearchAccessFunctionalAdmin elasticsearchAccessFunctionalAdmin;
 
     @ClassRule
-    public static MongoRule mongoRule =
-        new MongoRule(getMongoClientOptions());
+    public static MongoRule mongoRule = new MongoRule(getMongoClientOptions());
 
     @ClassRule
     public static ElasticsearchRule elasticsearchRule = new ElasticsearchRule();
@@ -68,7 +67,7 @@ public class ElasticsearchAccessFunctionalAdminTest {
     @BeforeClass
     public static void setUp() throws Exception {
         List<ElasticsearchNode> nodes = new ArrayList<>();
-        nodes.add(new ElasticsearchNode("localhost", ElasticsearchRule.TCP_PORT));
+        nodes.add(new ElasticsearchNode(ElasticsearchRule.getHost(), ElasticsearchRule.getPort()));
         elasticsearchAccessFunctionalAdmin =
             new ElasticsearchAccessFunctionalAdmin(ElasticsearchRule.VITAM_CLUSTER, nodes);
 
@@ -118,7 +117,7 @@ public class ElasticsearchAccessFunctionalAdminTest {
                     elasticsearchAccessFunctionalAdmin.getAlias(alias);
                 // Then
                 for (Map.Entry<String, Set<AliasMetaData>> entry : aliasesResponse.getAliases().entrySet()) {
-                    assertThat(entry.getKey()).contains(alias);
+                    assertThat(entry.getKey()).isEqualTo(map.get(alias));
                 }
                 assertThat(aliasesResponse.getAliases()).hasSize(1);
             }
@@ -136,12 +135,16 @@ public class ElasticsearchAccessFunctionalAdminTest {
             // When
             // Careful Not mapping for VITAM_SEQUENCE
             if (!(functionalAdminCollections.equals(VITAM_SEQUENCE))) {
-                elasticsearchAccessFunctionalAdmin
-                    .deleteIndex(functionalAdminCollections.getName().toLowerCase(), null);
-
                 GetAliasesResponse aliasesResponse =
                     elasticsearchAccessFunctionalAdmin.getAlias(alias);
+                for (Map.Entry<String, Set<AliasMetaData>> entry : aliasesResponse.getAliases().entrySet()) {
+                    elasticsearchAccessFunctionalAdmin.deleteIndex(entry.getKey());
+                }
+
+
                 // Then
+                aliasesResponse =
+                    elasticsearchAccessFunctionalAdmin.getAlias(alias);
                 assertThat(aliasesResponse.getAliases()).hasSize(0);
             }
         }

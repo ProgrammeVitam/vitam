@@ -148,7 +148,7 @@ public class VitamElasticsearchRepository implements VitamRepository {
                 .id(id)
                 .source(source, XContentType.JSON)
                 .setRefreshPolicy(WriteRequest.RefreshPolicy.IMMEDIATE)
-                .timeout(TimeValue.timeValueSeconds(1)) // TODO: 03/02/2020 config
+                .timeout(TimeValue.timeValueMillis(VitamConfiguration.getElasticSearchTimeoutWaitRequestInMilliseconds()))
                 .opType(DocWriteRequest.OpType.INDEX);
 
             IndexResponse indexResponse;
@@ -388,7 +388,7 @@ public class VitamElasticsearchRepository implements VitamRepository {
 
         DeleteRequest request = new DeleteRequest(index)
             .id(id)
-            .timeout(TimeValue.timeValueMinutes(2))
+            .timeout(TimeValue.timeValueMillis(VitamConfiguration.getElasticSearchTimeoutWaitRequestInMilliseconds()))
             .setRefreshPolicy(WriteRequest.RefreshPolicy.IMMEDIATE);
         DeleteResponse deleteResponse;
         try {
@@ -449,7 +449,7 @@ public class VitamElasticsearchRepository implements VitamRepository {
             request
                 .setScroll(TimeValue.timeValueMillis(VitamConfiguration.getElasticSearchScrollTimeoutInMilliseconds()));
             request.setTimeout(TimeValue.timeValueMillis(
-                VitamConfiguration.getElasticSearchTimeoutWaitAvailableShardsForBulkRequestInMilliseconds()));
+                VitamConfiguration.getElasticSearchTimeoutWaitRequestInMilliseconds()));
             request.setRefresh(true);
 
             BulkByScrollResponse bulkResponse =
@@ -549,17 +549,7 @@ public class VitamElasticsearchRepository implements VitamRepository {
     }
 
     private Optional<Document> handleSearch(String index, QueryBuilder qb) throws IOException, DatabaseException {
-        SearchSourceBuilder searchSourceBuilder =
-            SearchSourceBuilder.searchSource().query(qb).size(GlobalDatas.LIMIT_LOAD)
-                .sort(FieldSortBuilder.DOC_FIELD_NAME, SortOrder.ASC);
-
-        SearchRequest searchRequest = new SearchRequest()
-            .indices(index)
-            .scroll(new TimeValue(60000))
-            .searchType(SearchType.DFS_QUERY_THEN_FETCH)
-            .source(searchSourceBuilder);
-
-        SearchResponse search = client.search(searchRequest, RequestOptions.DEFAULT);
+        SearchResponse search = search(index, qb);
 
         for (SearchHit hit : search.getHits().getHits()) {
             try {
@@ -570,6 +560,20 @@ public class VitamElasticsearchRepository implements VitamRepository {
         }
 
         return Optional.empty();
+    }
+
+    public SearchResponse search(String index, QueryBuilder qb) throws IOException {
+        SearchSourceBuilder searchSourceBuilder =
+            SearchSourceBuilder.searchSource().query(qb).size(GlobalDatas.LIMIT_LOAD)
+                .sort(FieldSortBuilder.DOC_FIELD_NAME, SortOrder.ASC);
+
+        SearchRequest searchRequest = new SearchRequest()
+            .indices(index)
+            .scroll(new TimeValue(60000))
+            .searchType(SearchType.DFS_QUERY_THEN_FETCH)
+            .source(searchSourceBuilder);
+
+        return client.search(searchRequest, RequestOptions.DEFAULT);
     }
 
     @Override

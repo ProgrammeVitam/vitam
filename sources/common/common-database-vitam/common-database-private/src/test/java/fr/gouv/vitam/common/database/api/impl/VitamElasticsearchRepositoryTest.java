@@ -91,7 +91,7 @@ public class VitamElasticsearchRepositoryTest {
 
 
     @AfterClass
-    public static void afterClass() throws DatabaseException {
+    public static void afterClass() {
         elasticsearchRule.deleteIndexes();
     }
 

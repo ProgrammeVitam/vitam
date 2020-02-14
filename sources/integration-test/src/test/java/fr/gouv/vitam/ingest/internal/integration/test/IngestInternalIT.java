@@ -30,6 +30,7 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.NullNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import fr.gouv.culture.archivesdefrance.seda.v2.RelatedObjectReferenceType;
 import fr.gouv.vitam.access.internal.client.AccessInternalClient;
@@ -321,8 +322,8 @@ public class IngestInternalIT extends VitamRuleRunner {
     public static void setUpBeforeClass() throws Exception {
         handleBeforeClass(0, 1);
         // ES client
-        final List<ElasticsearchNode> esNodes = new ArrayList<>();
-        esNodes.add(new ElasticsearchNode("localhost", ElasticsearchRule.getTcpPort()));
+        List<ElasticsearchNode> esNodes =
+            Lists.newArrayList(new ElasticsearchNode(ElasticsearchRule.getHost(), ElasticsearchRule.getPort()));
         esClient = new LogbookElasticsearchAccess(ElasticsearchRule.getClusterName(), esNodes);
 
         StorageClientFactory storageClientFactory = StorageClientFactory.getInstance();
@@ -424,7 +425,7 @@ public class IngestInternalIT extends VitamRuleRunner {
     }
 
     @RunWithCustomExecutor
-    @Test (expected = IngestInternalClientServerException.class)
+    @Test(expected = IngestInternalClientServerException.class)
     public void testIngestInternalUploadSipWithBadFormatThenKO() throws Exception {
         final GUID operationGuid = GUIDFactory.newOperationLogbookGUID(tenantId);
         try {
@@ -458,7 +459,7 @@ public class IngestInternalIT extends VitamRuleRunner {
     }
 
     @RunWithCustomExecutor
-    @Test (expected = ZipFilesNameNotAllowedException.class)
+    @Test(expected = ZipFilesNameNotAllowedException.class)
     public void testIngestInternalUploadSipWithBadContentFormatThenKO() throws Exception {
         final GUID operationGuid = GUIDFactory.newOperationLogbookGUID(tenantId);
         try {
@@ -2561,7 +2562,8 @@ public class IngestInternalIT extends VitamRuleRunner {
         awaitForWorkflowTerminationWithStatus(operationGuid, status, ProcessState.COMPLETED);
     }
 
-    private void awaitForWorkflowTerminationWithStatus(GUID operationGuid, StatusCode status, ProcessState processState) {
+    private void awaitForWorkflowTerminationWithStatus(GUID operationGuid, StatusCode status,
+        ProcessState processState) {
 
         waitOperation(NB_TRY, SLEEP_TIME, operationGuid.toString());
 

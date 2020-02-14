@@ -26,21 +26,6 @@
  */
 package fr.gouv.vitam.logbook.operations.client;
 
-import static com.google.common.collect.Lists.newArrayList;
-import static fr.gouv.vitam.logbook.common.server.database.collections.LogbookCollections.LIFECYCLE_OBJECTGROUP_IN_PROCESS;
-import static io.restassured.RestAssured.given;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.fail;
-
-import java.io.File;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Comparator;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.github.tomakehurst.wiremock.client.WireMock;
@@ -81,8 +66,8 @@ import fr.gouv.vitam.logbook.common.exception.LogbookClientServerException;
 import fr.gouv.vitam.logbook.common.model.LogbookLifeCycleObjectGroupModel;
 import fr.gouv.vitam.logbook.common.parameters.LogbookLifeCycleObjectGroupParameters;
 import fr.gouv.vitam.logbook.common.parameters.LogbookOperationParameters;
-import fr.gouv.vitam.logbook.common.parameters.LogbookParameterName;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParameterHelper;
+import fr.gouv.vitam.logbook.common.parameters.LogbookParameterName;
 import fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess;
 import fr.gouv.vitam.logbook.common.server.LogbookConfiguration;
 import fr.gouv.vitam.logbook.common.server.database.collections.LogbookCollections;
@@ -105,6 +90,20 @@ import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 
 import javax.ws.rs.core.Response;
+import java.io.File;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Comparator;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+
+import static com.google.common.collect.Lists.newArrayList;
+import static fr.gouv.vitam.logbook.common.server.database.collections.LogbookCollections.LIFECYCLE_OBJECTGROUP_IN_PROCESS;
+import static io.restassured.RestAssured.given;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.fail;
 
 public class LogbookResourceIT {
 
@@ -112,7 +111,7 @@ public class LogbookResourceIT {
 
     @ClassRule
     public static MongoRule mongoRule =
-            new MongoRule(VitamCollection.getMongoClientOptions());
+        new MongoRule(VitamCollection.getMongoClientOptions());
 
     @ClassRule
     public static ElasticsearchRule elasticsearchRule = new ElasticsearchRule();
@@ -137,7 +136,7 @@ public class LogbookResourceIT {
     private static final int NB_TEST = 100;
     private static final Integer tenantId = 0;
     private static final List<Integer> tenantList = newArrayList(tenantId);
-    
+
 
     private static LogbookOperationParameters logbookParametersStart;
     private static LogbookOperationParameters logbookParametersAppend;
@@ -157,9 +156,11 @@ public class LogbookResourceIT {
     @BeforeClass
     public static void setUpBeforeClass() throws Exception {
 
+        List<ElasticsearchNode> esNodes =
+            Lists.newArrayList(new ElasticsearchNode(ElasticsearchRule.getHost(), ElasticsearchRule.getPort()));
+
         LogbookCollections.beforeTestClass(mongoRule.getMongoDatabase(), PREFIX,
-                new LogbookElasticsearchAccess(ElasticsearchRule.VITAM_CLUSTER,
-                        Lists.newArrayList(new ElasticsearchNode("localhost", ElasticsearchRule.TCP_PORT))), tenantId);
+            new LogbookElasticsearchAccess(ElasticsearchRule.VITAM_CLUSTER, esNodes), tenantId);
 
         serverPort = junitHelper.findAvailablePort();
 
@@ -168,8 +169,6 @@ public class LogbookResourceIT {
             final List<MongoDbNode> nodes = new ArrayList<>();
             nodes.add(new MongoDbNode("localhost", mongoRule.getDataBasePort()));
             logbookConf.setMongoDbNodes(nodes).setDbName(mongoRule.getMongoDatabase().getName());
-            final List<ElasticsearchNode> esNodes = new ArrayList<>();
-            esNodes.add(new ElasticsearchNode("localhost", ElasticsearchRule.TCP_PORT));
             logbookConf.setJettyConfig(JETTY_CONFIG);
             logbookConf.setP12LogbookFile("tsa.p12");
             logbookConf.setP12LogbookPassword("1234");
@@ -179,7 +178,7 @@ public class LogbookResourceIT {
             logbookConf.setElasticsearchNodes(esNodes);
             VitamConfiguration.setTenants(tenantList);
             final List<LogbookEvent> alertEvents = new ArrayList<>();
-            LogbookEvent alertEvent=new LogbookEvent();
+            LogbookEvent alertEvent = new LogbookEvent();
             alertEvent.setEvType(ALERT_EVENT_TYPE);
             alertEvent.setOutcome(ALERT_EVENT_OUTCOME);
             alertEvent.setOutDetail(ALERT_EVENT_TYPE + "." + ALERT_EVENT_OUTCOME);
@@ -272,7 +271,7 @@ public class LogbookResourceIT {
             LogbookParameterHelper.newLogbookOperationParameters(
                 GUIDFactory.newEventGUID(0), "OP_SECURISATION_TIMESTAMP", eip1, LogbookTypeProcess.TRACEABILITY,
                 StatusCode.OK, "Succès de création du tampon d'horodatage de l'ensemble des journaux", eip1);
-       LogbookOperationParameters traceabilityParametersStpAct2End =
+        LogbookOperationParameters traceabilityParametersStpAct2End =
             LogbookParameterHelper.newLogbookOperationParameters(
                 GUIDFactory.newEventGUID(0), "OP_SECURISATION_STORAGE", eip1, LogbookTypeProcess.TRACEABILITY,
                 StatusCode.OK, "Succès du stockage des journaux", eip1);

@@ -193,7 +193,7 @@ public enum FunctionalAdminCollections {
 
                 if (collection.getEsClient() != null) {
                     if (deleteEsIndex) {
-                        collection.getEsClient().deleteIndex(collection.getName().toLowerCase(), null);
+                        collection.getEsClient().deleteIndexByAlias(collection.getName().toLowerCase(), null);
                     } else {
                         collection.getEsClient().purgeIndex(collection.getName().toLowerCase());
                     }
