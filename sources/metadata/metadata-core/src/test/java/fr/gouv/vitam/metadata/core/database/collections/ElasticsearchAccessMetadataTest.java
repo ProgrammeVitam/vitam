@@ -33,7 +33,6 @@ import fr.gouv.vitam.common.database.collections.DynamicParserTokens;
 import fr.gouv.vitam.common.database.collections.VitamDescriptionResolver;
 import fr.gouv.vitam.common.database.parser.request.multiple.SelectParserMultiple;
 import fr.gouv.vitam.common.database.server.elasticsearch.ElasticsearchNode;
-import fr.gouv.vitam.common.database.server.mongodb.VitamDocument;
 import fr.gouv.vitam.common.database.translators.elasticsearch.QueryToElasticsearch;
 import fr.gouv.vitam.common.elasticsearch.ElasticsearchRule;
 import fr.gouv.vitam.common.exception.DatabaseException;
@@ -41,7 +40,6 @@ import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
 import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
-import fr.gouv.vitam.metadata.api.exception.MetaDataExecutionException;
 import org.elasticsearch.index.query.BoolQueryBuilder;
 import org.elasticsearch.search.sort.FieldSortBuilder;
 import org.elasticsearch.search.sort.SortBuilder;
@@ -87,9 +85,10 @@ public class ElasticsearchAccessMetadataTest {
     @BeforeClass
     public static void setUpBeforeClass() throws Exception {
 
+        List<ElasticsearchNode> esNodes =
+            Lists.newArrayList(new ElasticsearchNode(ElasticsearchRule.getHost(), ElasticsearchRule.getPort()));
 
-        elasticsearchAccessMetadata = new ElasticsearchAccessMetadata(ElasticsearchRule.VITAM_CLUSTER,
-            Lists.newArrayList(new ElasticsearchNode(HOST_NAME, ElasticsearchRule.TCP_PORT)));
+        elasticsearchAccessMetadata = new ElasticsearchAccessMetadata(ElasticsearchRule.VITAM_CLUSTER, esNodes);
 
         elasticsearchAccessMetadata.addIndex(MetadataCollections.UNIT, TENANT_ID_0);
 
@@ -105,8 +104,8 @@ public class ElasticsearchAccessMetadataTest {
 
     @AfterClass
     public static void tearDownAfterClass() {
-        elasticsearchAccessMetadata.deleteIndex(MetadataCollections.UNIT.getName().toLowerCase(), TENANT_ID_0);
-        elasticsearchAccessMetadata.deleteIndex(MetadataCollections.OBJECTGROUP.getName().toLowerCase(), TENANT_ID_0);
+        elasticsearchAccessMetadata.deleteIndexByAlias(MetadataCollections.UNIT.getName().toLowerCase(), TENANT_ID_0);
+        elasticsearchAccessMetadata.deleteIndexByAlias(MetadataCollections.OBJECTGROUP.getName().toLowerCase(), TENANT_ID_0);
         elasticsearchAccessMetadata.close();
     }
 
@@ -203,7 +202,7 @@ public class ElasticsearchAccessMetadataTest {
 
         // delete index
         assertThatCode(() -> elasticsearchAccessMetadata
-            .deleteIndex(MetadataCollections.UNIT.getName().toLowerCase(), TENANT_ID_0)).doesNotThrowAnyException();
+            .deleteIndexByAlias(MetadataCollections.UNIT.getName().toLowerCase(), TENANT_ID_0)).doesNotThrowAnyException();
 
     }
 
@@ -241,7 +240,7 @@ public class ElasticsearchAccessMetadataTest {
 
         // delete index
         assertThatCode(() -> elasticsearchAccessMetadata
-            .deleteIndex(MetadataCollections.OBJECTGROUP.getName().toLowerCase(), TENANT_ID_0))
+            .deleteIndexByAlias(MetadataCollections.OBJECTGROUP.getName().toLowerCase(), TENANT_ID_0))
             .doesNotThrowAnyException();
 
     }

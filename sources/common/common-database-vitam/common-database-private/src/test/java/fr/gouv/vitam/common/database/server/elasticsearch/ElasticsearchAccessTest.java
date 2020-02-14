@@ -26,21 +26,19 @@
  */
 package fr.gouv.vitam.common.database.server.elasticsearch;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
-
 import fr.gouv.vitam.common.elasticsearch.ElasticsearchRule;
 import fr.gouv.vitam.common.exception.VitamException;
 import org.junit.Rule;
 import org.junit.Test;
 
-public class ElasticsearchAccessTest {
-    private final static String HOST_NAME = "localhost";
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+
+public class ElasticsearchAccessTest {
     @Rule
     public ElasticsearchRule elasticsearchRule = new ElasticsearchRule();
 
@@ -49,7 +47,7 @@ public class ElasticsearchAccessTest {
     @Test
     public void testElasticsearchAccess() throws VitamException, IOException {
         final List<ElasticsearchNode> nodes = new ArrayList<>();
-        nodes.add(new ElasticsearchNode(HOST_NAME, elasticsearchRule.getTcpPort()));
+        nodes.add(new ElasticsearchNode(ElasticsearchRule.getHost(), elasticsearchRule.getPort()));
 
         final ElasticsearchAccess elastic = new ElasticsearchAccess(ElasticsearchRule.VITAM_CLUSTER, nodes);
         assertEquals(ElasticsearchRule.VITAM_CLUSTER, elastic.getClusterName());

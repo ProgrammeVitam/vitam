@@ -90,8 +90,8 @@ public class LogbookElasticsearchAccess extends ElasticsearchAccess {
      * @param id the id of the entry
      * @param logbookDocument the entry document
      */
-    final void updateFullDocument(final LogbookCollections collection, final Integer tenantId,
-        final String id, final VitamDocument<?> logbookDocument) throws LogbookExecutionException {
+    final <T extends VitamDocument> void updateFullDocument(final LogbookCollections collection, final Integer tenantId,
+        final String id, final T logbookDocument) throws LogbookExecutionException {
         try {
             super.updateEntry(collection.getName().toLowerCase(), tenantId, id, logbookDocument);
         } catch (DatabaseException e) {

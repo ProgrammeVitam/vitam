@@ -302,7 +302,7 @@ public class VitamConfigurationParameters {
 
     private String vitamDefaultTransferringAgency;
 
-    private Map<String, String>  vitamDefaultCodeListVersion;
+    private Map<String, String> vitamDefaultCodeListVersion;
 
 
     /**
@@ -355,7 +355,7 @@ public class VitamConfigurationParameters {
     private Integer httpClientRandomWaitingSleep;
 
     private Integer elasticSearchScrollTimeoutInMilliseconds;
-    private Integer elasticSearchTimeoutWaitAvailableShardsForBulkRequestInMilliseconds;
+    private Integer elasticSearchTimeoutWaitRequestInMilliseconds;
 
     private Integer elasticSearchScrollLimit;
 
@@ -1381,6 +1381,7 @@ public class VitamConfigurationParameters {
 
     /**
      * Getter
+     *
      * @return intervalDelayLogInProgressWorker
      */
     public Integer getIntervalDelayLogInProgressWorker() {
@@ -1389,6 +1390,7 @@ public class VitamConfigurationParameters {
 
     /**
      * Setter
+     *
      * @param intervalDelayLogInProgressWorker
      */
     public void setIntervalDelayLogInProgressWorker(Integer intervalDelayLogInProgressWorker) {
@@ -1435,14 +1437,13 @@ public class VitamConfigurationParameters {
         this.elasticSearchScrollTimeoutInMilliseconds = elasticSearchScrollTimeoutInMilliseconds;
     }
 
-    public Integer getElasticSearchTimeoutWaitAvailableShardsForBulkRequestInMilliseconds() {
-        return elasticSearchTimeoutWaitAvailableShardsForBulkRequestInMilliseconds;
+    public Integer getElasticSearchTimeoutWaitRequestInMilliseconds() {
+        return elasticSearchTimeoutWaitRequestInMilliseconds;
     }
 
-    public void setElasticSearchTimeoutWaitAvailableShardsForBulkRequestInMilliseconds(
-        Integer elasticSearchTimeoutWaitAvailableShardsForBulkRequestInMilliseconds) {
-        this.elasticSearchTimeoutWaitAvailableShardsForBulkRequestInMilliseconds =
-            elasticSearchTimeoutWaitAvailableShardsForBulkRequestInMilliseconds;
+    public void setElasticSearchTimeoutWaitRequestInMilliseconds(
+        Integer elasticSearchTimeoutWaitRequestInMilliseconds) {
+        this.elasticSearchTimeoutWaitRequestInMilliseconds = elasticSearchTimeoutWaitRequestInMilliseconds;
     }
 
     public Integer getElasticSearchScrollLimit() {

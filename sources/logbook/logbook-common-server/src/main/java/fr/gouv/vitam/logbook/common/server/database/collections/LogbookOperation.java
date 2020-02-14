@@ -128,6 +128,9 @@ public class LogbookOperation extends VitamDocument<LogbookOperation> {
         super(content);
     }
 
+    public LogbookOperation() {
+        //Empty
+    }
     @Override
     public VitamDocument<LogbookOperation> newInstance(JsonNode content) {
         return new LogbookOperation(content);

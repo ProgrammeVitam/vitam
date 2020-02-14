@@ -125,9 +125,7 @@ public class AgenciesServiceTest {
         new MongoRule(getMongoClientOptions(Lists.newArrayList(Agencies.class, AccessContract.class)),
             PREFIX + Agencies.class.getSimpleName(), PREFIX + AccessContract.class.getSimpleName());
     @ClassRule
-    public static ElasticsearchRule elasticsearchRule =
-        new ElasticsearchRule(PREFIX + Agencies.class.getSimpleName().toLowerCase(),
-            PREFIX + AccessContract.class.getSimpleName().toLowerCase());
+    public static ElasticsearchRule elasticsearchRule = new ElasticsearchRule();
     private static String _id = GUIDFactory.newGUID().toString();
     private static String contract = "{ \"_tenant\": 1,\n" +
         "    \"_id\": \"" + _id + "\", \n " +
@@ -181,7 +179,7 @@ public class AgenciesServiceTest {
                 .create(new DbConfigurationImpl(nodes, mongoRule.getMongoDatabase().getName()), Collections::emptyList);
 
         final List<ElasticsearchNode> esNodes = new ArrayList<>();
-        esNodes.add(new ElasticsearchNode(ElasticsearchRule.HOST, ElasticsearchRule.TCP_PORT));
+        esNodes.add(new ElasticsearchNode(ElasticsearchRule.getHost(), ElasticsearchRule.getPort()));
         FunctionalAdminCollections.beforeTestClass(mongoRule.getMongoDatabase(), PREFIX,
             new ElasticsearchAccessFunctionalAdmin(ElasticsearchRule.VITAM_CLUSTER, esNodes),
             Lists.newArrayList(FunctionalAdminCollections.AGENCIES, FunctionalAdminCollections.ACCESS_CONTRACT));
@@ -214,7 +212,8 @@ public class AgenciesServiceTest {
     @After
     public void afterTest() {
         FunctionalAdminCollections.afterTest(
-            com.google.common.collect.Lists.newArrayList(FunctionalAdminCollections.AGENCIES, FunctionalAdminCollections.ACCESS_CONTRACT));
+            com.google.common.collect.Lists
+                .newArrayList(FunctionalAdminCollections.AGENCIES, FunctionalAdminCollections.ACCESS_CONTRACT));
         reset(functionalBackupService);
     }
 

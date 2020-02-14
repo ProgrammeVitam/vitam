@@ -30,6 +30,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.github.tomakehurst.wiremock.client.WireMock;
 import com.github.tomakehurst.wiremock.junit.WireMockClassRule;
+import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.LocalDateUtil;
@@ -66,8 +67,8 @@ import fr.gouv.vitam.functional.administration.common.server.FunctionalAdminColl
 import fr.gouv.vitam.functional.administration.common.server.MongoDbAccessAdminFactory;
 import fr.gouv.vitam.functional.administration.common.server.MongoDbAccessReferential;
 import fr.gouv.vitam.logbook.common.parameters.LogbookOperationParameters;
-import fr.gouv.vitam.logbook.common.parameters.LogbookParameterName;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParameterHelper;
+import fr.gouv.vitam.logbook.common.parameters.LogbookParameterName;
 import fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClientFactory;
 import io.restassured.RestAssured;
@@ -173,12 +174,12 @@ public class AdminManagementResourceTest {
 
     @BeforeClass
     public static void setUpBeforeClass() throws Exception {
-        final List<ElasticsearchNode> nodesEs = new ArrayList<>();
-        nodesEs.add(new ElasticsearchNode("localhost", ElasticsearchRule.TCP_PORT));
+        List<ElasticsearchNode> esNodes =
+            Lists.newArrayList(new ElasticsearchNode(ElasticsearchRule.getHost(), ElasticsearchRule.getPort()));
 
         FunctionalAdminCollections.beforeTestClass(mongoRule.getMongoDatabase(), PREFIX,
             new ElasticsearchAccessFunctionalAdmin(ElasticsearchRule.VITAM_CLUSTER,
-                nodesEs));
+                esNodes));
 
         File tempFolder = temporaryFolder.newFolder();
         System.setProperty(VitamConfiguration.getVitamTmpProperty(), tempFolder.getAbsolutePath());
@@ -190,7 +191,7 @@ public class AdminManagementResourceTest {
         final AdminManagementConfiguration realAdminConfig =
             PropertiesUtils.readYaml(adminConfig, AdminManagementConfiguration.class);
         realAdminConfig.getMongoDbNodes().get(0).setDbPort(mongoRule.getDataBasePort());
-        realAdminConfig.setElasticsearchNodes(nodesEs);
+        realAdminConfig.setElasticsearchNodes(esNodes);
         realAdminConfig.setClusterName(ElasticsearchRule.VITAM_CLUSTER);
         realAdminConfig.setWorkspaceUrl("http://localhost:" + workspacePort);
         realAdminConfig.setDbName(MongoRule.VITAM_DB);
@@ -201,7 +202,8 @@ public class AdminManagementResourceTest {
         final List<MongoDbNode> nodes = new ArrayList<>();
         nodes.add(new MongoDbNode(DATABASE_HOST, mongoRule.getDataBasePort()));
         mongoDbAccess =
-            MongoDbAccessAdminFactory.create(new DbConfigurationImpl(nodes, mongoRule.getMongoDatabase().getName()), Collections::emptyList);
+            MongoDbAccessAdminFactory
+                .create(new DbConfigurationImpl(nodes, mongoRule.getMongoDatabase().getName()), Collections::emptyList);
 
         serverPort = junitHelper.findAvailablePort();
 
@@ -911,7 +913,7 @@ public class AdminManagementResourceTest {
         GUID request = GUIDFactory.newOperationLogbookGUID(TENANT_ID);
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         VitamThreadUtils.getVitamSession().setRequestId(request);
-        
+
 
         LogbookOperationParameters logbook =
             fillLogbookParameters(newOperationLogbookGUID(TENANT_ID).getId(),
@@ -948,7 +950,7 @@ public class AdminManagementResourceTest {
         logbookParamaters.putParameterValue(LogbookParameterName.eventIdentifier,
             guid);
         logbookParamaters
-            .putParameterValue(LogbookParameterName.eventType, "EXT_"+LogbookParameterName.eventType.name());
+            .putParameterValue(LogbookParameterName.eventType, "EXT_" + LogbookParameterName.eventType.name());
         logbookParamaters.putParameterValue(LogbookParameterName.eventDateTime,
             LocalDateUtil.now().toString());
         logbookParamaters.putParameterValue(LogbookParameterName.eventIdentifierProcess,
@@ -965,7 +967,8 @@ public class AdminManagementResourceTest {
             LogbookParameterName.agentIdentifierApplicationSession.name());
         logbookParamaters.putParameterValue(LogbookParameterName.eventIdentifierRequest,
             LogbookParameterName.eventIdentifierRequest.name());
-        logbookParamaters.putParameterValue(LogbookParameterName.agIdExt, JsonHandler.unprettyPrint(JsonHandler.createObjectNode()));
+        logbookParamaters
+            .putParameterValue(LogbookParameterName.agIdExt, JsonHandler.unprettyPrint(JsonHandler.createObjectNode()));
 
         logbookParamaters.putParameterValue(LogbookParameterName.objectIdentifier,
             LogbookParameterName.objectIdentifier.name());

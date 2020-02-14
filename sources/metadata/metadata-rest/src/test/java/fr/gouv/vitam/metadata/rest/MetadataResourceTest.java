@@ -140,18 +140,18 @@ public class MetadataResourceTest {
     @BeforeClass
     public static void setUpBeforeClass() throws Exception {
         junitHelper = JunitHelper.getInstance();
-        List<ElasticsearchNode> nodes = new ArrayList<>();
-        nodes.add(new ElasticsearchNode("localhost", elasticsearchRule.getTcpPort()));
+        List<ElasticsearchNode> esNodes =
+            Lists.newArrayList(new ElasticsearchNode(ElasticsearchRule.getHost(), ElasticsearchRule.getPort()));
 
         final List<MongoDbNode> mongo_nodes = new ArrayList<>();
         mongo_nodes.add(new MongoDbNode("localhost", mongoRule.getDataBasePort()));
         final MetaDataConfiguration configuration =
             new MetaDataConfiguration(mongo_nodes, mongoRule.getMongoDatabase().getName(),
-                elasticsearchRule.getClusterName(), nodes);
+                elasticsearchRule.getClusterName(), esNodes);
 
-        elasticsearchAccessMetadata = new ElasticsearchAccessMetadata(ElasticsearchRule.VITAM_CLUSTER, nodes);
+        elasticsearchAccessMetadata = new ElasticsearchAccessMetadata(ElasticsearchRule.VITAM_CLUSTER, esNodes);
         MetadataCollections.beforeTestClass(mongoRule.getMongoDatabase(), PREFIX, elasticsearchAccessMetadata, 0, 1);
-        accessFunctionalAdmin = new ElasticsearchAccessFunctionalAdmin(ElasticsearchRule.VITAM_CLUSTER, nodes);
+        accessFunctionalAdmin = new ElasticsearchAccessFunctionalAdmin(ElasticsearchRule.VITAM_CLUSTER, esNodes);
         FunctionalAdminCollections.beforeTestClass(mongoRule.getMongoDatabase(), PREFIX, accessFunctionalAdmin,
             Lists.newArrayList(FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL,
                 FunctionalAdminCollections.ACCESSION_REGISTER_SUMMARY));
@@ -175,7 +175,8 @@ public class MetadataResourceTest {
     @AfterClass
     public static void tearDownAfterClass() {
         MetadataCollections.afterTestClass(true, 0, 1);
-        FunctionalAdminCollections.afterTestClass(Lists.newArrayList(FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL,
+        FunctionalAdminCollections
+            .afterTestClass(Lists.newArrayList(FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL,
                 FunctionalAdminCollections.ACCESSION_REGISTER_SUMMARY), true);
         try {
             metadataMain.stop();
@@ -493,15 +494,16 @@ public class MetadataResourceTest {
     public void should_find_accession_register_on_object_group() throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         Document doc = (Document) (new ObjectGroup(
-                JsonHandler.getFromInputStream(getClass().getResourceAsStream("/object_sp1_1.json"))));
+            JsonHandler.getFromInputStream(getClass().getResourceAsStream("/object_sp1_1.json"))));
         VitamRepositoryFactory factory = VitamRepositoryFactory.get();
         VitamMongoRepository mongo =
             factory.getVitamMongoRepository(MetadataCollections.OBJECTGROUP.getVitamCollection());
         mongo.save(doc);
-        VitamElasticsearchRepository es = factory.getVitamESRepository(MetadataCollections.OBJECTGROUP.getVitamCollection());
+        VitamElasticsearchRepository es =
+            factory.getVitamESRepository(MetadataCollections.OBJECTGROUP.getVitamCollection());
         es.save(doc);
         String operationId = "aedqaaaaacgbcaacaar3kak4tr2o3wqaaaaq";
-        
+
         given()
             .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
             .when()

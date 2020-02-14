@@ -103,6 +103,8 @@ indices.fielddata.cache.size: {{ (((elasticsearch_memory_value|int) * (composant
 # related to https://www.elastic.co/guide/en/elasticsearch/reference/7.3/circuit-breaker.html#fielddata-circuit-breaker
 indices.breaker.fielddata.limit: {{ (((elasticsearch_memory_value|int) * (composant.indices_breaker_fielddata_limit|float)) | round (0, 'floor')) | int }}{{ elasticsearch_memory_unit }}
 
+indices.mapping.dynamic_timeout: {{ composant.dynamic_timeout|default('30') }}
+
 {% if groups['hosts_elasticsearch_log']|length > 1 %}
 # related to affinity and balancing between racks / rooms https://www.elastic.co/guide/en/elasticsearch/reference/current/allocation-awareness.html
 cluster.routing.allocation.awareness.attributes: rack_id

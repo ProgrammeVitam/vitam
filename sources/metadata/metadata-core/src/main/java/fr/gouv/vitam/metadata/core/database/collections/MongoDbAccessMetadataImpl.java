@@ -26,6 +26,7 @@
  */
 package fr.gouv.vitam.metadata.core.database.collections;
 
+import com.google.common.annotations.VisibleForTesting;
 import com.mongodb.MongoClient;
 import com.mongodb.MongoClientOptions;
 import com.mongodb.client.ListIndexesIterable;
@@ -90,6 +91,22 @@ public class MongoDbAccessMetadataImpl extends MongoDbAccess {
                         " and tenant :" + tenant);
             }
         }
+    }
+
+    @VisibleForTesting
+    public MongoDbAccessMetadataImpl(MongoClient mongoClient, String dbname, boolean recreate,
+        ElasticsearchAccessMetadata esClient) {
+        super(mongoClient, dbname, recreate);
+        this.esClient = esClient;
+
+        MetadataCollections.UNIT.initialize(getMongoDatabase(), recreate);
+        MetadataCollections.OBJECTGROUP.initialize(getMongoDatabase(), recreate);
+
+        // init Unit Mapping for ES
+        MetadataCollections.UNIT.initialize(this.esClient);
+
+        // init OG Mapping for ES
+        MetadataCollections.OBJECTGROUP.initialize(this.esClient);
     }
 
     /**

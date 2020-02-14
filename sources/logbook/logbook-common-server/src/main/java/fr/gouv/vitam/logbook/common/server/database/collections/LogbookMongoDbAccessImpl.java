@@ -98,7 +98,6 @@ import org.bson.codecs.configuration.CodecRegistries;
 import org.bson.codecs.configuration.CodecRegistry;
 import org.bson.conversions.Bson;
 import org.elasticsearch.action.search.SearchResponse;
-import org.elasticsearch.rest.RestStatus;
 import org.elasticsearch.search.SearchHit;
 import org.elasticsearch.search.SearchHits;
 import org.elasticsearch.search.sort.SortBuilder;
@@ -1120,7 +1119,7 @@ public final class LogbookMongoDbAccessImpl extends MongoDbAccess implements Log
     @Override
     public void deleteCollection(LogbookCollections collection) throws DatabaseException {
         Integer tenantId = VitamThreadUtils.getVitamSession().getTenantId();
-        final long count = collection.getCollection().count(Filters.eq(VitamDocument.TENANT_ID, tenantId));
+        final long count = collection.getCollection().countDocuments(Filters.eq(VitamDocument.TENANT_ID, tenantId));
         if (LOGGER.isDebugEnabled()) {
             LOGGER.debug(collection.getName() + " count before: " + count);
         }
@@ -1131,7 +1130,7 @@ public final class LogbookMongoDbAccessImpl extends MongoDbAccess implements Log
                 LOGGER.debug(collection.getName() + " result.result.getDeletedCount(): " + result.getDeletedCount());
             }
             if (LogbookCollections.OPERATION.equals(collection)) {
-                esClient.deleteIndex(LogbookCollections.OPERATION.getName().toLowerCase(), tenantId);
+                esClient.deleteIndexByAlias(LogbookCollections.OPERATION.getName().toLowerCase(), tenantId);
                 Map<String, String> map = esClient.addIndex(LogbookCollections.OPERATION, tenantId);
                 if (map.isEmpty()) {
                     throw new RuntimeException(
@@ -1532,7 +1531,7 @@ public final class LogbookMongoDbAccessImpl extends MongoDbAccess implements Log
         try {
             collection.getEsClient().indexEntry(collection.getName().toLowerCase(), tenantId, id, vitamDocument);
         } catch (DatabaseException e) {
-            throw new LogbookExecutionException("Index Elasticsearch has errors", e);
+            throw new LogbookExecutionException("Index to Elasticsearch has errors", e);
         }
     }
 

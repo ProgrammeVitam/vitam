@@ -36,13 +36,14 @@ import fr.gouv.vitam.common.database.server.mongodb.VitamDocument;
 import fr.gouv.vitam.common.exception.BadRequestException;
 import fr.gouv.vitam.common.exception.DatabaseException;
 import fr.gouv.vitam.common.exception.VitamException;
-import fr.gouv.vitam.common.exception.VitamRuntimeException;
+import fr.gouv.vitam.common.exception.VitamFatalRuntimeException;
 import fr.gouv.vitam.common.json.BsonHelper;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.server.application.configuration.DatabaseConnection;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.http.HttpHost;
+import org.apache.http.client.config.RequestConfig;
 import org.apache.http.util.Asserts;
 import org.bson.Document;
 import org.elasticsearch.ElasticsearchException;
@@ -80,6 +81,7 @@ import org.elasticsearch.client.RestHighLevelClient;
 import org.elasticsearch.client.indices.CreateIndexRequest;
 import org.elasticsearch.client.indices.CreateIndexResponse;
 import org.elasticsearch.client.indices.GetIndexRequest;
+import org.elasticsearch.cluster.action.index.MappingUpdatedAction;
 import org.elasticsearch.cluster.metadata.AliasMetaData;
 import org.elasticsearch.common.settings.Settings;
 import org.elasticsearch.common.settings.Settings.Builder;
@@ -92,10 +94,7 @@ import org.elasticsearch.index.reindex.ScrollableHitSource;
 import org.elasticsearch.rest.RestStatus;
 import org.elasticsearch.search.aggregations.AggregationBuilder;
 import org.elasticsearch.search.builder.SearchSourceBuilder;
-import org.elasticsearch.search.sort.FieldSortBuilder;
 import org.elasticsearch.search.sort.SortBuilder;
-import org.elasticsearch.search.sort.SortBuilders;
-import org.elasticsearch.search.sort.SortOrder;
 
 import java.io.IOException;
 import java.util.Collection;
@@ -183,10 +182,8 @@ public class ElasticsearchAccess implements DatabaseConnection {
 
     public boolean createIndex(String aliasName, String indexName, String mapping) throws IOException {
 
-        boolean existsIndex = existsIndex(indexName);
-
-        if (Boolean.TRUE.equals(existsIndex)) {
-            LOGGER.debug("Index (" + existsIndex + ") already exists");
+        if (Boolean.TRUE.equals(existsIndex(indexName))) {
+            LOGGER.debug("Index (" + indexName + ") already exists");
             return true;
         }
 
@@ -196,8 +193,9 @@ public class ElasticsearchAccess implements DatabaseConnection {
             .alias(new Alias(aliasName));
 
         request.setTimeout(TimeValue.timeValueMillis(
-            VitamConfiguration.getElasticSearchTimeoutWaitAvailableShardsForBulkRequestInMilliseconds()));
-        request.setMasterTimeout(TimeValue.timeValueMinutes(1));
+            VitamConfiguration.getElasticSearchTimeoutWaitRequestInMilliseconds()));
+        request.setMasterTimeout(
+            TimeValue.timeValueMillis(VitamConfiguration.getElasticSearchTimeoutWaitRequestInMilliseconds()));
         request.waitForActiveShards(ActiveShardCount.DEFAULT);
 
         CreateIndexResponse response =
@@ -227,8 +225,9 @@ public class ElasticsearchAccess implements DatabaseConnection {
             .mapping(mapping, XContentType.JSON);
 
         request.setTimeout(TimeValue.timeValueMillis(
-            VitamConfiguration.getElasticSearchTimeoutWaitAvailableShardsForBulkRequestInMilliseconds()));
-        request.setMasterTimeout(TimeValue.timeValueMinutes(1));
+            VitamConfiguration.getElasticSearchTimeoutWaitRequestInMilliseconds()));
+        request.setMasterTimeout(TimeValue.timeValueMillis(
+            VitamConfiguration.getElasticSearchTimeoutWaitRequestInMilliseconds()));
         request.waitForActiveShards(ActiveShardCount.DEFAULT);
 
         CreateIndexResponse response =
@@ -244,47 +243,12 @@ public class ElasticsearchAccess implements DatabaseConnection {
         return acknowledged && shardsAcknowledged;
     }
 
-
-
     public boolean existsAlias(String aliasName) throws IOException {
         GetAliasesRequest request = new GetAliasesRequest(aliasName.toLowerCase());
         request.local(true);
         request.indicesOptions(IndicesOptions.STRICT_EXPAND_OPEN);
         return getClient().indices().existsAlias(request, RequestOptions.DEFAULT);
     }
-
-    public boolean aliasingIndex(String aliasName, String indexName) throws IOException {
-
-        boolean existsAlias = existsAlias(aliasName);
-        if (Boolean.FALSE.equals(existsAlias)) {
-            String msg = "The alias (" + aliasName + ") must exists";
-            LOGGER.error(msg);
-            throw new RuntimeException(msg);
-        }
-
-        boolean existsIndex = existsIndex(indexName);
-        if (Boolean.FALSE.equals(existsIndex)) {
-            String msg = "The index (" + indexName + ") must exists";
-            LOGGER.error(msg);
-            throw new RuntimeException(msg);
-        }
-
-        IndicesAliasesRequest request = new IndicesAliasesRequest();
-        AliasActions aliasAction =
-            new AliasActions(AliasActions.Type.ADD)
-                .index(indexName.toLowerCase())
-                .alias(aliasName.toLowerCase());
-        request.addAliasAction(aliasAction);
-
-        //TODO conf timeout
-        request.timeout(TimeValue.timeValueMinutes(2));
-        request.masterNodeTimeout(TimeValue.timeValueMinutes(1));
-
-        AcknowledgedResponse response = getClient().indices().updateAliases(request, RequestOptions.DEFAULT);
-
-        return response.isAcknowledged();
-    }
-
 
     public boolean switchAliasIndex(String aliasName, String oldIndex, String newIndexName) throws IOException {
         IndicesAliasesRequest request = new IndicesAliasesRequest();
@@ -302,9 +266,10 @@ public class ElasticsearchAccess implements DatabaseConnection {
             request.addAliasAction(aliasAction);
         }
 
-        //TODO conf timeout
-        request.timeout(TimeValue.timeValueMinutes(2));
-        request.masterNodeTimeout(TimeValue.timeValueMinutes(1));
+        request.timeout(TimeValue.timeValueMillis(
+            VitamConfiguration.getElasticSearchTimeoutWaitRequestInMilliseconds()));
+        request.masterNodeTimeout(TimeValue.timeValueMillis(
+            VitamConfiguration.getElasticSearchTimeoutWaitRequestInMilliseconds()));
 
         AcknowledgedResponse response = getClient().indices().updateAliases(request, RequestOptions.DEFAULT);
 
@@ -322,7 +287,7 @@ public class ElasticsearchAccess implements DatabaseConnection {
                 request.setScroll(TimeValue.timeValueMillis(
                     VitamConfiguration.getElasticSearchScrollTimeoutInMilliseconds()));
                 request.setTimeout(TimeValue.timeValueMillis(
-                    VitamConfiguration.getElasticSearchTimeoutWaitAvailableShardsForBulkRequestInMilliseconds()));
+                    VitamConfiguration.getElasticSearchTimeoutWaitRequestInMilliseconds()));
                 request.setRefresh(true);
 
                 BulkByScrollResponse bulkResponse = getClient().deleteByQuery(request, RequestOptions.DEFAULT);
@@ -351,17 +316,17 @@ public class ElasticsearchAccess implements DatabaseConnection {
 
                 List<ScrollableHitSource.SearchFailure> searchFailures = bulkResponse.getSearchFailures();
                 if (CollectionUtils.isNotEmpty(searchFailures)) {
-                    throw new VitamRuntimeException("ES purge errors : in search phase > " + searchFailures);
+                    throw new VitamFatalRuntimeException("ES purge errors : in search phase > " + searchFailures);
                 }
 
                 List<BulkItemResponse.Failure> bulkFailures = bulkResponse.getBulkFailures();
                 if (CollectionUtils.isNotEmpty(bulkFailures)) {
-                    throw new VitamRuntimeException("ES purge errors : in bulk phase > " + bulkFailures);
+                    throw new VitamFatalRuntimeException("ES purge errors : in bulk phase > " + bulkFailures);
                 }
 
             }
         } catch (IOException e) {
-            throw new RuntimeException(e);
+            throw new VitamFatalRuntimeException(e);
         }
     }
 
@@ -415,7 +380,7 @@ public class ElasticsearchAccess implements DatabaseConnection {
             .id(id)
             .source(source, XContentType.JSON)
             .setRefreshPolicy(WriteRequest.RefreshPolicy.IMMEDIATE)
-            .timeout(TimeValue.timeValueSeconds(1)) // TODO: 03/02/2020 config
+            .timeout(TimeValue.timeValueSeconds(VitamConfiguration.getElasticSearchTimeoutWaitRequestInMilliseconds()))
             .opType(DocWriteRequest.OpType.INDEX);
 
         IndexResponse indexResponse;
@@ -505,7 +470,8 @@ public class ElasticsearchAccess implements DatabaseConnection {
                 .id(id)
                 .source(document, XContentType.JSON)
                 .setRefreshPolicy(WriteRequest.RefreshPolicy.IMMEDIATE)
-                .timeout(TimeValue.timeValueSeconds(1)) // TODO: 03/02/2020 config
+                .timeout(TimeValue.timeValueMillis(VitamConfiguration
+                    .getElasticSearchTimeoutWaitRequestInMilliseconds()))
                 .opType(DocWriteRequest.OpType.INDEX);
 
             IndexResponse indexResponse;
@@ -621,7 +587,7 @@ public class ElasticsearchAccess implements DatabaseConnection {
                 switch (e.status()) {
                     case BAD_REQUEST:
                         throw new BadRequestException(e);
-                     default:
+                    default:
                         throw new DatabaseException(e);
                 }
             } catch (IOException e) {
@@ -650,7 +616,7 @@ public class ElasticsearchAccess implements DatabaseConnection {
             int released = response.getNumFreed();
 
             Asserts.check(success, "clear scroll" + scrollId + " ko");
-            LOGGER.error("clear scroll " + scrollId + " > success :" + success + ", released: " + released);
+            LOGGER.debug("clear scroll " + scrollId + " > success :" + success + ", released: " + released);
         } catch (IOException e) {
             throw new DatabaseException(e);
         }
@@ -662,7 +628,11 @@ public class ElasticsearchAccess implements DatabaseConnection {
             ElasticsearchNode elasticsearchNode = nodes.get(i);
             hosts[i] = new HttpHost(elasticsearchNode.getHostName(), elasticsearchNode.getTcpPort(), "http");
         }
-        RestClientBuilder restClientBuilder = RestClient.builder(hosts);
+        RestClientBuilder restClientBuilder = RestClient.builder(hosts).setRequestConfigCallback(
+            requestConfigBuilder -> requestConfigBuilder
+                .setConnectionRequestTimeout(VitamConfiguration.getElasticSearchTimeoutWaitRequestInMilliseconds())
+                .setConnectTimeout(VitamConfiguration.getConnectTimeout())
+                .setSocketTimeout(VitamConfiguration.getReadTimeout()));
         return new RestHighLevelClient(restClientBuilder);
     }
 
@@ -673,7 +643,7 @@ public class ElasticsearchAccess implements DatabaseConnection {
         try {
             getClient().close();
         } catch (IOException e) {
-            throw new RuntimeException(e);
+            throw new VitamFatalRuntimeException(e);
         }
     }
 
@@ -732,6 +702,7 @@ public class ElasticsearchAccess implements DatabaseConnection {
         String indexName = getUniqueIndexName(collectionName, tenantId);
         String aliasName = getAliasName(collectionName, tenantId);
         LOGGER.debug("addIndex: {}", indexName);
+        Map<String, String> map = new HashMap<>();
         try {
             if (!existsAlias(aliasName)) {
                 LOGGER.debug("createIndex");
@@ -742,13 +713,21 @@ public class ElasticsearchAccess implements DatabaseConnection {
                 if (!indexCreated) {
                     return new HashMap<>();
                 }
+                map.put(aliasName, indexName);
+            } else {
+                GetAliasesResponse aliasResponse = getAlias(aliasName);
+                for (Map.Entry<String, Set<AliasMetaData>> entry : aliasResponse.getAliases().entrySet()) {
+                    // Assume one alias == One index
+                    // Assume one index == multiple aliases
+                    Iterator<AliasMetaData> iterator = entry.getValue().iterator();
+                    while (iterator.hasNext()) {
+                        map.put(iterator.next().getAlias(), entry.getKey());
+                    }
+                }
             }
         } catch (final IOException e) {
             LOGGER.error("Error while check alias existence", e);
-            return new HashMap<>();
         }
-        Map<String, String> map = new HashMap<>();
-        map.put(aliasName, indexName);
         return map;
     }
 
@@ -801,11 +780,28 @@ public class ElasticsearchAccess implements DatabaseConnection {
         }
     }
 
-    public final boolean deleteIndex(final String collectionName, Integer tenantId) {
 
-        DeleteIndexRequest request = new DeleteIndexRequest(getAliasName(collectionName, tenantId));
-        request.timeout(TimeValue.timeValueMinutes(2));
-        request.masterNodeTimeout(TimeValue.timeValueMinutes(1));
+    public final void deleteIndexByAlias(final String collectionName, Integer tenantId) {
+
+        String aliasName = getAliasName(collectionName, tenantId);
+        GetAliasesResponse aliasResponse = null;
+        try {
+            aliasResponse = getAlias(aliasName);
+        } catch (IOException e) {
+            throw new VitamFatalRuntimeException(e);
+        }
+        for (Map.Entry<String, Set<AliasMetaData>> entry : aliasResponse.getAliases().entrySet()) {
+            deleteIndex(entry.getKey());
+        }
+    }
+
+    public final boolean deleteIndex(final String indexFullName) {
+
+        DeleteIndexRequest request = new DeleteIndexRequest(indexFullName);
+        request
+            .timeout(TimeValue.timeValueMillis(VitamConfiguration.getElasticSearchTimeoutWaitRequestInMilliseconds()));
+        request.masterNodeTimeout(TimeValue.timeValueMillis(
+            VitamConfiguration.getElasticSearchTimeoutWaitRequestInMilliseconds()));
         request.indicesOptions(IndicesOptions.STRICT_EXPAND_OPEN);
 
         try {

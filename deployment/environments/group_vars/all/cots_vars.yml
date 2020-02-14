@@ -32,6 +32,7 @@ elasticsearch:
         https_enabled: false
         indices_fielddata_cache_size: 0.3 # related to https://www.elastic.co/guide/en/elasticsearch/reference/6.8/modules-fielddata.html
         indices_breaker_fielddata_limit: 0.4 # related to https://www.elastic.co/guide/en/elasticsearch/reference/6.8/circuit-breaker.html#fielddata-circuit-breaker
+        dynamic_timeout: 30
         # default index template
         index_templates:
             default:
@@ -77,6 +78,7 @@ elasticsearch:
         # discovery_zen_minimum_master_nodes: 2 # comented by default ; by default, value is half the length of ansible associated group whose racks have the same number of machine. If it is not the case, this value have to be set with the smallest rack (if using param is_balancing). ONLY EXISTS FOR DATA CLUSTER !!!! DO NOT FORGET TO APPLY PARAMETER WITH REPLICA NUMBER !!!!
         indices_fielddata_cache_size: 0.3 # related to https://www.elastic.co/guide/en/elasticsearch/reference/6.5/modules-fielddata.html
         indices_breaker_fielddata_limit: 0.4 # related to https://www.elastic.co/guide/en/elasticsearch/reference/6.5/circuit-breaker.html#fielddata-circuit-breaker
+        dynamic_timeout: 30
         # default index template
         index_templates:
             default:

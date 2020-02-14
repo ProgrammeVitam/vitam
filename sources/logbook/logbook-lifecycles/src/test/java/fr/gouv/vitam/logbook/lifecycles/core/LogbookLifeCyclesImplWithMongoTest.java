@@ -49,8 +49,8 @@ import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.logbook.common.parameters.LogbookLifeCycleObjectGroupParameters;
 import fr.gouv.vitam.logbook.common.parameters.LogbookLifeCycleUnitParameters;
-import fr.gouv.vitam.logbook.common.parameters.LogbookParameterName;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParameterHelper;
+import fr.gouv.vitam.logbook.common.parameters.LogbookParameterName;
 import fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess;
 import fr.gouv.vitam.logbook.common.server.LogbookConfiguration;
 import fr.gouv.vitam.logbook.common.server.LogbookDbAccess;
@@ -83,7 +83,7 @@ public class LogbookLifeCyclesImplWithMongoTest {
 
     @ClassRule
     public static MongoRule mongoRule =
-            new MongoRule(VitamCollection.getMongoClientOptions());
+        new MongoRule(VitamCollection.getMongoClientOptions());
 
     @ClassRule
     public static ElasticsearchRule elasticsearchRule = new ElasticsearchRule();
@@ -115,18 +115,19 @@ public class LogbookLifeCyclesImplWithMongoTest {
     @BeforeClass
     public static void setUpBeforeClass() throws IOException, VitamException {
         junitHelper = JunitHelper.getInstance();
+        List<ElasticsearchNode> esNodes =
+            Lists.newArrayList(new ElasticsearchNode(ElasticsearchRule.getHost(), ElasticsearchRule.getPort()));
+
 
         LogbookCollections.beforeTestClass(mongoRule.getMongoDatabase(), PREFIX,
-                new LogbookElasticsearchAccess(ElasticsearchRule.VITAM_CLUSTER,
-                        Lists.newArrayList(new ElasticsearchNode("localhost", ElasticsearchRule.TCP_PORT))), tenantId);
+            new LogbookElasticsearchAccess(ElasticsearchRule.VITAM_CLUSTER, esNodes), tenantId);
 
         final List<MongoDbNode> nodes = new ArrayList<>();
         nodes.add(new MongoDbNode("localhost", mongoRule.getDataBasePort()));
-        final List<ElasticsearchNode> esNodes = new ArrayList<>();
-        esNodes.add(new ElasticsearchNode("localhost", ElasticsearchRule.TCP_PORT));
 
         LogbookConfiguration logbookConfiguration =
-            new LogbookConfiguration(nodes, mongoRule.getMongoDatabase().getName(), ElasticsearchRule.VITAM_CLUSTER, esNodes);
+            new LogbookConfiguration(nodes, mongoRule.getMongoDatabase().getName(), ElasticsearchRule.VITAM_CLUSTER,
+                esNodes);
         VitamConfiguration.setTenants(tenantList);
 
         mongoDbAccess = LogbookMongoDbAccessFactory.create(logbookConfiguration, Collections::emptyList);
@@ -224,8 +225,8 @@ public class LogbookLifeCyclesImplWithMongoTest {
 
         // get unit
         final LogbookLifeCycle logbookLifeCycle = logbookLifeCyclesImpl.selectLifeCycleById(
-                logbookLifeCyclesUnitParametersStart.getParameterValue(LogbookParameterName.objectIdentifier), 
-                null, false, LogbookCollections.LIFECYCLE_UNIT);
+            logbookLifeCyclesUnitParametersStart.getParameterValue(LogbookParameterName.objectIdentifier),
+            null, false, LogbookCollections.LIFECYCLE_UNIT);
         assertNotNull(logbookLifeCycle);
     }
 
@@ -340,8 +341,8 @@ public class LogbookLifeCyclesImplWithMongoTest {
 
         // get objectgroup
         final LogbookLifeCycle logbookLifeCycle = logbookLifeCyclesImpl.selectLifeCycleById(
-                logbookLifeCyclesObjectGroupParametersStart.getParameterValue(LogbookParameterName.objectIdentifier),
-                null, false, LogbookCollections.LIFECYCLE_OBJECTGROUP);
+            logbookLifeCyclesObjectGroupParametersStart.getParameterValue(LogbookParameterName.objectIdentifier),
+            null, false, LogbookCollections.LIFECYCLE_OBJECTGROUP);
         assertNotNull(logbookLifeCycle);
     }
 
@@ -397,7 +398,7 @@ public class LogbookLifeCyclesImplWithMongoTest {
         final Select select = new Select();
         select.setQuery(exists("mavar1"));
         logbookLifeCyclesImpl.selectLifeCycles(JsonHandler.getFromString(select.getFinalSelect().toString()), false,
-                LogbookCollections.LIFECYCLE_OBJECTGROUP);
+            LogbookCollections.LIFECYCLE_OBJECTGROUP);
     }
 
     @Test(expected = LogbookNotFoundException.class)

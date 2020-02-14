@@ -44,8 +44,8 @@ import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
 import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
 import fr.gouv.vitam.logbook.common.parameters.LogbookOperationParameters;
-import fr.gouv.vitam.logbook.common.parameters.LogbookParameterName;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParameterHelper;
+import fr.gouv.vitam.logbook.common.parameters.LogbookParameterName;
 import fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess;
 import fr.gouv.vitam.logbook.common.server.exception.LogbookException;
 import net.javacrumbs.jsonunit.JsonAssert;
@@ -96,13 +96,12 @@ public class LogbookElasticsearchAccessTest {
 
     @BeforeClass
     public static void setUpBeforeClass() throws Exception {
-        LogbookCollections.beforeTestClass(mongoRule.getMongoDatabase(), PREFIX,
-            new LogbookElasticsearchAccess(ElasticsearchRule.VITAM_CLUSTER,
-                Lists.newArrayList(new ElasticsearchNode("localhost", ElasticsearchRule.TCP_PORT))), tenantId);
+        List<ElasticsearchNode> esNodes =
+            Lists.newArrayList(new ElasticsearchNode(ElasticsearchRule.getHost(), ElasticsearchRule.getPort()));
 
-        final List<ElasticsearchNode> nodes = new ArrayList<>();
-        nodes.add(new ElasticsearchNode(HOST_NAME, ElasticsearchRule.TCP_PORT));
-        esClient = new LogbookElasticsearchAccess(ElasticsearchRule.VITAM_CLUSTER, nodes);
+        LogbookCollections.beforeTestClass(mongoRule.getMongoDatabase(), PREFIX,
+            new LogbookElasticsearchAccess(ElasticsearchRule.VITAM_CLUSTER, esNodes), tenantId);
+        esClient = new LogbookElasticsearchAccess(ElasticsearchRule.VITAM_CLUSTER, esNodes);
     }
 
     @AfterClass
@@ -179,7 +178,7 @@ public class LogbookElasticsearchAccessTest {
             created.put(LogbookDocument.EVENTS, events);
             String idUpdate = id;
             String esJsonUpdate = JsonHandler.unprettyPrint(created);
-            VitamDocument document = JsonHandler.getFromString(esJsonUpdate, VitamDocument.class);
+            LogbookOperation document = JsonHandler.getFromString(esJsonUpdate, LogbookOperation.class);
 
             esClient.updateFullDocument(LogbookCollections.OPERATION, tenantId, idUpdate, document);
 
@@ -201,7 +200,7 @@ public class LogbookElasticsearchAccessTest {
         esClient.refreshIndex(LogbookCollections.OPERATION.getName().toLowerCase(), tenantId);
 
         // delete index
-        assertEquals(true, esClient.deleteIndex(LogbookCollections.OPERATION.getName().toLowerCase(), tenantId));
+        esClient.deleteIndexByAlias(LogbookCollections.OPERATION.getName().toLowerCase(), tenantId);
 
         // check post delete
         try {
