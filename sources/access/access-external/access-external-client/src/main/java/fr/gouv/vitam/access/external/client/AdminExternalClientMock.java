@@ -520,8 +520,6 @@ public class AdminExternalClientMock extends AbstractMockClient implements Admin
         return ClientMockResultHelper.getProbativeValue(Status.OK.getStatusCode());
     }
 
-
-
     @Override
     public RequestResponse createArchiveUnitProfile(VitamContext vitamContext, InputStream docTypes) {
         return ClientMockResultHelper.getArchiveUnitProfiles(Status.OK.getStatusCode());
