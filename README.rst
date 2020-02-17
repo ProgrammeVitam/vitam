@@ -45,7 +45,7 @@ C’est le code de ce back-office central qui est ici publié. Des outils annexe
 .. contents::
 
 
-Sructure du projet
+Structure du projet
 ==================
 
 Le projet se compose des sous-dossiers suivants :
