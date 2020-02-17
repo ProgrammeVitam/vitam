@@ -435,7 +435,7 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
 
             // compress file to backup
             OperationContextMonitor
-                .compressInWorkspace(workspaceClientFactory, operationId, Contexts.EXPORT_DIP.getLogbookTypeProcess(),
+                .compressInWorkspace(workspaceClientFactory, operationId, logbookTypeProcess,
                     OperationContextMonitor.OperationContextFileName);
 
             ProcessingEntry processingEntry = new ProcessingEntry(operationId, contexts.name());
@@ -445,7 +445,7 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
             processingClient.initVitamProcess(processingEntry);
 
             RequestResponse<ItemStatus> jsonNodeRequestResponse = processingClient.executeOperationProcess(
-                operationId, Contexts.EXPORT_DIP.name(), RESUME.getValue());
+                operationId, contexts.name(), RESUME.getValue());
             return jsonNodeRequestResponse.toResponse();
         } catch (ContentAddressableStorageServerException | OperationContextException |
             InvalidGuidOperationException | LogbookClientServerException | LogbookClientBadRequestException |
