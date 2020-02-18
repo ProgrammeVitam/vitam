@@ -3,6 +3,8 @@
 @tenant = 0
 @sip-size = 79267
 @operation-id = aeeaaaaaacfww4l5absymaln3dj5jdaaaaaq
+@manifest-digest-value = 3112e4f4f66c70f0565b95ea270c7488f074ace3ab28f74feaa975751b424619ff429490416f1c4b630361ab16f0bb5f16d92f5a867e6f94c886464e95f82ca5
+@manifest-digest-algo = SHA-512
 
 ### Ajout de l'unité archivistique 'my-name.zip' qui est dans le fichier '/path/to/my-name.zip' a VITAM
 POST {{url}}/ingest-external/v1/ingests
@@ -13,6 +15,8 @@ X-Chunk-Offset: 0
 X-Context-Id: DEFAULT_WORKFLOW
 X-Size-Total: {{sip-size}}
 X-Tenant-Id: {{tenant}}
+X-Manifest-Digest-Value: {{manifest-digest-value}}
+X-Manifest-Digest-Algo: {{manifest-digest-algo}}
 
 < /path/to/my-name.zip
 
@@ -22,7 +26,7 @@ Accept: application/json
 X-Tenant-Id: {{tenant}}
 X-Access-Contract-Id: {{access-contract}}
 
-### Récupération du résulta de l'opération d'ingest précédente grâce au 'X-Request-Id' de la réponse de l'ingest
+### Récupération du résultat de l'opération d'ingest précédente grâce au 'X-Request-Id' de la réponse de l'ingest
 GET {{url}}/access-external/v1/logbookoperations
 Accept: application/json
 Content-Type: application/json

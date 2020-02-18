@@ -74,17 +74,25 @@ class IngestExternalClientRest extends DefaultClient implements IngestExternalCl
         String contextId,
         String action)
         throws IngestExternalException {
+        return ingest(vitamContext, stream, new IngestRequestParameters(contextId, action));
+    }
+
+    @Override
+    public RequestResponse<Void> ingest(VitamContext vitamContext, InputStream stream,
+        IngestRequestParameters ingestRequestParameters) throws IngestExternalException {
 
         ParametersChecker.checkParameter("Tenant identifier is a mandatory parameter", vitamContext.getTenantId());
 
         final MultivaluedMap<String, Object> headers = vitamContext.getHeaders();
-        headers.add(GlobalDataRest.X_CONTEXT_ID, contextId);
-        headers.add(GlobalDataRest.X_ACTION, action);
-        headers.add(EXPECT, EXPECT_CONTINUE);
 
         VitamRequestBuilder request = post()
             .withPath(INGEST_URL)
-            .withHeaders(headers)
+            .withHeaders(vitamContext.getHeaders())
+            .withHeader(GlobalDataRest.X_CONTEXT_ID, ingestRequestParameters.getContextId())
+            .withHeader(GlobalDataRest.X_ACTION, ingestRequestParameters.getAction())
+            .withHeaderIgnoreNull(GlobalDataRest.X_MANIFEST_DIGEST_ALGORITHM, ingestRequestParameters.getManifestDigestAlgo())
+            .withHeaderIgnoreNull(GlobalDataRest.X_MANIFEST_DIGEST_VALUE, ingestRequestParameters.getManifestDigestValue())
+            .withHeader(EXPECT, EXPECT_CONTINUE)
             .withBody(stream, "Stream is a mandatory parameter")
             .withOctetContentType()
             .withXMLAccept();
@@ -127,17 +135,22 @@ class IngestExternalClientRest extends DefaultClient implements IngestExternalCl
     public RequestResponse<Void> ingestLocal(VitamContext vitamContext, LocalFile localFile, String contextId,
         String action)
         throws IngestExternalException {
+        return ingestLocal(vitamContext, localFile, new IngestRequestParameters(contextId, action));
+    }
+
+    @Override
+    public RequestResponse<Void> ingestLocal(VitamContext vitamContext, LocalFile localFile,
+        IngestRequestParameters ingestRequestParameters) throws IngestExternalException {
 
         ParametersChecker.checkParameter("Tenant identifier is a mandatory parameter", vitamContext.getTenantId());
-        final MultivaluedMap<String, Object> headers = vitamContext.getHeaders();
-        headers.add(GlobalDataRest.X_CONTEXT_ID, contextId);
-        headers.add(GlobalDataRest.X_ACTION, action);
-        headers.add(EXPECT, EXPECT_CONTINUE);
 
         VitamRequestBuilder request = post()
             .withPath(INGEST_URL)
-            .withHeader(GlobalDataRest.X_CONTEXT_ID, contextId)
-            .withHeader(GlobalDataRest.X_ACTION, action)
+            .withHeaders(vitamContext.getHeaders())
+            .withHeader(GlobalDataRest.X_CONTEXT_ID, ingestRequestParameters.getContextId())
+            .withHeader(GlobalDataRest.X_ACTION, ingestRequestParameters.getAction())
+            .withHeaderIgnoreNull(GlobalDataRest.X_MANIFEST_DIGEST_ALGORITHM, ingestRequestParameters.getManifestDigestAlgo())
+            .withHeaderIgnoreNull(GlobalDataRest.X_MANIFEST_DIGEST_VALUE, ingestRequestParameters.getManifestDigestValue())
             .withHeader(EXPECT, EXPECT_CONTINUE)
             .withBody(localFile, "localFile is a mandatory parameter")
             .withJsonContentType()

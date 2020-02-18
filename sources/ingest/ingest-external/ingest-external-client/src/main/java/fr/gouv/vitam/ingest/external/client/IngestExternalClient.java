@@ -61,6 +61,20 @@ public interface IngestExternalClient extends MockOrRestClient {
         throws IngestExternalException;
 
     /**
+     * ingest upload file in local and launch an ingest workflow
+     *
+     *
+     * @param vitamContext the vitam context
+     * @param stream sip input stream
+     * @param ingestRequestParameters ingest request parameters
+     * @return response
+     * @throws IngestExternalException
+     */
+    RequestResponse<Void> ingest(VitamContext vitamContext, InputStream stream,
+        IngestRequestParameters ingestRequestParameters)
+        throws IngestExternalException;
+
+    /**
      * Download object stored by ingest operation<br>
      * <br>
      * <b>The caller is responsible to close the Response after consuming the inputStream.</b>
@@ -94,6 +108,21 @@ public interface IngestExternalClient extends MockOrRestClient {
     RequestResponse<Void> ingestLocal(VitamContext vitamContext, LocalFile localFile,
         String contextId,
         String action)
+        throws IngestExternalException;
+
+
+    /**
+     * ingest a file that has been uploaded locally on a vitam folder then launch an ingest workflow
+     *
+     *
+     * @param vitamContext the vitam context
+     * @param localFile the localFile information
+     * @param ingestRequestParameters ingest request parameters
+     * @return response
+     * @throws IngestExternalException
+     */
+    RequestResponse<Void> ingestLocal(VitamContext vitamContext, LocalFile localFile,
+        IngestRequestParameters ingestRequestParameters)
         throws IngestExternalException;
 
 }
