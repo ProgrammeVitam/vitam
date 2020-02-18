@@ -261,6 +261,18 @@ public class GlobalDataRest {
      */
     public static final String X_CHUNK_MAX_SIZE = "X-Vitam-Chunk-Max-Size";
 
+    /**
+     * Optional. Expected digest value of the manifest file within the SIP archive.
+     * If provided, manifest digest algorithm must be specified also.
+     */
+    public static final String X_MANIFEST_DIGEST_VALUE = "X-Manifest-Digest-Value";
+
+    /**
+     * Optional. Expected digest algorithm of the manifest file within the SIP archive.
+     * If provided, manifest digest value must be specified also.
+     */
+    public static final String X_MANIFEST_DIGEST_ALGORITHM = "X-Manifest-Digest-Algo";
+
     private GlobalDataRest() {
         // empty
     }

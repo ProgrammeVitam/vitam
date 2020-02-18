@@ -13,7 +13,7 @@
       },
       {
         "tenant": 0,
-        "AccessContracts": [],
+        "AccessContracts": ["aName3"],
         "IngestContracts": ["ArchivalAgreement0", "ArchivalAgreement0Test", "aName 2", "ContractWithAttachment", "ArchivalAgreementAttachment"]
       }
     ]
