@@ -68,6 +68,12 @@ class IngestExternalClientMock extends AbstractMockClient implements IngestExter
     }
 
     @Override
+    public RequestResponse<Void> ingest(VitamContext vitamContext, InputStream stream,
+        IngestRequestParameters ingestRequestParameters) throws IngestExternalException {
+        return this.ingest(vitamContext, stream, ingestRequestParameters.getContextId(), ingestRequestParameters.getAction());
+    }
+
+    @Override
     public Response downloadObjectAsync(VitamContext vitamContext, String objectId,
         IngestCollection type)
         throws VitamClientException {
@@ -84,5 +90,12 @@ class IngestExternalClientMock extends AbstractMockClient implements IngestExter
         r.addHeader(FAKE_X_REQUEST_ID, X_REQUEST_ID);
 
         return r;
+    }
+
+    @Override
+    public RequestResponse<Void> ingestLocal(VitamContext vitamContext, LocalFile localFile,
+        IngestRequestParameters ingestRequestParameters)
+        throws IngestExternalException {
+        return ingestLocal(vitamContext, localFile, ingestRequestParameters.getContextId(), ingestRequestParameters.getAction());
     }
 }

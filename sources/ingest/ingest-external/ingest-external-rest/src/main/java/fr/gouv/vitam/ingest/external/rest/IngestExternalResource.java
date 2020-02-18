@@ -55,6 +55,7 @@ import javax.ws.rs.core.Response.Status;
 import fr.gouv.vitam.common.exception.WorkflowNotFoundException;
 import fr.gouv.vitam.common.format.identification.FormatIdentifierFactory;
 import fr.gouv.vitam.ingest.external.core.AtrKoBuilder;
+import fr.gouv.vitam.ingest.external.core.ManifestDigestValidator;
 import org.apache.commons.io.FilenameUtils;
 
 import fr.gouv.vitam.common.GlobalDataRest;
@@ -155,8 +156,12 @@ public class IngestExternalResource extends ApplicationStatusResource {
     @POST
     @Consumes(MediaType.APPLICATION_OCTET_STREAM)
     @Secured(permission = "ingests:create", description = "Envoyer un SIP à Vitam afin qu'il en réalise l'entrée")
-    public void upload(@HeaderParam(GlobalDataRest.X_CONTEXT_ID) String contextId,
-        @HeaderParam(GlobalDataRest.X_ACTION) String action, InputStream uploadedInputStream,
+    public void upload(
+        @HeaderParam(GlobalDataRest.X_CONTEXT_ID) String contextId,
+        @HeaderParam(GlobalDataRest.X_ACTION) String action,
+        @HeaderParam(GlobalDataRest.X_MANIFEST_DIGEST_ALGORITHM) String manifestDigestAlgo,
+        @HeaderParam(GlobalDataRest.X_MANIFEST_DIGEST_VALUE) String manifestDigestValue,
+        InputStream uploadedInputStream,
         @Suspended final AsyncResponse asyncResponse) {
 
         final String requestId = VitamThreadUtils.getVitamSession().getRequestId();
@@ -165,10 +170,9 @@ public class IngestExternalResource extends ApplicationStatusResource {
         Integer tenantId = ParameterHelper.getTenantParameter();
 
         VitamThreadPoolExecutor.getDefaultExecutor()
-            .execute(() -> uploadAsync(uploadedInputStream, asyncResponse, tenantId, contextId, action, guid,
-                Optional.empty()));
+            .execute(() -> uploadAsync(uploadedInputStream, asyncResponse, tenantId, contextId, action,
+                manifestDigestValue, manifestDigestAlgo, guid, Optional.empty()));
     }
-
     /**
      * upload a local file
      *
@@ -183,8 +187,12 @@ public class IngestExternalResource extends ApplicationStatusResource {
     @Consumes(MediaType.APPLICATION_JSON)
     @Secured(permission = "ingests:local:create",
         description = "Envoyer un SIP en local à Vitam afin qu'il en réalise l'entrée")
-    public void uploadLocal(@HeaderParam(GlobalDataRest.X_CONTEXT_ID) String contextId,
-        @HeaderParam(GlobalDataRest.X_ACTION) String action, LocalFile localFile,
+    public void uploadLocal(
+        @HeaderParam(GlobalDataRest.X_CONTEXT_ID) String contextId,
+        @HeaderParam(GlobalDataRest.X_ACTION) String action,
+        @HeaderParam(GlobalDataRest.X_MANIFEST_DIGEST_ALGORITHM) String manifestDigestAlgo,
+        @HeaderParam(GlobalDataRest.X_MANIFEST_DIGEST_VALUE) String manifestDigestValue,
+        LocalFile localFile,
         @Suspended final AsyncResponse asyncResponse) {
 
         final String requestId = VitamThreadUtils.getVitamSession().getRequestId();
@@ -213,7 +221,7 @@ public class IngestExternalResource extends ApplicationStatusResource {
         VitamThreadPoolExecutor.getDefaultExecutor()
             .execute(() -> {
                 try (InputStream inputStream = new BufferedInputStream(new FileInputStream(path.toString()))) {
-                    uploadAsync(inputStream, asyncResponse, tenantId, contextId, action, guid, Optional.of(localFile));
+                    uploadAsync(inputStream, asyncResponse, tenantId, contextId, action, manifestDigestValue, manifestDigestAlgo, guid, Optional.of(localFile));
 
                 } catch (IOException e) {
                     LOGGER.error(e);
@@ -236,16 +244,18 @@ public class IngestExternalResource extends ApplicationStatusResource {
     }
 
     private void uploadAsync(InputStream uploadedInputStream, AsyncResponse asyncResponse,
-        Integer tenantId, String contextId, String xAction, GUID operationId, Optional<LocalFile> localFile) {
+        Integer tenantId, String contextId, String xAction,
+        String manifestDigestValue, String manifestDigestAlgo, GUID operationId, Optional<LocalFile> localFile) {
 
         final IngestExternalImpl ingestExternal =
-            new IngestExternalImpl(ingestExternalConfiguration, formatIdentifierFactory, ingestInternalClientFactory);
+            new IngestExternalImpl(ingestExternalConfiguration, formatIdentifierFactory, ingestInternalClientFactory,
+                new ManifestDigestValidator());
         final LocalFileAction afterUploadAction =
             LocalFileAction.getLocalFileAction(ingestExternalConfiguration.getFileActionAfterUpload().name());
         try {
             ParametersChecker.checkParameter("HTTP Request must contains stream", uploadedInputStream);
             VitamThreadUtils.getVitamSession().setTenantId(tenantId);
-            PreUploadResume preUploadResume = null;
+            PreUploadResume preUploadResume;
             try {
                 preUploadResume =
                     ingestExternal.preUploadAndResume(uploadedInputStream, contextId, operationId, asyncResponse);
@@ -263,7 +273,7 @@ public class IngestExternalResource extends ApplicationStatusResource {
                         asyncResponse);
                 return;
             }
-            ingestExternal.upload(preUploadResume, xAction, operationId);
+            ingestExternal.upload(preUploadResume, xAction, operationId, manifestDigestValue, manifestDigestAlgo);
 
             if (localFile.isPresent()) {
 

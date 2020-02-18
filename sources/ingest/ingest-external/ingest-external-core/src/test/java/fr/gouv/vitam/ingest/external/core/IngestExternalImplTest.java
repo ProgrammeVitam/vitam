@@ -77,6 +77,7 @@ public class IngestExternalImplTest {
 
     private static final FormatIdentifierFactory formatIdentifierFactory = mock(FormatIdentifierFactory.class);
     private static final FormatIdentifier formatIdentifier = mock(FormatIdentifier.class);
+
     private IngestInternalClientFactory ingestInternalClientFactory;
     private IngestInternalClient ingestInternalClient;
 
@@ -106,7 +107,8 @@ public class IngestExternalImplTest {
         config.setPath(PATH);
         config.setAntiVirusScriptName(SCRIPT_SCAN_CLAMAV);
         config.setTimeoutScanDelay(timeoutScanDelay);
-        ingestExternalImpl = new IngestExternalImpl(config, formatIdentifierFactory, ingestInternalClientFactory);
+        ManifestDigestValidator manifestDigestValidator = new ManifestDigestValidator();
+        ingestExternalImpl = new IngestExternalImpl(config, formatIdentifierFactory, ingestInternalClientFactory, manifestDigestValidator);
     }
 
     @RunWithCustomExecutor
@@ -120,7 +122,7 @@ public class IngestExternalImplTest {
         final AsyncResponseJunitTest responseAsync = new AsyncResponseJunitTest();
         PreUploadResume model =
             ingestExternalImpl.preUploadAndResume(stream, CONTEXT_ID, guid, responseAsync);
-        StatusCode statusCode = ingestExternalImpl.upload(model, EXECUTION_MODE, guid);
+        StatusCode statusCode = ingestExternalImpl.upload(model, EXECUTION_MODE, guid, null, null);
         Assert.assertTrue(statusCode.equals(StatusCode.KO));
     }
 
@@ -134,7 +136,7 @@ public class IngestExternalImplTest {
         final AsyncResponseJunitTest responseAsync = new AsyncResponseJunitTest();
         PreUploadResume model =
             ingestExternalImpl.preUploadAndResume(stream, CONTEXT_ID, guid, responseAsync);
-        StatusCode statusCode = ingestExternalImpl.upload(model, EXECUTION_MODE, guid);
+        StatusCode statusCode = ingestExternalImpl.upload(model, EXECUTION_MODE, guid, null, null);
         Assert.assertTrue(statusCode.equals(StatusCode.KO));
 
     }
@@ -151,7 +153,7 @@ public class IngestExternalImplTest {
         PreUploadResume model =
             ingestExternalImpl.preUploadAndResume(stream, CONTEXT_ID, guid, responseAsync);
 
-        StatusCode statusCode = ingestExternalImpl.upload(model, EXECUTION_MODE, guid);
+        StatusCode statusCode = ingestExternalImpl.upload(model, EXECUTION_MODE, guid, null, null);
         Assert.assertTrue(statusCode.equals(StatusCode.KO));
     }
 
@@ -167,7 +169,7 @@ public class IngestExternalImplTest {
         PreUploadResume model =
             ingestExternalImpl.preUploadAndResume(stream, CONTEXT_ID, guid, responseAsync);
 
-        StatusCode statusCode = ingestExternalImpl.upload(model, EXECUTION_MODE, guid);
+        StatusCode statusCode = ingestExternalImpl.upload(model, EXECUTION_MODE, guid, null, null);
         Assert.assertTrue(statusCode.equals(StatusCode.KO));
     }
 
@@ -184,7 +186,7 @@ public class IngestExternalImplTest {
         PreUploadResume model =
             ingestExternalImpl.preUploadAndResume(stream, CONTEXT_ID, guid, responseAsync);
 
-        StatusCode statusCode = ingestExternalImpl.upload(model, EXECUTION_MODE, guid);
+        StatusCode statusCode = ingestExternalImpl.upload(model, EXECUTION_MODE, guid, null, null);
         Assert.assertTrue(statusCode.equals(StatusCode.KO));
     }
 
@@ -201,7 +203,7 @@ public class IngestExternalImplTest {
         PreUploadResume model =
             ingestExternalImpl.preUploadAndResume(stream, CONTEXT_ID, guid, responseAsync);
 
-        StatusCode statusCode = ingestExternalImpl.upload(model, EXECUTION_MODE, guid);
+        StatusCode statusCode = ingestExternalImpl.upload(model, EXECUTION_MODE, guid, null, null);
         Assert.assertTrue(statusCode.equals(StatusCode.KO));
     }
 
@@ -218,7 +220,7 @@ public class IngestExternalImplTest {
         PreUploadResume model =
             ingestExternalImpl.preUploadAndResume(stream, CONTEXT_ID, guid, responseAsync);
 
-        StatusCode statusCode = ingestExternalImpl.upload(model, EXECUTION_MODE, guid);
+        StatusCode statusCode = ingestExternalImpl.upload(model, EXECUTION_MODE, guid, null, null);
         Assert.assertTrue(statusCode.equals(StatusCode.KO));
     }
 
@@ -234,7 +236,7 @@ public class IngestExternalImplTest {
         PreUploadResume model =
             ingestExternalImpl.preUploadAndResume(stream, CONTEXT_ID, guid, responseAsync);
 
-        StatusCode statusCode = ingestExternalImpl.upload(model, EXECUTION_MODE, guid);
+        StatusCode statusCode = ingestExternalImpl.upload(model, EXECUTION_MODE, guid, null, null);
         Assert.assertTrue(statusCode.equals(StatusCode.KO));
     }
 
@@ -255,7 +257,7 @@ public class IngestExternalImplTest {
         final AsyncResponseJunitTest responseAsync = new AsyncResponseJunitTest();
         final GUID guid = GUIDFactory.newEventGUID(ParameterHelper.getTenantParameter());
         PreUploadResume model = ingestExternalImpl.preUploadAndResume(stream, CONTEXT_ID, guid, responseAsync);
-        StatusCode statusCode = ingestExternalImpl.upload(model, EXECUTION_MODE, guid);
+        StatusCode statusCode = ingestExternalImpl.upload(model, EXECUTION_MODE, guid, null, null);
         Assert.assertTrue(statusCode.equals(StatusCode.OK));
     }
 
@@ -271,7 +273,7 @@ public class IngestExternalImplTest {
         PreUploadResume model =
             ingestExternalImpl.preUploadAndResume(stream, CONTEXT_ID, guid, responseAsync);
 
-        StatusCode statusCode = ingestExternalImpl.upload(model, EXECUTION_MODE, guid);
+        StatusCode statusCode = ingestExternalImpl.upload(model, EXECUTION_MODE, guid, null, null);
         Assert.assertTrue(statusCode.equals(StatusCode.OK));
     }
 
@@ -287,7 +289,7 @@ public class IngestExternalImplTest {
         PreUploadResume model =
             ingestExternalImpl.preUploadAndResume(stream, CONTEXT_ID, guid, responseAsync);
 
-        StatusCode statusCode = ingestExternalImpl.upload(model, EXECUTION_MODE, guid);
+        StatusCode statusCode = ingestExternalImpl.upload(model, EXECUTION_MODE, guid, null, null);
         Assert.assertTrue(statusCode.equals(StatusCode.OK));
     }
 
@@ -303,7 +305,7 @@ public class IngestExternalImplTest {
         PreUploadResume model =
             ingestExternalImpl.preUploadAndResume(stream, CONTEXT_ID, guid, responseAsync);
 
-        StatusCode statusCode = ingestExternalImpl.upload(model, EXECUTION_MODE, guid);
+        StatusCode statusCode = ingestExternalImpl.upload(model, EXECUTION_MODE, guid, null, null);
         Assert.assertTrue(statusCode.equals(StatusCode.OK));
     }
 
@@ -319,7 +321,7 @@ public class IngestExternalImplTest {
         PreUploadResume model =
             ingestExternalImpl.preUploadAndResume(stream, CONTEXT_ID, guid, responseAsync);
 
-        StatusCode statusCode = ingestExternalImpl.upload(model, EXECUTION_MODE, guid);
+        StatusCode statusCode = ingestExternalImpl.upload(model, EXECUTION_MODE, guid, null, null);
         Assert.assertTrue(statusCode.equals(StatusCode.KO));
     }
 
@@ -335,7 +337,7 @@ public class IngestExternalImplTest {
         PreUploadResume model =
             ingestExternalImpl.preUploadAndResume(stream, CONTEXT_ID, guid, responseAsync);
 
-        StatusCode statusCode = ingestExternalImpl.upload(model, EXECUTION_MODE, guid);
+        StatusCode statusCode = ingestExternalImpl.upload(model, EXECUTION_MODE, guid, null, null);
         Assert.assertTrue(statusCode.equals(StatusCode.KO));
     }
 
@@ -359,6 +361,92 @@ public class IngestExternalImplTest {
         config.setPath(PATH);
         config.setAntiVirusScriptName(script);
         config.setTimeoutScanDelay(timeoutScanDelay);
-        ingestExternalImpl = new IngestExternalImpl(config, formatIdentifierFactory, ingestInternalClientFactory);
+        ManifestDigestValidator manifestDigestValidator = new ManifestDigestValidator();
+        ingestExternalImpl = new IngestExternalImpl(config, formatIdentifierFactory, ingestInternalClientFactory, manifestDigestValidator);
+    }
+
+    @RunWithCustomExecutor
+    @Test
+    public void givenValidManifestDigestThenOK() throws Exception {
+        setVirusScanScript(SCRIPT_SCAN_CLAMAV_OK);
+        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
+        when(formatIdentifier.analysePath(any())).thenReturn(getFormatIdentifierZipResponse());
+        stream = PropertiesUtils.getResourceAsStream("toto_manifest.xml_OK.zip");
+        final AsyncResponseJunitTest responseAsync = new AsyncResponseJunitTest();
+        final GUID guid = GUIDFactory.newEventGUID(ParameterHelper.getTenantParameter());
+        PreUploadResume model =
+            ingestExternalImpl.preUploadAndResume(stream, CONTEXT_ID, guid, responseAsync);
+
+        StatusCode statusCode = ingestExternalImpl.upload(model, EXECUTION_MODE, guid,
+            "fcfa0fdd2f27e45c4c80936f99d4144159590e010eb2e9ec7bd1af2165d65e265501d902e9c4c5a858ffd4cd8dba0ca937d0bc327c2518c08c86d355c5a34efa", "SHA-512");
+        Assert.assertTrue(statusCode.equals(StatusCode.OK));
+    }
+
+    @RunWithCustomExecutor
+    @Test
+    public void givenMissingManifestDigestAlgoThenKO() throws Exception {
+        setVirusScanScript(SCRIPT_SCAN_CLAMAV_OK);
+        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
+        when(formatIdentifier.analysePath(any())).thenReturn(getFormatIdentifierZipResponse());
+        stream = PropertiesUtils.getResourceAsStream("toto_manifest.xml_OK.zip");
+        final AsyncResponseJunitTest responseAsync = new AsyncResponseJunitTest();
+        final GUID guid = GUIDFactory.newEventGUID(ParameterHelper.getTenantParameter());
+        PreUploadResume model =
+            ingestExternalImpl.preUploadAndResume(stream, CONTEXT_ID, guid, responseAsync);
+
+        StatusCode statusCode = ingestExternalImpl.upload(model, EXECUTION_MODE, guid,
+            "fcfa0fdd2f27e45c4c80936f99d4144159590e010eb2e9ec7bd1af2165d65e265501d902e9c4c5a858ffd4cd8dba0ca937d0bc327c2518c08c86d355c5a34efa", null);
+        Assert.assertTrue(statusCode.equals(StatusCode.KO));
+    }
+
+    @RunWithCustomExecutor
+    @Test
+    public void givenMissingManifestDigestValueThenKO() throws Exception {
+        setVirusScanScript(SCRIPT_SCAN_CLAMAV_OK);
+        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
+        when(formatIdentifier.analysePath(any())).thenReturn(getFormatIdentifierZipResponse());
+        stream = PropertiesUtils.getResourceAsStream("toto_manifest.xml_OK.zip");
+        final AsyncResponseJunitTest responseAsync = new AsyncResponseJunitTest();
+        final GUID guid = GUIDFactory.newEventGUID(ParameterHelper.getTenantParameter());
+        PreUploadResume model =
+            ingestExternalImpl.preUploadAndResume(stream, CONTEXT_ID, guid, responseAsync);
+
+        StatusCode statusCode = ingestExternalImpl.upload(model, EXECUTION_MODE, guid,
+            null, "SHA-512");
+        Assert.assertTrue(statusCode.equals(StatusCode.KO));
+    }
+
+    @RunWithCustomExecutor
+    @Test
+    public void givenInvalidManifestDigestThenKO() throws Exception {
+        setVirusScanScript(SCRIPT_SCAN_CLAMAV_OK);
+        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
+        when(formatIdentifier.analysePath(any())).thenReturn(getFormatIdentifierZipResponse());
+        stream = PropertiesUtils.getResourceAsStream("toto_manifest.xml_OK.zip");
+        final AsyncResponseJunitTest responseAsync = new AsyncResponseJunitTest();
+        final GUID guid = GUIDFactory.newEventGUID(ParameterHelper.getTenantParameter());
+        PreUploadResume model =
+            ingestExternalImpl.preUploadAndResume(stream, CONTEXT_ID, guid, responseAsync);
+
+        StatusCode statusCode = ingestExternalImpl.upload(model, EXECUTION_MODE, guid,
+            "baddigestf27e45c4c80936f99d4144159590e010eb2e9ec7bd1af2165d65e265501d902e9c4c5a858ffd4cd8dba0ca937d0bc327c2518c08c86d355c5a34efa", "SHA-512");
+        Assert.assertTrue(statusCode.equals(StatusCode.KO));
+    }
+
+    @RunWithCustomExecutor
+    @Test
+    public void givenInvalidManifestAlgoThenKO() throws Exception {
+        setVirusScanScript(SCRIPT_SCAN_CLAMAV_OK);
+        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
+        when(formatIdentifier.analysePath(any())).thenReturn(getFormatIdentifierZipResponse());
+        stream = PropertiesUtils.getResourceAsStream("toto_manifest.xml_OK.zip");
+        final AsyncResponseJunitTest responseAsync = new AsyncResponseJunitTest();
+        final GUID guid = GUIDFactory.newEventGUID(ParameterHelper.getTenantParameter());
+        PreUploadResume model =
+            ingestExternalImpl.preUploadAndResume(stream, CONTEXT_ID, guid, responseAsync);
+
+        StatusCode statusCode = ingestExternalImpl.upload(model, EXECUTION_MODE, guid,
+            "fcfa0fdd2f27e45c4c80936f99d4144159590e010eb2e9ec7bd1af2165d65e265501d902e9c4c5a858ffd4cd8dba0ca937d0bc327c2518c08c86d355c5a34efa", "Unknown");
+        Assert.assertTrue(statusCode.equals(StatusCode.KO));
     }
 }
