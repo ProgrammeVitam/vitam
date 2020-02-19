@@ -84,7 +84,6 @@ public class ArchiveUnitProfileResource {
     private final FunctionalBackupService functionalBackupService;
 
     /**
-     * @param configuration
      * @param mongoAccess
      * @param vitamCounterService
      */

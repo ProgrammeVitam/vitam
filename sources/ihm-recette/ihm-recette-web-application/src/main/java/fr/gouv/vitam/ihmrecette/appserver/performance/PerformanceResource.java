@@ -27,6 +27,7 @@
 package fr.gouv.vitam.ihmrecette.appserver.performance;
 
 import fr.gouv.vitam.common.GlobalDataRest;
+import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
@@ -108,7 +109,7 @@ public class PerformanceResource {
                 .entity("unable to set parallel ingest and delay in same test").build();
         }
 
-        String fileName = format("report_%s.csv", LocalDateTime.now().format(DATE_TIME_FORMATTER));
+        String fileName = format("report_%s.csv", LocalDateUtil.now().format(DATE_TIME_FORMATTER));
 
         performanceTestLauncher.submit(() -> {
             try {

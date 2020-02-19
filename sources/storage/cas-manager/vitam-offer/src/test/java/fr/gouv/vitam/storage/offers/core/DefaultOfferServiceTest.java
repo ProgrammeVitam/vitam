@@ -28,6 +28,7 @@ package fr.gouv.vitam.storage.offers.core;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.database.server.mongodb.MongoDbAccess;
@@ -440,7 +441,7 @@ public class DefaultOfferServiceTest {
         LongStream.range(offset + 1, offset + 1 + limit).forEach(l -> {
             OfferLog offerLog = new OfferLog(containerName, OBJECT + l, OfferLogAction.WRITE);
             offerLog.setSequence(l);
-            offerLog.setTime(LocalDateTime.now());
+            offerLog.setTime(LocalDateUtil.now());
             offerLogs.add(offerLog);
         });
         return offerLogs;

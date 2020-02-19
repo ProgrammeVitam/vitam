@@ -165,7 +165,7 @@ public class ParserTokens extends BuilderToken {
          */
         SCORE("score"),
         /**
-         * Last persisted date (logbook operation & lifecycle documents)
+         * Last persisted date (logbook operation &amp; lifecycle documents)
          */
         LAST_PERSISTED_DATE("lastPersistedDate"),
         /**

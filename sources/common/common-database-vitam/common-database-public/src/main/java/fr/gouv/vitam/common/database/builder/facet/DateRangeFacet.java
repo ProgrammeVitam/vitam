@@ -61,7 +61,6 @@ public class DateRangeFacet extends Facet {
      *
      * @param name
      * @param field
-     * @param nestdPath
      * @param dateFormat
      * @param ranges
      * @throws InvalidCreateOperationException

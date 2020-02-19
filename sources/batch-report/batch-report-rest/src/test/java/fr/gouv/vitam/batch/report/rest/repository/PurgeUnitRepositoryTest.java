@@ -34,6 +34,7 @@ import com.mongodb.client.MongoCursor;
 import fr.gouv.vitam.batch.report.model.PurgeUnitModel;
 import fr.gouv.vitam.batch.report.model.ReportBody;
 import fr.gouv.vitam.batch.report.model.entry.PurgeUnitReportEntry;
+import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.database.server.mongodb.MongoDbAccess;
 import fr.gouv.vitam.common.database.server.mongodb.SimpleMongoDBAccess;
 import fr.gouv.vitam.common.guid.GUIDFactory;
@@ -169,7 +170,7 @@ public class PurgeUnitRepositoryTest {
                 PurgeUnitModel purgeUnitModel = new PurgeUnitModel();
                 purgeUnitModel.setProcessId(reportBody.getProcessId());
                 purgeUnitModel.setTenant(0);
-                LocalDateTime localDateTime = LocalDateTime.now();
+                LocalDateTime localDateTime = LocalDateUtil.now();
                 purgeUnitModel.setCreationDateTime(localDateTime.toString());
                 purgeUnitModel.setMetadata(md);
                 return purgeUnitModel;

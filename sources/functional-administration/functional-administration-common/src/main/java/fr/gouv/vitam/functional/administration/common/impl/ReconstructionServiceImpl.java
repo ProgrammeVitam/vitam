@@ -487,7 +487,7 @@ public class ReconstructionServiceImpl implements ReconstructionService {
                     .append(TENANT_ID, tenant)
                     .append(VERSION, 0)
                     .append(AccessionRegisterSummary.CREATION_DATE, LocalDateUtil.getFormattedDateForMongo(
-                        LocalDateTime.now()));
+                        LocalDateUtil.now()));
 
                 BasicDBObject searchQuery = new BasicDBObject();
                 searchQuery.put(AccessionRegisterSummary.ORIGINATING_AGENCY,

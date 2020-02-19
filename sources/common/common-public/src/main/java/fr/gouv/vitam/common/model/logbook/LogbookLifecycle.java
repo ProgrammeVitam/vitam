@@ -56,8 +56,6 @@ public class LogbookLifecycle extends LogbookEvent {
 
     /**
      * @param id the id to set
-     *
-     * @return this
      */
     public void setId(String id) {
         this.id = id;
@@ -72,8 +70,6 @@ public class LogbookLifecycle extends LogbookEvent {
 
     /**
      * @param tenant the tenant to set
-     *
-     * @return this
      */
     public void setTenant(Integer tenant) {
         this.tenant = tenant;
@@ -88,8 +84,6 @@ public class LogbookLifecycle extends LogbookEvent {
 
     /**
      * @param version the version to set
-     *
-     * @return this
      */
     public void setVersion(Integer version) {
         this.version = version;
@@ -104,8 +98,6 @@ public class LogbookLifecycle extends LogbookEvent {
 
     /**
      * @param events the events to set
-     *
-     * @return this
      */
     public void setEvents(List<LogbookEvent> events) {
         this.events = events;

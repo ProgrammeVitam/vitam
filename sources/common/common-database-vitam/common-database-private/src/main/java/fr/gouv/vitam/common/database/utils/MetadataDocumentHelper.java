@@ -42,7 +42,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
- * Helper class for metadata documents fields (units & object groups).
+ * Helper class for metadata documents fields (units &amp; object groups).
  */
 public class MetadataDocumentHelper {
 

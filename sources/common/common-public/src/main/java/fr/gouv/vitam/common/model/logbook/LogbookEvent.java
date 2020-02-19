@@ -98,8 +98,6 @@ public class LogbookEvent {
 
    /**
      * @param evId the evId to set
-     *
-     * @return this
      */
     public void setEvId(String evId) {
         this.evId = evId;
@@ -128,8 +126,6 @@ public class LogbookEvent {
 
     /**
      * @param evType the evType to set
-     *
-     * @return this
      */
     public void setEvType(String evType) {
         this.evType = evType;
@@ -144,8 +140,6 @@ public class LogbookEvent {
 
     /**
      * @param evDateTime the evDateTime to set
-     *
-     * @return this
      */
     public void setEvDateTime(String evDateTime) {
         this.evDateTime = evDateTime;
@@ -160,8 +154,6 @@ public class LogbookEvent {
 
     /**
      * @param evIdProc the evIdProc to set
-     *
-     * @return this
      */
     public void setEvIdProc(String evIdProc) {
         this.evIdProc = evIdProc;
@@ -176,8 +168,6 @@ public class LogbookEvent {
 
     /**
      * @param evTypeProc the evTypeProc to set
-     *
-     * @return this
      */
     public void setEvTypeProc(String evTypeProc) {
         this.evTypeProc = evTypeProc;
@@ -192,8 +182,6 @@ public class LogbookEvent {
 
     /**
      * @param outcome the outcome to set
-     *
-     * @return this
      */
     public void setOutcome(String outcome) {
         this.outcome = outcome;
@@ -208,8 +196,6 @@ public class LogbookEvent {
 
     /**
      * @param outDetail the outDetail to set
-     *
-     * @return this
      */
     public void setOutDetail(String outDetail) {
         this.outDetail = outDetail;
@@ -224,8 +210,6 @@ public class LogbookEvent {
 
     /**
      * @param outMessg the outMessg to set
-     *
-     * @return this
      */
     public void setOutMessg(String outMessg) {
         this.outMessg = outMessg;
@@ -240,8 +224,6 @@ public class LogbookEvent {
 
     /**
      * @param agId the agId to set
-     *
-     * @return this
      */
     public void setAgId(String agId) {
         this.agId = agId;
@@ -256,8 +238,6 @@ public class LogbookEvent {
 
     /**
      * @param obId the obId to set
-     *
-     * @return this
      */
     public void setObId(String obId) {
         this.obId = obId;
@@ -272,8 +252,6 @@ public class LogbookEvent {
 
     /**
      * @param evDetData the evDetData to set
-     *
-     * @return this
      */
     public void setEvDetData(String evDetData) {
         this.evDetData = evDetData;

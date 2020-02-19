@@ -2,7 +2,7 @@
 
 # Logbook reconstruction
 
-- name: Install curl...
+- name: Install curl
   package:
     name: curl
     state: present

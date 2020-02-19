@@ -116,7 +116,6 @@ public class ReferentialAccessionRegisterImpl implements VitamAutoCloseable {
      * Insert a list of accession register symbolic.
      *
      * @param accessionRegisterSymbolics to insert
-     * @return the inserted accession register symbolics
      * @throws ReferentialException
      * @throws SchemaValidationException
      * @throws InvalidParseOperationException
@@ -258,7 +257,7 @@ public class ReferentialAccessionRegisterImpl implements VitamAutoCloseable {
             List<Action> actions = new ArrayList<>();
 
             actions.add(new SetAction(AccessionRegisterDetail.LAST_UPDATE, LocalDateUtil.getFormattedDateForMongo(
-                LocalDateTime.now())));
+                LocalDateUtil.now())));
 
             actions.add(
                 new IncAction(AccessionRegisterDetail.TOTAL_OBJECTGROUPS + "." + AccessionRegisterSummary.INGESTED,
@@ -299,7 +298,7 @@ public class ReferentialAccessionRegisterImpl implements VitamAutoCloseable {
                 .setTotalGots(registerDetail.getTotalObjectsGroups().getRemained())
                 .setTotalObjects(registerDetail.getTotalObjects().getRemained())
                 .setObjectSize(registerDetail.getObjectSize().getRemained())
-                .setCreationdate(LocalDateUtil.getFormattedDateForMongo(LocalDateTime.now()));
+                .setCreationdate(LocalDateUtil.getFormattedDateForMongo(LocalDateUtil.now()));
 
             actions.add(new PushAction(AccessionRegisterDetail.EVENTS, JsonHandler.toJsonNode(registerValueEvent)));
 

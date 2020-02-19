@@ -121,7 +121,7 @@ public class DbRequestHelper {
      * @param parser
      * @param list list of Ids
      * @param scores can be null, containing scores
-     * @return MongoCursor<VitamDocument < ?>>
+     * @return MongoCursor of VitamDocument
      * @throws InvalidParseOperationException when query is not correct
      * @throws InvalidCreateOperationException
      */

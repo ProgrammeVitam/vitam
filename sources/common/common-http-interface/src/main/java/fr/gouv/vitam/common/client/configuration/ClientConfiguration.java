@@ -49,7 +49,7 @@ public interface ClientConfiguration {
     /**
      * @param serverPort the server port
      * @return this
-     * @throws IllegalArgumentException if serverPort <= 0
+     * @throws IllegalArgumentException if serverPort &lt;= 0
      */
     ClientConfiguration setServerPort(int serverPort);
 

@@ -92,6 +92,7 @@ if [ -z "$(docker ps -a | grep vitam-${VITAM_TARGET}-dev)" ]; then
 	else
 		# need to handle properly sysctl vm.max_map_count = 262144 to remove --privileged arg
 		docker run -d --privileged -v "${VITAMDEV_GIT_REPO}:/code" -v /sys/fs/cgroup:/sys/fs/cgroup:ro -v "${VITAMDEV_HOME}/.npmrc:/devhome/.npmrc" -v "${VITAMDEV_HOME}/.m2:/devhome/.m2" ${MAPPING_PORTS} --cap-add=SYS_ADMIN --security-opt seccomp=unconfined --name=${VITAMDEV_CONTAINER} --net=bridge --dns=127.0.0.1 --dns=10.100.211.222 --dns=8.8.8.8 --ulimit memlock=-1 ${VITAMDEV_IMAGE}
+
 	fi
 	if (( ${?} != 0 )); then
 		echo "Container refused to start please correct and retry"

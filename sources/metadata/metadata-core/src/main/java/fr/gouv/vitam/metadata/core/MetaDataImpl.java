@@ -32,6 +32,7 @@ import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.annotations.VisibleForTesting;
 import com.mongodb.client.MongoCollection;
+import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.client.OntologyLoader;
 import fr.gouv.vitam.common.database.builder.facet.Facet;
 import fr.gouv.vitam.common.database.builder.facet.FacetHelper;
@@ -359,7 +360,7 @@ public class MetaDataImpl {
         Aggregations aUAccessionRegisterInfo = selectArchiveUnitAccessionRegisterInformation(tenant);
         Aggregations oGAccessionRegisterInfo = selectObjectGroupAccessionRegisterInformation(tenant);
 
-        String creationDate = ISO_LOCAL_DATE_TIME.format(LocalDateTime.now());
+        String creationDate = ISO_LOCAL_DATE_TIME.format(LocalDateUtil.now());
 
         return createWithInformations(aUAccessionRegisterInfo, oGAccessionRegisterInfo, creationDate, tenant);
     }

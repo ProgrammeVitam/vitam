@@ -111,8 +111,6 @@ public class OfferLogRequest {
 
     /**
      * @param order the order to set
-     *
-     * @return this
      */
     public void setOrder(Order order) {
         this.order = order;

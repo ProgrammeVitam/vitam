@@ -27,9 +27,10 @@
 package fr.gouv.vitam.common.metrics;
 
 import fr.gouv.vitam.common.ParametersChecker;
+import fr.gouv.vitam.common.server.application.configuration.VitamMetricsConfiguration;
 
 /**
- * Enums to use for the configuration of {@link VitamMetrics} through the {@link VitamMetricsConfigurationImpl} class.
+ * Enums to use for the configuration of {@link VitamMetrics} through the {@link VitamMetricsConfiguration} class.
  *
  */
 public enum VitamMetricsType {

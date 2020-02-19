@@ -48,7 +48,7 @@ import java.util.stream.Collectors;
 import static javax.xml.datatype.DatatypeFactory.newInstance;
 
 /**
- * Map data base representation of rules to a jaxb representation => Map RuleCategoryModel to CommonRule
+ * Map data base representation of rules to a jaxb representation =&tg; Map RuleCategoryModel to CommonRule
  */
 public class RuleMapper {
 

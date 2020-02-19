@@ -17,15 +17,12 @@
 ################################################################
 
 ## GC configuration
--XX:+UseParNewGC
--XX:+UseConcMarkSweepGC
--XX:CMSInitiatingOccupancyFraction=75
--XX:+UseCMSInitiatingOccupancyOnly
 
-## optimizations
-
-# disable calls to System#gc
--XX:+DisableExplicitGC
+## G1GC Configuration
+# NOTE: G1 GC is only supported on JDK version 10 or later
+-XX:+UseG1GC
+-XX:G1ReservePercent=25
+-XX:InitiatingHeapOccupancyPercent=30
 
 ## locale
 # Set the locale language
@@ -51,6 +48,13 @@
 # use our provided JNA always versus the system one
 #-Djna.nosys=true
 
+# Turn on JRuby invokedynamic
+-Djruby.compile.invokedynamic=true
+# Force Compilation
+-Djruby.jit.threshold=0
+# Make sure joni regexp interruptability is enabled
+-Djruby.regexp.interruptible=true
+
 ## heap dumps
 
 # generate a heap dump when an allocation from the Java heap fails
@@ -61,20 +65,5 @@
 # ensure the directory exists and has sufficient space
 #-XX:HeapDumpPath=${LOGSTASH_HOME}/heapdump.hprof
 
-## GC logging
-#-XX:+PrintGCDetails
-#-XX:+PrintGCTimeStamps
-#-XX:+PrintGCDateStamps
-#-XX:+PrintClassHistogram
-#-XX:+PrintTenuringDistribution
-#-XX:+PrintGCApplicationStoppedTime
-
-# log GC status to a file with time stamps
-# ensure the directory exists
-#-Xloggc:${LS_GC_LOG_FILE}
--Xloggc:{{ logstash_log_dir }}/gc.log
--XX:+UseGCLogFileRotation
--XX:NumberOfGCLogFiles=10
--XX:GCLogFileSize=10M
--XX:+PrintGCDetails
--XX:+PrintGCApplicationStoppedTime
+# JDK 9+ GC logging
+-Xlog:gc*,gc+age=trace,safepoint:file={{ logstash_log_dir }}/gc.log:utctime,pid,tags:filecount=32,filesize=64m

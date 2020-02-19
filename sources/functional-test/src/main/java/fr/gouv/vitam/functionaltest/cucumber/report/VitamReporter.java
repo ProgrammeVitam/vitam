@@ -26,6 +26,7 @@
  */
 package fr.gouv.vitam.functionaltest.cucumber.report;
 
+import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.json.JsonHandler;
 import gherkin.formatter.Formatter;
 import gherkin.formatter.NiceAppendable;
@@ -84,7 +85,7 @@ public class VitamReporter implements Reporter, Formatter {
 
     @Override
     public void startOfScenarioLifeCycle(Scenario scenario) {
-        report.setStart(LocalDateTime.now());
+        report.setStart(LocalDateUtil.now());
     }
 
     @Override
@@ -108,13 +109,13 @@ public class VitamReporter implements Reporter, Formatter {
 
     @Override
     public void endOfScenarioLifeCycle(Scenario scenario) {
-        report.setEnd(LocalDateTime.now());
+        report.setEnd(LocalDateUtil.now());
     }
 
     @Override
     public void done() {
         System.out.println("##### DONE ####");
-        reports.setEnd(LocalDateTime.now());
+        reports.setEnd(LocalDateUtil.now());
         output.append(JsonHandler.prettyPrint(reports));
     }
 

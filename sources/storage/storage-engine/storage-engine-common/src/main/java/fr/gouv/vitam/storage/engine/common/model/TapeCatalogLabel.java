@@ -58,7 +58,7 @@ public class TapeCatalogLabel {
     private String type;
 
     @JsonProperty(TAG_CREATION_DATE)
-    private String created = LocalDateUtil.getFormattedDateForMongo(LocalDateTime.now());
+    private String created = LocalDateUtil.getFormattedDateForMongo(LocalDateUtil.now());
 
 
     public TapeCatalogLabel() {

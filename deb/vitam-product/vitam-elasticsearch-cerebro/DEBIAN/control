@@ -3,6 +3,6 @@ Version: 0.8.5
 Section: database
 Priority: optional
 Architecture: all
-Depends: bash, vitam-user-vitam, openjdk-8-jre, systemd
+Depends: bash, vitam-user-vitam, openjdk-11-jre-headless, systemd
 Maintainer: French Prime minister Office/SGMAP/DINSIC/Vitam Program <contact.vitam@culture.gouv.fr>
 Description: Cerebro is an open source(MIT License) elasticsearch web admin tool built using Scala, Play Framework, AngularJS and Bootstrap.

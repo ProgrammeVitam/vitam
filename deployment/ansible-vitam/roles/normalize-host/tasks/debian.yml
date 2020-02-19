@@ -8,6 +8,7 @@
   with_items:
     - "deb http://ftp.debian.org/debian {{ ansible_distribution_release }}-backports main"
     - "deb-src http://ftp.debian.org/debian {{ ansible_distribution_release }}-backports main"
+    - "deb http://deb.debian.org/debian/ stretch main" # necessary to properly install mongoDB
   when: disable_internet_repositories_install == false
 
 - name: run apt-update

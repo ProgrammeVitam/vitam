@@ -56,8 +56,6 @@ public class LogbookEventOperation extends LogbookEvent {
 
     /**
      * @param evIdReq the evIdReq to set
-     *
-     * @return this
      */
     public void setEvIdReq(String evIdReq) {
         this.evIdReq = evIdReq;
@@ -72,8 +70,6 @@ public class LogbookEventOperation extends LogbookEvent {
 
     /**
      * @param agIdExt the agIdExt to set
-     *
-     * @return this
      */
     public void setAgIdExt(String agIdExt) {
         this.agIdExt = agIdExt;
@@ -89,8 +85,6 @@ public class LogbookEventOperation extends LogbookEvent {
 
     /**
      * @param obIdReq the obIdReq to set
-     *
-     * @return this
      */
     public void setObIdReq(String obIdReq) {
         this.obIdReq = obIdReq;
@@ -105,8 +99,6 @@ public class LogbookEventOperation extends LogbookEvent {
 
     /**
      * @param obIdIn the obIdIn to set
-     *
-     * @return this
      */
     public void setObIdIn(String obIdIn) {
         this.obIdIn = obIdIn;

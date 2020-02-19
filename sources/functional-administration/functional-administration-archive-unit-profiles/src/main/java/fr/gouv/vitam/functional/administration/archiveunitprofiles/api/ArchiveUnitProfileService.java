@@ -85,7 +85,7 @@ public interface ArchiveUnitProfileService extends VitamAutoCloseable {
      * <li>- Status</li>
      * </ul>
      *@param id identifier of the archive unit profile to update
-     * @param jsonDsl the given dsl for update
+     * @param queryDsl the given dsl for update
      * @return RequestResponseOK on success or VitamError else
      * @throws VitamException if in error occurs while validating contracts
      */

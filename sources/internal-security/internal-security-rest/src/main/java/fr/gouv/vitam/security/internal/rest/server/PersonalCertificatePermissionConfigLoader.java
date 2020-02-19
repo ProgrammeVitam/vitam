@@ -34,7 +34,7 @@ import java.io.InputStream;
 import java.util.Collections;
 
 /**
- * Handles PersonalCertificatePermissionConfig loading & validation
+ * Handles PersonalCertificatePermissionConfig loading &amp; validation
  */
 public class PersonalCertificatePermissionConfigLoader {
 

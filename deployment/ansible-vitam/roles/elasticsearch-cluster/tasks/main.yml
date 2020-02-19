@@ -21,18 +21,18 @@
 - import_tasks: pre_migration.yml
   when: is_installed.stdout.find('5.6.') != -1
 
-- name: Set default directory for CentOS
+- name: Set default directory for RedHat family
   set_fact:
     sysconfig_dir: "sysconfig"
     jvm_security_path: "/usr/lib/jvm/jre/lib/security"
-    java_package: "java-1.8.0"
+    java_package: "{{ java_prerequisites.redhat }}"
   when: ansible_os_family == "RedHat"
 
 - name: Set default directory for Debian
   set_fact:
     sysconfig_dir: "default"
-    jvm_security_path: "/usr/lib/jvm/java-8-openjdk-amd64/jre/lib/security"
-    java_package: "openjdk-8-jdk-headless"
+    jvm_security_path: "/usr/lib/jvm/java-11-openjdk-amd64/jre/lib/security"
+    java_package: "{{ java_prerequisites.debian }}"
   when: ansible_os_family == "Debian"
 
 
@@ -113,9 +113,12 @@
   blockinfile:
     path: "{{ jvm_security_path }}/java.policy"
     marker: "// {mark} ANSIBLE MANAGED BLOCK"
-    insertafter: "that can be read by anyone"
+    insertafter: EOF
+    create: yes # if not exists
     content: |
-      permission javax.management.MBeanTrustPermission "register";
+      grant {
+        permission javax.management.MBeanTrustPermission "register";
+      };
 
 - name: ensure /var/run/{{ composant.cluster_name }} exists
   file:

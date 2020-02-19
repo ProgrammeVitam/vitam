@@ -6,9 +6,9 @@
   when: groups['hosts_elasticsearch_log']|length <= kibana.log.logs.replica and groups['hosts_elasticsearch_log']|length>1
 
 
-- name: Install java (prerequisite for other components)
+- name: Install java (prerequisite for other components) when RedHat
   yum:
-    name: java-1.8.0
+    name: "{{ java_prerequisites.redhat }}"
     state: latest
   register: result
   retries: "{{ packages_install_retries_number }}"
@@ -18,7 +18,7 @@
 
 - name: "install openjdk from {{ ansible_distribution_release }}-backports only when Debian"
   apt:
-    name: openjdk-8-jre-headless
+    name: "{{ java_prerequisites.debian }}"
     state: latest
     default_release: "{{ ansible_distribution_release }}-backports"
   register: result
@@ -31,7 +31,7 @@
 
 - name: "install openjdk only when Debian"
   apt:
-    name: openjdk-8-jre-headless
+    name: "{{ java_prerequisites.debian }}"
     state: latest
   register: result
   retries: "{{ packages_install_retries_number }}"
@@ -135,6 +135,30 @@
     - "elasticsearch-template.json"
   notify:
     - restart logstash
+
+- block:
+  # related to https://github.com/elastic/logstash/issues/11107
+  # info here : https://stackoverflow.com/questions/6784463/error-trustanchors-parameter-must-be-non-empty
+  - name: change default keystore type in java.security
+    lineinfile:
+      path: /etc/java-11-openjdk/security/java.security
+      regexp: '^keystore.type=pkcs12'
+      line: "keystore.type=jks"
+
+  - name: remove cacerts only on debian
+    file:
+      path: /etc/ssl/certs/java/cacerts
+      state: absent
+    notify:
+      - restart logstash
+
+  - name:  recreate cacerts only on Debian
+    shell: "update-ca-certificates -f"
+    notify:
+      - restart logstash
+
+  when:
+    - ansible_os_family == "Debian"
 
 #### Consul configuration ####
 

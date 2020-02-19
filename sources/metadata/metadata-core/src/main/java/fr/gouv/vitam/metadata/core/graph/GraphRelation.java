@@ -29,7 +29,7 @@ package fr.gouv.vitam.metadata.core.graph;
 import java.util.Objects;
 
 /**
- * Contains information of relation child -> parent
+ * Contains information of relation child -&gt; parent
  * unit: the current treated unit
  * unitOriginatingAgency: the originatingAgency of the current unit
  * parent: the parent unit of the current treated unit

@@ -65,8 +65,6 @@ public class FacetResult {
 
     /**
      * @param name the name to set
-     *
-     * @return this
      */
     public void setName(String name) {
         this.name = name;
@@ -81,8 +79,6 @@ public class FacetResult {
 
     /**
      * @param buckets the buckets to set
-     *
-     * @return this
      */
     public void setBuckets(List<FacetBucket> buckets) {
         this.buckets = buckets;

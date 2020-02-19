@@ -83,7 +83,7 @@ public class ProbativeReportEntry {
         this.operations = operations;
         this.checks = checks;
         this.evStartDateTime = evStartDateTime;
-        this.evEndDateTime = LocalDateUtil.getFormattedDateForMongo(LocalDateTime.now());
+        this.evEndDateTime = LocalDateUtil.getFormattedDateForMongo(LocalDateUtil.now());
         this.status = getStatus(operations, checks);
     }
 
@@ -116,7 +116,7 @@ public class ProbativeReportEntry {
         this.operations = Collections.emptyList();
         this.checks = Collections.emptyList();
         this.evStartDateTime = evStartDateTime;
-        this.evEndDateTime = LocalDateUtil.getFormattedDateForMongo(LocalDateTime.now());
+        this.evEndDateTime = LocalDateUtil.getFormattedDateForMongo(LocalDateUtil.now());
         this.status = KO;
     }
 

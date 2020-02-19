@@ -135,8 +135,8 @@ public class ProfileManager {
 
     /**
      * Validate if the profile file is valide
-     * XSD => is file xsd is xml valide
-     * RNG => if file rng is xml valide, rng valide, check default values if already exists in vitam
+     * XSD =&gt; is file xsd is xml valide
+     * RNG =&gt; if file rng is xml valide, rng valide, check default values if already exists in vitam
      *
      * @param profileModel
      * @param file
