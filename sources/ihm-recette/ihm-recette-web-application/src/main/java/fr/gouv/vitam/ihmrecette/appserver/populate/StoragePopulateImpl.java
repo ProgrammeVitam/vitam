@@ -156,7 +156,6 @@ public class StoragePopulateImpl implements VitamAutoCloseable {
      * @param file file
      * @param category category
      * @param tenantId tenantId
-     * @return StoredInfoResult
      * @throws StorageException StorageException
      * @throws FileNotFoundException FileNotFoundException
      */

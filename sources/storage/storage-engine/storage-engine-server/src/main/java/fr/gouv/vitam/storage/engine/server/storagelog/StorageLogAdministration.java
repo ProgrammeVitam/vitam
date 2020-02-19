@@ -91,7 +91,6 @@ public class StorageLogAdministration {
      * @param strategyId strategyId 
      * @param backupWriteLog backupWriteLog
      *
-     * @return the GUID of the operation
      * @throws IOException                         if an IOException is thrown while generating the secure storage
      * @throws StorageLogException                 if a LogZipFile cannot be generated
      * @throws LogbookClientBadRequestException    if a bad request is encountered

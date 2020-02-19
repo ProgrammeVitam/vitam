@@ -1,0 +1,25 @@
+---
+
+- block:
+   - name: check file existence for /sys/module/apparmor/parameters/enabled
+     stat:
+         path: /sys/module/apparmor/parameters/enabled
+     register: optional_file
+
+   - name: read /sys/module/apparmor/parameters/enabled if exists
+     shell: cat /sys/module/apparmor/parameters/enabled
+     register: apparmor_status
+     when:
+      - optional_file.stat.exists is defined 
+      - optional_file.stat.exists
+
+   - name: Check AppArmor status
+     fail:
+      msg: "AppArmor is active, but should be disabled when installing VITAM"
+     when: 
+      - apparmor_status is search('Y')
+      - optional_file.stat.exists is defined 
+      - optional_file.stat.exists
+
+  when:
+   - ansible_distribution == "Debian"

@@ -62,8 +62,6 @@ public class Facet {
 
     /**
      * @param name the name to set
-     *
-     * @return this
      */
     public void setName(String name) {
         this.name = name;

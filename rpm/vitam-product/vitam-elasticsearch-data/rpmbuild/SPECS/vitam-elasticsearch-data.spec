@@ -13,7 +13,7 @@ Source0:       vitam-elasticsearch-data.service
 
 BuildRequires: systemd-units
 Requires:      systemd
-Requires:      java-1.8.0
+Requires:      java-11-openjdk-headless
 Requires:      elasticsearch = %{version}
 Requires:	   vitam-elasticsearch-analysis-icu = %{version}
 Requires:      vitam-user-vitamdb

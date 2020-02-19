@@ -2,6 +2,8 @@
 
 - import_tasks: selinux.yml
 
+- import_tasks: apparmor.yml
+
 - name: check whether VITAM parent dir already exists
   stat:
     path: "{{ vitam_defaults.folder.root_path }}"

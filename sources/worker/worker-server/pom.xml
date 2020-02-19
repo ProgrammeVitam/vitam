@@ -47,11 +47,6 @@
 			<scope>test</scope>
 		</dependency>
 		<dependency>
-			<groupId>org.jhades</groupId>
-			<artifactId>jhades</artifactId>
-			<scope>test</scope>
-		</dependency>
-		<dependency>
 			<groupId>fr.gouv.vitam</groupId>
 			<artifactId>common-junit</artifactId>
 			<version>${project.version}</version>
@@ -193,7 +188,7 @@
 					<targetOS>linux</targetOS>
 					<requires>
 						<require>systemd</require>
-						<require>java-1.8.0</require>
+						<require>${jdk.version.rpm}</require>
 						<require>vitam-user-${unix.user}</require>
 					</requires>
 					<defaultDirmode>750</defaultDirmode>

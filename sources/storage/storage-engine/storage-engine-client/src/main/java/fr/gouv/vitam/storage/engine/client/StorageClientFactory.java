@@ -61,7 +61,7 @@ import fr.gouv.vitam.common.logging.VitamLoggerFactory;
  * </pre>
  *
  * You can change the type of the client to get. The types are define into the
- * enum {@link StorageClientType}. Use the changeDefaultClientType method to
+ * enum {@link StorageClient}. Use the changeDefaultClientType method to
  * change the client type.
  *
  */

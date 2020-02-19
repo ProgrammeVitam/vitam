@@ -93,7 +93,6 @@ public class LogbookExternalResource {
      * Constructor
      * 
      * @param accessInternalClientFactory
-     * @param adminManagementClientFactory
      */
     public LogbookExternalResource(AccessInternalClientFactory accessInternalClientFactory) {
         this.accessInternalClientFactory = accessInternalClientFactory;

@@ -58,7 +58,6 @@ public class SafeFileChecker {
      * do an ESAPI path sanityCheck and prevent a path traversal attack
      *
      * @param path full path representing a FileSystem resource
-     * @return
      * @throws IOException thrown when any check fails with UnChecked or Runtime exception
      */
     public static void checkSafeFilePath(String path) throws IOException {
@@ -80,7 +79,6 @@ public class SafeFileChecker {
      * do an ESAPI path sanityCheck and prevent a path traversal attack
      *
      * @param path full path representing a FileSystem resource
-     * @return
      * @throws IOException thrown when any check fails with UnChecked or Runtime exception
      */
     public static void checkSafePluginsFilesPath(String path) throws IOException {

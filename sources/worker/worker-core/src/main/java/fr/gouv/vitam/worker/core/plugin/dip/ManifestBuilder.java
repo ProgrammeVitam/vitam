@@ -215,7 +215,7 @@ public class ManifestBuilder implements AutoCloseable {
             case ArchiveTransfer:
             case ArchiveDeliveryRequestReply:
                 writeComment(exportRequestParameters.getComment());
-                writeDate(LocalDateUtil.getFormattedDate(LocalDateTime.now()));
+                writeDate(LocalDateUtil.getFormattedDate(LocalDateUtil.now()));
                 writeMessageIdentifier(operationId);
                 writeArchivalAgreement(exportRequestParameters.getArchivalAgreement());
                 writeCodeListVersions(ParameterHelper.getTenantParameter());

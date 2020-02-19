@@ -99,7 +99,6 @@ import static fr.gouv.vitam.functional.administration.griffin.LogbookGriffinHelp
 import static fr.gouv.vitam.functional.administration.griffin.LogbookGriffinHelper.createLogbookEventKo;
 import static fr.gouv.vitam.functional.administration.griffin.LogbookGriffinHelper.createLogbookEventSuccess;
 import static fr.gouv.vitam.logbook.operations.client.LogbookOperationsClientFactory.getInstance;
-import static java.time.LocalDateTime.now;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toSet;
 
@@ -471,7 +470,7 @@ public class PreservationScenarioService {
         for (PreservationScenarioModel preservationScenarioModel : listToImport) {
 
             if (identifierToUpdate.contains(preservationScenarioModel.getIdentifier())) {
-                preservationScenarioModel.setLastUpdate(getFormattedDateForMongo(now()));
+                preservationScenarioModel.setLastUpdate(getFormattedDateForMongo(LocalDateUtil.now()));
 
                 formatDateForMongo(preservationScenarioModel);
 

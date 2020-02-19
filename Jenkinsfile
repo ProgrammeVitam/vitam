@@ -11,7 +11,7 @@
 
 pipeline {
     agent {
-        label 'boost'
+        label 'java11'
     }
 
     environment {

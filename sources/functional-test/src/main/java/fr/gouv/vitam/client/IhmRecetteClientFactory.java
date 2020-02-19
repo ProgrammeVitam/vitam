@@ -38,7 +38,7 @@ import java.io.IOException;
 /**
  * IngestInternal client factory<br>
  *
- * Used to create IngestInternal client : if configuration file does not exist {@value 'ingest-internal-client.conf'}},
+ * Used to create IngestInternal client : if configuration file does not exist 'ingest-internal-client.conf',
  * <br>
  * mock IngestInternal client will be returned
  *

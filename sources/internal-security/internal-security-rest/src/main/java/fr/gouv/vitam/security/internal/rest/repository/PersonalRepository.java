@@ -112,8 +112,6 @@ public class PersonalRepository implements CertificateCRLCheckStateUpdater<Perso
      * return certificate by hash
      *
      * @param hash
-     * @return
-     * @throws InvalidParseOperationException
      */
     public void deletePersonalCertificate(String hash) {
 

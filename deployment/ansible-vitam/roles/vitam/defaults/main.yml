@@ -3,7 +3,7 @@
 vitam_user: vitam
 vitam_group: vitam
 memory_opts: -Xms512m -Xmx512m
-gc_opts: "-Xloggc:{{ vitam_folder_log }}/gc.log -XX:+UseGCLogFileRotation -XX:NumberOfGCLogFiles=10 -XX:GCLogFileSize=10M -XX:+PrintGCDetails -XX:+PrintGCApplicationStoppedTime"
+gc_opts: "-Xlog:gc*,gc+age=trace,safepoint:file={{ vitam_folder_log }}/gc.log:utctime,pid,tags:filecount=32,filesize=64m"
 jmx_exporter_opts: ""
 java_opts: ""
 java_args: ""

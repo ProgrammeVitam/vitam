@@ -56,7 +56,7 @@ import java.util.Set;
  * <br>
  * When using specific headers:<br><br>
  * <code>
- *          Map<String, String> headers = new HashMap<>();<br>
+ *          Map&lt;String, String&gt; headers = new HashMap&lt;&gt;();<br>
  *          headers.put(HttpHeaders.CONTENT_TYPE, response.getMediaType().toString());<br>
  *          headers.put(HttpHeaders.CONTENT_DISPOSITION, response.getHeaderString(HttpHeaders.CONTENT_DISPOSITION));<br>
  *          headers.put(GlobalDataRest.X_QUALIFIER, xQualifier);<br>

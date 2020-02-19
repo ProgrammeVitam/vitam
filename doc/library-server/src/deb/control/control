@@ -3,7 +3,7 @@ Version: [[version]]
 Section: Application/Archiving
 Priority: low
 Architecture: all
-Depends: openjdk-8-jre-headless, systemd, vitam-user-${unix.user}
+Depends: openjdk-11-jdk-headless, systemd, vitam-user-${unix.user}
 Build-Depends: dh-systemd
 Maintainer: Vitam Package Team
 Description: [[description]]

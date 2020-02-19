@@ -7,7 +7,7 @@
 #########################################################################################
 
 # Set the base image to Centos 7
-FROM centos:7.4.1708
+FROM centos:7.7.1908
 MAINTAINER French Prime minister Office/SGMAP/DINSIC/Vitam Program <contact.vitam@culture.gouv.fr>
 
 # Make sure the package repository and packages are up to date.
@@ -30,8 +30,10 @@ RUN (cd /lib/systemd/system/sysinit.target.wants/; for i in *; do [[ $i == syste
 
 ################################  Install build tools (rpm / maven / java)  ###############################
 
+RUN yum remove -y java-1.8*
+
 RUN yum install -y \
-    	java-1.8.0-openjdk-devel \
+    	java-11-openjdk-devel \
     	rpm-build \
         rpmdevtools \
         initscripts.x86_64 \

@@ -31,7 +31,7 @@ import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.storage.engine.common.model.DataCategory;
 
 /**
- * Formatting & parsing utils for container names.
+ * Formatting &amp; parsing utils for container names.
  * Format [Env_]Tenant_DataCategory
  */
 public class ContainerUtils {

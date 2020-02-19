@@ -93,7 +93,7 @@ public class OfferSequence {
     /**
      * Ugly workaround to keep object type when convert JSON to Mongo Document
      *
-     * TODO: switch to mongo-java-driver >= 3.5.0 and use PojoCodecProvider
+     * TODO: switch to mongo-java-driver &gt;= 3.5.0 and use PojoCodecProvider
      *
      * @return Document
      * @see <a href=

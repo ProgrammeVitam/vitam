@@ -25,6 +25,7 @@
   until: result is succeeded
   delay: "{{ packages_install_retries_delay }}"
 
+
 - name: install apache web server
   package:
     name: "{{ apache_service }}"
@@ -33,7 +34,6 @@
   retries: "{{ packages_install_retries_number }}"
   until: result is succeeded
   delay: "{{ packages_install_retries_delay }}"
-
 
 # TODO : idéalement, Apache ne devrait écouter que sur l'IP d'admin
 

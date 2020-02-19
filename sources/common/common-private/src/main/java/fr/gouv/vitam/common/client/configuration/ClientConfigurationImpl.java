@@ -49,7 +49,7 @@ public class ClientConfigurationImpl implements ClientConfiguration {
      *
      * @param serverHost server IP address
      * @param serverPort server port
-     * @throws IllegalArgumentException if serverHost is null or empty or serverPort <= 0
+     * @throws IllegalArgumentException if serverHost is null or empty or serverPort &lt;= 0
      */
     public ClientConfigurationImpl(String serverHost, int serverPort) {
         ParametersChecker.checkParameter(CONFIGURATION_PARAMETERS, serverHost);

@@ -75,7 +75,6 @@ public interface IngestInternalClient extends MockOrRestClient {
      * Create only Logbook
      *
      * @param logbookParametersList
-     * @return Response as just CREATED
      * @throws VitamException
      */
     void uploadInitialLogbook(Iterable<LogbookOperationParameters> logbookParametersList)

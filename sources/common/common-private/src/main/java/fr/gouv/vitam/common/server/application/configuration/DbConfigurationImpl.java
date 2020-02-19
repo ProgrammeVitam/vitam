@@ -58,7 +58,7 @@ public class DbConfigurationImpl extends DefaultVitamApplicationConfiguration im
      * @param dbAuthentication
      * @param dbUserName
      * @param dbPassword
-     * @throws IllegalArgumentException if host or dbName null or empty, or if port <= 0
+     * @throws IllegalArgumentException if host or dbName null or empty, or if port &lt;= 0
      */
     public DbConfigurationImpl(List<MongoDbNode> mongoDbNodes, String dbName, boolean dbAuthentication,
         String dbUserName, String dbPassword) {
@@ -82,7 +82,7 @@ public class DbConfigurationImpl extends DefaultVitamApplicationConfiguration im
      *
      * @param mongoDbNodes database server IP address and port
      * @param dbName       database name
-     * @throws IllegalArgumentException if host or dbName null or empty, or if port <= 0
+     * @throws IllegalArgumentException if host or dbName null or empty, or if port &lt;= 0
      */
     public DbConfigurationImpl(List<MongoDbNode> mongoDbNodes, String dbName) {
         for (final MongoDbNode node : mongoDbNodes) {

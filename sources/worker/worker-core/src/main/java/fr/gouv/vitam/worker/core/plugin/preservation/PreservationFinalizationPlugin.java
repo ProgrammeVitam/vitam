@@ -170,7 +170,7 @@ public class PreservationFinalizationPlugin extends ActionHandler {
                     reportOutput.getOutMsg(), rSI, evDetData);
 
             String startDate = logbookOperationVersionModel.getEvDateTime();
-            String endDate = LocalDateUtil.getString(LocalDateTime.now());
+            String endDate = LocalDateUtil.getString(LocalDateUtil.now());
             ReportType reportType = ReportType.PRESERVATION;
             ReportResults vitamResults = new ReportResults();
             JsonNode extendedInfo = JsonHandler.createObjectNode();

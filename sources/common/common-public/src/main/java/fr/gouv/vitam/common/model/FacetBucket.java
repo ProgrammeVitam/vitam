@@ -66,8 +66,6 @@ public class FacetBucket {
 
     /**
      * @param value the value to set
-     *
-     * @return this
      */
     public void setValue(String value) {
         this.value = value;
@@ -82,8 +80,6 @@ public class FacetBucket {
 
     /**
      * @param count the count to set
-     *
-     * @return this
      */
     public void setCount(long count) {
         this.count = count;

@@ -29,6 +29,7 @@ package fr.gouv.vitam.storage.engine.common.model;
 import java.time.LocalDateTime;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import fr.gouv.vitam.common.LocalDateUtil;
 
 /**
  * OfferLog.
@@ -84,7 +85,7 @@ public class OfferLog {
      * @param action action
      */
     public OfferLog(String container, String fileName, OfferLogAction action) {
-        this.time = LocalDateTime.now();
+        this.time = LocalDateUtil.now();
         this.container = container;
         this.fileName = fileName;
         this.action = action;

@@ -111,7 +111,6 @@ public class QueryToElasticsearch {
      * @param query
      * @param field String
      * @param roots Set of String
-     * @return the filter associated with the roots
      */
     public static void addRoots(BoolQueryBuilder query, final String field, final Collection<String> roots, int depth) {
         String[] values = new String[roots.size()];

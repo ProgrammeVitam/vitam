@@ -35,7 +35,7 @@ public enum EliminationExtendedInfoType {
     KEEP_ACCESS_SP,
 
     /**
-     * DESTROY & KEEP originating agencies inherited through the same direct parent unit. Removing the link to the parent
+     * DESTROY &amp; KEEP originating agencies inherited through the same direct parent unit. Removing the link to the parent
      * would impact a KEEP originating agency.
      */
     ACCESS_LINK_INCONSISTENCY,

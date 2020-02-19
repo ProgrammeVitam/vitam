@@ -81,7 +81,7 @@ Les composants Java sont présents dans le répertoire ``sources``.
 Pré-requis
 **********
 
-* jdk 8
+* jdk 11
 * maven (version 3.3.9 minimale)
 * rpm-build
 
@@ -186,7 +186,7 @@ La documentation est présente dans le répertoire ``doc``.
 Pré-requis
 **********
 
-* jdk 8
+* jdk 11
 * maven (version 3.3.9 minimale)
 * rpm-build
 * sphinx-build (ainsi que le thème rtd)

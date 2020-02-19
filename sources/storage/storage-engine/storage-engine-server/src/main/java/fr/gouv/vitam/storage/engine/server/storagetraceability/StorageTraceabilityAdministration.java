@@ -96,7 +96,6 @@ public class StorageTraceabilityAdministration {
      * @param requestId request GUID
      * @param strategyId strategy ID
      * 
-     * @return the traceability operation GUID
      * @throws TraceabilityException for any trouble in the traceability process
      */
     public void generateTraceabilityStorageLogbook(GUID requestId, String strategyId)

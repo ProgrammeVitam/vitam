@@ -15,19 +15,8 @@
     delay: "{{ packages_install_retries_delay }}"
 
 
-# Need to wait for this bug to be resolved:
-# https://github.com/ansible/ansible/pull/42443
-  # - name: add GPG docker repo key
-  #   apt_key:
-  #     url: "https://download.docker.com/linux/debian/gpg"
-  #     state: present
-  #     validate_certs: no
-  #   environment:
-  #     https_proxy: "{{ http_proxy_environnement }}"
-  #     http_proxy:  "{{ http_proxy_environnement }}"
-
   - name: Make sure curl is installed
-    package:
+    apt:
       name: curl
       state: present
     register: result
@@ -89,6 +78,20 @@
       name: ['pip','docker']
       state: latest
     when: http_proxy_environnement is not defined or http_proxy_environnement == ""
+
+  # - name: remove pip backports.ssl-match-hostname
+  #   pip:
+  #     name: "backports.ssl-match-hostname"
+  #     state: absent
+  
+  - name: install python-backports.ssl-match-hostname
+    apt:
+      name: "python-backports.ssl-match-hostname"
+      state: latest
+    register: result
+    retries: "{{ packages_install_retries_number }}"
+    until: result is succeeded
+    delay: "{{ packages_install_retries_delay }}"  
 
   when: ansible_os_family == "Debian"
   # End docker debian

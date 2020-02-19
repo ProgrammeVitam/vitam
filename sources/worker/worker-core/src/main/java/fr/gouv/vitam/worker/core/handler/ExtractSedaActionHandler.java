@@ -1559,7 +1559,7 @@ public class ExtractSedaActionHandler extends ActionHandler {
 
     private void checkEveDateTime(LogbookEvent eventModel) throws ProcessingMalformedDataException {
         String evDateTime = eventModel.getEvDateTime();
-        LocalDateTime now = LocalDateTime.now();
+        LocalDateTime now = LocalDateUtil.now();
         LocalDateTime localDateTime = LocalDateUtil.parseMongoFormattedDate(Objects.requireNonNull(evDateTime, "EventDateTime cannot be null."));
         if (localDateTime.isAfter(now)) {
             throw new ProcessingMalformedDataException(String.format("EventDateTime in Logbook Event cannot be in the future, here '%s' is after '%s'.", evDateTime, now));

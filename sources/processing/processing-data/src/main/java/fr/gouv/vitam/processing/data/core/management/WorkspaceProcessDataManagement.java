@@ -31,6 +31,7 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.exc.InvalidFormatException;
 import com.google.common.annotations.VisibleForTesting;
 import fr.gouv.vitam.common.CharsetUtils;
+import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.client.DefaultClient;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
@@ -252,7 +253,7 @@ public class WorkspaceProcessDataManagement implements ProcessDataManagement {
                     ProcessWorkflow processWorkflow = getProcessWorkflow(folderName, processId);
                     if (ProcessState.RUNNING.equals(processWorkflow.getState())) {
                         processWorkflow.setState(ProcessState.PAUSE);
-                        processWorkflow.setProcessCompletedDate(LocalDateTime.now());
+                        processWorkflow.setProcessCompletedDate(LocalDateUtil.now());
                         processWorkflow.setStatus(StatusCode.FATAL);
                     }
 

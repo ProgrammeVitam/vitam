@@ -1,8 +1,8 @@
 ---
 # tasks file for cerebro
-- name: Install java-1.8.0 (prerequisite for cerebro) only when CentOS
+- name: Install java 11 (prerequisite for cerebro) only when CentOS
   yum:
-    name: java-1.8.0
+    name: "{{ java_prerequisites.redhat }}"
     state: latest
   register: result
   retries: "{{ packages_install_retries_number }}"
@@ -14,7 +14,7 @@
 
 - name: "install openjdk from {{ ansible_distribution_release }}-backports (prerequisite for cerebro) only when Debian"
   apt:
-    name: openjdk-8-jre-headless
+    name: "{{ java_prerequisites.debian }}"
     state: latest
     default_release: "{{ ansible_distribution_release }}"
   register: result
@@ -29,7 +29,7 @@
 
 - name: "install openjdk from {{ ansible_distribution_release }}-backports (prerequisite for cerebro) only when Debian"
   apt:
-    name: openjdk-8-jre-headless
+    name: "{{ java_prerequisites.debian }}"
     state: latest
   register: result
   retries: "{{ packages_install_retries_number }}"

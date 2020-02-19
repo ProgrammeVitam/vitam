@@ -34,7 +34,7 @@ public class TapeReadRequestReferentialEntity {
     private List<FileInTape> files;
 
     @JsonProperty(CREATE_DATE)
-    private String creationDate = LocalDateUtil.getFormattedDateForMongo(LocalDateTime.now());
+    private String creationDate = LocalDateUtil.getFormattedDateForMongo(LocalDateUtil.now());
 
     @JsonProperty(EXPIRE_DATE)
     private String expireDate;
@@ -105,7 +105,7 @@ public class TapeReadRequestReferentialEntity {
     public Boolean isExpired() {
         return expireDate == null ?
             false :
-            LocalDateTime.now().isAfter(LocalDateUtil.parseMongoFormattedDate(expireDate));
+            LocalDateUtil.now().isAfter(LocalDateUtil.parseMongoFormattedDate(expireDate));
     }
 
     @JsonProperty(IS_COMPLETED)

@@ -78,7 +78,7 @@ public class ReadRequestReferentialRepositoryTest {
         tarLocations.put(
             tarNameWithoutExtension, TarLocation.TAPE);
         tapeReadRequestReferentialEntity.setTarLocations(tarLocations);
-        tapeReadRequestReferentialEntity.setExpireDate(LocalDateUtil.getFormattedDateForMongo(LocalDateTime.now().minusDays(1)));
+        tapeReadRequestReferentialEntity.setExpireDate(LocalDateUtil.getFormattedDateForMongo(LocalDateUtil.now().minusDays(1)));
 
         readRequestReferentialRepository.insert(tapeReadRequestReferentialEntity);
 
@@ -90,7 +90,7 @@ public class ReadRequestReferentialRepositoryTest {
 
         String requestId2 = GUIDFactory.newGUID().getId();
         tapeReadRequestReferentialEntity.setRequestId(requestId2);
-        tapeReadRequestReferentialEntity.setExpireDate(LocalDateUtil.getFormattedDateForMongo(LocalDateTime.now().plusDays(1)));
+        tapeReadRequestReferentialEntity.setExpireDate(LocalDateUtil.getFormattedDateForMongo(LocalDateUtil.now().plusDays(1)));
 
         readRequestReferentialRepository.insert(tapeReadRequestReferentialEntity);
 
@@ -138,7 +138,7 @@ public class ReadRequestReferentialRepositoryTest {
         tarLocations.put(
             tarNameWithoutExtension, TarLocation.TAPE);
         tapeReadRequestReferentialEntity.setTarLocations(tarLocations);
-        tapeReadRequestReferentialEntity.setExpireDate(LocalDateUtil.getFormattedDateForMongo(LocalDateTime.now().plusDays(1)));
+        tapeReadRequestReferentialEntity.setExpireDate(LocalDateUtil.getFormattedDateForMongo(LocalDateUtil.now().plusDays(1)));
 
 
         readRequestReferentialRepository.insert(tapeReadRequestReferentialEntity);
