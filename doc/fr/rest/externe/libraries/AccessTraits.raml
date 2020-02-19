@@ -320,6 +320,44 @@ traits:
             application/json:
               description: informations sur l'echec du lancement de l'opération
 
+  UnitComputedInheritedRulesDeleteResponse:
+          description: Requête de suppression de masse des métadonnées de gestion calculées des unitiés archivistiques
+          is: [ StandardTraits.StandardOptionalHeader, StandardTraits.StandardHeader202 ]
+          body:
+            application/json:
+              example: !include examples/launchComputeInheritedRulesAfterIngest.json
+          responses:
+            202:
+              description: |
+                Renvoie le statut de l'opération de mise à jour
+              body:
+                application/json:
+                  description: Operation de mise à jour acceptée
+            500:
+              description: Renvoie le statut final de l'opération en KO
+              body:
+                application/json:
+                  description: informations sur l'echec du lancement de l'opération
+
+  UnitComputedInheritedRulesResponse:
+        description: Requête de mise à jour de masse des métadonnées de gestion calculées des unitiés archivistiques
+        is: [ StandardTraits.StandardOptionalHeader, StandardTraits.StandardHeader202 ]
+        body:
+          application/json:
+            example: !include examples/launchComputeInheritedRulesAfterIngest.json
+        responses:
+          202:
+            description: |
+              Renvoie le statut de l'opération de mise à jour
+            body:
+              application/json:
+                description: Operation de mise à jour acceptée
+          500:
+            description: Renvoie le statut final de l'opération en KO
+            body:
+              application/json:
+                description: informations sur l'echec du lancement de l'opération
+
   TransferReplyResponseAsync:
     description: Requête de transfert reply
     is: [ StandardTraits.StandardOptionalHeader, StandardTraits.StandardHeader202 ]

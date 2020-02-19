@@ -168,7 +168,7 @@ public class AdminManagementExternalResourceTest extends ResteasyTestApplication
 
 
     private static final String GOOD_ID = "goodId";
-    public static final String SECURITY_PROFILES_URI = "/securityprofiles";
+    private static final String SECURITY_PROFILES_URI = "/securityprofiles";
     private static final String RULE_FILE = "jeu_donnees_OK_regles_CSV_regles.csv";
 
     private final static BusinessApplicationTest businessApplicationTest = new BusinessApplicationTest();
@@ -228,9 +228,7 @@ public class AdminManagementExternalResourceTest extends ResteasyTestApplication
     @AfterClass
     public static void tearDownAfterClass() throws Exception {
         try {
-            if (application != null && application.getVitamServer() != null &&
-                application.getVitamServer() != null) {
-
+            if (application != null && application.getVitamServer() != null) {
                 application.stop();
             }
         } catch (Exception e) {
@@ -1467,7 +1465,7 @@ public class AdminManagementExternalResourceTest extends ResteasyTestApplication
         InputStream fileContracts = PropertiesUtils.getResourceAsStream("contracts_access_ok.json");
         ArrayNode array = (ArrayNode) JsonHandler.getFromInputStream(fileContracts);
         List<Object> res = new ArrayList<>();
-        array.forEach(e -> res.add(e));
+        array.forEach(res::add);
         return res;
     }
 

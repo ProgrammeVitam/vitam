@@ -27,11 +27,14 @@
 
 package fr.gouv.vitam.common.error;
 
+import java.io.ByteArrayInputStream;
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
 import javax.ws.rs.core.Response;
+import javax.ws.rs.core.Response.ResponseBuilder;
 
 import com.fasterxml.jackson.annotation.JsonGetter;
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -240,7 +243,7 @@ public class VitamError extends RequestResponse {
      */
     @Override
     public Response toResponse() {
-        final Response.ResponseBuilder resp = Response.status(getStatus()).entity(JsonHandler.unprettyPrint(this));
+        final ResponseBuilder resp = Response.status(getStatus()).entity(JsonHandler.unprettyPrint(this));
         final Map<String, String> vitamHeaders = getVitamHeaders();
         for (final String key : vitamHeaders.keySet()) {
             resp.header(key, getHeaderString(key));
@@ -250,4 +253,25 @@ public class VitamError extends RequestResponse {
         return resp.build();
     }
 
+    /**
+     * transform a RequestResponse to a stream response
+     *
+     * @return Response
+     */
+    public Response toStreamResponse() {
+        InputStream entity;
+        try {
+            entity = JsonHandler.writeToInpustream(this);
+        } catch (InvalidParseOperationException e) {
+            entity = new ByteArrayInputStream("{ 'message' : 'Invalid VitamError message' }".getBytes());
+        }
+        ResponseBuilder resp = Response.status(getStatus()).entity(entity);
+        final Map<String, String> vitamHeaders = getVitamHeaders();
+        for (final String key : vitamHeaders.keySet()) {
+            resp.header(key, getHeaderString(key));
+        }
+
+        unSetVitamHeaders();
+        return resp.build();
+    }
 }
