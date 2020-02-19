@@ -95,7 +95,7 @@ public class AdminOperationResource {
     }
 
     /**
-     * Reverts an invalid ingest operation (Purges all units, object groups & binaries, fixes AccessiongRegisters...)
+     * Reverts an invalid ingest operation (Purges all units, object groups &amp; binaries, fixes AccessiongRegisters...)
      */
     @Path("invalidIngestCleanup/{ingestOperationId}")
     @POST

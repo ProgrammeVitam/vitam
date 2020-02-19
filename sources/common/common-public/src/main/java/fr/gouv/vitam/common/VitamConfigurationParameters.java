@@ -491,7 +491,7 @@ public class VitamConfigurationParameters {
 
 
     /**
-     * @return the size of the queue of async workspace
+     * Sets the size of the queue of async workspace
      */
     public void setAsyncWorkspaceQueueSize(int queueSize) {
         asyncWorkspaceQueueSize = queueSize;
@@ -876,8 +876,6 @@ public class VitamConfigurationParameters {
 
     /**
      * setter for maxConcurrentMultipleInputstreamHandler
-     *
-     * @return
      */
     public void setMaxConcurrentMultipleInputstreamHandler(int maxConcurrentMultipleInputstreamHandler) {
         this.maxConcurrentMultipleInputstreamHandler = maxConcurrentMultipleInputstreamHandler;
@@ -1093,9 +1091,7 @@ public class VitamConfigurationParameters {
     }
 
     /**
-     * Getter for restore bulk size
-     *
-     * @return restoreBulkSize
+     * Setter for restore bulk size
      */
     public void setRestoreBulkSize(int restoreBulkSize) {
         this.restoreBulkSize = restoreBulkSize;

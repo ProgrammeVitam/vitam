@@ -57,15 +57,6 @@ public class VitamMetrics {
     private ScheduledReporter reporter;
     private boolean isReporting = false;
 
-    /**
-     * A constructor to instantiate a {@see VitamMetrics} with the configuration object {@link VitamMetricsConfiguration}
-     * . The configuration object must be returned from the method {link
-     * {@link VitamMetricsConfiguration#getMetricsConfigurations()}
-     *
-     * @param type
-     *
-     * @param configuration {@link VitamMetricsConfiguration}
-     */
     public VitamMetrics(VitamMetricsType type, VitamMetricsConfiguration configuration) {
         ParametersChecker.checkParameter("VitamMetricsType", type);
         ParametersChecker.checkParameter("VitamMetricConfiguration", configuration);

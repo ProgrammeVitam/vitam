@@ -167,8 +167,6 @@ public class Report {
 
     /**
      * @param start the start to set
-     *
-     * @return this
      */
     public void setStart(LocalDateTime start) {
         this.start = start;
@@ -183,8 +181,6 @@ public class Report {
 
     /**
      * @param end the end to set
-     *
-     * @return this
      */
     public void setEnd(LocalDateTime end) {
         this.end = end;

@@ -26,6 +26,8 @@
  */
 package fr.gouv.vitam.functionaltest.cucumber.report;
 
+import fr.gouv.vitam.common.LocalDateUtil;
+
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -51,7 +53,7 @@ public class Reports {
      */
     public Reports() {
         reports = new ArrayList<>();
-        start = LocalDateTime.now();
+        start = LocalDateUtil.now();
     }
 
     /**

@@ -27,6 +27,7 @@
 package fr.gouv.vitam.ihmrecette.appserver.applicativetest;
 
 import com.google.common.base.Throwables;
+import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.exception.VitamRuntimeException;
 import fr.gouv.vitam.common.logging.SysErrLogger;
@@ -116,7 +117,7 @@ public class ApplicativeTestService {
         if (!featurePath.toFile().exists()) {
             throw new VitamRuntimeException("path does not exist: " + featurePath);
         }
-        String fileName = String.format("report_%s.json", LocalDateTime.now().format(DATE_TIME_FORMATTER));
+        String fileName = String.format("report_%s.json", LocalDateUtil.now().format(DATE_TIME_FORMATTER));
 
         inProgress.set(true);
         executor.execute(() -> {

@@ -121,7 +121,7 @@ public class ProducerConsumerLock implements AutoCloseable {
     }
 
     /**
-     * Closes locks and notifies reader & producer
+     * Closes locks and notifies reader &amp; producer
      */
     public void close() {
         lock.lock();

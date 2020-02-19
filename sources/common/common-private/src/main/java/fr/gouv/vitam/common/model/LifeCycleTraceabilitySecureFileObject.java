@@ -168,7 +168,6 @@ public class LifeCycleTraceabilitySecureFileObject {
      * @param version version
      * @param lastEvtOutcome lastEvtOutcome
      * @param hashLFC hashLFC
-     * @param hashLFC hashLFCEvents
      * @param hashMetadata hashMetadata
      * @param hashGlobalFromStorage hashGlobalFromStorage
      */

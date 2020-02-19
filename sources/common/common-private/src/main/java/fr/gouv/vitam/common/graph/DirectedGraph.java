@@ -64,7 +64,7 @@ public class DirectedGraph {
      * Initializes an empty DirectedGraph with n vertices.
      *
      * @param vertices the number of vertices
-     * @throws IllegalArgumentException if V < 0
+     * @throws IllegalArgumentException if V &lt 0
      */
     @SuppressWarnings("unchecked")
     private DirectedGraph(int vertices) {
@@ -143,11 +143,11 @@ public class DirectedGraph {
     }
 
     /**
-     * Adds the directed edge v->w to this DirectedGraph.
+     * Adds the directed edge v-&gt;w to this DirectedGraph.
      *
      * @param v the tail vertex
      * @param w the head vertex
-     * @throws IndexOutOfBoundsException unless both 0 <= v < V and 0 <= w < vertices
+     * @throws IndexOutOfBoundsException unless both 0 &lt;= v &lt V and 0 &lt= w &lt; vertices
      */
     private void addEdge(int v, int w) {
         validateVertex(v);
@@ -174,7 +174,7 @@ public class DirectedGraph {
      *
      * @param vertices the vertex
      * @return the indegree of vertex <tt>vertices</tt>
-     * @throws IndexOutOfBoundsException unless 0 <= v < vertices
+     * @throws IndexOutOfBoundsException unless 0 &lt;= v &lt; vertices
      */
     public int indegree(int vertices) {
         validateVertex(vertices);

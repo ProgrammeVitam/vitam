@@ -106,7 +106,7 @@ public class ProbativeCreateReportTest {
 
         PreservationRequest request = new PreservationRequest();
         ProbativeReportEntry object = ProbativeReportEntry
-            .koFrom(LocalDateUtil.getFormattedDateForMongo(LocalDateTime.now()), Collections.singletonList("unitId"),
+            .koFrom(LocalDateUtil.getFormattedDateForMongo(LocalDateUtil.now()), Collections.singletonList("unitId"),
                 "groupId", "objectId", "usageVersion");
 
         TestHandlerIO handler = new TestHandlerIO();
@@ -149,7 +149,7 @@ public class ProbativeCreateReportTest {
             .when(handler).getInputStreamFromWorkspace("distributionFile.jsonl");
 
         ProbativeReportEntry object = ProbativeReportEntry
-            .koFrom(LocalDateUtil.getFormattedDateForMongo(LocalDateTime.now()), Collections.singletonList("unitId"),
+            .koFrom(LocalDateUtil.getFormattedDateForMongo(LocalDateUtil.now()), Collections.singletonList("unitId"),
                 "groupId", "objectId", "usageVersion");
         doReturn(pojoToFile(object)).when(handler).getFileFromWorkspace(probativeEntryIdInDistributionFile);
 
@@ -201,7 +201,7 @@ public class ProbativeCreateReportTest {
 
         PreservationRequest request = new PreservationRequest();
         ProbativeReportEntry object = ProbativeReportEntry
-            .koFrom(LocalDateUtil.getFormattedDateForMongo(LocalDateTime.now()), Collections.singletonList("unitId"),
+            .koFrom(LocalDateUtil.getFormattedDateForMongo(LocalDateUtil.now()), Collections.singletonList("unitId"),
                 "groupId", "objectId", "usageVersion");
 
         TestHandlerIO handler = new TestHandlerIO();
@@ -233,7 +233,7 @@ public class ProbativeCreateReportTest {
 
         PreservationRequest request = new PreservationRequest();
         ProbativeReportEntry object = ProbativeReportEntry
-            .koFrom(LocalDateUtil.getFormattedDateForMongo(LocalDateTime.now()), Collections.singletonList("unitId"),
+            .koFrom(LocalDateUtil.getFormattedDateForMongo(LocalDateUtil.now()), Collections.singletonList("unitId"),
                 "groupId", "objectId", "usageVersion");
 
         TestHandlerIO handler = new TestHandlerIO();

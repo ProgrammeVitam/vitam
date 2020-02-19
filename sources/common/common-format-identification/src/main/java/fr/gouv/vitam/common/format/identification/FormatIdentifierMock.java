@@ -29,11 +29,15 @@ package fr.gouv.vitam.common.format.identification;
 import fr.gouv.vitam.common.format.identification.model.FormatIdentifierInfo;
 import fr.gouv.vitam.common.format.identification.model.FormatIdentifierResponse;
 import fr.gouv.vitam.common.logging.SysErrLogger;
+import fr.gouv.vitam.common.model.VitamConstants;
+import org.apache.commons.compress.archivers.zip.ZipArchiveEntry;
+import org.apache.commons.compress.archivers.zip.ZipFile;
 
+import java.io.FileInputStream;
 import java.io.IOException;
-import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Enumeration;
 import java.util.List;
 
 /**
@@ -45,35 +49,49 @@ class FormatIdentifierMock implements FormatIdentifier {
 
     @Override
     public List<FormatIdentifierResponse> analysePath(Path pathToFile) {
-        final List<FormatIdentifierResponse> responses = new ArrayList<>();
-        String formatLitteral = "Plain Text File";
-        String mimeType = "text/plain";
-        String formatId = "x-fmt/111";
-        String ns = "pronom";
-        boolean isZip = false;
+
         try {
-            String contentType = Files.probeContentType(pathToFile);
-            if (contentType != null && contentType.contains(ZIP)) {
-                isZip = true;
+            if (isProbableZip(pathToFile) && isProbableSipFile(pathToFile)) {
+
+                // SIP File
+                String formatLitteral = "Zip File";
+                String mimeType = "application/zip";
+                String formatId = "x-fmt/263";
+                String ns = "pronom";
+
+                return Collections.singletonList(new FormatIdentifierResponse(formatLitteral, mimeType, formatId, ns));
             }
         } catch (IOException e) {
             SysErrLogger.FAKE_LOGGER.ignoreLog(e);
         }
-        if (!isZip) {
-            final FormatIdentifierResponse formatResponse =
-                new FormatIdentifierResponse(formatLitteral, mimeType, formatId, ns);
-            responses.add(formatResponse);
-            return responses;
-        } else {
-            formatLitteral = "Zip File";
-            mimeType = "application/zip";
-            formatId = "x-fmt/263";
-            ns = "pronom";
-            final FormatIdentifierResponse formatResponse =
-                new FormatIdentifierResponse(formatLitteral, mimeType, formatId, ns);
-            responses.add(formatResponse);
-            return responses;
+
+        String formatLitteral = "Plain Text File";
+        String mimeType = "text/plain";
+        String formatId = "x-fmt/111";
+        String ns = "pronom";
+
+        return Collections.singletonList(new FormatIdentifierResponse(formatLitteral, mimeType, formatId, ns));
+
+    }
+
+    private boolean isProbableZip(Path pathToFile) throws IOException {
+        try (FileInputStream fis = new FileInputStream(pathToFile.toFile())) {
+            // Zip magic number
+            return (fis.read() == 0x50 && fis.read() == 0x4B);
         }
+    }
+
+    private boolean isProbableSipFile(Path pathToFile) throws IOException {
+        try (ZipFile zipFile = new ZipFile(pathToFile.toFile())) {
+            Enumeration<ZipArchiveEntry> entries = zipFile.getEntries();
+            while (entries.hasMoreElements()) {
+                ZipArchiveEntry entry = entries.nextElement();
+                if (entry.getName().matches(VitamConstants.MANIFEST_FILE_NAME_REGEX)) {
+                    return true;
+                }
+            }
+        }
+        return false;
     }
 
     @Override
@@ -81,4 +99,3 @@ class FormatIdentifierMock implements FormatIdentifier {
         return new FormatIdentifierInfo("1.0", "FormatIdentifierMock");
     }
 }
-

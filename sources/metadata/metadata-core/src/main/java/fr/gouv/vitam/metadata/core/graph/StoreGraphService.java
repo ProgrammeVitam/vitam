@@ -274,7 +274,7 @@ public class StoreGraphService {
             }
 
             final LocalDateTime currentStoreDate =
-                LocalDateTime.now().minus(VitamConfiguration.getStoreGraphOverlapDelay(),
+                LocalDateUtil.now().minus(VitamConfiguration.getStoreGraphOverlapDelay(),
                     ChronoUnit.SECONDS);
             if (currentStoreDate.isBefore(lastStoreDate)) {
                 LOGGER.error(

@@ -50,7 +50,7 @@ import java.util.List;
  * This encoding must never be changed to avoid inconsistent hashing of previously encoded data.
  *
  * String literals are encoded as follows in the format '"char1char2..."'
- * - Simple escaping is applied for and only for the following characters : '"', '\\', '\b', '\f', \n', '\r' & '\t'.
+ * - Simple escaping is applied for and only for the following characters : '"', '\\', '\b', '\f', \n', '\r' &amp; '\t'.
  * - Printable ascii chars are not escaped [32 - 127]
  * - 4 digit hex escaping for any other character (\u1234).
  *

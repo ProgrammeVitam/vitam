@@ -28,10 +28,6 @@ package fr.gouv.vitam.common.metrics;
 
 import fr.gouv.vitam.common.ParametersChecker;
 
-/**
- * Enums to use for the configuration of {@link VitamMetrics} through the {@link VitamMetricsConfigurationImpl} class.
- *
- */
 public enum VitamMetricsReporterType {
 
     ELASTICSEARCH("elasticsearch"),
@@ -45,7 +41,7 @@ public enum VitamMetricsReporterType {
     /**
      * Constructor
      *
-     * @param String name
+     * @param name
      */
     VitamMetricsReporterType(final String name) {
         this.name = name;

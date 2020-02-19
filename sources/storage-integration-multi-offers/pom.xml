@@ -77,11 +77,6 @@
 			<artifactId>commons-io</artifactId>
 			<scope>test</scope>
 		</dependency>
-		<dependency>
-			<groupId>org.jhades</groupId>
-			<artifactId>jhades</artifactId>
-			<scope>test</scope>
-		</dependency>
         <dependency>
             <groupId>fr.gouv.vitam</groupId>
             <artifactId>functional-administration-rules-core</artifactId>

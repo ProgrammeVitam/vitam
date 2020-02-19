@@ -43,7 +43,7 @@ import java.util.concurrent.TimeUnit;
 
 /**
  * This cache is used to purge archive files in output folder.
- * FIXME:   should purge by remaining disk space < 20% for example
+ * FIXME:   should purge by remaining disk space &lt; 20% for example
  * Or disk space should be large enough
  * The problem if someone read multiple tar file in same time then the risque of full disk is possible
  */

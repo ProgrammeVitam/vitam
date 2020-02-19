@@ -52,6 +52,7 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
+import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.exception.WorkflowNotFoundException;
 import fr.gouv.vitam.common.format.identification.FormatIdentifierFactory;
 import fr.gouv.vitam.ingest.external.core.AtrKoBuilder;
@@ -263,7 +264,7 @@ public class IngestExternalResource extends ApplicationStatusResource {
                 LOGGER.error(ex);
                 String atr = AtrKoBuilder.buildAtrKo(operationId.getId(), "ArchivalAgencyToBeDefined",
                     "TransferringAgencyToBeDefined",
-                    IngestExternalImpl.INGEST_INT_UPLOAD, ex.getMessage(), StatusCode.KO, LocalDateTime.now());
+                    IngestExternalImpl.INGEST_INT_UPLOAD, ex.getMessage(), StatusCode.KO, LocalDateUtil.now());
                 ingestExternal.handleResponseWithATR(operationId, asyncResponse, atr);
                 return;
             } catch (WorkspaceClientServerException e) {

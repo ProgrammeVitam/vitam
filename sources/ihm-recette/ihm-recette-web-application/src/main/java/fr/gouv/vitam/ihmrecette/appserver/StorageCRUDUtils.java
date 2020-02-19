@@ -63,8 +63,6 @@ public class StorageCRUDUtils {
 
     /**
      * get the list of strategies containing the offers
-     *
-     * @param return          result of strategies
      */
     public RequestResponse<StorageStrategy> getStrategies()
         throws StorageServerClientException {

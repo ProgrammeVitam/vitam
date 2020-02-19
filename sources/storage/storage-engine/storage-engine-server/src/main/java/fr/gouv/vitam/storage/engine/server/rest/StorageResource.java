@@ -340,9 +340,7 @@ public class StorageResource extends ApplicationStatusResource implements VitamA
     /**
      * Get list of object type
      *
-     * @param xcursor the X-Cursor
-     * @param xcursorId the X-Cursor-Id if exists
-     * @param strategyId the strategy to get offers
+     * @param headers the X-Cursor, X-Cursor-Id &amps; X-Strategy-Id headers
      * @param type the object type to list
      * @return a response with listing elements
      */
@@ -380,7 +378,7 @@ public class StorageResource extends ApplicationStatusResource implements VitamA
     /**
      * Get offer log from referent offer
      *
-     * @param strategyId the strategy to get offers
+     * @param headers
      * @param type the object type to list
      * @param offerLogRequest offer log request params
      * @return list of offer log

@@ -35,6 +35,7 @@ import com.mongodb.client.MongoCursor;
 import fr.gouv.vitam.batch.report.model.EliminationActionUnitModel;
 import fr.gouv.vitam.batch.report.model.ReportBody;
 import fr.gouv.vitam.batch.report.model.entry.EliminationActionUnitReportEntry;
+import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.database.server.mongodb.MongoDbAccess;
 import fr.gouv.vitam.common.database.server.mongodb.SimpleMongoDBAccess;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
@@ -137,7 +138,7 @@ public class EliminationActionUnitRepositoryTest {
                 EliminationActionUnitModel eliminationActionUnitModel = new EliminationActionUnitModel();
                 eliminationActionUnitModel.setProcessId(reportBody.getProcessId());
                 eliminationActionUnitModel.setTenant(0);
-                LocalDateTime localDateTime = LocalDateTime.now();
+                LocalDateTime localDateTime = LocalDateUtil.now();
                 eliminationActionUnitModel.setCreationDateTime(localDateTime.toString());
                 eliminationActionUnitModel.setMetadata(md);
                 return eliminationActionUnitModel;

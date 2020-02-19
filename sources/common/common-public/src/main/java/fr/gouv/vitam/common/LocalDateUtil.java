@@ -38,8 +38,11 @@ import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeFormatterBuilder;
 import java.time.format.DateTimeParseException;
 import java.time.temporal.ChronoField;
+import java.time.temporal.ChronoUnit;
 import java.time.temporal.TemporalAccessor;
+import java.time.temporal.TemporalUnit;
 import java.util.Date;
+import java.util.concurrent.TimeUnit;
 
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
@@ -104,7 +107,8 @@ public final class LocalDateUtil {
      * @return the LocalDateTime now in UTC
      */
     public static LocalDateTime now() {
-        return LocalDateTime.now(ZoneOffset.UTC);
+        return LocalDateTime.now(ZoneOffset.UTC)
+            .truncatedTo(ChronoUnit.MILLIS);
     }
 
     /**
@@ -131,7 +135,7 @@ public final class LocalDateUtil {
      */
     public static LocalDateTime fromMillis(long millis) {
         if (millis < 0) {
-            return LocalDateTime.now(ZoneOffset.UTC);
+            return now();
         }
         return LocalDateTime.ofEpochSecond(millis / THOUSAND, (int) (millis % THOUSAND * THOUSAND),
             ZoneOffset.UTC);
@@ -153,7 +157,7 @@ public final class LocalDateUtil {
      */
     public static LocalDateTime fromDate(Date date) {
         if (date == null) {
-            return LocalDateTime.now(ZoneOffset.UTC);
+            return now();
         }
         return LocalDateTime.ofInstant(date.toInstant(), ZoneOffset.UTC);
     }
@@ -164,7 +168,7 @@ public final class LocalDateUtil {
      */
     public static LocalDateTime fromDate(FileTime fileTime) {
         if (fileTime == null) {
-            return LocalDateTime.now(ZoneOffset.UTC);
+            return now();
         }
         return LocalDateTime.ofInstant(fileTime.toInstant(), ZoneOffset.UTC);
     }

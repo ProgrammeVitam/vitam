@@ -106,7 +106,7 @@ public class ServerIdentityConfigurationImpl implements ServerIdentityConfigurat
     /**
      * @param identityServerId the identityServerId to set
      * @return this
-     * @throws IllegalArgumentException if identityPlatformId < 0
+     * @throws IllegalArgumentException if identityPlatformId &lt; 0
      */
     public ServerIdentityConfigurationImpl setIdentityServerId(int identityServerId) {
         if (identityServerId < 0) {
@@ -119,7 +119,7 @@ public class ServerIdentityConfigurationImpl implements ServerIdentityConfigurat
     /**
      * @param identitySiteId the identitySiteId to set
      * @return this
-     * @throws IllegalArgumentException if identityPlatformId < 0
+     * @throws IllegalArgumentException if identityPlatformId &lt; 0
      */
     public ServerIdentityConfigurationImpl setIdentitySiteId(int identitySiteId) {
         if (identitySiteId < 0) {

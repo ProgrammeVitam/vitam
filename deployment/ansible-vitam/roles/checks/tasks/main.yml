@@ -2,6 +2,8 @@
 
 - import_tasks: check_ip.yml
 
+- import_tasks: check_java.yml
+
 - import_tasks: check_groups.yml
   when: ansible_virtualization_type != 'docker'
 

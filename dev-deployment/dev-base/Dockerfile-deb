@@ -6,48 +6,45 @@
 # Image name: vitam/dev-deb-base
 #########################################################################################
 
-# Set the base image to Debian 8
-FROM debian:9.9
+# Set the base image to Debian 10
+FROM debian:10.2
 MAINTAINER French Prime minister Office/SGMAP/DINSIC/Vitam Program <contact.vitam@culture.gouv.fr>
 
 #ENV DEBIAN_FRONTEND noninteractive
 
-RUN apt-get clean && apt-get update && apt-get install -y apt-utils
+RUN apt-get clean && apt-get update && apt-get install -y apt-utils procps init
 
 # Make sure the package repository and packages are up to date.
 
-COPY deb/stretch-backports.list /etc/apt/sources.list.d
+COPY deb/buster-backports.list /etc/apt/sources.list.d
 
 RUN apt-get clean && apt-get update && apt-get upgrade -y
 
-RUN apt-get update && apt-get install -t stretch-backports -y openjdk-8-jdk-headless
+RUN apt-get remove -y openjdk*
 
-RUN apt-get install -y systemd-sysv
+RUN apt-get update && apt-get install -t buster-backports -y openjdk-11-jdk-headless
+
+#RUN apt-get install -y systemd-sysv
 
 ################################  Configure systemd  ###############################
 
 # Hint for systemd that we are running inside a container
 ENV container docker
+ENV LC_ALL C
+ENV DEBIAN_FRONTEND noninteractive
 
-RUN cd /lib/systemd/system/sysinit.target.wants/ && \
-		ls | grep -v systemd-tmpfiles-setup.service | xargs rm -f && \
-		rm -f /lib/systemd/system/sockets.target.wants/*udev* && \
-		systemctl mask -- \
-			tmp.mount \
-			etc-hostname.mount \
-			etc-hosts.mount \
-			etc-resolv.conf.mount \
-			-.mount \
-			swap.target \
-			getty.target \
-			getty-static.service \
-			dev-mqueue.mount \
-			systemd-tmpfiles-setup-dev.service \
-			systemd-tmpfiles-setup.service \
-			systemd-remount-fs.service \
-			systemd-update-utmp-runlevel.service \
-			systemd-logind.service && \
-		systemctl set-default multi-user.target || true
+RUN apt-get update \
+    && apt-get install -y systemd \
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
+
+RUN rm -f /lib/systemd/system/multi-user.target.wants/* \
+    /etc/systemd/system/*.wants/* \
+    /lib/systemd/system/local-fs.target.wants/* \
+    /lib/systemd/system/sockets.target.wants/*udev* \
+    /lib/systemd/system/sockets.target.wants/*initctl* \
+    /lib/systemd/system/sysinit.target.wants/systemd-tmpfiles-setup* \
+    /lib/systemd/system/systemd-update-utmp*
 
 ################################  Install build tools (rpm / maven / java)  ###############################
 
@@ -60,7 +57,7 @@ RUN /var/lib/dpkg/info/ca-certificates-java.postinst configure
 RUN apt-get clean && apt-get update && apt-get install -y curl && apt-get clean
 
 # Add Java to path
-ENV JAVA_HOME /usr/lib/jvm/java-8-openjdk-amd64
+ENV JAVA_HOME /usr/lib/jvm/java-11-openjdk-amd64
 
 # Install & configure maven
 RUN curl -k https://repo.maven.apache.org/maven2/org/apache/maven/apache-maven/3.3.9/apache-maven-3.3.9-bin.tar.gz --output /tmp/maven.tgz \
@@ -84,21 +81,24 @@ RUN apt-get update && apt-get install -y sudo net-tools \
 # Editor & unzip
 RUN apt-get install -y vim unzip wget
 
-RUN apt-get install -y -t stretch-backports golang
+RUN apt-get install -y -t buster-backports golang
 
-RUN apt-get install -y node-gyp  nodejs-dev && \
-    apt-get install -y nodejs && \
-    ln -s /usr/bin/nodejs /usr/bin/node
-
-RUN apt-get -t stretch-backports -y install ansible
+RUN apt-get install -y node-gyp  libnode-dev && \
+    apt-get install -y nodejs 
+# symbolic link is not necessary anymore
+# RUN apt-get -t buster-backports -y install ansible
 
 RUN apt-get clean && apt-get update && apt-get install -y git vim
 
 ##################################  Declare local deb repo  #################################
 
 # Note : declare at the end ; else other commands will fail.
-RUN apt-get update && apt-get install -y  dpkg-dev \
+RUN apt-get update && apt-get install -y  dpkg-dev gnupg2 \
     && apt-get clean
+
+COPY deb/ansible.list /etc/apt/sources.list.d/ansible.list
+RUN apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv-keys 93C4A3FD7BB9C367
+RUN apt-get clean && apt-get update && apt-get install -y ansible
 
 COPY deb/local.list /etc/apt/sources.list.d/local.list
 
@@ -124,11 +124,11 @@ RUN chmod 664 /etc/sudoers.d/sudo-nopwd
 ENV TERM xterm
 
 # If we don't install openjdk a 2nd time, sometimes it doesn't work, why ???
-RUN apt-get install -t stretch-backports -y openjdk-8-jdk-headless
+RUN apt-get install -t buster-backports -y openjdk-11-jdk-headless
 
 ##################################  CONTAINER SETTINGS  #################################
 
-# VOLUME [ "/sys/fs/cgroup" ]
+VOLUME [ "/sys/fs/cgroup" ]
 VOLUME [ "/code" ]
 VOLUME [ "/devhome/.m2" ]
 

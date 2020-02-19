@@ -109,7 +109,6 @@ public class SecurityProfileModel {
 
     /**
      * @param id value to set
-     * @return this
      */
     public void setId(String id) {
         this.id = id;
@@ -161,7 +160,6 @@ public class SecurityProfileModel {
      * Set or change the security profile name
      *
      * @param name as String to set
-     * @return this
      */
     public void setName(String name) {
         this.name = name;

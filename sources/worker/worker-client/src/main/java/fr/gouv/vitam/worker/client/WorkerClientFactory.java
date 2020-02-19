@@ -56,7 +56,7 @@ import fr.gouv.vitam.common.logging.VitamLoggerFactory;
  * }
  * </pre>
  *
- * You can change the type of the client to get. The types are defined in the enum {@link WorkerClientType}. Use the
+ * You can change the type of the client to get. The types are defined in the enum {@link WorkerClient}. Use the
  * changeDefaultClientType method to change the client type.
  *
  */

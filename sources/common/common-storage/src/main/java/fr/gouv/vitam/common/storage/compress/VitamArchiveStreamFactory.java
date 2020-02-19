@@ -48,7 +48,7 @@ public class VitamArchiveStreamFactory {
      *
      * @param mediaType
      *            MediaType object {@link MediaType} the archive name, i.e.
-     *            {@value #ZIP}, {@value #TAR}, or {@value #GZIP}
+     *            ZIP, TAR, or GZIP
      * @param in
      *            the input stream
      * @return the archive input stream

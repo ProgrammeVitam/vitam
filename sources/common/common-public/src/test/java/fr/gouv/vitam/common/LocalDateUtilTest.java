@@ -119,7 +119,7 @@ public class LocalDateUtilTest {
         assertEquals(dt.toEpochSecond(ZoneOffset.UTC), date.getTime());
         assertTrue(LocalDateUtil.getFormattedDate(date).contains("T"));
         assertTrue(LocalDateUtil.getFormattedDate(date).contains("+"));
-        assertTrue(LocalDateUtil.getFormattedDate(LocalDateTime.now()).length()==19);
+        assertTrue(LocalDateUtil.getFormattedDate(LocalDateUtil.now()).length()==19);
 
     }
 

@@ -467,7 +467,7 @@ public final class ServerIdentity implements ServerIdentityInterface {
      * @param serverId the platformId of the Vitam Platform to set
      *
      * @return this
-     * @throws IllegalArgumentException platformId < 0
+     * @throws IllegalArgumentException platformId &lt; 0
      */
     public final ServerIdentity setServerId(int serverId) {
         ParametersChecker.checkValue("server", serverId, 0);

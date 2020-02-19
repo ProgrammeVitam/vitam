@@ -112,10 +112,10 @@ import static com.google.common.base.MoreObjects.firstNonNull;
  *  <code>
  *    for (final EngineResponse response : responses) {
  *       tempStatusCode = response.getStatus();
- *       if (statusCode.ordinal() > tempStatusCode.ordinal()) {
+ *       if (statusCode.ordinal() &gt; tempStatusCode.ordinal()) {
  *           statusCode = tempStatusCode;
  *       }
- *      if (statusCode.ordinal() > StatusCode.KO.ordinal()) {
+ *      if (statusCode.ordinal() &gt; StatusCode.KO.ordinal()) {
  *           break;
  *       }
  *     }

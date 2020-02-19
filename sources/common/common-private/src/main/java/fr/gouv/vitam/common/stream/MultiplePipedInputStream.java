@@ -59,7 +59,7 @@ public class MultiplePipedInputStream implements VitamAutoCloseable {
      *
      * @param source
      * @param nbCopy
-     * @throws IllegalArgumentException if source is null or nbCopy <= 0 or global service is down
+     * @throws IllegalArgumentException if source is null or nbCopy &lt;= 0 or global service is down
      */
     public MultiplePipedInputStream(InputStream source, int nbCopy) {
         ParametersChecker.checkParameter("InputStream cannot be null", source);
@@ -86,7 +86,7 @@ public class MultiplePipedInputStream implements VitamAutoCloseable {
      *
      * @param rank between 0 and nbCopy-1
      * @return the rank-th linked InputStream
-     * @throws IllegalArgumentException if rank < 0 or rank >= nbCopy
+     * @throws IllegalArgumentException if rank &lt; 0 or rank &gt;= nbCopy
      */
     public InputStream getInputStream(int rank) {
         if (rank < 0 || rank >= nbCopy) {
