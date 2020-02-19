@@ -128,7 +128,7 @@
         <maven-enforcer-plugin.version>1.4.1</maven-enforcer-plugin.version>
         <maven-help-plugin.version>3.2.0</maven-help-plugin.version>
         <maven-release-plugin.version>2.5.3</maven-release-plugin.version>
-        <sonar-maven-plugin.version>3.2</sonar-maven-plugin.version>
+        <sonar-maven-plugin.version>3.7.0.1746</sonar-maven-plugin.version>
         <versions-maven-plugin.version>2.7</versions-maven-plugin.version>
         <maven-scm-provider-jgit.version>1.11.2</maven-scm-provider-jgit.version>
         <maven-jar-plugin.version>3.2.0</maven-jar-plugin.version>
