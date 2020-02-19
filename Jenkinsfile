@@ -124,7 +124,7 @@ pipeline {
                 dir('sources') {
                     script {
                         docker.withRegistry("http://${env.SERVICE_DOCKER_PULL_URL}") {
-                            docker.image("${env.SERVICE_DOCKER_PULL_URL}/elasticsearch/elasticsearch:${env.ES_VERSION}").withRun('-p 9200:9200 -p 9300:9300 -e "discovery.type=single-node" -e "cluster.name=elasticsearch-data"') { c ->
+                            docker.image("${env.SERVICE_DOCKER_PULL_URL}/elasticsearch:${env.ES_VERSION}").withRun('-p 9200:9200 -p 9300:9300 -e "discovery.type=single-node" -e "cluster.name=elasticsearch-data"') { c ->
                                 docker.withRegistry("http://${env.SERVICE_DOCKER_PULL_URL}") {
                                     docker.image("${env.SERVICE_DOCKER_PULL_URL}/mongo:${env.MONGO_VERSION}").withRun('-p 27017:27017') { o ->
                                         sh 'while ! curl -v http://localhost:9200; do sleep 2; done'
@@ -172,7 +172,7 @@ pipeline {
                 dir('sources') {
                     script {
                         docker.withRegistry("http://${env.SERVICE_DOCKER_PULL_URL}") {
-                            docker.image("${env.SERVICE_DOCKER_PULL_URL}/elasticsearch/elasticsearch:${env.ES_VERSION}").withRun('-p 9200:9200 -p 9300:9300 -e "discovery.type=single-node" -e "cluster.name=elasticsearch-data"') { c ->
+                            docker.image("${env.SERVICE_DOCKER_PULL_URL}/elasticsearch:${env.ES_VERSION}").withRun('-p 9200:9200 -p 9300:9300 -e "discovery.type=single-node" -e "cluster.name=elasticsearch-data"') { c ->
                                 docker.withRegistry("http://${env.SERVICE_DOCKER_PULL_URL}") {
                                     docker.image("${env.SERVICE_DOCKER_PULL_URL}/mongo:${env.MONGO_VERSION}").withRun('-p 27017:27017') { o ->
                                         sh 'while ! curl -v http://localhost:9200; do sleep 2; done'
@@ -226,7 +226,7 @@ pipeline {
                 dir('sources') {
                     script {
                         docker.withRegistry("http://${env.SERVICE_DOCKER_PULL_URL}") {
-                            docker.image("${env.SERVICE_DOCKER_PULL_URL}/elasticsearch/elasticsearch:${env.ES_VERSION}").withRun('-p 9200:9200 -p 9300:9300 -e "discovery.type=single-node" -e "cluster.name=elasticsearch-data"') { c ->
+                            docker.image("${env.SERVICE_DOCKER_PULL_URL}/elasticsearch:${env.ES_VERSION}").withRun('-p 9200:9200 -p 9300:9300 -e "discovery.type=single-node" -e "cluster.name=elasticsearch-data"') { c ->
                                 docker.withRegistry("http://${env.SERVICE_DOCKER_PULL_URL}") {
                                     docker.image("${env.SERVICE_DOCKER_PULL_URL}/mongo:${env.MONGO_VERSION}").withRun('-p 27017:27017') { o ->
                                         sh 'while ! curl -v http://localhost:9200; do sleep 2; done'
