@@ -783,7 +783,7 @@ public final class JsonHandler {
     }
 
     /**
-     * transform an inputStream into a {@link {Map<String, T>} maps of template class
+     * transform an inputStream into a map of template class
      *
      * @param inputStream to transform
      * @param parameterClazz type of the value on the Map

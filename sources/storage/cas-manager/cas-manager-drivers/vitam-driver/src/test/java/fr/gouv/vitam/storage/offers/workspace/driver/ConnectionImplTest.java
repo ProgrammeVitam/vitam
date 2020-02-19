@@ -32,6 +32,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.collect.Sets;
 import fr.gouv.vitam.common.GlobalDataRest;
+import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.digest.DigestType;
 import fr.gouv.vitam.common.exception.VitamApplicationServerException;
 import fr.gouv.vitam.common.guid.GUIDFactory;
@@ -777,7 +778,7 @@ public class ConnectionImplTest extends ResteasyTestApplication {
             offerLog.setContainer(DataCategory.OBJECT.getFolder() + "_" + tenant);
             offerLog.setFileName(GUIDFactory.newGUID().getId());
             offerLog.setSequence(sequence);
-            offerLog.setTime(LocalDateTime.now());
+            offerLog.setTime(LocalDateUtil.now());
             requestResponse.addResult(offerLog);
         });
         requestResponse.setHttpCode(Status.OK.getStatusCode());

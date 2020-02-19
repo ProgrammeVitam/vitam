@@ -687,7 +687,7 @@ public class StorageDistributionImpl implements StorageDistribution {
         // TODO P1 Witch status code return if an offer is updated (Status.OK)
         // and another is created (Status.CREATED) ?
         final StoredInfoResult result = new StoredInfoResult();
-        final LocalDateTime now = LocalDateTime.now();
+        final LocalDateTime now = LocalDateUtil.now();
         final StringBuilder description = new StringBuilder();
         switch (category) {
             case UNIT:

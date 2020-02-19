@@ -106,7 +106,6 @@ public abstract class ContentAddressableStorageAbstract implements ContentAddres
      * Do only memory check if the container is already exists
      * @param containerName
      * @param exists
-     * @return
      */
     protected void cacheExistsContainer(String containerName, boolean exists) {
         if (exists && !disableContainerCaching) {

@@ -87,7 +87,6 @@ public class LogbookAdministration {
     /**
      * secure the logbook operation since last securisation.
      *
-     * @return the GUID of the operation
      * @throws TraceabilityException if error on generating secure logbook
      */
     // TODO: use a distributed lock to launch this function only on one server (cf consul)

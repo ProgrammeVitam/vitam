@@ -12,7 +12,7 @@ Source2:       application.conf
 
 BuildRequires: systemd-units
 Requires:      systemd
-Requires:      java-1.8.0
+Requires:      java-11-openjdk-headless
 Requires:      vitam-user-vitam
 
 %global cerebro_folder vitam/app/cerebro

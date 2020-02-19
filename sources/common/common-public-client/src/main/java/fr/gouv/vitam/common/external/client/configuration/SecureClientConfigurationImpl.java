@@ -50,7 +50,7 @@ public class SecureClientConfigurationImpl extends ClientConfigurationImpl imple
      *
      * @param serverHost server IP address
      * @param serverPort server port
-     * @throws IllegalArgumentException if serverHost is null or empty or serverPort <= 0
+     * @throws IllegalArgumentException if serverHost is null or empty or serverPort &lt;= 0
      */
     public SecureClientConfigurationImpl(String serverHost, int serverPort) {
         this(serverHost, serverPort, true, new SSLConfiguration(), true);
@@ -62,7 +62,7 @@ public class SecureClientConfigurationImpl extends ClientConfigurationImpl imple
      * @param serverHost server IP address
      * @param serverPort server port
      * @param secure HTTP/HTTPS
-     * @throws IllegalArgumentException if configuration param is null or empty or serverPort <= 0
+     * @throws IllegalArgumentException if configuration param is null or empty or serverPort &lt;= 0
      */
     public SecureClientConfigurationImpl(String serverHost, int serverPort, boolean secure) {
         this(serverHost, serverPort, secure, new SSLConfiguration(), true);
@@ -76,7 +76,7 @@ public class SecureClientConfigurationImpl extends ClientConfigurationImpl imple
      * @param serverPort server port
      * @param secure HTTP/HTTPS
      * @param sslConfiguration
-     * @throws IllegalArgumentException if configuration param is null or empty or serverPort <= 0
+     * @throws IllegalArgumentException if configuration param is null or empty or serverPort &lt;= 0
      */
     public SecureClientConfigurationImpl(String serverHost, int serverPort, boolean secure,
         SSLConfiguration sslConfiguration) {
@@ -92,7 +92,7 @@ public class SecureClientConfigurationImpl extends ClientConfigurationImpl imple
      * @param secure
      * @param sslConfiguration
      * @param hostnameVerification
-     * @throws IllegalArgumentException if any configuration param is null or empty or serverPort <= 0
+     * @throws IllegalArgumentException if any configuration param is null or empty or serverPort &lt;= 0
      */
     public SecureClientConfigurationImpl(String serverHost, int serverPort, boolean secure,
         SSLConfiguration sslConfiguration, boolean hostnameVerification) {

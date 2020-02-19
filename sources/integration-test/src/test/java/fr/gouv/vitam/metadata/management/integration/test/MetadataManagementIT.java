@@ -495,7 +495,7 @@ public class MetadataManagementIT extends VitamRuleRunner {
         VitamConfiguration.setStoreGraphElementsPerFile(5);
 
         LocalDateTime dateTime =
-            LocalDateTime.now().minus(VitamConfiguration.getStoreGraphOverlapDelay(), ChronoUnit.SECONDS);
+            LocalDateUtil.now().minus(VitamConfiguration.getStoreGraphOverlapDelay(), ChronoUnit.SECONDS);
 
         String dateInMongo = LocalDateUtil.getFormattedDateForMongo(dateTime);
         List<Document> documents = new ArrayList<>();
@@ -512,7 +512,7 @@ public class MetadataManagementIT extends VitamRuleRunner {
         assertThat(ok.get(MetadataCollections.UNIT)).isEqualTo(10);
 
 
-        dateTime = LocalDateTime.now().minus(VitamConfiguration.getStoreGraphOverlapDelay(), ChronoUnit.SECONDS);
+        dateTime = LocalDateUtil.now().minus(VitamConfiguration.getStoreGraphOverlapDelay(), ChronoUnit.SECONDS);
         dateInMongo = LocalDateUtil.getFormattedDateForMongo(dateTime);
         documents = new ArrayList<>();
         for (int i = 10; i < 15; i++) {

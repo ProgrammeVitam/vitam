@@ -32,6 +32,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
 import com.google.common.annotations.VisibleForTesting;
+import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.logging.VitamLogger;
@@ -72,7 +73,7 @@ public class ProcessWorkFlowsCleaner implements Runnable {
 
     @Override
     public void run() {
-        timeLimit = LocalDateTime.now().minusHours(period);
+        timeLimit = LocalDateUtil.now().minusHours(period);
         // One RequestId for all tenant
         VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newRequestIdGUID(VitamConfiguration.getAdminTenant()));
         this.cleanProcessingByTenants();

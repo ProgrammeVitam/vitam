@@ -82,7 +82,6 @@ import io.restassured.RestAssured;
 import io.restassured.http.ContentType;
 import io.restassured.mapper.TypeRef;
 import io.restassured.path.json.JsonPath;
-import org.jhades.JHades;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
@@ -162,8 +161,6 @@ public class ContractResourceTest {
 
     @BeforeClass
     public static void setUpBeforeClass() throws Exception {
-        new JHades().overlappingJarsReport();
-
         FunctionalAdminCollections.beforeTestClass(mongoRule.getMongoDatabase(), PREFIX,
             new ElasticsearchAccessFunctionalAdmin(ElasticsearchRule.VITAM_CLUSTER,
                 Lists.newArrayList(new ElasticsearchNode("localhost", ElasticsearchRule.TCP_PORT))));

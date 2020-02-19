@@ -829,7 +829,7 @@ public class ReconstructionService {
 
     /**
      * Find all older (AU/GOT) where only graph data are reconstructed
-     * As Documents with only graph data are not indexed in elasticsearch => we have not to implement deletion from Elastcisearch
+     * As Documents with only graph data are not indexed in elasticsearch =&gt; we have not to implement deletion from Elastcisearch
      */
     public void purgeReconstructedDocumentsWithGraphOnlyData(MetadataCollections metaDaCollection) {
 

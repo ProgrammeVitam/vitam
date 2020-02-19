@@ -116,7 +116,7 @@ public class Digest {
      * @param offset the offset position
      * @param length the length
      * @return this
-     * @throws IllegalArgumentException if bytes null, offset < 0, length < 0
+     * @throws IllegalArgumentException if bytes null, offset &lt; 0, length &lt; 0
      */
     public final Digest update(byte[] bytes, int offset, int length) {
         ParametersChecker.checkParameter(ARGUMENT_MUST_NOT_BE_NULL, bytes);
@@ -185,7 +185,7 @@ public class Digest {
      * @param limit if less than 0, means all
      * @return this
      * @throws IOException if any IO error occurs
-     * @throws IllegalArgumentException in null, start < 0
+     * @throws IllegalArgumentException in null, start &lt; 0
      */
     public final Digest update(File in, long start, long limit) throws IOException {
         ParametersChecker.checkParameter(ARGUMENT_MUST_NOT_BE_NULL, in);
@@ -219,7 +219,7 @@ public class Digest {
      * @param chunkSize the chunksize to use
      * @return this
      * @throws IOException if any IO error occurs
-     * @throws IllegalArgumentException inputstream null, chunksize < 1
+     * @throws IllegalArgumentException inputstream null, chunksize &lt; 1
      */
     public final Digest update(InputStream inputStream, int chunkSize) throws IOException {
         return update(inputStream, chunkSize, -1);
@@ -231,7 +231,7 @@ public class Digest {
      * @param limit if less than 0, means all
      * @return this
      * @throws IOException if any IO error occurs
-     * @throws IllegalArgumentException inputstream null, chunksize < 1
+     * @throws IllegalArgumentException inputstream null, chunksize &lt; 1
      */
     public final Digest update(InputStream inputStream, int chunkSize, long limit)
         throws IOException {
@@ -292,7 +292,7 @@ public class Digest {
      * @param limit if less than 0, means all
      * @return this
      * @throws IOException if any IO error occurs
-     * @throws IllegalArgumentException fileChannelIinputStream null, start < 0, chunksize < 1
+     * @throws IllegalArgumentException fileChannelIinputStream null, start &lt; 0, chunksize &lt; 1
      */
     public final Digest update(FileChannel fileChannelInputStream, long start, int chunkSize, long limit)
         throws IOException {

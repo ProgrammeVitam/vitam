@@ -584,20 +584,19 @@ public class WebApplicationResource extends ApplicationStatusResource {
      * header are present in the code) <br />
      * The front should give some information
      * <ul>
-     * <li>Flow-Chunk-Number => The index of the current chunk</li>
-     * <li>Flow-Chunk-Size => The configured maximal size of a chunk</li>
-     * <li>Flow-Current-Chunk-Size => The size of the current chunk</li>
-     * <li>Flow-Total-Size => The total size of the file (All chunks)</li>
-     * <li>Flow-Identifier => The identifier of the flow</li>
-     * <li>Flow-Filename => The file name</li>
-     * <li>Flow-Relative-Path => (?)The relative path (or the file name only)</li>
-     * <li>Flow-Total-Chunks => The number of chunks</li>
+     * <li>Flow-Chunk-Number =&gt; The index of the current chunk</li>
+     * <li>Flow-Chunk-Size =&gt; The configured maximal size of a chunk</li>
+     * <li>Flow-Current-Chunk-Size =&gt; The size of the current chunk</li>
+     * <li>Flow-Total-Size =&gt; The total size of the file (All chunks)</li>
+     * <li>Flow-Identifier =&gt; The identifier of the flow</li>
+     * <li>Flow-Filename =&gt; The file name</li>
+     * <li>Flow-Relative-Path =&gt; (?)The relative path (or the file name only)</li>
+     * <li>Flow-Total-Chunks =&gt; The number of chunks</li>
      * </ul>
      *
      * @param request the http servlet request
      * @param response the http servlet response
      * @param stream data input stream for the current chunk
-     * @param request HTTP request
      * @return Response
      */
     @Path("ingest/upload")
@@ -1672,7 +1671,6 @@ public class WebApplicationResource extends ApplicationStatusResource {
      *
      * @param request HTTP request
      * @param input the rules file csv
-     * @return If the rules file is valid, return ok. If not, return the list of errors
      */
     @POST
     @Path("/rules/check")

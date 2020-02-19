@@ -598,7 +598,7 @@ public class ProcessManagementImpl implements ProcessManagement {
             } else {
                 if (StatusCode.UNKNOWN.equals(processWorkflow.getStatus())) {
                     processWorkflow.setStatus(StatusCode.UNKNOWN);
-                    processWorkflow.setProcessCompletedDate(LocalDateTime.now());
+                    processWorkflow.setProcessCompletedDate(LocalDateUtil.now());
                     processWorkflow.setState(ProcessState.COMPLETED);
                     try {
                         workspaceProcessDataManagement

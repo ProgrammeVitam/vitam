@@ -262,7 +262,7 @@ public class TraceabilityEvent {
     }
 
     /**
-     * @return true if max entries has been reached (unit & object group lifecycle traceability operation are limited in size)
+     * @return true if max entries has been reached (unit &amp; object group lifecycle traceability operation are limited in size)
      */
     public boolean getMaxEntriesReached() {
         return maxEntriesReached;

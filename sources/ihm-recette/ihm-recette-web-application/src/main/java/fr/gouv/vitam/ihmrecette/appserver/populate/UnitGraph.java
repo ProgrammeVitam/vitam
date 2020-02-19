@@ -355,7 +355,7 @@ public class UnitGraph {
     }
 
     private String getDate() {
-        return LocalDateTime.now(ZoneOffset.UTC).format(DateTimeFormatter.ISO_DATE_TIME);
+        return LocalDateUtil.now().format(DateTimeFormatter.ISO_DATE_TIME);
     }
 
 }

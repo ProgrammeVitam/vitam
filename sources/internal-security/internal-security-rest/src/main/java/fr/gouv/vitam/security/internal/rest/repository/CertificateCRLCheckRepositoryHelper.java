@@ -64,9 +64,6 @@ public class CertificateCRLCheckRepositoryHelper {
         return certificateCollection.find(crlCAFilter);
     }
 
-    /**
-     * {@inheritDoc}
-     */
     public void updateCertificateState(List<String> certificatesToUpdate, CertificateStatus certificateStatus) {
 
         Bson fieldsToUpdateBson = set(CertificateBaseModel.STATUS_TAG, certificateStatus.name());

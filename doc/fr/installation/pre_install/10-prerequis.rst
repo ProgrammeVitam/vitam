@@ -18,7 +18,7 @@ Le déploiement est orchestré depuis un poste ou serveur d'administration ; les
 
   + **ansible** (version **2.9** minimale et conseillée ; se référer à la `documentation ansible <http://docs.ansible.com/ansible/latest/intro_installation.html>`_ pour la procédure d'installation)
   + **openssh-client** (client SSH utilisé par ansible)
-  + **java-1.8.0-openjdk** et **openssl** (du fait de la génération de certificats / *stores*, l'utilitaire ``keytool`` est nécessaire)
+  + **JRE OpenJDK 11** et **openssl** (du fait de la génération de certificats / *stores*, l'utilitaire ``keytool`` est nécessaire)
 
 * un accès ssh vers un utilisateur d'administration avec élévation de privilèges vers les droits ``root``, ``vitam``, ``vitamdb`` (les comptes ``vitam`` et ``vitamdb`` sont créés durant le déploiement) sur les serveurs cibles.  
 * Le compte utilisé sur le serveur d'administration doit avoir confiance dans les serveurs sur lesquels la solution logicielle :term:`VITAM` doit être installée (fichier ``~/.ssh/known_hosts`` correctement renseigné)
@@ -49,7 +49,7 @@ Systèmes d'exploitation
 Seules deux distributions Linux suivantes sont supportées à ce jour :
 
 * CentOS 7
-* Debian 9 (stretch)
+* Debian 10 (buster)
 
 SELinux doit être configuré en mode ``permissive`` ou ``disabled``. Toutefois depuis la release R13, la solution logicielle :term:`VITAM` prend désormais en charge l'activation de SELinux sur le périmètre du composant worker et des processus associés aux *griffins* (greffons de préservation). 
 
@@ -75,16 +75,20 @@ Déploiement sur environnement CentOS
 Déploiement sur environnement Debian
 ------------------------------------
 
-* Disposer d'une plate-forme Linux Debian "stretch" installée selon la répartition des services souhaitée. En particulier, ces serveurs doivent avoir :
+* Disposer d'une plate-forme Linux Debian "buster" installée selon la répartition des services souhaitée. En particulier, ces serveurs doivent avoir :
 
   + une configuration de temps synchronisée (ex: en récupérant le temps à un serveur centralisé)
   + Des autorisations de flux conformément aux besoins décrits dans le :term:`DAT`
   + une configuration des serveurs de noms correcte (cette configuration sera surchargée lors de l'installation)
-  + un accès à un dépôt (ou son miroir) Debian (base et extras) et stretch-backports
+  + un accès à un dépôt (ou son miroir) Debian (base et extras) et buster-backports
   + un accès internet, car le dépôt docker sera ajouté
 
 * Disposer des binaires VITAM : paquets deb de VITAM (vitam-product) ainsi que les paquets d'éditeurs tiers livrés avec VITAM (vitam-external)
 * Disposer, si besoin, des binaires pour l'installation des *griffins*
+
+.. warning:: Pour l'installation des *packages* mongoDB, il est nécessaire de mettre à disposition le *package* ``libcurl3`` présent en *stretch* uniquement (le *package* ``libcurl4`` sera désinstallé).
+
+.. warning:: Le *package* ``curl`` est installé depuis les dépôts ``stretch``.
 
 Présence d'un agent antiviral
 -----------------------------

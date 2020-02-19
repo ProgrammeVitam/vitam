@@ -375,7 +375,6 @@ public class ElasticsearchAccessMetadata extends ElasticsearchAccess {
      * @param tenantId
      * @param id
      * @param doc full document to insert
-     * @return True if updated
      */
     public void insertFullDocument(MetadataCollections collection, Integer tenantId, String id, MetadataDocument doc)
         throws MetaDataExecutionException {

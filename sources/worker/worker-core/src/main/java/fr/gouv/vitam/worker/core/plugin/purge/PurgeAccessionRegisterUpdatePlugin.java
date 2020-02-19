@@ -122,7 +122,7 @@ public class PurgeAccessionRegisterUpdatePlugin extends ActionHandler {
                 .setTotalGots(-1 * purgeAccessionRegisterModel.getTotalObjectGroups())
                 .setTotalObjects(-1 * purgeAccessionRegisterModel.getTotalObjects())
                 .setObjectSize(-1 * purgeAccessionRegisterModel.getTotalSize())
-                .setCreationdate(LocalDateUtil.getFormattedDateForMongo(LocalDateTime.now()));
+                .setCreationdate(LocalDateUtil.getFormattedDateForMongo(LocalDateUtil.now()));
 
             RegisterValueDetailModel totalUnits =
                 new RegisterValueDetailModel().setIngested(0)

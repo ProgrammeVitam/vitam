@@ -166,7 +166,7 @@ public class AuditFinalizePlugin extends ActionHandler {
 
     private ReportSummary computeReportSummary(JsonNode logbookOperation) {
         String startDate = logbookOperation.get("evDateTime").asText();
-        String endDate = LocalDateUtil.getString(LocalDateTime.now());
+        String endDate = LocalDateUtil.getString(LocalDateUtil.now());
         ReportType reportType = ReportType.AUDIT;
         ReportResults vitamResults = new ReportResults();
         ObjectNode extendedInfo = JsonHandler.createObjectNode();

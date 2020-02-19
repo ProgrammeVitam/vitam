@@ -27,7 +27,7 @@
 package fr.gouv.vitam.common.format.identification.siegfried;
 
 /**
- * Siegfried query parameters (version >= 1.7.10)
+ * Siegfried query parameters (version &gt;= 1.7.10)
  */
 public enum SiegfriedQueryParams {
     BASE64("Use URL-safe base64 encoding for the file or folder name", "base64", "true"),

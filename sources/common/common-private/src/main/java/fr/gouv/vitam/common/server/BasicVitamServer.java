@@ -77,7 +77,7 @@ public class BasicVitamServer implements VitamServer {
      * A Vitam server can only be instantiated with a given port to listen to
      *
      * @param port the port to listen to (must be a valid logical port number)
-     * @throws IllegalArgumentException if port <= 0
+     * @throws IllegalArgumentException if port &lt;= 0
      */
     protected BasicVitamServer(int port) {
         this(port, true);

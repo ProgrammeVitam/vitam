@@ -106,8 +106,8 @@ public class GraphComputeServiceImplTest {
         given(findIterableGot.iterator()).willReturn(mongoCursorGot);
 
         Answer<Object> objectAnswer = o -> new Document("_id", GUIDFactory.newGUID().getId())
-            .append("_og", LocalDateUtil.getFormattedDateForMongo(LocalDateTime.now()))
-            .append("_glpd", LocalDateUtil.getFormattedDateForMongo(LocalDateTime.now()));
+            .append("_og", LocalDateUtil.getFormattedDateForMongo(LocalDateUtil.now()))
+            .append("_glpd", LocalDateUtil.getFormattedDateForMongo(LocalDateUtil.now()));
         when(mongoCursorUnit.next()).thenAnswer(
             objectAnswer
         );

@@ -72,8 +72,12 @@
     <!-- ++++++++++++++++++++++++++++++++++++++++++++++++++++++++ -->
     <properties>
         <!-- Global Properties -->
-        <java.version>1.8</java.version>
+        <java.version>11</java.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+
+        <!-- JDK version -->
+        <jdk.version.rpm>java-11-openjdk-headless</jdk.version.rpm>
+        <jdk.version.debian>openjdk-11-jre-headless</jdk.version.debian>
 
         <!-- Build environment Properties -->
         <project.scm.id>vitam-gitlab</project.scm.id>
@@ -181,7 +185,6 @@
         <yandex.version>1.21</yandex.version>
         <staxon.version>1.3</staxon.version>
         <org.json.version>20180813</org.json.version>
-        <jhades.version>1.0.4</jhades.version>
         <javax.servlet.version>4.0.1</javax.servlet.version>
         <json-sanitize.version>1.2.0</json-sanitize.version>
         <commons-collections4.version>4.2</commons-collections4.version>
@@ -537,7 +540,9 @@
                     <artifactId>maven-javadoc-plugin</artifactId>
                     <version>${maven.javadoc.version}</version>
                     <configuration>
-                        <source>${java.version}</source>
+                        <!-- hack for javadoc generation in java 8 format to avoid missing elasticsearch dependency from class path in javadoc:aggregate-jar -->
+                        <source>8</source>
+                        <detectJavaApiLink>false</detectJavaApiLink>
                         <!-- <additionalparam>-Xdoclint:none</additionalparam> -->
                         <doclint>none</doclint>
                         <doctitle>Vitam API Reference (${project.version})</doctitle>
@@ -876,7 +881,7 @@
                         <targetOS>linux</targetOS>
                         <requires>
                             <require>systemd</require>
-                            <require>java-${java.version}.0</require>
+                            <require>${jdk.version.rpm}</require>
                             <require>vitam-user-${unix.user}</require>
                         </requires>
                         <defaultDirmode>750</defaultDirmode>
@@ -1567,12 +1572,6 @@
                         <artifactId>de.flapdoodle.embed.mongo</artifactId>
                     </exclusion>
                 </exclusions>
-            </dependency>
-            <dependency>
-                <groupId>org.jhades</groupId>
-                <artifactId>jhades</artifactId>
-                <version>${jhades.version}</version>
-                <scope>test</scope>
             </dependency>
             <dependency>
                 <groupId>org.jclouds.driver</groupId>

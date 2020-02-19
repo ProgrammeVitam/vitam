@@ -9,14 +9,24 @@
       group: root
       mode: 0640
 
+  - name: Make sure curl is installed to download GPG key (RedHat)
+    package:
+      name: curl
+      state: latest
+    register: result
+    retries: "{{ packages_install_retries_number }}"
+    until: result is succeeded
+    delay: "{{ packages_install_retries_delay }}"
+    when: ansible_os_family == "RedHat"
+
   when: ansible_os_family == "RedHat"
 
 - block:
 
-  - name: Make sure curl is installed to download GPG key
-    package:
+  - name: install curl
+    apt:
       name: curl
-      state: latest
+      state: present
     register: result
     retries: "{{ packages_install_retries_number }}"
     until: result is succeeded

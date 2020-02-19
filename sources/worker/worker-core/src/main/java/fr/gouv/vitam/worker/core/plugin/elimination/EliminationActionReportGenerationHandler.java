@@ -123,7 +123,7 @@ public class EliminationActionReportGenerationHandler extends ActionHandler {
             new OperationSummary(tenant, evId, evType, outcome, outDetail, outMsg, rSI, evDetData);
 
         String startDate = null; // FIXME To be Fill in a post commit
-        String endDate = LocalDateUtil.getString(LocalDateTime.now());
+        String endDate = LocalDateUtil.getString(LocalDateUtil.now());
         ReportType reportType = ReportType.ELIMINATION_ACTION;
         ReportResults vitamResults = new ReportResults(); // FIXME To be Fill in a post commit
         JsonNode extendedInfo = JsonHandler.createObjectNode(); // FIXME To be Fill in a post commit

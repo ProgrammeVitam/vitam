@@ -84,7 +84,7 @@ public class JsonLineGenericIterator<T> implements CloseableIterator<T> {
     }
 
     public Spliterator<T> spliterator() {
-        return Spliterators.spliterator(this, 0L, ORDERED);
+        return Spliterators.spliteratorUnknownSize(this, ORDERED);
     }
 
     public Stream<T> stream() {

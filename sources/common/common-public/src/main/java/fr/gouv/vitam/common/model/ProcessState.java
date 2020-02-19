@@ -31,9 +31,9 @@ import javax.ws.rs.core.Response;
 public enum ProcessState {
 
     /**
-     * Represent the current pause state Accept all Pause => do nothing Resume => change the state to running then run
-     * all steps at the end change step to completed Next => Change the state to running then run the next step only. If
-     * the last step then change the state to completed else change the state to pause Cancel => Change the state to
+     * Represent the current pause state Accept all Pause =&gt; do nothing Resume =&gt; change the state to running then run
+     * all steps at the end change step to completed Next =&gt; Change the state to running then run the next step only. If
+     * the last step then change the state to completed else change the state to pause Cancel =&gt; Change the state to
      * completed
      */
     PAUSE {
@@ -53,8 +53,8 @@ public enum ProcessState {
         }
     },
     /**
-     * Represent the current running state Accept Pause and cancel Pause => continue execution of current step (only for
-     * step by step) then change state to : - pause if not last step - completed Cancel => continue execution of current
+     * Represent the current running state Accept Pause and cancel Pause =&gt; continue execution of current step (only for
+     * step by step) then change state to : - pause if not last step - completed Cancel =&gt; continue execution of current
      * process (step or all steps) then change state to complete Throws StateNotAllowedException for other
      */
     RUNNING {

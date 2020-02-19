@@ -56,7 +56,6 @@ public class AdminCRLResource {
 
     /**
      * @param crlCertificate CRL certificate used for validation
-     * @return
      * @throws InvalidParseOperationException
      * @throws CertificateException
      */

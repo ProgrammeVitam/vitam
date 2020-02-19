@@ -271,7 +271,6 @@ public abstract class LogbookLifeCycleTraceabilityHelper implements LogbookTrace
      * @param jsonLineIterator
      * @param traceabilityFile
      * @param algo
-     * @return
      * @throws TraceabilityException
      */
     protected void extractAppendToFinalFile(CloseableIterator<JsonLineModel> jsonLineIterator,

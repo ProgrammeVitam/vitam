@@ -212,7 +212,7 @@ public class MassUpdateFinalize extends ActionHandler {
             .findFirst();
 
         String startDate = logbook.getEvDateTime();
-        String endDate = LocalDateUtil.getString(LocalDateTime.now());
+        String endDate = LocalDateUtil.getString(LocalDateUtil.now());
 
         if (!logbookEvent.isPresent()) {
             return new ReportSummary(startDate, endDate, UPDATE_UNIT, null, null);

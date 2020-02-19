@@ -35,6 +35,7 @@ import com.mongodb.client.MongoCursor;
 import fr.gouv.vitam.batch.report.model.PurgeObjectGroupModel;
 import fr.gouv.vitam.batch.report.model.ReportBody;
 import fr.gouv.vitam.batch.report.model.entry.PurgeObjectGroupReportEntry;
+import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.database.server.mongodb.MongoDbAccess;
 import fr.gouv.vitam.common.database.server.mongodb.SimpleMongoDBAccess;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
@@ -204,7 +205,7 @@ public class PurgeObjectGroupRepositoryTest {
                     PurgeObjectGroupModel = new PurgeObjectGroupModel();
                 PurgeObjectGroupModel.setProcessId(reportBody.getProcessId());
                 PurgeObjectGroupModel.setTenant(0);
-                LocalDateTime localDateTime = LocalDateTime.now();
+                LocalDateTime localDateTime = LocalDateUtil.now();
                 PurgeObjectGroupModel.setCreationDateTime(localDateTime.toString());
                 PurgeObjectGroupModel.setMetadata(md);
                 return PurgeObjectGroupModel;

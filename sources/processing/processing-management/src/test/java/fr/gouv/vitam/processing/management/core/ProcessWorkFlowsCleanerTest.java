@@ -35,6 +35,7 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
 
+import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
@@ -83,13 +84,13 @@ public class ProcessWorkFlowsCleanerTest {
         //WHEN
 
         map.get(0).get("id3_tenant_0").setState(ProcessState.COMPLETED);
-        map.get(0).get("id3_tenant_0").setProcessCompletedDate(LocalDateTime.now().minusHours(2));
+        map.get(0).get("id3_tenant_0").setProcessCompletedDate(LocalDateUtil.now().minusHours(2));
 
         map.get(1).get("id3_tenant_1").setState(ProcessState.COMPLETED);
-        map.get(1).get("id3_tenant_1").setProcessCompletedDate(LocalDateTime.now().minusHours(2));
+        map.get(1).get("id3_tenant_1").setProcessCompletedDate(LocalDateUtil.now().minusHours(2));
 
         map.get(0).get("id2_tenant_0").setState(ProcessState.COMPLETED);
-        map.get(0).get("id2_tenant_0").setProcessCompletedDate(LocalDateTime.now().minusHours(1).plusMinutes(50));
+        map.get(0).get("id2_tenant_0").setProcessCompletedDate(LocalDateUtil.now().minusHours(1).plusMinutes(50));
 
 
         when(serverConfiguration.getProcessingCleanerPeriod()).thenReturn(2);

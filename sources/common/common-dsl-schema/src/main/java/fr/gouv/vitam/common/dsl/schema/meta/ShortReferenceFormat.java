@@ -30,7 +30,7 @@ package fr.gouv.vitam.common.dsl.schema.meta;
 /**
  * Shorthand for ReferenceFormat, except that it is defined by a simple string.
  *
- * "TYPE" => { format: "ref", reference: "TYPE", optional: false }
+ * "TYPE" =&gt; { format: "ref", reference: "TYPE", optional: false }
  */
 public class ShortReferenceFormat extends ReferenceFormat {
 

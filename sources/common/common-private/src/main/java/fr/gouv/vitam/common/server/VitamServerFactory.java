@@ -60,7 +60,7 @@ public class VitamServerFactory {
      * Set a new Default Port
      *
      * @param port
-     * @throws IllegalArgumentException if port <= 0
+     * @throws IllegalArgumentException if port &lt;= 0
      */
     public static void setDefaultPort(int port) {
         ParametersChecker.checkValue("Port", port, 1);
@@ -80,7 +80,7 @@ public class VitamServerFactory {
      *
      * @param port
      * @return a VitamServer with the specified port
-     * @throws IllegalArgumentException if port <= 0
+     * @throws IllegalArgumentException if port &lt;= 0
      */
     public static VitamServer newVitamServer(int port) {
         ParametersChecker.checkValue("Port", port, 1);

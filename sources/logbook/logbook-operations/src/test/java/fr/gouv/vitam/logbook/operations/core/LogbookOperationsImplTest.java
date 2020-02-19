@@ -207,7 +207,7 @@ public class LogbookOperationsImplTest {
     public void selectOperationsByLastPersistenceDateIntervalTest() throws Exception {
         reset(mongoDbAccess);
         doReturn(createFakeMongoCursor()).when(mongoDbAccess).getLogbookOperations(any(), anyBoolean());
-        MongoCursor cursor = logbookOperationsImpl.selectOperationsByLastPersistenceDateInterval(LocalDateTime.now(),
+        MongoCursor cursor = logbookOperationsImpl.selectOperationsByLastPersistenceDateInterval(LocalDateUtil.now(),
             LocalDateUtil.now());
         assertNotNull(cursor);
         assertTrue(cursor.hasNext());
@@ -229,7 +229,7 @@ public class LogbookOperationsImplTest {
     public void findFirstTraceabilityOperationOKAfterDateTest() throws Exception {
         reset(mongoDbAccess);
         doReturn(createFakeMongoCursor()).when(mongoDbAccess).getLogbookOperations(any(), anyBoolean());
-        LogbookOperation lo = logbookOperationsImpl.findFirstTraceabilityOperationOKAfterDate(LocalDateTime.now());
+        LogbookOperation lo = logbookOperationsImpl.findFirstTraceabilityOperationOKAfterDate(LocalDateUtil.now());
         assertNotNull(lo);
     }
 

@@ -45,17 +45,21 @@ elasticsearch:
             rolling:
                 max_log_file_size: "100MB"
                 max_total_log_size: "5GB"
+                max_files: "50"
             deprecation_rolling:
                 max_log_file_size: "100MB"
                 max_total_log_size: "1GB"
+                max_files: "10"
                 log_level: "warn"
             index_search_slowlog_rolling:
                 max_log_file_size: "100MB"
                 max_total_log_size: "1GB"
+                max_files: "10"
                 log_level: "warn"
             index_indexing_slowlog_rolling:
                 max_log_file_size: "100MB"
                 max_total_log_size: "1GB"
+                max_files: "10"
                 log_level: "warn"
     data:
         host: "elasticsearch-data.service.{{ consul_domain }}"
@@ -84,17 +88,21 @@ elasticsearch:
             rolling:
                 max_log_file_size: "100MB"
                 max_total_log_size: "5GB"
+                max_files: "50"
             deprecation_rolling:
                 max_log_file_size: "100MB"
-                max_total_log_size: "1GB"
+                max_total_log_size: "5GB"
+                max_files: "50"
                 log_level: "warn"
             index_search_slowlog_rolling:
                 max_log_file_size: "100MB"
-                max_total_log_size: "1GB"
+                max_total_log_size: "5GB"
+                max_files: "50"
                 log_level: "warn"
             index_indexing_slowlog_rolling:
                 max_log_file_size: "100MB"
-                max_total_log_size: "1GB"
+                max_total_log_size: "5GB"
+                max_files: "50"
                 log_level: "warn"
         # By default, is commented. Should be uncommented if ansible computes badly vCPUs number ;  values are associated vCPUs numbers ; please adapt to your configuration
         # thread_pool:
@@ -223,3 +231,7 @@ ldap_authentification:
     ldap_admin_group: "cn=admin,ou=groups,dc=programmevitam, dc=fr"
     ldap_user_group: "cn=user,ou=groups,dc=programmevitam, dc=fr"
     ldap_guest_group: "cn=guest,ou=groups,dc=programmevitam, dc=fr"
+
+java_prerequisites:
+    debian: "openjdk-11-jre-headless"
+    redhat: "java-11-openjdk-headless"

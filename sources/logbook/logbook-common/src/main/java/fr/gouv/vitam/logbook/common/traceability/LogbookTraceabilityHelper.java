@@ -177,7 +177,7 @@ public interface LogbookTraceabilityHelper {
     void saveEmpty(Integer tenantId) throws TraceabilityException;
 
     /**
-     * @return true if max entries reached (unit & object group lifecycle traceability operation are limited in size)
+     * @return true if max entries reached (unit &amp; object group lifecycle traceability operation are limited in size)
      */
     boolean getMaxEntriesReached();
 

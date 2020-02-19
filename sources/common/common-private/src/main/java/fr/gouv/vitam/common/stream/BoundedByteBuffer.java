@@ -36,7 +36,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
  * Buffer with buffering allowing One Writer and Multiple Readers.
  *
  * - Storage is done in a fixed size circular buffer (https://en.wikipedia.org/wiki/Circular_buffer)
- * - Reader & writers are synchronized using multiple Producer-Consumer locks : (https://en.wikipedia.org/wiki/Producer%E2%80%93consumer_problem)
+ * - Reader &amp; writers are synchronized using multiple Producer-Consumer locks : (https://en.wikipedia.org/wiki/Producer%E2%80%93consumer_problem)
  * - Writer can write till circular buffer is full. Then it blocks until free space is available (ALL readers have read some data)
  * - Reader cannot read till the Writer writes data to the circular buffer.
  */
@@ -169,7 +169,7 @@ public class BoundedByteBuffer implements AutoCloseable {
         }
 
         /**
-         * Closes the writer & all associated resources.
+         * Closes the writer &amp; all associated resources.
          * If close() is invoked without writeEOF() the reader side will get an IOException (broken stream).
          */
         public void close() {

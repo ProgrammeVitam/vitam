@@ -19,6 +19,7 @@
 package fr.gouv.vitam.processing.management.core;
 
 import com.google.common.annotations.VisibleForTesting;
+import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.StateNotAllowedException;
@@ -58,7 +59,6 @@ import fr.gouv.vitam.processing.engine.core.operation.OperationContextMonitor;
 import fr.gouv.vitam.workspace.client.WorkspaceClient;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
 
-import java.time.LocalDateTime;
 import java.util.Iterator;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
@@ -728,7 +728,7 @@ public class StateMachine implements IEventsState, IEventsProcessEngine {
         processWorkflow.setState(state);
 
         if (ProcessState.COMPLETED.equals(state)) {
-            processWorkflow.setProcessCompletedDate(LocalDateTime.now());
+            processWorkflow.setProcessCompletedDate(LocalDateUtil.now());
         }
 
         try {
@@ -790,7 +790,7 @@ public class StateMachine implements IEventsState, IEventsProcessEngine {
             processWorkflow.setStatus(status);
             state = ProcessState.COMPLETED;
             targetState = ProcessState.COMPLETED;
-            processWorkflow.setProcessCompletedDate(LocalDateTime.now());
+            processWorkflow.setProcessCompletedDate(LocalDateUtil.now());
             processWorkflow.setState(state);
             if (null != logbookClient) {
                 logbookClient.close();
