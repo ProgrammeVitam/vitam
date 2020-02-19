@@ -36,6 +36,7 @@ import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOper
 import fr.gouv.vitam.common.database.builder.request.single.Select;
 import fr.gouv.vitam.common.database.builder.request.single.Update;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
+import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.administration.ManagementContractModel;
@@ -172,9 +173,7 @@ public class AdminManagementExternalResourceManagementContractTest {
         Response response = externalResource.findManagementContractsByID("id");
         // Then
         @SuppressWarnings("unchecked")
-        RequestResponse<ManagementContractModel> entity = (RequestResponse<ManagementContractModel>) response
-                .getEntity();
-        assertThat(entity.isOk()).isFalse();
+        RequestResponse<ManagementContractModel> entity = JsonHandler.getFromString((String) response.getEntity(), RequestResponseOK.class);
         assertThat(entity.getHttpCode()).isEqualTo(404);
     }
 

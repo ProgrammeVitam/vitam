@@ -357,7 +357,26 @@ public enum VitamCode {
         Status.BAD_REQUEST,
         "Admin external client error in updateIngestContract method."),
 
-    ACCESS_EXTERNAL_UNIT_NOT_FOUND(ServiceName.EXTERNAL_ACCESS, DomainName.IO, "29",
+    ADMIN_EXTERNAL_UNAUTHORIZED(ServiceName.EXTERNAL_ACCESS, DomainName.IO, "29",
+        Status.UNAUTHORIZED,
+        "Admin external client error unauthorized method by access contract."),
+
+    ADMIN_EXTERNAL_CONFLICT(ServiceName.EXTERNAL_ACCESS, DomainName.IO, "51",
+        Status.CONFLICT,
+        "Admin external client error already existing object"),
+
+    ADMIN_EXTERNAL_FORBIDDEN(ServiceName.EXTERNAL_ACCESS, DomainName.IO, "52",
+        Status.FORBIDDEN,
+        "Admin external client error forbidden action"),
+    ADMIN_EXTERNAL_UPDATE_ONTOLOGY_ERROR(ServiceName.EXTERNAL_ACCESS, DomainName.IO, "37",
+        Status.BAD_REQUEST,
+        "Admin external client error in updateOntology method."),
+
+    ADMIN_EXTERNAL_UPDATE_MANAGEMENT_CONTRACT_ERROR(ServiceName.EXTERNAL_ACCESS, DomainName.IO, "39",
+        Status.BAD_REQUEST,
+        "Admin external client error in updateManagementContract method."),
+
+    ACCESS_EXTERNAL_UNIT_NOT_FOUND(ServiceName.EXTERNAL_ACCESS, DomainName.IO, "50",
         Status.NOT_FOUND,
         "Access external client error unit not found."),
 
@@ -382,17 +401,10 @@ public enum VitamCode {
     ACCESS_EXTERNAL_ONTOLOGY_NOT_FOUND(ServiceName.EXTERNAL_ACCESS, DomainName.IO, "36",
         Status.BAD_REQUEST, "Access external client error. Ontology not found "),
 
-    ADMIN_EXTERNAL_UPDATE_ONTOLOGY_ERROR(ServiceName.EXTERNAL_ACCESS, DomainName.IO, "37",
-        Status.BAD_REQUEST,
-        "Admin external client error in updateOntology method."),
 
     ACCESS_EXTERNAL_SELECT_UNITS_WITH_INHERITED_RULES_ERROR(ServiceName.EXTERNAL_ACCESS, DomainName.IO, "38",
         Status.BAD_REQUEST,
         "Access external client error in selectUnitsWithInheritedRules method."),
-
-    ADMIN_EXTERNAL_UPDATE_MANAGEMENT_CONTRACT_ERROR(ServiceName.EXTERNAL_ACCESS, DomainName.IO, "39",
-        Status.BAD_REQUEST,
-        "Admin external client error in updateManagementContract method."),
 
     ACCESS_INTERNAL_UPDATE_UNIT_CHECK_RULES(ServiceName.INTERNAL_ACCESS, DomainName.BUSINESS, "01",
         Status.BAD_REQUEST,
