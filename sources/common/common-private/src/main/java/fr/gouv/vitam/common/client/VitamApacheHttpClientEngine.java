@@ -75,11 +75,12 @@ import org.apache.http.protocol.HTTP;
 import org.apache.http.protocol.HttpContext;
 import org.apache.http.protocol.HttpCoreContext;
 import org.apache.http.util.Args;
-import org.jboss.resteasy.client.core.SelfExpandingBufferredInputStream;
+import org.jboss.resteasy.client.jaxrs.engines.SelfExpandingBufferredInputStream;
 import org.jboss.resteasy.client.jaxrs.ClientHttpEngine;
 import org.jboss.resteasy.client.jaxrs.internal.ClientInvocation;
 import org.jboss.resteasy.client.jaxrs.internal.ClientRequestHeaders;
 import org.jboss.resteasy.client.jaxrs.internal.ClientResponse;
+import org.jboss.resteasy.tracing.RESTEasyTracingLogger;
 import org.jboss.resteasy.util.CaseInsensitiveMap;
 import org.jboss.resteasy.util.DelegatingOutputStream;
 
@@ -87,6 +88,7 @@ import javax.net.ssl.HostnameVerifier;
 import javax.net.ssl.SSLContext;
 import javax.ws.rs.ProcessingException;
 import javax.ws.rs.core.Response;
+import javax.ws.rs.client.Invocation;
 import java.io.BufferedInputStream;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -283,9 +285,9 @@ public class VitamApacheHttpClientEngine implements ClientHttpEngine {
     }
 
     @Override
-    public ClientResponse invoke(ClientInvocation clientInvocation) {
-        final HttpUriRequest request = getUriHttpRequest(clientInvocation);
-        writeOutBoundHeaders(clientInvocation.getHeaders(), request);
+    public ClientResponse invoke(Invocation clientInvocation) {
+        final HttpUriRequest request = getUriHttpRequest((ClientInvocation) clientInvocation);
+        writeOutBoundHeaders(((ClientInvocation) clientInvocation).getHeaders(), request);
 
         try {
             final CloseableHttpResponse response;
@@ -322,7 +324,7 @@ public class VitamApacheHttpClientEngine implements ClientHttpEngine {
 
             final Response.StatusType status = Response.Status.fromStatusCode(response.getStatusLine().getStatusCode());
 
-            final ClientResponse responseContext = new ClientResponse(clientInvocation.getClientConfiguration()) {
+            final ClientResponse responseContext = new ClientResponse(((ClientInvocation) clientInvocation).getClientConfiguration(), RESTEasyTracingLogger.empty()) {
                 InputStream stream = getNativeInputStream(response);
 
                 // Bad Way but no other way to do it !
@@ -367,10 +369,10 @@ public class VitamApacheHttpClientEngine implements ClientHttpEngine {
                     response.close();
                 }
             };
-            responseContext.setProperties(clientInvocation.getMutableProperties());
+            responseContext.setProperties(((ClientInvocation) clientInvocation).getMutableProperties());
             responseContext.setStatus(status.getStatusCode());
             responseContext.setHeaders(extractHeaders(response));
-            responseContext.setClientConfiguration(clientInvocation.getClientConfiguration());
+            responseContext.setClientConfiguration(((ClientInvocation) clientInvocation).getClientConfiguration());
             return responseContext;
         } catch (final Exception e) {
             throw new ProcessingException(e);
