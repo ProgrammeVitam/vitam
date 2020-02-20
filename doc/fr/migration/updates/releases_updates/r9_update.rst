@@ -3,8 +3,8 @@ Notes et procédures spécifiques R9
 
 .. caution:: Rappel : la montée de version vers la *release* R9 s'effectue depuis la *release* R7 (V1, *deprecated*) ou la *release* R8 (V1, *deprecated*) et doit être réalisée en s'appuyant sur les dernières versions *bugfixes* publiées. 
 
-Prérequis à la montée de version
-================================
+Étapes préalables à la montée de version
+========================================
 
 Gestion du référentiel des formats 
 -----------------------------------

@@ -3,8 +3,8 @@ Notes et procédures spécifiques R12
 
 .. caution:: Rappel : la montée de version vers la *release* R12 s’effectue depuis la *release* R9 (LTS V2), la *release* R10 (V2, *deprecated*) ou la *release* R11 (V2, *deprecated*) et doit être réalisée en s’appuyant sur les dernières versions *bugfixes* publiées. 
 
-Prérequis à la montée de version
-================================
+Étapes préalables à la montée de version
+========================================
 
 Gestion du référentiel ontologique 
 -----------------------------------
@@ -27,18 +27,45 @@ Mise à jour de l'inventaire
 
 Les versions récentes de ansible préconisent de ne plus utiliser le caractère "-" dans les noms de groupes ansible.
 
-Pour effectuer cette modification, un script de migration est mis à disposition pour mettre en conformité votre "ancien" inventaire dans une forme compatible avec les outils de déploiement de la *release* 12.
+Pour effectuer cette modification, un script de migration est mis à disposition pour mettre en conformité votre "ancien" inventaire dans une forme compatible avec les outils de déploiement de la *release* R12.
 
 La commande à lancer est ::
 
    cd deployment
    ./upgrade_inventory.sh ${fichier_d_inventaire}
 
+Arrêt des *timers* systemd
+--------------------------
+
+Les commandes suivantes sont à lancer depuis le répertoire ``deployment`` sur les différents sites hébergeant la solution logicielle :term:`VITAM` :
+
+``ansible-playbook -i environments/<inventaire> ansible-vitam-exploitation/stop_vitam_timers.yml --vault-password-file vault_pass.txt``
+
+ou, si ``vault_pass.txt`` n'a pas été renseigné :
+
+``ansible-playbook -i environments/<inventaire> ansible-vitam-exploitation/stop_vitam_timers.yml --ask-vault-pass``
+
+A l'issue de l'exécution du `playbook`, les *timers* systemd ont été arrêtés, afin de ne pas perturber la migration.
+
+Il est également recommandé de ne lancer la procédure de migration qu'après s'être assuré que plus aucun `workflow` n'est ni en cours, ni en statut **FATAL**. 
+
+Arrêt des composants *externals*
+---------------------------------
+
+Les commandes suivantes sont à lancer depuis le répertoire ``deployment`` sur les différents sites hébergeant la solution logicielle :term:`VITAM` :
+
+``ansible-playbook -i environments/<inventaire> ansible-vitam-exploitation/stop_external.yml --vault-password-file vault_pass.txt``
+
+ou, si ``vault_pass.txt`` n'a pas été renseigné :
+
+``ansible-playbook -i environments/<inventaire> ansible-vitam-exploitation/stop_external.yml --ask-vault-pass``
+
+A l'issue de l'exécution du `playbook`, les composants *externals* ont été arrêtés, afin de ne pas perturber la migration.
 
 Montée de version MongoDB 4.0 vers 4.2
 --------------------------------------
 
-La montée de version R9 (ou R10 ou R11) vers R12 comprend une montée de version de la bases de données MongoDB de la version 4.0 à la version 4.2. 
+La montée de version vers la *release* R12 comprend une montée de version de la bases de données MongoDB de la version 4.0 à la version 4.2. 
 
 Les commandes suivantes sont à lancer depuis le répertoire ``deployment`` sur les différents sites hébergeant la solution logicielle :term:`VITAM` :
 
@@ -61,10 +88,40 @@ La montée de version vers la *release* R12 est réalisée par réinstallation d
 Etapes de migration
 ===================
 
-Dans le cadre d'une montée de version R11 vers R12, il est nécessaire d'appliquer un `playbook` de migration de données à l'issue de réinstallation de la solution logicielle :term:`VITAM`.
+Migration des données de certificats
+------------------------------------
+
+La *release* R11 apporte une modification quant à la déclaration des certificats. En effet, un bug empêchait l'intégration dans la solution :term:`VITAM` de certificats possédant un serial number long. 
+
+La commande suivante est à exécuter depuis le répertoire ``deployment`` sur les différents sites hébergeant la solution logicielle :term:`VITAM` :
+
+``ansible-playbook -i environments/<inventaire> ansible-vitam-exploitation/R10_upgrade_serial_number.yml --vault-password-file vault_pass.txt``
+
+ou, si ``vault_pass.txt`` n'a pas été renseigné :
+
+``ansible-playbook -i environments/<inventaire> ansible-vitam-exploitation/R10_upgrade_serial_number.yml --ask-vault-pass``
+
+Migration des contrats d'entrée
+-------------------------------
+
+La montée de version vers la *release* R11 requiert une migration de données (contrats d'entrée) suite à une modification sur les droits relatifs aux rattachements. Cette migration s'effectue à l'aide du playbook :
+
+
+``ansible-playbook -i environments/<inventaire> ansible-vitam-exploitation/migration_r9_r10_ingestcontracts.yml --vault-password-file vault_pass.txt``
+
+ou, si ``vault_pass.txt`` n'a pas été renseigné :
+
+``ansible-playbook -i environments/<inventaire> ansible-vitam-exploitation/migration_r9_r10_ingestcontracts.yml --ask-vault-pass``
+
+Le template ``upgrade_contracts.js`` contient : 
+
+.. literalinclude::  ../../../../../deployment/ansible-vitam-exploitation/roles/upgrade_R10_contracts/templates/upgrade_contracts.js.j2
+   :language: javascript
 
 Nettoyage des DIPs depuis les offres
 ------------------------------------
+
+Dans le cadre d'une montée de version vers la *release* R12, il est nécessaire d'appliquer un `playbook` de migration de données à l'issue de réinstallation de la solution logicielle :term:`VITAM`.
 
 La migration s'effectue, uniquement sur le site principal, à l'aide de la commande suivante :
 
@@ -76,17 +133,32 @@ ou, si ``vault_pass.txt`` n'a pas été renseigné :
 
 .. warning:: Selon la volumétrie des données précédement chargées, le `playbook` peut durer quelques minutes.
 
-Procédure de réindexation de la collection Unit
------------------------------------------------
+Réindexation ES Data
+--------------------
 
-Sous ``deployment``, exécuter la commande suivante :
+La montée de version vers la *release* R11 requiert une réindexation totale d'ElasticSearch. Cette réindexation s'effectue à l'aide du playbook :
 
-``ansible-playbook -i environments/<inventaire> ansible-vitam-exploitation/reindex_es_data.yml --vault-password-file vault_pass.txt --tags unit``
+``ansible-playbook -i environments/<inventaire> ansible-vitam-exploitation/reindex_es_data.yml --vault-password-file vault_pass.txt``
 
 ou, si ``vault_pass.txt`` n'a pas été renseigné :
 
-``ansible-playbook -i environments/<inventaire> ansible-vitam-exploitation/reindex_es_data.yml --ask-vault-pass --tags unit``
+``ansible-playbook -i environments/<inventaire> ansible-vitam-exploitation/reindex_es_data.yml  --ask-vault-pass``
 
-Les changement apportés touchent le mapping Elasticsearch de la collection ``Unit``. 
+.. note:: Ce `playbook` ne supprime pas les anciens indexes pour laisser à l'exploitant le soin de vérifier que la procédure de migration s'est correctement déroulée. A l'issue, la suppression des index devenus inutiles devra être réalisée manuellement.
 
-.. note:: Ce `playbook` ne supprime pas les anciens indexes pour laisser à l'exploitant le soin de verifier que la procedure de migration s'est correctement déroulée. A l'issue, la suppression des index devenus inutiles devra être realisée manuellement. 
+Vérification de la bonne migration des données
+----------------------------------------------
+
+A l'issue de la migration, il est fortement conseillé de lancer un "Audit de cohérence" sur les différents tenants. Pour rappel du :term:`DEX`, pour lancer un audit de cohérence, il faut lancer le *playbook* comme suit :
+
+   ansible-playbook -i <inventaire> ansible-playbok-exploitation/audit_coherence.yml --ask-vault-pass -e "access_contract=<contrat multitenant>"
+
+Ou, si un fichier vault-password-file existe ::
+
+    ansible-playbook -i <inventaire> ansible-playbok-exploitation/audit_coherence.yml --vault-password-file vault_pass.txt -e "access_contract=<contrat multitenant>"
+
+.. note:: L'audit est lancé sur tous les *tenants* ; cependant, il est nécessaire de donner le contrat d'accès adapté. Se rapprocher du métier pour cet *id* de contrat. Pour limiter la liste des *tenants*, il faut rajouter un *extra var* à la ligne de commande ansible. Exemple ::
+
+   -e vitam_tenant_ids=[0,1]
+
+   pour limiter aux `tenants` 0 et 1.
