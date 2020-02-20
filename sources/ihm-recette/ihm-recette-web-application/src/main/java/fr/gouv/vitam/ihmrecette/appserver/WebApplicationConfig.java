@@ -26,11 +26,12 @@
  */
 package fr.gouv.vitam.ihmrecette.appserver;
 
-import java.util.List;
-
 import fr.gouv.vitam.common.database.server.elasticsearch.ElasticsearchNode;
+import fr.gouv.vitam.common.server.application.configuration.FunctionalAdminAdmin;
 import fr.gouv.vitam.common.server.application.configuration.MongoDbNode;
 import fr.gouv.vitam.metadata.api.config.MetaDataConfiguration;
+
+import java.util.List;
 
 /**
  * Web Application Configuration class
@@ -52,6 +53,7 @@ public class WebApplicationConfig extends MetaDataConfiguration {
     private String testSystemSipDirectory;
     private String testSystemReportDirectory;
     private int ingestMaxThread;
+    private FunctionalAdminAdmin functionalAdminAdmin;
 
     /**
      * Constructor for tests
@@ -274,5 +276,14 @@ public class WebApplicationConfig extends MetaDataConfiguration {
 
     public void setIngestMaxThread(int ingestMaxThread) {
         this.ingestMaxThread = ingestMaxThread;
+    }
+
+    public FunctionalAdminAdmin getFunctionalAdminAdmin() {
+        return functionalAdminAdmin;
+    }
+
+    public void setFunctionalAdminAdmin(
+        FunctionalAdminAdmin functionalAdminAdmin) {
+        this.functionalAdminAdmin = functionalAdminAdmin;
     }
 }

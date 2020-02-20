@@ -47,3 +47,11 @@ elasticsearchNodes:
 - hostName: {{ hostvars[server]['ip_service'] }}
   tcpPort: {{ elasticsearch.data.port_tcp }}
 {% endfor %}
+
+# Functional Admin Configuration
+functionalAdminAdmin:
+   functionalAdminServerHost: {{ vitam.functional_administration.host }}
+   functionalAdminServerPort: {{ vitam.functional_administration.port_admin }}
+   adminBasicAuth:
+      userName: {{ admin_basic_auth_user }}
+      password: {{ admin_basic_auth_password }}

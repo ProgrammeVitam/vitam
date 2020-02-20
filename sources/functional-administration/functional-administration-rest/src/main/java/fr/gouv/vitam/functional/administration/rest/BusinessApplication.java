@@ -134,7 +134,6 @@ public class BusinessApplication extends Application {
             PreservationResource griffinResource = new PreservationResource(preservationScenarioService, griffinService);
 
             singletons.add(griffinResource);
-
         } catch (IOException | VitamException e) {
             throw new VitamRuntimeException(e);
         }
