@@ -586,7 +586,7 @@ public class WorkspaceResourceTest {
                 .contentType(CommonMediaType.ZIP)
                 .config(RestAssured.config().encoderConfig(
                     EncoderConfig.encoderConfig().appendDefaultContentCharsetToContentTypeIfUndefined(false)))
-                .content(stream).when()
+                .body(stream).when()
                 .put("/containers/" + CONTAINER_NAME + "/folders/" + FOLDER_SIP)
                 .then()
                 .statusCode(Status.CONFLICT.getStatusCode());
