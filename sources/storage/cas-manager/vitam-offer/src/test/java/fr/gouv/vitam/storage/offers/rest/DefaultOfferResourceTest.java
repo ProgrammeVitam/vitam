@@ -256,7 +256,7 @@ public class DefaultOfferResourceTest {
             with().header(GlobalDataRest.X_TENANT_ID, "1")
                 .header(GlobalDataRest.VITAM_CONTENT_LENGTH, "8766")
                 .header(GlobalDataRest.X_DIGEST_ALGORITHM, DigestType.SHA512.getName())
-                .contentType(MediaType.APPLICATION_OCTET_STREAM).content(in).when()
+                .contentType(MediaType.APPLICATION_OCTET_STREAM).body(in).when()
                 .put(OBJECTS_URI + OBJECT_TYPE_URI + OBJECT_ID_URI, OBJECT_CODE, "id1");
         }
 
@@ -276,7 +276,7 @@ public class DefaultOfferResourceTest {
             with().header(GlobalDataRest.X_TENANT_ID, "1")
                 .header(GlobalDataRest.VITAM_CONTENT_LENGTH, "8766")
                 .header(GlobalDataRest.X_DIGEST_ALGORITHM, DigestType.SHA512.getName())
-                .contentType(MediaType.APPLICATION_OCTET_STREAM).content(in).when()
+                .contentType(MediaType.APPLICATION_OCTET_STREAM).body(in).when()
                 .put(OBJECTS_URI + OBJECT_TYPE_URI + OBJECT_ID_URI, OBJECT_CODE, "id1.xml");
         }
 
@@ -468,7 +468,7 @@ public class DefaultOfferResourceTest {
             with().header(GlobalDataRest.X_TENANT_ID, "1")
                 .header(GlobalDataRest.VITAM_CONTENT_LENGTH, "8766")
                 .header(GlobalDataRest.X_DIGEST_ALGORITHM, DigestType.SHA512.getName())
-                .contentType(MediaType.APPLICATION_OCTET_STREAM).content(in).when()
+                .contentType(MediaType.APPLICATION_OCTET_STREAM).body(in).when()
                 .put(OBJECTS_URI + OBJECT_TYPE_URI + OBJECT_ID_URI, OBJECT_CODE, "id1");
         }
 
@@ -535,7 +535,7 @@ public class DefaultOfferResourceTest {
             with().header(GlobalDataRest.X_TENANT_ID, "1")
                 .header(GlobalDataRest.VITAM_CONTENT_LENGTH, "8766")
                 .header(GlobalDataRest.X_DIGEST_ALGORITHM, DigestType.SHA512.getName())
-                .contentType(MediaType.APPLICATION_OCTET_STREAM).content(in).when()
+                .contentType(MediaType.APPLICATION_OCTET_STREAM).body(in).when()
                 .put(OBJECTS_URI + OBJECT_TYPE_URI + OBJECT_ID_URI, OBJECT_CODE, "id1");
         }
 
@@ -555,7 +555,7 @@ public class DefaultOfferResourceTest {
             with().header(GlobalDataRest.X_TENANT_ID, "1")
                 .header(GlobalDataRest.VITAM_CONTENT_LENGTH, "8766")
                 .header(GlobalDataRest.X_DIGEST_ALGORITHM, DigestType.SHA512.getName())
-                .contentType(MediaType.APPLICATION_OCTET_STREAM).content(in).when()
+                .contentType(MediaType.APPLICATION_OCTET_STREAM).body(in).when()
                 .put(OBJECTS_URI + "/" + DataCategory.UNIT.name() + OBJECT_ID_URI, "id1");
         }
 
@@ -592,7 +592,7 @@ public class DefaultOfferResourceTest {
                 given().header(GlobalDataRest.X_TENANT_ID, "1")
                     .header(GlobalDataRest.VITAM_CONTENT_LENGTH, "50")
                     .header(GlobalDataRest.X_DIGEST_ALGORITHM, DigestType.SHA512.getName())
-                    .contentType(MediaType.APPLICATION_OCTET_STREAM).content(fin).when()
+                    .contentType(MediaType.APPLICATION_OCTET_STREAM).body(fin).when()
                     .put(OBJECTS_URI + "/" + DataCategory.OBJECT.name() + OBJECT_ID_URI, "id" + i);
             }
 
@@ -610,7 +610,7 @@ public class DefaultOfferResourceTest {
     public void getOfferLogTestBadRequest() {
         final OfferLogRequest getOfferLog = new OfferLogRequest();
 
-        given().contentType(MediaType.APPLICATION_JSON).content(getOfferLog).when()
+        given().contentType(MediaType.APPLICATION_JSON).body(getOfferLog).when()
             .get(OBJECTS_URI + "/" + DataCategory.OBJECT.name() + LOG_URI).then().statusCode(400);
 
         given().header(GlobalDataRest.X_TENANT_ID, "1").contentType(MediaType.APPLICATION_JSON).when()
@@ -628,7 +628,7 @@ public class DefaultOfferResourceTest {
                 given().header(GlobalDataRest.X_TENANT_ID, "1")
                     .header(GlobalDataRest.VITAM_CONTENT_LENGTH, 50)
                     .header(GlobalDataRest.X_DIGEST_ALGORITHM, DigestType.SHA512.getName())
-                    .contentType(MediaType.APPLICATION_OCTET_STREAM).content(fin).when()
+                    .contentType(MediaType.APPLICATION_OCTET_STREAM).body(fin).when()
                     .put(OBJECTS_URI + "/" + DataCategory.OBJECT.name() + OBJECT_ID_URI, "id" + i);
             }
 
@@ -637,7 +637,7 @@ public class DefaultOfferResourceTest {
 
         final OfferLogRequest getOfferLogNoResult = new OfferLogRequest(50L, 10, Order.ASC);
         ResponseBody responseBody1 = given().header(GlobalDataRest.X_TENANT_ID, "1")
-            .contentType(MediaType.APPLICATION_JSON).content(getOfferLogNoResult).when()
+            .contentType(MediaType.APPLICATION_JSON).body(getOfferLogNoResult).when()
             .get(OBJECTS_URI + "/" + DataCategory.OBJECT.name() + LOG_URI).getBody();
         final RequestResponseOK<OfferLog> response1 =
             JsonHandler.getFromInputStream(responseBody1.asInputStream(), RequestResponseOK.class, OfferLog.class);
@@ -646,7 +646,7 @@ public class DefaultOfferResourceTest {
 
         OfferLogRequest getOfferLogWithOffsetWithLimit = new OfferLogRequest(7L, 10, Order.ASC);
         ResponseBody responseBody2 = given().header(GlobalDataRest.X_TENANT_ID, "1")
-            .contentType(MediaType.APPLICATION_JSON).content(getOfferLogWithOffsetWithLimit).when()
+            .contentType(MediaType.APPLICATION_JSON).body(getOfferLogWithOffsetWithLimit).when()
             .get(OBJECTS_URI + "/" + DataCategory.OBJECT.name() + LOG_URI).getBody();
         final RequestResponseOK<OfferLog> response2 =
             JsonHandler.getFromInputStream(responseBody2.asInputStream(), RequestResponseOK.class, OfferLog.class);
@@ -655,7 +655,7 @@ public class DefaultOfferResourceTest {
 
         OfferLogRequest getOfferLogNoOffsetWithLimit = new OfferLogRequest(0L, 10, Order.ASC);
         ResponseBody responseBody3 = given().header(GlobalDataRest.X_TENANT_ID, "1")
-            .contentType(MediaType.APPLICATION_JSON).content(getOfferLogNoOffsetWithLimit).when()
+            .contentType(MediaType.APPLICATION_JSON).body(getOfferLogNoOffsetWithLimit).when()
             .get(OBJECTS_URI + "/" + DataCategory.OBJECT.name() + LOG_URI).getBody();
         final RequestResponseOK<OfferLog> response3 =
             JsonHandler.getFromInputStream(responseBody3.asInputStream(), RequestResponseOK.class, OfferLog.class);
@@ -665,7 +665,7 @@ public class DefaultOfferResourceTest {
         OfferLogRequest getOfferLogOffsetLimitDesc = new OfferLogRequest(5L, 3, Order.DESC);
         getOfferLogNoOffsetWithLimit.setLimit(10);
         ResponseBody responseBody4 = given().header(GlobalDataRest.X_TENANT_ID, "1")
-            .contentType(MediaType.APPLICATION_JSON).content(getOfferLogOffsetLimitDesc).when()
+            .contentType(MediaType.APPLICATION_JSON).body(getOfferLogOffsetLimitDesc).when()
             .get(OBJECTS_URI + "/" + DataCategory.OBJECT.name() + LOG_URI).getBody();
         final RequestResponseOK<OfferLog> response4 =
             JsonHandler.getFromInputStream(responseBody4.asInputStream(), RequestResponseOK.class, OfferLog.class);
