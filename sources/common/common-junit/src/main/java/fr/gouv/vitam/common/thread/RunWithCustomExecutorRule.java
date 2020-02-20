@@ -27,6 +27,7 @@
 package fr.gouv.vitam.common.thread;
 
 import org.junit.ClassRule;
+import org.junit.Rule;
 import org.junit.rules.TestRule;
 import org.junit.runner.Description;
 import org.junit.runners.model.Statement;
@@ -116,5 +117,10 @@ public class RunWithCustomExecutorRule implements TestRule, ClassRule {
                 throw throwable;
             }
         }
+    }
+
+    @Override
+    public int order() {
+        return Rule.DEFAULT_ORDER;
     }
 }

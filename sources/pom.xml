@@ -138,8 +138,8 @@
         <maven.surefire.version>2.22.2</maven.surefire.version>
         <jacoco-maven-plugin.version>0.8.5</jacoco-maven-plugin.version>
         <mockito.version>2.28.2</mockito.version>
-        <junit.version>4.12</junit.version>
-        <json-unit-version>2.3.0</json-unit-version>
+        <junit.version>4.13</junit.version>
+        <json-unit-version>2.13.0</json-unit-version>
 
         <!-- database libraries -->
         <elasticsearch.version>6.8.6</elasticsearch.version>
@@ -149,11 +149,10 @@
         <!-- object storing-->
         <jclouds.version>2.1.3</jclouds.version>
         <openstack4j.version>3.2.0</openstack4j.version>
-        <awssdk.v1.version>1.11.488</awssdk.v1.version>
-        <!-- <awssdk.v1.version>1.11.618</awssdk.v1.version> -->
-
+        <awssdk.v1.version>1.11.720</awssdk.v1.version>
+        
         <!-- jetty -->
-        <jetty.version>9.4.18.v20190429</jetty.version>
+        <jetty.version>9.4.26.v20200117</jetty.version>
 
         <!-- specific for IHM -->
         <frontend-maven-plugin.version>1.3</frontend-maven-plugin.version>
@@ -174,34 +173,34 @@
         <nodeDownloadRoot/>
 
         <!-- other -->
-        <slf4j.version>1.7.25</slf4j.version>
+        <slf4j.version>1.7.30</slf4j.version>
         <logback.version>1.2.3</logback.version>
-        <resteasy.client.version>3.6.2.Final</resteasy.client.version>
+        <resteasy.client.version>3.11.0.Final</resteasy.client.version>
         <javax.ws.rs.version>2.1.1</javax.ws.rs.version>
         <thaiopensource.version>20091111</thaiopensource.version>
-        <guava.version>27.0.1-jre</guava.version>
-        <log4j2.version>2.11.1</log4j2.version>
+        <guava.version>28.2-jre</guava.version>
+        <log4j2.version>2.13.0</log4j2.version>
         <commons-logging.version>1.2</commons-logging.version>
         <commons-io.version>2.6</commons-io.version>
-        <commons-lang3>3.8.1</commons-lang3>
+        <commons-lang3>3.9</commons-lang3>
         <easymock.version>4.0.2</easymock.version>
         <jackson.version>2.10.2</jackson.version>
         <apache-shiro.version>1.5.0</apache-shiro.version>
         <assertj.version>3.11.1</assertj.version>
-        <rest-assured.version>3.3.0</rest-assured.version>
+        <rest-assured.version>4.2.0</rest-assured.version>
         <yandex.version>1.21</yandex.version>
         <staxon.version>1.3</staxon.version>
-        <org.json.version>20180813</org.json.version>
+        <org.json.version>20190722</org.json.version>
         <javax.servlet.version>4.0.1</javax.servlet.version>
         <json-sanitize.version>1.2.0</json-sanitize.version>
-        <commons-collections4.version>4.2</commons-collections4.version>
+        <commons-collections4.version>4.4</commons-collections4.version>
         <esapi.version>2.1.0.1</esapi.version>
         <!-- removed to support xerces with 1.1 support <xerces.version>2.11.0</xerces.version> -->
         <xerces-xsd11.version>2.12-beta-r1667115</xerces-xsd11.version>
         <xml-resolver.version>1.2</xml-resolver.version>
         <opencsv.version>2.3</opencsv.version>
-        <commons-csv.version>1.6</commons-csv.version>
-        <bouncycastle.version>1.60</bouncycastle.version>
+        <commons-csv.version>1.8</commons-csv.version>
+        <bouncycastle.version>1.64</bouncycastle.version>
         <diffutils.version>1.3.0</diffutils.version>
         <jaxb2.version>1.0.2</jaxb2.version>
         <jaxb.version>2.3.2</jaxb.version>
@@ -216,9 +215,9 @@
         <hibernate-validator.version>6.0.0.Final</hibernate-validator.version>
         <org.glassfish.web.version>2.2.6</org.glassfish.web.version>
         <javax.el-api.version>3.0.0</javax.el-api.version>
-        <retrofit2.version>2.6.1</retrofit2.version>
+        <retrofit2.version>2.7.1</retrofit2.version>
         <org.xmlunit.version>2.6.3</org.xmlunit.version>
-        <com.github.tomakehurst.version>2.24.1</com.github.tomakehurst.version>
+        <com.github.tomakehurst.version>2.26.0</com.github.tomakehurst.version>
         <io.reactivex.rxjava2.version>2.2.12</io.reactivex.rxjava2.version>
         <xalan.version>2.7.2</xalan.version>
         <cucumber-java.version>1.2.5</cucumber-java.version>
