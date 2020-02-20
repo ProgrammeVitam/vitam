@@ -1,0 +1,70 @@
+<p-panel [header]="'Lancement d\'un ingest cleanup'">
+    <div class="ui-g">
+
+        <div class="ui-g-12">
+            <div class="ui-g-4">Operation d'ingest corrompu:</div>
+            <div class="ui-g-4 ui-g-nopad">
+                <input id="identifier" class="fs-1-1em" size="45" pInputText [(ngModel)]="operationId"
+                       placeholder="Identifiant d'opération"/>
+            </div>
+        </div>
+        <div class="ui-g-12">
+            <div class="ui-g-4">Tenant:</div>
+            <div class="ui-g-4">
+                {{tenant ? tenant : 'Veuillez choisir un tenant'}}
+            </div>
+        </div>
+
+        <div class="ui-g-12">
+          <div class="ui-g-4">Contrat: </div>
+          <div class="ui-g-4">
+            <p-dropdown id="contract" [options]="contractsList" [(ngModel)]="selectedContract"
+                        placeholder="Sélectionner un contrat"></p-dropdown>
+          </div>
+        </div>
+
+        <p-fieldset legend="Conditions d'eligibilité des ingests à nettoyer" [toggleable]="true">
+            <div class="eligibility">
+            Cette procédure permet de nettoyer les données suite à un ingest incomplet / corrompu.
+            Elle permet de purger toutes les unités archivistiques, groupes d'objets et objets binaires liés à l'ingest.
+            <br/>
+            <br/>
+            L'ingest à nettoyer doit satisfaire les conditions d'éligibilité suivantes :
+            <ul>
+            <li>L'ingest n'est plus en cours d'exécution (RUNNING ou PAUSE).</li>
+            <li>L'ingest s'est terminé avec une erreur (KO ou FATAL).</li>
+            <li>Aucune unité d'un autre ingest n'a été rattachée en dessous d'une des unités de l'ingest à nettoyer.</li>
+            <li>L'ingest à nettoyer n'a pas rajouté d'objets binaires à un group d'objets existant.</li>
+            <li>Aucun autre ingest n'a rajouté d'objets binaires à l'un ges groupes d'objets de l'ingest à nettoyer.</li>
+            <li>L'ingest à nettoyer n'a pas rattaché une unité à un group d'objets existant.</li>
+            <li>Aucun autre ingest n'a rattaché une autre unité à un groupe d'objets de l'ingest à nettoyer.</li>
+            </ul>
+                <input type="checkbox" [(ngModel)]="isChecked" (change)="checkValue(isChecked?'Yes':'No')"> L'ingest respecte les conditions citées ?
+            </div>
+        </p-fieldset>
+
+        <div style="color:red; font-size: bold" class="ui-g-12" *ngIf="error" (click)="error = false">Un des champs est mal renseigné</div>
+
+        <div class="ui-g-12">
+            <div class="ui-g-4"></div>
+            <div class="ui-g-4">
+                <button pButton type="button" (click)="cleanIngest()" label="Lancer le nettoyage"></button>
+            </div>
+        </div>
+    </div>
+    <div class="clearfix"></div>
+
+    <p-dialog header="Ingest Cleanup " [(visible)]="ingestCleanupKo" modal="modal" [responsive]="true">
+        <p>Erreur lors du lancement de l'operation </p>
+        <p-footer>
+            <button type="button" pButton icon="fa-check" (click)="ingestCleanupKo=false" label="OK"></button>
+        </p-footer>
+    </p-dialog>
+    <p-dialog header="Ingest Cleanup " [(visible)]="ingestCleanupOk" modal="modal" [responsive]="true">
+        <p>L'operation a bien été lancé </p>
+        <p-footer>
+            <button type="button" pButton icon="fa-check" (click)="ingestCleanupOk=false" label="OK"></button>
+        </p-footer>
+    </p-dialog>
+
+</p-panel>

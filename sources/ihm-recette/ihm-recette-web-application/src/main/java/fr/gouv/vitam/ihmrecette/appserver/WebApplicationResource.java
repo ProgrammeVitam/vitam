@@ -36,6 +36,7 @@ import fr.gouv.vitam.access.external.client.AdminExternalClient;
 import fr.gouv.vitam.access.external.client.AdminExternalClientFactory;
 import fr.gouv.vitam.access.external.common.exception.AccessExternalClientNotFoundException;
 import fr.gouv.vitam.access.external.common.exception.AccessExternalClientServerException;
+import fr.gouv.vitam.common.BaseXx;
 import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.VitamConfiguration;
@@ -63,6 +64,7 @@ import fr.gouv.vitam.common.model.logbook.LogbookEventOperation;
 import fr.gouv.vitam.common.model.logbook.LogbookOperation;
 import fr.gouv.vitam.common.security.SanityChecker;
 import fr.gouv.vitam.common.server.application.AsyncInputStreamHelper;
+import fr.gouv.vitam.common.server.application.configuration.FunctionalAdminAdmin;
 import fr.gouv.vitam.common.server.application.resources.ApplicationStatusResource;
 import fr.gouv.vitam.common.server.application.resources.BasicVitamStatusServiceImpl;
 import fr.gouv.vitam.common.stream.StreamUtils;
@@ -87,7 +89,6 @@ import fr.gouv.vitam.storage.driver.exception.StorageDriverException;
 import fr.gouv.vitam.storage.engine.client.StorageClient;
 import fr.gouv.vitam.storage.engine.client.StorageClientFactory;
 import fr.gouv.vitam.storage.engine.client.exception.StorageServerClientException;
-import fr.gouv.vitam.storage.engine.common.exception.StorageException;
 import fr.gouv.vitam.storage.engine.common.exception.StorageNotFoundException;
 import fr.gouv.vitam.storage.engine.common.exception.StorageTechnicalException;
 import fr.gouv.vitam.storage.engine.common.model.DataCategory;
@@ -110,6 +111,10 @@ import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
+import javax.ws.rs.client.Client;
+import javax.ws.rs.client.ClientBuilder;
+import javax.ws.rs.client.Invocation;
+import javax.ws.rs.client.WebTarget;
 import javax.ws.rs.container.AsyncResponse;
 import javax.ws.rs.container.Suspended;
 import javax.ws.rs.core.Context;
@@ -175,6 +180,7 @@ public class WebApplicationResource extends ApplicationStatusResource {
     private final PopulateService populateService;
     private ExecutorService threadPoolExecutor = Executors.newCachedThreadPool(VitamThreadFactory.getInstance());
     private List<String> secureMode;
+    private FunctionalAdminAdmin functionalAdminAdmin;
 
     /**
      * Constructor
@@ -191,6 +197,7 @@ public class WebApplicationResource extends ApplicationStatusResource {
         this.paginationHelper = paginationHelper;
         this.dslQueryHelper = dslQueryHelper;
         this.populateService = populateService;
+        this.functionalAdminAdmin = webApplicationConfigonfig.getFunctionalAdminAdmin();
         LOGGER.debug("init Admin Management Resource server");
 
         WorkspaceClientFactory.changeMode(webApplicationConfigonfig.getWorkspaceUrl());
@@ -338,6 +345,38 @@ public class WebApplicationResource extends ApplicationStatusResource {
             return Response.status(Status.INTERNAL_SERVER_ERROR).build();
 
         }
+    }
+
+    @POST
+    @Path("/ingestcleanup/{operationId}")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response launchIngestCleanup(@HeaderParam(GlobalDataRest.X_TENANT_ID) String xTenantId, @HeaderParam(GlobalDataRest.X_ACCESS_CONTRAT_ID) String xAccessContratId, @PathParam("operationId") String operationId) {
+        VitamThreadUtils.getVitamSession().setTenantId(Integer.parseInt(xTenantId));
+
+        // Hack to invoke the admin port of functional admin
+        Client client = ClientBuilder.newClient();
+        WebTarget target = client.target(String.format
+            ("http://%s:%s/adminmanagement/v1/invalidIngestCleanup/%s",
+                this.functionalAdminAdmin.getFunctionalAdminServerHost(),
+                this.functionalAdminAdmin.getFunctionalAdminServerPort(),
+            operationId)
+        );
+        String basicAuth = "Basic " + BaseXx.getBase64((this.functionalAdminAdmin.getAdminBasicAuth().getUserName()+":"+this.functionalAdminAdmin.getAdminBasicAuth().getPassword()).getBytes());
+
+        Invocation.Builder builder = target.request();
+        Response response = builder.header("Content-Type", MediaType.APPLICATION_JSON)
+            .header("Accept", MediaType.APPLICATION_JSON)
+            .header("X-Tenant-Id", xTenantId)
+            .header("Authorization", basicAuth)
+            .post(null);
+
+        if (response.getStatusInfo().getFamily() != Status.Family.SUCCESSFUL) {
+            LOGGER.error("Ingest cleanup failed with status " + response.getStatus());
+            return Response.status(Status.INTERNAL_SERVER_ERROR).build();
+        }
+
+        return Response.status(Status.CREATED).build();
     }
 
     /**

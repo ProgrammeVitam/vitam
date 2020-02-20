@@ -2577,7 +2577,6 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
         }
     }
 
-
     /**
      * Import a set of ontologies
      *

@@ -48,7 +48,8 @@ import { TestAuditCorrectionService } from './admin/test-audit-correction/test-a
 import { FunctionalTestsFeatureComponent } from './tests/functional-tests-feature/functional-tests-feature.component';
 import {FunctionalTestsFeatureService} from './tests/functional-tests-feature.service';
 import { ConfigurationComponent } from './admin/configuration/configuration.component';
-
+import { IngestCleanupComponent } from './admin/ingest-cleanup/ingest-cleanup.component';
+import { IngestCleanupService } from './admin/ingest-cleanup/ingest-cleanup.service';
 const appRoutes: Routes = [
   {
     path: 'admin/collection', component: CollectionComponent
@@ -58,6 +59,9 @@ const appRoutes: Routes = [
   },
   {
     path: 'admin/test-audit-correction', component: TestAuditCorrectionComponent
+  },
+  {
+    path: 'admin/ingest-cleanup', component: IngestCleanupComponent
   },
   {
     path: 'admin/link-au', component: LinkAuComponent
@@ -116,7 +120,8 @@ const appRoutes: Routes = [
     LinkAuComponent,
     TestAuditCorrectionComponent,
     FunctionalTestsFeatureComponent,
-    ConfigurationComponent
+    ConfigurationComponent,
+    IngestCleanupComponent
 
 ],
   imports: [
@@ -159,6 +164,7 @@ const appRoutes: Routes = [
     LinkAuService,
     TestAuditCorrectionService,
     FunctionalTestsFeatureService,
+    IngestCleanupService
   ],
   bootstrap: [AppComponent]
 })
