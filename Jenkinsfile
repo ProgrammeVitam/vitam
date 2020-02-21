@@ -118,7 +118,6 @@ pipeline {
                     branch "master_*"
                     branch "master"
                     tag pattern: "^[1-9]+\\.[0-9]+\\.[0-9]+-?[0-9]*\$", comparator: "REGEXP"
-                    branch "item_6153_ES7"
                 }
             }
             steps {
@@ -273,7 +272,6 @@ pipeline {
                     branch "master_*"
                     branch "master"
                     tag pattern: "^[1-9]+\\.[0-9]+\\.[0-9]+-?[0-9]*\$", comparator: "REGEXP"
-                    branch "item_6153_ES7"
                 }
             }
             // when {
@@ -310,7 +308,6 @@ pipeline {
                     branch "master_*"
                     branch "master"
                     tag pattern: "^[1-9]+\\.[0-9]+\\.[0-9]+-?[0-9]*\$", comparator: "REGEXP"
-                    branch "item_6153_ES7"
                 }
             }
             // when {
@@ -338,7 +335,6 @@ pipeline {
                     branch "master_*"
                     branch "master"
                     tag pattern: "^[1-9]+\\.[0-9]+\\.[0-9]+-?[0-9]*\$", comparator: "REGEXP"
-                    branch "item_6153_ES7"
                 }
             }
             // when {
@@ -359,7 +355,6 @@ pipeline {
                     branch "master_*"
                     branch "master"
                     tag pattern: "^[1-9]+\\.[0-9]+\\.[0-9]+-?[0-9]*\$", comparator: "REGEXP"
-                    branch "item_6153_ES7"
                 }
             }
             // when {
@@ -402,7 +397,6 @@ pipeline {
                     branch "master_*"
                     branch "master"
                     tag pattern: "^[1-9]+\\.[0-9]+\\.[0-9]+-?[0-9]*\$", comparator: "REGEXP"
-                    branch "item_6153_ES7"
                 }
             }
             // when {

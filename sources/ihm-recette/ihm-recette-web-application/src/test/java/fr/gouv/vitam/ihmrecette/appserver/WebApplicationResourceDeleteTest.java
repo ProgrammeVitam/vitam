@@ -170,7 +170,7 @@ public class WebApplicationResourceDeleteTest {
         realAdminConfig.setClusterName(ElasticsearchRule.VITAM_CLUSTER);
         VitamConfiguration.setTenants(tenantList);
 
-        realAdminConfig.getElasticsearchNodes().get(0).setTcpPort(ElasticsearchRule.PORT);
+        realAdminConfig.getElasticsearchNodes().get(0).setHttpPort(ElasticsearchRule.PORT);
         adminConfigFile = File.createTempFile("test", IHM_RECETTE_CONF, adminConfig.getParentFile());
         PropertiesUtils.writeYaml(adminConfigFile, realAdminConfig);
 

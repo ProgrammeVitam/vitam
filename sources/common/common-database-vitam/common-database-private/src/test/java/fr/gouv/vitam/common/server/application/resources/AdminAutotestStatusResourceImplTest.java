@@ -238,7 +238,7 @@ public class AdminAutotestStatusResourceImplTest extends ResteasyTestApplication
 
         // ES
         LOGGER.warn("TEST ELASTICSEARCH KO");
-        elasticsearchNode.setTcpPort(fakePort);
+        elasticsearchNode.setHttpPort(fakePort);
         realKO++;
         realOK--;
         try (DefaultAdminClient clientAdmin = factory.getClient()) {

@@ -24,7 +24,7 @@ clusterName: {{ vitam_struct.cluster_name }}
 elasticsearchNodes:
 {% for host in groups['hosts_elasticsearch_data'] %}
 - hostName: {{ hostvars[host]['ip_service'] }}
-  tcpPort: {{ elasticsearch.data.port_tcp }}
+  httpPort: {{ elasticsearch.data.port_http }}
 {% endfor %}
 
 

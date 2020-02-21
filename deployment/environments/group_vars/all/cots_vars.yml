@@ -22,7 +22,6 @@ elasticsearch:
     log:
         host: "elasticsearch-log.service.{{ consul_domain }}"
         port_http: "9201"
-        port_tcp: "9301"
         groupe: "log"
         baseuri: "elasticsearch-log"
         cluster_name: "elasticsearch-log"
@@ -32,7 +31,7 @@ elasticsearch:
         https_enabled: false
         indices_fielddata_cache_size: 0.3 # related to https://www.elastic.co/guide/en/elasticsearch/reference/6.8/modules-fielddata.html
         indices_breaker_fielddata_limit: 0.4 # related to https://www.elastic.co/guide/en/elasticsearch/reference/6.8/circuit-breaker.html#fielddata-circuit-breaker
-        dynamic_timeout: 30
+        dynamic_timeout: 30s
         # default index template
         index_templates:
             default:
@@ -67,7 +66,6 @@ elasticsearch:
         # default is 0.1 (10%) and should be quite enough in most cases
         #index_buffer_size_ratio: "0.15"
         port_http: "9200"
-        port_tcp: "9300"
         groupe: "data"
         baseuri: "elasticsearch-data"
         cluster_name: "elasticsearch-data"
@@ -78,7 +76,7 @@ elasticsearch:
         # discovery_zen_minimum_master_nodes: 2 # comented by default ; by default, value is half the length of ansible associated group whose racks have the same number of machine. If it is not the case, this value have to be set with the smallest rack (if using param is_balancing). ONLY EXISTS FOR DATA CLUSTER !!!! DO NOT FORGET TO APPLY PARAMETER WITH REPLICA NUMBER !!!!
         indices_fielddata_cache_size: 0.3 # related to https://www.elastic.co/guide/en/elasticsearch/reference/6.5/modules-fielddata.html
         indices_breaker_fielddata_limit: 0.4 # related to https://www.elastic.co/guide/en/elasticsearch/reference/6.5/circuit-breaker.html#fielddata-circuit-breaker
-        dynamic_timeout: 30
+        dynamic_timeout: 30s
         # default index template
         index_templates:
             default:
