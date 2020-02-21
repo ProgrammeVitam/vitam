@@ -127,7 +127,7 @@ public class InterceptorResource {
     private String getUrlEs(@Context HttpServletRequest req) {
         StringBuilder urlEs =
             new StringBuilder("http://").append(interceptorConfiguration.getElasticsearchNodes().get(0).getHostName())
-                .append(":").append(interceptorConfiguration.getElasticsearchNodes().get(0).getTcpPort())
+                .append(":").append(interceptorConfiguration.getElasticsearchNodes().get(0).getHttpPort())
                 .append(req.getRequestURI());
         LOGGER.debug("urlEs " + urlEs);
         return urlEs.toString();

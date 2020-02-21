@@ -210,8 +210,6 @@ public class VitamServerRunner extends ExternalResource {
                 ">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> Start " + clazz.getSimpleName() +
                     " <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<");
 
-            VitamConfiguration.setElasticSearchScrollTimeoutInMilliseconds(60_000);
-            VitamConfiguration.setElasticSearchTimeoutWaitAvailableShardsForBulkRequestInMilliseconds(60_000);
             VitamConfiguration.setHttpClientWaitingTime(1);
             VitamConfiguration.setHttpClientRandomWaitingSleep(1);
             VitamConfiguration.setHttpClientFirstAttemptWaitingTime(1);

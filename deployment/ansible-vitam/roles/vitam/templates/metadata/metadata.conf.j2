@@ -33,7 +33,7 @@ clusterName: {{ vitam_struct.cluster_name }}
 elasticsearchNodes:
 {% for server in groups['hosts_elasticsearch_data'] %}
 - hostName: {{ hostvars[server]['ip_service'] }}
-  tcpPort: {{ elasticsearch.data.port_tcp }}
+  httpPort: {{ elasticsearch.data.port_http }}
 {% endfor %}
 
 #Basic Authentication

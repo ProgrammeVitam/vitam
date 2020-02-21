@@ -78,7 +78,7 @@ public class LogbookApplicationAuthenticationTest {
         logbook = PropertiesUtils.findFile(LOGBOOK_CONF);
         realLogbook = PropertiesUtils.readYaml(logbook, LogbookConfiguration.class);
         realLogbook.getMongoDbNodes().get(0).setDbPort(mongoRule.getDataBasePort());
-        realLogbook.getElasticsearchNodes().get(0).setTcpPort(ElasticsearchRule.PORT);
+        realLogbook.getElasticsearchNodes().get(0).setHttpPort(ElasticsearchRule.PORT);
 
         File file = temporaryFolder.newFile();
         configurationFile = file.getAbsolutePath();

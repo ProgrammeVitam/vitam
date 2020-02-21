@@ -12,7 +12,6 @@ Role Variables
 --------------
 
 port_http: port to declare for http
-port_tcp: port to declare for TCP
 groupe: end of cluster name
 
 License

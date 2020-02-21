@@ -43,7 +43,6 @@ import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.server.application.configuration.DatabaseConnection;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.http.HttpHost;
-import org.apache.http.client.config.RequestConfig;
 import org.apache.http.util.Asserts;
 import org.bson.Document;
 import org.elasticsearch.ElasticsearchException;
@@ -81,7 +80,6 @@ import org.elasticsearch.client.RestHighLevelClient;
 import org.elasticsearch.client.indices.CreateIndexRequest;
 import org.elasticsearch.client.indices.CreateIndexResponse;
 import org.elasticsearch.client.indices.GetIndexRequest;
-import org.elasticsearch.cluster.action.index.MappingUpdatedAction;
 import org.elasticsearch.cluster.metadata.AliasMetaData;
 import org.elasticsearch.common.settings.Settings;
 import org.elasticsearch.common.settings.Settings.Builder;
@@ -626,7 +624,7 @@ public class ElasticsearchAccess implements DatabaseConnection {
         HttpHost[] hosts = new HttpHost[nodes.size()];
         for (int i = 0; i < nodes.size(); i++) {
             ElasticsearchNode elasticsearchNode = nodes.get(i);
-            hosts[i] = new HttpHost(elasticsearchNode.getHostName(), elasticsearchNode.getTcpPort(), "http");
+            hosts[i] = new HttpHost(elasticsearchNode.getHostName(), elasticsearchNode.getHttpPort(), "http");
         }
         RestClientBuilder restClientBuilder = RestClient.builder(hosts).setRequestConfigCallback(
             requestConfigBuilder -> requestConfigBuilder
