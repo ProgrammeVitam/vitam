@@ -375,7 +375,7 @@ public class WorkspaceClient extends DefaultClient {
         }
     }
 
-    public RequestResponse<String> computeObjectDigest(String containerName, String objectName, DigestType algo)
+    RequestResponse<String> computeObjectDigest(String containerName, String objectName, DigestType algo)
         throws ContentAddressableStorageException {
         ParametersChecker
             .checkParameter(ErrorMessage.CONTAINER_OBJECT_NAMES_ARE_A_MANDATORY_PARAMETER.getMessage(), containerName,
@@ -389,7 +389,7 @@ public class WorkspaceClient extends DefaultClient {
         }
     }
 
-    public RequestResponse<JsonNode> getObjectInformation(String containerName, String objectName)
+    RequestResponse<JsonNode> getObjectInformation(String containerName, String objectName)
         throws ContentAddressableStorageNotFoundException, ContentAddressableStorageServerException {
         ParametersChecker
             .checkParameter(ErrorMessage.CONTAINER_OBJECT_NAMES_ARE_A_MANDATORY_PARAMETER.getMessage(), containerName,
@@ -403,7 +403,7 @@ public class WorkspaceClient extends DefaultClient {
         }
     }
 
-    public boolean checkObject(String containerName, String objectId, String digest,
+    boolean checkObject(String containerName, String objectId, String digest,
         DigestType digestAlgorithm)
         throws ContentAddressableStorageException {
         String offerDigest = computeObjectDigest(containerName, objectId, digestAlgorithm)

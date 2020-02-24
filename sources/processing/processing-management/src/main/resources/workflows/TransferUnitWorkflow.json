@@ -62,7 +62,8 @@
       "behavior": "BLOCKING",
       "distribution": {
         "kind": "LIST_IN_FILE",
-        "element": "data/binaries.json"
+        "element": "data/binaries.json",
+        "statusOnEmptyDistribution": "WARNING"
       },
       "actions": [
         {
