@@ -67,6 +67,27 @@
 	</appender>
 {% endif %}
 
+{% if vitam_struct.vitam_component == 'storage' %}
+ {% if vitam_struct.logback_rolling_policy|lower == "true" %}
+	<appender name="OFFERDIFF" class="ch.qos.logback.core.rolling.RollingFileAppender">
+		<rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
+			<fileNamePattern>{{ vitam_folder_log }}/{{ vitam_struct.vitam_component }}_offer_diff.%d{yyyy-MM-dd}.%i.log</fileNamePattern>
+			<maxFileSize>{{ vitam_struct.logback_max_file_size }}</maxFileSize>
+			<maxHistory>{{ vitam_struct.logback_total_size_cap.offerdiff.history_days }}</maxHistory>
+			<totalSizeCap>{{ vitam_struct.logback_total_size_cap.offerdiff.totalsize }}</totalSizeCap>
+		</rollingPolicy>
+  {% else %}
+	<appender name="OFFERDIFF" class="ch.qos.logback.core.FileAppender">
+		<file>{{ vitam_folder_log }}/{{ vitam_struct.vitam_component }}_offer_diff.log</file>
+		<append>true</append>
+  {% endif %}
+		<encoder>
+			<pattern>%d{ISO8601} [[%thread]] [%X{X-Request-Id}] %-5level %logger - %replace(%caller{1..2}){'Caller\+1     at |\n',''} : %msg %rootException%n
+			</pattern>
+		</encoder>
+	</appender>
+{% endif %}
+
 {% if vitam_struct.vitam_component == 'offer' %}
   {% if vitam_offers[offer_conf]["provider"] == 'tape-library' %}
     {% if vitam_struct.logback_rolling_policy|lower == "true" %}
@@ -150,6 +171,9 @@
 {% if vitam_struct.vitam_component == 'storage' %}
   <logger name="fr.gouv.vitam.storage.engine.server.offersynchronization" level="INFO">
        <appender-ref ref="OFFERSYNC" />
+  </logger>
+  <logger name="fr.gouv.vitam.storage.engine.server.offerdiff" level="INFO">
+       <appender-ref ref="OFFERDIFF" />
   </logger>
 {% endif %}
 

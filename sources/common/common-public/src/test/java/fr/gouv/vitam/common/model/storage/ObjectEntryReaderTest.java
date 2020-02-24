@@ -127,5 +127,4 @@ public class ObjectEntryReaderTest {
                 .hasMessageContaining("Premature EOF");
         }
     }
-
 }

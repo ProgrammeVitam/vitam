@@ -43,6 +43,7 @@ import fr.gouv.vitam.storage.engine.common.model.request.ObjectDescription;
 import fr.gouv.vitam.storage.engine.common.model.response.BatchObjectInformationResponse;
 import fr.gouv.vitam.storage.engine.common.model.response.BulkObjectStoreResponse;
 import fr.gouv.vitam.storage.engine.common.model.response.StoredInfoResult;
+import fr.gouv.vitam.storage.engine.common.referential.model.OfferReference;
 import fr.gouv.vitam.storage.engine.common.referential.model.StorageStrategy;
 import fr.gouv.vitam.storage.engine.server.distribution.impl.DataContext;
 import fr.gouv.vitam.storage.engine.server.distribution.impl.StreamAndInfo;
@@ -137,19 +138,6 @@ public interface StorageDistribution extends VitamAutoCloseable {
     JsonNode getContainerInformation(String strategyId) throws StorageException;
 
     /**
-     * Create a container Architects are aware of this.
-     *
-     * @param strategyId id of the strategy
-     * @return a JsonNode containing informations about the created Container
-     * @throws StorageException Thrown in case the Container already exists
-     */
-    // TODO P1 : container creation possibility needs to be re-think then
-    // deleted or implemented. Vitam
-    JsonNode createContainer(String strategyId) throws StorageException;
-
-
-
-    /**
      * List container objects
      *
      * @param strategyId the strategy id to get offers
@@ -159,6 +147,9 @@ public interface StorageDistribution extends VitamAutoCloseable {
      */
     CloseableIterator<ObjectEntry> listContainerObjects(String strategyId, DataCategory category)
         throws StorageException;
+
+    CloseableIterator<ObjectEntry> listContainerObjectsForOffer(DataCategory category,
+        String offerId) throws StorageException;
 
     /**
      * Get offer log from referent

@@ -32,6 +32,7 @@ import fr.gouv.vitam.common.serverv2.application.AdminApplication;
 import fr.gouv.vitam.security.internal.filter.AdminRequestIdFilter;
 import fr.gouv.vitam.storage.engine.server.distribution.StorageDistribution;
 import fr.gouv.vitam.storage.engine.server.distribution.impl.StorageDistributionImpl;
+import fr.gouv.vitam.storage.engine.server.offerdiff.OfferDiffService;
 import fr.gouv.vitam.storage.engine.server.storagelog.StorageLog;
 import fr.gouv.vitam.storage.engine.server.storagelog.StorageLogFactory;
 import fr.gouv.vitam.security.internal.filter.BasicAuthenticationFilter;
@@ -82,6 +83,7 @@ public class AdminStorageApplication extends Application {
                 new StorageDistributionImpl(storageConfiguration, storageLogService);
 
             singletons.add(new AdminOfferSyncResource(distribution, storageConfiguration));
+            singletons.add(new AdminOfferDiffResource(new OfferDiffService(distribution)));
             singletons.add(new BasicAuthenticationFilter(storageConfiguration));
             singletons.add(new AdminRequestIdFilter());
 

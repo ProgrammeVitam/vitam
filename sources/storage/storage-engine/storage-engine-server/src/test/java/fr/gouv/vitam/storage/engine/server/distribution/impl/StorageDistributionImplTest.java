@@ -631,11 +631,6 @@ public class StorageDistributionImplTest {
         }
     }
 
-    @Test(expected = UnsupportedOperationException.class)
-    public void testCreateContainer() throws Exception {
-        simpleDistribution.createContainer(null);
-    }
-
     @RunWithCustomExecutor
     @Test
     public void listContainerObjectsTests() throws Exception {

@@ -940,17 +940,18 @@ public class StorageResourceTest {
         }
 
         @Override
-        public JsonNode createContainer(String strategyId) throws UnsupportedOperationException {
-            return null;
-        }
-
-        @Override
         public CloseableIterator<ObjectEntry> listContainerObjects(String strategyId, DataCategory category)
             throws StorageException {
             Integer tenantId = ParameterHelper.getTenantParameter();
             if (TENANT_ID_E.equals(tenantId)) {
                 throw new StorageNotFoundException("Not Found");
             }
+            return null;
+        }
+
+        @Override
+        public CloseableIterator<ObjectEntry> listContainerObjectsForOffer(DataCategory category, String offerId)
+            throws StorageException {
             return null;
         }
 
