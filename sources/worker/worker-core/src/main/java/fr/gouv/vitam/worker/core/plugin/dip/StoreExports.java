@@ -102,7 +102,7 @@ public class StoreExports extends ActionHandler {
                 storeReportToOffers(params.getContainerName());
             }
 
-            zipWorkspace(handler, tenantFolder, zipFileName, container, SEDA_FILE, CONTENT);
+            zipWorkspace(handler, tenantFolder, zipFileName, container);
 
             itemStatus.increment(StatusCode.OK);
         } catch (ContentAddressableStorageException | StorageAlreadyExistsClientException | StorageNotFoundClientException | StorageServerClientException e) {
@@ -126,8 +126,7 @@ public class StoreExports extends ActionHandler {
         }
     }
 
-    private void zipWorkspace(HandlerIO handler, String outputDir, String outputFile, String container,
-        String... inputFiles)
+    private void zipWorkspace(HandlerIO handler, String outputDir, String outputFile, String container)
         throws ContentAddressableStorageException {
 
         LOGGER.debug("Try to compress into workspace...");
@@ -135,10 +134,12 @@ public class StoreExports extends ActionHandler {
             // Ensure target folder exists
             workspaceClient.createContainer(container);
             workspaceClient.createFolder(container, outputDir);
+            workspaceClient.createFolder(handler.getContainerName(), CONTENT);
 
             // compress
             CompressInformation compressInformation = new CompressInformation();
-            Collections.addAll(compressInformation.getFiles(), inputFiles);
+            compressInformation.getFiles().add(SEDA_FILE);
+            compressInformation.getFiles().add(CONTENT);
             compressInformation.setOutputFile(outputDir + "/" + outputFile);
             compressInformation.setOutputContainer(container);
             workspaceClient.compress(handler.getContainerName(), compressInformation);

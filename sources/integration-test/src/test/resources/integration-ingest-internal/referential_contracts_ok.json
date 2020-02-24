@@ -50,5 +50,16 @@
 		"ActivationDate":"10/12/2016",
 		"DeactivationDate":"10/12/2016",
 		"EveryDataObjectVersion": true
+	},
+	{
+		"Name":"IC-000001",
+		"Identifier":"IC-000001",
+		"Description":"aDescription of the contract",
+		"Status" : "ACTIVE",
+		"LastUpdate":"10/12/2016",
+		"CreationDate":"10/12/2016",
+		"ActivationDate":"10/12/2016",
+		"DeactivationDate":"10/12/2116",
+		"EveryDataObjectVersion": true
 	}
 ]
