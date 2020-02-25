@@ -26,30 +26,6 @@
  */
 package fr.gouv.vitam.functional.administration.profile.api.impl;
 
-import static fr.gouv.vitam.common.LocalDateUtil.now;
-import static fr.gouv.vitam.common.database.builder.query.QueryHelper.eq;
-
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.nio.file.Files;
-import java.nio.file.StandardCopyOption;
-import java.time.format.DateTimeFormatter;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
-import java.util.stream.Collectors;
-
-import javax.ws.rs.core.HttpHeaders;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.Response.Status;
-
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
@@ -110,6 +86,29 @@ import fr.gouv.vitam.storage.engine.client.StorageClientFactory;
 import fr.gouv.vitam.storage.engine.client.exception.StorageServerClientException;
 import fr.gouv.vitam.storage.engine.common.exception.StorageNotFoundException;
 import fr.gouv.vitam.storage.engine.common.model.DataCategory;
+
+import javax.ws.rs.core.HttpHeaders;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
+import javax.ws.rs.core.Response.Status;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.nio.file.Files;
+import java.nio.file.StandardCopyOption;
+import java.time.format.DateTimeFormatter;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
+import java.util.stream.Collectors;
+
+import static fr.gouv.vitam.common.LocalDateUtil.now;
+import static fr.gouv.vitam.common.database.builder.query.QueryHelper.eq;
 
 /**
  * The implementation of the profile servie This implementation manage creation, update, ... profiles with any given
@@ -362,10 +361,10 @@ public class ProfileServiceImpl implements ProfileService {
 
             final UpdateParserSingle updateParserActive = new UpdateParserSingle(new SingleVarNameAdapter());
             Update update = new Update();
-            update.setQuery(eq("Identifier", profileMetadata.getIdentifier()));
+            update.setQuery(eq(ProfileModel.TAG_IDENTIFIER, profileMetadata.getIdentifier()));
             update.addActions(
-                UpdateActionHelper.set("Path", fileName),
-                UpdateActionHelper.set("LastUpdate", LocalDateUtil.now().toString()));
+                UpdateActionHelper.set(ProfileModel.TAG_PATH, fileName),
+                UpdateActionHelper.set(ProfileModel.LAST_UPDATE, LocalDateUtil.now().toString()));
             updateParserActive.parse(update.getFinalUpdate());
             final JsonNode queryDsl = updateParserActive.getRequest().getFinalUpdate();
 

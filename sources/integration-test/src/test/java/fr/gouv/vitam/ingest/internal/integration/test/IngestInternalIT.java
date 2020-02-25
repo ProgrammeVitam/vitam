@@ -31,6 +31,9 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.NullNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.collect.Sets;
+import com.mongodb.client.model.Filters;
+import com.mongodb.client.model.Updates;
+import com.mongodb.client.result.UpdateResult;
 import fr.gouv.culture.archivesdefrance.seda.v2.RelatedObjectReferenceType;
 import fr.gouv.vitam.access.internal.client.AccessInternalClient;
 import fr.gouv.vitam.access.internal.client.AccessInternalClientFactory;
@@ -89,6 +92,7 @@ import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.model.VitamConstants;
 import fr.gouv.vitam.common.model.administration.AccessContractModel;
 import fr.gouv.vitam.common.model.administration.IngestContractModel;
+import fr.gouv.vitam.common.model.administration.ProfileModel;
 import fr.gouv.vitam.common.model.administration.RuleType;
 import fr.gouv.vitam.common.model.elimination.EliminationRequestBody;
 import fr.gouv.vitam.common.model.processing.WorkFlow;
@@ -104,15 +108,16 @@ import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.functional.administration.client.AdminManagementClient;
 import fr.gouv.vitam.functional.administration.client.AdminManagementClientFactory;
 import fr.gouv.vitam.functional.administration.common.exception.AdminManagementClientServerException;
+import fr.gouv.vitam.functional.administration.common.server.FunctionalAdminCollections;
 import fr.gouv.vitam.functional.administration.rest.AdminManagementMain;
 import fr.gouv.vitam.ingest.internal.client.IngestInternalClient;
 import fr.gouv.vitam.ingest.internal.client.IngestInternalClientFactory;
 import fr.gouv.vitam.ingest.internal.common.exception.IngestInternalClientServerException;
 import fr.gouv.vitam.ingest.internal.upload.rest.IngestInternalMain;
 import fr.gouv.vitam.logbook.common.parameters.LogbookOperationParameters;
+import fr.gouv.vitam.logbook.common.parameters.LogbookParameterHelper;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParameterName;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParameters;
-import fr.gouv.vitam.logbook.common.parameters.LogbookParameterHelper;
 import fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess;
 import fr.gouv.vitam.logbook.common.server.database.collections.LogbookCollections;
 import fr.gouv.vitam.logbook.common.server.database.collections.LogbookDocument;
@@ -141,6 +146,7 @@ import fr.gouv.vitam.workspace.rest.WorkspaceMain;
 import io.restassured.RestAssured;
 import org.apache.commons.io.FileUtils;
 import org.bson.Document;
+import org.bson.conversions.Bson;
 import org.elasticsearch.action.search.SearchResponse;
 import org.elasticsearch.index.query.QueryBuilder;
 import org.elasticsearch.index.query.QueryBuilders;
@@ -313,6 +319,8 @@ public class IngestInternalIT extends VitamRuleRunner {
         "integration-ingest-internal/sip_with_organization_descriptive_metadata_free_tags.zip";
     private static String SIP_ATTACHMENT_WITH_OBJECT =
         "integration-ingest-internal/OK_OBJECT.zip";
+    private static String SIP_WITH_ARCHIVE_PROFILE =
+        "integration-ingest-internal/OK_SIPwithProfilRNG.zip";
     private static LogbookElasticsearchAccess esClient;
     private WorkFlow holding = WorkFlow.of(HOLDING_SCHEME, HOLDING_SCHEME_IDENTIFIER, "MASTERDATA");
     private WorkFlow ingestSip = WorkFlow.of(WORKFLOW_ID, CONTEXT_ID, "INGEST");
@@ -3073,6 +3081,66 @@ public class IngestInternalIT extends VitamRuleRunner {
         } catch (Exception e) {
             SysErrLogger.FAKE_LOGGER.ignoreLog(e);
         }
+    }
+
+    @RunWithCustomExecutor
+    @Test
+    public void testIngestWithProfileRNGWithoutPathThenKO() throws Exception {
+        final GUID operationGuid = GUIDFactory.newOperationLogbookGUID(tenantId);
+        prepareVitamSession(tenantId, "aName", "Context_IT");
+        VitamThreadUtils.getVitamSession().setRequestId(operationGuid);
+
+        AdminManagementClient mgtClient = AdminManagementClientFactory.getInstance().getClient();
+        RequestResponseOK<ProfileModel> response =
+            (RequestResponseOK<ProfileModel>) mgtClient.findProfiles(new Select().getFinalSelect());
+        ProfileModel profile = response.getResults().get(0);
+
+        // update the existing profile path to provoke a KO ingest
+        Bson filter = Filters.eq(ProfileModel.TAG_IDENTIFIER, profile.getIdentifier());
+        Bson update = Updates.unset(ProfileModel.TAG_PATH);
+        UpdateResult updateResult = FunctionalAdminCollections.PROFILE.getCollection().updateOne(filter, update);
+        assertEquals(updateResult.getModifiedCount(), 1);
+
+        InputStream zipInputStreamSipObject =
+            PropertiesUtils.getResourceAsStream(SIP_WITH_ARCHIVE_PROFILE);
+
+        // init default logbook operation
+        List<LogbookOperationParameters> params = new ArrayList<>();
+        LogbookOperationParameters initParameters = LogbookParameterHelper.newLogbookOperationParameters(
+            operationGuid, "Process_SIP_unitary", operationGuid,
+            LogbookTypeProcess.INGEST, StatusCode.STARTED,
+            operationGuid != null ? operationGuid.toString() : "outcomeDetailMessage",
+            operationGuid);
+        params.add(initParameters);
+
+        // call ingest
+        IngestInternalClientFactory.getInstance().changeServerPort(runner.PORT_SERVICE_INGEST_INTERNAL);
+        IngestInternalClient client = IngestInternalClientFactory.getInstance().getClient();
+        client.uploadInitialLogbook(params);
+
+        // init workflow before execution
+        client.initWorkflow(ingestSip);
+
+        client.upload(zipInputStreamSipObject, CommonMediaType.ZIP_TYPE, ingestSip, ProcessAction.RESUME.name());
+
+        awaitForWorkflowTerminationWithStatus(operationGuid, StatusCode.KO);
+
+        final AccessInternalClient accessClient = AccessInternalClientFactory.getInstance().getClient();
+        JsonNode logbookOperation =
+            accessClient.selectOperationById(operationGuid.getId(), new SelectMultiQuery().getFinalSelect())
+                .toJsonNode();
+        assertThat(logbookOperation.get("$results").get(0).get("evParentId")).isExactlyInstanceOf(NullNode.class);
+        logbookOperation.get("$results").get(0).get("events").forEach(event -> {
+            if (event.get("evType").asText().contains("CHECK_HEADER.CHECK_ARCHIVEPROFILE")) {
+                assertThat(event.get("outDetail").textValue()).
+                    contains("CHECK_HEADER.CHECK_ARCHIVEPROFILE.KO");
+            }
+        });
+
+        Bson filterAfterUpdate = Filters.eq(ProfileModel.TAG_IDENTIFIER, profile.getIdentifier());
+        Bson updateAfterTest = Updates.set(ProfileModel.TAG_PATH, profile.getPath());
+        UpdateResult updateResultAfter = FunctionalAdminCollections.PROFILE.getCollection().updateOne(filterAfterUpdate, updateAfterTest);
+        assertEquals(updateResultAfter.getModifiedCount(), 1);
     }
 
     private void putSystemIdInManifest(String targetFilename, String textToReplace, String replacementText)
