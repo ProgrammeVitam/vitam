@@ -2,7 +2,7 @@
 # TODO: clean up the list (hint : ensure everything is really used ... I fear not.).
 - name: install ClamAV packages
   package:
-    name: clamav,clamav-update,clamav-server,clamav-data,clamav-filesystem,clamav-scanner-systemd,clamav-devel,clamav-lib,clamav-server-systemd
+    name: clamav,clamav-update,clamd,clamav-data,clamav-filesystem,clamav-devel,clamav-lib
     state: latest
   register: result
   retries: "{{ packages_install_retries_number }}"
