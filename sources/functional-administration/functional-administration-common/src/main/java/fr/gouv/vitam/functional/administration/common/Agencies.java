@@ -162,6 +162,6 @@ public class Agencies extends VitamDocument<Agencies> {
 
 
     public AgenciesModel wrap() {
-        return new AgenciesModel(this.getIdentifier(), this.getName(), this.getDescription());
+        return new AgenciesModel(this.getIdentifier(), this.getName(), this.getDescription(), this.get("#tenant", Integer.class));
     }
 }
