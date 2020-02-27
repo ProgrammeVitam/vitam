@@ -21,7 +21,7 @@ traits:
     body:
       application/json:
         description: Contient la requête DSL multiple au format JSON.
-        schema: AccessTypes.AccessMultipleQuery
+        type: AccessTypes.AccessMultipleQuery
         example: !include examples/accessUnitQuery.json
     responses:
       200:
@@ -29,7 +29,7 @@ traits:
         body:
           application/json:
             description: Réponse DSL multiple pour Access contenant les métadonnées des Unités d'archives
-            schema: AccessTypes.AccessMultipleResponse
+            type: AccessTypes.AccessMultipleResponse
             example: !include examples/accessUnitResponse.json
 
   AccessUniqueUnitResponse:
@@ -44,7 +44,7 @@ traits:
     body:
       application/json:
         description: Body contient la requête DSL unitaire au format JSON.
-        schema: AccessTypes.AccessGetByIdQuery
+        type: AccessTypes.AccessGetByIdQuery
         example: !include examples/access1UnitQuery.json
     responses:
       200:
@@ -52,7 +52,7 @@ traits:
         body:
           application/json:
             description: Réponse DSL multiple pour Access contenant les métadonnées de l'Unité d'archive
-            schema: AccessTypes.AccessGetByIdResponse
+            type: AccessTypes.AccessGetByIdResponse
             example: !include examples/access1UnitResponse.json
 
 
@@ -68,7 +68,7 @@ traits:
     body:
       application/json:
         description: Contient la requête DSL multiple au format JSON.
-        schema: AccessTypes.AccessMultipleQuery
+        type: AccessTypes.AccessMultipleQuery
         example: !include examples/accessUnitQuery.json
     responses:
       200:
@@ -76,7 +76,7 @@ traits:
         body:
           application/json:
             description: Réponse DSL multiple pour Access contenant les métadonnées des Unités d'archives ainsi que leurs règles héritées.
-            schema: AccessTypes.AccessMultipleResponse
+            type: AccessTypes.AccessMultipleResponse
             example: !include examples/accessUnitWithInheritedRulesResponse.json
 
   AccessUniqueObjectQualifierResponse:
@@ -148,7 +148,7 @@ traits:
         description: |
           Body contient la requête DSL unitaire au format JSON. Il est utilisé et obligatoire uniquement en présence de Accept: application/json.
           **ONLY VALID with Accept application/json**
-        schema: AccessTypes.AccessGetByIdQuery
+        type: AccessTypes.AccessGetByIdQuery
         example: !include examples/access1ObjectQuery.json
     responses:
       200:
@@ -156,7 +156,7 @@ traits:
         body:
           application/json:
             description: Réponse DSL unitaire pour Access contenant les métadonnées
-            schema: AccessTypes.AccessGetByIdResponse
+            type: AccessTypes.AccessGetByIdResponse
             example: !include examples/access1ObjectResponse.json
           application/octet-stream:
             description: Objet binaire
@@ -172,7 +172,7 @@ traits:
     body:
       application/json:
         description: Body contient la requête DSL unitaire de modification au format JSON.
-        schema: AccessTypes.AccessUpdateByIdQuery
+        type: AccessTypes.AccessUpdateByIdQuery
         example: !include examples/access1UnitUpdateQuery.json
     responses:
       200:
@@ -180,7 +180,7 @@ traits:
         body:
           application/json:
             description: Réponse DSL unitaire de modification pour Access contenant l'état d'execution de la modification.
-            schema: AccessTypes.AccessUpdateByIdResponse
+            type: AccessTypes.AccessUpdateByIdResponse
             example: !include examples/access1UnitUpdateResponse.json
 
   DipCreationResponseAsync:
@@ -189,7 +189,7 @@ traits:
     body:
       application/json:
         description: Body contient la requête DSL **multiple** au format JSON.
-        schema: AccessTypes.AccessMultipleQuery
+        type: AccessTypes.AccessMultipleQuery
         example: !include examples/accessUnitQuery.json
     responses:
       202:
@@ -198,7 +198,7 @@ traits:
         body:
           application/json:
             description: Operation de DIP acceptée
-            schema: StandardTypes.AsyncStatus
+            type: StandardTypes.AsyncStatus
             example: !include examples/dip.json
       500:
         description: Renvoie ce statut en cas d'erreur interne
@@ -220,7 +220,7 @@ traits:
         body:
           application/json:
             description: Operation de DIP V2 acceptée
-            schema: StandardTypes.AsyncStatus
+            type: StandardTypes.AsyncStatus
             example: !include examples/dip.json
       500:
         description: Renvoie ce statut en cas d'erreur interne
@@ -242,7 +242,7 @@ traits:
         body:
           application/json:
             description: Operation de Transfer acceptée
-            schema: StandardTypes.AsyncStatus
+            type: StandardTypes.AsyncStatus
             example: !include examples/transfer.json
       500:
         description: Renvoie ce statut en cas d'erreur interne
@@ -256,7 +256,7 @@ traits:
     body:
       application/json:
         description: Body contient la requête DSL **multiple** au format JSON ainsi que la date d'élimination.
-        schema: AccessTypes.EliminationRequest
+        type: AccessTypes.EliminationRequest
         example: !include examples/eliminationRequest.json
     responses:
       202:
@@ -265,7 +265,7 @@ traits:
         body:
           application/json:
             description: Operation d'élimination acceptée
-            schema: AccessTypes.EliminationResponse
+            type: AccessTypes.EliminationResponse
             example: !include examples/eliminationResponse.json
       500:
         description: Renvoie le statut final de l'opération d'élimination en KO
@@ -284,7 +284,7 @@ traits:
           l'usage source source du binaire à traité,
           La version du binaire source (FIRST ou LAST) et
           l'usage cible du binaire à générer
-        schema: AccessTypes.PreservationRequest
+        type: AccessTypes.PreservationRequest
         example: !include examples/preservationRequest.json
     responses:
       202:
@@ -293,7 +293,7 @@ traits:
         body:
           application/json:
             description: Operation de préservation acceptée
-            schema: AccessTypes.PreservationResponse
+            type: AccessTypes.PreservationResponse
             example: !include examples/preservationResponse.json
       500:
         description: Renvoie le statut final de l'opération de préservation en KO
@@ -372,7 +372,7 @@ traits:
         body:
           application/json:
             description: Operation de Transfer acceptée
-            schema: StandardTypes.AsyncStatus
+            type: StandardTypes.AsyncStatus
             example: !include examples/transfer.json
       500:
         description: Renvoie ce statut en cas d'erreur interne

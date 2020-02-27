@@ -18,7 +18,7 @@ traits:
     body:
       application/json:
         description: Body containing a Query in DSL Vitam to filter the Ingest operations
-        schema: IngestTypes.ProcessQuery
+        type: IngestTypes.ProcessQuery
         example: !include examples/processQuery.json
     responses:
       200:
@@ -26,14 +26,14 @@ traits:
         body:
           application/json:
             description: Selected Ingest operations
-            schema: DslTypes.DslSingleResponse
+            type: DslTypes.DslSingleResponse
             example: !include examples/dslOperationsResponse.json
       206:
         description: Returns the list of selected ingest operations using Cursor
         body:
           application/json:
             description: Selected Ingest operations
-            schema: DslTypes.DslSingleResponse
+            type: DslTypes.DslSingleResponse
             example: !include examples/dslOperationsResponse.json
 
   IngestWorkflowsResponse:
@@ -47,7 +47,7 @@ traits:
         body:
           application/json:
             description: Select Workflows
-            schema: DslTypes.DslSingleResponse
+            type: DslTypes.DslSingleResponse
             example: !include examples/dslWorkflowsResponse.json
 
   IngestCreationResponse:
@@ -70,28 +70,28 @@ traits:
         body:
           application/json:
             description: Ingest operation accepted
-            schema: StandardTypes.AsyncStatus
+            type: StandardTypes.AsyncStatus
             example: !include examples/ingests.json
       200:
         description: Returns the final result of the Ingest operation in OK status
         body:
           application/xml:
             description: Final Ingest report
-            schema: IngestTypes.ArchiveTransferReply
+            type: IngestTypes.ArchiveTransferReply
             example: !include examples/sedaArchiveTransferReply.xml
       206:
         description: Returns the final result of the Ingest operation in Warning status
         body:
           application/xml:
             description: Final Ingest report
-            schema: IngestTypes.ArchiveTransferReply
+            type: IngestTypes.ArchiveTransferReply
             example: !include examples/sedaArchiveTransferReply.xml
       400:
         description: Returns the final result of the Ingest operation in KO status
         body:
           application/xml:
             description: Final Ingest report
-            schema: IngestTypes.ArchiveTransferReply
+            type: IngestTypes.ArchiveTransferReply
             example: !include examples/sedaArchiveTransferReplyKO.xml
   IngestCreationResponseAsync:
     description: Request for an Ingest creation
@@ -114,7 +114,7 @@ traits:
         body:
           application/json:
             description: Ingest operation accepted
-            schema: StandardTypes.AsyncStatus
+            type: StandardTypes.AsyncStatus
             example: !include examples/ingests.json
       500:
         description: Returns the final result of the Ingest operation in KO status
@@ -133,12 +133,12 @@ traits:
         body:
           application/xml:
             description: Final Ingest report
-            schema: IngestTypes.ArchiveTransferReply
+            type: IngestTypes.ArchiveTransferReply
             example: !include examples/sedaArchiveTransferReply.xml
       400:
         description: Returns the final error status of the Ingest operation
         body:
           application/xml:
             description: Final Error Ingest report
-            schema: IngestTypes.ArchiveTransferReply
+            type: IngestTypes.ArchiveTransferReply
             example: !include examples/sedaArchiveTransferReplyKO.xml

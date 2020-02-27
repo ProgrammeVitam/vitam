@@ -18,7 +18,7 @@ traits:
     body:
       application/json:
         description: Body contains a Query in DSL Vitam to filter the Logbook operations
-        schema: DslTypes.DslQuery
+        type: DslTypes.DslQuery
         example: !include examples/dslQuery.json
     responses:
       200:
@@ -26,7 +26,7 @@ traits:
         body:
           application/json:
             description: Matching <<resourcePathName | !uppercamelcase>>
-            schema: DslTypes.DslResponse
+            type: DslTypes.DslResponse
             #example: !include examples/logbookResponse.json
       206:
         description: |
@@ -34,7 +34,7 @@ traits:
         body:
           application/json:
             description: Matching Logbook operations
-            schema: DslTypes.DslResponse
+            type: DslTypes.DslResponse
             #example: !include examples/logbookResponse.json
 
   RegisterItemResponse:
@@ -45,7 +45,7 @@ traits:
     body:
       application/json:
         description: Body contains a Query in DSL Vitam to filter the <<resourcePathName | !uppercamelcase>> item
-        schema: DslTypes.DslQuery
+        type: DslTypes.DslQuery
         example: !include examples/dslQuery.json
     responses:
       200:
@@ -53,7 +53,7 @@ traits:
         body:
           application/json:
             description: one <<resourcePathName | !uppercamelcase>> item
-            schema: DslTypes.DslResponse
+            type: DslTypes.DslResponse
             #example: !include examples/logbookResponse.json
 
   RegisterUpload:
