@@ -50,7 +50,7 @@ import fr.gouv.vitam.storage.engine.common.utils.StorageStrategyUtils;
 /**
  * File system implementation of the storage strategy and storage offer provider
  */
-class FileStorageProvider implements StorageStrategyProvider, StorageOfferProvider, StorageOfferHACapabilityProvider {
+class FileStorageProvider implements StorageStrategyProvider, StorageOfferProvider {
 
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(FileStorageProvider.class);
 
@@ -109,7 +109,7 @@ class FileStorageProvider implements StorageStrategyProvider, StorageOfferProvid
      * {@inheritDoc}
      */
     @Override
-    public StorageOffer getStorageOfferForHA(String idOffer, boolean includeDisabled)
+    public StorageOffer getStorageOffer(String idOffer, boolean includeDisabled)
             throws StorageException {
         return getFilteredStorageOffer(idOffer, includeDisabled);//get all (active and inactive)
     }

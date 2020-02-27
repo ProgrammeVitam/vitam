@@ -34,7 +34,7 @@ import fr.gouv.vitam.storage.driver.Driver;
 import fr.gouv.vitam.storage.engine.common.exception.StorageDriverMapperException;
 import fr.gouv.vitam.storage.engine.common.exception.StorageDriverNotFoundException;
 import fr.gouv.vitam.storage.engine.common.exception.StorageException;
-import fr.gouv.vitam.storage.engine.common.referential.StorageOfferHACapabilityProviderFactory;
+import fr.gouv.vitam.storage.engine.common.referential.StorageOfferProviderFactory;
 import fr.gouv.vitam.storage.engine.common.referential.model.StorageOffer;
 import fr.gouv.vitam.storage.engine.server.spi.mapper.DriverMapper;
 import fr.gouv.vitam.storage.engine.server.spi.mapper.FileDriverMapper;
@@ -110,8 +110,8 @@ public class DriverManager {
             try {
                 final List<String> offersIds = mapper.get().getOffersFor(driver.getClass().getName());
                 for (final String offerId : offersIds) {
-                    StorageOffer offer = StorageOfferHACapabilityProviderFactory.getDefaultProvider()
-                        .getStorageOfferForHA(offerId, true);
+                    StorageOffer offer = StorageOfferProviderFactory.getDefaultProvider()
+                        .getStorageOffer(offerId, true);
                     if (offer.isEnabled()) {
                         final Properties parameters = new Properties();
                         parameters.putAll(offer.getParameters());
@@ -136,7 +136,7 @@ public class DriverManager {
             try {
                 //consider all offer including inactive ones
                 StorageOffer offer =
-                    StorageOfferHACapabilityProviderFactory.getDefaultProvider().getStorageOfferForHA(offerId, true);
+                    StorageOfferProviderFactory.getDefaultProvider().getStorageOffer(offerId, true);
                 final Properties parameters = new Properties();
                 parameters.putAll(offer.getParameters());
                 done = driver.addOffer(offer, parameters);

@@ -950,7 +950,8 @@ public class StorageResourceTest {
         }
 
         @Override
-        public CloseableIterator<ObjectEntry> listContainerObjectsForOffer(DataCategory category, String offerId)
+        public CloseableIterator<ObjectEntry> listContainerObjectsForOffer(DataCategory category, String offerId,
+            boolean includeDisabled)
             throws StorageException {
             return null;
         }

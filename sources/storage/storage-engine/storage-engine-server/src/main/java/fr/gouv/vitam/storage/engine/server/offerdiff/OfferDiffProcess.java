@@ -195,7 +195,7 @@ public class OfferDiffProcess {
         VitamThreadUtils.getVitamSession().setRequestId(requestId);
 
         try (CloseableIterator<ObjectEntry> objectEntryIterator =
-            this.distribution.listContainerObjectsForOffer(dataCategory, offerId)) {
+            this.distribution.listContainerObjectsForOffer(dataCategory, offerId, true)) {
 
             File tempFile = createTempFile(diffOperationTempDir);
 
@@ -307,9 +307,7 @@ public class OfferDiffProcess {
 
         if (objectEntry1 != null && objectEntry2 != null) {
             if (objectEntry1.getSize() == objectEntry2.getSize()) {
-                if (LOGGER.isDebugEnabled()) {
-                    LOGGER.debug("File " + objectEntry1.getObjectId() + " matches. Size: " + objectEntry1.getSize());
-                }
+                LOGGER.debug("File " + objectEntry1.getObjectId() + " matches. Size: " + objectEntry1.getSize());
                 reportWriter.reportMatchingObject(objectEntry1.getObjectId());
             } else {
                 LOGGER.warn(
@@ -326,8 +324,8 @@ public class OfferDiffProcess {
 
         } else {
             LOGGER.warn(
-                "File " + objectEntry2.getObjectId() + " found on offer " + offer1 +
-                    " (" + objectEntry2.getSize() + "bytes), but is missing from offer " + offer2);
+                "File " + objectEntry2.getObjectId() + " found on offer " + offer2 +
+                    " (" + objectEntry2.getSize() + "bytes), but is missing from offer " + offer1);
             reportWriter.reportObjectMismatch(objectEntry2.getObjectId(), null, objectEntry2.getSize());
         }
     }

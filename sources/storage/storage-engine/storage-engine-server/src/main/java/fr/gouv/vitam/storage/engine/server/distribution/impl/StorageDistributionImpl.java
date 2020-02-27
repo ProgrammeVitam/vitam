@@ -966,7 +966,7 @@ public class StorageDistributionImpl implements StorageDistribution {
                 throw new StorageTechnicalException("No offer found");
             }
 
-            return listContainerObjectsForOffer(category, offerReference.get().getId());
+            return listContainerObjectsForOffer(category, offerReference.get().getId(), false);
         }
         LOGGER.error(VitamCodeHelper.getLogMessage(VitamCode.STORAGE_STRATEGY_NOT_FOUND));
         throw new StorageNotFoundException(VitamCodeHelper.getLogMessage(VitamCode.STORAGE_STRATEGY_NOT_FOUND));
@@ -974,8 +974,8 @@ public class StorageDistributionImpl implements StorageDistribution {
 
     @Override
     public CloseableIterator<ObjectEntry> listContainerObjectsForOffer(DataCategory category,
-        String offerId) throws StorageException {
-        final StorageOffer offer = OFFER_PROVIDER.getStorageOffer(offerId);
+        String offerId, boolean includeDisabled) throws StorageException {
+        final StorageOffer offer = OFFER_PROVIDER.getStorageOffer(offerId, includeDisabled);
 
         if (offer.isAsyncRead()) {
             throw new StorageTechnicalException("AsyncRead offer (" + offerId +

@@ -43,13 +43,11 @@ import fr.gouv.vitam.storage.engine.common.model.request.ObjectDescription;
 import fr.gouv.vitam.storage.engine.common.model.response.BatchObjectInformationResponse;
 import fr.gouv.vitam.storage.engine.common.model.response.BulkObjectStoreResponse;
 import fr.gouv.vitam.storage.engine.common.model.response.StoredInfoResult;
-import fr.gouv.vitam.storage.engine.common.referential.model.OfferReference;
 import fr.gouv.vitam.storage.engine.common.referential.model.StorageStrategy;
 import fr.gouv.vitam.storage.engine.server.distribution.impl.DataContext;
 import fr.gouv.vitam.storage.engine.server.distribution.impl.StreamAndInfo;
 
 import javax.ws.rs.core.Response;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
@@ -149,7 +147,7 @@ public interface StorageDistribution extends VitamAutoCloseable {
         throws StorageException;
 
     CloseableIterator<ObjectEntry> listContainerObjectsForOffer(DataCategory category,
-        String offerId) throws StorageException;
+        String offerId, boolean includeDisabled) throws StorageException;
 
     /**
      * Get offer log from referent

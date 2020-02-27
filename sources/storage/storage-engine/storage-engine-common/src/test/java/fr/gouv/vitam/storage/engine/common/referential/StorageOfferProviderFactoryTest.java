@@ -26,9 +26,13 @@
  */
 package fr.gouv.vitam.storage.engine.common.referential;
 
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
+import fr.gouv.vitam.storage.engine.common.exception.StorageNotFoundException;
+import fr.gouv.vitam.storage.engine.common.referential.model.StorageOffer;
 import org.junit.Test;
 
 /**
@@ -40,5 +44,21 @@ public class StorageOfferProviderFactoryTest {
     public void testGetDefaultProvider() throws Exception {
         assertNotNull(StorageOfferProviderFactory.getDefaultProvider());
         assertTrue(StorageOfferProviderFactory.getDefaultProvider() instanceof FileStorageProvider);
+    }
+
+    @Test
+    public void testGetProvider() throws Exception {
+        StorageOfferProvider provider = StorageOfferProviderFactory.getDefaultProvider();
+        assertNotNull(provider);
+        assertTrue(provider instanceof FileStorageProvider);
+        StorageOffer disabledOffer = provider.getStorageOffer("inactiveOffer", true);
+        assertFalse(disabledOffer.isEnabled());
+        assertTrue(disabledOffer.getId().equals("inactiveOffer"));
+
+        try {
+            provider.getStorageOffer("inactiveOffer", false);
+            fail("Expecting storage exception");
+        }catch(StorageNotFoundException ex){
+        }
     }
 }

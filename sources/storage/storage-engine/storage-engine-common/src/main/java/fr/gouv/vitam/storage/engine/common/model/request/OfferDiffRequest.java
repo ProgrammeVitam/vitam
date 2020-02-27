@@ -32,7 +32,7 @@ import fr.gouv.vitam.storage.engine.common.model.DataCategory;
 import java.util.List;
 
 /**
- * Description of offerSync request item model. <br/>
+ * Offer diff request model
  */
 public class OfferDiffRequest {
 

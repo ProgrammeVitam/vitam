@@ -114,11 +114,11 @@ public class OfferDiffProcessTest {
         // Given
         CloseableIterator<ObjectEntry> entries1 =
             CloseableIteratorUtils.toCloseableIterator(IteratorUtils.emptyIterator());
-        doReturn(entries1).when(distribution).listContainerObjectsForOffer(DATA_CATEGORY, OFFER1);
+        doReturn(entries1).when(distribution).listContainerObjectsForOffer(DATA_CATEGORY, OFFER1, true);
 
         CloseableIterator<ObjectEntry> entries2 =
             CloseableIteratorUtils.toCloseableIterator(IteratorUtils.emptyIterator());
-        doReturn(entries2).when(distribution).listContainerObjectsForOffer(DATA_CATEGORY, OFFER2);
+        doReturn(entries2).when(distribution).listContainerObjectsForOffer(DATA_CATEGORY, OFFER2, true);
 
         OfferDiffProcess instance = new OfferDiffProcess(distribution, OFFER1, OFFER2, DATA_CATEGORY);
 
@@ -151,13 +151,13 @@ public class OfferDiffProcessTest {
             new ObjectEntry().setObjectId("obj5").setSize(10L),
             new ObjectEntry().setObjectId("obj2").setSize(30L)
         ).iterator());
-        doReturn(entries1).when(distribution).listContainerObjectsForOffer(DATA_CATEGORY, OFFER1);
+        doReturn(entries1).when(distribution).listContainerObjectsForOffer(DATA_CATEGORY, OFFER1, true);
 
         CloseableIterator<ObjectEntry> entries2 = CloseableIteratorUtils.toCloseableIterator(Arrays.asList(
             new ObjectEntry().setObjectId("obj2").setSize(30L),
             new ObjectEntry().setObjectId("obj5").setSize(10L)
         ).iterator());
-        doReturn(entries2).when(distribution).listContainerObjectsForOffer(DATA_CATEGORY, OFFER2);
+        doReturn(entries2).when(distribution).listContainerObjectsForOffer(DATA_CATEGORY, OFFER2, true);
 
         OfferDiffProcess instance = new OfferDiffProcess(distribution, OFFER1, OFFER2, DATA_CATEGORY);
 
@@ -194,7 +194,7 @@ public class OfferDiffProcessTest {
                 .map(i -> i * 7 % nbEntries)
                 .mapToObj(i -> new ObjectEntry().setObjectId("obj" + i).setSize(i))
                 .iterator());
-        doReturn(entries1).when(distribution).listContainerObjectsForOffer(DATA_CATEGORY, OFFER1);
+        doReturn(entries1).when(distribution).listContainerObjectsForOffer(DATA_CATEGORY, OFFER1, true);
 
         CloseableIterator<ObjectEntry> entries2 = CloseableIteratorUtils.toCloseableIterator(
             IntStream.range(0, nbEntries)
@@ -202,7 +202,7 @@ public class OfferDiffProcessTest {
                 .map(i -> i * 13 % nbEntries)
                 .mapToObj(i -> new ObjectEntry().setObjectId("obj" + i).setSize(i))
                 .iterator());
-        doReturn(entries2).when(distribution).listContainerObjectsForOffer(DATA_CATEGORY, OFFER2);
+        doReturn(entries2).when(distribution).listContainerObjectsForOffer(DATA_CATEGORY, OFFER2, true);
 
         OfferDiffProcess instance = new OfferDiffProcess(distribution, OFFER1, OFFER2, DATA_CATEGORY);
 
@@ -233,11 +233,11 @@ public class OfferDiffProcessTest {
         // Given
         CloseableIterator<ObjectEntry> entries1 = CloseableIteratorUtils.toCloseableIterator(
             IteratorUtils.emptyIterator());
-        doReturn(entries1).when(distribution).listContainerObjectsForOffer(DATA_CATEGORY, OFFER1);
+        doReturn(entries1).when(distribution).listContainerObjectsForOffer(DATA_CATEGORY, OFFER1, true);
 
         CloseableIterator<ObjectEntry> entries2 = CloseableIteratorUtils.toCloseableIterator(
             IteratorUtils.emptyIterator());
-        doReturn(entries2).when(distribution).listContainerObjectsForOffer(DATA_CATEGORY, "UNKNOWN");
+        doReturn(entries2).when(distribution).listContainerObjectsForOffer(DATA_CATEGORY, "UNKNOWN", true);
 
         OfferDiffProcess instance = new OfferDiffProcess(distribution, OFFER1, "UNKNOWN", DATA_CATEGORY);
 
@@ -272,7 +272,7 @@ public class OfferDiffProcessTest {
             new ObjectEntry().setObjectId("obj5").setSize(5L),
             new ObjectEntry().setObjectId("obj6").setSize(6L)
         ).iterator());
-        doReturn(entries1).when(distribution).listContainerObjectsForOffer(DATA_CATEGORY, OFFER1);
+        doReturn(entries1).when(distribution).listContainerObjectsForOffer(DATA_CATEGORY, OFFER1, true);
 
         CloseableIterator<ObjectEntry> entries2 = CloseableIteratorUtils.toCloseableIterator(Arrays.asList(
             new ObjectEntry().setObjectId("obj4").setSize(40L),
@@ -281,7 +281,7 @@ public class OfferDiffProcessTest {
             new ObjectEntry().setObjectId("obj1").setSize(1L),
             new ObjectEntry().setObjectId("obj5").setSize(5L)
         ).iterator());
-        doReturn(entries2).when(distribution).listContainerObjectsForOffer(DATA_CATEGORY, OFFER2);
+        doReturn(entries2).when(distribution).listContainerObjectsForOffer(DATA_CATEGORY, OFFER2, true);
 
         OfferDiffProcess instance = new OfferDiffProcess(distribution, OFFER1, OFFER2, DATA_CATEGORY);
 
