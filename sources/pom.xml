@@ -188,7 +188,6 @@
         <apache-shiro.version>1.5.0</apache-shiro.version>
         <assertj.version>3.11.1</assertj.version>
         <rest-assured.version>4.2.0</rest-assured.version>
-        <yandex.version>1.21</yandex.version>
         <staxon.version>1.3</staxon.version>
         <org.json.version>20190722</org.json.version>
         <javax.servlet.version>4.0.1</javax.servlet.version>
@@ -1552,54 +1551,6 @@
                 <artifactId>mockito-core</artifactId>
                 <version>${mockito.version}</version>
                 <scope>test</scope>
-            </dependency>
-            <dependency>
-                <groupId>ru.yandex.qatools.embed</groupId>
-                <artifactId>embedded-services</artifactId>
-                <version>${yandex.version}</version>
-                <scope>test</scope>
-                <exclusions>
-                    <exclusion>
-                        <groupId>org.slf4j</groupId>
-                        <artifactId>slf4j-log4j12</artifactId>
-                    </exclusion>
-                    <exclusion>
-                        <groupId>org.xbib.elasticsearch.plugin</groupId>
-                        <artifactId>elasticsearch-river-jdbc</artifactId>
-                    </exclusion>
-                    <exclusion>
-                        <groupId>commons-io</groupId>
-                        <artifactId>commons-io</artifactId>
-                    </exclusion>
-                    <exclusion>
-                        <groupId>org.codehaus.groovy</groupId>
-                        <artifactId>groovy-all</artifactId>
-                    </exclusion>
-                    <exclusion>
-                        <groupId>org.apache.lucene</groupId>
-                        <artifactId>lucene-expressions</artifactId>
-                    </exclusion>
-                    <exclusion>
-                        <groupId>com.github.richardwilly98.elasticsearch</groupId>
-                        <artifactId>elasticsearch-river-mongodb</artifactId>
-                    </exclusion>
-                    <exclusion>
-                        <groupId>org.slf4j</groupId>
-                        <artifactId>slf4j-api</artifactId>
-                    </exclusion>
-                    <exclusion>
-                        <groupId>org.elasticsearch</groupId>
-                        <artifactId>elasticsearch</artifactId>
-                    </exclusion>
-                    <exclusion>
-                        <groupId>org.mongodb</groupId>
-                        <artifactId>mongo-java-driver</artifactId>
-                    </exclusion>
-                    <exclusion>
-                        <groupId>de.flapdoodle.embed</groupId>
-                        <artifactId>de.flapdoodle.embed.mongo</artifactId>
-                    </exclusion>
-                </exclusions>
             </dependency>
             <dependency>
                 <groupId>org.jclouds.driver</groupId>
