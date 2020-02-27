@@ -26,7 +26,7 @@ traits:
         body:
           application/json:
             description: Metadata
-            schema: AccessTypes.AccessResponse
+            type: AccessTypes.AccessResponse
             example: !include examples/accessUnitResponse.json
           application/zip:
             description: Metadata and Binary object(s)
@@ -59,7 +59,7 @@ traits:
         body:
           application/json:
             description: Metadata
-            schema: AccessTypes.AccessResponse
+            type: AccessTypes.AccessResponse
             example: !include examples/accessObjectResponse.json
           application/zip:
             description: Metadata and Binary object(s)
@@ -157,7 +157,7 @@ traits:
         body:
           application/json:
             description: Metadata
-            schema: AccessTypes.AccessResponse
+            type: AccessTypes.AccessResponse
             example: !include examples/access1ObjectResponse.json
           application/zip:
             description: Metadata and Binary object(s)
@@ -212,7 +212,7 @@ traits:
         body:
           application/json:
             description: Metadata
-            schema: AccessTypes.AccessResponse
+            type: AccessTypes.AccessResponse
             example: !include examples/accessUnitResponse.json
           application/zip:
             description: Metadata and Binary object(s)
@@ -232,7 +232,7 @@ traits:
         body:
           application/json:
             description: Metadata
-            schema: AccessTypes.AccessResponse
+            type: AccessTypes.AccessResponse
             example: !include examples/accessUnitResponse.json
 
 
@@ -282,7 +282,7 @@ traits:
         body:
           application/json:
             description: Metadata
-            schema: AccessTypes.AccessResponse
+            type: AccessTypes.AccessResponse
             example: !include examples/accessUnitResponse.json
           application/zip:
             description: Metadata and Binary object(s)
@@ -302,7 +302,7 @@ traits:
         body:
           application/json:
             description: Metadata
-            schema: AccessTypes.AccessResponse
+            type: AccessTypes.AccessResponse
             example: !include examples/accessUnitResponse.json
 
   AccessUnitRawResponse:
@@ -343,7 +343,7 @@ traits:
         body:
           application/json:
             description: Operation de Transfer acceptée
-            schema: StandardTypes.AsyncStatus
+            type: StandardTypes.AsyncStatus
             example: !include examples/transfer.json
       500:
         description: Renvoie ce statut en cas d'erreur interne

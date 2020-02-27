@@ -18,7 +18,7 @@ traits:
     body:
       application/json:
         description: Contient la requête DSL simple au format JSON.
-        schema: DslTypes.DslSingleQuery
+        type: DslTypes.DslSingleQuery
         example: !include examples/logbookQuery.json
     responses:
       200:
@@ -26,7 +26,7 @@ traits:
         body:
           application/json:
             description: Réponse DSL single contenant les journaux d'opérations.
-            schema: DslTypes.DslSingleResponse
+            type: DslTypes.DslSingleResponse
             example: !include examples/logbookResponse.json
 
   OperationItemResponse:
@@ -37,7 +37,7 @@ traits:
     body:
       application/json:
         description: Body contient la requête DSL unitaire au format JSON.
-        schema: DslTypes.DslGetByIdQuery
+        type: DslTypes.DslGetByIdQuery
         example: !include examples/logbook1Query.json
     responses:
       200:
@@ -45,7 +45,7 @@ traits:
         body:
           application/json:
             description: one Logbook item
-            schema: DslTypes.DslGetByIdResponse
+            type: DslTypes.DslGetByIdResponse
             example: !include examples/logbook1Response.json
 
   UnitLifeCycleItemResponse:
@@ -56,7 +56,7 @@ traits:
     body:
       application/json:
         description:  Body contient la requête DSL unitaire au format JSON.
-        schema: DslTypes.DslGetByIdQuery
+        type: DslTypes.DslGetByIdQuery
         example: !include examples/logbook1Query.json
     responses:
       200:
@@ -64,7 +64,7 @@ traits:
         body:
           application/json:
             description: Journal de cycle de vie d'une Unité archivistique correspondant à la requête DSL
-            schema: DslTypes.DslGetByIdResponse
+            type: DslTypes.DslGetByIdResponse
             example: !include examples/logbook1Response.json
 
   ObjectLifeCycleItemResponse:
@@ -75,7 +75,7 @@ traits:
     body:
       application/json:
         description:  Body contient la requête DSL unitaire au format JSON.
-        schema: DslTypes.DslGetByIdQuery
+        type: DslTypes.DslGetByIdQuery
         example: !include examples/logbook1Query.json
     responses:
       200:
@@ -83,7 +83,7 @@ traits:
         body:
           application/json:
             description: Journal de cycle de vie d'un Objet correspondant à la requête DSL
-            schema: DslTypes.DslGetByIdResponse
+            type: DslTypes.DslGetByIdResponse
             example: !include examples/logbook1Response.json
 
   RegisterFileItemResponse:
