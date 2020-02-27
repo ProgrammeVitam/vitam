@@ -190,12 +190,12 @@ Lister des types d'objets dans l'offre de stockage
         // Construction de l'objet permettant d'effectuer la requete. L'identifiant du curseur n'existe pas et est à
         // null, c'est une demande de nouveau cusreur, x-cursor à vrai.
         StorageListRequest request = new StorageListRequest(tenantId, type, null, true);
-        VitamRequestIterator<JsonNode> result = myConnection.listObjects(request);
-
-        // On peut alors itérer sur le résultat
-        while(result.hasNext()) {
-            JsonNode json = result.next();
-            // Traitement....
+        try (CloseableIterator<ObjectEntry> result = myConnection.listObjects(request)) {
+            // On peut alors itérer sur le résultat
+            while(result.hasNext()) {
+                JsonNode json = result.next();
+                // Traitement....
+            }
         }
     } catch (StorageDriverException exc) {
         // Un problème est survenu lors de la communication avec le service distant
@@ -226,12 +226,13 @@ Récupérer les metadatas d'un objet
         // Construction de l'objet permettant d'effectuer la requete. L'identifiant du curseur n'existe pas et est à
         // null, c'est une demande de nouveau cusreur, x-cursor à vrai.
         StorageListRequest request = new StorageListRequest(tenantId, type, null, true);
-        VitamRequestIterator<JsonNode> result = myConnection.getMetadatas(request);
+        try (CloseableIterator<ObjectEntry> result = myConnection.getMetadatas(request)) {
 
-        // On peut alors itérer sur le résultat
-        while(result.hasNext()) {
-            JsonNode json = result.next();
-            // Traitement....
+            // On peut alors itérer sur le résultat
+            while(result.hasNext()) {
+                JsonNode json = result.next();
+                // Traitement....
+            }
         }
     } catch (StorageDriverException exc) {
         // Un problème est survenu lors de la communication avec le service distant

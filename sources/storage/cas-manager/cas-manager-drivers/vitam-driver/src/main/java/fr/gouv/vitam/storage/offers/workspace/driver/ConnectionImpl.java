@@ -31,12 +31,16 @@ import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.client.VitamClientFactoryInterface;
 import fr.gouv.vitam.common.client.VitamRequestBuilder;
+import fr.gouv.vitam.common.collection.CloseableIterator;
 import fr.gouv.vitam.common.error.VitamCode;
 import fr.gouv.vitam.common.error.VitamCodeHelper;
 import fr.gouv.vitam.common.exception.VitamClientInternalException;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.RequestResponse;
+import fr.gouv.vitam.common.model.storage.ObjectEntry;
+import fr.gouv.vitam.common.model.storage.ObjectEntryReader;
+import fr.gouv.vitam.common.stream.StreamUtils;
 import fr.gouv.vitam.storage.driver.AbstractConnection;
 import fr.gouv.vitam.storage.driver.exception.StorageDriverConflictException;
 import fr.gouv.vitam.storage.driver.exception.StorageDriverException;
@@ -63,6 +67,7 @@ import fr.gouv.vitam.storage.engine.common.model.request.OfferLogRequest;
 
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
+import java.io.InputStream;
 import java.util.Collections;
 
 import static fr.gouv.vitam.common.client.VitamRequestBuilder.delete;
@@ -70,8 +75,6 @@ import static fr.gouv.vitam.common.client.VitamRequestBuilder.get;
 import static fr.gouv.vitam.common.client.VitamRequestBuilder.head;
 import static fr.gouv.vitam.common.client.VitamRequestBuilder.post;
 import static fr.gouv.vitam.common.client.VitamRequestBuilder.put;
-import static javax.ws.rs.core.Response.Status.Family.REDIRECTION;
-import static javax.ws.rs.core.Response.Status.Family.SUCCESSFUL;
 import static javax.ws.rs.core.Response.Status.fromStatusCode;
 
 /**
@@ -405,7 +408,8 @@ public class ConnectionImpl extends AbstractConnection {
         ParametersChecker.checkParameter(GUID_IS_A_MANDATORY_PARAMETER, request.getGuid());
 
         VitamRequestBuilder requestBuilder = get()
-            .withPath(OBJECTS_PATH + "/" + DataCategory.getByFolder(request.getType()) + "/" + request.getGuid() + METADATAS)
+            .withPath(
+                OBJECTS_PATH + "/" + DataCategory.getByFolder(request.getType()) + "/" + request.getGuid() + METADATAS)
             .withHeader(GlobalDataRest.X_TENANT_ID, request.getTenantId())
             .withHeader(GlobalDataRest.X_OFFER_NO_CACHE, request.isNoCache())
             .withJsonAccept();
@@ -421,24 +425,26 @@ public class ConnectionImpl extends AbstractConnection {
     }
 
     @Override
-    public RequestResponse<JsonNode> listObjects(StorageListRequest request) throws StorageDriverException {
+    public CloseableIterator<ObjectEntry> listObjects(StorageListRequest request) throws StorageDriverException {
         ParametersChecker.checkParameter(REQUEST_IS_A_MANDATORY_PARAMETER, request);
         ParametersChecker.checkParameter(TENANT_IS_A_MANDATORY_PARAMETER, request.getTenantId());
         ParametersChecker.checkParameter(TYPE_IS_A_MANDATORY_PARAMETER, request.getType());
-        ParametersChecker.checkParameter("X-Cursor is mandatory", request.isxCursor());
 
         VitamRequestBuilder requestBuilder = get()
             .withPath(OBJECTS_PATH + "/" + DataCategory.getByFolder(request.getType()))
             .withHeader(GlobalDataRest.X_TENANT_ID, request.getTenantId())
-            .withHeader(GlobalDataRest.X_CURSOR, request.isxCursor())
             .withJsonAccept();
 
-        if (request.getCursorId() != null) {
-            requestBuilder.withHeader(GlobalDataRest.X_CURSOR_ID, request.getCursorId());
-        }
-
-        try (Response response = make(requestBuilder)) {
-            return RequestResponse.parseFromResponse(response);
+        try {
+            Response response = make(requestBuilder);
+            try {
+                checkStorageException(response);
+            } catch (Exception e) {
+                StreamUtils.consumeAnyEntityAndClose(response);
+                throw e;
+            }
+            InputStream rawResponseInputStream = response.readEntity(InputStream.class);
+            return new ObjectEntryReader(rawResponseInputStream);
         } catch (Exception exc) {
             LOGGER.error(VitamCodeHelper.getLogMessage(VitamCode.STORAGE_TECHNICAL_INTERNAL_ERROR), exc);
             throw new StorageDriverException(getDriverName(), true, exc);

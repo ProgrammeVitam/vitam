@@ -34,9 +34,10 @@ import cucumber.api.java.en.Given;
 import cucumber.api.java.en.Then;
 import cucumber.api.java.en.When;
 import fr.gouv.vitam.common.accesslog.AccessLogUtils;
-import fr.gouv.vitam.common.client.VitamRequestIterator;
+import fr.gouv.vitam.common.collection.CloseableIterator;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.guid.GUIDFactory;
+import fr.gouv.vitam.common.model.storage.ObjectEntry;
 import fr.gouv.vitam.common.thread.VitamThreadFactory;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.storage.engine.client.StorageClient;
@@ -66,6 +67,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicReference;
 
 /**
  * Storage step
@@ -77,7 +79,6 @@ public class StorageStep {
     private String guid;
     private StoredInfoResult info;
     private Response.StatusType responseStatus;
-    private VitamRequestIterator<JsonNode> result;
 
     public StorageStep(World world) throws FileNotFoundException, InvalidParseOperationException {
         this.world = world;
@@ -150,21 +151,21 @@ public class StorageStep {
     public void list_srategy(DataTable dataTable) throws StorageException, StorageServerClientException {
         List<List<String>> raws = dataTable.raw();
         for (List<String> raw : raws.subList(1, raws.size())) {
-            result = null;
             String strategy = raw.get(1);
-            container_has_files(strategy);
-            assertThat(result).isNotNull();
-            assertThat(result.hasNext()).isTrue();
-
+            try(CloseableIterator<ObjectEntry> result = container_has_files(strategy)) {
+                assertThat(result).isNotNull();
+                assertThat(result.hasNext()).isTrue();
+            }
         }
     }
 
-    private void container_has_files(String strategy) throws StorageServerClientException {
+    private CloseableIterator<ObjectEntry> container_has_files(String strategy) throws StorageServerClientException {
+        AtomicReference<CloseableIterator<ObjectEntry>> result = new AtomicReference<>();
         runInVitamThread(() -> {
             try {
                 VitamThreadUtils.getVitamSession().setTenantId(world.getTenantId());
                 try {
-                    result = world.storageClient.listContainer(strategy, DataCategory.OBJECT);
+                    result.set(world.storageClient.listContainer(strategy, DataCategory.OBJECT));
                 } catch (StorageServerClientException e) {
                     throw new RuntimeException(e);
                 }
@@ -172,6 +173,7 @@ public class StorageStep {
                 throw new RuntimeException(e);
             }
         });
+        return result.get();
     }
 
     private void the_sip_is_stored_in_offer(String strategy) {

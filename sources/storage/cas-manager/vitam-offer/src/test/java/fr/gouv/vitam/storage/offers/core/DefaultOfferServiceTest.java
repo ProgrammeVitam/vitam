@@ -36,9 +36,11 @@ import fr.gouv.vitam.common.digest.Digest;
 import fr.gouv.vitam.common.digest.DigestType;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.junit.FakeInputStream;
+import fr.gouv.vitam.common.model.storage.ObjectEntry;
 import fr.gouv.vitam.common.storage.ContainerInformation;
 import fr.gouv.vitam.common.storage.cas.container.api.ContentAddressableStorageAbstract;
 import fr.gouv.vitam.common.storage.cas.container.api.ObjectContent;
+import fr.gouv.vitam.common.storage.cas.container.api.ObjectListingListener;
 import fr.gouv.vitam.common.stream.MultiplexedStreamReader;
 import fr.gouv.vitam.common.stream.MultiplexedStreamWriter;
 import fr.gouv.vitam.common.stream.StreamUtils;
@@ -59,6 +61,7 @@ import org.junit.BeforeClass;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
+import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnit;
 import org.mockito.junit.MockitoRule;
@@ -72,6 +75,9 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 import java.util.stream.LongStream;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -83,7 +89,9 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -352,37 +360,6 @@ public class DefaultOfferServiceTest {
     }
 
     @Test
-    public void listCreateCursorNoContainerTest() throws Exception {
-        final DefaultOfferService offerService = new DefaultOfferServiceImpl(offerDatabaseService, mongoDbAccess);
-        assertNotNull(offerService);
-        offerService.createCursor(CONTAINER_PATH);
-    }
-
-    @Test
-    public void listCreateCursorTest() throws Exception {
-        final DefaultOfferServiceImpl offerService = new DefaultOfferServiceImpl(offerDatabaseService, mongoDbAccess);
-        assertNotNull(offerService);
-        offerService.ensureContainerExists(CONTAINER_PATH);
-        String cursorId = offerService.createCursor(CONTAINER_PATH);
-        assertNotNull(cursorId);
-        List<JsonNode> list = offerService.next(CONTAINER_PATH, cursorId);
-        assertNotNull(list);
-        assertTrue(list.isEmpty());
-        list = offerService.next(CONTAINER_PATH, cursorId);
-        // TODO manage with exception
-        assertNull(list);
-    }
-
-    @Test
-    public void finalizeCursorTest() throws Exception {
-        final DefaultOfferService offerService = new DefaultOfferServiceImpl(offerDatabaseService, mongoDbAccess);
-        assertNotNull(offerService);
-        String id = offerService.createCursor(CONTAINER_PATH);
-        assertNotNull(id);
-        offerService.finalizeCursor(CONTAINER_PATH, id);
-    }
-
-    @Test
     public void listCursorTest() throws Exception {
         final DefaultOfferService offerService = new DefaultOfferServiceImpl(offerDatabaseService, mongoDbAccess);
         assertNotNull(offerService);
@@ -390,28 +367,16 @@ public class DefaultOfferServiceTest {
             offerService.createObject(CONTAINER_PATH, OBJECT + i, new FakeInputStream(50), OBJECT_TYPE, null,
                 VitamConfiguration.getDefaultDigestType());
         }
-        String cursorId = offerService.createCursor(CONTAINER_PATH);
-        assertNotNull(cursorId);
-        boolean hasNext = offerService.hasNext(CONTAINER_PATH, cursorId);
-        assertTrue(hasNext);
-
-        List<JsonNode> list = offerService.next(CONTAINER_PATH, cursorId);
-        assertNotNull(list);
-        assertEquals(100, list.size());
-
-        hasNext = offerService.hasNext(CONTAINER_PATH, cursorId);
-        assertTrue(hasNext);
-
-        list = offerService.next(CONTAINER_PATH, cursorId);
-        assertNotNull(list);
-        assertEquals(50, list.size());
-
-        hasNext = offerService.hasNext(CONTAINER_PATH, cursorId);
-        assertFalse(hasNext);
-
-        list = offerService.next(CONTAINER_PATH, cursorId);
-        // TODO manage with exception
-        assertNull(list);
+        ObjectListingListener objectListingListener = mock(ObjectListingListener.class);
+        offerService.listObjects(CONTAINER_PATH, objectListingListener);
+        ArgumentCaptor<ObjectEntry> objectEntryArgumentCaptor = ArgumentCaptor.forClass(ObjectEntry.class);
+        verify(objectListingListener, times(150)).
+            handleObjectEntry(objectEntryArgumentCaptor.capture());
+        Set<String> objectIds = objectEntryArgumentCaptor.getAllValues().stream()
+            .map(ObjectEntry::getObjectId)
+            .collect(Collectors.toSet());
+        Set<String> expectedObjectIds = IntStream.range(0, 150).mapToObj(i -> OBJECT + i).collect(Collectors.toSet());
+        assertThat(objectIds).isEqualTo(expectedObjectIds);
     }
 
     @Test

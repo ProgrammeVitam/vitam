@@ -26,16 +26,16 @@
  */
 package fr.gouv.vitam.functional.administration.common.impl;
 
-import com.fasterxml.jackson.databind.JsonNode;
 import com.google.common.collect.Iterators;
 import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.accesslog.AccessLogUtils;
-import fr.gouv.vitam.common.client.VitamRequestIterator;
+import fr.gouv.vitam.common.collection.CloseableIterator;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamRuntimeException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.common.model.storage.ObjectEntry;
 import fr.gouv.vitam.common.parameter.ParameterHelper;
 import fr.gouv.vitam.common.stream.StreamUtils;
 import fr.gouv.vitam.functional.administration.common.AccessionRegisterBackupModel;
@@ -90,19 +90,17 @@ public class RestoreBackupServiceImpl implements RestoreBackupService {
     @Override
     public Optional<String> getLatestSavedFileName(String strategy, DataCategory type,
         FunctionalAdminCollections collection) {
-        try (final StorageClient storageClient = StorageClientFactory.getInstance().getClient()) {
-
-            // listing the content of the storage -> list of backup files.
-            VitamRequestIterator<JsonNode> listing = storageClient.listContainer(strategy, type);
-
+        try (final StorageClient storageClient = StorageClientFactory.getInstance().getClient();
+            CloseableIterator<ObjectEntry> listing = storageClient.listContainer(strategy, type);
+        ) {
             // recover an intact backup copy for the reconstruction.
-            Iterable<JsonNode> iterable = () -> listing;
-            Stream<JsonNode> stream = StreamSupport.stream(iterable.spliterator(), false);
+            Iterable<ObjectEntry> iterable = () -> listing;
+            Stream<ObjectEntry> stream = StreamSupport.stream(iterable.spliterator(), false);
             // regex -> filter on json and the sequence's version.
             String regex = "\\d+_+(\\w+)_+(\\d+)?" + EXTENSION_JSON + "$";
             Pattern pattern = Pattern.compile(regex);
 
-            Optional<Integer> result = stream.map(n -> n.get(OBJECT_ID_TAG).asText())
+            Optional<Integer> result = stream.map(n -> n.getObjectId())
                 .map(pattern::matcher)
                 .filter(Matcher::matches)
                 .filter(matcher -> collection.getName().equals(matcher.group(1)))

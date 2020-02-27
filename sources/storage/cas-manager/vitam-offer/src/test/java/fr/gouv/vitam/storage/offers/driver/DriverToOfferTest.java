@@ -26,15 +26,15 @@
  */
 package fr.gouv.vitam.storage.offers.driver;
 
-import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.google.common.collect.Streams;
 import com.mongodb.client.FindIterable;
 import com.mongodb.client.model.Filters;
 import fr.gouv.vitam.common.BaseXx;
-import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.client.VitamClientFactory;
+import fr.gouv.vitam.common.collection.CloseableIterator;
 import fr.gouv.vitam.common.database.collections.VitamCollection;
 import fr.gouv.vitam.common.exception.VitamApplicationServerException;
 import fr.gouv.vitam.common.guid.GUIDFactory;
@@ -42,7 +42,7 @@ import fr.gouv.vitam.common.junit.FakeInputStream;
 import fr.gouv.vitam.common.junit.JunitHelper;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
-import fr.gouv.vitam.common.model.RequestResponse;
+import fr.gouv.vitam.common.model.storage.ObjectEntry;
 import fr.gouv.vitam.common.mongo.MongoRule;
 import fr.gouv.vitam.common.server.application.configuration.MongoDbNode;
 import fr.gouv.vitam.common.storage.StorageConfiguration;
@@ -53,13 +53,14 @@ import fr.gouv.vitam.storage.driver.model.StorageListRequest;
 import fr.gouv.vitam.storage.driver.model.StorageObjectRequest;
 import fr.gouv.vitam.storage.driver.model.StoragePutRequest;
 import fr.gouv.vitam.storage.driver.model.StoragePutResult;
+import fr.gouv.vitam.storage.engine.common.collection.OfferCollections;
 import fr.gouv.vitam.storage.engine.common.model.DataCategory;
 import fr.gouv.vitam.storage.engine.common.referential.model.StorageOffer;
-import fr.gouv.vitam.storage.engine.common.collection.OfferCollections;
 import fr.gouv.vitam.storage.offers.rest.DefaultOfferMain;
 import fr.gouv.vitam.storage.offers.rest.OfferConfiguration;
 import fr.gouv.vitam.storage.offers.workspace.driver.DriverImpl;
 import io.restassured.RestAssured;
+import org.apache.commons.collections4.IteratorUtils;
 import org.bson.Document;
 import org.junit.After;
 import org.junit.AfterClass;
@@ -68,7 +69,6 @@ import org.junit.ClassRule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 
-import javax.ws.rs.core.Response;
 import java.io.File;
 import java.io.FileInputStream;
 import java.security.DigestInputStream;
@@ -76,6 +76,10 @@ import java.security.MessageDigest;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
+import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertEquals;
@@ -264,17 +268,16 @@ public class DriverToOfferTest {
             assertThat(results).hasSize(1);
         }
 
-        StorageListRequest listRequest = new StorageListRequest(TENANT_ID, DataCategory.UNIT.getFolder(), null, true);
-        RequestResponse<JsonNode> response = connection.listObjects(listRequest);
-        assertNotNull(response);
-        assertEquals(Response.Status.PARTIAL_CONTENT.getStatusCode(), response.getHttpCode());
-        assertNotNull(response.getHeaderString(GlobalDataRest.X_CURSOR_ID));
+        StorageListRequest listRequest = new StorageListRequest(TENANT_ID, DataCategory.UNIT.getFolder());
+        CloseableIterator<ObjectEntry> objectEntryIterator = connection.listObjects(listRequest);
+        Set<String> objectIds = IteratorUtils.toList(objectEntryIterator)
+            .stream()
+            .map(ObjectEntry::getObjectId)
+            .collect(Collectors.toSet());
 
-        listRequest = new StorageListRequest(TENANT_ID, DataCategory.UNIT.getFolder(),
-            response.getHeaderString(GlobalDataRest.X_CURSOR_ID), true);
-        response = connection.listObjects(listRequest);
-        assertNotNull(response);
-        assertEquals(Response.Status.OK.getStatusCode(), response.getHttpCode());
-        assertNotNull(response.getHeaderString(GlobalDataRest.X_CURSOR_ID));
+        Set<String> expectedObjectIds =
+            Streams.concat(IntStream.range(0, 150).mapToObj(i -> "f" + i), Stream.of(guid))
+                .collect(Collectors.toSet());
+        assertThat(objectIds).isEqualTo(expectedObjectIds);
     }
 }

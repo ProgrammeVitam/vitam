@@ -46,6 +46,7 @@ import com.amazonaws.services.s3.model.ListObjectsV2Request;
 import com.amazonaws.services.s3.model.ListObjectsV2Result;
 import com.amazonaws.services.s3.model.ObjectMetadata;
 import com.amazonaws.services.s3.model.S3Object;
+import com.amazonaws.services.s3.model.S3ObjectSummary;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Stopwatch;
 import fr.gouv.vitam.common.ParametersChecker;
@@ -60,8 +61,8 @@ import fr.gouv.vitam.common.storage.StorageConfiguration;
 import fr.gouv.vitam.common.storage.cas.container.api.ContentAddressableStorageAbstract;
 import fr.gouv.vitam.common.storage.cas.container.api.MetadatasStorageObject;
 import fr.gouv.vitam.common.storage.cas.container.api.ObjectContent;
-import fr.gouv.vitam.common.storage.cas.container.api.VitamPageSet;
-import fr.gouv.vitam.common.storage.cas.container.api.VitamStorageMetadata;
+import fr.gouv.vitam.common.model.storage.ObjectEntry;
+import fr.gouv.vitam.common.storage.cas.container.api.ObjectListingListener;
 import fr.gouv.vitam.common.storage.constants.ErrorMessage;
 import fr.gouv.vitam.common.stream.SizedInputStream;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageException;
@@ -493,18 +494,35 @@ public class AmazonS3V1 extends ContentAddressableStorageAbstract {
     }
 
     @Override
-    public VitamPageSet<? extends VitamStorageMetadata> listContainer(String containerName)
-        throws ContentAddressableStorageNotFoundException, ContentAddressableStorageServerException {
+    public void listContainer(String containerName, ObjectListingListener objectListingListener)
+        throws ContentAddressableStorageNotFoundException, ContentAddressableStorageServerException, IOException {
+
         LOGGER.debug(String.format("Listing of object in container %s", containerName));
         ParametersChecker.checkParameter(ErrorMessage.CONTAINER_NAME_IS_A_MANDATORY_PARAMETER.getMessage(),
             containerName);
         String bucketName = generateBucketName(containerName);
         try {
-            ListObjectsV2Request listObjectsV2Request = new ListObjectsV2Request();
-            listObjectsV2Request.setBucketName(bucketName);
-            listObjectsV2Request.setMaxKeys(LISTING_MAX_RESULTS);
-            ListObjectsV2Result listObjectsV2Result = client.listObjectsV2(listObjectsV2Request);
-            return AmazonS3V1PageSetImpl.wrap(listObjectsV2Result);
+
+            String continuationToken = null;
+            do {
+                ListObjectsV2Request listObjectsV2Request = new ListObjectsV2Request();
+                listObjectsV2Request.setBucketName(bucketName);
+                listObjectsV2Request.setMaxKeys(LISTING_MAX_RESULTS);
+                listObjectsV2Request.setContinuationToken(continuationToken);
+
+                ListObjectsV2Result listObjectsV2Result = client.listObjectsV2(listObjectsV2Request);
+
+                for (S3ObjectSummary objectSummary : listObjectsV2Result.getObjectSummaries()) {
+                    objectListingListener.handleObjectEntry(new ObjectEntry(
+                        objectSummary.getKey(),
+                        objectSummary.getSize()
+                    ));
+                }
+
+                continuationToken = listObjectsV2Result.getNextContinuationToken();
+
+            } while (continuationToken != null);
+
         } catch (AmazonServiceException e) {
             LOGGER.debug(String.format(
                 "Error when trying to list objects from container %s. Reason: errorCode=%s, errorType=%s, errorMessage=%s",
@@ -520,38 +538,6 @@ public class AmazonS3V1 extends ContentAddressableStorageAbstract {
                 containerName, e.getMessage()), e);
             throw new ContentAddressableStorageServerException("Error when trying to list objects", e);
         }
-    }
-
-    @Override
-    public VitamPageSet<? extends VitamStorageMetadata> listContainerNext(String containerName, String nextMarker)
-        throws ContentAddressableStorageNotFoundException, ContentAddressableStorageServerException {
-        LOGGER.debug(String.format("Listing of object from marker %s in container %s", nextMarker, containerName));
-        ParametersChecker.checkParameter(ErrorMessage.CONTAINER_NAME_IS_A_MANDATORY_PARAMETER.getMessage(),
-            containerName);
-        String bucketName = generateBucketName(containerName);
-        try {
-            ListObjectsV2Request listObjectsV2Request = new ListObjectsV2Request();
-            listObjectsV2Request.setBucketName(bucketName);
-            listObjectsV2Request.setMaxKeys(LISTING_MAX_RESULTS);
-            listObjectsV2Request.setContinuationToken(nextMarker);
-            ListObjectsV2Result listObjectsV2Result = client.listObjectsV2(listObjectsV2Request);
-            return AmazonS3V1PageSetImpl.wrap(listObjectsV2Result);
-        } catch (AmazonServiceException e) {
-            LOGGER.debug(String.format(
-                "Error when trying to list objects from marker %s in container %s. Reason: errorCode=%s, errorType=%s, errorMessage=%s",
-                nextMarker, containerName, e.getErrorCode(), e.getErrorType(), e.getErrorMessage()), e);
-            if (AmazonS3APIErrorCodes.NO_SUCH_BUCKET.getErrorCode().equals(e.getErrorCode())) {
-                throw new ContentAddressableStorageNotFoundException(
-                    ErrorMessage.CONTAINER_NOT_FOUND.getMessage() + containerName, e);
-            } else {
-                throw new ContentAddressableStorageServerException("Error when trying to list next objects", e);
-            }
-        } catch (SdkBaseException e) {
-            LOGGER.debug("Error when trying to list objects from marker %s in container %s. Reason: errorMessage=%s",
-                nextMarker, containerName, e.getMessage());
-            throw new ContentAddressableStorageServerException("Error when trying to list next objects", e);
-        }
-
     }
 
     @Override

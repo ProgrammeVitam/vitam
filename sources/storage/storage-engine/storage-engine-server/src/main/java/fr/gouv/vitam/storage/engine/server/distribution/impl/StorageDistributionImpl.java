@@ -32,6 +32,8 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
+import fr.gouv.vitam.common.collection.CloseableIterator;
+import fr.gouv.vitam.common.model.storage.ObjectEntry;
 import fr.gouv.vitam.common.retryable.DelegateRetry;
 import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.ParametersChecker;
@@ -119,6 +121,7 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -945,7 +948,7 @@ public class StorageDistributionImpl implements StorageDistribution {
 
 
     @Override
-    public RequestResponse<JsonNode> listContainerObjects(String strategyId, DataCategory category, String cursorId)
+    public CloseableIterator<ObjectEntry> listContainerObjects(String strategyId, DataCategory category)
         throws StorageException {
         Integer tenantId = ParameterHelper.getTenantParameter();
         ParametersChecker.checkParameter(STRATEGY_ID_IS_MANDATORY, strategyId);
@@ -981,8 +984,9 @@ public class StorageDistributionImpl implements StorageDistribution {
 
             final Driver driver = retrieveDriverInternal(offerReference.get().getId());
             try (Connection connection = driver.connect(offer.getId())) {
-                StorageListRequest request = new StorageListRequest(tenantId, category.getFolder(), cursorId, true);
+                StorageListRequest request = new StorageListRequest(tenantId, category.getFolder());
                 return connection.listObjects(request);
+
             } catch (final StorageDriverException exc) {
                 LOGGER.error(VitamCodeHelper.getLogMessage(VitamCode.STORAGE_TECHNICAL_INTERNAL_ERROR), exc);
                 throw new StorageTechnicalException(exc);

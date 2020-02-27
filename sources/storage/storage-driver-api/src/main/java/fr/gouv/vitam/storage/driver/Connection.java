@@ -26,8 +26,9 @@
  */
 package fr.gouv.vitam.storage.driver;
 
-import com.fasterxml.jackson.databind.JsonNode;
+import fr.gouv.vitam.common.collection.CloseableIterator;
 import fr.gouv.vitam.common.model.RequestResponse;
+import fr.gouv.vitam.common.model.storage.ObjectEntry;
 import fr.gouv.vitam.storage.driver.exception.StorageDriverException;
 import fr.gouv.vitam.storage.driver.exception.StorageDriverNotFoundException;
 import fr.gouv.vitam.storage.driver.exception.StorageDriverPreconditionFailedException;
@@ -149,7 +150,7 @@ public interface Connection extends AutoCloseable {
      * @return an iterator with each object metadata
      * @throws StorageDriverException
      */
-    RequestResponse<JsonNode> listObjects(StorageListRequest request) throws StorageDriverException;
+    CloseableIterator<ObjectEntry> listObjects(StorageListRequest request) throws StorageDriverException;
 
     /**
      * Get a listing of offer logs on a container type

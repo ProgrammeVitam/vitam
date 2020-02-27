@@ -32,9 +32,6 @@ package fr.gouv.vitam.storage.driver.model;
  */
 public class StorageListRequest extends StorageRequest {
 
-    private final String cursorId;
-    private final boolean xCursor;
-
     /**
      * Initialize the needed parameters for request.
      *
@@ -42,33 +39,8 @@ public class StorageListRequest extends StorageRequest {
      *            the request tenantId
      * @param type
      *            the type The request type
-     * @param cursorId
-     *            the cursor ID
-     * @param xCursor
-     *            the x-cursor, true for new cursor (new query), false for
-     *            ending
      */
-    public StorageListRequest(Integer tenantId, String type, String cursorId, boolean xCursor) {
+    public StorageListRequest(Integer tenantId, String type) {
         super(tenantId, type);
-        this.cursorId = cursorId;
-        this.xCursor = xCursor;
-    }
-
-    /**
-     * Get the cursor ID
-     *
-     * @return the cursor ID
-     */
-    public String getCursorId() {
-        return cursorId;
-    }
-
-    /**
-     * Get the x-cursor
-     *
-     * @return the x-cursor
-     */
-    public boolean isxCursor() {
-        return xCursor;
     }
 }

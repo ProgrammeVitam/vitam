@@ -26,34 +26,14 @@
  */
 package fr.gouv.vitam.storage.engine.client;
 
-import java.io.FileNotFoundException;
-import java.io.InputStream;
-import java.nio.charset.Charset;
-import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
-
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.Response.Status;
-
-import fr.gouv.vitam.common.thread.VitamThreadUtils;
-import org.apache.commons.io.IOUtils;
-
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-
 import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.accesslog.AccessLogInfoModel;
 import fr.gouv.vitam.common.client.AbstractMockClient;
-import fr.gouv.vitam.common.client.VitamRequestIterator;
+import fr.gouv.vitam.common.collection.CloseableIterator;
 import fr.gouv.vitam.common.digest.DigestType;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.guid.GUIDFactory;
@@ -61,7 +41,9 @@ import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.SysErrLogger;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
+import fr.gouv.vitam.common.model.storage.ObjectEntry;
 import fr.gouv.vitam.common.parameter.ParameterHelper;
+import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.storage.driver.model.StorageMetadataResult;
 import fr.gouv.vitam.storage.engine.client.exception.StorageAlreadyExistsClientException;
 import fr.gouv.vitam.storage.engine.client.exception.StorageNotFoundClientException;
@@ -77,6 +59,22 @@ import fr.gouv.vitam.storage.engine.common.model.response.BulkObjectStoreRespons
 import fr.gouv.vitam.storage.engine.common.model.response.StoredInfoResult;
 import fr.gouv.vitam.storage.engine.common.referential.model.OfferReference;
 import fr.gouv.vitam.storage.engine.common.referential.model.StorageStrategy;
+import org.apache.commons.io.IOUtils;
+
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
+import javax.ws.rs.core.Response.Status;
+import java.io.FileNotFoundException;
+import java.io.InputStream;
+import java.nio.charset.Charset;
+import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * Mock client implementation for storage
@@ -210,7 +208,7 @@ public class StorageClientMock extends AbstractMockClient implements StorageClie
     }
 
     @Override
-    public VitamRequestIterator<JsonNode> listContainer(String strategyId, DataCategory type) {
+    public CloseableIterator<ObjectEntry> listContainer(String strategyId, DataCategory type) {
         throw new IllegalStateException("Stop use this please");
     }
 

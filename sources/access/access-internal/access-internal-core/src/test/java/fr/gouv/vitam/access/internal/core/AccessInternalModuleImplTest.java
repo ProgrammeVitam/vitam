@@ -37,7 +37,8 @@ import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.client.DefaultClient;
 import fr.gouv.vitam.common.client.VitamClientFactory;
 import fr.gouv.vitam.common.client.VitamRequestBuilder;
-import fr.gouv.vitam.common.client.VitamRequestIterator;
+import fr.gouv.vitam.common.collection.CloseableIterator;
+import fr.gouv.vitam.common.collection.CloseableIteratorUtils;
 import fr.gouv.vitam.common.configuration.ClassificationLevel;
 import fr.gouv.vitam.common.database.builder.query.action.Action;
 import fr.gouv.vitam.common.database.builder.query.action.SetAction;
@@ -54,6 +55,7 @@ import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.administration.AccessContractModel;
 import fr.gouv.vitam.common.model.administration.ActivationStatus;
+import fr.gouv.vitam.common.model.storage.ObjectEntry;
 import fr.gouv.vitam.common.stream.StreamUtils;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
@@ -101,6 +103,7 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -1336,35 +1339,13 @@ public class AccessInternalModuleImplTest {
         return parser;
     }
 
-    private VitamRequestIterator<JsonNode> getMockedResponseForListContainer() {
+    private CloseableIterator<ObjectEntry> getMockedResponseForListContainer() {
 
-        final List<JsonNode> nodeList = new ArrayList<>();
-        ObjectNode node = JsonHandler.createObjectNode();
-        node.put("objectId", "0_s_a_l_20180810040000000_20180810080000000_id.log");
-        nodeList.add(node);
-        node = JsonHandler.createObjectNode();
-        node.put("objectId", "0_s_a_l_20180810090000000_20180810150000000_id.log");
-        nodeList.add(node);
-        node = JsonHandler.createObjectNode();
-        node.put("objectId", "0_s_a_l_20180810160000000_20180810190000000_id.log");
-        nodeList.add(node);
-
-        return new VitamRequestIterator<JsonNode>((DefaultClient) mock(DefaultClient.class), VitamRequestBuilder.get(), JsonNode.class) {
-            List<JsonNode> nodes = nodeList;
-            Integer actualSize = 0;
-
-            @Override
-            public boolean hasNext() {
-                return actualSize < 3;
-            }
-
-            @Override
-            public JsonNode next() {
-                JsonNode next = nodes.get(actualSize);
-                actualSize++;
-                return next;
-            }
-        };
+        return CloseableIteratorUtils.toCloseableIterator(Arrays.asList(
+            new ObjectEntry("0_s_a_l_20180810040000000_20180810080000000_id.log", 0L),
+            new ObjectEntry("0_s_a_l_20180810090000000_20180810150000000_id.log", 0L),
+                new ObjectEntry("0_s_a_l_20180810160000000_20180810190000000_id.log", 0L))
+        .iterator());
     }
 
     private void initMocksForAccessLog() throws Exception {

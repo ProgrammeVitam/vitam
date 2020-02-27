@@ -29,13 +29,21 @@ package fr.gouv.vitam.common.storage.s3;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.Set;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
+import fr.gouv.vitam.common.model.storage.ObjectEntry;
+import fr.gouv.vitam.common.storage.cas.container.api.ObjectListingListener;
 import org.apache.commons.io.IOUtils;
 import org.junit.Before;
 import org.junit.Ignore;
@@ -51,10 +59,9 @@ import fr.gouv.vitam.common.digest.DigestType;
 import fr.gouv.vitam.common.model.MetadatasObject;
 import fr.gouv.vitam.common.storage.StorageConfiguration;
 import fr.gouv.vitam.common.storage.cas.container.api.ObjectContent;
-import fr.gouv.vitam.common.storage.cas.container.api.VitamPageSet;
-import fr.gouv.vitam.common.storage.cas.container.api.VitamStorageMetadata;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
+import org.mockito.ArgumentCaptor;
 
 /**
  * Integration tests using docker instances with storage s3 API : minio or
@@ -301,29 +308,23 @@ public class AmazonS3V1ITTest {
             file1Stream.close();
         }
 
-        VitamPageSet<? extends VitamStorageMetadata> pageSet = amazonS3V1.listContainer(containerName);
-        assertThat(pageSet).isNotNull();
-        assertThat(pageSet.isEmpty()).isFalse();
-        assertThat(pageSet.size()).isEqualTo(100);
-        assertThat(pageSet.getNextMarker()).isNotNull();
-        pageSet.forEach(item -> System.out.println(item.getName()));
+        ObjectListingListener objectListingListener = mock(ObjectListingListener.class);
 
-        // Loop with marker with complete PageSet (100 elements)
-        for (int i = 1; i < nbIter; i++) {
-            pageSet = amazonS3V1.listContainerNext(containerName, pageSet.getNextMarker());
-            assertThat(pageSet).isNotNull();
-            assertThat(pageSet.isEmpty()).isFalse();
-            assertThat(pageSet.size()).isEqualTo(100);
-            assertThat(pageSet.getNextMarker()).isNotNull();
-            pageSet.forEach(item -> System.out.println(item.getName()));
-        }
+        amazonS3V1.listContainer(containerName, objectListingListener);
 
-        // Last listContainer with only 50 results
-        pageSet = amazonS3V1.listContainerNext(containerName, pageSet.getNextMarker());
-        assertThat(pageSet).isNotNull();
-        assertThat(pageSet.isEmpty()).isFalse();
-        assertThat(pageSet.size()).isEqualTo(50);
-        assertThat(pageSet.getNextMarker()).isNull();
+        ArgumentCaptor<ObjectEntry> objectEntryArgumentCaptor = ArgumentCaptor.forClass(ObjectEntry.class);
+        verify(objectListingListener, times(nbIter * 100 + 50)).handleObjectEntry(objectEntryArgumentCaptor.capture());
+
+        objectEntryArgumentCaptor.getAllValues()
+            .forEach(capturedObjectEntry -> assertThat(capturedObjectEntry.getSize()).isEqualTo(6906L));
+
+        Set<String> capturedFileNames = objectEntryArgumentCaptor.getAllValues().stream()
+            .map(ObjectEntry::getObjectId)
+            .collect(Collectors.toSet());
+        Set<String> expectedFileNames = IntStream.range(0, nbIter * 100 + 50)
+            .mapToObj(i -> objectName + i)
+            .collect(Collectors.toSet());
+        assertThat(capturedFileNames).isEqualTo(expectedFileNames);
     }
 
     private InputStream getInputStream(String file) throws IOException {
