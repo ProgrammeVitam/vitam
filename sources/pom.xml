@@ -175,8 +175,8 @@
         <!-- other -->
         <slf4j.version>1.7.30</slf4j.version>
         <logback.version>1.2.3</logback.version>
-        <resteasy.client.version>4.0.0.Final</resteasy.client.version>
-        <resteasy.core.version>4.0.0.Final</resteasy.core.version>
+        <resteasy.client.version>4.5.1.Final</resteasy.client.version>
+        <resteasy.core.version>4.5.1.Final</resteasy.core.version>
         <javax.ws.rs.version>2.1.1</javax.ws.rs.version>
         <thaiopensource.version>20091111</thaiopensource.version>
         <guava.version>28.2-jre</guava.version>

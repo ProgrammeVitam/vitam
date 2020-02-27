@@ -488,8 +488,6 @@ public abstract class VitamClientFactory<T extends MockOrRestClient> implements 
                 TimeUnit.MILLISECONDS);
         clientBuilder.readTimeout(VitamRestEasyConfiguration.READ_TIMEOUT.getInt(config, 100000),
                 TimeUnit.MILLISECONDS);
-        // same call on low level that executorService
-        // clientBuilder.asyncExecutor(threadPoolExecutor);
         clientBuilder.executorService(threadPoolExecutor);
         if (isAllowGzipDecoded()) {
             clientBuilder.register(AcceptEncodingGZIPFilter.class);
