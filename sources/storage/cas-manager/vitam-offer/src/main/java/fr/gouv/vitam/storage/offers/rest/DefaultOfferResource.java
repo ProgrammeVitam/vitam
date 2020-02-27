@@ -26,11 +26,9 @@
  */
 package fr.gouv.vitam.storage.offers.rest;
 
-import com.fasterxml.jackson.databind.JsonNode;
 import com.google.common.base.Strings;
 import fr.gouv.vitam.common.CommonMediaType;
 import fr.gouv.vitam.common.GlobalDataRest;
-import fr.gouv.vitam.common.client.VitamRequestIterator;
 import fr.gouv.vitam.common.digest.DigestType;
 import fr.gouv.vitam.common.error.VitamCode;
 import fr.gouv.vitam.common.error.VitamCodeHelper;
@@ -42,7 +40,7 @@ import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.RequestResponseError;
 import fr.gouv.vitam.common.model.RequestResponseOK;
-import fr.gouv.vitam.common.security.SafeFileChecker;
+import fr.gouv.vitam.common.model.storage.ObjectEntryWriter;
 import fr.gouv.vitam.common.security.SanityChecker;
 import fr.gouv.vitam.common.server.application.VitamHttpHeader;
 import fr.gouv.vitam.common.server.application.resources.ApplicationStatusResource;
@@ -67,6 +65,7 @@ import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
 import fr.gouv.vitam.workspace.api.exception.UnavailableFileException;
+import org.apache.commons.io.output.CloseShieldOutputStream;
 import org.apache.commons.lang3.StringUtils;
 import org.openstack4j.api.exceptions.ConnectionException;
 
@@ -81,11 +80,13 @@ import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
+import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
+import javax.ws.rs.core.StreamingOutput;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.HashMap;
@@ -160,10 +161,8 @@ public class DefaultOfferResource extends ApplicationStatusResource {
     }
 
     /**
-     * Get container object list
+     * Get container object list.
      *
-     * @param xcursor if true means new query, if false means end of query from client side
-     * @param xcursorId if present, means continue on cursor
      * @param xTenantId the tenant id
      * @param type object type
      * @return an iterator with each object metadata (actually only the id)
@@ -172,71 +171,37 @@ public class DefaultOfferResource extends ApplicationStatusResource {
     @Path("/objects/{type}")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    public Response getContainerList(@HeaderParam(GlobalDataRest.X_CURSOR) boolean xcursor,
-        @HeaderParam(GlobalDataRest.X_CURSOR_ID) String xcursorId,
+    public Response getContainerList(
         @HeaderParam(GlobalDataRest.X_TENANT_ID) String xTenantId,
         @PathParam("type") DataCategory type) {
-        try {
-            if (Strings.isNullOrEmpty(xTenantId)) {
-                LOGGER.error(MISSING_THE_TENANT_ID_X_TENANT_ID);
-                final Response.ResponseBuilder builder = Response.status(Status.BAD_REQUEST);
-                return VitamRequestIterator.setHeaders(builder, xcursor, null).build();
-            }
-            Status status;
-            String cursorId = xcursorId;
-            if (VitamRequestIterator.isEndOfCursor(xcursor, xcursorId)) {
-                defaultOfferService.finalizeCursor(buildContainerName(type, xTenantId), xcursorId);
-                final Response.ResponseBuilder builder = Response.status(Status.NO_CONTENT);
-                return VitamRequestIterator.setHeaders(builder, xcursor, null).build();
-            }
-
-            if (VitamRequestIterator.isNewCursor(xcursor, xcursorId)) {
-                try {
-                    cursorId = defaultOfferService.createCursor(buildContainerName(type, xTenantId));
-                } catch (ContentAddressableStorageNotFoundException | ContentAddressableStorageServerException exc) {
-                    LOGGER.error(exc);
-                    status = Status.INTERNAL_SERVER_ERROR;
-                    final Response.ResponseBuilder builder = Response.status(status)
-                        .entity(new VitamError(status.name()).setHttpCode(status.getStatusCode())
-                            .setContext("default-offer")
-                            .setState("code_vitam").setMessage(status.getReasonPhrase())
-                            .setDescription(exc.getMessage()));
-                    return VitamRequestIterator.setHeaders(builder, xcursor, null).build();
-                }
-            }
-
-            final RequestResponseOK<JsonNode> responseOK = new RequestResponseOK<JsonNode>();
-
-            if (defaultOfferService.hasNext(buildContainerName(type, xTenantId), cursorId)) {
-                try {
-                    List<JsonNode> list = defaultOfferService.next(buildContainerName(type, xTenantId), cursorId);
-                    responseOK.addAllResults(list);
-                    LOGGER.debug("Result {}", responseOK);
-                    final Response.ResponseBuilder builder = Response
-                        .status(defaultOfferService.hasNext(buildContainerName(type, xTenantId), cursorId)
-                            ? Status.PARTIAL_CONTENT
-                            : Status.OK).entity(responseOK);
-                    return VitamRequestIterator.setHeaders(builder, xcursor, cursorId).build();
-                } catch (ContentAddressableStorageNotFoundException exc) {
-                    LOGGER.error(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage(), exc);
-                    status = Status.INTERNAL_SERVER_ERROR;
-                    final Response.ResponseBuilder builder = Response.status(status)
-                        .entity(new VitamError(status.name()).setHttpCode(status.getStatusCode())
-                            .setContext(DEFAULT_OFFER_MODULE)
-                            .setState(CODE_VITAM).setMessage(status.getReasonPhrase())
-                            .setDescription(exc.getMessage()));
-                    return VitamRequestIterator.setHeaders(builder, xcursor, null).build();
-                }
-            } else {
-                defaultOfferService.finalizeCursor(buildContainerName(type, xTenantId), xcursorId);
-                final Response.ResponseBuilder builder = Response.status(Status.NO_CONTENT);
-                return VitamRequestIterator.setHeaders(builder, xcursor, null).build();
-            }
-        } catch (Exception e) {
-            LOGGER.error(e);
-            final Response.ResponseBuilder builder = Response.status(Status.BAD_REQUEST);
-            return VitamRequestIterator.setHeaders(builder, xcursor, null).build();
+        if (Strings.isNullOrEmpty(xTenantId)) {
+            LOGGER.error(MISSING_THE_TENANT_ID_X_TENANT_ID);
+            return Response.status(Response.Status.BAD_REQUEST).build();
         }
+
+        StreamingOutput streamingOutput = output -> {
+            try (
+                CloseShieldOutputStream closeShieldOutputStream = new CloseShieldOutputStream(output);
+                ObjectEntryWriter objectEntryWriter = new ObjectEntryWriter(closeShieldOutputStream)) {
+
+                defaultOfferService.listObjects(buildContainerName(type, xTenantId), objectEntryWriter::write);
+
+                // No errors ==> write EOF
+                objectEntryWriter.writeEof();
+
+            } catch (ContentAddressableStorageNotFoundException e) {
+                String msg = "Could not return object listing. Not found";
+                LOGGER.error(msg, e);
+                throw new WebApplicationException(msg, e, Response.status(Status.NOT_FOUND).entity(msg).build());
+            } catch (Exception e) {
+                LOGGER.error("Could not return object listing. Internal server error", e);
+                throw new WebApplicationException("Could not return object listing", e);
+            }
+        };
+
+        return Response
+            .ok(streamingOutput)
+            .build();
     }
 
     /**

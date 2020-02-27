@@ -50,6 +50,8 @@ import java.util.regex.Pattern;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
+import fr.gouv.vitam.common.collection.CloseableIterator;
+import fr.gouv.vitam.common.model.storage.ObjectEntry;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.junit.AfterClass;
@@ -61,7 +63,6 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 
-import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
@@ -72,7 +73,6 @@ import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.accesslog.AccessLogUtils;
 import fr.gouv.vitam.common.client.VitamClientFactory;
 import fr.gouv.vitam.common.client.VitamClientFactoryInterface;
-import fr.gouv.vitam.common.client.VitamRequestIterator;
 import fr.gouv.vitam.common.database.collections.VitamCollection;
 import fr.gouv.vitam.common.guid.GUID;
 import fr.gouv.vitam.common.guid.GUIDFactory;
@@ -334,12 +334,12 @@ public class StorageTestMultiIT {
 
         backupService.backup(fileIS, DataCategory.RULES, FILE_NAME);
 
-        VitamRequestIterator<JsonNode> result = storageClient.listContainer(VitamConfiguration.getDefaultStrategy(), DataCategory.RULES);
+        CloseableIterator<ObjectEntry> result = storageClient.listContainer(VitamConfiguration.getDefaultStrategy(), DataCategory.RULES);
 
         TestCase.assertNotNull(result);
 
         Assert.assertTrue(result.hasNext());
-        JsonNode node = result.next();
+        ObjectEntry node = result.next();
         TestCase.assertNotNull(node);
     }
 
@@ -374,10 +374,10 @@ public class StorageTestMultiIT {
 
             // see other test for full listing, here, we only have one object !
             try {
-                VitamRequestIterator<JsonNode> result = storageClient.listContainer(VitamConfiguration.getDefaultStrategy(), DataCategory.OBJECT);
+                CloseableIterator<ObjectEntry> result = storageClient.listContainer(VitamConfiguration.getDefaultStrategy(), DataCategory.OBJECT);
                 TestCase.assertNotNull(result);
                 Assert.assertTrue(result.hasNext());
-                JsonNode node = result.next();
+                ObjectEntry node = result.next();
                 TestCase.assertNotNull(node);
                 Assert.assertFalse(result.hasNext());
             } catch (StorageServerClientException exc) {
@@ -429,10 +429,10 @@ public class StorageTestMultiIT {
 
             // see other test for full listing, here, we only have one object !
             try {
-                VitamRequestIterator<JsonNode> result = storageClient.listContainer(VitamConfiguration.getDefaultStrategy(), DataCategory.OBJECT);
+                CloseableIterator<ObjectEntry> result = storageClient.listContainer(VitamConfiguration.getDefaultStrategy(), DataCategory.OBJECT);
                 TestCase.assertNotNull(result);
                 Assert.assertTrue(result.hasNext());
-                JsonNode node = result.next();
+                ObjectEntry node = result.next();
                 TestCase.assertNotNull(node);
                 Assert.assertFalse(result.hasNext());
             } catch (StorageServerClientException exc) {
@@ -762,7 +762,7 @@ public class StorageTestMultiIT {
         }
 
         try (StorageClient storageClient = StorageClientFactory.getInstance().getClient();
-            VitamRequestIterator<JsonNode> result = storageClient.listContainer(VitamConfiguration.getDefaultStrategy(), DataCategory.OBJECT)) {
+            CloseableIterator<ObjectEntry> result = storageClient.listContainer(VitamConfiguration.getDefaultStrategy(), DataCategory.OBJECT)) {
             TestCase.assertNotNull(result);
             int count = 0;
             while (result.hasNext()) {

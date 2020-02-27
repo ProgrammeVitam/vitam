@@ -31,9 +31,9 @@ import fr.gouv.vitam.common.digest.Digest;
 import fr.gouv.vitam.common.digest.DigestType;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.common.model.storage.ObjectEntry;
 import fr.gouv.vitam.common.storage.ContainerInformation;
 import fr.gouv.vitam.common.storage.StorageConfiguration;
-import fr.gouv.vitam.common.storage.cas.container.jcloud.VitamJcloudsPageSetImpl;
 import fr.gouv.vitam.common.storage.constants.ErrorMessage;
 import fr.gouv.vitam.common.stream.StreamUtils;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageException;
@@ -42,8 +42,11 @@ import org.jclouds.blobstore.BlobStore;
 import org.jclouds.blobstore.BlobStoreContext;
 import org.jclouds.blobstore.ContainerNotFoundException;
 import org.jclouds.blobstore.domain.Blob;
+import org.jclouds.blobstore.domain.PageSet;
+import org.jclouds.blobstore.domain.StorageMetadata;
 import org.jclouds.blobstore.options.ListContainerOptions;
 
+import java.io.IOException;
 import java.io.InputStream;
 
 /**
@@ -232,48 +235,40 @@ public abstract class ContentAddressableStorageJcloudsAbstract extends ContentAd
             throws ContentAddressableStorageNotFoundException;
 
     @Override
-    public VitamPageSet<? extends VitamStorageMetadata> listContainer(String containerName)
-            throws ContentAddressableStorageNotFoundException {
+    public void listContainer(String containerName, ObjectListingListener objectListingListener)
+        throws ContentAddressableStorageNotFoundException, IOException {
+
         ParametersChecker
-                .checkParameter(ErrorMessage.CONTAINER_NAME_IS_A_MANDATORY_PARAMETER.getMessage(), containerName);
+            .checkParameter(ErrorMessage.CONTAINER_NAME_IS_A_MANDATORY_PARAMETER.getMessage(), containerName);
 
         try {
             final BlobStore blobStore = context.getBlobStore();
             if (!isExistingContainer(containerName)) {
                 LOGGER.error(ErrorMessage.CONTAINER_NOT_FOUND.getMessage() + containerName);
                 throw new ContentAddressableStorageNotFoundException(
-                        ErrorMessage.CONTAINER_NOT_FOUND.getMessage() + containerName);
+                    ErrorMessage.CONTAINER_NOT_FOUND.getMessage() + containerName);
             }
 
-            ListContainerOptions options = new ListContainerOptions();
-            options.maxResults(LISTING_MAX_RESULTS);
+            String nextMarker = null;
+            do {
+                ListContainerOptions options = new ListContainerOptions();
+                options.maxResults(LISTING_MAX_RESULTS);
+                if (nextMarker != null) {
+                    options.afterMarker(nextMarker);
+                }
 
-            return VitamJcloudsPageSetImpl.wrap(blobStore.list(containerName, options));
+                PageSet<? extends StorageMetadata> pageSet = blobStore.list(containerName, options);
 
-        } finally {
-            closeContext();
-        }
+                for (StorageMetadata storageMetadata : pageSet) {
 
-    }
+                    objectListingListener.handleObjectEntry(new ObjectEntry(
+                        storageMetadata.getName(),
+                        storageMetadata.getSize()
+                    ));
+                }
 
-    @Override
-    public VitamPageSet<? extends VitamStorageMetadata> listContainerNext(String containerName, String nextMarker)
-            throws ContentAddressableStorageNotFoundException {
-        ParametersChecker
-                .checkParameter(ErrorMessage.CONTAINER_NAME_IS_A_MANDATORY_PARAMETER.getMessage(), containerName);
-
-        try {
-            final BlobStore blobStore = context.getBlobStore();
-            if (!isExistingContainer(containerName)) {
-                LOGGER.error(ErrorMessage.CONTAINER_NOT_FOUND.getMessage() + containerName);
-                throw new ContentAddressableStorageNotFoundException(
-                        ErrorMessage.CONTAINER_NOT_FOUND.getMessage() + containerName);
-            }
-
-            ListContainerOptions options = new ListContainerOptions();
-            options.maxResults(LISTING_MAX_RESULTS);
-            options.afterMarker(nextMarker);
-            return VitamJcloudsPageSetImpl.wrap(blobStore.list(containerName, options));
+                nextMarker = pageSet.getNextMarker();
+            } while (nextMarker != null);
         } finally {
             closeContext();
         }

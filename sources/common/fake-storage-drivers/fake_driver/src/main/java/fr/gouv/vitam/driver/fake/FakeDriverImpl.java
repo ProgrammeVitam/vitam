@@ -26,20 +26,17 @@
  */
 package fr.gouv.vitam.driver.fake;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.node.ObjectNode;
 import fr.gouv.vitam.common.BaseXx;
-import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.client.AbstractMockClient;
 import fr.gouv.vitam.common.client.TestVitamClientFactory;
 import fr.gouv.vitam.common.client.VitamClientFactoryInterface;
-import fr.gouv.vitam.common.client.VitamRequestBuilder;
-import fr.gouv.vitam.common.client.VitamRequestIterator;
 import fr.gouv.vitam.common.client.VitamRestEasyConfiguration;
 import fr.gouv.vitam.common.client.configuration.ClientConfiguration;
-import fr.gouv.vitam.common.json.JsonHandler;
+import fr.gouv.vitam.common.collection.CloseableIterator;
+import fr.gouv.vitam.common.collection.CloseableIteratorUtils;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
+import fr.gouv.vitam.common.model.storage.ObjectEntry;
 import fr.gouv.vitam.storage.driver.AbstractConnection;
 import fr.gouv.vitam.storage.driver.AbstractDriver;
 import fr.gouv.vitam.storage.driver.Connection;
@@ -61,20 +58,17 @@ import fr.gouv.vitam.storage.driver.model.StorageRemoveResult;
 import fr.gouv.vitam.storage.engine.common.model.OfferLog;
 import fr.gouv.vitam.storage.engine.common.model.TapeReadRequestReferentialEntity;
 import fr.gouv.vitam.storage.engine.common.referential.model.StorageOffer;
+import org.apache.commons.collections4.IteratorUtils;
 import org.apache.commons.io.IOUtils;
 
-import javax.ws.rs.HttpMethod;
 import javax.ws.rs.client.Client;
 import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.MultivaluedHashMap;
 import javax.ws.rs.core.Response.Status;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 
@@ -298,22 +292,10 @@ public class FakeDriverImpl extends AbstractDriver {
         }
 
         @Override
-        public RequestResponse<JsonNode> listObjects(StorageListRequest request) throws StorageDriverException {
-            final RequestResponseOK<JsonNode> response = new RequestResponseOK<>(JsonHandler.createObjectNode());
-            final ObjectNode node1 = JsonHandler.createObjectNode().put("val", 1);
-            final ObjectNode node2 = JsonHandler.createObjectNode().put("val", 2);
-            final ObjectNode node3 = JsonHandler.createObjectNode().put("val", 3);
-            response.addResult(node1);
-            final List<JsonNode> list = new ArrayList<>();
-            list.add(node2);
-            list.add(node3);
-            response.addAllResults(list);
-            response.setHttpCode(Status.OK.getStatusCode());
-
-            response.addHeader(GlobalDataRest.X_CURSOR, String.valueOf(false));
-            response.addHeader(GlobalDataRest.X_CURSOR_ID, "newcursor");
-
-            return response;
+        public CloseableIterator<ObjectEntry> listObjects(StorageListRequest request) throws StorageDriverException {
+            return CloseableIteratorUtils.toCloseableIterator(IteratorUtils.singletonListIterator(
+                new ObjectEntry("objectId", 100L)
+            ));
         }
 
         @Override

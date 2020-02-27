@@ -42,8 +42,8 @@ import fr.gouv.vitam.common.storage.StorageConfiguration;
 import fr.gouv.vitam.common.storage.cas.container.api.ContentAddressableStorageAbstract;
 import fr.gouv.vitam.common.storage.cas.container.api.MetadatasStorageObject;
 import fr.gouv.vitam.common.storage.cas.container.api.ObjectContent;
-import fr.gouv.vitam.common.storage.cas.container.api.VitamPageSet;
-import fr.gouv.vitam.common.storage.cas.container.api.VitamStorageMetadata;
+import fr.gouv.vitam.common.model.storage.ObjectEntry;
+import fr.gouv.vitam.common.storage.cas.container.api.ObjectListingListener;
 import fr.gouv.vitam.common.storage.constants.ErrorMessage;
 import fr.gouv.vitam.common.storage.constants.ExtendedAttributes;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageAlreadyExistException;
@@ -60,10 +60,12 @@ import java.nio.charset.Charset;
 import java.nio.file.DirectoryNotEmptyException;
 import java.nio.file.FileAlreadyExistsException;
 import java.nio.file.FileSystemException;
+import java.nio.file.FileVisitResult;
 import java.nio.file.Files;
 import java.nio.file.NoSuchFileException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.nio.file.SimpleFileVisitor;
 import java.nio.file.StandardCopyOption;
 import java.nio.file.attribute.BasicFileAttributeView;
 import java.nio.file.attribute.BasicFileAttributes;
@@ -372,36 +374,24 @@ public class HashFileSystem extends ContentAddressableStorageAbstract {
     }
 
     @Override
-    public VitamPageSet<? extends VitamStorageMetadata> listContainer(String containerName)
-            throws ContentAddressableStorageServerException {
+    public void listContainer(String containerName, ObjectListingListener objectListingListener)
+        throws ContentAddressableStorageNotFoundException, ContentAddressableStorageServerException, IOException {
         ParametersChecker.checkParameter(ErrorMessage.CONTAINER_NAME_IS_A_MANDATORY_PARAMETER.getMessage(), containerName);
         fsHelper.checkContainerPathTraversal(containerName);
-        Path p = fsHelper.getPathContainer(containerName);
-        HashFileListVisitor hfv = new HashFileListVisitor();
-        try {
-            fsHelper.walkFileTreeOrdered(p, hfv);
-        } catch (IOException e) {
-            LOGGER.error(e);
+        if (!isExistingContainer(containerName)) {
+            throw new ContentAddressableStorageNotFoundException(ErrorMessage.CONTAINER_NOT_FOUND + containerName);
         }
-        return hfv.getPageSet();
-    }
-
-    @Override
-    public VitamPageSet<? extends VitamStorageMetadata> listContainerNext(String containerName, String nextMarker)
-            throws ContentAddressableStorageServerException {
-        ParametersChecker.checkParameter(ErrorMessage.CONTAINER_NAME_IS_A_MANDATORY_PARAMETER.getMessage(), containerName);
-
-        HashFileListVisitor hfv = new HashFileListVisitor(fsHelper.splitObjectId(nextMarker), nextMarker);
-        fsHelper.checkContainerPathTraversal(containerName);
-        Path p = fsHelper.getPathContainer(containerName);
-        try {
-            fsHelper.walkFileTreeOrdered(p, hfv);
-            return hfv.getPageSet();
-        } catch (IOException e) {
-            LOGGER.error(e.getMessage());
-            throw new ContentAddressableStorageServerException(e);
-        }
-
+        Path path = fsHelper.getPathContainer(containerName);
+        Files.walkFileTree(path, new SimpleFileVisitor<Path>() {
+            @Override
+            public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
+                objectListingListener.handleObjectEntry(new ObjectEntry(
+                    file.getFileName().toString(),
+                    file.toFile().length()
+                ));
+                return super.visitFile(file, attrs);
+            }
+        });
     }
 
     @Override

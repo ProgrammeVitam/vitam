@@ -555,7 +555,7 @@ public class LogbookResource extends ApplicationStatusResource {
     /***** LIFE CYCLES UNIT - START *****/
 
     /**
-     * GET multiple Unit Life Cycles through VitamRequestIterator
+     * GET multiple Unit Life Cycles
      *
      * @param operationId the operation id
      * @param evtStatus the evenement status (commited / not_commited)
@@ -1333,7 +1333,7 @@ public class LogbookResource extends ApplicationStatusResource {
 
     /***** LIFE CYCLES OBJECT GROUP - START *****/
     /**
-     * GET multiple Unit Life Cycles through VitamRequestIterator
+     * GET multiple Unit Life Cycles
      *
      * @param operationId the operation id
      * @param evtStatus the evenement status (commited / not_commited)
