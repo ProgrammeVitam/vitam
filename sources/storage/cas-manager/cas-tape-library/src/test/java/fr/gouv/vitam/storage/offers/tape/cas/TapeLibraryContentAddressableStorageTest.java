@@ -33,6 +33,7 @@ import fr.gouv.vitam.common.digest.DigestType;
 import fr.gouv.vitam.common.model.MetadatasObject;
 import fr.gouv.vitam.common.storage.ContainerInformation;
 import fr.gouv.vitam.common.storage.cas.container.api.ObjectContent;
+import fr.gouv.vitam.common.storage.cas.container.api.ObjectListingListener;
 import fr.gouv.vitam.storage.engine.common.model.TapeArchiveReferentialEntity;
 import fr.gouv.vitam.storage.engine.common.model.TapeCatalog;
 import fr.gouv.vitam.storage.engine.common.model.TapeLibraryObjectReferentialId;
@@ -387,19 +388,12 @@ public class TapeLibraryContentAddressableStorageTest {
     public void listContainer() {
 
         // Given
+        ObjectListingListener objectListingListener = mock(ObjectListingListener.class);
 
         // When / Then
-        assertThatThrownBy(() -> tapeLibraryContentAddressableStorage.listContainer("container"))
-            .isInstanceOf(UnsupportedOperationException.class);
-    }
-
-    @Test
-    public void listContainerNext() {
-
-        // Given
-
-        // When / Then
-        assertThatThrownBy(() -> tapeLibraryContentAddressableStorage.listContainerNext("container", "maker"))
+        assertThatThrownBy(() -> {
+            tapeLibraryContentAddressableStorage.listContainer("container", objectListingListener);
+        })
             .isInstanceOf(UnsupportedOperationException.class);
     }
 

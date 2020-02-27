@@ -219,61 +219,10 @@ public interface LogbookLifeCyclesClient extends BasicClient {
     JsonNode selectObjectGroupLifeCycle(JsonNode queryDsl)
         throws LogbookClientException, InvalidParseOperationException;
 
-    /**
-     * returns VitamRequestIterator on ObjectGroupLifecycles for this operation.</br>
-     * </br>
-     * Example of code using it:</br>
-     *
-     * <pre>
-     * <code>
-        try (LogbookLifeCyclesClient client = LogbookLifeCyclesClientFactory.getInstance().getClient()) {
-            try (VitamRequestIterator iterator = client.objectGroupLifeCyclesByOperationIterator(operationId)) {
-                while (iterator.hasNext()) {
-                    JsonNode objectGroupLifeCycle = iterator.next();
-                    // use it
-                }
-            }
-
-        }
-     * </code>
-     * </pre>
-     *
-     * @param operationId the operation id from which this ObjectGroup Lifecycles will be retrieved
-     * @param lifeCycleStatus the lifecycle status
-     * @return the VitamRequestIterator on ObjectGroupLifecycles as JsonNode
-     * @throws LogbookClientException
-     * @throws InvalidParseOperationException
-     */
     RequestResponse objectGroupLifeCyclesByOperationIterator(String operationId,
         LifeCycleStatusCode lifeCycleStatus, JsonNode query)
         throws LogbookClientException, InvalidParseOperationException;
 
-    /**
-     * returns VitamRequestIterator on UnitLifeCycles for this operation.</br>
-     * </br>
-     * Example of code using it:</br>
-     *
-     * <pre>
-     * <code>
-        try (LogbookLifeCyclesClient client = LogbookLifeCyclesClientFactory.getInstance().getClient()) {
-            try (VitamRequestIterator iterator = client.unitLifeCyclesByOperationIterator(operationId)) {
-                while (iterator.hasNext()) {
-                    JsonNode unitLifeCycle = iterator.next();
-                    // use it
-                }
-            }
-
-        }
-     * </code>
-     * </pre>
-     *
-     * @param operationId the operation id from which this UnitLife Lifecycles will be retrieved
-     * @param lifeCycleStatus the lifecycle status
-     * @param query JsonNode query
-     * @return the VitamRequestIterator on UnitLifeCycles as JsonNode
-     * @throws LogbookClientException
-     * @throws InvalidParseOperationException
-     */
     RequestResponse unitLifeCyclesByOperationIterator(String operationId,
         LifeCycleStatusCode lifeCycleStatus, JsonNode query)
         throws LogbookClientException, InvalidParseOperationException;

@@ -197,47 +197,6 @@ public class HashFileSystemHelper {
         }
     }
 
-    /**
-     * A walkFile where we goes in the child in the lexicographic order
-     *
-     * @param directory : root of the tree that will be visited
-     * @param fv        : FileVisitor which will be used for the action
-     * @return FileVisitResult (only useful for the recursive call and not for the external call)
-     * @throws IOException
-     */
-    public FileVisitResult walkFileTreeOrdered(Path directory, FileVisitor<Path> fv) throws IOException {
-        try (DirectoryStream<Path> dsp = Files.newDirectoryStream(directory)) {
-            FileVisitResult fvr =
-                fv.preVisitDirectory(directory, Files.readAttributes(directory, BasicFileAttributes.class));
-            // If we skip the subtree, do nothing
-            if (fvr.equals(FileVisitResult.SKIP_SUBTREE)) {
-                return FileVisitResult.SKIP_SUBTREE;
-            }
-            // Create an ordered list of the directory children
-            ArrayList<Path> l = new ArrayList<>();
-            for (Path p : dsp) {
-                l.add(p);
-            }
-            l.sort(new ComparatorPath());
-            for (Path p : l) {
-                File f = p.toFile();
-                if (f.isDirectory()) {
-                    if (walkFileTreeOrdered(p, fv) == FileVisitResult.TERMINATE) {
-                        return FileVisitResult.TERMINATE;
-                    }
-                } else if (f.isFile()) {
-                    fvr = fv.visitFile(p, Files.readAttributes(p, BasicFileAttributes.class));
-                    // Don't visit the brother on TERMINATE but continue the search
-                    if (fvr.equals(FileVisitResult.TERMINATE)) {
-                        return FileVisitResult.TERMINATE;
-                    }
-                }
-            }
-            fv.postVisitDirectory(directory, null);
-        }
-        return FileVisitResult.CONTINUE;
-    }
-
     public void checkContainerPathTraversal(String  containerName) throws ContentAddressableStorageServerException {
         try {
             SafeFileChecker.checkSafeFilePath(rootPath, CONTAINER_SUBDIRECTORY, containerName);
@@ -246,16 +205,4 @@ public class HashFileSystemHelper {
         }
 
     }
-
-    /**
-     * Have a comparator on Path based on the lexicographic order of the FileName
-     */
-    private static class ComparatorPath implements Comparator<Path> {
-        @Override
-        public int compare(Path path1, Path path2) {
-            return path1.getFileName().compareTo(path2.getFileName());
-        }
-
-    }
-
 }

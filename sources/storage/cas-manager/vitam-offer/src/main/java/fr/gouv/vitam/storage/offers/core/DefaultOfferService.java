@@ -26,11 +26,11 @@
  */
 package fr.gouv.vitam.storage.offers.core;
 
-import com.fasterxml.jackson.databind.JsonNode;
 import com.google.common.annotations.VisibleForTesting;
 import fr.gouv.vitam.common.digest.DigestType;
 import fr.gouv.vitam.common.storage.ContainerInformation;
 import fr.gouv.vitam.common.storage.cas.container.api.ObjectContent;
+import fr.gouv.vitam.common.storage.cas.container.api.ObjectListingListener;
 import fr.gouv.vitam.common.stream.MultiplexedStreamReader;
 import fr.gouv.vitam.storage.driver.model.StorageBulkPutResult;
 import fr.gouv.vitam.storage.driver.model.StorageMetadataResult;
@@ -38,7 +38,6 @@ import fr.gouv.vitam.storage.engine.common.model.DataCategory;
 import fr.gouv.vitam.storage.engine.common.model.OfferLog;
 import fr.gouv.vitam.storage.engine.common.model.Order;
 import fr.gouv.vitam.storage.engine.common.model.TapeReadRequestReferentialEntity;
-import fr.gouv.vitam.storage.offers.tape.exception.ReadRequestReferentialException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageDatabaseException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundException;
@@ -170,46 +169,6 @@ public interface DefaultOfferService {
         throws ContentAddressableStorageException, IOException;
 
     /**
-     * Create a new cursor for listing container operation
-     *
-     * @param containerName the container name
-     * @return the cursor ID value
-     * @throws ContentAddressableStorageNotFoundException thrown when the container cannot be located
-     * @throws ContentAddressableStorageServerException thrown when delete action failed due some other failure
-     */
-    String createCursor(String containerName)
-        throws ContentAddressableStorageNotFoundException, ContentAddressableStorageServerException;
-
-    /**
-     * Check if iterator have a next value
-     *
-     * @param containerName the container name
-     * @param cursorId the cursor ID
-     * @return true if there is yet one or more value
-     */
-    boolean hasNext(String containerName, String cursorId);
-
-    /**
-     * Get next values
-     *
-     * @param containerName the container name
-     * @param cursorId the cursor ID
-     * @return a list of next values
-     * @throws ContentAddressableStorageNotFoundException thrown when the container cannot be located
-     * @throws ContentAddressableStorageServerException
-     */
-    List<JsonNode> next(String containerName, String cursorId)
-        throws ContentAddressableStorageNotFoundException, ContentAddressableStorageServerException;
-
-    /**
-     * Close the cursor
-     *
-     * @param containerName the container name
-     * @param cursorId the cursor ID
-     */
-    void finalizeCursor(String containerName, String cursorId);
-
-    /**
      * Get the offer log of objects created in offer container
      *
      * @param containerName container the container name
@@ -224,4 +183,13 @@ public interface DefaultOfferService {
         throws ContentAddressableStorageDatabaseException, ContentAddressableStorageServerException;
 
     void checkOfferPath(String... paths) throws IOException;
+
+    /**
+     * List container objects
+     * @param containerName the container name
+     * @param objectListingListener a listener to which are reported found object entries
+     * @throws IOException
+     */
+    void listObjects(String containerName, ObjectListingListener objectListingListener)
+        throws IOException, ContentAddressableStorageNotFoundException, ContentAddressableStorageServerException;
 }

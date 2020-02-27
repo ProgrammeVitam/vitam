@@ -48,6 +48,7 @@ import static org.mockito.Mockito.when;
 
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -61,6 +62,8 @@ import javax.ws.rs.core.Response.Status;
 
 import com.google.common.collect.ImmutableMap;
 import fr.gouv.vitam.common.accesslog.AccessLogUtils;
+import fr.gouv.vitam.common.collection.CloseableIterator;
+import fr.gouv.vitam.common.model.storage.ObjectEntry;
 import fr.gouv.vitam.common.thread.VitamThreadFactory;
 import fr.gouv.vitam.storage.driver.Driver;
 import fr.gouv.vitam.storage.engine.common.model.request.BulkObjectStoreRequest;
@@ -68,6 +71,7 @@ import fr.gouv.vitam.storage.engine.common.model.response.BulkObjectStoreRespons
 import fr.gouv.vitam.storage.engine.common.referential.model.StorageOffer;
 import fr.gouv.vitam.storage.engine.server.distribution.impl.bulk.BulkStorageDistribution;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
+import org.apache.commons.collections4.IteratorUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.io.input.NullInputStream;
 import org.junit.After;
@@ -636,32 +640,32 @@ public class StorageDistributionImplTest {
     @Test
     public void listContainerObjectsTests() throws Exception {
         try {
-            simpleDistribution.listContainerObjects(null, null, null);
+            simpleDistribution.listContainerObjects(null, null);
             fail("Waiting for an illegal argument exception");
         } catch (IllegalArgumentException exc) {
             // nothing
         }
         try {
-            simpleDistribution.listContainerObjects(VitamConfiguration.getDefaultStrategy(), null, null);
+            simpleDistribution.listContainerObjects(VitamConfiguration.getDefaultStrategy(), null);
             fail("Waiting for an illegal argument exception");
         } catch (IllegalArgumentException exc) {
             // nothing
         }
         try {
-            simpleDistribution.listContainerObjects(VitamConfiguration.getDefaultStrategy(), DataCategory.OBJECT, null);
+            simpleDistribution.listContainerObjects(VitamConfiguration.getDefaultStrategy(), DataCategory.OBJECT);
             fail("Waiting for an illegal argument exception");
         } catch (IllegalArgumentException exc) {
             // nothing
         }
         try {
-            simpleDistribution.listContainerObjects(VitamConfiguration.getDefaultStrategy(), null, "cursorId");
+            simpleDistribution.listContainerObjects(VitamConfiguration.getDefaultStrategy(), null);
             fail("Waiting for an illegal argument exception");
         } catch (IllegalArgumentException exc) {
             // nothing
         }
         try {
             VitamThreadUtils.getVitamSession().setTenantId(0);
-            simpleDistribution.listContainerObjects(VitamConfiguration.getDefaultStrategy(), DataCategory.OBJECT, null);
+            simpleDistribution.listContainerObjects(VitamConfiguration.getDefaultStrategy(), DataCategory.OBJECT);
         } catch (IllegalArgumentException exc) {
             fail("Waiting for an illegal argument exception");
         }
@@ -671,11 +675,13 @@ public class StorageDistributionImplTest {
     @Test
     public void listContainerObjectsCustomTest() throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(0);
-        RequestResponse<JsonNode> result =
-            customDistribution.listContainerObjects(VitamConfiguration.getDefaultStrategy(), DataCategory.OBJECT, null);
+        CloseableIterator<ObjectEntry> result =
+            customDistribution.listContainerObjects(VitamConfiguration.getDefaultStrategy(), DataCategory.OBJECT);
         assertNotNull(result);
-        assertTrue(result.isOk());
-        assertFalse(Boolean.valueOf(result.getHeaderString(GlobalDataRest.X_CURSOR)));
+        List<ObjectEntry> objectEntries = IteratorUtils.toList(result);
+        assertThat(objectEntries).hasSize(1);
+        assertThat(objectEntries.get(0).getObjectId()).isEqualTo("objectId");
+        assertThat(objectEntries.get(0).getSize()).isEqualTo(100L);
     }
 
     @RunWithCustomExecutor

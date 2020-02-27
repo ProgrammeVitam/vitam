@@ -26,7 +26,6 @@
  */
 package fr.gouv.vitam.storage.offers.core;
 
-import com.fasterxml.jackson.databind.JsonNode;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Stopwatch;
 import com.google.common.base.Strings;
@@ -38,8 +37,6 @@ import fr.gouv.vitam.common.alert.AlertServiceImpl;
 import fr.gouv.vitam.common.database.server.mongodb.MongoDbAccess;
 import fr.gouv.vitam.common.digest.Digest;
 import fr.gouv.vitam.common.digest.DigestType;
-import fr.gouv.vitam.common.guid.GUIDFactory;
-import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogLevel;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
@@ -49,8 +46,7 @@ import fr.gouv.vitam.common.storage.ContainerInformation;
 import fr.gouv.vitam.common.storage.StorageConfiguration;
 import fr.gouv.vitam.common.storage.cas.container.api.ContentAddressableStorage;
 import fr.gouv.vitam.common.storage.cas.container.api.ObjectContent;
-import fr.gouv.vitam.common.storage.cas.container.api.VitamPageSet;
-import fr.gouv.vitam.common.storage.cas.container.api.VitamStorageMetadata;
+import fr.gouv.vitam.common.storage.cas.container.api.ObjectListingListener;
 import fr.gouv.vitam.common.storage.constants.StorageProvider;
 import fr.gouv.vitam.common.stream.ExactSizeInputStream;
 import fr.gouv.vitam.common.stream.MultiplexedStreamReader;
@@ -78,9 +74,7 @@ import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
 import java.security.cert.CertificateException;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
@@ -93,8 +87,6 @@ public class DefaultOfferServiceImpl implements DefaultOfferService {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(DefaultOfferServiceImpl.class);
 
     private final ContentAddressableStorage defaultStorage;
-
-    private final Map<String, String> mapXCusor;
 
     private OfferLogDatabaseService offerDatabaseService;
     private final ReadRequestReferentialRepository readRequestReferentialRepository;
@@ -119,7 +111,6 @@ public class DefaultOfferServiceImpl implements DefaultOfferService {
             throw new ExceptionInInitializerError(exc);
         }
         defaultStorage = StoreContextBuilder.newStoreContext(configuration, mongoDBAccess);
-        mapXCusor = new HashMap<>();
 
         if (StorageProvider.TAPE_LIBRARY.getValue().equalsIgnoreCase(configuration.getProvider())) {
             this.readRequestReferentialRepository =
@@ -466,46 +457,10 @@ public class DefaultOfferServiceImpl implements DefaultOfferService {
         }
     }
 
-    public String createCursor(String containerName) throws ContentAddressableStorageServerException {
-        defaultStorage.createContainer(containerName);
-        String cursorId = GUIDFactory.newGUID().toString();
-        mapXCusor.put(getKeyMap(containerName, cursorId), null);
-        return cursorId;
-    }
-
     @Override
-    public boolean hasNext(String containerName, String cursorId) {
-        return mapXCusor.containsKey(getKeyMap(containerName, cursorId));
-    }
-
-    @Override
-    public List<JsonNode> next(String containerName, String cursorId)
-        throws ContentAddressableStorageNotFoundException, ContentAddressableStorageServerException {
-        String keyMap = getKeyMap(containerName, cursorId);
-        if (mapXCusor.containsKey(keyMap)) {
-            VitamPageSet<? extends VitamStorageMetadata> pageSet;
-            if (mapXCusor.get(keyMap) == null) {
-                pageSet = defaultStorage.listContainer(containerName);
-            } else {
-                pageSet = defaultStorage.listContainerNext(containerName, mapXCusor.get(keyMap));
-            }
-            if (pageSet.getNextMarker() != null) {
-                mapXCusor.put(keyMap, pageSet.getNextMarker());
-            } else {
-                mapXCusor.remove(keyMap);
-            }
-            return getListFromPageSet(pageSet);
-        } else {
-            // TODO: manage with exception cursor already close
-            return null;
-        }
-    }
-
-    @Override
-    public void finalizeCursor(String containerName, String cursorId) {
-        if (mapXCusor.containsKey(getKeyMap(containerName, cursorId))) {
-            mapXCusor.remove(getKeyMap(containerName, cursorId));
-        }
+    public void listObjects(String containerName, ObjectListingListener objectListingListener)
+        throws IOException, ContentAddressableStorageNotFoundException, ContentAddressableStorageServerException {
+        defaultStorage.listContainer(containerName, objectListingListener);
     }
 
     @Override
@@ -520,18 +475,6 @@ public class DefaultOfferServiceImpl implements DefaultOfferService {
                     times.elapsed(TimeUnit.MILLISECONDS));
 
         }
-    }
-
-    private List<JsonNode> getListFromPageSet(VitamPageSet<? extends VitamStorageMetadata> pageSet) {
-        List<JsonNode> list = new ArrayList<>();
-        for (VitamStorageMetadata storageMetadata : pageSet) {
-            list.add(JsonHandler.createObjectNode().put("objectId", storageMetadata.getName()));
-        }
-        return list;
-    }
-
-    private String getKeyMap(String containerName, String cursorId) {
-        return cursorId + containerName;
     }
 
     public void checkOfferPath(String... paths) throws IOException {

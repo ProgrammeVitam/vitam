@@ -37,7 +37,7 @@ import fr.gouv.culture.archivesdefrance.seda.v2.LevelType;
 import fr.gouv.culture.archivesdefrance.seda.v2.OrganizationDescriptiveMetadataType;
 import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.client.VitamClientFactory;
-import fr.gouv.vitam.common.client.VitamRequestIterator;
+import fr.gouv.vitam.common.collection.CloseableIterator;
 import fr.gouv.vitam.common.database.parser.request.GlobalDatasParser;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamApplicationServerException;
@@ -52,6 +52,7 @@ import fr.gouv.vitam.common.mapping.deserializer.OrganizationDescriptiveMetadata
 import fr.gouv.vitam.common.mapping.deserializer.TextByLangDeserializer;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.administration.AccessContractModel;
+import fr.gouv.vitam.common.model.storage.ObjectEntry;
 import fr.gouv.vitam.common.model.unit.ArchiveUnitModel;
 import fr.gouv.vitam.common.model.unit.TextByLang;
 import fr.gouv.vitam.common.server.application.junit.ResteasyTestApplication;
@@ -530,11 +531,11 @@ public class AccessInternalResourceImplTest extends ResteasyTestApplication {
 
         doThrow(new StorageNotFoundException("Storage Not Found")).when(storageClient)
             .getContainerAsync(any(), anyString(), any(), any());
-        VitamRequestIterator<JsonNode> vitamRequestIterator = mock(VitamRequestIterator.class);
-        when(vitamRequestIterator.hasNext()).thenReturn(true);
-        when(vitamRequestIterator.next()).thenReturn(JsonHandler.createObjectNode().put("objectId", "guid"));
+        CloseableIterator<ObjectEntry> iterator = mock(CloseableIterator.class);
+        when(iterator.hasNext()).thenReturn(true);
+        when(iterator.next()).thenReturn(new ObjectEntry( "guid", 0L));
 
-        when(storageClient.listContainer(anyString(), any())).thenReturn(vitamRequestIterator);
+        when(storageClient.listContainer(anyString(), any())).thenReturn(iterator);
 
         given().contentType(MediaType.APPLICATION_JSON).accept(MediaType.APPLICATION_OCTET_STREAM)
             .header(GlobalDataRest.X_TENANT_ID, "0")

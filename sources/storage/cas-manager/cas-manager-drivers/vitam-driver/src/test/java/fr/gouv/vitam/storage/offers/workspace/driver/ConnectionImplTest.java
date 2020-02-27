@@ -41,6 +41,7 @@ import fr.gouv.vitam.common.junit.FakeInputStream;
 import fr.gouv.vitam.common.logging.SysErrLogger;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
+import fr.gouv.vitam.common.model.storage.ObjectEntry;
 import fr.gouv.vitam.common.server.application.junit.ResteasyTestApplication;
 import fr.gouv.vitam.common.serverv2.VitamServerTestRunner;
 import fr.gouv.vitam.storage.driver.AbstractConnection;
@@ -69,6 +70,7 @@ import fr.gouv.vitam.storage.engine.common.model.OfferLog;
 import fr.gouv.vitam.storage.engine.common.model.Order;
 import fr.gouv.vitam.storage.engine.common.model.request.OfferLogRequest;
 import fr.gouv.vitam.storage.engine.common.referential.model.StorageOffer;
+import org.apache.commons.collections4.IteratorUtils;
 import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
@@ -89,9 +91,11 @@ import javax.ws.rs.core.Response.Status;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.util.Arrays;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Random;
 import java.util.Set;
@@ -696,11 +700,18 @@ public class ConnectionImplTest extends ResteasyTestApplication {
     @Test
     public void listObjectsTest() throws Exception {
         StorageListRequest storageRequest =
-            new StorageListRequest(TENANT_ID, DataCategory.OBJECT.getFolder(), null, true);
-        when(mock.get()).thenReturn(Response.status(Status.OK).build());
+            new StorageListRequest(TENANT_ID, DataCategory.OBJECT.getFolder());
+
+        String responseContent = "{objectId:\"id\", size: 10}\n" +
+            "{}";
+        InputStream is = new ByteArrayInputStream(responseContent.getBytes(StandardCharsets.UTF_8));
+        when(mock.get()).thenReturn(Response.ok(is).build());
         try (Connection connection = driver.connect(offer.getId())) {
-            RequestResponse<JsonNode> jsonNodeRequestResponse = connection.listObjects(storageRequest);
-            assertNotNull(jsonNodeRequestResponse);
+            Iterator<ObjectEntry> response = connection.listObjects(storageRequest);
+            List<ObjectEntry> objectEntries = IteratorUtils.toList(response);
+            assertThat(objectEntries).hasSize(1);
+            assertThat(objectEntries.get(0).getObjectId()).isEqualTo("id");
+            assertThat(objectEntries.get(0).getSize()).isEqualTo(10L);
         }
     }
 

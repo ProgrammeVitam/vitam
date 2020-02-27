@@ -33,7 +33,7 @@ import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.accesslog.AccessLogInfoModel;
 import fr.gouv.vitam.common.client.DefaultClient;
 import fr.gouv.vitam.common.client.VitamRequestBuilder;
-import fr.gouv.vitam.common.client.VitamRequestIterator;
+import fr.gouv.vitam.common.collection.CloseableIterator;
 import fr.gouv.vitam.common.error.VitamCode;
 import fr.gouv.vitam.common.error.VitamCodeHelper;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
@@ -42,7 +42,10 @@ import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
+import fr.gouv.vitam.common.model.storage.ObjectEntry;
+import fr.gouv.vitam.common.model.storage.ObjectEntryReader;
 import fr.gouv.vitam.common.parameter.ParameterHelper;
+import fr.gouv.vitam.common.stream.StreamUtils;
 import fr.gouv.vitam.storage.engine.client.exception.StorageAlreadyExistsClientException;
 import fr.gouv.vitam.storage.engine.client.exception.StorageNotFoundClientException;
 import fr.gouv.vitam.storage.engine.client.exception.StorageServerClientException;
@@ -444,25 +447,36 @@ class StorageClientRest extends DefaultClient implements StorageClient {
                 VitamCodeHelper.getMessageFromVitamCode(VitamCode.STORAGE_TECHNICAL_INTERNAL_ERROR);
             LOGGER.error(errorMessage, e);
             throw new StorageServerClientException(errorMessage, e);
-        } catch (StorageNotFoundClientException e ) {
+        } catch (StorageNotFoundClientException e) {
             throw new StorageNotFoundException(e);
         }
     }
 
-    /**
-     *
-     * @deprecated (prefer to directly instantiate VitamRequestIteration)
-     */
     @Override
-    @Deprecated
-    public VitamRequestIterator<JsonNode> listContainer(String strategyId, DataCategory type) {
+    public CloseableIterator<ObjectEntry> listContainer(String strategyId, DataCategory type)
+        throws StorageServerClientException {
         ParametersChecker.checkParameter("Type cannot be null", type);
-        VitamRequestBuilder requestBuilder = VitamRequestBuilder.get()
+        VitamRequestBuilder request = VitamRequestBuilder.get()
             .withPath("/" + type.name())
             .withHeader(GlobalDataRest.X_STRATEGY_ID, strategyId)
-            .withHeader(GlobalDataRest.X_CURSOR, true)
             .withHeader(GlobalDataRest.X_TENANT_ID, ParameterHelper.getTenantParameter());
-        return new VitamRequestIterator<>(this, requestBuilder, JsonNode.class);
+
+        try {
+            Response response = make(request);
+
+            try {
+                check(response);
+
+                return new ObjectEntryReader(response.readEntity(InputStream.class));
+
+            } catch (Exception e) {
+                StreamUtils.consumeAnyEntityAndClose(response);
+                throw e;
+            }
+
+        } catch (final VitamClientInternalException e) {
+            throw new StorageServerClientException(INTERNAL_SERVER_ERROR, e);
+        }
     }
 
     @Override
@@ -504,7 +518,7 @@ class StorageClientRest extends DefaultClient implements StorageClient {
         VitamRequestBuilder request = post()
             .withPath(STORAGE_LOG_TRACEABILITY_URI)
             .withHeader(GlobalDataRest.X_TENANT_ID, ParameterHelper.getTenantParameter())
-            .withAccept( MediaType.APPLICATION_JSON_TYPE);
+            .withAccept(MediaType.APPLICATION_JSON_TYPE);
         try (Response response = make(request)) {
             check(response);
             return RequestResponse.parseRequestResponseOk(response);

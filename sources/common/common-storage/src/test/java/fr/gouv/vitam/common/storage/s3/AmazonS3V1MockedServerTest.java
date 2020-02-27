@@ -36,10 +36,16 @@ import static com.github.tomakehurst.wiremock.client.WireMock.urlMatching;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyZeroInteractions;
 
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 
+import fr.gouv.vitam.common.model.storage.ObjectEntry;
+import fr.gouv.vitam.common.storage.cas.container.api.ObjectListingListener;
 import org.apache.commons.io.IOUtils;
 import org.junit.Before;
 import org.junit.ClassRule;
@@ -55,11 +61,10 @@ import fr.gouv.vitam.common.junit.JunitHelper;
 import fr.gouv.vitam.common.storage.ContainerInformation;
 import fr.gouv.vitam.common.storage.StorageConfiguration;
 import fr.gouv.vitam.common.storage.cas.container.api.ObjectContent;
-import fr.gouv.vitam.common.storage.cas.container.api.VitamPageSet;
-import fr.gouv.vitam.common.storage.cas.container.api.VitamStorageMetadata;
 import fr.gouv.vitam.common.storage.constants.ErrorMessage;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
+import org.mockito.ArgumentCaptor;
 
 public class AmazonS3V1MockedServerTest {
 
@@ -495,12 +500,23 @@ public class AmazonS3V1MockedServerTest {
                 .withStatus(200).withHeader(AMZ_REQUEST_ID, "XXXXXX").withHeader(CONTENT_TYPE, "application/xml")
                 .withBody(IOUtils.toByteArray(PropertiesUtils.getResourceAsStream("s3/s3_bucket_1unit_list.xml")))));
 
-        VitamPageSet<? extends VitamStorageMetadata> pageSet = amazonS3V1.listContainer(CONTAINER_1);
-        assertThat(pageSet).isNotNull();
-        assertThat(pageSet.isEmpty()).isFalse();
-        assertThat(pageSet.size()).isEqualTo(100);
-        assertThat(pageSet.getNextMarker()).isNotNull();
-        assertThat(pageSet.getNextMarker()).isEqualTo("object_53");
+        s3WireMockRule.stubFor(get(BUCKET_1 + "/?list-type=2&continuation-token=object_53&max-keys=100&fetch-owner=false")
+                .willReturn(aResponse().withStatus(200).withHeader(AMZ_REQUEST_ID, "XXXXXX")
+                    .withHeader(CONTENT_TYPE, "application/xml").withBody(IOUtils.toByteArray(
+                        PropertiesUtils.getResourceAsStream("s3/s3_bucket_1unit_list_next.xml")))));
+
+        ObjectListingListener objectListingListener = mock(ObjectListingListener.class);
+
+        amazonS3V1.listContainer(CONTAINER_1, objectListingListener);
+
+        ArgumentCaptor<ObjectEntry> objectEntryArgumentCaptor = ArgumentCaptor.forClass(ObjectEntry.class);
+        verify(objectListingListener, times(150)).handleObjectEntry(objectEntryArgumentCaptor.capture());
+
+        assertThat(objectEntryArgumentCaptor.getAllValues().get(0).getObjectId()).isEqualTo("object_0");
+        assertThat(objectEntryArgumentCaptor.getAllValues().get(0).getSize()).isEqualTo(6906L);
+
+        assertThat(objectEntryArgumentCaptor.getAllValues().get(149).getObjectId()).isEqualTo("object_99");
+        assertThat(objectEntryArgumentCaptor.getAllValues().get(149).getSize()).isEqualTo(6906L);
     }
 
     @Test
@@ -508,60 +524,26 @@ public class AmazonS3V1MockedServerTest {
         s3WireMockRule.stubFor(get(BUCKET_1 + "/?list-type=2&max-keys=100&fetch-owner=false").willReturn(aResponse()
                 .withStatus(404).withHeader(CONTENT_TYPE, "application/xml").withHeader(AMZ_REQUEST_ID, "XXXXXX")
                 .withBody(IOUtils.toByteArray(PropertiesUtils.getResourceAsStream("s3/s3_bucket_1unit_404.xml")))));
+
+        ObjectListingListener objectListingListener = mock(ObjectListingListener.class);
+
         assertThatThrownBy(() -> {
-            amazonS3V1.listContainer(CONTAINER_1);
+            amazonS3V1.listContainer(CONTAINER_1, objectListingListener);
         }).isInstanceOf(ContentAddressableStorageNotFoundException.class)
                 .hasMessageContaining(ErrorMessage.CONTAINER_NOT_FOUND.getMessage());
+
+        verifyZeroInteractions(objectListingListener);
     }
 
     @Test
     public void list_container_should_throw_exception_when_s3_error() throws Exception {
         s3WireMockRule.stubFor(
                 get(BUCKET_1 + "/?list-type=2&max-keys=100&fetch-owner=false").willReturn(aResponse().withStatus(500)));
+        ObjectListingListener objectListingListener = mock(ObjectListingListener.class);
         assertThatThrownBy(() -> {
-            amazonS3V1.listContainer(CONTAINER_1);
+            amazonS3V1.listContainer(CONTAINER_1, objectListingListener);
         }).isInstanceOf(ContentAddressableStorageServerException.class);
-    }
-
-    @Test
-    public void list_container_next_should_not_throw_exception_when_objects_available() throws Exception {
-
-        s3WireMockRule
-                .stubFor(get(BUCKET_1 + "/?list-type=2&continuation-token=object_53&max-keys=100&fetch-owner=false")
-                        .willReturn(aResponse().withStatus(200).withHeader(AMZ_REQUEST_ID, "XXXXXX")
-                                .withHeader(CONTENT_TYPE, "application/xml").withBody(IOUtils.toByteArray(
-                                        PropertiesUtils.getResourceAsStream("s3/s3_bucket_1unit_list_next.xml")))));
-
-        VitamPageSet<? extends VitamStorageMetadata> pageSet = amazonS3V1.listContainerNext(CONTAINER_1, "object_53");
-        assertThat(pageSet).isNotNull();
-        assertThat(pageSet.isEmpty()).isFalse();
-        assertThat(pageSet.size()).isEqualTo(50);
-        assertThat(pageSet.getNextMarker()).isNull();
-
-    }
-
-    @Test
-    public void list_container_next_should_throw_exception_when_bucket_does_not_exists() throws Exception {
-
-        s3WireMockRule
-                .stubFor(get(BUCKET_1 + "/?list-type=2&continuation-token=object_53&max-keys=100&fetch-owner=false")
-                        .willReturn(aResponse().withStatus(404).withHeader(CONTENT_TYPE, "application/xml")
-                                .withHeader(AMZ_REQUEST_ID, "XXXXXX").withBody(IOUtils.toByteArray(
-                                        PropertiesUtils.getResourceAsStream("s3/s3_bucket_1unit_404.xml")))));
-        assertThatThrownBy(() -> {
-            amazonS3V1.listContainerNext(CONTAINER_1, "object_53");
-        }).isInstanceOf(ContentAddressableStorageNotFoundException.class)
-                .hasMessageContaining(ErrorMessage.CONTAINER_NOT_FOUND.getMessage());
-    }
-
-    @Test
-    public void list_container_next_should_throw_exception_when_s3_error() throws Exception {
-        s3WireMockRule
-                .stubFor(get(BUCKET_1 + "/?list-type=2&continuation-token=object_53&max-keys=100&fetch-owner=false")
-                        .willReturn(aResponse().withStatus(500)));
-        assertThatThrownBy(() -> {
-            amazonS3V1.listContainerNext(CONTAINER_1, "object_53");
-        }).isInstanceOf(ContentAddressableStorageServerException.class);
+        verifyZeroInteractions(objectListingListener);
     }
 
     @Test

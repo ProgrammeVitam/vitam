@@ -41,8 +41,8 @@ import fr.gouv.vitam.common.storage.StorageConfiguration;
 import fr.gouv.vitam.common.storage.cas.container.api.ContentAddressableStorageAbstract;
 import fr.gouv.vitam.common.storage.cas.container.api.MetadatasStorageObject;
 import fr.gouv.vitam.common.storage.cas.container.api.ObjectContent;
-import fr.gouv.vitam.common.storage.cas.container.api.VitamPageSet;
-import fr.gouv.vitam.common.storage.cas.container.api.VitamStorageMetadata;
+import fr.gouv.vitam.common.model.storage.ObjectEntry;
+import fr.gouv.vitam.common.storage.cas.container.api.ObjectListingListener;
 import fr.gouv.vitam.common.storage.constants.ErrorMessage;
 import fr.gouv.vitam.common.stream.SizedInputStream;
 import fr.gouv.vitam.common.stream.StreamUtils;
@@ -60,6 +60,7 @@ import org.openstack4j.model.storage.object.options.ObjectLocation;
 import org.openstack4j.model.storage.object.options.ObjectPutOptions;
 
 import java.io.ByteArrayInputStream;
+import java.io.IOException;
 import java.io.InputStream;
 import java.util.HashMap;
 import java.util.List;
@@ -356,33 +357,42 @@ public class Swift extends ContentAddressableStorageAbstract {
     }
 
     @Override
-    public VitamPageSet<? extends VitamStorageMetadata> listContainer(String containerName)
-        throws ContentAddressableStorageNotFoundException {
+    public void listContainer(String containerName, ObjectListingListener objectListingListener)
+        throws ContentAddressableStorageNotFoundException, IOException {
         ParametersChecker
             .checkParameter(ErrorMessage.CONTAINER_NAME_IS_A_MANDATORY_PARAMETER.getMessage(), containerName);
-        List<? extends SwiftObject> list =
-            osClient.get().objectStorage().objects().list(containerName, ObjectListOptions
-                .create().path(containerName).limit(LISTING_MAX_RESULTS));
-        if (list != null) {
-            return OpenstackPageSetImpl.wrap(list);
-        } else {
-            throw new ContentAddressableStorageNotFoundException(containerName + " not found");
-        }
-    }
 
-    @Override
-    public VitamPageSet<? extends VitamStorageMetadata> listContainerNext(String containerName, String nextMarker)
-        throws ContentAddressableStorageNotFoundException {
-        ParametersChecker
-            .checkParameter(ErrorMessage.CONTAINER_NAME_IS_A_MANDATORY_PARAMETER.getMessage(), containerName);
-        List<? extends SwiftObject> list =
-            osClient.get().objectStorage().objects().list(containerName, ObjectListOptions
-                .create().path(containerName).limit(LISTING_MAX_RESULTS).marker(nextMarker));
-        if (list != null) {
-            return OpenstackPageSetImpl.wrap(list);
-        } else {
-            throw new ContentAddressableStorageNotFoundException(containerName + " not found");
-        }
+        String nextMarker = null;
+        do {
+            ObjectListOptions objectListOptions = ObjectListOptions.create()
+                .path(containerName)
+                .limit(LISTING_MAX_RESULTS);
+
+            if (nextMarker != null) {
+                objectListOptions.marker(nextMarker);
+            }
+
+            List<? extends SwiftObject> swiftObjects =
+                osClient.get().objectStorage().objects().list(containerName, objectListOptions);
+
+            if (swiftObjects == null) {
+                throw new ContentAddressableStorageNotFoundException(containerName + " not found");
+            }
+
+            if (swiftObjects.isEmpty()) {
+                break;
+            }
+
+            for (SwiftObject swiftObject : swiftObjects) {
+                objectListingListener.handleObjectEntry(new ObjectEntry(
+                    swiftObject.getName(),
+                    swiftObject.getSizeInBytes()
+                ));
+            }
+
+            nextMarker = swiftObjects.get(swiftObjects.size() - 1).getName();
+
+        } while (nextMarker != null);
     }
 
     @Override
