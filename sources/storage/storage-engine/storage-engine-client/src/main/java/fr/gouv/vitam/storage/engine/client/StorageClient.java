@@ -28,6 +28,7 @@ package fr.gouv.vitam.storage.engine.client;
 
 import java.io.InputStream;
 import java.util.Collection;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
@@ -37,10 +38,11 @@ import com.fasterxml.jackson.databind.JsonNode;
 
 import fr.gouv.vitam.common.accesslog.AccessLogInfoModel;
 import fr.gouv.vitam.common.client.BasicClient;
-import fr.gouv.vitam.common.client.VitamRequestIterator;
+import fr.gouv.vitam.common.collection.CloseableIterator;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
+import fr.gouv.vitam.common.model.storage.ObjectEntry;
 import fr.gouv.vitam.storage.engine.client.exception.StorageAlreadyExistsClientException;
 import fr.gouv.vitam.storage.engine.client.exception.StorageNotFoundClientException;
 import fr.gouv.vitam.storage.engine.client.exception.StorageServerClientException;
@@ -186,7 +188,7 @@ public interface StorageClient extends BasicClient {
      * @return an iterator with object list
      * @throws StorageServerClientException thrown if the server got an internal error
      */
-    VitamRequestIterator<JsonNode> listContainer(String strategyId, DataCategory type)
+    CloseableIterator<ObjectEntry> listContainer(String strategyId, DataCategory type)
         throws StorageServerClientException;
 
 

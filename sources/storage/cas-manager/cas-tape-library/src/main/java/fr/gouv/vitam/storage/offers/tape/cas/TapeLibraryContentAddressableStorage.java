@@ -41,8 +41,7 @@ import fr.gouv.vitam.common.storage.ContainerInformation;
 import fr.gouv.vitam.common.storage.cas.container.api.ContentAddressableStorage;
 import fr.gouv.vitam.common.storage.cas.container.api.MetadatasStorageObject;
 import fr.gouv.vitam.common.storage.cas.container.api.ObjectContent;
-import fr.gouv.vitam.common.storage.cas.container.api.VitamPageSet;
-import fr.gouv.vitam.common.storage.cas.container.api.VitamStorageMetadata;
+import fr.gouv.vitam.common.storage.cas.container.api.ObjectListingListener;
 import fr.gouv.vitam.common.storage.constants.ErrorMessage;
 import fr.gouv.vitam.common.stream.ExactDigestValidatorInputStream;
 import fr.gouv.vitam.common.stream.ExactSizeInputStream;
@@ -516,14 +515,9 @@ public class TapeLibraryContentAddressableStorage implements ContentAddressableS
     }
 
     @Override
-    public VitamPageSet<? extends VitamStorageMetadata> listContainer(String containerName) {
+    public void listContainer(String containerName, ObjectListingListener objectListingListener)
+        throws ContentAddressableStorageNotFoundException, ContentAddressableStorageServerException, IOException {
         LOGGER.debug(String.format("Listing of object in container %s", containerName));
-        throw new UnsupportedOperationException("To be implemented");
-    }
-
-    @Override
-    public VitamPageSet<? extends VitamStorageMetadata> listContainerNext(String containerName, String nextMarker) {
-        LOGGER.debug(String.format("Listing of object from marker %s in container %s", nextMarker, containerName));
         throw new UnsupportedOperationException("To be implemented");
     }
 

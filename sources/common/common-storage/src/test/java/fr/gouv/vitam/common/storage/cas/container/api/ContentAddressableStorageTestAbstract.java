@@ -33,6 +33,7 @@ import fr.gouv.vitam.common.digest.DigestType;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.junit.FakeInputStream;
 import fr.gouv.vitam.common.model.MetadatasObject;
+import fr.gouv.vitam.common.model.storage.ObjectEntry;
 import fr.gouv.vitam.common.storage.ContainerInformation;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundException;
@@ -40,16 +41,23 @@ import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerExce
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
+import org.mockito.ArgumentCaptor;
 
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.Set;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 
 /**
  * Abstract Junit Test for classes that implements ContentAddressableStorage API
@@ -274,36 +282,26 @@ public abstract class ContentAddressableStorageTestAbstract {
         String containerName = "object_0";
         storage.createContainer(containerName);
         assertNotNull(storage.getContainerInformation(containerName));
-        for (int i = 0; i < 100; i++) {
-            storage.putObject(containerName, GUIDFactory.newGUID().getId(), new FakeInputStream(100), DigestType.SHA512,
+        for (int i = 0; i < 150; i++) {
+            storage.putObject(containerName, "object_" + i, new FakeInputStream(100), DigestType.SHA512,
                     null);
         }
-        VitamPageSet<? extends VitamStorageMetadata> pageSet = storage.listContainer(containerName);
-        assertNotNull(pageSet);
-        assertFalse(pageSet.isEmpty());
-        assertEquals(100, pageSet.size());
+        ObjectListingListener objectListingListener = mock(ObjectListingListener.class);
 
-        for (int i = 100; i < (nbIter * 100 + 50); i++) {
-            storage.putObject(containerName, GUIDFactory.newGUID().getId(), new FakeInputStream(100), DigestType.SHA512,
-                    null);
-        }
-        // First list without marker
-        pageSet = storage.listContainer(containerName);
-        // Loop with marker with complete PageSet (100 elements)
-        for (int i = 1; i < nbIter; i++) {
-            pageSet = storage.listContainerNext(containerName, pageSet.getNextMarker());
-            assertNotNull(pageSet);
-            assertFalse(pageSet.isEmpty());
-            assertEquals(100, pageSet.size());
-            assertNotNull(pageSet.getNextMarker());
-        }
-        // Last listContainer with only 50 results
-        pageSet = storage.listContainerNext(containerName, pageSet.getNextMarker());
-        assertNotNull(pageSet);
-        assertFalse(pageSet.isEmpty());
-        assertEquals(50, pageSet.size());
-        assertNull(pageSet.getNextMarker());
+        storage.listContainer(containerName, objectListingListener);
 
+        ArgumentCaptor<ObjectEntry> objectEntryArgumentCaptor = ArgumentCaptor.forClass(ObjectEntry.class);
+        verify(objectListingListener, times(nbIter * 100 + 50)).handleObjectEntry(objectEntryArgumentCaptor.capture());
+
+        objectEntryArgumentCaptor.getAllValues()
+            .forEach(capturedObjectEntry -> assertThat(capturedObjectEntry.getSize()).isEqualTo(100L));
+
+        Set<String> capturedFileNames = objectEntryArgumentCaptor.getAllValues().stream()
+            .map(ObjectEntry::getObjectId)
+            .collect(Collectors.toSet());
+        Set<String> expectedFileNames = IntStream.range(0, nbIter * 100 + 50)
+            .mapToObj(i -> "object_" + i)
+            .collect(Collectors.toSet());
+        assertThat(capturedFileNames).isEqualTo(expectedFileNames);
     }
-
 }

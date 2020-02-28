@@ -28,8 +28,10 @@ package fr.gouv.vitam.storage.engine.server.distribution;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import fr.gouv.vitam.common.accesslog.AccessLogInfoModel;
+import fr.gouv.vitam.common.collection.CloseableIterator;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.VitamAutoCloseable;
+import fr.gouv.vitam.common.model.storage.ObjectEntry;
 import fr.gouv.vitam.storage.engine.common.exception.StorageException;
 import fr.gouv.vitam.storage.engine.common.exception.StorageNotFoundException;
 import fr.gouv.vitam.storage.engine.common.exception.StorageTechnicalException;
@@ -46,6 +48,7 @@ import fr.gouv.vitam.storage.engine.server.distribution.impl.DataContext;
 import fr.gouv.vitam.storage.engine.server.distribution.impl.StreamAndInfo;
 
 import javax.ws.rs.core.Response;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
@@ -151,11 +154,10 @@ public interface StorageDistribution extends VitamAutoCloseable {
      *
      * @param strategyId the strategy id to get offers
      * @param category the object type to list
-     * @param cursorId the cursorId if exists
      * @return a response with object listing
      * @throws StorageException thrown in case of any technical problem
      */
-    RequestResponse<JsonNode> listContainerObjects(String strategyId, DataCategory category, String cursorId)
+    CloseableIterator<ObjectEntry> listContainerObjects(String strategyId, DataCategory category)
         throws StorageException;
 
     /**

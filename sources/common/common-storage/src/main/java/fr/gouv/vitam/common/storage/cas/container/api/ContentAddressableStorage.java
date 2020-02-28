@@ -26,7 +26,6 @@
  */
 package fr.gouv.vitam.common.storage.cas.container.api;
 
-import com.fasterxml.jackson.databind.JsonNode;
 import fr.gouv.vitam.common.digest.DigestType;
 import fr.gouv.vitam.common.model.MetadatasObject;
 import fr.gouv.vitam.common.model.VitamAutoCloseable;
@@ -91,7 +90,7 @@ public interface ContentAddressableStorage extends VitamAutoCloseable {
      * @throws ContentAddressableStorageAlreadyExistException Thrown when object creating exists
      */
     ObjectContent getObject(String containerName, String objectName)
-            throws ContentAddressableStorageNotFoundException, ContentAddressableStorageException;
+        throws ContentAddressableStorageNotFoundException, ContentAddressableStorageException;
 
     /**
      * Create read order (asynchronous read from tape to local FS) for the given objects representing the data at location containerName/objectId.
@@ -106,7 +105,7 @@ public interface ContentAddressableStorage extends VitamAutoCloseable {
      * @throws ContentAddressableStorageAlreadyExistException Thrown when object creating exists
      */
     String createReadOrderRequest(String containerName, List<String> objectsIds)
-            throws ContentAddressableStorageNotFoundException, ContentAddressableStorageException;
+        throws ContentAddressableStorageNotFoundException, ContentAddressableStorageException;
 
     /**
      * Purge all read request id to cleanup local FS
@@ -115,7 +114,7 @@ public interface ContentAddressableStorage extends VitamAutoCloseable {
      * @param readRequestID the read request ID.
      */
     void removeReadOrderRequest(String readRequestID)
-            throws ContentAddressableStorageServerException;
+        throws ContentAddressableStorageServerException;
 
     /**
      * Deletes a object representing the data at location containerName/objectName
@@ -183,26 +182,12 @@ public interface ContentAddressableStorage extends VitamAutoCloseable {
         throws ContentAddressableStorageException, IOException;
 
     /**
-     * List container (create cursor)
+     * List container objects
      *
      * @param containerName the container name
-     * @return container listing
      * @throws ContentAddressableStorageNotFoundException Thrown when the container cannot be located.
      * @throws ContentAddressableStorageServerException Thrown when internal server error happens
      */
-    VitamPageSet<? extends VitamStorageMetadata> listContainer(String containerName)
-        throws ContentAddressableStorageNotFoundException, ContentAddressableStorageServerException;
-
-    /**
-     * List container (next on cursor)
-     *
-     * @param containerName the container name
-     * @param nextMarker the last id of the list to get next
-     * @return container listing
-     * @throws ContentAddressableStorageNotFoundException Thrown when the container cannot be located.
-     * @throws ContentAddressableStorageServerException Thrown when internal server error happens
-     */
-    VitamPageSet<? extends VitamStorageMetadata> listContainerNext(String containerName, String nextMarker)
-        throws ContentAddressableStorageNotFoundException, ContentAddressableStorageServerException;
-
+    void listContainer(String containerName, ObjectListingListener objectListingListener)
+        throws ContentAddressableStorageNotFoundException, ContentAddressableStorageServerException, IOException;
 }

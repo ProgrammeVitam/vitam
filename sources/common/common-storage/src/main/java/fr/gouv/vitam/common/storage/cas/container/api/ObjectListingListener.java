@@ -24,38 +24,12 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  */
-package fr.gouv.vitam.common.storage.swift;
+package fr.gouv.vitam.common.storage.cas.container.api;
 
-import java.util.LinkedHashSet;
-import java.util.List;
+import fr.gouv.vitam.common.model.storage.ObjectEntry;
 
-import org.openstack4j.model.storage.object.SwiftObject;
+import java.io.IOException;
 
-import fr.gouv.vitam.common.storage.cas.container.api.VitamPageSet;
-import fr.gouv.vitam.common.storage.cas.container.api.VitamStorageMetadata;
-import fr.gouv.vitam.common.storage.filesystem.v2.metadata.VitamStorageMetadataImpl;
-
-/**
- * This class wrap Openstack swift list to vitam pageSet
- */
-public class OpenstackPageSetImpl extends LinkedHashSet<VitamStorageMetadata>
-    implements VitamPageSet<VitamStorageMetadata> {
-
-    protected String marker = null;
-
-    public static VitamPageSet<VitamStorageMetadata> wrap(List<? extends SwiftObject> list) {
-        OpenstackPageSetImpl openstackPageSet = new OpenstackPageSetImpl();
-        if (list == null || list.isEmpty()) {
-            return openstackPageSet;
-        }
-        list.forEach(o -> openstackPageSet.add(new VitamStorageMetadataImpl(null, null, o.getName(), null, null,
-            null, o.getETag(), null, o.getLastModified(), o.getSizeInBytes())));
-        openstackPageSet.marker = list.get(list.size() - 1).getName();
-        return openstackPageSet;
-    }
-
-    @Override
-    public String getNextMarker() {
-        return this.marker;
-    }
+public interface ObjectListingListener {
+    void handleObjectEntry(ObjectEntry objectEntry) throws IOException;
 }

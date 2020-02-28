@@ -35,6 +35,7 @@ import static org.mockito.Mockito.mock;
 
 import java.io.InputStream;
 
+import fr.gouv.vitam.common.storage.cas.container.api.ObjectListingListener;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -223,17 +224,7 @@ public class AmazonS3V1MockedClientTest {
         Mockito.when(amazonS3Client.listObjectsV2(any(ListObjectsV2Request.class)))
                 .thenThrow(new SdkBaseException("Client error"));
         assertThatThrownBy(() -> {
-            amazonS3V1.listContainer(CONTAINER_0);
+            amazonS3V1.listContainer(CONTAINER_0, mock(ObjectListingListener.class));
         }).isInstanceOf(ContentAddressableStorageServerException.class).hasMessage("Error when trying to list objects");
-    }
-
-    @Test
-    public void list_container_next_should_throw_exception_when_client_throws_exception() throws Exception {
-        Mockito.when(amazonS3Client.listObjectsV2(any(ListObjectsV2Request.class)))
-                .thenThrow(new SdkBaseException("Client error"));
-        assertThatThrownBy(() -> {
-            amazonS3V1.listContainerNext(CONTAINER_0, "object_35");
-        }).isInstanceOf(ContentAddressableStorageServerException.class)
-                .hasMessage("Error when trying to list next objects");
     }
 }

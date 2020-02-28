@@ -51,6 +51,8 @@ import fr.gouv.vitam.common.junit.JunitHelper;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.RequestResponseOK;
+import fr.gouv.vitam.common.model.storage.ObjectEntry;
+import fr.gouv.vitam.common.model.storage.ObjectEntryReader;
 import fr.gouv.vitam.common.mongo.MongoRule;
 import fr.gouv.vitam.common.server.application.configuration.MongoDbNode;
 import fr.gouv.vitam.common.storage.StorageConfiguration;
@@ -64,6 +66,7 @@ import fr.gouv.vitam.storage.engine.common.model.request.OfferLogRequest;
 import fr.gouv.vitam.storage.engine.common.collection.OfferCollections;
 import io.restassured.RestAssured;
 import io.restassured.response.ResponseBody;
+import org.apache.commons.collections4.IteratorUtils;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.output.ByteArrayOutputStream;
 import org.bson.Document;
@@ -86,6 +89,9 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 import static io.restassured.RestAssured.given;
 import static io.restassured.RestAssured.with;
@@ -584,7 +590,7 @@ public class DefaultOfferResourceTest {
 
         given().header(GlobalDataRest.X_TENANT_ID, "1").when().get(OBJECTS_URI + "/" + DataCategory.OBJECT.name())
             .then()
-            .statusCode(204);
+            .statusCode(404);
 
         for (int i = 0; i < 10; i++) {
 
@@ -599,11 +605,18 @@ public class DefaultOfferResourceTest {
             checkOfferDatabaseExistingDocument("1_object", "id" + i);
         }
 
-        given().header(GlobalDataRest.X_CURSOR, true).header(GlobalDataRest.X_TENANT_ID, "1").when()
-            .get(OBJECTS_URI + "/" + DataCategory.OBJECT.name()).then()
-            .header(GlobalDataRest.X_CURSOR_ID, Matchers.notNullValue()).statusCode(200);
+        io.restassured.response.Response response =
+            given().header(GlobalDataRest.X_CURSOR, true).header(GlobalDataRest.X_TENANT_ID, "1").when()
+                .get(OBJECTS_URI + "/" + DataCategory.OBJECT.name()).andReturn();
+        assertThat(response.statusCode()).isEqualTo(200);
 
-        // TODO: more ?
+        ObjectEntryReader objectEntryReader = new ObjectEntryReader(response.asInputStream());
+        Set<String> objectIds = IteratorUtils.toList(objectEntryReader)
+            .stream()
+            .map(ObjectEntry::getObjectId)
+            .collect(Collectors.toSet());
+        Set<String> expectedObjectIds = IntStream.range(0, 10).mapToObj(i -> "id" + i).collect(Collectors.toSet());
+        assertThat(objectIds).isEqualTo(expectedObjectIds);
     }
 
     @Test

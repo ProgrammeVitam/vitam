@@ -42,6 +42,7 @@ import fr.gouv.vitam.common.SedaConstants;
 import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.accesslog.AccessLogInfoModel;
 import fr.gouv.vitam.common.accesslog.AccessLogUtils;
+import fr.gouv.vitam.common.collection.CloseableIterator;
 import fr.gouv.vitam.common.database.builder.query.VitamFieldsHelper;
 import fr.gouv.vitam.common.database.builder.query.action.Action;
 import fr.gouv.vitam.common.database.builder.query.action.SetAction;
@@ -80,6 +81,7 @@ import fr.gouv.vitam.common.model.administration.AccessContractModel;
 import fr.gouv.vitam.common.model.objectgroup.ObjectGroupResponse;
 import fr.gouv.vitam.common.model.objectgroup.QualifiersModel;
 import fr.gouv.vitam.common.model.objectgroup.VersionsModel;
+import fr.gouv.vitam.common.model.storage.ObjectEntry;
 import fr.gouv.vitam.common.parameter.ParameterHelper;
 import fr.gouv.vitam.common.security.SanityChecker;
 import fr.gouv.vitam.common.stream.VitamAsyncInputStreamResponse;
@@ -496,10 +498,12 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
 
 
         try (StorageClient storageClient = storageClientFactory.getClient();
-            WorkspaceClient workspaceClient = workspaceClientFactory.getClient()) {
+            WorkspaceClient workspaceClient = workspaceClientFactory.getClient();
             // Get Files in accessLog
-            Iterator<JsonNode> filesInfo =
+            CloseableIterator<ObjectEntry> filesInfo =
                 storageClient.listContainer(VitamConfiguration.getDefaultStrategy(), DataCategory.STORAGEACCESSLOG);
+        ) {
+
             if (filesInfo.hasNext()) {
                 workspaceClient.createContainer(containerName);
             }
@@ -507,9 +511,10 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
 
             // Check matching files that would be exported and put them on workspace
             while (filesInfo.hasNext()) {
-                String fileName = filesInfo.next().get("objectId").asText();
-                if (!AccessLogUtils.checkFileInRequestedDates(fileName, startDate, endDate))
+                String fileName = filesInfo.next().getObjectId();
+                if (!AccessLogUtils.checkFileInRequestedDates(fileName, startDate, endDate)) {
                     continue;
+                }
 
                 Response fileResponse = getAccessLogFile(fileName);
 
