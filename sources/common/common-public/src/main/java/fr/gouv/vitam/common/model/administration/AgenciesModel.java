@@ -31,13 +31,14 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 
 import fr.gouv.vitam.common.model.ModelConstants;
 
+import java.util.Objects;
+
 /**
  * Data Transfer Object Model of Agency
  */
 @JsonInclude(JsonInclude.Include.NON_EMPTY)
 public class AgenciesModel {
     public static final String TAG_NAME = "Name";
-
     public static final String TAG_IDENTIFIER = "Identifier";
     public static final String TAG_DESCRIPTION = "Description";
 
@@ -50,7 +51,7 @@ public class AgenciesModel {
     /**
      * tenant id
      */
-    @JsonProperty(ModelConstants.HASH + ModelConstants.TAG_TENANT)
+    @JsonProperty(ModelConstants.UNDERSCORE + ModelConstants.TAG_TENANT)
     private Integer tenant;
 
     /**
@@ -75,13 +76,16 @@ public class AgenciesModel {
      * @param name
      * @param description
      */
-    public AgenciesModel(@JsonProperty(TAG_IDENTIFIER) String identifier,
-        @JsonProperty(TAG_NAME) String name, @JsonProperty(TAG_DESCRIPTION) String description) {
+    public AgenciesModel(
+        @JsonProperty(TAG_IDENTIFIER) String identifier,
+        @JsonProperty(TAG_NAME) String name,
+        @JsonProperty(TAG_DESCRIPTION) String description,
+        @JsonProperty(ModelConstants.HASH + ModelConstants.TAG_TENANT) int tenant) {
 
+        this.tenant = tenant;
         this.identifier = identifier;
         this.name = name;
         this.description = description;
-
     }
 
     /**
@@ -182,4 +186,19 @@ public class AgenciesModel {
         return this;
     }
 
+    @Override
+    public boolean equals(Object o) {
+        if (this == o)
+            return true;
+        if (o == null || getClass() != o.getClass())
+            return false;
+        AgenciesModel that = (AgenciesModel) o;
+        return tenant.equals(that.tenant) &&
+            identifier.equals(that.identifier);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(tenant, identifier);
+    }
 }

@@ -1027,7 +1027,7 @@ public class AccessContractImplTest {
         responseCast = accessContractService.findContracts(queryDsl);
         assertThat(responseCast.getResults()).isNotEmpty();
         for (final AccessContractModel accessContractModel : responseCast.getResults()) {
-            assertThat(activeStatus.equals(accessContractModel.getStatus()));
+            assertEquals(activeStatus, accessContractModel.getStatus().name());
         }
 
         // Test update existing originatingAgencies
