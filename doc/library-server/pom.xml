@@ -7,7 +7,7 @@
 		<groupId>fr.gouv.vitam</groupId>
 		<artifactId>parent</artifactId>
 		<relativePath>../../sources/pom.xml</relativePath>
-		<version>2.1.19-SNAPSHOT</version>
+		<version>2.1.20-SNAPSHOT</version>
 	</parent>
 
     <artifactId>library-server</artifactId>
