@@ -48,7 +48,6 @@ import fr.gouv.vitam.storage.engine.server.distribution.impl.DataContext;
 import fr.gouv.vitam.storage.engine.server.distribution.impl.StreamAndInfo;
 
 import javax.ws.rs.core.Response;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
@@ -137,19 +136,6 @@ public interface StorageDistribution extends VitamAutoCloseable {
     JsonNode getContainerInformation(String strategyId) throws StorageException;
 
     /**
-     * Create a container Architects are aware of this.
-     *
-     * @param strategyId id of the strategy
-     * @return a JsonNode containing informations about the created Container
-     * @throws StorageException Thrown in case the Container already exists
-     */
-    // TODO P1 : container creation possibility needs to be re-think then
-    // deleted or implemented. Vitam
-    JsonNode createContainer(String strategyId) throws StorageException;
-
-
-
-    /**
      * List container objects
      *
      * @param strategyId the strategy id to get offers
@@ -159,6 +145,9 @@ public interface StorageDistribution extends VitamAutoCloseable {
      */
     CloseableIterator<ObjectEntry> listContainerObjects(String strategyId, DataCategory category)
         throws StorageException;
+
+    CloseableIterator<ObjectEntry> listContainerObjectsForOffer(DataCategory category,
+        String offerId, boolean includeDisabled) throws StorageException;
 
     /**
      * Get offer log from referent

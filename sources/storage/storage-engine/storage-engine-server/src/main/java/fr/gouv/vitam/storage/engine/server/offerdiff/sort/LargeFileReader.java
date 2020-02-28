@@ -24,41 +24,10 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  */
-package fr.gouv.vitam.storage.engine.common.referential;
 
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
+package fr.gouv.vitam.storage.engine.server.offerdiff.sort;
 
-import fr.gouv.vitam.storage.engine.common.exception.StorageNotFoundException;
-import fr.gouv.vitam.storage.engine.common.referential.model.StorageOffer;
-import org.junit.Test;
+import fr.gouv.vitam.common.collection.CloseableIterator;
 
-/**
- *
- */
-public class StorageOfferProviderFactoryTest {
-
-    @Test
-    public void testGetDefaultProvider() throws Exception {
-        assertNotNull(StorageOfferProviderFactory.getDefaultProvider());
-        assertTrue(StorageOfferProviderFactory.getDefaultProvider() instanceof FileStorageProvider);
-    }
-
-    @Test
-    public void testGetProvider() throws Exception {
-        StorageOfferProvider provider = StorageOfferProviderFactory.getDefaultProvider();
-        assertNotNull(provider);
-        assertTrue(provider instanceof FileStorageProvider);
-        StorageOffer disabledOffer = provider.getStorageOffer("inactiveOffer", true);
-        assertFalse(disabledOffer.isEnabled());
-        assertTrue(disabledOffer.getId().equals("inactiveOffer"));
-
-        try {
-            provider.getStorageOffer("inactiveOffer", false);
-            fail("Expecting storage exception");
-        }catch(StorageNotFoundException ex){
-        }
-    }
+public interface LargeFileReader<T> extends CloseableIterator<T> {
 }

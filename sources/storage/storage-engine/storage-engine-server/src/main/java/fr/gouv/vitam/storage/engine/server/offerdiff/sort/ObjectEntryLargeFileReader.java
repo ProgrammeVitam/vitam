@@ -24,41 +24,46 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  */
-package fr.gouv.vitam.storage.engine.common.referential;
 
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
+package fr.gouv.vitam.storage.engine.server.offerdiff.sort;
 
-import fr.gouv.vitam.storage.engine.common.exception.StorageNotFoundException;
-import fr.gouv.vitam.storage.engine.common.referential.model.StorageOffer;
-import org.junit.Test;
+import fr.gouv.vitam.common.model.storage.ObjectEntry;
+import fr.gouv.vitam.common.model.storage.ObjectEntryReader;
+import org.apache.commons.io.IOUtils;
 
-/**
- *
- */
-public class StorageOfferProviderFactoryTest {
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.UncheckedIOException;
 
-    @Test
-    public void testGetDefaultProvider() throws Exception {
-        assertNotNull(StorageOfferProviderFactory.getDefaultProvider());
-        assertTrue(StorageOfferProviderFactory.getDefaultProvider() instanceof FileStorageProvider);
+public class ObjectEntryLargeFileReader implements LargeFileReader<ObjectEntry> {
+
+    private final InputStream inputStream;
+    private final ObjectEntryReader objectEntryReader;
+
+    public ObjectEntryLargeFileReader(File file) {
+        try {
+            inputStream = new FileInputStream(file);
+            objectEntryReader = new ObjectEntryReader(inputStream);
+        } catch (IOException e) {
+            throw new UncheckedIOException(e);
+        }
     }
 
-    @Test
-    public void testGetProvider() throws Exception {
-        StorageOfferProvider provider = StorageOfferProviderFactory.getDefaultProvider();
-        assertNotNull(provider);
-        assertTrue(provider instanceof FileStorageProvider);
-        StorageOffer disabledOffer = provider.getStorageOffer("inactiveOffer", true);
-        assertFalse(disabledOffer.isEnabled());
-        assertTrue(disabledOffer.getId().equals("inactiveOffer"));
+    @Override
+    public boolean hasNext() {
+        return objectEntryReader.hasNext();
+    }
 
-        try {
-            provider.getStorageOffer("inactiveOffer", false);
-            fail("Expecting storage exception");
-        }catch(StorageNotFoundException ex){
-        }
+    @Override
+    public ObjectEntry next() {
+        return objectEntryReader.next();
+    }
+
+    @Override
+    public void close() {
+        this.objectEntryReader.close();
+        IOUtils.closeQuietly(this.inputStream);
     }
 }

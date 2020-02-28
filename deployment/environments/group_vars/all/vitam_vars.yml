@@ -603,6 +603,9 @@ vitam:
           offersync:
             history_days: 10
             totalsize: "5GB"
+          offerdiff:
+            history_days: 10
+            totalsize: "5GB"
         jvm_log: false
         # unit time per kB (in ms) used while calculating the timeout of an http request between storage and offer (if the calculated result is less than 60s, this time is used)
         timeoutMsPerKB: 100

@@ -45,4 +45,15 @@ public interface StorageOfferProvider {
      *             if any unwanted technical issue happens
      */
     StorageOffer getStorageOffer(String idOffer) throws StorageException;
+
+    /**
+     * Retrieve an offer full configuration by its id, may include disabled one  (
+     * {@link fr.gouv.vitam.common.model.administration.ActivationStatus#INACTIVE})
+     *
+     * @param idOffer the id of the storage offer to retrieve
+     * @param includeDisabled whether to include offer with inactive state
+     * @return an object representation of a storage offer
+     * @throws StorageException if any unwanted technical issue happens
+     */
+    StorageOffer getStorageOffer(String idOffer, boolean includeDisabled) throws StorageException;
 }
